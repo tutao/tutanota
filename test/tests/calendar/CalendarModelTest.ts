@@ -32,7 +32,7 @@ import { SessionKeyNotFoundError } from "../../../src/common/api/common/error/Se
 import { createTestEntity } from "../TestUtils.js"
 import { NoopProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
 import { makeAlarmScheduler } from "./CalendarTestUtils.js"
-import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { incrementByRepeatPeriod } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
@@ -775,7 +775,7 @@ o.spec("CalendarModel", function () {
 				instanceId: elementIdPart(eventUpdate._id),
 				operation: OperationType.CREATE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 
 			o(model.getFileIdToSkippedCalendarEventUpdates().get(getElementId(calendarFile))!).deepEquals(eventUpdate)
@@ -792,7 +792,7 @@ o.spec("CalendarModel", function () {
 				instanceId: elementIdPart(calendarFile._id),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 
 			o(model.getFileIdToSkippedCalendarEventUpdates().size).deepEquals(0)

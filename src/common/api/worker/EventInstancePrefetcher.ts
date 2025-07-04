@@ -1,6 +1,6 @@
-import { EntityUpdateData } from "../common/utils/EntityUpdateUtils"
+import { EntityUpdateData, PrefetchStatus } from "../common/utils/EntityUpdateUtils"
 import { Mail, MailDetailsBlobTypeRef, MailTypeRef } from "../entities/tutanota/TypeRefs"
-import { elementIdPart, listIdPart } from "../common/utils/EntityUtils"
+import { elementIdPart, getElementId, listIdPart } from "../common/utils/EntityUtils"
 import { assertNotNull, getTypeString, groupBy, isNotNull, isSameTypeRef, parseTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { parseKeyVersion } from "./facades/KeyLoaderFacade"
 import { VersionedEncryptedKey } from "./crypto/CryptoWrapper"
@@ -9,6 +9,7 @@ import { NotAuthorizedError, NotFoundError } from "../common/error/RestError"
 import { ListElementEntity, SomeEntity } from "../common/EntityTypes"
 import { CacheMode, type EntityRestInterface } from "./rest/EntityRestClient"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
+import { instance } from "testdouble"
 
 export class EventInstancePrefetcher {
 	constructor(private readonly entityCache: EntityRestInterface) {}
@@ -20,12 +21,66 @@ export class EventInstancePrefetcher {
 	public async preloadEntities(allEventsFromAllBatch: Array<EntityUpdateData>, progressMonitor: ProgressMonitorDelegate): Promise<void> {
 		const start = new Date().getTime()
 		console.log("====== PREFETCH ============")
-		const preloadMap = await this.groupedListElementUpdatedInstances(allEventsFromAllBatch, progressMonitor)
+		const preloadMap = this.groupedListElementUpdatedInstances(allEventsFromAllBatch, progressMonitor)
 		await this.loadGroupedListElementEntities(allEventsFromAllBatch, preloadMap, progressMonitor)
 
 		// after prefetching is done, we can set the totalWorkDone to the amount of entity events from all batches
-		await progressMonitor.totalWorkDone(allEventsFromAllBatch.length)
+		await progressMonitor.completed()
 		console.log("====== PREFETCH END ============", new Date().getTime() - start, "ms")
+	}
+
+	// visible for testing
+	public groupedListElementUpdatedInstances(
+		allEventsFromAllBatch: Array<EntityUpdateData>,
+		progressMonitor: ProgressMonitorDelegate,
+	): Map<string, Map<Id, Map<Id, number[]>>> {
+		const prefetchMap: Map<string, Map<Id, Map<Id, number[]>>> = new Map()
+		for (const [eventIndexInList, entityUpdateData] of allEventsFromAllBatch.entries()) {
+			const typeIdentifier = getTypeString(entityUpdateData.typeRef)
+
+			// if CREATE update itself have a instance, we don't need to fetch it.
+			// EventRestCache will update the database
+			// or,
+			// if we have UPDATE event with patches, we can also re-create server state locally ( happens in EntityRestCache)
+			// if we don't have this instance in database, we anyway don't need this event
+			const isCreateWithInstance = entityUpdateData.operation === OperationType.CREATE && entityUpdateData.instance != null
+			const isUpdateWithPatches = entityUpdateData.operation === OperationType.UPDATE && entityUpdateData.patches != null
+			const isListElement = entityUpdateData.instanceListId != ""
+
+			if (isCreateWithInstance || isUpdateWithPatches || !isListElement) {
+				progressMonitor.workDone(1)
+				continue
+			}
+
+			if (entityUpdateData.operation === OperationType.DELETE) {
+				const indexesForTheInstance = prefetchMap.get(typeIdentifier)?.get(entityUpdateData.instanceListId)?.get(entityUpdateData.instanceId)
+				if (indexesForTheInstance !== undefined) {
+					this.markPrefetchStatusForEntityEvents(indexesForTheInstance, allEventsFromAllBatch, progressMonitor, PrefetchStatus.NotAvailable)
+					prefetchMap.get(typeIdentifier)?.get(entityUpdateData.instanceListId)?.delete(entityUpdateData.instanceId)
+				}
+				progressMonitor.workDone(1)
+				continue
+			} else {
+				const isTypeIdentifierInitialized = prefetchMap.has(typeIdentifier)
+				if (!isTypeIdentifierInitialized) {
+					prefetchMap.set(typeIdentifier, new Map().set(entityUpdateData.instanceListId, new Map()))
+				}
+
+				const isInstanceListInitialized = prefetchMap?.get(typeIdentifier)?.has(entityUpdateData.instanceListId)
+				if (!isInstanceListInitialized) {
+					prefetchMap.get(typeIdentifier)?.set(entityUpdateData.instanceListId, new Map())
+				}
+
+				const isInstanceIdInitialized = prefetchMap?.get(typeIdentifier)?.get(entityUpdateData.instanceListId)?.has(entityUpdateData.instanceId)
+				if (!isTypeIdentifierInitialized || !isInstanceListInitialized || !isInstanceIdInitialized) {
+					prefetchMap.get(typeIdentifier)!.get(entityUpdateData.instanceListId)!.set(entityUpdateData.instanceId, [])
+				}
+			}
+
+			const singleEntityUpdateEventIndexes = prefetchMap.get(typeIdentifier)!.get(entityUpdateData.instanceListId)!.get(entityUpdateData.instanceId)!
+			singleEntityUpdateEventIndexes.push(eventIndexInList)
+		}
+		return prefetchMap
 	}
 
 	private async loadGroupedListElementEntities(
@@ -46,7 +101,7 @@ export class EventInstancePrefetcher {
 						if (isSameTypeRef(MailTypeRef, typeRef)) {
 							await this.fetchMailDetailsBlob(instances)
 						}
-						await this.setEventsWithInstancesAsPrefetched(allEventsFromAllBatch, elementIdsAndIndexes, progressMonitor)
+						this.setEventsWithInstancesAsPrefetched(allEventsFromAllBatch, instances, elementIdsAndIndexes, progressMonitor)
 					} catch (e) {
 						if (isExpectedErrorForSynchronization(e)) {
 							console.log(`could not preload, probably lost group membership ( or not added yet ) for list ${typeRefString}/${listId}`)
@@ -85,66 +140,29 @@ export class EventInstancePrefetcher {
 		}
 	}
 
-	private async setEventsWithInstancesAsPrefetched(
+	private setEventsWithInstancesAsPrefetched(
 		allEventsFromAllBatch: Array<EntityUpdateData>,
+		instances: Array<ListElementEntity>,
 		elementIdsAndIndexes: Map<Id, number[]>,
 		progressMonitor: ProgressMonitorDelegate,
 	) {
-		for (const [_, indices] of elementIdsAndIndexes) {
-			for (const i of indices) {
-				allEventsFromAllBatch[i].isPrefetched = true
-				await progressMonitor.workDone(1)
-			}
+		for (const [elementId, indices] of elementIdsAndIndexes.entries()) {
+			const elementIdWasFetched = instances.some((instance) => getElementId(instance) === elementId)
+			const prefetchStatus = elementIdWasFetched ? PrefetchStatus.Prefetched : PrefetchStatus.NotAvailable
+			this.markPrefetchStatusForEntityEvents(indices, allEventsFromAllBatch, progressMonitor, prefetchStatus)
 		}
 	}
 
-	// @VisibleForTesting
-	public async groupedListElementUpdatedInstances(
+	private markPrefetchStatusForEntityEvents(
+		elementEventBatchIndexes: number[],
 		allEventsFromAllBatch: Array<EntityUpdateData>,
 		progressMonitor: ProgressMonitorDelegate,
-	): Promise<Map<string, Map<Id, Map<Id, number[]>>>> {
-		const prefetchMap: Map<string, Map<Id, Map<Id, number[]>>> = new Map()
-		for (const [eventIndexInList, entityUpdateData] of allEventsFromAllBatch.entries()) {
-			const typeIdentifier = getTypeString(entityUpdateData.typeRef)
-
-			// if CREATE update itself have a instance, we don't need to fetch it.
-			// EventRestCache will update the database
-			// or,
-			// if we have UPDATE event with patches, we can also re-create server state locally ( happens in EntityrestCache)
-			// if we don't have this instance in database, we anyway don't need this event
-			const isCreateWithInstance = entityUpdateData.operation === OperationType.CREATE && entityUpdateData.instance != null
-			const isUpdateWithPatches = entityUpdateData.operation === OperationType.UPDATE && entityUpdateData.patches != null
-			const isListElement = entityUpdateData.instanceListId != ""
-
-			if (isCreateWithInstance || isUpdateWithPatches || !isListElement) {
-				await progressMonitor.workDone(1)
-				continue
-			}
-
-			if (entityUpdateData.operation === OperationType.DELETE) {
-				await progressMonitor.workDone(1)
-				continue
-			} else {
-				const isTypeIdentifierInitialized = prefetchMap.has(typeIdentifier)
-				if (!isTypeIdentifierInitialized) {
-					prefetchMap.set(typeIdentifier, new Map().set(entityUpdateData.instanceListId, new Map()))
-				}
-
-				const isInstanceListInitialized = prefetchMap?.get(typeIdentifier)?.has(entityUpdateData.instanceListId)
-				if (!isInstanceListInitialized) {
-					prefetchMap.get(typeIdentifier)?.set(entityUpdateData.instanceListId, new Map())
-				}
-
-				const isInstanceIdInitialized = prefetchMap?.get(typeIdentifier)?.get(entityUpdateData.instanceListId)?.has(entityUpdateData.instanceId)
-				if (!isTypeIdentifierInitialized || !isInstanceListInitialized || !isInstanceIdInitialized) {
-					prefetchMap.get(typeIdentifier)!.get(entityUpdateData.instanceListId)!.set(entityUpdateData.instanceId, [])
-				}
-			}
-
-			const singleEntityUpdateEventIndexes = prefetchMap.get(typeIdentifier)!.get(entityUpdateData.instanceListId)!.get(entityUpdateData.instanceId)!
-			singleEntityUpdateEventIndexes.push(eventIndexInList)
+		prefetchStatus: PrefetchStatus,
+	) {
+		for (const index of elementEventBatchIndexes) {
+			allEventsFromAllBatch[index].prefetchStatus = prefetchStatus
+			progressMonitor.workDone(1)
 		}
-		return prefetchMap
 	}
 }
 

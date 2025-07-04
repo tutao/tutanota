@@ -29,7 +29,7 @@ import { InfoMessageHandler } from "../../../../../src/common/gui/InfoMessageHan
 import { GroupDataOS, Metadata, MetaDataOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { MailIndexer } from "../../../../../src/mail-app/workerUtils/index/MailIndexer.js"
 import { IndexerCore } from "../../../../../src/mail-app/workerUtils/index/IndexerCore"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, entityUpdateToUpdateData, PrefetchStatus } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
 import { VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { DbStub } from "./DbStub"
@@ -653,7 +653,7 @@ o.spec("IndexedDbIndexer", () => {
 					instanceListId: "",
 					operation: OperationType.CREATE,
 					...noPatchesAndInstance,
-					isPrefetched: false,
+					prefetchStatus: PrefetchStatus.NotPrefetched,
 				},
 			]
 			await indexer.processEntityEvents(realtimeEvents, previousNewestBatchId, groupId)
@@ -726,7 +726,7 @@ o.spec("IndexedDbIndexer", () => {
 					instanceListId: "",
 					operation: OperationType.CREATE,
 					...noPatchesAndInstance,
-					isPrefetched: false,
+					prefetchStatus: PrefetchStatus.NotPrefetched,
 				},
 			]
 
@@ -804,7 +804,7 @@ o.spec("IndexedDbIndexer", () => {
 					instanceListId: "list",
 					operation: OperationType.CREATE,
 					...noPatchesAndInstance,
-					isPrefetched: false,
+					prefetchStatus: PrefetchStatus.NotPrefetched,
 				},
 			]
 			await indexer.processEntityEvents(realtimeUpdates, realtimeBatchId, groupId)
@@ -827,7 +827,7 @@ o.spec("IndexedDbIndexer", () => {
 								instanceListId: "list",
 								instanceId: "event1",
 								...noPatchesAndInstance,
-								isPrefetched: false,
+								prefetchStatus: PrefetchStatus.NotPrefetched,
 							},
 							{
 								typeRef: MailTypeRef,
@@ -835,7 +835,7 @@ o.spec("IndexedDbIndexer", () => {
 								instanceListId: "list",
 								instanceId: "event2",
 								...noPatchesAndInstance,
-								isPrefetched: false,
+								prefetchStatus: PrefetchStatus.NotPrefetched,
 							},
 						],
 					},
@@ -1047,7 +1047,7 @@ o.spec("IndexedDbIndexer", () => {
 					instanceId: "id-1",
 					instanceListId: "",
 					...noPatchesAndInstance,
-					isPrefetched: false,
+					prefetchStatus: PrefetchStatus.NotPrefetched,
 				},
 			]
 
@@ -1065,7 +1065,7 @@ o.spec("IndexedDbIndexer", () => {
 					instanceId: "id-2",
 					instanceListId: "",
 					...noPatchesAndInstance,
-					isPrefetched: false,
+					prefetchStatus: PrefetchStatus.NotPrefetched,
 				},
 			]
 			const batchId2 = "batch-id-2"
@@ -1102,7 +1102,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceId: "id-1",
 						instanceListId: "create",
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 					{
 						typeRef: ContactTypeRef,
@@ -1110,7 +1110,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceId: "id-2",
 						instanceListId: "create",
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 					{
 						typeRef: MailTypeRef,
@@ -1118,7 +1118,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceId: "id-3",
 						instanceListId: "create",
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 
 					{
@@ -1127,7 +1127,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceId: "id-4",
 						instanceListId: "update",
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 					{
 						typeRef: ContactTypeRef,
@@ -1135,7 +1135,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceId: "id-5",
 						instanceListId: "update",
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 					{
 						typeRef: MailTypeRef,
@@ -1143,7 +1143,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceId: "id-6",
 						instanceListId: "update",
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 
 					{
@@ -1152,7 +1152,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceId: "id-7",
 						instanceListId: "delete",
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 					{
 						typeRef: ContactTypeRef,
@@ -1160,7 +1160,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceId: "id-8",
 						instanceListId: "delete",
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 					{
 						typeRef: MailTypeRef,
@@ -1168,7 +1168,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceId: "id-9",
 						instanceListId: "delete",
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				],
 				groupId: "blah",
@@ -1364,7 +1364,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceListId: "instanceListId",
 						operation: OperationType.CREATE,
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				]
 				when(mailIndexer.processEntityEvents(updates, matchers.anything(), matchers.anything())).thenDo(() => processDeferred.resolve())
@@ -1405,7 +1405,7 @@ o.spec("IndexedDbIndexer", () => {
 						instanceListId: "instanceListId",
 						operation: OperationType.CREATE,
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				]
 				when(mailIndexer.processEntityEvents(updates, matchers.anything(), matchers.anything())).thenDo(() => processDeferred.resolve())

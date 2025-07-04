@@ -2,7 +2,6 @@ import o from "@tutao/otest"
 import { EventBusEventCoordinator } from "../../../../src/common/api/worker/EventBusEventCoordinator.js"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	EntityUpdateTypeRef,
 	GroupKeyUpdateTypeRef,
 	GroupMembershipTypeRef,
 	User,
@@ -19,9 +18,8 @@ import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailF
 import { EventController } from "../../../../src/common/api/main/EventController.js"
 import { KeyRotationFacade } from "../../../../src/common/api/worker/facades/KeyRotationFacade.js"
 import { CacheManagementFacade } from "../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
-import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { Mode } from "../../../../src/common/api/common/Env"
-import { QueuedBatch } from "../../../../src/common/api/worker/EventQueue.js"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -75,7 +73,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				operation: OperationType.UPDATE,
 				instance: null,
 				patches: null,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			},
 			{
 				typeRef: UserGroupKeyDistributionTypeRef,
@@ -84,7 +82,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				operation: OperationType.CREATE,
 				instance: null,
 				patches: null,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			},
 		]
 
@@ -105,7 +103,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				operation: OperationType.UPDATE,
 				instance: null,
 				patches: null,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			},
 		]
 
@@ -128,7 +126,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				operation: OperationType.CREATE,
 				instance: null,
 				patches: null,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			},
 		]
 

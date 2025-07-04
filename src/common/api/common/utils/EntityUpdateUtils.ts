@@ -21,15 +21,21 @@ export type EntityUpdateData = {
 	// length > 0: normal case for patch
 	patches: Nullable<Array<Patch>>
 
-	/// whether EventInstancePrefetcher download this instance already or not
-	isPrefetched: boolean
+	/// status returned by EventInstancePrefetcher trying to download this instance
+	prefetchStatus: PrefetchStatus
+}
+
+export enum PrefetchStatus {
+	NotPrefetched = "NotPrefetched",
+	Prefetched = "Prefetched",
+	NotAvailable = "NotAvailable", // 403 (not authorized), 404 (not found)
 }
 
 export async function entityUpdateToUpdateData(
 	clientTypeModelResolver: ClientTypeModelResolver,
 	update: EntityUpdate,
 	instance: Nullable<ServerModelParsedInstance> = null,
-	isPrefetched: boolean = false,
+	prefetchStatus: PrefetchStatus = PrefetchStatus.NotPrefetched,
 ): Promise<EntityUpdateData> {
 	const typeId = update.typeId ? parseInt(update.typeId) : null
 	const typeIdOfEntityUpdateType = typeId
@@ -43,7 +49,7 @@ export async function entityUpdateToUpdateData(
 		operation: update.operation as OperationType,
 		patches: update.patch?.patches ?? null,
 		instance,
-		isPrefetched,
+		prefetchStatus,
 	}
 }
 

@@ -51,7 +51,7 @@ import type {
 } from "../../common/EntityTypes"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
-import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, PrefetchStatus } from "../../common/utils/EntityUpdateUtils.js"
 import { TypeModelResolver } from "../../common/EntityFunctions"
 import { AttributeModel } from "../../common/AttributeModel"
 import { collapseId, expandId } from "./RestClientIdUtils"
@@ -745,15 +745,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 *
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
-
-	// discuss:
-	// this function no longer makes use of network client, probably better to move this to outside. we also had an idea of a new call that combines pre fetching
-	// of instances and does this.
-	// if we do that we can also remove this from EntityRestCache interface
 	async entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
 		await this.recordSyncTime()
 
-		const regularUpdates = events.filter((u) => u.typeRef.app !== "monitor")
+		// we do not want to process entityUpdates where the prefetchStatus is PrefetchStatus.NotAvailable
+		// PrefetchStatus.NotAvailable indicates that we failed to fetch the instance because of 404 NotFound, 403 NotAuthorized
+		const regularUpdates = events.filter((u) => u.typeRef.app !== "monitor" || u.prefetchStatus !== PrefetchStatus.NotAvailable)
 
 		// we need an array of UpdateEntityData
 		const filteredUpdateEvents: EntityUpdateData[] = []
@@ -844,7 +841,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// We put new instances into cache only when it's a new instance in the cached range which is only for the list instances.
 		if (instanceListId != null) {
 			// If there is a custom handler we follow its decision.
-			let shouldUpdateDb = !update.isPrefetched && this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
+			let shouldUpdateDb =
+				update.prefetchStatus == PrefetchStatus.NotPrefetched && this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
 			// Otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
 			shouldUpdateDb = shouldUpdateDb ?? (await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId))
 			// if we have an instance attached, just update with it
@@ -882,7 +880,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			} else {
 				await this.assertInstanceOnUpdateIsSameAsPatched(update, patchAppliedInstance)
 			}
-		} else if (!update.isPrefetched) {
+		} else if (update.prefetchStatus == PrefetchStatus.NotPrefetched) {
 			const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
 			if (cached != null) {
 				try {
@@ -947,20 +945,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				)
 			}
 		}
-	}
-
-	/**
-	 *
-	 * @returns {Array<Id>} the ids that are in cache range and therefore should be cached
-	 */
-	private async getElementIdsInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, ids: Id[]): Promise<Id[]> {
-		const ret: Id[] = []
-		for (let i = 0; i < ids.length; i++) {
-			if (await this.storage.isElementIdInCacheRange(typeRef, listId, ids[i])) {
-				ret.push(ids[i])
-			}
-		}
-		return ret
 	}
 
 	/**

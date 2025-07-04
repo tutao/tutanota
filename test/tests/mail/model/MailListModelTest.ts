@@ -32,7 +32,7 @@ import {
 import { PageSize } from "../../../../src/common/gui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { tutaDunkel, tutaRed } from "../../../../src/common/gui/builtinThemes"
-import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
 import { GroupInfoTypeRef, GroupTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
 import { ConnectionError } from "../../../../src/common/api/common/error/RestError"
@@ -356,7 +356,7 @@ o.spec("MailListModel", () => {
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			entityUpdateData.operation = OperationType.UPDATE
@@ -378,7 +378,7 @@ o.spec("MailListModel", () => {
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 			entityUpdateData.operation = OperationType.DELETE
 
@@ -398,7 +398,7 @@ o.spec("MailListModel", () => {
 				instanceId: elementIdPart(someMail.mailSetEntryId),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			const oldItems = model.items
@@ -433,7 +433,7 @@ o.spec("MailListModel", () => {
 				instanceId: getElementId(newEntry),
 				operation: OperationType.CREATE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			when(entityClient.load(MailSetEntryTypeRef, newEntry._id)).thenResolve(newEntry)
@@ -489,7 +489,7 @@ o.spec("MailListModel", () => {
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 			when(entityClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 
@@ -509,7 +509,7 @@ o.spec("MailListModel", () => {
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 			when(entityClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 			entityUpdateData.operation = OperationType.DELETE

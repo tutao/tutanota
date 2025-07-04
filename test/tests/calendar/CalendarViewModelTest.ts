@@ -14,7 +14,7 @@ import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js
 import { ReceivedGroupInvitationsModel } from "../../../src/common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { ProgressMonitor } from "../../../src/common/api/common/utils/ProgressMonitor.js"
 import { object, when } from "testdouble"
-import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
@@ -420,7 +420,7 @@ o.spec("CalendarViewModel", function () {
 				operation: OperationType.CREATE,
 				instance: null,
 				patches: null,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 			const updatedEventFromServer = makeEvent(getElementId(eventToDrag), newData, new Date(2021, 0, 5, 14, 30), assertNotNull(eventToDrag.uid))
 			entityClientMock.addListInstances(updatedEventFromServer)

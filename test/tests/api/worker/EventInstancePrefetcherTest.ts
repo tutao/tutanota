@@ -3,11 +3,11 @@ import { CacheStorage, DefaultEntityRestCache, EntityRestCache } from "../../../
 import { UserFacade } from "../../../../src/common/api/worker/facades/UserFacade"
 import { EntityUpdateTypeRef, GroupMembershipTypeRef, User, UserTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, entityUpdateToUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../TestUtils"
 import { CalendarEventTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
-import { matchers, object, verify, when } from "testdouble"
+import { matchers, object, reset, verify, when } from "testdouble"
 import { downcast, getTypeString, promiseMap } from "@tutao/tutanota-utils"
 import { EventInstancePrefetcher } from "../../../../src/common/api/worker/EventInstancePrefetcher"
 import { CacheMode, EntityRestClient, EntityRestClientLoadOptions } from "../../../../src/common/api/worker/rest/EntityRestClient"
@@ -33,6 +33,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 	let id2: Id = timestampToGeneratedId(3)
 	let id3: Id = timestampToGeneratedId(4)
 	let id4: Id = timestampToGeneratedId(5)
+	let id5: Id = timestampToGeneratedId(6)
 
 	o.beforeEach(async function () {
 		cacheStoragex = object<CacheStorage>()
@@ -93,10 +94,12 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 		when(entityRestClient.loadMultipleParsedInstances(MailTypeRef, "firstListId", Array.of(id1, id2), undefined, fetchInstanceOpt)).thenResolve([])
 		when(entityRestClient.loadMultipleParsedInstances(MailTypeRef, "secondListId", Array.of(id1, id2), undefined, fetchInstanceOpt)).thenResolve([])
-		await eventInstancePrefetcher.preloadEntities(Array.of(firstUpdate, secondUpdate, thirdUpdate, fourthUpdate), progressMonitorMock)
+		const allUpdates = Array.of(firstUpdate, secondUpdate, thirdUpdate, fourthUpdate)
+		await eventInstancePrefetcher.preloadEntities(allUpdates, progressMonitorMock)
 
 		verify(entityRestClient.loadMultipleParsedInstances(MailTypeRef, "firstListId", Array.of(id1, id2), undefined, fetchInstanceOpt), { times: 1 })
 		verify(entityRestClient.loadMultipleParsedInstances(MailTypeRef, "secondListId", Array.of(id1, id2), undefined, fetchInstanceOpt), { times: 1 })
+		verify(progressMonitorMock.workDone(1), { times: allUpdates.length })
 	})
 
 	o("Do not prefetch element type", async () => {
@@ -107,7 +110,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			operation: OperationType.CREATE,
 			patches: null,
 			instance: null,
-			isPrefetched: false,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
 		}
 
 		const firstUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), { instanceId: id1 })
@@ -117,10 +120,10 @@ o.spec("EventInstancePrefetcherTest", function () {
 		const instancesToFetch = await eventInstancePrefetcher.groupedListElementUpdatedInstances(allEventsFromAllBatch, progressMonitorMock)
 
 		o(mapToObject(instancesToFetch)).deepEquals({})
+		verify(progressMonitorMock.workDone(1), { times: allEventsFromAllBatch.length })
 	})
 
-	// make sure instance that are deleted are not fetched otherwise whole request will fail with NotFound
-	o("When an instance is deleted at the end still fetch previous event", async () => {
+	o("When an instance is deleted at the end do not fetch previous events", async () => {
 		const updateTemplate: EntityUpdateData = {
 			typeRef: CalendarEventTypeRef,
 			operation: OperationType.CREATE,
@@ -128,44 +131,71 @@ o.spec("EventInstancePrefetcherTest", function () {
 			patches: null,
 			instanceListId: "",
 			instanceId: "",
-			isPrefetched: false,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
 		}
 		const firstUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), {
 			instanceListId: "firstListId",
 			instanceId: id1,
 		})
-		const secondUpdate: EntityUpdateData = Object.assign(structuredClone(firstUpdate), { instanceId: id2 })
+		const secondUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), {
+			instanceListId: "firstListId",
+			instanceId: id2,
+		})
 		const thirdUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), {
 			instanceListId: "secondListId",
 			instanceId: id3,
 		})
-		const fourthUpdate: EntityUpdateData = Object.assign(structuredClone(thirdUpdate), { operation: OperationType.DELETE })
-		const fifthUpdate: EntityUpdateData = Object.assign(structuredClone(thirdUpdate), {
+		const fourthUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), {
+			instanceListId: "secondListId",
+			instanceId: id3,
+			operation: OperationType.DELETE,
+		})
+		const fifthUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), {
+			instanceListId: "secondListId",
 			instanceId: id4,
 		})
+		const sixthUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), {
+			instanceListId: "secondListId",
+			instanceId: id5,
+		})
 
-		const allUpdates = Array.of(firstUpdate, secondUpdate, thirdUpdate, fourthUpdate, fifthUpdate)
+		const firstEvent = createTestEntity(CalendarEventTypeRef, { _id: ["firstListId", id1] }, { populateAggregates: true })
+		const secondEvent = createTestEntity(CalendarEventTypeRef, { _id: ["firstListId", id2] }, { populateAggregates: true })
+		const fifthEvent = createTestEntity(CalendarEventTypeRef, { _id: ["secondListId", id4] }, { populateAggregates: true })
+		const sixthEvent = createTestEntity(CalendarEventTypeRef, { _id: ["secondListId", id5] }, { populateAggregates: true })
 
-		const instancesToFetch = (await eventInstancePrefetcher.groupedListElementUpdatedInstances(allUpdates, progressMonitorMock)).get(
-			getTypeString(updateTemplate.typeRef),
-		)!
-		o(mapToObject(instancesToFetch.get("firstListId")!)).deepEquals(
-			mapToObject(
-				new Map([
-					[id1, [0]],
-					[id2, [1]],
-				]),
+		const allUpdates = Array.of(firstUpdate, secondUpdate, thirdUpdate, fourthUpdate, fifthUpdate, sixthUpdate)
+
+		when(
+			entityRestClient.loadMultipleParsedInstances(
+				CalendarEventTypeRef,
+				firstUpdate.instanceListId,
+				[firstUpdate.instanceId, secondUpdate.instanceId],
+				matchers.anything(),
+				fetchInstanceOpt,
 			),
-		)
-		const expectedOnlySecondListWithoutId3 = mapToObject(
-			new Map(
-				new Map([
-					[id3, [2]],
-					[id4, [4]],
-				]),
+		).thenResolve(Array.of(await toStorableInstance(firstEvent), await toStorableInstance(secondEvent)))
+		when(
+			entityRestClient.loadMultipleParsedInstances(
+				CalendarEventTypeRef,
+				fifthUpdate.instanceListId,
+				[fifthUpdate.instanceId, sixthUpdate.instanceId],
+				matchers.anything(),
+				fetchInstanceOpt,
 			),
-		)
-		o(mapToObject(instancesToFetch.get("secondListId")!)).deepEquals(expectedOnlySecondListWithoutId3)
+		).thenResolve(Array.of(await toStorableInstance(fifthEvent), await toStorableInstance(sixthEvent)))
+
+		await eventInstancePrefetcher.preloadEntities(allUpdates, progressMonitorMock)
+
+		o(firstUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
+		o(secondUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
+		o(thirdUpdate.prefetchStatus).equals(PrefetchStatus.NotAvailable)
+		o(fourthUpdate.prefetchStatus).equals(PrefetchStatus.NotPrefetched)
+		o(fifthUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
+		o(sixthUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
+
+		verify(progressMonitorMock.workDone(1), { times: allUpdates.length })
+		verify(progressMonitorMock.completed())
 	})
 
 	o("Returns indexes of multiple batches for a single element with multiple updates", async () => {
@@ -176,7 +206,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			patches: null,
 			instanceListId: "",
 			instanceId: "",
-			isPrefetched: false,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
 		}
 		const firstUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), {
 			instanceListId: "firstListId",
@@ -199,6 +229,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		)!
 		o(mapToObject(instancesToFetch.get("firstListId")!)).deepEquals(mapToObject(new Map([[id1, [0, 1, 3]]])))
 		o(mapToObject(instancesToFetch.get("secondListId")!)).deepEquals(mapToObject(new Map([[id2, [2]]])))
+		verify(progressMonitorMock.workDone(1), { times: 0 })
 	})
 
 	o("When a create event have a instance attached to it do not fetch it", async () => {
@@ -214,11 +245,13 @@ o.spec("EventInstancePrefetcherTest", function () {
 		const firstUpdate = await entityUpdateToUpdateData(typeModelResolver, testEntity, downcast({}))
 		const secondUpdate = Object.assign(structuredClone(firstUpdate), { instance: null, instanceId: id2 })
 
-		const instancesToFetch = (await eventInstancePrefetcher.groupedListElementUpdatedInstances(Array.of(firstUpdate, secondUpdate), progressMonitorMock))
+		const allUpdates = Array.of(firstUpdate, secondUpdate)
+		const instancesToFetch = (await eventInstancePrefetcher.groupedListElementUpdatedInstances(allUpdates, progressMonitorMock))
 			.get(getTypeString(MailTypeRef))!
 			.get(firstUpdate.instanceListId)!
 		const expectedOnlyUpdateWithoutInstance = mapToObject(new Map([[id2, [1]]]))
 		o(mapToObject(instancesToFetch)).deepEquals(expectedOnlyUpdateWithoutInstance)
+		verify(progressMonitorMock.workDone(1), { times: 1 })
 	})
 
 	o("When a update event have a patchList attached to it do not fetch it", async () => {
@@ -235,10 +268,13 @@ o.spec("EventInstancePrefetcherTest", function () {
 		)
 		const secondUpdate = Object.assign(structuredClone(firstUpdate), { patches: null, instanceId: id2 })
 
-		const instancesToFetch = (await eventInstancePrefetcher.groupedListElementUpdatedInstances(Array.of(firstUpdate, secondUpdate), progressMonitorMock))
+		const allUpdates = Array.of(firstUpdate, secondUpdate)
+		const instancesToFetch = eventInstancePrefetcher
+			.groupedListElementUpdatedInstances(allUpdates, progressMonitorMock)
 			.get(getTypeString(MailTypeRef))!
 			.get(firstUpdate.instanceListId)!
 		o(mapToObject(instancesToFetch)).deepEquals(mapToObject(new Map([[id2, [1]]])))
+		verify(progressMonitorMock.workDone(1), { times: 1 })
 	})
 
 	o("Ignores update events for non list elements", async () => {
@@ -254,9 +290,8 @@ o.spec("EventInstancePrefetcherTest", function () {
 		)
 		const secondUpdate = Object.assign(structuredClone(firstUpdate), { instanceListId: "listId", instanceId: id2 })
 
-		const instancesToFetch = (
-			await eventInstancePrefetcher.groupedListElementUpdatedInstances(Array.of(firstUpdate, secondUpdate), progressMonitorMock)
-		).get(getTypeString(MailTypeRef))!
+		const allUpdates = Array.of(firstUpdate, secondUpdate)
+		const instancesToFetch = eventInstancePrefetcher.groupedListElementUpdatedInstances(allUpdates, progressMonitorMock).get(getTypeString(MailTypeRef))!
 		const expectedOnlyListElementInstance = mapToObject(new Map([["listId", new Map([[id2, [1]]])]]))
 		o(mapToObject(instancesToFetch)).deepEquals(expectedOnlyListElementInstance)
 	})
@@ -289,7 +324,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
-			isPrefetched: false,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
 			typeRef: MailTypeRef,
 		}
 		const secondUpdate: EntityUpdateData = Object.assign(structuredClone(firstUpdate), {
@@ -330,7 +365,8 @@ o.spec("EventInstancePrefetcherTest", function () {
 			),
 		).thenResolve(Array.of(await toStorableInstance(fourthMail)))
 
-		await eventInstancePrefetcher.preloadEntities(Array.of(firstUpdate, secondUpdate, thirdUpdate, fourthUpdate), progressMonitorMock)
+		const allUpdates = Array.of(firstUpdate, secondUpdate, thirdUpdate, fourthUpdate)
+		await eventInstancePrefetcher.preloadEntities(allUpdates, progressMonitorMock)
 
 		// Check if there are tests for the loop going correctly (for (const [listId, mails] of mailDetailsByList.entries()) {)
 		verify(
@@ -342,6 +378,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		verify(entityRestClient.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", ["fourthBlob"], matchers.anything(), fetchBlobOpt), {
 			times: 1,
 		})
+		verify(progressMonitorMock.workDone(1), { times: allUpdates.length })
 	})
 
 	o("should ignore all error while fetching", async () => {
@@ -356,7 +393,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
-			isPrefetched: false,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
 			typeRef: MailTypeRef,
 		}
 		const secondUpdate: EntityUpdateData = Object.assign(structuredClone(firstUpdate), {
@@ -378,7 +415,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
 				firstUpdate.instanceListId,
-				[firstUpdate.instanceId],
+				[firstUpdate.instanceId, thirdUpdate.instanceId],
 				matchers.anything(),
 				fetchInstanceOpt,
 			),
@@ -387,38 +424,19 @@ o.spec("EventInstancePrefetcherTest", function () {
 			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
 				secondUpdate.instanceListId,
-				[secondUpdate.instanceId],
+				[secondUpdate.instanceId, fourthUpdate.instanceId],
 				matchers.anything(),
 				fetchInstanceOpt,
 			),
 		).thenReturn(Promise.reject("second error"))
 
-		when(
-			entityRestClient.loadMultipleParsedInstances(
-				MailTypeRef,
-				thirdUpdate.instanceListId,
-				[thirdUpdate.instanceId],
-				matchers.anything(),
-				fetchInstanceOpt,
-			),
-		).thenReturn(Promise.reject("third error"))
+		const allUpdates = Array.of(firstUpdate, secondUpdate, thirdUpdate, fourthUpdate)
+		await eventInstancePrefetcher.preloadEntities(allUpdates, progressMonitorMock)
 
-		when(
-			entityRestClient.loadMultipleParsedInstances(
-				MailTypeRef,
-				fourthUpdate.instanceListId,
-				[fourthUpdate.instanceId],
-				matchers.anything(),
-				fetchInstanceOpt,
-			),
-		).thenReturn(Promise.reject("fourth error"))
-
-		await eventInstancePrefetcher.preloadEntities(Array.of(firstUpdate, secondUpdate, thirdUpdate, fourthUpdate), progressMonitorMock)
-
-		o(firstUpdate.isPrefetched).equals(false)
-		o(secondUpdate.isPrefetched).equals(false)
-		o(thirdUpdate.isPrefetched).equals(false)
-		o(fourthUpdate.isPrefetched).equals(false)
+		o(firstUpdate.prefetchStatus).equals(PrefetchStatus.NotPrefetched)
+		o(secondUpdate.prefetchStatus).equals(PrefetchStatus.NotPrefetched)
+		o(thirdUpdate.prefetchStatus).equals(PrefetchStatus.NotPrefetched)
+		o(fourthUpdate.prefetchStatus).equals(PrefetchStatus.NotPrefetched)
 
 		verify(
 			entityRestClient.loadMultipleParsedInstances(
@@ -440,9 +458,10 @@ o.spec("EventInstancePrefetcherTest", function () {
 			),
 			{ times: 1 },
 		)
+		verify(progressMonitorMock.completed())
 	})
 
-	o("set preFetched flag to true for every entityUpdate for instance in loadMultiple request payload", async () => {
+	o("set prefetchStatus to Prefetched for instances returned by loadMultiple and to NotAvailable for others", async () => {
 		const passMail = createTestEntity(MailTypeRef, { _id: ["firstMailListId", id1] }, { populateAggregates: true })
 		const secondPassMail = createTestEntity(MailTypeRef, { _id: ["firstMailListId", id3] }, { populateAggregates: true })
 		const failMail = createTestEntity(MailTypeRef, { _id: ["secondMailListId", id2] }, { populateAggregates: true })
@@ -454,7 +473,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
-			isPrefetched: false,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
 			typeRef: MailTypeRef,
 		}
 
@@ -490,15 +509,53 @@ o.spec("EventInstancePrefetcherTest", function () {
 			),
 		).thenResolve([])
 
-		await eventInstancePrefetcher.preloadEntities(Array.of(passingUpdate, failingUpdate, secondPassingUpdate, secondFailingUpdate), progressMonitorMock)
+		const allUpdates = Array.of(passingUpdate, failingUpdate, secondPassingUpdate, secondFailingUpdate)
+		await eventInstancePrefetcher.preloadEntities(allUpdates, progressMonitorMock)
 
-		o(passingUpdate.isPrefetched).equals(true)
-		o(secondPassingUpdate.isPrefetched).equals(true)
-		o(failingUpdate.isPrefetched).equals(true) // we prefetch everything
-		o(secondFailingUpdate.isPrefetched).equals(true)
+		o(passingUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
+		o(secondPassingUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
+		o(failingUpdate.prefetchStatus).equals(PrefetchStatus.NotAvailable)
+		o(secondFailingUpdate.prefetchStatus).equals(PrefetchStatus.NotAvailable)
+		verify(progressMonitorMock.workDone(1), { times: allUpdates.length })
 	})
 
-	o("Multiple events of same instance are marked as prefetched", async () => {
+	o("set prefetchStatus to NotAvailable for missing instances", async () => {
+		const firstMail = createTestEntity(MailTypeRef, { _id: ["mailListId", id1] }, { populateAggregates: true })
+		const secondMail = createTestEntity(MailTypeRef, { _id: ["mailListId", id2] }, { populateAggregates: true })
+		const thirdMail = createTestEntity(MailTypeRef, { _id: ["mailListId", id3] }, { populateAggregates: true })
+
+		const firstMailUpdate: EntityUpdateData = {
+			typeRef: MailTypeRef,
+			instanceListId: "mailListId",
+			instanceId: elementIdPart(firstMail._id),
+			operation: OperationType.CREATE,
+			instance: null,
+			patches: null,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
+		}
+		const secondMailUpdate: EntityUpdateData = Object.assign(structuredClone(firstMailUpdate), { instanceId: elementIdPart(secondMail._id) })
+		const thirdMailUpdate: EntityUpdateData = Object.assign(structuredClone(firstMailUpdate), { instanceId: elementIdPart(thirdMail._id) })
+
+		// only return first & third mail
+		when(
+			entityRestClient.loadMultipleParsedInstances(
+				MailTypeRef,
+				"mailListId",
+				[firstMailUpdate.instanceId, secondMailUpdate.instanceId, thirdMailUpdate.instanceId],
+				undefined,
+				fetchInstanceOpt,
+			),
+		).thenResolve(Array.of(await toStorableInstance(firstMail), await toStorableInstance(thirdMail)))
+		const allUpdates = Array.of(firstMailUpdate, secondMailUpdate, thirdMailUpdate)
+		await eventInstancePrefetcher.preloadEntities(allUpdates, progressMonitorMock)
+
+		o(firstMailUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
+		o(secondMailUpdate.prefetchStatus).equals(PrefetchStatus.NotAvailable)
+		o(thirdMailUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
+		verify(progressMonitorMock.workDone(1), { times: allUpdates.length })
+	})
+
+	o("Multiple events of same instance are marked as Prefetched", async () => {
 		const createEvent: EntityUpdateData = {
 			typeRef: MailTypeRef,
 			instanceListId: "mailListId",
@@ -506,7 +563,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			operation: OperationType.CREATE,
 			patches: null,
 			instance: null,
-			isPrefetched: false,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
 		}
 
 		const updateEvent: EntityUpdateData = Object.assign(structuredClone(createEvent), { operation: OperationType.UPDATE })
@@ -549,12 +606,14 @@ o.spec("EventInstancePrefetcherTest", function () {
 			entityRestClient.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", matchers.anything(), matchers.anything(), matchers.anything()),
 		).thenResolve([])
 
-		await eventInstancePrefetcher.preloadEntities(Array.of(createEvent, updateEvent, createSecondEvent, updateSecondEvent), progressMonitorMock)
-		o(createEvent.isPrefetched).equals(true)
-		o(updateEvent.isPrefetched).equals(true)
+		const allUpdates = Array.of(createEvent, updateEvent, createSecondEvent, updateSecondEvent)
+		await eventInstancePrefetcher.preloadEntities(allUpdates, progressMonitorMock)
+		o(createEvent.prefetchStatus).equals(PrefetchStatus.Prefetched)
+		o(updateEvent.prefetchStatus).equals(PrefetchStatus.Prefetched)
+		verify(progressMonitorMock.workDone(1), { times: allUpdates.length })
 	})
 
-	o("prefetched flag is not set to true if mailDetails blob fails to download", async () => {
+	o("prefetchStatus is not set to Prefetched if mailDetails blob fails to download", async () => {
 		const mail = createTestEntity(
 			MailTypeRef,
 			{
@@ -579,7 +638,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
-			isPrefetched: false,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
 			typeRef: MailTypeRef,
 		}
 
@@ -596,14 +655,15 @@ o.spec("EventInstancePrefetcherTest", function () {
 				fetchInstanceOpt,
 			),
 		).thenResolve(Array.of(await toStorableInstance(mail), await toStorableInstance(secondMail)))
-		when(entityRestClient.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", ["firstBlob"], matchers.anything(), fetchBlobOpt)).thenReturn(
-			Promise.reject("second error"),
-		)
+		when(
+			entityRestClient.loadMultipleParsedInstances(MailDetailsBlobTypeRef, "archiveId", ["firstBlob", "secondBlob"], matchers.anything(), fetchBlobOpt),
+		).thenReject("blob error")
 
-		await eventInstancePrefetcher.preloadEntities(Array.of(mailUpdate, secondMailUpdate), progressMonitorMock)
+		const allUpdates = Array.of(mailUpdate, secondMailUpdate)
+		await eventInstancePrefetcher.preloadEntities(allUpdates, progressMonitorMock)
 
-		o(mailUpdate.isPrefetched).equals(false)
-		o(secondMailUpdate.isPrefetched).equals(false)
+		o(mailUpdate.prefetchStatus).equals(PrefetchStatus.NotPrefetched)
+		o(secondMailUpdate.prefetchStatus).equals(PrefetchStatus.NotPrefetched)
 		verify(
 			entityRestClient.loadMultipleParsedInstances(
 				MailTypeRef,
@@ -626,5 +686,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 				times: 1,
 			},
 		)
+		verify(progressMonitorMock.workDone(1), { times: 0 })
+		verify(progressMonitorMock.completed())
 	})
 })

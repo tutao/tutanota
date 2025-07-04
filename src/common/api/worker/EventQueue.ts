@@ -140,4 +140,8 @@ export class EventQueue {
 	get __processingBatch(): QueuedBatch | null {
 		return this.processingBatch
 	}
+
+	getProgressMonitor() {
+		return this.progressMonitor
+	}
 }

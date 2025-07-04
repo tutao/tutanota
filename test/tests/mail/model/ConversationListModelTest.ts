@@ -32,7 +32,7 @@ import {
 import { PageSize } from "../../../../src/common/gui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { tutaDunkel, tutaRed } from "../../../../src/common/gui/builtinThemes"
-import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { MailboxDetail } from "../../../../src/common/mailFunctionality/MailboxModel"
 import { GroupInfoTypeRef, GroupTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs"
 import { ConnectionError } from "../../../../src/common/api/common/error/RestError"
@@ -374,7 +374,7 @@ o.spec("ConversationListModel", () => {
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
-			isPrefetched: false,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
 		}
 
 		when(entityClient.load(MailSetEntryTypeRef, mailSetEntryId)).thenResolve(
@@ -418,7 +418,7 @@ o.spec("ConversationListModel", () => {
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			const oldMails = model.mails
@@ -446,7 +446,7 @@ o.spec("ConversationListModel", () => {
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 			entityUpdateData.operation = OperationType.DELETE
 
@@ -473,7 +473,7 @@ o.spec("ConversationListModel", () => {
 				instanceId: elementIdPart(someMail.mailSetEntryId),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			const oldItems = model.mails
@@ -512,7 +512,7 @@ o.spec("ConversationListModel", () => {
 				instanceId: getElementId(newEntry),
 				operation: OperationType.CREATE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			when(entityClient.load(MailSetEntryTypeRef, newEntry._id)).thenResolve(newEntry)
@@ -597,7 +597,7 @@ o.spec("ConversationListModel", () => {
 				instanceId: makeMailSetElementId(0),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			o.check(model.mails).deepEquals(oldMails)
@@ -624,7 +624,7 @@ o.spec("ConversationListModel", () => {
 				instanceId: makeMailSetElementId(2),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			o.check(model.mails).deepEquals(oldMails)
@@ -651,7 +651,7 @@ o.spec("ConversationListModel", () => {
 				instanceId: makeMailSetElementId(1),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			o.check(model.mails).deepEquals(oldMails)
@@ -689,7 +689,7 @@ o.spec("ConversationListModel", () => {
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 			when(entityClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 
@@ -718,7 +718,7 @@ o.spec("ConversationListModel", () => {
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 			when(entityClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 			entityUpdateData.operation = OperationType.DELETE

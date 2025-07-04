@@ -22,7 +22,7 @@ import { createTestEntity } from "../../TestUtils.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { ClientModelInfo } from "../../../../src/common/api/common/EntityFunctions"
-import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]
@@ -259,7 +259,7 @@ o.spec("ConversationViewModel", function () {
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				],
 				"mailGroupId",
@@ -298,7 +298,7 @@ o.spec("ConversationViewModel", function () {
 						instanceListId: listId,
 						instanceId: anotherMail.conversationEntry[1],
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				],
 				"mailGroupId",
@@ -326,7 +326,7 @@ o.spec("ConversationViewModel", function () {
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				],
 				"mailGroupId",
@@ -351,7 +351,7 @@ o.spec("ConversationViewModel", function () {
 						operation: OperationType.CREATE,
 						instanceListId: listId,
 						instanceId: yetAnotherMail.conversationEntry[1],
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 						...noPatchesAndInstance,
 					},
 				],
@@ -393,7 +393,7 @@ o.spec("ConversationViewModel", function () {
 						instanceListId: listId,
 						instanceId: trashDraftMail.conversationEntry[1],
 						...noPatchesAndInstance,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
 					},
 				],
 				"mailGroupId",

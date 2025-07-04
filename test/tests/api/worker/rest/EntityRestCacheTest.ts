@@ -33,7 +33,6 @@ import {
 	ContactTypeRef,
 	Mail,
 	MailAddressTypeRef,
-	MailBoxTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
@@ -58,7 +57,7 @@ import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/co
 import { PatchOperationType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { Entity, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, entityUpdateToUpdateData, PrefetchStatus } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { PatchMerger } from "../../../../../src/common/api/worker/offline/PatchMerger"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
@@ -148,7 +147,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			operation: OperationType,
 			instance: Nullable<T>,
 			patches: Nullable<Array<Patch>>,
-			isPrefetched: boolean,
+			prefetchStatus: PrefetchStatus,
 		): Promise<EntityUpdateData> {
 			const entityUpdate = createEntityUpdate({
 				type: undefined as any, // no need for type since we have passed typeId
@@ -161,28 +160,28 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				instance: null, // will be added by entityUpdateToUpdateData
 			})
 			const instanceParsed = instance ? await toStorableInstance(instance) : null
-			return await entityUpdateToUpdateData(downcast(undefined), entityUpdate, instanceParsed, isPrefetched)
+			return await entityUpdateToUpdateData(downcast(undefined), entityUpdate, instanceParsed, prefetchStatus)
 		}
 		let updateDataForCreate = function <T extends Entity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
 			instance: Nullable<T>,
-			isPrefetched: boolean = false,
+			prefetchStatus: PrefetchStatus = PrefetchStatus.NotPrefetched,
 		): Promise<EntityUpdateData> {
-			return makeUpdateData(typeRef, listId, elementId, OperationType.CREATE, instance, [], isPrefetched)
+			return makeUpdateData(typeRef, listId, elementId, OperationType.CREATE, instance, [], prefetchStatus)
 		}
 		let updateDataForUpdate = async function <T extends Entity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
 			patches: Nullable<Array<Patch>>,
-			isPrefetched: boolean = false,
+			prefetchStatus: PrefetchStatus = PrefetchStatus.NotPrefetched,
 		): Promise<EntityUpdateData> {
-			return makeUpdateData(typeRef, listId, elementId, OperationType.UPDATE, null, patches, isPrefetched)
+			return makeUpdateData(typeRef, listId, elementId, OperationType.UPDATE, null, patches, prefetchStatus)
 		}
 		let updateDataForDelete = async function <T extends Entity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<EntityUpdateData> {
-			return makeUpdateData(typeRef, listId, elementId, OperationType.DELETE, null, [], false)
+			return makeUpdateData(typeRef, listId, elementId, OperationType.DELETE, null, [], PrefetchStatus.NotPrefetched)
 		}
 
 		let createId = function (idText) {
@@ -277,8 +276,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const contact2 = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id2] })
 
 				const batch = [
-					await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact1, false),
-					await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2, false),
+					await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact1, PrefetchStatus.NotPrefetched),
+					await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2, PrefetchStatus.NotPrefetched),
 				]
 
 				const putLastBatchIdForGroup = func<typeof storage.putLastBatchIdForGroup>()
@@ -294,8 +293,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o("create is not in cache range", async function () {
 					const contact = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id1] })
 					const batch = [
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact, false),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact, false),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, contact, PrefetchStatus.NotPrefetched),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact, PrefetchStatus.NotPrefetched),
 					]
 					const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 
@@ -314,9 +313,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					})
 					const thirdContact = Object.assign(structuredClone(firstContact), { _id: [firstContactListId, id3] })
 					const batch: readonly EntityUpdateData[] = [
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null, false),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null, false),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id3, null, false),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.NotPrefetched),
 					]
 					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id1])).thenResolve(await toStorableInstance(firstContact))
 					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id2])).thenReject(new NotFoundError("does not exist"))
@@ -334,9 +333,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id2)
 
 					const batch: readonly EntityUpdateData[] = [
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null, true),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null, true),
-						await updateDataForCreate(ContactTypeRef, firstContactListId, id3, null, true),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.Prefetched),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.Prefetched),
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.Prefetched),
 					]
 
 					await cache.entityEventsReceived(batch, "batchId", groupId)
@@ -376,8 +375,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o("update is not in cache range", async function () {
 				const batch = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, false),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, false),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched),
 				]
 				const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
 
@@ -401,9 +400,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(ContactTypeRef, await toStorableInstance(thirdContact))
 
 				const batch: readonly EntityUpdateData[] = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, false),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, false),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, false),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.NotPrefetched),
 				]
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id1])).thenResolve(await toStorableInstance(firstContact))
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id2])).thenReject(new NotFoundError("does not exist"))
@@ -421,9 +420,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id2)
 
 				const batch: readonly EntityUpdateData[] = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, true),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, true),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, true),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.Prefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.Prefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.Prefetched),
 				]
 
 				await cache.entityEventsReceived(batch, "batchId", groupId)
@@ -464,10 +463,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const batch = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch], false), // update for item not in cache range
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch], false),
-					await updateDataForUpdate(ContactTypeRef, secondContactListId, id3, [firstNamePatch], false), // update for item not in cache range
-					await updateDataForUpdate(ContactTypeRef, secondContactListId, id4, [firstNamePatch], false),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch], PrefetchStatus.NotPrefetched), // update for item not in cache range
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch], PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, secondContactListId, id3, [firstNamePatch], PrefetchStatus.NotPrefetched), // update for item not in cache range
+					await updateDataForUpdate(ContactTypeRef, secondContactListId, id4, [firstNamePatch], PrefetchStatus.NotPrefetched),
 				]
 
 				when(patchMergerMock.patchAndStoreInstance(ContactTypeRef, firstContactListId, id1, [firstNamePatch])).thenResolve(null)
@@ -538,7 +537,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					OperationType.CREATE,
 					null,
 					[],
-					true,
+					PrefetchStatus.Prefetched,
 				)
 
 				await storage.setNewRangeForList(MailDetailsBlobTypeRef, blobUpdate.instanceListId, GENERATED_MIN_ID, GENERATED_MAX_ID)

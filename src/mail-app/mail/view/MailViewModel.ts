@@ -27,7 +27,7 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import Stream from "mithril/stream"
 import { InboxRuleHandler } from "../model/InboxRuleHandler.js"
 import { Router } from "../../../common/gui/ScopedRouter.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef, PrefetchStatus } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"
@@ -679,7 +679,7 @@ export class MailViewModel {
 						typeRef: MailSetEntryTypeRef,
 						instance: null,
 						patches: null,
-						isPrefetched: false,
+						prefetchStatus: PrefetchStatus.Prefetched,
 					})
 				})
 			}

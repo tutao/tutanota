@@ -10,7 +10,7 @@ import { LoginController } from "../../../src/common/api/main/LoginController.js
 import { instance, matchers, object, when } from "testdouble"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../TestUtils.js"
-import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
 import { getElementId, getListId } from "../../../src/common/api/common/utils/EntityUtils.js"
 import { MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
@@ -98,7 +98,7 @@ o.spec("MailModelTest", function () {
 			instanceId,
 			instance: null,
 			patches: null,
-			isPrefetched: false,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
 		}
 	}
 })

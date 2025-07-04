@@ -31,7 +31,7 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { SyncTracker } from "../../../../src/common/api/main/SyncTracker.js"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
-import { EntityUpdateData } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade"
 import { EventInstancePrefetcher } from "../../../../src/common/api/worker/EventInstancePrefetcher"
 
@@ -185,7 +185,7 @@ o.spec("EventBusClientTest", function () {
 				instanceListId: update.instanceListId,
 				instance: null,
 				patches: null,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			}
 
 			const eventsReceivedDefer = defer()

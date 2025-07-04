@@ -49,7 +49,7 @@ import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionali
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
-import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils"
+import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils"
 
 const { anything, argThat } = matchers
 
@@ -581,7 +581,7 @@ o.spec("SendMailModel", function () {
 				instanceListId: "",
 				instanceId: "",
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			await model.handleEntityEvent({
 				typeRef: UserTypeRef,
@@ -589,7 +589,7 @@ o.spec("SendMailModel", function () {
 				instanceListId: "",
 				instanceId: "",
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			await model.handleEntityEvent({
 				typeRef: CustomerTypeRef,
@@ -597,7 +597,7 @@ o.spec("SendMailModel", function () {
 				instanceListId: "",
 				instanceId: "",
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			await model.handleEntityEvent({
 				typeRef: NotificationMailTypeRef,
@@ -605,7 +605,7 @@ o.spec("SendMailModel", function () {
 				instanceListId: "",
 				instanceId: "",
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			await model.handleEntityEvent({
 				typeRef: ChallengeTypeRef,
@@ -613,7 +613,7 @@ o.spec("SendMailModel", function () {
 				instanceListId: "",
 				instanceId: "",
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			await model.handleEntityEvent({
 				typeRef: MailTypeRef,
@@ -621,7 +621,7 @@ o.spec("SendMailModel", function () {
 				instanceListId: "",
 				instanceId: "",
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			verify(entity.load(anything(), anything(), anything()), { times: 0 })
 		})
@@ -653,7 +653,7 @@ o.spec("SendMailModel", function () {
 				instanceListId,
 				instanceId,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			o(model.allRecipients().length).equals(2)
 			const updatedRecipient = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
@@ -688,7 +688,7 @@ o.spec("SendMailModel", function () {
 				instanceListId,
 				instanceId,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			o(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
@@ -703,7 +703,7 @@ o.spec("SendMailModel", function () {
 				instanceListId,
 				instanceId,
 				...noPatchesAndInstance,
-				isPrefetched: false,
+				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
 			o(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
