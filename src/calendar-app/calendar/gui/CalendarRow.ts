@@ -9,9 +9,11 @@ import { ViewHolder } from "../../../common/gui/base/List.js"
 import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 
-import { formatEventDuration, getClientOnlyColors, getEventColor, getGroupColors } from "./CalendarGuiUtils.js"
+import { formatEventDuration, getClientOnlyColors, getEventColor } from "./CalendarGuiUtils.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+
+import { getGroupColors } from "../../../common/misc/GroupColors"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
 	top: number
@@ -80,19 +82,19 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 							minHeight: "16px",
 							borderRadius: "50%",
 						},
-						oncreate: (vnode: VnodeDOM) => {
+						oncreate: (vnode: VnodeDOM): void => {
 							this.calendarIndicatorDom = vnode.dom as HTMLElement
 						},
 					}),
 					m(".flex.col", { class: "min-width-0" }, [
 						m("p.b.m-0.badge-line-height", {
 							class: "text-ellipsis",
-							oncreate: (vnode: VnodeDOM) => {
+							oncreate: (vnode: VnodeDOM): void => {
 								this.summaryDom = vnode.dom as HTMLElement
 							},
 						}),
 						m(".smaller", {
-							oncreate: (vnode: VnodeDOM) => {
+							oncreate: (vnode: VnodeDOM): void => {
 								this.durationDom = vnode.dom as HTMLElement
 							},
 						}),

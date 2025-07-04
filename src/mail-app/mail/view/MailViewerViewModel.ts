@@ -74,9 +74,10 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
-import { mailLocator } from "../../mailLocator.js"
 import { isDraft } from "../model/MailChecks"
 import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
+import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
+import { mailLocator } from "../../mailLocator.js"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -145,6 +146,7 @@ export class MailViewerViewModel {
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly contactImporter: lazyAsync<ContactImporter>,
 		private readonly highlightedStrings: readonly SearchToken[],
+		readonly eventsRepository: CalendarEventsRepository,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -1070,7 +1072,7 @@ export class MailViewerViewModel {
 	private async importCalendar(file: TutanotaFile) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
-			const { importCalendarFile, parseCalendarFile } = await import("../../../common/calendar/import/CalendarImporter.js")
+			const { importCalendarFile, parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const data = parseCalendarFile(dataFile)
 			await importCalendarFile(await mailLocator.calendarModel(), this.logins.getUserController(), data.contents)

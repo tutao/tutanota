@@ -69,13 +69,13 @@ import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { px, size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
-import { exportCalendar, handleCalendarImport } from "../../../common/calendar/import/CalendarImporterDialog.js"
+import { exportCalendar, handleCalendarImport } from "../../../common/calendar/gui/CalendarImporterDialog.js"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
 import { getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers } from "../../../common/sharing/GroupUtils"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvitationFolderRow"
 import { SidebarSection } from "../../../common/gui/SidebarSection"
-import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
+import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
@@ -104,8 +104,8 @@ import { FloatingActionButton } from "../../gui/FloatingActionButton.js"
 import { Icon, IconSize, progressIcon } from "../../../common/gui/base/Icon.js"
 import { Group, GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { formatDate, formatTime } from "../../../common/misc/Formatter.js"
-import { getExternalCalendarName, parseCalendarStringData, SyncStatus } from "../../../common/calendar/import/ImportExportUtils.js"
-import type { ParsedEvent } from "../../../common/calendar/import/CalendarImporter.js"
+import { getExternalCalendarName, parseCalendarStringData, SyncStatus } from "../../../common/calendar/gui/ImportExportUtils.js"
+import type { ParsedEvent } from "../../../common/calendar/gui/CalendarImporter.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { elementIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { ContactEventPopup } from "../gui/eventpopup/CalendarContactPopup.js"
@@ -1339,7 +1339,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			}
 		} else {
 			this.currentViewType = CalendarViewTypeByValue[args.view as CalendarViewType] ? args.view : CalendarViewType.MONTH
-
 			const eventIdParam = args.eventId
 			const urlDateParam = args.date
 
@@ -1375,13 +1374,22 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					this.viewModel.setSelectedTime(undefined)
 				}
 
-				if (eventIdParam && isApp() && this.eventDetails) {
+				if (eventIdParam && (!isApp() || this.eventDetails)) {
 					try {
 						const decodedEventId = decodeBase64("utf-8", base64UrlToBase64(eventIdParam)).split("/")
 						locator.logins.waitForFullLogin().then(() => {
 							this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]]).then(() => {
-								if (this.viewSlider.focusedColumn != this.eventDetails && this.eventDetails) {
+								if (isApp() && this.viewSlider.focusedColumn != this.eventDetails && this.eventDetails) {
 									this.viewSlider.focus(this.eventDetails)
+								} else if (!isApp() && !styles.isDesktopLayout()) {
+									const eventElement = document.getElementById(eventIdParam)
+									if (eventElement && this.viewModel.previewedEventTuple()?.event) {
+										this.showCalendarEventPopup(
+											this.viewModel.previewedEventTuple()?.event!,
+											eventElement.getBoundingClientRect(),
+											this.htmlSanitizer,
+										)
+									}
 								}
 							})
 						})

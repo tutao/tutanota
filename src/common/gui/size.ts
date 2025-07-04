@@ -17,6 +17,8 @@ export const size = {
 	hpad_button: 6,
 	hpad_nav_button: 9,
 	// 6 + 9 = 15px
+	vpad_unit: 1,
+	vpad_xxs: 2,
 	vpad_xs: 3,
 	vpad_xsm: 4,
 	vpad: 16,

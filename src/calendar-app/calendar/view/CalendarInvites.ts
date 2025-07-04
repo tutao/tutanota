@@ -1,4 +1,4 @@
-import { parseCalendarFile } from "../../../common/calendar/import/CalendarImporter.js"
+import { parseCalendarFile } from "../../../common/calendar/gui/CalendarImporter.js"
 import type { CalendarEvent, CalendarEventAttendee, File as TutanotaFile, Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, FeatureType, getAsEnumValue } from "../../../common/api/common/TutanotaConstants.js"
@@ -27,13 +27,13 @@ import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
 
-export type ParsedIcalFileContent =
-	| {
-			method: CalendarMethod
-			events: Array<CalendarEvent>
-			uid: string
-	  }
-	| None
+export interface ParsedIcalFileContentData {
+	method: CalendarMethod
+	events: Array<CalendarEvent>
+	uid: string
+}
+
+export type ParsedIcalFileContent = ParsedIcalFileContentData | None
 
 async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent> {
 	try {
@@ -184,9 +184,10 @@ export class CalendarInviteHandler {
 		}
 		const calendars = await this.calendarModel.getCalendarInfos()
 		const type = getEventType(event, calendars, [attendee.address.address], this.logins.getUserController())
-		if (type === EventType.SHARED_RO || type === EventType.LOCKED) {
+
+		if (type === EventType.SHARED_RO) {
 			// if the Event type is shared read only, the event will be updated by the response, trying to update the calendar here will result in error
-			// since there is no write permission. (Same issue can happen with locked, no write permission)
+			// since there is no write permission.
 			return ReplyResult.ReplySent
 		}
 		const calendar = findFirstPrivateCalendar(calendars)

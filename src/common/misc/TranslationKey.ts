@@ -2027,3 +2027,7 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "timeOverview_title"
+	| "viewOnCalendar_action"
+	| "noSimultaneousEvents_msg"
+	| "simultaneousEvents_msg"

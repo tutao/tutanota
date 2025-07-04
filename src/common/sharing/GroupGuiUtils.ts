@@ -1,4 +1,4 @@
-import type { TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel"
+import type { MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import { GroupType } from "../api/common/TutanotaConstants"
 import { getDefaultGroupName, ShareableGroupType } from "./GroupUtils"
