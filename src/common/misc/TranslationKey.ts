@@ -231,6 +231,7 @@ export type TranslationKeyType =
 	| "cannotEditNotOrganizer_msg"
 	| "cannotEditSingleInstance_msg"
 	| "canNotOpenFileOnDevice_msg"
+	| "captchaChecking_msg"
 	| "captchaDisplay_label"
 	| "captchaEnter_msg"
 	| "captchaInfo_msg"

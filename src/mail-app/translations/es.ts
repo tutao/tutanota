@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-06-25T15:56:09Z",
+	"updated_at": "2025-07-04T12:12:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -252,6 +252,7 @@ export default {
 		"cannotEditNotOrganizer_msg": "No puedes editar este evento, porque no eres su organizador.",
 		"cannotEditSingleInstance_msg": "Solo puedes editar partes de este evento, porque es parte de una serie de eventos.",
 		"canNotOpenFileOnDevice_msg": "Este archivo no se puede abrir en este dispositivo.",
+		"captchaChecking_msg": "Asegurándonos de que no eres un robot ...",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Por favor, introduce el tiempo en horas y minutos.",
 		"captchaInfo_msg": "Por favor, introduce la hora que se muestra para comprobar que no eres un ordenador.",
@@ -1836,6 +1837,7 @@ export default {
 		"switchDrafts_action": "Cambiar a la carpeta de borradores",
 		"switchInbox_action": "Cambiar a la carpeta de buzón",
 		"switchMonthView_action": "Cambiar a vista de mes",
+		"switchPlan_msg": "Tu plan será cambiado a: {plan} {interval}",
 		"switchSearchInMenu_label": "Cambiar Modo de Búsqueda",
 		"switchSentFolder_action": "Enviados",
 		"switchSpam_action": "Cambiar a la carpeta de spam",

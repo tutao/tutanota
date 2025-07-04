@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-07-01T07:10:54Z",
+	"updated_at": "2025-07-04T10:39:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -248,6 +248,7 @@ export default {
 		"cannotEditNotOrganizer_msg": "You cannot edit this event because you are not its organizer.",
 		"cannotEditSingleInstance_msg": "You can only edit parts of this event because it is part of an event series.",
 		"canNotOpenFileOnDevice_msg": "This file can not be opened on this device.",
+		"captchaChecking_msg": "Making sure you're not a robot ...",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Please enter the time in hours and minutes.",
 		"captchaInfo_msg": "Please enter the displayed time to prove you are not a computer.",

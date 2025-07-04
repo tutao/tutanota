@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-07-01T16:22:15Z",
+	"updated_at": "2025-07-04T11:45:09Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -248,6 +248,7 @@ export default {
 		"cannotEditNotOrganizer_msg": "Du kan inte redigera den här händelsen eftersom du inte är dess organisatör.",
 		"cannotEditSingleInstance_msg": "Du kan bara redigera delar av den här händelsen eftersom det är en del av en serie händelser.\n",
 		"canNotOpenFileOnDevice_msg": "Filen kan inte öppnas på den här enheten.",
+		"captchaChecking_msg": "Säkerställer att du inte är en robot ...",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Ange tiden i timmar och minuter.",
 		"captchaInfo_msg": "Ange den visade tiden för att säkerställa att du inte är en dator.",

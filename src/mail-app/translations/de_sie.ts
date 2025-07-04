@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-07-01T07:15:32Z",
+	"updated_at": "2025-07-04T10:39:13Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -252,6 +252,7 @@ export default {
 		"cannotEditNotOrganizer_msg": "Sie können diesen Termin nicht bearbeiten, da Sie nicht der Organisator sind.",
 		"cannotEditSingleInstance_msg": "Sie können nur Teile dieses Termins bearbeiten, weil er Teil einer Serie ist.",
 		"canNotOpenFileOnDevice_msg": "Diese Datei kann auf diesem Gerät nicht geöffnet werden.",
+		"captchaChecking_msg": "Überprüfung, dass Sie kein Roboter sind ...",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Bitte tragen Sie die Uhrzeit in Stunden und Minuten ein.",
 		"captchaInfo_msg": "Um sicherzustellen, dass Sie ein Mensch sind, tragen Sie bitte die angezeigte Uhrzeit hier ein.",
