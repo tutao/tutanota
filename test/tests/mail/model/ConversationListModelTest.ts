@@ -40,6 +40,7 @@ import { assertNotNull, clamp, lastThrow, pad } from "@tutao/tutanota-utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
 import { ConversationListModel } from "../../../../src/mail-app/mail/model/ConversationListModel"
 import { ListLoadingState } from "../../../../src/common/gui/base/List"
+import { getMailFilterForType, MailFilterType } from "../../../../src/mail-app/mail/view/MailViewerUtils"
 
 o.spec("ConversationListModel", () => {
 	let model: ConversationListModel
@@ -115,12 +116,13 @@ o.spec("ConversationListModel", () => {
 		return Number(deconstructMailSetEntryId(mailSetElementId).mailId)
 	}
 
-	async function setUpTestData(count: number, initialLabels: MailFolder[], offline: boolean, mailsPerConversation: number): Promise<Mail[]> {
+	// Creates a totalMails number of mails, grouping into a number of conversations equal to totalMails/mailsPerConversation
+	async function setUpTestData(totalMails: number, initialLabels: MailFolder[], offline: boolean, mailsPerConversation: number): Promise<Mail[]> {
 		const mailSetEntries: MailSetEntry[] = []
 		const mails: Mail[][] = [[], [], [], [], [], [], [], [], [], []]
 		const allMails: Mail[] = []
 
-		for (let i = 0; i < count; i++) {
+		for (let i = 0; i < totalMails; i++) {
 			const mailBag = i % 10
 			const mailId: IdTuple = makeMailId(i)
 			const conversationId = "" + Math.floor(i / mailsPerConversation)
@@ -725,6 +727,100 @@ o.spec("ConversationListModel", () => {
 
 			await model.handleEntityUpdate(entityUpdateData)
 			o.check(model.getMail(getElementId(mail))).deepEquals(mail)
+		})
+	})
+
+	o.spec("filter on ConversationList", () => {
+		o.test("When filtering for unread mails only relevant conversations are shown", async () => {
+			const allMails = await setUpTestData(2, [], false, 1)
+			await model.loadInitial()
+
+			o.check(model.items.length).equals(2)
+
+			const unreadMail = allMails[0]
+			unreadMail.unread = true
+
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailTypeRef,
+				instanceListId: getListId(unreadMail),
+				instanceId: getElementId(unreadMail),
+				operation: OperationType.UPDATE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
+			}
+			when(entityClient.load(MailTypeRef, unreadMail._id)).thenResolve(unreadMail)
+
+			entityUpdateData.operation = OperationType.UPDATE
+
+			await model.handleEntityUpdate(entityUpdateData)
+
+			model.setFilter([getMailFilterForType(MailFilterType.Unread)])
+
+			const unreadMails = model.items
+
+			o.check(unreadMails.length).equals(1)
+		})
+
+		o.test("When the mail does not match filter after filter was set, it is still kept in the list", async () => {
+			const allMails = await setUpTestData(2, [], false, 1)
+			await model.loadInitial()
+
+			o.check(model.items.length).equals(2)
+
+			model.setFilter([getMailFilterForType(MailFilterType.Read)])
+
+			const unreadMail = allMails[0]
+			unreadMail.unread = true
+
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailTypeRef,
+				instanceListId: getListId(unreadMail),
+				instanceId: getElementId(unreadMail),
+				operation: OperationType.UPDATE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
+			}
+			when(entityClient.load(MailTypeRef, unreadMail._id)).thenResolve(unreadMail)
+
+			entityUpdateData.operation = OperationType.UPDATE
+
+			await model.handleEntityUpdate(entityUpdateData)
+
+			const unreadMails = model.items
+
+			o.check(unreadMails.length).equals(2)
+		})
+
+		o.test("When filter is set, the relevant Email in the conversation is shown", async () => {
+			const allMails = await setUpTestData(5, [], false, 5)
+			await model.loadInitial()
+
+			let displayedItem = model.items
+
+			o.check(isSameId(displayedItem[0]._id, allMails[0]._id)).equals(true)
+
+			const unreadMail = allMails[2]
+			unreadMail.unread = true
+
+			const entityUpdateData: EntityUpdateData = {
+				typeRef: MailTypeRef,
+				instanceListId: getListId(unreadMail),
+				instanceId: getElementId(unreadMail),
+				operation: OperationType.UPDATE,
+				...noPatchesAndInstance,
+				isPrefetched: false,
+			}
+			when(entityClient.load(MailTypeRef, unreadMail._id)).thenResolve(unreadMail)
+
+			entityUpdateData.operation = OperationType.UPDATE
+
+			await model.handleEntityUpdate(entityUpdateData)
+
+			model.setFilter([getMailFilterForType(MailFilterType.Unread)])
+
+			displayedItem = model.items
+
+			o.check(isSameId(displayedItem[0]._id, unreadMail._id)).equals(true)
 		})
 	})
 })
