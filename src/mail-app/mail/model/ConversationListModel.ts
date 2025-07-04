@@ -87,7 +87,7 @@ export class ConversationListModel implements MailSetListModel {
 
 		// Filtering is handled on the conversation's side, as it has access to all of its mails. We just need to hide
 		// conversations that are completely filtered out (i.e. no mail in it fits the filter)
-		this.listModel.setFilter((conversation: LoadedConversation) => conversation.getDisplayedMail() != null)
+		this.listModel.setFilter((conversation: LoadedConversation) => conversation.getMainMail() != null)
 	}
 
 	get lastItem(): Mail | null {
@@ -149,7 +149,7 @@ export class ConversationListModel implements MailSetListModel {
 		const mailSetId: IdTuple = [update.instanceListId, update.instanceId]
 
 		for (const conversation of this.conversationMap.values()) {
-			for (const loadedMail of conversation.mails) {
+			for (const loadedMail of conversation.conversationMails) {
 				const hasMailSet = loadedMail.labels.some((label) => isSameId(mailSetId, label._id))
 				if (!hasMailSet) {
 					continue
@@ -216,7 +216,7 @@ export class ConversationListModel implements MailSetListModel {
 
 		this.deleteMailToConversationMapping(mailId)
 
-		if (conversation.mails.length === 1) {
+		if (conversation.conversationMails.length === 1) {
 			// It's the last mail in the conversation, so we will want to remove the conversation instead of the mail.
 			// This is so we can still have sorting so the list model can determine what the next conversation is (for
 			// the move mail behavior).
@@ -308,7 +308,7 @@ export class ConversationListModel implements MailSetListModel {
 
 			// The mail is not the latest in the conversation. This is a problem. To fix this, we use this fun override
 			// variable so that the conversation can be selected, but then the mail we wanted is actually displayed.
-			if (!isSameId(conversation.getDisplayedMailId(), selectedMailId)) {
+			if (!isSameId(conversation.getMainMailId(), selectedMailId)) {
 				this.olderDisplayedSelectedMailOverride = selectedMailId
 			}
 
@@ -380,7 +380,7 @@ export class ConversationListModel implements MailSetListModel {
 		// statically apply the filter here, as we don't want to re-apply the filter on the same conversation multiple times (e.g. when sorting)
 		// and we want to use this result for what mail we display
 		for (const convo of this.conversationMap.values()) {
-			convo.setFilter(this.currentFilter)
+			convo.applyFilterToConversation(this.currentFilter)
 		}
 
 		// filtering can change sort order, since some conversations may move around due to their displayed emails changing receivedDate
@@ -509,7 +509,7 @@ export class ConversationListModel implements MailSetListModel {
 			if (existingConversation == null) {
 				const conversation = new LoadedConversation(conversationId)
 				conversation.insertOrUpdateMail(mail)
-				conversation.setFilter(this.currentFilter)
+				conversation.applyFilterToConversation(this.currentFilter)
 				addedItems.push(conversation)
 				this.conversationMap.set(conversationId, conversation)
 			} else {
@@ -531,8 +531,8 @@ export class ConversationListModel implements MailSetListModel {
 
 	private reverseSortConversation(item1: LoadedConversation, item2: LoadedConversation): number {
 		// Mail set entry ID has the timestamp and mail element ID
-		const item1Id = item1.getDisplayedMail()?.mailSetEntryId ?? null
-		const item2Id = item2.getDisplayedMail()?.mailSetEntryId ?? null
+		const item1Id = item1.getMainMail()?.mailSetEntryId ?? null
+		const item2Id = item2.getMainMail()?.mailSetEntryId ?? null
 
 		// In the case one or both conversations have no displayed mail (due to being filtered out), we want it to be
 		// treated by the list model as being on the top of the list so that it isn't considered when checking ranges
@@ -615,7 +615,7 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	private getDisplayedMailsOfConversations(conversations: readonly LoadedConversation[]): Mail[] {
-		return conversations.map((conversation) => conversation.getDisplayedMail()?.mail).filter(isNotNull)
+		return conversations.map((conversation) => conversation.getMainMail()?.mail).filter(isNotNull)
 	}
 
 	/**
@@ -625,7 +625,7 @@ export class ConversationListModel implements MailSetListModel {
 	 * @private
 	 */
 	private updateConversation(conversation: LoadedConversation) {
-		if (conversation.reapplyFilter()) {
+		if (conversation.updateMainMail()) {
 			this.listModel.updateLoadedItem(conversation)
 		}
 	}
@@ -660,89 +660,100 @@ function reverseCompareMailSetId(id1: Id, id2: Id): number {
  * @VisibleForTesting
  */
 export class LoadedConversation {
-	readonly mails: LoadedMail[] = []
+	readonly conversationMails: LoadedMail[] = []
 
-	private displayedMail: LoadedMail | null = null
+	// the mainMail is the mail this is show in preview in the list, and is the mail shown when the list entry is clicked
+	private mainMail: LoadedMail | null = null
 	private listFilter: ListFilter<Mail> | null = null
 
 	constructor(readonly conversationId: Id) {}
 
 	/**
-	 * Inserts or updates the mail in the list.
+	 * Inserts or updates the mail in the conversation
 	 *
-	 * This does not update the displayed mail. To do that, you must call {@link reapplyFilter} after adding mail(s).
+	 * This does not update the displayed mail. To do that, you must call {@link updateMainMail} after adding mail(s).
 	 */
 	insertOrUpdateMail(mail: LoadedMail) {
 		insertIntoSortedArray(
 			mail,
-			this.mails,
+			this.conversationMails,
 			(a, b) => reverseCompareMailSetId(elementIdPart(a.mailSetEntryId), elementIdPart(b.mailSetEntryId)),
 			() => true,
 		)
 	}
 
 	/**
-	 * Removes the mail from the list.
+	 * Removes the mail from the conversation
+	 * This does not update the main mail. To do that, you must call {@link updateMainMail} after adding mail(s).
 	 *
-	 * This does not update the displayed mail. To do that, you must call {@link reapplyFilter} after adding mail(s).
+	 * @param mailElementId mail to delete
 	 */
 	deleteMail(mailElementId: Id) {
-		findAllAndRemove(this.mails, (mail) => getElementId(mail.mail) === mailElementId)
+		findAllAndRemove(this.conversationMails, (mail) => getElementId(mail.mail) === mailElementId)
 	}
 
 	/**
-	 * Gets the mail from the list.
+	 * Gets the mail from the conversation
 	 *
 	 * @param mailElementId mail to get
 	 */
 	getLoadedMail(mailElementId: Id): LoadedMail | null {
-		return this.mails.find((mail) => getElementId(mail.mail) == mailElementId) ?? null
+		return this.conversationMails.find((mail) => getElementId(mail.mail) == mailElementId) ?? null
 	}
 
 	/**
-	 * Reapply the filter
-	 *
-	 * Return `true` if the displayed mail changed
+	 * Return `true` if the main mail has been replaced with a different mail or is the same mail but state has changed (i.e. read/unread)
 	 */
-	reapplyFilter(): boolean {
-		const oldDisplayedMail = this.displayedMail
+	updateMainMail(): boolean {
+		const oldMainMail = this.mainMail
 
 		const filter = this.listFilter
 		if (filter == null) {
-			this.displayedMail = first(this.mails)
+			this.mainMail = first(this.conversationMails)
 		} else {
-			this.displayedMail = this.mails.find((mail) => filter(mail.mail)) ?? null
+			// FIXME: this really is only checking if the state of the mail has changed, can this been done better?
+			// The main mail is only changed to a different mail when the filter is first applied, see applyFilterToConversation
+			// While the filter is still applied, we want to keep the same main mail (for example, in the case of
+			// filtering for unread mails, if you read one of the mails you still want it to display and not disappear)
+			this.mainMail = this.conversationMails.find((mail) => mail.mailSetEntryId[1] === oldMainMail?.mailSetEntryId[1]) ?? null
 		}
 
-		return oldDisplayedMail !== this.displayedMail
+		return oldMainMail !== this.mainMail
 	}
 
 	/**
-	 * Sets the filter.
+	 * Updates listFilter and changes the main mail based on the filter
 	 *
-	 * Also calls reapplyFilter().
+	 * The main mail needs to be changed so that it is the mail that is relevant to the filter.
+	 * For example, if there is one unread mail in a long conversation and the filter is set to Unread,
+	 * the main mail should be the unread mail
 	 */
-	setFilter(filter: ListFilter<Mail> | null) {
+	applyFilterToConversation(filter: ListFilter<Mail> | null) {
 		this.listFilter = filter
-		this.reapplyFilter()
+
+		if (filter) {
+			this.mainMail = this.conversationMails.find((mail) => filter(mail.mail)) ?? null
+		} else {
+			this.updateMainMail()
+		}
 	}
 
 	/**
-	 * Get the currently displayed mail.
+	 * Get the main mail of the conversation
 	 *
 	 * This is the latest mail unless there is a filter applied.
 	 */
-	getDisplayedMail(): LoadedMail | null {
-		return this.displayedMail
+	getMainMail(): LoadedMail | null {
+		return this.mainMail
 	}
 
 	/**
-	 * Return the element ID for the currently displayed mail.
+	 * Return the element ID for the main mail of the conversation
 	 *
-	 * This is the latest mail unless there is a filter applied.
+	 * This is the latest mail unless there is a filter applied
 	 */
-	getDisplayedMailId(): Id | null {
-		const mail = this.getDisplayedMail()?.mail
+	getMainMailId(): Id | null {
+		const mail = this.getMainMail()?.mail
 		return mail != null ? getElementId(mail) : null
 	}
 }

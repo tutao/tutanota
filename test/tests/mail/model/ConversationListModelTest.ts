@@ -385,7 +385,7 @@ o.spec("ConversationListModel", () => {
 		)
 
 		await model.handleEntityUpdate(entityUpdateData)
-		o.check(model._getConversationMap().get(listIdPart(mail.conversationEntry))?.getDisplayedMail()!.mailSetEntryId).deepEquals(mailSetEntryId)
+		o.check(model._getConversationMap().get(listIdPart(mail.conversationEntry))?.getMainMail()!.mailSetEntryId).deepEquals(mailSetEntryId)
 	})
 
 	o.spec("handleEntityUpdate", () => {
