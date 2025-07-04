@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-06-23T13:00:26Z",
+	"updated_at": "2025-07-04T13:41:58Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -252,6 +252,7 @@ export default {
 		"cannotEditNotOrganizer_msg": "Bu etkinliği düzenleyemezsiniz çünkü düzenleyicisi siz değilsiniz.",
 		"cannotEditSingleInstance_msg": "Bir etkinlik serisinin parçası olduğu için bu etkinliğin yalnızca bazı bölümlerini düzenleyebilirsiniz.",
 		"canNotOpenFileOnDevice_msg": "Bu dosya, bu cihazda açılamaz.",
+		"captchaChecking_msg": "Robot olmadığınızdan emin olmak için...",
 		"captchaDisplay_label": "Güvenlik Doğrulaması",
 		"captchaEnter_msg": "Lütfen zamanı saat ve dakika olarak giriniz.",
 		"captchaInfo_msg": "Lütfen robot olmadığınızı kanıtlamak için gösterilen saati yazınız.",
@@ -1836,6 +1837,7 @@ export default {
 		"switchDrafts_action": "Taslak klasörüne geç",
 		"switchInbox_action": "Gelen klasörüne geç",
 		"switchMonthView_action": "Aylık görünüme geç",
+		"switchPlan_msg": "Planınız şu şekilde değiştirilecektir: {plan} {interval}",
 		"switchSearchInMenu_label": "Menüden arama şeklini seçebilirsiniz ",
 		"switchSentFolder_action": "Gönderilenler klasörüne geç",
 		"switchSpam_action": "Gereksiz klasörüne geç",
