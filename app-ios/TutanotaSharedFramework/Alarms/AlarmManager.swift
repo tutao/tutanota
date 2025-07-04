@@ -29,6 +29,10 @@ public class AlarmManager {
 	/// Process new alarms into the app. Will persist the changes and reschedule as appropriate
 	public func processNewAlarms(_ encryptedAlarmNotifications: [EncryptedAlarmNotification], _ newDeviceSessionKey: String?) throws {
 		log("processNewAlarms")
+		if encryptedAlarmNotifications.count == 0 {
+			printLog("New alarm notifications are empty. Skipping scheduling attempt.")
+			return
+		}
 		// We will modify this list and the overwrite persisted alarms with what is inside this list
 		var savedNotifications = self.alarmPersistor.alarms
 		var resultError: Error?
@@ -143,9 +147,9 @@ public class AlarmManager {
 
 	private func unschedule(alarm encAlarmNotification: EncryptedAlarmNotification) throws {
 		let alarmNotification = try alarmCryptor.decrypt(alarm: encAlarmNotification)
-		let occurrenceIds = prefix(alarmCalculator.futureOccurrences(ofAlarm: alarmNotification), EVENTS_SCHEDULED_AHEAD)
+		let occurrenceIds = prefix(alarmCalculator.futureAlarmOccurrencesSequence(ofAlarm: alarmNotification), EVENTS_SCHEDULED_AHEAD)
 			.map { ocurrenceIdentifier(alarmIdentifier: $0.alarm.identifier, occurrence: $0.occurrenceNumber) }
-		log("Cancelling alarm \(alarmNotification.identifier)")
+		log("Cancelling all future alarm occurences of \(alarmNotification.identifier)")
 		self.alarmScheduler.unscheduleAll(occurrenceIds: occurrenceIds)
 	}
 	private func schedule(alarmOccurrence: AlarmOccurence, trigger: AlarmInterval, summary: String, alarmIdentifier: String) {

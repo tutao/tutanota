@@ -46,6 +46,7 @@ public class NotificationsHandler {
 		printLog("Adding fetch notification operation to queue")
 		let receiveTime = self.dateProvider.now
 		self.taskQueue.enqueue { [weak self] in
+			printLog("Performing enqueued task for fetchMissedNotifcations")
 			let void: Void = ()
 			guard let self else {
 				TUTSLog("Handler is gone, skipping task")

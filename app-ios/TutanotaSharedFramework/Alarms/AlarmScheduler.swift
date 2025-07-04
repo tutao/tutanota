@@ -30,13 +30,13 @@ public class SystemAlarmScheduler: AlarmScheduler {
 
 		let request = UNNotificationRequest(identifier: info.identifier, content: content, trigger: notificationTrigger)
 
-		TUTSLog("Scheduling a notification \(info.identifier) at \(cal.date(from: dateComponents)!)")
+		printLog("Scheduling a notification \(info.identifier) at \(cal.date(from: dateComponents)!)")
 
 		UNUserNotificationCenter.current()
 			.add(request) { error in
 				if let error {
 					// We should make the whole funciton async and wait for it
-					TUTSLog("Failed to schedule a notification \(error)")
+					printLog("Failed to schedule a notification \(error)")
 				}
 			}
 	}
