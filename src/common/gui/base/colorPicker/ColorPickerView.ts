@@ -32,7 +32,7 @@ export type ColorPickerViewAttrs = {
 
 export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 	private readonly palette = Array<string | null>(ColorPickerModel.PALETTE_SIZE).fill(null)
-	private readonly model: ColorPickerModel = new ColorPickerModel(!isColorLight(theme.content_bg))
+	private readonly model: ColorPickerModel = new ColorPickerModel(!isColorLight(theme.surface))
 	private selectedHueAngle = Math.floor(Math.random() * MAX_HUE_ANGLE)
 	private fallbackVariantIndex: number = PaletteIndex.defaultVariant
 	private isAdvanced = false
@@ -91,7 +91,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 						style:
 							i === 0
 								? {
-										borderRight: `2px solid ${theme.content_border}`,
+										borderRight: `2px solid ${theme.outline}`,
 								  }
 								: undefined,
 					}),
@@ -230,7 +230,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 						padding: "1px",
 						borderWidth: "2px",
 						borderStyle: "solid",
-						borderColor: isOptionSelected ? theme.content_button_selected : "transparent",
+						borderColor: isOptionSelected ? theme.primary : "transparent",
 					},
 				},
 				m(".border-radius", {
@@ -243,8 +243,8 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 						height: px(30),
 						borderWidth: "1px",
 						borderStyle: "solid",
-						borderColor: isOptionSelected ? "transparent" : theme.content_border,
-						backgroundColor: isColorValid ? color : theme.content_border,
+						borderColor: isOptionSelected ? "transparent" : theme.outline,
+						backgroundColor: isColorValid ? color : theme.outline,
 					},
 					onkeydown: (e: KeyboardEvent) => {
 						if (isKeyPressed(e.key, Keys.SPACE)) {
@@ -323,15 +323,15 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 					{
 						style: {
 							borderStyle: "solid",
-							borderColor: theme.content_border,
-							backgroundColor: theme.content_border,
+							borderColor: theme.outline,
+							backgroundColor: theme.outline,
 							borderWidth: px(HUE_GRADIENT_BORDER_WIDTH),
 							height: px(HUE_GRADIENT_HEIGHT),
 						},
 					},
 					m("img.block.full-width", {
 						src: `${window.tutao.appState.prefixWithoutFile}/images/color-hue-picker/hue-gradient-${
-							!isColorLight(theme.content_bg) ? "dark" : "light"
+							!isColorLight(theme.surface) ? "dark" : "light"
 						}.png`,
 						alt: "",
 						draggable: false,
@@ -396,7 +396,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 								width: px(24),
 								height: px(24),
 								transform: "translateX(-50%)",
-								backgroundColor: this.model.getHueWindowColor(this.selectedHueAngle) ?? theme.content_border,
+								backgroundColor: this.model.getHueWindowColor(this.selectedHueAngle) ?? theme.outline,
 							},
 							oncreate: (vnode) => {
 								this.hueWindowDom = vnode.dom as HTMLElement
@@ -408,7 +408,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 								width: px(2),
 								height: px(HUE_GRADIENT_HEIGHT),
 								transform: "translateX(-50%)",
-								backgroundColor: theme.content_border,
+								backgroundColor: theme.outline,
 							},
 						}),
 					],

@@ -35,7 +35,7 @@ o.spec("ThemeController", function () {
 	o("updateCustomTheme", async function () {
 		const theme: ThemeCustomizations = downcast({
 			themeId: "HelloFancyId",
-			content_bg: "#fffeee",
+			surface: "#fffeee",
 			logo: "unsanitized_logo",
 			base: "light",
 		})
@@ -46,10 +46,71 @@ o.spec("ThemeController", function () {
 		verify(themeFacadeMock.setThemes(captor.capture()))
 		const savedTheme = captor.values![0][4]
 		o(savedTheme.themeId).equals("HelloFancyId")
-		o(savedTheme.content_bg).equals("#fffeee")
+		o(savedTheme.surface).equals("#fffeee")
 		o(savedTheme.logo).equals("sanitized")
-		o(savedTheme.content_fg).equals(themeManager.getDefaultTheme().content_fg)
+		o(savedTheme.on_surface).equals(themeManager.getDefaultTheme().on_surface)
 		o(themeManager.getCurrentTheme().logo).equals("sanitized")
+	})
+
+	o("Mapping the new color tokens to the old tokens", async function () {
+		const newTokenTheme: ThemeCustomizations = downcast({
+			themeId: "HelloFancyId",
+			primary: "#abcdef",
+			surface: "#fffeee",
+			base: "light",
+		})
+
+		o(ThemeController.mapNewToOldColorTokens(newTokenTheme)).deepEquals(
+			downcast({
+				themeId: "HelloFancyId",
+				primary: "#abcdef",
+				surface: "#fffeee",
+				base: "light",
+				content_accent: "#abcdef",
+				content_button_selected: "#abcdef",
+				header_button_selected: "#abcdef",
+				list_accent_fg: "#abcdef",
+				navigation_button_selected: "#abcdef",
+				content_bg: "#fffeee",
+				header_bg: "#fffeee",
+				list_bg: "#fffeee",
+				elevated_bg: "#fffeee",
+			}),
+		)
+	})
+
+	o("Mapping the old color tokens to the new tokens", async function () {
+		const oldTokenTheme: ThemeCustomizations = downcast({
+			themeId: "HelloFancyId",
+			base: "light",
+			content_accent: "#abcdef",
+			content_button_selected: "#abcdef",
+			header_button_selected: "#abcdef",
+			list_accent_fg: "#abcdef",
+			navigation_button_selected: "#abcdef",
+			content_bg: "#fffeee",
+			header_bg: "#fffeee",
+			list_bg: "#fffeee",
+			elevated_bg: "#fffeee",
+		})
+
+		o(ThemeController.mapOldToNewColorTokens(oldTokenTheme)).deepEquals(
+			downcast({
+				themeId: "HelloFancyId",
+				primary: "#abcdef",
+				surface: "#fffeee",
+				base: "light",
+				content_accent: "#abcdef",
+				content_button_selected: "#abcdef",
+				header_button_selected: "#abcdef",
+				list_accent_fg: "#abcdef",
+				navigation_button_selected: "#abcdef",
+				content_bg: "#fffeee",
+				header_bg: "#fffeee",
+				list_bg: "#fffeee",
+				elevated_bg: "#fffeee",
+			}),
+		)
 	})
 
 	o("when using automatic theme and preferring dark, dark theme is applied, and themeId is automatic", async function () {
