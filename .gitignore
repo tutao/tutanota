@@ -28,3 +28,4 @@ app-android/app/src/main/java/de/tutao/tutasdk
 DerivedData/
 tuta-sdk/rust/out
 tuta-sdk/android
+import-trace.json

@@ -1,5 +1,7 @@
+// Run the specified node script, intercept its imports and dump then into imports-trace.json.
 // run as:
-// node --import ./import-hooks.js node_modules/.bin/eslint . --cache --cache-location cache/eslint
+// npm tun trace-imports -- <script path> [script parameters]
+// Example: npm run trace-imports -- node_modules/.bin/eslint . --cache --cache-location cache/eslint
 
 import module from "node:module"
 import fs from "node:fs"
@@ -76,7 +78,7 @@ process.on("beforeExit", async () => {
 			return value
 		}
 	})
-	await fs.promises.writeFile("eslint-import.json", JSON.stringify(dataWithStrippedPrefix, null, 4))
+	await fs.promises.writeFile("import-trace.json", JSON.stringify(dataWithStrippedPrefix, null, 4))
 	process.exit(0)
 })
 

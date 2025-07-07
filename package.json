@@ -29,7 +29,9 @@
 		"lint:check": "eslint . --cache --cache-location cache/eslint",
 		"lint:fix": "eslint --fix .",
 		"check": "npm run style:check && npm run lint:check",
-		"fix": "npm run style:fix && npm run lint:fix"
+		"fix": "npm run style:fix && npm run lint:fix",
+		"trace-imports": "node --import ./buildSrc/review/import-hooks.js",
+		"review-import-trace": "node ./buildSrc/review/review.js import-trace.json"
 	},
 	"dependencies": {
 		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#8d7eaa36321d7147faa3583231635855d8a991e7",
