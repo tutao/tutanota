@@ -750,8 +750,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		// we do not want to process entityUpdates where the prefetchStatus is PrefetchStatus.NotAvailable
 		// PrefetchStatus.NotAvailable indicates that we failed to fetch the instance because of 404 NotFound, 403 NotAuthorized
-		const regularUpdates = events.filter((u) => u.typeRef.app !== "monitor" || u.prefetchStatus !== PrefetchStatus.NotAvailable)
-
+		const regularUpdates = events.filter((u) => u.typeRef.app !== "monitor" && u.prefetchStatus !== PrefetchStatus.NotAvailable)
 		// we need an array of UpdateEntityData
 		const filteredUpdateEvents: EntityUpdateData[] = []
 		for (let update of regularUpdates) {
