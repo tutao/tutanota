@@ -61,7 +61,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 							type: ButtonType.Primary,
 							click: vnode.attrs.onShowSetupWizard,
 						}),
-				  )
+					)
 				: null,
 		])
 	}

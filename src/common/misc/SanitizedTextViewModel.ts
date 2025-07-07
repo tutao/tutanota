@@ -6,7 +6,11 @@ import { prepareCalendarDescription } from "../api/common/utils/CommonCalendarUt
 export class SanitizedTextViewModel {
 	private sanitizedText: string | null = null
 
-	constructor(private text: string, private readonly sanitizer: HtmlSanitizer, private readonly uiUpdateCallback: () => void = noOp) {}
+	constructor(
+		private text: string,
+		private readonly sanitizer: HtmlSanitizer,
+		private readonly uiUpdateCallback: () => void = noOp,
+	) {}
 
 	set content(v: string) {
 		this.sanitizedText = null

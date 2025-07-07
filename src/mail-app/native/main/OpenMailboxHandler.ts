@@ -11,7 +11,11 @@ import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
  * Handles requests for opening mailbox paths from native.
  */
 export class OpenMailboxHandler {
-	constructor(private readonly logins: LoginController, private readonly mailModel: MailModel, private readonly mailboxModel: MailboxModel) {}
+	constructor(
+		private readonly logins: LoginController,
+		private readonly mailModel: MailModel,
+		private readonly mailboxModel: MailboxModel,
+	) {}
 
 	async openMailbox(userId: Id, mailAddress: string, requestedPath: string | null): Promise<void> {
 		if (this.logins.isUserLoggedIn() && this.logins.getUserController().user._id === userId) {

@@ -27,7 +27,10 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 	private durationDom!: HTMLElement
 	private highlightedStrings?: readonly SearchToken[]
 
-	constructor(readonly domElement: HTMLElement, private readonly getHighlightedStrings?: () => readonly SearchToken[]) {
+	constructor(
+		readonly domElement: HTMLElement,
+		private readonly getHighlightedStrings?: () => readonly SearchToken[],
+	) {
 		this.top = 0
 		this.entity = null
 
@@ -110,7 +113,10 @@ export class KindaCalendarRow implements ViewHolder<CalendarEvent> {
 	domElement: HTMLElement
 	entity: CalendarEvent | null = null
 
-	constructor(dom: HTMLElement, private readonly getHighlightedStrings?: () => readonly SearchToken[]) {
+	constructor(
+		dom: HTMLElement,
+		private readonly getHighlightedStrings?: () => readonly SearchToken[],
+	) {
 		this.cr = new CalendarRow(dom, getHighlightedStrings)
 		this.domElement = dom
 		m.render(dom, this.cr.render())

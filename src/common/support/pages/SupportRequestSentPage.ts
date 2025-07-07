@@ -69,7 +69,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 							},
 							rightIcon: { icon: Icons.Open, title: "open_action" },
 						}),
-				  ])
+					])
 				: null,
 		)
 	}

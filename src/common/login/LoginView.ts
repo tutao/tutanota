@@ -143,35 +143,35 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						click: () => {
 							this.viewModel.showLoginForm()
 						},
-				  })
+					})
 				: null,
 			this._deleteCredentialsLinkVisible()
 				? m(Button, {
 						label: this.viewModel.displayMode === DisplayMode.DeleteCredentials ? "cancel_action" : "removeAccount_action",
 						type: ButtonType.Secondary,
 						click: () => this._switchDeleteCredentialsState(),
-				  })
+					})
 				: null,
 			this._knownCredentialsLinkVisible()
 				? m(Button, {
 						label: "knownCredentials_label",
 						type: ButtonType.Secondary,
 						click: () => this.viewModel.showCredentials(),
-				  })
+					})
 				: null,
 			this._signupLinkVisible()
 				? m(Button, {
 						label: "register_label",
 						type: ButtonType.Secondary,
 						click: () => m.route.set("/signup"),
-				  })
+					})
 				: null,
 			this._switchThemeLinkVisible()
 				? m(Button, {
 						label: "switchColorTheme_action",
 						type: ButtonType.Secondary,
 						click: this.themeSwitchListener(),
-				  })
+					})
 				: null,
 			this._recoverLoginVisible()
 				? m(Button, {
@@ -180,7 +180,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 							m.route.set("/recover")
 						},
 						type: ButtonType.Secondary,
-				  })
+					})
 				: null,
 		])
 	}
@@ -313,7 +313,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 									}
 									m.redraw()
 								})
-						  }
+							}
 						: null,
 			}),
 		])
@@ -330,7 +330,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 							e.preventDefault()
 						},
 						icon: BootIcons.Android,
-				  })
+					})
 				: null,
 			client.isDesktopDevice() || client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE
 				? m(IconButton, {
@@ -341,7 +341,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 							e.preventDefault()
 						},
 						icon: BootIcons.Apple,
-				  })
+					})
 				: null,
 			client.isDesktopDevice() || client.device === DeviceType.ANDROID
 				? m(IconButton, {
@@ -352,7 +352,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 							e.preventDefault()
 						},
 						icon: BootIcons.FDroid,
-				  })
+					})
 				: null,
 		])
 	}

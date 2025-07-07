@@ -136,7 +136,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 										showTemplateEditor(null, this.groupInstance.groupRoot)
 									},
 								}),
-						  )
+							)
 						: null,
 				),
 			},
@@ -145,7 +145,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 						color: theme.list_message_bg,
 						icon: Icons.ListAlt,
 						message: "noEntries_msg",
-				  })
+					})
 				: m(List, {
 						renderConfig: this.renderConfig,
 						state: this.listModel.state,
@@ -158,7 +158,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 						},
 						onSingleTogglingMultiselection: noOp,
 						onRangeSelectionTowards: noOp,
-				  } satisfies ListAttrs<EmailTemplate, TemplateRow>),
+					} satisfies ListAttrs<EmailTemplate, TemplateRow>),
 		)
 	}
 

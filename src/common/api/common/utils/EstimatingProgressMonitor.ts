@@ -22,7 +22,10 @@ export class EstimatingProgressMonitor implements IProgressMonitor {
 	totalWork: number
 	progressEstimation: TimeoutID
 
-	constructor(totalWork: number, private readonly updater: ProgressListener) {
+	constructor(
+		totalWork: number,
+		private readonly updater: ProgressListener,
+	) {
 		this.workCompleted = WORK_COMPLETED_MIN
 		this.totalWork = totalWork
 	}

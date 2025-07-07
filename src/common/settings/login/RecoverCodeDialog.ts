@@ -114,7 +114,7 @@ export class RecoverCodeField {
 									},
 								}),
 							),
-					  ])
+						])
 					: this.renderRecoveryText()
 				: m("", lang.get("emptyString_msg")),
 			m(MonospaceTextDisplay, { text: splitRecoverCode }),
@@ -131,8 +131,8 @@ export class RecoverCodeField {
 									title: "print_action",
 									icon: Icons.Print,
 									click: () => window.print(),
-							  }),
-				  ])
+								}),
+					])
 				: null,
 		]
 	}

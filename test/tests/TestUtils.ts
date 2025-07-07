@@ -277,7 +277,7 @@ export function equalToArray<A extends any[]>(
 					message: `Arrays are different: Expected ${expectedArray.length} items but got ${value.length}.
 The first expected item is ${JSON.stringify(expectedArray[0])} but got ${JSON.stringify(value[0])}.
 The last expected item is ${JSON.stringify(expectedArray.at(-1))} but got ${JSON.stringify(value.at(-1))}`,
-			  }
+				}
 }
 
 export function removeFinalIvs(instance: Entity | ParsedInstance): Entity | ParsedInstance {

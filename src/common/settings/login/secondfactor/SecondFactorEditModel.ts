@@ -73,7 +73,7 @@ export class SecondFactorEditModel {
 							// We don't want <xml> around the content, we actually enforce <svg> namespace, and we want it to be parsed as such.
 							xmlDeclaration: false,
 						}).svg(),
-				  ).html
+					).html
 
 			return {
 				qrCodeSvg: totpQRCodeSvg,

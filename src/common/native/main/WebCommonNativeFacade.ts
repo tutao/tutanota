@@ -151,7 +151,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 										address: address,
 									},
 								],
-						  }
+							}
 						: {}
 					editor = await newMailEditorFromTemplate(
 						mailboxDetails,

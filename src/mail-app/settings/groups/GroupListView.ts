@@ -50,7 +50,10 @@ export class GroupListView implements UpdatableSettingsViewer {
 	private listId: LazyLoaded<Id>
 	private listStateSubscription: Stream<unknown> | null = null
 
-	constructor(private readonly updateDetailsViewer: (viewer: GroupDetailsView | null) => unknown, private readonly focusDetailsViewer: () => unknown) {
+	constructor(
+		private readonly updateDetailsViewer: (viewer: GroupDetailsView | null) => unknown,
+		private readonly focusDetailsViewer: () => unknown,
+	) {
 		this.listModel = this.makeListModel()
 		this.listId = new LazyLoaded(() => {
 			return locator.logins
@@ -106,7 +109,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 						color: theme.list_message_bg,
 						icon: Icons.People,
 						message: "noEntries_msg",
-				  })
+					})
 				: m(List, {
 						renderConfig: this.renderConfig,
 						state: this.listModel.state,
@@ -119,7 +122,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 						},
 						onSingleTogglingMultiselection: noOp,
 						onRangeSelectionTowards: noOp,
-				  } satisfies ListAttrs<GroupInfo, GroupRow>),
+					} satisfies ListAttrs<GroupInfo, GroupRow>),
 		)
 	}
 

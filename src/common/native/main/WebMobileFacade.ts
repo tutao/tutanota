@@ -21,7 +21,10 @@ export class WebMobileFacade implements MobileFacade {
 
 	private isAppVisible: stream<boolean> = stream(false)
 
-	constructor(private readonly connectivityModel: WebsocketConnectivityModel, private readonly baseViewPrefix: string) {}
+	constructor(
+		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly baseViewPrefix: string,
+	) {}
 
 	public getIsAppVisible(): stream<boolean> {
 		return this.isAppVisible

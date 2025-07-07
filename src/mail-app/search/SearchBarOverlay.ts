@@ -126,7 +126,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 									//icon: () => Icons.Cancel
 									type: ButtonType.Secondary,
 								}),
-						  )
+							)
 						: null, // avoid closing overlay before the click event can be received
 				],
 			),
@@ -244,7 +244,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 								classes: ".small.mr-s",
 							},
 							companyTeamLabel,
-					  )
+						)
 					: null,
 				m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
 				m("small.text-ellipsis.flex-fixed", formatTimeOrDateOrYesterday(mail.receivedDate)),

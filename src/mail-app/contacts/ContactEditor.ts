@@ -146,7 +146,7 @@ export class ContactEditor {
 					pronouns: [],
 					relationships: [],
 					websites: [],
-			  })
+				})
 		this.isNewContact = contact?._id == null
 
 		if (this.isNewContact && listId == null) {
@@ -390,7 +390,7 @@ export class ContactEditor {
 			return !date.isValid
 				? lang.getTranslation("invalidDateFormat_msg", {
 						"{1}": formatBirthdayNumeric(bday),
-				  })
+					})
 				: lang.getTranslation("emptyString_msg")
 		}
 
@@ -668,7 +668,7 @@ export class ContactEditor {
 			return this.hasInvalidBirthday
 				? lang.get("invalidDateFormat_msg", {
 						"{1}": formatBirthdayNumeric(bday),
-				  })
+					})
 				: ""
 		}
 

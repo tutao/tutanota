@@ -94,7 +94,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 									style: {
 										fill: theme.content_button_icon_selected,
 									},
-							  }),
+								}),
 				}),
 			),
 		])

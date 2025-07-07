@@ -13,7 +13,10 @@ import { isApp } from "../../../api/common/Env.js"
 export class RichNotificationsNews implements NewsListItem {
 	private notificationMode: ExtendedNotificationMode | null = null
 
-	constructor(private readonly newsModel: NewsModel, private readonly pushApp: NativePushServiceApp | null) {}
+	constructor(
+		private readonly newsModel: NewsModel,
+		private readonly pushApp: NativePushServiceApp | null,
+	) {}
 
 	async isShown(_newsId: NewsId): Promise<boolean> {
 		return (

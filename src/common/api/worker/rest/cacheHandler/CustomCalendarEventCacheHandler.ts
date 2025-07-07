@@ -13,7 +13,10 @@ import { AttributeModel } from "../../../common/AttributeModel"
  * this effectively in the database.
  */
 export class CustomCalendarEventCacheHandler implements CustomCacheHandler<CalendarEvent> {
-	constructor(private readonly entityRestClient: EntityRestClient, private readonly typeModelResolver: TypeModelResolver) {}
+	constructor(
+		private readonly entityRestClient: EntityRestClient,
+		private readonly typeModelResolver: TypeModelResolver,
+	) {}
 
 	async loadRange(storage: CacheStorage, listId: Id, start: Id, count: number, reverse: boolean): Promise<CalendarEvent[]> {
 		const range = await storage.getRangeForList(CalendarEventTypeRef, listId)

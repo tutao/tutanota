@@ -152,7 +152,7 @@ export class Dropdown implements ModalComponent {
 							},
 						},
 						this.filterString,
-				  )
+					)
 				: null
 		}
 

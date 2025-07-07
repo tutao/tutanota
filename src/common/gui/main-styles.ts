@@ -57,14 +57,14 @@ styles.registerStyle("main", () => {
 					opacity: 0,
 					transition: "opacity .1s linear",
 					"font-family": "monospace",
-			  }
+				}
 			: {},
 		"#link-tt.reveal": isElectronClient()
 			? {
 					opacity: 1,
 					transition: "opacity .1s linear",
 					"z-index": 9999,
-			  }
+				}
 			: {},
 		"*:not(input):not(textarea)": isAdminClient()
 			? {}
@@ -79,7 +79,7 @@ styles.registerStyle("main", () => {
 
 					/* disable the IOS popup when long-press on a link */
 					"-webkit-tap-highlight-color": "rgba(0, 0, 0, 0)",
-			  },
+				},
 		"*:not(input):not(textarea):not([draggable='true'])": {
 			"-webkit-user-drag": "none",
 		},
@@ -977,7 +977,7 @@ styles.registerStyle("main", () => {
 					background: "transparent",
 					width: scrollbarWidthHeight, // width of vertical scrollbar
 					height: scrollbarWidthHeight, // width of horizontal scrollbar
-			  }
+				}
 			: {},
 		"::-webkit-scrollbar-thumb": !client.isMobileDevice()
 			? {
@@ -985,7 +985,7 @@ styles.registerStyle("main", () => {
 					// reduce the background
 					"border-left": "15px solid transparent",
 					"background-clip": "padding-box",
-			  }
+				}
 			: {},
 		"*::-webkit-scrollbar-thumb:hover": {
 			"border-left": "8px solid transparent",
@@ -1970,18 +1970,18 @@ styles.registerStyle("main", () => {
 			? {
 					// "text-decoration": "underline",
 					// opacity: 0.7,
-			  }
+				}
 			: {},
 		".nav-button:focus": client.isDesktopDevice()
 			? {
 					// "text-decoration": "underline",
 					// opacity: 0.7,
-			  }
+				}
 			: {},
 		"button:focus, button:hover": client.isDesktopDevice()
 			? {
 					opacity: 0.7,
-			  }
+				}
 			: {},
 		".button-icon": {
 			width: px(size.button_icon_bg_size),
@@ -2636,7 +2636,7 @@ styles.registerStyle("main", () => {
 		".color-option:not(.selected):focus-within, .color-option:not(.selected):hover": client.isDesktopDevice()
 			? {
 					opacity: 0.7,
-			  }
+				}
 			: {},
 		".custom-color-container .text-field": {
 			"padding-top": "0px",

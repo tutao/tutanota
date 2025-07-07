@@ -92,7 +92,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 							i === 0
 								? {
 										borderRight: `2px solid ${theme.content_border}`,
-								  }
+									}
 								: undefined,
 					}),
 				),

@@ -236,7 +236,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 									},
 								}),
 								m(".break-word.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
-						  ])
+							])
 						: event.event.summary,
 				)
 			})

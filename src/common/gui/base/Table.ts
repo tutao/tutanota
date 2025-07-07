@@ -91,7 +91,7 @@ export class Table implements Component<TableAttrs> {
 								a.verticalColumnHeadings ?? false,
 								true,
 							),
-					  ]
+						]
 					: []
 				).concat(lineAttrs),
 			]),
@@ -134,7 +134,7 @@ export class Table implements Component<TableAttrs> {
 									? (event: MouseEvent) => {
 											const dom = downcast(event.target)
 											cellTextData.click!(event, dom)
-									  }
+										}
 									: undefined,
 							},
 							verticalText ? m("span.vertical-text", cellTextData.main) : cellTextData.main,
@@ -188,7 +188,7 @@ export class Table implements Component<TableAttrs> {
 						? (event: MouseEvent) => {
 								const dom = downcast(event.target)
 								cellTextData.click!(event, dom)
-						  }
+							}
 						: undefined,
 				},
 				info.map((line) => m("", line)),
@@ -219,7 +219,7 @@ export function createRowActions<T>(
 						elements.unshift(currentElement)
 						instance.updateInstance()
 					},
-			  }
+				}
 			: null,
 		indexOfElement > 0
 			? {
@@ -230,7 +230,7 @@ export function createRowActions<T>(
 						elements[indexOfElement] = prev
 						instance.updateInstance()
 					},
-			  }
+				}
 			: null,
 		indexOfElement < instance.getArray().length - 1
 			? {
@@ -241,7 +241,7 @@ export function createRowActions<T>(
 						elements[indexOfElement] = next
 						instance.updateInstance()
 					},
-			  }
+				}
 			: null,
 		indexOfElement < instance.getArray().length - 2
 			? {
@@ -251,7 +251,7 @@ export function createRowActions<T>(
 						elements.push(currentElement)
 						instance.updateInstance()
 					},
-			  }
+				}
 			: null,
 		{
 			label: "delete_action",

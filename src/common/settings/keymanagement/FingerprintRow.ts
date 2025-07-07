@@ -54,7 +54,7 @@ export class FingerprintRow implements Component<FingerprintRowAttrs> {
 							},
 							icon: Icons.Trash,
 							size: ButtonSize.Compact,
-					  })
+						})
 					: null,
 			]),
 			m(MonospaceTextDisplay, {

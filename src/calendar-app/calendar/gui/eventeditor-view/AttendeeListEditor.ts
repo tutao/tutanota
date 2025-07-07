@@ -105,7 +105,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 							color: theme.list_message_bg,
 						}),
 					]),
-			  )
+				)
 			: guestItems.map((r, index) => r())
 	}
 
@@ -155,7 +155,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 							toggled: whoModel.isConfidential,
 							size: ButtonSize.Normal,
 						}),
-				  )
+					)
 				: null,
 		])
 	}
@@ -266,7 +266,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 										),
 									size: ButtonSize.Compact,
 									icon: Icons.PencilSquare,
-							  })
+								})
 							: null,
 					]),
 					isMe && model.operation !== CalendarOperation.EditThis
@@ -293,7 +293,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 						},
 						lang.get("sendUpdates_label"),
 					),
-			  )
+				)
 	}
 
 	private renderGuest(guest: Guest, { model }: Pick<AttendeeListEditorAttrs, "model">, password?: string, strength?: number): Children {
@@ -345,7 +345,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 								}),
 							),
 							this.renderPasswordField(address, password, strength ?? 0, whoModel),
-					  ]
+						]
 					: null,
 			]),
 		)

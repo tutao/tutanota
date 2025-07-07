@@ -105,7 +105,7 @@ export class TerminationViewModel {
 	private getTerminationDate(): Date | null {
 		return this.terminationPeriodOption === TerminationPeriodOptions.EndOfCurrentPeriod
 			? // The server will use the end of the current subscription period to cancel the account if the terminationDate is null.
-			  null
+				null
 			: this.date
 	}
 

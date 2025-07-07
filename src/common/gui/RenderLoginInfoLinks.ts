@@ -24,7 +24,7 @@ export function renderInfoLinks(): Children {
 						class: "plr",
 						isCompanySite: true,
 						specialType: "privacy-policy",
-				  })
+					})
 				: null,
 			!isApp() && imprintLink
 				? m(ExternalLink, {
@@ -33,7 +33,7 @@ export function renderInfoLinks(): Children {
 						class: "plr",
 						isCompanySite: true,
 						specialType: "license",
-				  })
+					})
 				: null,
 		),
 		m(

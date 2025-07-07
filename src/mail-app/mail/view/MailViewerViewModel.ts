@@ -674,10 +674,10 @@ export class MailViewerViewModel {
 			externalImageRule === ExternalImageRule.Block
 				? ContentBlockingStatus.AlwaysBlock
 				: isAllowedAndAuthenticatedExternalSender
-				? ContentBlockingStatus.AlwaysShow
-				: this.sanitizeResult.blockedExternalContent > 0
-				? ContentBlockingStatus.Block
-				: ContentBlockingStatus.NoExternalContent
+					? ContentBlockingStatus.AlwaysShow
+					: this.sanitizeResult.blockedExternalContent > 0
+						? ContentBlockingStatus.Block
+						: ContentBlockingStatus.NoExternalContent
 		m.redraw()
 		this.renderedMail = this.mail
 		return this.sanitizeResult.inlineImageCids
@@ -762,7 +762,7 @@ export class MailViewerViewModel {
 						? {
 								contents,
 								recipient,
-						  }
+							}
 						: null
 				m.redraw()
 			})

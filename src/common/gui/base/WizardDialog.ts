@@ -155,7 +155,7 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 								}),
 								index === lastIndex ? null : m(".flex-grow", { class: this.getLineClass(index < selectedIndex) }),
 							]),
-					  ),
+						),
 				a.currentPage ? a.currentPage.view() : null,
 			],
 		)
@@ -212,7 +212,7 @@ class WizardDialogAttrs<T> {
 			? () => closeAction()
 			: () => {
 					return Promise.resolve()
-			  }
+				}
 		this.cancelButtonText = cancelButtonText ?? "cancel_action"
 		this.updateHeaderBarAttrs()
 	}
@@ -351,7 +351,7 @@ export class WizardPagingButton {
 						style: {
 							fill: theme.content_bg,
 						},
-				  })
+					})
 				: nextIndex,
 		)
 	}

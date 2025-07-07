@@ -73,7 +73,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 						href: CONTACTS_PREFIX,
 						isSelectedPrefix: isSelectedPrefix(CONTACTS_PREFIX) || isSelectedPrefix(CONTACTLIST_PREFIX),
 						colors: NavButtonColor.Header,
-				  })
+					})
 				: null,
 			// not available for external mailboxes
 			locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.DisableCalendar)
@@ -83,7 +83,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 						href: CALENDAR_PREFIX,
 						colors: NavButtonColor.Header,
 						click: () => m.route.get().startsWith(CALENDAR_PREFIX),
-				  })
+					})
 				: null,
 		]
 	}

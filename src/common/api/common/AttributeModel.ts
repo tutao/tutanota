@@ -110,11 +110,11 @@ export function deepMapKeys(obj: any, fn: any): any {
 	return Array.isArray(obj)
 		? obj.map((val) => deepMapKeys(val, fn))
 		: typeof obj === "object"
-		? Object.keys(obj).reduce((acc: any, current: string) => {
-				const key = fn(current)
-				const val = obj[current]
-				acc[key] = val !== null && typeof val === "object" ? deepMapKeys(val, fn) : val
-				return acc
-		  }, {})
-		: obj
+			? Object.keys(obj).reduce((acc: any, current: string) => {
+					const key = fn(current)
+					const val = obj[current]
+					acc[key] = val !== null && typeof val === "object" ? deepMapKeys(val, fn) : val
+					return acc
+				}, {})
+			: obj
 }

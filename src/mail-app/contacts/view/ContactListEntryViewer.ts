@@ -40,7 +40,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 							editAction: attrs.contactEdit,
 							deleteAction: attrs.contactDelete,
 						}),
-				  )
+					)
 				: m(
 						".border-radius-big.rel",
 						{
@@ -95,7 +95,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 								type: ButtonType.Primary,
 							}),
 						),
-				  ),
+					),
 		])
 	}
 }

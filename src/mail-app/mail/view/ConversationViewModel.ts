@@ -156,7 +156,7 @@ export class ConversationViewModel {
 								console.log(`Could not find updated mail ${JSON.stringify(conversationEntry.mail)}`)
 								return null
 							}),
-					  )
+						)
 					: null
 		} catch (e) {
 			if (e instanceof NotFoundError) {
@@ -249,7 +249,7 @@ export class ConversationViewModel {
 						: this.viewModelFactory({
 								...this.options,
 								mail,
-						  }),
+							}),
 					entryId: c._id,
 				})
 			}

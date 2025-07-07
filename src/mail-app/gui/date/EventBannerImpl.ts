@@ -131,12 +131,12 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 							"grid-template-rows": "auto 1fr",
 							"max-width": "100%",
 							"border-color": bannerColor,
-					  }
+						}
 					: {
 							"grid-template-columns": "min-content min-content 1fr",
 							"max-width": px(size.two_column_layout_width),
 							"border-color": bannerColor,
-					  },
+						},
 			},
 			[
 				/* Date Column */
@@ -170,7 +170,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 						? m(".flex.items-center.small.mt-s", [
 								m("span.b", lang.get("when_label")),
 								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
-						  ])
+							])
 						: null,
 					replySection,
 				]),
@@ -205,7 +205,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 											size: IconSize.Medium,
 										}),
 										this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
-								  ])
+									])
 								: null,
 						]),
 						agenda
@@ -217,7 +217,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 									dates: [getStartOfDay(agenda.main.event.startTime)],
 									timeIndicator: Time.fromDate(agenda.main.event.startTime),
 									hasAnyConflict: hasConflict,
-							  } satisfies TimeViewAttributes)
+								} satisfies TimeViewAttributes)
 							: m("", "ERROR: Could not load the agenda for this day."),
 					],
 				),
@@ -239,13 +239,13 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					? m(
 							"span",
 							conflictCount > 0 ? [m("strong", conflictCount), ` ${lang.get("simultaneousEvents_msg")}`] : lang.get("noSimultaneousEvents_msg"),
-					  )
+						)
 					: null,
 				isNotEmpty(allDayEvents)
 					? m("span.border-radius.button-bubble-bg.pt-xxs.pb-xxs.plr-sm.text-break", [
 							m("strong", allDayEvents.length === 1 ? `1 ${lang.get("allDay_label").toLowerCase()}: ` : `${allDayEvents.length} `),
 							allDayEvents.length === 1 ? allDayEvents[0].event.summary : lang.get("allDay_label").toLowerCase(),
-					  ])
+						])
 					: null,
 			],
 		)

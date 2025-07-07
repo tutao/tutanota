@@ -44,10 +44,10 @@ export class FilterChip implements Component<FilterChipAttrs> {
 								color: contentColor,
 								"--state-bg-color": contentColor,
 								"border-color": "transparent",
-						  }
+							}
 						: {
 								"border-color": theme.outline_variant,
-						  }),
+							}),
 				},
 				ariaPressed: selected,
 				oncreate: (vnode: VnodeDOM): void => {
@@ -65,7 +65,7 @@ export class FilterChip implements Component<FilterChipAttrs> {
 							style: {
 								fill: contentColor,
 							},
-					  })
+						})
 					: null,
 				m("span.text-ellipsis", lang.getTranslationText(label)),
 				chevron
@@ -74,7 +74,7 @@ export class FilterChip implements Component<FilterChipAttrs> {
 							style: {
 								fill: contentColor,
 							},
-					  })
+						})
 					: null,
 			],
 		)

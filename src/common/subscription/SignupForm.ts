@@ -194,13 +194,13 @@ export class SignupForm implements Component<SignupFormAttrs> {
 							value: a.prefilledMailAddress ?? "",
 							autocompleteAs: Autocomplete.newPassword,
 							isReadOnly: true,
-					  })
+						})
 					: [
 							m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
 							a.isPaidSubscription()
 								? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [
 										m(ExternalLink, { href: InfoLink.DomainInfo, isCompanySite: true }),
-								  ])
+									])
 								: null,
 							m(PasswordForm, {
 								model: this.passwordModel,
@@ -211,13 +211,13 @@ export class SignupForm implements Component<SignupFormAttrs> {
 										value: this._code(),
 										oninput: this._code,
 										label: "whitelabelRegistrationCode_label",
-								  })
+									})
 								: null,
 							m(Checkbox, confirmTermsCheckBoxAttrs),
 							m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
 							m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 							m(Checkbox, confirmAgeCheckBoxAttrs),
-					  ],
+						],
 				m(
 					".mt-l.mb-l",
 					m(LoginButton, {

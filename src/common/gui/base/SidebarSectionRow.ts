@@ -83,7 +83,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 								attrs.moreButton.click(event, dom)
 							},
 							onkeydown: handleForwardsTab,
-					  })
+						})
 					: null,
 			],
 		)

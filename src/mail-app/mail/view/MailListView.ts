@@ -91,7 +91,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 					renderRightSpacer: () => this.renderRightSpacer(),
 					swipeLeft: (listElement: Mail) => this.onSwipeLeft(listElement),
 					swipeRight: (listElement: Mail) => this.onSwipeRight(listElement),
-			  } satisfies SwipeConfiguration<Mail>)
+				} satisfies SwipeConfiguration<Mail>)
 			: null,
 		dragStart: (event, row, selected) => this._newDragStart(event, row, selected),
 	}
@@ -359,7 +359,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							icon: BootIcons.Mail,
 							message: "noMails_msg",
 							color: theme.list_message_bg,
-					  })
+						})
 					: m(List, {
 							state: listModel.stateStream(),
 							renderConfig: this.renderConfig,
@@ -381,7 +381,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							onStopLoading() {
 								listModel.stopLoading()
 							},
-					  } satisfies ListAttrs<Mail, MailRow>),
+						} satisfies ListAttrs<Mail, MailRow>),
 			),
 		)
 	}
@@ -394,7 +394,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
 							m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
 						]),
-				  ]
+					]
 				: null,
 		])
 	}
@@ -441,8 +441,8 @@ export class MailListView implements Component<MailListViewAttrs> {
 						? MailSetKind.DRAFT
 						: MailSetKind.INBOX
 					: this.showingArchive
-					? MailSetKind.INBOX
-					: MailSetKind.ARCHIVE
+						? MailSetKind.INBOX
+						: MailSetKind.ARCHIVE
 
 				const actionableMails = await this.mailViewModel.getResolvedMails([listElement])
 				const wereMoved = await moveMailsToSystemFolder({
@@ -467,7 +467,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 						icon: Icons.Cancel,
 					}),
 					m(".pl-s", lang.get("cancel_action")), // if this is the drafts folder, we can only cancel the selection as we have nowhere else to put the mail
-			  ]
+				]
 			: [
 					m(Icon, {
 						icon: Icons.Folder,
@@ -477,10 +477,10 @@ export class MailListView implements Component<MailListViewAttrs> {
 						this.showingSpamOrTrash
 							? lang.get("recover_label") // show "recover" if this is the trash/spam folder
 							: this.showingArchive // otherwise show "inbox" or "archive" depending on the folder
-							? lang.get("received_action")
-							: lang.get("archive_label"),
+								? lang.get("received_action")
+								: lang.get("archive_label"),
 					),
-			  ]
+				]
 	}
 
 	private renderRightSpacer(): Children {

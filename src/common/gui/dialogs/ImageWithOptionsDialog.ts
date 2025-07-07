@@ -63,7 +63,7 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 								height: px(size.button_height + size.vpad_xs * 1.5),
 								color: theme.content_accent,
 							},
-					  })
+						})
 					: null,
 			),
 		])

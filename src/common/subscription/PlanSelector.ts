@@ -166,12 +166,12 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 											width: `calc(100% + 2 * ${px(size.hpad_large)})`,
 											left: "50%",
 											transform: "translateX(-50%)",
-									  }
+										}
 									: {
 											width: "fit-content",
 											"margin-inline": "auto",
 											"max-width": px(500),
-									  }),
+										}),
 							},
 						},
 						m(

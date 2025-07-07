@@ -249,13 +249,13 @@ export function createStrippedRepeatRule(repeatRule: CalendarRepeatRule | null):
 		excludedDates: repeatRule.excludedDates
 			? repeatRule.excludedDates.map((ex) => ({
 					date: ex.date,
-			  }))
+				}))
 			: [],
 		advancedRules: repeatRule.advancedRules
 			? repeatRule.advancedRules.map((rule) => ({
 					ruleType: rule.ruleType,
 					interval: rule.interval,
-			  }))
+				}))
 			: [],
 	}
 }

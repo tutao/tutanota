@@ -189,7 +189,10 @@ export class ServerModelInfo {
 		return new ServerModelInfo(clientModelInfo, fetcher)
 	}
 
-	private constructor(private readonly clientModelInfo: ClientModelInfo, private readonly fetcher: ServerTypeFetcher) {}
+	private constructor(
+		private readonly clientModelInfo: ClientModelInfo,
+		private readonly fetcher: ServerTypeFetcher,
+	) {}
 
 	private init({ applicationTypesHash, applicationTypesJson }: ApplicationTypesGetOut) {
 		const parsedApplicationTypesJson = JSON.parse(applicationTypesJson)
@@ -374,7 +377,10 @@ export interface ServerTypeModelResolver {
 }
 
 export class TypeModelResolver implements ClientTypeModelResolver, ServerTypeModelResolver {
-	constructor(private readonly clientModelInfo: ClientModelInfo, private readonly serverModelInfo: ServerModelInfo) {}
+	constructor(
+		private readonly clientModelInfo: ClientModelInfo,
+		private readonly serverModelInfo: ServerModelInfo,
+	) {}
 
 	resolveClientTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel> {
 		return this.clientModelInfo.resolveClientTypeReference(typeRef)

@@ -46,7 +46,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 						click: () => this.deactivateCustomColors(whitelabelData),
 						icon: Icons.Cancel,
 						size: ButtonSize.Compact,
-				  })
+					})
 				: null,
 			m(IconButton, {
 				title: "edit_action",
@@ -95,7 +95,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 						},
 						icon: Icons.Cancel,
 						size: ButtonSize.Compact,
-				  })
+					})
 				: null,
 			m(IconButton, {
 				title: "edit_action",

@@ -42,7 +42,11 @@ export class ApplicationTypesFacade {
 
 	private readonly persistenceFilePath: string = "server_type_models.json"
 
-	constructor(private readonly restClient: RestClient, private readonly fileFacade: FileFacade, private readonly serverModelInfo: ServerModelInfo) {
+	constructor(
+		private readonly restClient: RestClient,
+		private readonly fileFacade: FileFacade,
+		private readonly serverModelInfo: ServerModelInfo,
+	) {
 		this.deferredRequests = []
 	}
 

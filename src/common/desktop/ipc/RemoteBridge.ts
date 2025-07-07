@@ -38,7 +38,10 @@ export interface WindowCleanup {
 }
 
 export class RemoteBridge {
-	constructor(private readonly dispatcherFactory: DispatcherFactory, private readonly facadeHandlerFactory: FacadeHandlerFactory) {}
+	constructor(
+		private readonly dispatcherFactory: DispatcherFactory,
+		private readonly facadeHandlerFactory: FacadeHandlerFactory,
+	) {}
 
 	createBridge(window: ApplicationWindow): SendingFacades {
 		const webContents = window._browserWindow.webContents

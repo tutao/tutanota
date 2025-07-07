@@ -353,7 +353,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 							e.stopPropagation()
 							this.editor.focus()
 						},
-				  })
+					})
 				: null
 
 		const subjectFieldAttrs: TextFieldAttrs = {
@@ -507,7 +507,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 										? m(".pt.flex-no-grow.flex-end.border-bottom.flex.items-center", m(IconButton, editCustomNotificationMailAttrs))
 										: null,
 								],
-						  )
+							)
 						: null,
 				]),
 				isConfidential ? this.renderPasswordFields() : null,
@@ -617,7 +617,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									icon: Icons.ListAlt,
 									size: ButtonSize.Compact,
 								},
-						  ]
+							]
 						: [],
 				}),
 				m("hr.hr"),
@@ -719,7 +719,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									this.areDetailsExpanded = !this.areDetailsExpanded
 								},
 							}),
-					  )
+						)
 					: null,
 			search,
 		})

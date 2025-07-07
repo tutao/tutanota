@@ -207,7 +207,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 									style: {
 										fill: iconColor ?? getColors(ButtonColor.Content).button,
 									},
-							  })
+								})
 							: null,
 					],
 				),

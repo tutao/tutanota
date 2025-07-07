@@ -74,7 +74,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 							fill: theme.content_fg,
 							"aria-describedby": lang.get("contactListName_label"),
 						},
-				  })
+					})
 		const secondRow = option.value.type === "recipient" ? option.value.value.address : option.value.value.name
 		return m(
 			"button.pt-s.pb-s.click.content-hover.state-bg.button-min-height.flex.col",

@@ -344,7 +344,7 @@ export class ListModel<ItemType, IdType> {
 	}
 
 	private getPreviousItem(items: readonly ItemType[], oldActiveItem: ItemType | null) {
-		return oldActiveItem == null ? first(items) : findLast(items, (item) => this.config.sortCompare(item, oldActiveItem) < 0) ?? first(items)
+		return oldActiveItem == null ? first(items) : (findLast(items, (item) => this.config.sortCompare(item, oldActiveItem) < 0) ?? first(items))
 	}
 
 	selectNext(multiselect: boolean) {
@@ -376,8 +376,8 @@ export class ListModel<ItemType, IdType> {
 		return oldActiveItem == null
 			? first(items)
 			: lastItem && this.config.sortCompare(lastItem, oldActiveItem) <= 0
-			? lastItem
-			: items.find((item) => this.config.sortCompare(item, oldActiveItem) > 0) ?? first(items)
+				? lastItem
+				: (items.find((item) => this.config.sortCompare(item, oldActiveItem) > 0) ?? first(items))
 	}
 
 	areAllSelected(): boolean {

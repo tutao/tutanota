@@ -297,7 +297,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 								},
 							},
 							getWeekNumber(day.date),
-					  )
+						)
 					: null,
 			],
 		)

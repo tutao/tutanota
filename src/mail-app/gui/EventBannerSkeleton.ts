@@ -15,12 +15,12 @@ export const EventBannerSkeleton = pureComponent(() =>
 						"grid-template-rows": "1fr 1fr",
 						"max-width": "100%",
 						width: "100%",
-				  }
+					}
 				: {
 						"grid-template-columns": "min-content 40% 1fr",
 						"max-width": px(size.two_column_layout_width),
 						width: "100%",
-				  },
+					},
 		},
 		[
 			m(".flex.flex-column.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt.justify-center.skeleton-bg-1.gap-vpad-xs.fill-grid-column", [

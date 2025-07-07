@@ -15,7 +15,10 @@ export class NoOpAppLock implements AppLock {
 }
 
 export class MobileAppLock implements AppLock {
-	constructor(private readonly mobileSystemFacade: MobileSystemFacade, private readonly credentialsFacade: NativeCredentialsFacade) {}
+	constructor(
+		private readonly mobileSystemFacade: MobileSystemFacade,
+		private readonly credentialsFacade: NativeCredentialsFacade,
+	) {}
 
 	async enforce(): Promise<void> {
 		if ((await this.credentialsFacade.getCredentialEncryptionMode()) != CredentialEncryptionMode.DEVICE_LOCK) {

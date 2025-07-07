@@ -250,7 +250,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			? m(".wrapping-row", [
 					m(".address.mt-l", addresses.length > 0 ? [m(".h4", lang.get("address_label")), m(".aggregateEditors", addresses)] : null),
 					m(".social.mt-l", socials.length > 0 ? [m(".h4", lang.get("social_label")), m(".aggregateEditors", socials)] : null),
-			  ])
+				])
 			: null
 	}
 
@@ -264,7 +264,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 						".messenger-handles.mt-l",
 						instantMessengers.length > 0 ? [m(".h4", lang.get("messenger_handles_label")), m(".aggregateEditors", instantMessengers)] : null,
 					),
-			  ])
+				])
 			: null
 	}
 
@@ -291,7 +291,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 						".relationships.mt-l",
 						relationships.length > 0 ? [m(".h4", lang.get("relationships_label")), m(".aggregateEditors", relationships)] : null,
 					),
-			  ])
+				])
 			: null
 	}
 
@@ -302,7 +302,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			? m(".wrapping-row", [
 					m(".mail.mt-l", mailAddresses.length > 0 ? [m(".h4", lang.get("email_label")), m(".aggregateEditors", [mailAddresses])] : null),
 					m(".phone.mt-l", phones.length > 0 ? [m(".h4", lang.get("phone_label")), m(".aggregateEditors", [phones])] : null),
-			  ])
+				])
 			: null
 	}
 

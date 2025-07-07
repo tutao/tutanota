@@ -490,7 +490,7 @@ class CalendarLocator implements CommonLocator {
 			: new AppsCredentialRemovalHandler(this.pushService, this.configFacade, async () => {
 					// nothing needs to be specifically done for the calendar app right now.
 					noOp()
-			  })
+				})
 	}
 
 	async loginViewModelFactory(): Promise<lazy<LoginViewModel>> {
@@ -504,7 +504,7 @@ class CalendarLocator implements CommonLocator {
 			const domainConfig = isBrowser()
 				? calendarLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
-				  calendarLocator.domainConfigProvider().getCurrentDomainConfig()
+					calendarLocator.domainConfigProvider().getCurrentDomainConfig()
 
 			return new LoginViewModel(
 				calendarLocator.logins,

@@ -32,7 +32,10 @@ export class SearchModel {
 	private lastSearchPromise: Promise<SearchResult | void>
 	cancelSignal: Stream<boolean>
 
-	constructor(searchFacade: SearchFacade, private readonly calendarModel: lazyAsync<CalendarEventsRepository>) {
+	constructor(
+		searchFacade: SearchFacade,
+		private readonly calendarModel: lazyAsync<CalendarEventsRepository>,
+	) {
 		this._searchFacade = searchFacade
 		this.result = stream()
 		this.lastQueryString = stream<string | null>("")

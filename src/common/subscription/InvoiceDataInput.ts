@@ -25,7 +25,11 @@ export class InvoiceDataInput implements Component {
 	private vatNumber: string = ""
 	private __paymentPaypalTest?: UsageTest
 
-	constructor(private businessUse: boolean, invoiceData: InvoiceData, private readonly location = InvoiceDataInputLocation.Other) {
+	constructor(
+		private businessUse: boolean,
+		invoiceData: InvoiceData,
+		private readonly location = InvoiceDataInputLocation.Other,
+	) {
 		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
 
 		this.invoiceAddressComponent = new HtmlEditor()
@@ -48,7 +52,7 @@ export class InvoiceDataInput implements Component {
 				? m("", [
 						m(".pt", m(this.invoiceAddressComponent)),
 						m(".small", lang.get(this.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
-				  ])
+					])
 				: null,
 			renderCountryDropdown({
 				selectedCountry: this.selectedCountry(),
@@ -61,7 +65,7 @@ export class InvoiceDataInput implements Component {
 						value: this.vatNumber,
 						oninput: (value) => (this.vatNumber = value),
 						helpLabel: () => lang.get("invoiceVatIdNoInfoBusiness_msg"),
-				  })
+					})
 				: null,
 		]
 	}

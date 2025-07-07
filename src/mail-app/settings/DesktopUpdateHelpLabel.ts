@@ -72,7 +72,7 @@ export class DesktopUpdateHelpLabel {
 			? m(Icon, {
 					icon: BootIcons.Progress,
 					class: "flex-center items-center icon-progress-tiny icon-progress",
-			  })
+				})
 			: null
 	}
 

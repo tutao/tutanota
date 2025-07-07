@@ -319,10 +319,10 @@ export class UsageTestModel implements PingAdapter {
 			const response: UsageTestAssignmentOut = testDeviceId
 				? await this.serviceExecutor.put(UsageTestAssignmentService, data, {
 						suspensionBehavior: SuspensionBehavior.Throw,
-				  })
+					})
 				: await this.serviceExecutor.post(UsageTestAssignmentService, data, {
 						suspensionBehavior: SuspensionBehavior.Throw,
-				  })
+					})
 			await this.storage().storeTestDeviceId(response.testDeviceId)
 			await this.storage().storeAssignments({
 				assignments: response.assignments,

@@ -503,8 +503,8 @@ export class Dialog implements ModalComponent {
 				typeof infoToAppend === "string"
 					? m(".dialog-contentButtonsBottom.text-break.selectable", infoToAppend)
 					: typeof infoToAppend === "function"
-					? infoToAppend()
-					: null
+						? infoToAppend()
+						: null
 
 			return [lang.getTranslationText(messageIdOrMessageFunction), additionalChild]
 		}
@@ -517,7 +517,7 @@ export class Dialog implements ModalComponent {
 					: m(
 							".flex-center.dialog-buttons",
 							buttons.map((a) => m(Button, a)),
-					  ),
+						),
 			],
 		})
 			.setCloseHandler(() => closeAction(false))
@@ -599,7 +599,7 @@ export class Dialog implements ModalComponent {
 							: m(
 									".flex.flex-column",
 									buttonAttrs.map((a) => m(Button, a)),
-							  ),
+								),
 					]),
 			})
 			dialog.show()
@@ -842,7 +842,7 @@ export class Dialog implements ModalComponent {
 								click: doCancel,
 								type: ButtonType.Secondary,
 							},
-					  ]
+						]
 					: [],
 			),
 			right: okAction
@@ -852,7 +852,7 @@ export class Dialog implements ModalComponent {
 							click: doAction,
 							type: ButtonType.Primary,
 						},
-				  ]
+					]
 				: [],
 			middle: title,
 		}

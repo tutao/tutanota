@@ -103,7 +103,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						oninput: (event: InputEvent) => {
 							this.handleNativeInput(event.target as HTMLInputElement, onDateSelected)
 						},
-				  })
+					})
 				: null,
 			m(InputButton, {
 				tabIndex: Number(isApp() ? TabIndex.Programmatic : TabIndex.Default),
@@ -143,7 +143,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 							position: "inherit",
 							borderColor: "transparent",
 							pointerEvents: "none",
-					  }
+						}
 					: {},
 			} satisfies InputButtonAttributes),
 		])

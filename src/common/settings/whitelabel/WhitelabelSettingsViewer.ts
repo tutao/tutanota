@@ -99,7 +99,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						this._renderDefaultGermanLanguageFileSettings(),
 						this._renderWhitelabelRegistrationSettings(),
 						m(".mb-l"),
-				  ]
+					]
 				: [m(".flex-center.items-center.button-height.mt-l", progressIcon())],
 		)
 	}
@@ -147,7 +147,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							customTheme,
 							whitelabelConfig,
 							whitelabelDomainInfo,
-					  }
+						}
 					: null,
 		}
 		return m(WhitelabelThemeSettings, whitelabelThemeSettingsAttrs)

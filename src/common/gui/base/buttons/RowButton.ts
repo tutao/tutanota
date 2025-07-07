@@ -47,10 +47,10 @@ export class RowButton implements Component<RowButtonAttrs> {
 							class: "mr-button",
 							style: { fill: color },
 							size: IconSize.Medium,
-					  })
+						})
 					: attrs.icon === "none"
-					? m(".icon-large.mr-button")
-					: null,
+						? m(".icon-large.mr-button")
+						: null,
 			class: "flex items-center state-bg button-content plr-button " + attrs.class,
 			style: {
 				...attrs.style,

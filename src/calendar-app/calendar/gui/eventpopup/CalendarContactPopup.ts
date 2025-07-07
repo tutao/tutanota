@@ -30,7 +30,10 @@ export class ContactEventPopup implements ModalComponent {
 	 * @param model
 	 * @param eventBubbleRect the rect where the event bubble was displayed that was clicked (if any)
 	 */
-	constructor(private readonly model: CalendarContactPreviewViewModel, private readonly eventBubbleRect: PosRect) {
+	constructor(
+		private readonly model: CalendarContactPreviewViewModel,
+		private readonly eventBubbleRect: PosRect,
+	) {
 		this.setupShortcuts()
 		this.view = this.view.bind(this)
 	}

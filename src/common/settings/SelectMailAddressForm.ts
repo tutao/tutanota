@@ -110,10 +110,10 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 								showDropdown: () => true,
 								width: 250,
 							}),
-					  )
+						)
 					: attrs.injectionsRightButtonAttrs
-					? m(IconButton, attrs.injectionsRightButtonAttrs)
-					: null,
+						? m(IconButton, attrs.injectionsRightButtonAttrs)
+						: null,
 			],
 		})
 	}
@@ -206,7 +206,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 					: {
 							isValid: false,
 							errorId: attrs.mailAddressNAError ?? "mailAddressNA_msg",
-					  }
+						}
 			} catch (e) {
 				if (e instanceof AccessDeactivatedError) {
 					result = { isValid: false, errorId: "mailAddressDelay_msg" }

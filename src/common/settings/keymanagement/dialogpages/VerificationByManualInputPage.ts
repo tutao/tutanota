@@ -84,7 +84,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 							border: false,
 							classes: ".mb-s",
 						}),
-				  ),
+					),
 			m(
 				".align-self-center.full-width",
 				m(LoginButton, {
@@ -103,7 +103,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 								style: {
 									fill: theme.content_button_icon_selected,
 								},
-						  }),
+							}),
 				}),
 			),
 		])

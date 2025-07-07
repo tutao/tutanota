@@ -35,7 +35,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 						color: theme.list_message_bg,
 						message: "noContacts_msg",
 						icon: BootIcons.Contacts,
-				  })
+					})
 				: m(List, {
 						renderConfig: this.renderConfig,
 						state: contactViewModel.listState(),
@@ -57,7 +57,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 						onStopLoading() {
 							contactViewModel.listModel.stopLoading()
 						},
-				  } satisfies ListAttrs<Contact, KindaContactRow>),
+					} satisfies ListAttrs<Contact, KindaContactRow>),
 		)
 	}
 

@@ -11,7 +11,10 @@ export class LazyLoaded<T> {
 	 * @param loadFunction The function that actually loads the object as soon as getAsync() is called the first time.
 	 * @param defaultValue The value that shall be returned by getSync() or getLoaded() as long as the object is not loaded yet.
 	 */
-	constructor(private readonly loadFunction: lazyAsync<T>, private defaultValue: T | null = null) {}
+	constructor(
+		private readonly loadFunction: lazyAsync<T>,
+		private defaultValue: T | null = null,
+	) {}
 
 	load(): this {
 		this.getAsync()

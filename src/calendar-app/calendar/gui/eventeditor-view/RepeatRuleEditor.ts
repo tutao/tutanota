@@ -194,20 +194,20 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 							selectedDays: this.byDayRules?.weekdays ?? [],
 							gatherSelectedDays: attrs.writeWeekdaysToModel,
 						}),
-				  ]
+					]
 				: this.repeatRuleType === RepeatPeriod.MONTHLY
-				? [
-						m(Divider, { color: theme.button_bubble_bg }),
-						m(WeekRepetitionSelector, {
-							repetitionOptionsAndWeekday: createRepetitionValuesForWeekday(
-								DateTime.fromJSDate(attrs.model.startDate).weekday,
-								this.calculateWeekdayOccurrencesInMonth(attrs.model.startDate),
-							),
-							interval: this.byDayRules?.interval ?? 0,
-							gatherSelectedDay: attrs.writeWeekdaysToModel,
-						}),
-				  ]
-				: null,
+					? [
+							m(Divider, { color: theme.button_bubble_bg }),
+							m(WeekRepetitionSelector, {
+								repetitionOptionsAndWeekday: createRepetitionValuesForWeekday(
+									DateTime.fromJSDate(attrs.model.startDate).weekday,
+									this.calculateWeekdayOccurrencesInMonth(attrs.model.startDate),
+								),
+								interval: this.byDayRules?.interval ?? 0,
+								gatherSelectedDay: attrs.writeWeekdaysToModel,
+							}),
+						]
+					: null,
 		]
 	}
 

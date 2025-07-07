@@ -74,14 +74,14 @@ export class RecipientsSearchModel {
 							({
 								type: "contactlist",
 								value,
-							} satisfies RecipientSearchResultItem),
+							}) satisfies RecipientSearchResultItem,
 					),
 					...newContactSuggestions.map(
 						(value) =>
 							({
 								type: "recipient",
 								value,
-							} satisfies RecipientSearchResultItem),
+							}) satisfies RecipientSearchResultItem,
 					),
 				].filter(this.filter ?? ((_) => true))
 				this.previousQuery = query

@@ -60,7 +60,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 							.catch(ofClass(NotFoundError, () => Dialog.message("templateNotExists_msg")))
 					},
 					readonly: model.isReadOnly(selectedEntry),
-			  })
+				})
 			: [
 					m(TextField, {
 						label: "filter_label",
@@ -73,7 +73,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 					}),
 					this._renderKeywords(model),
 					this._renderList(model, attrs),
-			  ]
+				]
 	}
 
 	_renderKeywords(model: KnowledgeBaseModel): Children {

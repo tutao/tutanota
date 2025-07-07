@@ -121,19 +121,19 @@ export class SecondFactorAuthDialog {
 									canLogin: true,
 									state: this.webauthnState,
 									doWebauthn: () => this.doWebauthn(assertNotNull(u2fChallenge)),
-							  }
+								}
 							: otherDomainLoginUrl
-							? {
-									canLogin: false,
-									otherDomainLoginUrl: otherDomainLoginUrl,
-							  }
-							: null,
+								? {
+										canLogin: false,
+										otherDomainLoginUrl: otherDomainLoginUrl,
+									}
+								: null,
 						otp: otpChallenge
 							? {
 									codeFieldValue: this.otpState.code,
 									inProgress: this.otpState.inProgress,
 									onValueChanged: (newValue) => (this.otpState.code = newValue),
-							  }
+								}
 							: null,
 						onRecover: mailAddress ? () => this.recoverLogin(mailAddress) : null,
 					})

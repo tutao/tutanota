@@ -34,7 +34,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 							click: () => this.editPrivacyStatementUrl(privacyStatementUrl, onPrivacyStatementUrlChanged),
 							icon: Icons.Edit,
 							size: ButtonSize.Compact,
-					  })
+						})
 					: null,
 		})
 	}
@@ -74,7 +74,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 							click: () => this.showEditImprintDialog(imprintUrl, onImprintUrlChanged),
 							icon: Icons.Edit,
 							size: ButtonSize.Compact,
-					  })
+						})
 					: null,
 		})
 	}

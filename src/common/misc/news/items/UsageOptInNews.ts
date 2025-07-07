@@ -13,7 +13,10 @@ import { MoreInfoLink } from "../MoreInfoLink.js"
  * News item that informs users about the usage data opt-in.
  */
 export class UsageOptInNews implements NewsListItem {
-	constructor(private readonly newsModel: NewsModel, private readonly usageTestModel: UsageTestModel) {}
+	constructor(
+		private readonly newsModel: NewsModel,
+		private readonly usageTestModel: UsageTestModel,
+	) {}
 
 	isShown(): Promise<boolean> {
 		return Promise.resolve(locator.usageTestModel.showOptInIndicator())

@@ -74,13 +74,13 @@ export class ScrollSelectList<T> implements ClassComponent<ScrollSelectListAttrs
 										marginTop: "auto",
 										marginBottom: "auto",
 									},
-							  })
+								})
 							: m("", {
 									style: {
 										width: "17.1px",
 										height: "16px",
 									},
-							  }),
+								}),
 					],
 				),
 			],

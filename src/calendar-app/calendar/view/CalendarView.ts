@@ -170,7 +170,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								? {
 										label: "newEvent_action",
 										click: () => this.createNewEventDialog(),
-								  }
+									}
 								: null,
 						content: [
 							styles.isDesktopLayout()
@@ -187,7 +187,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										highlightToday: true,
 										highlightSelectedWeek: this.currentViewType === CalendarViewType.WEEK,
 										hasEventsOn: (date) => this.hasEventsOn(date),
-								  })
+									})
 								: null,
 							m(
 								SidebarSection,
@@ -214,7 +214,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 																click: () => this.onPressedAddCalendar(CalendarType.URL),
 															},
 														],
-												  })
+													})
 												: () => this.onPressedAddCalendar(CalendarType.NORMAL),
 										icon: Icons.Add,
 										size: ButtonSize.Compact,
@@ -250,7 +250,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 												invitation,
 											}),
 										),
-								  )
+									)
 								: null,
 						],
 						ariaLabel: "calendar_label",
@@ -745,10 +745,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							if (item === this.currentViewType) return false
 						}
 						return true
-				  }
+					}
 				: () => {
 						return this.currentViewType !== viewType
-				  }
+					}
 		}
 		const generatePeriodShortcut = (key: Key, next: boolean): Shortcut => {
 			return {
@@ -904,7 +904,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					: {
 							week: this.viewModel.isDaySelectorExpanded() ? 0 : 1,
 							month: this.viewModel.isDaySelectorExpanded() ? 1 : 0,
-					  }
+						}
 				unit = "day"
 				break
 
@@ -1104,7 +1104,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						style: {
 							fill: theme.content_button,
 						},
-				  })
+					})
 				: null,
 			this.createCalendarActionDropdown(calendarInfo, colorValue ?? defaultCalendarColor, existingGroupSettings, userSettingsGroupRoot, shared),
 		])
@@ -1144,14 +1144,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										showGroupSharingDialog(groupInfo, sharedCalendar)
 									}
 								},
-						  }
+							}
 						: null,
 					this.allowCalendarImport(group, user, existingGroupSettings)
 						? {
 								label: "import_action",
 								icon: Icons.Import,
 								click: () => handleCalendarImport(groupRoot),
-						  }
+							}
 						: null,
 					!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read) && !isClientOnly
 						? {
@@ -1169,7 +1169,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										)
 									}
 								},
-						  }
+							}
 						: null,
 					(isApp() || isDesktop()) && isExternal
 						? {
@@ -1181,14 +1181,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										await Dialog.message(lang.makeTranslation("confirm_msg", e.message))
 									})
 								},
-						  }
+							}
 						: null,
 					calendarInfo.userIsOwner && !isClientOnly
 						? {
 								label: isExternal ? "unsubscribe_action" : "delete_action",
 								icon: Icons.Trash,
 								click: () => this.confirmDeleteCalendar(calendarInfo),
-						  }
+							}
 						: null,
 				],
 			}),
@@ -1215,7 +1215,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					(otherMembers.length > 0
 						? lang.get("deleteSharedCalendarConfirm_msg", {
 								"{calendar}": calendarName,
-						  }) + " "
+							}) + " "
 						: "") +
 						lang.get("deleteCalendarConfirm_msg", {
 							"{calendar}": calendarName,

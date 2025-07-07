@@ -28,7 +28,10 @@ import { ClientTypeModelResolver } from "./EntityFunctions"
 export class EntityClient {
 	_target: EntityRestInterface
 
-	constructor(target: EntityRestInterface, private readonly typeModelResolver: ClientTypeModelResolver) {
+	constructor(
+		target: EntityRestInterface,
+		private readonly typeModelResolver: ClientTypeModelResolver,
+	) {
 		this._target = target
 	}
 

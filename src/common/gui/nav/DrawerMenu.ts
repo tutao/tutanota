@@ -62,9 +62,9 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 										},
 										color: "white",
 										background: theme.list_accent_fg,
-								  })
+									})
 								: null,
-					  ])
+						])
 					: null,
 				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount()
 					? m(IconButton, {
@@ -77,7 +77,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								})
 							},
 							colors: ButtonColor.DrawerNav,
-					  })
+						})
 					: null,
 				desktopSystemFacade
 					? m(IconButton, {
@@ -87,7 +87,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								desktopSystemFacade.openNewWindow()
 							},
 							colors: ButtonColor.DrawerNav,
-					  })
+						})
 					: null,
 				!isIOSApp() && isLoggedIn && userController.isFreeAccount()
 					? m(IconButton, {
@@ -95,7 +95,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							title: "upgradePremium_label",
 							click: () => showUpgradeDialog(),
 							colors: ButtonColor.DrawerNav,
-					  })
+						})
 					: null,
 				m(IconButton, {
 					title: "showHelp_action",
@@ -124,7 +124,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							title: "settings_label",
 							click: () => m.route.set(SETTINGS_PREFIX),
 							colors: ButtonColor.DrawerNav,
-					  })
+						})
 					: null,
 				m(IconButton, {
 					icon: BootIcons.Logout,

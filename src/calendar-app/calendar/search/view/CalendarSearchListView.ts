@@ -47,7 +47,7 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 					icon,
 					message: "searchNoResults_msg",
 					color: theme.list_message_bg,
-			  })
+				})
 			: m(List, {
 					state: attrs.listModel.state,
 					renderConfig,
@@ -74,7 +74,7 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 
 						attrs.listModel.stopLoading()
 					},
-			  } satisfies ListAttrs<CalendarSearchResultListEntry, SearchResultListRow>)
+				} satisfies ListAttrs<CalendarSearchResultListEntry, SearchResultListRow>)
 	}
 
 	private readonly calendarRenderConfig: RenderConfig<CalendarSearchResultListEntry, SearchResultListRow> = {

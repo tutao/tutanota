@@ -11,7 +11,10 @@ import { MailBundle } from "../../mailFunctionality/SharedMailUtils.js"
 export type FileUri = string
 
 export class NativeFileApp {
-	constructor(private readonly fileFacade: FileFacade, private readonly exportFacade: ExportFacade) {}
+	constructor(
+		private readonly fileFacade: FileFacade,
+		private readonly exportFacade: ExportFacade,
+	) {}
 
 	/**
 	 * Open the file

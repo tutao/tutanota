@@ -85,7 +85,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 							},
 							icon: Icons.Add,
 							class: "icon-small",
-					  })
+						})
 					: null,
 				m("", {
 					style: {
@@ -131,7 +131,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 								rightButton.click(event, dom)
 							},
 							onkeydown: handleForwardsTab,
-					  })
+						})
 					: m("", { style: { marginRight: px(size.hpad_button) } }, [
 							m(CounterBadge, {
 								count,
@@ -139,7 +139,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 								background: getNavButtonIconBackground(),
 								showFullCount: true,
 							}),
-					  ]),
+						]),
 			],
 		)
 	}
@@ -156,7 +156,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 			? [
 					isLastSibling || onSelectedPath
 						? // draw both vertical and horizontal lines
-						  m(".abs", {
+							m(".abs", {
 								style: {
 									width: px(lengthOfHorizontalLine),
 									borderBottomLeftRadius: "3px",
@@ -170,9 +170,9 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 									// we need to draw selected lines over everything else, even things that are drawn later
 									zIndex: onSelectedPath ? 2 : 1,
 								},
-						  })
+							})
 						: // draw only the horizontal line
-						  m(".abs", {
+							m(".abs", {
 								style: {
 									height: px(lineSize),
 									top: px(verticalOffsetInsideRow),
@@ -180,8 +180,8 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 									width: px(lengthOfHorizontalLine),
 									backgroundColor: theme.content_border,
 								},
-						  }),
-			  ]
+							}),
+				]
 			: null
 	}
 }

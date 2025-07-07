@@ -108,7 +108,11 @@ export class MultiPageDialog<PageKey extends string> {
 	 * @param getPages - The function to return the configured pages.
 	 * @param height - The height of the dialog in pixels.
 	 **/
-	constructor(defaultPage: PageKey, private readonly getPages: GetPagesFunc<PageKey>, height: number = 666) {
+	constructor(
+		defaultPage: PageKey,
+		private readonly getPages: GetPagesFunc<PageKey>,
+		height: number = 666,
+	) {
 		this.currentPageStream = stream(defaultPage)
 		this.pageStackStream = stream([defaultPage])
 
@@ -141,7 +145,7 @@ export class MultiPageDialog<PageKey extends string> {
 					? null
 					: () => {
 							onClose()
-					  },
+						},
 			)
 		})
 	}

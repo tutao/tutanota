@@ -10,7 +10,10 @@ import { lazyAsync } from "@tutao/tutanota-utils"
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 
 export class WebDesktopFacade implements DesktopFacade {
-	constructor(private logins: LoginController, private nativeInterface: lazyAsync<NativeInterfaceMain>) {}
+	constructor(
+		private logins: LoginController,
+		private nativeInterface: lazyAsync<NativeInterfaceMain>,
+	) {}
 
 	print(): Promise<void> {
 		window.print()

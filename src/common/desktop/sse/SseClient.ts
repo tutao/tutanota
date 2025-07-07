@@ -78,7 +78,11 @@ export class SseClient {
 		return this._state
 	}
 
-	constructor(private readonly net: DesktopNetworkClient, private readonly delay: SseDelay, private readonly scheduler: Scheduler) {}
+	constructor(
+		private readonly net: DesktopNetworkClient,
+		private readonly delay: SseDelay,
+		private readonly scheduler: Scheduler,
+	) {}
 
 	async connect(options: SseConnectOptions) {
 		log.debug("connect")
@@ -249,16 +253,19 @@ export class SseClient {
 		// Theoretically we need to reset this every time we connect but
 		// the server will send us the timeout right after the connection anyway.
 		if (this.heartBeatListenerHandle != null) this.scheduler.unschedulePeriodic(this.heartBeatListenerHandle)
-		this.heartBeatListenerHandle = this.scheduler.schedulePeriodic(async () => {
-			const state = this.state
-			if (state.state === ConnectionState.connected) {
-				if (state.receivedHeartbeat) {
-					this.state = { ...state, receivedHeartbeat: false }
-				} else {
-					await this.disconnect()
-					this.doConnect(state.options)
+		this.heartBeatListenerHandle = this.scheduler.schedulePeriodic(
+			async () => {
+				const state = this.state
+				if (state.state === ConnectionState.connected) {
+					if (state.receivedHeartbeat) {
+						this.state = { ...state, receivedHeartbeat: false }
+					} else {
+						await this.disconnect()
+						this.doConnect(state.options)
+					}
 				}
-			}
-		}, Math.floor(this.readTimeoutSec! * 1.2 * 1000))
+			},
+			Math.floor(this.readTimeoutSec! * 1.2 * 1000),
+		)
 	}
 }

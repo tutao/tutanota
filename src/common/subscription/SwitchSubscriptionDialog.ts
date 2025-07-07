@@ -137,7 +137,7 @@ export async function showSwitchDialog(
 			({
 				label: "pricing.select_action",
 				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo),
-			} satisfies LoginButtonAttrs),
+			}) satisfies LoginButtonAttrs,
 		[PlanType.Revolutionary]: createPlanButton(
 			dialog,
 			PlanType.Revolutionary,
@@ -180,7 +180,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 					reason: reason.reason,
 					details: reason.details,
 					version: SURVEY_VERSION_NUMBER,
-			  })
+				})
 			: null
 	const newPlanType = await cancelSubscription(dialog, currentPlanInfo, customer, data)
 

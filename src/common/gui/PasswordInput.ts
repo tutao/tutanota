@@ -33,7 +33,7 @@ export class PasswordInput implements ClassComponent<PasswordInputAttributes> {
 								vnode.attrs.strength,
 							)}%, transparent 0%)`,
 						},
-				  })
+					})
 				: null,
 			m(SingleLineTextField, {
 				classes: ["flex-grow"],

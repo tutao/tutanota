@@ -46,7 +46,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 								onclick: () => this._finishDialog(a.data, (downcast<VnodeDOM>(vnode)?.dom as HTMLElement | null) ?? null),
 							}),
 						),
-				  ])
+					])
 				: m("", [
 						lang.get("loadingDNSRecords_msg"),
 						m(
@@ -57,7 +57,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 								click: () => _updateDnsStatus(a.data.domainStatus),
 							}),
 						),
-				  ]),
+					]),
 		]
 	}
 
@@ -178,7 +178,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 							icon: BootIcons.Progress,
 							size: ButtonSize.Compact,
 							click: () => _updateDnsStatus(domainStatus),
-					  },
+						},
 			),
 			m(MoreInfoLink, { link: InfoLink.DomainInfo, class: "mt-m", isSmall: true }),
 		]

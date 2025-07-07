@@ -307,7 +307,7 @@ o.spec("CalendarModel", function () {
 							? Promise.resolve({
 									progenitor: existingEvent,
 									alteredInstances: [],
-							  })
+								})
 							: Promise.resolve(null),
 				},
 				restClientMock,
@@ -373,7 +373,7 @@ o.spec("CalendarModel", function () {
 							? Promise.resolve({
 									progenitor: existingEvent,
 									alteredInstances: [],
-							  })
+								})
 							: Promise.resolve(null),
 				},
 				restClientMock,
@@ -503,7 +503,7 @@ o.spec("CalendarModel", function () {
 							? Promise.resolve({
 									progenitor: existingEvent,
 									alteredInstances: [],
-							  })
+								})
 							: Promise.resolve(null),
 				},
 				restClientMock,
@@ -582,7 +582,7 @@ o.spec("CalendarModel", function () {
 							? Promise.resolve({
 									progenitor: existingEvent,
 									alteredInstances: [],
-							  })
+								})
 							: Promise.resolve(null),
 				},
 				restClientMock,
@@ -656,7 +656,7 @@ o.spec("CalendarModel", function () {
 								? Promise.resolve({
 										progenitor: existingEvent,
 										alteredInstances: [],
-								  })
+									})
 								: Promise.resolve(null),
 					},
 					restClientMock,

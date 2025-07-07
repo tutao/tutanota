@@ -27,7 +27,7 @@ export class SettingsNavButton implements Component<SettingsNavButtonAttrs> {
 							container: "div",
 							class: "center-h",
 							size: IconSize.Large,
-					  })
+						})
 					: null,
 				onclick: attrs.click,
 				class: `flex justify-start full-width gap-vpad pl-vpad-m pr-m items-center`,

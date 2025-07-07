@@ -17,7 +17,11 @@ const LIGHT_FALLBACK_THEME: Partial<Theme> = {
  * 4 methods correspond to ThemeFacade from web plus two convenience methods getCurrentTheme() and getCurrentThemeWithFallback().
  */
 export class DesktopThemeFacade implements ThemeFacade {
-	constructor(private readonly config: DesktopConfig, private readonly wm: WindowManager, private readonly nativeTheme: Electron.NativeTheme) {}
+	constructor(
+		private readonly config: DesktopConfig,
+		private readonly wm: WindowManager,
+		private readonly nativeTheme: Electron.NativeTheme,
+	) {}
 
 	init() {
 		electron.nativeTheme.on("updated", () => {

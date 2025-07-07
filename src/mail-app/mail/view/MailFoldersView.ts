@@ -118,7 +118,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				disableHoverBackground: true,
 				disabled: attrs.inEditMode,
 			}
-			const currentExpansionState = attrs.inEditMode ? true : attrs.expandedFolders.has(getElementId(system.folder)) ?? false //default is false
+			const currentExpansionState = attrs.inEditMode ? true : (attrs.expandedFolders.has(getElementId(system.folder)) ?? false) //default is false
 			const hasChildren = system.children.length > 0
 			const counterId = getElementId(system.folder)
 			const summedCount = !currentExpansionState && hasChildren ? this.getTotalFolderCounter(groupCounters, system) : groupCounters[counterId]
@@ -132,7 +132,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				isInternalUser && !isTrashOrSpam && (isRightButtonVisible || attrs.inEditMode)
 					? this.createFolderMoreButton(system.folder, folders, attrs, () => {
 							this.visibleRow = null
-					  })
+						})
 					: null
 			const render = m.fragment(
 				{
@@ -209,7 +209,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			childAttrs: () => {
 				return folder.folderType === MailSetKind.CUSTOM
 					? // cannot add new folder to custom folder in spam or trash folder
-					  isSpamOrTrashFolder(folders, folder)
+						isSpamOrTrashFolder(folders, folder)
 						? [this.editButtonAttrs(attrs, folders, folder), this.deleteButtonAttrs(attrs, folder)]
 						: [this.editButtonAttrs(attrs, folders, folder), this.addButtonAttrs(attrs, folder), this.deleteButtonAttrs(attrs, folder)]
 					: [this.addButtonAttrs(attrs, folder)]

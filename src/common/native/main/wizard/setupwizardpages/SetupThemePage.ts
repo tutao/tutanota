@@ -39,7 +39,7 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 						onOptionSelected: (option) => {
 							locator.themeController.setThemePreference(option, true)
 						},
-				  } satisfies RadioSelectorAttrs<ThemePreference>),
+					} satisfies RadioSelectorAttrs<ThemePreference>),
 		)
 	}
 }

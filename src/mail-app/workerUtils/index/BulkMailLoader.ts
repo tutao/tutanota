@@ -55,7 +55,11 @@ export interface MailWithMailDetails {
 }
 
 export class BulkMailLoader {
-	constructor(private readonly mailEntityClient: EntityClient, private readonly mailDataEntityClient: EntityClient, private readonly mail: MailFacade) {}
+	constructor(
+		private readonly mailEntityClient: EntityClient,
+		private readonly mailDataEntityClient: EntityClient,
+		private readonly mail: MailFacade,
+	) {}
 
 	loadFixedNumberOfMailsWithCache(mailLIstId: Id, startId: Id, options: EntityRestClientLoadOptions = {}): Promise<Mail[]> {
 		return this.mailEntityClient.loadRange(MailTypeRef, mailLIstId, startId, MAIL_INDEXER_CHUNK, true, {
@@ -151,7 +155,7 @@ export class BulkMailLoader {
 					? this.mailDataEntityClient.loadMultiple(typeRef, listId, chunk, ownerEncSessionKeyProvider, {
 							...options,
 							cacheMode: CacheMode.ReadOnly,
-					  })
+						})
 					: Promise.resolve([])
 			},
 			{

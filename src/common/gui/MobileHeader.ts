@@ -48,7 +48,7 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 				? m(MobileHeaderTitle, {
 						title: attrs.title ? lang.getTranslationText(attrs.title) : undefined,
 						bottom: m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
-				  })
+					})
 				: null,
 			right: [
 				styles.isSingleColumnLayout() ? null : attrs.multicolumnActions?.(),

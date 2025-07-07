@@ -78,7 +78,7 @@ export function showDateRangeSelectionDialog({
 										startDate = null
 										warning = null
 									},
-							  } satisfies IconButtonAttrs)
+								} satisfies IconButtonAttrs)
 							: m(".button-height.button-width-fixed"),
 						m("", lang.get("dateTo_label")),
 						m(

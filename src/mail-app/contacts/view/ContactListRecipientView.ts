@@ -46,7 +46,7 @@ export class ContactListRecipientView implements Component<ContactListViewAttrs>
 						color: theme.list_message_bg,
 						message: "noEntries_msg",
 						icon: Icons.People,
-				  })
+					})
 				: m(List, {
 						renderConfig: this.renderConfig,
 						state: listModel.state,
@@ -63,7 +63,7 @@ export class ContactListRecipientView implements Component<ContactListViewAttrs>
 						onRangeSelectionTowards: (item: ContactListEntry) => {
 							listModel.selectRangeTowards(item)
 						},
-				  }),
+					}),
 		)
 	}
 

@@ -6,7 +6,10 @@ import { client } from "../misc/ClientDetector.js"
 type Electron = typeof Electron.CrossProcessExports
 
 export class DesktopContextMenu {
-	constructor(private readonly electron: Electron, private readonly windowManager: WindowManager) {}
+	constructor(
+		private readonly electron: Electron,
+		private readonly windowManager: WindowManager,
+	) {}
 
 	open(params: ContextMenuParams) {
 		const { linkURL, editFlags, misspelledWord, dictionarySuggestions } = params

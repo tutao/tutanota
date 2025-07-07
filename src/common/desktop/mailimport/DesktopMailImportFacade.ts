@@ -88,7 +88,11 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	private readonly importerApis: Map<string, Promise<ImporterApi>> = new Map()
 	private readonly currentListeners: Map<string, Array<Listener>> = new Map()
 
-	constructor(private readonly electron: ElectronExports, private readonly notifier: DesktopNotifier, private readonly lang: LanguageViewModel) {
+	constructor(
+		private readonly electron: ElectronExports,
+		private readonly notifier: DesktopNotifier,
+		private readonly lang: LanguageViewModel,
+	) {
 		ImporterApi.initLog()
 		electron.app.on("quit", () => ImporterApi.deinitLog())
 		this.configDirectory = electron.app.getPath("userData")

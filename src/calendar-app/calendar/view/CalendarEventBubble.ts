@@ -71,7 +71,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 								"padding-right": "2px",
 							},
 							class: "icon-small",
-					  })
+						})
 					: null,
 				attrs.isAltered
 					? m(Icon, {
@@ -82,7 +82,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 								"padding-right": "2px",
 							},
 							class: "icon-small",
-					  })
+						})
 					: null,
 				attrs.isClientOnly
 					? m(Icon, {
@@ -93,7 +93,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 								"padding-right": "2px",
 							},
 							class: "icon-small",
-					  })
+						})
 					: null,
 				m(
 					".flex.col",
@@ -156,7 +156,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 								class: "icon-small",
 							}),
 							`${secondLineText}`,
-					  ]
+						]
 					: text,
 				lineHeight,
 			)

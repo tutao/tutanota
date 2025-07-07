@@ -148,7 +148,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 								attrs.eventsForDays.get(date.getTime())?.some((event) => shouldDisplayEvent(event, attrs.hiddenCalendars)) ?? false,
 						}),
 					),
-			  )
+				)
 	}
 
 	private renderDesktopEventList(attrs: CalendarAgendaViewAttrs): Children {
@@ -202,7 +202,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 								e.preventDefault()
 							},
 							class: "mt-s",
-					  })
+						})
 					: null,
 			})
 		} else {
@@ -265,7 +265,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 								message: "noEventSelect_msg",
 								color: theme.list_message_bg,
 							}),
-					  )
+						)
 					: this.renderEventPreview(attrs),
 			),
 		])
@@ -410,7 +410,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 						},
 					},
 					eventsNodes,
-			  )
+				)
 	}
 }
 

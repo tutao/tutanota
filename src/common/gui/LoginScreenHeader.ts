@@ -18,5 +18,5 @@ export const LoginScreenHeader = pureComponent(() =>
 					},
 					m.trust(theme.logo),
 				),
-		  ),
+			),
 )

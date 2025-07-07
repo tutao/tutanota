@@ -234,7 +234,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 						label: "dateTo_label",
 						nullSelectionText: "emptyString_msg",
 						startOfTheWeekOffset,
-				  })
+					})
 				: null,
 		])
 	}

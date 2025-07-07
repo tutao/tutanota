@@ -256,7 +256,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 								lang.get("unprocessedBookings_msg", {
 									"{amount}": formatPrice(assertNotNull(this.outstandingBookingsPrice), true),
 								}),
-						  )
+							)
 						: null,
 					this.isPayButtonVisible()
 						? m(
@@ -270,7 +270,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 									label: "invoicePay_action",
 									onclick: () => this.showPayDialog(this.amountOwed()),
 								}),
-						  )
+							)
 						: null,
 				]),
 				this.accountingInfo &&
@@ -342,7 +342,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 									this.doPdfInvoiceDownload(posting)
 								}
 							},
-					  }
+						}
 					: null,
 		}
 	}
@@ -495,7 +495,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						label: "invoiceVatIdNo_label",
 						value: this.accountingInfo ? this.accountingInfo.invoiceVatIdNo : lang.get("loading_msg"),
 						isReadOnly: true,
-				  })
+					})
 				: null,
 		]
 	}

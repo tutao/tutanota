@@ -13,7 +13,10 @@ import { EntityClient } from "../../common/api/common/EntityClient.js"
 import { AppType } from "../../common/misc/ClientConstants.js"
 
 export class AddNotificationEmailDialog {
-	constructor(private readonly logins: LoginController, private readonly entityClient: EntityClient) {}
+	constructor(
+		private readonly logins: LoginController,
+		private readonly entityClient: EntityClient,
+	) {}
 
 	show() {
 		if (this.logins.getUserController().isFreeAccount()) {

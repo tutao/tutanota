@@ -25,7 +25,10 @@ export class EventQueue {
 	 * @param tag identifier to make for better log messages
 	 * @param queueAction which is executed for each batch. Must *never* throw.
 	 */
-	constructor(private readonly tag: string, private readonly queueAction: QueueAction) {
+	constructor(
+		private readonly tag: string,
+		private readonly queueAction: QueueAction,
+	) {
 		this.eventQueue = []
 		this.processingBatch = null
 		this.paused = false

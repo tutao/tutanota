@@ -40,7 +40,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 					mailboxDetails: mailLocator.mailboxModel.mailboxDetails(),
 					logins: mailLocator.logins,
 					mailExportController: this.mailExportController,
-			  })
+				})
 			: null
 	}
 

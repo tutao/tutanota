@@ -65,7 +65,11 @@ export class Editor implements ImageHandler, Component {
 	 */
 	private pasteListener: (e: ClipboardEvent) => void = (_: ClipboardEvent) => (this.userHasPasted = true)
 
-	constructor(private minHeight: number | null, private sanitizer: SanitizerFn, private staticLineAmount: number | null) {
+	constructor(
+		private minHeight: number | null,
+		private sanitizer: SanitizerFn,
+		private staticLineAmount: number | null,
+	) {
 		this.onremove = this.onremove.bind(this)
 		this.onbeforeupdate = this.onbeforeupdate.bind(this)
 		this.view = this.view.bind(this)
@@ -99,12 +103,12 @@ export class Editor implements ImageHandler, Component {
 						"max-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
 						"min-height:": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
 						overflow: "scroll",
-				  }
+					}
 				: this.minHeight
-				? {
-						"min-height": px(this.minHeight),
-				  }
-				: {},
+					? {
+							"min-height": px(this.minHeight),
+						}
+					: {},
 		})
 	}
 

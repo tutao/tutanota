@@ -113,7 +113,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 								// We can assume "true" because onChange is only triggered if permission was granted
 								this.hasNotificationPermission = true
 							},
-					  })
+						})
 					: null,
 				isApp() ? this.renderCalendarNotificationsDropdown() : null,
 				m(NotificationTargetsList, { rows, rowAdd, onExpandedChange: this.expanded } satisfies NotificationTargetsListAttrs),

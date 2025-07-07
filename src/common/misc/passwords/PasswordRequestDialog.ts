@@ -54,7 +54,7 @@ export function showRequestPasswordDialog(props: {
 								return true
 							},
 						} satisfies PasswordFieldAttrs),
-				  ])
+					])
 				: m(Icon, {
 						icon: BootIcons.Progress,
 						class: "icon-xl icon-progress block mt mb",
@@ -62,7 +62,7 @@ export function showRequestPasswordDialog(props: {
 							marginLeft: "auto",
 							marginRight: "auto",
 						},
-				  })
+					})
 		},
 	}
 	const dialog = Dialog.showActionDialog({

@@ -4,7 +4,10 @@ import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 
 export class OfflineStorageContactIndexerBackend implements ContactIndexerBackend {
-	constructor(private readonly entityClient: EntityClient, private readonly persistence: OfflineStoragePersistence) {}
+	constructor(
+		private readonly entityClient: EntityClient,
+		private readonly persistence: OfflineStoragePersistence,
+	) {}
 
 	async init(): Promise<void> {}
 

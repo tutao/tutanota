@@ -35,7 +35,7 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 							"border-bottom-color": "#" + attrs.color,
 							opacity: attrs.opacity,
 						},
-				  })
+					})
 				: null,
 			m(
 				".flex-grow.overflow-hidden",
@@ -60,7 +60,7 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 							"border-left-color": "#" + attrs.color,
 							opacity: attrs.opacity,
 						},
-				  })
+					})
 				: null,
 		])
 	}

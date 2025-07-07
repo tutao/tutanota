@@ -83,7 +83,7 @@ export class NotificationPermissionsBody implements Component<NotificationPermis
 							)
 							attrs.askForBatteryNotificationPermission(isBatteryPermissionGranted)
 						}),
-				  ]),
+					]),
 		]
 	}
 }

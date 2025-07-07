@@ -142,7 +142,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 								},
 							},
 							qrCodeGraphic,
-					  ),
+						),
 			),
 			// mail address
 			m(".b.center.mt-s.mb-s", selfMailAddress),

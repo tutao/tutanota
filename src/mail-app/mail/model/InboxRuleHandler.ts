@@ -92,7 +92,11 @@ export function getInboxRuleTypeName(type: string): string {
 }
 
 export class InboxRuleHandler {
-	constructor(private readonly mailFacade: MailFacade, private readonly logins: LoginController, private readonly mailModel: MailModel) {}
+	constructor(
+		private readonly mailFacade: MailFacade,
+		private readonly logins: LoginController,
+		private readonly mailModel: MailModel,
+	) {}
 
 	/**
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.

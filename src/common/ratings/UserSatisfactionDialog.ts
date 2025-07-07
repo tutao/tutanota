@@ -157,11 +157,11 @@ function onSupportRequestSend(dialog: Dialog) {
 			? {
 					label: lang.makeTranslation("", "Get Tuta Mail"),
 					click: () => windowFacade.openLink(isIOSApp() ? TUTA_MAIL_APP_STORE_URL : TUTA_MAIL_GOOGLE_PLAY_URL),
-			  }
+				}
 			: {
 					label: "ok_action",
 					click: noOp,
-			  },
+				},
 		waitingTime: 300,
 	})
 }

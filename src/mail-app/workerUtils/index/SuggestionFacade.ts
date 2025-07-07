@@ -11,7 +11,11 @@ export class SuggestionFacade<T> {
 	type: TypeRef<T>
 	_suggestions: SuggestionsType
 
-	constructor(type: TypeRef<T>, db: EncryptedDbWrapper, private readonly typeModelResolver: ClientTypeModelResolver) {
+	constructor(
+		type: TypeRef<T>,
+		db: EncryptedDbWrapper,
+		private readonly typeModelResolver: ClientTypeModelResolver,
+	) {
 		this.type = type
 		this._db = db
 		this._suggestions = {}

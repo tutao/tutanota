@@ -280,7 +280,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 										? ownTemplates.map((folder) => this._renderTemplateFolderRow(folder))
 										: m(SettingsFolderRow, {
 												mainButtonAttrs: this._createSettingsFolderNavButton(this._dummyTemplateFolder),
-										  }),
+											}),
 									sharedTemplates.map((folder) => this._renderTemplateFolderRow(folder)),
 								],
 							),
@@ -291,7 +291,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 											name: "adminSettings_label",
 										},
 										this._renderSidebarSectionChildren(this._adminFolders),
-								  )
+									)
 								: null,
 							templateInvitations.length > 0
 								? m(
@@ -300,7 +300,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 											name: "templateGroupInvitations_label",
 										},
 										templateInvitations.map((invitation) => this._renderTemplateInvitationFolderRow(invitation)),
-								  )
+									)
 								: null,
 							this._knowledgeBaseFolders.length > 0
 								? m(
@@ -309,7 +309,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 											name: "knowledgebase_label",
 										},
 										this._renderSidebarSectionChildren(this._knowledgeBaseFolders),
-								  )
+									)
 								: null,
 							this._bottomSection(),
 						]),
@@ -587,12 +587,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 								label: "delete_action",
 								click: () => this._deleteTemplateGroup(folder.data),
 								icon: Icons.Trash,
-						  }
+							}
 						: {
 								label: "leaveGroup_action",
 								click: () => this._leaveTemplateGroup(folder.data),
 								icon: Icons.Trash,
-						  },
+							},
 					{
 						label: "sharing_label",
 						click: () => showGroupSharingDialog(folder.data.groupInfo, true),

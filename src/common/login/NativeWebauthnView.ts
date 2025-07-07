@@ -15,7 +15,10 @@ import { TopLevelView } from "../../TopLevelView.js"
  * See DesktopWebauthnFacade.
  */
 export class NativeWebauthnView implements TopLevelView {
-	constructor(private readonly webauthn: BrowserWebauthn, private readonly nativeTransport: WebauthnNativeBridge) {
+	constructor(
+		private readonly webauthn: BrowserWebauthn,
+		private readonly nativeTransport: WebauthnNativeBridge,
+	) {
 		this.view = this.view.bind(this)
 		this.nativeTransport.init(this.webauthn)
 	}

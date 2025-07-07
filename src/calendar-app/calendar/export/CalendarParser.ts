@@ -300,7 +300,7 @@ function parseAlarm(alarmObject: ICalObject, startTime: Date): AlarmInfoTemplate
 		? {
 				trigger: serializeAlarmInterval(alarmInterval),
 				alarmIdentifier: "",
-		  }
+			}
 		: null
 }
 
@@ -436,7 +436,7 @@ export function parseRecurrenceId(recurrenceIdProp: Property, tzId: string | nul
 	const allDay = !("minute" in components)
 	// We don't use the zone from the components (RRULE) but the one from start time if it was given.
 	// Don't ask me why but that's how it is.
-	const effectiveZone = allDay ? "UTC" : components.zone ?? getTzId(recurrenceIdProp) ?? tzId ?? undefined
+	const effectiveZone = allDay ? "UTC" : (components.zone ?? getTzId(recurrenceIdProp) ?? tzId ?? undefined)
 	delete filledComponents["zone"]
 	const luxonDate = DateTime.fromObject(filledComponents, { zone: effectiveZone })
 	return toValidJSDate(luxonDate, recurrenceIdProp.value, tzId)
@@ -822,7 +822,7 @@ export function parseUntilRruleTime(value: string, zone: string | null): Date {
 	const allDay = !("minute" in components)
 	// We don't use the zone from the components (RRULE) but the one from start time if it was given.
 	// Don't ask me why but that's how it is.
-	const effectiveZone = allDay ? "UTC" : zone ?? undefined
+	const effectiveZone = allDay ? "UTC" : (zone ?? undefined)
 	delete filledComponents["zone"]
 	const luxonDate = DateTime.fromObject(filledComponents, { zone: effectiveZone })
 	const startOfNextDay = luxonDate
@@ -849,7 +849,7 @@ export function parseTime(
 	const components = parseTimeIntoComponents(value)
 	// if minute is not provided it is an all day date YYYYMMDD
 	const allDay = !("minute" in components)
-	const effectiveZone = allDay ? "UTC" : components.zone ?? zone
+	const effectiveZone = allDay ? "UTC" : (components.zone ?? zone)
 	delete components["zone"]
 	const filledComponents = Object.assign(
 		{},
@@ -859,7 +859,7 @@ export function parseTime(
 					minute: 0,
 					second: 0,
 					millisecond: 0,
-			  }
+				}
 			: {},
 		components,
 	)

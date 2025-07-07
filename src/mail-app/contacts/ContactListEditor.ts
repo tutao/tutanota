@@ -155,7 +155,7 @@ class ContactListEditor implements Component<ContactListEditorAttrs> {
 						class: "big-input pt flex-grow",
 						value: this.model.name,
 						oninput: (name) => (this.model.name = name),
-				  })
+					})
 				: null,
 			m(MailRecipientsTextField, {
 				label: "addEntries_action",

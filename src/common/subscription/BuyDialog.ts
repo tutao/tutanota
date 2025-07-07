@@ -106,7 +106,7 @@ class ConfirmSubscriptionView implements Component<ConfirmAttrs> {
 						helpLabel: () => lang.get("nextChargeOn_label", { "{chargeDate}": formatDate(chargeDate) }),
 						value: this.getSubscriptionText(priceChangeModel),
 						isReadOnly: true,
-				  })
+					})
 				: null,
 			m(TextField, {
 				label: "price_label",
@@ -162,7 +162,10 @@ class PriceChangeModel {
 	readonly futurePrice: number
 	readonly additionalFeatures: ReadonlySet<BookingItemFeatureType>
 
-	constructor(private readonly price: PriceServiceReturn, readonly featureType: BookingItemFeatureType) {
+	constructor(
+		private readonly price: PriceServiceReturn,
+		readonly featureType: BookingItemFeatureType,
+	) {
 		this.currentItem = getPriceItem(price.currentPriceNextPeriod, featureType)
 		this.futureItem = getPriceItem(price.futurePriceNextPeriod, featureType)
 		this.currentPrice = this.getPriceFromPriceData(price.currentPriceNextPeriod, featureType)

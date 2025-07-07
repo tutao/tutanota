@@ -248,7 +248,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 						: {
 								name: lang.get(name),
 								group: calendarID,
-						  },
+							},
 					group: { _id: calendarID },
 					shared: false,
 					userIsOwner: true,

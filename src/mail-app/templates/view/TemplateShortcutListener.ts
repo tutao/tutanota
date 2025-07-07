@@ -32,7 +32,7 @@ class TemplateShortcutListener {
 	handleKeyDown(event: KeyboardEvent) {
 		if (isKeyPressed(event.key, Keys.TAB) && this._currentCursorPosition) {
 			const cursorEndPos = this._currentCursorPosition
-			const text = cursorEndPos.startContainer.nodeType === Node.TEXT_NODE ? cursorEndPos.startContainer.textContent ?? "" : ""
+			const text = cursorEndPos.startContainer.nodeType === Node.TEXT_NODE ? (cursorEndPos.startContainer.textContent ?? "") : ""
 			const templateShortcutStartIndex = text.lastIndexOf(TEMPLATE_SHORTCUT_PREFIX)
 			const lastWhiteSpaceIndex = text.search(/\s\S*$/)
 

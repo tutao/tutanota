@@ -35,7 +35,7 @@ async function renderReleaseNotes({ milestone, platform }) {
 					milestoneUrl: githubMilestone.html_url,
 					bugIssues: bugs,
 					otherIssues: other,
-			  })
+				})
 
 	console.log(releaseNotes)
 }

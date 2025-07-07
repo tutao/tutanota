@@ -218,7 +218,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 								onclick: onNextClick,
 							}),
 						),
-				  ]
+					]
 				: null,
 		)
 	}

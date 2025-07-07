@@ -131,7 +131,7 @@ export class ApplicationWindow {
 							exec: () => this.toggleFullScreen(),
 							help: "toggleFullScreen_action",
 						},
-				  ]
+					]
 				: [
 						{
 							key: Keys.F11,
@@ -198,7 +198,7 @@ export class ApplicationWindow {
 							},
 							help: "zoomOut_action",
 						},
-				  ],
+					],
 		)
 		log.debug(TAG, "webAssetsPath: ", this.absoluteAssetsPath)
 		const preloadPath = preloadOverridePath ?? path.join(this.electron.app.getAppPath(), "./desktop/preload.js")

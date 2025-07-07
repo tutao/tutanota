@@ -19,7 +19,7 @@ function showUpdateOverlay({ showChangelogLink, onUpdate }: { showChangelogLink:
 								target: "_blank",
 							},
 							lang.get("releaseNotes_action"),
-					  )
+						)
 					: null,
 			])
 		},

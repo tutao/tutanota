@@ -457,7 +457,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 							this.renderRemindersEditor(vnode),
 							this.renderGuestsNavButton(vnode.attrs),
 							this.renderLocationField(vnode),
-					  ])
+						])
 					: null,
 				this.renderDescriptionEditor(vnode),
 			],

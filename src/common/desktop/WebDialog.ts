@@ -18,7 +18,11 @@ export type WebDialogIpcConfig = typeof webauthnIpcConfig
 
 /** A dialog which was already loaded. Allows sending one request or closing it. */
 export class WebDialog<FacadeType extends object> {
-	constructor(private facade: FacadeType, private closedPromise: Promise<never>, private browserWindow: BrowserWindow) {}
+	constructor(
+		private facade: FacadeType,
+		private closedPromise: Promise<never>,
+		private browserWindow: BrowserWindow,
+	) {}
 
 	makeRequest<T>(requestSender: (facade: FacadeType) => Promise<T>): Promise<T> {
 		return Promise.race([this.closedPromise, requestSender(this.facade)])

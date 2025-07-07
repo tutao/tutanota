@@ -1061,7 +1061,7 @@ async function confirmDeleteClose(model: CalendarEventPreviewViewModel, onClose?
 }
 
 export function getDisplayEventTitle(title: string): string {
-	return title ?? title !== "" ? title : lang.get("noTitle_label")
+	return (title ?? title !== "") ? title : lang.get("noTitle_label")
 }
 
 export type ColorString = string
@@ -1072,7 +1072,7 @@ export function generateRandomColor(): ColorString {
 }
 
 export function renderCalendarColor(selectedCalendar: CalendarInfo | null, groupColors: Map<Id, string>) {
-	const color = selectedCalendar ? groupColors.get(selectedCalendar.groupInfo.group) ?? defaultCalendarColor : null
+	const color = selectedCalendar ? (groupColors.get(selectedCalendar.groupInfo.group) ?? defaultCalendarColor) : null
 	return m(".mt-xs", {
 		style: {
 			width: "100px",

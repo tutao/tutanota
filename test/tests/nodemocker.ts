@@ -101,7 +101,7 @@ function classify(template: { prototype: object; statics: object }): Mocked<any>
 						: Object.keys(obj).reduce((newObj, key) => {
 								;(newObj as any)[key] = (obj as any)[key]
 								return newObj
-						  }, {} as any)
+							}, {} as any)
 			} else {
 				this[p] = template.prototype[p]
 			}
@@ -145,10 +145,13 @@ function deepAssign<T, B>(obj: T, adder: B): T & B {
 	if (typeof adder !== "object" || typeof obj !== "object" || adder == null || obj == null) {
 		ret = adder
 	} else {
-		ret = Object.keys(adder).reduce((newObj, key) => {
-			;(newObj as any)[key] = deepAssign((newObj as any)[key], (adder as any)[key])
-			return newObj
-		}, Object.assign({}, obj))
+		ret = Object.keys(adder).reduce(
+			(newObj, key) => {
+				;(newObj as any)[key] = deepAssign((newObj as any)[key], (adder as any)[key])
+				return newObj
+			},
+			Object.assign({}, obj),
+		)
 	}
 	return downcast(ret)
 }

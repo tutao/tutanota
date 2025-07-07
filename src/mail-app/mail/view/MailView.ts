@@ -185,14 +185,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											}
 										},
 									}),
-							  )
+								)
 							: null,
 						mobileHeader: () =>
 							this.mailViewModel.listModel?.isInMultiselect()
 								? m(MultiselectMobileHeader, {
 										...selectionAttrsForList(this.mailViewModel.listModel),
 										message: getMailSelectionMessage(this.mailViewModel.listModel.getSelectedAsArray()),
-								  })
+									})
 								: m(MobileHeader, {
 										...vnode.attrs.header,
 										title: this.listColumn.getTitle(),
@@ -207,7 +207,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 										],
 										primaryAction: () => this.renderHeaderRightView(),
 										backAction: () => this.viewSlider.focusPreviousColumn(),
-								  }),
+									}),
 					})
 				},
 			},
@@ -313,7 +313,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 							.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
 							.finally(m.redraw)
 					})
-			  }
+				}
 			: null
 	}
 
@@ -352,7 +352,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 							? () => {
 									promptAndDeleteMails(mailViewerModel.mailModel, [mailViewerModel.mail._id], null, noOp)
 									this.mailViewModel.clearStickyMail()
-							  }
+								}
 							: null,
 					}
 				},
@@ -408,8 +408,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				loadingAll: this.mailViewModel.listModel?.isLoadingAll()
 					? "loading"
 					: this.mailViewModel.listModel?.loadingStatus === ListLoadingState.Done
-					? "loaded"
-					: "can_load",
+						? "loaded"
+						: "can_load",
 				getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
 			}),
 		})
@@ -447,7 +447,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						locator.logins.isInternalUserLoggedIn()
 							? m(LazySearchBar, {
 									placeholder: lang.get("searchEmails_placeholder"),
-							  })
+								})
 							: null,
 					...attrs.header,
 				}),
@@ -470,17 +470,17 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 									report: this.getReportAction(this.conversationViewModel.primaryViewModel()),
 									print: this.getPrintAction(),
 								}),
-						  })
+							})
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
-						? m(MobileMailMultiselectionActionBar, {
-								selectNone: () => this.mailViewModel.listModel?.selectNone(),
-								deleteMailsAction: this.getDeleteMailsAction(),
-								trashMailsAction: () => this.trashSelectedMails(),
-								moveMailsAction: this.getMoveMailsAction(),
-								applyLabelsAction: this.getLabelsAction(),
-								setUnreadStateAction: this.getSetUnreadStateAction(),
-						  })
-						: m(BottomNav),
+							? m(MobileMailMultiselectionActionBar, {
+									selectNone: () => this.mailViewModel.listModel?.selectNone(),
+									deleteMailsAction: this.getDeleteMailsAction(),
+									trashMailsAction: () => this.trashSelectedMails(),
+									moveMailsAction: this.getMoveMailsAction(),
+									applyLabelsAction: this.getLabelsAction(),
+									setUnreadStateAction: this.getSetUnreadStateAction(),
+								})
+							: m(BottomNav),
 			}),
 		)
 	}
@@ -588,7 +588,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 						icon: Icons.PencilSquare,
 					}),
-			  ]
+				]
 			: null
 	}
 
@@ -800,7 +800,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					const actionableMails = this.mailViewModel.getActionableMails()
 					// when viewing a conversation we need to get the label state for all the mails in that conversation
 					showLabelsPopup(mailModel, actionableMails, (mails: Mail[]) => this.mailViewModel.getResolvedMails(mails), dom, opts)
-			  }
+				}
 			: null
 	}
 
@@ -813,11 +813,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						button: editingFolderForMailGroup
 							? null
 							: !styles.isUsingBottomNavigation() && isNewMailActionAvailable()
-							? {
-									label: "newMail_action",
-									click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
-							  }
-							: null,
+								? {
+										label: "newMail_action",
+										click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
+									}
+								: null,
 						content: this.renderFoldersAndLabels(editingFolderForMailGroup),
 						ariaLabel: "folderTitle_label",
 					})
@@ -859,7 +859,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					mailLocator.mailModel.canManageLabels()
 						? this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
 								EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
-						  })
+							})
 						: null,
 				],
 			)

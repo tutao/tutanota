@@ -260,7 +260,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 							return options.businessUse(isBusinessUse)
 						},
 						items: BusinessUseItems,
-				  })
+					})
 				: null,
 			this.renderHeadline(
 				msg,
@@ -529,7 +529,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 						this.featuresExpanded[subType] = !this.featuresExpanded[subType]
 						event.stopPropagation()
 					},
-			  })
+				})
 	}
 }
 

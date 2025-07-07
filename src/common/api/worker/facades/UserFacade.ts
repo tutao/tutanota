@@ -25,7 +25,10 @@ export class UserFacade implements AuthDataProvider {
 	private accessToken: string | null = null
 	private leaderStatus!: WebsocketLeaderStatus
 
-	constructor(private readonly keyCache: KeyCache, private readonly cryptoWrapper: CryptoWrapper) {
+	constructor(
+		private readonly keyCache: KeyCache,
+		private readonly cryptoWrapper: CryptoWrapper,
+	) {
 		this.reset()
 	}
 
@@ -133,7 +136,7 @@ export class UserFacade implements AuthDataProvider {
 		return this.accessToken
 			? {
 					accessToken: this.accessToken,
-			  }
+				}
 			: {}
 	}
 

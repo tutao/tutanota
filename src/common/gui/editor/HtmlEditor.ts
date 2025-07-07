@@ -33,7 +33,10 @@ export class HtmlEditor implements Component {
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
 	private staticLineAmount: number | null = null // Static amount of lines the editor shall allow at all times
 
-	constructor(private label?: MaybeTranslation, private readonly injections?: () => Children) {
+	constructor(
+		private label?: MaybeTranslation,
+		private readonly injections?: () => Children,
+	) {
 		this.editor = new Editor(
 			null,
 			(html) =>
@@ -67,7 +70,7 @@ export class HtmlEditor implements Component {
 								this.mode === HtmlEditorMode.WYSIWYG ? assertNotNull(this.editor.domElement).focus() : assertNotNull(this.domTextArea).focus(),
 						},
 						this.placeholderId ? lang.get(this.placeholderId) : "",
-				  )
+					)
 				: null
 
 		return m(".html-editor" + (this.mode === HtmlEditorMode.WYSIWYG ? ".text-break" : ""), { class: this.editor.isEnabled() ? "" : "disabled" }, [
@@ -84,7 +87,7 @@ export class HtmlEditor implements Component {
 							this.setValue(this.value())
 							this.initializeEditorListeners()
 						},
-				  })
+					})
 				: null,
 			this.label ? m(".small.mt-form", lang.getTranslationText(this.label)) : null,
 			m(borderClasses, [
@@ -98,7 +101,7 @@ export class HtmlEditor implements Component {
 											renderedInjections,
 										]),
 										m("hr.hr.mb-s"),
-								  ]
+									]
 								: null,
 							m(this.editor, {
 								oncreate: () => {
@@ -108,7 +111,7 @@ export class HtmlEditor implements Component {
 									this.value(this.getValue())
 								},
 							}),
-					  ])
+						])
 					: m(
 							".html",
 							m("textarea.input-area.selectable", {
@@ -131,15 +134,15 @@ export class HtmlEditor implements Component {
 											"max-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
 											"min-height": px(this.staticLineAmount * HTML_EDITOR_LINE_HEIGHT),
 											overflow: "scroll",
-									  }
+										}
 									: {
 											"font-family": this.htmlMonospace ? "monospace" : "inherit",
 											"min-height": this.minHeight ? px(this.minHeight) : "initial",
-									  },
+										},
 								disabled: !this.editor.isEnabled(),
 								readonly: this.editor.isReadOnly(),
 							}),
-					  ),
+						),
 			]),
 		])
 	}

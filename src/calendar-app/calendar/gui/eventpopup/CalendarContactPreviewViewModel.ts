@@ -11,7 +11,11 @@ export class CalendarContactPreviewViewModel {
 	 * @param contact the contact to display in the popup
 	 * @param _canEdit allow editing the contact if available
 	 */
-	constructor(readonly event: Readonly<CalendarEvent>, readonly contact: Readonly<Contact>, private readonly _canEdit: boolean = false) {}
+	constructor(
+		readonly event: Readonly<CalendarEvent>,
+		readonly contact: Readonly<Contact>,
+		private readonly _canEdit: boolean = false,
+	) {}
 
 	get canEdit(): boolean {
 		return this._canEdit && isNotNull(this.contact)
