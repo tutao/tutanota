@@ -19,4 +19,7 @@ TutaoWidgetSendLogsAction = "ログを送信";
 TutaoAccountLabel = "ユーザー";
 TutaoNoTitleLabel = "<無題>";
 TutaoDefaultCalendarNameTitle = "個人用";
+TutaoBirthdayEventTitle = "{name}の誕生日";
+TutaoBirthdayEventAgeTitle = "{age}歳";
+TutaoBirthdayCalendarLabel = "誕生日";
 TutaoAllDayLabel = "終日";

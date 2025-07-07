@@ -10,4 +10,7 @@
     <string name="markRead_action">既読にする</string>
     <string name="sendLogs_action">ログを送信</string>
     <string name="account_label">ユーザー</string>
+    <string name="birthdayCalendar_label">誕生日</string>
+    <string name="birthdayEvent_title">{name}の誕生日</string>
+    <string name="birthdayEventAge_title">{age}歳</string>
 </resources>

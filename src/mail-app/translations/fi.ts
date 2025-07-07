@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-07-02T16:34:36Z",
+	"updated_at": "2025-07-05T08:53:38Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -248,6 +248,7 @@ export default {
 		"cannotEditNotOrganizer_msg": "Et voi muokata tätä tapahtumaa, koska et ole sen järjestäjä.",
 		"cannotEditSingleInstance_msg": "Voit muokata tästä tapahtumasta vain joitain tietoja, koska se on osa tapahtumasarjaa.",
 		"canNotOpenFileOnDevice_msg": "Tiedostoa ei voi avata tällä laitteella.",
+		"captchaChecking_msg": "Tarkistamme, ettet ole robotti...",
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Kirjoita kellonaika tunteina ja minuutteina.",
 		"captchaInfo_msg": "Syötä näytetty aika osoittaaksesi, että olet ihminen etkä kone.",
@@ -1832,6 +1833,7 @@ export default {
 		"switchDrafts_action": "Siirry Luonnokset-kansioon",
 		"switchInbox_action": "Siirry Saapuneet-kansioon",
 		"switchMonthView_action": "Kuukausinäkymä",
+		"switchPlan_msg": "Valitsemasi uusi tilausvaihtoehto on: {plan} {interval}",
 		"switchSearchInMenu_label": "Voit vaihtaa hakutyyppiä valikosta",
 		"switchSentFolder_action": "Siirry Lähetetyt-kansioon",
 		"switchSpam_action": "Siirry roskapostikansioon",

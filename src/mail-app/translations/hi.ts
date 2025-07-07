@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-07T01:15:17Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -290,7 +290,7 @@ export default {
 		"currentlyBooked_label": "आरक्षण अवलोकन",
 		"customColorsInfo_msg": "यदि आप रिक्त फ़ील्ड को छोड़ते हैं तो डिफ़ॉल्ट प्रकाश थीम से रंग का उपयोग किया जाता है.",
 		"customColors_label": "रिवाज रंग",
-		"customDomainDeletePreconditionFailed_msg": "कृपया सभी उपयोगकर्ताओं और ईमेल उपनामों को डोमेन से निष्क्रिय करें:",
+		"customDomainDeletePreconditionFailed_msg": "कृपया उन सभी उपयोगकर्ताओं और ईमेल पतों को निष्क्रिय कर दें जिनमें यह डोमेन शामिल है: {domainName}।",
 		"customDomainErrorDnsLookupFailure_msg": "DNS लुकअप विफल",
 		"customDomainErrorDomainNotAvailable_msg": "डोमेन उपलब्ध नहीं है",
 		"customDomainErrorDomainNotFound_msg": "हमें DNS में यह डोमेन नहीं मिला। कृपया वर्तनी की जाँच करें।",

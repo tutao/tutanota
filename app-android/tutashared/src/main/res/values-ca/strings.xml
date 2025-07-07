@@ -18,6 +18,6 @@
     <string name="widgetNoEvents_msg">Sense esdeveniments</string>
     <string name="widgetDescription_msg">Mostra els propers esdeveniments d\'avui</string>
     <string name="birthdayCalendar_label">Aniversaris</string>
-    <string name="birthdayEvent_title">L\'aniversari de {Nom}</string>
-    <string name="birthdayEventAge_title">{edat} anys</string>
+    <string name="birthdayEvent_title">L\'aniversari de {name}</string>
+    <string name="birthdayEventAge_title">{age} anys</string>
 </resources>
