@@ -19,7 +19,19 @@ import {
 	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
-import { AppName, assertNotNull, binarySearch, delay, identity, lastThrow, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
+import {
+	AppName,
+	assertNotNull,
+	binarySearch,
+	delay,
+	identity,
+	isSameTypeRef,
+	lastThrow,
+	ofClass,
+	promiseMap,
+	randomIntFromInterval,
+	TypeRef,
+} from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
@@ -34,7 +46,7 @@ import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
 import { TypeModelResolver } from "../common/EntityFunctions.js"
-import { PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
+import { FileTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
@@ -47,6 +59,7 @@ import { EntityAdapter } from "./crypto/EntityAdapter"
 import { EventInstancePrefetcher } from "./EventInstancePrefetcher"
 import { AttributeModel } from "../common/AttributeModel"
 import { newSyncMetrics } from "./utils/SyncMetrics"
+import { SessionKeyNotFoundError } from "../common/error/SessionKeyNotFoundError"
 
 assertWorkerOrNode()
 
@@ -347,19 +360,31 @@ export class EventBusClient {
 	}
 
 	private async getInstanceFromEntityEvent(event: EntityUpdate): Promise<Nullable<ServerModelParsedInstance>> {
+		const typeRef = new TypeRef<any>(event.application as AppName, parseInt(event.typeId!))
 		if (event.instance != null) {
-			const typeRef = new TypeRef<any>(event.application as AppName, parseInt(event.typeId!))
-			const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
-			const untypedInstance = JSON.parse(event.instance) as ServerModelUntypedInstance
-			const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedInstance)
-			const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstanceSanitized)
-			const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
-			if (this.userFacade.hasGroup(assertNotNull(entityAdapter._ownerGroup))) {
-				// if the user was just assigned to a new group, it might it is not yet on the user facade,
-				// we can't decrypt the instance in that case.
-				const migratedEntity = await this.cryptoFacade.applyMigrations(typeRef, entityAdapter)
-				const sessionKey = await this.cryptoFacade.resolveSessionKey(migratedEntity)
-				return await this.instancePipeline.cryptoMapper.decryptParsedInstance(serverTypeModel, encryptedParsedInstance, sessionKey)
+			try {
+				const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+				const untypedInstance = JSON.parse(event.instance) as ServerModelUntypedInstance
+				const untypedInstanceSanitized = AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedInstance)
+				const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, untypedInstanceSanitized)
+				const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline)
+				if (this.userFacade.hasGroup(assertNotNull(entityAdapter._ownerGroup))) {
+					// if the user was just assigned to a new group, it might it is not yet on the user facade,
+					// we can't decrypt the instance in that case.
+					const migratedEntity = await this.cryptoFacade.applyMigrations(typeRef, entityAdapter)
+					const sessionKey = await this.cryptoFacade.resolveSessionKey(migratedEntity)
+					return await this.instancePipeline.cryptoMapper.decryptParsedInstance(serverTypeModel, encryptedParsedInstance, sessionKey)
+				}
+			} catch (e) {
+				if (e instanceof SessionKeyNotFoundError) {
+					// After resolving the main instance with the BucketKey, the _ownerEncSessionKeys for files on the mails are
+					// updated only after the UpdateSessionKeyService call, while the _ownerEncSessionKey for the main instance is
+					// immediately updated. Therefore, there is a brief period where the File created after a reply to a mail has
+					// null _ownerEncSessionKey. This means we cannot use the instance on the update for the File type.
+					return null
+				} else {
+					throw e
+				}
 			}
 		}
 		return null
