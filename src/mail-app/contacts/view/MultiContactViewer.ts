@@ -30,7 +30,7 @@ export class MultiContactViewer implements Component<MultiContactViewerAttrs> {
 								label: "cancel_action",
 								type: ButtonType.Secondary,
 								click: () => attrs.selectNone(),
-						  })
+							})
 						: undefined,
 				backgroundColor: theme.navigation_bg,
 			}),

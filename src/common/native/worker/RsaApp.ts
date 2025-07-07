@@ -3,7 +3,10 @@ import type { RsaImplementation } from "../../api/worker/crypto/RsaImplementatio
 import { NativeCryptoFacade } from "../common/generatedipc/NativeCryptoFacade"
 
 export class RsaApp implements RsaImplementation {
-	constructor(private readonly nativeCryptoFacade: NativeCryptoFacade, private readonly rng: Randomizer) {}
+	constructor(
+		private readonly nativeCryptoFacade: NativeCryptoFacade,
+		private readonly rng: Randomizer,
+	) {}
 
 	/**
 	 * Encrypt bytes with the provided publicKey

@@ -39,11 +39,11 @@ export function showNewsDialog(newsModel: NewsModel) {
 						? m(NewsList, {
 								liveNewsIds: newsModel.liveNewsIds,
 								liveNewsListItems: newsModel.liveNewsListItems,
-						  })
+							})
 						: m(
 								".flex-center.mt-l",
 								m(".flex-v-center", [m(".full-width.flex-center", progressIcon()), m("p", lang.getTranslationText("pleaseWait_msg"))]),
-						  ),
+							),
 				]),
 			]
 		},

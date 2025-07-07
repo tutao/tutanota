@@ -40,7 +40,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 				? {
 						marginTop: "-10px",
 						marginBottom: "-6px",
-				  }
+					}
 				: undefined
 		return m(
 			".center-vertically.border-bottom.pr-s.pl.border-radius.mt-xs",

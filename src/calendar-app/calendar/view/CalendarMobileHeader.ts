@@ -57,7 +57,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 							isBig: true,
 							isPropagatingEvents: true,
 							onExpandedChange: () => {},
-					  })
+						})
 					: attrs.navConfiguration.title,
 				bottom: m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
 				onTap: attrs.onTap,
@@ -74,7 +74,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 							icon: Icons.Add,
 							title: "newEvent_action",
 							click: attrs.onCreateEvent,
-					  }),
+						}),
 			],
 			injections: m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }),
 		})

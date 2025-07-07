@@ -18,7 +18,11 @@ const appstoreLink = "https://apps.apple.com/app/tutanota/id922429609"
  * News item that reminds the user of configuring pin/ biometrics
  */
 export class PinBiometricsNews implements NewsListItem {
-	constructor(private readonly newsModel: NewsModel, private readonly credentialsProvider: CredentialsProvider, private readonly userId: Id) {}
+	constructor(
+		private readonly newsModel: NewsModel,
+		private readonly credentialsProvider: CredentialsProvider,
+		private readonly userId: Id,
+	) {}
 
 	isShown(newsId: NewsId): Promise<boolean> {
 		return Promise.resolve((isIOSApp() || isAndroidApp()) && !this.newsModel.hasAcknowledgedNewsForDevice(newsId.newsItemId))

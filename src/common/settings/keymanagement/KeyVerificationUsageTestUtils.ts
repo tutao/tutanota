@@ -21,7 +21,11 @@ export class KeyVerificationUsageTestUtils {
 
 	private readonly regretTest: UsageTest
 
-	constructor(private readonly textUsageTest: UsageTest, private readonly qrUsageTest: UsageTest, regretTest: UsageTest) {
+	constructor(
+		private readonly textUsageTest: UsageTest,
+		private readonly qrUsageTest: UsageTest,
+		regretTest: UsageTest,
+	) {
 		this.configureTests(textUsageTest, qrUsageTest, regretTest)
 
 		this.regretTest = regretTest

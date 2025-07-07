@@ -110,7 +110,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 					text: alarm.name,
 					value: alarm.value,
 					ariaValue: alarm.name,
-				} satisfies RemindersSelectOption),
+				}) satisfies RemindersSelectOption,
 		)
 
 		alarmOptions.push({

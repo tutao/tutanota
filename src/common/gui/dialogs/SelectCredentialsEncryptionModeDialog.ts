@@ -52,7 +52,7 @@ class CredentialEncryptionMethodDialog {
 										type: ButtonType.Secondary,
 									} as const,
 								],
-						  })
+							})
 						: null,
 					m(SelectCredentialsEncryptionModeView, {
 						class: "scroll pt plr-l height-100p",

@@ -27,7 +27,10 @@ export class ThrottledRouter implements Router {
 export class ScopedRouter<Scope extends string> implements Router {
 	private readonly scope: string
 
-	constructor(private readonly router: Router, scope: Scope) {
+	constructor(
+		private readonly router: Router,
+		scope: Scope,
+	) {
 		if (!scope.startsWith("/")) {
 			throw new ProgrammingError(`Scope must start with a forward slash! got: ${scope}`)
 		}

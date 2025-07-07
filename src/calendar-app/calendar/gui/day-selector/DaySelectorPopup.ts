@@ -31,7 +31,10 @@ export class DaySelectorPopup implements ModalComponent {
 	 * @param rect The rect with coordinates about where the popup should be rendered
 	 * @param attrs The attributes for the component
 	 */
-	constructor(private readonly rect: PosRect, private readonly attrs: DaySelectorPopupAttrs) {
+	constructor(
+		private readonly rect: PosRect,
+		private readonly attrs: DaySelectorPopupAttrs,
+	) {
 		this.setupShortcuts()
 		this.view = this.view.bind(this)
 		this.currentDate = attrs.selectedDate

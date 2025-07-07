@@ -126,7 +126,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _giftCards: Map<Id, GiftCard>
 	private _giftCardsExpanded: Stream<boolean>
 
-	constructor(currentPlanType: PlanType, private readonly mobilePaymentsFacade: MobilePaymentsFacade | null) {
+	constructor(
+		currentPlanType: PlanType,
+		private readonly mobilePaymentsFacade: MobilePaymentsFacade | null,
+	) {
 		this.currentPlanType = currentPlanType
 		const isPremiumPredicate = () => locator.logins.getUserController().isPaidAccount()
 
@@ -153,15 +156,15 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 									click: () => showProgressDialog("pleaseWait_msg", this.handleUpgradeSubscription()),
 									icon: Icons.Edit,
 									size: ButtonSize.Compact,
-							  })
+								})
 							: !this._isCancelled
-							? m(IconButton, {
-									title: "subscription_label",
-									click: () => this.onSubscriptionClick(),
-									icon: Icons.Edit,
-									size: ButtonSize.Compact,
-							  })
-							: null,
+								? m(IconButton, {
+										title: "subscription_label",
+										click: () => this.onSubscriptionClick(),
+										icon: Icons.Edit,
+										size: ButtonSize.Compact,
+									})
+								: null,
 				}),
 				this.showOrderAgreement() ? this.renderAgreement() : null,
 				this.showPriceData() ? this.renderIntervals() : null,
@@ -174,7 +177,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							value: this._nextPriceFieldValue(),
 							oninput: this._nextPriceFieldValue,
 							isReadOnly: true,
-					  })
+						})
 					: null,
 				m(".small.mt-s", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
 				m(".small.mt-s", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
@@ -232,7 +235,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 								oninput: this._whitelabelFieldValue,
 								isReadOnly: true,
 							}),
-					  ]
+						]
 					: [],
 			])
 		}
@@ -710,13 +713,13 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						label: "bonus_label",
 						value: lang.get("bonusMonth_msg", { "{months}": bonusMonths }),
 						isReadOnly: true,
-				  }),
+					}),
 			m(TextField, {
 				label:
 					this._nextPeriodPriceVisible && this._periodEndDate
 						? lang.getTranslation("priceTill_label", {
 								"{date}": formatDate(this._periodEndDate),
-						  })
+							})
 						: "price_label",
 				value: this._currentPriceFieldValue(),
 				oninput: this._currentPriceFieldValue,
@@ -791,7 +794,7 @@ function showChangeSubscriptionIntervalDialog(accountingInfo: AccountingInfo, pa
 		const confirmationMessage = periodEndDate
 			? lang.getTranslation("subscriptionChangePeriod_msg", {
 					"{1}": formatDate(periodEndDate),
-			  })
+				})
 			: "subscriptionChange_msg"
 
 		Dialog.confirm(confirmationMessage).then(async (confirmed) => {

@@ -131,12 +131,12 @@ export function getCoordsOfMouseOrTouchEvent(event: MouseEvent | TouchEvent): {
 		? {
 				x: event.clientX,
 				y: event.clientY,
-		  }
+			}
 		: {
 				// Why would touches be empty?
 				x: assertNotNull(event.touches.item(0)).clientX,
 				y: assertNotNull(event.touches.item(0)).clientY,
-		  }
+			}
 }
 
 export function makeListSelectionChangedScrollHandler(scrollDom: HTMLElement, entryHeight: number, getSelectedEntryIndex: lazy<number>): () => void {

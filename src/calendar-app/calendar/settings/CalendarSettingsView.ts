@@ -131,7 +131,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 								style: this.isTabletView()
 									? {
 											"margin-top": px(size.navbar_height_mobile + size.vpad_small),
-									  }
+										}
 									: {},
 							},
 							m(this._getCurrentViewer()!),
@@ -149,7 +149,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 										actions: [],
 										useBackButton: true,
 										primaryAction: () => null,
-								  })
+									})
 								: null,
 						desktopToolbar: () => null,
 					}),

@@ -102,7 +102,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 						: m(LoginButton, {
 								label: "acceptInvitation_action",
 								onclick: onAcceptClicked,
-						  }),
+							}),
 				]),
 		},
 		okActionTextId: "decline_action",

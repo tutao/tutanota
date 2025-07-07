@@ -10,7 +10,10 @@ export class SuspensionHandler {
 	_hasSentInfoMessage: boolean
 	_timeout: SystemTimeout
 
-	constructor(private readonly infoMessageHandler: InfoMessageHandler, systemTimeout: SystemTimeout) {
+	constructor(
+		private readonly infoMessageHandler: InfoMessageHandler,
+		systemTimeout: SystemTimeout,
+	) {
 		this._isSuspended = false
 		this._suspendedUntil = 0
 		this._deferredRequests = []

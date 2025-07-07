@@ -30,7 +30,7 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 								type: TextFieldType.Email,
 								oninput: (value) => (takeover = value),
 								helpLabel: () => lang.get("takeoverMailAddressInfo_msg"),
-						  })
+							})
 						: null,
 					m(PasswordField, {
 						value: password,
@@ -68,7 +68,7 @@ async function deleteAccount(takeover: string, password: string, surveyData: Sur
 				? lang.get("deleteAccountConfirm_msg")
 				: lang.get("deleteAccountWithTakeoverConfirm_msg", {
 						"{1}": cleanedTakeover,
-				  }),
+					}),
 		)
 
 		const ok = await Dialog.confirm(message)

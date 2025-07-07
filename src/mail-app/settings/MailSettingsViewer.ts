@@ -363,7 +363,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 									oninput: this._storageFieldValue,
 									isReadOnly: true,
 								}),
-						  ]
+							]
 						: null,
 					m(".h4.mt-l", lang.get("general_label")),
 					m(DropDownSelector, conversationViewDropdownAttrs),
@@ -383,7 +383,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								model: this.mailAddressTableModel,
 								expanded: this.mailAddressTableExpanded,
 								onExpanded: (newExpanded) => (this.mailAddressTableExpanded = newExpanded),
-						  })
+							})
 						: null,
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication)
 						? null
@@ -409,7 +409,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 										"{1}": mailLocator.logins.getUserController().props.inboxRules.length,
 									}),
 								),
-						  ],
+							],
 				],
 			),
 		]

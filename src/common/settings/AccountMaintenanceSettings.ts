@@ -132,7 +132,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 											},
 										],
 										dropdownWidth: 250,
-								  })
+									})
 								: null,
 							this.customer
 								? m(
@@ -148,9 +148,9 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 												}
 											},
 										}),
-								  )
+									)
 								: null,
-					  ])
+						])
 					: null,
 			]),
 			locator.logins.getUserController().isPaidAccount()
@@ -182,9 +182,9 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 										}
 									},
 									dropdownWidth: 250,
-							  })
+								})
 							: null,
-				  )
+					)
 				: null,
 			m(
 				".mb-l",
@@ -320,7 +320,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 												? lang.get("globalAdmin_label")
 												: this.getGroupInfoDisplayText(groupInfoValue),
 										),
-								  ])
+									])
 								: null,
 							m("tr", [m("td", lang.get("time_label")), m("td.pl", formatDateTime(entry.date))]),
 						]),

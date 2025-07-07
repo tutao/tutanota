@@ -38,7 +38,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 			selectionChangedHandler: onRegistrationDomainSelected
 				? (selectedValue: string | null) => {
 						onRegistrationDomainSelected(selectedValue)
-				  }
+					}
 				: null,
 			disabled: !onRegistrationDomainSelected,
 		})
@@ -56,7 +56,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 							click: () => this.editRegistrationCode(whitelabelCode, onWhitelabelCodeChanged),
 							icon: Icons.Edit,
 							size: ButtonSize.Compact,
-					  })
+						})
 					: null,
 		} as const)
 	}

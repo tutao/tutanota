@@ -64,7 +64,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 						style: {
 							fill: isNavButtonSelected(a) || this._draggedOver ? getColors(a.colors).button_selected : getColors(a.colors).button,
 						},
-				  })
+					})
 				: null,
 			!a.hideLabel ? m("span.label.click.text-ellipsis" + (!a.vertical && icon ? ".pl-m" : ""), lang.getTranslationText(a.label)) : null,
 		]
@@ -88,7 +88,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			(!a.centred ? ".flex-start" : ".flex-center") +
 			(a.disableHoverBackground ? "" : ".state-bg") +
 			(a.disabled ? ".no-hover" : "") +
-			(a.fillSpaceAround ?? true ? ".flex-no-shrink" : "")
+			((a.fillSpaceAround ?? true) ? ".flex-no-shrink" : "")
 		)
 	}
 

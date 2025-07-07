@@ -63,7 +63,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 					? {
 							code: value,
 							languageTag: languageCodeToTag(value),
-					  }
+						}
 					: getLanguage()
 				await lang.setLanguage(newLanguage)
 

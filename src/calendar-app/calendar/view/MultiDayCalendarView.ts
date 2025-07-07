@@ -126,10 +126,10 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 							attrs.onEventKeyDown,
 							attrs.temporaryEvents,
 						),
-				  ]
+					]
 				: !isDesktopLayout && attrs.currentViewType === CalendarViewType.THREE_DAY
-				? this.renderShortWeekHeader(attrs, currentPageEvents, currentPageEvents)
-				: null,
+					? this.renderShortWeekHeader(attrs, currentPageEvents, currentPageEvents)
+					: null,
 
 			m(PageView, {
 				previousPage: {
@@ -264,7 +264,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 									this.scrollDOMs(vnode, attrs, getIfLargeScroll(this.lastScrollPosition, attrs.scrollPosition))
 									attrs.onViewChanged(vnode)
 									this.lastScrollPosition = attrs.scrollPosition
-							  }
+								}
 							: undefined,
 						onscroll: isMainView
 							? (event: Event) => {
@@ -280,7 +280,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 									} else {
 										attrs.onScrollPositionChange((event.target as HTMLElement).scrollTop)
 									}
-							  }
+								}
 							: undefined,
 						onremove: (vnode) => {
 							remove(this.domElements, vnode.dom as HTMLElement)
@@ -545,7 +545,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				? {
 						children: this.renderLongEventsForSingleDay(dayRange[0], events, groupColors, onEventClicked, onEventKeyDown, temporaryEvents),
 						rows: events.length,
-				  }
+					}
 				: this.renderLongEventsForMultipleDays(dayRange, events, groupColors, onEventClicked, onEventKeyDown, temporaryEvents)
 		} else {
 			return this.renderLongEventsForMultipleDays(dayRange, events, groupColors, onEventClicked, onEventKeyDown, temporaryEvents)
@@ -775,12 +775,12 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 											? {
 													width: "3px",
 													height: "3px",
-											  }
+												}
 											: {},
-								  })
+									})
 								: null,
 						])
-				  }),
+					}),
 		)
 	}
 

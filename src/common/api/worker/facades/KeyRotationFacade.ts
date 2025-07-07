@@ -1416,6 +1416,6 @@ function makeKeyPair(keyPair: EncryptedPqKeyPairs | null): KeyPair | null {
 				pubRsaKey: keyPair.pubRsaKey,
 				symEncPrivRsaKey: keyPair.symEncPrivRsaKey,
 				signature: null,
-		  })
+			})
 		: null
 }

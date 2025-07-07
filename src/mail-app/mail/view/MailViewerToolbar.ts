@@ -199,7 +199,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 					title: "edit_action",
 					click: editDraftAction,
 					icon: Icons.Edit,
-			  })
+				})
 			: null
 	}
 }

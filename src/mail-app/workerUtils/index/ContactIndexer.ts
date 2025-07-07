@@ -8,7 +8,11 @@ import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { collapseId } from "../../../common/api/worker/rest/RestClientIdUtils"
 
 export class ContactIndexer {
-	constructor(private readonly entityClient: EntityClient, private readonly userFacade: UserFacade, private readonly backend: ContactIndexerBackend) {}
+	constructor(
+		private readonly entityClient: EntityClient,
+		private readonly userFacade: UserFacade,
+		private readonly backend: ContactIndexerBackend,
+	) {}
 
 	async init() {
 		await this.backend.init()

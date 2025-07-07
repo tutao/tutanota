@@ -87,7 +87,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 							title: "addParticipant_action",
 							click: () => showAddParticipantDialog(model, texts),
 							icon: Icons.Add,
-					  }
+						}
 					: null,
 			}),
 		])
@@ -148,7 +148,7 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 									m.redraw()
 								})
 							},
-					  }
+						}
 					: null,
 			}
 		})

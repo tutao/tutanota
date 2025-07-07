@@ -41,7 +41,7 @@ export class BottomNav implements Component<Attrs> {
 						isSelectedPrefix: SEARCH_PREFIX,
 						vertical: true,
 						fontSize,
-				  })
+					})
 				: null,
 			locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.DisableContacts)
 				? m(NavButton, {
@@ -51,7 +51,7 @@ export class BottomNav implements Component<Attrs> {
 						isSelectedPrefix: CONTACTS_PREFIX,
 						vertical: true,
 						fontSize,
-				  })
+					})
 				: null,
 			locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.DisableCalendar)
 				? m(NavButton, {
@@ -60,7 +60,7 @@ export class BottomNav implements Component<Attrs> {
 						href: CALENDAR_PREFIX,
 						vertical: true,
 						fontSize,
-				  })
+					})
 				: null,
 		])
 	}

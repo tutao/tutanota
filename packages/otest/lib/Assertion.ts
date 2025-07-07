@@ -27,7 +27,10 @@ if (typeof process !== "undefined") {
  * A started assertion.
  */
 export class Assertion<T> {
-	constructor(private readonly actual: T, private readonly testResult: TestResult) {}
+	constructor(
+		private readonly actual: T,
+		private readonly testResult: TestResult,
+	) {}
 
 	/**
 	 * Verify that two items are deeply equal.

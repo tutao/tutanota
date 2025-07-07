@@ -50,7 +50,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 						}),
 						selectedValue: groupType,
 						selectionChangedHandler: vnode.attrs.onGroupTypeChanged,
-				  })
+					})
 				: null,
 			m(TextField, {
 				label: "name_label",
@@ -68,7 +68,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 						}),
 						m(".mt-m", ""),
 						m(MoreInfoLink, { link: InfoLink.SharedMailboxes, isSmall: true }),
-				  ])
+					])
 				: m(""),
 		]
 	}

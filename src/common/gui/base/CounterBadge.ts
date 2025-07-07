@@ -46,7 +46,7 @@ export class CounterBadge implements Component<CounterBadgeAttrs> {
 						},
 					},
 					count < 99 || this._hovered || showFullCount ? count : "99+",
-			  )
+				)
 			: null
 	}
 }

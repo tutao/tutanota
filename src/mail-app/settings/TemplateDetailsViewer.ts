@@ -22,7 +22,11 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	// switch.
 	private readonly sanitizedContents: Array<{ text: string; languageCodeTextId: TranslationKey }>
 
-	constructor(private readonly template: EmailTemplate, private readonly entityClient: EntityClient, readonly isReadOnly: lazy<boolean>) {
+	constructor(
+		private readonly template: EmailTemplate,
+		private readonly entityClient: EntityClient,
+		readonly isReadOnly: lazy<boolean>,
+	) {
 		this.sanitizedContents = template.contents.map((emailTemplateContent) => ({
 			text: htmlSanitizer.sanitizeHTML(emailTemplateContent.text, { blockExternalContent: false, allowRelativeLinks: true }).html,
 			languageCodeTextId: languageByCode[getLanguageCode(emailTemplateContent)].textId,
@@ -50,7 +54,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 								click: () => this.deleteTemplate(),
 							},
 						],
-				  })
+					})
 				: null,
 		])
 	}

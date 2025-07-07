@@ -64,7 +64,7 @@ export class DesktopNotifier {
 					this.pendingNotifications.push(() => {
 						this._notificationFactory.makeNotification(withIcon, (res) => resolve(res))
 					}),
-			  )
+				)
 	}
 
 	submitGroupedNotification(title: string, message: string, id: string, onClick: (arg0: NotificationResult) => void): void {

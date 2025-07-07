@@ -189,11 +189,11 @@ export class StringIterator {
 			? {
 					done: true,
 					value: undefined,
-			  }
+				}
 			: {
 					done: false,
 					value,
-			  }
+				}
 	}
 
 	peek(): string | null {

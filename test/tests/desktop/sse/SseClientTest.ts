@@ -285,7 +285,10 @@ class RequestStub implements Partial<http.ClientRequest> {
 	destroyedDefer = defer<void>()
 	preventClose = false
 
-	constructor(readonly url: URL, readonly opts: ClientRequestOptions) {}
+	constructor(
+		readonly url: URL,
+		readonly opts: ClientRequestOptions,
+	) {}
 
 	on(event, listener) {
 		this.eventListeners.set(event, listener)

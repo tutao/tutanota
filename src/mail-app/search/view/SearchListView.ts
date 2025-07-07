@@ -58,7 +58,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 					icon,
 					message: "searchNoResults_msg",
 					color: theme.list_message_bg,
-			  })
+				})
 			: m(List, {
 					state: attrs.listModel.state,
 					renderConfig,
@@ -85,7 +85,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 
 						this.listModel.stopLoading()
 					},
-			  } satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
+				} satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
 	}
 
 	private getRenderItems(type: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent>): {

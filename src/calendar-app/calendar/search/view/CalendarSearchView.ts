@@ -226,10 +226,10 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 							icon: BootIcons.Calendar,
 							color: theme.content_message_bg,
 							backgroundColor: theme.navigation_bg,
-					  })
+						})
 					: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
-					? null
-					: this.renderEventPreview(selectedEvent),
+						? null
+						: this.renderEventPreview(selectedEvent),
 		})
 	}
 
@@ -356,10 +356,10 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			this.searchViewModel.warning === "startafterend"
 				? "startAfterEnd_label"
 				: this.searchViewModel.warning === "long"
-				? "longSearchRange_msg"
-				: this.searchViewModel.startDate == null
-				? "unlimited_label"
-				: undefined
+					? "longSearchRange_msg"
+					: this.searchViewModel.startDate == null
+						? "unlimited_label"
+						: undefined
 		return m(
 			".flex.col",
 			m(

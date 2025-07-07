@@ -31,7 +31,7 @@ export class TitleSection implements Component<SettingsTitleSectionAttrsType> {
 								style: {
 									fill: attrs.iconOptions?.color,
 								},
-						  })
+							})
 						: null,
 				),
 				m(

@@ -27,7 +27,7 @@ export class NotificationContentSelector implements Component<NotificationConten
 							name: lang.get("notificationPreferenceOnlySender_action"),
 							value: ExtendedNotificationMode.OnlySender,
 						},
-				  ]
+					]
 				: [
 						{
 							name: lang.get("notificationPreferenceNoSenderOrSubject_action"),
@@ -41,7 +41,7 @@ export class NotificationContentSelector implements Component<NotificationConten
 							name: lang.get("notificationPreferenceSenderAndSubject_action"),
 							value: ExtendedNotificationMode.SenderAndSubject,
 						},
-				  ],
+					],
 			selectedValue: vnode.attrs.extendedNotificationMode,
 			selectionChangedHandler: async (newValue) => {
 				// Permissions only exist on mobile, so we should not check on other platforms

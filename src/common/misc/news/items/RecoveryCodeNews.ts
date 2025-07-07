@@ -63,7 +63,7 @@ export class RecoveryCodeNews implements NewsListItem {
 							showMessage: false,
 							recoverCode: recoveryCode as string,
 							showButtons: false,
-					  })
+						})
 					: m(".flex.justify-center", progressIcon())
 				: null,
 			m(".flex-end.flex-no-grow-no-shrink-auto.flex-wrap", [

@@ -20,7 +20,10 @@ export class OfflineStorageSettingsModel {
 
 	// Native interfaces are lazy to allow us to unconditionally construct the SettingsModel
 	// If we are not in a native context, then they should never be accessed
-	constructor(private readonly userController: UserController, private readonly deviceConfig: DeviceConfig) {}
+	constructor(
+		private readonly userController: UserController,
+		private readonly deviceConfig: DeviceConfig,
+	) {}
 
 	async init(): Promise<void> {
 		this.isEnabled = isOfflineStorageAvailable()

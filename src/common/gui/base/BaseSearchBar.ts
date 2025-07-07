@@ -61,7 +61,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							style: {
 								fill: theme.content_button,
 							},
-					  } satisfies IconAttrs)
+						} satisfies IconAttrs)
 					: null,
 				m(
 					".flex.items-center",
@@ -96,7 +96,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							style: {
 								width: size.icon_size_large,
 							},
-					  } satisfies BaseButtonAttrs)
+						} satisfies BaseButtonAttrs)
 					: null,
 			],
 		)

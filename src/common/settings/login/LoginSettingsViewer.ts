@@ -53,7 +53,10 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	private credentialEncryptionMode: CredentialEncryptionMode | null = null
 	private appLockMethod: AppLockMethod | null = null
 
-	constructor(private readonly credentialsProvider: CredentialsProvider, private readonly mobileSystemFacade: MobileSystemFacade | null) {
+	constructor(
+		private readonly credentialsProvider: CredentialsProvider,
+		private readonly mobileSystemFacade: MobileSystemFacade | null,
+	) {
 		this._usageTestModel = locator.usageTestModel
 
 		this._updateSessions()
@@ -100,7 +103,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					? {
 							label: "show_action",
 							click: () => RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerification("get"),
-					  }
+						}
 					: null,
 				{
 					label: neverNull(locator.logins.getUserController().user.auth).recoverCode ? "update_action" : "setUp_action",
@@ -268,7 +271,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 									},
 									icon: Icons.Cancel,
 									size: ButtonSize.Compact,
-							  } as const),
+								} as const),
 					}
 				}),
 		})

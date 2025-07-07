@@ -403,7 +403,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 									selectedCountry: this.country,
 									onSelectionChanged: (country) => (this.country = country),
 									helpLabel: () => lang.get("invoiceCountryInfoConsumer_msg"),
-							  })
+								})
 							: null,
 						renderAcceptGiftCardTermsCheckbox(this.confirmed, (confirmed) => (this.confirmed = confirmed)),
 					],

@@ -75,7 +75,7 @@ export class SecondFactorsEditForm {
 								isSmall: true,
 							}),
 						),
-				  ]
+					]
 				: null,
 		]
 	}

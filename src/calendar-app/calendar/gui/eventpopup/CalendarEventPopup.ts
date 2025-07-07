@@ -37,7 +37,11 @@ export class CalendarEventPopup implements ModalComponent {
 	 * @param eventBubbleRect the rect where the event bubble was displayed that was clicked (if any)
 	 * @param htmlSanitizer
 	 */
-	constructor(private readonly model: CalendarEventPreviewViewModel, private readonly eventBubbleRect: PosRect, htmlSanitizer: HtmlSanitizer) {
+	constructor(
+		private readonly model: CalendarEventPreviewViewModel,
+		private readonly eventBubbleRect: PosRect,
+		htmlSanitizer: HtmlSanitizer,
+	) {
 		// We receive the HtmlSanitizer from outside and do the sanitization inside, so that we don't have to just assume it was already done
 		this.sanitizedDescription = prepareCalendarDescription(
 			model.calendarEvent.description,

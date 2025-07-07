@@ -193,13 +193,13 @@ const encoder =
 		? new TextEncoder()
 		: {
 				encode: _stringToUtf8Uint8ArrayLegacy,
-		  }
+			}
 const decoder =
 	typeof TextDecoder == "function"
 		? new TextDecoder()
 		: {
 				decode: _utf8Uint8ArrayToStringLegacy,
-		  }
+			}
 
 /**
  * Converts a string to a Uint8Array containing a UTF-8 string data.

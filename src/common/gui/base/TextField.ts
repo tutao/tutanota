@@ -118,7 +118,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 					? {
 							maxWidth: px(maxWidth),
 							...a.style,
-					  }
+						}
 					: { ...a.style },
 			},
 			[
@@ -170,7 +170,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 													style: { minHeight: px(minInputHeight - 2) },
 												},
 												a.injectionsRight(),
-										  )
+											)
 										: null,
 								],
 							),
@@ -186,7 +186,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 								},
 							},
 							a.helpLabel(),
-					  )
+						)
 					: [],
 			],
 		)
@@ -238,7 +238,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 								tabIndex: TabIndex.Programmatic,
 								type: TextFieldType.Text,
 							}),
-					  ]
+						]
 					: []
 			return m(
 				".flex-grow.rel",

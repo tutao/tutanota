@@ -580,7 +580,7 @@ o.spec("LoginFacadeTest", function () {
 							: {
 									salt: user.salt,
 									kdfType: DEFAULT_KDF_TYPE,
-							  },
+								},
 						dbKey,
 						timeRangeDate,
 					)

@@ -73,7 +73,10 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 	private getSideColDom: () => HTMLElement | null = () => this.viewColumns[0].domColumn
 
-	constructor(private readonly viewColumns: ViewColumn[], private readonly enableDrawer: boolean = true) {
+	constructor(
+		private readonly viewColumns: ViewColumn[],
+		private readonly enableDrawer: boolean = true,
+	) {
 		// the first background column is the main column
 		this.mainColumn = assertNotNull(
 			viewColumns.find((column) => column.columnType === ColumnType.Background),

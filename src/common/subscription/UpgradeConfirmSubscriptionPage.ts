@@ -207,7 +207,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 					label: "priceForNextYear_label",
 					value: buildPriceString(attrs.data.nextYearPrice.displayPrice, attrs.data.options),
 					isReadOnly: true,
-			  })
+				})
 			: null
 	}
 

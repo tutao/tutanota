@@ -45,7 +45,11 @@ export class MailboxModel {
 	 */
 	private mailboxPropertiesPromises: Map<Id, Promise<MailboxProperties>> = new Map()
 
-	constructor(private readonly eventController: EventController, private readonly entityClient: EntityClient, private readonly logins: LoginController) {}
+	constructor(
+		private readonly eventController: EventController,
+		private readonly entityClient: EntityClient,
+		private readonly logins: LoginController,
+	) {}
 
 	// only init listeners once
 	private readonly initListeners = lazyMemoized(() => {

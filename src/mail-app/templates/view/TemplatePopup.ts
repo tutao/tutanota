@@ -208,7 +208,7 @@ export class TemplatePopup implements ModalComponent {
 									},
 								},
 								this._renderRightColumn(),
-						  )
+							)
 						: null,
 				]),
 			],
@@ -366,7 +366,7 @@ export class TemplatePopup implements ModalComponent {
 							icon: Icons.Trash,
 							colors: ButtonColor.DrawerNav,
 						}),
-				  ]
+					]
 				: null,
 			m(".pr-s", m(".nav-bar-spacer")),
 			m(
