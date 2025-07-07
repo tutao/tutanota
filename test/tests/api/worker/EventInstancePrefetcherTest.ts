@@ -7,7 +7,7 @@ import { EntityUpdateData, entityUpdateToUpdateData, PrefetchStatus } from "../.
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../TestUtils"
 import { CalendarEventTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
-import { matchers, object, reset, verify, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import { downcast, getTypeString, promiseMap } from "@tutao/tutanota-utils"
 import { EventInstancePrefetcher } from "../../../../src/common/api/worker/EventInstancePrefetcher"
 import { CacheMode, EntityRestClient, EntityRestClientLoadOptions } from "../../../../src/common/api/worker/rest/EntityRestClient"
@@ -232,7 +232,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		verify(progressMonitorMock.workDone(1), { times: 0 })
 	})
 
-	o("When a create event have a instance attached to it do not fetch it", async () => {
+	o("When a create event have a instance attached to it, still prefetches", async () => {
 		const testEntity = createTestEntity(EntityUpdateTypeRef, {
 			operation: OperationType.CREATE,
 			instanceListId: "firstListId",
@@ -249,12 +249,17 @@ o.spec("EventInstancePrefetcherTest", function () {
 		const instancesToFetch = (await eventInstancePrefetcher.groupedListElementUpdatedInstances(allUpdates, progressMonitorMock))
 			.get(getTypeString(MailTypeRef))!
 			.get(firstUpdate.instanceListId)!
-		const expectedOnlyUpdateWithoutInstance = mapToObject(new Map([[id2, [1]]]))
-		o(mapToObject(instancesToFetch)).deepEquals(expectedOnlyUpdateWithoutInstance)
-		verify(progressMonitorMock.workDone(1), { times: 1 })
+		const expectedAllUpdates = mapToObject(
+			new Map([
+				[id1, [0]],
+				[id2, [1]],
+			]),
+		)
+		o(mapToObject(instancesToFetch)).deepEquals(expectedAllUpdates)
+		verify(progressMonitorMock.workDone(1), { times: 0 })
 	})
 
-	o("When a update event have a patchList attached to it do not fetch it", async () => {
+	o("When a update event have a patchList attached to it, still prefetches", async () => {
 		const firstUpdate = await entityUpdateToUpdateData(
 			typeModelResolver,
 			createTestEntity(EntityUpdateTypeRef, {
@@ -273,8 +278,15 @@ o.spec("EventInstancePrefetcherTest", function () {
 			.groupedListElementUpdatedInstances(allUpdates, progressMonitorMock)
 			.get(getTypeString(MailTypeRef))!
 			.get(firstUpdate.instanceListId)!
-		o(mapToObject(instancesToFetch)).deepEquals(mapToObject(new Map([[id2, [1]]])))
-		verify(progressMonitorMock.workDone(1), { times: 1 })
+		o(mapToObject(instancesToFetch)).deepEquals(
+			mapToObject(
+				new Map([
+					[id1, [0]],
+					[id2, [1]],
+				]),
+			),
+		)
+		verify(progressMonitorMock.workDone(1), { times: 0 })
 	})
 
 	o("Ignores update events for non list elements", async () => {

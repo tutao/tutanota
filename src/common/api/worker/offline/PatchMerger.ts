@@ -4,9 +4,12 @@
 // update the instance in the offline db
 
 import {
+	type ClientModelParsedInstance,
+	type ClientTypeModel,
 	EncryptedParsedAssociation,
 	EncryptedParsedValue,
 	Entity,
+	ListElementEntity,
 	ModelValue,
 	ParsedAssociation,
 	ParsedInstance,
@@ -17,27 +20,29 @@ import {
 	ServerTypeModel,
 } from "../../common/EntityTypes"
 import { Patch } from "../../entities/sys/TypeRefs"
-import { assertNotNull, Base64, deepEqual, isEmpty, lazy, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, Base64, deepEqual, getTypeString, isEmpty, lazy, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { AttributeModel } from "../../common/AttributeModel"
 import { CacheStorage } from "../rest/DefaultEntityRestCache"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { PatchOperationError } from "../../common/error/PatchOperationError"
 import { AssociationType, Cardinality } from "../../common/EntityConstants"
-import { PatchOperationType, ServerTypeModelResolver } from "../../common/EntityFunctions"
+import { PatchOperationType, TypeModelResolver } from "../../common/EntityFunctions"
 import { InstancePipeline } from "../crypto/InstancePipeline"
-import { isSameId, removeTechnicalFields } from "../../common/utils/EntityUtils"
+import { computePatches, isSameId, removeTechnicalFields } from "../../common/utils/EntityUtils"
 import { convertDbToJsType } from "../crypto/ModelMapper"
 import { decryptValue } from "../crypto/CryptoMapper"
 import { VersionedEncryptedKey } from "../crypto/CryptoWrapper"
-import { AesKey, extractIvFromCipherText } from "@tutao/tutanota-crypto"
+import { AesKey, BitArray, extractIvFromCipherText } from "@tutao/tutanota-crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 
 export class PatchMerger {
 	constructor(
 		private readonly cacheStorage: CacheStorage,
 		public readonly instancePipeline: InstancePipeline,
-		private readonly serverTypeResolver: ServerTypeModelResolver,
+		private readonly typeModelResolver: TypeModelResolver,
 		private readonly cryptoFacade: lazy<CryptoFacade>,
 	) {}
 
@@ -50,7 +55,7 @@ export class PatchMerger {
 	): Promise<ServerModelParsedInstance | null> {
 		const parsedInstance = await this.cacheStorage.getParsed(instanceType, listId, elementId)
 		if (parsedInstance != null) {
-			const typeModel = await this.serverTypeResolver.resolveServerTypeReference(instanceType)
+			const typeModel = await this.typeModelResolver.resolveServerTypeReference(instanceType)
 			// We need to preserve the order of patches, so no promiseMap here
 			for (const patch of patches) {
 				await this.applySinglePatch(parsedInstance, typeModel, patch)
@@ -65,12 +70,26 @@ export class PatchMerger {
 		listId: Nullable<Id>,
 		elementId: Id,
 		patches: Array<Patch>,
+		entityUpdate: Nullable<EntityUpdateData> = null,
 	): Promise<Nullable<ServerModelParsedInstance>> {
 		const patchAppliedInstance = await this.getPatchedInstanceParsed(instanceType, listId, elementId, patches)
 		if (patchAppliedInstance == null) {
 			return null
 		}
-		await this.cacheStorage.put(instanceType, patchAppliedInstance)
+
+		if (entityUpdate !== null && entityUpdate.instance !== null) {
+			const isPatchAndAppliedInstanceMatch = this.isInstanceOnUpdateIsSameAsPatched(listId, elementId, entityUpdate, patchAppliedInstance)
+			if (!isPatchAndAppliedInstanceMatch) {
+				await this.cacheStorage.put(instanceType, entityUpdate.instance)
+				throw new ProgrammingError(
+					"instance with id [" + listId + ", " + elementId + `] has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}`,
+				)
+			} else {
+				await this.cacheStorage.put(instanceType, patchAppliedInstance)
+			}
+		} else {
+			await this.cacheStorage.put(instanceType, patchAppliedInstance)
+		}
 		return patchAppliedInstance
 	}
 
@@ -142,7 +161,7 @@ export class PatchMerger {
 				if (isAggregationAssociation) {
 					const modelAssociation = typeModel.associations[attributeId]
 					const appName = modelAssociation.dependency ?? typeModel.app
-					const aggregationTypeModel = await this.serverTypeResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
+					const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 					const aggregationsWithCommonIdsButDifferentValues = associationArray.filter((aggregate: ParsedInstance) =>
 						valuesToAdd.some((item: ParsedInstance) => {
 							const aggregateIdAttributeId = assertNotNull(AttributeModel.getAttributeId(aggregationTypeModel, "_id"))
@@ -184,7 +203,7 @@ export class PatchMerger {
 				} else {
 					const modelAssociation = typeModel.associations[attributeId]
 					const appName = modelAssociation.dependency ?? typeModel.app
-					const aggregationTypeModel = await this.serverTypeResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
+					const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 					const aggregationArray = instanceToChange[attributeId] as Array<ParsedInstance>
 					const idsToRemove = value as Array<Id>
 					const remainingAggregations = aggregationArray.filter(
@@ -236,7 +255,7 @@ export class PatchMerger {
 				aggregatedEntities.map(AttributeModel.removeNetworkDebuggingInfoIfNeeded)
 				const modelAssociation = typeModel.associations[attributeId]
 				const appName = modelAssociation.dependency ?? typeModel.app
-				const aggregationTypeModel = await this.serverTypeResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
+				const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 				return await promiseMap(
 					aggregatedEntities,
 					async (entity: ServerModelUntypedInstance) => await this.instancePipeline.typeMapper.applyJsTypes(aggregationTypeModel, entity),
@@ -280,7 +299,7 @@ export class PatchMerger {
 			const encryptedAggregatedEntities = value as Array<ServerModelEncryptedParsedInstance>
 			const modelAssociation = typeModel.associations[attributeId]
 			const appName = modelAssociation.dependency ?? typeModel.app
-			const aggregationTypeModel = await this.serverTypeResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
+			const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 			return await this.instancePipeline.cryptoMapper.decryptAggregateAssociation(aggregationTypeModel, encryptedAggregatedEntities, sk)
 		}
 
@@ -318,7 +337,7 @@ export class PatchMerger {
 
 			const modelAssociation = serverTypeModel.associations[attributeId]
 			const appName = modelAssociation.dependency ?? serverTypeModel.app
-			const aggregationTypeModel = await this.serverTypeResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
+			const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 
 			const maybeAggregateIdPathItem = path.shift()!
 			const aggregateArray = parsedInstance[attributeId] as Array<ServerModelParsedInstance>
@@ -331,6 +350,54 @@ export class PatchMerger {
 			return this.traversePath(aggregatedEntity, aggregationTypeModel, path)
 		} catch (e) {
 			throw new PatchOperationError("An error occurred while traversing path " + path + e.message)
+		}
+	}
+
+	private async isInstanceOnUpdateIsSameAsPatched(
+		listId: Nullable<Id> = null,
+		elementId: Id,
+		entityUpdate: EntityUpdateData,
+		patchAppliedInstance: Nullable<ServerModelParsedInstance>,
+	) {
+		if (!deepEqual(entityUpdate.instance, patchAppliedInstance)) {
+			const instancePipeline = this.instancePipeline
+			const typeModel = await this.typeModelResolver.resolveServerTypeReference(entityUpdate.typeRef)
+			const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
+			let sk: Nullable<BitArray> = null
+			if (typeModel.encrypted) {
+				sk = await this.getSessionKey(assertNotNull(patchAppliedInstance), typeModel)
+			}
+			const patchedEncryptedParsedInstance = await instancePipeline.cryptoMapper.encryptParsedInstance(
+				typeModel as unknown as ClientTypeModel,
+				assertNotNull(patchAppliedInstance) as unknown as ClientModelParsedInstance,
+				sk,
+			)
+			const patchedUntypedInstance = await instancePipeline.typeMapper.applyDbTypes(
+				typeModel as unknown as ClientTypeModel,
+				patchedEncryptedParsedInstance,
+			)
+			const patchDiff = await computePatches(
+				entityUpdate.instance as unknown as ClientModelParsedInstance,
+				assertNotNull(patchAppliedInstance) as unknown as ClientModelParsedInstance,
+				patchedUntypedInstance,
+				typeModel,
+				typeReferenceResolver,
+				true,
+			)
+			const isPatchAndFullInstanceMatch = isEmpty(patchDiff)
+			if (!isPatchAndFullInstanceMatch) {
+				console.log("instance on the entityUpdate: ", entityUpdate.instance)
+				console.log("patched instance: ", patchAppliedInstance)
+				console.log("patches on the entityUpdate: ", entityUpdate.patches)
+				console.error(
+					"instance with id [" +
+						listId +
+						", " +
+						elementId +
+						`] has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}, computePatches: ${JSON.stringify(patchDiff)}`,
+				)
+			}
+			return isPatchAndFullInstanceMatch
 		}
 	}
 

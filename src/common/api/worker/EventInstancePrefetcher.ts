@@ -9,7 +9,6 @@ import { NotAuthorizedError, NotFoundError } from "../common/error/RestError"
 import { ListElementEntity, SomeEntity } from "../common/EntityTypes"
 import { CacheMode, type EntityRestInterface } from "./rest/EntityRestClient"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
-import { instance } from "testdouble"
 
 export class EventInstancePrefetcher {
 	constructor(private readonly entityCache: EntityRestInterface) {}
@@ -38,16 +37,9 @@ export class EventInstancePrefetcher {
 		for (const [eventIndexInList, entityUpdateData] of allEventsFromAllBatch.entries()) {
 			const typeIdentifier = getTypeString(entityUpdateData.typeRef)
 
-			// if CREATE update itself have a instance, we don't need to fetch it.
-			// EventRestCache will update the database
-			// or,
-			// if we have UPDATE event with patches, we can also re-create server state locally ( happens in EntityRestCache)
-			// if we don't have this instance in database, we anyway don't need this event
-			const isCreateWithInstance = entityUpdateData.operation === OperationType.CREATE && entityUpdateData.instance != null
-			const isUpdateWithPatches = entityUpdateData.operation === OperationType.UPDATE && entityUpdateData.patches != null
+			// we do not prefetch elementInstances (ET)
 			const isListElement = entityUpdateData.instanceListId != ""
-
-			if (isCreateWithInstance || isUpdateWithPatches || !isListElement) {
+			if (!isListElement) {
 				progressMonitor.workDone(1)
 				continue
 			}

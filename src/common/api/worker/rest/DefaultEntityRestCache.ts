@@ -871,79 +871,45 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	/** Returns {null} when the update should be skipped. */
 	private async processUpdateEvent(update: EntityUpdateData): Promise<EntityUpdateData | null> {
-		if (update.patches) {
-			const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update.typeRef, update.instanceListId, update.instanceId, update.patches)
-			if (patchAppliedInstance == null) {
-				const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
-				await this.storage.put(update.typeRef, newEntity)
-			} else {
-				await this.assertInstanceOnUpdateIsSameAsPatched(update, patchAppliedInstance)
-			}
-		} else if (update.prefetchStatus == PrefetchStatus.NotPrefetched) {
-			const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
-			if (cached != null) {
-				try {
-					if (isSameTypeRef(update.typeRef, GroupTypeRef)) {
-						console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
-					}
+		if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
+			if (update.patches) {
+				const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(
+					update.typeRef,
+					update.instanceListId,
+					update.instanceId,
+					update.patches,
+					update,
+				)
+				if (patchAppliedInstance == null) {
 					const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
 					await this.storage.put(update.typeRef, newEntity)
-					return update
-				} catch (e) {
-					// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexisting instance around.
-					// Even for list elements this should be safe as the instance is not there anymore and is definitely not in this version
-					if (isExpectedErrorForSynchronization(e)) {
-						console.log(`Instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache.`)
-						await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
-						return null
-					} else {
-						throw e
+				}
+			} else {
+				const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
+				if (cached != null) {
+					try {
+						if (isSameTypeRef(update.typeRef, GroupTypeRef)) {
+							console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
+						}
+						const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
+						await this.storage.put(update.typeRef, newEntity)
+						return update
+					} catch (e) {
+						// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexisting instance around.
+						// Even for list elements this should be safe as the instance is not there anymore and is definitely not in this version
+						if (isExpectedErrorForSynchronization(e)) {
+							console.log(`Instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache.`)
+							await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
+							return null
+						} else {
+							throw e
+						}
 					}
 				}
 			}
 		}
-		return update
-	}
 
-	private async assertInstanceOnUpdateIsSameAsPatched(update: EntityUpdateData, patchAppliedInstance: Nullable<ServerModelParsedInstance>) {
-		if (update.instance != null && update.patches != null && !deepEqual(update.instance, patchAppliedInstance)) {
-			const instancePipeline = this.patchMerger.instancePipeline
-			const typeModel = await this.typeModelResolver.resolveServerTypeReference(update.typeRef)
-			const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
-			let sk: Nullable<BitArray> = null
-			if (typeModel.encrypted) {
-				sk = await this.patchMerger.getSessionKey(assertNotNull(patchAppliedInstance), typeModel)
-			}
-			const patchedEncryptedParsedInstance = await instancePipeline.cryptoMapper.encryptParsedInstance(
-				typeModel as unknown as ClientTypeModel,
-				assertNotNull(patchAppliedInstance) as unknown as ClientModelParsedInstance,
-				sk,
-			)
-			const patchedUntypedInstance = await instancePipeline.typeMapper.applyDbTypes(
-				typeModel as unknown as ClientTypeModel,
-				patchedEncryptedParsedInstance,
-			)
-			const patchDiff = await computePatches(
-				update.instance as unknown as ClientModelParsedInstance,
-				assertNotNull(patchAppliedInstance) as unknown as ClientModelParsedInstance,
-				patchedUntypedInstance,
-				typeModel,
-				typeReferenceResolver,
-				true,
-			)
-			if (!isEmpty(patchDiff)) {
-				console.log("instance on the update: ", update.instance)
-				console.log("patched instance: ", patchAppliedInstance)
-				console.log("patches on the update: ", update.patches)
-				throw new ProgrammingError(
-					"instance with id [" +
-						update.instanceListId +
-						", " +
-						update.instanceId +
-						`] has not been successfully patched. Type: ${getTypeString(update.typeRef)}, computePatches: ${JSON.stringify(patchDiff)}`,
-				)
-			}
-		}
+		return update
 	}
 
 	/**
