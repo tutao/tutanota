@@ -13,7 +13,7 @@ import { theme } from "../../../gui/theme"
 import { assertNotNull, debounce } from "@tutao/tutanota-utils"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
-import { showFingerprintMissmatchRecoveryDialog } from "./FingerprintMissmatchRecoverDialog"
+import { showFingerprintMismatchRecoveryDialog } from "./FingerprintMismatchRecoverDialog"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
@@ -112,7 +112,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 			m(LoginButton, {
 				label: doNotTrustTranslationKey,
 				onclick: async () => {
-					showFingerprintMissmatchRecoveryDialog(model.mailAddressInput, assertNotNull(publicIdentity).trustDbEntry.sourceOfTrust)
+					showFingerprintMismatchRecoveryDialog(model.mailAddressInput, assertNotNull(publicIdentity).trustDbEntry.sourceOfTrust)
 				},
 				disabled: !publicIdentity,
 				icon: publicIdentity

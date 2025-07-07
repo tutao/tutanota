@@ -4,31 +4,31 @@ import { MultiPageDialog } from "../../../gui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { ButtonType } from "../../../gui/base/Button"
 import { IdentityKeySourceOfTrust, Keys } from "../../../api/common/TutanotaConstants"
-import { FingerprintMissmatchRecoverModel } from "../FingerprintMissmatchRecoverModel"
-import { FingerprintMissmatchInfoPage } from "./FingerprintMissmatchInfoPage"
+import { FingerprintMismatchRecoverModel } from "../FingerprintMismatchRecoverModel"
+import { FingerprintMismatchInfoPage } from "./FingerprintMismatchInfoPage"
 import { UntrustedKeyWarningPage } from "./UntrustedKeyWarningPage"
 
-enum FingerprintMissmatchRecoverDialogPages {
+enum FingerprintMismatchRecoverDialogPages {
 	INFO = "INFO",
 	KEEP_CONFIRM = "KEEP_CONFIRM",
 	DELETE_CONFIRM = "DELETE_CONFIRM",
 }
 
-export async function showFingerprintMissmatchRecoveryDialog(address: string, sourceOfTrust: IdentityKeySourceOfTrust): Promise<void> {
-	const model = new FingerprintMissmatchRecoverModel(locator.keyVerificationFacade, address)
+export async function showFingerprintMismatchRecoveryDialog(address: string, sourceOfTrust: IdentityKeySourceOfTrust): Promise<void> {
+	const model = new FingerprintMismatchRecoverModel(locator.keyVerificationFacade, address)
 
 	const KEY_VERIFICATION_DIALOG_HEIGHT = 700
 
-	const multiPageDialog: Dialog = new MultiPageDialog<FingerprintMissmatchRecoverDialogPages>(
-		FingerprintMissmatchRecoverDialogPages.INFO,
+	const multiPageDialog: Dialog = new MultiPageDialog<FingerprintMismatchRecoverDialogPages>(
+		FingerprintMismatchRecoverDialogPages.INFO,
 		(dialog, navigateToPage, goBack) => ({
-			[FingerprintMissmatchRecoverDialogPages.INFO]: {
-				content: m(FingerprintMissmatchInfoPage, {
+			[FingerprintMismatchRecoverDialogPages.INFO]: {
+				content: m(FingerprintMismatchInfoPage, {
 					model,
 					goToDeletePage: () => {
-						navigateToPage(FingerprintMissmatchRecoverDialogPages.KEEP_CONFIRM)
+						navigateToPage(FingerprintMismatchRecoverDialogPages.KEEP_CONFIRM)
 					},
-					goToKeepPage: () => navigateToPage(FingerprintMissmatchRecoverDialogPages.DELETE_CONFIRM),
+					goToKeepPage: () => navigateToPage(FingerprintMismatchRecoverDialogPages.DELETE_CONFIRM),
 					sourceOfTrust,
 				}),
 				rightAction: {
@@ -38,7 +38,7 @@ export async function showFingerprintMissmatchRecoveryDialog(address: string, so
 					title: "close_alt",
 				},
 			},
-			[FingerprintMissmatchRecoverDialogPages.KEEP_CONFIRM]: {
+			[FingerprintMismatchRecoverDialogPages.KEEP_CONFIRM]: {
 				content: m(UntrustedKeyWarningPage, {
 					contactMailAddress: address,
 				}),
@@ -49,7 +49,7 @@ export async function showFingerprintMissmatchRecoveryDialog(address: string, so
 					title: "close_alt",
 				},
 			},
-			[FingerprintMissmatchRecoverDialogPages.DELETE_CONFIRM]: {
+			[FingerprintMismatchRecoverDialogPages.DELETE_CONFIRM]: {
 				//TODO got back to manual verification page?
 				//or Retry automatically and show result here?
 				content: m("TODO"),

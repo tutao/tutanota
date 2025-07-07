@@ -6,36 +6,36 @@ import { theme } from "../../../gui/theme"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
-import { FingerprintMissmatchRecoverModel } from "../FingerprintMissmatchRecoverModel"
+import { FingerprintMismatchRecoverModel } from "../FingerprintMismatchRecoverModel"
 import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 
 type VerificationErrorInfoPageAttrs = {
-	model: FingerprintMissmatchRecoverModel
+	model: FingerprintMismatchRecoverModel
 	goToDeletePage: () => void
 	goToKeepPage: () => void
 	sourceOfTrust: IdentityKeySourceOfTrust
 }
 
-export class FingerprintMissmatchInfoPage implements Component<VerificationErrorInfoPageAttrs> {
+export class FingerprintMismatchInfoPage implements Component<VerificationErrorInfoPageAttrs> {
 	view(vnode: Vnode<VerificationErrorInfoPageAttrs>) {
 		const title = lang.get("keyManagement.verificationError_title")
 		let subTitle
 		let warning
 		let recommendation
 		if (vnode.attrs.sourceOfTrust === IdentityKeySourceOfTrust.Manual) {
-			subTitle = lang.get("fingerprintMissmatchManual_msg")
-			warning = lang.get("fingerprintMissmatchManualWarning_msg")
-			recommendation = lang.get("fingerprintMissmatchRecommendationManual_msg")
+			subTitle = lang.get("fingerprintMismatchManual_msg")
+			warning = lang.get("fingerprintMismatchManualWarning_msg")
+			recommendation = lang.get("fingerprintMismatchRecommendationManual_msg")
 		} else if (vnode.attrs.sourceOfTrust === IdentityKeySourceOfTrust.TOFU) {
-			subTitle = lang.get("fingerprintMissmatchTofu_msg", {
+			subTitle = lang.get("fingerprintMismatchTofu_msg", {
 				"{mailAddress}": vnode.attrs.model.getAddress(),
 			})
-			warning = lang.get("fingerprintMissmatchTofuWarning_msg")
-			recommendation = lang.get("fingerprintMissmatchRecommendationTofu_msg")
+			warning = lang.get("fingerprintMismatchTofuWarning_msg")
+			recommendation = lang.get("fingerprintMismatchRecommendationTofu_msg")
 		} else {
-			subTitle = lang.get("fingerprintMissmatch_msg")
+			subTitle = lang.get("fingerprintMismatch_msg")
 			warning = lang.get("keyVerificationErrorWarning_msg")
-			recommendation = lang.get("fingerprintMissmatchRecommendation_msg")
+			recommendation = lang.get("fingerprintMismatchRecommendation_msg")
 		}
 
 		return m(".pt.pb.flex.col.gap-vpad", [

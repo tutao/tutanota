@@ -222,7 +222,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 					const verificationResult = await model.validateQrCodeAddress(code)
 					if (verificationResult !== IdentityKeyQrVerificationResult.QR_OK) {
 						if (verificationResult === IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH) {
-							//Implement same behavior as for when user clicks "do not trust"
+							// TODO Implement same behavior as for when user clicks "do not trust"
 						} else {
 							this.goToErrorPage?.(this.resultToErrorType(verificationResult))
 						}
