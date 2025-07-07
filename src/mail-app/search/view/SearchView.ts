@@ -1020,6 +1020,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private setUnreadState(unread: boolean) {
 		const selection = this.searchViewModel.getSelectedMails()
 		if (!isEmpty(selection)) {
+			selection.map((mail) => {
+				mail.unread = unread
+			})
 			mailLocator.mailModel.markMails(
 				selection.map(({ _id }) => _id),
 				unread,
@@ -1267,9 +1270,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		let selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
+			const unreadValue = !selectedMails[0].unread
+			selectedMails.map((mail) => {
+				mail.unread = unreadValue
+			})
 			mailLocator.mailModel.markMails(
 				selectedMails.map((m) => m._id),
-				!selectedMails[0].unread,
+				unreadValue,
 			)
 		}
 	}

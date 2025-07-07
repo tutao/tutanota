@@ -562,6 +562,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 		return async (unread: boolean) => {
 			const resolvedMails = await this.mailViewModel.getResolvedMails(actionableMails)
+			actionableMails.map((mail) => {
+				if (resolvedMails.some((id) => isSameId(id, mail._id))) {
+					mail.unread = unread
+				}
+			})
 			await mailLocator.mailModel.markMails(resolvedMails, unread)
 		}
 	}
@@ -1097,7 +1102,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 		const resolvedMails = await this.mailViewModel.getResolvedMails(actionableMails)
 		// set all selected emails to the opposite of the first email's unread state
-		await mailLocator.mailModel.markMails(resolvedMails, !actionableMails[0].unread)
+		const unreadValue = !actionableMails[0].unread
+		actionableMails.map((mail) => {
+			if (resolvedMails.some((id) => isSameId(id, mail._id))) {
+				mail.unread = unreadValue
+			}
+		})
+		await mailLocator.mailModel.markMails(resolvedMails, unreadValue)
 	}
 
 	private async trashSelectedMails() {
