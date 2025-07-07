@@ -3,7 +3,7 @@ import { Dialog } from "../../../gui/base/Dialog"
 import { MultiPageDialog } from "../../../gui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { ButtonType } from "../../../gui/base/Button"
-import { Keys } from "../../../api/common/TutanotaConstants"
+import { IdentityKeySourceOfTrust, Keys } from "../../../api/common/TutanotaConstants"
 import { FingerprintMissmatchRecoverModel } from "../FingerprintMissmatchRecoverModel"
 import { FingerprintMissmatchInfoPage } from "./FingerprintMissmatchInfoPage"
 import { UntrustedKeyWarningPage } from "./UntrustedKeyWarningPage"
@@ -14,7 +14,7 @@ enum FingerprintMissmatchRecoverDialogPages {
 	DELETE_CONFIRM = "DELETE_CONFIRM",
 }
 
-export async function showFingerprintMissmatchRecoveryDialog(address: string): Promise<void> {
+export async function showFingerprintMissmatchRecoveryDialog(address: string, sourceOfTrust: IdentityKeySourceOfTrust): Promise<void> {
 	const model = new FingerprintMissmatchRecoverModel(locator.keyVerificationFacade, address)
 
 	const KEY_VERIFICATION_DIALOG_HEIGHT = 700
@@ -29,6 +29,7 @@ export async function showFingerprintMissmatchRecoveryDialog(address: string): P
 						navigateToPage(FingerprintMissmatchRecoverDialogPages.KEEP_CONFIRM)
 					},
 					goToKeepPage: () => navigateToPage(FingerprintMissmatchRecoverDialogPages.DELETE_CONFIRM),
+					sourceOfTrust,
 				}),
 				rightAction: {
 					type: ButtonType.Secondary,

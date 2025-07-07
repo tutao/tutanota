@@ -6,4 +6,8 @@ export class FingerprintMissmatchRecoverModel {
 	async deleteTrustedKey() {
 		await this.keyVerificationFacade.untrust(this.address)
 	}
+
+	getAddress() {
+		return this.address
+	}
 }

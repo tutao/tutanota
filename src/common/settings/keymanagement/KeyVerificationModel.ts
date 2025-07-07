@@ -15,11 +15,12 @@ import { PermissionType } from "../../native/common/generatedipc/PermissionType"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
+import { TrustDBEntry } from "../../api/worker/facades/IdentityKeyTrustDatabase"
 
 export type PublicIdentity = {
 	fingerprint: Hex
 	mailAddress: string
-	key: Versioned<SigningPublicKey>
+	trustDbEntry: TrustDBEntry
 }
 
 /**
@@ -109,7 +110,7 @@ export class KeyVerificationModel {
 		} else {
 			this.publicIdentityKey = {
 				fingerprint: await this.keyVerificationFacade.calculateFingerprint(identityKey.publicIdentityKey),
-				key: identityKey.publicIdentityKey,
+				trustDbEntry: identityKey,
 				mailAddress: mailAddress,
 			}
 		}
@@ -118,7 +119,7 @@ export class KeyVerificationModel {
 
 	public async trust(method: IdentityKeyVerificationMethod) {
 		const identityKey = assertNotNull(this.publicIdentityKey)
-		await this.keyVerificationFacade.trust(identityKey.mailAddress, identityKey.key, IdentityKeySourceOfTrust.Manual)
+		await this.keyVerificationFacade.trust(identityKey.mailAddress, identityKey.trustDbEntry.publicIdentityKey, IdentityKeySourceOfTrust.Manual)
 		await this.test.verified(method)
 	}
 

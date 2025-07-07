@@ -5,7 +5,5 @@ type UntrustedKeyWarningPageAttrs = {
 }
 
 export class UntrustedKeyWarningPage implements Component<UntrustedKeyWarningPageAttrs> {
-	view(vnode: Vnode<UntrustedKeyWarningPageAttrs>): void {
-		throw new Error("Method not implemented.")
-	}
+	view(vnode: Vnode<UntrustedKeyWarningPageAttrs>): void {}
 }

@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { TextFieldType } from "../../../gui/base/TextField"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
 import { lang, TranslationKey } from "../../../misc/LanguageViewModel"
@@ -10,11 +10,9 @@ import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
-import { debounce } from "@tutao/tutanota-utils"
+import { assertNotNull, debounce } from "@tutao/tutanota-utils"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
-import { GoToErrorPageHandler } from "./VerificationByQrCodeInputPage"
-import { showKeyVerificationErrorRecoveryDialog } from "../KeyVerificationRecoverDialog"
 import { showFingerprintMissmatchRecoveryDialog } from "./FingerprintMissmatchRecoverDialog"
 
 type VerificationByTextPageAttrs = {
@@ -94,45 +92,39 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 						}),
 				  )
 				: null,
-			m(
-				".align-self-center.full-width",
-				m(LoginButton, {
-					label: markAsVerifiedTranslationKey,
-					onclick: async () => {
-						await model.trust(IdentityKeyVerificationMethod.text)
-						goToSuccessPage()
-					},
-					disabled: !publicIdentity,
-					icon: publicIdentity
-						? m(Icon, {
-								icon: Icons.Checkmark,
-								class: "mr-xsm",
-								style: {
-									fill: theme.content_button_icon_selected,
-								},
-						  })
-						: null,
-				}),
-			),
-			m(
-				".align-self-center.full-width",
-				m(LoginButton, {
-					label: doNotTrustTranslationKey,
-					onclick: async () => {
-						showFingerprintMissmatchRecoveryDialog(model.mailAddressInput)
-					},
-					disabled: !publicIdentity,
-					icon: publicIdentity
-						? m(Icon, {
-								icon: Icons.X,
-								class: "mr-xsm",
-								style: {
-									fill: theme.content_button_icon_selected,
-								},
-						  })
-						: null,
-				}),
-			),
+			m(LoginButton, {
+				label: markAsVerifiedTranslationKey,
+				onclick: async () => {
+					await model.trust(IdentityKeyVerificationMethod.text)
+					goToSuccessPage()
+				},
+				disabled: !publicIdentity,
+				icon: publicIdentity
+					? m(Icon, {
+							icon: Icons.Checkmark,
+							class: "mr-xsm",
+							style: {
+								fill: theme.content_button_icon_selected,
+							},
+					  })
+					: null,
+			}),
+			m(LoginButton, {
+				label: doNotTrustTranslationKey,
+				onclick: async () => {
+					showFingerprintMissmatchRecoveryDialog(model.mailAddressInput, assertNotNull(publicIdentity).trustDbEntry.sourceOfTrust)
+				},
+				disabled: !publicIdentity,
+				icon: publicIdentity
+					? m(Icon, {
+							icon: Icons.X,
+							class: "mr-xsm",
+							style: {
+								fill: theme.content_button_icon_selected,
+							},
+					  })
+					: null,
+			}),
 		])
 	}
 }
