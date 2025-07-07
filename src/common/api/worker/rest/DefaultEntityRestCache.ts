@@ -871,45 +871,44 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	/** Returns {null} when the update should be skipped. */
 	private async processUpdateEvent(update: EntityUpdateData): Promise<EntityUpdateData | null> {
-		if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
-			if (update.patches) {
-				const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(
-					update.typeRef,
-					update.instanceListId,
-					update.instanceId,
-					update.patches,
-					update,
-				)
-				if (patchAppliedInstance == null) {
-					const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
-					await this.storage.put(update.typeRef, newEntity)
-				}
-			} else {
-				const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
-				if (cached != null) {
-					try {
+		try {
+			if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
+				if (update.patches) {
+					const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(
+						update.typeRef,
+						update.instanceListId,
+						update.instanceId,
+						update.patches,
+						update,
+					)
+					if (patchAppliedInstance == null) {
+						const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
+						await this.storage.put(update.typeRef, newEntity)
+					}
+				} else {
+					const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
+					if (cached != null) {
 						if (isSameTypeRef(update.typeRef, GroupTypeRef)) {
 							console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
 						}
 						const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
 						await this.storage.put(update.typeRef, newEntity)
 						return update
-					} catch (e) {
-						// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexisting instance around.
-						// Even for list elements this should be safe as the instance is not there anymore and is definitely not in this version
-						if (isExpectedErrorForSynchronization(e)) {
-							console.log(`Instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache.`)
-							await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
-							return null
-						} else {
-							throw e
-						}
 					}
 				}
 			}
+			return update
+		} catch (e) {
+			// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexisting instance around.
+			// Even for list elements this should be safe as the instance is not there anymore and is definitely not in this version
+			if (isExpectedErrorForSynchronization(e)) {
+				console.log(`Instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache.`)
+				await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
+				return null
+			} else {
+				throw e
+			}
 		}
-
-		return update
 	}
 
 	/**
