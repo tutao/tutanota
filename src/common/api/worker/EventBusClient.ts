@@ -315,7 +315,8 @@ export class EventBusClient {
 	}
 
 	private async onMessage(message: MessageEvent<string>): Promise<void> {
-		const [type, value] = message.data.split(";")
+		const [type, ...values] = message.data.split(";")
+		const value = values.join(";")
 
 		switch (type) {
 			case MessageType.EntityUpdate: {
