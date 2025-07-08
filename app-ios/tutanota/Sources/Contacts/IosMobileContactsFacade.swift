@@ -34,7 +34,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 		)
 		try contactList.insert(contacts: queryResult.newServerContacts)
 		try contactList.update(contacts: queryResult.existingServerContacts)
-		try contactList.insert(
+		try contactList.setContactMapping(
 			contacts: queryResult.nativeContactWithoutSourceId.map {
 				let serverId = $0.serverId
 				return $0.contact.toStructuredContact(serverId: serverId)
@@ -64,7 +64,7 @@ class IosMobileContactsFacade: MobileContactsFacade {
 
 		// For sync it normally wouldn't happen that we have a contact without source/server id but for existing contacts without
 		// hashes we want to write the hashes on the first run so we reuse this field.
-		try contactList.insert(
+		try contactList.setContactMapping(
 			contacts: matchResult.nativeContactWithoutSourceId.map {
 				let serverId = $0.serverId
 				return $0.contact.toStructuredContact(serverId: serverId)

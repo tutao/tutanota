@@ -40,6 +40,18 @@ class UserContactList {
 	/// Returns the mapping between the iOS contact IDs and the Tuta server IDs
 	func getMapping() -> UserContactMapping { mappingData }
 
+	// Sets the mapping between:
+	// 	- the iOS contact IDs and the Tuta server IDs
+	//	- the iOS contact IDs and the contact Hashes
+	func setContactMapping(contacts: [StructuredContact]) {
+		for contact in contacts {
+			if let serverId = contact.id, let localIdentifier = contact.rawId {
+				mappingData.localContactIdentifierToServerId[localIdentifier] = serverId
+				mappingData.localContactIdentifierToHash[localIdentifier] = contact.stableHash()
+			}
+		}
+	}
+
 	/// Returns all of the contacts inside the contact list
 	func getAllContacts() throws -> [CNContact] { try nativeContactStoreFacade.getAllContacts(inGroup: getTutaContactGroup(), withSorting: nil) }
 
