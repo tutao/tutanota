@@ -14,7 +14,6 @@ import {
 import { ProgrammingError } from "./error/ProgrammingError"
 import { assertNotNull, downcast } from "@tutao/tutanota-utils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { deepMapKeys } from "./utils/EntityUtils"
 
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {
@@ -105,4 +104,17 @@ export class AttributeModel {
 		const filedId = assertNotNull(AttributeModel.getAttributeId(typeModel, attributeName))
 		return typeModel.associations[filedId]
 	}
+}
+
+export function deepMapKeys(obj: any, fn: any): any {
+	return Array.isArray(obj)
+		? obj.map((val) => deepMapKeys(val, fn))
+		: typeof obj === "object"
+		? Object.keys(obj).reduce((acc: any, current: string) => {
+				const key = fn(current)
+				const val = obj[current]
+				acc[key] = val !== null && typeof val === "object" ? deepMapKeys(val, fn) : val
+				return acc
+		  }, {})
+		: obj
 }
