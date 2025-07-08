@@ -591,25 +591,25 @@ export class EventBusClient {
 			}
 		}
 
+		const allEventsFlatMap = this.eventQueue.eventQueue.flatMap((eventQ) => eventQ.events)
+		const allEventsFlatMapSize = allEventsFlatMap.length
+
 		// We only have the correct amount of total work after adding all entity event batches.
 		// The progress for processed batches is tracked inside the event queue.
-		const progressMonitor = new ProgressMonitorDelegate(this.progressTracker, totalExpectedBatches + 1)
+		const progressMonitor = new ProgressMonitorDelegate(this.progressTracker, totalExpectedBatches + allEventsFlatMapSize + 1)
 		console.log("ws", `progress monitor expects ${totalExpectedBatches} batches`)
 		await progressMonitor.workDone(1) // show progress right away
+
 		eventQueue.setProgressMonitor(progressMonitor)
 
 		// We don't have any missing update, we can just set the sync as finished
 		if (totalExpectedBatches === 0) {
 			this.eventQueue.getProgressMonitor()?.completed()
 			this.syncTracker.markSyncAsDone()
+		} else {
+			// preload entity updates
+			await this.eventInstancePrefetcher.preloadEntities(allEventsFlatMap, progressMonitor)
 		}
-
-		const allEventsFlatMap = this.eventQueue.eventQueue.flatMap((eventQ) => eventQ.events)
-		const progressMonitorPrefetch = new ProgressMonitorDelegate(this.progressTracker, allEventsFlatMap.length + 1)
-		console.log("ws", `prefetch progress monitor expects ${allEventsFlatMap.length} events`)
-		await progressMonitorPrefetch.workDone(1) // show progress right away
-
-		await this.eventInstancePrefetcher.preloadEntities(allEventsFlatMap, progressMonitorPrefetch)
 
 		// We've loaded all the batches, we've added them to the queue, we can let the cache remember sync point for us to detect out of sync now.
 		// It is possible that we will record the time before the batch will be processed but the risk is low.

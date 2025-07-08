@@ -24,7 +24,7 @@ export class EventInstancePrefetcher {
 		await this.loadGroupedListElementEntities(allEventsFromAllBatch, preloadMap, progressMonitor)
 
 		// after prefetching is done, we can set the totalWorkDone to the amount of entity events from all batches
-		await progressMonitor.completed()
+		await progressMonitor.totalWorkDone(allEventsFromAllBatch.length)
 		console.log("====== PREFETCH END ============", new Date().getTime() - start, "ms")
 	}
 
