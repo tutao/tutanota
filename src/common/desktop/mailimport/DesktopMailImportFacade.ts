@@ -6,7 +6,7 @@ import { assertNotNull, clear, defer, DeferredObject } from "@tutao/tutanota-uti
 import { ElectronExports } from "../ElectronExportTypes.js"
 import { ImportErrorCategories, MailImportError } from "../../api/common/error/MailImportError.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import { DesktopNotifier, NotificationResult } from "../DesktopNotifier.js"
+import { DesktopNotifier } from "../notifications/DesktopNotifier.js"
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 import path from "node:path"
 
@@ -253,16 +253,15 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 	 * for example if the directory hasn't been created yet.
 	 */
 	private showImportFailNotification(mailboxId: string | null) {
-		this.notifier
-			.showOneShot({
-				title: this.lang.get("importIncomplete_title"),
-				body: this.lang.get("importIncomplete_msg"),
-			})
-			.then((res) => {
-				if (res === NotificationResult.Click && mailboxId != null) {
+		this.notifier.showOneShot({
+			title: this.lang.get("importIncomplete_title"),
+			body: this.lang.get("importIncomplete_msg"),
+			onClick: () => {
+				if (mailboxId != null) {
 					this.electron.shell.showItemInFolder(path.join(this.configDirectory, "current_imports", mailboxId, "dummy.eml"))
 				}
-			})
+			},
+		})
 	}
 
 	private createTutaCredentials(unencTutaCredentials: UnencryptedCredentials, apiUrl: string) {

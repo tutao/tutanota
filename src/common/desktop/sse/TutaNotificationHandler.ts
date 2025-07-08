@@ -1,6 +1,6 @@
 import type { WindowManager } from "../DesktopWindowManager"
 import { NativeCredentialsFacade } from "../../native/common/generatedipc/NativeCredentialsFacade"
-import { DesktopNotifier, NotificationResult } from "../DesktopNotifier"
+import { DesktopNotifier } from "../notifications/DesktopNotifier"
 import { LanguageViewModel } from "../../misc/LanguageViewModel"
 import { IdTupleWrapper, NotificationInfo } from "../../api/entities/sys/TypeRefs"
 import { CredentialEncryptionMode } from "../../misc/credentials/CredentialEncryptionMode.js"
@@ -62,12 +62,14 @@ export class TutaNotificationHandler {
 				(await this.nativeCredentialFacade.getCredentialEncryptionMode()) === CredentialEncryptionMode.DEVICE_LOCK &&
 				(await this.sseStorage.getExtendedNotificationConfig(firstNotificationInfo.userId)) !== ExtendedNotificationMode.NoSenderOrSubject
 			if (!canShowExtendedNotification) {
-				const notificationId = firstNotificationInfo.mailId
-					? `${firstNotificationInfo.mailId.listId},${firstNotificationInfo.mailId?.listElementId}`
-					: firstNotificationInfo.userId
-				this.notifier.submitGroupedNotification(this.lang.get("pushNewMail_msg"), firstNotificationInfo.mailAddress, notificationId, (res) =>
-					this.onMailNotificationClick(res, firstNotificationInfo),
-				)
+				for (const info of infos) {
+					this.notifier.showCountedUserNotification({
+						title: this.lang.get("pushNewMail_msg"),
+						body: info.mailAddress,
+						userId: info.userId,
+						onClick: () => this.onMailNotificationClick(firstNotificationInfo),
+					})
+				}
 			} else {
 				const credentials = await this.nativeCredentialFacade.loadByUserId(firstNotificationInfo.userId)
 				if (credentials == null) {
@@ -77,31 +79,32 @@ export class TutaNotificationHandler {
 				const infosToFetch = infos.slice(0, 5) // don't show notifications for more than five mails at a time
 				const mailMetadata = await this.downloadMailMetadata(sseInfo, listId, infosToFetch, credentials)
 				for (const mailMeta of mailMetadata) {
-					this.notifier.submitGroupedNotification(mailMeta.senderAddress, mailMeta.firstRecipientAddress ?? "", mailMeta.id.join(","), (res) =>
-						this.onMailNotificationClick(res, mailMeta.notificationInfo),
-					)
+					this.notifier.showCountedUserNotification({
+						title: mailMeta.senderAddress,
+						body: mailMeta.firstRecipientAddress ?? "",
+						userId: mailMeta.notificationInfo.userId,
+						onClick: () => this.onMailNotificationClick(mailMeta.notificationInfo),
+					})
 				}
 			}
 		}
 	}
 
-	private onMailNotificationClick(res: NotificationResult, notificationInfo: StrippedEntity<NotificationInfo>) {
-		if (res === NotificationResult.Click) {
-			let requestedPath: string | null
-			if (notificationInfo.mailId) {
-				const mailIdParam = encodeURIComponent(`${notificationInfo.mailId.listId},${notificationInfo.mailId.listElementId}`)
-				requestedPath = `?mail=${mailIdParam}`
-			} else {
-				requestedPath = null
-			}
-			this.windowManager.openMailBox(
-				{
-					userId: notificationInfo.userId,
-					mailAddress: notificationInfo.mailAddress,
-				},
-				requestedPath,
-			)
+	private onMailNotificationClick(notificationInfo: StrippedEntity<NotificationInfo>) {
+		let requestedPath: string | null
+		if (notificationInfo.mailId) {
+			const mailIdParam = encodeURIComponent(`${notificationInfo.mailId.listId},${notificationInfo.mailId.listElementId}`)
+			requestedPath = `?mail=${mailIdParam}`
+		} else {
+			requestedPath = null
 		}
+		this.windowManager.openMailBox(
+			{
+				userId: notificationInfo.userId,
+				mailAddress: notificationInfo.mailAddress,
+			},
+			requestedPath,
+		)
 	}
 
 	private async downloadMailMetadata(

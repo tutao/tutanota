@@ -18,6 +18,12 @@ export function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
 	}, new Map())
 }
 
+/**
+ * Gets an item from the map and returns it.
+ *
+ * In the case that the key-value pair was not present OR !!value === false (such as null or undefined), then
+ * {@link byDefault} will be called, and its return value will be inserted into the map and returned.
+ */
 export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V {
 	let value = map.get(key)
 
@@ -27,6 +33,22 @@ export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V 
 	}
 
 	return value
+}
+
+/**
+ * Removes an item from the map and returns it.
+ *
+ * In the case that the key-value pair was present but its value was undefined, you can read wasPresent to
+ * check that it was present (and therefore deleted).
+ */
+export function takeFromMap<K, V>(map: Map<K, V>, key: K): { item: V | undefined; wasPresent: boolean } {
+	// Will return undefined if not present OR the value is actually === undefined
+	const item = map.get(key)
+
+	// Map#delete both removes the key-value and returns true/false if the key-value was present/absent
+	const wasPresent = map.delete(key)
+
+	return { item, wasPresent }
 }
 
 /** Creates a new map with key and value added to {@param map}. It is like set() but for immutable map. */

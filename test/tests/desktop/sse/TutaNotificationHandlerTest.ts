@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { TutaNotificationHandler } from "../../../../src/common/desktop/sse/TutaNotificationHandler.js"
 import { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
 import { NativeCredentialsFacade } from "../../../../src/common/native/common/generatedipc/NativeCredentialsFacade.js"
-import { DesktopNotifier, NotificationResult } from "../../../../src/common/desktop/DesktopNotifier.js"
+import { DesktopNotifier } from "../../../../src/common/desktop/notifications/DesktopNotifier.js"
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage.js"
 import { LanguageViewModel } from "../../../../src/common/misc/LanguageViewModel.js"
@@ -26,6 +26,8 @@ import { aes256RandomKey } from "@tutao/tutanota-crypto"
 type UndiciFetch = typeof undiciFetch
 
 o.spec("TutaNotificationHandler", () => {
+	const appVersion = "V_1"
+
 	let wm: WindowManager
 	let nativeCredentialsFacade: NativeCredentialsFacade
 	let conf: SseStorage
@@ -34,7 +36,6 @@ o.spec("TutaNotificationHandler", () => {
 	let alarmStorage: DesktopAlarmStorage
 	let lang: LanguageViewModel
 	let fetch: UndiciFetch
-	let appVersion = "V_1"
 	let handler: TutaNotificationHandler
 	let nativeInstancePipeline: InstancePipeline
 
@@ -85,7 +86,12 @@ o.spec("TutaNotificationHandler", () => {
 			await handler.onMailNotification(setupSseInfo(), [notificationInfo])
 
 			verify(
-				notifier.submitGroupedNotification("translated:pushNewMail_msg", notificationInfo.mailAddress, "mailListId,mailElementId", matchers.anything()),
+				notifier.showCountedUserNotification({
+					title: "translated:pushNewMail_msg",
+					body: notificationInfo.mailAddress,
+					userId: "user1",
+					onClick: matchers.anything(),
+				}),
 			)
 		})
 
@@ -112,7 +118,7 @@ o.spec("TutaNotificationHandler", () => {
 
 			await handler.onMailNotification(setupSseInfo(), [notificationInfo])
 
-			verify(notifier.submitGroupedNotification(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+			verify(notifier.showCountedUserNotification(matchers.anything()), { times: 0 })
 		})
 
 		o.test("displays simple notification if app pass is on", async () => {
@@ -133,16 +139,17 @@ o.spec("TutaNotificationHandler", () => {
 
 			await handler.onMailNotification(setupSseInfo(), [notificationInfo])
 
-			const listenerCaptor = matchers.captor()
-			verify(
-				notifier.submitGroupedNotification(
-					"translated:pushNewMail_msg",
-					notificationInfo.mailAddress,
-					"mailListId,mailElementId",
-					listenerCaptor.capture(),
-				),
-			)
-			listenerCaptor.value(NotificationResult.Click)
+			const paramsCaptor = matchers.captor()
+			verify(notifier.showCountedUserNotification(paramsCaptor.capture()))
+
+			const { title, body, userId, onClick } = paramsCaptor.value as Parameters<DesktopNotifier["showCountedUserNotification"]>[0]
+
+			o.check(title).equals("translated:pushNewMail_msg")
+			o.check(body).equals(notificationInfo.mailAddress)
+			o.check(userId).equals("user1")
+
+			onClick()
+
 			verify(
 				wm.openMailBox(
 					{
@@ -211,9 +218,17 @@ o.spec("TutaNotificationHandler", () => {
 
 			await requestDefer
 
-			const listenerCaptor = matchers.captor()
-			verify(notifier.submitGroupedNotification("sender@example.com", "recipient@example.com", "mailListId,mailElementId", listenerCaptor.capture()))
-			listenerCaptor.value(NotificationResult.Click)
+			const paramsCaptor = matchers.captor()
+			verify(notifier.showCountedUserNotification(paramsCaptor.capture()))
+
+			const { title, body, userId, onClick } = paramsCaptor.value as Parameters<DesktopNotifier["showCountedUserNotification"]>[0]
+
+			o.check(title).equals("sender@example.com")
+			o.check(body).equals("recipient@example.com")
+			o.check(userId).equals("user1")
+
+			onClick()
+
 			verify(
 				wm.openMailBox(
 					{

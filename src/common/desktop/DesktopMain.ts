@@ -5,7 +5,7 @@ import * as electron from "electron"
 import { app, type Session } from "electron"
 import { DesktopUtils } from "./DesktopUtils"
 import { setupAssetProtocol, WindowManager } from "./DesktopWindowManager"
-import { DesktopNotifier } from "./DesktopNotifier"
+import { DesktopNotifier } from "./notifications/DesktopNotifier"
 import { ElectronUpdater } from "./ElectronUpdater.js"
 import { Socketeer } from "./Socketeer"
 import { DesktopAlarmStorage } from "./sse/DesktopAlarmStorage"
@@ -16,7 +16,7 @@ import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import { DesktopTray } from "./tray/DesktopTray"
 import { log } from "./DesktopLog"
 import { UpdaterWrapper } from "./UpdaterWrapper"
-import { ElectronNotificationFactory } from "./NotificatonFactory"
+import { createNotificationFactory } from "./notifications/NotificationFactory"
 import { preselectGnomeLibsecret, SafeStorageSecretStorage } from "./sse/SecretStorage"
 import fs from "node:fs"
 import { DesktopIntegrator, getDesktopIntegratorForPlatform } from "./integration/DesktopIntegrator"
@@ -48,7 +48,7 @@ import { DesktopWebauthnFacade } from "./2fa/DesktopWebauthnFacade.js"
 import { DesktopPostLoginActions } from "./DesktopPostLoginActions.js"
 import { DesktopInterWindowEventFacade } from "./ipc/DesktopInterWindowEventFacade.js"
 import { OfflineDbFactory, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
-import { lazyMemoized } from "@tutao/tutanota-utils"
+import { delay, lazyAsync, LazyLoaded, lazyMemoized } from "@tutao/tutanota-utils"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
@@ -154,16 +154,29 @@ async function createComponents(): Promise<Components> {
 	const keyStoreFacade = new DesktopKeyStoreFacade(secretStorage, desktopCrypto)
 	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
 	const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
+
 	// Fire config loading, dont wait for it
 	conf.init(getConfigFile(app.getAppPath(), "package.json", fs), getConfigFile(app.getPath("userData"), "conf.json", fs)).catch((e) => {
 		console.error("Could not load config", e)
 		process.exit(1)
 	})
-	const appIcon = desktopUtils.getIconByName(await conf.getConst(BuildConfigKey.iconName))
+
+	// We will eventually need to get the app icon and make a notification factory, though.
+	// LazyLoaded is fine for this, since it will likely be done loading by the time any of these need to be made.
+	const appIcon = new LazyLoaded(async () => {
+		const iconName = await conf.getConst(BuildConfigKey.iconName)
+		return desktopUtils.getIconByName(iconName)
+	})
+	const notificationFactory = new LazyLoaded(() => createNotificationFactory(conf, app))
+
 	const desktopNet = new DesktopNetworkClient()
 	const sock = new Socketeer(net, app)
 	const tray = new DesktopTray(conf)
-	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
+	const notifier = new DesktopNotifier(tray, notificationFactory)
+
+	console.log("registering for tuta protocol", process.execPath, app.getAppPath())
+	app.setAsDefaultProtocolClient("tuta", process.execPath, [app.getAppPath()])
+
 	const dateProvider = new DefaultDateProvider()
 	const clientModelInfo = ClientModelInfo.getInstance()
 	// We need a custom instance pipeline for everything native as we only process them with the client type model
@@ -214,10 +227,10 @@ async function createComponents(): Promise<Components> {
 	}
 
 	const offlineDbRefCounter = new OfflineDbRefCounter(offlineDbFactory)
-	const updateUrl = await conf.getConst(BuildConfigKey.updateUrl)
-	const dictUrl = updateUrl ? updateUrl : "https://app.tuta.com/desktop/"
 
 	electron.app.on("session-created", async (session) => {
+		const updateUrl = await conf.getConst(BuildConfigKey.updateUrl)
+		const dictUrl = updateUrl ? updateUrl : "https://app.tuta.com/desktop/"
 		manageDownloadsForSession(session, dictUrl)
 	})
 
@@ -326,9 +339,6 @@ async function createComponents(): Promise<Components> {
 
 	const contextMenu = new DesktopContextMenu(electron, wm)
 	wm.lateInit(contextMenu, themeFacade, remoteBridge)
-	conf.getConst(BuildConfigKey.appUserModelId).then((appUserModelId) => {
-		app.setAppUserModelId(appUserModelId)
-	})
 	log.debug("version:  ", app.getVersion())
 	return {
 		wm,
@@ -347,11 +357,13 @@ async function createComponents(): Promise<Components> {
 }
 
 async function startupInstance(components: Components) {
-	const { wm, sse, tfs } = components
+	const { wm, sse, tfs, notifier } = components
 	if (!(await desktopUtils.cleanupOldInstance())) return
 	sse.connect().catch((e) => log.warn("unable to start sse client", e))
 	// The second-instance event fires when we call app.requestSingleInstanceLock inside DesktopUtils.makeSingleInstance
-	app.on("second-instance", async (_ev, args) => desktopUtils.handleSecondInstance(wm, args))
+	app.on("second-instance", async (_ev, args) => {
+		desktopUtils.handleSecondInstance(wm, notifier, args)
+	})
 	app.on("open-url", (e, url) => {
 		// MacOS mailto handling
 		e.preventDefault()

@@ -147,7 +147,7 @@ export function formatStorageSize(sizeInBytes: number): string {
 }
 
 export function urlEncodeHtmlTags(text: string): string {
-	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;")
+	return stripControlCharacters(text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"))
 }
 
 export function convertTextToHtml(text: string) {
@@ -156,6 +156,11 @@ export function convertTextToHtml(text: string) {
 
 export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23" {
 	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
+}
+
+export function stripControlCharacters(text: string): string {
+	// In Unicode, "Control-characters" are U+0000—U+001F (C0 controls), U+007F (delete), and U+0080—U+009F (C1 controls).
+	return text.replace(/[\x00-\x1F\x7F\x80-\x9F]/g, "")
 }
 
 export function timeStringFromParts(hours: number, minutes: number, amPm: boolean): string {

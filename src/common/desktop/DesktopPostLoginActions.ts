@@ -1,7 +1,7 @@
 import { PostLoginAction, LoggedInEvent } from "../api/main/LoginController"
 import { WindowManager } from "./DesktopWindowManager"
 import { DesktopErrorHandler } from "./DesktopErrorHandler.js"
-import { DesktopNotifier } from "./DesktopNotifier.js"
+import { DesktopNotifier } from "./notifications/DesktopNotifier.js"
 
 export class DesktopPostLoginActions implements PostLoginAction {
 	constructor(
@@ -13,7 +13,7 @@ export class DesktopPostLoginActions implements PostLoginAction {
 
 	async onPartialLoginSuccess({ userId }: LoggedInEvent): Promise<void> {
 		this.wm.get(this.windowId)?.setUserId(userId)
-		await this.notifier.resolveGroupedNotification(userId)
+		await this.notifier.clearUserNotifications(userId)
 	}
 
 	async onFullLoginSuccess({ userId }: LoggedInEvent): Promise<void> {

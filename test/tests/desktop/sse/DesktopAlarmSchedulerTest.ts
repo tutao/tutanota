@@ -2,9 +2,9 @@ import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { EndType, RepeatPeriod } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler.js"
-import { lastThrow, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
-import { DesktopNotifier, NotificationResult } from "../../../../src/common/desktop/DesktopNotifier.js"
+import { DesktopNotifier } from "../../../../src/common/desktop/notifications/DesktopNotifier.js"
 import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import { spy } from "@tutao/tutanota-test-utils"
@@ -26,8 +26,9 @@ import { ClientModelInfo } from "../../../../src/common/api/common/EntityFunctio
 import { ServerModelUntypedInstance } from "../../../../src/common/api/common/EntityTypes"
 
 const oldTimezone = process.env.TZ
+const userId = "userId1"
 
-o.spec("DesktopAlarmSchedulerTest", function () {
+o.spec("DesktopAlarmScheduler", function () {
 	o.before(function () {
 		process.env.TZ = "Europe/Berlin"
 	})
@@ -45,8 +46,8 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 	const wm = {
 		openCalendar() {},
 	}
-	const notifier = {
-		submitGroupedNotification: () => {
+	const notifier: Partial<DesktopNotifier> = {
+		showCountedUserNotification: async () => {
 			console.log("show notification!")
 		},
 	}
@@ -86,19 +87,19 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 	}
 
 	o.spec("rescheduleAll", function () {
-		o("no alarms", async function () {
+		o.test("no alarms", async function () {
 			const { wmMock, notifierMock, cryptoMock, alarmStorageMock } = standardMocks()
 			const alarmScheduler = makeAlarmScheduler()
 			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, alarmScheduler)
 
 			await scheduler.rescheduleAll()
 
-			o(alarmStorageMock.storeAlarm.callCount).equals(0)
-			o(notifierMock.submitGroupedNotification.callCount).equals(0)
+			o.check(alarmStorageMock.storeAlarm.callCount).equals(0)
+			o.check(notifierMock.showCountedUserNotification.callCount).equals(0)
 			verify(alarmScheduler.scheduleAlarm(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
-		o("some alarms", async function () {
+		o.test("some alarms", async function () {
 			const { wmMock, notifierMock, cryptoMock, alarmStorageMock } = standardMocks()
 			const alarmScheduler = makeAlarmScheduler()
 			const scheduler = new DesktopAlarmScheduler(wmMock, notifierMock, alarmStorageMock, alarmScheduler)
@@ -123,7 +124,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 
 			await scheduler.rescheduleAll()
 
-			o(alarmStorageMock.storeAlarm.callCount).equals(0)
+			o.check(alarmStorageMock.storeAlarm.callCount).equals(0)
 
 			// Summary 1
 			verify(
@@ -143,7 +144,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 	})
 
 	o.spec("handleAlarmNotification", function () {
-		o("handle multiple events", async function () {
+		o.test("handle multiple events", async function () {
 			const { wmMock, notifierMock, alarmStorageMock, cryptoMock } = standardMocks()
 
 			const alarmScheduler = makeAlarmScheduler()
@@ -208,7 +209,7 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			verify(alarmScheduler.cancelAlarm(an3.alarmInfo.alarmIdentifier), { times: 1 })
 		})
 
-		o("notification is shown and calendar is opened when it's clicked", async function () {
+		o.test("notification is shown and calendar is opened when it's clicked", async function () {
 			const { wmMock, notifierMock, alarmStorageMock, cryptoMock } = standardMocks()
 
 			const alarmScheduler: AlarmScheduler = object()
@@ -227,16 +228,22 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 			const cbCaptor = matchers.captor()
 			when(alarmScheduler.scheduleAlarm(matchers.anything(), matchers.anything(), matchers.anything(), cbCaptor.capture())).thenResolve(undefined)
 			await scheduler.handleCreateAlarm(an1)
-			o(notifierMock.submitGroupedNotification.callCount).equals(0)
+			o.check(notifierMock.showCountedUserNotification.callCount).equals(0)
 			const cb = cbCaptor.value
 			cb(an1.eventStart, "title")
 
 			const { title, body } = formatNotificationForDisplay(an1.eventStart, "title")
-			o(notifierMock.submitGroupedNotification.calls.map((c) => c.slice(0, -1))).deepEquals([[title, title, an1.alarmInfo.alarmIdentifier]])
-			o(wmMock.openCalendar.callCount).equals(0)
-			const onClick = lastThrow(notifierMock.submitGroupedNotification.calls[0])
-			onClick(NotificationResult.Click)
-			o(wmMock.openCalendar.callCount).equals(1)
+			// taking the args apart because we can't match the click handler
+			o.check(notifierMock.showCountedUserNotification.calls.length).equals(1)
+			const firstCall = notifierMock.showCountedUserNotification.calls[0] as Parameters<DesktopNotifier["showCountedUserNotification"]>
+			const argObject = firstCall[0]
+			o.check(argObject.body).equals(body)
+			o.check(argObject.title).equals(title)
+			o.check(argObject.userId).equals(userId)
+
+			o.check(wmMock.openCalendar.callCount).equals(0)
+			argObject.onClick()
+			o.check(wmMock.openCalendar.callCount).equals(1)
 		})
 	})
 })
@@ -284,7 +291,7 @@ function createAlarmNotification({ startTime, endTime, trigger, endType, endValu
 					advancedRules: [],
 				}
 			: null,
-		user: "userId1",
+		user: userId,
 	})
 }
 

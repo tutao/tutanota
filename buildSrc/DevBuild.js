@@ -161,6 +161,8 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 
 	await runStep("Desktop: Rolldown", async () => {
+		const platform = getCanonicalPlatformName(process.platform)
+		const architecture = getValidArchitecture(process.platform, process.arch)
 		const bundle = await rolldown({
 			input: ["src/common/desktop/DesktopMain.ts", "src/common/desktop/sqlworker.ts"],
 			platform: "node",
@@ -172,8 +174,8 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 				resolveLibs(),
 				nodeGypPlugin({
 					rootDir: projectRoot,
-					platform: getCanonicalPlatformName(process.platform),
-					architecture: getValidArchitecture(process.platform, process.arch),
+					platform,
+					architecture,
 					nodeModule: "@signalapp/sqlcipher",
 					// we build for Electron, but it uses NAPI so it's fine to build for node
 					environment: "node",
@@ -181,9 +183,20 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 				}),
 				napiPlugin({
 					nodeModule: "@tutao/node-mimimi",
-					platform: getCanonicalPlatformName(process.platform),
-					architecture: getValidArchitecture(process.platform, process.arch),
+					platform,
+					architecture,
 				}),
+				// the build script for simple-windows-notifications does not build anything on non-win32 so we get errors when trying to copy files
+				platform === "win32"
+					? nodeGypPlugin({
+							rootDir: projectRoot,
+							platform,
+							architecture,
+							nodeModule: "@indutny/simple-windows-notifications",
+							environment: "node",
+							targetName: "simple-windows-notifications",
+						})
+					: undefined,
 				preludeEnvPlugin(env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs, networkDebugging })),
 			],
 		})

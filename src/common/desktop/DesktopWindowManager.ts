@@ -4,7 +4,7 @@ import type { UserInfo } from "./ApplicationWindow"
 import { ApplicationWindow } from "./ApplicationWindow"
 import type { DesktopConfig } from "./config/DesktopConfig"
 import { DesktopTray } from "./tray/DesktopTray"
-import type { DesktopNotifier } from "./DesktopNotifier"
+import type { DesktopNotifier } from "./notifications/DesktopNotifier"
 import { DesktopContextMenu } from "./DesktopContextMenu"
 import { log } from "./DesktopLog"
 import type { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
@@ -16,6 +16,7 @@ import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
 
 import { SseInfo } from "./sse/SseInfo.js"
+import { LazyLoaded } from "@tutao/tutanota-utils"
 
 const TAG = "[DesktopWindowManager]"
 
@@ -65,7 +66,7 @@ export class WindowManager {
 		notifier: DesktopNotifier,
 		electron: ElectronExports,
 		localShortcut: LocalShortcutManager,
-		private readonly icon: NativeImage,
+		private readonly icon: LazyLoaded<NativeImage>,
 		private readonly preloadOverride?: string,
 	) {
 		this._conf = conf
@@ -123,7 +124,10 @@ export class WindowManager {
 
 				this._tray.clearBadge()
 
-				this._notifier.resolveGroupedNotification(w.getUserId())
+				const userId = w.getUserId()
+				if (userId) {
+					this._notifier.clearUserNotifications(userId)
+				}
 			})
 			.on("page-title-updated", (ev) => {
 				this._tray.update(this._notifier)
@@ -285,11 +289,13 @@ export class WindowManager {
 
 	private async _newWindow(electron: ElectronExports, localShortcut: LocalShortcutManager, noAutoLogin: boolean | null): Promise<ApplicationWindow> {
 		const absoluteWebAssetsPath = this._electron.app.getAppPath()
+		const icon = await this.icon.getAsync()
+
 		// custom builds get the dicts from us as well
 		return new ApplicationWindow(
 			this,
 			absoluteWebAssetsPath,
-			this.icon,
+			icon,
 			electron,
 			localShortcut,
 			this.themeFacade,

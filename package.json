@@ -61,7 +61,8 @@
 		"qrcode-svg": "1.1.0",
 		"squire-rte": "2.2.7",
 		"undici": "7.11.0",
-		"winreg": "1.2.5"
+		"winreg": "1.2.5",
+		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#983a0515b027806289fd7af1736e02793ad3c7f1"
 	},
 	"optionalDependencies": {
 		"dmg-license": "^1.0.11"

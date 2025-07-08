@@ -1,8 +1,7 @@
-import type { DesktopNotifier } from "./DesktopNotifier"
-import { NotificationResult } from "./DesktopNotifier"
+import type { DesktopNotifier } from "./notifications/DesktopNotifier"
 import { lang } from "../misc/LanguageViewModel"
 import type { DesktopConfig } from "./config/DesktopConfig"
-import { assertNotNull, delay, downcast, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, downcast, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import type { App, NativeImage } from "electron"
 import type { UpdaterWrapper } from "./UpdaterWrapper"
@@ -62,7 +61,7 @@ export class ElectronUpdater {
 		private readonly notifier: DesktopNotifier,
 		private readonly crypto: DesktopNativeCryptoFacade,
 		private readonly app: App,
-		private readonly icon: NativeImage,
+		private readonly icon: LazyLoaded<NativeImage>,
 		private readonly updater: UpdaterWrapper,
 		private readonly fs: FsExports,
 		private readonly scheduler: IntervalSetter = setInterval,
@@ -271,18 +270,17 @@ export class ElectronUpdater {
 
 	private async notifyAndInstall(info: TutanotaUpdateInfo): Promise<void> {
 		this.logger.debug("notifying for update")
-		this.notifier
-			.showOneShot({
+		try {
+			const icon = await this.icon.getAsync()
+			await this.notifier.showOneShot({
 				title: lang.get("updateAvailable_label", { "{version}": info.version }),
 				body: lang.get("clickToUpdate_msg"),
-				icon: this.icon,
+				icon: icon,
+				onClick: () => this.installUpdate(),
 			})
-			.then((res) => {
-				if (res === NotificationResult.Click) {
-					this.installUpdate()
-				}
-			})
-			.catch((e: Error) => this.logger.error("Notification failed, error message:", e?.message))
+		} catch (e) {
+			this.logger.error("Notification failed, error message:", e?.message)
+		}
 	}
 
 	installUpdate() {
@@ -301,12 +299,15 @@ export class ElectronUpdater {
 	}
 
 	private async notifyUpdateError() {
-		this.notifier
-			.showOneShot({
+		try {
+			const icon = await this.icon.getAsync()
+			await this.notifier.showOneShot({
 				title: lang.get("errorReport_label"),
 				body: lang.get("errorDuringUpdate_msg"),
-				icon: this.icon,
+				icon: icon,
 			})
-			.catch((e) => this.logger.error("Error Notification failed, error message:", e?.message))
+		} catch (e) {
+			this.logger.error("Error Notification failed, error message:", e?.message)
+		}
 	}
 }

@@ -6,7 +6,7 @@ import { ElectronUpdater } from "../../../src/common/desktop/ElectronUpdater.js"
 import type { UpdaterWrapper } from "../../../src/common/desktop/UpdaterWrapper.js"
 import n from "../nodemocker.js"
 import type { DesktopConfig } from "../../../src/common/desktop/config/DesktopConfig.js"
-import type { DesktopNotifier } from "../../../src/common/desktop/DesktopNotifier.js"
+import type { DesktopNotifier } from "../../../src/common/desktop/notifications/DesktopNotifier.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 import en from "../../../src/mail-app/translations/en.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -19,7 +19,7 @@ const sigB64 = "c2lnbmF0dXJlCg=="
 const shaB64 = "c2hhNTEyCg=="
 const data = Buffer.from([1, 2, 3])
 
-o.spec("ElectronUpdater Test", function () {
+o.spec("ElectronUpdater", function () {
 	let electron: {
 		app: App
 	}
@@ -34,7 +34,9 @@ o.spec("ElectronUpdater Test", function () {
 		when(fs.promises.unlink("downloadedFile.AppImage")).thenResolve()
 		when(fs.promises.readFile("downloadedFile.AppImage")).thenResolve(data)
 		notifier = downcast({
-			showOneShot: spy((prop: { title: string; body: string; icon: any }) => Promise.resolve("click")),
+			showOneShot: spy((props: { title: string; body: string; icon: any; onClick?: () => unknown }) => {
+				Promise.resolve().then(() => props.onClick?.())
+			}),
 		})
 		conf = downcast({
 			removeListener: spy((key: string, cb: () => void) => conf),
@@ -142,42 +144,42 @@ o.spec("ElectronUpdater Test", function () {
 			updatesEnabledInBuild: () => true,
 		})
 	})
-	o("update is available", async function () {
+	o.test("update is available", async function () {
 		downcast(updaterImpl).updatesEnabledInBuild = () => true
 
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs)
 		upd.start()
-		o(conf.setVar.callCount).equals(1)
-		o(conf.setVar.args).deepEquals(["showAutoUpdateOption", true])
+		o.check(conf.setVar.callCount).equals(1)
+		o.check(conf.setVar.args).deepEquals(["showAutoUpdateOption", true])
 		// there is only one enableAutoUpdate listener
-		o(conf.removeListener.callCount).equals(1)
-		o(conf.removeListener.args[0]).equals("enableAutoUpdate")
-		o(conf.on.callCount).equals(1)
+		o.check(conf.removeListener.callCount).equals(1)
+		o.check(conf.removeListener.args[0]).equals("enableAutoUpdate")
+		o.check(conf.on.callCount).equals(1)
 		await updaterImpl.electronUpdater
 		await delay(190)
 		// show notification
-		o(notifier.showOneShot.callCount).equals(1)
+		o.check(notifier.showOneShot.callCount).equals(1)
 		verify(electron.app.emit("enable-force-quit"), { times: 1 })
-		o(autoUpdater.quitAndInstall.callCount).equals(1)
-		o(autoUpdater.quitAndInstall.args[0]).equals(false)
-		o(autoUpdater.quitAndInstall.args[1]).equals(true)
+		o.check(autoUpdater.quitAndInstall.callCount).equals(1)
+		o.check(autoUpdater.quitAndInstall.args[0]).equals(false)
+		o.check(autoUpdater.quitAndInstall.args[1]).equals(true)
 	})
-	o("update is not available", async function () {
+	o.test("update is not available", async function () {
 		autoUpdater.checkForUpdates = spy(() => Promise.resolve())
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs)
 		upd.start()
 		await delay(190)
-		o(autoUpdater.checkForUpdates.callCount).equals(1)
+		o.check(autoUpdater.checkForUpdates.callCount).equals(1)
 		// don't check signature
 		verify(crypto.verifySignature(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		// don't show notification
-		o(notifier.showOneShot.callCount).equals(0)
-		o(autoUpdater.quitAndInstall.callCount).equals(0)
+		o.check(notifier.showOneShot.callCount).equals(0)
+		o.check(autoUpdater.quitAndInstall.callCount).equals(0)
 
 		// @ts-ignore makes the test halt
 		upd.stopPolling()
 	})
-	o("enable autoUpdate while running", async function () {
+	o.test("enable autoUpdate while running", async function () {
 		//mock instances
 		let enabled = false
 		const oldConf = conf
@@ -213,19 +215,19 @@ o.spec("ElectronUpdater Test", function () {
 		upd.start()
 		await delay(100)
 		// entered start() twice
-		o(conf.removeListener.callCount).equals(2)
-		o(conf.on.callCount).equals(2)
+		o.check(conf.removeListener.callCount).equals(2)
+		o.check(conf.on.callCount).equals(2)
 		// check signature
 		verify(crypto.verifySignature("yes", data, Buffer.from(sigB64, "base64")))
 		verify(crypto.verifySignature("no", data, Buffer.from(sigB64, "base64")))
 		// show notification
-		o(notifier.showOneShot.callCount).equals(1)
+		o.check(notifier.showOneShot.callCount).equals(1)
 		verify(electron.app.emit("enable-force-quit"), { times: 1 })
-		o(autoUpdater.quitAndInstall.callCount).equals(1)
-		o(autoUpdater.quitAndInstall.args[0]).equals(false)
-		o(autoUpdater.quitAndInstall.args[1]).equals(true)
+		o.check(autoUpdater.quitAndInstall.callCount).equals(1)
+		o.check(autoUpdater.quitAndInstall.args[0]).equals(false)
+		o.check(autoUpdater.quitAndInstall.args[1]).equals(true)
 	})
-	o("retry after autoUpdater reports an error", async function () {
+	o.test("retry after autoUpdater reports an error", async function () {
 		o.timeout(500) // this is very slow for some reason
 
 		let first = true
@@ -252,13 +254,13 @@ o.spec("ElectronUpdater Test", function () {
 		upd.start()
 		// after the error
 		await delay(2)
-		o(autoUpdater.downloadUpdate.callCount).equals(0)("downloadUpdate after error")
+		o.check(autoUpdater.downloadUpdate.callCount).equals(0)("downloadUpdate after error")
 		//after the download
 		await delay(200)
-		o(notifier.showOneShot.callCount).equals(1)("showOneShot")
-		o(autoUpdater.downloadUpdate.callCount).equals(1)("downloadUpdate after download")
+		o.check(notifier.showOneShot.callCount).equals(1)("showOneShot")
+		o.check(autoUpdater.downloadUpdate.callCount).equals(1)("downloadUpdate after download")
 	})
-	o("shut down autoUpdater after errors", async function () {
+	o.test("shut down autoUpdater after errors", async function () {
 		autoUpdater.downloadUpdate = function () {
 			autoUpdater.emit("error", {
 				message: "this is an autoUpdater error",
@@ -275,40 +277,40 @@ o.spec("ElectronUpdater Test", function () {
 		// @ts-ignore
 		upd.stopPolling()
 
-		o(notifier.showOneShot.callCount).equals(1)("showOneShot")
+		o.check(notifier.showOneShot.callCount).equals(1)("showOneShot")
 	})
-	o("works if second key is right one", async function () {
+	o.test("works if second key is right one", async function () {
 		o.timeout(1000)
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs)
 		upd.start()
 		// there is only one enableAutoUpdate listener
-		o(conf.removeListener.callCount).equals(1)
-		o(conf.removeListener.args[0]).equals("enableAutoUpdate")
-		o(conf.on.callCount).equals(1)
+		o.check(conf.removeListener.callCount).equals(1)
+		o.check(conf.removeListener.args[0]).equals("enableAutoUpdate")
+		o.check(conf.on.callCount).equals(1)
 		await delay(250)
-		o(autoUpdater.checkForUpdates.callCount).equals(1)
+		o.check(autoUpdater.checkForUpdates.callCount).equals(1)
 		// check signature
 		verify(crypto.verifySignature("no", data, Buffer.from(sigB64, "base64")))
 		verify(crypto.verifySignature("yes", data, Buffer.from(sigB64, "base64")))
 		// show notification
-		o(notifier.showOneShot.callCount).equals(1)
+		o.check(notifier.showOneShot.callCount).equals(1)
 		verify(electron.app.emit("enable-force-quit"), { times: 1 })
-		o(autoUpdater.quitAndInstall.callCount).equals(1)
-		o(autoUpdater.quitAndInstall.args[0]).equals(false)
-		o(autoUpdater.quitAndInstall.args[1]).equals(true)
+		o.check(autoUpdater.quitAndInstall.callCount).equals(1)
+		o.check(autoUpdater.quitAndInstall.args[0]).equals(false)
+		o.check(autoUpdater.quitAndInstall.args[1]).equals(true)
 
 		// @ts-ignore
 		upd.stopPolling()
 	})
-	o("updater disables itself if accessSync throws", async function () {
+	o.test("updater disables itself if accessSync throws", async function () {
 		downcast(updaterImpl).updatesEnabledInBuild = () => false
 
 		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs)
 		await updaterImpl.electronUpdater
-		o(autoUpdater.on.callCount).equals(6)
+		o.check(autoUpdater.on.callCount).equals(6)
 		upd.start()
-		o(conf.setVar.callCount).equals(1)
-		o(conf.setVar.args).deepEquals(["showAutoUpdateOption", false])
-		o(conf.removeListener.callCount).equals(0)
+		o.check(conf.setVar.callCount).equals(1)
+		o.check(conf.setVar.args).deepEquals(["showAutoUpdateOption", false])
+		o.check(conf.removeListener.callCount).equals(0)
 	})
 })

@@ -97,6 +97,7 @@ pipeline {
 								bat "npm run build-packages"
 
 								bat "node buildSrc\\getNodeGypLibrary.js @signalapp/sqlcipher -e node --copy-target node_sqlcipher --force-rebuild --root-dir ${WORKSPACE}"
+								bat "node buildSrc\\getNodeGypLibrary.js @indutny/simple-windows-notifications -e node --copy-target simple-windows-notifications --force-rebuild --root-dir ${WORKSPACE}"
 								// napi-rs rollup plugin expects .node for the package to be next to the entry point
 								// so we stash and unstash it as-is
 								stash includes: 'native-cache/**/*,packages/node-mimimi/dist/*.node', name: 'native_modules'

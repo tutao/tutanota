@@ -310,6 +310,16 @@ export class ApplicationWindow {
 		}
 	}
 
+	setForegroundWindow() {
+		if (!this._browserWindow) {
+			return
+		}
+
+		this._browserWindow.setAlwaysOnTop(true) // funny hack that makes the window go to the top on Windows
+		this.show()
+		this._browserWindow.setAlwaysOnTop(false)
+	}
+
 	private createBrowserWindow(
 		wm: WindowManager,
 		opts: {

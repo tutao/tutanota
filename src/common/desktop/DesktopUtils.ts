@@ -11,6 +11,10 @@ import { getResourcePath } from "./resources.js"
 import { TempFs } from "./files/TempFs.js"
 import { ElectronExports } from "./ElectronExportTypes.js"
 import { WindowManager } from "./DesktopWindowManager.js"
+import { DesktopNotifier } from "./notifications/DesktopNotifier"
+import { sendDummyKeystroke } from "@indutny/simple-windows-notifications"
+
+export const TUTA_PROTOCOL_NOTIFICATION_ACTION = "notification"
 
 export class DesktopUtils {
 	private mailtoArg: string | null
@@ -117,18 +121,57 @@ export class DesktopUtils {
 	 * whether to quit or continue and if we do the latter, handle that instance's cli args and/or
 	 * create a new window.
 	 */
-	async handleSecondInstance(wm: WindowManager, args: Array<string>): Promise<void> {
-		const otherInstanceMailToArg = findMailToUrlInArgv(args)
+	async handleSecondInstance(wm: WindowManager, notifier: DesktopNotifier, args: Array<string>): Promise<void> {
 		if (await this.tfs.singleInstanceLockOverridden()) {
 			app.quit()
 		} else {
 			if (wm.getAll().length === 0) {
 				await wm.newWindow(true)
 			} else {
-				for (const w of wm.getAll()) w.show()
+				if (process.platform === "win32") {
+					// Workaround on Windows so we can focus when in the background - https://www.npmjs.com/package/@signalapp/windows-dummy-keystroke
+					sendDummyKeystroke()
+				}
+				for (const w of wm.getAll()) {
+					w.setForegroundWindow()
+				}
 			}
+			const otherInstanceMailToArg = findMailToUrlInArgv(args)
+			if (otherInstanceMailToArg) {
+				await this.handleMailto(wm, otherInstanceMailToArg)
+			} else {
+				const tutaArg = args.find((arg) => arg.startsWith("tuta:"))
+				if (tutaArg) {
+					console.log("got tuta arg: ", tutaArg)
+					this.handleTutaProtocol(tutaArg, notifier)
+				}
+			}
+		}
+	}
 
-			await this.handleMailto(wm, otherInstanceMailToArg)
+	private handleTutaProtocol(tutaArg: string, notifier: DesktopNotifier) {
+		let url
+		try {
+			url = new URL(tutaArg)
+		} catch (e) {
+			log.info("Failed to parse tuta: URL", e)
+			return
+		}
+
+		switch (url.pathname) {
+			case TUTA_PROTOCOL_NOTIFICATION_ACTION: {
+				const id = url.searchParams.get("id")
+				if (id) {
+					log.debug("notification click:", id)
+					notifier.onNotificationClick(id)
+				} else {
+					log.warn("notification click without id", url)
+				}
+				break
+			}
+			default: {
+				log.warn("tuta protocol called with unknown request type", url)
+			}
 		}
 	}
 

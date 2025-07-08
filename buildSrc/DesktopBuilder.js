@@ -151,6 +151,17 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 				environment: "node",
 				targetName: "node_sqlcipher",
 			}),
+			// the build script for simple-windows-notifications does not build anything on non-win32 so we get errors when trying to copy files
+			platform === "win32"
+				? nodeGypPlugin({
+						rootDir: projectRoot,
+						platform,
+						architecture,
+						nodeModule: "@indutny/simple-windows-notifications",
+						environment: "node",
+						targetName: "simple-windows-notifications",
+					})
+				: undefined,
 			napiPlugin({
 				platform,
 				architecture,

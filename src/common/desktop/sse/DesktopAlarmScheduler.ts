@@ -1,6 +1,5 @@
 import { AlarmNotification } from "../../api/entities/sys/TypeRefs.js"
-import type { DesktopNotifier } from "../DesktopNotifier"
-import { NotificationResult } from "../DesktopNotifier"
+import type { DesktopNotifier } from "../notifications/DesktopNotifier"
 import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
 import { log } from "../DesktopLog"
@@ -71,12 +70,15 @@ export class DesktopAlarmScheduler {
 
 		this.alarmScheduler.scheduleAlarm(eventInfo, decAn.alarmInfo, decAn.repeatRule, (eventTime, summary) => {
 			const { title, body } = formatNotificationForDisplay(eventTime, summary)
-			this.notifier.submitGroupedNotification(title, body, decAn.alarmInfo.alarmIdentifier, (res) => {
-				if (res === NotificationResult.Click) {
+			this.notifier.showCountedUserNotification({
+				title,
+				body,
+				userId: decAn.user,
+				onClick: () => {
 					this.wm.openCalendar({
 						userId: decAn.user,
 					})
-				}
+				},
 			})
 		})
 	}
