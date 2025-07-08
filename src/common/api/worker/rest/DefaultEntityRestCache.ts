@@ -874,13 +874,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		try {
 			if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
 				if (update.patches) {
-					const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(
-						update.typeRef,
-						update.instanceListId,
-						update.instanceId,
-						update.patches,
-						update,
-					)
+					const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update)
 					if (patchAppliedInstance == null) {
 						const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
 						await this.storage.put(update.typeRef, newEntity)

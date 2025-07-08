@@ -469,20 +469,20 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await updateDataForUpdate(ContactTypeRef, secondContactListId, id4, [firstNamePatch], PrefetchStatus.NotPrefetched),
 				]
 
-				when(patchMergerMock.patchAndStoreInstance(ContactTypeRef, firstContactListId, id1, [firstNamePatch], batch[0])).thenResolve(null)
+				when(patchMergerMock.patchAndStoreInstance(batch[0])).thenResolve(null)
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, collapseId(firstContactListId, id1) as IdTuple)).thenResolve(
 					await toStorableInstance(secondContact),
 				)
-				when(patchMergerMock.patchAndStoreInstance(ContactTypeRef, firstContactListId, id2, [firstNamePatch], batch[1])).thenDo(async () => {
+				when(patchMergerMock.patchAndStoreInstance(batch[1])).thenDo(async () => {
 					const firstContactPatchedParsed = await toStorableInstance(firstContactPatched)
 					await storage.put(ContactTypeRef, firstContactPatchedParsed)
 					return firstContactPatchedParsed
 				})
-				when(patchMergerMock.patchAndStoreInstance(ContactTypeRef, secondContactListId, id3, [firstNamePatch], batch[2])).thenResolve(null)
+				when(patchMergerMock.patchAndStoreInstance(batch[2])).thenResolve(null)
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, collapseId(secondContactListId, id3) as IdTuple)).thenResolve(
 					await toStorableInstance(thirdContact),
 				)
-				when(patchMergerMock.patchAndStoreInstance(ContactTypeRef, secondContactListId, id4, [firstNamePatch], batch[3])).thenDo(async () => {
+				when(patchMergerMock.patchAndStoreInstance(batch[3])).thenDo(async () => {
 					const fourthContactPatchedParsed = await toStorableInstance(fourthContactPatched)
 					await storage.put(ContactTypeRef, fourthContactPatchedParsed)
 					return fourthContactPatchedParsed

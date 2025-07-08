@@ -65,30 +65,26 @@ export class PatchMerger {
 		return null
 	}
 
-	public async patchAndStoreInstance(
-		instanceType: TypeRef<Entity>,
-		listId: Nullable<Id>,
-		elementId: Id,
-		patches: Array<Patch>,
-		entityUpdate: Nullable<EntityUpdateData> = null,
-	): Promise<Nullable<ServerModelParsedInstance>> {
-		const patchAppliedInstance = await this.getPatchedInstanceParsed(instanceType, listId, elementId, patches)
+	public async patchAndStoreInstance(entityUpdate: EntityUpdateData): Promise<Nullable<ServerModelParsedInstance>> {
+		const { typeRef, instanceListId, instanceId, patches, instance } = entityUpdate
+
+		const patchAppliedInstance = await this.getPatchedInstanceParsed(typeRef, instanceListId, instanceId, assertNotNull(patches))
 		if (patchAppliedInstance == null) {
 			return null
 		}
 
-		if (entityUpdate !== null && entityUpdate.instance !== null) {
-			const isPatchAndAppliedInstanceMatch = this.isInstanceOnUpdateIsSameAsPatched(listId, elementId, entityUpdate, patchAppliedInstance)
+		if (entityUpdate !== null && instance !== null) {
+			const isPatchAndAppliedInstanceMatch = this.isInstanceOnUpdateIsSameAsPatched(entityUpdate, patchAppliedInstance)
 			if (!isPatchAndAppliedInstanceMatch) {
-				await this.cacheStorage.put(instanceType, entityUpdate.instance)
+				await this.cacheStorage.put(typeRef, instance)
 				throw new ProgrammingError(
-					"instance with id [" + listId + ", " + elementId + `] has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}`,
+					"instance with id [" + instanceListId + ", " + instanceId + `] has not been successfully patched. Type: ${getTypeString(typeRef)}`,
 				)
 			} else {
-				await this.cacheStorage.put(instanceType, patchAppliedInstance)
+				await this.cacheStorage.put(typeRef, patchAppliedInstance)
 			}
 		} else {
-			await this.cacheStorage.put(instanceType, patchAppliedInstance)
+			await this.cacheStorage.put(typeRef, patchAppliedInstance)
 		}
 		return patchAppliedInstance
 	}
@@ -353,12 +349,7 @@ export class PatchMerger {
 		}
 	}
 
-	private async isInstanceOnUpdateIsSameAsPatched(
-		listId: Nullable<Id> = null,
-		elementId: Id,
-		entityUpdate: EntityUpdateData,
-		patchAppliedInstance: Nullable<ServerModelParsedInstance>,
-	) {
+	private async isInstanceOnUpdateIsSameAsPatched(entityUpdate: EntityUpdateData, patchAppliedInstance: Nullable<ServerModelParsedInstance>) {
 		if (!deepEqual(entityUpdate.instance, patchAppliedInstance)) {
 			const instancePipeline = this.instancePipeline
 			const typeModel = await this.typeModelResolver.resolveServerTypeReference(entityUpdate.typeRef)
@@ -391,9 +382,9 @@ export class PatchMerger {
 				console.log("patches on the entityUpdate: ", entityUpdate.patches)
 				console.error(
 					"instance with id [" +
-						listId +
+						entityUpdate.instanceListId +
 						", " +
-						elementId +
+						entityUpdate.instanceId +
 						`] has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}, computePatches: ${JSON.stringify(patchDiff)}`,
 				)
 			}
