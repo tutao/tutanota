@@ -57,11 +57,12 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 
 					oninput: async (newValue) => {
 						model.mailAddressInput = newValue
-						if (getCleanedMailAddress(newValue) == null) {
+						const cleanMailAddress = getCleanedMailAddress(newValue)
+						if (cleanMailAddress == null) {
 							return "mailAddressInvalid_msg"
 						} else {
 							try {
-								debouncedFingerprintRequest(model, newValue)
+								debouncedFingerprintRequest(model, cleanMailAddress)
 							} catch (e) {
 								console.error("error while trying to fetch the public key service: ", e)
 							}
