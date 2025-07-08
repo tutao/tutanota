@@ -181,6 +181,31 @@ o.spec("KeyVerificationModelTest", function () {
 			verify(keyVerificationFacade.calculateFingerprint(trustDBEntry.publicIdentityKey))
 		})
 
+		o("email address normalization", async function () {
+			const qrCode: QRCode = object()
+			let result: IdentityKeyQrVerificationResult
+			const trustDBEntry: TrustDBEntry = {
+				publicIdentityKey: object(),
+				sourceOfTrust: object(),
+			}
+			when(publicIdentityKeyProvider.loadPublicIdentityKey(matchers.anything())).thenResolve(trustDBEntry)
+			when(keyVerificationFacade.calculateFingerprint(matchers.anything())).thenResolve("aabbccdd")
+
+			qrCode.data = `{"mailAddress": "ALicE@Tuta.COM", "fingerprint": "aabbccdd"}`
+
+			result = await keyVerificationModel.validateQrCodeAddress(qrCode)
+
+			o(result).equals(IdentityKeyQrVerificationResult.QR_OK)
+			o(keyVerificationModel.getKeyVerificationResult()).equals(IdentityKeyQrVerificationResult.QR_OK)
+			verify(
+				publicIdentityKeyProvider.loadPublicIdentityKey({
+					identifier: "alice@tuta.com",
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				}),
+			)
+			verify(keyVerificationFacade.calculateFingerprint(trustDBEntry.publicIdentityKey))
+		})
+
 		o("malformed JSON payload", async function () {
 			const qrCode: QRCode = object()
 			qrCode.data = "this is no json"
