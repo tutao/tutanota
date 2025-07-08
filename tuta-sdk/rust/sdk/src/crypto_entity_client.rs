@@ -266,19 +266,19 @@ impl CryptoEntityClient {
 					self.entity_facade
 						.decrypt_and_map(type_model, parsed_entity, session_key)?;
 
-				let auth_status = self
+				if let Some(auth_status) = self
 					.get_encryption_auth_status_or_none(
 						type_model,
 						&mut decrypted_entity,
 						sender_identity_pub_key,
 					)
 					.await?
-					.map(ElementValue::Number)
-					.unwrap_or(ElementValue::Null);
-
-				let encryption_auth_status_id =
-					type_model.get_attribute_id_by_attribute_name("encryptionAuthStatus")?;
-				decrypted_entity.insert(encryption_auth_status_id, auth_status);
+				{
+					let encryption_auth_status_id =
+						type_model.get_attribute_id_by_attribute_name("encryptionAuthStatus")?;
+					decrypted_entity
+						.insert(encryption_auth_status_id, ElementValue::Number(auth_status));
+				}
 
 				Ok(decrypted_entity)
 			},
