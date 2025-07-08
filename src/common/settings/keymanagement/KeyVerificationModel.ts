@@ -14,6 +14,7 @@ import { QRCode } from "jsqr"
 import { PermissionType } from "../../native/common/generatedipc/PermissionType"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
+import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 
 export type PublicIdentity = {
 	fingerprint: Hex
@@ -59,7 +60,12 @@ export class KeyVerificationModel {
 				return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_MALFORMED_PAYLOAD)
 			}
 
-			const identityKey = await this.loadIdentityKeyForMailAddress(payload.mailAddress)
+			const cleanMailAddress = getCleanedMailAddress(payload.mailAddress)
+			if (cleanMailAddress == null) {
+				return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_MALFORMED_PAYLOAD)
+			}
+
+			const identityKey = await this.loadIdentityKeyForMailAddress(cleanMailAddress)
 
 			if (identityKey) {
 				if (identityKey.fingerprint === payload.fingerprint) {
