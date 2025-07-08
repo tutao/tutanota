@@ -1,5 +1,7 @@
 # Makefile for building argon2.wasm
 
+# Note: Building this on Windows will require Bash (e.g. Git Bash), as some commands on PS/CMD are not the same as Bash.
+
 # If you run out of memory (ARGON2_MEMORY_ALLOCATION_ERROR) and it's not being caused by a memory leak, try increasing this.
 TOTAL_MEMORY=48MB
 
@@ -16,7 +18,7 @@ SRC_FILES = \
 	"${ARGON2_DIR}/src/blake2/blake2b.c"
 
 clean:
-	rm -f $(WASM)
+	rm -f "${WASM}"
 
 build: $(WASM)
 
@@ -30,9 +32,9 @@ $(WASM):
     	--no-entry \
     	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
     	-s EXPORTED_FUNCTIONS="['_argon2id_hash_raw', '_malloc', '_free']" \
-    	-o $(WASM)
+    	-o "${WASM}"
 
 fallback: $(WASM_FALLBACK)
 
 $(WASM_FALLBACK): $(WASM)
-	 ${WASM2JS} --enable-bulk-memory $(WASM) -o $(WASM_FALLBACK) -O3
+	${WASM2JS} --enable-bulk-memory "${WASM}" -o "${WASM_FALLBACK}" -O3
