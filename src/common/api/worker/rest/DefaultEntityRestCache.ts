@@ -8,7 +8,7 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, deepEqual, downcast, getFirstOrThrow, getTypeString, isEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -27,7 +27,6 @@ import {
 import { ValueType } from "../../common/EntityConstants.js"
 import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import {
-	computePatches,
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
 	elementIdPart,
@@ -40,15 +39,7 @@ import {
 } from "../../common/utils/EntityUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { assertWorkerOrNode } from "../../common/Env"
-import type {
-	ClientModelParsedInstance,
-	ClientTypeModel,
-	Entity,
-	ListElementEntity,
-	ServerModelParsedInstance,
-	SomeEntity,
-	TypeModel,
-} from "../../common/EntityTypes"
+import type { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { EntityUpdateData, PrefetchStatus } from "../../common/utils/EntityUpdateUtils.js"
@@ -58,7 +49,6 @@ import { collapseId, expandId } from "./RestClientIdUtils"
 import { PatchMerger } from "../offline/PatchMerger"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { BitArray } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -395,10 +385,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return this.entityRestClient.getRestClient().getServerTimestampMs()
 	}
 
-	async deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Iterable<Id>): Promise<void> {
-		for (const eId in elementId) {
-			await this.storage.deleteIfExists(typeRef, listId, eId)
-		}
+	async deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
+		return this.storage.deleteIfExists(typeRef, listId, elementId)
 	}
 
 	private async _loadMultiple<T extends SomeEntity>(
@@ -876,8 +864,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				if (update.patches) {
 					const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update)
 					if (patchAppliedInstance == null) {
-						const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
-						await this.storage.put(update.typeRef, newEntity)
+						return await this.reloadAndStoreInstance(update)
 					}
 				} else {
 					const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
@@ -885,9 +872,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 						if (isSameTypeRef(update.typeRef, GroupTypeRef)) {
 							console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
 						}
-						const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
-						await this.storage.put(update.typeRef, newEntity)
-						return update
+						return await this.reloadAndStoreInstance(update)
 					}
 				}
 			}
@@ -902,6 +887,17 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			} else {
 				throw e
 			}
+		}
+	}
+
+	private async reloadAndStoreInstance(update: EntityUpdateData) {
+		const newEntity = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
+		if (!newEntity._errors) {
+			// we do not want to put the instance in the offline storage if there are _errors
+			await this.storage.put(update.typeRef, newEntity)
+			return update
+		} else {
+			return null
 		}
 	}
 

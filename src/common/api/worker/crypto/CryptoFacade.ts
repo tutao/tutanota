@@ -28,19 +28,17 @@ import {
 import { HttpMethod, PatchOperationType, TypeModelResolver } from "../../common/EntityFunctions"
 import {
 	BucketPermission,
+	BucketPermissionTypeRef,
+	createInstanceSessionKey,
 	createPatch,
 	createPatchList,
+	createUpdatePermissionKeyData,
+	GroupInfoTypeRef,
 	GroupMembership,
+	GroupTypeRef,
 	InstanceSessionKey,
 	PatchListTypeRef,
 	Permission,
-} from "../../entities/sys/TypeRefs.js"
-import {
-	BucketPermissionTypeRef,
-	createInstanceSessionKey,
-	createUpdatePermissionKeyData,
-	GroupInfoTypeRef,
-	GroupTypeRef,
 	PermissionTypeRef,
 	PushIdentifierTypeRef,
 } from "../../entities/sys/TypeRefs.js"
@@ -58,7 +56,7 @@ import {
 } from "../../entities/tutanota/TypeRefs.js"
 import { NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "../../common/error/RestError"
 import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
-import type { ClientModelEncryptedParsedInstance, ClientTypeModel, Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../common/EntityTypes"
+import type { ClientTypeModel, Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../common/EntityTypes"
 import { assertWorkerOrNode } from "../../common/Env"
 import type { EntityClient } from "../../common/EntityClient"
 import { RestClient } from "../rest/RestClient"
@@ -81,7 +79,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { EncryptTutanotaPropertiesService } from "../../entities/tutanota/Services"
 import { UpdatePermissionKeyService } from "../../entities/sys/Services"
 import { UserFacade } from "../facades/UserFacade"
-import { computePatchPayload, elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
+import { elementIdPart, getElementId, getListId } from "../../common/utils/EntityUtils.js"
 import { OwnerEncSessionKeysUpdateQueue } from "./OwnerEncSessionKeysUpdateQueue.js"
 import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -95,8 +93,6 @@ import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 import { InstancePipeline } from "./InstancePipeline"
 import { EntityAdapter } from "./EntityAdapter"
 import { typeModelToRestPath } from "../rest/EntityRestClient"
-import { convertJsToDbType } from "./ModelMapper"
-import { ValueType } from "../../common/EntityConstants"
 import { AttributeModel } from "../../common/AttributeModel"
 
 assertWorkerOrNode()
@@ -761,10 +757,10 @@ export class CryptoFacade {
 	 * @param childInstances the files that belong to the mainInstance
 	 */
 	async enforceSessionKeyUpdateIfNeeded(instance: SomeEntity, childInstances: readonly File[]): Promise<File[]> {
-		if (!childInstances.some((f) => f._ownerEncSessionKey == null)) {
+		if (!childInstances.some((f) => f._ownerEncSessionKey == null || f._errors !== undefined)) {
 			return childInstances.slice()
 		}
-		const outOfSyncInstances = childInstances.filter((f) => f._ownerEncSessionKey == null)
+		const outOfSyncInstances = childInstances.filter((f) => f._ownerEncSessionKey == null || f._errors !== undefined)
 		if (instance.bucketKey) {
 			// invoke updateSessionKeys service in case a bucket key is still available
 			const resolvedSessionKeys = await this.resolveWithBucketKey(instance)
