@@ -400,26 +400,6 @@ export class PatchMerger {
 			return isPatchAndFullInstanceMatch
 		}
 	}
-
-	private assertCorrectAssociationCardinality(pathResult: PathResult, valuesToAdd: ParsedAssociation): void {
-		const modelAssociation = pathResult.typeModel.associations[pathResult.attributeId]!
-		const cardinality = modelAssociation.cardinality
-		if ((cardinality == Cardinality.ZeroOrOne && valuesToAdd.length > 1) || (cardinality == Cardinality.One && valuesToAdd.length != 1)) {
-			throw new PatchOperationError(
-				`invalid value / cardinality combination for value ${pathResult.attributeId} on association ${modelAssociation.name}: ${cardinality}, val.len: ${valuesToAdd.length}`,
-			)
-		}
-	}
-
-	private assertCorrectValueCardinality(pathResult: PathResult, valueToAdd: Nullable<ParsedValue>): void {
-		const modelValue = pathResult.typeModel.values[pathResult.attributeId]
-		const cardinality = modelValue.cardinality
-		if (cardinality == Cardinality.One && valueToAdd === null) {
-			throw new PatchOperationError(
-				`invalid value / cardinality combination for value ${pathResult.attributeId} on value ${modelValue.name}: ${cardinality}, isNull: ${true}`,
-			)
-		}
-	}
 }
 
 export function distinctAssociations(associationArray: ParsedAssociation) {
