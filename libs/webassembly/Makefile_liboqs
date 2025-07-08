@@ -1,5 +1,7 @@
 # Makefile for building liboqs.wasm
 
+# Note: Building this on Windows will require Bash (e.g. Git Bash), as some commands on PS/CMD are not the same as Bash.
+
 # If you run out of memory and it's not being caused by a memory leak, try increasing this.
 TOTAL_MEMORY=48MB
 
@@ -38,11 +40,11 @@ SRC_FILES = \
 	"${TUTA_CRYPTO_LIB}/tuta_kem.c"
 
 clean:
-	rm -f ${WASM}
+	rm -f "${WASM}"
 	rm -rf include
 
 include:
-	mkdir -p ${INCLUDE_OQS_DIR}
+	mkdir -p "${INCLUDE_OQS_DIR}"
 	cp "${LIBOQS_DIR}/src/sig_stfl/sig_stfl.h" ${INCLUDE_OQS_DIR}
 	cp "${LIBOQS_DIR}/src/common/aes/aes_ops.h" ${INCLUDE_OQS_DIR}
 	cp "${LIBOQS_DIR}/src/common/sha2/sha2_ops.h" ${INCLUDE_OQS_DIR}
@@ -59,8 +61,8 @@ include:
 	cp "${LIBOQS_DIR}/src/kem/kem.h" ${INCLUDE_OQS_DIR}
 	cp "${LIBOQS_DIR}/src/sig/sig.h" ${INCLUDE_OQS_DIR}
 	cp "${TUTA_CRYPTO_LIB}/tuta_kem.h" ${INCLUDE_OQS_DIR}
-	touch ${INCLUDE_OQS_DIR}/oqsconfig.h
-	patch ${INCLUDE_OQS_DIR}/common.h ${FPRINTF_PATCH}
+	touch "${INCLUDE_OQS_DIR}/oqsconfig.h"
+	patch "${INCLUDE_OQS_DIR}/common.h" "${FPRINTF_PATCH}"
 
 build: $(WASM)
 
@@ -81,9 +83,9 @@ $(WASM): include
     	--no-entry \
     	-s TOTAL_MEMORY=${TOTAL_MEMORY} \
     	-s EXPORTED_FUNCTIONS="['_OQS_KEM_new', '_OQS_KEM_free', '_OQS_KEM_keypair', '_TUTA_KEM_encaps', '_TUTA_KEM_decaps', '_TUTA_inject_entropy', '_malloc', '_free']" \
-    	-o $(WASM)
+    	-o "${WASM}"
 
 fallback: $(WASM_FALLBACK)
 
 $(WASM_FALLBACK): $(WASM)
-	 ${WASM2JS} --enable-bulk-memory $(WASM) -o $(WASM_FALLBACK) -O3
+	${WASM2JS} --enable-bulk-memory "${WASM}" -o "${WASM_FALLBACK}" -O3
