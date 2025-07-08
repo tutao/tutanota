@@ -4,6 +4,7 @@ import type { ApplicationWindow } from "./ApplicationWindow"
 import type { ElectronNotificationFactory } from "./NotificatonFactory"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { lazyNumberRange, numberRange } from "@tutao/tutanota-utils"
 
 export const enum NotificationResult {
 	Click = "click",
@@ -16,6 +17,8 @@ export class DesktopNotifier {
 	pendingNotifications: Array<(...args: Array<any>) => any> = []
 	_notificationCloseFunctions: { [userId in string]?: () => void } = {}
 	_notificationFactory: ElectronNotificationFactory
+	private readonly notificationIdGenerator = lazyNumberRange(0, Number.MAX_SAFE_INTEGER)
+	private shownNotifications: Map<string, () => unknown> = new Map()
 
 	constructor(tray: DesktopTray, notificationFactory: ElectronNotificationFactory) {
 		this._tray = tray
@@ -48,23 +51,29 @@ export class DesktopNotifier {
 	 * @param props.closeHandler Called when the notification was closed (by timeout or user action).
 	 */
 	async showOneShot(props: { title: string; body?: string; icon?: NativeImage }): Promise<NotificationResult> {
+		const key = this.nextNotificationId()
 		const withIcon = {
 			title: props.title,
 			body: props.body,
 			icon: props.icon || (await this._tray.getAppIcon()),
+			tag: key,
+			group: "oneshot",
 		}
 
 		if (!this.isAvailable()) {
 			return Promise.reject()
 		}
 
-		return this._canShow
-			? newPromise((resolve) => this._notificationFactory.makeNotification(withIcon, (res) => resolve(res)))
-			: newPromise((resolve) =>
-					this.pendingNotifications.push(() => {
-						this._notificationFactory.makeNotification(withIcon, (res) => resolve(res))
-					}),
-			  )
+		return newPromise((resolve) => {
+			this.shownNotifications.set(key, () => resolve(NotificationResult.Click))
+			if (this._canShow) {
+				this._notificationFactory.makeNotification(withIcon, (res) => resolve(res))
+			} else {
+				this.pendingNotifications.push(() => {
+					this._notificationFactory.makeNotification(withIcon, (res) => resolve(res))
+				})
+			}
+		})
 	}
 
 	submitGroupedNotification(title: string, message: string, id: string, onClick: (arg0: NotificationResult) => void): void {
@@ -77,12 +86,16 @@ export class DesktopNotifier {
 			if (!this.isAvailable()) {
 				return
 			}
+			const tag = this.nextNotificationId()
+			this.shownNotifications.set(tag, () => onClick(NotificationResult.Click))
 
 			this._notificationCloseFunctions[id] = this._notificationFactory.makeNotification(
 				{
 					title: title,
 					body: message,
 					icon: await this._tray.getAppIcon(),
+					tag: tag,
+					group: id,
 				},
 				onClick,
 			)
@@ -116,5 +129,14 @@ export class DesktopNotifier {
 
 	hasNotificationForId(id: string): boolean {
 		return "function" === typeof this._notificationCloseFunctions[id]
+	}
+
+	onNotificationClick(id: string) {
+		this.shownNotifications.get(id)?.()
+		this.shownNotifications.delete(id)
+	}
+
+	private nextNotificationId(): string {
+		return String(this.notificationIdGenerator.next().value)
 	}
 }

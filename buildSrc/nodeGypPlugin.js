@@ -41,7 +41,7 @@ export function nodeGypPlugin({ rootDir, platform, architecture, nodeModule, env
 			// Since it's a banner we have to be careful about what we use (e.g. process) since it will be added even somewhere where it is not used.
 			// Rollup will remove all unused declarations so it shouldn't hurt.
 			const unprefixedModuleName = removeNpmNamespacePrefix(nodeModule)
-			const constName = `__NODE_GYP_${unprefixedModuleName.replace("-", "_")}`
+			const constName = `__NODE_GYP_${unprefixedModuleName.replaceAll("-", "_")}`
 			return `const ${constName} = \`./${unprefixedModuleName}.${platform}-\${typeof process !== 'undefined' ? process.arch : "unknown"}.node\``
 		},
 		async writeBundle(opts) {

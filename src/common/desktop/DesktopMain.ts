@@ -48,7 +48,7 @@ import { DesktopWebauthnFacade } from "./2fa/DesktopWebauthnFacade.js"
 import { DesktopPostLoginActions } from "./DesktopPostLoginActions.js"
 import { DesktopInterWindowEventFacade } from "./ipc/DesktopInterWindowEventFacade.js"
 import { OfflineDbFactory, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
-import { lazyMemoized } from "@tutao/tutanota-utils"
+import { delay, lazyMemoized } from "@tutao/tutanota-utils"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
@@ -78,6 +78,7 @@ import { DesktopExportLock } from "./export/DesktopExportLock"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
 import { ClientModelInfo } from "../api/common/EntityFunctions"
+import { sendDummyKeystroke } from "@indutny/simple-windows-notifications"
 
 mp()
 
@@ -163,7 +164,22 @@ async function createComponents(): Promise<Components> {
 	const desktopNet = new DesktopNetworkClient()
 	const sock = new Socketeer(net, app)
 	const tray = new DesktopTray(conf)
-	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory())
+
+	// FIXME: do we want to wait here?
+	const appId = await conf.getConst(BuildConfigKey.appUserModelId)
+	app.setAppUserModelId(appId)
+	console.log("appId is", appId)
+
+	console.log("registering for tuta protocol", process.execPath, app.getAppPath())
+	app.setAsDefaultProtocolClient("tuta", process.execPath, [app.getAppPath()])
+
+	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory(appId))
+
+	// FIXME
+	delay(2000)
+		.then(() => notifier.showOneShot({ title: "Hello I am a test notification", body: "I am indeed a test notification" }))
+		.then(() => console.log("notificaiton click"))
+
 	const dateProvider = new DefaultDateProvider()
 	const clientModelInfo = ClientModelInfo.getInstance()
 	// We need a custom instance pipeline for everything native as we only process them with the client type model
@@ -326,9 +342,6 @@ async function createComponents(): Promise<Components> {
 
 	const contextMenu = new DesktopContextMenu(electron, wm)
 	wm.lateInit(contextMenu, themeFacade, remoteBridge)
-	conf.getConst(BuildConfigKey.appUserModelId).then((appUserModelId) => {
-		app.setAppUserModelId(appUserModelId)
-	})
 	log.debug("version:  ", app.getVersion())
 	return {
 		wm,
@@ -347,11 +360,17 @@ async function createComponents(): Promise<Components> {
 }
 
 async function startupInstance(components: Components) {
-	const { wm, sse, tfs } = components
+	const { wm, sse, tfs, notifier } = components
+	sendDummyKeystroke()
 	if (!(await desktopUtils.cleanupOldInstance())) return
 	sse.connect().catch((e) => log.warn("unable to start sse client", e))
 	// The second-instance event fires when we call app.requestSingleInstanceLock inside DesktopUtils.makeSingleInstance
-	app.on("second-instance", async (_ev, args) => desktopUtils.handleSecondInstance(wm, args))
+	app.on("second-instance", async (_ev, args) => {
+		// FIXME
+		console.log("second instance", args)
+		sendDummyKeystroke()
+		desktopUtils.handleSecondInstance(wm, notifier, args)
+	})
 	app.on("open-url", (e, url) => {
 		// MacOS mailto handling
 		e.preventDefault()
