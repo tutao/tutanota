@@ -14,13 +14,13 @@ import { DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog.js"
-import { LockedError } from "../../../common/api/common/error/RestError.js"
+import { LockedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
 import { ifAllowedTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { ExternalLink } from "../../../common/gui/base/ExternalLink.js"
 import { SourceCodeViewer } from "./SourceCodeViewer.js"
 import { getMailAddressDisplayText, hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
-import { Mail, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { ConversationEntry, ConversationEntryTypeRef, Mail, MailDetails, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 
@@ -112,9 +112,23 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 				if (mailboxDetails == null) {
 					return
 				}
+
+				let conversationEntry: ConversationEntry
+				try {
+					conversationEntry = await locator.entityClient.load(ConversationEntryTypeRef, viewModel.mail.conversationEntry)
+				} catch (e) {
+					if (e instanceof NotFoundError) {
+						// draft was likely deleted
+						return
+					} else {
+						throw e
+					}
+				}
+
 				const editorDialog = await newMailEditorFromDraft(
 					viewModel.mail,
 					await loadMailDetails(locator.mailFacade, viewModel.mail),
+					conversationEntry,
 					viewModel.getAttachments(),
 					viewModel.getLoadedInlineImages(),
 					viewModel.isBlockingExternalImages(),

@@ -36,6 +36,7 @@ import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
 import {
 	Contact,
 	ContactTypeRef,
+	ConversationEntry,
 	createTranslationGetIn,
 	File as TutanotaFile,
 	Mail,
@@ -1092,6 +1093,7 @@ export async function newMailEditorAsResponse(
 export async function newMailEditorFromDraft(
 	mail: Mail,
 	mailDetails: MailDetails,
+	converstaionEntry: ConversationEntry,
 	attachments: TutanotaFile[],
 	inlineImages: InlineImages,
 	blockExternalContent: boolean,
@@ -1099,7 +1101,7 @@ export async function newMailEditorFromDraft(
 ): Promise<Dialog> {
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
-	await model.initWithDraft(mail, mailDetails, attachments, inlineImages)
+	await model.initWithDraft(mail, mailDetails, converstaionEntry, attachments, inlineImages)
 	const externalImageRules = await getExternalContentRulesForEditor(model, blockExternalContent)
 	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
