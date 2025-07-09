@@ -52,7 +52,7 @@ export class DialogHeaderBar implements Component<DialogHeaderBarAttrs> {
 								"data-testid": `dialog:${lang.getTestId(a.middle)}`,
 							},
 							[m(".text-ellipsis", lang.getTranslationText(a.middle))],
-					  )
+						)
 					: null,
 				m(
 					columnClass + ".mr-negative-s.flex.justify-end",

@@ -305,7 +305,7 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 		? undefined
 		: (update: VoidFunction): ButtonAttrs => {
 				return getPrivateBusinessSwitchButton(this.data.options.businessUse, update)
-		  }
+			}
 
 	isEnabled(): boolean {
 		return true
@@ -330,7 +330,7 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, upd
 							fill: theme.content_accent,
 							"vertical-align": "sub",
 						},
-				  }),
+					}),
 		click: () => {
 			businessUse(!isBusiness)
 			update()

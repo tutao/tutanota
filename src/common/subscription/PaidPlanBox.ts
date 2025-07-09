@@ -113,10 +113,10 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 								? {
 										"align-items": plan === PlanType.Revolutionary ? "flex-end" : "flex-start",
 										"flex-direction": "column",
-								  }
+									}
 								: {
 										...(plan === PlanType.Revolutionary && { "flex-direction": "row-reverse" }),
-								  }),
+									}),
 						},
 					},
 					m("input[type=radio].m-0.big-radio", {
@@ -180,7 +180,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 											},
 										},
 										strikethroughPrice,
-								  )
+									)
 								: m(""),
 							m(
 								".h1",

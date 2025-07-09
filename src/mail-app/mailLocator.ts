@@ -332,7 +332,7 @@ class MailLocator implements CommonLocator {
 		onEmailOpened: isDesktop()
 			? (mail) => {
 					this.desktopSystemFacade.sendSocketMessage(getDisplayedSender(mail).address)
-			  }
+				}
 			: noOp,
 	}
 
@@ -649,7 +649,7 @@ class MailLocator implements CommonLocator {
 					if (isDesktop()) {
 						await mailLocator.exportFacade.clearExportState(userId)
 					}
-			  })
+				})
 	}
 
 	async loginViewModelFactory(): Promise<lazy<LoginViewModel>> {
@@ -663,7 +663,7 @@ class MailLocator implements CommonLocator {
 			const domainConfig = isBrowser()
 				? mailLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
-				  mailLocator.domainConfigProvider().getCurrentDomainConfig()
+					mailLocator.domainConfigProvider().getCurrentDomainConfig()
 
 			return new LoginViewModel(
 				mailLocator.logins,

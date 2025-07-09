@@ -31,7 +31,11 @@ export class GroupDetailsModel {
 
 	private senderName!: LazyLoaded<string>
 
-	constructor(groupInfo: GroupInfo, private readonly entityClient: EntityClient, private readonly updateViewCallback: () => void) {
+	constructor(
+		groupInfo: GroupInfo,
+		private readonly entityClient: EntityClient,
+		private readonly updateViewCallback: () => void,
+	) {
 		this.entityClient = entityClient
 		this.groupInfo = groupInfo
 		this.group = new LazyLoaded(() => this.entityClient.load(GroupTypeRef, this.groupInfo.group))

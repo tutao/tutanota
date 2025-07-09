@@ -113,7 +113,11 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		return this.closeDefer.promise
 	}
 
-	constructor(private readonly targetRect: PosRect, private readonly targetWidth: number, private readonly attrs: AttachmentBubbleAttrs) {
+	constructor(
+		private readonly targetRect: PosRect,
+		private readonly targetWidth: number,
+		private readonly attrs: AttachmentBubbleAttrs,
+	) {
 		this._shortcuts.push({
 			key: Keys.ESC,
 			exec: () => this.onClose(),
@@ -224,7 +228,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 										type: ButtonType.Secondary,
 										label: "import_action",
 										click: () => this.thenClose(fileImport),
-								  })
+									})
 								: null,
 							open ? m(Button, { type: ButtonType.Secondary, label: "open_action", click: () => this.thenClose(open) }) : null,
 							download ? m(Button, { type: ButtonType.Secondary, label: "download_action", click: () => this.thenClose(download) }) : null,

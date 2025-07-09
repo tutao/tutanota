@@ -140,7 +140,7 @@ export class SecondFactorEditDialog {
 							label: "addOpenOTPApp_action",
 							onclick: () => this.openOtpLink(),
 						}),
-				  )
+					)
 				: this.renderOtpQrCode(),
 			m(TextField, {
 				label: "totpCode_label",

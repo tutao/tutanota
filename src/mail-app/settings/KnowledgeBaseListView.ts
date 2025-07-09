@@ -137,7 +137,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 										showKnowledgeBaseEditor(null, this.templateGroupRoot)
 									},
 								}),
-						  )
+							)
 						: null,
 				),
 			},
@@ -146,7 +146,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 						color: theme.list_message_bg,
 						icon: Icons.Book,
 						message: "noEntries_msg",
-				  })
+					})
 				: m(List, {
 						renderConfig: this.renderConfig,
 						state: this.listModel.state,
@@ -159,7 +159,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 						},
 						onSingleTogglingMultiselection: noOp,
 						onRangeSelectionTowards: noOp,
-				  } satisfies ListAttrs<KnowledgeBaseEntry, KnowledgeBaseRow>),
+					} satisfies ListAttrs<KnowledgeBaseEntry, KnowledgeBaseRow>),
 		)
 	}
 
@@ -232,7 +232,10 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 }
 
 export class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDetailsViewer {
-	constructor(private readonly entry: KnowledgeBaseEntry, private readonly readonly: boolean) {}
+	constructor(
+		private readonly entry: KnowledgeBaseEntry,
+		private readonly readonly: boolean,
+	) {}
 
 	renderView(): Children {
 		return m(

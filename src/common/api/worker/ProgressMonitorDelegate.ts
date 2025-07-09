@@ -5,7 +5,10 @@ import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 export class ProgressMonitorDelegate implements IProgressMonitor {
 	private readonly ref: Promise<ProgressMonitorId>
 
-	constructor(private readonly progressTracker: ExposedProgressTracker, readonly totalWork: number) {
+	constructor(
+		private readonly progressTracker: ExposedProgressTracker,
+		readonly totalWork: number,
+	) {
 		this.ref = progressTracker.registerMonitor(totalWork)
 	}
 

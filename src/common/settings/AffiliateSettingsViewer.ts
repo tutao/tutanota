@@ -24,7 +24,10 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 	private readonly affiliateViewModel = new LazyLoaded<AffiliateViewModel>(async () => await mailLocator.affiliateViewModel())
 	private readonly domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 
-	constructor(private readonly getIsShowingKpis: () => boolean, private readonly toggleKpiColumn: () => unknown) {}
+	constructor(
+		private readonly getIsShowingKpis: () => boolean,
+		private readonly toggleKpiColumn: () => unknown,
+	) {}
 
 	oninit(): any {
 		this.affiliateViewModel.getAsync().then((avm) => avm.load().finally(m.redraw))

@@ -19,7 +19,11 @@ import { AttributeModel } from "../../../common/api/common/AttributeModel"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 export class IndexedDbMailIndexerBackend implements MailIndexerBackend {
-	constructor(private readonly core: IndexerCore, private readonly userId: Id, private readonly typeModelResolver: ClientTypeModelResolver) {}
+	constructor(
+		private readonly core: IndexerCore,
+		private readonly userId: Id,
+		private readonly typeModelResolver: ClientTypeModelResolver,
+	) {}
 
 	getCurrentIndexTimestamps(groupIds: readonly Id[]): Promise<Map<Id, number>> {
 		return this.core.getGroupIndexTimestamps(groupIds)

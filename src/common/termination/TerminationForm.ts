@@ -115,7 +115,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 								startOfTheWeekOffset: 0,
 								label: "date_label",
 								disabled: false,
-						  })
+							})
 						: null,
 				]),
 				m(".mt-l.text-center", lang.get("surveySecondaryMessageDelete_label")),

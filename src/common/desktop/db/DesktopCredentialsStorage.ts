@@ -32,7 +32,10 @@ export class DesktopCredentialsStorage {
 		return this._db
 	}
 
-	constructor(private readonly dbPath: string, app: Electron.App) {
+	constructor(
+		private readonly dbPath: string,
+		app: Electron.App,
+	) {
 		if (this._db == null) {
 			this.create().then(() => {
 				app.on("will-quit", () => this.closeDb())

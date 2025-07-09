@@ -36,7 +36,10 @@ export class EventDragHandler {
 	private lastDiffBetweenDates: number | null = null
 	private hasChanged: boolean = false
 
-	constructor(private readonly draggingArea: HTMLBodyElement, private readonly eventDragCallbacks: EventDragHandlerCallbacks) {}
+	constructor(
+		private readonly draggingArea: HTMLBodyElement,
+		private readonly eventDragCallbacks: EventDragHandlerCallbacks,
+	) {}
 
 	get isDragging(): boolean {
 		return this.dragging

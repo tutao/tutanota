@@ -48,7 +48,10 @@ export type ProgressObserver = (somePromise: Promise<void>, progress?: Stream<nu
  * coordinates single and multiple downloads on different platforms
  */
 export abstract class FileController {
-	protected constructor(protected readonly blobFacade: BlobFacade, protected readonly observeProgress: ProgressObserver) {}
+	protected constructor(
+		protected readonly blobFacade: BlobFacade,
+		protected readonly observeProgress: ProgressObserver,
+	) {}
 
 	private async doDownload(tutanotaFiles: TutanotaFile[], action: DownloadPostProcessing, progress?: stream<number>): Promise<void> {
 		const downloadedFiles: Array<FileReference | DataFile> = []

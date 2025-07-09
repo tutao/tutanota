@@ -56,7 +56,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 								style: {
 									fill: a.color ? a.color : theme.content_button,
 								},
-						  })
+							})
 						: null,
 					m(
 						`${a.isBig ? "span" : "small"}`,

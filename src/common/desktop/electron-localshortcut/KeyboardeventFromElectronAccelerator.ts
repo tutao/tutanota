@@ -227,7 +227,7 @@ export function reduceKey({ accelerator, event }: ReducedEvent, key: string): Re
 			code
 				? {
 						code,
-				  }
+					}
 				: null,
 		),
 		accelerator: accelerator.trim().slice(key.length),
@@ -292,7 +292,7 @@ export function reduceCode(
 			code
 				? {
 						code,
-				  }
+					}
 				: null,
 		),
 		accelerator: accelerator.trim().slice((key && key.length) || 0),

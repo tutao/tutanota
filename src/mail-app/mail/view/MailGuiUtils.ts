@@ -415,7 +415,7 @@ export async function showMailFolderDropdown(
 					onClick(f)
 				},
 				icon: getFolderIcon(f.folder),
-			} satisfies DropdownChildAttrs),
+			}) satisfies DropdownChildAttrs,
 	)
 
 	const dropdown = new Dropdown(() => folderButtons, width)

@@ -109,7 +109,7 @@ export class BuyOptionDetails implements Component<BuyOptionDetailsAttr> {
 									? m(Icon, {
 											icon: BootIcons.Heart,
 											style: attrs.iconStyle,
-									  })
+										})
 									: m(Icon, { icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark, style: attrs.iconStyle }),
 								m(".small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", [m("span", f.text)]),
 								f.toolTip ? m(InfoIcon, { text: f.toolTip }) : null,
@@ -216,7 +216,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 										},
 									},
 									attrs.actionButton(),
-							  )
+								)
 							: null,
 					],
 				),
@@ -239,7 +239,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							},
 						},
 						strikethroughPrice,
-				  )
+					)
 				: m(""),
 			m(".h1", { style: { ...(isApplePrice && { "font-size": px(20), "font-weight": "bold" }) } }, price),
 			m(""),
@@ -283,7 +283,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						m.redraw()
 					},
 					shouldApplyCampaignColor: shouldApplyCampaignColor,
-			  })
+				})
 			: null
 	}
 

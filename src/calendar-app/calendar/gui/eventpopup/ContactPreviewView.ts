@@ -174,7 +174,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 						BannerButton,
 						makeActionButtonAttrs(onSendMailClick, "sendMail_label", emailButtonColors, renderIcon(BootIcons.Mail, emailButtonColors.color)),
 					),
-			  )
+				)
 			: null,
 		contact.phoneNumbers.length
 			? m(
@@ -188,7 +188,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 							renderIcon(Icons.Call, phoneButtonColors.color),
 						),
 					),
-			  )
+				)
 			: null,
 	])
 })

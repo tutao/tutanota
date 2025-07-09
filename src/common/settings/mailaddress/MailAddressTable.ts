@@ -41,7 +41,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 					click: () => this.onAddAlias(attrs),
 					icon: Icons.Add,
 					size: ButtonSize.Compact,
-			  }
+				}
 			: null
 		return [
 			m(".flex-space-between.items-center.mt-l.mb-s", [
@@ -78,7 +78,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 							}),
 						),
 						m(".small.mt-s", lang.get(model.aliasLimitIncludesCustomDomains() ? "mailAddressInfoLegacy_msg" : "mailAddressInfo_msg")),
-				  ]
+					]
 				: null,
 		]
 	}
@@ -132,7 +132,7 @@ function addressDropdownButtons(attrs: MailAddressTableAttrs, addressInfo: Addre
 								switchAliasStatus(addressInfo, attrs)
 							},
 						},
-				  ]
+					]
 				: []
 		}
 		case AddressStatus.Custom: {
@@ -184,7 +184,7 @@ export function getAliasLineAttrs(attrs: MailAddressTableAttrs): Array<TableLine
 						showDropdown: () => true,
 						width: 250,
 						childAttrs: () => dropdownButtons,
-				  })
+					})
 		return {
 			cells: () => [{ main: addressInfo.address, info: [addressInfo.name] }, { main: statusLabel(addressInfo) }],
 			actionButtonAttrs: actionButtonAttrs,

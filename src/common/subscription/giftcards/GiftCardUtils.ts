@@ -116,7 +116,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 									},
 									title: "share_action",
 									icon: BootIcons.Share,
-							  })
+								})
 							: m(IconButton, {
 									click: () => {
 										copyToClipboard(link)
@@ -129,7 +129,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 									},
 									title: "copyToClipboard_action",
 									icon: Icons.Clipboard,
-							  }),
+								}),
 						!isApp()
 							? m(IconButton, {
 									click: () => {
@@ -138,7 +138,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 									},
 									title: "print_action",
 									icon: Icons.Print,
-							  })
+								})
 							: null,
 					]),
 					m(".flex-center", m("small.noprint", lang.getTranslationText(infoMessage))),

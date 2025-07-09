@@ -346,7 +346,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					? lang.makeTranslation(
 							"field_label",
 							lang.getTranslationText(assertNotNull(SEARCH_MAIL_FIELDS.find((f) => f.field === this.searchViewModel.selectedMailField)).textId),
-					  )
+						)
 					: lang.getTranslation("field_label"),
 				selected: this.searchViewModel.selectedMailField != null,
 				chevron: true,
@@ -362,8 +362,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				label: this.searchViewModel.mailFilter.has(MailFilterType.Unread)
 					? lang.getTranslation("filterUnread_label")
 					: this.searchViewModel.mailFilter.has(MailFilterType.Read)
-					? lang.getTranslation("filterRead_label")
-					: lang.getTranslation("filterUnread_label"),
+						? lang.getTranslation("filterRead_label")
+						: lang.getTranslation("filterUnread_label"),
 				selected: this.searchViewModel.mailFilter.has(MailFilterType.Unread) || this.searchViewModel.mailFilter.has(MailFilterType.Read),
 				chevron: true,
 				onClick: createDropdown({
@@ -589,12 +589,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							? m(MultiContactViewer, {
 									selectedEntities: selectedContacts,
 									selectNone: () => this.searchViewModel.listModel.selectNone(),
-							  })
+								})
 							: m(ContactCardViewer, {
 									contact: selectedContacts[0],
 									onWriteMail: writeMail,
 									highlightedStrings: this.searchViewModel.getHighlightedStrings(),
-							  }),
+								}),
 					),
 			})
 		} else if (getCurrentSearchMode() === SearchCategoryTypes.mail) {
@@ -641,8 +641,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							this.searchViewModel.loadingAllForSearchResult != null
 								? "loading"
 								: this.searchViewModel.listModel.isLoadedCompletely()
-								? "loaded"
-								: "can_load",
+									? "loaded"
+									: "can_load",
 						getSelectionMessage: (selected: ReadonlyArray<Mail>) => getMailSelectionMessage(selected),
 					}),
 				})
@@ -727,7 +727,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								icon: BootIcons.Calendar,
 								color: theme.content_message_bg,
 								backgroundColor: theme.navigation_bg,
-						  })
+							})
 						: this.renderEventPreview(selectedEvent),
 			})
 		} else {
@@ -756,7 +756,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
 							.finally(m.redraw)
 					})
-			  }
+				}
 			: null
 	}
 
@@ -815,7 +815,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return mailModel.canAssignLabels() && allInSameMailbox(selectedMails)
 			? (dom, opts) => {
 					showLabelsPopup(mailModel, selectedMails, async () => selectedMails.map((m) => m._id), dom, opts)
-			  }
+				}
 			: null
 	}
 

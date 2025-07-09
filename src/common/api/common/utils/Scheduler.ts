@@ -44,7 +44,11 @@ export class SchedulerImpl implements Scheduler {
 	 */
 	private readonly bridgedTimeouts: Map<ScheduledTimeoutId, ScheduledTimeoutId>
 
-	constructor(private readonly dateProvider: DateProvider, private readonly systemTimeout: SystemTimeout, private readonly systemInterval: SystemInterval) {
+	constructor(
+		private readonly dateProvider: DateProvider,
+		private readonly systemTimeout: SystemTimeout,
+		private readonly systemInterval: SystemInterval,
+	) {
 		this.bridgedTimeouts = new Map()
 	}
 

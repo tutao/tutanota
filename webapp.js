@@ -9,7 +9,7 @@
  * Unfortunately manual bundling is "infectious" in a sense that if you manually put module in a chunk all its dependencies will also be
  * put in that chunk unless they are sorted into another manual chunk. Ideally this would be semi-automatic with directory-based chunks.
  */
-import { Argument, program } from "commander"
+import { Argument, Option, program } from "commander"
 import fs from "fs-extra"
 import path, { dirname } from "node:path"
 import { buildWebapp } from "./buildSrc/buildWebapp.js"
@@ -27,7 +27,7 @@ await program
 	.description("Utility to build the web part of tuta")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host", "release"]).default("prod").argOptional())
 	.addArgument(new Argument("host").argOptional())
-	.option("--app <app>", "app to build", "mail")
+	.addOption(new Option("--app <app>", "app to build").choices(["mail", "calendar"]))
 	.option("--disable-minify", "disable minification")
 	.option("--out-dir <outDir>", "where to copy the client")
 	.action(async (stage, host, options) => {

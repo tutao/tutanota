@@ -417,17 +417,10 @@ export class MailModel {
 	}
 
 	_showNotification(folder: MailFolder, mail: Mail) {
-		this.notifications.showNotification(
-			NotificationType.Mail,
-			lang.get("newMails_msg"),
-			{
-				actions: [],
-			},
-			(_) => {
-				m.route.set(`/mail/${getElementId(folder)}/${getElementId(mail)}`)
-				window.focus()
-			},
-		)
+		this.notifications.showNotification(NotificationType.Mail, lang.get("newMails_msg"), {}, (_) => {
+			m.route.set(`/mail/${getElementId(folder)}/${getElementId(mail)}`)
+			window.focus()
+		})
 	}
 
 	getCounterValue(folder: MailFolder): Promise<number | null> {

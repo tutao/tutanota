@@ -28,7 +28,7 @@ export class IconMessageBox implements Component<InfoMessaggeBoxAttrs> {
 							fill: attrs.color,
 						},
 						class: "icon-message-box",
-				  })
+					})
 				: null,
 			m(
 				".h2.text-center.text-preline",

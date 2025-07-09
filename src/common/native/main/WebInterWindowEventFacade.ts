@@ -7,7 +7,11 @@ import { DeviceConfig } from "../../misc/DeviceConfig.js"
  * receiving side of the InterWindowEventBus
  */
 export class WebInterWindowEventFacade implements InterWindowEventFacade {
-	constructor(private readonly logins: LoginController, private readonly windowFacade: WindowFacade, private readonly deviceConfig: DeviceConfig) {}
+	constructor(
+		private readonly logins: LoginController,
+		private readonly windowFacade: WindowFacade,
+		private readonly deviceConfig: DeviceConfig,
+	) {}
 
 	async localUserDataInvalidated(userId: string): Promise<void> {
 		if (this.logins.isUserLoggedIn() && userId === this.logins.getUserController().userId) {

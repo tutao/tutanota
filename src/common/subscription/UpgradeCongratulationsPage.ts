@@ -37,7 +37,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 								alt: "vitor_alt",
 							},
 						}),
-				  ])
+					])
 				: null,
 			m(
 				".flex-center.full-width.pt-l",

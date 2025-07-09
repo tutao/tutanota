@@ -17,7 +17,10 @@ export class PageContextLoginListener implements LoginListener {
 	private loginPromise: DeferredObject<void> = defer()
 	private fullLoginFailed: boolean = false
 
-	constructor(private readonly secondFactorHandler: SecondFactorHandler, private readonly credentialsProvider: CredentialsProvider) {}
+	constructor(
+		private readonly secondFactorHandler: SecondFactorHandler,
+		private readonly credentialsProvider: CredentialsProvider,
+	) {}
 
 	/** e.g. after temp logout */
 	reset() {

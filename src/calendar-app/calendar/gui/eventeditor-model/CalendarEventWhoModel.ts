@@ -245,7 +245,7 @@ export class CalendarEventWhoModel {
 				: createEncryptedMailAddress({
 						address: cleanMailAddress(initialValues.organizer.address),
 						name: initialValues.organizer.name,
-				  })
+					})
 
 		if (initialOrganizerAddress != null) {
 			// check if the organizer is also in the attendees array and remove them if so

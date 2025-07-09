@@ -122,7 +122,7 @@ export class UserListView implements UpdatableSettingsViewer {
 						color: theme.list_message_bg,
 						icon: BootIcons.Contacts,
 						message: "noEntries_msg",
-				  })
+					})
 				: m(List, {
 						renderConfig: this.renderConfig,
 						state: this.listModel.state,
@@ -135,7 +135,7 @@ export class UserListView implements UpdatableSettingsViewer {
 						},
 						onSingleTogglingMultiselection: noOp,
 						onRangeSelectionTowards: noOp,
-				  } satisfies ListAttrs<GroupInfo, UserRow>),
+					} satisfies ListAttrs<GroupInfo, UserRow>),
 		)
 	}
 

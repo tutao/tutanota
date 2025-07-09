@@ -309,7 +309,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 								domainDnsStatus.status.isLoaded() && !domainDnsStatus.areAllRecordsFine()
 									? () => {
 											showDnsCheckDialog(domainDnsStatus)
-									  }
+										}
 									: noOp,
 						},
 						{

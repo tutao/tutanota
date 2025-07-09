@@ -106,7 +106,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							: {
 									label: "newContact_action",
 									click: () => this.createNewContact(),
-							  },
+								},
 						content: [
 							m(
 								SidebarSection,
@@ -198,7 +198,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					? m(MultiselectMobileHeader, {
 							...selectionAttrsForList(this.contactViewModel.listModel),
 							message: getContactSelectionMessage(this.getSelectedContacts().length),
-					  })
+						})
 					: m(MobileHeader, {
 							...header,
 							backAction: () => this.viewSlider.focusPreviousColumn(),
@@ -213,7 +213,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 								}),
 							]),
 							primaryAction: () => this.renderHeaderRightView(),
-					  }),
+						}),
 		})
 	}
 
@@ -232,7 +232,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					? m(MultiselectMobileHeader, {
 							...selectionAttrsForList(this.contactListViewModel.listModel),
 							message: getContactSelectionMessage(this.contactListViewModel.listModel?.getSelectedAsArray().length),
-					  })
+						})
 					: m(MobileHeader, {
 							...header,
 							backAction: () => this.viewSlider.focusPreviousColumn(),
@@ -256,7 +256,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 									return null
 								}
 							},
-					  }),
+						}),
 		})
 	}
 
@@ -316,9 +316,9 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 									? null
 									: m(LazySearchBar, {
 											placeholder: lang.get("searchContacts_placeholder"),
-									  }),
+										}),
 							...attrs.header,
-					  }),
+						}),
 				bottomNav:
 					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.detailsColumn && !this.showingListView()
 						? this.inContactListView()
@@ -330,9 +330,9 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 													title: "delete_action",
 													action: () => this.contactListViewModel.deleteSelectedEntries(),
 												},
-										  ]
+											]
 										: [],
-							  })
+								})
 							: m(MobileActionBar, {
 									actions: [
 										{
@@ -346,13 +346,13 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 											action: () => this.deleteSelectedContacts(),
 										},
 									],
-							  })
+								})
 						: (styles.isSingleColumnLayout() &&
-								this.viewSlider.focusedColumn === this.listColumn &&
-								this.contactViewModel.listModel.state.inMultiselect) ||
-						  this.contactListViewModel.listModel?.state.inMultiselect
-						? m(MobileBottomActionBar, this.detailsViewerActions())
-						: m(BottomNav),
+									this.viewSlider.focusedColumn === this.listColumn &&
+									this.contactViewModel.listModel.state.inMultiselect) ||
+							  this.contactListViewModel.listModel?.state.inMultiselect
+							? m(MobileBottomActionBar, this.detailsViewerActions())
+							: m(BottomNav),
 			}),
 		)
 	}
@@ -416,10 +416,10 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 										label: "cancel_action",
 										type: ButtonType.Secondary,
 										click: () => this.contactListViewModel.listModel?.selectNone(),
-								  })
+									})
 								: null,
 						backgroundColor: theme.navigation_bg,
-				  })
+					})
 				: m(ContactListEntryViewer, {
 						entry: getFirstOrThrow(entries),
 						contacts: this.contactListViewModel.contactsForSelectedEntry,
@@ -433,18 +433,18 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						},
 						onWriteMail: writeMail,
 						selectNone: () => this.contactListViewModel.listModel?.selectNone(),
-				  })
+					})
 		} else {
 			const contacts = this.getSelectedContacts()
 			return this.showingListView()
 				? m(MultiContactViewer, {
 						selectedEntities: contacts,
 						selectNone: () => this.contactViewModel.listModel.selectNone(),
-				  })
+					})
 				: m(ContactCardViewer, {
 						contact: contacts[0],
 						onWriteMail: writeMail,
-				  })
+					})
 		}
 	}
 
@@ -530,7 +530,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 								return this.renderContactListRow(cl, true)
 							}),
 						),
-				  )
+					)
 				: null,
 			this.contactListInvitationSection,
 		]
@@ -578,14 +578,14 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 								click: () => importContacts(),
 								icon: Icons.ContactImport,
 							},
-					  ]
+						]
 					: [
 							{
 								label: "exportVCard_action",
 								click: () => exportAsVCard(locator.contactModel),
 								icon: Icons.Export,
 							},
-					  ]
+						]
 
 				return vcardButtons.concat([
 					{
@@ -671,7 +671,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 										this.contactListViewModel.deleteContactList(contactListInfo)
 									}
 								},
-						  }
+							}
 						: {
 								label: "leaveGroup_action",
 								icon: Icons.Trash,
@@ -687,7 +687,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 										return this.contactListViewModel.removeUserFromContactList(contactListInfo)
 									}
 								},
-						  },
+							},
 				]
 			},
 		})
@@ -876,7 +876,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							click: () => {
 								this.addAddressesToContactList()
 							},
-					  })
+						})
 					: null,
 			)
 		} else {

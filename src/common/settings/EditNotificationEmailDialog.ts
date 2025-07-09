@@ -139,14 +139,14 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 					label: "notificationMailLanguage_label",
 					isReadOnly: true,
 					value: selectedLanguage.name,
-			  })
+				})
 			: m(DropDownSelector, {
 					label: "notificationMailLanguage_label",
 					items: sortedLanguages,
 					selectedValue: selectedLanguageStream(),
 					selectionChangedHandler: selectedLanguageStream,
 					dropdownWidth: 250,
-			  }),
+				}),
 		m(TextField, {
 			label: "subject_label",
 			value: subject(),

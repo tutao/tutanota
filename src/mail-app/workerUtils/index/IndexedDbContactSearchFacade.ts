@@ -10,7 +10,10 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
  * IndexedDB-based search facade
  */
 export class IndexedDbContactSearchFacade implements ContactSearchFacade {
-	constructor(private readonly search: IndexedDbSearchFacade, private readonly typeModelResolver: ClientTypeModelResolver) {}
+	constructor(
+		private readonly search: IndexedDbSearchFacade,
+		private readonly typeModelResolver: ClientTypeModelResolver,
+	) {}
 
 	private readonly restriction: lazy<
 		Promise<{

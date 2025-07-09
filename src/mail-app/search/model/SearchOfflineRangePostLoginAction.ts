@@ -8,7 +8,10 @@ import { SessionType } from "../../../common/api/common/SessionType"
  * This updates the mail index on full login.
  */
 export class SearchOfflineRangePostLoginAction implements PostLoginAction {
-	constructor(private readonly offlineStorageSettings: OfflineStorageSettingsModel, private readonly indexer: Indexer) {}
+	constructor(
+		private readonly offlineStorageSettings: OfflineStorageSettingsModel,
+		private readonly indexer: Indexer,
+	) {}
 
 	async onPartialLoginSuccess(event: LoggedInEvent): Promise<void> {
 		if (event.sessionType === SessionType.Persistent) {

@@ -184,7 +184,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 								const domRect = this.dom?.getBoundingClientRect() ?? dom.getBoundingClientRect()
 								dropdown.setOrigin(domRect)
 								modal.displayUnique(dropdown, true)
-						  }
+							}
 						: replyAction,
 				icon: replyAllAction != null ? Icons.ReplyAll : Icons.Reply,
 			})

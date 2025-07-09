@@ -11,7 +11,10 @@ import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../SubscriptionD
  * News item that informs admin users that the new pricing offer is ending soon.
  */
 export class NewPlansOfferEndingNews implements NewsListItem {
-	constructor(private readonly newsModel: NewsModel, private readonly userController: UserController) {}
+	constructor(
+		private readonly newsModel: NewsModel,
+		private readonly userController: UserController,
+	) {}
 
 	async isShown(): Promise<boolean> {
 		if (!this.userController.isGlobalAdmin()) {

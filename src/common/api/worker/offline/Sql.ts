@@ -73,5 +73,8 @@ export function usql(queryParts: TemplateStringsArray, ...paramInstances: (SqlVa
 }
 
 export class SqlFragment {
-	constructor(readonly text: string, readonly params: SqlValue[]) {}
+	constructor(
+		readonly text: string,
+		readonly params: SqlValue[],
+	) {}
 }

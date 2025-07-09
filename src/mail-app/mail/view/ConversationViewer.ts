@@ -182,18 +182,18 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 						label: "retry_action",
 						click: () => viewModel.retry(),
 					}),
-			  )
+				)
 			: !viewModel.isFinished()
-			? m(
-					".font-weight-600.center.mt-l" + "." + responsiveCardHMargin(),
-					{
-						style: {
-							color: theme.content_button,
+				? m(
+						".font-weight-600.center.mt-l" + "." + responsiveCardHMargin(),
+						{
+							style: {
+								color: theme.content_button,
+							},
 						},
-					},
-					lang.get("loading_msg"),
-			  )
-			: null
+						lang.get("loading_msg"),
+					)
+				: null
 	}
 
 	private renderViewer(
@@ -218,7 +218,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				mailViewModel.isCollapsed()
 					? m(CollapsedMailView, {
 							viewModel: mailViewModel,
-					  })
+						})
 					: m(MailViewer, {
 							viewModel: mailViewModel,
 							isPrimary: isPrimary,
@@ -226,7 +226,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 							defaultQuoteBehavior: position === 0 ? "expand" : "collapse",
 							moreActions: moreActions,
 							actions: actions,
-					  }),
+						}),
 			),
 		)
 	}

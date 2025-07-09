@@ -119,7 +119,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								},
 							}),
 							m(".span", folderInfo.name),
-					  ])
+						])
 					: null,
 				labels.map((label) =>
 					m(Label, {
@@ -159,7 +159,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					? null
 					: m(".small.flex.flex-wrap.items-start", [
 							m("span.text-break", this.renderAddress(attrs.viewModel, displayedSender.name, displayedSender.address)),
-					  ]),
+						]),
 				m(".flex", [
 					this.getRecipientEmailAddress(attrs),
 					m(".flex-grow"),
@@ -177,7 +177,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 										fill: theme.content_button,
 									},
 									hoverText: lang.get("confidential_label"),
-							  })
+								})
 							: null,
 
 						m(Icon, {
@@ -243,12 +243,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									},
 									hoverText: lang.get("draft_label"),
 								}),
-						  )
+							)
 						: null,
 					this.tutaoBadge(viewModel),
 					m(
 						"span" + (displayAddressForSender ? ".invisible.overflow-hidden" : ".text-break") + (viewModel.isUnread() ? ".font-weight-600" : ""),
-						displayAddressForSender ? viewModel.getDisplayedSender()?.address ?? "" : senderName,
+						displayAddressForSender ? (viewModel.getDisplayedSender()?.address ?? "") : senderName,
 					),
 				],
 			),
@@ -298,9 +298,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return [
 			m(
 				"." + responsiveCardHMargin(),
-				this.renderPhishingWarning(viewModel) ?? viewModel.isWarningDismissed()
+				(this.renderPhishingWarning(viewModel) ?? viewModel.isWarningDismissed())
 					? null
-					: this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel),
+					: (this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel)),
 			),
 			m("." + responsiveCardHMargin(), this.renderExternalContentBanner(attrs)),
 			m("hr.hr.mt-xs." + responsiveCardHMargin()),
@@ -339,7 +339,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						recipient: eventAttachment.recipient,
 						mail: viewModel.mail,
 					} satisfies EventBannerAttrs),
-			  )
+				)
 			: null
 	}
 
@@ -366,7 +366,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									width: bubbleMenuWidth,
 								}),
 							}),
-					  ],
+						],
 				envelopeSender
 					? [
 							m(".small.b", lang.get("sender_label")),
@@ -399,7 +399,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									width: bubbleMenuWidth,
 								}),
 							}),
-					  ]
+						]
 					: null,
 			),
 			m(
@@ -430,7 +430,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									),
 								),
 							),
-					  ]
+						]
 					: null,
 			),
 			m(
@@ -457,7 +457,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									}),
 								),
 							),
-					  ]
+						]
 					: null,
 			),
 			m(
@@ -484,7 +484,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									}),
 								),
 							),
-					  ]
+						]
 					: null,
 			),
 			m(
@@ -511,7 +511,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									}),
 								),
 							),
-					  ]
+						]
 					: null,
 			),
 		])
@@ -543,9 +543,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				m(".flex.mt-s.mb-s" + "." + responsiveCardHMargin(), liveDataAttrs(), [
 					attachmentCount === 1
 						? // If we have exactly one attachment, just show the attachment
-						  this.renderAttachmentContainer(viewModel, attachments, importFile)
+							this.renderAttachmentContainer(viewModel, attachments, importFile)
 						: // Otherwise, we show the number of attachments and its total size along with a show all button
-						  m(ExpanderButton, {
+							m(ExpanderButton, {
 								label: lang.makeTranslation(
 									"attachmentAmount_label",
 									lang.get("attachmentAmount_label", { "{amount}": attachmentCount + "" }) + ` (${formatStorageSize(totalAttachmentSize)})`,
@@ -564,7 +564,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								onExpandedChange: (change) => {
 									this.filesExpanded = change
 								},
-						  }),
+							}),
 				]),
 
 				// if we have more than one attachment, list them here in this expander panel
@@ -585,9 +585,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 												type: ButtonType.Secondary,
 												click: () => viewModel.downloadAll(),
 											}),
-									  ),
+										),
 							]),
-					  )
+						)
 					: null,
 			]
 		}
@@ -618,7 +618,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						classes: ".mr-s",
 					},
 					companyTeamLabel,
-			  )
+				)
 			: null
 	}
 
@@ -683,7 +683,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					viewModel.mail.differentEnvelopeSender
 						? lang.get("mailAuthMissingWithTechnicalSender_msg", {
 								"{sender}": viewModel.mail.differentEnvelopeSender,
-						  })
+							})
 						: lang.get("mailAuthMissing_label"),
 				icon: Icons.Warning,
 				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
@@ -710,13 +710,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						? {
 								label: "allowExternalContentSender_action" as const,
 								click: () => attrs.viewModel.setContentBlockingStatus(ContentBlockingStatus.AlwaysShow),
-						  }
+							}
 						: null,
 					{
 						label: "blockExternalContentSender_action" as const,
 						click: () => attrs.viewModel.setContentBlockingStatus(ContentBlockingStatus.AlwaysBlock),
 					},
-			  ].filter(isNotNull)
+				].filter(isNotNull)
 			: []
 		// on narrow screens the buttons will end up on 2 lines if there are too many, this looks bad.
 		const maybeDropdownButtons: ReadonlyArray<BannerButtonAttrs> =
@@ -729,7 +729,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								lazyButtons: async () => resolveMaybeLazy(alwaysOrNeverAllowButtons),
 							}),
 						},
-				  ]
+					]
 				: alwaysOrNeverAllowButtons
 		return m(InfoBanner, {
 			message: "contentBlocked_msg",
@@ -757,12 +757,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							label: "delete_action",
 							click: () => deleteAction(),
 							icon: Icons.DeleteForever,
-					  }
+						}
 					: {
 							label: "trash_action",
 							click: () => actions.trash(),
 							icon: Icons.Trash,
-					  }
+						}
 
 				if (viewModel.isDraftMail()) {
 					actionButtons.push({

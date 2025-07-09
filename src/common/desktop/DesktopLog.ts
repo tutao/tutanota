@@ -14,7 +14,7 @@ export const log: {
 				warn: noOp,
 				error: noOp,
 				info: noOp,
-		  }
+			}
 		: makeLog()
 
 export function rebindDesktopLog() {

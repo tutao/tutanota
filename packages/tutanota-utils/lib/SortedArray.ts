@@ -13,7 +13,10 @@ function numberCompare(a: number, b: number): number {
  * An array that keeps itself sorted
  */
 export class SortedArray<T> {
-	private constructor(private contents: T[], private compareFn: CompareFn<T>) {}
+	private constructor(
+		private contents: T[],
+		private compareFn: CompareFn<T>,
+	) {}
 
 	static fromNumbers(array: ReadonlyArray<number>): SortedArray<number> {
 		return SortedArray.from(array, numberCompare)

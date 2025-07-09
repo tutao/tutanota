@@ -60,7 +60,7 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 					? m(CompletenessIndicator, {
 							class: "mr-s",
 							percentageCompleted: scaleToVisualPasswordStrength(strength),
-					  })
+						})
 					: null,
 				displayedStatus ? m(StatusField, { status: displayedStatus }) : null,
 			]),

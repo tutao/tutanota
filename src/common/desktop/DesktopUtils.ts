@@ -15,7 +15,11 @@ import { WindowManager } from "./DesktopWindowManager.js"
 export class DesktopUtils {
 	private mailtoArg: string | null
 
-	constructor(argv: Array<string>, private readonly tfs: TempFs, private readonly electron: ElectronExports) {
+	constructor(
+		argv: Array<string>,
+		private readonly tfs: TempFs,
+		private readonly electron: ElectronExports,
+	) {
 		this.mailtoArg = findMailToUrlInArgv(process.argv)
 	}
 

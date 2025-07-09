@@ -86,7 +86,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 						click: (ev) => imageButtonClickHandler(ev, editor),
 						icon: Icons.Picture,
 						size: ButtonSize.Compact,
-				  })
+					})
 				: null,
 		]
 	}
@@ -108,8 +108,8 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 				editor.styles.listing === listing
 					? editor.squire.removeList()
 					: listing === "ul"
-					? editor.squire.makeUnorderedList()
-					: editor.squire.makeOrderedList(),
+						? editor.squire.makeUnorderedList()
+						: editor.squire.makeOrderedList(),
 			() => editor.styles.listing === listing,
 		)
 	}

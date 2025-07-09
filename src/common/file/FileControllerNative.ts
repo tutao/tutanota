@@ -18,7 +18,11 @@ assertMainOrNode()
  * coordinates downloads when we have access to native functionality
  */
 export class FileControllerNative extends FileController {
-	constructor(blobFacade: BlobFacade, guiDownload: ProgressObserver, private readonly fileApp: NativeFileApp) {
+	constructor(
+		blobFacade: BlobFacade,
+		guiDownload: ProgressObserver,
+		private readonly fileApp: NativeFileApp,
+	) {
 		assert(isElectronClient() || isApp() || isTest(), "Don't make native file controller when not in native")
 		super(blobFacade, guiDownload)
 	}

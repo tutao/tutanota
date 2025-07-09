@@ -163,13 +163,13 @@ export class ContactMergeView {
 					? m(".non-wrapping-row", [
 							m(".mail.mt-l", [m("", lang.get("email_label")), mailAddresses1.length > 0 ? mailAddresses1 : emptyFieldPlaceholder]),
 							m(".mail.mt-l", [m("", lang.get("email_label")), mailAddresses2.length > 0 ? mailAddresses2 : emptyFieldPlaceholder]),
-					  ])
+						])
 					: null,
 				phones1.length > 0 || phones2.length > 0
 					? m(".non-wrapping-row", [
 							m(".phone.mt-l", [m("", lang.get("phone_label")), m(".aggregateEditors", [phones1.length > 0 ? phones1 : emptyFieldPlaceholder])]),
 							m(".phone.mt-l", [m("", lang.get("phone_label")), m(".aggregateEditors", [phones2.length > 0 ? phones2 : emptyFieldPlaceholder])]),
-					  ])
+						])
 					: null,
 				addresses1.length > 0 || addresses2.length > 0
 					? m(".non-wrapping-row", [
@@ -181,7 +181,7 @@ export class ContactMergeView {
 								m("", lang.get("address_label")),
 								m(".aggregateEditors.flex.flex-column.flex-grow", [addresses2.length > 0 ? addresses2 : emptyHTMLFieldPlaceholder]),
 							]),
-					  ])
+						])
 					: null,
 				socials1.length > 0 || socials2.length > 0
 					? m(".non-wrapping-row", [
@@ -193,7 +193,7 @@ export class ContactMergeView {
 								m("", lang.get("social_label")),
 								m(".aggregateEditors", socials2.length > 0 ? socials2 : emptyFieldPlaceholder),
 							]),
-					  ])
+						])
 					: null,
 				commentField1 && commentField2
 					? m(".non-wrapping-row", [m(".mt-l.flex.flex-column", [commentField1]), m(".mt-l.flex.flex-column", [commentField2])])

@@ -250,7 +250,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							autocompleteAs: Autocomplete.currentPassword,
 							fontSize: px(size.font_size_smaller),
 							disabled: attrs.model.getIsDisabled(),
-					  } satisfies PasswordFieldAttrs)
+						} satisfies PasswordFieldAttrs)
 					: null,
 				attrs.model.getIsDisabled() ? this.renderDisabledPasswordField(attrs) : this.renderNewPasswordField(attrs),
 				attrs.model.config.hideConfirmation
@@ -263,7 +263,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
 							fontSize: px(size.font_size_smaller),
 							disabled: attrs.model.getIsDisabled(),
-					  }),
+						}),
 				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
 			],
 		)
