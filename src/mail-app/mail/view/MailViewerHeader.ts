@@ -13,6 +13,7 @@ import {
 	InboxRuleType,
 	Keys,
 	MailAuthenticationStatus,
+	PresentableKeyVerificationState,
 	PublicKeyIdentifierType,
 	TabIndex,
 } from "../../../common/api/common/TutanotaConstants.js"
@@ -23,7 +24,7 @@ import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import { isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
@@ -366,10 +367,59 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			: null
 	}
 
+	private renderKeyVerificationAlertIcon(displayedSender: MailAddressAndName): Children {
+		return m(IconButton, {
+			title: "keyManagement.senderVerificationAlert_msg",
+			icon: Icons.AlertCircle,
+			click: async (event: MouseEvent, dom: HTMLElement) => {
+				let publicKeyProvider: PublicEncryptionKeyProvider = locator.publicEncryptionKeyProvider
+				import("../../../common/settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
+					async ({ showSenderKeyVerificationRecoveryDialog, SenderKeyVerificationRecoveryDialogPages }) => {
+						try {
+							// We are doing this for the implicit key verification. We do not care about the returned key.
+							await publicKeyProvider.loadCurrentPublicEncryptionKey({
+								identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+								identifier: displayedSender.address,
+							})
+
+							// success case
+							showSenderKeyVerificationRecoveryDialog(displayedSender, SenderKeyVerificationRecoveryDialogPages.SUCCESS)
+						} catch (e) {
+							// failure case
+							showSenderKeyVerificationRecoveryDialog(displayedSender, SenderKeyVerificationRecoveryDialogPages.INFO)
+						}
+					},
+				)
+			},
+		})
+	}
+
+	private renderKeyVerificationSecureIcon(): Children {
+		return m(IconButton, {
+			title: "keyManagement.senderVerificationShield_msg",
+			icon: Icons.Shield,
+			click: () => {},
+			disabled: true,
+		})
+	}
+
 	private renderDetails(attrs: MailViewerHeaderAttrs, { bubbleMenuWidth }: { bubbleMenuWidth: number }): Children {
 		const { viewModel, createMailAddressContextButtons } = attrs
 		const envelopeSender = viewModel.getDifferentEnvelopeSender()
 		const displayedSender = viewModel.getDisplayedSender()
+
+		let keyVerificationIconButton: Children = []
+
+		if (displayedSender != null) {
+			// Parse key verification state from hex string returned by the server. Is there a better way to do this?
+			const keyVerificationState = assertNotNull(viewModel.mail.keyVerificationState)
+
+			if (keyVerificationState === PresentableKeyVerificationState.ALERT) {
+				keyVerificationIconButton = this.renderKeyVerificationAlertIcon(displayedSender)
+			} else if (keyVerificationState === PresentableKeyVerificationState.SECURE) {
+				keyVerificationIconButton = this.renderKeyVerificationSecureIcon()
+			}
+		}
 
 		return m("." + responsiveCardHPadding(), liveDataAttrs(), [
 			m(
@@ -378,35 +428,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					? null
 					: [
 							m(".small.b", lang.get("from_label")),
-							m(IconButton, {
-								title: lang.makeTranslation("placeholder_error", "placeholder_error"),
-								icon: Icons.AlertCircle,
-								click: async (event: MouseEvent, dom: HTMLElement) => {
-									console.log("clicked the sender verification button")
-									// call check service with recipient fingerprint and verify signature again
-									// if success => display ok page from recover dialog but with different translation key
-									// if failure => display recover dialog but with different wording
-
-									let publicKeyProvider: PublicEncryptionKeyProvider = locator.publicEncryptionKeyProvider
-									import("../../../common/settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
-										async ({ showSenderKeyVerificationRecoveryDialog, SenderKeyVerificationRecoveryDialogPages }) => {
-											try {
-												// We are doing this for the implicit key verification. We do not care about the returned key.
-												await publicKeyProvider.loadCurrentPublicEncryptionKey({
-													identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-													identifier: displayedSender.address,
-												})
-
-												// success case
-												showSenderKeyVerificationRecoveryDialog(displayedSender, SenderKeyVerificationRecoveryDialogPages.SUCCESS)
-											} catch (e) {
-												// failure case
-												showSenderKeyVerificationRecoveryDialog(displayedSender, SenderKeyVerificationRecoveryDialogPages.INFO)
-											}
-										},
-									)
-								},
-							}),
+							keyVerificationIconButton,
 							m(RecipientButton, {
 								label: getMailAddressDisplayText(displayedSender.name, displayedSender.address, false),
 								click: createAsyncDropdown({

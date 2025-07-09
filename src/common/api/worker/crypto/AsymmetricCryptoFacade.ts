@@ -19,7 +19,13 @@ import {
 import type { RsaImplementation } from "./RsaImplementation"
 import { PQFacade } from "../facades/PQFacade.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { asCryptoProtoocolVersion, CryptoProtocolVersion, EncryptionAuthStatus } from "../../common/TutanotaConstants.js"
+import {
+	asCryptoProtoocolVersion,
+	CryptoProtocolVersion,
+	EncryptionAuthStatus,
+	EncryptionKeyVerificationState,
+	PresentableKeyVerificationState,
+} from "../../common/TutanotaConstants.js"
 import { arrayEquals, assertNotNull, lazyAsync, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -46,6 +52,11 @@ export type PubEncSymKey = {
 	cryptoProtocolVersion: CryptoProtocolVersion
 	senderKeyVersion: KeyVersion | null
 	recipientKeyVersion: KeyVersion
+}
+
+export type AuthenticateSenderReturnType = {
+	authStatus: EncryptionAuthStatus
+	verificationState: PresentableKeyVerificationState
 }
 
 /**
@@ -80,22 +91,36 @@ export class AsymmetricCryptoFacade {
 	 * @param senderIdentityPubKey the senderIdentityPubKey that was used to encrypt/authenticate the data.
 	 * @param senderKeyVersion the version of the senderIdentityPubKey.
 	 */
-	async authenticateSender(identifier: PublicKeyIdentifier, senderIdentityPubKey: Uint8Array, senderKeyVersion: KeyVersion): Promise<EncryptionAuthStatus> {
-		let authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+
+	async authenticateSender(
+		identifier: PublicKeyIdentifier,
+		senderIdentityPubKey: Uint8Array,
+		senderKeyVersion: KeyVersion,
+	): Promise<AuthenticateSenderReturnType> {
+		let authenticated = false
+
 		try {
 			const publicKey = await this.publicKeyProvider.loadPublicEncryptionKey(identifier, senderKeyVersion)
 			const publicEccKey = this.getSenderEccKey(publicKey.publicEncryptionKey)
 			if (publicEccKey != null && arrayEquals(publicEccKey, senderIdentityPubKey)) {
-				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
+				authenticated = true
+
+				if (publicKey.verificationState === EncryptionKeyVerificationState.VERIFIED_MANUAL) {
+					return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE }
+				}
 			}
 		} catch (e) {
 			if (e instanceof KeyVerificationMismatchError) {
-				authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+				authenticated = false
 			} else {
 				throw e
 			}
 		}
-		return authStatus
+		if (authenticated) {
+			return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.NONE }
+		} else {
+			return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT }
+		}
 	}
 
 	/**
@@ -114,12 +139,12 @@ export class AsymmetricCryptoFacade {
 		const cryptoProtocolVersion = asCryptoProtoocolVersion(pubEncKeyData.protocolVersion)
 		const decapsulatedAesKey = await this.decryptSymKeyWithKeyPair(recipientKeyPair, cryptoProtocolVersion, pubEncKeyData.pubEncSymKey)
 		if (cryptoProtocolVersion === CryptoProtocolVersion.TUTA_CRYPT) {
-			const encryptionAuthStatus = await this.authenticateSender(
+			const { authStatus } = await this.authenticateSender(
 				senderIdentifier,
 				assertNotNull(decapsulatedAesKey.senderIdentityPubKey),
 				parseKeyVersion(assertNotNull(pubEncKeyData.senderKeyVersion)),
 			)
-			if (encryptionAuthStatus !== EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED) {
+			if (authStatus !== EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED) {
 				throw new CryptoError("the provided public key could not be authenticated")
 			}
 		}

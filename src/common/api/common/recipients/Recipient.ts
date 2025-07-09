@@ -1,5 +1,5 @@
 import { Contact } from "../../entities/tutanota/TypeRefs"
-import { PresentableKeyVerificationState } from "../../main/RecipientsModel"
+import { PresentableKeyVerificationState } from "../TutanotaConstants"
 
 export const enum RecipientType {
 	UNKNOWN = "unknown",

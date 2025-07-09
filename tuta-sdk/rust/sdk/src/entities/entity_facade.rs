@@ -1816,7 +1816,9 @@ mod tests {
 					),
 				],
 			)]),
-		"1465"=> JsonElement::Array(vec![]),}
+		"1465"=> JsonElement::Array(vec![]),
+		"1677"=> JsonElement::Null,
+		}
 	}
 
 	fn create_model_value(

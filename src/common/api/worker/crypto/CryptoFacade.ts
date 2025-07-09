@@ -20,6 +20,7 @@ import {
 	EncryptionAuthStatus,
 	GroupType,
 	PermissionType,
+	PresentableKeyVerificationState,
 	PublicKeyIdentifierType,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 } from "../../common/TutanotaConstants"
@@ -83,7 +84,7 @@ import { DefaultEntityRestCache } from "../rest/DefaultEntityRestCache.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
-import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
+import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import { PublicEncryptionKeyProvider } from "../facades/PublicEncryptionKeyProvider.js"
 import { KeyVersion, Nullable } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
@@ -458,12 +459,14 @@ export class CryptoFacade {
 					}
 				} else {
 					const senderMailAddress = mail.confidential ? mail.sender.address : SYSTEM_GROUP_MAIL_ADDRESS
-					encryptionAuthStatus = await this.tryAuthenticateSenderOfMainInstance(
+					const { authStatus, verificationState } = await this.tryAuthenticateSenderOfMainInstance(
 						senderMailAddress,
 						pqMessageSenderKey,
 						// must not be null if this is a TutaCrypt message with a pqMessageSenderKey
 						assertNotNull(pqMessageSenderKeyVersion),
 					)
+					encryptionAuthStatus = authStatus
+					instanceSessionKeyWithOwnerEncSessionKey.keyVerificationState = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(verificationState))
 				}
 			}
 			instanceSessionKeyWithOwnerEncSessionKey.encryptionAuthStatus = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(encryptionAuthStatus))
@@ -484,7 +487,11 @@ export class CryptoFacade {
 		return downcast<Mail>(decryptedInstance)
 	}
 
-	private async tryAuthenticateSenderOfMainInstance(senderMailAddress: string, pqMessageSenderKey: Uint8Array, pqMessageSenderKeyVersion: KeyVersion) {
+	private async tryAuthenticateSenderOfMainInstance(
+		senderMailAddress: string,
+		pqMessageSenderKey: Uint8Array,
+		pqMessageSenderKeyVersion: KeyVersion,
+	): Promise<AuthenticateSenderReturnType> {
 		try {
 			return await this.asymmetricCryptoFacade.authenticateSender(
 				{
@@ -498,7 +505,7 @@ export class CryptoFacade {
 			// we do not want to fail mail decryption here, e.g. in case an alias was removed we would get a permanent NotFoundError.
 			// in those cases we will just show a warning banner but still want to display the mail
 			console.error("Could not authenticate sender", e)
-			return EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+			return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT }
 		}
 	}
 

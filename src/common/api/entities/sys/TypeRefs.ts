@@ -3137,6 +3137,7 @@ export type InstanceSessionKey = {
 	symEncSessionKey: Uint8Array;
 	encryptionAuthStatus: null | Uint8Array;
 	symKeyVersion: NumberString;
+	keyVerificationState: null | Uint8Array;
 
 	typeInfo: TypeInfo;
 }
