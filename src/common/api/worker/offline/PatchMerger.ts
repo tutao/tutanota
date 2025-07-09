@@ -27,7 +27,7 @@ import { PatchOperationError } from "../../common/error/PatchOperationError"
 import { AssociationType } from "../../common/EntityConstants"
 import { PatchOperationType, TypeModelResolver } from "../../common/EntityFunctions"
 import { InstancePipeline } from "../crypto/InstancePipeline"
-import { computePatches, isSameId, removeTechnicalFields } from "../../common/utils/EntityUtils"
+import { isSameId, removeTechnicalFields } from "../../common/utils/EntityUtils"
 import { convertDbToJsType } from "../crypto/ModelMapper"
 import { decryptValue } from "../crypto/CryptoMapper"
 import { VersionedEncryptedKey } from "../crypto/CryptoWrapper"
@@ -37,6 +37,7 @@ import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
+import { computePatches } from "../../common/utils/PatchGenerator"
 
 export class PatchMerger {
 	constructor(

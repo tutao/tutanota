@@ -25,7 +25,7 @@ import type {
 	TypeModel,
 	UntypedInstance,
 } from "../../common/EntityTypes"
-import { computePatchPayload, elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
+import { elementIdPart, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT } from "../../common/utils/EntityUtils"
 import { Type } from "../../common/EntityConstants.js"
 import { SetupMultipleError } from "../../common/error/SetupMultipleError"
 import { AuthDataProvider } from "../facades/UserFacade"
@@ -45,6 +45,7 @@ import { PatchListTypeRef } from "../../entities/sys/TypeRefs"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { expandId } from "./RestClientIdUtils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
+import { computePatchPayload } from "../../common/utils/PatchGenerator"
 
 assertWorkerOrNode()
 
