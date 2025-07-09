@@ -854,6 +854,8 @@ export type TranslationKeyType =
 	| "keyManagement.qrVerification_label"
 	| "keyManagement.selectMethodLong_label"
 	| "keyManagement.selectMethodShort_label"
+	| "keyManagement.senderVerificationAlert_msg"
+	| "keyManagement.senderVerificationShield_msg"
 	| "keyManagement.showFingerprintAs_label"
 	| "keyManagement.textVerification_label"
 	| "keyManagement.text_label"

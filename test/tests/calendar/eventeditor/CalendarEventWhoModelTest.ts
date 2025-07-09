@@ -8,9 +8,9 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { matchers, object, replace, verify, when } from "testdouble"
-import { PresentableKeyVerificationState, RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
+import { RecipientsModel } from "../../../../src/common/api/main/RecipientsModel.js"
 import { Recipient, RecipientType } from "../../../../src/common/api/common/recipients/Recipient.js"
-import { AccountType, CalendarAttendeeStatus, ShareCapability } from "../../../../src/common/api/common/TutanotaConstants.js"
+import { AccountType, CalendarAttendeeStatus, PresentableKeyVerificationState, ShareCapability } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { UserTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { UserController } from "../../../../src/common/api/main/UserController.js"
 import { CalendarOperation, EventType } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"

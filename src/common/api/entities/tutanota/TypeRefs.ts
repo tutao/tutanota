@@ -242,6 +242,7 @@ export type Mail = {
 	recipientCount: NumberString;
 	encryptionAuthStatus: null | NumberString;
 	_ownerKeyVersion: null | NumberString;
+	keyVerificationState: null | NumberString;
 
 	sender: MailAddress;
 	attachments: IdTuple[];

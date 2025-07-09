@@ -8,7 +8,7 @@ import { BoundedExecutor, LazyLoaded } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef } from "../entities/tutanota/TypeRefs"
 import { cleanMailAddress } from "../common/utils/CommonCalendarUtils.js"
 import { createNewContact, isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
-import { EncryptionKeyVerificationState } from "../common/TutanotaConstants.js"
+import { EncryptionKeyVerificationState, PresentableKeyVerificationState } from "../common/TutanotaConstants.js"
 import { KeyVerificationMismatchError } from "../common/error/KeyVerificationMismatchError"
 import { ProgrammingError } from "../common/error/ProgrammingError"
 import { VerifiedPublicEncryptionKey } from "../worker/facades/lazy/KeyVerificationFacade"
@@ -37,13 +37,6 @@ export interface ResolvableRecipient extends Recipient {
 	markAsKeyVerificationMismatch(): Promise<void>
 
 	reset(): void
-}
-
-/* For displaying the key verification result in the UI */
-export enum PresentableKeyVerificationState {
-	NONE,
-	SECURE,
-	ALERT,
 }
 
 export class RecipientsModel {
