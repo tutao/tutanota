@@ -51,7 +51,7 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 	await runStep("Rolldown", async () => {
 		const { rollupWasmLoader } = await import("@tutao/tuta-wasm-loader")
 		const bundle = await rolldown({
-			input: ["tests/testInBrowser.ts", "tests/testInNode.ts"],
+			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/common/api/common/pow-worker.ts"],
 			platform: "neutral",
 			define: {
 				// See Env.ts for explanation
