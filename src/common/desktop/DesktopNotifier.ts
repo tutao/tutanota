@@ -1,10 +1,10 @@
 import type { NativeImage } from "electron"
 import type { DesktopTray } from "./tray/DesktopTray"
 import type { ApplicationWindow } from "./ApplicationWindow"
-import type { ElectronNotificationFactory } from "./NotificatonFactory"
+import type { NotificationFactory } from "./NotificationFactory"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
-import { lazyNumberRange, numberRange } from "@tutao/tutanota-utils"
+import { lazyNumberRange } from "@tutao/tutanota-utils"
 
 export const enum NotificationResult {
 	Click = "click",
@@ -16,13 +16,17 @@ export class DesktopNotifier {
 	_canShow: boolean = false
 	pendingNotifications: Array<(...args: Array<any>) => any> = []
 	_notificationCloseFunctions: { [userId in string]?: () => void } = {}
-	_notificationFactory: ElectronNotificationFactory
-	private readonly notificationIdGenerator = lazyNumberRange(0, Number.MAX_SAFE_INTEGER)
+	_notificationFactory: NotificationFactory
+	private readonly notificationIdGenerator: Generator<number>
 	private shownNotifications: Map<string, () => unknown> = new Map()
 
-	constructor(tray: DesktopTray, notificationFactory: ElectronNotificationFactory) {
+	constructor(tray: DesktopTray, notificationFactory: NotificationFactory, private readonly startingId: number = Date.now() * 1000) {
 		this._tray = tray
 		this._notificationFactory = notificationFactory
+
+		// We want the number ID generator to start at a timestamp times 1000, as this will prevent stale notifications from having any meaning
+		// when new notifications come in.
+		this.notificationIdGenerator = lazyNumberRange(this.startingId, Number.MAX_SAFE_INTEGER)
 	}
 
 	/**

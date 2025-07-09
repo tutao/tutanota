@@ -12,7 +12,6 @@ import { TempFs } from "./files/TempFs.js"
 import { ElectronExports } from "./ElectronExportTypes.js"
 import { WindowManager } from "./DesktopWindowManager.js"
 import { DesktopNotifier } from "./DesktopNotifier"
-import { sendDummyKeystroke } from "@indutny/simple-windows-notifications"
 
 export const TUTA_PROTOCOL_NOTIFICATION_ACTION = "notification"
 
@@ -124,9 +123,7 @@ export class DesktopUtils {
 			if (wm.getAll().length === 0) {
 				await wm.newWindow(true)
 			} else {
-				sendDummyKeystroke()
 				for (const w of wm.getAll()) w.show()
-				sendDummyKeystroke()
 			}
 			const otherInstanceMailToArg = findMailToUrlInArgv(args)
 			if (otherInstanceMailToArg) {

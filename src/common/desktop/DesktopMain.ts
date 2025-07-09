@@ -16,7 +16,7 @@ import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import { DesktopTray } from "./tray/DesktopTray"
 import { log } from "./DesktopLog"
 import { UpdaterWrapper } from "./UpdaterWrapper"
-import { ElectronNotificationFactory } from "./NotificatonFactory"
+import { createNotificationFactory } from "./NotificationFactory"
 import { preselectGnomeLibsecret, SafeStorageSecretStorage } from "./sse/SecretStorage"
 import fs from "node:fs"
 import { DesktopIntegrator, getDesktopIntegratorForPlatform } from "./integration/DesktopIntegrator"
@@ -165,20 +165,21 @@ async function createComponents(): Promise<Components> {
 	const sock = new Socketeer(net, app)
 	const tray = new DesktopTray(conf)
 
-	// FIXME: do we want to wait here?
-	const appId = await conf.getConst(BuildConfigKey.appUserModelId)
-	app.setAppUserModelId(appId)
-	console.log("appId is", appId)
-
 	console.log("registering for tuta protocol", process.execPath, app.getAppPath())
 	app.setAsDefaultProtocolClient("tuta", process.execPath, [app.getAppPath()])
 
-	const notifier = new DesktopNotifier(tray, new ElectronNotificationFactory(appId))
+	// FIXME: do we want to wait here?
+	//
+	// @paw: it's fine because we already wait for `await conf.getConst(BuildConfigKey.iconName)` a few lines ago which waits on the same promise
+	//       (thus this isn't going to actually wait for anything) but if we want to fix that later and insist on not awaiting, we can use .then
+	//       and have notifier be passed as a promise
+	const notificationFactory = await createNotificationFactory(conf)
+	const notifier = new DesktopNotifier(tray, notificationFactory)
 
 	// FIXME
 	delay(2000)
 		.then(() => notifier.showOneShot({ title: "Hello I am a test notification", body: "I am indeed a test notification" }))
-		.then(() => console.log("notificaiton click"))
+		.then(() => console.log("notification click"))
 
 	const dateProvider = new DefaultDateProvider()
 	const clientModelInfo = ClientModelInfo.getInstance()

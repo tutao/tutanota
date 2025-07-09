@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import type { ElectronNotificationFactory } from "../../../src/common/desktop/NotificatonFactory.js"
+import type { NotificationFactory } from "../../../src/common/desktop/NotificationFactory.js"
 import { defer, delay, downcast } from "@tutao/tutanota-utils"
 import { DesktopNotifier } from "../../../src/common/desktop/DesktopNotifier.js"
 import type { DesktopTray } from "../../../src/common/desktop/tray/DesktopTray.js"
@@ -14,7 +14,7 @@ o.spec("Desktop Notifier Test", function () {
 	const notificationStartDelay = 10
 	let createdNotifications
 	let desktopTray: DesktopTray
-	let notificationFactory: ElectronNotificationFactory
+	let notificationFactory: NotificationFactory
 	let notificationMade = defer<void>()
 	o.beforeEach(function () {
 		createdNotifications = []
