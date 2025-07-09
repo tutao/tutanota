@@ -9,7 +9,6 @@ import {
 	EncryptedParsedAssociation,
 	EncryptedParsedValue,
 	Entity,
-	ListElementEntity,
 	ModelValue,
 	ParsedAssociation,
 	ParsedInstance,
@@ -25,7 +24,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { CacheStorage } from "../rest/DefaultEntityRestCache"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { PatchOperationError } from "../../common/error/PatchOperationError"
-import { AssociationType, Cardinality } from "../../common/EntityConstants"
+import { AssociationType } from "../../common/EntityConstants"
 import { PatchOperationType, TypeModelResolver } from "../../common/EntityFunctions"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { computePatches, isSameId, removeTechnicalFields } from "../../common/utils/EntityUtils"
@@ -37,6 +36,7 @@ import { CryptoFacade } from "../crypto/CryptoFacade"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
+import { hasError } from "../../common/utils/ErrorUtils"
 
 export class PatchMerger {
 	constructor(
@@ -76,7 +76,10 @@ export class PatchMerger {
 		if (entityUpdate !== null && instance !== null) {
 			const isPatchAndAppliedInstanceMatch = this.isInstanceOnUpdateIsSameAsPatched(entityUpdate, patchAppliedInstance)
 			if (!isPatchAndAppliedInstanceMatch) {
-				await this.cacheStorage.put(typeRef, instance)
+				if (!hasError(instance)) {
+					// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
+					await this.cacheStorage.put(typeRef, instance)
+				}
 				throw new ProgrammingError(
 					"instance with id [" + instanceListId + ", " + instanceId + `] has not been successfully patched. Type: ${getTypeString(typeRef)}`,
 				)
@@ -385,7 +388,8 @@ export class PatchMerger {
 						entityUpdate.instanceListId +
 						", " +
 						entityUpdate.instanceId +
-						`] has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}, computePatches: ${JSON.stringify(patchDiff)}`,
+						"]" +
+						`has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}, computePatches: ${JSON.stringify(patchDiff)}`,
 				)
 			}
 			return isPatchAndFullInstanceMatch

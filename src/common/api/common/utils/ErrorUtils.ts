@@ -1,7 +1,7 @@
 // @bundleInto:common
 
 import { downcast } from "@tutao/tutanota-utils"
-import { Entity } from "../EntityTypes"
+import { Entity, ParsedInstance } from "../EntityTypes"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -59,13 +59,13 @@ import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchEr
 import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableError"
 
 /**
- * Checks if the given instance has an error in the _errors property which is usually written
+ * Checks if the given instance (Entity or ParsedInstance) has an error in the _errors property which is usually written
  * if decryption fails for some reason in InstanceMapper.
  * @param instance the instance to check for errors.
  * @param key only returns true if there is an error for this key. Other errors will be ignored if the key is defined.
  * @returns {boolean} true if error was found (for the given key).
  */
-export function hasError<K>(instance: Entity, key?: K): boolean {
+export function hasError<K>(instance: Entity | ParsedInstance, key?: K): boolean {
 	const downCastedInstance = downcast(instance)
 	return !instance || (!!downCastedInstance._errors && (!key || !!downCastedInstance._errors.key))
 }

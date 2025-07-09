@@ -19,19 +19,7 @@ import {
 	WebsocketLeaderStatus,
 	WebsocketLeaderStatusTypeRef,
 } from "../entities/sys/TypeRefs.js"
-import {
-	AppName,
-	assertNotNull,
-	binarySearch,
-	delay,
-	identity,
-	isSameTypeRef,
-	lastThrow,
-	ofClass,
-	promiseMap,
-	randomIntFromInterval,
-	TypeRef,
-} from "@tutao/tutanota-utils"
+import { AppName, assertNotNull, binarySearch, delay, identity, lastThrow, ofClass, promiseMap, randomIntFromInterval, TypeRef } from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../common/error/OutOfSyncError"
 import { CloseEventBusOption, GroupType, SECOND_MS } from "../common/TutanotaConstants"
 import { CancelledError } from "../common/error/CancelledError"
@@ -46,7 +34,7 @@ import { SleepDetector } from "./utils/SleepDetector.js"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
 import { TypeModelResolver } from "../common/EntityFunctions.js"
-import { FileTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
+import { PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs"
 import { UserFacade } from "./facades/UserFacade"
 import { ExposedProgressTracker } from "../main/ProgressTracker.js"
 import { SyncTracker } from "../main/SyncTracker.js"
@@ -60,6 +48,7 @@ import { EventInstancePrefetcher } from "./EventInstancePrefetcher"
 import { AttributeModel } from "../common/AttributeModel"
 import { newSyncMetrics } from "./utils/SyncMetrics"
 import { SessionKeyNotFoundError } from "../common/error/SessionKeyNotFoundError"
+import { hasError } from "../common/utils/ErrorUtils"
 
 assertWorkerOrNode()
 
@@ -374,7 +363,13 @@ export class EventBusClient {
 					// we can't decrypt the instance in that case.
 					const migratedEntity = await this.cryptoFacade.applyMigrations(typeRef, entityAdapter)
 					const sessionKey = await this.cryptoFacade.resolveSessionKey(migratedEntity)
-					return await this.instancePipeline.cryptoMapper.decryptParsedInstance(serverTypeModel, encryptedParsedInstance, sessionKey)
+					const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(serverTypeModel, encryptedParsedInstance, sessionKey)
+					if (!hasError(parsedInstance)) {
+						// we do not want to process the instance if there are _errors (when decrypting)
+						return parsedInstance
+					} else {
+						return null
+					}
 				}
 			} catch (e) {
 				if (e instanceof SessionKeyNotFoundError) {
