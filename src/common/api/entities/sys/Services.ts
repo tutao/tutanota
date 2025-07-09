@@ -87,6 +87,8 @@ import { SurveyDataPostInTypeRef } from "./TypeRefs.js"
 import { SwitchAccountTypePostInTypeRef } from "./TypeRefs.js"
 import { SystemKeysReturnTypeRef } from "./TypeRefs.js"
 import { TakeOverDeletedAddressDataTypeRef } from "./TypeRefs.js"
+import { TimelockCaptchaGetInTypeRef } from "./TypeRefs.js"
+import { TimelockCaptchaGetOutTypeRef } from "./TypeRefs.js"
 import { UpdatePermissionKeyDataTypeRef } from "./TypeRefs.js"
 import { UpdateSessionKeysPostInTypeRef } from "./TypeRefs.js"
 import { UpgradePriceServiceDataTypeRef } from "./TypeRefs.js"
@@ -517,6 +519,15 @@ export const TakeOverDeletedAddressService = Object.freeze({
 	name: "TakeOverDeletedAddressService",
 	get: null,
 	post: { data: TakeOverDeletedAddressDataTypeRef, return: null },
+	put: null,
+	delete: null,
+} as const)
+
+export const TimelockCaptchaService = Object.freeze({
+	app: "sys",
+	name: "TimelockCaptchaService",
+	get: { data: TimelockCaptchaGetInTypeRef, return: TimelockCaptchaGetOutTypeRef },
+	post: null,
 	put: null,
 	delete: null,
 } as const)

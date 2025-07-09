@@ -15,8 +15,7 @@ import {
 
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
-import type { lazy } from "@tutao/tutanota-utils"
-import { getFirstOrThrow, ofClass } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, lazy, ofClass } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -24,7 +23,7 @@ import { InvalidDataError, PreconditionFailedError } from "../api/common/error/R
 import { locator } from "../api/main/CommonLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { UsageTest } from "@tutao/tutanota-usagetests"
-import { runCaptchaFlow } from "./Captcha.js"
+import { runCaptchaFlow, runPowChallenge } from "./Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
@@ -58,6 +57,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private readonly __lastMailValidationError: Stream<TranslationKey | null>
 	private __signupFreeTest?: UsageTest
 	private __signupPaidTest?: UsageTest
+	private powChallengeSolution: Promise<bigint>
 
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 		? TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS
@@ -94,6 +94,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this._code = stream("")
 		this._isMailVerificationBusy = false
 		this._mailAddressFormErrorId = "mailAddressNeutral_msg"
+		this.powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken())
 	}
 
 	view(vnode: Vnode<SignupFormAttrs>): Children {
@@ -161,8 +162,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			}
 
 			const ageConfirmPromise = this._confirmAge() ? Promise.resolve(true) : Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
-			ageConfirmPromise.then((confirmed) => {
-				if (confirmed) {
+			ageConfirmPromise.then((powSolution) => {
+				if (powSolution) {
 					this.__completePreviousStages()
 
 					return signup(
@@ -172,6 +173,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 						a.isBusinessUse(),
 						a.isPaidSubscription(),
 						a.campaign(),
+						this.powChallengeSolution,
 					).then((newAccountData) => {
 						if (newAccountData != null) {
 							a.onComplete({ type: "success", newAccountData })
@@ -263,13 +265,14 @@ function signup(
 	isBusinessUse: boolean,
 	isPaidSubscription: boolean,
 	campaign: string | null,
+	powChallengeSolution: Promise<bigint>,
 ): Promise<NewAccountData | void> {
 	const { customerFacade } = locator
 	const operation = locator.operationProgressTracker.startNewOperation()
 	return showProgressDialog(
 		"createAccountRunning_msg",
 		customerFacade.generateSignupKeys(operation.id).then((keyPairs) => {
-			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(async (regDataId) => {
+			return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign, powChallengeSolution).then(async (regDataId) => {
 				if (regDataId) {
 					const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 					return customerFacade

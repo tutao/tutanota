@@ -1,6 +1,11 @@
 import { locator } from "../api/main/CommonLocator.js"
-import { RegistrationCaptchaService } from "../api/entities/sys/Services.js"
-import { createRegistrationCaptchaServiceData, createRegistrationCaptchaServiceGetData } from "../api/entities/sys/TypeRefs.js"
+import { RegistrationCaptchaService, TimelockCaptchaService } from "../api/entities/sys/Services.js"
+import {
+	createRegistrationCaptchaServiceData,
+	createRegistrationCaptchaServiceGetData,
+	createTimelockCaptchaGetIn,
+	TimelockCaptchaGetOut,
+} from "../api/entities/sys/TypeRefs.js"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { AccessDeactivatedError, AccessExpiredError, InvalidDataError } from "../api/common/error/RestError.js"
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
@@ -9,11 +14,13 @@ import { ButtonType } from "../gui/base/Button.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import m, { Children } from "mithril"
 import { TextField } from "../gui/base/TextField.js"
-import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { defer, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { theme } from "../gui/theme"
 import { getColorLuminance, isMonochrome } from "../gui/base/Color"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
+import { PowChallengeParameters } from "./ProofOfWorkCaptchaUtils.js"
 
 /**
  * Accepts multiple formats for a time of day and always returns 12h-format with leading zeros.
@@ -38,6 +45,15 @@ export function parseCaptchaInput(captchaInput: string): string | null {
 	}
 }
 
+function trackPromiseResolved<T>(promise: Promise<T>) {
+	const resolved = { state: false }
+	promise.then(() => {
+		resolved.state = true
+	})
+
+	return resolved
+}
+
 /**
  * @returns the auth token for the signup if the captcha was solved or no captcha was necessary, null otherwise
  *
@@ -49,43 +65,106 @@ export async function runCaptchaFlow(
 	isBusinessUse: boolean,
 	isPaidSubscription: boolean,
 	campaignToken: string | null,
+	powChallengeSolution: Promise<bigint>,
+	// isPowChallengeSolved: boolean,
 ): Promise<string | null> {
-	try {
-		const captchaReturn = await locator.serviceExecutor.get(
-			RegistrationCaptchaService,
-			createRegistrationCaptchaServiceGetData({
-				campaignToken: campaignToken,
-				mailAddress,
-				signupToken: deviceConfig.getSignupToken(),
-				businessUseSelected: isBusinessUse,
-				paidSubscriptionSelected: isPaidSubscription,
-			}),
-		)
-		if (captchaReturn.challenge) {
-			try {
-				return await showCaptchaDialog(captchaReturn.challenge, captchaReturn.token)
-			} catch (e) {
-				if (e instanceof InvalidDataError) {
-					await Dialog.message("createAccountInvalidCaptcha_msg")
-					return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken)
-				} else if (e instanceof AccessExpiredError) {
-					await Dialog.message("createAccountAccessDeactivated_msg")
-					return null
-				} else {
-					throw e
-				}
-			}
+	// We don't want to show the progressDialog if pow challenge is already solved.
+	// To do that, we have to check if the pow challenge promise is already settled.
+	// JS does not natively support this.
+	// Instead, we call a wrapper function that returns a status object for us to check.
+	// By default, the .then() call, will be put at the end of the microtask queue, so we need to ensure that the place where we check for the promise state
+	// is called afterward. We do that, by wrapping it in an empty promise, therefore also pushing it to the end of the microtask queue.
+	const resolved = trackPromiseResolved(powChallengeSolution)
+	return Promise.resolve().then(async () => {
+		let solution: bigint | undefined
+		if (resolved.state) {
+			solution = await powChallengeSolution
 		} else {
-			return captchaReturn.token
+			solution = await showProgressDialog("captchaChecking_msg", powChallengeSolution)
 		}
-	} catch (e) {
-		if (e instanceof AccessDeactivatedError) {
-			await Dialog.message("createAccountAccessDeactivated_msg")
-			return null
+
+		let captchaReturn
+		try {
+			captchaReturn = await locator.serviceExecutor.get(
+				RegistrationCaptchaService,
+				createRegistrationCaptchaServiceGetData({
+					campaignToken: campaignToken,
+					mailAddress,
+					signupToken: deviceConfig.getSignupToken(),
+					businessUseSelected: isBusinessUse,
+					paidSubscriptionSelected: isPaidSubscription,
+					timelockChallengeSolution: solution.toString(),
+				}),
+			)
+		} catch (e) {
+			if (e instanceof AccessExpiredError) {
+				const powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken())
+
+				return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken, powChallengeSolution)
+			} else {
+				throw e
+			}
+		}
+
+		try {
+			if (captchaReturn.challenge) {
+				try {
+					return await showCaptchaDialog(captchaReturn.challenge, captchaReturn.token)
+				} catch (e) {
+					if (e instanceof InvalidDataError) {
+						await Dialog.message("createAccountInvalidCaptcha_msg")
+						return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken, powChallengeSolution)
+					} else if (e instanceof AccessExpiredError) {
+						await Dialog.message("createAccountAccessDeactivated_msg")
+						return null
+					} else {
+						throw e
+					}
+				}
+			} else {
+				return captchaReturn.token
+			}
+		} catch (e) {
+			if (e instanceof AccessDeactivatedError) {
+				await Dialog.message("createAccountAccessDeactivated_msg")
+				return null
+			} else {
+				throw e
+			}
+		}
+	})
+}
+
+export function solvePowChallengeInWorker(serviceReturn: TimelockCaptchaGetOut) {
+	const challenge: PowChallengeParameters = {
+		base: BigInt(serviceReturn.base),
+		difficulty: Number(serviceReturn.difficulty),
+		modulus: BigInt(serviceReturn.modulus),
+	}
+
+	const { prefixWithoutFile } = window.tutao.appState
+	const worker = new Worker(prefixWithoutFile + "/pow-worker.js", { type: "module" })
+	const { promise, resolve, reject } = defer<bigint>()
+
+	worker.onmessage = (msg) => {
+		if (msg.data === "ready") {
+			worker.postMessage(challenge)
 		} else {
-			throw e
+			resolve(msg.data)
 		}
 	}
+
+	worker.onerror = (err: ErrorEvent) => {
+		reject(new Error(err.message))
+	}
+
+	return promise
+}
+
+export async function runPowChallenge(signupToken: string): Promise<bigint> {
+	const data = createTimelockCaptchaGetIn({ signupToken })
+	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data)
+	return solvePowChallengeInWorker(ret)
 }
 
 function showCaptchaDialog(challenge: Uint8Array, token: string): Promise<string | null> {
