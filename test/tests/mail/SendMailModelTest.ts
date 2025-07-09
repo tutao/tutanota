@@ -266,11 +266,12 @@ o.spec("SendMailModel", function () {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 		o("initWithDraft with blank data", async function () {
+			const conversationEntryId = testIdGenerator.newIdTuple()
 			const draft = createTestEntity(MailTypeRef, {
 				confidential: false,
 				sender: createTestEntity(MailAddressTypeRef),
 				subject: "",
-				conversationEntry: testIdGenerator.newIdTuple(),
+				conversationEntry: conversationEntryId,
 			})
 			const draftDetails = createTestEntity(MailDetailsTypeRef, {
 				recipients: createTestEntity(RecipientsTypeRef),
@@ -278,10 +279,13 @@ o.spec("SendMailModel", function () {
 					text: BODY_TEXT_1,
 				}),
 			})
-			when(entity.load(ConversationEntryTypeRef, draft.conversationEntry)).thenResolve(
-				createTestEntity(ConversationEntryTypeRef, { conversationType: ConversationType.REPLY }),
-			)
-			const initializedModel = await model.initWithDraft(draft, draftDetails, [], new Map())
+			const conversationEntry = createTestEntity(ConversationEntryTypeRef, {
+				_id: conversationEntryId,
+				mail: draft._id,
+				conversationType: ConversationType.REPLY,
+			})
+
+			const initializedModel = await model.initWithDraft(draft, draftDetails, conversationEntry, [], new Map())
 			o(initializedModel.getConversationType()).equals(ConversationType.REPLY)
 			o(initializedModel.getSubject()).equals(draft.subject)
 			o(initializedModel.getBody()).equals(BODY_TEXT_1)
@@ -294,11 +298,17 @@ o.spec("SendMailModel", function () {
 			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
 		o("initWithDraft with some data", async function () {
+			const conversationEntryId = testIdGenerator.newIdTuple()
 			const draft = createTestEntity(MailTypeRef, {
 				confidential: true,
 				sender: createTestEntity(MailAddressTypeRef),
 				subject: SUBJECT_LINE_1,
-				conversationEntry: testIdGenerator.newIdTuple(),
+				conversationEntry: conversationEntryId,
+			})
+			const conversationEntry = createTestEntity(ConversationEntryTypeRef, {
+				_id: conversationEntryId,
+				mail: draft._id,
+				conversationType: ConversationType.FORWARD,
 			})
 			const recipients = createTestEntity(RecipientsTypeRef, {
 				toRecipients: [
@@ -320,11 +330,7 @@ o.spec("SendMailModel", function () {
 				body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }),
 			})
 
-			when(entity.load(ConversationEntryTypeRef, draft.conversationEntry)).thenResolve(
-				createTestEntity(ConversationEntryTypeRef, { conversationType: ConversationType.FORWARD }),
-			)
-
-			const initializedModel = await model.initWithDraft(draft, draftDetails, [], new Map())
+			const initializedModel = await model.initWithDraft(draft, draftDetails, conversationEntry, [], new Map())
 			o(initializedModel.getConversationType()).equals(ConversationType.FORWARD)
 			o(initializedModel.getSubject()).equals(draft.subject)
 			o(initializedModel.getBody()).equals(BODY_TEXT_1)

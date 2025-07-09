@@ -3,6 +3,7 @@ import { DataFile } from "../api/common/DataFile.js"
 import { FileReference } from "../api/common/utils/FileUtils.js"
 import {
 	ContactTypeRef,
+	ConversationEntry,
 	ConversationEntryTypeRef,
 	FileTypeRef,
 	Mail,
@@ -343,13 +344,18 @@ export class SendMailModel {
 		})
 	}
 
-	async initWithDraft(draft: Mail, draftDetails: MailDetails, attachments: TutanotaFile[], inlineImages: InlineImages): Promise<SendMailModel> {
+	async initWithDraft(
+		draft: Mail,
+		draftDetails: MailDetails,
+		conversationEntry: ConversationEntry,
+		attachments: TutanotaFile[],
+		inlineImages: InlineImages,
+	): Promise<SendMailModel> {
 		this.startInit()
 
 		let previousMessageId: string | null = null
 		let previousMail: Mail | null = null
 
-		const conversationEntry = await this.entity.load(ConversationEntryTypeRef, draft.conversationEntry)
 		const conversationType = downcast<ConversationType>(conversationEntry.conversationType)
 
 		if (conversationEntry.previous) {
@@ -1109,6 +1115,11 @@ export class SendMailModel {
 function recipientsFilter(recipientList: ReadonlyArray<PartialRecipient>): Array<PartialRecipient> {
 	// we pack each recipient along with its cleaned address, deduplicate the array by comparing cleaned and then unpack the original recipient
 	// this prevents us from changing the values contained in the array and still keeps the cleanAddress calls out of the n^2 loop
-	const cleanedList = recipientList.filter((r) => isMailAddress(r.address, false)).map((a) => ({ recipient: a, cleaned: cleanMailAddress(a.address) }))
+	const cleanedList = recipientList
+		.filter((r) => isMailAddress(r.address, false))
+		.map((a) => ({
+			recipient: a,
+			cleaned: cleanMailAddress(a.address),
+		}))
 	return deduplicate(cleanedList, (a, b) => a.cleaned === b.cleaned).map((a) => a.recipient)
 }
