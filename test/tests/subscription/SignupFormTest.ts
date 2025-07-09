@@ -1,5 +1,15 @@
 import o from "@tutao/otest"
-import { parseCaptchaInput } from "../../../src/common/subscription/Captcha.js"
+import { CaptchaDialogViewModel } from "../../../src/common/subscription/captcha/CaptchaDialog.js"
+import { CaptchaChallengeTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import { createTestEntity } from "../TestUtils.js"
+
+const challenge = createTestEntity(CaptchaChallengeTypeRef)
+const viewModel = new CaptchaDialogViewModel(challenge, challenge)
+
+const parseCaptchaInput = (input: string) => {
+	viewModel.currentInput = input
+	return viewModel.getNormalizedInput()
+}
 
 o.spec("CaptchaInputParse", function () {
 	o("invalid input", function () {

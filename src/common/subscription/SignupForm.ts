@@ -23,7 +23,7 @@ import { InvalidDataError, PreconditionFailedError } from "../api/common/error/R
 import { locator } from "../api/main/CommonLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { UsageTest } from "@tutao/tutanota-usagetests"
-import { runCaptchaFlow, runPowChallenge } from "./Captcha.js"
+import { runCaptchaFlow, runPowChallenge } from "./captcha/Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
