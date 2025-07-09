@@ -245,7 +245,7 @@ class MainActivity : FragmentActivity() {
 						"OK",
 						mutableMapOf(
 							"Access-Control-Allow-Origin" to "*",
-							"Access-Control-Allow-Methods" to "POST, GET, PUT, DELETE",
+							"Access-Control-Allow-Methods" to "POST, GET, PUT, PATCH, DELETE",
 							"Access-Control-Allow-Headers" to "*"
 						),
 						null
