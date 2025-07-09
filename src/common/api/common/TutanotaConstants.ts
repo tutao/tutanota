@@ -536,6 +536,13 @@ export enum EncryptionKeyVerificationState {
 	NOT_SUPPORTED, // Identity key verification is not supported, e.g. when loading via group id instead of mail address as identifier or when we do not have access to a trust database
 }
 
+/* For displaying the key verification result in the UI */
+export enum PresentableKeyVerificationState {
+	NONE = "0",
+	SECURE = "1",
+	ALERT = "2",
+}
+
 export const MAX_ATTACHMENT_SIZE = 1024 * 1024 * 25
 export const MAX_LOGO_SIZE = 1024 * 100
 export const MAX_BASE64_IMAGE_SIZE = MAX_LOGO_SIZE

@@ -1,4 +1,12 @@
-import { AccountType, ContactAddressType, FeatureType, GroupType, ShareCapability, TimeFormat } from "../../../src/common/api/common/TutanotaConstants.js"
+import {
+	AccountType,
+	ContactAddressType,
+	FeatureType,
+	GroupType,
+	PresentableKeyVerificationState,
+	ShareCapability,
+	TimeFormat,
+} from "../../../src/common/api/common/TutanotaConstants.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
 import {
 	BookingsRefTypeRef,
@@ -24,7 +32,6 @@ import {
 	ContactTypeRef,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
-	EncryptedMailAddressTypeRef,
 	TutanotaPropertiesTypeRef,
 	UserSettingsGroupRoot,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -34,7 +41,6 @@ import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
 import { matchers, object, when } from "testdouble"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
-import { PresentableKeyVerificationState } from "../../../src/common/api/main/RecipientsModel"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const

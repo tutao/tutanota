@@ -14,8 +14,9 @@ import { SearchDropDown } from "./SearchDropDown.js"
 import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
-import { PresentableKeyVerificationState, ResolvableRecipient } from "../api/main/RecipientsModel"
+import { ResolvableRecipient } from "../api/main/RecipientsModel"
 import { showRecipientKeyVerificationRecoveryDialog } from "../settings/keymanagement/KeyVerificationRecoveryDialog"
+import { PresentableKeyVerificationState } from "../api/common/TutanotaConstants"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
