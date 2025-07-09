@@ -1080,7 +1080,8 @@ export type RegistrationCaptchaServiceData = {
 
 	_format: NumberString;
 	token: string;
-	response: string;
+	visualChallengeResponse: null | string;
+	audioChallengeResponse: null | string;
 }
 export const RegistrationCaptchaServiceReturnTypeRef: TypeRef<RegistrationCaptchaServiceReturn> = new TypeRef("sys", 678)
 
@@ -1095,6 +1096,9 @@ export type RegistrationCaptchaServiceReturn = {
 	_format: NumberString;
 	token: string;
 	challenge: null | Uint8Array;
+
+	visualChallenge: null | CaptchaChallenge;
+	audioChallenge: null | CaptchaChallenge;
 }
 export const MailAddressAliasTypeRef: TypeRef<MailAddressAlias> = new TypeRef("sys", 684)
 
@@ -2224,6 +2228,8 @@ export type RegistrationCaptchaServiceGetData = {
 	signupToken: null | string;
 	paidSubscriptionSelected: boolean;
 	businessUseSelected: boolean;
+	timelockChallengeSolution: null | string;
+	language: string;
 }
 export const WebsocketEntityDataTypeRef: TypeRef<WebsocketEntityData> = new TypeRef("sys", 1483)
 
@@ -4052,4 +4058,46 @@ export type PatchList = {
 	_id: Id;
 
 	patches: Patch[];
+}
+export const CaptchaChallengeTypeRef: TypeRef<CaptchaChallenge> = new TypeRef("sys", 2619)
+
+export function createCaptchaChallenge(values: StrippedEntity<CaptchaChallenge>): CaptchaChallenge {
+    return Object.assign(create(typeModels[CaptchaChallengeTypeRef.typeId], CaptchaChallengeTypeRef), values)
+}
+
+export type CaptchaChallenge = {
+	_type: TypeRef<CaptchaChallenge>;
+	_original?: CaptchaChallenge
+
+	_id: Id;
+	challenge: Uint8Array;
+	description: string;
+}
+export const TimelockCaptchaGetInTypeRef: TypeRef<TimelockCaptchaGetIn> = new TypeRef("sys", 2629)
+
+export function createTimelockCaptchaGetIn(values: StrippedEntity<TimelockCaptchaGetIn>): TimelockCaptchaGetIn {
+    return Object.assign(create(typeModels[TimelockCaptchaGetInTypeRef.typeId], TimelockCaptchaGetInTypeRef), values)
+}
+
+export type TimelockCaptchaGetIn = {
+	_type: TypeRef<TimelockCaptchaGetIn>;
+	_original?: TimelockCaptchaGetIn
+
+	_format: NumberString;
+	signupToken: string;
+}
+export const TimelockCaptchaGetOutTypeRef: TypeRef<TimelockCaptchaGetOut> = new TypeRef("sys", 2632)
+
+export function createTimelockCaptchaGetOut(values: StrippedEntity<TimelockCaptchaGetOut>): TimelockCaptchaGetOut {
+    return Object.assign(create(typeModels[TimelockCaptchaGetOutTypeRef.typeId], TimelockCaptchaGetOutTypeRef), values)
+}
+
+export type TimelockCaptchaGetOut = {
+	_type: TypeRef<TimelockCaptchaGetOut>;
+	_original?: TimelockCaptchaGetOut
+
+	_format: NumberString;
+	difficulty: string;
+	modulus: string;
+	base: string;
 }

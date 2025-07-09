@@ -1691,7 +1691,9 @@ pub struct RegistrationCaptchaServiceData {
 	#[serde(rename = "676")]
 	pub token: String,
 	#[serde(rename = "677")]
-	pub response: String,
+	pub visualChallengeResponse: Option<String>,
+	#[serde(rename = "2627")]
+	pub audioChallengeResponse: Option<String>,
 }
 
 impl Entity for RegistrationCaptchaServiceData {
@@ -1713,6 +1715,10 @@ pub struct RegistrationCaptchaServiceReturn {
 	#[serde(rename = "681")]
 	#[serde(with = "serde_bytes")]
 	pub challenge: Option<Vec<u8>>,
+	#[serde(rename = "2625")]
+	pub visualChallenge: Option<CaptchaChallenge>,
+	#[serde(rename = "2626")]
+	pub audioChallenge: Option<CaptchaChallenge>,
 }
 
 impl Entity for RegistrationCaptchaServiceReturn {
@@ -3411,6 +3417,10 @@ pub struct RegistrationCaptchaServiceGetData {
 	pub paidSubscriptionSelected: bool,
 	#[serde(rename = "1752")]
 	pub businessUseSelected: bool,
+	#[serde(rename = "2623")]
+	pub timelockChallengeSolution: Option<String>,
+	#[serde(rename = "2624")]
+	pub language: String,
 }
 
 impl Entity for RegistrationCaptchaServiceGetData {
@@ -6148,6 +6158,67 @@ impl Entity for PatchList {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2614),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CaptchaChallenge {
+	#[serde(rename = "2620")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2621")]
+	#[serde(with = "serde_bytes")]
+	pub challenge: Vec<u8>,
+	#[serde(rename = "2622")]
+	pub description: String,
+}
+
+impl Entity for CaptchaChallenge {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2619),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct TimelockCaptchaGetIn {
+	#[serde(rename = "2630")]
+	pub _format: i64,
+	#[serde(rename = "2631")]
+	pub signupToken: String,
+}
+
+impl Entity for TimelockCaptchaGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2629),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct TimelockCaptchaGetOut {
+	#[serde(rename = "2633")]
+	pub _format: i64,
+	#[serde(rename = "2634")]
+	pub difficulty: String,
+	#[serde(rename = "2635")]
+	pub modulus: String,
+	#[serde(rename = "2636")]
+	pub base: String,
+}
+
+impl Entity for TimelockCaptchaGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2632),
 		}
 	}
 }
