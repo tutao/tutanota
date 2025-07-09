@@ -1,12 +1,12 @@
 import { EntityUpdateData, PrefetchStatus } from "../common/utils/EntityUpdateUtils"
-import { Mail, MailDetailsBlobTypeRef, MailTypeRef } from "../entities/tutanota/TypeRefs"
-import { elementIdPart, getElementId, listIdPart } from "../common/utils/EntityUtils"
+import { ConversationEntryTypeRef, Mail, MailDetailsBlobTypeRef, MailTypeRef, TutanotaPropertiesTypeRef } from "../entities/tutanota/TypeRefs"
+import { elementIdPart, getElementId, isElementEntity, listIdPart } from "../common/utils/EntityUtils"
 import { assertNotNull, getTypeString, groupBy, isNotNull, isSameTypeRef, parseTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { parseKeyVersion } from "./facades/KeyLoaderFacade"
 import { VersionedEncryptedKey } from "./crypto/CryptoWrapper"
 import { OperationType } from "../common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../common/error/RestError"
-import { ListElementEntity, SomeEntity } from "../common/EntityTypes"
+import { ElementEntity, ListElementEntity, SomeEntity } from "../common/EntityTypes"
 import { CacheMode, type EntityRestInterface } from "./rest/EntityRestClient"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate"
 
@@ -20,7 +20,7 @@ export class EventInstancePrefetcher {
 	public async preloadEntities(allEventsFromAllBatch: Array<EntityUpdateData>, progressMonitor: ProgressMonitorDelegate): Promise<void> {
 		const start = new Date().getTime()
 		console.log("====== PREFETCH ============")
-		const preloadMap = this.groupedListElementUpdatedInstances(allEventsFromAllBatch, progressMonitor)
+		const preloadMap = this.groupedUpdatedInstances(allEventsFromAllBatch, progressMonitor)
 		await this.loadGroupedListElementEntities(allEventsFromAllBatch, preloadMap, progressMonitor)
 
 		// after prefetching is done, we can set the totalWorkDone to the amount of entity events from all batches
@@ -29,7 +29,7 @@ export class EventInstancePrefetcher {
 	}
 
 	// visible for testing
-	public groupedListElementUpdatedInstances(
+	public groupedUpdatedInstances(
 		allEventsFromAllBatch: Array<EntityUpdateData>,
 		progressMonitor: ProgressMonitorDelegate,
 	): Map<string, Map<Id, Map<Id, number[]>>> {
@@ -37,9 +37,12 @@ export class EventInstancePrefetcher {
 		for (const [eventIndexInList, entityUpdateData] of allEventsFromAllBatch.entries()) {
 			const typeIdentifier = getTypeString(entityUpdateData.typeRef)
 
-			// we do not prefetch elementInstances (ET)
-			const isListElement = entityUpdateData.instanceListId != ""
-			if (!isListElement) {
+			// we do not prefetch elementInstances (ET) except for TutanotaProperties
+			// we prefetch listElementInstances (LET) except for ConversationEntry
+			const isElementType = entityUpdateData.instanceListId === ""
+			const isConversationEntryEvent = isSameTypeRef(ConversationEntryTypeRef, entityUpdateData.typeRef)
+			const isTutanotaPropertiesEvent = isSameTypeRef(TutanotaPropertiesTypeRef, entityUpdateData.typeRef)
+			if ((isElementType && !isTutanotaPropertiesEvent) || isConversationEntryEvent) {
 				progressMonitor.workDone(1)
 				continue
 			}
@@ -81,15 +84,23 @@ export class EventInstancePrefetcher {
 		progressMonitor: ProgressMonitorDelegate,
 	): Promise<void> {
 		for (const [typeRefString, groupedListIds] of preloadMap.entries()) {
-			const typeRef = parseTypeString(typeRefString) as TypeRef<ListElementEntity>
+			const typeRef = parseTypeString(typeRefString) as TypeRef<SomeEntity>
 			for (const [listId, elementIdsAndIndexes] of groupedListIds.entries()) {
-				// This prevents requests to conversationEntries which were always singleRequests
-				if (elementIdsAndIndexes.size > 1) {
+				if (listId === "") {
+					await this.loadElementEntities(typeRef as TypeRef<ElementEntity>, allEventsFromAllBatch, elementIdsAndIndexes, progressMonitor)
+				} else if (elementIdsAndIndexes.size > 1) {
+					// This prevents requests to lists containing single element
 					try {
 						const elementIds = Array.from(elementIdsAndIndexes.keys())
-						const instances = await this.entityCache.loadMultiple<ListElementEntity>(typeRef, listId, elementIds, undefined, {
-							cacheMode: CacheMode.WriteOnly,
-						})
+						const instances = await this.entityCache.loadMultiple<ListElementEntity>(
+							typeRef as TypeRef<ListElementEntity>,
+							listId,
+							elementIds,
+							undefined,
+							{
+								cacheMode: CacheMode.WriteOnly,
+							},
+						)
 						if (isSameTypeRef(MailTypeRef, typeRef)) {
 							await this.fetchMailDetailsBlob(instances)
 						}
@@ -104,6 +115,19 @@ export class EventInstancePrefetcher {
 				}
 			}
 		}
+	}
+
+	private async loadElementEntities(
+		typeRef: TypeRef<ElementEntity>,
+		allEventsFromAllBatch: Array<EntityUpdateData>,
+		elementIdsAndIndexes: Map<Id, number[]>,
+		progressMonitor: ProgressMonitorDelegate,
+	) {
+		const elementIds = Array.from(elementIdsAndIndexes.keys())
+		const instances = await this.entityCache.loadMultiple<ElementEntity>(typeRef, null, elementIds, undefined, {
+			cacheMode: CacheMode.WriteOnly,
+		})
+		this.setEventsWithInstancesAsPrefetched(allEventsFromAllBatch, instances, elementIdsAndIndexes, progressMonitor)
 	}
 
 	private async fetchMailDetailsBlob(instances: Array<SomeEntity>) {
@@ -134,12 +158,18 @@ export class EventInstancePrefetcher {
 
 	private setEventsWithInstancesAsPrefetched(
 		allEventsFromAllBatch: Array<EntityUpdateData>,
-		instances: Array<ListElementEntity>,
+		instances: Array<SomeEntity>,
 		elementIdsAndIndexes: Map<Id, number[]>,
 		progressMonitor: ProgressMonitorDelegate,
 	) {
 		for (const [elementId, indices] of elementIdsAndIndexes.entries()) {
-			const elementIdWasFetched = instances.some((instance) => getElementId(instance) === elementId)
+			const elementIdWasFetched = instances.some((instance) => {
+				if (isElementEntity(instance)) {
+					return instance._id === elementId
+				} else {
+					return getElementId(instance as ListElementEntity) === elementId
+				}
+			})
 			const prefetchStatus = elementIdWasFetched ? PrefetchStatus.Prefetched : PrefetchStatus.NotAvailable
 			this.markPrefetchStatusForEntityEvents(indices, allEventsFromAllBatch, progressMonitor, prefetchStatus)
 		}

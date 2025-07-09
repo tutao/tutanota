@@ -5,7 +5,14 @@ import { EntityUpdateTypeRef, GroupMembershipTypeRef, User, UserTypeRef } from "
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
 import { EntityUpdateData, entityUpdateToUpdateData, PrefetchStatus } from "../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver } from "../../TestUtils"
-import { CalendarEventTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs"
+import {
+	CalendarEventTypeRef,
+	ConversationEntryTypeRef,
+	MailDetailsBlobTypeRef,
+	MailTypeRef,
+	TutanotaProperties,
+	TutanotaPropertiesTypeRef,
+} from "../../../../src/common/api/entities/tutanota/TypeRefs"
 import { OperationType } from "../../../../src/common/api/common/TutanotaConstants"
 import { matchers, object, verify, when } from "testdouble"
 import { downcast, getTypeString, promiseMap } from "@tutao/tutanota-utils"
@@ -117,7 +124,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		const secondUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), { instanceId: id2 })
 		const allEventsFromAllBatch = Array.of(firstUpdate, secondUpdate)
 
-		const instancesToFetch = await eventInstancePrefetcher.groupedListElementUpdatedInstances(allEventsFromAllBatch, progressMonitorMock)
+		const instancesToFetch = await eventInstancePrefetcher.groupedUpdatedInstances(allEventsFromAllBatch, progressMonitorMock)
 
 		o(mapToObject(instancesToFetch)).deepEquals({})
 		verify(progressMonitorMock.workDone(1), { times: allEventsFromAllBatch.length })
@@ -224,7 +231,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		})
 		const allUpdates = Array.of(firstUpdate, secondUpdate, fourthUpdate, thirdUpdate)
 
-		const instancesToFetch = (await eventInstancePrefetcher.groupedListElementUpdatedInstances(allUpdates, progressMonitorMock)).get(
+		const instancesToFetch = (await eventInstancePrefetcher.groupedUpdatedInstances(allUpdates, progressMonitorMock)).get(
 			getTypeString(updateTemplate.typeRef),
 		)!
 		o(mapToObject(instancesToFetch.get("firstListId")!)).deepEquals(mapToObject(new Map([[id1, [0, 1, 3]]])))
@@ -246,7 +253,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		const secondUpdate = Object.assign(structuredClone(firstUpdate), { instance: null, instanceId: id2 })
 
 		const allUpdates = Array.of(firstUpdate, secondUpdate)
-		const instancesToFetch = (await eventInstancePrefetcher.groupedListElementUpdatedInstances(allUpdates, progressMonitorMock))
+		const instancesToFetch = (await eventInstancePrefetcher.groupedUpdatedInstances(allUpdates, progressMonitorMock))
 			.get(getTypeString(MailTypeRef))!
 			.get(firstUpdate.instanceListId)!
 		const expectedAllUpdates = mapToObject(
@@ -275,7 +282,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 		const allUpdates = Array.of(firstUpdate, secondUpdate)
 		const instancesToFetch = eventInstancePrefetcher
-			.groupedListElementUpdatedInstances(allUpdates, progressMonitorMock)
+			.groupedUpdatedInstances(allUpdates, progressMonitorMock)
 			.get(getTypeString(MailTypeRef))!
 			.get(firstUpdate.instanceListId)!
 		o(mapToObject(instancesToFetch)).deepEquals(
@@ -303,7 +310,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		const secondUpdate = Object.assign(structuredClone(firstUpdate), { instanceListId: "listId", instanceId: id2 })
 
 		const allUpdates = Array.of(firstUpdate, secondUpdate)
-		const instancesToFetch = eventInstancePrefetcher.groupedListElementUpdatedInstances(allUpdates, progressMonitorMock).get(getTypeString(MailTypeRef))!
+		const instancesToFetch = eventInstancePrefetcher.groupedUpdatedInstances(allUpdates, progressMonitorMock).get(getTypeString(MailTypeRef))!
 		const expectedOnlyListElementInstance = mapToObject(new Map([["listId", new Map([[id2, [1]]])]]))
 		o(mapToObject(instancesToFetch)).deepEquals(expectedOnlyListElementInstance)
 	})
@@ -700,5 +707,65 @@ o.spec("EventInstancePrefetcherTest", function () {
 		)
 		verify(progressMonitorMock.workDone(1), { times: 0 })
 		verify(progressMonitorMock.totalWorkDone(allUpdates.length))
+	})
+
+	o("Do not prefetch ConversationEntry type", async () => {
+		const updateTemplate: EntityUpdateData = {
+			typeRef: ConversationEntryTypeRef,
+			instanceId: id1,
+			instanceListId: "listId",
+			operation: OperationType.CREATE,
+			patches: null,
+			instance: null,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
+		}
+
+		const firstUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), { instanceId: id1 })
+		const secondUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), { instanceId: id2 })
+		const allEventsFromAllBatch = Array.of(firstUpdate, secondUpdate)
+
+		const instancesToFetch = eventInstancePrefetcher.groupedUpdatedInstances(allEventsFromAllBatch, progressMonitorMock)
+
+		o(mapToObject(instancesToFetch)).deepEquals({})
+		verify(progressMonitorMock.workDone(1), { times: allEventsFromAllBatch.length })
+	})
+
+	o("prefetch TutanotaProperties type", async () => {
+		const updateTemplate: EntityUpdateData = {
+			typeRef: TutanotaPropertiesTypeRef,
+			instanceId: id1,
+			instanceListId: "",
+			operation: OperationType.CREATE,
+			patches: null,
+			instance: null,
+			prefetchStatus: PrefetchStatus.NotPrefetched,
+		}
+
+		const firstUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), { instanceId: id1 })
+		const secondUpdate: EntityUpdateData = Object.assign(structuredClone(updateTemplate), {
+			instanceId: id1,
+			operation: OperationType.UPDATE,
+		})
+		const allEventsFromAllBatch = Array.of(firstUpdate, secondUpdate)
+
+		const tutanotaPropertiesResponse: TutanotaProperties = createTestEntity(TutanotaPropertiesTypeRef, { _id: id1 })
+
+		when(
+			entityRestClient.loadMultipleParsedInstances(TutanotaPropertiesTypeRef, null, [id1], matchers.anything(), {
+				cacheMode: CacheMode.WriteOnly,
+			}),
+		).thenResolve([await toStorableInstance(tutanotaPropertiesResponse)])
+
+		await eventInstancePrefetcher.preloadEntities(allEventsFromAllBatch, progressMonitorMock)
+
+		verify(
+			entityRestClient.loadMultipleParsedInstances(TutanotaPropertiesTypeRef, null, [id1], matchers.anything(), {
+				cacheMode: CacheMode.WriteOnly,
+			}),
+			{ times: 1 },
+		)
+		verify(progressMonitorMock.workDone(1), { times: allEventsFromAllBatch.length })
+		o(firstUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
+		o(secondUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
 	})
 })

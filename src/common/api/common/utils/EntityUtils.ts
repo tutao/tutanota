@@ -24,11 +24,9 @@ import {
 	ClientModelEncryptedParsedInstance,
 	ClientModelParsedInstance,
 	ClientModelUntypedInstance,
-	ClientTypeModel,
 	ElementEntity,
 	Entity,
 	ModelValue,
-	ParsedInstance,
 	ParsedValue,
 	SomeEntity,
 	TypeModel,
@@ -360,7 +358,7 @@ export async function computePatches(
 ): Promise<Patch[]> {
 	let patches: Patch[] = []
 	for (const [valueIdStr, modelValue] of Object.entries(typeModel.values)) {
-		if (modelValue.final) {
+		if (IDENTITY_FIELDS.includes(modelValue.name)) {
 			continue
 		}
 		const attributeId = parseInt(valueIdStr)
@@ -705,11 +703,9 @@ export function getStrippedClone<E extends SomeEntity>(entity: StrippedEntity<E>
  * remove fields that do not contain user defined data but are related to finding/accessing the entity on the server
  */
 function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
-	const keysToDelete = ["_id", "_ownerGroup", "_ownerEncSessionKey", "_ownerKeyVersion", "_permissions"]
-
 	function _removeIdentityFields(erased: Record<string, any>) {
 		for (const key of Object.keys(erased)) {
-			if (keysToDelete.includes(key)) {
+			if (IDENTITY_FIELDS.includes(key)) {
 				delete erased[key]
 			} else {
 				const value = erased[key]
@@ -770,6 +766,8 @@ export const LEGACY_BODY_ID = 116
 export const SUBJECT_ID = 105
 export const SENDER_ID = 111
 export const ATTACHMENTS_ID = 115
+
+const IDENTITY_FIELDS = ["_id", "_ownerGroup", "_ownerEncSessionKey", "_ownerKeyVersion", "_permissions"]
 
 export function isCustomIdType(typeModel: TypeModel): boolean {
 	const _idValue = get_IdValue(typeModel)
