@@ -362,14 +362,19 @@ export class EventBusClient {
 					// if the user was just assigned to a new group, it might it is not yet on the user facade,
 					// we can't decrypt the instance in that case.
 					const migratedEntity = await this.cryptoFacade.applyMigrations(typeRef, entityAdapter)
-					const sessionKey = await this.cryptoFacade.resolveSessionKey(migratedEntity)
-					const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(serverTypeModel, encryptedParsedInstance, sessionKey)
-					if (!hasError(parsedInstance)) {
-						// we do not want to process the instance if there are _errors (when decrypting)
-						return parsedInstance
-					} else {
-						return null
+					if (migratedEntity._ownerEncSessionKey) {
+						const sessionKey = await this.cryptoFacade.resolveSessionKey(migratedEntity)
+						const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
+							serverTypeModel,
+							encryptedParsedInstance,
+							sessionKey,
+						)
+						if (!hasError(parsedInstance)) {
+							// we do not want to process the instance if there are _errors (when decrypting)
+							return parsedInstance
+						}
 					}
+					return null
 				}
 			} catch (e) {
 				if (e instanceof SessionKeyNotFoundError) {
