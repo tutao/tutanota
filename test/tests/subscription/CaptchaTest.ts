@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { solvePowChallengeInWorker } from "../../../src/common/subscription/Captcha.js"
+import { solvePowChallengeInWorker } from "../../../src/common/subscription/captcha/Captcha.js"
 import { createTimelockCaptchaGetOut, TimelockCaptchaGetOut } from "../../../src/common/api/entities/sys/TypeRefs.js"
 
 o.spec("SolvePowChallenge", () => {
