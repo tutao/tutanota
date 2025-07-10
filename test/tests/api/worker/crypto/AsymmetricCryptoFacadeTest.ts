@@ -8,6 +8,7 @@ import {
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	EncryptionKeyVerificationState,
+	PresentableKeyVerificationState,
 	PublicKeyIdentifierType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
@@ -112,7 +113,10 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				senderKeyVersion,
 			)
 
-			o(result).equals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
+			o(result).deepEquals({
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+				verificationState: PresentableKeyVerificationState.NONE,
+			})
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_FAILED if sender does not have an ecc identity key in the requested version", async function () {
@@ -141,7 +145,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				senderKeyVersion,
 			)
 
-			o(result).equals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
+			o(result).deepEquals({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT })
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_FAILED if the key does not match", async function () {
@@ -171,7 +175,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				senderKeyVersion,
 			)
 
-			o(result).equals(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
+			o(result).deepEquals({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT })
 		})
 	})
 

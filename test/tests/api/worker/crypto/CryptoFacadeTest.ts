@@ -9,6 +9,7 @@ import {
 	EncryptionKeyVerificationState,
 	GroupType,
 	PermissionType,
+	PresentableKeyVerificationState,
 	PublicKeyIdentifierType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import {
@@ -573,7 +574,7 @@ o.spec("CryptoFacadeTest", function () {
 				senderIdentityKeyPair.publicKey,
 				senderKeyVersion,
 			),
-		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
+		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
 
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mail))
 
@@ -599,6 +600,17 @@ o.spec("CryptoFacadeTest", function () {
 
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
 		const bucketKey = assertNotNull(testData.mail.bucketKey)
+
+		when(
+			asymmetricCryptoFacade.authenticateSender(
+				{
+					identifier: senderAddress,
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				},
+				testData.senderIdentityKeyPair.publicKey,
+				anything(),
+			),
+		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
 
 		await crypto.enforceSessionKeyUpdateIfNeeded(testData.mail, files)
 		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 1 })
@@ -946,7 +958,7 @@ o.spec("CryptoFacadeTest", function () {
 				testData.senderIdentityKeyPair.publicKey,
 				parseKeyVersion(senderKeyVersion),
 			),
-		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
+		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
 
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
@@ -979,7 +991,7 @@ o.spec("CryptoFacadeTest", function () {
 				testData.senderIdentityKeyPair.publicKey,
 				parseKeyVersion(senderKeyVersion),
 			),
-		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
+		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
 
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
@@ -1013,7 +1025,7 @@ o.spec("CryptoFacadeTest", function () {
 				testData.senderIdentityKeyPair.publicKey,
 				parseKeyVersion(senderKeyVersion),
 			),
-		).thenResolve(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED)
+		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT })
 
 		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
@@ -1233,6 +1245,17 @@ o.spec("CryptoFacadeTest", function () {
 		o.timeout(500) // in CI or with debugging it can take a while
 		const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
 
+		when(
+			asymmetricCryptoFacade.authenticateSender(
+				{
+					identifier: senderAddress,
+					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+				},
+				anything(),
+				anything(),
+			),
+		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
+
 		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
 		o(sessionKey).deepEquals(testData.sk)
@@ -1244,6 +1267,17 @@ o.spec("CryptoFacadeTest", function () {
 			o.timeout(500) // in CI or with debugging it can take a while
 
 			const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest()
+
+			when(
+				asymmetricCryptoFacade.authenticateSender(
+					{
+						identifier: senderAddress,
+						identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+					},
+					anything(),
+					anything(),
+				),
+			).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
 
 			// do not use testdouble here because it's hard to not break the function itself and then verify invocations
 			const decryptAndMapToInstance = (instancePipeline.cryptoMapper.decryptParsedInstance = spy(instancePipeline.cryptoMapper.decryptParsedInstance))
@@ -1262,6 +1296,17 @@ o.spec("CryptoFacadeTest", function () {
 			const file1SessionKey = aes256RandomKey()
 			const file2SessionKey = aes256RandomKey()
 			const testData = await preparePqPubEncBucketKeyResolveSessionKeyTest([file1SessionKey, file2SessionKey])
+
+			when(
+				asymmetricCryptoFacade.authenticateSender(
+					{
+						identifier: senderAddress,
+						identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+					},
+					anything(),
+					anything(),
+				),
+			).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
 
 			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 			const bucketKey = assertNotNull(testData.mail.bucketKey)
@@ -1428,6 +1473,7 @@ o.spec("CryptoFacadeTest", function () {
 			instanceId: elementIdPart(mail._id),
 			encryptionAuthStatus: null,
 			symKeyVersion: "0",
+			keyVerificationState: null,
 		})
 		const FileTypeModel = await typeModelResolver.resolveClientTypeReference(FileTypeRef)
 		const bucketEncSessionKeys = fileSessionKeys.map((fileSessionKey, index) => {
@@ -1441,6 +1487,7 @@ o.spec("CryptoFacadeTest", function () {
 				instanceList: "fileListId",
 				instanceId: "fileId" + (index + 1),
 				encryptionAuthStatus: null,
+				keyVerificationState: null,
 			})
 		})
 		bucketEncSessionKeys.push(mailInstanceSessionKey)
@@ -1806,6 +1853,7 @@ o.spec("CryptoFacadeTest", function () {
 			mailDetails: null,
 			mailDetailsDraft: null,
 			sets: [],
+			keyVerificationState: null,
 		})
 
 		// casting here is fine, since we just want to mimic server response data
