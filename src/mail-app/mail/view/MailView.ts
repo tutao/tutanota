@@ -661,6 +661,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				help: "labels_label",
 			},
 			{
+				key: Keys.P,
+				ctrlOrCmd: true,
+				exec: () => {
+					this.getPrintingAction()
+					return true
+				},
+				help: "print_action",
+			},
+			{
 				key: Keys.U,
 				exec: () => {
 					if (this.mailViewModel.listModel) this.toggleUnreadMails()
@@ -797,6 +806,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					showLabelsPopup(mailModel, actionableMails, (mails: Mail[]) => this.mailViewModel.getResolvedMails(mails), dom, opts)
 			  }
 			: null
+	}
+
+	private getPrintingAction() {
+		const actionableMails = this.mailViewModel.getActionableMails()
+		if (isEmpty(actionableMails)) {
+			return
+		} else {
+			window.print()
+		}
 	}
 
 	private createFolderColumn(editingFolderForMailGroup: Id | null = null, drawerAttrs: DrawerMenuAttrs) {
