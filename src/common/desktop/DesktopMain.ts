@@ -48,7 +48,7 @@ import { DesktopWebauthnFacade } from "./2fa/DesktopWebauthnFacade.js"
 import { DesktopPostLoginActions } from "./DesktopPostLoginActions.js"
 import { DesktopInterWindowEventFacade } from "./ipc/DesktopInterWindowEventFacade.js"
 import { OfflineDbFactory, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
-import { delay, lazyMemoized } from "@tutao/tutanota-utils"
+import { delay, lazyAsync, LazyLoaded, lazyMemoized } from "@tutao/tutanota-utils"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
@@ -155,31 +155,28 @@ async function createComponents(): Promise<Components> {
 	const keyStoreFacade = new DesktopKeyStoreFacade(secretStorage, desktopCrypto)
 	const configMigrator = new DesktopConfigMigrator(desktopCrypto, keyStoreFacade, electron)
 	const conf = new DesktopConfig(configMigrator, keyStoreFacade, desktopCrypto)
+
 	// Fire config loading, dont wait for it
 	conf.init(getConfigFile(app.getAppPath(), "package.json", fs), getConfigFile(app.getPath("userData"), "conf.json", fs)).catch((e) => {
 		console.error("Could not load config", e)
 		process.exit(1)
 	})
-	const appIcon = desktopUtils.getIconByName(await conf.getConst(BuildConfigKey.iconName))
+
+	// We will eventually need to get the app icon and make a notification factory, though.
+	// LazyLoaded is fine for this, since it will likely be done loading by the time any of these need to be made.
+	const appIcon = new LazyLoaded(async () => {
+		const iconName = await conf.getConst(BuildConfigKey.iconName)
+		return desktopUtils.getIconByName(iconName)
+	})
+	const notificationFactory = new LazyLoaded(() => createNotificationFactory(conf, app))
+
 	const desktopNet = new DesktopNetworkClient()
 	const sock = new Socketeer(net, app)
 	const tray = new DesktopTray(conf)
+	const notifier = new DesktopNotifier(tray, notificationFactory)
 
 	console.log("registering for tuta protocol", process.execPath, app.getAppPath())
 	app.setAsDefaultProtocolClient("tuta", process.execPath, [app.getAppPath()])
-
-	// FIXME: do we want to wait here?
-	//
-	// @paw: it's fine because we already wait for `await conf.getConst(BuildConfigKey.iconName)` a few lines ago which waits on the same promise
-	//       (thus this isn't going to actually wait for anything) but if we want to fix that later and insist on not awaiting, we can use .then
-	//       and have notifier be passed as a promise
-	const notificationFactory = await createNotificationFactory(conf)
-	const notifier = new DesktopNotifier(tray, notificationFactory)
-
-	// FIXME
-	delay(2000)
-		.then(() => notifier.showOneShot({ title: "Hello I am a test notification", body: "I am indeed a test notification" }))
-		.then(() => console.log("notification click"))
 
 	const dateProvider = new DefaultDateProvider()
 	const clientModelInfo = ClientModelInfo.getInstance()
@@ -231,10 +228,10 @@ async function createComponents(): Promise<Components> {
 	}
 
 	const offlineDbRefCounter = new OfflineDbRefCounter(offlineDbFactory)
-	const updateUrl = await conf.getConst(BuildConfigKey.updateUrl)
-	const dictUrl = updateUrl ? updateUrl : "https://app.tuta.com/desktop/"
 
 	electron.app.on("session-created", async (session) => {
+		const updateUrl = await conf.getConst(BuildConfigKey.updateUrl)
+		const dictUrl = updateUrl ? updateUrl : "https://app.tuta.com/desktop/"
 		manageDownloadsForSession(session, dictUrl)
 	})
 

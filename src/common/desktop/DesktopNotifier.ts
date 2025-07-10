@@ -4,7 +4,7 @@ import type { ApplicationWindow } from "./ApplicationWindow"
 import type { NotificationFactory } from "./NotificationFactory"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
-import { lazyNumberRange } from "@tutao/tutanota-utils"
+import { LazyLoaded, lazyNumberRange } from "@tutao/tutanota-utils"
 
 export const enum NotificationResult {
 	Click = "click",
@@ -16,13 +16,15 @@ export class DesktopNotifier {
 	_canShow: boolean = false
 	pendingNotifications: Array<(...args: Array<any>) => any> = []
 	_notificationCloseFunctions: { [userId in string]?: () => void } = {}
-	_notificationFactory: NotificationFactory
 	private readonly notificationIdGenerator: Generator<number>
 	private shownNotifications: Map<string, () => unknown> = new Map()
 
-	constructor(tray: DesktopTray, notificationFactory: NotificationFactory, private readonly startingId: number = Date.now() * 1000) {
+	constructor(
+		tray: DesktopTray,
+		private readonly notificationFactory: LazyLoaded<NotificationFactory>,
+		private readonly startingId: number = Date.now() * 1000,
+	) {
 		this._tray = tray
-		this._notificationFactory = notificationFactory
 
 		// We want the number ID generator to start at a timestamp times 1000, as this will prevent stale notifications from having any meaning
 		// when new notifications come in.
@@ -43,10 +45,6 @@ export class DesktopNotifier {
 		}, delay)
 	}
 
-	isAvailable(): boolean {
-		return this._notificationFactory.isSupported()
-	}
-
 	/**
 	 * Shows a simple Desktop Notification to the user, once.
 	 * @param props.title title of the notification
@@ -64,17 +62,19 @@ export class DesktopNotifier {
 			group: "oneshot",
 		}
 
-		if (!this.isAvailable()) {
+		const factory = await this.notificationFactory.getAsync()
+
+		if (!factory.isSupported()) {
 			return Promise.reject()
 		}
 
 		return newPromise((resolve) => {
 			this.shownNotifications.set(key, () => resolve(NotificationResult.Click))
 			if (this._canShow) {
-				this._notificationFactory.makeNotification(withIcon, (res) => resolve(res))
+				factory.makeNotification(withIcon, (res) => resolve(res))
 			} else {
 				this.pendingNotifications.push(() => {
-					this._notificationFactory.makeNotification(withIcon, (res) => resolve(res))
+					factory.makeNotification(withIcon, (res) => resolve(res))
 				})
 			}
 		})
@@ -87,13 +87,16 @@ export class DesktopNotifier {
 		}
 
 		const showIt = async () => {
-			if (!this.isAvailable()) {
+			const factory = await this.notificationFactory.getAsync()
+
+			if (!factory.isSupported()) {
 				return
 			}
+
 			const tag = this.nextNotificationId()
 			this.shownNotifications.set(tag, () => onClick(NotificationResult.Click))
 
-			this._notificationCloseFunctions[id] = this._notificationFactory.makeNotification(
+			this._notificationCloseFunctions[id] = factory.makeNotification(
 				{
 					title: title,
 					body: message,

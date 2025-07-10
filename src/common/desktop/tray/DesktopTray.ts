@@ -8,6 +8,7 @@ import { MacTray } from "./MacTray"
 import { NonMacTray } from "./NonMacTray"
 import { BuildConfigKey, DesktopConfigKey } from "../config/ConfigKeys"
 import { log } from "../DesktopLog.js"
+import { lazyAsync } from "@tutao/tutanota-utils"
 
 export interface PlatformTray {
 	setBadge(): void

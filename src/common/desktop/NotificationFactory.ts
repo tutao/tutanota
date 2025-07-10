@@ -5,6 +5,7 @@ import { Notifier } from "@indutny/simple-windows-notifications"
 import { TUTA_PROTOCOL_NOTIFICATION_ACTION } from "./DesktopUtils"
 import { DesktopConfig } from "./config/DesktopConfig"
 import { BuildConfigKey } from "./config/ConfigKeys"
+import { type App } from "electron"
 
 type Dismisser = () => void
 
@@ -31,10 +32,11 @@ export interface NotificationFactory {
 	makeNotification(params: NotificationParameters, onClick: (res: NotificationResult) => void): Dismisser
 }
 
-export async function createNotificationFactory(conf: DesktopConfig): Promise<NotificationFactory> {
+export async function createNotificationFactory(conf: DesktopConfig, app: App): Promise<NotificationFactory> {
 	if (process.platform === "win32") {
 		const appId = await conf.getConst(BuildConfigKey.appUserModelId)
 		console.log("appId is", appId)
+		app.setAppUserModelId(appId)
 		return new WindowsNotificationFactory(appId)
 	} else {
 		return new ElectronNotificationFactory()
