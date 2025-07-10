@@ -109,6 +109,10 @@ export class AsymmetricCryptoFacade {
 			const publicEccKey = this.getSenderEccKey(publicKey.publicEncryptionKey)
 			if (publicEccKey != null && arrayEquals(publicEccKey, senderIdentityPubKey)) {
 				authenticated = true
+
+				if (publicKey.verificationState === EncryptionKeyVerificationState.VERIFIED_MANUAL) {
+					return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE }
+				}
 			}
 		} catch (e) {
 			if (e instanceof KeyVerificationMismatchError) {
@@ -118,7 +122,7 @@ export class AsymmetricCryptoFacade {
 			}
 		}
 		if (authenticated) {
-			return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE }
+			return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.NONE }
 		} else {
 			return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT }
 		}
