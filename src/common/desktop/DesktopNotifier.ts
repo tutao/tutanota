@@ -1,9 +1,10 @@
 import type { NativeImage } from "electron"
 import type { DesktopTray } from "./tray/DesktopTray"
 import type { ApplicationWindow } from "./ApplicationWindow"
-import type { ElectronNotificationFactory } from "./NotificatonFactory"
+import type { NotificationFactory } from "./NotificationFactory"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { LazyLoaded, lazyNumberRange } from "@tutao/tutanota-utils"
 
 export const enum NotificationResult {
 	Click = "click",
@@ -15,11 +16,13 @@ export class DesktopNotifier {
 	_canShow: boolean = false
 	pendingNotifications: Array<(...args: Array<any>) => any> = []
 	_notificationCloseFunctions: { [userId in string]?: () => void } = {}
-	_notificationFactory: ElectronNotificationFactory
 
-	constructor(tray: DesktopTray, notificationFactory: ElectronNotificationFactory) {
+	constructor(
+		tray: DesktopTray,
+		private readonly notificationFactory: LazyLoaded<NotificationFactory>,
+		private readonly startingId: number = Date.now() * 1000,
+	) {
 		this._tray = tray
-		this._notificationFactory = notificationFactory
 	}
 
 	/**
@@ -36,10 +39,6 @@ export class DesktopNotifier {
 		}, delay)
 	}
 
-	isAvailable(): boolean {
-		return this._notificationFactory.isSupported()
-	}
-
 	/**
 	 * Shows a simple Desktop Notification to the user, once.
 	 * @param props.title title of the notification
@@ -48,23 +47,28 @@ export class DesktopNotifier {
 	 * @param props.closeHandler Called when the notification was closed (by timeout or user action).
 	 */
 	async showOneShot(props: { title: string; body?: string; icon?: NativeImage }): Promise<NotificationResult> {
-		const withIcon = {
+		const params = {
 			title: props.title,
 			body: props.body,
 			icon: props.icon || (await this._tray.getAppIcon()),
+			group: "oneshot",
 		}
 
-		if (!this.isAvailable()) {
+		const factory = await this.notificationFactory.getAsync()
+
+		if (!factory.isSupported()) {
 			return Promise.reject()
 		}
 
-		return this._canShow
-			? newPromise((resolve) => this._notificationFactory.makeNotification(withIcon, (res) => resolve(res)))
-			: newPromise((resolve) =>
-					this.pendingNotifications.push(() => {
-						this._notificationFactory.makeNotification(withIcon, (res) => resolve(res))
-					}),
-			  )
+		return newPromise((resolve) => {
+			if (this._canShow) {
+				factory.makeNotification(params, (res) => resolve(res))
+			} else {
+				this.pendingNotifications.push(() => {
+					factory.makeNotification(params, (res) => resolve(res))
+				})
+			}
+		})
 	}
 
 	submitGroupedNotification(title: string, message: string, id: string, onClick: (arg0: NotificationResult) => void): void {
@@ -74,15 +78,18 @@ export class DesktopNotifier {
 		}
 
 		const showIt = async () => {
-			if (!this.isAvailable()) {
+			const factory = await this.notificationFactory.getAsync()
+
+			if (!factory.isSupported()) {
 				return
 			}
 
-			this._notificationCloseFunctions[id] = this._notificationFactory.makeNotification(
+			this._notificationCloseFunctions[id] = factory.makeNotification(
 				{
 					title: title,
 					body: message,
 					icon: await this._tray.getAppIcon(),
+					group: id,
 				},
 				onClick,
 			)
@@ -116,5 +123,9 @@ export class DesktopNotifier {
 
 	hasNotificationForId(id: string): boolean {
 		return "function" === typeof this._notificationCloseFunctions[id]
+	}
+
+	onNotificationClick(id: string) {
+		this.notificationFactory.getAsync().then((factory) => factory.processNotification(id))
 	}
 }

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
-import type { ElectronNotificationFactory } from "../../../src/common/desktop/NotificatonFactory.js"
-import { defer, delay, downcast } from "@tutao/tutanota-utils"
+import type { NotificationFactory } from "../../../src/common/desktop/NotificationFactory.js"
+import { defer, delay, downcast, LazyLoaded } from "@tutao/tutanota-utils"
 import { DesktopNotifier } from "../../../src/common/desktop/DesktopNotifier.js"
 import type { DesktopTray } from "../../../src/common/desktop/tray/DesktopTray.js"
 import type { NativeImage } from "electron"
@@ -14,7 +14,8 @@ o.spec("Desktop Notifier Test", function () {
 	const notificationStartDelay = 10
 	let createdNotifications
 	let desktopTray: DesktopTray
-	let notificationFactory: ElectronNotificationFactory
+	let notificationFactory: NotificationFactory
+	let notificationFactoryLazy: LazyLoaded<NotificationFactory>
 	let notificationMade = defer<void>()
 	o.beforeEach(function () {
 		createdNotifications = []
@@ -35,9 +36,10 @@ o.spec("Desktop Notifier Test", function () {
 				return () => n.close()
 			}),
 		})
+		notificationFactoryLazy = new LazyLoaded(() => Promise.resolve(notificationFactory))
 	})
 	o("show no notifications before call to start()", async function () {
-		const notifier = new DesktopNotifier(desktopTray, notificationFactory)
+		const notifier = new DesktopNotifier(desktopTray, notificationFactoryLazy)
 		notifier.showOneShot({
 			title: "Title1",
 			body: "Body1",
@@ -60,7 +62,7 @@ o.spec("Desktop Notifier Test", function () {
 	o("show no notifications when no notifications available", async function () {
 		downcast(notificationFactory).isSupported = () => false
 
-		const notifier = new DesktopNotifier(desktopTray, notificationFactory)
+		const notifier = new DesktopNotifier(desktopTray, notificationFactoryLazy)
 		notifier
 			.showOneShot({
 				title: "Title1",
@@ -75,7 +77,7 @@ o.spec("Desktop Notifier Test", function () {
 		o(notificationFactory.makeNotification.callCount).equals(0)
 	})
 	o("grouped notifications replace each other", async function () {
-		const notifier = new DesktopNotifier(desktopTray, notificationFactory)
+		const notifier = new DesktopNotifier(desktopTray, notificationFactoryLazy)
 		notifier.start(notificationStartDelay)
 		await delay(notificationStartDelay * 1.1)
 		// Notice the same "gn1". The second replaces the first and calls its "close"
@@ -97,7 +99,7 @@ o.spec("Desktop Notifier Test", function () {
 		o(notifier.hasNotificationForId("gn2")).equals(true)
 	})
 	o("grouped notification disappear after clicking", async function () {
-		const notifier = new DesktopNotifier(desktopTray, notificationFactory)
+		const notifier = new DesktopNotifier(desktopTray, notificationFactoryLazy)
 		notifier.start(notificationStartDelay)
 		const clickHandler = spy(() => notifier.resolveGroupedNotification("gn1"))
 		notifier.submitGroupedNotification("Title1", "Message1", "gn1", clickHandler)
