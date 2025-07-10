@@ -6,6 +6,8 @@ import { TUTA_PROTOCOL_NOTIFICATION_ACTION } from "./DesktopUtils"
 import { DesktopConfig } from "./config/DesktopConfig"
 import { BuildConfigKey } from "./config/ConfigKeys"
 import { type App } from "electron"
+import { lazyNumberRange } from "@tutao/tutanota-utils"
+import { takeFromMap } from "@tutao/tutanota-utils/lib/MapUtils"
 
 type Dismisser = () => void
 
@@ -13,7 +15,6 @@ export interface NotificationParameters {
 	title: string
 	body?: string
 	icon: NativeImage
-	tag: string
 	group: string
 }
 
@@ -26,12 +27,24 @@ export interface NotificationFactory {
 	/**
 	 * Create and emit a notification into the desktop.
 	 * @param params  parameters to pass
-	 * @param onClick this will get called with the result (ignored on Windows)
+	 * @param onClick this will get called with the result
 	 * @returns call this to dismiss the notification
 	 */
 	makeNotification(params: NotificationParameters, onClick: (res: NotificationResult) => void): Dismisser
+
+	/**
+	 * Process the notification with the given id (used for when receiving notification responses via protocol)
+	 * @param id
+	 */
+	processNotification(id: string): void
 }
 
+/**
+ * Creates a notification factory for the target platform
+ * @param conf
+ * @param app
+ * @returns a promise that results in a NotificationFactory for the target platform
+ */
 export async function createNotificationFactory(conf: DesktopConfig, app: App): Promise<NotificationFactory> {
 	if (process.platform === "win32") {
 		const appId = await conf.getConst(BuildConfigKey.appUserModelId)
@@ -43,6 +56,9 @@ export async function createNotificationFactory(conf: DesktopConfig, app: App): 
 	}
 }
 
+/**
+ * Handles notifications through Electron.
+ */
 class ElectronNotificationFactory implements NotificationFactory {
 	isSupported(): boolean {
 		return Notification.isSupported()
@@ -61,6 +77,10 @@ class ElectronNotificationFactory implements NotificationFactory {
 		// remove listeners before closing to distinguish from dismissal by user
 		return () => notification.removeAllListeners().close()
 	}
+
+	processNotification(id: string) {
+		console.warn(`ElectronNotificationFactory does not use processNotification (id = ${id})`)
+	}
 }
 
 /**
@@ -68,9 +88,15 @@ class ElectronNotificationFactory implements NotificationFactory {
  */
 class WindowsNotificationFactory implements NotificationFactory {
 	private readonly notifier: Notifier
+	private readonly notificationIdGenerator: Generator<number>
+	private readonly notifications: Map<string, (res: NotificationResult) => void> = new Map()
 
-	constructor(appId: string) {
+	constructor(appId: string, private readonly startingId = Date.now() * 1000) {
 		this.notifier = new Notifier(appId)
+
+		// We want the number ID generator to start at a timestamp times 1000, as this will prevent stale notifications from having any meaning
+		// when new notifications come in.
+		this.notificationIdGenerator = lazyNumberRange(this.startingId, Number.MAX_SAFE_INTEGER)
 	}
 
 	isSupported(): boolean {
@@ -78,7 +104,8 @@ class WindowsNotificationFactory implements NotificationFactory {
 		return true
 	}
 
-	makeNotification({ title, body = "", icon, tag, group }: NotificationParameters, onClick: (res: NotificationResult) => void): Dismisser {
+	makeNotification({ title, body = "", group }: NotificationParameters, onClick: (res: NotificationResult) => void): Dismisser {
+		const tag = this.nextNotificationId()
 		const notificationIdentifier = { tag, group }
 
 		// FIXME: wildly insecure; need to sanitize title and body (i.e. replace < with &lt; and strip invalid chars like 0x00 and control chars to prevent errors)
@@ -95,6 +122,24 @@ class WindowsNotificationFactory implements NotificationFactory {
 			notificationIdentifier,
 		)
 
-		return () => this.notifier.remove(notificationIdentifier)
+		this.notifications.set(tag, onClick)
+
+		return () => {
+			this.notifier.remove(notificationIdentifier)
+			this.notifications.delete(tag)
+		}
+	}
+
+	processNotification(id: string) {
+		const notificationHandler = takeFromMap(this.notifications, id)?.item
+		if (notificationHandler != null) {
+			notificationHandler(NotificationResult.Click)
+		} else {
+			console.warn(`No notification found (id = ${id})`)
+		}
+	}
+
+	private nextNotificationId(): string {
+		return String(this.notificationIdGenerator.next().value)
 	}
 }

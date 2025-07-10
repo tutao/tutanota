@@ -140,13 +140,19 @@ export class DesktopUtils {
 
 	private handleTutaProtocol(tutaArg: string, notifier: DesktopNotifier) {
 		const url = new URL(tutaArg)
-		if (url.pathname === TUTA_PROTOCOL_NOTIFICATION_ACTION) {
-			const id = url.searchParams.get("id")
-			if (id) {
-				log.debug("notification click:", id)
-				notifier.onNotificationClick(id)
-			} else {
-				log.debug("notification click without id", url)
+		switch (url.pathname) {
+			case TUTA_PROTOCOL_NOTIFICATION_ACTION: {
+				const id = url.searchParams.get("id")
+				if (id) {
+					log.debug("notification click:", id)
+					notifier.onNotificationClick(id)
+				} else {
+					log.warn("notification click without id", url)
+				}
+				break
+			}
+			default: {
+				log.warn("tuta protocol called with unknown request type", url)
 			}
 		}
 	}

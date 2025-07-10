@@ -78,7 +78,6 @@ import { DesktopExportLock } from "./export/DesktopExportLock"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
 import { ClientModelInfo } from "../api/common/EntityFunctions"
-import { sendDummyKeystroke } from "@indutny/simple-windows-notifications"
 
 mp()
 
@@ -359,14 +358,10 @@ async function createComponents(): Promise<Components> {
 
 async function startupInstance(components: Components) {
 	const { wm, sse, tfs, notifier } = components
-	sendDummyKeystroke()
 	if (!(await desktopUtils.cleanupOldInstance())) return
 	sse.connect().catch((e) => log.warn("unable to start sse client", e))
 	// The second-instance event fires when we call app.requestSingleInstanceLock inside DesktopUtils.makeSingleInstance
 	app.on("second-instance", async (_ev, args) => {
-		// FIXME
-		console.log("second instance", args)
-		sendDummyKeystroke()
 		desktopUtils.handleSecondInstance(wm, notifier, args)
 	})
 	app.on("open-url", (e, url) => {

@@ -16,8 +16,6 @@ export class DesktopNotifier {
 	_canShow: boolean = false
 	pendingNotifications: Array<(...args: Array<any>) => any> = []
 	_notificationCloseFunctions: { [userId in string]?: () => void } = {}
-	private readonly notificationIdGenerator: Generator<number>
-	private shownNotifications: Map<string, () => unknown> = new Map()
 
 	constructor(
 		tray: DesktopTray,
@@ -25,10 +23,6 @@ export class DesktopNotifier {
 		private readonly startingId: number = Date.now() * 1000,
 	) {
 		this._tray = tray
-
-		// We want the number ID generator to start at a timestamp times 1000, as this will prevent stale notifications from having any meaning
-		// when new notifications come in.
-		this.notificationIdGenerator = lazyNumberRange(this.startingId, Number.MAX_SAFE_INTEGER)
 	}
 
 	/**
@@ -53,12 +47,10 @@ export class DesktopNotifier {
 	 * @param props.closeHandler Called when the notification was closed (by timeout or user action).
 	 */
 	async showOneShot(props: { title: string; body?: string; icon?: NativeImage }): Promise<NotificationResult> {
-		const key = this.nextNotificationId()
-		const withIcon = {
+		const params = {
 			title: props.title,
 			body: props.body,
 			icon: props.icon || (await this._tray.getAppIcon()),
-			tag: key,
 			group: "oneshot",
 		}
 
@@ -69,12 +61,11 @@ export class DesktopNotifier {
 		}
 
 		return newPromise((resolve) => {
-			this.shownNotifications.set(key, () => resolve(NotificationResult.Click))
 			if (this._canShow) {
-				factory.makeNotification(withIcon, (res) => resolve(res))
+				factory.makeNotification(params, (res) => resolve(res))
 			} else {
 				this.pendingNotifications.push(() => {
-					factory.makeNotification(withIcon, (res) => resolve(res))
+					factory.makeNotification(params, (res) => resolve(res))
 				})
 			}
 		})
@@ -93,15 +84,11 @@ export class DesktopNotifier {
 				return
 			}
 
-			const tag = this.nextNotificationId()
-			this.shownNotifications.set(tag, () => onClick(NotificationResult.Click))
-
 			this._notificationCloseFunctions[id] = factory.makeNotification(
 				{
 					title: title,
 					body: message,
 					icon: await this._tray.getAppIcon(),
-					tag: tag,
 					group: id,
 				},
 				onClick,
@@ -139,11 +126,6 @@ export class DesktopNotifier {
 	}
 
 	onNotificationClick(id: string) {
-		this.shownNotifications.get(id)?.()
-		this.shownNotifications.delete(id)
-	}
-
-	private nextNotificationId(): string {
-		return String(this.notificationIdGenerator.next().value)
+		this.notificationFactory.getAsync().then((factory) => factory.processNotification(id))
 	}
 }
