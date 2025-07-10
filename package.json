@@ -60,7 +60,7 @@
 		"squire-rte": "2.2.7",
 		"undici": "6.19.2",
 		"winreg": "1.2.4",
-		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#5d16e4b9d3399138bacb49472df8e8c21552cf08"
+		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#983a0515b027806289fd7af1736e02793ad3c7f1"
 	},
 	"optionalDependencies": {
 		"dmg-license": "^1.0.11"
