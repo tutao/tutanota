@@ -1,5 +1,5 @@
 import { Dialog } from "../../gui/base/Dialog"
-import { Keys } from "../../api/common/TutanotaConstants"
+import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod, Keys } from "../../api/common/TutanotaConstants"
 import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
@@ -108,6 +108,7 @@ export async function showKeyVerificationDialog(
 						lastError = err
 						navigateToPage(KeyVerificationDialogPages.ERROR)
 					},
+					goToDoNotTrustPage: () => navigateToPage(KeyVerificationDialogPages.FINGERPRINT_MISMATCH_INFO),
 				}),
 				title: lang.get("keyManagement.keyVerification_label"),
 				leftAction: {
@@ -155,7 +156,24 @@ export async function showKeyVerificationDialog(
 			[KeyVerificationDialogPages.FINGERPRINT_MISMATCH_INFO]: {
 				content: m(FingerprintMismatchInfoPage, {
 					model,
-					goToDeletePage: () => navigateToPage(KeyVerificationDialogPages.MANUAL_INPUT_METHOD),
+					goToDeletePage: async () => {
+						if (model.getChosenMethod() === IdentityKeyVerificationMethod.text) {
+							navigateToPage(KeyVerificationDialogPages.MANUAL_INPUT_METHOD)
+						} else {
+							await model.deleteAndReloadTrustedKey()
+							model.compareFingerprint()
+							if (model.getKeyVerificationResult() === IdentityKeyQrVerificationResult.QR_OK) {
+								await model.trust(IdentityKeyVerificationMethod.qr)
+								await reloadParent()
+								navigateToPage(KeyVerificationDialogPages.SUCCESS)
+							} else if (model.getKeyVerificationResult() === IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH) {
+								//TODO stay on page or maybe display error page with  lang.get("keyManagement.qrFingerprintMismatch_msg")
+							} else {
+								navigateToPage(KeyVerificationDialogPages.ERROR)
+							}
+							navigateToPage(KeyVerificationDialogPages.QR_CODE_INPUT_METHOD)
+						}
+					},
 				}),
 				rightAction: {
 					type: ButtonType.Secondary,

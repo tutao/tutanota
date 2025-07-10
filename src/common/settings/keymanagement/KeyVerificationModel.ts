@@ -30,6 +30,7 @@ export class KeyVerificationModel {
 
 	// Tracking the wizard state
 	mailAddressInput: string = ""
+	fingerprintFromQrCode: string = ""
 	private result: IdentityKeyQrVerificationResult | null = null
 
 	// Relevant for the regret usage test only. Can be removed after testing is done.
@@ -59,6 +60,7 @@ export class KeyVerificationModel {
 			if (payload.mailAddress == null || payload.fingerprint == null) {
 				return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_MALFORMED_PAYLOAD)
 			}
+			this.fingerprintFromQrCode = payload.fingerprint
 
 			const cleanMailAddress = getCleanedMailAddress(payload.mailAddress)
 			if (cleanMailAddress == null) {
@@ -68,12 +70,7 @@ export class KeyVerificationModel {
 			const identityKey = await this.loadIdentityKeyForMailAddress(cleanMailAddress)
 
 			if (identityKey) {
-				if (identityKey.fingerprint === payload.fingerprint) {
-					// MalformedQrPayloadError: malformed payload
-					return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_OK)
-				} else {
-					return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH)
-				}
+				return this.compareFingerprint()
 			} else {
 				return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_MAIL_ADDRESS_NOT_FOUND)
 			}
@@ -90,6 +87,14 @@ export class KeyVerificationModel {
 			} else {
 				await this.test.scan_complete(IdentityKeyVerificationMethod.qr, KeyVerificationScanCompleteMetric.Failure)
 			}
+		}
+	}
+
+	compareFingerprint() {
+		if (assertNotNull(this.publicIdentityKey).fingerprint === this.fingerprintFromQrCode) {
+			return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_OK)
+		} else {
+			return this.setKeyVerificationResult(IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH)
 		}
 	}
 

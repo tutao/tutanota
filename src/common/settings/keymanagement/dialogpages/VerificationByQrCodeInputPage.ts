@@ -31,6 +31,7 @@ type VerificationByQrCodePageAttrs = {
 	model: KeyVerificationModel
 	goToSuccessPage: () => void
 	goToErrorPage: GoToErrorPageHandler
+	goToDoNotTrustPage: () => void
 }
 
 export class VerificationByQrCodeInputPage implements Component<VerificationByQrCodePageAttrs> {
@@ -65,7 +66,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 			}),
 			model.getKeyVerificationResult() === IdentityKeyQrVerificationResult.QR_OK
 				? this.renderConfirmation(assertNotNull(model.getPublicIdentity()))
-				: this.renderQrVideoStream(model),
+				: this.renderQrVideoStream(model, vnode.attrs.goToDoNotTrustPage),
 			m(
 				".align-self-center.full-width",
 				m(LoginButton, {
@@ -132,17 +133,17 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		)
 	}
 
-	private renderQrVideoStream(model: KeyVerificationModel): Children {
-		return [m(".center", this.getStateMessage()), this.getVideoElement(model)]
+	private renderQrVideoStream(model: KeyVerificationModel, goToDoNotTrustPage: () => void): Children {
+		return [m(".center", this.getStateMessage()), this.getVideoElement(model, goToDoNotTrustPage)]
 	}
 
-	private getVideoElement(model: KeyVerificationModel): Children | null {
+	private getVideoElement(model: KeyVerificationModel, goToDoNotTrustPage: () => void): Children | null {
 		if (this.qrCameraState == QrCameraState.INIT_VIDEO || this.qrCameraState == QrCameraState.SCANNING) {
 			const video = m("video[autoplay][muted][playsinline]", {
 				oncreate: async (videoNode) => {
 					this.qrVideo = assertNotNull(videoNode.dom as HTMLVideoElement)
 					try {
-						await this.runQrScanner(model)
+						await this.runQrScanner(model, goToDoNotTrustPage)
 					} catch (e) {
 						if (e instanceof DOMException && e.name === "AbortError") {
 							// Operation cancelled by user. Nothing we can really do about it.
@@ -182,7 +183,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		}
 	}
 
-	private async runQrScanner(model: KeyVerificationModel) {
+	private async runQrScanner(model: KeyVerificationModel, goToDoNotTrustPage: () => void) {
 		// "environment" tells the web engine to prefer the rear camera if there are multiple
 		this.qrMediaStream = await navigator.mediaDevices.getUserMedia({
 			audio: false,
@@ -196,10 +197,16 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		const canvas = document.createElement("canvas")
 		const context2d = assertNotNull(canvas.getContext("2d", { willReadFrequently: true }))
 
-		requestAnimationFrame(() => this.runQrScannerTick(video, canvas, context2d, model))
+		requestAnimationFrame(() => this.runQrScannerTick(video, canvas, context2d, model, goToDoNotTrustPage))
 	}
 
-	private async runQrScannerTick(video: HTMLVideoElement, canvas: HTMLCanvasElement, context2d: CanvasRenderingContext2D, model: KeyVerificationModel) {
+	private async runQrScannerTick(
+		video: HTMLVideoElement,
+		canvas: HTMLCanvasElement,
+		context2d: CanvasRenderingContext2D,
+		model: KeyVerificationModel,
+		goToDoNotTrustPage: () => void,
+	) {
 		if (video.readyState === video.HAVE_ENOUGH_DATA) {
 			if (this.qrCameraState == QrCameraState.INIT_VIDEO) {
 				this.qrCameraState = QrCameraState.SCANNING
@@ -222,7 +229,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 					const verificationResult = await model.validateQrCodeAddress(code)
 					if (verificationResult !== IdentityKeyQrVerificationResult.QR_OK) {
 						if (verificationResult === IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH) {
-							// TODO Implement same behavior as for when user clicks "do not trust"
+							goToDoNotTrustPage()
 						} else {
 							this.goToErrorPage?.(this.resultToErrorType(verificationResult))
 						}
@@ -236,7 +243,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 
 		requestAnimationFrame(() => {
 			if (this.qrCameraState == QrCameraState.SCANNING) {
-				this.runQrScannerTick(video, canvas, context2d, model)
+				this.runQrScannerTick(video, canvas, context2d, model, goToDoNotTrustPage)
 			}
 		})
 	}
