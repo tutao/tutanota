@@ -785,7 +785,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		// Pass these events to their respective handlers before writing batch ID to ensure that certain methods are not
 		// missed before batch ID is written
-		for (const update of events) {
+		for (const update of filteredUpdateEvents) {
 			const { operation, typeRef } = update
 
 			const handler = this.storage.getCustomCacheHandlerMap().get(typeRef)
