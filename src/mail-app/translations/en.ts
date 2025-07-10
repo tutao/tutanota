@@ -2059,9 +2059,9 @@ export default {
         "fingerprintMismatchTofuWarning_msg": "This is a potential security risk and it might be that someone has intercepted your previous conversation with this contact. It could also be a legitimate change <b>only</b> if the account behind this contact assigned the email address to another user.",
         "keyVerificationErrorWarning_msg": "This is a potential security risk and it might be that someone attempted to intercept your conversation. It could also be a legitimate change <b>only</b> if the account behind this contact assigned the email address to another user.",
         "keyVerificationErrorRecommendation_msg": "Reject the change and do a manual key verification with the contact. Only accept the change <b>after</b> you verified with the contact that the change is legitimate.",
-        "fingerprintMismatchRecommendation_msg": "If you are sure that the address has been moved you can remove the trusted key from your local database an retry verification with a fresh key from the server.",
-        "fingerprintMismatchRecommendationManual_msg": "If you are sure that the address has been moved you can remove the trusted key from your local database an retry verification with a fresh key from the server. Only do this if you can confirm the recent fingerprint with your contact right now.",
-        "fingerprintMismatchRecommendationTofu_msg": "If you are sure that the address has been moved you can remove the trusted key from your local database an retry verification with a fresh key from the server.",
+        "fingerprintMismatchRecommendation_msg": "If you are sure that the address has been moved, you can remove the trusted key from your local database an retry verification with a fresh key from the server.",
+        "fingerprintMismatchRecommendationManual_msg": "If you are sure that the address has been moved, you can remove the trusted key from your local database an retry verification with a fresh key from the server. Only do this if you can confirm the recent fingerprint with your contact right now.",
+        "fingerprintMismatchRecommendationTofu_msg": "If you are sure that your contact is showing you their current key, you can remove the trusted key from your local database and retry verification with a fresh key from the server.",
         "keyVerificationErrorRecommendation_title": "Recommendation",
         "keyVerificationLearnMoreAboutContactVerificationLink_msg": "Learn more about contact verification",
         "keyVerificationErrorContactUpdated_msg": "The identity key for the contact <b>{mailAddress}</b> has been updated on your device with the trust level <b>Trust on first use</b>.<br><br>" +
@@ -2070,7 +2070,14 @@ export default {
             "Please do a manual key verification before you continue the conversation.",
         "keyVerificationErrorAccept_title": "Contact successfully updated",
         "keyVerificationErrorReject_title": "Contact not updated",
-        "deleteKey_action": "Delete key",
-        "keepKey_action": "Keep key"
+        "deleteKey_action": "Delete key and retry",
+        "keepKey_action": "Keep key",
+        "fingerprintMismatchKeep_msg": "The key will be kept in your local database.",
+        "fingerprintMismatchKeepTofu_msg": "There will be no more reminder that the key failed verification. You should not have any further contact with <b>{mailAddress}</b> because you will not be communicating with the intended person.",
+        "fingerprintMismatchKeepManual_msg": "If this key is not the one currently associated with <b>{mailAddress}</b> you can replace it once you can confirm the current key.s",
+        "fingerprintMismatchKeepTofu_title": "Suspicious key saved",
+        "fingerprintMismatchKeepTofuSubtitle_msg": "The key that failed verification will be kept in your local database.",
+        "fingerprintMismatchKeepManual_title": "Trusted key kept",
+        "fingerprintMismatchKeepManualSubtitle_msg": "The key that you already trusted will be kept in your local database.",
     }
 }

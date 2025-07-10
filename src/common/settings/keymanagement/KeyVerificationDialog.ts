@@ -73,6 +73,8 @@ export async function showKeyVerificationDialog(
 						await reloadParent()
 						navigateToPage(KeyVerificationDialogPages.SUCCESS)
 					},
+					reload: () => navigateToPage(KeyVerificationDialogPages.MANUAL_INPUT_METHOD),
+					closeParent: () => dialog.close(),
 				}),
 				title: lang.get("keyManagement.keyVerification_label"),
 				leftAction: {
@@ -83,7 +85,10 @@ export async function showKeyVerificationDialog(
 				},
 				rightAction: {
 					type: ButtonType.Secondary,
-					click: () => dialog.close(),
+					click: () => {
+						dialog.close()
+						reloadParent()
+					},
 					label: "close_alt",
 					title: "close_alt",
 				},

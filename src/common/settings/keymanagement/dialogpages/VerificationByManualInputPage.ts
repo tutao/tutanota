@@ -10,7 +10,7 @@ import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
-import { assertNotNull, debounce } from "@tutao/tutanota-utils"
+import { debounce } from "@tutao/tutanota-utils"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 import { showFingerprintMismatchRecoveryDialog } from "./FingerprintMismatchRecoverDialog"
@@ -18,6 +18,8 @@ import { showFingerprintMismatchRecoveryDialog } from "./FingerprintMismatchReco
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
 	goToSuccessPage: () => void
+	reload: () => void
+	closeParent: () => void
 }
 
 const debouncedFingerprintRequest = debounce(500, async (model: KeyVerificationModel, mailAddress: string) => {
@@ -27,11 +29,12 @@ const debouncedFingerprintRequest = debounce(500, async (model: KeyVerificationM
 
 export class VerificationByManualInputPage implements Component<VerificationByTextPageAttrs> {
 	view(vnode: Vnode<VerificationByTextPageAttrs>): Children {
-		const { model, goToSuccessPage } = vnode.attrs
+		const { model, goToSuccessPage, reload } = vnode.attrs
 
 		const publicIdentity = model.getPublicIdentity()
 		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
 		const doNotTrustTranslationKey: TranslationKey = "keyManagement.doNotTrust_action"
+
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(Card, [
 				m(
@@ -112,7 +115,11 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 			m(LoginButton, {
 				label: doNotTrustTranslationKey,
 				onclick: async () => {
-					showFingerprintMismatchRecoveryDialog(model.mailAddressInput, assertNotNull(publicIdentity).trustDbEntry.sourceOfTrust)
+					showFingerprintMismatchRecoveryDialog(
+						model,
+						() => reload(),
+						() => vnode.attrs.closeParent(),
+					)
 				},
 				disabled: !publicIdentity,
 				icon: publicIdentity

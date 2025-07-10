@@ -1,5 +1,5 @@
 import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerificationFacade"
-import { assertNotNull, Hex, Versioned } from "@tutao/tutanota-utils"
+import { assertNotNull, Hex } from "@tutao/tutanota-utils"
 import {
 	IdentityKeyQrVerificationResult,
 	IdentityKeySourceOfTrust,
@@ -8,7 +8,6 @@ import {
 } from "../../api/common/TutanotaConstants"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { KeyVerificationScanCompleteMetric, KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
-import { SigningPublicKey } from "../../api/worker/facades/Ed25519Facade"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
 import { QRCode } from "jsqr"
 import { PermissionType } from "../../native/common/generatedipc/PermissionType"
@@ -121,6 +120,12 @@ export class KeyVerificationModel {
 		const identityKey = assertNotNull(this.publicIdentityKey)
 		await this.keyVerificationFacade.trust(identityKey.mailAddress, identityKey.trustDbEntry.publicIdentityKey, IdentityKeySourceOfTrust.Manual)
 		await this.test.verified(method)
+	}
+
+	async deleteAndReloadTrustedKey() {
+		const identityKey = assertNotNull(this.publicIdentityKey)
+		await this.keyVerificationFacade.untrust(identityKey.mailAddress)
+		await this.loadIdentityKeyForMailAddress(identityKey.mailAddress)
 	}
 
 	public async handleMethodSwitch(newMethod: IdentityKeyVerificationMethod) {

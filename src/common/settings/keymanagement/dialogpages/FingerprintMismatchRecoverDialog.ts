@@ -1,21 +1,26 @@
-import { locator } from "../../../api/main/CommonLocator"
 import { Dialog } from "../../../gui/base/Dialog"
 import { MultiPageDialog } from "../../../gui/dialogs/MultiPageDialog"
 import m from "mithril"
 import { ButtonType } from "../../../gui/base/Button"
-import { IdentityKeySourceOfTrust, Keys } from "../../../api/common/TutanotaConstants"
-import { FingerprintMismatchRecoverModel } from "../FingerprintMismatchRecoverModel"
+import { Keys } from "../../../api/common/TutanotaConstants"
 import { FingerprintMismatchInfoPage } from "./FingerprintMismatchInfoPage"
-import { UntrustedKeyWarningPage } from "./UntrustedKeyWarningPage"
+import { FingerprintMismatchKeepPage } from "./FingerprintMismatchKeepPage"
+import { KeyVerificationModel } from "../KeyVerificationModel"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 enum FingerprintMismatchRecoverDialogPages {
 	INFO = "INFO",
 	KEEP_CONFIRM = "KEEP_CONFIRM",
-	DELETE_CONFIRM = "DELETE_CONFIRM",
 }
 
-export async function showFingerprintMismatchRecoveryDialog(address: string, sourceOfTrust: IdentityKeySourceOfTrust): Promise<void> {
-	const model = new FingerprintMismatchRecoverModel(locator.keyVerificationFacade, address)
+export async function showFingerprintMismatchRecoveryDialog(
+	model: KeyVerificationModel,
+	reloadParent: () => void,
+	closeKeyVerificationDialog: () => void,
+): Promise<void> {
+	let publicIdentity = assertNotNull(model.getPublicIdentity())
+	const address = publicIdentity.mailAddress
+	const sourceOfTrust = publicIdentity.trustDbEntry.sourceOfTrust
 
 	const KEY_VERIFICATION_DIALOG_HEIGHT = 700
 
@@ -26,33 +31,34 @@ export async function showFingerprintMismatchRecoveryDialog(address: string, sou
 				content: m(FingerprintMismatchInfoPage, {
 					model,
 					goToDeletePage: () => {
-						navigateToPage(FingerprintMismatchRecoverDialogPages.KEEP_CONFIRM)
+						dialog.close()
+						reloadParent()
 					},
-					goToKeepPage: () => navigateToPage(FingerprintMismatchRecoverDialogPages.DELETE_CONFIRM),
 					sourceOfTrust,
 				}),
 				rightAction: {
 					type: ButtonType.Secondary,
-					click: () => dialog.close(),
+					click: () => {
+						navigateToPage(FingerprintMismatchRecoverDialogPages.KEEP_CONFIRM)
+					},
 					label: "close_alt",
 					title: "close_alt",
 				},
 			},
 			[FingerprintMismatchRecoverDialogPages.KEEP_CONFIRM]: {
-				content: m(UntrustedKeyWarningPage, {
+				content: m(FingerprintMismatchKeepPage, {
 					contactMailAddress: address,
+					sourceOfTrust,
 				}),
 				rightAction: {
 					type: ButtonType.Secondary,
-					click: () => dialog.close(),
+					click: () => {
+						dialog.close()
+						closeKeyVerificationDialog()
+					},
 					label: "close_alt",
 					title: "close_alt",
 				},
-			},
-			[FingerprintMismatchRecoverDialogPages.DELETE_CONFIRM]: {
-				//TODO got back to manual verification page?
-				//or Retry automatically and show result here?
-				content: m("TODO"),
 			},
 		}),
 		KEY_VERIFICATION_DIALOG_HEIGHT,

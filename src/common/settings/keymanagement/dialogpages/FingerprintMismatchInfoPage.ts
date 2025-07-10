@@ -6,13 +6,13 @@ import { theme } from "../../../gui/theme"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
-import { FingerprintMismatchRecoverModel } from "../FingerprintMismatchRecoverModel"
 import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
+import { KeyVerificationModel } from "../KeyVerificationModel"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 type VerificationErrorInfoPageAttrs = {
-	model: FingerprintMismatchRecoverModel
+	model: KeyVerificationModel
 	goToDeletePage: () => void
-	goToKeepPage: () => void
 	sourceOfTrust: IdentityKeySourceOfTrust
 }
 
@@ -28,14 +28,16 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 			recommendation = lang.get("fingerprintMismatchRecommendationManual_msg")
 		} else if (vnode.attrs.sourceOfTrust === IdentityKeySourceOfTrust.TOFU) {
 			subTitle = lang.get("fingerprintMismatchTofu_msg", {
-				"{mailAddress}": vnode.attrs.model.getAddress(),
+				"{mailAddress}": assertNotNull(vnode.attrs.model.getPublicIdentity()).mailAddress,
 			})
 			warning = lang.get("fingerprintMismatchTofuWarning_msg")
 			recommendation = lang.get("fingerprintMismatchRecommendationTofu_msg")
 		} else {
-			subTitle = lang.get("fingerprintMismatch_msg")
-			warning = lang.get("keyVerificationErrorWarning_msg")
-			recommendation = lang.get("fingerprintMismatchRecommendation_msg")
+			//TODO remove translation keys
+			// subTitle = lang.get("fingerprintMismatch_msg")
+			// warning = lang.get("keyVerificationErrorWarning_msg")
+			// recommendation = lang.get("fingerprintMismatchRecommendation_msg")
+			throw new Error("unsupported source of trust")
 		}
 
 		return m(".pt.pb.flex.col.gap-vpad", [
@@ -61,13 +63,9 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 			m(LoginButton, {
 				label: "deleteKey_action",
 				onclick: async () => {
-					await vnode.attrs.model.deleteTrustedKey()
+					await vnode.attrs.model.deleteAndReloadTrustedKey()
 					vnode.attrs.goToDeletePage()
 				},
-			}),
-			m(LoginButton, {
-				label: "keepKey_action",
-				onclick: async () => vnode.attrs.goToKeepPage(),
 			}),
 		])
 	}
