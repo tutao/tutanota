@@ -6,8 +6,7 @@ import { TUTA_PROTOCOL_NOTIFICATION_ACTION } from "./DesktopUtils"
 import { DesktopConfig } from "./config/DesktopConfig"
 import { BuildConfigKey } from "./config/ConfigKeys"
 import { type App } from "electron"
-import { lazyNumberRange } from "@tutao/tutanota-utils"
-import { takeFromMap } from "@tutao/tutanota-utils/lib/MapUtils"
+import { lazyNumberRange, takeFromMap } from "@tutao/tutanota-utils"
 
 type Dismisser = () => void
 
