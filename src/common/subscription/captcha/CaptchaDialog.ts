@@ -97,7 +97,7 @@ export function showCaptchaDialog(audioChallenge: CaptchaChallenge, visualChalle
 
 			// User entered an incorrectly formatted time
 			if (parsedInput == null) {
-				Dialog.message("captchaEnter_msg")
+				Dialog.message("captchaInvalidInput_msg")
 				return
 			}
 
@@ -200,7 +200,7 @@ function renderDialogContent(actionBarAttrs: DialogHeaderBarAttrs, viewModel: Ca
 				viewModel.getSelectedCaptchaType() === CaptchaType.Visual ? renderVisualCaptcha(viewModel) : renderAudioCaptcha(viewModel),
 				m(TextField, {
 					label: lang.makeTranslation("captcha_input", lang.get("captchaInput_label")),
-					helpLabel: () => lang.get("captchaInfo_msg"),
+					helpLabel: () => lang.get("captchaInputInfo_msg"),
 					value: viewModel.currentInput,
 					oninput: (value) => (viewModel.currentInput = value),
 				}),

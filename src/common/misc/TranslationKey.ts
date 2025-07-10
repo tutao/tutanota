@@ -2029,3 +2029,5 @@ export type TranslationKeyType =
 	| "zoomOut_action"
 	| "emptyString_msg"
 	| "setPrimaryMailAddress_label"
+	| "captchaInvalidInput_msg"
+	| "captchaInputInfo_msg"

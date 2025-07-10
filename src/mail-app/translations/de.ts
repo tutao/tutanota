@@ -2049,5 +2049,7 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"setPrimaryMailAddress_label": "Set as primary address",
+		"captchaInvalidInput_msg": "Invalid Input. Please try again.",
+		"captchaInputInfo_msg": "Please enter the solution to prove you are a human.",
 	}
 }

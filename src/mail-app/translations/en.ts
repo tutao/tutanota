@@ -252,7 +252,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Invalid Input. Please try again.",
 		"captchaInfo_msg": "Please enter the solution to prove you are a human.",
-		"captchaInput_label": "Your Answer",
 		"catchAllMailbox_label": "Catch all mailbox",
 		"cc_label": "Cc",
 		"certificateError_msg": "The certificate chain or the private key have a bad format or do not match your domain.",
@@ -2045,5 +2044,8 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"setPrimaryMailAddress_label": "Set as primary address",
+		"captchaInvalidInput_msg": "Invalid Input. Please try again.",
+		"captchaInputInfo_msg": "Please enter the solution to prove you are a human.",
+		"captchaInput_label": "Your Answer",
 	}
 }
