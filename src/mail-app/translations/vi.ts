@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -184,7 +184,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Vui lòng nhập thời gian theo giờ và phút.",
 		"captchaInfo_msg": "Vui lòng nhập thời gian đang hiển thị để chứng minh bạn không phải là máy tính.",
-		"captchaInput_label": "Thời gian",
 		"catchAllMailbox_label": "Hộp thư hứng nốt",
 		"cc_label": "Cc",
 		"certificateError_msg": "Chuỗi chứng chỉ hoặc khóa bí mật có định dạng xấu hoặc không khớp với miền của bạn.",

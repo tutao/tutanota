@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:11:44Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -168,7 +168,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "الرجاء إدخال الوقت بالساعات والدقائق.",
 		"captchaInfo_msg": "الرجاء إدخال الوقت المعروض لإثبات أنك لست كمبيوتر.",
-		"captchaInput_label": "الوقت",
 		"catchAllMailbox_label": "القبض على كل علبة البريد",
 		"cc_label": "نسخة كربونية",
 		"certificateError_msg": "تحتوي سلسلة الشهادات أو المفتاح الخاص على تنسيق غير صالح أو لا تتطابق مع نطاقك.",

@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-06-23T08:26:05Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -253,7 +253,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Zadejte prosím čas v hodinách a minutách.",
 		"captchaInfo_msg": "Pro ověření, že nejste počítač, zadejte prosím zobrazený čas.",
-		"captchaInput_label": "Čas",
 		"catchAllMailbox_label": "Schránka doménového koše",
 		"cc_label": "Kopie",
 		"certificateError_msg": "Certifikační řetězec privátního klíče má špatný formát nebo neodpovídá vaší doméně.",

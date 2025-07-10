@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-07-04T10:39:13Z",
+	"updated_at": "2025-07-10T14:57:28Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -256,7 +256,9 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Bitte tragen Sie die Uhrzeit in Stunden und Minuten ein.",
 		"captchaInfo_msg": "Um sicherzustellen, dass Sie ein Mensch sind, tragen Sie bitte die angezeigte Uhrzeit hier ein.",
-		"captchaInput_label": "Uhrzeit",
+		"captchaInputInfo_msg": "Bitte geben Sie die Lösung ein, um zu beweisen, dass Sie ein Mensch sind.",
+		"captchaInput_label": "Ihre Antwort",
+		"captchaInvalidInput_msg": "Ungültige Eingabe, bitte versuchen Sie es erneut.",
 		"catchAllMailbox_label": "Catch-All-Postfach",
 		"cc_label": "Cc",
 		"certificateError_msg": "Das Zertifikat oder der private Schlüssel haben ein falsches Format oder passen nicht zu der Domain.",
@@ -1666,6 +1668,7 @@ export default {
 		"sessionsWillBeDeleted_msg": "Geschlossene Sessions werden nach zwei Wochen aus der Liste gelöscht.",
 		"setCatchAllMailbox_action": "Catch-All-Postfach",
 		"setDnsRecords_msg": "Bitte erstellen Sie die folgenden DNS-Einträge:",
+		"setPrimaryMailAddress_label": "Als primäre Adresse festlegen",
 		"setSenderName_action": "Absendername festlegen",
 		"settingsForDevice_label": "Einstellungen für dieses Gerät",
 		"settingsView_action": "Zur Einstellungs-Ansicht wechseln",
@@ -2047,9 +2050,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"setPrimaryMailAddress_label": "Set as primary address",
-		"captchaInvalidInput_msg": "Invalid Input. Please try again.",
-		"captchaInputInfo_msg": "Please enter the solution to prove you are a human.",
+		"zoomOut_action": "Herauszoomen"
 	}
 }

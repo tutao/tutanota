@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2025-04-28T09:30:01Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -97,7 +97,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Palun sisestage aeg tundides ja minutites.",
 		"captchaInfo_msg": "Palun sisestage kuvatud kellaaeg tõestamaks, et te pole arvuti.",
-		"captchaInput_label": "Aeg",
 		"cc_label": "Koopia",
 		"certificateError_msg": "Sertifikaadi ketil või privaatvõtmel on vale vorming või need ei vasta Teie domeenile.",
 		"certificateStateProcessing_label": "Töötlemine",

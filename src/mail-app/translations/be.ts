@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -252,7 +252,6 @@ export default {
 		"captchaDisplay_label": "Капча",
 		"captchaEnter_msg": "Калі ласка, увядзі час у гадзінах і хвілінах.",
 		"captchaInfo_msg": "Каб упэўніцца, што ты ня робат, калі ласка, увядзі адлюстраваны час.",
-		"captchaInput_label": "Час",
 		"catchAllMailbox_label": "Усепрымальная паштовая скрынка",
 		"cc_label": "Бачная копія",
 		"certificateError_msg": "Ланцужок сэртыфікацыі альбо прыватны ключ маюць некарэктны фармат або не супадаюць з тваім дамэйнам.",

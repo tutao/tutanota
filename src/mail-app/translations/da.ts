@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-28T07:47:04Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -174,7 +174,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Indtast venligst tiden i timer og minutter.",
 		"captchaInfo_msg": "Indtast venligst den viste tid for at bevise at du ikke er en computer.",
-		"captchaInput_label": "Tid",
 		"catchAllMailbox_label": "Fang-alt mailkonto",
 		"cc_label": "Cc",
 		"certificateError_msg": "Certifikatkæden eller den private nøgle har et dårlig format eller svarer ikke til dit domæne.",

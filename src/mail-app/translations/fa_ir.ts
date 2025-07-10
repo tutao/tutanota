@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2025-07-01T14:54:53Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -178,7 +178,6 @@ export default {
 		"captchaDisplay_label": "کد امنیتی",
 		"captchaEnter_msg": "لطفاً زمان را به ساعت و دقیقه وارد کنید. ",
 		"captchaInfo_msg": "برای اطمینان ما که شما کامپیوتر نیستید، لطفا اینجا زمان نمایش داده شده را وارد کنید.",
-		"captchaInput_label": "زمان روز",
 		"catchAllMailbox_label": "گرفتن تمام صندوق پستی",
 		"cc_label": "کپی",
 		"certificateError_msg": "زنجیرهٔ گواهی یا کلید خصوصی قالب نادرستی دارد یا با دامنهٔ شما مطابق نیست. ",

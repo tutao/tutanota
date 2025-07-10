@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2025-07-07T12:36:02Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -252,7 +252,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Si us plau, introdueix el temps en hores i minuts.",
 		"captchaInfo_msg": "Si us plau, introdueixi l'hora que es mostra per comprovar que no és un equip.",
-		"captchaInput_label": "Hora",
 		"catchAllMailbox_label": "Agafa tota la bústia de correu",
 		"cc_label": "Cc",
 		"certificateError_msg": "La cadena de certificat o la clau privada tenen un format incorrecte o no coincideixen amb el teu domini.",

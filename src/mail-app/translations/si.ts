@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2021-11-11T11:18:04Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -237,7 +237,6 @@ export default {
 		"captchaDisplay_label": "අභියෝගය",
 		"captchaEnter_msg": "කාලය පැය සහ විනාඩි වලින් ඇතුල් කරන්න.",
 		"captchaInfo_msg": "ඔබ පරිගණකයක් නොවන බව ඔප්පු කිරීමට දර්ශනය වන වේලාව යොදන්න.",
-		"captchaInput_label": "වේලාව",
 		"catchAllMailbox_label": "සියල්ල අසුවන තැ.පෙ.",
 		"cc_label": "පිටපත්",
 		"certificateError_msg": "සහතික දාමය හෝ පුද්ගලික යතුරෙහි නරක ආකෘතියක් ඇත හෝ ඔබගේ වසම සමඟ නොගැළපේ.",

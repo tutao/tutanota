@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -171,7 +171,6 @@ export default {
 		"captchaDisplay_label": "Провера",
 		"captchaEnter_msg": "Унесите време у часовима и минутима.",
 		"captchaInfo_msg": "Унесите приказано време, како би сте доказали да нисте рачунар.",
-		"captchaInput_label": "Време",
 		"catchAllMailbox_label": "Обухвати цело сандуче",
 		"cc_label": "ЦЦ",
 		"certificateError_msg": "Сертификациони ланац или лични кључ имају лош формат или не одговарају вашем домену.",

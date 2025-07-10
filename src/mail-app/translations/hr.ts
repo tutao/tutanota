@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -252,7 +252,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Molimo unesite vrijeme u satima i minutama.",
 		"captchaInfo_msg": "Molimo unesite prikazano vrijeme, kako bi dokazali da niste računalo.",
-		"captchaInput_label": "Vrijeme",
 		"catchAllMailbox_label": "Obuhvati cijeli mailbox",
 		"cc_label": "Cc",
 		"certificateError_msg": "Lanac certifikata ili privatni ključ imaju loš format ili se ne podudaraju s Vašom domenom.",

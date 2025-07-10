@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-07-04T21:13:54Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -254,7 +254,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Введіть час, будь ласка, у годинах і хвилинах.",
 		"captchaInfo_msg": "Введіть, будь ласка, показаний час, щоб довести, що ви не комп'ютер.   ",
-		"captchaInput_label": "Час",
 		"catchAllMailbox_label": "Універсальна поштова скринька",
 		"cc_label": "Копія",
 		"certificateError_msg": "Ланцюжок сертифікації або приватний ключ має неправильний формат або не співпадає з вашим доменом.",

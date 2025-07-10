@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-07-04T12:12:01Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -256,7 +256,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Por favor, introduce el tiempo en horas y minutos.",
 		"captchaInfo_msg": "Por favor, introduce la hora que se muestra para comprobar que no eres un ordenador.",
-		"captchaInput_label": "Tiempo",
 		"catchAllMailbox_label": "Captura todos los buzones",
 		"cc_label": "Cc",
 		"certificateError_msg": "La cadena de certificado o la clave privada tienen un formato incorrecto o no concuerdan con su dominio.",

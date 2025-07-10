@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -208,7 +208,6 @@ export default {
 		"captchaDisplay_label": "CAPTCHA",
 		"captchaEnter_msg": "Моля въведете времето в часове и минути .",
 		"captchaInfo_msg": "Моля, въведете показаното време, за да докажете, че не сте робот.",
-		"captchaInput_label": "Време",
 		"catchAllMailbox_label": "Глобална поща",
 		"cc_label": "Як",
 		"certificateError_msg": "Удостоверителната верига или частния ключ са с невалиден формат или не съвпадат с домейна.",
