@@ -404,7 +404,6 @@ o.spec("ApplicationWindow Test", function () {
 		downcast(w._browserWindow.webContents).callbacks["did-finish-load"]()
 		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals([
 			"Control+F",
-			"Control+P",
 			"F12",
 			"Control+0",
 			"Control+Shift+Q",
@@ -426,7 +425,6 @@ o.spec("ApplicationWindow Test", function () {
 		downcast(w._browserWindow.webContents).callbacks["did-finish-load"]()
 		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals([
 			"Control+F",
-			"Control+P",
 			"F12",
 			"Control+0",
 			"Control+Shift+Q",
@@ -447,7 +445,7 @@ o.spec("ApplicationWindow Test", function () {
 
 		const w = new ApplicationWindow(wmMock, desktopHtml, icon, electronMock, electronLocalshortcutMock, themeFacade, remoteBridge)
 		downcast(w._browserWindow.webContents).callbacks["did-finish-load"]()
-		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals(["Command+F", "Command+P", "F12", "Command+0", "Command+Q", "Command+Control+F"])
+		o(Object.keys(electronLocalshortcutMock.callbacks)).deepEquals(["Command+F", "F12", "Command+0", "Command+Q", "Command+Control+F"])
 	})
 
 	function testShortcut(shortcuts: Array<string>, assertion: (sm: ReturnType<typeof standardMocks>) => void) {
@@ -470,9 +468,6 @@ o.spec("ApplicationWindow Test", function () {
 		o.beforeEach(() => n.setPlatform("linux"))
 		testShortcut(["Control+F"], ({ desktopFacade }) => {
 			verify(desktopFacade.openFindInPage())
-		})
-		testShortcut(["Control+P"], ({ desktopFacade }) => {
-			verify(desktopFacade.print())
 		})
 		testShortcut(["F12"], ({ electronMock }) => {
 			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]
@@ -513,9 +508,6 @@ o.spec("ApplicationWindow Test", function () {
 		o.beforeEach(() => n.setPlatform("darwin"))
 		testShortcut(["Command+F"], ({ desktopFacade }) => {
 			verify(desktopFacade.openFindInPage())
-		})
-		testShortcut(["Command+P"], ({ desktopFacade }) => {
-			verify(desktopFacade.print())
 		})
 		testShortcut(["F12"], ({ electronMock }) => {
 			const bwInstance = electronMock.BrowserWindow.mockedInstances[0]

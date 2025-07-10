@@ -557,6 +557,15 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				},
 				help: "showSource_action",
 			},
+			{
+				key: Keys.P,
+				enabled: () => this.viewModel.canPrint(),
+				ctrlOrCmd: true,
+				exec: () => {
+					window.print()
+				},
+				help: "print_action",
+			},
 		]
 	}
 
