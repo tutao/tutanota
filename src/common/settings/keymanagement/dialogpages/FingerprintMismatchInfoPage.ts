@@ -13,20 +13,20 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 type VerificationErrorInfoPageAttrs = {
 	model: KeyVerificationModel
 	goToDeletePage: () => void
-	sourceOfTrust: IdentityKeySourceOfTrust
 }
 
 export class FingerprintMismatchInfoPage implements Component<VerificationErrorInfoPageAttrs> {
 	view(vnode: Vnode<VerificationErrorInfoPageAttrs>) {
-		const title = lang.get("keyManagement.verificationError_title")
+		const sourceOfTrust = assertNotNull(vnode.attrs.model.getPublicIdentity()).trustDbEntry.sourceOfTrust
 		let subTitle
 		let warning
 		let recommendation
-		if (vnode.attrs.sourceOfTrust === IdentityKeySourceOfTrust.Manual) {
+		const title = lang.get("keyManagement.verificationError_title")
+		if (sourceOfTrust === IdentityKeySourceOfTrust.Manual) {
 			subTitle = lang.get("fingerprintMismatchManual_msg")
 			warning = lang.get("fingerprintMismatchManualWarning_msg")
 			recommendation = lang.get("fingerprintMismatchRecommendationManual_msg")
-		} else if (vnode.attrs.sourceOfTrust === IdentityKeySourceOfTrust.TOFU) {
+		} else if (sourceOfTrust === IdentityKeySourceOfTrust.TOFU) {
 			subTitle = lang.get("fingerprintMismatchTofu_msg", {
 				"{mailAddress}": assertNotNull(vnode.attrs.model.getPublicIdentity()).mailAddress,
 			})

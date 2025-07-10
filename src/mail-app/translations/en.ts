@@ -2074,7 +2074,7 @@ export default {
         "keepKey_action": "Keep key",
         "fingerprintMismatchKeep_msg": "The key will be kept in your local database.",
         "fingerprintMismatchKeepTofu_msg": "There will be no more reminder that the key failed verification. You should not have any further contact with <b>{mailAddress}</b> because you will not be communicating with the intended person.",
-        "fingerprintMismatchKeepManual_msg": "If this key is not the one currently associated with <b>{mailAddress}</b> you can replace it once you can confirm the current key.s",
+        "fingerprintMismatchKeepManual_msg": "If this key is not the one currently associated with <b>{mailAddress}</b> you can replace it once you can confirm the current key.",
         "fingerprintMismatchKeepTofu_title": "Suspicious key saved",
         "fingerprintMismatchKeepTofuSubtitle_msg": "The key that failed verification will be kept in your local database.",
         "fingerprintMismatchKeepManual_title": "Trusted key kept",

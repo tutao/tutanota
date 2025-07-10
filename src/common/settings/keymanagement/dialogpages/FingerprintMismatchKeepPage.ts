@@ -6,16 +6,19 @@ import { theme } from "../../../gui/theme"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
+import { KeyVerificationModel } from "../KeyVerificationModel"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 type FingerprintMismatchKeepPageAttrs = {
-	contactMailAddress: string
-	sourceOfTrust: IdentityKeySourceOfTrust
+	model: KeyVerificationModel
 }
 
 export class FingerprintMismatchKeepPage implements Component<FingerprintMismatchKeepPageAttrs> {
 	view(vnode: Vnode<FingerprintMismatchKeepPageAttrs>) {
-		let address = vnode.attrs.contactMailAddress
-		let manuallyTrusted = vnode.attrs.sourceOfTrust === IdentityKeySourceOfTrust.Manual
+		let publicIdentity = assertNotNull(vnode.attrs.model.getPublicIdentity())
+		const sourceOfTrust = publicIdentity.trustDbEntry.sourceOfTrust
+		let address = publicIdentity.mailAddress
+		let manuallyTrusted = sourceOfTrust === IdentityKeySourceOfTrust.Manual
 		//TODO appropriate title and subtitle
 		let title
 		let subtitle
@@ -24,7 +27,7 @@ export class FingerprintMismatchKeepPage implements Component<FingerprintMismatc
 			title = lang.get("fingerprintMismatchKeepManual_title")
 			subtitle = lang.get("fingerprintMismatchKeepManualSubtitle_msg")
 			message = lang.get("fingerprintMismatchKeepManual_msg", { "{mailAddress}": address })
-		} else if (vnode.attrs.sourceOfTrust === IdentityKeySourceOfTrust.TOFU) {
+		} else if (sourceOfTrust === IdentityKeySourceOfTrust.TOFU) {
 			title = lang.get("fingerprintMismatchKeepTofu_title")
 			subtitle = lang.get("fingerprintMismatchKeepTofuSubtitle_msg")
 			message = lang.get("fingerprintMismatchKeepTofu_msg", { "{mailAddress}": address })

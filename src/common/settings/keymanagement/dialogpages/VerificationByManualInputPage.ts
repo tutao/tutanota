@@ -13,13 +13,11 @@ import { theme } from "../../../gui/theme"
 import { debounce } from "@tutao/tutanota-utils"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
-import { showFingerprintMismatchRecoveryDialog } from "./FingerprintMismatchRecoverDialog"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
 	goToSuccessPage: () => void
-	reload: () => void
-	closeParent: () => void
+	gotToMissmatchPage: () => void
 }
 
 const debouncedFingerprintRequest = debounce(500, async (model: KeyVerificationModel, mailAddress: string) => {
@@ -29,7 +27,7 @@ const debouncedFingerprintRequest = debounce(500, async (model: KeyVerificationM
 
 export class VerificationByManualInputPage implements Component<VerificationByTextPageAttrs> {
 	view(vnode: Vnode<VerificationByTextPageAttrs>): Children {
-		const { model, goToSuccessPage, reload } = vnode.attrs
+		const { model, goToSuccessPage } = vnode.attrs
 
 		const publicIdentity = model.getPublicIdentity()
 		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
@@ -115,16 +113,12 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 			m(LoginButton, {
 				label: doNotTrustTranslationKey,
 				onclick: async () => {
-					showFingerprintMismatchRecoveryDialog(
-						model,
-						() => reload(),
-						() => vnode.attrs.closeParent(),
-					)
+					vnode.attrs.gotToMissmatchPage()
 				},
 				disabled: !publicIdentity,
 				icon: publicIdentity
 					? m(Icon, {
-							icon: Icons.X,
+							icon: Icons.Warning,
 							class: "mr-xsm",
 							style: {
 								fill: theme.content_button_icon_selected,

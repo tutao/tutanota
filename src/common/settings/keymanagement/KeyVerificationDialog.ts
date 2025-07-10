@@ -15,6 +15,8 @@ import { QrCodePageErrorType, VerificationByQrCodeInputPage } from "./dialogpage
 import { VerificationErrorPage } from "./dialogpages/VerificationErrorPage"
 import { KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
+import { FingerprintMismatchInfoPage } from "./dialogpages/FingerprintMismatchInfoPage"
+import { FingerprintMismatchKeepPage } from "./dialogpages/FingerprintMismatchKeepPage"
 
 enum KeyVerificationDialogPages {
 	CHOOSE_METHOD = "CHOOSE_METHOD",
@@ -22,6 +24,8 @@ enum KeyVerificationDialogPages {
 	QR_CODE_INPUT_METHOD = "QR_CODE_INPUT_METHOD",
 	SUCCESS = "SUCCESS",
 	ERROR = "ERROR",
+	FINGERPRINT_MISMATCH_INFO = "FINGERPRINT_MISMATCH_INFO",
+	FINGERPRINT_MISMATCH_KEEP_CONFIRM = "FINGERPRINT_MISMATCH_KEEP_CONFIRM",
 }
 
 /**
@@ -41,6 +45,7 @@ export async function showKeyVerificationDialog(
 
 	const model = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade, keyVerificationUsageTestUtils, publicIdentityKeyProvider)
 	let lastError: QrCodePageErrorType | null = null
+
 	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationDialogPages>(
 		KeyVerificationDialogPages.CHOOSE_METHOD,
 		(dialog, navigateToPage, goBack) => ({
@@ -73,8 +78,7 @@ export async function showKeyVerificationDialog(
 						await reloadParent()
 						navigateToPage(KeyVerificationDialogPages.SUCCESS)
 					},
-					reload: () => navigateToPage(KeyVerificationDialogPages.MANUAL_INPUT_METHOD),
-					closeParent: () => dialog.close(),
+					gotToMissmatchPage: () => navigateToPage(KeyVerificationDialogPages.FINGERPRINT_MISMATCH_INFO),
 				}),
 				title: lang.get("keyManagement.keyVerification_label"),
 				leftAction: {
@@ -144,6 +148,33 @@ export async function showKeyVerificationDialog(
 				rightAction: {
 					type: ButtonType.Secondary,
 					click: () => dialog.close(),
+					label: "close_alt",
+					title: "close_alt",
+				},
+			},
+			[KeyVerificationDialogPages.FINGERPRINT_MISMATCH_INFO]: {
+				content: m(FingerprintMismatchInfoPage, {
+					model,
+					goToDeletePage: () => navigateToPage(KeyVerificationDialogPages.MANUAL_INPUT_METHOD),
+				}),
+				rightAction: {
+					type: ButtonType.Secondary,
+					click: () => {
+						navigateToPage(KeyVerificationDialogPages.FINGERPRINT_MISMATCH_KEEP_CONFIRM)
+					},
+					label: "close_alt",
+					title: "close_alt",
+				},
+			},
+			[KeyVerificationDialogPages.FINGERPRINT_MISMATCH_KEEP_CONFIRM]: {
+				content: m(FingerprintMismatchKeepPage, {
+					model,
+				}),
+				rightAction: {
+					type: ButtonType.Secondary,
+					click: () => {
+						dialog.close()
+					},
 					label: "close_alt",
 					title: "close_alt",
 				},
