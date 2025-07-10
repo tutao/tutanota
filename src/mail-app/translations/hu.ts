@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-06-27T14:30:20Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -251,7 +251,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Kérjük, adja meg a jelenlegi időt óra és perc formátumban!",
 		"captchaInfo_msg": "Kérem adja meg a megadott időt, hogy bizonyíthassa, hogy nem robot.",
-		"captchaInput_label": "Idő",
 		"catchAllMailbox_label": "Gyűjtő-fiók",
 		"cc_label": "Másolatot kap",
 		"certificateError_msg": "Ez a tanúsítványlánc vagy a titkos kulcs nem megfelelő formátumban van vagy nem egyezik a domainjával.",

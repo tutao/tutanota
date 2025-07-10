@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2025-07-05T18:42:03Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -253,7 +253,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Graag de tijd in uren en minuten invullen.",
 		"captchaInfo_msg": "Graag de aangegeven tijd invoeren om te bewijzen dat u geen computer bent.",
-		"captchaInput_label": "Tijd",
 		"catchAllMailbox_label": "Catch-All-postbus",
 		"cc_label": "Cc",
 		"certificateError_msg": "De certificaatketen van de private sleutel heeft een slecht formaat of komt niet overeen met uw domein.",

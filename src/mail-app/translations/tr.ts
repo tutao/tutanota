@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-07-04T13:41:58Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -256,7 +256,6 @@ export default {
 		"captchaDisplay_label": "Güvenlik Doğrulaması",
 		"captchaEnter_msg": "Lütfen zamanı saat ve dakika olarak giriniz.",
 		"captchaInfo_msg": "Lütfen robot olmadığınızı kanıtlamak için gösterilen saati yazınız.",
-		"captchaInput_label": "Saat",
 		"catchAllMailbox_label": "Genel posta kutusu",
 		"cc_label": "Cc (Diğer alıcı)",
 		"certificateError_msg": "Sertifika zinciri ya da özel anahtar kötü bir biçime sahip ya da alan adınızla eşleşmiyor.",

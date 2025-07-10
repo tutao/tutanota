@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-07-05T08:57:07Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -251,7 +251,6 @@ export default {
 		"captchaDisplay_label": "驗證碼",
 		"captchaEnter_msg": "請以小時和分鐘為單位輸入時間。",
 		"captchaInfo_msg": "請於欄位中輸入顯示的時間來證明您不是電腦。",
-		"captchaInput_label": "時間",
 		"catchAllMailbox_label": "全收郵箱",
 		"cc_label": "副本",
 		"certificateError_msg": "證書鏈或私鑰格式錯誤或與您的域名不符。",

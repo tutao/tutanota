@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-07-04T11:45:09Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -252,7 +252,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Ange tiden i timmar och minuter.",
 		"captchaInfo_msg": "Ange den visade tiden för att säkerställa att du inte är en dator.",
-		"captchaInput_label": "Tid",
 		"catchAllMailbox_label": "Catch all brevlådor",
 		"cc_label": "Cc",
 		"certificateError_msg": "Certifikatkedjan eller den privata nyckeln har ett felaktigt format eller matchar inte din domän.",

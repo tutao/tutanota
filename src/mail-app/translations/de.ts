@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-07-04T10:39:13Z",
+	"updated_at": "2025-07-10T13:59:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -256,7 +256,7 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Bitte trage die Uhrzeit in Stunden und Minuten ein.",
 		"captchaInfo_msg": "Um sicherzustellen, dass du kein Computer bist, trage bitte die angezeigte Uhrzeit hier ein.",
-		"captchaInput_label": "Uhrzeit",
+		"captchaInput_label": "Deine Antwort",
 		"catchAllMailbox_label": "Catch-All-Postfach",
 		"cc_label": "Cc",
 		"certificateError_msg": "Das Zertifikat oder der private Schlüssel haben ein falsches Format oder passen nicht zu der Domain.",
@@ -2047,9 +2047,6 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"setPrimaryMailAddress_label": "Set as primary address",
-		"captchaInvalidInput_msg": "Invalid Input. Please try again.",
-		"captchaInputInfo_msg": "Please enter the solution to prove you are a human.",
+		"zoomOut_action": "Herauszoomen"
 	}
 }

@@ -2028,6 +2028,3 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
-	| "setPrimaryMailAddress_label"
-	| "captchaInvalidInput_msg"
-	| "captchaInputInfo_msg"

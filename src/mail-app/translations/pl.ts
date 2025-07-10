@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-07-05T15:14:33Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -258,7 +258,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Wprowadź czas w godzinach i minutach.",
 		"captchaInfo_msg": "Wprowadź wyświetlony czas, aby udowodnić, że nie jesteś robotem.",
-		"captchaInput_label": "Czas",
 		"catchAllMailbox_label": "Przechwytuj wszystkie skrzynki pocztowe",
 		"cc_label": "DW",
 		"certificateError_msg": "Certyfikat łańcucha lub prywatny klucz ma zły format lub nie pasuje do Twojej domeny.",

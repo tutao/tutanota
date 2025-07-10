@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2025-06-10T11:47:02Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -144,7 +144,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Lūdzu ievadiet laiku stundās un minūtēs.",
 		"captchaInfo_msg": "Lūdzu, ievadiet redzamo laiku, lai apliecinātu, ka neesat dators.",
-		"captchaInput_label": "Laiks",
 		"cc_label": "Cc",
 		"certificateError_msg": "Sertifikātu ķēde vai privātā atslēga ir nepareiza vai neatbilst jūsu domēna vārdam.",
 		"certificateExpiryDate_label": "Sertifikāta derīguma termiņš: {datums}",

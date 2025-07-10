@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-20T08:57:36Z",
-	"updated_at": "2025-07-05T10:09:16Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -222,7 +222,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "時刻を時と分で入力してください。",
 		"captchaInfo_msg": "あなたがコンピューターではないことを証明するために、表示されている時刻を入力してください。",
-		"captchaInput_label": "時間",
 		"catchAllMailbox_label": "キャッチオールのメールボックス",
 		"cc_label": "Cc",
 		"certificateError_msg": "証明書チェーンまたは秘密鍵の形式が正しくないか、ドメインと一致しません。",

@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:23Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -257,7 +257,6 @@ export default {
 		"captchaDisplay_label": "Код защиты",
 		"captchaEnter_msg": "Введите время в часах и минутах.",
 		"captchaInfo_msg": "Пожалуйста, введите отображаемое время в качестве доказательства, что Вы не компьютер.",
-		"captchaInput_label": "Время",
 		"catchAllMailbox_label": "универсальный почтовый ящик",
 		"cc_label": "Копия",
 		"certificateError_msg": "Цепочка сертификатов или приватный ключ в неправильном формате или не совпадают с вашим доменом.",

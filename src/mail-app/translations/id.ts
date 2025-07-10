@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -213,7 +213,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Mohon masukkan waktu dalam jam dan menit.",
 		"captchaInfo_msg": "Mohon masukkan waktu tertampil untuk membuktikan Anda bukan komputer.",
-		"captchaInput_label": "Waktu",
 		"catchAllMailbox_label": "Dapatkan semua kotak surel",
 		"cc_label": "Cc",
 		"certificateError_msg": "Rangkaian sertifikat atau kunci pribadi mempunyai format yang salah atau tidak sesuai dengan domain kamu",

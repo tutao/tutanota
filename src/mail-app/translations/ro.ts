@@ -14,7 +14,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -256,7 +256,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Introdu timpul în ore și minute.",
 		"captchaInfo_msg": "Introdu ora afișată pentru a dovedi că nu ești un calculator.",
-		"captchaInput_label": "Timp",
 		"catchAllMailbox_label": "Prinde toate cutiile poștale",
 		"cc_label": "Cc:",
 		"certificateError_msg": "Secvența de certificate sau cheia privată au un format incorect sau nu se potrivesc cu numele domeniului tău.",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-07-04T10:39:13Z",
+	"updated_at": "2025-07-10T13:59:01Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -250,8 +250,9 @@ export default {
 		"canNotOpenFileOnDevice_msg": "This file can not be opened on this device.",
 		"captchaChecking_msg": "Making sure you're not a robot ...",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Invalid Input. Please try again.",
-		"captchaInfo_msg": "Please enter the solution to prove you are a human.",
+		"captchaEnter_msg": "Please enter the time in hours and minutes.",
+		"captchaInfo_msg": "Please enter the displayed time to prove you are not a computer.",
+		"captchaInput_label": "Your Answer",
 		"catchAllMailbox_label": "Catch all mailbox",
 		"cc_label": "Cc",
 		"certificateError_msg": "The certificate chain or the private key have a bad format or do not match your domain.",
@@ -2042,10 +2043,6 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"setPrimaryMailAddress_label": "Set as primary address",
-		"captchaInvalidInput_msg": "Invalid Input. Please try again.",
-		"captchaInputInfo_msg": "Please enter the solution to prove you are a human.",
-		"captchaInput_label": "Your Answer",
+		"zoomOut_action": "Zoom Out"
 	}
 }

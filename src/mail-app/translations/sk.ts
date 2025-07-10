@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -170,7 +170,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Prosím vlož čas v hodinách a minútach",
 		"captchaInfo_msg": "Pre overenie, že nie si počítač, zadaj, prosím, zobrazený čas.",
-		"captchaInput_label": "Čas",
 		"catchAllMailbox_label": "Schránka pre všetky zachytené e-maily",
 		"cc_label": "Cc",
 		"certificateError_msg": "Certifikačný reťazec súkromného kľúča má nesprávny formát alebo sa nezhoduje s tvojou doménou.",

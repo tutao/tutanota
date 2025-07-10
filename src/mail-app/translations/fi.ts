@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-07-05T08:53:38Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -252,7 +252,6 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Kirjoita kellonaika tunteina ja minuutteina.",
 		"captchaInfo_msg": "Syötä näytetty aika osoittaaksesi, että olet ihminen etkä kone.",
-		"captchaInput_label": "Aika",
 		"catchAllMailbox_label": "Haalimisosoite",
 		"cc_label": "Kopio",
 		"certificateError_msg": "Varmenneketjun tai yksityisen avaimen muoto on virheellinen, tai se ei vastaa verkkotunnustasi.",

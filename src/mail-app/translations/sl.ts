@@ -15,7 +15,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -252,7 +252,6 @@ export default {
 		"captchaDisplay_label": "CAPTCHA",
 		"captchaEnter_msg": "Vpišite čas v urah in minutah",
 		"captchaInfo_msg": "Prosimo, vnesite prikazan čas, da potrdite, da niste računalnik.",
-		"captchaInput_label": "Čas",
 		"catchAllMailbox_label": "Ujemi vse nabiralnike",
 		"cc_label": "Kp",
 		"certificateError_msg": "Veriga potrdila ali zasebni ključ imata neprimerno obliko ali se ne ujemata z vašo domeno.",

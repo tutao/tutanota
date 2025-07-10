@@ -12,7 +12,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:05Z",
-	"updated_at": "2025-06-23T07:28:06Z",
+	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -169,7 +169,6 @@ export default {
 		"captchaDisplay_label": "验证码",
 		"captchaEnter_msg": "请输入小时分钟格式的时间。",
 		"captchaInfo_msg": "请填写显示的时间以证明非机器操作。",
-		"captchaInput_label": "时间",
 		"catchAllMailbox_label": "获取所有邮箱",
 		"cc_label": "抄送",
 		"certificateError_msg": "证书链或私钥的格式错误或者不匹配您的域名。",
