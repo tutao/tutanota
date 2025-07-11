@@ -46,6 +46,7 @@ export const allowedImports = {
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "contacts"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
 	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback"],
+	"pow-worker": [],
 	settings: [
 		"polyfill-helpers",
 		"common-min",
@@ -246,6 +247,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/mail-app/workerUtils/offline")
 	) {
 		return "worker"
+	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {
+		return "pow-worker"
 	} else if (isIn("src/common/native/common")) {
 		return "native-common"
 	} else if (isIn(`src/mail-app/search`) || isIn(`src/calendar-app/calendar/search`) || isIn("src/common/search")) {

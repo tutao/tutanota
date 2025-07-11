@@ -35,6 +35,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	const resolvedBuildDir = path.resolve(buildDir)
 	const entryFile = isCalendarApp ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
 	const workerFile = isCalendarApp ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
+	const powWorkerFile = "src/common/api/common/pow-worker.ts"
 	const builtWorkerFile = isCalendarApp ? "calendar-worker.js" : "mail-worker.js"
 
 	console.log("Building app", app)
@@ -71,7 +72,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({
-		input: [entryFile, workerFile],
+		input: [entryFile, workerFile, powWorkerFile],
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [
