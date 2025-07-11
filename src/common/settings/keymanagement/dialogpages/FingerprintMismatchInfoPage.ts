@@ -33,10 +33,6 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 			warning = lang.get("fingerprintMismatchTofuWarning_msg")
 			recommendation = lang.get("fingerprintMismatchRecommendationTofu_msg")
 		} else {
-			//TODO remove translation keys
-			// subTitle = lang.get("fingerprintMismatch_msg")
-			// warning = lang.get("keyVerificationErrorWarning_msg")
-			// recommendation = lang.get("fingerprintMismatchRecommendation_msg")
 			throw new Error("unsupported source of trust")
 		}
 

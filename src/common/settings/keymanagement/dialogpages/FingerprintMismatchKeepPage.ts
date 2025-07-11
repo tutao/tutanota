@@ -32,8 +32,6 @@ export class FingerprintMismatchKeepPage implements Component<FingerprintMismatc
 			subtitle = lang.get("fingerprintMismatchKeepTofuSubtitle_msg")
 			message = lang.get("fingerprintMismatchKeepTofu_msg", { "{mailAddress}": address })
 		} else {
-			//TODO remove translation key
-			// message = lang.get("fingerprintMismatchKeep_msg")
 			throw new Error("unsupported source of trust")
 		}
 
