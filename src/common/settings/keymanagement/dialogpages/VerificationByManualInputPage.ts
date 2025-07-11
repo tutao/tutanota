@@ -101,7 +101,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 								icon: Icons.Checkmark,
 								class: "mr-xsm",
 								style: {
-									fill: theme.content_button_icon_selected,
+									fill: theme.surface,
 								},
 						  }),
 				}),
