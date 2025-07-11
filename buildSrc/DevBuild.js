@@ -186,14 +186,17 @@ async function buildDesktopPart({ version, networkDebugging, app }) {
 					platform,
 					architecture,
 				}),
-				nodeGypPlugin({
-					rootDir: projectRoot,
-					platform,
-					architecture,
-					nodeModule: "@indutny/simple-windows-notifications",
-					environment: "node",
-					targetName: "simple-windows-notifications",
-				}),
+				// the build script for simple-windows-notifications does not build anything on non-win32 so we get errors when trying to copy files
+				platform === "win32"
+					? nodeGypPlugin({
+							rootDir: projectRoot,
+							platform,
+							architecture,
+							nodeModule: "@indutny/simple-windows-notifications",
+							environment: "node",
+							targetName: "simple-windows-notifications",
+					  })
+					: undefined,
 				preludeEnvPlugin(env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs, networkDebugging })),
 			],
 		})

@@ -17,11 +17,7 @@ export class DesktopNotifier {
 	pendingNotifications: Array<(...args: Array<any>) => any> = []
 	_notificationCloseFunctions: { [userId in string]?: () => void } = {}
 
-	constructor(
-		tray: DesktopTray,
-		private readonly notificationFactory: LazyLoaded<NotificationFactory>,
-		private readonly startingId: number = Date.now() * 1000,
-	) {
+	constructor(tray: DesktopTray, private readonly notificationFactory: LazyLoaded<NotificationFactory>) {
 		this._tray = tray
 	}
 
