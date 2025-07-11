@@ -16,8 +16,10 @@ import { animations, opacity, transform, TransformEnum } from "../animation/Anim
 import { ease } from "../animation/Easing.js"
 import { BaseButton } from "./buttons/BaseButton.js"
 
+/**
+ * **GENERIC** Interface to declare everything that is important to use at the select option
+ */
 export interface SelectOption<T> {
-	// Here we declare everything that is important to use at the select option
 	value: T
 	ariaValue: string
 }
@@ -280,7 +282,10 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 	}
 
 	private setupOption(dom: HTMLElement, onSelect: (option: U) => void, option: U, optionListContainer: OptionListContainer, selected: T | undefined) {
-		dom.onclick = this.wrapOnChange.bind(this, onSelect, option, optionListContainer)
+		dom.onclick = () => {
+			if (!this.dropdownContainer?.isOpen) return
+			this.wrapOnChange.bind(this, onSelect, option, optionListContainer)()
+		}
 
 		if (!("disabled" in dom)) {
 			// We have to set the tabIndex to make sure that it'll be focusable by tabbing
@@ -299,7 +304,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		}
 
 		dom.onkeydown = (e: KeyboardEvent) => {
-			if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
+			if (this.dropdownContainer?.isOpen && isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
 				e.preventDefault()
 				this.wrapOnChange(onSelect, option, optionListContainer)
 			}
@@ -394,6 +399,7 @@ class OptionListContainer implements ClassComponent {
 							this.domDropdownContents.addEventListener("focusout", this.handleDropdownLoseFocus)
 							this.domDropdownContents.addEventListener("focusin", this.handleDropdownFocusIn)
 							keyManager.registerModalShortcuts(this.shortcuts)
+							this.handleDropdownFocusIn() // Focus the selected option if any
 						},
 						onremove: (vnode: VnodeDOM<HTMLElement>) => {
 							this.domDropdownContents?.removeEventListener("focusout", this.handleDropdownLoseFocus)
