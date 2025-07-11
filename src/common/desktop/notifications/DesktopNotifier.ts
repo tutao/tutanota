@@ -1,6 +1,6 @@
 import type { NativeImage } from "electron"
-import type { DesktopTray } from "./tray/DesktopTray"
-import type { ApplicationWindow } from "./ApplicationWindow"
+import type { DesktopTray } from "../tray/DesktopTray"
+import type { ApplicationWindow } from "../ApplicationWindow"
 import type { NotificationFactory } from "./NotificationFactory"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"

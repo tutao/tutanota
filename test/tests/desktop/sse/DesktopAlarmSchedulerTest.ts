@@ -4,7 +4,7 @@ import { EndType, RepeatPeriod } from "../../../../src/common/api/common/Tutanot
 import { DesktopAlarmScheduler } from "../../../../src/common/desktop/sse/DesktopAlarmScheduler.js"
 import { lastThrow, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
-import { DesktopNotifier, NotificationResult } from "../../../../src/common/desktop/DesktopNotifier.js"
+import { DesktopNotifier, NotificationResult } from "../../../../src/common/desktop/notifications/DesktopNotifier.js"
 import { DesktopAlarmStorage } from "../../../../src/common/desktop/sse/DesktopAlarmStorage.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import { spy } from "@tutao/tutanota-test-utils"

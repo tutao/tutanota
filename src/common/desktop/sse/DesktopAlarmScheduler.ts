@@ -1,6 +1,6 @@
 import { AlarmNotification } from "../../api/entities/sys/TypeRefs.js"
-import type { DesktopNotifier } from "../DesktopNotifier"
-import { NotificationResult } from "../DesktopNotifier"
+import type { DesktopNotifier } from "../notifications/DesktopNotifier"
+import { NotificationResult } from "../notifications/DesktopNotifier"
 import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
 import { log } from "../DesktopLog"

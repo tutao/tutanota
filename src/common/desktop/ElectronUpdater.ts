@@ -1,5 +1,5 @@
-import type { DesktopNotifier } from "./DesktopNotifier"
-import { NotificationResult } from "./DesktopNotifier"
+import type { DesktopNotifier } from "./notifications/DesktopNotifier"
+import { NotificationResult } from "./notifications/DesktopNotifier"
 import { lang } from "../misc/LanguageViewModel"
 import type { DesktopConfig } from "./config/DesktopConfig"
 import { assertNotNull, delay, downcast, LazyLoaded, neverNull } from "@tutao/tutanota-utils"

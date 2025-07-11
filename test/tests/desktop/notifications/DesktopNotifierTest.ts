@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
-import type { NotificationFactory } from "../../../src/common/desktop/NotificationFactory.js"
+import type { NotificationFactory } from "../../../../src/common/desktop/notifications/NotificationFactory.js"
 import { defer, delay, downcast, LazyLoaded } from "@tutao/tutanota-utils"
-import { DesktopNotifier } from "../../../src/common/desktop/DesktopNotifier.js"
-import type { DesktopTray } from "../../../src/common/desktop/tray/DesktopTray.js"
+import { DesktopNotifier } from "../../../../src/common/desktop/notifications/DesktopNotifier.js"
+import type { DesktopTray } from "../../../../src/common/desktop/tray/DesktopTray.js"
 import type { NativeImage } from "electron"
 import { spy } from "@tutao/tutanota-test-utils"
 
@@ -10,7 +10,7 @@ import { spy } from "@tutao/tutanota-test-utils"
 const appIcon: NativeImage = downcast(Symbol("appIcon"))
 const icon1: NativeImage = downcast(Symbol("icon1"))
 
-o.spec("Desktop Notifier Test", function () {
+o.spec("DesktopNotifier", function () {
 	const notificationStartDelay = 10
 	let createdNotifications
 	let desktopTray: DesktopTray

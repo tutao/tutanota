@@ -6,7 +6,7 @@ import { assertNotNull, clear, defer, DeferredObject } from "@tutao/tutanota-uti
 import { ElectronExports } from "../ElectronExportTypes.js"
 import { ImportErrorCategories, MailImportError } from "../../api/common/error/MailImportError.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
-import { DesktopNotifier, NotificationResult } from "../DesktopNotifier.js"
+import { DesktopNotifier, NotificationResult } from "../notifications/DesktopNotifier.js"
 import { LanguageViewModel } from "../../misc/LanguageViewModel.js"
 import path from "node:path"
 

@@ -11,7 +11,7 @@ import { getResourcePath } from "./resources.js"
 import { TempFs } from "./files/TempFs.js"
 import { ElectronExports } from "./ElectronExportTypes.js"
 import { WindowManager } from "./DesktopWindowManager.js"
-import { DesktopNotifier } from "./DesktopNotifier"
+import { DesktopNotifier } from "./notifications/DesktopNotifier"
 
 export const TUTA_PROTOCOL_NOTIFICATION_ACTION = "notification"
 
