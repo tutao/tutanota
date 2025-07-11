@@ -33,12 +33,6 @@ export type MailFolderRowAttrs = {
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
 	private hovered: boolean = false
 
-	onupdate(vnode: Vnode<MailFolderRowAttrs>): any {
-		if (isNavButtonSelected(vnode.attrs.button)) {
-			this.hovered = true
-		}
-	}
-
 	view(vnode: Vnode<MailFolderRowAttrs>): Children {
 		const { count, button, rightButton, expanded, indentationLevel, folder, hasChildren, editMode } = vnode.attrs
 		const icon = getFolderIcon(folder)
