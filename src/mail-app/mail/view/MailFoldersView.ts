@@ -22,6 +22,7 @@ import { getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { DropData } from "../../../common/gui/base/GuiUtils"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../../../common/gui/HtmlUtils"
 
 export interface MailFolderViewAttrs {
 	mailModel: MailModel
@@ -211,6 +212,17 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				icon: Icons.More,
 				colors: ButtonColor.Nav,
 				size: ButtonSize.Compact,
+			},
+			overrideOrigin: (original: DOMRect) => {
+				// the upper/lower Space check is the same as used in showDropdown to determine where the dropdown is shown
+				const upperSpace = original.top - getSafeAreaInsetTop()
+				const lowerSpace = window.innerHeight - original.bottom - getSafeAreaInsetBottom()
+				// Shift the dropdown up by the icon size to hide the fact that the more button disappears after being clicked on
+				if (lowerSpace < upperSpace) {
+					return new DOMRect(original.x, original.y + size.icon_size_large, original.width, original.height)
+				} else {
+					return new DOMRect(original.x, original.y - size.icon_size_large, original.width, original.height)
+				}
 			},
 			childAttrs: () => {
 				return folder.folderType === MailSetKind.CUSTOM
