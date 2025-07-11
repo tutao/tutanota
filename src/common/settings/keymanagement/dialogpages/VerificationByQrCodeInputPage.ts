@@ -5,7 +5,7 @@ import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel, PublicIdentity } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import jsQR from "jsqr"
-import { IdentityKeyVerificationMethod, IdentityKeyQrVerificationResult } from "../../../api/common/TutanotaConstants"
+import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { isApp } from "../../../api/common/Env"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
@@ -15,14 +15,7 @@ import { TextFieldType } from "../../../gui/base/TextField"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
 
-export type QrCodePageErrorType =
-	| "camera_permission_denied"
-	| "malformed_qr"
-	| "email_not_found"
-	| "qr_code_mismatch"
-	| "camera_not_found"
-	| "video_source_error"
-	| "unknown"
+export type QrCodePageErrorType = "camera_permission_denied" | "malformed_qr" | "email_not_found" | "camera_not_found" | "video_source_error" | "unknown"
 
 export type GoToErrorPageHandler = (et: QrCodePageErrorType) => void
 
@@ -38,6 +31,7 @@ type VerificationByQrCodePageAttrs = {
 	model: KeyVerificationModel
 	goToSuccessPage: () => void
 	goToErrorPage: GoToErrorPageHandler
+	goToDoNotTrustPage: () => void
 }
 
 export class VerificationByQrCodeInputPage implements Component<VerificationByQrCodePageAttrs> {
@@ -72,7 +66,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 			}),
 			model.getKeyVerificationResult() === IdentityKeyQrVerificationResult.QR_OK
 				? this.renderConfirmation(assertNotNull(model.getPublicIdentity()))
-				: this.renderQrVideoStream(model),
+				: this.renderQrVideoStream(model, vnode.attrs.goToDoNotTrustPage),
 			m(
 				".align-self-center.full-width",
 				m(LoginButton, {
@@ -139,17 +133,17 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		)
 	}
 
-	private renderQrVideoStream(model: KeyVerificationModel): Children {
-		return [m(".center", this.getStateMessage()), this.getVideoElement(model)]
+	private renderQrVideoStream(model: KeyVerificationModel, goToDoNotTrustPage: () => void): Children {
+		return [m(".center", this.getStateMessage()), this.getVideoElement(model, goToDoNotTrustPage)]
 	}
 
-	private getVideoElement(model: KeyVerificationModel): Children | null {
+	private getVideoElement(model: KeyVerificationModel, goToDoNotTrustPage: () => void): Children | null {
 		if (this.qrCameraState == QrCameraState.INIT_VIDEO || this.qrCameraState == QrCameraState.SCANNING) {
 			const video = m("video[autoplay][muted][playsinline]", {
 				oncreate: async (videoNode) => {
 					this.qrVideo = assertNotNull(videoNode.dom as HTMLVideoElement)
 					try {
-						await this.runQrScanner(model)
+						await this.runQrScanner(model, goToDoNotTrustPage)
 					} catch (e) {
 						if (e instanceof DOMException && e.name === "AbortError") {
 							// Operation cancelled by user. Nothing we can really do about it.
@@ -189,7 +183,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		}
 	}
 
-	private async runQrScanner(model: KeyVerificationModel) {
+	private async runQrScanner(model: KeyVerificationModel, goToDoNotTrustPage: () => void) {
 		// "environment" tells the web engine to prefer the rear camera if there are multiple
 		this.qrMediaStream = await navigator.mediaDevices.getUserMedia({
 			audio: false,
@@ -203,10 +197,16 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		const canvas = document.createElement("canvas")
 		const context2d = assertNotNull(canvas.getContext("2d", { willReadFrequently: true }))
 
-		requestAnimationFrame(() => this.runQrScannerTick(video, canvas, context2d, model))
+		requestAnimationFrame(() => this.runQrScannerTick(video, canvas, context2d, model, goToDoNotTrustPage))
 	}
 
-	private async runQrScannerTick(video: HTMLVideoElement, canvas: HTMLCanvasElement, context2d: CanvasRenderingContext2D, model: KeyVerificationModel) {
+	private async runQrScannerTick(
+		video: HTMLVideoElement,
+		canvas: HTMLCanvasElement,
+		context2d: CanvasRenderingContext2D,
+		model: KeyVerificationModel,
+		goToDoNotTrustPage: () => void,
+	) {
 		if (video.readyState === video.HAVE_ENOUGH_DATA) {
 			if (this.qrCameraState == QrCameraState.INIT_VIDEO) {
 				this.qrCameraState = QrCameraState.SCANNING
@@ -228,7 +228,11 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 					// at this point, a QR code has been detected and decoded
 					const verificationResult = await model.validateQrCodeAddress(code)
 					if (verificationResult !== IdentityKeyQrVerificationResult.QR_OK) {
-						this.goToErrorPage?.(this.resultToErrorType(verificationResult))
+						if (verificationResult === IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH) {
+							goToDoNotTrustPage()
+						} else {
+							this.goToErrorPage?.(this.resultToErrorType(verificationResult))
+						}
 					}
 
 					this.cleanupVideo()
@@ -239,16 +243,13 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 
 		requestAnimationFrame(() => {
 			if (this.qrCameraState == QrCameraState.SCANNING) {
-				this.runQrScannerTick(video, canvas, context2d, model)
+				this.runQrScannerTick(video, canvas, context2d, model, goToDoNotTrustPage)
 			}
 		})
 	}
 
 	resultToErrorType(kr: IdentityKeyQrVerificationResult | undefined): QrCodePageErrorType {
 		switch (kr) {
-			case IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH: {
-				return "qr_code_mismatch"
-			}
 			case IdentityKeyQrVerificationResult.QR_MAIL_ADDRESS_NOT_FOUND: {
 				return "email_not_found"
 			}

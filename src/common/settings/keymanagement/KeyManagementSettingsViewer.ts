@@ -21,6 +21,7 @@ import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtil
 import { ThemeController } from "../../gui/ThemeController"
 import { PublicIdentity } from "./KeyVerificationModel"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
+import { IdentityKeySourceOfTrust } from "../../api/common/TutanotaConstants"
 
 /**
  * Section in user settings to deal with everything related to key verification.
@@ -50,7 +51,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		const ownIdentityKey = await this.publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(this.userController.userGroupInfo.group)
 		if (ownIdentityKey != null) {
 			this.ownIdentity = {
-				key: ownIdentityKey,
+				trustDbEntry: { publicIdentityKey: ownIdentityKey, sourceOfTrust: IdentityKeySourceOfTrust.Own },
 				fingerprint: await this.keyVerificationFacade.calculateFingerprint(ownIdentityKey),
 				mailAddress: getDefaultSenderFromUser(this.userController),
 			}

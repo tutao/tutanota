@@ -17,6 +17,7 @@ import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
 	goToSuccessPage: () => void
+	gotToMissmatchPage: () => void
 }
 
 const debouncedFingerprintRequest = debounce(500, async (model: KeyVerificationModel, mailAddress: string) => {
@@ -30,6 +31,8 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 
 		const publicIdentity = model.getPublicIdentity()
 		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
+		const doNotTrustTranslationKey: TranslationKey = "keyManagement.doNotTrust_action"
+
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(Card, [
 				m(
@@ -74,7 +77,13 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 				? m(
 						Card,
 						{ classes: ["flex", "flex-column", "gap-vpad"] },
-						m(".pl-vpad-s", lang.get("keyManagement.verificationByText_label", { "{button}": lang.get(markAsVerifiedTranslationKey) })),
+						m(
+							".pl-vpad-s",
+							lang.get("keyManagement.verificationByText_label", {
+								"{button1}": lang.get(markAsVerifiedTranslationKey),
+								"{button2}": lang.get(doNotTrustTranslationKey),
+							}),
+						),
 						m(MonospaceTextDisplay, {
 							text: publicIdentity.fingerprint,
 							placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
@@ -84,26 +93,39 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 						}),
 				  )
 				: null,
-			m(
-				".align-self-center.full-width",
-				m(LoginButton, {
-					label: markAsVerifiedTranslationKey,
-					onclick: async () => {
-						await model.trust(IdentityKeyVerificationMethod.text)
-						goToSuccessPage()
-					},
-					disabled: !publicIdentity,
-					icon: publicIdentity
-						? m(Icon, {
-								icon: Icons.Checkmark,
-								class: "mr-xsm",
-								style: {
-									fill: theme.content_button_icon_selected,
-								},
-						  })
-						: null,
-				}),
-			),
+			m(LoginButton, {
+				label: markAsVerifiedTranslationKey,
+				onclick: async () => {
+					await model.trust(IdentityKeyVerificationMethod.text)
+					goToSuccessPage()
+				},
+				disabled: !publicIdentity,
+				icon: publicIdentity
+					? m(Icon, {
+							icon: Icons.Checkmark,
+							class: "mr-xsm",
+							style: {
+								fill: theme.content_button_icon_selected,
+							},
+					  })
+					: null,
+			}),
+			m(LoginButton, {
+				label: doNotTrustTranslationKey,
+				onclick: async () => {
+					vnode.attrs.gotToMissmatchPage()
+				},
+				disabled: !publicIdentity,
+				icon: publicIdentity
+					? m(Icon, {
+							icon: Icons.Warning,
+							class: "mr-xsm",
+							style: {
+								fill: theme.content_button_icon_selected,
+							},
+					  })
+					: null,
+			}),
 		])
 	}
 }
