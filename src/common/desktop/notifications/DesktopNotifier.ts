@@ -121,7 +121,8 @@ export class DesktopNotifier {
 		return "function" === typeof this._notificationCloseFunctions[id]
 	}
 
-	onNotificationClick(id: string) {
-		this.notificationFactory.getAsync().then((factory) => factory.processNotification(id))
+	async onNotificationClick(id: string): Promise<void> {
+		const factory = await this.notificationFactory.getAsync()
+		factory.processNotification(id)
 	}
 }

@@ -4,7 +4,8 @@ import { defer, DeferredObject, delay, downcast, LazyLoaded } from "@tutao/tutan
 import { DesktopNotifier } from "../../../../src/common/desktop/notifications/DesktopNotifier.js"
 import type { DesktopTray } from "../../../../src/common/desktop/tray/DesktopTray.js"
 import type { NativeImage } from "electron"
-import { spy } from "@tutao/tutanota-test-utils"
+import { Spy, spy } from "@tutao/tutanota-test-utils"
+import { object, verify } from "testdouble"
 
 // just a placeholder, symbol to make sure it's the same instance
 const appIcon: NativeImage = downcast(Symbol("appIcon"))
@@ -12,7 +13,7 @@ const icon1: NativeImage = downcast(Symbol("icon1"))
 
 o.spec("DesktopNotifier", function () {
 	const notificationStartDelay = 10
-	let createdNotifications
+	let createdNotifications: { close: Spy; click: () => unknown }[]
 	let desktopTray: DesktopTray
 	let notificationFactory: NotificationFactory
 	let notificationFactoryLazy: LazyLoaded<NotificationFactory>
@@ -119,5 +120,12 @@ o.spec("DesktopNotifier", function () {
 		o.check(desktopTray.update.callCount).equals(2)
 		o.check(desktopTray.setBadge.callCount).equals(1)
 		o.check(notifier.hasNotificationForId("gn1")).equals(false)
+	})
+	o.test("onNotificationClick", async () => {
+		const factory: NotificationFactory = object()
+		const notifier = new DesktopNotifier(desktopTray, new LazyLoaded(() => Promise.resolve(factory)))
+
+		await notifier.onNotificationClick("1234")
+		verify(factory.processNotification("1234"))
 	})
 })
