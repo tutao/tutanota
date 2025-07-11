@@ -107,7 +107,6 @@ import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
-import { MailImporter } from "../mail-app/mail/import/MailImporter.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../common/api/worker/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
@@ -155,7 +154,6 @@ class CalendarLocator implements CommonLocator {
 	searchTextFacade!: SearchTextInAppFacade
 	desktopSettingsFacade!: SettingsFacade
 	desktopSystemFacade!: DesktopSystemFacade
-	mailImporter!: MailImporter
 	webMobileFacade!: WebMobileFacade
 	systemPermissionHandler!: SystemPermissionHandler
 	interWindowEventSender!: InterWindowEventFacadeSendDispatcher

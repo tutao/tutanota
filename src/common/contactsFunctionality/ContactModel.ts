@@ -8,7 +8,7 @@ import {
 	ContactListTypeRef,
 	ContactTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EntityClient, loadMultipleFromLists } from "../api/common/EntityClient.js"
@@ -120,10 +120,13 @@ export class ContactModel {
 	 * @pre locator.search.indexState().indexingSupported
 	 */
 	async searchForContacts(query: string, field: "mailAddresses" | null, minSuggestionCount: number): Promise<Contact[]> {
+		if (!this.contactSearchFacade) {
+			throw new DbError("Cannot search for contacts through db")
+		}
 		if (!this.loginController.isFullyLoggedIn()) {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
 		}
-		const result = await assertNotNull(this.contactSearchFacade).findContacts(query, field, minSuggestionCount)
+		const result = await this.contactSearchFacade.findContacts(query, field, minSuggestionCount)
 		return await loadMultipleFromLists(ContactTypeRef, this.entityClient, result)
 	}
 
