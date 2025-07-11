@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-11T08:21:11Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -252,6 +252,9 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Kirjoita kellonaika tunteina ja minuutteina.",
 		"captchaInfo_msg": "Syötä näytetty aika osoittaaksesi, että olet ihminen etkä kone.",
+		"captchaInputInfo_msg": "Syötä vastauksesi todistaaksesi olevasi ihminen.",
+		"captchaInput_label": "Vastauksesi",
+		"captchaInvalidInput_msg": "Virheellinen syöte. Yritä uudelleen.",
 		"catchAllMailbox_label": "Haalimisosoite",
 		"cc_label": "Kopio",
 		"certificateError_msg": "Varmenneketjun tai yksityisen avaimen muoto on virheellinen, tai se ei vastaa verkkotunnustasi.",
@@ -1661,6 +1664,7 @@ export default {
 		"sessionsWillBeDeleted_msg": "Nämä tuhotaan 2 viikon kuluttua yhteyden sulkemisesta.",
 		"setCatchAllMailbox_action": "Aseta haalimisosoite",
 		"setDnsRecords_msg": "Aseta seuraavat DNS-tietueet:",
+		"setPrimaryMailAddress_label": "Aseta pääasialliseksi osoitteeksi",
 		"setSenderName_action": "Aseta lähettäjän nimi",
 		"settingsForDevice_label": "Tämän laitteen asetukset",
 		"settingsView_action": "Siirry asetuksiin",

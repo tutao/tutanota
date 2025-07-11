@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-07-10T14:56:29Z",
+	"updated_at": "2025-07-11T06:36:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -256,6 +256,9 @@ export default {
 		"captchaDisplay_label": "Güvenlik Doğrulaması",
 		"captchaEnter_msg": "Lütfen zamanı saat ve dakika olarak giriniz.",
 		"captchaInfo_msg": "Lütfen robot olmadığınızı kanıtlamak için gösterilen saati yazınız.",
+		"captchaInputInfo_msg": "Lütfen insan olduğunuzu kanıtlamak için çözümü girin.",
+		"captchaInput_label": "Yanıtınız",
+		"captchaInvalidInput_msg": "Geçersiz girdi. Lütfen tekrar deneyin.",
 		"catchAllMailbox_label": "Genel posta kutusu",
 		"cc_label": "Cc (Diğer alıcı)",
 		"certificateError_msg": "Sertifika zinciri ya da özel anahtar kötü bir biçime sahip ya da alan adınızla eşleşmiyor.",
@@ -1665,6 +1668,7 @@ export default {
 		"sessionsWillBeDeleted_msg": "Kapatılan oturumun 2 hafta sonra kaydı silinir.",
 		"setCatchAllMailbox_action": "Genel posta kutusu ayarla",
 		"setDnsRecords_msg": "Lütfen aşağıdaki DNS kayıtlarını ayarlayın:",
+		"setPrimaryMailAddress_label": "Ana adres olarak ayarla",
 		"setSenderName_action": "Gönderici adı belirle",
 		"settingsForDevice_label": "Bu cihaz için ayarlar",
 		"settingsView_action": "Ayarlar görünümüne geç",

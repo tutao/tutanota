@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-10T20:31:31Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -252,6 +252,9 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Si us plau, introdueix el temps en hores i minuts.",
 		"captchaInfo_msg": "Si us plau, introdueixi l'hora que es mostra per comprovar que no és un equip.",
+		"captchaInputInfo_msg": "Si us plau, introdueix la solució per demostrar que ets humà.",
+		"captchaInput_label": "La vostra resposta",
+		"captchaInvalidInput_msg": "Entrada no vàlida. Si us plau, torneu-ho a intentar.",
 		"catchAllMailbox_label": "Agafa tota la bústia de correu",
 		"cc_label": "Cc",
 		"certificateError_msg": "La cadena de certificat o la clau privada tenen un format incorrecte o no coincideixen amb el teu domini.",
@@ -1661,6 +1664,7 @@ export default {
 		"sessionsWillBeDeleted_msg": "Aquestes se suprimiran 2 setmanes després del tancament.",
 		"setCatchAllMailbox_action": "Establir captura de bústia global",
 		"setDnsRecords_msg": "Definiu els registres DNS següents:",
+		"setPrimaryMailAddress_label": "Definiu com a adreça principal",
 		"setSenderName_action": "Definiu el nom del remitent",
 		"settingsForDevice_label": "Configuració d'aquest dispositiu",
 		"settingsView_action": "Canvia a la vista de configuracions",

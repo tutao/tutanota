@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-07-10T14:56:29Z",
+	"updated_at": "2025-07-10T15:31:30Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -252,6 +252,9 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Ange tiden i timmar och minuter.",
 		"captchaInfo_msg": "Ange den visade tiden för att säkerställa att du inte är en dator.",
+		"captchaInputInfo_msg": "Ange lösningen och visa att du är en människa.",
+		"captchaInput_label": "Ditt svar",
+		"captchaInvalidInput_msg": "Ogiltig inmatning. Försök igen.",
 		"catchAllMailbox_label": "Catch all brevlådor",
 		"cc_label": "Cc",
 		"certificateError_msg": "Certifikatkedjan eller den privata nyckeln har ett felaktigt format eller matchar inte din domän.",
@@ -1661,6 +1664,7 @@ export default {
 		"sessionsWillBeDeleted_msg": "Dessa kommer att tas bort 2 veckor efter stängning.",
 		"setCatchAllMailbox_action": "Ställ in catch all brevlåda",
 		"setDnsRecords_msg": "Ange följande DNS-pekare:",
+		"setPrimaryMailAddress_label": "Ställ in som primär adress",
 		"setSenderName_action": "Ange avsändarnamn",
 		"settingsForDevice_label": "Inställningar för den här enheten",
 		"settingsView_action": "Växla till vyn inställningar",

@@ -13,7 +13,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-10T15:23:07Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -256,6 +256,9 @@ export default {
 		"captchaDisplay_label": "Captcha",
 		"captchaEnter_msg": "Por favor, introduce el tiempo en horas y minutos.",
 		"captchaInfo_msg": "Por favor, introduce la hora que se muestra para comprobar que no eres un ordenador.",
+		"captchaInputInfo_msg": "Por favor, introduce la solución para demostrar que eres humano.",
+		"captchaInput_label": "Tu respuesta",
+		"captchaInvalidInput_msg": "Entrada no válida. Por favor, inténtalo de nuevo.",
 		"catchAllMailbox_label": "Captura todos los buzones",
 		"cc_label": "Cc",
 		"certificateError_msg": "La cadena de certificado o la clave privada tienen un formato incorrecto o no concuerdan con su dominio.",
@@ -1665,6 +1668,7 @@ export default {
 		"sessionsWillBeDeleted_msg": "Estas se eliminarán 2 semanas después del cierre.",
 		"setCatchAllMailbox_action": "Establecer capturar todos los buzones",
 		"setDnsRecords_msg": "Por favor, configura los siguientes registros DNS:",
+		"setPrimaryMailAddress_label": "Establecer como dirección principal",
 		"setSenderName_action": "Establecer el nombre del remitente",
 		"settingsForDevice_label": "Ajustes de este dispositivo",
 		"settingsView_action": "Cambiar a la vista de ajustes",
