@@ -1,12 +1,12 @@
 import type { NativeImage } from "electron"
-import { Notification } from "electron"
+import { type App, Notification } from "electron"
 import { NotificationResult } from "./DesktopNotifier"
 import { Notifier } from "@indutny/simple-windows-notifications"
 import { TUTA_PROTOCOL_NOTIFICATION_ACTION } from "./DesktopUtils"
 import { DesktopConfig } from "./config/DesktopConfig"
 import { BuildConfigKey } from "./config/ConfigKeys"
-import { type App } from "electron"
 import { lazyNumberRange, takeFromMap } from "@tutao/tutanota-utils"
+import { urlEncodeHtmlTags } from "../misc/Formatter"
 
 type Dismisser = () => void
 
@@ -49,7 +49,7 @@ export async function createNotificationFactory(conf: DesktopConfig, app: App): 
 		const appId = await conf.getConst(BuildConfigKey.appUserModelId)
 		console.log("appId is", appId)
 		app.setAppUserModelId(appId)
-		return new WindowsNotificationFactory(appId)
+		return new WindowsNotificationFactory(new Notifier(appId))
 	} else {
 		return new ElectronNotificationFactory()
 	}
@@ -86,13 +86,10 @@ class ElectronNotificationFactory implements NotificationFactory {
  * On Windows, we need send Toast notifications, as Electron's notifications won't awaken the app when the notification goes into the notification center.
  */
 class WindowsNotificationFactory implements NotificationFactory {
-	private readonly notifier: Notifier
 	private readonly notificationIdGenerator: Generator<number>
 	private readonly notifications: Map<string, (res: NotificationResult) => void> = new Map()
 
-	constructor(appId: string, private readonly startingId = Date.now() * 1000) {
-		this.notifier = new Notifier(appId)
-
+	constructor(private readonly notifier: Notifier, private readonly startingId = Date.now() * 1000) {
 		// We want the number ID generator to start at a timestamp times 1000, as this will prevent stale notifications from having any meaning
 		// when new notifications come in.
 		this.notificationIdGenerator = lazyNumberRange(this.startingId, Number.MAX_SAFE_INTEGER)
@@ -107,14 +104,13 @@ class WindowsNotificationFactory implements NotificationFactory {
 		const tag = this.nextNotificationId()
 		const notificationIdentifier = { tag, group }
 
-		// FIXME: wildly insecure; need to sanitize title and body (i.e. replace < with &lt; and strip invalid chars like 0x00 and control chars to prevent errors)
+		// FIXME: Do we want to strip control characters, null, etc. to prevent errors? (note: escaping chars should be enough for security)
 		this.notifier.show(
-			`
-<toast launch="tuta:${TUTA_PROTOCOL_NOTIFICATION_ACTION}?id=${tag}" activationType="protocol">
+			`<toast launch="tuta:${TUTA_PROTOCOL_NOTIFICATION_ACTION}?id=${tag}" activationType="protocol">
 <visual>
 	<binding template="ToastText02">
-		<text id="1">${title}</text>
-		<text id="2">${body}</text>
+		<text id="1">${urlEncodeHtmlTags(title)}</text>
+		<text id="2">${urlEncodeHtmlTags(body)}</text>
 	</binding>
 </visual>
 </toast>`,
