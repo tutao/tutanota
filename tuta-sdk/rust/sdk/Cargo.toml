@@ -99,7 +99,7 @@ tuta-sdk = { path = ".", features = ["net", "testing"] }
 mockall = { version = "0.13.0" }
 mockall_double = { version = "0.3.1" }
 rand = { workspace = true }
-crypto-primitives = { path = "../crypto-primitives", features = ["test"] }
+crypto-primitives = { path = "../crypto-primitives", features = ["test_utils"] }
 
 [lints]
 workspace = true
