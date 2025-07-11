@@ -395,7 +395,7 @@ export function createDropdown({
 	withBackground,
 }: {
 	lazyButtons: lazy<ReadonlyArray<DropdownChildAttrs | null>>
-	overrideOrigin?: (original: PosRect) => PosRect
+	overrideOrigin?: (original: DOMRect) => DOMRect
 	width?: number
 	withBackground?: boolean
 }): ClickHandler {
@@ -410,7 +410,7 @@ export function createAsyncDropdown({
 	onClose = undefined,
 }: {
 	lazyButtons: lazyAsync<ReadonlyArray<DropdownChildAttrs | null>>
-	overrideOrigin?: (original: PosRect) => PosRect
+	overrideOrigin?: (original: DOMRect) => DOMRect
 	width?: number
 	withBackground?: boolean
 	onClose?: Thunk
@@ -478,7 +478,7 @@ type AttachDropdownParams = {
 	/** called to determine if the dropdown actually needs to be shown */
 	showDropdown?: lazy<boolean>
 	width?: number
-	overrideOrigin?: (original: PosRect) => PosRect
+	overrideOrigin?: (original: DOMRect) => DOMRect
 	onClose?: Thunk
 }
 

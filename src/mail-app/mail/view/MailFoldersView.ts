@@ -206,6 +206,10 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				colors: ButtonColor.Nav,
 				size: ButtonSize.Compact,
 			},
+			overrideOrigin: (original: DOMRect) => {
+				// Shift the dropdown up by the icon size to hide the fact that the more button disappears after being clicked on
+				return new DOMRect(original.x, original.y - size.icon_size_large, original.width, original.height)
+			},
 			childAttrs: () => {
 				return folder.folderType === MailSetKind.CUSTOM
 					? // cannot add new folder to custom folder in spam or trash folder
