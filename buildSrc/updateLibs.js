@@ -30,7 +30,7 @@ const clientDependencies = [
 	{ src: "../node_modules/mithril/stream/stream.js", target: "stream.js", bundling: "copy" },
 	// squire is patched manually to fix issues
 	// "../node_modules/squire-rte/dist/squire-raw.mjs",
-	{ src: "../node_modules/dompurify/dist/purify.js", target: "purify.js", bundling: "copy" },
+	{ src: "../node_modules/dompurify/dist/purify.es.mjs", target: "purify.js", bundling: "copy" },
 	{ src: "../node_modules/linkifyjs/dist/linkify.mjs", target: "linkify.js", bundling: "copy" },
 	{ src: "../node_modules/linkify-html/dist/linkify-html.mjs", target: "linkify-html.js", bundling: "copy" },
 	{ src: "../node_modules/luxon/build/es6/luxon.js", target: "luxon.js", bundling: "copy" },
