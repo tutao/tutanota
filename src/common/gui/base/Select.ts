@@ -399,7 +399,6 @@ class OptionListContainer implements ClassComponent {
 							this.domDropdownContents.addEventListener("focusout", this.handleDropdownLoseFocus)
 							this.domDropdownContents.addEventListener("focusin", this.handleDropdownFocusIn)
 							keyManager.registerModalShortcuts(this.shortcuts)
-							this.handleDropdownFocusIn() // Focus the selected option if any
 						},
 						onremove: (vnode: VnodeDOM<HTMLElement>) => {
 							this.domDropdownContents?.removeEventListener("focusout", this.handleDropdownLoseFocus)
@@ -530,7 +529,15 @@ class OptionListContainer implements ClassComponent {
 	}
 
 	private handleMouseClick = (e: MouseEvent) => {
-		if (!this.domDropdown?.contains(e.target as HTMLElement)) {
+		const dropdownContainsTarget = this.domDropdown?.contains(e.target as HTMLElement)
+		if (e.target === this.domDropdown || dropdownContainsTarget) {
+			// By default, when an element is clicked, the browser sets focus on that element or its children.
+			// Calling preventDefault() stops this default behavior (and any other default actions triggered by the click).
+			// In this case, it prevents the 'focusin' event from firing when clicking an option inside the select element.
+			e.preventDefault()
+		}
+
+		if (!dropdownContainsTarget) {
 			this.onClose()
 		}
 	}
