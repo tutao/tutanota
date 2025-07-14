@@ -186,7 +186,7 @@ platform :ios do
 	end
 
  	desc "Renew prod adhoc cert"
- 	lane :renew_adhoc_cert_prod do
+ 	lane :renew_adhoc_cert_prod do |options|
 		match(
 			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaNotificationExtension"],
 			type: "adhoc",
@@ -195,12 +195,13 @@ platform :ios do
 			generate_apple_certs: true,
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
-			platform: "ios"
+			platform: "ios",
+			force: options[:force]
 		)
  	end
 
 	desc "Renew prod appstore cert"
-	lane :renew_appstore_cert_prod do
+	lane :renew_appstore_cert_prod do |options|
 		match(
 			app_identifier: ["de.tutao.tutanota", "de.tutao.tutanota.TutanotaShareExtension", "de.tutao.tutanota.TutanotaNotificationExtension"],
 			type: "appstore",
@@ -209,12 +210,13 @@ platform :ios do
 			generate_apple_certs: true,
 			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
-			platform: "ios"
+			platform: "ios",
+			force: options[:force]
 		)
 	end
 
 	desc "Renew staging adhoc cert"
-	lane :renew_adhoc_cert_staging do
+	lane :renew_adhoc_cert_staging do |options|
 	   match(
 		   app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
 		   type: "adhoc",
@@ -223,12 +225,13 @@ platform :ios do
 		   generate_apple_certs: true,
 		   keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 		   api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
-		   platform: "ios"
+		   platform: "ios",
+		   force: options[:force]
 	   )
 	end
 
    desc "Renew staging appstore cert"
-   lane :renew_appstore_cert_staging do
+   lane :renew_appstore_cert_staging do |options|
 	   match(
 		   app_identifier: ["de.tutao.tutanota.test", "de.tutao.tutanota.test.TutanotaShareExtension", "de.tutao.tutanota.test.TutanotaNotificationExtension"],
 		   type: "appstore",
@@ -237,7 +240,8 @@ platform :ios do
 		   generate_apple_certs: true,
 		   keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 		   api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
-		   platform: "ios"
+		   platform: "ios",
+		   force: options[:force]
 	   )
    end
 
@@ -370,7 +374,7 @@ platform :ios do
    end
 
    desc "Renew calendar prod adhoc cert"
-   lane :renew_calendar_adhoc_cert_prod do
+   lane :renew_calendar_adhoc_cert_prod do |options|
    		match(
    			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension", "de.tutao.calendar.AgendaWidget", "de.tutao.calendar.WidgetConfigIntent"],
    			type: "adhoc",
@@ -379,12 +383,13 @@ platform :ios do
    			generate_apple_certs: true,
    			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
    			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
-   			platform: "ios"
+   			platform: "ios",
+   			force: options[:force]
    		)
    end
 
    desc "Renew calendar prod appstore cert"
-   lane :renew_calendar_appstore_cert_prod do
+   lane :renew_calendar_appstore_cert_prod do |options|
    		match(
    			app_identifier: ["de.tutao.calendar", "de.tutao.calendar.TutanotaShareExtension", "de.tutao.calendar.TutanotaNotificationExtension", "de.tutao.calendar.AgendaWidget", "de.tutao.calendar.WidgetConfigIntent"],
    			type: "appstore",
@@ -393,12 +398,13 @@ platform :ios do
    			generate_apple_certs: true,
    			keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
    			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
-   			platform: "ios"
+   			platform: "ios",
+   			force: options[:force]
    		)
    end
 
    desc "Renew calendar staging adhoc cert"
-   lane :renew_calendar_adhoc_cert_staging do
+   lane :renew_calendar_adhoc_cert_staging do |options|
 	   match(
 		   app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension", "de.tutao.calendar.test.AgendaWidget", "de.tutao.calendar.test.WidgetConfigIntent"],
 		   type: "adhoc",
@@ -407,12 +413,13 @@ platform :ios do
 		   generate_apple_certs: true,
 		   keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 		   api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
-		   platform: "ios"
+		   platform: "ios",
+		   force: options[:force]
 	   )
    end
 
   desc "Renew calendar staging appstore cert"
-  lane :renew_calendar_appstore_cert_staging do
+  lane :renew_calendar_appstore_cert_staging do |options|
 	   match(
 		   app_identifier: ["de.tutao.calendar.test", "de.tutao.calendar.test.TutanotaShareExtension", "de.tutao.calendar.test.TutanotaNotificationExtension", "de.tutao.calendar.test.AgendaWidget", "de.tutao.calendar.test.WidgetConfigIntent"],
 		   type: "appstore",
@@ -421,7 +428,8 @@ platform :ios do
 		   generate_apple_certs: true,
 		   keychain_password: ENV["FASTLANE_KEYCHAIN_PASSWORD"],
 		   api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
-		   platform: "ios"
+		   platform: "ios",
+		   force: options[:force]
 	   )
   end
 end
