@@ -184,10 +184,7 @@ function renderAudioCaptcha(viewModel: CaptchaDialogViewModel) {
 }
 
 function renderDialogContent(actionBarAttrs: DialogHeaderBarAttrs, viewModel: CaptchaDialogViewModel): Children {
-	const toggleLabel =
-		viewModel.getSelectedCaptchaType() === CaptchaType.Visual
-			? lang.makeTranslation("tryAudioCaptcha_action", "Try an audio captcha")
-			: lang.makeTranslation("tryVisualCaptcha_action", "Try a visual captcha")
+	const toggleLabel = viewModel.getSelectedCaptchaType() === CaptchaType.Visual ? "tryAudioCaptcha_action" : "tryVisualCaptcha_action"
 
 	return [
 		m(DialogHeaderBar, actionBarAttrs),
