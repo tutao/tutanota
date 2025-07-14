@@ -3,7 +3,7 @@ import { ClientTypeReferenceResolver, PatchOperationType } from "../EntityFuncti
 import { createPatch, createPatchList, Patch, PatchList } from "../../entities/sys/TypeRefs"
 import { AssociationType, Cardinality, ValueType } from "../EntityConstants"
 import { assertNotNull, deepEqual, Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { arrayEquals, TypeRef } from "@tutao/tutanota-utils"
+import { arrayEquals, arrayEqualsWithPredicate, isEmpty, TypeRef } from "@tutao/tutanota-utils"
 import { AttributeModel } from "../AttributeModel"
 import { ProgrammingError } from "../error/ProgrammingError"
 import { IDENTITY_FIELDS, isSameId } from "./EntityUtils"
@@ -208,6 +208,21 @@ export async function computePatches(
 						attributePath: attributeIdStr,
 						value: JSON.stringify(addedItems),
 						patchOperation: PatchOperationType.ADD_ITEM,
+					}),
+				)
+			}
+			const areItemsIdentical = originalAggregatedEntities.every((item) => modifiedAggregatedEntities.some((element) => deepEqual(element, item)))
+			if (
+				isEmpty(addedItems) &&
+				isEmpty(removedItems) &&
+				areItemsIdentical &&
+				!arrayEqualsWithPredicate(originalAggregatedEntities, modifiedAggregatedEntities, deepEqual)
+			) {
+				patches.push(
+					createPatch({
+						attributePath: attributeIdStr,
+						value: JSON.stringify(modifiedAggregatedUntypedEntities),
+						patchOperation: PatchOperationType.REPLACE,
 					}),
 				)
 			}

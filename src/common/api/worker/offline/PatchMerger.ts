@@ -220,10 +220,8 @@ export class PatchMerger {
 			case PatchOperationType.REPLACE: {
 				if (isValue) {
 					instanceToChange[attributeId] = value as ParsedValue
-				} else if (!isAggregationAssociation) {
+				} else if (isAssociation) {
 					instanceToChange[attributeId] = value as ParsedAssociation
-				} else {
-					throw new PatchOperationError("attempted to replace aggregation " + typeModel.associations[attributeId].name + " on " + typeModel.name)
 				}
 				break
 			}

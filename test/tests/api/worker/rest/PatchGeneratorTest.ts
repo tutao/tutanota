@@ -332,6 +332,64 @@ o.spec("computePatches", function () {
 		])
 	})
 
+	o("computePatches works on aggregations and replace operation when aggregates are identical but have different order", async function () {
+		const testEntity = await createFilledTestEntity()
+		testEntity.testAssociation.push(
+			await createTestEntityWithDummyResolver(TestAggregateRef, {
+				_id: "newAgId",
+				testNumber: "1",
+			}),
+		)
+		testEntity.testAssociation.push(
+			await createTestEntityWithDummyResolver(TestAggregateRef, {
+				_id: "newAgId2",
+				testNumber: "2",
+			}),
+		)
+		testEntity._original = structuredClone(testEntity)
+
+		const elementToMove = testEntity.testAssociation[0]
+		testEntity.testAssociation.splice(0, 1)
+		testEntity.testAssociation.push(elementToMove)
+
+		let sk = aes256RandomKey()
+		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
+		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
+			testTypeModel as ClientTypeModel,
+			currentParsedInstance,
+			sk,
+		)
+		const currentUntypedInstance = await dummyInstancePipeline.typeMapper.applyDbTypes(testTypeModel as ClientTypeModel, currentEncryptedParsedInstance)
+		const encryptedAssociationArray = AttributeModel.getAttribute(
+			currentEncryptedParsedInstance,
+			"testAssociation",
+			testTypeModel,
+		) as Array<ClientModelEncryptedParsedInstance>
+		const testAssociationFirstEncryptedInstance = encryptedAssociationArray[0]
+		const testAssociationSecondEncryptedInstance = encryptedAssociationArray[1]
+		const testAssociationOriginalEncryptedInstance = encryptedAssociationArray[2]
+		let objectDiff = await computePatches(
+			originalParsedInstance,
+			currentParsedInstance,
+			currentUntypedInstance,
+			testTypeModel,
+			dummyTypeReferenceResolver,
+			false,
+		)
+		o(objectDiff).deepEquals([
+			createPatch({
+				attributePath: "3",
+				value: JSON.stringify([
+					testAssociationFirstEncryptedInstance,
+					testAssociationSecondEncryptedInstance,
+					testAssociationOriginalEncryptedInstance,
+				]),
+				patchOperation: PatchOperationType.REPLACE,
+			}),
+		])
+	})
+
 	o("computePatches works on aggregations and removeitem operation", async function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testAssociation.pop()

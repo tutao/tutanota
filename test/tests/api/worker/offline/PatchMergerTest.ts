@@ -28,6 +28,7 @@ import {
 	Mail,
 	MailAddress,
 	MailAddressTypeRef,
+	MailBox,
 	MailboxGroupRoot,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
@@ -35,6 +36,7 @@ import {
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailFolderRefTypeRef,
+	MailFolderTypeRef,
 	MailTypeRef,
 	OutOfOfficeNotificationRecipientListTypeRef,
 	RecipientsTypeRef,
@@ -428,7 +430,7 @@ o.spec("PatchMergerTest", () => {
 			])
 		})
 
-		o.test("apply_replace_on_One_aggregation_throws", async () => {
+		o.test("apply_replace_on_One_aggregation_works", async () => {
 			const testMail = createSystemMail({
 				_id: ["listId", "elementId"],
 				_ownerEncSessionKey: encryptedSessionKey.key,
@@ -453,27 +455,30 @@ o.spec("PatchMergerTest", () => {
 				}),
 			]
 
-			const e = await assertThrows(
-				PatchOperationError,
-				async () => await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches),
-			)
-			o(e.message.toString().includes("attempted to replace aggregation sender on Mail")).equals(true)
+			const testMailPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			const testMailPatched = await instancePipeline.modelMapper.mapToInstance<Mail>(MailTypeRef, testMailPatchedParsed)
+			o(testMailPatched.sender.name).deepEquals("new name")
+			o(testMailPatched.sender.address).deepEquals("address@tutao.de")
 		})
 
-		o.test("apply_replace_on_ZeroOrOne_aggregation_throws", async () => {
+		o.test("apply_replace_on_ZeroOrOne_aggregation_works", async () => {
 			const mailbox = createTestEntity(MailBoxTypeRef, {
 				_id: "elementId",
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 				_ownerGroup: ownerGroupId,
-				folders: createTestEntity(MailFolderRefTypeRef),
+				folders: null,
+				sentAttachments: "attachmentsId",
+				receivedAttachments: "attachmentsId",
+				importedAttachments: "attachmentsId",
+				mailImportStates: "importStatesId",
 			})
 
 			await storage.put(MailBoxTypeRef, await toStorableInstance(mailbox))
 
 			const mailBoxTypeModel = await typeModelResolver.resolveClientTypeReference(MailBoxTypeRef)
 			const mailFolderRefAttributeId = assertNotNull(AttributeModel.getAttributeId(mailBoxTypeModel, "folders"))
-			const mailFolderRefToAdd = createTestEntity(MailFolderRefTypeRef)
+			const mailFolderRefToAdd = createTestEntity(MailFolderRefTypeRef, { folders: "mailFolderId" })
 			const untypedMailFolderRef = await instancePipeline.mapAndEncrypt(MailFolderRefTypeRef, mailFolderRefToAdd, sk)
 
 			const patches: Array<Patch> = [
@@ -483,15 +488,13 @@ o.spec("PatchMergerTest", () => {
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
-
-			const e = await assertThrows(
-				PatchOperationError,
-				async () => await patchMerger.getPatchedInstanceParsed(MailBoxTypeRef, null, "elementId", patches),
-			)
-			o(e.message.toString().includes("attempted to replace aggregation folders on MailBox")).equals(true)
+			o(mailbox.folders).equals(null)
+			const testMailBoxPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailBoxTypeRef, null, "elementId", patches))
+			const testMailBoxPatched = await instancePipeline.modelMapper.mapToInstance<MailBox>(MailBoxTypeRef, testMailBoxPatchedParsed)
+			o(testMailBoxPatched.folders?.folders).equals("mailFolderId")
 		})
 
-		o.test("apply_replace_on_Any_aggregation_throws", async () => {
+		o.test("apply_replace_on_Any_aggregation_works", async () => {
 			const mailDetailsBlob = createTestEntity(
 				MailDetailsBlobTypeRef,
 				{
@@ -535,11 +538,16 @@ o.spec("PatchMergerTest", () => {
 				}),
 			]
 
-			const e = await assertThrows(
-				PatchOperationError,
-				async () => await patchMerger.getPatchedInstanceParsed(MailDetailsBlobTypeRef, "listId", "elementId", patches),
+			const mailDetailsBlobPatchedParsed = assertNotNull(
+				await patchMerger.getPatchedInstanceParsed(MailDetailsBlobTypeRef, "listId", "elementId", patches),
 			)
-			o(e.message.toString().includes("attempted to replace aggregation toRecipients on Recipients")).equals(true)
+			const mailDetailsBlobPatched = await instancePipeline.modelMapper.mapToInstance<MailDetailsBlob>(
+				MailDetailsBlobTypeRef,
+				mailDetailsBlobPatchedParsed,
+			)
+			const addedToRecipient = assertNotNull(mailDetailsBlobPatched.details.recipients.toRecipients.pop())
+			o(addedToRecipient.name).equals("new name")
+			o(addedToRecipient.address).equals("address@tutao.de")
 		})
 	})
 
