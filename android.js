@@ -20,13 +20,32 @@ const log = (...messages) => console.log(chalk.green("\nBUILD:"), ...messages, "
 
 await program
 	.usage("[options] [test|prod|local|host <url>] ")
-	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host"]).default("prod").argOptional())
+	.addArgument(
+		new Argument("stage", "the server to connect to. test/local/prod are shorthands for using host <url> of the corresponding staging level server")
+			.choices(["test", "prod", "local", "host"])
+			.default("prod")
+			.argOptional(),
+	)
 	.addArgument(new Argument("host").argOptional())
 	.addOption(new Option("-a, --app <type>", "app to build").choices(["mail", "calendar"]).default("mail"))
-	.addOption(new Option("-b, --buildtype <type>", "gradle build type").choices(["debugDist", "debug", "release", "releaseTest"]).default("release"))
-	.addOption(new Option("-i, --install", "call adb install after build"))
-	.addOption(new Option("-w --webclient <client>", "choose web client build").choices(["make", "dist"]).default("dist"))
-	.option("-e, --existing", "Use existing prebuilt web client files")
+	.addOption(
+		new Option(
+			"-b, --buildtype <type>",
+			"gradle build type. use debug if you need to debug the app with android studio. release and releaseTest build the same app with different appIds for side-by-side installation",
+		)
+			.choices(["debug", "release", "releaseTest"])
+			.default("release"),
+	)
+	.addOption(new Option("-i, --install", "call adb install after build to deploy the app to a device/emulator"))
+	.addOption(
+		new Option(
+			"-w --webclient <client>",
+			"choose web client build. make is faster and easier to debug, but dist is what would be running in production. There's usually no reason to use dist during development.",
+		)
+			.choices(["make", "dist"])
+			.default("dist"),
+	)
+	.option("-e, --existing", "Use existing prebuilt web client files to skip the lengthy web client build. Use if you're developing the Kotlin code.")
 	.action(async (stage, host, { webclient, buildtype, install, existing, app }) => {
 		if ((stage === "host" && host == null) || (stage !== "host" && host != null)) {
 			program.outputHelp()
@@ -44,7 +63,7 @@ await program
 
 		if (install) {
 			await $`adb install ${apk}`
-			// would be cool, but needs to figure out the correct app to start:
+			// would be cool to auto-start the app, but needs to figure out the correct app to start:
 			// await $`adb shell am start -n de.tutao.tutanota/de.tutao.tutanota.MainActivity`
 		}
 	})
