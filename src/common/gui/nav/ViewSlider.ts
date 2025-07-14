@@ -77,7 +77,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		// the first background column is the main column
 		this.mainColumn = assertNotNull(
 			viewColumns.find((column) => column.columnType === ColumnType.Background),
-			"there was no backgroung column passed to viewslider",
+			"there was no background column passed to viewslider",
 		)
 
 		this.focusedColumn = this.mainColumn
@@ -138,7 +138,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	private getColumnRole(column: ViewColumn): AriaLandmarks | null {
-		// role  for foreground column is handled inside FolderColumnView
+		// role for foreground column is handled inside FolderColumnView
 		if (column.columnType === ColumnType.Foreground) {
 			return null
 		}
@@ -182,6 +182,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	private updateVisibleBackgroundColumns() {
+		// update column type of the folder column / sidebar column to make mobile desktop layout work
+		this.viewColumns[0].columnType = styles.isMobileDesktopLayout() ? ColumnType.Background : ColumnType.Foreground
+
 		this.focusedColumn = this.focusedColumn || this.mainColumn
 		let visibleColumns: ViewColumn[] = [this.focusedColumn.columnType === ColumnType.Background ? this.focusedColumn : this.mainColumn]
 		let remainingSpace = window.innerWidth - visibleColumns[0].minWidth
@@ -284,12 +287,12 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		}
 
 		// Reduce the width of the foreground button to keep always a small part of the background button visible.
-		let foreGroundColumn = this.viewColumns.find((column) => column.columnType === ColumnType.Foreground)
+		let foregroundColumn = this.viewColumns.find((column) => column.columnType === ColumnType.Foreground)
 
-		if (foreGroundColumn) {
-			let remainingSpace = window.innerWidth - foreGroundColumn.minWidth - size.hpad_large
-			let additionalSpaceForColumn = Math.min(remainingSpace, foreGroundColumn.maxWidth - foreGroundColumn.minWidth)
-			foreGroundColumn.width = foreGroundColumn.minWidth + additionalSpaceForColumn
+		if (foregroundColumn) {
+			let remainingSpace = window.innerWidth - foregroundColumn.minWidth - size.hpad_large
+			let additionalSpaceForColumn = Math.min(remainingSpace, foregroundColumn.maxWidth - foregroundColumn.minWidth)
+			foregroundColumn.width = foregroundColumn.minWidth + additionalSpaceForColumn
 		}
 	}
 

@@ -8,8 +8,8 @@ import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 assertMainOrNode()
 
 export const enum ColumnType {
-	Background = 1,
 	Foreground = 0,
+	Background = 1,
 }
 
 type Attrs = {
@@ -18,7 +18,7 @@ type Attrs = {
 
 export class ViewColumn implements Component<Attrs> {
 	private readonly component: Component
-	readonly columnType: ColumnType
+	columnType: ColumnType
 	readonly minWidth: number
 	readonly maxWidth: number
 	private readonly headerCenter: MaybeLazy<MaybeTranslation>

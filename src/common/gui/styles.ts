@@ -1,6 +1,6 @@
 import { Cat, log, timer } from "../misc/Log"
 import { size } from "./size"
-import { assertMainOrNodeBoot, isAdminClient, isTest } from "../api/common/Env"
+import { assertMainOrNodeBoot, isAdminClient, isApp, isTest } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
 import { Theme, theme, ThemeId } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
@@ -54,6 +54,14 @@ class Styles {
 	 */
 	isDesktopLayout(): boolean {
 		return this.bodyWidth >= size.desktop_layout_width
+	}
+
+	/**
+	 * Provides the information if a (wide) desktop width is used, and the device is using bottom navigation,
+	 * most probably because it is a mobile device.
+	 */
+	isMobileDesktopLayout(): boolean {
+		return this.isUsingBottomNavigation() && this.isDesktopLayout()
 	}
 
 	/**

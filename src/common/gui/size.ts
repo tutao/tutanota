@@ -72,7 +72,6 @@ export const size = {
 	calendar_days_header_height: 25,
 	calendar_hour_width: 80,
 	calendar_hour_width_mobile: 30,
-	calendar_first_col_min_width: 270,
 	calendar_event_margin: 6,
 	calendar_event_margin_mobile: 2,
 	calendar_event_border: 1,
@@ -84,6 +83,7 @@ export const size = {
 	second_col_max_width: 350,
 	third_col_min_width: 600,
 	third_col_max_width: 2400,
+	only_show_in_single_column_min_max_width: 10000, // viewport >= every mobile device viewport
 
 	// Using the breakpoint set by bootstrap to cover small tablets as well
 	// https://getbootstrap.com/docs/5.0/layout/breakpoints/

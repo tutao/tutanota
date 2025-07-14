@@ -14,6 +14,7 @@ import { theme } from "./theme.js"
 import { NewsModel } from "../misc/news/NewsModel.js"
 import { ClickHandler } from "./base/GuiUtils.js"
 import { lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
+import { client } from "../misc/ClientDetector"
 
 export interface MobileHeaderAttrs extends AppHeaderAttrs {
 	columnType: "first" | "other"
@@ -59,13 +60,15 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 	}
 
 	private renderLeftAction(attrs: MobileHeaderAttrs) {
-		if (attrs.columnType === "first" && !attrs.useBackButton) {
+		if (styles.isMobileDesktopLayout() && !client.isCalendarApp()) {
+			return m(".ml-s")
+		} else if (attrs.columnType === "first" && !attrs.useBackButton) {
 			return m(MobileHeaderMenuButton, { newsModel: attrs.newsModel, backAction: attrs.backAction })
 		} else if (styles.isSingleColumnLayout() || attrs.useBackButton) {
 			return m(MobileHeaderBackButton, { backAction: attrs.backAction })
+		} else {
+			return null
 		}
-
-		return null
 	}
 }
 

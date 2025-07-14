@@ -165,12 +165,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				view: () =>
 					m(FolderColumnView, {
 						drawer: attrs.drawerAttrs,
-						button: styles.isDesktopLayout()
-							? {
-									label: "newEvent_action",
-									click: () => this.createNewEventDialog(),
-							  }
-							: null,
+						button:
+							!isApp() && styles.isDesktopLayout()
+								? {
+										label: "newEvent_action",
+										click: () => this.createNewEventDialog(),
+								  }
+								: null,
 						content: [
 							styles.isDesktopLayout()
 								? m(DaySelectorSidebar, {
@@ -257,7 +258,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			ColumnType.Foreground,
 			{
-				minWidth: size.calendar_first_col_min_width,
+				minWidth: size.first_col_min_width,
 				maxWidth: size.first_col_max_width,
 				headerCenter: this.currentViewType === CalendarViewType.WEEK ? "month_label" : "calendar_label",
 			},
@@ -459,8 +460,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.calendar_first_col_min_width + size.third_col_min_width,
-				maxWidth: size.third_col_max_width,
+				minWidth: size.third_col_min_width,
+				maxWidth: size.second_col_max_width + size.third_col_max_width,
 			},
 		)
 
@@ -474,8 +475,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				},
 				ColumnType.Background,
 				{
-					minWidth: size.third_col_min_width,
-					maxWidth: size.third_col_max_width,
+					// We add a really large minWidth and maxWidth to ensure that this is only rendered in
+					// a single column layout. If we would not add the column in a single column layout in the
+					// first place, this would break on screen orientation changes for large mobile devices,
+					// (basically every tablet), because landscape orientation uses the mobileDesktopLayout and
+					// the portrait orientation uses the singleColumnLayout.
+					minWidth: size.only_show_in_single_column_min_max_width,
+					maxWidth: size.only_show_in_single_column_min_max_width,
 				},
 			)
 

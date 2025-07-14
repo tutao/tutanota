@@ -91,7 +91,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					})
 				},
 			})
-		} else if (styles.isUsingBottomNavigation() && styles.isDesktopLayout()) {
+		} else if (styles.isMobileDesktopLayout()) {
 			return null
 		}
 

@@ -507,22 +507,24 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 
 		return m(BaseMobileHeader, {
-			left: m(
-				".icon-button",
-				m(IconButton, {
-					title: "back_action",
-					icon: BootIcons.Back,
-					click: () => {
-						if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
-							m.route.set(MAIL_PREFIX)
-						} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
-							m.route.set(CONTACTS_PREFIX)
-						} else if (isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
-							m.route.set(CALENDAR_PREFIX)
-						}
-					},
-				}),
-			),
+			left: !styles.isMobileDesktopLayout()
+				? m(
+						".icon-button",
+						m(IconButton, {
+							title: "back_action",
+							icon: BootIcons.Back,
+							click: () => {
+								if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
+									m.route.set(MAIL_PREFIX)
+								} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
+									m.route.set(CONTACTS_PREFIX)
+								} else if (isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
+									m.route.set(CALENDAR_PREFIX)
+								}
+							},
+						}),
+				  )
+				: m(".ml-s"),
 			right: rightActions,
 			center: m(
 				".flex-grow.flex.justify-center",
