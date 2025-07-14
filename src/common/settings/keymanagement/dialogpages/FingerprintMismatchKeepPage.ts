@@ -15,11 +15,10 @@ type FingerprintMismatchKeepPageAttrs = {
 
 export class FingerprintMismatchKeepPage implements Component<FingerprintMismatchKeepPageAttrs> {
 	view(vnode: Vnode<FingerprintMismatchKeepPageAttrs>) {
-		let publicIdentity = assertNotNull(vnode.attrs.model.getPublicIdentity())
+		const publicIdentity = assertNotNull(vnode.attrs.model.getPublicIdentity())
 		const sourceOfTrust = publicIdentity.trustDbEntry.sourceOfTrust
-		let address = publicIdentity.mailAddress
-		let manuallyTrusted = sourceOfTrust === IdentityKeySourceOfTrust.Manual
-		//TODO appropriate title and subtitle
+		const address = publicIdentity.mailAddress
+		const manuallyTrusted = sourceOfTrust === IdentityKeySourceOfTrust.Manual
 		let title
 		let subtitle
 		let message

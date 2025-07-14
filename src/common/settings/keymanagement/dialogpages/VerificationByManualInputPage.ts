@@ -17,7 +17,7 @@ import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
 	goToSuccessPage: () => void
-	gotToMissmatchPage: () => void
+	gotToMismatchPage: () => void
 }
 
 const debouncedFingerprintRequest = debounce(500, async (model: KeyVerificationModel, mailAddress: string) => {
@@ -113,7 +113,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 			m(LoginButton, {
 				label: doNotTrustTranslationKey,
 				onclick: async () => {
-					vnode.attrs.gotToMissmatchPage()
+					vnode.attrs.gotToMismatchPage()
 				},
 				disabled: !publicIdentity,
 				icon: publicIdentity

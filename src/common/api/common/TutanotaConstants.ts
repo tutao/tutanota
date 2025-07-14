@@ -511,12 +511,10 @@ export enum SecondFactorType {
 	webauthn = "2", // actually refers to u2f in client
 }
 
-//TODO deal with own value where we use this
 export enum IdentityKeySourceOfTrust {
 	Manual = 0,
 	TOFU = 1,
 	Not_Supported = 2,
-	Own = 3,
 }
 
 export enum IdentityKeyVerificationMethod {
