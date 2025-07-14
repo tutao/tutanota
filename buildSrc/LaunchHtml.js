@@ -78,6 +78,7 @@ function csp(env) {
 				" frame-src 'none';" +
 				" font-src 'self';" +
 				" img-src http: blob: data: *;" +
+				" media-src blob: data: *;" +
 				" style-src 'unsafe-inline';" +
 				"base-uri 'none';" +
 				` connect-src 'self' ${getCspUrls(env)};`
