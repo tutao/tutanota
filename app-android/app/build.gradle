@@ -26,10 +26,11 @@ android {
 	signingConfigs {
 		release {
 			// Provide non-empty placeholders because otherwise configuration will braek even in debug.
-			storeFile file(System.getenv("APK_SIGN_STORE") ?: 'EMPTY')
-			storePassword System.getenv("APK_SIGN_STORE_PASS" ?: 'EMPTY')
-			keyAlias System.getenv("APK_SIGN_ALIAS" ?: 'EMPTY')
-			keyPassword System.getenv("APK_SIGN_KEY_PASS" ?: 'EMPTY')
+			// for local dev builds, you can use the keystore that's deployed automatically to dev systems.
+			storeFile file(System.getenv("APK_SIGN_STORE") ?: 'MISSING_APK_STORE_ENV_VAR')
+			storePassword System.getenv("APK_SIGN_STORE_PASS" ?: 'MISSING_APK_SIGN_STORE_PASS_ENV_VAR')
+			keyAlias System.getenv("APK_SIGN_ALIAS" ?: 'MISSING_APK_SIGN_ALIAS_ENV_VAR')
+			keyPassword System.getenv("APK_SIGN_KEY_PASS" ?: 'MISSING_APK_SIGN_KEY_PASS_ENV_VAR')
 
 			enableV1Signing = true
 			enableV2Signing = true
