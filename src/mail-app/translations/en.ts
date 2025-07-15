@@ -2054,7 +2054,7 @@ export default {
         "keyVerificationErrorGeneric_msg": "The identity key for this contact differs from the one that is saved on this device.",
         "fingerprintMismatchManual_msg": "The fingerprint you received from your contact is different from the one that you manually verified and saved on your device.",
         "fingerprintMismatchTofu_msg": "The fingerprint you received from your contact is different from the one that is saved on your device since your first use of the address <br><b>{mailAddress}</b>.",
-        "fingerprintMismatchManualWarning_msg": "This could be a legitimate change <b>only</b> if the account behind this contact assigned the email address to another user.",
+        "fingerprintMismatchManualWarning_msg": "This could be a legitimate change <b>only</b> if the email address was assigned to another user.",
         "fingerprintMismatchTofuWarning_msg": "This is a potential security risk and it might be that someone has intercepted your previous conversation with this contact. It could also be a legitimate change <b>only</b> if the account behind this contact assigned the email address to another user.",
         "keyVerificationErrorWarning_msg": "This is a potential security risk and it might be that someone attempted to intercept your conversation. It could also be a legitimate change <b>only</b> if the account behind this contact assigned the email address to another user.",
         "keyVerificationErrorRecommendation_msg": "Reject the change and do a manual key verification with the contact. Only accept the change <b>after</b> you verified with the contact that the change is legitimate.",

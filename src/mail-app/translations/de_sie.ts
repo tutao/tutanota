@@ -2064,6 +2064,20 @@ export default {
         "keyVerificationErrorContactNotUpdated_msg": "Der Identitätsschlüssel für den Kontakt <b>{mailAddress}</b> wurde auf Ihrem Gerät nicht aktualisiert.<br><br>" +
             "Bitte führen Sie eine manuelle Schlüsselverifikation durch, bevor Sie die Unterhaltung fortsetzen.",
         "keyVerificationErrorAccept_title": "Kontakt erfolgreich aktualisiert",
-        "keyVerificationErrorReject_title": "Kontakt nicht aktualisiert"
+        "keyVerificationErrorReject_title": "Kontakt nicht aktualisiert",
+        "keyManagement.doNotTrust_action": "Nicht vertrauen",
+        "fingerprintMismatchManual_msg": "Der Fingerabdruck, den Sie von Ihrem Kontakt bekommen haben, stimmt nicht mit dem überein, den Sie manuell verifiziert und auf Ihrem Gerät gespeichert haben.",
+        "fingerprintMismatchTofu_msg": "Der Fingerabdruck, den Sie von Ihrem Kontakt bekommen haben, stimmt nicht mit dem überein, der auf Ihrem Gerät seit Ihrem ersten Gebrauch der Adresse <br><b>{mailAddress}</b><br> gespeichert ist.",
+        "fingerprintMismatchManualWarning_msg": "Das kann eine legitime Änderung sein, <b>aber nur</b> wenn die E-Mail-Adresse einem anderen Benutzer zugewiesen wurde.",
+        "fingerprintMismatchTofuWarning_msg": "Das ist ein mögliches Sicherheitsrisiko. Es ist möglich, dass irgendjemand Ihre vorherige Konversation mit diesem Kontakt abgehört hat. Es kann auch eine legitime Änderung sein, <b>aber nur</b> wenn die E-Mail-Adresse einem anderen Benutzer zugewiesen wurde.",
+        "fingerprintMismatchRecommendationManual_msg": "Wenn Sie sicher sind, dass die E-Mail-Adresse verschoben wurde, können Sie den vertrauten Schlüssel aus Ihrer lokalen Datenbank löschen und die Verifikation mit einem frischen Schlüssel vom Server erneut versuchen. Das sollten Sie nur tun, wenn Sie jetzt gerade den neuesten Fingerabdruck mit Ihrem Kontakt bestätigen können.",
+        "fingerprintMismatchRecommendationTofu_msg": "Wenn Sie sicher sind, dass Ihr Kontakt Ihnen den aktuellen Schlüssel zeigt, können Sie den vertrauten Schlüssel aus Ihrer lokalen Datenbank löschen und die Verifikation mit einem frischen Schlüssel vom Server erneut versuchen.",
+        "deleteKey_action": "Schlüssel löschen und erneut versuchen",
+        "fingerprintMismatchKeepTofu_msg": "Es wird keine weitere Erinnerung geben, dass der Schlüssel die Verifikation nicht bestanden hat. Sie sollten keinen weiteren Kontakt mit <b>{mailAddress}</b> haben, weil Sie nicht mit der beabsichtigten Person kommunizieren werden.",
+        "fingerprintMismatchKeepManual_msg": "Wenn dieser Schlüssel nicht der ist, der mit <b>{mailAddress}</b> aktuell assoziiert ist, können Sie ihn ersetzen, sobald Sie den aktuellen Schlüssel bestätigen können.",
+        "fingerprintMismatchKeepTofu_title": "Verdächtiger Schlüssel wurde gespeichert",
+        "fingerprintMismatchKeepTofuSubtitle_msg": "Der Schlüssel, der die Verifikation nicht bestanden hat, wird weiterhin in Ihrer lokalen Datenbank verbleiben.",
+        "fingerprintMismatchKeepManual_title": "Vertrauter Schlüssel wurde behalten",
+        "fingerprintMismatchKeepManualSubtitle_msg": "Der Schlüssel, dem Sie schon vertraut haben, wird weiterhin in Ihrer lokalen Datenbank verbleiben."
     }
 }
