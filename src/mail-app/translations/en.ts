@@ -2101,6 +2101,7 @@ export default {
         "replyAcceptEventInfo_msg": "{name} has <strong>accepted</strong> your invitation.",
         "replyTentativeEventInfo_msg": "{name} will <strong>maybe</strong> join your event.",
         "replyDeclineEventInfo_msg": "{name} has <strong>declined</strong> your invitation.",
+		"replyInviteSubject_msg": "{name} has replied {status} to {event}",
         "removed_label": "Removed",
         "event_label": "Event"
     }
