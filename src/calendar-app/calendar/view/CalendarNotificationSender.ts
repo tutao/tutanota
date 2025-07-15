@@ -31,7 +31,11 @@ export class CalendarNotificationSender {
 			sendMailModel,
 			method: MailMethod.ICAL_REQUEST,
 			subject: message, // FIXME Subject
-			body: makeEventInviteEmailBody(event, "", EventInviteEmailType.INVITE),
+			body: makeEventInviteEmailBody(sendMailModel.isPlainTextMail(), {
+				event,
+				infoBannerMessage: "",
+				eventInviteEmailType: EventInviteEmailType.INVITE,
+			}),
 			event,
 			sender,
 		})
@@ -48,7 +52,12 @@ export class CalendarNotificationSender {
 			sendMailModel,
 			method: MailMethod.ICAL_REQUEST,
 			subject: message,
-			body: makeEventInviteEmailBody(event, infoBannerMessage, EventInviteEmailType.UPDATE, changedFields),
+			body: makeEventInviteEmailBody(sendMailModel.isPlainTextMail(), {
+				event,
+				infoBannerMessage,
+				eventInviteEmailType: EventInviteEmailType.UPDATE,
+				changedFields,
+			}),
 			event,
 			sender,
 		})
@@ -64,7 +73,11 @@ export class CalendarNotificationSender {
 			sendMailModel,
 			method: MailMethod.ICAL_CANCEL,
 			subject: message,
-			body: makeEventInviteEmailBody(event, infoBannerMessage, EventInviteEmailType.CANCEL),
+			body: makeEventInviteEmailBody(sendMailModel.isPlainTextMail(), {
+				event,
+				infoBannerMessage,
+				eventInviteEmailType: EventInviteEmailType.CANCEL,
+			}),
 			event,
 			sender,
 		}).catch(
@@ -136,16 +149,20 @@ export class CalendarNotificationSender {
 	 */
 	async sendResponse(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
 		const sendAs = sendMailModel.getSender()
-		const message = lang.get("repliedToEventInvite_msg", {
+		const infoBannerMessage = lang.get("repliedToEventInvite_msg", {
 			"{event}": event.summary,
 		})
 		const organizer = assertOrganizer(event)
-		const body = makeEventInviteEmailBody(event, message, sendMailModel.emailType)
+		const body = makeEventInviteEmailBody(sendMailModel.isPlainTextMail(), {
+			event,
+			infoBannerMessage,
+			eventInviteEmailType: sendMailModel.emailType,
+		})
 		return this.sendCalendarFile({
 			event,
 			sendMailModel,
 			method: MailMethod.ICAL_REPLY,
-			subject: message,
+			subject: infoBannerMessage,
 			body: body,
 			sender: sendAs,
 		})
@@ -397,10 +414,14 @@ function getEmailTheme(emailType: EventInviteEmailType): EmailTheme {
 	}
 }
 
-function makeEventInviteEmailBody(
-	event: CalendarEvent,
-	infoBannerMessage: string,
-	eventInviteEmailType: EventInviteEmailType,
+function makeEventInviteEmailBody(isPlainText: boolean, emailBodyIngredients: EmailBodyIngredients) {
+	return isPlainText ? makePlainTextBody(emailBodyIngredients) : makeHTMLBody(emailBodyIngredients)
+}
+
+interface EmailBodyIngredients {
+	event: CalendarEvent
+	infoBannerMessage: string
+	eventInviteEmailType: EventInviteEmailType
 	changedFields?: {
 		attendee: { added: CalendarEventAttendee[]; removed: CalendarEventAttendee[] }
 		description: boolean
@@ -408,8 +429,43 @@ function makeEventInviteEmailBody(
 		organizer: boolean
 		summary: boolean
 		when: boolean
-	},
-) {
+	}
+}
+
+function makePlainTextBody({ event, infoBannerMessage, eventInviteEmailType, changedFields }: EmailBodyIngredients) {
+	const duration = formatEventDuration(event, getTimeZone(), true)
+	return `
+> ${infoBannerMessage}
+<br><br>
+${lang.get("event_label")}: ${event.summary}
+<br><br>
+${lang.get("when_label")}:
+<br>
+${duration}
+<br><br>
+${lang.get("location_label")}:
+<br>
+${event.location}
+<br><br>
+${lang.get("description_label")}:
+<br>
+${event.description}
+<br><br>
+${lang.get("organizer_label")}:
+<br>
+${event.organizer?.name ? event.organizer?.name + " " : ""}${event.organizer?.address}
+<br><br>
+${lang.get("guests_label")}:
+<br>
+${event.attendees
+	.map((a) => {
+		return `${a.address.name ? a.address.name + " " : ""}${a.address.address}`
+	})
+	.join("<br>")}
+`
+}
+
+function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, changedFields }: EmailBodyIngredients) {
 	const theme = getEmailTheme(eventInviteEmailType)
 	return `
 	${
