@@ -175,9 +175,10 @@ function renderAudioCaptcha(viewModel: CaptchaDialogViewModel) {
 		m("", viewModel.audioCaptchaDescription),
 		m(
 			"div.full-width.flex.col.justify-center",
-			m("audio.full-width", {
+			m("audio.full-width.block", {
 				controls: true,
 				src: viewModel.getAudioUrl(),
+				tabindex: "0",
 			}),
 		),
 	])
