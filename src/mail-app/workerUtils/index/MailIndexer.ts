@@ -23,7 +23,19 @@ import {
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError.js"
-import { assertNotNull, clamp, DAY_IN_MILLIS, findAllAndRemove, first, isEmpty, isNotNull, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	clamp,
+	DAY_IN_MILLIS,
+	defer,
+	DeferredObject,
+	findAllAndRemove,
+	first,
+	isEmpty,
+	isNotNull,
+	ofClass,
+	promiseMap,
+} from "@tutao/tutanota-utils"
 import { deconstructMailSetEntryId, elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { filterMailMemberships } from "../../../common/api/worker/search/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
@@ -63,13 +75,15 @@ export class MailIndexer {
 	}
 
 	private _mailIndexingEnabled: boolean
+	private initialized: DeferredObject<void> = defer()
 
 	get mailIndexingEnabled(): boolean {
 		return this._mailIndexingEnabled
 	}
 
 	mailboxIndexingPromise: Promise<void>
-	isIndexing: boolean = false
+	/** @private visibleForTesting */
+	_isIndexing: boolean = false
 	_dateProvider: DateProvider
 	_backend: MailIndexerBackend | null = null
 	private abortController: AbortController = new AbortController()
@@ -92,6 +106,7 @@ export class MailIndexer {
 		this._backend = this.backendFactory(user._id)
 		this._mailIndexingEnabled = await this.backend.isMailIndexingEnabled()
 		await this.updateCurrentIndexTimestamp(user)
+		this.initialized.resolve()
 	}
 
 	/** @private visibleForTesting */
@@ -194,6 +209,8 @@ export class MailIndexer {
 	 * If the mailboxes are already fully indexed, they are not indexed again.
 	 */
 	async indexMailboxes(user: User, oldestTimestamp: number): Promise<void> {
+		await this.initialized.promise
+
 		if (!this._mailIndexingEnabled) {
 			return
 		}
@@ -201,7 +218,7 @@ export class MailIndexer {
 		const searchIndexStageInfo = this.createSearchIndexStageInfo(oldestTimestamp)
 
 		this.abortController = new AbortController()
-		this.isIndexing = true
+		this._isIndexing = true
 
 		await this.infoMessageHandler.onSearchIndexStateUpdate(searchIndexStageInfo())
 		await this.infoMessageHandler.onSearchIndexStateUpdate({
@@ -269,7 +286,7 @@ export class MailIndexer {
 				}),
 			)
 		} finally {
-			this.isIndexing = false
+			this._isIndexing = false
 		}
 	}
 
@@ -312,7 +329,7 @@ export class MailIndexer {
 			// Inform the UI that it's changed.
 			//
 			// If we're somehow currently indexing, this will be updated later.
-			if (!this.isIndexing) {
+			if (!this._isIndexing) {
 				await this.infoMessageHandler.onSearchIndexStateUpdate({
 					initializing: false,
 					mailIndexEnabled: this.mailIndexingEnabled,
@@ -502,6 +519,7 @@ export class MailIndexer {
 	}
 
 	private async processImportStateEntityEvents(event: EntityUpdateData): Promise<void> {
+		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 		// we can only process create and update events (create is because of EntityEvent optimization
 		// (CREATE + UPDATE = CREATE) which requires us to process CREATE events with imported mails)
@@ -561,6 +579,7 @@ export class MailIndexer {
 	 * Prepare IndexUpdate in response to the new entity events.
 	 */
 	async processEntityEvents(events: readonly EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
+		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 
 		for (const event of events) {
@@ -575,6 +594,7 @@ export class MailIndexer {
 	}
 
 	async afterMailDeleted(mailId: IdTuple) {
+		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 		await this.backend.onMailDeleted(mailId)
 	}
@@ -584,6 +604,7 @@ export class MailIndexer {
 	 * @throws NotFoundError if the mail no longer exists (and has not been cached)
 	 */
 	async afterMailCreated(mailId: IdTuple) {
+		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 
 		const newMail = await this.entityClient.load(MailTypeRef, mailId)
@@ -603,6 +624,7 @@ export class MailIndexer {
 	 * @throws NotFoundError if the mail no longer exists (and has not been cached)
 	 */
 	async afterMailUpdated(mailId: IdTuple) {
+		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 
 		// If this is being called from offline storage, then the mail is cached. Otherwise, this can throw (which should be handled by the caller)!
