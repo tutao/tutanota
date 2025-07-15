@@ -874,7 +874,9 @@ export function getEventColor(event: CalendarEvent, groupColors: GroupColors): s
 }
 
 export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): string {
-	switch (status) {
+	switch (
+		status // FIXME Update Icons
+	) {
 		case CalendarAttendeeStatus.ADDED:
 		case CalendarAttendeeStatus.NEEDS_ACTION:
 			return ""
@@ -894,6 +896,7 @@ export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): st
 }
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
+	// FIXME Update Icons
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
 	[CalendarAttendeeStatus.TENTATIVE]: Icons.CircleHelp,
 	[CalendarAttendeeStatus.DECLINED]: Icons.CircleReject,
