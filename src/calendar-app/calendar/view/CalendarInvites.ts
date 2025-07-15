@@ -21,7 +21,7 @@ import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.j
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils" // not picking the status directly from CalendarEventAttendee because it's a NumberString
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
@@ -169,10 +169,15 @@ export class CalendarInviteHandler {
 		//NOTE: mailDetails are getting passed through because the calendar does not have access to the mail folder structure
 		//	which is needed to find mailboxdetails by mail. This may be fixed by static mail ids which are being worked on currently.
 		//  This function is only called by EventBanner from the mail app so this should be okay.
-		const responseModel = await this.getResponseModelForMail(previousMail, mailboxDetails, attendee.address.address)
+		const responseModel = await this.getResponseModelForMail(previousMail, mailboxDetails, attendee.address.address, decision)
 
 		try {
-			await notificationModel.send(eventClone, [], { responseModel, inviteModel: null, cancelModel: null, updateModel: null })
+			await notificationModel.send(eventClone, [], {
+				responseModel,
+				inviteModel: null,
+				cancelModel: null,
+				updateModel: null,
+			})
 		} catch (e) {
 			if (e instanceof UserError) {
 				await Dialog.message(lang.makeTranslation("confirm_msg", e.message))
@@ -204,7 +209,12 @@ export class CalendarInviteHandler {
 		return ReplyResult.ReplySent
 	}
 
-	async getResponseModelForMail(previousMail: Mail, mailboxDetails: MailboxDetail, responder: string): Promise<SendMailModel | null> {
+	async getResponseModelForMail(
+		previousMail: Mail,
+		mailboxDetails: MailboxDetail,
+		responder: string,
+		responseDecision: CalendarAttendeeStatus,
+	): Promise<SendMailModel | null> {
 		//NOTE: mailDetails are getting passed through because the calendar does not have access to the mail folder structure
 		//	which is needed to find mailboxdetails by mail. This may be fixed by static mail ids which are being worked on currently
 		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
@@ -227,6 +237,7 @@ export class CalendarInviteHandler {
 		// If the contact is removed or the password is not there the user would see an error but they wouldn't be
 		// able to reply anyway (unless they fix it).
 		model.setConfidential(previousMail.confidential)
+		model.setEmailTypeFromAttendeeStatus(responseDecision)
 		return model
 	}
 }
