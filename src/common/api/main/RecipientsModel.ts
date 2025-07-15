@@ -120,7 +120,6 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	private readonly initialContact: Contact | null = null
 
 	private overrideContact: Contact | null = null
-	private overrideRecipientInfo: RecipientInfo | null
 
 	get address(): string {
 		return this._address
@@ -145,9 +144,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 
 	get verificationState(): PresentableKeyVerificationState {
 		const lazyInfo = this.lazyInfo.getSync()
-		if (this.overrideRecipientInfo) {
-			return this.overrideRecipientInfo.verificationState
-		} else if (lazyInfo) {
+		if (lazyInfo) {
 			return lazyInfo.verificationState
 		} else {
 			return this.initialInfo.verificationState
@@ -168,7 +165,6 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 		this._address = cleanMailAddress(arg.address)
 
 		this._name = arg.name ?? null
-		this.overrideRecipientInfo = null
 
 		if (!(arg.contact instanceof Array)) {
 			this.initialContact = arg.contact ?? null
@@ -269,9 +265,7 @@ class ResolvableRecipientImpl implements ResolvableRecipient {
 	}
 
 	async markAsKeyVerificationMismatch(): Promise<void> {
-		this.overrideRecipientInfo = {
-			type: this.type,
-			verificationState: PresentableKeyVerificationState.ALERT,
-		}
+		this.reset()
+		await this.resolve()
 	}
 }
