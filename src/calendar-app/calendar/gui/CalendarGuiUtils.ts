@@ -89,6 +89,7 @@ import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
 
 export interface IntervalOption {
 	value: number
@@ -874,29 +875,28 @@ export function getEventColor(event: CalendarEvent, groupColors: GroupColors): s
 }
 
 export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): string {
-	switch (
-		status // FIXME Update Icons
-	) {
+	switch (status) {
 		case CalendarAttendeeStatus.ADDED:
 		case CalendarAttendeeStatus.NEEDS_ACTION:
 			return ""
-
 		case CalendarAttendeeStatus.TENTATIVE:
-			return "?"
-
+			return "�"
 		case CalendarAttendeeStatus.ACCEPTED:
 			return "✓"
-
 		case CalendarAttendeeStatus.DECLINED:
-			return "❌"
-
+			return "✕"
 		default:
 			throw new Error("Unknown calendar attendee status: " + status)
 	}
 }
 
+export const eventInviteEmailTypeToCalendarAttendeeStatus = Object.freeze({
+	[EventInviteEmailType.REPLY_ACCEPT]: CalendarAttendeeStatus.ACCEPTED,
+	[EventInviteEmailType.REPLY_TENTATIVE]: CalendarAttendeeStatus.TENTATIVE,
+	[EventInviteEmailType.REPLY_DECLINE]: CalendarAttendeeStatus.DECLINED,
+})
+
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
-	// FIXME Update Icons
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
 	[CalendarAttendeeStatus.TENTATIVE]: Icons.CircleHelp,
 	[CalendarAttendeeStatus.DECLINED]: Icons.CircleReject,
