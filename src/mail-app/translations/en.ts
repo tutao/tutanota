@@ -2053,6 +2053,12 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"canceledEventInfo_msg": "This event has been <strong>canceled!</strong>",
+        "updatedEventInfo_msg": "This event has been <strong>updated!</strong>",
+        "replyAcceptEventInfo_msg": "{name} has <strong>accepted</strong> your invitation.",
+        "replyTentativeEventInfo_msg": "{name} will <strong>maybe</strong> join your event.",
+        "replyDeclineEventInfo_msg": "{name} has <strong>declined</strong> your invitation.",
+        "removed_label": "Removed"
 	}
 }
