@@ -12,7 +12,15 @@ import {
 	MailDetails,
 	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
-import { ApprovalStatus, ConversationType, MailMethod, MAX_ATTACHMENT_SIZE, OperationType, ReplyType } from "../api/common/TutanotaConstants.js"
+import {
+	ApprovalStatus,
+	CalendarAttendeeStatus,
+	ConversationType,
+	MailMethod,
+	MAX_ATTACHMENT_SIZE,
+	OperationType,
+	ReplyType,
+} from "../api/common/TutanotaConstants.js"
 import { PartialRecipient, Recipient, RecipientList, Recipients, RecipientType } from "../api/common/recipients/Recipient.js"
 import {
 	assertNotNull,
@@ -74,6 +82,7 @@ import { ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getMailBodyText } from "../api/common/CommonMailUtils.js"
 import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificationMismatchError"
+import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarNotificationSender"
 
 assertMainOrNode()
 
@@ -147,6 +156,8 @@ export class SendMailModel {
 	// If saveDraft is called while the previous call is still running, then flag to call again afterwards
 	private doSaveAgain: boolean = false
 	private recipientsResolved = new LazyLoaded<void>(async () => {})
+
+	private _emailType: EventInviteEmailType | null = null
 
 	/**
 	 * creates a new empty draft message. calling an init method will fill in all the blank data
@@ -1098,6 +1109,31 @@ export class SendMailModel {
 		if (!this.previousMail) return false
 
 		return isUserEmail(this.logins, this.mailboxDetails, this.previousMail.sender.address)
+	}
+
+	setEmailTypeFromAttendeeStatus(attendeeStatus: CalendarAttendeeStatus) {
+		switch (attendeeStatus) {
+			case CalendarAttendeeStatus.ACCEPTED:
+				this._emailType = EventInviteEmailType.REPLY_ACCEPT
+				break
+			case CalendarAttendeeStatus.DECLINED:
+				this._emailType = EventInviteEmailType.REPLY_DECLINE
+				break
+			case CalendarAttendeeStatus.TENTATIVE:
+				this._emailType = EventInviteEmailType.REPLY_TENTATIVE
+				break
+		}
+	}
+
+	get emailType() {
+		if (!this._emailType) {
+			throw new Error("Email type not set")
+		}
+		return this._emailType
+	}
+
+	isPlainTextMail() {
+		return this.logins.getUserController().props.sendPlaintextOnly
 	}
 }
 
