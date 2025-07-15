@@ -12,8 +12,13 @@ export default {
 		"one",
 		"other"
 	],
+	"ordinal_plural_forms": [
+		"zero",
+		"one",
+		"other"
+	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-07-10T14:57:28Z",
+	"updated_at": "2025-07-14T10:39:14Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -1916,6 +1921,8 @@ export default {
 		"totpTransferSecret_msg": "Bitte aktualisieren Sie Ihre Authenticator-App durch das Scannen des QR-Codes oder die manuelle Eingabe des Geheimnisses.",
 		"to_label": "An",
 		"trash_action": "Papierkorb",
+		"tryAudioCaptcha_action": "Lösen Sie stattdessen ein Audio-Rätsel",
+		"tryVisualCaptcha_action": "Lösen Sie stattdessen ein visuelles Rätsel",
 		"tuesday_label": "Dienstag",
 		"tutanotaAddressDoesNotExist_msg": "Die folgenden Tuta E-Mail-Adressen existieren nicht.",
 		"tutaoInfo_msg": "Tutao GmbH ist die Firma, die Tuta entwickelt und bereitstellt.",
@@ -2050,8 +2057,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"tryAudioCaptcha_action": "Lösen Sie stattdessen ein Audio-Captcha",
-		"tryVisualCaptcha_action": "Lösen Sie stattdessen ein visuelles Captcha"
+		"zoomOut_action": "Herauszoomen"
 	}
 }

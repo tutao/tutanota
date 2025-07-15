@@ -12,8 +12,13 @@ export default {
 		"one",
 		"other"
 	],
+	"ordinal_plural_forms": [
+		"zero",
+		"one",
+		"other"
+	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-14T14:51:15Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -551,6 +556,7 @@ export default {
 		"giftCards_label": "کارت‌های هدیه",
 		"giftCardTerms_label": "شرایط و مقررات کارت هدیه",
 		"giftCardUpdateError_msg": "ناتوان از به روزرسانی کارت هدیه.",
+		"giftCardUpgradeNotifyCredit_msg": "هزینه سال اول ({price})  با کارت هدیه شما پرداخت می‌شود و مبلغ باقیمانده ({amount}) به حساب شما واریز خواهد شد.",
 		"giftCardUpgradeNotifyRevolutionary_msg": "شما به طور خودکار به یک حساب انقلابی با اشتراک سالانه ارتقا خواهید یافت.",
 		"giftCard_label": "کارت هدیه",
 		"globalAdmin_label": "مدیر سراسری",

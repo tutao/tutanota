@@ -11,8 +11,12 @@ export default {
 		"zero",
 		"other"
 	],
+	"ordinal_plural_forms": [
+		"zero",
+		"other"
+	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-07-11T09:15:45Z",
+	"updated_at": "2025-07-15T05:54:55Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1911,6 +1915,8 @@ export default {
 		"totpTransferSecret_msg": "請掃描以下QR碼或手動輸入密鑰以更新您的身分驗證應用程式。",
 		"to_label": "收件人",
 		"trash_action": "垃圾桶",
+		"tryAudioCaptcha_action": "改為嘗試語音謎題",
+		"tryVisualCaptcha_action": "改為嘗試視覺謎題",
 		"tuesday_label": "星期二",
 		"tutanotaAddressDoesNotExist_msg": "以下Tuta電郵地址不存在。",
 		"tutaoInfo_msg": "Tutao GmbH為向您提供Tuta服務的公司。",
@@ -1979,7 +1985,7 @@ export default {
 		"value_label": "值",
 		"variant_label": "變體",
 		"vcardInSharingFiles_msg": "偵測到一個或多個聯絡人檔案。您要匯入還是附加它們？",
-		"verifyDNSRecords_msg": "最後，您需要設定以下DNS記錄，才能透過Tuta郵件伺服器收發郵件。",
+		"verifyDNSRecords_msg": "最後，您需要設定以下列出的DNS記錄，才能透過Tuta郵件伺服器收發郵件。",
 		"verifyDNSRecords_title": "設定DNS記錄",
 		"verifyDomainOwnershipExplanation_msg": "我們需要驗證您是以下域名的擁有者：{domain}",
 		"verifyDomainOwnership_title": "授權檢查",

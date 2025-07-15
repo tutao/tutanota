@@ -14,6 +14,13 @@ export default {
 		"other",
 		"many"
 	],
+	"ordinal_plural_forms": [
+		"zero",
+		"one",
+		"few",
+		"other",
+		"many"
+	],
 	"created_at": "2015-03-13T10:17:47Z",
 	"updated_at": "2025-07-10T13:57:27Z",
 	"source_locale": null,

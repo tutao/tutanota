@@ -12,8 +12,13 @@ export default {
 		"one",
 		"other"
 	],
+	"ordinal_plural_forms": [
+		"zero",
+		"one",
+		"other"
+	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-07-11T06:36:24Z",
+	"updated_at": "2025-07-14T12:40:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1916,6 +1921,8 @@ export default {
 		"totpTransferSecret_msg": "Kimlik doğrulayıcı uygulamanızı QR kodunu tarayarak (aşağıda) veya gizli anahtarı el ile girerek ekleyebilirsiniz.",
 		"to_label": "Alıcı",
 		"trash_action": "Çöp Kutusu",
+		"tryAudioCaptcha_action": "Bunun yerine sesli bir bulmaca deneyin",
+		"tryVisualCaptcha_action": "Bunun yerine görsel bir bulmaca deneyin",
 		"tuesday_label": "Salı",
 		"tutanotaAddressDoesNotExist_msg": "Belirtilen Tuta e-posta adresleri mevcut değil.",
 		"tutaoInfo_msg": "Tutao GmbH, size Tuta sağlayan şirkettir.",

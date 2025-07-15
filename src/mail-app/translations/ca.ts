@@ -12,6 +12,11 @@ export default {
 		"one",
 		"other"
 	],
+	"ordinal_plural_forms": [
+		"zero",
+		"one",
+		"other"
+	],
 	"created_at": "2015-05-29T11:04:17Z",
 	"updated_at": "2025-07-10T20:31:31Z",
 	"source_locale": null,

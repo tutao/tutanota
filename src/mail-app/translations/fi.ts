@@ -12,8 +12,13 @@ export default {
 		"one",
 		"other"
 	],
+	"ordinal_plural_forms": [
+		"zero",
+		"one",
+		"other"
+	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-07-11T08:21:11Z",
+	"updated_at": "2025-07-14T11:42:25Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1912,6 +1917,8 @@ export default {
 		"totpTransferSecret_msg": "Päivitä tunnistussovelluksen (Authenticator) tiedot skannaamalla alla oleva QR koodi tai antamalla salainen avain.",
 		"to_label": "Vastaanottaja",
 		"trash_action": "Poistetut",
+		"tryAudioCaptcha_action": "Vaihda kuuntelutehtävään",
+		"tryVisualCaptcha_action": "Vaihda kuvatehtävään",
 		"tuesday_label": "tiistaina",
 		"tutanotaAddressDoesNotExist_msg": "Seuraavia Tuta-sähköpostiosoitteita ei ole olemassa.",
 		"tutaoInfo_msg": "Tuta-palvelun tarjoaa Tutao GmbH.",

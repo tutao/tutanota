@@ -14,8 +14,15 @@ export default {
 		"many",
 		"other"
 	],
+	"ordinal_plural_forms": [
+		"zero",
+		"one",
+		"few",
+		"many",
+		"other"
+	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-07-11T07:10:14Z",
+	"updated_at": "2025-07-15T07:05:50Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1913,6 +1920,8 @@ export default {
 		"totpTransferSecret_msg": "Aktualizujte svou autentizační aplikaci oskenováním kódu QR (níže) nebo ručním zadáním tajného klíče.",
 		"to_label": "Komu",
 		"trash_action": "Koš",
+		"tryAudioCaptcha_action": "Zkuste místo toho zvukovou hádanku",
+		"tryVisualCaptcha_action": "Zkuste místo toho vizuální hádanku",
 		"tuesday_label": "Úterý",
 		"tutanotaAddressDoesNotExist_msg": "Následující e-mailové adresy Tuty neexistují.",
 		"tutaoInfo_msg": "Tuta je poskytována společností Tutao GmbH.",

@@ -14,8 +14,15 @@ export default {
 		"many",
 		"other"
 	],
+	"ordinal_plural_forms": [
+		"zero",
+		"one",
+		"few",
+		"many",
+		"other"
+	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-07-10T19:54:20Z",
+	"updated_at": "2025-07-14T20:56:08Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1916,6 +1923,8 @@ export default {
 		"totpTransferSecret_msg": "Zaktualizuj aplikację uwierzytelniającą poprzez zeskanowanie poniższego QR kodu lub poprzez ręczne wprowadzenie tajnego klucza.",
 		"to_label": "Do",
 		"trash_action": "Kosz",
+		"tryAudioCaptcha_action": "Zamiast tego wypróbuj puzzle audio",
+		"tryVisualCaptcha_action": "Zamiast tego wypróbuj wizualne puzzle",
 		"tuesday_label": "Wtorek",
 		"tutanotaAddressDoesNotExist_msg": "Następujące adresy e-mail Tuta nie istnieją.",
 		"tutaoInfo_msg": "Tutao GmbH to firma dostarczająca Tuta.",
