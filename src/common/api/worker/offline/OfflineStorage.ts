@@ -528,7 +528,7 @@ export class OfflineStorage implements CacheStorage {
 				if (typeModel.type === TypeId.Element) {
 					const nestedlistOfParams: Array<Array<SqlValue>> = chunk.map((storable) => {
 						const { rowId, typeString, encodedElementId, ownerGroup, serializedInstance } = storable
-						return [rowId, typeString, encodedElementId, ownerGroup, serializedInstance] as Array<SqlValue>
+						return [rowId, typeString, encodedElementId, ownerGroup, serializedInstance] satisfies Array<SqlValue>
 					})
 					formattedQuery = this.insertMultipleFormattedQuery(
 						"INSERT OR REPLACE INTO element_entities (rowid, type, elementId, ownerGroup, entity) VALUES ",
@@ -603,7 +603,13 @@ export class OfflineStorage implements CacheStorage {
 		return storables
 	}
 
-	async fetchRowIds(typeModel: TypeModel, table: string, typeString: string, listId: Nullable<Id>, storableInstances: StorableInstance[]): Promise<void> {
+	private async fetchRowIds(
+		typeModel: TypeModel,
+		table: string,
+		typeString: string,
+		listId: Nullable<Id>,
+		storableInstances: StorableInstance[],
+	): Promise<void> {
 		const ids = storableInstances.map((dbRefs) => dbRefs.encodedElementId)
 		let formattedQuery: FormattedQuery
 		if (typeModel.type === TypeId.Element) {
@@ -627,7 +633,8 @@ export class OfflineStorage implements CacheStorage {
 			throw new Error("Can't fetch row ids for invalid type")
 		}
 		const resultRows = await this.sqlCipherFacade.all(formattedQuery.query, formattedQuery.params)
-		type Row = { elementId: Id; listId: Id; rowId: Id }
+		// important: rowid is all-lowercase how SQLite names it. It is important that it is consistent with the query.
+		type Row = { elementId: Id; listId: Id; rowid: Id }
 		const rows = resultRows.map((row) => untagSqlObject(row) as Row)
 
 		for (const row of rows) {
@@ -635,7 +642,7 @@ export class OfflineStorage implements CacheStorage {
 				(storableInstance) =>
 					(storableInstance.listId != null ? storableInstance.listId === row.listId : true) && storableInstance.encodedElementId === row.elementId,
 			)
-			assertNotNull(storable).rowId = row.rowId
+			assertNotNull(storable).rowId = assertNotNull(row.rowid)
 		}
 	}
 
