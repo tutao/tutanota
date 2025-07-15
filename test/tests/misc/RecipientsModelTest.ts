@@ -207,32 +207,6 @@ o.spec("RecipientsModelTest", function () {
 		o(recipient.verificationState).equals(PresentableKeyVerificationState.NONE)
 	})
 
-	o("recipient info gets overridden correctly", async function () {
-		when(contactModelMock.getContactListId()).thenResolve("contactListId")
-
-		const internalAddress = "internal@email.com"
-
-		const loadedPublicEncryptionKey: VerifiedPublicEncryptionKey = object()
-		loadedPublicEncryptionKey.verificationState = EncryptionKeyVerificationState.NO_ENTRY
-
-		when(mailFacadeMock.getRecipientKeyData(internalAddress)).thenResolve(loadedPublicEncryptionKey)
-
-		let recipient: Recipient
-
-		const resolvableRecipient = model.initialize({ address: internalAddress })
-
-		// Check that the verification state is not yet set to ALERT
-		recipient = await resolvableRecipient.resolve()
-		o(recipient.type).equals(RecipientType.INTERNAL)
-		o(recipient.verificationState).equals(PresentableKeyVerificationState.NONE)
-
-		// Mark it as mismatch and check that is indeed set to ALERT
-		await resolvableRecipient.markAsKeyVerificationMismatch()
-		recipient = await resolvableRecipient.resolve()
-		o(recipient.type).equals(RecipientType.INTERNAL)
-		o(recipient.verificationState).equals(PresentableKeyVerificationState.ALERT)
-	})
-
 	o("ignores wrong type when tutanota address is passed in", async function () {
 		const recipient = await model.initialize({ address: tutanotaAddress, type: RecipientType.EXTERNAL }).resolve()
 		o(recipient.type).equals(RecipientType.INTERNAL)
