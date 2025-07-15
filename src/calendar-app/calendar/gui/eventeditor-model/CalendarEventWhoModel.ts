@@ -11,7 +11,13 @@ import { PartialRecipient, Recipient, RecipientType } from "../../../../common/a
 import { haveSameId, Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertNotNull, clone, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "@tutao/tutanota-utils"
-import { CalendarAttendeeStatus, ConversationType, PresentableKeyVerificationState, ShareCapability } from "../../../../common/api/common/TutanotaConstants.js"
+import {
+	CalendarAttendeeStatus,
+	ConversationType,
+	getAttendeeStatus,
+	ShareCapability,
+    PresentableKeyVerificationState
+} from "../../../../common/api/common/TutanotaConstants.js"
 import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
 import { isSecurePassword } from "../../../../common/misc/passwords/PasswordUtils.js"
@@ -612,6 +618,7 @@ export class CalendarEventWhoModel {
 			responseModel.initWithTemplate({}, "", "")
 		}
 		responseModel.addRecipient(RecipientField.TO, this._organizer.address)
+		responseModel.setEmailTypeFromAttendeeStatus(getAttendeeStatus(this._ownAttendee))
 
 		return responseModel
 	}
