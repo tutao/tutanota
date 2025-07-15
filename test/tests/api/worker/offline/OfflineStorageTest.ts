@@ -31,6 +31,8 @@ import {
 import { DateProvider } from "../../../../../src/common/api/common/DateProvider.js"
 import {
 	BodyTypeRef,
+	ContactListTypeRef,
+	createContactList,
 	createMailFolderRef,
 	FileTypeRef,
 	Mail,
@@ -63,6 +65,7 @@ import { Entity, ServerModelParsedInstance, SomeEntity } from "../../../../../sr
 import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 import { expandId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
+import { BlobArchiveRefTypeRef, createBlobArchiveRef } from "../../../../../src/common/api/entities/storage/TypeRefs"
 
 function incrementId(id: Id, ms: number) {
 	const timestamp = generatedIdToTimestamp(id)
@@ -593,6 +596,82 @@ o.spec("OfflineStorageDb", function () {
 
 					storedUsers = [await storage.get(UserTypeRef, null, userId1), await storage.get(UserTypeRef, null, userId2)]
 					o(storedUsers.map(removeOriginals)).deepEquals(storableUsers)
+				})
+			})
+
+			o.spec("put", function () {
+				o.test("when updating element types the rowid is preserved", async function () {
+					await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
+					const id = "id1"
+					const ownerGroup = "ownerGroup1"
+
+					const entity = createContactList({
+						_id: id,
+						_ownerGroup: ownerGroup,
+						_permissions: "permissions",
+						_ownerEncSessionKey: null,
+						_ownerKeyVersion: null,
+						contacts: "contactsId",
+						photos: null,
+					})
+					await storage.put(ContactListTypeRef, await toStorableInstance(entity))
+					const rowIdQuery = sql`SELECT rowid
+                                           FROM element_entities
+                                           WHERE elementId = ${id}`
+					const rowId = (await dbFacade.get(rowIdQuery.query, rowIdQuery.params))?.rowid.value
+
+					await storage.put(ContactListTypeRef, await toStorableInstance(entity))
+
+					const newRowId = (await dbFacade.get(rowIdQuery.query, rowIdQuery.params))?.rowid.value
+					o.check(newRowId).equals(rowId)
+				})
+
+				o.test("when updating list element types the rowid is preserved", async function () {
+					await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
+					const id: IdTuple = ["id1", "idPart2"]
+					const ownerGroup = "ownerGroup1"
+
+					const entity = createBlobArchiveRef({
+						_id: id,
+						_ownerGroup: ownerGroup,
+						_permissions: "permissions",
+						archive: "archiveId",
+					})
+
+					await storage.put(BlobArchiveRefTypeRef, await toStorableInstance(entity))
+					const rowIdQuery = sql`SELECT rowid
+                                           FROM list_entities
+                                           WHERE listId = ${listIdPart(id)}
+                                             AND elementId = ${elementIdPart(id)}`
+					const rowId = (await dbFacade.get(rowIdQuery.query, rowIdQuery.params))?.rowid.value
+
+					await storage.put(BlobArchiveRefTypeRef, await toStorableInstance(entity))
+
+					const newRowId = (await dbFacade.get(rowIdQuery.query, rowIdQuery.params))?.rowid.value
+					o.check(newRowId).equals(rowId)
+				})
+
+				o.test("when updating blob element types the rowid is preserved", async function () {
+					await storage.init({ userId, databaseKey, timeRangeDate, forceNewDatabase: false })
+					const id: IdTuple = ["id1", "idPart2"]
+					const ownerGroup = "ownerGroup1"
+
+					const entity = createTestEntity(MailDetailsBlobTypeRef, {
+						_id: id,
+						_ownerGroup: ownerGroup,
+					})
+
+					await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(entity))
+					const rowIdQuery = sql`SELECT rowid
+                                           FROM blob_element_entities
+                                           WHERE listId = ${listIdPart(id)}
+                                             AND elementId = ${elementIdPart(id)}`
+					const rowId = (await dbFacade.get(rowIdQuery.query, rowIdQuery.params))?.rowid.value
+
+					await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(entity))
+
+					const newRowId = (await dbFacade.get(rowIdQuery.query, rowIdQuery.params))?.rowid.value
+					o.check(newRowId).equals(rowId)
 				})
 			})
 
