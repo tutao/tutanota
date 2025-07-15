@@ -2099,6 +2099,14 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"canceledEventInfo_msg": "Dieser Termin wurde <strong>gestrichen!</strong>",
+        "updatedEventInfo_msg": "Dieser Termin wurde <strong>aktualisiert!</strong>",
+        "replyAcceptEventInfo_msg": "{name} hat Ihre Einladung <strong>akzeptiert</strong>.",
+        "replyTentativeEventInfo_msg": "{name} wird <strong>vielleicht</strong> an Ihrem Termin teilnehmen.",
+        "replyDeclineEventInfo_msg": "{name} hat Ihre Einladung <strong>abgelehnt</strong>.",
+        "replyInviteSubject_msg": "{name} hat \"{status}\" auf {event} geantwortet",
+        "removed_label": "Entfernt",
+        "event_label": "Termin"
 	}
 }
