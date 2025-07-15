@@ -5,7 +5,7 @@ import { chalk } from "zx"
 
 await program
 	.usage("[options] [test|prod|local|host <url>]")
-	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host"]).default("local").argOptional())
+	.addArgument(new Argument("stage").choices(["test", "prod", "local", "localSecure", "host"]).default("localSecure").argOptional())
 	.addArgument(new Argument("host").argOptional())
 	.addOption(new Option("-a, --app <type>", "app to build").choices(["mail", "calendar"]).default("mail"))
 	.option("-c, --clean", "Clean build directory")
@@ -20,6 +20,11 @@ await program
 		if ((stage === "host" && host == null) || (stage !== "host" && host != null)) {
 			program.outputHelp()
 			process.exit(1)
+		}
+
+		if (stage === "localSecure") {
+			stage = "host"
+			host = "https://app.local.tuta.com:9000"
 		}
 
 		const { clean, watch, serve, startDesktop, desktopBuildOnly, ignoreMigrations, app, networkDebugging, devTools } = options
