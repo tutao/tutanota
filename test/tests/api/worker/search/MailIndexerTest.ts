@@ -1,11 +1,5 @@
 import o from "@tutao/otest"
-import {
-	FULL_INDEXED_TIMESTAMP,
-	GroupType,
-	MailState,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType,
-} from "../../../../../src/common/api/common/TutanotaConstants.js"
+import { FULL_INDEXED_TIMESTAMP, GroupType, MailState, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import {
 	_getCurrentIndexTimestamp,
@@ -35,7 +29,7 @@ import {
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
-import { assertNotNull, DAY_IN_MILLIS, getDayShifted, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, DAY_IN_MILLIS, defer, getDayShifted, neverNull } from "@tutao/tutanota-utils"
 import {
 	constructMailSetEntryId,
 	isSameId,
@@ -55,7 +49,6 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/mail-app/workerUtils/index/BulkMailLoader.js"
 import { ProgressMonitor } from "../../../../../src/common/api/common/utils/ProgressMonitor"
 import { ClientTypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions"
-import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/mail-app/workerUtils/index/MailIndexerBackend"
 import { SearchIndexStateInfo } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { NotAuthorizedError } from "../../../../../src/common/api/common/error/RestError"
@@ -797,14 +790,13 @@ o.spec("MailIndexer", () => {
 
 			verify(
 				infoMessageHandler.onSearchIndexStateUpdate({
-					failedIndexingUpTo: null,
-					progress: 0,
-					error: null,
-					indexedMailCount: 0,
-					aimedMailIndexTimestamp: indexingTimestampAim,
-					currentMailIndexTimestamp: now,
 					initializing: false,
 					mailIndexEnabled: true,
+					progress: 0,
+					currentMailIndexTimestamp: now,
+					aimedMailIndexTimestamp: indexingTimestampAim,
+					indexedMailCount: 0,
+					failedIndexingUpTo: null,
 				}),
 			)
 		})
@@ -835,10 +827,13 @@ o.spec("MailIndexer", () => {
 
 		await initWithEnabled(true)
 
+		const indexingDefer = defer<void>()
+		when(infoMessageHandler.onSearchIndexStateUpdate(matchers.anything())).thenDo(() => indexingDefer.resolve())
 		const indexPromise = indexer.indexMailboxes(user, endIndexTimestamp)
-		o.check(indexer.isIndexing).equals(true)
+		await indexingDefer.promise
+		o.check(indexer._isIndexing).equals(true)
 		await indexPromise
-		o.check(indexer.isIndexing).equals(false)
+		o.check(indexer._isIndexing).equals(false)
 
 		if (expectedNewestTimestampForIndexMailListCall) {
 			verify(
