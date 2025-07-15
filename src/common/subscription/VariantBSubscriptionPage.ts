@@ -36,7 +36,7 @@ export const PlanTypeParameter = Object.freeze({
 	UNLIMITED: "unlimited",
 })
 
-export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
+export class VariantBSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
@@ -138,7 +138,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 				hasCampaign: hasCampaign && data.options.paymentInterval() === PaymentInterval.Yearly,
 				hidePaidPlans: availablePlans.includes(PlanType.Free) && availablePlans.length === 1,
 				isApplePrice,
-				variant: "C",
+				variant: "B",
 			}),
 		])
 	}
@@ -295,7 +295,7 @@ function showFreeSubscriptionDialog(): Promise<boolean> {
 	})
 }
 
-export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
+export class VariantBSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
 	data: UpgradeSubscriptionData
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
@@ -307,7 +307,7 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 	}
 
 	nextAction(_: boolean): Promise<boolean> {
-		completeSignupFlowStage(SignupFlowStage.SELECT_PLAN, this.data.type, this.data.options.paymentInterval(), this.data.paymentData.paymentMethod)
+		completeSignupFlowStage(SignupFlowStage.SELECT_PLAN, this.data.type, this.data.options.paymentInterval())
 		return Promise.resolve(true)
 	}
 

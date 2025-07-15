@@ -6,6 +6,7 @@ import { SignupForm } from "./SignupForm"
 import { getDisplayNameOfPlanType } from "./FeatureListProvider"
 import { PlanType } from "../api/common/TutanotaConstants.js"
 import { lang, Translation } from "../misc/LanguageViewModel.js"
+import { completeSignupFlowStage, initSignupFlowUsageTest, SignupFlowStage } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -59,6 +60,7 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
 		// next action not available for this page
+		completeSignupFlowStage(SignupFlowStage.CREATE_ACCOUNT, this.data.type, this.data.options.paymentInterval())
 		return Promise.resolve(true)
 	}
 

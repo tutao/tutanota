@@ -39,6 +39,7 @@ import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { client } from "../misc/ClientDetector.js"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { completeSignupFlowStage, SignupFlowStage } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -233,6 +234,7 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
+		completeSignupFlowStage(SignupFlowStage.SELECT_PAYMENT_METHOD, this.data.type, this.data.options.paymentInterval(), this.data.paymentData.paymentMethod)
 		return Promise.resolve(true)
 	}
 

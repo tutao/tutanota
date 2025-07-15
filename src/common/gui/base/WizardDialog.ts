@@ -95,6 +95,7 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 
 			if (vnode.attrs.currentPage) {
 				vnode.attrs.currentPage.attrs.nextAction(true).then((ready) => {
+					console.log(vnode.attrs.currentPage!.attrs.nextAction.toString())
 					if (ready) {
 						vnode.attrs.goToNextPageOrCloseWizard()
 						this.wizardContentDom?.scrollIntoView()

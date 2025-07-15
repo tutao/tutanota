@@ -21,6 +21,7 @@ import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { px } from "../gui/size.js"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { completeSignupFlowStage, SignupFlowStage } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -326,7 +327,7 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		// next action not available for this page
+		completeSignupFlowStage(SignupFlowStage.SELECT_PLAN, this.data.type, this.data.options.paymentInterval())
 		return Promise.resolve(true)
 	}
 

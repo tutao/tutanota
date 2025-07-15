@@ -35,6 +35,15 @@ import { DialogType } from "../gui/base/Dialog.js"
 import { VariantCSubscriptionPage, VariantCSubscriptionPageAttrs } from "./VariantCSubscriptionPage.js"
 import { styles } from "../gui/styles.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
+import {
+	abandonUsageTestSession,
+	completeSignupFlowStage,
+	getUsageTestVariant,
+	initSignupFlowUsageTest,
+	invalidateUsageTest,
+	SignupFlowStage,
+} from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { VariantBSubscriptionPage, VariantBSubscriptionPageAttrs } from "./VariantBSubscriptionPage.js"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -149,19 +158,6 @@ export function getPlanSelectorTest() {
 	return test
 }
 
-export function resolvePlanSelectorVariant(variant: number) {
-	switch (variant) {
-		case 1:
-			return "A"
-		case 2:
-			return "B"
-		case 3:
-			return "C"
-		default:
-			throw new Error("Encountered invalid variant. Expected 1, 2 or 3.")
-	}
-}
-
 export async function loadSignupWizard(
 	subscriptionParameters: SubscriptionParameters | null,
 	registrationDataId: string | null,
@@ -236,6 +232,9 @@ export async function loadSignupWizard(
 		wizardPageWrapper(plansPage.pageClass, plansPage.attrs),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs), // this page will login the user after signing up with newaccount data
+		//FIXME: We stopped here, because the next page does not have its own attrs
+		// So it also does not have its own `nextAction` method, so we can't call the usageTest stage completion method.
+		// Start working on that on 2025-07-16
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs), // this page will login the user if they are not login for iOS payment through AppStore
 		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData)),
 	]
@@ -275,8 +274,8 @@ export async function loadSignupWizard(
 }
 
 function initPlansPages(signupData: UpgradeSubscriptionData): {
-	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantCSubscriptionPage>
-	attrs: UpgradeSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
+	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantBSubscriptionPage> | Class<VariantCSubscriptionPage>
+	attrs: UpgradeSubscriptionPageAttrs | VariantBSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
 } {
 	const pricingData = signupData.planPrices.getRawPricingData()
 	const firstYearDiscount = Number(pricingData.legendaryPrices.firstYearDiscount)
@@ -288,8 +287,26 @@ function initPlansPages(signupData: UpgradeSubscriptionData): {
 
 	// Any type of discounts other than global first year discount use old subscription page.
 	if (!pricingData.hasGlobalFirstYearDiscount && (firstYearDiscount !== 0 || bonusMonth !== 0 || hasDiscount || hasMessage)) {
+		invalidateUsageTest()
 		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
 	} else {
-		return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
+		initSignupFlowUsageTest()
+
+		// Placeholder implementation
+		const variant = getUsageTestVariant()
+
+		// const variant = 1
+		switch (variant) {
+			case 1:
+				return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
+			case 2:
+				return { pageClass: VariantBSubscriptionPage, attrs: new VariantBSubscriptionPageAttrs(signupData) }
+			case 3:
+				return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
+			default:
+				invalidateUsageTest()
+				console.error("Received an unexpected usage test variant: ", getUsageTestVariant())
+				return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
+		}
 	}
 }

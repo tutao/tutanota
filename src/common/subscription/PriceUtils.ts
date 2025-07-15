@@ -1,4 +1,4 @@
-import { BookingItemFeatureType, Const, PaymentMethodType, PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
+import { BookingItemFeatureType, Const, PaymentMethodType, PlanName, PlanType, PlanTypeToName, reverse } from "../api/common/TutanotaConstants"
 import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
@@ -13,10 +13,12 @@ import { MobilePlanPrice } from "../native/common/generatedipc/MobilePlanPrice"
 import { locator } from "../api/main/CommonLocator.js"
 import { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard.js"
 
-export const enum PaymentInterval {
+export enum PaymentInterval {
 	Monthly = 1,
 	Yearly = 12,
 }
+
+export const PaymentIntervalToName: Record<PaymentInterval, keyof typeof PaymentInterval> = Object.freeze(reverse(PaymentInterval))
 
 export const enum PriceType {
 	MonthlyPerMonth,

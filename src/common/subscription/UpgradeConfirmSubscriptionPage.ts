@@ -25,6 +25,7 @@ import { isIOSApp } from "../api/common/Env.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
+import { completeSignupFlowStage, SignupFlowStage } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -224,6 +225,11 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 	private close(data: UpgradeSubscriptionData, dom: HTMLElement) {
 		emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
+	}
+
+	nextAction(showErrorDialog: boolean): Promise<boolean> {
+		completeSignupFlowStage(SignupFlowStage.CONFIRM_PAYMENT, this.data.type, this.data.options.paymentInterval(), this.data.paymentData.paymentMethod)
+		return Promise.resolve(true)
 	}
 }
 
