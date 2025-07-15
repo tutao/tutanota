@@ -2082,3 +2082,4 @@ export type TranslationKeyType =
 	| "replyDeclineEventInfo_msg"
 	| "removed_label"
 	| "event_label"
+	| "replyInviteSubject_msg"
