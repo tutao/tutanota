@@ -89,11 +89,15 @@ pipeline {
 								buildWebapp("test")
 								generateXCodeProjects()
 								util.runFastlane("de.tutao.tutanota.test", "adhoc_staging")
+								// Fastlane will overwrite code signing settings for adhoc so we regenerate the project
+								// to make sure it is in correct state.
+								generateXCodeProject("app-ios", "mail-project")
+                                util.runFastlane("de.tutao.tutanota.test", "build_mail_staging")
+
 								if (params.UPLOAD) {
-									util.runFastlane("de.tutao.tutanota.test", "build_mail_staging")
 									stash includes: "app-ios/releases/tutanota-${VERSION}-test.ipa", name: 'ipa-staging'
+                                    stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc-test.ipa", name: 'ipa-adhoc-staging'
 								}
-								stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc-test.ipa", name: 'ipa-adhoc-staging'
 							}
 						}
 					}
@@ -114,11 +118,15 @@ pipeline {
 								buildWebapp("prod")
 								generateXCodeProjects()
 								util.runFastlane("de.tutao.tutanota", "adhoc_prod")
+                                // Fastlane will overwrite code signing settings for adhoc so we regenerate the project
+                                // to make sure it is in correct state.
+								generateXCodeProject("app-ios", "mail-project")
+                                util.runFastlane("de.tutao.tutanota", "build_mail_prod")
+
 								if (params.UPLOAD) {
-									util.runFastlane("de.tutao.tutanota", "build_mail_prod")
 									stash includes: "app-ios/releases/tutanota-${VERSION}.ipa", name: 'ipa-production'
+                                    stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-adhoc-production'
 								}
-								stash includes: "app-ios/releases/tutanota-${VERSION}-adhoc.ipa", name: 'ipa-adhoc-production'
 							}
 						}
 					} // steps
