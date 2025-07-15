@@ -9,10 +9,10 @@ group = "de.tutao"
 
 android {
 	defaultConfig {
-		compileSdk 34
+		compileSdk 35
 		applicationId "de.tutao.tutanota"
 		minSdkVersion 26
-		targetSdkVersion 34
+		targetSdkVersion 35
 		versionCode 396517
 		versionName "299.250715.0"
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
