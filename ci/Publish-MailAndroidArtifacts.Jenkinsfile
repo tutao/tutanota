@@ -3,7 +3,7 @@ pipeline {
 		string(
 			name: 'appVersion',
 			defaultValue: "",
-			description: 'Which version should be published'
+			description: 'Which version should be published. Leave empty if you want to release the latest build and take the version number from package.json.'
 		)
 		booleanParam(
 			name: 'STAGING',
