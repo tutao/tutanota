@@ -1045,7 +1045,7 @@ export async function showDeletePopup(model: CalendarEventPreviewViewModel, ev: 
 						},
 					},
 					{
-						label: "deleteAllEventRecurrence_action",
+						label: "deleteThisAndFutureOccurrences_action",
 						click: () => confirmDeleteThisAndFutureClose(model, onClose),
 					},
 					{
