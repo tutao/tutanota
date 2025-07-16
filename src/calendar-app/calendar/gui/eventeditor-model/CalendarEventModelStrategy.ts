@@ -3,7 +3,7 @@
  * the scenarios are mostly divided into deciding the type of operation (edit, delete, create)
  * and the scope of the operation (only the clicked instance or all instances)
  * */
-import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
 import { assertNotNull, identity } from "@tutao/tutanota-utils"
@@ -243,6 +243,58 @@ export class CalendarEventApplyStrategies {
 			(async () => {
 				await this.notificationModel.send(existingAlteredInstance, [], sendModels)
 				await this.calendarModel.deleteEvent(existingAlteredInstance)
+			})(),
+		)
+	}
+
+	async stopSeriesAtDate(editModels: CalendarEventEditModels, existingEvent: CalendarEvent) {
+		editModels.whoModel.shouldSendUpdates = true
+
+		const repeatRule = existingEvent.repeatRule
+		if (!repeatRule) {
+			throw new Error("Trying to stop a series without Repeat Rule")
+		}
+
+		await this.purgeFutureOccurrences(existingEvent, repeatRule, editModels)
+	}
+
+	private async purgeFutureOccurrences(existingEvent: CalendarEvent, repeatRule: CalendarRepeatRule, editModels: CalendarEventEditModels) {
+		if (repeatRule.endValue == null) {
+			throw new Error("Trying to split a series without End Series Date")
+		}
+
+		const alteredOccurrences = await this.calendarModel.getEventsByUid(assertNotNull(existingEvent.uid))
+		const recurrenceEndDate = new Date(Number.parseInt(repeatRule.endValue))
+		if (alteredOccurrences) {
+			for (const occurrence of alteredOccurrences.alteredInstances) {
+				if (occurrence.attendees.length === 0 || occurrence.startTime < recurrenceEndDate) continue
+				const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
+				sendModels.cancelModel = sendModels.updateModel
+				sendModels.updateModel = null
+				await this.notificationModel.send(occurrence, [], sendModels)
+			}
+		}
+		if (existingEvent.uid != null) {
+			await this.calendarModel.deleteInstancesAfterDate(existingEvent.uid, recurrenceEndDate)
+		}
+
+		const currentExcludedDates = repeatRule.excludedDates.flatMap((date) => (date.date.getTime() <= recurrenceEndDate.getTime() ? [date.date] : []))
+		editModels.whenModel.deleteExcludedDates()
+		for (const date of currentExcludedDates) {
+			editModels.whenModel.excludeDate(date)
+		}
+
+		const {
+			newEvent,
+			sendModels,
+			calendar: { groupRoot },
+			newAlarms,
+		} = assembleEditResultAndAssignFromExisting(existingEvent, editModels, CalendarOperation.EditAll)
+
+		await this.showProgress(
+			(async () => {
+				await this.notificationModel.send(newEvent, [], sendModels)
+				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
 			})(),
 		)
 	}

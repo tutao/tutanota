@@ -197,6 +197,7 @@ async function showModeSelectionDropdown(pos: MousePos): Promise<CalendarOperati
 		showDropdownAtPosition(
 			[
 				{ label: "updateOneCalendarEvent_action", click: () => resolve(CalendarOperation.EditThis) },
+				{ label: "updateThisAndFutureEvents_action", click: () => resolve(CalendarOperation.StopSeriesAtDate) },
 				{ label: "updateAllCalendarEvents_action", click: () => resolve(CalendarOperation.EditAll) },
 			],
 			pos.x,

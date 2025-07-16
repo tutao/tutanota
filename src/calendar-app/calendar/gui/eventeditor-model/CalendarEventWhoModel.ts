@@ -203,6 +203,14 @@ export class CalendarEventWhoModel {
 		}
 	}
 
+	resetGuestsStatus() {
+		for (const attendee of this.initialAttendees.values()) {
+			this.removeAttendee(attendee.address.address)
+			this.initialAttendees.delete(attendee.address.address)
+			this.addOtherAttendee(attendee.address)
+		}
+	}
+
 	private async resolveAndCacheAddress(a: PartialRecipient): Promise<void> {
 		if (this.resolvedRecipients.has(a.address)) return
 		this.pendingRecipients = this.pendingRecipients + 1

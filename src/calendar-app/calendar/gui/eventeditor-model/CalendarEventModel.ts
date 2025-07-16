@@ -159,6 +159,8 @@ export const enum CalendarOperation {
 	EditAll,
 	/** delete the whole series */
 	DeleteAll,
+	/** delete all future instances of the series starting from repeat rule endDate condition*/
+	StopSeriesAtDate,
 }
 
 /**
@@ -310,6 +312,10 @@ async function selectStrategy(
 		editModels = makeEditModels(cleanInitialValues)
 		apply = () => applyStrategies.deleteEntireExistingEvent(editModels, existingInstanceIdentity)
 		mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
+	} else if (operation === CalendarOperation.StopSeriesAtDate) {
+		editModels = makeEditModels(existingInstanceIdentity)
+		apply = () => applyStrategies.stopSeriesAtDate(editModels, existingInstanceIdentity)
+		mayRequireSendingUpdates = () => true
 	} else {
 		throw new ProgrammingError(`unknown calendar operation: ${operation}`)
 	}

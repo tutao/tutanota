@@ -278,7 +278,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			// separately.
 
 			const needsAction =
-				!isRepliedTo(mail) ||
+				(!isRepliedTo(mail) && !shallowEvent) ||
 				ownAttendee.status === CalendarAttendeeStatus.NEEDS_ACTION ||
 				(isRepliedTo(mail) && ownAttendee.status === CalendarAttendeeStatus.DECLINED)
 			if (needsAction) {
