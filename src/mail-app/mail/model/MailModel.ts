@@ -18,6 +18,8 @@ import {
 	splitInChunks,
 } from "@tutao/tutanota-utils"
 import {
+	createInboxRule,
+	InboxRule,
 	Mail,
 	MailboxGroupRoot,
 	MailboxProperties,
@@ -25,9 +27,11 @@ import {
 	MailFolderTypeRef,
 	MailSetEntryTypeRef,
 	MailTypeRef,
+	TutanotaPropertiesTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	FeatureType,
+	InboxRuleType,
 	isLabel,
 	MailReportType,
 	MailSetKind,
@@ -52,6 +56,7 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
+import { getDomainPart } from "../../../common/misc/parsing/MailAddressParser"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -365,6 +370,27 @@ export class MailModel {
 	async reportMails(reportType: MailReportType, mails: () => Promise<ReadonlyArray<Mail>>): Promise<void> {
 		const mailsToReport = await mails()
 		for (const mail of mailsToReport) {
+			// fixme preferably do this part if a setting is enabled
+			// fixme have a config to block the entire domain?
+			const blockDomain = true
+			const tutanotaProperties = this.logins.getUserController().props
+			const folder = this.getMailFolderForMail(mail)!
+			const senderAddress = mail.sender.address
+			const senderDomain = getDomainPart(senderAddress)!
+			const fieldValue = blockDomain ? senderDomain : senderAddress
+			const inboxRuleAlreadyExists = tutanotaProperties.inboxRules.some(
+				(rule: InboxRule) => rule.type == InboxRuleType.FROM_EQUALS && rule.value == fieldValue,
+			)
+			if (folder.folderType == MailSetKind.SPAM && !inboxRuleAlreadyExists) {
+				tutanotaProperties.inboxRules.push(
+					createInboxRule({
+						type: InboxRuleType.FROM_EQUALS,
+						value: fieldValue,
+						targetFolder: this.getMailFolderForMail(mail)!._id,
+					}),
+				)
+			}
+			await this.entityClient.update(tutanotaProperties)
 			await this.mailFacade.reportMail(mail, reportType).catch(ofClass(NotFoundError, (e) => console.log("mail to be reported not found", e)))
 		}
 	}
