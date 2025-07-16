@@ -744,6 +744,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const filteredUpdateEvents: EntityUpdateData[] = []
 		for (let update of regularUpdates) {
 			const { operation, typeRef } = update
+			if (!this.shouldUseCache(typeRef)) {
+				filteredUpdateEvents.push(update)
+				continue
+			}
 			const { instanceListId, instanceId } = getUpdateInstanceId(update)
 
 			switch (operation) {
