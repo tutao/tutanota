@@ -1,18 +1,22 @@
 import { CalendarEvent, CalendarEventAttendee } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { calendarEventHasMoreThanOneOccurrencesLeft, getStartOfDayWithZone } from "../../../../common/calendar/date/CalendarUtils.js"
+import {
+	addDaysForRecurringEvent,
+	calendarEventHasMoreThanOneOccurrencesLeft,
+	CalendarTimeRange,
+	getStartOfDayWithZone,
+} from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { CalendarModel, CalendarRenderInfo } from "../../model/CalendarModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { CalendarAttendeeStatus, EndType } from "../../../../common/api/common/TutanotaConstants.js"
 import m from "mithril"
-import { clone, incrementDate, Thunk } from "@tutao/tutanota-utils"
+import { clone, deepEqual, incrementDate, Thunk } from "@tutao/tutanota-utils"
 import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
-import { locator } from "../../../../common/api/main/CommonLocator"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -48,6 +52,7 @@ export class CalendarEventPreviewViewModel {
 	 * @param ownAttendee will be cloned to have a copy that's not influencing the actual event but can be changed to quickly update the UI
 	 * @param lazyIndexEntry async function to resolve the progenitor of the shown event
 	 * @param eventModelFactory
+	 * @param highlightedStrings
 	 * @param uiUpdateCallback
 	 */
 	constructor(
@@ -57,7 +62,7 @@ export class CalendarEventPreviewViewModel {
 		private readonly hasBusinessFeature: boolean,
 		ownAttendee: CalendarEventAttendee | null,
 		private readonly lazyIndexEntry: () => Promise<CalendarEventUidIndexEntry | null>,
-		private readonly eventModelFactory: (mode: CalendarOperation) => Promise<CalendarEventModel | null>,
+		private readonly eventModelFactory: (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>,
 		private readonly highlightedStrings?: readonly SearchToken[],
 		private readonly uiUpdateCallback: () => void = m.redraw,
 	) {
@@ -121,7 +126,7 @@ export class CalendarEventPreviewViewModel {
 			this.ownAttendee.status = status
 			this.uiUpdateCallback()
 			// no per-instance attendees yet.
-			const model = await this.eventModelFactory(CalendarOperation.EditAll)
+			const model = await this.eventModelFactory(CalendarOperation.EditAll, this.calendarEvent)
 			if (model) {
 				model.editModels.whoModel.setOwnAttendance(status)
 				model.editModels.whoModel.isConfidential = this.calendarEvent.invitedConfidentially ?? false
@@ -143,7 +148,7 @@ export class CalendarEventPreviewViewModel {
 	 * */
 	async deleteSingle() {
 		try {
-			const model = await this.eventModelFactory(CalendarOperation.DeleteThis)
+			const model = await this.eventModelFactory(CalendarOperation.DeleteThis, this.calendarEvent)
 			await model?.apply()
 		} catch (e) {
 			if (!(e instanceof NotFoundError)) {
@@ -154,7 +159,7 @@ export class CalendarEventPreviewViewModel {
 
 	async deleteAll(): Promise<void> {
 		try {
-			const model = await this.eventModelFactory(CalendarOperation.DeleteAll)
+			const model = await this.eventModelFactory(CalendarOperation.DeleteAll, this.calendarEvent)
 			await model?.apply()
 		} catch (e) {
 			if (!(e instanceof NotFoundError)) {
@@ -164,7 +169,7 @@ export class CalendarEventPreviewViewModel {
 	}
 
 	async editSingle() {
-		const model = await this.eventModelFactory(CalendarOperation.EditThis)
+		const model = await this.eventModelFactory(CalendarOperation.EditThis, this.calendarEvent)
 		if (model == null) {
 			return
 		}
@@ -188,14 +193,33 @@ export class CalendarEventPreviewViewModel {
 
 	async editThisAndFutureOccurrences() {
 		try {
-			const { progenitorModel, mailboxDetails, mailboxProperties } = await this.resolveSeriesModificationProperties()
+			const { progenitorModel, progenitor } = await this.resolveSeriesModificationProperties()
 
-			const newEventModel = await locator.calendarEventModel(CalendarOperation.Create, this.calendarEvent, mailboxDetails, mailboxProperties, null)
+			if (deepEqual(this.calendarEvent, progenitor)) {
+				return await this.editAll()
+			}
+
+			const newEventModel = await this.eventModelFactory(CalendarOperation.Create, this.calendarEvent)
 			if (!newEventModel) {
 				throw new Error("Failed to split original series and instantiate a new event model.")
 			}
 			newEventModel.editModels.whenModel.deleteExcludedDates()
 			newEventModel.editModels.whoModel.resetGuestsStatus()
+
+			if (newEventModel.editModels.whenModel.repeatEndType === EndType.Count) {
+				const generationRange: CalendarTimeRange = {
+					start: progenitor.startTime.getTime(),
+					end: getStartOfDayWithZone(this.calendarEvent.startTime, this.calendarEvent.repeatRule!.timeZone).getTime(),
+				}
+				const occurrencesPerDay = new Map()
+				addDaysForRecurringEvent(occurrencesPerDay, progenitor, generationRange, newEventModel.editModels.whenModel.zone)
+
+				const occurrencesLeft =
+					newEventModel.editModels.whenModel.repeatEndOccurrences -
+					progenitorModel.editModels.whenModel.excludedDates.length -
+					Array.from(occurrencesPerDay.values()).flat().length
+				newEventModel.editModels.whenModel.repeatEndOccurrences = occurrencesLeft > 0 ? occurrencesLeft : 1
+			}
 
 			const eventEditor = new EventEditorDialog()
 			await eventEditor.showNewCalendarEventEditDialog(newEventModel, async () => {
@@ -217,7 +241,11 @@ export class CalendarEventPreviewViewModel {
 
 	async deleteThisAndFutureOccurrences() {
 		try {
-			const { progenitorModel } = await this.resolveSeriesModificationProperties()
+			const { progenitorModel, progenitor } = await this.resolveSeriesModificationProperties()
+
+			if (deepEqual(this.calendarEvent, progenitor)) {
+				return await this.deleteAll()
+			}
 
 			progenitorModel.editModels.whenModel.repeatEndType = EndType.UntilDate
 			progenitorModel.editModels.whenModel.repeatEndDateForDisplay = incrementDate(
@@ -239,24 +267,21 @@ export class CalendarEventPreviewViewModel {
 			throw new Error("Editing a series without repeat rule")
 		}
 
-		const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
-		const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-
 		const progenitor = await this.calendarModel.resolveCalendarEventProgenitor(this.calendarEvent)
 		if (!progenitor) {
 			throw new Error("Could not resolve progenitor.")
 		}
 
-		const progenitorModel = await locator.calendarEventModel(CalendarOperation.StopSeriesAtDate, progenitor, mailboxDetails, mailboxProperties, null)
+		const progenitorModel = await this.eventModelFactory(CalendarOperation.StopSeriesAtDate, progenitor)
 		if (!progenitorModel) {
 			throw new Error("Failed instantiate progenitor model.")
 		}
 
-		return { progenitorModel, progenitor, mailboxDetails, mailboxProperties }
+		return { progenitorModel, progenitor }
 	}
 
 	async editAll() {
-		const model = await this.eventModelFactory(CalendarOperation.EditAll)
+		const model = await this.eventModelFactory(CalendarOperation.EditAll, this.calendarEvent)
 		if (model == null) {
 			return
 		}
@@ -277,7 +302,7 @@ export class CalendarEventPreviewViewModel {
 	}
 
 	async sendUpdates(): Promise<EventSaveResult> {
-		const model = await this.eventModelFactory(CalendarOperation.EditAll)
+		const model = await this.eventModelFactory(CalendarOperation.EditAll, this.calendarEvent)
 		if (model == null) {
 			return EventSaveResult.Failed
 		}

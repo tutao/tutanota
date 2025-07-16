@@ -9,11 +9,13 @@ import {
 	getStartOfDay,
 	groupByAndMapUniquely,
 	identity,
+	incrementDate,
 	last,
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	CLIENT_ONLY_CALENDARS,
+	EndType,
 	EXTERNAL_CALENDAR_SYNC_INTERVAL,
 	getWeekStart,
 	GroupType,
@@ -28,9 +30,12 @@ import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "../../.
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
+	addDaysForRecurringEvent,
+	CalendarTimeRange,
 	extractContactIdFromEvent,
 	getDiffIn60mIntervals,
 	getMonthRange,
+	getStartOfDayWithZone,
 	isClientOnlyCalendar,
 	isEventBetweenDays,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -388,11 +393,19 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			updateTemporaryEventWithDiff(eventClone, originalEvent, timeToMoveBy)
 
 			this._addTransientEvent(eventClone)
-
 			try {
-				const didUpdate = await this.moveEvent(originalEvent, timeToMoveBy, mode)
+				let didUpdate: EventSaveResult
 
-				if (didUpdate !== EventSaveResult.Saved) {
+				if (mode === CalendarOperation.StopSeriesAtDate) {
+					didUpdate = await this.moveThisAndFuture(originalEvent, timeToMoveBy)
+
+					// The event id will be different, so we must remove manually
+					this._removeTransientEvent(eventClone)
+				} else {
+					didUpdate = await this.moveEvent(originalEvent, timeToMoveBy, mode)
+				}
+
+				if (didUpdate !== EventSaveResult.Saved && mode !== CalendarOperation.StopSeriesAtDate) {
 					this._removeTransientEvent(eventClone)
 				}
 			} catch (e) {
@@ -539,6 +552,65 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		// Errors are handled in the individual views
 		return await editModel.apply()
+	}
+
+	private async moveThisAndFuture(event: CalendarEvent, diff: number): Promise<EventSaveResult> {
+		const progenitor = await this.calendarModel.resolveCalendarEventProgenitor(event)
+		if (!progenitor) {
+			throw new Error("Could not resolve progenitor.")
+		}
+
+		if (deepEqual(event, progenitor)) {
+			return await this.moveEvent(event, diff, CalendarOperation.EditAll)
+		}
+
+		const progenitorModel = await this.createCalendarEventEditModel(CalendarOperation.StopSeriesAtDate, progenitor)
+		const newEventModel = await this.createCalendarEventEditModel(CalendarOperation.Create, event)
+
+		if (!newEventModel) {
+			throw new Error("Failed to split original series and instantiate a new event model.")
+		}
+
+		if (!progenitorModel) {
+			throw new Error("Failed to build progenitor model.")
+		}
+
+		newEventModel.editModels.whenModel.deleteExcludedDates()
+		newEventModel.editModels.whoModel.resetGuestsStatus()
+		newEventModel.editModels.whenModel.rescheduleEvent({ millisecond: diff })
+		if (newEventModel.editModels.whenModel.repeatEndType === EndType.Count) {
+			const generationRange: CalendarTimeRange = {
+				start: progenitor.startTime.getTime(),
+				end: getStartOfDayWithZone(event.startTime, event.repeatRule!.timeZone).getTime(),
+			}
+			const occurrencesPerDay = new Map()
+			addDaysForRecurringEvent(occurrencesPerDay, progenitor, generationRange, newEventModel.editModels.whenModel.zone)
+
+			const occurrencesLeft =
+				newEventModel.editModels.whenModel.repeatEndOccurrences -
+				progenitorModel.editModels.whenModel.excludedDates.length -
+				Array.from(occurrencesPerDay.values()).flat().length
+			newEventModel.editModels.whenModel.repeatEndOccurrences = occurrencesLeft > 0 ? occurrencesLeft : 1
+		}
+
+		if (getNonOrganizerAttendees(event).length > 0) {
+			const response = await askIfShouldSendCalendarUpdatesToAttendees()
+			if (response === "yes") {
+				newEventModel.editModels.whoModel.shouldSendUpdates = true
+				progenitorModel.editModels.whoModel.shouldSendUpdates = true
+			} else if (response === "cancel") {
+				return EventSaveResult.Failed
+			}
+		}
+
+		progenitorModel.editModels.whenModel.repeatEndType = EndType.UntilDate
+		progenitorModel.editModels.whenModel.repeatEndDateForDisplay = incrementDate(getStartOfDayWithZone(event.startTime, event.repeatRule!.timeZone), -1)
+
+		if ((await progenitorModel.apply()) === EventSaveResult.Failed) {
+			return EventSaveResult.Failed
+		}
+
+		return await newEventModel.apply()
 	}
 
 	get eventPreviewModel(): CalendarPreviewModels | null {
