@@ -3,10 +3,10 @@
  * the scenarios are mostly divided into deciding the type of operation (edit, delete, create)
  * and the scope of the operation (only the clicked instance or all instances)
  * */
-import { CalendarEvent, CalendarRepeatRule } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
-import { assertNotNull, identity } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, identity, incrementDate } from "@tutao/tutanota-utils"
 import { generateUid } from "../../../../common/calendar/date/CalendarUtils.js"
 import {
 	assembleCalendarEventEditResult,
@@ -250,24 +250,24 @@ export class CalendarEventApplyStrategies {
 	async stopSeriesAtDate(editModels: CalendarEventEditModels, existingEvent: CalendarEvent) {
 		editModels.whoModel.shouldSendUpdates = true
 
-		const repeatRule = existingEvent.repeatRule
+		const repeatRule = clone(existingEvent.repeatRule)
 		if (!repeatRule) {
-			throw new Error("Trying to stop a series without Repeat Rule")
+			throw new Error("Trying to stop the Event Series of an event that does not have a Repeat Rule")
 		}
 
-		await this.purgeFutureOccurrences(existingEvent, repeatRule, editModels)
+		await this.purgeFutureOccurrences(existingEvent, editModels)
 	}
 
-	private async purgeFutureOccurrences(existingEvent: CalendarEvent, repeatRule: CalendarRepeatRule, editModels: CalendarEventEditModels) {
-		if (repeatRule.endValue == null) {
-			throw new Error("Trying to split a series without End Series Date")
-		}
+	private async purgeFutureOccurrences(existingEvent: CalendarEvent, editModels: CalendarEventEditModels) {
+		const repeatRule = editModels.whenModel.assertHasAValidEndDateCondition()
+		const repeatRuleEndDate = new Date(parseInt(repeatRule.endValue!))
+		const originalExcludedDates = clone(repeatRule.excludedDates)
 
 		const alteredOccurrences = await this.calendarModel.getEventsByUid(assertNotNull(existingEvent.uid))
-		const recurrenceEndDate = new Date(Number.parseInt(repeatRule.endValue))
+		const inclusiveRecurrenceEndDate = incrementDate(repeatRuleEndDate, 1)
 		if (alteredOccurrences) {
 			for (const occurrence of alteredOccurrences.alteredInstances) {
-				if (occurrence.attendees.length === 0 || occurrence.startTime < recurrenceEndDate) continue
+				if (occurrence.attendees.length === 0 || occurrence.startTime < inclusiveRecurrenceEndDate) continue
 				const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
 				sendModels.cancelModel = sendModels.updateModel
 				sendModels.updateModel = null
@@ -275,13 +275,7 @@ export class CalendarEventApplyStrategies {
 			}
 		}
 		if (existingEvent.uid != null) {
-			await this.calendarModel.deleteInstancesAfterDate(existingEvent.uid, recurrenceEndDate)
-		}
-
-		const currentExcludedDates = repeatRule.excludedDates.flatMap((date) => (date.date.getTime() <= recurrenceEndDate.getTime() ? [date.date] : []))
-		editModels.whenModel.deleteExcludedDates()
-		for (const date of currentExcludedDates) {
-			editModels.whenModel.excludeDate(date)
+			await this.calendarModel.deleteInstancesAfterDate(existingEvent.uid, inclusiveRecurrenceEndDate)
 		}
 
 		const {
@@ -290,6 +284,10 @@ export class CalendarEventApplyStrategies {
 			calendar: { groupRoot },
 			newAlarms,
 		} = assembleEditResultAndAssignFromExisting(existingEvent, editModels, CalendarOperation.EditAll)
+		if (!newEvent.repeatRule) {
+			throw new Error("Derivative series from original progenitor is missing its Repeating Rule. ")
+		}
+		newEvent.repeatRule.excludedDates = originalExcludedDates.flatMap((date) => (date.date.getTime() < inclusiveRecurrenceEndDate.getTime() ? [date] : []))
 
 		await this.showProgress(
 			(async () => {
