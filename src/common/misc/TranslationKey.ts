@@ -851,7 +851,6 @@ export type TranslationKeyType =
 	| "keyManagement.publicKeyFingerprint_label"
 	| "keyManagement.qrCodeInvalid_msg"
 	| "keyManagement.qrCode_label"
-	| "keyManagement.qrFingerprintMismatch_msg"
 	| "keyManagement.qrMailAddressNotFound_msg"
 	| "keyManagement.qrVerification_label"
 	| "keyManagement.selectMethodLong_label"

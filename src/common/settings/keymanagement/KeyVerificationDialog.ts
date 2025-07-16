@@ -167,7 +167,7 @@ export async function showKeyVerificationDialog(
 								await reloadParent()
 								navigateToPage(KeyVerificationDialogPages.SUCCESS)
 							} else if (model.getKeyVerificationResult() === IdentityKeyQrVerificationResult.QR_FINGERPRINT_MISMATCH) {
-								//TODO stay on page or maybe display error page with  lang.get("keyManagement.qrFingerprintMismatch_msg")
+								// this is the state we are expected to be on after deleting, so do nothing elso here lang.get("keyManagement.qrFingerprintMismatch_msg")
 							} else {
 								navigateToPage(KeyVerificationDialogPages.ERROR)
 							}
@@ -195,6 +195,12 @@ export async function showKeyVerificationDialog(
 					},
 					label: "close_alt",
 					title: "close_alt",
+				},
+				leftAction: {
+					type: ButtonType.Secondary,
+					click: () => goBack(KeyVerificationDialogPages.FINGERPRINT_MISMATCH_INFO),
+					label: "back_action",
+					title: "back_action",
 				},
 			},
 		}),

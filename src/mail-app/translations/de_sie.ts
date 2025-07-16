@@ -871,7 +871,6 @@ export default {
         "keyManagement.publicKeyFingerprint_label": "Öffentlicher Schlüssel",
         "keyManagement.qrCodeInvalid_msg": "Der gescannte QR-Code ist fehlerhaft oder ungültig.",
         "keyManagement.qrCode_label": "QR-Code",
-        "keyManagement.qrFingerprintMismatch_msg": "Dieser öffentliche Schlüssel stimmt nicht mit den Informationen auf dem Server überein. Bitte überprüfen Sie den Typ und die Version der angezeigten Schlüssel. Wenn der Fehler weiterhin besteht, könnten Sie einem Sicherheitsrisiko ausgesetzt sein.",
         "keyManagement.qrMailAddressNotFound_msg": "Dieser QR-Code bezieht sich auf eine ungültige E-Mail-Adresse.",
         "keyManagement.qrVerification_label": "QR-Code-Verifikation",
         "keyManagement.selectMethodLong_label": "Wählen Sie eine Methode zur Verifikation aus. Wenn Sie bei einer anderen Person sind und beide über ein Gerät mit Kamerafunktion verfügen, bietet sich die QR-Code-Verifikation an.",

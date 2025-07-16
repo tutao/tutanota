@@ -868,7 +868,6 @@ export default {
         "keyManagement.publicKeyFingerprint_label": "Public key",
         "keyManagement.qrCodeInvalid_msg": "The scanned Tuta QR code is invalid.",
         "keyManagement.qrCode_label": "QR code",
-        "keyManagement.qrFingerprintMismatch_msg": "This QR code does not match the information retrieved from the server. Please make sure you're using a freshly-generated QR code. If the error persists, your security might be at risk.",
         "keyManagement.qrMailAddressNotFound_msg": "This QR code relates to an email address that does not exist.",
         "keyManagement.qrVerification_label": "Verify with QR code",
         "keyManagement.selectMethodLong_label": "Pick a verification method to get started. If you are meeting in person and both of you own a camera-enabled device, it is recommended to choose QR code for verification.\nOtherwise, use the text option.",
