@@ -74,7 +74,7 @@ import {
 import { IServiceExecutor } from "../../../common/api/common/ServiceRequest"
 import { MembershipService } from "../../../common/api/entities/sys/Services"
 import { FileController } from "../../../common/file/FileController"
-import { findAttendeeInAddresses, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { findAttendeeInAddresses, isBefore, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { SessionKeyNotFoundError } from "../../../common/api/common/error/SessionKeyNotFoundError.js"
 import Stream from "mithril/stream"
@@ -831,6 +831,22 @@ export class CalendarModel {
 		}
 		if (entry.progenitor) {
 			await this.deleteEvent(entry.progenitor)
+		}
+	}
+
+	/** Delete altered instances that starts after a given date */
+	async deleteInstancesAfterDate(uid: string, date: Date): Promise<void> {
+		const entry = await this.calendarFacade.getEventsByUid(uid)
+		if (entry == null) {
+			console.log("could not find an uid index entry to delete event")
+			return
+		}
+
+		for (const ai of entry.alteredInstances) {
+			if (isBefore(ai.startTime, date, "date")) {
+				continue
+			}
+			await this.deleteEvent(ai)
 		}
 	}
 
