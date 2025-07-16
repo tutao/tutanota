@@ -1,17 +1,18 @@
 import { CalendarEvent, CalendarEventAttendee } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { calendarEventHasMoreThanOneOccurrencesLeft } from "../../../../common/calendar/date/CalendarUtils.js"
+import { calendarEventHasMoreThanOneOccurrencesLeft, getStartOfDayWithZone } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { CalendarModel, CalendarRenderInfo } from "../../model/CalendarModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
-import { CalendarAttendeeStatus } from "../../../../common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, EndType } from "../../../../common/api/common/TutanotaConstants.js"
 import m from "mithril"
-import { clone, Thunk } from "@tutao/tutanota-utils"
+import { clone, incrementDate, Thunk } from "@tutao/tutanota-utils"
 import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
+import { locator } from "../../../../common/api/main/CommonLocator"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -183,6 +184,47 @@ export class CalendarEventPreviewViewModel {
 		}
 
 		throw new ProgrammingError("not implemented")
+	}
+
+	async editThisAndFutureOccurrences() {
+		try {
+			if (!this.calendarEvent.repeatRule) {
+				throw new Error("Editing a series without repeat rule")
+			}
+
+			const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
+			const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+
+			const progenitor = await this.calendarModel.resolveCalendarEventProgenitor(this.calendarEvent)
+			if (!progenitor) {
+				throw new Error("Could not resolve progenitor.")
+			}
+			const progenitorModel = await locator.calendarEventModel(CalendarOperation.SplitSeriesAtDate, progenitor, mailboxDetails, mailboxProperties, null)
+			if (!progenitorModel) {
+				throw new Error("Failed instantiate progenitor model.")
+			}
+
+			const newEventModel = await locator.calendarEventModel(CalendarOperation.Create, this.calendarEvent, mailboxDetails, mailboxProperties, null)
+			if (!newEventModel) {
+				throw new Error("Failed to split original series and instantiate a new event model.")
+			}
+			newEventModel.editModels.whenModel.deleteExcludedDates()
+			const eventEditor = new EventEditorDialog()
+			await eventEditor.showNewCalendarEventEditDialog(newEventModel, async () => {
+				progenitorModel.editModels.whenModel.repeatEndType = EndType.UntilDate
+				progenitorModel.editModels.whenModel.repeatEndDateForDisplay = incrementDate(
+					getStartOfDayWithZone(this.calendarEvent.startTime, this.calendarEvent.repeatRule!.timeZone),
+					-1,
+				)
+				await progenitorModel.apply()
+			})
+		} catch (err) {
+			if (err instanceof NotFoundError) {
+				console.log("calendar event not found when clicking on the event")
+			} else {
+				throw err
+			}
+		}
 	}
 
 	async editAll() {

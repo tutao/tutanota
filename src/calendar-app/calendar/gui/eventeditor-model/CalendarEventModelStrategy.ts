@@ -237,4 +237,21 @@ export class CalendarEventApplyStrategies {
 			})(),
 		)
 	}
+
+	async splitSeriesAtDate(editModels: CalendarEventEditModels, existingInstanceIdentity: CalendarEvent) {
+		// Delete future altered instances
+		// Ignore past altered instances
+		const alteredOccurrences = await this.calendarModel.getEventsByUid(assertNotNull(existingInstanceIdentity.uid))
+		if (alteredOccurrences) {
+			for (const occurrence of alteredOccurrences.alteredInstances) {
+				if (occurrence.attendees.length === 0 || occurrence.startTime < existingInstanceIdentity.repeatRule?.endValue) continue
+				const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
+				sendModels.cancelModel = sendModels.updateModel
+				sendModels.updateModel = null
+				await this.notificationModel.send(occurrence, [], sendModels)
+			}
+		}
+
+		// Remove future dates from excluded dates
+	}
 }

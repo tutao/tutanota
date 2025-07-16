@@ -159,6 +159,10 @@ export const enum CalendarOperation {
 	EditAll,
 	/** delete the whole series */
 	DeleteAll,
+	/** apply repeat rule endDate condition to the current series*/
+	SplitSeriesAtDate,
+	/** delete all future instances of the series starting from repeat rule endDate condition*/
+	StopSeriesAtDate,
 }
 
 /**
@@ -309,6 +313,10 @@ async function selectStrategy(
 	} else if (operation === CalendarOperation.DeleteAll) {
 		editModels = makeEditModels(cleanInitialValues)
 		apply = () => applyStrategies.deleteEntireExistingEvent(editModels, existingInstanceIdentity)
+		mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
+	} else if (operation === CalendarOperation.SplitSeriesAtDate) {
+		editModels = makeEditModels(cleanInitialValues)
+		apply = () => applyStrategies.splitSeriesAtDate(editModels, existingInstanceIdentity)
 		mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
 	} else {
 		throw new ProgrammingError(`unknown calendar operation: ${operation}`)

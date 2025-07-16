@@ -72,6 +72,14 @@ export class CalendarEventPopup implements ModalComponent {
 							label: "updateAllCalendarEvents_action",
 							click: () => {
 								// noinspection JSIgnoredPromiseFromCall
+								this.model.editThisAndFutureOccurrences()
+								this.close()
+							},
+						},
+						{
+							label: "updateAllCalendarEvents_action",
+							click: () => {
+								// noinspection JSIgnoredPromiseFromCall
 								this.model.editAll()
 								this.close()
 							},
@@ -84,7 +92,7 @@ export class CalendarEventPopup implements ModalComponent {
 			this.model.editAll()
 			this.close()
 		}
-	}
+	} // FIXME Dragging event bubbles should also handle this
 
 	// we handle askForUpdates here to avoid making a request if not necessary
 	private readonly handleSendUpdatesClick: () => void = async () => {
