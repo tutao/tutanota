@@ -27,7 +27,6 @@ import {
 	MailFolderTypeRef,
 	MailSetEntryTypeRef,
 	MailTypeRef,
-	TutanotaPropertiesTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	FeatureType,
@@ -39,6 +38,8 @@ import {
 	OperationType,
 	ReportMovedMailsType,
 	SimpleMoveMailTarget,
+	SpamRuleFieldType,
+	SpamRuleType,
 } from "../../../common/api/common/TutanotaConstants.js"
 import { CUSTOM_MIN_ID, elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -57,6 +58,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { getDomainPart } from "../../../common/misc/parsing/MailAddressParser"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -373,26 +375,35 @@ export class MailModel {
 			// fixme preferably do this part if a setting is enabled
 			// fixme have a config to block the entire domain?
 			const blockDomain = true
-			const tutanotaProperties = this.logins.getUserController().props
-			const folder = this.getMailFolderForMail(mail)!
 			const senderAddress = mail.sender.address
 			const senderDomain = getDomainPart(senderAddress)!
 			const fieldValue = blockDomain ? senderDomain : senderAddress
-			const inboxRuleAlreadyExists = tutanotaProperties.inboxRules.some(
-				(rule: InboxRule) => rule.type == InboxRuleType.FROM_EQUALS && rule.value == fieldValue,
-			)
-			if (folder.folderType == MailSetKind.SPAM && !inboxRuleAlreadyExists) {
-				tutanotaProperties.inboxRules.push(
-					createInboxRule({
-						type: InboxRuleType.FROM_EQUALS,
-						value: fieldValue,
-						targetFolder: this.getMailFolderForMail(mail)!._id,
-					}),
-				)
+			const canCreateSpamRule = this.logins.isGlobalAdminUserLoggedIn() && !this.logins.isEnabled(FeatureType.InternalCommunication)
+			if (canCreateSpamRule) {
+				await locator.customerFacade.addSpamRule(SpamRuleFieldType.FROM, SpamRuleType.DISCARD, fieldValue)
+			} else {
+				await this.addInboxRule(mail, fieldValue)
 			}
-			await this.entityClient.update(tutanotaProperties)
 			await this.mailFacade.reportMail(mail, reportType).catch(ofClass(NotFoundError, (e) => console.log("mail to be reported not found", e)))
 		}
+	}
+
+	private async addInboxRule(mail: Mail, fieldValue: string) {
+		const folder = this.getMailFolderForMail(mail)!
+		const tutanotaProperties = this.logins.getUserController().props
+		const inboxRuleAlreadyExists = tutanotaProperties.inboxRules.some(
+			(rule: InboxRule) => rule.type == InboxRuleType.FROM_EQUALS && rule.value == fieldValue,
+		)
+		if (folder.folderType == MailSetKind.SPAM && !inboxRuleAlreadyExists) {
+			tutanotaProperties.inboxRules.push(
+				createInboxRule({
+					type: InboxRuleType.FROM_EQUALS,
+					value: fieldValue,
+					targetFolder: this.getMailFolderForMail(mail)!._id,
+				}),
+			)
+		}
+		await this.entityClient.update(tutanotaProperties)
 	}
 
 	isMovingMailsFromSearchAllowed(): boolean {
