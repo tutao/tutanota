@@ -2108,6 +2108,9 @@ export default {
         "replyInviteSubject_msg": "{name} hat \"{status}\" auf {event} geantwortet",
         "removed_label": "Entfernt",
         "event_label": "Termin",
-        "invitationNote_msg": "Sicher mit dem <strong><a href=\"https://tuta.com\" target=\"_blank\">Tuta Calendar</a></strong>"
-    }
+        "invitationNote_msg": "Sicher mit dem <strong><a href=\"https://tuta.com\" target=\"_blank\">Tuta Calendar</a></strong>",
+		"updateThisAndFutureEvents_action": "Dieses und zukünftige Ereignisse aktualisiere",
+		"deleteThisAndFutureOccurrences_action": "Dieses und zukünftige Ereignisse löschen",
+		"deleteThisAndFutureOccurrencesConfirmation_msg": "Sind Sie sicher, dass Sie dieses und alle zukünftigen Ereignisse löschen wollen?",
+	}
 }

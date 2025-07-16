@@ -1046,6 +1046,10 @@ export async function showDeletePopup(model: CalendarEventPreviewViewModel, ev: 
 					},
 					{
 						label: "deleteAllEventRecurrence_action",
+						click: () => confirmDeleteThisAndFutureClose(model, onClose),
+					},
+					{
+						label: "deleteAllEventRecurrence_action",
 						click: () => confirmDeleteClose(model, onClose),
 					},
 				]),
@@ -1055,6 +1059,12 @@ export async function showDeletePopup(model: CalendarEventPreviewViewModel, ev: 
 		// noinspection JSIgnoredPromiseFromCall
 		confirmDeleteClose(model, onClose)
 	}
+}
+
+async function confirmDeleteThisAndFutureClose(model: CalendarEventPreviewViewModel, onClose?: () => unknown): Promise<void> {
+	if (!(await Dialog.confirm("deleteThisAndFutureOccurrencesConfirmation_msg"))) return
+	await model.deleteThisAndFutureOccurrences()
+	onClose?.()
 }
 
 async function confirmDeleteClose(model: CalendarEventPreviewViewModel, onClose?: () => unknown): Promise<void> {
