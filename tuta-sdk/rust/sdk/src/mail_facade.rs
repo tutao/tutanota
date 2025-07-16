@@ -1,9 +1,10 @@
 #[cfg_attr(test, mockall_double::double)]
 use crate::crypto_entity_client::CryptoEntityClient;
 use crate::element_value::ParsedEntity;
-use crate::entities::generated::sys::{Group, GroupInfo};
+use crate::entities::generated::sys::{Group, GroupInfo, RootInstance};
 use crate::entities::generated::tutanota::{
-	Mail, MailBox, MailFolder, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
+	Mail, MailBox, MailFolder, MailboxGroupRoot, SimpleMoveMailPostIn, TutanotaProperties,
+	UnreadMailStatePostIn,
 };
 use crate::entities::Entity;
 use crate::folder_system::{FolderSystem, MailSetKind};
@@ -13,10 +14,12 @@ use crate::rest_error::HttpError;
 use crate::services::generated::tutanota::{SimpleMoveMailService, UnreadMailStateService};
 #[cfg_attr(test, mockall_double::double)]
 use crate::services::service_executor::ResolvingServiceExecutor;
+use crate::type_model_provider::TypeModelProvider;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use crate::GeneratedId;
 use crate::{ApiCallError, ListLoadDirection};
+use crate::{GeneratedId, IdTupleCustom};
+use num_enum::TryFromPrimitive;
 use std::sync::Arc;
 
 /// Provides high level functions to manipulate mail entities via the REST API
@@ -25,6 +28,18 @@ pub struct MailFacade {
 	crypto_entity_client: Arc<CryptoEntityClient>,
 	user_facade: Arc<UserFacade>,
 	service_executor: Arc<ResolvingServiceExecutor>,
+	type_model_provider: Arc<TypeModelProvider>,
+}
+
+#[derive(Copy, Clone, PartialEq, TryFromPrimitive, Debug)]
+#[repr(u64)]
+pub enum InboxRuleType {
+	FromEquals = 0,
+	RecipientToEquals = 1,
+	RecipientCCEquals = 2,
+	RecipientBCCEquals = 3,
+	SubjectContains = 4,
+	MailHeaderContains = 5,
 }
 
 impl MailFacade {
@@ -32,11 +47,13 @@ impl MailFacade {
 		crypto_entity_client: Arc<CryptoEntityClient>,
 		user_facade: Arc<UserFacade>,
 		service_executor: Arc<ResolvingServiceExecutor>,
+		type_model_provider: Arc<TypeModelProvider>,
 	) -> Self {
 		MailFacade {
 			crypto_entity_client,
 			user_facade,
 			service_executor,
+			type_model_provider,
 		}
 	}
 }
@@ -217,6 +234,60 @@ impl MailFacade {
 	pub async fn trash_mails(&self, mails: Vec<IdTupleGenerated>) -> Result<(), ApiCallError> {
 		self.simple_move_mail(mails, MailSetKind::Trash).await
 	}
+
+	async fn fetch_tutanota_properties(&self) -> Result<TutanotaProperties, ApiCallError> {
+		let user_group_id = self.user_facade.get_user_group_id();
+		let Some(type_root) = self
+			.type_model_provider
+			.resolve_client_type_ref(&TutanotaProperties::type_ref())
+		else {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: "Failed to resolve type_root for TutanotaProperties".to_string(),
+			});
+		};
+
+		let root_instance_id = IdTupleCustom {
+			list_id: user_group_id,
+			element_id: type_root.root_id.clone(),
+		};
+
+		let root_instance = self
+			.crypto_entity_client
+			.load::<RootInstance, IdTupleCustom>(&root_instance_id)
+			.await?;
+
+		let tutanota_properties = self
+			.crypto_entity_client
+			.load::<TutanotaProperties, GeneratedId>(&root_instance.reference)
+			.await?;
+
+		Ok(tutanota_properties)
+	}
+
+	pub async fn apply_inbox_rules_partially(&self, mail: Mail) -> Result<bool, ApiCallError> {
+		let tutanota_properties: TutanotaProperties = self.fetch_tutanota_properties().await?;
+		let mailbox = self.load_user_mailbox().await?;
+		let folders = self.load_folders_for_mailbox(&mailbox).await?;
+		// let spamFolderId = folders
+		// 	.system_folder_by_type(MailSetKind::Spam)
+		// 	.unwrap()
+		// 	.clone()
+		// 	._id
+		// 	.unwrap();
+		// let trashFolderId = folders
+		// 	.system_folder_by_type(MailSetKind::Trash)
+		// 	.unwrap()
+		// 	.clone()
+		// 	._id
+		// 	.unwrap();
+		tutanota_properties.inboxRules.iter().map(|rule| async {
+			// todo emulate what is done in InboxRuleHandler#checkInboxRule here
+			// fixme Can we only move to system folders because we are using SimpleMoveMailService? This function should be called from Kotlin/Swift
+			// fixme Maybe that's enough to move mails to sent, trash, archive, spam and handle other rules after opening the client?
+		});
+
+		Ok(false)
+	}
 }
 
 fn get_enabled_mail_addresses_for_group_info(group_info: &GroupInfo) -> Vec<String> {
@@ -240,6 +311,7 @@ mod tests {
 	use crate::services::generated::tutanota::UnreadMailStateService;
 	use crate::services::service_executor::MockResolvingServiceExecutor;
 	use crate::user_facade::MockUserFacade;
+	use crate::util::test_utils::mock_type_model_provider;
 	use crate::GeneratedId;
 	use crate::IdTupleGenerated;
 	use mockall::predicate::{always, eq};
@@ -275,6 +347,7 @@ mod tests {
 				Arc::new(MockCryptoEntityClient::default()),
 				Arc::new(MockUserFacade::default()),
 				Arc::new(executor),
+				Arc::new(mock_type_model_provider()),
 			);
 			facade
 				.set_unread_status_for_mails(mails, unread)
@@ -311,6 +384,7 @@ mod tests {
 				Arc::new(MockCryptoEntityClient::default()),
 				Arc::new(MockUserFacade::default()),
 				Arc::new(executor),
+				Arc::new(mock_type_model_provider()),
 			);
 			facade
 				.set_unread_status_for_mails(mails, unread)
@@ -339,6 +413,7 @@ mod tests {
 				Arc::new(MockCryptoEntityClient::default()),
 				Arc::new(MockUserFacade::default()),
 				Arc::new(executor),
+				Arc::new(mock_type_model_provider()),
 			);
 			facade
 				.set_unread_status_for_mails(mails, unread)
@@ -378,6 +453,7 @@ mod tests {
 			Arc::new(MockCryptoEntityClient::default()),
 			Arc::new(MockUserFacade::default()),
 			Arc::new(executor),
+			Arc::new(mock_type_model_provider()),
 		);
 		facade.trash_mails(mails).await.unwrap();
 	}
@@ -404,6 +480,7 @@ mod tests {
 			Arc::new(MockCryptoEntityClient::default()),
 			Arc::new(MockUserFacade::default()),
 			Arc::new(executor),
+			Arc::new(mock_type_model_provider()),
 		);
 		facade.trash_mails(mails).await.unwrap();
 	}
@@ -425,6 +502,7 @@ mod tests {
 			Arc::new(MockCryptoEntityClient::default()),
 			Arc::new(MockUserFacade::default()),
 			Arc::new(executor),
+			Arc::new(mock_type_model_provider()),
 		);
 		facade.trash_mails(mails).await.unwrap();
 	}

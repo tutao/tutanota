@@ -554,6 +554,7 @@ impl LoggedInSdk {
 			self.crypto_entity_client.clone(),
 			self.user_facade.clone(),
 			self.service_executor.clone(),
+			self.type_model_provider.clone(),
 		)
 	}
 
