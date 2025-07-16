@@ -2043,3 +2043,6 @@ export type TranslationKeyType =
 	| "event_label"
 	| "replyInviteSubject_msg"
 	| "invitationNote_msg"
+	| "updateThisAndFutureEvents_action"
+	| "deleteThisAndFutureOccurrences_action"
+	| "deleteThisAndFutureOccurrencesConfirmation_msg"

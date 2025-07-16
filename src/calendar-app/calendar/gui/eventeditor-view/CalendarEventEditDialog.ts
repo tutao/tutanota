@@ -176,9 +176,10 @@ export class EventEditorDialog {
 	 *
 	 * will unconditionally send invites on save.
 	 * @param model the calendar event model used to edit and save the event
+	 * @param okActionCallback - High level callback fired when the operation is successfully executed/saved
 	 */
-	async showNewCalendarEventEditDialog(model: CalendarEventModel): Promise<void> {
-		let finished = false
+	async showNewCalendarEventEditDialog(model: CalendarEventModel, okActionCallback?: Thunk): Promise<void> {
+		let finished = false // Avoid async callbacks being called multiple times
 
 		const okAction: EditDialogOkHandler = async (posRect, finish) => {
 			/** new event, so we always want to send invites. */
@@ -191,6 +192,7 @@ export class EventEditorDialog {
 				const result = await model.apply()
 				if (result === EventSaveResult.Saved) {
 					finished = true
+					await okActionCallback?.()
 					finish()
 
 					void handleRatingByEvent("Calendar")

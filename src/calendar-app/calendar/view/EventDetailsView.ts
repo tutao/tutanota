@@ -99,6 +99,13 @@ export function handleEventEditButtonClick(previewModel: CalendarEventPreviewVie
 						},
 					},
 					{
+						label: "updateThisAndFutureEvents_action",
+						click: () => {
+							// noinspection JSIgnoredPromiseFromCall
+							previewModel.editThisAndFutureOccurrences()
+						},
+					},
+					{
 						label: "updateAllCalendarEvents_action",
 						click: () => {
 							// noinspection JSIgnoredPromiseFromCall
@@ -134,6 +141,16 @@ export async function handleEventDeleteButtonClick(
 						label: "deleteSingleEventRecurrence_action",
 						click: async () => {
 							await previewModel?.deleteSingle()
+							handleCallback()
+						},
+					},
+					{
+						label: "deleteThisAndFutureOccurrences_action",
+						click: async () => {
+							if (!(await Dialog.confirm("deleteThisAndFutureOccurrencesConfirmation_msg"))) {
+								return
+							}
+							await previewModel?.deleteThisAndFutureOccurrences()
 							handleCallback()
 						},
 					},
