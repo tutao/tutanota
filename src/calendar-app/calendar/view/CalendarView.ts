@@ -460,7 +460,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.third_col_min_width,
+				minWidth: size.second_col_min_width + size.third_col_min_width,
 				maxWidth: size.second_col_max_width + size.third_col_max_width,
 			},
 		)
