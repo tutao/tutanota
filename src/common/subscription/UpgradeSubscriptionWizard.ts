@@ -26,7 +26,7 @@ import { locator } from "../api/main/CommonLocator"
 import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { queryAppStoreSubscriptionOwnership, UpgradeType } from "./SubscriptionUtils"
-import { UpgradeConfirmSubscriptionPage } from "./UpgradeConfirmSubscriptionPage.js"
+import { UpgradeConfirmSubscriptionPage, UpgradeConfirmSubscriptionPageAttrs } from "./UpgradeConfirmSubscriptionPage.js"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "./PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
@@ -35,14 +35,7 @@ import { DialogType } from "../gui/base/Dialog.js"
 import { VariantCSubscriptionPage, VariantCSubscriptionPageAttrs } from "./VariantCSubscriptionPage.js"
 import { styles } from "../gui/styles.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
-import {
-	abandonUsageTestSession,
-	completeSignupFlowStage,
-	getUsageTestVariant,
-	initSignupFlowUsageTest,
-	invalidateUsageTest,
-	SignupFlowStage,
-} from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { VariantBSubscriptionPage, VariantBSubscriptionPageAttrs } from "./VariantBSubscriptionPage.js"
 
 assertMainOrNode()
@@ -227,15 +220,13 @@ export async function loadSignupWizard(
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
+	const confirmSubscriptionAttrs = new UpgradeConfirmSubscriptionPageAttrs(signupData)
 	const plansPage = initPlansPages(signupData)
 	const wizardPages = [
 		wizardPageWrapper(plansPage.pageClass, plansPage.attrs),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs), // this page will login the user after signing up with newaccount data
-		//FIXME: We stopped here, because the next page does not have its own attrs
-		// So it also does not have its own `nextAction` method, so we can't call the usageTest stage completion method.
-		// Start working on that on 2025-07-16
-		wizardPageWrapper(UpgradeConfirmSubscriptionPage, invoiceAttrs), // this page will login the user if they are not login for iOS payment through AppStore
+		wizardPageWrapper(UpgradeConfirmSubscriptionPage, confirmSubscriptionAttrs), // this page will login the user if they are not login for iOS payment through AppStore
 		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData)),
 	]
 
@@ -269,7 +260,11 @@ export async function loadSignupWizard(
 
 	// for signup specifically, we only want the invoice and payment page as well as the confirmation page to show up if signing up for a paid account (and the user did not go back to the first page!)
 	invoiceAttrs.setEnabledFunction(() => signupData.type !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
+	confirmSubscriptionAttrs.setEnabledFunction(() => signupData.type !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
 
+	wizardBuilder.dialog.setCloseHandler(() => {
+		SignupFlowUsageTestController.submitUsageTest()
+	})
 	wizardBuilder.dialog.show()
 }
 
@@ -287,13 +282,13 @@ function initPlansPages(signupData: UpgradeSubscriptionData): {
 
 	// Any type of discounts other than global first year discount use old subscription page.
 	if (!pricingData.hasGlobalFirstYearDiscount && (firstYearDiscount !== 0 || bonusMonth !== 0 || hasDiscount || hasMessage)) {
-		invalidateUsageTest()
+		SignupFlowUsageTestController.invalidateUsageTest()
 		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
 	} else {
-		initSignupFlowUsageTest()
+		SignupFlowUsageTestController.initSignupFlowUsageTest()
 
 		// Placeholder implementation
-		const variant = getUsageTestVariant()
+		const variant = SignupFlowUsageTestController.getUsageTestVariant()
 
 		// const variant = 1
 		switch (variant) {
@@ -304,8 +299,8 @@ function initPlansPages(signupData: UpgradeSubscriptionData): {
 			case 3:
 				return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
 			default:
-				invalidateUsageTest()
-				console.error("Received an unexpected usage test variant: ", getUsageTestVariant())
+				SignupFlowUsageTestController.invalidateUsageTest()
+				console.error("Received an unexpected usage test variant: ", SignupFlowUsageTestController.getUsageTestVariant())
 				return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
 		}
 	}

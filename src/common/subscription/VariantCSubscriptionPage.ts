@@ -24,7 +24,7 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { theme } from "../gui/theme.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
-import { completeSignupFlowStage, SignupFlowStage } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -40,9 +40,12 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 	private _dom: HTMLElement | null = null
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
+		// window.addEventListener("beforeunload", (e) => {
+		// 	window.alert("beforeunload")
+		// 	e.preventDefault()
+		// })
 		this._dom = vnode.dom as HTMLElement
 		const subscriptionParameters = vnode.attrs.data.subscriptionParameters
-
 		if (subscriptionParameters) {
 			// We automatically route to the next page; when we want to go back from the second page, we do not want to keep calling nextPage
 			vnode.attrs.data.subscriptionParameters = null
@@ -307,7 +310,7 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 	}
 
 	nextAction(_: boolean): Promise<boolean> {
-		completeSignupFlowStage(SignupFlowStage.SELECT_PLAN, this.data.type, this.data.options.paymentInterval(), this.data.paymentData.paymentMethod)
+		SignupFlowUsageTestController.setSignupFlowStageData(SignupFlowStage.SELECT_PLAN, this.data.type, this.data.options.paymentInterval())
 		return Promise.resolve(true)
 	}
 

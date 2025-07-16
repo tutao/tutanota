@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
-import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
+import { lang, MaybeTranslation, type TranslationKey } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName, PlanTypeToName } from "../api/common/TutanotaConstants"
@@ -25,7 +25,7 @@ import { isIOSApp } from "../api/common/Env.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
-import { completeSignupFlowStage, SignupFlowStage } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -226,10 +226,45 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 	private close(data: UpgradeSubscriptionData, dom: HTMLElement) {
 		emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 	}
+}
+
+export class UpgradeConfirmSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
+	data: UpgradeSubscriptionData
+	_enabled: () => boolean = () => true
+
+	constructor(upgradeData: UpgradeSubscriptionData) {
+		this.data = upgradeData
+	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		completeSignupFlowStage(SignupFlowStage.CONFIRM_PAYMENT, this.data.type, this.data.options.paymentInterval(), this.data.paymentData.paymentMethod)
+		SignupFlowUsageTestController.setSignupFlowStageData(
+			SignupFlowStage.CONFIRM_PAYMENT,
+			this.data.type,
+			this.data.options.paymentInterval(),
+			this.data.paymentData.paymentMethod,
+		)
+		SignupFlowUsageTestController.submitUsageTest()
 		return Promise.resolve(true)
+	}
+
+	headerTitle(): TranslationKey {
+		return "adminPayment_action"
+	}
+
+	isSkipAvailable(): boolean {
+		return false
+	}
+
+	isEnabled(): boolean {
+		return this._enabled()
+	}
+
+	/**
+	 * Set the enabled function for isEnabled
+	 * @param enabled
+	 */
+	setEnabledFunction<T>(enabled: () => boolean) {
+		this._enabled = enabled
 	}
 }
 

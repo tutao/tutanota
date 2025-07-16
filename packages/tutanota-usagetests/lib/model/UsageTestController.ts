@@ -25,23 +25,6 @@ export class UsageTestController {
 		this.addTests(tests)
 	}
 
-	setTestObsolete(testName: string) {
-		console.log("Setting test obsolete: ", testName, this.tests)
-		let testId
-		for (const [key, value] of this.tests) {
-			if (value.testName === testName) {
-				testId = key
-				break
-			}
-		}
-
-		if (!testId) {
-			return
-		}
-
-		this.tests.set(testId, this.obsoleteUsageTest)
-	}
-
 	/**
 	 * Searches a test first by its ID and then, if no match is found, by its name.
 	 * If no test matches by name either, then we assume that the test is finished and the server no longer sends assignments for it.

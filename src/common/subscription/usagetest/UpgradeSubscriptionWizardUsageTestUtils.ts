@@ -1,25 +1,8 @@
 import { locator } from "../../api/main/CommonLocator.js"
-import { PaymentMethodType, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants.js"
+import { AvailablePlanType, NewBusinessPlans, PaymentMethodType, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants.js"
 import { PaymentInterval, PaymentIntervalToName } from "../PriceUtils.js"
-import { Stage } from "@tutao/tutanota-usagetests"
-
-const USAGE_TEST_NAME = "signup.flow"
 
 type MetricName = "plan" | "paymentMethod"
-
-export const getSignupFlowTest = () => {
-	const usageTest = locator.usageTestController.getTest(USAGE_TEST_NAME)
-	const stage = usageTest.getStage(0)
-	stage.setMetric({
-		name: "variant",
-		value: "A",
-	})
-	void stage.complete()
-}
-
-export const abandonUsageTestSession = () => {
-	locator.usageTestController.setTestObsolete(USAGE_TEST_NAME)
-}
 
 export enum SignupFlowStage {
 	TRIGGER,
@@ -27,49 +10,80 @@ export enum SignupFlowStage {
 	CREATE_ACCOUNT,
 	SELECT_PAYMENT_METHOD,
 	CONFIRM_PAYMENT,
+	ABANDONED,
 }
 
-export const invalidateUsageTest = () => {
-	const usageTest = locator.usageTestController.getTest(USAGE_TEST_NAME)
-	usageTest.invalidateTest()
-}
+export abstract class SignupFlowUsageTestController {
+	private static readonly USAGE_TEST_NAME = "signup.flow"
+	// private usageTest: UsageTest
+	// private static usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
 
-export const initSignupFlowUsageTest = () => {
-	const usageTest = locator.usageTestController.getTest(USAGE_TEST_NAME)
-	void usageTest.getStage(SignupFlowStage.TRIGGER).complete()
-}
+	public static invalidateUsageTest() {
+		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
+		usageTest.invalidateTest()
+	}
 
-export const getUsageTestVariant = () => {
-	const usageTest = locator.usageTestController.getTest(USAGE_TEST_NAME)
-	return usageTest.variant
-}
+	public static initSignupFlowUsageTest() {
+		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
+		// void usageTest.getStage(SignupFlowStage.TRIGGER).complete()
+		usageTest.meta["currentStage"] = 0
+	}
 
-export const completeSignupFlowStage = (targetStage: SignupFlowStage, plan: PlanType, interval: PaymentInterval, paymentMethod?: PaymentMethodType) => {
-	const usageTest = locator.usageTestController.getTest(USAGE_TEST_NAME)
-	const stage = usageTest.getStage(targetStage)
+	public static getUsageTestVariant() {
+		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
+		return usageTest.variant
+	}
 
-	const planName = PlanTypeToName[plan]
-	const intervalName = PaymentIntervalToName[interval]
-	const planValue = `${planName}_${intervalName}`
-	stage.setMetric({
-		name: "plan",
-		value: planValue,
-	})
-	if (paymentMethod) {
+	public static setSignupFlowStageData(targetStage: SignupFlowStage, plan: PlanType, interval: PaymentInterval, paymentMethod?: PaymentMethodType) {
+		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
+		usageTest.meta["currentStage"] = targetStage
+		// this.currentStage = targetStage
+
+		const stage = usageTest.getStage(targetStage)
+
+		const planName = PlanTypeToName[plan]
+		const intervalName = PaymentIntervalToName[interval]
+		let planValue
+		if (NewBusinessPlans.includes(plan as AvailablePlanType)) planValue = "Business"
+		else if (plan === PlanType.Free) planValue = "Free"
+		else planValue = `${intervalName}_${planName}`
+
 		stage.setMetric({
-			name: "paymentMethod",
-			value: paymentMethodTypeToString(paymentMethod),
+			name: "plan",
+			value: planValue,
 		})
-	}
-	void stage.complete()
-}
+		if (paymentMethod) {
+			stage.setMetric({
+				name: "paymentMethod",
+				value: this.paymentMethodTypeToString(paymentMethod),
+			})
+		}
 
-const paymentMethodTypeToString = (input: PaymentMethodType) => {
-	const record: Record<string, string> = {
-		"0": "Invoice",
-		"1": "Credit_Card",
-		"3": "PayPal",
+		console.log(`Set Data for Stage ${targetStage}. Variant ${this.getUsageTestVariant()}`)
 	}
 
-	return record[input] ?? "Other"
+	public static submitUsageTest() {
+		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
+		if (!usageTest.meta["currentStage"]) return
+		for (let i = 0; i <= usageTest.meta["currentStage"]; i++) {
+			const stage = usageTest.getStage(i)
+			void stage.complete()
+		}
+	}
+
+	public static abandonUsageTest() {
+		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
+		usageTest.getStage(SignupFlowStage.ABANDONED).complete()
+		this.submitUsageTest()
+	}
+
+	private static paymentMethodTypeToString(input: PaymentMethodType) {
+		const record: Record<string, string> = {
+			"0": "Invoice",
+			"1": "Credit_Card",
+			"3": "PayPal",
+		}
+
+		return record[input] ?? "Other"
+	}
 }
