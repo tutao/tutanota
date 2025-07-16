@@ -69,8 +69,18 @@ export class CalendarEventWhenModel {
 
 		// zero out the second and millisecond part of start/end time. can't use the getters for startTime and endTime
 		// because they depend on all-day status.
-		initialTimes.startTime = DateTime.fromJSDate(initialTimes.startTime, { zone }).set({ second: 0, millisecond: 0 }).toJSDate()
-		initialTimes.endTime = DateTime.fromJSDate(initialTimes.endTime, { zone }).set({ second: 0, millisecond: 0 }).toJSDate()
+		initialTimes.startTime = DateTime.fromJSDate(initialTimes.startTime, { zone })
+			.set({
+				second: 0,
+				millisecond: 0,
+			})
+			.toJSDate()
+		initialTimes.endTime = DateTime.fromJSDate(initialTimes.endTime, { zone })
+			.set({
+				second: 0,
+				millisecond: 0,
+			})
+			.toJSDate()
 
 		this._isAllDay = isAllDayEvent(initialTimes)
 		this.repeatRule = clone(initialValues.repeatRule ?? null)
@@ -353,7 +363,13 @@ export class CalendarEventWhenModel {
 
 		switch (endType) {
 			case EndType.UntilDate:
-				this.repeatRule.endValue = getDefaultEndDateEndValue({ startTime: this._startDate, endTime: this._endDate }, this.zone)
+				this.repeatRule.endValue = getDefaultEndDateEndValue(
+					{
+						startTime: this._startDate,
+						endTime: this._endDate,
+					},
+					this.zone,
+				)
 				return
 			case EndType.Count:
 			case EndType.Never:
@@ -398,7 +414,17 @@ export class CalendarEventWhenModel {
 		if (this.repeatRule?.endType === EndType.UntilDate) {
 			return getRepeatEndTimeForDisplay(this.repeatRule, this.isAllDay, this.zone)
 		} else {
-			return new Date(filterInt(getDefaultEndDateEndValue({ startTime: this._startDate, endTime: this._endDate }, this.zone)))
+			return new Date(
+				filterInt(
+					getDefaultEndDateEndValue(
+						{
+							startTime: this._startDate,
+							endTime: this._endDate,
+						},
+						this.zone,
+					),
+				),
+			)
 		}
 	}
 
@@ -463,8 +489,8 @@ export class CalendarEventWhenModel {
 	 * Returns an Array of BYDAY Advanced Repeat Rules for a given set of weekdays.
 	 * @param weekdays Either the weekdays a weekly event - or a singular weekday (first, second, ..., last) in a month that a monthly event should repeat on.
 	 * @param interval will only be set if weekdays.length() == 1. In this case we are writing a BYDAY Rule for FREQ=MONTHLY, in which case
-	 * 	we only specify what weekday of the month this event repeats on. (Ex.: BYDAY=2TH = Repeats on second THURSDAY of every month)
-	 * 	In case weekdays.length() == 0 && interval == 0, no BYDAY Rule shall be written, as the event will repeat on the same DAY every month.
+	 *    we only specify what weekday of the month this event repeats on. (Ex.: BYDAY=2TH = Repeats on second THURSDAY of every month)
+	 *    In case weekdays.length() == 0 && interval == 0, no BYDAY Rule shall be written, as the event will repeat on the same DAY every month.
 	 */
 	createAdvancedRulesFromWeekdays(weekdays: Weekday[], interval?: number): AdvancedRepeatRule[] {
 		if (weekdays.length == 0 || interval == 0) return []
@@ -603,6 +629,17 @@ export class CalendarEventWhenModel {
 			newRepeat.excludedDates = []
 			return
 		}
+	}
+
+	assertHasAValidEndDateCondition() {
+		const repeatRule = assertNotNull(this.repeatRule)
+		if (repeatRule.endType !== EndType.UntilDate) {
+			throw new Error("EndType is different from UntilDate")
+		}
+		if (!repeatRule.endValue) {
+			throw new Error("Missing endValue for RepeatRule of type UntilDate")
+		}
+		return repeatRule
 	}
 }
 
