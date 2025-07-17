@@ -112,6 +112,7 @@ export class EventEditorDialog {
 			.setValue(descriptionText)
 
 		const okAction = (dom: HTMLElement) => {
+			descriptionEditor.editor.domElement?.blur()
 			model.editModels.description.content = descriptionEditor.getTrimmedValue()
 			handler(dom.getBoundingClientRect(), () => dialog.close())
 		}
