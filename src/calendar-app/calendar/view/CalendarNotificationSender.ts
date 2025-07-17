@@ -8,11 +8,11 @@ import type { SendMailModel } from "../../../common/mailFunctionality/SendMailMo
 import { windowFacade } from "../../../common/misc/WindowFacade.js"
 import { RecipientsNotFoundError } from "../../../common/api/common/error/RecipientsNotFoundError.js"
 import { findRecipientWithAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 
 import { calendarAttendeeStatusSymbol, eventInviteEmailTypeToCalendarAttendeeStatus, formatEventDuration } from "../gui/CalendarGuiUtils.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getLocationUrl } from "../gui/eventpopup/EventPreviewView"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */
@@ -163,14 +163,14 @@ export class CalendarNotificationSender {
 	 */
 	async sendResponse(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
 		const sendAs = sendMailModel.getSender()
-		const guestName = sendMailModel.getSenderName() || lang.get("guest_label")
+		const guestName = this.resolveGuestNameOnReply(sendMailModel, event)
 
 		const infoBannerMessage = this.getInfoBannerMessage(sendMailModel.emailType, guestName)
 
 		const subject = lang.get("replyInviteSubject_msg", {
 			"{name}": guestName,
 			"{status}": lang.get(this.getStatusTranslationKey(sendMailModel.emailType)).toLowerCase(),
-			"{event}": event.summary || lang.get("event_label"),
+			"{event}": event.summary || lang.get("noTitle_label").replaceAll(/[<>]/g, ""),
 		})
 
 		const body = makeEventInviteEmailBody(sendMailModel.isPlainTextMail(), {
@@ -188,6 +188,19 @@ export class CalendarNotificationSender {
 			body,
 			sender: sendAs,
 		})
+	}
+
+	private resolveGuestNameOnReply(sendMailModel: SendMailModel, event: CalendarEvent) {
+		let guestName = lang.get("guest_label")
+		const attendee = event.attendees.find((a) => a.address.address === sendMailModel.getSender())
+
+		if (sendMailModel.getSenderName()) {
+			guestName = sendMailModel.getSenderName()
+		} else if (attendee) {
+			guestName = attendee.address.name
+		}
+
+		return guestName
 	}
 
 	private async sendCalendarFile({
@@ -465,42 +478,50 @@ interface EmailBodyIngredients {
 function makePlainTextBody({ event, infoBannerMessage }: EmailBodyIngredients) {
 	const organizer: CalendarEventAttendee | undefined = event.attendees.find((attendee) => attendee.address.address === event.organizer?.address)
 	const duration = formatEventDuration(event, getTimeZone(), true)
-	return (
-		`${infoBannerMessage}` +
-		`<br><br>` +
-		`${lang.get("event_label")}: ${event.summary}` +
-		`<br><br>` +
-		`${lang.get("when_label")}:` +
-		`<br>` +
-		`${duration}` +
-		`<br><br>` +
-		`${lang.get("location_label")}:` +
-		`<br>` +
-		`${event.location}` +
-		`<br><br>` +
-		`${lang.get("description_label")}:` +
-		`<br>` +
-		`${event.description}` +
-		`<br><br>` +
-		`${lang.get("organizer_label")}:` +
-		`<br>` +
+	const eventLines: string[] = []
+
+	eventLines.push(
+		`${infoBannerMessage}`,
+		`<br><br>`,
+		`${lang.get("event_label")}: ${event.summary || lang.get("noTitle_label").replaceAll(/[<>]/g, "")}`,
+		`<br><br>`,
+		`${lang.get("when_label")}:`,
+		`<br>`,
+		`${duration}`,
+		`<br><br>`,
+	)
+
+	if (event.location) {
+		eventLines.push(`${lang.get("location_label")}:`, `<br>`, `${event.location}`, `<br><br>`)
+	}
+
+	if (event.description) {
+		eventLines.push(`${lang.get("description_label")}:`, `<br>`, `${event.description}`, `<br><br>`)
+	}
+
+	eventLines.push(
+		`${lang.get("organizer_label")}:`,
+		`<br>`,
 		`${event.organizer?.name ? event.organizer?.name + " " : ""}${event.organizer?.address} ${
 			organizer ? calendarAttendeeStatusSymbol(getAttendeeStatus(organizer)) : ""
-		}` +
-		`<br><br>` +
-		`${lang.get("guests_label")}:` +
+		}`,
+		`<br><br>`,
+		`${lang.get("guests_label")}:`,
 		`<br>` +
-		`${event.attendees
-			.filter((a) => !(a.address.address === event.organizer?.address))
-			.map((a) => {
-				return `${a.address.name ? a.address.name + " " : ""}${a.address.address} ${calendarAttendeeStatusSymbol(getAttendeeStatus(a))}`
-			})
-			.join("<br>")}`
+			`${event.attendees
+				.filter((a) => !(a.address.address === event.organizer?.address))
+				.map((a) => {
+					return `${a.address.name ? a.address.name + " " : ""}${a.address.address} ${calendarAttendeeStatusSymbol(getAttendeeStatus(a))}`
+				})
+				.join("<br>")}`,
 	)
+
+	return eventLines.join("")
 }
 
 function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, changedFields }: EmailBodyIngredients) {
 	const theme = getEmailTheme(eventInviteEmailType)
+	const eventTitle = event.summary || lang.get("noTitle_label").replaceAll(/[<>]/g, "")
 
 	let selfInfo
 	if (eventInviteEmailType === EventInviteEmailType.REPLY_ACCEPT) {
@@ -521,7 +542,7 @@ function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, 
 			<tr>
 				<td>
 					<h1 style="font-size: 24px; margin: 0">
-						<strong>${changedFields?.summary ? highlight("Event:") : "Event:"}</strong>${" " + event.summary}
+						<strong>${changedFields?.summary ? highlight("Event:") : "Event:"}</strong>${" " + eventTitle}
 					</h1>
 				</td>
 			</tr>
@@ -531,8 +552,8 @@ function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, 
 
 		<table style="width: 100%;">
 			${whenLine(event, changedFields?.when ?? false, theme)}
-			${locationLine(event, changedFields?.location ?? false, theme)}
-			${descriptionLine(event, changedFields?.description ?? false, theme)}
+			${event.location ? locationLine(event, changedFields?.location ?? false, theme) : ""}
+			${event.description ? descriptionLine(event, changedFields?.description ?? false, theme) : ""}
 			${organizerLine(event, changedFields?.organizer ?? false, theme)}
 			${attendeesLine(event, changedFields?.attendee ?? { added: [], removed: [] }, theme, selfInfo)}
 		</table>
@@ -540,7 +561,7 @@ function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, 
 	<table style="padding: 24px 0">
 		<tr>
 			<td>
-				This invitation was securely sent from <strong><a href="https://tuta.com" target="_blank">Tuta Calendar</a></strong>
+				${lang.get("invitationNote_msg")}
 			<ts>
 		</tr>
 	</table>

@@ -880,7 +880,7 @@ export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): st
 		case CalendarAttendeeStatus.NEEDS_ACTION:
 			return ""
 		case CalendarAttendeeStatus.TENTATIVE:
-			return "�"
+			return "⯑"
 		case CalendarAttendeeStatus.ACCEPTED:
 			return "✓"
 		case CalendarAttendeeStatus.DECLINED:
