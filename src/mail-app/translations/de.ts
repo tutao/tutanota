@@ -2065,6 +2065,7 @@ export default {
 		"replyDeclineEventInfo_msg": "{name} hat deine Einladung <strong>abgelehnt</strong>.",
 		"replyInviteSubject_msg": "{name} hat \"{status}\" auf {event} geantwortet",
 		"removed_label": "Entfernt",
-		"event_label": "Termin"
+		"event_label": "Termin",
+		"invitationNote_msg": "Sicher mit dem <strong><a href=\"https://tuta.com\" target=\"_blank\">Tuta Calendar</a></strong>"
 	}
 }
