@@ -452,6 +452,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 					currentFolder: folder,
 					targetFolderType: targetMailFolderType,
 					moveMode: this.mailViewModel.getMoveMode(folder),
+					mailViewModel: this.mailViewModel,
 				})
 				return wereMoved ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 			} else {

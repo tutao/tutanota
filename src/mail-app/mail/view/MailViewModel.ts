@@ -12,7 +12,7 @@ import {
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { assertNotNull, count, debounce, groupBy, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, count, debounce, groupBy, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
@@ -52,6 +52,11 @@ const TAG = "MailVM"
  */
 const MAIL_LIST_FOLDERS: ReadonlyArray<MailSetKind> = Object.freeze([MailSetKind.DRAFT, MailSetKind.SENT])
 
+export interface UndoAction {
+	exec: () => $Promisable<unknown>
+	onClear: () => unknown
+}
+
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
 	private _folder: MailFolder | null = null
@@ -78,6 +83,8 @@ export class MailViewModel {
 	private currentShowTargetMarker: object = {}
 	/* We only attempt counter fixup once after switching folders and loading the list fully. */
 	private shouldAttemptCounterFixup: boolean = true
+
+	private undoAction: UndoAction | null = null
 
 	constructor(
 		private readonly mailboxModel: MailboxModel,
@@ -865,6 +872,42 @@ export class MailViewModel {
 
 	getMoveMode(folder: MailFolder): MoveMode {
 		return this.groupMailsByConversation(folder) ? MoveMode.Conversation : MoveMode.Mails
+	}
+
+	setUndoAction(action: UndoAction) {
+		this.clearCurrentUndoAction()
+		this.undoAction = action
+	}
+
+	/**
+	 * Clears the undo action if it matches {@link action}
+	 */
+	clearUndoActionIfPresent(action: UndoAction) {
+		if (this.undoAction === action) {
+			this.clearCurrentUndoAction()
+		}
+	}
+
+	private clearCurrentUndoAction() {
+		const currentAction = this.undoAction
+		if (currentAction != null) {
+			this.undoAction = null
+			currentAction.onClear()
+		}
+	}
+
+	/**
+	 * Performs the undo action, clearing it
+	 *
+	 * If the undo action returned a promise, then it will be awaited.
+	 */
+	async performUndoAction(): Promise<void> {
+		// Clear the undo action first, since this is synchronous (so we don't accidentally trigger the same undo twice)
+		const oldAction = this.undoAction
+		this.undoAction = null
+
+		// Now perform the undo action
+		await oldAction?.exec()
 	}
 }
 

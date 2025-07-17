@@ -68,42 +68,32 @@ export async function reportMailsAutomatically(
 	mailboxDetails: MailboxDetail,
 	mails: () => Promise<ReadonlyArray<Mail>>,
 ): Promise<void> {
+	const shouldReportMails = await getReportConfirmation(mailReportType, mailboxModel, mailModel, mailboxDetails)
+	if (shouldReportMails) {
+		await mailModel.reportMails(mailReportType, mails)
+	}
+}
+
+export async function getReportConfirmation(
+	mailReportType: MailReportType,
+	mailboxModel: MailboxModel,
+	mailModel: MailModel,
+	mailboxDetails: MailboxDetail,
+): Promise<boolean> {
 	if (mailReportType !== MailReportType.SPAM) {
-		return
+		return false
 	}
 
 	const mailboxProperties = await mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-	let allowUndoing = true // decides if a snackbar is shown to prevent the server request
-
 	let isReportable = false
 
 	if (!mailboxProperties || mailboxProperties.reportMovedMails === ReportMovedMailsType.ALWAYS_ASK) {
 		isReportable = await confirmMailReportDialog(mailModel, mailboxDetails)
-		allowUndoing = false
 	} else if (mailboxProperties.reportMovedMails === ReportMovedMailsType.AUTOMATICALLY_ONLY_SPAM) {
 		isReportable = true
 	} else if (mailboxProperties.reportMovedMails === ReportMovedMailsType.NEVER) {
 		// no report
 	}
 
-	if (isReportable) {
-		// only show the snackbar to undo the report if the user was not asked already
-		if (allowUndoing) {
-			let undoClicked = false
-			showSnackBar({
-				message: "undoMailReport_msg",
-				button: {
-					label: "cancel_action",
-					click: () => (undoClicked = true),
-				},
-				onClose: () => {
-					if (!undoClicked) {
-						mailModel.reportMails(mailReportType, mails)
-					}
-				},
-			})
-		} else {
-			mailModel.reportMails(mailReportType, mails)
-		}
-	}
+	return isReportable
 }
