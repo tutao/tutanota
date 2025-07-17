@@ -263,7 +263,6 @@ export function getRestriction(route: string): SearchRestriction {
 		category = SearchCategoryTypes.contact
 	} else if (route.startsWith("/calendar") || route.startsWith("/search/calendar")) {
 		const { params } = m.parsePathname(route)
-
 		try {
 			if (typeof params["eventSeries"] === "boolean") {
 				eventSeries = params["eventSeries"]
@@ -275,6 +274,18 @@ export function getRestriction(route: string): SearchRestriction {
 
 			if (typeof params["end"] === "string") {
 				end = filterInt(params["end"])
+			}
+
+			// Special case for handling dates change on Calendar View. For some reason Mithril doesn't extract the date
+			// from the route string, forcing us to use m.route.param. We always call this function using m.route.get, so it's safe
+			// to use m.route.param to get the missing parameters.
+			if (!route.startsWith("/search/calendar") && m.route.param("date")) {
+				const parsedStart = new Date(m.route.param("date"))
+				parsedStart.setDate(1)
+
+				if (parsedStart.getTime() < (start ?? Number.MAX_VALUE)) {
+					start = parsedStart.getTime()
+				}
 			}
 
 			const folder = params["folder"]
