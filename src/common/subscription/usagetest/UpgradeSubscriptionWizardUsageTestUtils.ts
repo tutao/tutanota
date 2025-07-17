@@ -15,18 +15,21 @@ export enum SignupFlowStage {
 
 export abstract class SignupFlowUsageTestController {
 	private static readonly USAGE_TEST_NAME = "signup.flow"
-	// private usageTest: UsageTest
-	// private static usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
 
 	public static invalidateUsageTest() {
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
 		usageTest.invalidateTest()
 	}
 
+	public static deletePing(stageNumber: number) {
+		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
+		const testDeviceIde = locator.usageTestModel.getTestDeviceId()
+		void usageTest.getStage(stageNumber).deletePing()
+	}
+
 	public static initSignupFlowUsageTest() {
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
-		// void usageTest.getStage(SignupFlowStage.TRIGGER).complete()
-		usageTest.meta["currentStage"] = 0
+		void usageTest.getStage(SignupFlowStage.TRIGGER).complete()
 	}
 
 	public static getUsageTestVariant() {
@@ -34,10 +37,8 @@ export abstract class SignupFlowUsageTestController {
 		return usageTest.variant
 	}
 
-	public static setSignupFlowStageData(targetStage: SignupFlowStage, plan: PlanType, interval: PaymentInterval, paymentMethod?: PaymentMethodType) {
+	public static completeStage(targetStage: SignupFlowStage, plan: PlanType, interval: PaymentInterval, paymentMethod?: PaymentMethodType) {
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
-		usageTest.meta["currentStage"] = targetStage
-		// this.currentStage = targetStage
 
 		const stage = usageTest.getStage(targetStage)
 
@@ -59,22 +60,7 @@ export abstract class SignupFlowUsageTestController {
 			})
 		}
 
-		console.log(`Set Data for Stage ${targetStage}. Variant ${this.getUsageTestVariant()}`)
-	}
-
-	public static submitUsageTest() {
-		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
-		if (!usageTest.meta["currentStage"]) return
-		for (let i = 0; i <= usageTest.meta["currentStage"]; i++) {
-			const stage = usageTest.getStage(i)
-			void stage.complete()
-		}
-	}
-
-	public static abandonUsageTest() {
-		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
-		usageTest.getStage(SignupFlowStage.ABANDONED).complete()
-		this.submitUsageTest()
+		void stage.complete()
 	}
 
 	private static paymentMethodTypeToString(input: PaymentMethodType) {

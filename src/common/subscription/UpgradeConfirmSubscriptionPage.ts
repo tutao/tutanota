@@ -3,7 +3,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation, type TranslationKey } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName, PlanTypeToName } from "../api/common/TutanotaConstants"
+import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -21,7 +21,6 @@ import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePay
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { SessionType } from "../api/common/SessionType"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
-import { isIOSApp } from "../api/common/Env.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
@@ -237,13 +236,12 @@ export class UpgradeConfirmSubscriptionPageAttrs implements WizardPageAttrs<Upgr
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		SignupFlowUsageTestController.setSignupFlowStageData(
+		SignupFlowUsageTestController.completeStage(
 			SignupFlowStage.CONFIRM_PAYMENT,
 			this.data.type,
 			this.data.options.paymentInterval(),
 			this.data.paymentData.paymentMethod,
 		)
-		SignupFlowUsageTestController.submitUsageTest()
 		return Promise.resolve(true)
 	}
 

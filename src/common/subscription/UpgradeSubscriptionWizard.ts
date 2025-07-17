@@ -35,7 +35,7 @@ import { DialogType } from "../gui/base/Dialog.js"
 import { VariantCSubscriptionPage, VariantCSubscriptionPageAttrs } from "./VariantCSubscriptionPage.js"
 import { styles } from "../gui/styles.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
-import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { VariantBSubscriptionPage, VariantBSubscriptionPageAttrs } from "./VariantBSubscriptionPage.js"
 
 assertMainOrNode()
@@ -255,6 +255,7 @@ export async function loadSignupWizard(
 				})
 			}
 		},
+		null,
 		DialogType.EditLarge,
 	)
 
@@ -262,9 +263,6 @@ export async function loadSignupWizard(
 	invoiceAttrs.setEnabledFunction(() => signupData.type !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
 	confirmSubscriptionAttrs.setEnabledFunction(() => signupData.type !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
 
-	wizardBuilder.dialog.setCloseHandler(() => {
-		SignupFlowUsageTestController.submitUsageTest()
-	})
 	wizardBuilder.dialog.show()
 }
 
@@ -289,6 +287,9 @@ function initPlansPages(signupData: UpgradeSubscriptionData): {
 
 		// Placeholder implementation
 		const variant = SignupFlowUsageTestController.getUsageTestVariant()
+
+		// FIXME
+		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
 
 		// const variant = 1
 		switch (variant) {

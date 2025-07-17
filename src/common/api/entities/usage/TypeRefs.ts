@@ -127,3 +127,33 @@ export type UsageTestParticipationIn = {
 
 	metrics: UsageTestMetricData[];
 }
+export const UsageTestParticipationOutTypeRef: TypeRef<UsageTestParticipationOut> = new TypeRef("usage", 90)
+
+export function createUsageTestParticipationOut(values: StrippedEntity<UsageTestParticipationOut>): UsageTestParticipationOut {
+    return Object.assign(create(typeModels[UsageTestParticipationOutTypeRef.typeId], UsageTestParticipationOutTypeRef), values)
+}
+
+export type UsageTestParticipationOut = {
+	_type: TypeRef<UsageTestParticipationOut>;
+	_original?: UsageTestParticipationOut
+
+	_format: NumberString;
+	pingListId: Id;
+	pingId: Id;
+}
+export const UsageTestParticipationDeleteInTypeRef: TypeRef<UsageTestParticipationDeleteIn> = new TypeRef("usage", 94)
+
+export function createUsageTestParticipationDeleteIn(values: StrippedEntity<UsageTestParticipationDeleteIn>): UsageTestParticipationDeleteIn {
+    return Object.assign(create(typeModels[UsageTestParticipationDeleteInTypeRef.typeId], UsageTestParticipationDeleteInTypeRef), values)
+}
+
+export type UsageTestParticipationDeleteIn = {
+	_type: TypeRef<UsageTestParticipationDeleteIn>;
+	_original?: UsageTestParticipationDeleteIn
+
+	_format: NumberString;
+	testId: Id;
+	testDeviceId: Id;
+	pingListId: Id;
+	pingId: Id;
+}

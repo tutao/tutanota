@@ -177,3 +177,47 @@ impl Entity for UsageTestParticipationIn {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UsageTestParticipationOut {
+	#[serde(rename = "91")]
+	pub _format: i64,
+	#[serde(rename = "92")]
+	pub pingListId: GeneratedId,
+	#[serde(rename = "93")]
+	pub pingId: GeneratedId,
+}
+
+impl Entity for UsageTestParticipationOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Usage,
+			type_id: TypeId::from(90),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UsageTestParticipationDeleteIn {
+	#[serde(rename = "95")]
+	pub _format: i64,
+	#[serde(rename = "96")]
+	pub testId: GeneratedId,
+	#[serde(rename = "97")]
+	pub testDeviceId: GeneratedId,
+	#[serde(rename = "98")]
+	pub pingListId: GeneratedId,
+	#[serde(rename = "99")]
+	pub pingId: GeneratedId,
+}
+
+impl Entity for UsageTestParticipationDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Usage,
+			type_id: TypeId::from(94),
+		}
+	}
+}

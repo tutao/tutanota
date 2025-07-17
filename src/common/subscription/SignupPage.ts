@@ -60,10 +60,7 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
 		// next action not available for this page
-		SignupFlowUsageTestController.setSignupFlowStageData(SignupFlowStage.CREATE_ACCOUNT, this.data.type, this.data.options.paymentInterval())
-		if (this.data.type === PlanType.Free) {
-			SignupFlowUsageTestController.submitUsageTest()
-		}
+		SignupFlowUsageTestController.completeStage(SignupFlowStage.CREATE_ACCOUNT, this.data.type, this.data.options.paymentInterval())
 		return Promise.resolve(true)
 	}
 

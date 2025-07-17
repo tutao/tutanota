@@ -1,4 +1,4 @@
-import { ObsoleteStage, Stage } from "./Stage.js"
+import { ObsoleteStage, PingIdTuple, Stage } from "./Stage.js"
 import { PingAdapter } from "../storage/PingAdapter.js"
 
 const NO_PARTICIPATION_VARIANT = 0
@@ -15,7 +15,6 @@ export class UsageTest {
 	public lastCompletedStage = 0
 	// storage for data that is aggregated across stages and sent at some point
 	public meta: Record<string, any> = {}
-
 	private _invalidate = false
 
 	/**
@@ -84,26 +83,26 @@ export class UsageTest {
 	/**
 	 * Should not be used directly. Use stage.complete() instead.
 	 */
-	async completeStage(stage: Stage, forceRestart = false): Promise<boolean> {
+	async completeStage(stage: Stage, forceRestart = false): Promise<PingIdTuple | undefined> {
 		if (this._invalidate) {
 			console.log("Usage test invalidated. Not completing stage.")
-			return false
+			return
 		}
 		if (!this.pingAdapter) {
 			throw new Error("no ping adapter has been registered")
 		} else if (this.variant === NO_PARTICIPATION_VARIANT || !this.active) {
-			return false
+			return
 		} else if (this.sentPings >= stage.maxPings && this.lastCompletedStage === stage.number && (stage.number !== 0 || !this.allowEarlyRestarts)) {
 			console.log(`Not sending ping for stage (${stage.number}) of test '${this.testId}' because maxPings=${stage.maxPings} has been reached`)
-			return false
+			return
 		} else if (!forceRestart && !this.allowEarlyRestarts && this.isStarted() && stage.number === 0 && this.lastCompletedStage !== this.stages.size - 1) {
 			// we were not configured to restart and got a complete() for the first stage and have not finished the test yet
 			// -> this would be a restart in the middle of the test
 			console.log(`Cannot restart test '${this.testName}' because allowEarlyRestarts=false and the final stage has not been reached`)
-			return false
+			return
 		} else if (stage.number < this.lastCompletedStage && stage.number !== 0) {
 			console.log(`Cannot send ping for stage (${stage.number}) of test '${this.testId}' because stage ${this.lastCompletedStage} has already been sent`)
-			return false
+			return
 		}
 
 		for (let i = this.lastCompletedStage + 1; i < stage.number; i++) {
@@ -113,7 +112,7 @@ export class UsageTest {
 				console.log(
 					`Not sending ping for stage (${stage.number}) in wrong order of test '${this.testId}' because stage ${currentStage.number} is not finished`,
 				)
-				return false
+				return
 			}
 		}
 
@@ -135,10 +134,15 @@ export class UsageTest {
 			this.lastPingDate = currentDate
 		}
 
-		await this.pingAdapter.sendPing(this, stage)
+		const pingIdTuple = await this.pingAdapter.sendPing(this, stage)
 
 		this.started = true
-		return true
+		return pingIdTuple
+	}
+
+	async deletePing(pingIdTuple: PingIdTuple) {
+		if (!this.pingAdapter) return
+		void this.pingAdapter!.deletePing(this.testId, pingIdTuple)
 	}
 }
 
@@ -162,7 +166,7 @@ export class ObsoleteUsageTest extends UsageTest {
 		return variants[0]()
 	}
 
-	async completeStage(stage: Stage): Promise<boolean> {
-		return true
+	async completeStage(stage: Stage): Promise<PingIdTuple | undefined> {
+		return { pingListId: "obsoleteListId", pingId: "obsoleteId" }
 	}
 }

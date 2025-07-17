@@ -234,7 +234,7 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
-		SignupFlowUsageTestController.setSignupFlowStageData(
+		SignupFlowUsageTestController.completeStage(
 			SignupFlowStage.SELECT_PAYMENT_METHOD,
 			this.data.type,
 			this.data.options.paymentInterval(),

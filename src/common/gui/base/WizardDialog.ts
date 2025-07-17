@@ -196,6 +196,7 @@ class WizardDialogAttrs<T> {
 	pages: ReadonlyArray<WizardPageWrapper<T>>
 	currentPage: WizardPageWrapper<T> | null
 	closeAction: () => Promise<void>
+	backAction: () => Promise<void>
 	cancelButtonText: TranslationKey
 	private _headerBarAttrs: DialogHeaderBarAttrs = {}
 
@@ -204,12 +205,23 @@ class WizardDialogAttrs<T> {
 	}
 
 	// Idea for refactoring: make optional parameters into separate object
-	constructor(data: T, pages: ReadonlyArray<WizardPageWrapper<T>>, cancelButtonText: TranslationKey | null = null, closeAction?: () => Promise<void>) {
+	constructor(
+		data: T,
+		pages: ReadonlyArray<WizardPageWrapper<T>>,
+		cancelButtonText: TranslationKey | null = null,
+		closeAction?: () => Promise<void>,
+		backAction?: () => Promise<void>,
+	) {
 		this.data = data
 		this.pages = pages
 		this.currentPage = pages.find((p) => p.attrs.isEnabled()) ?? null
 		this.closeAction = closeAction
 			? () => closeAction()
+			: () => {
+					return Promise.resolve()
+			  }
+		this.backAction = backAction
+			? () => backAction()
 			: () => {
 					return Promise.resolve()
 			  }
@@ -224,7 +236,7 @@ class WizardDialogAttrs<T> {
 
 		if (currentPageIndex > 0) {
 			this._goToPageAction(currentPageIndex - 1)
-
+			this.backAction()
 			m.redraw()
 		} else {
 			this.closeAction()
@@ -378,6 +390,7 @@ export function createWizardDialog<T>(
 	data: T,
 	pages: ReadonlyArray<WizardPageWrapper<T>>,
 	closeAction: (() => $Promisable<void>) | null = null,
+	backAction: (() => $Promisable<void>) | null = null,
 	dialogType: DialogType.EditLarge | DialogType.EditSmall,
 	cancelButtonText: TranslationKey | null = null,
 ): WizardDialogAttrsBuilder<T> {
@@ -396,7 +409,12 @@ export function createWizardDialog<T>(
 		wizardDialog.close()
 		unregisterCloseListener()
 	}
-	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, cancelButtonText, closeActionWrapper)
+	const backActionWrapper = async () => {
+		if (backAction) {
+			await backAction()
+		}
+	}
+	const wizardDialogAttrs = new WizardDialogAttrs(data, pages, cancelButtonText, closeActionWrapper, backActionWrapper)
 	const wizardDialog =
 		dialogType === DialogType.EditLarge
 			? Dialog.largeDialog(wizardDialogAttrs.headerBarAttrs, child)
