@@ -18,6 +18,16 @@ import { napiPlugin } from "./napiPlugin.js"
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
 
+/**
+ * @param stage
+ * @param host
+ * @param desktop
+ * @param clean
+ * @param ignoreMigrations
+ * @param networkDebugging
+ * @param app {"mail"|"calendar"}
+ * @returns {Promise<void>}
+ */
 export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations, networkDebugging, app }) {
 	const isCalendarBuild = app === "calendar"
 	const tsConfig = isCalendarBuild ? "tsconfig-calendar-app.json" : "tsconfig.json"
@@ -93,7 +103,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
  * @param p.version {string}
  * @param p.domainConfigs {DomainConfigMap}
  * @param p.networkDebugging {boolean}
- * @param p.app {string}
+ * @param p.app {"mail"|"calendar"}
  * @return {Promise<void>}
  */
 async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, app }) {
@@ -110,6 +120,8 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 			define: {
 				// Need it at least until inlining enums is supported
 				LOAD_ASSERTIONS: "false",
+				// see AppType in src/common/misc/ClientConstants.ts
+				APP_TYPE: JSON.stringify(app === "calendar" ? "2" : "1"),
 			},
 			external: "fs", // qrcode-svg tries to import it on save()
 			plugins: [

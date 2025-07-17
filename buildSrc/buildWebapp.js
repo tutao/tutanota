@@ -15,6 +15,7 @@ import { createHtml } from "./createHtml.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { visualizer } from "rollup-plugin-visualizer"
 import { rollupWasmLoader } from "@tutao/tuta-wasm-loader"
+import replace from "@rollup/plugin-replace"
 
 /**
  * Builds the web app for production.
@@ -89,6 +90,10 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			analyzer(projectDir, buildDir),
 			visualizer({ filename: `${buildDir}/stats.html`, gzipSize: true }),
 			bundleDependencyCheckPlugin(),
+			replace({
+				// see AppType in src/common/misc/ClientConstants.ts
+				APP_TYPE: JSON.stringify(app === "calendar" ? "2" : "1"),
+			}),
 			nodeResolve({
 				preferBuiltins: true,
 				resolveOnly: [/^@tutao\/.*$/],

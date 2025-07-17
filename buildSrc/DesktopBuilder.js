@@ -16,6 +16,7 @@ import { domainConfigs } from "./DomainConfigs.js"
 import commonjs from "@rollup/plugin-commonjs"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
+import replace from "@rollup/plugin-replace"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
@@ -142,6 +143,11 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 		},
 		preserveEntrySignatures: false,
 		plugins: [
+			replace({
+				// AppType.Integrated
+				// see src/common/misc/ClientConstants.ts
+				APP_TYPE: JSON.stringify("0"),
+			}),
 			nodeGypPlugin({
 				rootDir: projectRoot,
 				platform: platform,

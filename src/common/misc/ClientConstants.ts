@@ -48,7 +48,7 @@ export type BrowserData = {
 
 export const companyTeamLabel = "Tuta Team"
 
-export enum AppType {
+export const enum AppType {
 	/**
 	 * Desktop app / Web app
 	 */
