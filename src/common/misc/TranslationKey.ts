@@ -2042,3 +2042,4 @@ export type TranslationKeyType =
 	| "removed_label"
 	| "event_label"
 	| "replyInviteSubject_msg"
+	| "invitationNote_msg"
