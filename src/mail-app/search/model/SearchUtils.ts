@@ -276,7 +276,7 @@ export function getRestriction(route: string): SearchRestriction {
 				end = filterInt(params["end"])
 			}
 
-			// Special case for handling dates change on Calendar View. For some reason Mithril doesn't extract the date
+			// Special case for handling dates change on Calendar View. `date` is part of the path and `parsePathname()` returns query params only
 			// from the route string, forcing us to use m.route.param. We always call this function using m.route.get, so it's safe
 			// to use m.route.param to get the missing parameters.
 			if (!route.startsWith("/search/calendar") && m.route.param("date")) {
