@@ -66,10 +66,10 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 	}
 
 	async onContactCreated(contact: Contact): Promise<void> {
-		await this.suggestionFacade.store()
 		const keyToIndexEntries = await this._createContactIndexEntries(contact)
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 		await this._core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), keyToIndexEntries, indexUpdate)
+		await Promise.all([this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()])
 	}
 
 	async onContactDeleted(contact: IdTuple): Promise<void> {
