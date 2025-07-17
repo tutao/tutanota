@@ -36,6 +36,7 @@ import { getExistingRuleForType } from "../model/MailUtils.js"
 import { createResizeObserver } from "@tutao/tutanota-utils/dist/Utils"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
+import { MailViewModel } from "./MailViewModel"
 
 assertMainOrNode()
 
@@ -45,7 +46,7 @@ type MailAddressAndName = {
 }
 
 export type MailViewerAttrs = {
-	viewModel: MailViewerViewModel
+	mailViewerViewModel: MailViewerViewModel
 	isPrimary: boolean
 	/**
 	 * Mail body might contain blockquotes that we want to collapse in some cases (e.g. the thread is visible in conversation anyway) or expand in other
@@ -98,7 +99,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private quoteState: "noquotes" | "unset" | "collapsed" | "expanded" = "unset"
 
 	constructor(vnode: Vnode<MailViewerAttrs>) {
-		this.setViewModel(vnode.attrs.viewModel)
+		this.setViewModel(vnode.attrs.mailViewerViewModel)
 
 		this.resizeListener = () => this.domBodyDeferred.promise.then((dom) => this.updateLineHeight(dom))
 
@@ -181,7 +182,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			{
 				"data-testid": `h:${lang.getTestId("subject_label")}`,
 			},
-			highlightTextInQueryAsChildren(attrs.viewModel.getSubject(), attrs.viewModel.getHighlightedStrings()),
+			highlightTextInQueryAsChildren(attrs.mailViewerViewModel.getSubject(), attrs.mailViewerViewModel.getHighlightedStrings()),
 		)
 	}
 
@@ -259,7 +260,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	onbeforeupdate(vnode: Vnode<MailViewerAttrs>): boolean | void {
 		// Setting viewModel here to have viewModel that we will use for render already and be able to make a decision
 		// about skipping rendering
-		this.setViewModel(vnode.attrs.viewModel)
+		this.setViewModel(vnode.attrs.mailViewerViewModel)
 		// We skip rendering progress indicator when switching between emails.
 		// However if we already loaded the mail then we can just render it.
 		const shouldSkipRender = this.viewModel.isLoading() && this.delayProgressSpinner

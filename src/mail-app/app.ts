@@ -409,6 +409,7 @@ import("./translations/en.js")
 						header: cache.header,
 						makeViewModel: cache.searchViewModelFactory,
 						contactModel: cache.contactModel,
+						mailViewModel: mailLocator.mailViewModel,
 					}),
 				},
 				mailLocator.logins,

@@ -787,7 +787,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					actionButtons.push({
 						label: "move_action",
 						click: (_: MouseEvent, dom: HTMLElement) =>
-							showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail], MoveMode.Mails),
+							showMoveMailsDropdown(
+								viewModel.mailboxModel,
+								viewModel.mailModel,
+								viewModel.mailViewModel,
+								dom.getBoundingClientRect(),
+								[viewModel.mail],
+								MoveMode.Mails,
+							),
 						icon: Icons.Folder,
 					})
 					actionButtons.push(deleteOrTrashAction)
@@ -818,7 +825,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					actionButtons.push({
 						label: "move_action",
 						click: (_: MouseEvent, dom: HTMLElement) =>
-							showMoveMailsDropdown(viewModel.mailboxModel, viewModel.mailModel, dom.getBoundingClientRect(), [viewModel.mail], MoveMode.Mails),
+							showMoveMailsDropdown(
+								viewModel.mailboxModel,
+								viewModel.mailModel,
+								viewModel.mailViewModel,
+								dom.getBoundingClientRect(),
+								[viewModel.mail],
+								MoveMode.Mails,
+							),
 						icon: Icons.Folder,
 					})
 
