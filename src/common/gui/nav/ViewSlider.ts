@@ -80,7 +80,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		// the first background column is the main column
 		this.mainColumn = assertNotNull(
 			viewColumns.find((column) => column.columnType === ColumnType.Background),
-			"there was no background column passed to viewslider",
+			"there was no background column passed to viewSlider",
 		)
 
 		this.focusedColumn = this.mainColumn
@@ -185,8 +185,12 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	private updateVisibleBackgroundColumns() {
-		// update column type of the folder column / sidebar column to make mobile desktop layout work
-		this.viewColumns[0].columnType = styles.isMobileDesktopLayout() ? ColumnType.Background : ColumnType.Foreground
+		// In case the first column (folder / sidebar / (calendar app settings categories) column should be rendered
+		// as a Background column instead of, as by default, as a Foreground column,
+		// we update the columnType on every redraw (orientation change, resize, etc.)
+		// to allow the styles.mobileDesktopLayout() to work properly on all screens.
+		let isRenderFirstColumnAsBackgroundColumn = styles.isMobileDesktopLayout() || !this.enableDrawer
+		this.viewColumns[0].columnType = isRenderFirstColumnAsBackgroundColumn ? ColumnType.Background : ColumnType.Foreground
 
 		this.focusedColumn = this.focusedColumn || this.mainColumn
 		let visibleColumns: ViewColumn[] = [this.focusedColumn.columnType === ColumnType.Background ? this.focusedColumn : this.mainColumn]

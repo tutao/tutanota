@@ -48,7 +48,7 @@ assertMainOrNode()
 
 export class CalendarSettingsView extends BaseTopLevelView implements TopLevelView<CalendarSettingsViewAttrs> {
 	viewSlider: ViewSlider
-	private readonly settingsFoldersColumn: ViewColumn
+	private readonly settingsCategoriesColumn: ViewColumn
 	private readonly userFolders: SettingsFolder<unknown>[]
 	private readonly adminFolders: SettingsFolder<unknown>[]
 	private readonly subscriptionFolders: SettingsFolder<unknown>[]
@@ -96,9 +96,9 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 		this.selectedFolder = this.userFolders[0]
 
-		this.settingsFoldersColumn = this.renderSettingsMainColumn(vnode)
+		this.settingsCategoriesColumn = this.renderSettingsCategoriesColumn(vnode)
 		this.settingsColumn = this.renderSettingsColumn(vnode)
-		this.viewSlider = new ViewSlider([this.settingsFoldersColumn, this.settingsColumn], false)
+		this.viewSlider = new ViewSlider([this.settingsCategoriesColumn, this.settingsColumn], false)
 
 		this.customDomains = new LazyLoaded(async () => {
 			const domainInfos = await getAvailableDomains(this.logins, true)
@@ -113,6 +113,40 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 	private isTabletView() {
 		return (styles.isSingleColumnLayout() && this.viewSlider && this.viewSlider.allColumnsVisible()) || !styles.isSingleColumnLayout()
+	}
+
+	private renderSettingsCategoriesColumn(vnode: Vnode<CalendarSettingsViewAttrs>) {
+		return new ViewColumn(
+			{
+				view: () => {
+					return m(BackgroundColumnLayout, {
+						backgroundColor: theme.navigation_bg,
+						columnLayout: m(".flex.flex-grow.col.fill-absolute.scroll", [
+							this.renderSettingsNavigation(this.userFolders, "userSettings_label"),
+							this.renderLoggedInNavigationLinks(),
+							this.bottomSection(),
+						]),
+						mobileHeader: () =>
+							m(MobileHeader, {
+								...vnode.attrs.header,
+								backAction: () => m.route.set(CALENDAR_PREFIX),
+								columnType: "first",
+								title: "settings_label",
+								actions: [],
+								useBackButton: true,
+								primaryAction: () => null,
+							}),
+						desktopToolbar: () => null,
+					})
+				},
+			},
+			ColumnType.Background,
+			{
+				minWidth: size.first_col_min_width,
+				maxWidth: size.first_col_max_width,
+				headerCenter: "settings_label",
+			},
+		)
 	}
 
 	private renderSettingsColumn(vnode: Vnode<CalendarSettingsViewAttrs>) {
@@ -156,43 +190,9 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width,
+				minWidth: size.third_col_min_width,
 				maxWidth: size.third_col_max_width,
 				headerCenter: this.selectedFolder.name,
-			},
-		)
-	}
-
-	private renderSettingsMainColumn(vnode: Vnode<CalendarSettingsViewAttrs>) {
-		return new ViewColumn(
-			{
-				view: () => {
-					return m(BackgroundColumnLayout, {
-						backgroundColor: theme.navigation_bg,
-						columnLayout: m(".flex.flex-grow.col.full-height", [
-							this.renderSettingsNavigation(this.userFolders, "userSettings_label"),
-							this.renderLoggedInNavigationLinks(),
-							this.bottomSection(),
-						]),
-						mobileHeader: () =>
-							m(MobileHeader, {
-								...vnode.attrs.header,
-								backAction: () => m.route.set(CALENDAR_PREFIX),
-								columnType: "first",
-								title: "settings_label",
-								actions: [],
-								useBackButton: true,
-								primaryAction: () => null,
-							}),
-						desktopToolbar: () => null,
-					})
-				},
-			},
-			ColumnType.Background,
-			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
-				headerCenter: "settings_label",
 			},
 		)
 	}
@@ -434,7 +434,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 
 				m.redraw()
 			} else {
-				this.viewSlider.focus(this.settingsFoldersColumn)
+				this.viewSlider.focus(this.settingsCategoriesColumn)
 			}
 		}
 	}
@@ -543,7 +543,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			m.route.set(CALENDAR_PREFIX)
 		} else {
 			m.route.set(SETTINGS_PREFIX)
-			this.viewSlider.focus(this.settingsFoldersColumn)
+			this.viewSlider.focus(this.settingsCategoriesColumn)
 		}
 
 		return true
