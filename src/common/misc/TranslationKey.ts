@@ -233,8 +233,6 @@ export type TranslationKeyType =
 	| "canNotOpenFileOnDevice_msg"
 	| "captchaChecking_msg"
 	| "captchaDisplay_label"
-	| "captchaEnter_msg"
-	| "captchaInfo_msg"
 	| "captchaInputInfo_msg"
 	| "captchaInput_label"
 	| "captchaInvalidInput_msg"

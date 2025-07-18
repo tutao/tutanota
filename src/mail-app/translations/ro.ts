@@ -20,7 +20,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2025-07-12T13:36:37Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -261,8 +261,6 @@ export default {
 		"canNotOpenFileOnDevice_msg": "Acest fișier nu poate fi deschis în acest aparat.",
 		"captchaChecking_msg": "Ne asigurăm că nu ești un robot ...",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Introdu timpul în ore și minute.",
-		"captchaInfo_msg": "Introdu ora afișată pentru a dovedi că nu ești un calculator.",
 		"captchaInputInfo_msg": "Introdu soluția pentru a dovedi că ești om.",
 		"captchaInput_label": "Răspunsul tău",
 		"captchaInvalidInput_msg": "Soluție greșită. Încearcă din nou.",

@@ -20,7 +20,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-11T08:18:43Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -175,8 +175,6 @@ export default {
 		"cancel_action": "Откажи",
 		"canNotOpenFileOnDevice_msg": "Овај фајл се не може отворити на овом уређају.",
 		"captchaDisplay_label": "Провера",
-		"captchaEnter_msg": "Унесите време у часовима и минутима.",
-		"captchaInfo_msg": "Унесите приказано време, како би сте доказали да нисте рачунар.",
 		"catchAllMailbox_label": "Обухвати цело сандуче",
 		"cc_label": "ЦЦ",
 		"certificateError_msg": "Сертификациони ланац или лични кључ имају лош формат или не одговарају вашем домену.",

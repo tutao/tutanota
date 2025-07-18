@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-01-14T10:41:20Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -186,8 +186,6 @@ export default {
 		"cannotEditSingleInstance_msg": "Bạn chỉ có thể sửa một số phần của sự kiện này vì nó nằm trong một chuỗi sự kiện.",
 		"canNotOpenFileOnDevice_msg": "Không thể mở tệp này trên thiết bị này.",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Vui lòng nhập thời gian theo giờ và phút.",
-		"captchaInfo_msg": "Vui lòng nhập thời gian đang hiển thị để chứng minh bạn không phải là máy tính.",
 		"catchAllMailbox_label": "Hộp thư hứng nốt",
 		"cc_label": "Cc",
 		"certificateError_msg": "Chuỗi chứng chỉ hoặc khóa bí mật có định dạng xấu hoặc không khớp với miền của bạn.",

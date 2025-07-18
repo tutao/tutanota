@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -254,8 +254,6 @@ export default {
 		"cannotEditSingleInstance_msg": "Csak ennek az eseménynek a részeit tudja módosítani, mert ez egy eseménysorozat része.",
 		"canNotOpenFileOnDevice_msg": "Ez a fájl nem nyitható meg ezen az eszközön.",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Kérjük, adja meg a jelenlegi időt óra és perc formátumban!",
-		"captchaInfo_msg": "Kérem adja meg a megadott időt, hogy bizonyíthassa, hogy nem robot.",
 		"catchAllMailbox_label": "Gyűjtő-fiók",
 		"cc_label": "Másolatot kap",
 		"certificateError_msg": "Ez a tanúsítványlánc vagy a titkos kulcs nem megfelelő formátumban van vagy nem egyezik a domainjával.",

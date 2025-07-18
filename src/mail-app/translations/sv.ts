@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-07-10T15:31:30Z",
+	"updated_at": "2025-07-17T18:35:00Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -255,8 +255,6 @@ export default {
 		"canNotOpenFileOnDevice_msg": "Filen kan inte öppnas på den här enheten.",
 		"captchaChecking_msg": "Säkerställer att du inte är en robot ...",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Ange tiden i timmar och minuter.",
-		"captchaInfo_msg": "Ange den visade tiden för att säkerställa att du inte är en dator.",
 		"captchaInputInfo_msg": "Ange lösningen och visa att du är en människa.",
 		"captchaInput_label": "Ditt svar",
 		"captchaInvalidInput_msg": "Ogiltig inmatning. Försök igen.",
@@ -1917,6 +1915,8 @@ export default {
 		"totpTransferSecret_msg": "Uppdatera din-app för autenticering genom att skanna QR-koden (nedan) eller genom att ange den hemliga nyckeln manuellt.",
 		"to_label": "Till",
 		"trash_action": "Papperskorg",
+		"tryAudioCaptcha_action": "Försök med ett ljudpussel istället",
+		"tryVisualCaptcha_action": "Försök med ett visuellt pussel i stället",
 		"tuesday_label": "Tisdag",
 		"tutanotaAddressDoesNotExist_msg": "Följande Tuta e-postadresser finns inte.",
 		"tutaoInfo_msg": "Tutao GmbH är företaget som skapat Tuta åt dig.",

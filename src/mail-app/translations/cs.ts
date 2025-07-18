@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-07-15T07:05:50Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -259,8 +259,6 @@ export default {
 		"canNotOpenFileOnDevice_msg": "Tento soubor nelze otevřít na tomto zařízení.",
 		"captchaChecking_msg": "Ujišťujeme se, že nejste robot...",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Zadejte prosím čas v hodinách a minutách.",
-		"captchaInfo_msg": "Pro ověření, že nejste počítač, zadejte prosím zobrazený čas.",
 		"captchaInputInfo_msg": "Uveďte řešení a dokažte tak, že jste člověk.",
 		"captchaInput_label": "Vaše odpověď",
 		"captchaInvalidInput_msg": "Nesprávný údaj. Zkuste to prosím znovu.",

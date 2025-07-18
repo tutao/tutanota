@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-07-14T10:39:14Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -259,8 +259,6 @@ export default {
 		"canNotOpenFileOnDevice_msg": "Diese Datei kann auf diesem Gerät nicht geöffnet werden.",
 		"captchaChecking_msg": "Überprüfung, dass Sie kein Roboter sind ...",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Bitte tragen Sie die Uhrzeit in Stunden und Minuten ein.",
-		"captchaInfo_msg": "Um sicherzustellen, dass Sie ein Mensch sind, tragen Sie bitte die angezeigte Uhrzeit hier ein.",
 		"captchaInputInfo_msg": "Bitte geben Sie die Lösung ein, um zu beweisen, dass Sie ein Mensch sind.",
 		"captchaInput_label": "Ihre Antwort",
 		"captchaInvalidInput_msg": "Ungültige Eingabe, bitte versuchen Sie es erneut.",

@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-12T09:25:20Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -211,8 +211,6 @@ export default {
 		"cannotEditSingleInstance_msg": "Можете да редактирате само части от това събитие, защото то е част от серия от събития.",
 		"canNotOpenFileOnDevice_msg": "Този файл не може да бъде отворен на това устройство.",
 		"captchaDisplay_label": "CAPTCHA",
-		"captchaEnter_msg": "Моля въведете времето в часове и минути .",
-		"captchaInfo_msg": "Моля, въведете показаното време, за да докажете, че не сте робот.",
 		"catchAllMailbox_label": "Глобална поща",
 		"cc_label": "Як",
 		"certificateError_msg": "Удостоверителната верига или частния ключ са с невалиден формат или не съвпадат с домейна.",

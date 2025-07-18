@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-03-09T14:04:39Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -147,8 +147,6 @@ export default {
 		"cancel_action": "Atcelt",
 		"canNotOpenFileOnDevice_msg": "Failu šajā ierīcē nevar atvērt.",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Lūdzu ievadiet laiku stundās un minūtēs.",
-		"captchaInfo_msg": "Lūdzu, ievadiet redzamo laiku, lai apliecinātu, ka neesat dators.",
 		"cc_label": "Cc",
 		"certificateError_msg": "Sertifikātu ķēde vai privātā atslēga ir nepareiza vai neatbilst jūsu domēna vārdam.",
 		"certificateExpiryDate_label": "Sertifikāta derīguma termiņš: {datums}",

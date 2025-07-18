@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:45:17Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -175,8 +175,6 @@ export default {
 		"cannotEditFullEvent_msg": "Môžeš upraviť iba časti tejto udalosti, pretože nebola vytvorená v tvojom kalendári.",
 		"canNotOpenFileOnDevice_msg": "Tento súbor nemožno otvoriť v tomto zariadení.",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Prosím vlož čas v hodinách a minútach",
-		"captchaInfo_msg": "Pre overenie, že nie si počítač, zadaj, prosím, zobrazený čas.",
 		"catchAllMailbox_label": "Schránka pre všetky zachytené e-maily",
 		"cc_label": "Cc",
 		"certificateError_msg": "Certifikačný reťazec súkromného kľúča má nesprávny formát alebo sa nezhoduje s tvojou doménou.",

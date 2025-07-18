@@ -24,7 +24,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -260,8 +260,6 @@ export default {
 		"cannotEditSingleInstance_msg": "Só podes editar partes deste evento porque forma parte dunha serie de eventos.",
 		"canNotOpenFileOnDevice_msg": "Non se pode abrir o ficheiro neste dispositivo.",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Por favor indroduza a hora en horas e minutos.",
-		"captchaInfo_msg": "Por favor, introduza a hora mostrada para demostrar que non é unha computadora.",
 		"catchAllMailbox_label": "Ao día con todo o correo",
 		"cc_label": "Cc",
 		"certificateError_msg": "A cadea de certificación ou a chave privada teñen un formato incorrecto ou non coinciden co teu dominio.",

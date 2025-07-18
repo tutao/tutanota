@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-07-15T05:54:55Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -253,8 +253,6 @@ export default {
 		"canNotOpenFileOnDevice_msg": "此檔案無法在此裝置上開啟。",
 		"captchaChecking_msg": "確保您不是機器人⋯⋯",
 		"captchaDisplay_label": "驗證碼",
-		"captchaEnter_msg": "請以小時和分鐘為單位輸入時間。",
-		"captchaInfo_msg": "請於欄位中輸入顯示的時間來證明您不是電腦。",
 		"captchaInputInfo_msg": "請輸入答案以證明您是人。",
 		"captchaInput_label": "您的答案",
 		"captchaInvalidInput_msg": "輸入不正確。請再試。",

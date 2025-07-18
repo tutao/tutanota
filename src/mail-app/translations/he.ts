@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-13T07:36:09Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -181,8 +181,6 @@ export default {
 		"cannotEditSingleInstance_msg": "ניתן לערוך רק חלקים מאירוע זה כי הוא חלק מסדרה של אירועים.",
 		"canNotOpenFileOnDevice_msg": "קובץ זה לא יכול להיפתח במכשיר הזה.",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "אנא הכניסו את השעה בשעות ודקות.",
-		"captchaInfo_msg": "נא הכנס את הזמן המוצג בתמונה כדי להוכיח שאתה לא רובוט.",
 		"catchAllMailbox_label": "תיבת הדואר \"תפוס את כל\"",
 		"cc_label": "עותק",
 		"certificateError_msg": "שרשרת האישור או המפתח הפרטי בעלי מבנה לא נכון או שאינם תואמים לדומיין שלך.",

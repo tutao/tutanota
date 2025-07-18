@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:20Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -226,8 +226,6 @@ export default {
 		"cannotEditSingleInstance_msg": "Só pode editar partes deste evento porque este evento é parte de uma série de eventos.",
 		"canNotOpenFileOnDevice_msg": "Este ficheiro não pode ser aberto neste dispositivo",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Por favor, insira a hora em horas e minutos.",
-		"captchaInfo_msg": "Por favor, insira o horário exibido para provar que não é um computador.",
 		"catchAllMailbox_label": "Caixa de correio \"captura tudo\"",
 		"cc_label": "Cc",
 		"certificateError_msg": "A cadeia de certificado ou a chave privada está no formato errado ou não corresponde ao seu domínio. ",

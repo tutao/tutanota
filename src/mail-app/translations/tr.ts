@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-07-14T12:40:28Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -259,8 +259,6 @@ export default {
 		"canNotOpenFileOnDevice_msg": "Bu dosya, bu cihazda açılamaz.",
 		"captchaChecking_msg": "Robot olmadığınızdan emin olmak için...",
 		"captchaDisplay_label": "Güvenlik Doğrulaması",
-		"captchaEnter_msg": "Lütfen zamanı saat ve dakika olarak giriniz.",
-		"captchaInfo_msg": "Lütfen robot olmadığınızı kanıtlamak için gösterilen saati yazınız.",
 		"captchaInputInfo_msg": "Lütfen insan olduğunuzu kanıtlamak için çözümü girin.",
 		"captchaInput_label": "Yanıtınız",
 		"captchaInvalidInput_msg": "Geçersiz girdi. Lütfen tekrar deneyin.",

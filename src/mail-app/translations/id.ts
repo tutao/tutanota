@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-07T07:56:36Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -215,8 +215,6 @@ export default {
 		"cannotEditSingleInstance_msg": "Anda hanya dapat mengedit sebagian dari acara ini karena merupakan bagian dari rangkaian acara.",
 		"canNotOpenFileOnDevice_msg": "Berkas ini tidak bisa dibuka di perangkat ini.",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Mohon masukkan waktu dalam jam dan menit.",
-		"captchaInfo_msg": "Mohon masukkan waktu tertampil untuk membuktikan Anda bukan komputer.",
 		"catchAllMailbox_label": "Dapatkan semua kotak surel",
 		"cc_label": "Cc",
 		"certificateError_msg": "Rangkaian sertifikat atau kunci pribadi mempunyai format yang salah atau tidak sesuai dengan domain kamu",

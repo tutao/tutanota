@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2025-07-10T20:31:31Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -255,8 +255,6 @@ export default {
 		"canNotOpenFileOnDevice_msg": "El fitxer no es pot obrir en aquest dispositiu.",
 		"captchaChecking_msg": "Assegura't que no ets un robot...",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Si us plau, introdueix el temps en hores i minuts.",
-		"captchaInfo_msg": "Si us plau, introdueixi l'hora que es mostra per comprovar que no és un equip.",
 		"captchaInputInfo_msg": "Si us plau, introdueix la solució per demostrar que ets humà.",
 		"captchaInput_label": "La vostra resposta",
 		"captchaInvalidInput_msg": "Entrada no vàlida. Si us plau, torneu-ho a intentar.",

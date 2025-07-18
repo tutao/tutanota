@@ -22,7 +22,7 @@ export default {
 		"many"
 	],
 	"created_at": "2015-03-13T10:17:47Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -84,8 +84,6 @@ export default {
 		"cancel_action": "Atšaukti",
 		"canNotOpenFileOnDevice_msg": "Šis failas negali būti atidarytas šiuo prietaisu.",
 		"captchaDisplay_label": "Captcha atpažinimas",
-		"captchaEnter_msg": "Įveskite laiką valandomis ir minutėmis.",
-		"captchaInfo_msg": "Įveskite rodomą laiką, kad įrodytumėte, jog nesate kompiuteris/robotas.",
 		"cc_label": "Cc",
 		"certificateExpiryDate_label": "Sertifikato pasibaigimo data: {date}",
 		"changeAdminPassword_msg": "Atleiskite, jūs negalite pakeisti kitų administratorių slaptažodžių.",

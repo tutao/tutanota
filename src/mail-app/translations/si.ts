@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2021-11-11T11:18:04Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -240,8 +240,6 @@ export default {
 		"cannotEditSingleInstance_msg": "සිදුවීම් මාලාවක කොටසක් බැවින් ඔබට මෙම සිදුවීමේ කොටස් පමණක් සංස්කරණයට හැකිය.",
 		"canNotOpenFileOnDevice_msg": "මෙම ගොනුව මෙම උපාංගයේ විවෘත කළ නොහැකිය.",
 		"captchaDisplay_label": "අභියෝගය",
-		"captchaEnter_msg": "කාලය පැය සහ විනාඩි වලින් ඇතුල් කරන්න.",
-		"captchaInfo_msg": "ඔබ පරිගණකයක් නොවන බව ඔප්පු කිරීමට දර්ශනය වන වේලාව යොදන්න.",
 		"catchAllMailbox_label": "සියල්ල අසුවන තැ.පෙ.",
 		"cc_label": "පිටපත්",
 		"certificateError_msg": "සහතික දාමය හෝ පුද්ගලික යතුරෙහි නරක ආකෘතියක් ඇත හෝ ඔබගේ වසම සමඟ නොගැළපේ.",

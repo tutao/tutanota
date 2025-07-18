@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T10:00:49Z",
-	"updated_at": "2025-07-14T14:51:15Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -181,8 +181,6 @@ export default {
 		"cannotEditFullEvent_msg": "شما تنها می‌توانید بخش‌هایی از این رویداد را تغییر دهید زیرا این رویداد روی تقویم شما به وجود نیامده است.",
 		"canNotOpenFileOnDevice_msg": "این فایل نمی تواند روی این دستگاه اجرا شود.",
 		"captchaDisplay_label": "کد امنیتی",
-		"captchaEnter_msg": "لطفاً زمان را به ساعت و دقیقه وارد کنید. ",
-		"captchaInfo_msg": "برای اطمینان ما که شما کامپیوتر نیستید، لطفا اینجا زمان نمایش داده شده را وارد کنید.",
 		"catchAllMailbox_label": "گرفتن تمام صندوق پستی",
 		"cc_label": "کپی",
 		"certificateError_msg": "زنجیرهٔ گواهی یا کلید خصوصی قالب نادرستی دارد یا با دامنهٔ شما مطابق نیست. ",

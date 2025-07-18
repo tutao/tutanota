@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-07-14T11:42:25Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -255,8 +255,6 @@ export default {
 		"canNotOpenFileOnDevice_msg": "Tiedostoa ei voi avata tällä laitteella.",
 		"captchaChecking_msg": "Tarkistamme, ettet ole robotti...",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Kirjoita kellonaika tunteina ja minuutteina.",
-		"captchaInfo_msg": "Syötä näytetty aika osoittaaksesi, että olet ihminen etkä kone.",
 		"captchaInputInfo_msg": "Syötä vastauksesi todistaaksesi olevasi ihminen.",
 		"captchaInput_label": "Vastauksesi",
 		"captchaInvalidInput_msg": "Virheellinen syöte. Yritä uudelleen.",

@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -221,8 +221,6 @@ export default {
 		"cannotEditSingleInstance_msg": "Você só pode editar partes deste evento porque ele faz parte de uma série de eventos.",
 		"canNotOpenFileOnDevice_msg": "Não é possível abrir esse arquivo neste dispositivo. ",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Digite o horário em horas e minutos.",
-		"captchaInfo_msg": "Digite o horário exibido para provar que não é um computador.",
 		"catchAllMailbox_label": "Endereço \"pega-tudo\"",
 		"cc_label": "Cc",
 		"certificateError_msg": "A cadeia de certificados ou chave privada está num formato diferente ou não é válido para seus domínio.",

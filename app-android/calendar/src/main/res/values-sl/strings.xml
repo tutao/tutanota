@@ -11,6 +11,7 @@
     <string name="sendLogs_action">Pošlji dnevnike</string>
     <string name="account_label">Uporabnik</string>
     <string name="calendars_label">Koledarji</string>
+    <string name="widgetNoCredentialsInfo_msg">Poverilnice niso na voljo</string>
     <string name="widgetUnexpectedError_msg">Ups! Nekaj se je zalomilo.</string>
     <string name="widgetOpenApp_action">Odpri aplikacijo</string>
     <string name="widgetNoEvents_msg">Ni dogodkov</string>

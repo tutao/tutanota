@@ -20,7 +20,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -256,8 +256,6 @@ export default {
 		"cannotEditSingleInstance_msg": "Možete uređivati samo dijelove ovog događaja jer je dio niza događaja.",
 		"canNotOpenFileOnDevice_msg": "Ova datoteka ne može biti otvorena na ovom uređaju.",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Molimo unesite vrijeme u satima i minutama.",
-		"captchaInfo_msg": "Molimo unesite prikazano vrijeme, kako bi dokazali da niste računalo.",
 		"catchAllMailbox_label": "Obuhvati cijeli mailbox",
 		"cc_label": "Cc",
 		"certificateError_msg": "Lanac certifikata ili privatni ključ imaju loš format ili se ne podudaraju s Vašom domenom.",

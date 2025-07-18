@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-07-11T11:47:49Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -259,8 +259,6 @@ export default {
 		"canNotOpenFileOnDevice_msg": "Цей файл неможливо відкрити на даному пристрої.",
 		"captchaChecking_msg": "Впевнюємось, що ви не робот ...",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Введіть час, будь ласка, у годинах і хвилинах.",
-		"captchaInfo_msg": "Введіть, будь ласка, показаний час, щоб довести, що ви не комп'ютер.   ",
 		"captchaInputInfo_msg": "Для підтвердження того, що ви людина, введіть правильну відповідь.",
 		"captchaInput_label": "Ваша відповідь",
 		"captchaInvalidInput_msg": "Помилка у введенні даних. Спробуйте ще раз.",
@@ -1920,6 +1918,7 @@ export default {
 		"totpTransferSecret_msg": "Оновіть свою програму автентифікатора через сканування QR коду (нижче) або шляхом введення секретного ключа вручну.",
 		"to_label": "Кому",
 		"trash_action": "Кошик",
+		"tryVisualCaptcha_action": "Спробуйте натомість візуальну головоломку",
 		"tuesday_label": "Вівторок",
 		"tutanotaAddressDoesNotExist_msg": "Наступні адреси електронної пошти сервісу Tuta не існують.",
 		"tutaoInfo_msg": "Tutao GmbH - це компанія, яка надає Вам сервіс Tuta.",

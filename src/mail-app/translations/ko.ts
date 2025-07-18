@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-13T09:48:48Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -184,8 +184,6 @@ export default {
 		"cannotEditSingleInstance_msg": "이 일정은 반복 일정의 일부이므로 일부 내용만 편집할 수 있습니다.",
 		"canNotOpenFileOnDevice_msg": "이 파일은 이 장치에서 열 수 없습니다.",
 		"captchaDisplay_label": "캡차",
-		"captchaEnter_msg": "시간을 시간과 분의 형식으로 표현해 주세요.",
-		"captchaInfo_msg": "표시된 시간을 입력하여 봇이 아님을 증명하세요.",
 		"catchAllMailbox_label": "모든 메일함 캐치하기",
 		"cc_label": "참조",
 		"certificateError_msg": "인증서 체인 또는 개인 키의 형식이 잘못되었거나 도메인과 맞지 않습니다. ",

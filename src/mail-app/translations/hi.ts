@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-01T09:47:21Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -162,8 +162,6 @@ export default {
 		"cancel_action": "रद्द करना",
 		"canNotOpenFileOnDevice_msg": "इस फाइल को इस डिवाइस पर खोला नहीं जा सकता.",
 		"captchaDisplay_label": "कैप्चा",
-		"captchaEnter_msg": "कृपया घंटे और मिनटों में समय दर्ज करें",
-		"captchaInfo_msg": "आप एक कंप्यूटर नहीं हैं यह साबित करने के लिए प्रदर्शित समय दर्ज करें.",
 		"catchAllMailbox_label": "सभी मेलबॉक्स को पकड़ो",
 		"cc_label": "प्रतिलिपि",
 		"certificateError_msg": "प्रमाणपत्र श्रृंखला या निजी कुंजी का खराब स्वरूप है या आपके डोमेन से मेल नहीं खाता है.",

@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Posnemite sliko ali videoposnetek, če ga želite dodati kot prilogo.";
 NSPhotoLibraryUsageDescription = "Dodaj sliko iz knjižnice kot priponko.";
 NSMicrophoneUsageDescription = "Uporabljeno med snemanjem videa za prilogo.";
-NSContactsUsageDescription = "1. Najdi prejemnikov poštni naslov v stikih.\n2. Po želji sinhronizirajte Tuta stike z napravo.";
+NSContactsUsageDescription = "Tuta vam lahko prikaže predloge prejemnikov pošte iz stikov, shranjenih v napravi. Poleg tega lahko omogočite, da Tuta sinhronizira vaše stike med napravo in računom Tuta. Če v nastavitvah omogočite sinhronizacijo, bodo stiki iz vaše naprave preneseni po varnem šifriranju, vaši stiki iz računa Tuta pa bodo na voljo drugim aplikacijam.";
 NSRemindersUsageDescription = "Prikaže obvestilo, ko prispe novo sporočilo.";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Slike";
@@ -19,6 +19,7 @@ TutaoWidgetOpenAppAction = "Odpri aplikacijo";
 TutaoWidgetUnexpectedErrorMsg = "Ups! Nekaj se je zalomilo.";
 TutaoWidgetSendLogsAction = "Pošlji dnevnike";
 TutaoWidgetNoEventsMsg = "Ni dogodkov";
+TutaoWidgetCredentialsErrorMsg = "Poverilnice niso na voljo";
 TutaoAccountLabel = "Uporabnik";
 TutaoCalendarsLabel = "Koledarji";
 TutaoNoTitleLabel = "<Brez naslova>";

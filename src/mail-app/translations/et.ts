@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-11T07:50:49Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -100,8 +100,6 @@ export default {
 		"cancelSharedMailbox_label": "Tühista jagatud postkast",
 		"cancel_action": "Tühista",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Palun sisestage aeg tundides ja minutites.",
-		"captchaInfo_msg": "Palun sisestage kuvatud kellaaeg tõestamaks, et te pole arvuti.",
 		"cc_label": "Koopia",
 		"certificateError_msg": "Sertifikaadi ketil või privaatvõtmel on vale vorming või need ei vasta Teie domeenile.",
 		"certificateStateProcessing_label": "Töötlemine",

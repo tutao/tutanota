@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-10T11:48:14Z",
-	"updated_at": "2025-07-10T13:57:27Z",
+	"updated_at": "2025-07-16T08:17:46Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -249,8 +249,6 @@ export default {
 		"cannotEditNotOrganizer_msg": "Du kan ikke redigere denne hendelsen ettersom du ikke er arrangøren.",
 		"canNotOpenFileOnDevice_msg": "Denne filen kan ikke åpnes på denne enheten.",
 		"captchaDisplay_label": "Captcha",
-		"captchaEnter_msg": "Skriv inn tiden i timer og minutter.",
-		"captchaInfo_msg": "Skriv inn den viste tiden for å bevise at du ikke er en robot.",
 		"catchAllMailbox_label": "Oppsamlingspostkasse",
 		"cc_label": "Kopi",
 		"certificateError_msg": "Sertifikatkjeden eller den privat nøkkel har feil format eller samsvarer ikke med ditt domene.",
