@@ -23,8 +23,9 @@ export interface Suggestion {
 export class SearchDropDown<T extends Suggestion> implements ClassComponent<SearchDropDownAttrs<T>> {
 	private domSuggestions!: HTMLElement
 	private keyboardHeight: number = 0
+	private lastSelectionIndex: number | null = null
 
-	oncreate() {
+	oncreate({ attrs }: Vnode<SearchDropDownAttrs<T>>) {
 		windowFacade.addKeyboardSizeListener((newSize) => {
 			// *-------------------*  -
 			// |                   |  |
@@ -38,14 +39,16 @@ export class SearchDropDown<T extends Suggestion> implements ClassComponent<Sear
 			// On iOS screen is not resized when keyboard is opened. Instead we send a signal to WebView with keyboard height.
 			this.keyboardHeight = newSize
 		})
+		this.lastSelectionIndex = attrs.selectedSuggestionIndex
 	}
 
 	view({ attrs }: Vnode<SearchDropDownAttrs<T>>): Children {
-		if (attrs.selectedSuggestionIndex !== attrs.selectedSuggestionIndex && this.domSuggestions) {
+		if (attrs.selectedSuggestionIndex !== this.lastSelectionIndex && this.domSuggestions) {
 			requestAnimationFrame(() => {
 				scrollListDom(this.domSuggestions, EntryHeight, attrs.selectedSuggestionIndex)
 			})
 		}
+		this.lastSelectionIndex = attrs.selectedSuggestionIndex
 
 		// We need to calculate how much space can be actually used for the dropdown. We cannot just add margin like we do with dialog
 		// because the suggestions dropdown is absolutely positioned.
