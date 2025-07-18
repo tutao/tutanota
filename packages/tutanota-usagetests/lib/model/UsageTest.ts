@@ -104,7 +104,7 @@ export class UsageTest {
 		for (let i = this.lastCompletedStage + 1; i < stage.number; i++) {
 			let currentStage = this.stages.get(i)
 
-			if (!!currentStage && currentStage.minPings != 0) {
+			if (!!currentStage && currentStage.minPings !== 0) {
 				console.log(
 					`Not sending ping for stage (${stage.number}) in wrong order of test '${this.testId}' because stage ${currentStage.number} is not finished`,
 				)

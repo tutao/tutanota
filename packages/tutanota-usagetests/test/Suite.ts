@@ -204,7 +204,7 @@ o.spec("Main", function () {
 		test1.allowEarlyRestarts = true
 
 		for (let i = 0; i < 4; i++) {
-			test1.addStage(new Stage(i, test1, i == 2 ? 0 : 1, i + 1))
+			test1.addStage(new Stage(i, test1, i === 2 ? 0 : 1, i + 1))
 		}
 
 		const adapter = new MockPingAdapter()

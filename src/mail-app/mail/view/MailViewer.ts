@@ -234,7 +234,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private handleContentBlockingOnRender() {
-		if (this.lastContentBlockingStatus != null && this.viewModel.getContentBlockingStatus() != this.lastContentBlockingStatus) {
+		if (this.lastContentBlockingStatus != null && this.viewModel.getContentBlockingStatus() !== this.lastContentBlockingStatus) {
 			Promise.resolve().then(async () => {
 				// Wait for new mail body to be rendered before replacing images. Probably not necessary anymore as we already schedule it after the render
 				// but better be safe.

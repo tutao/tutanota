@@ -1196,21 +1196,21 @@ o.spec("EntityRestClient", function () {
 						// this patch list must include two patch operations: replace for _ownerEncSessionKey and _ownerKeyVersion on newAccountingInfo
 						const patchList = await instancePipeline.decryptAndMap(PatchListTypeRef, JSON.parse(options.body), null)
 						const ownerEncSessionKeyOperation = assertNotNull(
-							patchList.patches.find((operation) => typeModel.values[parseInt(operation.attributePath)].name == "_ownerEncSessionKey"),
+							patchList.patches.find((operation) => typeModel.values[parseInt(operation.attributePath)].name === "_ownerEncSessionKey"),
 						)
 						const ownerKeyVersionOperation = assertNotNull(
-							patchList.patches.find((operation) => typeModel.values[parseInt(operation.attributePath)].name == "_ownerKeyVersion"),
+							patchList.patches.find((operation) => typeModel.values[parseInt(operation.attributePath)].name === "_ownerKeyVersion"),
 						)
 						return (
 							deepEqual(options.headers, {
 								...authHeader,
 								v: String(version),
 							}) &&
-							patchList.patches.length == 2 &&
-							ownerEncSessionKeyOperation.value == uint8ArrayToBase64(ownerEncSessionKey.key) &&
-							ownerKeyVersionOperation.value == ownerEncSessionKey.encryptingKeyVersion.toString() &&
-							ownerEncSessionKeyOperation.patchOperation == PatchOperationType.REPLACE &&
-							ownerKeyVersionOperation.patchOperation == PatchOperationType.REPLACE
+							patchList.patches.length === 2 &&
+							ownerEncSessionKeyOperation.value === uint8ArrayToBase64(ownerEncSessionKey.key) &&
+							ownerKeyVersionOperation.value === ownerEncSessionKey.encryptingKeyVersion.toString() &&
+							ownerEncSessionKeyOperation.patchOperation === PatchOperationType.REPLACE &&
+							ownerKeyVersionOperation.patchOperation === PatchOperationType.REPLACE
 						)
 					}),
 				),

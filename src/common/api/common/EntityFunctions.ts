@@ -137,7 +137,7 @@ export class ClientModelInfo {
 	public resolveTypeRefFromAppAndTypeNameLegacy(app: AppName, typeName: string): TypeRef<any> {
 		const typeModels = this.typeModels[app]
 		for (const [typeModelId, typeModel] of Object.entries(typeModels)) {
-			if (typeModel.name == typeName) {
+			if (typeModel.name === typeName) {
 				return new TypeRef(app, parseInt(typeModelId))
 			}
 		}

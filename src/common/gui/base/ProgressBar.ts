@@ -41,7 +41,7 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 		}
 
 		this.lastProgress = a.progress
-		let progressBarSelector = a.type == ProgressBarType.Large ? ".abs.accent-bg.border-radius-big" : ".abs.accent-bg"
+		let progressBarSelector = a.type === ProgressBarType.Large ? ".abs.accent-bg.border-radius-big" : ".abs.accent-bg"
 		return m(progressBarSelector, {
 			onbeforeremove: (vn) =>
 				newPromise<void>((resolve) => {
@@ -59,7 +59,7 @@ export class ProgressBar implements Component<ProgressBarAttrs> {
 				left: 0,
 				transition: "width 500ms",
 				width: a.progress * 100 + "%",
-				height: a.type == ProgressBarType.Large ? "100%" : "2px",
+				height: a.type === ProgressBarType.Large ? "100%" : "2px",
 			},
 		})
 	}

@@ -20,7 +20,7 @@ export class DesktopInterWindowEventFacade implements InterWindowEventFacade {
 	}
 
 	private async executeOnOthers(f: (other: ApplicationWindow) => Promise<void>): Promise<void> {
-		const others = this.wm.getAll().filter((w) => w.id != this.window.id)
+		const others = this.wm.getAll().filter((w) => w.id !== this.window.id)
 		for (const other of others) {
 			await f(other)
 		}

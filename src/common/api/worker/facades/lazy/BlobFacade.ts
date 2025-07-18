@@ -455,7 +455,7 @@ export class BlobFacade {
 			fileName,
 			this.createStorageAppHeaders(),
 		)
-		if (statusCode == 200 && encryptedFileUri != null) {
+		if (statusCode === 200 && encryptedFileUri != null) {
 			const decryptedFileUrl = await this.aesApp.aesDecryptFile(sessionKey, encryptedFileUri)
 			try {
 				await this.fileApp.deleteFile(encryptedFileUri)

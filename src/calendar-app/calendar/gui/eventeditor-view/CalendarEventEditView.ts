@@ -83,7 +83,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		this.startOfTheWeekOffset = vnode.attrs.startOfTheWeekOffset
 		this.defaultAlarms = vnode.attrs.defaultAlarms
 
-		if (vnode.attrs.model.operation == CalendarOperation.Create) {
+		if (vnode.attrs.model.operation === CalendarOperation.Create) {
 			const initialAlarms = vnode.attrs.defaultAlarms.get(vnode.attrs.model.editModels.whoModel.selectedCalendar.group._id) ?? []
 			vnode.attrs.model.editModels.alarmModel.addAll(initialAlarms)
 		}
@@ -152,7 +152,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			;(vnode.dom as HTMLElement).style.height = px(this.dialogHeight)
 		}
 
-		if (this.pageWidth == -1 && dom.parentElement) {
+		if (this.pageWidth === -1 && dom.parentElement) {
 			this.pageWidth = dom.parentElement.clientWidth - size.hpad_large * 2
 			// Twice the page width (Main Page + Guests/Repeat) plus the gap between pages (64px)
 			;(vnode.dom as HTMLElement).style.width = px(this.pageWidth * 2 + size.vpad_xxl)
@@ -251,7 +251,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				disabled: !attrs.model.isFullyWritable(),
 				dateSelectionChanged: (date: Date) => {
 					whenModel.startDate = date
-					if (whenModel.repeatPeriod == RepeatPeriod.MONTHLY) whenModel.resetMonthlyByDayRules(date)
+					if (whenModel.repeatPeriod === RepeatPeriod.MONTHLY) whenModel.resetMonthlyByDayRules(date)
 				},
 			} satisfies EventTimeEditorAttrs),
 		)

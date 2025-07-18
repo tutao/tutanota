@@ -469,7 +469,7 @@ export class EntityRestClient implements EntityRestInterface {
 		let sessionKey: AesKey | null
 		if (ownerEncSessionKeyProvider) {
 			const id = entityAdapter._id
-			const elementId = typeof id == "string" ? id : elementIdPart(id)
+			const elementId = typeof id === "string" ? id : elementIdPart(id)
 
 			const ownerEncSessionKey = await ownerEncSessionKeyProvider(elementId, entityAdapter)
 			const ownerGroup = assertNotNull(entityAdapter._ownerGroup)
@@ -646,7 +646,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	async eraseMultiple<T extends SomeEntity>(listId: string, instances: T[], options?: EntityRestClientEraseOptions | undefined): Promise<void> {
-		if (instances.length == 0) {
+		if (instances.length === 0) {
 			return
 		}
 
@@ -685,7 +685,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		_verifyType(clientTypeModel)
 
-		if (ownerKey == undefined && !this.authDataProvider.isFullyLoggedIn() && clientTypeModel.encrypted) {
+		if (ownerKey == null && !this.authDataProvider.isFullyLoggedIn() && clientTypeModel.encrypted) {
 			// Short-circuit before we do an actual request which we can't decrypt
 			throw new LoginIncompleteError(`Trying to do a network request with encrypted entity but is not fully logged in yet, type: ${clientTypeModel.name}`)
 		}

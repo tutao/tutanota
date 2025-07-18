@@ -291,10 +291,10 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 							m(
 								"button.items-center.flex-grow",
 								{
-									...(option.value == this.repeatInterval ? { "aria-selected": "true" } : {}),
+									...(option.value === this.repeatInterval ? { "aria-selected": "true" } : {}),
 									class:
 										"state-bg button-content dropdown-button pt-s pb-s button-min-height" +
-										(option.value == this.repeatInterval ? "content-accent-fg row-selected icon-accent" : ""),
+										(option.value === this.repeatInterval ? "content-accent-fg row-selected icon-accent" : ""),
 								},
 								option.name,
 							),
@@ -397,10 +397,10 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					m(
 						"button.items-center.flex-grow",
 						{
-							...(option.value == this.repeatOccurrences ? { "aria-selected": "true" } : {}),
+							...(option.value === this.repeatOccurrences ? { "aria-selected": "true" } : {}),
 							class:
 								"state-bg button-content dropdown-button pt-s pb-s button-min-height" +
-								(option.value == this.repeatOccurrences ? "content-accent-fg row-selected icon-accent" : ""),
+								(option.value === this.repeatOccurrences ? "content-accent-fg row-selected icon-accent" : ""),
 						},
 						option.name,
 					),

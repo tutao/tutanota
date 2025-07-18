@@ -294,7 +294,7 @@ export function removeFinalIvs(instance: Entity | ParsedInstance): Entity | Pars
 }
 
 export function removeOriginals<T extends Entity>(instance: T | null): T | null {
-	if (isNotNull(instance) && typeof instance == "object") {
+	if (isNotNull(instance) && typeof instance === "object") {
 		delete instance["_original"]
 		for (const i of Object.values(instance).filter(isNotNull)) {
 			removeOriginals(i)

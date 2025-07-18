@@ -51,7 +51,7 @@ export function generateKeyPair(kyberWasm: LibOQSExports, randomizer: Randomizer
 			mutableSecureFree(publicKey),
 			mutableSecureFree(privateKey),
 		)
-		if (result != 0) {
+		if (result !== 0) {
 			throw new Error(`OQS_KEM_keypair returned ${result}`)
 		}
 		return {
@@ -70,7 +70,7 @@ export function generateKeyPair(kyberWasm: LibOQSExports, randomizer: Randomizer
  * @return the plaintext secret key and the encapsulated key for use with AES or as input to a KDF
  */
 export function encapsulate(kyberWasm: LibOQSExports, publicKey: KyberPublicKey, randomizer: Randomizer): KyberEncapsulation {
-	if (publicKey.raw.length != OQS_KEM_ml_kem_1024_length_public_key) {
+	if (publicKey.raw.length !== OQS_KEM_ml_kem_1024_length_public_key) {
 		throw new CryptoError(`Invalid public key length; expected ${OQS_KEM_ml_kem_1024_length_public_key}, got ${publicKey.raw.length}`)
 	}
 
@@ -87,7 +87,7 @@ export function encapsulate(kyberWasm: LibOQSExports, publicKey: KyberPublicKey,
 			mutableSecureFree(sharedSecret),
 			mutableSecureFree(publicKey.raw),
 		)
-		if (result != 0) {
+		if (result !== 0) {
 			throw new Error(`TUTA_KEM_encaps returned ${result}`)
 		}
 		return { ciphertext, sharedSecret }
@@ -103,10 +103,10 @@ export function encapsulate(kyberWasm: LibOQSExports, publicKey: KyberPublicKey,
  * @return the plaintext secret key
  */
 export function decapsulate(kyberWasm: LibOQSExports, privateKey: KyberPrivateKey, ciphertext: Uint8Array): Uint8Array {
-	if (privateKey.raw.length != OQS_KEM_ml_kem_1024_length_secret_key) {
+	if (privateKey.raw.length !== OQS_KEM_ml_kem_1024_length_secret_key) {
 		throw new CryptoError(`Invalid private key length; expected ${OQS_KEM_ml_kem_1024_length_secret_key}, got ${privateKey.raw.length}`)
 	}
-	if (ciphertext.length != OQS_KEM_ml_kem_1024_length_ciphertext) {
+	if (ciphertext.length !== OQS_KEM_ml_kem_1024_length_ciphertext) {
 		throw new CryptoError(`Invalid ciphertext length; expected ${OQS_KEM_ml_kem_1024_length_ciphertext}, got ${ciphertext.length}`)
 	}
 
@@ -121,7 +121,7 @@ export function decapsulate(kyberWasm: LibOQSExports, privateKey: KyberPrivateKe
 			secureFree(ciphertext),
 			secureFree(privateKey.raw),
 		)
-		if (result != 0) {
+		if (result !== 0) {
 			throw new Error(`TUTA_KEM_decaps returned ${result}`)
 		}
 		return sharedSecret

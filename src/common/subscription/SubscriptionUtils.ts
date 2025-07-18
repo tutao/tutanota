@@ -325,7 +325,7 @@ export function getPriceStr({ priceAndConfigProvider, targetPlan, paymentInterva
 	if (referencePrice > price) {
 		// if there is a discount for this plan we show the original price as reference
 		referencePriceStr = formatMonthlyPrice(referencePrice, paymentInterval)
-	} else if (paymentInterval == PaymentInterval.Yearly && price !== 0) {
+	} else if (paymentInterval === PaymentInterval.Yearly && price !== 0) {
 		// if there is no discount for any plan then we show the monthly price as reference
 		const monthlyReferencePrice = priceAndConfigProvider.getSubscriptionPrice(PaymentInterval.Monthly, targetPlan, UpgradePriceType.PlanActualPrice)
 		referencePriceStr = formatMonthlyPrice(monthlyReferencePrice, PaymentInterval.Monthly)

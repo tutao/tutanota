@@ -43,7 +43,7 @@ export class TerminationViewModel {
 
 	async createAccountTerminationRequest(surveyData: SurveyData | null = null): Promise<void> {
 		await this.authenticate()
-		if (this.loginState == LoginState.LoggedIn) {
+		if (this.loginState === LoginState.LoggedIn) {
 			await this.createTerminationRequest(surveyData)
 		}
 	}

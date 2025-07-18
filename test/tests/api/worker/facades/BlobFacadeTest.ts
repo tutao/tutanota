@@ -5,7 +5,7 @@ import { SuspensionHandler } from "../../../../../src/common/api/worker/Suspensi
 import { NativeFileApp } from "../../../../../src/common/native/common/FileApp.js"
 import { AesApp } from "../../../../../src/common/native/worker/AesApp.js"
 import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { BlobReferenceTokenWrapperTypeRef, BlobTypeRef, createBlobReferenceTokenWrapper } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
+import { BlobTypeRef, createBlobReferenceTokenWrapper } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
@@ -498,7 +498,7 @@ o.spec("BlobFacade", function () {
 			when(
 				instancePipelineMock.mapAndEncrypt(
 					anything(),
-					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId1" && inData.blobIds.length == 2),
+					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId1" && inData.blobIds.length === 2),
 					anything(),
 				),
 			).thenResolve(requestBody1)
@@ -506,7 +506,7 @@ o.spec("BlobFacade", function () {
 			when(
 				instancePipelineMock.mapAndEncrypt(
 					anything(),
-					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId2" && inData.blobIds.length == 1),
+					matchers.argThat((inData: BlobGetIn) => inData.archiveId === "archiveId2" && inData.blobIds.length === 1),
 					anything(),
 				),
 			).thenResolve(requestBody2)
