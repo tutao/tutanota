@@ -243,6 +243,11 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 		return Promise.resolve(true)
 	}
 
+	prevAction(showErrorDialog: boolean): Promise<boolean> {
+		SignupFlowUsageTestController.deletePing(SignupFlowStage.CREATE_ACCOUNT)
+		return Promise.resolve(true)
+	}
+
 	headerTitle(): TranslationKey {
 		return "adminPayment_action"
 	}

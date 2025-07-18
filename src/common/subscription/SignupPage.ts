@@ -64,6 +64,11 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 		return Promise.resolve(true)
 	}
 
+	prevAction(showErrorDialog: boolean): Promise<boolean> {
+		SignupFlowUsageTestController.deletePing(SignupFlowStage.TRIGGER)
+		return Promise.resolve(true)
+	}
+
 	isSkipAvailable(): boolean {
 		return false
 	}

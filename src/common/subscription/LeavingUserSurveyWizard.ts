@@ -34,15 +34,15 @@ export async function showLeavingUserSurveyWizard(showPriceCategory: boolean, sh
 	]
 	const deferred = defer<LeavingUserSurveyData>()
 
-	const wizardBuilder = createWizardDialog(
-		leavingUserSurveyData,
-		wizardPages,
-		async () => {
+	const wizardBuilder = createWizardDialog({
+		data: leavingUserSurveyData,
+		pages: wizardPages,
+		closeAction: async () => {
 			deferred.resolve(leavingUserSurveyData)
 		},
-		DialogType.EditLarge,
-		"surveySkip_action",
-	)
+		dialogType: DialogType.EditLarge,
+		cancelButtonText: "surveySkip_action",
+	})
 
 	wizardBuilder.dialog.show()
 	return deferred.promise

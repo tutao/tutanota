@@ -133,14 +133,14 @@ export async function showUpgradeWizard(
 	}
 
 	const deferred = defer<void>()
-	const wizardBuilder = createWizardDialog(
-		upgradeData,
-		wizardPages,
-		async () => {
+	const wizardBuilder = createWizardDialog({
+		data: upgradeData,
+		pages: wizardPages,
+		closeAction: async () => {
 			deferred.resolve()
 		},
-		DialogType.EditLarge,
-	)
+		dialogType: DialogType.EditLarge,
+	})
 	wizardBuilder.dialog.show()
 	return deferred.promise
 }
@@ -234,10 +234,10 @@ export async function loadSignupWizard(
 		wizardPages.splice(2, 1) // do not show this page on AppStore payment since we are only able to show this single payment method on iOS
 	}
 
-	const wizardBuilder = createWizardDialog(
-		signupData,
-		wizardPages,
-		async () => {
+	const wizardBuilder = createWizardDialog({
+		data: signupData,
+		pages: wizardPages,
+		closeAction: async () => {
 			if (locator.logins.isUserLoggedIn()) {
 				// this ensures that all created sessions during signup process are closed
 				// either by clicking on `cancel`, closing the window, or confirm on the UpgradeCongratulationsPage
@@ -255,9 +255,8 @@ export async function loadSignupWizard(
 				})
 			}
 		},
-		null,
-		DialogType.EditLarge,
-	)
+		dialogType: DialogType.EditLarge,
+	})
 
 	// for signup specifically, we only want the invoice and payment page as well as the confirmation page to show up if signing up for a paid account (and the user did not go back to the first page!)
 	invoiceAttrs.setEnabledFunction(() => signupData.type !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
@@ -282,27 +281,19 @@ function initPlansPages(signupData: UpgradeSubscriptionData): {
 	if (!pricingData.hasGlobalFirstYearDiscount && (firstYearDiscount !== 0 || bonusMonth !== 0 || hasDiscount || hasMessage)) {
 		SignupFlowUsageTestController.invalidateUsageTest()
 		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
-	} else {
-		SignupFlowUsageTestController.initSignupFlowUsageTest()
+	}
+	SignupFlowUsageTestController.initSignupFlowUsageTest()
 
-		// Placeholder implementation
-		const variant = SignupFlowUsageTestController.getUsageTestVariant()
-
-		// FIXME
-		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
-
-		// const variant = 1
-		switch (variant) {
-			case 1:
-				return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
-			case 2:
-				return { pageClass: VariantBSubscriptionPage, attrs: new VariantBSubscriptionPageAttrs(signupData) }
-			case 3:
-				return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
-			default:
-				SignupFlowUsageTestController.invalidateUsageTest()
-				console.error("Received an unexpected usage test variant: ", SignupFlowUsageTestController.getUsageTestVariant())
-				return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
-		}
+	switch (SignupFlowUsageTestController.getUsageTestVariant()) {
+		case 1:
+			return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
+		case 2:
+			return { pageClass: VariantBSubscriptionPage, attrs: new VariantBSubscriptionPageAttrs(signupData) }
+		case 3:
+			return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
+		default:
+			SignupFlowUsageTestController.invalidateUsageTest()
+			console.error("Received an unexpected usage test variant: ", SignupFlowUsageTestController.getUsageTestVariant())
+			return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
 	}
 }

@@ -382,6 +382,7 @@ export class UsageTestModel implements PingAdapter {
 			pingId,
 		})
 		await this.serviceExecutor.delete(UsageTestParticipationService, data)
+		console.log(`Removed Ping: ${pingId}, ${pingListId}`)
 	}
 
 	async sendPing(test: UsageTest, stage: Stage): Promise<PingIdTuple | undefined> {

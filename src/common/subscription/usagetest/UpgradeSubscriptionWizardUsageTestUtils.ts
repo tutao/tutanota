@@ -21,10 +21,9 @@ export abstract class SignupFlowUsageTestController {
 		usageTest.invalidateTest()
 	}
 
-	public static deletePing(stageNumber: number) {
+	public static deletePing(stage: SignupFlowStage) {
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
-		const testDeviceIde = locator.usageTestModel.getTestDeviceId()
-		void usageTest.getStage(stageNumber).deletePing()
+		void usageTest.getStage(stage.valueOf()).deletePing()
 	}
 
 	public static initSignupFlowUsageTest() {
