@@ -144,6 +144,8 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 				extendInfo: {
 					LSUIElement: 1, //hide dock icon on startup
 				},
+				// we do not lipo the binaries so we should tell @electron/universal to not merge them into a single asar
+				singleArchFiles: "build/desktop/*.node",
 				target: unpacked
 					? [{ target: "dir", arch: architecture }]
 					: [
