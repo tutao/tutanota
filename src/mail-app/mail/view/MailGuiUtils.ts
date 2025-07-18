@@ -5,7 +5,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, endsWith, first, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, deduplicate, endsWith, first, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -41,7 +41,8 @@ import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
-import { getIds } from "../../../common/api/common/utils/EntityUtils"
+import { getElementId, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { showSnackBar } from "../../../common/gui/base/SnackBar"
 
 /**
  * A function that returns an array of mails, or a promise that eventually returns one.
@@ -79,6 +80,8 @@ interface MoveMailsParams {
 	targetFolder: MailFolder
 	moveMode: MoveMode
 	isReportable?: boolean
+	/** The folder to move the mails back to; if null or undefined, then the move cannot be undone */
+	undoFolder?: MailFolder | null
 }
 
 async function reportMails(
@@ -96,11 +99,42 @@ async function reportMails(
 	return true
 }
 
+async function showUndoSnackbar(
+	targetFolder: MailFolder,
+	undoFolder: MailFolder,
+	resolveMails: () => Promise<Mail[]>,
+	mailboxModel: MailboxModel,
+	mailModel: MailModel,
+): Promise<void> {
+	const movedMessage = lang.get("undoMoveMail_msg", {
+		"{folder}": getFolderName(targetFolder),
+	})
+
+	return showSnackBar({
+		message: {
+			testId: "undoMoveMail_msg",
+			text: movedMessage,
+		},
+		button: {
+			label: "undo_action",
+			click: noOp,
+		},
+	})
+}
+
 /**
  * Moves the mails and reports them as spam if the user or settings allow it.
  * @return whether mails were actually moved
  */
-export async function moveMails({ mailboxModel, mailModel, mailIds, targetFolder, moveMode, isReportable = true }: MoveMailsParams): Promise<boolean> {
+export async function moveMails({
+	mailboxModel,
+	mailModel,
+	mailIds,
+	targetFolder,
+	moveMode,
+	isReportable = true,
+	undoFolder,
+}: MoveMailsParams): Promise<boolean> {
 	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
 	if (system == null) {
 		return false
@@ -108,6 +142,13 @@ export async function moveMails({ mailboxModel, mailModel, mailIds, targetFolder
 	try {
 		await mailModel.moveMails(mailIds, targetFolder, moveMode)
 		const resolveMails = () => mailModel.loadAllMails(mailIds)
+
+		// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
+		// user to undo the move...
+		if (undoFolder != null && !isSameId(getElementId(targetFolder), getElementId(undoFolder))) {
+			await showUndoSnackbar(targetFolder, undoFolder, resolveMails, mailboxModel, mailModel)
+		}
+
 		return await reportMails(system, targetFolder, isReportable, resolveMails, mailboxModel, mailModel)
 	} catch (e) {
 		//LockedError should no longer be thrown!?!
@@ -139,7 +180,15 @@ export async function moveMailsToSystemFolder({
 	const folderSystem = mailModel.getFolderSystemByGroupId(assertNotNull(currentFolder._ownerGroup))
 	const targetFolder = folderSystem?.getSystemFolderByType(targetFolderType)
 	if (targetFolder == null) return false
-	return await moveMails({ mailboxModel, mailModel, mailIds, targetFolder, isReportable, moveMode })
+	return await moveMails({
+		mailboxModel,
+		mailModel,
+		mailIds,
+		targetFolder,
+		isReportable,
+		moveMode,
+		undoFolder: currentFolder,
+	})
 }
 
 function handleMoveError(err: Error) {
@@ -356,6 +405,7 @@ export async function showMoveMailsFromFolderDropdown(
 				mailIds: resolvedMails,
 				targetFolder: f.folder,
 				moveMode,
+				undoFolder: currentFolder,
 			})
 		},
 		opts,
@@ -373,6 +423,8 @@ export async function showMoveMailsDropdown(
 	const firstMail = first(mails)
 	if (firstMail == null) return
 	const folders = await getMoveTargetFolderSystems(mailModel, mails)
+	const currentFolders = deduplicate(mails.map((mail) => mailModel.getMailFolderForMail(mail)))
+
 	await showMailFolderDropdown(
 		origin,
 		folders,
@@ -383,6 +435,7 @@ export async function showMoveMailsDropdown(
 				mailIds: getIds(mails),
 				targetFolder: f.folder,
 				moveMode,
+				undoFolder: currentFolders.length === 1 ? first(currentFolders) : null,
 			})
 		},
 		opts,

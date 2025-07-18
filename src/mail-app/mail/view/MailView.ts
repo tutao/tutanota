@@ -1000,6 +1000,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				targetFolder,
 				mailIds: actionableMails,
 				moveMode: this.mailViewModel.getMoveMode(currentFolder),
+				undoFolder: currentFolder,
 			})
 		}
 	}
