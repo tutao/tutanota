@@ -16,7 +16,7 @@ import {
 import { CalendarDayEventsView, calendarDayTimes } from "./CalendarDayEventsView"
 import { theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
-import { EventTextTimeOption, WeekStart } from "../../../common/api/common/TutanotaConstants"
+import { EventTextTimeOption, Keys, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { PageView } from "../../../common/gui/base/PageView"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -44,6 +44,8 @@ import { DateTime } from "luxon"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
+import { isAppleDevice } from "../../../common/api/common/Env.js"
+import { Key } from "../../../common/misc/KeyManager.js"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date
@@ -230,7 +232,14 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
 
-					this.endDrag(mouseEvent)
+					let key
+					if (mouseEvent.metaKey && isAppleDevice()) {
+						key = Keys.META
+					} else if (mouseEvent.ctrlKey) {
+						key = Keys.CTRL
+					}
+
+					this.endDrag(mouseEvent, key)
 				},
 				onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
@@ -784,11 +793,11 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		)
 	}
 
-	private endDrag(pos: MousePos) {
+	private endDrag(pos: MousePos, key?: Key) {
 		this.isHeaderEventBeingDragged = false
 
 		if (this.dateUnderMouse) {
-			this.eventDragHandler.endDrag(this.dateUnderMouse, pos).catch(ofClass(UserError, showUserError))
+			this.eventDragHandler.endDrag(this.dateUnderMouse, pos, key).catch(ofClass(UserError, showUserError))
 		}
 	}
 
