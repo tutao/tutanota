@@ -197,7 +197,7 @@ export class BulkMailLoader {
 			mailSetListData.loadedButUnusedEntries,
 			(entry) => deconstructMailSetEntryId(getElementId(entry)).receiveDate.getTime() > rangeStart,
 		)
-		if (lastNewerThanStartIndex != -1) {
+		if (lastNewerThanStartIndex !== -1) {
 			const removed = mailSetListData.loadedButUnusedEntries.splice(0, lastNewerThanStartIndex + 1)
 			const lastRemovedItem = last(removed)
 			const lastRemovedDate = lastRemovedItem != null ? deconstructMailSetEntryId(getElementId(lastRemovedItem)).receiveDate : null

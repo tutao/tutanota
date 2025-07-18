@@ -43,7 +43,7 @@ function interceptProtocol(protocol: string, session: Session, fetchImpl: FetchI
 		const startTime: number = Date.now()
 		if (!url.startsWith(protocol)) {
 			return new Response(null, { status: 400 })
-		} else if (method == "OPTIONS") {
+		} else if (method === "OPTIONS") {
 			// this actually doesn't seem to be called when the actual request is intercepted,
 			// but we'll handle it anyway.
 			log.debug(TAG, "intercepted options request, returning canned response")

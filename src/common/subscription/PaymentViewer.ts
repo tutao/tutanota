@@ -149,7 +149,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			return locator.mobilePaymentsFacade.showSubscriptionConfigView()
 		} else if (hasRunningAppStoreSubscription(this.accountingInfo)) {
 			return showManageThroughAppStoreDialog()
-		} else if (currentPaymentMethod == PaymentMethodType.AppStore && this.customer?.type === AccountType.PAID) {
+		} else if (currentPaymentMethod === PaymentMethodType.AppStore && this.customer?.type === AccountType.PAID) {
 			// For now we do not allow changing payment method for Paid accounts that use AppStore,
 			// they must downgrade to Free first.
 
@@ -353,7 +353,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				locator.fileController.saveDataFile(pdfInvoice),
 			)
 		} else {
-			if (client.device == DeviceType.ANDROID) {
+			if (client.device === DeviceType.ANDROID) {
 				return Dialog.message("invoiceFailedWebview_msg", () =>
 					m(
 						"div",

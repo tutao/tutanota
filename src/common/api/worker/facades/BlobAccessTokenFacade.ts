@@ -212,7 +212,7 @@ export class BlobAccessTokenFacade {
 			}
 		}
 
-		if (archiveIds.size != 1) {
+		if (archiveIds.size !== 1) {
 			throw new Error(`only one archive id allowed, but was ${archiveIds}`)
 		}
 		return referencingInstances[0].blobs[0].archiveId
@@ -268,7 +268,7 @@ class BlobAccessTokenCache {
 
 		const tokens = deduplicate(instanceIds.map((id) => this.instanceMap.get(id) ?? null))
 		const firstTokenFound = first(tokens)
-		if (tokens.length != 1 || firstTokenFound == null || !canBeUsedForAnotherRequest(firstTokenFound, this.dateProvider)) {
+		if (tokens.length !== 1 || firstTokenFound == null || !canBeUsedForAnotherRequest(firstTokenFound, this.dateProvider)) {
 			const newToken = await loader()
 			if (archiveOrGroupKey != null && newToken.tokenKind === BlobAccessTokenKind.Archive) {
 				this.archiveMap.set(archiveOrGroupKey, newToken)

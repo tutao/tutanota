@@ -173,7 +173,7 @@ export function show(): void {
 		}
 
 		Dialog.showActionDialog({
-			title: viewModel.groupType == GroupType.Mail ? "createSharedMailbox_label" : "addGroup_label",
+			title: viewModel.groupType === GroupType.Mail ? "createSharedMailbox_label" : "addGroup_label",
 			child: () =>
 				m(AddGroupDialog, {
 					selectedDomain: viewModel.selectedDomain,

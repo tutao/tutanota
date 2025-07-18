@@ -449,7 +449,7 @@ export class EventBusClient {
 		// pause event queue and add all missed entity events first
 		this.eventQueue.pause()
 
-		const existingConnection = connectMode == ConnectMode.Reconnect && this.lastEntityEventIds.size > 0
+		const existingConnection = connectMode === ConnectMode.Reconnect && this.lastEntityEventIds.size > 0
 		const p = existingConnection ? this.loadMissedEntityEvents(this.eventQueue) : this.initOnNewConnection()
 		return p
 			.then(() => {

@@ -578,8 +578,8 @@ export class KeyRotationFacade {
 		const targetGroup = await this.entityClient.load(GroupTypeRef, targetGroupId)
 
 		const members = await this.entityClient.loadAll(GroupMemberTypeRef, targetGroup.members)
-		const ownMember = members.find((member) => member.user == user._id)
-		const otherMembers = members.filter((member) => member.user != user._id)
+		const ownMember = members.find((member) => member.user === user._id)
+		const otherMembers = members.filter((member) => member.user !== user._id)
 		let currentGroupKey = await this.getCurrentGroupKey(targetGroup)
 		const newGroupKeys = await this.generateGroupKeys(targetGroup)
 		const encryptedGroupKeys = await this.encryptGroupKeys(targetGroup, currentGroupKey, newGroupKeys, currentAdminGroupKey)
@@ -727,7 +727,7 @@ export class KeyRotationFacade {
 
 	private async createGroupKeyUpdatesForMembers(group: Group, newGroupKey: VersionedKey): Promise<Array<GroupKeyUpdateData>> {
 		const members = await this.entityClient.loadAll(GroupMemberTypeRef, group.members)
-		const otherMembers = members.filter((member) => member.user != this.userFacade.getUser()?._id)
+		const otherMembers = members.filter((member) => member.user !== this.userFacade.getUser()?._id)
 		return await this.tryCreatingGroupKeyUpdatesForMembers(group._id, otherMembers, newGroupKey)
 	}
 

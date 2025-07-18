@@ -38,7 +38,7 @@ export class PerWindowSqlCipherFacade implements SqlCipherFacade {
 	async openDb(userId: string, dbKey: Uint8Array): Promise<void> {
 		log.debug(TAG, "open db for", userId)
 		if (this.state != null) {
-			if (this.state.userId != userId) {
+			if (this.state.userId !== userId) {
 				throw new ProgrammingError(`Already opened database for user ${this.state.userId} when trying to open db for ${userId}!`)
 			} else {
 				console.warn(`trying to open already opened db for ${userId}!`)

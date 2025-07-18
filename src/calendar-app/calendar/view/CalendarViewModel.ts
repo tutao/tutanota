@@ -421,7 +421,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	setSelectedTime(time: Time | undefined) {
 		// only ignore an actual time, setting to undefined is fine
-		if (time != undefined && this.ignoreNextValidTimeSelection) {
+		if (time != null && this.ignoreNextValidTimeSelection) {
 			this.ignoreNextValidTimeSelection = false
 		} else {
 			this.selectedTime = time

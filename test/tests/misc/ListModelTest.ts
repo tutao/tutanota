@@ -681,7 +681,7 @@ o.spec("ListModel", function () {
 				},
 
 				sortCompare: (item1, item2) => {
-					if (currentNumberListSortingMode == NumberListSortingMode.Ascending) {
+					if (currentNumberListSortingMode === NumberListSortingMode.Ascending) {
 						return item1 - item2
 					} else {
 						return item2 - item1
@@ -716,7 +716,7 @@ o.spec("ListModel", function () {
 
 		o.test("sorting with filters sorts the whole list and the filtered list", () => {
 			function numberIsEven(n: number): boolean {
-				return n % 2 == 0
+				return n % 2 === 0
 			}
 
 			numberList.setFilter(numberIsEven)

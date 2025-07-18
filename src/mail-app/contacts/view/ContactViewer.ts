@@ -233,7 +233,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 		return insertBetween(
 			contact.pronouns.map((pronouns) => {
 				let language = ""
-				if (pronouns.language != "") {
+				if (pronouns.language !== "") {
 					language = `${pronouns.language}: `
 				}
 

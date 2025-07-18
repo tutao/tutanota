@@ -189,13 +189,13 @@ export function _replaceLoneSurrogates(s: string | null | undefined): string {
 }
 
 const encoder =
-	typeof TextEncoder == "function"
+	typeof TextEncoder === "function"
 		? new TextEncoder()
 		: {
 				encode: _stringToUtf8Uint8ArrayLegacy,
 			}
 const decoder =
-	typeof TextDecoder == "function"
+	typeof TextDecoder === "function"
 		? new TextDecoder()
 		: {
 				decode: _utf8Uint8ArrayToStringLegacy,
@@ -393,7 +393,7 @@ export function bytesToByteArrays(encodedByteArrays: Uint8Array, expectedByteArr
 		byteArrays.push(readResult.byteArray)
 		index = readResult.index
 	}
-	if (byteArrays.length != expectedByteArrays) {
+	if (byteArrays.length !== expectedByteArrays) {
 		throw new Error("invalid amount of key parameters. Expected: " + expectedByteArrays + " actual:" + byteArrays.length)
 	}
 	return byteArrays
@@ -416,7 +416,7 @@ function readByteArray(encoded: Uint8Array, index: number): { index: number; byt
 	index += BYTE_ARRAY_LENGTH_FIELD_SIZE
 	const byteArray = encoded.slice(index, length + index)
 	index += length
-	if (byteArray.length != length) {
+	if (byteArray.length !== length) {
 		throw new Error("cannot read encoded byte array at pos:" + index + " expected bytes:" + length + " read bytes:" + byteArray.length)
 	}
 	return { index, byteArray }

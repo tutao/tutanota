@@ -188,7 +188,13 @@ const WEEKDAY_TO_NUMBER = {
 	SU: 7,
 } as Record<string, WeekdayNumbers>
 
-function expandByDayRuleForWeeklyEvents(targetWeekDay: any, date: DateTime, wkst: WeekdayNumbers, validMonths: number[], newDates: DateTime[]) {
+function expandByDayRuleForWeeklyEvents(
+	targetWeekDay: WeekdayNumbers | null | undefined,
+	date: DateTime,
+	wkst: WeekdayNumbers,
+	validMonths: number[],
+	newDates: DateTime[],
+) {
 	// BYMONTH => BYDAY(expand)
 	if (!targetWeekDay) {
 		return
@@ -216,7 +222,7 @@ function expandByDayRuleForWeeklyEvents(targetWeekDay: any, date: DateTime, wkst
 		newDate = newDate.plus({ weeks: 1 })
 	}
 
-	if (newDate.toMillis() >= nextEvent || (wkst != WeekDaysJsValue.MO && newDate.toMillis() >= intervalStart.plus({ weeks: 1 }).toMillis())) {
+	if (newDate.toMillis() >= nextEvent || (wkst !== WeekDaysJsValue.MO && newDate.toMillis() >= intervalStart.plus({ weeks: 1 }).toMillis())) {
 		// Or we created an event after the first event or within the next week
 		return
 	}
@@ -227,7 +233,7 @@ function expandByDayRuleForWeeklyEvents(targetWeekDay: any, date: DateTime, wkst
 }
 
 function expandByDayRuleForMonthlyEvents(
-	targetWeekDay: any,
+	targetWeekDay: WeekdayNumbers | null | undefined,
 	leadingValue: number | null,
 	date: DateTime,
 	monthDays: number[] | undefined,
@@ -262,7 +268,7 @@ function expandByDayRuleForMonthlyEvents(
 
 	// If there's a leading value in the rule we have to change the week.
 	// e.g. 2TH means second thursday, consequently, second week of the month
-	if (weekChange != 0) {
+	if (weekChange !== 0) {
 		let dt = baseDate
 
 		// Check for negative week changes e.g -1TH last thursday
@@ -276,7 +282,7 @@ function expandByDayRuleForMonthlyEvents(
 				dt = dt.minus({ week: 1 })
 			}
 		} else {
-			while (dt.weekday != targetWeekDay) {
+			while (dt.weekday !== targetWeekDay) {
 				dt = dt.plus({ day: 1 })
 			}
 			dt = dt.plus({ week: weekChange - 1 })
@@ -1787,7 +1793,7 @@ export const BYRULE_MAP = freezeMap(
 )
 
 export const enum WeekDaysJsValue {
-	SU,
+	SU = 0,
 	MO,
 	TU,
 	WE,
