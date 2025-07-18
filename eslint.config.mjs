@@ -24,8 +24,7 @@ export default defineConfig([
 			"no-misleading-character-class": "warn",
 			"no-prototype-builtins": "error",
 			"no-self-assign": "error",
-			// TODO: would be cool to enable
-			// "no-self-compare": "error",
+			"no-self-compare": "error",
 			"no-setter-return": "error",
 			"no-sparse-arrays": "error",
 			"no-unexpected-multiline": "error",
