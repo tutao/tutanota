@@ -4,7 +4,7 @@ import type { TextFieldAttrs } from "../../gui/base/TextField.js"
 import { TextField } from "../../gui/base/TextField.js"
 import { InfoLink, lang } from "../../misc/LanguageViewModel.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
-import { CustomerPropertiesTypeRef, Session, SessionTypeRef } from "../../api/entities/sys/TypeRefs.js"
+import { CustomerPropertiesTypeRef, GroupInfo, Session, SessionTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { formatDateTimeFromYesterdayOn } from "../../misc/Formatter.js"
 import { SessionState } from "../../api/common/TutanotaConstants.js"
@@ -158,6 +158,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			return m("", [
 				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 					m(".h4.mt-l", lang.get("loginCredentials_label")),
+					this.renderName(user.userGroupInfo),
 					m(TextField, mailAddressAttrs),
 					m(TextField, passwordAttrs),
 					user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
@@ -192,6 +193,35 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		} else {
 			return null
 		}
+	}
+
+	private renderName(groupInfo: GroupInfo): Children {
+		return m(TextField, {
+			label: "name_label",
+			value: groupInfo.name,
+			isReadOnly: true,
+			injectionsRight: () =>
+				m(IconButton, {
+					title: "edit_action",
+					click: () => this.onChangeName(groupInfo),
+					icon: Icons.Edit,
+					size: ButtonSize.Compact,
+				}),
+		})
+	}
+
+	private onChangeName(groupInfo: GroupInfo) {
+		Dialog.showProcessTextInputDialog(
+			{
+				title: "edit_action",
+				label: "name_label",
+				defaultValue: groupInfo.name,
+			},
+			async (newName) => {
+				groupInfo.name = newName
+				return locator.entityClient.update(groupInfo)
+			},
+		)
 	}
 
 	private renderAppLockField(): Children {
