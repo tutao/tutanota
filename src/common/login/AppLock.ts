@@ -21,7 +21,7 @@ export class MobileAppLock implements AppLock {
 	) {}
 
 	async enforce(): Promise<void> {
-		if ((await this.credentialsFacade.getCredentialEncryptionMode()) != CredentialEncryptionMode.DEVICE_LOCK) {
+		if ((await this.credentialsFacade.getCredentialEncryptionMode()) !== CredentialEncryptionMode.DEVICE_LOCK) {
 			// for migration: do not display the lock twice
 			return
 		}

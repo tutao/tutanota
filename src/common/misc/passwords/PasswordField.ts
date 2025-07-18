@@ -56,7 +56,7 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 		const displayedStatus = PasswordField.parseStatusSetting(status, value, strength)
 		return m(".mt-xs", [
 			m(".flex.items-center", [
-				strength != undefined
+				strength != null
 					? m(CompletenessIndicator, {
 							class: "mr-s",
 							percentageCompleted: scaleToVisualPasswordStrength(strength),
@@ -69,7 +69,7 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 	}
 
 	private static parseStatusSetting(status: StatusSetting | undefined, password: string, strength: number | undefined): Status | null {
-		if (status === "auto" && strength != undefined) {
+		if (status === "auto" && strength != null) {
 			return PasswordField.getPasswordStatus(password, strength!)
 		} else if (status && typeof status !== "string") {
 			return status

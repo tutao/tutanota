@@ -81,7 +81,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 
 		const agendaChildren = this.renderAgenda(attrs, isDesktopLayout)
 
-		if (attrs.selectedTime && attrs.eventsForDays.size > 0 && this.lastScrolledDate != attrs.selectedDate) {
+		if (attrs.selectedTime && attrs.eventsForDays.size > 0 && this.lastScrolledDate !== attrs.selectedDate) {
 			this.lastScrolledDate = attrs.selectedDate
 			requestAnimationFrame(() => {
 				if (this.listDom) {

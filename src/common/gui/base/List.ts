@@ -508,7 +508,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		// reach here, so waiting for domDeferred guarantees that oncreate has finished running, and in turn that _createVirtualRows has completed
 		const lastBunchVisible = this.currentPosition > attrs.state.items.length * attrs.renderConfig.itemHeight - visibleElementsHeight * 2
 
-		if (lastBunchVisible && attrs.state.loadingStatus == ListLoadingState.Idle) {
+		if (lastBunchVisible && attrs.state.loadingStatus === ListLoadingState.Idle) {
 			await attrs.onLoadMore()
 		}
 	}

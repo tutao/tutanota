@@ -22,7 +22,7 @@ export class RichNotificationsNews implements NewsListItem {
 		return (
 			isApp() &&
 			this.pushApp != null &&
-			(this.notificationMode = await this.pushApp.getExtendedNotificationMode()) != ExtendedNotificationMode.SenderAndSubject
+			(this.notificationMode = await this.pushApp.getExtendedNotificationMode()) !== ExtendedNotificationMode.SenderAndSubject
 		)
 	}
 

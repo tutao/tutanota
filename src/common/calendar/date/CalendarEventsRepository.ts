@@ -183,7 +183,7 @@ export class CalendarEventsRepository {
 				await this.addDaysForEvent(event, eventStartMonth)
 			}
 			// no short event covers more than two months, so this should cover everything.
-			if (eventEndMonth.start != eventStartMonth.start && this.isCalendarLoadedForRange(eventEndMonth.start, event._ownerGroup)) {
+			if (eventEndMonth.start !== eventStartMonth.start && this.isCalendarLoadedForRange(eventEndMonth.start, event._ownerGroup)) {
 				await this.addDaysForEvent(event, eventEndMonth)
 			}
 		} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {

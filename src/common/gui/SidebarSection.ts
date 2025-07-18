@@ -17,7 +17,9 @@ export class SidebarSection implements Component<SidebarSectionAttrs> {
 	view(vnode: Vnode<SidebarSectionAttrs>): Children {
 		const { name, button, hideIfEmpty } = vnode.attrs
 		const content = vnode.children
-		if (hideIfEmpty && content == false) return null // Using loose equality to check if children has any contents
+
+		// eslint-disable-next-line eqeqeq -- Using loose equality to check if children has any contents
+		if (hideIfEmpty && content == false) return null
 		return m(
 			".sidebar-section",
 			{

@@ -193,7 +193,7 @@ export class MailExportController {
 				}
 				currentStartId = getElementId(lastThrow(downloadedMails))
 				const currentState = this._state()
-				if (currentState.type != "exporting") {
+				if (currentState.type !== "exporting") {
 					return
 				}
 				this._state({ ...currentState, exportedMails: currentState.exportedMails + downloadedMails.length })

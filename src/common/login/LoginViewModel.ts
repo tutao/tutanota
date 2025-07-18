@@ -333,7 +333,7 @@ export class LoginViewModel implements ILoginViewModel {
 				if (credentials) {
 					const offlineTimeRange = this.deviceConfig.getOfflineTimeRangeDate(this.autoLoginCredentials.userId)
 					const result = await this.loginController.resumeSession(credentials, null, offlineTimeRange)
-					if (result.type == "success") {
+					if (result.type === "success") {
 						await this.onLogin()
 					} else {
 						this.state = LoginState.NotAuthenticated

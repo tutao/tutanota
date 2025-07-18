@@ -170,8 +170,8 @@ export function compress(source: Uint8Array): Uint8Array {
 		if (
 			ref < 0 ||
 			(sourcePos - ref) >>> 16 > 0 ||
-			((source[ref + 3] << 8) | source[ref + 2]) != sequenceHighBits ||
-			((source[ref + 1] << 8) | source[ref]) != sequenceLowBits
+			((source[ref + 3] << 8) | source[ref + 2]) !== sequenceHighBits ||
+			((source[ref + 1] << 8) | source[ref]) !== sequenceLowBits
 		) {
 			// increase step if nothing found within limit
 			step = findMatchAttempts++ >> SKIP_STRENGTH
@@ -189,7 +189,7 @@ export function compress(source: Uint8Array): Uint8Array {
 		// move to the end of the match (>=MIN_MATCH)
 		let match_length = sourcePos
 
-		while (sourcePos < srcLength && source[sourcePos] == source[ref]) {
+		while (sourcePos < srcLength && source[sourcePos] === source[ref]) {
 			sourcePos++
 			ref++
 		}

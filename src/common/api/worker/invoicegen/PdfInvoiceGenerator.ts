@@ -176,7 +176,7 @@ export class PdfInvoiceGenerator {
 			"",
 			InvoiceTexts[this.languageCode].grandTotal,
 			// in case of NO_VAT_CHARGE_TUTAO we must not show the VAT in the invoice, but we pay the taxes ourselves, so they need to be existing on the invoice
-			this.formatInvoiceCurrency(this.invoice.vatType == VatType.NO_VAT_CHARGE_TUTAO ? this.invoice.subTotal : this.invoice.grandTotal),
+			this.formatInvoiceCurrency(this.invoice.vatType === VatType.NO_VAT_CHARGE_TUTAO ? this.invoice.subTotal : this.invoice.grandTotal),
 		])
 	}
 

@@ -797,10 +797,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const mailDetailsBlob1 = await cache.load(MailDetailsBlobTypeRef, [archiveId, createId("id1")])
 			removeOriginals(mailDetailsBlob1)
-			o(mailDetailsBlob1 == mailDetailsBlob).equals(false)
+			o.check(mailDetailsBlob1).notEquals(mailDetailsBlob)
 			const mailDetailsBlob2 = await cache.load(MailDetailsBlobTypeRef, [archiveId, createId("id1")])
 			removeOriginals(mailDetailsBlob2)
-			o(mailDetailsBlob1 == mailDetailsBlob2).equals(false)
+			o.check(mailDetailsBlob1).notEquals(mailDetailsBlob2)
 		})
 
 		o("when reading from the cache, the entities will be cloned pt.2", async function () {
@@ -808,10 +808,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			await storage.put(MailTypeRef, await toStorableInstance(mail))
 			const mail1 = await cache.load(MailTypeRef, ["listId1", createId("id1")])
 			removeOriginals(mail1)
-			o(mail1 == mail).equals(false)
+			o.check(mail1).notEquals(mail)
 			const mail2 = await cache.load(MailTypeRef, ["listId1", createId("id1")])
 			removeOriginals(mail2)
-			o(mail1 == mail2).equals(false)
+			o.check(mail1).notEquals(mail2)
 		})
 
 		async function setupMailList(loadedUntilMinId: boolean, loadedUntilMaxId: boolean): Promise<Mail[]> {
@@ -840,10 +840,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			// the range request will be provided from the cache
 			const mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 3, false)
 			mails.map(removeOriginals)
-			o(mails).deepEquals(originalMails)
-			o(mails[0] == originalMails[0]).equals(false)
-			o(mails[1] == originalMails[1]).equals(false)
-			o(mails[2] == originalMails[2]).equals(false)
+			o.check(mails).deepEquals(originalMails)
+			o.check(mails[0]).notEquals(originalMails[0])
+			o.check(mails[1]).notEquals(originalMails[1])
+			o.check(mails[2]).notEquals(originalMails[2])
 		})
 
 		o("list elements are provided from cache - range min to max loaded", async function () {

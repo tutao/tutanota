@@ -33,7 +33,7 @@ export interface ListFetchResult<ElementType> {
 export type ListSelectionCallbacks = Pick<ListElementListModel<ListElement>, "selectPrevious" | "selectNext" | "areAllSelected" | "selectAll" | "selectNone">
 
 export function listSelectionKeyboardShortcuts(multiselectMode: MultiselectMode, callbacks: () => ListSelectionCallbacks | null): Array<Shortcut> {
-	const multiselectionEnabled = multiselectMode == MultiselectMode.Enabled ? () => true : () => false
+	const multiselectionEnabled = multiselectMode === MultiselectMode.Enabled ? () => true : () => false
 	return [
 		{
 			key: Keys.UP,

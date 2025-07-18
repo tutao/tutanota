@@ -30,7 +30,7 @@ export function getColorLuminance(c: string): number {
 
 export function isMonochrome(c: string): boolean {
 	const { r, g, b } = hexToRgb(c)
-	return r == g && g == b
+	return r === g && g === b
 }
 
 export function isColorLight(c: string): boolean {

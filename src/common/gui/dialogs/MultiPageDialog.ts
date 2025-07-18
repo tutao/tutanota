@@ -284,7 +284,7 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 			;(vnode.dom as HTMLElement).style.height = px(this.dialogHeight)
 		}
 
-		if (this.pageWidth == -1 && dom.parentElement) {
+		if (this.pageWidth === -1 && dom.parentElement) {
 			this.setPageWidth(dom)
 			m.redraw()
 		}
@@ -295,7 +295,7 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 	}
 
 	private getFillerPage(currentPage: string, stack: string[]): stream<string> {
-		const page = this.slideDirection == SlideDirection.RIGHT ? stack[stack.length - 2] : this.transitionPage()
+		const page = this.slideDirection === SlideDirection.RIGHT ? stack[stack.length - 2] : this.transitionPage()
 		return stream(page ?? currentPage)
 	}
 
