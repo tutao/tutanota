@@ -5,7 +5,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, deduplicate, endsWith, first, isEmpty, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, deduplicate, endsWith, first, isEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -43,6 +43,9 @@ import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
 import { getElementId, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
+import { MailViewModel } from "./MailViewModel"
+
+const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
 
 /**
  * A function that returns an array of mails, or a promise that eventually returns one.
@@ -76,6 +79,7 @@ export async function promptAndDeleteMails(
 interface MoveMailsParams {
 	mailboxModel: MailboxModel
 	mailModel: MailModel
+	mailViewModel: MailViewModel
 	mailIds: ReadonlyArray<IdTuple>
 	targetFolder: MailFolder
 	moveMode: MoveMode
@@ -104,18 +108,46 @@ async function showUndoSnackbar(
 	undoFolder: MailFolder,
 	resolveMails: () => Promise<readonly Mail[]>,
 	mailModel: MailModel,
+	mailViewModel: MailViewModel,
 ): Promise<void> {
-	return showSnackBar({
+	let cancelSnackbar: () => void
+
+	const undoAction = {
+		exec: async () => {
+			cancelSnackbar?.()
+			const mails = await resolveMails()
+			await mailModel.moveMails(getIds(mails), undoFolder, MoveMode.Mails)
+		},
+		onClear: () => {
+			cancelSnackbar?.()
+		},
+	}
+
+	const clearUndoAction = lazyMemoized(() => mailViewModel.clearUndoActionIfUnmodified(undoAction))
+	cancelSnackbar = await showSnackBar({
 		message: lang.getTranslation("undoMoveMail_msg", {
 			"{folder}": getFolderName(targetFolder),
 		}),
 		button: {
 			label: "undo_action",
 			click: async () => {
-				const mails = await resolveMails()
-				await mailModel.moveMails(getIds(mails), undoFolder, MoveMode.Mails)
+				// we don't want to go through MailViewModel to run the undo function, as we have no idea if there is a
+				// different undo action pending
+				clearUndoAction()
+				await undoAction.exec()
 			},
 		},
+		onShow: () => {
+			// we don't want to immediately set the undo action, as the user might be looking at a different snackbar
+			// than this one momentarily
+			mailViewModel.setUndoAction(undoAction)
+		},
+		onClose: () => {
+			// if this times out, we don't want to let the user undo this move anymore
+			clearUndoAction()
+		},
+		showingTime: UNDO_SNACKBAR_SHOW_TIME,
+		replace: true,
 	})
 }
 
@@ -131,6 +163,7 @@ export async function moveMails({
 	moveMode,
 	isReportable = true,
 	undoFolder,
+	mailViewModel,
 }: MoveMailsParams): Promise<boolean> {
 	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
 	if (system == null) {
@@ -143,7 +176,7 @@ export async function moveMails({
 		// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
 		// user to undo the move...
 		if (undoFolder != null && !isSameId(getElementId(targetFolder), getElementId(undoFolder))) {
-			await showUndoSnackbar(targetFolder, undoFolder, resolveMails, mailModel)
+			await showUndoSnackbar(targetFolder, undoFolder, resolveMails, mailModel, mailViewModel)
 		}
 
 		return await reportMails(system, targetFolder, isReportable, resolveMails, mailboxModel, mailModel)
@@ -165,6 +198,7 @@ export async function moveMailsToSystemFolder({
 	currentFolder,
 	moveMode,
 	isReportable,
+	mailViewModel,
 }: {
 	mailboxModel: MailboxModel
 	mailModel: MailModel
@@ -172,6 +206,7 @@ export async function moveMailsToSystemFolder({
 	targetFolderType: SystemFolderType
 	currentFolder: MailFolder
 	moveMode: MoveMode
+	mailViewModel: MailViewModel
 	isReportable?: boolean
 }): Promise<boolean> {
 	const folderSystem = mailModel.getFolderSystemByGroupId(assertNotNull(currentFolder._ownerGroup))
@@ -185,6 +220,7 @@ export async function moveMailsToSystemFolder({
 		isReportable,
 		moveMode,
 		undoFolder: currentFolder,
+		mailViewModel,
 	})
 }
 
@@ -384,6 +420,7 @@ export interface ShowMoveMailsDropdownOpts {
 export async function showMoveMailsFromFolderDropdown(
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
+	mailViewModel: MailViewModel,
 	origin: PosRect,
 	currentFolder: MailFolder,
 	mails: LazyMailIdResolver,
@@ -403,6 +440,7 @@ export async function showMoveMailsFromFolderDropdown(
 				targetFolder: f.folder,
 				moveMode,
 				undoFolder: currentFolder,
+				mailViewModel,
 			})
 		},
 		opts,
@@ -412,6 +450,7 @@ export async function showMoveMailsFromFolderDropdown(
 export async function showMoveMailsDropdown(
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
+	mailViewModelPromise: () => Promise<MailViewModel>,
 	origin: PosRect,
 	mails: readonly Mail[],
 	moveMode: MoveMode,
@@ -421,6 +460,8 @@ export async function showMoveMailsDropdown(
 	if (firstMail == null) return
 	const folders = await getMoveTargetFolderSystems(mailModel, mails)
 	const currentFolders = deduplicate(mails.map((mail) => mailModel.getMailFolderForMail(mail)))
+
+	const mailViewModel = await mailViewModelPromise()
 
 	await showMailFolderDropdown(
 		origin,
@@ -433,6 +474,7 @@ export async function showMoveMailsDropdown(
 				targetFolder: f.folder,
 				moveMode,
 				undoFolder: currentFolders.length === 1 ? first(currentFolders) : null,
+				mailViewModel,
 			})
 		},
 		opts,

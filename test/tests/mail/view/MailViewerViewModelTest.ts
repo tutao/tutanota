@@ -29,8 +29,9 @@ import { MailboxDetail, MailboxModel } from "../../../../src/common/mailFunction
 import { ContactModel } from "../../../../src/common/contactsFunctionality/ContactModel.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast, lazyAsync } from "@tutao/tutanota-utils"
 import { CalendarEventsRepository } from "../../../../src/common/calendar/date/CalendarEventsRepository"
+import { MailViewModel } from "../../../../src/mail-app/mail/view/MailViewModel"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -53,6 +54,7 @@ o.spec("MailViewerViewModel", function () {
 	let cryptoFacade: CryptoFacade
 	let contactImporter: ContactImporter
 	let eventsRepository: CalendarEventsRepository
+	let mailViewModel: lazyAsync<MailViewModel>
 
 	function makeViewModelWithHeaders(headers: string) {
 		entityClient = object()
@@ -71,6 +73,7 @@ o.spec("MailViewerViewModel", function () {
 		contactImporter = object()
 		eventsRepository = object()
 		prepareMailWithHeaders(mailFacade, headers)
+		mailViewModel = object()
 
 		return new MailViewerViewModel(
 			mail,
@@ -91,6 +94,7 @@ o.spec("MailViewerViewModel", function () {
 			async () => contactImporter,
 			[],
 			eventsRepository,
+			mailViewModel,
 		)
 	}
 
