@@ -382,7 +382,7 @@ export class Dialog implements ModalComponent {
 						{
 							"data-testid": testId,
 						},
-						[lines.map((line) => m(".text-break.selectable", line)), typeof infoToAppend == "function" ? infoToAppend() : null],
+						[lines.map((line) => m(".text-break.selectable", line)), typeof infoToAppend === "function" ? infoToAppend() : null],
 					),
 					m(".flex-center.dialog-buttons", m(Button, buttonAttrs)),
 				],
@@ -755,7 +755,7 @@ export class Dialog implements ModalComponent {
 				m(".dialog-contentButtonsBottom.text-break.scroll", [
 					m(".h2.pb", title),
 					m(".flex-direction-change.items-center", [
-						m("#dialog-message.pb.selectable", typeof message == "function" ? message() : message),
+						m("#dialog-message.pb.selectable", typeof message === "function" ? message() : message),
 						m("img.dialog-img.mb.bg-white.border-radius", {
 							style: {
 								"min-width": "150px",

@@ -181,7 +181,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	const { WorkerImpl } = await import("../../src/mail-app/workerUtils/worker/WorkerImpl.js")
 	globalThis.testWorker = WorkerImpl
 
-	if (typeof process != "undefined") {
+	if (typeof process !== "undefined") {
 		if (integration) {
 			console.log("\nRunning with integration tests because was run with -i\n")
 			await import("./api/main/WorkerTest.js")
@@ -191,7 +191,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		}
 	}
 
-	if (typeof process != "undefined") {
+	if (typeof process !== "undefined") {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")

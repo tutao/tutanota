@@ -110,7 +110,7 @@ export class EventQueue {
 				})
 		} else {
 			this.emptyQueueEventTarget.dispatchEvent(new Event("queueempty"))
-			if (this.tag == "ws_opt" && syncMetrics) {
+			if (this.tag === "ws_opt" && syncMetrics) {
 				console.log(syncMetrics.getResults())
 				purgeSyncMetrics()
 			}

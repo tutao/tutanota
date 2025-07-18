@@ -205,7 +205,7 @@ export function isEmpty<T>(array: ReadonlyArray<T>): boolean {
 }
 
 export function isNotEmpty(array: ReadonlyArray<unknown>): boolean {
-	return array.length != 0
+	return array.length !== 0
 }
 
 export function lastThrow<T>(array: ReadonlyArray<T>): T {

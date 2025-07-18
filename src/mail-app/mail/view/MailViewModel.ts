@@ -640,7 +640,10 @@ export class MailViewModel {
 
 		let importMailStateUpdates: Array<EntityUpdateData> = []
 		for (const update of updates) {
-			if (isUpdateForTypeRef(ImportMailStateTypeRef, update) && (update.operation == OperationType.CREATE || update.operation == OperationType.UPDATE)) {
+			if (
+				isUpdateForTypeRef(ImportMailStateTypeRef, update) &&
+				(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE)
+			) {
 				importMailStateUpdates.push(update)
 			}
 

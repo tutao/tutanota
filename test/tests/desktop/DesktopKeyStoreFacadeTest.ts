@@ -91,7 +91,7 @@ o.spec("DesktopKeyStoreFacade", function () {
 				let calls = 0
 				const secretStorageSpy = spyify<SecretStorage>({
 					async getPassword(service: string, account: string): Promise<string | null> {
-						if (calls == 0) {
+						if (calls === 0) {
 							calls++
 							throw new CancelledError("Test")
 						} else {

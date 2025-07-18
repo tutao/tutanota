@@ -698,7 +698,7 @@ export class LoadedConversation {
 	 * @param mailElementId mail to get
 	 */
 	getLoadedMail(mailElementId: Id): LoadedMail | null {
-		return this.conversationMails.find((mail) => getElementId(mail.mail) == mailElementId) ?? null
+		return this.conversationMails.find((mail) => getElementId(mail.mail) === mailElementId) ?? null
 	}
 
 	/**

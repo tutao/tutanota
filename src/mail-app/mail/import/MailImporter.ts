@@ -172,7 +172,7 @@ export class MailImporter {
 	}
 
 	private isFinalisedImport(importMailState: ImportMailState) {
-		return parseInt(importMailState.status) == ImportStatus.Finished || parseInt(importMailState.status) == ImportStatus.Canceled
+		return parseInt(importMailState.status) === ImportStatus.Finished || parseInt(importMailState.status) === ImportStatus.Canceled
 	}
 
 	private getFoldersForMailGroup(mailGroupId: Id): FolderSystem {
@@ -206,9 +206,9 @@ export class MailImporter {
 			this.activeImport.uiStatus = UiImportStatus.Paused
 			this.activeImport.progressMonitor.pauseEstimation()
 		}
-		if (err.data.category == ImportErrorCategories.ImportFeatureDisabled) {
+		if (err.data.category === ImportErrorCategories.ImportFeatureDisabled) {
 			await Dialog.message("mailImportErrorServiceUnavailable_msg")
-		} else if (err.data.category == ImportErrorCategories.ConcurrentImport) {
+		} else if (err.data.category === ImportErrorCategories.ConcurrentImport) {
 			console.log("Tried to start concurrent import")
 			showSnackBar({
 				message: "pleaseWait_msg",
@@ -386,7 +386,7 @@ export class MailImporter {
 	shouldRenderProcessedMails(): boolean {
 		const activeImportStatus = this.getUiStatus()
 		return (
-			this.activeImport?.progressMonitor?.totalWork != DEFAULT_TOTAL_WORK &&
+			this.activeImport?.progressMonitor?.totalWork !== DEFAULT_TOTAL_WORK &&
 			(activeImportStatus === UiImportStatus.Running ||
 				activeImportStatus === UiImportStatus.Resuming ||
 				activeImportStatus === UiImportStatus.Pausing ||
@@ -451,5 +451,5 @@ function importStatusToUiImportStatus(importStatus: ImportStatus) {
 }
 
 export function isFinalisedImport(remoteImportStatus: ImportStatus): boolean {
-	return remoteImportStatus == ImportStatus.Canceled || remoteImportStatus == ImportStatus.Finished
+	return remoteImportStatus === ImportStatus.Canceled || remoteImportStatus === ImportStatus.Finished
 }

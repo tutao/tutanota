@@ -14,7 +14,7 @@ export class Notifications {
 				const actualOptions: NotificationOptions = Object.assign(
 					{},
 					{
-						icon: type == NotificationType.Mail ? MailNotificationIcon : CalendarNotificationIcon,
+						icon: type === NotificationType.Mail ? MailNotificationIcon : CalendarNotificationIcon,
 					},
 					options,
 				)

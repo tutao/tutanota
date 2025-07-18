@@ -268,10 +268,10 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private onSubscriptionClick() {
 		const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
 
-		if (isIOSApp() && (paymentMethod == null || paymentMethod == PaymentMethodType.AppStore)) {
+		if (isIOSApp() && (paymentMethod == null || paymentMethod === PaymentMethodType.AppStore)) {
 			// case 1: we are in iOS app and we either are not paying or are already on AppStore
 			this.handleAppStoreSubscriptionChange()
-		} else if (paymentMethod == PaymentMethodType.AppStore && this._accountingInfo?.appStoreSubscription) {
+		} else if (paymentMethod === PaymentMethodType.AppStore && this._accountingInfo?.appStoreSubscription) {
 			// case 2: we have a running AppStore subscription but this is not an iOS app
 
 			// If there's a running App Store subscription it must be managed through Apple.

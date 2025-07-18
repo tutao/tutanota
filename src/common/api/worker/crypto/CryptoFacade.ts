@@ -389,7 +389,7 @@ export class CryptoFacade {
 		const bucketKey = assertNotNull(instance.bucketKey)
 
 		const id = downcast<SomeEntity>(instance)._id
-		const elementId: Id = typeof id == "string" ? id : elementIdPart(id)
+		const elementId: Id = typeof id === "string" ? id : elementIdPart(id)
 
 		let resolvedSessionKeyForInstance: AesKey | undefined = undefined
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
@@ -397,7 +397,7 @@ export class CryptoFacade {
 			const groupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(assertNotNull(instance._ownerGroup))
 			const ownerEncSessionKey = encryptKeyWithVersionedKey(groupKey, decryptedSessionKey)
 			const instanceSessionKeyWithOwnerEncSessionKey = createInstanceSessionKey(instanceSessionKey)
-			if (elementId == instanceSessionKey.instanceId) {
+			if (elementId === instanceSessionKey.instanceId) {
 				resolvedSessionKeyForInstance = decryptedSessionKey
 				const pqSenderKeyVersion =
 					bucketKey.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT ? parseKeyVersion(bucketKey.senderKeyVersion ?? "0") : null
@@ -657,7 +657,7 @@ export class CryptoFacade {
 
 			// Check if recipient is still verified for recipientMailAddress
 			const keyVerificationFacade = await this.lazyKeyVerificationFacade()
-			if ((await keyVerificationFacade.resolveVerificationState(recipientMailAddress, publicKey)) == KeyVerificationState.MISMATCH) {
+			if ((await keyVerificationFacade.resolveVerificationState(recipientMailAddress, publicKey)) === KeyVerificationState.MISMATCH) {
 				keyVerificationMismatchRecipients.push(recipientMailAddress)
 			}
 

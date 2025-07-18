@@ -34,7 +34,7 @@ import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
 import { locator } from "../api/main/CommonLocator.js"
-import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldShowApplePrices, UpgradeType, shouldHideBusinessPlans } from "./SubscriptionUtils.js"
+import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils.js"
 import { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [
@@ -139,7 +139,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			vnode.attrs
 
 		const columnWidth = boxWidth + BOX_MARGIN * 2
-		const inMobileView: boolean = (this.containerDOM && this.containerDOM.clientWidth < columnWidth * 2) == true
+		const inMobileView: boolean = this.containerDOM != null && this.containerDOM.clientWidth < columnWidth * 2
 		const featureExpander = this.renderFeatureExpanders(inMobileView, featureListProvider) // renders all feature expanders, both for every single subscription option but also for the whole list
 		let additionalInfo: Children
 
@@ -398,13 +398,13 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				referencePriceStr = NBSP
 			}
 		} else {
-			priceType = interval == PaymentInterval.Monthly ? PriceType.MonthlyPerMonth : PriceType.YearlyPerMonth
+			priceType = interval === PaymentInterval.Monthly ? PriceType.MonthlyPerMonth : PriceType.YearlyPerMonth
 			const referencePrice = priceAndConfigProvider.getSubscriptionPrice(interval, targetSubscription, UpgradePriceType.PlanReferencePrice)
 			priceStr = formatMonthlyPrice(subscriptionPrice, interval)
 			if (referencePrice > subscriptionPrice) {
 				// if there is a discount for this plan we show the original price as reference
 				referencePriceStr = formatMonthlyPrice(referencePrice, interval)
-			} else if (interval == PaymentInterval.Yearly && subscriptionPrice !== 0 && !hasFirstYearDiscount) {
+			} else if (interval === PaymentInterval.Yearly && subscriptionPrice !== 0 && !hasFirstYearDiscount) {
 				// if there is no discount for any plan then we show the monthly price as reference
 				const monthlyReferencePrice = priceAndConfigProvider.getSubscriptionPrice(
 					PaymentInterval.Monthly,
@@ -560,9 +560,16 @@ function localizeFeatureCategory(
 	attrs: SubscriptionSelectorAttr,
 ): BuyOptionDetailsAttr["categories"][0] | null {
 	const title = tryGetTranslation(category.title)
-	const features = downcast<{ text: string; toolTip?: m.Child; key: string; antiFeature?: boolean | undefined; omit: boolean; heart: boolean }[]>(
-		category.features.map((f) => localizeFeatureListItem(f, targetSubscription, attrs)).filter((it) => it != null),
-	)
+	const features = downcast<
+		{
+			text: string
+			toolTip?: m.Child
+			key: string
+			antiFeature?: boolean | undefined
+			omit: boolean
+			heart: boolean
+		}[]
+	>(category.features.map((f) => localizeFeatureListItem(f, targetSubscription, attrs)).filter((it) => it != null))
 	return { title, key: category.title, features, featureCount: category.featureCount }
 }
 

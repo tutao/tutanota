@@ -12,7 +12,7 @@ import {
 import { AssociationType, Cardinality, Type, ValueType } from "../../common/EntityConstants.js"
 import { compress, uncompress } from "../Compression"
 import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation, ParsedValue, ServerModelParsedInstance } from "../../common/EntityTypes"
-import { assertWorkerOrNode, isTest, isWebClient } from "../../common/Env"
+import { assertWorkerOrNode, isWebClient } from "../../common/Env"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { random } from "@tutao/tutanota-crypto"
@@ -219,7 +219,7 @@ export class ModelMapper {
 			}
 		}
 
-		if (clientTypeModel.type != Type.DataTransfer) {
+		if (clientTypeModel.type !== Type.DataTransfer) {
 			clientInstance._original = structuredClone(clientInstance)
 		}
 

@@ -115,7 +115,7 @@ export class Table implements Component<TableAttrs> {
 	): Children {
 		let cells
 
-		if (typeof lineAttrs.cells == "function") {
+		if (typeof lineAttrs.cells === "function") {
 			cells = lineAttrs.cells().map((cellTextData, index) =>
 				m(
 					"td" + columnWidths[index],

@@ -68,7 +68,7 @@ export class PageContextLoginListener implements LoginListener {
 	private isPassphraseKeyUpdatedNeeded(persistedCredentials: PersistedCredentials, credentials: Credentials) {
 		const persistedEncryptedPassphraseKey = persistedCredentials.encryptedPassphraseKey
 		const credentialsEncryptedPassphraseKey = credentials.encryptedPassphraseKey
-		if (persistedCredentials.encryptedPassword != credentials.encryptedPassword) {
+		if (persistedCredentials.encryptedPassword !== credentials.encryptedPassword) {
 			// we only want to update the encrypted passwordKey if we changed the kdf function.
 			// In this case we have the same endryptedPassword but a different password key.
 			return false

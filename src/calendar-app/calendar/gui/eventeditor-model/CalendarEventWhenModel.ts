@@ -440,7 +440,7 @@ export class CalendarEventWhenModel {
 	 */
 	resetMonthlyByDayRules(date: Date): void {
 		if (areAllAdvancedRepeatRulesValid(this.advancedRules, this.repeatPeriod)) {
-			const byDayRules = this.advancedRules.filter((rule) => rule.ruleType == ByRule.BYDAY)
+			const byDayRules = this.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY)
 			const weekday: Weekday = Object.values(Weekday)[DateTime.fromJSDate(date).weekday - 1]
 			const regex = /^[+-]?\d/g // Regex for extracting the first digit from interval
 
@@ -467,7 +467,7 @@ export class CalendarEventWhenModel {
 	 * 	In case weekdays.length() == 0 && interval == 0, no BYDAY Rule shall be written, as the event will repeat on the same DAY every month.
 	 */
 	createAdvancedRulesFromWeekdays(weekdays: Weekday[], interval?: number): AdvancedRepeatRule[] {
-		if (weekdays.length == 0 || interval == 0) return []
+		if (weekdays.length === 0 || interval === 0) return []
 		return weekdays.map((wd) => {
 			return createAdvancedRepeatRule({
 				interval: interval ? interval.toString() + wd : wd,

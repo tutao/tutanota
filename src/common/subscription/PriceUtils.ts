@@ -307,11 +307,11 @@ export function isSubscriptionDowngrade(targetSubscription: PlanType, currentSub
  * @param isReferralCodeSignup Indication if a referral code has been used to query the bonus months.
  */
 function getReasonForBonusMonths(bonusMonths: number, isReferralCodeSignup: boolean): TranslationKey | null {
-	if (bonusMonths == 12) {
+	if (bonusMonths === 12) {
 		return "chooseYearlyForOffer_msg"
-	} else if (bonusMonths == 1) {
+	} else if (bonusMonths === 1) {
 		return "referralSignup_msg"
-	} else if (bonusMonths == 0 && isReferralCodeSignup) {
+	} else if (bonusMonths === 0 && isReferralCodeSignup) {
 		return "referralSignupInvalid_msg"
 	} else {
 		return null

@@ -49,7 +49,7 @@ o.spec("LanguageViewModelTests", function () {
 		}
 	})
 	o("_getSubstitutedLanguageCodeWhitelabelCustomizations", function () {
-		const globalSelf = typeof window == "undefined" ? global : window
+		const globalSelf = typeof window === "undefined" ? global : window
 		globalSelf.whitelabelCustomizations = {
 			germanLanguageCode: "de_sie",
 		}

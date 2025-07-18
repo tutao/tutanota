@@ -1123,7 +1123,7 @@ export class MailFacade {
 	 * @param color possible new color for label
 	 */
 	async updateLabel(label: MailFolder, name: string, color: string) {
-		if (name !== label.name || color != label.color) {
+		if (name !== label.name || color !== label.color) {
 			label.name = name
 			label.color = color
 			await this.entityClient.update(label)

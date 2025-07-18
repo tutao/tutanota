@@ -69,7 +69,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			const emptyLabel = m("br")
 			const selectedTargetFolder = this.mailImporter().selectedTargetFolder
 			const selectedTargetFolderPath = selectedTargetFolder ? getPathToFolderString(folders!, selectedTargetFolder) : ""
-			const isNotSubfolder = selectedTargetFolder ? selectedTargetFolderPath == getFolderName(selectedTargetFolder) : false
+			const isNotSubfolder = selectedTargetFolder ? selectedTargetFolderPath === getFolderName(selectedTargetFolder) : false
 			const helpLabel = selectedTargetFolder ? (isNotSubfolder ? emptyLabel : selectedTargetFolderPath) : emptyLabel
 
 			// do not allow importing to inbox folder,

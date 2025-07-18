@@ -358,7 +358,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 						imType = ContactMessengerHandleType.SIGNAL
 					} else if (imRawType.toLowerCase() === "discord") {
 						imType = ContactMessengerHandleType.DISCORD
-					} else if (imRawType.trim() != "") {
+					} else if (imRawType.trim() !== "") {
 						imType = ContactMessengerHandleType.CUSTOM
 						customTypeName = imRawType.trim()
 					}

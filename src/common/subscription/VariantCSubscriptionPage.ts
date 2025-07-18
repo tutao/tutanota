@@ -60,7 +60,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 		// newAccountData is filled in when signing up and then going back in the signup process
 		// If the user has selected a tuta.com address we want to prevent them from selecting a free plan at this point
 		if (!!newAccountData && newAccountData.mailAddress.includes("tuta.com") && availablePlans.includes(PlanType.Free)) {
-			availablePlans = availablePlans.filter((plan) => plan != PlanType.Free)
+			availablePlans = availablePlans.filter((plan) => plan !== PlanType.Free)
 		}
 
 		const createPaidPlanActionButtons = (planType: PlanType): lazy<LoginButtonAttrs> => {

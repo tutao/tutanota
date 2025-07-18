@@ -35,8 +35,7 @@ export default defineConfig([
 			"no-useless-backreference": "warn",
 			"use-isnan": "error",
 			"valid-typeof": "error",
-			// TODO: would be cool to enable
-			// eqeqeq: ["error", "always", { null: "ignore" }],
+			eqeqeq: ["error", "always", { null: "ignore" }],
 			"no-case-declarations": "error",
 			"no-delete-var": "error",
 			"no-empty": "warn",
@@ -54,8 +53,6 @@ export default defineConfig([
 			"no-useless-catch": "warn",
 			"no-useless-escape": "error",
 			"no-var": "error",
-			// TODO: would be cool to enable
-			// "no-void": "error",
 			"no-with": "error",
 			"require-yield": "error",
 		},
