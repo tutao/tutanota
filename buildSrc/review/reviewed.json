@@ -5248,5 +5248,380 @@
 		"who": "hrb, ivk",
 		"when": "2025-07-07",
 		"hash": "38a112baf27ceca0260082ff26ac2fd7a9861cab1af12dd65e720277f68e6ce9"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/internal/debug.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "8a9f420572260f3cf944463b5090d62a60f0730589dc23a7ec4ca25e2ee41bb3"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/internal/re.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "016655766a1381078a83ba04cd6ba39afc6e64c3e5a95789ad82c3672ae87a94"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/internal/parse-options.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "fdf51d0de8d5442c35a997ef58cd530d239ce206f961d14c5121354451b01d01"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/internal/identifiers.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "2cde4269bc837c84d122af71148ba5d146fc4dc4b326b3ae803a9e9c0d87f251"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/classes/semver.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "b10e8b120f7f313089b41914d0ced81c9c9b97d9339fdb96b690f18e04fb3a62"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/parse.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "29a69e15b6d02fe381d573f861881a89590e9d0f0f0ca740c5f85eaf0234c4ad"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/valid.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "0de7ea736cb7807179d46dfac09c830a9338e02b6a07db12d7040cde2def6025"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/clean.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "4eadb0892844cf3ae295121a86163a66c73f89acd1b7f0b114ec115b4539512f"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/inc.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "952069fc8690b7d3af0fe9d55f7c54fe2ac067b48c5e74f6a54f9ce19a334493"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/diff.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "ea876a3256d09f1301d33a95cd6451b6312c055328abfc8fc49b5f27fe6d2afe"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/major.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "5c678480d882f511200fed2c16ec3847dfedb08a1d70328dc2f031d35d825276"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/minor.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "1b051794f1713adec2a236517196691687c35f82e0b596ff3316a78b3cc10ae6"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/patch.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "f02d3c1b059fe3d96ce124886f7eef321d381a95638fd3c4a8d5ccd8e76ffadd"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/prerelease.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "baedbf503d5610ad041bfb56071efa48feb331ca278295c399537d35d3ffb593"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/compare.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "d404b5aa48aaddc8a654c5da8fb7d4443404b7948589b21ac4b045d1cee4e34c"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/rcompare.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "84fa5e88adf08d15c993cac8cdec6d1a65045b7e95a9c55184230a7f807f4dc0"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/compare-loose.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "07b6a3a1db0a5210ceb784c1708bd4679f3a94fc73a9c9eb349349e7070a6f78"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/compare-build.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "5ab651d5b40af289bd85c645a92b6d8cfe1a986dc413c797cfcc8d623d7c844c"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/sort.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "c2fe2d3ed0be8a4e9de8f02abdfd5d9c0d3bcc510d88e87af84185592882c4b8"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/rsort.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "6ec659ce3b6c2b173c719286caab04409adba046c0917874ec3b5e36ddfbc7e3"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/gt.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "135523704aa48cd98834dd170ee9f74f0e68043b379f32d021db11e6304c5c93"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/lt.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "1c897a9bc849320e2e9dc0f6c09555c01ee3ddf30734515d717b88ad7740ea25"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/eq.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "b6e30a7168e52723216fc163d300e2bbabf92ec0251f9ac5438bb6ccf57c8936"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/neq.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "a662883751918822c162183b46b9e20d09489132f82686c92ab78bee67f3a127"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/gte.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "991c5bbe48ecb210a562646872f05862ad9fc0d42186d85aa60bdc6fa323eb9d"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/lte.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "3a8d0b1d00423f60cc7cb810b36ab77b61330831ad237dbe73eb5cecfa412800"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/cmp.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "a63d74e87b73788e78e9ce0a4892b5333d6b809c0de88b31e4ed76cbf17f94b3"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/coerce.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "28a251c5ab210ddf9e97551b9f37a53329fcce91f0c3943dcbc02de1a1de915a"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/internal/lrucache.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "14d087c87da87b6f5c36fc4cdd7d2d14077874b14a68e20fce5b6138fa2ca34f"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/classes/comparator.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "054202956430d63d5ff4599fae09760ce465b489e4f0b5ef5ce7cc7ac21157ac"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/classes/range.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "1e5679e4b710388c808013f1fd4eac5fe504567d0608bd15c0d962141966a280"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/functions/satisfies.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "8cf5e122b757251671ed6c9d9680904b71cd375845853f05312e608cf2cc2946"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/to-comparators.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "6c5e966210cff270fa2850668aaf8460fac7759f8d99f282521ef7a78f4564e9"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/max-satisfying.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "e1a2c0d6144cc772cd20bbc8ecb9e8a3a4074e9172a3d8e794838b591cdeb416"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/min-satisfying.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "2681abf54098aa670f12826b76a6ec77a2441186ae4243afde3be8ae4908f7ca"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/min-version.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "fefba0a88c2bf74d5cede504b5ae50a8dc3edfd69cf0174a491e2cf3e442614b"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/valid.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "5ef6f995af801868925940cf8df5735d565ebabb090b068695cae65218bcd3ac"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/outside.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "3a2b0b23593d2f49419c06af2af75450cab103b0c25d665d48fe5bca495a21ca"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/gtr.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "8fadad28e36d28e93d498ac7ac20badba2a407312845eabc18e82e90a0732b19"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/ltr.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "e5186fcc03018acf9be6d968755d4c49727aeb0d981d179eb568ae5fbe983038"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/intersects.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "fe87ac5d3020010ad3ec00636dadbf0c669ff07d0f57e0a8165a8264f79a676f"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/simplify.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "7b78581c13322bc68ece2088685386b2a9b51c15b94d0a2063bdf2546bd41934"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/ranges/subset.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "299abae66d0bcf7ac4f4bdf593fcf14e6c94964ffdd7c72b844357925693d3c2"
+	},
+	"node_modules/eslint-plugin-unicorn/node_modules/semver/index.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "646e0b707f56dca7cb90cebc6fe687278bcc1a16fdcc83756dbe23083ff15e06"
+	},
+	"node_modules/ci-info/vendors.json": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "02cbced4ac3e507a6d5defee8905b34b5ad380cb773432dd995616f7190bb358"
+	},
+	"node_modules/ci-info/index.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "e846360443dec356990d22ab267b172196bade09cedd7896b476f933c18045f5"
+	},
+	"node_modules/core-js-compat/helpers.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "29ec0ef31708b1ef85ba30e9e3973df6e8505a0ecf6a489c5813d180a44cd6cd"
+	},
+	"node_modules/core-js-compat/data.json": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "516a0d72bec6758205c12b8079ed124d38eb48d65bba353ff9e73e7553f76405"
+	},
+	"node_modules/core-js-compat/entries.json": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "a3a6d25ec48487be682acde2b04c0b233665498d5fd9d53b3258989c662de21c"
+	},
+	"node_modules/core-js-compat/modules-by-versions.json": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "803316005e3b09572e91de4f661ca0ca22de4cb5dc39248d29ab2a62de62e9aa"
+	},
+	"node_modules/core-js-compat/modules.json": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "c077d88dfcbf47deec73c25ef4fd5551516e5faa1a9382c86668a1efdf593997"
+	},
+	"node_modules/core-js-compat/get-modules-list-for-target-version.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "027b227174fae243c22cf771f9e267c3704c6b075f11b5cd034c60c6fbe17240"
+	},
+	"node_modules/node-releases/data/processed/envs.json": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "38088d1e30a54e42fd197943bf1b14a4639ed066e19c2461e732e96d8e40fe7f"
+	},
+	"node_modules/caniuse-lite/data/browsers.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "63c5f20e38bbeef5d28f0af686170bb9ee1438819c96583a6af621c4b1ec0edf"
+	},
+	"node_modules/caniuse-lite/dist/unpacker/browsers.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "b8775f01de6ff801a56db3478b5e3794debf222a7d73239f20d37589f9cc968b"
+	},
+	"node_modules/caniuse-lite/data/browserVersions.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "d3332874cb3531f11c88079f936b6717804bdd5b45792a4dd767af47f9d81d93"
+	},
+	"node_modules/caniuse-lite/dist/unpacker/browserVersions.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "21fb3fc52b70bb44091d82e55f74f8e93ffe6ab5608654af64da7964b4acc455"
+	},
+	"node_modules/caniuse-lite/data/agents.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "9ed270867ec66190ec16071de00a8e7fcd8cf0a731309a03d1eab7c056d8f723"
+	},
+	"node_modules/caniuse-lite/dist/unpacker/agents.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "6c62eb14bb8653e3a80fb0aea9d38462f68b0711346a3fd92eee7e9edff069fe"
+	},
+	"node_modules/electron-to-chromium/versions.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "f8a482a2c95fe639131cadeab7bd144c7a66039ef86d5d6bdcfd45deafdbbdac"
+	},
+	"node_modules/node-releases/data/release-schedule/release-schedule.json": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "e87da62944b5a5121de262154aaf3dd5569bb028e6d4d5e4bcbe4b90dec37002"
+	},
+	"node_modules/browserslist/error.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "31a088cef26edc246ab9aecf33e12d59a5abf90d8afec7846b66ab80f7cd26d4"
+	},
+	"node_modules/caniuse-lite/dist/lib/statuses.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "8844a0427a503f9b1c7a6b9b5278ef704b9a07ac5ffa4b0bd07b54ecda9b7967"
+	},
+	"node_modules/caniuse-lite/dist/lib/supported.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "29f8eb9e9c0092159154dfdb80b6c49f290ea8ec587272c2fda47c8181759950"
+	},
+	"node_modules/caniuse-lite/dist/unpacker/feature.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "0967c504c9a35a8c8316a2bb04151a234cf765c732f6b98e64fd871d04c3a0ab"
+	},
+	"node_modules/caniuse-lite/dist/unpacker/region.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "4c74a2e70fc257b49a84bab4420d431fc430fa9294cbff59159f8c35b50e972a"
+	},
+	"node_modules/browserslist/node.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "eb14ba1ec50b471eb6dbd54de8a2cf76c97c4e396133ad4a75065e78de73d3d8"
+	},
+	"node_modules/browserslist/parse.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "3e66eaa40605e038c2593111aa2c815d2576339a684440275346f7634ed5f2f4"
+	},
+	"node_modules/browserslist/index.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "c0b9ecf342cbc1980c7d89835ece791c901b959274e0a0276ffbeeb0a865e0e4"
+	},
+	"node_modules/core-js-compat/external.json": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "c4c625fc3eb2adb0911e1edaabc168f0f10e39926164b560c2f7fd6765b116c4"
+	},
+	"node_modules/core-js-compat/targets-parser.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "a84900544f365289dd718e9d77e407eb30600146950ec3b0c0f3580aef06048c"
+	},
+	"node_modules/core-js-compat/compat.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "e4ccb33b59a6d5a0a52ae5715535ddc86af3c74d5f1f02c473c097aba74e5183"
+	},
+	"node_modules/core-js-compat/index.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "6b40f35ac2252b909bf721fbbd36db535842878e65a53eca672588660536232a"
+	},
+	"node_modules/regjsparser/parser.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "0f389e1b8d73832785dc6a0b4b2082dfa293aaa0a0cd72760d15728d17c97936"
+	},
+	"node_modules/min-indent/index.js": {
+		"who": "hrb, ivk",
+		"when": "2025-07-18",
+		"hash": "0bded6bcd55a369fe64b1e69e02ed9e4550f584b1373ff6085f360e24880b3a9"
 	}
 }

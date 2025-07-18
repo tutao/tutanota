@@ -17,13 +17,16 @@ const deps = data[undefined]
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 const reviewedPath = path.join(scriptDir, "reviewed.json")
 
-/** @type {Record<string, {who: string, when: string}>} */
+/** @type {Record<string, {who: string, when: string, hash: string}>} */
 let reviewedData = {}
 try {
 	reviewedData = JSON.parse(await fs.readFile(reviewedPath, { encoding: "utf8" }))
 } catch (e) {
 	console.log(`Could not read reviewed data from ${reviewedPath}`)
 }
+
+/** @type {Map<string, string>} */
+const reviewedHashes = new Set(Object.values(reviewedData).map(({ hash }) => hash))
 
 let reviewers = Object.values(reviewedData).at(-1)?.who
 const reviewersAnswer = await rl.question(`who is reviewing: (${reviewers})`)
@@ -46,6 +49,8 @@ async function markAsReviewed(currentDep) {
 	}
 	await fs.writeFile(reviewedPath, JSON.stringify(reviewedData, null, 4), { encoding: "utf8" })
 }
+
+const fileHashes = await calculateFileHashes("entry", deps)
 
 async function review(currentDep, itsDeps, backtrace) {
 	uiloop: while (true) {
@@ -161,7 +166,12 @@ function isBuiltin(dep) {
 }
 
 function countsAsReviewed(dep) {
-	return isExplicitlyReviewed(dep) || isBuiltin(dep)
+	return isExplicitlyReviewed(dep) || isBuiltin(dep) || reviewedByHash(dep)
+}
+
+function reviewedByHash(dep) {
+	const fileHash = fileHashes.get(dep)
+	reviewedHashes.has(fileHash)
 }
 
 function calculateStats(currentDep, itsDeps) {
@@ -169,11 +179,31 @@ function calculateStats(currentDep, itsDeps) {
 	const dedupedDeps = new Set(collectedTransitiveDeps)
 	let reviewed = 0
 	for (const dep of dedupedDeps) {
-		if (isExplicitlyReviewed(dep)) {
+		if (isExplicitlyReviewed(dep) || reviewedByHash(dep)) {
 			reviewed += 1
 		}
 	}
 	return { reviewed, overall: dedupedDeps.size }
+}
+
+/**
+ * @param entry {string}
+ * @param deps
+ * @returns {Promise<Map<string, string>>}
+ */
+async function calculateFileHashes(entry, deps) {
+	const collectedTransitiveDeps = transitiveDeps(entry, deps)
+	const dedupedDeps = new Set(collectedTransitiveDeps)
+	const hashes = new Map()
+	for (const dep of dedupedDeps) {
+		try {
+			const hash = await hashFileAt(dep)
+			hashes.set(dep, hash)
+		} catch (e) {
+			console.log("could not hash", dep)
+		}
+	}
+	return hashes
 }
 
 await review("entry", deps, [])
