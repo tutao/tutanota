@@ -92,13 +92,6 @@ export class ApplicationWindow {
 					help: "searchPage_label",
 				},
 				{
-					key: Keys.P,
-					meta: isMac,
-					ctrl: !isMac,
-					exec: () => this.printMail(),
-					help: "print_action",
-				},
-				{
 					key: Keys.F12,
 					exec: () => this.toggleDevTools(),
 					help: "toggleDevTools_action",
