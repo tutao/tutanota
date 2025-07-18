@@ -294,7 +294,7 @@ export class PostLoginActions implements PostLoginAction {
 			const secondFactors = await this.entityClient.loadAll(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors)
 			const webauthnFactors = secondFactors.filter((f) => f.type === SecondFactorType.webauthn || f.type === SecondFactorType.u2f)
 			// If there are webauthn factors but none of them are for the default domain, show a message
-			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId == Const.WEBAUTHN_RP_ID)) {
+			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId === Const.WEBAUTHN_RP_ID)) {
 				const dialog = Dialog.confirmMultiple("noKeysForThisDomain_msg", [
 					{
 						label: "skip_action",

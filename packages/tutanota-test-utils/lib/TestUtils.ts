@@ -26,7 +26,7 @@ export function mockAttribute(
 		throw new Error("attribute not found on object")
 	}
 
-	object[attributeName] = typeof attributeOnObject == "function" ? spy(attributeMock as (...args: Array<any>) => any) : attributeMock
+	object[attributeName] = typeof attributeOnObject === "function" ? spy(attributeMock as (...args: Array<any>) => any) : attributeMock
 	return {
 		_originalObject: object,
 		_originalAttribute: attributeOnObject,

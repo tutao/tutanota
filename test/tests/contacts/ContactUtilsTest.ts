@@ -44,7 +44,7 @@ o.spec("ContactUtilsTest", function () {
 
 		// We should use Mithril's ability to print messages instead of this log when it will work again (and the moment of writing it's
 		// fixed but not released: https://github.com/MithrilJS/mithril.js/issues/2391
-		if (result != expectedResult) {
+		if (result !== expectedResult) {
 			console.log(
 				"error >>>>>>>",
 				"'" + c1Firstname + "'",

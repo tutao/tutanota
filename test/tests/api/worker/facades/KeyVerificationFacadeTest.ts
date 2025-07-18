@@ -169,7 +169,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 				sqlCipherFacade.get(
 					anything(),
 					matchers.argThat((params: TaggedSqlValue[]) => {
-						return typeof params[0] !== "undefined" && params[0].value == "missing@example.com"
+						return typeof params[0] !== "undefined" && params[0].value === "missing@example.com"
 					}),
 				),
 			).thenResolve({

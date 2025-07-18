@@ -100,7 +100,7 @@ export class AsymmetricCryptoFacade {
 			}
 
 			// Compare against trusted identity (if possible)
-			if (identifier.identifierType == PublicKeyIdentifierType.MAIL_ADDRESS) {
+			if (identifier.identifierType === PublicKeyIdentifierType.MAIL_ADDRESS) {
 				if ((await keyVerificationFacade.resolveVerificationState(identifier.identifier, publicKey)) === KeyVerificationState.MISMATCH) {
 					authStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
 				}

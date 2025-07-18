@@ -36,7 +36,7 @@ export function showRequestPasswordDialog(props: {
 	const child = {
 		view: () => {
 			const savedState = state
-			return savedState.type == "idle"
+			return savedState.type === "idle"
 				? m("", [
 						props.messageText ? m(".pt", props.messageText) : null,
 						m(PasswordField, {

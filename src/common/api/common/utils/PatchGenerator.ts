@@ -106,7 +106,7 @@ export async function computePatches(
 			attributeIdStr += ":" + modelAssociation.name
 		}
 
-		if (modelAssociation.type == AssociationType.Aggregation) {
+		if (modelAssociation.type === AssociationType.Aggregation) {
 			const appName = modelAssociation.dependency ?? typeModel.app
 			const typeId = modelAssociation.refTypeId
 			const aggregateTypeModel = await typeReferenceResolver(new TypeRef(appName, typeId))
@@ -235,7 +235,7 @@ export async function computePatches(
 
 			// Only Any associations support ADD_ITEM and REMOVE_ITEM operations
 			// All cardinalities support REPLACE operation
-			if (modelAssociation.cardinality == Cardinality.Any) {
+			if (modelAssociation.cardinality === Cardinality.Any) {
 				if (removedItems.length > 0) {
 					patches.push(
 						createPatch({

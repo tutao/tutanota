@@ -558,7 +558,7 @@ export const createRepetitionValuesForWeekday = (
  * @param advancedRepeatRules AdvancedRepeatRules that have been written on the Event already.
  */
 export const getByDayRulesFromAdvancedRules = (advancedRepeatRules: AdvancedRepeatRule[]): ByDayRule | null => {
-	if (advancedRepeatRules.length == 0) return null
+	if (advancedRepeatRules.length === 0) return null
 
 	let interval: number = 0
 	const weekdays = advancedRepeatRules

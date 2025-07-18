@@ -391,7 +391,7 @@ async function onAppReady(components: Components) {
 	// also don't show the window when we're an autolaunched tray app
 	const w = await wm.getLastFocused(!((await conf.getVar(DesktopConfigKey.runAsTrayApp)) && opts.wasAutoLaunched))
 	log.debug("default mailto handler:", app.isDefaultProtocolClient("mailto"))
-	if (process.env.ELECTRON_START_WITH_DEV_TOOLS == "true") {
+	if (process.env.ELECTRON_START_WITH_DEV_TOOLS === "true") {
 		w._browserWindow.webContents.openDevTools({ mode: "detach" })
 	}
 	await main(components)

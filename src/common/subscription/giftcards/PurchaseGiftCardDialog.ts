@@ -178,7 +178,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 		let helpTextId: TranslationKeyType
 		if (giftCardValue < upgradePrice) {
 			helpTextId = "giftCardOptionTextC_msg"
-		} else if (giftCardValue == upgradePrice) {
+		} else if (giftCardValue === upgradePrice) {
 			helpTextId = "giftCardOptionTextD_msg"
 		} else {
 			helpTextId = "giftCardOptionTextE_msg"

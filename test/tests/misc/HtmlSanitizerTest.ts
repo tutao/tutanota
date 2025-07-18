@@ -284,7 +284,7 @@ o.spec(
 				// at the moment of writing Chrome doesn't support this without prefix so we just make sure it's not there
 				// o(result.externalContent).equals(1)
 				const div = result.fragment.querySelector("div")!
-				o(div.style.maskImage == undefined || div.style.maskImage === "").equals(true)(`makImage is not set`)
+				o(div.style.maskImage == null || div.style.maskImage === "").equals(true)(`makImage is not set`)
 			})
 
 			o("when external content is blocked url shape-outside is removed", function () {
@@ -300,7 +300,7 @@ o.spec(
 				const result = htmlSanitizer.sanitizeFragment(dirty, { blockExternalContent: true })
 				const div = result.fragment.querySelector("div")!
 				// @ts-ignore not in all browsers
-				o(div.style.maskBorderSource == undefined || div.style.maskBorderSource === "").equals(true)("mask-border-source")
+				o(div.style.maskBorderSource == null || div.style.maskBorderSource === "").equals(true)("mask-border-source")
 			})
 		})
 		o("detect background inline images", function () {

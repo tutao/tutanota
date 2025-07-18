@@ -186,7 +186,7 @@ export async function loadSignupWizard(
 			acceptedPlans = acceptedPlans.filter((plan) => plan === PlanType.Free)
 		}
 		message =
-			appstoreSubscriptionOwnership != MobilePaymentSubscriptionOwnership.NoSubscription
+			appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription
 				? lang.getTranslation("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
 				: null
 	} else {

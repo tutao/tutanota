@@ -23,7 +23,6 @@ import { UnencryptedCredentials } from "../../../src/common/native/common/genera
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { AppLock } from "../../../src/common/login/AppLock.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { OfflineStorageSettingsModel } from "../../../src/common/offline/OfflineStorageSettingsModel"
 
 const { anything } = matchers
 

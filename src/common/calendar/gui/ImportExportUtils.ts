@@ -201,7 +201,7 @@ export function hasValidProtocol(url: URL, validProtocols: string[]) {
 
 export function shallowIsSameEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
 	const sameUid = eventA.uid === eventB.uid
-	const sameSequence = eventA.sequence == eventB.sequence
+	const sameSequence = eventA.sequence === eventB.sequence
 	const sameRecurrenceId = eventA.recurrenceId?.getTime() === eventB.recurrenceId?.getTime()
 
 	return sameUid && sameSequence && sameRecurrenceId
