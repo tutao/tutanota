@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../../../common/gui/size"
-import { EventTextTimeOption, WeekStart } from "../../../common/api/common/TutanotaConstants"
+import { EventTextTimeOption, Keys, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import {
 	CalendarDay,
 	CalendarMonth,
@@ -41,9 +41,10 @@ import { client } from "../../../common/misc/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PageView } from "../../../common/gui/base/PageView.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
-import { isIOSApp } from "../../../common/api/common/Env"
+import { isAppleDevice, isIOSApp } from "../../../common/api/common/Env"
 import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
+import { Key } from "../../../common/misc/KeyManager.js"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -219,7 +220,14 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				onmouseup: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
 					mouseEvent.redraw = false
 
-					this.endDrag(mouseEvent)
+					let key
+					if (mouseEvent.metaKey && isAppleDevice()) {
+						key = Keys.META
+					} else if (mouseEvent.ctrlKey) {
+						key = Keys.CTRL
+					}
+
+					this.endDrag(mouseEvent, key)
 				},
 				onmouseleave: (mouseEvent: MouseEvent & { redraw?: boolean }) => {
 					mouseEvent.redraw = false
@@ -244,7 +252,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		)
 	}
 
-	private endDrag(pos: MousePos) {
+	private endDrag(pos: MousePos, key?: Key) {
 		const dayUnderMouse = this.dayUnderMouse
 		const originalDate = this.eventDragHandler.originalEvent?.startTime
 
@@ -252,7 +260,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			//make sure the date we move to also gets a time
 			const dateUnderMouse = Time.fromDate(originalDate).toDate(dayUnderMouse)
 
-			this.eventDragHandler.endDrag(dateUnderMouse, pos).catch(ofClass(UserError, showUserError))
+			this.eventDragHandler.endDrag(dateUnderMouse, pos, key).catch(ofClass(UserError, showUserError))
 		}
 	}
 

@@ -2046,3 +2046,4 @@ export type TranslationKeyType =
 	| "updateThisAndFutureEvents_action"
 	| "deleteThisAndFutureOccurrences_action"
 	| "deleteThisAndFutureOccurrencesConfirmation_msg"
+	| "duplicateEvent_label"
