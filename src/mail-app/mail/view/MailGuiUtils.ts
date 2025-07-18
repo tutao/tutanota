@@ -105,15 +105,10 @@ async function showUndoSnackbar(
 	resolveMails: () => Promise<readonly Mail[]>,
 	mailModel: MailModel,
 ): Promise<void> {
-	const movedMessage = lang.get("undoMoveMail_msg", {
-		"{folder}": getFolderName(targetFolder),
-	})
-
 	return showSnackBar({
-		message: {
-			testId: "undoMoveMail_msg",
-			text: movedMessage,
-		},
+		message: lang.getTranslation("undoMoveMail_msg", {
+			"{folder}": getFolderName(targetFolder),
+		}),
 		button: {
 			label: "undo_action",
 			click: async () => {
