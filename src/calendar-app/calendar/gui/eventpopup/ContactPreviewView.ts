@@ -63,7 +63,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 			size: IconSize.Medium,
 			style: Object.assign(
 				{
-					fill: theme.content_button,
+					fill: theme.on_surface,
 					display: "block",
 				},
 				style,
@@ -139,12 +139,12 @@ const ActionButtons = pureComponent((contact: Contact) => {
 	})
 
 	const emailButtonColors = {
-		borderColor: theme.content_accent,
-		color: theme.content_accent,
+		borderColor: theme.primary,
+		color: theme.primary,
 	}
 	const phoneButtonColors = {
-		borderColor: theme.content_button,
-		color: theme.content_button,
+		borderColor: theme.on_surface_variant,
+		color: theme.on_surface_variant,
 	}
 
 	const singleEmailAdress = contact.mailAddresses.length === 1
