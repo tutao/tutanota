@@ -114,8 +114,10 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 				extraFiles: ["mapirs.dll"],
 				verifyUpdateCodeSignature: sign,
 				signExts: [".dll", ".node"],
-				sign: sign ? "./buildSrc/winsigner.cjs" : undefined,
-				signingHashAlgorithms: sign ? ["sha256"] : undefined,
+				signtoolOptions: {
+					sign: sign ? "./buildSrc/winsigner.cjs" : undefined,
+					signingHashAlgorithms: sign ? ["sha256"] : undefined,
+				},
 				target: [
 					{
 						target: unpacked ? "dir" : "nsis",
