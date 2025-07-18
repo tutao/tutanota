@@ -102,22 +102,19 @@ async function reportMails(
 async function showUndoSnackbar(
 	targetFolder: MailFolder,
 	undoFolder: MailFolder,
-	resolveMails: () => Promise<Mail[]>,
-	mailboxModel: MailboxModel,
+	resolveMails: () => Promise<readonly Mail[]>,
 	mailModel: MailModel,
 ): Promise<void> {
-	const movedMessage = lang.get("undoMoveMail_msg", {
-		"{folder}": getFolderName(targetFolder),
-	})
-
 	return showSnackBar({
-		message: {
-			testId: "undoMoveMail_msg",
-			text: movedMessage,
-		},
+		message: lang.getTranslation("undoMoveMail_msg", {
+			"{folder}": getFolderName(targetFolder),
+		}),
 		button: {
 			label: "undo_action",
-			click: noOp,
+			click: async () => {
+				const mails = await resolveMails()
+				await mailModel.moveMails(getIds(mails), undoFolder, MoveMode.Mails)
+			},
 		},
 	})
 }
@@ -146,7 +143,7 @@ export async function moveMails({
 		// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
 		// user to undo the move...
 		if (undoFolder != null && !isSameId(getElementId(targetFolder), getElementId(undoFolder))) {
-			await showUndoSnackbar(targetFolder, undoFolder, resolveMails, mailboxModel, mailModel)
+			await showUndoSnackbar(targetFolder, undoFolder, resolveMails, mailModel)
 		}
 
 		return await reportMails(system, targetFolder, isReportable, resolveMails, mailboxModel, mailModel)
