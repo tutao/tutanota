@@ -1,4 +1,4 @@
-import type { Shortcut } from "../../../../common/misc/KeyManager.js"
+import { Shortcut } from "../../../../common/misc/KeyManager.js"
 import m, { Children } from "mithril"
 import { px } from "../../../../common/gui/size.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
@@ -53,6 +53,10 @@ export class CalendarEventPopup implements ModalComponent {
 
 	private readonly handleDeleteButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = async (ev: MouseEvent, receiver: HTMLElement) => {
 		showDeletePopup(this.model, ev, receiver, () => this.close())
+	}
+
+	private readonly handleCloneButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = (ev: MouseEvent, receiver: HTMLElement) => {
+		this.model.duplicateEvent()
 	}
 
 	private readonly handleEditButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = (ev: MouseEvent, receiver: HTMLElement) => {
@@ -126,7 +130,13 @@ export class CalendarEventPopup implements ModalComponent {
 				},
 			},
 			[
-				m(".flex.flex-end", [this.renderSendUpdateButton(), this.renderEditButton(), this.renderDeleteButton(), this.renderCloseButton()]),
+				m(".flex.flex-end", [
+					this.renderSendUpdateButton(),
+					this.renderDuplicateButton(),
+					this.renderEditButton(),
+					this.renderDeleteButton(),
+					this.renderCloseButton(),
+				]),
 				m(".flex-grow.scroll.visible-scrollbar", [
 					m(EventPreviewView, {
 						event: this.model.calendarEvent,
@@ -140,6 +150,11 @@ export class CalendarEventPopup implements ModalComponent {
 				]),
 			],
 		)
+	}
+
+	private renderDuplicateButton(): Children {
+		if (!this.model.canEdit) return null
+		return m(IconButton, { title: "duplicateEvent_label", icon: Icons.Copy, click: this.handleCloneButtonClick })
 	}
 
 	private renderEditButton(): Children {
@@ -238,5 +253,14 @@ export class CalendarEventPopup implements ModalComponent {
 		if (this.model.canDelete) {
 			this._shortcuts.push(remove)
 		}
+
+		this._shortcuts.push({
+			key: Keys.D,
+			ctrlOrCmd: true,
+			help: "duplicateEvent_label",
+			exec: () => {
+				this.model.duplicateEvent()
+			},
+		})
 	}
 }
