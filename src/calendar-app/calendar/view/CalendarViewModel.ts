@@ -64,6 +64,7 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 import { getGroupColors } from "../../../common/misc/GroupColors"
+import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -394,12 +395,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 			this._addTransientEvent(eventClone)
 			try {
-				let didUpdate: EventSaveResult
+				let didUpdate: EventSaveResult = EventSaveResult.Saved
 
 				if (mode === CalendarOperation.StopSeriesAtDate) {
 					didUpdate = await this.moveThisAndFuture(originalEvent, timeToMoveBy)
 
 					// The event id will be different, so we must remove manually
+					this._removeTransientEvent(eventClone)
+				} else if (mode === CalendarOperation.Create) {
+					await this.duplicateEvent(originalEvent, timeToMoveBy)
 					this._removeTransientEvent(eventClone)
 				} else {
 					didUpdate = await this.moveEvent(originalEvent, timeToMoveBy, mode)
@@ -416,6 +420,20 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		} else {
 			this._draggedEvent = null
 		}
+	}
+
+	async duplicateEvent(event: CalendarEvent, timeToMoveBy: number) {
+		const editModel = await this.createCalendarEventEditModel(CalendarOperation.Create, event)
+		if (!editModel) {
+			throw new Error("Failed to instantiate")
+		}
+
+		editModel.editModels.whenModel.rescheduleEvent({ millisecond: timeToMoveBy })
+		editModel.editModels.whenModel.deleteExcludedDates()
+		editModel.editModels.whoModel.resetGuestsStatus()
+
+		const dialog = new EventEditorDialog()
+		return await dialog.showNewCalendarEventEditDialog(editModel)
 	}
 
 	onDragCancel() {

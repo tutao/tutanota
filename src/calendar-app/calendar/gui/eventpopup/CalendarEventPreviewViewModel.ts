@@ -262,6 +262,33 @@ export class CalendarEventPreviewViewModel {
 		}
 	}
 
+	async duplicateEvent() {
+		try {
+			const progenitor = await this.calendarModel.resolveCalendarEventProgenitor(this.calendarEvent)
+
+			if (!progenitor) {
+				throw new Error("Could not resolve progenitor.")
+			}
+
+			const newEventModel = await this.eventModelFactory(CalendarOperation.Create, progenitor)
+
+			if (!newEventModel) {
+				throw new Error("Failed clone and create a new event model.")
+			}
+			newEventModel.editModels.whenModel.deleteExcludedDates()
+			newEventModel.editModels.whoModel.resetGuestsStatus()
+
+			const eventEditor = new EventEditorDialog()
+			return await eventEditor.showNewCalendarEventEditDialog(newEventModel)
+		} catch (err) {
+			if (err instanceof NotFoundError) {
+				console.log("calendar event not found when clicking on the event")
+			} else {
+				throw err
+			}
+		}
+	}
+
 	async resolveSeriesModificationProperties() {
 		if (!this.calendarEvent.repeatRule) {
 			throw new Error("Editing a series without repeat rule")
