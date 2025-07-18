@@ -536,6 +536,7 @@ class MailLocator implements CommonLocator {
 				() => this.contactImporter(),
 				highlightedTokens ?? [],
 				eventRepository,
+				this.mailViewModel,
 			)
 	}
 

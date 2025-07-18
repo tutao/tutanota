@@ -673,6 +673,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				help: "toggleUnread_action",
 			},
 			{
+				key: Keys.Z,
+				exec: () => {
+					this.mailViewModel.performUndoAction()
+				},
+				ctrlOrCmd: true,
+				help: "undo_action",
+			},
+			{
 				key: Keys.ONE,
 				exec: () => {
 					this.mailViewModel.switchToFolder(MailSetKind.INBOX)
@@ -762,6 +770,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailIds: actionableMails,
 			targetFolderType,
 			moveMode: this.mailViewModel.getMoveMode(folder),
+			mailViewModel: this.mailViewModel,
 		})
 	}
 
@@ -789,7 +798,16 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				this.mailViewModel.clearStickyMail()
 			},
 		}
-		showMoveMailsFromFolderDropdown(locator.mailboxModel, mailLocator.mailModel, origin, currentFolder, resolvedMails, moveMode, optsWithClear)
+		showMoveMailsFromFolderDropdown(
+			locator.mailboxModel,
+			mailLocator.mailModel,
+			this.mailViewModel,
+			origin,
+			currentFolder,
+			resolvedMails,
+			moveMode,
+			optsWithClear,
+		)
 	}
 
 	private getLabelsAction(): ((dom: HTMLElement | null, opts?: LabelsPopupOpts) => void) | null {
@@ -1001,6 +1019,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				mailIds: actionableMails,
 				moveMode: this.mailViewModel.getMoveMode(currentFolder),
 				undoFolder: currentFolder,
+				mailViewModel: this.mailViewModel,
 			})
 		}
 	}
