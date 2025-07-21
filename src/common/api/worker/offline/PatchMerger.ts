@@ -75,7 +75,7 @@ export class PatchMerger {
 		}
 
 		if (entityUpdate !== null && instance !== null) {
-			const isPatchAndAppliedInstanceMatch = this.isInstanceOnUpdateIsSameAsPatched(entityUpdate, patchAppliedInstance)
+			const isPatchAndAppliedInstanceMatch = await this.isInstanceOnUpdateIsSameAsPatched(entityUpdate, patchAppliedInstance)
 			if (!isPatchAndAppliedInstanceMatch) {
 				if (!hasError(instance)) {
 					// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
@@ -379,20 +379,29 @@ export class PatchMerger {
 			)
 			const isPatchAndFullInstanceMatch = isEmpty(patchDiff)
 			if (!isPatchAndFullInstanceMatch) {
-				console.log("instance on the entityUpdate: ", entityUpdate.instance)
-				console.log("patched instance: ", patchAppliedInstance)
-				console.log("patches on the entityUpdate: ", entityUpdate.patches)
+				console.log("patches on the entityUpdate: ", this.logPatchedAttributes(assertNotNull(entityUpdate.patches)))
 				console.error(
 					"instance with id [" +
 						entityUpdate.instanceListId +
 						", " +
 						entityUpdate.instanceId +
 						"]" +
-						`has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}, computePatches: ${JSON.stringify(patchDiff)}`,
+						`has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}, computePatches: ${this.logPatchedAttributes(
+							patchDiff,
+						)}`,
 				)
 			}
 			return isPatchAndFullInstanceMatch
 		}
+		return true
+	}
+
+	private logPatchedAttributes(patches: Array<Patch>) {
+		let message = ""
+		for (const patch of patches) {
+			message += "Patch Operation: " + patch.patchOperation + " Patched Attribute: " + patch.attributePath + "\n"
+		}
+		return message
 	}
 }
 
