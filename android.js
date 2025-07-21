@@ -146,7 +146,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 		console.log("skipped webapp build")
 	}
 
-	await prepareMobileBuild(webClient, app)
+	await prepareMobileBuild({ app })
 	const buildDir = app === "mail" ? "build" : "build-calendar-app"
 	try {
 		await $`rm -r ${buildDir}/app-android`

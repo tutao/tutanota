@@ -147,7 +147,7 @@ void buildWebapp(String stage) {
     	sh "npm ci"
     	sh 'npm run build-packages'
     	sh "node --max-old-space-size=8192 webapp ${stage} --app calendar"
-    	sh "node buildSrc/prepareMobileBuild.js dist calendar"
+    	sh "node buildSrc/prepareMobileBuild.js --app calendar"
 	}
 }
 
