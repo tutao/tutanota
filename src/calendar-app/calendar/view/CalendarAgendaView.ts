@@ -81,7 +81,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 
 		const agendaChildren = this.renderAgenda(attrs, isDesktopLayout)
 
-		if (attrs.selectedTime && attrs.eventsForDays.size > 0 && this.lastScrolledDate !== attrs.selectedDate) {
+		if (attrs.selectedTime && attrs.eventsForDays.size > 0 && this.lastScrolledDate?.getTime() !== attrs.selectedDate.getTime()) {
 			this.lastScrolledDate = attrs.selectedDate
 			requestAnimationFrame(() => {
 				if (this.listDom) {
@@ -90,30 +90,34 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			})
 		}
 
-		return m(".fill-absolute.flex.col", { class: isDesktopLayout ? "mlr-l height-100p" : "mlr-safe-inset", style: containerStyle }, [
-			this.renderDateSelector(attrs, isDesktopLayout, selectedDate),
-			m(
-				".rel.flex-grow.flex.col",
-				{
-					class: isDesktopLayout ? "overflow-hidden" : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
-					oncreate: (vnode: VnodeDOM) => {
-						if (!isDesktopLayout) this.listDom = vnode.dom as HTMLElement
+		return m(
+			".fill-absolute.flex.col",
+			{
+				class: isDesktopLayout ? "mlr-l height-100p" : "mlr-safe-inset",
+				style: containerStyle,
+			},
+			[
+				this.renderDateSelector(attrs, isDesktopLayout, selectedDate),
+				m(
+					".rel.flex-grow.flex.col",
+					{
+						class: isDesktopLayout ? "overflow-hidden" : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
+						oncreate: (vnode: VnodeDOM) => {
+							if (!isDesktopLayout) this.listDom = vnode.dom as HTMLElement
+						},
+						onupdate: (vnode: VnodeDOM) => {
+							if (!isDesktopLayout) {
+								this.handleScrollOnUpdate(attrs, vnode)
+							}
+						},
 					},
-					onupdate: (vnode: VnodeDOM) => {
-						if (!isDesktopLayout) {
-							this.handleScrollOnUpdate(attrs, vnode)
-						}
-					},
-				},
-				agendaChildren,
-			),
-		])
+					agendaChildren,
+				),
+			],
+		)
 	}
 
 	private renderDateSelector(attrs: CalendarAgendaViewAttrs, isDesktopLayout: boolean, selectedDate: Date): Children {
-		// This time width is used to create a container above the day slider
-		// So the hidden dates "seems" to be following the same margin of the view
-		const timeWidth = !isDesktopLayout ? size.calendar_hour_width_mobile : size.calendar_hour_width
 		return isDesktopLayout
 			? null
 			: m(
@@ -330,7 +334,16 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		let eventsNodes: Child[] = []
 		for (const [eventIndex, event] of events.entries()) {
 			if (eventToShowTimeIndicator === eventIndex && isSameDay(new Date(), event.startTime)) {
-				eventsNodes.push(m(".mt-xs.mb-xs", { id: "timeIndicator", key: "timeIndicator" }, m(CalendarTimeIndicator, { circleLeftTangent: true })))
+				eventsNodes.push(
+					m(
+						".mt-xs.mb-xs",
+						{
+							id: "timeIndicator",
+							key: "timeIndicator",
+						},
+						m(CalendarTimeIndicator, { circleLeftTangent: true }),
+					),
+				)
 			}
 			if (currentTime && event.startTime < currentTime) {
 				newScrollPosition += agendaItemHeight + agendaGap

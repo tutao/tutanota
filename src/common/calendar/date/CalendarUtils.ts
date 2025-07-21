@@ -178,7 +178,10 @@ export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
 		.toJSDate()
 }
 
-const WEEKDAY_TO_NUMBER = {
+/**
+ * Objecting representing Luxon's DateTime values for {@link WeekdayNumbers}
+ */
+const DATETIME_WEEKDAY = {
 	MO: 1,
 	TU: 2,
 	WE: 3,
@@ -190,7 +193,7 @@ const WEEKDAY_TO_NUMBER = {
 
 function expandByDayRuleForWeeklyEvents(
 	targetWeekDay: WeekdayNumbers | null | undefined,
-	date: DateTime,
+	baseDate: DateTime,
 	wkst: WeekdayNumbers,
 	validMonths: number[],
 	newDates: DateTime[],
@@ -201,34 +204,33 @@ function expandByDayRuleForWeeklyEvents(
 	}
 
 	// Go back to week start, so we don't miss any events
-	let intervalStart = clone(date)
+	let intervalStart = clone(baseDate)
 	while (intervalStart.weekday !== wkst) {
 		intervalStart = intervalStart.minus({ day: 1 })
 	}
 
 	// Move forward until we reach the target day
-	let newDate = clone(intervalStart)
-	while (newDate.weekday !== targetWeekDay) {
-		newDate = newDate.plus({ day: 1 })
+	let newPotentialDate = clone(intervalStart)
+	while (newPotentialDate.weekday !== targetWeekDay) {
+		newPotentialDate = newPotentialDate.plus({ day: 1 })
+	}
+	if (newPotentialDate.toMillis() >= intervalStart.plus({ week: 1 }).toMillis()) {
+		// The event is actually next week, so discard
+		return
 	}
 
 	// Calculate next event to avoid creating events too ahead in the future
-	const nextEvent = date.plus({ week: 1 }).toMillis()
-	if (newDate.toMillis() >= intervalStart.plus({ week: 1 }).toMillis()) {
-		// The event is actually next week, so discard
-		return
-	} else if (newDate.toMillis() < date.toMillis()) {
-		// Event is behind progenitor, go forward one week
-		newDate = newDate.plus({ weeks: 1 })
-	}
-
-	if (newDate.toMillis() >= nextEvent || (wkst !== WeekDaysJsValue.MO && newDate.toMillis() >= intervalStart.plus({ weeks: 1 }).toMillis())) {
-		// Or we created an event after the first event or within the next week
+	const nextEvent = baseDate.plus({ week: 1 }).toMillis()
+	if (
+		newPotentialDate.toMillis() >= nextEvent ||
+		(wkst !== DATETIME_WEEKDAY.MO && newPotentialDate.toMillis() >= intervalStart.plus({ weeks: 1 }).toMillis())
+	) {
+		// We calculated an event after the first event of this expansion, or the calculated event happens on the next interval week
 		return
 	}
 
-	if (validMonths.length === 0 || validMonths.includes(newDate.month)) {
-		newDates.push(newDate)
+	if (validMonths.length === 0 || validMonths.includes(newPotentialDate.month)) {
+		newDates.push(newPotentialDate)
 	}
 }
 
@@ -416,7 +418,7 @@ function applyByDayRules(
 				continue
 			}
 
-			const targetWeekDay = parsedRuleValue[2] !== "" ? WEEKDAY_TO_NUMBER[parsedRuleValue[2]] : null
+			const targetWeekDay = parsedRuleValue[2] !== "" ? DATETIME_WEEKDAY[parsedRuleValue[2]] : null
 			const leadingValue = parsedRuleValue[1] !== "" ? Number.parseInt(parsedRuleValue[1]) : null
 
 			if (frequency === RepeatPeriod.DAILY) {
@@ -1245,7 +1247,7 @@ function* eventOccurencesGenerator(
 		// RFC explicit says to not apply when freq != Annually
 		const weekNoAppliedEvents =
 			frequency === RepeatPeriod.ANNUALLY
-				? applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO)
+				? applyWeekNo(monthAppliedEvents, byWeekNoRules, weekStartRule ? DATETIME_WEEKDAY[weekStartRule] : DATETIME_WEEKDAY.MO)
 				: monthAppliedEvents
 		const yearDayAppliedEvents =
 			frequency === RepeatPeriod.ANNUALLY
@@ -1260,7 +1262,7 @@ function* eventOccurencesGenerator(
 				byDayRules,
 				frequency,
 				validMonths,
-				weekStartRule ? WEEKDAY_TO_NUMBER[weekStartRule] : WEEKDAY_TO_NUMBER.MO,
+				weekStartRule ? DATETIME_WEEKDAY[weekStartRule] : DATETIME_WEEKDAY.MO,
 				byWeekNoRules.length > 0,
 				validMonthDays,
 				validYearDays,
@@ -1789,27 +1791,5 @@ export const BYRULE_MAP = freezeMap(
 		["BYMONTH", ByRule.BYMONTH],
 		["BYSETPOS", ByRule.BYSETPOS],
 		["WKST", ByRule.WKST],
-	]),
-)
-
-export const enum WeekDaysJsValue {
-	SU = 0,
-	MO,
-	TU,
-	WE,
-	TH,
-	FR,
-	SA,
-}
-
-export const BYRULE_WEEKDAYS_JS_VALUE = freezeMap(
-	new Map([
-		["SU", WeekDaysJsValue.SU],
-		["MO", WeekDaysJsValue.MO],
-		["TU", WeekDaysJsValue.TU],
-		["WE", WeekDaysJsValue.WE],
-		["TH", WeekDaysJsValue.TH],
-		["FR", WeekDaysJsValue.FR],
-		["SA", WeekDaysJsValue.SA],
 	]),
 )
