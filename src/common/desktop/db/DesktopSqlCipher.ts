@@ -93,6 +93,7 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 
 		const key = `x'${uint8ArrayToHex(databaseKey)}'`
 		this.db.pragma(`KEY = "${key}"`)
+		console.log(key)
 
 		// We are using the auto_vacuum=incremental mode to allow for a faster vacuum execution
 		// After changing the auto_vacuum mode we need to run "vacuum" once

@@ -149,6 +149,7 @@ import { NativeFileApp } from "../../../../native/common/FileApp.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
+import { CacheStorage } from "../../rest/DefaultEntityRestCache.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { encryptBytes, encryptKeyWithVersionedKey, encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicKeyProvider } from "../PublicKeyProvider.js"
@@ -203,6 +204,7 @@ export class MailFacade {
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicKeyProvider: PublicKeyProvider,
+		private readonly storage: CacheStorage,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -424,7 +426,13 @@ export class MailFacade {
 			mailSessionKey: bitArrayToUint8Array(mailSessionKey),
 			reportType,
 		})
-		await this.serviceExecutor.post(ReportMailService, postData)
+		await this.storeSpamResult(mail, true)
+		// await this.serviceExecutor.post(ReportMailService, postData)
+	}
+
+	async storeSpamResult(mail: Mail, isSpam: boolean): Promise<void> {
+		const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
+		await this.storage.putSpamMailClassification(mail, mailDetailsBlob.body, isSpam)
 	}
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {

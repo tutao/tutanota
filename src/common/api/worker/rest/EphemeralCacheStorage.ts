@@ -11,6 +11,7 @@ import { parseTypeString } from "@tutao/tutanota-utils/dist/TypeRef"
 import { ServerTypeModelResolver } from "../../common/EntityFunctions"
 import { expandId } from "./RestClientIdUtils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Mail, Body } from "../../entities/tutanota/TypeRefs"
 
 /** Cache for a single list. */
 type ListCache = {
@@ -248,6 +249,10 @@ export class EphemeralCacheStorage implements CacheStorage {
 		for (const instance of instances) {
 			await this.put(typeRef, instance)
 		}
+	}
+
+	async putSpamMailClassification(mail: Mail, mailBody: Body, isSpam: boolean): Promise<void> {
+		// fixme
 	}
 
 	private async putBlobElement(typeRef: TypeRef<unknown>, listId: Id, elementId: Id, entity: ServerModelParsedInstance) {
