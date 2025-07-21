@@ -83,15 +83,35 @@ targets:
     settings:
       PRODUCT_NAME: "Sqlcipher"
       PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).Sqlcipher"
-      GCC_PREPROCESSOR_DEFINITIONS: [ "SQLITE_HAS_CODEC=1", "SQLITE_ENABLE_FTS5=1", "$(inherited)" ]
+      # HAS_CODEC needs to be here
+      # https://www.zetetic.net/sqlcipher/ios-tutorial/
+      GCC_PREPROCESSOR_DEFINITIONS: [
+        "SQLITE_HAS_CODEC=1",
+        "SQLITE_ENABLE_FTS5=1",
+        "$(inherited)"
+      ]
       LIBRARY_SEARCH_PATHS: "$(inherited) $(PROJECT_DIR)/Sqlcipher/generated"
       GENERATE_INFOPLIST_FILE: "YES"
       OTHER_CFLAGS:
         [
           "-DSQLITE_HAS_CODEC",
-          "-DSQLITE_TEMP_STORE=3",
           "-DNDEBUG",
           "-DSQLCIPHER_CRYPTO_CC",
+          "-DSQLITE_LIKE_DOESNT_MATCH_BLOBS",
+          "-DSQLITE_OMIT_DEPRECATED",
+          "-DSQLITE_OMIT_DESERIALIZE",
+          "-DSQLITE_OMIT_GET_TABLE",
+          "-DSQLITE_OMIT_TCL_VARIABLE",
+          "-DSQLITE_OMIT_PROGRESS_CALLBACK",
+          "-DSQLITE_OMIT_UTF16",
+          "-DSQLITE_OMIT_COMPLETE",
+          "-DSQLITE_OMIT_AUTHORIZATION",
+          "-DSQLITE_DEFAULT_FOREIGN_KEYS=1",
+          "-DSQLITE_DQS=0",
+          "-DSQLITE_ENABLE_MATH_FUNCTIONS",
+          "-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT",
+          "-DSQLITE_TEMP_STORE=3",
+          "-DSQLITE_THREADSAFE=1",
         ]
       IPHONEOS_DEPLOYMENT_TARGET: "16.0"
     preBuildScripts:
