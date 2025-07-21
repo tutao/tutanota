@@ -461,6 +461,10 @@ export class MailViewModel {
 		return this.listModel?.getLabelsForMail(mail) ?? []
 	}
 
+	async applyLabelToMails(mails: readonly IdTuple[], label: MailFolder): Promise<void> {
+		await this.mailModel.applyLabels(mails, [label], [])
+	}
+
 	private setListId(folder: MailFolder) {
 		const oldFolderId = this._folder?._id
 		// update folder just in case, maybe it got updated
