@@ -32,6 +32,7 @@ import { ListElementEntity } from "../../common/api/common/EntityTypes.js"
 
 import { loadMultipleFromLists } from "../../common/api/common/EntityClient.js"
 import { mailLocator } from "../mailLocator.js"
+import { compareMails } from "../mail/model/MailUtils"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -515,13 +516,17 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private async showResultsInOverlay(result: SearchResult): Promise<void> {
-		const filteredEvents = result.results.filter(([calendarId, eventId]) => !isClientOnlyCalendar(calendarId))
-
-		const eventsRepository = await mailLocator.calendarEventsRepository()
-		const entries = [
-			...(await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, filteredEvents)),
-			...(await retrieveClientOnlyEventsForUser(mailLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
-		]
+		let entries: Entry[]
+		if (isSameTypeRef(CalendarEventTypeRef, result.restriction.type)) {
+			const serverEventIds = result.results.filter(([calendarId, eventId]) => !isClientOnlyCalendar(calendarId))
+			const eventsRepository = await mailLocator.calendarEventsRepository()
+			entries = [
+				...(await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, serverEventIds)),
+				...(await retrieveClientOnlyEventsForUser(mailLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
+			]
+		} else {
+			entries = await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, result.results)
+		}
 
 		// If there was no new search while we've been downloading the result
 		if (!mailLocator.search.isNewSearch(result.query, result.restriction)) {
@@ -576,7 +581,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			}
 		}
 		return {
-			filteredEntries: instances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
+			filteredEntries: instances.slice().sort(compareMails).slice(0, MAX_SEARCH_PREVIEW_RESULTS),
 			couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
 		}
 	}
