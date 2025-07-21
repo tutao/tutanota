@@ -51,6 +51,7 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
+import { isMailInSpam, isSpamFolder } from "./MailChecks"
 import { TutanotaError } from "@tutao/tutanota-error"
 
 interface MailboxSets {
@@ -357,6 +358,13 @@ export class MailModel {
 		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
 		if (folderSystem == null) {
 			return
+		}
+
+		const mailData = await this.loadAllMails(mails)
+		for (const mailDatum of mailData) {
+			if ((await isMailInSpam(mailDatum, this)) && !isSpamFolder(folderSystem, targetFolder)) {
+				await this.mailFacade.storeSpamResult(mailDatum, false)
+			}
 		}
 
 		const excludeFolder = moveMode === MoveMode.Conversation ? assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SENT))._id : null

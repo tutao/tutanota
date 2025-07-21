@@ -25,7 +25,7 @@ import {
 	UserGroupRootTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
-import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { Body, CalendarEventUidIndexTypeRef, Mail, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
@@ -223,6 +223,8 @@ export interface CacheStorage extends ExposedCacheStorage {
 	put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void>
 
 	putMultiple(typeRef: TypeRef<unknown>, instances: ServerModelParsedInstance[]): Promise<void>
+
+	putSpamMailClassification(mail: Mail, mailBody: Body, isSpam: boolean): Promise<void>
 
 	getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null>
 

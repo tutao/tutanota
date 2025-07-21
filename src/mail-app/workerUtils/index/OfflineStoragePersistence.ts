@@ -1,15 +1,16 @@
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../../common/api/worker/offline/Sql"
 import { SqlValue, untagSqlObject, untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
-import { GroupType } from "../../../common/api/common/TutanotaConstants"
+import { GroupType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/tutanota-utils"
-import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef, Body, MailFolderTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
+import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -38,6 +39,12 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 		          contentless_delete=1,
                   tokenize='signal_tokenizer'
               )`,
+		purgedWithCache: true,
+	},
+
+	spam_classification: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS spam_classification (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam, PRIMARY KEY (listId, elementId))",
 		purgedWithCache: true,
 	},
 
@@ -77,7 +84,10 @@ export class OfflineStoragePersistence {
 	static readonly MAIL_INDEXING_ENABLED = "mailIndexingEnabled"
 	static readonly CONTACTS_INDEXED = "contactsIndexed"
 
-	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
+	constructor(
+		private readonly sqlCipherFacade: SqlCipherFacade,
+		private readonly storage: CacheStorage,
+	) {}
 
 	async getIndexedGroups(): Promise<readonly IndexedGroupData[]> {
 		const { query, params } = sql`SELECT groupId, CAST(groupType as TEXT) as type, indexedTimestamp
@@ -152,6 +162,8 @@ export class OfflineStoragePersistence {
                 )`
 			await this.sqlCipherFacade.run(query, params)
 
+			await this.storeSpamClassification(mail, body)
+
 			// Sets are element IDs surrounded with spaces
 			const serializedSets = this.formatSetsValue(mail)
 
@@ -163,6 +175,24 @@ export class OfflineStoragePersistence {
             )`
 			await this.sqlCipherFacade.run(contentQuery.query, contentQuery.params)
 		}
+	}
+
+	private async storeSpamClassification(mailData: Mail, body: Body): Promise<void> {
+		const allFolders = await this.storage.getWholeList(MailFolderTypeRef, listIdPart(mailData.sets[0]))
+		const spamFolder = allFolders.find((folder) => folder.folderType == MailSetKind.SPAM)!
+
+		const isSpam = mailData.sets.some((folderId) => isSameId(folderId, spamFolder._id))
+		const { query, params } = sql`
+            INSERT
+            OR REPLACE INTO spam_classification(listId, elementId, subject, body, isSpam)
+				VALUES (
+            ${listIdPart(mailData._id)},
+            ${elementIdPart(mailData._id)},
+            ${mailData.subject},
+            ${htmlToText(getMailBodyText(body))},
+            ${isSpam ? 1 : 0}
+            )`
+		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async updateMailLocation(mail: Mail) {

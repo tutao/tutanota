@@ -6,6 +6,7 @@ import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorag
 import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Body, Mail } from "../../entities/tutanota/TypeRefs"
 
 export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
 	type: "ephemeral"
@@ -176,6 +177,10 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	putMultiple(typeRef: TypeRef<unknown>, instances: ServerModelParsedInstance[]): Promise<void> {
 		return this.inner.putMultiple(typeRef, instances)
+	}
+
+	putSpamMailClassification(mail: Mail, mailBody: Body, isSpam: boolean): Promise<void> {
+		return this.inner.putSpamMailClassification(mail, mailBody, isSpam)
 	}
 
 	putLastBatchIdForGroup(groupId: Id, batchId: Id): Promise<void> {
