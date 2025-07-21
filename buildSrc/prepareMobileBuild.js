@@ -1,8 +1,8 @@
 import fs from "node:fs"
 import { program } from "commander"
-import { glob } from "glob"
 import { fileURLToPath } from "node:url"
 import "zx/globals"
+import path from "node:path"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
 	program.usage("make|dist").arguments("<target>").action(prepareMobileBuild).parse(process.argv)
@@ -26,11 +26,14 @@ export async function prepareMobileBuild(buildType, app) {
 		fs.rmSync(wasmpath, { force: true, recursive: true })
 	}
 
-	const maps = glob.sync(prefix + "*.js.map")
-	for (let file of maps) {
-		console.log("unlinking ", file)
-		fs.unlinkSync(file)
+	// remove source map
+	for (let file of fs.readdirSync(prefix)) {
+		if (file.endsWith(".js.map")) {
+			console.log("unlinking ", file)
+			fs.unlinkSync(path.join(prefix, file))
+		}
 	}
+
 	const indexHtmlPath = prefix + "index.html"
 	if (fs.existsSync(indexHtmlPath)) {
 		fs.unlinkSync(indexHtmlPath)
