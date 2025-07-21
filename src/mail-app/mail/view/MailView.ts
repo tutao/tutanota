@@ -78,7 +78,7 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
-import { DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
+import { DropData, DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
@@ -972,24 +972,40 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private async handleFolderMailDrop(dropData: MailDropData, targetFolder: MailFolder) {
-		const { mailId } = dropData
-		const currentFolder = this.mailViewModel.getFolder()
-		if (!this.mailViewModel.listModel || !currentFolder) {
-			return
-		}
-		let mailsToMove: readonly Mail[] = []
+	private getDroppedMails(dropData: MailDropData): readonly Mail[] {
+		if (this.mailViewModel.listModel) {
+			// the dropped mail is among the selected mails, get all selected mails
+			if (this.mailViewModel.listModel.isItemSelected(dropData.mailId)) {
+				return this.mailViewModel.listModel.getSelectedAsArray()
+			} else {
+				const entity = this.mailViewModel.listModel.getMail(dropData.mailId)
 
-		// the dropped mail is among the selected mails, move all selected mails
-		if (this.mailViewModel.listModel.isItemSelected(mailId)) {
-			mailsToMove = this.mailViewModel.listModel.getSelectedAsArray()
-		} else {
-			const entity = this.mailViewModel.listModel.getMail(mailId)
-
-			if (entity) {
-				mailsToMove = [entity]
+				if (entity) {
+					return [entity]
+				}
 			}
 		}
+
+		return []
+	}
+
+	private async handleLabelMailDrop(dropData: MailDropData, targetLabel: MailFolder): Promise<void> {
+		const mailsToAddLabel = this.getDroppedMails(dropData)
+
+		if (!isEmpty(mailsToAddLabel)) {
+			const actionableMails = await this.mailViewModel.getResolvedMails(mailsToAddLabel)
+			await this.mailViewModel.applyLabelToMails(actionableMails, targetLabel)
+		}
+	}
+
+	private async handleFolderMailDrop(dropData: MailDropData, targetFolder: MailFolder) {
+		const currentFolder = this.mailViewModel.getFolder()
+
+		if (!currentFolder) {
+			return
+		}
+
+		const mailsToMove = this.getDroppedMails(dropData)
 
 		if (!isEmpty(mailsToMove)) {
 			const actionableMails = await this.mailViewModel.getResolvedMails(mailsToMove)
@@ -1173,6 +1189,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 									onClick: () => {
 										if (!inEditMode) {
 											this.viewSlider.focus(this.listColumn)
+										}
+									},
+									dropHandler: (dropData: DropData) => {
+										if (dropData.dropType == DropType.Mail) {
+											this.handleLabelMailDrop(dropData, label)
 										}
 									},
 									alwaysShowMoreButton: inEditMode,
