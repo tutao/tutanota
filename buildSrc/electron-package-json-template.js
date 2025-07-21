@@ -153,7 +153,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 				// This option tells @electron/universal that it's okay to have a file for the mismatching architecture in the app (which we will have because
 				// we have both binaries).
 				// It will also disable LIPO for this file which is what we want.
-				x64ArchFiles: "build/desktop/*.node",
+				x64ArchFiles: "**/*.node",
 				target: unpacked
 					? [{ target: "dir", arch: architecture }]
 					: [
