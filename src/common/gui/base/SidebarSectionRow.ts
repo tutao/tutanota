@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { isNavButtonSelected, NavButton, NavButtonAttrs } from "./NavButton"
-import { ClickHandler } from "./GuiUtils"
-import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
-import type { lazy } from "@tutao/tutanota-utils"
+import { ClickHandler, DropData } from "./GuiUtils"
+import type { MaybeTranslation } from "../../misc/LanguageViewModel"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import { stateBgHover } from "../builtinThemes"
 import { client } from "../../misc/ClientDetector"
 import { IconButton, IconButtonAttrs } from "./IconButton"
@@ -19,6 +19,7 @@ export interface SidebarSectionRowAttrs {
 	alwaysShowMoreButton?: boolean
 	isSelectedPrefix?: string | boolean
 	disabled?: boolean
+	dropHandler?: (dropData: DropData) => unknown
 }
 
 /**
@@ -52,6 +53,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 			onkeydown: handleBackwardsTab,
 			isSelectedPrefix: attrs.isSelectedPrefix,
 			disabled: attrs.disabled,
+			dropHandler: attrs.dropHandler ? (dropData) => assertNotNull(attrs.dropHandler)(dropData) : undefined,
 		}
 
 		return m(
