@@ -180,7 +180,9 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			resolveLibs(),
 			nodeResolve({
 				preferBuiltins: true,
-				resolveOnly: [/^@tutao\/.*$/],
+				// do not pull in random packages from node_modules, only our workspace is allowed
+				// simple-windows-notifications is our own fork so it's fine to not vendor it
+				resolveOnly: [/^@tutao\/.*$/, "@indutny/simple-windows-notifications"],
 			}),
 			commonjs(),
 			disableMinify ? undefined : terser(),
