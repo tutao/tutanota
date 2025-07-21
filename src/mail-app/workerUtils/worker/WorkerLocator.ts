@@ -404,7 +404,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const offlineStorageIndexerPersistence = lazyMemoized(async () => {
 		const { OfflineStoragePersistence } = await import("../index/OfflineStoragePersistence.js")
-		return new OfflineStoragePersistence(locator.sqlCipherFacade)
+		return new OfflineStoragePersistence(locator.sqlCipherFacade, locator.cacheStorage)
 	})
 
 	const serverDateProvider: DateProvider = {
@@ -719,6 +719,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.login,
 			locator.keyLoader,
 			locator.publicEncryptionKeyProvider,
+			locator.cacheStorage,
 		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)

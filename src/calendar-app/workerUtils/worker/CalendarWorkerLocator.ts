@@ -517,6 +517,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.login,
 			locator.keyLoader,
 			locator.publicEncryptionKeyProvider,
+			locator.cacheStorage,
 		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)

@@ -46,6 +46,9 @@ import { TypeModelResolver } from "../../common/EntityFunctions"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
+import { Mail, Body } from "../../entities/tutanota/TypeRefs"
+import { htmlToText } from "../search/IndexUtils"
+import { getMailBodyText } from "../../common/CommonMailUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 
@@ -566,6 +569,20 @@ export class OfflineStorage implements CacheStorage {
 			}
 		}
 		tm?.endMeasurement()
+	}
+
+	async putSpamMailClassification(mail: Mail, mailBody: Body, isSpam: boolean): Promise<void> {
+		const { query, params } = sql`
+            INSERT
+            OR REPLACE INTO spam_classification(listId, elementId, subject, body, isSpam)
+				VALUES (
+            ${listIdPart(mail._id)},
+            ${elementIdPart(mail._id)},
+            ${mail.subject},
+            ${htmlToText(getMailBodyText(mailBody))},
+            ${isSpam ? 1 : 0}
+            )`
+		await this.sqlCipherFacade.run(query, params)
 	}
 
 	private insertMultipleFormattedQuery(query: string, nestedlistOfParams: Array<Array<SqlValue>>): FormattedQuery {

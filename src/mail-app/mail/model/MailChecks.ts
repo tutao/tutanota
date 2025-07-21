@@ -24,6 +24,20 @@ export async function isMailInSpamOrTrash(mail: Mail, mailModel: MailModel): Pro
 	}
 }
 
+export async function isMailInSpam(mail: Mail, mailModel: MailModel): Promise<boolean> {
+	const folders = await mailModel.getMailboxFoldersForMail(mail)
+	const mailFolder = folders?.getFolderByMail(mail)
+	if (folders && mailFolder) {
+		return isSpamFolder(folders, mailFolder)
+	} else {
+		return false
+	}
+}
+
+export function isSpamFolder(system: FolderSystem, folder: MailFolder): boolean {
+	return folder.folderType === MailSetKind.SPAM || isSubfolderOfType(system, folder, MailSetKind.SPAM)
+}
+
 /**
  * Returns true if given folder is the {@link MailFolderType.SPAM} or {@link MailFolderType.TRASH} folder, or a descendant of those folders.
  */
