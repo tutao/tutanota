@@ -144,8 +144,16 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 				extendInfo: {
 					LSUIElement: 1, //hide dock icon on startup
 				},
-				// we do not lipo the binaries so we should tell @electron/universal to not merge them into a single asar
-				singleArchFiles: "build/desktop/*.node",
+				// The build process is somewhat silly as we build two apps for each arch (x64 and arm64).
+				// We do not pre-lipo the NAPI binaries so each of these apps will have libraries for both architectures.
+				// But it doesn't matter because in the end both apps are smashed together into a single package.
+				// If each of the app parts had only one binary we would add them to "singleArchFiles" to tell @electron/universal to not merge them into a
+				// single asar.
+				//
+				// This option tells @electron/universal that it's okay to have a file for the mismatching architecture in the app (which we will have because
+				// we have both binaries).
+				// It will also disable LIPO for this file which is what we want.
+				x64ArchFiles: "build/desktop/*.node",
 				target: unpacked
 					? [{ target: "dir", arch: architecture }]
 					: [
