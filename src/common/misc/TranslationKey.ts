@@ -1905,6 +1905,7 @@ export type TranslationKeyType =
 	| "unavailable_label"
 	| "undecided_label"
 	| "undoMailReport_msg"
+	| "undoMoveMail_msg"
 	| "undo_action"
 	| "unencryptedTransmission_msg"
 	| "unknownError_msg"

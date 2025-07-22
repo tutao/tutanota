@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-22T04:39:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1927,6 +1927,7 @@ export default {
 		"unavailable_label": "Unavailable",
 		"undecided_label": "Undecided",
 		"undoMailReport_msg": "The email(s) will be reported in unencrypted form.",
+		"undoMoveMail_msg": "The email(s) were moved to folder \\\"{folder}\\\".",
 		"undo_action": "Undo",
 		"unencryptedTransmission_msg": "The email(s) moved to the spam folder will be transmitted to the server in unencrypted form to improve spam protection.",
 		"unknownError_msg": "An unexpected error occurred. Please try again later.",

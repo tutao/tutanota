@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-22T04:39:13Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1931,6 +1931,7 @@ export default {
 		"unavailable_label": "Nicht verfügbar",
 		"undecided_label": "Nicht entschieden",
 		"undoMailReport_msg": "Die E-Mail(s) werden unverschlüsselt gemeldet.",
+		"undoMoveMail_msg": "Die E-Mail(s) wurden in den Ordner \\\"{folder}\\\" verschoben.",
 		"undo_action": "Rückgängig",
 		"unencryptedTransmission_msg": "Die in den Spam-Ordner verschoben(en) E-Mail(s) werden unverschlüsselt an den Server übertragen, um den Spam-Schutz zu verbessern.",
 		"unknownError_msg": "Es ist ein unerwarteter Fehler aufgetreten. Bitte versuche es später erneut.",
