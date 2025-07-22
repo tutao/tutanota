@@ -206,7 +206,6 @@ def generateXCodeProjects() {
 	generateXCodeProject("app-ios", "mail-project")
 	// We don't technically need the calendar project but some Xcode tools are slightly upset if they don't find all
 	// projects referenced from a workspace.
-	sh 'mkdir -p build-calendar-app'
 	generateXCodeProject("app-ios", "calendar-project")
 	generateXCodeProject("tuta-sdk/ios", "project")
 }
