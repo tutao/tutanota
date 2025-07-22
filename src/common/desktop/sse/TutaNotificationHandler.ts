@@ -76,7 +76,7 @@ export class TutaNotificationHandler {
 					log.warn(`Not found credentials to download notification, userId ${firstNotificationInfo.userId}`)
 					continue
 				}
-				const infosToFetch = infos.slice(0, 5) // don't show notifications for more than five mails at a time
+				const infosToFetch = infos.slice(0, 100) // don't show notifications for more than a hundred mails at a time
 				const mailMetadata = await this.downloadMailMetadata(sseInfo, listId, infosToFetch, credentials)
 				for (const mailMeta of mailMetadata) {
 					this.notifier.showCountedUserNotification({
