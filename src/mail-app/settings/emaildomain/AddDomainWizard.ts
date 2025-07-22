@@ -50,16 +50,16 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 		wizardPageWrapper(VerifyDnsRecordsPage, new VerifyDnsRecordsPageAttrs(domainData)),
 	]
 	return newPromise((resolve) => {
-		const wizardBuilder = createWizardDialog(
-			domainData,
-			wizardPages,
-			() => {
+		const wizardBuilder = createWizardDialog({
+			data: domainData,
+			pages: wizardPages,
+			closeAction: () => {
 				mailAddressTableModel.dispose()
 				resolve()
 				return Promise.resolve()
 			},
-			DialogType.EditLarge,
-		)
+			dialogType: DialogType.EditLarge,
+		})
 		const wizard = wizardBuilder.dialog
 		const wizardAttrs = wizardBuilder.attrs
 		wizard.show()
