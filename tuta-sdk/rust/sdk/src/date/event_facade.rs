@@ -890,7 +890,7 @@ impl EventFacade {
 				new_dates.push(PrimitiveDateTime::new(utc_date.date(), utc_date.time()));
 			}
 		} else if has_week_no {
-			// There's no week number or occurrenceNumber, so it will happen on all // FIXME does it have a weekNumber or not?
+			// There's week number and week change, so it will happen on all
 			// weekdays that are the same as targetWeekDay
 
 			if target_week_day.is_none() {
@@ -909,7 +909,10 @@ impl EventFacade {
 
 			if new_date.unix_timestamp() > week_ahead.unix_timestamp()
 				|| new_date.unix_timestamp() < date.unix_timestamp()
-			{ // FIXME what is this branch?
+			{
+				// We want to complete ignore the date if it falls in this case
+				// So we can just do nothing.
+				return;
 			} else if new_date.unix_timestamp() < interval_start.unix_timestamp() {
 				let utc_date = interval_start.add(Duration::days(7)).to_utc();
 				new_dates.push(PrimitiveDateTime::new(utc_date.date(), utc_date.time()));
@@ -1080,9 +1083,6 @@ impl EventFacade {
 		if new_date.unix_timestamp() >= interval_start.add(Duration::weeks(1)).unix_timestamp() {
 			// The event is actually next week, so discard
 			return;
-		} else if new_date.unix_timestamp() < date.unix_timestamp() {
-			// Event is behind progenitor, go forward one week
-			new_date = new_date.add(Duration::weeks(1)); // FIXME this was removed on webapp so we should do the same here
 		}
 
 		if (new_date.unix_timestamp() >= next_event)
@@ -1822,6 +1822,75 @@ mod tests {
 			vec![
 				DateTime::from_millis(1752994800000),
 				DateTime::from_millis(1753599600000)
+			]
+		);
+	}
+
+	#[test]
+	fn test_create_event_instances_for_weekly_events_with_arr_and_wkst_on_friday() {
+		let event_facade = EventFacade::new();
+
+		let event_start = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::July, 21).unwrap(),
+			Time::from_hms(17, 0, 0).unwrap(),
+		);
+
+		let event_end = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::July, 21).unwrap(),
+			Time::from_hms(20, 0, 0).unwrap(),
+		);
+
+		let max_date = PrimitiveDateTime::new(
+			Date::from_calendar_date(2025, Month::August, 21).unwrap(),
+			Time::from_hms(0, 0, 0).unwrap(),
+		);
+
+		let weekly_events = event_facade.create_event_instances(
+			DateTime::from_seconds(event_start.assume_utc().unix_timestamp() as u64),
+			DateTime::from_seconds(event_end.assume_utc().unix_timestamp() as u64),
+			EventRepeatRule {
+				frequency: RepeatPeriod::Weekly,
+				by_rules: vec![
+					ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "MO".to_string(),
+					},
+					ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "WE".to_string(),
+					},
+					ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "FR".to_string(),
+					},
+					ByRule {
+						by_rule: ByRuleType::Wkst,
+						interval: "FR".to_string(),
+					},
+				],
+			},
+			2,
+			EndType::Never,
+			None,
+			vec![],
+			None,
+			Some(DateTime::from_seconds(
+				max_date.assume_utc().unix_timestamp().unsigned_abs(),
+			)),
+			"Europe/London".to_string(),
+		);
+
+		assert_eq!(
+			weekly_events.unwrap(),
+			vec![
+				DateTime::from_millis(1753117200000),
+				DateTime::from_millis(1753290000000),
+				DateTime::from_millis(1754067600000),
+				DateTime::from_millis(1754326800000),
+				DateTime::from_millis(1754499600000),
+				DateTime::from_millis(1755277200000),
+				DateTime::from_millis(1755536400000),
+				DateTime::from_millis(1755709200000),
 			]
 		);
 	}
@@ -3415,7 +3484,7 @@ mod tests {
 	fn test_flow_weekly_with_by_day_edge() {
 		let time = Time::from_hms(13, 23, 00).unwrap();
 		let date = PrimitiveDateTime::new(
-			Date::from_calendar_date(2025, Month::February, 2).unwrap(),
+			Date::from_calendar_date(2025, Month::February, 3).unwrap(),
 			time,
 		);
 
