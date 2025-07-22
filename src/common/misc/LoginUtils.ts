@@ -36,6 +36,7 @@ import { locator } from "../api/main/CommonLocator"
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { Params } from "mithril"
 import { LoginState } from "../login/LoginViewModel.js"
+import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
 
 /**
  * Shows warnings if the invoices are not paid or the registration is not approved yet.
@@ -61,12 +62,12 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 				status === ApprovalStatus.DELAYED ||
 				status === ApprovalStatus.REGISTRATION_APPROVAL_NEEDED_AND_INITIALLY_ACCESSED
 			) {
-				return Dialog.message("waitingForApproval_msg").then(() => false)
+				return showApprovalNeededMessageDialog().then(() => false)
 			} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
 				if (new Date().getTime() - generatedIdToTimestamp(customer._id) > 2 * 24 * 60 * 60 * 1000) {
 					return Dialog.message("requestApproval_msg").then(() => true)
 				} else {
-					return Dialog.message("waitingForApproval_msg").then(() => false)
+					return showApprovalNeededMessageDialog().then(() => false)
 				}
 			} else if (status === ApprovalStatus.INVOICE_NOT_PAID) {
 				if (logins.getUserController().isGlobalAdmin()) {

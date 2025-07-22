@@ -2052,6 +2052,8 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"notice_label": "Notice",
+		"approvalWaitNotice_msg": "Your account was marked for manual approval. This means you are not able to send or receive emails. The approval usually happens within 24 hours on weekdays."
 	}
 }

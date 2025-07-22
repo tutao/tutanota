@@ -2056,6 +2056,8 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"notice_label": "Hinweis",
+		"approvalWaitNotice_msg": "Dein Account benötigt eine manuelle Freigabe. Das bedeutet, dass du keine E-Mails senden oder empfangen kannst. Die Freigabe erfolgt an Werktagen in der Regel innerhalb von 24 Stunden.",
 	}
 }

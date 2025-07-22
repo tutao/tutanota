@@ -2032,3 +2032,5 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "notice_label"
+	| "approvalWaitNotice_msg"
