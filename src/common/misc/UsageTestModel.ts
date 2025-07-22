@@ -1,6 +1,7 @@
 import {
 	createUsageTestAssignmentIn,
 	createUsageTestMetricData,
+	createUsageTestParticipationDeleteIn,
 	createUsageTestParticipationIn,
 	UsageTestAssignment,
 	UsageTestAssignmentOut,
@@ -27,7 +28,8 @@ import { EntityClient } from "../api/common/EntityClient.js"
 import { EventController } from "../api/main/EventController.js"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
-import { ClientTypeModelResolver, TypeModelResolver } from "../api/common/EntityFunctions"
+import { ClientTypeModelResolver } from "../api/common/EntityFunctions"
+import { PingIdTuple } from "../../../packages/tutanota-usagetests/lib/model/Stage.js"
 
 const PRESELECTED_LIKERT_VALUE = null
 
@@ -160,7 +162,6 @@ export class UsageTestModel implements PingAdapter {
 	private storageBehavior = StorageBehavior.Ephemeral
 	private customerProperties?: CustomerProperties
 	private lastOptInDecision: boolean | null = null
-	private lastPing = Promise.resolve()
 
 	constructor(
 		private readonly storages: { [key in StorageBehavior]: UsageTestStorage },
@@ -371,15 +372,24 @@ export class UsageTestModel implements PingAdapter {
 		})
 	}
 
-	async sendPing(test: UsageTest, stage: Stage): Promise<void> {
-		this.lastPing = this.lastPing.then(
-			() => this.doSendPing(stage, test),
-			() => this.doSendPing(stage, test),
-		)
-		return this.lastPing
+	async deletePing(testId: string, { pingId, pingListId }: PingIdTuple) {
+		const testDeviceId = await this.storage().getTestDeviceId()
+		if (!testDeviceId) return
+		const data = createUsageTestParticipationDeleteIn({
+			testId,
+			testDeviceId,
+			pingListId,
+			pingId,
+		})
+		await this.serviceExecutor.delete(UsageTestParticipationService, data)
+		console.log(`Removed Ping: ${pingId}, ${pingListId}`)
 	}
 
-	private async doSendPing(stage: Stage, test: UsageTest) {
+	async sendPing(test: UsageTest, stage: Stage, finalize: boolean): Promise<PingIdTuple | undefined> {
+		return this.doSendPing(stage, test, finalize)
+	}
+
+	private async doSendPing(stage: Stage, test: UsageTest, finalize: boolean): Promise<PingIdTuple | undefined> {
 		// Immediately stop sending pings if the user has opted out.
 		// Only applicable if the user opts out and then does not re-log.
 		if (this.storageBehavior === StorageBehavior.Persist && !this.getOptInDecision()) {
@@ -404,12 +414,14 @@ export class UsageTestModel implements PingAdapter {
 			metrics,
 			stage: stage.number.toString(),
 			testDeviceId: testDeviceId,
+			isFinalPingForStage: finalize,
 		})
 
 		try {
-			await this.serviceExecutor.post(UsageTestParticipationService, data, {
+			const { pingListId, pingId } = await this.serviceExecutor.post(UsageTestParticipationService, data, {
 				suspensionBehavior: SuspensionBehavior.Throw,
 			})
+			return { pingListId, pingId }
 		} catch (e) {
 			if (e instanceof SuspensionError) {
 				test.active = false
@@ -454,5 +466,9 @@ export class UsageTestModel implements PingAdapter {
 				throw e
 			}
 		}
+	}
+
+	async getTestDeviceId(): Promise<string | null> {
+		return this.storage().getTestDeviceId()
 	}
 }
