@@ -248,6 +248,7 @@ export const enum InfoLink {
 	HomePageFreeSignup = "https://tuta.com/free-email",
 	DeprecatedKey = "https://tuta.com/support#deprecated-key-warning",
 	SecretStorage = "https://tuta.com/faq/#secretstorage",
+	AccountApprovalFaq = "https://tuta.com/support#48",
 }
 
 /**
