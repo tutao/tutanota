@@ -1,6 +1,8 @@
 import { UsageTestAssignmentInTypeRef } from "./TypeRefs.js"
 import { UsageTestAssignmentOutTypeRef } from "./TypeRefs.js"
 import { UsageTestParticipationInTypeRef } from "./TypeRefs.js"
+import { UsageTestParticipationOutTypeRef } from "./TypeRefs.js"
+import { UsageTestParticipationDeleteInTypeRef } from "./TypeRefs.js"
 
 export const UsageTestAssignmentService = Object.freeze({
 	app: "usage",
@@ -15,7 +17,7 @@ export const UsageTestParticipationService = Object.freeze({
 	app: "usage",
 	name: "UsageTestParticipationService",
 	get: null,
-	post: { data: UsageTestParticipationInTypeRef, return: null },
+	post: { data: UsageTestParticipationInTypeRef, return: UsageTestParticipationOutTypeRef },
 	put: null,
-	delete: null,
+	delete: { data: UsageTestParticipationDeleteInTypeRef, return: null },
 } as const)

@@ -9,7 +9,7 @@ export const typeModels = {
 	"8": {
 		"name": "UsageTestMetricConfigValue",
 		"app": "usage",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 8,
@@ -48,7 +48,7 @@ export const typeModels = {
 	"12": {
 		"name": "UsageTestMetricConfig",
 		"app": "usage",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 12,
@@ -97,7 +97,7 @@ export const typeModels = {
 	"17": {
 		"name": "UsageTestMetricData",
 		"app": "usage",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 17,
@@ -136,7 +136,7 @@ export const typeModels = {
 	"35": {
 		"name": "UsageTestStage",
 		"app": "usage",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 35,
@@ -176,6 +176,14 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"102": {
+				"final": false,
+				"name": "isFinalStage",
+				"id": 102,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -193,7 +201,7 @@ export const typeModels = {
 	"53": {
 		"name": "UsageTestAssignmentIn",
 		"app": "usage",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 53,
@@ -224,7 +232,7 @@ export const typeModels = {
 	"56": {
 		"name": "UsageTestAssignment",
 		"app": "usage",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 56,
@@ -289,7 +297,7 @@ export const typeModels = {
 	"63": {
 		"name": "UsageTestAssignmentOut",
 		"app": "usage",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 63,
@@ -330,7 +338,7 @@ export const typeModels = {
 	"80": {
 		"name": "UsageTestParticipationIn",
 		"app": "usage",
-		"version": 3,
+		"version": 4,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 80,
@@ -370,6 +378,14 @@ export const typeModels = {
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"100": {
+				"final": false,
+				"name": "isFinalPingForStage",
+				"id": 100,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -383,5 +399,99 @@ export const typeModels = {
 				"dependency": null
 			}
 		}
+	},
+	"90": {
+		"name": "UsageTestParticipationOut",
+		"app": "usage",
+		"version": 4,
+		"since": 4,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 90,
+		"rootId": "BXVzYWdlAFo",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"91": {
+				"final": false,
+				"name": "_format",
+				"id": 91,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"92": {
+				"final": false,
+				"name": "pingListId",
+				"id": 92,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"93": {
+				"final": false,
+				"name": "pingId",
+				"id": 93,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"94": {
+		"name": "UsageTestParticipationDeleteIn",
+		"app": "usage",
+		"version": 4,
+		"since": 4,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 94,
+		"rootId": "BXVzYWdlAF4",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"95": {
+				"final": false,
+				"name": "_format",
+				"id": 95,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"96": {
+				"final": false,
+				"name": "testId",
+				"id": 96,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"97": {
+				"final": false,
+				"name": "testDeviceId",
+				"id": 97,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"98": {
+				"final": false,
+				"name": "pingListId",
+				"id": 98,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"99": {
+				"final": false,
+				"name": "pingId",
+				"id": 99,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
 	}
 }
