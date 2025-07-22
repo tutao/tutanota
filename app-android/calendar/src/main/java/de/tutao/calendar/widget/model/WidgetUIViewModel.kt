@@ -27,7 +27,6 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.Date
 
 class WidgetUIViewModel(
 	private val repository: WidgetRepository,
@@ -134,8 +133,8 @@ class WidgetUIViewModel(
 				val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.endTime.toLong()), zoneId)
 				val formatter = DateTimeFormatter.ofPattern("HH:mm")
 				val isAllDay = isAllDayEventByTimes(
-					Date.from(Instant.ofEpochMilli(loadedEvent.startTime.toLong())),
-					Date.from(Instant.ofEpochMilli(loadedEvent.endTime.toLong()))
+					start,
+					end
 				) || (loadedEvent.startTime.toLong() < todayMidnight.timeInMillis && loadedEvent.endTime.toLong() >= tomorrowMidnight.timeInMillis)
 
 				val event = UIEvent(
