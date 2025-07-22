@@ -77,6 +77,8 @@ pub struct UsageTestStage {
 	pub minPings: i64,
 	#[serde(rename = "88")]
 	pub maxPings: i64,
+	#[serde(rename = "102")]
+	pub isFinalStage: bool,
 	#[serde(rename = "38")]
 	pub metrics: Vec<UsageTestMetricConfig>,
 }
@@ -165,6 +167,8 @@ pub struct UsageTestParticipationIn {
 	pub stage: i64,
 	#[serde(rename = "84")]
 	pub testDeviceId: GeneratedId,
+	#[serde(rename = "100")]
+	pub isFinalPingForStage: bool,
 	#[serde(rename = "85")]
 	pub metrics: Vec<UsageTestMetricData>,
 }
@@ -174,6 +178,50 @@ impl Entity for UsageTestParticipationIn {
 		TypeRef {
 			app: AppName::Usage,
 			type_id: TypeId::from(80),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UsageTestParticipationOut {
+	#[serde(rename = "91")]
+	pub _format: i64,
+	#[serde(rename = "92")]
+	pub pingListId: GeneratedId,
+	#[serde(rename = "93")]
+	pub pingId: GeneratedId,
+}
+
+impl Entity for UsageTestParticipationOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Usage,
+			type_id: TypeId::from(90),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UsageTestParticipationDeleteIn {
+	#[serde(rename = "95")]
+	pub _format: i64,
+	#[serde(rename = "96")]
+	pub testId: GeneratedId,
+	#[serde(rename = "97")]
+	pub testDeviceId: GeneratedId,
+	#[serde(rename = "98")]
+	pub pingListId: GeneratedId,
+	#[serde(rename = "99")]
+	pub pingId: GeneratedId,
+}
+
+impl Entity for UsageTestParticipationDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Usage,
+			type_id: TypeId::from(94),
 		}
 	}
 }
