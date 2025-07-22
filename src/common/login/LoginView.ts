@@ -23,6 +23,7 @@ import { styles } from "../gui/styles.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { showSnackBar } from "../gui/base/SnackBar.js"
+import { SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 assertMainOrNode()
 
@@ -76,6 +77,23 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 		this.moreExpanded = false
 		this.viewModel = attrs.makeViewModel()
 		this.initPromise = this.viewModel.init().then(m.redraw)
+	}
+
+	handleBeforeUnload = (e: BeforeUnloadEvent) => {
+		// SignupFlowUsageTestController.abandonUsageTest()
+		// e.preventDefault()
+		window.navigator.sendBeacon(
+			"https://app.local.tuta.com:9000/rest/usage/usagetestparticipationservice",
+			JSON.parse('{"81":"0","82":"OVIKXX_----0","83":"2","84":"OVINdgd----0","85":[{"18":"-iDuAg","19":"plan","20":"Yearly_Legend"}]}'),
+		)
+	}
+
+	oncreate(): any {
+		window.addEventListener("beforeunload", this.handleBeforeUnload.bind(this))
+	}
+
+	onremove(): any {
+		window.removeEventListener("beforeunload", this.handleBeforeUnload.bind(this))
 	}
 
 	keyboardListener = (keyboardSize: number) => {
