@@ -5,15 +5,18 @@ import { Icons } from "../../../gui/base/icons/Icons"
 import { theme } from "../../../gui/theme"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { Card } from "../../../gui/base/Card"
+import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 
 type VerificationErrorAcceptPageAttrs = {
 	contactMailAddress: string
+	goToUnverifiedRecipientsPage?: () => void
 }
 
 export class RecipientKeyVerificationRecoveryAcceptPage implements Component<VerificationErrorAcceptPageAttrs> {
 	view(vnode: Vnode<VerificationErrorAcceptPageAttrs>) {
 		const title = lang.get("keyVerificationErrorAccept_title")
 		let contactUpdatedText = lang.get("keyVerificationErrorContactUpdated_msg", { "{mailAddress}": vnode.attrs.contactMailAddress })
+		const contactMailAddress = vnode.attrs.contactMailAddress
 
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
@@ -33,6 +36,14 @@ export class RecipientKeyVerificationRecoveryAcceptPage implements Component<Ver
 					}),
 				]),
 			),
+			vnode.attrs.goToUnverifiedRecipientsPage
+				? m(LoginButton, {
+						label: "continue_action",
+						onclick: async () => {
+							vnode.attrs.goToUnverifiedRecipientsPage?.()
+						},
+					})
+				: null,
 		])
 	}
 }
