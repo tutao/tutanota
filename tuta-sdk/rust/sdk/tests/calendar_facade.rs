@@ -91,6 +91,7 @@ async fn load_calendar_events() {
 		.get_calendar_events(
 			default_private_calendar_id,
 			DateTime::from_millis(date_time * 1000),
+			0,
 		)
 		.await;
 
@@ -124,6 +125,7 @@ async fn load_birthday_events() {
 		.get_calendar_events(
 			&GeneratedId("clientOnly_birthdays".to_string()),
 			DateTime::from_millis(date_time * 1000),
+			0,
 		)
 		.await;
 

@@ -27,6 +27,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
+import java.util.TimeZone
 
 class WidgetUIViewModel(
 	private val repository: WidgetRepository,
@@ -128,7 +129,7 @@ class WidgetUIViewModel(
 
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
 			eventList.shortEvents.plus(eventList.longEvents).forEach { loadedEvent ->
-				val zoneId = ZoneId.systemDefault()
+				val zoneId = TimeZone.getTimeZone(loadedEvent.timeZone).toZoneId()
 				val start = LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.startTime.toLong()), zoneId)
 				val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.endTime.toLong()), zoneId)
 				val formatter = DateTimeFormatter.ofPattern("HH:mm")

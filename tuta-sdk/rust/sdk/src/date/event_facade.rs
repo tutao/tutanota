@@ -319,7 +319,7 @@ impl EventFacade {
 			.collect();
 
 		let calc_event_start = if is_all_day_event {
-			let all_day_event = EventFacade::get_all_day_time(&event_start_time, utc_offset)?;
+			let all_day_event = EventFacade::get_start_of_day(&event_start_time, utc_offset)?;
 
 			all_day_event
 		} else {
@@ -328,7 +328,7 @@ impl EventFacade {
 
 		let end_date = if end_type == EndType::UntilDate {
 			if is_all_day_event {
-				let all_day_event = EventFacade::get_all_day_time(
+				let all_day_event = EventFacade::get_start_of_day(
 					&DateTime::from_millis(end_value.unwrap()),
 					utc_offset,
 				)?;
@@ -344,7 +344,7 @@ impl EventFacade {
 		let transformed_excluded_dates = if is_all_day_event {
 			excluded_dates
 				.iter()
-				.filter_map(|date| EventFacade::get_all_day_time(date, utc_offset).ok())
+				.filter_map(|date| EventFacade::get_start_of_day(date, utc_offset).ok())
 				.collect()
 		} else {
 			excluded_dates
@@ -1314,7 +1314,7 @@ impl EventFacade {
 		start_fits && end_fits
 	}
 
-	pub fn get_all_day_time(date: &DateTime, offset: UtcOffset) -> Result<DateTime, ApiCallError> {
+	pub fn get_start_of_day(date: &DateTime, offset: UtcOffset) -> Result<DateTime, ApiCallError> {
 		let Ok(date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
 			eprintln!(
 				"Failed to get all day time for date {:?}",
@@ -1395,7 +1395,7 @@ impl EventFacade {
 
 		// Set up start and end date base on UTC.
 		// Also increments a copy of startDate by one day and set it as endDate
-		let Ok(start_date) = EventFacade::get_all_day_time(
+		let Ok(start_date) = EventFacade::get_start_of_day(
 			&DateTime::from_seconds(offset_date_time_start_time.unix_timestamp() as u64),
 			offset,
 		) else {
@@ -1404,7 +1404,7 @@ impl EventFacade {
 			));
 		};
 
-		let Ok(end_date) = EventFacade::get_all_day_time(
+		let Ok(end_date) = EventFacade::get_start_of_day(
 			&DateTime::from_seconds(offset_date_time_end_time.unix_timestamp() as u64),
 			offset,
 		) else {
