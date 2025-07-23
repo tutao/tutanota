@@ -81,7 +81,7 @@ export class CalendarEventApplyStrategies {
 
 				const oldInstances = (await this.calendarModel.getEventsByUid(uid))?.alteredInstances
 
-				await this.notificationModel.send(newEvent, recurrenceIds, sendModels, existingEvent)
+				await this.notificationModel.send(newEvent, recurrenceIds, sendModels, existingEvent, editModelsForProgenitor.comment.content)
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
 				const invalidateAlteredInstances = newEvent.repeatRule && newEvent.repeatRule.excludedDates.length === 0
 
@@ -106,7 +106,7 @@ export class CalendarEventApplyStrategies {
 						sendModels.cancelModel = sendModels.updateModel
 						sendModels.updateModel = null
 						sendModels.inviteModel = null
-						await this.notificationModel.send(occurrence, [], sendModels)
+						await this.notificationModel.send(occurrence, [], sendModels, undefined, editModelsForProgenitor.comment.content)
 						await this.calendarModel.deleteEvent(occurrence)
 					} else {
 						const { hasUpdateWorthyChanges, newEvent, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
@@ -125,7 +125,7 @@ export class CalendarEventApplyStrategies {
 								instance.recurrenceId.getTime() === newEvent.recurrenceId?.getTime()
 							)
 						})
-						this.notificationModel.send(newEvent, [], sendModels, oldInstance)
+						this.notificationModel.send(newEvent, [], sendModels, oldInstance, editModelsForProgenitor.comment.content)
 						await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, occurrence)
 					}
 				}

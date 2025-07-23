@@ -2068,9 +2068,10 @@ export default {
 		"removed_label": "Entfernt",
 		"event_label": "Termin",
 		"invitationNote_msg": "Sicher mit dem <strong><a href=\"https://tuta.com\" target=\"_blank\">Tuta Calendar</a></strong>",
-        "updateThisAndFutureEvents_action": "Dieses und zukünftige Ereignisse aktualisiere",
-        "deleteThisAndFutureOccurrences_action": "Dieses und zukünftige Ereignisse löschen",
-        "deleteThisAndFutureOccurrencesConfirmation_msg": "Sind Sie sicher, dass Sie dieses und alle zukünftigen Ereignisse löschen wollen?",
+		"updateThisAndFutureEvents_action": "Dieses und zukünftige Ereignisse aktualisiere",
+		"deleteThisAndFutureOccurrences_action": "Dieses und zukünftige Ereignisse löschen",
+		"deleteThisAndFutureOccurrencesConfirmation_msg": "Sind Sie sicher, dass Sie dieses und alle zukünftigen Ereignisse löschen wollen?",
 		"duplicateEvent_label": "Diesen Termin duplizieren",
+		"addComment_label": "Kommentar hinzufügen (optional)"
 	}
 }
