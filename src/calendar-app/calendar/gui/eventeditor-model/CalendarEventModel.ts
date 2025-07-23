@@ -229,6 +229,7 @@ export async function makeCalendarEventModel(
 		location: new SimpleTextViewModel(initializationEvent.location, uiUpdateCallback),
 		summary: new SimpleTextViewModel(initializationEvent.summary, uiUpdateCallback),
 		description: new SanitizedTextViewModel(initializationEvent.description, getHtmlSanitizer(), uiUpdateCallback),
+		comment: new SimpleTextViewModel("", uiUpdateCallback),
 	})
 
 	const recurrenceIds = async (uid?: string) =>
@@ -604,6 +605,7 @@ export type CalendarEventEditModels = {
 	location: SimpleTextViewModel
 	summary: SimpleTextViewModel
 	description: SanitizedTextViewModel
+	comment: SimpleTextViewModel
 }
 
 /** the fields that together with the start time point to a specific version and instance of an event */
