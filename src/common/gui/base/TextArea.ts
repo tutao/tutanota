@@ -1,7 +1,11 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
+import { isLightTheme, theme } from "../theme.js"
+
+type TextAreaVariant = "normal" | "outlined"
 
 export interface TextAreaAttrs {
 	value: string
+	ariaLabel: string
 	maxLines?: number
 	resizable?: boolean
 	disabled?: boolean
@@ -16,9 +20,11 @@ export interface TextAreaAttrs {
 	 * @returns {unknown} Return type depends on the callback provided
 	 */
 	oninput?: (newValue: string) => unknown
+	oncreate?: (node: VnodeDOM<TextAreaAttrs>) => unknown
 	placeholder?: string
 	classes?: Array<string>
-	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize">>
+	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "borderColor">>
+	variant?: TextAreaVariant
 }
 
 type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLTextAreaElement, "style"> & TextAreaAttrs & { style: { resize: string } }>
@@ -50,8 +56,15 @@ export class TextArea implements ClassComponent<TextAreaAttrs> {
 	view({ attrs }: Vnode<TextAreaAttrs, this>): Children | void | null {
 		return m("textarea.tutaui-text-field", {
 			value: attrs.value,
+			ariaLabel: attrs.ariaLabel,
 			rows: attrs.maxLines ?? 3,
 			disabled: attrs.disabled ?? false,
+			oncreate: (node: VnodeDOM<TextAreaAttrs>) => {
+				if (!attrs.oncreate) {
+					return
+				}
+				attrs.oncreate?.(node)
+			},
 			oninput: () => {
 				if (!attrs.oninput) {
 					console.error("oninput fired without a handler function")
@@ -61,10 +74,7 @@ export class TextArea implements ClassComponent<TextAreaAttrs> {
 			},
 			placeholder: attrs.placeholder,
 			class: this.resolveClasses(attrs.classes, attrs.disabled),
-			style: {
-				...attrs.style,
-				resize: !attrs.resizable ? "none" : "vertical",
-			},
+			style: this.resolveStyles(attrs.style, attrs.resizable, attrs.variant),
 		} satisfies HTMLElementWithAttrs)
 	}
 
@@ -75,5 +85,14 @@ export class TextArea implements ClassComponent<TextAreaAttrs> {
 		}
 
 		return classList.join(" ")
+	}
+
+	private resolveStyles(style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "borderColor">>, resizable?: boolean, variant?: TextAreaVariant) {
+		const borderColor = isLightTheme() ? theme.button_bubble_bg : theme.elevated_bg
+		return {
+			...style,
+			resize: !resizable ? "none" : "vertical",
+			border: variant === "outlined" ? `2px solid ${borderColor}` : undefined,
+		}
 	}
 }

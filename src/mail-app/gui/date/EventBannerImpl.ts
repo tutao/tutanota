@@ -4,7 +4,7 @@ import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEve
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
-import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
+import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { base64ToBase64Url, clone, filterNull, getHourOfDay, getStartOfDay, isNotEmpty, isNotNull, partition, stringToBase64 } from "@tutao/tutanota-utils"
 import {
 	EventConflictRenderPolicy,
@@ -18,7 +18,7 @@ import {
 } from "../../../common/calendar/gui/TimeView"
 import { Time } from "../../../common/calendar/date/Time"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { theme } from "../../../common/gui/theme"
+import { isLightTheme, theme } from "../../../common/gui/theme"
 import { styles } from "../../../common/gui/styles"
 import { px, size } from "../../../common/gui/size"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
@@ -33,10 +33,11 @@ import stream from "mithril/stream"
 import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
 import type { EventBannerAttrs } from "../../mail/view/EventBanner"
+import { TextArea, TextAreaAttrs } from "../../../common/gui/base/TextArea.js"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
-	sendResponse: (event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) => Promise<boolean>
+	sendResponse: (event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string) => Promise<boolean>
 }
 
 export interface InviteAgenda {
@@ -50,6 +51,7 @@ export interface InviteAgenda {
 
 export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	private agenda: Map<string, InviteAgenda> | null = null
+	private comment: string = ""
 
 	oncreate({ attrs }: VnodeDOM<EventBannerImplAttrs>) {
 		Promise.resolve().then(async () => {
@@ -65,7 +67,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		}
 
 		const replyCallback = async (event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) => {
-			const responded = await sendResponse(event, recipient, status, previousMail)
+			const responded = await sendResponse(event, recipient, status, previousMail, this.comment)
 			if (responded) {
 				this.agenda = await loadEventsAroundInvite(eventsRepository, iCalContents, recipient, groupColors, true)
 				updateAttendeeStatusIfNeeded(event, recipient, this.agenda.get(event.uid ?? "")?.existingEvent)
@@ -118,8 +120,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			end: timeRangeStartEnd,
 		}
 
-		const isLightTheme = locator.themeController.isLightTheme()
-		const bannerColor = isLightTheme ? theme.button_bubble_bg : theme.elevated_bg
+		const bannerColor = isLightTheme() ? theme.button_bubble_bg : theme.elevated_bg
 
 		/* Event Banner */
 		return m(
@@ -262,7 +263,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		const shallowEvent = agenda.get(event.uid ?? "")?.existingEvent
 		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(shallowEvent?.attendees ?? event.attendees, [recipient])
 
-		const children: Children = []
+		const children: Children = [] as ChildArray
 		const viewOnCalendarButton = m(BannerButton, {
 			borderColor: theme.content_fg,
 			color: theme.content_fg,
@@ -286,10 +287,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					m(ReplyButtons, {
 						ownAttendee,
 						setParticipation: async (status: CalendarAttendeeStatus) => {
-							sendResponse(shallowEvent ?? event, recipient, status, mail)
+							sendResponse(shallowEvent ?? event, recipient, status, mail, this.comment)
 						},
 					}),
 				)
+				children.push(this.renderCommentInputBox())
 			} else if (!needsAction) {
 				children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15", lang.get("alreadyReplied_msg")))
 				children.push(viewOnCalendarButton)
@@ -302,6 +304,26 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		}
 
 		return children
+	}
+
+	private renderCommentInputBox(): Children {
+		return m(TextArea, {
+			classes: ["mt-s"],
+			variant: "outlined",
+			value: this.comment,
+			oninput: (newValue: string) => {
+				this.comment = newValue
+			},
+			oncreate: (node) => {
+				node.dom.addEventListener("keydown", (e) => {
+					// disable shortcuts
+					e.stopPropagation()
+					return true
+				})
+			},
+			ariaLabel: lang.get("addComment_label"),
+			placeholder: lang.get("addComment_label"),
+		} satisfies TextAreaAttrs)
 	}
 
 	private handleViewOnCalendarAction(agenda: Map<string, InviteAgenda>, event: CalendarEvent) {
