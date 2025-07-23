@@ -161,6 +161,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 							locator.usageTestController,
 							locator.publicIdentityKeyProvider,
 							locator.themeController,
+							locator.identityKeyCreator,
 						)
 						settingsViewer.init()
 						return settingsViewer
