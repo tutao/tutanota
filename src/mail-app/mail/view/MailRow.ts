@@ -18,7 +18,7 @@ import { px, size } from "../../../common/gui/size.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
-import { getConfidentialFontIcon, isTutanotaTeamMail } from "./MailGuiUtils.js"
+import { getConfidentialFontIcon, getKeyVerificationFontIcon, isTutanotaTeamMail } from "./MailGuiUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getSenderOrRecipientHeading } from "./MailViewerUtils.js"
 import { getLabelColor } from "../../../common/gui/base/Label"
@@ -392,6 +392,10 @@ export class MailRow implements VirtualRow<Mail> {
 				iconText += FontIcons.Reply
 				iconText += FontIcons.Forward
 				break
+		}
+
+		if (mail.keyVerificationState) {
+			iconText += getKeyVerificationFontIcon(mail)
 		}
 
 		if (mail.confidential) {

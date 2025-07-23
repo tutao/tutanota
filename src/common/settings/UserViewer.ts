@@ -47,7 +47,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	constructor(public userGroupInfo: GroupInfo, private isAdmin: boolean) {
 		this.userGroupInfo = userGroupInfo
 
-		this.mailAddressTableExpanded = false
+		this.mailAddressTableExpanded = true
 
 		this.secondFactorsForm = new SecondFactorsEditForm(
 			this.user,

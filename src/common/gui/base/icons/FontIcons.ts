@@ -16,4 +16,6 @@ export const FontIcons = Object.freeze({
 	Confidential: `\uea0e`,
 	PQConfidential: `\uea0f`,
 	Checkbox: `\uea10`,
+	Shield: `\uea11`,
+	BrokenShield: `\uea12`,
 } as const)
