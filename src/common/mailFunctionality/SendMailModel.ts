@@ -74,6 +74,7 @@ import { ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getMailBodyText } from "../api/common/CommonMailUtils.js"
 import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificationMismatchError"
+import { showMultiRecipientsKeyVerificationRecoveryDialog } from "../settings/keymanagement/KeyVerificationRecoveryDialog"
 
 assertMainOrNode()
 
@@ -826,17 +827,18 @@ export class SendMailModel {
 			)
 			.catch(
 				ofClass(KeyVerificationMismatchError, async (e) => {
+					const failedRecipients: ResolvableRecipient[] = []
+
 					// Mark all recipients that have a KeyVerificationMismatch after hitting "Send"
 					for (const recipient of this.allRecipients()) {
 						if (contains(e.data, recipient.address)) {
 							await recipient.markAsKeyVerificationMismatch()
+							failedRecipients.push(recipient)
 						}
 					}
-					throw new UserError(
-						lang.makeTranslation(
-							"keyManagement.mailRecipientsVerificationMismatchError_msg",
-							() => lang.get("keyManagement.mailRecipientsVerificationMismatchError_msg") + "\n" + e.data.join("\n"),
-						),
+
+					import("../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(({ showMultiRecipientsKeyVerificationRecoveryDialog }) =>
+						showMultiRecipientsKeyVerificationRecoveryDialog(failedRecipients),
 					)
 				}),
 			)
