@@ -147,7 +147,7 @@ o.spec("MailViewerViewModel", function () {
 			const viewModel = initUnsubscribeHeaders(headers)
 
 			const result = await viewModel.unsubscribe()
-			verify(mailModel.unsubscribe(mail, "ma@tuta.com", expected), { times: 1 })
+			verify(mailModel.unsubscribe(mail, expected), { times: 1 })
 			o(result).equals(true)
 		}
 
@@ -187,7 +187,7 @@ o.spec("MailViewerViewModel", function () {
 				const headers = "To: InvalidHeader"
 				const viewModel = initUnsubscribeHeaders(headers)
 				const result = await viewModel.unsubscribe()
-				verify(mailModel.unsubscribe(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+				verify(mailModel.unsubscribe(matchers.anything(), matchers.anything()), { times: 0 })
 				o(result).equals(false)
 			})
 		})

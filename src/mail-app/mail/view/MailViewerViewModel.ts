@@ -610,8 +610,10 @@ export class MailViewerViewModel {
 			.split("\n") // split headers
 			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe"))
 		if (unsubHeaders.length > 0) {
+			// fixme this returns the default sender if the mail address is not active anymore (and that's wrong?)
 			const recipient = await this.getSenderOfResponseMail()
-			await this.mailModel.unsubscribe(this.mail, recipient, unsubHeaders)
+			const address = getDefaultSender(this.logins, (await this.getMailboxDetails())!) == recipient ? this.mail.firstRecipient!.address : recipient
+			await this.mailModel.unsubscribe(this.mail, address, unsubHeaders)
 			return true
 		} else {
 			return false
