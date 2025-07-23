@@ -76,6 +76,7 @@ export const enum Icons {
 	KeySolid = "KeySolid",
 	Fingerprint = "Fingerprint",
 	Shield = "Shield",
+	BrokenShield = "BrokenShield",
 	AlertCircle = "AlertCircle",
 	At = "At",
 	AddCheckCirle = "AddCheckCirle",
