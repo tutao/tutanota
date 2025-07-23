@@ -1,6 +1,6 @@
 import { ConnectionError, ServiceUnavailableError } from "../common/error/RestError.js"
 import { ProgressMonitorDelegate } from "./ProgressMonitorDelegate.js"
-import { EntityUpdateData } from "../common/utils/EntityUpdateUtils"
+import { EntityUpdateData, getLogStringForEntityEvent } from "../common/utils/EntityUpdateUtils"
 import { purgeSyncMetrics, syncMetrics } from "./utils/SyncMetrics"
 
 export type QueuedBatch = {
@@ -100,12 +100,12 @@ export class EventQueue {
 					this.processNext()
 				})
 				.catch((e) => {
-					console.log("EventQueue", this.tag, "error", next, e)
+					console.log("EventQueue", this.tag, "error", next.events.map(getLogStringForEntityEvent), e)
 					// processing continues if the event bus receives a new event
 					this.processingBatch = null
 
 					if (!(e instanceof ServiceUnavailableError || e instanceof ConnectionError)) {
-						console.error("Uncaught EventQueue error!", e, next)
+						console.error("Uncaught EventQueue error!", e, next.events.map(getLogStringForEntityEvent))
 					}
 				})
 		} else {

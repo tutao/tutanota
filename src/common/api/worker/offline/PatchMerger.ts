@@ -35,7 +35,7 @@ import { AesKey, BitArray, extractIvFromCipherText } from "@tutao/tutanota-crypt
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
+import { EntityUpdateData, getLogStringForPatches } from "../../common/utils/EntityUpdateUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
 import { computePatches } from "../../common/utils/PatchGenerator"
 
@@ -379,29 +379,19 @@ export class PatchMerger {
 			)
 			const isPatchAndFullInstanceMatch = isEmpty(patchDiff)
 			if (!isPatchAndFullInstanceMatch) {
-				console.log("patches on the entityUpdate: ", this.logPatchedAttributes(assertNotNull(entityUpdate.patches)))
+				console.log("patches on the entityUpdate: ", getLogStringForPatches(assertNotNull(entityUpdate.patches)))
 				console.error(
 					"instance with id [" +
 						entityUpdate.instanceListId +
 						", " +
 						entityUpdate.instanceId +
 						"]" +
-						`has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}, computePatches: ${this.logPatchedAttributes(
-							patchDiff,
-						)}`,
+						`has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}, computePatches: ${getLogStringForPatches(patchDiff)}`,
 				)
 			}
 			return isPatchAndFullInstanceMatch
 		}
 		return true
-	}
-
-	private logPatchedAttributes(patches: Array<Patch>) {
-		let message = ""
-		for (const patch of patches) {
-			message += "Patch Operation: " + patch.patchOperation + " Patched Attribute: " + patch.attributePath + "\n"
-		}
-		return message
 	}
 }
 

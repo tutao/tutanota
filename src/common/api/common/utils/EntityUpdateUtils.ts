@@ -1,7 +1,7 @@
 import { OperationType } from "../TutanotaConstants.js"
 import { EntityUpdate, Patch } from "../../entities/sys/TypeRefs.js"
 import { ServerModelParsedInstance, SomeEntity } from "../EntityTypes.js"
-import { AppName, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
+import { AppName, getTypeString, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { isSameId } from "./EntityUtils.js"
 import { ClientTypeModelResolver } from "../EntityFunctions"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
@@ -63,4 +63,16 @@ export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdat
 		isSameTypeRef(typeRef, update.typeRef) &&
 		(update.instanceListId === "" ? isSameId(update.instanceId, entity._id) : isSameId([update.instanceListId, update.instanceId], entity._id))
 	)
+}
+
+export function getLogStringForEntityEvent(event: EntityUpdateData): string {
+	return `event: ${getTypeString(event.typeRef)}, listId: ${event.instanceListId}, elementId: ${event.instanceId}, prefetchStatus: ${event.prefetchStatus}, operation: ${event.operation}, patches: ${getLogStringForPatches(event.patches ?? [])} ;`
+}
+
+export function getLogStringForPatches(patches: Array<Patch>) {
+	let message = ""
+	for (const patch of patches) {
+		message += "Patch Operation: " + patch.patchOperation + " Patched Attribute: " + patch.attributePath + " ;"
+	}
+	return message
 }
