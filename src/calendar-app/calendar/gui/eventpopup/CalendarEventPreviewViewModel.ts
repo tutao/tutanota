@@ -44,6 +44,11 @@ export class CalendarEventPreviewViewModel {
 	private readonly _ownAttendee: CalendarEventAttendee | null
 
 	/**
+	 * Comment to be sent together with the event reply
+	 */
+	comment: string = ""
+
+	/**
 	 *
 	 * @param calendarEvent the event to display in the popup
 	 * @param calendarModel the calendar model where the event can be updated/deleted
@@ -130,6 +135,7 @@ export class CalendarEventPreviewViewModel {
 			if (model) {
 				model.editModels.whoModel.setOwnAttendance(status)
 				model.editModels.whoModel.isConfidential = this.calendarEvent.invitedConfidentially ?? false
+				model.editModels.comment.content = this.comment || ""
 				await model.apply()
 			} else {
 				this.ownAttendee.status = oldStatus

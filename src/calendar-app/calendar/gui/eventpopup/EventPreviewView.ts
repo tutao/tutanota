@@ -8,7 +8,7 @@ import type {
 import { createCalendarEventAttendee, createEncryptedMailAddress } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
-import { theme } from "../../../../common/gui/theme.js"
+import { isLightTheme, theme } from "../../../../common/gui/theme.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import {
@@ -35,6 +35,7 @@ import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../common/gui/TextHighlightViewUtils"
+import { TextArea, TextAreaAttrs } from "../../../../common/gui/base/TextArea.js"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
@@ -118,7 +119,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			),
 			this.renderLocation(event.location),
 			this.renderAttendeesSection(attendees, participation),
-			this.renderAttendanceSection(event, attendees, participation),
+			this.renderAttendanceSection(event, attendees, participation, calendarEventPreviewModel),
 			this.renderDescription(sanitizedDescription, highlightedStrings),
 		])
 	}
@@ -191,18 +192,42 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	 * @param event if the event is not in a calendar, we don't want to set our attendance from here.
 	 * @param attendees list of attendees (including the organizer)
 	 * @param participation
+	 * @param model CalendarEventPreviewViewModel to set user's comment before replying
 	 * @private
 	 */
 	private renderAttendanceSection(
 		event: EventPreviewViewAttrs["event"],
 		attendees: Array<CalendarEventAttendee>,
 		participation: EventPreviewViewAttrs["participation"],
+		model: CalendarEventPreviewViewModel,
 	): Children {
 		if (attendees.length === 0 || participation == null || event._ownerGroup == null) return null
-		return m(".flex.pb-s", [
-			this.renderSectionIndicator(BootIcons.User),
-			m(".flex.flex-column", [m(".small", lang.get("invitedToEvent_msg")), m(ReplyButtons, participation)]),
+		return m("", [
+			m(".flex.pb-s", [
+				this.renderSectionIndicator(BootIcons.Contacts),
+				m(".flex.flex-column", [m(".small", lang.get("invitedToEvent_msg")), m(ReplyButtons, participation), this.renderCommentSection(model)]),
+			]),
 		])
+	}
+
+	private renderCommentSection(model: CalendarEventPreviewViewModel): Children {
+		return m(TextArea, {
+			classes: ["mt-s"],
+			variant: "outlined",
+			value: model.comment,
+			oninput: (newValue: string) => {
+				model.comment = newValue
+			},
+			oncreate: (node) => {
+				node.dom.addEventListener("keydown", (e) => {
+					// disable shortcuts
+					e.stopPropagation()
+					return true
+				})
+			},
+			ariaLabel: lang.get("addComment_label"),
+			placeholder: lang.get("addComment_label"),
+		} satisfies TextAreaAttrs)
 	}
 
 	private renderAttendee(attendee: CalendarEventAttendee, participation: EventPreviewViewAttrs["participation"]): Children {
