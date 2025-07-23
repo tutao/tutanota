@@ -73,15 +73,18 @@ public actor IosNativeCryptoFacade: NativeCryptoFacade {
 	}
 
 	public func kyberDecapsulate(_ privateKey: KyberPrivateKey, _ ciphertext: DataWrapper) async throws -> DataWrapper {
-	  do { return try tutasdk.kyberDecapsulateWithPrivKey(privateKeyBytes: privateKey.raw.data, ciphertext: ciphertext.data).wrap() } catch {
-			 throw CryptoError(message: error.localizedDescription)
+		do { return try tutasdk.kyberDecapsulateWithPrivKey(privateKeyBytes: privateKey.raw.data, ciphertext: ciphertext.data).wrap() } catch {
+			throw CryptoError(message: error.localizedDescription)
 		}
 
 	}
 
 	public func generateEd25519Keypair() async throws -> IPCEd25519KeyPair {
 		let keyPair = tutasdk.ed25519GenerateKeyPair()
-		return IPCEd25519KeyPair(publicKey: IPCEd25519PublicKey(raw: DataWrapper(data: keyPair.publicKey)), privateKey: IPCEd25519PrivateKey(raw: DataWrapper(data: keyPair.privateKey)))
+		return IPCEd25519KeyPair(
+			publicKey: IPCEd25519PublicKey(raw: DataWrapper(data: keyPair.publicKey)),
+			privateKey: IPCEd25519PrivateKey(raw: DataWrapper(data: keyPair.privateKey))
+		)
 	}
 
 	public func ed25519Sign(_ privateKey: IPCEd25519PrivateKey, _ data: DataWrapper) async throws -> IPCEd25519Signature {
