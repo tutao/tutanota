@@ -13,6 +13,14 @@ import { MailAddressAndName } from "../../api/common/CommonMailUtils"
 import { SenderKeyVerificationRecoveryModel } from "../../misc/SenderKeyVerificationRecoveryModel"
 import { SenderKeyVerificationRecoverySuccessPage } from "./dialogpages/SenderKeyVerificationRecoverySuccessPage"
 import { SenderKeyVerificationRecoveryInfoPage } from "./dialogpages/SenderKeyVerificationRecoveryInfoPage"
+import { MultiRecipientsKeyVerificationRecoveryUserSelectionPage } from "./dialogpages/MultiRecipientsKeyVerificationRecoveryUserSelectionPage"
+
+export enum MultiRecipientsKeyVerificationRecoveryDialogPages {
+	USER_SELECTION = "USER_SELECTION",
+	INFO = "INFO",
+	ACCEPT_CONFIRM = "ACCEPT_CONFIRM",
+	REJECT_CONFIRM = "REJECT_CONFIRM",
+}
 
 export enum RecipientKeyVerificationRecoveryDialogPages {
 	INFO = "INFO",
@@ -30,24 +38,38 @@ export enum SenderKeyVerificationRecoveryDialogPages {
 const KEY_VERIFICATION_DIALOG_HEIGHT = 700
 
 /**
- * Allows a user to take action when they get some public key that does not match the identity key they have in their
- * trust database for a give mail address.
+ * Allows a user to recover identity keys when they fail verification
  */
-export async function showRecipientKeyVerificationRecoveryDialog(recipient: ResolvableRecipient): Promise<void> {
-	const model = new RecipientKeyVerificationRecoveryModel(locator.keyVerificationFacade, locator.publicIdentityKeyProvider, recipient)
+export async function showMultiRecipientsKeyVerificationRecoveryDialog(recipients: ResolvableRecipient[]): Promise<void> {
+	const model = new RecipientKeyVerificationRecoveryModel(locator.keyVerificationFacade, locator.publicIdentityKeyProvider, recipients)
 	const sourceOfTrust = await model.getSourceOfTrust()
 
-	const multiPageDialog: Dialog = new MultiPageDialog<RecipientKeyVerificationRecoveryDialogPages>(
-		RecipientKeyVerificationRecoveryDialogPages.INFO,
+	const multiPageDialog: Dialog = new MultiPageDialog<MultiRecipientsKeyVerificationRecoveryDialogPages>(
+		MultiRecipientsKeyVerificationRecoveryDialogPages.USER_SELECTION,
 		(dialog, navigateToPage, goBack) => ({
+			[MultiRecipientsKeyVerificationRecoveryDialogPages.USER_SELECTION]: {
+				content: m(MultiRecipientsKeyVerificationRecoveryUserSelectionPage, {
+					model,
+					sourceOfTrust,
+					goToInfoPage: () => {
+						navigateToPage(MultiRecipientsKeyVerificationRecoveryDialogPages.INFO)
+					},
+				}),
+				rightAction: {
+					type: ButtonType.Secondary,
+					click: () => dialog.close(),
+					label: "close_alt",
+					title: "close_alt",
+				},
+			},
 			[RecipientKeyVerificationRecoveryDialogPages.INFO]: {
 				content: m(RecipientKeyVerificationRecoveryInfoPage, {
 					model,
 					sourceOfTrust,
 					goToAcceptPage: () => {
-						navigateToPage(RecipientKeyVerificationRecoveryDialogPages.ACCEPT_CONFIRM)
+						navigateToPage(MultiRecipientsKeyVerificationRecoveryDialogPages.ACCEPT_CONFIRM)
 					},
-					goToRejectPage: () => navigateToPage(RecipientKeyVerificationRecoveryDialogPages.REJECT_CONFIRM),
+					goToRejectPage: () => navigateToPage(MultiRecipientsKeyVerificationRecoveryDialogPages.REJECT_CONFIRM),
 				}),
 				rightAction: {
 					type: ButtonType.Secondary,
@@ -58,18 +80,18 @@ export async function showRecipientKeyVerificationRecoveryDialog(recipient: Reso
 			},
 			[RecipientKeyVerificationRecoveryDialogPages.ACCEPT_CONFIRM]: {
 				content: m(RecipientKeyVerificationRecoveryAcceptPage, {
-					contactMailAddress: recipient.address,
+					contactMailAddress: model.getConfirmedRecipientAddress(),
+					goToUnverifiedRecipientsPage: () => {
+						navigateToPage(MultiRecipientsKeyVerificationRecoveryDialogPages.USER_SELECTION)
+					},
 				}),
-				rightAction: {
-					type: ButtonType.Secondary,
-					click: () => dialog.close(),
-					label: "close_alt",
-					title: "close_alt",
-				},
 			},
 			[RecipientKeyVerificationRecoveryDialogPages.REJECT_CONFIRM]: {
 				content: m(RecipientKeyVerificationRecoveryRejectPage, {
-					contactMailAddress: recipient.address,
+					contactMailAddress: model.getConfirmedRecipientAddress(),
+					goToUnverifiedRecipientsPage: () => {
+						navigateToPage(MultiRecipientsKeyVerificationRecoveryDialogPages.USER_SELECTION)
+					},
 				}),
 				rightAction: {
 					type: ButtonType.Secondary,

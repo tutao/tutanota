@@ -15,7 +15,6 @@ import { Icons } from "./base/icons/Icons.js"
 import { theme } from "./theme.js"
 import { getMailAddressDisplayText } from "../mailFunctionality/SharedMailUtils.js"
 import { PresentableKeyVerificationState, ResolvableRecipient } from "../api/main/RecipientsModel"
-import { showRecipientKeyVerificationRecoveryDialog } from "../settings/keymanagement/KeyVerificationRecoveryDialog"
 
 export interface MailRecipientsTextFieldAttrs {
 	label: TranslationKey
@@ -111,8 +110,8 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			},
 			onClick: (recipient: ResolvableRecipient) => {
 				if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
-					import("../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(({ showRecipientKeyVerificationRecoveryDialog }) =>
-						showRecipientKeyVerificationRecoveryDialog(recipient),
+					import("../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(({ showMultiRecipientsKeyVerificationRecoveryDialog }) =>
+						showMultiRecipientsKeyVerificationRecoveryDialog([recipient]),
 					)
 					return BubbleTextFieldClickBehaviour.SKIP_DROPDOWN
 				} else {

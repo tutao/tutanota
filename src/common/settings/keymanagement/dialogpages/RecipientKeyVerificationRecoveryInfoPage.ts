@@ -19,6 +19,7 @@ type VerificationErrorInfoPageAttrs = {
 export class RecipientKeyVerificationRecoveryInfoPage implements Component<VerificationErrorInfoPageAttrs> {
 	view(vnode: Vnode<VerificationErrorInfoPageAttrs>) {
 		const title = lang.get("keyManagement.verificationError_title")
+		const contactMailAddress = vnode.attrs.model.getCurrentRecipientAddress()
 		let subTitle =
 			vnode.attrs.sourceOfTrust == IdentityKeySourceOfTrust.Manual
 				? lang.get("keyVerificationErrorManual_msg")
@@ -36,7 +37,7 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 			m(
 				Card,
 				m(".plr.flex.flex-column.gap-vpad", [
-					m("", m.trust(lang.get("keyVerificationErrorWarning_msg"))),
+					m("", m.trust(lang.get("keyVerificationErrorWarning_msg", { "{mailAddress}": contactMailAddress }))),
 					m(".b.mt", lang.get("keyVerificationErrorRecommendation_title")),
 					m("", m.trust(lang.get("keyVerificationErrorRecommendation_msg"))),
 					m(ExternalLink, {
