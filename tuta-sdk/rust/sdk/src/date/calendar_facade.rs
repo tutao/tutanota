@@ -24,6 +24,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::string::ToString;
 use std::sync::Arc;
+use time::macros::offset;
 use time::{OffsetDateTime, Time, UtcOffset};
 
 // To keep the SDK decoupled and dependency free we decided to handle translations on native side
@@ -133,6 +134,7 @@ impl CalendarFacade {
 		&self,
 		calendar_id: &GeneratedId,
 		date: DateTime,
+		offset: i32,
 	) -> Result<CalendarEventsList, ApiCallError> {
 		let user = self.user_facade.get_user();
 		let memberships: Vec<&GroupMembership> = user
@@ -161,7 +163,8 @@ impl CalendarFacade {
 			},
 		};
 
-		let (timestamp_start, timestamp_end) = match self.parse_date_to_all_day_range(date) {
+		let (timestamp_start, timestamp_end) = match self.parse_date_to_all_day_range(date, offset)
+		{
 			Ok(value) => value,
 			Err(err) => return Err(err),
 		};
@@ -205,6 +208,7 @@ impl CalendarFacade {
 				date.as_millis(),
 				timestamp_end,
 				&mut unwraped_short_events,
+				offset,
 			);
 			short_events.append(&mut filtered_short_events);
 
@@ -284,6 +288,7 @@ impl CalendarFacade {
 				date.as_millis(),
 				timestamp_end,
 				&mut unwraped_long_events,
+				offset,
 			);
 
 			filtered_long_events = self.filter_excluded_dates(&mut filtered_long_events);
@@ -311,16 +316,30 @@ impl CalendarFacade {
 		&self,
 		date: DateTime,
 	) -> Result<CalendarEventsList, ApiCallError> {
-		let (timestamp_start, timestamp_end) = match self.parse_date_to_all_day_range(date) {
-			Ok(value) => value,
-			Err(err) => return Err(err),
+		let Ok(offset) = UtcOffset::current_local_offset() else {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: "Failed to determine device time offset".to_string(),
+			});
 		};
+
+		let (timestamp_start, timestamp_end) =
+			match self.parse_date_to_all_day_range(date, offset.whole_seconds()) {
+				Ok(value) => value,
+				Err(err) => return Err(err),
+			};
 
 		let birthday_events: Vec<BirthdayEvent> = self
 			.generate_birthdays()
 			.await?
 			.into_iter()
-			.filter(|ev| self.is_event_in_range(&ev.calendar_event, timestamp_start, timestamp_end))
+			.filter(|ev| {
+				self.is_event_in_range(
+					&ev.calendar_event,
+					timestamp_start,
+					timestamp_end,
+					offset.whole_seconds(),
+				)
+			})
 			.collect();
 
 		Ok(CalendarEventsList {
@@ -330,21 +349,27 @@ impl CalendarFacade {
 		})
 	}
 
-	fn parse_date_to_all_day_range(&self, date: DateTime) -> Result<(u64, u64), ApiCallError> {
-		let Ok(offset) = UtcOffset::current_local_offset() else {
+	fn parse_date_to_all_day_range(
+		&self,
+		date: DateTime,
+		offset: i32,
+	) -> Result<(u64, u64), ApiCallError> {
+		let Ok(offset) = UtcOffset::from_whole_seconds(offset) else {
 			return Err(ApiCallError::InternalSdkError {
 				error_message: "Failed to determine device time offset".to_string(),
 			});
 		};
 
-		let date_in_seconds = (date.as_millis() / 1000) as i64;
-
+		let date_in_seconds = date.as_seconds() as i64;
+		log::info!("Date in seconds: {:?}", date_in_seconds);
 		let parsed_date = match OffsetDateTime::from_unix_timestamp(date_in_seconds) {
 			Ok(date) => date
-				.to_offset(offset)
+				.replace_offset(offset)
 				.replace_time(Time::from_hms(0, 0, 0).unwrap()),
 			Err(e) => return Err(ApiCallError::internal_with_err(e, "Invalid date")),
 		};
+
+		log::info!("Parsed date to all day: {:?}", parsed_date.unix_timestamp());
 
 		let Some(next_day) = parsed_date.date().next_day() else {
 			return Err(ApiCallError::internal("Invalid next day".to_string()));
@@ -360,6 +385,9 @@ impl CalendarFacade {
 			.replace_offset(offset)
 			.unix_timestamp()
 			* 1000) as u64;
+
+		log::info!("Timestamp start: {}", timestamp_start);
+		log::info!("Timestamp end: {}", timestamp_end);
 
 		Ok((timestamp_start, timestamp_end))
 	}
@@ -379,12 +407,96 @@ impl CalendarFacade {
 		timestamp_start: u64,
 		timestamp_end: u64,
 		events: &mut [CalendarEvent],
+		offset: i32,
 	) -> Vec<CalendarEvent> {
 		events
 			.iter()
-			.filter(|&event| self.is_event_in_range(event, timestamp_start, timestamp_end))
+			.filter(|&event| {
+				let Ok(official_timestamp_start) =
+					(if self.is_all_day(&event, timestamp_start, offset) {
+						EventFacade::get_start_of_day(
+							&DateTime::from_millis(timestamp_start),
+							UtcOffset::from_whole_seconds(offset).unwrap(),
+						)
+					} else {
+						Ok(DateTime::from_millis(timestamp_start))
+					})
+				else {
+					return false;
+				};
+				self.is_event_in_range(
+					event,
+					official_timestamp_start.as_millis(),
+					timestamp_end,
+					offset,
+				)
+			})
 			.map(|event| event.to_owned())
 			.collect()
+	}
+
+	fn is_all_day(&self, event: &CalendarEvent, timestamp_start: u64, offset: i32) -> bool {
+		let parsed_timestamp_start = OffsetDateTime::from_unix_timestamp(
+			DateTime::from_millis(timestamp_start).as_seconds() as i64,
+		)
+		.unwrap()
+		.to_offset(UtcOffset::from_whole_seconds(offset).unwrap());
+
+		let all_day_time_start_utc = OffsetDateTime::new_in_offset(
+			parsed_timestamp_start.date(),
+			Time::MIDNIGHT,
+			UtcOffset::UTC,
+		)
+		.unix_timestamp();
+		let all_day_time_end_utc = OffsetDateTime::new_in_offset(
+			parsed_timestamp_start.date().next_day().unwrap(),
+			Time::MIDNIGHT,
+			UtcOffset::UTC,
+		)
+		.unix_timestamp();
+		let all_day_time_utc = (
+			all_day_time_start_utc as u64 * 1000,
+			all_day_time_end_utc as u64 * 1000,
+		);
+		// let Ok(all_day_time_utc) = self.parse_date_to_all_day_range(
+		// 	DateTime::from_seconds(
+		// 		OffsetDateTime::from_unix_timestamp(DateTime::from_millis(timestamp_start).as_seconds() as i64)
+		// 			.unwrap()
+		// 			.to_offset(UtcOffset::from_whole_seconds(offset).unwrap())
+		// 			.unix_timestamp() as u64,
+		// 	),
+		// 	UtcOffset::UTC.whole_seconds(),
+		// ) else {
+		// 	return false;
+		// };
+		let Ok(all_day_time_in_offset) =
+			self.parse_date_to_all_day_range(DateTime::from_millis(timestamp_start), offset)
+		else {
+			return false;
+		};
+
+		let is_all_day_utc = (event.startTime.as_millis() == all_day_time_utc.0
+			&& event.endTime.as_millis() == all_day_time_utc.1);
+		let is_all_day_in_timezone = (event.startTime.as_millis() == all_day_time_in_offset.0
+			&& event.endTime.as_millis() == all_day_time_in_offset.1);
+
+		log::info!(
+			"Is all day evlauation for Event: {} with timestamp {}",
+			event.summary,
+			timestamp_start
+		);
+		log::info!(
+			"AlldayTime UTC: {:?} --- AlldayTime InTimeZone: {:?}",
+			all_day_time_utc,
+			all_day_time_in_offset
+		);
+		log::info!(
+			"Allday UTC: {} --- Allday InTimeZone: {}",
+			is_all_day_utc,
+			is_all_day_in_timezone
+		);
+
+		is_all_day_utc || is_all_day_in_timezone
 	}
 
 	fn is_event_in_range(
@@ -392,10 +504,114 @@ impl CalendarFacade {
 		event: &CalendarEvent,
 		timestamp_start: u64,
 		timestamp_end: u64,
+		offset: i32,
 	) -> bool {
-		(event.startTime.as_millis() >= timestamp_start
-			|| event.endTime.as_millis() > timestamp_start)
-			&& event.startTime.as_millis() < timestamp_end
+		// let official_offset = if event.repeatRule.is_none() {
+		// 	0
+		// } else {
+		// 	offset
+		// };
+		//
+		// log::info!("Filtering: \nOfficial Oft: {:?}\nSummary: {:?}\nEvent Start: {:?}\nEvent End: {:?}\nTimestamp start: {:?}\nTimestamp End: {:?}", official_offset, event.summary, event.startTime, event.endTime, timestamp_start, timestamp_end);
+		//
+		// log::info!("Getting event start in offset: {}", offset);
+		// let event_start_in_offset =
+		// 	match OffsetDateTime::from_unix_timestamp(event.startTime.as_seconds() as i64) {
+		// 		Ok(date) => date.to_offset(UtcOffset::from_whole_seconds(official_offset).unwrap()),
+		// 		_ => return false,
+		// 	};
+		//
+		// log::info!("Getting event end in offset: {}", offset);
+		// let event_end_in_offset =
+		// 	match OffsetDateTime::from_unix_timestamp(event.endTime.as_seconds() as i64) {
+		// 		Ok(date) => date.to_offset(UtcOffset::from_whole_seconds(official_offset).unwrap()),
+		// 		_ => return false,
+		// 	};
+		//
+		// let start_in_seconds = DateTime::from_millis(timestamp_start).as_seconds();
+		// log::info!("Getting limit start in offset: {}", offset);
+		// let start_in_offset = match OffsetDateTime::from_unix_timestamp(start_in_seconds as i64) {
+		// 	Ok(date) => date.to_offset(UtcOffset::from_whole_seconds(official_offset).unwrap()),
+		// 	_ => return false,
+		// };
+		//
+		// let end_in_seconds = DateTime::from_millis(timestamp_end).as_seconds();
+		// log::info!("Getting limit end in offset: {}", offset);
+		// let end_in_offset = match OffsetDateTime::from_unix_timestamp(end_in_seconds as i64) {
+		// 	Ok(date) => date.to_offset(UtcOffset::from_whole_seconds(official_offset).unwrap()),
+		// 	_ => return false,
+		// };
+		//
+		// let starts_in_range = event_start_in_offset.cmp(&start_in_offset) != Ordering::Less;
+		// let ends_in_range = event_end_in_offset.cmp(&start_in_offset) == Ordering::Greater
+		// 	&& event_start_in_offset.cmp(&end_in_offset) == Ordering::Less;
+		//
+		// let Ok(all_day_ranges_in_offset) = self
+		// 	.parse_date_to_all_day_range(DateTime::from_millis(timestamp_start), official_offset)
+		// else {
+		// 	return false;
+		// };
+		//
+		// log::info!(
+		// 	"Starts in range: {:?} {:?} {:?}",
+		// 	event_start_in_offset.cmp(&start_in_offset) != Ordering::Less
+		// 		&& event_start_in_offset.cmp(&end_in_offset) == Ordering::Less,
+		// 	event_start_in_offset.cmp(&start_in_offset),
+		// 	event_start_in_offset.cmp(&end_in_offset)
+		// );
+		// log::info!(
+		// 	"Ends in range: {:?} {:?}",
+		// 	event_end_in_offset.cmp(&start_in_offset) == Ordering::Greater,
+		// 	event_end_in_offset.cmp(&start_in_offset)
+		// );
+		//
+		// if event_start_in_offset.unix_timestamp()
+		// 	== (DateTime::from_millis(all_day_ranges_in_offset.0).as_seconds() as i64)
+		// 	&& event_end_in_offset.unix_timestamp()
+		// 		== (DateTime::from_millis(all_day_ranges_in_offset.1).as_seconds() as i64)
+		// {
+		// 	return true;
+		// }
+		//
+		// starts_in_range || ends_in_range
+
+		let event_start_in_offset =
+			match OffsetDateTime::from_unix_timestamp(event.startTime.as_seconds() as i64) {
+				Ok(date) => date.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
+				_ => return false,
+			};
+
+		let event_end_in_offset =
+			match OffsetDateTime::from_unix_timestamp(event.endTime.as_seconds() as i64) {
+				Ok(date) => date.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
+				_ => return false,
+			};
+
+		let start_in_seconds = DateTime::from_millis(timestamp_start).as_seconds();
+		let start_in_offset = match OffsetDateTime::from_unix_timestamp(start_in_seconds as i64) {
+			Ok(date) => date.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
+			_ => return false,
+		};
+
+		let start_of_day = OffsetDateTime::new_in_offset(
+			start_in_offset.date(),
+			Time::MIDNIGHT,
+			UtcOffset::from_whole_seconds(offset).unwrap(),
+		);
+
+		let end_in_seconds = DateTime::from_millis(timestamp_end).as_seconds();
+		let end_in_offset = match OffsetDateTime::from_unix_timestamp(end_in_seconds as i64) {
+			Ok(date) => date.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
+			_ => return false,
+		};
+
+		let start_in_range =
+			event_start_in_offset.date().cmp(&start_in_offset.date()) != Ordering::Less;
+		let end_in_range = event_start_in_offset.date().cmp(&end_in_offset.date())
+			== Ordering::Less
+			&& event_end_in_offset.date().cmp(&end_in_offset.date()) != Ordering::Greater;
+
+		start_in_range || end_in_range
 	}
 
 	fn filter_excluded_dates(&self, events: &mut [CalendarEvent]) -> Vec<CalendarEvent> {
@@ -641,6 +857,7 @@ impl CalendarFacade {
 		&self,
 		calendar_id: &GeneratedId,
 		date: DateTime,
+		offset: i32,
 	) -> CalendarEventsList {
 		if calendar_id
 			.0
@@ -649,7 +866,7 @@ impl CalendarFacade {
 			return self.fetch_birthday_events(date).await.unwrap();
 		}
 
-		self.fetch_calendar_events_from_date_until_end_of_day(calendar_id, date)
+		self.fetch_calendar_events_from_date_until_end_of_day(calendar_id, date, offset)
 			.await
 			.unwrap()
 	}

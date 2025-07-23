@@ -20,6 +20,7 @@ import java.io.*
 import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -172,6 +173,12 @@ fun isAllDayEventByTimes(startDate: Date, endDate: Date): Boolean {
 	val startFits = calendar[Calendar.HOUR] == 0 && calendar[Calendar.MINUTE] == 0 && calendar[Calendar.SECOND] == 0
 	calendar.time = endDate
 	val endFits = calendar[Calendar.HOUR] == 0 && calendar[Calendar.MINUTE] == 0 && calendar[Calendar.SECOND] == 0
+	return startFits && endFits
+}
+
+fun isAllDayEventByTimes(startDate: LocalDateTime, endDate: LocalDateTime): Boolean {
+	val startFits = startDate.hour == 0 && startDate.minute == 0 && startDate.second == 0
+	val endFits = endDate.hour == 0 && endDate.minute == 0 && endDate.second == 0
 	return startFits && endFits
 }
 

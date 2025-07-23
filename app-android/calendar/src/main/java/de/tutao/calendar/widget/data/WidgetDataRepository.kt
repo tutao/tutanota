@@ -122,14 +122,15 @@ class WidgetDataRepository() : WidgetRepository() {
 		val systemCalendar = Calendar.getInstance(TimeZone.getDefault())
 
 		var calendarEventListMap: Map<GeneratedId, CalendarEventListDao> = HashMap()
-
+		val offsetInSeconds = systemCalendar.timeZone.getOffset(systemCalendar.timeInMillis) / 1000
 		calendars.forEach { calendarId ->
-			val events = calendarFacade.getCalendarEvents(calendarId, (systemCalendar.timeInMillis).toULong())
+			val events =
+				calendarFacade.getCalendarEvents(calendarId, (systemCalendar.timeInMillis).toULong(), offsetInSeconds)
 			calendarEventListMap = calendarEventListMap.plus(
 				calendarId to CalendarEventListDao(
 					events.shortEvents.toDao(),
 					events.longEvents.toDao(),
-					events.birthdayEvents.asDao()
+					events.birthdayEvents.asDao(),
 				)
 			)
 		}
@@ -163,6 +164,7 @@ class WidgetDataRepository() : WidgetRepository() {
 	}
 
 	private fun List<CalendarEvent>.toDao(): List<CalendarEventDao> {
+		val systemTimeZone = TimeZone.getDefault()
 		return this.map {
 			val id = it.id ?: throw RuntimeException("Trying to convert an event without id to CalendarEventDao")
 
@@ -170,7 +172,8 @@ class WidgetDataRepository() : WidgetRepository() {
 				IdTuple(id.listId, id.elementId),
 				it.startTime,
 				it.endTime,
-				it.summary
+				it.summary,
+				it.repeatRule?.timeZone ?: systemTimeZone.displayName
 			)
 		}
 	}
@@ -185,7 +188,8 @@ class WidgetDataRepository() : WidgetRepository() {
 				IdTuple(id.listId, id.elementId),
 				it.calendarEvent.startTime,
 				it.calendarEvent.endTime,
-				"" // The event title will be set later inside the composition
+				"", // The event title will be set later inside the composition
+				TimeZone.getDefault().displayName
 			)
 
 			BirthdayEventDao(event, ContactDao(it.contact.firstName, age));

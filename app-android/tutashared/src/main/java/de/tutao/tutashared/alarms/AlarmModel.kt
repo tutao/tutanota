@@ -63,7 +63,7 @@ object AlarmModel {
 		var futureOccurrences = 0
 		var intervalOccurrences = 0
 		val startTime = calcEventStart.time.toULong()
-
+		val timezoneInSeconds = calendar.timeZone.getOffset(calendar.timeInMillis) / 1000
 		while (
 			futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD && // We have not schedule all future occurrences yet
 			(endType != EndType.COUNT || occurrences < endValue!!) // End type is not COUNT or in case it is, we have not created enough occurrences
@@ -75,7 +75,8 @@ object AlarmModel {
 			var expandedEvents: List<DateTime> = eventFacade.generateFutureInstances(
 				calendar.time.time.toULong(),
 				EventRepeatRule(frequency.toSdkPeriod(), byRules),
-				startTime
+				startTime,
+				timezoneInSeconds
 			)
 
 			// Add the progenitor if it isn't included in the expansion

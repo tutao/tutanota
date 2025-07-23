@@ -8,5 +8,6 @@ data class CalendarEventDao(
 	val id: IdTuple?,
 	val startTime: ULong,
 	val endTime: ULong,
-	val summary: String
+	val summary: String,
+	val timeZone: String
 )
