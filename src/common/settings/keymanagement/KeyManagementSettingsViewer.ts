@@ -1,5 +1,5 @@
 import { UpdatableSettingsViewer } from "../Interfaces.js"
-import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import m, { ChildArray, Children } from "mithril"
 import { UserController } from "../../api/main/UserController.js"
 import { lang } from "../../misc/LanguageViewModel"
@@ -24,6 +24,9 @@ import { lazy, Versioned } from "@tutao/tutanota-utils"
 import { SigningPublicKey } from "../../api/worker/facades/Ed25519Facade"
 import { showSnackBar } from "../../gui/base/SnackBar"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
+import { IdentityKeyCreator } from "../../api/worker/facades/lazy/IdentityKeyCreator"
+import { GroupTypeRef } from "../../api/entities/sys/TypeRefs"
+import { isSameId } from "../../api/common/utils/EntityUtils"
 
 /**
  * Our own identity key, which is not stored on the trust DB.
@@ -47,6 +50,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		private readonly usageTestController: UsageTestController,
 		private readonly publicIdentityKeyProvider: PublicIdentityKeyProvider,
 		private readonly themeController: ThemeController,
+		private readonly identityKeyCreator: IdentityKeyCreator,
 	) {
 		this.ownIdentity = null
 		this.isIdentityKeyTrustDatabaseSupported = false
@@ -55,6 +59,24 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async init() {
+		await this.loadOrCreateIdentityKey()
+
+		this.isIdentityKeyTrustDatabaseSupported = await this.keyVerificationFacade.isIdentityKeyTrustDatabaseSupported()
+		if (this.isIdentityKeyTrustDatabaseSupported) {
+			this.trustedIdentities = await this.keyVerificationFacade.getManuallyVerifiedIdentities()
+		}
+		m.redraw()
+	}
+
+	private async loadOrCreateIdentityKey() {
+		await this.loadIdentityKey()
+		if (this.ownIdentity == null) {
+			// ignore the promise as we listen to the update
+			this.identityKeyCreator.createIdentityKeyPairForExistingUsers()
+		}
+	}
+
+	private async loadIdentityKey() {
 		const ownIdentityKey = await this.publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(this.userController.userGroupInfo.group)
 		if (ownIdentityKey != null) {
 			this.ownIdentity = {
@@ -65,16 +87,17 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		} else {
 			this.ownIdentity = null
 		}
-		this.isIdentityKeyTrustDatabaseSupported = await this.keyVerificationFacade.isIdentityKeyTrustDatabaseSupported()
-		if (this.isIdentityKeyTrustDatabaseSupported) {
-			this.trustedIdentities = await this.keyVerificationFacade.getManuallyVerifiedIdentities()
-		}
-		m.redraw()
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		// noop operation because key trusted entities are not stored only locally and will not trigger an entity event.
-		return Promise.resolve()
+		// we only need to listen for updates of new identity keys of the user group
+		// everything else is only stored locally
+		for (const update of updates) {
+			if (isUpdateForTypeRef(GroupTypeRef, update) && isSameId(this.userController.userGroupInfo.group, update.instanceId)) {
+				await this.loadIdentityKey()
+				m.redraw()
+			}
+		}
 	}
 
 	async reload() {
