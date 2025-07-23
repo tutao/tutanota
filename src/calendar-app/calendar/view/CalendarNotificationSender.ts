@@ -160,8 +160,9 @@ export class CalendarNotificationSender {
 	 * send a response mail to the organizer of an event
 	 * @param event the event to respond to (included as a .ics file attachment)
 	 * @param sendMailModel used to actually send the mail
+	 * @param comment
 	 */
-	async sendResponse(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
+	async sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, comment?: string): Promise<void> {
 		const sendAs = sendMailModel.getSender()
 		const guestName = this.resolveGuestNameOnReply(sendMailModel, event)
 
@@ -178,6 +179,7 @@ export class CalendarNotificationSender {
 			infoBannerMessage,
 			sender: sendMailModel.getSender(),
 			eventInviteEmailType: sendMailModel.emailType,
+			comment,
 		})
 
 		return this.sendCalendarFile({
@@ -280,6 +282,10 @@ function organizerLine(event: CalendarEvent, highlightChange: boolean, theme: Em
 			attendee ? calendarAttendeeStatusSymbol(getAttendeeStatus(attendee)) : ""
 		}`,
 	)
+}
+
+function commentLine(comment: string): string {
+	return newLine(lang.get("comment_label"), `${comment}`)
 }
 
 function attendeesLine(
@@ -473,9 +479,10 @@ interface EmailBodyIngredients {
 		summary: boolean
 		when: boolean
 	}
+	comment?: string
 }
 
-function makePlainTextBody({ event, infoBannerMessage }: EmailBodyIngredients) {
+function makePlainTextBody({ event, infoBannerMessage, comment }: EmailBodyIngredients) {
 	const organizer: CalendarEventAttendee | undefined = event.attendees.find((attendee) => attendee.address.address === event.organizer?.address)
 	const duration = formatEventDuration(event, getTimeZone(), true)
 	const eventLines: string[] = []
@@ -514,12 +521,17 @@ function makePlainTextBody({ event, infoBannerMessage }: EmailBodyIngredients) {
 					return `${a.address.name ? a.address.name + " " : ""}${a.address.address} ${calendarAttendeeStatusSymbol(getAttendeeStatus(a))}`
 				})
 				.join("<br>")}`,
+		`<br><br>`,
 	)
+
+	if (comment) {
+		eventLines.push(`${lang.get("comment_label")}:`, `<br>`, `${comment}`)
+	}
 
 	return eventLines.join("")
 }
 
-function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, changedFields }: EmailBodyIngredients) {
+function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, changedFields, comment }: EmailBodyIngredients) {
 	const theme = getEmailTheme(eventInviteEmailType)
 	const eventTitle = event.summary || lang.get("noTitle_label").replaceAll(/[<>]/g, "")
 
@@ -556,6 +568,7 @@ function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, 
 			${event.description ? descriptionLine(event, changedFields?.description ?? false, theme) : ""}
 			${organizerLine(event, changedFields?.organizer ?? false, theme)}
 			${attendeesLine(event, changedFields?.attendee ?? { added: [], removed: [] }, theme, selfInfo)}
+			${comment ? commentLine(comment) : ""}
 		</table>
 	</div>
 	<table style="padding: 24px 0">
