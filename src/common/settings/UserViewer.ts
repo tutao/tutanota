@@ -50,7 +50,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	) {
 		this.userGroupInfo = userGroupInfo
 
-		this.mailAddressTableExpanded = false
+		this.mailAddressTableExpanded = true
 
 		this.secondFactorsForm = new SecondFactorsEditForm(
 			this.user,

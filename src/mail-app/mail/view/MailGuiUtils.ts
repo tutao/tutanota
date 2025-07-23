@@ -12,6 +12,7 @@ import {
 	MailReportType,
 	MailSetKind,
 	MailState,
+	PresentableKeyVerificationState,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
@@ -633,6 +634,26 @@ export function getConfidentialIcon(mail: Mail): Icons {
 export function getConfidentialFontIcon(mail: Mail): string {
 	const confidentialIcon = getConfidentialIcon(mail)
 	return confidentialIcon === Icons.PQLock ? FontIcons.PQConfidential : FontIcons.Confidential
+}
+
+export function getKeyVerificationIcon(mail: Mail): Icons | null {
+	// null => no keyverification state to display
+	if (!mail.keyVerificationState) throw new ProgrammingError("mail has no key verification state")
+	if (mail.keyVerificationState === PresentableKeyVerificationState.SECURE) {
+		return Icons.Shield
+	} else if (mail.keyVerificationState === PresentableKeyVerificationState.ALERT) {
+		return Icons.BrokenShield
+	} else {
+		return null
+	}
+}
+
+export function getKeyVerificationFontIcon(mail: Mail): string {
+	const keyVerificationIcon = getKeyVerificationIcon(mail)
+	if (keyVerificationIcon === null) {
+		return ""
+	}
+	return keyVerificationIcon === Icons.Shield ? FontIcons.Shield : FontIcons.BrokenShield
 }
 
 export function isMailContrastFixNeeded(editorDom: ParentNode): boolean {
