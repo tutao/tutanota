@@ -153,6 +153,8 @@ export class CalendarInviteHandler {
 	 * @param attendee the attendee that should respond to the mail
 	 * @param decision the new status of the attendee
 	 * @param previousMail the mail to respond to
+	 * @param mailboxDetails
+	 * @param comment
 	 */
 	async replyToEventInvitation(
 		event: CalendarEvent,
@@ -160,6 +162,7 @@ export class CalendarInviteHandler {
 		decision: CalendarAttendeeStatus,
 		previousMail: Mail,
 		mailboxDetails: MailboxDetail,
+		comment?: string,
 	): Promise<ReplyResult> {
 		const eventClone = clone(event)
 		const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
@@ -170,14 +173,19 @@ export class CalendarInviteHandler {
 		//	which is needed to find mailboxdetails by mail. This may be fixed by static mail ids which are being worked on currently.
 		//  This function is only called by EventBanner from the mail app so this should be okay.
 		const responseModel = await this.getResponseModelForMail(previousMail, mailboxDetails, attendee.address.address, decision)
-
 		try {
-			await notificationModel.send(eventClone, [], {
-				responseModel,
-				inviteModel: null,
-				cancelModel: null,
-				updateModel: null,
-			})
+			await notificationModel.send(
+				eventClone,
+				[],
+				{
+					responseModel,
+					inviteModel: null,
+					cancelModel: null,
+					updateModel: null,
+				},
+				undefined,
+				comment,
+			)
 		} catch (e) {
 			if (e instanceof UserError) {
 				await Dialog.message(lang.makeTranslation("confirm_msg", e.message))
