@@ -68,6 +68,7 @@ export interface ButtonAttrs {
 	colors?: ButtonColor
 	icon?: Children
 	class?: Array<string>
+	inline?: boolean
 }
 
 /**
@@ -75,7 +76,7 @@ export interface ButtonAttrs {
  */
 export class Button implements ClassComponent<ButtonAttrs> {
 	view({ attrs }: CVnode<ButtonAttrs>): Children {
-		const classes = this.resolveClasses(attrs.type, attrs.class)
+		const classes = this.resolveClasses(attrs.type, attrs.class, attrs.inline || false)
 
 		return m(BaseButton, {
 			label: attrs.title == null ? attrs.label : attrs.title,
@@ -89,7 +90,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 		})
 	}
 
-	private resolveClasses(type: ButtonType, customClasses?: Array<string>) {
+	private resolveClasses(type: ButtonType, customClasses?: Array<string>, inline?: boolean) {
 		const classes = [
 			"limit-width",
 			"noselect",
@@ -97,11 +98,16 @@ export class Button implements ClassComponent<ButtonAttrs> {
 			"button-height",
 			"text-ellipsis",
 			"content-accent-fg",
-			...(!customClasses?.includes("block") ? ["flex"] : []),
 			"items-center",
 			"justify-center",
 			"flash",
 		]
+
+		if (!customClasses?.includes("block")) {
+			if (!inline) {
+				classes.push("flex")
+			}
+		}
 
 		if (type === ButtonType.Primary) {
 			classes.push("b")
