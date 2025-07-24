@@ -367,7 +367,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				m(DatePicker, {
 					date: this.searchViewModel.startDate ?? undefined,
 					onDateSelected: (date) => {
-						if (this.searchViewModel.selectStartDate(date) != PaidFunctionResult.Success) {
+						if (this.searchViewModel.selectStartDate(date) !== PaidFunctionResult.Success) {
 							showNotAvailableForFreeDialog()
 						}
 					},
@@ -382,7 +382,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				m(DatePicker, {
 					date: this.searchViewModel.endDate,
 					onDateSelected: (date) => {
-						if (this.searchViewModel.selectEndDate(date) != PaidFunctionResult.Success) {
+						if (this.searchViewModel.selectEndDate(date) !== PaidFunctionResult.Success) {
 							showNotAvailableForFreeDialog()
 						}
 					},

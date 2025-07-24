@@ -168,12 +168,12 @@ export class SseClient {
 					.on("close", () => {
 						log.debug("response closed")
 						// This event is fired also when we close the connection manually. In this case we do not want to reconnect.
-						if (this.state.state != ConnectionState.disconnected) this.delayedReconnect()
+						if (this.state.state !== ConnectionState.disconnected) this.delayedReconnect()
 					})
 					.on("error", (e) => {
 						log.error("response error:", e)
 						// This event is fired also when we close the connection manually. In this case we do not want to reconnect.
-						if (this.state.state != ConnectionState.disconnected) this.delayedReconnect()
+						if (this.state.state !== ConnectionState.disconnected) this.delayedReconnect()
 					})
 			})
 			.on("information", () => log.debug("information"))
@@ -218,7 +218,7 @@ export class SseClient {
 	}
 
 	private exponentialBackoffReconnect() {
-		if (this.state.state != ConnectionState.connecting) {
+		if (this.state.state !== ConnectionState.connecting) {
 			throw new ProgrammingError("Invalid state: not connecting")
 		}
 		log.debug("Scheduling exponential reconnect")
@@ -227,7 +227,7 @@ export class SseClient {
 	}
 
 	private delayedReconnect() {
-		if (this.state.state != ConnectionState.connected) {
+		if (this.state.state !== ConnectionState.connected) {
 			throw new ProgrammingError("Invalid state: not connected")
 		}
 		log.debug("Scheduling delayed reconnect")

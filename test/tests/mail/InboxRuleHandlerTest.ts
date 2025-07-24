@@ -109,7 +109,7 @@ function _createRule(value: string, type?: string, targetFolder?: IdTuple): Inbo
 }
 
 function _equalTupels(t1: IdTuple, t2: IdTuple): boolean {
-	if (t1.length === 2 && t2.length == 2) {
+	if (t1.length === 2 && t2.length === 2) {
 		if (t1[0] !== t2[0] || t1[1] !== t2[1]) {
 			return false
 		}

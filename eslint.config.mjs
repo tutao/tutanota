@@ -24,8 +24,7 @@ export default defineConfig([
 			"no-misleading-character-class": "warn",
 			"no-prototype-builtins": "error",
 			"no-self-assign": "error",
-			// TODO: would be cool to enable
-			// "no-self-compare": "error",
+			"no-self-compare": "error",
 			"no-setter-return": "error",
 			"no-sparse-arrays": "error",
 			"no-unexpected-multiline": "error",
@@ -36,8 +35,7 @@ export default defineConfig([
 			"no-useless-backreference": "warn",
 			"use-isnan": "error",
 			"valid-typeof": "error",
-			// TODO: would be cool to enable
-			// eqeqeq: ["error", "always", { null: "ignore" }],
+			eqeqeq: ["error", "always", { null: "ignore" }],
 			"no-case-declarations": "error",
 			"no-delete-var": "error",
 			"no-empty": "warn",
@@ -55,8 +53,6 @@ export default defineConfig([
 			"no-useless-catch": "warn",
 			"no-useless-escape": "error",
 			"no-var": "error",
-			// TODO: would be cool to enable
-			// "no-void": "error",
 			"no-with": "error",
 			"require-yield": "error",
 		},

@@ -170,7 +170,7 @@ export class Dropdown implements ModalComponent {
 					},
 					onupdate: (vnode) => {
 						const firstRender = this.maxHeight == null
-						if (firstRender || this.windowHeight != window.innerHeight) {
+						if (firstRender || this.windowHeight !== window.innerHeight) {
 							const children = Array.from(vnode.dom.children) as Array<HTMLElement>
 							// In case we have filtered but we need to resize the dropdown we keep the original height before the filter, otherwise we will show the dropdown with
 							// incorrect height.

@@ -62,7 +62,7 @@ export class DesktopFileFacade implements FileFacade {
 		const { status, headers: headersIncoming, body } = await this.fetch(sourceUrl, { method: "GET", headers })
 
 		let encryptedFilePath
-		if (status == 200 && body != null) {
+		if (status === 200 && body != null) {
 			const downloadDirectory = await this.tfs.ensureEncryptedDir()
 			encryptedFilePath = path.join(downloadDirectory, fileName)
 			const readable: stream.Readable = bodyToReadable(body)
@@ -222,7 +222,7 @@ export class DesktopFileFacade implements FileFacade {
 		const response = await this.fetch(targetUrl, { method, headers, body: fileStream })
 
 		let responseBody: Uint8Array
-		if ((response.status == 200 || response.status == 201) && response.body != null) {
+		if ((response.status === 200 || response.status === 201) && response.body != null) {
 			const readable: stream.Readable = bodyToReadable(response.body)
 			responseBody = await readStreamToBuffer(readable)
 		} else {

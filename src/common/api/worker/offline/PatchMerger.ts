@@ -309,7 +309,7 @@ export class PatchMerger {
 	}
 
 	private async traversePath(parsedInstance: ServerModelParsedInstance, serverTypeModel: ServerTypeModel, path: Array<string>): Promise<PathResult> {
-		if (path.length == 0) {
+		if (path.length === 0) {
 			throw new PatchOperationError("Invalid attributePath, expected non-empty attributePath")
 		}
 		const pathItem = path.shift()!
@@ -320,11 +320,11 @@ export class PatchMerger {
 			} else {
 				attributeId = parseInt(pathItem)
 			}
-			if (!Object.keys(parsedInstance).some((attribute) => attribute == attributeId.toString())) {
+			if (!Object.keys(parsedInstance).some((attribute) => attribute === attributeId.toString())) {
 				throw new PatchOperationError("attribute id " + attributeId + " not found on the parsed instance. Type: " + serverTypeModel.name)
 			}
 
-			if (path.length == 0) {
+			if (path.length === 0) {
 				return {
 					attributeId: attributeId,
 					instanceToChange: parsedInstance,

@@ -147,7 +147,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 	}
 
 	private getVideoElement(model: KeyVerificationModel): Children | null {
-		if (this.qrCameraState == QrCameraState.INIT_VIDEO || this.qrCameraState == QrCameraState.SCANNING) {
+		if (this.qrCameraState === QrCameraState.INIT_VIDEO || this.qrCameraState === QrCameraState.SCANNING) {
 			const video = m("video[autoplay][muted][playsinline]", {
 				oncreate: async (videoNode) => {
 					this.qrVideo = assertNotNull(videoNode.dom as HTMLVideoElement)
@@ -211,7 +211,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 
 	private async runQrScannerTick(video: HTMLVideoElement, canvas: HTMLCanvasElement, context2d: CanvasRenderingContext2D, model: KeyVerificationModel) {
 		if (video.readyState === video.HAVE_ENOUGH_DATA) {
-			if (this.qrCameraState == QrCameraState.INIT_VIDEO) {
+			if (this.qrCameraState === QrCameraState.INIT_VIDEO) {
 				this.qrCameraState = QrCameraState.SCANNING
 				m.redraw()
 			}
@@ -277,7 +277,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 		}
 
 		requestAnimationFrame(() => {
-			if (this.qrCameraState == QrCameraState.SCANNING) {
+			if (this.qrCameraState === QrCameraState.SCANNING) {
 				this.runQrScannerTick(video, canvas, context2d, model)
 			}
 		})

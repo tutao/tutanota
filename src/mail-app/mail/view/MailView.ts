@@ -6,7 +6,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, getMailFolderType, Keys, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -881,9 +881,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
 			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(mailboxDetail, folder),
 			onFolderDrop: (dropData, folder) => {
-				if (dropData.dropType == DropType.Mail) {
+				if (dropData.dropType === DropType.Mail) {
 					this.handleFolderMailDrop(dropData, folder)
-				} else if (dropData.dropType == DropType.ExternalFile) {
+				} else if (dropData.dropType === DropType.ExternalFile) {
 					this.handeFolderFileDrop(dropData, mailboxDetail, folder)
 				}
 			},

@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { client } from "../misc/ClientDetector.js"
 import { assertMainOrNode, isApp, isDesktop } from "../api/common/Env"
-import { lang, TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { defer, DeferredObject, mapNullable } from "@tutao/tutanota-utils"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -302,7 +302,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 					this.viewModel.displayMode === DisplayMode.DeleteCredentials
 						? (credentials) => {
 								this.viewModel.deleteCredentials(credentials).then((result) => {
-									if (result == "networkError") {
+									if (result === "networkError") {
 										showSnackBar({
 											message: "deleteCredentialOffline_msg",
 											button: {

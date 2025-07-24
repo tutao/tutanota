@@ -71,7 +71,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		// newAccountData is filled in when signing up and then going back in the signup process
 		// If the user has selected a tuta.com address we want to prevent them from selecting a free plan at this point
 		if (!!data.newAccountData && data.newAccountData.mailAddress.includes("tuta.com") && availablePlans.includes(PlanType.Free)) {
-			availablePlans = availablePlans.filter((plan) => plan != PlanType.Free)
+			availablePlans = availablePlans.filter((plan) => plan !== PlanType.Free)
 		}
 
 		const subscriptionActionButtons: SubscriptionActionButtons = {
@@ -113,7 +113,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupPaidTest.active = false
 		}
 
-		if (this.__signupFreeTest && this.upgradeType == UpgradeType.Signup) {
+		if (this.__signupFreeTest && this.upgradeType === UpgradeType.Signup) {
 			this.__signupFreeTest.active = true
 			this.__signupFreeTest.getStage(0).complete()
 		}
@@ -196,7 +196,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			this.__signupFreeTest.active = false
 		}
 
-		if (this.__signupPaidTest && this.upgradeType == UpgradeType.Signup) {
+		if (this.__signupPaidTest && this.upgradeType === UpgradeType.Signup) {
 			this.__signupPaidTest.active = true
 			this.__signupPaidTest.getStage(0).complete()
 		}

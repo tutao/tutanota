@@ -139,7 +139,7 @@ export function parseBirthday(text: string, referenceDateRenderer: (refdate: Dat
 
 		// We must validate that NO birthdayValues is equal to 0 since we don't support only
 		// year and month. e.g. 07/00
-		if (birthdayValues.length == 2 && (birthdayValues[0] === 0 || birthdayValues[1] === 0)) {
+		if (birthdayValues.length === 2 && (birthdayValues[0] === 0 || birthdayValues[1] === 0)) {
 			return null
 		}
 

@@ -75,7 +75,7 @@ export function _contactToVCard(contact: Contact): string {
 	contactToVCardString += _vCardFormatArrayToString(_addressesToVCardAddresses(contact.mailAddresses), "EMAIL")
 	contactToVCardString += _vCardFormatArrayToString(_phoneNumbersToVCardPhoneNumbers(contact.phoneNumbers), "TEL")
 	contactToVCardString += _vCardFormatArrayToString(_socialIdsToVCardSocialUrls(contact.socialIds), "URL")
-	contactToVCardString += contact.role != "" ? _getFoldedString("TITLE:" + _getVCardEscaped(contact.role)) + "\n" : ""
+	contactToVCardString += contact.role !== "" ? _getFoldedString("TITLE:" + _getVCardEscaped(contact.role)) + "\n" : ""
 
 	contact.websites.map((website) => {
 		contactToVCardString += _getFoldedString("URL:" + getWebsiteUrl(website.url) + "\n")
