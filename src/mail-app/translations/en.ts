@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-07-22T04:39:13Z",
+	"updated_at": "2025-07-23T07:39:13Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -140,6 +140,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android app on F-Droid",
 		"appInfoIosImageAlt_alt": "iOS app on App Store",
 		"apply_action": "Apply",
+		"approvalWaitNotice_msg": "Your account was marked for manual approval. This means you are not able to send or receive emails. On working days, the approval usually happens within 24 hours.",
 		"appStoreNotAvailable_msg": "App Store subscriptions are not available at the moment.",
 		"appStoreRenewProblemBody_msg": "Hello,\n      \nYour subscription was due to renew on {expirationDate}.\n       \nUnfortunately, we were unable to receive any payment from the App Store for your subscription, which may be due to a billing failure. Please check that your payment settings on the App Store are correct.\n\nIf we do not receive any payment, your account will be disabled on {finalExpirationDate} for nonpayment. Alternatively, you may choose to cancel your subscription or switch to another payment method.\n   \nStay secure,\nYour Tuta Team",
 		"appStoreRenewProblemSubject_msg": "App Store billing failure",
@@ -1163,6 +1164,7 @@ export default {
 		"notFullyLoggedIn_msg": "User not fully logged in.",
 		"noThanks_action": "No thanks",
 		"nothingFound_label": "No templates found",
+		"notice_label": "Notice",
 		"notificationContent_label": "Notification content",
 		"notificationMailLanguage_label": "Language of notification email",
 		"notificationMailTemplateTooLarge_msg": "The notification mail template is too large.",

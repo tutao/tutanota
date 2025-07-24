@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2025-07-17T21:13:20Z",
+	"updated_at": "2025-07-24T07:53:29Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1341,7 +1341,7 @@ export default {
 		"pricing.login_title": "Se connecter sur son propre site web",
 		"pricing.login_tooltip": "Mettez le lien de connexion à Tuta sur votre site d'internet pour que ça soit accéder par tous vos collaborateurs, internes et  externes.",
 		"pricing.mailAddressAliasesShort_label": "{amount} adresse(s) e-mail(s) supplémentaire(s)",
-		"pricing.mailAddressAliases_tooltip_markdown": "<p>Courriels supplémentaires par utilisateur. Les alias des courriels permettent de réduire le nombre de spams et d'accélérer le tri des courriels entrants. Lisez d'autres conseils [sur notre blog] ({blogAliasLink}).</p>\n",
+		"pricing.mailAddressAliases_tooltip_markdown": "<p>Courriels supplémentaires par utilisateur. Les alias des courriels permettent de réduire le nombre de spams et d'accélérer le tri des courriels entrants. Lisez d'autres conseils <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/blog/secure-email-alias\">sur notre blog</a>.</p>\n",
 		"pricing.mailAddressFree_label": "1 adresse e-mail Tuta gratuite",
 		"pricing.management_label": "Gestion des utilisateurs",
 		"pricing.management_tooltip": "Réinitialisez les mots de passe et les seconds facteurs des utilisateurs, créez des adresses e-mail pour les utilisateurs, désactivez les utilisateurs et plus encore.",

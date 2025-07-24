@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-23T12:14:52Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -144,6 +144,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Aplicación de Android en F-Droid",
 		"appInfoIosImageAlt_alt": "Aplicación de iOS en Apple Store",
 		"apply_action": "Aplicar",
+		"approvalWaitNotice_msg": "Tu cuenta ha sido marcada para aprobación manual. Esto significa que no puedes enviar ni recibir correos electrónicos. En días laborables, la aprobación suele producirse en 24 horas.",
 		"appStoreNotAvailable_msg": "Las suscripciones a la App Store no están disponibles en este momento.",
 		"appStoreRenewProblemBody_msg": "Hola,\n\nTu suscripción debía renovarse el {expirationDate}.\n\nLamentablemente, no pudimos recibir ningún pago de la App Store por tu suscripción, lo que puede deberse a un error de facturación. Verifica que tu configuración de pago en la App Store sea correcta.\n\nSi no recibimos ningún pago, tu cuenta se desactivará el {finalExpirationDate} por falta de pago. Alternativamente, puedes optar por cancelar tu suscripción o cambiar a otro método de pago.\n\nMantente seguro,\nTu equipo Tuta",
 		"appStoreRenewProblemSubject_msg": "Fallo en la facturación de la App Store",
@@ -1167,6 +1168,7 @@ export default {
 		"notFullyLoggedIn_msg": "Usuario no totalmente conectado.",
 		"noThanks_action": "No, gracias",
 		"nothingFound_label": "No se han encontrado plantillas",
+		"notice_label": "Aviso",
 		"notificationContent_label": "Contenido de la notificación",
 		"notificationMailLanguage_label": "Idioma de las notificaciones",
 		"notificationMailTemplateTooLarge_msg": "La plantilla de correo de notificación es demasiado grande.",
@@ -1931,6 +1933,7 @@ export default {
 		"unavailable_label": "No disponible",
 		"undecided_label": "Indeciso",
 		"undoMailReport_msg": "Los correos se enviarán sin cifrar.",
+		"undoMoveMail_msg": "Los correos se han movido a la carpeta «{folder}».",
 		"undo_action": "Deshacer",
 		"unencryptedTransmission_msg": "Los correos movidos a la carpeta de spam se enviarán al servidor sin cifrar para mejorar la protección contra el spam.",
 		"unknownError_msg": "Ha ocurrido un error inesperado. Por favor inténtalo más tarde.",

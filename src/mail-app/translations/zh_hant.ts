@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-23T10:01:43Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -138,6 +138,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "F-Droid上的Android版應用程式",
 		"appInfoIosImageAlt_alt": "App Store上的iOS版應用程式",
 		"apply_action": "套用",
+		"approvalWaitNotice_msg": "您的帳戶被標記為人手核准。這表示您不能發送或接收電郵。在工作日，核准通常會在24小時內完成。",
 		"appStoreNotAvailable_msg": "目前不設App Store訂購。",
 		"appStoreRenewProblemBody_msg": "您好，\n\n您的訂購計劃原定於{expirationDate}續訂。\n\n很遺憾，我們無法從App Store收到您的訂購付款，這可能由於賬務失敗。請檢查您在App Store上的付款設定是否正確。\n\n如果我們沒有收到任何付款，您的帳戶將因此在{finalExpirationDate}被停用。您也可以選擇取消您的訂購計劃或者轉用其他付款方式。\n\n保持安全，\n您的Tuta團隊",
 		"appStoreRenewProblemSubject_msg": "App Store帳務失敗",
@@ -1161,6 +1162,7 @@ export default {
 		"notFullyLoggedIn_msg": "用戶未完全登入。",
 		"noThanks_action": "不用了，謝謝",
 		"nothingFound_label": "找不到範本",
+		"notice_label": "注意",
 		"notificationContent_label": "通知內容",
 		"notificationMailLanguage_label": "通知電郵的語言",
 		"notificationMailTemplateTooLarge_msg": "通知郵件範本太大。",
@@ -1925,6 +1927,7 @@ export default {
 		"unavailable_label": "不可用",
 		"undecided_label": "未決定",
 		"undoMailReport_msg": "電郵將以未加密形式舉報。",
+		"undoMoveMail_msg": "電郵已被移至\\\"{folder}\\\"資料夾。",
 		"undo_action": "復原",
 		"unencryptedTransmission_msg": "移至垃圾郵件資料夾的電郵將以未加密形式傳送到伺服器以改善垃圾郵件防護功能。",
 		"unknownError_msg": "發生未預期的錯誤。請稍後再試。",

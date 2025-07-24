@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-07-22T04:39:13Z",
+	"updated_at": "2025-07-23T07:39:13Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -144,6 +144,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android App bei F-Droid",
 		"appInfoIosImageAlt_alt": "iOS App im Apple store",
 		"apply_action": "Übernehmen",
+		"approvalWaitNotice_msg": "Ihr Konto benötigt eine manuelle Freigabe. Das bedeutet, dass Sie keine E-Mails senden oder empfangen können. Die Freigabe erfolgt an Werktagen in der Regel innerhalb von 24 Stunden.",
 		"appStoreNotAvailable_msg": "App Store-Abonnements sind derzeit nicht verfügbar.",
 		"appStoreRenewProblemBody_msg": "Hallo,\n    \nIhr Abonnement sollte am {expirationDate} verlängert werden.\n     \nLeider haben wir keine Zahlung vom App Store für Ihr Abonnement erhalten, was möglicherweise auf einen Abrechnungsfehler zurückzuführen ist. Bitte überprüfen Sie, ob Ihre Zahlungseinstellungen im App Store korrekt sind.\n\nWenn wir keine Zahlung erhalten, wird Ihr Konto am {finalExpirationDate} wegen Nichtbezahlung deaktiviert. Alternativ können Sie Ihr Abonnement kündigen oder zu einer anderen Zahlungsmethode wechseln.\n \nViele Grüße,\nIhr Tuta-Team",
 		"appStoreRenewProblemSubject_msg": "App Store Abrechnungsfehler",
@@ -1167,6 +1168,7 @@ export default {
 		"notFullyLoggedIn_msg": "Der Nutzer ist nicht vollständig eingeloggt.",
 		"noThanks_action": "Nein danke",
 		"nothingFound_label": "Keine Vorlagen gefunden",
+		"notice_label": "Hinweis",
 		"notificationContent_label": "Inhalt der Benachrichtigung",
 		"notificationMailLanguage_label": "Sprache der Benachrichtigungs-E-Mail",
 		"notificationMailTemplateTooLarge_msg": "Die Benachrichtigungs-E-Mail ist zu groß.",

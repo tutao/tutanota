@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-24T06:40:15Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -140,6 +140,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android-sovellus F-Droid-sisältöpalvelussa",
 		"appInfoIosImageAlt_alt": "iOS-sovellus App Storessa",
 		"apply_action": "Käytä",
+		"approvalWaitNotice_msg": "Tilisi on merkitty manuaalisesti hyväksyttäväksi. Et voi vielä lähettää tai vastaanottaa sähköposteja. Hyväksyminen tapahtuu yleensä vuorokauden sisällä työpäivinä.",
 		"appStoreNotAvailable_msg": "App Store -tilauksia ei ole tällä hetkellä saatavilla.",
 		"appStoreRenewProblemBody_msg": "Hei,\n\ntilauksesi oli määrä uusiutua {expirationDate}.\n\nValitettavasti emme vastaanottaneet tilausmaksua App Storen kautta. Tämä voi johtua laskutusvirheestä. Tarkista, että App Storeen on ilmoitettu oikeat laskutustiedot.\n\nMikäli emme saa maksua, tilisi poistetaan käytöstä {finalExpirationDate} maksamattomien laskujen takia. Voit tämän sijasta myös perua tilauksesi tai vaihtaa toiseen maksutapaan.\n\nPysy turvattuna,\nTuta-tiimisi\n\n",
 		"appStoreRenewProblemSubject_msg": "App Store -laskutusvirhe",
@@ -1163,6 +1164,7 @@ export default {
 		"notFullyLoggedIn_msg": "Käyttäjä ei ole täysin kirjautunut sisään.",
 		"noThanks_action": "Ei kiitos",
 		"nothingFound_label": "Viestipohjia ei löytynyt",
+		"notice_label": "Ilmoitus",
 		"notificationContent_label": "Ilmoitusten sisältö",
 		"notificationMailLanguage_label": "Ilmoitusviestien kieli",
 		"notificationMailTemplateTooLarge_msg": "Ilmoitusviestipohja on liian pitkä.",
@@ -1927,6 +1929,7 @@ export default {
 		"unavailable_label": "Tavoittamattomissa",
 		"undecided_label": "Päättämättä",
 		"undoMailReport_msg": "Sähköpost(e)ista ilmoitetaan salaamattomassa muodossa.",
+		"undoMoveMail_msg": "Sähköposti(t) siirrettiin kansioon \\\"{folder}\\\".",
 		"undo_action": "Kumoa",
 		"unencryptedTransmission_msg": "Roskapostikansioon siirretyt sähköpostit välitetään palvelimelle salaamattomassa muodossa roskapostisuojauksen parantamiseksi. ",
 		"unknownError_msg": "Odottamaton virhe. Yritä uudelleen.",

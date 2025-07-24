@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-07-22T06:43:40Z",
+	"updated_at": "2025-07-23T09:18:54Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -144,6 +144,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "F-Droid'de Android uygulaması",
 		"appInfoIosImageAlt_alt": "Apple Store'daki iOS uygulaması ",
 		"apply_action": "Başvur",
+		"approvalWaitNotice_msg": "Hesabınız manuel onay için işaretlendi. Bu, e-posta gönderemeyeceğiniz veya alamayacağınız anlamına gelir. İş günlerinde onay genellikle 24 saat içinde gerçekleşir.",
 		"appStoreNotAvailable_msg": "App Store abonelikleri şu an için mevcut değil.",
 		"appStoreRenewProblemBody_msg": "Merhaba,\n\nAboneliğiniz {expirationDate} tarihinde yenilenecekti.\n\nMaalesef, App Store'dan aboneliğiniz için bir ödeme alamadık, bunun nedeni bir faturalama hatası olabilir. Lütfen App Store'daki ödeme ayarlarınızın doğru olup olmadığını kontrol ediniz.\n\nHerhangi bir ödeme alamamamız durumunda, hesabınız {finalExpirationDate} tarihinde ödememe nedeniyle devre dışı kalacaktır. Alternatif olarak aboneliğinizi iptal etmeyi veya bir başka ödeme yöntemine geçmeyi seçebilirsiniz.\n\nGüvende kalın,\nTuta Ekibiniz",
 		"appStoreRenewProblemSubject_msg": "App Store fatura başarısızlığı",
@@ -1167,6 +1168,7 @@ export default {
 		"notFullyLoggedIn_msg": "Kullanıcı tam olarak oturum açmamış.",
 		"noThanks_action": "Hayır teşekkürler",
 		"nothingFound_label": "Şablon bulunamadı",
+		"notice_label": "Bildirim",
 		"notificationContent_label": "Bildirim içeriği",
 		"notificationMailLanguage_label": "Bildirim e-postasının dili",
 		"notificationMailTemplateTooLarge_msg": "bildirim posta şablonu çok uzun",
@@ -1931,6 +1933,7 @@ export default {
 		"unavailable_label": "Kullanım dışı",
 		"undecided_label": "Çekimser",
 		"undoMailReport_msg": "Seçili e-posta(lar) şifrelenmemiş biçimde bildirilecektir.",
+		"undoMoveMail_msg": "E-posta(lar)  \\\"{folder}\\\" dizinine taşındı.",
 		"undo_action": "Geri al",
 		"unencryptedTransmission_msg": "Spam klasörüne taşınan e-posta(lar) spam korumasını geliştirmek için şifrelenmemiş hâlde sunucuya aktarılacaktır.",
 		"unknownError_msg": "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.",

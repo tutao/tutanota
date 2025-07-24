@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-23T10:59:35Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -144,6 +144,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Aplikace pro Android na portálu F-Droid",
 		"appInfoIosImageAlt_alt": "Aplikace iOS na App Store",
 		"apply_action": "Použít",
+		"approvalWaitNotice_msg": "Váš účet byl určen k manuálnímu schválení. To znamená, že nemůžete odesílat ani přijímat e-maily. V pracovní dny ke schválení obvykle dojde do 24 hodin.",
 		"appStoreNotAvailable_msg": "Předplatné App Storu není v tento okamžik k dispozici",
 		"appStoreRenewProblemBody_msg": "Dobrý den,\n\nvaše předplatné mělo být obnoveno dne {expirationDate}.\n\nBohužel jsme z App Storu neobdrželi žádnou platbu za vaše předplatné, což může být způsobeno chybnou fakturací. Zkontrolujte prosím, zda je nastavení plateb v App Storu správné.\n\nPokud neobdržíme platbu, váš účet bude bohužel deaktivován ke dni {finalExpirationDate}. Případně můžete vaše předplatné zrušit nebo přejít na jiný způsob platby.\n\nS pozdravem\nVáš tým Tuta",
 		"appStoreRenewProblemSubject_msg": "Problém s fakturací z App Storu",
@@ -1167,6 +1168,7 @@ export default {
 		"notFullyLoggedIn_msg": "Uživatel není plně přihlášen.",
 		"noThanks_action": "Ne, děkuji",
 		"nothingFound_label": "Nenalezeny žádné šablony",
+		"notice_label": "Poznámka",
 		"notificationContent_label": "Obsah oznámení",
 		"notificationMailLanguage_label": "Jazyk oznamovacího e-mailu",
 		"notificationMailTemplateTooLarge_msg": "Šablona notifikačního mailu je příliš velká.",
@@ -1930,6 +1932,7 @@ export default {
 		"unavailable_label": "Nedostupné",
 		"undecided_label": "Nerozhodnuto",
 		"undoMailReport_msg": "Zpráva (popř. zprávy) bude nahlášena v nezašifrované podobě.",
+		"undoMoveMail_msg": "E-maily byly přesunuty do složky \\\"{folder}\\\".",
 		"undo_action": "Zpět",
 		"unencryptedTransmission_msg": "Obsah této zprávy (zpráv) bude na server přenesen v nezašifrované podobě pro vylepšení ochrany proti spamu.",
 		"unknownError_msg": "Došlo k neočekávané chybě. Zkuste to prosím znovu později.",

@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-07-17T18:35:00Z",
+	"updated_at": "2025-07-23T12:04:20Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -140,6 +140,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Android app på F-Droid",
 		"appInfoIosImageAlt_alt": "iOS app på App Store",
 		"apply_action": "Tillämpa",
+		"approvalWaitNotice_msg": "Ditt konto har markerats för manuellt godkännande. Det innebär att du inte kan skicka eller ta emot e-post. På vardagar sker godkännandet vanligtvis inom 24 timmar.",
 		"appStoreNotAvailable_msg": "App Store abonnemang är inte tillgängliga för tillfället.",
 		"appStoreRenewProblemBody_msg": "Hej!\n      \nDitt abonemang skulle förnyas {utgångsdatum}.\n       \nTyvärr kunde vi inte ta emot någon betalning från App Store för ditt abonnemang vilket kan bero på ett faktureringsfel. Kontrollera att dina betalningsinställningar i App Store är korrekta.\n\nOm vi inte får någon betalning kommer ditt konto att inaktiveras {finalExpirationDate} på grund av utebliven betalning. Alternativt kan du välja att säga upp ditt abonnemang eller byta till en annan betalningsmetod.\n   \nHåll dig säker\nTeam Tuta",
 		"appStoreRenewProblemSubject_msg": "Fel vid fakturering i App Store",
@@ -1163,6 +1164,7 @@ export default {
 		"notFullyLoggedIn_msg": "Användaren är inte helt inloggad.",
 		"noThanks_action": "Nej tack",
 		"nothingFound_label": "Inga mallar hittades",
+		"notice_label": "Notis",
 		"notificationContent_label": "Innehåll i notis",
 		"notificationMailLanguage_label": "Språk för aviseringsmeddelande",
 		"notificationMailTemplateTooLarge_msg": "Mallen för aviseringsmeddelandet är för lång.",
@@ -1927,6 +1929,7 @@ export default {
 		"unavailable_label": "Inte tillgänglig",
 		"undecided_label": "Ej valt",
 		"undoMailReport_msg": "Mejl kommer att rapporteras i okrypterad form.",
+		"undoMoveMail_msg": "Mail har flyttats till folder \\\"{folder}\\\".",
 		"undo_action": "Ångra",
 		"unencryptedTransmission_msg": "Mejl som flyttas till skräppostmappen överförs till servern i okrypterad form för att förbättra skräppostskyddet.",
 		"unknownError_msg": "Ett oväntat fel inträffade. Försök igen senare.",
