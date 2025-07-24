@@ -8,7 +8,7 @@ import type {
 import { createCalendarEventAttendee, createEncryptedMailAddress } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../../../../common/gui/base/Icon.js"
-import { isLightTheme, theme } from "../../../../common/gui/theme.js"
+import { theme } from "../../../../common/gui/theme.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import {
@@ -32,10 +32,10 @@ import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/Subscript
 import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 import { formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus, repeatRuleOptions } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
-import { px, size } from "../../../../common/gui/size.js"
+import { inputLineHeight, px, size } from "../../../../common/gui/size.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../common/gui/TextHighlightViewUtils"
-import { TextArea, TextAreaAttrs } from "../../../../common/gui/base/TextArea.js"
+import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../common/gui/base/ExpandableTextArea.js"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
@@ -62,7 +62,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 		Object.assign(
 			{
 				text,
-				class: "width-min-content",
+				class: "width-min-content w-auto",
 				click: async () => {
 					try {
 						await participation.setParticipation(status)
@@ -80,7 +80,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 			participation.ownAttendee.status === status ? highlightColors : colors,
 		)
 
-	return m(".flex.items-center.mt-s.gap-vpad-s", [
+	return m(".flex.items-center.mt-s.gap-vpad-s.fit-content", [
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.ACCEPTED, "yes_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.TENTATIVE, "maybe_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.DECLINED, "no_label")),
@@ -205,16 +205,20 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		return m("", [
 			m(".flex.pb-s", [
 				this.renderSectionIndicator(BootIcons.Contacts),
-				m(".flex.flex-column", [m(".small", lang.get("invitedToEvent_msg")), m(ReplyButtons, participation), this.renderCommentSection(model)]),
+				m(".flex.flex-column", [
+					m(".small", lang.get("invitedToEvent_msg")),
+					m(".fit-content", { style: { "min-height": px(inputLineHeight * 7) } }, [m(ReplyButtons, participation), this.renderCommentSection(model)]),
+				]),
 			]),
 		])
 	}
 
 	private renderCommentSection(model: CalendarEventPreviewViewModel): Children {
-		return m(TextArea, {
+		return m(ExpandableTextArea, {
 			classes: ["mt-s"],
 			variant: "outlined",
 			value: model.comment,
+			maxLines: 3,
 			oninput: (newValue: string) => {
 				model.comment = newValue
 			},
@@ -227,7 +231,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			},
 			ariaLabel: lang.get("addComment_label"),
 			placeholder: lang.get("addComment_label"),
-		} satisfies TextAreaAttrs)
+		} satisfies ExpandableTextAreaAttrs)
 	}
 
 	private renderAttendee(attendee: CalendarEventAttendee, participation: EventPreviewViewAttrs["participation"]): Children {
