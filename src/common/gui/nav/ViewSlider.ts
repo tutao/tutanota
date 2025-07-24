@@ -112,27 +112,36 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 					},
 				},
 				[
-					styles.isUsingBottomNavigation() ? null : attrs.header,
+					// wrapper to disable background content when foreground overlay is visible
 					m(
-						".view-columns.flex-grow.rel",
+						".flex.col.flex-grow",
 						{
-							oncreate: (vnode) => {
-								this.domSlidingPart = vnode.dom as HTMLElement
-							},
-							style: {
-								width: this.getWidth() + "px",
-								transform: "translateX(" + this.getOffset(this.visibleBackgroundColumns[0]) + "px)",
-							},
+							inert: this.isModalBackgroundVisible,
 						},
-						mainSliderColumns.map((column, index) =>
-							m(column, {
-								// Only apply right border if 1. all background columns are visible. 2. It's not the last column.
-								// Perhaps the condition should be "there's another visible column after this one" but it works like this too
-								rightBorder: allBackgroundColumnsAreVisible && index !== mainSliderColumns.length - 1,
-							}),
-						),
+						[
+							styles.isUsingBottomNavigation() ? null : attrs.header,
+							m(
+								".view-columns.flex-grow.rel",
+								{
+									oncreate: (vnode) => {
+										this.domSlidingPart = vnode.dom as HTMLElement
+									},
+									style: {
+										width: this.getWidth() + "px",
+										transform: "translateX(" + this.getOffset(this.visibleBackgroundColumns[0]) + "px)",
+									},
+								},
+								mainSliderColumns.map((column, index) =>
+									m(column, {
+										// Only apply right border if 1. all background columns are visible. 2. It's not the last column.
+										// Perhaps the condition should be "there's another visible column after this one" but it works like this too
+										rightBorder: allBackgroundColumnsAreVisible && index !== mainSliderColumns.length - 1,
+									}),
+								),
+							),
+							styles.isUsingBottomNavigation() && !client.isCalendarApp() ? attrs.bottomNav : null,
+						],
 					),
-					styles.isUsingBottomNavigation() && !client.isCalendarApp() ? attrs.bottomNav : null,
 					this.getColumnsForOverlay().map((c) => m(c, {})),
 					this.enableDrawer ? this.createModalBackground() : null,
 				],
