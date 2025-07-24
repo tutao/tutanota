@@ -82,6 +82,9 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 			icon: iconPath,
 			appId: appId,
 			productName: nameSuffix.length > 0 ? nameSuffix.slice(1) + " Tuta Mail" : "Tuta Mail",
+			// name of the unpacked executable inside the AppImage/Flatpak
+			executableName: appName,
+			// name of the appImage
 			artifactName: "${name}-${os}.${ext}",
 			asarUnpack: "desktop/*.node",
 			afterSign: notarize ? "buildSrc/notarize.cjs" : undefined,
