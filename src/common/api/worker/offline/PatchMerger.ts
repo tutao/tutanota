@@ -38,7 +38,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { EntityUpdateData, getLogStringForPatches } from "../../common/utils/EntityUpdateUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
 import { computePatches } from "../../common/utils/PatchGenerator"
-import { FileTypeRef } from "../../entities/tutanota/TypeRefs"
+import { FileTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs"
 
 export class PatchMerger {
 	constructor(
@@ -82,8 +82,8 @@ export class PatchMerger {
 					// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
 					await this.cacheStorage.put(typeRef, instance)
 				}
-				// There are concurrency issues with the File type due to bucketKey and UpdateSessionKeyService
-				if (!isSameTypeRef(FileTypeRef, entityUpdate.typeRef)) {
+				// There are concurrency issues with the File and Mail types due to bucketKey and UpdateSessionKeyService
+				if (!isSameTypeRef(FileTypeRef, entityUpdate.typeRef) && !isSameTypeRef(MailTypeRef, entityUpdate.typeRef)) {
 					throw new ProgrammingError(
 						"instance with id [" + instanceListId + ", " + instanceId + `] has not been successfully patched. Type: ${getTypeString(typeRef)}`,
 					)
