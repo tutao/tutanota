@@ -2056,18 +2056,18 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"canceledEventInfo_msg": "This event has been <strong>canceled!</strong>",
-        "updatedEventInfo_msg": "This event has been <strong>updated!</strong>",
-        "replyAcceptEventInfo_msg": "{name} has <strong>accepted</strong> your invitation.",
-        "replyTentativeEventInfo_msg": "{name} will <strong>maybe</strong> join your event.",
-        "replyDeclineEventInfo_msg": "{name} has <strong>declined</strong> your invitation.",
+		"updatedEventInfo_msg": "This event has been <strong>updated!</strong>",
+		"replyAcceptEventInfo_msg": "{name} has <strong>accepted</strong> your invitation.",
+		"replyTentativeEventInfo_msg": "{name} will <strong>maybe</strong> join your event.",
+		"replyDeclineEventInfo_msg": "{name} has <strong>declined</strong> your invitation.",
 		"replyInviteSubject_msg": "{name} has replied \"{status}\" to {event}",
-        "removed_label": "Removed",
-        "event_label": "Event",
+		"removed_label": "Removed",
+		"event_label": "Event",
 		"invitationNote_msg": "Secured with <strong><a href=\"https://tuta.com\" target=\"_blank\">Tuta Calendar</a></strong>",
 		"updateThisAndFutureEvents_action": "Update this and future events",
-        "deleteThisAndFutureOccurrences_action": "Delete this and future events",
-        "deleteThisAndFutureOccurrencesConfirmation_msg": "Are you sure you want to delete this and all future events?",
+		"deleteThisAndFutureOccurrences_action": "Delete this and future events",
+		"deleteThisAndFutureOccurrencesConfirmation_msg": "Are you sure you want to delete this and all future events?",
 		"duplicateEvent_label": "Duplicate this event",
-		"addComment_label": "Add comment (optional)"
+		"addComment_label": "Add comment"
 	}
 }

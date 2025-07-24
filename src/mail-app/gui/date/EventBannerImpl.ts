@@ -17,7 +17,6 @@ import {
 	TimeViewEventWrapper,
 } from "../../../common/calendar/gui/TimeView"
 import { Time } from "../../../common/calendar/date/Time"
-import { locator } from "../../../common/api/main/CommonLocator"
 import { isLightTheme, theme } from "../../../common/gui/theme"
 import { styles } from "../../../common/gui/styles"
 import { px, size } from "../../../common/gui/size"
@@ -33,7 +32,7 @@ import stream from "mithril/stream"
 import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
 import type { EventBannerAttrs } from "../../mail/view/EventBanner"
-import { TextArea, TextAreaAttrs } from "../../../common/gui/base/TextArea.js"
+import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../common/gui/base/ExpandableTextArea.js"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
@@ -77,14 +76,14 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		}
 
 		const eventsReplySection = iCalContents.events
-			.map((event: CalendarEvent): { event: CalendarEvent; replySection: Children } | None => {
-				const replySection = this.buildReplySection(agenda, event, mail, recipient, iCalContents.method, replyCallback)
-				return replySection == null ? null : { event, replySection }
-			})
+											   .map((event: CalendarEvent): { event: CalendarEvent; replySection: Children } | None => {
+												   const replySection = this.buildReplySection(agenda, event, mail, recipient, iCalContents.method, replyCallback)
+												   return replySection == null ? null : { event, replySection }
+											   })
 			// thunderbird does not add attendees to rescheduled instances when they were added during an "all event"
 			// edit operation, but _will_ send all the events to the participants in a single file. we do not show the
 			// banner for events that do not mention us.
-			.filter(isNotNull)
+											   .filter(isNotNull)
 
 		return eventsReplySection.map(({ event, replySection }) => {
 			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, replySection)
@@ -128,16 +127,16 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			{
 				style: styles.isSingleColumnLayout()
 					? {
-							"grid-template-columns": "min-content 1fr",
-							"grid-template-rows": "auto 1fr",
-							"max-width": "100%",
-							"border-color": bannerColor,
-						}
+						"grid-template-columns": "min-content 1fr",
+						"grid-template-rows": "auto 1fr",
+						"max-width": "100%",
+						"border-color": bannerColor,
+					}
 					: {
-							"grid-template-columns": "min-content min-content 1fr",
-							"max-width": px(size.two_column_layout_width),
-							"border-color": bannerColor,
-						},
+						"grid-template-columns": "min-content min-content 1fr",
+						"max-width": px(size.two_column_layout_width),
+						"border-color": bannerColor,
+					},
 			},
 			[
 				/* Date Column */
@@ -161,17 +160,17 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 						m(Icon, {
 							icon: BootIcons.Calendar,
 							container: "div",
-							class: "mr-xsm mt-xxs",
+							class: "mr-xsm",
 							style: { fill: theme.content_fg },
 							size: IconSize.Medium,
 						}),
-						m("span.b.h5.text-ellipsis-multi-line", event.summary),
+						m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
 					]),
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-s", [
-								m("span.b", lang.get("when_label")),
-								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
-							])
+							m("span.b", lang.get("when_label")),
+							m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+						])
 						: null,
 					replySection,
 				]),
@@ -197,28 +196,28 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 								m("span.b.h5", lang.get("timeOverview_title")),
 							]),
 							agenda
-								? m(".flex.items-center.mt-hpad-small", [
-										m(Icon, {
-											icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
-											container: "div",
-											class: "mr-xsm",
-											style: { fill: hasConflict ? theme.error_color : theme.success_color },
-											size: IconSize.Medium,
-										}),
-										this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
-									])
+								? m(".flex.mt-hpad-small", [
+									m(Icon, {
+										icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
+										container: "div",
+										class: "mr-xsm",
+										style: { fill: hasConflict ? theme.error_color : theme.success_color }, // TODO [colors] Use new material like colors tokens
+										size: IconSize.Medium,
+									}),
+									this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
+								])
 								: null,
 						]),
 						agenda
 							? m(TimeView, {
-									events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
-									timeScale,
-									timeRange,
-									conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-									dates: [getStartOfDay(agenda.main.event.startTime)],
-									timeIndicator: Time.fromDate(agenda.main.event.startTime),
-									hasAnyConflict: hasConflict,
-								} satisfies TimeViewAttributes)
+								events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
+								timeScale,
+								timeRange,
+								conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
+								dates: [getStartOfDay(agenda.main.event.startTime)],
+								timeIndicator: Time.fromDate(agenda.main.event.startTime),
+								hasAnyConflict: hasConflict,
+							} satisfies TimeViewAttributes)
 							: m("", "ERROR: Could not load the agenda for this day."),
 					],
 				),
@@ -238,15 +237,15 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			[
 				!hasOnlyAllDayConflicts
 					? m(
-							"span",
-							conflictCount > 0 ? [m("strong", conflictCount), ` ${lang.get("simultaneousEvents_msg")}`] : lang.get("noSimultaneousEvents_msg"),
-						)
+						"span",
+						conflictCount > 0 ? [m("strong", conflictCount), ` ${lang.get("simultaneousEvents_msg")}`] : lang.get("noSimultaneousEvents_msg"),
+					)
 					: null,
 				isNotEmpty(allDayEvents)
 					? m("span.border-radius.button-bubble-bg.pt-xxs.pb-xxs.plr-sm.text-break", [
-							m("strong", allDayEvents.length === 1 ? `1 ${lang.get("allDay_label").toLowerCase()}: ` : `${allDayEvents.length} `),
-							allDayEvents.length === 1 ? allDayEvents[0].event.summary : lang.get("allDay_label").toLowerCase(),
-						])
+						m("strong", allDayEvents.length === 1 ? `1 ${lang.get("allDay_label").toLowerCase()}: ` : `${allDayEvents.length} `),
+						allDayEvents.length === 1 ? allDayEvents[0].event.summary : lang.get("allDay_label").toLowerCase(),
+					])
 					: null,
 			],
 		)
@@ -284,20 +283,22 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				(isRepliedTo(mail) && ownAttendee.status === CalendarAttendeeStatus.DECLINED)
 			if (needsAction) {
 				children.push(
-					m(ReplyButtons, {
-						ownAttendee,
-						setParticipation: async (status: CalendarAttendeeStatus) => {
-							sendResponse(shallowEvent ?? event, recipient, status, mail, this.comment)
-						},
-					}),
+					m("", [
+						m(ReplyButtons, {
+							ownAttendee,
+							setParticipation: async (status: CalendarAttendeeStatus) => {
+								sendResponse(shallowEvent ?? event, recipient, status, mail, this.comment)
+							},
+						}),
+						this.renderCommentInputBox(),
+					]),
 				)
-				children.push(this.renderCommentInputBox())
 			} else if (!needsAction) {
-				children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15", lang.get("alreadyReplied_msg")))
+				children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15.lh", lang.get("alreadyReplied_msg")))
 				children.push(viewOnCalendarButton)
 			}
 		} else if (method === CalendarMethod.REPLY) {
-			children.push(m(".pt.align-self-start.start.small", lang.get("eventNotificationUpdated_msg")))
+			children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15.lh", lang.get("eventNotificationUpdated_msg")))
 			children.push(viewOnCalendarButton)
 		} else {
 			return null
@@ -307,7 +308,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	}
 
 	private renderCommentInputBox(): Children {
-		return m(TextArea, {
+		return m(ExpandableTextArea, {
 			classes: ["mt-s"],
 			variant: "outlined",
 			value: this.comment,
@@ -321,9 +322,10 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					return true
 				})
 			},
+			maxLines: 2,
 			ariaLabel: lang.get("addComment_label"),
 			placeholder: lang.get("addComment_label"),
-		} satisfies TextAreaAttrs)
+		} satisfies ExpandableTextAreaAttrs)
 	}
 
 	private handleViewOnCalendarAction(agenda: Map<string, InviteAgenda>, event: CalendarEvent) {
