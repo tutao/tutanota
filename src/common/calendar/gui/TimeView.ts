@@ -1,4 +1,4 @@
-import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Child, ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "../date/Time"
 import { clone, getStartOfNextDay } from "@tutao/tutanota-utils"
@@ -235,11 +235,11 @@ export class TimeView implements Component<TimeViewAttributes> {
 										fill: hasAnyConflict ? theme.on_error_container_color : theme.on_success_container_color,
 									},
 								}),
-								m(".break-word.b.text-ellipsis-multi-line", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
+								m(".break-word.b.text-ellipsis-multi-line.lh", { style: { "-webkit-line-clamp": 2 } }, event.event.summary),
 							])
 						: event.event.summary,
 				)
-			})
+			}) as ChildArray
 		},
 	)
 
