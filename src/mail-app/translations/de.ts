@@ -2092,6 +2092,6 @@ export default {
 		"deleteThisAndFutureOccurrences_action": "Dieses und zukünftige Ereignisse löschen",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Sind Sie sicher, dass Sie dieses und alle zukünftigen Ereignisse löschen wollen?",
 		"duplicateEvent_label": "Diesen Termin duplizieren",
-		"addComment_label": "Kommentar hinzufügen (optional)"
+		"addComment_label": "Kommentar hinzufügen"
 	}
 }
