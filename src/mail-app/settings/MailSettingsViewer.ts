@@ -56,6 +56,7 @@ import { getDefaultSenderFromUser, getFolderName } from "../mail/model/MailUtils
 import { elementIdPart } from "../../common/api/common/utils/EntityUtils.js"
 import { DatePicker, DatePickerAttrs } from "../../calendar-app/calendar/gui/pickers/DatePicker"
 import { OfflineStorageSettingsModel } from "../../common/offline/OfflineStorageSettingsModel"
+import { client } from "../../common/misc/ClientDetector"
 
 assertMainOrNode()
 
@@ -606,6 +607,9 @@ async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSetting
 			}
 		},
 	})
-
+	if (client.isMobileDevice()) {
+		// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
+		dialog.setFocusOnLoadFunction(noOp)
+	}
 	return newTimeRangeDeferred.promise
 }
