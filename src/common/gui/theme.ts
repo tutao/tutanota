@@ -62,6 +62,19 @@ export type Theme = {
 	outline_variant: string
 	go_european: string
 	on_go_european: string
+	// semantic colors
+	error: string
+	on_error: string
+	error_container: string
+	on_error_container: string
+	warning: string
+	on_warning: string
+	warning_container: string
+	on_warning_container: string
+	success: string
+	on_success: string
+	success_container: string
+	on_success_container: string
 }
 
 const themeSingleton = {}

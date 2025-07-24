@@ -19,8 +19,8 @@ export class RecipientKeyVerificationRecoveryRejectPage implements Component<Ver
 			m(TitleSection, {
 				title,
 				subTitle: "",
-				icon: Icons.Fingerprint,
-				iconOptions: { color: theme.content_accent },
+				icon: Icons.AlertCircleOutline,
+				iconOptions: { color: theme.error },
 			}),
 			m(
 				Card,

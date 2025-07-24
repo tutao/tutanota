@@ -152,6 +152,20 @@ export const themes = (): Themes => {
 		outline_variant: grey_lighter_1,
 		go_european: goEuropeanBlue,
 		on_go_european: light_white,
+
+		// Semantic colors
+		error: "#DE3730",
+		on_error: "#FFFFFF",
+		error_container: "#FFDAD6",
+		on_error_container: "#A80710",
+		warning: "#8D7426",
+		on_warning: "#FFFFFF",
+		warning_container: "#FFEFCC",
+		on_warning_container: "#655000",
+		success: "#44845E",
+		on_success: "#FFFFFF",
+		success_container: "#99D2C5E5",
+		on_success_container: "#232323",
 	})
 	const darkRed = Object.freeze<Theme>({
 		themeId: !isCalendarApp ? "dark" : "dark_secondary",
@@ -198,6 +212,20 @@ export const themes = (): Themes => {
 		outline_variant: grey_darker_0,
 		go_european: light_blue,
 		on_go_european: dark_darker_0,
+
+		// Semantic colors
+		error: "#FF5449",
+		on_error: "#2D0001",
+		error_container: "#690005",
+		on_error_container: "#FFB4AB",
+		warning: "#FFE089",
+		on_warning: "#171000",
+		warning_container: "#655000",
+		on_warning_container: "#FFEFCC",
+		success: "#5E9E77",
+		on_success: "#001509",
+		success_container: "#00391D",
+		on_success_container: "#95D5A7",
 	})
 	const lightBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "light" : "light_secondary",
@@ -243,6 +271,20 @@ export const themes = (): Themes => {
 		outline_variant: grey_lighter_1,
 		go_european: goEuropeanBlue,
 		on_go_european: light_white,
+
+		// Semantic colors
+		error: "#FF5449",
+		on_error: "#2D0001",
+		error_container: "#690005",
+		on_error_container: "#FFB4AB",
+		warning: "#FFE089",
+		on_warning: "#171000",
+		warning_container: "#655000",
+		on_warning_container: "#FFEFCC",
+		success: "#5E9E77",
+		on_success: "#001509",
+		success_container: "#00391D",
+		on_success_container: "#95D5A7",
 	})
 	const darkBlue = Object.freeze<Theme>({
 		themeId: isCalendarApp ? "dark" : "dark_secondary",
@@ -289,6 +331,20 @@ export const themes = (): Themes => {
 		outline_variant: grey_darker_0,
 		go_european: light_blue,
 		on_go_european: dark_darker_0,
+
+		// Semantic colors
+		error: "#FF5449",
+		on_error: "#2D0001",
+		error_container: "#690005",
+		on_error_container: "#FFB4AB",
+		warning: "#FFE089",
+		on_warning: "#171000",
+		warning_container: "#655000",
+		on_warning_container: "#FFEFCC",
+		success: "#5E9E77",
+		on_success: "#001509",
+		success_container: "#00391D",
+		on_success_container: "#95D5A7",
 	})
 
 	return {

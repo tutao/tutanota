@@ -5,7 +5,7 @@ import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel, PublicIdentity } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import jsQR from "jsqr"
-import { IdentityKeyVerificationMethod, IdentityKeyQrVerificationResult } from "../../../api/common/TutanotaConstants"
+import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { isApp } from "../../../api/common/Env"
 import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
@@ -14,6 +14,8 @@ import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { TextFieldType } from "../../../gui/base/TextField"
 import { Icon } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
+import { BootIcons } from "../../../gui/base/icons/BootIcons"
+import { TitleSection } from "../../../gui/TitleSection"
 
 export type QrCodePageErrorType =
 	| "camera_permission_denied"
@@ -57,43 +59,40 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 
 	view(vnode: Vnode<VerificationByQrCodePageAttrs>): Children {
 		const { model, goToSuccessPage } = vnode.attrs
+		const qrOk = model.getKeyVerificationResult() === IdentityKeyQrVerificationResult.QR_OK
 
 		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(Card, [
-				m(
-					"",
-					m(".h4.mb-0.pl-vpad-s", lang.get("keyManagement.qrVerification_label")),
-					m("p.mt-xs.mb-s.pl-vpad-s", lang.get("keyManagement.verificationByQrCodeScan_label")),
-				),
-			]),
-			m(Card, {
-				style: { padding: "0" },
-			}),
-			model.getKeyVerificationResult() === IdentityKeyQrVerificationResult.QR_OK
-				? this.renderConfirmation(assertNotNull(model.getPublicIdentity()))
-				: this.renderQrVideoStream(model),
-			m(
-				".align-self-center.full-width",
-				m(LoginButton, {
-					label: markAsVerifiedTranslationKey,
-					onclick: async () => {
-						await model.trust(IdentityKeyVerificationMethod.qr)
-						goToSuccessPage()
-					},
-					disabled: model.getKeyVerificationResult() !== IdentityKeyQrVerificationResult.QR_OK,
-					icon:
-						model.getKeyVerificationResult() !== IdentityKeyQrVerificationResult.QR_OK
-							? undefined
-							: m(Icon, {
-									icon: Icons.Checkmark,
-									class: "mr-xsm",
-									style: {
-										fill: theme.content_button_icon_selected,
-									},
-							  }),
+				m(TitleSection, {
+					title: lang.get("keyManagement.qrVerification_label"),
+					subTitle: lang.get("keyManagement.verificationByQrCodeScan_label"),
+					icon: Icons.QuestionMarkOutline,
 				}),
-			),
+			]),
+			qrOk ? this.renderConfirmation(assertNotNull(model.getPublicIdentity())) : this.renderQrVideoStream(model),
+			qrOk
+				? m(
+						".align-self-center.full-width",
+						m(LoginButton, {
+							label: markAsVerifiedTranslationKey,
+							onclick: async () => {
+								await model.trust(IdentityKeyVerificationMethod.qr)
+								goToSuccessPage()
+							},
+							disabled: !qrOk,
+							icon: !qrOk
+								? undefined
+								: m(Icon, {
+										icon: Icons.Checkmark,
+										class: "mr-xsm",
+										style: {
+											fill: theme.content_button_icon_selected,
+										},
+								  }),
+						}),
+				  )
+				: undefined,
 		])
 	}
 
@@ -119,7 +118,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 				disabled: true,
 				classes: ["flex", "gap-vpad-s", "items-center", "pl-vpad-s", "outlined"],
 				leadingIcon: {
-					icon: Icons.At,
+					icon: BootIcons.Contacts,
 					color: getColors(ButtonColor.Content).button,
 				},
 				value: publicIdentity.mailAddress,
@@ -128,6 +127,11 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 			m(
 				Card,
 				{ classes: ["flex", "flex-column", "gap-vpad"] },
+				// TODO: Translate
+				m(
+					"",
+					"Compare the fingerprint displayed below to the one you received from the contact. Click on “Mark as verified” only if both fingerprints match.",
+				),
 				m(MonospaceTextDisplay, {
 					text: publicIdentity.fingerprint,
 					placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
@@ -140,7 +144,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 	}
 
 	private renderQrVideoStream(model: KeyVerificationModel): Children {
-		return [m(".center", this.getStateMessage()), this.getVideoElement(model)]
+		return m(Card, [m(".center", this.getStateMessage()), this.getVideoElement(model)])
 	}
 
 	private getVideoElement(model: KeyVerificationModel): Children | null {
@@ -170,7 +174,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 				},
 				style: { display: "block", "max-width": "100%" },
 			})
-			return m(".mt.mb.border-radius", { style: { overflow: "clip" } }, video)
+			return m(".mt.mb.ml.mr.border-radius", { style: { overflow: "clip" } }, video)
 		}
 	}
 

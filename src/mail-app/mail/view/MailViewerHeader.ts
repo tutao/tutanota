@@ -9,15 +9,7 @@ import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { EventBanner, EventBannerAttrs } from "./EventBanner.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import {
-	EncryptionAuthStatus,
-	InboxRuleType,
-	Keys,
-	MailAuthenticationStatus,
-	PresentableKeyVerificationState,
-	PublicKeyIdentifierType,
-	TabIndex,
-} from "../../../common/api/common/TutanotaConstants.js"
+import { EncryptionAuthStatus, InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../../common/gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../common/misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../../common/api/common/Env.js"
@@ -25,7 +17,7 @@ import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import { assertNotNull, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
+import { isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
@@ -42,8 +34,6 @@ import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
 import { MoveMode } from "../model/MailModel"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
-import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider"
-import { locator } from "../../../common/api/main/CommonLocator"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -353,59 +343,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			: null
 	}
 
-	private renderKeyVerificationAlertIcon(displayedSender: MailAddressAndName): Children {
-		return m(IconButton, {
-			title: "keyManagement.senderVerificationAlert_msg",
-			icon: Icons.AlertCircle,
-			click: async (event: MouseEvent, dom: HTMLElement) => {
-				let publicKeyProvider: PublicEncryptionKeyProvider = locator.publicEncryptionKeyProvider
-				import("../../../common/settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
-					async ({ showSenderKeyVerificationRecoveryDialog, SenderKeyVerificationRecoveryDialogPages }) => {
-						try {
-							// We are doing this for the implicit key verification. We do not care about the returned key.
-							await publicKeyProvider.loadCurrentPublicEncryptionKey({
-								identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-								identifier: displayedSender.address,
-							})
-
-							// success case
-							showSenderKeyVerificationRecoveryDialog(displayedSender, SenderKeyVerificationRecoveryDialogPages.SUCCESS)
-						} catch (e) {
-							// failure case
-							showSenderKeyVerificationRecoveryDialog(displayedSender, SenderKeyVerificationRecoveryDialogPages.INFO)
-						}
-					},
-				)
-			},
-		})
-	}
-
-	private renderKeyVerificationSecureIcon(): Children {
-		return m(IconButton, {
-			title: "keyManagement.senderVerificationShield_msg",
-			icon: Icons.Shield,
-			click: () => {},
-			disabled: true,
-		})
-	}
-
 	private renderDetails(attrs: MailViewerHeaderAttrs, { bubbleMenuWidth }: { bubbleMenuWidth: number }): Children {
 		const { viewModel, createMailAddressContextButtons } = attrs
 		const envelopeSender = viewModel.getDifferentEnvelopeSender()
 		const displayedSender = viewModel.getDisplayedSender()
-
-		let keyVerificationIconButton: Children = []
-
-		if (displayedSender != null) {
-			// Parse key verification state from hex string returned by the server. Is there a better way to do this?
-			const keyVerificationState = assertNotNull(viewModel.mail.keyVerificationState)
-
-			if (keyVerificationState == PresentableKeyVerificationState.ALERT) {
-				keyVerificationIconButton = this.renderKeyVerificationAlertIcon(displayedSender)
-			} else if (keyVerificationState == PresentableKeyVerificationState.SECURE) {
-				keyVerificationIconButton = this.renderKeyVerificationSecureIcon()
-			}
-		}
 
 		return m("." + responsiveCardHPadding(), liveDataAttrs(), [
 			m(
@@ -414,7 +355,6 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					? null
 					: [
 							m(".small.b", lang.get("from_label")),
-							keyVerificationIconButton,
 							m(RecipientButton, {
 								label: getMailAddressDisplayText(displayedSender.name, displayedSender.address, false),
 								click: createAsyncDropdown({
