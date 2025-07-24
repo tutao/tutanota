@@ -357,7 +357,7 @@ function highlight(content: string) {
 
 function newLine(label: string, content: string, applyPaddingTop: boolean = true): string {
 	return `<tr>
-				<th style="text-align: left; padding-bottom: 4px; text-transform: uppercase; ${applyPaddingTop ? "padding-top: 28px;" : ""}"><strong>${label}</strong></th>
+				<th style="text-align: left; text-transform: uppercase; ${applyPaddingTop ? "padding-top: 28px;" : ""}"><strong>${label}</strong></th>
 			</tr>
 			<tr>
 				<td>${content}</td>
