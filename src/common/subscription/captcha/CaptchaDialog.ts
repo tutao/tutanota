@@ -147,24 +147,14 @@ export function showCaptchaDialog(audioChallenge: CaptchaChallenge, visualChalle
 }
 
 function renderVisualCaptcha(viewModel: CaptchaDialogViewModel) {
-	// The captcha is black-on-white, which will not look correct on anything where the background is not
-	// white. We can use CSS filters to fix this.
-	let captchaFilter = {}
-	if (theme.elevated_bg != null && isMonochrome(theme.elevated_bg)) {
-		captchaFilter = {
-			filter: `invert(${1.0 - getColorLuminance(theme.elevated_bg)}`,
-		}
-	}
-
 	return m(
 		".flex-grow",
 
 		[
 			m("", viewModel.visualCaptchaDescription),
-			m("img.pt-ml.center-h.block", {
+			m("img.pt-ml.center-h.block.full-width", {
 				src: viewModel.getVisualData(),
 				alt: lang.get("captchaDisplay_label"),
-				style: captchaFilter,
 			}),
 		],
 	)
