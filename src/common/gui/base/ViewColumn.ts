@@ -4,6 +4,7 @@ import { LayerType } from "../../../RootView"
 import { lazy, MaybeLazy, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
+import { TabIndex } from "../../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -88,8 +89,9 @@ export class ViewColumn implements Component<Attrs> {
 			".view-column.fill-absolute",
 			{
 				...landmark,
+				tabindex: TabIndex.Programmatic,
 				"data-testid": `section:${this.testId ?? lang.getTranslationText(this.getTitle())}`,
-				inert: !this.isVisible && !this.isInForeground,
+				inert: this.notInteractable(),
 				oncreate: (vnode) => {
 					this.domColumn = vnode.dom as HTMLElement
 					this.domColumn.style.transform =
@@ -109,6 +111,10 @@ export class ViewColumn implements Component<Attrs> {
 		)
 	}
 
+	private notInteractable(): boolean {
+		return !this.isVisible && !this.isInForeground
+	}
+
 	getTitle(): MaybeTranslation {
 		return resolveMaybeLazy(this.headerCenter)
 	}
@@ -122,6 +128,9 @@ export class ViewColumn implements Component<Attrs> {
 	}
 
 	focus() {
-		this.domColumn?.focus()
+		if (this.domColumn) {
+			this.domColumn.inert = this.notInteractable()
+			this.domColumn?.focus()
+		}
 	}
 }
