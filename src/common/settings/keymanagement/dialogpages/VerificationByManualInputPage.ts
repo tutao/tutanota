@@ -13,6 +13,7 @@ import { theme } from "../../../gui/theme"
 import { debounce } from "@tutao/tutanota-utils"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
+import { BootIcons } from "../../../gui/base/icons/BootIcons"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
@@ -49,7 +50,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					disabled: false,
 					classes: ["flex", "gap-vpad-s", "items-center", "pl-vpad-s"],
 					leadingIcon: {
-						icon: Icons.At,
+						icon: BootIcons.Contacts,
 						color: getColors(ButtonColor.Content).button,
 					},
 					value: model.mailAddressInput,
