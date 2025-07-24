@@ -2,6 +2,10 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 export const size = {
+	new_design: {
+		vpad_large: 20,
+	},
+
 	icon_size_xxl: 64,
 	icon_size_xl: 32,
 	icon_size_large: 24,
@@ -104,4 +108,8 @@ export const inputLineHeight: number = size.font_size_base + 8
 
 export function px(value: number): string {
 	return value + "px"
+}
+
+export function pt(value: number): string {
+	return value + "pt"
 }

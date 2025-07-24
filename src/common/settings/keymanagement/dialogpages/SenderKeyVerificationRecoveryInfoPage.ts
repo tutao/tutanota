@@ -30,8 +30,8 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 			m(TitleSection, {
 				title,
 				subTitle,
-				icon: Icons.AlertCircle,
-				iconOptions: { color: theme.error_color },
+				icon: Icons.CloseCircleOutline,
+				iconOptions: { color: theme.error },
 			}),
 			m(
 				Card,

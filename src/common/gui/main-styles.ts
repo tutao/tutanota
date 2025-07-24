@@ -1,5 +1,5 @@
 import { styles } from "./styles"
-import { px, size } from "./size"
+import { pt, px, size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
@@ -470,6 +470,11 @@ styles.registerStyle("main", () => {
 		},
 		".pt-l": {
 			"padding-top": px(size.vpad_large),
+		},
+		// New design system
+		".nds-ptb-l": {
+			"padding-top": px(size.new_design.vpad_large),
+			"padding-bottom": px(size.new_design.vpad_large),
 		},
 		".pt-m": {
 			"padding-top": px(size.hpad),
@@ -1320,6 +1325,10 @@ styles.registerStyle("main", () => {
 		".border-radius-top": {
 			"border-top-left-radius": px(size.border_radius),
 			"border-top-right-radius": px(size.border_radius),
+		},
+		".border-radius-top-big": {
+			"border-top-left-radius": px(size.border_radius_larger),
+			"border-top-right-radius": px(size.border_radius_larger),
 		},
 		".border-radius-top-left-big": {
 			"border-top-left-radius": px(size.border_radius_larger),
@@ -3208,6 +3217,11 @@ styles.registerStyle("main", () => {
 			position: "absolute",
 			transform: "translate(-50%, calc(-50% + 1px))",
 			"border-radius": "50%",
+		},
+
+		// new design system
+		".fs-m": {
+			"font-size": pt(size.font_size_smaller),
 		},
 	}
 })

@@ -19,8 +19,8 @@ export class RecipientKeyVerificationRecoveryAcceptPage implements Component<Ver
 			m(TitleSection, {
 				title,
 				subTitle: "",
-				icon: Icons.Fingerprint,
-				iconOptions: { color: theme.content_accent },
+				icon: Icons.CheckCircleOutline,
+				iconOptions: { color: theme.success },
 			}),
 			m(
 				Card,

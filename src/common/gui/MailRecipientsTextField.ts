@@ -80,10 +80,10 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			getBubbleIcon: (recipient: Recipient) => {
 				if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
 					return m(Icon, {
-						icon: Icons.AlertCircle,
+						icon: Icons.BrokenShield,
 						size: IconSize.Large, // we want 20px
 						style: {
-							fill: theme.error_color,
+							fill: theme.error,
 							position: "relative",
 							top: "4px",
 							right: "1px",
