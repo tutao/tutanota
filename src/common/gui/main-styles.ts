@@ -709,6 +709,9 @@ styles.registerStyle("main", () => {
 			"min-width": 0,
 			"white-space": "nowrap",
 		},
+		".w-auto": {
+			width: "auto",
+		},
 		".min-width-l": {
 			"min-width": px(size.icon_segment_control_button_width),
 		},

@@ -13,9 +13,9 @@ export interface TextAreaAttrs {
 	 * Callback fired whenever the textarea is interacted with.
 	 * This property is mandatory if the textarea is interactive (disabled = false).
 	 * @example
-	 * // Save the typed value to a model object
+	 * // Saves the typed value to a model object
 	 * const callback = (typedValue: string) => model.value = typedValue;
-	 * m(TextArea, {oninput: callback})
+	 * m(TextArea, {oninput: callback.bind(this)})
 	 * @param {string} newValue - String value typed on the textarea field
 	 * @returns {unknown} Return type depends on the callback provided
 	 */
@@ -23,11 +23,17 @@ export interface TextAreaAttrs {
 	oncreate?: (node: VnodeDOM<TextAreaAttrs>) => unknown
 	placeholder?: string
 	classes?: Array<string>
-	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "borderColor">>
+	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "borderColor" | "transition" | "height">>
 	variant?: TextAreaVariant
 }
 
-type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLTextAreaElement, "style"> & TextAreaAttrs & { style: { resize: string } }>
+type HTMLElementWithAttrs = Partial<
+	Pick<m.Attributes, "class"> &
+		Omit<HTMLTextAreaElement, "style"> &
+		TextAreaAttrs & {
+			style: { resize: string; transition?: string }
+		}
+>
 
 /**
  * Simple single line input field component
@@ -87,7 +93,11 @@ export class TextArea implements ClassComponent<TextAreaAttrs> {
 		return classList.join(" ")
 	}
 
-	private resolveStyles(style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "borderColor">>, resizable?: boolean, variant?: TextAreaVariant) {
+	private resolveStyles(
+		style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "borderColor" | "transition">>,
+		resizable?: boolean,
+		variant?: TextAreaVariant,
+	) {
 		const borderColor = isLightTheme() ? theme.button_bubble_bg : theme.elevated_bg
 		return {
 			...style,
