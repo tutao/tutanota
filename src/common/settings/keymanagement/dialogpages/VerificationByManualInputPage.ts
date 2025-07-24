@@ -14,6 +14,7 @@ import { debounce } from "@tutao/tutanota-utils"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 import { BootIcons } from "../../../gui/base/icons/BootIcons"
+import { TitleSection } from "../../../gui/TitleSection"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
@@ -33,11 +34,11 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(Card, [
-				m(
-					"",
-					m(".h4.mb-0.pl-vpad-s", lang.get("keyManagement.textVerification_label")),
-					m("p.mt-xs.mb-s.pl-vpad-s", lang.get("keyManagement.verificationByTextMailAdress_label")),
-				),
+				m(TitleSection, {
+					title: lang.get("keyManagement.qrVerification_label"),
+					subTitle: lang.get("keyManagement.verificationByQrCodeScan_label"),
+					icon: publicIdentity ? Icons.QuestionMarkOutline : undefined,
+				}),
 			]),
 			m(
 				Card,
@@ -75,7 +76,12 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 				? m(
 						Card,
 						{ classes: ["flex", "flex-column", "gap-vpad"] },
-						m(".pl-vpad-s", lang.get("keyManagement.verificationByText_label", { "{button}": lang.get(markAsVerifiedTranslationKey) })),
+						m(
+							".pl-vpad-s",
+							lang.get("keyManagement.verificationByText_label", {
+								"{button}": lang.get(markAsVerifiedTranslationKey),
+							}),
+						),
 						m(MonospaceTextDisplay, {
 							text: publicIdentity.fingerprint,
 							placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
