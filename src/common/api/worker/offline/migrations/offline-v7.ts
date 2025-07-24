@@ -25,8 +25,8 @@ export const offline7: OfflineMigration = {
 			}
 			{
 				const { query, params } = sql`DELETE
-                                              FROM search_metadata
-                                              WHERE key = 'contactsIndexed' LIMIT 1`
+											  FROM search_metadata
+											  WHERE key = 'contactsIndexed'`
 				await sqlCipherFacade.run(query, params)
 			}
 			{
