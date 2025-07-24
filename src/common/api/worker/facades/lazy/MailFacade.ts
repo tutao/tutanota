@@ -84,7 +84,7 @@ import {
 	TutanotaPropertiesTypeRef,
 } from "../../../entities/tutanota/TypeRefs.js"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
-import { NotFoundError } from "../../../common/error/RestError.js"
+import { LockedError, NotFoundError } from "../../../common/error/RestError.js"
 import {
 	BlobReferenceTokenWrapper,
 	createGeneratedIdWrapper,
@@ -1157,13 +1157,25 @@ export class MailFacade {
 		await promiseMap(
 			splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails),
 			async (mails) =>
-				this.serviceExecutor.post(
-					UnreadMailStateService,
-					createUnreadMailStatePostIn({
-						unread,
-						mails,
+				this.serviceExecutor
+					.post(
+						UnreadMailStateService,
+						createUnreadMailStatePostIn({
+							unread,
+							mails,
+						}),
+					)
+					.catch((e) => {
+						if (e instanceof LockedError) {
+							this.serviceExecutor.post(
+								UnreadMailStateService,
+								createUnreadMailStatePostIn({
+									unread,
+									mails,
+								}),
+							)
+						}
 					}),
-				),
 			{ concurrency: 5 },
 		)
 	}
