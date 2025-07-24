@@ -65,39 +65,33 @@ export async function runCaptchaFlow(
 		} catch (e) {
 			if (e instanceof AccessExpiredError) {
 				const powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken())
-
 				return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken, powChallengeSolution)
-			} else {
-				throw e
 			}
-		}
-
-		try {
-			// the server should only send both or none, but this makes TS happy
-			if (captchaReturn.audioChallenge && captchaReturn.visualChallenge) {
-				try {
-					return await showCaptchaDialog(captchaReturn.audioChallenge, captchaReturn.visualChallenge, captchaReturn.token)
-				} catch (e) {
-					if (e instanceof InvalidDataError) {
-						await Dialog.message("createAccountInvalidCaptcha_msg")
-						return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken, powChallengeSolution)
-					} else if (e instanceof AccessExpiredError) {
-						await Dialog.message("createAccountAccessDeactivated_msg")
-						return null
-					} else {
-						throw e
-					}
-				}
-			} else {
-				return captchaReturn.token
-			}
-		} catch (e) {
 			if (e instanceof AccessDeactivatedError) {
 				await Dialog.message("createAccountAccessDeactivated_msg")
 				return null
 			} else {
 				throw e
 			}
+		}
+
+		// the server should only send both or none, but this makes TS happy
+		if (captchaReturn.audioChallenge && captchaReturn.visualChallenge) {
+			try {
+				return await showCaptchaDialog(captchaReturn.audioChallenge, captchaReturn.visualChallenge, captchaReturn.token)
+			} catch (e) {
+				if (e instanceof InvalidDataError) {
+					await Dialog.message("createAccountInvalidCaptcha_msg")
+					return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken, powChallengeSolution)
+				} else if (e instanceof AccessExpiredError) {
+					await Dialog.message("createAccountAccessDeactivated_msg")
+					return null
+				} else {
+					throw e
+				}
+			}
+		} else {
+			return captchaReturn.token
 		}
 	})
 }
