@@ -46,6 +46,8 @@ import { TypeModelResolver } from "../../common/EntityFunctions"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
+import { hasError } from "../../common/utils/ErrorUtils"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -585,6 +587,11 @@ export class OfflineStorage implements CacheStorage {
 		const storables = await Promise.all(
 			instances.map(async (instance): Promise<StorableInstance> => {
 				const { listId, elementId } = expandId(AttributeModel.getAttribute<IdTuple | Id>(instance, "_id", typeModel))
+				if (hasError(instance)) {
+					throw new ProgrammingError(
+						`Trying to put parsed instance with _errors to offline storage. Type: ${typeModel.app}/${typeModel.name}, Id: ["${listId}", "${elementId}"]`,
+					)
+				}
 				const ownerGroup = AttributeModel.getAttribute<Id>(instance, "_ownerGroup", typeModel)
 				const serializedInstance = await this.serialize(instance)
 				return {

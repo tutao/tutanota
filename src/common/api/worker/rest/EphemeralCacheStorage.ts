@@ -11,6 +11,7 @@ import { parseTypeString } from "@tutao/tutanota-utils/dist/TypeRef"
 import { ServerTypeModelResolver } from "../../common/EntityFunctions"
 import { expandId } from "./RestClientIdUtils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { hasError } from "../../common/utils/ErrorUtils"
 
 /** Cache for a single list. */
 type ListCache = {
@@ -216,6 +217,11 @@ export class EphemeralCacheStorage implements CacheStorage {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const instanceId = AttributeModel.getAttribute<IdTuple | Id>(instanceClone, "_id", typeModel)
 		let { listId, elementId } = expandId(instanceId)
+		if (hasError(instance)) {
+			throw new ProgrammingError(
+				`Trying to put parsed instance with _errors to ephemeral cache. Type: ${typeModel.app}/${typeModel.name}, Id: ["${listId}", "${elementId}"]`,
+			)
+		}
 		elementId = ensureBase64Ext(typeModel, elementId)
 
 		const handler = this.customCacheHandlerMap.get(typeRef as TypeRef<SomeEntity>)

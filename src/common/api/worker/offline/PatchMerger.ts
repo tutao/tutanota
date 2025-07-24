@@ -19,7 +19,7 @@ import {
 	ServerTypeModel,
 } from "../../common/EntityTypes"
 import { Patch } from "../../entities/sys/TypeRefs"
-import { assertNotNull, Base64, deepEqual, getTypeString, isEmpty, lazy, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, Base64, deepEqual, getTypeString, isEmpty, isSameTypeRef, lazy, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { AttributeModel } from "../../common/AttributeModel"
 import { CacheStorage } from "../rest/DefaultEntityRestCache"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
@@ -38,6 +38,7 @@ import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { EntityUpdateData, getLogStringForPatches } from "../../common/utils/EntityUpdateUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
 import { computePatches } from "../../common/utils/PatchGenerator"
+import { FileTypeRef } from "../../entities/tutanota/TypeRefs"
 
 export class PatchMerger {
 	constructor(
@@ -81,9 +82,12 @@ export class PatchMerger {
 					// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
 					await this.cacheStorage.put(typeRef, instance)
 				}
-				throw new ProgrammingError(
-					"instance with id [" + instanceListId + ", " + instanceId + `] has not been successfully patched. Type: ${getTypeString(typeRef)}`,
-				)
+				// There are concurrency issues with the File type due to bucketKey and UpdateSessionKeyService
+				if (!isSameTypeRef(FileTypeRef, entityUpdate.typeRef)) {
+					throw new ProgrammingError(
+						"instance with id [" + instanceListId + ", " + instanceId + `] has not been successfully patched. Type: ${getTypeString(typeRef)}`,
+					)
+				}
 			} else {
 				await this.cacheStorage.put(typeRef, patchAppliedInstance)
 			}
