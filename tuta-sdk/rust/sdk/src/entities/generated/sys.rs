@@ -4789,7 +4789,7 @@ pub struct InstanceSessionKey {
 	pub encryptionAuthStatus: Option<Vec<u8>>,
 	#[serde(rename = "2254")]
 	pub symKeyVersion: i64,
-	#[serde(rename = "2619")]
+	#[serde(rename = "2639")]
 	#[serde(with = "serde_bytes")]
 	pub keyVerificationState: Option<Vec<u8>>,
 	#[serde(rename = "2039")]

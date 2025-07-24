@@ -4,6 +4,7 @@ import { KeyVerificationModel } from "../KeyVerificationModel"
 import { TitleSection } from "../../../gui/TitleSection"
 import { FingerprintRow } from "../FingerprintRow"
 import { Icons } from "../../../gui/base/icons/Icons"
+import { theme } from "../../../gui/theme"
 
 export class VerificationResultPage implements Component<VerificationResultPageAttrs> {
 	view(vnode: Vnode<VerificationResultPageAttrs>): Children {
@@ -16,7 +17,10 @@ export class VerificationResultPage implements Component<VerificationResultPageA
 			m(TitleSection, {
 				title: lang.get("keyManagement.contactVerificationConfirmationTitle_label"),
 				subTitle: lang.get("keyManagement.contactVerificationConfirmation_label"),
-				icon: Icons.Fingerprint,
+				icon: Icons.CheckCircleOutline,
+				iconOptions: {
+					color: theme.success,
+				},
 			}),
 			m(".mb"),
 			publicIdentity === null

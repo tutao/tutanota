@@ -53,8 +53,8 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 			m(TitleSection, {
 				title,
 				subTitle,
-				icon: Icons.AlertCircle,
-				iconOptions: { color: theme.error_color },
+				icon: Icons.CloseCircleOutline,
+				iconOptions: { color: theme.error },
 			}),
 			m(LoginButton, {
 				label: "retry_action",
