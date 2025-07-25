@@ -76,24 +76,22 @@ export class ExpandableTextArea implements ClassComponent<ExpandableTextAreaAttr
 			"ariaLabel",
 			"value",
 		) as TextAreaAttributes
-		return m(
-			".rel.mt-s",
-			[
-				m(TextArea, {
-					...textAreaAttrs,
-					oncreate: (vnode) => {
-						this.setupInputListeners(vnode, attrs)
-						attrs.oncreate?.(vnode)
-					},
-					maxLines: this.isExpanded ? (attrs.maxLines ?? 2) : 1,
-					style: {
-						...textAreaAttrs.style,
-						height: this.calculateHeight(attrs.maxLines ?? 3),
-						transition: `height ${DefaultAnimationTime}ms linear`,
-					},
-				} satisfies TextAreaAttrs),
-				!this.isExpanded
-					? m(Icon, {
+		return m(".rel.mt-s", [
+			m(TextArea, {
+				...textAreaAttrs,
+				oncreate: (vnode) => {
+					this.setupInputListeners(vnode, attrs)
+					attrs.oncreate?.(vnode)
+				},
+				maxLines: this.isExpanded ? (attrs.maxLines ?? 2) : 1,
+				style: {
+					...textAreaAttrs.style,
+					height: this.calculateHeight(attrs.maxLines ?? 3),
+					transition: `height ${DefaultAnimationTime}ms linear`,
+				},
+			} satisfies TextAreaAttrs),
+			!this.isExpanded
+				? m(Icon, {
 						icon: BootIcons.Expand,
 						class: "flex-center items-center abs",
 						size: IconSize.Normal,
@@ -105,9 +103,8 @@ export class ExpandableTextArea implements ClassComponent<ExpandableTextAreaAttr
 							transition: `transform ${DefaultAnimationTime}ms`,
 						},
 					})
-					: null,
-			],
-		)
+				: null,
+		])
 	}
 
 	private calculateHeight(maxLines: number) {
@@ -138,9 +135,9 @@ export class ExpandableTextArea implements ClassComponent<ExpandableTextAreaAttr
 	private pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
 		const copy = {} as Pick<T, K>
 
-		keys.forEach((key) => {
+		for (const key of keys) {
 			copy[key] = obj[key]
-		})
+		}
 
 		return copy
 	}
