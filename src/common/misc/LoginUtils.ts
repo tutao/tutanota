@@ -37,6 +37,13 @@ import { CredentialAuthenticationError } from "../api/common/error/CredentialAut
 import { Params } from "mithril"
 import { LoginState } from "../login/LoginViewModel.js"
 import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
+import { Customer } from "../api/entities/sys/TypeRefs"
+
+function getAccountAgeInMs(customer: Customer) {
+	return new Date().getTime() - generatedIdToTimestamp(customer._id)
+}
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
 /**
  * Shows warnings if the invoices are not paid or the registration is not approved yet.
@@ -64,7 +71,7 @@ export function checkApprovalStatus(logins: LoginController, includeInvoiceNotPa
 			) {
 				return showApprovalNeededMessageDialog().then(() => false)
 			} else if (status === ApprovalStatus.DELAYED_AND_INITIALLY_ACCESSED) {
-				if (new Date().getTime() - generatedIdToTimestamp(customer._id) > 2 * 24 * 60 * 60 * 1000) {
+				if (getAccountAgeInMs(customer) > ONE_DAY_MS) {
 					return Dialog.message("requestApproval_msg").then(() => true)
 				} else {
 					return showApprovalNeededMessageDialog().then(() => false)
