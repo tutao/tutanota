@@ -10,7 +10,6 @@ import {
 	groupByAndMap,
 	isNotNull,
 	lazyMemoized,
-	neverNull,
 	noOp,
 	ofClass,
 	partition,
@@ -118,10 +117,11 @@ export class MailModel {
 		let lastCaughtRestError: TutanotaError | null = null
 
 		for (let detail of mailboxDetails) {
-			if (detail.mailbox.folders) {
+			const foldersRef = detail.mailbox.folders
+			if (foldersRef != null) {
 				let mailSets: MailFolder[]
 				try {
-					mailSets = await this.loadMailSetsForListId(neverNull(detail.mailbox.folders).folders)
+					mailSets = await this.loadMailSetsForListId(foldersRef.folders)
 				} catch (e) {
 					if (e instanceof NotAuthorizedError) {
 						console.warn("Got NotAuthorizedError when trying to load a mailbox", detail.mailbox._id, "(cached user likely outdated)")
@@ -135,11 +135,11 @@ export class MailModel {
 				const [labels, folders] = partition(mailSets, isLabel)
 				const labelsMap = collectToMap(labels, getElementId)
 				const folderSystem = new FolderSystem(folders)
-				tempFolders.set(detail.mailbox.folders._id, { folders: folderSystem, labels: labelsMap })
+				tempFolders.set(foldersRef._id, { folders: folderSystem, labels: labelsMap })
 			}
 		}
 
-		// Only re-throw the caught error if we didn't get *any* mailboxes for some reason, as that should never happen.
+		// Only re-throw the caught error if we didn't get *any* mailboxes for some reason.
 		if (tempFolders.size === 0 && lastCaughtRestError != null) {
 			throw lastCaughtRestError
 		}
