@@ -192,7 +192,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			{
 				view: () => {
 					return m(BackgroundColumnLayout, {
-						backgroundColor: theme.navigation_bg,
+						backgroundColor: theme.surface_container,
 						desktopToolbar: () =>
 							m(DesktopListToolbar, [
 								this.searchViewModel.listModel && getCurrentSearchMode() !== SearchCategoryTypes.calendar
@@ -571,7 +571,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			})
 			const isMultiselect = this.searchViewModel.listModel.state.inMultiselect || selectedContacts.length === 0
 			return m(BackgroundColumnLayout, {
-				backgroundColor: theme.navigation_bg,
+				backgroundColor: theme.surface_container,
 				desktopToolbar: () => m(DesktopViewerToolbar, actions),
 				mobileHeader: () =>
 					m(MobileHeader, {
@@ -622,7 +622,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					mailViewerMoreActions: null,
 				})
 				return m(BackgroundColumnLayout, {
-					backgroundColor: theme.navigation_bg,
+					backgroundColor: theme.surface_container,
 					desktopToolbar: () => m(DesktopViewerToolbar, actions),
 					mobileHeader: () =>
 						m(MobileHeader, {
@@ -670,7 +670,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					}),
 				})
 				return m(BackgroundColumnLayout, {
-					backgroundColor: theme.navigation_bg,
+					backgroundColor: theme.surface_container,
 					desktopToolbar: () => m(DesktopViewerToolbar, actions),
 					mobileHeader: () =>
 						m(MobileHeader, {
@@ -710,7 +710,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		} else if (getCurrentSearchMode() === SearchCategoryTypes.calendar) {
 			const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
 			return m(BackgroundColumnLayout, {
-				backgroundColor: theme.navigation_bg,
+				backgroundColor: theme.surface_container,
 				desktopToolbar: () => m(DesktopViewerToolbar, []),
 				mobileHeader: () =>
 					m(MobileHeader, {
@@ -727,8 +727,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						? m(ColumnEmptyMessageBox, {
 								message: "noEventSelect_msg",
 								icon: BootIcons.Calendar,
-								color: theme.content_message_bg,
-								backgroundColor: theme.navigation_bg,
+								color: theme.on_surface_fade,
+								backgroundColor: theme.surface_container,
 							})
 						: this.renderEventPreview(selectedEvent),
 			})
@@ -741,8 +741,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					".flex-grow.rel.overflow-hidden",
 					m(ColumnEmptyMessageBox, {
 						message: "noSelection_msg",
-						color: theme.content_message_bg,
-						backgroundColor: theme.navigation_bg,
+						color: theme.on_surface_fade,
+						backgroundColor: theme.surface_container,
 					}),
 				),
 			)

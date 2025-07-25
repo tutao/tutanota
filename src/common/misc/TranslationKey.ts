@@ -2034,3 +2034,6 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "updateColorCustomizationNews_title"
+	| "updateColorCustomizationNews_msg"
+	| "updateColorCustomizationNewsButton_label"

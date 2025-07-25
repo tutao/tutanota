@@ -113,7 +113,7 @@ export class Icon implements Component<IconAttrs> {
 		style = style ? style : {}
 
 		if (!style.fill) {
-			style.fill = theme.content_accent
+			style.fill = theme.primary
 		}
 
 		return style as { fill: string }
