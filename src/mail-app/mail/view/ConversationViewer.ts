@@ -197,7 +197,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	}
 
 	private renderViewer(
-		mailViewModel: MailViewerViewModel,
+		mailViewerViewModel: MailViewerViewModel,
 		isPrimary: boolean,
 		actions: MailHeaderActions,
 		moreActions: MailViewerMoreActions,
@@ -209,18 +209,18 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				".border-radius-big.rel",
 				{
 					class: responsiveCardHMargin(),
-					key: elementIdPart(mailViewModel.mail.conversationEntry),
+					key: elementIdPart(mailViewerViewModel.mail.conversationEntry),
 					style: {
 						backgroundColor: theme.content_bg,
 						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
 					},
 				},
-				mailViewModel.isCollapsed()
+				mailViewerViewModel.isCollapsed()
 					? m(CollapsedMailView, {
-							viewModel: mailViewModel,
+							viewModel: mailViewerViewModel,
 						})
 					: m(MailViewer, {
-							viewModel: mailViewModel,
+							mailViewerViewModel: mailViewerViewModel,
 							isPrimary: isPrimary,
 							// we want to expand for the first email like when it's a forwarded email
 							defaultQuoteBehavior: position === 0 ? "expand" : "collapse",

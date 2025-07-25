@@ -67,13 +67,14 @@ export async function reportMailsAutomatically(
 	mailModel: MailModel,
 	mailboxDetails: MailboxDetail,
 	mails: () => Promise<ReadonlyArray<Mail>>,
+	skipShowingSnackbar: boolean = false,
 ): Promise<void> {
 	if (mailReportType !== MailReportType.SPAM) {
 		return
 	}
 
 	const mailboxProperties = await mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-	let allowUndoing = true // decides if a snackbar is shown to prevent the server request
+	let allowUndoing = !skipShowingSnackbar // decides if a snackbar is shown to prevent the server request
 
 	let isReportable = false
 
