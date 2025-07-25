@@ -163,6 +163,7 @@ export class CalendarNotificationSender {
 	 * @param comment
 	 */
 	async sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, comment?: string): Promise<void> {
+		const commentWithLineBreaks = comment ? comment.replaceAll("\n", "<br>") : undefined
 		const sendAs = sendMailModel.getSender()
 		const guestName = this.resolveGuestNameOnReply(sendMailModel, event)
 
@@ -179,7 +180,7 @@ export class CalendarNotificationSender {
 			infoBannerMessage,
 			sender: sendMailModel.getSender(),
 			eventInviteEmailType: sendMailModel.emailType,
-			comment,
+			comment: commentWithLineBreaks,
 		})
 
 		return this.sendCalendarFile({
