@@ -39,7 +39,7 @@ export function mailToEml(mail: MailBundle): string {
 		const filteredHeaders = mail.headers
 			// we want to make sure all line endings are exactly \r\n after we're done.
 			.split(/\r\n|\n/)
-			.filter((line) => !line.match(/^\s*(Content-Type:|boundary=)/))
+			.filter((line) => line.trim() !== "" && !line.match(/^\s*(Content-Type:|boundary=)/))
 		lines.push(...filteredHeaders)
 	} else {
 		lines.push("From: " + mail.sender.address, "MIME-Version: 1.0")
