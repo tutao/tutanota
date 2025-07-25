@@ -107,7 +107,14 @@ SSBhbSBhIHBsYWluIGJvZHkh\r\n\
 				subject,
 				body,
 				sender: { address: "lorem@ipsum.net", name: "" },
-				to: [{ name: "guy1", address: "guy1@guys.net" }, { name: "guy2", address: "guy2@guys.net" }, { address: "guy2.5@guys.net" }],
+				to: [
+					{ name: "guy1", address: "guy1@guys.net" },
+					{
+						name: "guy2",
+						address: "guy2@guys.net",
+					},
+					{ address: "guy2.5@guys.net" },
+				],
 				cc: [{ address: "guy3@guys.net" }, { name: "Dennis Dennisman", address: "guy4@guys.net" }],
 				bcc: [{ address: "guy5@guys.net" }, { name: "Sixth guy", address: "guy6@guys.net" }],
 				replyTo: [{ address: "guy7@guys.net" }, { name: "guy8", address: "guy8@guys.net" }],
@@ -176,7 +183,8 @@ fSAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm+48GgAAAABJRU5ErkJggg==\r\n\
 		})
 
 		o("email with headers", function () {
-			// the first few lines have wrong line endings, but we should handle that
+			// the first few lines have wrong line endings, but we should handle that.
+			// we must also handle line ending on the last line.
 			const headers = `Received: from x.y.test\n\
    by example.net\n\
    via TCP\n\
@@ -188,7 +196,7 @@ From: John Doe <jdoe@node.example>\r\n\
 To: Mary Smith <mary@example.net>\r\n\
 Subject: Saying Hello\r\n\
 Date: Fri, 21 Nov 1997 09:55:06 -0600\r\n\
-Message-ID: <1234@local.node.example>`
+Message-ID: <1234@local.node.example>\r\n`
 
 			const now = Date.now()
 			const bundle: MailBundle = {
