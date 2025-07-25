@@ -98,7 +98,7 @@ export class TextArea implements ClassComponent<TextAreaAttrs> {
 		resizable?: boolean,
 		variant?: TextAreaVariant,
 	) {
-		const borderColor = isLightTheme() ? theme.button_bubble_bg : theme.elevated_bg
+		const borderColor = isLightTheme() ? theme.button_bubble_bg : style?.borderColor || theme.elevated_bg
 		return {
 			...style,
 			resize: !resizable ? "none" : "vertical",
