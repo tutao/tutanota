@@ -9,6 +9,7 @@ import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 import { KeyVerificationModel } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import { Icon, IconSize } from "../../../gui/base/Icon"
 
 type VerificationErrorInfoPageAttrs = {
 	model: KeyVerificationModel
@@ -40,8 +41,8 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 			m(TitleSection, {
 				title,
 				subTitle: m.trust(subTitle),
-				icon: Icons.AlertCircle,
-				iconOptions: { color: theme.error_color },
+				icon: Icons.CloseCircleOutline,
+				iconOptions: { color: theme.error },
 			}),
 			m(
 				Card,
@@ -62,6 +63,14 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 					await vnode.attrs.model.deleteAndReloadTrustedKey()
 					vnode.attrs.goToDeletePage()
 				},
+				icon: m(Icon, {
+					icon: Icons.Trash,
+					size: IconSize.Medium,
+					class: "mr-s",
+					style: {
+						fill: theme.content_button_icon,
+					},
+				}),
 			}),
 		])
 	}
