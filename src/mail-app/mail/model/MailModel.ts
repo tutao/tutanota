@@ -10,7 +10,6 @@ import {
 	groupByAndMap,
 	isNotNull,
 	lazyMemoized,
-	neverNull,
 	noOp,
 	ofClass,
 	partition,
@@ -43,7 +42,7 @@ import { WebsocketCounterData } from "../../../common/api/entities/sys/TypeRefs.
 import { Notifications, NotificationType } from "../../../common/gui/Notifications.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
+import { NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../common/api/common/error/RestError.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { InboxRuleHandler } from "./InboxRuleHandler.js"
@@ -52,6 +51,7 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
+import { TutanotaError } from "@tutao/tutanota-error"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -114,29 +114,60 @@ export class MailModel {
 		const mailboxDetails = await this.mailboxModel.getMailboxDetails()
 
 		const tempFolders = new Map<Id, MailboxSets>()
+		let lastCaughtRestError: TutanotaError | null = null
 
 		for (let detail of mailboxDetails) {
-			if (detail.mailbox.folders) {
-				const mailSets = await this.loadMailSetsForListId(neverNull(detail.mailbox.folders).folders)
+			const foldersRef = detail.mailbox.folders
+			if (foldersRef != null) {
+				let mailSets: MailFolder[]
+				try {
+					mailSets = await this.loadMailSetsForListId(foldersRef.folders)
+				} catch (e) {
+					// This can happen on desktop/mobile if we lose a membership while we're not logged in.
+					//
+					// This occurs because LoginFacade will bypass cache to load the user, and this triggers deletion of
+					// cached entities owned by groups that the user lost access to. As MailboxModel isn't immediately
+					// updated (until finally receiving the entity event), it will still have an outdated list of
+					// mailbox details (temporarily).
+					if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
+						console.warn(
+							"Got",
+							e.name,
+							"when trying to load a mailbox",
+							detail.mailbox._id,
+							"(mailbox details in MailboxModel likely outdated due to group membership loss)",
+						)
+						lastCaughtRestError = e
+						continue
+					} else {
+						throw e
+					}
+				}
 				const [labels, folders] = partition(mailSets, isLabel)
 				const labelsMap = collectToMap(labels, getElementId)
 				const folderSystem = new FolderSystem(folders)
-				tempFolders.set(detail.mailbox.folders._id, { folders: folderSystem, labels: labelsMap })
+				tempFolders.set(foldersRef._id, { folders: folderSystem, labels: labelsMap })
 			}
 		}
+
+		// Only re-throw the caught error if we didn't get *any* mailboxes for some reason.
+		if (tempFolders.size === 0 && lastCaughtRestError != null) {
+			throw lastCaughtRestError
+		}
+
 		return tempFolders
 	}
 
-	private loadMailSetsForListId(listId: Id): Promise<MailFolder[]> {
-		return this.entityClient.loadAll(MailFolderTypeRef, listId).then((folders) => {
-			return folders.filter((f) => {
-				// We do not show spam or archive for external users
-				if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailSetKind.SPAM || f.folderType === MailSetKind.ARCHIVE)) {
-					return false
-				} else {
-					return !(this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailSetKind.SPAM)
-				}
-			})
+	private async loadMailSetsForListId(listId: Id): Promise<MailFolder[]> {
+		const folders = await this.entityClient.loadAll(MailFolderTypeRef, listId)
+
+		return folders.filter((f) => {
+			// We do not show spam or archive for external users
+			if (!this.logins.isInternalUserLoggedIn() && (f.folderType === MailSetKind.SPAM || f.folderType === MailSetKind.ARCHIVE)) {
+				return false
+			} else {
+				return !(this.logins.isEnabled(FeatureType.InternalCommunication) && f.folderType === MailSetKind.SPAM)
+			}
 		})
 	}
 
