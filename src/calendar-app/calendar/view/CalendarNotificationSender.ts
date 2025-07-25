@@ -1,18 +1,18 @@
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { makeInvitationCalendarFile } from "../export/CalendarExporter.js"
-import { getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../../common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../../common/api/common/TutanotaConstants.js"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import type { CalendarEvent, CalendarEventAttendee, EncryptedMailAddress } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { createCalendarEventAttendee } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { difference, noOp, ofClass } from "@tutao/tutanota-utils"
 import type { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { windowFacade } from "../../../common/misc/WindowFacade.js"
 import { RecipientsNotFoundError } from "../../../common/api/common/error/RecipientsNotFoundError.js"
-import { cleanMailAddress, findAttendeeInAddresses, findRecipientWithAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
+import { findRecipientWithAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 
-import { calendarAttendeeStatusSymbol, formatEventDuration } from "../gui/CalendarGuiUtils.js"
+import { calendarAttendeeStatusSymbol, eventInviteEmailTypeToCalendarAttendeeStatus, formatEventDuration } from "../gui/CalendarGuiUtils.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getLocationUrl } from "../gui/eventpopup/EventPreviewView"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */
@@ -31,22 +31,35 @@ export class CalendarNotificationSender {
 			sendMailModel,
 			method: MailMethod.ICAL_REQUEST,
 			subject: message,
-			body: makeInviteEmailBody(sender, event, message),
+			body: makeEventInviteEmailBody(sendMailModel.isPlainTextMail(), {
+				event,
+				infoBannerMessage: "",
+				sender: sendMailModel.getSender(),
+				eventInviteEmailType: EventInviteEmailType.INVITE,
+			}),
 			event,
 			sender,
 		})
 	}
 
-	sendUpdate(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
+	sendUpdate(event: CalendarEvent, sendMailModel: SendMailModel, oldEvent: CalendarEvent): Promise<void> {
 		const message = lang.get("eventUpdated_msg", {
 			"{event}": event.summary,
 		})
+		const infoBannerMessage = this.getInfoBannerMessage(EventInviteEmailType.UPDATE)
+		const changedFields = this.getDiff(oldEvent, event)
 		const sender = assertOrganizer(event).address
 		return this.sendCalendarFile({
 			sendMailModel,
 			method: MailMethod.ICAL_REQUEST,
 			subject: message,
-			body: makeInviteEmailBody(sender, event, message),
+			body: makeEventInviteEmailBody(sendMailModel.isPlainTextMail(), {
+				event,
+				infoBannerMessage,
+				sender: sendMailModel.getSender(),
+				eventInviteEmailType: EventInviteEmailType.UPDATE,
+				changedFields,
+			}),
 			event,
 			sender,
 		})
@@ -56,12 +69,18 @@ export class CalendarNotificationSender {
 		const message = lang.get("eventCancelled_msg", {
 			"{event}": event.summary,
 		})
+		const infoBannerMessage = this.getInfoBannerMessage(EventInviteEmailType.CANCEL)
 		const sender = assertOrganizer(event).address
 		return this.sendCalendarFile({
 			sendMailModel,
 			method: MailMethod.ICAL_CANCEL,
 			subject: message,
-			body: makeInviteEmailBody(sender, event, message),
+			body: makeEventInviteEmailBody(sendMailModel.isPlainTextMail(), {
+				event,
+				infoBannerMessage,
+				sender: sendMailModel.getSender(),
+				eventInviteEmailType: EventInviteEmailType.CANCEL,
+			}),
 			event,
 			sender,
 		}).catch(
@@ -86,26 +105,105 @@ export class CalendarNotificationSender {
 		)
 	}
 
+	private getInfoBannerMessage(eventInviteEmailType: EventInviteEmailType, senderName?: string) {
+		const icon = this.getEmailIcon(eventInviteEmailType)
+		const translationKey = this.getTranslationKey(eventInviteEmailType)
+		return `${icon ? icon + " " : ""}${lang.get(translationKey, senderName ? { "{name}": senderName } : {})}`
+	}
+
+	private getTranslationKey(eventInviteEmailType: EventInviteEmailType): TranslationKey {
+		switch (eventInviteEmailType) {
+			case EventInviteEmailType.CANCEL:
+				return "canceledEventInfo_msg"
+			case EventInviteEmailType.UPDATE:
+				return "updatedEventInfo_msg"
+			case EventInviteEmailType.REPLY_ACCEPT:
+				return "replyAcceptEventInfo_msg"
+			case EventInviteEmailType.REPLY_TENTATIVE:
+				return "replyTentativeEventInfo_msg"
+			case EventInviteEmailType.REPLY_DECLINE:
+				return "replyDeclineEventInfo_msg"
+			default:
+				return "emptyString_msg"
+		}
+	}
+
+	private getEmailIcon(eventInviteEmailType: EventInviteEmailType) {
+		switch (eventInviteEmailType) {
+			case EventInviteEmailType.CANCEL:
+				return "⊘"
+			case EventInviteEmailType.UPDATE:
+				return "⚠"
+			case EventInviteEmailType.REPLY_DECLINE:
+			case EventInviteEmailType.REPLY_TENTATIVE:
+			case EventInviteEmailType.REPLY_ACCEPT:
+				return calendarAttendeeStatusSymbol(eventInviteEmailTypeToCalendarAttendeeStatus[eventInviteEmailType])
+			default:
+				return ""
+		}
+	}
+
+	private getStatusTranslationKey(status: EventInviteEmailType): TranslationKey {
+		switch (status) {
+			case EventInviteEmailType.REPLY_ACCEPT:
+				return "yes_label"
+			case EventInviteEmailType.REPLY_TENTATIVE:
+				return "maybe_label"
+			case EventInviteEmailType.REPLY_DECLINE:
+				return "no_label"
+			default:
+				return "emptyString_msg"
+		}
+	}
+
 	/**
 	 * send a response mail to the organizer of an event
 	 * @param event the event to respond to (included as a .ics file attachment)
 	 * @param sendMailModel used to actually send the mail
+	 * @param comment
 	 */
-	async sendResponse(event: CalendarEvent, sendMailModel: SendMailModel): Promise<void> {
+	async sendResponse(event: CalendarEvent, sendMailModel: SendMailModel, comment?: string): Promise<void> {
+		const commentWithLineBreaks = comment ? comment.replaceAll("\n", "<br>") : undefined
 		const sendAs = sendMailModel.getSender()
-		const message = lang.get("repliedToEventInvite_msg", {
-			"{event}": event.summary,
+		const guestName = this.resolveGuestNameOnReply(sendMailModel, event)
+
+		const infoBannerMessage = this.getInfoBannerMessage(sendMailModel.emailType, guestName)
+
+		const subject = lang.get("replyInviteSubject_msg", {
+			"{name}": guestName,
+			"{status}": lang.get(this.getStatusTranslationKey(sendMailModel.emailType)).toLowerCase(),
+			"{event}": event.summary || lang.get("noTitle_label").replaceAll(/[<>]/g, ""),
 		})
-		const organizer = assertOrganizer(event)
-		const body = makeInviteEmailBody(organizer.address, event, message)
+
+		const body = makeEventInviteEmailBody(sendMailModel.isPlainTextMail(), {
+			event,
+			infoBannerMessage,
+			sender: sendMailModel.getSender(),
+			eventInviteEmailType: sendMailModel.emailType,
+			comment: commentWithLineBreaks,
+		})
+
 		return this.sendCalendarFile({
 			event,
 			sendMailModel,
 			method: MailMethod.ICAL_REPLY,
-			subject: message,
-			body: body,
+			subject,
+			body,
 			sender: sendAs,
 		})
+	}
+
+	private resolveGuestNameOnReply(sendMailModel: SendMailModel, event: CalendarEvent) {
+		let guestName = lang.get("guest_label")
+		const attendee = event.attendees.find((a) => a.address.address === sendMailModel.getSender())
+
+		if (sendMailModel.getSenderName()) {
+			guestName = sendMailModel.getSenderName()
+		} else if (attendee) {
+			guestName = attendee.address.name
+		}
+
+		return guestName
 	}
 
 	private async sendCalendarFile({
@@ -153,71 +251,335 @@ export class CalendarNotificationSender {
 			this._windowUnsubscribe = null
 		}
 	}
+
+	private getDiff(oldEvent: CalendarEvent, event: CalendarEvent) {
+		const removed = difference(oldEvent.attendees, event.attendees, (a, b) => a.address.address === b.address.address)
+		const added = difference(event.attendees, oldEvent.attendees, (a, b) => a.address.address === b.address.address)
+		return {
+			summary: oldEvent.summary !== event.summary,
+			when: oldEvent.startTime.getTime() !== event.startTime.getTime() || oldEvent.endTime.getTime() !== event.endTime.getTime(),
+			location: oldEvent.location !== event.location,
+			description: oldEvent.description.trim() !== event.description.trim(),
+			organizer: oldEvent.organizer?.address !== event.organizer?.address,
+			attendee: {
+				removed,
+				added,
+			},
+		}
+	}
 }
 
-function summaryLine(event: CalendarEvent): string {
-	return newLine(lang.get("name_label"), event.summary)
-}
-
-function whenLine(event: CalendarEvent): string {
+function whenLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
 	const duration = formatEventDuration(event, getTimeZone(), true)
-	return newLine(lang.get("when_label"), duration)
+	return newLine(getLabel("when_label", highlightChange), duration, false)
 }
 
-function organizerLabel(organizer: EncryptedMailAddress, a: CalendarEventAttendee) {
-	return cleanMailAddress(organizer.address) === cleanMailAddress(a.address.address) ? `(${lang.get("organizer_label")})` : ""
-}
-
-function newLine(label: string, content: string): string {
-	return `<div style="display: flex; margin-top: 8px"><div style="min-width: 120px"><b style="float:right; margin-right:16px">${label}:</b></div>${content}</div>`
-}
-
-function attendeesLine(event: CalendarEvent): string {
+function organizerLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
 	const { organizer } = event
-	let attendees = ""
+	const attendee = event.attendees.find((attendee) => attendee.address.address === organizer?.address)
+	return newLine(
+		getLabel("organizer_label", highlightChange),
+		`${organizer?.name} <span style="color: ${theme.textSecondaryColor}">${organizer?.address}</span> ${
+			attendee ? calendarAttendeeStatusSymbol(getAttendeeStatus(attendee)) : ""
+		}`,
+	)
+}
 
-	// If organizer is already in the attendees, we don't have to add them separately.
-	if (organizer && !findAttendeeInAddresses(event.attendees, [organizer.address])) {
-		attendees = makeAttendee(
-			organizer,
-			createCalendarEventAttendee({
-				address: organizer,
-				status: "0",
-			}),
-		)
+function commentLine(comment: string): string {
+	return newLine(lang.get("comment_label"), `${comment}`)
+}
+
+function attendeesLine(
+	event: CalendarEvent,
+	attendeesChanges: {
+		added: CalendarEventAttendee[]
+		removed: CalendarEventAttendee[]
+	},
+	theme: EmailTheme,
+	self?: { address: string; status: CalendarAttendeeStatus },
+): string {
+	const { organizer } = event
+	const hasChanges = !!(attendeesChanges.added.length || attendeesChanges.removed.length)
+
+	function buildAttendee(a: CalendarEventAttendee, removed: boolean) {
+		if (a.address.address === organizer?.address) {
+			return ""
+		}
+
+		const shouldHighlightAttendee = a.address.address === self?.address
+		return makeAttendee(a, theme, removed, shouldHighlightAttendee ? theme.statusColor : undefined)
 	}
 
-	attendees += event.attendees.map((a) => makeAttendee(assertNotNull(organizer), a)).join("\n")
-	return newLine(lang.get("who_label"), `<div>${attendees}</div>`)
+	const attendees = event.attendees.map((a) => buildAttendee(a, false))
+	attendees.push(...attendeesChanges.removed.map((a) => buildAttendee(a, true)))
+
+	return newLine(getLabel("guests_label", hasChanges), `<table style="line-height: 1rem;">${attendees.join("")}</table>`)
 }
 
-function makeAttendee(organizer: EncryptedMailAddress, attendee: CalendarEventAttendee): string {
-	return `<div>
-${attendee.address.name || ""} ${attendee.address.address}
-${organizerLabel(organizer, attendee)}
-${calendarAttendeeStatusSymbol(getAttendeeStatus(attendee))}</div>`
+function makeAttendee(attendee: CalendarEventAttendee, theme: EmailTheme, removed: boolean = false, highlightColor?: string): string {
+	const resolvedStyles = highlightColor ? `font-weight: 600; color: ${highlightColor}` : ""
+	const content = `
+				<span style="${removed ? `text-decoration: line-through; color: ${theme.textSecondaryColor}` : ""}">
+				${attendee.address.name || ""} <span style="color:${highlightColor ?? theme.textSecondaryColor};">${attendee.address.address}</span>
+				</span>
+				${
+					removed
+						? `<span style='color: ${theme.textSecondaryColor}'>(${lang.get("removed_label")})</span>`
+						: calendarAttendeeStatusSymbol(getAttendeeStatus(attendee))
+				}
+	`
+
+	return `<tr><td style="${resolvedStyles}">${content}</td></tr>`
 }
 
-function locationLine(event: CalendarEvent): string {
-	return event.location ? newLine(lang.get("location_label"), event.location) : ""
+function locationLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
+	const content = `
+		<span>${event.location}</span><br>
+		<a href=${getLocationUrl(event.location).toString()} target="_blank" referrerpolicy="no-referrer" style="color: ${theme.linkColor}">View on map</a>
+	`
+	return event.location ? newLine(getLabel("location_label", highlightChange), content) : ""
 }
 
-function descriptionLine(event: CalendarEvent): string {
-	return event.description ? newLine(lang.get("description_label"), `<div>${event.description}</div>`) : ""
+function descriptionLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
+	// We can't actually highlight the description because it can have richtext/html
+	return event.description ? newLine(getLabel("description_label", highlightChange), `<div>${event.description}</div>`) : ""
 }
 
-function makeInviteEmailBody(sender: string, event: CalendarEvent, message: string) {
+function getLabel(translationKey: TranslationKey, highlightChange: boolean) {
+	return highlightChange ? highlight(lang.get(translationKey)) : lang.get(translationKey)
+}
+
+function highlight(content: string) {
+	// TODO [colors] Use new material like colors tokens
+	return `<span style="background-color: #FFEFCC; border-radius: 8px; color: #655000; padding: 4px 8px">
+				${content}
+			</span>`
+}
+
+function newLine(label: string, content: string, applyPaddingTop: boolean = true): string {
+	return `<tr>
+				<th style="text-align: left; text-transform: uppercase; ${applyPaddingTop ? "padding-top: 28px;" : ""}"><strong>${label}</strong></th>
+			</tr>
+			<tr>
+				<td>${content}</td>
+			</tr>`
+}
+
+// TODO [colors] Use new material like colors tokens
+type EmailTheme = {
+	textPrimaryColor: string
+	textSecondaryColor: string
+	linkColor: string
+	infoBanner?: {
+		border: string
+		background: string
+		text: string
+	}
+	statusColor?: string
+}
+const EmailThemes: Record<string, EmailTheme> = {
+	invite: {
+		textPrimaryColor: "#303030",
+		textSecondaryColor: "#707070",
+		linkColor: "#013E85",
+	},
+	update: {
+		textPrimaryColor: "#303030",
+		textSecondaryColor: "#707070",
+		linkColor: "#013E85",
+		infoBanner: {
+			border: "#655000",
+			background: "#FFEFCC",
+			text: "#655000",
+		},
+	},
+	cancel: {
+		textPrimaryColor: "#707070",
+		textSecondaryColor: "#707070",
+		linkColor: "#707070",
+		infoBanner: {
+			border: "#707070",
+			background: "#EAEAEA",
+			text: "#303030",
+		},
+	},
+	replyAccept: {
+		textPrimaryColor: "#303030",
+		textSecondaryColor: "#707070",
+		linkColor: "#013E85",
+		infoBanner: {
+			border: "#1B5E3C",
+			background: "#E9FFED",
+			text: "#1B5E3C",
+		},
+		statusColor: "#44845E",
+	},
+	replyTentative: {
+		textPrimaryColor: "#303030",
+		textSecondaryColor: "#707070",
+		linkColor: "#013E85",
+		infoBanner: {
+			border: "#C5C7C7",
+			background: "#FFFFFF",
+			text: "#303030",
+		},
+	},
+	replyDecline: {
+		textPrimaryColor: "#303030",
+		textSecondaryColor: "#707070",
+		linkColor: "#013E85",
+		infoBanner: {
+			border: "#A80710",
+			background: "#FFDAD6",
+			text: "#A80710",
+		},
+		statusColor: "#A80710",
+	},
+}
+
+export const enum EventInviteEmailType {
+	INVITE,
+	UPDATE,
+	CANCEL,
+	REPLY_ACCEPT,
+	REPLY_TENTATIVE,
+	REPLY_DECLINE,
+}
+
+function getEmailTheme(emailType: EventInviteEmailType): EmailTheme {
+	switch (emailType) {
+		case EventInviteEmailType.INVITE:
+			return EmailThemes.invite
+		case EventInviteEmailType.UPDATE:
+			return EmailThemes.update
+		case EventInviteEmailType.CANCEL:
+			return EmailThemes.cancel
+		case EventInviteEmailType.REPLY_ACCEPT:
+			return EmailThemes.replyAccept
+		case EventInviteEmailType.REPLY_TENTATIVE:
+			return EmailThemes.replyTentative
+		case EventInviteEmailType.REPLY_DECLINE:
+			return EmailThemes.replyDecline
+	}
+}
+
+function makeEventInviteEmailBody(isPlainText: boolean, emailBodyIngredients: EmailBodyIngredients) {
+	return isPlainText ? makePlainTextBody(emailBodyIngredients) : makeHTMLBody(emailBodyIngredients)
+}
+
+interface EmailBodyIngredients {
+	event: CalendarEvent
+	infoBannerMessage: string
+	eventInviteEmailType: EventInviteEmailType
+	sender: string
+	changedFields?: {
+		attendee: { added: CalendarEventAttendee[]; removed: CalendarEventAttendee[] }
+		description: boolean
+		location: boolean
+		organizer: boolean
+		summary: boolean
+		when: boolean
+	}
+	comment?: string
+}
+
+function makePlainTextBody({ event, infoBannerMessage, comment }: EmailBodyIngredients) {
+	const organizer: CalendarEventAttendee | undefined = event.attendees.find((attendee) => attendee.address.address === event.organizer?.address)
+	const duration = formatEventDuration(event, getTimeZone(), true)
+	const eventLines: string[] = []
+
+	eventLines.push(
+		`${infoBannerMessage}`,
+		`<br><br>`,
+		`${lang.get("event_label")}: ${event.summary || lang.get("noTitle_label").replaceAll(/[<>]/g, "")}`,
+		`<br><br>`,
+		`${lang.get("when_label")}:`,
+		`<br>`,
+		`${duration}`,
+		`<br><br>`,
+	)
+
+	if (event.location) {
+		eventLines.push(`${lang.get("location_label")}:`, `<br>`, `${event.location}`, `<br><br>`)
+	}
+
+	if (event.description) {
+		eventLines.push(`${lang.get("description_label")}:`, `<br>`, `${event.description}`, `<br><br>`)
+	}
+
+	eventLines.push(
+		`${lang.get("organizer_label")}:`,
+		`<br>`,
+		`${event.organizer?.name ? event.organizer?.name + " " : ""}${event.organizer?.address} ${
+			organizer ? calendarAttendeeStatusSymbol(getAttendeeStatus(organizer)) : ""
+		}`,
+		`<br><br>`,
+		`${lang.get("guests_label")}:`,
+		`<br>` +
+			`${event.attendees
+				.filter((a) => !(a.address.address === event.organizer?.address))
+				.map((a) => {
+					return `${a.address.name ? a.address.name + " " : ""}${a.address.address} ${calendarAttendeeStatusSymbol(getAttendeeStatus(a))}`
+				})
+				.join("<br>")}`,
+		`<br><br>`,
+	)
+
+	if (comment) {
+		eventLines.push(`${lang.get("comment_label")}:`, `<br>`, `${comment}`)
+	}
+
+	return eventLines.join("")
+}
+
+function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, changedFields, comment }: EmailBodyIngredients) {
+	const theme = getEmailTheme(eventInviteEmailType)
+	const eventTitle = event.summary || lang.get("noTitle_label").replaceAll(/[<>]/g, "")
+
+	let selfInfo
+	if (eventInviteEmailType === EventInviteEmailType.REPLY_ACCEPT) {
+		selfInfo = { address: sender, status: CalendarAttendeeStatus.ACCEPTED }
+	} else if (eventInviteEmailType === EventInviteEmailType.REPLY_DECLINE) {
+		selfInfo = { address: sender, status: CalendarAttendeeStatus.DECLINED }
+	}
 	return `
-	<div style="max-width: 685px; margin: 0 auto">
-	  	<h2 style="text-align: center">${message}</h2>
-  		<div style="margin: 0 auto">
-  			${summaryLine(event)}
-    		${whenLine(event)}
-    		${locationLine(event)}
-    		${attendeesLine(event)}
-    		${descriptionLine(event)}
-  		</div>
-	</div>`
+	${
+		eventInviteEmailType != EventInviteEmailType.INVITE
+			? `	<div style="margin-bottom: 16px; padding: 24px 32px; border: 1px solid ${theme.infoBanner?.border}; border-radius: 6px; background-color: ${theme.infoBanner?.background}; color: ${theme.infoBanner?.text}">
+					${infoBannerMessage}
+				</div>`
+			: ""
+	}
+	<div style="margin-bottom: 16px; padding: 24px 32px; border: 1px solid #ddd; border-radius: 6px; color: ${theme.textPrimaryColor};">
+		<table>
+			<tr>
+				<td>
+					<h1 style="font-size: 24px; margin: 0">
+						<strong>${changedFields?.summary ? highlight("Event:") : "Event:"}</strong>${" " + eventTitle}
+					</h1>
+				</td>
+			</tr>
+		</table>
+
+		<hr style="border-width: 0; margin: 24px 0; background: #ddd; color: #ddd; height:1px">
+
+		<table style="width: 100%;">
+			${whenLine(event, changedFields?.when ?? false, theme)}
+			${event.location ? locationLine(event, changedFields?.location ?? false, theme) : ""}
+			${event.description ? descriptionLine(event, changedFields?.description ?? false, theme) : ""}
+			${organizerLine(event, changedFields?.organizer ?? false, theme)}
+			${attendeesLine(event, changedFields?.attendee ?? { added: [], removed: [] }, theme, selfInfo)}
+			${comment ? commentLine(comment) : ""}
+		</table>
+	</div>
+	<table style="padding: 24px 0">
+		<tr>
+			<td>
+				${lang.get("invitationNote_msg")}
+			<ts>
+		</tr>
+	</table>
+	`
 }
 
 function assertOrganizer(event: CalendarEvent): EncryptedMailAddress {

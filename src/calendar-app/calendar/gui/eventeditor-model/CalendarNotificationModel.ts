@@ -34,7 +34,13 @@ export class CalendarNotificationModel {
 	 *
 	 * will modify the attendee list of newEvent if invites/cancellations are sent.
 	 */
-	async send(event: CalendarEvent, recurrenceIds: Array<Date>, sendModels: CalendarNotificationSendModels): Promise<void> {
+	async send(
+		event: CalendarEvent,
+		recurrenceIds: Array<Date>,
+		sendModels: CalendarNotificationSendModels,
+		oldEvent?: CalendarEvent,
+		comment?: string,
+	): Promise<void> {
 		if (sendModels.updateModel == null && sendModels.cancelModel == null && sendModels.inviteModel == null && sendModels.responseModel == null) {
 			return
 		}
@@ -52,12 +58,11 @@ export class CalendarNotificationModel {
 		const originalExclusions = event.repeatRule?.excludedDates ?? []
 		const filteredExclusions = originalExclusions.filter(({ date }) => !recurrenceTimes.includes(date.getTime()))
 		if (event.repeatRule != null) event.repeatRule.excludedDates = filteredExclusions
-
 		try {
 			const invitePromise = sendModels.inviteModel != null ? this.sendInvites(event, sendModels.inviteModel) : Promise.resolve()
 			const cancelPromise = sendModels.cancelModel != null ? this.sendCancellation(event, sendModels.cancelModel) : Promise.resolve()
-			const updatePromise = sendModels.updateModel != null ? this.sendUpdates(event, sendModels.updateModel) : Promise.resolve()
-			const responsePromise = sendModels.responseModel != null ? this.respondToOrganizer(event, sendModels.responseModel) : Promise.resolve()
+			const updatePromise = sendModels.updateModel != null ? this.sendUpdates(event, sendModels.updateModel, oldEvent) : Promise.resolve()
+			const responsePromise = sendModels.responseModel != null ? this.respondToOrganizer(event, sendModels.responseModel, comment) : Promise.resolve()
 			await Promise.all([invitePromise, cancelPromise, updatePromise, responsePromise])
 		} finally {
 			if (event.repeatRule != null) event.repeatRule.excludedDates = originalExclusions
@@ -104,12 +109,16 @@ export class CalendarNotificationModel {
 		}
 	}
 
-	private async sendUpdates(event: CalendarEvent, updateModel: SendMailModel): Promise<void> {
+	private async sendUpdates(event: CalendarEvent, updateModel: SendMailModel, oldEvent?: CalendarEvent): Promise<void> {
+		if (!oldEvent) {
+			throw new Error("Trying to send update invitation for an event without its old instance")
+		}
+
 		await updateModel.waitForResolvedRecipients()
 		if (event.invitedConfidentially != null) {
 			updateModel.setConfidential(event.invitedConfidentially)
 		}
-		await this.notificationSender.sendUpdate(event, updateModel)
+		await this.notificationSender.sendUpdate(event, updateModel, oldEvent)
 	}
 
 	/**
@@ -117,15 +126,16 @@ export class CalendarNotificationModel {
 	 * does not contain address as an attendee or that has no organizer is an error.
 	 * @param newEvent the event to send the update for, this should be identical to existingEvent except for the own status.
 	 * @param responseModel
+	 * @param comment
 	 * @private
 	 */
-	private async respondToOrganizer(newEvent: CalendarEvent, responseModel: SendMailModel): Promise<void> {
+	private async respondToOrganizer(newEvent: CalendarEvent, responseModel: SendMailModel, comment?: string): Promise<void> {
 		await responseModel.waitForResolvedRecipients()
 		if (newEvent.invitedConfidentially != null) {
 			responseModel.setConfidential(newEvent.invitedConfidentially)
 		}
 
-		await this.notificationSender.sendResponse(newEvent, responseModel)
+		await this.notificationSender.sendResponse(newEvent, responseModel, comment)
 		responseModel.dispose()
 	}
 }

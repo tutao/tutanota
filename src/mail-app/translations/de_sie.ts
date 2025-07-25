@@ -2058,6 +2058,20 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"canceledEventInfo_msg": "Dieser Termin wurde <strong>gestrichen!</strong>",
+		"updatedEventInfo_msg": "Dieser Termin wurde <strong>aktualisiert!</strong>",
+		"replyAcceptEventInfo_msg": "{name} hat Ihre Einladung <strong>akzeptiert</strong>.",
+		"replyTentativeEventInfo_msg": "{name} wird <strong>vielleicht</strong> an Ihrem Termin teilnehmen.",
+		"replyDeclineEventInfo_msg": "{name} hat Ihre Einladung <strong>abgelehnt</strong>.",
+		"replyInviteSubject_msg": "{name} hat \"{status}\" auf {event} geantwortet",
+		"removed_label": "Entfernt",
+		"event_label": "Termin",
+		"invitationNote_msg": "Sicher mit dem <strong><a href=\"https://tuta.com\" target=\"_blank\">Tuta Calendar</a></strong>",
+		"updateThisAndFutureEvents_action": "Dieses und zukünftige Ereignisse aktualisiere",
+		"deleteThisAndFutureOccurrences_action": "Dieses und zukünftige Ereignisse löschen",
+		"deleteThisAndFutureOccurrencesConfirmation_msg": "Sind Sie sicher, dass Sie dieses und alle zukünftigen Ereignisse löschen wollen?",
+		"duplicateEvent_label": "Diesen Termin duplizieren",
+		"addComment_label": "Kommentar hinzufügen"
 	}
 }
