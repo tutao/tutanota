@@ -875,7 +875,6 @@ export default {
         "keyManagement.publicKeyFingerprint_label": "Öffentlicher Schlüssel",
         "keyManagement.qrCodeInvalid_msg": "Der gescannte QR-Code ist fehlerhaft oder ungültig.",
         "keyManagement.qrCode_label": "QR-Code",
-        "keyManagement.qrFingerprintMismatch_msg": "Dieser öffentliche Schlüssel stimmt nicht mit den Informationen auf dem Server überein. Bitte überprüfen Sie den Typ und die Version der angezeigten Schlüssel. Wenn der Fehler weiterhin besteht, könnten Sie einem Sicherheitsrisiko ausgesetzt sein.",
         "keyManagement.qrMailAddressNotFound_msg": "Dieser QR-Code bezieht sich auf eine ungültige E-Mail-Adresse.",
         "keyManagement.qrVerification_label": "QR-Code-Verifikation",
         "keyManagement.selectMethodLong_label": "Wählen Sie eine Methode zur Verifikation aus. Wenn Sie bei einer anderen Person sind und beide über ein Gerät mit Kamerafunktion verfügen, bietet sich die QR-Code-Verifikation an.",
@@ -2072,6 +2071,20 @@ export default {
         "keyVerificationErrorContactNotUpdated_msg": "Der Identitätsschlüssel für den Kontakt <b>{mailAddress}</b> wurde auf Ihrem Gerät nicht aktualisiert.<br><br>" +
             "Bitte führen Sie eine manuelle Schlüsselverifikation durch, bevor Sie die Unterhaltung fortsetzen.",
         "keyVerificationErrorAccept_title": "Kontakt erfolgreich aktualisiert",
-        "keyVerificationErrorReject_title": "Kontakt nicht aktualisiert"
+        "keyVerificationErrorReject_title": "Kontakt nicht aktualisiert",
+        "deleteKey_action": "Schlüssel löschen und erneut versuchen",
+        "fingerprintMismatchKeepManualSubtitle_msg": "Der Schlüssel, dem Sie schon vertraut haben, wird weiterhin in Ihrer lokalen Datenbank verbleiben.",
+        "fingerprintMismatchKeepManual_msg": "Wenn dieser Schlüssel nicht der ist, der mit <b>{mailAddress}</b> aktuell assoziiert ist, können Sie ihn ersetzen, sobald Sie den aktuellen Schlüssel bestätigen können.",
+        "fingerprintMismatchKeepManual_title": "Vertrauter Schlüssel wurde behalten",
+        "fingerprintMismatchKeepTofuSubtitle_msg": "Der Schlüssel, der die Verifikation nicht bestanden hat, wird weiterhin in Ihrer lokalen Datenbank verbleiben.",
+        "fingerprintMismatchKeepTofu_msg": "Es wird keine weitere Erinnerung geben, dass der Schlüssel die Verifikation nicht bestanden hat. Sie sollten keinen weiteren Kontakt mit <b>{mailAddress}</b> haben, weil Sie nicht mit der beabsichtigten Person kommunizieren werden.",
+        "fingerprintMismatchKeepTofu_title": "Verdächtiger Schlüssel wurde gespeichert",
+        "fingerprintMismatchManualWarning_msg": "Das kann eine legitime Änderung sein, <b>aber nur</b> wenn die E-Mail-Adresse einem anderen Benutzer zugewiesen wurde.",
+        "fingerprintMismatchManual_msg": "Der Fingerabdruck, den Sie von Ihrem Kontakt bekommen haben, stimmt nicht mit dem überein, den Sie manuell verifiziert und auf Ihrem Gerät gespeichert haben.",
+        "fingerprintMismatchRecommendationManual_msg": "Wenn Sie sicher sind, dass die E-Mail-Adresse verschoben wurde, können Sie den vertrauten Schlüssel aus Ihrer lokalen Datenbank löschen und die Verifikation mit einem frischen Schlüssel vom Server erneut versuchen. Das sollten Sie nur tun, wenn Sie jetzt gerade den neuesten Fingerabdruck mit Ihrem Kontakt bestätigen können.",
+        "fingerprintMismatchRecommendationTofu_msg": "Wenn Sie sicher sind, dass Ihr Kontakt Ihnen den aktuellen Schlüssel zeigt, können Sie den vertrauten Schlüssel aus Ihrer lokalen Datenbank löschen und die Verifikation mit einem frischen Schlüssel vom Server erneut versuchen.",
+        "fingerprintMismatchTofuWarning_msg": "Das ist ein mögliches Sicherheitsrisiko. Es ist möglich, dass irgendjemand Ihre vorherige Konversation mit diesem Kontakt abgehört hat. Es kann auch eine legitime Änderung sein, <b>aber nur</b> wenn die E-Mail-Adresse einem anderen Benutzer zugewiesen wurde.",
+        "fingerprintMismatchTofu_msg": "Der Fingerabdruck, den Sie von Ihrem Kontakt bekommen haben, stimmt nicht mit dem überein, der auf Ihrem Gerät seit Ihrem ersten Gebrauch der Adresse <br><b>{mailAddress}</b><br> gespeichert ist.",
+        "keyManagement.doNotTrust_action": "Nicht vertrauen",
     }
 }

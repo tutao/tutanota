@@ -60,6 +60,19 @@ export type Theme = {
 	tuta_color_nota: string
 	highlight_bg: string
 	highlight_fg: string
+	// semantic colors
+	error: string
+	on_error: string
+	error_container: string
+	on_error_container: string
+	warning: string
+	on_warning: string
+	warning_container: string
+	on_warning_container: string
+	success: string
+	on_success: string
+	success_container: string
+	on_success_container: string
 	// Experimental colors; using material 3 color tokens which will be introduced in the future
 	experimental_primary_container: string
 	experimental_on_primary_container: string
