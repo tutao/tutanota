@@ -18,11 +18,10 @@ export class FingerprintMismatchKeepPage implements Component<FingerprintMismatc
 		const publicIdentity = assertNotNull(vnode.attrs.model.getPublicIdentity())
 		const sourceOfTrust = publicIdentity.trustDbEntry.sourceOfTrust
 		const address = publicIdentity.mailAddress
-		const manuallyTrusted = sourceOfTrust === IdentityKeySourceOfTrust.Manual
 		let title
 		let subtitle
 		let message
-		if (manuallyTrusted) {
+		if (sourceOfTrust === IdentityKeySourceOfTrust.Manual) {
 			title = lang.get("fingerprintMismatchKeepManual_title")
 			subtitle = lang.get("fingerprintMismatchKeepManualSubtitle_msg")
 			message = lang.get("fingerprintMismatchKeepManual_msg", { "{mailAddress}": address })
@@ -38,8 +37,8 @@ export class FingerprintMismatchKeepPage implements Component<FingerprintMismatc
 			m(TitleSection, {
 				title,
 				subTitle: subtitle,
-				icon: manuallyTrusted ? Icons.Fingerprint : Icons.AlertCircle,
-				iconOptions: manuallyTrusted ? { color: theme.content_accent } : { color: theme.error_color },
+				icon: Icons.AlertCircleOutline,
+				iconOptions: { color: theme.warning },
 			}),
 			m(
 				Card,
