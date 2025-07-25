@@ -33,7 +33,13 @@ export interface ExpandableTextAreaAttrs {
 }
 
 type TextAreaAttributes = Pick<TextAreaAttrs, "style" | "variant" | "placeholder" | "oninput" | "disabled" | "resizable" | "maxLines" | "ariaLabel" | "value">
-type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLTextAreaElement, "style"> & ExpandableTextAreaAttrs & { style: { resize: string } }>
+type HTMLElementWithAttrs = Partial<
+	Pick<m.Attributes, "class"> &
+		Omit<HTMLTextAreaElement, "style"> &
+		ExpandableTextAreaAttrs & {
+			style: { resize: string }
+		}
+>
 
 /**
  * Simple single line input field component
@@ -58,6 +64,7 @@ export class ExpandableTextArea implements ClassComponent<ExpandableTextAreaAttr
 	private isExpanded = false
 	private inputVerticalPadding = 0
 	private inputLineHeight = 0
+	private initialHeight: number = 0
 
 	oncreate(vnode: VnodeDOM<ExpandableTextAreaAttrs, this>): any {
 		this.domDiv = vnode.dom as HTMLDivElement
@@ -76,39 +83,57 @@ export class ExpandableTextArea implements ClassComponent<ExpandableTextAreaAttr
 			"ariaLabel",
 			"value",
 		) as TextAreaAttributes
-		return m(".rel.mt-s", [
-			m(TextArea, {
-				...textAreaAttrs,
-				oncreate: (vnode) => {
-					this.setupInputListeners(vnode, attrs)
-					attrs.oncreate?.(vnode)
-				},
-				maxLines: this.isExpanded ? (attrs.maxLines ?? 2) : 1,
-				style: {
-					...textAreaAttrs.style,
-					height: this.calculateHeight(attrs.maxLines ?? 3),
-					transition: `height ${DefaultAnimationTime}ms linear`,
-				},
-			} satisfies TextAreaAttrs),
-			!this.isExpanded
-				? m(Icon, {
-						icon: BootIcons.Expand,
-						class: "flex-center items-center abs",
-						size: IconSize.Normal,
-						style: {
-							top: px(size.button_height / 2 - size.icon_size_medium / 2),
-							right: px(this.inputVerticalPadding / 2),
-							fill: theme.content_button,
-							transform: `rotateZ(${this.isExpanded ? 180 : 0}deg)`,
-							transition: `transform ${DefaultAnimationTime}ms`,
-						},
-					})
-				: null,
-		])
+		return m(
+			".rel.mt-s",
+			{
+				onclick: () => this.domInput?.focus(),
+			},
+			[
+				m(TextArea, {
+					...textAreaAttrs,
+					oncreate: (vnode) => {
+						this.setupInputListeners(vnode, attrs)
+						attrs.oncreate?.(vnode)
+						requestAnimationFrame(() => {
+							if (this.initialHeight === 0) {
+								this.initialHeight = parseFloat(window.getComputedStyle(vnode.dom).height.replaceAll("px", ""))
+								m.redraw()
+							}
+						})
+					},
+					maxLines: this.isExpanded ? (attrs.maxLines ?? 2) : 1,
+					style: {
+						...textAreaAttrs.style,
+						height: this.calculateHeight(attrs.maxLines ?? 3),
+						transition: `height ${DefaultAnimationTime}ms linear`,
+					},
+				} satisfies TextAreaAttrs),
+				!this.isExpanded
+					? m(Icon, {
+							icon: BootIcons.Expand,
+							class: "flex-center items-center abs",
+							size: IconSize.Medium,
+							style: {
+								top: this.initialHeight === 0 ? 0 : px(this.initialHeight / 2 - size.icon_size_large / 2),
+								bottom: this.initialHeight === 0 ? 0 : undefined,
+								margin: this.initialHeight === 0 ? "auto 0" : undefined,
+								right: "8px",
+								fill: theme.content_button,
+								transform: `rotateZ(${this.isExpanded ? 180 : 0}deg)`,
+								transition: `transform ${DefaultAnimationTime}ms`,
+							},
+						})
+					: null,
+			],
+		)
 	}
 
 	private calculateHeight(maxLines: number) {
-		return this.isExpanded ? px(maxLines * (this.inputLineHeight + this.inputVerticalPadding)) : px(size.button_height)
+		return this.isExpanded
+			? px(maxLines * (this.inputLineHeight + this.inputVerticalPadding))
+			: this.initialHeight !== 0
+				? px(this.initialHeight)
+				: "initial"
 	}
 
 	private setupInputListeners(vnode: VnodeDOM<TextAreaAttrs>, attrs: ExpandableTextAreaAttrs) {
