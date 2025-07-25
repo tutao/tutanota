@@ -4,7 +4,6 @@ import { px, size } from "../../size.js"
 import { BaseButton } from "./BaseButton.js"
 import { theme } from "../../theme.js"
 import { ClickHandler } from "../GuiUtils.js"
-import { Icon } from "../Icon.js"
 
 export type BannerButtonAttrs = {
 	borderColor: string
@@ -25,7 +24,7 @@ export class BannerButton implements Component<BannerButtonAttrs> {
 			style: {
 				border: `2px solid ${attrs.disabled ? theme.content_button : attrs.borderColor}`,
 				color: attrs.disabled ? theme.content_button : attrs.color,
-				padding: px(size.hpad_button),
+				padding: px(size.vpad_small),
 				minWidth: "60px",
 			},
 			disabled: attrs.disabled,

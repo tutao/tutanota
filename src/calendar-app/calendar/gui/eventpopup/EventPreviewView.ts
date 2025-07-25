@@ -231,6 +231,9 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			},
 			ariaLabel: lang.get("addComment_label"),
 			placeholder: lang.get("addComment_label"),
+			style: {
+				borderColor: theme.content_button,
+			},
 		} satisfies ExpandableTextAreaAttrs)
 	}
 
