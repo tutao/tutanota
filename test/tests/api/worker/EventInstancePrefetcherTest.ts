@@ -202,7 +202,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		o(sixthUpdate.prefetchStatus).equals(PrefetchStatus.Prefetched)
 
 		verify(progressMonitorMock.workDone(1), { times: allUpdates.length })
-		verify(progressMonitorMock.totalWorkDone(allUpdates.length))
+		verify(progressMonitorMock.totalWorkDone(allUpdates.length + 1))
 	})
 
 	o("Returns indexes of multiple batches for a single element with multiple updates", async () => {
@@ -477,7 +477,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			),
 			{ times: 1 },
 		)
-		verify(progressMonitorMock.totalWorkDone(allUpdates.length))
+		verify(progressMonitorMock.totalWorkDone(allUpdates.length + 1))
 	})
 
 	o("set prefetchStatus to Prefetched for instances returned by loadMultiple and to NotAvailable for others", async () => {
@@ -706,7 +706,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			},
 		)
 		verify(progressMonitorMock.workDone(1), { times: 0 })
-		verify(progressMonitorMock.totalWorkDone(allUpdates.length))
+		verify(progressMonitorMock.totalWorkDone(allUpdates.length + 1))
 	})
 
 	o("Do not prefetch ConversationEntry type", async () => {

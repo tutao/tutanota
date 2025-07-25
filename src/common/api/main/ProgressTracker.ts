@@ -1,9 +1,8 @@
 import stream from "mithril/stream"
-import { IProgressMonitor, ProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMonitor"
+import { IProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { EstimatingProgressMonitor } from "../common/utils/EstimatingProgressMonitor"
-import Es from "../../../mail-app/translations/es"
 
-export type ExposedProgressTracker = Pick<ProgressTracker, "registerMonitor" | "workDoneForMonitor">
+export type ExposedProgressTracker = Pick<ProgressTracker, "registerMonitor" | "workDoneForMonitor" | "totalWorkDoneForMonitor">
 
 /**
  * The progress tracker controls the progress bar located in Header.js
@@ -46,6 +45,10 @@ export class ProgressTracker {
 
 	async workDoneForMonitor(id: ProgressMonitorId, amount: number): Promise<void> {
 		this.getMonitor(id)?.workDone(amount)
+	}
+
+	async totalWorkDoneForMonitor(id: ProgressMonitorId, totalAmount: number): Promise<void> {
+		this.getMonitor(id)?.totalWorkDone(totalAmount)
 	}
 
 	getMonitor(id: ProgressMonitorId): IProgressMonitor | null {

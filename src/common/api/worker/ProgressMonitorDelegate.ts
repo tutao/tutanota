@@ -17,7 +17,7 @@ export class ProgressMonitorDelegate implements IProgressMonitor {
 	}
 
 	async totalWorkDone(totalAmount: number) {
-		await this.progressTracker.workDoneForMonitor(await this.ref, this.totalWork - totalAmount)
+		await this.progressTracker.totalWorkDoneForMonitor(await this.ref, totalAmount)
 	}
 
 	async completed() {
