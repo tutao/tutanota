@@ -13,7 +13,7 @@ import {
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { assertNotNull, count, debounce, groupBy, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, promiseMap } from "@tutao/tutanota-utils"
-import { ListState } from "../../../common/gui/base/List.js"
+import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils.js"
@@ -76,6 +76,8 @@ export class MailViewModel {
 	private mailListDisplayModePref: boolean = false
 	/** A slightly hacky marker to avoid concurrent URL updates. */
 	private currentShowTargetMarker: object = {}
+	/* We only attempt counter fixup once after switching folders and loading the list fully. */
+	private shouldAttemptCounterFixup: boolean = true
 
 	constructor(
 		private readonly mailboxModel: MailboxModel,
@@ -518,33 +520,33 @@ export class MailViewModel {
 			}
 			this.listStreamSubscription?.end(true)
 			this.listStreamSubscription = listModel.stateStream.map((state: ListState<Mail>) => this.onListStateChange(listModel, state))
-			listModel.loadInitial().then(() => {
-				if (this.listModel != null && this._folder === folder) {
-					this.fixCounterIfNeeded(folder, this.listModel.mails)
-				}
-			})
-
+			void listModel.loadInitial()
 			this._listModel = listModel
 		}
+
+		this.shouldAttemptCounterFixup = true
 	}
 
 	private fixCounterIfNeeded: (folder: MailFolder, loadedMailsWhenCalled: ReadonlyArray<Mail>) => void = debounce(
 		2000,
 		async (folder: MailFolder, loadedMailsWhenCalled: ReadonlyArray<Mail>) => {
-			const ourFolder = this.getFolder()
-			if (ourFolder == null || (this._filterType != null && this.filterType.has(MailFilterType.Unread))) {
-				return
-			}
-
 			// If folders are changed, list won't have the data we need.
-			// Do not rely on counters if we are not connected
-			if (!isSameId(getElementId(ourFolder), getElementId(folder)) || this.connectivityModel.wsConnection()() !== WsConnectionState.connected) {
+			// Do not rely on counters if we are not connected.
+			// We can't know the correct unreadMailCount if some unread mails are filtered out.
+			const ourFolder = this.getFolder()
+			const listHasAllUnreadMails = this.filterType.size === 0 || (this.filterType.size === 1 && this.filterType.has(MailFilterType.Unread))
+			if (
+				ourFolder == null ||
+				!isSameId(getElementId(ourFolder), getElementId(folder)) ||
+				this.connectivityModel.wsConnection()() !== WsConnectionState.connected ||
+				!listHasAllUnreadMails
+			) {
 				return
 			}
 
 			// If list was modified in the meantime, we cannot be sure that we will fix counters correctly (e.g. because of the inbox rules)
 			if (this.listModel?.mails !== loadedMailsWhenCalled) {
-				console.log(`list changed, trying again later`)
+				console.log("list changed, trying again later")
 				return this.fixCounterIfNeeded(folder, this.listModel?.mails ?? [])
 			}
 
@@ -561,6 +563,14 @@ export class MailViewModel {
 	)
 
 	private onListStateChange(listModel: MailSetListModel, newState: ListState<Mail>) {
+		// Fixup isn't needed for labels since only folders have counters.
+		// A counter fixup with a partially loaded list will set the counter to an incorrect value.
+		const folder = this.getFolder()
+		if (this.shouldAttemptCounterFixup && folder != null && folder.folderType !== MailSetKind.LABEL && newState.loadingStatus === ListLoadingState.Done) {
+			this.fixCounterIfNeeded(folder, newState.items)
+			this.shouldAttemptCounterFixup = false
+		}
+
 		// If we are already displaying sticky mail just leave it alone, no matter what's happening to the list.
 		// User actions and URL updated do reset sticky mail id.
 		const displayedMailId = this.conversationViewModel?.primaryViewModel()?.mail._id
