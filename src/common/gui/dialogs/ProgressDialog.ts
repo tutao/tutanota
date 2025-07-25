@@ -17,7 +17,6 @@ export async function showProgressDialog<T>(
 	messageIdOrMessageFunction: MaybeLazy<MaybeTranslation>,
 	action: Promise<T>,
 	progressStream?: Stream<number>,
-	isCancelable?: boolean,
 	headerBarAttrs?: DialogHeaderBarAttrs,
 ): Promise<T> {
 	if (progressStream != null) {
@@ -30,7 +29,7 @@ export async function showProgressDialog<T>(
 		view: () => {
 			let title = resolveMaybeLazy(messageIdOrMessageFunction)
 			return m("", [
-				isCancelable && headerBarAttrs
+				headerBarAttrs
 					? m(DialogHeaderBar, {
 							...headerBarAttrs,
 							class: "mb-l mt-negative-l mr-negative-l ml-negative-l",
