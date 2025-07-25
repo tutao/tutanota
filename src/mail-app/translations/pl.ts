@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-24T21:14:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -148,6 +148,7 @@ export default {
 		"appInfoFDroidImageAlt_alt": "Aplikacja na Androida na F-Droid",
 		"appInfoIosImageAlt_alt": "Aplikacja na iOS w App store",
 		"apply_action": "Zastosuj",
+		"approvalWaitNotice_msg": "Twoje konto zostało oznaczone do ręcznego zatwierdzenia. Oznacza to, że nie możesz wysyłać ani odbierać wiadomości e-mail. W dni robocze zatwierdzenie następuje zazwyczaj w ciągu 24 godzin.",
 		"appStoreNotAvailable_msg": "Subskrypcje App Store nie są obecnie dostępne.",
 		"appStoreRenewProblemBody_msg": "Witaj,\n      \n\nTwoja subskrypcja miała zostać odnowiona w dniu {expirationDate}.\n       \nNiestety, nie otrzymaliśmy żadnej płatności ze Sklepu z aplikacjami za subskrypcję, co może być spowodowane błędem rozliczeniowym. Sprawdź, czy ustawienia płatności w sklepie są prawidłowe.\n\nJeśli nie otrzymamy żadnej płatności, konto zostanie wyłączone w dniu {finalExpirationDate} z powodu braku płatności. Alternatywnie możesz anulować subskrypcję lub zmienić metodę płatności.\n   \nPozdrawiamy,\nTwój zespół Tuta",
 		"appStoreRenewProblemSubject_msg": "Błąd rozliczeń w sklepie z aplikacjami",
@@ -1170,6 +1171,7 @@ export default {
 		"notFullyLoggedIn_msg": "Użytkownik nie w pełni zalogowany.",
 		"noThanks_action": "Nie, dziękuję",
 		"nothingFound_label": "Nie znaleziono szablonów",
+		"notice_label": "Ogłoszenie",
 		"notificationContent_label": "Treść powiadomienia",
 		"notificationMailLanguage_label": "Język wiadomości e-mail z powiadomieniem",
 		"notificationMailTemplateTooLarge_msg": "Wzorzec wiadomości powiadomień jest za duży.",
@@ -1933,6 +1935,7 @@ export default {
 		"unavailable_label": "Niedostępny",
 		"undecided_label": "Nie zdecydowano",
 		"undoMailReport_msg": "E-maile zostaną zgłoszone bez szyfrowania.",
+		"undoMoveMail_msg": "Wiadomości e-mail zostały przeniesione do \\\"{folder}\\\".",
 		"undo_action": "Cofnij",
 		"unencryptedTransmission_msg": "Wiadomości e-mail przeniesione do folderu \"Spam\" zostaną przesłane na serwer w postaci niezaszyfrowanej, w celu polepszenia ochrony przed spamem.",
 		"unknownError_msg": "Wystąpił nieoczekiwany błąd. Spróbuj później.",
