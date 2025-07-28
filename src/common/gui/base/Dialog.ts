@@ -28,6 +28,7 @@ import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
 import { client } from "../../misc/ClientDetector"
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { ImageWithOptionsDialog } from "../dialogs/ImageWithOptionsDialog"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -768,6 +769,36 @@ export class Dialog implements ModalComponent {
 					buttonAttrs.map((a) => m(Button, a)),
 				),
 			],
+		})
+	}
+
+	static showUnsubscribeFinishedDialog(success: boolean): Promise<void> {
+		return newPromise((resolve) => {
+			let dialog: Dialog
+
+			const closeAction = () => {
+				dialog.close()
+				setTimeout(() => resolve(), DefaultAnimationTime)
+			}
+
+			dialog = new Dialog(DialogType.EditMedium, {
+				view: () =>
+					m(
+						".plr-2l",
+						m(ImageWithOptionsDialog, {
+							image: `${window.tutao.appState.prefixWithoutFile}/images/update/update_needed_illu_${success ? "mail" : "calendar"}.svg`,
+							titleText: success ? "unsubscribeSuccessful_title" : "unsubscribeFailed_title",
+							messageText: success ? "unsubscribeSuccessful_msg" : "unsubscribeFailed_msg",
+							mainActionText: "ok_action",
+							mainActionClick: () => {
+								closeAction()
+							},
+							subActionText: null,
+							subActionClick: () => {},
+						}),
+					),
+			})
+			dialog.show()
 		})
 	}
 

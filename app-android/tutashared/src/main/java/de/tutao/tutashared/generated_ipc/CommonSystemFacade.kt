@@ -26,4 +26,11 @@ interface CommonSystemFacade {
 	 */
 	suspend fun getLog(
 	): String
+	/**
+	 * Executes a POST request on native (e.g. for list-unsubscribe post).
+	 */
+	suspend fun executePostRequest(
+		postUrl: String,
+		body: String,
+	): Boolean
 }

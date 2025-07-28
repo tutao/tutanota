@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
+import { MailViewerViewModel, UnsubscribeType } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import {
 	ConversationEntryTypeRef,
 	HeaderTypeRef,
@@ -32,6 +32,10 @@ import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { CalendarEventsRepository } from "../../../../src/common/calendar/date/CalendarEventsRepository"
 import { UndoModel } from "../../../../src/mail-app/UndoModel"
+import { MailViewModel } from "../../../../src/mail-app/mail/view/MailViewModel"
+import { isBrowser } from "../../../../src/common/api/common/Env"
+import { CommonSystemFacade } from "../../../../src/common/native/common/generatedipc/CommonSystemFacade"
+import { unsubscribe } from "../../../../src/mail-app/mail/view/MailViewerUtils"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -40,6 +44,7 @@ o.spec("MailViewerViewModel", function () {
 	let entityClient: EntityClient
 
 	let mailModel: MailModel
+	let commonSystemFacade: CommonSystemFacade
 	let mailboxModel: MailboxModel
 	let contactModel: ContactModel
 	let configFacade: ConfigurationDatabase
@@ -58,6 +63,7 @@ o.spec("MailViewerViewModel", function () {
 	function makeViewModelWithHeaders(headers: string) {
 		entityClient = object()
 		mailModel = object()
+		commonSystemFacade = object()
 		mailboxModel = object()
 		contactModel = object()
 		configFacade = object()
@@ -80,6 +86,7 @@ o.spec("MailViewerViewModel", function () {
 			entityClient,
 			mailboxModel,
 			mailModel,
+			commonSystemFacade,
 			contactModel,
 			configFacade,
 			fileController,
@@ -130,6 +137,7 @@ o.spec("MailViewerViewModel", function () {
 		when(mailModel.checkMailForPhishing(matchers.anything(), matchers.anything())).thenResolve(false)
 		when(entityClient.load(ConversationEntryTypeRef, mail.conversationEntry)).thenResolve(object())
 		when(workerFacade.urlify(matchers.anything())).thenResolve("")
+		when(commonSystemFacade.executePostRequest(matchers.anything(), matchers.anything())).thenResolve(true)
 	}
 
 	o.spec("unsubscribe", function () {
@@ -145,52 +153,125 @@ o.spec("MailViewerViewModel", function () {
 			return viewModel
 		}
 
-		async function testHeaderUnsubscribe(headers: string, expected: Array<string>) {
+		async function testHeaderUnsubscribePost(headers: string, expectedUrl: string, expectedPostResult: boolean) {
 			const viewModel = initUnsubscribeHeaders(headers)
+			const unsubscribeActions = await viewModel.determineUnsubscribeOrder()
 
-			const result = await viewModel.unsubscribe()
-			verify(mailModel.unsubscribe(mail, "ma@tuta.com", expected), { times: 1 })
-			o(result).equals(true)
+			const unsubscribeAction = unsubscribeActions.shift()!
+			const postResult = await viewModel.unsubscribePost(unsubscribeAction)
+
+			if (!isBrowser()) {
+				verify(commonSystemFacade.executePostRequest(unsubscribeAction.postUrl, "List-Unsubscribe: One-Click"), { times: expectedPostResult ? 1 : 0 })
+			} else {
+				verify(mailModel.unsubscribe(mail, unsubscribeAction.postUrl))
+			}
+			o(unsubscribeAction.postUrl).equals(expectedUrl)
+			o(postResult).equals(expectedPostResult)
 		}
 
-		o.spec("url", function () {
-			o("easy case", async function () {
-				const headers = "List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"
-				await testHeaderUnsubscribe(headers, [headers])
+		o.spec("list-unsubscribe http url", function () {
+			o("with GET unsubscribe url", async function () {
+				const headers = ["List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
+				const expectedGetUrl = "http://unsub.me?id=2134"
+				await testHeaderUnsubscribePost(headers.join("\r\n"), expectedGetUrl, false)
 			})
 			o("with POST", async function () {
 				const headers = [
 					"List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>",
 					"List-Unsubscribe-Post: List-Unsubscribe=One-Click",
 				]
-				await testHeaderUnsubscribe(headers.join("\r\n"), headers)
+				const expectedPostUrl = "http://unsub.me?id=2134"
+				await testHeaderUnsubscribePost(headers.join("\r\n"), expectedPostUrl, true)
 			})
-			o("with whitespace", async function () {
-				const headers = ["List-Unsubscribe:      <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				const expected = ["List-Unsubscribe:      <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				await testHeaderUnsubscribe(headers.join("\r\n"), expected)
+			o("with POST whitespace", async function () {
+				const headers = [
+					"List-Unsubscribe:      <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>",
+					"List-Unsubscribe-Post: List-Unsubscribe=One-Click",
+				]
+				const expectedPostUrl = "http://unsub.me?id=2134"
+				await testHeaderUnsubscribePost(headers.join("\r\n"), expectedPostUrl, true)
 			})
-			o("with tab", async function () {
-				const headers = ["List-Unsubscribe:\t <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				const expected = ["List-Unsubscribe:\t <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				await testHeaderUnsubscribe(headers.join("\r\n"), expected)
+			o("with POST tab", async function () {
+				const headers = [
+					"List-Unsubscribe:\t <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>",
+					"List-Unsubscribe-Post: List-Unsubscribe=One-Click",
+				]
+				const expectedPostUrl = "http://unsub.me?id=2134"
+				await testHeaderUnsubscribePost(headers.join("\r\n"), expectedPostUrl, true)
 			})
-			o("with newline whitespace", async function () {
-				const headers = ["List-Unsubscribe: \r\n <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				const expected = ["List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				await testHeaderUnsubscribe(headers.join("\r\n"), expected)
+			o("with POST newline whitespace", async function () {
+				const headers = [
+					"List-Unsubscribe: \r\n <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>",
+					"List-Unsubscribe-Post: List-Unsubscribe=One-Click",
+				]
+				const expectedPostUrl = "http://unsub.me?id=2134"
+				await testHeaderUnsubscribePost(headers.join("\r\n"), expectedPostUrl, true)
 			})
-			o("with newline tab", async function () {
-				const headers = ["List-Unsubscribe: \r\n\t<http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				const expected = ["List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				await testHeaderUnsubscribe(headers.join("\r\n"), expected)
+			o("with POST newline tab", async function () {
+				const headers = [
+					"List-Unsubscribe: \r\n\t<http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>",
+					"List-Unsubscribe-Post: List-Unsubscribe=One-Click",
+				]
+				const expectedPostUrl = "http://unsub.me?id=2134"
+				await testHeaderUnsubscribePost(headers.join("\r\n"), expectedPostUrl, true)
 			})
 			o("no list unsubscribe header", async function () {
 				const headers = "To: InvalidHeader"
 				const viewModel = initUnsubscribeHeaders(headers)
-				const result = await viewModel.unsubscribe()
-				verify(mailModel.unsubscribe(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
-				o(result).equals(false)
+				const unsubscribeActions = await viewModel.determineUnsubscribeOrder()
+				o(unsubscribeActions.length).equals(0)
+				verify(mailModel.unsubscribe(matchers.anything(), matchers.anything()), { times: 0 })
+				verify(commonSystemFacade.executePostRequest(matchers.anything(), matchers.anything()), { times: 0 })
+			})
+			o("determineUnsubscribeOrder with mailto", async function () {
+				const headers = ["List-Unsubscribe: \t<mailto:unsubscribe@newsletter.de>"]
+				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
+				const unsubOrder = await viewModel.determineUnsubscribeOrder()
+				o(unsubOrder.length).equals(1)
+				o(unsubOrder[0].postUrl).equals("mailto:unsubscribe@newsletter.de")
+				o(unsubOrder[0].type).equals(UnsubscribeType.MAILTO_UNSUBSCRIBE)
+			})
+			o("determineUnsubscribeOrder with post", async function () {
+				const headers = ["List-Unsubscribe: \t<http://unsub.me?id=2134>", "List-Unsubscribe-Post: One-Click"]
+				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
+				const unsubOrder = await viewModel.determineUnsubscribeOrder()
+				o(unsubOrder.length).equals(1)
+				o(unsubOrder[0].postUrl).equals("http://unsub.me?id=2134")
+				o(unsubOrder[0].type).equals(UnsubscribeType.HTTP_POST_UNSUBSCRIBE)
+			})
+			o("determineUnsubscribeOrder with get", async function () {
+				const headers = ["List-Unsubscribe: \t<http://unsub.me?id=2134>"]
+				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
+				const unsubOrder = await viewModel.determineUnsubscribeOrder()
+				o(unsubOrder.length).equals(1)
+				o(unsubOrder[0].postUrl).equals("http://unsub.me?id=2134")
+				o(unsubOrder[0].type).equals(UnsubscribeType.HTTP_GET_UNSUBSCRIBE)
+			})
+			o("determineUnsubscribeOrder with get + mailto", async function () {
+				const headers = ["List-Unsubscribe: \t<http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
+				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
+				const unsubOrder = await viewModel.determineUnsubscribeOrder()
+				o(unsubOrder.length).equals(2)
+				o(unsubOrder[0].postUrl).equals("http://unsub.me?id=2134")
+				o(unsubOrder[0].type).equals(UnsubscribeType.HTTP_GET_UNSUBSCRIBE)
+				o(unsubOrder[1].postUrl).equals("mailto:unsubscribe@newsletter.de")
+				o(unsubOrder[1].type).equals(UnsubscribeType.MAILTO_UNSUBSCRIBE)
+			})
+			o("determineUnsubscribeOrder with post + mailto", async function () {
+				const headers = ["List-Unsubscribe: \t<http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>", "List-Unsubscribe-Post: One-Click"]
+				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
+				const unsubOrder = await viewModel.determineUnsubscribeOrder()
+				o(unsubOrder.length).equals(2)
+				o(unsubOrder[0].postUrl).equals("http://unsub.me?id=2134")
+				o(unsubOrder[0].type).equals(UnsubscribeType.HTTP_POST_UNSUBSCRIBE)
+				o(unsubOrder[1].postUrl).equals("mailto:unsubscribe@newsletter.de")
+				o(unsubOrder[1].type).equals(UnsubscribeType.MAILTO_UNSUBSCRIBE)
+			})
+			o("determineUnsubscribeOrder with invalid prefixes are not parsed", async function () {
+				const headers = ["List-Unsubscribe: \t<invalid-http-postUrl>, <invalid-mailto-postUrl>", "List-Unsubscribe-Post: One-Click"]
+				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
+				const unsubOrder = await viewModel.determineUnsubscribeOrder()
+				o(unsubOrder.length).equals(0)
 			})
 		})
 	})
