@@ -16,4 +16,7 @@ export class CommonSystemFacadeSendDispatcher implements CommonSystemFacade {
 	async getLog(...args: Parameters<CommonSystemFacade["getLog"]>) {
 		return this.transport.invokeNative("ipc", ["CommonSystemFacade", "getLog", ...args])
 	}
+	async executePostRequest(...args: Parameters<CommonSystemFacade["executePostRequest"]>) {
+		return this.transport.invokeNative("ipc", ["CommonSystemFacade", "executePostRequest", ...args])
+	}
 }

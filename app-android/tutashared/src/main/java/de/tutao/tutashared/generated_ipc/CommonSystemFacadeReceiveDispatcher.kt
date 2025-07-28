@@ -31,6 +31,15 @@ class CommonSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"executePostRequest" -> {
+				val postUrl: String = json.decodeFromString(arg[0])
+				val body: String = json.decodeFromString(arg[1])
+				val result: Boolean = this.facade.executePostRequest(
+					postUrl,
+					body,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for CommonSystemFacade: $method")
 		}
 	}

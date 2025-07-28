@@ -23,4 +23,11 @@ public protocol CommonSystemFacade {
 	 */
 	func getLog(
 	) async throws -> String
+	/**
+	 * Executes a POST request on native (e.g. for list-unsubscribe post).
+	 */
+	func executePostRequest(
+		_ postUrl: String,
+		_ body: String
+	) async throws -> Bool
 }

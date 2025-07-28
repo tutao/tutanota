@@ -28,10 +28,12 @@ import stream from "mithril/stream"
 import {
 	addAll,
 	assertNonNull,
+	assertNotNull,
 	contains,
 	downcast,
 	filterInt,
 	first,
+	isEmpty,
 	lazyAsync,
 	noOp,
 	ofClass,
@@ -78,6 +80,9 @@ import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUti
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { mailLocator } from "../../mailLocator.js"
 import { UndoModel } from "../../UndoModel"
+import { isBrowser } from "../../../common/api/common/Env"
+import { CommonSystemFacade } from "../../../common/native/common/generatedipc/CommonSystemFacade"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -85,6 +90,17 @@ export const enum ContentBlockingStatus {
 	AlwaysShow = "2",
 	NoExternalContent = "3",
 	AlwaysBlock = "4",
+}
+
+export type UnsubscribeAction = {
+	type: UnsubscribeType
+	postUrl: string
+}
+
+export const enum UnsubscribeType {
+	HTTP_POST_UNSUBSCRIBE = "HTTP_POST_UNSUBSCRIBE",
+	HTTP_GET_UNSUBSCRIBE = "HTTP_GET_UNSUBSCRIBE",
+	MAILTO_UNSUBSCRIBE = "MAILTO_UNSUBSCRIBE",
 }
 
 export class MailViewerViewModel {
@@ -134,6 +150,7 @@ export class MailViewerViewModel {
 		readonly entityClient: EntityClient,
 		public readonly mailboxModel: MailboxModel,
 		public readonly mailModel: MailModel,
+		public readonly commonSystemFacade: Nullable<CommonSystemFacade>,
 		readonly contactModel: ContactModel,
 		private readonly configFacade: ConfigurationDatabase,
 		private readonly fileController: FileController,
@@ -583,10 +600,6 @@ export class MailViewerViewModel {
 		}
 	}
 
-	isListUnsubscribe(): boolean {
-		return this.mail.listUnsubscribe
-	}
-
 	isAnnouncement(): boolean {
 		const replyTos = this.mailDetails?.replyTos
 		return (
@@ -596,26 +609,109 @@ export class MailViewerViewModel {
 		)
 	}
 
-	async unsubscribe(): Promise<boolean> {
+	isListUnsubscribe(): boolean {
+		return this.mail.listUnsubscribe
+	}
+
+	hasListUnsubscribeHeader(): boolean {
+		if (this.mailDetails == null) {
+			return false
+		}
+		const mailHeaders = loadMailHeaders(this.mailDetails)
+		if (mailHeaders == null) {
+			return false
+		}
+		const listUnsubscribeHeaders = mailHeaders
+			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
+			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
+			.split("\n") // split headers
+			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
+		return !isEmpty(listUnsubscribeHeaders)
+	}
+
+	async determineUnsubscribeOrder(): Promise<Array<UnsubscribeAction>> {
+		const mailHeaders = await this.getHeaders()
+		const unsubscribeActions: Array<UnsubscribeAction> = []
+		if (!mailHeaders) {
+			return unsubscribeActions
+		}
+
+		const listUnsubscribeHeaders = mailHeaders
+			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
+			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
+			.split("\n") // split headers
+			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
+
+		if (isEmpty(listUnsubscribeHeaders)) {
+			return unsubscribeActions
+		}
+
+		const unsubPostHeader = mailHeaders
+			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
+			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
+			.split("\n") // split headers
+			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe-post"))
+
+		const [_, ...value] = listUnsubscribeHeaders[0].split(":")
+		const headerValue = value.join(":")
+		const links = headerValue.split(/,(?![^<>]*>)/)
+
+		for (const link of links) {
+			const trimmedLink = link.trim()
+			if (trimmedLink.startsWith("<http") && trimmedLink.endsWith(">")) {
+				unsubscribeActions.push({
+					postUrl: trimmedLink.slice(1, -1),
+					type: unsubPostHeader.length > 0 ? UnsubscribeType.HTTP_POST_UNSUBSCRIBE : UnsubscribeType.HTTP_GET_UNSUBSCRIBE,
+				})
+			} else if (trimmedLink.startsWith("<mailto:") && trimmedLink.endsWith(">")) {
+				unsubscribeActions.push({
+					postUrl: trimmedLink.slice(1, -1),
+					type: UnsubscribeType.MAILTO_UNSUBSCRIBE,
+				})
+			}
+		}
+
+		// http links have priority over mailto links
+		const sortedActions: UnsubscribeAction[] = []
+
+		const httpAction = unsubscribeActions.find(
+			(action) => action.type === UnsubscribeType.HTTP_POST_UNSUBSCRIBE || action.type === UnsubscribeType.HTTP_GET_UNSUBSCRIBE,
+		)
+		if (httpAction) {
+			sortedActions.push(httpAction)
+		}
+
+		const mailToAction = unsubscribeActions.find((action) => action.type === UnsubscribeType.MAILTO_UNSUBSCRIBE)
+		if (mailToAction) {
+			sortedActions.push(mailToAction)
+		}
+
+		return sortedActions
+	}
+
+	async unsubscribePost(unsubscribeAction: UnsubscribeAction): Promise<boolean> {
 		if (!this.isListUnsubscribe()) {
 			return false
 		}
 
-		const mailHeaders = await this.getHeaders()
-		if (!mailHeaders) {
+		if (unsubscribeAction.type !== UnsubscribeType.HTTP_POST_UNSUBSCRIBE) {
 			return false
 		}
-		const unsubHeaders = mailHeaders
-			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
-			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
-			.split("\n") // split headers
-			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe"))
-		if (unsubHeaders.length > 0) {
-			const recipient = await this.getSenderOfResponseMail()
-			await this.mailModel.unsubscribe(this.mail, recipient, unsubHeaders)
+
+		const unsubscribePostUrl = assertNotNull(unsubscribeAction.postUrl)
+		if (isBrowser()) {
+			// In case we are on the webApp we can not execute the POST request directly
+			// from the client. However, the user is informed that the list unsubscribe url will
+			// be sent to our server in this case.
+			await this.mailModel.unsubscribe(this.mail, unsubscribePostUrl)
 			return true
 		} else {
-			return false
+			const isPostRequestSuccessful = await assertNotNull(this.commonSystemFacade).executePostRequest(unsubscribePostUrl, "List-Unsubscribe: One-Click")
+			if (isPostRequestSuccessful) {
+				this.mail.listUnsubscribe = false
+				await this.entityClient.update(this.mail)
+			}
+			return isPostRequestSuccessful
 		}
 	}
 
@@ -623,7 +719,7 @@ export class MailViewerViewModel {
 		return this.highlightedStrings
 	}
 
-	private getMailboxDetails(): Promise<MailboxDetail | null> {
+	getMailboxDetails(): Promise<MailboxDetail | null> {
 		return this.mailModel.getMailboxDetailsForMail(this.mail)
 	}
 

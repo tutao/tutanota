@@ -12,13 +12,29 @@
 		},
 		"reload": {
 			"doc": "Reload the webpage with the specified query arguments.",
-			"arg": [{ "query": "Map<string, string>" }],
+			"arg": [
+				{
+					"query": "Map<string, string>"
+				}
+			],
 			"ret": "void"
 		},
 		"getLog": {
 			"doc": "Returns the log contents of the native process.",
 			"arg": [],
 			"ret": "string"
+		},
+		"executePostRequest": {
+			"doc": "Executes a POST request on native (e.g. for list-unsubscribe post).",
+			"arg": [
+				{
+					"postUrl": "string"
+				},
+				{
+					"body": "string"
+				}
+			],
+			"ret": "boolean"
 		}
 	}
 }

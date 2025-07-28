@@ -10,11 +10,15 @@ enum InitState {
 class IosCommonSystemFacade: CommonSystemFacade {
 
 	private let viewController: ViewController
+	private let urlSession: URLSession
 	private var initialized = CurrentValueSubject<InitState, Never>(.waitingForInit)
 	// according to the docs the return value of sink should be held
 	// because otherwise the stream will be canceled
 	private var cancellables: [AnyCancellable] = []
-	init(viewController: ViewController) { self.viewController = viewController }
+	init(viewController: ViewController, urlSession: URLSession) {
+		self.viewController = viewController
+		self.urlSession = urlSession
+	}
 
 	func initializeRemoteBridge() async throws { self.initialized.send(.initReceived) }
 
@@ -36,5 +40,20 @@ class IosCommonSystemFacade: CommonSystemFacade {
 
 			self.cancellables.append(cancellable)
 		}
+	}
+
+	func executePostRequest(_ postUrl: String, _ body: String) async throws -> Bool {
+		let httpClient = URLSessionHttpClient(session: self.urlSession)
+		var request = URLRequest(url: URL(string: postUrl)!)
+		request.httpBody = body.data(using: .utf8)
+		request.setValue("text/plain", forHTTPHeaderField: "Content-Type")
+		request.setValue("\(body.lengthOfBytes(using: .utf8))", forHTTPHeaderField: "Content-Length")
+		let (data, httpResponse) = try await httpClient.fetch(
+			url: request.url!,
+			method: HttpMethod.post,
+			headers: request.allHTTPHeaderFields!,
+			body: request.httpBody
+		)
+		return httpResponse.statusCode >= 200 && httpResponse.statusCode < 300
 	}
 }

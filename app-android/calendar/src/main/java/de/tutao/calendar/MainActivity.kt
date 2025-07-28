@@ -152,7 +152,7 @@ class MainActivity : FragmentActivity() {
 		themeFacade = AndroidThemeFacade(this, this)
 
 		sqlCipherFacade = AndroidSqlCipherFacade(this)
-		commonSystemFacade = AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir)
+		commonSystemFacade = AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir, NetworkUtils.defaultClient)
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
 
