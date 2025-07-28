@@ -1782,10 +1782,8 @@ impl Entity for PhotosRef {
 pub struct ListUnsubscribeData {
 	#[serde(rename = "868")]
 	pub _format: i64,
-	#[serde(rename = "870")]
-	pub recipient: String,
 	#[serde(rename = "871")]
-	pub headers: String,
+	pub postLink: String,
 	#[serde(rename = "869")]
 	pub mail: IdTupleGenerated,
 }
