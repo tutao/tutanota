@@ -24,7 +24,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::string::ToString;
 use std::sync::Arc;
-use time::{OffsetDateTime, Time, UtcOffset};
+use time::{OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
 
 // To keep the SDK decoupled and dependency free we decided to handle translations on native side
 pub const DEFAULT_CALENDAR_NAME: &str = "";
@@ -161,10 +161,23 @@ impl CalendarFacade {
 			},
 		};
 
-		let (timestamp_start, timestamp_end) = match self.parse_date_to_all_day_range(date) {
+		let Ok(offset) = UtcOffset::current_local_offset() else {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: "Failed to determine device time offset".to_string(),
+			});
+		};
+
+		let (timestamp_start, timestamp_end) = match self.parse_date_to_all_day_range(date, offset)
+		{
 			Ok(value) => value,
 			Err(err) => return Err(err),
 		};
+
+		let today = OffsetDateTime::from_unix_timestamp(
+			DateTime::from_millis(timestamp_start).as_seconds() as i64,
+		)
+		.unwrap()
+		.to_offset(offset);
 
 		let mut short_events: Vec<CalendarEvent> = Vec::new();
 		let mut long_events: Vec<CalendarEvent> = Vec::new();
@@ -204,6 +217,7 @@ impl CalendarFacade {
 			let mut filtered_short_events = self.filter_events_in_range(
 				date.as_millis(),
 				timestamp_end,
+				&today,
 				&mut unwraped_short_events,
 			);
 			short_events.append(&mut filtered_short_events);
@@ -283,6 +297,7 @@ impl CalendarFacade {
 			let mut filtered_long_events = self.filter_events_in_range(
 				date.as_millis(),
 				timestamp_end,
+				&today,
 				&mut unwraped_long_events,
 			);
 
@@ -311,16 +326,31 @@ impl CalendarFacade {
 		&self,
 		date: DateTime,
 	) -> Result<CalendarEventsList, ApiCallError> {
-		let (timestamp_start, timestamp_end) = match self.parse_date_to_all_day_range(date) {
+		let Ok(offset) = UtcOffset::current_local_offset() else {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: "Failed to determine device time offset".to_string(),
+			});
+		};
+
+		let (timestamp_start, timestamp_end) = match self.parse_date_to_all_day_range(date, offset)
+		{
 			Ok(value) => value,
 			Err(err) => return Err(err),
 		};
+
+		let today = OffsetDateTime::from_unix_timestamp(
+			DateTime::from_millis(timestamp_start).as_seconds() as i64,
+		)
+		.unwrap()
+		.replace_offset(offset);
 
 		let birthday_events: Vec<BirthdayEvent> = self
 			.generate_birthdays()
 			.await?
 			.into_iter()
-			.filter(|ev| self.is_event_in_range(&ev.calendar_event, timestamp_start, timestamp_end))
+			.filter(|ev| {
+				self.is_event_in_range(&ev.calendar_event, timestamp_start, timestamp_end, &today)
+			})
 			.collect();
 
 		Ok(CalendarEventsList {
@@ -330,13 +360,11 @@ impl CalendarFacade {
 		})
 	}
 
-	fn parse_date_to_all_day_range(&self, date: DateTime) -> Result<(u64, u64), ApiCallError> {
-		let Ok(offset) = UtcOffset::current_local_offset() else {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: "Failed to determine device time offset".to_string(),
-			});
-		};
-
+	fn parse_date_to_all_day_range(
+		&self,
+		date: DateTime,
+		offset: UtcOffset,
+	) -> Result<(u64, u64), ApiCallError> {
 		let date_in_seconds = (date.as_millis() / 1000) as i64;
 
 		let parsed_date = match OffsetDateTime::from_unix_timestamp(date_in_seconds) {
@@ -378,11 +406,12 @@ impl CalendarFacade {
 		&self,
 		timestamp_start: u64,
 		timestamp_end: u64,
+		today: &OffsetDateTime,
 		events: &mut [CalendarEvent],
 	) -> Vec<CalendarEvent> {
 		events
 			.iter()
-			.filter(|&event| self.is_event_in_range(event, timestamp_start, timestamp_end))
+			.filter(|&event| self.is_event_in_range(event, timestamp_start, timestamp_end, today))
 			.map(|event| event.to_owned())
 			.collect()
 	}
@@ -392,7 +421,19 @@ impl CalendarFacade {
 		event: &CalendarEvent,
 		timestamp_start: u64,
 		timestamp_end: u64,
+		today: &OffsetDateTime,
 	) -> bool {
+		let is_event_all_day =
+			EventFacade::is_all_day_event_by_times(event.startTime, event.endTime);
+		let event_date =
+			OffsetDateTime::from_unix_timestamp(event.startTime.as_seconds() as i64).unwrap();
+
+		if is_event_all_day {
+			return event_date.date().year() == today.date().year()
+				&& event_date.date().month() == today.date().month()
+				&& event_date.date().day() == today.date().day();
+		}
+
 		(event.startTime.as_millis() >= timestamp_start
 			|| event.endTime.as_millis() > timestamp_start)
 			&& event.startTime.as_millis() < timestamp_end

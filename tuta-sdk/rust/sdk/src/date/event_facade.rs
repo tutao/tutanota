@@ -280,7 +280,8 @@ impl EventFacade {
 		max_date: Option<DateTime>,
 		time_zone: String,
 	) -> Result<Vec<DateTime>, ApiCallError> {
-		let is_all_day_event = self.is_all_day_event_by_times(event_start_time, event_end_time);
+		let is_all_day_event =
+			EventFacade::is_all_day_event_by_times(event_start_time, event_end_time);
 		let set_pos_rules: Vec<&ByRule> = repeat_rule
 			.by_rules
 			.iter()
@@ -293,9 +294,19 @@ impl EventFacade {
 			});
 		};
 
+		let Ok(start_time_to_offset) =
+			&OffsetDateTime::from_unix_timestamp(event_start_time.as_seconds() as i64)
+		else {
+			return Err(ApiCallError::InternalSdkError {
+				error_message: format!(
+					"Failed to parse offset for start time {}",
+					event_start_time.as_seconds()
+				),
+			});
+		};
+
 		let calc_event_start = if is_all_day_event {
-			let all_day_event =
-				EventFacade::get_all_day_time(&event_start_time, tz.get_offset_primary().to_utc())?;
+			let all_day_event = EventFacade::get_all_day_time(&event_start_time)?;
 
 			all_day_event
 		} else {
@@ -304,10 +315,8 @@ impl EventFacade {
 
 		let end_date = if end_type == EndType::UntilDate {
 			if is_all_day_event {
-				let all_day_event = EventFacade::get_all_day_time(
-					&DateTime::from_millis(end_value.unwrap()),
-					tz.get_offset_primary().to_utc(),
-				)?;
+				let all_day_event =
+					EventFacade::get_all_day_time(&DateTime::from_millis(end_value.unwrap()))?;
 
 				Some(all_day_event)
 			} else {
@@ -320,9 +329,7 @@ impl EventFacade {
 		let transformed_excluded_dates = if is_all_day_event {
 			excluded_dates
 				.iter()
-				.filter_map(|date| {
-					EventFacade::get_all_day_time(date, tz.get_offset_primary().to_utc()).ok()
-				})
+				.filter_map(|date| EventFacade::get_all_day_time(date).ok())
 				.collect()
 		} else {
 			excluded_dates
@@ -1205,11 +1212,7 @@ impl EventFacade {
 		new_date.replace_day(target_day).unwrap()
 	}
 
-	pub fn is_all_day_event_by_times(
-		&self,
-		event_start_time: DateTime,
-		event_end_time: DateTime,
-	) -> bool {
+	pub fn is_all_day_event_by_times(event_start_time: DateTime, event_end_time: DateTime) -> bool {
 		let Ok(start) = OffsetDateTime::from_unix_timestamp(event_start_time.as_seconds() as i64)
 		else {
 			return false;
@@ -1227,7 +1230,7 @@ impl EventFacade {
 		start_fits && end_fits
 	}
 
-	pub fn get_all_day_time(date: &DateTime, offset: UtcOffset) -> Result<DateTime, ApiCallError> {
+	pub fn get_all_day_time(date: &DateTime) -> Result<DateTime, ApiCallError> {
 		let Ok(date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
 			eprintln!(
 				"Failed to get all day time for date {:?}",
@@ -1243,8 +1246,7 @@ impl EventFacade {
 		};
 
 		Ok(DateTime::from_seconds(
-			date.to_offset(offset)
-				.replace_time(Time::from_hms(0, 0, 0).unwrap())
+			date.replace_time(Time::from_hms(0, 0, 0).unwrap())
 				.unix_timestamp()
 				.unsigned_abs(),
 		))
@@ -1308,19 +1310,17 @@ impl EventFacade {
 
 		// Set up start and end date base on UTC.
 		// Also increments a copy of startDate by one day and set it as endDate
-		let Ok(start_date) = EventFacade::get_all_day_time(
-			&DateTime::from_seconds(offset_date_time_start_time.unix_timestamp() as u64),
-			offset,
-		) else {
+		let Ok(start_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
+			offset_date_time_start_time.unix_timestamp() as u64,
+		)) else {
 			return Err(ApiCallError::internal(
 				"Failed to parse event StartTime".to_string(),
 			));
 		};
 
-		let Ok(end_date) = EventFacade::get_all_day_time(
-			&DateTime::from_seconds(offset_date_time_end_time.unix_timestamp() as u64),
-			offset,
-		) else {
+		let Ok(end_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
+			offset_date_time_end_time.unix_timestamp() as u64,
+		)) else {
 			return Err(ApiCallError::internal(
 				"Failed to parse event EndTime".to_string(),
 			));
