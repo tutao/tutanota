@@ -869,7 +869,6 @@ export default {
 		"keyManagement.keyVerification_label": "Schlüsselverifikation",
 		"keyManagement.keyVerification_subtitle_label": "Hier können Sie Ihre vertrauten Schlüssel verwalten.",
 		"keyManagement.mailRecipientsVerificationMismatchError_msg": "Diese E-Mail konnte nicht gesendet werden, da die Schlüsselüberprüfung für die unten aufgeführten Empfänger fehlgeschlagen ist. Der Versand bleibt deaktiviert, bis diese Empfänger entfernt oder ihre Schlüssel erneut verifiziert wurden.",
-		"keyManagement.markAsVerified_action": "Kontakt vertrauen",
 		"keyManagement.publicKeyFingerprintQrInfo_msg": "Dies ist der Fingerabdruck des zu diesem Nutzerkonto gehörenden öffentlichen Schlüssels, dargestellt als QR-Code.",
 		"keyManagement.publicKeyFingerprintTextInfo_msg": "Dies ist der Fingerabdruck des zu diesem Nutzerkonto gehörenden öffentlichen Schlüssels.",
 		"keyManagement.publicKeyFingerprint_label": "Öffentlicher Schlüssel",
@@ -2092,6 +2091,5 @@ export default {
         "fingerprintMismatchRecommendationTofu_msg": "Wenn Sie sicher sind, dass Ihr Kontakt Ihnen den aktuellen Schlüssel zeigt, können Sie den vertrauten Schlüssel aus Ihrer lokalen Datenbank löschen und die Verifikation mit einem frischen Schlüssel vom Server erneut versuchen.",
         "fingerprintMismatchTofuWarning_msg": "Das ist ein mögliches Sicherheitsrisiko. Es ist möglich, dass irgendjemand Ihre vorherige Konversation mit diesem Kontakt abgehört hat. Es kann auch eine legitime Änderung sein, <b>aber nur</b> wenn die E-Mail-Adresse einem anderen Benutzer zugewiesen wurde.",
         "fingerprintMismatchTofu_msg": "Der Fingerabdruck, den Sie von Ihrem Kontakt bekommen haben, stimmt nicht mit dem überein, der auf Ihrem Gerät seit Ihrem ersten Gebrauch der Adresse <br><b>{mailAddress}</b><br> gespeichert ist.",
-        "keyManagement.doNotTrust_action": "Nicht vertrauen",
     }
 }

@@ -865,7 +865,6 @@ export default {
 		"keyManagement.keyVerification_label": "Key verification",
 		"keyManagement.keyVerification_subtitle_label": "Here you can manage your trusted keys.",
 		"keyManagement.mailRecipientsVerificationMismatchError_msg": "This email couldn't be sent because key verification failed for the recipients listed below. Sending remains disabled until those recipients have been removed or their keys re-verified.",
-		"keyManagement.markAsVerified_action": "Trust contact",
 		"keyManagement.publicKeyFingerprintQrInfo_msg": "This is the fingerprint of the public key associated with your user account, embedded in a QR code.",
 		"keyManagement.publicKeyFingerprintTextInfo_msg": "This is the fingerprint of the public key associated with your user account.",
 		"keyManagement.publicKeyFingerprint_label": "Public key",
@@ -887,7 +886,7 @@ export default {
 		"keyManagement.unverifiedRecipient_msg": "This recipient's public key does not match the expected one:",
 		"keyManagement.verificationByQrCodeScan_label": "Scan the QR code you received from your contact.",
 		"keyManagement.verificationByTextMailAdress_label": "Enter the Tuta email address of the contact you would like to verify.",
-		"keyManagement.verificationByText_label": "Compare the fingerprint displayed below to the one you received from the contact. Click only on \"{button1}\" if both fingerprints match. Otherwise click \"{button2}\".",
+		"keyManagement.verificationByText_label": "Ask your contact to go to {settings} -> {keyManagement}.\nIs the fingerprint below the same as the one your contact sees?",
         "keyManagement.verificationError_title": "Contact verification failed",
         "keyManagement.verificationPool_label": "Verified contacts",
         "keyManagement.verifyMailAddress_action": "Add and verify an email address",
@@ -2088,6 +2087,5 @@ export default {
         "fingerprintMismatchRecommendationTofu_msg": "If you are sure that your contact is showing you their current key, you can remove the trusted key from your local database and retry verification with a fresh key from the server.",
         "fingerprintMismatchTofuWarning_msg": "This is a potential security risk and it might be that someone has intercepted your previous conversation with this contact. It could also be a legitimate change <b>only</b> if the account behind this contact assigned the email address to another user.",
         "fingerprintMismatchTofu_msg": "The fingerprint you received from your contact is different from the one that is saved on your device since your first use of the address <br><b>{mailAddress}</b>.",
-        "keyManagement.doNotTrust_action": "Do not trust",
     }
 }

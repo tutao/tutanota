@@ -843,8 +843,6 @@ export type TranslationKeyType =
 	| "keyManagement.keyVerification_label"
 	| "keyManagement.keyVerification_subtitle_label"
 	| "keyManagement.mailRecipientsVerificationMismatchError_msg"
-	| "keyManagement.markAsVerified_action"
-	| "keyManagement.doNotTrust_action"
 	| "keyManagement.publicKeyFingerprintQrInfo_msg"
 	| "keyManagement.publicKeyFingerprintTextInfo_msg"
 	| "keyManagement.publicKeyFingerprint_label"

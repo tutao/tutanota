@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { TextFieldType } from "../../../gui/base/TextField"
-import { MonospaceTextDisplay } from "../../../gui/base/MonospaceTextDisplay"
 import { lang, TranslationKey } from "../../../misc/LanguageViewModel"
 import { Card } from "../../../gui/base/Card"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
@@ -8,13 +7,14 @@ import { Icons } from "../../../gui/base/icons/Icons"
 import { ButtonColor, getColors } from "../../../gui/base/Button"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton"
 import { KeyVerificationModel } from "../KeyVerificationModel"
-import { Icon } from "../../../gui/base/Icon"
+import { Icon, IconSize } from "../../../gui/base/Icon"
 import { theme } from "../../../gui/theme"
 import { debounce } from "@tutao/tutanota-utils"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
 import { getCleanedMailAddress } from "../../../misc/parsing/MailAddressParser"
 import { BootIcons } from "../../../gui/base/icons/BootIcons"
 import { TitleSection } from "../../../gui/TitleSection"
+import { FingerprintRow } from "../FingerprintRow"
 
 type VerificationByTextPageAttrs = {
 	model: KeyVerificationModel
@@ -32,8 +32,6 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 		const { model, goToSuccessPage } = vnode.attrs
 
 		const publicIdentity = model.getPublicIdentity()
-		const markAsVerifiedTranslationKey: TranslationKey = "keyManagement.markAsVerified_action"
-		const doNotTrustTranslationKey: TranslationKey = "keyManagement.doNotTrust_action"
 
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
@@ -82,27 +80,27 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 							m(
 								".pl-vpad-s",
 								lang.get("keyManagement.verificationByText_label", {
-									"{button1}": lang.get(markAsVerifiedTranslationKey),
-									"{button2}": lang.get(doNotTrustTranslationKey),
+									"{settings}": lang.get("settings_label"),
+									"{keyManagement}": lang.get("keyManagement_label"),
 								}),
 							),
-							m(MonospaceTextDisplay, {
-								text: publicIdentity.fingerprint,
-								placeholder: lang.get("keyManagement.invalidMailAddress_msg"),
-								chunkSize: 4,
-								border: false,
-								classes: ".mb-s",
+							m(FingerprintRow, {
+								mailAddress: publicIdentity.mailAddress,
+								publicKeyType: publicIdentity.trustDbEntry.publicIdentityKey.object.type,
+								publicKeyFingerprint: publicIdentity.fingerprint,
+								publicKeyVersion: publicIdentity.trustDbEntry.publicIdentityKey.version,
 							}),
 						),
 						m(LoginButton, {
 							class: "success-bg flex-center row center-vertically",
-							label: markAsVerifiedTranslationKey,
+							label: "yes_label",
 							onclick: async () => {
 								await model.trust(IdentityKeyVerificationMethod.text)
 								goToSuccessPage()
 							},
 							icon: m(Icon, {
 								icon: Icons.XCheckmark,
+								size: IconSize.Large,
 								class: "mr-s flex-center",
 								style: {
 									fill: theme.success_container,
@@ -111,12 +109,13 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 						}),
 						m(LoginButton, {
 							class: "error-bg flex-center row center-vertically",
-							label: doNotTrustTranslationKey,
+							label: "no_label",
 							onclick: async () => {
 								vnode.attrs.gotToMismatchPage()
 							},
 							icon: m(Icon, {
 								icon: Icons.XCross,
+								size: IconSize.Large,
 								class: "mr-s flex-center",
 								style: {
 									fill: theme.error_container,

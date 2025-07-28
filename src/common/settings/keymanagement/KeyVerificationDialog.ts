@@ -108,7 +108,7 @@ export async function showKeyVerificationDialog(
 						lastError = err
 						navigateToPage(KeyVerificationDialogPages.ERROR)
 					},
-					gotToMismatchPage: () => navigateToPage(KeyVerificationDialogPages.FINGERPRINT_MISMATCH_INFO),
+					goToMismatchPage: () => navigateToPage(KeyVerificationDialogPages.FINGERPRINT_MISMATCH_INFO),
 				}),
 				title: lang.get("keyManagement.keyVerification_label"),
 				leftAction: {
