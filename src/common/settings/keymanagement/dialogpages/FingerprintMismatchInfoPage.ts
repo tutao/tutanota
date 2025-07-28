@@ -63,10 +63,11 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 					await vnode.attrs.model.deleteAndReloadTrustedKey()
 					vnode.attrs.goToDeletePage()
 				},
+				class: "flex-center row center-vertically",
 				icon: m(Icon, {
 					icon: Icons.Trash,
 					size: IconSize.Medium,
-					class: "mr-s",
+					class: "mr-s flex-center",
 					style: {
 						fill: theme.content_button_icon,
 					},
