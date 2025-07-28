@@ -133,6 +133,7 @@ export class SecondFactorAuthDialog {
 									codeFieldValue: this.otpState.code,
 									inProgress: this.otpState.inProgress,
 									onValueChanged: (newValue) => (this.otpState.code = newValue),
+									onConfirmOtp: () => this.onConfirmOtp(),
 								}
 							: null,
 						onRecover: mailAddress ? () => this.recoverLogin(mailAddress) : null,

@@ -148,6 +148,7 @@ export class SecondFactorEditDialog {
 				helpLabel: () => this.statusMessage(),
 				autocompleteAs: Autocomplete.oneTimeCode,
 				oninput: (newValue) => this.model.onTotpValueChange(newValue),
+				onReturnKeyPressed: () => this.model.save(),
 			}),
 		])
 	}

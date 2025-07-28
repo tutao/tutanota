@@ -25,6 +25,7 @@ type OtpParams = {
 	codeFieldValue: string
 	inProgress: boolean
 	onValueChanged: (arg0: string) => unknown
+	onConfirmOtp: () => unknown
 }
 export type SecondFactorViewAttrs = {
 	otp: OtpParams | null
@@ -59,6 +60,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 				autocompleteAs: Autocomplete.oneTimeCode,
 				oninput: (value) => otp.onValueChanged(value.trim()),
 				injectionsRight: () => (otp.inProgress ? m(".mr-s", progressIcon()) : null),
+				onReturnKeyPressed: () => otp.onConfirmOtp(),
 			}),
 		)
 	}
