@@ -1,3 +1,6 @@
+/**
+ * This supports negative n values. Native remainder operation does not
+ */
 export function mod(n: number, m: number): number {
 	return ((n % m) + m) % m
 }
