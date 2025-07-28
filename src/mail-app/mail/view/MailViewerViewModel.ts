@@ -33,6 +33,7 @@ import {
 	downcast,
 	filterInt,
 	first,
+	getFirstOrThrow,
 	lazyAsync,
 	noOp,
 	ofClass,
@@ -607,18 +608,40 @@ export class MailViewerViewModel {
 		if (!mailHeaders) {
 			return false
 		}
-		const unsubHeaders = mailHeaders
+		const unsubscribeHeaderValue = mailHeaders
 			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
 			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
 			.split("\n") // split headers
-			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe"))
-		if (unsubHeaders.length > 0) {
-			const recipient = await this.getSenderOfResponseMail()
-			await this.mailModel.unsubscribe(this.mail, recipient, unsubHeaders)
+			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
+
+		const unsubPostHeader = mailHeaders
+			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
+			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
+			.split("\n") // split headers
+			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe-post"))
+		if (unsubPostHeader.length > 0) {
+			const [header, ...value] = unsubscribeHeaderValue[0].split(":")
+			await this.mailModel.unsubscribe(this.mail, this.parseListUnsubscribeHeader(value.join(":")))
 			return true
 		} else {
 			return false
 		}
+	}
+
+	private parseListUnsubscribeHeader(unsubscribeHeaderValue: string): string {
+		if (!unsubscribeHeaderValue) return ""
+
+		const links = unsubscribeHeaderValue.split(/,(?![^<>]*>)/)
+
+		for (const link of links) {
+			const trimmedLink = link.trim()
+
+			if (trimmedLink.startsWith("<http") && trimmedLink.endsWith(">")) {
+				return trimmedLink.slice(1, -1)
+			}
+		}
+
+		return ""
 	}
 
 	getHighlightedStrings(): readonly SearchToken[] {
