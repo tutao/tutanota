@@ -18,4 +18,9 @@ export interface CommonSystemFacade {
 	 * Returns the log contents of the native process.
 	 */
 	getLog(): Promise<string>
+
+	/**
+	 * Executes a POST request on native (e.g. for list-unsubscribe post).
+	 */
+	executePostRequest(postUrl: string, body: string): Promise<boolean>
 }

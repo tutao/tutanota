@@ -65,7 +65,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 			if #available(iOS 16.4, *) { webView.isInspectable = true }
 		#endif
 
-		let commonSystemFacade = IosCommonSystemFacade(viewController: self)
+		let commonSystemFacade = IosCommonSystemFacade(viewController: self, urlSession: urlSession)
 		self.bridge = RemoteBridge(
 			webView: self.webView,
 			viewController: self,

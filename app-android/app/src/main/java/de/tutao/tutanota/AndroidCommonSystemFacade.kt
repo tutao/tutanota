@@ -4,15 +4,21 @@ import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.ipc.CommonSystemFacade
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import kotlinx.coroutines.CompletableDeferred
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.apache.commons.io.IOUtils
 import java.io.File
 import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 class AndroidCommonSystemFacade(
 	private val activity: MainActivity,
 	private val sqlCipherFacade: SqlCipherFacade,
-	private val tempDir: TempDir
+	private val tempDir: TempDir,
+	private val httpClient: OkHttpClient
 ) : CommonSystemFacade {
 
 	@Volatile
@@ -53,6 +59,26 @@ class AndroidCommonSystemFacade(
 		logFile.delete()
 
 		return text
+	}
+
+	override suspend fun executePostRequest(postUrl: String, body: String): Boolean {
+		val requestBuilder = Request.Builder()
+			.url(postUrl)
+			.post(body.toRequestBody())
+
+		val req = requestBuilder.build()
+
+		val response = httpClient
+			.newBuilder()
+			.connectTimeout(5, TimeUnit.SECONDS)
+			.writeTimeout(5, TimeUnit.SECONDS)
+			.readTimeout(5, TimeUnit.SECONDS)
+			.build()
+			.newCall(req)
+			.execute()
+
+		val responseCode = response.code
+		return responseCode in 200..299
 	}
 
 	suspend fun awaitForInit() {

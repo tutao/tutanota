@@ -24,6 +24,14 @@ public class CommonSystemFacadeReceiveDispatcher {
 			let result = try await self.facade.getLog(
 			)
 			return toJson(result)
+		case "executePostRequest":
+			let postUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let body = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
+			let result = try await self.facade.executePostRequest(
+				postUrl,
+				body
+			)
+			return toJson(result)
 		default:
 			fatalError("licc messed up! \(method)")
 		}

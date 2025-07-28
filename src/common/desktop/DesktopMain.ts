@@ -313,7 +313,7 @@ async function createComponents(): Promise<Components> {
 	const dispatcherFactory: DispatcherFactory = (window: ApplicationWindow) => {
 		// @ts-ignore
 		const logger: Logger = global.logger
-		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger)
+		const desktopCommonSystemFacade = new DesktopCommonSystemFacade(window, logger, desktopNet)
 		const sqlCipherFacade = new PerWindowSqlCipherFacade(offlineDbRefCounter)
 		const mailboxExportPersistence = new MailboxExportPersistence(conf)
 		const windowCleanup: WindowCleanup = {

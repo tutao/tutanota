@@ -230,6 +230,13 @@ export class MailFacade {
 		}
 	}
 
+	async updateListUnsubscribe(mail: Mail): Promise<void> {
+		if (mail.listUnsubscribe !== null) {
+			mail.listUnsubscribe = false
+			await this.entityClient.update(mail)
+		}
+	}
+
 	/**
 	 * Updates a mail folder's parent, if needed
 	 * @param newParent - if this is the same as the folder's current parent, nothing is done
@@ -1018,11 +1025,10 @@ export class MailFacade {
 		await this.serviceExecutor.delete(MailService, deleteMailData)
 	}
 
-	async unsubscribe(mailId: IdTuple, recipient: string, headers: string[]) {
+	async unsubscribe(mailId: IdTuple, postUrl: string) {
 		const postData = createListUnsubscribeData({
 			mail: mailId,
-			recipient,
-			headers: headers.join("\n"),
+			postLink: postUrl,
 		})
 		await this.serviceExecutor.post(ListUnsubscribeService, postData)
 	}
