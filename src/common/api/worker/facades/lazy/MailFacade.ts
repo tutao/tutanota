@@ -1018,11 +1018,10 @@ export class MailFacade {
 		await this.serviceExecutor.delete(MailService, deleteMailData)
 	}
 
-	async unsubscribe(mailId: IdTuple, recipient: string, headers: string[]) {
+	async unsubscribe(mailId: IdTuple, headers: string) {
 		const postData = createListUnsubscribeData({
 			mail: mailId,
-			recipient,
-			headers: headers.join("\n"),
+			headers: headers,
 		})
 		await this.serviceExecutor.post(ListUnsubscribeService, postData)
 	}

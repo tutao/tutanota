@@ -143,51 +143,52 @@ o.spec("MailViewerViewModel", function () {
 			return viewModel
 		}
 
-		async function testHeaderUnsubscribe(headers: string, expected: Array<string>) {
+		async function testHeaderUnsubscribe(headers: string, expected: string, isPost: boolean) {
 			const viewModel = initUnsubscribeHeaders(headers)
 
 			const result = await viewModel.unsubscribe()
-			verify(mailModel.unsubscribe(mail, "ma@tuta.com", expected), { times: 1 })
-			o(result).equals(true)
+			verify(mailModel.unsubscribe(mail, expected), { times: isPost ? 1 : 0 })
+			o(result).equals(isPost)
 		}
 
 		o.spec("url", function () {
 			o("easy case", async function () {
 				const headers = "List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"
-				await testHeaderUnsubscribe(headers, [headers])
+				await testHeaderUnsubscribe(headers, headers, false)
 			})
 			o("with POST", async function () {
 				const headers = [
 					"List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>",
 					"List-Unsubscribe-Post: List-Unsubscribe=One-Click",
 				]
-				await testHeaderUnsubscribe(headers.join("\r\n"), headers)
+				const expected = "http://unsub.me?id=2134"
+				await testHeaderUnsubscribe(headers.join("\r\n"), expected, true)
 			})
 			o("with whitespace", async function () {
 				const headers = ["List-Unsubscribe:      <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				const expected = ["List-Unsubscribe:      <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				await testHeaderUnsubscribe(headers.join("\r\n"), expected)
+				const expected = "http://unsub.me?id=2134>"
+				await testHeaderUnsubscribe(headers.join("\r\n"), expected, false)
 			})
 			o("with tab", async function () {
 				const headers = ["List-Unsubscribe:\t <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				const expected = ["List-Unsubscribe:\t <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				await testHeaderUnsubscribe(headers.join("\r\n"), expected)
+				const expected = "http://unsub.me?id=2134>"
+				await testHeaderUnsubscribe(headers.join("\r\n"), expected, false)
 			})
 			o("with newline whitespace", async function () {
 				const headers = ["List-Unsubscribe: \r\n <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				const expected = ["List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				await testHeaderUnsubscribe(headers.join("\r\n"), expected)
+				const expected = "http://unsub.me?id=2134>"
+				await testHeaderUnsubscribe(headers.join("\r\n"), expected, false)
 			})
 			o("with newline tab", async function () {
 				const headers = ["List-Unsubscribe: \r\n\t<http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				const expected = ["List-Unsubscribe: <http://unsub.me?id=2134>, <mailto:unsubscribe@newsletter.de>"]
-				await testHeaderUnsubscribe(headers.join("\r\n"), expected)
+				const expected = "http://unsub.me?id=2134>"
+				await testHeaderUnsubscribe(headers.join("\r\n"), expected, false)
 			})
 			o("no list unsubscribe header", async function () {
 				const headers = "To: InvalidHeader"
 				const viewModel = initUnsubscribeHeaders(headers)
 				const result = await viewModel.unsubscribe()
-				verify(mailModel.unsubscribe(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+				verify(mailModel.unsubscribe(matchers.anything(), matchers.anything()), { times: 0 })
 				o(result).equals(false)
 			})
 		})

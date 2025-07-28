@@ -534,8 +534,8 @@ export class MailModel {
 		await this.mailFacade.clearFolder(folder._id)
 	}
 
-	async unsubscribe(mail: Mail, recipient: string, headers: string[]) {
-		await this.mailFacade.unsubscribe(mail._id, recipient, headers)
+	async unsubscribe(mail: Mail, headers: string) {
+		await this.mailFacade.unsubscribe(mail._id, headers)
 	}
 
 	async saveReportMovedMails(mailboxGroupRoot: MailboxGroupRoot, reportMovedMails: ReportMovedMailsType): Promise<MailboxProperties> {
