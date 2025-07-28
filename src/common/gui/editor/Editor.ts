@@ -91,7 +91,7 @@ export class Editor implements ImageHandler, Component {
 	}
 
 	view(): Children {
-		return m(".selectable", {
+		return m(".selectable.text_editor", {
 			role: "textbox",
 			"aria-multiline": "true",
 			"data-testid": "text_editor",
