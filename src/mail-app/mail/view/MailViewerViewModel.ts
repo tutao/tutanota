@@ -854,7 +854,7 @@ export class MailViewerViewModel {
 
 		const mailSubject = this.getSubject() || ""
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(mailSubject)
-		let body = infoLine + '<br><br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
+		const body = infoLine + '<br><br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
 		const { prependEmailSignature } = await import("../signature/Signature")
 		const senderMailAddress = await this.getSenderOfResponseMail()
 		return {
@@ -890,14 +890,14 @@ export class MailViewerViewModel {
 				address: mailAddressAndName.address,
 				contact: null,
 			})
-			let prefix = "Re: "
+			const prefix = "Re: "
 			const mailSubject = this.getSubject()
-			let subject = mailSubject ? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()) ? mailSubject : prefix + mailSubject) : ""
-			let infoLine = formatDateTime(this.getDate()) + " " + lang.get("by_label") + " " + sender.address + ":"
-			let body = infoLine + '<br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
-			let toRecipients: MailAddress[] = []
-			let ccRecipients: MailAddress[] = []
-			let bccRecipients: MailAddress[] = []
+			const subject = mailSubject ? (startsWith(mailSubject.toUpperCase(), prefix.toUpperCase()) ? mailSubject : prefix + mailSubject) : ""
+			const infoLine = formatDateTime(this.getDate()) + " " + lang.get("by_label") + " " + sender.address + ":"
+			const body = infoLine + '<br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
+			const toRecipients: MailAddress[] = []
+			const ccRecipients: MailAddress[] = []
+			const bccRecipients: MailAddress[] = []
 
 			if (!this.logins.getUserController().isInternalUser() && this.isReceivedMail()) {
 				toRecipients.push(sender)
