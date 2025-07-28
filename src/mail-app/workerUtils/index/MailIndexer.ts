@@ -180,11 +180,6 @@ export class MailIndexer {
 		}
 	}
 
-	disableMailIndexing(): void {
-		this._mailIndexingEnabled = false
-		this.abortController.abort("disableMailIndexing")
-	}
-
 	cancelMailIndexing() {
 		this.abortController.abort("cancelMailIndexing")
 	}

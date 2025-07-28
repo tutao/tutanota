@@ -297,7 +297,7 @@ export class IndexedDbIndexer implements Indexer {
 		// pause the queue immediately
 		this.eventQueue.pause()
 		// signal mail indexer that it should stop and abort any processing
-		this.mailIndexer.disableMailIndexing()
+		this.mailIndexer.cancelMailIndexing()
 		// make core abort any operations
 		this.core.stopProcessing()
 		// wait for queue to become empty
@@ -348,18 +348,18 @@ export class IndexedDbIndexer implements Indexer {
 		this.eventQueue.start()
 	}
 
-	private reCreateIndex(): Promise<void> {
+	private async reCreateIndex(): Promise<void> {
 		const mailIndexingWasEnabled = this.mailIndexer.mailIndexingEnabled
-		this.mailIndexer.disableMailIndexing()
+		this.mailIndexer.cancelMailIndexing()
+		await this.deleteIndex(this.initParams.user._id)
 		// do not try to init again on error
-		return this.fullLoginInit({
+		await this.fullLoginInit({
 			user: this.initParams.user,
 			retryOnError: false,
-		}).then(() => {
-			if (mailIndexingWasEnabled) {
-				return this.enableMailIndexing()
-			}
 		})
+		if (mailIndexingWasEnabled) {
+			await this.enableMailIndexing()
+		}
 	}
 
 	private async createIndexTables(user: User, userGroupKey: VersionedKey): Promise<void> {
@@ -447,21 +447,19 @@ export class IndexedDbIndexer implements Indexer {
 	 * If the user was removed from a contact or mail group the function throws a CancelledError to delete the complete mail index afterwards.
 	 * @private visibleForTesting
 	 */
-	_updateGroups(user: User, groupDiff: GroupDiff): Promise<void> {
+	async _updateGroups(user: User, groupDiff: GroupDiff): Promise<void> {
 		if (groupDiff.deletedGroups.some((g) => g.type === GroupType.Mail || g.type === GroupType.Contact)) {
-			return Promise.reject(new MembershipRemovedError("user has been removed from contact or mail group")) // user has been removed from a shared group
-		} else if (groupDiff.newGroups.length > 0) {
-			return this._loadGroupData(
-				user,
-				groupDiff.newGroups.map((g) => g.id),
-			).then((groupBatches: LoadedGroupData[]) => {
-				return this.db.dbFacade.createTransaction(false, [GroupDataOS]).then((t) => {
-					return this._initGroupData(groupBatches, t)
-				})
-			})
+			throw new MembershipRemovedError("user has been removed from contact or mail group") // user has been removed from a shared group
 		}
 
-		return Promise.resolve()
+		if (groupDiff.newGroups.length > 0) {
+			const groupBatches = await this._loadGroupData(
+				user,
+				groupDiff.newGroups.map((g) => g.id),
+			)
+			const transaction = await this.db.dbFacade.createTransaction(false, [GroupDataOS])
+			await this._initGroupData(groupBatches, transaction)
+		}
 	}
 
 	/**
