@@ -19,7 +19,7 @@ export type MailFolderRowAttrs = {
 	rightButton?: IconButtonAttrs | null
 	expanded: boolean | null
 	indentationLevel: number
-	onExpanderClick: () => unknown
+	onExpanderClick: (event: Event) => unknown
 	folder: MailFolder
 	hasChildren: boolean
 	onSelectedPath: boolean
@@ -94,7 +94,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				}),
 				this.renderHierarchyLine(vnode.attrs, indentationMargin),
 				m(
-					"button.flex.items-center.justify-end" + (editMode || !hasChildren ? ".no-hover" : ""),
+					"button.flex.items-center.justify-end" + (editMode ? ".no-hover" : ""),
 					{
 						style: {
 							left: px(indentationMargin),
