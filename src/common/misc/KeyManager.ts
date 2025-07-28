@@ -89,8 +89,13 @@ function isFocusable(e: HTMLElement) {
 	}
 	return (
 		e.style.display !== "none" &&
-		// check that none of the parents have hidden=true or aria-hidden=true
-		e.closest("[hidden]:not([hidden=false]), [aria-hidden]:not([aria-hidden=false]), [inert]:not([inert=false])") == null
+		e.closest(
+			// check that none of the parents have hidden=true or aria-hidden=true
+			`[hidden]:not([hidden=false]), [aria-hidden]:not([aria-hidden=false]), [inert]:not([inert=false])${
+				// links inside contenteditable aren't focusable without an explicit tabindex
+				e.tagName === "A" && e.getAttribute("tabindex") == null ? ", [contenteditable='true']" : ""
+			}`,
+		) == null
 	)
 }
 
@@ -150,7 +155,16 @@ export function focusNext(dom: HTMLElement): boolean {
 	return true
 }
 
-function createKeyIdentifier(key: string, modifiers?: { ctrlOrCmd?: boolean; ctrl?: boolean; alt?: boolean; shift?: boolean; meta?: boolean }): string {
+function createKeyIdentifier(
+	key: string,
+	modifiers?: {
+		ctrlOrCmd?: boolean
+		ctrl?: boolean
+		alt?: boolean
+		shift?: boolean
+		meta?: boolean
+	},
+): string {
 	return (
 		key +
 		(modifiers?.ctrlOrCmd ? "X" : "") +
