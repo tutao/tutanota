@@ -8,7 +8,7 @@ import { elementIdPart, getElementId } from "../../../common/api/common/utils/En
 import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../../common/gui/base/NavButton.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange.js"
 import { MailFolderRow } from "./MailFolderRow.js"
-import { last, noOp, Thunk } from "@tutao/tutanota-utils"
+import { last, Thunk } from "@tutao/tutanota-utils"
 import { MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
@@ -96,21 +96,22 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			const id = getElementId(system.folder)
 			const folderName = getFolderName(system.folder)
 			const fullFolderPath = this.getPathToFolderAsString(folders, system.folder)
+			const href = () => {
+				if (attrs.inEditMode) {
+					return m.route.get()
+				} else {
+					const folderElementId = getElementId(system.folder)
+					const mailId = attrs.mailFolderElementIdToSelectedMailId.get(folderElementId)
+					if (mailId) {
+						return `${MAIL_PREFIX}/${folderElementId}/${mailId}`
+					} else {
+						return `${MAIL_PREFIX}/${folderElementId}`
+					}
+				}
+			}
 			const button: NavButtonAttrs = {
 				label: lang.makeTranslation(`folder:${fullFolderPath}`, folderName),
-				href: () => {
-					if (attrs.inEditMode) {
-						return m.route.get()
-					} else {
-						const folderElementId = getElementId(system.folder)
-						const mailId = attrs.mailFolderElementIdToSelectedMailId.get(folderElementId)
-						if (mailId) {
-							return `${MAIL_PREFIX}/${folderElementId}/${mailId}`
-						} else {
-							return `${MAIL_PREFIX}/${folderElementId}`
-						}
-					}
-				},
+				href,
 				isSelectedPrefix: attrs.inEditMode ? false : MAIL_PREFIX + "/" + getElementId(system.folder),
 				colors: NavButtonColor.Nav,
 				click: () => attrs.onFolderClick(system.folder),
@@ -146,7 +147,12 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 						rightButton,
 						expanded: hasChildren ? currentExpansionState : null,
 						indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),
-						onExpanderClick: hasChildren ? () => attrs.onFolderExpanded(system.folder, currentExpansionState) : noOp,
+						onExpanderClick: hasChildren
+							? () => attrs.onFolderExpanded(system.folder, currentExpansionState)
+							: (event: Event) => {
+									event.preventDefault()
+									m.route.set(href())
+								},
 						hasChildren,
 						onSelectedPath: path.includes(system.folder),
 						numberOfPreviousRows: result.numRows,
