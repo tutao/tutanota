@@ -16,6 +16,7 @@ export const size = {
 	core_96: 96,
 	core_112: 112,
 	core_128: 128,
+	// FIXME: Keep the icon size tokens, but update is needed to align IconSize enum and the corresponding class names
 	icon_size_xxl: 64,
 	icon_size_xl: 32,
 	icon_size_large: 24,
@@ -23,6 +24,7 @@ export const size = {
 	icon_size_medium: 16,
 	icon_size_small: 12,
 	icon_message_box: 80,
+	// FIXME: Update all of hpads and vpads to use core or base sizes
 	hpad_small: 5,
 	hpad: 10,
 	hpad_medium: 20,
@@ -42,6 +44,7 @@ export const size = {
 	vpad_xl: 48,
 	vpad_xxl: 64,
 	text_bubble_tpad: 20,
+	// FIXME: Not replacing by sizes, we should define the tokens specially for the radius
 	border_radius_small: 3,
 	border_radius: 6,
 	border_radius_medium: 8,
@@ -51,6 +54,7 @@ export const size = {
 	font_size_base: 16,
 	font_size_smaller: 14,
 	font_size_small: 12,
+	// FIXME: Maybe replace the component sizes with core sizes?
 	button_height: 44,
 	button_height_accent: 40,
 	button_height_bubble: 30,
