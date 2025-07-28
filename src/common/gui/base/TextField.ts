@@ -40,6 +40,9 @@ export type TextFieldAttrs = {
 	fontSize?: string
 	min?: number
 	max?: number
+
+	/** This is called whenever the return key is pressed; overrides keyHandler */
+	onReturnKeyPressed?: () => unknown
 }
 
 export const enum TextFieldType {
@@ -274,6 +277,11 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						},
 						onblur: (e: FocusEvent) => this.blur(e, a),
 						onkeydown: (e: KeyboardEvent) => {
+							if (a.onReturnKeyPressed != null && e.key?.toLowerCase() === Keys.RETURN.code) {
+								a.onReturnKeyPressed()
+								return false
+							}
+
 							const handled = useKeyHandler(e, a.keyHandler)
 							if (!isKeyPressed(e.key, Keys.F1, Keys.TAB, Keys.ESC)) {
 								// When we are in a text field we don't want keys propagated up to act as hotkeys
