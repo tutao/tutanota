@@ -15,7 +15,7 @@ import {
 	SYSTEM_GROUP_MAIL_ADDRESS,
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
-import { reportMailsAutomatically } from "./MailReportDialog"
+import { actuallyReportMails, getReportConfirmation } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { FileController } from "../../../common/file/FileController"
@@ -88,18 +88,18 @@ interface MoveMailsParams {
 	undoFolder?: MailFolder | null
 }
 
-async function reportMails(
+async function getReportAnswer(
 	system: FolderSystem,
 	targetMailFolder: MailFolder,
 	isReportable: boolean,
-	mails: () => Promise<readonly Mail[]>,
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
-	skipShowingSnackbar: boolean,
-): Promise<void> {
+): Promise<boolean> {
 	if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) && isReportable) {
 		const mailboxDetails = await mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
-		await reportMailsAutomatically(MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails, mails, skipShowingSnackbar)
+		return getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails)
+	} else {
+		return false
 	}
 }
 
@@ -203,6 +203,7 @@ export async function moveMails({
 
 		let undone = false
 		let skipShowingSnackbar = false
+		const shouldReportMails = await getReportAnswer(system, targetFolder, isReportable, mailboxModel, mailModel)
 
 		// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
 		// user to undo the move...
@@ -224,8 +225,8 @@ export async function moveMails({
 				}
 			}
 		}
-		if (!undone) {
-			await reportMails(system, targetFolder, isReportable, resolveMails, mailboxModel, mailModel, skipShowingSnackbar)
+		if (!undone && shouldReportMails) {
+			await actuallyReportMails(MailReportType.SPAM, mailModel, resolveMails, skipShowingSnackbar)
 			return true
 		} else {
 			return false

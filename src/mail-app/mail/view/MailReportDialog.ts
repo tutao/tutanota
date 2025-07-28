@@ -69,42 +69,58 @@ export async function reportMailsAutomatically(
 	mails: () => Promise<ReadonlyArray<Mail>>,
 	skipShowingSnackbar: boolean = false,
 ): Promise<void> {
+	const shouldReportMails = await getReportConfirmation(mailReportType, mailboxModel, mailModel, mailboxDetails)
+	if (shouldReportMails) {
+		await actuallyReportMails(mailReportType, mailModel, mails, skipShowingSnackbar)
+	}
+}
+
+export async function getReportConfirmation(
+	mailReportType: MailReportType,
+	mailboxModel: MailboxModel,
+	mailModel: MailModel,
+	mailboxDetails: MailboxDetail,
+): Promise<boolean> {
 	if (mailReportType !== MailReportType.SPAM) {
-		return
+		return false
 	}
 
 	const mailboxProperties = await mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-	let allowUndoing = !skipShowingSnackbar // decides if a snackbar is shown to prevent the server request
-
 	let isReportable = false
 
 	if (!mailboxProperties || mailboxProperties.reportMovedMails === ReportMovedMailsType.ALWAYS_ASK) {
 		isReportable = await confirmMailReportDialog(mailModel, mailboxDetails)
-		allowUndoing = false
 	} else if (mailboxProperties.reportMovedMails === ReportMovedMailsType.AUTOMATICALLY_ONLY_SPAM) {
 		isReportable = true
 	} else if (mailboxProperties.reportMovedMails === ReportMovedMailsType.NEVER) {
 		// no report
 	}
 
-	if (isReportable) {
-		// only show the snackbar to undo the report if the user was not asked already
-		if (allowUndoing) {
-			let undoClicked = false
-			showSnackBar({
-				message: "undoMailReport_msg",
-				button: {
-					label: "cancel_action",
-					click: () => (undoClicked = true),
-				},
-				onClose: () => {
-					if (!undoClicked) {
-						mailModel.reportMails(mailReportType, mails)
-					}
-				},
-			})
-		} else {
-			mailModel.reportMails(mailReportType, mails)
-		}
+	return isReportable
+}
+
+export async function actuallyReportMails(
+	mailReportType: MailReportType,
+	mailModel: MailModel,
+	mails: () => Promise<ReadonlyArray<Mail>>,
+	skipShowingSnackbar: boolean = false,
+): Promise<void> {
+	// decides if a snackbar is shown to prevent the server request
+	if (skipShowingSnackbar) {
+		mailModel.reportMails(mailReportType, mails)
+	} else {
+		let undoClicked = false
+		showSnackBar({
+			message: "undoMailReport_msg",
+			button: {
+				label: "cancel_action",
+				click: () => (undoClicked = true),
+			},
+			onClose: () => {
+				if (!undoClicked) {
+					mailModel.reportMails(mailReportType, mails)
+				}
+			},
+		})
 	}
 }
