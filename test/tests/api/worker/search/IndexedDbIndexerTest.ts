@@ -21,7 +21,7 @@ import { GENERATED_MAX_ID, getElementId, timestampToGeneratedId } from "../../..
 import { daysToMillis, defer, freshVersioned, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import o from "@tutao/otest"
-import { func, matchers, object, verify, when } from "testdouble"
+import { func, matchers, object, reset, verify, when } from "testdouble"
 import { CacheInfo } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer.js"
@@ -1327,7 +1327,6 @@ o.spec("IndexedDbIndexer", () => {
 			// for re-init
 			when(keyLoaderFacade.loadSymUserGroupKey(0)).thenResolve(userGroupKey.object)
 			when(mailIndexer.doInitialMailIndexing(matchers.anything())).thenResolve()
-			when(mailIndexer.disableMailIndexing()).thenResolve()
 			indexer = indexerTemplate
 			const t = await idbStub.createTransaction()
 			t.put(GroupDataOS, userGroupId, { groupType: GroupType.User })
@@ -1433,9 +1432,27 @@ o.spec("IndexedDbIndexer", () => {
 		})
 
 		o.spec("disableMailIndexing", function () {
-			o.test("it deletes the index and initializes again", async function () {
+			o.test("when not stopped processing", async function () {
+				verify(mailIndexer.init(user), { times: 1 }) // one was from the initial init
+				when(core.isStoppedProcessing()).thenReturn(false)
+
 				await indexer.disableMailIndexing()
-				verify(mailIndexer.disableMailIndexing())
+				verify(core.isStoppedProcessing())
+				verify(mailIndexer.cancelMailIndexing())
+				verify(dbWithStub.dbFacade.deleteDatabase(user._id))
+
+				verify(mailIndexer.init(user), { times: 2 }) // +1 when disableMailIndexing was called
+			})
+			o.test("when stopped processing", async function () {
+				verify(mailIndexer.init(user), { times: 1 }) // one was from the initial init
+				when(core.isStoppedProcessing()).thenReturn(true)
+
+				await indexer.disableMailIndexing()
+				verify(core.isStoppedProcessing())
+				verify(mailIndexer.cancelMailIndexing(), { times: 0 })
+				verify(dbWithStub.dbFacade.deleteDatabase(matchers.anything()), { times: 0 })
+
+				verify(mailIndexer.init(matchers.anything()), { times: 1 }) // no additional calls
 			})
 		})
 	})
@@ -1454,7 +1471,7 @@ o.spec("IndexedDbIndexer", () => {
 		const deletePromise = indexerTemplate.deleteIndex(userId)
 		await queueWaitCalled
 		verify(queue.pause())
-		verify(mailIndexer.disableMailIndexing())
+		verify(mailIndexer.cancelMailIndexing())
 		verify(core.stopProcessing())
 		o.check(idbStub.deleted).equals(false)
 		queueWaitDone.resolve()

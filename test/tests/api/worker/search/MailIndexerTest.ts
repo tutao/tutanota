@@ -135,11 +135,6 @@ o.spec("MailIndexer", () => {
 		})
 	})
 
-	o.test("disableMailIndexing", async function () {
-		await initWithEnabled(true)
-		await indexer.disableMailIndexing()
-	})
-
 	o.spec("indexMailboxes", function () {
 		// from dateProvider above for current time (2019-04-08T10:53:47.674Z)
 
