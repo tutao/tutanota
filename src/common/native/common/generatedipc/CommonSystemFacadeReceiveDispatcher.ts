@@ -16,6 +16,11 @@ export class CommonSystemFacadeReceiveDispatcher {
 			case "getLog": {
 				return this.facade.getLog()
 			}
+			case "executePostRequest": {
+				const postUrl: string = arg[0]
+				const body: string = arg[1]
+				return this.facade.executePostRequest(postUrl, body)
+			}
 		}
 	}
 }

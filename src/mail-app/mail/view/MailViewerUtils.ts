@@ -1,6 +1,6 @@
 import { Keys, MailReportType, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
-import { $Promisable, assertNotNull, groupByAndMap, neverNull, promiseMap } from "@tutao/tutanota-utils"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
+import { $Promisable, assertNotNull, groupByAndMap, isEmpty, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
 import m from "mithril"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
@@ -9,7 +9,7 @@ import { checkApprovalStatus } from "../../../common/misc/LoginUtils.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
-import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
+import { ContentBlockingStatus, MailViewerViewModel, UnsubscribeAction, UnsubscribeType } from "./MailViewerViewModel.js"
 import { DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { client } from "../../../common/misc/ClientDetector.js"
@@ -25,9 +25,9 @@ import { getDisplayedSender } from "../../../common/api/common/CommonMailUtils.j
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 
 import { ListFilter } from "../../../common/misc/ListModel.js"
-import { isDesktop } from "../../../common/api/common/Env.js"
+import { isApp, isBrowser, isDesktop } from "../../../common/api/common/Env.js"
 import { isDraft } from "../model/MailChecks.js"
-import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
+import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { exportMails } from "../export/Exporter"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -35,6 +35,9 @@ import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander
 import { ColumnWidth, Table } from "../../../common/gui/base/Table"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
+import { ContentWithOptionsDialog } from "../../../common/gui/dialogs/ContentWithOptionsDialog"
+import { Card } from "../../../common/gui/base/Card"
+import { theme } from "../../../common/gui/theme"
 
 export type MailViewerMoreActions = {
 	disallowExternalContentAction?: () => void
@@ -399,20 +402,110 @@ function mailViewerMoreActions({
 	return moreButtons
 }
 
-function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
-	return showProgressDialog("pleaseWait_msg", viewModel.unsubscribe())
-		.then((success) => {
-			if (success) {
-				return Dialog.message("unsubscribeSuccessful_msg")
-			}
-		})
-		.catch((e) => {
-			if (e instanceof LockedError) {
-				return Dialog.message("operationStillActive_msg")
-			} else {
-				return Dialog.message("unsubscribeFailed_msg")
-			}
-		})
+export async function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
+	const unsubscribeOrder = await viewModel.determineUnsubscribeOrder()
+	await showUnsubscribeDialog(unsubscribeOrder, viewModel, false)
+}
+
+async function showUnsubscribeDialog(unsubscribeOrder: Array<UnsubscribeAction>, viewModel: MailViewerViewModel, secondAttempt: boolean): Promise<void> {
+	let nextUnsubscribeAction = unsubscribeOrder.shift()
+	if (nextUnsubscribeAction == null) {
+		return Dialog.showUnsubscribeFinishedDialog(false)
+	}
+
+	const dialogAttrs = getUnsubscribeDialogAttrForUnsubscribeType(nextUnsubscribeAction.type)
+
+	const dialogHeaderBarAttrs: DialogHeaderBarAttrs = {
+		left: [
+			{
+				type: ButtonType.Secondary,
+				label: "cancel_action",
+				click: () => {
+					dialog.close()
+				},
+			},
+		],
+		middle: secondAttempt ? "unsubscribeSecondAttempt_label" : dialogAttrs.heading,
+	}
+
+	const dialogContent = [
+		m(Card, m("", m("p.h4.m-0", lang.get(dialogAttrs.subHeading)), m("p.mt-s", lang.get(dialogAttrs.text)))),
+		m(
+			Card,
+			m(
+				"p.m-0.mt-s",
+				nextUnsubscribeAction.type !== UnsubscribeType.HTTP_POST_UNSUBSCRIBE
+					? nextUnsubscribeAction.postUrl
+					: isBrowser()
+						? lang.get("unsubscribeHttpPostInfoWeb_msg")
+						: lang.get("unsubscribeHttpPostInfoApp_msg"),
+			),
+		),
+	]
+
+	const dialog = new Dialog(DialogType.EditMedium, {
+		view: () =>
+			m(
+				".flex.col.border-radius",
+				{
+					style: {
+						height: "100%",
+						"background-color": theme.navigation_bg,
+					},
+				},
+				[
+					dialogHeaderBarAttrs.noHeader ? null : m(DialogHeaderBar, dialogHeaderBarAttrs),
+					m(
+						".scroll.hide-outline.plr-l.flex-grow",
+						{ style: { "overflow-x": "hidden" } },
+						m(
+							ContentWithOptionsDialog,
+							{
+								mainActionText: dialogAttrs.button,
+								mainActionClick: async () => {
+									if (nextUnsubscribeAction.type === UnsubscribeType.MAILTO_UNSUBSCRIBE) {
+										const { newMailtoUrlMailEditor } = await import("../editor/MailEditor")
+										const newMailDialog = await newMailtoUrlMailEditor(
+											nextUnsubscribeAction.postUrl!,
+											false,
+											assertNotNull(await viewModel.getMailboxDetails()),
+										)
+										dialog.close()
+										newMailDialog.show()
+									} else if (nextUnsubscribeAction.type === UnsubscribeType.HTTP_GET_UNSUBSCRIBE) {
+										if (isApp()) {
+											mailLocator.systemFacade.openLink(nextUnsubscribeAction.postUrl)
+										} else {
+											open(nextUnsubscribeAction.postUrl)
+										}
+										dialog.close()
+									} else {
+										showProgressDialog("unsubscribing_msg", viewModel.unsubscribePost(nextUnsubscribeAction))
+											.then((result) => Dialog.showUnsubscribeFinishedDialog(result))
+											.catch((e) => {
+												if (e instanceof LockedError) {
+													return Dialog.message("operationStillActive_msg")
+												} else {
+													if (isEmpty(unsubscribeOrder)) {
+														return Dialog.showUnsubscribeFinishedDialog(false)
+													}
+													return showUnsubscribeDialog(unsubscribeOrder, viewModel, true)
+												}
+											})
+										dialog.close()
+									}
+								},
+								subActionText: null,
+								subActionClick: () => {},
+							},
+							dialogContent,
+						),
+					),
+				],
+			),
+	})
+
+	dialog.show()
 }
 
 export function showReportMailDialog(onReport: (type: MailReportType) => unknown) {
@@ -488,6 +581,39 @@ export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
 		return getMailAddressDisplayText(recipient.name, recipient.address, preferNameOnly) + (recipientCount > 1 ? ", ..." : "")
 	} else {
 		return ""
+	}
+}
+
+type UnsubscribeDialogAttrs = {
+	heading: TranslationKey
+	subHeading: TranslationKey
+	text: TranslationKey
+	button: TranslationKey
+}
+
+function getUnsubscribeDialogAttrForUnsubscribeType(unsubscribeType: UnsubscribeType): UnsubscribeDialogAttrs {
+	switch (unsubscribeType) {
+		case UnsubscribeType.HTTP_POST_UNSUBSCRIBE:
+			return {
+				heading: "unsubscribe_action",
+				subHeading: "unsubscribeAutomatically_label",
+				text: "unsubscribeHttpPost_msg",
+				button: "unsubscribe_action",
+			}
+		case UnsubscribeType.HTTP_GET_UNSUBSCRIBE:
+			return {
+				heading: "unsubscribeManually_label",
+				subHeading: "unsubscribeViaLink_label",
+				text: "unsubscribeHttpGet_msg",
+				button: "unsubscribeHttpGet_action",
+			}
+		case UnsubscribeType.MAILTO_UNSUBSCRIBE:
+			return {
+				heading: "unsubscribeManually_label",
+				subHeading: "unsubscribeViaMail_label",
+				text: "unsubscribeMail_msg",
+				button: "unsubscribeMail_action",
+			}
 	}
 }
 
