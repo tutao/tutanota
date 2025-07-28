@@ -45,14 +45,7 @@ export function showRequestPasswordDialog(props: {
 							value: value,
 							oninput: (newValue) => (value = newValue),
 							autocompleteAs: Autocomplete.off,
-							keyHandler: (key: KeyPress) => {
-								if (isKeyPressed(key.key, Keys.RETURN)) {
-									doAction()
-									return false
-								}
-
-								return true
-							},
+							onReturnKeyPressed: () => doAction(),
 						} satisfies PasswordFieldAttrs),
 					])
 				: m(Icon, {

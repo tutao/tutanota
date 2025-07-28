@@ -81,15 +81,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
 						},
-						keyHandler: (key) => {
-							if (key.key != null && key.key.toLowerCase() === Keys.RETURN.code) {
-								a.onSubmit(a.mailAddress(), a.password())
-								// this is so that when "Return" is pressed, the user is logged in
-								// and the password reveal button is not triggered
-								return false
-							}
-							return true
-						},
+						onReturnKeyPressed: () => a.onSubmit(a.mailAddress(), a.password()),
 					}),
 				),
 				m(
@@ -99,15 +91,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						oninput: a.password,
 						autocompleteAs: Autocomplete.currentPassword,
 						onDomInputCreated: (dom) => (this.passwordTextField = dom),
-						keyHandler: (key) => {
-							if (key.key != null && key.key.toLowerCase() === Keys.RETURN.code) {
-								a.onSubmit(a.mailAddress(), a.password())
-								// this is so that when "Return" is pressed, the user is logged in
-								// and the password reveal button is not triggered
-								return false
-							}
-							return true
-						},
+						onReturnKeyPressed: () => a.onSubmit(a.mailAddress(), a.password()),
 					}),
 				),
 				a.savePassword
