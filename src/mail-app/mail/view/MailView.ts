@@ -1192,7 +1192,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 										}
 									},
 									dropHandler: (dropData: DropData) => {
-										if (dropData.dropType == DropType.Mail) {
+										if (dropData.dropType === DropType.Mail) {
 											this.handleLabelMailDrop(dropData, label)
 										}
 									},
