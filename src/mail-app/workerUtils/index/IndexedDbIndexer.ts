@@ -86,6 +86,35 @@ export function newSearchIndexDB(): DbFacade {
 }
 
 /**
+ * Group membership changes
+ */
+export interface GroupDiff {
+	deletedGroups: GroupDiffGroup[]
+	newGroups: GroupDiffGroup[]
+}
+
+/**
+ * A single group addition or removal composite in GroupDiff
+ */
+export interface GroupDiffGroup {
+	id: Id
+	type: GroupType
+}
+
+/**
+ * Provides a group ID and corresponding group data
+ */
+export interface LoadedGroupData {
+	groupId: Id
+	groupData: GroupData
+}
+
+interface GroupBatches {
+	groupId: Id
+	eventBatchIds: Id[]
+}
+
+/**
  * Top-level orchestrator for search index.
  *  - Allows enabling/disabling mail indexing
  *  - Coordinates loading of events and dispatching of realtime events
@@ -374,20 +403,8 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	/** @private visibleForTesting */
-	_loadGroupDiff(user: User): Promise<{
-		deletedGroups: {
-			id: Id
-			type: GroupType
-		}[]
-		newGroups: {
-			id: Id
-			type: GroupType
-		}[]
-	}> {
-		let currentGroups: Array<{
-			id: Id
-			type: GroupType
-		}> = filterIndexMemberships(user).map((m) => {
+	_loadGroupDiff(user: User): Promise<GroupDiff> {
+		let currentGroups: Array<GroupDiffGroup> = filterIndexMemberships(user).map((m) => {
 			return {
 				id: m.group,
 				type: getMembershipGroupType(m),
@@ -430,37 +447,18 @@ export class IndexedDbIndexer implements Indexer {
 	 * If the user was removed from a contact or mail group the function throws a CancelledError to delete the complete mail index afterwards.
 	 * @private visibleForTesting
 	 */
-	_updateGroups(
-		user: User,
-		groupDiff: {
-			deletedGroups: {
-				id: Id
-				type: GroupType
-			}[]
-			newGroups: {
-				id: Id
-				type: GroupType
-			}[]
-		},
-	): Promise<void> {
+	_updateGroups(user: User, groupDiff: GroupDiff): Promise<void> {
 		if (groupDiff.deletedGroups.some((g) => g.type === GroupType.Mail || g.type === GroupType.Contact)) {
 			return Promise.reject(new MembershipRemovedError("user has been removed from contact or mail group")) // user has been removed from a shared group
 		} else if (groupDiff.newGroups.length > 0) {
 			return this._loadGroupData(
 				user,
 				groupDiff.newGroups.map((g) => g.id),
-			).then(
-				(
-					groupBatches: {
-						groupId: Id
-						groupData: GroupData
-					}[],
-				) => {
-					return this.db.dbFacade.createTransaction(false, [GroupDataOS]).then((t) => {
-						return this._initGroupData(groupBatches, t)
-					})
-				},
-			)
+			).then((groupBatches: LoadedGroupData[]) => {
+				return this.db.dbFacade.createTransaction(false, [GroupDataOS]).then((t) => {
+					return this._initGroupData(groupBatches, t)
+				})
+			})
 		}
 
 		return Promise.resolve()
@@ -470,15 +468,7 @@ export class IndexedDbIndexer implements Indexer {
 	 * Provides a GroupData object including the last 100 event batch ids for all indexed membership groups of the given user.
 	 * @private visibleForTesting
 	 */
-	_loadGroupData(
-		user: User,
-		restrictToTheseGroups?: Id[],
-	): Promise<
-		{
-			groupId: Id
-			groupData: GroupData
-		}[]
-	> {
+	_loadGroupData(user: User, restrictToTheseGroups?: Id[]): Promise<LoadedGroupData[]> {
 		let memberships = filterIndexMemberships(user)
 		const restrictTo = restrictToTheseGroups // type check
 
@@ -514,13 +504,7 @@ export class IndexedDbIndexer implements Indexer {
 	 * creates the initial group data for all provided group ids
 	 * @private visibleForTesting
 	 */
-	_initGroupData(
-		groupBatches: {
-			groupId: Id
-			groupData: GroupData
-		}[],
-		t2: DbTransaction,
-	): Promise<void> {
+	_initGroupData(groupBatches: LoadedGroupData[], t2: DbTransaction): Promise<void> {
 		for (const groupIdToLastBatchId of groupBatches) {
 			t2.put(GroupDataOS, groupIdToLastBatchId.groupId, groupIdToLastBatchId.groupData)
 		}
@@ -532,12 +516,7 @@ export class IndexedDbIndexer implements Indexer {
 	 * It is similar to what {@link EventBusClient} does on reconnect or after login with offline.
 	 * @private visibleForTesting
 	 */
-	async _loadAndQueueMissedEntityUpdates(
-		groupIdToEventBatches: {
-			groupId: Id
-			eventBatchIds: Id[]
-		}[],
-	): Promise<void> {
+	async _loadAndQueueMissedEntityUpdates(groupIdToEventBatches: GroupBatches[]): Promise<void> {
 		const batchesOfAllGroups: QueuedBatch[] = []
 		const lastLoadedBatchIdInGroup = new Map<Id, Id>()
 		await this.throwIfOutOfDate()
@@ -594,12 +573,7 @@ export class IndexedDbIndexer implements Indexer {
 	/**
 	 * @private visibleForTesting
 	 */
-	_loadPersistentGroupData(user: User): Promise<
-		{
-			groupId: Id
-			eventBatchIds: Id[]
-		}[]
-	> {
+	_loadPersistentGroupData(user: User): Promise<GroupBatches[]> {
 		return this.db.dbFacade.createTransaction(true, [GroupDataOS]).then((t) => {
 			return Promise.all(
 				filterIndexMemberships(user).map((membership) => {
