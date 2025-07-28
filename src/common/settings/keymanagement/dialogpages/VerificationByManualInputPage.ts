@@ -36,13 +36,13 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 		const doNotTrustTranslationKey: TranslationKey = "keyManagement.doNotTrust_action"
 
 		return m(".pt.pb.flex.col.gap-vpad", [
-			m(Card, [
-				m(TitleSection, {
-					title: lang.get("keyManagement.textVerification_label"),
-					subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),
-					icon: Icons.QuestionMarkOutline,
-				}),
-			]),
+			m(TitleSection, {
+				title: lang.get("keyManagement.textVerification_label"),
+				subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),
+				icon: Icons.QuestionMarkOutline,
+				iconOptions: { color: theme.content_button }, // TODO probably not the right color handle to use, although it is the color we want
+			}),
+			,
 			m(
 				Card,
 				{

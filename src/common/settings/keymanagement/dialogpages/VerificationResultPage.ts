@@ -18,9 +18,7 @@ export class VerificationResultPage implements Component<VerificationResultPageA
 				title: lang.get("keyManagement.contactVerificationConfirmationTitle_label"),
 				subTitle: lang.get("keyManagement.contactVerificationConfirmation_label"),
 				icon: Icons.CheckCircleOutline,
-				iconOptions: {
-					color: theme.success,
-				},
+				iconOptions: { color: theme.success },
 			}),
 			m(".mb"),
 			publicIdentity === null
