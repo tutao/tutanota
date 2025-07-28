@@ -117,7 +117,7 @@ export function getMailHeaders(headers: Header): string {
 	return headers.compressedHeaders ?? headers.headers ?? ""
 }
 
-export async function loadMailHeaders(mailDetails: MailDetails): Promise<string | null> {
+export function loadMailHeaders(mailDetails: MailDetails): string | null {
 	return mailDetails.headers != null ? getMailHeaders(mailDetails.headers) : null
 }
 

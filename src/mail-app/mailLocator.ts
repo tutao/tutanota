@@ -526,6 +526,7 @@ class MailLocator implements CommonLocator {
 				this.entityClient,
 				this.mailboxModel,
 				this.mailModel,
+				isBrowser() ? null : this.commonSystemFacade,
 				this.contactModel,
 				this.configFacade,
 				this.fileController,
