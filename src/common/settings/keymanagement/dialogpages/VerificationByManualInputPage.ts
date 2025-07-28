@@ -39,10 +39,9 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 			m(TitleSection, {
 				title: lang.get("keyManagement.textVerification_label"),
 				subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),
-				icon: Icons.QuestionMarkOutline,
-				iconOptions: { color: theme.content_button }, // TODO probably not the right color handle to use, although it is the color we want
+				icon: publicIdentity ? Icons.QuestionMarkOutline : undefined,
+				iconOptions: { color: theme.content_button },
 			}),
-			,
 			m(
 				Card,
 				{
