@@ -39,14 +39,23 @@ const closeAction = () => {
 
 o.spec("WizardDialogN", function () {
 	o("createWizardDialog without pages", function () {
-		const dialogBuilder = createWizardDialog(data, [], null, DialogType.EditLarge)
+		const dialogBuilder = createWizardDialog({
+			data,
+			pages: [],
+			dialogType: DialogType.EditLarge,
+		})
 		o(dialogBuilder.dialog instanceof Dialog).equals(true)
 		o(dialogBuilder.attrs.currentPage).equals(null)
 		o(dialogBuilder.attrs.pages.length).equals(0)
 	})
 
 	o("createWizardDialog with pages and closeAction", function () {
-		const dialogBuilder = createWizardDialog(data, wizardPages, closeAction, DialogType.EditLarge)
+		const dialogBuilder = createWizardDialog({
+			data,
+			pages: wizardPages,
+			closeAction,
+			dialogType: DialogType.EditLarge,
+		})
 		o(dialogBuilder.attrs.currentPage).equals(wizardPages[0])
 		o(dialogBuilder.attrs.pages.length).equals(1)
 		const before = counter
@@ -55,7 +64,11 @@ o.spec("WizardDialogN", function () {
 	})
 
 	o("createWizardDialog with pages and without closeAction", function () {
-		const dialogBuilder = createWizardDialog(data, wizardPages, null, DialogType.EditLarge)
+		const dialogBuilder = createWizardDialog({
+			data,
+			pages: wizardPages,
+			dialogType: DialogType.EditLarge,
+		})
 		o(dialogBuilder.attrs.currentPage).equals(wizardPages[0])
 		o(dialogBuilder.attrs.pages.length).equals(1)
 		const before = counter

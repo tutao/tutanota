@@ -23,6 +23,11 @@ export interface WizardPageAttrs<T> {
 	 **/
 	nextAction(showErrorDialog: boolean): Promise<boolean>
 
+	/** Action that needs to be executed before switching to the previous page.
+	 * @return true if the action was successful and the previous page can be shown, false otherwise.
+	 **/
+	prevAction?(showErrorDialog: boolean): Promise<boolean>
+
 	/**
 	 * Checks if the page can be skipped.
 	 */
@@ -218,17 +223,20 @@ class WizardDialogAttrs<T> {
 	}
 
 	goToPreviousPageOrClose(): void {
-		let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
+		this.currentPage?.attrs.prevAction?.(true).then((ready) => {
+			if (ready) {
+				let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
 
-		if (!this.allowedToVisitPage(currentPageIndex - 1, currentPageIndex)) return
+				if (!this.allowedToVisitPage(currentPageIndex - 1, currentPageIndex)) return
 
-		if (currentPageIndex > 0) {
-			this._goToPageAction(currentPageIndex - 1)
-
-			m.redraw()
-		} else {
-			this.closeAction()
-		}
+				if (currentPageIndex > 0) {
+					this._goToPageAction(currentPageIndex - 1)
+					m.redraw()
+				} else {
+					this.closeAction()
+				}
+			}
+		})
 	}
 
 	updateHeaderBarAttrs<T>(): void {
@@ -236,7 +244,7 @@ class WizardDialogAttrs<T> {
 
 		const backButtonAttrs: ButtonAttrs = {
 			label: currentPageIndex === 0 ? this.cancelButtonText : "back_action",
-			click: () => this.goToPreviousPageOrClose(),
+			click: (_, dom) => this.goToPreviousPageOrClose(),
 			type: ButtonType.Secondary,
 		}
 		const skipButtonAttrs: ButtonAttrs = {
@@ -374,13 +382,19 @@ export type WizardDialogAttrsBuilder<T> = {
 }
 
 // Use to generate a new wizard
-export function createWizardDialog<T>(
-	data: T,
-	pages: ReadonlyArray<WizardPageWrapper<T>>,
-	closeAction: (() => $Promisable<void>) | null = null,
-	dialogType: DialogType.EditLarge | DialogType.EditSmall,
-	cancelButtonText: TranslationKey | null = null,
-): WizardDialogAttrsBuilder<T> {
+export function createWizardDialog<T>({
+	data,
+	pages,
+	closeAction,
+	dialogType,
+	cancelButtonText,
+}: {
+	data: T
+	pages: ReadonlyArray<WizardPageWrapper<T>>
+	closeAction?: () => $Promisable<void>
+	dialogType: DialogType.EditLarge | DialogType.EditSmall
+	cancelButtonText?: TranslationKey
+}): WizardDialogAttrsBuilder<T> {
 	// We need the close action of the dialog before we can create the proper attributes
 
 	let view: () => Children = () => null

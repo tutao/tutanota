@@ -1,9 +1,9 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
-import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
+import { lang, MaybeTranslation, type TranslationKey } from "../misc/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
-import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName, PlanTypeToName } from "../api/common/TutanotaConstants"
+import { AccountType, Const, PaymentMethodType, PaymentMethodTypeToName } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "../api/common/error/RestError"
@@ -21,10 +21,10 @@ import { MobilePaymentResultType } from "../native/common/generatedipc/MobilePay
 import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { SessionType } from "../api/common/SessionType"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
-import { isIOSApp } from "../api/common/Env.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
+import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -224,6 +224,50 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 	private close(data: UpgradeSubscriptionData, dom: HTMLElement) {
 		emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
+	}
+}
+
+export class UpgradeConfirmSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
+	data: UpgradeSubscriptionData
+	_enabled: () => boolean = () => true
+
+	constructor(upgradeData: UpgradeSubscriptionData) {
+		this.data = upgradeData
+	}
+
+	nextAction(showErrorDialog: boolean): Promise<boolean> {
+		SignupFlowUsageTestController.completeStage(
+			SignupFlowStage.CONFIRM_PAYMENT,
+			this.data.type,
+			this.data.options.paymentInterval(),
+			this.data.paymentData.paymentMethod,
+		)
+		return Promise.resolve(true)
+	}
+
+	prevAction(showErrorDialog: boolean): Promise<boolean> {
+		SignupFlowUsageTestController.deletePing(SignupFlowStage.SELECT_PAYMENT_METHOD)
+		return Promise.resolve(true)
+	}
+
+	headerTitle(): TranslationKey {
+		return "adminPayment_action"
+	}
+
+	isSkipAvailable(): boolean {
+		return false
+	}
+
+	isEnabled(): boolean {
+		return this._enabled()
+	}
+
+	/**
+	 * Set the enabled function for isEnabled
+	 * @param enabled
+	 */
+	setEnabledFunction<T>(enabled: () => boolean) {
+		this._enabled = enabled
 	}
 }
 
