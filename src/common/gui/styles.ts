@@ -1,8 +1,8 @@
 import { Cat, log, timer } from "../misc/Log"
 import { size } from "./size"
-import { assertMainOrNodeBoot, isAdminClient, isApp, isTest } from "../api/common/Env"
+import { assertMainOrNodeBoot, isAdminClient, isTest } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
-import { Theme, theme, ThemeId } from "./theme"
+import { theme } from "./theme"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { client } from "../misc/ClientDetector"
 import { ThemeController } from "./ThemeController.js"
@@ -23,11 +23,24 @@ class Styles {
 
 	private styleSheets = new Map<StyleSheetId, HTMLStyleElement>()
 
+	// theme-color hints web browsers what color to use when decorating their UIs
+	private readonly themeColorMeta: HTMLMetaElement | null
+
 	constructor() {
 		this.initialized = false
 		this.styles = new Map()
 		this.bodyWidth = neverNull(document.body).offsetWidth
 		this.bodyHeight = neverNull(document.body).offsetHeight
+
+		if (isTest()) {
+			this.themeColorMeta = null
+		} else {
+			this.themeColorMeta = document.createElement("meta")
+			this.themeColorMeta.name = "theme-color"
+			this.themeColorMeta.content = theme.navigation_bg
+			document.head.appendChild(this.themeColorMeta)
+		}
+
 		windowFacade.addResizeListener((width: number, height: number) => {
 			this.bodyWidth = width
 			this.bodyHeight = height
@@ -118,6 +131,8 @@ class Styles {
 		Array.from(this.styles.entries()).map((entry) => {
 			this.updateDomStyle(entry[0], entry[1])
 		})
+
+		assertNotNull(this.themeColorMeta).content = theme.navigation_bg
 		log(Cat.css, "creation time", time())
 	}
 
