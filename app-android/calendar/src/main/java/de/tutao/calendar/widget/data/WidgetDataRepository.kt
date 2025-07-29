@@ -1,8 +1,10 @@
 package de.tutao.calendar.widget.data
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import de.tutao.calendar.widget.TAG
 import de.tutao.calendar.widget.WIDGET_CACHE_DATE_PREFIX
 import de.tutao.calendar.widget.WIDGET_EVENTS_CACHE
 import de.tutao.calendar.widget.widgetCacheDataStore
@@ -125,6 +127,10 @@ class WidgetDataRepository() : WidgetRepository() {
 
 		calendars.forEach { calendarId ->
 			val events = calendarFacade.getCalendarEvents(calendarId, (systemCalendar.timeInMillis).toULong())
+			Log.d(
+				TAG,
+				"Fetch finished for calendar $calendarId long ${events.longEvents.size} short ${events.shortEvents.size}"
+			)
 			calendarEventListMap = calendarEventListMap.plus(
 				calendarId to CalendarEventListDao(
 					events.shortEvents.toDao(),

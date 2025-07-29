@@ -294,17 +294,6 @@ impl EventFacade {
 			});
 		};
 
-		let Ok(start_time_to_offset) =
-			&OffsetDateTime::from_unix_timestamp(event_start_time.as_seconds() as i64)
-		else {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: format!(
-					"Failed to parse offset for start time {}",
-					event_start_time.as_seconds()
-				),
-			});
-		};
-
 		let calc_event_start = if is_all_day_event {
 			let all_day_event = EventFacade::get_all_day_time(&event_start_time)?;
 

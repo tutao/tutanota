@@ -24,7 +24,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::string::ToString;
 use std::sync::Arc;
-use time::{OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
+use time::{OffsetDateTime, PrimitiveDateTime, Time, UtcDateTime, UtcOffset};
 
 // To keep the SDK decoupled and dependency free we decided to handle translations on native side
 pub const DEFAULT_CALENDAR_NAME: &str = "";
@@ -218,7 +218,7 @@ impl CalendarFacade {
 				date.as_millis(),
 				timestamp_end,
 				&today,
-				&mut unwraped_short_events,
+				&unwraped_short_events,
 			);
 			short_events.append(&mut filtered_short_events);
 
@@ -298,7 +298,7 @@ impl CalendarFacade {
 				date.as_millis(),
 				timestamp_end,
 				&today,
-				&mut unwraped_long_events,
+				&unwraped_long_events,
 			);
 
 			filtered_long_events = self.filter_excluded_dates(&mut filtered_long_events);
@@ -310,6 +310,11 @@ impl CalendarFacade {
 		short_events.sort_by(|a, b| self.sort_events_by_start_time(a, b));
 		long_events.sort_by(|a, b| self.sort_events_by_start_time(a, b));
 
+		log::info!(
+			"Done fetch short {} long {}",
+			short_events.len(),
+			long_events.len()
+		);
 		Ok(CalendarEventsList {
 			short_events,
 			long_events,
@@ -404,14 +409,21 @@ impl CalendarFacade {
 
 	fn filter_events_in_range(
 		&self,
-		timestamp_start: u64,
-		timestamp_end: u64,
-		today: &OffsetDateTime,
-		events: &mut [CalendarEvent],
+		range_start: u64,
+		range_end: u64,
+		reference_date: &OffsetDateTime,
+		events: &[CalendarEvent],
 	) -> Vec<CalendarEvent> {
+		log::info!(
+			"Timestamps: {} {} {} {}",
+			range_start,
+			range_end,
+			reference_date.unix_timestamp(),
+			reference_date.offset().whole_seconds(),
+		);
 		events
 			.iter()
-			.filter(|&event| self.is_event_in_range(event, timestamp_start, timestamp_end, today))
+			.filter(|&event| self.is_event_in_range(event, range_start, range_end, reference_date))
 			.map(|event| event.to_owned())
 			.collect()
 	}
@@ -419,24 +431,43 @@ impl CalendarFacade {
 	fn is_event_in_range(
 		&self,
 		event: &CalendarEvent,
-		timestamp_start: u64,
-		timestamp_end: u64,
-		today: &OffsetDateTime,
+		range_start: u64,
+		range_end: u64,
+		reference_date: &OffsetDateTime,
 	) -> bool {
-		let is_event_all_day =
+		log::info!(
+			"Event Unix {} {} {}",
+			event.summary,
+			event.startTime.as_seconds(),
+			event.endTime.as_seconds()
+		);
+		let is_all_day_event =
 			EventFacade::is_all_day_event_by_times(event.startTime, event.endTime);
-		let event_date =
-			OffsetDateTime::from_unix_timestamp(event.startTime.as_seconds() as i64).unwrap();
 
-		if is_event_all_day {
-			return event_date.date().year() == today.date().year()
-				&& event_date.date().month() == today.date().month()
-				&& event_date.date().day() == today.date().day();
+		let event_start = OffsetDateTime::from_unix_timestamp(event.startTime.as_seconds() as i64)
+			.unwrap()
+			.to_offset(reference_date.offset());
+		let event_end = OffsetDateTime::from_unix_timestamp(event.endTime.as_seconds() as i64)
+			.unwrap()
+			.to_offset(reference_date.offset());
+
+		let all_day_range_start =
+			OffsetDateTime::new_utc(reference_date.date(), Time::from_hms(0, 0, 0).unwrap())
+				.to_offset(reference_date.offset());
+		let next_day_midnight = OffsetDateTime::from(UtcDateTime::new(
+			reference_date.date().next_day().unwrap(),
+			Time::from_hms(0, 0, 0).unwrap(),
+		))
+		.to_offset(reference_date.offset());
+
+		if is_all_day_event {
+			return (event_start.cmp(&all_day_range_start) != Ordering::Less
+				|| event_end.cmp(&all_day_range_start) == Ordering::Greater)
+				&& event_start.cmp(&next_day_midnight) == Ordering::Less;
 		}
 
-		(event.startTime.as_millis() >= timestamp_start
-			|| event.endTime.as_millis() > timestamp_start)
-			&& event.startTime.as_millis() < timestamp_end
+		(event.startTime.as_millis() >= range_start || event.endTime.as_millis() > range_start)
+			&& event.startTime.as_millis() < range_end
 	}
 
 	fn filter_excluded_dates(&self, events: &mut [CalendarEvent]) -> Vec<CalendarEvent> {
@@ -725,14 +756,18 @@ mod calendar_facade_unit_tests {
 	use crate::crypto_entity_client::MockCryptoEntityClient;
 	use crate::customer::customer_facade::MockCustomerFacade;
 	use crate::date::event_facade::EventFacade;
+	use crate::date::DateTime;
 	use crate::entities::generated::sys::{CustomerInfo, GroupInfo, GroupMembership, User};
-	use crate::entities::generated::tutanota::{Contact, GroupSettings, UserSettingsGroupRoot};
+	use crate::entities::generated::tutanota::{
+		CalendarEvent, Contact, GroupSettings, UserSettingsGroupRoot,
+	};
 	use crate::groups::GroupType;
 	use crate::tutanota_constants::{AccountType, PlanType};
 	use crate::user_facade::MockUserFacade;
 	use crate::util::test_utils::{create_mock_contact, create_test_entity};
 	use crate::{GeneratedId, IdTupleGenerated};
 	use std::sync::Arc;
+	use time::{OffsetDateTime, UtcOffset};
 
 	fn create_mock_user(
 		user_group: &GeneratedId,
@@ -797,6 +832,229 @@ mod calendar_facade_unit_tests {
 			plan: plan_type as i64,
 			..create_test_entity()
 		}
+	}
+
+	#[test]
+	fn should_remove_events_not_in_range() {
+		let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+		let mut mock_user_facade = MockUserFacade::default();
+		let mock_contact_facade = MockContactFacade::default();
+		let mock_customer_facade = MockCustomerFacade::default();
+		let event_facade = EventFacade {};
+
+		let user_group = GeneratedId::test_random();
+		let calendar_id = GeneratedId::test_random();
+
+		let mock_user = create_mock_user(&user_group, &calendar_id, AccountType::FREE);
+		mock_user_facade.expect_get_user().return_const(mock_user);
+
+		let mock_user_settings_group_root =
+			create_mock_user_settings_group_root(None, None, None, None);
+		mock_crypto_entity_client
+			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
+			.return_const(Ok(mock_user_settings_group_root));
+
+		let mock_group_info = create_mock_group_info(&calendar_id, None);
+		mock_crypto_entity_client
+			.expect_load::<GroupInfo, IdTupleGenerated>()
+			.return_const(Ok(mock_group_info));
+
+		let calendar_facade = CalendarFacade::new(
+			Arc::new(mock_crypto_entity_client),
+			Arc::new(mock_user_facade),
+			Arc::new(mock_contact_facade),
+			Arc::new(mock_customer_facade),
+			Arc::new(event_facade),
+		);
+
+		let timestamp_start = DateTime::from_seconds(1753761600);
+		let timestamp_end = DateTime::from_seconds(1753826400);
+		let timestamp_today = DateTime::from_seconds(1753740000);
+		let offset = 7200;
+		let negative_offset = -39600;
+
+		let events_at_27 = [CalendarEvent {
+			summary: "Single 27 ".to_string(),
+			startTime: DateTime::from_seconds(1753574400),
+			endTime: DateTime::from_seconds(1753660800),
+			..create_test_entity()
+		}];
+
+		let events_at_28 = [
+			CalendarEvent {
+				summary: "G Single 28".to_string(),
+				startTime: DateTime::from_seconds(1753660800),
+				endTime: DateTime::from_seconds(1753747200),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "O Single 28".to_string(),
+				startTime: DateTime::from_seconds(1753660800),
+				endTime: DateTime::from_seconds(1753747200),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "Single 28".to_string(),
+				startTime: DateTime::from_seconds(1753660800),
+				endTime: DateTime::from_seconds(1753747200),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "-11 Island Single 28".to_string(),
+				startTime: DateTime::from_seconds(1753660800),
+				endTime: DateTime::from_seconds(1753747200),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "-11 Island Weekly Monday".to_string(),
+				startTime: DateTime::from_seconds(1753660800),
+				endTime: DateTime::from_seconds(1753747200),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "Weekly Monday".to_string(),
+				startTime: DateTime::from_seconds(1753660800),
+				endTime: DateTime::from_seconds(1753747200),
+				..create_test_entity()
+			},
+		];
+
+		let event_that_spans_between_two_days_on_different_timezones = CalendarEvent {
+			summary: "Monday Afternoon till Tuesday morning on -11. Tuesday on +2".to_string(),
+			startTime: DateTime::from_seconds(1753776000),
+			endTime: DateTime::from_seconds(1753822000),
+			..create_test_entity()
+		};
+		
+		let events_at_29 = [
+			CalendarEvent {
+				summary: "G Single 29".to_string(),
+				startTime: DateTime::from_seconds(1753747200),
+				endTime: DateTime::from_seconds(1753833600),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "O Single 29".to_string(),
+				startTime: DateTime::from_seconds(1753747200),
+				endTime: DateTime::from_seconds(1753833600),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "-11 Island Single 29".to_string(),
+				startTime: DateTime::from_seconds(1753747200),
+				endTime: DateTime::from_seconds(1753833600),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "Single 29".to_string(),
+				startTime: DateTime::from_seconds(1753747200),
+				endTime: DateTime::from_seconds(1753833600),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "-11 Island Weekly Tuesday".to_string(),
+				startTime: DateTime::from_seconds(1753747200),
+				endTime: DateTime::from_seconds(1753833600),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "Weekly Tuesday".to_string(),
+				startTime: DateTime::from_seconds(1753747200),
+				endTime: DateTime::from_seconds(1753833600),
+				..create_test_entity()
+			},
+			event_that_spans_between_two_days_on_different_timezones.clone()
+		];
+
+		let events_at_30 = [
+			CalendarEvent {
+				summary: "G Single 30".to_string(),
+				startTime: DateTime::from_seconds(1753833600),
+				endTime: DateTime::from_seconds(1753920000),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "O Single 30".to_string(),
+				startTime: DateTime::from_seconds(1753833600),
+				endTime: DateTime::from_seconds(1753920000),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "-11 Island Single 30".to_string(),
+				startTime: DateTime::from_seconds(1753833600),
+				endTime: DateTime::from_seconds(1753920000),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "Single 30".to_string(),
+				startTime: DateTime::from_seconds(1753833600),
+				endTime: DateTime::from_seconds(1753920000),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "Weekly Wednesday".to_string(),
+				startTime: DateTime::from_seconds(1753228800),
+				endTime: DateTime::from_seconds(1753315200),
+				..create_test_entity()
+			},
+			CalendarEvent {
+				summary: "-11 Island Weekly Wednesday".to_string(),
+				startTime: DateTime::from_seconds(1753228800),
+				endTime: DateTime::from_seconds(1753315200),
+				..create_test_entity()
+			},
+		];
+
+		let events_at_31 = [CalendarEvent {
+			summary: "Single 31".to_string(),
+			startTime: DateTime::from_seconds(1753920000),
+			endTime: DateTime::from_seconds(1754006400),
+			..create_test_entity()
+		}];
+
+		let mut events = vec![];
+		events.extend(&events_at_27);
+		events.extend(&events_at_28);
+		events.extend(&events_at_29);
+		events.extend(&events_at_30);
+		events.extend(&events_at_31);
+		
+		let binding = CalendarEvent {
+			summary: "Monday Night".to_string(),
+			startTime: DateTime::from_seconds(1753722000),
+			endTime: DateTime::from_seconds(1753738200),
+			..create_test_entity()
+		};
+  		events.push(&binding);
+
+		let all_events: Vec<CalendarEvent> = events.into_iter().map(|e| e.clone()).collect();
+
+		let filtered_events = calendar_facade.filter_events_in_range(
+			timestamp_start.as_millis(),
+			timestamp_end.as_millis(),
+			&OffsetDateTime::from_unix_timestamp(timestamp_today.as_seconds() as i64)
+				.unwrap()
+				.to_offset(UtcOffset::from_whole_seconds(offset).unwrap()),
+			all_events.as_slice(), //&events.as_slice().iter().map(|e| e.deref().deref().clone()).collect::<Vec<CalendarEvent>>().as_slice(),
+		);
+		assert_eq!(filtered_events.len(), 7);
+		assert!(filtered_events.iter().eq(events_at_29.iter()));
+
+		let filtered_events_at_negative_offset = calendar_facade.filter_events_in_range(
+			timestamp_start.as_millis(),
+			timestamp_end.as_millis(),
+			&OffsetDateTime::from_unix_timestamp(timestamp_today.as_seconds() as i64)
+				.unwrap()
+				.to_offset(UtcOffset::from_whole_seconds(negative_offset).unwrap()),
+			all_events.as_slice(), //&events.as_slice().iter().map(|e| e.deref().deref().clone()).collect::<Vec<CalendarEvent>>().as_slice(),
+		);
+
+		let mut events_with_event_that_spans = events_at_28.clone().to_vec();
+		events_with_event_that_spans.push(event_that_spans_between_two_days_on_different_timezones);
+		assert_eq!(filtered_events_at_negative_offset.len(), 7);
+		assert!(filtered_events_at_negative_offset
+			.iter()
+			.eq(events_with_event_that_spans.iter()));
 	}
 
 	#[tokio::test]
