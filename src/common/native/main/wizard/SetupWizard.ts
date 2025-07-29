@@ -57,15 +57,15 @@ export async function showSetupWizard(
 
 	const deferred = defer<void>()
 
-	const wizardBuilder = createWizardDialog(
-		null,
-		wizardPages,
-		async () => {
+	const wizardBuilder = createWizardDialog({
+		data: null,
+		pages: wizardPages,
+		closeAction: async () => {
 			deviceConfig.setIsSetupComplete(true)
 			deferred.resolve()
 		},
-		DialogType.EditSmall,
-	)
+		dialogType: DialogType.EditSmall,
+	})
 
 	wizardBuilder.dialog.show()
 	return deferred.promise

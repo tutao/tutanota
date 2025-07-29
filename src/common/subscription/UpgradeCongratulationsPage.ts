@@ -9,6 +9,7 @@ import { RecoverCodeField } from "../settings/login/RecoverCodeDialog.js"
 import { VisSignupImage } from "../gui/base/icons/Icons.js"
 import { PlanType } from "../api/common/TutanotaConstants.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -90,6 +91,11 @@ export class UpgradeCongratulationsPageAttrs implements WizardPageAttrs<UpgradeS
 
 	nextAction(showDialogs: boolean): Promise<boolean> {
 		// next action not available for this page
+		return Promise.resolve(true)
+	}
+
+	prevAction(showErrorDialog: boolean): Promise<boolean> {
+		SignupFlowUsageTestController.deletePing(SignupFlowStage.CONFIRM_PAYMENT)
 		return Promise.resolve(true)
 	}
 
