@@ -2058,3 +2058,6 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "unread_label"
+	| "replied_label"
+	| "forwarded_label"
