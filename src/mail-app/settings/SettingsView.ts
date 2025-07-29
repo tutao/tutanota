@@ -330,7 +330,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				// are concealed), but there's still room for improvement for scrollbars
 				view: () =>
 					m(BackgroundColumnLayout, {
-						backgroundColor: theme.navigation_bg,
+						backgroundColor: theme.surface_container,
 						columnLayout: m(
 							".mlr-safe-inset.fill-absolute.content-bg",
 							{
@@ -361,7 +361,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			{
 				view: () =>
 					m(BackgroundColumnLayout, {
-						backgroundColor: theme.navigation_bg,
+						backgroundColor: theme.surface_container,
 						columnLayout: m(
 							`.mlr-safe-inset.fill-absolute${this.detailsViewer ? ".content-bg" : ""}`,
 							this.detailsViewer ? this.detailsViewer.renderView() : m(""),
@@ -799,8 +799,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				class: "flash flex justify-center center-vertically pt-s pb-s plr border-radius",
 				style: {
 					marginInline: "auto",
-					border: `1px solid ${theme.navigation_button}`,
-					color: theme.navigation_button,
+					border: `1px solid ${theme.on_surface_variant}`,
+					color: theme.on_surface_variant,
 				},
 				label: "supportMenu_label",
 				text: m(".pl-s", lang.getTranslation("supportMenu_label").text),
@@ -809,7 +809,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					size: IconSize.Medium,
 					class: "center-h",
 					container: "div",
-					style: { fill: theme.navigation_button },
+					style: { fill: theme.on_surface_variant },
 				}),
 				onclick: () => {
 					const triggerStage = getSupportUsageTestStage(0)
@@ -862,7 +862,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					".b",
 					{
 						style: {
-							color: theme.navigation_button_selected,
+							color: theme.primary,
 						},
 					},
 					label,

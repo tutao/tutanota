@@ -58,7 +58,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 				class: this.resolveContainerClasses(attrs.variant, attrs.classes, attrs.disabled),
 				tabIndex: attrs.tabIndex,
 				style: {
-					borderColor: theme.content_message_bg,
+					borderColor: theme.outline,
 					padding: 0,
 					...attrs.containerStyle,
 				},
