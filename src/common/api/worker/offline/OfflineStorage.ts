@@ -588,7 +588,7 @@ export class OfflineStorage implements CacheStorage {
 			instances.map(async (instance): Promise<StorableInstance> => {
 				const { listId, elementId } = expandId(AttributeModel.getAttribute<IdTuple | Id>(instance, "_id", typeModel))
 				if (hasError(instance)) {
-					throw new ProgrammingError(
+					console.warn(
 						`Trying to put parsed instance with _errors to offline storage. Type: ${typeModel.app}/${typeModel.name}, Id: ["${listId}", "${elementId}"]`,
 					)
 				}

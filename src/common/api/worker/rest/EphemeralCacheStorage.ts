@@ -218,7 +218,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		const instanceId = AttributeModel.getAttribute<IdTuple | Id>(instanceClone, "_id", typeModel)
 		let { listId, elementId } = expandId(instanceId)
 		if (hasError(instance)) {
-			throw new ProgrammingError(
+			console.warn(
 				`Trying to put parsed instance with _errors to ephemeral cache. Type: ${typeModel.app}/${typeModel.name}, Id: ["${listId}", "${elementId}"]`,
 			)
 		}
