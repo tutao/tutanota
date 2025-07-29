@@ -1558,6 +1558,7 @@ export type TranslationKeyType =
 	| "requestTooLarge_msg"
 	| "requiresNewWindow_msg"
 	| "resetZoomFactor_action"
+	| "resolveProblem_action"
 	| "responsiblePersonsInfo_msg"
 	| "responsiblePersons_label"
 	| "restartBefore_action"

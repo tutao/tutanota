@@ -210,11 +210,11 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			return m(
 				".error-container.nds-ptb-l.plr-l.fs-m.border-radius-top-big.flex.items-start",
 				{},
-				m(Icon, { icon: Icons.BrokenShield, size: IconSize.XL, class: "mr-l" }),
+				m(Icon, { icon: Icons.BrokenShield, size: IconSize.XL, class: "mr-l", style: { fill: theme.error } }),
 				m("", [
-					"Contact verification failed. The identity key differs from last time you had a conversation with this contact.",
+					lang.get("keyManagement.verificationError_title") + ". " + lang.get("keyVerificationErrorGeneric_msg"),
 					m(Button, {
-						label: lang.makeTranslation("resolve_problem", () => "Resolve problem"), // TODO: translate
+						label: "resolveProblem_action",
 						click: () => {
 							let publicKeyProvider: PublicEncryptionKeyProvider = locator.publicEncryptionKeyProvider
 							import("../../../common/settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
