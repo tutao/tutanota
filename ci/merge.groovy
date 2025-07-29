@@ -32,7 +32,7 @@ pipeline {
 		// this prevents jenkins from running the "Check out from version control" step in every stage.
 		// we're running several stages in parallel on the same folder, which means git will run in parallel, which
 		// it can't because it places a lock file in .git
-		skipDefaultCheckout true
+		skipDefaultCheckout false
 	}
 
 	tools {
