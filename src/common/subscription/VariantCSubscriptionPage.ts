@@ -24,6 +24,7 @@ import { Icons } from "../gui/base/icons/Icons.js"
 import { theme } from "../gui/theme.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
+import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -137,6 +138,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 				hasCampaign: hasCampaign && data.options.paymentInterval() === PaymentInterval.Yearly,
 				hidePaidPlans: availablePlans.includes(PlanType.Free) && availablePlans.length === 1,
 				isApplePrice,
+				variant: "C",
 			}),
 		])
 	}
@@ -305,7 +307,7 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 	}
 
 	nextAction(_: boolean): Promise<boolean> {
-		// next action not available for this page
+		SignupFlowUsageTestController.completeStage(SignupFlowStage.SELECT_PLAN, this.data.type, this.data.options.paymentInterval())
 		return Promise.resolve(true)
 	}
 

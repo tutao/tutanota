@@ -16,6 +16,7 @@ import { boxShadow } from "../gui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getApplePriceStr, getPriceStr } from "./SubscriptionUtils.js"
 import { PaymentIntervalSwitch } from "./PaymentIntervalSwitch.js"
+import { Button, ButtonType } from "../gui/base/Button.js"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -24,6 +25,7 @@ type PlanSelectorAttr = {
 	hasCampaign: boolean
 	hidePaidPlans: boolean
 	isApplePrice: boolean
+	variant: "B" | "C"
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
@@ -70,7 +72,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		windowFacade.removeResizeListener(this.handleResize)
 	}
 
-	view({ attrs: { options, priceAndConfigProvider, actionButtons, hasCampaign, hidePaidPlans, isApplePrice } }: Vnode<PlanSelectorAttr>): Children {
+	view({ attrs: { options, priceAndConfigProvider, actionButtons, hasCampaign, hidePaidPlans, isApplePrice, variant } }: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 
 		const renderFootnoteElement = (): Children => {
@@ -201,16 +203,18 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 										priceAndConfigProvider,
 										hasCampaign,
 										isApplePrice,
+										variant,
 									})
 								}),
 						),
-						m(FreePlanBox, {
-							isSelected: this.currentPlan() === PlanType.Free,
-							select: () => this.currentPlan(PlanType.Free),
-							priceAndConfigProvider,
-							scale: this.scale[PlanType.Free],
-							hasCampaign,
-						}),
+						variant === "C" &&
+							m(FreePlanBox, {
+								isSelected: this.currentPlan() === PlanType.Free,
+								select: () => this.currentPlan(PlanType.Free),
+								priceAndConfigProvider,
+								scale: this.scale[PlanType.Free],
+								hasCampaign,
+							}),
 					),
 				),
 				m(
@@ -241,6 +245,13 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 							renderActionButton(),
 						),
 					),
+
+					variant === "B" &&
+						m(Button, {
+							type: ButtonType.Secondary,
+							label: lang.makeTranslation("", "Start with a free account"),
+							click: (event, dom) => actionButtons[PlanType.Free]().onclick(event, dom),
+						}),
 				),
 				!hidePaidPlans &&
 					m(".flex.flex-column", [

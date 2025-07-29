@@ -242,10 +242,11 @@ o.spec("UsageTestModel", function () {
 							stage: stage.number.toString(),
 							testDeviceId: testDeviceId,
 						}),
+						anything(),
 					),
-				).thenResolve(undefined)
+				).thenResolve({ pingId: "pingId", pingListId: "pingListId" })
 
-				await usageTestModel.sendPing(usageTest, stage)
+				await usageTestModel.sendPing(usageTest, stage, false)
 
 				verify(serviceExecutor.post(UsageTestParticipationService, anything()), { times: 1, ignoreExtraArgs: true })
 			})
@@ -270,13 +271,15 @@ o.spec("UsageTestModel", function () {
 							testId: usageTest.testId,
 							stage: "0",
 							testDeviceId: testDeviceId,
+							isFinalPingForStage: false,
+							metrics: [],
 						}),
 						anything(),
 					),
 				).thenDo(async () => {
 					// Simulate network delay
-					await new Promise((resolve) => setTimeout(resolve, 15))
 					pingOrder.push("0")
+					return await new Promise((resolve) => setTimeout(() => resolve({ pingListId: "pingListId", pingId: "pingId" }), 15))
 				})
 
 				when(
@@ -291,8 +294,8 @@ o.spec("UsageTestModel", function () {
 					),
 				).thenDo(async () => {
 					// Simulate network delay
-					await new Promise((resolve) => setTimeout(resolve, 10))
 					pingOrder.push("1")
+					return await new Promise((resolve) => setTimeout(() => resolve({ pingListId: "pingListId", pingId: "pingId" }), 10))
 				})
 
 				when(
@@ -307,6 +310,7 @@ o.spec("UsageTestModel", function () {
 					),
 				).thenDo(async () => {
 					pingOrder.push("2")
+					return { pingListId: "pingListId", pingId: "pingId" }
 				})
 
 				usageTest.getStage(0).complete()

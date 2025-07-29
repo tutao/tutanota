@@ -533,15 +533,15 @@ export async function loadRedeemGiftCardWizard(hashFromUrl: string): Promise<Dia
 			isEnabled: () => true,
 		}),
 	]
-	return createWizardDialog(
-		model,
-		wizardPages,
-		async () => {
+	return createWizardDialog({
+		data: model,
+		pages: wizardPages,
+		closeAction: async () => {
 			const urlParams = model.mailAddress ? { loginWith: model.mailAddress, noAutoLogin: true } : {}
 			m.route.set("/login", urlParams)
 		},
-		DialogType.EditLarge,
-	).dialog
+		dialogType: DialogType.EditLarge,
+	}).dialog
 }
 
 async function loadModel(hashFromUrl: string): Promise<RedeemGiftCardModel> {

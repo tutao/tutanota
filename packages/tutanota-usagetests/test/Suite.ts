@@ -1,12 +1,20 @@
 import o from "@tutao/otest"
 import { PingAdapter, Stage, UsageTest } from "../lib/index.js"
 import { UsageTestController } from "../lib/model/UsageTestController.js"
+import { Type } from "cborg"
+import { PingIdTuple } from "../lib/model/Stage.js"
+import undefined = Type.undefined
 
 class MockPingAdapter implements PingAdapter {
 	pingsSent = 0
 
-	async sendPing(test: UsageTest, stage: Stage) {
+	async sendPing(test: UsageTest, stage: Stage): Promise<PingIdTuple | undefined> {
 		this.pingsSent++
+		return Promise.resolve({ pingListId: "pingList", pingId: "pingId" + this.pingsSent })
+	}
+
+	async deletePing(testId: string, pingIdTuple: PingIdTuple): Promise<void> {
+		this.pingsSent--
 	}
 }
 

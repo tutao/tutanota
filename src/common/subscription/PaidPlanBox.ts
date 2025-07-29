@@ -32,7 +32,10 @@ type PlanBoxAttrs = {
 	scale: CSSStyleDeclaration["scale"]
 	hasCampaign: boolean
 	isApplePrice: boolean
+	variant: UsageTestVariant
 }
+
+type UsageTestVariant = "B" | "C"
 
 export class PaidPlanBox implements Component<PlanBoxAttrs> {
 	private revoIconSvg: string | undefined
@@ -50,7 +53,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 	}
 
 	view({
-		attrs: { price, referencePrice, selectedPaymentInterval, isSelected, plan, onclick, priceAndConfigProvider, scale, hasCampaign, isApplePrice },
+		attrs: { price, referencePrice, selectedPaymentInterval, isSelected, plan, onclick, priceAndConfigProvider, scale, hasCampaign, isApplePrice, variant },
 	}: Vnode<PlanBoxAttrs>) {
 		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
@@ -94,8 +97,10 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						height: "100%",
 						"border-style": "solid",
 						"border-color": planBoxColors.getOutlineColor(isSelected),
-						"border-width": isLegendPlan ? this.getLegendBorderWidth(isSelected, hasCampaign) : this.getRevoBorderWidth(isSelected, hasCampaign),
-						"border-radius": isLegendPlan ? this.getLegendBorderRadius(hasCampaign) : this.getRevoBorderRadius(hasCampaign),
+						"border-width": isLegendPlan
+							? this.getLegendBorderWidth(isSelected, hasCampaign, variant)
+							: this.getRevoBorderWidth(isSelected, hasCampaign, variant),
+						"border-radius": isLegendPlan ? this.getLegendBorderRadius(hasCampaign, variant) : this.getRevoBorderRadius(hasCampaign, variant),
 						...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
 						overflow: "hidden",
 						padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
@@ -235,45 +240,53 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 		}
 	}
 
-	private getLegendBorderWidth(isSelected: boolean, hasBanner: boolean) {
+	private getLegendBorderWidth(isSelected: boolean, hasBanner: boolean, variant: UsageTestVariant) {
+		const bottomBorderWidth = variant === "B" ? "2px" : "1px"
+
 		if (isSelected) {
 			return "0"
 		}
 
 		const topBorderWidth = hasBanner ? "0" : "2px"
 		if (styles.isMobileLayout()) {
-			return `${topBorderWidth} 0 1px 1px`
+			return `${topBorderWidth} 0 ${bottomBorderWidth} 1px`
 		} else {
-			return `${topBorderWidth} 2px 1px 1px`
+			return `${topBorderWidth} 2px ${bottomBorderWidth} 1px`
 		}
 	}
 
-	private getLegendBorderRadius(hasBanner: boolean) {
+	private getLegendBorderRadius(hasBanner: boolean, variant: UsageTestVariant) {
+		const bottomRightRadius = variant === "B" ? px(size.border_radius_large) : 0
+		const topRightRadius = hasBanner ? "0" : px(size.border_radius_large)
 		if (styles.isMobileLayout()) {
 			return `0 0 0 0`
 		} else {
-			return `0 ${hasBanner ? "0" : px(size.border_radius_large)} 0 0`
+			return `0 ${topRightRadius} ${bottomRightRadius} 0`
 		}
 	}
 
-	private getRevoBorderWidth(isSelected: boolean, hasBanner: boolean) {
+	private getRevoBorderWidth(isSelected: boolean, hasBanner: boolean, variant: UsageTestVariant) {
+		const bottomBorderWidth = variant === "B" ? "2px" : "1px"
+
 		if (isSelected) {
 			return "0"
 		}
 
 		const topBorderWidth = hasBanner ? "0" : "2px"
 		if (styles.isMobileLayout()) {
-			return `${topBorderWidth} 1px 1px 0`
+			return `${topBorderWidth} 1px ${bottomBorderWidth} 0`
 		} else {
-			return `${topBorderWidth} 1px 1px 2px`
+			return `${topBorderWidth} 1px ${bottomBorderWidth} 2px`
 		}
 	}
 
-	private getRevoBorderRadius(hasBanner: boolean) {
+	private getRevoBorderRadius(hasBanner: boolean, variant: UsageTestVariant) {
+		const bottomLeftRadius = variant === "B" ? px(size.border_radius_large) : 0
+		const topLeftRadius = hasBanner ? "0" : px(size.border_radius_large)
 		if (styles.isMobileLayout()) {
 			return `0 0 0 0`
 		} else {
-			return `${hasBanner ? "0" : px(size.border_radius_large)} 0 0 0`
+			return `${topLeftRadius} 0 0 ${bottomLeftRadius}`
 		}
 	}
 
