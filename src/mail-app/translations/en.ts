@@ -1580,6 +1580,7 @@ export default {
 		"requestTooLarge_msg": "The amount of data is too large. Please shorten the text.",
 		"requiresNewWindow_msg": "Will take effect in any new window.",
 		"resetZoomFactor_action": "Reset Zoom Factor",
+		"resolveProblem_action": "Resolve problem",
 		"responsiblePersonsInfo_msg": "Limit the users that the message from the receiving mailbox can be forwarded to. There are no restrictions if the list is empty.",
 		"responsiblePersons_label": "Responsible persons",
 		"restartBefore_action": "Restart Tuta before sending",

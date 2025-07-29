@@ -1584,6 +1584,7 @@ export default {
 		"requestTooLarge_msg": "Die Datenmenge ist zu groß. Bitte kürzen Sie den Text.",
 		"requiresNewWindow_msg": "Änderung wird in neuen Fenstern aktiv.",
 		"resetZoomFactor_action": "Zoomfaktor zurücksetzen",
+		"resolveProblem_action": "Problem beheben",
 		"responsiblePersonsInfo_msg": "Schränkt die Benutzer ein, an die die Nachricht von der empfangenden Mailbox weitergeleitet werden können. Wenn die Liste keine Benutzer enthält, gibt es keine Einschränkungen.",
 		"responsiblePersons_label": "Bearbeiter",
 		"restartBefore_action": "Tuta vorher neu starten",

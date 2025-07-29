@@ -2664,8 +2664,8 @@ styles.registerStyle("main", () => {
 			color: theme.on_success_container_color,
 		},
 		".error-container": {
-			"background-color": theme.error_container_color,
-			color: theme.on_error_container_color,
+			"background-color": theme.error_container,
+			color: theme.on_error_container,
 		},
 		".on-success-container-color": {
 			color: theme.on_success_container_color,

@@ -186,7 +186,7 @@ export const themes = (): Themes => {
 		// Semantic colors
 		error: "#DE3730",
 		on_error: "#FFFFFF",
-		error_container: "#FFDAD6",
+		error_container: "#FFEDEA",
 		on_error_container: "#A80710",
 		warning: "#8D7426",
 		on_warning: "#FFFFFF",
