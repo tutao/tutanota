@@ -2059,5 +2059,8 @@ export default {
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
+		"unread_label": "Unread",
+		"replied_label": "Replied",
+		"forwarded_label": "Forwarded",
 	}
 }
