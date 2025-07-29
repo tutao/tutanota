@@ -1,5 +1,5 @@
 import { Notifier } from "@indutny/simple-windows-notifications"
-import { assertNotNull, lazyNumberRange, takeFromMap } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyNumberRange, noOp, takeFromMap } from "@tutao/tutanota-utils"
 import { TUTA_PROTOCOL_NOTIFICATION_ACTION } from "../DesktopUtils"
 import { urlEncodeHtmlTags } from "../../misc/Formatter"
 import { Dismisser, NotificationFactory, NotificationParameters } from "./NotificationFactory"
@@ -48,17 +48,21 @@ export class WindowsNotificationFactory implements NotificationFactory {
 		const tag = this.nextNotificationId()
 		const notificationIdentifier = { tag, group }
 
-		this.notifier.show(
-			`<toast launch="tuta:${TUTA_PROTOCOL_NOTIFICATION_ACTION}?id=${tag}" activationType="protocol">
+		const toastXML = `<toast launch="tuta:${TUTA_PROTOCOL_NOTIFICATION_ACTION}?id=${tag}" activationType="protocol">
 <visual>
 	<binding template="ToastText02">
 		<text id="1">${urlEncodeHtmlTags(title)}</text>
 		<text id="2">${urlEncodeHtmlTags(body)}</text>
 	</binding>
 </visual>
-</toast>`,
-			notificationIdentifier,
-		)
+</toast>`
+
+		try {
+			this.notifier.show(toastXML, notificationIdentifier)
+		} catch (e) {
+			console.warn("Failed to spawn a Windows notification", e)
+			return noOp
+		}
 
 		this._notifications.set(tag, {
 			identifier: notificationIdentifier,
@@ -83,8 +87,12 @@ export class WindowsNotificationFactory implements NotificationFactory {
 	}
 
 	private dismissNotification(notificationIdentifier: { tag: string; group: string }) {
-		this.notifier.remove(notificationIdentifier)
 		this._notifications.delete(notificationIdentifier.tag)
+		try {
+			this.notifier.remove(notificationIdentifier)
+		} catch (e) {
+			console.warn("Failed to dismiss a Windows notification", e)
+		}
 	}
 
 	private nextNotificationId(): string {
