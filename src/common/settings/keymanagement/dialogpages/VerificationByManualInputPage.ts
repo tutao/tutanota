@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { TextFieldType } from "../../../gui/base/TextField"
-import { lang, TranslationKey } from "../../../misc/LanguageViewModel"
+import { lang } from "../../../misc/LanguageViewModel"
 import { Card } from "../../../gui/base/Card"
 import { SingleLineTextField } from "../../../gui/base/SingleLineTextField"
 import { Icons } from "../../../gui/base/icons/Icons"
@@ -38,7 +38,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 				title: lang.get("keyManagement.textVerification_label"),
 				subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),
 				icon: publicIdentity ? Icons.QuestionMarkOutline : undefined,
-				iconOptions: { color: theme.content_button },
+				// iconOptions: { color: theme.content_button },
 			}),
 			m(
 				Card,
@@ -92,7 +92,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 							}),
 						),
 						m(LoginButton, {
-							class: "success-bg flex-center row center-vertically",
+							class: "flex-center row center-vertically",
 							label: "yes_label",
 							onclick: async () => {
 								await model.trust(IdentityKeyVerificationMethod.text)
@@ -102,13 +102,13 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 								icon: Icons.XCheckmark,
 								size: IconSize.Large,
 								class: "mr-s flex-center",
-								style: {
-									fill: theme.success_container,
-								},
+								// style: {
+								// 	fill: theme.success_container,
+								// },
 							}),
 						}),
 						m(LoginButton, {
-							class: "error-bg flex-center row center-vertically",
+							class: "flex-center row center-vertically",
 							label: "no_label",
 							onclick: async () => {
 								vnode.attrs.gotToMismatchPage()
@@ -118,7 +118,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 								size: IconSize.Large,
 								class: "mr-s flex-center",
 								style: {
-									fill: theme.error_container,
+									fill: theme.content_button_icon,
 								},
 							}),
 						}),
