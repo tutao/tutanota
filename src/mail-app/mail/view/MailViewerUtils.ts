@@ -3,7 +3,7 @@ import { $Promisable, assertNotNull, groupByAndMap, neverNull, promiseMap } from
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
 import m from "mithril"
-import { Button, ButtonType } from "../../../common/gui/base/Button.js"
+import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { progressIcon } from "../../../common/gui/base/Icon.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -399,11 +399,13 @@ function mailViewerMoreActions({
 	return moreButtons
 }
 
-function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
+export function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
 	return showProgressDialog("pleaseWait_msg", viewModel.unsubscribe())
 		.then((success) => {
 			if (success) {
 				return Dialog.message("unsubscribeSuccessful_msg")
+			} else {
+				return showUnsubscribeDialog(viewModel)
 			}
 		})
 		.catch((e) => {
@@ -413,6 +415,56 @@ function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
 				return Dialog.message("unsubscribeFailed_msg")
 			}
 		})
+}
+
+async function showUnsubscribeDialog(viewModel: MailViewerViewModel) {
+	const links = await viewModel.parseListUnsubscribeHeader()
+	const displayMailtoButton = links.httpLink == null && links.mailtoLink != null
+	const dialog = Dialog.showActionDialog({
+		cancelActionTextId: "close_alt",
+		title: "unsubscribe_action",
+		child: () =>
+			m(
+				".flex.col.mt-m",
+				{
+					// So that space below buttons doesn't look huge
+					style: {
+						marginBottom: "-10px",
+					},
+				},
+				[
+					m("div", lang.get("unsubscribeInfo_msg")),
+					m(".flex-center", [
+						displayMailtoButton
+							? m(Button, {
+									label: "unsubscribeMail_action",
+									click: async () => {
+										const { newMailtoUrlMailEditor } = await import("../editor/MailEditor")
+										const newMailDialog = await newMailtoUrlMailEditor(
+											links.mailtoLink!,
+											false,
+											assertNotNull(await viewModel.getMailboxDetails()),
+										)
+										dialog.close()
+										newMailDialog.show()
+									},
+									type: ButtonType.Primary,
+									colors: ButtonColor.Elevated,
+								})
+							: null,
+						!displayMailtoButton
+							? m(Button, {
+									label: "unsubscribeHttpGet_action",
+									click: async () => window.open(links.httpLink!),
+									type: ButtonType.Primary,
+									colors: ButtonColor.Elevated,
+								})
+							: null,
+					]),
+				],
+			),
+		okAction: null,
+	})
 }
 
 export function showReportMailDialog(onReport: (type: MailReportType) => unknown) {

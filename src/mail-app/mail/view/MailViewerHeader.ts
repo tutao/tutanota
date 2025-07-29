@@ -20,7 +20,7 @@ import { assertNotNull, isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tuta
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
-import { editDraft, MailViewerMoreActions, singleMailViewerMoreActions } from "./MailViewerUtils.js"
+import { editDraft, MailViewerMoreActions, singleMailViewerMoreActions, unsubscribe } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { AttachmentBubble, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
@@ -300,7 +300,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		const phishingBanner = this.renderPhishingWarning(viewModel)
 		const externalContentBanner = this.renderExternalContentBanner(attrs)
-
+		const newsletterBanner = this.renderNewsletterBanner(viewModel)
 		const banners: ChildArray = []
 		// we don't wrap it in a single element because our container might depend on us being separate children for margins
 		if (phishingBanner) {
@@ -313,6 +313,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 		if (externalContentBanner) {
 			banners.push(m("." + responsiveCardHMargin(), externalContentBanner))
+		}
+		if (newsletterBanner) {
+			banners.push(m("." + responsiveCardHMargin(), newsletterBanner))
 		}
 
 		const hasEventInvitation = viewModel.getCalendarEventAttachment()
@@ -649,6 +652,22 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					{
 						label: "markAsNotPhishing_action",
 						click: () => viewModel.markAsNotPhishing().then(() => m.redraw()),
+					},
+				],
+			})
+		}
+	}
+
+	private renderNewsletterBanner(viewModel: MailViewerViewModel): Children | null {
+		if (viewModel.isListUnsubscribe()) {
+			return m(InfoBanner, {
+				message: "newsletterMessageBody_msg",
+				icon: Icons.PricingMail,
+				type: BannerType.Info,
+				buttons: [
+					{
+						label: "unsubscribe_action",
+						click: () => unsubscribe(viewModel).then(() => m.redraw()),
 					},
 				],
 			})
