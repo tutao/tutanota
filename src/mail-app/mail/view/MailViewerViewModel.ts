@@ -1,5 +1,4 @@
 import {
-	ConversationEntryTypeRef,
 	createMailAddress,
 	EncryptedMailAddress,
 	File as TutanotaFile,
@@ -29,11 +28,11 @@ import stream from "mithril/stream"
 import {
 	addAll,
 	assertNonNull,
+	assertNotNull,
 	contains,
 	downcast,
 	filterInt,
 	first,
-	getFirstOrThrow,
 	lazyAsync,
 	noOp,
 	ofClass,
@@ -86,6 +85,11 @@ export const enum ContentBlockingStatus {
 	AlwaysShow = "2",
 	NoExternalContent = "3",
 	AlwaysBlock = "4",
+}
+
+type UnsubscribeLinks = {
+	httpLink: string | null
+	mailtoLink: string | null
 }
 
 export class MailViewerViewModel {
@@ -605,47 +609,60 @@ export class MailViewerViewModel {
 		if (!mailHeaders) {
 			return false
 		}
-		const unsubscribeHeaderValue = mailHeaders
-			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
-			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
-			.split("\n") // split headers
-			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
 
 		const unsubPostHeader = mailHeaders
 			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
 			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
 			.split("\n") // split headers
 			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe-post"))
+
 		if (unsubPostHeader.length > 0) {
-			const [header, ...value] = unsubscribeHeaderValue[0].split(":")
-			await this.mailModel.unsubscribe(this.mail, this.parseListUnsubscribeHeader(value.join(":")))
+			const unsubscribeLinks = await this.parseListUnsubscribeHeader()
+			await this.mailModel.unsubscribe(this.mail, assertNotNull(unsubscribeLinks.httpLink))
 			return true
 		} else {
+			await this.mailFacade.updateListUnsubscribe(this.mail)
 			return false
 		}
 	}
 
-	private parseListUnsubscribeHeader(unsubscribeHeaderValue: string): string {
-		if (!unsubscribeHeaderValue) return ""
+	async parseListUnsubscribeHeader(): Promise<UnsubscribeLinks> {
+		const mailHeaders = await this.getHeaders()
+		const result: UnsubscribeLinks = {
+			httpLink: null,
+			mailtoLink: null,
+		}
+		if (!mailHeaders) {
+			return result
+		}
+		const unsubscribeHeaderValue = mailHeaders
+			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
+			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
+			.split("\n") // split headers
+			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
 
-		const links = unsubscribeHeaderValue.split(/,(?![^<>]*>)/)
+		const [header, ...value] = unsubscribeHeaderValue[0].split(":")
+		const headerValue = value.join(":")
+		const links = headerValue.split(/,(?![^<>]*>)/)
 
 		for (const link of links) {
 			const trimmedLink = link.trim()
 
 			if (trimmedLink.startsWith("<http") && trimmedLink.endsWith(">")) {
-				return trimmedLink.slice(1, -1)
+				result.httpLink = trimmedLink.slice(1, -1)
+			} else if (trimmedLink.startsWith("<mailto:") && trimmedLink.endsWith(">")) {
+				result.mailtoLink = trimmedLink.slice(1, -1)
 			}
 		}
 
-		return ""
+		return result
 	}
 
 	getHighlightedStrings(): readonly SearchToken[] {
 		return this.highlightedStrings
 	}
 
-	private getMailboxDetails(): Promise<MailboxDetail | null> {
+	getMailboxDetails(): Promise<MailboxDetail | null> {
 		return this.mailModel.getMailboxDetailsForMail(this.mail)
 	}
 
