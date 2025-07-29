@@ -2092,3 +2092,6 @@ export type TranslationKeyType =
 	| "copyOf_title"
 	| "declined_label"
 	| "accepted_label"
+	| "unread_label"
+	| "replied_label"
+	| "forwarded_label"

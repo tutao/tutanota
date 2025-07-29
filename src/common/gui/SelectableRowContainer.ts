@@ -31,6 +31,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 					marginRight: styles.isSingleColumnLayout() ? px(size.hpad_small) : "0",
 					transition: `background 200ms`,
 				},
+				tabindex: "0",
 				oncreate: ({ dom }) => {
 					this.dom = dom as HTMLElement
 					this.updateDomBg()
@@ -98,6 +99,11 @@ export function shouldAlwaysShowMultiselectCheckbox() {
 }
 
 // delay by 2 frames roughly so that the browser has time to do heavy stuff with layout
-export const selectableRowAnimParams: KeyframeAnimationOptions = { duration: DefaultAnimationTime, easing: "ease-in-out", fill: "forwards", delay: 36 }
+export const selectableRowAnimParams: KeyframeAnimationOptions = {
+	duration: DefaultAnimationTime,
+	easing: "ease-in-out",
+	fill: "forwards",
+	delay: 36,
+}
 export const scaleXHide = "scaleX(0)"
 export const scaleXShow = "scaleX(1)"
