@@ -57,6 +57,7 @@ import { MailImportError } from "../error/MailImportError.js"
 import { ExportError } from "../error/ExportError"
 import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
 import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableError"
+import { AppLockAuthenticationError } from "../error/AppLockAuthenticationError"
 
 /**
  * Checks if the given instance (Entity or ParsedInstance) has an error in the _errors property which is usually written
@@ -155,6 +156,7 @@ const ErrorNameToType = {
 	NSURLErrorDomain: ConnectionError,
 	NSCocoaErrorDomain: Error,
 	"de.tutao.tutashared.CredentialAuthenticationException": CredentialAuthenticationError,
+	"de.tutao.tutashared.AppLockAuthenticationException": AppLockAuthenticationError,
 	"android.security.keystore.KeyPermanentlyInvalidatedException": KeyPermanentlyInvalidatedError,
 	"de.tutao.tutashared.KeyPermanentlyInvalidatedError": KeyPermanentlyInvalidatedError,
 	"de.tutao.tutashared.CredentialAuthenticationError": CredentialAuthenticationError,
