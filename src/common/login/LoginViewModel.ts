@@ -357,6 +357,16 @@ export class LoginViewModel implements ILoginViewModel {
 				await this.updateCachedCredentials()
 				this.state = LoginState.NotAuthenticated
 				this.helpText = "credentialsKeyInvalidated_msg"
+			} else if (e instanceof CredentialAuthenticationError && e.message.includes("No fingerprints enrolled")) {
+				// when the app's AppLockMethod doesn't match with system's, clear credential and fallback
+				// AppLockMethod to default
+				await this.credentialsProvider.clearCredentials(e)
+				await this.updateCachedCredentials()
+				this.state = LoginState.NotAuthenticated
+				await this.appLock.setAppLockMethod()
+				this.helpText = lang.getTranslation("couldNotUnlockCredentials_msg", {
+					"{reason}": e.message,
+				})
 			} else if (e instanceof DeviceStorageUnavailableError) {
 				// The app already shows a dialog with FAQ link so we don't have to explain
 				// much here, just catching it to avoid unexpected error dialog
