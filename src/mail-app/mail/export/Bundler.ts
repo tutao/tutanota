@@ -1,7 +1,7 @@
 import type { Mail, MailDetails } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { FileTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { EntityClient } from "../../../common/api/common/EntityClient"
-import { MailState } from "../../../common/api/common/TutanotaConstants"
+import { MailAuthenticationStatus, MailState } from "../../../common/api/common/TutanotaConstants"
 import { getLetId } from "../../../common/api/common/utils/EntityUtils"
 import type { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { promiseMap } from "@tutao/tutanota-utils"
@@ -36,6 +36,7 @@ export function makeMailBundle(sanitizer: HtmlSanitizer, mail: Mail, mailDetails
 		receivedOn: mail.receivedDate.getTime(),
 		headers: mailDetails.headers?.compressedHeaders ?? mailDetails.headers?.headers ?? null,
 		attachments,
+		authStatus: mailDetails.authStatus as MailAuthenticationStatus,
 	}
 }
 

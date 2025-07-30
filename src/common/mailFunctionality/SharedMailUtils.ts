@@ -9,6 +9,7 @@ import {
 	ConversationType,
 	EncryptionAuthStatus,
 	GroupType,
+	MailAuthenticationStatus,
 	MailState,
 	MAX_ATTACHMENT_SIZE,
 	MAX_BASE64_IMAGE_SIZE,
@@ -310,4 +311,5 @@ export type MailBundle = {
 	receivedOn: number // UNIX timestamp,
 	headers: string | null
 	attachments: DataFile[]
+	authStatus: MailAuthenticationStatus
 }

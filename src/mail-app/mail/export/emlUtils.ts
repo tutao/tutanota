@@ -40,10 +40,11 @@ export function mailToEml(mail: MailBundle): string {
 			// we want to make sure all line endings are exactly \r\n after we're done.
 			.split(/\r\n|\n/)
 			.filter((line) => !line.match(/^\s*(Content-Type:|boundary=)/))
+
+		lines.push("AuthStatus: " + assertNotNull(mail.authStatus))
 		lines.push(...filteredHeaders)
 	} else {
 		lines.push("From: " + mail.sender.address, "MIME-Version: 1.0")
-
 		const formatRecipients = (key: string, recipients: MailBundleRecipient[]) =>
 			`${key}: ${recipients
 				.map((recipient) => (recipient.name ? `${escapeSpecialCharacters(recipient.name)} ` : "") + `<${recipient.address}>`)
