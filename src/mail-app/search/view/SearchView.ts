@@ -2,7 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, Keys, MailReportType, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp, isBrowser } from "../../../common/api/common/Env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
@@ -69,6 +69,7 @@ import {
 	getConversationTitle,
 	getMoveMailBounds,
 	LabelsPopupOpts,
+	moveMailsToSystemFolder,
 	promptAndDeleteMails,
 	showLabelsPopup,
 	showMoveMailsDropdown,
@@ -104,7 +105,7 @@ import { allInSameMailbox, getIndentedFolderNameForDropdown } from "../../mail/m
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 import { createDropdown, PosRect } from "../../../common/gui/base/Dropdown"
-import { editDraft, getMailViewerMoreActions, MailFilterType, showReportMailDialog, startExport } from "../../mail/view/MailViewerUtils"
+import { editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "../../mail/view/MailViewerUtils"
 import { isDraft } from "../../mail/model/MailChecks"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
 import { UserError } from "../../../common/api/main/UserError"
@@ -629,6 +630,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					replyAllAction: null,
 					forwardAction: null,
 					mailViewerMoreActions: null,
+					reportSpamAction: this.getReportMultipleEmailSpamAction(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -674,9 +676,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					forwardAction: this.getForwardAction(conversationViewModel),
 					mailViewerMoreActions: getMailViewerMoreActions({
 						viewModel: conversationViewModel.primaryViewModel(),
-						report: this.getReportAction(conversationViewModel.primaryViewModel()),
+						reportSpam: this.getReportAction(conversationViewModel.primaryViewModel()),
 						print: this.getPrintAction(),
+						reportPhishing: null,
 					}),
+					reportSpamAction: null,
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -720,8 +724,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						moreActions: (mailViewerModel) =>
 							getMailViewerMoreActions({
 								viewModel: mailViewerModel,
-								report: this.getReportAction(mailViewerModel),
+								reportSpam: this.getReportAction(mailViewerModel),
 								print: this.getPrintAction(),
+								reportPhishing: this.getReportSingleEmailPhishingAction(mailViewerModel),
 							}),
 					}),
 				})
@@ -768,17 +773,55 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private getReportAction(viewModel: MailViewerViewModel): (() => unknown) | null {
+	private getReportAction(viewModel: MailViewerViewModel, reportType = MailReportType.SPAM): (() => unknown) | null {
 		return viewModel.canReport()
 			? () => {
-					showReportMailDialog((type) => {
-						viewModel
-							.reportMail(type)
-							.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-							.finally(m.redraw)
+					viewModel
+						.reportMail(reportType ?? MailReportType.SPAM)
+						.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+						.finally(m.redraw)
+				}
+			: null
+	}
+
+	private getReportSingleEmailPhishingAction(viewModel: MailViewerViewModel): (() => unknown) | null {
+		return viewModel.canReport()
+			? () => {
+					showReportPhishingMailDialog(async () => {
+						await mailLocator.mailModel.reportMails(MailReportType.PHISHING, async () => [viewModel.mail])
+						this.getReportAction(viewModel, MailReportType.PHISHING)
 					})
 				}
 			: null
+	}
+
+	private getReportMultipleEmailSpamAction(): (() => unknown) | null {
+		return async () => {
+			await this.moveSelectedMailsToSystemFolder(MailSetKind.SPAM)
+		}
+	}
+
+	private async moveSelectedMailsToSystemFolder(targetFolderType: SystemFolderType) {
+		const selection = this.searchViewModel.getSelectedMails()
+		const firstMail = first(selection)
+		if (firstMail === null) {
+			return
+		}
+		const mailModel = mailLocator.mailModel
+		const folderOfFirstMail = mailModel.getMailFolderForMail(firstMail)
+		if (folderOfFirstMail == null) {
+			return
+		}
+
+		moveMailsToSystemFolder({
+			mailboxModel: mailLocator.mailboxModel,
+			mailModel: mailLocator.mailModel,
+			currentFolder: folderOfFirstMail,
+			mailIds: getIds(selection),
+			targetFolderType,
+			moveMode: MoveMode.Mails,
+			undoModel: this.undoModel,
+		})
 	}
 
 	private getForwardAction(conversationViewModel: ConversationViewModel): (() => void) | null {
@@ -950,8 +993,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				forwardAction: this.getForwardAction(conversationViewModel),
 				mailViewerMoreActions: getMailViewerMoreActions({
 					viewModel: conversationViewModel.primaryViewModel(),
-					report: this.getReportAction(conversationViewModel.primaryViewModel()),
+					reportSpam: this.getReportAction(conversationViewModel.primaryViewModel()),
 					print: this.getPrintAction(),
+					reportPhishing: null,
 				}),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
