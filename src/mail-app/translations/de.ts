@@ -2063,7 +2063,6 @@ export default {
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"showVerificationError_action": "Verifikationsfehler anzeigen",
 		"reject_action": "Ablehnen",
 		"keyVerificationErrorManual_msg": "Der Identitätsschlüssel stimmt nicht mit dem Schlüssel überein, den du manuell mit diesem Kontakt verifiziert hast.",
 		"keyVerificationErrorTofu_msg": "Der Identitätsschlüssel weicht von dem ab, den du bei Ihrer letzten Unterhaltung mit diesem Kontakt verwendet hast.",
@@ -2077,7 +2076,6 @@ export default {
 		"keyVerificationErrorContactNotUpdated_msg": "Der Identitätsschlüssel für den Kontakt <b>{mailAddress}</b> wurde auf deinem Gerät nicht aktualisiert.<br><br>" +
 			"Führe bitte eine manuelle Schlüsselverifikation durch, bevor du die Unterhaltung fortsetzt.",
 		"keyVerificationErrorAccept_title": "Kontakt erfolgreich aktualisiert",
-		"keyVerificationErrorReject_title": "Kontakt nicht aktualisiert",
         "deleteKey_action": "Schlüssel löschen und erneut versuchen",
         "fingerprintMismatchKeepManualSubtitle_msg": "Der Schlüssel, dem du schon vertraut hast, wird weiterhin in deiner lokalen Datenbank verbleiben.",
         "fingerprintMismatchKeepManual_msg": "Wenn dieser Schlüssel nicht der ist, der mit <b>{mailAddress}</b> aktuell assoziiert ist, kannst du ihn ersetzen, sobald du den aktuellen Schlüssel bestätigen kannst.",
