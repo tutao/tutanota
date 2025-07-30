@@ -1,0 +1,38 @@
+From cae256ca7da8ff4c17cd94084d287a1b98346c56 Mon Sep 17 00:00:00 2001
+From: nig <nig@tutao.de>
+Date: Fri, 15 Aug 2025 11:50:30 +0200
+Subject: patch botd
+
+---
+ libs/botd.mjs | 15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
+
+diff --git a/libs/botd.mjs b/libs/botd.mjs
+index 29275dd22..1b65a4b5f 100644
+--- a/libs/botd.mjs
++++ b/libs/botd.mjs
+@@ -940,20 +940,7 @@ var BotDetector = /** @class */ (function () {
+  * Sends an unpersonalized AJAX request to collect installation statistics
+  */
+ function monitor() {
+-    // The FingerprintJS CDN (https://github.com/fingerprintjs/cdn) replaces `window.__fpjs_d_m` with `true`
+-    if (window.__fpjs_d_m || Math.random() >= 0.001) {
+-        return;
+-    }
+-    try {
+-        var request = new XMLHttpRequest();
+-        request.open('get', "https://m1.openfpcdn.io/botd/v".concat(version, "/npm-monitoring"), true);
+-        request.send();
+-    }
+-    catch (error) {
+-        // console.error is ok here because it's an unexpected error handler
+-        // eslint-disable-next-line no-console
+-        console.error(error);
+-    }
++    // intentional noOp: patched out telemetry
+ }
+ function load(_a) {
+     var _b = _a === void 0 ? {} : _a, _c = _b.monitoring, monitoring = _c === void 0 ? true : _c;
+-- 
+2.39.5
+
