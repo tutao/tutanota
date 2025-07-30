@@ -53,14 +53,42 @@ impl KeyLoaderFacade {
 		} else {
 			// TODO: refresh if group_key.version < version
 			let group: Group = self.entity_client.load(&group_id.to_owned()).await?;
-			let FormerGroupKey {
-				symmetric_group_key,
-				..
-			} = self
-				.find_former_group_key(&group, &group_key, version)
+			let symmetric_group_key = self
+				.get_former_versioned_group_key(&group, &group_key, version)
 				.await?;
-			Ok(symmetric_group_key)
+			Ok(symmetric_group_key.object)
 		}
+	}
+
+	async fn get_former_versioned_group_key(
+		&self,
+		group: &Group,
+		group_key: &VersionedAesKey,
+		target_key_version: u64,
+	) -> Result<VersionedAesKey, KeyLoadError> {
+		let Some(group_id) = &group._id else {
+			return Err(KeyLoadError {
+				reason: "Missing group Id while resolving former group key".to_string(),
+			});
+		};
+
+		let stored_former_key: Option<VersionedAesKey> = self
+			.user_facade
+			.key_cache()
+			.get_group_key_for_version(group_id, target_key_version);
+		if stored_former_key.is_some() {
+			return Ok(stored_former_key.unwrap());
+		}
+
+		let group_key: GenericAesKey = match self
+			.find_former_group_key(group, group_key, target_key_version)
+			.await
+		{
+			Ok(former_key) => former_key.symmetric_group_key,
+			Err(e) => return Err(e),
+		};
+
+		Ok(VersionedAesKey::new(group_key, target_key_version))
 	}
 
 	async fn find_former_group_key(
