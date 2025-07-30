@@ -2078,3 +2078,4 @@ export type TranslationKeyType =
 	| "unread_label"
 	| "replied_label"
 	| "forwarded_label"
+	| "userExportProgress_msg"

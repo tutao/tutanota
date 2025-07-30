@@ -1,11 +1,14 @@
 import { LoginController } from "../api/main/LoginController.js"
-import { CustomerTypeRef, GroupInfoTypeRef, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
-import { assertNotNull, mapNullable, neverNull, pad, promiseMap, renderCsv, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { GroupInfoTypeRef, GroupTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { assertNotNull, mapNullable, pad, promiseMap, renderCsv, splitInChunks, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { FileController } from "../file/FileController.js"
 import { createDataFile } from "../api/common/DataFile.js"
 import { CounterFacade } from "../api/worker/facades/lazy/CounterFacade.js"
 import { CounterType } from "../api/common/TutanotaConstants.js"
+import { CancelledError } from "../api/common/error/CancelledError"
+
+const GROUP_DOWNLOAD_SIZE = 50
 
 export const CSV_MIMETYPE = "text/csv"
 export const USER_CSV_FILENAME = "users.csv"
@@ -19,8 +22,7 @@ interface UserExportData {
 	aliases: Array<string>
 }
 
-export async function exportUserCsv(entityClient: EntityClient, logins: LoginController, fileController: FileController, counterFacade: CounterFacade) {
-	const data = await loadUserExportData(entityClient, logins, counterFacade)
+export async function exportUserCsv(data: readonly UserExportData[], fileController: FileController) {
 	const csv = renderCsv(
 		["name", "mail address", "date created", "date deleted", "storage used (in bytes)", "aliases"],
 		data.map((user) => [
@@ -43,25 +45,58 @@ function formatDate(date: Date): string {
 /**
  * Load data for each user administrated by the logged in user, in order to be exported
  */
-export async function loadUserExportData(entityClient: EntityClient, logins: LoginController, counterFacade: CounterFacade): Promise<Array<UserExportData>> {
-	const { user } = logins.getUserController()
-	const { userGroups } = await entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
+export async function loadUserExportData(
+	entityClient: EntityClient,
+	logins: LoginController,
+	counterFacade: CounterFacade,
+	onProgress?: (complete: number, total: number) => unknown,
+	abortSignal?: AbortSignal,
+): Promise<UserExportData[]> {
+	const customer = await logins.getUserController().loadCustomer()
+	const groupsAdministeredByUser = await entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
+	const usedCustomerStorageCounterValues = await counterFacade.readAllCustomerCounterValues(CounterType.UserStorageLegacy, customer._id)
 
-	const groupsAdministeredByUser = await entityClient.loadAll(GroupInfoTypeRef, userGroups)
+	let isCancelled = false
+	abortSignal?.addEventListener("abort", () => (isCancelled = true))
 
-	const usedCustomerStorageCounterValues = await counterFacade.readAllCustomerCounterValues(CounterType.UserStorageLegacy, neverNull(user.customer))
-	return promiseMap(groupsAdministeredByUser, async (info) => {
-		const group = await entityClient.load(GroupTypeRef, info.group)
-		const userStorageCounterValue = usedCustomerStorageCounterValues.find((counterValue) => counterValue.counterId === group.storageCounter)
-		const usedStorage = userStorageCounterValue != null ? Number(userStorageCounterValue.value) : 0
+	let total = groupsAdministeredByUser.length
+	let completed = 0
+	onProgress?.(completed, total)
 
-		return {
-			name: info.name,
-			mailAddress: info.mailAddress ?? "",
-			created: info.created,
-			deleted: info.deleted,
-			usedStorage,
-			aliases: info.mailAddressAliases.map((alias) => alias.mailAddress),
+	const downloaded = await promiseMap(splitInChunks(GROUP_DOWNLOAD_SIZE, groupsAdministeredByUser), async (infos) => {
+		if (isCancelled) {
+			throw new CancelledError("user export cancelled by user")
 		}
+
+		const groups = await entityClient.loadMultiple(
+			GroupTypeRef,
+			null,
+			infos.map((group) => group.group),
+		)
+
+		const mapped = groups.map((group) => {
+			const info = assertNotNull(groupsAdministeredByUser.find((groupInfo) => groupInfo.group === group._id))
+			const userStorageCounterValue = usedCustomerStorageCounterValues.find((counterValue) => counterValue.counterId === group.storageCounter)
+			const usedStorage = Number(userStorageCounterValue?.value ?? "0")
+			return {
+				name: info.name,
+				mailAddress: info.mailAddress ?? "",
+				created: info.created,
+				deleted: info.deleted,
+				usedStorage,
+				aliases: info.mailAddressAliases.map((alias) => alias.mailAddress),
+			}
+		})
+
+		completed += mapped.length
+
+		// in case we did not get every single group back that we requested (something may have changed in the meantime)
+		total -= infos.length - mapped.length
+
+		onProgress?.(completed, total)
+
+		return mapped
 	})
+
+	return downloaded.flat()
 }
