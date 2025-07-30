@@ -387,9 +387,9 @@ function mailViewerMoreActions({
 
 	if (reportMailAction != null) {
 		moreButtons.push({
-			label: "reportEmail_action",
+			label: "spam_move_action",
 			click: reportMailAction,
-			icon: Icons.Warning,
+			icon: Icons.Spam,
 		})
 	}
 
