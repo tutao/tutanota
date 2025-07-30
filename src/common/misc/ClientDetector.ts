@@ -1,5 +1,6 @@
 import { assertMainOrNodeBoot, isApp, Mode } from "../api/common/Env"
 import { AppType, BrowserData, BrowserType, DeviceType } from "./ClientConstants"
+import { load } from "@fingerprintjs/botd"
 
 assertMainOrNodeBoot()
 
@@ -11,6 +12,7 @@ export class ClientDetector {
 	overflowAuto!: string
 	isMacOS!: boolean
 	appType!: AppType
+	isAutomatedBrowser: boolean = false
 
 	constructor() {}
 
@@ -24,6 +26,11 @@ export class ClientDetector {
 		this._setBrowserAndVersion()
 
 		this._setDeviceInfo()
+
+		load({ monitoring: false })
+			.then((botd) => botd.detect())
+			.then((result) => (this.isAutomatedBrowser = result.bot))
+			.catch((error) => console.error(error))
 
 		this.overflowAuto = this.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
 		this.isMacOS = platform.indexOf("Mac") !== -1
