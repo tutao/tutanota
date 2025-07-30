@@ -20,6 +20,7 @@ export const dependencyMap = {
 	undici: path.normalize("./libs/undici.mjs"),
 	jsqr: path.normalize("./libs/jsQR.js"),
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
+	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
 }
 
 /**
@@ -170,7 +171,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("libs/mithril") ||
 		isIn("src/mail-app/app.ts") ||
 		isIn("src/calendar-app/calendar-app.ts") ||
-		code.includes("@bundleInto:boot")
+		code.includes("@bundleInto:boot") ||
+		moduleId.includes("libs/botd.mjs")
 	) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
 		// everything marked as assertMainOrNodeBoot goes into boot bundle right now
@@ -220,7 +222,6 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/mail-app/contacts/model") ||
 		isIn("src/mail-app/search/model") ||
 		isIn("src/calendar-app/calendar/search/model") ||
-		isIn("src/common/misc/ErrorHandlerImpl") ||
 		isIn("src/common/misc") ||
 		isIn("src/common/file") ||
 		isIn("src/common/gui") ||

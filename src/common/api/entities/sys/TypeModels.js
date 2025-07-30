@@ -8425,6 +8425,14 @@ export const typeModels = {
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"2639": {
+				"final": false,
+				"name": "isAutomatedBrowser",
+				"id": 2639,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {}
@@ -14502,7 +14510,17 @@ export const typeModels = {
 				"encrypted": false
 			}
 		},
-		"associations": {}
+		"associations": {
+			"2643": {
+				"final": false,
+				"name": "deviceInfo",
+				"id": 2643,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2640,
+				"dependency": null
+			}
+		}
 	},
 	"2632": {
 		"name": "TimelockCaptchaGetOut",
@@ -14545,6 +14563,37 @@ export const typeModels = {
 				"name": "base",
 				"id": 2636,
 				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"2640": {
+		"name": "ClientPerformanceInfo",
+		"app": "sys",
+		"version": 136,
+		"since": 136,
+		"type": "AGGREGATED_TYPE",
+		"id": 2640,
+		"rootId": "A3N5cwAKUA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2641": {
+				"final": true,
+				"name": "_id",
+				"id": 2641,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2642": {
+				"final": false,
+				"name": "isAutomatedBrowser",
+				"id": 2642,
+				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
 			}
