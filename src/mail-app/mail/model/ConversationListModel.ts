@@ -389,26 +389,32 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	get stateStream(): Stream<ListState<Mail>> {
-		return this.listModel.stateStream.map((state) => {
-			if (this.olderDisplayedSelectedMailOverride) {
-				const olderMail = this.getMail(this.olderDisplayedSelectedMailOverride)
-				if (
-					olderMail == null ||
-					state.selectedItems.size !== 1 ||
-					state.inMultiselect ||
-					[...state.selectedItems][0].conversationId !== listIdPart(olderMail.conversationEntry)
-				) {
-					this.olderDisplayedSelectedMailOverride = null
-				}
-			}
-			const newState: ListState<Mail> = {
-				...state,
-				items: this.items,
-				selectedItems: new Set(this.getSelectedAsArray()),
-			}
-			return newState
-		})
+		return this._stateStream()
 	}
+
+	private readonly _stateStream = memoizedWithHiddenArgument(
+		() => this.listModel.stateStream,
+		(stateStream) =>
+			stateStream.map((state) => {
+				if (this.olderDisplayedSelectedMailOverride) {
+					const olderMail = this.getMail(this.olderDisplayedSelectedMailOverride)
+					if (
+						olderMail == null ||
+						state.selectedItems.size !== 1 ||
+						state.inMultiselect ||
+						[...state.selectedItems][0].conversationId !== listIdPart(olderMail.conversationEntry)
+					) {
+						this.olderDisplayedSelectedMailOverride = null
+					}
+				}
+				const newState: ListState<Mail> = {
+					...state,
+					items: this.items,
+					selectedItems: new Set(this.getSelectedAsArray()),
+				}
+				return newState
+			}),
+	)
 
 	stopLoading(): void {
 		this.listModel.stopLoading()

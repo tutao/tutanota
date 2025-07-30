@@ -84,15 +84,21 @@ export class MailListModel implements MailSetListModel {
 	}
 
 	get stateStream(): Stream<ListState<Mail>> {
-		return this.listModel.stateStream.map((state) => {
-			const newState: ListState<Mail> = {
-				...state,
-				items: this.items,
-				selectedItems: new Set(this.getSelectedAsArray()),
-			}
-			return newState
-		})
+		return this._stateStream()
 	}
+
+	private readonly _stateStream = memoizedWithHiddenArgument(
+		() => this.listModel.stateStream,
+		(stateStream) =>
+			stateStream.map((state) => {
+				const newState: ListState<Mail> = {
+					...state,
+					items: this.items,
+					selectedItems: new Set(this.getSelectedAsArray()),
+				}
+				return newState
+			}),
+	)
 
 	isLoadingAll(): boolean {
 		return this.listModel.state.loadingAll
