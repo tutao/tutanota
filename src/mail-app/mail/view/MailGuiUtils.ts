@@ -78,20 +78,19 @@ interface MoveMailsParams {
 	mailIds: ReadonlyArray<IdTuple>
 	targetFolder: MailFolder
 	moveMode: MoveMode
-	isReportable?: boolean
 }
 
 async function reportMails(
 	system: FolderSystem,
 	targetMailFolder: MailFolder,
-	isReportable: boolean,
-	mails: () => Promise<readonly Mail[]>,
+	mailIds: ReadonlyArray<IdTuple>,
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
 ): Promise<boolean> {
-	if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) && isReportable) {
+	if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM)) {
+		const resolveMails = () => mailModel.loadAllMails(mailIds)
 		const mailboxDetails = await mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
-		await reportMailsAutomatically(MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails, mails)
+		await reportMailsAutomatically(MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails, resolveMails)
 	}
 	return true
 }
@@ -100,15 +99,15 @@ async function reportMails(
  * Moves the mails and reports them as spam if the user or settings allow it.
  * @return whether mails were actually moved
  */
-export async function moveMails({ mailboxModel, mailModel, mailIds, targetFolder, moveMode, isReportable = true }: MoveMailsParams): Promise<boolean> {
+export async function moveMails({ mailboxModel, mailModel, mailIds, targetFolder, moveMode }: MoveMailsParams): Promise<boolean> {
 	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
 	if (system == null) {
 		return false
 	}
 	try {
 		await mailModel.moveMails(mailIds, targetFolder, moveMode)
-		const resolveMails = () => mailModel.loadAllMails(mailIds)
-		return await reportMails(system, targetFolder, isReportable, resolveMails, mailboxModel, mailModel)
+
+		return await reportMails(system, targetFolder, mailIds, mailboxModel, mailModel)
 	} catch (e) {
 		//LockedError should no longer be thrown!?!
 		if (e instanceof LockedError || e instanceof PreconditionFailedError) {
@@ -126,7 +125,6 @@ export async function moveMailsToSystemFolder({
 	targetFolderType,
 	currentFolder,
 	moveMode,
-	isReportable,
 }: {
 	mailboxModel: MailboxModel
 	mailModel: MailModel
@@ -134,12 +132,11 @@ export async function moveMailsToSystemFolder({
 	targetFolderType: SystemFolderType
 	currentFolder: MailFolder
 	moveMode: MoveMode
-	isReportable?: boolean
 }): Promise<boolean> {
 	const folderSystem = mailModel.getFolderSystemByGroupId(assertNotNull(currentFolder._ownerGroup))
 	const targetFolder = folderSystem?.getSystemFolderByType(targetFolderType)
 	if (targetFolder == null) return false
-	return await moveMails({ mailboxModel, mailModel, mailIds, targetFolder, isReportable, moveMode })
+	return await moveMails({ mailboxModel, mailModel, mailIds, targetFolder, moveMode })
 }
 
 function handleMoveError(err: Error) {

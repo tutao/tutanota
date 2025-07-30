@@ -52,6 +52,7 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
+import { isTutanotaTeamMail } from "../view/MailGuiUtils"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -363,8 +364,15 @@ export class MailModel {
 	}
 
 	async reportMails(reportType: MailReportType, mails: () => Promise<ReadonlyArray<Mail>>): Promise<void> {
+		if (!this.logins.isInternalUserLoggedIn()) {
+			return
+		}
+
 		const mailsToReport = await mails()
 		for (const mail of mailsToReport) {
+			if (isTutanotaTeamMail(mail)) {
+				continue
+			}
 			await this.mailFacade.reportMail(mail, reportType).catch(ofClass(NotFoundError, (e) => console.log("mail to be reported not found", e)))
 		}
 	}
