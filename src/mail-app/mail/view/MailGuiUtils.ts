@@ -83,20 +83,20 @@ interface MoveMailsParams {
 	mailIds: ReadonlyArray<IdTuple>
 	targetFolder: MailFolder
 	moveMode: MoveMode
-	isReportable?: boolean
 	/** The folder to move the mails back to; if null or undefined, then the move cannot be undone */
 	undoFolder?: MailFolder | null
+	reportType?: MailReportType
 }
 
 /** @return whether emails should be reported */
-async function getReportAnswer(targetMailFolder: MailFolder, isReportable: boolean, mailboxModel: MailboxModel, mailModel: MailModel): Promise<boolean> {
+async function getReportAnswer(targetMailFolder: MailFolder, mailboxModel: MailboxModel, mailModel: MailModel, reportType?: MailReportType): Promise<boolean> {
 	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetMailFolder._ownerGroup))
 	if (system == null) {
 		return false
 	}
-	if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) && isReportable) {
+	if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM)) {
 		const mailboxDetails = await mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
-		return getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails)
+		return getReportConfirmation(reportType ?? MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails)
 	} else {
 		return false
 	}
@@ -190,6 +190,10 @@ async function showUndoMoveMailSnackbar(
  */
 export async function moveMails(params: MoveMailsParams): Promise<boolean> {
 	const { mailModel, mailIds, targetFolder, moveMode } = params
+	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
+	if (system == null) {
+		return false
+	}
 	try {
 		await mailModel.moveMails(mailIds, targetFolder, moveMode)
 		// run post-move actions async
@@ -206,10 +210,10 @@ export async function moveMails(params: MoveMailsParams): Promise<boolean> {
 	}
 }
 
-async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportable = true, mailboxModel, undoFolder, undoModel }: MoveMailsParams) {
+async function runPostMoveActions({ mailModel, mailIds, targetFolder, mailboxModel, undoFolder, undoModel }: MoveMailsParams) {
 	const resolveMails = () => mailModel.loadAllMails(mailIds)
 
-	const shouldReportMails = await getReportAnswer(targetFolder, isReportable, mailboxModel, mailModel)
+	const shouldReportMails = await getReportAnswer(targetFolder, mailboxModel, mailModel)
 
 	// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
 	// user to undo the move...
@@ -240,7 +244,6 @@ export async function moveMailsToSystemFolder({
 	targetFolderType,
 	currentFolder,
 	moveMode,
-	isReportable,
 	undoModel,
 }: {
 	mailboxModel: MailboxModel
@@ -250,7 +253,6 @@ export async function moveMailsToSystemFolder({
 	currentFolder: MailFolder
 	moveMode: MoveMode
 	undoModel: UndoModel
-	isReportable?: boolean
 }): Promise<boolean> {
 	const folderSystem = mailModel.getFolderSystemByGroupId(assertNotNull(currentFolder._ownerGroup))
 	const targetFolder = folderSystem?.getSystemFolderByType(targetFolderType)
@@ -260,7 +262,6 @@ export async function moveMailsToSystemFolder({
 		mailModel,
 		mailIds,
 		targetFolder,
-		isReportable,
 		moveMode,
 		undoFolder: currentFolder,
 		undoModel,
