@@ -1,5 +1,5 @@
 import { Dialog } from "../../gui/base/Dialog"
-import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod, Keys } from "../../api/common/TutanotaConstants"
+import { IdentityKeyQrVerificationResult, IdentityKeySourceOfTrust, IdentityKeyVerificationMethod, Keys } from "../../api/common/TutanotaConstants"
 import { KeyVerificationFacade } from "../../api/worker/facades/lazy/KeyVerificationFacade"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
@@ -17,6 +17,7 @@ import { KeyVerificationUsageTestUtils } from "./KeyVerificationUsageTestUtils"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
 import { FingerprintMismatchInfoPage } from "./dialogpages/FingerprintMismatchInfoPage"
 import { FingerprintMismatchKeepPage } from "./dialogpages/FingerprintMismatchKeepPage"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 enum KeyVerificationDialogPages {
 	CHOOSE_METHOD = "CHOOSE_METHOD",
@@ -178,7 +179,12 @@ export async function showKeyVerificationDialog(
 				rightAction: {
 					type: ButtonType.Secondary,
 					click: () => {
-						navigateToPage(KeyVerificationDialogPages.FINGERPRINT_MISMATCH_KEEP_CONFIRM)
+						const sourceOfTrust = assertNotNull(model.getPublicIdentity()).trustDbEntry.sourceOfTrust
+						if (sourceOfTrust === IdentityKeySourceOfTrust.TOFU) {
+							navigateToPage(KeyVerificationDialogPages.FINGERPRINT_MISMATCH_KEEP_CONFIRM)
+						} else {
+							dialog.close()
+						}
 					},
 					label: "close_alt",
 					title: "close_alt",

@@ -19,23 +19,16 @@ type VerificationErrorInfoPageAttrs = {
 export class FingerprintMismatchInfoPage implements Component<VerificationErrorInfoPageAttrs> {
 	view(vnode: Vnode<VerificationErrorInfoPageAttrs>) {
 		const sourceOfTrust = assertNotNull(vnode.attrs.model.getPublicIdentity()).trustDbEntry.sourceOfTrust
-		let subTitle
-		let warning
-		let recommendation
-		const title = lang.get("keyManagement.verificationError_title")
-		if (sourceOfTrust === IdentityKeySourceOfTrust.Manual) {
-			subTitle = lang.get("fingerprintMismatchManual_msg")
-			warning = lang.get("fingerprintMismatchManualWarning_msg")
-			recommendation = lang.get("fingerprintMismatchRecommendationManual_msg")
-		} else if (sourceOfTrust === IdentityKeySourceOfTrust.TOFU) {
-			subTitle = lang.get("fingerprintMismatchTofu_msg", {
-				"{mailAddress}": assertNotNull(vnode.attrs.model.getPublicIdentity()).mailAddress,
-			})
-			warning = lang.get("fingerprintMismatchTofuWarning_msg")
-			recommendation = lang.get("fingerprintMismatchRecommendationTofu_msg")
-		} else {
+
+		if (sourceOfTrust !== IdentityKeySourceOfTrust.TOFU) {
 			throw new Error("unsupported source of trust")
 		}
+		const title = lang.get("keyManagement.verificationError_title")
+		const subTitle = lang.get("fingerprintMismatchTofu_msg", {
+			"{mailAddress}": assertNotNull(vnode.attrs.model.getPublicIdentity()).mailAddress,
+		})
+		const warning = lang.get("fingerprintMismatchTofuWarning_msg")
+		const recommendation = lang.get("fingerprintMismatchRecommendationTofu_msg")
 
 		return m(".pt.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
