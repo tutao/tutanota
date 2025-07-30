@@ -852,8 +852,6 @@ export type TranslationKeyType =
 	| "keyManagement.reverifyRecipientsCompleted_title"
 	| "keyManagement.selectMethodLong_label"
 	| "keyManagement.selectMethodShort_label"
-	| "keyManagement.senderVerificationAlert_msg"
-	| "keyManagement.senderVerificationShield_msg"
 	| "keyManagement.textVerification_label"
 	| "keyManagement.text_label"
 	| "keyManagement.verificationByQrCodeScan_label"

@@ -47,7 +47,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 						m(
 							"p.mt-xs.mb-s.pl-vpad-s",
 							lang.get("keyManagement.selectMethodLong_label", {
-								"{fingerprintCodeComparison}": lang.get("keyManagement.text_label"),
+								"{compareVerificationCode}": lang.get("keyManagement.text_label"),
 							}),
 						),
 					],
