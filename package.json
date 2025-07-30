@@ -35,6 +35,7 @@
 	},
 	"dependencies": {
 		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#536bc9bd736986828d5125e0278ba271ebc6006c",
+		"@fingerprintjs/botd": "1.9.1",
 		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#8d7eaa36321d7147faa3583231635855d8a991e7",
 		"@tutao/node-mimimi": "303.250821.0",
 		"@tutao/oxmsg": "0.0.9-beta.0",
