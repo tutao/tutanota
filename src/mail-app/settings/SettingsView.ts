@@ -17,7 +17,7 @@ import { GroupListView } from "./groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { theme } from "../../common/gui/theme"
-import { FeatureType, GroupType, LegacyPlans } from "../../common/api/common/TutanotaConstants"
+import { FeatureType, GroupType } from "../../common/api/common/TutanotaConstants"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
@@ -44,7 +44,7 @@ import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
 import { createGroupSettings, createUserAreaGroupDeleteData, UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { GroupInvitationFolderRow } from "../../common/sharing/view/GroupInvitationFolderRow"
 import { TemplateGroupService } from "../../common/api/entities/tutanota/Services"
-import { exportUserCsv } from "../../common/settings/UserDataExporter.js"
+import { exportUserCsv, loadUserExportData } from "../../common/settings/UserDataExporter.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { BottomNav } from "../gui/BottomNav.js"
 import { getAvailableDomains } from "../../common/settings/mailaddress/MailAddressesUtils.js"
@@ -78,6 +78,8 @@ import { MailExportViewer } from "./MailExportViewer"
 import { getSupportUsageTestStage } from "../../common/support/SupportUsageTestUtils.js"
 import { LockedError } from "../../common/api/common/error/RestError"
 import { shouldHideBusinessPlans } from "../../common/subscription/SubscriptionUtils"
+import { ButtonType } from "../../common/gui/base/Button"
+import { CancelledError } from "../../common/api/common/error/CancelledError"
 
 assertMainOrNode()
 
@@ -402,7 +404,6 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		await this.updateShowBusinessSettings()
 		await this.updateShowAffiliateSettings()
 		const currentPlanType = await this.logins.getUserController().getPlanType()
-		const isLegacyPlan = LegacyPlans.includes(currentPlanType)
 
 		if (await this.logins.getUserController().canHaveUsers()) {
 			this._adminFolders.push(
@@ -416,7 +417,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 							() => this.focusSettingsDetailsColumn(),
 							() => !isApp() && this._customDomains.isLoaded() && this._customDomains.getLoaded().length > 0,
 							() => showUserImportDialog(this._customDomains.getLoaded()),
-							() => exportUserCsv(locator.entityClient, this.logins, locator.fileController, locator.counterFacade),
+							() => this.doExportUsers(),
 						),
 					undefined,
 				),
@@ -929,6 +930,48 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	private async updateShowAffiliateSettings() {
 		const customer = await this.logins.getUserController().loadCustomer()
 		this.showAffiliateSettings = isCustomizationEnabledForCustomer(customer, FeatureType.AffiliatePartner)
+	}
+
+	private async doExportUsers() {
+		try {
+			const progress = stream(0)
+			let progressText = lang.getTranslation("pleaseWait_msg")
+			const abortController = new AbortController()
+
+			const data = await showProgressDialog(
+				() => progressText,
+				loadUserExportData(
+					locator.entityClient,
+					this.logins,
+					locator.counterFacade,
+					(complete: number, total: number) => {
+						progressText = lang.getTranslation("userExportProgress_msg", {
+							"{current}": complete,
+							"{total}": total,
+						})
+						progress((complete / total) * 100)
+					},
+					abortController.signal,
+				),
+				progress,
+				{
+					middle: "exportUsers_action",
+					left: [
+						{
+							label: "cancel_action",
+							type: ButtonType.Primary,
+							click: () => abortController.abort(),
+						},
+					],
+				},
+			)
+			await exportUserCsv(data, locator.fileController)
+		} catch (e) {
+			if (e instanceof CancelledError) {
+				return
+			}
+			throw e
+		}
 	}
 }
 
