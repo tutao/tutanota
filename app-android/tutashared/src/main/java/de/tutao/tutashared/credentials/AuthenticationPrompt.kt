@@ -4,6 +4,7 @@ import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.PromptInfo
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import de.tutao.tutashared.AppLockAuthenticationException
 import de.tutao.tutashared.CredentialAuthenticationException
 import java.util.concurrent.Semaphore
 
@@ -24,7 +25,7 @@ class AuthenticationPrompt constructor() {
 	 * @param promptInfo Configuration object for the authentication prompt to be displayed.
 	 * @throws CredentialAuthenticationException If authentication fails by either cancelling authentication or exceeded limit of failed attempts.
 	 */
-	@Throws(CredentialAuthenticationException::class)
+	@Throws(CredentialAuthenticationException::class, AppLockAuthenticationException::class)
 	fun authenticate(
 		activity: FragmentActivity,
 		promptInfo: PromptInfo,
@@ -39,7 +40,7 @@ class AuthenticationPrompt constructor() {
 	 * @param cryptoObject
 	 * @throws CredentialAuthenticationException If authentication fails by either cancelling authentication or exceeded limit of failed attempts.
 	 */
-	@Throws(CredentialAuthenticationException::class)
+	@Throws(CredentialAuthenticationException::class, AppLockAuthenticationException::class)
 	fun authenticateCryptoObject(
 		activity: FragmentActivity,
 		promptInfo: PromptInfo,
@@ -48,21 +49,21 @@ class AuthenticationPrompt constructor() {
 		showPrompt(activity, promptInfo, cryptoObject)
 	}
 
-	@Throws(CredentialAuthenticationException::class)
+	@Throws(CredentialAuthenticationException::class, AppLockAuthenticationException::class)
 	private fun showPrompt(
 		activity: FragmentActivity,
 		promptInfo: PromptInfo,
 		cryptoObject: BiometricPrompt.CryptoObject?,
 	) {
 		sem.acquireUninterruptibly()
-		var error: String? = null
+		var error: Pair< Int, String>? = null
 		activity.runOnUiThread {
 			val biometricPrompt = BiometricPrompt(
 				activity,
 				ContextCompat.getMainExecutor(activity),
 				object : BiometricPrompt.AuthenticationCallback() {
-					override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-						error = errString.toString()
+					override fun onAuthenticationError(code: Int, errString: CharSequence) {
+						error = code to errString.toString()
 						sem.release()
 					}
 
@@ -85,8 +86,11 @@ class AuthenticationPrompt constructor() {
 			sem.release()
 		} catch (ignored: InterruptedException) {
 		}
-		error?.let {
-			throw CredentialAuthenticationException(it)
+		error?.let { (code, message) -> if (code == BiometricPrompt.ERROR_NO_BIOMETRICS){
+			throw AppLockAuthenticationException(message)
+		} else {
+			throw CredentialAuthenticationException(message)
+		}
 		}
 	}
 
