@@ -587,8 +587,20 @@ mod tests {
 		randomizer: &RandomizerFacade,
 		former_keys: &[GroupKey; FORMER_KEYS],
 	) -> KeyLoaderFacade {
-		let (user_facade_mock, mut typed_entity_client_mock) =
+		let (mut user_facade_mock, mut typed_entity_client_mock) =
 			make_mocks(group, current_group_key, randomizer);
+		{
+			let mut key_cache_mock = MockKeyCache::default();
+			key_cache_mock
+				.expect_get_group_key_for_version()
+				.with(
+					predicate::eq(group._id.clone().unwrap()),
+					predicate::in_iter::<Vec<u64>, u64>((0..FORMER_KEYS as u64).collect()),
+				)
+				.return_const(None);
+			let key_cache = Arc::new(key_cache_mock);
+			user_facade_mock.expect_key_cache().return_const(key_cache);
+		}
 		{
 			for i in 0..FORMER_KEYS {
 				let group = group.clone();
@@ -1041,6 +1053,7 @@ mod tests {
 
 		let key_loader_facade =
 			make_mocks_with_former_keys(&group, &current_group_key, &randomizer, &former_keys);
+		
 		for i in 0..FORMER_KEYS {
 			let keypair = key_loader_facade
 				.load_sym_group_key(group._id.as_ref().expect("no id on group!"), i as u64, None)
@@ -1053,6 +1066,11 @@ mod tests {
                 }
             }
 		}
+	}
+
+	#[tokio::test]
+	async fn load_and_decrypt_former_group_key_from_cache() {
+		// FIXME write test for cached former group keys
 	}
 
 	#[tokio::test]
