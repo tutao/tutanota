@@ -42,6 +42,7 @@ const clientDependencies = [
 	{ src: "../node_modules/@signalapp/sqlcipher/dist/index.mjs", target: "node-sqlcipher.mjs", bundling: "copy" },
 	{ src: "../node_modules/winreg/lib/registry.js", target: "winreg.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
+	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb" },
 ]
 
 async function applyPatch() {
@@ -105,7 +106,7 @@ async function copyToLibs(dependencies) {
  * @type RollupFn
  */
 async function rollWebDep(src, target, banner) {
-	const bundle = await rollup({ input: path.join(__dirname, src) })
+	const bundle = await rollup({ input: path.join(__dirname, src), plugins: [nodeResolve()] })
 	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
 }
 

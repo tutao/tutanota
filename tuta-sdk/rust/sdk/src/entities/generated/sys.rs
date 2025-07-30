@@ -3421,6 +3421,8 @@ pub struct RegistrationCaptchaServiceGetData {
 	pub timelockChallengeSolution: Option<String>,
 	#[serde(rename = "2624")]
 	pub language: String,
+	#[serde(rename = "2639")]
+	pub isAutomatedBrowser: bool,
 }
 
 impl Entity for RegistrationCaptchaServiceGetData {
@@ -6195,6 +6197,8 @@ pub struct TimelockCaptchaGetIn {
 	pub _format: i64,
 	#[serde(rename = "2631")]
 	pub signupToken: String,
+	#[serde(rename = "2643")]
+	pub deviceInfo: Option<ClientPerformanceInfo>,
 }
 
 impl Entity for TimelockCaptchaGetIn {
@@ -6224,6 +6228,24 @@ impl Entity for TimelockCaptchaGetOut {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2632),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ClientPerformanceInfo {
+	#[serde(rename = "2641")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2642")]
+	pub isAutomatedBrowser: bool,
+}
+
+impl Entity for ClientPerformanceInfo {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2640),
 		}
 	}
 }
