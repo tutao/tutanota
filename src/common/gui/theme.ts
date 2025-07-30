@@ -122,6 +122,10 @@ export function getNavigationMenuIcon(): string {
 	return theme.navigation_menu_icon || theme.navigation_button_icon
 }
 
+export function isLightTheme(): boolean {
+	return theme.themeId === "light" || theme.themeId === "light_secondary"
+}
+
 export function getLightOrDarkTutaLogo(isCalendarApp: boolean): string {
 	// Use tuta logo with our brand colors
 	const isCalendarTheme = (theme.themeId === "light" && isCalendarApp) || (theme.themeId === "light_secondary" && !isCalendarApp)

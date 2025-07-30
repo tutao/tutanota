@@ -32,9 +32,10 @@ import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/Subscript
 import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 import { formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus, repeatRuleOptions } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
-import { px, size } from "../../../../common/gui/size.js"
+import { inputLineHeight, px, size } from "../../../../common/gui/size.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../common/gui/TextHighlightViewUtils"
+import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../common/gui/base/ExpandableTextArea.js"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
@@ -61,7 +62,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 		Object.assign(
 			{
 				text,
-				class: "width-min-content",
+				class: "width-min-content w-auto",
 				click: async () => {
 					try {
 						await participation.setParticipation(status)
@@ -79,7 +80,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 			participation.ownAttendee.status === status ? highlightColors : colors,
 		)
 
-	return m(".flex.items-center.mt-s.gap-vpad-s", [
+	return m(".flex.items-center.mt-s.gap-vpad-s.fit-content", [
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.ACCEPTED, "yes_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.TENTATIVE, "maybe_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.DECLINED, "no_label")),
@@ -118,7 +119,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			),
 			this.renderLocation(event.location),
 			this.renderAttendeesSection(attendees, participation),
-			this.renderAttendanceSection(event, attendees, participation),
+			this.renderAttendanceSection(event, attendees, participation, calendarEventPreviewModel),
 			this.renderDescription(sanitizedDescription, highlightedStrings),
 		])
 	}
@@ -191,18 +192,49 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	 * @param event if the event is not in a calendar, we don't want to set our attendance from here.
 	 * @param attendees list of attendees (including the organizer)
 	 * @param participation
+	 * @param model CalendarEventPreviewViewModel to set user's comment before replying
 	 * @private
 	 */
 	private renderAttendanceSection(
 		event: EventPreviewViewAttrs["event"],
 		attendees: Array<CalendarEventAttendee>,
 		participation: EventPreviewViewAttrs["participation"],
+		model: CalendarEventPreviewViewModel,
 	): Children {
 		if (attendees.length === 0 || participation == null || event._ownerGroup == null) return null
-		return m(".flex.pb-s", [
-			this.renderSectionIndicator(BootIcons.Contacts),
-			m(".flex.flex-column", [m(".small", lang.get("invitedToEvent_msg")), m(ReplyButtons, participation)]),
+		return m("", [
+			m(".flex.pb-s", [
+				this.renderSectionIndicator(BootIcons.Contacts),
+				m(".flex.flex-column", [
+					m(".small", lang.get("invitedToEvent_msg")),
+					m(".fit-content", { style: { "min-height": px(inputLineHeight * 7) } }, [m(ReplyButtons, participation), this.renderCommentSection(model)]),
+				]),
+			]),
 		])
+	}
+
+	private renderCommentSection(model: CalendarEventPreviewViewModel): Children {
+		return m(ExpandableTextArea, {
+			classes: ["mt-s"],
+			variant: "outlined",
+			value: model.comment,
+			maxLines: 3,
+			oninput: (newValue: string) => {
+				model.comment = newValue
+			},
+			oncreate: (node) => {
+				node.dom.addEventListener("keydown", (e) => {
+					// disable shortcuts
+					e.stopPropagation()
+					return true
+				})
+			},
+			ariaLabel: lang.get("addComment_label"),
+			placeholder: lang.get("addComment_label"),
+			style: {
+				borderColor: theme.content_button,
+			},
+		} satisfies ExpandableTextAreaAttrs)
 	}
 
 	private renderAttendee(attendee: CalendarEventAttendee, participation: EventPreviewViewAttrs["participation"]): Children {

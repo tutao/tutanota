@@ -11,7 +11,13 @@ import { PartialRecipient, Recipient, RecipientType } from "../../../../common/a
 import { haveSameId, Stripped } from "../../../../common/api/common/utils/EntityUtils.js"
 import { cleanMailAddress, findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertNotNull, clone, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "@tutao/tutanota-utils"
-import { CalendarAttendeeStatus, ConversationType, KeyVerificationState, ShareCapability } from "../../../../common/api/common/TutanotaConstants.js"
+import {
+	CalendarAttendeeStatus,
+	ConversationType,
+	getAttendeeStatus,
+	KeyVerificationState,
+	ShareCapability,
+} from "../../../../common/api/common/TutanotaConstants.js"
 import { RecipientsModel, ResolveMode } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
 import { isSecurePassword } from "../../../../common/misc/passwords/PasswordUtils.js"
@@ -194,6 +200,14 @@ export class CalendarEventWhoModel {
 			return calendarArray.filter((calendarInfo) => !calendarInfo.shared || haveSameId(calendarInfo.group, this.selectedCalendar.group))
 		} else {
 			return calendarArray.filter((calendarInfo) => hasCapabilityOnGroup(this.userController.user, calendarInfo.group, ShareCapability.Write))
+		}
+	}
+
+	resetGuestsStatus() {
+		for (const attendee of this.initialAttendees.values()) {
+			this.removeAttendee(attendee.address.address)
+			this.initialAttendees.delete(attendee.address.address)
+			this.addOtherAttendee(attendee.address)
 		}
 	}
 
@@ -612,6 +626,7 @@ export class CalendarEventWhoModel {
 			responseModel.initWithTemplate({}, "", "")
 		}
 		responseModel.addRecipient(RecipientField.TO, this._organizer.address)
+		responseModel.setEmailTypeFromAttendeeStatus(getAttendeeStatus(this._ownAttendee))
 
 		return responseModel
 	}

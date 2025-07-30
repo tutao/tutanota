@@ -3,8 +3,7 @@ import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
-import type { Key, Shortcut } from "../../../common/misc/KeyManager"
-import { isKeyPressed, keyManager } from "../../../common/misc/KeyManager"
+import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import {
 	base64ToBase64Url,
@@ -429,6 +428,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										}
 										if (isKeyPressed(domEvent.key, Keys.DELETE) && !domEvent.repeat) {
 											this.openDeletePopup(event, domEvent)
+										}
+
+										const keyboardKeys = keyboardEventToKeyPress(domEvent)
+										if (keyboardKeys.ctrlOrCmd && isKeyPressed(keyboardKeys.key, Keys.D) && !domEvent.repeat) {
+											this.duplicateEvent(event)
+											domEvent.stopPropagation()
 										}
 									},
 									groupColors: this.viewModel.calendarColors,
@@ -1471,6 +1476,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	private handleEventKeyDown(): CalendarEventBubbleKeyDownHandler {
 		return (calendarEvent, domEvent) => {
+			const keyboardKeys = keyboardEventToKeyPress(domEvent)
 			if (isKeyPressed(domEvent.key, Keys.RETURN, Keys.SPACE) && !domEvent.repeat) {
 				this.showCalendarEventPopupAtEvent(calendarEvent, domEvent.target as HTMLElement, this.htmlSanitizer)
 				domEvent.stopPropagation()
@@ -1480,6 +1486,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				domEvent.stopPropagation()
 			}
 		}
+	}
+
+	private duplicateEvent(calendarEvent: CalendarEvent) {
+		locator.calendarEventPreviewModel(calendarEvent, this.viewModel.calendarInfos, []).then((eventPreviewModel: CalendarEventPreviewViewModel) => {
+			eventPreviewModel?.duplicateEvent()
+		})
 	}
 
 	private openDeletePopup(calendarEvent: CalendarEvent, domEvent: KeyboardEvent) {
