@@ -1,4 +1,4 @@
-import { Keys, MailReportType, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
+import { Keys, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
 import { $Promisable, assertNotNull, groupByAndMap, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
@@ -41,7 +41,8 @@ export type MailViewerMoreActions = {
 	showImagesAction?: () => void
 	unsubscribeAction?: () => void
 	printAction?: () => void
-	reportMailAction?: () => void
+	reportSpamAction?: () => void
+	reportPhishingAction?: () => void
 }
 
 export async function showHeaderDialog(headersPromise: Promise<string | null>) {
@@ -312,12 +313,14 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel, more
 
 export function getMailViewerMoreActions({
 	viewModel,
-	report,
+	reportSpam,
 	print,
+	reportPhishing,
 }: {
 	viewModel: MailViewerViewModel
-	report: (() => unknown) | null
+	reportSpam: (() => unknown) | null
 	print: (() => unknown) | null
+	reportPhishing: (() => unknown) | null
 }): MailViewerMoreActions {
 	const actions: MailViewerMoreActions = {}
 
@@ -337,8 +340,12 @@ export function getMailViewerMoreActions({
 		actions.printAction = print
 	}
 
-	if (report) {
-		actions.reportMailAction = report
+	if (reportSpam) {
+		actions.reportSpamAction = reportSpam
+	}
+
+	if (reportPhishing) {
+		actions.reportPhishingAction = reportPhishing
 	}
 
 	return actions
@@ -349,7 +356,8 @@ function mailViewerMoreActions({
 	showImagesAction,
 	unsubscribeAction,
 	printAction,
-	reportMailAction,
+	reportSpamAction,
+	reportPhishingAction,
 }: MailViewerMoreActions): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
 
@@ -385,14 +393,21 @@ function mailViewerMoreActions({
 		})
 	}
 
-	if (reportMailAction != null) {
+	if (reportSpamAction != null) {
 		moreButtons.push({
-			label: "reportEmail_action",
-			click: reportMailAction,
-			icon: Icons.Warning,
+			label: "spam_move_action",
+			click: reportSpamAction,
+			icon: Icons.Spam,
 		})
 	}
 
+	if (reportPhishingAction != null) {
+		moreButtons.push({
+			label: "reportPhishing_action",
+			click: reportPhishingAction,
+			icon: Icons.Warning,
+		})
+	}
 	// adding more optional buttons? put them above the report action so the new button
 	// is not sometimes where the report action usually sits.
 
@@ -415,7 +430,7 @@ function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
 		})
 }
 
-export function showReportMailDialog(onReport: (type: MailReportType) => unknown) {
+export function showReportPhishingMailDialog(onReport: () => unknown) {
 	const dialog = Dialog.showActionDialog({
 		title: "reportEmail_action",
 		child: () =>
@@ -441,15 +456,7 @@ export function showReportMailDialog(onReport: (type: MailReportType) => unknown
 						m(Button, {
 							label: "reportPhishing_action",
 							click: () => {
-								onReport(MailReportType.PHISHING)
-								dialog.close()
-							},
-							type: ButtonType.Secondary,
-						}),
-						m(Button, {
-							label: "reportSpam_action",
-							click: () => {
-								onReport(MailReportType.SPAM)
+								onReport()
 								dialog.close()
 							},
 							type: ButtonType.Secondary,
