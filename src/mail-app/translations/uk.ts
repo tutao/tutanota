@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-11-02T11:29:23Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -564,7 +564,6 @@ export default {
 		"editMessage_label": "Редагувати повідомлення",
 		"editTemplate_action": "Редагувати шаблон",
 		"edit_action": "Редагувати",
-		"emailAddressFirst_msg": "Спершу виберіть адресу електронної пошти зверху.",
 		"emailAddressInUse_msg": "Дана електронна адреса вже використовується. Спочатку деактивуйте її.",
 		"emailProcessing_label": "Обробка е-пошти",
 		"emailPushNotification_action": "Додати адресу ел. пошти для сповіщень",

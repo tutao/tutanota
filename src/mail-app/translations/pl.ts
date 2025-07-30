@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-07-24T21:14:45Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -569,7 +569,6 @@ export default {
 		"editMessage_label": "Edytuj wiadomość",
 		"editTemplate_action": "Edytuj szablon",
 		"edit_action": "Edytuj",
-		"emailAddressFirst_msg": "Najpierw wybierz adres e-mail powyżej.",
 		"emailAddressInUse_msg": "Ten adres e-mail jest nadal w użyciu przez innego użytkownika. Najpierw go zdezaktywuj.",
 		"emailProcessing_label": "Przetwarzanie wiadomości e-mail",
 		"emailPushNotification_action": "Dodaj adres e-mail, na który zostaną wysłane powiadomienia",

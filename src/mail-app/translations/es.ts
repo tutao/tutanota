@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-07-23T12:14:52Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -565,7 +565,6 @@ export default {
 		"editMessage_label": "Editar mensaje",
 		"editTemplate_action": "Editar plantilla",
 		"edit_action": "Editar",
-		"emailAddressFirst_msg": "Selecciona primero una dirección de correo electrónico.",
 		"emailAddressInUse_msg": "La dirección de correo aún está en uso por otro usuario. Por favor desactívala primero.",
 		"emailProcessing_label": "Procesando correos",
 		"emailPushNotification_action": "Añadir la dirección de correo para notificaciones",

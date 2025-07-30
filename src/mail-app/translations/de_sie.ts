@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-07-23T07:39:13Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -565,7 +565,6 @@ export default {
 		"editMessage_label": "Nachricht bearbeiten",
 		"editTemplate_action": "Vorlage bearbeiten",
 		"edit_action": "Bearbeiten",
-		"emailAddressFirst_msg": "Bitte wählen Sie zuerst oben eine E-Mail-Adresse aus.",
 		"emailAddressInUse_msg": "Die E-Mail-Adresse wird noch von einem anderen Benutzer verwendet. Bitte deaktivieren Sie diese dort zuerst.",
 		"emailProcessing_label": "E-Mail-Verarbeitung",
 		"emailPushNotification_action": "Benachrichtigungs-E-Mail-Adresse hinzufügen",

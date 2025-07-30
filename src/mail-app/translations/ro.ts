@@ -20,7 +20,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-18T09:07:31Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -566,7 +566,6 @@ export default {
 		"editMessage_label": "Modifică mesajul",
 		"editTemplate_action": "Modifică modelul",
 		"edit_action": "Modifică",
-		"emailAddressFirst_msg": "Mai întâi alege o adresă de e-mail.",
 		"emailAddressInUse_msg": "Adresa de e-mail încă este folosită de un alt utilizator. Dezactiveaz-o prima dată acolo. ",
 		"emailProcessing_label": "Procesarea e-mailurilor",
 		"emailPushNotification_action": "Adăugă e-mailul pentru notificări",

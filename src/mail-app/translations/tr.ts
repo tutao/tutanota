@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-07-23T09:18:54Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -565,7 +565,6 @@ export default {
 		"editMessage_label": "Mesaj içeriğini düzenle",
 		"editTemplate_action": "Şablonu düzenle",
 		"edit_action": "Düzenle",
-		"emailAddressFirst_msg": "Lütfen önce yukarıdan bir e-posta adresi seçin.",
 		"emailAddressInUse_msg": "E-posta adresi halen bir başka kullanıcı tarafından kullanılmaktadır. Lütfen ilk önce oradakini iptal edin.",
 		"emailProcessing_label": "E-posta işleniyor",
 		"emailPushNotification_action": "Bildirim e-posta adresi ekle",

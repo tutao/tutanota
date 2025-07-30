@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-24T12:42:36Z",
-	"updated_at": "2025-07-23T10:59:35Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -565,7 +565,6 @@ export default {
 		"editMessage_label": "Upravit zprávu",
 		"editTemplate_action": "Upravit šablonu",
 		"edit_action": "Upravit",
-		"emailAddressFirst_msg": "Nejprve si prosím vyberte e-mailovou adresu.",
 		"emailAddressInUse_msg": "Tuto e-mailovou adresu již používá jiný uživatel. Nejdříve ji u něj prosím deaktivujte.",
 		"emailProcessing_label": "Vytváření e-mailu",
 		"emailPushNotification_action": "Přidat oznamovací e-mailovou adresu",

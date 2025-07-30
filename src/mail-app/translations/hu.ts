@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -556,7 +556,6 @@ export default {
 		"editMessage_label": "Javítsd az üzenetet!",
 		"editTemplate_action": "Sablon szerkesztése",
 		"edit_action": "Szerkesztés",
-		"emailAddressFirst_msg": "Kérjük, először válassza ki egy email címet fentről!",
 		"emailAddressInUse_msg": "Az email címet továbbra is használja egy másik felhasználó. Kérjük, előbb deaktiválja ott!",
 		"emailProcessing_label": "Email feldolgozás",
 		"emailPushNotification_action": "Értesítési email cím megadása",

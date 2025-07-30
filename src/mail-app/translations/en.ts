@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-07-23T07:39:13Z",
+	"updated_at": "2025-07-30T14:35:08Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -561,7 +561,6 @@ export default {
 		"editMessage_label": "Edit message",
 		"editTemplate_action": "Edit template",
 		"edit_action": "Edit",
-		"emailAddressFirst_msg": "Please first select an email address above.",
 		"emailAddressInUse_msg": "The email address is still used by another user. Please deactivate it there first.",
 		"emailProcessing_label": "Email processing",
 		"emailPushNotification_action": "Add notification email address",
@@ -1741,6 +1740,7 @@ export default {
 		"spamReports_label": "Report spam",
 		"spamRuleEnterValue_msg": "Please enter a value.",
 		"spam_action": "Spam",
+		"spam_move_action": "Move to spam",
 		"spelling_label": "Spelling",
 		"spouse_label": "Spouse",
 		"startAfterEnd_label": "The start date must not be after the end date.",

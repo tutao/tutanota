@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -560,7 +560,6 @@ export default {
 		"editMessage_label": "Edita el missatge",
 		"editTemplate_action": "Edita la plantilla",
 		"edit_action": "Edita",
-		"emailAddressFirst_msg": "Si us plau, seleccioneu primer una adreça electrònica a dalt.",
 		"emailAddressInUse_msg": "L' adreça de correu electrònic segueix sent utilitzada per un altre usuari. Si us plau, desactiveu allí primer.",
 		"emailProcessing_label": "Processant el correu electrònic",
 		"emailPushNotification_action": "Afegiu una adreça electrònica de notificació",
