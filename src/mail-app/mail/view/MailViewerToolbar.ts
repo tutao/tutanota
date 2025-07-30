@@ -26,6 +26,7 @@ export interface MailViewerToolbarAttrs {
 	replyAllAction: (() => void) | null
 	forwardAction: (() => void) | null
 	mailViewerMoreActions: MailViewerMoreActions | null
+	reportSpamAction: (() => void) | null
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -47,6 +48,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 				this.renderMoveButton(attrs),
 				this.renderLabelButton(attrs),
 				this.renderReadButton(attrs),
+				this.renderReportSpamButton(attrs),
 				this.renderExtraButtons(attrs.exportAction, attrs.mailViewerMoreActions),
 			]
 		}
@@ -82,6 +84,17 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 				title: "delete_action",
 				click: deleteMailAction,
 				icon: Icons.DeleteForever,
+			})
+		)
+	}
+
+	private renderReportSpamButton({ reportSpamAction }: MailViewerToolbarAttrs): Children {
+		return (
+			reportSpamAction &&
+			m(IconButton, {
+				title: "spam_move_action",
+				click: reportSpamAction,
+				icon: Icons.Spam,
 			})
 		)
 	}
