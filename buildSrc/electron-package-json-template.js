@@ -82,8 +82,6 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 			icon: iconPath,
 			appId: appId,
 			productName: nameSuffix.length > 0 ? nameSuffix.slice(1) + " Tuta Mail" : "Tuta Mail",
-			// name of the unpacked executable inside the AppImage/Flatpak
-			executableName: appName,
 			// name of the appImage
 			artifactName: "${name}-${os}.${ext}",
 			asarUnpack: "desktop/*.node",
@@ -171,6 +169,9 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 						],
 			},
 			linux: {
+				// name of the unpacked executable inside the AppImage/Flatpak,
+				// defaults to productName if not specified
+				executableName: appName,
 				icon: path.join(path.dirname(iconPath), "icon/"),
 				synopsis: "Tuta Mail Desktop Client",
 				category: "Network",
