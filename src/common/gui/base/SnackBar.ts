@@ -9,10 +9,10 @@ import { styles } from "../styles"
 import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { debounce, delay } from "@tutao/tutanota-utils"
+import { debounce, isEmpty, remove } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
-export const SNACKBAR_SHOW_TIME = 6000
+const SNACKBAR_SHOW_TIME = 6000
 const MAX_SNACKBAR_WIDTH = 400
 export type SnackBarButtonAttrs = {
 	label: MaybeTranslation
@@ -22,9 +22,16 @@ type SnackBarAttrs = {
 	message: MaybeTranslation
 	button: ButtonAttrs | null
 }
-type QueueItem = SnackBarAttrs & { onClose: (() => void) | null }
+type QueueItem = SnackBarAttrs & {
+	onClose: ((timedOut: boolean) => unknown) | null
+	onShow: (() => unknown) | null
+	doCancel: { cancel: () => unknown }
+	/** display time in ms */
+	showingTime: number
+}
 const notificationQueue: QueueItem[] = []
 let currentAnimationTimeout: TimeoutID | null = null
+let cancelCurrentSnackbar: (() => unknown) | null = null
 
 class SnackBar implements Component<SnackBarAttrs> {
 	view(vnode: Vnode<SnackBarAttrs>) {
@@ -46,20 +53,64 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
 
 /**
  * Shows a SnackBar overlay at the bottom for low priority notifications that do not require (but might allow) user interaction and disappear after 6 seconds.
- * @param message The message to be shown. It must be short enough to ensure it is always shown in 2 lines of text at max in any language.
- * @param snackBarButton will close the snackbar if it is clicked (onClose() will be called)
- * @param onClose called when the snackbar is closed (either by timeout or button click)
- * @param waitingTime number of milliseconds to wait before showing the snackbar
+ * @param args.message The message to be shown. It must be short enough to ensure it is always shown in 2 lines of text at max in any language.
+ * @param args.snackBarButton will close the snackbar if it is clicked (onClose() will be called)
+ * @param args.onShow called when the snackbar is about to be displayed
+ * @param args.onClose called when the snackbar is closed (either by timeout or button click)
+ * @param args.waitingTime number of milliseconds to wait before showing the snackbar
+ * @param args.showingTime number of milliseconds to display the snackbar (default = {@link SNACKBAR_SHOW_TIME})
+ * @param args.replace if true, the snackbar should immediately replace the previous one
+ *
+ * @return a callback that will cancel or close the snackbar
  */
-export async function showSnackBar(args: { message: MaybeTranslation; button: SnackBarButtonAttrs; onClose?: () => void; waitingTime?: number }) {
-	const { message, button, onClose, waitingTime } = args
+export function showSnackBar(args: {
+	message: MaybeTranslation
+	button: SnackBarButtonAttrs
+	onShow?: () => unknown
+	onClose?: (timedOut: boolean) => unknown
+	waitingTime?: number
+	showingTime?: number
+	replace?: boolean
+}): () => void {
+	const { message, button, onClose, onShow, waitingTime, showingTime = SNACKBAR_SHOW_TIME, replace = false } = args
+
+	let cancelled = false
+	const doCancel = {
+		cancel: () => {
+			remove(notificationQueue, queueEntry)
+		},
+	}
+
+	const buttonAttrs = makeButtonAttrsForSnackBar(button)
+	const queueEntry: QueueItem = {
+		message: message,
+		button: buttonAttrs,
+		onClose: onClose ?? null,
+		onShow: onShow ?? null,
+		doCancel,
+		showingTime,
+	}
+
+	const cancelSnackbar = () => {
+		cancelled = true
+		doCancel.cancel()
+	}
+
 	const triggerSnackbar = () => {
-		const buttonAttrs = makeButtonAttrsForSnackBar(button)
-		notificationQueue.push({
-			message: message,
-			button: buttonAttrs,
-			onClose: onClose ?? null,
-		})
+		if (cancelled) {
+			return
+		}
+
+		if (replace && !isEmpty(notificationQueue)) {
+			// there is currently a notification being displayed, so we should put this one ahead of it and then run its
+			// cancel function
+			notificationQueue.splice(1, 0, queueEntry)
+			if (cancelCurrentSnackbar) {
+				cancelCurrentSnackbar()
+			}
+		} else {
+			notificationQueue.push(queueEntry)
+		}
 
 		if (notificationQueue.length > 1) {
 			//Next notification will be shown when closing current notification
@@ -71,10 +122,11 @@ export async function showSnackBar(args: { message: MaybeTranslation; button: Sn
 
 	if (waitingTime) {
 		debounce(waitingTime, triggerSnackbar)()
-		return
 	} else {
 		triggerSnackbar()
 	}
+
+	return cancelSnackbar
 }
 
 function getSnackBarPosition() {
@@ -92,7 +144,8 @@ function getSnackBarPosition() {
 }
 
 function showNextNotification() {
-	const { message, button, onClose } = notificationQueue[0] //we shift later because it is still shown
+	const { message, button, onClose, onShow, doCancel, showingTime } = notificationQueue[0] //we shift later because it is still shown
+	clearTimeout(currentAnimationTimeout)
 	currentAnimationTimeout = null
 	const closeFunction = displayOverlay(
 		() => getSnackBarPosition(),
@@ -108,16 +161,19 @@ function showNextNotification() {
 		"minimized-shadow",
 	)
 
-	const closeAndOpenNext = () => {
+	let closed = false
+
+	const closeAndOpenNext = (timedOut: boolean) => {
+		closed = true
+		cancelCurrentSnackbar = null
+
 		if (currentAnimationTimeout !== null) {
 			return
 		}
 
 		closeFunction()
 
-		if (onClose) {
-			onClose()
-		}
+		onClose?.(timedOut)
 
 		notificationQueue.shift()
 
@@ -133,10 +189,21 @@ function showNextNotification() {
 		button.click = (e, dom) => {
 			clearTimeout(autoRemoveTimer)
 			originClickHandler?.(e, dom)
-			closeAndOpenNext()
+			closeAndOpenNext(false)
 		}
 	}
 
-	const autoRemoveTimer = setTimeout(closeAndOpenNext, SNACKBAR_SHOW_TIME)
+	// add a cancel-early function
+	doCancel.cancel = () => {
+		if (!closed) {
+			closed = true
+			clearTimeout(autoRemoveTimer)
+			closeAndOpenNext(false)
+		}
+	}
+	cancelCurrentSnackbar = doCancel.cancel
+
+	const autoRemoveTimer = setTimeout(closeAndOpenNext, showingTime, true)
+	onShow?.()
 	m.redraw()
 }

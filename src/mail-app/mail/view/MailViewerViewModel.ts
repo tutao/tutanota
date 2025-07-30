@@ -78,6 +78,7 @@ import { isDraft } from "../model/MailChecks"
 import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { mailLocator } from "../../mailLocator.js"
+import { MailViewModel } from "./MailViewModel"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -147,6 +148,7 @@ export class MailViewerViewModel {
 		private readonly contactImporter: lazyAsync<ContactImporter>,
 		private readonly highlightedStrings: readonly SearchToken[],
 		readonly eventsRepository: CalendarEventsRepository,
+		readonly mailViewModel: lazyAsync<MailViewModel>,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -527,6 +529,7 @@ export class MailViewerViewModel {
 				targetFolder: spamFolder,
 				moveMode: MoveMode.Mails,
 				isReportable: false,
+				mailViewModel: await this.mailViewModel(),
 			})
 		} catch (e) {
 			if (e instanceof NotFoundError) {

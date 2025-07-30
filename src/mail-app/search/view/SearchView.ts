@@ -21,6 +21,7 @@ import {
 	isSameDayOfDate,
 	isSameTypeRef,
 	last,
+	lazyAsync,
 	LazyLoaded,
 	lazyMemoized,
 	memoized,
@@ -118,6 +119,7 @@ import { formatDate } from "../../../common/misc/Formatter"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui/pickers/DatePickerDialog"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { MailViewModel } from "../../mail/view/MailViewModel"
 
 assertMainOrNode()
 
@@ -126,6 +128,7 @@ export interface SearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	makeViewModel: () => SearchViewModel
 	contactModel: ContactModel
+	mailViewModel: lazyAsync<MailViewModel>
 }
 
 export class SearchView extends BaseTopLevelView implements TopLevelView<SearchViewAttrs> {
@@ -136,6 +139,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private readonly searchViewModel: SearchViewModel
 	private readonly contactModel: ContactModel
 	private readonly startOfTheWeekOffset: number
+	private readonly mailViewModel: lazyAsync<MailViewModel>
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
@@ -160,6 +164,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		this.searchViewModel = vnode.attrs.makeViewModel()
 		this.contactModel = vnode.attrs.contactModel
 		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
+		this.mailViewModel = vnode.attrs.mailViewModel
 
 		this.folderColumn = new ViewColumn(
 			{
@@ -1032,10 +1037,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private moveMails(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
+	private async moveMails(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
 		const selection = this.searchViewModel.getSelectedMails()
 		if (!isEmpty(selection)) {
-			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, origin, selection, MoveMode.Mails, opts)
+			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, this.mailViewModel, origin, selection, MoveMode.Mails, opts)
 		}
 	}
 
@@ -1141,7 +1146,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 			{
 				key: Keys.V,
-				exec: () => this.move(),
+				exec: () => {
+					this.move()
+				},
 				help: "move_action",
 				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 			},
@@ -1254,11 +1261,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private move() {
+	private async move() {
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, getMoveMailBounds(), selectedMails, MoveMode.Mails, {
+			showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, this.mailViewModel, getMoveMailBounds(), selectedMails, MoveMode.Mails, {
 				onSelected: () => {
 					if (selectedMails.length > 1) {
 						this.searchViewModel.listModel.selectNone()
