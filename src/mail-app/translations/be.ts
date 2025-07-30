@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2025-07-17T16:00:28Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -564,7 +564,6 @@ export default {
 		"editMessage_label": "Рэдагаваць паведамленне",
 		"editTemplate_action": "Рэдагаваць шаблён",
 		"edit_action": "Рэдагаваць",
-		"emailAddressFirst_msg": "Калі ласка, спачатку абяры імэйлавы адрас зьверху.",
 		"emailAddressInUse_msg": "Гэты адрас імэйл ужо выкарыстоўваецца іншым карыстальнікам. Калі ласка, спачатку дэактывуй яго.",
 		"emailProcessing_label": "Апрацоўка імэйлу",
 		"emailPushNotification_action": "Дадаць адрас імэйл для абвестак",

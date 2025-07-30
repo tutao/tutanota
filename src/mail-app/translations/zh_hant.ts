@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-07-23T10:01:43Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -559,7 +559,6 @@ export default {
 		"editMessage_label": "編輯訊息",
 		"editTemplate_action": "編輯範本",
 		"edit_action": "編輯",
-		"emailAddressFirst_msg": "請先在上面選擇一個電郵地址。",
 		"emailAddressInUse_msg": "此電郵地址仍然被其他用戶使用。請先停用它。",
 		"emailProcessing_label": "處理電郵中",
 		"emailPushNotification_action": "新增通知電郵地址",

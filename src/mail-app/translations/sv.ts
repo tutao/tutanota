@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-07-23T12:04:20Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -561,7 +561,6 @@ export default {
 		"editMessage_label": "Redigera meddelande",
 		"editTemplate_action": "Redgigera mall",
 		"edit_action": "Redigera",
-		"emailAddressFirst_msg": "Välj först en e-postadress ovan.",
 		"emailAddressInUse_msg": "E-postadressen används fortfarande av en annan användare. Avaktivera den där först.",
 		"emailProcessing_label": "E-postbearbetning",
 		"emailPushNotification_action": "Lägg till e-postadress för aviseringar",

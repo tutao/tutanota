@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-07-24T06:40:15Z",
+	"updated_at": "2025-07-25T12:11:44Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -561,7 +561,6 @@ export default {
 		"editMessage_label": "Muokkaa viestiä",
 		"editTemplate_action": "Muokkaa viestipohjaa",
 		"edit_action": "Muokkaa",
-		"emailAddressFirst_msg": "Valitse sähköpostiosoite yltä ensin.",
 		"emailAddressInUse_msg": "Osoite on käytössä toisella käyttäjällä. Poista se ensin käytöstä.",
 		"emailProcessing_label": "Viestin käsittely",
 		"emailPushNotification_action": "Lisää sähköpostiosoite ilmoitusviesteille",

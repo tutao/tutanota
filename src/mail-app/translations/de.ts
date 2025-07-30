@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-07-23T07:39:13Z",
+	"updated_at": "2025-07-30T14:38:45Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -565,7 +565,6 @@ export default {
 		"editMessage_label": "Nachricht bearbeiten",
 		"editTemplate_action": "Vorlage bearbeiten",
 		"edit_action": "Bearbeiten",
-		"emailAddressFirst_msg": "Bitte wähle zuerst oben eine E-Mail-Adresse aus.",
 		"emailAddressInUse_msg": "Die E-Mail-Adresse wird noch von einem anderen Benutzer verwendet. Bitte deaktiviere sie dort zuerst.",
 		"emailProcessing_label": "E-Mail-Verarbeitung",
 		"emailPushNotification_action": "Benachrichtigungs-E-Mail-Adresse hinzufügen",
@@ -1745,6 +1744,7 @@ export default {
 		"spamReports_label": "Spam melden",
 		"spamRuleEnterValue_msg": "Bitte gib einen Wert ein.",
 		"spam_action": "Spam",
+		"spam_move_action": "Zu Spam verschieben",
 		"spelling_label": "Rechtschreibung",
 		"spouse_label": "Ehepartner*in",
 		"startAfterEnd_label": "Das Start-Datum darf nicht nach dem End-Datum liegen.",
