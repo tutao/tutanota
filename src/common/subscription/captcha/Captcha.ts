@@ -1,6 +1,11 @@
 import { locator } from "../../api/main/CommonLocator.js"
 import { RegistrationCaptchaService, TimelockCaptchaService } from "../../api/entities/sys/Services.js"
-import { createRegistrationCaptchaServiceGetData, createTimelockCaptchaGetIn, TimelockCaptchaGetOut } from "../../api/entities/sys/TypeRefs.js"
+import {
+	createClientPerformanceInfo,
+	createRegistrationCaptchaServiceGetData,
+	createTimelockCaptchaGetIn,
+	TimelockCaptchaGetOut,
+} from "../../api/entities/sys/TypeRefs.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { AccessDeactivatedError, AccessExpiredError, InvalidDataError } from "../../api/common/error/RestError.js"
 import { Dialog } from "../../gui/base/Dialog.js"
@@ -9,6 +14,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { PowChallengeParameters } from "../ProofOfWorkCaptchaUtils.js"
 import { showCaptchaDialog } from "./CaptchaDialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
+import { client } from "../../misc/ClientDetector.js"
 
 function trackPromiseResolved<T>(promise: Promise<T>) {
 	const resolved = { state: false }
@@ -60,6 +66,7 @@ export async function runCaptchaFlow(
 					paidSubscriptionSelected: isPaidSubscription,
 					timelockChallengeSolution: solution.toString(),
 					language: lang.languageTag,
+					isAutomatedBrowser: client.isAutomatedBrowser,
 				}),
 			)
 		} catch (e) {
@@ -123,7 +130,7 @@ export function solvePowChallengeInWorker(serviceReturn: TimelockCaptchaGetOut) 
 }
 
 export async function runPowChallenge(signupToken: string): Promise<bigint> {
-	const data = createTimelockCaptchaGetIn({ signupToken })
+	const data = createTimelockCaptchaGetIn({ signupToken, deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: client.isAutomatedBrowser }) })
 	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data)
 	return solvePowChallengeInWorker(ret)
 }
