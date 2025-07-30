@@ -2062,5 +2062,6 @@ export default {
         "unread_label": "Unread",
         "replied_label": "Replied",
         "forwarded_label": "Forwarded",
+        "userExportProgress_msg": "Preparing {current} of {total} user(s) for export...",
     }
 }
