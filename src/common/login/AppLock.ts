@@ -1,6 +1,7 @@
 import { MobileSystemFacade } from "../native/common/generatedipc/MobileSystemFacade.js"
 import { NativeCredentialsFacade } from "../native/common/generatedipc/NativeCredentialsFacade.js"
 import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncryptionMode.js"
+import { AppLockMethod } from "../native/common/generatedipc/AppLockMethod"
 
 /**
  * Enforces app authentication via system mechanism e.g. system password or biometrics.
@@ -8,10 +9,12 @@ import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncrypti
 export interface AppLock {
 	/** @throws CredentialAuthenticationError */
 	enforce(): Promise<void>
+	resetAppLockMethod(): Promise<void>
 }
 
 export class NoOpAppLock implements AppLock {
 	async enforce(): Promise<void> {}
+	async resetAppLockMethod(): Promise<void> {}
 }
 
 export class MobileAppLock implements AppLock {
@@ -26,5 +29,13 @@ export class MobileAppLock implements AppLock {
 			return
 		}
 		return this.mobileSystemFacade.enforceAppLock(await this.mobileSystemFacade.getAppLockMethod())
+	}
+
+	/**
+	 * If the selected AppLockMethod is not present in supportedAppLockMethods allow fallback to `None`, otherwise
+	 * it will keep on restricting user from loggingIn
+	 */
+	async resetAppLockMethod() {
+		await this.mobileSystemFacade.setAppLockMethod(AppLockMethod.None)
 	}
 }

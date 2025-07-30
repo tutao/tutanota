@@ -57,6 +57,7 @@ import { MailImportError } from "../error/MailImportError.js"
 import { ExportError } from "../error/ExportError"
 import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
 import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableError"
+import { AppLockAuthenticationError } from "../error/AppLockAuthenticationError"
 
 function isErrorObjectEmpty(obj: Record<string, unknown>): boolean {
 	return Object.keys(obj).length === 0
@@ -165,6 +166,7 @@ const ErrorNameToType = {
 	NSURLErrorDomain: ConnectionError,
 	NSCocoaErrorDomain: Error,
 	"de.tutao.tutashared.CredentialAuthenticationException": CredentialAuthenticationError,
+	"de.tutao.tutashared.AppLockAuthenticationException": AppLockAuthenticationError,
 	"android.security.keystore.KeyPermanentlyInvalidatedException": KeyPermanentlyInvalidatedError,
 	"de.tutao.tutashared.KeyPermanentlyInvalidatedError": KeyPermanentlyInvalidatedError,
 	"de.tutao.tutashared.CredentialAuthenticationError": CredentialAuthenticationError,
