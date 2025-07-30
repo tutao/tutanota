@@ -116,6 +116,14 @@ pub fn random_aes256_key() -> Aes256Key {
 	Aes256Key::from_bytes(&random::<[u8; 32]>()).unwrap()
 }
 
+#[must_use]
+pub fn random_aes256_versioned_key(version: u64) -> VersionedAesKey {
+	VersionedAesKey {
+		object: random_aes256_key().into(),
+		version,
+	}
+}
+
 /// Moves the object T into heap and leaks it.
 #[inline(always)]
 pub fn leak<T>(what: T) -> &'static T {
@@ -443,6 +451,7 @@ macro_rules! collection {
         }};
     }
 
+use crate::crypto::key::VersionedAesKey;
 use crate::date::DateTime;
 use crate::entities::generated::tutanota::Contact;
 use crate::entities::{Entity, FinalIv};

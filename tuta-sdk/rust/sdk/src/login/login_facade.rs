@@ -18,6 +18,8 @@ use crate::type_model_provider::TypeModelProvider;
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
+#[cfg_attr(test, mockall_double::double)]
+use crate::user_facade_factory::UserFacadeFactory;
 use crate::util::{array_cast_slice, BASE64_EXT};
 use crate::ApiCallError::InternalSdkError;
 use crate::CustomId;
@@ -65,7 +67,7 @@ impl TryFrom<i64> for KdfType {
 pub struct LoginFacade {
 	entity_client: Arc<EntityClient>,
 	typed_entity_client: Arc<TypedEntityClient>,
-	user_facade_factory: fn(user: User) -> UserFacade,
+	user_facade_factory: Arc<UserFacadeFactory>,
 	type_model_provider: Arc<TypeModelProvider>,
 }
 
@@ -73,7 +75,7 @@ impl LoginFacade {
 	pub fn new(
 		entity_client: Arc<EntityClient>,
 		typed_entity_client: Arc<TypedEntityClient>,
-		user_facade_factory: fn(user: User) -> UserFacade,
+		user_facade_factory: Arc<UserFacadeFactory>,
 		type_model_provider: Arc<TypeModelProvider>,
 	) -> Self {
 		LoginFacade {
@@ -141,7 +143,7 @@ impl LoginFacade {
 		user: User,
 		user_passphrase_key: GenericAesKey,
 	) -> Result<UserFacade, LoginError> {
-		let user_facade = (self.user_facade_factory)(user);
+		let user_facade = self.user_facade_factory.create_user_facade(user);
 
 		user_facade
 			.unlock_user_group_key(user_passphrase_key)
@@ -225,6 +227,7 @@ mod tests {
 	use crate::login::login_facade::LoginFacade;
 	use crate::typed_entity_client::MockTypedEntityClient;
 	use crate::user_facade::MockUserFacade;
+	use crate::user_facade_factory::MockUserFacadeFactory;
 	use crate::util::test_utils::{
 		create_test_entity, mock_type_model_provider, typed_entity_to_parsed_entity,
 	};
@@ -268,14 +271,21 @@ mod tests {
 
 		let entity_client = Arc::new(mock_entity_client);
 		let typed_entity_client = Arc::new(mock_typed_entity_client);
+
+		let mut user_facade_mock = MockUserFacade::default();
+		user_facade_mock
+			.expect_unlock_user_group_key()
+			.returning(|_| Ok(()));
+
+		let mut user_facade_factory_mock = MockUserFacadeFactory::default();
+		user_facade_factory_mock
+			.expect_create_user_facade()
+			.return_once(|_| user_facade_mock);
+
 		let login_facade = LoginFacade::new(
 			entity_client.clone(),
 			typed_entity_client.clone(),
-			|_| {
-				let mut facade = MockUserFacade::default();
-				facade.expect_unlock_user_group_key().returning(|_| Ok(()));
-				facade
-			},
+			Arc::new(user_facade_factory_mock),
 			Arc::new(mock_type_model_provider()),
 		);
 
