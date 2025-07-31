@@ -48,7 +48,7 @@ import { DesktopWebauthnFacade } from "./2fa/DesktopWebauthnFacade.js"
 import { DesktopPostLoginActions } from "./DesktopPostLoginActions.js"
 import { DesktopInterWindowEventFacade } from "./ipc/DesktopInterWindowEventFacade.js"
 import { OfflineDbFactory, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
-import { delay, lazyAsync, LazyLoaded, lazyMemoized } from "@tutao/tutanota-utils"
+import { LazyLoaded, lazyMemoized } from "@tutao/tutanota-utils"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
@@ -433,6 +433,19 @@ function manageDownloadsForSession(session: Session, dictUrl: string) {
 		.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
 }
 
+function relaunch() {
+	// electon.app.relaunch doesn't work inside AppImage.
+	// workaround from: https://github.com/electron-userland/electron-builder/issues/1727
+	if (app.isPackaged && process.env.APPIMAGE != null) {
+		app.relaunch({
+			execPath: process.env.APPIMAGE,
+			args: ["--appimage-extract-and-run"].concat(process.argv.slice(1)),
+		})
+	} else {
+		app.relaunch()
+	}
+}
+
 async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: WindowManager, conf: DesktopConfig) {
 	await keyStoreFacade.getDeviceKey().catch(async () => {
 		const { response } = await electron.dialog.showMessageBox({
@@ -451,7 +464,7 @@ async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: W
 			case 0:
 				break
 			case 1:
-				app.relaunch()
+				relaunch()
 				for (const window of wm.getAll()) {
 					log.debug("Closing window ", window.id)
 					// ideally we would destroy the window but it leads to obscure segfaults
@@ -467,7 +480,7 @@ async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: W
 				log.debug("App exited")
 				break
 			case 2:
-				app.relaunch()
+				relaunch()
 				app.quit()
 				break
 			default:
