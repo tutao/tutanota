@@ -2,6 +2,8 @@ use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, KeyLoadError, Version
 use crate::crypto::key_encryption::decrypt_key_pair;
 use crate::entities::generated::sys::{Group, GroupKey, KeyPair};
 #[cfg_attr(test, mockall_double::double)]
+use crate::key_cache::KeyCache;
+#[cfg_attr(test, mockall_double::double)]
 use crate::typed_entity_client::TypedEntityClient;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
@@ -17,14 +19,20 @@ use std::sync::Arc;
 pub struct KeyLoaderFacade {
 	user_facade: Arc<UserFacade>,
 	entity_client: Arc<TypedEntityClient>,
+	key_cache: Arc<KeyCache>,
 }
 
 #[cfg_attr(test, mockall::automock)]
 impl KeyLoaderFacade {
-	pub fn new(user_facade: Arc<UserFacade>, entity_client: Arc<TypedEntityClient>) -> Self {
+	pub fn new(
+		user_facade: Arc<UserFacade>,
+		entity_client: Arc<TypedEntityClient>,
+		key_cache: Arc<KeyCache>,
+	) -> Self {
 		KeyLoaderFacade {
 			user_facade,
 			entity_client,
+			key_cache,
 		}
 	}
 
@@ -73,8 +81,7 @@ impl KeyLoaderFacade {
 		};
 
 		let stored_former_key: Option<VersionedAesKey> = self
-			.user_facade
-			.key_cache()
+			.key_cache
 			.get_group_key_for_version(group_id, target_key_version);
 		if stored_former_key.is_some() {
 			return Ok(stored_former_key.unwrap());
@@ -160,6 +167,14 @@ impl KeyLoaderFacade {
 			return Err(KeyLoadError { reason: format!("Could not get last version (last version is {last_version} of {retrieved_keys_count} key(s) loaded from list {list_id}") });
 		}
 
+		self.key_cache.put_group_key(
+			&(group._id.clone().unwrap()),
+			&VersionedAesKey {
+				object: last_group_key.clone(),
+				version: last_version,
+			},
+		);
+
 		Ok(FormerGroupKey {
 			symmetric_group_key: last_group_key,
 			group_key_instance: last_group_key_instance.unwrap(),
@@ -187,7 +202,7 @@ impl KeyLoaderFacade {
 				});
 		}
 
-		if let Some(key) = self.user_facade.key_cache().get_current_group_key(group_id) {
+		if let Some(key) = self.key_cache.get_current_group_key(group_id) {
 			return Ok(key);
 		}
 
@@ -200,7 +215,7 @@ impl KeyLoaderFacade {
 		}
 
 		let key = get_key_for_version(self, group_id).await?;
-		self.user_facade.key_cache().put_group_key(group_id, &key);
+		self.key_cache.put_group_key(group_id, &key);
 		Ok(key)
 	}
 
@@ -586,21 +601,13 @@ mod tests {
 		current_group_key: &VersionedAesKey,
 		randomizer: &RandomizerFacade,
 		former_keys: &[GroupKey; FORMER_KEYS],
+		cached_former_keys: Vec<VersionedAesKey>,
 	) -> KeyLoaderFacade {
-		let (mut user_facade_mock, mut typed_entity_client_mock) =
-			make_mocks(group, current_group_key, randomizer);
-		{
-			let mut key_cache_mock = MockKeyCache::default();
-			key_cache_mock
-				.expect_get_group_key_for_version()
-				.with(
-					predicate::eq(group._id.clone().unwrap()),
-					predicate::in_iter::<Vec<u64>, u64>((0..FORMER_KEYS as u64).collect()),
-				)
-				.return_const(None);
-			let key_cache = Arc::new(key_cache_mock);
-			user_facade_mock.expect_key_cache().return_const(key_cache);
-		}
+		let key_cache = make_key_cache_mock(group, current_group_key, cached_former_keys);
+
+		let (user_facade_mock, mut typed_entity_client_mock) =
+			make_mocks(group, current_group_key, randomizer, key_cache.clone());
+
 		{
 			for i in 0..FORMER_KEYS {
 				let group = group.clone();
@@ -624,13 +631,56 @@ mod tests {
 		KeyLoaderFacade::new(
 			Arc::new(user_facade_mock),
 			Arc::new(typed_entity_client_mock),
+			key_cache,
 		)
+	}
+
+	fn make_key_cache_mock(
+		group: &Group,
+		current_group_key: &VersionedAesKey,
+		cached_keys: Vec<VersionedAesKey>,
+	) -> Arc<MockKeyCache> {
+		let mut key_cache_mock = MockKeyCache::default();
+		let group_key = current_group_key.clone();
+
+		key_cache_mock
+			.expect_get_current_group_key()
+			.returning(move |_| Some(group_key.clone()));
+
+		key_cache_mock
+			.expect_get_group_key_for_version()
+			.with(
+				predicate::eq(group._id.clone().unwrap()),
+				predicate::in_iter::<Vec<u64>, u64>((0..FORMER_KEYS as u64).collect()),
+			)
+			.return_const(None);
+
+		cached_keys.iter().for_each(|key| {
+			key_cache_mock
+				.expect_get_group_key_for_version()
+				.with(
+					predicate::eq(group._id.clone().unwrap()),
+					predicate::eq(key.version),
+				)
+				.return_const(key.clone());
+
+			key_cache_mock
+				.expect_put_group_key()
+				.with(
+					predicate::eq(group._id.clone().unwrap()),
+					predicate::eq(key.clone()),
+				)
+				.times(0);
+		});
+
+		Arc::new(key_cache_mock)
 	}
 
 	fn make_mocks(
 		group: &Group,
 		current_group_key: &VersionedAesKey,
 		randomizer: &RandomizerFacade,
+		key_cache_mock: Arc<MockKeyCache>,
 	) -> (MockUserFacade, MockTypedEntityClient) {
 		let user_group_key = generate_group_key(0);
 		let user_group = generate_random_group(
@@ -648,17 +698,11 @@ mod tests {
 				.expect_get_current_user_group_key()
 				.returning(move || Some(user_group_key.clone()));
 		}
-		{
-			let current_group_key = current_group_key.clone();
-			let mut key_cache_mock = MockKeyCache::default();
-			key_cache_mock
-				.expect_get_current_group_key()
-				.returning(move |_| Some(current_group_key.clone()));
-			let key_cache = Arc::new(key_cache_mock);
-			user_facade_mock
-				.expect_key_cache()
-				.returning(move || key_cache.clone());
-		}
+
+		user_facade_mock
+			.expect_key_cache()
+			.return_const(key_cache_mock);
+
 		{
 			let user_group_id = user_group._id.clone();
 			let sym_enc_g_key = user_group_key
@@ -731,6 +775,7 @@ mod tests {
 		let key_loader_facade = KeyLoaderFacade::new(
 			Arc::new(user_facade_mock),
 			Arc::new(typed_entity_client_mock),
+			Arc::new(MockKeyCache::default()),
 		);
 
 		let current_user_group_key = key_loader_facade
@@ -802,8 +847,13 @@ mod tests {
 		let (former_keys, former_key_pairs_decrypted, _) =
 			generate_former_keys(&current_group_key, &randomizer);
 
-		let key_loader_facade =
-			make_mocks_with_former_keys(&group, &current_group_key, &randomizer, &former_keys);
+		let key_loader_facade = make_mocks_with_former_keys(
+			&group,
+			&current_group_key,
+			&randomizer,
+			&former_keys,
+			Vec::new(),
+		);
 
 		for i in 0..FORMER_KEYS {
 			let keypair = key_loader_facade
@@ -1051,9 +1101,14 @@ mod tests {
 			&randomizer,
 		);
 
-		let key_loader_facade =
-			make_mocks_with_former_keys(&group, &current_group_key, &randomizer, &former_keys);
-		
+		let key_loader_facade = make_mocks_with_former_keys(
+			&group,
+			&current_group_key,
+			&randomizer,
+			&former_keys,
+			Vec::new(),
+		);
+
 		for i in 0..FORMER_KEYS {
 			let keypair = key_loader_facade
 				.load_sym_group_key(group._id.as_ref().expect("no id on group!"), i as u64, None)
@@ -1070,7 +1125,48 @@ mod tests {
 
 	#[tokio::test]
 	async fn load_and_decrypt_former_group_key_from_cache() {
-		// FIXME write test for cached former group keys
+		let randomizer = make_thread_rng_facade();
+
+		// Same as the length of former_keys_deprecated
+		let current_group_key_version = FORMER_KEYS as u64;
+		let current_group_key = generate_group_key(current_group_key_version);
+		let (former_keys, _, former_keys_decrypted) =
+			generate_former_keys(&current_group_key, &randomizer);
+
+		let current_key_pair = TutaCryptKeyPairs::generate(&randomizer);
+		let group = generate_group_with_keys(
+			&AsymmetricKeyPair::TutaCryptKeyPairs(current_key_pair),
+			&current_group_key,
+			&randomizer,
+		);
+
+		let key_loader_facade = make_mocks_with_former_keys(
+			&group,
+			&current_group_key,
+			&randomizer,
+			&former_keys,
+			former_keys_decrypted
+				.iter()
+				.enumerate()
+				.map(|(index, item)| VersionedAesKey {
+					object: GenericAesKey::Aes256(item.clone()),
+					version: index as u64,
+				})
+				.collect(),
+		);
+
+		for i in 0..FORMER_KEYS {
+			let keypair = key_loader_facade
+				.load_sym_group_key(group._id.as_ref().expect("no id on group!"), i as u64, None)
+				.await
+				.unwrap();
+			match keypair {
+                GenericAesKey::Aes128(_) => panic!("key_loader_facade.load_sym_group_key() returned an AES128 key! Expected an AES256 key."),
+                GenericAesKey::Aes256(returned_group_key) => {
+                    assert_eq!(returned_group_key, *former_keys_decrypted.get(i).expect("former_keys_decrypted should have FORMER_KEYS keys"))
+                }
+            }
+		}
 	}
 
 	#[tokio::test]
@@ -1088,8 +1184,10 @@ mod tests {
 			&randomizer,
 		);
 
+		let key_cache = make_key_cache_mock(&group, &current_group_key, Vec::new());
+
 		let (user_facade_mock, typed_entity_client_mock) =
-			make_mocks(&group, &current_group_key, &randomizer);
+			make_mocks(&group, &current_group_key, &randomizer, key_cache);
 		let key_loader_facade = KeyLoaderFacade::new(
 			Arc::new(user_facade_mock),
 			Arc::new(typed_entity_client_mock),
