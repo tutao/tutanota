@@ -7,7 +7,7 @@ import {
 	UsageTestAssignmentOut,
 	UsageTestAssignmentTypeRef,
 } from "../api/entities/usage/TypeRefs.js"
-import { PingAdapter, Stage, UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
+import { PingAdapter, PingIdTuple, Stage, UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
 import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
 import { BadRequestError, NotFoundError, PreconditionFailedError } from "../api/common/error/RestError"
 import { UsageTestMetricType } from "../api/common/TutanotaConstants"
@@ -29,7 +29,6 @@ import { EventController } from "../api/main/EventController.js"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { ClientTypeModelResolver } from "../api/common/EntityFunctions"
-import { PingIdTuple } from "@tutao/tutanota-usagetests"
 
 const PRESELECTED_LIKERT_VALUE = null
 
@@ -288,6 +287,7 @@ export class UsageTestModel implements PingAdapter {
 	 */
 	async loadActiveUsageTests() {
 		if (this.storageBehavior === StorageBehavior.Persist && !this.getOptInDecision()) {
+			console.log("no active usage tests: user has not opted in")
 			return []
 		}
 
