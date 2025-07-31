@@ -68,15 +68,6 @@ platform :ios do
 
 		clear_derived_data
 
-		# The default mail-client entitlement can't be included in the AdHoc entitlements because the AdHoc provisioning
-		# profile doesn't allow it and will cause the build to fail.
-		update_code_signing_settings(
-			path: "tutanota.xcodeproj",
-			targets: ["tutanota"],
-			entitlements_file_path: "tutanota/tutanotaAdHoc.entitlements",
-			build_configurations: ["Release Production"]
-		)
-
 		ipa_name = "tutanota-" + get_version_number(target: "tutanota", xcodeproj: "tutanota.xcodeproj") + "-adhoc"
 		build_app(
 			scheme: "tuta prod",
@@ -137,15 +128,6 @@ platform :ios do
 		)
 
 		clear_derived_data
-
-		# The default mail-client entitlement can't be included in the AdHoc entitlements because the AdHoc provisioning
-		# profile doesn't allow it and will cause the build to fail.
-		update_code_signing_settings(
-			path: "tutanota.xcodeproj",
-			targets: ["tutanota"],
-			entitlements_file_path: "tutanota/tutanotaAdHocStaging.entitlements",
-			build_configurations: ["Release Staging"]
-		)
 
 		build_app(
 			scheme: "tuta staging",

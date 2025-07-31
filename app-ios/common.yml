@@ -9,25 +9,18 @@ settingGroups:
       Release Development:
         PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc ${bundleIdPrefix}.$(PRODUCT_NAME)"
       Release Staging:
-        # set default to AppStore. Its associated entitlement has default mail app capability.
         # Provisioning profile is used at two stages: archive and export.
         #
         # During archive the app is built and signed. Technically provisioning profile is not embedded at this stage
         # yet but since the app is signed at this step Xcode will check that the provisioning profile has correct
-        # entitlements which could fail because ad-hoc provisioning profiles do not have default mail app capability.
+        # entitlements.
         #
         # During export the provisioning profile will actually be used to package the app. This is the step where
         # Fastlane's match will instruct Xcode to use the right provisioning profile.
-        #
-        # For Ad-Hoc builds we will overwrite the entitlement in Fastfile (update_code_signing_settings). This will
-        # update the xcodeproj file so that the archive can be generated without default mail app entitlement.
-        #
-        # For AppStore builds we do not overwrite the signing config so the values specified here will be applied
-        # during archive step.
-        PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AppStore $(PRODUCT_BUNDLE_IDENTIFIER)"
+        PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc $(PRODUCT_BUNDLE_IDENTIFIER)"
       Release Production:
         CODE_SIGN_ENTITLEMENTS: "$(TARGET_NAME)/$(TARGET_NAME).entitlements"
-        PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AppStore $(PRODUCT_BUNDLE_IDENTIFIER)"
+        PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]: "match AdHoc $(PRODUCT_BUNDLE_IDENTIFIER)"
   extension:
     base:
       SKIP_INSTALL: "YES"
