@@ -2073,5 +2073,6 @@ export default {
         "fingerprintMismatchRecommendationTofu_msg": "If you are sure that your contact is showing you their current verification code, you can delete the saved key from your device and retry.",
         "fingerprintMismatchTofuWarning_msg": "This is a potential security risk and it might be that someone has intercepted your previous conversation with this contact. It could also be a legitimate change <b>only</b> if the account behind this contact assigned the email address to another user.",
         "fingerprintMismatchTofu_msg": "The verification code on your contact's device does not match the key saved on your device for <b>{mailAddress}</b>.",
+        "keyVerificationVerificationCode_title": "Your verification code",
     }
 }

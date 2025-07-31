@@ -2050,3 +2050,4 @@ export type TranslationKeyType =
 	| "fingerprintMismatchKeepTofuSubtitle_msg"
 	| "fingerprintMismatchKeepManual_title"
 	| "fingerprintMismatchKeepManualSubtitle_msg"
+	| "keyVerificationVerificationCode_title"

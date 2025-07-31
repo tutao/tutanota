@@ -2077,5 +2077,6 @@ export default {
         "fingerprintMismatchRecommendationTofu_msg": "Wenn Sie sicher sind, dass Ihr Kontakt Ihnen den aktuellen Schlüssel zeigt, können Sie den vertrauten Schlüssel aus Ihrer lokalen Datenbank löschen und die Verifikation mit einem frischen Schlüssel vom Server erneut versuchen.",
         "fingerprintMismatchTofuWarning_msg": "Das ist ein mögliches Sicherheitsrisiko. Es ist möglich, dass irgendjemand Ihre vorherige Konversation mit diesem Kontakt abgehört hat. Es kann auch eine legitime Änderung sein, <b>aber nur</b> wenn die E-Mail-Adresse einem anderen Benutzer zugewiesen wurde.",
         "fingerprintMismatchTofu_msg": "Der Fingerabdruck, den Sie von Ihrem Kontakt bekommen haben, stimmt nicht mit dem überein, der auf Ihrem Gerät seit Ihrem ersten Gebrauch der Adresse <br><b>{mailAddress}</b><br> gespeichert ist.",
+		"keyVerificationVerificationCode_title": "Ihr Verifizierungscode",
     }
 }
