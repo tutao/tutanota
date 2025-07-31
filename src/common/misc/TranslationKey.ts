@@ -1488,6 +1488,7 @@ export type TranslationKeyType =
 	| "receivingMailboxAlreadyUsed_msg"
 	| "receivingMailbox_label"
 	| "recipients_label"
+	| "recommended_action"
 	| "recommendedDNSValue_label"
 	| "reconnecting_label"
 	| "reconnect_action"

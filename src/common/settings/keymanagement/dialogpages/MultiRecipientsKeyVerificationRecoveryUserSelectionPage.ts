@@ -35,8 +35,8 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 			m(TitleSection, {
 				title,
 				subTitle: "",
-				icon: Icons.AlertCircle,
-				iconOptions: { color: theme.error_color },
+				icon: Icons.CloseCircleOutline,
+				iconOptions: { color: theme.error },
 			}),
 			m(
 				Card,
@@ -74,8 +74,8 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 			m(TitleSection, {
 				title,
 				subTitle: "",
-				icon: Icons.CheckCircleFilled,
-				iconOptions: { color: theme.success_color },
+				icon: Icons.CheckCircleOutline,
+				iconOptions: { color: theme.success },
 			}),
 			m(Card, m(".plr.flex.flex-column.gap-vpad.pt-s.pb-s", [message])),
 		])
