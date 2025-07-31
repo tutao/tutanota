@@ -3062,7 +3062,7 @@ styles.registerStyle("main", () => {
 			width: "fit-content",
 		},
 		".tutaui-button-outline": {
-			border: "2px solid",
+			border: "1px solid",
 			"border-radius": px(size.border_radius_medium),
 			padding: px(size.border_radius_medium),
 			"text-align": "center",

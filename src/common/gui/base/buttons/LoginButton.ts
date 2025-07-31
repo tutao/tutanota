@@ -10,6 +10,7 @@ export const enum LoginButtonType {
 export type LoginButtonAttrs = Pick<BaseButtonAttrs, "onclick" | "class"> & {
 	label: MaybeTranslation
 	disabled?: boolean
+	discouraged?: boolean
 	type?: LoginButtonType
 	icon?: Children
 }
@@ -31,15 +32,17 @@ export class LoginButton implements Component<LoginButtonAttrs> {
 	}
 
 	private resolveClasses(attrs: LoginButtonAttrs) {
-		let classes = [
-			"button-content",
-			"border-radius",
-			"center",
+		let classes = ["button-content", "border-radius", "center", "flash", attrs.class]
+
+		if (attrs.disabled) {
 			// This makes the button appear "disabled" (grey color, no hover) when disabled is set to true
-			attrs.disabled ? "button-bg" : `accent-bg`,
-			"flash",
-			attrs.class,
-		]
+			classes.push("button-bg")
+		} else if (attrs.discouraged) {
+			// This makes the button appear outlined with a transparent background
+			classes.push("tutaui-button-outline")
+		} else {
+			classes.push("accent-bg")
+		}
 
 		if (attrs.type === LoginButtonType.FlexWidth) {
 			classes.push("plr-2l")

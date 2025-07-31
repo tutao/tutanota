@@ -8,6 +8,7 @@ import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 import { RecipientKeyVerificationRecoveryModel } from "../../../misc/RecipientKeyVerificationRecoveryModel"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
+import { Icon } from "../../../gui/base/Icon"
 
 type VerificationErrorInfoPageAttrs = {
 	model: RecipientKeyVerificationRecoveryModel
@@ -31,8 +32,8 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 			m(TitleSection, {
 				title,
 				subTitle,
-				icon: Icons.AlertCircle,
-				iconOptions: { color: theme.error_color },
+				icon: Icons.AlertCircleOutline,
+				iconOptions: { color: theme.warning },
 			}),
 			m(
 				Card,
@@ -48,15 +49,23 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 				]),
 			),
 			m(LoginButton, {
+				label: lang.makeTranslation("reject_recommended", `${lang.get("reject_action")} (${lang.get("recommended_action")})`),
+				onclick: async () => vnode.attrs.goToRejectPage(),
+				icon: m(Icon, {
+					icon: Icons.Checkmark,
+					class: "mr-xsm",
+					style: {
+						fill: theme.content_button_icon_selected,
+					},
+				}),
+			}),
+			m(LoginButton, {
 				label: "accept_action",
 				onclick: async () => {
 					await vnode.attrs.model.acceptAndLoadNewKey()
 					vnode.attrs.goToAcceptPage()
 				},
-			}),
-			m(LoginButton, {
-				label: "reject_action",
-				onclick: async () => vnode.attrs.goToRejectPage(),
+				discouraged: true,
 			}),
 		])
 	}
