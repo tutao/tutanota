@@ -283,7 +283,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							}
 
 							const handled = useKeyHandler(e, a.keyHandler)
-							if (!isKeyPressed(e.key, Keys.F1, Keys.TAB, Keys.ESC)) {
+							if (!isKeyPressed(e.key, Keys.F1, Keys.TAB, Keys.ESC) && !(e.ctrlKey || e.metaKey)) {
 								// When we are in a text field we don't want keys propagated up to act as hotkeys
 								e.stopPropagation()
 							}
