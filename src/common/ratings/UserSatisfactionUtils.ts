@@ -29,23 +29,27 @@ export enum RatingDisallowReason {
  * Determines if we are allowed to ask the user for their rating.
  * It is possible that the user delayed their choice or if we already asked them within the past year.
  *
- * 1. The app installation date and customer creation date must both be at least 7 days in the past.
- * 2. The dialog must not have been shown within the last year (When the dialog is dismissed with the cancel button it is not considered being shown).
- * 3. The retry prompt timer (if set) must have expired.
- * 4. The current user must not be a business user.
+ * 1. The app must be running on a supported platform.
+ * 2. The app installation date and customer creation date must both be at least 7 days in the past.
+ * 3. The dialog must not have been shown within the last year (When the dialog is dismissed with the cancel button it is not considered being shown).
+ * 4. The retry prompt timer (if set) must have expired.
+ * 5. The current user must not be a business user.
  *
  * @returns A list of reasons why the rating prompt is disallowed. If the list is empty, it is allowed to ask the user for their rating.
  */
 export async function evaluateRatingEligibility(now: Date, deviceConfig: DeviceConfig, isApp: boolean): Promise<RatingDisallowReason[]> {
 	const disallowReasons: RatingDisallowReason[] = []
 
-	// we use a native implementation for apps because at least iOS has restrictions on how often we can show rating dialogs.
-	// this rate limit is based on the actual installation date and not the date of first use (which deviceConfig would give us)
-	const appInstallationDate: Date = isApp
-		? await locator.systemFacade.getInstallationDate().then((rawDate) => new Date(Number(rawDate)))
-		: deviceConfig.getInstallationDate()
+	let appInstallationDate: Date | undefined
+	if (isApp) {
+		// we use a native implementation here because at least iOS has restrictions on how often we can show rating dialogs.
+		// this rate limit is based on the actual installation date and not the date of first use (which deviceConfig would give us)
+		appInstallationDate = await locator.systemFacade.getInstallationDate().then((rawDate) => new Date(Number(rawDate)))
+	} else {
+		appInstallationDate = deviceConfig.getInstallationDate()
+	}
 
-	if (isWithinLastNDays(now, appInstallationDate, 7)) {
+	if (appInstallationDate && isWithinLastNDays(now, appInstallationDate, 7)) {
 		disallowReasons.push(RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG)
 	}
 
@@ -96,22 +100,17 @@ export function isEventHappyMoment(now: Date, deviceConfig: DeviceConfig): boole
 	return false
 }
 
-function isNonTimeBasedReason(reason: RatingDisallowReason): boolean {
-	return reason !== RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG && reason !== RatingDisallowReason.ACCOUNT_TOO_YOUNG
-}
+export async function showUserSatisfactionDialogAfterUpgrade(currentPlan: PlanType, newPlan: PlanType) {
+	if (newPlan === currentPlan) return Promise.resolve()
 
-// for upgrades, we ignore the account too young / installation to young cases and always show the
-// dialog if the user is now a non-business paying user.
-export async function showUserSatisfactionDialogAfterUpgrade(currentPlan: PlanType, newPlan: PlanType): Promise<void> {
-	// no plan change, no dialog
-	if (newPlan === currentPlan) return
-	// don't show it to business users
-	if (currentPlan !== PlanType.Free && (currentPlan !== PlanType.Revolutionary || newPlan !== PlanType.Legend)) return
-
-	const ratingDisallowReasons = await evaluateRatingEligibility(new Date(), deviceConfig, isApp())
-	const disallowReasonsAfterUpgrade = ratingDisallowReasons.filter(isNonTimeBasedReason)
-	if (isEmpty(disallowReasonsAfterUpgrade)) {
-		setTimeout(() => showUserSatisfactionDialog("Upgrade"), 2000)
+	if (currentPlan === PlanType.Free || (currentPlan === PlanType.Revolutionary && newPlan === PlanType.Legend)) {
+		// We show the rating dialog after a successful upgrade. The account age and app installation age are not checked here.
+		const disallowReasons = (await evaluateRatingEligibility(new Date(), deviceConfig, isApp())).filter(
+			(r) => r !== RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG && r !== RatingDisallowReason.ACCOUNT_TOO_YOUNG,
+		)
+		if (isEmpty(disallowReasons)) {
+			setTimeout(() => showUserSatisfactionDialog("Upgrade"), 2000)
+		}
 	}
 }
 
@@ -124,16 +123,16 @@ export async function showUserSatisfactionDialogAfterUpgrade(currentPlan: PlanTy
 	account upgrade
 - Evaluation stage (all platforms)
 	Stage number: 1
-	We ask the user how they like the apps (Tuta Mail and Tuta Calendar)
+	We ask the user how they like the application
 	We track whether they like the product or if they think they could use improvement
 - Rating stage (only for Android)
 	Stage number: 2
 	We track whether the user is willing to leave a rating on Google Play, or prefers to not do it now.
 - Support Tuta stage (all platforms)
 	Stage number:
-		- 2 on iOS, web and desktop
+		- 2 on iOS and web/desktop
 		- 3 on Android
-	The user enters this stage when they already left a rating within the last year or if they're using web or desktop.
+	The user enters this stage when they already left a rating within the last year.
 	We track how and if the user would like to support Tuta.
  */
 
@@ -163,6 +162,7 @@ export function completeEvaluationStage(triggerType: TriggerType, buttonType: Ev
 }
 
 export function completeRatingStage(triggerType: TriggerType, buttonType: RatingButtonType) {
+	if (!isApp()) return
 	const stage = getStage(2)
 
 	stage.setMetric({
@@ -173,7 +173,7 @@ export function completeRatingStage(triggerType: TriggerType, buttonType: Rating
 }
 
 export function completeSupportTutaStage(buttonType: SupportTutaButtonType, planType: PlanType) {
-	const stage = getStage(isAndroidApp() ? 3 : 2)
+	const stage = getStage(isAndroidApp() ? 3 : 2) // 3 for android, 2 for ios or web
 	stage.setMetric({
 		name: "button",
 		value: buttonType + "_" + PlanTypeToName[planType],
@@ -181,20 +181,18 @@ export function completeSupportTutaStage(buttonType: SupportTutaButtonType, plan
 	void stage.complete()
 }
 
-function getStage(stage: number): Stage {
-	const test = locator.usageTestController.getTest(getTestNameForPlatform())
-	test.allowEarlyRestarts = true
-	return test.getStage(stage)
-}
-
-function getTestNameForPlatform(): string {
-	if (isDesktop()) {
-		return "rating.desktop"
-	} else if (isBrowser()) {
-		return "rating.web"
+function getStage(stageNumber: number): Stage {
+	let testName
+	if (!isApp() && isDesktop()) {
+		testName = "rating.desktop"
+	} else if (!isApp() && isBrowser()) {
+		testName = "rating.web"
 	} else if (isAndroidApp()) {
-		return "rating.android"
+		testName = "rating.android"
 	} else {
-		return "rating.ios"
+		testName = "rating.ios"
 	}
+
+	const test = locator.usageTestController.getTest(testName)
+	return test.getStage(stageNumber)
 }
