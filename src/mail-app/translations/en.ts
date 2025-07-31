@@ -2075,5 +2075,7 @@ export default {
         "fingerprintMismatchTofu_msg": "The verification code on your contact's device does not match the key saved on your device for <b>{mailAddress}</b>.",
         "keyVerificationVerificationCode_title": "Your verification code",
         "copied_msg": "Copied to clipboard",
+        "keyManagement.cameraPermissionNeeded_msg": "Enable camera permission in device settings",
+        "keyManagement.cameraPermissionWaiting_msg": "Waiting for permission",
     }
 }

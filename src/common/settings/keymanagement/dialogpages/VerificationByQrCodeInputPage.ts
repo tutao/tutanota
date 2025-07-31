@@ -62,7 +62,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 	}
 
 	private renderQrVideoStream(attrs: VerificationByQrCodePageAttrs): Children {
-		return [m(".center", this.getStateMessage()), this.getVideoElement(attrs)]
+		return [m(".center", this.qrCameraState == QrCameraState.SCANNING ? undefined : this.getStateMessage()), this.getVideoElement(attrs)]
 	}
 
 	private getVideoElement(attrs: VerificationByQrCodePageAttrs): Children | null {
@@ -99,13 +99,13 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 	private getStateMessage(): string {
 		switch (this.qrCameraState) {
 			case QrCameraState.SCANNING:
-				return "Scan QR code"
+				return "Scan QR code" // should not be shown, but just in case...
 			case QrCameraState.INIT_VIDEO:
 				return lang.get("keyManagement.waitingForVideo_msg")
 			case QrCameraState.PERMISSION_DENIED:
-				return "Enable camera permision in device settings"
+				return lang.get("keyManagement.cameraPermissionNeeded_msg")
 			case QrCameraState.PERMISSION_CHECK:
-				return "Waiting for permission"
+				return lang.get("keyManagement.cameraPermissionWaiting_msg")
 			default:
 				return ""
 		}
