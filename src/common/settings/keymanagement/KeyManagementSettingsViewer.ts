@@ -149,47 +149,49 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		const isLightTheme = this.themeController.isLightTheme()
 
 		const qrCodeGraphic = m.trust(renderFingerprintAsQrCode(ownIdentity.mailAddress, ownIdentity.fingerprint))
-		return m(Card, {}, [
-			m("center.h5", lang.get("keyVerificationVerificationCode_title")),
-			// QR code
-			m(
-				".pb.pt",
-				{ style: { display: "flex", "justify-content": "center" } },
-				// If the user is on a dark theme, we want to render a white border around the QR code to help the detection algorithm.
-				// We do not want any extra padding on light themes since it looks ugly.
-				isLightTheme
-					? m("", qrCodeGraphic)
-					: m(
-							".bg-white.border-radius-big",
-							{
-								style: {
-									"line-height": "0",
-									padding: "24px",
+		return [
+			m(MenuTitle, { content: lang.get("keyVerificationVerificationCode_title") }),
+			m(Card, {}, [
+				// QR code
+				m(
+					".pb.pt",
+					{ style: { display: "flex", "justify-content": "center" } },
+					// If the user is on a dark theme, we want to render a white border around the QR code to help the detection algorithm.
+					// We do not want any extra padding on light themes since it looks ugly.
+					isLightTheme
+						? m("", qrCodeGraphic)
+						: m(
+								".bg-white.border-radius-big",
+								{
+									style: {
+										"line-height": "0",
+										padding: "24px",
+									},
 								},
-							},
-							qrCodeGraphic,
-						),
-			),
-			m(FingerprintRow, {
-				mailAddress: ownIdentity.mailAddress,
-				publicKeyVersion: ownIdentity.publicKey.version,
-				publicKeyType: ownIdentity.publicKey.object.type,
-				publicKeyFingerprint: ownIdentity.fingerprint,
-				action: {
-					onClick: async () => {
-						await copyToClipboard(ownIdentity.fingerprint)
-						await showSnackBar({
-							message: "copied_msg",
-							button: {
-								label: "close_alt",
-								click: () => {},
-							},
-						})
+								qrCodeGraphic,
+							),
+				),
+				m(FingerprintRow, {
+					mailAddress: ownIdentity.mailAddress,
+					publicKeyVersion: ownIdentity.publicKey.version,
+					publicKeyType: ownIdentity.publicKey.object.type,
+					publicKeyFingerprint: ownIdentity.fingerprint,
+					action: {
+						onClick: async () => {
+							await copyToClipboard(ownIdentity.fingerprint)
+							await showSnackBar({
+								message: "copied_msg",
+								button: {
+									label: "close_alt",
+									click: () => {},
+								},
+							})
+						},
+						icon: Icons.Copy,
+						tooltip: "copyToClipboard_action",
 					},
-					icon: Icons.Copy,
-					tooltip: "copyToClipboard_action",
-				},
-			}),
-		])
+				}),
+			]),
+		]
 	}
 }
