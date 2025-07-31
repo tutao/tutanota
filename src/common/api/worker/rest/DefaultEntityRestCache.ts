@@ -865,6 +865,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	private async processUpdateEvent(update: EntityUpdateData): Promise<EntityUpdateData | null> {
 		try {
 			if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
+				// FIXME: update.patches might be an empty array, is that expected??
 				if (update.patches) {
 					const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update)
 					if (patchAppliedInstance == null) {
@@ -886,7 +887,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			// Even for list elements this should be safe as the instance is not there anymore and is definitely not in this version
 			if (isExpectedErrorForSynchronization(e)) {
 				console.log(`Instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache.`)
-				await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
+				const instanceListId = update.instanceListId === "" ? null : update.instanceListId
+				await this.storage.deleteIfExists(update.typeRef, instanceListId, update.instanceId)
 				return null
 			} else {
 				throw e
