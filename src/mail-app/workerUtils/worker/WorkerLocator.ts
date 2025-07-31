@@ -465,7 +465,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.keyAuthenticationFacade,
 	)
 
-	locator.identityKeyTrustDatabase = new IdentityKeyTrustDatabase(locator.sqlCipherFacade)
+	locator.identityKeyTrustDatabase = new IdentityKeyTrustDatabase(locator.sqlCipherFacade, () => locator.login)
 	locator.publicIdentityKeyProvider = new PublicIdentityKeyProvider(
 		locator.serviceExecutor,
 		locator.cachingEntityClient,

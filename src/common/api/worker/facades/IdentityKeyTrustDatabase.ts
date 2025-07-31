@@ -5,10 +5,12 @@ import { checkKeyVersionConstraints } from "./KeyLoaderFacade"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { bytesToEd25519PublicKey, ed25519PublicKeyToBytes } from "@tutao/tutanota-crypto"
 import { IdentityKeySourceOfTrust } from "../../common/TutanotaConstants"
-import { Versioned } from "@tutao/tutanota-utils"
+import { lazy, Versioned } from "@tutao/tutanota-utils"
 import { sql } from "../offline/Sql"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade"
 import type { OfflineStorageTable } from "../offline/OfflineStorage"
+import { SessionType } from "../../common/SessionType"
+import { LoginFacade } from "./LoginFacade"
 
 /**
  * Defines tables created for this interface
@@ -34,10 +36,15 @@ export type TrustDBEntry = {
  *
  */
 export class IdentityKeyTrustDatabase {
-	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
+	constructor(
+		private readonly sqlCipherFacade: SqlCipherFacade,
+		private readonly lazyLoginFacade: lazy<LoginFacade>,
+	) {}
 
-	isIdentityKeyTrustDatabaseSupported(): boolean {
-		return !isBrowser()
+	async isIdentityKeyTrustDatabaseSupported(): Promise<boolean> {
+		const loginFacade = this.lazyLoginFacade()
+		const sessionType = await loginFacade.getSessionType()
+		return !isBrowser() && sessionType === SessionType.Persistent
 	}
 
 	/**

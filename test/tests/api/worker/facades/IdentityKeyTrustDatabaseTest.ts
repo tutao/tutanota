@@ -13,10 +13,13 @@ import { bytesToEd25519PublicKey } from "@tutao/tutanota-crypto"
 import { withOverriddenEnv } from "../../../TestUtils"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
+import { LoginFacade } from "../../../../../src/common/api/worker/facades/LoginFacade"
+import { SessionType } from "../../../../../src/common/api/common/SessionType"
 
 const { anything } = matchers
 o.spec("IdentityKeyTrustDatabaseTest", function () {
 	let sqlCipherFacade: SqlCipherFacade
+	let loginFacade: LoginFacade
 	let identityKeyTrustDatabase: IdentityKeyTrustDatabase
 
 	const PUBLIC_KEY_BYTES = hexToUint8Array(testData.ed25519Tests[0].alicePublicKeyHex)
@@ -56,7 +59,8 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 
 	o.beforeEach(function () {
 		sqlCipherFacade = object()
-		identityKeyTrustDatabase = new IdentityKeyTrustDatabase(sqlCipherFacade)
+		loginFacade = object()
+		identityKeyTrustDatabase = new IdentityKeyTrustDatabase(sqlCipherFacade, () => loginFacade)
 		backupEnv = globalThis.env
 	})
 	o.afterEach(function () {
@@ -198,12 +202,26 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 	})
 
 	o("feature should be supported when on desktop", async function () {
+		when(loginFacade.getSessionType()).thenResolve(SessionType.Persistent)
 		const isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
 		o(isSupported).equals(true)
 	})
 
 	o("feature should NOT be supported when on browser", async function () {
+		when(loginFacade.getSessionType()).thenResolve(SessionType.Persistent)
 		const isSupported = await withOverriddenEnv({ mode: Mode.Browser }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
+		o(isSupported).equals(false)
+	})
+
+	o("feature should NOT be supported in login/temporary sessions", async function () {
+		let isSupported: boolean
+
+		when(loginFacade.getSessionType()).thenResolve(SessionType.Login)
+		isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
+		o(isSupported).equals(false)
+
+		when(loginFacade.getSessionType()).thenResolve(SessionType.Temporary)
+		isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
 		o(isSupported).equals(false)
 	})
 })
