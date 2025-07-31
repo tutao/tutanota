@@ -203,6 +203,9 @@ export class LoginFacade {
 	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
 	asyncLoginState: AsyncLoginState = { state: "idle" }
 
+	/** Keep track of the session type of the last partial/full log in */
+	private lastLoginSessionType: SessionType | null = null
+
 	constructor(
 		private readonly restClient: RestClient,
 		private readonly entityClient: EntityClient,
@@ -304,9 +307,7 @@ export class LoginFacade {
 			userId: sessionData.userId,
 			type: CredentialType.Internal,
 		}
-		this.loginListener
-			.onPartialLoginSuccess(sessionType, cacheInfo, credentials)
-			.finally(() => this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials))
+		this.triggerPartialLoginSuccess(sessionType, cacheInfo, credentials).finally(() => this.triggerFullLoginSuccess(sessionType, cacheInfo, credentials))
 
 		if (modernKdfType && sessionType !== SessionType.Temporary) {
 			await this.initializeClientRollouts(userPassphraseKey)
@@ -507,9 +508,9 @@ export class LoginFacade {
 			userId,
 			type: CredentialType.External,
 		}
-		this.loginListener
-			.onPartialLoginSuccess(SessionType.Login, cacheInfo, credentials)
-			.finally(() => this.loginListener.onFullLoginSuccess(SessionType.Login, cacheInfo, credentials))
+		this.triggerPartialLoginSuccess(SessionType.Login, cacheInfo, credentials).finally(() =>
+			this.triggerFullLoginSuccess(SessionType.Login, cacheInfo, credentials),
+		)
 
 		return {
 			user,
@@ -619,7 +620,7 @@ export class LoginFacade {
 					sessionId,
 				}
 
-				await this.loginListener.onPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
+				await this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
 				return { type: "success", data, asyncResumeCompleted: env.mode === "Test" ? asyncResumeSession : null }
 			} else {
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
@@ -632,6 +633,25 @@ export class LoginFacade {
 			await this.resetSession()
 			throw e
 		}
+	}
+
+	private triggerPartialLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
+		this.lastLoginSessionType = sessionType
+		return this.loginListener.onPartialLoginSuccess(sessionType, cacheInfo, credentials)
+	}
+
+	private triggerFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
+		this.lastLoginSessionType = sessionType
+		return this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
+	}
+
+	public async getSessionType(): Promise<SessionType | null> {
+		// Consider the information invalid if we do not have an active session
+		if (!this.userFacade.isPartiallyLoggedIn()) {
+			return null
+		}
+
+		return this.lastLoginSessionType
 	}
 
 	private getSessionId(credentials: Credentials): IdTuple {
@@ -695,11 +715,11 @@ export class LoginFacade {
 		let partialLoginPromise: Promise<void>
 		if (previousUser == null) {
 			// user was not set which means partial login could not have been called earlier, call it here
-			partialLoginPromise = this.loginListener.onPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey)
+			partialLoginPromise = this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey)
 		} else {
 			partialLoginPromise = Promise.resolve()
 		}
-		partialLoginPromise.finally(() => this.loginListener.onFullLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey))
+		partialLoginPromise.finally(() => this.triggerFullLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey))
 
 		this.asyncLoginState = { state: "idle" }
 

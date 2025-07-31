@@ -213,7 +213,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 					identifier: "alice@tuta.com",
 					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				}
-				when(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()).thenReturn(false)
+				when(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()).thenResolve(false)
 				when(
 					serviceExecutor.get(
 						IdentityKeyService,
@@ -255,7 +255,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 			identityKeyGetOut.publicIdentityKey = rawEd25519PublicKey
 			identityKeyGetOut.publicIdentityKeyVersion = "5"
 			when(serviceExecutor.get(IdentityKeyService, matchers.anything())).thenReject(new NotFoundError("not found"))
-			when(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()).thenReturn(false)
+			when(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()).thenResolve(false)
 
 			const identifier: PublicKeyIdentifier = {
 				identifier: "alice@tuta.com",
