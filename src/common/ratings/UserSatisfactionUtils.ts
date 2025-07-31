@@ -19,7 +19,6 @@ export function isWithinLastNDays(now: Date, date: Date, days: number) {
 }
 
 export enum RatingDisallowReason {
-	UNSUPPORTED_PLATFORM = 0,
 	APP_INSTALLATION_TOO_YOUNG = 2,
 	ACCOUNT_TOO_YOUNG = 3,
 	RATING_DISMISSED = 4,
@@ -41,11 +40,18 @@ export enum RatingDisallowReason {
 export async function evaluateRatingEligibility(now: Date, deviceConfig: DeviceConfig, isApp: boolean): Promise<RatingDisallowReason[]> {
 	const disallowReasons: RatingDisallowReason[] = []
 
-	if (!isApp) {
-		disallowReasons.push(RatingDisallowReason.UNSUPPORTED_PLATFORM)
+	let appInstallationDate: Date | undefined
+	if (isApp) {
+		// we use a native implementation here because at least iOS has restrictions on how often we can show rating dialogs.
+		// this rate limit is based on the actual installation date and not the date of first use (which deviceConfig would give us)
+		appInstallationDate = await locator.systemFacade.getInstallationDate().then((rawDate) => new Date(Number(rawDate)))
+	} else {
+		appInstallationDate = deviceConfig.getInstallationDate()
 	}
 
-	if (isApp && isWithinLastNDays(now, await locator.systemFacade.getInstallationDate().then((rawDate) => new Date(Number(rawDate))), 7)) {
+	console.log(appInstallationDate, "evaluateRatingEligibility")
+
+	if (appInstallationDate && isWithinLastNDays(now, appInstallationDate, 7)) {
 		disallowReasons.push(RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG)
 	}
 
@@ -64,6 +70,7 @@ export async function evaluateRatingEligibility(now: Date, deviceConfig: DeviceC
 		disallowReasons.push(RatingDisallowReason.BUSINESS_USER)
 	}
 
+	console.log("disallowReasons", disallowReasons)
 	return disallowReasons
 }
 
@@ -79,7 +86,6 @@ export async function evaluateRatingEligibility(now: Date, deviceConfig: DeviceC
 export function isEventHappyMoment(now: Date, deviceConfig: DeviceConfig): boolean {
 	//region Trigger 1: Check for minimum 3 events/emails created
 	const lastRatingPromptedDate: Date | null = deviceConfig.getLastRatingPromptedDate()
-
 	const events: Date[] = deviceConfig.getEvents()
 	if (events.length >= 3 && lastRatingPromptedDate == null) {
 		return true

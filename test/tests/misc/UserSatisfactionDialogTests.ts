@@ -5,6 +5,7 @@ import { object, verify, when } from "testdouble"
 import { CommonLocator, initCommonLocator } from "../../../src/common/api/main/CommonLocator.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
+import { isApp } from "../../../src/common/api/common/Env.js"
 
 o.spec("UserSatisfactionDialog", () => {
 	let deviceConfigMock: DeviceConfig = object()
@@ -35,27 +36,13 @@ o.spec("UserSatisfactionDialog", () => {
 	})
 
 	o.spec("evaluateRatingEligibility", () => {
-		o("platform requirement", async () => {
-			// Arrange
-			const isApp = false
-
-			// Act
-			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp)
-
-			// Assert
-			o(res).satisfies((disallowReasons) => ({
-				pass: disallowReasons.includes(RatingDisallowReason.UNSUPPORTED_PLATFORM),
-				message: "Ratings are only available in the Tuta iOS and Android apps",
-			}))
-		})
-
 		o("app installation date", async () => {
 			// Arrange
 			const date = new Date("2024-10-24T12:34:00Z") // 3 days ago
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(date.getTime()))
 
 			// Act
-			const res = await evaluateRatingEligibility(now, deviceConfigMock, true)
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
 
 			// Assert
 			o(res).satisfies((disallowReasons) => ({
@@ -72,7 +59,7 @@ o.spec("UserSatisfactionDialog", () => {
 			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
 
 			// Act
-			const res = await evaluateRatingEligibility(now, deviceConfigMock, true)
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
 
 			// Assert
 			o(res).satisfies((disallowReasons) => ({
@@ -92,7 +79,7 @@ o.spec("UserSatisfactionDialog", () => {
 			when(locatorMock.logins.getUserController().getPlanType()).thenResolve(PlanType.PremiumBusiness)
 
 			// Act
-			const res = await evaluateRatingEligibility(now, deviceConfigMock, true)
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
 
 			// Assert
 			o(res).satisfies((disallowReasons) => ({
@@ -112,7 +99,7 @@ o.spec("UserSatisfactionDialog", () => {
 			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
 
 			// Act
-			const res = await evaluateRatingEligibility(now, deviceConfigMock, true)
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
 
 			// Assert
 			verify(locatorMock.logins.getUserController().loadCustomerInfo(), { times: 1 })
