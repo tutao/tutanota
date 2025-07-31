@@ -290,7 +290,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				report: null,
 				print: this.getPrintAction(),
 			}),
-			reportSpamAction: this.getReportSingleEmailSpamActionIfNeeded(viewModel.primaryViewModel()),
+			reportSpamAction: this.getReportMultipleEmailSpamAction(), //this.getReportSingleEmailSpamActionIfNeeded(viewModel.primaryViewModel()),
 		})
 	}
 
@@ -482,7 +482,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								forwardAction: this.getForwardAction(this.conversationViewModel),
 								mailViewerMoreActions: getMailViewerMoreActions({
 									viewModel: this.conversationViewModel.primaryViewModel(),
-									report: this.getReportSingleEmailSpamActionIfNeeded(this.conversationViewModel.primaryViewModel()),
+									report: this.getReportMultipleEmailSpamAction(),
 									print: this.getPrintAction(),
 								}),
 							})
