@@ -13,7 +13,6 @@ import { SyncStatus } from "../calendar/gui/ImportExportUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import type { GroupSettings } from "../api/entities/tutanota/TypeRefs.js"
-import { object } from "testdouble"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -73,6 +72,7 @@ interface ConfigObject {
 	isCredentialsMigratedToNative: boolean
 	lastExternalCalendarSync: Record<Id, LastExternalCalendarSyncEntry>
 	clientOnlyCalendars: Map<Id, ClientOnlyCalendarsInfo>
+	installationDate: string
 
 	/**
 	 * A list of dates on which a user has sent an e-mail or created a calendar event. Each date is represented as the date's timestamp.
@@ -100,7 +100,7 @@ interface ConfigObject {
  * Device config for internal user auto login. Only one config per device is stored.
  */
 export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
-	public static readonly Version = 6
+	public static readonly Version = 7
 	public static readonly LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
@@ -159,12 +159,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			lastRatingPromptedDate: loadedConfig.lastRatingPromptedDate ?? null,
 			retryRatingPromptAfter: loadedConfig.retryRatingPromptAfter ?? null,
 			scrollTime: loadedConfig.scrollTime ?? 8,
+			installationDate: loadedConfig.installationDate ?? getStartOfDay(new Date()).getTime().toString(),
 		}
 
 		this.lastSyncStream(new Map(Object.entries(this.config.lastExternalCalendarSync)))
 
-		// We need to write the config if there was a migration and if we generate the signup token and if.
-		// We do not save the config if there was no config. The config is stored when some value changes.
+		// We need to write the config:
+		// - if no config existed and we generated a signup token
+		// - if there was a migration
+		// The config is stored each time when some value changes
 		if (doSave) {
 			this.writeToStorage()
 		}
@@ -479,8 +482,6 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 
 	/**
 	 * Gets a list of dates on which a certain event has occurred. Could be email sent, replied, contact created etc.
-	 *
-	 * Only present on iOS.
 	 */
 	public getEvents(): Date[] {
 		return (this.config.events ?? []).flatMap((timestamp) => {
@@ -528,6 +529,10 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			return null
 		}
 	}
+
+	public getInstallationDate(): Date {
+		return new Date(parseInt(this.config.installationDate))
+	}
 }
 
 export function migrateConfig(loadedConfig: any) {
@@ -551,6 +556,10 @@ export function migrateConfig(loadedConfig: any) {
 
 	if (loadedConfig._version < 6) {
 		migrateConfigV5to6(loadedConfig, new Date())
+	}
+
+	if (loadedConfig._version < 7) {
+		loadedConfig.installationDate = getStartOfDay(new Date()).getTime().toString()
 	}
 }
 

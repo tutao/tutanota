@@ -133,9 +133,7 @@ export function showUserSatisfactionDialog(triggerType: TriggerType): void {
  * If the client is on any app (Tuta Mail or Tuta Calendar), we save the current date as an event to determine if we want to trigger a "rate Tuta" dialog.
  */
 export async function handleRatingByEvent(triggerType: TriggerType) {
-	if (isApp()) {
-		createEvent(deviceConfig)
-	}
+	createEvent(deviceConfig)
 
 	const disallowReasons = await evaluateRatingEligibility(getCurrentDate(), deviceConfig, isApp())
 

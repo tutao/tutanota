@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { client } from "../../misc/ClientDetector.js"
 import { Dialog } from "../../gui/base/Dialog.js"
-import { isIOSApp } from "../../api/common/Env.js"
+import { isApp, isIOSApp } from "../../api/common/Env.js"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { completeEvaluationStage, TriggerType } from "../UserSatisfactionUtils.js"
@@ -40,7 +40,7 @@ export class EvaluationPage implements Component<EvaluationPageAttrs> {
 		const hasRated =
 			lastRatingPromptedDate != null && DateTime.fromJSDate(getCurrentDate()).diff(DateTime.fromJSDate(lastRatingPromptedDate), ["years"]).years <= 1
 
-		if (!hasRated) {
+		if (!hasRated && isApp()) {
 			if (isIOSApp()) {
 				// We cannot get the result of the user rating on iOS, so we have to set the date here.
 				deviceConfig.setLastRatingPromptedDate(getCurrentDate())
