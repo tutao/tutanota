@@ -37,7 +37,6 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 			m(TitleSection, {
 				title: lang.get("keyManagement.textVerification_label"),
 				subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),
-				icon: publicIdentity ? Icons.QuestionMarkOutline : undefined,
 			}),
 			m(
 				Card,
