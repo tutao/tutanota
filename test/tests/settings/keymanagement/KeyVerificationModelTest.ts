@@ -85,7 +85,7 @@ o.spec("KeyVerificationModelTest", function () {
 			)
 			o(publicIdentity).deepEquals({
 				fingerprint: "aabbccdd",
-				key: trustDBEntry.publicIdentityKey,
+				trustDbEntry: trustDBEntry,
 				mailAddress: "alice@tuta.com",
 			})
 		})
