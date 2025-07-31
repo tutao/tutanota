@@ -86,6 +86,7 @@ pub mod tutanota_constants;
 pub mod type_model_provider;
 mod typed_entity_client;
 mod user_facade;
+mod user_facade_factory;
 pub mod util;
 
 use crate::bindings::suspendable_rest_client::SuspendableRestClient;
@@ -100,6 +101,8 @@ use crate::entities::Entity;
 use crate::groups::GroupType;
 use crate::metamodel::TypeModel;
 use crate::tutanota_constants::ArchiveDataType;
+#[cfg_attr(test, mockall_double::double)]
+use crate::user_facade_factory::UserFacadeFactory;
 pub use id::custom_id::CustomId;
 pub use id::generated_id::GeneratedId;
 pub use id::id_tuple::IdTupleCustom;
@@ -234,10 +237,13 @@ impl Sdk {
 			self.instance_mapper.clone(),
 		));
 
+		let key_cache = Arc::new(KeyCache::new());
+		let user_facade_factory = Arc::new(UserFacadeFactory::new(key_cache.clone()));
+
 		let login_facade = LoginFacade::new(
 			entity_client.clone(),
 			typed_entity_client.clone(),
-			|user| UserFacade::new(Arc::new(KeyCache::new()), user),
+			user_facade_factory,
 			self.type_model_provider.clone(),
 		);
 		let user_facade = Arc::new(login_facade.resume_session(&credentials).await?);
@@ -245,7 +251,9 @@ impl Sdk {
 		let key_loader_facade = Arc::new(KeyLoaderFacade::new(
 			user_facade.clone(),
 			typed_entity_client.clone(),
+			key_cache.clone(),
 		));
+
 		let service_executor: Arc<ServiceExecutor> = Arc::new(ServiceExecutor::new(
 			auth_headers_provider.clone(),
 			None,

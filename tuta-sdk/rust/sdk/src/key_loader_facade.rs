@@ -699,10 +699,6 @@ mod tests {
 				.returning(move || Some(user_group_key.clone()));
 		}
 
-		user_facade_mock
-			.expect_key_cache()
-			.return_const(key_cache_mock);
-
 		{
 			let user_group_id = user_group._id.clone();
 			let sym_enc_g_key = user_group_key
@@ -816,6 +812,7 @@ mod tests {
 		let key_loader_facade = KeyLoaderFacade::new(
 			Arc::new(user_facade_mock),
 			Arc::new(typed_entity_client_mock),
+			Arc::new(MockKeyCache::default()),
 		);
 
 		let group_key = key_loader_facade
@@ -906,6 +903,7 @@ mod tests {
 		let key_loader_facade = KeyLoaderFacade::new(
 			Arc::new(user_facade_mock),
 			Arc::new(typed_entity_client_mock),
+			Arc::new(MockKeyCache::default()),
 		);
 
 		let loaded_current_key_pair = key_loader_facade
@@ -963,6 +961,7 @@ mod tests {
 		let key_loader_facade = KeyLoaderFacade::new(
 			Arc::new(user_facade_mock),
 			Arc::new(typed_entity_client_mock),
+			Arc::new(MockKeyCache::default()),
 		);
 
 		let result = key_loader_facade
@@ -1018,6 +1017,7 @@ mod tests {
 		let key_loader_facade = KeyLoaderFacade::new(
 			Arc::new(user_facade_mock),
 			Arc::new(typed_entity_client_mock),
+			Arc::new(MockKeyCache::default()),
 		);
 
 		let result = key_loader_facade
@@ -1070,6 +1070,7 @@ mod tests {
 		let key_loader_facade = KeyLoaderFacade::new(
 			Arc::new(user_facade_mock),
 			Arc::new(typed_entity_client_mock),
+			Arc::new(MockKeyCache::default()),
 		);
 
 		let result = key_loader_facade
@@ -1191,6 +1192,7 @@ mod tests {
 		let key_loader_facade = KeyLoaderFacade::new(
 			Arc::new(user_facade_mock),
 			Arc::new(typed_entity_client_mock),
+			Arc::new(MockKeyCache::default()),
 		);
 
 		let returned_key = key_loader_facade
@@ -1236,6 +1238,7 @@ mod tests {
 		let key_loader_facade = KeyLoaderFacade::new(
 			Arc::new(user_facade_mock),
 			Arc::new(typed_entity_client_mock),
+			Arc::new(MockKeyCache::default()),
 		);
 
 		key_loader_facade
