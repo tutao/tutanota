@@ -8,6 +8,7 @@ import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
 import { AllIcons, Icon, IconSize } from "../../gui/base/Icon"
 import { Hex } from "@tutao/tutanota-utils"
 import { MaybeTranslation } from "../../misc/LanguageViewModel"
+import { theme } from "../../gui/theme"
 
 type Action = {
 	onClick: (mailAddress: string) => void
@@ -43,8 +44,9 @@ export class FingerprintRow implements Component<FingerprintRowAttrs> {
 		return m(Card, [
 			m(".flex.items-center.selectable.pl-vpad-s.mb-s.gap-vpad-xs", [
 				m(Icon, {
-					icon: Icons.NeutralShield,
+					icon: Icons.Shield,
 					size: IconSize.Large,
+					style: { fill: theme.success },
 				}),
 				m(".text-break.b.selectable", mailAddress),
 				m(".flex-grow"),
