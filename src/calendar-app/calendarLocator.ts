@@ -1013,5 +1013,5 @@ export type ICalendarLocator = Readonly<CalendarLocator>
 export const calendarLocator: ICalendarLocator = new CalendarLocator()
 
 if (typeof window !== "undefined") {
-	window.tutao.locator = calendarLocator
+	// window.tutao.locator = calendarLocator
 }

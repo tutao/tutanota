@@ -5,6 +5,7 @@ import { object, verify, when } from "testdouble"
 import { CommonLocator, initCommonLocator } from "../../../src/common/api/main/CommonLocator.js"
 import { UserController } from "../../../src/common/api/main/UserController.js"
 import { PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
+import { isApp } from "../../../src/common/api/common/Env.js"
 
 o.spec("UserSatisfactionDialog", () => {
 	let deviceConfigMock: DeviceConfig = object()
@@ -35,84 +36,78 @@ o.spec("UserSatisfactionDialog", () => {
 	})
 
 	o.spec("evaluateRatingEligibility", () => {
-		for (const isApp of [true, false]) {
-			o(`app installation date, isApp=${isApp}`, async () => {
-				// Arrange
-				const date = new Date("2024-10-24T12:34:00Z") // 3 days ago
-				when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(date.getTime()))
-				when(deviceConfigMock.getInstallationDate()).thenReturn(date)
+		o("app installation date", async () => {
+			// Arrange
+			const date = new Date("2024-10-24T12:34:00Z") // 3 days ago
+			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(date.getTime()))
 
-				// Act
-				const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp)
+			// Act
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
 
-				// Assert
-				o(res).satisfies((disallowReasons) => ({
-					pass: disallowReasons.includes(RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG),
-					message: "App installation date is too young",
-				}))
-			})
+			// Assert
+			o(res).satisfies((disallowReasons) => ({
+				pass: disallowReasons.includes(RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG),
+				message: "App installation date is too young",
+			}))
+		})
 
-			o(`customer account age isApp=${isApp}`, async () => {
-				// Arrange
-				const customerCreationDate = new Date("2024-10-26T12:34:00Z") // 1 day ago
-				const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
-				when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
-				when(deviceConfigMock.getInstallationDate()).thenResolve(appInstallationDate)
-				when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
+		o("customer account age", async () => {
+			// Arrange
+			const customerCreationDate = new Date("2024-10-26T12:34:00Z") // 1 day ago
+			const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
+			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
+			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
 
-				// Act
-				const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp)
+			// Act
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
 
-				// Assert
-				o(res).satisfies((disallowReasons) => ({
-					pass:
-						disallowReasons.includes(RatingDisallowReason.ACCOUNT_TOO_YOUNG) &&
-						!disallowReasons.includes(RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG),
-					message: "Customer account is too young",
-				}))
-			})
+			// Assert
+			o(res).satisfies((disallowReasons) => ({
+				pass:
+					disallowReasons.includes(RatingDisallowReason.ACCOUNT_TOO_YOUNG) &&
+					!disallowReasons.includes(RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG),
+				message: "Customer account is too young",
+			}))
+		})
 
-			o(`business user isApp=${isApp}`, async () => {
-				// Arrange
-				const customerCreationDate = new Date("2024-09-26T12:34:00Z") // 1 month ago
-				const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
-				when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
-				when(deviceConfigMock.getInstallationDate()).thenResolve(appInstallationDate)
-				when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
-				when(locatorMock.logins.getUserController().getPlanType()).thenResolve(PlanType.PremiumBusiness)
+		o("business user", async () => {
+			// Arrange
+			const customerCreationDate = new Date("2024-09-26T12:34:00Z") // 1 month ago
+			const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
+			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
+			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
+			when(locatorMock.logins.getUserController().getPlanType()).thenResolve(PlanType.PremiumBusiness)
 
-				// Act
-				const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp)
+			// Act
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
 
-				// Assert
-				o(res).satisfies((disallowReasons) => ({
-					pass: disallowReasons.includes(RatingDisallowReason.BUSINESS_USER),
-					message: "Customer is a business user.",
-				}))
-			})
+			// Assert
+			o(res).satisfies((disallowReasons) => ({
+				pass: disallowReasons.includes(RatingDisallowReason.BUSINESS_USER),
+				message: "Customer is a business user.",
+			}))
+		})
 
-			o(`retry timer has not elapsed, isApp=${isApp}`, async () => {
-				// Arrange
-				const customerCreationDate = new Date("2024-09-26T12:34:00Z") // 1 month, 1 day ago
-				const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
-				const retryRatingPromptAfter = new Date("2024-10-28T14:34:00Z") // in a day
+		o("retry timer has not elapsed", async () => {
+			// Arrange
+			const customerCreationDate = new Date("2024-09-26T12:34:00Z") // 1 month, 1 day ago
+			const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
+			const retryRatingPromptAfter = new Date("2024-10-28T14:34:00Z") // in a day
 
-				when(deviceConfigMock.getNextEvaluationDate()).thenReturn(retryRatingPromptAfter)
-				when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
-				when(deviceConfigMock.getInstallationDate()).thenResolve(appInstallationDate)
-				when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
+			when(deviceConfigMock.getNextEvaluationDate()).thenReturn(retryRatingPromptAfter)
+			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
+			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
 
-				// Act
-				const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp)
+			// Act
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
 
-				// Assert
-				verify(locatorMock.logins.getUserController().loadCustomerInfo(), { times: 1 })
-				o(res).satisfies((disallowReasons) => ({
-					pass: disallowReasons.includes(RatingDisallowReason.RATING_DISMISSED),
-					message: "Retry timer has not elapsed",
-				}))
-			})
-		}
+			// Assert
+			verify(locatorMock.logins.getUserController().loadCustomerInfo(), { times: 1 })
+			o(res).satisfies((disallowReasons) => ({
+				pass: disallowReasons.includes(RatingDisallowReason.RATING_DISMISSED),
+				message: "Retry timer has not elapsed",
+			}))
+		})
 	})
 
 	o.spec("isEventHappyMoment", () => {
