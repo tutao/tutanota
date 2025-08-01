@@ -187,7 +187,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 								},
 							})
 						},
-						icon: Icons.Copy,
+						icon: Icons.CopyOutline,
 						tooltip: "copyToClipboard_action",
 					},
 				}),
