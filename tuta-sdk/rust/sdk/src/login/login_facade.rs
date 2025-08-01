@@ -280,7 +280,7 @@ mod tests {
 		let mut user_facade_factory_mock = MockUserFacadeFactory::default();
 		user_facade_factory_mock
 			.expect_create_user_facade()
-			.returning(|_| user_facade_mock.clone());
+			.return_once(|_| user_facade_mock);
 
 		let login_facade = LoginFacade::new(
 			entity_client.clone(),

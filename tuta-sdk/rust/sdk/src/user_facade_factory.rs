@@ -3,7 +3,6 @@ use crate::entities::generated::sys::User;
 use crate::key_cache::KeyCache;
 #[cfg_attr(test, mockall_double::double)]
 use crate::user_facade::UserFacade;
-use base64::Engine;
 use std::sync::Arc;
 
 pub struct UserFacadeFactory {
