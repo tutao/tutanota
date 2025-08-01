@@ -49,7 +49,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					disabled: false,
 					classes: ["flex", "gap-vpad-s", "items-center", "pl-vpad-s"],
 					leadingIcon: {
-						icon: BootIcons.Contacts,
+						icon: BootIcons.User,
 						color: getColors(ButtonColor.Content).button,
 					},
 					value: model.mailAddressInput,

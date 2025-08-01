@@ -70,7 +70,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		this.userFolders = [
 			new SettingsFolder(
 				() => "login_label",
-				() => BootIcons.Contacts,
+				() => BootIcons.User,
 				"login",
 				() => new LoginSettingsViewer(calendarLocator.credentialsProvider, isApp() ? calendarLocator.systemFacade : null),
 				undefined,

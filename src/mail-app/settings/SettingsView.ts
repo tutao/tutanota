@@ -112,7 +112,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		this._userFolders = [
 			new SettingsFolder(
 				() => "login_label",
-				() => BootIcons.Contacts,
+				() => BootIcons.User,
 				"login",
 				() => new LoginSettingsViewer(locator.credentialsProvider, isApp() ? locator.systemFacade : null),
 				undefined,
@@ -412,7 +412,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			this._adminFolders.push(
 				new SettingsFolder(
 					() => "adminUserList_action",
-					() => BootIcons.Contacts,
+					() => BootIcons.User,
 					"users",
 					() =>
 						new UserListView(
