@@ -2059,5 +2059,6 @@ export default {
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
+		"undoMoveMailReport_msg": "The email(s) were moved to folder {folder} and will be reported in unencrypted form.",
 	}
 }
