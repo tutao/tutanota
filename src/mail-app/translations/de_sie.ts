@@ -2058,6 +2058,8 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+
+		"userExportProgress_msg": "Preparing {current} of {total} user(s) for export...",
 	}
 }
