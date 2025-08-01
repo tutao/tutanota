@@ -35,20 +35,21 @@ export function _formatSmtpDateTime(date: Date): string {
 export function mailToEml(mail: MailBundle): string {
 	const lines: string[] = []
 
+	const formatRecipients = (key: string, recipients: MailBundleRecipient[]) =>
+		`${key}: ${recipients.map((recipient) => (recipient.name ? `${escapeSpecialCharacters(recipient.name)} ` : "") + `<${recipient.address}>`).join(",")}`
+
 	if (mail.headers) {
 		const filteredHeaders = mail.headers
 			// we want to make sure all line endings are exactly \r\n after we're done.
 			.split(/\r\n|\n/)
 			.filter((line) => !line.match(/^\s*(Content-Type:|boundary=)/))
-
 		lines.push("AuthStatus: " + assertNotNull(mail.authStatus))
 		lines.push(...filteredHeaders)
+		if (mail.bcc.length > 0) {
+			lines.push(formatRecipients("BCC", mail.bcc))
+		}
 	} else {
 		lines.push("From: " + mail.sender.address, "MIME-Version: 1.0")
-		const formatRecipients = (key: string, recipients: MailBundleRecipient[]) =>
-			`${key}: ${recipients
-				.map((recipient) => (recipient.name ? `${escapeSpecialCharacters(recipient.name)} ` : "") + `<${recipient.address}>`)
-				.join(",")}`
 
 		if (mail.to.length > 0) {
 			lines.push(formatRecipients("To", mail.to))
