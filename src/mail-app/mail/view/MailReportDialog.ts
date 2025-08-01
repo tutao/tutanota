@@ -67,11 +67,10 @@ export async function reportMailsAutomatically(
 	mailModel: MailModel,
 	mailboxDetails: MailboxDetail,
 	mails: () => Promise<ReadonlyArray<Mail>>,
-	skipShowingSnackbar: boolean = false,
 ): Promise<void> {
 	const shouldReportMails = await getReportConfirmation(mailReportType, mailboxModel, mailModel, mailboxDetails)
 	if (shouldReportMails) {
-		await actuallyReportMails(mailReportType, mailModel, mails, skipShowingSnackbar)
+		await mailModel.reportMails(mailReportType, mails)
 	}
 }
 
@@ -97,30 +96,4 @@ export async function getReportConfirmation(
 	}
 
 	return isReportable
-}
-
-export async function actuallyReportMails(
-	mailReportType: MailReportType,
-	mailModel: MailModel,
-	mails: () => Promise<ReadonlyArray<Mail>>,
-	skipShowingSnackbar: boolean = false,
-): Promise<void> {
-	// decides if a snackbar is shown to prevent the server request
-	if (skipShowingSnackbar) {
-		mailModel.reportMails(mailReportType, mails)
-	} else {
-		let undoClicked = false
-		showSnackBar({
-			message: "undoMailReport_msg",
-			button: {
-				label: "cancel_action",
-				click: () => (undoClicked = true),
-			},
-			onClose: () => {
-				if (!undoClicked) {
-					mailModel.reportMails(mailReportType, mails)
-				}
-			},
-		})
-	}
 }

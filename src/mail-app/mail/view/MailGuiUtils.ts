@@ -15,7 +15,7 @@ import {
 	SYSTEM_GROUP_MAIL_ADDRESS,
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
-import { actuallyReportMails, getReportConfirmation } from "./MailReportDialog"
+import { getReportConfirmation } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { FileController } from "../../../common/file/FileController"
@@ -145,10 +145,15 @@ async function showUndoMoveMailSnackbar(
 		}
 
 		const clearUndoAction = lazyMemoized(() => mailViewModel.clearUndoActionIfPresent(undoAction))
+		const undoMessage: Translation = {
+			testId: "undoMoveMail_msg",
+			text:
+				targetFolder.folderType === MailSetKind.SPAM
+					? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
+					: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text,
+		}
 		cancelSnackbar = showSnackBar({
-			message: lang.getTranslation("undoMoveMail_msg", {
-				"{folder}": getFolderName(targetFolder),
-			}),
+			message: undoMessage,
 			button: {
 				label: "undo_action",
 				click: async () => {
@@ -202,7 +207,6 @@ export async function moveMails({
 		const resolveMails = () => mailModel.loadAllMails(mailIds)
 
 		let undone = false
-		let skipShowingSnackbar = false
 		const shouldReportMails = await getReportAnswer(system, targetFolder, isReportable, mailboxModel, mailModel)
 
 		// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
@@ -220,13 +224,12 @@ export async function moveMails({
 				}
 				case MoveMailSnackbarResult.Replaced: {
 					undone = false
-					skipShowingSnackbar = true
 					break
 				}
 			}
 		}
 		if (!undone && shouldReportMails) {
-			await actuallyReportMails(MailReportType.SPAM, mailModel, resolveMails, skipShowingSnackbar)
+			await mailModel.reportMails(MailReportType.SPAM, resolveMails)
 			return true
 		} else {
 			return false
