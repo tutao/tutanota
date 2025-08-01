@@ -131,62 +131,67 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 	fileprivate var occurrencesAfterNow = 0
 	fileprivate var exclusionNumber = 0
 
-	mutating func next() -> EventOccurrence? {
-		if case let .count(n) = repeatRule.endCondition, occurrenceNumber >= n { return nil }
+	fileprivate lazy var setPosRules = repeatRule.advancedRules.filter { item in item.ruleType == ByRuleType.bysetpos }
+		.map { rule in
+			let parsedInterval = Int(string: rule.interval)!
 
-		if expandedEvents.isEmpty {
-			let nextExpansionProgenitor = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * intervalNumber, to: calcEventStart)!
-			let progenitorTime = UInt64(nextExpansionProgenitor.timeIntervalSince1970)
-			let eventFacade = EventFacade()
-			let byRules = repeatRule.advancedRules.map { $0.toSDKRule() }
-			let progenitorTimeInMilis = progenitorTime * 1000
-			let generatedEvents = eventFacade.generateFutureInstances(
-				date: progenitorTimeInMilis,  // To Milliseconds
-				repeatRule: EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules),
-				progenitorDate: UInt64(calcEventStart.timeIntervalSince1970 * 1000)
-			)
-			self.expandedEvents.append(contentsOf: generatedEvents)
-			// Handle the event 0
-			if self.intervalNumber == 0 && !self.expandedEvents.contains(progenitorTimeInMilis) { expandedEvents.append(progenitorTimeInMilis) }
+			if parsedInterval < 0 { return expandedEvents.count - abs(parsedInterval) }
 
-			intervalNumber += 1
+			return parsedInterval - 1
 		}
+		.filter { interval in interval >= 0 && interval < repeatRule.frequency.getMaxDaysInPeriod() }
 
-		let setPosRules = repeatRule.advancedRules.filter { item in item.ruleType == ByRuleType.bysetpos }
-			.map { rule in
-				let parsedInterval = Int(string: rule.interval)!
+	mutating func next() -> EventOccurrence? {
+		while true {
+			if case let .count(n) = repeatRule.endCondition, occurrenceNumber >= n { return nil }
 
-				if parsedInterval < 0 { return expandedEvents.count - abs(parsedInterval) }
+			if expandedEvents.isEmpty {
+				let nextExpansionProgenitor = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * intervalNumber, to: calcEventStart)!
+				let progenitorTime = UInt64(nextExpansionProgenitor.timeIntervalSince1970)
+				let eventFacade = EventFacade()
+				let byRules = repeatRule.advancedRules.map { $0.toSDKRule() }
+				let progenitorTimeInMilis = progenitorTime * 1000
+				let generatedEvents = eventFacade.generateFutureInstances(
+					date: progenitorTimeInMilis,  // To Milliseconds
+					repeatRule: EventRepeatRule(frequency: repeatRule.frequency.toSDKPeriod(), byRules: byRules),
+					progenitorDate: UInt64(calcEventStart.timeIntervalSince1970 * 1000)
+				)
+				self.expandedEvents.append(contentsOf: generatedEvents)
+				// Handle the event 0
+				if self.intervalNumber == 0 && !self.expandedEvents.contains(progenitorTimeInMilis) { expandedEvents.append(progenitorTimeInMilis) }
 
-				return parsedInterval - 1
+				self.expandedEvents = expandedEvents.enumerated()
+					.filter { (index, _) in
+						if !setPosRules.isEmpty && !setPosRules.contains(index) { return false }
+
+						return true
+					}
+					.map { (_, event) in event }.sorted { $1 < $0 }
+
+				intervalNumber += 1
 			}
-			.filter { interval in interval >= 0 && interval < repeatRule.frequency.getMaxDaysInPeriod() }
 
-		self.expandedEvents = expandedEvents.enumerated()
-			.filter { (index, _) in
-				if !setPosRules.isEmpty && !setPosRules.contains(index) { return false }
+			if let date = expandedEvents.popLast() {
+				let dateInSeconds = date / 1000
+				occurrenceNumber += 1
 
-				return true
+				if let endDate, dateInSeconds >= UInt64(endDate.timeIntervalSince1970) { return nil }
+
+				while exclusionNumber < repeatRule.excludedDates.count
+					&& UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) < dateInSeconds
+				{
+					exclusionNumber += 1  // Skipping excluded dates before current occurence
+				}
+
+				if exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) == dateInSeconds
+				{
+					continue
+				}
+
+				return EventOccurrence(occurrenceNumber: occurrenceNumber, occurenceDate: Date(timeIntervalSince1970: Double(dateInSeconds)))
+			} else {
+				continue
 			}
-			.map { (_, event) in event }.sorted { $1 < $0 }
-
-		if let date = expandedEvents.popLast() {
-			let dateInSeconds = date / 1000
-			occurrenceNumber += 1
-
-			if let endDate, dateInSeconds >= UInt64(endDate.timeIntervalSince1970) { return nil }
-
-			while exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) < dateInSeconds {
-				exclusionNumber += 1  // Skipping excluded dates before current occurence
-			}
-
-			if exclusionNumber < repeatRule.excludedDates.count && UInt64(repeatRule.excludedDates[exclusionNumber].timeIntervalSince1970) == dateInSeconds {
-				return self.next()
-			}
-
-			return EventOccurrence(occurrenceNumber: occurrenceNumber, occurenceDate: Date(timeIntervalSince1970: Double(dateInSeconds)))
-		} else {
-			return self.next()
 		}
 	}
 }
