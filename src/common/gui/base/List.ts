@@ -149,6 +149,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			this.renderSwipeItems(attrs),
 			// we need rel for the status indicator
 			m("ul.list.rel.click", {
+				role: "list",
 				oncreate: ({ dom }) => {
 					this.innerDom = dom as HTMLElement
 					this.initializeDom(dom as HTMLElement, attrs.renderConfig)
@@ -233,9 +234,9 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 	}
 
 	private createRow(renderConfig: RenderConfig<T, VH>, rows: ListRow<T, VH>[]) {
-		return m("li.list-row.nofocus", {
+		return m("li.list-row", {
+			role: "listitem",
 			draggable: renderConfig.dragStart ? "true" : undefined,
-			tabindex: TabIndex.Default,
 			oncreate: (vnode: VnodeDOM) => {
 				const dom = vnode.dom as HTMLElement
 				const row = {
@@ -255,6 +256,9 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		let touchStartTime: number | null = null
 
 		domElement.onclick = (e) => {
+			// If the touch is not running, just a click.
+			// If the touch has been completed within LONG_PRESS_DURATION_MS then it's a click
+			// If the touch took longer then it's rather a longpress.
 			if (!touchStartTime || Date.now() - touchStartTime < LONG_PRESS_DURATION_MS) {
 				if (row.entity) this.handleEvent(row.entity, e)
 			}
@@ -312,6 +316,11 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			})
 
 			const touchEnd = () => {
+				// Making sure that the time is reset.
+				// Normally we either get no touch events (only mouse or keyboard) or we get touch events before/after click event but
+				// there are some situations (e.g. VoiceOver on iOS quirks) where touchstart and click would be dispatched to different
+				// DOM elements so it is not a given that every click will be preceeded by a touchstart event.
+				touchStartTime = null
 				if (timeoutId) clearTimeout(timeoutId)
 			}
 			domElement.addEventListener("touchend", touchEnd)

@@ -31,6 +31,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 					marginRight: styles.isSingleColumnLayout() ? px(size.hpad_small) : "0",
 					transition: `background 200ms`,
 				},
+				tabindex: "0",
 				oncreate: ({ dom }) => {
 					this.dom = dom as HTMLElement
 					this.updateDomBg()
