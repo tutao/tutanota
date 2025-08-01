@@ -607,7 +607,7 @@ mod tests {
 		key_cache: Arc<MockKeyCache>,
 	) -> KeyLoaderFacade {
 		let (user_facade_mock, mut typed_entity_client_mock) =
-			make_mocks(group, current_group_key, randomizer);
+			make_mocks(group, current_group_key, randomizer, None, None);
 
 		{
 			for i in 0..FORMER_KEYS {
@@ -681,15 +681,24 @@ mod tests {
 		group: &Group,
 		current_group_key: &VersionedAesKey,
 		randomizer: &RandomizerFacade,
+		user_group: Option<Group>,
+		user_group_key: Option<VersionedAesKey>,
 	) -> (MockUserFacade, MockTypedEntityClient) {
-		let user_group_key = generate_group_key(0);
-		let user_group = generate_random_group(
-			None,
-			GroupKeysRef {
-				_id: Some(CustomId::test_random()),
-				list: GeneratedId::test_random(),
-			},
-		);
+		let user_group_key = match user_group_key {
+			Some(group_key) => group_key,
+			_ => generate_group_key(0),
+		};
+
+		let user_group = match user_group {
+			Some(group) => group,
+			_ => generate_random_group(
+				None,
+				GroupKeysRef {
+					_id: Some(CustomId::test_random()),
+					list: GeneratedId::test_random(),
+				},
+			),
+		};
 
 		let mut user_facade_mock = MockUserFacade::default();
 		{
@@ -796,31 +805,63 @@ mod tests {
 		async fn get_non_user_group_key() {
 			let (group, current_group_key) = generate_group_data();
 
-			let non_user_group_id = GeneratedId::test_random();
-			let non_user_group_key_version = 0;
-			let non_user_group_key = generate_group_key(non_user_group_key_version);
-
-			let mut user_facade_mock = MockUserFacade::default();
-			{
-				let user_group = group.clone();
-				user_facade_mock
-					.expect_get_user_group_id()
-					.returning(move || user_group._id.clone().unwrap());
-			}
-			// {
-			// 	let user_group_key = current_group_key.clone();
-			// 	user_facade_mock
-			// 		.expect_get_current_user_group_key()
-			// 		.returning(move || Some(user_group_key.clone()));
-			// }
-
-			let typed_entity_client_mock = MockTypedEntityClient::default();
-
-			let key_loader_facade = KeyLoaderFacade::new(
-				Arc::new(user_facade_mock),
-				Arc::new(typed_entity_client_mock),
-				Arc::new(MockKeyCache::default()),
+			let randomizer = make_thread_rng_facade();
+			let (gp, gp_key) = generate_group_data();
+			let (mut a, mut b) = make_mocks(
+				&group,
+				&gp_key,
+				&randomizer.clone(),
+				Some(group.clone()),
+				Some(current_group_key.clone()),
 			);
+
+			let non_user_group_id = gp._id.clone().unwrap();
+			let non_user_group_key_version = gp_key.clone().version;
+			let non_user_group_key = gp_key.clone().object;
+
+			{
+				let sym_enc_g_key = gp_key
+					.object
+					.encrypt_key(&current_group_key.object, Iv::generate(&randomizer));
+				let current_group_key = current_group_key.clone();
+				a.expect_get_membership()
+					.with(predicate::eq(non_user_group_id.clone()))
+					.return_const(Ok(GroupMembership {
+						_id: Some(CustomId(non_user_group_id.clone().to_string())),
+						admin: false,
+						capability: None,
+						groupKeyVersion: convert_version_to_i64(gp_key.clone().version),
+						groupType: None,
+						symEncGKey: sym_enc_g_key.clone(),
+						symKeyVersion: convert_version_to_i64(gp_key.version),
+						group: non_user_group_id.clone(),
+						groupInfo: IdTupleGenerated {
+							list_id: Default::default(),
+							element_id: Default::default(),
+						},
+						groupMember: IdTupleGenerated {
+							list_id: Default::default(),
+							element_id: Default::default(),
+						},
+					}));
+			}
+
+			let mut typed_entity_client_mock = MockTypedEntityClient::default();
+			{
+				typed_entity_client_mock
+					.expect_load::<Group, GeneratedId>()
+					.with(predicate::eq(gp._id.clone().unwrap()))
+					.returning(move |_| Ok(gp.clone()));
+			}
+
+			let mut key_cache_mock = MockKeyCache::default();
+			key_cache_mock
+				.expect_get_current_group_key()
+				.with(predicate::eq(non_user_group_id.clone()))
+				.return_const(None);
+
+			let key_loader_facade =
+				KeyLoaderFacade::new(Arc::new(a), Arc::new(b), Arc::new(key_cache_mock));
 
 			let group_key = key_loader_facade
 				.get_current_sym_group_key(&non_user_group_id)
