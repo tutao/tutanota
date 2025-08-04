@@ -2076,6 +2076,6 @@ export default {
         "keyVerificationVerificationCode_title": "Your verification code",
         "copied_msg": "Copied to clipboard",
         "keyManagement.cameraPermissionNeeded_msg": "Enable camera permission in device settings",
-        "keyManagement.cameraPermissionWaiting_msg": "Waiting for permission",
+        "keyManagement.permissionWaiting_msg": "Waiting for permission",
     }
 }

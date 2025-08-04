@@ -105,7 +105,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 			case QrCameraState.PERMISSION_DENIED:
 				return lang.get("keyManagement.cameraPermissionNeeded_msg")
 			case QrCameraState.PERMISSION_CHECK:
-				return lang.get("keyManagement.cameraPermissionWaiting_msg")
+				return lang.get("keyManagement.permissionWaiting_msg")
 			default:
 				return ""
 		}

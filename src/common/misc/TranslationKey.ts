@@ -2053,4 +2053,4 @@ export type TranslationKeyType =
 	| "fingerprintMismatchManual_msg"
 	| "fingerprintMismatchManualWarning_msg"
 	| "keyManagement.cameraPermissionNeeded_msg"
-	| "keyManagement.cameraPermissionWaiting_msg"
+	| "keyManagement.permissionWaiting_msg"

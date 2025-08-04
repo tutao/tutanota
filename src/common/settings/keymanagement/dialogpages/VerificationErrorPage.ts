@@ -25,7 +25,7 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 				break
 			}
 			case "camera_permission_denied": {
-				subTitle = lang.get("keyManagement.cameraPermissionDenied_msg")
+				subTitle = lang.get("keyManagement.cameraPermissionNeeded_msg")
 				break
 			}
 			case "email_not_found": {
