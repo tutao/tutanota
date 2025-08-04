@@ -91,20 +91,11 @@ export class Button implements ClassComponent<ButtonAttrs> {
 	}
 
 	private resolveClasses(type: ButtonType, customClasses?: Array<string>, inline?: boolean) {
-		const classes = [
-			"limit-width",
-			"noselect",
-			"bg-transparent",
-			"button-height",
-			"text-ellipsis",
-			"content-accent-fg",
-			"items-center",
-			"justify-center",
-			"flash",
-		]
+		const classes = ["limit-width", "noselect", "bg-transparent", "text-ellipsis", "content-accent-fg", "items-center", "justify-center", "flash"]
 
-		if (!customClasses?.includes("block")) {
-			if (!inline) {
+		if (!inline) {
+			classes.push("button-height")
+			if (!customClasses?.includes("block")) {
 				classes.push("flex")
 			}
 		}
@@ -112,7 +103,10 @@ export class Button implements ClassComponent<ButtonAttrs> {
 		if (type === ButtonType.Primary) {
 			classes.push("b")
 		} else {
-			classes.push("plr-button", "button-content")
+			if (!inline) {
+				classes.push("plr-button")
+				classes.push("button-content")
+			}
 		}
 
 		classes.push(...(customClasses ?? []))

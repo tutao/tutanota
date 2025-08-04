@@ -208,11 +208,11 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 
 		if (mailViewModel.mail.keyVerificationState === PresentableKeyVerificationState.ALERT) {
 			return m(
-				".error-container.nds-ptb-l.plr-l.fs-m.border-radius-top-big.flex.items-start",
+				".error-container.nds-ptb-l.plr-l.border-radius-top-big.flex.items-start",
 				{},
-				m(Icon, { icon: Icons.BrokenShield, size: IconSize.XL, class: "mr-l", style: { fill: theme.error } }),
+				m(Icon, { icon: Icons.BrokenShield, size: IconSize.Medium, class: "mr-l", style: { fill: theme.error } }),
 				m("", [
-					lang.get("keyManagement.verificationError_title") + ". " + lang.get("keyVerificationErrorGeneric_msg"),
+					lang.get("keyManagement.verificationError_title") + ". " + lang.get("keyVerificationErrorGeneric_msg") + " ",
 					m(Button, {
 						label: "resolveProblem_action",
 						click: () => {

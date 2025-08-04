@@ -1,5 +1,5 @@
 import { styles } from "./styles"
-import { pt, px, size } from "./size"
+import { px, size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
@@ -3217,11 +3217,6 @@ styles.registerStyle("main", () => {
 			position: "absolute",
 			transform: "translate(-50%, calc(-50% + 1px))",
 			"border-radius": "50%",
-		},
-
-		// new design system
-		".fs-m": {
-			"font-size": pt(size.font_size_smaller),
 		},
 	}
 })
