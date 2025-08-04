@@ -341,7 +341,7 @@ impl CalendarFacade {
 		let today = match OffsetDateTime::from_unix_timestamp(
 			DateTime::from_millis(timestamp_start).as_seconds() as i64,
 		) {
-			Ok(date) => date.replace_offset(offset),
+			Ok(date) => date.to_offset(offset),
 			_ => {
 				return Err(ApiCallError::InternalSdkError {
 					error_message: format!(
