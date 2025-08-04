@@ -67,11 +67,7 @@ impl KeyCache {
 	pub fn put_group_key(&self, group_id: &GeneratedId, key: &VersionedAesKey) {
 		let mut lock = self.group_keys.write().unwrap();
 
-		let mut current_keys = if lock.get(group_id).is_some() {
-			lock.get(group_id).unwrap().clone()
-		} else {
-			HashMap::new()
-		};
+		let mut current_keys = lock.entry(group_id.clone()).or_default();
 
 		let key_version = key.version as i64;
 
@@ -81,7 +77,6 @@ impl KeyCache {
 		}
 
 		current_keys.insert(key_version, key.to_owned());
-		lock.insert(group_id.to_owned(), current_keys);
 	}
 
 	#[allow(clippy::unused_async)]
