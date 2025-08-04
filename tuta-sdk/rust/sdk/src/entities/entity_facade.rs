@@ -1817,7 +1817,7 @@ mod tests {
 				],
 			)]),
 		"1465"=> JsonElement::Array(vec![]),
-		"1677"=> JsonElement::Null,
+		"1677"=> JsonElement::Null
 		}
 	}
 
