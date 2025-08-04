@@ -1290,11 +1290,6 @@ impl EventFacade {
 
 		let event_title = contact.firstName.clone();
 
-		let birth_year = if birthday_parts.0.unwrap_or(0) < 1970 {
-			1970
-		} else {
-			birthday_parts.0.unwrap()
-		};
 		let birthday_date = match Date::from_calendar_date(
 			OffsetDateTime::now_local().unwrap().year(),
 			Month::from_number(birthday_parts.1),
@@ -1304,31 +1299,14 @@ impl EventFacade {
 			Err(e) => return Err(ApiCallError::internal(format!("Invalid date: {e:?}"))),
 		};
 
-		let Ok(offset) = UtcOffset::current_local_offset() else {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: "Failed to determine device time offset".to_string(),
-			});
-		};
-
-		let event_base_date = birthday_date.replace_year(birth_year as i32).unwrap();
-
-		let offset_date_time_base = OffsetDateTime::new_in_offset(
-			event_base_date,
-			Time::from_hms(0, 0, 0).unwrap(),
-			offset,
-		);
-		let offset_date_time_start_time =
-			OffsetDateTime::new_in_offset(birthday_date, Time::from_hms(0, 0, 0).unwrap(), offset);
-		let offset_date_time_end_time = offset_date_time_start_time
-			.checked_add(Duration::days(1))
-			.unwrap();
-
-		let base_datetime = DateTime::from_seconds(offset_date_time_base.unix_timestamp() as u64);
+		let birthday_date_time =
+			OffsetDateTime::new_utc(birthday_date, Time::from_hms(0, 0, 0).unwrap());
+		let end_date_time = birthday_date_time.checked_add(Duration::days(1)).unwrap();
 
 		// Set up start and end date base on UTC.
 		// Also increments a copy of startDate by one day and set it as endDate
 		let Ok(start_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
-			offset_date_time_start_time.unix_timestamp() as u64,
+			birthday_date_time.unix_timestamp() as u64,
 		)) else {
 			return Err(ApiCallError::internal(
 				"Failed to parse event StartTime".to_string(),
@@ -1336,7 +1314,7 @@ impl EventFacade {
 		};
 
 		let Ok(end_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
-			offset_date_time_end_time.unix_timestamp() as u64,
+			end_date_time.unix_timestamp() as u64,
 		)) else {
 			return Err(ApiCallError::internal(
 				"Failed to parse event EndTime".to_string(),
@@ -1345,7 +1323,7 @@ impl EventFacade {
 
 		let encoded_event_id = BASE64_URL_SAFE_NO_PAD.encode(format!(
 			"{}{}/{}",
-			base_datetime.as_millis(),
+			start_date.as_millis(),
 			contact_id.list_id,
 			contact_id.element_id
 		));
@@ -1473,16 +1451,14 @@ mod tests {
 	#[test]
 	fn test_generate_birthday() {
 		let event_facade = EventFacade::new();
-		let birthday_midnight = OffsetDateTime::now_local()
-			.unwrap()
+		let birthday_midnight = OffsetDateTime::now_utc()
 			.replace_month(Month::May)
 			.unwrap()
 			.replace_day(12)
 			.unwrap()
 			.replace_time(Time::from_hms(0, 0, 0).unwrap());
 
-		let next_day_midnight = OffsetDateTime::now_local()
-			.unwrap()
+		let next_day_midnight = OffsetDateTime::now_utc()
 			.replace_month(Month::May)
 			.unwrap()
 			.replace_day(12)
