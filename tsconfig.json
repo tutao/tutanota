@@ -28,6 +28,9 @@
 		},
 		{
 			"path": "./packages/node-mimimi"
+		},
+		{
+			"path": "./packages/tutanota-usagetests"
 		}
 	]
 }

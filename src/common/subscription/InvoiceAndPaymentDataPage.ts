@@ -37,7 +37,6 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/Entity
 import { EntityEventsListener } from "../api/main/EventController.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { client } from "../misc/ClientDetector.js"
-
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 

@@ -1,9 +1,10 @@
 import o from "@tutao/otest"
-import { PingAdapter, Stage, UsageTest } from "../lib/index.js"
+// Do not try to "simplify" these imports to "../lib", this does not work with ES modules in node.
+// This could work as "../lib/index.js".
+import { PingIdTuple, Stage } from "../lib/model/Stage.js"
+import { PingAdapter } from "../lib/storage/PingAdapter.js"
+import { UsageTest } from "../lib/model/UsageTest.js"
 import { UsageTestController } from "../lib/model/UsageTestController.js"
-import { Type } from "cborg"
-import { PingIdTuple } from "../lib/model/Stage.js"
-import undefined = Type.undefined
 
 class MockPingAdapter implements PingAdapter {
 	pingsSent = 0

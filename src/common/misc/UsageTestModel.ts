@@ -29,7 +29,7 @@ import { EventController } from "../api/main/EventController.js"
 import { createUserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "../api/entities/tutanota/TypeRefs.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { ClientTypeModelResolver } from "../api/common/EntityFunctions"
-import { PingIdTuple } from "../../../packages/tutanota-usagetests/lib/model/Stage.js"
+import { PingIdTuple } from "@tutao/tutanota-usagetests"
 
 const PRESELECTED_LIKERT_VALUE = null
 

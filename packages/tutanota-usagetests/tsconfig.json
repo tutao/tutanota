@@ -3,6 +3,10 @@
 	"include": ["lib/**/*"],
 	"files": ["lib/index.ts"],
 	"compilerOptions": {
-		"outDir": "dist"
+		"outDir": "dist",
+		"composite": true,
+		"rootDir": "lib",
+		"tsBuildInfoFile": "dist/tsbuildinfo",
+		"incremental": true
 	}
 }
