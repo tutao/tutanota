@@ -465,47 +465,6 @@ mod tests {
 		)
 	}
 
-	fn make_key_cache_mock(
-		group: &Group,
-		current_group_key: &VersionedAesKey,
-		cached_keys: Vec<VersionedAesKey>,
-	) -> Arc<MockKeyCache> {
-		let mut key_cache_mock = MockKeyCache::default();
-		let group_key = current_group_key.clone();
-
-		key_cache_mock
-			.expect_get_current_group_key()
-			.returning(move |_| Some(group_key.clone()));
-
-		key_cache_mock
-			.expect_get_group_key_for_version()
-			.with(
-				predicate::eq(group._id.clone().unwrap()),
-				predicate::in_iter::<Vec<i64>, i64>((0..FORMER_KEYS as i64).collect()),
-			)
-			.return_const(None);
-
-		cached_keys.iter().for_each(|key| {
-			key_cache_mock
-				.expect_get_group_key_for_version()
-				.with(
-					predicate::eq(group._id.clone().unwrap()),
-					predicate::eq(key.version as i64),
-				)
-				.return_const(key.clone());
-
-			key_cache_mock
-				.expect_put_group_key()
-				.with(
-					predicate::eq(group._id.clone().unwrap()),
-					predicate::eq(key.clone()),
-				)
-				.times(0);
-		});
-
-		Arc::new(key_cache_mock)
-	}
-
 	fn make_mocks(
 		group: &Group,
 		current_group_key: &VersionedAesKey,
