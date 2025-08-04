@@ -62,7 +62,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 	}
 
 	private renderQrVideoStream(attrs: VerificationByQrCodePageAttrs): Children {
-		return [m(".center", this.qrCameraState == QrCameraState.SCANNING ? undefined : this.getStateMessage()), this.getVideoElement(attrs)]
+		return [m(".center", this.qrCameraState == QrCameraState.SCANNING ? null : this.getStateMessage()), this.getVideoElement(attrs)]
 	}
 
 	private getVideoElement(attrs: VerificationByQrCodePageAttrs): Children | null {
