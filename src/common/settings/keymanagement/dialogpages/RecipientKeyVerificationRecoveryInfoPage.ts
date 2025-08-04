@@ -8,7 +8,7 @@ import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 import { RecipientKeyVerificationRecoveryModel } from "../../../misc/RecipientKeyVerificationRecoveryModel"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
-import { Icon } from "../../../gui/base/Icon"
+import { Icon, IconSize } from "../../../gui/base/Icon"
 
 type VerificationErrorInfoPageAttrs = {
 	model: RecipientKeyVerificationRecoveryModel
@@ -47,14 +47,13 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 				]),
 			),
 			m(LoginButton, {
+				class: "flex-center row center-vertically",
 				label: lang.makeTranslation("reject_recommended", `${lang.get("reject_action")} (${lang.get("recommended_action")})`),
 				onclick: async () => vnode.attrs.goToRejectPage(),
 				icon: m(Icon, {
-					icon: Icons.Checkmark,
-					class: "mr-xsm",
-					style: {
-						fill: theme.content_button_icon_selected,
-					},
+					icon: Icons.XCheckmark,
+					size: IconSize.Large,
+					class: "mr-s flex-center",
 				}),
 			}),
 			m(LoginButton, {
