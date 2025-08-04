@@ -54,6 +54,7 @@ o.spec("KeyVerificationFacadeTest", function () {
 		}
 
 		keyVerification = new KeyVerificationFacade(publicKeySignatureFacade, publicIdentityKeyProvider, identityKeyTrustDatabase)
+		when(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()).thenReturn(true)
 	})
 
 	o.spec("verification state gets resolved correctly", function () {

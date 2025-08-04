@@ -36,8 +36,7 @@ export type TrustDBEntry = {
 export class IdentityKeyTrustDatabase {
 	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
 
-	isSupported(): boolean {
-		// SQLite database is unavailable in a browser environment
+	isIdentityKeyTrustDatabaseSupported(): boolean {
 		return !isBrowser()
 	}
 

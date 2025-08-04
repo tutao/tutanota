@@ -1,6 +1,6 @@
 import { UpdatableSettingsViewer } from "../Interfaces.js"
 import { EntityUpdateData } from "../../api/common/utils/EntityUpdateUtils.js"
-import m, { Children } from "mithril"
+import m, { ChildArray, Children } from "mithril"
 import { UserController } from "../../api/main/UserController.js"
 import { lang } from "../../misc/LanguageViewModel"
 import { IconButton } from "../../gui/base/IconButton"
@@ -20,7 +20,7 @@ import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtil
 import { ThemeController } from "../../gui/ThemeController"
 import { PublicIdentity } from "./KeyVerificationModel"
 import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdentityKeyProvider"
-import { Versioned } from "@tutao/tutanota-utils"
+import { lazy, Versioned } from "@tutao/tutanota-utils"
 import { SigningPublicKey } from "../../api/worker/facades/Ed25519Facade"
 import { showSnackBar } from "../../gui/base/SnackBar"
 import { copyToClipboard } from "../../misc/ClipboardUtils"
@@ -37,18 +37,19 @@ type OwnPublicIdentity = Omit<PublicIdentity, "trustDbEntry"> & { publicKey: Ver
  */
 export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 	ownIdentity: OwnPublicIdentity | null
-
+	isIdentityKeyTrustDatabaseSupported: boolean
 	trustedIdentities: Map<string, TrustedIdentity>
 
 	constructor(
 		private readonly keyVerificationFacade: KeyVerificationFacade,
-		private readonly mobileSystemFacade: MobileSystemFacade,
+		private readonly mobileSystemFacade: lazy<MobileSystemFacade>, // not available on all platforms, so only load when needed!
 		private readonly userController: UserController,
 		private readonly usageTestController: UsageTestController,
 		private readonly publicIdentityKeyProvider: PublicIdentityKeyProvider,
 		private readonly themeController: ThemeController,
 	) {
 		this.ownIdentity = null
+		this.isIdentityKeyTrustDatabaseSupported = false
 		this.trustedIdentities = new Map<string, TrustedIdentity>()
 		this.view = this.view.bind(this)
 	}
@@ -64,8 +65,10 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		} else {
 			this.ownIdentity = null
 		}
-
-		this.trustedIdentities = await this.keyVerificationFacade.getManuallyVerifiedIdentities()
+		this.isIdentityKeyTrustDatabaseSupported = await this.keyVerificationFacade.isIdentityKeyTrustDatabaseSupported()
+		if (this.isIdentityKeyTrustDatabaseSupported) {
+			this.trustedIdentities = await this.keyVerificationFacade.getManuallyVerifiedIdentities()
+		}
 		m.redraw()
 	}
 
@@ -81,23 +84,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		const obj: KeyManagementSettingsViewer = this
-
-		const addressRows = Array.from(this.trustedIdentities.entries()).map(([mailAddress, trustedIdentity]: [string, TrustedIdentity]) => {
-			return m(FingerprintRow, {
-				mailAddress,
-				publicKeyType: trustedIdentity.publicIdentityKey.object.type,
-				publicKeyFingerprint: trustedIdentity.fingerprint,
-				publicKeyVersion: trustedIdentity.publicIdentityKey.version,
-				action: {
-					onClick: async (mailAddress: string) => {
-						await this.keyVerificationFacade.untrust(mailAddress)
-						await this.reload()
-					},
-					icon: Icons.Trash,
-					tooltip: "delete_action",
-				},
-			})
-		})
+		const addressRows = this.renderVerifiedFingerprints()
 
 		return m("", [
 			m(
@@ -121,28 +108,50 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					m(MenuTitle, { content: lang.get("keyManagement.verificationPool_label") }),
 					m(
 						Card,
-						m(".full-width.flex-space-between.items-center.pl-vpad-s", [
-							lang.get("keyManagement.verifyMailAddress_action"),
-							m(IconButton, {
-								title: "keyManagement.verifyMailAddress_action",
-								click: async () => {
-									await showKeyVerificationDialog(
-										this.keyVerificationFacade,
-										this.mobileSystemFacade,
-										this.usageTestController,
-										this.publicIdentityKeyProvider,
-										() => obj.reload(),
-									)
-								},
-								icon: Icons.Add,
-								size: ButtonSize.Compact,
-							}),
-						]),
+						this.isIdentityKeyTrustDatabaseSupported
+							? m(".full-width.flex-space-between.items-center.pl-vpad-s", [
+									lang.get("keyManagement.verifyMailAddress_action"),
+									m(IconButton, {
+										title: "keyManagement.verifyMailAddress_action",
+										click: async () => {
+											await showKeyVerificationDialog(
+												this.keyVerificationFacade,
+												this.mobileSystemFacade(),
+												this.usageTestController,
+												this.publicIdentityKeyProvider,
+												() => obj.reload(),
+											)
+										},
+										icon: Icons.Add,
+										size: ButtonSize.Compact,
+									}),
+								])
+							: // fallback message for the web client
+								m(".p", lang.get("keyVerificationNotAvailable_msg")),
 					),
 					...addressRows,
 				],
 			),
 		])
+	}
+
+	private renderVerifiedFingerprints(): ChildArray {
+		return Array.from(this.trustedIdentities.entries()).map(([mailAddress, trustedIdentity]: [string, TrustedIdentity]) => {
+			return m(FingerprintRow, {
+				mailAddress,
+				publicKeyType: trustedIdentity.publicIdentityKey.object.type,
+				publicKeyFingerprint: trustedIdentity.fingerprint,
+				publicKeyVersion: trustedIdentity.publicIdentityKey.version,
+				action: {
+					onClick: async (mailAddress: string) => {
+						await this.keyVerificationFacade.untrust(mailAddress)
+						await this.reload()
+					},
+					icon: Icons.Trash,
+					tooltip: "delete_action",
+				},
+			})
+		})
 	}
 
 	private renderOwnIdentity(ownIdentity: OwnPublicIdentity): Children {

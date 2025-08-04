@@ -47,7 +47,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 
 		rawEd25519PublicKey = hexToUint8Array(testData.ed25519Tests[0].alicePublicKeyHex)
 		ed25519PublicKey = bytesToEd25519PublicKey(rawEd25519PublicKey)
-		when(identityKeyTrustDatabase.isSupported()).thenResolve(true)
+		when(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()).thenResolve(true)
 	})
 
 	o.spec("loadPublicIdentityKeyFromGroup", function () {
@@ -213,7 +213,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 					identifier: "alice@tuta.com",
 					identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				}
-				when(identityKeyTrustDatabase.isSupported()).thenReturn(false)
+				when(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()).thenReturn(false)
 				when(
 					serviceExecutor.get(
 						IdentityKeyService,
@@ -255,7 +255,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 			identityKeyGetOut.publicIdentityKey = rawEd25519PublicKey
 			identityKeyGetOut.publicIdentityKeyVersion = "5"
 			when(serviceExecutor.get(IdentityKeyService, matchers.anything())).thenReject(new NotFoundError("not found"))
-			when(identityKeyTrustDatabase.isSupported()).thenReturn(false)
+			when(identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()).thenReturn(false)
 
 			const identifier: PublicKeyIdentifier = {
 				identifier: "alice@tuta.com",

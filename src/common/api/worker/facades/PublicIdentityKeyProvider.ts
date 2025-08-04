@@ -93,7 +93,7 @@ export class PublicIdentityKeyProvider {
 			// see this.loadPublicIdentityKeyFromGroup
 			throw new Error("currently identity keys must be loaded via mail address")
 		}
-		if (this.identityKeyTrustDatabase.isSupported()) {
+		if (this.identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()) {
 			const trustedIdentity = await this.identityKeyTrustDatabase.getTrustedEntry(pubKeyIdentifier.identifier)
 			if (trustedIdentity != null) {
 				return trustedIdentity
@@ -112,7 +112,7 @@ export class PublicIdentityKeyProvider {
 				publicIdentityKey: identityKeyGetOut.publicIdentityKey,
 				identityKeyVersion: identityKeyGetOut.publicIdentityKeyVersion,
 			})
-			if (this.identityKeyTrustDatabase.isSupported()) {
+			if (this.identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()) {
 				return this.identityKeyTrustDatabase.trust(pubKeyIdentifier.identifier, identityKeyFromServer, IdentityKeySourceOfTrust.TOFU)
 			} else {
 				return {

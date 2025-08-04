@@ -110,14 +110,20 @@ export class KeyVerificationFacade {
 		}
 	}
 
+	async isIdentityKeyTrustDatabaseSupported(): Promise<boolean> {
+		return this.identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()
+	}
+
 	/**
-	 * Returns all trusted identities.
+	 * Returns all trusted identities. Returns an empty map if the trust database is not supported
 	 */
 	async getManuallyVerifiedIdentities(): Promise<Map<string, TrustedIdentity>> {
-		const trustDbEntries = await this.identityKeyTrustDatabase.getManuallyVerifiedEntries()
 		const identities = new Map<string, TrustedIdentity>()
-		for (const [mailAddress, trustDbEntry] of trustDbEntries) {
-			identities.set(mailAddress, await this.convertToTrustedIdentity(trustDbEntry))
+		if (await this.isIdentityKeyTrustDatabaseSupported()) {
+			const trustDbEntries = await this.identityKeyTrustDatabase.getManuallyVerifiedEntries()
+			for (const [mailAddress, trustDbEntry] of trustDbEntries) {
+				identities.set(mailAddress, await this.convertToTrustedIdentity(trustDbEntry))
+			}
 		}
 		return identities
 	}
