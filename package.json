@@ -50,7 +50,7 @@
 		"@types/winreg": "1.2.36",
 		"cborg": "4.2.2",
 		"dompurify": "3.2.6",
-		"electron": "37.2.3",
+		"electron": "37.2.5",
 		"electron-updater": "6.3.4",
 		"jsqr": "1.4.0",
 		"jszip": "3.10.1",
