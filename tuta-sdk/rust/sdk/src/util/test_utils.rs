@@ -3,17 +3,18 @@
 use crate::bindings::rest_client::RestResponse;
 use mockall::Any;
 use rand::random;
+use std::array::from_fn;
 use std::borrow::Cow;
 use std::sync::{Arc, RwLock};
 use std::vec;
 
 use crate::bindings::file_client::MockFileClient;
 use crate::bindings::rest_client::MockRestClient;
-use crate::crypto::Aes256Key;
+use crate::crypto::{Aes256Key, TutaCryptKeyPairs};
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::entity_facade::ID_FIELD;
 use crate::entities::generated::sys::{
-	ArchiveRef, ArchiveType, Group, GroupKeysRef, KeyPair, PubEncKeyData, TypeInfo,
+	ArchiveRef, ArchiveType, Group, GroupKey, GroupKeysRef, KeyPair, PubEncKeyData, TypeInfo,
 };
 use crate::instance_mapper::InstanceMapper;
 use crate::metamodel::AttributeId;
@@ -122,6 +123,163 @@ pub fn random_aes256_versioned_key(version: u64) -> VersionedAesKey {
 		object: random_aes256_key().into(),
 		version,
 	}
+}
+
+pub const FORMER_KEYS: usize = 2;
+
+#[must_use]
+/// Returns `(former_keys, former_key_pairs_decrypted, former_keys_decrypted)`
+pub fn generate_former_keys(
+	current_group_key: &VersionedAesKey,
+	randomizer_facade: &RandomizerFacade,
+) -> (
+	[GroupKey; FORMER_KEYS],
+	[TutaCryptKeyPairs; FORMER_KEYS],
+	[Aes256Key; FORMER_KEYS],
+) {
+	// Using `from_fn` has the same performance as using mutable vecs but less memory usage
+	let former_keys_decrypted: [Aes256Key; FORMER_KEYS] = from_fn(|_| random_aes256_key());
+	let former_key_pairs_decrypted: [TutaCryptKeyPairs; FORMER_KEYS] =
+		from_fn(|_| TutaCryptKeyPairs::generate(&make_thread_rng_facade()));
+
+	let mut former_keys = Vec::with_capacity(FORMER_KEYS);
+	let mut last_key = current_group_key.object.clone();
+
+	for (i, current_key) in former_keys_decrypted.iter().enumerate().rev() {
+		let tuta_crypt_key_pair = &former_key_pairs_decrypted[i];
+		// Get the previous key to use as the owner key
+		let current_key: &GenericAesKey = &current_key.clone().into();
+
+		let owner_enc_g_key = last_key
+			.encrypt_key(current_key, Iv::generate(randomizer_facade))
+			.as_slice()
+			.to_vec();
+		let sym_enc_priv_x25519_key = current_key
+			.encrypt_data(
+				tuta_crypt_key_pair
+					.x25519_keys
+					.private_key
+					.clone()
+					.as_bytes(),
+				Iv::generate(randomizer_facade),
+			)
+			.unwrap();
+
+		former_keys.insert(
+			0,
+			GroupKey {
+				_format: 0,
+				_id: Some(IdTupleCustom {
+					list_id: GeneratedId("list".to_owned()),
+					element_id: CustomId::from_custom_string(&i.to_string()),
+				}),
+				_ownerGroup: None,
+				_permissions: Default::default(),
+				adminGroupEncGKey: None,
+				adminGroupKeyVersion: None,
+				ownerEncGKey: owner_enc_g_key,
+				ownerKeyVersion: 0,
+				pubAdminGroupEncGKey: None,
+				keyPair: Some(KeyPair {
+					_id: Default::default(),
+					pubEccKey: Some(
+						tuta_crypt_key_pair
+							.x25519_keys
+							.public_key
+							.as_bytes()
+							.to_vec(),
+					),
+					pubKyberKey: Some(tuta_crypt_key_pair.kyber_keys.public_key.serialize()),
+					pubRsaKey: None,
+					symEncPrivEccKey: Some(sym_enc_priv_x25519_key),
+					symEncPrivKyberKey: Some(
+						current_key
+							.encrypt_data(
+								tuta_crypt_key_pair
+									.kyber_keys
+									.private_key
+									.serialize()
+									.as_slice(),
+								Iv::generate(randomizer_facade),
+							)
+							.unwrap(),
+					),
+					symEncPrivRsaKey: None,
+					signature: None,
+				}),
+			},
+		);
+		last_key = current_key.clone();
+	}
+
+	(
+		former_keys.try_into().unwrap_or_else(|_| panic!()),
+		former_key_pairs_decrypted,
+		former_keys_decrypted,
+	)
+}
+
+pub fn generate_group_with_keys(
+	current_key_pair: &AsymmetricKeyPair,
+	current_group_key: &VersionedAesKey,
+	randomizer_facade: &RandomizerFacade,
+) -> Group {
+	let group_key = &current_group_key.object;
+	let mut current_keys = KeyPair {
+		_id: Default::default(),
+		pubEccKey: None,
+		pubKyberKey: None,
+		pubRsaKey: None,
+		symEncPrivEccKey: None,
+		symEncPrivKyberKey: None,
+		symEncPrivRsaKey: None,
+		signature: None,
+	};
+	match current_key_pair {
+		AsymmetricKeyPair::RSAX25519KeyPair(_) => {
+			panic!("not implemented")
+		},
+		AsymmetricKeyPair::RSAKeyPair(rsa_kp) => {
+			let sym_enc_priv_rsa_key = group_key
+				.encrypt_data(
+					rsa_kp.private_key.serialize().as_slice(),
+					Iv::generate(randomizer_facade),
+				)
+				.unwrap();
+			current_keys.pubRsaKey = Some(rsa_kp.public_key.serialize());
+			current_keys.symEncPrivRsaKey = Some(sym_enc_priv_rsa_key);
+		},
+		AsymmetricKeyPair::TutaCryptKeyPairs(tuta_crypt_key_pairs) => {
+			let x25519_keys = &tuta_crypt_key_pairs.x25519_keys;
+			let kyber_keys = &tuta_crypt_key_pairs.kyber_keys;
+			let sym_enc_priv_x25519_key = group_key
+				.encrypt_data(
+					x25519_keys.private_key.as_bytes(),
+					Iv::generate(randomizer_facade),
+				)
+				.unwrap();
+			let sync_enc_priv_kyber_key = group_key
+				.encrypt_data(
+					&kyber_keys.private_key.serialize(),
+					Iv::generate(randomizer_facade),
+				)
+				.unwrap();
+			current_keys.pubEccKey = Some(x25519_keys.public_key.as_bytes().to_vec());
+			current_keys.pubKyberKey = Some(kyber_keys.public_key.serialize());
+			current_keys.symEncPrivEccKey = Some(sym_enc_priv_x25519_key);
+			current_keys.symEncPrivKyberKey = Some(sync_enc_priv_kyber_key);
+		},
+	}
+
+	let mut group = generate_random_group(
+		Some(current_keys),
+		GroupKeysRef {
+			_id: Default::default(),
+			list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+		},
+	);
+	group.groupKeyVersion = current_group_key.version as i64;
+	group
 }
 
 /// Moves the object T into heap and leaks it.
@@ -451,13 +609,15 @@ macro_rules! collection {
         }};
     }
 
-use crate::crypto::key::VersionedAesKey;
+use crate::crypto::aes::Iv;
+use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, VersionedAesKey};
 use crate::date::DateTime;
 use crate::entities::generated::tutanota::Contact;
 use crate::entities::{Entity, FinalIv};
 use crate::metamodel::TypeModel;
 use crate::type_model_provider::TypeModelProvider;
 use crate::TypeRef;
+use crypto_primitives::randomizer_facade::RandomizerFacade;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
