@@ -198,12 +198,12 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 	})
 
 	o("feature should be supported when on desktop", async function () {
-		const isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => identityKeyTrustDatabase.isSupported())
+		const isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
 		o(isSupported).equals(true)
 	})
 
 	o("feature should NOT be supported when on browser", async function () {
-		const isSupported = await withOverriddenEnv({ mode: Mode.Browser }, () => identityKeyTrustDatabase.isSupported())
+		const isSupported = await withOverriddenEnv({ mode: Mode.Browser }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
 		o(isSupported).equals(false)
 	})
 })
