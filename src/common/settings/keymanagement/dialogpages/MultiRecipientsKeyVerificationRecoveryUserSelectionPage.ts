@@ -42,14 +42,17 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 				Card,
 				m(".plr.flex.flex-column.gap-vpad.pt-s.pb-s", [
 					lang.get("keyManagement.mailRecipientsVerificationMismatchError_msg"),
-					m(RadioSelector, {
-						name: "credentialsEncryptionMode_label",
-						options: selectableRecipients,
-						selectedOption: vnode.attrs.model.getCurrentRecipientAddress(),
-						onOptionSelected: (address: string) => {
-							vnode.attrs.model.setCurrentRecipientFromAddress(address)
-						},
-					} satisfies RadioSelectorAttrs<string>),
+					m(
+						"",
+						m(RadioSelector, {
+							name: "credentialsEncryptionMode_label",
+							options: selectableRecipients,
+							selectedOption: vnode.attrs.model.getCurrentRecipientAddress(),
+							onOptionSelected: (address: string) => {
+								vnode.attrs.model.setCurrentRecipientFromAddress(address)
+							},
+						} satisfies RadioSelectorAttrs<string>),
+					),
 					m(ExternalLink, {
 						isCompanySite: true,
 						text: lang.get("keyVerificationLearnMoreAboutContactVerificationLink_msg"),
