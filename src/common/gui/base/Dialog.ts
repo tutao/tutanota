@@ -687,7 +687,7 @@ export class Dialog implements ModalComponent {
 								client.isCalendarApp() ? "calendar" : "mail"
 							}.svg`,
 							titleText: "updateNeeded_msg",
-							messageText: "outdatedClient_msg",
+							messageText: allowDefer ? "updateFound_label" : "outdatedClient_msg",
 							mainActionText: "update_action",
 							mainActionClick: () => {
 								updateConfirm()
