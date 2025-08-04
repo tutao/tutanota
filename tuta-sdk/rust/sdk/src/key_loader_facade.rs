@@ -59,10 +59,8 @@ impl KeyLoaderFacade {
 		if group_key.version == version {
 			Ok(group_key.object)
 		} else {
-			// TODO: refresh if group_key.version < version
-			let group: Group = self.entity_client.load(&group_id.to_owned()).await?;
 			let symmetric_group_key = self
-				.get_former_versioned_group_key(&group, &group_key, version)
+				.get_former_versioned_group_key(group_id, &group_key, version)
 				.await?;
 			Ok(symmetric_group_key.object)
 		}
@@ -70,25 +68,20 @@ impl KeyLoaderFacade {
 
 	async fn get_former_versioned_group_key(
 		&self,
-		group: &Group,
+		group_id: &GeneratedId,
 		group_key: &VersionedAesKey,
 		target_key_version: u64,
 	) -> Result<VersionedAesKey, KeyLoadError> {
-		let Some(group_id) = &group._id else {
-			return Err(KeyLoadError {
-				reason: "Missing group Id while resolving former group key".to_string(),
-			});
-		};
-
 		let stored_former_key: Option<VersionedAesKey> = self
 			.key_cache
-			.get_group_key_for_version(group_id, target_key_version);
-		if stored_former_key.is_some() {
-			return Ok(stored_former_key.unwrap());
+			.get_group_key_for_version(group_id, target_key_version as i64);
+		if let Some(former_key) = stored_former_key {
+			return Ok(former_key);
 		}
 
+		let group: Group = self.entity_client.load(&group_id.to_owned()).await?;
 		let group_key: GenericAesKey = match self
-			.find_former_group_key(group, group_key, target_key_version)
+			.find_former_group_key(&group, group_key, target_key_version)
 			.await
 		{
 			Ok(former_key) => former_key.symmetric_group_key,
@@ -405,22 +398,22 @@ struct FormerGroupKey {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::crypto::randomizer_facade::test_util::make_thread_rng_facade;
-	use crate::crypto::randomizer_facade::RandomizerFacade;
 	use crate::crypto::rsa::RSAKeyPair;
-	use crate::crypto::{aes::Iv, Aes256Key, TutaCryptKeyPairs};
-	use crate::entities::generated::sys::{GroupKeysRef, GroupMembership, KeyPair};
+	use crate::crypto::{aes::Iv, TutaCryptKeyPairs};
+	use crate::entities::generated::sys::{GroupKeysRef, GroupMembership};
 	use crate::key_cache::MockKeyCache;
 	use crate::typed_entity_client::MockTypedEntityClient;
 	use crate::user_facade::MockUserFacade;
 	use crate::util::test_utils::{
-		generate_random_group, random_aes256_key, random_aes256_versioned_key,
+		generate_former_keys, generate_group_with_keys, generate_random_group,
+		random_aes256_versioned_key, FORMER_KEYS,
 	};
 	use crate::util::{convert_version_to_i64, get_vec_reversed};
 	use crate::CustomId;
-	use crate::{IdTupleCustom, IdTupleGenerated};
+	use crate::IdTupleGenerated;
+	use crypto_primitives::randomizer_facade::test_util::make_thread_rng_facade;
+	use crypto_primitives::randomizer_facade::RandomizerFacade;
 	use mockall::predicate;
-	use std::array::from_fn;
 
 	fn generate_group_data() -> (Group, VersionedAesKey) {
 		(
@@ -432,162 +425,6 @@ mod tests {
 				},
 			),
 			random_aes256_versioned_key(1),
-		)
-	}
-
-	fn generate_group_with_keys(
-		current_key_pair: &AsymmetricKeyPair,
-		current_group_key: &VersionedAesKey,
-		randomizer_facade: &RandomizerFacade,
-	) -> Group {
-		let group_key = &current_group_key.object;
-		let mut current_keys = KeyPair {
-			_id: Default::default(),
-			pubEccKey: None,
-			pubKyberKey: None,
-			pubRsaKey: None,
-			symEncPrivEccKey: None,
-			symEncPrivKyberKey: None,
-			symEncPrivRsaKey: None,
-			signature: None,
-		};
-		match current_key_pair {
-			AsymmetricKeyPair::RSAX25519KeyPair(_) => {
-				panic!("not implemented")
-			},
-			AsymmetricKeyPair::RSAKeyPair(rsa_kp) => {
-				let sym_enc_priv_rsa_key = group_key
-					.encrypt_data(
-						rsa_kp.private_key.serialize().as_slice(),
-						Iv::generate(randomizer_facade),
-					)
-					.unwrap();
-				current_keys.pubRsaKey = Some(rsa_kp.public_key.serialize());
-				current_keys.symEncPrivRsaKey = Some(sym_enc_priv_rsa_key);
-			},
-			AsymmetricKeyPair::TutaCryptKeyPairs(tuta_crypt_key_pairs) => {
-				let x25519_keys = &tuta_crypt_key_pairs.x25519_keys;
-				let kyber_keys = &tuta_crypt_key_pairs.kyber_keys;
-				let sym_enc_priv_x25519_key = group_key
-					.encrypt_data(
-						x25519_keys.private_key.as_bytes(),
-						Iv::generate(randomizer_facade),
-					)
-					.unwrap();
-				let sync_enc_priv_kyber_key = group_key
-					.encrypt_data(
-						&kyber_keys.private_key.serialize(),
-						Iv::generate(randomizer_facade),
-					)
-					.unwrap();
-				current_keys.pubEccKey = Some(x25519_keys.public_key.as_bytes().to_vec());
-				current_keys.pubKyberKey = Some(kyber_keys.public_key.serialize());
-				current_keys.symEncPrivEccKey = Some(sym_enc_priv_x25519_key);
-				current_keys.symEncPrivKyberKey = Some(sync_enc_priv_kyber_key);
-			},
-		}
-
-		let mut group = generate_random_group(
-			Some(current_keys),
-			GroupKeysRef {
-				_id: Default::default(),
-				list: GeneratedId("list".to_owned()), // Refers to `former_keys`
-			},
-		);
-		group.groupKeyVersion = current_group_key.version as i64;
-		group
-	}
-
-	const FORMER_KEYS: usize = 2;
-
-	/// Returns `(former_keys, former_key_pairs_decrypted, former_keys_decrypted)`
-	fn generate_former_keys(
-		current_group_key: &VersionedAesKey,
-		randomizer_facade: &RandomizerFacade,
-	) -> (
-		[GroupKey; FORMER_KEYS],
-		[TutaCryptKeyPairs; FORMER_KEYS],
-		[Aes256Key; FORMER_KEYS],
-	) {
-		// Using `from_fn` has the same performance as using mutable vecs but less memory usage
-		let former_keys_decrypted: [Aes256Key; FORMER_KEYS] = from_fn(|_| random_aes256_key());
-		let former_key_pairs_decrypted: [TutaCryptKeyPairs; FORMER_KEYS] =
-			from_fn(|_| TutaCryptKeyPairs::generate(&make_thread_rng_facade()));
-
-		let mut former_keys = Vec::with_capacity(FORMER_KEYS);
-		let mut last_key = current_group_key.object.clone();
-
-		for (i, current_key) in former_keys_decrypted.iter().enumerate().rev() {
-			let tuta_crypt_key_pair = &former_key_pairs_decrypted[i];
-			// Get the previous key to use as the owner key
-			let current_key: &GenericAesKey = &current_key.clone().into();
-
-			let owner_enc_g_key = last_key
-				.encrypt_key(current_key, Iv::generate(randomizer_facade))
-				.as_slice()
-				.to_vec();
-			let sym_enc_priv_x25519_key = current_key
-				.encrypt_data(
-					tuta_crypt_key_pair
-						.x25519_keys
-						.private_key
-						.clone()
-						.as_bytes(),
-					Iv::generate(randomizer_facade),
-				)
-				.unwrap();
-
-			former_keys.insert(
-				0,
-				GroupKey {
-					_format: 0,
-					_id: Some(IdTupleCustom {
-						list_id: GeneratedId("list".to_owned()),
-						element_id: CustomId::from_custom_string(&i.to_string()),
-					}),
-					_ownerGroup: None,
-					_permissions: Default::default(),
-					adminGroupEncGKey: None,
-					adminGroupKeyVersion: None,
-					ownerEncGKey: owner_enc_g_key,
-					ownerKeyVersion: 0,
-					pubAdminGroupEncGKey: None,
-					keyPair: Some(KeyPair {
-						_id: Default::default(),
-						pubEccKey: Some(
-							tuta_crypt_key_pair
-								.x25519_keys
-								.public_key
-								.as_bytes()
-								.to_vec(),
-						),
-						pubKyberKey: Some(tuta_crypt_key_pair.kyber_keys.public_key.serialize()),
-						pubRsaKey: None,
-						symEncPrivEccKey: Some(sym_enc_priv_x25519_key),
-						symEncPrivKyberKey: Some(
-							current_key
-								.encrypt_data(
-									tuta_crypt_key_pair
-										.kyber_keys
-										.private_key
-										.serialize()
-										.as_slice(),
-									Iv::generate(randomizer_facade),
-								)
-								.unwrap(),
-						),
-						symEncPrivRsaKey: None,
-						signature: None,
-					}),
-				},
-			);
-			last_key = current_key.clone();
-		}
-
-		(
-			former_keys.try_into().unwrap_or_else(|_| panic!()),
-			former_key_pairs_decrypted,
-			former_keys_decrypted,
 		)
 	}
 
@@ -644,7 +481,7 @@ mod tests {
 			.expect_get_group_key_for_version()
 			.with(
 				predicate::eq(group._id.clone().unwrap()),
-				predicate::in_iter::<Vec<u64>, u64>((0..FORMER_KEYS as u64).collect()),
+				predicate::in_iter::<Vec<i64>, i64>((0..FORMER_KEYS as i64).collect()),
 			)
 			.return_const(None);
 
@@ -653,7 +490,7 @@ mod tests {
 				.expect_get_group_key_for_version()
 				.with(
 					predicate::eq(group._id.clone().unwrap()),
-					predicate::eq(key.version),
+					predicate::eq(key.version as i64),
 				)
 				.return_const(key.clone());
 
@@ -837,7 +674,6 @@ mod tests {
 
 			let non_user_group_id = gp._id.clone().unwrap();
 
-			let typed_entity_client_mock = MockTypedEntityClient::default();
 			let mut key_cache_mock = MockKeyCache::default();
 			key_cache_mock
 				.expect_get_current_group_key()
@@ -897,7 +733,7 @@ mod tests {
 				.expect_get_group_key_for_version()
 				.with(
 					predicate::eq(group._id.clone().unwrap()),
-					predicate::in_iter::<Vec<u64>, u64>((0..FORMER_KEYS as u64).collect()),
+					predicate::in_iter::<Vec<i64>, i64>((0..FORMER_KEYS as i64).collect()),
 				)
 				.return_const(None);
 
@@ -1254,7 +1090,7 @@ mod tests {
 			// Same as the length of former_keys_deprecated
 			let current_group_key_version = FORMER_KEYS as u64;
 			let current_group_key = random_aes256_versioned_key(current_group_key_version);
-			let (former_keys, _, former_keys_decrypted) =
+			let (_, _, former_keys_decrypted) =
 				generate_former_keys(&current_group_key, &randomizer);
 
 			let current_key_pair = TutaCryptKeyPairs::generate(&randomizer);
@@ -1270,7 +1106,7 @@ mod tests {
 					.expect_get_group_key_for_version()
 					.with(
 						predicate::eq(group._id.clone().unwrap()),
-						predicate::eq(i as u64),
+						predicate::eq(i as i64),
 					)
 					.return_const(VersionedAesKey {
 						object: GenericAesKey::Aes256(former_keys_decrypted[i].clone()),
