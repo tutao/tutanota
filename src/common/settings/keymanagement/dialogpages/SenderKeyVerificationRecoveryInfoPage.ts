@@ -8,6 +8,7 @@ import { IdentityKeySourceOfTrust } from "../../../api/common/TutanotaConstants"
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { SenderKeyVerificationRecoveryModel } from "../../../misc/SenderKeyVerificationRecoveryModel"
+import { Icon, IconSize } from "../../../gui/base/Icon"
 
 type VerificationErrorInfoPageAttrs = {
 	model: SenderKeyVerificationRecoveryModel
@@ -45,15 +46,30 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 				]),
 			),
 			m(LoginButton, {
+				class: "flex-center row center-vertically",
+				label: "reject_action",
+				onclick: async () => vnode.attrs.goToRejectPage(),
+				icon: m(Icon, {
+					icon: Icons.XCross,
+					size: IconSize.Large,
+					class: "mr-s flex-center",
+					style: {
+						fill: theme.content_button_icon,
+					},
+				}),
+			}),
+			m(LoginButton, {
+				class: "flex-center row center-vertically",
 				label: "accept_action",
 				onclick: async () => {
 					await vnode.attrs.model.acceptAndLoadNewKey()
 					vnode.attrs.goToAcceptPage()
 				},
-			}),
-			m(LoginButton, {
-				label: "reject_action",
-				onclick: async () => vnode.attrs.goToRejectPage(),
+				icon: m(Icon, {
+					icon: Icons.XCheckmark,
+					size: IconSize.Large,
+					class: "mr-s flex-center",
+				}),
 			}),
 		])
 	}
