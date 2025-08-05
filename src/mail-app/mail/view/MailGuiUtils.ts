@@ -120,6 +120,7 @@ async function showUndoMoveMailSnackbar(
 	resolveMails: () => Promise<readonly Mail[]>,
 	mailModel: MailModel,
 	mailViewModel: MailViewModel,
+	shouldReportMails: boolean,
 ): Promise<MoveMailSnackbarResult> {
 	return new Promise((resolve) => {
 		let result: MoveMailSnackbarResult | null = null
@@ -148,7 +149,7 @@ async function showUndoMoveMailSnackbar(
 		const undoMessage: Translation = {
 			testId: "undoMoveMail_msg",
 			text:
-				targetFolder.folderType === MailSetKind.SPAM
+				targetFolder.folderType === MailSetKind.SPAM && shouldReportMails
 					? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
 					: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text,
 		}
@@ -212,7 +213,7 @@ export async function moveMails({
 		// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
 		// user to undo the move...
 		if (undoFolder != null && !isSameId(getElementId(targetFolder), getElementId(undoFolder))) {
-			let undoResult = await showUndoMoveMailSnackbar(targetFolder, undoFolder, resolveMails, mailModel, mailViewModel)
+			let undoResult = await showUndoMoveMailSnackbar(targetFolder, undoFolder, resolveMails, mailModel, mailViewModel, shouldReportMails)
 			switch (undoResult) {
 				case MoveMailSnackbarResult.Undo: {
 					undone = true
