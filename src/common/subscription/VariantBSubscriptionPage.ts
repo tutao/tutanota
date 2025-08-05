@@ -59,8 +59,9 @@ export class VariantBSubscriptionPage implements WizardPageN<UpgradeSubscription
 			: planPrices.getRawPricingData().hasGlobalFirstYearDiscount
 
 		// newAccountData is filled in when signing up and then going back in the signup process
-		// If the user has selected a tuta.com address we want to prevent them from selecting a free plan at this point
-		if (!!newAccountData && newAccountData.mailAddress.includes("tuta.com") && availablePlans.includes(PlanType.Free)) {
+		// If the user has selected a paid plan we want to prevent them from selecting a free plan at this point,
+		// since the account will be PAID_SUBSCRIPTION_NEEDED state if the user selects free
+		if (!!data.newAccountData && data.type !== PlanType.Free) {
 			availablePlans = availablePlans.filter((plan) => plan !== PlanType.Free)
 		}
 
@@ -137,6 +138,7 @@ export class VariantBSubscriptionPage implements WizardPageN<UpgradeSubscription
 				priceAndConfigProvider: planPrices,
 				hasCampaign: hasCampaign && data.options.paymentInterval() === PaymentInterval.Yearly,
 				hidePaidPlans: availablePlans.includes(PlanType.Free) && availablePlans.length === 1,
+				hideFreePlan: !availablePlans.includes(PlanType.Free),
 				isApplePrice,
 				variant: "B",
 			}),

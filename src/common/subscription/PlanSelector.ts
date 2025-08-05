@@ -24,6 +24,7 @@ type PlanSelectorAttr = {
 	priceAndConfigProvider: PriceAndConfigProvider
 	hasCampaign: boolean
 	hidePaidPlans: boolean
+	hideFreePlan: boolean
 	isApplePrice: boolean
 	variant: "B" | "C"
 }
@@ -72,7 +73,9 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		windowFacade.removeResizeListener(this.handleResize)
 	}
 
-	view({ attrs: { options, priceAndConfigProvider, actionButtons, hasCampaign, hidePaidPlans, isApplePrice, variant } }: Vnode<PlanSelectorAttr>): Children {
+	view({
+		attrs: { options, priceAndConfigProvider, actionButtons, hasCampaign, hidePaidPlans, hideFreePlan, isApplePrice, variant },
+	}: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
 
 		const renderFootnoteElement = (): Children => {
@@ -203,11 +206,12 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 										priceAndConfigProvider,
 										hasCampaign,
 										isApplePrice,
-										variant,
+										hideFreePlan: hideFreePlan || variant === "B",
 									})
 								}),
 						),
 						variant === "C" &&
+							!hideFreePlan &&
 							m(FreePlanBox, {
 								isSelected: this.currentPlan() === PlanType.Free,
 								select: () => this.currentPlan(PlanType.Free),
@@ -247,6 +251,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					),
 
 					variant === "B" &&
+						!hideFreePlan &&
 						m(Button, {
 							type: ButtonType.Secondary,
 							label: lang.makeTranslation("", "Start with a free account"),
