@@ -223,18 +223,18 @@ class WizardDialogAttrs<T> {
 	}
 
 	goToPreviousPageOrClose(): void {
-		this.currentPage?.attrs.prevAction?.(true).then((ready) => {
-			if (ready) {
-				let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
+		Promise.resolve(this.currentPage?.attrs.prevAction?.(true)).then((ready) => {
+			if (ready === false) return
 
-				if (!this.allowedToVisitPage(currentPageIndex - 1, currentPageIndex)) return
+			let currentPageIndex = this.currentPage ? this._getEnabledPages().indexOf(this.currentPage) : -1
 
-				if (currentPageIndex > 0) {
-					this._goToPageAction(currentPageIndex - 1)
-					m.redraw()
-				} else {
-					this.closeAction()
-				}
+			if (!this.allowedToVisitPage(currentPageIndex - 1, currentPageIndex)) return
+
+			if (currentPageIndex > 0) {
+				this._goToPageAction(currentPageIndex - 1)
+				m.redraw()
+			} else {
+				this.closeAction()
 			}
 		})
 	}
