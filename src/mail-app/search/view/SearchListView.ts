@@ -17,6 +17,7 @@ import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow
 import { AllIcons } from "../../../common/gui/base/Icon.js"
 import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { shouldAlwaysShowMultiselectCheckbox } from "../../../common/gui/SelectableRowContainer"
+import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
 
 assertMainOrNode()
 
@@ -53,39 +54,43 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		this.attrs = attrs
 		const { icon, renderConfig } = this.getRenderItems(attrs.currentType)
 
-		return attrs.listModel.isEmptyAndDone()
-			? m(ColumnEmptyMessageBox, {
-					icon,
-					message: "searchNoResults_msg",
-					color: theme.list_message_bg,
-				})
-			: m(List, {
-					state: attrs.listModel.state,
-					renderConfig,
-					onLoadMore: () => {
-						this.listModel.loadMore()
-					},
-					onRetryLoading: () => {
-						this.listModel.retryLoading()
-					},
-					onSingleSelection: (item: SearchResultListEntry) => {
-						this.listModel.onSingleSelection(item)
-						attrs.onSingleSelection(item)
-					},
-					onSingleTogglingMultiselection: (item: SearchResultListEntry) => {
-						this.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
-					},
-					onRangeSelectionTowards: (item: SearchResultListEntry) => {
-						this.listModel.selectRangeTowards(item)
-					},
-					onStopLoading: () => {
-						if (attrs.cancelCallback != null) {
-							attrs.cancelCallback()
-						}
+		return m(
+			ListColumnWrapper,
+			{ headerContent: null, class: styles.isSingleColumnLayout() ? undefined : "column-resize-margin" },
+			attrs.listModel.isEmptyAndDone()
+				? m(ColumnEmptyMessageBox, {
+						icon,
+						message: "searchNoResults_msg",
+						color: theme.list_message_bg,
+					})
+				: m(List, {
+						state: attrs.listModel.state,
+						renderConfig,
+						onLoadMore: () => {
+							this.listModel.loadMore()
+						},
+						onRetryLoading: () => {
+							this.listModel.retryLoading()
+						},
+						onSingleSelection: (item: SearchResultListEntry) => {
+							this.listModel.onSingleSelection(item)
+							attrs.onSingleSelection(item)
+						},
+						onSingleTogglingMultiselection: (item: SearchResultListEntry) => {
+							this.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
+						},
+						onRangeSelectionTowards: (item: SearchResultListEntry) => {
+							this.listModel.selectRangeTowards(item)
+						},
+						onStopLoading: () => {
+							if (attrs.cancelCallback != null) {
+								attrs.cancelCallback()
+							}
 
-						this.listModel.stopLoading()
-					},
-				} satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>)
+							this.listModel.stopLoading()
+						},
+					} satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>),
+		)
 	}
 
 	private getRenderItems(type: TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent>): {
