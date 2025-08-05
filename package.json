@@ -111,5 +111,10 @@
 	"engines": {
 		"npm": ">=10.0.0",
 		"node": ">=22.16.0"
+	},
+	"overrides": {
+		"rimraf": ">=6.0.0",
+		"glob": ">=11.0.0",
+		"make-fetch-happen": ">=15.0.0"
 	}
 }
