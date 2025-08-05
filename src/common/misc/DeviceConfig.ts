@@ -13,7 +13,6 @@ import { SyncStatus } from "../calendar/gui/ImportExportUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import type { GroupSettings } from "../api/entities/tutanota/TypeRefs.js"
-import { object } from "testdouble"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -67,12 +66,14 @@ interface ConfigObject {
 	isCalendarDaySelectorExpanded: boolean
 	/** Stores user's desired behavior to the view when an email is removed from the list */
 	mailAutoSelectBehavior: ListAutoSelectBehavior
-	// True if the app has already been run after install
+	/** True if the app has already been run after install */
 	isSetupComplete: boolean
-	// True if the credentials have been migrated to native
+	/** True if the credentials have been migrated to native */
 	isCredentialsMigratedToNative: boolean
 	lastExternalCalendarSync: Record<Id, LastExternalCalendarSyncEntry>
 	clientOnlyCalendars: Map<Id, ClientOnlyCalendarsInfo>
+	/** Map from user id to the size of the list */
+	mailListSize: Record<Id, number>
 
 	/**
 	 * A list of dates on which a user has sent an e-mail or created a calendar event. Each date is represented as the date's timestamp.
@@ -155,6 +156,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
 			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},
 			clientOnlyCalendars: loadedConfig.clientOnlyCalendars ? new Map(typedEntries(loadedConfig.clientOnlyCalendars)) : new Map(),
+			mailListSize: loadedConfig.mailListSize ?? {},
 			events: loadedConfig.events ?? [],
 			lastRatingPromptedDate: loadedConfig.lastRatingPromptedDate ?? null,
 			retryRatingPromptAfter: loadedConfig.retryRatingPromptAfter ?? null,
@@ -469,6 +471,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 
 	updateClientOnlyCalendars(calendarId: Id, clientOnlyCalendarConfig: ClientOnlyCalendarsInfo): void {
 		this.config.clientOnlyCalendars.set(calendarId, clientOnlyCalendarConfig)
+		this.writeToStorage()
+	}
+
+	getMailListSize(user: Id): number | null {
+		return this.config.mailListSize[user] ?? null
+	}
+
+	setMailListSize(user: Id, mailListSize: number): void {
+		this.config.mailListSize[user] = mailListSize
 		this.writeToStorage()
 	}
 

@@ -99,6 +99,7 @@ export const size = {
 
 	dot_size: 7,
 	checkbox_size: 14,
+	column_resize_element_width: 5,
 }
 export const inputLineHeight: number = size.font_size_base + 8
 

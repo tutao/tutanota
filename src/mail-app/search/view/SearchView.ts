@@ -120,6 +120,7 @@ import { AllIcons } from "../../../common/gui/base/Icon"
 import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui/pickers/DatePickerDialog"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { MailViewModel } from "../../mail/view/MailViewModel"
+import { deviceConfig } from "../../../common/misc/DeviceConfig"
 
 assertMainOrNode()
 
@@ -165,6 +166,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		this.contactModel = vnode.attrs.contactModel
 		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
 		this.mailViewModel = vnode.attrs.mailViewModel
+		const userId = locator.logins.getUserController().userId
 
 		this.folderColumn = new ViewColumn(
 			{
@@ -212,8 +214,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			ColumnType.Background,
 			{
 				minWidth: size.second_col_min_width,
-				maxWidth: size.second_col_max_width,
+				maxWidth: deviceConfig.getMailListSize(userId) ?? size.second_col_max_width,
 				headerCenter: "searchResult_label",
+				resizeCallback: (size) => {
+					deviceConfig.setMailListSize(userId, size)
+				},
 			},
 		)
 		this.resultDetailsColumn = new ViewColumn(
