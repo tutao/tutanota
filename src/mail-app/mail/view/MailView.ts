@@ -123,7 +123,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	constructor(vnode: Vnode<MailViewAttrs>) {
 		super()
-		this.expandedState = new Set(deviceConfig.getExpandedFolders(locator.logins.getUserController().userId))
+		const userId = locator.logins.getUserController().userId
+		this.expandedState = new Set(deviceConfig.getExpandedFolders(userId))
 		this.cache = vnode.attrs.cache
 		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)
 		this.mailViewModel = vnode.attrs.mailViewModel
@@ -214,10 +215,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			ColumnType.Background,
 			{
 				minWidth: size.second_col_min_width,
-				maxWidth: size.second_col_max_width,
+				maxWidth: deviceConfig.getMailListSize(userId) ?? size.second_col_max_width,
 				headerCenter: () => {
 					const folder = this.mailViewModel.getFolder()
 					return folder ? lang.makeTranslation("folder_name", getFolderName(folder)) : "emptyString_msg"
+				},
+				resizeCallback: (size: number) => {
+					deviceConfig.setMailListSize(userId, size)
 				},
 			},
 		)

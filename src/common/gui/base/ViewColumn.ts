@@ -1,10 +1,12 @@
-import m, { Component } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
 import { LayerType } from "../../../RootView"
 import { lazy, MaybeLazy, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 import { TabIndex } from "../../api/common/TutanotaConstants"
+import { px, size } from "../size"
+import { styles } from "../styles"
 
 assertMainOrNode()
 
@@ -14,17 +16,19 @@ export const enum ColumnType {
 }
 
 type Attrs = {
-	rightBorder?: boolean
+	onResize: () => unknown
 }
 
 export class ViewColumn implements Component<Attrs> {
 	private readonly component: Component
 	columnType: ColumnType
 	readonly minWidth: number
-	readonly maxWidth: number
+	maxWidth: number
 	private readonly headerCenter: MaybeLazy<MaybeTranslation>
 	private readonly ariaLabel: lazy<string>
 	private readonly testId: string | null
+	private readonly resizeCallback?: (size: number) => unknown
+	private resizeElementPageX: number = 0
 	width: number
 	offset: number // offset to the left
 
@@ -57,18 +61,21 @@ export class ViewColumn implements Component<Attrs> {
 			headerCenter,
 			ariaLabel = () => lang.getTranslationText(this.getTitle()),
 			testId,
+			resizeCallback,
 		}: {
 			minWidth: number
 			maxWidth: number
 			headerCenter?: MaybeLazy<MaybeTranslation>
 			ariaLabel?: lazy<string>
 			testId?: string
+			resizeCallback?: (size: number) => unknown
 		},
 	) {
 		this.component = component
 		this.columnType = columnType
 		this.minWidth = minWidth
 		this.maxWidth = maxWidth
+		this.resizeCallback = resizeCallback
 
 		this.headerCenter = headerCenter || "emptyString_msg"
 
@@ -82,7 +89,7 @@ export class ViewColumn implements Component<Attrs> {
 		this.view = this.view.bind(this)
 	}
 
-	view() {
+	view(vnode: Vnode<Attrs>): Children {
 		const zIndex = !this.isVisible && this.columnType === ColumnType.Foreground ? LayerType.ForegroundMenu + 1 : ""
 		const landmark = this.ariaRole ? landmarkAttrs(this.ariaRole, this.ariaLabel()) : {}
 		return m(
@@ -108,7 +115,45 @@ export class ViewColumn implements Component<Attrs> {
 				},
 			},
 			m(this.component),
+			this.resizeCallback && !styles.isSingleColumnLayout() ? this.renderResizeButton(vnode.attrs.onResize) : null,
 		)
+	}
+
+	private renderResizeButton(onResize: Attrs["onResize"]) {
+		return m(".abs", {
+			style: {
+				top: 0,
+				bottom: 0,
+				right: 0,
+				width: px(size.column_resize_element_width),
+				cursor: "col-resize",
+			},
+			onmousedown: (e: MouseEvent) => {
+				this.resizeElementPageX = e.pageX
+
+				const mousemoveFunc = (e: MouseEvent) => {
+					const diffX = e.pageX - this.resizeElementPageX
+
+					// Increment from width and not from maxWidth because we might run into size limits from other
+					// columns.
+					this.maxWidth = Math.max(this.minWidth, this.width + diffX)
+
+					this.resizeElementPageX = e.pageX
+					onResize()
+				}
+				window.addEventListener("mousemove", mousemoveFunc)
+
+				const mouseDoneFunc = () => {
+					this.resizeCallback?.(this.maxWidth)
+					window.removeEventListener("mousemove", mousemoveFunc)
+					window.removeEventListener("mouseup", mouseDoneFunc)
+					window.removeEventListener("mouseleave", mouseDoneFunc)
+				}
+
+				window.addEventListener("mouseup", mouseDoneFunc)
+				window.addEventListener("mouseleave", mouseDoneFunc)
+			},
+		})
 	}
 
 	private notInteractable(): boolean {

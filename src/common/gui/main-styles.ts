@@ -1786,6 +1786,10 @@ styles.registerStyle("main", () => {
 		".list-border-right": {
 			"border-right": `1px solid ${theme.list_border}`,
 		},
+		".column-resize-margin": {
+			// prevent overlap of scrollbar with resize element
+			"margin-right": px(size.column_resize_element_width),
+		},
 		".folders": {
 			"margin-bottom": px(12),
 		},
