@@ -564,8 +564,30 @@ impl EventFacade {
 
 				let total_weeks = weeks_in_year(date.year());
 
+				if parsed_week == 0 || parsed_week > total_weeks as i8 {
+					log::info!(
+						"Parsed week number ({}) invalid based on total weeks ({}) for year ({})",
+						parsed_week,
+						total_weeks,
+						date.year()
+					);
+					continue;
+				}
+
 				let week_number = if parsed_week < 0 {
-					total_weeks - parsed_week.unsigned_abs() + 1
+					let week_diff = total_weeks - parsed_week.unsigned_abs() + 1;
+					if week_diff > total_weeks || week_diff == 0 {
+						log::info!(
+							"Calculated week diff ({}) for parsed week number ({}) invalid based on total weeks ({}) for year ({})",
+							week_diff,
+							parsed_week,
+							total_weeks,
+							date.year()
+						);
+						continue;
+					}
+
+					week_diff
 				} else {
 					new_date = new_date.replace_date(
 						Date::from_iso_week_date(
@@ -969,7 +991,6 @@ impl EventFacade {
 		};
 
 		let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
-
 		// If there's a leading value in the rule we have to change the week.
 		// e.g. 2TH means second thursday, consequently, second week of the month
 		if week_change != 0 {
@@ -983,7 +1004,20 @@ impl EventFacade {
 						.unwrap(),
 				);
 
+				let total_weeks = weeks_in_year(new_date.year());
 				let new_week = new_date.iso_week() - week_change.unsigned_abs() + 1;
+
+				if new_week == 0 || new_week > total_weeks {
+					log::info!(
+						"Calculated week diff ({}) for parsed week number ({}) invalid based on total weeks ({}) for year ({})",
+						new_week,
+						week_change,
+						total_weeks,
+						date.year()
+					);
+					return;
+				}
+
 				new_date = new_date.replace_date(
 					Date::from_iso_week_date(new_date.year(), new_week, new_date.weekday())
 						.unwrap(),

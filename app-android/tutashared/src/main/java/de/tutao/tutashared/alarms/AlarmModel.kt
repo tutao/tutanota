@@ -8,6 +8,8 @@ import de.tutao.tutasdk.EventFacade
 import de.tutao.tutasdk.EventRepeatRule
 import de.tutao.tutashared.isAllDayEventByTimes
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -62,15 +64,21 @@ object AlarmModel {
 		var occurrences = 0
 		var futureOccurrences = 0
 		var intervalOccurrences = 0
+		var intervalAfterNow = 0
 		val startTime = calcEventStart.time.toULong()
 
 		while (
 			futureOccurrences < OCCURRENCES_SCHEDULED_AHEAD && // We have not schedule all future occurrences yet
-			(endType != EndType.COUNT || occurrences < endValue!!) // End type is not COUNT or in case it is, we have not created enough occurrences
+			(endType != EndType.COUNT || occurrences < endValue!!) && // End type is not COUNT or in case it is, we have not created enough occurrences
+			intervalAfterNow < OCCURRENCES_SCHEDULED_AHEAD
 		) {
 			calendar.time = calcEventStart
 
 			incrementByRepeatPeriod(calendar, frequency, interval * intervalOccurrences)
+
+			if (calendar.time.time > Calendar.getInstance().time.time) {
+				intervalAfterNow += 1
+			}
 
 			var expandedEvents: List<DateTime> = eventFacade.generateFutureInstances(
 				calendar.time.time.toULong(),
