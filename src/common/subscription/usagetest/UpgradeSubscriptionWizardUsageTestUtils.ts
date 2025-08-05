@@ -10,7 +10,6 @@ export enum SignupFlowStage {
 	CREATE_ACCOUNT,
 	SELECT_PAYMENT_METHOD,
 	CONFIRM_PAYMENT,
-	ABANDONED,
 }
 
 export abstract class SignupFlowUsageTestController {

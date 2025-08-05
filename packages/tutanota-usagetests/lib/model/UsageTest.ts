@@ -2,7 +2,6 @@ import { ObsoleteStage, PingIdTuple, Stage } from "./Stage.js"
 import { PingAdapter } from "../storage/PingAdapter.js"
 
 const NO_PARTICIPATION_VARIANT = 0
-const ASSIGNMENT_STAGE = -1
 
 export type VariantsIndex<ReturnT> = {
 	[key: number]: () => ReturnT
@@ -75,17 +74,6 @@ export class UsageTest {
 	}
 
 	/**
-	 * Completes a range of stages in the case that we want to make sure that previous stages are/have been sent.
-	 *
-	 * Useful when reaching a stage necessitates (and implies) that all previous stages have been sent successfully.
-	 */
-	async completeRange(start: number, end: number) {
-		for (let i = start; i <= end; i++) {
-			await this.getStage(i).complete()
-		}
-	}
-
-	/**
 	 * Should not be used directly. Use stage.complete() instead.
 	 */
 	async completeStage(
@@ -102,17 +90,6 @@ export class UsageTest {
 		if (!this.pingAdapter) {
 			throw new Error("no ping adapter has been registered")
 		} else if (this.variant === NO_PARTICIPATION_VARIANT || !this.active) {
-			return
-		} else if (this.sentPings >= stage.maxPings && this.lastCompletedStage === stage.number && (stage.number !== 0 || !this.allowEarlyRestarts)) {
-			console.log(`Not sending ping for stage (${stage.number}) of test '${this.testId}' because maxPings=${stage.maxPings} has been reached`)
-			return
-		} else if (!forceRestart && !this.allowEarlyRestarts && this.isStarted() && stage.number === 0 && this.lastCompletedStage !== this.stages.size - 1) {
-			// we were not configured to restart and got a complete() for the first stage and have not finished the test yet
-			// -> this would be a restart in the middle of the test
-			console.log(`Cannot restart test '${this.testName}' because allowEarlyRestarts=false and the final stage has not been reached`)
-			return
-		} else if (stage.number < this.lastCompletedStage && stage.number !== 0) {
-			console.log(`Cannot send ping for stage (${stage.number}) of test '${this.testId}' because stage ${this.lastCompletedStage} has already been sent`)
 			return
 		}
 
