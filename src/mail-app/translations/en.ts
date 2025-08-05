@@ -1929,7 +1929,7 @@ export default {
 		"unavailable_label": "Unavailable",
 		"undecided_label": "Undecided",
 		"undoMailReport_msg": "The email(s) will be reported in unencrypted form.",
-		"undoMoveMail_msg": "The email(s) were moved to folder \\\"{folder}\\\".",
+		"undoMoveMail_msg": "The email(s) were moved to folder \"{folder}\".",
 		"undo_action": "Undo",
 		"unencryptedTransmission_msg": "The email(s) moved to the spam folder will be transmitted to the server in unencrypted form to improve spam protection.",
 		"unknownError_msg": "An unexpected error occurred. Please try again later.",

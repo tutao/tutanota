@@ -1929,7 +1929,7 @@ export default {
 		"unavailable_label": "Tavoittamattomissa",
 		"undecided_label": "Päättämättä",
 		"undoMailReport_msg": "Sähköpost(e)ista ilmoitetaan salaamattomassa muodossa.",
-		"undoMoveMail_msg": "Sähköposti(t) siirrettiin kansioon \\\"{folder}\\\".",
+		"undoMoveMail_msg": "Sähköposti(t) siirrettiin kansioon \"{folder}\".",
 		"undo_action": "Kumoa",
 		"unencryptedTransmission_msg": "Roskapostikansioon siirretyt sähköpostit välitetään palvelimelle salaamattomassa muodossa roskapostisuojauksen parantamiseksi. ",
 		"unknownError_msg": "Odottamaton virhe. Yritä uudelleen.",

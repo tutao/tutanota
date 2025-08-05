@@ -1932,7 +1932,7 @@ export default {
 		"unavailable_label": "Nedostupné",
 		"undecided_label": "Nerozhodnuto",
 		"undoMailReport_msg": "Zpráva (popř. zprávy) bude nahlášena v nezašifrované podobě.",
-		"undoMoveMail_msg": "E-maily byly přesunuty do složky \\\"{folder}\\\".",
+		"undoMoveMail_msg": "E-maily byly přesunuty do složky \"{folder}\".",
 		"undo_action": "Zpět",
 		"unencryptedTransmission_msg": "Obsah této zprávy (zpráv) bude na server přenesen v nezašifrované podobě pro vylepšení ochrany proti spamu.",
 		"unknownError_msg": "Došlo k neočekávané chybě. Zkuste to prosím znovu později.",

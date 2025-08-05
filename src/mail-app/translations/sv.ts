@@ -1929,7 +1929,7 @@ export default {
 		"unavailable_label": "Inte tillgänglig",
 		"undecided_label": "Ej valt",
 		"undoMailReport_msg": "Mejl kommer att rapporteras i okrypterad form.",
-		"undoMoveMail_msg": "Mail har flyttats till folder \\\"{folder}\\\".",
+		"undoMoveMail_msg": "Mail har flyttats till folder \"{folder}\".",
 		"undo_action": "Ångra",
 		"unencryptedTransmission_msg": "Mejl som flyttas till skräppostmappen överförs till servern i okrypterad form för att förbättra skräppostskyddet.",
 		"unknownError_msg": "Ett oväntat fel inträffade. Försök igen senare.",

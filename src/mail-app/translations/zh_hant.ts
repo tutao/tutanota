@@ -1927,7 +1927,7 @@ export default {
 		"unavailable_label": "不可用",
 		"undecided_label": "未決定",
 		"undoMailReport_msg": "電郵將以未加密形式舉報。",
-		"undoMoveMail_msg": "電郵已被移至\\\"{folder}\\\"資料夾。",
+		"undoMoveMail_msg": "電郵已被移至\"{folder}\"資料夾。",
 		"undo_action": "復原",
 		"unencryptedTransmission_msg": "移至垃圾郵件資料夾的電郵將以未加密形式傳送到伺服器以改善垃圾郵件防護功能。",
 		"unknownError_msg": "發生未預期的錯誤。請稍後再試。",

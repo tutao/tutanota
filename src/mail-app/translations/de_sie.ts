@@ -1933,7 +1933,7 @@ export default {
 		"unavailable_label": "Nicht verfügbar",
 		"undecided_label": "Nicht entschieden",
 		"undoMailReport_msg": "Die E-Mail(s) werden unverschlüsselt gemeldet.",
-		"undoMoveMail_msg": "Die E-Mail(s) wurden in den Ordner \\\"{folder}\\\" verschoben.",
+		"undoMoveMail_msg": "Die E-Mail(s) wurden in den Ordner \"{folder}\" verschoben.",
 		"undo_action": "Rückgängig",
 		"unencryptedTransmission_msg": "Die in den Spam-Ordner verschoben(en) E-Mail(s) werden unverschlüsselt an den Server übertragen, um den Spam-Schutz zu verbessern.",
 		"unknownError_msg": "Es ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es später erneut.",

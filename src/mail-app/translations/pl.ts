@@ -1935,7 +1935,7 @@ export default {
 		"unavailable_label": "Niedostępny",
 		"undecided_label": "Nie zdecydowano",
 		"undoMailReport_msg": "E-maile zostaną zgłoszone bez szyfrowania.",
-		"undoMoveMail_msg": "Wiadomości e-mail zostały przeniesione do \\\"{folder}\\\".",
+		"undoMoveMail_msg": "Wiadomości e-mail zostały przeniesione do \"{folder}\".",
 		"undo_action": "Cofnij",
 		"unencryptedTransmission_msg": "Wiadomości e-mail przeniesione do folderu \"Spam\" zostaną przesłane na serwer w postaci niezaszyfrowanej, w celu polepszenia ochrony przed spamem.",
 		"unknownError_msg": "Wystąpił nieoczekiwany błąd. Spróbuj później.",

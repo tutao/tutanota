@@ -1933,7 +1933,7 @@ export default {
 		"unavailable_label": "Kullanım dışı",
 		"undecided_label": "Çekimser",
 		"undoMailReport_msg": "Seçili e-posta(lar) şifrelenmemiş biçimde bildirilecektir.",
-		"undoMoveMail_msg": "E-posta(lar)  \\\"{folder}\\\" dizinine taşındı.",
+		"undoMoveMail_msg": "E-posta(lar)  \"{folder}\" dizinine taşındı.",
 		"undo_action": "Geri al",
 		"unencryptedTransmission_msg": "Spam klasörüne taşınan e-posta(lar) spam korumasını geliştirmek için şifrelenmemiş hâlde sunucuya aktarılacaktır.",
 		"unknownError_msg": "Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.",
