@@ -486,7 +486,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getDeleteMailsAction() {
-		if (this.mailViewModel.currentFolderDeletesPermanently()) {
+		if (this.mailViewModel.isPermanentDeleteAllowed()) {
 			return () => this.deleteSelectedMails()
 		} else {
 			return null
@@ -593,7 +593,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getShortcuts(): Array<Shortcut> {
-		const deleteOrTrashAction = () => (this.mailViewModel.currentFolderDeletesPermanently() ? this.deleteSelectedMails() : this.trashSelectedMails())
+		const deleteOrTrashAction = () => (this.mailViewModel.isPermanentDeleteAllowed() ? this.deleteSelectedMails() : this.trashSelectedMails())
 
 		return [
 			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.mailViewModel),

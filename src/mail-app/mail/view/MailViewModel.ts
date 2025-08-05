@@ -396,9 +396,18 @@ export class MailViewModel {
 		}
 	}
 
-	currentFolderDeletesPermanently(): boolean {
-		const folder = this.getFolder()
-		return folder != null && (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM)
+	/**
+	 * Permanent delete is only allowed when the mail is in the current folder and the current folder is Trash/Spam.
+	 */
+	isPermanentDeleteAllowed(): boolean {
+		const primaryMailFolder = this.conversationViewModel != null ? this.mailModel.getMailFolderForMail(this.conversationViewModel.primaryMail) : null
+		const currentFolder = this.getFolder()
+
+		if (primaryMailFolder != null && currentFolder != null && !isSameId(currentFolder._id, primaryMailFolder._id)) {
+			return false
+		} else {
+			return currentFolder != null && (currentFolder.folderType === MailSetKind.TRASH || currentFolder.folderType === MailSetKind.SPAM)
+		}
 	}
 
 	/**

@@ -417,7 +417,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		const actionableMails = await this.mailViewModel.getResolvedMails([listElement])
 		const currentFolder = this.mailViewModel.getFolder()
 
-		if (this.mailViewModel.currentFolderDeletesPermanently()) {
+		if (this.mailViewModel.isPermanentDeleteAllowed()) {
 			const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, actionableMails, assertNotNull(currentFolder)._id, () =>
 				this.mailViewModel.listModel?.selectNone(),
 			)
