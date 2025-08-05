@@ -215,6 +215,8 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					style: {
 						backgroundColor: theme.content_bg,
 						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
+						// column resize element takes some space, reduce margin to make the gap smaller
+						marginLeft: styles.isSingleColumnLayout() ? undefined : px(size.hpad_large - size.column_resize_element_width),
 					},
 				},
 				mailViewerViewModel.isCollapsed()

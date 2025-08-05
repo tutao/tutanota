@@ -107,6 +107,8 @@ export const size = {
 	get checkbox_helper_text_margin(): number {
 		return this.checkbox_size + this.checkbox_border_size + this.hpad_small
 	},
+
+	column_resize_element_width: 5,
 }
 export const inputLineHeight: number = size.font_size_base + 8
 
