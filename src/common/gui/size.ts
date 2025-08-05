@@ -103,6 +103,10 @@ export const size = {
 
 	dot_size: 7,
 	checkbox_size: 14,
+	checkbox_border_size: 2,
+	get checkbox_helper_text_margin(): number {
+		return this.checkbox_size + this.checkbox_border_size + this.hpad_small
+	},
 }
 export const inputLineHeight: number = size.font_size_base + 8
 

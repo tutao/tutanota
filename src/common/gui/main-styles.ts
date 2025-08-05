@@ -2374,7 +2374,7 @@ styles.registerStyle("main", () => {
 			display: "block",
 			width: px(size.checkbox_size),
 			height: px(size.checkbox_size),
-			border: `2px solid ${theme.content_button}`,
+			border: `${px(size.checkbox_border_size)} solid ${theme.content_button}`,
 			"border-radius": "3px",
 			position: "relative",
 			transition: `border ${DefaultAnimationTime}ms cubic-bezier(.4,.0,.23,1)`,
