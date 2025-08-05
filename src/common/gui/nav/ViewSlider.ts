@@ -6,7 +6,7 @@ import { size } from "../size.js"
 import { alpha, AlphaEnum, animations, transform, TransformEnum } from "../animation/Animations.js"
 import { ease } from "../animation/Easing.js"
 import { theme } from "../theme.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, noOp } from "@tutao/tutanota-utils"
 import { styles } from "../styles.js"
 import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../../../RootView.js"
@@ -133,16 +133,16 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 								},
 								mainSliderColumns.map((column, index) =>
 									m(column, {
-										// Only apply right border if 1. all background columns are visible. 2. It's not the last column.
-										// Perhaps the condition should be "there's another visible column after this one" but it works like this too
-										rightBorder: allBackgroundColumnsAreVisible && index !== mainSliderColumns.length - 1,
+										onResize: () => {
+											this.updateVisibleBackgroundColumns()
+										},
 									}),
 								),
 							),
 							styles.isUsingBottomNavigation() && !client.isCalendarApp() ? attrs.bottomNav : null,
 						],
 					),
-					this.getColumnsForOverlay().map((c) => m(c, {})),
+					this.getColumnsForOverlay().map((c) => m(c, { onResize: noOp })),
 					this.enableDrawer ? this.createModalBackground() : null,
 				],
 			)
@@ -203,9 +203,9 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 
 		this.focusedColumn = this.focusedColumn || this.mainColumn
 		let visibleColumns: ViewColumn[] = [this.focusedColumn.columnType === ColumnType.Background ? this.focusedColumn : this.mainColumn]
+
 		let remainingSpace = window.innerWidth - visibleColumns[0].minWidth
 		let nextVisibleColumn = this.getNextVisibleColumn(visibleColumns, this.viewColumns)
-
 		while (nextVisibleColumn && remainingSpace >= nextVisibleColumn.minWidth) {
 			visibleColumns.push(nextVisibleColumn)
 			remainingSpace -= nextVisibleColumn.minWidth
@@ -276,15 +276,22 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	 * @param remainingSpace
 	 */
 	private distributeRemainingSpace(visibleColumns: ViewColumn[], remainingSpace: number) {
-		let spacePerColumn = remainingSpace / visibleColumns.length
-		for (const [index, visibleColumn] of visibleColumns.entries()) {
-			if (visibleColumns.length - 1 === index) {
-				// ignore max width for the last visible column
-				visibleColumn.width = visibleColumn.minWidth + remainingSpace
-			} else {
-				let spaceForThisColumn = Math.min(spacePerColumn, visibleColumn.maxWidth - visibleColumn.minWidth)
-				remainingSpace -= spaceForThisColumn
-				visibleColumn.width = visibleColumn.minWidth + spaceForThisColumn
+		if (visibleColumns.length === 1) {
+			// if there's one column give it all the space
+			visibleColumns[0].width = visibleColumns[0].minWidth + remainingSpace
+		} else {
+			// distribute remaining space between all the columns but the last. the last column will anyway get all
+			// the remaining space so we try to give as much as possible to other columns before that
+			let spacePerColumn = remainingSpace / (visibleColumns.length - 1)
+			for (const [index, visibleColumn] of visibleColumns.entries()) {
+				if (visibleColumns.length - 1 === index) {
+					// ignore max width for the last visible column
+					visibleColumn.width = visibleColumn.minWidth + remainingSpace
+				} else {
+					let spaceForThisColumn = Math.min(spacePerColumn, visibleColumn.maxWidth - visibleColumn.minWidth)
+					remainingSpace -= spaceForThisColumn
+					visibleColumn.width = visibleColumn.minWidth + spaceForThisColumn
+				}
 			}
 		}
 	}
