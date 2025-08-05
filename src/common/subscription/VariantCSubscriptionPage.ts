@@ -311,6 +311,11 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 		return Promise.resolve(true)
 	}
 
+	prevAction(showErrorDialog: boolean): Promise<boolean> {
+		SignupFlowUsageTestController.deletePing(SignupFlowStage.TRIGGER)
+		return Promise.resolve(true)
+	}
+
 	public readonly hideAllPagingButtons = true
 
 	isSkipAvailable(): boolean {
