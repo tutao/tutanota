@@ -5,6 +5,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { theme } from "../theme.js"
 import { encodeSVG, getOperatingClasses } from "./GuiUtils.js"
+import { px, size } from "../size"
 
 export type CheckboxAttrs = {
 	label: lazy<string | Children>
@@ -24,7 +25,17 @@ export class Checkbox implements Component<CheckboxAttrs> {
 	view(vnode: Vnode<CheckboxAttrs>): Children {
 		const a = vnode.attrs
 		const helpLabelText = lang.getTranslationText(a.helpLabel ? a.helpLabel : "emptyString_msg")
-		const helpLabel = a.helpLabel ? m(`small.block.content-fg${Checkbox.getBreakClass(helpLabelText)}`, helpLabelText) : []
+		const helpLabel = a.helpLabel
+			? m(
+					`small.block.content-fg${Checkbox.getBreakClass(helpLabelText)}`,
+					{
+						style: {
+							marginLeft: px(size.checkbox_helper_text_margin),
+						},
+					},
+					helpLabelText,
+				)
+			: []
 		const userClasses = a.class == null ? "" : " " + a.class
 		return m(
 			`.pt`,
