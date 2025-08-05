@@ -12,7 +12,6 @@ import { LocationService } from "../api/entities/sys/Services"
 import { locator } from "../api/main/CommonLocator"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { UsageTest } from "@tutao/tutanota-usagetests"
 
 export enum InvoiceDataInputLocation {
 	InWizard = 0,
@@ -23,15 +22,12 @@ export class InvoiceDataInput implements Component {
 	private readonly invoiceAddressComponent: HtmlEditor
 	public readonly selectedCountry: Stream<Country | null>
 	private vatNumber: string = ""
-	private __paymentPaypalTest?: UsageTest
 
 	constructor(
 		private businessUse: boolean,
 		invoiceData: InvoiceData,
 		private readonly location = InvoiceDataInputLocation.Other,
 	) {
-		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
-
 		this.invoiceAddressComponent = new HtmlEditor()
 			.setStaticNumberOfLines(5)
 			.showBorders()
@@ -100,7 +96,6 @@ export class InvoiceDataInput implements Component {
 				return "invoiceAddressInfoBusiness_msg"
 			}
 		}
-		this.__paymentPaypalTest?.getStage(3).complete()
 		// no error
 		return null
 	}

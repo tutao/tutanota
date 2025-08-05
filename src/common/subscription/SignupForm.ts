@@ -22,7 +22,6 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError"
 import { locator } from "../api/main/CommonLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
-import { UsageTest } from "@tutao/tutanota-usagetests"
 import { runCaptchaFlow, runPowChallenge } from "./captcha/Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
@@ -55,8 +54,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private _isMailVerificationBusy: boolean
 	private readonly __mailValid: Stream<boolean>
 	private readonly __lastMailValidationError: Stream<TranslationKey | null>
-	private __signupFreeTest?: UsageTest
-	private __signupPaidTest?: UsageTest
 	private powChallengeSolution: Promise<bigint>
 
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
@@ -85,9 +82,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			},
 			this.__mailValid,
 		)
-
-		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
-		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
 
 		this._confirmTerms = stream<boolean>(false)
 		this._confirmAge = stream<boolean>(false)
@@ -148,8 +142,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 			if (a.readonly) {
 				// Email field is read-only, account has already been created but user switched from different subscription.
-				this.__completePreviousStages()
-
 				return a.onComplete({ type: "success", newAccountData: null })
 			}
 
@@ -164,8 +156,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			const ageConfirmPromise = this._confirmAge() ? Promise.resolve(true) : Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
 			ageConfirmPromise.then((powSolution) => {
 				if (powSolution) {
-					this.__completePreviousStages()
-
 					return signup(
 						this._mailAddress,
 						this.passwordModel.getNewPassword(),
@@ -227,27 +217,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				),
 			]),
 		)
-	}
-
-	private async __completePreviousStages() {
-		// Only the started test's (either free or paid clicked) stages are completed here
-		if (this.__signupFreeTest) {
-			// Make sure that the previous two pings (valid email + valid passwords) have been sent in the correct order
-			await this.__signupFreeTest.getStage(2).complete()
-			await this.__signupFreeTest.getStage(3).complete()
-
-			// Credentials confirmation (click on next)
-			await this.__signupFreeTest.getStage(4).complete()
-		}
-
-		if (this.__signupPaidTest) {
-			// Make sure that the previous two pings (valid email + valid passwords) have been sent in the correct order
-			await this.__signupPaidTest.getStage(1).complete()
-			await this.__signupPaidTest.getStage(2).complete()
-
-			// Credentials confirmation (click on next)
-			await this.__signupPaidTest.getStage(3).complete()
-		}
 	}
 }
 

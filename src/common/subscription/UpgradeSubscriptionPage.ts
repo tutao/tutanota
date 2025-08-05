@@ -11,8 +11,6 @@ import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
-import { locator } from "../api/main/CommonLocator"
-import { UsageTest } from "@tutao/tutanota-usagetests"
 import { UpgradePriceType } from "./FeatureListProvider"
 import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
@@ -35,20 +33,12 @@ export const PlanTypeParameter = Object.freeze({
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
-	private __signupFreeTest?: UsageTest
-	private __signupPaidTest?: UsageTest
 	private upgradeType: UpgradeType | null = null
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
 		this._dom = vnode.dom as HTMLElement
 		const subscriptionParameters = vnode.attrs.data.subscriptionParameters
 		this.upgradeType = vnode.attrs.data.upgradeType
-
-		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
-		this.__signupFreeTest.active = false
-
-		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
-		this.__signupPaidTest.active = false
 
 		if (subscriptionParameters) {
 			const paymentInterval: PaymentInterval = subscriptionParameters.interval
@@ -110,18 +100,9 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 
 	selectFree(data: UpgradeSubscriptionData) {
 		// Confirmation of free subscription selection (click on subscription selector)
-		if (this.__signupPaidTest) {
-			this.__signupPaidTest.active = false
-		}
-
-		if (this.__signupFreeTest && this.upgradeType === UpgradeType.Signup) {
-			this.__signupFreeTest.active = true
-			this.__signupFreeTest.getStage(0).complete()
-		}
 		confirmFreeSubscription().then((confirmed) => {
 			if (confirmed) {
 				// Confirmation of free/business dialog (click on ok)
-				this.__signupFreeTest?.getStage(1).complete()
 				data.type = PlanType.Free
 				data.price = null
 				data.nextYearPrice = null
@@ -193,14 +174,6 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 
 	setNonFreeDataAndGoToNextPage(data: UpgradeSubscriptionData, planType: PlanType): void {
 		// Confirmation of paid subscription selection (click on subscription selector)
-		if (this.__signupFreeTest) {
-			this.__signupFreeTest.active = false
-		}
-
-		if (this.__signupPaidTest && this.upgradeType === UpgradeType.Signup) {
-			this.__signupPaidTest.active = true
-			this.__signupPaidTest.getStage(0).complete()
-		}
 
 		data.type = planType
 		const { planPrices, options } = data
@@ -332,7 +305,7 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 	}
 
 	prevAction(showErrorDialog: boolean): Promise<boolean> {
-		SignupFlowUsageTestController.deletePing(SignupFlowStage.SELECT_PLAN)
+		SignupFlowUsageTestController.deletePing(SignupFlowStage.TRIGGER)
 		return Promise.resolve(true)
 	}
 

@@ -4,22 +4,14 @@ import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { locator } from "../api/main/CommonLocator"
-import { UsageTest } from "@tutao/tutanota-usagetests"
 import { RecoverCodeField } from "../settings/login/RecoverCodeDialog.js"
 import { VisSignupImage } from "../gui/base/icons/Icons.js"
-import { PlanType } from "../api/common/TutanotaConstants.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
-import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 
 export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
-	private __signupPaidTest?: UsageTest
-	private __signupFreeTest?: UsageTest
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
-		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
-		this.__signupFreeTest = locator.usageTestController.getTest("signup.free")
-
 		this.dom = vnode.dom as HTMLElement
 	}
 
@@ -46,16 +38,6 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 					label: "ok_action",
 					class: "small-login-button",
 					onclick: () => {
-						if (attrs.data.type === PlanType.Free) {
-							const recoveryConfirmationStageFree = this.__signupFreeTest?.getStage(5)
-
-							recoveryConfirmationStageFree?.setMetric({
-								name: "switchedFromPaid",
-								value: (this.__signupPaidTest?.isStarted() ?? false).toString(),
-							})
-							recoveryConfirmationStageFree?.complete()
-						}
-
 						this.close(attrs.data, this.dom)
 					},
 				}),
@@ -91,11 +73,6 @@ export class UpgradeCongratulationsPageAttrs implements WizardPageAttrs<UpgradeS
 
 	nextAction(showDialogs: boolean): Promise<boolean> {
 		// next action not available for this page
-		return Promise.resolve(true)
-	}
-
-	prevAction(showErrorDialog: boolean): Promise<boolean> {
-		SignupFlowUsageTestController.deletePing(SignupFlowStage.CONFIRM_PAYMENT)
 		return Promise.resolve(true)
 	}
 

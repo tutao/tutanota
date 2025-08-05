@@ -9,7 +9,7 @@ import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUt
 import { showPasswordGeneratorDialog } from "../misc/passwords/PasswordGeneratorDialog.js"
 import { theme } from "../gui/theme.js"
 import { px, size } from "../gui/size.js"
-import { UsageTest, UsageTestController } from "@tutao/tutanota-usagetests"
+import { UsageTestController } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { PasswordField, PasswordFieldAttrs } from "../misc/passwords/PasswordField.js"
@@ -36,8 +36,6 @@ export class PasswordModel {
 	private repeatedPassword = ""
 	private passwordStrength: number
 	private readonly __mailValid: Stream<boolean>
-	private __signupFreeTest?: UsageTest
-	private __signupPaidTest?: UsageTest
 
 	constructor(
 		private readonly usageTestController: UsageTestController,
@@ -48,16 +46,12 @@ export class PasswordModel {
 		this.passwordStrength = this.calculatePasswordStrength()
 
 		this.__mailValid = mailValid ?? stream(false)
-		this.__signupFreeTest = this.usageTestController.getTest("signup.free")
-		this.__signupPaidTest = this.usageTestController.getTest("signup.paid")
 	}
 
 	_checkBothValidAndSendPing() {
 		if (this.getNewPasswordStatus().type === "valid" && this.getRepeatedPasswordStatus().type === "valid") {
 			// Password entry (both passwords entered and valid)
 			// Only the started test's (either free or paid clicked) stage is completed here
-			this.__signupFreeTest?.getStage(3).complete()
-			this.__signupPaidTest?.getStage(2).complete()
 		}
 	}
 
@@ -69,8 +63,6 @@ export class PasswordModel {
 		if (this.__mailValid && this.__mailValid()) {
 			// Email address selection finished (email address is available and clicked in password field)
 			// Only the started test's (either free or paid clicked) stage is completed here
-			this.__signupFreeTest?.getStage(2).complete()
-			this.__signupPaidTest?.getStage(1).complete()
 		}
 
 		this.newPassword = newPassword

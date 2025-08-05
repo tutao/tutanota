@@ -14,7 +14,6 @@ import {
 	PaymentData,
 	PaymentDataResultType,
 	PaymentMethodType,
-	PaymentMethodTypeToName,
 } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { AccountingInfo, Braintree3ds2Request } from "../api/entities/sys/TypeRefs.js"
@@ -31,7 +30,6 @@ import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { locator } from "../api/main/CommonLocator"
 import { Credentials } from "../misc/credentials/Credentials"
 import { SessionType } from "../api/common/SessionType.js"
-import { UsageTest } from "@tutao/tutanota-usagetests"
 import { PaymentInterval } from "./PriceUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener } from "../api/main/EventController.js"
@@ -49,15 +47,9 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	private _availablePaymentMethods: Array<SegmentControlItem<PaymentMethodType>> | null = null
 	private _selectedPaymentMethod: Stream<PaymentMethodType>
 	private dom!: HTMLElement
-	private __signupPaidTest?: UsageTest
-	private __paymentPaypalTest?: UsageTest
 
 	constructor() {
-		this.__signupPaidTest = locator.usageTestController.getTest("signup.paid")
-		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
-
 		this._selectedPaymentMethod = stream()
-
 		this._selectedPaymentMethod.map((method) => neverNull(this._paymentMethodInput).updatePaymentMethod(method))
 	}
 
@@ -167,12 +159,6 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 							).then((success) => {
 								if (success) {
 									// Payment method confirmation (click on next), send selected payment method as an enum
-									const paymentMethodConfirmationStage = this.__signupPaidTest?.getStage(4)
-									paymentMethodConfirmationStage?.setMetric({
-										name: "paymentMethod",
-										value: PaymentMethodTypeToName[a.data.paymentData.paymentMethod],
-									})
-									paymentMethodConfirmationStage?.complete()
 									emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 								}
 							}),

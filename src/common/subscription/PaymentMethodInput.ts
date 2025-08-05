@@ -52,7 +52,6 @@ export class PaymentMethodInput {
 			payPalRequestUrl,
 			accountingInfo: this._accountingInfo,
 		}
-		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
 
 		this._entityEventListener = (updates) => {
 			return promiseMap(updates, (update) => {
@@ -223,12 +222,6 @@ type PaypalAttrs = {
 }
 
 class PaypalInput {
-	private __paymentPaypalTest?: UsageTest
-
-	constructor() {
-		this.__paymentPaypalTest = locator.usageTestController.getTest("payment.paypal")
-	}
-
 	view(vnode: Vnode<PaypalAttrs>): Children {
 		let attrs = vnode.attrs
 		return [
@@ -244,7 +237,6 @@ class PaypalInput {
 					icon: m(".payment-logo.flex", m.trust(PayPalLogo)),
 					class: "border border-radius bg-white button-height plr",
 					onclick: () => {
-						this.__paymentPaypalTest?.getStage(1).complete()
 						if (attrs.payPalRequestUrl.isLoaded()) {
 							window.open(attrs.payPalRequestUrl.getLoaded())
 						} else {
