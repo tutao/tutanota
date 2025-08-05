@@ -999,29 +999,23 @@ impl EventFacade {
 				new_date = new_date
 					.replace_day(new_date.month().length(new_date.year()))
 					.unwrap();
-				new_date = new_date.replace_date(
-					Date::from_iso_week_date(new_date.year(), new_date.iso_week(), parsed_weekday)
-						.unwrap(),
-				);
 
-				let total_weeks = weeks_in_year(new_date.year());
-				let new_week = new_date.iso_week() - week_change.unsigned_abs() + 1;
+				let mut weeks_to_change = week_change.unsigned_abs();
+				while weeks_to_change > 0 {
+					if new_date.weekday() == parsed_weekday {
+						weeks_to_change -= 1;
+					}
 
-				if new_week == 0 || new_week > total_weeks {
-					log::info!(
-						"Calculated week diff ({}) for parsed week number ({}) invalid based on total weeks ({}) for year ({})",
-						new_week,
-						week_change,
-						total_weeks,
-						date.year()
-					);
-					return;
+					if weeks_to_change == 0 {
+						break;
+					}
+
+					new_date = new_date.sub(Duration::days(1));
 				}
 
-				new_date = new_date.replace_date(
-					Date::from_iso_week_date(new_date.year(), new_week, new_date.weekday())
-						.unwrap(),
-				)
+				if new_date.month() != base_date.month() {
+					return;
+				}
 			} else {
 				while new_date.weekday() != parsed_weekday {
 					new_date = new_date.add(Duration::days(1));
@@ -1433,6 +1427,47 @@ mod tests {
 		fn to_date_time(&self) -> DateTime {
 			DateTime::from_millis(self.assume_utc().unix_timestamp().unsigned_abs() * 1000)
 		}
+	}
+
+	#[test]
+	fn test_generate_events_by_month_on_last_friday() {
+		let events_facade = EventFacade {};
+
+		let events = events_facade.create_event_instances(
+			DateTime::from_seconds(1743147215),
+			DateTime::from_seconds(1743161615),
+			EventRepeatRule {
+				frequency: RepeatPeriod::Monthly,
+				by_rules: vec![ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "-1FR".to_string(),
+				}],
+			},
+			1,
+			EndType::Never,
+			None,
+			vec![],
+			None,
+			Some(DateTime::from_seconds(1768908815)),
+			"Europe/Berlin".to_string(),
+		);
+
+		assert_eq!(events.clone().unwrap().iter().len(), 10);
+		assert_eq!(
+			events.unwrap(),
+			[
+				DateTime::from_seconds(1743147215), // Fri Mar 28 2025 07:33:35 GMT+0000
+				DateTime::from_seconds(1745562815), // Fri Apr 25 2025 06:33:35 GMT+0000
+				DateTime::from_seconds(1748586815), // Fri May 30 2025 06:33:35 GMT+0000
+				DateTime::from_seconds(1751006015), // Fri Jun 27 2025 06:33:35 GMT+0000
+				DateTime::from_seconds(1753425215), // Fri Jul 25 2025 06:33:35 GMT+0000
+				DateTime::from_seconds(1756449215), // Fri Aug 29 2025 06:33:35 GMT+0000
+				DateTime::from_seconds(1758868415), // Fri Sep 26 2025 06:33:35 GMT+0000
+				DateTime::from_seconds(1761896015), // Fri Oct 31 2025 07:33:35 GMT+0000
+				DateTime::from_seconds(1764315215), // Fri Nov 28 2025 07:33:35 GMT+0000
+				DateTime::from_seconds(1766734415), // Fri Dec 26 2025 07:33:35 GMT+0000
+			]
+		);
 	}
 
 	#[test]

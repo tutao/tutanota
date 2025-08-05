@@ -267,13 +267,23 @@ function expandByDayRuleForMonthlyEvents(
 
 		// Check for negative week changes e.g -1TH last thursday
 		if (weekChange < 0) {
-			dt = dt
-				.set({ day: dt.daysInMonth })
-				.set({ weekday: targetWeekDay })
-				.minus({ week: Math.abs(weekChange) - 1 })
+			dt = dt.set({ day: dt.daysInMonth })
 
-			if (dt.month > baseDate.month) {
-				dt = dt.minus({ week: 1 })
+			let weeksToChange = Math.abs(weekChange)
+			while (weeksToChange > 0) {
+				if (dt.weekday === targetWeekDay) {
+					weeksToChange -= 1
+				}
+
+				if (weeksToChange === 0) {
+					break
+				}
+
+				dt = dt.minus({ day: 1 })
+			}
+
+			if (dt.month !== baseDate.month) {
+				return
 			}
 		} else {
 			while (dt.weekday != targetWeekDay) {
