@@ -2,16 +2,14 @@ use crate::crypto::key::VersionedAesKey;
 use crate::crypto::Aes256Key;
 use crate::entities::generated::sys::User;
 use crate::GeneratedId;
-use std::collections::HashMap;
-use std::sync::atomic::{AtomicI64, Ordering};
+use std::collections::{BTreeMap, HashMap};
 use std::sync::RwLock;
 
 #[allow(dead_code)]
 pub struct KeyCache {
-	group_keys: RwLock<HashMap<GeneratedId, HashMap<i64, VersionedAesKey>>>,
+	group_keys: RwLock<HashMap<GeneratedId, BTreeMap<i64, VersionedAesKey>>>,
 	current_user_group_key: RwLock<Option<VersionedAesKey>>,
 	user_group_key_distribution_key: RwLock<Option<Aes256Key>>,
-	latest_group_key_version: AtomicI64,
 }
 
 #[cfg_attr(test, mockall::automock)]
@@ -22,7 +20,6 @@ impl KeyCache {
 			group_keys: RwLock::new(HashMap::new()),
 			current_user_group_key: RwLock::new(None),
 			user_group_key_distribution_key: RwLock::new(None),
-			latest_group_key_version: AtomicI64::new(-1),
 		}
 	}
 
@@ -58,23 +55,17 @@ impl KeyCache {
 	}
 
 	pub fn get_current_group_key(&self, group_id: &GeneratedId) -> Option<VersionedAesKey> {
-		self.get_group_key_for_version(
-			group_id,
-			self.latest_group_key_version.load(Ordering::Relaxed),
-		)
+		let lock = self.group_keys.read().unwrap();
+		lock.get(group_id)?
+			.iter()
+			.last()
+			.map(|entry| entry.1.clone())
 	}
 
 	pub fn put_group_key(&self, group_id: &GeneratedId, key: &VersionedAesKey) {
 		let mut lock = self.group_keys.write().unwrap();
-
 		let mut current_keys = lock.entry(group_id.clone()).or_default();
-
 		let key_version = key.version as i64;
-
-		if self.latest_group_key_version.load(Ordering::Relaxed) < key_version {
-			self.latest_group_key_version
-				.store(key_version, Ordering::Relaxed);
-		}
 
 		current_keys.insert(key_version, key.to_owned());
 	}
@@ -151,15 +142,19 @@ mod tests {
 			let first_key_version = 0;
 			let first_key = random_aes256_versioned_key(first_key_version);
 			let second_key = random_aes256_versioned_key(1);
+			let third_key = random_aes256_versioned_key(2);
+			let fourth_key = random_aes256_versioned_key(3);
 
 			let key_cache = KeyCache::new();
-			key_cache.put_group_key(&group._id.clone().unwrap(), &first_key);
 			key_cache.put_group_key(&group._id.clone().unwrap(), &second_key);
+			key_cache.put_group_key(&group._id.clone().unwrap(), &first_key);
+			key_cache.put_group_key(&group._id.clone().unwrap(), &fourth_key);
+			key_cache.put_group_key(&group._id.clone().unwrap(), &third_key);
 
 			let retrieved_key = key_cache
 				.get_current_group_key(&group._id.clone().unwrap())
 				.unwrap();
-			assert_eq!(retrieved_key, second_key);
+			assert_eq!(retrieved_key, fourth_key);
 		}
 	}
 }
