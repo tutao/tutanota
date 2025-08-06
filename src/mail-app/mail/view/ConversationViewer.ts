@@ -199,7 +199,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				: null
 	}
 
-	private renderKeyVerificationErrorIfNeeded(mailViewerviewModel: MailViewerViewModel) {
+	private renderKeyVerificationError(mailViewerviewModel: MailViewerViewModel) {
 		const displayedSender = mailViewerviewModel.getDisplayedSender()
 		if (!displayedSender) {
 			// This is only the case for system notifications.
@@ -210,7 +210,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			return m(
 				".error-container.nds-ptb-l.plr-l.border-radius-top-big.flex.items-start",
 				{},
-				m(Icon, { icon: Icons.BrokenShield, size: IconSize.Medium, class: "mr-l", style: { fill: theme.error } }),
+				m(Icon, { icon: Icons.BrokenShield, size: IconSize.Medium, class: "mr", style: { fill: theme.error } }),
 				m("", [
 					lang.get("keyManagement.verificationError_title") + ". " + lang.get("keyVerificationErrorGeneric_msg") + " ",
 					m(Button, {
@@ -266,7 +266,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
 					},
 				},
-				this.renderKeyVerificationErrorIfNeeded(mailViewerViewModel),
+				this.renderKeyVerificationError(mailViewerViewModel),
 				mailViewerViewModel.isCollapsed()
 					? m(CollapsedMailView, {
 							viewModel: mailViewerViewModel,
