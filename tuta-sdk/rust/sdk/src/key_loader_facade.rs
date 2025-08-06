@@ -84,7 +84,17 @@ impl KeyLoaderFacade {
 			.find_former_group_key(&group, group_key, target_key_version)
 			.await
 		{
-			Ok(former_key) => former_key.symmetric_group_key,
+			Ok(former_key) => {
+				self.key_cache.put_group_key(
+					group_id,
+					&VersionedAesKey {
+						version: target_key_version,
+						object: former_key.symmetric_group_key.clone(),
+					},
+				);
+
+				former_key.symmetric_group_key
+			},
 			Err(e) => return Err(e),
 		};
 
@@ -159,14 +169,6 @@ impl KeyLoaderFacade {
 		if last_version != target_key_version || last_group_key_instance.is_none() {
 			return Err(KeyLoadError { reason: format!("Could not get last version (last version is {last_version} of {retrieved_keys_count} key(s) loaded from list {list_id}") });
 		}
-
-		self.key_cache.put_group_key(
-			&(group._id.clone().unwrap()),
-			&VersionedAesKey {
-				object: last_group_key.clone(),
-				version: last_version,
-			},
-		);
 
 		Ok(FormerGroupKey {
 			symmetric_group_key: last_group_key,
