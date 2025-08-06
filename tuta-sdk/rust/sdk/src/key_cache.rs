@@ -175,6 +175,73 @@ mod tests {
 
 	mod get_current_group_key {
 		use super::*;
+
+		#[test]
+		fn no_saved_key_for_requested_group() {
+			let group_a = generate_random_group(
+				None,
+				GroupKeysRef {
+					_id: Default::default(),
+					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+				},
+			);
+
+			let group_b = generate_random_group(
+				None,
+				GroupKeysRef {
+					_id: Default::default(),
+					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+				},
+			);
+
+			let key_cache = KeyCache::new();
+			let group_a_key = random_aes256_versioned_key(0);
+			key_cache.put_group_key(&group_a._id.clone().unwrap(), &group_a_key);
+
+			let retrieved_key = key_cache.get_current_group_key(&group_b._id.clone().unwrap());
+			assert_eq!(retrieved_key, None);
+		}
+
+		#[test]
+		fn should_retrieve_latest_key_of_each_group() {
+			let group_a = generate_random_group(
+				None,
+				GroupKeysRef {
+					_id: Default::default(),
+					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+				},
+			);
+
+			let group_b = generate_random_group(
+				None,
+				GroupKeysRef {
+					_id: Default::default(),
+					list: GeneratedId("list".to_owned()), // Refers to `former_keys`
+				},
+			);
+
+			let key_cache = KeyCache::new();
+			let group_a_key_old = random_aes256_versioned_key(0);
+			let group_a_key_latest = random_aes256_versioned_key(1);
+			let group_b_key_old = random_aes256_versioned_key(0);
+			let group_b_key_latest = random_aes256_versioned_key(1);
+
+			key_cache.put_group_key(&group_a._id.clone().unwrap(), &group_a_key_old);
+			key_cache.put_group_key(&group_a._id.clone().unwrap(), &group_a_key_latest);
+			key_cache.put_group_key(&group_b._id.clone().unwrap(), &group_b_key_old);
+			key_cache.put_group_key(&group_b._id.clone().unwrap(), &group_b_key_latest);
+
+			let retrieved_key = key_cache
+				.get_current_group_key(&group_a._id.clone().unwrap())
+				.unwrap();
+			assert_eq!(retrieved_key, group_a_key_latest);
+
+			let retrieved_key = key_cache
+				.get_current_group_key(&group_b._id.clone().unwrap())
+				.unwrap();
+			assert_eq!(retrieved_key, group_b_key_latest);
+		}
+
 		#[test]
 		fn should_retrieve_latest_key() {
 			let group = generate_random_group(
