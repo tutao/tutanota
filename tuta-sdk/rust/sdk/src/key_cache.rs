@@ -5,10 +5,22 @@ use crate::GeneratedId;
 use std::collections::{BTreeMap, HashMap};
 use std::sync::RwLock;
 
+/// `KeyCache` is responsible for storing and managing AES encryption keys in memory.
+/// It handles:
+/// - The current user's group encryption key
+/// - A key used to distribute group keys
+/// - A map of group keys indexed by group ID and key version
+///
+/// Internally, it uses `RwLock` to allow concurrent read access and synchronized write access.
 #[allow(dead_code)]
 pub struct KeyCache {
+	/// Stores versioned group keys mapped by their `GeneratedId` and `KeyVersion`.
 	group_keys: RwLock<HashMap<GeneratedId, BTreeMap<i64, VersionedAesKey>>>,
+
+	/// Stores the latest version of the user's group key.
 	current_user_group_key: RwLock<Option<VersionedAesKey>>,
+
+	/// Stores the AES key used to distribute group keys to users.
 	user_group_key_distribution_key: RwLock<Option<Aes256Key>>,
 }
 
@@ -23,28 +35,50 @@ impl KeyCache {
 		}
 	}
 
+	/// Sets the current user group key if it's newer or equal to the current one.
+	/// Logs a warning if an outdated key is attempted to be set.
+	///
+	/// # Arguments
+	/// * `new_user_group_key` - The new group key to set for the current user.
 	pub fn set_current_user_group_key(&self, new_user_group_key: VersionedAesKey) {
 		let mut current_user_group_key_lock = self.current_user_group_key.write().unwrap();
 		match current_user_group_key_lock.as_ref() {
 			Some(current_user_group_key)
 				if current_user_group_key.version > new_user_group_key.version =>
 			{
-				log::warn!("Tried to set an outdated user group key with version {}; current user group key version: {}", new_user_group_key.version, current_user_group_key.version);
+				log::warn!(
+                    "Tried to set an outdated user group key with version {}; current user group key version: {}",
+                    new_user_group_key.version,
+                    current_user_group_key.version
+                );
 			},
 			_ => *current_user_group_key_lock = Some(new_user_group_key),
 		};
 	}
 
+	/// Retrieves the current user group key, if any.
 	pub fn get_current_user_group_key(&self) -> Option<VersionedAesKey> {
 		let referenced = self.current_user_group_key.read().unwrap();
 		referenced.clone()
 	}
 
+	/// Sets the key used to distribute user group keys.
+	///
+	/// # Arguments
+	/// * `user_group_key_distribution_key` - A 256-bit AES key used for key distribution.
 	pub fn set_user_group_key_distribution_key(&self, user_group_key_distribution_key: Aes256Key) {
 		*self.user_group_key_distribution_key.write().unwrap() =
 			Some(user_group_key_distribution_key);
 	}
 
+	/// Retrieves a specific group key by `group_id` and `version`.
+	///
+	/// # Arguments
+	/// * `group_id` - The identifier for the group.
+	/// * `version` - The version of the key to retrieve.
+	///
+	/// # Returns
+	/// The `VersionedAesKey` if found, otherwise `None`.
 	pub fn get_group_key_for_version(
 		&self,
 		group_id: &GeneratedId,
@@ -54,6 +88,13 @@ impl KeyCache {
 		lock.get(group_id)?.get(&version).cloned()
 	}
 
+	/// Retrieves the latest (highest version) key for the given group.
+	///
+	/// # Arguments
+	/// * `group_id` - The identifier for the group.
+	///
+	/// # Returns
+	/// The most recent `VersionedAesKey` if available, otherwise `None`.
 	pub fn get_current_group_key(&self, group_id: &GeneratedId) -> Option<VersionedAesKey> {
 		let lock = self.group_keys.read().unwrap();
 		lock.get(group_id)?
@@ -62,9 +103,14 @@ impl KeyCache {
 			.map(|entry| entry.1.clone())
 	}
 
+	/// Inserts a new versioned group key into the cache for the given `group_id`.
+	///
+	/// # Arguments
+	/// * `group_id` - The identifier for the group.
+	/// * `key` - The versioned AES key to insert.
 	pub fn put_group_key(&self, group_id: &GeneratedId, key: &VersionedAesKey) {
 		let mut lock = self.group_keys.write().unwrap();
-		let mut current_keys = lock.entry(group_id.clone()).or_default();
+		let current_keys = lock.entry(group_id.clone()).or_default();
 		let key_version = key.version as i64;
 
 		current_keys.insert(key_version, key.to_owned());
