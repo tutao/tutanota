@@ -9,6 +9,7 @@ import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { SenderKeyVerificationRecoveryModel } from "../../../misc/SenderKeyVerificationRecoveryModel"
 import { Icon, IconSize } from "../../../gui/base/Icon"
+import { OutlineButton } from "../../../gui/base/buttons/OutlineButton"
 
 type VerificationErrorInfoPageAttrs = {
 	model: SenderKeyVerificationRecoveryModel
@@ -29,13 +30,20 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 			m(TitleSection, {
 				title,
 				subTitle,
-				icon: Icons.CloseCircleOutline,
+				icon: Icons.BrokenShield,
 				iconOptions: { color: theme.error },
 			}),
 			m(
 				Card,
 				m(".plr.flex.flex-column.gap-vpad", [
-					m("", m.trust(lang.get("keyVerificationErrorWarning_msg"))),
+					m(
+						"",
+						m.trust(
+							lang.get("keyVerificationErrorWarning_msg", {
+								"{mailAddress}": vnode.attrs.model.getSenderAddress(),
+							}),
+						),
+					),
 					m(".b.mt", lang.get("keyVerificationErrorRecommendation_title")),
 					m("", m.trust(lang.get("keyVerificationErrorRecommendation_msg"))),
 					m(ExternalLink, {
@@ -47,10 +55,10 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 			),
 			m(LoginButton, {
 				class: "flex-center row center-vertically",
-				label: "reject_action",
+				label: lang.makeTranslation("reject_recommended", `${lang.get("reject_action")} (${lang.get("recommended_action")})`),
 				onclick: async () => vnode.attrs.goToRejectPage(),
 				icon: m(Icon, {
-					icon: Icons.XCross,
+					icon: Icons.XCheckmark,
 					size: IconSize.Large,
 					class: "mr-s flex-center",
 					style: {
@@ -58,18 +66,12 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 					},
 				}),
 			}),
-			m(LoginButton, {
-				class: "flex-center row center-vertically",
+			m(OutlineButton, {
 				label: "accept_action",
 				onclick: async () => {
 					await vnode.attrs.model.acceptAndLoadNewKey()
 					vnode.attrs.goToAcceptPage()
 				},
-				icon: m(Icon, {
-					icon: Icons.XCheckmark,
-					size: IconSize.Large,
-					class: "mr-s flex-center",
-				}),
 			}),
 		])
 	}

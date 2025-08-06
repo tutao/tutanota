@@ -1,13 +1,12 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { lang, TranslationKey, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
+import { lang, MaybeTranslation, TranslationKey } from "../../../misc/LanguageViewModel.js"
 import { ClickHandler } from "../GuiUtils.js"
 import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
-import { theme } from "../../theme.js"
 
 export interface OutlineButtonAttrs {
 	label: TranslationKey
 	text?: MaybeTranslation
-	click?: ClickHandler
+	onclick?: ClickHandler
 	disabled?: boolean
 	expanded?: boolean
 }
@@ -17,9 +16,9 @@ export interface OutlineButtonAttrs {
  * @see Component attributes: {OutlineButtonAttrs}
  * @example
  * m(OutlineButton, {
- * 	   label: button.label,
- * 	   click: button.click,
- * 	   disabled: button.isReadOnly,
+ *       label: button.label,
+ *       click: button.click,
+ *       disabled: button.isReadOnly,
  * }),
  */
 export class OutlineButton implements ClassComponent<OutlineButtonAttrs> {
@@ -27,19 +26,18 @@ export class OutlineButton implements ClassComponent<OutlineButtonAttrs> {
 		return m(BaseButton, {
 			label: attrs.label,
 			text: attrs.text ? lang.getTranslationText(attrs.text) : lang.getTranslationText(attrs.label),
-			onclick: attrs.click,
+			onclick: attrs.onclick,
 			disabled: attrs.disabled,
-			style: {
-				borderColor: theme.content_message_bg,
-				color: theme.content_button,
-			},
 			class: this.resolveClasses(attrs.expanded, attrs.disabled),
 		} as BaseButtonAttrs)
 	}
 
 	private resolveClasses(expanded: boolean = true, disabled: boolean = false) {
 		let classes = [
-			"tutaui-button-outline",
+			"button-content",
+			"border-accent",
+			"border-radius",
+			"plr-button",
 			"limit-width",
 			"noselect",
 			"bg-transparent",

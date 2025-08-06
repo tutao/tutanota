@@ -244,7 +244,7 @@ styles.registerStyle("main", () => {
 			"border-color": theme.tuta_color_nota,
 		},
 		".border-accent": {
-			"border-color": theme.content_accent,
+			border: `${px(1)} solid ${theme.content_accent}`,
 		},
 		".border-sm": {
 			"border-style": "solid",

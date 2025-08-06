@@ -35,7 +35,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 			m(TitleSection, {
 				title,
 				subTitle: "",
-				icon: Icons.CloseCircleOutline,
+				icon: Icons.BrokenShield,
 				iconOptions: { color: theme.error },
 			}),
 			m(

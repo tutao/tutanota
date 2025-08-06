@@ -9,6 +9,7 @@ import { RecipientKeyVerificationRecoveryModel } from "../../../misc/RecipientKe
 import { Card } from "../../../gui/base/Card"
 import { ExternalLink } from "../../../gui/base/ExternalLink"
 import { Icon, IconSize } from "../../../gui/base/Icon"
+import { OutlineButton } from "../../../gui/base/buttons/OutlineButton"
 
 type VerificationErrorInfoPageAttrs = {
 	model: RecipientKeyVerificationRecoveryModel
@@ -30,8 +31,6 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 			m(TitleSection, {
 				title,
 				subTitle,
-				icon: Icons.AlertCircleOutline,
-				iconOptions: { color: theme.warning },
 			}),
 			m(
 				Card,
@@ -56,13 +55,12 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 					class: "mr-s flex-center",
 				}),
 			}),
-			m(LoginButton, {
+			m(OutlineButton, {
 				label: "accept_action",
 				onclick: async () => {
 					await vnode.attrs.model.acceptAndLoadNewKey()
 					vnode.attrs.goToAcceptPage()
 				},
-				discouraged: true,
 			}),
 		])
 	}
