@@ -940,7 +940,20 @@ var BotDetector = /** @class */ (function () {
  * Sends an unpersonalized AJAX request to collect installation statistics
  */
 function monitor() {
-    // intentional noOp: patched out telemetry
+    // The FingerprintJS CDN (https://github.com/fingerprintjs/cdn) replaces `window.__fpjs_d_m` with `true`
+    if (window.__fpjs_d_m || Math.random() >= 0.001) {
+        return;
+    }
+    try {
+        var request = new XMLHttpRequest();
+        request.open('get', "https://m1.openfpcdn.io/botd/v".concat(version, "/npm-monitoring"), true);
+        request.send();
+    }
+    catch (error) {
+        // console.error is ok here because it's an unexpected error handler
+        // eslint-disable-next-line no-console
+        console.error(error);
+    }
 }
 function load(_a) {
     var _b = _a === void 0 ? {} : _a, _c = _b.monitoring, monitoring = _c === void 0 ? true : _c;

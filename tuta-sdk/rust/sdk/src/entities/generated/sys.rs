@@ -6197,6 +6197,10 @@ pub struct TimelockCaptchaGetIn {
 	pub _format: i64,
 	#[serde(rename = "2631")]
 	pub signupToken: String,
+	#[serde(rename = "2644")]
+	pub isCalibrationChallenge: Option<bool>,
+	#[serde(rename = "2645")]
+	pub timeToSolveCalibrationChallenge: Option<i64>,
 	#[serde(rename = "2643")]
 	pub deviceInfo: Option<ClientPerformanceInfo>,
 }

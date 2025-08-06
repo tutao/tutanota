@@ -14,6 +14,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 import { PowChallengeParameters } from "../ProofOfWorkCaptchaUtils.js"
 import { showCaptchaDialog } from "./CaptchaDialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
+import { PowSolution } from "../../api/common/pow-worker"
 import { client } from "../../misc/ClientDetector.js"
 
 function trackPromiseResolved<T>(promise: Promise<T>) {
@@ -36,7 +37,7 @@ export async function runCaptchaFlow(
 	isBusinessUse: boolean,
 	isPaidSubscription: boolean,
 	campaignToken: string | null,
-	powChallengeSolution: Promise<bigint>,
+	powChallengeSolution: Promise<PowSolution>,
 	// isPowChallengeSolved: boolean,
 ): Promise<string | null> {
 	// We don't want to show the progressDialog if pow challenge is already solved.
@@ -48,11 +49,17 @@ export async function runCaptchaFlow(
 	const resolved = trackPromiseResolved(powChallengeSolution)
 	return Promise.resolve().then(async () => {
 		let solution: bigint | undefined
+		let timeToSolveCalibrationChallenge: number | undefined
 		if (resolved.state) {
-			solution = await powChallengeSolution
+			const challengeSolution = await powChallengeSolution
+			solution = challengeSolution.solution
+			timeToSolveCalibrationChallenge = challengeSolution.timeToSolve
 		} else {
-			solution = await showProgressDialog("captchaChecking_msg", powChallengeSolution)
+			const challengeSolution = await showProgressDialog("captchaChecking_msg", powChallengeSolution)
+			solution = challengeSolution.solution
+			timeToSolveCalibrationChallenge = challengeSolution.timeToSolve
 		}
+		console.log("Real challenge: ", solution, timeToSolveCalibrationChallenge)
 
 		let captchaReturn
 		try {
@@ -71,7 +78,7 @@ export async function runCaptchaFlow(
 			)
 		} catch (e) {
 			if (e instanceof AccessExpiredError) {
-				const powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken())
+				const powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken(), timeToSolveCalibrationChallenge)
 				return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken, powChallengeSolution)
 			}
 			if (e instanceof AccessDeactivatedError) {
@@ -112,7 +119,7 @@ export function solvePowChallengeInWorker(serviceReturn: TimelockCaptchaGetOut) 
 
 	const { prefixWithoutFile } = window.tutao.appState
 	const worker = new Worker(prefixWithoutFile + "/pow-worker.js", { type: "module" })
-	const { promise, resolve, reject } = defer<bigint>()
+	const { promise, resolve, reject } = defer<PowSolution>()
 
 	worker.onmessage = (msg) => {
 		if (msg.data === "ready") {
@@ -129,8 +136,26 @@ export function solvePowChallengeInWorker(serviceReturn: TimelockCaptchaGetOut) 
 	return promise
 }
 
-export async function runPowChallenge(signupToken: string): Promise<bigint> {
-	const data = createTimelockCaptchaGetIn({ signupToken, deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: client.isAutomatedBrowser }) })
+export async function runPowChallenge(signupToken: string, timeToSolveCalibrationChallenge: number): Promise<PowSolution> {
+	const data = createTimelockCaptchaGetIn({
+		signupToken,
+		deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: client.isAutomatedBrowser }),
+		isCalibrationChallenge: false,
+		timeToSolveCalibrationChallenge: timeToSolveCalibrationChallenge.toString(),
+	})
 	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data)
+	console.log(ret)
+	return solvePowChallengeInWorker(ret)
+}
+
+export async function runCalibrationChallenge(signupToken: string): Promise<PowSolution> {
+	const data = createTimelockCaptchaGetIn({
+		signupToken,
+		deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: client.isAutomatedBrowser }),
+		isCalibrationChallenge: true,
+		timeToSolveCalibrationChallenge: null,
+	})
+	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data)
+	console.log(ret)
 	return solvePowChallengeInWorker(ret)
 }

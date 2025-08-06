@@ -21,7 +21,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError"
 import { locator } from "../api/main/CommonLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
-import { runCaptchaFlow, runPowChallenge } from "./captcha/Captcha.js"
+import { runCalibrationChallenge, runCaptchaFlow, runPowChallenge } from "./captcha/Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
@@ -29,7 +29,7 @@ import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import { client } from "../misc/ClientDetector"
 import { SubscriptionApp } from "./SubscriptionUtils"
 import { deviceConfig } from "../misc/DeviceConfig"
-import { SessionType } from "../api/common/SessionType"
+import { PowSolution, SessionType } from "../api/common/SessionType"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -54,7 +54,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private _isMailVerificationBusy: boolean
 	private readonly __mailValid: Stream<boolean>
 	private readonly __lastMailValidationError: Stream<TranslationKey | null>
-	private powChallengeSolution: Promise<bigint>
+	// FIXME
+	private powChallengeSolution: Promise<PowSolution> | undefined
 
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 		? TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS
@@ -88,7 +89,12 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this._code = stream("")
 		this._isMailVerificationBusy = false
 		this._mailAddressFormErrorId = "mailAddressNeutral_msg"
-		this.powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken())
+	}
+
+	async oninit() {
+		const calibrationChallenge = await runCalibrationChallenge(deviceConfig.getSignupToken())
+		console.log("Calibration Challenge: ", calibrationChallenge.timeToSolve)
+		this.powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken(), calibrationChallenge.timeToSolve)
 	}
 
 	view(vnode: Vnode<SignupFormAttrs>): Children {
@@ -163,7 +169,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 						a.isBusinessUse(),
 						a.isPaidSubscription(),
 						a.campaign(),
-						this.powChallengeSolution,
+						this.powChallengeSolution!,
 					).then((newAccountData) => {
 						if (newAccountData != null) {
 							a.onComplete({ type: "success", newAccountData })
@@ -234,7 +240,7 @@ async function signup(
 	isBusinessUse: boolean,
 	isPaidSubscription: boolean,
 	campaign: string | null,
-	powChallengeSolution: Promise<bigint>,
+	powChallengeSolution: Promise<PowSolution>,
 ): Promise<NewAccountData | void> {
 	const { customerFacade, logins, identityKeyCreator } = locator
 	const operation = locator.operationProgressTracker.startNewOperation()
