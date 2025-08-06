@@ -1258,8 +1258,6 @@ pub struct EntityUpdate {
 	pub _id: Option<CustomId>,
 	#[serde(rename = "464")]
 	pub application: String,
-	#[serde(rename = "465")]
-	pub r#type: String,
 	#[serde(rename = "466")]
 	pub instanceListId: String,
 	#[serde(rename = "467")]
@@ -1267,7 +1265,7 @@ pub struct EntityUpdate {
 	#[serde(rename = "624")]
 	pub operation: i64,
 	#[serde(rename = "2556")]
-	pub typeId: Option<i64>,
+	pub typeId: i64,
 	#[serde(rename = "2617")]
 	pub instance: Option<String>,
 	#[serde(rename = "2618")]
