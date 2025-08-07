@@ -29,8 +29,9 @@ import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import { client } from "../misc/ClientDetector"
 import { SubscriptionApp } from "./SubscriptionUtils"
 import { deviceConfig } from "../misc/DeviceConfig"
-import { PowSolution, SessionType } from "../api/common/SessionType"
+import { SessionType } from "../api/common/SessionType"
 import { showErrorNotification } from "../misc/ErrorReporter"
+import { PowSolution } from "../api/common/pow-worker"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -255,13 +256,13 @@ async function signup(
 	const operation = locator.operationProgressTracker.startNewOperation()
 	const signupActionPromise = customerFacade.generateSignupKeys(operation.id).then(async (keyPairs) => {
 		const regDataId = await runCaptchaFlow({
-				mailAddress,
-				isBusinessUse,
-				isPaidSubscription,
-				campaignToken,
-				powChallengeSolution,
-				timeToSolveCalibrationChallenge,
-			})
+			mailAddress,
+			isBusinessUse,
+			isPaidSubscription,
+			campaignToken,
+			powChallengeSolution,
+			timeToSolveCalibrationChallenge,
+		})
 		if (regDataId) {
 			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 			const recoverCode = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)
