@@ -28,6 +28,7 @@ import {
 	CALENDAR_EVENT_HEIGHT,
 	changePeriodOnWheel,
 	EventLayoutMode,
+	extractCalendarEventModifierKey,
 	getCalendarMonth,
 	getDateFromMousePos,
 	getEventColor,
@@ -44,7 +45,7 @@ import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsReposi
 import { isAppleDevice, isIOSApp } from "../../../common/api/common/Env"
 import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
-import { Key } from "../../../common/misc/KeyManager.js"
+import { isModifierKeyPressed, Key } from "../../../common/misc/KeyManager.js"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -84,6 +85,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	private eventDragHandler: EventDragHandler
 	private dayUnderMouse: Date | null = null
 	private lastMousePos: MousePos | null = null
+	private lastKey?: Key
 
 	constructor({ attrs }: Vnode<CalendarMonthAttrs>) {
 		this.resizeListener = m.redraw
@@ -95,10 +97,38 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 	oncreate() {
 		windowFacade.addResizeListener(this.resizeListener)
+		document.addEventListener("keydown", this.handleKeyDown)
+		document.addEventListener("keyup", this.handleKeyUp)
 	}
 
 	onremove() {
 		windowFacade.removeResizeListener(this.resizeListener)
+		document.removeEventListener("keydown", this.handleKeyDown)
+		document.removeEventListener("keyup", this.handleKeyUp)
+	}
+
+	handleKeyDown = (e: KeyboardEvent) => {
+		const key = extractCalendarEventModifierKey(e)
+		if (key) {
+			this.lastKey = undefined
+			this.eventDragHandler.pressedDragKey = key
+			m.redraw()
+		}
+	}
+
+	handleKeyUp = (e: KeyboardEvent) => {
+		if (isModifierKeyPressed(e.key)) {
+			this.lastKey = this.eventDragHandler.pressedDragKey
+			this.eventDragHandler.pressedDragKey = undefined
+			m.redraw()
+		}
+	}
+
+	resolveClasses = (isDesktopLayout: boolean) => {
+		const dragClass = this.eventDragHandler.isDragging && isModifierKeyPressed(this.eventDragHandler.pressedDragKey) ? "drag-mod-key" : ""
+		const desktopClass = ""
+
+		return [desktopClass, dragClass].join(" ")
 	}
 
 	view({ attrs }: Vnode<CalendarMonthAttrs>): Children {
@@ -186,7 +216,13 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			this.lastHeight = dom.offsetHeight
 		}
 
-		return different || this.eventDragHandler.queryHasChanged()
+		return different || this.eventDragHandler.queryHasChanged() || this.eventDragHandler.pressedDragKey !== this.lastKey
+	}
+
+	onupdate() {
+		if (!this.eventDragHandler.pressedDragKey) {
+			this.lastKey = this.eventDragHandler.pressedDragKey
+		}
 	}
 
 	private renderCalendar(attrs: CalendarMonthAttrs, month: CalendarMonth, currentlyVisibleMonth: CalendarMonth, zone: string): Children {
@@ -195,6 +231,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		return m(
 			".fill-absolute.flex.col.flex-grow",
 			{
+				class: this.resolveClasses(false),
 				oncreate: (vnode) => {
 					if (isVisible) {
 						this.monthDom = vnode.dom as HTMLElement

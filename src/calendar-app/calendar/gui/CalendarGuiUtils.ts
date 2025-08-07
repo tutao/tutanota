@@ -58,6 +58,7 @@ import {
 	defaultCalendarColor,
 	EndType,
 	EventTextTimeOption,
+	Keys,
 	RepeatPeriod,
 	ShareCapability,
 	Weekday,
@@ -90,6 +91,8 @@ import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
+import { Key } from "../../../common/misc/KeyManager.js"
+import { isAppleDevice } from "../../../common/api/common/Env.js"
 
 export interface IntervalOption {
 	value: number
@@ -1093,4 +1096,27 @@ export function renderCalendarColor(selectedCalendar: CalendarInfo | null, group
 			background: color ? "#" + color : "transparent",
 		},
 	})
+}
+
+/**
+ * Extracts the platform-specific modifier key (Command ⌘ on Apple devices, or Control on others) from a mouse or keyboard event.
+ *
+ * @template T - A type that extends either `MouseEvent` or `KeyboardEvent`.
+ * @param {T & { redraw?: boolean }} event - The event object, optionally extended with a `redraw` property.
+ * @returns {Key | undefined} - Returns the appropriate modifier key if it's active during the event; otherwise, `undefined`.
+ *
+ * @example
+ * const modifier = extractCalendarEventModifierKey(event);
+ * if (modifier === Keys.META) {
+ *   // Handle macOS modifier logic
+ * }
+ */
+export function extractCalendarEventModifierKey<T extends MouseEvent | KeyboardEvent>(event: T & { redraw?: boolean }): Key | undefined {
+	let key
+	if (event.metaKey && isAppleDevice()) {
+		key = Keys.META
+	} else if (event.ctrlKey) {
+		key = Keys.CTRL
+	}
+	return key
 }

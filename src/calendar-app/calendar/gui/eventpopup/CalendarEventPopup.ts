@@ -158,7 +158,7 @@ export class CalendarEventPopup implements ModalComponent {
 
 	private renderDuplicateButton(): Children {
 		if (!this.model.canEdit) return null
-		return m(IconButton, { title: "duplicateEvent_label", icon: Icons.Copy, click: this.handleCloneButtonClick })
+		return m(IconButton, { title: "duplicateEvent_label", icon: Icons.Duplicate, click: this.handleCloneButtonClick })
 	}
 
 	private renderEditButton(): Children {

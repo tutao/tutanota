@@ -302,4 +302,29 @@ export enum ShortcutType {
 	NORMAL,
 }
 
+/**
+ * Determines whether the given key corresponds to a modifier key (Command ⌘ on Apple devices, or Control on others),
+ * and checks if that modifier key is pressed based on the current platform.
+ *
+ * @param {Key | string | undefined} key - The key to check. This can be a `Key` enum or a string representing the key code.
+ * @returns {boolean} - Returns `true` if the key is the correct modifier key for the platform; otherwise, `false`.
+ *
+ * @example
+ * isModifierKeyPressed(Keys.META); // true on macOS if Command key is pressed
+ * isModifierKeyPressed('Control'); // true on Windows if Control key is pressed
+ */
+export function isModifierKeyPressed(key?: Key | string) {
+	if (!key) {
+		return false
+	}
+
+	const parsedKey = typeof key === "string" ? Object.values(Keys).find((k) => k.code.toLowerCase() === key.toLowerCase()) : key
+
+	if (!parsedKey) {
+		return false
+	}
+
+	return isAppleDevice() ? parsedKey === Keys.META : parsedKey === Keys.CTRL
+}
+
 export const keyManager: KeyManager = new KeyManager()
