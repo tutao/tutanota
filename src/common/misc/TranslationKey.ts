@@ -2089,3 +2089,4 @@ export type TranslationKeyType =
 	| "deleteThisAndFutureOccurrencesConfirmation_msg"
 	| "duplicateEvent_label"
 	| "addComment_label"
+	| "copyOf_title"

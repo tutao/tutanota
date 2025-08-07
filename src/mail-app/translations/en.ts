@@ -2109,6 +2109,7 @@ export default {
 		"deleteThisAndFutureOccurrences_action": "Delete this and future events",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Are you sure you want to delete this and all future events?",
 		"duplicateEvent_label": "Duplicate this event",
-		"addComment_label": "Add comment"
+		"addComment_label": "Add comment",
+		"copyOf_title": "Copy of {title}"
 	}
 }
