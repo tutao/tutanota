@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { Notifier } from "@indutny/simple-windows-notifications"
+import type { Notifier } from "@indutny/simple-windows-notifications"
 import { WindowsNotificationFactory } from "../../../../src/common/desktop/notifications/WindowsNotificationFactory"
 import { matchers, object, verify } from "testdouble"
 import { TUTA_PROTOCOL_NOTIFICATION_ACTION } from "../../../../src/common/desktop/DesktopUtils"
