@@ -32,14 +32,21 @@ function trackPromiseResolved<T>(promise: Promise<T>) {
  * TODO:
  *  * Refactor token usage
  */
-export async function runCaptchaFlow(
-	mailAddress: string,
-	isBusinessUse: boolean,
-	isPaidSubscription: boolean,
-	campaignToken: string | null,
-	powChallengeSolution: Promise<PowSolution>,
-	// isPowChallengeSolved: boolean,
-): Promise<string | null> {
+export async function runCaptchaFlow({
+	mailAddress,
+	isBusinessUse,
+	isPaidSubscription,
+	campaignToken,
+	powChallengeSolution,
+	timeToSolveCalibrationChallenge,
+}: {
+	mailAddress: string
+	isBusinessUse: boolean
+	isPaidSubscription: boolean
+	campaignToken: string | null
+	powChallengeSolution: Promise<PowSolution>
+	timeToSolveCalibrationChallenge: number
+}): Promise<string | null> {
 	// We don't want to show the progressDialog if pow challenge is already solved.
 	// To do that, we have to check if the pow challenge promise is already settled.
 	// JS does not natively support this.
@@ -49,17 +56,17 @@ export async function runCaptchaFlow(
 	const resolved = trackPromiseResolved(powChallengeSolution)
 	return Promise.resolve().then(async () => {
 		let solution: bigint | undefined
-		let timeToSolveCalibrationChallenge: number | undefined
+		let timeToSolvePoW: number | undefined
 		if (resolved.state) {
 			const challengeSolution = await powChallengeSolution
 			solution = challengeSolution.solution
-			timeToSolveCalibrationChallenge = challengeSolution.timeToSolve
+			timeToSolvePoW = challengeSolution.timeToSolve
 		} else {
 			const challengeSolution = await showProgressDialog("captchaChecking_msg", powChallengeSolution)
 			solution = challengeSolution.solution
-			timeToSolveCalibrationChallenge = challengeSolution.timeToSolve
+			timeToSolvePoW = challengeSolution.timeToSolve
 		}
-		console.log("Real challenge: ", solution, timeToSolveCalibrationChallenge)
+		console.log("Real challenge: ", solution, timeToSolvePoW)
 
 		let captchaReturn
 		try {
@@ -79,7 +86,14 @@ export async function runCaptchaFlow(
 		} catch (e) {
 			if (e instanceof AccessExpiredError) {
 				const powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken(), timeToSolveCalibrationChallenge)
-				return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken, powChallengeSolution)
+				return runCaptchaFlow({
+					mailAddress,
+					isBusinessUse,
+					isPaidSubscription,
+					campaignToken,
+					powChallengeSolution,
+					timeToSolveCalibrationChallenge,
+				})
 			}
 			if (e instanceof AccessDeactivatedError) {
 				await Dialog.message("createAccountAccessDeactivated_msg")
@@ -96,7 +110,14 @@ export async function runCaptchaFlow(
 			} catch (e) {
 				if (e instanceof InvalidDataError) {
 					await Dialog.message("createAccountInvalidCaptcha_msg")
-					return runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaignToken, powChallengeSolution)
+					return runCaptchaFlow({
+						mailAddress,
+						isBusinessUse,
+						isPaidSubscription,
+						campaignToken,
+						powChallengeSolution,
+						timeToSolveCalibrationChallenge,
+					})
 				} else if (e instanceof AccessExpiredError) {
 					await Dialog.message("createAccountAccessDeactivated_msg")
 					return null

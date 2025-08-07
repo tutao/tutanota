@@ -30,6 +30,7 @@ import { client } from "../misc/ClientDetector"
 import { SubscriptionApp } from "./SubscriptionUtils"
 import { deviceConfig } from "../misc/DeviceConfig"
 import { PowSolution, SessionType } from "../api/common/SessionType"
+import { showErrorNotification } from "../misc/ErrorReporter"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -37,7 +38,7 @@ export type SignupFormAttrs = {
 	onChangePlan: () => void
 	isBusinessUse: lazy<boolean>
 	isPaidSubscription: lazy<boolean>
-	campaign: lazy<string | null>
+	campaignToken: lazy<string | null>
 	// only used if readonly is true
 	prefilledMailAddress?: string | undefined
 	readonly: boolean
@@ -54,8 +55,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private _isMailVerificationBusy: boolean
 	private readonly __mailValid: Stream<boolean>
 	private readonly __lastMailValidationError: Stream<TranslationKey | null>
-	// FIXME
-	private powChallengeSolution: Promise<PowSolution> | undefined
+	private timeToSolveCalibrationChallenge?: number
+	private powChallengeSolution?: Promise<PowSolution>
 
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 		? TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS
@@ -94,6 +95,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	async oninit() {
 		const calibrationChallenge = await runCalibrationChallenge(deviceConfig.getSignupToken())
 		console.log("Calibration Challenge: ", calibrationChallenge.timeToSolve)
+		this.timeToSolveCalibrationChallenge = calibrationChallenge.timeToSolve
 		this.powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken(), calibrationChallenge.timeToSolve)
 	}
 
@@ -168,8 +170,9 @@ export class SignupForm implements Component<SignupFormAttrs> {
 						this._code(),
 						a.isBusinessUse(),
 						a.isPaidSubscription(),
-						a.campaign(),
-						this.powChallengeSolution!,
+						a.campaignToken(),
+						this.powChallengeSolution, // FIXME
+						this.timeToSolveCalibrationChallenge, // FIXME
 					).then((newAccountData) => {
 						if (newAccountData != null) {
 							a.onComplete({ type: "success", newAccountData })
@@ -239,13 +242,26 @@ async function signup(
 	registrationCode: string,
 	isBusinessUse: boolean,
 	isPaidSubscription: boolean,
-	campaign: string | null,
-	powChallengeSolution: Promise<PowSolution>,
+	campaignToken: string | null,
+	powChallengeSolution?: Promise<PowSolution>,
+	timeToSolveCalibrationChallenge?: number,
 ): Promise<NewAccountData | void> {
 	const { customerFacade, logins, identityKeyCreator } = locator
+
+	if (!powChallengeSolution || !timeToSolveCalibrationChallenge) {
+		showErrorNotification({ name: "Error", message: "Calibration Challenge not solved" })
+		return Promise.resolve()
+	}
 	const operation = locator.operationProgressTracker.startNewOperation()
 	const signupActionPromise = customerFacade.generateSignupKeys(operation.id).then(async (keyPairs) => {
-		const regDataId = await runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign, powChallengeSolution)
+		const regDataId = await runCaptchaFlow({
+				mailAddress,
+				isBusinessUse,
+				isPaidSubscription,
+				campaignToken,
+				powChallengeSolution,
+				timeToSolveCalibrationChallenge,
+			})
 		if (regDataId) {
 			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 			const recoverCode = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)
