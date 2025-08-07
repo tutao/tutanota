@@ -48,7 +48,7 @@ import { DesktopWebauthnFacade } from "./2fa/DesktopWebauthnFacade.js"
 import { DesktopPostLoginActions } from "./DesktopPostLoginActions.js"
 import { DesktopInterWindowEventFacade } from "./ipc/DesktopInterWindowEventFacade.js"
 import { OfflineDbFactory, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
-import { delay, lazyAsync, LazyLoaded, lazyMemoized } from "@tutao/tutanota-utils"
+import { LazyLoaded, lazyMemoized } from "@tutao/tutanota-utils"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
@@ -78,6 +78,7 @@ import { DesktopExportLock } from "./export/DesktopExportLock"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
 import { ClientModelInfo } from "../api/common/EntityFunctions"
+import { CommandExecutor } from "./CommandExecutor"
 
 mp()
 
@@ -285,8 +286,18 @@ async function createComponents(): Promise<Components> {
 		nativeInstancePipeline,
 		clientModelInfo,
 	)
+	const commandExecutor = new CommandExecutor(child_process)
+
 	// It should be ok to await this, all we are waiting for is dynamic imports
-	const integrator = await getDesktopIntegratorForPlatform(electron, fs, child_process, () => import("winreg"))
+	const integrator = await getDesktopIntegratorForPlatform(
+		electron,
+		fs,
+		child_process,
+		new LazyLoaded(async () => {
+			const { WindowsRegistryFacade } = await import("./integration/WindowsRegistryFacade.js")
+			return new WindowsRegistryFacade(commandExecutor)
+		}),
+	)
 
 	const dragIcons = {
 		eml: desktopUtils.getIconByName("eml.png"),

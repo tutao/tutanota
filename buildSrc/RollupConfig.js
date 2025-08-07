@@ -17,7 +17,6 @@ export const dependencyMap = {
 	cborg: path.normalize("./libs/cborg.js"),
 	// below this, the modules are only running in the desktop main thread.
 	"electron-updater": path.normalize("./libs/electron-updater.mjs"),
-	winreg: path.normalize("./libs/winreg.mjs"),
 	undici: path.normalize("./libs/undici.mjs"),
 	jsqr: path.normalize("./libs/jsQR.js"),
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),

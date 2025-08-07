@@ -47,7 +47,6 @@
 		"@types/luxon": "3.6.2",
 		"@types/mithril": "2.0.11",
 		"@types/qrcode-svg": "1.1.4",
-		"@types/winreg": "1.2.36",
 		"cborg": "4.2.2",
 		"dompurify": "3.2.6",
 		"electron": "37.2.5",
@@ -61,8 +60,7 @@
 		"pako": "2.1.0",
 		"qrcode-svg": "1.1.0",
 		"squire-rte": "2.2.7",
-		"undici": "7.11.0",
-		"winreg": "1.2.5"
+		"undici": "7.11.0"
 	},
 	"optionalDependencies": {
 		"dmg-license": "^1.0.11"
