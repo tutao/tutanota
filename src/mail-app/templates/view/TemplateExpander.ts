@@ -6,7 +6,7 @@ import { isKeyPressed } from "../../../common/misc/KeyManager"
 import type { EmailTemplate } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { TEMPLATE_POPUP_HEIGHT } from "./TemplateConstants.js"
 import { memoized } from "@tutao/tutanota-utils"
-import { htmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { theme } from "../../../common/gui/theme.js"
 
 /**
@@ -19,9 +19,11 @@ export type TemplateExpanderAttrs = {
 }
 
 export class TemplateExpander implements Component<TemplateExpanderAttrs> {
+	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
+
 	private readonly sanitizedText = memoized(
 		(text: string) =>
-			htmlSanitizer.sanitizeHTML(text, {
+			this.htmlSanitizer.sanitizeHTML(text, {
 				blockExternalContent: false,
 				allowRelativeLinks: true,
 			}).html,

@@ -1,4 +1,4 @@
-import { htmlSanitizer } from "../../misc/HtmlSanitizer"
+import { getHtmlSanitizer } from "../../misc/HtmlSanitizer"
 import QRCode from "qrcode-svg"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
 import { PublicKeyFingerprint } from "../../api/worker/facades/lazy/KeyVerificationFacade"
@@ -18,5 +18,5 @@ export function renderFingerprintAsQrCode(selfMailAddress: string, selfFingerpri
 		xmlDeclaration: false,
 	})
 
-	return htmlSanitizer.sanitizeSVG(qrCode.svg()).html
+	return getHtmlSanitizer().sanitizeSVG(qrCode.svg()).html
 }

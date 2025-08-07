@@ -268,13 +268,15 @@ export class MailListView implements Component<MailListViewAttrs> {
 			notDownloaded.map((f) => f.fileName),
 			new Set(downloaded.map((f) => f.fileName)),
 		)
+
+		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
+		const htmlSanitizer = getHtmlSanitizer()
 		const [newFiles, existingFiles] = await Promise.all([
 			// Download all the files that need downloading, wait for them, and then return the filename
 			promiseMap(notDownloaded, async ({ mail, fileName }) => {
 				const name = assertNotNull(deduplicatedNames[fileName].shift())
 				const key = mapKey(mail)
 				const downloadPromise = Promise.resolve().then(async () => {
-					const { htmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
 					const bundle = await downloadMailBundle(
 						mail,
 						locator.mailFacade,

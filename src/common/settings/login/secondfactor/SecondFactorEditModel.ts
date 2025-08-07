@@ -4,12 +4,12 @@ import { validateWebauthnDisplayName, WebauthnClient } from "../../../misc/2fa/w
 import { TotpSecret } from "@tutao/tutanota-crypto"
 import { assertNotNull, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
 import { isApp } from "../../../api/common/Env.js"
-import { LanguageViewModel, TranslationKey } from "../../../misc/LanguageViewModel.js"
+import { TranslationKey } from "../../../misc/LanguageViewModel.js"
 import { SecondFactorType } from "../../../api/common/TutanotaConstants.js"
 import { ProgrammingError } from "../../../api/common/error/ProgrammingError.js"
 import { LoginFacade } from "../../../api/worker/facades/LoginFacade.js"
 import { UserError } from "../../../api/main/UserError.js"
-import { htmlSanitizer } from "../../../misc/HtmlSanitizer.js"
+import { getHtmlSanitizer } from "../../../misc/HtmlSanitizer.js"
 import QRCode from "qrcode-svg"
 
 export const enum VerificationStatus {
@@ -64,7 +64,7 @@ export class SecondFactorEditModel {
 
 			const totpQRCodeSvg = isApp()
 				? null
-				: htmlSanitizer.sanitizeSVG(
+				: getHtmlSanitizer().sanitizeSVG(
 						new QRCode({
 							height: 150,
 							width: 150,

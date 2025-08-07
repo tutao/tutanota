@@ -3,7 +3,7 @@ import { lang, LanguageViewModel } from "../misc/LanguageViewModel"
 import { delay, downcast, LazyLoaded } from "@tutao/tutanota-utils"
 import { search } from "../api/common/utils/PlainTextSearch"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { htmlSanitizer } from "../misc/HtmlSanitizer.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../misc/HtmlSanitizer.js"
 
 export type FaqEntry = {
 	id: string
@@ -32,6 +32,7 @@ export class FaqModel {
 	private faqLanguages: LanguageViewModelType | null = null
 	private lazyLoaded: LazyLoaded<void>
 	private websiteBaseUrl: string = "https://tuta.com"
+	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
 
 	private get faqLang(): LanguageViewModel {
 		if (this.faqLanguages == null) {
@@ -94,9 +95,9 @@ export class FaqModel {
 	private sanitizeEntry(result: SearchableFaqEntry): FaqEntry {
 		return {
 			id: result.id,
-			title: htmlSanitizer.sanitizeHTML(result.title).html,
-			tags: result.tags.split(", ").map((tag) => htmlSanitizer.sanitizeHTML(tag).html),
-			text: htmlSanitizer.sanitizeHTML(result.text, { blockExternalContent: false }).html,
+			title: this.htmlSanitizer.sanitizeHTML(result.title).html,
+			tags: result.tags.split(", ").map((tag) => this.htmlSanitizer.sanitizeHTML(tag).html),
+			text: this.htmlSanitizer.sanitizeHTML(result.text, { blockExternalContent: false }).html,
 		}
 	}
 
