@@ -5,7 +5,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { GroupSharingTexts } from "./GroupGuiUtils"
 import { getDefaultGroupName, getInvitationGroupType, getSharedGroupName } from "./GroupUtils"
 import { PartialRecipient, Recipients } from "../api/common/recipients/Recipient"
-import { getDefaultSender, getEnabledMailAddressesWithUser, getMailAddressDisplayText, getSenderNameForUser } from "../mailFunctionality/SharedMailUtils.js"
+import { getDefaultSender, getEnabledMailAddressesWithUser, getSenderNameForUser } from "../mailFunctionality/SharedMailUtils.js"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
 	locator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
@@ -82,8 +82,8 @@ export function sendRejectNotificationEmail(invitation: ReceivedGroupInvitation,
 }
 
 function _sendNotificationEmail(recipients: Recipients, subject: string, body: string, senderMailAddress: string) {
-	import("../misc/HtmlSanitizer").then(({ htmlSanitizer }) => {
-		const sanitizedBody = htmlSanitizer.sanitizeHTML(body, {
+	import("../misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => {
+		const sanitizedBody = getHtmlSanitizer().sanitizeHTML(body, {
 			blockExternalContent: false,
 			allowRelativeLinks: false,
 			usePlaceholderForInlineImages: false,

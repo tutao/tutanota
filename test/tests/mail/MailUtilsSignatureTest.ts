@@ -3,7 +3,7 @@ import { EmailSignatureType } from "../../../src/common/api/common/TutanotaConst
 import { mockAttribute, unmockAttribute } from "@tutao/tutanota-test-utils"
 import { downcast } from "@tutao/tutanota-utils"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
-import { htmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
+import { getHtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { appendEmailSignature, prependEmailSignature } from "../../../src/mail-app/mail/signature/Signature.js"
 import { LINE_BREAK } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
@@ -12,6 +12,7 @@ const TEST_DEFAULT_SIGNATURE = "--\nDefault signature"
 o.spec("MailUtilsSignatureTest", function () {
 	const mockedAttributes: any[] = []
 	o.before(function () {
+		const htmlSanitizer = getHtmlSanitizer()
 		mockedAttributes.push(
 			mockAttribute(lang, lang.get, function (key, obj) {
 				if (key === "defaultEmailSignature_msg") {
@@ -21,6 +22,8 @@ o.spec("MailUtilsSignatureTest", function () {
 				throw new Error("unexpected translation key: " + key)
 			}),
 		)
+
+		// this is cursed, we should refactor to not have to mock global sanitizer
 		mockedAttributes.push(
 			mockAttribute(htmlSanitizer, htmlSanitizer.sanitizeHTML, function (text) {
 				return {
