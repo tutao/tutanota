@@ -138,16 +138,16 @@ fi
 
 # Download the Rust installer with the target for the host machine
 # verifying it using the Rust signing key
-STABLE_INSTALLER=rust-${RUST_VERSION}-${HOST_TARGET}.tar.gz
-STABLE_INSTALLER_SIGNATURE="${STABLE_INSTALLER}.asc"
-download_with_signature "${STABLE_INSTALLER}"
-verify "${STABLE_INSTALLER}" "${STABLE_INSTALLER_SIGNATURE}"
+RUST_INSTALLER=rust-${RUST_VERSION}-${HOST_TARGET}.tar.gz
+RUST_INSTALLER_SIGNATURE="${RUST_INSTALLER}.asc"
+download_with_signature "${RUST_INSTALLER}"
+verify "${RUST_INSTALLER}" "${RUST_INSTALLER_SIGNATURE}"
 
-# Download and verify the Rust stable channel TOML
-STABLE_TOML="channel-rust-stable.toml"
-STABLE_TOML_SIGNATURE="${STABLE_TOML}.asc"
-download_with_signature "${STABLE_TOML}"
-verify "${STABLE_TOML}" "${STABLE_TOML_SIGNATURE}"
+# Download and verify the Rust TOML for our compiler
+RUST_TOML="channel-rust-${RUST_VERSION}.toml"
+RUST_TOML_SIGNATURE="${RUST_TOML}.asc"
+download_with_signature "${RUST_TOML}"
+verify "${RUST_TOML}" "${RUST_TOML_SIGNATURE}"
 
 # The additional targets we want for cross-compilation
 targets=(
@@ -157,16 +157,16 @@ targets=(
     "pkg.rust-std.target.x86_64-linux-android"
 )
 # Keep track of the downloaded installers so we can extract and run them later
-target_filenames=("${STABLE_INSTALLER}")
-# Download the additional targets for cross-compilation from the Rust stable channel
-# and verify them using the hashes in the Rust stable channel
+target_filenames=("${RUST_INSTALLER}")
+# Download the additional targets for cross-compilation
+# and verify them using the hashes
 for target in "${targets[@]}"
 do
-    # Parse the url, filename and hash of the target installer from the Rust stable channel TOML
-    url=$(grep -A 2 -F "${target}" ${STABLE_TOML} | sed -n 3p | awk -F' = ' '{print $2}' | sed 's/\"//g')
+    # Parse the url, filename and hash of the target installer from the Rust TOML
+    url=$(grep -A 2 -F "${target}" ${RUST_TOML} | sed -n 3p | awk -F' = ' '{print $2}' | sed 's/\"//g')
     filename=$(echo "${url}" | awk -F'/' '{print $NF}')
-    hash=$(grep -A 3 -F "${target}" ${STABLE_TOML} | sed -n 4p | awk -F' = ' '{print $2}' | sed 's/\"//g')
-    # Download and verify the target installer using the extracted data from the Rust stable channel TOML
+    hash=$(grep -A 3 -F "${target}" ${RUST_TOML} | sed -n 4p | awk -F' = ' '{print $2}' | sed 's/\"//g')
+    # Download and verify the target installer using the extracted data from the Rust TOML
     download "${filename}" "${url}"
     if ! echo "${hash} ${filename}" | sha256sum -c; then
         echo "Checksum verification failed!"
