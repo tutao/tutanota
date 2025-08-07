@@ -1,4 +1,4 @@
-import { Notifier } from "@indutny/simple-windows-notifications"
+import type { Notifier } from "@indutny/simple-windows-notifications"
 import { assertNotNull, lazyNumberRange, noOp, takeFromMap } from "@tutao/tutanota-utils"
 import { TUTA_PROTOCOL_NOTIFICATION_ACTION } from "../DesktopUtils"
 import { urlEncodeHtmlTags } from "../../misc/Formatter"

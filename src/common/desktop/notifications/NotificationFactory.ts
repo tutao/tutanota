@@ -1,6 +1,5 @@
 import type { NativeImage } from "electron"
 import { type App } from "electron"
-import { Notifier } from "@indutny/simple-windows-notifications"
 import { DesktopConfig } from "../config/DesktopConfig"
 import { BuildConfigKey } from "../config/ConfigKeys"
 import { ElectronNotificationFactory } from "./ElectronNotificationFactory"
@@ -45,6 +44,7 @@ export interface NotificationFactory {
  */
 export async function createNotificationFactory(conf: DesktopConfig, app: App): Promise<NotificationFactory> {
 	if (process.platform === "win32") {
+		const { Notifier } = await import("@indutny/simple-windows-notifications")
 		const appId = await conf.getConst(BuildConfigKey.appUserModelId)
 		console.log("appId is", appId)
 		app.setAppUserModelId(appId)
