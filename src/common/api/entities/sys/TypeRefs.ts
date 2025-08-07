@@ -4108,7 +4108,7 @@ export type TimelockCaptchaGetOut = {
 	modulus: string;
 	base: string;
 }
-export const ClientPerformanceInfoTypeRef: TypeRef<ClientPerformanceInfo> = new TypeRef("sys", 2640)
+export const ClientPerformanceInfoTypeRef: TypeRef<ClientPerformanceInfo> = new TypeRef("sys", 2641)
 
 export function createClientPerformanceInfo(values: StrippedEntity<ClientPerformanceInfo>): ClientPerformanceInfo {
     return Object.assign(create(typeModels[ClientPerformanceInfoTypeRef.typeId], ClientPerformanceInfoTypeRef), values)
