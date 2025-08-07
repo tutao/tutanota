@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { getDesktopIntegratorForPlatform } from "../../../../src/common/desktop/integration/DesktopIntegrator.js"
-import { downcast } from "@tutao/tutanota-utils"
+import { downcast, LazyLoaded } from "@tutao/tutanota-utils"
 import type { WindowManager } from "../../../../src/common/desktop/DesktopWindowManager.js"
 import { lang } from "../../../../src/common/misc/LanguageViewModel.js"
 import en from "../../../../src/mail-app/translations/en.js"
@@ -9,6 +9,8 @@ import { DesktopIntegratorLinux } from "../../../../src/common/desktop/integrati
 import { DesktopIntegratorDarwin } from "../../../../src/common/desktop/integration/DesktopIntegratorDarwin.js"
 import { DesktopIntegratorWin32 } from "../../../../src/common/desktop/integration/DesktopIntegratorWin32.js"
 import { spy } from "@tutao/tutanota-test-utils"
+import { object, verify, when } from "testdouble"
+import { RegistryHive, WindowsRegistryFacade, WindowsRegistryKey } from "../../../../src/common/desktop/integration/WindowsRegistryFacade"
 
 const desktopEntry = `[Desktop Entry]
 Name=Tuta Mail
@@ -27,7 +29,7 @@ TryExec=/appimage/path/file.appImage`
 
 lang.init(en)
 
-o.spec("DesktopIntegrator Test", () => {
+o.spec("DesktopIntegrator", () => {
 	const cp = {
 		exec: () => {},
 	}
@@ -144,32 +146,15 @@ o.spec("DesktopIntegrator Test", () => {
 		deletedFiles = []
 		createdDirectories = []
 
-		const winreg = n.classify({
-			prototype: {
-				get(key, cb) {
-					setImmediate(() => cb(null, itemToReturn))
-				},
-				set(key, reg, val, cb) {
-					setImmediate(() => cb(null))
-				},
-				remove(key, cb) {
-					setImmediate(() => cb(null))
-				},
-			},
-			statics: {},
-		})
-
 		// node modules
 		const electronMock = n.mock<typeof import("electron")>("electron", electron).set()
 		const fsExtraMock = n.mock<typeof import("fs")>("fs", fsExtra).set()
-		const winregMock = n.mock<WinregStatic & { mockedInstances: Array<any> }>("winreg", winreg).set()
 		const cpMock = n.mock<typeof import("child_process")>("child_process", cp).set()
 		const wmMock = n.mock<WindowManager>("wm", wm).set()
 
 		return {
 			electronMock,
 			fsExtraMock,
-			winregMock,
 			cpMock,
 			wmMock,
 		}
@@ -547,91 +532,75 @@ o.spec("DesktopIntegrator Test", () => {
 	})
 
 	o.spec("Windows", function () {
+		let windowsRegistryFacade: WindowsRegistryFacade
+		let autorunMock: WindowsRegistryKey
+
 		o.beforeEach(function () {
 			n.setPlatform("win32")
+			windowsRegistryFacade = object()
+			autorunMock = object()
+			when(windowsRegistryFacade.entry(RegistryHive.HKEY_CURRENT_USER, "\\Software\\Microsoft\\Windows\\CurrentVersion\\Run")).thenReturn(autorunMock)
 		})
 
 		o("enable when off", async function () {
-			const { electronMock, winregMock } = standardMocks()
-			const integrator = new DesktopIntegratorWin32(electronMock, winregMock)
+			const { electronMock } = standardMocks()
+			const integrator = new DesktopIntegratorWin32(electronMock, windowsRegistryFacade)
+			when(autorunMock.get(electronMock.app.name)).thenResolve(null)
 
 			await integrator.enableAutoLaunch()
-			o(winregMock.mockedInstances.length).equals(1)
-			const regInst = winregMock.mockedInstances[0]
-			o(regInst.get.callCount).equals(1)
-			o(regInst.get.args.length).equals(2)
-			o(regInst.get.args[0]).equals("appName")
-
-			o(regInst.set.callCount).equals(1)
-			o(regInst.set.args.length).equals(4)
-			o(regInst.set.args[0]).equals("appName")
-			o(regInst.set.args[2]).equals(`${process.execPath} -a`)
-		})
-
-		o("disable when off", async function () {
-			const { electronMock, winregMock } = standardMocks()
-			const integrator = new DesktopIntegratorWin32(electronMock, winregMock)
-
-			await integrator.disableAutoLaunch()
-			o(winregMock.mockedInstances.length).equals(1)
-			const regInst = winregMock.mockedInstances[0]
-			o(regInst.get.callCount).equals(1)
-			o(regInst.get.args.length).equals(2)
-			o(regInst.get.args[0]).equals("appName")
-
-			o(regInst.set.callCount).equals(0)
-			o(regInst.remove.callCount).equals(0)
+			verify(autorunMock.get(electronMock.app.name))
+			verify(autorunMock.set(electronMock.app.name, `${process.execPath} -a`))
 		})
 
 		o("enable when on", async function () {
-			itemToReturn = "not undefined"
-			const { electronMock, winregMock } = standardMocks()
-			const integrator = new DesktopIntegratorWin32(electronMock, winregMock)
+			const { electronMock } = standardMocks()
+			const integrator = new DesktopIntegratorWin32(electronMock, windowsRegistryFacade)
+			when(autorunMock.get(electronMock.app.name)).thenResolve("yes, autorun is on :)")
 
 			await integrator.enableAutoLaunch()
-			o(winregMock.mockedInstances.length).equals(1)
-			const regInst = winregMock.mockedInstances[0]
-
-			o(regInst.set.callCount).equals(0)
-			o(regInst.remove.callCount).equals(0)
+			verify(autorunMock.get(electronMock.app.name))
+			verify(autorunMock.set(electronMock.app.name, `${process.execPath} -a`), { times: 0 })
 		})
 
-		o("disable when on", async function () {
-			itemToReturn = "not undefined"
-			const { electronMock, winregMock } = standardMocks()
-			const integrator = new DesktopIntegratorWin32(electronMock, winregMock)
+		o("disable", async function () {
+			const { electronMock } = standardMocks()
+			const integrator = new DesktopIntegratorWin32(electronMock, windowsRegistryFacade)
 
 			await integrator.disableAutoLaunch()
-			o(winregMock.mockedInstances.length).equals(1)
-			const regInst = winregMock.mockedInstances[0]
-
-			o(regInst.set.callCount).equals(0)
-			o(regInst.remove.callCount).equals(1)
-			o(regInst.remove.args.length).equals(2)
-			o(regInst.remove.args[0]).equals("appName")
+			verify(autorunMock.remove(electronMock.app.name))
 		})
 	})
 
 	o.spec("Dispatch", function () {
 		o("Linux", async function () {
 			n.setPlatform("linux")
-			const { electronMock, fsExtraMock, cpMock, winregMock } = standardMocks()
-			const integrator = await getDesktopIntegratorForPlatform(electronMock, fsExtraMock, cpMock, () => Promise.resolve({ default: winregMock }))
+			const { electronMock, fsExtraMock, cpMock } = standardMocks()
+			const windowsRegistryFacade = new LazyLoaded((): Promise<WindowsRegistryFacade> => {
+				throw new Error("tried to load WindowsRegistryFacade on Linux")
+			})
+
+			const integrator = await getDesktopIntegratorForPlatform(electronMock, fsExtraMock, cpMock, windowsRegistryFacade)
 			o(integrator instanceof DesktopIntegratorLinux).equals(true)("Integrator should be a DesktopIntegratorLinux")
 		})
 
 		o("Win32", async function () {
 			n.setPlatform("win32")
-			const { electronMock, fsExtraMock, cpMock, winregMock } = standardMocks()
-			const integrator = await getDesktopIntegratorForPlatform(electronMock, fsExtraMock, cpMock, () => Promise.resolve({ default: winregMock }))
-			o(integrator instanceof DesktopIntegratorWin32).equals(true)("Integrator should be a DesktopIntegratorLinux")
+			const { electronMock, fsExtraMock, cpMock } = standardMocks()
+			const windowsRegistryFacade = new LazyLoaded((): Promise<WindowsRegistryFacade> => Promise.resolve(object()))
+
+			const integrator = await getDesktopIntegratorForPlatform(electronMock, fsExtraMock, cpMock, windowsRegistryFacade)
+			o(integrator instanceof DesktopIntegratorWin32).equals(true)("Integrator should be a DesktopIntegratorWin32")
 		})
 
 		o("Darwin", async function () {
 			n.setPlatform("darwin")
-			const { electronMock, fsExtraMock, cpMock, winregMock } = standardMocks()
-			const integrator = await getDesktopIntegratorForPlatform(electronMock, fsExtraMock, cpMock, () => Promise.resolve({ default: winregMock }))
-			o(integrator instanceof DesktopIntegratorDarwin).equals(true)("Integrator should be a DesktopIntegratorLinux")
+			const { electronMock, fsExtraMock, cpMock } = standardMocks()
+			const windowsRegistryFacade = new LazyLoaded((): Promise<WindowsRegistryFacade> => {
+				throw new Error("tried to load WindowsRegistryFacade on macOS/Darwin")
+			})
+
+			const integrator = await getDesktopIntegratorForPlatform(electronMock, fsExtraMock, cpMock, windowsRegistryFacade)
+			o(integrator instanceof DesktopIntegratorDarwin).equals(true)("Integrator should be a DesktopIntegratorDarwin")
 		})
 	})
 })

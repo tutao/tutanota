@@ -1,66 +1,36 @@
 import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopIntegrator } from "./DesktopIntegrator"
-import { Registry } from "winreg"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { RegistryHive, WindowsRegistryFacade, WindowsRegistryKey } from "./WindowsRegistryFacade"
 
 type Electron = typeof Electron.CrossProcessExports
 
 export class DesktopIntegratorWin32 implements DesktopIntegrator {
-	_electron: Electron
-	_registry: WinregStatic
-	_autoRunKey: Registry
+	private readonly autoRunKey: WindowsRegistryKey
 
-	constructor(electron: Electron, registry: WinregStatic) {
-		this._electron = electron
-		this._registry = registry
-		this._autoRunKey = new registry({
-			hive: registry.HKCU,
-			key: "\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-		})
+	constructor(
+		private readonly electron: Electron,
+		registry: WindowsRegistryFacade,
+	) {
+		this.autoRunKey = registry.entry(RegistryHive.HKEY_CURRENT_USER, "\\Software\\Microsoft\\Windows\\CurrentVersion\\Run")
 	}
 
-	isAutoLaunchEnabled(): Promise<boolean> {
-		// can't promisify here because it screws with autoRunKeys 'this' semantics
-		return newPromise((resolve: (_: boolean) => void, reject) => {
-			this._autoRunKey.get(this._electron.app.name, (err, item) => {
-				if (err) {
-					reject(err)
-				} else {
-					resolve(typeof item !== "undefined" && item !== null)
-				}
-			})
-		}).catch(() => false)
+	async isAutoLaunchEnabled(): Promise<boolean> {
+		try {
+			return (await this.autoRunKey.get(this.electron.app.name)) != null
+		} catch (e) {
+			console.error(`Error when trying to query auto launch: ${e}`)
+			return false
+		}
 	}
 
 	async enableAutoLaunch(): Promise<void> {
 		if (!(await this.isAutoLaunchEnabled())) {
-			// can't promisify here because it screws with autoRunKeys 'this' semantics
-			return newPromise((resolve, reject) => {
-				this._autoRunKey.set(this._electron.app.name, this._registry.REG_SZ, `${process.execPath} -a`, (err) => {
-					if (err) {
-						reject(err)
-					}
-
-					resolve()
-				})
-			})
+			return this.autoRunKey.set(this.electron.app.name, `${process.execPath} -a`)
 		}
 	}
 
 	async disableAutoLaunch(): Promise<void> {
-		// can't promisify here because it screws with autoRunKeys 'this' semantics
-		if (await this.isAutoLaunchEnabled()) {
-			return newPromise((resolve, reject) => {
-				this._autoRunKey.remove(this._electron.app.name, (err) => {
-					if (err) {
-						reject(err)
-					}
-
-					resolve()
-				})
-			})
-		}
+		await this.autoRunKey.remove(this.electron.app.name)
 	}
 
 	runIntegration(wm: WindowManager): Promise<void> {

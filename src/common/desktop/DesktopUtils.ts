@@ -2,7 +2,7 @@ import path from "node:path"
 import { spawn } from "node:child_process"
 import type { Rectangle } from "electron"
 import { app, NativeImage } from "electron"
-import { defer, delay, LazyLoaded } from "@tutao/tutanota-utils"
+import { defer, delay } from "@tutao/tutanota-utils"
 import { log } from "./DesktopLog"
 import { swapFilename } from "./PathUtils"
 import { makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot } from "./reg-templater"
@@ -128,8 +128,11 @@ export class DesktopUtils {
 				await wm.newWindow(true)
 			} else {
 				if (process.platform === "win32") {
+					// Prevent statically importing this as we do not want to load the module during tests
+					const { sendDummyKeystroke } = await import("@indutny/simple-windows-notifications")
+
 					// Workaround on Windows so we can focus when in the background - https://www.npmjs.com/package/@signalapp/windows-dummy-keystroke
-					;(await sendDummyKeystroke.getAsync())()
+					sendDummyKeystroke()
 				}
 				for (const w of wm.getAll()) {
 					w.setForegroundWindow()
@@ -271,9 +274,3 @@ export function isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectan
 function findMailToUrlInArgv(argv: string[]): string | null {
 	return argv.find((arg) => arg.startsWith("mailto")) ?? null
 }
-
-// Prevent statically importing this as we do not want to load the module during tests
-const sendDummyKeystroke = new LazyLoaded(async () => {
-	const { sendDummyKeystroke } = await import("@indutny/simple-windows-notifications")
-	return sendDummyKeystroke
-})
