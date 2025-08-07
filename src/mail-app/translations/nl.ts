@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-08-04T07:33:52Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -842,13 +842,10 @@ export default {
 		"invoice_label": "Factuur",
 		"IpAddress_label": "IP-adres",
 		"keyboardShortcuts_title": "Toetsenbord sneltoetsen",
-		"keyManagement.fingerprint_label": "Vingerafdruk",
 		"keyManagement.qrCodeInvalid_msg": "De gescande Tuta QR-code is ongeldig.",
 		"keyManagement.qrCode_label": "QR-code",
 		"keyManagement.qrVerification_label": "Verifiëren met QR-code",
 		"keyManagement.selectMethodShort_label": "Selecteer een methode",
-		"keyManagement.textVerification_label": "Verifiëren met tekst",
-		"keyManagement.text_label": "Tekst",
 		"keyManagement.verificationError_title": "Contactverificatie mislukt",
 		"keyManagement.verificationPool_label": "Geverifieerde contacten",
 		"keywords_label": "trefwoorden",

@@ -882,6 +882,7 @@ export type TranslationKeyType =
 	| "keyVerificationErrorRecommendation_title"
 	| "keyVerificationErrorWarning_msg"
 	| "keyVerificationLearnMoreAboutContactVerificationLink_msg"
+	| "keyVerificationNotAvailable_msg"
 	| "keyVerificationVerificationCode_title"
 	| "keywords_label"
 	| "knowledgebase_label"
@@ -2053,4 +2054,3 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
-	| "keyVerificationNotAvailable_msg"

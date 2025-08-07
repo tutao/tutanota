@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2025-07-16T08:17:46Z",
+	"updated_at": "2025-08-04T07:33:52Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -1477,6 +1477,7 @@ export default {
 		"spamReports_label": "Denunciar spam",
 		"spamRuleEnterValue_msg": "Insira um valor.",
 		"spam_action": "Spam",
+		"spam_move_action": "Mover para Spam",
 		"spelling_label": "Ortografia",
 		"spouse_label": "Esposa",
 		"startAfterEnd_label": "A data de início não deve ser depois da data final.",
