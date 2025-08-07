@@ -2,7 +2,7 @@ import path from "node:path"
 import { spawn } from "node:child_process"
 import type { Rectangle } from "electron"
 import { app, NativeImage } from "electron"
-import { defer, delay } from "@tutao/tutanota-utils"
+import { defer, delay, LazyLoaded } from "@tutao/tutanota-utils"
 import { log } from "./DesktopLog"
 import { swapFilename } from "./PathUtils"
 import { makeRegisterKeysScript, makeUnregisterKeysScript, RegistryRoot } from "./reg-templater"
@@ -12,7 +12,6 @@ import { TempFs } from "./files/TempFs.js"
 import { ElectronExports } from "./ElectronExportTypes.js"
 import { WindowManager } from "./DesktopWindowManager.js"
 import { DesktopNotifier } from "./notifications/DesktopNotifier"
-import { sendDummyKeystroke } from "@indutny/simple-windows-notifications"
 
 export const TUTA_PROTOCOL_NOTIFICATION_ACTION = "notification"
 
@@ -130,7 +129,7 @@ export class DesktopUtils {
 			} else {
 				if (process.platform === "win32") {
 					// Workaround on Windows so we can focus when in the background - https://www.npmjs.com/package/@signalapp/windows-dummy-keystroke
-					sendDummyKeystroke()
+					;(await sendDummyKeystroke.getAsync())()
 				}
 				for (const w of wm.getAll()) {
 					w.setForegroundWindow()
@@ -272,3 +271,9 @@ export function isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectan
 function findMailToUrlInArgv(argv: string[]): string | null {
 	return argv.find((arg) => arg.startsWith("mailto")) ?? null
 }
+
+// Prevent statically importing this as we do not want to load the module during tests
+const sendDummyKeystroke = new LazyLoaded(async () => {
+	const { sendDummyKeystroke } = await import("@indutny/simple-windows-notifications")
+	return sendDummyKeystroke
+})
