@@ -155,6 +155,7 @@ targets=(
     "pkg.rust-std.target.armv7-linux-androideabi"
     "pkg.rust-std.target.i686-linux-android"
     "pkg.rust-std.target.x86_64-linux-android"
+    "pkg.rust-std.target.wasm32-unknown-unknown"
 )
 # Keep track of the downloaded installers so we can extract and run them later
 target_filenames=("${RUST_INSTALLER}")
