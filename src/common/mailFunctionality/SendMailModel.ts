@@ -906,9 +906,9 @@ export class SendMailModel {
 			const attachments = saveAttachments ? this.attachments : null
 
 			// We also want to create new drafts for drafts edited from trash or spam folder
-			const { htmlSanitizer } = await import("../misc/HtmlSanitizer.js")
+			const { getHtmlSanitizer } = await import("../misc/HtmlSanitizer.js")
 			const unsanitized_body = this.getBody()
-			const body = htmlSanitizer.sanitizeHTML(unsanitized_body, {
+			const body = getHtmlSanitizer().sanitizeHTML(unsanitized_body, {
 				// store the draft always with external links preserved. this reverts
 				// the draft-src and draft-srcset attribute stow.
 				blockExternalContent: false,

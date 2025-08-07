@@ -182,7 +182,7 @@ export async function makeCalendarEventModel(
 	showProgress: ShowProgressCallback = identity,
 	uiUpdateCallback: () => void = m.redraw,
 ): Promise<CalendarEventModel | null> {
-	const { htmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
+	const { getHtmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
 	const ownMailAddresses = getOwnMailAddressesWithDefaultSenderInFront(logins, mailboxDetail, mailboxProperties)
 	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
 		assertNonNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
@@ -228,7 +228,7 @@ export async function makeCalendarEventModel(
 		alarmModel: new CalendarEventAlarmModel(eventType, alarms, new DefaultDateProvider(), uiUpdateCallback),
 		location: new SimpleTextViewModel(initializationEvent.location, uiUpdateCallback),
 		summary: new SimpleTextViewModel(initializationEvent.summary, uiUpdateCallback),
-		description: new SanitizedTextViewModel(initializationEvent.description, htmlSanitizer, uiUpdateCallback),
+		description: new SanitizedTextViewModel(initializationEvent.description, getHtmlSanitizer(), uiUpdateCallback),
 		comment: new SimpleTextViewModel("", uiUpdateCallback),
 	})
 

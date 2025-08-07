@@ -799,7 +799,7 @@ class CalendarLocator implements CommonLocator {
 				: new WebThemeFacade(deviceConfig)
 		const lazySanitizer = isTest()
 			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
-			: () => import("../common/misc/HtmlSanitizer").then(({ htmlSanitizer }) => htmlSanitizer)
+			: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
 		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Calendar)
 

@@ -7,7 +7,7 @@ import { locator } from "../../api/main/CommonLocator.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { Card } from "../../gui/base/Card.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
-import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { MailMethod, PlanTypeToName } from "../../api/common/TutanotaConstants.js"
 import type { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
@@ -31,6 +31,7 @@ type Props = {
 
 export class ContactSupportPage implements Component<Props> {
 	private sendMailModel: SendMailModel | undefined
+	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
 
 	private htmlEditor: HtmlEditor | null = null
 
@@ -221,7 +222,7 @@ export class ContactSupportPage implements Component<Props> {
 								? `${data.supportRequestHtml}${clientInfoString(new Date(), true).message}`
 								: data.supportRequestHtml
 							mailBody += `<br>Customer ID: ${customerId}`
-							const sanitisedBody = htmlSanitizer.sanitizeHTML(convertTextToHtml(mailBody), {
+							const sanitisedBody = this.htmlSanitizer.sanitizeHTML(convertTextToHtml(mailBody), {
 								blockExternalContent: true,
 							}).html
 

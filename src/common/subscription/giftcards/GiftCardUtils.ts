@@ -16,7 +16,7 @@ import { Keys } from "../../api/common/TutanotaConstants"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../TermsAndConditions"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { formatPrice } from "../PriceUtils.js"
-import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
+import { getHtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { urlEncodeHtmlTags } from "../../misc/Formatter.js"
 import QRCode from "qrcode-svg"
 
@@ -271,7 +271,7 @@ function getGiftCardElement(svgDocument: Document, id: "price" | "qr-code" | "me
  * @param message The text to be displayed in the element.
  */
 function renderMessage(x: number, y: number, width: number, height: number, color: string, message: string): string {
-	const cleanMessage: string = htmlSanitizer.sanitizeHTML(urlEncodeHtmlTags(message)).html
+	const cleanMessage: string = getHtmlSanitizer().sanitizeHTML(urlEncodeHtmlTags(message)).html
 
 	const lineBreaks = cleanMessage.split(/\r\n|\r|\n/).length
 	const charLength = cleanMessage.length
@@ -310,7 +310,7 @@ function renderQRCode(x: number, y: number, width: number, height: number, link:
 		join: true,
 		pretty: false,
 	}).svg()
-	const qrCode = htmlSanitizer.sanitizeSVG(svg).html
+	const qrCode = getHtmlSanitizer().sanitizeSVG(svg).html
 
 	return `<svg x="${x}" y="${y}" width="${width}" height="${height}">${qrCode}</svg>`
 }

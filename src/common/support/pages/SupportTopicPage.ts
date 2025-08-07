@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../misc/LanguageViewModel.js"
-import { htmlSanitizer } from "../../misc/HtmlSanitizer.js"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { convertTextToHtml } from "../../misc/Formatter.js"
 import { getContactSupportText, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { Dialog } from "../../gui/base/Dialog.js"
@@ -21,6 +21,8 @@ type Props = {
 }
 
 export class SupportTopicPage implements Component<Props> {
+	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
+
 	view({ attrs: { data, goToContactSupportPage, goToSolutionWasHelpfulPage } }: Vnode<Props>): Children {
 		const topic = data.selectedTopic()
 		if (topic == null) {
@@ -29,7 +31,7 @@ export class SupportTopicPage implements Component<Props> {
 
 		const languageTag = lang.languageTag
 		const solution = languageTag.includes("de") ? topic.solutionHtmlDE : topic.solutionHtmlEN
-		const sanitisedSolution = htmlSanitizer.sanitizeHTML(convertTextToHtml(solution), {
+		const sanitisedSolution = this.htmlSanitizer.sanitizeHTML(convertTextToHtml(solution), {
 			blockExternalContent: true,
 			allowRelativeLinks: true,
 		}).html
