@@ -79,7 +79,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		return m(IconButton, {
 			title: "duplicateEvent_label",
 			click: () => handleEventDuplicate(this.model!),
-			icon: Icons.Copy,
+			icon: Icons.Duplicate,
 		})
 	}
 

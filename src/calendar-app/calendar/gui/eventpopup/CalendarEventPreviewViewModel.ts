@@ -17,6 +17,7 @@ import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.j
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
+import { lang } from "../../../../common/misc/LanguageViewModel.js"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -281,6 +282,9 @@ export class CalendarEventPreviewViewModel {
 			if (!newEventModel) {
 				throw new Error("Failed clone and create a new event model.")
 			}
+			newEventModel.editModels.summary.content = lang.get("copyOf_title", {
+				"{title}": newEventModel.editModels.summary.content,
+			})
 			newEventModel.editModels.whenModel.deleteExcludedDates()
 			newEventModel.editModels.whoModel.resetGuestsStatus()
 

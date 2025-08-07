@@ -428,6 +428,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			throw new Error("Failed to instantiate")
 		}
 
+		editModel.editModels.summary.content = lang.get("copyOf_title", {
+			"{title}": editModel.editModels.summary.content,
+		})
 		editModel.editModels.whenModel.rescheduleEvent({ millisecond: timeToMoveBy })
 		editModel.editModels.whenModel.deleteExcludedDates()
 		editModel.editModels.whoModel.resetGuestsStatus()

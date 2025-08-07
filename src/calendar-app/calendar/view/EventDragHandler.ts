@@ -38,11 +38,16 @@ export class EventDragHandler {
 	private dragging: boolean = false
 	private lastDiffBetweenDates: number | null = null
 	private hasChanged: boolean = false
+	pressedDragKey?: Key
 
 	constructor(
 		private readonly draggingArea: HTMLBodyElement,
 		private readonly eventDragCallbacks: EventDragHandlerCallbacks,
 	) {}
+
+	get changed(): boolean {
+		return this.hasChanged
+	}
 
 	get isDragging(): boolean {
 		return this.dragging
@@ -91,6 +96,7 @@ export class EventDragHandler {
 	 * The dragging doesn't actually begin until the distance between the mouse and its original location is greater than some threshold
 	 * @param dateUnderMouse The current date under the mouse courser, may include a time.
 	 * @param mousePos the position of the mouse when the drag ended.
+	 * @param key pressed key while dragging
 	 */
 	handleDrag(dateUnderMouse: Date, mousePos: MousePos) {
 		if (this.data) {
@@ -134,7 +140,6 @@ export class EventDragHandler {
 	 */
 	async endDrag(dateUnderMouse: Date, pos: MousePos, pressedKey?: Key): Promise<void> {
 		this.draggingArea.classList.remove("cursor-grabbing")
-
 		if (this.dragging && this.data) {
 			const dragData = this.data
 			const adjustedDateUnderMouse = this.adjustDateUnderMouse(dragData.originalEvent.startTime, dateUnderMouse, dragData.keepTime)
