@@ -1,11 +1,18 @@
 import o from "@tutao/otest"
-import { htmlSanitizer, PREVENT_EXTERNAL_IMAGE_LOADING_ICON } from "../../../src/common/misc/HtmlSanitizer.js"
+import { HtmlSanitizer } from "../../../src/common/misc/HtmlSanitizer.js"
 import { createDataFile } from "../../../src/common/api/common/DataFile.js"
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { textIncludes } from "../TestUtils"
 
 o.spec(
 	"HtmlSanitizerTest",
 	browser(function () {
+		const replacementImageUrl = "blob:123456"
+		let htmlSanitizer: HtmlSanitizer
+		o.beforeEach(() => {
+			htmlSanitizer = new HtmlSanitizer(replacementImageUrl)
+		})
+
 		o("OWASP XSS attacks", function () {
 			// see https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet
 			let tests = [
@@ -142,13 +149,8 @@ o.spec(
 			}).html
 			o(sanitized).equals("yo")
 		})
-		o("external image replacement is correct", function () {
-			o(PREVENT_EXTERNAL_IMAGE_LOADING_ICON).equals(
-				"data:image/svg+xml;utf8,<svg version='1.1' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'> <rect width='512' height='512' fill='%23f8f8f8'/> <path d='m220 212c0 12.029-9.7597 21.789-21.789 21.789-12.029 0-21.789-9.7597-21.789-21.789s9.7597-21.789 21.789-21.789c12.029 0 21.789 9.7597 21.789 21.789zm116.21 43.578v50.841h-159.79v-21.789l36.315-36.315 18.158 18.158 58.104-58.104zm10.895-79.893h-181.58c-1.9292 0-3.6315 1.7023-3.6315 3.6315v138c0 1.9292 1.7023 3.6315 3.6315 3.6315h181.58c1.9292 0 3.6315-1.7023 3.6315-3.6315v-138c0-1.9292-1.7023-3.6315-3.6315-3.6315zm18.158 3.6315v138c0 9.9867-8.1709 18.158-18.158 18.158h-181.58c-9.9867 0-18.158-8.1709-18.158-18.158v-138c0-9.9867 8.1709-18.158 18.158-18.158h181.58c9.9867 0 18.158 8.1709 18.158 18.158z' fill='%23b4b4b4' stroke-width='.11348'/></svg>",
-			)
-		})
 
-		const REPLACEMENT_VALUE = `url("${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}")`
+		const REPLACEMENT_VALUE = `url("${replacementImageUrl}")`
 
 		o.spec("external background images", function () {
 			o("when external content is blocked background-image url is replaced", function () {
@@ -171,7 +173,7 @@ o.spec(
 				)
 				o(result.blockedExternalContent).equals(1)
 				const p = result.fragment.querySelector("p")!
-				o(p.style.backgroundImage).equals(`url("${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}")`)
+				o(p.style.backgroundImage).equals(`url("${replacementImageUrl}")`)
 			})
 			o("when external content is blocked background url in quotes is replaced", function () {
 				const result = htmlSanitizer.sanitizeFragment(
@@ -381,14 +383,14 @@ o.spec(
 					'draft-srcset="https://tutanota.com/image1.jpg 1x, https://tutanota.com/image2.jpg 2x, https://tutanota.com/image3.jpg 3x',
 				),
 			).equals(true)
-			o(cleanHtml.html.includes('src="data:image/svg+xml;utf8,')).equals(true)
+			o.check(cleanHtml.html).satisfies(textIncludes(`src="${replacementImageUrl}"`))
 		})
 		o("detect images and set maxWidth=100px for placeholder images", function () {
 			let result = htmlSanitizer.sanitizeHTML('<img src="https://emailprivacytester.com/cb/510828b5a8f43ab5">', {
 				blockExternalContent: true,
 			})
 			o(result.blockedExternalContent).equals(1)
-			o(result.html.includes('src="data:image/svg+xml;utf8,')).equals(true)
+			o.check(result.html).satisfies(textIncludes(`src="${replacementImageUrl}"`))
 			o(result.html.includes('style="max-width: 100px;')).equals(true)
 		})
 		o("detect figure", function () {
@@ -408,7 +410,7 @@ o.spec(
 				},
 			)
 			o(result.blockedExternalContent).equals(1)
-			o(result.html.includes('poster="data:image/svg+xml;utf8,')).equals(true)
+			o.check(result.html).satisfies(textIncludes(`poster="${replacementImageUrl}"`))
 		})
 		o("detect style list images", function () {
 			let result = htmlSanitizer.sanitizeHTML(
@@ -418,14 +420,15 @@ o.spec(
 				},
 			)
 			o(result.blockedExternalContent).equals(1)
-			o(result.html.includes("list-style-image: url(&quot;data:image/svg+xml;utf8,")).equals(true)
+			o.check(result.html).satisfies(textIncludes(`list-style-image: url(&quot;${replacementImageUrl}&quot;`))
 		})
 		o("detect style content urls", function () {
 			let result = htmlSanitizer.sanitizeHTML('<div style="content: url(http://www.heise.de/icons/ho/heise_online_logo_top.gif)"></div>', {
 				blockExternalContent: true,
 			})
 			o(result.blockedExternalContent).equals(1)
-			o(result.html.includes("content: url(&quot;data:image/svg+xml;utf8,")).equals(true)
+
+			o.check(result.html).satisfies(textIncludes(`content: url(&quot;${replacementImageUrl}&quot;)`))
 			// do not modify non url content
 			result = htmlSanitizer.sanitizeHTML('<div style="content: blabla"> </div >', {
 				blockExternalContent: true,
@@ -508,7 +511,8 @@ o.spec(
 				},
 			)
 			o(result.blockedExternalContent).equals(1)
-			o(result.html.includes("data:image/svg+xml;utf8,")).equals(true)
+
+			o.check(result.html).satisfies(textIncludes(`${replacementImageUrl}`))
 		})
 		o("embed tag", function () {
 			let result = htmlSanitizer.sanitizeHTML('<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>', {
@@ -550,16 +554,17 @@ o.spec(
 			const r1 = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`, {
 				usePlaceholderForInlineImages: true,
 			}).html
-			o(r1.includes(`src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}"`)).equals(true)
-			o(r1.includes(`style="max-width: 100%;"`)).equals(true)
-			o(r1.includes(`cid="123456"`)).equals(true)
-			o(r1.includes(`class="tutanota-placeholder"`)).equals(true)
+
+			o.check(r1).satisfies(textIncludes(`src="${replacementImageUrl}"`))
+			o.check(r1).satisfies(textIncludes(`style="max-width: 100%;"`))
+			o.check(r1).satisfies(textIncludes(`cid="123456"`))
+			o.check(r1).satisfies(textIncludes(`class="tutanota-placeholder"`))
 
 			const r2 = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`).html
-			o(r2.includes(`src="${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}"`)).equals(true)
-			o(r2.includes(`style="max-width: 100%;"`)).equals(true)
-			o(r2.includes(`cid="123456"`)).equals(true)
-			o(r2.includes(`class="tutanota-placeholder"`)).equals(true)
+			o.check(r2).satisfies(textIncludes(`src="${replacementImageUrl}"`))
+			o.check(r2).satisfies(textIncludes(`style="max-width: 100%;"`))
+			o.check(r2).satisfies(textIncludes(`cid="123456"`))
+			o.check(r2).satisfies(textIncludes(`class="tutanota-placeholder"`))
 		})
 		o("don't use image loading placeholder", function () {
 			const result = htmlSanitizer.sanitizeHTML(`<img src="cid:123456">`, {
@@ -618,6 +623,7 @@ o.spec(
 		})
 
 		o.spec("inline attachment sanitization", function () {
+			// note: this might fail in FF because it serializes svg tag differently
 			o("svg with xss gets sanitized", function () {
 				const svgDocumentWithXSS =
 					'<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' +

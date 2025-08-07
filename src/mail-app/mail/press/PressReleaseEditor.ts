@@ -10,7 +10,7 @@ import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxMod
 import { Keys, MailMethod, TabIndex } from "../../../common/api/common/TutanotaConstants"
 import { progressIcon } from "../../../common/gui/base/Icon"
 import { Editor } from "../../../common/gui/editor/Editor"
-import { htmlSanitizer } from "../../../common/misc/HtmlSanitizer"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { TextField } from "../../../common/gui/base/TextField.js"
 import { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
@@ -218,12 +218,14 @@ export type PressReleaseFormAttrs = {
 export class PressReleaseForm implements Component<PressReleaseFormAttrs> {
 	editor: Editor
 
+	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
+
 	constructor(vnode: Vnode<PressReleaseFormAttrs>) {
 		const { bodyHtml } = vnode.attrs
 		this.editor = new Editor(
 			200,
 			(html, _) =>
-				htmlSanitizer.sanitizeFragment(html, {
+				this.htmlSanitizer.sanitizeFragment(html, {
 					blockExternalContent: false,
 				}).fragment,
 			null,
