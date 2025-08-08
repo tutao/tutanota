@@ -667,8 +667,10 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		if (!args.folder) {
 			this._setUrl(this._userFolders[0].url)
 		} else if (args.folder || !m.route.get().startsWith("/settings")) {
+			// TODO: a bit of a hack, instead of requestedPath we should find the folder by :folder and :id params
+			const requestedPathWithoutHash = requestedPath.split("#")[0]
 			// ensure that current viewer will be reinitialized
-			const folder = this._allSettingsFolders().find((folder) => folder.url === requestedPath)
+			const folder = this._allSettingsFolders().find((folder) => folder.url === requestedPathWithoutHash)
 
 			if (!folder) {
 				this._setUrl(this._userFolders[0].url)

@@ -154,6 +154,7 @@ import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator
 import { UndoModel } from "./UndoModel"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import { AutosaveFacade } from "../common/api/worker/facades/lazy/AutosaveFacade"
+import { QuickActionsModel } from "../common/misc/QuickActionBar"
 
 assertMainOrNode()
 
@@ -347,6 +348,11 @@ class MailLocator implements CommonLocator {
 				}
 			: noOp,
 	}
+
+	readonly quickActionsModel: lazyAsync<QuickActionsModel> = lazyMemoized(async () => {
+		const { QuickActionsModel } = await import("../common/misc/QuickActionBar.js")
+		return new QuickActionsModel()
+	})
 
 	readonly contactViewModel = lazyMemoized(async () => {
 		const { ContactViewModel } = await import("../mail-app/contacts/view/ContactViewModel.js")
