@@ -893,6 +893,22 @@ export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): st
 	}
 }
 
+export function calendarAttendeeStatusText(status: CalendarAttendeeStatus): string {
+	switch (status) {
+		case CalendarAttendeeStatus.ADDED:
+		case CalendarAttendeeStatus.NEEDS_ACTION:
+			return ""
+		case CalendarAttendeeStatus.TENTATIVE:
+			return lang.get("maybe_label")
+		case CalendarAttendeeStatus.ACCEPTED:
+			return lang.get("accepted_label")
+		case CalendarAttendeeStatus.DECLINED:
+			return lang.get("declined_label")
+		default:
+			throw new Error("Unknown calendar attendee status: " + status)
+	}
+}
+
 export const eventInviteEmailTypeToCalendarAttendeeStatus = Object.freeze({
 	[EventInviteEmailType.REPLY_ACCEPT]: CalendarAttendeeStatus.ACCEPTED,
 	[EventInviteEmailType.REPLY_TENTATIVE]: CalendarAttendeeStatus.TENTATIVE,

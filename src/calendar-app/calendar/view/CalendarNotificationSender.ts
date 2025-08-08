@@ -146,11 +146,11 @@ export class CalendarNotificationSender {
 	private getStatusTranslationKey(status: EventInviteEmailType): TranslationKey {
 		switch (status) {
 			case EventInviteEmailType.REPLY_ACCEPT:
-				return "acceptedInviteSubject_msg"
+				return "accepted_label"
 			case EventInviteEmailType.REPLY_TENTATIVE:
 				return "maybe_label"
 			case EventInviteEmailType.REPLY_DECLINE:
-				return "declinedInviteSubject_msg"
+				return "declined_label"
 			default:
 				return "emptyString_msg"
 		}
@@ -569,7 +569,7 @@ function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, 
 					${event.location ? locationLine(event, changedFields?.location ?? false, theme) : ""}
 					${event.description ? descriptionLine(event, changedFields?.description ?? false, theme) : ""}
 					${organizerLine(event, changedFields?.organizer ?? false, theme)}
-					${attendeesLine(event, changedFields?.attendee ?? { added: [], removed: [] }, theme, selfInfo)}					
+					${attendeesLine(event, changedFields?.attendee ?? { added: [], removed: [] }, theme, selfInfo)}
 				</table>
 			</div>
 			<table style="padding: 24px 0">
