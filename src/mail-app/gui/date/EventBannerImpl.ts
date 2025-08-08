@@ -86,11 +86,13 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			.filter(isNotNull)
 
 		return eventsReplySection.map(({ event, replySection }) => {
-			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, replySection)
+			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, recipient, replySection)
 		})
 	}
 
-	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, replySection: Children) {
+	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, recipient: string, replySection: Children) {
+		const recipientIsOrganizer = recipient === event.organizer?.address
+
 		if (!agenda) {
 			console.warn(`Trying to render an EventBanner for event ${event._id} but it doesn't have an agenda. Something really wrong happened.`)
 		}
@@ -133,8 +135,8 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 							"border-color": bannerColor,
 						}
 					: {
-							"grid-template-columns": "min-content min-content 1fr",
-							"max-width": px(size.two_column_layout_width),
+							"grid-template-columns": recipientIsOrganizer ? "min-content max-content" : "min-content min-content 1fr",
+							"max-width": recipientIsOrganizer ? "max-content" : px(size.two_column_layout_width),
 							"border-color": bannerColor,
 						},
 			},
@@ -175,52 +177,54 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					replySection,
 				]),
 				/* Time Overview */
-				m(
-					".flex.flex-column.plr-vpad.pb.pt.justify-start",
-					{
-						class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
-						style: {
-							"border-color": bannerColor,
-						},
-					},
-					[
-						m(".flex.flex-column.mb-s", [
-							m(".flex", [
-								m(Icon, {
-									icon: Icons.Time,
-									container: "div",
-									class: "mr-xsm mt-xxs",
-									style: { fill: theme.content_fg },
-									size: IconSize.Medium,
-								}),
-								m("span.b.h5", lang.get("timeOverview_title")),
-							]),
-							agenda
-								? m(".flex.mt-hpad-small", [
+				!recipientIsOrganizer
+					? m(
+							".flex.flex-column.plr-vpad.pb.pt.justify-start",
+							{
+								class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
+								style: {
+									"border-color": bannerColor,
+								},
+							},
+							[
+								m(".flex.flex-column.mb-s", [
+									m(".flex", [
 										m(Icon, {
-											icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
+											icon: Icons.Time,
 											container: "div",
-											class: "mr-xsm",
-											style: { fill: hasConflict ? theme.error_color : theme.success_color }, // TODO [colors] Use new material like colors tokens
+											class: "mr-xsm mt-xxs",
+											style: { fill: theme.content_fg },
 											size: IconSize.Medium,
 										}),
-										this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
-									])
-								: null,
-						]),
-						agenda
-							? m(TimeView, {
-									events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
-									timeScale,
-									timeRange,
-									conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-									dates: [getStartOfDay(agenda.main.event.startTime)],
-									timeIndicator: Time.fromDate(agenda.main.event.startTime),
-									hasAnyConflict: hasConflict,
-								} satisfies TimeViewAttributes)
-							: m("", "ERROR: Could not load the agenda for this day."),
-					],
-				),
+										m("span.b.h5", lang.get("timeOverview_title")),
+									]),
+									agenda
+										? m(".flex.mt-hpad-small", [
+												m(Icon, {
+													icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
+													container: "div",
+													class: "mr-xsm",
+													style: { fill: hasConflict ? theme.error_color : theme.success_color }, // TODO [colors] Use new material like colors tokens
+													size: IconSize.Medium,
+												}),
+												this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
+											])
+										: null,
+								]),
+								agenda
+									? m(TimeView, {
+											events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
+											timeScale,
+											timeRange,
+											conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
+											dates: [getStartOfDay(agenda.main.event.startTime)],
+											timeIndicator: Time.fromDate(agenda.main.event.startTime),
+											hasAnyConflict: hasConflict,
+										} satisfies TimeViewAttributes)
+									: m("", "ERROR: Could not load the agenda for this day."),
+							],
+						)
+					: null,
 			],
 		)
 	}
