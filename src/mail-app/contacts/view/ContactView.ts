@@ -153,7 +153,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 								actions: null,
 								multicolumnActions: () => this.detailsViewerActions(),
 								primaryAction: () => {
-									return this.inContactListView() ? null : this.renderHeaderRightView()
+									return this.inContactListView() ? this.renderContactListHeaderRightView() : this.renderHeaderRightView()
 								},
 								title: this.getHeaderLabel(),
 								columnType: "other",
@@ -245,17 +245,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 									},
 								}),
 							]),
-							primaryAction: () => {
-								if (this.canEditSelectedContactList()) {
-									return m(IconButton, {
-										title: "addEntries_action",
-										click: () => this.addAddressesToContactList(),
-										icon: Icons.Add,
-									})
-								} else {
-									return null
-								}
-							},
+							primaryAction: () => this.renderContactListHeaderRightView(),
 						}),
 		})
 	}
@@ -400,6 +390,18 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			click: () => this.createNewContact(),
 			icon: Icons.Add,
 		})
+	}
+
+	private renderContactListHeaderRightView(): Children {
+		if (this.canEditSelectedContactList()) {
+			return m(IconButton, {
+				title: "addEntries_action",
+				click: () => this.addAddressesToContactList(),
+				icon: Icons.Add,
+			})
+		} else {
+			return null
+		}
 	}
 
 	private renderDetailsViewer(): Children {
