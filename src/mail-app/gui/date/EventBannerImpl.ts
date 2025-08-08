@@ -327,6 +327,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				})
 			},
 			maxLines: 2,
+			maxLength: 250,
 			ariaLabel: lang.get("addComment_label"),
 			placeholder: lang.get("addComment_label"),
 		} satisfies ExpandableTextAreaAttrs)
