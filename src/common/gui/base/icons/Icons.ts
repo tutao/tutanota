@@ -129,6 +129,7 @@ export const enum Icons {
 	PricingSupport = "PricingSupport",
 	PricingMail = "PricingMail",
 	PricingLabel = "PricingLabel",
+	Duplicate = "Duplicate",
 }
 
 export const IconsSvg: Record<Icons, string> = Object.freeze({
@@ -262,6 +263,7 @@ export const IconsSvg: Record<Icons, string> = Object.freeze({
 	PricingSupport: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.5 12c.6 0 1.2-.5 1.2-1.2s-.5-1.2-1.2-1.2-1.2.5-1.2 1.2.5 1.2 1.2 1.2M16.3 14.3H7.6c-.2 0-.3.3-.3.5.6 2 2.5 3.4 4.7 3.4s4.1-1.4 4.7-3.4v-.1c0-.2-.2-.4-.4-.4M15.5 9.7c-.6 0-1.2.5-1.2 1.2s.5 1.2 1.2 1.2 1.2-.5 1.2-1.2-.5-1.2-1.2-1.2"/><path d="M12 .8C5.8.8.8 5.8.8 12s5 11.2 11.2 11.2 11.2-5 11.2-11.2S18.2.8 12 .8m0 20.4c-5 0-9.2-4.1-9.2-9.2S7 2.8 12 2.8s9.2 4.1 9.2 9.2-4.1 9.2-9.2 9.2"/></svg>`,
 	PricingMail: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.9 3.5H4.1c-1.6 0-2.9 1.3-2.9 2.9v11.3c0 1.6 1.3 2.9 2.9 2.9h15.8c1.6 0 2.9-1.3 2.9-2.9V6.4c0-1.6-1.3-2.9-2.9-2.9m.9 14.1c0 .5-.4.9-.9.9H4.1c-.5 0-.9-.4-.9-.9V6.4c0-.5.4-.9.9-.9h15.8c.5 0 .9.4.9.9v11.3Z" class="st0"/><path d="M18.1 6.7 12 11.5 5.9 6.7c-.4-.3-1.1-.3-1.4.2-.3.4-.3 1.1.2 1.4l6.8 5.2c.2.1.4.2.6.2s.4 0 .6-.2l6.8-5.2c.4-.3.5-1 .2-1.4s-1-.5-1.4-.2Z" class="st0"/></svg>`,
 	PricingLabel: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.4 9V3.8c0-.6-.2-1.1-.6-1.6-.4-.4-1-.6-1.6-.7H13c-.4 0-.8.2-1.1.5L1.6 12.4c-.9.9-.9 2.3 0 3.1l4.9 4.9c.4.4 1 .6 1.6.6s1.1-.2 1.6-.6L20 10.1c.3-.3.5-.7.5-1.1Zm-2-.2L8.2 19h-.3L3 14.1v-.3L13.2 3.6h5v-1 1s.2.1.2.2z"/><path d="M22.1 3.6c-.6 0-1 .4-1 1v5.2L10.2 20.7c-.4.4-.4 1 0 1.4s.5.3.7.3.5 0 .7-.3l11-11c.3-.3.5-.7.5-1.1V4.6c0-.6-.4-1-1-1"/></svg>`,
+	Duplicate: `<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><path d="M112 80h288V56a24 24 0 0 0-24-24H66a34 34 0 0 0-34 34v310a24 24 0 0 0 24 24h24V112a32 32 0 0 1 32-32"/><path d="M456 112H136a24 24 0 0 0-24 24v320a24 24 0 0 0 24 24h320a24 24 0 0 0 24-24V136a24 24 0 0 0-24-24m-64 200h-80v80h-32v-80h-80v-32h80v-80h32v80h80z"/></svg>`,
 } as const)
 
 export const SecondFactorImage =

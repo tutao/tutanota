@@ -202,7 +202,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 							? m(Icon, {
 									icon: BootIcons.Expand,
 									container: "div",
-									class: `fit-content transition-transform`,
+									class: `fit-content`,
 									size: IconSize.Medium,
 									style: {
 										fill: iconColor ?? getColors(ButtonColor.Content).button,

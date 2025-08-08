@@ -21,7 +21,7 @@ import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.j
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils" // not picking the status directly from CalendarEventAttendee because it's a NumberString
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
@@ -52,7 +52,7 @@ async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent
 }
 
 export async function showEventDetails(event: CalendarEvent, eventBubbleRect: ClientRect, mail: Mail | null): Promise<void> {
-	const [latestEvent, { CalendarEventPopup }, { CalendarEventPreviewViewModel }, { htmlSanitizer }] = await Promise.all([
+	const [latestEvent, { CalendarEventPopup }, { CalendarEventPreviewViewModel }, { getHtmlSanitizer }] = await Promise.all([
 		getLatestEvent(event),
 		import("../gui/eventpopup/CalendarEventPopup.js"),
 		import("../gui/eventpopup/CalendarEventPreviewViewModel.js"),
@@ -93,7 +93,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 		lazyIndexEntry,
 		editModelsFactory,
 	)
-	new CalendarEventPopup(viewModel, eventBubbleRect, htmlSanitizer).show()
+	new CalendarEventPopup(viewModel, eventBubbleRect, getHtmlSanitizer()).show()
 }
 
 export async function getEventsFromFile(file: TutanotaFile, invitedConfidentially: boolean): Promise<ParsedIcalFileContent> {
@@ -153,6 +153,8 @@ export class CalendarInviteHandler {
 	 * @param attendee the attendee that should respond to the mail
 	 * @param decision the new status of the attendee
 	 * @param previousMail the mail to respond to
+	 * @param mailboxDetails
+	 * @param comment
 	 */
 	async replyToEventInvitation(
 		event: CalendarEvent,
@@ -160,6 +162,7 @@ export class CalendarInviteHandler {
 		decision: CalendarAttendeeStatus,
 		previousMail: Mail,
 		mailboxDetails: MailboxDetail,
+		comment?: string,
 	): Promise<ReplyResult> {
 		const eventClone = clone(event)
 		const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
@@ -169,10 +172,20 @@ export class CalendarInviteHandler {
 		//NOTE: mailDetails are getting passed through because the calendar does not have access to the mail folder structure
 		//	which is needed to find mailboxdetails by mail. This may be fixed by static mail ids which are being worked on currently.
 		//  This function is only called by EventBanner from the mail app so this should be okay.
-		const responseModel = await this.getResponseModelForMail(previousMail, mailboxDetails, attendee.address.address)
-
+		const responseModel = await this.getResponseModelForMail(previousMail, mailboxDetails, attendee.address.address, decision)
 		try {
-			await notificationModel.send(eventClone, [], { responseModel, inviteModel: null, cancelModel: null, updateModel: null })
+			await notificationModel.send(
+				eventClone,
+				[],
+				{
+					responseModel,
+					inviteModel: null,
+					cancelModel: null,
+					updateModel: null,
+				},
+				undefined,
+				comment,
+			)
 		} catch (e) {
 			if (e instanceof UserError) {
 				await Dialog.message(lang.makeTranslation("confirm_msg", e.message))
@@ -204,7 +217,12 @@ export class CalendarInviteHandler {
 		return ReplyResult.ReplySent
 	}
 
-	async getResponseModelForMail(previousMail: Mail, mailboxDetails: MailboxDetail, responder: string): Promise<SendMailModel | null> {
+	async getResponseModelForMail(
+		previousMail: Mail,
+		mailboxDetails: MailboxDetail,
+		responder: string,
+		responseDecision: CalendarAttendeeStatus,
+	): Promise<SendMailModel | null> {
 		//NOTE: mailDetails are getting passed through because the calendar does not have access to the mail folder structure
 		//	which is needed to find mailboxdetails by mail. This may be fixed by static mail ids which are being worked on currently
 		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
@@ -227,6 +245,7 @@ export class CalendarInviteHandler {
 		// If the contact is removed or the password is not there the user would see an error but they wouldn't be
 		// able to reply anyway (unless they fix it).
 		model.setConfidential(previousMail.confidential)
+		model.setEmailTypeFromAttendeeStatus(responseDecision)
 		return model
 	}
 }

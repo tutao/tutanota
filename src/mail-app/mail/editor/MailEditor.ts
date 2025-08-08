@@ -31,7 +31,7 @@ import { ExpanderPanel } from "../../../common/gui/base/Expander"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { UserError } from "../../../common/api/main/UserError"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { htmlSanitizer } from "../../../common/misc/HtmlSanitizer"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { DropDownSelector } from "../../../common/gui/base/DropDownSelector.js"
 import {
 	Contact,
@@ -159,6 +159,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	// we don't want to show the banner.
 	private blockedExternalContent: number = 0
 
+	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
+
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
 		this.attrs = a
@@ -176,7 +178,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		this.editor = new Editor(
 			200,
 			(html, isPaste) => {
-				const sanitized = htmlSanitizer.sanitizeFragment(html, {
+				const sanitized = this.htmlSanitizer.sanitizeFragment(html, {
 					blockExternalContent: !isPaste && this.blockExternalContent,
 				})
 				this.blockedExternalContent = sanitized.blockedExternalContent
@@ -555,7 +557,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private updateExternalContentStatus(status: ContentBlockingStatus) {
 		this.blockExternalContent = status === ContentBlockingStatus.Block || status === ContentBlockingStatus.AlwaysBlock
 
-		const sanitized = htmlSanitizer.sanitizeHTML(this.editor.getHTML(), {
+		const sanitized = this.htmlSanitizer.sanitizeHTML(this.editor.getHTML(), {
 			blockExternalContent: this.blockExternalContent,
 		})
 

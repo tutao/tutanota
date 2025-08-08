@@ -72,10 +72,11 @@ export async function exportMails(
 			if (cancelled) throw new CancelledError("export cancelled")
 		}
 
+		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
+		const htmlSanitizer = getHtmlSanitizer()
 		const downloadPromise = promiseMap(mails, async (mail) => {
 			checkAbortSignal()
 			try {
-				const { htmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
 				return await downloadMailBundle(mail, mailFacade, entityClient, fileController, htmlSanitizer, cryptoFacade)
 			} catch (e) {
 				errorMails.push(mail)

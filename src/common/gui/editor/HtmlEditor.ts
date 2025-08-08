@@ -4,7 +4,7 @@ import { Editor } from "./Editor.js"
 import type { MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { px } from "../size"
-import { htmlSanitizer } from "../../misc/HtmlSanitizer"
+import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { DropDownSelector } from "../base/DropDownSelector.js"
 import { RichTextToolbar, RichTextToolbarAttrs } from "../base/RichTextToolbar.js"
@@ -33,6 +33,8 @@ export class HtmlEditor implements Component {
 	private toolbarAttrs: Omit<RichTextToolbarAttrs, "editor"> = {}
 	private staticLineAmount: number | null = null // Static amount of lines the editor shall allow at all times
 
+	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
+
 	constructor(
 		private label?: MaybeTranslation,
 		private readonly injections?: () => Children,
@@ -40,7 +42,7 @@ export class HtmlEditor implements Component {
 		this.editor = new Editor(
 			null,
 			(html) =>
-				htmlSanitizer.sanitizeFragment(html, {
+				this.htmlSanitizer.sanitizeFragment(html, {
 					blockExternalContent: false,
 					allowRelativeLinks: this.areRelativeLinksAllowed,
 				}).fragment,
@@ -216,7 +218,7 @@ export class HtmlEditor implements Component {
 			}
 		} else {
 			if (this.domTextArea) {
-				return htmlSanitizer.sanitizeHTML(this.domTextArea.value, {
+				return this.htmlSanitizer.sanitizeHTML(this.domTextArea.value, {
 					blockExternalContent: false,
 					allowRelativeLinks: this.areRelativeLinksAllowed,
 				}).html

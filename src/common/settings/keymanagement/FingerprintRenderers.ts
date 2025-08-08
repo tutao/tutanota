@@ -1,4 +1,4 @@
-import { htmlSanitizer } from "../../misc/HtmlSanitizer"
+import { getHtmlSanitizer } from "../../misc/HtmlSanitizer"
 import QRCode from "qrcode-svg"
 import { KeyVerificationQrPayload } from "./KeyVerificationQrPayload"
 import { Hex } from "@tutao/tutanota-utils"
@@ -14,5 +14,5 @@ export function renderFingerprintAsQrCode(selfMailAddress: string, fingerprint: 
 		xmlDeclaration: false,
 	})
 
-	return htmlSanitizer.sanitizeSVG(qrCode.svg()).html
+	return getHtmlSanitizer().sanitizeSVG(qrCode.svg()).html
 }

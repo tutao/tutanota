@@ -80,7 +80,11 @@ export class Assertion<T> {
 	satisfies(check: (value: T) => { pass: false; message: string } | { pass: true }): AssertionDescriber {
 		const result = check(this.actual)
 		if (!result.pass) {
-			return this.addError(`expected to satisfy condition: "${result.message}"`)
+			return this.addError(`expected
+${this.actual}
+to satisfy condition:
+${result.message}
+`)
 		}
 		return noop
 	}
@@ -96,7 +100,11 @@ export class Assertion<T> {
 	): Promise<AssertionDescriber> {
 		const result = await check(this.actual)
 		if (!result.pass) {
-			return this.addError(`expected to satisfy condition: "${result.message}"`)
+			return this.addError(`expected
+${this.actual}
+to satisfy condition:
+${result.message}
+`)
 		}
 		return noop
 	}
@@ -105,7 +113,10 @@ export class Assertion<T> {
 	notSatisfies(check: (value: T) => { pass: boolean; message: string }): AssertionDescriber {
 		const result = check(this.actual)
 		if (result.pass) {
-			return this.addError(`expected "${asString(this.actual)}" to NOT satisfy condition: "${result.message}"`)
+			return this.addError(`expected
+${asString(this.actual)}
+to NOT satisfy condition:
+${result.message}`)
 		}
 		return noop
 	}

@@ -1,12 +1,8 @@
 import { ReplacementImage } from "../gui/base/icons/Icons"
-import { downcast, isEmpty, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { downcast, isEmpty, memoized, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { DataFile } from "../api/common/DataFile"
-import { encodeSVG } from "../gui/base/GuiUtils.js"
 import DOMPurify, { Config } from "dompurify"
-import { splitTextForHighlighting, SearchToken } from "../api/common/utils/QueryTokenUtils"
-
-/** Data url for an SVG image that will be shown in place of external content. */
-export const PREVENT_EXTERNAL_IMAGE_LOADING_ICON: string = encodeSVG(ReplacementImage)
+import { SearchToken, splitTextForHighlighting } from "../api/common/utils/QueryTokenUtils"
 
 // background attribute is deprecated but still used in common browsers
 const EXTERNAL_CONTENT_ATTRS = Object.freeze([
@@ -123,9 +119,9 @@ export class HtmlSanitizer {
 	private links!: Array<Link>
 	private purifier!: typeof DOMPurify
 
-	constructor() {
+	constructor(private readonly replacementImageUrl: string) {
 		if (DOMPurify.isSupported) {
-			this.purifier = DOMPurify
+			this.purifier = DOMPurify()
 			// Do changes in afterSanitizeAttributes and not afterSanitizeElements so that images are not removed again because of the SVGs.
 			this.purifier.addHook("afterSanitizeAttributes", this.afterSanitizeAttributes.bind(this))
 			this.purifier.addHook("beforeSanitizeElements", this.beforeSanitizeElements.bind(this))
@@ -335,7 +331,7 @@ export class HtmlSanitizer {
 
 					this.inlineImageCids.push(cid)
 
-					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
+					attribute.value = this.replacementImageUrl
 					htmlNode.setAttribute("cid", cid)
 					htmlNode.classList.add("tutanota-placeholder")
 				} else if (config.blockExternalContent && attribute.name === "srcset") {
@@ -343,7 +339,7 @@ export class HtmlSanitizer {
 
 					htmlNode.setAttribute("draft-srcset", attribute.value)
 					htmlNode.removeAttribute("srcset")
-					htmlNode.setAttribute("src", PREVENT_EXTERNAL_IMAGE_LOADING_ICON)
+					htmlNode.setAttribute("src", this.replacementImageUrl)
 					htmlNode.style.maxWidth = "100px"
 				} else if (
 					config.blockExternalContent &&
@@ -360,7 +356,7 @@ export class HtmlSanitizer {
 					this.externalContent++
 
 					htmlNode.setAttribute("draft-" + attribute.name, attribute.value)
-					attribute.value = PREVENT_EXTERNAL_IMAGE_LOADING_ICON
+					attribute.value = this.replacementImageUrl
 					htmlNode.attributes.setNamedItem(attribute)
 					htmlNode.style.maxWidth = "100px"
 				} else if (!config.blockExternalContent && DRAFT_ATTRIBUTES.includes(attribute.name)) {
@@ -413,7 +409,7 @@ export class HtmlSanitizer {
 		// image-set('test.jpg' 1x, 'test-2x.jpg' 2x)
 		if (value.includes("url(") && value.match(/url\(/g)?.length !== value.match(/url\(["']?data:/g)?.length) {
 			this.externalContent++
-			;(htmlNode.style as any)[styleAttributeName] = `url("${PREVENT_EXTERNAL_IMAGE_LOADING_ICON}")`
+			;(htmlNode.style as any)[styleAttributeName] = `url("${this.replacementImageUrl}")`
 
 			if (limitWidth) {
 				htmlNode.style.maxWidth = "100px"
@@ -509,4 +505,14 @@ function isTextElement(node: Node): node is Text {
 	return node.nodeName === "#text"
 }
 
-export const htmlSanitizer: HtmlSanitizer = new HtmlSanitizer()
+export const getHtmlSanitizer = memoized(() => {
+	// Create a blob URL for the replacement image instead of inlining SVG as data URL.
+	// This way we sidestep serialization/escaping problems plus DOM is smaller.
+	// It is never revoked and should only be run in browser context so we lazily instantiate
+	// it once.
+	const blob = new Blob([ReplacementImage], {
+		type: "image/svg+xml",
+	})
+
+	return new HtmlSanitizer(URL.createObjectURL(blob))
+})

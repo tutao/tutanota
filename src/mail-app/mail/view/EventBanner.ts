@@ -11,6 +11,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import type { EventBannerImpl, EventBannerImplAttrs } from "../../gui/date/EventBannerImpl"
 import { EventBannerSkeleton } from "../../gui/EventBannerSkeleton"
+import type { ThemeController } from "../../../common/gui/ThemeController.js"
 
 export type EventBannerAttrs = {
 	iCalContents: ParsedIcalFileContent
@@ -53,7 +54,7 @@ export class EventBanner implements Component<EventBannerAttrs> {
 }
 
 /** show a progress dialog while sending a response to the event's organizer and update the ui. will always send a reply, even if the status did not change. */
-export function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail): Promise<boolean> {
+export function sendResponse(event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string): Promise<boolean> {
 	return showProgressDialog(
 		"pleaseWait_msg",
 		import("../../../calendar-app/calendar/view/CalendarInvites.js").then(async ({ getLatestEvent }) => {
@@ -69,7 +70,7 @@ export function sendResponse(event: CalendarEvent, recipient: string, status: Ca
 			const mailboxDetails = await mailLocator.mailModel.getMailboxDetailsForMail(previousMail)
 			if (mailboxDetails == null) return false
 
-			const replyResult = await calendarInviteHandler.replyToEventInvitation(latestEvent, ownAttendee, status, previousMail, mailboxDetails)
+			const replyResult = await calendarInviteHandler.replyToEventInvitation(latestEvent, ownAttendee, status, previousMail, mailboxDetails, comment)
 			if (replyResult === ReplyResult.ReplySent) {
 				ownAttendee.status = status
 			}
