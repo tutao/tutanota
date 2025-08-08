@@ -110,7 +110,6 @@ export class WindowManager {
 		const w: ApplicationWindow = await this._newWindowFactory(noAutoLogin)
 		windows.unshift(w)
 		w.on("close", () => {
-			this.saveBounds(w.getBounds())
 			w.setUserId(null)
 		})
 			.on("closed", () => {
