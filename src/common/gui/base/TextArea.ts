@@ -25,6 +25,7 @@ export interface TextAreaAttrs {
 	classes?: Array<string>
 	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "borderColor" | "transition" | "height">>
 	variant?: TextAreaVariant
+	maxLength?: number
 }
 
 type HTMLElementWithAttrs = Partial<
@@ -65,6 +66,7 @@ export class TextArea implements ClassComponent<TextAreaAttrs> {
 			ariaLabel: attrs.ariaLabel,
 			rows: attrs.maxLines ?? 3,
 			disabled: attrs.disabled ?? false,
+			maxLength: attrs.maxLength,
 			oncreate: (node: VnodeDOM<TextAreaAttrs>) => {
 				if (!attrs.oncreate) {
 					return

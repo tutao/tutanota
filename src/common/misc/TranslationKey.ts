@@ -2090,3 +2090,5 @@ export type TranslationKeyType =
 	| "duplicateEvent_label"
 	| "addComment_label"
 	| "copyOf_title"
+	| "declinedInviteSubject_msg"
+	| "acceptedInviteSubject_msg"
