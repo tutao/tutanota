@@ -360,7 +360,9 @@ impl EntityFacadeImpl {
 		if type_model.is_encrypted() {
 			// Only top-level types are expected to have `_errors` in the end but it is removed
 			// from the aggregates by `extract_errors()`.
-			mapped_decrypted.insert("_errors".to_string(), ElementValue::Dict(mapped_errors));
+			if !mapped_errors.is_empty() {
+				mapped_decrypted.insert("_errors".to_string(), ElementValue::Dict(mapped_errors));
+			}
 			mapped_decrypted.insert("_finalIvs".to_string(), ElementValue::Dict(mapped_ivs));
 		}
 
