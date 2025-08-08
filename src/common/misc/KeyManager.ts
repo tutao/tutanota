@@ -301,12 +301,12 @@ class KeyManager {
 
 /**
  *
- * @param key The key to be checked, should correspond to KeyEvent.key
+ * @param keyFromPress The key to be checked, should correspond to KeyEvent.key
  * @param keys Keys to be checked against, type of Keys
  */
-export function isKeyPressed(key: string | undefined, ...keys: Array<Key>): boolean {
-	if (key != null) {
-		return keys.some((k) => k.code === key.toLowerCase())
+export function isKeyPressed(keyFromPress: string | undefined, ...keys: Array<Key>): boolean {
+	if (keyFromPress != null) {
+		return keys.some((k) => k.code === keyFromPress.toLowerCase())
 	}
 	return false
 }
