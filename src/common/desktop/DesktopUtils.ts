@@ -12,7 +12,6 @@ import { TempFs } from "./files/TempFs.js"
 import { ElectronExports } from "./ElectronExportTypes.js"
 import { WindowManager } from "./DesktopWindowManager.js"
 import { DesktopNotifier } from "./notifications/DesktopNotifier"
-import { sendDummyKeystroke } from "@indutny/simple-windows-notifications"
 
 export const TUTA_PROTOCOL_NOTIFICATION_ACTION = "notification"
 
@@ -129,6 +128,9 @@ export class DesktopUtils {
 				await wm.newWindow(true)
 			} else {
 				if (process.platform === "win32") {
+					// Prevent statically importing this as we do not want to load the module during tests
+					const { sendDummyKeystroke } = await import("@indutny/simple-windows-notifications")
+
 					// Workaround on Windows so we can focus when in the background - https://www.npmjs.com/package/@signalapp/windows-dummy-keystroke
 					sendDummyKeystroke()
 				}

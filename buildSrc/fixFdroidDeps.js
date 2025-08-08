@@ -17,7 +17,6 @@ const devDependencies = [
 	"chokidar",
 	"body-parser",
 	"rcedit",
-	"winreg",
 	"node-forge",
 ]
 for (const dep of devDependencies) {

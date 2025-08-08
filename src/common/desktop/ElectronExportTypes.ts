@@ -9,7 +9,6 @@ export type PathExports = typeof PathModule
 export type NetExports = typeof NetModule
 export type ChildProcessExports = typeof ChildProcessModule
 export type ElectronExports = typeof Electron.CrossProcessExports
-export type WinregExports = { default: WinregStatic }
 export type WebContentsEvent = {
 	readonly preventDefault: () => void
 }
