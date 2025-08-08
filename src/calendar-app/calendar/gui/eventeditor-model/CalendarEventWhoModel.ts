@@ -16,7 +16,7 @@ import {
 	ConversationType,
 	getAttendeeStatus,
 	ShareCapability,
-    PresentableKeyVerificationState
+	PresentableKeyVerificationState,
 } from "../../../../common/api/common/TutanotaConstants.js"
 import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
