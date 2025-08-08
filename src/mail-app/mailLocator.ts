@@ -156,6 +156,7 @@ import { AutosaveFacade } from "../common/api/worker/facades/lazy/AutosaveFacade
 import { lang } from "../common/misc/LanguageViewModel.js"
 import { SpamClassificationHandler } from "./mail/model/SpamClassificationHandler"
 import { SpamClassifier } from "./workerUtils/spamClassification/SpamClassifier"
+import type { QuickActionsModel } from "../common/misc/QuickActionBar"
 
 assertMainOrNode()
 
@@ -355,6 +356,11 @@ class MailLocator implements CommonLocator {
 				}
 			: noOp,
 	}
+
+	readonly quickActionsModel: lazyAsync<QuickActionsModel> = lazyMemoized(async () => {
+		const { QuickActionsModel } = await import("../common/misc/QuickActionBar.js")
+		return new QuickActionsModel()
+	})
 
 	readonly contactViewModel = lazyMemoized(async () => {
 		const { ContactViewModel } = await import("../mail-app/contacts/view/ContactViewModel.js")
