@@ -30,7 +30,7 @@ import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.j
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
-import { formatEventDuration, getDisplayEventTitle, iconForAttendeeStatus, repeatRuleOptions } from "../CalendarGuiUtils.js"
+import { calendarAttendeeStatusSymbol, formatEventDuration, getDisplayEventTitle, repeatRuleOptions } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
 import { inputLineHeight, px, size } from "../../../../common/gui/size.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
@@ -246,16 +246,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				? getAttendeeStatus(participation.ownAttendee)
 				: getAttendeeStatus(attendee)
 
-		return m(".flex.items-center", [
-			m(Icon, {
-				icon: iconForAttendeeStatus[status],
-				style: {
-					fill: theme.content_fg,
-				},
-				class: "mr-s",
-			}),
-			m(".span.line-break-anywhere.selectable", attendeeField),
-		])
+		return m(".flex.items-center", [m(".span.line-break-anywhere.selectable", attendeeField), m(".span.pl-s", calendarAttendeeStatusSymbol(status))])
 	}
 
 	private renderDescription(sanitizedDescription: string | null, highlightedStrings?: readonly SearchToken[]) {
