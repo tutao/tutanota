@@ -10,7 +10,6 @@ import {
 	ContactTypeRef,
 	ConversationEntryTypeRef,
 	createContact,
-	CustomerAccountCreateDataTypeRef,
 	Mail,
 	MailAddressTypeRef,
 	MailboxGroupRootTypeRef,
@@ -582,17 +581,9 @@ o.spec("SendMailModel", function () {
 
 		o("nonmatching event", async function () {
 			await model.handleEntityEvent({
-				typeRef: CustomerAccountCreateDataTypeRef,
-				operation: OperationType.CREATE,
-				instanceListId: "",
-				instanceId: "",
-				...noPatchesAndInstance,
-				prefetchStatus: PrefetchStatus.NotPrefetched,
-			})
-			await model.handleEntityEvent({
 				typeRef: UserTypeRef,
 				operation: OperationType.CREATE,
-				instanceListId: "",
+				instanceListId: null,
 				instanceId: "",
 				...noPatchesAndInstance,
 				prefetchStatus: PrefetchStatus.NotPrefetched,
@@ -600,7 +591,7 @@ o.spec("SendMailModel", function () {
 			await model.handleEntityEvent({
 				typeRef: CustomerTypeRef,
 				operation: OperationType.CREATE,
-				instanceListId: "",
+				instanceListId: null,
 				instanceId: "",
 				...noPatchesAndInstance,
 				prefetchStatus: PrefetchStatus.NotPrefetched,
@@ -608,7 +599,7 @@ o.spec("SendMailModel", function () {
 			await model.handleEntityEvent({
 				typeRef: NotificationMailTypeRef,
 				operation: OperationType.CREATE,
-				instanceListId: "",
+				instanceListId: null,
 				instanceId: "",
 				...noPatchesAndInstance,
 				prefetchStatus: PrefetchStatus.NotPrefetched,
@@ -616,7 +607,7 @@ o.spec("SendMailModel", function () {
 			await model.handleEntityEvent({
 				typeRef: ChallengeTypeRef,
 				operation: OperationType.CREATE,
-				instanceListId: "",
+				instanceListId: null,
 				instanceId: "",
 				...noPatchesAndInstance,
 				prefetchStatus: PrefetchStatus.NotPrefetched,
@@ -624,7 +615,7 @@ o.spec("SendMailModel", function () {
 			await model.handleEntityEvent({
 				typeRef: MailTypeRef,
 				operation: OperationType.CREATE,
-				instanceListId: "",
+				instanceListId: "mail-list-id",
 				instanceId: "",
 				...noPatchesAndInstance,
 				prefetchStatus: PrefetchStatus.NotPrefetched,

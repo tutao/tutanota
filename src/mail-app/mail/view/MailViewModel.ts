@@ -2,6 +2,7 @@ import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/M
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import {
 	ImportedMailTypeRef,
+	ImportMailState,
 	ImportMailStateTypeRef,
 	Mail,
 	MailBox,
@@ -664,7 +665,7 @@ export class MailViewModel {
 			return
 		}
 
-		let importMailStateUpdates: Array<EntityUpdateData> = []
+		let importMailStateUpdates: Array<EntityUpdateData<ImportMailState>> = []
 		for (const update of updates) {
 			if (
 				isUpdateForTypeRef(ImportMailStateTypeRef, update) &&
@@ -680,7 +681,7 @@ export class MailViewModel {
 		}
 	}
 
-	private async processImportedMails(update: EntityUpdateData) {
+	private async processImportedMails(update: EntityUpdateData<ImportMailState>) {
 		const importMailState = await this.entityClient.load(ImportMailStateTypeRef, [update.instanceListId, update.instanceId])
 		const importedFolder = await this.entityClient.load(MailFolderTypeRef, importMailState.targetFolder)
 
@@ -707,7 +708,7 @@ export class MailViewModel {
 				await promiseMap(importedMailSetEntries, (importedMailSetEntry) => {
 					return listModelOfImport.handleEntityUpdate({
 						instanceId: elementIdPart(importedMailSetEntry._id),
-						instanceListId: importedFolder.entries,
+						instanceListId: importedFolder.entries as NonEmptyString,
 						operation: OperationType.CREATE,
 						typeRef: MailSetEntryTypeRef,
 						instance: null,

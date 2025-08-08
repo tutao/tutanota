@@ -124,7 +124,7 @@ export class SearchViewModel {
 	 * result might be nonexistent if there is no query or we're not done searching
 	 * yet.
 	 */
-	get searchedType(): TypeRef<Mail> | TypeRef<Contact> | TypeRef<CalendarEvent> {
+	get searchedType(): TypeRef<Mail | Contact | CalendarEvent> {
 		return (this.searchResult?.restriction ?? this.router.getRestriction()).type
 	}
 
@@ -747,15 +747,15 @@ export class SearchViewModel {
 		}
 	}
 
-	private isPossibleABirthdayContactUpdate(update: EntityUpdateData): boolean {
+	private isPossibleABirthdayContactUpdate(update: EntityUpdateData): update is EntityUpdateData<Contact> {
 		if (isUpdateForTypeRef(ContactTypeRef, update) && isSameTypeRef(this.searchedType, CalendarEventTypeRef)) {
 			const { instanceListId, instanceId } = update
 			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
 
 			return this.listModel.stateStream().items.some((searchEntry) => searchEntry._id[1].endsWith(encodedContactId))
+		} else {
+			return false
 		}
-
-		return false
 	}
 
 	private isSelectedEventAnUpdatedBirthday(update: EntityUpdateData): boolean {
@@ -775,7 +775,7 @@ export class SearchViewModel {
 	}
 
 	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
-		const lastType = this.searchedType
+		const lastType: TypeRef<Mail | CalendarEvent | Contact> = this.searchedType
 		const isPossibleABirthdayContactUpdate = this.isPossibleABirthdayContactUpdate(update)
 
 		if (!isUpdateForTypeRef(lastType, update) && !isPossibleABirthdayContactUpdate) {
