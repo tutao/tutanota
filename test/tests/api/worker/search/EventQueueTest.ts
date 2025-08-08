@@ -1,10 +1,9 @@
 import o from "@tutao/otest"
 import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/EventQueue.js"
-import { GroupTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { OperationType } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { ConnectionError } from "../../../../../src/common/api/common/error/RestError.js"
-import { MailboxGroupRootTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { spy } from "@tutao/tutanota-test-utils"
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 
@@ -17,14 +16,14 @@ o.spec("EventQueueTest", function () {
 		instance: null,
 		patches: null,
 	}
-	const newUpdate = (type: OperationType, instanceId: string): EntityUpdateData => {
+	const newUpdate = (type: OperationType, instanceId: string): EntityUpdateData<Mail> => {
 		return {
 			operation: type,
 			instanceId,
-			instanceListId: "",
+			instanceListId: "list-id",
 			typeRef: MailTypeRef,
 			...noPatchesAndInstance,
-		} as Partial<EntityUpdateData> as EntityUpdateData
+		} as Partial<EntityUpdateData> as EntityUpdateData<Mail>
 	}
 
 	o.beforeEach(function () {

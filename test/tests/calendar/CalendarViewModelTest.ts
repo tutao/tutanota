@@ -3,7 +3,7 @@ import { getDateInZone, makeEvent, makeUserController, zone } from "./CalendarTe
 import type { LoginController } from "../../../src/common/api/main/LoginController.js"
 import { assertThrows, spy } from "@tutao/tutanota-test-utils"
 import { assertNotNull, downcast, getStartOfDay, neverNull, noOp } from "@tutao/tutanota-utils"
-import { CalendarEvent } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { ProgressTracker } from "../../../src/common/api/main/ProgressTracker.js"
@@ -29,7 +29,6 @@ import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel
 import { addDaysForEventInstance, getMonthRange } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
-import { CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 
 let saveAndSendMock
@@ -415,7 +414,7 @@ o.spec("CalendarViewModel", function () {
 			o(entityListeners.length).equals(1)("Listener was added")
 			const entityUpdate: EntityUpdateData = {
 				typeRef: CalendarEventTypeRef,
-				instanceListId: getListId(eventToDrag),
+				instanceListId: getListId(eventToDrag) as NonEmptyString,
 				instanceId: getElementId(eventToDrag),
 				operation: OperationType.CREATE,
 				instance: null,

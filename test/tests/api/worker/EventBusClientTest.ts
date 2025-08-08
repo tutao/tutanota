@@ -186,7 +186,7 @@ o.spec("EventBusClientTest", function () {
 				typeRef: MailTypeRef,
 				operation: OperationType.CREATE,
 				instanceId: update.instanceId,
-				instanceListId: update.instanceListId,
+				instanceListId: update.instanceListId as NonEmptyString,
 				instance: null,
 				patches: null,
 				prefetchStatus: PrefetchStatus.NotPrefetched,

@@ -513,13 +513,13 @@ export class MailIndexer {
 		return mailSets.filter(isFolder).map((set) => set.entries)
 	}
 
-	private async processImportStateEntityEvents(event: EntityUpdateData): Promise<void> {
+	private async processImportStateEntityEvents(operation: OperationType, importStateId: IdTuple): Promise<void> {
 		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 		// we can only process create and update events (create is because of EntityEvent optimization
 		// (CREATE + UPDATE = CREATE) which requires us to process CREATE events with imported mails)
-		if (event.operation === OperationType.CREATE || event.operation === OperationType.UPDATE) {
-			const mailIds: IdTuple[] = await this.loadImportedMailIdsInIndexDateRange([event.instanceListId, event.instanceId])
+		if (operation === OperationType.CREATE || operation === OperationType.UPDATE) {
+			const mailIds: IdTuple[] = await this.loadImportedMailIdsInIndexDateRange(importStateId)
 
 			const mailData = await this.preloadMails(mailIds)
 			for (const singleMailData of mailData) {
@@ -579,7 +579,7 @@ export class MailIndexer {
 
 		for (const event of events) {
 			if (isUpdateForTypeRef(ImportMailStateTypeRef, event)) {
-				await this.processImportStateEntityEvents(event)
+				await this.processImportStateEntityEvents(event.operation, [event.instanceListId, event.instanceId])
 			}
 		}
 	}
