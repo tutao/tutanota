@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import { Spy, spy, verify } from "@tutao/tutanota-test-utils"
 import { MailSetKind, OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
-import { MailFolderTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import { Mail, MailFolderTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { downcast } from "@tutao/tutanota-utils"
@@ -57,7 +57,7 @@ o.spec("MailModelTest", function () {
 		restClient.addListInstances(mailSetEntry)
 		await model.entityEventsReceived([
 			makeUpdate({
-				instanceListId: getListId(mailSetEntry),
+				instanceListId: getListId(mailSetEntry) as NonEmptyString,
 				instanceId: getElementId(mailSetEntry),
 				operation: OperationType.CREATE,
 			}),
@@ -69,12 +69,12 @@ o.spec("MailModelTest", function () {
 		restClient.addListInstances(mailSetEntry)
 		await model.entityEventsReceived([
 			makeUpdate({
-				instanceListId: getListId(mailSetEntry),
+				instanceListId: getListId(mailSetEntry) as NonEmptyString,
 				instanceId: getElementId(mailSetEntry),
 				operation: OperationType.DELETE,
 			}),
 			makeUpdate({
-				instanceListId: getListId(mailSetEntry),
+				instanceListId: getListId(mailSetEntry) as NonEmptyString,
 				instanceId: getElementId(mailSetEntry),
 				operation: OperationType.CREATE,
 			}),
@@ -90,7 +90,15 @@ o.spec("MailModelTest", function () {
 		verify(mailFacade.markMails([mailId1, mailId2, mailId3], true))
 	})
 
-	function makeUpdate({ instanceId, instanceListId, operation }: { instanceListId: string; instanceId: Id; operation: OperationType }): EntityUpdateData {
+	function makeUpdate({
+		instanceId,
+		instanceListId,
+		operation,
+	}: {
+		instanceListId: NonEmptyString
+		instanceId: Id
+		operation: OperationType
+	}): EntityUpdateData<Mail> {
 		return {
 			typeRef: MailTypeRef,
 			operation,

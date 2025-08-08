@@ -7,6 +7,7 @@
 /* eslint-disable no-var */
 declare type NumberString = string
 declare type Dict = { [key: string]: string }
+declare type NonEmptyString = `${any}${string}`
 
 /** Requests from main web thread to worker */
 declare type WorkerRequestType = "setup" | "reset" | "testEcho" | "testError" | "restRequest" | "facade"

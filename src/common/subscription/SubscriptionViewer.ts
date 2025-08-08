@@ -638,10 +638,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	async processUpdate(update: EntityUpdateData): Promise<void> {
-		const { instanceListId, instanceId } = update
-
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, instanceId)
+			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, update.instanceId)
 			this.updateAccountInfoData(accountingInfo)
 			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(UserTypeRef, update)) {
@@ -651,14 +649,14 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			await this.updateBookings()
 			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-			const customer = await locator.entityClient.load(CustomerTypeRef, instanceId)
+			const customer = await locator.entityClient.load(CustomerTypeRef, update.instanceId)
 			return await this.updateCustomerData(customer)
 		} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
 			// needed to update the displayed plan
 			await this.updateBookings()
 			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
-			const giftCard = await locator.entityClient.load(GiftCardTypeRef, [instanceListId, instanceId])
+			const giftCard = await locator.entityClient.load(GiftCardTypeRef, [update.instanceListId, update.instanceId])
 			this._giftCards.set(elementIdPart(giftCard._id), giftCard)
 			if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
 		}
