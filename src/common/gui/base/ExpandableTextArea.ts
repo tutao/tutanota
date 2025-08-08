@@ -30,6 +30,7 @@ export interface ExpandableTextAreaAttrs {
 	classes?: Array<string>
 	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "borderColor">>
 	variant?: TextAreaVariant
+	maxLength?: number
 }
 
 type TextAreaAttributes = Pick<TextAreaAttrs, "style" | "variant" | "placeholder" | "oninput" | "disabled" | "resizable" | "maxLines" | "ariaLabel" | "value">
@@ -82,6 +83,7 @@ export class ExpandableTextArea implements ClassComponent<ExpandableTextAreaAttr
 			"maxLines",
 			"ariaLabel",
 			"value",
+			"maxLength",
 		) as TextAreaAttributes
 		return m(
 			".rel.mt-s",
