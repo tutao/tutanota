@@ -352,7 +352,7 @@ o.spec("MailListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailFolderTypeRef,
-				instanceListId: getListId(labels[1]),
+				instanceListId: getListId(labels[1]) as NonEmptyString,
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
@@ -374,7 +374,7 @@ o.spec("MailListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailFolderTypeRef,
-				instanceListId: getListId(labels[1]),
+				instanceListId: getListId(labels[1]) as NonEmptyString,
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
@@ -394,7 +394,7 @@ o.spec("MailListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailSetEntryTypeRef,
-				instanceListId: listIdPart(someMail.mailSetEntryId),
+				instanceListId: listIdPart(someMail.mailSetEntryId) as NonEmptyString,
 				instanceId: elementIdPart(someMail.mailSetEntryId),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
@@ -429,7 +429,7 @@ o.spec("MailListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailSetEntryTypeRef,
-				instanceListId: getListId(newEntry),
+				instanceListId: getListId(newEntry) as NonEmptyString,
 				instanceId: getElementId(newEntry),
 				operation: OperationType.CREATE,
 				...noPatchesAndInstance,
@@ -485,7 +485,7 @@ o.spec("MailListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailTypeRef,
-				instanceListId: getListId(mail),
+				instanceListId: getListId(mail) as NonEmptyString,
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
@@ -505,7 +505,7 @@ o.spec("MailListModel", () => {
 			const mail = { ...model.items[2] }
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailTypeRef,
-				instanceListId: getListId(mail),
+				instanceListId: getListId(mail) as NonEmptyString,
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,

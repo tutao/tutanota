@@ -371,7 +371,7 @@ o.spec("ConversationListModel", () => {
 		const mailSetEntryId: IdTuple = [mailSetEntriesListId, makeMailSetElementId(0)]
 		const entityUpdateData: EntityUpdateData = {
 			typeRef: MailSetEntryTypeRef,
-			instanceListId: listIdPart(mailSetEntryId),
+			instanceListId: listIdPart(mailSetEntryId) as NonEmptyString,
 			instanceId: elementIdPart(mailSetEntryId),
 			operation: OperationType.CREATE,
 			instance: null,
@@ -416,7 +416,7 @@ o.spec("ConversationListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailFolderTypeRef,
-				instanceListId: getListId(labels[1]),
+				instanceListId: getListId(labels[1]) as NonEmptyString,
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
@@ -444,7 +444,7 @@ o.spec("ConversationListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailFolderTypeRef,
-				instanceListId: getListId(labels[1]),
+				instanceListId: getListId(labels[1]) as NonEmptyString,
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
@@ -471,7 +471,7 @@ o.spec("ConversationListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailSetEntryTypeRef,
-				instanceListId: listIdPart(someMail.mailSetEntryId),
+				instanceListId: listIdPart(someMail.mailSetEntryId) as NonEmptyString,
 				instanceId: elementIdPart(someMail.mailSetEntryId),
 				operation: OperationType.DELETE,
 				...noPatchesAndInstance,
@@ -510,7 +510,7 @@ o.spec("ConversationListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailSetEntryTypeRef,
-				instanceListId: getListId(newEntry),
+				instanceListId: getListId(newEntry) as NonEmptyString,
 				instanceId: getElementId(newEntry),
 				operation: OperationType.CREATE,
 				...noPatchesAndInstance,
@@ -687,7 +687,7 @@ o.spec("ConversationListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailTypeRef,
-				instanceListId: getListId(mail),
+				instanceListId: getListId(mail) as NonEmptyString,
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
@@ -716,7 +716,7 @@ o.spec("ConversationListModel", () => {
 			const mail = { ...model.mails[2] }
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailTypeRef,
-				instanceListId: getListId(mail),
+				instanceListId: getListId(mail) as NonEmptyString,
 				instanceId: getElementId(mail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
@@ -742,7 +742,7 @@ o.spec("ConversationListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailTypeRef,
-				instanceListId: getListId(unreadMail),
+				instanceListId: getListId(unreadMail) as NonEmptyString,
 				instanceId: getElementId(unreadMail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
@@ -774,7 +774,7 @@ o.spec("ConversationListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailTypeRef,
-				instanceListId: getListId(unreadMail),
+				instanceListId: getListId(unreadMail) as NonEmptyString,
 				instanceId: getElementId(unreadMail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,
@@ -804,7 +804,7 @@ o.spec("ConversationListModel", () => {
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailTypeRef,
-				instanceListId: getListId(unreadMail),
+				instanceListId: getListId(unreadMail) as NonEmptyString,
 				instanceId: getElementId(unreadMail),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,

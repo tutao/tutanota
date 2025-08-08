@@ -8,6 +8,7 @@ import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTy
 import {
 	CalendarEventTypeRef,
 	ConversationEntryTypeRef,
+	Mail,
 	MailDetailsBlobTypeRef,
 	MailTypeRef,
 	TutanotaProperties,
@@ -113,7 +114,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		const updateTemplate: EntityUpdateData = {
 			typeRef: UserTypeRef,
 			instanceId: id1,
-			instanceListId: "",
+			instanceListId: null,
 			operation: OperationType.CREATE,
 			patches: null,
 			instance: null,
@@ -136,7 +137,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
-			instanceListId: "",
+			instanceListId: null,
 			instanceId: "",
 			prefetchStatus: PrefetchStatus.NotPrefetched,
 		}
@@ -211,7 +212,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
-			instanceListId: "",
+			instanceListId: null,
 			instanceId: "",
 			prefetchStatus: PrefetchStatus.NotPrefetched,
 		}
@@ -249,7 +250,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 			typeId: MailTypeRef.typeId.toString(),
 		})
 
-		const firstUpdate = await entityUpdateToUpdateData(typeModelResolver, testEntity, downcast({}))
+		const firstUpdate: EntityUpdateData<Mail> = await entityUpdateToUpdateData(typeModelResolver, testEntity, downcast({}))
 		const secondUpdate = Object.assign(structuredClone(firstUpdate), { instance: null, instanceId: id2 })
 
 		const allUpdates = Array.of(firstUpdate, secondUpdate)
@@ -267,7 +268,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 	})
 
 	o("When a update event have a patchList attached to it, still prefetches", async () => {
-		const firstUpdate = await entityUpdateToUpdateData(
+		const firstUpdate: EntityUpdateData<Mail> = await entityUpdateToUpdateData(
 			typeModelResolver,
 			createTestEntity(EntityUpdateTypeRef, {
 				operation: OperationType.UPDATE,
@@ -339,7 +340,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 		const firstUpdate: EntityUpdateData = {
 			instanceId: elementIdPart(firstMail._id),
-			instanceListId: listIdPart(firstMail._id),
+			instanceListId: listIdPart(firstMail._id) as NonEmptyString,
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
@@ -408,7 +409,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 		const firstUpdate: EntityUpdateData = {
 			instanceId: elementIdPart(firstMail._id),
-			instanceListId: listIdPart(firstMail._id),
+			instanceListId: listIdPart(firstMail._id) as NonEmptyString,
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
@@ -488,7 +489,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 		const passingUpdate: EntityUpdateData = {
 			instanceId: elementIdPart(passMail._id),
-			instanceListId: listIdPart(passMail._id),
+			instanceListId: listIdPart(passMail._id) as NonEmptyString,
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
@@ -653,7 +654,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 
 		const mailUpdate: EntityUpdateData = {
 			instanceId: elementIdPart(mail._id),
-			instanceListId: listIdPart(mail._id),
+			instanceListId: listIdPart(mail._id) as NonEmptyString,
 			operation: OperationType.CREATE,
 			instance: null,
 			patches: null,
@@ -734,7 +735,7 @@ o.spec("EventInstancePrefetcherTest", function () {
 		const updateTemplate: EntityUpdateData = {
 			typeRef: TutanotaPropertiesTypeRef,
 			instanceId: id1,
-			instanceListId: "",
+			instanceListId: null,
 			operation: OperationType.CREATE,
 			patches: null,
 			instance: null,

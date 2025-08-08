@@ -40,7 +40,7 @@ export class EventInstancePrefetcher {
 
 			// we do not prefetch elementInstances (ET) except for TutanotaProperties
 			// we prefetch listElementInstances (LET) except for ConversationEntry
-			const isElementType = entityUpdateData.instanceListId === ""
+			const isElementType = entityUpdateData.instanceListId == null
 			const isConversationEntryEvent = isSameTypeRef(ConversationEntryTypeRef, entityUpdateData.typeRef)
 			const isTutanotaPropertiesEvent = isSameTypeRef(TutanotaPropertiesTypeRef, entityUpdateData.typeRef)
 			if ((isElementType && !isTutanotaPropertiesEvent) || isConversationEntryEvent) {
@@ -48,11 +48,12 @@ export class EventInstancePrefetcher {
 				continue
 			}
 
+			const instanceListId = entityUpdateData.instanceListId == null ? "" : entityUpdateData.instanceListId
 			if (entityUpdateData.operation === OperationType.DELETE) {
-				const indexesForTheInstance = prefetchMap.get(typeIdentifier)?.get(entityUpdateData.instanceListId)?.get(entityUpdateData.instanceId)
+				const indexesForTheInstance = prefetchMap.get(typeIdentifier)?.get(instanceListId)?.get(entityUpdateData.instanceId)
 				if (indexesForTheInstance !== undefined) {
 					this.markPrefetchStatusForEntityEvents(indexesForTheInstance, allEventsFromAllBatch, progressMonitor, PrefetchStatus.NotAvailable)
-					prefetchMap.get(typeIdentifier)?.get(entityUpdateData.instanceListId)?.delete(entityUpdateData.instanceId)
+					prefetchMap.get(typeIdentifier)?.get(instanceListId)?.delete(entityUpdateData.instanceId)
 				}
 				progressMonitor.workDone(1)
 				continue
@@ -62,18 +63,18 @@ export class EventInstancePrefetcher {
 					prefetchMap.set(typeIdentifier, new Map().set(entityUpdateData.instanceListId, new Map()))
 				}
 
-				const isInstanceListInitialized = prefetchMap?.get(typeIdentifier)?.has(entityUpdateData.instanceListId)
+				const isInstanceListInitialized = prefetchMap?.get(typeIdentifier)?.has(instanceListId)
 				if (!isInstanceListInitialized) {
-					prefetchMap.get(typeIdentifier)?.set(entityUpdateData.instanceListId, new Map())
+					prefetchMap.get(typeIdentifier)?.set(instanceListId, new Map())
 				}
 
-				const isInstanceIdInitialized = prefetchMap?.get(typeIdentifier)?.get(entityUpdateData.instanceListId)?.has(entityUpdateData.instanceId)
+				const isInstanceIdInitialized = prefetchMap?.get(typeIdentifier)?.get(instanceListId)?.has(entityUpdateData.instanceId)
 				if (!isTypeIdentifierInitialized || !isInstanceListInitialized || !isInstanceIdInitialized) {
-					prefetchMap.get(typeIdentifier)!.get(entityUpdateData.instanceListId)!.set(entityUpdateData.instanceId, [])
+					prefetchMap.get(typeIdentifier)!.get(instanceListId)!.set(entityUpdateData.instanceId, [])
 				}
 			}
 
-			const singleEntityUpdateEventIndexes = prefetchMap.get(typeIdentifier)!.get(entityUpdateData.instanceListId)!.get(entityUpdateData.instanceId)!
+			const singleEntityUpdateEventIndexes = prefetchMap.get(typeIdentifier)!.get(instanceListId)!.get(entityUpdateData.instanceId)!
 			singleEntityUpdateEventIndexes.push(eventIndexInList)
 		}
 		return prefetchMap
