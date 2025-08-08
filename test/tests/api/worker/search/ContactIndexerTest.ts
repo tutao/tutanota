@@ -10,6 +10,7 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade"
 import { TypeRef } from "@tutao/tutanota-utils"
 import { EntityUpdateData, PrefetchStatus } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { BlobElementEntity, ListElementEntity } from "../../../../../src/common/api/common/EntityTypes"
 
 o.spec("ContactIndexer", () => {
 	let entityClient: EntityClient
@@ -100,7 +101,12 @@ o.spec("ContactIndexer", () => {
 	})
 })
 
-function createUpdate(operation: OperationType, instanceListId: Id, instanceId: Id, typeRef: TypeRef<any> = ContactTypeRef): EntityUpdateData {
+function createUpdate(
+	operation: OperationType,
+	instanceListId: NonEmptyString,
+	instanceId: Id,
+	typeRef: TypeRef<any> = ContactTypeRef,
+): EntityUpdateData<ListElementEntity | BlobElementEntity> {
 	return {
 		operation: operation,
 		instanceId: instanceId,

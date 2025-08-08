@@ -21,7 +21,7 @@ import { GENERATED_MAX_ID, getElementId, timestampToGeneratedId } from "../../..
 import { daysToMillis, defer, freshVersioned, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import o from "@tutao/otest"
-import { func, matchers, object, reset, verify, when } from "testdouble"
+import { func, matchers, object, verify, when } from "testdouble"
 import { CacheInfo } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { ContactIndexer } from "../../../../../src/mail-app/workerUtils/index/ContactIndexer.js"
@@ -650,7 +650,7 @@ o.spec("IndexedDbIndexer", () => {
 				{
 					typeRef: MailTypeRef,
 					instanceId: "realtime-event-id",
-					instanceListId: "",
+					instanceListId: "list-id",
 					operation: OperationType.CREATE,
 					...noPatchesAndInstance,
 					prefetchStatus: PrefetchStatus.NotPrefetched,
@@ -723,7 +723,7 @@ o.spec("IndexedDbIndexer", () => {
 				{
 					typeRef: MailTypeRef,
 					instanceId: "realtime-event-id",
-					instanceListId: "",
+					instanceListId: "list-id",
 					operation: OperationType.CREATE,
 					...noPatchesAndInstance,
 					prefetchStatus: PrefetchStatus.NotPrefetched,
@@ -1045,7 +1045,7 @@ o.spec("IndexedDbIndexer", () => {
 					typeRef: MailTypeRef,
 					operation: OperationType.CREATE,
 					instanceId: "id-1",
-					instanceListId: "",
+					instanceListId: "list-id",
 					...noPatchesAndInstance,
 					prefetchStatus: PrefetchStatus.NotPrefetched,
 				},
@@ -1063,7 +1063,7 @@ o.spec("IndexedDbIndexer", () => {
 					typeRef: MailTypeRef,
 					operation: OperationType.CREATE,
 					instanceId: "id-2",
-					instanceListId: "",
+					instanceListId: "list-id",
 					...noPatchesAndInstance,
 					prefetchStatus: PrefetchStatus.NotPrefetched,
 				},
@@ -1094,7 +1094,7 @@ o.spec("IndexedDbIndexer", () => {
 		o.spec("handles mail updates", () => {
 			let indexer: IndexedDbIndexer
 
-			const testBatch = {
+			const testBatch: { batchId: Id; groupId: Id; events: readonly EntityUpdateData[] } = {
 				events: [
 					{
 						typeRef: MailTypeRef,

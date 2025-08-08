@@ -42,7 +42,7 @@ import { assertWorkerOrNode } from "../../common/Env"
 import type { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../EventBusClient"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
-import { EntityUpdateData, PrefetchStatus } from "../../common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef, PrefetchStatus } from "../../common/utils/EntityUpdateUtils.js"
 import { TypeModelResolver } from "../../common/EntityFunctions"
 import { AttributeModel } from "../../common/AttributeModel"
 import { collapseId, expandId } from "./RestClientIdUtils"
@@ -743,14 +743,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// we need an array of UpdateEntityData
 		const filteredUpdateEvents: EntityUpdateData[] = []
 		for (let update of regularUpdates) {
-			const { operation, typeRef } = update
-			if (!this.shouldUseCache(typeRef)) {
+			if (!this.shouldUseCache(update.typeRef)) {
 				filteredUpdateEvents.push(update)
 				continue
 			}
-			const { instanceListId, instanceId } = getUpdateInstanceId(update)
 
-			switch (operation) {
+			switch (update.operation) {
 				case OperationType.UPDATE: {
 					const handledUpdate = await this.processUpdateEvent(update)
 					if (handledUpdate) {
@@ -759,31 +757,31 @@ export class DefaultEntityRestCache implements EntityRestCache {
 					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.DELETE: {
-					if (isSameTypeRef(MailTypeRef, typeRef)) {
+					if (isUpdateForTypeRef(MailTypeRef, update)) {
 						// delete mailDetails if they are available (as we don't send an event for this type)
-						const mail = await this.storage.get(typeRef, instanceListId, instanceId)
+						const mail = await this.storage.get(update.typeRef, update.instanceListId, update.instanceId)
 						if (mail) {
 							let mailDetailsId = mail.mailDetails
-							await this.storage.deleteIfExists(typeRef, instanceListId, instanceId)
+							await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 							if (mailDetailsId != null) {
 								await this.storage.deleteIfExists(MailDetailsBlobTypeRef, listIdPart(mailDetailsId), elementIdPart(mailDetailsId))
 							}
 						}
 					} else {
-						await this.storage.deleteIfExists(typeRef, instanceListId, instanceId)
+						await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 					}
 					filteredUpdateEvents.push(update)
 					break // do break instead of continue to avoid ide warnings
 				}
 				case OperationType.CREATE: {
-					const handledUpdate = await this.processCreateEvent(typeRef, update)
+					const handledUpdate = await this.processCreateEvent(update.typeRef, update)
 					if (handledUpdate) {
 						filteredUpdateEvents.push(handledUpdate)
 					}
 					break // do break instead of continue to avoid ide warnings
 				}
 				default:
-					throw new ProgrammingError("Unknown operation type: " + operation)
+					throw new ProgrammingError("Unknown operation type: " + update.operation)
 			}
 		}
 
@@ -830,21 +828,26 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// if entityUpdate has been Prefetched or is NotAvailable, we do not need to do anything
 		if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
 			// do not return undefined to avoid implicit returns
-			const { instanceId, instanceListId } = getUpdateInstanceId(update)
 
 			// we put new instances into cache only when it's a new instance in the cached range which is only for the list instances
-			if (instanceListId != null) {
+			if (update.instanceListId != null) {
 				// if there is a custom handler we follow its decision
 				let shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
 				// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
-				shouldUpdateDb = shouldUpdateDb ?? (await this.storage.isElementIdInCacheRange(typeRef, instanceListId, instanceId))
+				shouldUpdateDb = shouldUpdateDb ?? (await this.storage.isElementIdInCacheRange(typeRef, update.instanceListId, update.instanceId))
 
 				if (shouldUpdateDb) {
 					if (update.instance != null && !hasError(update.instance)) {
-						console.log("putting the entity on the create event for ", getTypeString(typeRef), instanceListId, instanceId, " to the storage")
+						console.log(
+							"putting the entity on the create event for ",
+							getTypeString(typeRef),
+							update.instanceListId,
+							update.instanceId,
+							" to the storage",
+						)
 						await this.storage.put(update.typeRef, update.instance)
 					} else {
-						console.log("downloading create event for", getTypeString(typeRef), instanceListId, instanceId)
+						console.log("downloading create event for", getTypeString(typeRef), update.instanceListId, update.instanceId)
 						try {
 							return await this.loadAndStoreInstanceFromUpdate(update)
 						} catch (e) {
@@ -928,19 +931,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
  */
 function isExpectedErrorForSynchronization(e: Error): boolean {
 	return e instanceof NotFoundError || e instanceof NotAuthorizedError
-}
-
-export function getUpdateInstanceId(update: EntityUpdateData): {
-	instanceListId: Id | null
-	instanceId: Id
-} {
-	let instanceListId
-	if (update.instanceListId === "") {
-		instanceListId = null
-	} else {
-		instanceListId = update.instanceListId
-	}
-	return { instanceListId, instanceId: update.instanceId }
 }
 
 /**
