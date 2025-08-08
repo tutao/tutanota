@@ -219,6 +219,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			variant: "outlined",
 			value: model.comment,
 			maxLines: 3,
+			maxLength: 250,
 			oninput: (newValue: string) => {
 				model.comment = newValue
 			},
