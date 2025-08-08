@@ -147,6 +147,7 @@ import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/E
 import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
 import type { ContactSearchFacade } from "./workerUtils/index/ContactSearchFacade"
+import { QuickActionsModel } from "../common/misc/QuickActionBar"
 
 assertMainOrNode()
 
@@ -335,6 +336,11 @@ class MailLocator implements CommonLocator {
 				}
 			: noOp,
 	}
+
+	readonly quickActionsModel: lazyAsync<QuickActionsModel> = lazyMemoized(async () => {
+		const { QuickActionsModel } = await import("../common/misc/QuickActionBar.js")
+		return new QuickActionsModel()
+	})
 
 	readonly contactViewModel = lazyMemoized(async () => {
 		const { ContactViewModel } = await import("../mail-app/contacts/view/ContactViewModel.js")
