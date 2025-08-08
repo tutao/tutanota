@@ -58,6 +58,10 @@ import { ExportError } from "../error/ExportError"
 import { KeyVerificationMismatchError } from "../error/KeyVerificationMismatchError"
 import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableError"
 
+function isErrorObjectEmpty(obj: Record<string, unknown>): boolean {
+	return Object.keys(obj).length === 0
+}
+
 /**
  * Checks if the given instance (Entity or ParsedInstance) has an error in the _errors property which is usually written
  * if decryption fails for some reason in InstanceMapper.
@@ -67,7 +71,13 @@ import { ServerModelsUnavailableError } from "../error/ServerModelsUnavailableEr
  */
 export function hasError<K>(instance: Entity | ParsedInstance, key?: K): boolean {
 	const downCastedInstance = downcast(instance)
-	return !instance || (!!downCastedInstance._errors && (!key || !!downCastedInstance._errors.key))
+	if (!instance) {
+		return true
+	} else {
+		const hasNonEmptyErrorObject = !!downCastedInstance._errors && !isErrorObjectEmpty(downCastedInstance._errors)
+
+		return hasNonEmptyErrorObject && (!key || !!downCastedInstance._errors.key)
+	}
 }
 
 //If importing fails it is a good idea to bundle the error into common-min which can be achieved by annotating the module with "<at>bundleInto:common-min"
