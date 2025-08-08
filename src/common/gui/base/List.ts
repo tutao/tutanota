@@ -592,7 +592,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		this.width = containerDom.clientWidth
 		this.height = containerDom.clientHeight
 
-		if (this.swipeHandler) {
+		if (this.swipeHandler && client.isMobileDevice()) {
 			// with different zoom levels Blink does weird things and shows parts of elements that it shouldn't so we shift them around by a pixel
 			const translateX = this.width + 1
 			this.domSwipeSpacerLeft.style.width = px(this.width)
