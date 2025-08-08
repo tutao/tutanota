@@ -360,7 +360,9 @@ impl EntityFacadeImpl {
 		if type_model.is_encrypted() {
 			// Only top-level types are expected to have `_errors` in the end but it is removed
 			// from the aggregates by `extract_errors()`.
-			mapped_decrypted.insert("_errors".to_string(), ElementValue::Dict(mapped_errors));
+			if !mapped_errors.is_empty() {
+				mapped_decrypted.insert("_errors".to_string(), ElementValue::Dict(mapped_errors));
+			}
 			mapped_decrypted.insert("_finalIvs".to_string(), ElementValue::Dict(mapped_ivs));
 		}
 
@@ -1463,11 +1465,6 @@ mod tests {
 					.get_attribute_id_by_attribute_name(OWNER_KEY_VERSION_FIELD)
 					.unwrap(),
 				ElementValue::Null,
-			);
-
-			assert_eq!(
-				Some(ElementValue::Dict(HashMap::new())),
-				decrypted_mail.remove("_errors")
 			);
 
 			// comparison with sorted fields. only for easy for debugging
