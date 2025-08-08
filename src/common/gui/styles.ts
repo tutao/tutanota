@@ -37,7 +37,7 @@ class Styles {
 		} else {
 			this.themeColorMeta = document.createElement("meta")
 			this.themeColorMeta.name = "theme-color"
-			this.themeColorMeta.content = theme.navigation_bg
+			this.themeColorMeta.content = theme.surface_container
 			document.head.appendChild(this.themeColorMeta)
 		}
 
@@ -132,7 +132,7 @@ class Styles {
 			this.updateDomStyle(entry[0], entry[1])
 		})
 
-		assertNotNull(this.themeColorMeta).content = theme.navigation_bg
+		assertNotNull(this.themeColorMeta).content = theme.surface_container
 		log(Cat.css, "creation time", time())
 	}
 
