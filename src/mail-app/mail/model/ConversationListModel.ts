@@ -122,31 +122,29 @@ export class ConversationListModel implements MailSetListModel {
 	async handleEntityUpdate(update: EntityUpdateData) {
 		if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 			if (update.operation === OperationType.UPDATE) {
-				this.handleMailFolderUpdate(update)
+				this.handleMailFolderUpdate([update.instanceListId, update.instanceId])
 			}
 		} else if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(this.mailSet.entries, update.instanceListId)) {
 			if (update.operation === OperationType.DELETE) {
 				await this.handleMailSetEntryDeletion(update)
 			} else if (update.operation === OperationType.CREATE) {
-				await this.handleMailSetEntryCreation(update)
+				await this.handleMailSetEntryCreation([update.instanceListId, update.instanceId])
 			}
 		} else if (isUpdateForTypeRef(MailTypeRef, update)) {
 			// We only need to handle updates for Mail.
 			// Mail deletion will also be handled in MailSetEntry delete/create.
 			const mailItem = this._getLoadedMail(update.instanceId)
 			if (mailItem != null && (update.operation === OperationType.UPDATE || update.operation === OperationType.CREATE)) {
-				await this.handleMailUpdate(update, mailItem)
+				await this.handleMailUpdate([update.instanceListId, update.instanceId], mailItem)
 			}
 		}
 	}
 
-	private handleMailFolderUpdate(update: EntityUpdateData) {
+	private handleMailFolderUpdate(mailSetId: IdTuple) {
 		// If a label is modified, we want to update all mails that reference it, which requires linearly iterating
 		// through all mails. There are more efficient ways we could do this, such as by keeping track of each label
 		// we've retrieved from the database and just update that, but we want to avoid adding more maps that we
 		// have to maintain.
-
-		const mailSetId: IdTuple = [update.instanceListId, update.instanceId]
 
 		for (const conversation of this.conversationMap.values()) {
 			for (const loadedMail of conversation.conversationMails) {
@@ -166,8 +164,8 @@ export class ConversationListModel implements MailSetListModel {
 		}
 	}
 
-	private async handleMailUpdate(update: EntityUpdateData, mailItem: LoadedMail) {
-		const newMailData = await this.entityClient.load(MailTypeRef, [update.instanceListId, update.instanceId])
+	private async handleMailUpdate(mailId: IdTuple, mailItem: LoadedMail) {
+		const newMailData = await this.entityClient.load(MailTypeRef, mailId)
 		const conversation = this.getConversationForMail(newMailData)
 
 		if (conversation != null) {
@@ -184,8 +182,8 @@ export class ConversationListModel implements MailSetListModel {
 		}
 	}
 
-	private async handleMailSetEntryCreation(update: EntityUpdateData) {
-		const loadedMail = await this.loadSingleMail([update.instanceListId, update.instanceId])
+	private async handleMailSetEntryCreation(mailSetEntryId: IdTuple) {
+		const loadedMail = await this.loadSingleMail(mailSetEntryId)
 		const addedMail = loadedMail.addedItems[0]
 		return await this.listModel.waitLoad(async () => {
 			if (addedMail != null) {

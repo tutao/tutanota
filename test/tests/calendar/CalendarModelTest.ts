@@ -772,7 +772,7 @@ o.spec("CalendarModel", function () {
 			// calendar update create event
 			await eventControllerMock.sendEvent({
 				typeRef: CalendarEventUpdateTypeRef,
-				instanceListId: listIdPart(eventUpdate._id),
+				instanceListId: listIdPart(eventUpdate._id) as NonEmptyString,
 				instanceId: elementIdPart(eventUpdate._id),
 				operation: OperationType.CREATE,
 				...noPatchesAndInstance,
@@ -789,7 +789,7 @@ o.spec("CalendarModel", function () {
 			calendarFile._ownerEncSessionKey = hexToUint8Array("01")
 			await eventControllerMock.sendEvent({
 				typeRef: FileTypeRef,
-				instanceListId: listIdPart(calendarFile._id),
+				instanceListId: listIdPart(calendarFile._id) as NonEmptyString,
 				instanceId: elementIdPart(calendarFile._id),
 				operation: OperationType.UPDATE,
 				...noPatchesAndInstance,

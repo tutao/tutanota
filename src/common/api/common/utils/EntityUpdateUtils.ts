@@ -1,6 +1,6 @@
 import { OperationType } from "../TutanotaConstants.js"
 import { EntityUpdate, Patch } from "../../entities/sys/TypeRefs.js"
-import { ServerModelParsedInstance, SomeEntity } from "../EntityTypes.js"
+import { BlobElementEntity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "../EntityTypes.js"
 import { AppName, getTypeString, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { isSameId } from "./EntityUtils.js"
 import { ClientTypeModelResolver } from "../EntityFunctions"
@@ -9,10 +9,9 @@ import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 /**
  * A type similar to {@link EntityUpdate} but mapped to make it easier to work with.
  */
-
-export type EntityUpdateData = {
-	typeRef: TypeRef<any>
-	instanceListId: string
+export type EntityUpdateData<T extends SomeEntity = SomeEntity> = {
+	typeRef: TypeRef<T>
+	instanceListId: T extends ListElementEntity | BlobElementEntity ? NonEmptyString : null
 	instanceId: string
 	operation: OperationType
 	instance: Nullable<ServerModelParsedInstance>
@@ -31,12 +30,12 @@ export enum PrefetchStatus {
 	NotAvailable = "NotAvailable", // 403 (not authorized), 404 (not found)
 }
 
-export async function entityUpdateToUpdateData(
+export async function entityUpdateToUpdateData<T extends SomeEntity>(
 	clientTypeModelResolver: ClientTypeModelResolver,
 	update: EntityUpdate,
 	instance: Nullable<ServerModelParsedInstance> = null,
 	prefetchStatus: PrefetchStatus = PrefetchStatus.NotPrefetched,
-): Promise<EntityUpdateData> {
+): Promise<EntityUpdateData<T>> {
 	const typeId = update.typeId ? parseInt(update.typeId) : null
 	const typeIdOfEntityUpdateType = typeId
 		? new TypeRef<SomeEntity>(update.application as AppName, typeId)
@@ -44,7 +43,7 @@ export async function entityUpdateToUpdateData(
 
 	return {
 		typeRef: typeIdOfEntityUpdateType,
-		instanceListId: update.instanceListId,
+		instanceListId: (update.instanceListId === "" ? null : update.instanceListId) as EntityUpdateData<T>["instanceListId"],
 		instanceId: update.instanceId,
 		operation: update.operation as OperationType,
 		patches: update.patch?.patches ?? null,
@@ -53,7 +52,7 @@ export async function entityUpdateToUpdateData(
 	}
 }
 
-export function isUpdateForTypeRef(typeRef: TypeRef<unknown>, update: EntityUpdateData): boolean {
+export function isUpdateForTypeRef<T extends SomeEntity>(typeRef: TypeRef<T>, update: EntityUpdateData): update is EntityUpdateData<T> {
 	return isSameTypeRef(typeRef, update.typeRef)
 }
 
@@ -61,7 +60,7 @@ export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdat
 	const typeRef = entity._type as TypeRef<T>
 	return (
 		isSameTypeRef(typeRef, update.typeRef) &&
-		(update.instanceListId === "" ? isSameId(update.instanceId, entity._id) : isSameId([update.instanceListId, update.instanceId], entity._id))
+		(update.instanceListId === null ? isSameId(update.instanceId, entity._id) : isSameId([update.instanceListId, update.instanceId], entity._id))
 	)
 }
 

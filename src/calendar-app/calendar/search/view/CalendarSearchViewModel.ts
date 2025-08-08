@@ -1,7 +1,7 @@
 import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../../common/api/main/EventController.js"
-import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { CLIENT_ONLY_CALENDARS } from "../../../../common/api/common/TutanotaConstants.js"
 import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement } from "../../../../common/api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../../../../common/gui/base/List.js"
@@ -464,15 +464,15 @@ export class CalendarSearchViewModel {
 		return encodeCalendarSearchKey(element)
 	}
 
-	private isPossibleABirthdayContactUpdate(update: EntityUpdateData): boolean {
+	private isPossibleABirthdayContactUpdate(update: EntityUpdateData): update is EntityUpdateData<Contact> {
 		if (isUpdateForTypeRef(ContactTypeRef, update)) {
 			const { instanceListId, instanceId } = update
 			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
 
 			return this.listModel.stateStream().items.some((searchEntry) => searchEntry._id[1].endsWith(encodedContactId))
+		} else {
+			return false
 		}
-
-		return false
 	}
 
 	private isSelectedEventAnUpdatedBirthday(update: EntityUpdateData): boolean {

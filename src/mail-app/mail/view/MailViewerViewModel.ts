@@ -1,5 +1,4 @@
 import {
-	ConversationEntryTypeRef,
 	createMailAddress,
 	EncryptedMailAddress,
 	File as TutanotaFile,

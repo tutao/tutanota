@@ -56,7 +56,7 @@ import { CacheMode, EntityRestClient } from "../../../../../src/common/api/worke
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
 import { PatchOperationType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
-import { Entity, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
+import { Entity, ServerModelParsedInstance, SomeEntity } from "../../../../../src/common/api/common/EntityTypes"
 import { EntityUpdateData, entityUpdateToUpdateData, PrefetchStatus } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { PatchMerger } from "../../../../../src/common/api/worker/offline/PatchMerger"
@@ -140,7 +140,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			return downcast<ServerModelParsedInstance>(await modelMapper.mapToClientModelParsedInstance(entity._type, entity))
 		}
 
-		let makeUpdateData = async function <T extends Entity>(
+		let makeUpdateData = async function <T extends SomeEntity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
@@ -148,7 +148,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			instance: Nullable<T>,
 			patches: Nullable<Array<Patch>>,
 			prefetchStatus: PrefetchStatus,
-		): Promise<EntityUpdateData> {
+		): Promise<EntityUpdateData<T>> {
 			const entityUpdate = createEntityUpdate({
 				type: undefined as any, // no need for type since we have passed typeId
 				instanceListId: listId,
@@ -162,25 +162,25 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const instanceParsed = instance ? await toStorableInstance(instance) : null
 			return await entityUpdateToUpdateData(downcast(undefined), entityUpdate, instanceParsed, prefetchStatus)
 		}
-		let updateDataForCreate = function <T extends Entity>(
+		let updateDataForCreate = function <T extends SomeEntity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
 			instance: Nullable<T>,
 			prefetchStatus: PrefetchStatus = PrefetchStatus.NotPrefetched,
-		): Promise<EntityUpdateData> {
+		): Promise<EntityUpdateData<T>> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.CREATE, instance, [], prefetchStatus)
 		}
-		let updateDataForUpdate = async function <T extends Entity>(
+		let updateDataForUpdate = async function <T extends SomeEntity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
 			patches: Nullable<Array<Patch>>,
 			prefetchStatus: PrefetchStatus = PrefetchStatus.NotPrefetched,
-		): Promise<EntityUpdateData> {
+		): Promise<EntityUpdateData<T>> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.UPDATE, null, patches, prefetchStatus)
 		}
-		let updateDataForDelete = async function <T extends Entity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<EntityUpdateData> {
+		let updateDataForDelete = async function <T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<EntityUpdateData> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.DELETE, null, [], PrefetchStatus.NotPrefetched)
 		}
 

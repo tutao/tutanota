@@ -144,10 +144,8 @@ export class GroupListView implements UpdatableSettingsViewer {
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			const { instanceListId, instanceId, operation } = update
-
-			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === instanceListId) {
-				await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
+			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === update.instanceListId) {
+				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
 			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
 				this.listModel.reapplyFilter()
 			}
