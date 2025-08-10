@@ -18,14 +18,14 @@ public struct AlarmOccurence: Equatable {
 
 /// Something that can calculate when alarms should happen
 public protocol AlarmCalculator {
-	/// Calcuate the soonest alarm occurences up to the specified limits
+	/// Calculate the soonest alarm occurrences up to the specified limits
 	/// note: return type would ideally not be required to be boxed but it's the easiest until proper upper bound inference is available at runtime
 	/// see https://forums.swift.org/t/inferred-result-type-requires-explicit-coercion/59602/2
 	/// (alternatively we could always produce arrays)
 	func futureOccurrences(acrossAlarms alarms: [AlarmNotification], upToForEach: Int, upToOverall: Int) -> any BidirectionalCollection<AlarmOccurence>
 
-	/// Calculate upcoming alarm occurences for a single alarm
-	/// - Returns: lazy sequence of alarm occurences. It might be infinite if alarm repeats indefinitely!
+	/// Calculate upcoming alarm occurrences for a single alarm
+	/// - Returns: lazy sequence of alarm occurrences. It might be infinite if alarm repeats indefinitely!
 	func futureAlarmOccurrencesSequence(ofAlarm alarm: AlarmNotification) -> any Sequence<AlarmOccurence>
 }
 
@@ -48,7 +48,7 @@ public class AlarmModel: AlarmCalculator {
 		printLog("Handling \(singleEventAlarms.count) single event alarms and \(repeatingEventAlarms.count) repeating event alarms.")
 		for alarm in singleEventAlarms { occurrences += self.futureAlarmOccurrencesSequence(ofAlarm: alarm) }
 		for alarm in repeatingEventAlarms {
-			occurrences += prefix(self.futureAlarmOccurrencesSequence(ofAlarm: alarm), upToForEach)  // Get the first N future occurences. (N = uptoForEach)
+			occurrences += prefix(self.futureAlarmOccurrencesSequence(ofAlarm: alarm), upToForEach)  // Get the first N future occurrences. (N = uptoForEach)
 		}
 
 		occurrences.sort(by: { $0.eventOccurrenceTime < $1.eventOccurrenceTime })
@@ -57,30 +57,30 @@ public class AlarmModel: AlarmCalculator {
 
 	public func futureAlarmOccurrencesSequence(ofAlarm alarm: AlarmNotification) -> any Sequence<AlarmOccurence> {
 		if let repeatRule = alarm.repeatRule {
-			return self.futureOccurences(ofAlarm: alarm, withRepeatRule: repeatRule)
+			return self.futureOccurrences(ofAlarm: alarm, withRepeatRule: repeatRule)
 		} else {
 			let singleOcurrence = AlarmOccurence(occurrenceNumber: 0, eventOccurrenceTime: alarm.eventStart, alarm: alarm)
-			if shouldScheduleAlarmAt(ocurrenceTime: singleOcurrence.alarmOccurenceTime()) { return [singleOcurrence] } else { return [] }
+			if shouldScheduleAlarmAt(occurrenceTime: singleOcurrence.alarmOccurenceTime()) { return [singleOcurrence] } else { return [] }
 		}
 	}
 
-	private func futureOccurences(ofAlarm alarm: AlarmNotification, withRepeatRule: RepeatRule) -> some Sequence<AlarmOccurence> {
-		let occurencesAfterNow = occurencesOfRepeatingEvent(
+	private func futureOccurrences(ofAlarm alarm: AlarmNotification, withRepeatRule: RepeatRule) -> some Sequence<AlarmOccurence> {
+		let occurrencesAfterNow = occurrencesOfRepeatingEvent(
 			eventStart: alarm.eventStart,
 			eventEnd: alarm.eventEnd,
 			repeatRule: withRepeatRule,
 			localTimeZone: dateProvider.timeZone
 		)
 		.lazy  // trying to optimize it: do not calculate alarm occurence if event occurence itself is in the past
-		.filter { self.shouldScheduleAlarmAt(ocurrenceTime: $0.occurenceDate) }
+		.filter { self.shouldScheduleAlarmAt(occurrenceTime: $0.occurenceDate) }
 		.map { occurrence in AlarmOccurence(occurrenceNumber: occurrence.occurrenceNumber, eventOccurrenceTime: occurrence.occurenceDate, alarm: alarm) }
-		.filter { self.shouldScheduleAlarmAt(ocurrenceTime: $0.alarmOccurenceTime()) }
-		return occurencesAfterNow
+		.filter { self.shouldScheduleAlarmAt(occurrenceTime: $0.alarmOccurenceTime()) }
+		return occurrencesAfterNow
 	}
 
-	private func shouldScheduleAlarmAt(ocurrenceTime: Date) -> Bool { ocurrenceTime > dateProvider.now }
+	private func shouldScheduleAlarmAt(occurrenceTime: Date) -> Bool { occurrenceTime > dateProvider.now }
 
-	private func occurencesOfRepeatingEvent(eventStart: Date, eventEnd: Date, repeatRule: RepeatRule, localTimeZone: TimeZone) -> LazyEventSequence {
+	private func occurrencesOfRepeatingEvent(eventStart: Date, eventEnd: Date, repeatRule: RepeatRule, localTimeZone: TimeZone) -> LazyEventSequence {
 		var cal = Calendar.current
 		let calendarUnit = calendarUnit(for: repeatRule.frequency)
 

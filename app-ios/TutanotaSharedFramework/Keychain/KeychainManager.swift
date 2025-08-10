@@ -76,7 +76,7 @@ public class KeychainManager: NSObject {
 	}
 
 	public func removePushIdentifierKeys() throws {
-		// TODO: Don't delete all of teh keyz when fingerprints
+		// TODO: Don't delete all of the keyz when fingerprints
 		let deleteQuery: [String: Any] = [kSecClass as String: kSecClassKey]
 		let status = SecItemDelete(deleteQuery as CFDictionary)
 		if status != errSecSuccess { throw TUTErrorFactory.createError("Could not delete the keys, status: \(status)") }
@@ -84,9 +84,9 @@ public class KeychainManager: NSObject {
 
 	/// Whether we should re-encrypt the data that was encrypt using keychain-bound keys.
 	public func requiresKeyAccessMigration() throws -> Bool {
-		// The presence of the new key is a sentiel as we assume that when it is available we don't need to use old keys
+		// The presence of the new key is a sentinel as we assume that when it is available we don't need to use old keys
 		// anymore.
-		// Theretically this method can prompt but since this key is guaranteed to be automatically available it should be safe to call.
+		// Theoretically this method can prompt but since this key is guaranteed to be automatically available it should be safe to call.
 		let key = try self.getKeychainKeyReference(withTag: Self.DATA_KEY_ALIAS, inContext: laContext())
 		return key == nil
 	}
