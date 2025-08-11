@@ -85,12 +85,14 @@ async fn load_calendar_events() {
 	assert_eq!(calendars.len(), 1);
 	let default_private_calendar_id = calendars.keys().next().unwrap();
 
-	let date_time = datetime!(2025-01-31 07:00:00).assume_utc().unix_timestamp() as u64;
+	let start_date = datetime!(2025-01-31 07:00:00).assume_utc().unix_timestamp() as u64;
+	let end_date = datetime!(2025-02-01 07:00:00).assume_utc().unix_timestamp() as u64;
 
 	let events = calendar_facade
 		.get_calendar_events(
 			default_private_calendar_id,
-			DateTime::from_millis(date_time * 1000),
+			DateTime::from_millis(start_date * 1000),
+			DateTime::from_millis(end_date * 1000),
 		)
 		.await;
 
@@ -118,12 +120,14 @@ async fn load_birthday_events() {
 		password: "arm".to_string(),
 	})
 	.await;
-	let date_time = datetime!(2025-12-31 07:00:00).assume_utc().unix_timestamp() as u64;
+	let start_date = datetime!(2025-12-31 00:00:00).assume_utc().unix_timestamp() as u64;
+	let end_date = datetime!(2026-01-01 00:00:00).assume_utc().unix_timestamp() as u64;
 
 	let events = calendar_facade
 		.get_calendar_events(
 			&GeneratedId("clientOnly_birthdays".to_string()),
-			DateTime::from_millis(date_time * 1000),
+			DateTime::from_millis(start_date * 1000),
+			DateTime::from_millis(end_date * 1000),
 		)
 		.await;
 
