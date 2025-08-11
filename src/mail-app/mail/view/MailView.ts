@@ -6,7 +6,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { FeatureType, getMailFolderType, Keys, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { MailListView } from "./MailListView"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
 import type { Shortcut } from "../../../common/misc/KeyManager"
@@ -29,7 +29,6 @@ import {
 	showLabelsPopup,
 	ShowMoveMailsDropdownOpts,
 	showMoveMailsFromFolderDropdown,
-	trashMails,
 } from "./MailGuiUtils"
 import { getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
@@ -84,6 +83,7 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { LockedError } from "../../../common/api/common/error/RestError"
 import { MailViewerViewModel } from "./MailViewerViewModel"
+import { MoveMode } from "../model/MailModel"
 
 assertMainOrNode()
 
@@ -184,6 +184,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											if (confirmed) {
 												showProgressDialog("progressDeleting_msg", this.mailViewModel.finallyDeleteAllMailsInSelectedFolder(folder))
 											}
+										},
+										onTrashSwipe: async (moveMode, ownerGroup, mails) => {
+											await this.moveMailsToTrash(moveMode, ownerGroup, mails)
 										},
 									}),
 								)
@@ -348,9 +351,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				delayBodyRendering: this.viewSlider.waitForAnimation(),
 				actions: (mailViewerModel: MailViewerViewModel) => {
 					return {
-						trash: () => {
-							trashMails(mailLocator.mailModel, [mailViewerModel.mail._id])
-							this.mailViewModel.clearStickyMail()
+						trash: async () => {
+							await this.moveMailsToTrash(MoveMode.Mails, assertNotNull(mailViewerModel.mail._ownerGroup), [mailViewerModel.mail._id])
 						},
 						delete: mailViewerModel.isDeletableMail()
 							? () => {
@@ -760,6 +762,42 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
+	private async trashSelectedMails() {
+		const actionableMails = this.mailViewModel.getActionableMails()
+		const firstMail = first(actionableMails)
+		if (firstMail == null) {
+			return
+		}
+		const resolvedMails = await this.mailViewModel.getResolvedActionableMails()
+		await this.moveMailsToTrash(
+			this.mailViewModel.groupMailsByConversation() ? MoveMode.Conversation : MoveMode.Mails,
+			assertNotNull(firstMail._ownerGroup),
+			resolvedMails,
+		)
+	}
+
+	private async moveMailsToTrash(moveMode: MoveMode, ownerGroupId: Id, resolvedMails: readonly IdTuple[]) {
+		const currentFolder = this.mailViewModel.getFolder()
+		const folderSystem = mailLocator.mailModel.getFolderSystemByGroupId(ownerGroupId)
+		const targetFolder = folderSystem?.getSystemFolderByType(MailSetKind.TRASH)
+
+		if (targetFolder == null) {
+			return
+		}
+
+		moveMails({
+			mailboxModel: locator.mailboxModel,
+			mailModel: mailLocator.mailModel,
+			targetFolder,
+			mailIds: resolvedMails,
+			moveMode,
+			undoFolder: currentFolder,
+			mailViewModel: this.mailViewModel,
+		})
+
+		this.mailViewModel.clearStickyMail()
+	}
+
 	private async moveMailsToSystemFolder(targetFolderType: SystemFolderType) {
 		const folder = this.mailViewModel.getFolder()
 		if (folder == null) {
@@ -1149,12 +1187,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			}
 		})
 		await mailLocator.mailModel.markMails(resolvedMails, unreadValue)
-	}
-
-	private async trashSelectedMails() {
-		const actionableMails = await this.mailViewModel.getResolvedActionableMails()
-		trashMails(mailLocator.mailModel, actionableMails)
-		this.mailViewModel.clearStickyMail()
 	}
 
 	private async deleteSelectedMails() {
