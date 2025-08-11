@@ -32,6 +32,7 @@ import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { downcast, lazyAsync } from "@tutao/tutanota-utils"
 import { CalendarEventsRepository } from "../../../../src/common/calendar/date/CalendarEventsRepository"
 import { MailViewModel } from "../../../../src/mail-app/mail/view/MailViewModel"
+import { UndoModel } from "../../../../src/mail-app/UndoModel"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -50,11 +51,10 @@ o.spec("MailViewerViewModel", function () {
 	let searchModel: SearchModel
 	let mailFacade: MailFacade
 	let sendMailModel: SendMailModel
-	let sendMailModelFactory: (mailboxDetails: MailboxDetail) => Promise<SendMailModel> = () => Promise.resolve(sendMailModel)
 	let cryptoFacade: CryptoFacade
 	let contactImporter: ContactImporter
 	let eventsRepository: CalendarEventsRepository
-	let mailViewModel: lazyAsync<MailViewModel>
+	let undoModel: UndoModel
 
 	function makeViewModelWithHeaders(headers: string) {
 		entityClient = object()
@@ -73,7 +73,7 @@ o.spec("MailViewerViewModel", function () {
 		contactImporter = object()
 		eventsRepository = object()
 		prepareMailWithHeaders(mailFacade, headers)
-		mailViewModel = object()
+		undoModel = object()
 
 		return new MailViewerViewModel(
 			mail,
@@ -85,7 +85,6 @@ o.spec("MailViewerViewModel", function () {
 			configFacade,
 			fileController,
 			logins,
-			sendMailModelFactory,
 			eventController,
 			workerFacade,
 			searchModel,
@@ -94,7 +93,7 @@ o.spec("MailViewerViewModel", function () {
 			async () => contactImporter,
 			[],
 			eventsRepository,
-			mailViewModel,
+			undoModel,
 		)
 	}
 
