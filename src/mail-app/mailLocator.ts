@@ -150,6 +150,7 @@ import type { ContactSearchFacade } from "./workerUtils/index/ContactSearchFacad
 import { PublicEncryptionKeyProvider } from "../common/api/worker/facades/PublicEncryptionKeyProvider"
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
+import { UndoModel } from "./UndoModel"
 
 assertMainOrNode()
 
@@ -518,6 +519,7 @@ class MailLocator implements CommonLocator {
 	async mailViewerViewModelFactory(): Promise<(options: CreateMailViewerOptions) => MailViewerViewModel> {
 		const { MailViewerViewModel } = await import("../mail-app/mail/view/MailViewerViewModel.js")
 		const eventRepository = await this.calendarEventsRepository()
+		const undoModel = await this.undoModel()
 
 		return ({ mail, showFolder, highlightedTokens }) =>
 			new MailViewerViewModel(
@@ -530,10 +532,6 @@ class MailLocator implements CommonLocator {
 				this.configFacade,
 				this.fileController,
 				this.logins,
-				async (mailboxDetails) => {
-					const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-					return this.sendMailModel(mailboxDetails, mailboxProperties)
-				},
 				this.eventController,
 				this.workerFacade,
 				this.search,
@@ -542,7 +540,7 @@ class MailLocator implements CommonLocator {
 				() => this.contactImporter(),
 				highlightedTokens ?? [],
 				eventRepository,
-				this.mailViewModel,
+				undoModel,
 			)
 	}
 
@@ -1244,6 +1242,11 @@ class MailLocator implements CommonLocator {
 			return null
 		}
 	}
+
+	readonly undoModel: lazyAsync<UndoModel> = lazyMemoized(async () => {
+		const { UndoModel } = await import("./UndoModel.js")
+		return new UndoModel()
+	})
 
 	/**
 	 * Factory method for credentials provider that will return an instance injected with the implementations appropriate for the platform.
