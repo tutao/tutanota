@@ -70,31 +70,38 @@ export class PatchMerger {
 	public async patchAndStoreInstance(entityUpdate: EntityUpdateData): Promise<Nullable<ServerModelParsedInstance>> {
 		const { typeRef, instanceListId, instanceId, patches, instance } = entityUpdate
 
-		const patchAppliedInstance = await this.getPatchedInstanceParsed(typeRef, instanceListId, instanceId, assertNotNull(patches))
-		if (patchAppliedInstance == null) {
-			return null
-		}
-
-		if (entityUpdate !== null && instance !== null) {
-			const isPatchAndAppliedInstanceMatch = await this.isInstanceOnUpdateIsSameAsPatched(entityUpdate, patchAppliedInstance)
-			if (!isPatchAndAppliedInstanceMatch) {
-				if (!hasError(instance)) {
-					// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
-					await this.cacheStorage.put(typeRef, instance)
-				}
-				// There are concurrency issues with the File and Mail types due to bucketKey and UpdateSessionKeyService
-				if (!isSameTypeRef(FileTypeRef, entityUpdate.typeRef) && !isSameTypeRef(MailTypeRef, entityUpdate.typeRef)) {
-					throw new ProgrammingError(
-						"instance with id [" + instanceListId + ", " + instanceId + `] has not been successfully patched. Type: ${getTypeString(typeRef)}`,
-					)
+		try {
+			const patchAppliedInstance = await this.getPatchedInstanceParsed(typeRef, instanceListId, instanceId, assertNotNull(patches))
+			if (patchAppliedInstance == null) {
+				return null
+			}
+			if (entityUpdate !== null && instance !== null) {
+				const isPatchAndAppliedInstanceMatch = await this.isInstanceOnUpdateIsSameAsPatched(entityUpdate, patchAppliedInstance)
+				if (!isPatchAndAppliedInstanceMatch) {
+					if (!hasError(instance)) {
+						// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
+						await this.cacheStorage.put(typeRef, instance)
+					}
+					// There are concurrency issues with the File and Mail types due to bucketKey and UpdateSessionKeyService
+					if (!isSameTypeRef(FileTypeRef, entityUpdate.typeRef) && !isSameTypeRef(MailTypeRef, entityUpdate.typeRef)) {
+						throw new ProgrammingError(
+							"instance with id [" + instanceListId + ", " + instanceId + `] has not been successfully patched. Type: ${getTypeString(typeRef)}`,
+						)
+					}
+				} else {
+					await this.cacheStorage.put(typeRef, patchAppliedInstance)
 				}
 			} else {
 				await this.cacheStorage.put(typeRef, patchAppliedInstance)
 			}
-		} else {
-			await this.cacheStorage.put(typeRef, patchAppliedInstance)
+			return patchAppliedInstance
+		} catch (e) {
+			if (e instanceof PatchOperationError) {
+				// returning null leads to reloading from the server, this fixes the broken entity in the offline storage with _errors
+				return null
+			}
+			throw e
 		}
-		return patchAppliedInstance
 	}
 
 	private async applySinglePatch(parsedInstance: ServerModelParsedInstance, typeModel: ServerTypeModel, patch: Patch) {
