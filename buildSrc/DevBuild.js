@@ -35,7 +35,7 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"
 	const liboqsIncludeDir = "libs/webassembly/include"
 
-	console.log("Building dev for", app)
+	console.log(`Building dev client stage: ${stage} host: ${host} app: ${app}`)
 
 	if (clean) {
 		await runStep("Clean", () =>
@@ -63,32 +63,33 @@ export async function runDevBuild({ stage, host, desktop, clean, ignoreMigration
 	 * @return {DomainConfigMap}
 	 */
 	function updateDomainConfigForHostname(host) {
+		// Non-webapp builds default to local hostname, make sure we add a domain config for it and not fall back on generic whitelabel one
 		if (host == null) {
-			return { ...domainConfigs }
-		} else {
-			const url = new URL(host)
-			const { protocol, hostname } = url
-			const port = parseInt(url.port)
-			// the URL object does not include the port if it is the schema's default
-			const uri = port ? `${protocol}//${hostname}:${port}` : `${protocol}//${hostname}`
-			return {
-				...domainConfigs,
-				[url.hostname]: {
-					firstPartyDomain: true,
-					partneredDomainTransitionUrl: uri,
-					apiUrl: uri,
-					paymentUrl: `${uri}/braintree.html`,
-					webauthnUrl: `${uri}/webauthn`,
-					legacyWebauthnUrl: `${uri}/webauthn`,
-					webauthnMobileUrl: `${uri}/webauthnmobile`,
-					legacyWebauthnMobileUrl: `${uri}/webauthnmobile`,
-					webauthnRpId: hostname,
-					u2fAppId: `${uri}/u2f-appid.json`,
-					giftCardBaseUrl: `${uri}/giftcard`,
-					referralBaseUrl: `${uri}/signup`,
-					websiteBaseUrl: "https://tuta.com",
-				},
-			}
+			host = "http://" + os.hostname() + ":9000"
+		}
+
+		const url = new URL(host)
+		const { protocol, hostname } = url
+		const port = parseInt(url.port)
+		// the URL object does not include the port if it is the schema's default
+		const uri = port ? `${protocol}//${hostname}:${port}` : `${protocol}//${hostname}`
+		return {
+			...domainConfigs,
+			[url.hostname]: {
+				firstPartyDomain: true,
+				partneredDomainTransitionUrl: uri,
+				apiUrl: uri,
+				paymentUrl: `${uri}/braintree.html`,
+				webauthnUrl: `${uri}/webauthn`,
+				legacyWebauthnUrl: `${uri}/webauthn`,
+				webauthnMobileUrl: `${uri}/webauthnmobile`,
+				legacyWebauthnMobileUrl: `${uri}/webauthnmobile`,
+				webauthnRpId: hostname,
+				u2fAppId: `${uri}/u2f-appid.json`,
+				giftCardBaseUrl: `${uri}/giftcard`,
+				referralBaseUrl: `${uri}/signup`,
+				websiteBaseUrl: "https://tuta.com",
+			},
 		}
 	}
 
