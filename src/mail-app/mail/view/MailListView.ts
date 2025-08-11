@@ -13,7 +13,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { getElementId, getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
-import { moveMailsToSystemFolder, promptAndDeleteMails, trashMails } from "./MailGuiUtils"
+import { moveMailsToSystemFolder, promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { generateMailFile, getMailExportMode } from "../export/Exporter"
@@ -34,8 +34,8 @@ import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
-
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { MoveMode } from "../model/MailModel"
 
 assertMainOrNode()
 
@@ -48,6 +48,7 @@ export interface MailListViewAttrs {
 	onSingleInclusiveSelection: ListElementListModel<Mail>["onSingleInclusiveSelection"]
 	onRangeSelectionTowards: ListElementListModel<Mail>["selectRangeTowards"]
 	onSingleExclusiveSelection: ListElementListModel<Mail>["onSingleExclusiveSelection"]
+	onTrashSwipe: (moveMode: MoveMode, ownerGroup: Id, mails: readonly IdTuple[]) => unknown
 }
 
 export class MailListView implements Component<MailListViewAttrs> {
@@ -424,8 +425,12 @@ export class MailListView implements Component<MailListViewAttrs> {
 			)
 			return wereDeleted ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 		} else {
-			const wereTrashed = await trashMails(mailLocator.mailModel, actionableMails)
-			return wereTrashed ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
+			this.attrs.onTrashSwipe(
+				this.mailViewModel.groupMailsByConversation() ? MoveMode.Conversation : MoveMode.Mails,
+				assertNotNull(listElement._ownerGroup),
+				actionableMails,
+			)
+			return ListSwipeDecision.Commit
 		}
 	}
 
