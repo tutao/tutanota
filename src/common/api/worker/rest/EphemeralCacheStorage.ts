@@ -221,6 +221,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 			console.warn(
 				`Trying to put parsed instance with _errors to ephemeral cache. Type: ${typeModel.app}/${typeModel.name}, Id: ["${listId}", "${elementId}"]`,
 			)
+			return
 		}
 		elementId = ensureBase64Ext(typeModel, elementId)
 
