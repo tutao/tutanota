@@ -590,12 +590,13 @@ export class OfflineStorage implements CacheStorage {
 		table: string,
 	): Promise<Array<StorableInstance>> {
 		const storables = await Promise.all(
-			instances.map(async (instance): Promise<StorableInstance> => {
+			instances.map(async (instance): Promise<Nullable<StorableInstance>> => {
 				const { listId, elementId } = expandId(AttributeModel.getAttribute<IdTuple | Id>(instance, "_id", typeModel))
 				if (hasError(instance)) {
 					console.warn(
 						`Trying to put parsed instance with _errors to offline storage. Type: ${typeModel.app}/${typeModel.name}, Id: ["${listId}", "${elementId}"]`,
 					)
+					return null
 				}
 				const ownerGroup = AttributeModel.getAttribute<Id>(instance, "_ownerGroup", typeModel)
 				const serializedInstance = await this.serialize(instance)
@@ -612,7 +613,7 @@ export class OfflineStorage implements CacheStorage {
 				}
 			}),
 		)
-		return storables
+		return storables.filter((storable) => storable !== null)
 	}
 
 	private async fetchRowIds(
