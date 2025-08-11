@@ -88,13 +88,12 @@ interface MoveMailsParams {
 	undoFolder?: MailFolder | null
 }
 
-async function getReportAnswer(
-	system: FolderSystem,
-	targetMailFolder: MailFolder,
-	isReportable: boolean,
-	mailboxModel: MailboxModel,
-	mailModel: MailModel,
-): Promise<boolean> {
+/** @return whether emails should be reported */
+async function getReportAnswer(targetMailFolder: MailFolder, isReportable: boolean, mailboxModel: MailboxModel, mailModel: MailModel): Promise<boolean> {
+	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetMailFolder._ownerGroup))
+	if (system == null) {
+		return false
+	}
 	if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) && isReportable) {
 		const mailboxDetails = await mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
 		return getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails)
@@ -189,52 +188,13 @@ async function showUndoMoveMailSnackbar(
  * Moves the mails and reports them as spam if the user or settings allow it.
  * @return whether mails were actually moved
  */
-export async function moveMails({
-	mailboxModel,
-	mailModel,
-	mailIds,
-	targetFolder,
-	moveMode,
-	isReportable = true,
-	undoFolder,
-	mailViewModel,
-}: MoveMailsParams): Promise<boolean> {
-	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
-	if (system == null) {
-		return false
-	}
+export async function moveMails(params: MoveMailsParams): Promise<boolean> {
+	const { mailModel, mailIds, targetFolder, moveMode } = params
 	try {
 		await mailModel.moveMails(mailIds, targetFolder, moveMode)
-		const resolveMails = () => mailModel.loadAllMails(mailIds)
-
-		let undone = false
-		const shouldReportMails = await getReportAnswer(system, targetFolder, isReportable, mailboxModel, mailModel)
-
-		// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
-		// user to undo the move...
-		if (undoFolder != null && !isSameId(getElementId(targetFolder), getElementId(undoFolder))) {
-			let undoResult = await showUndoMoveMailSnackbar(targetFolder, undoFolder, resolveMails, mailModel, mailViewModel, shouldReportMails)
-			switch (undoResult) {
-				case MoveMailSnackbarResult.Undo: {
-					undone = true
-					break
-				}
-				case MoveMailSnackbarResult.Timeout: {
-					undone = false
-					break
-				}
-				case MoveMailSnackbarResult.Replaced: {
-					undone = false
-					break
-				}
-			}
-		}
-		if (!undone && shouldReportMails) {
-			await mailModel.reportMails(MailReportType.SPAM, resolveMails)
-			return true
-		} else {
-			return false
-		}
+		// run post-move actions async
+		runPostMoveActions(params)
+		return true
 	} catch (e) {
 		//LockedError should no longer be thrown!?!
 		if (e instanceof LockedError || e instanceof PreconditionFailedError) {
@@ -243,6 +203,35 @@ export async function moveMails({
 		} else {
 			throw e
 		}
+	}
+}
+
+// FIXME: it's kind of not great to pass mailViewModel around like that, should we move undo functionality to its own model?
+//   otherwise, maybe this function should *only* exist on MailModel
+async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportable = true, mailboxModel, undoFolder, mailViewModel }: MoveMailsParams) {
+	const resolveMails = () => mailModel.loadAllMails(mailIds)
+
+	const shouldReportMails = await getReportAnswer(targetFolder, isReportable, mailboxModel, mailModel)
+
+	// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
+	// user to undo the move...
+	let undone: boolean
+	if (undoFolder != null && !isSameId(getElementId(targetFolder), getElementId(undoFolder))) {
+		const undoResult = await showUndoMoveMailSnackbar(targetFolder, undoFolder, resolveMails, mailModel, mailViewModel, shouldReportMails)
+		switch (undoResult) {
+			case MoveMailSnackbarResult.Undo:
+				undone = true
+				break
+			case MoveMailSnackbarResult.Replaced:
+			case MoveMailSnackbarResult.Timeout:
+				undone = false
+				break
+		}
+	} else {
+		undone = false
+	}
+	if (!undone && shouldReportMails) {
+		await mailModel.reportMails(MailReportType.SPAM, resolveMails)
 	}
 }
 
