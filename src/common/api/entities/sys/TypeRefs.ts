@@ -6,7 +6,7 @@ import { typeModels } from "./TypeModels.js"
 export const KeyPairTypeRef: TypeRef<KeyPair> = new TypeRef("sys", 0)
 
 export function createKeyPair(values: StrippedEntity<KeyPair>): KeyPair {
-	return Object.assign(create(typeModels[KeyPairTypeRef.typeId], KeyPairTypeRef), values)
+    return Object.assign(create(typeModels[KeyPairTypeRef.typeId], KeyPairTypeRef), values)
 }
 
 export type KeyPair = {
@@ -26,7 +26,7 @@ export type KeyPair = {
 export const GroupTypeRef: TypeRef<Group> = new TypeRef("sys", 5)
 
 export function createGroup(values: StrippedEntity<Group>): Group {
-	return Object.assign(create(typeModels[GroupTypeRef.typeId], GroupTypeRef), values)
+    return Object.assign(create(typeModels[GroupTypeRef.typeId], GroupTypeRef), values)
 }
 
 export type Group = {
@@ -60,7 +60,7 @@ export type Group = {
 export const GroupInfoTypeRef: TypeRef<GroupInfo> = new TypeRef("sys", 14)
 
 export function createGroupInfo(values: StrippedEntity<GroupInfo>): GroupInfo {
-	return Object.assign(create(typeModels[GroupInfoTypeRef.typeId], GroupInfoTypeRef), values)
+    return Object.assign(create(typeModels[GroupInfoTypeRef.typeId], GroupInfoTypeRef), values)
 }
 
 export type GroupInfo = {
@@ -87,7 +87,7 @@ export type GroupInfo = {
 export const GroupMembershipTypeRef: TypeRef<GroupMembership> = new TypeRef("sys", 25)
 
 export function createGroupMembership(values: StrippedEntity<GroupMembership>): GroupMembership {
-	return Object.assign(create(typeModels[GroupMembershipTypeRef.typeId], GroupMembershipTypeRef), values)
+    return Object.assign(create(typeModels[GroupMembershipTypeRef.typeId], GroupMembershipTypeRef), values)
 }
 
 export type GroupMembership = {
@@ -109,7 +109,7 @@ export type GroupMembership = {
 export const CustomerTypeRef: TypeRef<Customer> = new TypeRef("sys", 31)
 
 export function createCustomer(values: StrippedEntity<Customer>): Customer {
-	return Object.assign(create(typeModels[CustomerTypeRef.typeId], CustomerTypeRef), values)
+    return Object.assign(create(typeModels[CustomerTypeRef.typeId], CustomerTypeRef), values)
 }
 
 export type Customer = {
@@ -146,7 +146,7 @@ export type Customer = {
 export const AuthenticatedDeviceTypeRef: TypeRef<AuthenticatedDevice> = new TypeRef("sys", 43)
 
 export function createAuthenticatedDevice(values: StrippedEntity<AuthenticatedDevice>): AuthenticatedDevice {
-	return Object.assign(create(typeModels[AuthenticatedDeviceTypeRef.typeId], AuthenticatedDeviceTypeRef), values)
+    return Object.assign(create(typeModels[AuthenticatedDeviceTypeRef.typeId], AuthenticatedDeviceTypeRef), values)
 }
 
 export type AuthenticatedDevice = {
@@ -161,7 +161,7 @@ export type AuthenticatedDevice = {
 export const LoginTypeRef: TypeRef<Login> = new TypeRef("sys", 48)
 
 export function createLogin(values: StrippedEntity<Login>): Login {
-	return Object.assign(create(typeModels[LoginTypeRef.typeId], LoginTypeRef), values)
+    return Object.assign(create(typeModels[LoginTypeRef.typeId], LoginTypeRef), values)
 }
 
 export type Login = {
@@ -177,7 +177,7 @@ export type Login = {
 export const SecondFactorAuthenticationTypeRef: TypeRef<SecondFactorAuthentication> = new TypeRef("sys", 54)
 
 export function createSecondFactorAuthentication(values: StrippedEntity<SecondFactorAuthentication>): SecondFactorAuthentication {
-	return Object.assign(create(typeModels[SecondFactorAuthenticationTypeRef.typeId], SecondFactorAuthenticationTypeRef), values)
+    return Object.assign(create(typeModels[SecondFactorAuthenticationTypeRef.typeId], SecondFactorAuthenticationTypeRef), values)
 }
 
 export type SecondFactorAuthentication = {
@@ -196,7 +196,7 @@ export type SecondFactorAuthentication = {
 export const VariableExternalAuthInfoTypeRef: TypeRef<VariableExternalAuthInfo> = new TypeRef("sys", 66)
 
 export function createVariableExternalAuthInfo(values: StrippedEntity<VariableExternalAuthInfo>): VariableExternalAuthInfo {
-	return Object.assign(create(typeModels[VariableExternalAuthInfoTypeRef.typeId], VariableExternalAuthInfoTypeRef), values)
+    return Object.assign(create(typeModels[VariableExternalAuthInfoTypeRef.typeId], VariableExternalAuthInfoTypeRef), values)
 }
 
 export type VariableExternalAuthInfo = {
@@ -217,7 +217,7 @@ export type VariableExternalAuthInfo = {
 export const UserExternalAuthInfoTypeRef: TypeRef<UserExternalAuthInfo> = new TypeRef("sys", 77)
 
 export function createUserExternalAuthInfo(values: StrippedEntity<UserExternalAuthInfo>): UserExternalAuthInfo {
-	return Object.assign(create(typeModels[UserExternalAuthInfoTypeRef.typeId], UserExternalAuthInfoTypeRef), values)
+    return Object.assign(create(typeModels[UserExternalAuthInfoTypeRef.typeId], UserExternalAuthInfoTypeRef), values)
 }
 
 export type UserExternalAuthInfo = {
@@ -235,7 +235,7 @@ export type UserExternalAuthInfo = {
 export const UserTypeRef: TypeRef<User> = new TypeRef("sys", 84)
 
 export function createUser(values: StrippedEntity<User>): User {
-	return Object.assign(create(typeModels[UserTypeRef.typeId], UserTypeRef), values)
+    return Object.assign(create(typeModels[UserTypeRef.typeId], UserTypeRef), values)
 }
 
 export type User = {
@@ -268,7 +268,7 @@ export type User = {
 export const ExternalUserReferenceTypeRef: TypeRef<ExternalUserReference> = new TypeRef("sys", 103)
 
 export function createExternalUserReference(values: StrippedEntity<ExternalUserReference>): ExternalUserReference {
-	return Object.assign(create(typeModels[ExternalUserReferenceTypeRef.typeId], ExternalUserReferenceTypeRef), values)
+    return Object.assign(create(typeModels[ExternalUserReferenceTypeRef.typeId], ExternalUserReferenceTypeRef), values)
 }
 
 export type ExternalUserReference = {
@@ -286,7 +286,7 @@ export type ExternalUserReference = {
 export const GroupRootTypeRef: TypeRef<GroupRoot> = new TypeRef("sys", 110)
 
 export function createGroupRoot(values: StrippedEntity<GroupRoot>): GroupRoot {
-	return Object.assign(create(typeModels[GroupRootTypeRef.typeId], GroupRootTypeRef), values)
+    return Object.assign(create(typeModels[GroupRootTypeRef.typeId], GroupRootTypeRef), values)
 }
 
 export type GroupRoot = {
@@ -305,7 +305,7 @@ export type GroupRoot = {
 export const BucketPermissionTypeRef: TypeRef<BucketPermission> = new TypeRef("sys", 118)
 
 export function createBucketPermission(values: StrippedEntity<BucketPermission>): BucketPermission {
-	return Object.assign(create(typeModels[BucketPermissionTypeRef.typeId], BucketPermissionTypeRef), values)
+    return Object.assign(create(typeModels[BucketPermissionTypeRef.typeId], BucketPermissionTypeRef), values)
 }
 
 export type BucketPermission = {
@@ -331,7 +331,7 @@ export type BucketPermission = {
 export const BucketTypeRef: TypeRef<Bucket> = new TypeRef("sys", 129)
 
 export function createBucket(values: StrippedEntity<Bucket>): Bucket {
-	return Object.assign(create(typeModels[BucketTypeRef.typeId], BucketTypeRef), values)
+    return Object.assign(create(typeModels[BucketTypeRef.typeId], BucketTypeRef), values)
 }
 
 export type Bucket = {
@@ -345,7 +345,7 @@ export type Bucket = {
 export const PermissionTypeRef: TypeRef<Permission> = new TypeRef("sys", 132)
 
 export function createPermission(values: StrippedEntity<Permission>): Permission {
-	return Object.assign(create(typeModels[PermissionTypeRef.typeId], PermissionTypeRef), values)
+    return Object.assign(create(typeModels[PermissionTypeRef.typeId], PermissionTypeRef), values)
 }
 
 export type Permission = {
@@ -372,7 +372,7 @@ export type Permission = {
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", 143)
 
 export function createAccountingInfo(values: StrippedEntity<AccountingInfo>): AccountingInfo {
-	return Object.assign(create(typeModels[AccountingInfoTypeRef.typeId], AccountingInfoTypeRef), values)
+    return Object.assign(create(typeModels[AccountingInfoTypeRef.typeId], AccountingInfoTypeRef), values)
 }
 
 export type AccountingInfo = {
@@ -407,7 +407,7 @@ export type AccountingInfo = {
 export const CustomerInfoTypeRef: TypeRef<CustomerInfo> = new TypeRef("sys", 148)
 
 export function createCustomerInfo(values: StrippedEntity<CustomerInfo>): CustomerInfo {
-	return Object.assign(create(typeModels[CustomerInfoTypeRef.typeId], CustomerInfoTypeRef), values)
+    return Object.assign(create(typeModels[CustomerInfoTypeRef.typeId], CustomerInfoTypeRef), values)
 }
 
 export type CustomerInfo = {
@@ -451,7 +451,7 @@ export type CustomerInfo = {
 export const SentGroupInvitationTypeRef: TypeRef<SentGroupInvitation> = new TypeRef("sys", 195)
 
 export function createSentGroupInvitation(values: StrippedEntity<SentGroupInvitation>): SentGroupInvitation {
-	return Object.assign(create(typeModels[SentGroupInvitationTypeRef.typeId], SentGroupInvitationTypeRef), values)
+    return Object.assign(create(typeModels[SentGroupInvitationTypeRef.typeId], SentGroupInvitationTypeRef), values)
 }
 
 export type SentGroupInvitation = {
@@ -471,7 +471,7 @@ export type SentGroupInvitation = {
 export const MailAddressToGroupTypeRef: TypeRef<MailAddressToGroup> = new TypeRef("sys", 204)
 
 export function createMailAddressToGroup(values: StrippedEntity<MailAddressToGroup>): MailAddressToGroup {
-	return Object.assign(create(typeModels[MailAddressToGroupTypeRef.typeId], MailAddressToGroupTypeRef), values)
+    return Object.assign(create(typeModels[MailAddressToGroupTypeRef.typeId], MailAddressToGroupTypeRef), values)
 }
 
 export type MailAddressToGroup = {
@@ -488,7 +488,7 @@ export type MailAddressToGroup = {
 export const GroupMemberTypeRef: TypeRef<GroupMember> = new TypeRef("sys", 216)
 
 export function createGroupMember(values: StrippedEntity<GroupMember>): GroupMember {
-	return Object.assign(create(typeModels[GroupMemberTypeRef.typeId], GroupMemberTypeRef), values)
+    return Object.assign(create(typeModels[GroupMemberTypeRef.typeId], GroupMemberTypeRef), values)
 }
 
 export type GroupMember = {
@@ -508,7 +508,7 @@ export type GroupMember = {
 export const RootInstanceTypeRef: TypeRef<RootInstance> = new TypeRef("sys", 231)
 
 export function createRootInstance(values: StrippedEntity<RootInstance>): RootInstance {
-	return Object.assign(create(typeModels[RootInstanceTypeRef.typeId], RootInstanceTypeRef), values)
+    return Object.assign(create(typeModels[RootInstanceTypeRef.typeId], RootInstanceTypeRef), values)
 }
 
 export type RootInstance = {
@@ -524,7 +524,7 @@ export type RootInstance = {
 export const VersionInfoTypeRef: TypeRef<VersionInfo> = new TypeRef("sys", 237)
 
 export function createVersionInfo(values: StrippedEntity<VersionInfo>): VersionInfo {
-	return Object.assign(create(typeModels[VersionInfoTypeRef.typeId], VersionInfoTypeRef), values)
+    return Object.assign(create(typeModels[VersionInfoTypeRef.typeId], VersionInfoTypeRef), values)
 }
 
 export type VersionInfo = {
@@ -548,7 +548,7 @@ export type VersionInfo = {
 export const SystemKeysReturnTypeRef: TypeRef<SystemKeysReturn> = new TypeRef("sys", 301)
 
 export function createSystemKeysReturn(values: StrippedEntity<SystemKeysReturn>): SystemKeysReturn {
-	return Object.assign(create(typeModels[SystemKeysReturnTypeRef.typeId], SystemKeysReturnTypeRef), values)
+    return Object.assign(create(typeModels[SystemKeysReturnTypeRef.typeId], SystemKeysReturnTypeRef), values)
 }
 
 export type SystemKeysReturn = {
@@ -571,7 +571,7 @@ export type SystemKeysReturn = {
 export const RegistrationServiceDataTypeRef: TypeRef<RegistrationServiceData> = new TypeRef("sys", 316)
 
 export function createRegistrationServiceData(values: StrippedEntity<RegistrationServiceData>): RegistrationServiceData {
-	return Object.assign(create(typeModels[RegistrationServiceDataTypeRef.typeId], RegistrationServiceDataTypeRef), values)
+    return Object.assign(create(typeModels[RegistrationServiceDataTypeRef.typeId], RegistrationServiceDataTypeRef), values)
 }
 
 export type RegistrationServiceData = {
@@ -585,7 +585,7 @@ export type RegistrationServiceData = {
 export const RegistrationReturnTypeRef: TypeRef<RegistrationReturn> = new TypeRef("sys", 326)
 
 export function createRegistrationReturn(values: StrippedEntity<RegistrationReturn>): RegistrationReturn {
-	return Object.assign(create(typeModels[RegistrationReturnTypeRef.typeId], RegistrationReturnTypeRef), values)
+    return Object.assign(create(typeModels[RegistrationReturnTypeRef.typeId], RegistrationReturnTypeRef), values)
 }
 
 export type RegistrationReturn = {
@@ -598,7 +598,7 @@ export type RegistrationReturn = {
 export const SendRegistrationCodeDataTypeRef: TypeRef<SendRegistrationCodeData> = new TypeRef("sys", 341)
 
 export function createSendRegistrationCodeData(values: StrippedEntity<SendRegistrationCodeData>): SendRegistrationCodeData {
-	return Object.assign(create(typeModels[SendRegistrationCodeDataTypeRef.typeId], SendRegistrationCodeDataTypeRef), values)
+    return Object.assign(create(typeModels[SendRegistrationCodeDataTypeRef.typeId], SendRegistrationCodeDataTypeRef), values)
 }
 
 export type SendRegistrationCodeData = {
@@ -614,7 +614,7 @@ export type SendRegistrationCodeData = {
 export const SendRegistrationCodeReturnTypeRef: TypeRef<SendRegistrationCodeReturn> = new TypeRef("sys", 347)
 
 export function createSendRegistrationCodeReturn(values: StrippedEntity<SendRegistrationCodeReturn>): SendRegistrationCodeReturn {
-	return Object.assign(create(typeModels[SendRegistrationCodeReturnTypeRef.typeId], SendRegistrationCodeReturnTypeRef), values)
+    return Object.assign(create(typeModels[SendRegistrationCodeReturnTypeRef.typeId], SendRegistrationCodeReturnTypeRef), values)
 }
 
 export type SendRegistrationCodeReturn = {
@@ -627,7 +627,7 @@ export type SendRegistrationCodeReturn = {
 export const VerifyRegistrationCodeDataTypeRef: TypeRef<VerifyRegistrationCodeData> = new TypeRef("sys", 351)
 
 export function createVerifyRegistrationCodeData(values: StrippedEntity<VerifyRegistrationCodeData>): VerifyRegistrationCodeData {
-	return Object.assign(create(typeModels[VerifyRegistrationCodeDataTypeRef.typeId], VerifyRegistrationCodeDataTypeRef), values)
+    return Object.assign(create(typeModels[VerifyRegistrationCodeDataTypeRef.typeId], VerifyRegistrationCodeDataTypeRef), values)
 }
 
 export type VerifyRegistrationCodeData = {
@@ -641,7 +641,7 @@ export type VerifyRegistrationCodeData = {
 export const UserDataDeleteTypeRef: TypeRef<UserDataDelete> = new TypeRef("sys", 404)
 
 export function createUserDataDelete(values: StrippedEntity<UserDataDelete>): UserDataDelete {
-	return Object.assign(create(typeModels[UserDataDeleteTypeRef.typeId], UserDataDeleteTypeRef), values)
+    return Object.assign(create(typeModels[UserDataDeleteTypeRef.typeId], UserDataDeleteTypeRef), values)
 }
 
 export type UserDataDelete = {
@@ -657,7 +657,7 @@ export type UserDataDelete = {
 export const PublicKeyGetInTypeRef: TypeRef<PublicKeyGetIn> = new TypeRef("sys", 409)
 
 export function createPublicKeyGetIn(values: StrippedEntity<PublicKeyGetIn>): PublicKeyGetIn {
-	return Object.assign(create(typeModels[PublicKeyGetInTypeRef.typeId], PublicKeyGetInTypeRef), values)
+    return Object.assign(create(typeModels[PublicKeyGetInTypeRef.typeId], PublicKeyGetInTypeRef), values)
 }
 
 export type PublicKeyGetIn = {
@@ -672,7 +672,7 @@ export type PublicKeyGetIn = {
 export const PublicKeyGetOutTypeRef: TypeRef<PublicKeyGetOut> = new TypeRef("sys", 412)
 
 export function createPublicKeyGetOut(values: StrippedEntity<PublicKeyGetOut>): PublicKeyGetOut {
-	return Object.assign(create(typeModels[PublicKeyGetOutTypeRef.typeId], PublicKeyGetOutTypeRef), values)
+    return Object.assign(create(typeModels[PublicKeyGetOutTypeRef.typeId], PublicKeyGetOutTypeRef), values)
 }
 
 export type PublicKeyGetOut = {
@@ -690,7 +690,7 @@ export type PublicKeyGetOut = {
 export const SaltDataTypeRef: TypeRef<SaltData> = new TypeRef("sys", 417)
 
 export function createSaltData(values: StrippedEntity<SaltData>): SaltData {
-	return Object.assign(create(typeModels[SaltDataTypeRef.typeId], SaltDataTypeRef), values)
+    return Object.assign(create(typeModels[SaltDataTypeRef.typeId], SaltDataTypeRef), values)
 }
 
 export type SaltData = {
@@ -703,7 +703,7 @@ export type SaltData = {
 export const SaltReturnTypeRef: TypeRef<SaltReturn> = new TypeRef("sys", 420)
 
 export function createSaltReturn(values: StrippedEntity<SaltReturn>): SaltReturn {
-	return Object.assign(create(typeModels[SaltReturnTypeRef.typeId], SaltReturnTypeRef), values)
+    return Object.assign(create(typeModels[SaltReturnTypeRef.typeId], SaltReturnTypeRef), values)
 }
 
 export type SaltReturn = {
@@ -717,7 +717,7 @@ export type SaltReturn = {
 export const AutoLoginDataGetTypeRef: TypeRef<AutoLoginDataGet> = new TypeRef("sys", 431)
 
 export function createAutoLoginDataGet(values: StrippedEntity<AutoLoginDataGet>): AutoLoginDataGet {
-	return Object.assign(create(typeModels[AutoLoginDataGetTypeRef.typeId], AutoLoginDataGetTypeRef), values)
+    return Object.assign(create(typeModels[AutoLoginDataGetTypeRef.typeId], AutoLoginDataGetTypeRef), values)
 }
 
 export type AutoLoginDataGet = {
@@ -732,7 +732,7 @@ export type AutoLoginDataGet = {
 export const AutoLoginDataDeleteTypeRef: TypeRef<AutoLoginDataDelete> = new TypeRef("sys", 435)
 
 export function createAutoLoginDataDelete(values: StrippedEntity<AutoLoginDataDelete>): AutoLoginDataDelete {
-	return Object.assign(create(typeModels[AutoLoginDataDeleteTypeRef.typeId], AutoLoginDataDeleteTypeRef), values)
+    return Object.assign(create(typeModels[AutoLoginDataDeleteTypeRef.typeId], AutoLoginDataDeleteTypeRef), values)
 }
 
 export type AutoLoginDataDelete = {
@@ -745,7 +745,7 @@ export type AutoLoginDataDelete = {
 export const AutoLoginDataReturnTypeRef: TypeRef<AutoLoginDataReturn> = new TypeRef("sys", 438)
 
 export function createAutoLoginDataReturn(values: StrippedEntity<AutoLoginDataReturn>): AutoLoginDataReturn {
-	return Object.assign(create(typeModels[AutoLoginDataReturnTypeRef.typeId], AutoLoginDataReturnTypeRef), values)
+    return Object.assign(create(typeModels[AutoLoginDataReturnTypeRef.typeId], AutoLoginDataReturnTypeRef), values)
 }
 
 export type AutoLoginDataReturn = {
@@ -758,7 +758,7 @@ export type AutoLoginDataReturn = {
 export const AutoLoginPostReturnTypeRef: TypeRef<AutoLoginPostReturn> = new TypeRef("sys", 441)
 
 export function createAutoLoginPostReturn(values: StrippedEntity<AutoLoginPostReturn>): AutoLoginPostReturn {
-	return Object.assign(create(typeModels[AutoLoginPostReturnTypeRef.typeId], AutoLoginPostReturnTypeRef), values)
+    return Object.assign(create(typeModels[AutoLoginPostReturnTypeRef.typeId], AutoLoginPostReturnTypeRef), values)
 }
 
 export type AutoLoginPostReturn = {
@@ -771,7 +771,7 @@ export type AutoLoginPostReturn = {
 export const UpdatePermissionKeyDataTypeRef: TypeRef<UpdatePermissionKeyData> = new TypeRef("sys", 445)
 
 export function createUpdatePermissionKeyData(values: StrippedEntity<UpdatePermissionKeyData>): UpdatePermissionKeyData {
-	return Object.assign(create(typeModels[UpdatePermissionKeyDataTypeRef.typeId], UpdatePermissionKeyDataTypeRef), values)
+    return Object.assign(create(typeModels[UpdatePermissionKeyDataTypeRef.typeId], UpdatePermissionKeyDataTypeRef), values)
 }
 
 export type UpdatePermissionKeyData = {
@@ -788,7 +788,7 @@ export type UpdatePermissionKeyData = {
 export const EntityUpdateTypeRef: TypeRef<EntityUpdate> = new TypeRef("sys", 462)
 
 export function createEntityUpdate(values: StrippedEntity<EntityUpdate>): EntityUpdate {
-	return Object.assign(create(typeModels[EntityUpdateTypeRef.typeId], EntityUpdateTypeRef), values)
+    return Object.assign(create(typeModels[EntityUpdateTypeRef.typeId], EntityUpdateTypeRef), values)
 }
 
 export type EntityUpdate = {
@@ -809,7 +809,7 @@ export type EntityUpdate = {
 export const VersionTypeRef: TypeRef<Version> = new TypeRef("sys", 480)
 
 export function createVersion(values: StrippedEntity<Version>): Version {
-	return Object.assign(create(typeModels[VersionTypeRef.typeId], VersionTypeRef), values)
+    return Object.assign(create(typeModels[VersionTypeRef.typeId], VersionTypeRef), values)
 }
 
 export type Version = {
@@ -827,7 +827,7 @@ export type Version = {
 export const VersionDataTypeRef: TypeRef<VersionData> = new TypeRef("sys", 487)
 
 export function createVersionData(values: StrippedEntity<VersionData>): VersionData {
-	return Object.assign(create(typeModels[VersionDataTypeRef.typeId], VersionDataTypeRef), values)
+    return Object.assign(create(typeModels[VersionDataTypeRef.typeId], VersionDataTypeRef), values)
 }
 
 export type VersionData = {
@@ -843,7 +843,7 @@ export type VersionData = {
 export const VersionReturnTypeRef: TypeRef<VersionReturn> = new TypeRef("sys", 493)
 
 export function createVersionReturn(values: StrippedEntity<VersionReturn>): VersionReturn {
-	return Object.assign(create(typeModels[VersionReturnTypeRef.typeId], VersionReturnTypeRef), values)
+    return Object.assign(create(typeModels[VersionReturnTypeRef.typeId], VersionReturnTypeRef), values)
 }
 
 export type VersionReturn = {
@@ -857,7 +857,7 @@ export type VersionReturn = {
 export const MembershipAddDataTypeRef: TypeRef<MembershipAddData> = new TypeRef("sys", 505)
 
 export function createMembershipAddData(values: StrippedEntity<MembershipAddData>): MembershipAddData {
-	return Object.assign(create(typeModels[MembershipAddDataTypeRef.typeId], MembershipAddDataTypeRef), values)
+    return Object.assign(create(typeModels[MembershipAddDataTypeRef.typeId], MembershipAddDataTypeRef), values)
 }
 
 export type MembershipAddData = {
@@ -875,7 +875,7 @@ export type MembershipAddData = {
 export const ChangePasswordPostInTypeRef: TypeRef<ChangePasswordPostIn> = new TypeRef("sys", 534)
 
 export function createChangePasswordPostIn(values: StrippedEntity<ChangePasswordPostIn>): ChangePasswordPostIn {
-	return Object.assign(create(typeModels[ChangePasswordPostInTypeRef.typeId], ChangePasswordPostInTypeRef), values)
+    return Object.assign(create(typeModels[ChangePasswordPostInTypeRef.typeId], ChangePasswordPostInTypeRef), values)
 }
 
 export type ChangePasswordPostIn = {
@@ -895,7 +895,7 @@ export type ChangePasswordPostIn = {
 export const SecondFactorAuthDataTypeRef: TypeRef<SecondFactorAuthData> = new TypeRef("sys", 541)
 
 export function createSecondFactorAuthData(values: StrippedEntity<SecondFactorAuthData>): SecondFactorAuthData {
-	return Object.assign(create(typeModels[SecondFactorAuthDataTypeRef.typeId], SecondFactorAuthDataTypeRef), values)
+    return Object.assign(create(typeModels[SecondFactorAuthDataTypeRef.typeId], SecondFactorAuthDataTypeRef), values)
 }
 
 export type SecondFactorAuthData = {
@@ -913,7 +913,7 @@ export type SecondFactorAuthData = {
 export const SecondFactorAuthAllowedReturnTypeRef: TypeRef<SecondFactorAuthAllowedReturn> = new TypeRef("sys", 546)
 
 export function createSecondFactorAuthAllowedReturn(values: StrippedEntity<SecondFactorAuthAllowedReturn>): SecondFactorAuthAllowedReturn {
-	return Object.assign(create(typeModels[SecondFactorAuthAllowedReturnTypeRef.typeId], SecondFactorAuthAllowedReturnTypeRef), values)
+    return Object.assign(create(typeModels[SecondFactorAuthAllowedReturnTypeRef.typeId], SecondFactorAuthAllowedReturnTypeRef), values)
 }
 
 export type SecondFactorAuthAllowedReturn = {
@@ -926,7 +926,7 @@ export type SecondFactorAuthAllowedReturn = {
 export const ResetPasswordPostInTypeRef: TypeRef<ResetPasswordPostIn> = new TypeRef("sys", 584)
 
 export function createResetPasswordPostIn(values: StrippedEntity<ResetPasswordPostIn>): ResetPasswordPostIn {
-	return Object.assign(create(typeModels[ResetPasswordPostInTypeRef.typeId], ResetPasswordPostInTypeRef), values)
+    return Object.assign(create(typeModels[ResetPasswordPostInTypeRef.typeId], ResetPasswordPostInTypeRef), values)
 }
 
 export type ResetPasswordPostIn = {
@@ -945,7 +945,7 @@ export type ResetPasswordPostIn = {
 export const DomainMailAddressAvailabilityDataTypeRef: TypeRef<DomainMailAddressAvailabilityData> = new TypeRef("sys", 599)
 
 export function createDomainMailAddressAvailabilityData(values: StrippedEntity<DomainMailAddressAvailabilityData>): DomainMailAddressAvailabilityData {
-	return Object.assign(create(typeModels[DomainMailAddressAvailabilityDataTypeRef.typeId], DomainMailAddressAvailabilityDataTypeRef), values)
+    return Object.assign(create(typeModels[DomainMailAddressAvailabilityDataTypeRef.typeId], DomainMailAddressAvailabilityDataTypeRef), values)
 }
 
 export type DomainMailAddressAvailabilityData = {
@@ -958,7 +958,7 @@ export type DomainMailAddressAvailabilityData = {
 export const DomainMailAddressAvailabilityReturnTypeRef: TypeRef<DomainMailAddressAvailabilityReturn> = new TypeRef("sys", 602)
 
 export function createDomainMailAddressAvailabilityReturn(values: StrippedEntity<DomainMailAddressAvailabilityReturn>): DomainMailAddressAvailabilityReturn {
-	return Object.assign(create(typeModels[DomainMailAddressAvailabilityReturnTypeRef.typeId], DomainMailAddressAvailabilityReturnTypeRef), values)
+    return Object.assign(create(typeModels[DomainMailAddressAvailabilityReturnTypeRef.typeId], DomainMailAddressAvailabilityReturnTypeRef), values)
 }
 
 export type DomainMailAddressAvailabilityReturn = {
@@ -971,7 +971,7 @@ export type DomainMailAddressAvailabilityReturn = {
 export const PushIdentifierTypeRef: TypeRef<PushIdentifier> = new TypeRef("sys", 625)
 
 export function createPushIdentifier(values: StrippedEntity<PushIdentifier>): PushIdentifier {
-	return Object.assign(create(typeModels[PushIdentifierTypeRef.typeId], PushIdentifierTypeRef), values)
+    return Object.assign(create(typeModels[PushIdentifierTypeRef.typeId], PushIdentifierTypeRef), values)
 }
 
 export type PushIdentifier = {
@@ -999,7 +999,7 @@ export type PushIdentifier = {
 export const PushIdentifierListTypeRef: TypeRef<PushIdentifierList> = new TypeRef("sys", 635)
 
 export function createPushIdentifierList(values: StrippedEntity<PushIdentifierList>): PushIdentifierList {
-	return Object.assign(create(typeModels[PushIdentifierListTypeRef.typeId], PushIdentifierListTypeRef), values)
+    return Object.assign(create(typeModels[PushIdentifierListTypeRef.typeId], PushIdentifierListTypeRef), values)
 }
 
 export type PushIdentifierList = {
@@ -1013,7 +1013,7 @@ export type PushIdentifierList = {
 export const DeleteCustomerDataTypeRef: TypeRef<DeleteCustomerData> = new TypeRef("sys", 641)
 
 export function createDeleteCustomerData(values: StrippedEntity<DeleteCustomerData>): DeleteCustomerData {
-	return Object.assign(create(typeModels[DeleteCustomerDataTypeRef.typeId], DeleteCustomerDataTypeRef), values)
+    return Object.assign(create(typeModels[DeleteCustomerDataTypeRef.typeId], DeleteCustomerDataTypeRef), values)
 }
 
 export type DeleteCustomerData = {
@@ -1032,7 +1032,7 @@ export type DeleteCustomerData = {
 export const CustomerPropertiesTypeRef: TypeRef<CustomerProperties> = new TypeRef("sys", 656)
 
 export function createCustomerProperties(values: StrippedEntity<CustomerProperties>): CustomerProperties {
-	return Object.assign(create(typeModels[CustomerPropertiesTypeRef.typeId], CustomerPropertiesTypeRef), values)
+    return Object.assign(create(typeModels[CustomerPropertiesTypeRef.typeId], CustomerPropertiesTypeRef), values)
 }
 
 export type CustomerProperties = {
@@ -1054,7 +1054,7 @@ export type CustomerProperties = {
 export const ExternalPropertiesReturnTypeRef: TypeRef<ExternalPropertiesReturn> = new TypeRef("sys", 663)
 
 export function createExternalPropertiesReturn(values: StrippedEntity<ExternalPropertiesReturn>): ExternalPropertiesReturn {
-	return Object.assign(create(typeModels[ExternalPropertiesReturnTypeRef.typeId], ExternalPropertiesReturnTypeRef), values)
+    return Object.assign(create(typeModels[ExternalPropertiesReturnTypeRef.typeId], ExternalPropertiesReturnTypeRef), values)
 }
 
 export type ExternalPropertiesReturn = {
@@ -1071,7 +1071,7 @@ export type ExternalPropertiesReturn = {
 export const RegistrationCaptchaServiceDataTypeRef: TypeRef<RegistrationCaptchaServiceData> = new TypeRef("sys", 674)
 
 export function createRegistrationCaptchaServiceData(values: StrippedEntity<RegistrationCaptchaServiceData>): RegistrationCaptchaServiceData {
-	return Object.assign(create(typeModels[RegistrationCaptchaServiceDataTypeRef.typeId], RegistrationCaptchaServiceDataTypeRef), values)
+    return Object.assign(create(typeModels[RegistrationCaptchaServiceDataTypeRef.typeId], RegistrationCaptchaServiceDataTypeRef), values)
 }
 
 export type RegistrationCaptchaServiceData = {
@@ -1086,7 +1086,7 @@ export type RegistrationCaptchaServiceData = {
 export const RegistrationCaptchaServiceReturnTypeRef: TypeRef<RegistrationCaptchaServiceReturn> = new TypeRef("sys", 678)
 
 export function createRegistrationCaptchaServiceReturn(values: StrippedEntity<RegistrationCaptchaServiceReturn>): RegistrationCaptchaServiceReturn {
-	return Object.assign(create(typeModels[RegistrationCaptchaServiceReturnTypeRef.typeId], RegistrationCaptchaServiceReturnTypeRef), values)
+    return Object.assign(create(typeModels[RegistrationCaptchaServiceReturnTypeRef.typeId], RegistrationCaptchaServiceReturnTypeRef), values)
 }
 
 export type RegistrationCaptchaServiceReturn = {
@@ -1103,7 +1103,7 @@ export type RegistrationCaptchaServiceReturn = {
 export const MailAddressAliasTypeRef: TypeRef<MailAddressAlias> = new TypeRef("sys", 684)
 
 export function createMailAddressAlias(values: StrippedEntity<MailAddressAlias>): MailAddressAlias {
-	return Object.assign(create(typeModels[MailAddressAliasTypeRef.typeId], MailAddressAliasTypeRef), values)
+    return Object.assign(create(typeModels[MailAddressAliasTypeRef.typeId], MailAddressAliasTypeRef), values)
 }
 
 export type MailAddressAlias = {
@@ -1117,7 +1117,7 @@ export type MailAddressAlias = {
 export const MailAddressAliasServiceDataTypeRef: TypeRef<MailAddressAliasServiceData> = new TypeRef("sys", 688)
 
 export function createMailAddressAliasServiceData(values: StrippedEntity<MailAddressAliasServiceData>): MailAddressAliasServiceData {
-	return Object.assign(create(typeModels[MailAddressAliasServiceDataTypeRef.typeId], MailAddressAliasServiceDataTypeRef), values)
+    return Object.assign(create(typeModels[MailAddressAliasServiceDataTypeRef.typeId], MailAddressAliasServiceDataTypeRef), values)
 }
 
 export type MailAddressAliasServiceData = {
@@ -1132,7 +1132,7 @@ export type MailAddressAliasServiceData = {
 export const MailAddressAliasServiceReturnTypeRef: TypeRef<MailAddressAliasServiceReturn> = new TypeRef("sys", 692)
 
 export function createMailAddressAliasServiceReturn(values: StrippedEntity<MailAddressAliasServiceReturn>): MailAddressAliasServiceReturn {
-	return Object.assign(create(typeModels[MailAddressAliasServiceReturnTypeRef.typeId], MailAddressAliasServiceReturnTypeRef), values)
+    return Object.assign(create(typeModels[MailAddressAliasServiceReturnTypeRef.typeId], MailAddressAliasServiceReturnTypeRef), values)
 }
 
 export type MailAddressAliasServiceReturn = {
@@ -1148,7 +1148,7 @@ export type MailAddressAliasServiceReturn = {
 export const DomainInfoTypeRef: TypeRef<DomainInfo> = new TypeRef("sys", 696)
 
 export function createDomainInfo(values: StrippedEntity<DomainInfo>): DomainInfo {
-	return Object.assign(create(typeModels[DomainInfoTypeRef.typeId], DomainInfoTypeRef), values)
+    return Object.assign(create(typeModels[DomainInfoTypeRef.typeId], DomainInfoTypeRef), values)
 }
 
 export type DomainInfo = {
@@ -1164,7 +1164,7 @@ export type DomainInfo = {
 export const BookingItemTypeRef: TypeRef<BookingItem> = new TypeRef("sys", 700)
 
 export function createBookingItem(values: StrippedEntity<BookingItem>): BookingItem {
-	return Object.assign(create(typeModels[BookingItemTypeRef.typeId], BookingItemTypeRef), values)
+    return Object.assign(create(typeModels[BookingItemTypeRef.typeId], BookingItemTypeRef), values)
 }
 
 export type BookingItem = {
@@ -1183,7 +1183,7 @@ export type BookingItem = {
 export const BookingTypeRef: TypeRef<Booking> = new TypeRef("sys", 709)
 
 export function createBooking(values: StrippedEntity<Booking>): Booking {
-	return Object.assign(create(typeModels[BookingTypeRef.typeId], BookingTypeRef), values)
+    return Object.assign(create(typeModels[BookingTypeRef.typeId], BookingTypeRef), values)
 }
 
 export type Booking = {
@@ -1207,7 +1207,7 @@ export type Booking = {
 export const BookingsRefTypeRef: TypeRef<BookingsRef> = new TypeRef("sys", 722)
 
 export function createBookingsRef(values: StrippedEntity<BookingsRef>): BookingsRef {
-	return Object.assign(create(typeModels[BookingsRefTypeRef.typeId], BookingsRefTypeRef), values)
+    return Object.assign(create(typeModels[BookingsRefTypeRef.typeId], BookingsRefTypeRef), values)
 }
 
 export type BookingsRef = {
@@ -1221,7 +1221,7 @@ export type BookingsRef = {
 export const StringWrapperTypeRef: TypeRef<StringWrapper> = new TypeRef("sys", 728)
 
 export function createStringWrapper(values: StrippedEntity<StringWrapper>): StringWrapper {
-	return Object.assign(create(typeModels[StringWrapperTypeRef.typeId], StringWrapperTypeRef), values)
+    return Object.assign(create(typeModels[StringWrapperTypeRef.typeId], StringWrapperTypeRef), values)
 }
 
 export type StringWrapper = {
@@ -1234,7 +1234,7 @@ export type StringWrapper = {
 export const CustomDomainReturnTypeRef: TypeRef<CustomDomainReturn> = new TypeRef("sys", 731)
 
 export function createCustomDomainReturn(values: StrippedEntity<CustomDomainReturn>): CustomDomainReturn {
-	return Object.assign(create(typeModels[CustomDomainReturnTypeRef.typeId], CustomDomainReturnTypeRef), values)
+    return Object.assign(create(typeModels[CustomDomainReturnTypeRef.typeId], CustomDomainReturnTypeRef), values)
 }
 
 export type CustomDomainReturn = {
@@ -1249,7 +1249,7 @@ export type CustomDomainReturn = {
 export const CustomDomainDataTypeRef: TypeRef<CustomDomainData> = new TypeRef("sys", 735)
 
 export function createCustomDomainData(values: StrippedEntity<CustomDomainData>): CustomDomainData {
-	return Object.assign(create(typeModels[CustomDomainDataTypeRef.typeId], CustomDomainDataTypeRef), values)
+    return Object.assign(create(typeModels[CustomDomainDataTypeRef.typeId], CustomDomainDataTypeRef), values)
 }
 
 export type CustomDomainData = {
@@ -1264,7 +1264,7 @@ export type CustomDomainData = {
 export const InvoiceInfoTypeRef: TypeRef<InvoiceInfo> = new TypeRef("sys", 752)
 
 export function createInvoiceInfo(values: StrippedEntity<InvoiceInfo>): InvoiceInfo {
-	return Object.assign(create(typeModels[InvoiceInfoTypeRef.typeId], InvoiceInfoTypeRef), values)
+    return Object.assign(create(typeModels[InvoiceInfoTypeRef.typeId], InvoiceInfoTypeRef), values)
 }
 
 export type InvoiceInfo = {
@@ -1293,7 +1293,7 @@ export type InvoiceInfo = {
 export const SwitchAccountTypePostInTypeRef: TypeRef<SwitchAccountTypePostIn> = new TypeRef("sys", 772)
 
 export function createSwitchAccountTypePostIn(values: StrippedEntity<SwitchAccountTypePostIn>): SwitchAccountTypePostIn {
-	return Object.assign(create(typeModels[SwitchAccountTypePostInTypeRef.typeId], SwitchAccountTypePostInTypeRef), values)
+    return Object.assign(create(typeModels[SwitchAccountTypePostInTypeRef.typeId], SwitchAccountTypePostInTypeRef), values)
 }
 
 export type SwitchAccountTypePostIn = {
@@ -1314,7 +1314,7 @@ export type SwitchAccountTypePostIn = {
 export const MailAddressAliasServiceDataDeleteTypeRef: TypeRef<MailAddressAliasServiceDataDelete> = new TypeRef("sys", 785)
 
 export function createMailAddressAliasServiceDataDelete(values: StrippedEntity<MailAddressAliasServiceDataDelete>): MailAddressAliasServiceDataDelete {
-	return Object.assign(create(typeModels[MailAddressAliasServiceDataDeleteTypeRef.typeId], MailAddressAliasServiceDataDeleteTypeRef), values)
+    return Object.assign(create(typeModels[MailAddressAliasServiceDataDeleteTypeRef.typeId], MailAddressAliasServiceDataDeleteTypeRef), values)
 }
 
 export type MailAddressAliasServiceDataDelete = {
@@ -1330,7 +1330,7 @@ export type MailAddressAliasServiceDataDelete = {
 export const PaymentDataServiceGetReturnTypeRef: TypeRef<PaymentDataServiceGetReturn> = new TypeRef("sys", 790)
 
 export function createPaymentDataServiceGetReturn(values: StrippedEntity<PaymentDataServiceGetReturn>): PaymentDataServiceGetReturn {
-	return Object.assign(create(typeModels[PaymentDataServiceGetReturnTypeRef.typeId], PaymentDataServiceGetReturnTypeRef), values)
+    return Object.assign(create(typeModels[PaymentDataServiceGetReturnTypeRef.typeId], PaymentDataServiceGetReturnTypeRef), values)
 }
 
 export type PaymentDataServiceGetReturn = {
@@ -1343,7 +1343,7 @@ export type PaymentDataServiceGetReturn = {
 export const PaymentDataServicePutDataTypeRef: TypeRef<PaymentDataServicePutData> = new TypeRef("sys", 793)
 
 export function createPaymentDataServicePutData(values: StrippedEntity<PaymentDataServicePutData>): PaymentDataServicePutData {
-	return Object.assign(create(typeModels[PaymentDataServicePutDataTypeRef.typeId], PaymentDataServicePutDataTypeRef), values)
+    return Object.assign(create(typeModels[PaymentDataServicePutDataTypeRef.typeId], PaymentDataServicePutDataTypeRef), values)
 }
 
 export type PaymentDataServicePutData = {
@@ -1367,7 +1367,7 @@ export type PaymentDataServicePutData = {
 export const PaymentDataServicePutReturnTypeRef: TypeRef<PaymentDataServicePutReturn> = new TypeRef("sys", 805)
 
 export function createPaymentDataServicePutReturn(values: StrippedEntity<PaymentDataServicePutReturn>): PaymentDataServicePutReturn {
-	return Object.assign(create(typeModels[PaymentDataServicePutReturnTypeRef.typeId], PaymentDataServicePutReturnTypeRef), values)
+    return Object.assign(create(typeModels[PaymentDataServicePutReturnTypeRef.typeId], PaymentDataServicePutReturnTypeRef), values)
 }
 
 export type PaymentDataServicePutReturn = {
@@ -1382,7 +1382,7 @@ export type PaymentDataServicePutReturn = {
 export const PriceRequestDataTypeRef: TypeRef<PriceRequestData> = new TypeRef("sys", 836)
 
 export function createPriceRequestData(values: StrippedEntity<PriceRequestData>): PriceRequestData {
-	return Object.assign(create(typeModels[PriceRequestDataTypeRef.typeId], PriceRequestDataTypeRef), values)
+    return Object.assign(create(typeModels[PriceRequestDataTypeRef.typeId], PriceRequestDataTypeRef), values)
 }
 
 export type PriceRequestData = {
@@ -1400,7 +1400,7 @@ export type PriceRequestData = {
 export const PriceServiceDataTypeRef: TypeRef<PriceServiceData> = new TypeRef("sys", 843)
 
 export function createPriceServiceData(values: StrippedEntity<PriceServiceData>): PriceServiceData {
-	return Object.assign(create(typeModels[PriceServiceDataTypeRef.typeId], PriceServiceDataTypeRef), values)
+    return Object.assign(create(typeModels[PriceServiceDataTypeRef.typeId], PriceServiceDataTypeRef), values)
 }
 
 export type PriceServiceData = {
@@ -1415,7 +1415,7 @@ export type PriceServiceData = {
 export const PriceItemDataTypeRef: TypeRef<PriceItemData> = new TypeRef("sys", 847)
 
 export function createPriceItemData(values: StrippedEntity<PriceItemData>): PriceItemData {
-	return Object.assign(create(typeModels[PriceItemDataTypeRef.typeId], PriceItemDataTypeRef), values)
+    return Object.assign(create(typeModels[PriceItemDataTypeRef.typeId], PriceItemDataTypeRef), values)
 }
 
 export type PriceItemData = {
@@ -1431,7 +1431,7 @@ export type PriceItemData = {
 export const PriceDataTypeRef: TypeRef<PriceData> = new TypeRef("sys", 853)
 
 export function createPriceData(values: StrippedEntity<PriceData>): PriceData {
-	return Object.assign(create(typeModels[PriceDataTypeRef.typeId], PriceDataTypeRef), values)
+    return Object.assign(create(typeModels[PriceDataTypeRef.typeId], PriceDataTypeRef), values)
 }
 
 export type PriceData = {
@@ -1448,7 +1448,7 @@ export type PriceData = {
 export const PriceServiceReturnTypeRef: TypeRef<PriceServiceReturn> = new TypeRef("sys", 859)
 
 export function createPriceServiceReturn(values: StrippedEntity<PriceServiceReturn>): PriceServiceReturn {
-	return Object.assign(create(typeModels[PriceServiceReturnTypeRef.typeId], PriceServiceReturnTypeRef), values)
+    return Object.assign(create(typeModels[PriceServiceReturnTypeRef.typeId], PriceServiceReturnTypeRef), values)
 }
 
 export type PriceServiceReturn = {
@@ -1466,7 +1466,7 @@ export type PriceServiceReturn = {
 export const MembershipRemoveDataTypeRef: TypeRef<MembershipRemoveData> = new TypeRef("sys", 867)
 
 export function createMembershipRemoveData(values: StrippedEntity<MembershipRemoveData>): MembershipRemoveData {
-	return Object.assign(create(typeModels[MembershipRemoveDataTypeRef.typeId], MembershipRemoveDataTypeRef), values)
+    return Object.assign(create(typeModels[MembershipRemoveDataTypeRef.typeId], MembershipRemoveDataTypeRef), values)
 }
 
 export type MembershipRemoveData = {
@@ -1481,7 +1481,7 @@ export type MembershipRemoveData = {
 export const FileTypeRef: TypeRef<File> = new TypeRef("sys", 917)
 
 export function createFile(values: StrippedEntity<File>): File {
-	return Object.assign(create(typeModels[FileTypeRef.typeId], FileTypeRef), values)
+    return Object.assign(create(typeModels[FileTypeRef.typeId], FileTypeRef), values)
 }
 
 export type File = {
@@ -1496,7 +1496,7 @@ export type File = {
 export const EmailSenderListElementTypeRef: TypeRef<EmailSenderListElement> = new TypeRef("sys", 949)
 
 export function createEmailSenderListElement(values: StrippedEntity<EmailSenderListElement>): EmailSenderListElement {
-	return Object.assign(create(typeModels[EmailSenderListElementTypeRef.typeId], EmailSenderListElementTypeRef), values)
+    return Object.assign(create(typeModels[EmailSenderListElementTypeRef.typeId], EmailSenderListElementTypeRef), values)
 }
 
 export type EmailSenderListElement = {
@@ -1512,7 +1512,7 @@ export type EmailSenderListElement = {
 export const CustomerServerPropertiesTypeRef: TypeRef<CustomerServerProperties> = new TypeRef("sys", 954)
 
 export function createCustomerServerProperties(values: StrippedEntity<CustomerServerProperties>): CustomerServerProperties {
-	return Object.assign(create(typeModels[CustomerServerPropertiesTypeRef.typeId], CustomerServerPropertiesTypeRef), values)
+    return Object.assign(create(typeModels[CustomerServerPropertiesTypeRef.typeId], CustomerServerPropertiesTypeRef), values)
 }
 
 export type CustomerServerProperties = {
@@ -1534,7 +1534,7 @@ export type CustomerServerProperties = {
 export const CreateCustomerServerPropertiesDataTypeRef: TypeRef<CreateCustomerServerPropertiesData> = new TypeRef("sys", 961)
 
 export function createCreateCustomerServerPropertiesData(values: StrippedEntity<CreateCustomerServerPropertiesData>): CreateCustomerServerPropertiesData {
-	return Object.assign(create(typeModels[CreateCustomerServerPropertiesDataTypeRef.typeId], CreateCustomerServerPropertiesDataTypeRef), values)
+    return Object.assign(create(typeModels[CreateCustomerServerPropertiesDataTypeRef.typeId], CreateCustomerServerPropertiesDataTypeRef), values)
 }
 
 export type CreateCustomerServerPropertiesData = {
@@ -1548,7 +1548,7 @@ export type CreateCustomerServerPropertiesData = {
 export const CreateCustomerServerPropertiesReturnTypeRef: TypeRef<CreateCustomerServerPropertiesReturn> = new TypeRef("sys", 964)
 
 export function createCreateCustomerServerPropertiesReturn(values: StrippedEntity<CreateCustomerServerPropertiesReturn>): CreateCustomerServerPropertiesReturn {
-	return Object.assign(create(typeModels[CreateCustomerServerPropertiesReturnTypeRef.typeId], CreateCustomerServerPropertiesReturnTypeRef), values)
+    return Object.assign(create(typeModels[CreateCustomerServerPropertiesReturnTypeRef.typeId], CreateCustomerServerPropertiesReturnTypeRef), values)
 }
 
 export type CreateCustomerServerPropertiesReturn = {
@@ -1562,7 +1562,7 @@ export type CreateCustomerServerPropertiesReturn = {
 export const UserAreaGroupsTypeRef: TypeRef<UserAreaGroups> = new TypeRef("sys", 988)
 
 export function createUserAreaGroups(values: StrippedEntity<UserAreaGroups>): UserAreaGroups {
-	return Object.assign(create(typeModels[UserAreaGroupsTypeRef.typeId], UserAreaGroupsTypeRef), values)
+    return Object.assign(create(typeModels[UserAreaGroupsTypeRef.typeId], UserAreaGroupsTypeRef), values)
 }
 
 export type UserAreaGroups = {
@@ -1576,7 +1576,7 @@ export type UserAreaGroups = {
 export const DebitServicePutDataTypeRef: TypeRef<DebitServicePutData> = new TypeRef("sys", 1041)
 
 export function createDebitServicePutData(values: StrippedEntity<DebitServicePutData>): DebitServicePutData {
-	return Object.assign(create(typeModels[DebitServicePutDataTypeRef.typeId], DebitServicePutDataTypeRef), values)
+    return Object.assign(create(typeModels[DebitServicePutDataTypeRef.typeId], DebitServicePutDataTypeRef), values)
 }
 
 export type DebitServicePutData = {
@@ -1588,7 +1588,7 @@ export type DebitServicePutData = {
 export const EntityEventBatchTypeRef: TypeRef<EntityEventBatch> = new TypeRef("sys", 1079)
 
 export function createEntityEventBatch(values: StrippedEntity<EntityEventBatch>): EntityEventBatch {
-	return Object.assign(create(typeModels[EntityEventBatchTypeRef.typeId], EntityEventBatchTypeRef), values)
+    return Object.assign(create(typeModels[EntityEventBatchTypeRef.typeId], EntityEventBatchTypeRef), values)
 }
 
 export type EntityEventBatch = {
@@ -1605,7 +1605,7 @@ export type EntityEventBatch = {
 export const AuditLogEntryTypeRef: TypeRef<AuditLogEntry> = new TypeRef("sys", 1101)
 
 export function createAuditLogEntry(values: StrippedEntity<AuditLogEntry>): AuditLogEntry {
-	return Object.assign(create(typeModels[AuditLogEntryTypeRef.typeId], AuditLogEntryTypeRef), values)
+    return Object.assign(create(typeModels[AuditLogEntryTypeRef.typeId], AuditLogEntryTypeRef), values)
 }
 
 export type AuditLogEntry = {
@@ -1631,7 +1631,7 @@ export type AuditLogEntry = {
 export const AuditLogRefTypeRef: TypeRef<AuditLogRef> = new TypeRef("sys", 1114)
 
 export function createAuditLogRef(values: StrippedEntity<AuditLogRef>): AuditLogRef {
-	return Object.assign(create(typeModels[AuditLogRefTypeRef.typeId], AuditLogRefTypeRef), values)
+    return Object.assign(create(typeModels[AuditLogRefTypeRef.typeId], AuditLogRefTypeRef), values)
 }
 
 export type AuditLogRef = {
@@ -1645,7 +1645,7 @@ export type AuditLogRef = {
 export const WhitelabelConfigTypeRef: TypeRef<WhitelabelConfig> = new TypeRef("sys", 1127)
 
 export function createWhitelabelConfig(values: StrippedEntity<WhitelabelConfig>): WhitelabelConfig {
-	return Object.assign(create(typeModels[WhitelabelConfigTypeRef.typeId], WhitelabelConfigTypeRef), values)
+    return Object.assign(create(typeModels[WhitelabelConfigTypeRef.typeId], WhitelabelConfigTypeRef), values)
 }
 
 export type WhitelabelConfig = {
@@ -1669,7 +1669,7 @@ export type WhitelabelConfig = {
 export const BrandingDomainDataTypeRef: TypeRef<BrandingDomainData> = new TypeRef("sys", 1149)
 
 export function createBrandingDomainData(values: StrippedEntity<BrandingDomainData>): BrandingDomainData {
-	return Object.assign(create(typeModels[BrandingDomainDataTypeRef.typeId], BrandingDomainDataTypeRef), values)
+    return Object.assign(create(typeModels[BrandingDomainDataTypeRef.typeId], BrandingDomainDataTypeRef), values)
 }
 
 export type BrandingDomainData = {
@@ -1687,7 +1687,7 @@ export type BrandingDomainData = {
 export const BrandingDomainDeleteDataTypeRef: TypeRef<BrandingDomainDeleteData> = new TypeRef("sys", 1155)
 
 export function createBrandingDomainDeleteData(values: StrippedEntity<BrandingDomainDeleteData>): BrandingDomainDeleteData {
-	return Object.assign(create(typeModels[BrandingDomainDeleteDataTypeRef.typeId], BrandingDomainDeleteDataTypeRef), values)
+    return Object.assign(create(typeModels[BrandingDomainDeleteDataTypeRef.typeId], BrandingDomainDeleteDataTypeRef), values)
 }
 
 export type BrandingDomainDeleteData = {
@@ -1700,7 +1700,7 @@ export type BrandingDomainDeleteData = {
 export const U2fRegisteredDeviceTypeRef: TypeRef<U2fRegisteredDevice> = new TypeRef("sys", 1162)
 
 export function createU2fRegisteredDevice(values: StrippedEntity<U2fRegisteredDevice>): U2fRegisteredDevice {
-	return Object.assign(create(typeModels[U2fRegisteredDeviceTypeRef.typeId], U2fRegisteredDeviceTypeRef), values)
+    return Object.assign(create(typeModels[U2fRegisteredDeviceTypeRef.typeId], U2fRegisteredDeviceTypeRef), values)
 }
 
 export type U2fRegisteredDevice = {
@@ -1717,7 +1717,7 @@ export type U2fRegisteredDevice = {
 export const SecondFactorTypeRef: TypeRef<SecondFactor> = new TypeRef("sys", 1169)
 
 export function createSecondFactor(values: StrippedEntity<SecondFactor>): SecondFactor {
-	return Object.assign(create(typeModels[SecondFactorTypeRef.typeId], SecondFactorTypeRef), values)
+    return Object.assign(create(typeModels[SecondFactorTypeRef.typeId], SecondFactorTypeRef), values)
 }
 
 export type SecondFactor = {
@@ -1737,7 +1737,7 @@ export type SecondFactor = {
 export const U2fKeyTypeRef: TypeRef<U2fKey> = new TypeRef("sys", 1178)
 
 export function createU2fKey(values: StrippedEntity<U2fKey>): U2fKey {
-	return Object.assign(create(typeModels[U2fKeyTypeRef.typeId], U2fKeyTypeRef), values)
+    return Object.assign(create(typeModels[U2fKeyTypeRef.typeId], U2fKeyTypeRef), values)
 }
 
 export type U2fKey = {
@@ -1753,7 +1753,7 @@ export type U2fKey = {
 export const U2fChallengeTypeRef: TypeRef<U2fChallenge> = new TypeRef("sys", 1183)
 
 export function createU2fChallenge(values: StrippedEntity<U2fChallenge>): U2fChallenge {
-	return Object.assign(create(typeModels[U2fChallengeTypeRef.typeId], U2fChallengeTypeRef), values)
+    return Object.assign(create(typeModels[U2fChallengeTypeRef.typeId], U2fChallengeTypeRef), values)
 }
 
 export type U2fChallenge = {
@@ -1768,7 +1768,7 @@ export type U2fChallenge = {
 export const ChallengeTypeRef: TypeRef<Challenge> = new TypeRef("sys", 1187)
 
 export function createChallenge(values: StrippedEntity<Challenge>): Challenge {
-	return Object.assign(create(typeModels[ChallengeTypeRef.typeId], ChallengeTypeRef), values)
+    return Object.assign(create(typeModels[ChallengeTypeRef.typeId], ChallengeTypeRef), values)
 }
 
 export type Challenge = {
@@ -1784,7 +1784,7 @@ export type Challenge = {
 export const SessionTypeRef: TypeRef<Session> = new TypeRef("sys", 1191)
 
 export function createSession(values: StrippedEntity<Session>): Session {
-	return Object.assign(create(typeModels[SessionTypeRef.typeId], SessionTypeRef), values)
+    return Object.assign(create(typeModels[SessionTypeRef.typeId], SessionTypeRef), values)
 }
 
 export type Session = {
@@ -1811,7 +1811,7 @@ export type Session = {
 export const UserAuthenticationTypeRef: TypeRef<UserAuthentication> = new TypeRef("sys", 1206)
 
 export function createUserAuthentication(values: StrippedEntity<UserAuthentication>): UserAuthentication {
-	return Object.assign(create(typeModels[UserAuthenticationTypeRef.typeId], UserAuthenticationTypeRef), values)
+    return Object.assign(create(typeModels[UserAuthenticationTypeRef.typeId], UserAuthenticationTypeRef), values)
 }
 
 export type UserAuthentication = {
@@ -1827,7 +1827,7 @@ export type UserAuthentication = {
 export const CreateSessionDataTypeRef: TypeRef<CreateSessionData> = new TypeRef("sys", 1211)
 
 export function createCreateSessionData(values: StrippedEntity<CreateSessionData>): CreateSessionData {
-	return Object.assign(create(typeModels[CreateSessionDataTypeRef.typeId], CreateSessionDataTypeRef), values)
+    return Object.assign(create(typeModels[CreateSessionDataTypeRef.typeId], CreateSessionDataTypeRef), values)
 }
 
 export type CreateSessionData = {
@@ -1847,7 +1847,7 @@ export type CreateSessionData = {
 export const CreateSessionReturnTypeRef: TypeRef<CreateSessionReturn> = new TypeRef("sys", 1219)
 
 export function createCreateSessionReturn(values: StrippedEntity<CreateSessionReturn>): CreateSessionReturn {
-	return Object.assign(create(typeModels[CreateSessionReturnTypeRef.typeId], CreateSessionReturnTypeRef), values)
+    return Object.assign(create(typeModels[CreateSessionReturnTypeRef.typeId], CreateSessionReturnTypeRef), values)
 }
 
 export type CreateSessionReturn = {
@@ -1863,7 +1863,7 @@ export type CreateSessionReturn = {
 export const U2fResponseDataTypeRef: TypeRef<U2fResponseData> = new TypeRef("sys", 1225)
 
 export function createU2fResponseData(values: StrippedEntity<U2fResponseData>): U2fResponseData {
-	return Object.assign(create(typeModels[U2fResponseDataTypeRef.typeId], U2fResponseDataTypeRef), values)
+    return Object.assign(create(typeModels[U2fResponseDataTypeRef.typeId], U2fResponseDataTypeRef), values)
 }
 
 export type U2fResponseData = {
@@ -1878,7 +1878,7 @@ export type U2fResponseData = {
 export const SecondFactorAuthGetDataTypeRef: TypeRef<SecondFactorAuthGetData> = new TypeRef("sys", 1233)
 
 export function createSecondFactorAuthGetData(values: StrippedEntity<SecondFactorAuthGetData>): SecondFactorAuthGetData {
-	return Object.assign(create(typeModels[SecondFactorAuthGetDataTypeRef.typeId], SecondFactorAuthGetDataTypeRef), values)
+    return Object.assign(create(typeModels[SecondFactorAuthGetDataTypeRef.typeId], SecondFactorAuthGetDataTypeRef), values)
 }
 
 export type SecondFactorAuthGetData = {
@@ -1891,7 +1891,7 @@ export type SecondFactorAuthGetData = {
 export const SecondFactorAuthGetReturnTypeRef: TypeRef<SecondFactorAuthGetReturn> = new TypeRef("sys", 1236)
 
 export function createSecondFactorAuthGetReturn(values: StrippedEntity<SecondFactorAuthGetReturn>): SecondFactorAuthGetReturn {
-	return Object.assign(create(typeModels[SecondFactorAuthGetReturnTypeRef.typeId], SecondFactorAuthGetReturnTypeRef), values)
+    return Object.assign(create(typeModels[SecondFactorAuthGetReturnTypeRef.typeId], SecondFactorAuthGetReturnTypeRef), values)
 }
 
 export type SecondFactorAuthGetReturn = {
@@ -1904,7 +1904,7 @@ export type SecondFactorAuthGetReturn = {
 export const OtpChallengeTypeRef: TypeRef<OtpChallenge> = new TypeRef("sys", 1244)
 
 export function createOtpChallenge(values: StrippedEntity<OtpChallenge>): OtpChallenge {
-	return Object.assign(create(typeModels[OtpChallengeTypeRef.typeId], OtpChallengeTypeRef), values)
+    return Object.assign(create(typeModels[OtpChallengeTypeRef.typeId], OtpChallengeTypeRef), values)
 }
 
 export type OtpChallenge = {
@@ -1918,7 +1918,7 @@ export type OtpChallenge = {
 export const BootstrapFeatureTypeRef: TypeRef<BootstrapFeature> = new TypeRef("sys", 1249)
 
 export function createBootstrapFeature(values: StrippedEntity<BootstrapFeature>): BootstrapFeature {
-	return Object.assign(create(typeModels[BootstrapFeatureTypeRef.typeId], BootstrapFeatureTypeRef), values)
+    return Object.assign(create(typeModels[BootstrapFeatureTypeRef.typeId], BootstrapFeatureTypeRef), values)
 }
 
 export type BootstrapFeature = {
@@ -1931,7 +1931,7 @@ export type BootstrapFeature = {
 export const FeatureTypeRef: TypeRef<Feature> = new TypeRef("sys", 1253)
 
 export function createFeature(values: StrippedEntity<Feature>): Feature {
-	return Object.assign(create(typeModels[FeatureTypeRef.typeId], FeatureTypeRef), values)
+    return Object.assign(create(typeModels[FeatureTypeRef.typeId], FeatureTypeRef), values)
 }
 
 export type Feature = {
@@ -1944,7 +1944,7 @@ export type Feature = {
 export const WhitelabelChildTypeRef: TypeRef<WhitelabelChild> = new TypeRef("sys", 1257)
 
 export function createWhitelabelChild(values: StrippedEntity<WhitelabelChild>): WhitelabelChild {
-	return Object.assign(create(typeModels[WhitelabelChildTypeRef.typeId], WhitelabelChildTypeRef), values)
+    return Object.assign(create(typeModels[WhitelabelChildTypeRef.typeId], WhitelabelChildTypeRef), values)
 }
 
 export type WhitelabelChild = {
@@ -1968,7 +1968,7 @@ export type WhitelabelChild = {
 export const WhitelabelChildrenRefTypeRef: TypeRef<WhitelabelChildrenRef> = new TypeRef("sys", 1269)
 
 export function createWhitelabelChildrenRef(values: StrippedEntity<WhitelabelChildrenRef>): WhitelabelChildrenRef {
-	return Object.assign(create(typeModels[WhitelabelChildrenRefTypeRef.typeId], WhitelabelChildrenRefTypeRef), values)
+    return Object.assign(create(typeModels[WhitelabelChildrenRefTypeRef.typeId], WhitelabelChildrenRefTypeRef), values)
 }
 
 export type WhitelabelChildrenRef = {
@@ -1982,7 +1982,7 @@ export type WhitelabelChildrenRef = {
 export const WhitelabelParentTypeRef: TypeRef<WhitelabelParent> = new TypeRef("sys", 1272)
 
 export function createWhitelabelParent(values: StrippedEntity<WhitelabelParent>): WhitelabelParent {
-	return Object.assign(create(typeModels[WhitelabelParentTypeRef.typeId], WhitelabelParentTypeRef), values)
+    return Object.assign(create(typeModels[WhitelabelParentTypeRef.typeId], WhitelabelParentTypeRef), values)
 }
 
 export type WhitelabelParent = {
@@ -1997,7 +1997,7 @@ export type WhitelabelParent = {
 export const CreditCardTypeRef: TypeRef<CreditCard> = new TypeRef("sys", 1313)
 
 export function createCreditCard(values: StrippedEntity<CreditCard>): CreditCard {
-	return Object.assign(create(typeModels[CreditCardTypeRef.typeId], CreditCardTypeRef), values)
+    return Object.assign(create(typeModels[CreditCardTypeRef.typeId], CreditCardTypeRef), values)
 }
 
 export type CreditCard = {
@@ -2014,7 +2014,7 @@ export type CreditCard = {
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", 1321)
 
 export function createLocationServiceGetReturn(values: StrippedEntity<LocationServiceGetReturn>): LocationServiceGetReturn {
-	return Object.assign(create(typeModels[LocationServiceGetReturnTypeRef.typeId], LocationServiceGetReturnTypeRef), values)
+    return Object.assign(create(typeModels[LocationServiceGetReturnTypeRef.typeId], LocationServiceGetReturnTypeRef), values)
 }
 
 export type LocationServiceGetReturn = {
@@ -2027,7 +2027,7 @@ export type LocationServiceGetReturn = {
 export const OrderProcessingAgreementTypeRef: TypeRef<OrderProcessingAgreement> = new TypeRef("sys", 1326)
 
 export function createOrderProcessingAgreement(values: StrippedEntity<OrderProcessingAgreement>): OrderProcessingAgreement {
-	return Object.assign(create(typeModels[OrderProcessingAgreementTypeRef.typeId], OrderProcessingAgreementTypeRef), values)
+    return Object.assign(create(typeModels[OrderProcessingAgreementTypeRef.typeId], OrderProcessingAgreementTypeRef), values)
 }
 
 export type OrderProcessingAgreement = {
@@ -2051,7 +2051,7 @@ export type OrderProcessingAgreement = {
 export const SignOrderProcessingAgreementDataTypeRef: TypeRef<SignOrderProcessingAgreementData> = new TypeRef("sys", 1342)
 
 export function createSignOrderProcessingAgreementData(values: StrippedEntity<SignOrderProcessingAgreementData>): SignOrderProcessingAgreementData {
-	return Object.assign(create(typeModels[SignOrderProcessingAgreementDataTypeRef.typeId], SignOrderProcessingAgreementDataTypeRef), values)
+    return Object.assign(create(typeModels[SignOrderProcessingAgreementDataTypeRef.typeId], SignOrderProcessingAgreementDataTypeRef), values)
 }
 
 export type SignOrderProcessingAgreementData = {
@@ -2065,7 +2065,7 @@ export type SignOrderProcessingAgreementData = {
 export const GeneratedIdWrapperTypeRef: TypeRef<GeneratedIdWrapper> = new TypeRef("sys", 1349)
 
 export function createGeneratedIdWrapper(values: StrippedEntity<GeneratedIdWrapper>): GeneratedIdWrapper {
-	return Object.assign(create(typeModels[GeneratedIdWrapperTypeRef.typeId], GeneratedIdWrapperTypeRef), values)
+    return Object.assign(create(typeModels[GeneratedIdWrapperTypeRef.typeId], GeneratedIdWrapperTypeRef), values)
 }
 
 export type GeneratedIdWrapper = {
@@ -2078,7 +2078,7 @@ export type GeneratedIdWrapper = {
 export const SseConnectDataTypeRef: TypeRef<SseConnectData> = new TypeRef("sys", 1352)
 
 export function createSseConnectData(values: StrippedEntity<SseConnectData>): SseConnectData {
-	return Object.assign(create(typeModels[SseConnectDataTypeRef.typeId], SseConnectDataTypeRef), values)
+    return Object.assign(create(typeModels[SseConnectDataTypeRef.typeId], SseConnectDataTypeRef), values)
 }
 
 export type SseConnectData = {
@@ -2093,7 +2093,7 @@ export type SseConnectData = {
 export const NotificationInfoTypeRef: TypeRef<NotificationInfo> = new TypeRef("sys", 1364)
 
 export function createNotificationInfo(values: StrippedEntity<NotificationInfo>): NotificationInfo {
-	return Object.assign(create(typeModels[NotificationInfoTypeRef.typeId], NotificationInfoTypeRef), values)
+    return Object.assign(create(typeModels[NotificationInfoTypeRef.typeId], NotificationInfoTypeRef), values)
 }
 
 export type NotificationInfo = {
@@ -2109,7 +2109,7 @@ export type NotificationInfo = {
 export const RecoverCodeTypeRef: TypeRef<RecoverCode> = new TypeRef("sys", 1407)
 
 export function createRecoverCode(values: StrippedEntity<RecoverCode>): RecoverCode {
-	return Object.assign(create(typeModels[RecoverCodeTypeRef.typeId], RecoverCodeTypeRef), values)
+    return Object.assign(create(typeModels[RecoverCodeTypeRef.typeId], RecoverCodeTypeRef), values)
 }
 
 export type RecoverCode = {
@@ -2128,7 +2128,7 @@ export type RecoverCode = {
 export const ResetFactorsDeleteDataTypeRef: TypeRef<ResetFactorsDeleteData> = new TypeRef("sys", 1419)
 
 export function createResetFactorsDeleteData(values: StrippedEntity<ResetFactorsDeleteData>): ResetFactorsDeleteData {
-	return Object.assign(create(typeModels[ResetFactorsDeleteDataTypeRef.typeId], ResetFactorsDeleteDataTypeRef), values)
+    return Object.assign(create(typeModels[ResetFactorsDeleteDataTypeRef.typeId], ResetFactorsDeleteDataTypeRef), values)
 }
 
 export type ResetFactorsDeleteData = {
@@ -2143,7 +2143,7 @@ export type ResetFactorsDeleteData = {
 export const UpgradePriceServiceDataTypeRef: TypeRef<UpgradePriceServiceData> = new TypeRef("sys", 1456)
 
 export function createUpgradePriceServiceData(values: StrippedEntity<UpgradePriceServiceData>): UpgradePriceServiceData {
-	return Object.assign(create(typeModels[UpgradePriceServiceDataTypeRef.typeId], UpgradePriceServiceDataTypeRef), values)
+    return Object.assign(create(typeModels[UpgradePriceServiceDataTypeRef.typeId], UpgradePriceServiceDataTypeRef), values)
 }
 
 export type UpgradePriceServiceData = {
@@ -2159,7 +2159,7 @@ export type UpgradePriceServiceData = {
 export const PlanPricesTypeRef: TypeRef<PlanPrices> = new TypeRef("sys", 1460)
 
 export function createPlanPrices(values: StrippedEntity<PlanPrices>): PlanPrices {
-	return Object.assign(create(typeModels[PlanPricesTypeRef.typeId], PlanPricesTypeRef), values)
+    return Object.assign(create(typeModels[PlanPricesTypeRef.typeId], PlanPricesTypeRef), values)
 }
 
 export type PlanPrices = {
@@ -2185,7 +2185,7 @@ export type PlanPrices = {
 export const UpgradePriceServiceReturnTypeRef: TypeRef<UpgradePriceServiceReturn> = new TypeRef("sys", 1469)
 
 export function createUpgradePriceServiceReturn(values: StrippedEntity<UpgradePriceServiceReturn>): UpgradePriceServiceReturn {
-	return Object.assign(create(typeModels[UpgradePriceServiceReturnTypeRef.typeId], UpgradePriceServiceReturnTypeRef), values)
+    return Object.assign(create(typeModels[UpgradePriceServiceReturnTypeRef.typeId], UpgradePriceServiceReturnTypeRef), values)
 }
 
 export type UpgradePriceServiceReturn = {
@@ -2215,7 +2215,7 @@ export type UpgradePriceServiceReturn = {
 export const RegistrationCaptchaServiceGetDataTypeRef: TypeRef<RegistrationCaptchaServiceGetData> = new TypeRef("sys", 1479)
 
 export function createRegistrationCaptchaServiceGetData(values: StrippedEntity<RegistrationCaptchaServiceGetData>): RegistrationCaptchaServiceGetData {
-	return Object.assign(create(typeModels[RegistrationCaptchaServiceGetDataTypeRef.typeId], RegistrationCaptchaServiceGetDataTypeRef), values)
+    return Object.assign(create(typeModels[RegistrationCaptchaServiceGetDataTypeRef.typeId], RegistrationCaptchaServiceGetDataTypeRef), values)
 }
 
 export type RegistrationCaptchaServiceGetData = {
@@ -2235,7 +2235,7 @@ export type RegistrationCaptchaServiceGetData = {
 export const WebsocketEntityDataTypeRef: TypeRef<WebsocketEntityData> = new TypeRef("sys", 1483)
 
 export function createWebsocketEntityData(values: StrippedEntity<WebsocketEntityData>): WebsocketEntityData {
-	return Object.assign(create(typeModels[WebsocketEntityDataTypeRef.typeId], WebsocketEntityDataTypeRef), values)
+    return Object.assign(create(typeModels[WebsocketEntityDataTypeRef.typeId], WebsocketEntityDataTypeRef), values)
 }
 
 export type WebsocketEntityData = {
@@ -2253,7 +2253,7 @@ export type WebsocketEntityData = {
 export const WebsocketCounterValueTypeRef: TypeRef<WebsocketCounterValue> = new TypeRef("sys", 1488)
 
 export function createWebsocketCounterValue(values: StrippedEntity<WebsocketCounterValue>): WebsocketCounterValue {
-	return Object.assign(create(typeModels[WebsocketCounterValueTypeRef.typeId], WebsocketCounterValueTypeRef), values)
+    return Object.assign(create(typeModels[WebsocketCounterValueTypeRef.typeId], WebsocketCounterValueTypeRef), values)
 }
 
 export type WebsocketCounterValue = {
@@ -2267,7 +2267,7 @@ export type WebsocketCounterValue = {
 export const WebsocketCounterDataTypeRef: TypeRef<WebsocketCounterData> = new TypeRef("sys", 1492)
 
 export function createWebsocketCounterData(values: StrippedEntity<WebsocketCounterData>): WebsocketCounterData {
-	return Object.assign(create(typeModels[WebsocketCounterDataTypeRef.typeId], WebsocketCounterDataTypeRef), values)
+    return Object.assign(create(typeModels[WebsocketCounterDataTypeRef.typeId], WebsocketCounterDataTypeRef), values)
 }
 
 export type WebsocketCounterData = {
@@ -2284,7 +2284,7 @@ export type WebsocketCounterData = {
 export const CertificateInfoTypeRef: TypeRef<CertificateInfo> = new TypeRef("sys", 1500)
 
 export function createCertificateInfo(values: StrippedEntity<CertificateInfo>): CertificateInfo {
-	return Object.assign(create(typeModels[CertificateInfoTypeRef.typeId], CertificateInfoTypeRef), values)
+    return Object.assign(create(typeModels[CertificateInfoTypeRef.typeId], CertificateInfoTypeRef), values)
 }
 
 export type CertificateInfo = {
@@ -2301,7 +2301,7 @@ export type CertificateInfo = {
 export const NotificationMailTemplateTypeRef: TypeRef<NotificationMailTemplate> = new TypeRef("sys", 1517)
 
 export function createNotificationMailTemplate(values: StrippedEntity<NotificationMailTemplate>): NotificationMailTemplate {
-	return Object.assign(create(typeModels[NotificationMailTemplateTypeRef.typeId], NotificationMailTemplateTypeRef), values)
+    return Object.assign(create(typeModels[NotificationMailTemplateTypeRef.typeId], NotificationMailTemplateTypeRef), values)
 }
 
 export type NotificationMailTemplate = {
@@ -2316,7 +2316,7 @@ export type NotificationMailTemplate = {
 export const CalendarEventRefTypeRef: TypeRef<CalendarEventRef> = new TypeRef("sys", 1532)
 
 export function createCalendarEventRef(values: StrippedEntity<CalendarEventRef>): CalendarEventRef {
-	return Object.assign(create(typeModels[CalendarEventRefTypeRef.typeId], CalendarEventRefTypeRef), values)
+    return Object.assign(create(typeModels[CalendarEventRefTypeRef.typeId], CalendarEventRefTypeRef), values)
 }
 
 export type CalendarEventRef = {
@@ -2330,7 +2330,7 @@ export type CalendarEventRef = {
 export const AlarmInfoTypeRef: TypeRef<AlarmInfo> = new TypeRef("sys", 1536)
 
 export function createAlarmInfo(values: StrippedEntity<AlarmInfo>): AlarmInfo {
-	return Object.assign(create(typeModels[AlarmInfoTypeRef.typeId], AlarmInfoTypeRef), values)
+    return Object.assign(create(typeModels[AlarmInfoTypeRef.typeId], AlarmInfoTypeRef), values)
 }
 
 export type AlarmInfo = {
@@ -2346,7 +2346,7 @@ export type AlarmInfo = {
 export const UserAlarmInfoTypeRef: TypeRef<UserAlarmInfo> = new TypeRef("sys", 1541)
 
 export function createUserAlarmInfo(values: StrippedEntity<UserAlarmInfo>): UserAlarmInfo {
-	return Object.assign(create(typeModels[UserAlarmInfoTypeRef.typeId], UserAlarmInfoTypeRef), values)
+    return Object.assign(create(typeModels[UserAlarmInfoTypeRef.typeId], UserAlarmInfoTypeRef), values)
 }
 
 export type UserAlarmInfo = {
@@ -2366,7 +2366,7 @@ export type UserAlarmInfo = {
 export const UserAlarmInfoListTypeTypeRef: TypeRef<UserAlarmInfoListType> = new TypeRef("sys", 1549)
 
 export function createUserAlarmInfoListType(values: StrippedEntity<UserAlarmInfoListType>): UserAlarmInfoListType {
-	return Object.assign(create(typeModels[UserAlarmInfoListTypeTypeRef.typeId], UserAlarmInfoListTypeTypeRef), values)
+    return Object.assign(create(typeModels[UserAlarmInfoListTypeTypeRef.typeId], UserAlarmInfoListTypeTypeRef), values)
 }
 
 export type UserAlarmInfoListType = {
@@ -2380,7 +2380,7 @@ export type UserAlarmInfoListType = {
 export const NotificationSessionKeyTypeRef: TypeRef<NotificationSessionKey> = new TypeRef("sys", 1553)
 
 export function createNotificationSessionKey(values: StrippedEntity<NotificationSessionKey>): NotificationSessionKey {
-	return Object.assign(create(typeModels[NotificationSessionKeyTypeRef.typeId], NotificationSessionKeyTypeRef), values)
+    return Object.assign(create(typeModels[NotificationSessionKeyTypeRef.typeId], NotificationSessionKeyTypeRef), values)
 }
 
 export type NotificationSessionKey = {
@@ -2395,7 +2395,7 @@ export type NotificationSessionKey = {
 export const RepeatRuleTypeRef: TypeRef<RepeatRule> = new TypeRef("sys", 1557)
 
 export function createRepeatRule(values: StrippedEntity<RepeatRule>): RepeatRule {
-	return Object.assign(create(typeModels[RepeatRuleTypeRef.typeId], RepeatRuleTypeRef), values)
+    return Object.assign(create(typeModels[RepeatRuleTypeRef.typeId], RepeatRuleTypeRef), values)
 }
 
 export type RepeatRule = {
@@ -2415,7 +2415,7 @@ export type RepeatRule = {
 export const AlarmNotificationTypeRef: TypeRef<AlarmNotification> = new TypeRef("sys", 1564)
 
 export function createAlarmNotification(values: StrippedEntity<AlarmNotification>): AlarmNotification {
-	return Object.assign(create(typeModels[AlarmNotificationTypeRef.typeId], AlarmNotificationTypeRef), values)
+    return Object.assign(create(typeModels[AlarmNotificationTypeRef.typeId], AlarmNotificationTypeRef), values)
 }
 
 export type AlarmNotification = {
@@ -2436,7 +2436,7 @@ export type AlarmNotification = {
 export const AlarmServicePostTypeRef: TypeRef<AlarmServicePost> = new TypeRef("sys", 1576)
 
 export function createAlarmServicePost(values: StrippedEntity<AlarmServicePost>): AlarmServicePost {
-	return Object.assign(create(typeModels[AlarmServicePostTypeRef.typeId], AlarmServicePostTypeRef), values)
+    return Object.assign(create(typeModels[AlarmServicePostTypeRef.typeId], AlarmServicePostTypeRef), values)
 }
 
 export type AlarmServicePost = {
@@ -2451,7 +2451,7 @@ export type AlarmServicePost = {
 export const DnsRecordTypeRef: TypeRef<DnsRecord> = new TypeRef("sys", 1581)
 
 export function createDnsRecord(values: StrippedEntity<DnsRecord>): DnsRecord {
-	return Object.assign(create(typeModels[DnsRecordTypeRef.typeId], DnsRecordTypeRef), values)
+    return Object.assign(create(typeModels[DnsRecordTypeRef.typeId], DnsRecordTypeRef), values)
 }
 
 export type DnsRecord = {
@@ -2466,7 +2466,7 @@ export type DnsRecord = {
 export const CustomDomainCheckGetInTypeRef: TypeRef<CustomDomainCheckGetIn> = new TypeRef("sys", 1586)
 
 export function createCustomDomainCheckGetIn(values: StrippedEntity<CustomDomainCheckGetIn>): CustomDomainCheckGetIn {
-	return Object.assign(create(typeModels[CustomDomainCheckGetInTypeRef.typeId], CustomDomainCheckGetInTypeRef), values)
+    return Object.assign(create(typeModels[CustomDomainCheckGetInTypeRef.typeId], CustomDomainCheckGetInTypeRef), values)
 }
 
 export type CustomDomainCheckGetIn = {
@@ -2481,7 +2481,7 @@ export type CustomDomainCheckGetIn = {
 export const CustomDomainCheckGetOutTypeRef: TypeRef<CustomDomainCheckGetOut> = new TypeRef("sys", 1589)
 
 export function createCustomDomainCheckGetOut(values: StrippedEntity<CustomDomainCheckGetOut>): CustomDomainCheckGetOut {
-	return Object.assign(create(typeModels[CustomDomainCheckGetOutTypeRef.typeId], CustomDomainCheckGetOutTypeRef), values)
+    return Object.assign(create(typeModels[CustomDomainCheckGetOutTypeRef.typeId], CustomDomainCheckGetOutTypeRef), values)
 }
 
 export type CustomDomainCheckGetOut = {
@@ -2498,7 +2498,7 @@ export type CustomDomainCheckGetOut = {
 export const CloseSessionServicePostTypeRef: TypeRef<CloseSessionServicePost> = new TypeRef("sys", 1595)
 
 export function createCloseSessionServicePost(values: StrippedEntity<CloseSessionServicePost>): CloseSessionServicePost {
-	return Object.assign(create(typeModels[CloseSessionServicePostTypeRef.typeId], CloseSessionServicePostTypeRef), values)
+    return Object.assign(create(typeModels[CloseSessionServicePostTypeRef.typeId], CloseSessionServicePostTypeRef), values)
 }
 
 export type CloseSessionServicePost = {
@@ -2513,7 +2513,7 @@ export type CloseSessionServicePost = {
 export const ReceivedGroupInvitationTypeRef: TypeRef<ReceivedGroupInvitation> = new TypeRef("sys", 1602)
 
 export function createReceivedGroupInvitation(values: StrippedEntity<ReceivedGroupInvitation>): ReceivedGroupInvitation {
-	return Object.assign(create(typeModels[ReceivedGroupInvitationTypeRef.typeId], ReceivedGroupInvitationTypeRef), values)
+    return Object.assign(create(typeModels[ReceivedGroupInvitationTypeRef.typeId], ReceivedGroupInvitationTypeRef), values)
 }
 
 export type ReceivedGroupInvitation = {
@@ -2542,7 +2542,7 @@ export type ReceivedGroupInvitation = {
 export const UserGroupRootTypeRef: TypeRef<UserGroupRoot> = new TypeRef("sys", 1618)
 
 export function createUserGroupRoot(values: StrippedEntity<UserGroupRoot>): UserGroupRoot {
-	return Object.assign(create(typeModels[UserGroupRootTypeRef.typeId], UserGroupRootTypeRef), values)
+    return Object.assign(create(typeModels[UserGroupRootTypeRef.typeId], UserGroupRootTypeRef), values)
 }
 
 export type UserGroupRoot = {
@@ -2561,7 +2561,7 @@ export type UserGroupRoot = {
 export const PaymentErrorInfoTypeRef: TypeRef<PaymentErrorInfo> = new TypeRef("sys", 1632)
 
 export function createPaymentErrorInfo(values: StrippedEntity<PaymentErrorInfo>): PaymentErrorInfo {
-	return Object.assign(create(typeModels[PaymentErrorInfoTypeRef.typeId], PaymentErrorInfoTypeRef), values)
+    return Object.assign(create(typeModels[PaymentErrorInfoTypeRef.typeId], PaymentErrorInfoTypeRef), values)
 }
 
 export type PaymentErrorInfo = {
@@ -2576,7 +2576,7 @@ export type PaymentErrorInfo = {
 export const InvoiceItemTypeRef: TypeRef<InvoiceItem> = new TypeRef("sys", 1641)
 
 export function createInvoiceItem(values: StrippedEntity<InvoiceItem>): InvoiceItem {
-	return Object.assign(create(typeModels[InvoiceItemTypeRef.typeId], InvoiceItemTypeRef), values)
+    return Object.assign(create(typeModels[InvoiceItemTypeRef.typeId], InvoiceItemTypeRef), values)
 }
 
 export type InvoiceItem = {
@@ -2595,7 +2595,7 @@ export type InvoiceItem = {
 export const InvoiceTypeRef: TypeRef<Invoice> = new TypeRef("sys", 1650)
 
 export function createInvoice(values: StrippedEntity<Invoice>): Invoice {
-	return Object.assign(create(typeModels[InvoiceTypeRef.typeId], InvoiceTypeRef), values)
+    return Object.assign(create(typeModels[InvoiceTypeRef.typeId], InvoiceTypeRef), values)
 }
 
 export type Invoice = {
@@ -2630,7 +2630,7 @@ export type Invoice = {
 export const MissedNotificationTypeRef: TypeRef<MissedNotification> = new TypeRef("sys", 1693)
 
 export function createMissedNotification(values: StrippedEntity<MissedNotification>): MissedNotification {
-	return Object.assign(create(typeModels[MissedNotificationTypeRef.typeId], MissedNotificationTypeRef), values)
+    return Object.assign(create(typeModels[MissedNotificationTypeRef.typeId], MissedNotificationTypeRef), values)
 }
 
 export type MissedNotification = {
@@ -2652,7 +2652,7 @@ export type MissedNotification = {
 export const BrandingDomainGetReturnTypeRef: TypeRef<BrandingDomainGetReturn> = new TypeRef("sys", 1723)
 
 export function createBrandingDomainGetReturn(values: StrippedEntity<BrandingDomainGetReturn>): BrandingDomainGetReturn {
-	return Object.assign(create(typeModels[BrandingDomainGetReturnTypeRef.typeId], BrandingDomainGetReturnTypeRef), values)
+    return Object.assign(create(typeModels[BrandingDomainGetReturnTypeRef.typeId], BrandingDomainGetReturnTypeRef), values)
 }
 
 export type BrandingDomainGetReturn = {
@@ -2666,7 +2666,7 @@ export type BrandingDomainGetReturn = {
 export const RejectedSenderTypeRef: TypeRef<RejectedSender> = new TypeRef("sys", 1736)
 
 export function createRejectedSender(values: StrippedEntity<RejectedSender>): RejectedSender {
-	return Object.assign(create(typeModels[RejectedSenderTypeRef.typeId], RejectedSenderTypeRef), values)
+    return Object.assign(create(typeModels[RejectedSenderTypeRef.typeId], RejectedSenderTypeRef), values)
 }
 
 export type RejectedSender = {
@@ -2686,7 +2686,7 @@ export type RejectedSender = {
 export const RejectedSendersRefTypeRef: TypeRef<RejectedSendersRef> = new TypeRef("sys", 1747)
 
 export function createRejectedSendersRef(values: StrippedEntity<RejectedSendersRef>): RejectedSendersRef {
-	return Object.assign(create(typeModels[RejectedSendersRefTypeRef.typeId], RejectedSendersRefTypeRef), values)
+    return Object.assign(create(typeModels[RejectedSendersRefTypeRef.typeId], RejectedSendersRefTypeRef), values)
 }
 
 export type RejectedSendersRef = {
@@ -2700,7 +2700,7 @@ export type RejectedSendersRef = {
 export const SecondFactorAuthDeleteDataTypeRef: TypeRef<SecondFactorAuthDeleteData> = new TypeRef("sys", 1755)
 
 export function createSecondFactorAuthDeleteData(values: StrippedEntity<SecondFactorAuthDeleteData>): SecondFactorAuthDeleteData {
-	return Object.assign(create(typeModels[SecondFactorAuthDeleteDataTypeRef.typeId], SecondFactorAuthDeleteDataTypeRef), values)
+    return Object.assign(create(typeModels[SecondFactorAuthDeleteDataTypeRef.typeId], SecondFactorAuthDeleteDataTypeRef), values)
 }
 
 export type SecondFactorAuthDeleteData = {
@@ -2714,7 +2714,7 @@ export type SecondFactorAuthDeleteData = {
 export const TakeOverDeletedAddressDataTypeRef: TypeRef<TakeOverDeletedAddressData> = new TypeRef("sys", 1759)
 
 export function createTakeOverDeletedAddressData(values: StrippedEntity<TakeOverDeletedAddressData>): TakeOverDeletedAddressData {
-	return Object.assign(create(typeModels[TakeOverDeletedAddressDataTypeRef.typeId], TakeOverDeletedAddressDataTypeRef), values)
+    return Object.assign(create(typeModels[TakeOverDeletedAddressDataTypeRef.typeId], TakeOverDeletedAddressDataTypeRef), values)
 }
 
 export type TakeOverDeletedAddressData = {
@@ -2730,7 +2730,7 @@ export type TakeOverDeletedAddressData = {
 export const WebsocketLeaderStatusTypeRef: TypeRef<WebsocketLeaderStatus> = new TypeRef("sys", 1766)
 
 export function createWebsocketLeaderStatus(values: StrippedEntity<WebsocketLeaderStatus>): WebsocketLeaderStatus {
-	return Object.assign(create(typeModels[WebsocketLeaderStatusTypeRef.typeId], WebsocketLeaderStatusTypeRef), values)
+    return Object.assign(create(typeModels[WebsocketLeaderStatusTypeRef.typeId], WebsocketLeaderStatusTypeRef), values)
 }
 
 export type WebsocketLeaderStatus = {
@@ -2745,7 +2745,7 @@ export type WebsocketLeaderStatus = {
 export const GiftCardTypeRef: TypeRef<GiftCard> = new TypeRef("sys", 1769)
 
 export function createGiftCard(values: StrippedEntity<GiftCard>): GiftCard {
-	return Object.assign(create(typeModels[GiftCardTypeRef.typeId], GiftCardTypeRef), values)
+    return Object.assign(create(typeModels[GiftCardTypeRef.typeId], GiftCardTypeRef), values)
 }
 
 export type GiftCard = {
@@ -2768,7 +2768,7 @@ export type GiftCard = {
 export const GiftCardsRefTypeRef: TypeRef<GiftCardsRef> = new TypeRef("sys", 1791)
 
 export function createGiftCardsRef(values: StrippedEntity<GiftCardsRef>): GiftCardsRef {
-	return Object.assign(create(typeModels[GiftCardsRefTypeRef.typeId], GiftCardsRefTypeRef), values)
+    return Object.assign(create(typeModels[GiftCardsRefTypeRef.typeId], GiftCardsRefTypeRef), values)
 }
 
 export type GiftCardsRef = {
@@ -2782,7 +2782,7 @@ export type GiftCardsRef = {
 export const GiftCardOptionTypeRef: TypeRef<GiftCardOption> = new TypeRef("sys", 1795)
 
 export function createGiftCardOption(values: StrippedEntity<GiftCardOption>): GiftCardOption {
-	return Object.assign(create(typeModels[GiftCardOptionTypeRef.typeId], GiftCardOptionTypeRef), values)
+    return Object.assign(create(typeModels[GiftCardOptionTypeRef.typeId], GiftCardOptionTypeRef), values)
 }
 
 export type GiftCardOption = {
@@ -2795,7 +2795,7 @@ export type GiftCardOption = {
 export const GiftCardGetReturnTypeRef: TypeRef<GiftCardGetReturn> = new TypeRef("sys", 1798)
 
 export function createGiftCardGetReturn(values: StrippedEntity<GiftCardGetReturn>): GiftCardGetReturn {
-	return Object.assign(create(typeModels[GiftCardGetReturnTypeRef.typeId], GiftCardGetReturnTypeRef), values)
+    return Object.assign(create(typeModels[GiftCardGetReturnTypeRef.typeId], GiftCardGetReturnTypeRef), values)
 }
 
 export type GiftCardGetReturn = {
@@ -2811,7 +2811,7 @@ export type GiftCardGetReturn = {
 export const GiftCardCreateDataTypeRef: TypeRef<GiftCardCreateData> = new TypeRef("sys", 1803)
 
 export function createGiftCardCreateData(values: StrippedEntity<GiftCardCreateData>): GiftCardCreateData {
-	return Object.assign(create(typeModels[GiftCardCreateDataTypeRef.typeId], GiftCardCreateDataTypeRef), values)
+    return Object.assign(create(typeModels[GiftCardCreateDataTypeRef.typeId], GiftCardCreateDataTypeRef), values)
 }
 
 export type GiftCardCreateData = {
@@ -2829,7 +2829,7 @@ export type GiftCardCreateData = {
 export const GiftCardDeleteDataTypeRef: TypeRef<GiftCardDeleteData> = new TypeRef("sys", 1810)
 
 export function createGiftCardDeleteData(values: StrippedEntity<GiftCardDeleteData>): GiftCardDeleteData {
-	return Object.assign(create(typeModels[GiftCardDeleteDataTypeRef.typeId], GiftCardDeleteDataTypeRef), values)
+    return Object.assign(create(typeModels[GiftCardDeleteDataTypeRef.typeId], GiftCardDeleteDataTypeRef), values)
 }
 
 export type GiftCardDeleteData = {
@@ -2843,7 +2843,7 @@ export type GiftCardDeleteData = {
 export const GiftCardCreateReturnTypeRef: TypeRef<GiftCardCreateReturn> = new TypeRef("sys", 1813)
 
 export function createGiftCardCreateReturn(values: StrippedEntity<GiftCardCreateReturn>): GiftCardCreateReturn {
-	return Object.assign(create(typeModels[GiftCardCreateReturnTypeRef.typeId], GiftCardCreateReturnTypeRef), values)
+    return Object.assign(create(typeModels[GiftCardCreateReturnTypeRef.typeId], GiftCardCreateReturnTypeRef), values)
 }
 
 export type GiftCardCreateReturn = {
@@ -2857,7 +2857,7 @@ export type GiftCardCreateReturn = {
 export const GiftCardRedeemDataTypeRef: TypeRef<GiftCardRedeemData> = new TypeRef("sys", 1817)
 
 export function createGiftCardRedeemData(values: StrippedEntity<GiftCardRedeemData>): GiftCardRedeemData {
-	return Object.assign(create(typeModels[GiftCardRedeemDataTypeRef.typeId], GiftCardRedeemDataTypeRef), values)
+    return Object.assign(create(typeModels[GiftCardRedeemDataTypeRef.typeId], GiftCardRedeemDataTypeRef), values)
 }
 
 export type GiftCardRedeemData = {
@@ -2873,7 +2873,7 @@ export type GiftCardRedeemData = {
 export const GiftCardRedeemGetReturnTypeRef: TypeRef<GiftCardRedeemGetReturn> = new TypeRef("sys", 1821)
 
 export function createGiftCardRedeemGetReturn(values: StrippedEntity<GiftCardRedeemGetReturn>): GiftCardRedeemGetReturn {
-	return Object.assign(create(typeModels[GiftCardRedeemGetReturnTypeRef.typeId], GiftCardRedeemGetReturnTypeRef), values)
+    return Object.assign(create(typeModels[GiftCardRedeemGetReturnTypeRef.typeId], GiftCardRedeemGetReturnTypeRef), values)
 }
 
 export type GiftCardRedeemGetReturn = {
@@ -2890,7 +2890,7 @@ export type GiftCardRedeemGetReturn = {
 export const Braintree3ds2RequestTypeRef: TypeRef<Braintree3ds2Request> = new TypeRef("sys", 1828)
 
 export function createBraintree3ds2Request(values: StrippedEntity<Braintree3ds2Request>): Braintree3ds2Request {
-	return Object.assign(create(typeModels[Braintree3ds2RequestTypeRef.typeId], Braintree3ds2RequestTypeRef), values)
+    return Object.assign(create(typeModels[Braintree3ds2RequestTypeRef.typeId], Braintree3ds2RequestTypeRef), values)
 }
 
 export type Braintree3ds2Request = {
@@ -2905,7 +2905,7 @@ export type Braintree3ds2Request = {
 export const Braintree3ds2ResponseTypeRef: TypeRef<Braintree3ds2Response> = new TypeRef("sys", 1833)
 
 export function createBraintree3ds2Response(values: StrippedEntity<Braintree3ds2Response>): Braintree3ds2Response {
-	return Object.assign(create(typeModels[Braintree3ds2ResponseTypeRef.typeId], Braintree3ds2ResponseTypeRef), values)
+    return Object.assign(create(typeModels[Braintree3ds2ResponseTypeRef.typeId], Braintree3ds2ResponseTypeRef), values)
 }
 
 export type Braintree3ds2Response = {
@@ -2919,7 +2919,7 @@ export type Braintree3ds2Response = {
 export const PaymentDataServicePostDataTypeRef: TypeRef<PaymentDataServicePostData> = new TypeRef("sys", 1837)
 
 export function createPaymentDataServicePostData(values: StrippedEntity<PaymentDataServicePostData>): PaymentDataServicePostData {
-	return Object.assign(create(typeModels[PaymentDataServicePostDataTypeRef.typeId], PaymentDataServicePostDataTypeRef), values)
+    return Object.assign(create(typeModels[PaymentDataServicePostDataTypeRef.typeId], PaymentDataServicePostDataTypeRef), values)
 }
 
 export type PaymentDataServicePostData = {
@@ -2933,7 +2933,7 @@ export type PaymentDataServicePostData = {
 export const PaymentDataServiceGetDataTypeRef: TypeRef<PaymentDataServiceGetData> = new TypeRef("sys", 1861)
 
 export function createPaymentDataServiceGetData(values: StrippedEntity<PaymentDataServiceGetData>): PaymentDataServiceGetData {
-	return Object.assign(create(typeModels[PaymentDataServiceGetDataTypeRef.typeId], PaymentDataServiceGetDataTypeRef), values)
+    return Object.assign(create(typeModels[PaymentDataServiceGetDataTypeRef.typeId], PaymentDataServiceGetDataTypeRef), values)
 }
 
 export type PaymentDataServiceGetData = {
@@ -2947,7 +2947,7 @@ export type PaymentDataServiceGetData = {
 export const TypeInfoTypeRef: TypeRef<TypeInfo> = new TypeRef("sys", 1869)
 
 export function createTypeInfo(values: StrippedEntity<TypeInfo>): TypeInfo {
-	return Object.assign(create(typeModels[TypeInfoTypeRef.typeId], TypeInfoTypeRef), values)
+    return Object.assign(create(typeModels[TypeInfoTypeRef.typeId], TypeInfoTypeRef), values)
 }
 
 export type TypeInfo = {
@@ -2961,7 +2961,7 @@ export type TypeInfo = {
 export const ArchiveRefTypeRef: TypeRef<ArchiveRef> = new TypeRef("sys", 1873)
 
 export function createArchiveRef(values: StrippedEntity<ArchiveRef>): ArchiveRef {
-	return Object.assign(create(typeModels[ArchiveRefTypeRef.typeId], ArchiveRefTypeRef), values)
+    return Object.assign(create(typeModels[ArchiveRefTypeRef.typeId], ArchiveRefTypeRef), values)
 }
 
 export type ArchiveRef = {
@@ -2974,7 +2974,7 @@ export type ArchiveRef = {
 export const ArchiveTypeTypeRef: TypeRef<ArchiveType> = new TypeRef("sys", 1876)
 
 export function createArchiveType(values: StrippedEntity<ArchiveType>): ArchiveType {
-	return Object.assign(create(typeModels[ArchiveTypeTypeRef.typeId], ArchiveTypeTypeRef), values)
+    return Object.assign(create(typeModels[ArchiveTypeTypeRef.typeId], ArchiveTypeTypeRef), values)
 }
 
 export type ArchiveType = {
@@ -2990,7 +2990,7 @@ export type ArchiveType = {
 export const BlobTypeRef: TypeRef<Blob> = new TypeRef("sys", 1882)
 
 export function createBlob(values: StrippedEntity<Blob>): Blob {
-	return Object.assign(create(typeModels[BlobTypeRef.typeId], BlobTypeRef), values)
+    return Object.assign(create(typeModels[BlobTypeRef.typeId], BlobTypeRef), values)
 }
 
 export type Blob = {
@@ -3005,7 +3005,7 @@ export type Blob = {
 export const WebauthnResponseDataTypeRef: TypeRef<WebauthnResponseData> = new TypeRef("sys", 1899)
 
 export function createWebauthnResponseData(values: StrippedEntity<WebauthnResponseData>): WebauthnResponseData {
-	return Object.assign(create(typeModels[WebauthnResponseDataTypeRef.typeId], WebauthnResponseDataTypeRef), values)
+    return Object.assign(create(typeModels[WebauthnResponseDataTypeRef.typeId], WebauthnResponseDataTypeRef), values)
 }
 
 export type WebauthnResponseData = {
@@ -3021,7 +3021,7 @@ export type WebauthnResponseData = {
 export const BlobReferenceTokenWrapperTypeRef: TypeRef<BlobReferenceTokenWrapper> = new TypeRef("sys", 1990)
 
 export function createBlobReferenceTokenWrapper(values: StrippedEntity<BlobReferenceTokenWrapper>): BlobReferenceTokenWrapper {
-	return Object.assign(create(typeModels[BlobReferenceTokenWrapperTypeRef.typeId], BlobReferenceTokenWrapperTypeRef), values)
+    return Object.assign(create(typeModels[BlobReferenceTokenWrapperTypeRef.typeId], BlobReferenceTokenWrapperTypeRef), values)
 }
 
 export type BlobReferenceTokenWrapper = {
@@ -3034,7 +3034,7 @@ export type BlobReferenceTokenWrapper = {
 export const CustomerAccountTerminationRequestTypeRef: TypeRef<CustomerAccountTerminationRequest> = new TypeRef("sys", 2005)
 
 export function createCustomerAccountTerminationRequest(values: StrippedEntity<CustomerAccountTerminationRequest>): CustomerAccountTerminationRequest {
-	return Object.assign(create(typeModels[CustomerAccountTerminationRequestTypeRef.typeId], CustomerAccountTerminationRequestTypeRef), values)
+    return Object.assign(create(typeModels[CustomerAccountTerminationRequestTypeRef.typeId], CustomerAccountTerminationRequestTypeRef), values)
 }
 
 export type CustomerAccountTerminationRequest = {
@@ -3053,7 +3053,7 @@ export type CustomerAccountTerminationRequest = {
 export const CustomerAccountTerminationPostInTypeRef: TypeRef<CustomerAccountTerminationPostIn> = new TypeRef("sys", 2015)
 
 export function createCustomerAccountTerminationPostIn(values: StrippedEntity<CustomerAccountTerminationPostIn>): CustomerAccountTerminationPostIn {
-	return Object.assign(create(typeModels[CustomerAccountTerminationPostInTypeRef.typeId], CustomerAccountTerminationPostInTypeRef), values)
+    return Object.assign(create(typeModels[CustomerAccountTerminationPostInTypeRef.typeId], CustomerAccountTerminationPostInTypeRef), values)
 }
 
 export type CustomerAccountTerminationPostIn = {
@@ -3068,7 +3068,7 @@ export type CustomerAccountTerminationPostIn = {
 export const CustomerAccountTerminationPostOutTypeRef: TypeRef<CustomerAccountTerminationPostOut> = new TypeRef("sys", 2018)
 
 export function createCustomerAccountTerminationPostOut(values: StrippedEntity<CustomerAccountTerminationPostOut>): CustomerAccountTerminationPostOut {
-	return Object.assign(create(typeModels[CustomerAccountTerminationPostOutTypeRef.typeId], CustomerAccountTerminationPostOutTypeRef), values)
+    return Object.assign(create(typeModels[CustomerAccountTerminationPostOutTypeRef.typeId], CustomerAccountTerminationPostOutTypeRef), values)
 }
 
 export type CustomerAccountTerminationPostOut = {
@@ -3082,7 +3082,7 @@ export type CustomerAccountTerminationPostOut = {
 export const MailAddressAvailabilityTypeRef: TypeRef<MailAddressAvailability> = new TypeRef("sys", 2026)
 
 export function createMailAddressAvailability(values: StrippedEntity<MailAddressAvailability>): MailAddressAvailability {
-	return Object.assign(create(typeModels[MailAddressAvailabilityTypeRef.typeId], MailAddressAvailabilityTypeRef), values)
+    return Object.assign(create(typeModels[MailAddressAvailabilityTypeRef.typeId], MailAddressAvailabilityTypeRef), values)
 }
 
 export type MailAddressAvailability = {
@@ -3096,7 +3096,7 @@ export type MailAddressAvailability = {
 export const MultipleMailAddressAvailabilityDataTypeRef: TypeRef<MultipleMailAddressAvailabilityData> = new TypeRef("sys", 2030)
 
 export function createMultipleMailAddressAvailabilityData(values: StrippedEntity<MultipleMailAddressAvailabilityData>): MultipleMailAddressAvailabilityData {
-	return Object.assign(create(typeModels[MultipleMailAddressAvailabilityDataTypeRef.typeId], MultipleMailAddressAvailabilityDataTypeRef), values)
+    return Object.assign(create(typeModels[MultipleMailAddressAvailabilityDataTypeRef.typeId], MultipleMailAddressAvailabilityDataTypeRef), values)
 }
 
 export type MultipleMailAddressAvailabilityData = {
@@ -3111,7 +3111,7 @@ export type MultipleMailAddressAvailabilityData = {
 export const MultipleMailAddressAvailabilityReturnTypeRef: TypeRef<MultipleMailAddressAvailabilityReturn> = new TypeRef("sys", 2033)
 
 export function createMultipleMailAddressAvailabilityReturn(values: StrippedEntity<MultipleMailAddressAvailabilityReturn>): MultipleMailAddressAvailabilityReturn {
-	return Object.assign(create(typeModels[MultipleMailAddressAvailabilityReturnTypeRef.typeId], MultipleMailAddressAvailabilityReturnTypeRef), values)
+    return Object.assign(create(typeModels[MultipleMailAddressAvailabilityReturnTypeRef.typeId], MultipleMailAddressAvailabilityReturnTypeRef), values)
 }
 
 export type MultipleMailAddressAvailabilityReturn = {
@@ -3125,7 +3125,7 @@ export type MultipleMailAddressAvailabilityReturn = {
 export const InstanceSessionKeyTypeRef: TypeRef<InstanceSessionKey> = new TypeRef("sys", 2037)
 
 export function createInstanceSessionKey(values: StrippedEntity<InstanceSessionKey>): InstanceSessionKey {
-	return Object.assign(create(typeModels[InstanceSessionKeyTypeRef.typeId], InstanceSessionKeyTypeRef), values)
+    return Object.assign(create(typeModels[InstanceSessionKeyTypeRef.typeId], InstanceSessionKeyTypeRef), values)
 }
 
 export type InstanceSessionKey = {
@@ -3145,7 +3145,7 @@ export type InstanceSessionKey = {
 export const BucketKeyTypeRef: TypeRef<BucketKey> = new TypeRef("sys", 2043)
 
 export function createBucketKey(values: StrippedEntity<BucketKey>): BucketKey {
-	return Object.assign(create(typeModels[BucketKeyTypeRef.typeId], BucketKeyTypeRef), values)
+    return Object.assign(create(typeModels[BucketKeyTypeRef.typeId], BucketKeyTypeRef), values)
 }
 
 export type BucketKey = {
@@ -3165,7 +3165,7 @@ export type BucketKey = {
 export const UpdateSessionKeysPostInTypeRef: TypeRef<UpdateSessionKeysPostIn> = new TypeRef("sys", 2049)
 
 export function createUpdateSessionKeysPostIn(values: StrippedEntity<UpdateSessionKeysPostIn>): UpdateSessionKeysPostIn {
-	return Object.assign(create(typeModels[UpdateSessionKeysPostInTypeRef.typeId], UpdateSessionKeysPostInTypeRef), values)
+    return Object.assign(create(typeModels[UpdateSessionKeysPostInTypeRef.typeId], UpdateSessionKeysPostInTypeRef), values)
 }
 
 export type UpdateSessionKeysPostIn = {
@@ -3179,7 +3179,7 @@ export type UpdateSessionKeysPostIn = {
 export const ReferralCodeGetInTypeRef: TypeRef<ReferralCodeGetIn> = new TypeRef("sys", 2062)
 
 export function createReferralCodeGetIn(values: StrippedEntity<ReferralCodeGetIn>): ReferralCodeGetIn {
-	return Object.assign(create(typeModels[ReferralCodeGetInTypeRef.typeId], ReferralCodeGetInTypeRef), values)
+    return Object.assign(create(typeModels[ReferralCodeGetInTypeRef.typeId], ReferralCodeGetInTypeRef), values)
 }
 
 export type ReferralCodeGetIn = {
@@ -3193,7 +3193,7 @@ export type ReferralCodeGetIn = {
 export const ReferralCodePostInTypeRef: TypeRef<ReferralCodePostIn> = new TypeRef("sys", 2065)
 
 export function createReferralCodePostIn(values: StrippedEntity<ReferralCodePostIn>): ReferralCodePostIn {
-	return Object.assign(create(typeModels[ReferralCodePostInTypeRef.typeId], ReferralCodePostInTypeRef), values)
+    return Object.assign(create(typeModels[ReferralCodePostInTypeRef.typeId], ReferralCodePostInTypeRef), values)
 }
 
 export type ReferralCodePostIn = {
@@ -3205,7 +3205,7 @@ export type ReferralCodePostIn = {
 export const ReferralCodePostOutTypeRef: TypeRef<ReferralCodePostOut> = new TypeRef("sys", 2067)
 
 export function createReferralCodePostOut(values: StrippedEntity<ReferralCodePostOut>): ReferralCodePostOut {
-	return Object.assign(create(typeModels[ReferralCodePostOutTypeRef.typeId], ReferralCodePostOutTypeRef), values)
+    return Object.assign(create(typeModels[ReferralCodePostOutTypeRef.typeId], ReferralCodePostOutTypeRef), values)
 }
 
 export type ReferralCodePostOut = {
@@ -3219,7 +3219,7 @@ export type ReferralCodePostOut = {
 export const DateWrapperTypeRef: TypeRef<DateWrapper> = new TypeRef("sys", 2073)
 
 export function createDateWrapper(values: StrippedEntity<DateWrapper>): DateWrapper {
-	return Object.assign(create(typeModels[DateWrapperTypeRef.typeId], DateWrapperTypeRef), values)
+    return Object.assign(create(typeModels[DateWrapperTypeRef.typeId], DateWrapperTypeRef), values)
 }
 
 export type DateWrapper = {
@@ -3232,7 +3232,7 @@ export type DateWrapper = {
 export const MailAddressAliasGetInTypeRef: TypeRef<MailAddressAliasGetIn> = new TypeRef("sys", 2095)
 
 export function createMailAddressAliasGetIn(values: StrippedEntity<MailAddressAliasGetIn>): MailAddressAliasGetIn {
-	return Object.assign(create(typeModels[MailAddressAliasGetInTypeRef.typeId], MailAddressAliasGetInTypeRef), values)
+    return Object.assign(create(typeModels[MailAddressAliasGetInTypeRef.typeId], MailAddressAliasGetInTypeRef), values)
 }
 
 export type MailAddressAliasGetIn = {
@@ -3246,7 +3246,7 @@ export type MailAddressAliasGetIn = {
 export const PlanConfigurationTypeRef: TypeRef<PlanConfiguration> = new TypeRef("sys", 2104)
 
 export function createPlanConfiguration(values: StrippedEntity<PlanConfiguration>): PlanConfiguration {
-	return Object.assign(create(typeModels[PlanConfigurationTypeRef.typeId], PlanConfigurationTypeRef), values)
+    return Object.assign(create(typeModels[PlanConfigurationTypeRef.typeId], PlanConfigurationTypeRef), values)
 }
 
 export type PlanConfiguration = {
@@ -3269,7 +3269,7 @@ export type PlanConfiguration = {
 export const PlanServiceGetOutTypeRef: TypeRef<PlanServiceGetOut> = new TypeRef("sys", 2115)
 
 export function createPlanServiceGetOut(values: StrippedEntity<PlanServiceGetOut>): PlanServiceGetOut {
-	return Object.assign(create(typeModels[PlanServiceGetOutTypeRef.typeId], PlanServiceGetOutTypeRef), values)
+    return Object.assign(create(typeModels[PlanServiceGetOutTypeRef.typeId], PlanServiceGetOutTypeRef), values)
 }
 
 export type PlanServiceGetOut = {
@@ -3283,7 +3283,7 @@ export type PlanServiceGetOut = {
 export const PublicKeyPutInTypeRef: TypeRef<PublicKeyPutIn> = new TypeRef("sys", 2150)
 
 export function createPublicKeyPutIn(values: StrippedEntity<PublicKeyPutIn>): PublicKeyPutIn {
-	return Object.assign(create(typeModels[PublicKeyPutInTypeRef.typeId], PublicKeyPutInTypeRef), values)
+    return Object.assign(create(typeModels[PublicKeyPutInTypeRef.typeId], PublicKeyPutInTypeRef), values)
 }
 
 export type PublicKeyPutIn = {
@@ -3299,7 +3299,7 @@ export type PublicKeyPutIn = {
 export const InvoiceDataItemTypeRef: TypeRef<InvoiceDataItem> = new TypeRef("sys", 2162)
 
 export function createInvoiceDataItem(values: StrippedEntity<InvoiceDataItem>): InvoiceDataItem {
-	return Object.assign(create(typeModels[InvoiceDataItemTypeRef.typeId], InvoiceDataItemTypeRef), values)
+    return Object.assign(create(typeModels[InvoiceDataItemTypeRef.typeId], InvoiceDataItemTypeRef), values)
 }
 
 export type InvoiceDataItem = {
@@ -3317,7 +3317,7 @@ export type InvoiceDataItem = {
 export const InvoiceDataGetOutTypeRef: TypeRef<InvoiceDataGetOut> = new TypeRef("sys", 2170)
 
 export function createInvoiceDataGetOut(values: StrippedEntity<InvoiceDataGetOut>): InvoiceDataGetOut {
-	return Object.assign(create(typeModels[InvoiceDataGetOutTypeRef.typeId], InvoiceDataGetOutTypeRef), values)
+    return Object.assign(create(typeModels[InvoiceDataGetOutTypeRef.typeId], InvoiceDataGetOutTypeRef), values)
 }
 
 export type InvoiceDataGetOut = {
@@ -3343,7 +3343,7 @@ export type InvoiceDataGetOut = {
 export const InvoiceDataGetInTypeRef: TypeRef<InvoiceDataGetIn> = new TypeRef("sys", 2185)
 
 export function createInvoiceDataGetIn(values: StrippedEntity<InvoiceDataGetIn>): InvoiceDataGetIn {
-	return Object.assign(create(typeModels[InvoiceDataGetInTypeRef.typeId], InvoiceDataGetInTypeRef), values)
+    return Object.assign(create(typeModels[InvoiceDataGetInTypeRef.typeId], InvoiceDataGetInTypeRef), values)
 }
 
 export type InvoiceDataGetIn = {
@@ -3356,7 +3356,7 @@ export type InvoiceDataGetIn = {
 export const ChangeKdfPostInTypeRef: TypeRef<ChangeKdfPostIn> = new TypeRef("sys", 2198)
 
 export function createChangeKdfPostIn(values: StrippedEntity<ChangeKdfPostIn>): ChangeKdfPostIn {
-	return Object.assign(create(typeModels[ChangeKdfPostInTypeRef.typeId], ChangeKdfPostInTypeRef), values)
+    return Object.assign(create(typeModels[ChangeKdfPostInTypeRef.typeId], ChangeKdfPostInTypeRef), values)
 }
 
 export type ChangeKdfPostIn = {
@@ -3374,7 +3374,7 @@ export type ChangeKdfPostIn = {
 export const GroupKeyTypeRef: TypeRef<GroupKey> = new TypeRef("sys", 2255)
 
 export function createGroupKey(values: StrippedEntity<GroupKey>): GroupKey {
-	return Object.assign(create(typeModels[GroupKeyTypeRef.typeId], GroupKeyTypeRef), values)
+    return Object.assign(create(typeModels[GroupKeyTypeRef.typeId], GroupKeyTypeRef), values)
 }
 
 export type GroupKey = {
@@ -3396,7 +3396,7 @@ export type GroupKey = {
 export const GroupKeysRefTypeRef: TypeRef<GroupKeysRef> = new TypeRef("sys", 2267)
 
 export function createGroupKeysRef(values: StrippedEntity<GroupKeysRef>): GroupKeysRef {
-	return Object.assign(create(typeModels[GroupKeysRefTypeRef.typeId], GroupKeysRefTypeRef), values)
+    return Object.assign(create(typeModels[GroupKeysRefTypeRef.typeId], GroupKeysRefTypeRef), values)
 }
 
 export type GroupKeysRef = {
@@ -3410,7 +3410,7 @@ export type GroupKeysRef = {
 export const KeyRotationTypeRef: TypeRef<KeyRotation> = new TypeRef("sys", 2283)
 
 export function createKeyRotation(values: StrippedEntity<KeyRotation>): KeyRotation {
-	return Object.assign(create(typeModels[KeyRotationTypeRef.typeId], KeyRotationTypeRef), values)
+    return Object.assign(create(typeModels[KeyRotationTypeRef.typeId], KeyRotationTypeRef), values)
 }
 
 export type KeyRotation = {
@@ -3432,7 +3432,7 @@ export type KeyRotation = {
 export const KeyRotationsRefTypeRef: TypeRef<KeyRotationsRef> = new TypeRef("sys", 2291)
 
 export function createKeyRotationsRef(values: StrippedEntity<KeyRotationsRef>): KeyRotationsRef {
-	return Object.assign(create(typeModels[KeyRotationsRefTypeRef.typeId], KeyRotationsRefTypeRef), values)
+    return Object.assign(create(typeModels[KeyRotationsRefTypeRef.typeId], KeyRotationsRefTypeRef), values)
 }
 
 export type KeyRotationsRef = {
@@ -3446,7 +3446,7 @@ export type KeyRotationsRef = {
 export const SurveyDataTypeRef: TypeRef<SurveyData> = new TypeRef("sys", 2295)
 
 export function createSurveyData(values: StrippedEntity<SurveyData>): SurveyData {
-	return Object.assign(create(typeModels[SurveyDataTypeRef.typeId], SurveyDataTypeRef), values)
+    return Object.assign(create(typeModels[SurveyDataTypeRef.typeId], SurveyDataTypeRef), values)
 }
 
 export type SurveyData = {
@@ -3462,7 +3462,7 @@ export type SurveyData = {
 export const IdTupleWrapperTypeRef: TypeRef<IdTupleWrapper> = new TypeRef("sys", 2315)
 
 export function createIdTupleWrapper(values: StrippedEntity<IdTupleWrapper>): IdTupleWrapper {
-	return Object.assign(create(typeModels[IdTupleWrapperTypeRef.typeId], IdTupleWrapperTypeRef), values)
+    return Object.assign(create(typeModels[IdTupleWrapperTypeRef.typeId], IdTupleWrapperTypeRef), values)
 }
 
 export type IdTupleWrapper = {
@@ -3476,7 +3476,7 @@ export type IdTupleWrapper = {
 export const UserGroupKeyDistributionTypeRef: TypeRef<UserGroupKeyDistribution> = new TypeRef("sys", 2320)
 
 export function createUserGroupKeyDistribution(values: StrippedEntity<UserGroupKeyDistribution>): UserGroupKeyDistribution {
-	return Object.assign(create(typeModels[UserGroupKeyDistributionTypeRef.typeId], UserGroupKeyDistributionTypeRef), values)
+    return Object.assign(create(typeModels[UserGroupKeyDistributionTypeRef.typeId], UserGroupKeyDistributionTypeRef), values)
 }
 
 export type UserGroupKeyDistribution = {
@@ -3493,7 +3493,7 @@ export type UserGroupKeyDistribution = {
 export const GroupKeyRotationDataTypeRef: TypeRef<GroupKeyRotationData> = new TypeRef("sys", 2328)
 
 export function createGroupKeyRotationData(values: StrippedEntity<GroupKeyRotationData>): GroupKeyRotationData {
-	return Object.assign(create(typeModels[GroupKeyRotationDataTypeRef.typeId], GroupKeyRotationDataTypeRef), values)
+    return Object.assign(create(typeModels[GroupKeyRotationDataTypeRef.typeId], GroupKeyRotationDataTypeRef), values)
 }
 
 export type GroupKeyRotationData = {
@@ -3514,7 +3514,7 @@ export type GroupKeyRotationData = {
 export const GroupKeyRotationPostInTypeRef: TypeRef<GroupKeyRotationPostIn> = new TypeRef("sys", 2338)
 
 export function createGroupKeyRotationPostIn(values: StrippedEntity<GroupKeyRotationPostIn>): GroupKeyRotationPostIn {
-	return Object.assign(create(typeModels[GroupKeyRotationPostInTypeRef.typeId], GroupKeyRotationPostInTypeRef), values)
+    return Object.assign(create(typeModels[GroupKeyRotationPostInTypeRef.typeId], GroupKeyRotationPostInTypeRef), values)
 }
 
 export type GroupKeyRotationPostIn = {
@@ -3528,7 +3528,7 @@ export type GroupKeyRotationPostIn = {
 export const GroupKeyRotationInfoGetOutTypeRef: TypeRef<GroupKeyRotationInfoGetOut> = new TypeRef("sys", 2342)
 
 export function createGroupKeyRotationInfoGetOut(values: StrippedEntity<GroupKeyRotationInfoGetOut>): GroupKeyRotationInfoGetOut {
-	return Object.assign(create(typeModels[GroupKeyRotationInfoGetOutTypeRef.typeId], GroupKeyRotationInfoGetOutTypeRef), values)
+    return Object.assign(create(typeModels[GroupKeyRotationInfoGetOutTypeRef.typeId], GroupKeyRotationInfoGetOutTypeRef), values)
 }
 
 export type GroupKeyRotationInfoGetOut = {
@@ -3543,7 +3543,7 @@ export type GroupKeyRotationInfoGetOut = {
 export const RecoverCodeDataTypeRef: TypeRef<RecoverCodeData> = new TypeRef("sys", 2346)
 
 export function createRecoverCodeData(values: StrippedEntity<RecoverCodeData>): RecoverCodeData {
-	return Object.assign(create(typeModels[RecoverCodeDataTypeRef.typeId], RecoverCodeDataTypeRef), values)
+    return Object.assign(create(typeModels[RecoverCodeDataTypeRef.typeId], RecoverCodeDataTypeRef), values)
 }
 
 export type RecoverCodeData = {
@@ -3559,7 +3559,7 @@ export type RecoverCodeData = {
 export const UserGroupKeyRotationDataTypeRef: TypeRef<UserGroupKeyRotationData> = new TypeRef("sys", 2352)
 
 export function createUserGroupKeyRotationData(values: StrippedEntity<UserGroupKeyRotationData>): UserGroupKeyRotationData {
-	return Object.assign(create(typeModels[UserGroupKeyRotationDataTypeRef.typeId], UserGroupKeyRotationDataTypeRef), values)
+    return Object.assign(create(typeModels[UserGroupKeyRotationDataTypeRef.typeId], UserGroupKeyRotationDataTypeRef), values)
 }
 
 export type UserGroupKeyRotationData = {
@@ -3584,7 +3584,7 @@ export type UserGroupKeyRotationData = {
 export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", 2364)
 
 export function createAdminGroupKeyRotationPostIn(values: StrippedEntity<AdminGroupKeyRotationPostIn>): AdminGroupKeyRotationPostIn {
-	return Object.assign(create(typeModels[AdminGroupKeyRotationPostInTypeRef.typeId], AdminGroupKeyRotationPostInTypeRef), values)
+    return Object.assign(create(typeModels[AdminGroupKeyRotationPostInTypeRef.typeId], AdminGroupKeyRotationPostInTypeRef), values)
 }
 
 export type AdminGroupKeyRotationPostIn = {
@@ -3601,7 +3601,7 @@ export type AdminGroupKeyRotationPostIn = {
 export const GroupKeyUpdateTypeRef: TypeRef<GroupKeyUpdate> = new TypeRef("sys", 2369)
 
 export function createGroupKeyUpdate(values: StrippedEntity<GroupKeyUpdate>): GroupKeyUpdate {
-	return Object.assign(create(typeModels[GroupKeyUpdateTypeRef.typeId], GroupKeyUpdateTypeRef), values)
+    return Object.assign(create(typeModels[GroupKeyUpdateTypeRef.typeId], GroupKeyUpdateTypeRef), values)
 }
 
 export type GroupKeyUpdate = {
@@ -3623,7 +3623,7 @@ export type GroupKeyUpdate = {
 export const GroupKeyUpdatesRefTypeRef: TypeRef<GroupKeyUpdatesRef> = new TypeRef("sys", 2380)
 
 export function createGroupKeyUpdatesRef(values: StrippedEntity<GroupKeyUpdatesRef>): GroupKeyUpdatesRef {
-	return Object.assign(create(typeModels[GroupKeyUpdatesRefTypeRef.typeId], GroupKeyUpdatesRefTypeRef), values)
+    return Object.assign(create(typeModels[GroupKeyUpdatesRefTypeRef.typeId], GroupKeyUpdatesRefTypeRef), values)
 }
 
 export type GroupKeyUpdatesRef = {
@@ -3637,7 +3637,7 @@ export type GroupKeyUpdatesRef = {
 export const PubEncKeyDataTypeRef: TypeRef<PubEncKeyData> = new TypeRef("sys", 2384)
 
 export function createPubEncKeyData(values: StrippedEntity<PubEncKeyData>): PubEncKeyData {
-	return Object.assign(create(typeModels[PubEncKeyDataTypeRef.typeId], PubEncKeyDataTypeRef), values)
+    return Object.assign(create(typeModels[PubEncKeyDataTypeRef.typeId], PubEncKeyDataTypeRef), values)
 }
 
 export type PubEncKeyData = {
@@ -3659,7 +3659,7 @@ export type PubEncKeyData = {
 export const GroupKeyUpdateDataTypeRef: TypeRef<GroupKeyUpdateData> = new TypeRef("sys", 2391)
 
 export function createGroupKeyUpdateData(values: StrippedEntity<GroupKeyUpdateData>): GroupKeyUpdateData {
-	return Object.assign(create(typeModels[GroupKeyUpdateDataTypeRef.typeId], GroupKeyUpdateDataTypeRef), values)
+    return Object.assign(create(typeModels[GroupKeyUpdateDataTypeRef.typeId], GroupKeyUpdateDataTypeRef), values)
 }
 
 export type GroupKeyUpdateData = {
@@ -3676,7 +3676,7 @@ export type GroupKeyUpdateData = {
 export const GroupMembershipKeyDataTypeRef: TypeRef<GroupMembershipKeyData> = new TypeRef("sys", 2398)
 
 export function createGroupMembershipKeyData(values: StrippedEntity<GroupMembershipKeyData>): GroupMembershipKeyData {
-	return Object.assign(create(typeModels[GroupMembershipKeyDataTypeRef.typeId], GroupMembershipKeyDataTypeRef), values)
+    return Object.assign(create(typeModels[GroupMembershipKeyDataTypeRef.typeId], GroupMembershipKeyDataTypeRef), values)
 }
 
 export type GroupMembershipKeyData = {
@@ -3693,7 +3693,7 @@ export type GroupMembershipKeyData = {
 export const MembershipPutInTypeRef: TypeRef<MembershipPutIn> = new TypeRef("sys", 2404)
 
 export function createMembershipPutIn(values: StrippedEntity<MembershipPutIn>): MembershipPutIn {
-	return Object.assign(create(typeModels[MembershipPutInTypeRef.typeId], MembershipPutInTypeRef), values)
+    return Object.assign(create(typeModels[MembershipPutInTypeRef.typeId], MembershipPutInTypeRef), values)
 }
 
 export type MembershipPutIn = {
@@ -3707,7 +3707,7 @@ export type MembershipPutIn = {
 export const GroupMembershipUpdateDataTypeRef: TypeRef<GroupMembershipUpdateData> = new TypeRef("sys", 2427)
 
 export function createGroupMembershipUpdateData(values: StrippedEntity<GroupMembershipUpdateData>): GroupMembershipUpdateData {
-	return Object.assign(create(typeModels[GroupMembershipUpdateDataTypeRef.typeId], GroupMembershipUpdateDataTypeRef), values)
+    return Object.assign(create(typeModels[GroupMembershipUpdateDataTypeRef.typeId], GroupMembershipUpdateDataTypeRef), values)
 }
 
 export type GroupMembershipUpdateData = {
@@ -3723,7 +3723,7 @@ export type GroupMembershipUpdateData = {
 export const AffiliatePartnerKpiMonthSummaryTypeRef: TypeRef<AffiliatePartnerKpiMonthSummary> = new TypeRef("sys", 2453)
 
 export function createAffiliatePartnerKpiMonthSummary(values: StrippedEntity<AffiliatePartnerKpiMonthSummary>): AffiliatePartnerKpiMonthSummary {
-	return Object.assign(create(typeModels[AffiliatePartnerKpiMonthSummaryTypeRef.typeId], AffiliatePartnerKpiMonthSummaryTypeRef), values)
+    return Object.assign(create(typeModels[AffiliatePartnerKpiMonthSummaryTypeRef.typeId], AffiliatePartnerKpiMonthSummaryTypeRef), values)
 }
 
 export type AffiliatePartnerKpiMonthSummary = {
@@ -3741,7 +3741,7 @@ export type AffiliatePartnerKpiMonthSummary = {
 export const AffiliatePartnerKpiServiceGetOutTypeRef: TypeRef<AffiliatePartnerKpiServiceGetOut> = new TypeRef("sys", 2461)
 
 export function createAffiliatePartnerKpiServiceGetOut(values: StrippedEntity<AffiliatePartnerKpiServiceGetOut>): AffiliatePartnerKpiServiceGetOut {
-	return Object.assign(create(typeModels[AffiliatePartnerKpiServiceGetOutTypeRef.typeId], AffiliatePartnerKpiServiceGetOutTypeRef), values)
+    return Object.assign(create(typeModels[AffiliatePartnerKpiServiceGetOutTypeRef.typeId], AffiliatePartnerKpiServiceGetOutTypeRef), values)
 }
 
 export type AffiliatePartnerKpiServiceGetOut = {
@@ -3758,7 +3758,7 @@ export type AffiliatePartnerKpiServiceGetOut = {
 export const UserGroupKeyRotationPostInTypeRef: TypeRef<UserGroupKeyRotationPostIn> = new TypeRef("sys", 2471)
 
 export function createUserGroupKeyRotationPostIn(values: StrippedEntity<UserGroupKeyRotationPostIn>): UserGroupKeyRotationPostIn {
-	return Object.assign(create(typeModels[UserGroupKeyRotationPostInTypeRef.typeId], UserGroupKeyRotationPostInTypeRef), values)
+    return Object.assign(create(typeModels[UserGroupKeyRotationPostInTypeRef.typeId], UserGroupKeyRotationPostInTypeRef), values)
 }
 
 export type UserGroupKeyRotationPostIn = {
@@ -3772,7 +3772,7 @@ export type UserGroupKeyRotationPostIn = {
 export const KeyMacTypeRef: TypeRef<KeyMac> = new TypeRef("sys", 2477)
 
 export function createKeyMac(values: StrippedEntity<KeyMac>): KeyMac {
-	return Object.assign(create(typeModels[KeyMacTypeRef.typeId], KeyMacTypeRef), values)
+    return Object.assign(create(typeModels[KeyMacTypeRef.typeId], KeyMacTypeRef), values)
 }
 
 export type KeyMac = {
@@ -3789,7 +3789,7 @@ export type KeyMac = {
 export const AppStoreSubscriptionGetOutTypeRef: TypeRef<AppStoreSubscriptionGetOut> = new TypeRef("sys", 2497)
 
 export function createAppStoreSubscriptionGetOut(values: StrippedEntity<AppStoreSubscriptionGetOut>): AppStoreSubscriptionGetOut {
-	return Object.assign(create(typeModels[AppStoreSubscriptionGetOutTypeRef.typeId], AppStoreSubscriptionGetOutTypeRef), values)
+    return Object.assign(create(typeModels[AppStoreSubscriptionGetOutTypeRef.typeId], AppStoreSubscriptionGetOutTypeRef), values)
 }
 
 export type AppStoreSubscriptionGetOut = {
@@ -3802,7 +3802,7 @@ export type AppStoreSubscriptionGetOut = {
 export const AppStoreSubscriptionGetInTypeRef: TypeRef<AppStoreSubscriptionGetIn> = new TypeRef("sys", 2500)
 
 export function createAppStoreSubscriptionGetIn(values: StrippedEntity<AppStoreSubscriptionGetIn>): AppStoreSubscriptionGetIn {
-	return Object.assign(create(typeModels[AppStoreSubscriptionGetInTypeRef.typeId], AppStoreSubscriptionGetInTypeRef), values)
+    return Object.assign(create(typeModels[AppStoreSubscriptionGetInTypeRef.typeId], AppStoreSubscriptionGetInTypeRef), values)
 }
 
 export type AppStoreSubscriptionGetIn = {
@@ -3815,7 +3815,7 @@ export type AppStoreSubscriptionGetIn = {
 export const VerifierTokenServiceOutTypeRef: TypeRef<VerifierTokenServiceOut> = new TypeRef("sys", 2510)
 
 export function createVerifierTokenServiceOut(values: StrippedEntity<VerifierTokenServiceOut>): VerifierTokenServiceOut {
-	return Object.assign(create(typeModels[VerifierTokenServiceOutTypeRef.typeId], VerifierTokenServiceOutTypeRef), values)
+    return Object.assign(create(typeModels[VerifierTokenServiceOutTypeRef.typeId], VerifierTokenServiceOutTypeRef), values)
 }
 
 export type VerifierTokenServiceOut = {
@@ -3828,7 +3828,7 @@ export type VerifierTokenServiceOut = {
 export const VerifierTokenServiceInTypeRef: TypeRef<VerifierTokenServiceIn> = new TypeRef("sys", 2517)
 
 export function createVerifierTokenServiceIn(values: StrippedEntity<VerifierTokenServiceIn>): VerifierTokenServiceIn {
-	return Object.assign(create(typeModels[VerifierTokenServiceInTypeRef.typeId], VerifierTokenServiceInTypeRef), values)
+    return Object.assign(create(typeModels[VerifierTokenServiceInTypeRef.typeId], VerifierTokenServiceInTypeRef), values)
 }
 
 export type VerifierTokenServiceIn = {
@@ -3841,7 +3841,7 @@ export type VerifierTokenServiceIn = {
 export const CalendarAdvancedRepeatRuleTypeRef: TypeRef<CalendarAdvancedRepeatRule> = new TypeRef("sys", 2521)
 
 export function createCalendarAdvancedRepeatRule(values: StrippedEntity<CalendarAdvancedRepeatRule>): CalendarAdvancedRepeatRule {
-	return Object.assign(create(typeModels[CalendarAdvancedRepeatRuleTypeRef.typeId], CalendarAdvancedRepeatRuleTypeRef), values)
+    return Object.assign(create(typeModels[CalendarAdvancedRepeatRuleTypeRef.typeId], CalendarAdvancedRepeatRuleTypeRef), values)
 }
 
 export type CalendarAdvancedRepeatRule = {
@@ -3855,7 +3855,7 @@ export type CalendarAdvancedRepeatRule = {
 export const AdminGroupKeyDistributionElementTypeRef: TypeRef<AdminGroupKeyDistributionElement> = new TypeRef("sys", 2531)
 
 export function createAdminGroupKeyDistributionElement(values: StrippedEntity<AdminGroupKeyDistributionElement>): AdminGroupKeyDistributionElement {
-	return Object.assign(create(typeModels[AdminGroupKeyDistributionElementTypeRef.typeId], AdminGroupKeyDistributionElementTypeRef), values)
+    return Object.assign(create(typeModels[AdminGroupKeyDistributionElementTypeRef.typeId], AdminGroupKeyDistributionElementTypeRef), values)
 }
 
 export type AdminGroupKeyDistributionElement = {
@@ -3870,7 +3870,7 @@ export type AdminGroupKeyDistributionElement = {
 export const AdminGroupKeyRotationPutInTypeRef: TypeRef<AdminGroupKeyRotationPutIn> = new TypeRef("sys", 2536)
 
 export function createAdminGroupKeyRotationPutIn(values: StrippedEntity<AdminGroupKeyRotationPutIn>): AdminGroupKeyRotationPutIn {
-	return Object.assign(create(typeModels[AdminGroupKeyRotationPutInTypeRef.typeId], AdminGroupKeyRotationPutInTypeRef), values)
+    return Object.assign(create(typeModels[AdminGroupKeyRotationPutInTypeRef.typeId], AdminGroupKeyRotationPutInTypeRef), values)
 }
 
 export type AdminGroupKeyRotationPutIn = {
@@ -3885,7 +3885,7 @@ export type AdminGroupKeyRotationPutIn = {
 export const PubDistributionKeyTypeRef: TypeRef<PubDistributionKey> = new TypeRef("sys", 2540)
 
 export function createPubDistributionKey(values: StrippedEntity<PubDistributionKey>): PubDistributionKey {
-	return Object.assign(create(typeModels[PubDistributionKeyTypeRef.typeId], PubDistributionKeyTypeRef), values)
+    return Object.assign(create(typeModels[PubDistributionKeyTypeRef.typeId], PubDistributionKeyTypeRef), values)
 }
 
 export type PubDistributionKey = {
@@ -3902,7 +3902,7 @@ export type PubDistributionKey = {
 export const AdminGroupKeyRotationGetOutTypeRef: TypeRef<AdminGroupKeyRotationGetOut> = new TypeRef("sys", 2546)
 
 export function createAdminGroupKeyRotationGetOut(values: StrippedEntity<AdminGroupKeyRotationGetOut>): AdminGroupKeyRotationGetOut {
-	return Object.assign(create(typeModels[AdminGroupKeyRotationGetOutTypeRef.typeId], AdminGroupKeyRotationGetOutTypeRef), values)
+    return Object.assign(create(typeModels[AdminGroupKeyRotationGetOutTypeRef.typeId], AdminGroupKeyRotationGetOutTypeRef), values)
 }
 
 export type AdminGroupKeyRotationGetOut = {
@@ -3917,7 +3917,7 @@ export type AdminGroupKeyRotationGetOut = {
 export const SurveyDataPostInTypeRef: TypeRef<SurveyDataPostIn> = new TypeRef("sys", 2563)
 
 export function createSurveyDataPostIn(values: StrippedEntity<SurveyDataPostIn>): SurveyDataPostIn {
-	return Object.assign(create(typeModels[SurveyDataPostInTypeRef.typeId], SurveyDataPostInTypeRef), values)
+    return Object.assign(create(typeModels[SurveyDataPostInTypeRef.typeId], SurveyDataPostInTypeRef), values)
 }
 
 export type SurveyDataPostIn = {
@@ -3931,7 +3931,7 @@ export type SurveyDataPostIn = {
 export const PatchTypeRef: TypeRef<Patch> = new TypeRef("sys", 2567)
 
 export function createPatch(values: StrippedEntity<Patch>): Patch {
-	return Object.assign(create(typeModels[PatchTypeRef.typeId], PatchTypeRef), values)
+    return Object.assign(create(typeModels[PatchTypeRef.typeId], PatchTypeRef), values)
 }
 
 export type Patch = {
@@ -3946,7 +3946,7 @@ export type Patch = {
 export const IdentityKeyPairTypeRef: TypeRef<IdentityKeyPair> = new TypeRef("sys", 2575)
 
 export function createIdentityKeyPair(values: StrippedEntity<IdentityKeyPair>): IdentityKeyPair {
-	return Object.assign(create(typeModels[IdentityKeyPairTypeRef.typeId], IdentityKeyPairTypeRef), values)
+    return Object.assign(create(typeModels[IdentityKeyPairTypeRef.typeId], IdentityKeyPairTypeRef), values)
 }
 
 export type IdentityKeyPair = {
@@ -3964,7 +3964,7 @@ export type IdentityKeyPair = {
 export const PublicKeySignatureTypeRef: TypeRef<PublicKeySignature> = new TypeRef("sys", 2582)
 
 export function createPublicKeySignature(values: StrippedEntity<PublicKeySignature>): PublicKeySignature {
-	return Object.assign(create(typeModels[PublicKeySignatureTypeRef.typeId], PublicKeySignatureTypeRef), values)
+    return Object.assign(create(typeModels[PublicKeySignatureTypeRef.typeId], PublicKeySignatureTypeRef), values)
 }
 
 export type PublicKeySignature = {
@@ -3980,7 +3980,7 @@ export type PublicKeySignature = {
 export const IdentityKeyGetInTypeRef: TypeRef<IdentityKeyGetIn> = new TypeRef("sys", 2590)
 
 export function createIdentityKeyGetIn(values: StrippedEntity<IdentityKeyGetIn>): IdentityKeyGetIn {
-	return Object.assign(create(typeModels[IdentityKeyGetInTypeRef.typeId], IdentityKeyGetInTypeRef), values)
+    return Object.assign(create(typeModels[IdentityKeyGetInTypeRef.typeId], IdentityKeyGetInTypeRef), values)
 }
 
 export type IdentityKeyGetIn = {
@@ -3995,7 +3995,7 @@ export type IdentityKeyGetIn = {
 export const IdentityKeyGetOutTypeRef: TypeRef<IdentityKeyGetOut> = new TypeRef("sys", 2595)
 
 export function createIdentityKeyGetOut(values: StrippedEntity<IdentityKeyGetOut>): IdentityKeyGetOut {
-	return Object.assign(create(typeModels[IdentityKeyGetOutTypeRef.typeId], IdentityKeyGetOutTypeRef), values)
+    return Object.assign(create(typeModels[IdentityKeyGetOutTypeRef.typeId], IdentityKeyGetOutTypeRef), values)
 }
 
 export type IdentityKeyGetOut = {
@@ -4009,7 +4009,7 @@ export type IdentityKeyGetOut = {
 export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", 2599)
 
 export function createIdentityKeyPostIn(values: StrippedEntity<IdentityKeyPostIn>): IdentityKeyPostIn {
-	return Object.assign(create(typeModels[IdentityKeyPostInTypeRef.typeId], IdentityKeyPostInTypeRef), values)
+    return Object.assign(create(typeModels[IdentityKeyPostInTypeRef.typeId], IdentityKeyPostInTypeRef), values)
 }
 
 export type IdentityKeyPostIn = {
@@ -4024,7 +4024,7 @@ export type IdentityKeyPostIn = {
 export const RolloutTypeRef: TypeRef<Rollout> = new TypeRef("sys", 2604)
 
 export function createRollout(values: StrippedEntity<Rollout>): Rollout {
-	return Object.assign(create(typeModels[RolloutTypeRef.typeId], RolloutTypeRef), values)
+    return Object.assign(create(typeModels[RolloutTypeRef.typeId], RolloutTypeRef), values)
 }
 
 export type Rollout = {
@@ -4037,7 +4037,7 @@ export type Rollout = {
 export const RolloutGetOutTypeRef: TypeRef<RolloutGetOut> = new TypeRef("sys", 2607)
 
 export function createRolloutGetOut(values: StrippedEntity<RolloutGetOut>): RolloutGetOut {
-	return Object.assign(create(typeModels[RolloutGetOutTypeRef.typeId], RolloutGetOutTypeRef), values)
+    return Object.assign(create(typeModels[RolloutGetOutTypeRef.typeId], RolloutGetOutTypeRef), values)
 }
 
 export type RolloutGetOut = {
@@ -4051,7 +4051,7 @@ export type RolloutGetOut = {
 export const PatchListTypeRef: TypeRef<PatchList> = new TypeRef("sys", 2614)
 
 export function createPatchList(values: StrippedEntity<PatchList>): PatchList {
-	return Object.assign(create(typeModels[PatchListTypeRef.typeId], PatchListTypeRef), values)
+    return Object.assign(create(typeModels[PatchListTypeRef.typeId], PatchListTypeRef), values)
 }
 
 export type PatchList = {
@@ -4065,7 +4065,7 @@ export type PatchList = {
 export const CaptchaChallengeTypeRef: TypeRef<CaptchaChallenge> = new TypeRef("sys", 2619)
 
 export function createCaptchaChallenge(values: StrippedEntity<CaptchaChallenge>): CaptchaChallenge {
-	return Object.assign(create(typeModels[CaptchaChallengeTypeRef.typeId], CaptchaChallengeTypeRef), values)
+    return Object.assign(create(typeModels[CaptchaChallengeTypeRef.typeId], CaptchaChallengeTypeRef), values)
 }
 
 export type CaptchaChallenge = {
@@ -4079,7 +4079,7 @@ export type CaptchaChallenge = {
 export const TimelockCaptchaGetInTypeRef: TypeRef<TimelockCaptchaGetIn> = new TypeRef("sys", 2629)
 
 export function createTimelockCaptchaGetIn(values: StrippedEntity<TimelockCaptchaGetIn>): TimelockCaptchaGetIn {
-	return Object.assign(create(typeModels[TimelockCaptchaGetInTypeRef.typeId], TimelockCaptchaGetInTypeRef), values)
+    return Object.assign(create(typeModels[TimelockCaptchaGetInTypeRef.typeId], TimelockCaptchaGetInTypeRef), values)
 }
 
 export type TimelockCaptchaGetIn = {
@@ -4088,13 +4088,14 @@ export type TimelockCaptchaGetIn = {
 
 	_format: NumberString;
 	signupToken: string;
+	timeToSolveCalibrationChallenge: null | NumberString;
 
 	deviceInfo: null | ClientPerformanceInfo;
 }
 export const TimelockCaptchaGetOutTypeRef: TypeRef<TimelockCaptchaGetOut> = new TypeRef("sys", 2632)
 
 export function createTimelockCaptchaGetOut(values: StrippedEntity<TimelockCaptchaGetOut>): TimelockCaptchaGetOut {
-	return Object.assign(create(typeModels[TimelockCaptchaGetOutTypeRef.typeId], TimelockCaptchaGetOutTypeRef), values)
+    return Object.assign(create(typeModels[TimelockCaptchaGetOutTypeRef.typeId], TimelockCaptchaGetOutTypeRef), values)
 }
 
 export type TimelockCaptchaGetOut = {
@@ -4106,10 +4107,10 @@ export type TimelockCaptchaGetOut = {
 	modulus: string;
 	base: string;
 }
-export const ClientPerformanceInfoTypeRef: TypeRef<ClientPerformanceInfo> = new TypeRef("sys", 2640)
+export const ClientPerformanceInfoTypeRef: TypeRef<ClientPerformanceInfo> = new TypeRef("sys", 2641)
 
 export function createClientPerformanceInfo(values: StrippedEntity<ClientPerformanceInfo>): ClientPerformanceInfo {
-	return Object.assign(create(typeModels[ClientPerformanceInfoTypeRef.typeId], ClientPerformanceInfoTypeRef), values)
+    return Object.assign(create(typeModels[ClientPerformanceInfoTypeRef.typeId], ClientPerformanceInfoTypeRef), values)
 }
 
 export type ClientPerformanceInfo = {
