@@ -2058,5 +2058,6 @@ export default {
         "unread_label": "Unread",
         "replied_label": "Replied",
         "forwarded_label": "Forwarded",
+        "mailExportPaused_msg": "Export limit reached. Your export is paused and will automatically resume later."
     }
 }
