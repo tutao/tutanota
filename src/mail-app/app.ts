@@ -38,6 +38,7 @@ import { AppType } from "../common/misc/ClientConstants.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
+import { UndoModel } from "./UndoModel"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -328,6 +329,7 @@ import("./translations/en.js")
 					cache: MailViewCache
 					header: AppHeaderAttrs
 					mailViewModel: MailViewModel
+					undoModel: UndoModel
 				}
 			>(
 				{
@@ -345,15 +347,17 @@ import("./translations/en.js")
 								},
 								header: await mailLocator.appHeaderAttrs(),
 								mailViewModel: await mailLocator.mailViewModel(),
+								undoModel: await mailLocator.undoModel(),
 							},
 						}
 					},
-					prepareAttrs: ({ drawerAttrsFactory, cache, header, mailViewModel }) => ({
+					prepareAttrs: ({ drawerAttrsFactory, cache, header, mailViewModel, undoModel }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						cache,
 						header,
 						desktopSystemFacade: mailLocator.desktopSystemFacade,
 						mailViewModel,
+						undoModel,
 					}),
 				},
 				mailLocator.logins,
@@ -394,6 +398,7 @@ import("./translations/en.js")
 					header: AppHeaderAttrs
 					searchViewModelFactory: () => SearchViewModel
 					contactModel: ContactModel
+					undoModel: UndoModel
 				}
 			>(
 				{
@@ -407,6 +412,7 @@ import("./translations/en.js")
 								header: await mailLocator.appHeaderAttrs(),
 								searchViewModelFactory: await mailLocator.searchViewModelFactory(),
 								contactModel: mailLocator.contactModel,
+								undoModel: await mailLocator.undoModel(),
 							},
 						}
 					},
@@ -415,7 +421,7 @@ import("./translations/en.js")
 						header: cache.header,
 						makeViewModel: cache.searchViewModelFactory,
 						contactModel: cache.contactModel,
-						mailViewModel: mailLocator.mailViewModel,
+						undoModel: cache.undoModel,
 					}),
 				},
 				mailLocator.logins,

@@ -56,7 +56,7 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { LoadingStateTracker } from "../../../common/offline/LoadingState"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
-import { InitAsResponseArgs, SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
+import { InitAsResponseArgs } from "../../../common/mailFunctionality/SendMailModel.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SearchModel } from "../../search/model/SearchModel.js"
@@ -77,7 +77,7 @@ import { isDraft } from "../model/MailChecks"
 import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { mailLocator } from "../../mailLocator.js"
-import { MailViewModel } from "./MailViewModel"
+import { UndoModel } from "../../UndoModel"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -138,7 +138,6 @@ export class MailViewerViewModel {
 		private readonly configFacade: ConfigurationDatabase,
 		private readonly fileController: FileController,
 		readonly logins: LoginController,
-		private sendMailModelFactory: (mailboxDetails: MailboxDetail) => Promise<SendMailModel>,
 		private readonly eventController: EventController,
 		private readonly workerFacade: WorkerFacade,
 		private readonly searchModel: SearchModel,
@@ -147,7 +146,7 @@ export class MailViewerViewModel {
 		private readonly contactImporter: lazyAsync<ContactImporter>,
 		private readonly highlightedStrings: readonly SearchToken[],
 		readonly eventsRepository: CalendarEventsRepository,
-		readonly mailViewModel: lazyAsync<MailViewModel>,
+		private readonly undoModel: UndoModel,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -528,7 +527,7 @@ export class MailViewerViewModel {
 				targetFolder: spamFolder,
 				moveMode: MoveMode.Mails,
 				isReportable: false,
-				mailViewModel: await this.mailViewModel(),
+				undoModel: this.undoModel,
 			})
 		} catch (e) {
 			if (e instanceof NotFoundError) {

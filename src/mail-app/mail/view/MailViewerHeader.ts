@@ -18,7 +18,7 @@ import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewMode
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdown } from "./MailGuiUtils.js"
+import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { editDraft, MailViewerMoreActions, singleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
@@ -31,7 +31,6 @@ import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.j
 import { LabelsPopup } from "./LabelsPopup.js"
 import { Label } from "../../../common/gui/base/Label.js"
 import { px, size } from "../../../common/gui/size.js"
-import { MoveMode } from "../model/MailModel"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
 import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
@@ -45,6 +44,7 @@ export type MailAddressDropdownCreator = (args: {
 export interface MailHeaderActions {
 	trash: () => unknown
 	delete: (() => unknown) | null
+	move: (dom: HTMLElement) => unknown
 }
 
 export interface MailViewerHeaderAttrs {
@@ -786,15 +786,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					})
 					actionButtons.push({
 						label: "move_action",
-						click: (_: MouseEvent, dom: HTMLElement) =>
-							showMoveMailsDropdown(
-								viewModel.mailboxModel,
-								viewModel.mailModel,
-								viewModel.mailViewModel,
-								dom.getBoundingClientRect(),
-								[viewModel.mail],
-								MoveMode.Mails,
-							),
+						click: (_: MouseEvent, dom: HTMLElement) => actions.move(dom),
 						icon: Icons.Folder,
 					})
 					actionButtons.push(deleteOrTrashAction)
@@ -824,15 +816,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 					actionButtons.push({
 						label: "move_action",
-						click: (_: MouseEvent, dom: HTMLElement) =>
-							showMoveMailsDropdown(
-								viewModel.mailboxModel,
-								viewModel.mailModel,
-								viewModel.mailViewModel,
-								dom.getBoundingClientRect(),
-								[viewModel.mail],
-								MoveMode.Mails,
-							),
+						click: (_: MouseEvent, dom: HTMLElement) => actions.move(dom),
 						icon: Icons.Folder,
 					})
 

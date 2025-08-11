@@ -27,6 +27,7 @@ import {
 	moveMailsToSystemFolder,
 	promptAndDeleteMails,
 	showLabelsPopup,
+	showMoveMailsDropdown,
 	ShowMoveMailsDropdownOpts,
 	showMoveMailsFromFolderDropdown,
 } from "./MailGuiUtils"
@@ -84,6 +85,7 @@ import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { LockedError } from "../../../common/api/common/error/RestError"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 import { MoveMode } from "../model/MailModel"
+import { UndoModel } from "../../UndoModel"
 
 assertMainOrNode()
 
@@ -98,6 +100,7 @@ export interface MailViewAttrs extends TopLevelAttrs {
 	cache: MailViewCache
 	header: AppHeaderAttrs
 	mailViewModel: MailViewModel
+	undoModel: UndoModel
 }
 
 /**
@@ -116,6 +119,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private readonly expandedState: Set<Id>
 	private readonly mailViewModel: MailViewModel
+	private readonly undoModel: UndoModel
 
 	get conversationViewModel(): ConversationViewModel | null {
 		return this.mailViewModel.getConversationViewModel()
@@ -128,6 +132,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.cache = vnode.attrs.cache
 		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)
 		this.mailViewModel = vnode.attrs.mailViewModel
+		this.undoModel = vnode.attrs.undoModel
 
 		this.listColumn = new ViewColumn(
 			{
@@ -187,6 +192,17 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 										},
 										onTrashSwipe: async (moveMode, ownerGroup, mails) => {
 											await this.moveMailsToTrash(moveMode, ownerGroup, mails)
+										},
+										onMoveSwipe: async (targetFolderType, mails) => {
+											return await moveMailsToSystemFolder({
+												mailboxModel: locator.mailboxModel,
+												mailModel: mailLocator.mailModel,
+												mailIds: mails,
+												currentFolder: folder,
+												targetFolderType: targetFolderType,
+												moveMode: this.mailViewModel.getMoveMode(folder),
+												undoModel: this.undoModel,
+											})
 										},
 									}),
 								)
@@ -360,6 +376,16 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 									this.mailViewModel.clearStickyMail()
 								}
 							: null,
+						move: (dom) => {
+							showMoveMailsDropdown(
+								mailViewerModel.mailboxModel,
+								mailViewerModel.mailModel,
+								this.undoModel,
+								dom.getBoundingClientRect(),
+								[mailViewerModel.mail],
+								MoveMode.Mails,
+							)
+						},
 					}
 				},
 				moreActions: (mailViewerModel: MailViewerViewModel) => {
@@ -681,7 +707,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.Z,
 				exec: () => {
-					this.mailViewModel.performUndoAction()
+					this.undoModel.performUndoAction()
 				},
 				ctrlOrCmd: true,
 				help: "undo_action",
@@ -792,7 +818,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailIds: resolvedMails,
 			moveMode,
 			undoFolder: currentFolder,
-			mailViewModel: this.mailViewModel,
+			undoModel: this.undoModel,
 		})
 
 		this.mailViewModel.clearStickyMail()
@@ -812,7 +838,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailIds: actionableMails,
 			targetFolderType,
 			moveMode: this.mailViewModel.getMoveMode(folder),
-			mailViewModel: this.mailViewModel,
+			undoModel: this.undoModel,
 		})
 	}
 
@@ -843,7 +869,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		showMoveMailsFromFolderDropdown(
 			locator.mailboxModel,
 			mailLocator.mailModel,
-			this.mailViewModel,
+			this.undoModel,
 			origin,
 			currentFolder,
 			resolvedMails,
@@ -1077,7 +1103,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				mailIds: actionableMails,
 				moveMode: this.mailViewModel.getMoveMode(currentFolder),
 				undoFolder: currentFolder,
-				mailViewModel: this.mailViewModel,
+				undoModel: this.undoModel,
 			})
 		}
 	}

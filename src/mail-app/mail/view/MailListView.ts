@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../common/misc/LanguageViewModel"
 
-import { Keys, MailSetKind, MailState } from "../../../common/api/common/TutanotaConstants"
+import { Keys, MailSetKind, MailState, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { size } from "../../../common/gui/size"
 import { styles } from "../../../common/gui/styles"
@@ -13,7 +13,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { assertNotNull, AsyncResult, downcast, neverNull, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { getElementId, getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
-import { moveMailsToSystemFolder, promptAndDeleteMails } from "./MailGuiUtils"
+import { promptAndDeleteMails } from "./MailGuiUtils"
 import { MailRow } from "./MailRow"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { generateMailFile, getMailExportMode } from "../export/Exporter"
@@ -49,6 +49,7 @@ export interface MailListViewAttrs {
 	onRangeSelectionTowards: ListElementListModel<Mail>["selectRangeTowards"]
 	onSingleExclusiveSelection: ListElementListModel<Mail>["onSingleExclusiveSelection"]
 	onTrashSwipe: (moveMode: MoveMode, ownerGroup: Id, mails: readonly IdTuple[]) => unknown
+	onMoveSwipe: (targetFolderType: SystemFolderType, mails: readonly IdTuple[]) => Promise<boolean>
 }
 
 export class MailListView implements Component<MailListViewAttrs> {
@@ -451,18 +452,8 @@ export class MailListView implements Component<MailListViewAttrs> {
 					: this.showingArchive
 						? MailSetKind.INBOX
 						: MailSetKind.ARCHIVE
-
 				const actionableMails = await this.mailViewModel.getResolvedMails([listElement])
-				const wereMoved = await moveMailsToSystemFolder({
-					mailboxModel: locator.mailboxModel,
-					mailModel: mailLocator.mailModel,
-					mailIds: actionableMails,
-					currentFolder: folder,
-					targetFolderType: targetMailFolderType,
-					moveMode: this.mailViewModel.getMoveMode(folder),
-					mailViewModel: this.mailViewModel,
-				})
-				return wereMoved ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
+				return (await this.attrs.onMoveSwipe(targetMailFolderType, actionableMails)) ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 			} else {
 				return ListSwipeDecision.Cancel
 			}
