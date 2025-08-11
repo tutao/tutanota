@@ -21,7 +21,6 @@ import {
 	isSameDayOfDate,
 	isSameTypeRef,
 	last,
-	lazyAsync,
 	LazyLoaded,
 	lazyMemoized,
 	memoized,
@@ -119,7 +118,7 @@ import { formatDate } from "../../../common/misc/Formatter"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui/pickers/DatePickerDialog"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
-import { MailViewModel } from "../../mail/view/MailViewModel"
+import { UndoModel } from "../../UndoModel"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 
 assertMainOrNode()
@@ -129,7 +128,7 @@ export interface SearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	makeViewModel: () => SearchViewModel
 	contactModel: ContactModel
-	mailViewModel: lazyAsync<MailViewModel>
+	undoModel: UndoModel
 }
 
 export class SearchView extends BaseTopLevelView implements TopLevelView<SearchViewAttrs> {
@@ -140,7 +139,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private readonly searchViewModel: SearchViewModel
 	private readonly contactModel: ContactModel
 	private readonly startOfTheWeekOffset: number
-	private readonly mailViewModel: lazyAsync<MailViewModel>
+	private readonly undoModel: UndoModel
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
@@ -165,7 +164,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		this.searchViewModel = vnode.attrs.makeViewModel()
 		this.contactModel = vnode.attrs.contactModel
 		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
-		this.mailViewModel = vnode.attrs.mailViewModel
+		this.undoModel = vnode.attrs.undoModel
 		const userId = locator.logins.getUserController().userId
 
 		this.folderColumn = new ViewColumn(
@@ -706,6 +705,16 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								delete: mailViewerModel.isDeletableMail()
 									? () => promptAndDeleteMails(mailViewerModel.mailModel, [mailViewerModel.mail._id], null, noOp)
 									: null,
+								move: (dom) => {
+									showMoveMailsDropdown(
+										mailViewerModel.mailboxModel,
+										mailViewerModel.mailModel,
+										this.undoModel,
+										dom.getBoundingClientRect(),
+										[mailViewerModel.mail],
+										MoveMode.Mails,
+									)
+								},
 							}
 						},
 						moreActions: (mailViewerModel) =>
@@ -1045,7 +1054,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private async moveMails(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
 		const selection = this.searchViewModel.getSelectedMails()
 		if (!isEmpty(selection)) {
-			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, this.mailViewModel, origin, selection, MoveMode.Mails, opts)
+			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, origin, selection, MoveMode.Mails, opts)
 		}
 	}
 
@@ -1270,7 +1279,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, this.mailViewModel, getMoveMailBounds(), selectedMails, MoveMode.Mails, {
+			showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, this.undoModel, getMoveMailBounds(), selectedMails, MoveMode.Mails, {
 				onSelected: () => {
 					if (selectedMails.length > 1) {
 						this.searchViewModel.listModel.selectNone()

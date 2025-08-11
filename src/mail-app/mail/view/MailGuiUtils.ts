@@ -39,12 +39,12 @@ import {
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
-import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
+import type { IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
 import { getElementId, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
-import { MailViewModel } from "./MailViewModel"
+import { UndoModel } from "../../UndoModel"
 
 const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
 
@@ -80,7 +80,7 @@ export async function promptAndDeleteMails(
 interface MoveMailsParams {
 	mailboxModel: MailboxModel
 	mailModel: MailModel
-	mailViewModel: MailViewModel
+	undoModel: UndoModel
 	mailIds: ReadonlyArray<IdTuple>
 	targetFolder: MailFolder
 	moveMode: MoveMode
@@ -119,7 +119,7 @@ async function showUndoMoveMailSnackbar(
 	undoFolder: MailFolder,
 	resolveMails: () => Promise<readonly Mail[]>,
 	mailModel: MailModel,
-	mailViewModel: MailViewModel,
+	undoModel: UndoModel,
 	shouldReportMails: boolean,
 ): Promise<MoveMailSnackbarResult> {
 	return new Promise((resolve) => {
@@ -145,7 +145,7 @@ async function showUndoMoveMailSnackbar(
 			},
 		}
 
-		const clearUndoAction = lazyMemoized(() => mailViewModel.clearUndoActionIfPresent(undoAction))
+		const clearUndoAction = lazyMemoized(() => undoModel.clearUndoActionIfPresent(undoAction))
 		const undoMessage: Translation = {
 			testId: "undoMoveMail_msg",
 			text:
@@ -168,7 +168,7 @@ async function showUndoMoveMailSnackbar(
 			onShow: () => {
 				// we don't want to immediately set the undo action, as the user might be looking at a different snackbar
 				// than this one momentarily
-				mailViewModel.setUndoAction(undoAction)
+				undoModel.setUndoAction(undoAction)
 			},
 			onClose: (timedOut: boolean) => {
 				if (result == null) {
@@ -207,9 +207,7 @@ export async function moveMails(params: MoveMailsParams): Promise<boolean> {
 	}
 }
 
-// FIXME: it's kind of not great to pass mailViewModel around like that, should we move undo functionality to its own model?
-//   otherwise, maybe this function should *only* exist on MailModel
-async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportable = true, mailboxModel, undoFolder, mailViewModel }: MoveMailsParams) {
+async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportable = true, mailboxModel, undoFolder, undoModel }: MoveMailsParams) {
 	const resolveMails = () => mailModel.loadAllMails(mailIds)
 
 	const shouldReportMails = await getReportAnswer(targetFolder, isReportable, mailboxModel, mailModel)
@@ -218,7 +216,7 @@ async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportab
 	// user to undo the move...
 	let undone: boolean
 	if (undoFolder != null && !isSameId(getElementId(targetFolder), getElementId(undoFolder))) {
-		const undoResult = await showUndoMoveMailSnackbar(targetFolder, undoFolder, resolveMails, mailModel, mailViewModel, shouldReportMails)
+		const undoResult = await showUndoMoveMailSnackbar(targetFolder, undoFolder, resolveMails, mailModel, undoModel, shouldReportMails)
 		switch (undoResult) {
 			case MoveMailSnackbarResult.Undo:
 				undone = true
@@ -244,7 +242,7 @@ export async function moveMailsToSystemFolder({
 	currentFolder,
 	moveMode,
 	isReportable,
-	mailViewModel,
+	undoModel,
 }: {
 	mailboxModel: MailboxModel
 	mailModel: MailModel
@@ -252,7 +250,7 @@ export async function moveMailsToSystemFolder({
 	targetFolderType: SystemFolderType
 	currentFolder: MailFolder
 	moveMode: MoveMode
-	mailViewModel: MailViewModel
+	undoModel: UndoModel
 	isReportable?: boolean
 }): Promise<boolean> {
 	const folderSystem = mailModel.getFolderSystemByGroupId(assertNotNull(currentFolder._ownerGroup))
@@ -266,7 +264,7 @@ export async function moveMailsToSystemFolder({
 		isReportable,
 		moveMode,
 		undoFolder: currentFolder,
-		mailViewModel,
+		undoModel,
 	})
 }
 
@@ -466,7 +464,7 @@ export interface ShowMoveMailsDropdownOpts {
 export async function showMoveMailsFromFolderDropdown(
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
-	mailViewModel: MailViewModel,
+	undoModel: UndoModel,
 	origin: PosRect,
 	currentFolder: MailFolder,
 	mails: LazyMailIdResolver,
@@ -486,7 +484,7 @@ export async function showMoveMailsFromFolderDropdown(
 				targetFolder: f.folder,
 				moveMode,
 				undoFolder: currentFolder,
-				mailViewModel,
+				undoModel,
 			})
 		},
 		opts,
@@ -496,7 +494,7 @@ export async function showMoveMailsFromFolderDropdown(
 export async function showMoveMailsDropdown(
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
-	mailViewModelPromise: () => Promise<MailViewModel>,
+	undoModel: UndoModel,
 	origin: PosRect,
 	mails: readonly Mail[],
 	moveMode: MoveMode,
@@ -506,8 +504,6 @@ export async function showMoveMailsDropdown(
 	if (firstMail == null) return
 	const folders = await getMoveTargetFolderSystems(mailModel, mails)
 	const currentFolders = deduplicate(mails.map((mail) => mailModel.getMailFolderForMail(mail)))
-
-	const mailViewModel = await mailViewModelPromise()
 
 	await showMailFolderDropdown(
 		origin,
@@ -520,7 +516,7 @@ export async function showMoveMailsDropdown(
 				targetFolder: f.folder,
 				moveMode,
 				undoFolder: currentFolders.length === 1 ? first(currentFolders) : null,
-				mailViewModel,
+				undoModel,
 			})
 		},
 		opts,
