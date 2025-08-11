@@ -61,8 +61,10 @@ export function displayOverlay(
 	// Make single so fast taps doesn't try to remove
 	// the same overlay twice
 	return makeSingleUse(() => {
-		// Remove the overlay & error if unsuccessful
-		if (!overlays.delete(overlayKey)) {
+		// Remove the overlay & warn if unsuccessful
+		if (overlays.delete(overlayKey)) {
+			m.redraw()
+		} else {
 			console.warn(`Missing overlay with key:${overlayKey}!`)
 		}
 	}) as () => void
