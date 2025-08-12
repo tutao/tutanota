@@ -7,7 +7,7 @@
 import TutanotaSharedFramework
 import tutasdk
 
-struct CalendarEventData: Equatable {
+struct CalendarEventData: Equatable, Hashable, Encodable {
 	var id: String
 	var summary: String
 	var startDate: Date
@@ -24,13 +24,14 @@ struct WidgetModel {
 
 	func getEventsForCalendars(_ calendars: [CalendarEntity], date: Date) async throws -> ([CalendarEventData], [CalendarEventData]) {
 		let dateInMiliseconds = UInt64(date.timeIntervalSince1970) * 1000
+		let end = UInt64(Calendar.current.date(byAdding: .day, value: 7, to: date)!.timeIntervalSince1970) * 1000
 		let calendarFacade = self.sdk.calendarFacade()
 
 		var normalEvents: [CalendarEventData] = []
 		var longEvents: [CalendarEventData] = []
 
 		for calendar in calendars {
-			let eventsList = await calendarFacade.getCalendarEvents(calendarId: calendar.id, date: dateInMiliseconds)
+			let eventsList = await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInMiliseconds, end: end)
 			(eventsList.shortEvents + eventsList.longEvents)
 				.forEach { event in
 					let eventStart = Date(timeIntervalSince1970: Double(event.startTime) / 1000)
@@ -72,8 +73,8 @@ struct WidgetModel {
 		}
 
 		normalEvents.sort(by: { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 })
-
-		return (normalEvents, longEvents)
+		longEvents.sort(by: { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 })
+		return (Array(normalEvents.prefix(upTo: 8)), longEvents)
 	}
 
 	private func parseContactAge(birthdayIso: String?) -> Int? {
