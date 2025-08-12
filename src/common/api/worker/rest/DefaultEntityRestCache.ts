@@ -299,7 +299,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		if (cachedEntity == null) {
 			const parsedInstance = await this.entityRestClient.loadParsedInstance(typeRef, id, opts)
-			if (cachingBehavior.writesToCache) {
+			if (cachingBehavior.writesToCache && !hasError(parsedInstance)) {
 				await this.storage.put(typeRef, parsedInstance)
 			}
 
@@ -628,13 +628,19 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		wasReverseRequest: boolean,
 		receivedEntities: ServerModelParsedInstance[],
 	) {
+		// Filter out parsed instances after the first instances with _errors (i.e. decryption errors),
+		// because we should NEVER store instances in the storage that failed to be decrypted!
+		const elementsToAdd = wasReverseRequest ? receivedEntities.reverse() : receivedEntities
+		const firstElementToAddIndexWithError = elementsToAdd.findIndex((elementToAdd) => hasError(elementToAdd))
+		const elementsToAddWithoutErrors = firstElementToAddIndexWithError !== -1 ? elementsToAdd.slice(0, firstElementToAddIndexWithError) : elementsToAdd
+		const elementsToAddWithoutErrorsCount = elementsToAddWithoutErrors.length
+		await this.storage.putMultiple(typeRef, elementsToAddWithoutErrors)
+
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const isCustomId = isCustomIdType(await this.typeModelResolver.resolveClientTypeReference(typeRef))
-		let elementsToAdd = receivedEntities
 		if (wasReverseRequest) {
 			// Ensure that elements are cached in ascending (not reverse) order
-			elementsToAdd = receivedEntities.reverse()
-			if (receivedEntities.length < countRequested) {
+			if (elementsToAddWithoutErrorsCount === receivedEntities.length && receivedEntities.length < countRequested) {
 				console.log("finished loading, setting min id")
 				await this.storage.setLowerRangeForList(typeRef, listId, isCustomId ? CUSTOM_MIN_ID : GENERATED_MIN_ID)
 			} else {
@@ -642,12 +648,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				await this.storage.setLowerRangeForList(
 					typeRef,
 					listId,
-					elementIdPart(AttributeModel.getAttribute(getFirstOrThrow(receivedEntities), "_id", typeModel)),
+					elementIdPart(AttributeModel.getAttribute(getFirstOrThrow(elementsToAddWithoutErrors), "_id", typeModel)),
 				)
 			}
 		} else {
 			// Last element in the list is the upper range limit
-			if (receivedEntities.length < countRequested) {
+			if (elementsToAddWithoutErrorsCount === receivedEntities.length && receivedEntities.length < countRequested) {
 				// all elements have been loaded, so the upper range must be set to MAX_ID
 				console.log("finished loading, setting max id")
 				await this.storage.setUpperRangeForList(typeRef, listId, isCustomId ? CUSTOM_MAX_ID : GENERATED_MAX_ID)
@@ -655,11 +661,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				await this.storage.setUpperRangeForList(
 					typeRef,
 					listId,
-					elementIdPart(AttributeModel.getAttribute(lastThrow(receivedEntities), "_id", typeModel)),
+					elementIdPart(AttributeModel.getAttribute(lastThrow(elementsToAddWithoutErrors), "_id", typeModel)),
 				)
 			}
 		}
-		await this.storage.putMultiple(typeRef, elementsToAdd)
 	}
 
 	/**
