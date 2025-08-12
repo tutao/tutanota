@@ -1,8 +1,25 @@
 import { ReplacementImage } from "../gui/base/icons/Icons"
-import { downcast, isEmpty, memoized, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { isEmpty, isNotNull, memoized, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { DataFile } from "../api/common/DataFile"
 import DOMPurify, { Config } from "dompurify"
 import { SearchToken, splitTextForHighlighting } from "../api/common/utils/QueryTokenUtils"
+import {
+	combineParsers,
+	makeCharacterParser,
+	makeDiscardingParser,
+	makeEitherParser,
+	makeEscapedStringParser,
+	makeOneOfCharactersParser,
+	makeSeparatedByParser,
+	makeZeroOrMoreParser,
+	mapParser,
+	maybeParse,
+	numberParser,
+	Parser,
+	ParserError,
+	StringIterator,
+	stringParser,
+} from "./parsing/ParserCombinator"
 
 // background attribute is deprecated but still used in common browsers
 const EXTERNAL_CONTENT_ATTRS = Object.freeze([
@@ -16,9 +33,9 @@ const EXTERNAL_CONTENT_ATTRS = Object.freeze([
 	"draft-href",
 	"xlink:href",
 	"href",
-])
+] as const)
 
-const DRAFT_ATTRIBUTES = ["draft-src", "draft-srcset", "draft-xlink:href", "draft-href"]
+const DRAFT_ATTRIBUTES = ["draft-src", "draft-srcset", "draft-xlink:href", "draft-href"] satisfies readonly `draft-${string}`[]
 
 type SanitizeConfigExtra = {
 	blockExternalContent: boolean
@@ -81,7 +98,7 @@ const ADD_URI_SAFE_ATTR = Object.freeze([
 	"poster",
 ] as const)
 
-/** Complete disallow some HTML tags. */
+/** Completely disallow some HTML tags. */
 const FORBID_TAGS = Object.freeze([
 	// prevent loading of external stylesheets and fonts by blocking the whole <style> tag
 	"style",
@@ -111,6 +128,19 @@ const FRAGMENT_CONFIG: Config & { RETURN_DOM_FRAGMENT: true } = Object.freeze({
 } as const)
 
 type BaseConfig = typeof HTML_CONFIG | typeof SVG_CONFIG | typeof FRAGMENT_CONFIG
+
+const enum RuleResult {
+	NotHandled,
+	Handled,
+}
+
+interface Rule {
+	// Rule only applies for specified attributes
+	attributes?: string[]
+	// Rule only applies for specified tags
+	tags?: string[]
+	handler: (element: HTMLElement, attributeName: string, attributeValue: string, config: SanitizeConfig) => RuleResult
+}
 
 /** Class to pre-process HTML/SVG content. */
 export class HtmlSanitizer {
@@ -253,9 +283,23 @@ export class HtmlSanitizer {
 
 		this.replaceAttributes(currentNode as HTMLElement, typedConfig)
 
-		this.processLink(currentNode as HTMLElement, typedConfig)
-
 		return currentNode
+	}
+
+	private cssValueUnconditionallyDisallowed(value: string): boolean {
+		// image-set can have plain URLs, without `url(`
+		// `src` can reference vars and can also interpret vars. no browser support it anyway as of now
+		// `var` can reference URLs defined elsewhere and there isn't really a way to resolve them without parsing
+		// `element` can reference arbitrary HTML element on the page… just no.
+		// `image` can have plain URLs
+		return (
+			value.includes("image-set(") ||
+			value.includes("src(") ||
+			value.includes("var(") ||
+			value.includes("element(") ||
+			value.includes("image(") ||
+			this.containsDisallowedCssUrls(value)
+		)
 	}
 
 	private replaceAttributes(htmlNode: HTMLElement, config: SanitizeConfig) {
@@ -272,104 +316,90 @@ export class HtmlSanitizer {
 		}
 
 		if (htmlNode.style) {
-			if (config.blockExternalContent) {
-				// for a decent table of where <image> CSS type can occur see https://developer.mozilla.org/en-US/docs/Web/CSS/image
-				if (htmlNode.style.backgroundImage) {
-					this.replaceStyleImage(htmlNode, "backgroundImage", false)
+			// For a decent table of where <image> CSS type can occur see https://developer.mozilla.org/en-US/docs/Web/CSS/image
+			// Note that we are replacing some properties and outright remove some other ones
 
-					htmlNode.style.backgroundRepeat = "no-repeat"
-				}
-
-				if (htmlNode.style.listStyleImage) {
-					this.replaceStyleImage(htmlNode, "listStyleImage", true)
-				}
-
-				if (htmlNode.style.content) {
-					this.replaceStyleImage(htmlNode, "content", true)
-				}
-
-				if (htmlNode.style.cursor) {
-					this.removeStyleImage(htmlNode, "cursor")
-				}
-
-				if (htmlNode.style.filter) {
-					this.removeStyleImage(htmlNode, "filter")
-				}
-
-				if (htmlNode.style.borderImageSource) {
-					this.removeStyleImage(htmlNode, "border-image-source")
-				}
-
-				if (htmlNode.style.maskImage || htmlNode.style.webkitMaskImage) {
-					this.removeStyleImage(htmlNode, "mask-image")
-					this.removeStyleImage(htmlNode, "-webkit-mask-image")
-				}
-
-				if (htmlNode.style.shapeOutside) {
-					this.removeStyleImage(htmlNode, "shape-outside")
-				}
+			if (this.replaceCssValueIfNeeded(htmlNode, "background-image", config)) {
+				htmlNode.style.backgroundRepeat = "no-repeat"
 			}
+
+			if (this.replaceCssValueIfNeeded(htmlNode, "content", config)) {
+				htmlNode.style.maxWidth = "100px"
+			}
+
+			this.removeCssValueIfNeeded(htmlNode, "list-style-image", config)
+			this.removeCssValueIfNeeded(htmlNode, "cursor", config)
+			this.removeCssValueIfNeeded(htmlNode, "filter", config)
+			this.removeCssValueIfNeeded(htmlNode, "border-image-source", config)
+			this.removeCssValueIfNeeded(htmlNode, "mask-image", config)
+			this.removeCssValueIfNeeded(htmlNode, "-webkit-mask-image", config)
+			this.removeCssValueIfNeeded(htmlNode, "shape-outside", config)
 
 			// Disallow position because you can do bad things with it and it also messes up layout
 			// Do this unconditionally, independent from the external content blocking.
-			if (htmlNode.style.position) {
-				htmlNode.style.removeProperty("position")
-			}
+			htmlNode.style.removeProperty("position")
 		}
 	}
 
+	private replaceCssValueIfNeeded(htmlElement: HTMLElement, cssStyleAttributeName: string, config: SanitizeConfig): boolean {
+		if (htmlElement.style.getPropertyValue(cssStyleAttributeName)) {
+			return (
+				this.replaceCssValueIfDisallowed(htmlElement, cssStyleAttributeName) ||
+				this.replaceCssValueIfExternal(htmlElement, cssStyleAttributeName, config)
+			)
+		} else {
+			return false
+		}
+	}
+
+	private removeCssValueIfNeeded(htmlElement: HTMLElement, cssStyleAttributeName: string, config: SanitizeConfig): boolean {
+		if (htmlElement.style.getPropertyValue(cssStyleAttributeName)) {
+			return (
+				this.removeCssValueIfDisallowed(htmlElement, cssStyleAttributeName) || this.removeCssValueIfExternal(htmlElement, cssStyleAttributeName, config)
+			)
+		} else {
+			return false
+		}
+	}
+
+	private containsDisallowedCssUrls(backgroundImage: string): boolean {
+		// small optimization to not start parsing if there are no URLs
+		if (!backgroundImage.includes("url")) {
+			return false
+		}
+		for (const url of getCssValueUrls(backgroundImage)) {
+			if (!isAllowedLink(url)) {
+				console.log("relative link in CSS!", url)
+				return true
+			}
+		}
+		return false
+	}
+
 	private replaceAttributeValue(htmlNode: HTMLElement, config: SanitizeConfig) {
-		const nodeName = htmlNode.tagName.toLowerCase()
+		const rules: readonly Rule[] = [
+			this.linkPlaceholderRule,
+			this.clickableHrefRule,
+			this.srcsetRule,
+			this.usePlaceholderForInlineImagesRule,
+			this.removeRelativeAttributeValuesRule,
+			this.replaceDraftAttrsWithValuesRule,
+			this.replaceExternalAttributesRule,
+		]
 
 		for (const attrName of EXTERNAL_CONTENT_ATTRS) {
-			let attribute = htmlNode.attributes.getNamedItem(attrName)
+			rulesLoop: for (const rule of rules) {
+				if (rule.tags != null && !rule.tags.includes(htmlNode.tagName.toLowerCase())) {
+					continue rulesLoop
+				}
+				if (rule.attributes != null && !rule.attributes.includes(attrName)) {
+					continue rulesLoop
+				}
 
-			if (attribute) {
-				if (config.usePlaceholderForInlineImages && attribute.value.startsWith("cid:")) {
-					// replace embedded image with local image until the embedded image is loaded and ready to be shown.
-					const cid = attribute.value.substring(4)
-
-					this.inlineImageCids.push(cid)
-
-					attribute.value = this.replacementImageUrl
-					htmlNode.setAttribute("cid", cid)
-					htmlNode.classList.add("tutanota-placeholder")
-				} else if (config.blockExternalContent && attribute.name === "srcset") {
-					this.externalContent++
-
-					htmlNode.setAttribute("draft-srcset", attribute.value)
-					htmlNode.removeAttribute("srcset")
-					htmlNode.setAttribute("src", this.replacementImageUrl)
-					htmlNode.style.maxWidth = "100px"
-				} else if (
-					config.blockExternalContent &&
-					!attribute.value.startsWith("data:") &&
-					!attribute.value.startsWith("cid:") &&
-					!attribute.name.startsWith("draft-") &&
-					!(nodeName === "a") &&
-					!(nodeName === "area") &&
-					!(nodeName === "base") &&
-					!(nodeName === "link")
-				) {
-					// Since we are blocking href now we need to check if the attr isn't
-					// being used by a valid tag (a, area, base, link)
-					this.externalContent++
-
-					htmlNode.setAttribute("draft-" + attribute.name, attribute.value)
-					attribute.value = this.replacementImageUrl
-					htmlNode.attributes.setNamedItem(attribute)
-					htmlNode.style.maxWidth = "100px"
-				} else if (!config.blockExternalContent && DRAFT_ATTRIBUTES.includes(attribute.name)) {
-					if (attribute.name === "draft-src") {
-						htmlNode.setAttribute("src", attribute.value)
-						htmlNode.removeAttribute(attribute.name)
-					} else if (attribute.name === "draft-href" || attribute.name === "draft-xlink:href") {
-						const hrefTag = attribute.name === "draft-href" ? "href" : "xlink:href"
-						htmlNode.setAttribute(hrefTag, attribute.value)
-						htmlNode.removeAttribute(attribute.name)
-					} else {
-						htmlNode.setAttribute("srcset", attribute.value)
-						htmlNode.removeAttribute(attribute.name)
+				const attributeValue = htmlNode.getAttribute(attrName)
+				if (attributeValue) {
+					if (rule.handler(htmlNode, attrName, attributeValue, config) === RuleResult.Handled) {
+						break rulesLoop
 					}
 				}
 			}
@@ -377,21 +407,33 @@ export class HtmlSanitizer {
 	}
 
 	/** NB! {@param cssStyleAttributeName} is a *CSS* name ("border-image-source" as opposed to "borderImageSource"). */
-	private removeStyleImage(htmlNode: HTMLElement, cssStyleAttributeName: string) {
-		let value = htmlNode.style.getPropertyValue(cssStyleAttributeName)
-
-		if (value.match(/url\(/)) {
-			this.externalContent++
-
-			htmlNode.style.removeProperty(cssStyleAttributeName)
+	private replaceCssValueIfDisallowed(htmlNode: HTMLElement, cssStyleAttributeName: string): boolean {
+		const value = htmlNode.style.getPropertyValue(cssStyleAttributeName)
+		if (this.cssValueUnconditionallyDisallowed(value)) {
+			this.replaceStyleAttribute(htmlNode, cssStyleAttributeName)
+			return true
+		} else {
+			return false
 		}
 	}
 
-	/** {@param styleAttributeName} is a JS name for the style */
-	private replaceStyleImage(htmlNode: HTMLElement, styleAttributeName: string, limitWidth: boolean) {
-		let value: string = (htmlNode.style as any)[styleAttributeName]
+	/** NB! {@param cssStyleAttributeName} is a *CSS* name ("border-image-source" as opposed to "borderImageSource"). */
+	private replaceCssValueIfExternal(htmlNode: HTMLElement, cssStyleAttributeName: string, config: SanitizeConfig): boolean {
+		const value: string = htmlNode.style.getPropertyValue(cssStyleAttributeName)
 
-		// if there's a `url(` anywhere in the value and if *the whole* value is not just data URL then replace the whole value with replacement URL
+		if (config.blockExternalContent && this.cssValueDisallowedAsExternal(value)) {
+			this.externalContent++
+			this.replaceStyleAttribute(htmlNode, cssStyleAttributeName)
+			return true
+		} else {
+			return false
+		}
+	}
+
+	private cssValueDisallowedAsExternal(value: string): boolean {
+		// If there are `url(` in the value and not all of them are data: URLs then it could be external.
+		// We will replace the whole value.
+
 		// see tests for treacherous example but also
 		//
 		// ```css
@@ -399,46 +441,41 @@ export class HtmlSanitizer {
 		//     to bottom,
 		//     rgba(255, 255, 0, 0.5),
 		//     rgba(0, 0, 255, 0.5)
-		//   ), url("catfront.png");
+		//   ), url("https://exmaple.com/catfront.png");
 		// ```
-		// in this case background-image can have multiple values but it's safe to just block the whole thing
 		//
+		// ```css
+		// background-image: url("data:123"), url("https://exmaple.com/catfront.png");
+		// ```
 		// some examples where it can be inside a single <image> value:
 		//
-		// cross-fade(20% url(twenty.png), url(eighty.png))
-		// image-set('test.jpg' 1x, 'test-2x.jpg' 2x)
-		if (value.includes("url(") && value.match(/url\(/g)?.length !== value.match(/url\(["']?data:/g)?.length) {
-			this.externalContent++
-			;(htmlNode.style as any)[styleAttributeName] = `url("${this.replacementImageUrl}")`
+		// background-image: cross-fade(20% url(twenty.png), url(eighty.png))
 
-			if (limitWidth) {
-				htmlNode.style.maxWidth = "100px"
-			}
+		// length of all URLs === length of data: URLs ==> all URLs are data: URLs
+		return value.includes("url(") && value.match(/url\(/g)?.length !== value.match(/url\("data:/g)?.length
+	}
+
+	/** NB! {@param cssStyleAttributeName} is a *CSS* name ("border-image-source" as opposed to "borderImageSource"). */
+	private replaceStyleAttribute(htmlNode: HTMLElement, styleAttributeName: string) {
+		htmlNode.style.setProperty(styleAttributeName, `url("${this.replacementImageUrl}")`)
+	}
+
+	private removeCssValueIfDisallowed(htmlNode: HTMLElement, cssStyleAttributeName: string): boolean {
+		if (this.cssValueUnconditionallyDisallowed(htmlNode.style.getPropertyValue(cssStyleAttributeName))) {
+			htmlNode.style.removeProperty(cssStyleAttributeName)
+			return true
+		} else {
+			return false
 		}
 	}
 
-	private processLink(currentNode: HTMLElement, config: SanitizeConfig) {
-		// set target="_blank" for all links
-		// collect them
-		if (
-			currentNode.tagName &&
-			(currentNode.tagName.toLowerCase() === "a" || currentNode.tagName.toLowerCase() === "area" || currentNode.tagName.toLowerCase() === "form")
-		) {
-			const href = currentNode.getAttribute("href")
-			if (href) this.links.push(currentNode)
-
-			if (config.allowRelativeLinks || !href || isAllowedLink(href)) {
-				currentNode.setAttribute("rel", "noopener noreferrer")
-				currentNode.setAttribute("target", "_blank")
-			} else if (href.trim() === "{link}") {
-				// notification mail template
-				downcast(currentNode).href = "{link}"
-				currentNode.setAttribute("rel", "noopener noreferrer")
-				currentNode.setAttribute("target", "_blank")
-			} else {
-				console.log("Relative/invalid URL", currentNode, href)
-				downcast(currentNode).href = "javascript:void(0)"
-			}
+	private removeCssValueIfExternal(htmlNode: HTMLElement, cssStyleAttributeName: string, config: SanitizeConfig): boolean {
+		if (config.blockExternalContent && this.cssValueDisallowedAsExternal(htmlNode.style.getPropertyValue(cssStyleAttributeName))) {
+			this.externalContent++
+			htmlNode.style.removeProperty(cssStyleAttributeName)
+			return true
+		} else {
+			return false
 		}
 	}
 
@@ -486,12 +523,149 @@ export class HtmlSanitizer {
 			}
 		}
 	}
+
+	/**
+	 * Preserve href that is literally `{link}` on specified elements.
+	 * Add element to {@link this.links}.
+	 */
+	private readonly linkPlaceholderRule: Rule = {
+		attributes: ["href"],
+		tags: ["a", "area", "form"],
+		handler: (element, _attributeName, attributeValue, _config) => {
+			// TODO: would be good to maybe depend on config
+			if (attributeValue === "{link}") {
+				element.setAttribute("rel", "noopener noreferrer")
+				element.setAttribute("target", "_blank")
+				this.links.push(element)
+				return RuleResult.Handled
+			}
+			return RuleResult.NotHandled
+		},
+	}
+
+	/**
+	 * For elements where `href` defines destination (as opposed to resource) check and replace any URLs that
+	 * might be relative or resource URLs.
+	 * Add element to {@link this.links}.
+	 */
+	private readonly clickableHrefRule: Rule = {
+		attributes: ["href"],
+		tags: ["a", "area", "form"],
+		handler: (element, attributeName, attributeValue, config) => {
+			if (!config.allowRelativeLinks && !isAllowedLink(attributeValue)) {
+				element.setAttribute(attributeName, "javascript:void(0)")
+			} else {
+				element.setAttribute("rel", "noopener noreferrer")
+				element.setAttribute("target", "_blank")
+			}
+			this.links.push(element)
+			return RuleResult.Handled
+		},
+	}
+
+	/**
+	 * Parse and replace `srcset` attributes that have relative or external URLs.
+	 * It is a separate rule because `srcset` has a special syntax.
+	 */
+	private readonly srcsetRule: Rule = {
+		attributes: ["srcset"],
+		handler: (element, _attributeName, attributeValue, _config) => {
+			let urls: string[]
+			try {
+				urls = parseSrcsetUrls(attributeValue)
+			} catch (e) {
+				if (e instanceof ParserError) {
+					// if we can't parse it, it's likely invalid
+					element.setAttribute("srcset", this.replacementImageUrl)
+					return RuleResult.Handled
+				} else {
+					throw e
+				}
+			}
+
+			for (const url of urls) {
+				if (!isAllowedLink(url)) {
+					element.setAttribute("srcset", this.replacementImageUrl)
+					break
+				} else if (isExternalUrl(url)) {
+					this.externalContent++
+					element.setAttribute("srcset", this.replacementImageUrl)
+					element.setAttribute("draft-srcset", attributeValue)
+					break
+				}
+			}
+
+			return RuleResult.Handled
+		},
+	}
+
+	private readonly usePlaceholderForInlineImagesRule: Rule = {
+		handler: (element, attributeName, attributeValue, config) => {
+			if (config.usePlaceholderForInlineImages && attributeValue.startsWith("cid:")) {
+				// replace embedded image with local image until the embedded image is loaded and ready to be shown.
+				const cid = attributeValue.substring(4)
+
+				this.inlineImageCids.push(cid)
+
+				element.setAttribute(attributeName, this.replacementImageUrl)
+				element.setAttribute("cid", cid)
+				element.classList.add("tutanota-placeholder")
+				return RuleResult.Handled
+			}
+			return RuleResult.NotHandled
+		},
+	}
+
+	private readonly removeRelativeAttributeValuesRule: Rule = {
+		handler: (element, attributeName, attributeValue, config) => {
+			if (!isAllowedLink(attributeValue)) {
+				element.setAttribute(attributeName, this.replacementImageUrl)
+				return RuleResult.Handled
+			} else {
+				return RuleResult.NotHandled
+			}
+		},
+	}
+
+	private readonly replaceDraftAttrsWithValuesRule: Rule = {
+		attributes: DRAFT_ATTRIBUTES,
+		handler: (element, attributeName, attributeValue, config) => {
+			if (!config.blockExternalContent) {
+				const nonDraftAttrName = attributeName.substring("draft-".length)
+				element.setAttribute(nonDraftAttrName, attributeValue)
+				element.removeAttribute(attributeName)
+				return RuleResult.Handled
+			} else {
+				return RuleResult.NotHandled
+			}
+		},
+	}
+
+	private readonly replaceExternalAttributesRule: Rule = {
+		handler: (element, attributeName, attributeValue, config) => {
+			if (config.blockExternalContent && isExternalUrl(attributeValue) && !attributeName.startsWith("draft-")) {
+				this.externalContent++
+
+				element.setAttribute("draft-" + attributeName, attributeValue)
+				element.setAttribute(attributeName, this.replacementImageUrl)
+				element.style.maxWidth = "100px"
+				return RuleResult.Handled
+			} else {
+				return RuleResult.NotHandled
+			}
+		},
+	}
+}
+
+function isExternalUrl(url: string) {
+	return !url.startsWith("data:") && !url.startsWith("cid:")
 }
 
 function isAllowedLink(link: string): boolean {
 	try {
 		// We create URL without explicit base (second argument). It is an error for relative links
-		return new URL(link).protocol !== "file:"
+		const parsedUrl = new URL(link)
+		return parsedUrl.protocol !== "file:" && parsedUrl.protocol !== "asset:" && parsedUrl.protocol !== "api:"
 	} catch (e) {
 		return false
 	}
@@ -503,6 +677,103 @@ function isTextElement(node: Node): node is Text {
 	// The node name of text elements is "#text"
 	// see https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeName
 	return node.nodeName === "#text"
+}
+
+/**
+ * Extract URLs from CSS **normalized** property value.
+ * e.g. for `url("hello.jpg"), linear-gradient(red, black), url("bye.jpg")`
+ * it would return ["hello.jpg", "bye.jpg"]
+ *
+ * "Normalized" means that it has been processed by "Serializing CSS values" algorithm:
+ * https://drafts.csswg.org/cssom/#serializing-css-values
+ *
+ * Which is what browsers normally return with CSSOM.
+ */
+export function getCssValueUrls(cssValue: string): string[] {
+	const singleUrlParser = mapParser(combineParsers(stringParser("url("), makeEscapedStringParser(), makeCharacterParser(`)`)), ([, url]) => url)
+	const parser: Parser<string[]> = mapParser(
+		makeSeparatedByParser(combineParsers(makeCharacterParser(","), makeCharacterParser(" ")), makeDiscardingParser(singleUrlParser)),
+		(values) => values.filter(isNotNull),
+	)
+	return parser(new StringIterator(cssValue))
+}
+
+export function parseSrcsetUrls(value: string): string[] {
+	/*
+	 *  > If present, its value must consist of one or more image candidate strings, each separated from the next by a U+002C COMMA character (,). If an image candidate string contains no descriptors and no ASCII whitespace after the URL, the following image candidate string, if there is one, must begin with one or more ASCII whitespace.
+	 *  > An image candidate string consists of the following components, in order, with the further restrictions described below this list:
+	 *  >   1. Zero or more ASCII whitespace.
+	 *  >   2. A valid non-empty URL that does not start or end with a U+002C COMMA character (,), referencing a non-interactive, optionally animated, image resource that is neither paged nor scripted.
+	 *  >   3. Zero or more ASCII whitespace.
+	 *  >   4. Zero or one of the following:
+	 *  >      * A width descriptor, consisting of: ASCII whitespace, a valid non-negative integer giving a number greater than zero representing the width descriptor value, and a U+0077 LATIN SMALL LETTER W character.
+	 *  >      * A pixel density descriptor, consisting of: ASCII whitespace, a valid floating-point number giving a number greater than zero representing the pixel density descriptor value, and a U+0078 LATIN SMALL LETTER X character.
+	 *  >   5. Zero or more ASCII whitespace.
+	 *
+	 * One could imagine ABNF like this:
+	 *
+	 *   srcset             = candidate *(comma *whitespace candidate)
+	 *   comma              = #x2C
+	 *   whitespace         = WSP / LF / CR / FF  ; ASCII whitespace is U+0009 TAB, U+000A LF, U+000C FF, U+000D CR, or U+0020 SPACE.
+	 *   FF                 = #x0C
+	 *   candidate          = *whitespace url [cond-descriptor] *whitespace ; URL is any valid URL expect it can't start or end with a comma
+	 *   cond-descriptor    = width-descriptor / density-descriptor
+	 *   width-descriptor   = WSP integer "w"
+	 *   density-descriptor = WSP float "x"
+	 *   integer            = 1*DIGIT
+	 *   float              = 1*DIGIT "." 1*DIGIT [e / E [- / +] 1*DIGIT]
+	 */
+
+	const trimmed = value.trim()
+	if (trimmed === "") {
+		return []
+	}
+
+	const whitespcaes = ["\u0009", "\u000A", "\u000C", "\u000D", "\u0020"] as readonly string[]
+	const whitespaceParser = makeOneOfCharactersParser(whitespcaes)
+	const urlParser: Parser<string> = (iterator) => {
+		let result = ""
+		do {
+			const nextChar: string | null = iterator.peek()
+			if (nextChar == null || whitespcaes.includes(nextChar)) {
+				break
+			} else if (nextChar === ",") {
+				const afterComma = iterator.iteratee[iterator.position + 2]
+				if (whitespcaes.includes(afterComma)) {
+					break
+				} else if (afterComma == null) {
+					throw new ParserError("Not a valid URL: string ends with comma")
+				} else {
+					result += nextChar
+				}
+			} else {
+				result += nextChar
+			}
+		} while (!iterator.next().done)
+
+		if (result === "") {
+			throw new ParserError("Empty URL")
+		} else {
+			return result
+		}
+	}
+	const widthDescriptorParser = combineParsers(whitespaceParser, numberParser, makeCharacterParser("w"))
+	const densityDescriptorParser = combineParsers(
+		whitespaceParser,
+		numberParser,
+		maybeParse(combineParsers(makeCharacterParser("."), numberParser)),
+		maybeParse(combineParsers(makeOneOfCharactersParser(["e", "E"]), maybeParse(makeOneOfCharactersParser(["+", "-"])), numberParser)),
+		makeCharacterParser("x"),
+	)
+	const descriptorParser = makeEitherParser(widthDescriptorParser, densityDescriptorParser)
+	const candidateParser: Parser<string> = mapParser(
+		combineParsers(makeZeroOrMoreParser(whitespaceParser), urlParser, maybeParse(descriptorParser), makeZeroOrMoreParser(whitespaceParser)),
+		([_, url]) => url,
+	)
+	const srcsetParser = makeSeparatedByParser(makeCharacterParser(","), candidateParser)
+
+	const valueWithoutTrailingComma = trimmed.at(-1) === "," ? trimmed.slice(0, -1) : trimmed
+	return srcsetParser(new StringIterator(valueWithoutTrailingComma))
 }
 
 export const getHtmlSanitizer = memoized(() => {

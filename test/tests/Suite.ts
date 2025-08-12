@@ -173,6 +173,7 @@ import "./api/worker/offline/PatchMergerTest.js"
 import "./contacts/ContactModelTest.js"
 import "./api/worker/search/OfflinestorageIndexerTest.js"
 import "./api/worker/EventInstancePrefetcherTest.js"
+import "./misc/parsing/ParserCombinatorTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"

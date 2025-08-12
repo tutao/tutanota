@@ -258,8 +258,8 @@ export function mockFetchRequest(mock: typeof undiciFetch, url: string, headers:
 	return jsonDefer.promise
 }
 
-export function textIncludes(match: string): (text: string) => { pass: true } | { pass: false; message: string } {
-	return (text) => (text.includes(match) ? { pass: true } : { pass: false, message: `should include: "${match}"` })
+export function textIncludes(match: string): (text: string) => { pass: boolean; message: string } {
+	return (text) => ({ pass: text.includes(match), message: `should include: "${match}"` })
 }
 
 export function equalToArray<A extends any[]>(

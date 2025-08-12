@@ -17,19 +17,21 @@ export class ParserError extends TutanotaError {
 export const combineParsers: (<A, B>(arg0: Parser<A>, arg1: Parser<B>) => Parser<[A, B]>) &
 	(<A, B, C>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>) => Parser<[A, B, C]>) &
 	(<A, B, C, D>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>, arg3: Parser<D>) => Parser<[A, B, C, D]>) &
-	(<A, B, C, D, E>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>, arg3: Parser<D>, arg4: Parser<E>) => Parser<[A, B, C, D, E]>) = downcast(
-	(...parsers: any[]) =>
-		(iterator: StringIterator) =>
-			parsers.map((p) => p(iterator)),
-)
+	(<A, B, C, D, E>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>, arg3: Parser<D>, arg4: Parser<E>) => Parser<[A, B, C, D, E]>) &
+	(<A, B, C, D, E, F>(arg0: Parser<A>, arg1: Parser<B>, arg2: Parser<C>, arg3: Parser<D>, arg4: Parser<E>, arg5: Parser<F>) => Parser<[A, B, C, D, E, F]>) =
+	downcast(
+		(...parsers: any[]) =>
+			(iterator: StringIterator) =>
+				parsers.map((p) => p(iterator)),
+	)
 
-export function makeCharacterParser(character: string): Parser<string> {
+export function makeCharacterParser<T extends string>(character: T): Parser<T> {
 	return (iterator: StringIterator) => {
 		let value = iterator.peek()
 
 		if (value === character) {
 			iterator.next()
-			return value
+			return character
 		}
 
 		const sliceStart = Math.max(iterator.position - 10, 0)
@@ -103,6 +105,28 @@ export function maybeParse<T>(parser: Parser<T>): Parser<T | null> {
 	}
 }
 
+/**
+ * Matches a string exactly.
+ */
+export function stringParser<T extends string>(stringToMatch: T): Parser<T> {
+	return (iterator) => {
+		const startIndex = iterator.position + 1
+		if (iterator.iteratee[startIndex] !== stringToMatch[0]) {
+			throw new ParserError("First characters don't match")
+		}
+
+		const sliced = iterator.iteratee.slice(startIndex, startIndex + stringToMatch.length)
+		if (sliced === stringToMatch) {
+			iterator.position += stringToMatch.length
+			return stringToMatch
+		} else {
+			const sliceStart = Math.max(iterator.position - 10, 0)
+			const sliceEnd = Math.min(iterator.position + 10, iterator.iteratee.length - 1)
+			throw new ParserError(`Expected to match "${stringToMatch}", got "${sliced}" near "${iterator.iteratee.slice(sliceStart, sliceEnd)}"`)
+		}
+	}
+}
+
 export function makeSeparatedByParser<S, T>(separatorParser: Parser<S>, valueParser: Parser<T>): Parser<Array<T>> {
 	return (iterator) => {
 		const result: T[] = []
@@ -139,7 +163,31 @@ export function makeEitherParser<A, B>(parserA: Parser<A>, parserB: Parser<B>): 
 	}
 }
 
-export function makeOneOfCharactersParser(allowed: Array<string>): Parser<string> {
+/**
+ * Attempts to parse the input using {@param parser}, ignores the rest.
+ */
+export function makeDiscardingParser<T>(parser: Parser<T>): Parser<T | null> {
+	return (iterator) => {
+		let result: T | null = null
+		do {
+			const iteratorPosition = iterator.position
+			try {
+				result = parser(iterator)
+				return result
+			} catch (e) {
+				if (e instanceof ParserError) {
+					iterator.position = iteratorPosition
+				} else {
+					throw e
+				}
+			}
+		} while (!iterator.next().done)
+
+		return result
+	}
+}
+
+export function makeOneOfCharactersParser(allowed: readonly string[]): Parser<string> {
 	return (iterator: StringIterator) => {
 		const value = iterator.peek()
 
@@ -173,6 +221,39 @@ export const numberParser: Parser<number> = mapParser(
 	makeOneOrMoreParser(makeOneOfCharactersParser(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"])),
 	(values) => parseInt(values.join(""), 10),
 )
+
+/**
+ * Parses everything until the end of the string and unescapes what it should.
+ * Asserts that the value is surrounded by {@param delimiter}. Delimiter is not included in the output
+ */
+export function makeEscapedStringParser(delimiter: string = `"`): Parser<string> {
+	return (iterator) => {
+		let value = ""
+		let lastCharacter: string | null = null
+
+		if (iterator.next().value !== delimiter) {
+			throw new ParserError("String does not start with end character")
+		}
+
+		while ((lastCharacter = iterator.next().value) != null) {
+			if (lastCharacter === "\\") {
+				// if there is another character after the escape, take it to the value, but do not treat it as an
+				// delimiter
+				const escapedCharacter = iterator.next().value
+				if (escapedCharacter != null) {
+					value += escapedCharacter
+				} else {
+					throw new ParserError("String ends on escape")
+				}
+			} else if (lastCharacter === delimiter) {
+				return value
+			} else {
+				value += lastCharacter
+			}
+		}
+		throw new ParserError("String does not end if end character")
+	}
+}
 
 export class StringIterator {
 	iteratee: string
