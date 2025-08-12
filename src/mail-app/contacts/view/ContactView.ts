@@ -6,7 +6,7 @@ import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button
 import { ContactEditor } from "../ContactEditor"
 import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
-import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
+import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
 import { ContactMergeAction, Keys } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp } from "../../../common/api/common/Env"
@@ -167,7 +167,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			{
 				minWidth: size.third_col_min_width,
 				maxWidth: size.third_col_max_width,
-				ariaLabel: () => this.getHeaderLabel(),
+				ariaLabel: () => lang.get("contacts_label"),
 			},
 		)
 
@@ -203,7 +203,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							...header,
 							backAction: () => this.viewSlider.focusPreviousColumn(),
 							columnType: "first",
-							title: this.listColumn.getTitle(),
+							title: this.getHeaderLabel(),
 							actions: m(".flex", [
 								this.renderSortByButton(),
 								m(EnterMultiselectIconButton, {
@@ -237,7 +237,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							...header,
 							backAction: () => this.viewSlider.focusPreviousColumn(),
 							columnType: "first",
-							title: this.listColumn.getTitle(),
+							title: this.getHeaderLabel(),
 							actions: m(".flex", [
 								m(EnterMultiselectIconButton, {
 									clickAction: () => {
@@ -347,9 +347,10 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		)
 	}
 
-	private getHeaderLabel(): TranslationKey {
+	private getHeaderLabel(): TranslationKey | Translation {
 		if (this.inContactListView()) {
-			return "contactLists_label"
+			const contactListName = this.contactListViewModel.getSelectedContactListInfo()?.name
+			return contactListName ? lang.makeTranslation("contactList_name", contactListName) : "emptyString_msg"
 		} else {
 			return "contacts_label"
 		}
