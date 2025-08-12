@@ -4088,7 +4088,6 @@ export type TimelockCaptchaGetIn = {
 
 	_format: NumberString;
 	signupToken: string;
-	isCalibrationChallenge: null | boolean;
 	timeToSolveCalibrationChallenge: null | NumberString;
 
 	deviceInfo: null | ClientPerformanceInfo;

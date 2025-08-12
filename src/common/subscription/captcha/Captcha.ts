@@ -158,7 +158,6 @@ export async function runPowChallenge(signupToken: string): Promise<PowSolution>
 	const data = createTimelockCaptchaGetIn({
 		signupToken,
 		deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: client.isAutomatedBrowser }),
-		isCalibrationChallenge: false,
 		timeToSolveCalibrationChallenge: powWorker.timeToSolveCalibrationChallenge.toString(),
 	})
 	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data)
@@ -202,7 +201,7 @@ export class PowWorker {
 			reject(new Error(err.message))
 		}
 		this.worker.onmessage = (msg) => {
-			resolve(msg.data.solution)
+			resolve(msg.data)
 		}
 		this.worker.postMessage(challenge)
 		return promise

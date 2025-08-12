@@ -19,6 +19,6 @@ const calibrationChallenge: PowChallengeParameters = {
 }
 
 const start = performance.now()
-const calibrationChallengeSolution = solvePowChallenge(calibrationChallenge)
+solvePowChallenge(calibrationChallenge)
 const end = performance.now()
 self.postMessage({ isReady: true, timeToSolveCalibrationChallenge: end - start })

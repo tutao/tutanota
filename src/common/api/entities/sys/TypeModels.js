@@ -8426,10 +8426,10 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"2639": {
+			"2640": {
 				"final": false,
 				"name": "isAutomatedBrowser",
-				"id": 2639,
+				"id": 2640,
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
@@ -14509,14 +14509,6 @@ export const typeModels = {
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"2644": {
-				"final": false,
-				"name": "isCalibrationChallenge",
-				"id": 2644,
-				"type": "Boolean",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
 			"2645": {
 				"final": false,
 				"name": "timeToSolveCalibrationChallenge",
@@ -14527,13 +14519,13 @@ export const typeModels = {
 			}
 		},
 		"associations": {
-			"2643": {
+			"2644": {
 				"final": false,
 				"name": "deviceInfo",
-				"id": 2643,
+				"id": 2644,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 2640,
+				"refTypeId": 2641,
 				"dependency": null
 			}
 		}
@@ -14585,30 +14577,30 @@ export const typeModels = {
 		},
 		"associations": {}
 	},
-	"2640": {
+	"2641": {
 		"name": "ClientPerformanceInfo",
 		"app": "sys",
 		"version": 137,
-		"since": 136,
+		"since": 137,
 		"type": "AGGREGATED_TYPE",
-		"id": 2640,
-		"rootId": "A3N5cwAKUA",
+		"id": 2641,
+		"rootId": "A3N5cwAKUQ",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2641": {
+			"2642": {
 				"final": true,
 				"name": "_id",
-				"id": 2641,
+				"id": 2642,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"2642": {
+			"2643": {
 				"final": false,
 				"name": "isAutomatedBrowser",
-				"id": 2642,
+				"id": 2643,
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false

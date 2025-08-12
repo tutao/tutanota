@@ -14504,16 +14504,8 @@
 			},
 			"2645": {
 				"final": false,
-				"name": "isCalibrationChallenge",
-				"id": 2645,
-				"type": "Boolean",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"2646": {
-				"final": false,
 				"name": "timeToSolveCalibrationChallenge",
-				"id": 2646,
+				"id": 2645,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
