@@ -20,6 +20,7 @@ use crate::user_facade::UserFacade;
 use crate::util::first_bigger_than_second_custom_id;
 use crate::{ApiCallError, CustomId, GeneratedId, ListLoadDirection};
 use num_enum::TryFromPrimitive;
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::string::ToString;
@@ -46,7 +47,7 @@ pub struct CalendarRenderData {
 	pub color: String,
 }
 
-#[derive(uniffi::Record)]
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 pub struct CalendarEventsList {
 	pub short_events: Vec<CalendarEvent>,
 	pub long_events: Vec<CalendarEvent>,
@@ -191,7 +192,7 @@ impl CalendarFacade {
 		let mut has_short_events_finished = false;
 		let mut has_long_events_finished = false;
 
-		let mut start_short_id = get_event_element_min_id(start_range);
+		let mut start_short_id = get_event_element_min_id(start_date.as_millis());
 		let max_short_id = get_event_element_max_id(end_range);
 		let mut start_long_id = CustomId("".to_owned());
 		let max_long_id = get_max_timestamp_id();
@@ -221,7 +222,7 @@ impl CalendarFacade {
 			has_short_events_finished = is_done;
 			start_short_id = new_start;
 			let mut filtered_short_events = self.filter_events_in_range(
-				start_range,
+				start_date.as_millis(),
 				end_range,
 				&RangeWithOffset(start_in_offset, end_in_offset),
 				&unwraped_short_events,
@@ -301,7 +302,7 @@ impl CalendarFacade {
 
 			unwraped_long_events.append(&mut advanced_instances);
 			let mut filtered_long_events = self.filter_events_in_range(
-				start_range,
+				start_date.as_millis(),
 				end_range,
 				&RangeWithOffset(start_in_offset, end_in_offset),
 				&unwraped_long_events,
