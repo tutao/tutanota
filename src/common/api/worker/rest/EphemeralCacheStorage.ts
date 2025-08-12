@@ -288,15 +288,14 @@ export class EphemeralCacheStorage implements CacheStorage {
 			// if the element already exists in the cache, overwrite it
 			// add new element to existing list if necessary
 			cache.elements.set(elementId, entity)
-			const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
-			if (await this.isElementIdInCacheRange(typeRef, listId, customIdToBase64Url(typeModel, elementId))) {
-				this.insertIntoRange(cache.allRange, elementId)
-			}
+			// always put the item into allRange(backing array only used by ephemeralCache), even if it has not updated
+			// the range yet. It is a better option to have the item and range not updated yet than the opposite
+			this.insertIntoAllRange(cache.allRange, elementId)
 		}
 	}
 
 	/** precondition: elementId is converted to base64ext if necessary */
-	private insertIntoRange(allRange: Array<Id>, elementId: Id) {
+	private insertIntoAllRange(allRange: Array<Id>, elementId: Id) {
 		for (let i = 0; i < allRange.length; i++) {
 			const rangeElement = allRange[i]
 			if (firstBiggerThanSecond(rangeElement, elementId)) {
