@@ -89,7 +89,7 @@ struct AgendaProvider: AppIntentTimelineProvider {
 		var entries: [WidgetEntry] = []
 
 		let currentDate = Date()
-		let startOfTomorrow = Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 1, to: currentDate)!)
+		let nextPeriod = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
 
 		guard let userId = configuration.account?.id else {
 			let errorEntry = makeErrorEntry(configuration: configuration, error: .missingConfiguration)
@@ -103,7 +103,7 @@ struct AgendaProvider: AppIntentTimelineProvider {
 			let (normalEvents, longEvents) = try await model.getEventsForCalendars(calendars, date: currentDate)
 			let frameOffset = 60.0 * 15  // 60 seconds * 15 = 15 minutes
 
-			for date in stride(from: currentDate, to: startOfTomorrow, by: frameOffset) {
+			for date in stride(from: currentDate, to: nextPeriod, by: frameOffset) {
 				let filteredNormalEvents = normalEvents.filter { $0.endDate.timeIntervalSince1970 >= date.timeIntervalSince1970 }
 				let entry = WidgetEntry(date: date, configuration: configuration, events: (filteredNormalEvents, longEvents), error: nil)
 				entries.append(entry)
@@ -119,7 +119,7 @@ struct AgendaProvider: AppIntentTimelineProvider {
 			printLog("Error loading events with user \(userId) for widget: \(error)")
 		}
 
-		return Timeline(entries: entries, policy: .after(startOfTomorrow))
+		return Timeline(entries: entries, policy: .atEnd)
 	}
 
 	func placeholder(in context: Context) -> WidgetEntry {
@@ -199,7 +199,7 @@ struct AgendaWidgetEntryView: View {
 	private func EventsList() -> some View {
 		let eventsToList = normalEvents.isEmpty ? allDayEvents : normalEvents
 		return LazyVStack(alignment: .leading, spacing: 4) {
-			ForEach(eventsToList, id: \.id) { event in
+			ForEach(eventsToList, id: \.self) { event in
 				let calendarColor = UIColor(hex: event.calendarColor) ?? .white
 				let eventTime =
 					eventsToList == allDayEvents
