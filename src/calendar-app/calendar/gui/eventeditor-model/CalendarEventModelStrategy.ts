@@ -16,7 +16,6 @@ import {
 	CalendarOperation,
 	ShowProgressCallback,
 } from "./CalendarEventModel.js"
-import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { DateTime } from "luxon"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 
@@ -36,7 +35,6 @@ export interface CalendarEventModelStrategy {
 export class CalendarEventApplyStrategies {
 	constructor(
 		private readonly calendarModel: CalendarModel,
-		private readonly logins: LoginController,
 		private readonly notificationModel: CalendarNotificationModel,
 		private readonly lazyRecurrenceIds: (uid?: string | null) => Promise<Array<Date>>,
 		private readonly showProgress: ShowProgressCallback = identity,

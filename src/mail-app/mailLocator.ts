@@ -457,7 +457,6 @@ class MailLocator implements CommonLocator {
 			mailboxProperties,
 			sendMailModelFactory,
 			calendarNotificationSender,
-			this.entityClient,
 			responseTo,
 			getTimeZone(),
 			showProgress,

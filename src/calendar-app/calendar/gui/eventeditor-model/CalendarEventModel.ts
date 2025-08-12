@@ -82,7 +82,6 @@ import { NotFoundError, PayloadTooLargeError } from "../../../../common/api/comm
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
-import { EntityClient } from "../../../../common/api/common/EntityClient.js"
 import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import m from "mithril"
@@ -176,7 +175,6 @@ export async function makeCalendarEventModel(
 	mailboxProperties: MailboxProperties,
 	sendMailModelFactory: lazy<SendMailModel>,
 	notificationSender: CalendarNotificationSender,
-	entityClient: EntityClient,
 	responseTo: Mail | null,
 	zone: string = getTimeZone(),
 	showProgress: ShowProgressCallback = identity,
@@ -235,7 +233,7 @@ export async function makeCalendarEventModel(
 	const recurrenceIds = async (uid?: string) =>
 		uid == null ? [] : ((await calendarModel.getEventsByUid(uid))?.alteredInstances.map((i) => i.recurrenceId) ?? [])
 	const notificationModel = new CalendarNotificationModel(notificationSender, logins)
-	const applyStrategies = new CalendarEventApplyStrategies(calendarModel, logins, notificationModel, recurrenceIds, showProgress, zone)
+	const applyStrategies = new CalendarEventApplyStrategies(calendarModel, notificationModel, recurrenceIds, showProgress, zone)
 	const initialOrDefaultValues = Object.assign(makeEmptyCalendarEvent(), initialValues)
 	const cleanInitialValues = cleanupInitialValuesForEditing(initialOrDefaultValues)
 	const progenitor = () => calendarModel.resolveCalendarEventProgenitor(cleanInitialValues)
@@ -247,7 +245,7 @@ export async function makeCalendarEventModel(
 		createCalendarEvent(initialOrDefaultValues),
 		cleanInitialValues,
 	)
-	return strategy && new CalendarEventModel(strategy, eventType, operation, logins.getUserController(), notificationSender, entityClient, calendars)
+	return strategy && new CalendarEventModel(strategy, eventType, operation, logins.getUserController())
 }
 
 async function selectStrategy(
@@ -352,12 +350,7 @@ export class CalendarEventModel {
 		// UserController already keeps track of user updates, it is better to not have our own reference to the user, we might miss
 		// important updates like premium upgrade
 		readonly userController: UserController,
-		private readonly distributor: CalendarNotificationSender,
-		private readonly entityClient: EntityClient,
-		private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
-	) {
-		this.calendars = calendars
-	}
+	) {}
 
 	async apply(): Promise<EventSaveResult> {
 		if (this.userController.user.accountType === AccountType.EXTERNAL) {

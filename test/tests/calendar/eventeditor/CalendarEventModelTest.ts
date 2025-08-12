@@ -1,9 +1,7 @@
 import o from "@tutao/otest"
 import { AccountType, CalendarAttendeeStatus, EndType, RepeatPeriod } from "../../../../src/common/api/common/TutanotaConstants.js"
 import { func, matchers, object, verify, when } from "testdouble"
-import { UserController } from "../../../../src/common/api/main/UserController.js"
 import {
-	CalendarEventEditModels,
 	CalendarOperation,
 	eventHasChanged,
 	EventSaveResult,
@@ -137,7 +135,6 @@ o.spec("CalendarEventModel", function () {
 				mailboxProperties,
 				sendModelFac,
 				distributor,
-				entityClient,
 				null,
 				"Europe/Berlin",
 				identity,

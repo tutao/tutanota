@@ -367,7 +367,6 @@ class CalendarLocator implements CommonLocator {
 			mailboxProperties,
 			sendMailModelFactory,
 			calendarNotificationSender,
-			this.entityClient,
 			responseTo,
 			getTimeZone(),
 			showProgress,
