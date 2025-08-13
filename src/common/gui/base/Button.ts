@@ -20,6 +20,7 @@ export const enum ButtonColor {
 	Elevated = "elevated",
 	DrawerNav = "drawernav",
 	Fab = "fab",
+	Dialog = "dialog",
 }
 
 export function getColors(buttonColors: ButtonColor | null | undefined): {
@@ -51,6 +52,11 @@ export function getColors(buttonColors: ButtonColor | null | undefined): {
 				border: getElevatedBackground(),
 			}
 
+		case ButtonColor.Dialog:
+			return {
+				button: theme.content_button,
+				border: theme.content_border,
+			}
 		case ButtonColor.Content:
 		default:
 			return {
