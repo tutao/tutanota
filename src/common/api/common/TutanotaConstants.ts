@@ -1358,6 +1358,7 @@ export enum RolloutType {
 	SharedMailboxIdentityKeyCreation = "1",
 	AdminOrUserGroupKeyRotation = "2",
 	OtherGroupKeyRotation = "3",
+	GroupKeyUpdatePending = "4",
 }
 
 /**
