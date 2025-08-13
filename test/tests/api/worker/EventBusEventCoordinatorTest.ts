@@ -257,7 +257,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 
 		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId")
 
-		verify(keyRotationFacadeMock.updateGroupMemberships([[instanceListId, instanceId]]))
+		verify(keyRotationFacadeMock.updateGroupMembershipsInOneList([[instanceListId, instanceId]]))
 		verify(userFacade.updateUser(user), { times: 0 })
 		verify(cacheManagementFacade.tryUpdatingUserGroupKey(), { times: 0 })
 		verify(eventController.onEntityUpdateReceived(updates, "groupId"))
