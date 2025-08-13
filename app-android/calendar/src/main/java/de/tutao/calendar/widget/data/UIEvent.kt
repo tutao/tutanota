@@ -11,6 +11,6 @@ data class UIEvent(
 	val startTime: String,
 	val endTime: String,
 	val isAllDay: Boolean,
-	val startTimestamp: ULong,
+	val startTimestamp: Long,
 	val isBirthday: Boolean = false
 )
