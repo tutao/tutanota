@@ -6,8 +6,6 @@ import { px, size } from "../../../../common/gui/size.js"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { assertMainOrNode } from "../../../../common/api/common/Env.js"
 import { debounceStart, noOp } from "@tutao/tutanota-utils"
-import { IconButton, IconButtonAttrs } from "../../../../common/gui/base/IconButton"
-import { Icons } from "../../../../common/gui/base/icons/Icons"
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
@@ -70,16 +68,7 @@ export function showDateRangeSelectionDialog({
 								nullSelectionText: optionalStartDate ? "unlimited_label" : undefined,
 							}),
 						),
-						startDate && optionalStartDate
-							? m(IconButton, {
-									icon: Icons.Cancel,
-									title: "remove_action",
-									click: () => {
-										startDate = null
-										warning = null
-									},
-								} satisfies IconButtonAttrs)
-							: m(".button-height.button-width-fixed"),
+						m(".button-height.button-width-fixed"),
 						m("", lang.get("dateTo_label")),
 						m(
 							".flex-grow.flex-space-between.flex-column",
