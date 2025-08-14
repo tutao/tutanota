@@ -1,14 +1,15 @@
 import { assertMainOrNode } from "../../api/common/Env"
-import type { BaseThemeId, Theme } from "../../gui/theme"
-import { assertNotNull, clone, debounceStart, downcast } from "@tutao/tutanota-utils"
+import { BaseThemeId, MATERIAL_COLORS, Theme } from "../../gui/theme"
+import { clone, downcast } from "@tutao/tutanota-utils"
 import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
 import { isValidColorCode } from "../../gui/base/Color"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import type { CustomizationKey, ThemeCustomizations, ThemeKey } from "../../misc/WhitelabelCustomizations"
+import { CustomizationKey, ThemeCustomizations, ThemeKey, WHITELABEL_CUSTOMIZATION_VERSION } from "../../misc/WhitelabelCustomizations"
 import { ThemeController } from "../../gui/ThemeController"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
+import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
 
 assertMainOrNode()
 export type CustomColor = {
@@ -22,13 +23,14 @@ export class CustomColorsEditorViewModel {
 	private _customizations: ThemeCustomizations
 	private readonly _whitelabelConfig: WhitelabelConfig
 	private readonly _whitelabelDomainInfo: DomainInfo
-	private _accentColor!: string
+	private _sourceColor!: string
 	private _baseTheme!: BaseThemeId
 	private readonly _themeController: ThemeController
 	private readonly _entityClient: EntityClient
 	private readonly _loginController: LoginController
 	private readonly _themeBeforePreview: Theme
 	readonly builtTheme: Stream<Theme>
+	private readonly whitelabelThemeGenerator: WhitelabelThemeGenerator
 
 	constructor(
 		currentTheme: Theme,
@@ -38,7 +40,9 @@ export class CustomColorsEditorViewModel {
 		themeController: ThemeController,
 		entityClient: EntityClient,
 		loginController: LoginController,
+		whitelabelThemeGenerator: WhitelabelThemeGenerator,
 	) {
+		this.whitelabelThemeGenerator = whitelabelThemeGenerator
 		this._themeBeforePreview = Object.freeze(currentTheme)
 		this._customizations = clone(themeCustomizations)
 		this._whitelabelDomainInfo = whitelabelDomainInfo
@@ -47,41 +51,16 @@ export class CustomColorsEditorViewModel {
 		this._entityClient = entityClient
 		this._loginController = loginController
 		this.builtTheme = stream()
-		const baseThemeId = themeCustomizations.base ?? "light"
-
-		const accentColor = themeCustomizations.primary ?? this._themeController.getDefaultTheme().primary
-
-		this.changeBaseTheme(baseThemeId)
-		this.changeAccentColor(accentColor)
 	}
 
-	init() {
-		this._applyEditedTheme()
+	async init() {
+		const baseThemeId = this._customizations.base ?? "light"
+		const sourceColor = this._customizations.sourceColor ?? this._themeController.getDefaultTheme().primary
+		await this.changeTheme({ sourceColor, baseThemeId })
 	}
 
-	get customColors(): ReadonlyArray<CustomColor> {
-		const base = this._themeController.getBaseTheme(this.baseThemeId)
-
-		return Object.keys(base)
-			.map((key) => key as CustomizationKey)
-			.filter((name) => !this._shallBeExcluded(name))
-			.map((key) => key as ThemeKey)
-			.sort((a, b) => a.localeCompare(b))
-			.map((key) => {
-				const value = this._customizations[key] ?? ""
-				// @ts-ignore we already checked that it's safe
-				const defaultValue = base[key]
-				return {
-					name: key,
-					value,
-					defaultValue: assertNotNull(defaultValue),
-					valid: this._isValidColorValue(value),
-				}
-			})
-	}
-
-	get accentColor(): string {
-		return this._accentColor
+	get sourceColor(): string {
+		return this._sourceColor
 	}
 
 	get customizations(): ThemeCustomizations {
@@ -92,36 +71,48 @@ export class CustomColorsEditorViewModel {
 		return this._baseTheme
 	}
 
-	getDefaultColor(colorName: ThemeKey): string {
-		return assertNotNull(this._themeController.getBaseTheme(this.baseThemeId)[colorName])
+	async changeSourceColor(sourceColor: string) {
+		await this.changeTheme({ sourceColor })
 	}
 
-	changeAccentColor(accentColor: string) {
-		this._accentColor = accentColor
-		this.addCustomization("primary", accentColor)
-		this._applyEditedTheme()
+	async changeBaseTheme(baseThemeId: BaseThemeId) {
+		await this.changeTheme({ baseThemeId })
 	}
 
-	changeBaseTheme(baseThemeId: BaseThemeId) {
-		this._baseTheme = baseThemeId
-		this.addCustomization("base", baseThemeId)
+	private async changeTheme(attrs: { sourceColor?: string; baseThemeId?: BaseThemeId }) {
+		if (attrs.sourceColor != null) {
+			this._sourceColor = attrs.sourceColor
+			this.setCustomization("sourceColor", attrs.sourceColor)
+		}
 
-		this._applyEditedTheme()
+		if (attrs.baseThemeId != null) {
+			this._baseTheme = attrs.baseThemeId
+			this.setCustomization("base", attrs.baseThemeId)
+		}
+
+		const theme = await this.whitelabelThemeGenerator.generateMaterialPalette({
+			sourceColor: this._sourceColor,
+			theme: this._baseTheme,
+		})
+
+		for (const color of MATERIAL_COLORS) {
+			this.setCustomization(color, theme[color])
+		}
+
+		this.setCustomization("version", WHITELABEL_CUSTOMIZATION_VERSION)
+
+		await this._applyEditedTheme()
 	}
 
 	/**
 	 * Try to save changes. if there are invalid color values in the theme doesn't save and returns false, else saves and returns true
 	 */
 	async save(): Promise<boolean> {
-		const colors = Object.keys(this.customizations).filter((name) => name !== "logo" && name !== "themeId" && name !== "base") as CustomizationKey[]
-
-		for (let i = 0; i < colors.length; i++) {
-			if (!this._isValidColorValue(this.customizations[colors[i]] ?? "")) {
-				return false
-			}
+		if (!this._isValidColorValue(this.customizations.primary ?? "")) {
+			return false
 		}
 
-		this.addCustomization("themeId", this._whitelabelDomainInfo.domain)
+		this.setCustomization("themeId", this._whitelabelDomainInfo.domain)
 		this._whitelabelConfig.jsonTheme = JSON.stringify(ThemeController.mapNewToOldColorTokens(this.customizations))
 		await this._entityClient.update(this._whitelabelConfig)
 
@@ -133,61 +124,25 @@ export class CustomColorsEditorViewModel {
 	}
 
 	async resetActiveClientTheme(): Promise<void> {
-		await this._themeController.applyCustomizations(
-			downcast(
-				Object.assign(
-					{},
-					{
-						base: null,
-					},
-					this._themeBeforePreview,
-				),
-			),
-			false,
-		)
+		await this._themeController.resetTheme(this._themeBeforePreview)
 	}
 
-	addCustomization(nameOfKey: CustomizationKey, colorValue: string) {
+	private setCustomization(nameOfKey: CustomizationKey, value: any) {
 		// @ts-ignore it's pretty hard to define what we want
-		this.customizations[nameOfKey] = colorValue
-
-		this._applyEditedTheme()
+		this.customizations[nameOfKey] = value
 	}
 
 	private _isValidColorValue(colorValue: string): boolean {
 		return isValidColorCode(colorValue.trim()) || colorValue.trim() === ""
 	}
 
-	/**
-	 * These values shall be excluded when rendering the advanced TextFields
-	 * @return boolean, true iff provided parameter 'name' shall be excluded
-	 */
-	private _shallBeExcluded(name: CustomizationKey): boolean {
-		const excludedColors = ["logo", "themeId", "base", "go_european", "on_go_european"]
-		return excludedColors.includes(name)
-	}
-
-	private _applyEditedTheme: () => void = debounceStart(100, () => {
+	private async _applyEditedTheme() {
 		this._removeEmptyCustomizations()
 
-		this._themeController.applyCustomizations(this._filterAndReturnCustomizations(), false)
-	})
-
-	_removeEmptyCustomizations() {
-		this._customizations = downcast(Object.fromEntries(Object.entries(this.customizations).filter(([k, v]) => v !== "")))
+		await this._themeController.applyCustomizations(this.customizations, false)
 	}
 
-	/**
-	 *  filters out all invalid color values from ThemeCustomizations whilst keeping logo, base and themeId
-	 */
-	_filterAndReturnCustomizations(): ThemeCustomizations {
-		const colorValues = Object.entries(this.customizations).filter(([n, v]) => n !== "themeId" && n !== "base" && n !== "logo")
-		const filteredColorValues = colorValues.filter(([n, v]) => this._isValidColorValue(downcast(v)))
-		for (const [n, v] of Object.entries(this.customizations)) {
-			if (n === "themeId" || n === "base" || n === "logo") {
-				filteredColorValues.push([n, v])
-			}
-		}
-		return downcast(Object.fromEntries(filteredColorValues))
+	_removeEmptyCustomizations() {
+		this._customizations = downcast(Object.fromEntries(Object.entries(this.customizations).filter(([_, v]) => v != null && v !== "")))
 	}
 }

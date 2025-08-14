@@ -135,3 +135,29 @@ export function isLightTheme(): boolean {
 export function isDarkTheme(): boolean {
 	return !isLightTheme()
 }
+
+export const MATERIAL_COLORS = Object.freeze([
+	"primary",
+	"on_primary",
+	"primary_container",
+	"on_primary_container",
+	"secondary",
+	"on_secondary",
+	"secondary_container",
+	"on_secondary_container",
+	"tertiary",
+	"on_tertiary",
+	"tertiary_container",
+	"on_tertiary_container",
+	"surface",
+	"surface_container",
+	"surface_container_high",
+	"surface_container_highest",
+	"on_surface",
+	"on_surface_variant",
+	"outline",
+	"outline_variant",
+	"scrim",
+] as const satisfies (keyof Theme)[])
+
+export type MaterialPalette = Record<(typeof MATERIAL_COLORS)[number], string>
