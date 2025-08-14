@@ -76,11 +76,17 @@ class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 	view(vnode: Vnode<GroupSharingDialogAttrs>): Children {
 		const { model, allowGroupNameOverride, texts, dialog } = vnode.attrs
 		const groupName = getSharedGroupName(model.info, model.logins.getUserController(), allowGroupNameOverride)
+		const originalGroupName = model.info.name === "" ? groupName : model.info.name
 		return m(".flex.col.pt-s", [
 			m(Table, {
-				columnHeading: [lang.makeTranslation("column_heading", texts.participantsLabel(groupName))],
+				columnHeading: [
+					{
+						label: lang.makeTranslation("column_heading", texts.participantsLabel(originalGroupName)),
+						helpText: groupName !== originalGroupName ? lang.makeTranslation("column_heading", texts.yourCustomNameLabel(groupName)) : undefined,
+					},
+				],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-				lines: this._renderMemberInfos(model, texts, groupName, dialog).concat(this._renderGroupInvitations(model, texts, groupName)),
+				lines: this._renderMemberInfos(model, texts, originalGroupName, dialog).concat(this._renderGroupInvitations(model, texts, originalGroupName)),
 				showActionButtonColumn: true,
 				addButtonAttrs: hasCapabilityOnGroup(locator.logins.getUserController().user, model.group, ShareCapability.Invite)
 					? {
@@ -194,7 +200,18 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 						},
 					],
 					onRecipientAdded: (address, name, contact) =>
-						recipients.push(recipientsModel.resolve({ address, name, contact }, ResolveMode.Eager).whenResolved(() => m.redraw())),
+						recipients.push(
+							recipientsModel
+								.resolve(
+									{
+										address,
+										name,
+										contact,
+									},
+									ResolveMode.Eager,
+								)
+								.whenResolved(() => m.redraw()),
+						),
 					onRecipientRemoved: (address) =>
 						findAndRemove(recipients, (recipient) => cleanMailAddress(recipient.address) === cleanMailAddress(address)),
 					onTextChanged: recipientsText,
