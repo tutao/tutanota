@@ -314,7 +314,13 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 					() => "whitelabel_label",
 					() => Icons.Wand,
 					"whitelabel",
-					() => new WhitelabelSettingsViewer(calendarLocator.entityClient, this.logins),
+					() =>
+						new WhitelabelSettingsViewer(
+							calendarLocator.entityClient,
+							this.logins,
+							calendarLocator.themeController,
+							calendarLocator.whitelabelThemeGenerator,
+						),
 					undefined,
 				),
 			)
