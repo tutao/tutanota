@@ -128,6 +128,10 @@ class WidgetUIViewModel(
 				repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
 			}
 
+		val startOfToday = Instant.now().truncatedTo(ChronoUnit.DAYS).toEpochMilli()
+		normalEvents[startOfToday] = listOf() // The first day should always be included even if there are no events
+		allDayEvents[startOfToday] = listOf()
+
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
 			eventList.shortEvents.plus(eventList.longEvents).forEach { loadedEvent ->
 				val zoneId = ZoneId.systemDefault()
