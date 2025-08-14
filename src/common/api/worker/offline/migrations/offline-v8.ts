@@ -5,7 +5,7 @@ import { SqlCipherFacade } from "../../../../native/common/generatedipc/SqlCiphe
 export const offline8: OfflineMigration = {
 	version: 8,
 	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
-		console.log("migrating to offline v7")
+		console.log("migrating from trusted_identities to identity_store")
 		await sqlCipherFacade.run(`DROP TABLE IF EXISTS trusted_identities`, [])
 		await sqlCipherFacade.run(TableDefinitions.identity_store.definition, [])
 	},
