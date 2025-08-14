@@ -31,7 +31,7 @@ import type { MailViewModel } from "./mail/view/MailViewModel.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
-import { assertMainOrNodeBoot, bootFinished, isApp, isDesktop, isIOSApp, isOfflineStorageAvailable } from "../common/api/common/Env.js"
+import { assertMainOrNodeBoot, bootFinished, isApp, isBrowser, isDesktop, isIOSApp, isOfflineStorageAvailable } from "../common/api/common/Env.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { AppType } from "../common/misc/ClientConstants.js"
@@ -59,7 +59,7 @@ window.tutao = {
 
 client.init(navigator.userAgent, navigator.platform, AppType.Mail)
 
-if (!client.webassembly()) {
+if (isBrowser() && !client.webassembly()) {
 	const webAssemblyError = new Error()
 	webAssemblyError.name = "NoWASMSupport"
 	throw webAssemblyError
