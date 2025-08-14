@@ -27,7 +27,6 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
 
@@ -197,14 +196,16 @@ class WidgetUIViewModel(
 			}
 		}
 
-		normalEvents.forEach { (startOfDay, events) ->
-			events.sortedWith(Comparator<UIEvent> { a, b ->
+		normalEvents.forEach() { (startOfDay, events) ->
+			val sorted = events.sortedWith(Comparator<UIEvent> { a, b ->
 				when {
 					a.startTimestamp > b.startTimestamp -> 1
 					a.startTimestamp < b.startTimestamp -> -1
 					else -> 0
 				}
 			})
+
+			normalEvents[startOfDay] = sorted
 		}
 
 		_uiState.value = WidgetUIData(normalEvents, allDayEvents)

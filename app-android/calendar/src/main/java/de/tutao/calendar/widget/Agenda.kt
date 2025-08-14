@@ -345,32 +345,65 @@ class Agenda : GlanceAppWidget() {
 				}
 			}
 
-			LazyColumn {
-				itemsIndexed(
-					data.normalEvents.keys.toList().sorted(),
-					itemId = { index, _ -> index.toLong() }
-				)
-				{ index, startOfDay ->
-					Column {
-						Day(
-							userId,
-							data.normalEvents[startOfDay] ?: listOf(),
-							data.allDayEvents[startOfDay] ?: listOf(),
-							index == 0
-						)
-						Spacer(
-							modifier = GlanceModifier.height(
-								if (data.normalEvents[startOfDay]?.isEmpty() != false || index == data.normalEvents.size - 1) 12.dp else 4.dp
-							)
-						)
+			ScrollableDaysList(data, userId)
+		}
+	}
+
+	@Composable
+	private fun ScrollableDaysList(data: WidgetUIData, userId: String?) {
+		LazyColumn {
+			itemsIndexed(data.normalEvents.keys.sorted()) { dayIndex, startOfDay ->
+				val normalEvents = data.normalEvents[startOfDay] ?: listOf()
+				val allDayEvents = data.allDayEvents[startOfDay] ?: listOf()
+
+				Column {
+					DayCard(
+						userId,
+						normalEvents,
+						allDayEvents,
+						dayIndex == 0
+					) {
+						val eventGroups = normalEvents.chunked(5)
+						val firstEventOfTheDay = normalEvents.first()
+
+						eventGroups.forEach { events ->
+							Column {
+								events.forEachIndexed { eventIndex, event ->
+									Event(
+										modifier = GlanceModifier.defaultWeight(),
+										event,
+										userId,
+										firstEventOfTheDay.eventId == event.eventId
+									)
+									if (eventIndex < normalEvents.size - 1) {
+										Spacer(
+											modifier = GlanceModifier.height(12.dp)
+										)
+									}
+								}
+							}
+						}
 					}
+					Spacer(
+						modifier = GlanceModifier.height(
+							if (data.normalEvents[startOfDay]?.isEmpty() != false ||
+								dayIndex == data.normalEvents.size - 1
+							) 12.dp else 4.dp
+						)
+					)
 				}
 			}
 		}
 	}
 
 	@Composable
-	private fun Day(userId: String?, normalEvents: List<UIEvent>, allDayEvents: List<UIEvent>, firstDay: Boolean) {
+	private fun DayCard(
+		userId: String?,
+		normalEvents: List<UIEvent>,
+		allDayEvents: List<UIEvent>,
+		firstDay: Boolean,
+		content: @Composable () -> Unit
+	) {
 		val showAllDayInfo = !firstDay && allDayEvents.isNotEmpty()
 		val defaultPadding = 12
 		val paddingLeftTopRight = if (showAllDayInfo) 0 else defaultPadding
@@ -480,20 +513,8 @@ class Agenda : GlanceAppWidget() {
 			}
 
 			val innerPadding = if (showAllDayInfo) defaultPadding else 0
-			Column(modifier = GlanceModifier.padding((innerPadding).dp)) {
-				normalEvents.forEachIndexed { index, event ->
-					Event(
-						modifier = GlanceModifier.defaultWeight(),
-						event,
-						this@Agenda.openCalendarAgenda(LocalContext.current, userId, currentDay, event.eventId),
-						index == 0
-					)
-					if (index < normalEvents.size - 1) {
-						Spacer(
-							modifier = GlanceModifier.height(12.dp)
-						)
-					}
-				}
+			Column(modifier = GlanceModifier.padding((innerPadding).dp).fillMaxHeight()) {
+				content()
 			}
 		}
 	}
@@ -646,7 +667,7 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	@Composable
-	fun Event(modifier: GlanceModifier, event: UIEvent, action: Action, firstEventOfTheDay: Boolean) {
+	fun Event(modifier: GlanceModifier, event: UIEvent, userId: String?, firstEventOfTheDay: Boolean) {
 		val zoneId = ZoneId.systemDefault()
 		val eventStartAsInstant = Instant.ofEpochMilli(event.startTimestamp)
 		val eventStart = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
@@ -656,22 +677,35 @@ class Agenda : GlanceAppWidget() {
 
 		val happensToday = midnightInDate(zoneId, LocalDateTime.now()) == midnightInDate(zoneId, eventStart)
 
-		val visibility = if (happensToday) {
-			Visibility.Gone
+		val dateModifier = if (happensToday) {
+			GlanceModifier.visibility(Visibility.Gone)
 		} else if (firstEventOfTheDay) {
-			Visibility.Visible
+			GlanceModifier.visibility(Visibility.Visible).clickable(
+				this@Agenda.openCalendarAgenda(
+					LocalContext.current,
+					userId,
+					Date(event.startTimestamp),
+				)
+			)
 		} else {
-			Visibility.Invisible
+			GlanceModifier.visibility(Visibility.Invisible)
 		}
 
 		Row(
 			modifier = modifier
 				.fillMaxWidth()
-				.clickable(action),
+				.clickable(
+					this@Agenda.openCalendarAgenda(
+						LocalContext.current,
+						userId,
+						Date(event.startTimestamp),
+						event.eventId
+					)
+				),
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			Column(
-				modifier = GlanceModifier.visibility(visibility),
+				modifier = dateModifier,
 				horizontalAlignment = Alignment.CenterHorizontally
 			) {
 				Text(
@@ -743,6 +777,7 @@ class Agenda : GlanceAppWidget() {
 	@OptIn(ExperimentalGlancePreviewApi::class)
 	@Preview(widthDp = 250, heightDp = 250)
 	@Preview(widthDp = 250, heightDp = 400)
+	@Preview(widthDp = 250, heightDp = 600)
 	@Composable
 	fun AgendaPreviewWithAllDays() {
 		val normalEventData = HashMap<Long, List<UIEvent>>()
@@ -777,28 +812,22 @@ class Agenda : GlanceAppWidget() {
 		val tomorrow = Instant.ofEpochMilli(startOfToday).plus(1, ChronoUnit.DAYS)
 		val startOfTomorrow =
 			midnightInDate(ZoneId.systemDefault(), LocalDateTime.ofInstant(tomorrow, ZoneId.systemDefault()))
-		normalEventData[startOfTomorrow] = listOf(
-			UIEvent(
-				"previewCalendar",
-				IdTuple("", ""),
-				"2196f3",
-				"Hello Tomorrow",
-				"08:00",
-				"17:00",
-				isAllDay = false,
-				startTimestamp = tomorrow.toEpochMilli()
-			),
-			UIEvent(
-				"previewCalendar",
-				IdTuple("", ""),
-				"2196f3",
-				"Meeting Tomorrow",
-				"12:00",
-				"13:00",
-				isAllDay = false,
-				startTimestamp = tomorrow.toEpochMilli()
+		normalEventData[startOfTomorrow] = listOf()
+		for (i in 1..10) {
+			normalEventData[startOfTomorrow] = normalEventData[startOfTomorrow]!!.plus(
+				UIEvent(
+					"previewCalendar",
+					IdTuple("", ""),
+					"2196f3",
+					"Event #${i}",
+					"08:00",
+					"17:00",
+					isAllDay = false,
+					startTimestamp = tomorrow.toEpochMilli()
+				)
 			)
-		)
+		}
+
 		allDayEvents[startOfTomorrow] = listOf(
 			UIEvent(
 				"previewCalendar",
