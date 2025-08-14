@@ -7,7 +7,7 @@ import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } fr
 import m from "mithril"
 import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
 import { themes } from "./builtinThemes"
-import { getWhitelabelCustomizations, ThemeCustomizations } from "../misc/WhitelabelCustomizations"
+import { getWhitelabelCustomizations, ThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "../misc/WhitelabelCustomizations"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { AppType } from "../misc/ClientConstants.js"
@@ -46,7 +46,8 @@ export class ThemeController {
 
 		if (whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
-			const assembledTheme = await this.applyCustomizations(whitelabelCustomizations.theme, false)
+			const parsedTheme = whitelabelCustomizations.theme
+			const assembledTheme = await this.applyCustomizations(parsedTheme, false)
 			this._themePreference = assembledTheme.themeId
 		} else {
 			// It is theme info passed from native to be applied as early as possible.
@@ -75,11 +76,12 @@ export class ThemeController {
 	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
 	 */
 	public static mapOldToNewColorTokens(customizations: ThemeCustomizations | keyof typeof oldToNewColorTokenMap): ThemeCustomizations {
-		let mappedCustomizations: Record<string, string> = {}
+		let mappedCustomizations: Record<string, string | number> = {}
 		for (const [oldToken, hex] of Object.entries(customizations)) {
 			if (!oldToken || !hex) continue
 			const newToken: keyof Theme | undefined = oldToNewColorTokenMap[oldToken]
-			if (newToken) {
+
+			if (newToken && mappedCustomizations[newToken] == null) {
 				mappedCustomizations[newToken] = hex
 			}
 			mappedCustomizations[oldToken] = hex
@@ -91,8 +93,8 @@ export class ThemeController {
 	 * Color token mapper from the new to the old.
 	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
 	 */
-	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): Record<string, string> {
-		let mappedCustomizations: Record<string, string> = {}
+	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): Record<string, string | number> {
+		let mappedCustomizations: Record<string, string | number> = {}
 
 		for (const [newToken, hex] of Object.entries(customizations)) {
 			if (!newToken || !hex) continue
@@ -220,6 +222,7 @@ export class ThemeController {
 	 */
 	async applyCustomizations(customizations: ThemeCustomizations, permanent: boolean = true): Promise<Theme> {
 		const updatedTheme = this.assembleTheme(ThemeController.mapOldToNewColorTokens(customizations))
+
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {
 			logo: "",
@@ -239,6 +242,10 @@ export class ThemeController {
 		}
 
 		return updatedTheme
+	}
+
+	async resetTheme(theme: Theme) {
+		this.applyTrustedTheme(theme, theme.themeId)
 	}
 
 	async storeCustomThemeForCustomizations(customizations: ThemeCustomizations) {
