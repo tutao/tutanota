@@ -125,6 +125,7 @@ export const allowedImports = {
 	"worker-search": ["common-min", "common", "worker", "worker-lazy"],
 	linkify: [],
 	invoice: ["common-min"],
+	"material-color-utilities": [],
 }
 
 /** resolves certain imports to vendored libraries for the dist build */
@@ -314,6 +315,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker" // avoid that crypto stuff is only put into native
 	} else if (isIn("libs/jszip")) {
 		return "jszip"
+	} else if (isIn("node_modules/@material/material-color-utilities")) {
+		return "material-color-utilities"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks

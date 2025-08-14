@@ -13,6 +13,7 @@ import { locator } from "../../api/main/CommonLocator.js"
 import { showFileChooser } from "../../file/FileController.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
 
 export type WhitelabelData = {
 	customTheme: ThemeCustomizations
@@ -21,6 +22,7 @@ export type WhitelabelData = {
 }
 export type WhitelabelThemeSettingsAttrs = {
 	whitelabelData: null | WhitelabelData
+	whitelabelThemeGenerator: WhitelabelThemeGenerator
 }
 
 export class WhitelabelThemeSettings implements Component<WhitelabelThemeSettingsAttrs> {
@@ -155,6 +157,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			locator.themeController,
 			locator.entityClient,
 			locator.logins,
+			locator.whitelabelThemeGenerator,
 		)
 		EditCustomColorsDialog.show(viewModel)
 	}
