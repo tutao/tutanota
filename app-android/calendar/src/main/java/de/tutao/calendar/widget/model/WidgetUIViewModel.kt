@@ -18,6 +18,7 @@ import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.isAllDayEventByTimes
+import de.tutao.tutashared.midnightInDate
 import de.tutao.tutashared.push.toSdkCredentials
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -128,7 +129,7 @@ class WidgetUIViewModel(
 				repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
 			}
 
-		val startOfToday = Instant.now().truncatedTo(ChronoUnit.DAYS).toEpochMilli()
+		val startOfToday = midnightInDate(ZoneId.systemDefault(), LocalDateTime.now())
 		normalEvents[startOfToday] = listOf() // The first day should always be included even if there are no events
 		allDayEvents[startOfToday] = listOf()
 
@@ -155,7 +156,7 @@ class WidgetUIViewModel(
 					loadedEvent.startTime.toLong()
 				)
 
-				val startOfDay = startAsInstant.truncatedTo(ChronoUnit.DAYS).toEpochMilli()
+				val startOfDay = midnightInDate(zoneId, start)
 				if (!normalEvents.containsKey(startOfDay)) {
 					normalEvents[startOfDay] = listOf()
 					allDayEvents[startOfDay] = listOf()
@@ -187,7 +188,7 @@ class WidgetUIViewModel(
 					isBirthday = true
 				)
 
-				val startOfDay = startAsInstant.truncatedTo(ChronoUnit.DAYS).toEpochMilli()
+				val startOfDay = midnightInDate(zoneId, start)
 				if (!allDayEvents.containsKey(startOfDay)) {
 					normalEvents[startOfDay] = listOf()
 					allDayEvents[startOfDay] = listOf()
