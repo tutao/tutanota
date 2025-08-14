@@ -123,8 +123,18 @@ class WidgetDataRepository() : WidgetRepository() {
 
 		var calendarEventListMap: Map<GeneratedId, CalendarEventListDao> = HashMap()
 
+		val start = (systemCalendar.timeInMillis).toULong()
+		systemCalendar.add(Calendar.DAY_OF_MONTH, 7)
+
+		systemCalendar.set(Calendar.HOUR, 0)
+		systemCalendar.set(Calendar.MINUTE, 0)
+		systemCalendar.set(Calendar.SECOND, 0)
+		systemCalendar.set(Calendar.MILLISECOND, 0)
+
+		val end = (systemCalendar.timeInMillis).toULong()
+
 		calendars.forEach { calendarId ->
-			val events = calendarFacade.getCalendarEvents(calendarId, (systemCalendar.timeInMillis).toULong())
+			val events = calendarFacade.getCalendarEvents(calendarId, start, end)
 			calendarEventListMap = calendarEventListMap.plus(
 				calendarId to CalendarEventListDao(
 					events.shortEvents.toDao(),
