@@ -34,8 +34,8 @@ object AppTheme {
 		primaryContainer = Color(0xFF111111),
 		tertiary = Color(0xFF8B8B8B), // Used for ripple effects
 		inverseOnSurface = Color(0xFF303030),
-		surfaceVariant = Color(0xFFEBECEF),
-		onSurfaceVariant = Color(0xFF707070)
+		surfaceVariant = Color(0xFF787E93),
+		onSurfaceVariant = Color(0xFFFFFFFF)
 	)
 
 	val colors = ColorProviders(
