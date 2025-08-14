@@ -150,7 +150,7 @@ o.spec("MailViewerViewModel", function () {
 		async function testHeaderUnsubscribe(headers: string, expected: string, isPost: boolean) {
 			const viewModel = initUnsubscribeHeaders(headers)
 
-			const result = await viewModel.unsubscribe()
+			const result = await viewModel.unsubscribePost()
 			verify(mailModel.unsubscribe(mail, expected), { times: isPost ? 1 : 0 })
 			o(result).equals(isPost)
 		}
@@ -191,7 +191,7 @@ o.spec("MailViewerViewModel", function () {
 			o("no list unsubscribe header", async function () {
 				const headers = "To: InvalidHeader"
 				const viewModel = initUnsubscribeHeaders(headers)
-				const result = await viewModel.unsubscribe()
+				const result = await viewModel.unsubscribePost()
 				verify(mailModel.unsubscribe(matchers.anything(), matchers.anything()), { times: 0 })
 				o(result).equals(false)
 			})

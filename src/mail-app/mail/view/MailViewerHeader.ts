@@ -659,6 +659,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderNewsletterBanner(viewModel: MailViewerViewModel): Children | null {
+		// todo change the button if it is an already unsubscribed newsletter
 		if (viewModel.isListUnsubscribe()) {
 			return m(InfoBanner, {
 				message: "newsletterMessageBody_msg",

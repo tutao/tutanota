@@ -1,6 +1,6 @@
 import { Keys, MailReportType, MailState, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../common/api/common/TutanotaConstants"
-import { $Promisable, assertNotNull, groupByAndMap, neverNull, promiseMap } from "@tutao/tutanota-utils"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
+import { $Promisable, assertNotNull, groupByAndMap, isEmpty, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { Dialog, DialogType } from "../../../common/gui/base/Dialog"
 import m from "mithril"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
@@ -9,7 +9,7 @@ import { checkApprovalStatus } from "../../../common/misc/LoginUtils.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
-import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
+import { ContentBlockingStatus, MailViewerViewModel, UnsubscribeAction, UnsubscribeType } from "./MailViewerViewModel.js"
 import { DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { client } from "../../../common/misc/ClientDetector.js"
@@ -402,29 +402,18 @@ function mailViewerMoreActions({
 	return moreButtons
 }
 
-export function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
-	return showProgressDialog("pleaseWait_msg", viewModel.unsubscribe())
-		.then((success) => {
-			if (success) {
-				return Dialog.message("unsubscribeSuccessful_msg")
-			} else {
-				return showUnsubscribeDialog(viewModel)
-			}
-		})
-		.catch((e) => {
-			if (e instanceof LockedError) {
-				return Dialog.message("operationStillActive_msg")
-			} else {
-				return Dialog.message("unsubscribeFailed_msg")
-			}
-		})
+export async function unsubscribe(viewModel: MailViewerViewModel): Promise<void> {
+	const unsubscribeOrder = await viewModel.determineUnsubscribeOrder()
+	await showUnsubscribeDialog(unsubscribeOrder, viewModel)
 }
 
-async function showUnsubscribeDialog(viewModel: MailViewerViewModel) {
-	const { newMailtoUrlMailEditor } = await import("../editor/MailEditor")
+async function showUnsubscribeDialog(unsubscribeOrder: Array<UnsubscribeAction>, viewModel: MailViewerViewModel): Promise<void> {
+	let nextUnsubscribeAction = unsubscribeOrder.pop()
+	if (nextUnsubscribeAction == null) {
+		return Dialog.showUnsubscribeFinishedDialog(false)
+	}
 
-	const links = await viewModel.parseListUnsubscribeHeader()
-	const displayMailtoButton = links.httpLink == null && links.mailtoLink != null
+	const dialogAttrs = getUnsubscribeDialogAttrForUnsubscribeType(nextUnsubscribeAction.type)
 
 	const dialogHeaderBarAttrs: DialogHeaderBarAttrs = {
 		left: [
@@ -436,19 +425,20 @@ async function showUnsubscribeDialog(viewModel: MailViewerViewModel) {
 				},
 			},
 		],
-		middle: "unsubscribe_action",
+		middle: dialogAttrs.heading,
 	}
+
 	const dialogContent = [
+		m(Card, m("", m("p.h4.m-0", lang.get(dialogAttrs.subHeading)), m("p.mt-s", lang.get(dialogAttrs.text)))),
 		m(
 			Card,
 			m(
-				"",
-				m("p.h4.m-0", lang.get("unsubscribe_action")),
-				m("p.m-0", displayMailtoButton ? lang.get("unsubscribeMail_msg") : lang.get("unsubscribeHttpGet_msg")),
+				"p.m-0.mt-s",
+				nextUnsubscribeAction.type !== UnsubscribeType.HTTP_POST_UNSUBSCRIBE ? nextUnsubscribeAction.link : lang.get("unsubscribeHttpPostInfo_msg"),
 			),
 		),
-		m(Card, m("p.m-0.mt-s", displayMailtoButton ? links.mailtoLink : links.httpLink)),
 	]
+
 	const dialog = new Dialog(DialogType.EditMedium, {
 		view: () =>
 			m(
@@ -467,18 +457,33 @@ async function showUnsubscribeDialog(viewModel: MailViewerViewModel) {
 						m(
 							ContentWithOptionsDialog,
 							{
-								mainActionText: displayMailtoButton ? "unsubscribeMail_action" : "unsubscribeHttpGet_action",
+								mainActionText: dialogAttrs.button,
 								mainActionClick: async () => {
-									if (displayMailtoButton) {
+									if (nextUnsubscribeAction.type === UnsubscribeType.MAILTO_UNSUBSCRIBE) {
+										const { newMailtoUrlMailEditor } = await import("../editor/MailEditor")
 										const newMailDialog = await newMailtoUrlMailEditor(
-											links.mailtoLink!,
+											nextUnsubscribeAction.link!,
 											false,
 											assertNotNull(await viewModel.getMailboxDetails()),
 										)
 										dialog.close()
 										newMailDialog.show()
+									} else if (nextUnsubscribeAction.type === UnsubscribeType.HTTP_GET_UNSUBSCRIBE) {
+										window.open(nextUnsubscribeAction.link!)
 									} else {
-										window.open(links.httpLink!)
+										showProgressDialog("unsubscribing_msg", viewModel.unsubscribePost(nextUnsubscribeAction))
+											.then(() => Dialog.showUnsubscribeFinishedDialog(true))
+											.catch((e) => {
+												if (e instanceof LockedError) {
+													return Dialog.message("operationStillActive_msg")
+												} else {
+													if (isEmpty(unsubscribeOrder)) {
+														return Dialog.showUnsubscribeFinishedDialog(false)
+													}
+													return showUnsubscribeDialog(unsubscribeOrder, viewModel)
+												}
+											})
+										dialog.close()
 									}
 								},
 								subActionText: null,
@@ -490,6 +495,7 @@ async function showUnsubscribeDialog(viewModel: MailViewerViewModel) {
 				],
 			),
 	})
+
 	dialog.show()
 }
 
@@ -566,6 +572,39 @@ export function getRecipientHeading(mail: Mail, preferNameOnly: boolean) {
 		return getMailAddressDisplayText(recipient.name, recipient.address, preferNameOnly) + (recipientCount > 1 ? ", ..." : "")
 	} else {
 		return ""
+	}
+}
+
+type UnsubscribeDialogAttrs = {
+	heading: TranslationKey
+	subHeading: TranslationKey
+	text: TranslationKey
+	button: TranslationKey
+}
+
+function getUnsubscribeDialogAttrForUnsubscribeType(unsubscribeType: UnsubscribeType): UnsubscribeDialogAttrs {
+	switch (unsubscribeType) {
+		case UnsubscribeType.HTTP_POST_UNSUBSCRIBE:
+			return {
+				heading: "unsubscribe_action",
+				subHeading: "unsubscribeAutomatically_label",
+				text: "unsubscribeHttpPost_msg",
+				button: "unsubscribe_action",
+			}
+		case UnsubscribeType.HTTP_GET_UNSUBSCRIBE:
+			return {
+				heading: "unsubscribeManually_label",
+				subHeading: "unsubscribeViaLink_label",
+				text: "unsubscribeHttpGet_msg",
+				button: "unsubscribeHttpGet_action",
+			}
+		case UnsubscribeType.MAILTO_UNSUBSCRIBE:
+			return {
+				heading: "unsubscribeManually_label",
+				subHeading: "unsubscribeViaMail_label",
+				text: "unsubscribeMail_msg",
+				button: "unsubscribeMail_action",
+			}
 	}
 }
 

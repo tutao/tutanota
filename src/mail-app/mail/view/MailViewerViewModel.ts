@@ -88,9 +88,15 @@ export const enum ContentBlockingStatus {
 	AlwaysBlock = "4",
 }
 
-type UnsubscribeLinks = {
-	httpLink: string | null
-	mailtoLink: string | null
+export type UnsubscribeAction = {
+	type: UnsubscribeType
+	link: string
+}
+
+export const enum UnsubscribeType {
+	HTTP_POST_UNSUBSCRIBE = "HTTP_POST_UNSUBSCRIBE",
+	HTTP_GET_UNSUBSCRIBE = "HTTP_GET_UNSUBSCRIBE",
+	MAILTO_UNSUBSCRIBE = "MAILTO_UNSUBSCRIBE",
 }
 
 export class MailViewerViewModel {
@@ -590,10 +596,6 @@ export class MailViewerViewModel {
 		}
 	}
 
-	isListUnsubscribe(): boolean {
-		return this.mail.listUnsubscribe
-	}
-
 	isAnnouncement(): boolean {
 		const replyTos = this.mailDetails?.replyTos
 		return (
@@ -603,15 +605,22 @@ export class MailViewerViewModel {
 		)
 	}
 
-	async unsubscribe(): Promise<boolean> {
-		if (!this.isListUnsubscribe()) {
-			return false
+	isListUnsubscribe(): boolean {
+		return this.mail.listUnsubscribe
+	}
+
+	async determineUnsubscribeOrder(): Promise<Array<UnsubscribeAction>> {
+		const mailHeaders = await this.getHeaders()
+		const unsubscribeActions: Array<UnsubscribeAction> = []
+		if (!mailHeaders) {
+			return unsubscribeActions
 		}
 
-		const mailHeaders = await this.getHeaders()
-		if (!mailHeaders) {
-			return false
-		}
+		const unsubscribeHeaderValue = mailHeaders
+			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
+			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
+			.split("\n") // split headers
+			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
 
 		const unsubPostHeader = mailHeaders
 			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
@@ -619,46 +628,48 @@ export class MailViewerViewModel {
 			.split("\n") // split headers
 			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe-post"))
 
-		if (unsubPostHeader.length > 0) {
-			const unsubscribeLinks = await this.parseListUnsubscribeHeader()
-			await this.mailModel.unsubscribe(this.mail, assertNotNull(unsubscribeLinks.httpLink))
-			return true
-		} else {
-			await this.mailFacade.updateListUnsubscribe(this.mail)
-			return false
-		}
-	}
-
-	async parseListUnsubscribeHeader(): Promise<UnsubscribeLinks> {
-		const mailHeaders = await this.getHeaders()
-		const result: UnsubscribeLinks = {
-			httpLink: null,
-			mailtoLink: null,
-		}
-		if (!mailHeaders) {
-			return result
-		}
-		const unsubscribeHeaderValue = mailHeaders
-			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
-			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
-			.split("\n") // split headers
-			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
-
-		const [header, ...value] = unsubscribeHeaderValue[0].split(":")
+		const [_, ...value] = unsubscribeHeaderValue[0].split(":")
 		const headerValue = value.join(":")
 		const links = headerValue.split(/,(?![^<>]*>)/)
 
 		for (const link of links) {
 			const trimmedLink = link.trim()
-
 			if (trimmedLink.startsWith("<http") && trimmedLink.endsWith(">")) {
-				result.httpLink = trimmedLink.slice(1, -1)
+				unsubscribeActions.push({
+					link: trimmedLink.slice(1, -1),
+					type: unsubPostHeader.length > 0 ? UnsubscribeType.HTTP_POST_UNSUBSCRIBE : UnsubscribeType.HTTP_GET_UNSUBSCRIBE,
+				})
 			} else if (trimmedLink.startsWith("<mailto:") && trimmedLink.endsWith(">")) {
-				result.mailtoLink = trimmedLink.slice(1, -1)
+				unsubscribeActions.push({
+					link: trimmedLink.slice(1, -1),
+					type: UnsubscribeType.MAILTO_UNSUBSCRIBE,
+				})
 			}
 		}
 
-		return result
+		// http links have priority over mailto links
+		unsubscribeActions.sort((actionA, actionB) => {
+			if (actionA.type === UnsubscribeType.HTTP_POST_UNSUBSCRIBE || UnsubscribeType.HTTP_GET_UNSUBSCRIBE) {
+				return 1
+			} else {
+				return -1
+			}
+		})
+
+		return unsubscribeActions
+	}
+
+	async unsubscribePost(unsubscribeAction: UnsubscribeAction): Promise<boolean> {
+		if (!this.isListUnsubscribe()) {
+			return false
+		}
+
+		if (unsubscribeAction.type !== UnsubscribeType.HTTP_POST_UNSUBSCRIBE) {
+			return false
+		}
+
+		await this.mailModel.unsubscribe(this.mail, assertNotNull(unsubscribeAction.link))
+		return true
 	}
 
 	getHighlightedStrings(): readonly SearchToken[] {
