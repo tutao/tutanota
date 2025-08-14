@@ -9,6 +9,7 @@ import type { CustomizationKey, ThemeCustomizations, ThemeKey } from "../../misc
 import { ThemeController } from "../../gui/ThemeController"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
+import { argbFromHex, themeFromSourceColor } from "@material/material-color-utilities"
 
 assertMainOrNode()
 export type CustomColor = {
@@ -98,6 +99,7 @@ export class CustomColorsEditorViewModel {
 
 	changeAccentColor(accentColor: string) {
 		this._accentColor = accentColor
+		// FIXME: we need preview to show the new theme immediately instead of borking
 		this.addCustomization("primary", accentColor)
 		this._applyEditedTheme()
 	}

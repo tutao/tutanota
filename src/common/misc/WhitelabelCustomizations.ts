@@ -1,4 +1,4 @@
-import { BaseThemeId, theme, Theme } from "../gui/theme"
+import { BaseThemeId, Theme } from "../gui/theme"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import type { WhitelabelConfig } from "../api/entities/sys/TypeRefs.js"
 import { ThemeController } from "../gui/ThemeController.js"
