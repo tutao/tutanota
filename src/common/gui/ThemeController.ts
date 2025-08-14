@@ -7,14 +7,20 @@ import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } fr
 import m from "mithril"
 import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
 import { themes } from "./builtinThemes"
-import { getWhitelabelCustomizations, ThemeCustomizations } from "../misc/WhitelabelCustomizations"
+import {
+	getWhitelabelCustomizations,
+	ThemeCustomizations,
+	UnknownThemeCustomizations,
+	WHITELABEL_CUSTOMIZATION_VERSION,
+} from "../misc/WhitelabelCustomizations"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { AppType } from "../misc/ClientConstants.js"
+import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
 
 assertMainOrNodeBoot()
 
-export const defaultThemeId: ThemeId = "light"
+export const defaultThemeId = "light" satisfies ThemeId
 
 export class ThemeController {
 	private readonly theme: Theme
@@ -29,6 +35,7 @@ export class ThemeController {
 		private readonly themeFacade: ThemeFacade,
 		private readonly htmlSanitizer: () => Promise<HtmlSanitizer>,
 		private readonly app: AppType,
+		private readonly whitelabelThemeGenerator: WhitelabelThemeGenerator,
 	) {
 		// this will be overwritten quickly
 		this._themeId = defaultThemeId
@@ -46,7 +53,11 @@ export class ThemeController {
 
 		if (whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
-			const assembledTheme = await this.applyCustomizations(whitelabelCustomizations.theme, false)
+			const parsedTheme = whitelabelCustomizations.theme
+			// in case parsedTheme is old, we generate new theme from old one
+			const material3Customizations = await this.getMaterial3Customizations(parsedTheme)
+
+			const assembledTheme = await this.applyCustomizations(material3Customizations, false)
 			this._themePreference = assembledTheme.themeId
 		} else {
 			// It is theme info passed from native to be applied as early as possible.
@@ -69,40 +80,26 @@ export class ThemeController {
 	}
 
 	/**
-	 * Color token mapper from the old to the new.
-	 * If there are colors explicitly defined for the new tokens, they will be respected and the mapped colors will be overwritten.
-	 * Since the number of new tokens is less than the number of old tokens, it is impossible to map all colors. Thus, this is just for mitigation purposes.
-	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
-	 */
-	public static mapOldToNewColorTokens(customizations: ThemeCustomizations | keyof typeof oldToNewColorTokenMap): ThemeCustomizations {
-		let mappedCustomizations: Record<string, string> = {}
-		for (const [oldToken, hex] of Object.entries(customizations)) {
-			if (!oldToken || !hex) continue
-			const newToken: keyof Theme | undefined = oldToNewColorTokenMap[oldToken]
-			if (newToken) {
-				mappedCustomizations[newToken] = hex
-			}
-			mappedCustomizations[oldToken] = hex
-		}
-		return mappedCustomizations as ThemeCustomizations
-	}
-
-	/**
 	 * Color token mapper from the new to the old.
 	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
 	 */
-	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): Record<string, string> {
-		let mappedCustomizations: Record<string, string> = {}
+	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): Record<string, string | number> {
+		let mappedCustomizations: Record<string, string | number> = {}
 
+		const colorTokenMap = newToOldColorTokenMap(customizations.base === "light")
 		for (const [newToken, hex] of Object.entries(customizations)) {
 			if (!newToken || !hex) continue
-			const mappedOldTokens = newToOldColorTokenMap[newToken as keyof typeof newToOldColorTokenMap]
+			const mappedOldTokens = colorTokenMap[newToken as keyof Theme]
 			if (mappedOldTokens) {
 				for (const oldToken of mappedOldTokens) {
 					mappedCustomizations[oldToken] = hex
 				}
 			}
-			mappedCustomizations[newToken] = hex
+
+			// prevent old tokens from being overwritten in the case where customizations include both new and old tokens
+			if (mappedCustomizations[newToken] == null) {
+				mappedCustomizations[newToken] = hex
+			}
 		}
 
 		return mappedCustomizations
@@ -219,7 +216,8 @@ export class ThemeController {
 	 * Apply the custom theme, if permanent === true, then the new theme will be saved
 	 */
 	async applyCustomizations(customizations: ThemeCustomizations, permanent: boolean = true): Promise<Theme> {
-		const updatedTheme = this.assembleTheme(ThemeController.mapOldToNewColorTokens(customizations))
+		const updatedTheme = this.assembleTheme(customizations)
+
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {
 			logo: "",
@@ -239,6 +237,10 @@ export class ThemeController {
 		}
 
 		return updatedTheme
+	}
+
+	async resetTheme(theme: Theme) {
+		this.applyTrustedTheme(theme, theme.themeId)
 	}
 
 	async storeCustomThemeForCustomizations(customizations: ThemeCustomizations) {
@@ -304,6 +306,32 @@ export class ThemeController {
 			return !(theme.themeId in themes()) ? theme.themeId : null
 		})
 	}
+
+	/**
+	 * Get new Material3 theme customizations from old customizations
+	 * Could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
+	 */
+	async getMaterial3Customizations(unknownCustomizations: UnknownThemeCustomizations): Promise<ThemeCustomizations> {
+		// version is only null in old customizations
+		// for old whitelabel themes, content_accent is only null when there are no color customizations
+		if (unknownCustomizations.version != null || unknownCustomizations.content_accent == null) {
+			return unknownCustomizations as ThemeCustomizations
+		}
+		const oldCustomizations = unknownCustomizations as Record<string, string>
+
+		const baseTheme = oldCustomizations.base as BaseThemeId
+		const theme = await this.whitelabelThemeGenerator.generateMaterialPalette({
+			sourceColor: oldCustomizations.content_accent,
+			theme: baseTheme,
+		})
+
+		return Object.assign(theme, {
+			version: WHITELABEL_CUSTOMIZATION_VERSION,
+			base: baseTheme,
+			sourceColor: oldCustomizations.content_accent,
+			logo: oldCustomizations.logo,
+		})
+	}
 }
 
 export class NativeThemeFacade implements ThemeFacade {
@@ -366,51 +394,22 @@ export class WebThemeFacade implements ThemeFacade {
 	}
 }
 
-const oldToNewColorTokenMap: Record<string, keyof Theme> = {
-	button_bubble_bg: "secondary",
-	button_bubble_fg: "on_secondary",
-	content_bg: "surface",
-	content_fg: "on_surface",
-	content_button: "on_surface_variant",
-	content_button_selected: "primary",
-	content_button_icon: "on_primary",
-	content_button_icon_selected: "on_primary",
-	content_accent: "primary",
-	content_border: "outline",
-	content_message_bg: "on_surface_variant",
-	header_bg: "surface",
-	header_box_shadow_bg: "outline",
-	header_button: "on_surface_variant",
-	header_button_selected: "primary",
-	list_bg: "surface",
-	list_alternate_bg: "surface_container",
-	list_accent_fg: "primary",
-	list_message_bg: "on_surface_variant",
-	list_border: "outline_variant",
-	modal_bg: "scrim",
-	elevated_bg: "surface",
-	navigation_bg: "surface_container",
-	navigation_border: "outline_variant",
-	navigation_button: "on_surface_variant",
-	navigation_button_icon: "on_primary",
-	navigation_button_selected: "primary",
-	navigation_button_icon_selected: "on_primary",
-	navigation_menu_bg: "secondary",
-	navigation_menu_icon: "on_secondary",
-	error: "error",
-} as const
-
-const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
-	secondary: ["button_bubble_bg", "navigation_menu_bg"],
-	on_secondary: ["button_bubble_fg", "navigation_menu_icon"],
-	surface: ["content_bg", "header_bg", "list_bg", "elevated_bg"],
-	on_surface: ["content_fg"],
-	on_surface_variant: ["content_button", "header_button", "navigation_button", "content_message_bg", "list_message_bg"],
-	primary: ["content_accent", "content_button_selected", "header_button_selected", "list_accent_fg", "navigation_button_selected"],
-	on_primary: ["content_button_icon", "content_button_icon_selected", "navigation_button_icon", "navigation_button_icon_selected"],
-	outline: ["content_border", "header_box_shadow_bg"],
-	surface_container: ["list_alternate_bg", "navigation_bg"],
-	outline_variant: ["list_border", "navigation_border"],
-	scrim: ["modal_bg"],
-	error: ["error"],
-} as const
+function newToOldColorTokenMap(isLightTheme: boolean): Partial<Record<keyof Theme, string[]>> {
+	return {
+		secondary: [],
+		on_secondary: ["navigation_menu_icon"],
+		surface: isLightTheme ? ["content_bg", "header_bg", "list_bg", "elevated_bg"] : ["content_bg", "header_bg", "list_bg", "navigation_menu_bg"],
+		on_surface: ["content_fg", "button_bubble_fg"],
+		on_surface_variant: ["content_button", "header_button", "navigation_button", "content_message_bg", "list_message_bg", "navigation_button_icon_bg"],
+		primary: ["content_accent", "content_button_selected", "header_button_selected", "list_accent_fg", "navigation_button_selected"],
+		on_primary: ["content_button_icon", "content_button_icon_selected", "navigation_button_icon_selected"],
+		outline: ["content_border", "header_box_shadow_bg"],
+		surface_container: isLightTheme
+			? ["list_alternate_bg", "navigation_bg", "navigation_button_icon"]
+			: ["list_alternate_bg", "navigation_bg", "navigation_button_icon", "elevated_bg"],
+		surface_container_high: isLightTheme ? ["button_bubble_bg", "navigation_menu_bg"] : ["button_bubble_bg"],
+		outline_variant: ["list_border", "navigation_border"],
+		scrim: ["modal_bg"],
+		error: ["error"],
+	} as const
+}
