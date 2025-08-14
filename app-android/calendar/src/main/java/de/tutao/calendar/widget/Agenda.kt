@@ -350,13 +350,11 @@ class Agenda : GlanceAppWidget() {
 							data.allDayEvents[startOfDay] ?: listOf(),
 							index == 0
 						)
-						if (index < data.normalEvents.size - 1) {
-							Spacer(
-								modifier = GlanceModifier.height(
-									if (data.normalEvents[startOfDay]?.isEmpty() != false) 12.dp else 4.dp
-								)
+						Spacer(
+							modifier = GlanceModifier.height(
+								if (data.normalEvents[startOfDay]?.isEmpty() != false || index == data.normalEvents.size - 1) 12.dp else 4.dp
 							)
-						}
+						)
 					}
 				}
 			}
