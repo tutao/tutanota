@@ -70,7 +70,7 @@ export class CalendarNotificationSender {
 			"{event}": event.summary,
 		})
 		const infoBannerMessage = this.getInfoBannerMessage(EventInviteEmailType.CANCEL)
-		const sender = assertOrganizer(event).address
+		// const organizer = assertOrganizer(event).address
 		return this.sendCalendarFile({
 			sendMailModel,
 			method: MailMethod.ICAL_CANCEL,
@@ -82,7 +82,7 @@ export class CalendarNotificationSender {
 				eventInviteEmailType: EventInviteEmailType.CANCEL,
 			}),
 			event,
-			sender,
+			sender: sendMailModel.getSender(),
 		}).catch(
 			ofClass(RecipientsNotFoundError, (e) => {
 				// we want to delete the event even if the recipient is not an existing tutanota address

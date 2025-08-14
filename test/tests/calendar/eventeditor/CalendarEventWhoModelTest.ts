@@ -38,7 +38,7 @@ import { createTestEntity } from "../../TestUtils.js"
 import { SendMailModel } from "../../../../src/common/mailFunctionality/SendMailModel.js"
 import { CalendarEventWhoModel } from "../../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhoModel.js"
 
-o.spec("CalendarEventWhoModel", function () {
+o.spec("CalendarEventWhoModelTest", function () {
 	const passwordStrengthModel = () => 1
 
 	let recipients: RecipientsModel
@@ -360,8 +360,14 @@ o.spec("CalendarEventWhoModel", function () {
 		o("getting the result on an old model is idempotent", function () {
 			const model = getOldModel({
 				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0], status: CalendarAttendeeStatus.ACCEPTED }),
-					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.ACCEPTED }),
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: ownAddresses[0],
+						status: CalendarAttendeeStatus.ACCEPTED,
+					}),
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: otherAddress,
+						status: CalendarAttendeeStatus.ACCEPTED,
+					}),
 				],
 				organizer: ownerAddress,
 			})
@@ -372,7 +378,10 @@ o.spec("CalendarEventWhoModel", function () {
 		o("removing an attendee while there are other attendees removes only that attendee", async function () {
 			const model = getOldModel({
 				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0], status: CalendarAttendeeStatus.ACCEPTED }),
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: ownAddresses[0],
+						status: CalendarAttendeeStatus.ACCEPTED,
+					}),
 					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress }),
 				],
 				organizer: ownerAddress,
@@ -414,7 +423,10 @@ o.spec("CalendarEventWhoModel", function () {
 			const model = getNewModel({
 				attendees: [
 					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0] }),
-					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION }),
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: otherAddress,
+						status: CalendarAttendeeStatus.NEEDS_ACTION,
+					}),
 				],
 				organizer: ownerAddress,
 				invitedConfidentially: true,
@@ -430,7 +442,10 @@ o.spec("CalendarEventWhoModel", function () {
 					verificationState: PresentableKeyVerificationState.NONE,
 				},
 			])
-			o(model.getPresharedPassword(otherAddress.address)).deepEquals({ password: "", strength: 0 })("password is not set")
+			o(model.getPresharedPassword(otherAddress.address)).deepEquals({
+				password: "",
+				strength: 0,
+			})("password is not set")
 			await model.recipientsSettled
 			o(model.guests).deepEquals([
 				{
@@ -466,9 +481,18 @@ o.spec("CalendarEventWhoModel", function () {
 		o("organizer is replaced with ourselves when an own event with someone else as organizer is opened", function () {
 			const model = getNewModel({
 				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, { address: ownAddresses[0], status: CalendarAttendeeStatus.ACCEPTED }),
-					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.ACCEPTED }),
-					createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress2, status: CalendarAttendeeStatus.NEEDS_ACTION }),
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: ownAddresses[0],
+						status: CalendarAttendeeStatus.ACCEPTED,
+					}),
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: otherAddress,
+						status: CalendarAttendeeStatus.ACCEPTED,
+					}),
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						address: otherAddress2,
+						status: CalendarAttendeeStatus.NEEDS_ACTION,
+					}),
 				],
 				organizer: otherAddress,
 			})
@@ -529,7 +553,62 @@ o.spec("CalendarEventWhoModel", function () {
 			verify(result.inviteModel?.addRecipient(RecipientField.BCC, otherAddress), { times: 1 })
 			o(sendModels.length).equals(0)("all sendmodels have been requested")
 			o(result.attendees.length).equals(3)("all the attendees are there")
+			o(result.organizer).deepEquals(ownerAddress)("organizer is part of the result")
 		})
+
+		o("removing/adding last attendees on existing event correctly creates the send models", function () {
+			const cancelModelMock = object<SendMailModel>("first")
+			const sendModels: Array<SendMailModel> = [cancelModelMock]
+			const userController = makeUserController([], AccountType.PAID)
+
+			const existingEvent = createTestEntity(CalendarEventTypeRef, {
+				_ownerGroup: "ownCalendar",
+				startTime: getDateInZone("2020-06-01"),
+				endTime: getDateInZone("2020-06-02"),
+				organizer: ownerAddress,
+				attendees: [
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						status: CalendarAttendeeStatus.NEEDS_ACTION,
+						address: ownerAddress,
+					}),
+					createTestEntity(CalendarEventAttendeeTypeRef, {
+						status: CalendarAttendeeStatus.NEEDS_ACTION,
+						address: otherAddress2,
+					}),
+				],
+			})
+			const model = new CalendarEventWhoModel(
+				existingEvent,
+				EventType.OWN,
+				CalendarOperation.EditAll,
+				calendars,
+				calendars.get("ownCalendar")!,
+				userController,
+				false,
+				ownAddresses,
+				recipients,
+				null,
+				passwordStrengthModel,
+				() => assertNotNull(sendModels.pop(), "requested more sendModels than expected"),
+			)
+			model.shouldSendUpdates = true
+			model.removeAttendee(otherAddress2.address)
+
+			const result = model.result
+			o(result.responseModel).equals(null)
+			o(result.updateModel).equals(null)
+			o(result.inviteModel).equals(null)
+			o(result.cancelModel).equals(cancelModelMock)
+
+			// otherAddress2 was removed, so needs cancel
+			verify(cancelModelMock.addRecipient(RecipientField.BCC, otherAddress2), { times: 1 })
+			verify(cancelModelMock.setSender(ownerAddress.address), { times: 1 })
+
+			o(sendModels.length).equals(0)("all sendmodels have been requested")
+			o(result.attendees.length).equals(0)("all the attendees are there")
+			o(result.organizer).equals(null)("there should be no organizer on the event after removing all guests")
+		})
+
 		o("adding attendees on new event correctly creates invite model", function () {
 			const sendModels: Array<SendMailModel> = [object()]
 			const userController = makeUserController([], AccountType.PAID)
@@ -622,7 +701,12 @@ o.spec("CalendarEventWhoModel", function () {
 				// add it as a writable calendar so that we see that it's filtered out
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getOldModel({
-					attendees: [createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION })],
+					attendees: [
+						createTestEntity(CalendarEventAttendeeTypeRef, {
+							address: otherAddress,
+							status: CalendarAttendeeStatus.NEEDS_ACTION,
+						}),
+					],
 				})
 				o(model.getAvailableCalendars()).deepEquals([calendars.get("ownCalendar")!, calendars.get("ownSharedCalendar")!])
 			})
@@ -639,7 +723,12 @@ o.spec("CalendarEventWhoModel", function () {
 				addCapability(userController.user, "sharedCalendar", ShareCapability.Write)
 				const model = getOldSharedModel(
 					{
-						attendees: [createTestEntity(CalendarEventAttendeeTypeRef, { address: otherAddress, status: CalendarAttendeeStatus.NEEDS_ACTION })],
+						attendees: [
+							createTestEntity(CalendarEventAttendeeTypeRef, {
+								address: otherAddress,
+								status: CalendarAttendeeStatus.NEEDS_ACTION,
+							}),
+						],
 					},
 					EventType.LOCKED,
 				)
