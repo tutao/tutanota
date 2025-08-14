@@ -2096,3 +2096,4 @@ export type TranslationKeyType =
 	| "updateColorCustomizationNews_title"
 	| "updateColorCustomizationNews_msg"
 	| "updateColorCustomizationNewsButton_label"
+	| "sourceColor_label"

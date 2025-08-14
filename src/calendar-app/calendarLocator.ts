@@ -116,6 +116,7 @@ import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
+import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
 
 assertMainOrNode()
 
@@ -173,6 +174,7 @@ class CalendarLocator implements CommonLocator {
 	Const!: Record<string, any>
 	syncTracker!: SyncTracker
 	identityKeyCreator!: IdentityKeyCreator
+	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -634,6 +636,7 @@ class CalendarLocator implements CommonLocator {
 			// calendar does not have index, so nothing needs to be handled here
 			noOp()
 		})
+		this.whitelabelThemeGenerator = new WhitelabelThemeGenerator()
 
 		this.usageTestModel = new UsageTestModel(
 			{
@@ -801,7 +804,7 @@ class CalendarLocator implements CommonLocator {
 			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
 			: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
-		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Calendar)
+		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Calendar, this.whitelabelThemeGenerator)
 
 		// For native targets WebCommonNativeFacade notifies themeController because Android and Desktop do not seem to work reliably via media queries
 		if (selectedThemeFacade instanceof WebThemeFacade) {

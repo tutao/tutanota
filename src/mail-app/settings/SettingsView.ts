@@ -457,7 +457,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						() => "whitelabel_label",
 						() => Icons.Wand,
 						"whitelabel",
-						() => new WhitelabelSettingsViewer(locator.entityClient, this.logins),
+						() => new WhitelabelSettingsViewer(locator.entityClient, this.logins, locator.themeController, locator.whitelabelThemeGenerator),
 						undefined,
 					),
 				)
