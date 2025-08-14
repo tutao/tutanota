@@ -18,6 +18,7 @@ import { generateRandomColor } from "./CalendarGuiUtils.js"
 
 export type CalendarProperties = {
 	name: string
+	sharedName?: string
 	color: string
 	alarms: AlarmInterval[]
 	sourceUrl: string | null
@@ -66,7 +67,7 @@ function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stre
 function createEditCalendarComponent(
 	nameStream: Stream<string>,
 	colorStream: Stream<string>,
-	shared: boolean,
+	sharedName: string | undefined,
 	calendarType: CalendarType,
 	alarms: AlarmInterval[],
 	urlStream: Stream<string>,
@@ -74,10 +75,18 @@ function createEditCalendarComponent(
 ) {
 	return m.fragment({}, [
 		m(TextField, {
-			value: nameStream(),
+			value: sharedName ?? nameStream(),
 			oninput: nameStream,
 			label: "calendarName_label",
+			isReadOnly: !!sharedName,
 		}),
+		sharedName
+			? m(TextField, {
+					value: nameStream(),
+					oninput: nameStream,
+					label: lang.getTranslation("calendarCustomName_label", { "{customName}": "" }),
+				})
+			: null,
 		m(".small.mt.mb-xs", lang.get("color_label")),
 		m(ColorPickerView, {
 			value: colorStream(),
@@ -85,7 +94,7 @@ function createEditCalendarComponent(
 				colorStream(color)
 			},
 		}),
-		!shared && isNormalCalendarType(calendarType)
+		!sharedName && isNormalCalendarType(calendarType)
 			? m(RemindersEditor, {
 					alarms,
 					addAlarm: (alarm: AlarmInterval) => {
@@ -122,7 +131,7 @@ export function showCreateEditCalendarDialog({
 	okAction,
 	okTextId,
 	warningMessage,
-	calendarProperties: { name, color, alarms, sourceUrl } = defaultCalendarProperties,
+	calendarProperties: { name, sharedName, color, alarms, sourceUrl } = defaultCalendarProperties,
 	isNewCalendar = true,
 	calendarModel,
 }: CreateEditDialogAttrs) {
@@ -203,7 +212,7 @@ export function showCreateEditCalendarDialog({
 					view: () =>
 						m(".flex.col", [
 							warningMessage ? warningMessage() : null,
-							createEditCalendarComponent(nameStream, colorStream, shared, calendarType, alarms, urlStream, errorMessageStream),
+							createEditCalendarComponent(nameStream, colorStream, sharedName, calendarType, alarms, urlStream, errorMessageStream),
 						]),
 				},
 				okAction: doAction,
