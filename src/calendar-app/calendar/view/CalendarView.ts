@@ -1249,6 +1249,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			okTextId: "save_action",
 			calendarProperties: {
 				name: getSharedGroupName(groupInfo, locator.logins.getUserController(), shared),
+				sharedName: shared ? groupInfo.name : undefined,
 				color: colorValue.substring(1),
 				alarms: existingGroupSettings?.defaultAlarmsList.map((alarm) => parseAlarmInterval(alarm.trigger)) ?? [],
 				sourceUrl: existingGroupSettings?.sourceUrl ?? null,
