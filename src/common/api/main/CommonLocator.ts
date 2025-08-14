@@ -74,6 +74,7 @@ import type { CalendarInviteHandler } from "../../../calendar-app/calendar/view/
 import { PublicEncryptionKeyProvider } from "../worker/facades/PublicEncryptionKeyProvider"
 import { IdentityKeyCreator } from "../worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../worker/facades/PublicIdentityKeyProvider"
+import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -91,6 +92,7 @@ export interface CommonLocator {
 	desktopSettingsFacade: SettingsFacade
 	desktopSystemFacade: DesktopSystemFacade
 	themeController: ThemeController
+	whitelabelThemeGenerator: WhitelabelThemeGenerator
 
 	entityClient: EntityClient
 	loginFacade: LoginFacade

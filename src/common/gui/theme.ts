@@ -117,3 +117,27 @@ export function getElevatedBackground(): string {
 export function getNavigationMenuBg(): string {
 	return isColorLight(theme.surface) ? theme.surface_container_high : theme.surface
 }
+
+export const MATERIAL_COLORS: readonly (keyof Theme)[] = Object.freeze([
+	"primary",
+	"on_primary",
+	"primary_container",
+	"on_primary_container",
+	"secondary",
+	"on_secondary",
+	"secondary_container",
+	"on_secondary_container",
+	"tertiary",
+	"on_tertiary",
+	"tertiary_container",
+	"on_tertiary_container",
+	"surface",
+	"surface_container",
+	"surface_container_high",
+	"surface_container_highest",
+	"on_surface",
+	"on_surface_variant",
+	"outline",
+	"outline_variant",
+	"scrim",
+])
