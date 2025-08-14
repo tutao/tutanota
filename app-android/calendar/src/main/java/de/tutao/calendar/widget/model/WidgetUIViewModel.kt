@@ -162,9 +162,9 @@ class WidgetUIViewModel(
 				}
 
 				if (isAllDay) {
-					allDayEvents[startOfDay]!!.plus(event)
+					allDayEvents[startOfDay] = allDayEvents[startOfDay]!!.plus(event)
 				} else {
-					normalEvents[startOfDay]!!.plus(event)
+					normalEvents[startOfDay] = normalEvents[startOfDay]!!.plus(event)
 				}
 			}
 
@@ -189,9 +189,10 @@ class WidgetUIViewModel(
 
 				val startOfDay = startAsInstant.truncatedTo(ChronoUnit.DAYS).toEpochMilli()
 				if (!allDayEvents.containsKey(startOfDay)) {
+					normalEvents[startOfDay] = listOf()
 					allDayEvents[startOfDay] = listOf()
 				}
-				allDayEvents[startOfDay]!!.plus(event)
+				allDayEvents[startOfDay] = allDayEvents[startOfDay]!!.plus(event)
 			}
 		}
 
