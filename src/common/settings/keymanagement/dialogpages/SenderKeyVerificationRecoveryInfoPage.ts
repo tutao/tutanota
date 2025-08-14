@@ -62,7 +62,7 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 					size: IconSize.Large,
 					class: "mr-s flex-center",
 					style: {
-						fill: theme.content_button_icon,
+						fill: theme.content_button_icon_selected,
 					},
 				}),
 			}),
