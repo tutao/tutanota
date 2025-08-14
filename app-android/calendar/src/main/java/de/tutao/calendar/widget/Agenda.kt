@@ -480,6 +480,7 @@ class Agenda : GlanceAppWidget() {
 			}
 
 			val innerPadding = if (showAllDayInfo) defaultPadding else 0
+			Text(normalEvents.size.toString()) // FIXME List not showing all the events and it is out of other
 			Column(modifier = GlanceModifier.padding((innerPadding).dp)) {
 				normalEvents.forEachIndexed { index, event ->
 					Event(
