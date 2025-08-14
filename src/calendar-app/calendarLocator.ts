@@ -804,7 +804,7 @@ class CalendarLocator implements CommonLocator {
 			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
 			: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
-		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Calendar)
+		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Calendar, this.whitelabelThemeGenerator)
 
 		// For native targets WebCommonNativeFacade notifies themeController because Android and Desktop do not seem to work reliably via media queries
 		if (selectedThemeFacade instanceof WebThemeFacade) {

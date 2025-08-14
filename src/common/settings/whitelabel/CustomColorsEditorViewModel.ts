@@ -1,6 +1,6 @@
 import { assertMainOrNode } from "../../api/common/Env"
 import { BaseThemeId, MATERIAL_COLORS, Theme } from "../../gui/theme"
-import { clone, defer, DeferredObject, downcast } from "@tutao/tutanota-utils"
+import { clone, downcast } from "@tutao/tutanota-utils"
 import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
 import { isValidColorCode } from "../../gui/base/Color"
 import stream from "mithril/stream"
@@ -23,14 +23,14 @@ export class CustomColorsEditorViewModel {
 	private _customizations: ThemeCustomizations
 	private readonly _whitelabelConfig: WhitelabelConfig
 	private readonly _whitelabelDomainInfo: DomainInfo
-	private _accentColor!: string
+	private _sourceColor!: string
 	private _baseTheme!: BaseThemeId
 	private readonly _themeController: ThemeController
 	private readonly _entityClient: EntityClient
 	private readonly _loginController: LoginController
 	private readonly _themeBeforePreview: Theme
 	readonly builtTheme: Stream<Theme>
-	private readonly inited: DeferredObject<void> = defer()
+	private readonly whitelabelThemeGenerator: WhitelabelThemeGenerator
 
 	constructor(
 		currentTheme: Theme,
@@ -40,8 +40,9 @@ export class CustomColorsEditorViewModel {
 		themeController: ThemeController,
 		entityClient: EntityClient,
 		loginController: LoginController,
-		private readonly whitelabelThemeGenerator: WhitelabelThemeGenerator,
+		whitelabelThemeGenerator: WhitelabelThemeGenerator,
 	) {
+		this.whitelabelThemeGenerator = whitelabelThemeGenerator
 		this._themeBeforePreview = Object.freeze(currentTheme)
 		this._customizations = clone(themeCustomizations)
 		this._whitelabelDomainInfo = whitelabelDomainInfo
@@ -50,18 +51,16 @@ export class CustomColorsEditorViewModel {
 		this._entityClient = entityClient
 		this._loginController = loginController
 		this.builtTheme = stream()
-
-		const baseThemeId = themeCustomizations.base ?? "light"
-		const accentColor = themeCustomizations.primary ?? this._themeController.getDefaultTheme().primary
-		this.changeTheme({ accentColor, baseThemeId })
 	}
 
-	init() {
-		this._applyEditedTheme()
+	async init() {
+		const baseThemeId = this._customizations.base ?? "light"
+		const sourceColor = this._customizations.sourceColor ?? this._themeController.getDefaultTheme().primary
+		await this.changeTheme({ sourceColor, baseThemeId })
 	}
 
-	get accentColor(): string {
-		return this._accentColor
+	get sourceColor(): string {
+		return this._sourceColor
 	}
 
 	get customizations(): ThemeCustomizations {
@@ -72,18 +71,18 @@ export class CustomColorsEditorViewModel {
 		return this._baseTheme
 	}
 
-	async changeAccentColor(accentColor: string) {
-		await this.changeTheme({ accentColor })
+	async changeSourceColor(sourceColor: string) {
+		await this.changeTheme({ sourceColor })
 	}
 
 	async changeBaseTheme(baseThemeId: BaseThemeId) {
 		await this.changeTheme({ baseThemeId })
 	}
 
-	private async changeTheme(attrs: { accentColor?: string; baseThemeId?: BaseThemeId }) {
-		if (attrs.accentColor != null) {
-			this._accentColor = attrs.accentColor
-			this.setCustomization("primary", attrs.accentColor)
+	private async changeTheme(attrs: { sourceColor?: string; baseThemeId?: BaseThemeId }) {
+		if (attrs.sourceColor != null) {
+			this._sourceColor = attrs.sourceColor
+			this.setCustomization("sourceColor", attrs.sourceColor)
 		}
 
 		if (attrs.baseThemeId != null) {
@@ -92,7 +91,7 @@ export class CustomColorsEditorViewModel {
 		}
 
 		const theme = await this.whitelabelThemeGenerator.generateMaterialTheme({
-			accentColor: this._accentColor,
+			sourceColor: this._sourceColor,
 			theme: this._baseTheme,
 			logo: this.customizations.logo,
 		})
@@ -126,8 +125,8 @@ export class CustomColorsEditorViewModel {
 		return true
 	}
 
-	private getColorKeys(customizations: Record<string, any>): (keyof Theme)[] {
-		return Object.keys(customizations).filter((name) => name === "baseTheme" || MATERIAL_COLORS.includes(name as keyof Theme)) as (keyof Theme)[]
+	private getColorKeys(customizations: Partial<Theme>): (keyof Theme)[] {
+		return Object.keys(customizations).filter((name: keyof Theme) => MATERIAL_COLORS.includes(name)) as (keyof Theme)[]
 	}
 
 	async resetActiveClientTheme(): Promise<void> {
@@ -147,14 +146,9 @@ export class CustomColorsEditorViewModel {
 		this._removeEmptyCustomizations()
 
 		await this._themeController.applyCustomizations(this.customizations, false)
-		this.inited.resolve()
 	}
 
 	_removeEmptyCustomizations() {
 		this._customizations = downcast(Object.fromEntries(Object.entries(this.customizations).filter(([k, v]) => v !== "")))
-	}
-
-	async _waitInited(): Promise<void> {
-		await this.inited.promise
 	}
 }

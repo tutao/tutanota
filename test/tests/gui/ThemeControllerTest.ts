@@ -28,7 +28,7 @@ o.spec("ThemeController", function () {
 			inlineImageCids: [],
 			links: [],
 		})
-		themeManager = new ThemeController(theme, themeFacadeMock, () => Promise.resolve(htmlSanitizerMock), AppType.Integrated)
+		themeManager = new ThemeController(theme, themeFacadeMock, () => Promise.resolve(htmlSanitizerMock), AppType.Integrated, object())
 		await themeManager.initialized
 	})
 
@@ -61,40 +61,6 @@ o.spec("ThemeController", function () {
 		})
 
 		o(ThemeController.mapNewToOldColorTokens(newTokenTheme)).deepEquals(
-			downcast({
-				themeId: "HelloFancyId",
-				primary: "#abcdef",
-				surface: "#fffeee",
-				base: "light",
-				content_accent: "#abcdef",
-				content_button_selected: "#abcdef",
-				header_button_selected: "#abcdef",
-				list_accent_fg: "#abcdef",
-				navigation_button_selected: "#abcdef",
-				content_bg: "#fffeee",
-				header_bg: "#fffeee",
-				list_bg: "#fffeee",
-				elevated_bg: "#fffeee",
-			}),
-		)
-	})
-
-	o("Mapping the old color tokens to the new tokens", async function () {
-		const oldTokenTheme: ThemeCustomizations = downcast({
-			themeId: "HelloFancyId",
-			base: "light",
-			content_accent: "#abcdef",
-			content_button_selected: "#abcdef",
-			header_button_selected: "#abcdef",
-			list_accent_fg: "#abcdef",
-			navigation_button_selected: "#abcdef",
-			content_bg: "#fffeee",
-			header_bg: "#fffeee",
-			list_bg: "#fffeee",
-			elevated_bg: "#fffeee",
-		})
-
-		o(ThemeController.mapOldToNewColorTokens(oldTokenTheme)).deepEquals(
 			downcast({
 				themeId: "HelloFancyId",
 				primary: "#abcdef",

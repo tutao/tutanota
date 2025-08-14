@@ -4,6 +4,7 @@ import { ThemeController } from "../../../../src/common/gui/ThemeController.js"
 import { DomainInfoTypeRef, WhitelabelConfigTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { downcast } from "@tutao/tutanota-utils"
 import type { ThemeCustomizations } from "../../../../src/common/misc/WhitelabelCustomizations.js"
+import { WHITELABEL_CUSTOMIZATION_VERSION } from "../../../../src/common/misc/WhitelabelCustomizations.js"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient.js"
 import { themes } from "../../../../src/common/gui/builtinThemes.js"
 import type { LoginController } from "../../../../src/common/api/main/LoginController.js"
@@ -21,9 +22,9 @@ o.spec("CustomColorEditorViewModel", function () {
 	let whitelabelThemeGenerator: WhitelabelThemeGenerator
 	// These customizations should always be set if no changes are made
 	const defaultCustomizations: ThemeCustomizations = downcast({
-		primary: "#8F4A4E",
+		sourceColor: "#8F4A4E",
 		base: "light",
-		version: 1,
+		version: WHITELABEL_CUSTOMIZATION_VERSION,
 	})
 	let entityClient: EntityClient
 	let loginController: LoginController
@@ -65,15 +66,15 @@ o.spec("CustomColorEditorViewModel", function () {
 				loginController,
 				whitelabelThemeGenerator,
 			)
-			await model._waitInited()
-			o(model.accentColor).equals("#8F4A4E")
+			await model.init()
+			o(model.sourceColor).equals("#8F4A4E")
 			o(model.baseThemeId).equals("light")
 			o(themeController.applyCustomizations.callCount).equals(1)
 		})
 		o("open Editor with custom theme, all customizations should be applied", async function () {
 			const customizations: ThemeCustomizations = downcast({
 				themeId: "test.domain.com",
-				primary: "#ee051f",
+				sourceColor: "#ee051f",
 				base: "dark",
 				surface: "#1df3ed",
 				scrim: "#1aa1aa",
@@ -89,11 +90,14 @@ o.spec("CustomColorEditorViewModel", function () {
 				loginController,
 				whitelabelThemeGenerator,
 			)
-			o(model.accentColor).equals(customizations.primary!)
-			o(model.baseThemeId).equals(customizations.base!)
+			await model.init()
+			o(model.sourceColor).equals(customizations.sourceColor)
+			o(model.baseThemeId).equals(customizations.base)
 			await model.save()
 			o(entityClient.update.callCount).equals(1)
-			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(ThemeController.mapNewToOldColorTokens(customizations))
+			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
+				Object.assign({}, ThemeController.mapNewToOldColorTokens(customizations), { version: WHITELABEL_CUSTOMIZATION_VERSION }),
+			)
 		})
 	})
 	o.spec("closeEditor", function () {
@@ -110,7 +114,7 @@ o.spec("CustomColorEditorViewModel", function () {
 				loginController,
 				whitelabelThemeGenerator,
 			)
-			await model._waitInited()
+			await model.init()
 			await model.resetActiveClientTheme()
 			o(themeController.applyCustomizations.callCount).equals(1)
 			o(themeController.resetTheme.callCount).equals(1)
@@ -128,11 +132,11 @@ o.spec("CustomColorEditorViewModel", function () {
 				loginController,
 				whitelabelThemeGenerator,
 			)
-			await model._waitInited()
+			await model.init()
 			model.customizations["scrim"] = "#fedcba"
 			model.customizations["on_surface"] = "#deffed"
 			model.changeBaseTheme("dark")
-			model.changeAccentColor("#aaaaaa")
+			model.changeSourceColor("#aaaaaa")
 			await model.save()
 			o(entityClient.update.callCount).equals(1)
 			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
@@ -141,7 +145,7 @@ o.spec("CustomColorEditorViewModel", function () {
 						scrim: "#fedcba",
 						on_surface: "#deffed",
 						base: "dark",
-						primary: "#aaaaaa",
+						sourceColor: "#aaaaaa",
 						themeId: "test.domain.com",
 					}),
 				),
@@ -161,17 +165,17 @@ o.spec("CustomColorEditorViewModel", function () {
 				loginController,
 				whitelabelThemeGenerator,
 			)
-			await model._waitInited()
+			await model.init()
 			await model.save()
 			// Should equal 1 here since we call updateCustomTheme once when initializing the viewModel, and then not anymore when saving
 			o(themeController.applyCustomizations.callCount).equals(1)
 		})
 	})
-	o.spec("changeAccentColor", function () {
-		o("changing accent changed preview", async function () {
+	o.spec("changeSourceColor", function () {
+		o("changing sourceColor changed preview", async function () {
 			const customizations: ThemeCustomizations = downcast({})
 			const expectedCustomizations = {
-				primary: "#ff00f2",
+				sourceColor: "#ff00f2",
 				themeId: "test.domain.com",
 			}
 			when(whitelabelThemeGenerator.generateMaterialTheme(matchers.anything())).thenResolve({
@@ -187,15 +191,16 @@ o.spec("CustomColorEditorViewModel", function () {
 				loginController,
 				whitelabelThemeGenerator,
 			)
-			await model._waitInited()
-			await model.changeAccentColor("#ff00f2")
-			o(themeController.applyCustomizations.callCount).equals(2) // inited and then changed accent color
+			await model.init()
+			await model.changeSourceColor("#ffccf2")
+			o(themeController.applyCustomizations.callCount).equals(2) // inited and then changed source color
 			await model.save()
 			o(entityClient.update.callCount).equals(1)
 			o(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
 				Object.assign({}, ThemeController.mapNewToOldColorTokens(expectedCustomizations), {
 					base: "light",
-					version: 1,
+					version: WHITELABEL_CUSTOMIZATION_VERSION,
+					sourceColor: "#ffccf2",
 					primary_container: "blah",
 				}),
 			)
@@ -206,7 +211,7 @@ o.spec("CustomColorEditorViewModel", function () {
 	o.spec("changeBaseTheme", function () {
 		o("does not overwrite custom colors and changes preview", async function () {
 			const customizations: ThemeCustomizations = downcast({})
-			const expectedCustomizations = {
+			const expectedCustomizations: Partial<ThemeCustomizations> = {
 				themeId: "test.domain.com",
 				base: "dark",
 			}
@@ -221,7 +226,7 @@ o.spec("CustomColorEditorViewModel", function () {
 				loginController,
 				whitelabelThemeGenerator,
 			)
-			await model._waitInited()
+			await model.init()
 			model.changeBaseTheme("dark")
 			await model.save()
 			o(entityClient.update.callCount).equals(1)

@@ -2,7 +2,7 @@ import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
 import { isAdminClient, isApp, isDesktop, LOGIN_TITLE } from "../api/common/Env"
-import { assertNotNull, defer, delay, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, delay, downcast, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
@@ -14,7 +14,7 @@ import { isNotificationCurrentlyActive, loadOutOfOfficeNotification } from "../m
 import * as notificationOverlay from "../gui/base/NotificationOverlay"
 import { ButtonType } from "../gui/base/Button.js"
 import { Dialog } from "../gui/base/Dialog"
-import { CloseEventBusOption, Const, SecondFactorType } from "../api/common/TutanotaConstants"
+import { CloseEventBusOption, Const, FeatureType, SecondFactorType } from "../api/common/TutanotaConstants"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
 import { notifications } from "../gui/Notifications"
 import { LockedError } from "../api/common/error/RestError"
@@ -107,6 +107,11 @@ export class PostLoginActions implements PostLoginAction {
 		// We already have user data to load themes
 		if (isApp() || isDesktop()) {
 			await this.storeNewCustomThemes()
+		}
+
+		// Only migrate white label when logged-in user is global admin
+		if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && this.logins.getUserController().isGlobalAdmin()) {
+			await this.migrateWhiteLabelToMaterial3()
 		}
 	}
 
@@ -237,6 +242,22 @@ export class PostLoginActions implements PostLoginAction {
 				)
 			}
 		})
+	}
+
+	/** Can be removed once all whitelabel users are migrated */
+	private async migrateWhiteLabelToMaterial3(): Promise<void> {
+		const whitelabelConfig = (await this.logins.getUserController().loadWhitelabelConfig())?.whitelabelConfig
+		if (whitelabelConfig && whitelabelConfig.jsonTheme) {
+			const parsedTheme = downcast<Record<string, string>>(getThemeCustomizations(whitelabelConfig))
+
+			if (parsedTheme.version == null) {
+				const material3Customizations = await this.themeController.getMaterial3Customizations(parsedTheme)
+				const mappedTheme = ThemeController.mapNewToOldColorTokens(material3Customizations)
+				mappedTheme.themeId = parsedTheme.themeId
+				whitelabelConfig.jsonTheme = JSON.stringify(mappedTheme)
+				await this.entityClient.update(whitelabelConfig)
+			}
+		}
 	}
 
 	private async storeNewCustomThemes(): Promise<void> {
