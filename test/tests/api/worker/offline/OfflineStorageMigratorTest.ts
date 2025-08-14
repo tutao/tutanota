@@ -1,13 +1,16 @@
 import o from "@tutao/otest"
-import { CURRENT_OFFLINE_VERSION, OfflineMigration, OfflineStorageMigrator } from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
+import {
+	CURRENT_OFFLINE_VERSION,
+	OFFLINE_STORAGE_MIGRATIONS,
+	OfflineMigration,
+	OfflineStorageMigrator,
+} from "../../../../../src/common/api/worker/offline/OfflineStorageMigrator.js"
 import { OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { func, instance, matchers, object, when } from "testdouble"
-import { assertThrows, verify } from "@tutao/tutanota-test-utils"
+import { verify } from "@tutao/tutanota-test-utils"
 import { ModelInfos } from "../../../../../src/common/api/common/EntityFunctions.js"
-import { typedEntries } from "@tutao/tutanota-utils"
-import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
-import { OutOfSyncError } from "../../../../../src/common/api/common/error/OutOfSyncError.js"
+import { maxBy } from "@tutao/tutanota-utils"
 
 o.spec("OfflineStorageMigrator", function () {
 	const modelInfos: ModelInfos = {
@@ -76,5 +79,10 @@ o.spec("OfflineStorageMigrator", function () {
 
 		verify(migration.migrate(storage, sqlCipherFacade))
 		verify(storage.setCurrentOfflineSchemaVersion(5))
+	})
+
+	o("ensure CURRENT_OFFLINE_VERSION matches the greatest registered migration", async function () {
+		const greatestMigration = maxBy(OFFLINE_STORAGE_MIGRATIONS, (item: OfflineMigration) => item.version)
+		o(CURRENT_OFFLINE_VERSION).equals(greatestMigration?.version)
 	})
 })
