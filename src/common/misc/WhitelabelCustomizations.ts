@@ -8,9 +8,11 @@ assertMainOrNodeBoot()
 export const WHITELABEL_CUSTOMIZATION_VERSION = 1
 
 export type ThemeCustomizations = Partial<Theme> & {
-	version: number | null
-	base: BaseThemeId | null
+	version: number
+	base: BaseThemeId
+	sourceColor: string
 }
+
 export type ThemeKey = keyof Theme
 export type CustomizationKey = keyof ThemeCustomizations
 
@@ -32,5 +34,5 @@ export function getWhitelabelCustomizations(window: Window): WhitelabelCustomiza
 }
 
 export function getThemeCustomizations(whitelabelConfig: WhitelabelConfig): ThemeCustomizations {
-	return ThemeController.mapOldToNewColorTokens(JSON.parse(whitelabelConfig.jsonTheme, (k, v) => (k === "__proto__" ? undefined : v)))
+	return JSON.parse(whitelabelConfig.jsonTheme, (k, v) => (k === "__proto__" ? undefined : v))
 }

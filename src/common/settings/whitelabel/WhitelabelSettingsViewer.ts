@@ -48,7 +48,7 @@ import { getCustomMailDomains, getWhitelabelDomainInfo } from "../../api/common/
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showBuyOrSetNotificationEmailDialog } from "../EditNotificationEmailDialog.js"
-import { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
+import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
 
 assertMainOrNode()
 

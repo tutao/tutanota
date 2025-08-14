@@ -2096,5 +2096,6 @@ export default {
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
+		"sourceColor_label": "Source color"
 	}
 }
