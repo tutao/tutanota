@@ -7,7 +7,7 @@ import { assertNotNull, downcast, findAndRemove, LazyLoaded, mapAndFilterNull, t
 import m from "mithril"
 import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
 import { themes } from "./builtinThemes"
-import { getWhitelabelCustomizations, ThemeCustomizations } from "../misc/WhitelabelCustomizations"
+import { getWhitelabelCustomizations, ThemeCustomizations, WhitelabelThemeCustomizationsButForReal } from "../misc/WhitelabelCustomizations"
 import { getAppLogo, getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { AppType } from "../misc/ClientConstants.js"
@@ -49,7 +49,11 @@ export class ThemeController {
 			// no need to persist anything if we are on whitelabel domain
 			const parsedTheme = whitelabelCustomizations.theme
 			const assembledTheme = await this.applyCustomizations(
-				generateMaterialTheme(assertNotNull(parsedTheme.primary), parsedTheme.base, parsedTheme.logo),
+				{
+					theme: parsedTheme.base ?? "light",
+					logo: parsedTheme.logo,
+					accentColor: assertNotNull(parsedTheme.primary),
+				},
 				false,
 			)
 			this._themePreference = assembledTheme.themeId
@@ -64,7 +68,14 @@ export class ThemeController {
 				const parsedTheme: ThemeCustomizations = this.parseCustomizations(themeJson)
 
 				// We also don't need to save anything in this case
-				await this.applyCustomizations(generateMaterialTheme(assertNotNull(parsedTheme.primary), parsedTheme.base, parsedTheme.logo), false)
+				await this.applyCustomizations(
+					{
+						theme: parsedTheme.base ?? "light",
+						logo: parsedTheme.logo,
+						accentColor: assertNotNull(parsedTheme.primary),
+					},
+					false,
+				)
 			}
 
 			// If it's a first start we might get a fallback theme from native. We can apply it for a short time but we should switch to the full, resolved
@@ -223,8 +234,10 @@ export class ThemeController {
 	/**
 	 * Apply the custom theme, if permanent === true, then the new theme will be saved
 	 */
-	async applyCustomizations(customizations: ThemeCustomizations, permanent: boolean = true): Promise<Theme> {
-		const updatedTheme = this.assembleTheme(ThemeController.mapOldToNewColorTokens(customizations))
+	async applyCustomizations(customizations: WhitelabelThemeCustomizationsButForReal, permanent: boolean = true): Promise<Theme> {
+		const generatedTheme = generateMaterialTheme(customizations)
+		const updatedTheme = this.assembleTheme(ThemeController.mapOldToNewColorTokens(generatedTheme))
+
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {
 			logo: "",
@@ -244,6 +257,10 @@ export class ThemeController {
 		}
 
 		return updatedTheme
+	}
+
+	async resetTheme(theme: Theme) {
+		this.applyTrustedTheme(theme, theme.themeId)
 	}
 
 	async storeCustomThemeForCustomizations(customizations: ThemeCustomizations) {
@@ -420,12 +437,11 @@ const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
 	error: ["error"],
 } as const
 
-export function generateMaterialTheme(primaryColor: string, baseTheme: BaseThemeId | undefined | null, logo: string | undefined): ThemeCustomizations {
-	const themeId = baseTheme ?? "light"
-	const primaryArgb = argbFromHex(primaryColor)
+function generateMaterialTheme(themeParams: WhitelabelThemeCustomizationsButForReal): ThemeCustomizations {
+	const primaryArgb = argbFromHex(themeParams.accentColor)
 	const materialTheme = themeFromSourceColor(primaryArgb)
 
-	const isDark = themeId === "dark"
+	const isDark = themeParams.theme === "dark"
 	const scheme = new DynamicScheme({
 		sourceColorArgb: primaryArgb,
 		// neutral
@@ -442,9 +458,9 @@ export function generateMaterialTheme(primaryColor: string, baseTheme: BaseTheme
 	const baseColors = isDark ? themes().dark : themes().light
 
 	return {
-		base: themeId,
-		themeId,
-		logo: logo ?? getAppLogo(isDark ? "#C4C6D0EE" : "#9F8C8CAA"),
+		base: themeParams.theme,
+		themeId: themeParams.theme,
+		logo: themeParams.logo ?? getAppLogo(isDark ? "#C4C6D0EE" : "#9F8C8CAA"),
 
 		primary: hexFromArgb(scheme.primary),
 		on_primary: hexFromArgb(scheme.onPrimary),

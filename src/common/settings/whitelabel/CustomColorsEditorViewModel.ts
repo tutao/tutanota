@@ -1,12 +1,12 @@
 import { assertMainOrNode } from "../../api/common/Env"
 import type { BaseThemeId, Theme } from "../../gui/theme"
-import { assertNotNull, clone, debounceStart, downcast } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, downcast } from "@tutao/tutanota-utils"
 import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
 import { isValidColorCode } from "../../gui/base/Color"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { CustomizationKey, ThemeCustomizations, ThemeKey } from "../../misc/WhitelabelCustomizations"
-import { generateMaterialTheme, ThemeController } from "../../gui/ThemeController"
+import { ThemeController } from "../../gui/ThemeController"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
 
@@ -138,18 +138,7 @@ export class CustomColorsEditorViewModel {
 	}
 
 	async resetActiveClientTheme(): Promise<void> {
-		await this._themeController.applyCustomizations(
-			downcast(
-				Object.assign(
-					{},
-					{
-						base: null,
-					},
-					this._themeBeforePreview,
-				),
-			),
-			false,
-		)
+		await this._themeController.resetTheme(this._themeBeforePreview)
 	}
 
 	addCustomization(nameOfKey: CustomizationKey, colorValue: string) {
@@ -174,8 +163,14 @@ export class CustomColorsEditorViewModel {
 
 	private _applyEditedTheme() {
 		this._removeEmptyCustomizations()
-		const customizations = generateMaterialTheme(this._accentColor, this._baseTheme, this.customizations.logo)
-		this._themeController.applyCustomizations(customizations, false)
+		this._themeController.applyCustomizations(
+			{
+				logo: this.customizations.logo,
+				theme: this._baseTheme,
+				accentColor: this._accentColor,
+			},
+			false,
+		)
 	}
 
 	_removeEmptyCustomizations() {

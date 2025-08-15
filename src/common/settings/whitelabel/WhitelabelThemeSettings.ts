@@ -13,6 +13,7 @@ import { locator } from "../../api/main/CommonLocator.js"
 import { showFileChooser } from "../../file/FileController.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
+import { customColor } from "@material/material-color-utilities"
 
 export type WhitelabelData = {
 	customTheme: ThemeCustomizations
@@ -69,7 +70,11 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await locator.themeController.applyCustomizations(customTheme)
+				await locator.themeController.applyCustomizations({
+					theme: customTheme.base ?? "light",
+					logo: customTheme.logo,
+					accentColor: assertNotNull(customTheme.primary),
+				})
 			}
 		}
 	}
@@ -127,7 +132,11 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await locator.themeController.applyCustomizations(customTheme)
+				await locator.themeController.applyCustomizations({
+					theme: customTheme.base ?? "light",
+					logo: customTheme.logo,
+					accentColor: assertNotNull(customTheme.primary),
+				})
 			}
 		}
 	}
@@ -140,7 +149,11 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await locator.themeController.applyCustomizations(customTheme)
+				await locator.themeController.applyCustomizations({
+					theme: customTheme.base ?? "light",
+					logo: customTheme.logo,
+					accentColor: assertNotNull(customTheme.primary),
+				})
 			}
 		}
 	}
