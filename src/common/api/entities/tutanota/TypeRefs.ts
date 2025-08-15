@@ -281,6 +281,7 @@ export type MailBox = {
 	currentMailBag: null | MailBag;
 	importedAttachments: Id;
 	mailImportStates: Id;
+	extractedFeatures: null | Id;
 }
 export const CreateExternalUserGroupDataTypeRef: TypeRef<CreateExternalUserGroupData> = new TypeRef("tutanota", 138)
 
