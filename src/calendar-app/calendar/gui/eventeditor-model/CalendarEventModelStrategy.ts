@@ -6,7 +6,7 @@
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
-import { assertNotNull, identity } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, identity, incrementDate } from "@tutao/tutanota-utils"
 import { generateUid } from "../../../../common/calendar/date/CalendarUtils.js"
 import {
 	assembleCalendarEventEditResult,
@@ -78,7 +78,10 @@ export class CalendarEventApplyStrategies {
 		await this.showProgress(
 			(async () => {
 				const recurrenceIds: Array<Date> = await this.lazyRecurrenceIds(uid)
-				await this.notificationModel.send(newEvent, recurrenceIds, sendModels)
+
+				const oldInstances = (await this.calendarModel.getEventsByUid(uid))?.alteredInstances
+
+				await this.notificationModel.send(newEvent, recurrenceIds, sendModels, existingEvent, editModelsForProgenitor.comment.content)
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
 				const invalidateAlteredInstances = newEvent.repeatRule && newEvent.repeatRule.excludedDates.length === 0
 
@@ -103,10 +106,10 @@ export class CalendarEventApplyStrategies {
 						sendModels.cancelModel = sendModels.updateModel
 						sendModels.updateModel = null
 						sendModels.inviteModel = null
-						await this.notificationModel.send(occurrence, [], sendModels)
+						await this.notificationModel.send(occurrence, [], sendModels, undefined, editModelsForProgenitor.comment.content)
 						await this.calendarModel.deleteEvent(occurrence)
 					} else {
-						const { newEvent, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
+						const { hasUpdateWorthyChanges, newEvent, newAlarms, sendModels } = assembleEditResultAndAssignFromExisting(
 							occurrence,
 							editModelsForProgenitor,
 							CalendarOperation.EditThis,
@@ -116,7 +119,13 @@ export class CalendarEventApplyStrategies {
 						newEvent.endTime = DateTime.fromJSDate(newEvent.startTime, { zone: this.zone }).plus(newDuration).toJSDate()
 						// altered instances never have a repeat rule
 						newEvent.repeatRule = null
-						await this.notificationModel.send(newEvent, [], sendModels)
+						const oldInstance = oldInstances?.find((instance) => {
+							return (
+								instance.startTime.getTime() === newEvent.startTime.getTime() &&
+								instance.recurrenceId.getTime() === newEvent.recurrenceId?.getTime()
+							)
+						})
+						this.notificationModel.send(newEvent, [], sendModels, oldInstance, editModelsForProgenitor.comment.content)
 						await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, occurrence)
 					}
 				}
@@ -143,7 +152,7 @@ export class CalendarEventApplyStrategies {
 					editModels,
 					CalendarOperation.EditThis,
 				)
-				await this.notificationModel.send(newEvent, [], sendModels)
+				await this.notificationModel.send(newEvent, [], sendModels, existingInstance)
 
 				// OLD: but we need to update the existing one as well, to add an exclusion for the original instance that we edited.
 				editModelsForProgenitor.whoModel.shouldSendUpdates = true
@@ -155,7 +164,7 @@ export class CalendarEventApplyStrategies {
 				} = assembleEditResultAndAssignFromExisting(progenitor, editModelsForProgenitor, CalendarOperation.EditAll)
 				const recurrenceIds = await this.lazyRecurrenceIds(progenitor.uid)
 				recurrenceIds.push(existingInstance.startTime)
-				await this.notificationModel.send(newProgenitor, recurrenceIds, progenitorSendModels)
+				await this.notificationModel.send(newProgenitor, recurrenceIds, progenitorSendModels, progenitor)
 				await this.calendarModel.updateEvent(newProgenitor, progenitorAlarms, this.zone, calendar.groupRoot, progenitor)
 
 				// NEW
@@ -170,7 +179,7 @@ export class CalendarEventApplyStrategies {
 		const { groupRoot } = calendar
 		await this.showProgress(
 			(async () => {
-				await this.notificationModel.send(newEvent, [], sendModels)
+				await this.notificationModel.send(newEvent, [], sendModels, existingInstance)
 				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingInstance)
 			})(),
 		)
@@ -234,6 +243,56 @@ export class CalendarEventApplyStrategies {
 			(async () => {
 				await this.notificationModel.send(existingAlteredInstance, [], sendModels)
 				await this.calendarModel.deleteEvent(existingAlteredInstance)
+			})(),
+		)
+	}
+
+	async stopSeriesAtDate(editModels: CalendarEventEditModels, existingEvent: CalendarEvent) {
+		editModels.whoModel.shouldSendUpdates = true
+
+		const repeatRule = clone(existingEvent.repeatRule)
+		if (!repeatRule) {
+			throw new Error("Trying to stop the Event Series of an event that does not have a Repeat Rule")
+		}
+
+		await this.purgeFutureOccurrences(existingEvent, editModels)
+	}
+
+	private async purgeFutureOccurrences(existingEvent: CalendarEvent, editModels: CalendarEventEditModels) {
+		const repeatRule = editModels.whenModel.assertHasAValidEndDateCondition()
+		const repeatRuleEndDate = new Date(parseInt(repeatRule.endValue!))
+		const originalExcludedDates = clone(repeatRule.excludedDates)
+
+		const alteredOccurrences = await this.calendarModel.getEventsByUid(assertNotNull(existingEvent.uid))
+		const inclusiveRecurrenceEndDate = incrementDate(repeatRuleEndDate, 1)
+		if (alteredOccurrences) {
+			for (const occurrence of alteredOccurrences.alteredInstances) {
+				if (occurrence.attendees.length === 0 || occurrence.startTime < inclusiveRecurrenceEndDate) continue
+				const { sendModels } = assembleEditResultAndAssignFromExisting(occurrence, editModels, CalendarOperation.DeleteAll)
+				sendModels.cancelModel = sendModels.updateModel
+				sendModels.updateModel = null
+				await this.notificationModel.send(occurrence, [], sendModels)
+			}
+		}
+		if (existingEvent.uid != null) {
+			await this.calendarModel.deleteInstancesAfterDate(existingEvent.uid, inclusiveRecurrenceEndDate)
+		}
+
+		const {
+			newEvent,
+			sendModels,
+			calendar: { groupRoot },
+			newAlarms,
+		} = assembleEditResultAndAssignFromExisting(existingEvent, editModels, CalendarOperation.EditAll)
+		if (!newEvent.repeatRule) {
+			throw new Error("Derivative series from original progenitor is missing its Repeating Rule. ")
+		}
+		newEvent.repeatRule.excludedDates = originalExcludedDates.flatMap((date) => (date.date.getTime() < inclusiveRecurrenceEndDate.getTime() ? [date] : []))
+
+		await this.showProgress(
+			(async () => {
+				await this.notificationModel.send(newEvent, [], sendModels)
+				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
 			})(),
 		)
 	}

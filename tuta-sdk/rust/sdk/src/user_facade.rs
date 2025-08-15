@@ -60,10 +60,6 @@ impl UserFacade {
 		Ok(())
 	}
 
-	pub fn key_cache(&self) -> Arc<KeyCache> {
-		self.key_cache.clone()
-	}
-
 	fn set_user_group_key_distribution_key(&self, user_passphrase_key: GenericAesKey) {
 		let user = self.get_user();
 		let user_group_membership = &user.userGroup;

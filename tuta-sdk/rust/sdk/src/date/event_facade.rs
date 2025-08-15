@@ -280,7 +280,8 @@ impl EventFacade {
 		max_date: Option<DateTime>,
 		time_zone: String,
 	) -> Result<Vec<DateTime>, ApiCallError> {
-		let is_all_day_event = self.is_all_day_event_by_times(event_start_time, event_end_time);
+		let is_all_day_event =
+			EventFacade::is_all_day_event_by_times(event_start_time, event_end_time);
 		let set_pos_rules: Vec<&ByRule> = repeat_rule
 			.by_rules
 			.iter()
@@ -294,8 +295,7 @@ impl EventFacade {
 		};
 
 		let calc_event_start = if is_all_day_event {
-			let all_day_event =
-				EventFacade::get_all_day_time(&event_start_time, tz.get_offset_primary().to_utc())?;
+			let all_day_event = EventFacade::get_all_day_time(&event_start_time)?;
 
 			all_day_event
 		} else {
@@ -304,10 +304,8 @@ impl EventFacade {
 
 		let end_date = if end_type == EndType::UntilDate {
 			if is_all_day_event {
-				let all_day_event = EventFacade::get_all_day_time(
-					&DateTime::from_millis(end_value.unwrap()),
-					tz.get_offset_primary().to_utc(),
-				)?;
+				let all_day_event =
+					EventFacade::get_all_day_time(&DateTime::from_millis(end_value.unwrap()))?;
 
 				Some(all_day_event)
 			} else {
@@ -320,9 +318,7 @@ impl EventFacade {
 		let transformed_excluded_dates = if is_all_day_event {
 			excluded_dates
 				.iter()
-				.filter_map(|date| {
-					EventFacade::get_all_day_time(date, tz.get_offset_primary().to_utc()).ok()
-				})
+				.filter_map(|date| EventFacade::get_all_day_time(date).ok())
 				.collect()
 		} else {
 			excluded_dates
@@ -1233,11 +1229,7 @@ impl EventFacade {
 		new_date.replace_day(target_day).unwrap()
 	}
 
-	pub fn is_all_day_event_by_times(
-		&self,
-		event_start_time: DateTime,
-		event_end_time: DateTime,
-	) -> bool {
+	pub fn is_all_day_event_by_times(event_start_time: DateTime, event_end_time: DateTime) -> bool {
 		let Ok(start) = OffsetDateTime::from_unix_timestamp(event_start_time.as_seconds() as i64)
 		else {
 			return false;
@@ -1255,7 +1247,7 @@ impl EventFacade {
 		start_fits && end_fits
 	}
 
-	pub fn get_all_day_time(date: &DateTime, offset: UtcOffset) -> Result<DateTime, ApiCallError> {
+	pub fn get_all_day_time(date: &DateTime) -> Result<DateTime, ApiCallError> {
 		let Ok(date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
 			eprintln!(
 				"Failed to get all day time for date {:?}",
@@ -1271,8 +1263,7 @@ impl EventFacade {
 		};
 
 		Ok(DateTime::from_seconds(
-			date.to_offset(offset)
-				.replace_time(Time::from_hms(0, 0, 0).unwrap())
+			date.replace_time(Time::from_hms(0, 0, 0).unwrap())
 				.unix_timestamp()
 				.unsigned_abs(),
 		))
@@ -1299,11 +1290,6 @@ impl EventFacade {
 
 		let event_title = contact.firstName.clone();
 
-		let birth_year = if birthday_parts.0.unwrap_or(0) < 1970 {
-			1970
-		} else {
-			birthday_parts.0.unwrap()
-		};
 		let birthday_date = match Date::from_calendar_date(
 			OffsetDateTime::now_local().unwrap().year(),
 			Month::from_number(birthday_parts.1),
@@ -1313,42 +1299,23 @@ impl EventFacade {
 			Err(e) => return Err(ApiCallError::internal(format!("Invalid date: {e:?}"))),
 		};
 
-		let Ok(offset) = UtcOffset::current_local_offset() else {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: "Failed to determine device time offset".to_string(),
-			});
-		};
-
-		let event_base_date = birthday_date.replace_year(birth_year as i32).unwrap();
-
-		let offset_date_time_base = OffsetDateTime::new_in_offset(
-			event_base_date,
-			Time::from_hms(0, 0, 0).unwrap(),
-			offset,
-		);
-		let offset_date_time_start_time =
-			OffsetDateTime::new_in_offset(birthday_date, Time::from_hms(0, 0, 0).unwrap(), offset);
-		let offset_date_time_end_time = offset_date_time_start_time
-			.checked_add(Duration::days(1))
-			.unwrap();
-
-		let base_datetime = DateTime::from_seconds(offset_date_time_base.unix_timestamp() as u64);
+		let birthday_date_time =
+			OffsetDateTime::new_utc(birthday_date, Time::from_hms(0, 0, 0).unwrap());
+		let end_date_time = birthday_date_time.checked_add(Duration::days(1)).unwrap();
 
 		// Set up start and end date base on UTC.
 		// Also increments a copy of startDate by one day and set it as endDate
-		let Ok(start_date) = EventFacade::get_all_day_time(
-			&DateTime::from_seconds(offset_date_time_start_time.unix_timestamp() as u64),
-			offset,
-		) else {
+		let Ok(start_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
+			birthday_date_time.unix_timestamp() as u64,
+		)) else {
 			return Err(ApiCallError::internal(
 				"Failed to parse event StartTime".to_string(),
 			));
 		};
 
-		let Ok(end_date) = EventFacade::get_all_day_time(
-			&DateTime::from_seconds(offset_date_time_end_time.unix_timestamp() as u64),
-			offset,
-		) else {
+		let Ok(end_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
+			end_date_time.unix_timestamp() as u64,
+		)) else {
 			return Err(ApiCallError::internal(
 				"Failed to parse event EndTime".to_string(),
 			));
@@ -1356,7 +1323,7 @@ impl EventFacade {
 
 		let encoded_event_id = BASE64_URL_SAFE_NO_PAD.encode(format!(
 			"{}{}/{}",
-			base_datetime.as_millis(),
+			start_date.as_millis(),
 			contact_id.list_id,
 			contact_id.element_id
 		));
@@ -1484,16 +1451,14 @@ mod tests {
 	#[test]
 	fn test_generate_birthday() {
 		let event_facade = EventFacade::new();
-		let birthday_midnight = OffsetDateTime::now_local()
-			.unwrap()
+		let birthday_midnight = OffsetDateTime::now_utc()
 			.replace_month(Month::May)
 			.unwrap()
 			.replace_day(12)
 			.unwrap()
 			.replace_time(Time::from_hms(0, 0, 0).unwrap());
 
-		let next_day_midnight = OffsetDateTime::now_local()
-			.unwrap()
+		let next_day_midnight = OffsetDateTime::now_utc()
 			.replace_month(Month::May)
 			.unwrap()
 			.replace_day(12)
@@ -3352,12 +3317,13 @@ mod tests {
 		};
 
 		let event_recurrence = EventFacade {};
+		let future_instances = event_recurrence.generate_future_instances(
+			date.to_date_time(),
+			&repeat_rule,
+			date.to_date_time(),
+		);
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			future_instances,
 			[
 				date.replace_day(3).unwrap().to_date_time(),
 				date.replace_day(4).unwrap().to_date_time()

@@ -2078,6 +2078,23 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+        "canceledEventInfo_msg": "This event has been <strong>canceled!</strong>",
+		"updatedEventInfo_msg": "This event has been <strong>updated!</strong>",
+		"replyAcceptEventInfo_msg": "<strong>{name}</strong> has <strong>accepted</strong> your invitation.",
+		"replyTentativeEventInfo_msg": "<strong>{name}</strong> will <strong>maybe</strong> join your event.",
+		"replyDeclineEventInfo_msg": "<strong>{name}</strong> has <strong>declined</strong> your invitation.",
+		"replyInviteSubject_msg": "{status}: {event}",
+		"accepted_label": "Accepted",
+		"declined_label": "Declined",
+		"removed_label": "Removed",
+		"event_label": "Event",
+		"invitationNote_msg": "Secured with <strong><a href=\"https://tuta.com\" target=\"_blank\">Tuta Calendar</a></strong>",
+		"updateThisAndFutureEvents_action": "Update this and future events",
+		"deleteThisAndFutureOccurrences_action": "Delete this and future events",
+		"deleteThisAndFutureOccurrencesConfirmation_msg": "Are you sure you want to delete this and all future events?",
+		"duplicateEvent_label": "Duplicate this event",
+		"addComment_label": "Add comment",
+		"copyOf_title": "Copy of {title}"
 	}
 }
