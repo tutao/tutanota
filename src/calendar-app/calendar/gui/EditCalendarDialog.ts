@@ -66,27 +66,29 @@ function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stre
 
 function createEditCalendarComponent(
 	nameStream: Stream<string>,
+	sharedNameStream: Stream<string> | undefined,
+	shared: boolean,
 	colorStream: Stream<string>,
-	sharedName: string | undefined,
 	calendarType: CalendarType,
 	alarms: AlarmInterval[],
 	urlStream: Stream<string>,
 	errorMessageStream: Stream<string>,
+	userIsOwner: boolean,
 ) {
 	return m.fragment({}, [
-		m(TextField, {
-			value: sharedName ?? nameStream(),
-			oninput: nameStream,
-			label: "calendarName_label",
-			isReadOnly: !!sharedName,
-		}),
-		sharedName
+		shared && sharedNameStream
 			? m(TextField, {
-					value: nameStream(),
-					oninput: nameStream,
-					label: lang.getTranslation("calendarCustomName_label", { "{customName}": "" }),
+					value: sharedNameStream(),
+					oninput: sharedNameStream,
+					label: "calendarName_label",
+					isReadOnly: !userIsOwner,
 				})
 			: null,
+		m(TextField, {
+			value: nameStream(),
+			oninput: nameStream,
+			label: shared ? lang.getTranslation("calendarCustomName_label", { "{customName}": "" }) : "calendarName_label",
+		}),
 		m(".small.mt.mb-xs", lang.get("color_label")),
 		m(ColorPickerView, {
 			value: colorStream(),
@@ -94,7 +96,7 @@ function createEditCalendarComponent(
 				colorStream(color)
 			},
 		}),
-		!sharedName && isNormalCalendarType(calendarType)
+		!shared && isNormalCalendarType(calendarType)
 			? m(RemindersEditor, {
 					alarms,
 					addAlarm: (alarm: AlarmInterval) => {
@@ -122,6 +124,7 @@ export interface CreateEditDialogAttrs {
 	calendarProperties?: CalendarProperties
 	isNewCalendar?: boolean
 	calendarModel?: CalendarModel
+	userIsOwner: boolean
 }
 
 export function showCreateEditCalendarDialog({
@@ -133,6 +136,7 @@ export function showCreateEditCalendarDialog({
 	warningMessage,
 	calendarProperties: { name, sharedName, color, alarms, sourceUrl } = defaultCalendarProperties,
 	isNewCalendar = true,
+	userIsOwner,
 	calendarModel,
 }: CreateEditDialogAttrs) {
 	if (color !== "") {
@@ -141,6 +145,7 @@ export function showCreateEditCalendarDialog({
 		color = generateRandomColor()
 	}
 
+	const sharedNameStream = shared && sharedName ? stream(sharedName) : undefined
 	const nameStream = stream(name)
 	const colorStream = stream(color)
 	const urlStream = stream(sourceUrl ?? "")
@@ -212,7 +217,17 @@ export function showCreateEditCalendarDialog({
 					view: () =>
 						m(".flex.col", [
 							warningMessage ? warningMessage() : null,
-							createEditCalendarComponent(nameStream, colorStream, sharedName, calendarType, alarms, urlStream, errorMessageStream),
+							createEditCalendarComponent(
+								nameStream,
+								sharedNameStream,
+								shared,
+								colorStream,
+								calendarType,
+								alarms,
+								urlStream,
+								errorMessageStream,
+								userIsOwner,
+							),
 						]),
 				},
 				okAction: doAction,
