@@ -7,6 +7,11 @@
 import TutanotaSharedFramework
 import tutasdk
 
+// Start of day to list of events
+typealias EventMap = [Double: [CalendarEventData]]
+
+typealias LongEventsDataMap = [Double: SimpleLongEventsData]
+
 struct CalendarEventData: Equatable, Hashable, Encodable {
 	var id: String
 	var summary: String
@@ -16,29 +21,65 @@ struct CalendarEventData: Equatable, Hashable, Encodable {
 	var isBirthdayEvent: Bool
 }
 
+struct SimpleLongEventsData: Equatable, Hashable, Encodable {
+	var event: CalendarEventData?
+	var count: Int
+}
+
 struct WidgetModel {
 	private let urlSession: URLSession = makeUrlSession()
 	private let sdk: LoggedInSdk
 
 	init(userId: String) async throws { self.sdk = try await SdkFactory.createSdk(userId: userId) }
 
-	func getEventsForCalendars(_ calendars: [CalendarEntity], date: Date) async throws -> ([CalendarEventData], [CalendarEventData]) {
+	func getEventsForCalendars(_ calendars: [CalendarEntity], date: Date) async throws -> (EventMap, LongEventsDataMap) {
 		let dateInMiliseconds = UInt64(date.timeIntervalSince1970) * 1000
 		let end = UInt64(Calendar.current.date(byAdding: .day, value: 7, to: date)!.timeIntervalSince1970) * 1000
 		let calendarFacade = self.sdk.calendarFacade()
 
-		var normalEvents: [CalendarEventData] = []
-		var longEvents: [CalendarEventData] = []
+		let startOfToday = Calendar.current.startOfDay(for: date).timeIntervalSince1970
+
+		var normalEvents: EventMap = [startOfToday: []]
+		var longEvents: LongEventsDataMap = [startOfToday: SimpleLongEventsData(event: nil, count: 0)]
 
 		for calendar in calendars {
 			let eventsList = await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInMiliseconds, end: end)
-			(eventsList.shortEvents + eventsList.longEvents)
+
+			eventsList.birthdayEvents.forEach { event in
+				let eventStart = Date(timeIntervalSince1970: Double(event.calendarEvent.startTime) / 1000)
+				let eventEnd = Date(timeIntervalSince1970: Double(event.calendarEvent.endTime) / 1000)
+				let eventId = if let id = event.calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
+
+				let startOfEventDay = Calendar.current.startOfDay(for: eventStart).timeIntervalSince1970
+
+				let eventData = CalendarEventData(
+					id: eventId,
+					summary: getBirthdayEventTitle(name: event.contact.firstName, age: parseContactAge(birthdayIso: event.contact.birthdayIso)),
+					startDate: eventStart,
+					endDate: eventEnd,
+					calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
+					isBirthdayEvent: true
+				)
+
+				if longEvents.index(forKey: startOfEventDay) == nil {
+					longEvents.updateValue(SimpleLongEventsData(event: eventData, count: 1), forKey: startOfEventDay)
+					normalEvents.updateValue([], forKey: startOfEventDay)
+					return
+				}
+
+				longEvents[startOfEventDay]?.count += 1
+			}
+
+			var normalEventCount = 0
+			(eventsList.shortEvents + eventsList.longEvents).sorted(by: { $0.startTime < $1.startTime })
 				.forEach { event in
 					let eventStart = Date(timeIntervalSince1970: Double(event.startTime) / 1000)
 					let eventEnd = Date(timeIntervalSince1970: Double(event.endTime) / 1000)
 					let isAllDay =
 						isAllDayEvent(startDate: eventStart, endDate: eventEnd)
 						|| isAllDayOnReferenceDate(startDate: eventStart, endDate: eventEnd, referenceDate: date)
+
+					let startOfEventDay = Calendar.current.startOfDay(for: eventStart).timeIntervalSince1970
 
 					let eventId = if let id = event.id { id.listId + "/" + id.elementId } else { "" }
 
@@ -51,30 +92,22 @@ struct WidgetModel {
 						isBirthdayEvent: false
 					)
 
-					if isAllDay { longEvents.append(eventData) } else { normalEvents.append(eventData) }
+					if longEvents.index(forKey: startOfEventDay) == nil {
+						longEvents.updateValue(SimpleLongEventsData(event: nil, count: 0), forKey: startOfEventDay)
+						normalEvents.updateValue([], forKey: startOfEventDay)
+					}
+
+					if isAllDay {
+						if longEvents[startOfEventDay]?.event == nil { longEvents[startOfEventDay]?.event = eventData }
+						longEvents[startOfEventDay]?.count += 1
+					} else if normalEventCount <= 8 {
+						normalEvents[startOfEventDay]?.append(eventData)
+						normalEventCount += 1
+					}
 				}
-
-			eventsList.birthdayEvents.forEach { event in
-				let eventStart = Date(timeIntervalSince1970: Double(event.calendarEvent.startTime) / 1000)
-				let eventEnd = Date(timeIntervalSince1970: Double(event.calendarEvent.endTime) / 1000)
-				let eventId = if let id = event.calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
-
-				let eventData = CalendarEventData(
-					id: eventId,
-					summary: getBirthdayEventTitle(name: event.contact.firstName, age: parseContactAge(birthdayIso: event.contact.birthdayIso)),
-					startDate: eventStart,
-					endDate: eventEnd,
-					calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
-					isBirthdayEvent: true
-				)
-
-				longEvents.append(eventData)
-			}
 		}
 
-		normalEvents.sort(by: { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 })
-		longEvents.sort(by: { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 })
-		return (Array(normalEvents.prefix(upTo: 8)), longEvents)
+		return (normalEvents, longEvents)
 	}
 
 	private func parseContactAge(birthdayIso: String?) -> Int? {
