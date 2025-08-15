@@ -24,12 +24,11 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param host
  * @param desktop
  * @param clean
- * @param ignoreMigrations
  * @param networkDebugging
  * @param app {"mail"|"calendar"}
  * @returns {Promise<void>}
  */
-export async function runDevBuild({ stage, host, desktop, clean, ignoreMigrations, networkDebugging, app }) {
+export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, app }) {
 	const isCalendarBuild = app === "calendar"
 	const tsConfig = isCalendarBuild ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarBuild ? "build-calendar-app" : "build"

@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 import {
+	assertLastMigrationConsistentVersion,
 	CURRENT_OFFLINE_VERSION,
 	OFFLINE_STORAGE_MIGRATIONS,
 	OfflineMigration,
@@ -8,37 +9,11 @@ import {
 import { OfflineStorage } from "../../../../../src/common/api/worker/offline/OfflineStorage.js"
 import { func, instance, matchers, object, when } from "testdouble"
 import { verify } from "@tutao/tutanota-test-utils"
-import { ModelInfos } from "../../../../../src/common/api/common/EntityFunctions.js"
+import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade.js"
 import { maxBy } from "@tutao/tutanota-utils"
 
 o.spec("OfflineStorageMigrator", function () {
-	const modelInfos: ModelInfos = {
-		base: {
-			version: 1,
-		},
-		sys: {
-			version: 1,
-		},
-		tutanota: {
-			version: 42,
-		},
-		storage: {
-			version: 1,
-		},
-		accounting: {
-			version: 1,
-		},
-		gossip: {
-			version: 1,
-		},
-		monitor: {
-			version: 1,
-		},
-		usage: {
-			version: 1,
-		},
-	}
 	let migrations: OfflineMigration[]
 	let migrator: OfflineStorageMigrator
 	let storage: OfflineStorage
@@ -51,14 +26,20 @@ o.spec("OfflineStorageMigrator", function () {
 		sqlCipherFacade = object()
 	})
 
-	o("when there's an empty database the current model versions are written", async function () {
+	o.test("when there's an empty database the current model versions are written and migrations are not run", async function () {
 		when(storage.dumpMetadata()).thenResolve({})
+		const migration: OfflineMigration = {
+			version: CURRENT_OFFLINE_VERSION,
+			migrate: func() as OfflineMigration["migrate"],
+		}
+		migrations.push(migration)
 
 		await migrator.migrate(storage, sqlCipherFacade)
 		verify(storage.setCurrentOfflineSchemaVersion(CURRENT_OFFLINE_VERSION))
+		verify(migration.migrate(matchers.anything(), matchers.anything()), { times: 0 })
 	})
 
-	o("when the model version is written it is not overwritten", async function () {
+	o.test("when the model version is written it is not overwritten", async function () {
 		when(storage.dumpMetadata()).thenResolve({ "offline-version": 5 })
 
 		await migrator.migrate(storage, sqlCipherFacade)
@@ -66,11 +47,11 @@ o.spec("OfflineStorageMigrator", function () {
 		verify(storage.setCurrentOfflineSchemaVersion(matchers.anything()), { times: 0 })
 	})
 
-	o("when migration exists and the version is incompatible the migration is run", async function () {
+	o.test("when migration exists and the version is incompatible the migration is run", async function () {
 		// stored is older than current so we actually "migrate" something
-		when(storage.dumpMetadata()).thenResolve({ "offline-version": 4 }, { "offline-version": 5 })
+		when(storage.dumpMetadata()).thenResolve({ "offline-version": 4 }, { "offline-version": CURRENT_OFFLINE_VERSION })
 		const migration: OfflineMigration = {
-			version: 5,
+			version: CURRENT_OFFLINE_VERSION,
 			migrate: func() as OfflineMigration["migrate"],
 		}
 		migrations.push(migration)
@@ -78,7 +59,26 @@ o.spec("OfflineStorageMigrator", function () {
 		await migrator.migrate(storage, sqlCipherFacade)
 
 		verify(migration.migrate(storage, sqlCipherFacade))
-		verify(storage.setCurrentOfflineSchemaVersion(5))
+		verify(storage.setCurrentOfflineSchemaVersion(CURRENT_OFFLINE_VERSION))
+	})
+
+	o.test("when the last migration has inconsistent version it throws", async function () {
+		// stored is older than current so we actually "migrate" something
+		when(storage.dumpMetadata()).thenResolve({ "offline-version": 4 }, { "offline-version": CURRENT_OFFLINE_VERSION })
+		const migration: OfflineMigration = {
+			version: CURRENT_OFFLINE_VERSION - 1,
+			migrate: func() as OfflineMigration["migrate"],
+		}
+		migrations.push(migration)
+
+		await o.check(() => migrator.migrate(storage, sqlCipherFacade)).asyncThrows(ProgrammingError)
+
+		verify(migration.migrate(matchers.anything(), matchers.anything()), { times: 0 })
+		verify(storage.setCurrentOfflineSchemaVersion(matchers.anything()), { times: 0 })
+	})
+
+	o.test("real migration list: consistent with the latest version", async function () {
+		assertLastMigrationConsistentVersion(OFFLINE_STORAGE_MIGRATIONS)
 	})
 
 	o("ensure CURRENT_OFFLINE_VERSION matches the greatest registered migration", async function () {

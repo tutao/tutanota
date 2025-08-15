@@ -1,11 +1,12 @@
 import { OfflineDbMeta, OfflineStorage } from "./OfflineStorage.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, last } from "@tutao/tutanota-utils"
 import { SqlCipherFacade } from "../../../native/common/generatedipc/SqlCipherFacade.js"
 import { OutOfSyncError } from "../../common/error/OutOfSyncError.js"
 import { offline5 } from "./migrations/offline-v5"
 import { offline6 } from "./migrations/offline-v6"
 import { offline7 } from "./migrations/offline-v7"
 import { offline8 } from "./migrations/offline-v8"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 export interface OfflineMigration {
 	readonly version: number
@@ -42,6 +43,8 @@ export class OfflineStorageMigrator {
 	constructor(private readonly migrations: ReadonlyArray<OfflineMigration>) {}
 
 	async migrate(storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
+		assertLastMigrationConsistentVersion(this.migrations)
+
 		const meta = await storage.dumpMetadata()
 
 		// We did not write down the "offline" version from the beginning, so we need to figure out if we need to run the migration for the db structure or
@@ -62,26 +65,27 @@ export class OfflineStorageMigrator {
 			throw new OutOfSyncError(`offline database has newer schema than client`)
 		}
 
-		await this.runMigrations(meta, storage, sqlCipherFacade)
+		// note: we are passing populatedMeta to have up-to-date version
+		await this.runMigrations(populatedMeta, storage, sqlCipherFacade)
 	}
 
-	private async runMigrations(meta: Partial<OfflineDbMeta>, storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
+	private async runMigrations(meta: Pick<OfflineDbMeta, "offline-version">, storage: OfflineStorage, sqlCipherFacade: SqlCipherFacade) {
+		let currentOfflineVersion = meta[`offline-version`]
 		for (const { version, migrate } of this.migrations) {
-			const storedOfflineVersion = meta[`offline-version`]!
-			if (storedOfflineVersion < version) {
-				console.log(`running offline db migration from ${storedOfflineVersion} to ${version}`)
+			if (currentOfflineVersion < version) {
+				console.log(`running offline db migration from ${currentOfflineVersion} to ${version}`)
 				await migrate(storage, sqlCipherFacade)
-				console.log("migration finished")
+				console.log(`migration finished to ${currentOfflineVersion}`)
 				await storage.setCurrentOfflineSchemaVersion(version)
+				currentOfflineVersion = version
 			}
 		}
 	}
 
-	private async populateModelVersions(meta: Readonly<Partial<OfflineDbMeta>>, storage: OfflineStorage): Promise<Partial<OfflineDbMeta>> {
+	private async populateModelVersions(meta: Readonly<Partial<OfflineDbMeta>>, storage: OfflineStorage): Promise<Pick<OfflineDbMeta, "offline-version">> {
 		// copy metadata because it's going to be mutated
 		const newMeta = { ...meta }
-		await this.prepopulateVersionIfAbsent(CURRENT_OFFLINE_VERSION, newMeta, storage)
-		return newMeta
+		return await this.prepopulateVersionIfAbsent(CURRENT_OFFLINE_VERSION, newMeta, storage)
 	}
 
 	/**
@@ -89,12 +93,17 @@ export class OfflineStorageMigrator {
 	 *
 	 * NB: mutates meta
 	 */
-	private async prepopulateVersionIfAbsent(version: number, meta: Partial<OfflineDbMeta>, storage: OfflineStorage) {
+	private async prepopulateVersionIfAbsent(
+		version: number,
+		meta: Partial<OfflineDbMeta>,
+		storage: OfflineStorage,
+	): Promise<Pick<OfflineDbMeta, "offline-version">> {
 		const storedVersion = meta["offline-version"]
 		if (storedVersion == null) {
 			meta["offline-version"] = version
 			await storage.setCurrentOfflineSchemaVersion(version)
 		}
+		return meta as { "offline-version": typeof version }
 	}
 
 	/**
@@ -107,5 +116,14 @@ export class OfflineStorageMigrator {
 	 */
 	private isDbNewerThanCurrentClient(meta: Partial<OfflineDbMeta>): boolean {
 		return assertNotNull(meta[`offline-version`]) > CURRENT_OFFLINE_VERSION
+	}
+}
+
+export function assertLastMigrationConsistentVersion(migrations: ReadonlyArray<OfflineMigration>): void {
+	const lastMigration = last(migrations)
+	if (lastMigration != null && lastMigration.version !== CURRENT_OFFLINE_VERSION) {
+		throw new ProgrammingError(
+			`Inconsistent offline migration state: expected latest version to be ${CURRENT_OFFLINE_VERSION} based on CURRENT_OFFLINE_VERSION but the last migration version is ${lastMigration.version}`,
+		)
 	}
 }
