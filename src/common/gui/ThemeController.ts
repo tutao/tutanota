@@ -11,7 +11,6 @@ import { getWhitelabelCustomizations, ThemeCustomizations, WhitelabelThemeCustom
 import { getAppLogo, getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { AppType } from "../misc/ClientConstants.js"
-import { argbFromHex, DynamicScheme, hexFromArgb, themeFromSourceColor } from "@material/material-color-utilities"
 
 assertMainOrNodeBoot()
 
@@ -235,7 +234,7 @@ export class ThemeController {
 	 * Apply the custom theme, if permanent === true, then the new theme will be saved
 	 */
 	async applyCustomizations(customizations: WhitelabelThemeCustomizationsButForReal, permanent: boolean = true): Promise<Theme> {
-		const generatedTheme = generateMaterialTheme(customizations)
+		const generatedTheme = await generateMaterialTheme(customizations)
 		const updatedTheme = this.assembleTheme(ThemeController.mapOldToNewColorTokens(generatedTheme))
 
 		// Set no logo until we sanitize it.
@@ -437,7 +436,10 @@ const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
 	error: ["error"],
 } as const
 
-function generateMaterialTheme(themeParams: WhitelabelThemeCustomizationsButForReal): ThemeCustomizations {
+async function generateMaterialTheme(themeParams: WhitelabelThemeCustomizationsButForReal): Promise<ThemeCustomizations> {
+	// FIXME: use vendored material-color-utilities later since this will be a pretty big import
+	const { argbFromHex, DynamicScheme, hexFromArgb, themeFromSourceColor } = await import("@material/material-color-utilities")
+
 	const primaryArgb = argbFromHex(themeParams.accentColor)
 	const materialTheme = themeFromSourceColor(primaryArgb)
 

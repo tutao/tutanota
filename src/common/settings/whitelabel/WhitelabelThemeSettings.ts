@@ -13,7 +13,6 @@ import { locator } from "../../api/main/CommonLocator.js"
 import { showFileChooser } from "../../file/FileController.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { customColor } from "@material/material-color-utilities"
 
 export type WhitelabelData = {
 	customTheme: ThemeCustomizations
