@@ -87,6 +87,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 							size: ButtonSize.Normal,
 						}),
 					]),
+					state.paused && m(".flex-start.mt-m.small", lang.getTranslation("mailExportPaused_msg").text),
 				]
 			case "idle":
 				return [
