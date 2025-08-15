@@ -11,7 +11,7 @@ import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { TextField } from "../gui/base/TextField.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { assertNotNull, LazyLoaded, memoized, neverNull, ofClass } from "@tutao/tutanota-utils"
-import { htmlSanitizer } from "../misc/HtmlSanitizer.js"
+import { getHtmlSanitizer } from "../misc/HtmlSanitizer.js"
 import { PayloadTooLargeError } from "../api/common/error/RestError.js"
 import { SegmentControl } from "../gui/base/SegmentControl.js"
 import { UserError } from "../api/main/UserError.js"
@@ -162,6 +162,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 		senderDomain = "https://" + ((whitelabelDomainInfo && whitelabelDomainInfo.domain) || "app.tuta.com")
 		m.redraw()
 	})
+	const htmlSanitizer = getHtmlSanitizer()
 	// Even though savedHtml is always sanitized changing it might lead to mXSS
 	const sanitizePreview = memoized<(html: string) => string>((html) => {
 		return htmlSanitizer.sanitizeHTML(html).html

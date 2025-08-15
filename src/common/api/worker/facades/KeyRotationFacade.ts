@@ -860,7 +860,7 @@ export class KeyRotationFacade {
 	 *
 	 * @param groupKeyUpdateIds MUST be in the same list
 	 */
-	async updateGroupMemberships(groupKeyUpdateIds: IdTuple[]): Promise<void> {
+	async updateGroupMembershipsInOneList(groupKeyUpdateIds: IdTuple[]): Promise<void> {
 		if (groupKeyUpdateIds.length < 1) return
 		console.log("handling group key update for groups: ", groupKeyUpdateIds)
 		const groupKeyUpdateInstances = await this.entityClient.loadMultiple(
@@ -868,6 +868,10 @@ export class KeyRotationFacade {
 			listIdPart(groupKeyUpdateIds[0]),
 			groupKeyUpdateIds.map((id) => elementIdPart(id)),
 		)
+		return this.updateGroupMemberships(groupKeyUpdateInstances)
+	}
+
+	async updateGroupMemberships(groupKeyUpdateInstances: GroupKeyUpdate[]): Promise<void> {
 		const groupKeyUpdates = groupKeyUpdateInstances.map((update) => this.prepareGroupMembershipUpdate(update))
 		const membershipPutIn = createMembershipPutIn({
 			groupKeyUpdates,

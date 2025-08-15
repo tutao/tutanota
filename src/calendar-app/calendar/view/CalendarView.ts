@@ -159,7 +159,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		this.viewModel = attrs.calendarViewModel
 		this.currentViewType = deviceConfig.getDefaultCalendarView(userId) || CalendarViewType.MONTH
-		this.htmlSanitizer = import("../../../common/misc/HtmlSanitizer").then((m) => m.htmlSanitizer)
+		this.htmlSanitizer = import("../../../common/misc/HtmlSanitizer").then((m) => m.getHtmlSanitizer())
 		this.sidebarColumn = new ViewColumn(
 			{
 				view: () =>

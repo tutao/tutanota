@@ -6,7 +6,7 @@ import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { isApp } from "../api/common/Env"
 import { requestFromWebsite } from "../misc/Website"
 import { Dialog } from "../gui/base/Dialog"
-import { htmlSanitizer } from "../misc/HtmlSanitizer"
+import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
 import { ButtonType } from "../gui/base/Button.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -72,7 +72,7 @@ export async function showServiceTerms(section: TermsSection, version: string) {
 	let sanitizedTerms: string
 
 	function getSection(): string {
-		return htmlSanitizer.sanitizeHTML(termsFromWebsite[visibleLang], {
+		return getHtmlSanitizer().sanitizeHTML(termsFromWebsite[visibleLang], {
 			blockExternalContent: false,
 		}).html
 	}

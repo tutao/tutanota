@@ -22,7 +22,6 @@ import type { GroupManagementFacade } from "../../api/worker/facades/lazy/GroupM
 import { Recipient, RecipientType } from "../../api/common/recipients/Recipient"
 import { RecipientsModel } from "../../api/main/RecipientsModel"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
-import { KeyVerificationMismatchError } from "../../api/common/error/KeyVerificationMismatchError"
 
 export class GroupSharingModel {
 	readonly info: GroupInfo
@@ -172,13 +171,6 @@ export class GroupSharingModel {
 					lang.makeTranslation(
 						"tutanotaAddressDoesNotExist_msg",
 						`${lang.get("tutanotaAddressDoesNotExist_msg")} ${lang.get("invalidRecipients_msg")}\n${e.message}`,
-					),
-				)
-			} else if (e instanceof KeyVerificationMismatchError) {
-				throw new UserError(
-					lang.makeTranslation(
-						"keyManagement.invitationRecipientsVerificationMismatchError_msg",
-						() => lang.get("keyManagement.invitationRecipientsVerificationMismatchError_msg") + "\n" + e.data.join("\n"),
 					),
 				)
 			} else {

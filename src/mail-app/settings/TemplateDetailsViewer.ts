@@ -13,7 +13,7 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
 import { ActionBar } from "../../common/gui/base/ActionBar.js"
-import { htmlSanitizer } from "../../common/misc/HtmlSanitizer.js"
+import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer.js"
 import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { UpdatableSettingsDetailsViewer } from "../../common/settings/Interfaces.js"
 
@@ -27,8 +27,12 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 		private readonly entityClient: EntityClient,
 		readonly isReadOnly: lazy<boolean>,
 	) {
+		const htmlSanitizer = getHtmlSanitizer()
 		this.sanitizedContents = template.contents.map((emailTemplateContent) => ({
-			text: htmlSanitizer.sanitizeHTML(emailTemplateContent.text, { blockExternalContent: false, allowRelativeLinks: true }).html,
+			text: htmlSanitizer.sanitizeHTML(emailTemplateContent.text, {
+				blockExternalContent: false,
+				allowRelativeLinks: true,
+			}).html,
 			languageCodeTextId: languageByCode[getLanguageCode(emailTemplateContent)].textId,
 		}))
 	}

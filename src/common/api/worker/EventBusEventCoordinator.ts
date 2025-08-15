@@ -1,6 +1,13 @@
 import { EventBusListener } from "./EventBusClient.js"
 import { WsConnectionState } from "../main/WorkerClient.js"
-import { GroupKeyUpdateTypeRef, UserGroupKeyDistributionTypeRef, UserTypeRef, WebsocketCounterData, WebsocketLeaderStatus } from "../entities/sys/TypeRefs.js"
+import {
+	GroupKeyUpdateTypeRef,
+	UserGroupKeyDistributionTypeRef,
+	UserGroupRootTypeRef,
+	UserTypeRef,
+	WebsocketCounterData,
+	WebsocketLeaderStatus,
+} from "../entities/sys/TypeRefs.js"
 import { ReportedMailFieldMarker } from "../entities/tutanota/TypeRefs.js"
 import { WebsocketConnectivityListener } from "../../misc/WebsocketConnectivityModel.js"
 import { isAdminClient, isTest } from "../common/Env.js"
@@ -8,7 +15,7 @@ import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
 import { EntityClient } from "../common/EntityClient.js"
 import { OperationType, RolloutType } from "../common/TutanotaConstants.js"
-import { lazyAsync } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyAsync } from "@tutao/tutanota-utils"
 import { isSameId } from "../common/utils/EntityUtils.js"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
@@ -108,6 +115,21 @@ export class EventBusEventCoordinator implements EventBusListener {
 			}
 			await this.rolloutFacade.configureRollout(RolloutType.SharedMailboxIdentityKeyCreation, sharedMailboxIdentityKeyCreationAction)
 
+			const processGroupKeyUpdates = {
+				execute: async () => {
+					try {
+						const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, this.userFacade.getUserGroupId())
+						const groupKeyUpdates = await this.entityClient.loadAll(GroupKeyUpdateTypeRef, assertNotNull(userGroupRoot.groupKeyUpdates).list)
+						await this.keyRotationFacade.updateGroupMemberships(groupKeyUpdates)
+					} catch (error) {
+						console.log("error when processing a pending group key update", error)
+						this.sendError(error)
+					}
+				},
+			}
+			await this.rolloutFacade.configureRollout(RolloutType.GroupKeyUpdatePending, processGroupKeyUpdates)
+
+			await this.rolloutFacade.processRollout(RolloutType.GroupKeyUpdatePending)
 			await this.rolloutFacade.processRollout(RolloutType.UserIdentityKeyCreation)
 			await this.rolloutFacade.processRollout(RolloutType.SharedMailboxIdentityKeyCreation)
 			await this.rolloutFacade.processRollout(RolloutType.AdminOrUserGroupKeyRotation)
@@ -133,6 +155,6 @@ export class EventBusEventCoordinator implements EventBusListener {
 				groupKeyUpdates.push([update.instanceListId, update.instanceId])
 			}
 		}
-		await this.keyRotationFacade.updateGroupMemberships(groupKeyUpdates)
+		await this.keyRotationFacade.updateGroupMembershipsInOneList(groupKeyUpdates)
 	}
 }

@@ -2,9 +2,10 @@ function unsupported(e) {
 	console.error("Failed to import the app", e)
 
 	const img = document.createElement("img")
-	img.src = "images/logo-solo-red.svg"
+	img.src = "images/logo-red.svg"
 	img.style.display = "block"
 	img.style.margin = "0 auto"
+	img.style.maxWidth = "180px"
 	document.body.appendChild(img)
 	document.body.style.backgroundColor = "white"
 	document.body.style.color = "black"

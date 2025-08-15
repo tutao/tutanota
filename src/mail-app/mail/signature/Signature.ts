@@ -1,7 +1,7 @@
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
 import type { TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { EmailSignatureType as TutanotaConstants } from "../../../common/api/common/TutanotaConstants"
-import { htmlSanitizer } from "../../../common/misc/HtmlSanitizer"
+import { getHtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { LINE_BREAK } from "../../../common/mailFunctionality/SharedMailUtils.js"
@@ -12,7 +12,7 @@ export function getDefaultSignature(): string {
 	// add one line break to the default signature to add one empty line between signature and body
 	return (
 		LINE_BREAK +
-		htmlSanitizer.sanitizeHTML(
+		getHtmlSanitizer().sanitizeHTML(
 			lang.get("defaultEmailSignature_msg", {
 				"{1}": `<a href=${InfoLink.HomePageFreeSignup}>${InfoLink.HomePageFreeSignup}</a>`,
 			}),

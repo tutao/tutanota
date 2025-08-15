@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import { Dialog, DialogType } from "../../gui/base/Dialog"
 import type { TableLineAttrs } from "../../gui/base/Table.js"
 import { ColumnWidth, Table } from "../../gui/base/Table.js"
-import { assert, assertNotNull, downcast, findAndRemove, neverNull, remove } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, contains, downcast, findAndRemove, neverNull, remove } from "@tutao/tutanota-utils"
 import { Icons } from "../../gui/base/icons/Icons"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonType } from "../../gui/base/Button.js"
@@ -28,6 +28,7 @@ import { cleanMailAddress, findRecipientWithAddress } from "../../api/common/uti
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
+import { KeyVerificationMismatchError } from "../../api/common/error/KeyVerificationMismatchError"
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))
@@ -194,7 +195,15 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 						},
 					],
 					onRecipientAdded: (address, name, contact) =>
-						recipients.push(recipientsModel.initialize({ address, name, contact }).whenResolved(() => m.redraw())),
+						recipients.push(
+							recipientsModel
+								.initialize({
+									address,
+									name,
+									contact,
+								})
+								.whenResolved(() => m.redraw()),
+						),
 					onRecipientRemoved: (address) =>
 						findAndRemove(recipients, (recipient) => cleanMailAddress(recipient.address) === cleanMailAddress(address)),
 					onTextChanged: recipientsText,
@@ -247,7 +256,21 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 					dialog.close()
 					await sendShareNotificationEmail(model.info, invitedMailAddresses, texts)
 				} catch (e) {
-					if (e instanceof PreconditionFailedError) {
+					if (e instanceof KeyVerificationMismatchError) {
+						const failedRecipients: ResolvableRecipient[] = []
+
+						// Mark all recipients that have a KeyVerificationMismatch after hitting "Send"
+						for (const recipient of recipients) {
+							if (contains(e.data, recipient.address)) {
+								await recipient.markAsKeyVerificationMismatch()
+								failedRecipients.push(recipient)
+							}
+						}
+
+						await import("../../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
+							({ showMultiRecipientsKeyVerificationRecoveryDialog }) => showMultiRecipientsKeyVerificationRecoveryDialog(failedRecipients),
+						)
+					} else if (e instanceof PreconditionFailedError) {
 						if (locator.logins.getUserController().isGlobalAdmin()) {
 							const { getAvailablePlansWithSharing } = await import("../../subscription/SubscriptionUtils.js")
 							const plans = await getAvailablePlansWithSharing()

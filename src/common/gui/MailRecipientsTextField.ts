@@ -111,8 +111,9 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 			},
 			onClick: (recipient: ResolvableRecipient) => {
 				if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
-					import("../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(({ showMultiRecipientsKeyVerificationRecoveryDialog }) =>
-						showMultiRecipientsKeyVerificationRecoveryDialog([recipient]),
+					import("../settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
+						async ({ SenderKeyVerificationRecoveryDialogPages, showSenderKeyVerificationRecoveryDialog }) =>
+							showSenderKeyVerificationRecoveryDialog(await recipient.resolve(), SenderKeyVerificationRecoveryDialogPages.INFO),
 					)
 					return BubbleTextFieldClickBehaviour.SKIP_DROPDOWN
 				} else {

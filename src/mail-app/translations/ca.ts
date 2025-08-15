@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-05-29T11:04:17Z",
-	"updated_at": "2025-08-07T13:30:27Z",
+	"updated_at": "2025-08-11T09:39:54Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -872,6 +872,7 @@ export default {
 		"keyManagement.keyVerification_label": "Verificació de claus",
 		"keyManagement.keyVerification_subtitle_label": "Aquí podeu gestionar les vostres claus de confiança.",
 		"keyManagement.mailRecipientsVerificationMismatchError_msg": "Aquest correu electrònic no s'ha pogut enviar perquè la verificació de la clau ha fallat per als destinataris que s'indiquen a continuació. L'enviament romandrà desactivat fins que aquests destinataris s'hagin eliminat o se'ls hagin tornat a verificar les claus.",
+		"keyManagement.permissionWaiting_msg": "A l'espera de permís",
 		"keyManagement.publicKeyFingerprintQrInfo_msg": "Aquesta és l'empremta digital de la clau pública associada al vostre compte d'usuari, incrustada en un codi QR.",
 		"keyManagement.qrCodeInvalid_msg": "El codi QR de verificació escanejat no és compatible.",
 		"keyManagement.qrCode_label": "Codi QR",
@@ -903,6 +904,7 @@ export default {
 		"keyVerificationErrorRecommendation_title": "Recomanació",
 		"keyVerificationErrorWarning_msg": "Aquest és un risc potencial per a la seguretat i algú podria haver intentat interceptar la vostra comunicació amb <b>{mailAddress}</b>. Pot ser un canvi legítim <b>només</b> si el destinatari al qual esteu enviant ha assignat l'adreça de correu electrònic a un altre usuari.",
 		"keyVerificationLearnMoreAboutContactVerificationLink_msg": "Obteniu més informació sobre la verificació de claus",
+		"keyVerificationNotAvailable_msg": "Actualment, la verificació de clau només està disponible a les nostres aplicacions d'escriptori i natives.",
 		"keyVerificationVerificationCode_title": "El teu codi de verificació",
 		"keywords_label": "Paraules claus",
 		"knowledgebase_label": "Base de coneixement",

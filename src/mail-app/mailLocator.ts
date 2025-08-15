@@ -1000,7 +1000,7 @@ class MailLocator implements CommonLocator {
 			isApp() || isDesktop() ? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => mailLocator.themeFacade)) : new WebThemeFacade(deviceConfig)
 		const lazySanitizer = isTest()
 			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
-			: () => import("../common/misc/HtmlSanitizer").then(({ htmlSanitizer }) => htmlSanitizer)
+			: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
 		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Mail)
 
@@ -1232,9 +1232,9 @@ class MailLocator implements CommonLocator {
 	}
 
 	readonly mailExportController: () => Promise<MailExportController> = lazyMemoized(async () => {
-		const { htmlSanitizer } = await import("../common/misc/HtmlSanitizer")
+		const { getHtmlSanitizer } = await import("../common/misc/HtmlSanitizer")
 		const { MailExportController } = await import("./native/main/MailExportController.js")
-		return new MailExportController(this.mailExportFacade, htmlSanitizer, this.exportFacade, this.logins, this.mailboxModel, await this.scheduler())
+		return new MailExportController(this.mailExportFacade, getHtmlSanitizer(), this.exportFacade, this.logins, this.mailboxModel, await this.scheduler())
 	})
 
 	async offlineStorageSettingsModel(): Promise<OfflineStorageSettingsModel | null> {

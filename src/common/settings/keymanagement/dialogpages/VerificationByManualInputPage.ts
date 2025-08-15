@@ -113,7 +113,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 								size: IconSize.Large,
 								class: "mr-s flex-center",
 								style: {
-									fill: theme.content_button_icon,
+									fill: theme.content_button_icon_selected,
 								},
 							}),
 						}),

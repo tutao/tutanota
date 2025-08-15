@@ -1,5 +1,5 @@
 <div align="center">
-	<a href="https://tuta.com/" target="_blank"><img src="doc/logo-red.svg" alt="Tuta Mail logo" width="300"></a>
+	<a href="https://tuta.com/" target="_blank"><img src="resources/images/logo-red.svg" alt="Tuta Mail logo" width="300"></a>
 	<br/>
 	<h1>Tuta Mail makes encryption easy</h1>
 </div>

@@ -221,11 +221,11 @@ export class CalendarEventPreviewViewModel {
 	}
 
 	async sanitizeDescription(): Promise<void> {
-		const { htmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
+		const { getHtmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
 		this.sanitizedDescription = prepareCalendarDescription(
 			this.calendarEvent.description,
 			(s) =>
-				htmlSanitizer.sanitizeHTML(convertTextToHtml(s), {
+				getHtmlSanitizer().sanitizeHTML(convertTextToHtml(s), {
 					blockExternalContent: false,
 					highlightedStrings: this.highlightedStrings,
 				}).html,

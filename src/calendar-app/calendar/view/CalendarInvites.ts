@@ -52,7 +52,7 @@ async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent
 }
 
 export async function showEventDetails(event: CalendarEvent, eventBubbleRect: ClientRect, mail: Mail | null): Promise<void> {
-	const [latestEvent, { CalendarEventPopup }, { CalendarEventPreviewViewModel }, { htmlSanitizer }] = await Promise.all([
+	const [latestEvent, { CalendarEventPopup }, { CalendarEventPreviewViewModel }, { getHtmlSanitizer }] = await Promise.all([
 		getLatestEvent(event),
 		import("../gui/eventpopup/CalendarEventPopup.js"),
 		import("../gui/eventpopup/CalendarEventPreviewViewModel.js"),
@@ -93,7 +93,7 @@ export async function showEventDetails(event: CalendarEvent, eventBubbleRect: Cl
 		lazyIndexEntry,
 		editModelsFactory,
 	)
-	new CalendarEventPopup(viewModel, eventBubbleRect, htmlSanitizer).show()
+	new CalendarEventPopup(viewModel, eventBubbleRect, getHtmlSanitizer()).show()
 }
 
 export async function getEventsFromFile(file: TutanotaFile, invitedConfidentially: boolean): Promise<ParsedIcalFileContent> {
@@ -172,7 +172,12 @@ export class CalendarInviteHandler {
 		const responseModel = await this.getResponseModelForMail(previousMail, mailboxDetails, attendee.address.address)
 
 		try {
-			await notificationModel.send(eventClone, [], { responseModel, inviteModel: null, cancelModel: null, updateModel: null })
+			await notificationModel.send(eventClone, [], {
+				responseModel,
+				inviteModel: null,
+				cancelModel: null,
+				updateModel: null,
+			})
 		} catch (e) {
 			if (e instanceof UserError) {
 				await Dialog.message(lang.makeTranslation("confirm_msg", e.message))

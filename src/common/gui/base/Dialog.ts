@@ -11,8 +11,7 @@ import { getElevatedBackground } from "../theme"
 import { px, size } from "../size"
 import { HabReminderImage } from "./icons/Icons"
 import { windowFacade } from "../../misc/WindowFacade"
-import type { ButtonAttrs } from "./Button.js"
-import { Button, ButtonType } from "./Button.js"
+import { Button, ButtonAttrs, ButtonColor, ButtonType } from "./Button.js"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { DialogHeaderBar } from "./DialogHeaderBar"
 import { TextField, TextFieldType } from "./TextField.js"
@@ -516,7 +515,7 @@ export class Dialog implements ModalComponent {
 					? null
 					: m(
 							".flex-center.dialog-buttons",
-							buttons.map((a) => m(Button, a)),
+							buttons.map((a) => m(Button, { colors: ButtonColor.Dialog, ...a })),
 						),
 			],
 		})
