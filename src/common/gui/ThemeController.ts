@@ -47,7 +47,11 @@ export class ThemeController {
 
 		if (whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
-			const assembledTheme = await this.applyCustomizations(generateMaterialTheme(whitelabelCustomizations.theme), false)
+			const parsedTheme = whitelabelCustomizations.theme
+			const assembledTheme = await this.applyCustomizations(
+				generateMaterialTheme(assertNotNull(parsedTheme.primary), parsedTheme.base, parsedTheme.logo),
+				false,
+			)
 			this._themePreference = assembledTheme.themeId
 		} else {
 			// It is theme info passed from native to be applied as early as possible.
@@ -60,7 +64,7 @@ export class ThemeController {
 				const parsedTheme: ThemeCustomizations = this.parseCustomizations(themeJson)
 
 				// We also don't need to save anything in this case
-				await this.applyCustomizations(generateMaterialTheme(parsedTheme), false)
+				await this.applyCustomizations(generateMaterialTheme(assertNotNull(parsedTheme.primary), parsedTheme.base, parsedTheme.logo), false)
 			}
 
 			// If it's a first start we might get a fallback theme from native. We can apply it for a short time but we should switch to the full, resolved
@@ -416,12 +420,12 @@ const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
 	error: ["error"],
 } as const
 
-function generateMaterialTheme(customizations: ThemeCustomizations): ThemeCustomizations {
-	const primary = assertNotNull(customizations.primary)
-	const primaryArgb = argbFromHex(primary)
-	const materialTheme = themeFromSourceColor(argbFromHex(primary))
+export function generateMaterialTheme(primaryColor: string, baseTheme: BaseThemeId | undefined | null, logo: string | undefined): ThemeCustomizations {
+	const themeId = baseTheme ?? "light"
+	const primaryArgb = argbFromHex(primaryColor)
+	const materialTheme = themeFromSourceColor(primaryArgb)
 
-	const isDark = customizations.base === "dark"
+	const isDark = themeId === "dark"
 	const scheme = new DynamicScheme({
 		sourceColorArgb: primaryArgb,
 		// neutral
@@ -438,9 +442,9 @@ function generateMaterialTheme(customizations: ThemeCustomizations): ThemeCustom
 	const baseColors = isDark ? themes().dark : themes().light
 
 	return {
-		base: customizations.base,
-		themeId: customizations.themeId,
-		logo: customizations.logo ?? getAppLogo(isDark ? "#C4C6D0EE" : "#9F8C8CAA"),
+		base: themeId,
+		themeId,
+		logo: logo ?? getAppLogo(isDark ? "#C4C6D0EE" : "#9F8C8CAA"),
 
 		primary: hexFromArgb(scheme.primary),
 		on_primary: hexFromArgb(scheme.onPrimary),

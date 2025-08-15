@@ -6,10 +6,9 @@ import { isValidColorCode } from "../../gui/base/Color"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { CustomizationKey, ThemeCustomizations, ThemeKey } from "../../misc/WhitelabelCustomizations"
-import { ThemeController } from "../../gui/ThemeController"
+import { generateMaterialTheme, ThemeController } from "../../gui/ThemeController"
 import { EntityClient } from "../../api/common/EntityClient"
 import type { LoginController } from "../../api/main/LoginController"
-import { argbFromHex, themeFromSourceColor } from "@material/material-color-utilities"
 
 assertMainOrNode()
 export type CustomColor = {
@@ -48,12 +47,10 @@ export class CustomColorsEditorViewModel {
 		this._entityClient = entityClient
 		this._loginController = loginController
 		this.builtTheme = stream()
+
 		const baseThemeId = themeCustomizations.base ?? "light"
-
 		const accentColor = themeCustomizations.primary ?? this._themeController.getDefaultTheme().primary
-
-		this.changeBaseTheme(baseThemeId)
-		this.changeAccentColor(accentColor)
+		this.changeTheme({ accentColor, baseThemeId })
 	}
 
 	init() {
@@ -98,16 +95,22 @@ export class CustomColorsEditorViewModel {
 	}
 
 	changeAccentColor(accentColor: string) {
-		this._accentColor = accentColor
-		// FIXME: we need preview to show the new theme immediately instead of borking
-		this.addCustomization("primary", accentColor)
-		this._applyEditedTheme()
+		this.changeTheme({ accentColor })
 	}
 
 	changeBaseTheme(baseThemeId: BaseThemeId) {
-		this._baseTheme = baseThemeId
-		this.addCustomization("base", baseThemeId)
+		this.changeTheme({ baseThemeId })
+	}
 
+	private changeTheme(attrs: { accentColor?: string; baseThemeId?: BaseThemeId }) {
+		if (attrs.accentColor != null) {
+			this._accentColor = attrs.accentColor
+			this.addCustomization("primary", attrs.accentColor)
+		}
+		if (attrs.baseThemeId != null) {
+			this._baseTheme = attrs.baseThemeId
+			this.addCustomization("base", attrs.baseThemeId)
+		}
 		this._applyEditedTheme()
 	}
 
@@ -169,11 +172,11 @@ export class CustomColorsEditorViewModel {
 		return excludedColors.includes(name)
 	}
 
-	private _applyEditedTheme: () => void = debounceStart(100, () => {
+	private _applyEditedTheme() {
 		this._removeEmptyCustomizations()
-
-		this._themeController.applyCustomizations(this._filterAndReturnCustomizations(), false)
-	})
+		const customizations = generateMaterialTheme(this._accentColor, this._baseTheme, this.customizations.logo)
+		this._themeController.applyCustomizations(customizations, false)
+	}
 
 	_removeEmptyCustomizations() {
 		this._customizations = downcast(Object.fromEntries(Object.entries(this.customizations).filter(([k, v]) => v !== "")))
