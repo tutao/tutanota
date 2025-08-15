@@ -1,9 +1,30 @@
-import { BaseThemeId, theme, Theme } from "../gui/theme"
+import { BaseThemeId, Theme } from "../gui/theme"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import type { WhitelabelConfig } from "../api/entities/sys/TypeRefs.js"
 import { ThemeController } from "../gui/ThemeController.js"
 
 assertMainOrNodeBoot()
+
+/**
+ * Whitelabel theme customizations that can be set
+ */
+export interface WhitelabelThemeCustomizationsButForReal {
+	/**
+	 * Primary color in hexadecimal
+	 */
+	accentColor: string
+
+	/**
+	 * Theme to use
+	 */
+	theme: BaseThemeId
+
+	/**
+	 * Optional logo (if unspecified, the app's respective default grayscale logo for that theme will be used)
+	 */
+	logo?: string
+}
+
 export type ThemeCustomizations = Partial<Theme> & {
 	base: BaseThemeId | null
 }

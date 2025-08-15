@@ -69,7 +69,11 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await locator.themeController.applyCustomizations(customTheme)
+				await locator.themeController.applyCustomizations({
+					theme: customTheme.base ?? "light",
+					logo: customTheme.logo,
+					accentColor: assertNotNull(customTheme.primary),
+				})
 			}
 		}
 	}
@@ -127,7 +131,11 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await locator.themeController.applyCustomizations(customTheme)
+				await locator.themeController.applyCustomizations({
+					theme: customTheme.base ?? "light",
+					logo: customTheme.logo,
+					accentColor: assertNotNull(customTheme.primary),
+				})
 			}
 		}
 	}
@@ -140,7 +148,11 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 			this.saveCustomTheme(customTheme, whitelabelConfig, whitelabelDomainInfo)
 
 			if (locator.logins.isWhitelabel()) {
-				await locator.themeController.applyCustomizations(customTheme)
+				await locator.themeController.applyCustomizations({
+					theme: customTheme.base ?? "light",
+					logo: customTheme.logo,
+					accentColor: assertNotNull(customTheme.primary),
+				})
 			}
 		}
 	}

@@ -3,12 +3,12 @@ import type { HtmlSanitizer } from "../misc/HtmlSanitizer"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
-import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
 import m from "mithril"
 import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
 import { themes } from "./builtinThemes"
-import { getWhitelabelCustomizations, ThemeCustomizations } from "../misc/WhitelabelCustomizations"
-import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
+import { getWhitelabelCustomizations, ThemeCustomizations, WhitelabelThemeCustomizationsButForReal } from "../misc/WhitelabelCustomizations"
+import { getAppLogo, getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { AppType } from "../misc/ClientConstants.js"
 
@@ -46,7 +46,15 @@ export class ThemeController {
 
 		if (whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
-			const assembledTheme = await this.applyCustomizations(whitelabelCustomizations.theme, false)
+			const parsedTheme = whitelabelCustomizations.theme
+			const assembledTheme = await this.applyCustomizations(
+				{
+					theme: parsedTheme.base ?? "light",
+					logo: parsedTheme.logo,
+					accentColor: assertNotNull(parsedTheme.primary),
+				},
+				false,
+			)
 			this._themePreference = assembledTheme.themeId
 		} else {
 			// It is theme info passed from native to be applied as early as possible.
@@ -59,7 +67,14 @@ export class ThemeController {
 				const parsedTheme: ThemeCustomizations = this.parseCustomizations(themeJson)
 
 				// We also don't need to save anything in this case
-				await this.applyCustomizations(parsedTheme, false)
+				await this.applyCustomizations(
+					{
+						theme: parsedTheme.base ?? "light",
+						logo: parsedTheme.logo,
+						accentColor: assertNotNull(parsedTheme.primary),
+					},
+					false,
+				)
 			}
 
 			// If it's a first start we might get a fallback theme from native. We can apply it for a short time but we should switch to the full, resolved
@@ -218,8 +233,10 @@ export class ThemeController {
 	/**
 	 * Apply the custom theme, if permanent === true, then the new theme will be saved
 	 */
-	async applyCustomizations(customizations: ThemeCustomizations, permanent: boolean = true): Promise<Theme> {
-		const updatedTheme = this.assembleTheme(ThemeController.mapOldToNewColorTokens(customizations))
+	async applyCustomizations(customizations: WhitelabelThemeCustomizationsButForReal, permanent: boolean = true): Promise<Theme> {
+		const generatedTheme = await generateMaterialTheme(customizations)
+		const updatedTheme = this.assembleTheme(ThemeController.mapOldToNewColorTokens(generatedTheme))
+
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {
 			logo: "",
@@ -239,6 +256,10 @@ export class ThemeController {
 		}
 
 		return updatedTheme
+	}
+
+	async resetTheme(theme: Theme) {
+		this.applyTrustedTheme(theme, theme.themeId)
 	}
 
 	async storeCustomThemeForCustomizations(customizations: ThemeCustomizations) {
@@ -414,3 +435,80 @@ const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
 	scrim: ["modal_bg"],
 	error: ["error"],
 } as const
+
+async function generateMaterialTheme(themeParams: WhitelabelThemeCustomizationsButForReal): Promise<ThemeCustomizations> {
+	// FIXME: use vendored material-color-utilities later since this will be a pretty big import
+	const { argbFromHex, DynamicScheme, hexFromArgb, themeFromSourceColor } = await import("@material/material-color-utilities")
+
+	const primaryArgb = argbFromHex(themeParams.accentColor)
+	const materialTheme = themeFromSourceColor(primaryArgb)
+
+	const isDark = themeParams.theme === "dark"
+	const scheme = new DynamicScheme({
+		sourceColorArgb: primaryArgb,
+		// neutral
+		variant: 1, // FIXME
+		contrastLevel: 0.1,
+		isDark,
+		primaryPalette: materialTheme.palettes.primary,
+		secondaryPalette: materialTheme.palettes.secondary,
+		tertiaryPalette: materialTheme.palettes.tertiary,
+		neutralPalette: materialTheme.palettes.neutral,
+		neutralVariantPalette: materialTheme.palettes.neutralVariant,
+	})
+
+	const baseColors = isDark ? themes().dark : themes().light
+
+	return {
+		base: themeParams.theme,
+		themeId: themeParams.theme,
+		logo: themeParams.logo ?? getAppLogo(isDark ? "#C4C6D0EE" : "#9F8C8CAA"),
+
+		primary: hexFromArgb(scheme.primary),
+		on_primary: hexFromArgb(scheme.onPrimary),
+		primary_container: hexFromArgb(scheme.primaryContainer),
+		on_primary_container: hexFromArgb(scheme.onPrimaryContainer),
+		secondary: hexFromArgb(scheme.secondary),
+		on_secondary: hexFromArgb(scheme.onSecondary),
+		secondary_container: hexFromArgb(scheme.secondaryContainer),
+		on_secondary_container: hexFromArgb(scheme.onSecondaryContainer),
+		tertiary: hexFromArgb(scheme.tertiary),
+		on_tertiary: hexFromArgb(scheme.onTertiary),
+		tertiary_container: hexFromArgb(scheme.tertiaryContainer),
+		on_tertiary_container: hexFromArgb(scheme.onTertiaryContainer),
+		surface: hexFromArgb(scheme.surface),
+		surface_container: hexFromArgb(scheme.surfaceContainer),
+		surface_container_high: hexFromArgb(scheme.surfaceContainerHigh),
+		surface_container_highest: hexFromArgb(scheme.surfaceContainerHighest),
+		on_surface: hexFromArgb(scheme.onSurface),
+		on_surface_variant: hexFromArgb(scheme.onSurfaceVariant),
+		outline: hexFromArgb(scheme.outline),
+		outline_variant: hexFromArgb(scheme.outlineVariant),
+		scrim: hexFromArgb(scheme.scrim),
+
+		state_bg_hover: baseColors.state_bg_hover,
+		state_bg_focus: baseColors.state_bg_focus,
+		state_bg_active: baseColors.state_bg_active,
+		content_bg_tuta_bday: baseColors.content_bg_tuta_bday,
+		content_accent_tuta_bday: baseColors.content_accent_tuta_bday,
+		content_accent_secondary_tuta_bday: baseColors.content_accent_secondary_tuta_bday,
+		tuta_color_nota: baseColors.tuta_color_nota,
+		experimental_primary_container: baseColors.experimental_primary_container,
+		experimental_on_primary_container: baseColors.experimental_on_primary_container,
+		experimental_tertiary: baseColors.experimental_tertiary,
+		go_european: baseColors.go_european,
+		on_go_european: baseColors.on_go_european,
+		warning: baseColors.warning,
+		on_warning: baseColors.on_warning,
+		warning_container: baseColors.warning_container,
+		on_warning_container: baseColors.on_warning_container,
+		on_error: baseColors.on_error,
+		error_container: baseColors.error_container,
+		on_error_container: baseColors.on_error_container,
+		success: baseColors.success,
+		on_success: baseColors.on_success,
+		success_container: baseColors.success_container,
+		on_success_container: baseColors.on_success_container,
+		error: baseColors.error,
+	}
+}

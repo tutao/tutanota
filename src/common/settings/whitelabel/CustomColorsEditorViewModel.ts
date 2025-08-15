@@ -1,6 +1,6 @@
 import { assertMainOrNode } from "../../api/common/Env"
 import type { BaseThemeId, Theme } from "../../gui/theme"
-import { assertNotNull, clone, debounceStart, downcast } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, downcast } from "@tutao/tutanota-utils"
 import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
 import { isValidColorCode } from "../../gui/base/Color"
 import stream from "mithril/stream"
@@ -47,12 +47,10 @@ export class CustomColorsEditorViewModel {
 		this._entityClient = entityClient
 		this._loginController = loginController
 		this.builtTheme = stream()
+
 		const baseThemeId = themeCustomizations.base ?? "light"
-
 		const accentColor = themeCustomizations.primary ?? this._themeController.getDefaultTheme().primary
-
-		this.changeBaseTheme(baseThemeId)
-		this.changeAccentColor(accentColor)
+		this.changeTheme({ accentColor, baseThemeId })
 	}
 
 	init() {
@@ -97,15 +95,22 @@ export class CustomColorsEditorViewModel {
 	}
 
 	changeAccentColor(accentColor: string) {
-		this._accentColor = accentColor
-		this.addCustomization("primary", accentColor)
-		this._applyEditedTheme()
+		this.changeTheme({ accentColor })
 	}
 
 	changeBaseTheme(baseThemeId: BaseThemeId) {
-		this._baseTheme = baseThemeId
-		this.addCustomization("base", baseThemeId)
+		this.changeTheme({ baseThemeId })
+	}
 
+	private changeTheme(attrs: { accentColor?: string; baseThemeId?: BaseThemeId }) {
+		if (attrs.accentColor != null) {
+			this._accentColor = attrs.accentColor
+			this.addCustomization("primary", attrs.accentColor)
+		}
+		if (attrs.baseThemeId != null) {
+			this._baseTheme = attrs.baseThemeId
+			this.addCustomization("base", attrs.baseThemeId)
+		}
 		this._applyEditedTheme()
 	}
 
@@ -133,18 +138,7 @@ export class CustomColorsEditorViewModel {
 	}
 
 	async resetActiveClientTheme(): Promise<void> {
-		await this._themeController.applyCustomizations(
-			downcast(
-				Object.assign(
-					{},
-					{
-						base: null,
-					},
-					this._themeBeforePreview,
-				),
-			),
-			false,
-		)
+		await this._themeController.resetTheme(this._themeBeforePreview)
 	}
 
 	addCustomization(nameOfKey: CustomizationKey, colorValue: string) {
@@ -167,11 +161,17 @@ export class CustomColorsEditorViewModel {
 		return excludedColors.includes(name)
 	}
 
-	private _applyEditedTheme: () => void = debounceStart(100, () => {
+	private _applyEditedTheme() {
 		this._removeEmptyCustomizations()
-
-		this._themeController.applyCustomizations(this._filterAndReturnCustomizations(), false)
-	})
+		this._themeController.applyCustomizations(
+			{
+				logo: this.customizations.logo,
+				theme: this._baseTheme,
+				accentColor: this._accentColor,
+			},
+			false,
+		)
+	}
 
 	_removeEmptyCustomizations() {
 		this._customizations = downcast(Object.fromEntries(Object.entries(this.customizations).filter(([k, v]) => v !== "")))
