@@ -467,6 +467,8 @@ pub struct MailBox {
 	pub importedAttachments: GeneratedId,
 	#[serde(rename = "1585")]
 	pub mailImportStates: GeneratedId,
+	#[serde(rename = "1710")]
+	pub extractedFeatures: Option<GeneratedId>,
 
 	#[serde(default)]
 	pub _errors: Errors,
