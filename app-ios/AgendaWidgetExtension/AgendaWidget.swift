@@ -13,76 +13,92 @@ import tutasdk
 struct WidgetEntry: TimelineEntry {
 	let date: Date
 	let configuration: ConfigurationAppIntent
-	let events: ([CalendarEventData], [CalendarEventData])
+	let events: (EventMap, LongEventsDataMap)
 	let error: WidgetError?
 }
 
+private let startOfToday = Calendar.current.startOfDay(for: Date.now).timeIntervalSince1970
+private let startOfTomorrow = Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 1, to: Date.now)!).timeIntervalSince1970
+private let startOfAfterTomorrow = Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 2, to: Date.now)!).timeIntervalSince1970
+
 private let NORMAL_EVENTS_PLACEHOLDER = [
-	CalendarEventData(
-		id: "ev1",
-		summary: "Gym",
-		startDate: date(2025, 4, 23, 9, 0, "Europe/Berlin"),
-		endDate: date(2025, 4, 23, 10, 0, "Europe/Berlin"),
-		calendarColor: "89cff0",
-		isBirthdayEvent: false
-	),
-	CalendarEventData(
-		id: "ev2",
-		summary: "Meeting",
-		startDate: date(2025, 4, 23, 10, 0, "Europe/Berlin"),
-		endDate: date(2025, 4, 23, 11, 0, "Europe/Berlin"),
-		calendarColor: "20c4f0",
-		isBirthdayEvent: false
-	),
-	CalendarEventData(
-		id: "ev3",
-		summary: "Lunch",
-		startDate: date(2025, 4, 23, 11, 0, "Europe/Berlin"),
-		endDate: date(2025, 4, 23, 13, 0, "Europe/Berlin"),
-		calendarColor: "89a83b",
-		isBirthdayEvent: false
-	),
-	CalendarEventData(
-		id: "ev4",
-		summary: "Concert w/ Mark",
-		startDate: date(2025, 4, 23, 13, 0, "Europe/Berlin"),
-		endDate: date(2025, 4, 23, 19, 0, "Europe/Berlin"),
-		calendarColor: "c476fc",
-		isBirthdayEvent: false
-	),
-	CalendarEventData(
-		id: "ev5",
-		summary: "Dinner",
-		startDate: date(2025, 4, 23, 19, 0, "Europe/Berlin"),
-		endDate: date(2025, 4, 23, 20, 0, "Europe/Berlin"),
-		calendarColor: "a91a2f",
-		isBirthdayEvent: false
-	),
+	startOfToday: [
+		CalendarEventData(
+			id: "ev1",
+			summary: "Gym",
+			startDate: date(2025, 4, 22, 9, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 22, 10, 0, "Europe/Berlin"),
+			calendarColor: "89cff0",
+			isBirthdayEvent: false
+		),
+		CalendarEventData(
+			id: "ev2",
+			summary: "Meeting",
+			startDate: date(2025, 4, 22, 10, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 22, 11, 0, "Europe/Berlin"),
+			calendarColor: "20c4f0",
+			isBirthdayEvent: false
+		),
+	],
+	startOfTomorrow: [
+		CalendarEventData(
+			id: "ev3",
+			summary: "Lunch",
+			startDate: date(2025, 4, 23, 11, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 23, 13, 0, "Europe/Berlin"),
+			calendarColor: "89a83b",
+			isBirthdayEvent: false
+		)
+	],
+	startOfAfterTomorrow: [
+		CalendarEventData(
+			id: "ev4",
+			summary: "Concert w/ Mark",
+			startDate: date(2025, 4, 24, 13, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 24, 19, 0, "Europe/Berlin"),
+			calendarColor: "c476fc",
+			isBirthdayEvent: false
+		),
+		CalendarEventData(
+			id: "ev5",
+			summary: "Dinner",
+			startDate: date(2025, 4, 24, 19, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 24, 20, 0, "Europe/Berlin"),
+			calendarColor: "a91a2f",
+			isBirthdayEvent: false
+		),
+	],
 ]
 
 private let ALL_DAY_EVENTS_PLACEHOLDER = [
-	CalendarEventData(
-		id: "ev0",
-		summary: "Mark is in Town",
-		startDate: date(2025, 4, 23, 0, 0, "Europe/Berlin"),
-		endDate: date(2025, 4, 24, 0, 0, "Europe/Berlin"),
-		calendarColor: "ED7D99",
-		isBirthdayEvent: false
+	startOfToday: SimpleLongEventsData(
+		event: CalendarEventData(
+			id: "ev0",
+			summary: "Mark is in Town",
+			startDate: date(2025, 4, 24, 0, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 25, 0, 0, "Europe/Berlin"),
+			calendarColor: "ED7D99",
+			isBirthdayEvent: false
+		),
+		count: 1
 	),
-	CalendarEventData(
-		id: "ev6",
-		summary: "Spring Festival",
-		startDate: date(2025, 4, 20, 9, 0, "Europe/Berlin"),
-		endDate: date(2025, 4, 25, 10, 0, "Europe/Berlin"),
-		calendarColor: "89cff0",
-		isBirthdayEvent: false
+	startOfAfterTomorrow: SimpleLongEventsData(
+		event: CalendarEventData(
+			id: "ev6",
+			summary: "Spring Festival",
+			startDate: date(2025, 4, 20, 9, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 25, 10, 0, "Europe/Berlin"),
+			calendarColor: "89cff0",
+			isBirthdayEvent: false
+		),
+		count: 2
 	),
 ]
 
 struct AgendaProvider: AppIntentTimelineProvider {
 	func makeErrorEntry(configuration: ConfigurationAppIntent, error: WidgetErrors, stackTrace: String = "") -> WidgetEntry {
 		let errorObject = WidgetError(type: error, message: error.getUserFriendlyErrorMessage(), stacktrace: stackTrace)
-		return WidgetEntry(date: Date(), configuration: configuration, events: ([], []), error: errorObject)
+		return WidgetEntry(date: Date(), configuration: configuration, events: ([:], [:]), error: errorObject)
 	}
 
 	func timeline(for configuration: ConfigurationAppIntent, in context: Context) async -> Timeline<WidgetEntry> {
@@ -104,7 +120,10 @@ struct AgendaProvider: AppIntentTimelineProvider {
 			let frameOffset = 60.0 * 15  // 60 seconds * 15 = 15 minutes
 
 			for date in stride(from: currentDate, to: nextPeriod, by: frameOffset) {
-				let filteredNormalEvents = normalEvents.filter { $0.endDate.timeIntervalSince1970 >= date.timeIntervalSince1970 }
+				let filteredNormalEvents = normalEvents.mapValues({ normalEvents in
+					normalEvents.filter { event in event.endDate.timeIntervalSince1970 >= date.timeIntervalSince1970 }
+				})
+
 				let entry = WidgetEntry(date: date, configuration: configuration, events: (filteredNormalEvents, longEvents), error: nil)
 				entries.append(entry)
 
@@ -127,7 +146,7 @@ struct AgendaProvider: AppIntentTimelineProvider {
 	}
 
 	func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> WidgetEntry {
-		let events = context.isPreview ? (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER) : ([], [])
+		let events = context.isPreview ? (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER) : ([:], [:])
 		return WidgetEntry(date: Date(), configuration: configuration, events: events, error: nil)
 	}
 }
@@ -149,8 +168,8 @@ extension View {
 }
 
 struct AgendaWidgetEntryView: View {
-	var normalEvents: [CalendarEventData]
-	var allDayEvents: [CalendarEventData]
+	var normalEvents: EventMap
+	var allDayEvents: LongEventsDataMap
 	var error: WidgetError?
 	var userId: String
 
@@ -163,23 +182,33 @@ struct AgendaWidgetEntryView: View {
 
 	@Environment(\.widgetRenderingMode) var renderingMode
 
-	private func AllDayHeader(allDayEvents: [CalendarEventData], weekday: String, day: String) -> some View {
-		let allDayBackgroundColor: UIColor = UIColor(hex: allDayEvents.first?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
+	private func AllDayEventsRow(allDayEventsData: SimpleLongEventsData, textColor: Color?) -> some View {
+		let allDayBackgroundColor: UIColor = UIColor(hex: allDayEventsData.event?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
 		let foregroundColor: Color = if allDayBackgroundColor.getLuminance() > 0.5 { .black } else { .white }
 
 		let (allDayImage, allDayPadding): (ImageResource, CGFloat) =
-			if let firstEvent = allDayEvents.first, firstEvent.isBirthdayEvent { (.giftIcon, 4) } else { (.allDayIcon, 2) }
+			if let firstEvent = allDayEventsData.event, firstEvent.isBirthdayEvent { (.giftIcon, 4) } else { (.allDayIcon, 2) }
 
-		return Group {
-			Text(weekday + " " + day).fontWeight(.bold).font(.system(size: 20)).padding(.top, -4)
-			HStack(alignment: .center, spacing: 4) {
-				Image(allDayImage).foregroundStyle(foregroundColor).font(.system(size: 14)).padding(allDayPadding)
-					.background(Color(allDayBackgroundColor.cgColor))
-					.clipShape(.rect(cornerRadii: .init(topLeading: 12, bottomLeading: 12, bottomTrailing: 12, topTrailing: 12)))
-				Text(allDayEvents.first?.summary ?? translate("TutaoNoTitleLabel", default: "<No Title>")).lineLimit(1).font(.system(size: 12))
-
-				if allDayEvents.count > 1 { Text("+\(allDayEvents.count - 1)").lineLimit(1).font(.system(size: 12)).fontWeight(.medium) }
+		let eventTitle: String =
+			if let title: String = allDayEventsData.event?.summary, !title.isEmpty { allDayEventsData.event!.summary } else {
+				translate("TutaoNoTitleLabel", default: "<No Title>")
 			}
+
+		return HStack(alignment: .center, spacing: 4) {
+			Image(allDayImage).foregroundStyle(foregroundColor).font(.system(size: 14)).padding(allDayPadding).background(Color(allDayBackgroundColor.cgColor))
+				.clipShape(.rect(cornerRadii: .init(topLeading: 12, bottomLeading: 12, bottomTrailing: 12, topTrailing: 12)))
+			Text(eventTitle).lineLimit(1).font(.system(size: 12)).if(textColor != nil) { $0.foregroundStyle(textColor!) }
+
+			if allDayEventsData.count > 1 {
+				Text("+\(allDayEventsData.count - 1)").lineLimit(1).font(.system(size: 12)).fontWeight(.medium)
+					.if(textColor != nil) { $0.foregroundStyle(textColor!) }
+			}
+		}
+	}
+	private func AllDayHeader(allDayEventsData: SimpleLongEventsData, weekday: String, day: String) -> some View {
+		Group {
+			Text(weekday + " " + day).fontWeight(.bold).font(.system(size: 20)).padding(.top, -4)
+			AllDayEventsRow(allDayEventsData: allDayEventsData, textColor: nil)
 		}
 	}
 
@@ -196,38 +225,136 @@ struct AgendaWidgetEntryView: View {
 		.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
 	}
 
-	private func EventsList() -> some View {
-		let eventsToList = normalEvents.isEmpty ? allDayEvents : normalEvents
-		return LazyVStack(alignment: .leading, spacing: 4) {
-			ForEach(eventsToList, id: \.self) { event in
-				let calendarColor = UIColor(hex: event.calendarColor) ?? .white
-				let eventTime =
-					eventsToList == allDayEvents
-					? translate("TutaoAllDayLabel", default: "All Day")
-					: eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)
-
-				Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventDetails, eventId: event.id)) {
-					VStack {
-						HStack {
-							VStack { Circle().fill(Color(calendarColor.cgColor)).frame(width: 16, height: 16) }
-							VStack(alignment: .leading) {
-								Text(event.summary).fontWeight(.bold).font(.system(size: 14))
-								Text(eventTime).font(.system(size: 10))
-							}
-							.foregroundStyle(Color(.onSurface))
-						}
-						.padding(.horizontal, 8).padding(.vertical, 6)
+	private func DaysList() -> some View {
+		LazyVStack(alignment: .leading, spacing: 6) {
+			ForEach(normalEvents.keys.sorted(by: { $0 < $1 }), id: \.self) { startOfDay in
+				let parsedDay = Date(timeIntervalSince1970: startOfDay)
+				let events = normalEvents[startOfDay] ?? []
+				let allDayEvents = allDayEvents[startOfDay] ?? SimpleLongEventsData(event: nil, count: 0)
+				let hasOnlyAllDays = events.isEmpty && allDayEvents.count > 0
+				let hasAllDayEvents = allDayEvents.count > 0
+				let hasAllDayAndNotToday = hasAllDayEvents && !Calendar.current.isDateInToday(parsedDay)
+				if Calendar.current.isDateInToday(parsedDay) && events.isEmpty {
+					HStack(alignment: .center) {
+						Text(translate("TutaoWidgetNoEventsTodayMsg", default: "No upcoming events today")).lineLimit(2).multilineTextAlignment(.center)
+							.foregroundStyle(Color(.onSurface)).padding([.top, .bottom], 8)
 					}
-					.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surface))
-					.clipShape(.rect(cornerRadii: .init(topLeading: 8, bottomLeading: 8, bottomTrailing: 8, topTrailing: 8)))
+					.frame(maxWidth: .infinity, alignment: .center)
+				} else {
+					Button(intent: WidgetActionsIntent(userId: userId, date: parsedDay, action: WidgetActions.agenda)) {
+						VStack(spacing: 0) {
+							if hasAllDayAndNotToday {
+								HStack(alignment: .center) {
+									AllDayEventsRow(allDayEventsData: allDayEvents, textColor: Color(.onSurfaceVariant)).padding(.vertical, 8)
+										.padding(.horizontal, 12)
+								}
+								.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surfaceVariant))
+								.clipShape(.rect(cornerRadii: .init(topLeading: 8, bottomLeading: 0, bottomTrailing: 0, topTrailing: 8)))
+							}
+
+							if hasOnlyAllDays {
+								VStack {
+									EventBody(
+										happensToday: false,
+										isFirstEventOfDay: true,
+										calendarColor: UIColor(resource: .surfaceVariant),
+										eventDate: parsedDay
+									)
+									.padding(.horizontal, 12).padding(.vertical, 8)
+								}
+								.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surface))
+								.clipShape(.rect(cornerRadii: .init(topLeading: 0, bottomLeading: 8, bottomTrailing: 8, topTrailing: 0)))
+							} else {
+								VStack { EventsList(events: events) }.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surface))
+									.clipShape(
+										.rect(
+											cornerRadii: .init(
+												topLeading: hasAllDayAndNotToday ? 0 : 8,
+												bottomLeading: 8,
+												bottomTrailing: 8,
+												topTrailing: hasAllDayAndNotToday ? 0 : 8
+											)
+										)
+									)
+							}
+						}
+					}
+					.buttonStyle(.plain)
 				}
-				.buttonStyle(.plain)
 			}
 		}
 	}
 
+	private func EventBody(
+		happensToday: Bool,
+		isFirstEventOfDay: Bool,
+		calendarColor: UIColor,
+		eventDate: Date,
+		eventTime: String? = nil,
+		event: CalendarEventData? = nil
+	) -> some View {
+		let eventTitle = if event != nil { event!.summary } else { translate("TutaoWidgetNoEventsMsg", default: "No upcoming events") }
+
+		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: eventDate)
+		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
+		let weekday = DateFormatter().shortWeekdaySymbols[(dateComponents.weekday ?? 0) - 1]
+
+		return HStack(alignment: VerticalAlignment.center, spacing: 12) {
+			if !happensToday {
+				VStack(spacing: -2) {
+					Text(day).font(.system(size: 20, weight: .bold))
+					Text(weekday).font(.system(size: 14, weight: .regular))
+				}
+				.opacity(isFirstEventOfDay ? 1 : 0).frame(width: 32)
+			}
+			Button(
+				intent: WidgetActionsIntent(
+					userId: userId,
+					date: eventDate,
+					action: event?.id == nil ? WidgetActions.agenda : WidgetActions.eventDetails,
+					eventId: event?.id
+				)
+			) {
+				HStack(spacing: 6) {
+					VStack {
+						Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3, height: .infinity)
+							.clipShape(.rect(cornerRadii: .init(topLeading: 3, bottomLeading: 3, bottomTrailing: 3, topTrailing: 3)))
+					}
+					VStack(alignment: .leading) {
+						Text(eventTitle).fontWeight(.bold).font(.system(size: 14)).lineLimit(1)
+						if eventTime != nil { Text(eventTime!).font(.system(size: 10)) }
+					}
+					.foregroundStyle(Color(.onSurface)).frame(maxHeight: .infinity, alignment: .center)
+				}
+				.frame(maxWidth: .infinity, alignment: .leading)
+			}
+			.buttonStyle(.plain)
+		}
+	}
+	private func EventsList(events: [CalendarEventData]) -> some View {
+		VStack(alignment: .leading, spacing: 6) {
+			ForEach(Array(events.enumerated()), id: \.element) { index, event in
+				let calendarColor = UIColor(hex: event.calendarColor) ?? .white
+				let eventTime = eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)
+				let happensToday = Calendar.current.isDateInToday(event.startDate)
+
+				EventBody(
+					happensToday: happensToday,
+					isFirstEventOfDay: index == 0,
+					calendarColor: calendarColor,
+					eventDate: event.startDate,
+					eventTime: eventTime,
+					event: event
+				)
+			}
+		}
+		.padding(.horizontal, 12).padding(.vertical, 8)
+	}
+
 	private func Header() -> some View {
-		let hasAllDayEvents = !allDayEvents.isEmpty
+		let startOfToday = Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
+		let hasAllDayEvents = (allDayEvents[startOfToday]?.count ?? 0) > 0
+
 		let titleBottomPadding: CGFloat = if hasAllDayEvents { 0 } else { -4 }
 
 		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: Date())
@@ -240,7 +367,7 @@ struct AgendaWidgetEntryView: View {
 				HStack {
 					VStack(alignment: .leading, spacing: titleBottomPadding) {
 						if hasAllDayEvents {
-							AllDayHeader(allDayEvents: allDayEvents, weekday: weekday, day: day)
+							AllDayHeader(allDayEventsData: allDayEvents[startOfToday] ?? SimpleLongEventsData(event: nil, count: 0), weekday: weekday, day: day)
 						} else {
 							Text(day).fontWeight(.bold).font(.system(size: 32)).padding(.top, -7)
 							Text(weekday).font(.system(size: 12))
@@ -275,7 +402,11 @@ struct AgendaWidgetEntryView: View {
 				} else {
 					Header()
 
-					if normalEvents.isEmpty && allDayEvents.isEmpty { EmptyList(family == .systemMedium) } else { EventsList() }
+					if normalEvents.allSatisfy({ $0.value.isEmpty }) && allDayEvents.allSatisfy({ $0.value.count == 0 }) {
+						EmptyList(family == .systemMedium)
+					} else {
+						DaysList()
+					}
 				}
 			}
 			.frame(maxHeight: .infinity, alignment: .top)
@@ -308,6 +439,10 @@ extension String {
 		}
 		return self
 	}
+}
+
+extension View {
+	@ViewBuilder func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View { if condition { transform(self) } else { self } }
 }
 
 #Preview(
