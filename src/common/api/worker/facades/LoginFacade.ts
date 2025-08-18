@@ -102,6 +102,7 @@ import { InstancePipeline } from "../crypto/InstancePipeline"
 import { AttributeModel } from "../../common/AttributeModel"
 import { ServerModelUntypedInstance } from "../../common/EntityTypes"
 import { RolloutFacade } from "./RolloutFacade"
+import { LoginIncompleteError } from "../../common/error/LoginIncompleteError"
 
 assertWorkerOrNode()
 
@@ -610,8 +611,24 @@ export class LoginFacade {
 			// the next time they log in they will be able to do asynchronous login
 			if (cacheInfo?.isPersistent && !cacheInfo.isNewOfflineDb) {
 				const user = await this.entityClient.load(UserTypeRef, credentials.userId)
-				const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
 				this.userFacade.setUser(user)
+
+				// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterwards.
+				// This could lead to a situation where we never loaded or saved user groupInfo but would try to use it now.
+				let userGroupInfo: GroupInfo
+				try {
+					userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+				} catch (e) {
+					console.log("Could not do start login, groupInfo is not cached, falling back to sync login")
+					if (e instanceof LoginIncompleteError) {
+						// await before return to catch the errors here
+						return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
+					} else {
+						// noinspection ExceptionCaughtLocallyJS: we want to make sure we go throw the same exit point
+						throw e
+					}
+				}
+
 				// Start full login async
 				const asyncResumeSession = Promise.resolve().then(() => this.asyncResumeSession(credentials, cacheInfo))
 				const data = {
