@@ -349,7 +349,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 			prefilledMailAddress: model.newAccountData ? model.newAccountData.mailAddress : "",
 			isBusinessUse: () => false,
 			isPaidSubscription: () => true,
-			campaign: () => null,
+			campaignToken: () => null,
 		})
 	}
 }
