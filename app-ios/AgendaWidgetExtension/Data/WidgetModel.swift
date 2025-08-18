@@ -61,9 +61,9 @@ struct WidgetModel {
 					isBirthdayEvent: true
 				)
 
-				if longEvents.index(forKey: startOfEventDay) == nil {
+				if longEvents.index(forKey: startOfEventDay) == nil || longEvents[startOfEventDay]?.event == nil {
 					longEvents.updateValue(SimpleLongEventsData(event: eventData, count: 1), forKey: startOfEventDay)
-					normalEvents.updateValue([], forKey: startOfEventDay)
+					if normalEvents.index(forKey: startOfEventDay) == nil { normalEvents.updateValue([], forKey: startOfEventDay) }
 					return
 				}
 
