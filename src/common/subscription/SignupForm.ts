@@ -14,7 +14,7 @@ import {
 
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
-import { getFirstOrThrow, lazy, ofClass } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, getFirstOrThrow, lazy, ofClass } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
@@ -30,6 +30,7 @@ import { client } from "../misc/ClientDetector"
 import { SubscriptionApp } from "./SubscriptionUtils"
 import { deviceConfig } from "../misc/DeviceConfig"
 import { SessionType } from "../api/common/SessionType"
+import { PowSolution } from "../api/common/pow-worker"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -37,7 +38,7 @@ export type SignupFormAttrs = {
 	onChangePlan: () => void
 	isBusinessUse: lazy<boolean>
 	isPaidSubscription: lazy<boolean>
-	campaign: lazy<string | null>
+	campaignToken: lazy<string | null>
 	// only used if readonly is true
 	prefilledMailAddress?: string | undefined
 	readonly: boolean
@@ -53,8 +54,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private _mailAddress!: string
 	private _isMailVerificationBusy: boolean
 	private readonly __mailValid: Stream<boolean>
-	private readonly __lastMailValidationError: Stream<TranslationKey | null>
-	private powChallengeSolution: Promise<bigint>
+	private powChallengeSolution: DeferredObject<PowSolution> = defer()
 
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 		? TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS
@@ -71,7 +71,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		}
 
 		this.__mailValid = stream(false)
-		this.__lastMailValidationError = stream(null)
 		this.passwordModel = new PasswordModel(
 			locator.usageTestController,
 			locator.logins,
@@ -88,7 +87,13 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this._code = stream("")
 		this._isMailVerificationBusy = false
 		this._mailAddressFormErrorId = "mailAddressNeutral_msg"
-		this.powChallengeSolution = runPowChallenge(deviceConfig.getSignupToken())
+	}
+
+	async oninit() {
+		runPowChallenge(deviceConfig.getSignupToken())
+			.then((solution) => this.powChallengeSolution.resolve(solution))
+			.catch((e) => this.powChallengeSolution.reject(e))
+		return this.powChallengeSolution.promise
 	}
 
 	view(vnode: Vnode<SignupFormAttrs>): Children {
@@ -154,16 +159,16 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			}
 
 			const ageConfirmPromise = this._confirmAge() ? Promise.resolve(true) : Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
-			ageConfirmPromise.then((powSolution) => {
-				if (powSolution) {
+			ageConfirmPromise.then((checkedBoxes) => {
+				if (checkedBoxes) {
 					return signup(
 						this._mailAddress,
 						this.passwordModel.getNewPassword(),
 						this._code(),
 						a.isBusinessUse(),
 						a.isPaidSubscription(),
-						a.campaign(),
-						this.powChallengeSolution,
+						a.campaignToken(),
+						this.powChallengeSolution.promise,
 					).then((newAccountData) => {
 						if (newAccountData != null) {
 							a.onComplete({ type: "success", newAccountData })
@@ -233,13 +238,20 @@ async function signup(
 	registrationCode: string,
 	isBusinessUse: boolean,
 	isPaidSubscription: boolean,
-	campaign: string | null,
-	powChallengeSolution: Promise<bigint>,
+	campaignToken: string | null,
+	powChallengeSolution: Promise<PowSolution>,
 ): Promise<NewAccountData | void> {
 	const { customerFacade, logins, identityKeyCreator } = locator
+
 	const operation = locator.operationProgressTracker.startNewOperation()
 	const signupActionPromise = customerFacade.generateSignupKeys(operation.id).then(async (keyPairs) => {
-		const regDataId = await runCaptchaFlow(mailAddress, isBusinessUse, isPaidSubscription, campaign, powChallengeSolution)
+		const regDataId = await runCaptchaFlow({
+			mailAddress,
+			isBusinessUse,
+			isPaidSubscription,
+			campaignToken,
+			powChallengeSolution,
+		})
 		if (regDataId) {
 			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 			const recoverCode = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)
