@@ -306,8 +306,7 @@ struct AgendaWidgetEntryView: View {
 						Text(weekday).font(.system(size: 14, weight: .regular))
 					}
 				}
-				.opacity(isFirstEventOfDay ? 1 : 0)
-				.frame(width: 32, alignment: .leading)
+				.opacity(isFirstEventOfDay ? 1 : 0).frame(width: 32, alignment: .leading)
 			}
 			Button(
 				intent: WidgetActionsIntent(
@@ -319,7 +318,7 @@ struct AgendaWidgetEntryView: View {
 			) {
 				HStack(spacing: 12) {
 					VStack {
-						Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3, height: .infinity)
+						Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).frame(maxHeight: .infinity)
 							.clipShape(.rect(cornerRadii: .init(topLeading: 3, bottomLeading: 3, bottomTrailing: 3, topTrailing: 3)))
 					}
 					VStack(alignment: .leading) {
@@ -331,7 +330,8 @@ struct AgendaWidgetEntryView: View {
 				.frame(maxWidth: .infinity, alignment: .leading)
 			}
 			.buttonStyle(.plain)
-		}.frame(alignment: .leading)
+		}
+		.frame(alignment: .leading)
 	}
 	private func EventsList(events: [CalendarEventData]) -> some View {
 		VStack(alignment: .leading, spacing: 6) {
@@ -404,7 +404,13 @@ struct AgendaWidgetEntryView: View {
 				} else {
 					Header()
 
-					if normalEvents.allSatisfy({ $0.value.isEmpty }) && allDayEvents.allSatisfy({ $0.value.count == 0 }) {
+					if normalEvents.allSatisfy({ $0.value.isEmpty })
+						&& !(allDayEvents.contains(where: {
+							if let today = normalEvents.keys.min() { return $0.key != today && $0.value.count != 0 }
+
+							return false
+						}))
+					{
 						EmptyList(family == .systemMedium)
 					} else {
 						DaysList()
