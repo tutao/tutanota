@@ -420,9 +420,12 @@ class Agenda : GlanceAppWidget() {
 		content: @Composable () -> Unit
 	) {
 		val showAllDayInfo = !firstDay && allDayEvents.isNotEmpty()
-		val defaultPadding = 12
-		val paddingLeftTopRight = if (showAllDayInfo) 0 else defaultPadding
-		val hasOnlyAllDays = normalEvents.isEmpty() && !allDayEvents.isEmpty()
+		val defaultVerticalPadding = 8
+		val defaultHorizontalPadding = 12
+
+		val hasOnlyAllDays = normalEvents.isEmpty() && allDayEvents.isNotEmpty()
+		val paddingVertical = if (hasOnlyAllDays || showAllDayInfo) 0 else defaultVerticalPadding
+		val paddingHorizontal = if (showAllDayInfo) 0 else defaultHorizontalPadding
 
 		if (normalEvents.isEmpty() && firstDay) {
 			return Row(
@@ -457,10 +460,10 @@ class Agenda : GlanceAppWidget() {
 
 		Column(
 			modifier = GlanceModifier.padding(
-				(paddingLeftTopRight).dp,
-				(paddingLeftTopRight).dp,
-				(paddingLeftTopRight).dp,
-				(if (hasOnlyAllDays) 0 else defaultPadding).dp
+				(paddingHorizontal).dp,
+				(paddingVertical).dp,
+				(paddingHorizontal).dp,
+				(paddingVertical).dp
 			)
 				.background(GlanceTheme.colors.surface)
 				.cornerRadius(8.dp)
@@ -469,7 +472,7 @@ class Agenda : GlanceAppWidget() {
 		) {
 			if (showAllDayInfo) {
 				Row(
-					modifier = GlanceModifier.padding((defaultPadding).dp, 8.dp).fillMaxWidth()
+					modifier = GlanceModifier.padding((defaultHorizontalPadding).dp, 8.dp).fillMaxWidth()
 						.background(GlanceTheme.colors.surfaceVariant),
 					verticalAlignment = Alignment.CenterVertically
 				) {
@@ -527,8 +530,12 @@ class Agenda : GlanceAppWidget() {
 				}
 			}
 
-			val innerPadding = if (showAllDayInfo) defaultPadding else 0
-			Column(modifier = GlanceModifier.padding((innerPadding).dp).fillMaxHeight()) {
+			val innerPadding =
+				if (showAllDayInfo) Pair(defaultHorizontalPadding, defaultVerticalPadding) else Pair(0, 0)
+			Column(
+				modifier = GlanceModifier.padding((innerPadding.first).dp, (innerPadding.second).dp)
+					.fillMaxHeight()
+			) {
 				content()
 			}
 		}
@@ -563,7 +570,7 @@ class Agenda : GlanceAppWidget() {
 		onNewEvent: Action,
 	) {
 		val hasAllDayEvents = allDayEvents.isNotEmpty()
-		val titleBottomPadding = if (hasAllDayEvents) 0.dp else (-4).dp
+		val titleBottomPadding = if (hasAllDayEvents) 0.dp else (-8).dp
 		val dateNow = LocalDateTime.now()
 
 		Row(
@@ -731,30 +738,35 @@ class Agenda : GlanceAppWidget() {
 				.fillMaxWidth(),
 			verticalAlignment = Alignment.CenterVertically
 		) {
-			Column(
-				modifier = dateModifier,
-				horizontalAlignment = Alignment.CenterHorizontally
+			Row(
+				horizontalAlignment = Alignment.Start,
+				verticalAlignment = Alignment.Vertical.CenterVertically,
+				modifier = dateModifier.width(32.dp)
 			) {
-				Text(
-					style = TextStyle(
-						fontWeight = FontWeight.Bold,
-						fontSize = 22.sp,
-						color = GlanceTheme.colors.secondary
+				Column(
+					horizontalAlignment = Alignment.CenterHorizontally
+				) {
+					Text(
+						style = TextStyle(
+							fontWeight = FontWeight.Bold,
+							fontSize = 22.sp,
+							color = GlanceTheme.colors.secondary
 
-					),
-					text = currentDay,
-					maxLines = 1,
-					modifier = GlanceModifier.padding(bottom = (-4).dp)
-				)
-				Text(
-					style = TextStyle(
-						fontSize = 14.sp,
-						color = GlanceTheme.colors.secondary
-					),
-					text = currentWeekDay,
-					maxLines = 1,
-					modifier = GlanceModifier.padding(top = (-4).dp)
-				)
+						),
+						text = currentDay,
+						maxLines = 1,
+						modifier = GlanceModifier.padding(bottom = (-4).dp)
+					)
+					Text(
+						style = TextStyle(
+							fontSize = 14.sp,
+							color = GlanceTheme.colors.secondary
+						),
+						text = currentWeekDay,
+						maxLines = 1,
+						modifier = GlanceModifier.padding(top = (-4).dp)
+					)
+				}
 			}
 
 			if (!happensToday) {
@@ -776,7 +788,7 @@ class Agenda : GlanceAppWidget() {
 
 			// event title and time
 			Column(
-				modifier = GlanceModifier.padding(start = 6.dp)
+				modifier = GlanceModifier.padding(start = 12.dp)
 			) {
 				Text(
 					eventTitle,
