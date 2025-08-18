@@ -285,9 +285,9 @@ class Agenda : GlanceAppWidget() {
 
 	@Composable
 	fun WidgetBody(data: WidgetUIData?, userId: String?, headerCallback: Action, newEventCallback: Action) {
-		val isEmpty =
-			data?.allDayEvents?.all { it.value.isEmpty() } ?: true && data?.normalEvents?.all { it.value.isEmpty() } ?: true
 		val firstDay = if (data?.normalEvents?.isNotEmpty() == true) data.normalEvents.keys.minOf { it } else 0L
+		val isEmpty =
+			!(data?.allDayEvents?.any { it.key != firstDay && it.value.isNotEmpty() } ?: false) && data?.normalEvents?.all { it.value.isEmpty() } ?: true
 
 		Column(
 			modifier = GlanceModifier.padding(
