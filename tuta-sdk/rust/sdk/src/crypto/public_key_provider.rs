@@ -128,7 +128,8 @@ impl PublicKeyProvider {
 					signature: _,
 				} => PublicKey::TutaCrypt(TutaCryptPublicKeys {
 					x25519_public_key: X25519PublicKey::from_bytes(ecc_pub_key.as_slice()).unwrap(),
-					kyber_public_key: KyberPublicKey::from_bytes(kyber_pub_key.as_slice()).unwrap(),
+					kyber_public_key: KyberPublicKey::deserialize(kyber_pub_key.as_slice())
+						.unwrap(),
 				}),
 				_ => panic!("invalid public key combination"),
 			},
@@ -143,6 +144,7 @@ mod tests {
 	use crate::entities::generated::sys::PublicKeyGetIn;
 	use crate::services::service_executor::MockServiceExecutor;
 	use crate::tutanota_constants::PublicKeyIdentifierType;
+	use crypto_primitives::compatibility_test_utils::get_compatibility_test_data;
 	use std::sync::Arc;
 
 	fn make_public_key_provider(service_executor: MockServiceExecutor) -> PublicKeyProvider {
@@ -152,6 +154,9 @@ mod tests {
 	fn setup_test() -> (
 		u64,
 		PublicKeyIdentifier,
+		Vec<u8>,
+		Vec<u8>,
+		Vec<u8>,
 		PublicKeyGetIn,
 		MockServiceExecutor,
 	) {
@@ -167,10 +172,33 @@ mod tests {
 			version: None,
 		};
 
+		let test_data = get_compatibility_test_data();
+		let pub_x25519_key = test_data
+			.x25519_tests
+			.into_iter()
+			.nth(0)
+			.unwrap()
+			.alice_public_key_hex;
+		let pub_kyber_key = test_data
+			.kyber_encryption_tests
+			.into_iter()
+			.nth(0)
+			.unwrap()
+			.public_key;
+		let pub_rsa_key = test_data
+			.rsa_encryption_tests
+			.into_iter()
+			.nth(0)
+			.unwrap()
+			.public_key;
+
 		let service_executor = MockServiceExecutor::default();
 		(
 			current_key_version,
 			public_key_identifier,
+			pub_x25519_key,
+			pub_kyber_key,
+			pub_rsa_key,
 			first_service_executor_invocation,
 			service_executor,
 		)
@@ -184,9 +212,6 @@ mod tests {
 		use crate::crypto::X25519PublicKey;
 		use crate::entities::generated::sys::PublicKeyGetOut;
 		use crate::services::generated::sys::PublicKeyService;
-		use crate::util::test_utils::{
-			get_kyber_pub_key_bytes, get_rsa_pub_key_bytes, get_x25519_pub_key_bytes,
-		};
 		use mockall::predicate::{always, eq};
 
 		#[tokio::test]
@@ -194,12 +219,15 @@ mod tests {
 			let (
 				current_key_version,
 				public_key_identifier,
+				pub_x25519_key,
+				pub_kyber_key,
+				_pub_rsa_key,
 				first_service_executor_invocation,
 				mut service_executor,
 			) = setup_test();
 
-			let pub_x25519_key = get_x25519_pub_key_bytes();
-			let pub_kyber_key = get_kyber_pub_key_bytes();
+			let expected_pub_kyber_key = KyberPublicKey::deserialize(&pub_kyber_key).unwrap();
+			let expected_x25519_key = X25519PublicKey::from_bytes(&pub_x25519_key).unwrap();
 
 			service_executor
 				.expect_get::<PublicKeyService>()
@@ -223,19 +251,24 @@ mod tests {
 			assert_eq!(
 				pub_keys.object,
 				PublicKey::TutaCrypt(TutaCryptPublicKeys {
-					x25519_public_key: X25519PublicKey::from_bytes(&pub_x25519_key).unwrap(),
-					kyber_public_key: KyberPublicKey::from_bytes(&pub_kyber_key).unwrap(),
+					x25519_public_key: expected_x25519_key,
+					kyber_public_key: expected_pub_kyber_key,
 				})
 			)
 		}
 
 		#[tokio::test]
 		async fn rsa_key_in_version_other_than_0() {
-			let (_, public_key_identifier, first_service_executor_invocation, mut service_executor) =
-				setup_test();
+			let (
+				_,
+				public_key_identifier,
+				_pub_x25519_key,
+				_pub_kyber_key,
+				pub_rsa_key,
+				first_service_executor_invocation,
+				mut service_executor,
+			) = setup_test();
 			let current_key_version = 1u64;
-
-			let pub_rsa_key = get_rsa_pub_key_bytes();
 
 			service_executor
 				.expect_get::<PublicKeyService>()
@@ -272,9 +305,6 @@ mod tests {
 		use crate::crypto::X25519PublicKey;
 		use crate::entities::generated::sys::PublicKeyGetOut;
 		use crate::services::generated::sys::PublicKeyService;
-		use crate::util::test_utils::{
-			get_kyber_pub_key_bytes, get_rsa_pub_key_bytes, get_x25519_pub_key_bytes,
-		};
 		use mockall::predicate::{always, eq};
 
 		#[tokio::test]
@@ -282,13 +312,17 @@ mod tests {
 			let (
 				_,
 				public_key_identifier,
+				pub_x25519_key,
+				pub_kyber_key,
+				_pub_rsa_key,
 				mut first_service_executor_invocation,
 				mut service_executor,
 			) = setup_test();
 			let requested_version = 1u64;
 			first_service_executor_invocation.version = Some(requested_version as i64);
 
-			let pub_x25519_key = get_x25519_pub_key_bytes();
+			let expected_pub_kyber_key = KyberPublicKey::deserialize(&pub_kyber_key).unwrap();
+			let expected_x25519_key = X25519PublicKey::from_bytes(&pub_x25519_key).unwrap();
 
 			service_executor
 				.expect_get::<PublicKeyService>()
@@ -298,7 +332,7 @@ mod tests {
 						_format: 0,
 						pubEccKey: Some(pub_x25519_key.to_vec()),
 						pubKeyVersion: requested_version as i64,
-						pubKyberKey: Some(get_kyber_pub_key_bytes().to_vec()),
+						pubKyberKey: Some(pub_kyber_key.to_vec()),
 						pubRsaKey: None,
 						signature: None,
 					})
@@ -311,10 +345,8 @@ mod tests {
 			assert_eq!(
 				pub_keys.object,
 				PublicKey::TutaCrypt(TutaCryptPublicKeys {
-					x25519_public_key: X25519PublicKey::from_bytes(pub_x25519_key.as_slice())
-						.unwrap(),
-					kyber_public_key: KyberPublicKey::from_bytes(&get_kyber_pub_key_bytes())
-						.unwrap(),
+					x25519_public_key: expected_x25519_key,
+					kyber_public_key: expected_pub_kyber_key,
 				})
 			)
 		}
@@ -325,14 +357,14 @@ mod tests {
 			let (
 				current_key_version,
 				public_key_identifier,
+				pub_x25519_key,
+				pub_kyber_key,
+				_pub_rsa_key,
 				mut first_service_executor_invocation,
 				mut service_executor,
 			) = setup_test();
 			let requested_version = 1u64;
 			first_service_executor_invocation.version = Some(requested_version as i64);
-
-			let pub_x25519_key = get_x25519_pub_key_bytes();
-			let pub_kyber_key = get_kyber_pub_key_bytes();
 
 			assert_ne!(requested_version, current_key_version);
 			service_executor
@@ -364,13 +396,14 @@ mod tests {
 			let (
 				_,
 				public_key_identifier,
+				_pub_x25519_key,
+				_pub_kyber_key,
+				pub_rsa_key,
 				mut first_service_executor_invocation,
 				mut service_executor,
 			) = setup_test();
 			let requested_version = 1u64;
 			first_service_executor_invocation.version = Some(requested_version as i64);
-
-			let pub_rsa_key = get_rsa_pub_key_bytes();
 
 			service_executor
 				.expect_get::<PublicKeyService>()
@@ -408,8 +441,15 @@ mod tests {
 		#[tokio::test]
 		#[should_panic]
 		async fn panics_if_the_version_is_negative() {
-			let (_, public_key_identifier, first_service_executor_invocation, mut service_executor) =
-				setup_test();
+			let (
+				_,
+				public_key_identifier,
+				_pub_x25519_key,
+				_pub_kyber_key,
+				_pub_rsa_key,
+				first_service_executor_invocation,
+				mut service_executor,
+			) = setup_test();
 			let bad_version_from_server = -1i64;
 
 			let pub_key = vec![9, 8, 7];
