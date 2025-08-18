@@ -93,7 +93,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 						icon: Icons.Shield,
 						size: IconSize.Normal,
 						style: {
-							fill: theme.content_accent,
+							fill: theme.success,
 							position: "relative",
 							top: "2px",
 							right: "1px",
