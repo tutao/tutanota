@@ -1,4 +1,3 @@
-// AUTO-GENERATED WITH tutanota-translation-sanitizer. DO NOT EDIT!
 export type TranslationKeyType =
 	| "about_label"
 	| "accentColor_label"
@@ -2037,3 +2036,4 @@ export type TranslationKeyType =
 	| "unread_label"
 	| "replied_label"
 	| "forwarded_label"
+	| "mailExportPaused_msg"
