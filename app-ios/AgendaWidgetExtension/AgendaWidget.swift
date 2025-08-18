@@ -294,18 +294,20 @@ struct AgendaWidgetEntryView: View {
 		event: CalendarEventData? = nil
 	) -> some View {
 		let eventTitle = if event != nil { event!.summary } else { translate("TutaoWidgetNoEventsMsg", default: "No upcoming events") }
-
 		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: eventDate)
 		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
 		let weekday = DateFormatter().shortWeekdaySymbols[(dateComponents.weekday ?? 0) - 1]
 
 		return HStack(alignment: VerticalAlignment.center, spacing: 12) {
 			if !happensToday {
-				VStack(spacing: -2) {
-					Text(day).font(.system(size: 20, weight: .bold))
-					Text(weekday).font(.system(size: 14, weight: .regular))
+				HStack(alignment: VerticalAlignment.center) {
+					VStack(spacing: -2) {
+						Text(day).font(.system(size: 20, weight: .bold))
+						Text(weekday).font(.system(size: 14, weight: .regular))
+					}
 				}
-				.opacity(isFirstEventOfDay ? 1 : 0).frame(width: 32)
+				.opacity(isFirstEventOfDay ? 1 : 0)
+				.frame(width: 32, alignment: .leading)
 			}
 			Button(
 				intent: WidgetActionsIntent(
@@ -315,7 +317,7 @@ struct AgendaWidgetEntryView: View {
 					eventId: event?.id
 				)
 			) {
-				HStack(spacing: 6) {
+				HStack(spacing: 12) {
 					VStack {
 						Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3, height: .infinity)
 							.clipShape(.rect(cornerRadii: .init(topLeading: 3, bottomLeading: 3, bottomTrailing: 3, topTrailing: 3)))
@@ -329,7 +331,7 @@ struct AgendaWidgetEntryView: View {
 				.frame(maxWidth: .infinity, alignment: .leading)
 			}
 			.buttonStyle(.plain)
-		}
+		}.frame(alignment: .leading)
 	}
 	private func EventsList(events: [CalendarEventData]) -> some View {
 		VStack(alignment: .leading, spacing: 6) {
