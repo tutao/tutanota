@@ -34,7 +34,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 			},
 			isBusinessUse: data.options.businessUse,
 			isPaidSubscription: () => data.type !== PlanType.Free,
-			campaign: () => data.registrationDataId,
+			campaignToken: () => data.registrationDataId,
 			prefilledMailAddress: mailAddress,
 			readonly: !!newAccountData,
 		})
