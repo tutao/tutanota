@@ -443,7 +443,7 @@ export class HtmlSanitizer {
 	}
 
 	private highlightText(currentNode: Node, config: SanitizeConfig) {
-		if (!currentNode.hasChildNodes()) {
+		if (isEmpty(config.highlightedStrings) || !currentNode.hasChildNodes()) {
 			return
 		}
 
