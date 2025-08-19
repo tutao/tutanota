@@ -152,6 +152,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 							? () => attrs.onFolderExpanded(system.folder, currentExpansionState)
 							: (event: Event) => {
 									event.preventDefault()
+									attrs.onFolderClick(system.folder)
 									m.route.set(href())
 								},
 						hasChildren,
