@@ -479,6 +479,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 
 	locator.publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification)
+	const adminKeyLoaderProvider = () => locator.adminKeyLoader
 
 	locator.asymmetricCrypto = new AsymmetricCryptoFacade(
 		locator.rsa,
@@ -488,6 +489,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.serviceExecutor,
 		locator.keyVerification,
 		locator.publicEncryptionKeyProvider,
+		adminKeyLoaderProvider,
 	)
 
 	locator.crypto = new CryptoFacade(

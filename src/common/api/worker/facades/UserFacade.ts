@@ -168,7 +168,7 @@ export class UserFacade implements AuthDataProvider {
 		let membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => isSameId(g.group, groupId))
 
 		if (!membership) {
-			throw new Error(`No group with groupId ${groupId} found!`)
+			throw new Error(`No membership with groupId ${groupId} found!`)
 		}
 
 		return membership

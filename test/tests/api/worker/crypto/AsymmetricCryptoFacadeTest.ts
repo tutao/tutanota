@@ -37,6 +37,7 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
+import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
 	let rsa: RsaImplementation
@@ -46,6 +47,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 	let serviceExecutor: IServiceExecutor
 	let keyVerificationFacade: KeyVerificationFacade
 	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
+	let adminKeyLoaderFacade: AdminKeyLoaderFacade
 
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 
@@ -57,6 +59,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		serviceExecutor = object()
 		keyVerificationFacade = object()
 		publicEncryptionKeyProvider = object()
+		adminKeyLoaderFacade = object()
 		asymmetricCryptoFacade = new AsymmetricCryptoFacade(
 			rsa,
 			pqFacade,
@@ -65,6 +68,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			serviceExecutor,
 			async () => keyVerificationFacade,
 			publicEncryptionKeyProvider,
+			() => adminKeyLoaderFacade,
 		)
 	})
 
@@ -145,7 +149,10 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				senderKeyVersion,
 			)
 
-			o(result).deepEquals({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT })
+			o(result).deepEquals({
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
+				verificationState: PresentableKeyVerificationState.ALERT,
+			})
 		})
 
 		o("should return TUTACRYPT_AUTHENTICATION_FAILED if the key does not match", async function () {
@@ -175,7 +182,10 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				senderKeyVersion,
 			)
 
-			o(result).deepEquals({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT })
+			o(result).deepEquals({
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
+				verificationState: PresentableKeyVerificationState.ALERT,
+			})
 		})
 	})
 
@@ -374,7 +384,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					pubEncSymKeyBytes,
 				)
 				const senderUserGroupKey = object<AesKey>()
-				when(keyLoaderFacade.getCurrentSymGroupKey(senderGroupId)).thenResolve({
+				when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(senderGroupId)).thenResolve({
 					object: senderUserGroupKey,
 					version: senderKeyVersion,
 				})

@@ -26,7 +26,7 @@ import {
 	EncryptionKeyVerificationState,
 	PresentableKeyVerificationState,
 } from "../../common/TutanotaConstants.js"
-import { arrayEquals, assertNotNull, lazyAsync, Versioned } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, lazy, lazyAsync, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { createPublicKeyPutIn, PubEncKeyData } from "../../entities/sys/TypeRefs.js"
@@ -39,6 +39,7 @@ import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { TypeId } from "../../common/EntityTypes"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
+import { AdminKeyLoaderFacade } from "../facades/AdminKeyLoaderFacade"
 
 assertWorkerOrNode()
 
@@ -72,6 +73,7 @@ export class AsymmetricCryptoFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
 		private readonly publicKeyProvider: PublicEncryptionKeyProvider,
+		private readonly adminKeyLoaderFacade: lazy<AdminKeyLoaderFacade>,
 	) {}
 
 	getSenderEccKey(publicKey: Versioned<PublicKey>): X25519PublicKey | null {
@@ -106,7 +108,10 @@ export class AsymmetricCryptoFacade {
 				authenticated = true
 
 				if (publicKey.verificationState === EncryptionKeyVerificationState.VERIFIED_MANUAL) {
-					return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE }
+					return {
+						authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+						verificationState: PresentableKeyVerificationState.SECURE,
+					}
 				}
 			}
 		} catch (e) {
@@ -117,9 +122,15 @@ export class AsymmetricCryptoFacade {
 			}
 		}
 		if (authenticated) {
-			return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.NONE }
+			return {
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+				verificationState: PresentableKeyVerificationState.NONE,
+			}
 		} else {
-			return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT }
+			return {
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
+				verificationState: PresentableKeyVerificationState.ALERT,
+			}
 		}
 	}
 
@@ -292,7 +303,9 @@ export class AsymmetricCryptoFacade {
 	}
 
 	private async createNewX25519KeyPair(keyGroupId: string): Promise<X25519KeyPair> {
-		const symGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(keyGroupId)
+		// If the group is a team group, it may be the case that the admin is not a member of it, so we try to get via
+		// admin key. This works for non-admins too because internally the method tries to get via membership first anyway.
+		const symGroupKey = await this.adminKeyLoaderFacade().getCurrentGroupKeyViaAdminEncGKey(keyGroupId)
 		const newX25519KeyPair = this.cryptoWrapper.generateEccKeyPair()
 		const symEncPrivEccKey = this.cryptoWrapper.encryptX25519Key(symGroupKey.object, newX25519KeyPair.privateKey)
 		const data = createPublicKeyPutIn({

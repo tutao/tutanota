@@ -306,6 +306,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(locator.serviceExecutor, locator.keyVerification)
 
+	const adminKeyLoaderProvider = () => locator.adminKeyLoader
+
 	const asymmetricCrypto = new AsymmetricCryptoFacade(
 		locator.rsa,
 		locator.pqFacade,
@@ -314,6 +316,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.serviceExecutor,
 		locator.keyVerification,
 		locator.publicEncryptionKeyProvider,
+		adminKeyLoaderProvider,
 	)
 	locator.adminKeyLoader = new AdminKeyLoaderFacade(
 		locator.user,
