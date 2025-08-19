@@ -159,6 +159,8 @@ export const enum CalendarOperation {
 	EditAll,
 	/** delete the whole series */
 	DeleteAll,
+	/** delete all future instances of the series starting from repeat rule endDate condition*/
+	StopSeriesAtDate,
 }
 
 /**
@@ -227,6 +229,7 @@ export async function makeCalendarEventModel(
 		location: new SimpleTextViewModel(initializationEvent.location, uiUpdateCallback),
 		summary: new SimpleTextViewModel(initializationEvent.summary, uiUpdateCallback),
 		description: new SanitizedTextViewModel(initializationEvent.description, getHtmlSanitizer(), uiUpdateCallback),
+		comment: new SimpleTextViewModel("", uiUpdateCallback),
 	})
 
 	const recurrenceIds = async (uid?: string) =>
@@ -310,6 +313,10 @@ async function selectStrategy(
 		editModels = makeEditModels(cleanInitialValues)
 		apply = () => applyStrategies.deleteEntireExistingEvent(editModels, existingInstanceIdentity)
 		mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
+	} else if (operation === CalendarOperation.StopSeriesAtDate) {
+		editModels = makeEditModels(existingInstanceIdentity)
+		apply = () => applyStrategies.stopSeriesAtDate(editModels, existingInstanceIdentity)
+		mayRequireSendingUpdates = () => true
 	} else {
 		throw new ProgrammingError(`unknown calendar operation: ${operation}`)
 	}
@@ -598,6 +605,7 @@ export type CalendarEventEditModels = {
 	location: SimpleTextViewModel
 	summary: SimpleTextViewModel
 	description: SanitizedTextViewModel
+	comment: SimpleTextViewModel
 }
 
 /** the fields that together with the start time point to a specific version and instance of an event */

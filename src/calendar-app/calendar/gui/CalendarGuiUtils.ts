@@ -58,6 +58,7 @@ import {
 	defaultCalendarColor,
 	EndType,
 	EventTextTimeOption,
+	Keys,
 	RepeatPeriod,
 	ShareCapability,
 	Weekday,
@@ -89,6 +90,9 @@ import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
+import { Key } from "../../../common/misc/KeyManager.js"
+import { isAppleDevice } from "../../../common/api/common/Env.js"
 
 export interface IntervalOption {
 	value: number
@@ -878,20 +882,38 @@ export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): st
 		case CalendarAttendeeStatus.ADDED:
 		case CalendarAttendeeStatus.NEEDS_ACTION:
 			return ""
-
 		case CalendarAttendeeStatus.TENTATIVE:
-			return "?"
-
+			return "⯑"
 		case CalendarAttendeeStatus.ACCEPTED:
 			return "✓"
-
 		case CalendarAttendeeStatus.DECLINED:
-			return "❌"
-
+			return "✕"
 		default:
 			throw new Error("Unknown calendar attendee status: " + status)
 	}
 }
+
+export function calendarAttendeeStatusText(status: CalendarAttendeeStatus): string {
+	switch (status) {
+		case CalendarAttendeeStatus.ADDED:
+		case CalendarAttendeeStatus.NEEDS_ACTION:
+			return ""
+		case CalendarAttendeeStatus.TENTATIVE:
+			return lang.get("maybe_label")
+		case CalendarAttendeeStatus.ACCEPTED:
+			return lang.get("accepted_label")
+		case CalendarAttendeeStatus.DECLINED:
+			return lang.get("declined_label")
+		default:
+			throw new Error("Unknown calendar attendee status: " + status)
+	}
+}
+
+export const eventInviteEmailTypeToCalendarAttendeeStatus = Object.freeze({
+	[EventInviteEmailType.REPLY_ACCEPT]: CalendarAttendeeStatus.ACCEPTED,
+	[EventInviteEmailType.REPLY_TENTATIVE]: CalendarAttendeeStatus.TENTATIVE,
+	[EventInviteEmailType.REPLY_DECLINE]: CalendarAttendeeStatus.DECLINED,
+})
 
 export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = Object.freeze({
 	[CalendarAttendeeStatus.ACCEPTED]: Icons.CircleCheckmark,
@@ -1042,6 +1064,10 @@ export async function showDeletePopup(model: CalendarEventPreviewViewModel, ev: 
 						},
 					},
 					{
+						label: "deleteThisAndFutureOccurrences_action",
+						click: () => confirmDeleteThisAndFutureClose(model, onClose),
+					},
+					{
 						label: "deleteAllEventRecurrence_action",
 						click: () => confirmDeleteClose(model, onClose),
 					},
@@ -1052,6 +1078,12 @@ export async function showDeletePopup(model: CalendarEventPreviewViewModel, ev: 
 		// noinspection JSIgnoredPromiseFromCall
 		confirmDeleteClose(model, onClose)
 	}
+}
+
+async function confirmDeleteThisAndFutureClose(model: CalendarEventPreviewViewModel, onClose?: () => unknown): Promise<void> {
+	if (!(await Dialog.confirm("deleteThisAndFutureOccurrencesConfirmation_msg"))) return
+	await model.deleteThisAndFutureOccurrences()
+	onClose?.()
 }
 
 async function confirmDeleteClose(model: CalendarEventPreviewViewModel, onClose?: () => unknown): Promise<void> {
@@ -1080,4 +1112,27 @@ export function renderCalendarColor(selectedCalendar: CalendarInfo | null, group
 			background: color ? "#" + color : "transparent",
 		},
 	})
+}
+
+/**
+ * Extracts the platform-specific modifier key (Command ⌘ on Apple devices, or Control on others) from a mouse or keyboard event.
+ *
+ * @template T - A type that extends either `MouseEvent` or `KeyboardEvent`.
+ * @param {T & { redraw?: boolean }} event - The event object, optionally extended with a `redraw` property.
+ * @returns {Key | undefined} - Returns the appropriate modifier key if it's active during the event; otherwise, `undefined`.
+ *
+ * @example
+ * const modifier = extractCalendarEventModifierKey(event);
+ * if (modifier === Keys.META) {
+ *   // Handle macOS modifier logic
+ * }
+ */
+export function extractCalendarEventModifierKey<T extends MouseEvent | KeyboardEvent>(event: T & { redraw?: boolean }): Key | undefined {
+	let key
+	if (event.metaKey && isAppleDevice()) {
+		key = Keys.META
+	} else if (event.ctrlKey) {
+		key = Keys.CTRL
+	}
+	return key
 }

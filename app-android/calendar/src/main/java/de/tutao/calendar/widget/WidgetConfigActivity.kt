@@ -110,6 +110,7 @@ import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CredentialsInfo
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.PersistedCredentials
+import de.tutao.tutashared.parseColor
 import de.tutao.tutashared.remote.RemoteStorage
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
@@ -579,9 +580,9 @@ class WidgetConfigActivity : AppCompatActivity() {
 				checked,
 				onCheckedChange = { markCalendarAsChecked() },
 				colors = CheckboxDefaults.colors(
-					checkedColor = Color("#$color".toColorInt()),
-					uncheckedColor = Color("#$color".toColorInt()),
-					checkmarkColor = Color("#$color".toColorInt()),
+					checkedColor = Color(parseColor("#$color")),
+					uncheckedColor = Color(parseColor("#$color")),
+					checkmarkColor = Color(parseColor("#$color")),
 				),
 				modifier = Modifier
 					.padding(0.dp)

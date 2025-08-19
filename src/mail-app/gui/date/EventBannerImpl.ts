@@ -4,7 +4,7 @@ import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEve
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
-import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
+import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { base64ToBase64Url, clone, filterNull, getHourOfDay, getStartOfDay, isNotEmpty, isNotNull, partition, stringToBase64 } from "@tutao/tutanota-utils"
 import {
 	EventConflictRenderPolicy,
@@ -17,8 +17,7 @@ import {
 	TimeViewEventWrapper,
 } from "../../../common/calendar/gui/TimeView"
 import { Time } from "../../../common/calendar/date/Time"
-import { locator } from "../../../common/api/main/CommonLocator"
-import { theme } from "../../../common/gui/theme"
+import { isLightTheme, theme } from "../../../common/gui/theme"
 import { styles } from "../../../common/gui/styles"
 import { px, size } from "../../../common/gui/size"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
@@ -33,10 +32,11 @@ import stream from "mithril/stream"
 import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
 import type { EventBannerAttrs } from "../../mail/view/EventBanner"
+import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../common/gui/base/ExpandableTextArea.js"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
-	sendResponse: (event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) => Promise<boolean>
+	sendResponse: (event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string) => Promise<boolean>
 }
 
 export interface InviteAgenda {
@@ -50,6 +50,7 @@ export interface InviteAgenda {
 
 export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	private agenda: Map<string, InviteAgenda> | null = null
+	private comment: string = ""
 
 	oncreate({ attrs }: VnodeDOM<EventBannerImplAttrs>) {
 		Promise.resolve().then(async () => {
@@ -65,7 +66,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		}
 
 		const replyCallback = async (event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) => {
-			const responded = await sendResponse(event, recipient, status, previousMail)
+			const responded = await sendResponse(event, recipient, status, previousMail, this.comment)
 			if (responded) {
 				this.agenda = await loadEventsAroundInvite(eventsRepository, iCalContents, recipient, groupColors, true)
 				updateAttendeeStatusIfNeeded(event, recipient, this.agenda.get(event.uid ?? "")?.existingEvent)
@@ -85,11 +86,13 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			.filter(isNotNull)
 
 		return eventsReplySection.map(({ event, replySection }) => {
-			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, replySection)
+			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, recipient, replySection)
 		})
 	}
 
-	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, replySection: Children) {
+	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, recipient: string, replySection: Children) {
+		const recipientIsOrganizer = recipient === event.organizer?.address
+
 		if (!agenda) {
 			console.warn(`Trying to render an EventBanner for event ${event._id} but it doesn't have an agenda. Something really wrong happened.`)
 		}
@@ -118,8 +121,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			end: timeRangeStartEnd,
 		}
 
-		const isLightTheme = locator.themeController.isLightTheme()
-		const bannerColor = isLightTheme ? theme.button_bubble_bg : theme.elevated_bg
+		const bannerColor = isLightTheme() ? theme.button_bubble_bg : theme.elevated_bg
 
 		/* Event Banner */
 		return m(
@@ -133,8 +135,8 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 							"border-color": bannerColor,
 						}
 					: {
-							"grid-template-columns": "min-content min-content 1fr",
-							"max-width": px(size.two_column_layout_width),
+							"grid-template-columns": recipientIsOrganizer ? "min-content max-content" : "min-content min-content 1fr",
+							"max-width": recipientIsOrganizer ? "max-content" : px(size.two_column_layout_width),
 							"border-color": bannerColor,
 						},
 			},
@@ -160,11 +162,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 						m(Icon, {
 							icon: BootIcons.Calendar,
 							container: "div",
-							class: "mr-xsm mt-xxs",
+							class: "mr-xsm",
 							style: { fill: theme.content_fg },
 							size: IconSize.Medium,
 						}),
-						m("span.b.h5.text-ellipsis-multi-line", event.summary),
+						m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
 					]),
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-s", [
@@ -175,52 +177,54 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					replySection,
 				]),
 				/* Time Overview */
-				m(
-					".flex.flex-column.plr-vpad.pb.pt.justify-start",
-					{
-						class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
-						style: {
-							"border-color": bannerColor,
-						},
-					},
-					[
-						m(".flex.flex-column.mb-s", [
-							m(".flex", [
-								m(Icon, {
-									icon: Icons.Time,
-									container: "div",
-									class: "mr-xsm mt-xxs",
-									style: { fill: theme.content_fg },
-									size: IconSize.Medium,
-								}),
-								m("span.b.h5", lang.get("timeOverview_title")),
-							]),
-							agenda
-								? m(".flex.items-center.mt-hpad-small", [
+				!recipientIsOrganizer
+					? m(
+							".flex.flex-column.plr-vpad.pb.pt.justify-start",
+							{
+								class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
+								style: {
+									"border-color": bannerColor,
+								},
+							},
+							[
+								m(".flex.flex-column.mb-s", [
+									m(".flex", [
 										m(Icon, {
-											icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
+											icon: Icons.Time,
 											container: "div",
-											class: "mr-xsm",
-											style: { fill: hasConflict ? theme.error_color : theme.success_color },
+											class: "mr-xsm mt-xxs",
+											style: { fill: theme.content_fg },
 											size: IconSize.Medium,
 										}),
-										this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
-									])
-								: null,
-						]),
-						agenda
-							? m(TimeView, {
-									events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
-									timeScale,
-									timeRange,
-									conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-									dates: [getStartOfDay(agenda.main.event.startTime)],
-									timeIndicator: Time.fromDate(agenda.main.event.startTime),
-									hasAnyConflict: hasConflict,
-								} satisfies TimeViewAttributes)
-							: m("", "ERROR: Could not load the agenda for this day."),
-					],
-				),
+										m("span.b.h5", lang.get("timeOverview_title")),
+									]),
+									agenda
+										? m(".flex.mt-hpad-small", [
+												m(Icon, {
+													icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
+													container: "div",
+													class: "mr-xsm",
+													style: { fill: hasConflict ? theme.error_color : theme.success_color }, // TODO [colors] Use new material like colors tokens
+													size: IconSize.Medium,
+												}),
+												this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
+											])
+										: null,
+								]),
+								agenda
+									? m(TimeView, {
+											events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
+											timeScale,
+											timeRange,
+											conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
+											dates: [getStartOfDay(agenda.main.event.startTime)],
+											timeIndicator: Time.fromDate(agenda.main.event.startTime),
+											hasAnyConflict: hasConflict,
+										} satisfies TimeViewAttributes)
+									: m("", "ERROR: Could not load the agenda for this day."),
+							],
+						)
+					: null,
 			],
 		)
 	}
@@ -262,7 +266,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		const shallowEvent = agenda.get(event.uid ?? "")?.existingEvent
 		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(shallowEvent?.attendees ?? event.attendees, [recipient])
 
-		const children: Children = []
+		const children: Children = [] as ChildArray
 		const viewOnCalendarButton = m(BannerButton, {
 			borderColor: theme.content_fg,
 			color: theme.content_fg,
@@ -278,30 +282,55 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			// separately.
 
 			const needsAction =
-				!isRepliedTo(mail) ||
+				(!isRepliedTo(mail) && !shallowEvent) ||
 				ownAttendee.status === CalendarAttendeeStatus.NEEDS_ACTION ||
 				(isRepliedTo(mail) && ownAttendee.status === CalendarAttendeeStatus.DECLINED)
 			if (needsAction) {
 				children.push(
-					m(ReplyButtons, {
-						ownAttendee,
-						setParticipation: async (status: CalendarAttendeeStatus) => {
-							sendResponse(shallowEvent ?? event, recipient, status, mail)
-						},
-					}),
+					m("", [
+						m(ReplyButtons, {
+							ownAttendee,
+							setParticipation: async (status: CalendarAttendeeStatus) => {
+								sendResponse(shallowEvent ?? event, recipient, status, mail)
+							},
+						}),
+						this.renderCommentInputBox(),
+					]),
 				)
 			} else if (!needsAction) {
-				children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15", lang.get("alreadyReplied_msg")))
+				children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15.lh", lang.get("alreadyReplied_msg")))
 				children.push(viewOnCalendarButton)
 			}
 		} else if (method === CalendarMethod.REPLY) {
-			children.push(m(".pt.align-self-start.start.small", lang.get("eventNotificationUpdated_msg")))
+			children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15.lh", lang.get("eventNotificationUpdated_msg")))
 			children.push(viewOnCalendarButton)
 		} else {
 			return null
 		}
 
 		return children
+	}
+
+	private renderCommentInputBox(): Children {
+		return m(ExpandableTextArea, {
+			classes: ["mt-s"],
+			variant: "outlined",
+			value: this.comment,
+			oninput: (newValue: string) => {
+				this.comment = newValue
+			},
+			oncreate: (node) => {
+				node.dom.addEventListener("keydown", (e) => {
+					// disable shortcuts
+					e.stopPropagation()
+					return true
+				})
+			},
+			maxLines: 2,
+			maxLength: 250,
+			ariaLabel: lang.get("addComment_label"),
+			placeholder: lang.get("addComment_label"),
+		} satisfies ExpandableTextAreaAttrs)
 	}
 
 	private handleViewOnCalendarAction(agenda: Map<string, InviteAgenda>, event: CalendarEvent) {

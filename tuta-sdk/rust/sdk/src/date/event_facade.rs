@@ -252,6 +252,7 @@ impl EventFacade {
 			!by_week_no_rules.is_empty(),
 			valid_month_days,
 			valid_year_days,
+			!by_month_rules.is_empty(),
 		);
 
 		let date_timestamp = progenitor_date.as_seconds();
@@ -280,22 +281,27 @@ impl EventFacade {
 		max_date: Option<DateTime>,
 		time_zone: String,
 	) -> Result<Vec<DateTime>, ApiCallError> {
-		let is_all_day_event = self.is_all_day_event_by_times(event_start_time, event_end_time);
+		let is_all_day_event =
+			EventFacade::is_all_day_event_by_times(event_start_time, event_end_time);
 		let set_pos_rules: Vec<&ByRule> = repeat_rule
 			.by_rules
 			.iter()
 			.filter(|rule| rule.by_rule == ByRuleType::BySetPos)
 			.collect();
 
-		let Some(tz) = timezones::get_by_name(&time_zone) else {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: format!("Failed to find timezone for string {}", time_zone),
-			});
+		let tz = match timezones::get_by_name(&time_zone) {
+			Some(tz) => tz,
+			_ => {
+				log::error!(
+					"{}",
+					format!("Failed to find timezone for string {}", time_zone)
+				);
+				timezones::db::UTC
+			},
 		};
 
 		let calc_event_start = if is_all_day_event {
-			let all_day_event =
-				EventFacade::get_all_day_time(&event_start_time, tz.get_offset_primary().to_utc())?;
+			let all_day_event = EventFacade::get_all_day_time(&event_start_time)?;
 
 			all_day_event
 		} else {
@@ -304,10 +310,8 @@ impl EventFacade {
 
 		let end_date = if end_type == EndType::UntilDate {
 			if is_all_day_event {
-				let all_day_event = EventFacade::get_all_day_time(
-					&DateTime::from_millis(end_value.unwrap()),
-					tz.get_offset_primary().to_utc(),
-				)?;
+				let all_day_event =
+					EventFacade::get_all_day_time(&DateTime::from_millis(end_value.unwrap()))?;
 
 				Some(all_day_event)
 			} else {
@@ -320,9 +324,7 @@ impl EventFacade {
 		let transformed_excluded_dates = if is_all_day_event {
 			excluded_dates
 				.iter()
-				.filter_map(|date| {
-					EventFacade::get_all_day_time(date, tz.get_offset_primary().to_utc()).ok()
-				})
+				.filter_map(|date| EventFacade::get_all_day_time(date).ok())
 				.collect()
 		} else {
 			excluded_dates
@@ -370,10 +372,15 @@ impl EventFacade {
 				&repeat_frequency,
 			);
 
-			let Some(tz) = timezones::get_by_name(&time_zone) else {
-				return Err(ApiCallError::InternalSdkError {
-					error_message: format!("Failed to find timezone for string {}", time_zone),
-				});
+			let tz = match timezones::get_by_name(&time_zone) {
+				Some(tz) => tz,
+				_ => {
+					log::error!(
+						"{}",
+						format!("Failed to find timezone for string {}", time_zone)
+					);
+					timezones::db::UTC
+				},
 			};
 
 			let instance_offset = tz.get_offset_utc(&start_time).to_utc().whole_seconds();
@@ -754,6 +761,7 @@ impl EventFacade {
 		has_week_no: bool,
 		valid_month_days: Vec<i8>,
 		valid_year_days: Vec<i16>,
+		has_by_month: bool,
 	) -> Vec<PrimitiveDateTime> {
 		if rules.is_empty() {
 			return dates.clone();
@@ -804,6 +812,7 @@ impl EventFacade {
 						date,
 						target_week_day,
 						leading_value,
+						has_by_month,
 					)
 				}
 			}
@@ -828,6 +837,7 @@ impl EventFacade {
 		date: &PrimitiveDateTime,
 		target_week_day: Option<Match>,
 		leading_value: Option<Match>,
+		has_by_month: bool,
 	) {
 		let week_change = leading_value
 			.map_or(Ok(0), |m| m.as_str().parse::<i64>())
@@ -860,40 +870,55 @@ impl EventFacade {
 				}
 			} else {
 				let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
+				if has_by_month {
+					let absolute_week = if week_change > 0 {
+						week_change
+					} else {
+						let weeks_in_month: i64 =
+							date.date().month().length(date.year()).div_ceil(7) as i64;
+						weeks_in_month - week_change.abs() + 1
+					};
 
-				// There's a target week day so the occurrenceNumber indicates the week of the year
-				// that the event will happen
-				if week_change > 0 {
-					new_date = date
-						.replace_day(1)
-						.unwrap()
-						.replace_month(Month::January)
-						.unwrap()
-						.add(Duration::weeks(week_change - 1));
-
-					while new_date.weekday() != parsed_weekday {
+					new_date = date.replace_day(1).unwrap();
+					let mut week_count = if new_date.weekday() == parsed_weekday {
+						1
+					} else {
+						0
+					};
+					while week_count < absolute_week {
 						new_date = new_date.add(Duration::days(1));
+						if new_date.weekday() == parsed_weekday {
+							week_count += 1
+						}
 					}
 				} else {
-					new_date = date
-						.replace_month(Month::December)
-						.unwrap()
-						.replace_day(31)
-						.unwrap()
-						.sub(Duration::weeks(week_change.abs() - 1));
-					while new_date.weekday() != parsed_weekday {
-						new_date = new_date.sub(Duration::days(1));
+					// There's a target week day  without byMonth so the occurrenceNumber indicates the week of the year that the event will happen
+					if week_change > 0 {
+						new_date = date
+							.replace_day(1)
+							.unwrap()
+							.replace_month(Month::January)
+							.unwrap()
+							.add(Duration::weeks(week_change - 1));
+
+						while new_date.weekday() != parsed_weekday {
+							new_date = new_date.add(Duration::days(1));
+						}
+					} else {
+						new_date = date
+							.replace_month(Month::December)
+							.unwrap()
+							.replace_day(31)
+							.unwrap()
+							.sub(Duration::weeks(week_change.abs() - 1));
+						while new_date.weekday() != parsed_weekday {
+							new_date = new_date.sub(Duration::days(1));
+						}
 					}
 				}
 			}
 
-			if new_date.assume_utc().unix_timestamp() < date.assume_utc().unix_timestamp() {
-				if let Ok(dt) = new_date.replace_year(new_date.year() + 1) {
-					new_dates.push(dt)
-				}
-			} else {
-				new_dates.push(new_date)
-			}
+			new_dates.push(new_date)
 		} else if has_week_no {
 			// There's no week number or occurrenceNumber, so it will happen on all
 			// weekdays that are the same as targetWeekDay
@@ -1233,11 +1258,7 @@ impl EventFacade {
 		new_date.replace_day(target_day).unwrap()
 	}
 
-	pub fn is_all_day_event_by_times(
-		&self,
-		event_start_time: DateTime,
-		event_end_time: DateTime,
-	) -> bool {
+	pub fn is_all_day_event_by_times(event_start_time: DateTime, event_end_time: DateTime) -> bool {
 		let Ok(start) = OffsetDateTime::from_unix_timestamp(event_start_time.as_seconds() as i64)
 		else {
 			return false;
@@ -1255,7 +1276,7 @@ impl EventFacade {
 		start_fits && end_fits
 	}
 
-	pub fn get_all_day_time(date: &DateTime, offset: UtcOffset) -> Result<DateTime, ApiCallError> {
+	pub fn get_all_day_time(date: &DateTime) -> Result<DateTime, ApiCallError> {
 		let Ok(date) = OffsetDateTime::from_unix_timestamp(date.as_seconds() as i64) else {
 			eprintln!(
 				"Failed to get all day time for date {:?}",
@@ -1271,8 +1292,7 @@ impl EventFacade {
 		};
 
 		Ok(DateTime::from_seconds(
-			date.to_offset(offset)
-				.replace_time(Time::from_hms(0, 0, 0).unwrap())
+			date.replace_time(Time::from_hms(0, 0, 0).unwrap())
 				.unix_timestamp()
 				.unsigned_abs(),
 		))
@@ -1299,11 +1319,6 @@ impl EventFacade {
 
 		let event_title = contact.firstName.clone();
 
-		let birth_year = if birthday_parts.0.unwrap_or(0) < 1970 {
-			1970
-		} else {
-			birthday_parts.0.unwrap()
-		};
 		let birthday_date = match Date::from_calendar_date(
 			OffsetDateTime::now_local().unwrap().year(),
 			Month::from_number(birthday_parts.1),
@@ -1313,42 +1328,23 @@ impl EventFacade {
 			Err(e) => return Err(ApiCallError::internal(format!("Invalid date: {e:?}"))),
 		};
 
-		let Ok(offset) = UtcOffset::current_local_offset() else {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: "Failed to determine device time offset".to_string(),
-			});
-		};
-
-		let event_base_date = birthday_date.replace_year(birth_year as i32).unwrap();
-
-		let offset_date_time_base = OffsetDateTime::new_in_offset(
-			event_base_date,
-			Time::from_hms(0, 0, 0).unwrap(),
-			offset,
-		);
-		let offset_date_time_start_time =
-			OffsetDateTime::new_in_offset(birthday_date, Time::from_hms(0, 0, 0).unwrap(), offset);
-		let offset_date_time_end_time = offset_date_time_start_time
-			.checked_add(Duration::days(1))
-			.unwrap();
-
-		let base_datetime = DateTime::from_seconds(offset_date_time_base.unix_timestamp() as u64);
+		let birthday_date_time =
+			OffsetDateTime::new_utc(birthday_date, Time::from_hms(0, 0, 0).unwrap());
+		let end_date_time = birthday_date_time.checked_add(Duration::days(1)).unwrap();
 
 		// Set up start and end date base on UTC.
 		// Also increments a copy of startDate by one day and set it as endDate
-		let Ok(start_date) = EventFacade::get_all_day_time(
-			&DateTime::from_seconds(offset_date_time_start_time.unix_timestamp() as u64),
-			offset,
-		) else {
+		let Ok(start_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
+			birthday_date_time.unix_timestamp() as u64,
+		)) else {
 			return Err(ApiCallError::internal(
 				"Failed to parse event StartTime".to_string(),
 			));
 		};
 
-		let Ok(end_date) = EventFacade::get_all_day_time(
-			&DateTime::from_seconds(offset_date_time_end_time.unix_timestamp() as u64),
-			offset,
-		) else {
+		let Ok(end_date) = EventFacade::get_all_day_time(&DateTime::from_seconds(
+			end_date_time.unix_timestamp() as u64,
+		)) else {
 			return Err(ApiCallError::internal(
 				"Failed to parse event EndTime".to_string(),
 			));
@@ -1356,7 +1352,7 @@ impl EventFacade {
 
 		let encoded_event_id = BASE64_URL_SAFE_NO_PAD.encode(format!(
 			"{}{}/{}",
-			base_datetime.as_millis(),
+			start_date.as_millis(),
 			contact_id.list_id,
 			contact_id.element_id
 		));
@@ -1441,6 +1437,45 @@ mod tests {
 	}
 
 	#[test]
+	fn test_generate_events_by_day_by_month_yearly() {
+		let events_facade = EventFacade {};
+
+		let events = events_facade.create_event_instances(
+			DateTime::from_seconds(1725235200),
+			DateTime::from_seconds(1725321600),
+			EventRepeatRule {
+				frequency: RepeatPeriod::Annually,
+				by_rules: vec![
+					ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "1MO".to_string(),
+					},
+					ByRule {
+						by_rule: ByRuleType::ByMonth,
+						interval: "9".to_string(),
+					},
+				],
+			},
+			1,
+			EndType::Count,
+			Some(6),
+			vec![],
+			None,
+			Some(DateTime::from_seconds(1756944000)),
+			"Europe/Berlin".to_string(),
+		);
+
+		assert_eq!(events.clone().unwrap().iter().len(), 2);
+		assert_eq!(
+			events.unwrap(),
+			[
+				DateTime::from_seconds(1725235200), // Sun May 12 2024 00:00:00 GMT+0000
+				DateTime::from_seconds(1756684800), // Sun May 11 2025 00:00:00 GMT+0000
+			]
+		);
+	}
+
+	#[test]
 	fn test_generate_events_by_month_on_last_friday() {
 		let events_facade = EventFacade {};
 
@@ -1484,16 +1519,14 @@ mod tests {
 	#[test]
 	fn test_generate_birthday() {
 		let event_facade = EventFacade::new();
-		let birthday_midnight = OffsetDateTime::now_local()
-			.unwrap()
+		let birthday_midnight = OffsetDateTime::now_utc()
 			.replace_month(Month::May)
 			.unwrap()
 			.replace_day(12)
 			.unwrap()
 			.replace_time(Time::from_hms(0, 0, 0).unwrap());
 
-		let next_day_midnight = OffsetDateTime::now_local()
-			.unwrap()
+		let next_day_midnight = OffsetDateTime::now_utc()
 			.replace_month(Month::May)
 			.unwrap()
 			.replace_day(12)
@@ -2638,6 +2671,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[date]
 		);
@@ -2666,6 +2700,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[]
 		);
@@ -2700,6 +2735,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[date.replace_day(10).unwrap(), date.replace_day(11).unwrap()]
 		);
@@ -2729,6 +2765,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[
 				date,
@@ -2784,6 +2821,7 @@ mod tests {
 				false,
 				valid_month_days,
 				vec![],
+				false
 			),
 			[]
 		);
@@ -2813,6 +2851,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[date.replace_day(13).unwrap()]
 		);
@@ -2863,6 +2902,7 @@ mod tests {
 				false,
 				valid_month_days,
 				vec![],
+				false
 			),
 			[]
 		);
@@ -2901,6 +2941,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			expected_dates
 		);
@@ -2930,6 +2971,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[date.replace_day(13).unwrap(),]
 		);
@@ -2959,6 +3001,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[date
 				.replace_month(Month::February)
@@ -2997,6 +3040,7 @@ mod tests {
 				true,
 				vec![],
 				vec![],
+				false
 			),
 			[date]
 		);
@@ -3031,6 +3075,7 @@ mod tests {
 				true,
 				vec![],
 				vec![],
+				false
 			),
 			[]
 		);
@@ -3066,6 +3111,7 @@ mod tests {
 				true,
 				vec![],
 				vec![],
+				false
 			),
 			[]
 		);
@@ -3352,12 +3398,13 @@ mod tests {
 		};
 
 		let event_recurrence = EventFacade {};
+		let future_instances = event_recurrence.generate_future_instances(
+			date.to_date_time(),
+			&repeat_rule,
+			date.to_date_time(),
+		);
 		assert_eq!(
-			event_recurrence.generate_future_instances(
-				date.to_date_time(),
-				&repeat_rule,
-				date.to_date_time()
-			),
+			future_instances,
 			[
 				date.replace_day(3).unwrap().to_date_time(),
 				date.replace_day(4).unwrap().to_date_time()

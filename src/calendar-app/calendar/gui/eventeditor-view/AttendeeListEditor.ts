@@ -7,7 +7,6 @@ import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { AccountType, CalendarAttendeeStatus } from "../../../../common/api/common/TutanotaConstants.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
-import { Icon, IconSize } from "../../../../common/gui/base/Icon.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
 import { px, size } from "../../../../common/gui/size.js"
@@ -18,7 +17,7 @@ import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/Subscript
 import { hasPlanWithInvites } from "../eventeditor-model/CalendarNotificationModel.js"
 import { Dialog } from "../../../../common/gui/base/Dialog.js"
 
-import { AttendingItem, createAttendingItems, iconForAttendeeStatus } from "../CalendarGuiUtils.js"
+import { AttendingItem, calendarAttendeeStatusText, createAttendingItems } from "../CalendarGuiUtils.js"
 import { Card } from "../../../../common/gui/base/Card.js"
 import { Select, SelectAttributes } from "../../../../common/gui/base/Select.js"
 import stream from "mithril/stream"
@@ -300,7 +299,9 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const { whoModel } = model.editModels
 		const { address, name, status } = guest
 		const isMe = guest.address === whoModel.ownGuest?.address
-		const roleLabel = isMe ? `${lang.get("guest_label")} | ${lang.get("you_label")}` : lang.get("guest_label")
+		const statusText = calendarAttendeeStatusText(status)
+		const roleLabel = isMe ? `${lang.get("guest_label")} | ${lang.get("you_label")}` : `${lang.get("guest_label")}`
+		const guestStatusAndRole = roleLabel + (statusText ? ` | ${statusText}` : "")
 		const renderPasswordField = whoModel.isConfidential && password != null && guest.type === RecipientType.EXTERNAL
 
 		let rightContent: Children = null
@@ -324,9 +325,8 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			},
 			m(".flex.flex-column.items-center", [
 				m(".flex.items-center.flex-grow.full-width", [
-					this.renderStatusIcon(status),
 					m(".flex.flex-column.flex-grow.min-width-0", [
-						m(".small", { style: { lineHeight: px(size.vpad_small) } }, roleLabel),
+						m(".small", { style: { lineHeight: px(size.vpad_small) } }, guestStatusAndRole),
 						m(".text-ellipsis", name.length > 0 ? `${name} ${address}` : address),
 					]),
 					rightContent,
@@ -378,17 +378,5 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 				),
 			]),
 		]
-	}
-
-	private renderStatusIcon(status: CalendarAttendeeStatus): Children {
-		const icon = iconForAttendeeStatus[status]
-		return m(Icon, {
-			icon,
-			size: IconSize.Large,
-			class: "mr-s",
-			style: {
-				fill: theme.content_fg,
-			},
-		})
 	}
 }

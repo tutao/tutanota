@@ -6,6 +6,9 @@ import { showDropdownAtPosition } from "../../../common/gui/base/Dropdown.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { isKeyPressed, Key } from "../../../common/misc/KeyManager.js"
+import { Keys } from "../../../common/api/common/TutanotaConstants.js"
+import { isAppleDevice } from "../../../common/api/common/Env.js"
 
 const DRAG_THRESHOLD = 10
 export type MousePos = {
@@ -35,11 +38,16 @@ export class EventDragHandler {
 	private dragging: boolean = false
 	private lastDiffBetweenDates: number | null = null
 	private hasChanged: boolean = false
+	pressedDragKey?: Key
 
 	constructor(
 		private readonly draggingArea: HTMLBodyElement,
 		private readonly eventDragCallbacks: EventDragHandlerCallbacks,
 	) {}
+
+	get changed(): boolean {
+		return this.hasChanged
+	}
 
 	get isDragging(): boolean {
 		return this.dragging
@@ -88,6 +96,7 @@ export class EventDragHandler {
 	 * The dragging doesn't actually begin until the distance between the mouse and its original location is greater than some threshold
 	 * @param dateUnderMouse The current date under the mouse courser, may include a time.
 	 * @param mousePos the position of the mouse when the drag ended.
+	 * @param key pressed key while dragging
 	 */
 	handleDrag(dateUnderMouse: Date, mousePos: MousePos) {
 		if (this.data) {
@@ -129,9 +138,8 @@ export class EventDragHandler {
 	 *
 	 * This function will only trigger when prepareDrag has been called
 	 */
-	async endDrag(dateUnderMouse: Date, pos: MousePos): Promise<void> {
+	async endDrag(dateUnderMouse: Date, pos: MousePos, pressedKey?: Key): Promise<void> {
 		this.draggingArea.classList.remove("cursor-grabbing")
-
 		if (this.dragging && this.data) {
 			const dragData = this.data
 			const adjustedDateUnderMouse = this.adjustDateUnderMouse(dragData.originalEvent.startTime, dateUnderMouse, dragData.keepTime)
@@ -145,12 +153,16 @@ export class EventDragHandler {
 			// not allowed to drag events where that's not the case.
 			// note that we're not allowing changing the whole series from dragging an altered instance.
 			const { repeatRule, recurrenceId } = dragData.originalEvent
-			// prettier-ignore
-			const mode = repeatRule != null
-				? await showModeSelectionDropdown(pos)
-				: recurrenceId != null
-					? CalendarOperation.EditThis
-					: CalendarOperation.EditAll
+			const ctrlOrCmd = isAppleDevice() ? Keys.META : Keys.CTRL
+			let mode: CalendarOperation | null = CalendarOperation.Create
+			if (!isKeyPressed(pressedKey?.code, ctrlOrCmd)) {
+				// prettier-ignore
+				mode = repeatRule != null
+					? await showModeSelectionDropdown(pos)
+					: recurrenceId != null
+						? CalendarOperation.EditThis
+						: CalendarOperation.EditAll
+			}
 
 			// If the date hasn't changed we still have to do the callback so the view model can cancel the drag
 			try {
@@ -197,6 +209,7 @@ async function showModeSelectionDropdown(pos: MousePos): Promise<CalendarOperati
 		showDropdownAtPosition(
 			[
 				{ label: "updateOneCalendarEvent_action", click: () => resolve(CalendarOperation.EditThis) },
+				{ label: "updateThisAndFutureEvents_action", click: () => resolve(CalendarOperation.StopSeriesAtDate) },
 				{ label: "updateAllCalendarEvents_action", click: () => resolve(CalendarOperation.EditAll) },
 			],
 			pos.x,

@@ -38,7 +38,12 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 					highlightedStrings: attrs.highlightedStrings,
 				}),
 			),
-			m(".flex.mt-xs", [this.renderSendUpdateButton(), this.renderEditButton(attrs.editCallback), this.renderDeleteButton(attrs.deleteCallback)]),
+			m(".flex.mt-xs", [
+				this.renderSendUpdateButton(),
+				this.renderDuplicateButton(),
+				this.renderEditButton(attrs.editCallback),
+				this.renderDeleteButton(attrs.deleteCallback),
+			]),
 		])
 	}
 
@@ -69,10 +74,23 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		})
 	}
 
+	private renderDuplicateButton(): Children {
+		if (this.model == null || styles.isSingleColumnLayout()) return null
+		return m(IconButton, {
+			title: "duplicateEvent_label",
+			click: () => handleEventDuplicate(this.model!),
+			icon: Icons.Duplicate,
+		})
+	}
+
 	private async confirmDeleteClose(): Promise<void> {
 		if (!(await Dialog.confirm("deleteEventConfirmation_msg"))) return
 		await this.model?.deleteAll()
 	}
+}
+
+export async function handleEventDuplicate(previewModel: CalendarEventPreviewViewModel) {
+	return await previewModel.duplicateEvent()
 }
 
 export async function handleSendUpdatesClick(previewModel: CalendarEventPreviewViewModel | null) {
@@ -96,6 +114,13 @@ export function handleEventEditButtonClick(previewModel: CalendarEventPreviewVie
 						click: () => {
 							// noinspection JSIgnoredPromiseFromCall
 							previewModel?.editSingle().finally(handleCallback)
+						},
+					},
+					{
+						label: "updateThisAndFutureEvents_action",
+						click: () => {
+							// noinspection JSIgnoredPromiseFromCall
+							previewModel.editThisAndFutureOccurrences()
 						},
 					},
 					{
@@ -134,6 +159,16 @@ export async function handleEventDeleteButtonClick(
 						label: "deleteSingleEventRecurrence_action",
 						click: async () => {
 							await previewModel?.deleteSingle()
+							handleCallback()
+						},
+					},
+					{
+						label: "deleteThisAndFutureOccurrences_action",
+						click: async () => {
+							if (!(await Dialog.confirm("deleteThisAndFutureOccurrencesConfirmation_msg"))) {
+								return
+							}
+							await previewModel?.deleteThisAndFutureOccurrences()
 							handleCallback()
 						},
 					},

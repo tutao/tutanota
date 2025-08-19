@@ -889,6 +889,11 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		}
 		// If the mail is unchanged and there /is/ a preexisting draft, there was no change and the mail is already saved
 		else saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
+
+		if (client.isCalendarApp()) {
+			return dialog.close()
+		}
+
 		showMinimizedMailEditor(dialog, model, mailLocator.minimizedMailModel, locator.eventController, dispose, saveStatus)
 	}
 
