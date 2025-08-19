@@ -252,6 +252,7 @@ impl EventFacade {
 			!by_week_no_rules.is_empty(),
 			valid_month_days,
 			valid_year_days,
+			!by_month_rules.is_empty(),
 		);
 
 		let date_timestamp = progenitor_date.as_seconds();
@@ -288,10 +289,15 @@ impl EventFacade {
 			.filter(|rule| rule.by_rule == ByRuleType::BySetPos)
 			.collect();
 
-		let Some(tz) = timezones::get_by_name(&time_zone) else {
-			return Err(ApiCallError::InternalSdkError {
-				error_message: format!("Failed to find timezone for string {}", time_zone),
-			});
+		let tz = match timezones::get_by_name(&time_zone) {
+			Some(tz) => tz,
+			_ => {
+				log::error!(
+					"{}",
+					format!("Failed to find timezone for string {}", time_zone)
+				);
+				timezones::db::UTC
+			},
 		};
 
 		let calc_event_start = if is_all_day_event {
@@ -366,10 +372,15 @@ impl EventFacade {
 				&repeat_frequency,
 			);
 
-			let Some(tz) = timezones::get_by_name(&time_zone) else {
-				return Err(ApiCallError::InternalSdkError {
-					error_message: format!("Failed to find timezone for string {}", time_zone),
-				});
+			let tz = match timezones::get_by_name(&time_zone) {
+				Some(tz) => tz,
+				_ => {
+					log::error!(
+						"{}",
+						format!("Failed to find timezone for string {}", time_zone)
+					);
+					timezones::db::UTC
+				},
 			};
 
 			let instance_offset = tz.get_offset_utc(&start_time).to_utc().whole_seconds();
@@ -750,6 +761,7 @@ impl EventFacade {
 		has_week_no: bool,
 		valid_month_days: Vec<i8>,
 		valid_year_days: Vec<i16>,
+		has_by_month: bool,
 	) -> Vec<PrimitiveDateTime> {
 		if rules.is_empty() {
 			return dates.clone();
@@ -800,6 +812,7 @@ impl EventFacade {
 						date,
 						target_week_day,
 						leading_value,
+						has_by_month,
 					)
 				}
 			}
@@ -824,6 +837,7 @@ impl EventFacade {
 		date: &PrimitiveDateTime,
 		target_week_day: Option<Match>,
 		leading_value: Option<Match>,
+		has_by_month: bool,
 	) {
 		let week_change = leading_value
 			.map_or(Ok(0), |m| m.as_str().parse::<i64>())
@@ -856,40 +870,55 @@ impl EventFacade {
 				}
 			} else {
 				let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
+				if has_by_month {
+					let absolute_week = if week_change > 0 {
+						week_change
+					} else {
+						let weeks_in_month: i64 =
+							date.date().month().length(date.year()).div_ceil(7) as i64;
+						weeks_in_month - week_change.abs() + 1
+					};
 
-				// There's a target week day so the occurrenceNumber indicates the week of the year
-				// that the event will happen
-				if week_change > 0 {
-					new_date = date
-						.replace_day(1)
-						.unwrap()
-						.replace_month(Month::January)
-						.unwrap()
-						.add(Duration::weeks(week_change - 1));
-
-					while new_date.weekday() != parsed_weekday {
+					new_date = date.replace_day(1).unwrap();
+					let mut week_count = if new_date.weekday() == parsed_weekday {
+						1
+					} else {
+						0
+					};
+					while week_count < absolute_week {
 						new_date = new_date.add(Duration::days(1));
+						if new_date.weekday() == parsed_weekday {
+							week_count += 1
+						}
 					}
 				} else {
-					new_date = date
-						.replace_month(Month::December)
-						.unwrap()
-						.replace_day(31)
-						.unwrap()
-						.sub(Duration::weeks(week_change.abs() - 1));
-					while new_date.weekday() != parsed_weekday {
-						new_date = new_date.sub(Duration::days(1));
+					// There's a target week day  without byMonth so the occurrenceNumber indicates the week of the year that the event will happen
+					if week_change > 0 {
+						new_date = date
+							.replace_day(1)
+							.unwrap()
+							.replace_month(Month::January)
+							.unwrap()
+							.add(Duration::weeks(week_change - 1));
+
+						while new_date.weekday() != parsed_weekday {
+							new_date = new_date.add(Duration::days(1));
+						}
+					} else {
+						new_date = date
+							.replace_month(Month::December)
+							.unwrap()
+							.replace_day(31)
+							.unwrap()
+							.sub(Duration::weeks(week_change.abs() - 1));
+						while new_date.weekday() != parsed_weekday {
+							new_date = new_date.sub(Duration::days(1));
+						}
 					}
 				}
 			}
 
-			if new_date.assume_utc().unix_timestamp() < date.assume_utc().unix_timestamp() {
-				if let Ok(dt) = new_date.replace_year(new_date.year() + 1) {
-					new_dates.push(dt)
-				}
-			} else {
-				new_dates.push(new_date)
-			}
+			new_dates.push(new_date)
 		} else if has_week_no {
 			// There's no week number or occurrenceNumber, so it will happen on all
 			// weekdays that are the same as targetWeekDay
@@ -1405,6 +1434,45 @@ mod tests {
 		fn to_date_time(&self) -> DateTime {
 			DateTime::from_millis(self.assume_utc().unix_timestamp().unsigned_abs() * 1000)
 		}
+	}
+
+	#[test]
+	fn test_generate_events_by_day_by_month_yearly() {
+		let events_facade = EventFacade {};
+
+		let events = events_facade.create_event_instances(
+			DateTime::from_seconds(1725235200),
+			DateTime::from_seconds(1725321600),
+			EventRepeatRule {
+				frequency: RepeatPeriod::Annually,
+				by_rules: vec![
+					ByRule {
+						by_rule: ByRuleType::ByDay,
+						interval: "1MO".to_string(),
+					},
+					ByRule {
+						by_rule: ByRuleType::ByMonth,
+						interval: "9".to_string(),
+					},
+				],
+			},
+			1,
+			EndType::Count,
+			Some(6),
+			vec![],
+			None,
+			Some(DateTime::from_seconds(1756944000)),
+			"Europe/Berlin".to_string(),
+		);
+
+		assert_eq!(events.clone().unwrap().iter().len(), 2);
+		assert_eq!(
+			events.unwrap(),
+			[
+				DateTime::from_seconds(1725235200), // Sun May 12 2024 00:00:00 GMT+0000
+				DateTime::from_seconds(1756684800), // Sun May 11 2025 00:00:00 GMT+0000
+			]
+		);
 	}
 
 	#[test]
@@ -2603,6 +2671,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[date]
 		);
@@ -2631,6 +2700,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[]
 		);
@@ -2665,6 +2735,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[date.replace_day(10).unwrap(), date.replace_day(11).unwrap()]
 		);
@@ -2694,6 +2765,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[
 				date,
@@ -2749,6 +2821,7 @@ mod tests {
 				false,
 				valid_month_days,
 				vec![],
+				false
 			),
 			[]
 		);
@@ -2778,6 +2851,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[date.replace_day(13).unwrap()]
 		);
@@ -2828,6 +2902,7 @@ mod tests {
 				false,
 				valid_month_days,
 				vec![],
+				false
 			),
 			[]
 		);
@@ -2866,6 +2941,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			expected_dates
 		);
@@ -2895,6 +2971,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[date.replace_day(13).unwrap(),]
 		);
@@ -2924,6 +3001,7 @@ mod tests {
 				false,
 				vec![],
 				vec![],
+				false
 			),
 			[date
 				.replace_month(Month::February)
@@ -2962,6 +3040,7 @@ mod tests {
 				true,
 				vec![],
 				vec![],
+				false
 			),
 			[date]
 		);
@@ -2996,6 +3075,7 @@ mod tests {
 				true,
 				vec![],
 				vec![],
+				false
 			),
 			[]
 		);
@@ -3031,6 +3111,7 @@ mod tests {
 				true,
 				vec![],
 				vec![],
+				false
 			),
 			[]
 		);

@@ -327,6 +327,7 @@ function expandByDayRuleForAnnuallyEvents(
 	date: DateTime,
 	newDates: DateTime[],
 	wkst: WeekdayNumbers,
+	hasByMonthRule: boolean | undefined,
 ) {
 	const weekChangeValue = leadingValue ?? 0
 	if (hasWeekNo && weekChangeValue !== 0) {
@@ -351,14 +352,39 @@ function expandByDayRuleForAnnuallyEvents(
 				newDates.push(dt)
 			}
 		} else {
-			// There's a target week day so the occurrenceNumber indicates the week of the year
+			// There's a target week day so the weekChangeValue indicates the week of the year
 			// that the event will happen
-			const absWeeks = weekChangeValue > 0 ? weekChangeValue : Math.ceil(date.daysInMonth! / 7) - Math.abs(weekChangeValue) + 1
+			let dt = date
+			if (!hasByMonthRule) {
+				if (weekChangeValue > 0) {
+					dt = date.set({ day: 1, month: 1 }).plus({ week: weekChangeValue - 1 })
 
-			const dt = date.set({ day: 1 }).set({ weekday: targetWeekDay }).plus({ week: absWeeks })
-			if (dt.toMillis() >= date.toMillis()) {
-				newDates.push(dt)
+					while (date.weekday !== targetWeekDay) {
+						dt = dt.plus({ day: 1 })
+					}
+				} else {
+					dt = date.set({ day: 31, month: 12 }).minus({ week: weekChangeValue - 1 })
+
+					while (date.weekday !== targetWeekDay) {
+						dt = dt.minus({ day: 1 })
+					}
+				}
+			} else {
+				// There's a target week day and a byMonthRule so the weekChangeValue indicates the week within the month
+				const absWeeks = weekChangeValue > 0 ? weekChangeValue : Math.ceil(date.daysInMonth! / 7) - Math.abs(weekChangeValue) + 1
+
+				dt = date.set({ day: 1 })
+				let weekCount = dt.weekday === targetWeekDay ? 1 : 0
+
+				while (weekCount < absWeeks) {
+					dt = dt.plus({ day: 1 })
+					if (dt.weekday === targetWeekDay) {
+						weekCount++
+					}
+				}
 			}
+
+			newDates.push(dt)
 		}
 	} else if (hasWeekNo) {
 		if (!targetWeekDay) {
@@ -405,6 +431,7 @@ function applyByDayRules(
 	hasWeekNo?: boolean,
 	monthDays?: number[],
 	yearDays?: number[],
+	hasByMonthRules?: boolean,
 ) {
 	if (parsedRules.length === 0) {
 		return dates
@@ -442,7 +469,7 @@ function applyByDayRules(
 			} else if (frequency === RepeatPeriod.MONTHLY) {
 				expandByDayRuleForMonthlyEvents(targetWeekDay, leadingValue, date, monthDays, newDates, validMonths)
 			} else if (frequency === RepeatPeriod.ANNUALLY) {
-				expandByDayRuleForAnnuallyEvents(leadingValue, hasWeekNo, targetWeekDay, date, newDates, wkst)
+				expandByDayRuleForAnnuallyEvents(leadingValue, hasWeekNo, targetWeekDay, date, newDates, wkst, hasByMonthRules)
 			}
 		}
 	}
@@ -605,11 +632,9 @@ function applyWeekNo(dates: DateTime[], parsedRules: CalendarAdvancedRepeatRule[
 				// Also, it starts expanding for next week when the offset is -50?
 				// Is that a problem for negative only?
 				// newDt = date.set({ weekNumber: date.weeksInWeekYear - Math.abs(parsedWeekNumber) + 1 })
-				console.log("Negative weeknumber ", { parsedWeekNumber, newDt })
 			} else {
 				newDt = date.set({ weekNumber: parsedWeekNumber })
 				weekNumber = parsedWeekNumber
-				console.log("Postive weeknumber ", { parsedWeekNumber, newDt })
 			}
 
 			const yearOffset = newDt.toMillis() < date.toMillis() ? 1 : 0
@@ -1276,6 +1301,7 @@ function* eventOccurencesGenerator(
 				byWeekNoRules.length > 0,
 				validMonthDays,
 				validYearDays,
+				byMonthRules.length > 0,
 			),
 			validMonths as MonthNumbers[],
 			eventStartTime,
@@ -1286,13 +1312,13 @@ function* eventOccurencesGenerator(
 		const shouldApplySetPos = isNotEmpty(setPosRules) && setPosRules.length < repeatRule.advancedRules.length
 		let eventCount = 0
 
-		for (const event of events) {
-			if (iteration === 1 && event.toJSDate().getTime() === eventStartTime.getTime()) {
+		for (const generatedEvent of events) {
+			if (iteration === 1 && generatedEvent.toJSDate().getTime() === eventStartTime.getTime()) {
 				// Already yielded
 				continue
 			}
 
-			const newStartTime = event.toJSDate()
+			const newStartTime = generatedEvent.toJSDate()
 			const newEndTime = allDay
 				? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
 				: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
@@ -1303,6 +1329,11 @@ function* eventOccurencesGenerator(
 
 			assertDateIsValid(newStartTime)
 			assertDateIsValid(newEndTime)
+
+			if (newStartTime.getTime() < event.startTime.getTime()) {
+				continue // We have an instance before the original progenitor
+			}
+
 			yield { startTime: newStartTime, endTime: newEndTime }
 		}
 
