@@ -24,7 +24,11 @@ type Pages<PageKey extends string> = {
 		onClose?: VoidFunction
 	}
 }
-type GetPagesFunc<PageKey extends string> = (dialog: Dialog, navigateToPage: (targetPage: PageKey) => void, goBack: (to?: PageKey) => void) => Pages<PageKey>
+type GetPagesFunc<PageKey extends string> = (
+	dialog: Dialog,
+	navigateToPage: (targetPage: PageKey, skipAnimating?: boolean) => void,
+	goBack: (to?: PageKey) => void,
+) => Pages<PageKey>
 
 /**
  * Allows to build a dialog with pagination, navigation & transitioning effect.
@@ -190,8 +194,16 @@ export class MultiPageDialog<PageKey extends string> {
 		this.currentPageStream(tmp[tmp.length - 1])
 	}
 
-	private readonly navigateToPage = (target: PageKey) => {
-		if (this.isAnimating()) {
+	/**
+	 * This function navigates from a page to another one
+	 *
+	 * @param target the target page we need to navigate to
+	 * @param skipAnimating option to skip waiting for animation to be finished before navigating to another page
+	 * @returns
+	 */
+	private readonly navigateToPage = (target: PageKey, skipAnimating = false) => {
+		if (!skipAnimating && this.isAnimating()) {
+			// Some pages need to show up before animation is completed, e.g. error pages can show up before animation is done.
 			return
 		}
 

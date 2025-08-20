@@ -107,7 +107,7 @@ export async function showKeyVerificationDialog(
 					},
 					goToErrorPage: (err: QrCodePageErrorType) => {
 						lastError = err
-						navigateToPage(KeyVerificationDialogPages.ERROR)
+						navigateToPage(KeyVerificationDialogPages.ERROR, true)
 					},
 					goToMismatchPage: () => navigateToPage(KeyVerificationDialogPages.FINGERPRINT_MISMATCH_INFO),
 				}),

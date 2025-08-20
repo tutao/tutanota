@@ -85,6 +85,10 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 						} else if (e instanceof DOMException && e.name === "NotReadableError") {
 							attrs.goToErrorPage("video_source_error")
 							m.redraw()
+						} else if (navigator.mediaDevices === undefined) {
+							// is not defined in iOS lockdown mode.
+							attrs.goToErrorPage("camera_not_found")
+							m.redraw()
 						} else {
 							throw e
 						}
