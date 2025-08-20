@@ -39,10 +39,11 @@ import { SURVEY_VERSION_NUMBER } from "./LeavingUserSurveyConstants.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
-import { appStorePlanName, hasRunningAppStoreSubscription, canSubscribeToPlan, SubscriptionApp } from "./SubscriptionUtils.js"
+import { appStorePlanName, canSubscribeToPlan, hasRunningAppStoreSubscription, SubscriptionApp } from "./SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { mailLocator } from "../../mail-app/mailLocator"
 import { client } from "../misc/ClientDetector.js"
+import { getClientPlatform } from "./LeavingUserSurveyUtils"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -180,6 +181,8 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 					reason: reason.reason,
 					details: reason.details,
 					version: SURVEY_VERSION_NUMBER,
+					clientVersion: env.versionNumber,
+					clientPlatform: getClientPlatform().valueOf().toString(),
 				})
 			: null
 	const newPlanType = await cancelSubscription(dialog, currentPlanInfo, customer, data)
