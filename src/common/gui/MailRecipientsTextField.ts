@@ -84,18 +84,18 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 						style: {
 							fill: theme.error,
 							position: "relative",
-							top: "4px",
+							top: "3px",
 							right: "1px",
 						},
 					})
 				} else if (recipient.verificationState === PresentableKeyVerificationState.SECURE) {
 					return m(Icon, {
 						icon: Icons.Shield,
-						size: IconSize.Normal,
+						size: IconSize.Large,
 						style: {
 							fill: theme.success,
 							position: "relative",
-							top: "2px",
+							top: "3px",
 							right: "1px",
 						},
 					})

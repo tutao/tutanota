@@ -8,7 +8,14 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../common/gui/b
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { EncryptionAuthStatus, InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
+import {
+	EncryptionAuthStatus,
+	InboxRuleType,
+	Keys,
+	MailAuthenticationStatus,
+	PresentableKeyVerificationState,
+	TabIndex,
+} from "../../../common/api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../../common/gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../common/misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../../common/api/common/Env.js"
@@ -16,7 +23,7 @@ import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import { assertNotNull, isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
+import { isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail, showMoveMailsDropdown } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
@@ -35,8 +42,6 @@ import { MoveMode } from "../model/MailModel"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
 import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
-import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider"
-import { locator } from "../../../common/api/main/CommonLocator"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -172,6 +177,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						"aria-label": lang.get(viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action") + ", " + dateTime,
 					}),
 					m(".flex.ml-between-s.items-center", [
+						viewModel.mail.keyVerificationState === PresentableKeyVerificationState.SECURE
+							? m(Icon, {
+									icon: Icons.Shield,
+									container: "div",
+									style: {
+										fill: theme.content_button,
+									},
+									hoverText: lang.get("keyManagement.contactVerificationConfirmationTitle_label"),
+								})
+							: null,
 						viewModel.isConfidential()
 							? m(Icon, {
 									icon: getConfidentialIcon(viewModel.mail),
