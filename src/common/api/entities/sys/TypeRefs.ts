@@ -3458,6 +3458,8 @@ export type SurveyData = {
 	reason: NumberString;
 	details: null | string;
 	version: NumberString;
+	clientVersion: string;
+	clientPlatform: NumberString;
 }
 export const IdTupleWrapperTypeRef: TypeRef<IdTupleWrapper> = new TypeRef("sys", 2315)
 

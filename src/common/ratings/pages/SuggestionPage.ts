@@ -11,6 +11,8 @@ import { showSnackBar } from "../../gui/base/SnackBar.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { client } from "../../misc/ClientDetector.js"
+import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
+import { getClientPlatform } from "../../subscription/LeavingUserSurveyUtils"
 
 interface SuggestionPageAttrs {
 	dialog: Dialog
@@ -80,10 +82,12 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 				SurveyService,
 				createSurveyDataPostIn({
 					surveyData: createSurveyData({
-						version: "0",
+						version: SURVEY_VERSION_NUMBER,
 						category: "4", // 4 == "Other"
 						details: this.textFieldInput,
 						reason: "33", // 33 == "Provide details"
+						clientVersion: env.versionNumber,
+						clientPlatform: getClientPlatform().valueOf().toString(),
 					}),
 				}),
 			)
