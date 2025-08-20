@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-08-11T17:35:46Z",
+	"updated_at": "2025-08-17T15:52:15Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -732,7 +732,7 @@ export default {
 		"granted_msg": "Sallittu",
 		"grant_battery_permission_action": "Poista akun optimointi käytöstä",
 		"grant_notification_permission_action": "Salli lupa ilmoituksille",
-		"gross_label": "sisältäen verot",
+		"gross_label": "sis. verot",
 		"groupCapabilityInvite_label": "Kirjoitus ja jaon hallinta",
 		"groupCapabilityRead_label": "Vain luku",
 		"groupCapabilityWrite_label": "Luku ja kirjoitus",

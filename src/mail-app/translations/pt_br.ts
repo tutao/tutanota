@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-02T10:54:47Z",
-	"updated_at": "2025-08-04T07:33:52Z",
+	"updated_at": "2025-08-15T08:55:42Z",
 	"source_locale": {
 		"id": "1c50f9a9b6bd977b100d4e27f07e8319",
 		"name": "pt",
@@ -949,7 +949,7 @@ export default {
 		"noContactFound_msg": "Nenhum contato encontrado com este e-mail",
 		"noContacts_msg": "Não há contatos nesta lista.",
 		"noContact_msg": "Nenhum contato selecionado.",
-		"noEntries_msg": "<sem entradas.>",
+		"noEntries_msg": "Sem entradas",
 		"noEntryFound_label": "Sem entradas encontradas",
 		"noEventSelect_msg": "Nenhum evento selecionado",
 		"noInputWasMade_msg": "Campo vazio!",

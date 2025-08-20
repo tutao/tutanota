@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-08-12T08:29:01Z",
+	"updated_at": "2025-08-15T09:30:01Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -525,7 +525,7 @@ export default {
 		"domainSetup_title": "Egyedi domain beállítása",
 		"domainStillHasContactForms_msg": "A ({domain}) nem deaktiválható, mert még vannak aktív kapcsolatfelvételi űrlapok a whitelabel tartományban. Kérjük, törölje a kapcsolatfelvételi űrlapokat({domain}) mielőtt deaktiválja a domént!",
 		"domain_label": "Domain",
-		"donate_action": "Adományozás",
+		"donate_action": "Adományoz",
 		"done_action": "Végrehajtva",
 		"doNotAskAgain_label": "Ne kérdezze újra ennél a fájlnál.",
 		"dontAskAgain_label": "Ne kérdezze újra!",
