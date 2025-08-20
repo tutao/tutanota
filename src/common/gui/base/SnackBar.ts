@@ -21,8 +21,9 @@ export type SnackBarButtonAttrs = {
 type SnackBarAttrs = {
 	message: MaybeTranslation
 	button: ButtonAttrs | null
+	onHoverChange: (hovered: boolean) => void
 }
-type QueueItem = SnackBarAttrs & {
+type QueueItem = Omit<SnackBarAttrs, "onHoverChange"> & {
 	onClose: ((timedOut: boolean) => unknown) | null
 	onShow: (() => unknown) | null
 	doCancel: { cancel: () => unknown }
@@ -36,10 +37,21 @@ let cancelCurrentSnackbar: (() => unknown) | null = null
 class SnackBar implements Component<SnackBarAttrs> {
 	view(vnode: Vnode<SnackBarAttrs>) {
 		// use same padding as MinimizedEditor
-		return m(".snackbar-content.flex.flex-space-between.border-radius.plr.pb-xs.pt-xs", [
-			m(".flex.center-vertically.smaller", lang.getTranslationText(vnode.attrs.message)),
-			vnode.attrs.button ? m(".flex-end.center-vertically.pl", m(Button, vnode.attrs.button)) : null,
-		])
+		return m(
+			".snackbar-content.flex.flex-space-between.border-radius.plr.pb-xs.pt-xs",
+			{
+				onmouseenter: () => {
+					vnode.attrs.onHoverChange(true)
+				},
+				onmouseleave: () => {
+					vnode.attrs.onHoverChange(false)
+				},
+			},
+			[
+				m(".flex.center-vertically.smaller", lang.getTranslationText(vnode.attrs.message)),
+				vnode.attrs.button ? m(".flex-end.center-vertically.pl", m(Button, vnode.attrs.button)) : null,
+			],
+		)
 	}
 }
 
@@ -147,6 +159,8 @@ function showNextNotification() {
 	const { message, button, onClose, onShow, doCancel, showingTime } = notificationQueue[0] //we shift later because it is still shown
 	clearTimeout(currentAnimationTimeout)
 	currentAnimationTimeout = null
+	let hovered = false
+
 	const closeFunction = displayOverlay(
 		() => getSnackBarPosition(),
 		{
@@ -154,6 +168,9 @@ function showNextNotification() {
 				m(SnackBar, {
 					message,
 					button,
+					onHoverChange: (isHovered) => {
+						hovered = isHovered
+					},
 				}),
 		},
 		"slide-bottom",
@@ -164,6 +181,11 @@ function showNextNotification() {
 	let closed = false
 
 	const closeAndOpenNext = (timedOut: boolean) => {
+		if (timedOut && hovered) {
+			debounce(1000, closeAndOpenNext)(true)
+			return
+		}
+
 		closed = true
 		cancelCurrentSnackbar = null
 
