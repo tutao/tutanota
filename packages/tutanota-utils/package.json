@@ -1,6 +1,6 @@
 {
 	"name": "@tutao/tutanota-utils",
-	"version": "303.250814.0",
+	"version": "303.250820.0",
 	"license": "GPL-3.0",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -23,6 +23,6 @@
 	],
 	"devDependencies": {
 		"typescript": "5.8.3",
-		"@tutao/otest": "303.250814.0"
+		"@tutao/otest": "303.250820.0"
 	}
 }
