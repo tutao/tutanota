@@ -1211,6 +1211,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 			},
 			{
+				key: Keys.Z,
+				ctrlOrCmd: true,
+				exec: () => {
+					this.undoModel.performUndoAction()
+				},
+				help: "undo_action",
+				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+			},
+			{
 				key: Keys.U,
 				exec: () => this.toggleUnreadStatus(),
 				help: "toggleUnread_action",
