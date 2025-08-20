@@ -10,6 +10,7 @@ import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { isNotEmpty, remove } from "@tutao/tutanota-utils"
+import { IconButton, IconButtonAttrs } from "./IconButton"
 
 assertMainOrNode()
 const SNACKBAR_SHOW_TIME = 6000 // ms
@@ -22,6 +23,7 @@ export type SnackBarButtonAttrs = {
 type SnackBarAttrs = {
 	message: MaybeTranslation
 	button: ButtonAttrs | null
+	dismissButton?: IconButtonAttrs
 	onHoverChange: (hovered: boolean) => void
 }
 type QueueItem = Omit<SnackBarAttrs, "onHoverChange"> & {
@@ -39,8 +41,9 @@ class SnackBar implements Component<SnackBarAttrs> {
 	view(vnode: Vnode<SnackBarAttrs>) {
 		// use same padding as MinimizedEditor
 		return m(
-			".snackbar-content.flex.flex-space-between.border-radius.plr.pb-xs.pt-xs",
+			".snackbar-content.flex.flex-space-between.border-radius.pb-xs.pt-xs",
 			{
+				class: vnode.attrs.dismissButton ? "pl" : "plr",
 				onmouseenter: () => {
 					vnode.attrs.onHoverChange(true)
 				},
@@ -51,6 +54,7 @@ class SnackBar implements Component<SnackBarAttrs> {
 			[
 				m(".flex.center-vertically.smaller", lang.getTranslationText(vnode.attrs.message)),
 				vnode.attrs.button ? m(".flex-end.center-vertically.pl", m(Button, vnode.attrs.button)) : null,
+				vnode.attrs.dismissButton ? m(".flex.items-center.justify-right", [m(IconButton, vnode.attrs.dismissButton)]) : null,
 			],
 		)
 	}
@@ -79,13 +83,14 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
 export function showSnackBar(args: {
 	message: MaybeTranslation
 	button: SnackBarButtonAttrs
+	dismissButton?: IconButtonAttrs
 	onShow?: () => unknown
 	onClose?: (timedOut: boolean) => unknown
 	waitingTime?: number
 	showingTime?: number
 	replace?: boolean
 }): () => void {
-	const { message, button, onClose, onShow, waitingTime, showingTime = SNACKBAR_SHOW_TIME, replace = false } = args
+	const { message, button, dismissButton, onClose, onShow, waitingTime, showingTime = SNACKBAR_SHOW_TIME, replace = false } = args
 
 	const doCancel = {
 		/** cancel will be overwritten in {@link showNextNotification } once the snackbar  is shown */
@@ -95,9 +100,11 @@ export function showSnackBar(args: {
 	}
 
 	const buttonAttrs = makeButtonAttrsForSnackBar(button)
+
 	const queueEntry: QueueItem = {
 		message: message,
 		button: buttonAttrs,
+		dismissButton: dismissButton,
 		onClose: onClose ?? null,
 		onShow: onShow ?? null,
 		doCancel,
@@ -158,7 +165,7 @@ function getSnackBarPosition() {
 }
 
 function showNextNotification() {
-	const { message, button, onClose, onShow, doCancel, showingTime } = notificationQueue[0] //we shift later because it is still shown
+	const { message, button, dismissButton, onClose, onShow, doCancel, showingTime } = notificationQueue[0] //we shift later because it is still shown
 	clearTimeout(currentAnimationTimeout)
 	currentAnimationTimeout = null
 
@@ -172,6 +179,7 @@ function showNextNotification() {
 				m(SnackBar, {
 					message,
 					button,
+					dismissButton: dismissButton,
 					onHoverChange: (isHovered) => {
 						hovered = isHovered
 					},
