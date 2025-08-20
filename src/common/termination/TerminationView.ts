@@ -13,6 +13,7 @@ import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
+import { getClientPlatform } from "../subscription/LeavingUserSurveyUtils"
 
 assertMainOrNode()
 
@@ -92,6 +93,8 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 				reason: surveyResult.reason,
 				details: surveyResult.details,
 				version: SURVEY_VERSION_NUMBER,
+				clientVersion: env.versionNumber,
+				clientPlatform: getClientPlatform().valueOf().toString(),
 			})
 			await showProgressDialog("pleaseWait_msg", this.model.createAccountTerminationRequest(data))
 		} else {

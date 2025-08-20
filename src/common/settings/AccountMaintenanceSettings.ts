@@ -33,6 +33,7 @@ import { NotAuthorizedError } from "../api/common/error/RestError.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
+import { getClientPlatform } from "../subscription/LeavingUserSurveyUtils"
 
 export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<EntityUpdateData>) => void
 
@@ -215,6 +216,8 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 												details: reason.details,
 												reason: reason.reason,
 												version: SURVEY_VERSION_NUMBER,
+												clientVersion: env.versionNumber,
+												clientPlatform: getClientPlatform().valueOf().toString(),
 											})
 											showDeleteAccountDialog(surveyData)
 										} else {

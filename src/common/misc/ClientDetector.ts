@@ -1,6 +1,6 @@
 import { assertMainOrNodeBoot, isApp, Mode } from "../api/common/Env"
 import { AppType, BrowserData, BrowserType, DeviceType } from "./ClientConstants"
-import { load, BotKind } from "@fingerprintjs/botd"
+import { BotKind, load } from "@fingerprintjs/botd"
 
 assertMainOrNodeBoot()
 
