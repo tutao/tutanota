@@ -18,6 +18,7 @@ import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.isAllDayEventByTimes
+import de.tutao.tutashared.midnightInDate
 import de.tutao.tutashared.push.toSdkCredentials
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,8 +48,8 @@ class WidgetUIViewModel(
 	}
 
 	suspend fun loadUIState(context: Context): WidgetUIData? {
-		val allDayEvents: MutableList<UIEvent> = mutableListOf()
-		val normalEvents: MutableList<UIEvent> = mutableListOf()
+		val allDayEvents: HashMap<Long, List<UIEvent>> = HashMap()
+		val normalEvents: HashMap<Long, List<UIEvent>> = HashMap()
 
 		val todayMidnight = Calendar.getInstance()
 		todayMidnight.set(Calendar.HOUR_OF_DAY, 0)
@@ -127,10 +128,15 @@ class WidgetUIViewModel(
 				repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
 			}
 
+		val startOfToday = midnightInDate(ZoneId.systemDefault(), LocalDateTime.now())
+		normalEvents[startOfToday] = listOf() // The first day should always be included even if there are no events
+		allDayEvents[startOfToday] = listOf()
+
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
 			eventList.shortEvents.plus(eventList.longEvents).forEach { loadedEvent ->
 				val zoneId = ZoneId.systemDefault()
-				val start = LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.startTime.toLong()), zoneId)
+				val startAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
+				val start = LocalDateTime.ofInstant(startAsInstant, zoneId)
 				val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.endTime.toLong()), zoneId)
 				val formatter = DateTimeFormatter.ofPattern("HH:mm")
 				val isAllDay = isAllDayEventByTimes(
@@ -146,19 +152,26 @@ class WidgetUIViewModel(
 					start.format(formatter),
 					end.format(formatter),
 					isAllDay,
-					loadedEvent.startTime
+					loadedEvent.startTime.toLong()
 				)
 
+				val startOfDay = midnightInDate(zoneId, start)
+				if (!normalEvents.containsKey(startOfDay)) {
+					normalEvents[startOfDay] = listOf()
+					allDayEvents[startOfDay] = listOf()
+				}
+
 				if (isAllDay) {
-					allDayEvents.add(event)
+					allDayEvents[startOfDay] = allDayEvents[startOfDay]!!.plus(event)
 				} else {
-					normalEvents.add(event)
+					normalEvents[startOfDay] = normalEvents[startOfDay]!!.plus(event)
 				}
 			}
 
 			eventList.birthdayEvents.map {
 				val zoneId = ZoneId.systemDefault()
-				val start = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.eventDao.startTime.toLong()), zoneId)
+				val startAsInstant = Instant.ofEpochMilli(it.eventDao.startTime.toLong())
+				val start = LocalDateTime.ofInstant(startAsInstant, zoneId)
 				val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.eventDao.endTime.toLong()), zoneId)
 				val formatter = DateTimeFormatter.ofPattern("HH:mm")
 
@@ -170,21 +183,30 @@ class WidgetUIViewModel(
 					start.format(formatter),
 					end.format(formatter),
 					isAllDay = true,
-					it.eventDao.startTime,
+					it.eventDao.startTime.toLong(),
 					isBirthday = true
 				)
 
-				allDayEvents.add(0, event)
+				val startOfDay = midnightInDate(zoneId, start)
+				if (!allDayEvents.containsKey(startOfDay)) {
+					normalEvents[startOfDay] = listOf()
+					allDayEvents[startOfDay] = listOf()
+				}
+				allDayEvents[startOfDay] = allDayEvents[startOfDay]!!.plus(event)
 			}
 		}
 
-		normalEvents.sortWith(Comparator<UIEvent> { a, b ->
-			when {
-				a.startTimestamp > b.startTimestamp -> 1
-				a.startTimestamp < b.startTimestamp -> -1
-				else -> 0
-			}
-		})
+		normalEvents.forEach() { (startOfDay, events) ->
+			val sorted = events.sortedWith(Comparator<UIEvent> { a, b ->
+				when {
+					a.startTimestamp > b.startTimestamp -> 1
+					a.startTimestamp < b.startTimestamp -> -1
+					else -> 0
+				}
+			})
+
+			normalEvents[startOfDay] = sorted
+		}
 
 		_uiState.value = WidgetUIData(normalEvents, allDayEvents)
 

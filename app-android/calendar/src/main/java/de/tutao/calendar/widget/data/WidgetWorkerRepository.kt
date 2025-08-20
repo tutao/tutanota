@@ -8,36 +8,24 @@ import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
 import de.tutao.calendar.widget.WidgetUpdateTrigger.WORKER
 import de.tutao.calendar.widget.widgetDataStore
 import kotlinx.serialization.encodeToString
-import java.time.Instant
-import java.time.LocalDateTime
-import java.util.Calendar
 import java.util.Date
 
 class WidgetWorkerRepository : WidgetRepository() {
 	override suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, now: Date) {
 		val nowTimestamp = now.time
-		val nowAsLocalDateTime = LocalDateTime.ofInstant(
-			Instant.ofEpochMilli(nowTimestamp),
-			Calendar.getInstance().timeZone.toZoneId()
-		)
 
 		var widgetMapToUpdate: Map<Preferences.Key<String>, LastSyncDao> = mapOf()
 
 		// We can't access the DataStore while writing to it, so we collect the changes before and then apply
 		for (id in widgetIds) {
 			val cacheCreation = this.loadCacheCreationDate(context, id)
+			val forceRefresh = (nowTimestamp - (cacheCreation?.createdAt ?: 0)) > 3600 // 1hr
 
-			val storedCacheDateAsLocalDateTime = LocalDateTime.ofInstant(
-				Instant.ofEpochMilli(cacheCreation?.createdAt ?: 0),
-				Calendar.getInstance().timeZone.toZoneId()
-			)
-
-			val force =
-				storedCacheDateAsLocalDateTime.dayOfYear != nowAsLocalDateTime.dayOfYear
 			val lastSyncIdentifier = "${WIDGET_LAST_SYNC_PREFIX}_$id"
 			val preferencesKey = stringPreferencesKey(lastSyncIdentifier)
 
-			widgetMapToUpdate = widgetMapToUpdate.plus(preferencesKey to LastSyncDao(nowTimestamp, WORKER, force))
+			widgetMapToUpdate =
+				widgetMapToUpdate.plus(preferencesKey to LastSyncDao(nowTimestamp, WORKER, forceRefresh))
 		}
 
 		context.widgetDataStore.edit { preferences ->
