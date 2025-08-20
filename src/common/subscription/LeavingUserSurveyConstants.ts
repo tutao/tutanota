@@ -5,7 +5,7 @@ import { TranslationKey } from "../misc/LanguageViewModel.js"
  */
 
 // Version number for the correct questions/options. Increment this when changing the dropdown options below!
-export const SURVEY_VERSION_NUMBER: string = "0"
+export const SURVEY_VERSION_NUMBER: string = "1"
 
 export enum CategoryType {
 	Price = "0",
