@@ -6,6 +6,7 @@ on:
     paths:
       - 'app-ios/**'
       - '.github/workflows/swift-calendar-test.yml'
+      - '.github/shared/swift-common/**'
       - '!app-ios/**/Info.plist'
   push:
     branches:
@@ -13,6 +14,9 @@ on:
       - '*/dev'
     paths:
       - 'app-ios/**'
+      - '.github/workflows/swift-calendar-test.yml'
+      - '.github/shared/swift-common/**'
+      - '!app-ios/**/Info.plist'
 
 env:
   swift-version: "5.9.2"
