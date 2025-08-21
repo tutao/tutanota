@@ -17,6 +17,7 @@ TutaoDeleteAction = "Izbriši";
 TutaoMarkReadAction = "Označi pročitanim";
 TutaoWidgetSendLogsAction = "Pošalji zapise";
 TutaoAccountLabel = "Korisnik";
+TutaoCalendarsLabel = "Kalendari";
 TutaoNoTitleLabel = "<Bez naslova>";
 TutaoDefaultCalendarNameTitle = "Privatno";
 TutaoBirthdayEventTitle = "{name}'s rođendan";

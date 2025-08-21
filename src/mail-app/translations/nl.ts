@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:55Z",
-	"updated_at": "2025-08-12T19:56:54Z",
+	"updated_at": "2025-08-21T09:01:01Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -190,6 +190,7 @@ export default {
 		"by_label": "van",
 		"calendarAlarmsTooBigError_msg": "Nieuwe herinneringen konden niet ingesteld worden. Dit wordt veroorzaakt door te veel apparaten met ingeschakelde meldingen. Ga naar Instellingen -> Meldingen om oude apparaten uit de meldingenlijst te verwijderen.",
 		"calendarCustomName_label": "Uw aangepaste naam voor deze agenda: {customName}",
+		"calendarDefaultReminder_label": "Standaard herinnering vóór gebeurtenis",
 		"calendarImportSelection_label": "Selecteer een kalender om uw gebeurtenissen in te importeren.",
 		"calendarInvitationProgress_msg": "Uitnodiging wordt verstuurd.",
 		"calendarInvitations_label": "Agenda-uitnodigingen",
@@ -1449,6 +1450,7 @@ export default {
 		"ratingUpgradeFromRevo_label": "Word een Legend",
 		"readResponse_action": "Lees reactie",
 		"reallySubmitContent_msg": "Weet u zeker dat u de ingevoerde gegevens naar een externe site wilt sturen?",
+		"receiveCalendarNotifications_label": "Ontvang kalendergebeurtenissen notificaties",
 		"received_action": "Postvak IN",
 		"receivingMailboxAlreadyUsed_msg": "De ontvangende postbus wordt al gebruikt voor een ander contactformulier.",
 		"receivingMailbox_label": "Ontvangende postbus",
