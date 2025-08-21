@@ -107,7 +107,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 				const draft = model.draft
 
 				if (draft) {
-					await trashMails(mailLocator.mailModel, [draft._id])
+					await trashMails(mailLocator.mailboxModel, mailLocator.mailModel, await mailLocator.undoModel(), [draft])
 				}
 			}
 		})

@@ -2547,3 +2547,34 @@ export type ChangePrimaryAddressServicePutIn = {
 
 	user: Id;
 }
+export const MovedMailsTypeRef: TypeRef<MovedMails> = new TypeRef("tutanota", 1716)
+
+export function createMovedMails(values: StrippedEntity<MovedMails>): MovedMails {
+    return Object.assign(create(typeModels[MovedMailsTypeRef.typeId], MovedMailsTypeRef), values)
+}
+
+export type MovedMails = {
+	_type: TypeRef<MovedMails>;
+	_original?: MovedMails
+
+	_id: Id;
+
+	targetFolder: IdTuple;
+	sourceFolder: IdTuple;
+	mailIds: IdTupleWrapper[];
+}
+export const MoveMailPostOutTypeRef: TypeRef<MoveMailPostOut> = new TypeRef("tutanota", 1721)
+
+export function createMoveMailPostOut(values: StrippedEntity<MoveMailPostOut>): MoveMailPostOut {
+    return Object.assign(create(typeModels[MoveMailPostOutTypeRef.typeId], MoveMailPostOutTypeRef), values)
+}
+
+export type MoveMailPostOut = {
+	_type: TypeRef<MoveMailPostOut>;
+	_errors: Object;
+	_original?: MoveMailPostOut
+
+	_format: NumberString;
+
+	movedMails: MovedMails[];
+}

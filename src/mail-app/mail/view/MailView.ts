@@ -842,7 +842,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private async moveMailsToTrash(moveMode: MoveMode, ownerGroupId: Id, resolvedMails: readonly IdTuple[]) {
-		const currentFolder = this.mailViewModel.getFolder()
 		const folderSystem = mailLocator.mailModel.getFolderSystemByGroupId(ownerGroupId)
 		const targetFolder = folderSystem?.getSystemFolderByType(MailSetKind.TRASH)
 
@@ -856,7 +855,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			targetFolder,
 			mailIds: resolvedMails,
 			moveMode,
-			undoFolder: currentFolder,
 			undoModel: this.undoModel,
 		})
 
@@ -1141,7 +1139,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				targetFolder,
 				mailIds: actionableMails,
 				moveMode: this.mailViewModel.getMoveMode(currentFolder),
-				undoFolder: currentFolder,
 				undoModel: this.undoModel,
 			})
 		}
