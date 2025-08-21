@@ -37,4 +37,4 @@ $(WASM):
 fallback: $(WASM_FALLBACK)
 
 $(WASM_FALLBACK): $(WASM)
-	${WASM2JS} "${WASM}" -o "${WASM_FALLBACK}" -O3 --enable-bulk-memory
+	${WASM2JS} --enable-bulk-memory "${WASM}" -o "${WASM_FALLBACK}" -O3
