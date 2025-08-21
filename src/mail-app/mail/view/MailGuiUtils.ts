@@ -5,7 +5,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, deduplicate, endsWith, first, isEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, deduplicate, endsWith, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -34,6 +34,7 @@ import {
 	getIndentedFolderNameForDropdown,
 	getMoveTargetFolderSystems,
 	getMoveTargetFolderSystemsForMailsInFolder,
+	getSystemFolderName,
 } from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
@@ -113,14 +114,7 @@ enum MoveMailSnackbarResult {
 	Replaced,
 }
 
-async function showUndoMoveMailSnackbar(
-	targetFolder: MailFolder,
-	undoFolder: MailFolder,
-	resolveMails: () => Promise<readonly Mail[]>,
-	mailModel: MailModel,
-	undoModel: UndoModel,
-	shouldReportMails: boolean,
-): Promise<MoveMailSnackbarResult> {
+async function showUndoMoveMailSnackbar(undoModel: UndoModel, onUndoMove: () => Promise<void>, undoMoveText: string): Promise<MoveMailSnackbarResult> {
 	return new Promise((resolve) => {
 		let result: MoveMailSnackbarResult | null = null
 
@@ -132,8 +126,7 @@ async function showUndoMoveMailSnackbar(
 				resolve(result)
 
 				cancelSnackbar?.()
-				const mails = await resolveMails()
-				await mailModel.moveMails(getIds(mails), undoFolder, MoveMode.Mails)
+				await onUndoMove()
 			},
 			onClear: () => {
 				if (result == null) {
@@ -147,10 +140,7 @@ async function showUndoMoveMailSnackbar(
 		const clearUndoAction = lazyMemoized(() => undoModel.clearUndoActionIfPresent(undoAction))
 		const undoMessage: Translation = {
 			testId: "undoMoveMail_msg",
-			text:
-				targetFolder.folderType === MailSetKind.SPAM && shouldReportMails
-					? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
-					: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text,
+			text: undoMoveText,
 		}
 		cancelSnackbar = showSnackBar({
 			message: undoMessage,
@@ -206,6 +196,53 @@ export async function moveMails(params: MoveMailsParams): Promise<boolean> {
 	}
 }
 
+function mailsAndFolderByFolderId(mails: readonly Mail[]): Map<string, { folder: MailFolder; mails: Mail[] }> {
+	const map: Map<string, { folder: MailFolder; mails: Mail[] }> = new Map()
+	for (const mail of mails) {
+		const folder = assertNotNull(mailLocator.mailModel.getMailFolderForMail(mail))
+		const folderStringId = folder._id.toString()
+		const mailsAndFolder = map.get(folderStringId)
+		if (mailsAndFolder != null) {
+			mailsAndFolder.mails.push(mail)
+		} else {
+			map.set(folderStringId, { folder, mails: [mail] })
+		}
+	}
+	return map
+}
+
+async function runPostSimpleMoveActions(
+	mailModel: MailModel,
+	undoModel: UndoModel,
+	mails: readonly Mail[],
+	targetFolderType: SystemFolderType,
+	isReportable: boolean = false,
+) {
+	const reportableMails: Mail[] = []
+	const onUndoMove = async () => {
+		for (const { folder, mails: folderMails } of mailsAndFolderByFolderId(mails).values()) {
+			if (folder.folderType === targetFolderType) {
+				continue
+			}
+
+			if (folder.folderType === MailSetKind.SPAM) {
+				reportableMails.push(...folderMails)
+			}
+			await mailModel.moveMails(getIds(folderMails), folder, MoveMode.Mails)
+		}
+	}
+	const undoMoveMessage =
+		targetFolderType === MailSetKind.SPAM
+			? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getSystemFolderName(targetFolderType) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
+			: lang.getTranslation("undoMoveMail_msg", { "{folder}": getSystemFolderName(targetFolderType) }).text
+
+	const undoResult = await showUndoMoveMailSnackbar(undoModel, onUndoMove, undoMoveMessage)
+
+	if (isReportable && isNotEmpty(reportableMails) && undoResult !== MoveMailSnackbarResult.Undo) {
+		await mailModel.reportMails(MailReportType.SPAM, async () => reportableMails)
+	}
+}
+
 async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportable = true, mailboxModel, undoFolder, undoModel }: MoveMailsParams) {
 	const resolveMails = () => mailModel.loadAllMails(mailIds)
 
@@ -215,7 +252,16 @@ async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportab
 	// user to undo the move...
 	let undone: boolean
 	if (undoFolder != null && !isSameId(getElementId(targetFolder), getElementId(undoFolder))) {
-		const undoResult = await showUndoMoveMailSnackbar(targetFolder, undoFolder, resolveMails, mailModel, undoModel, shouldReportMails)
+		const undoMoveText =
+			targetFolder.folderType === MailSetKind.SPAM
+				? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
+				: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text
+		const onUndoMove = async () => {
+			const mails = await resolveMails()
+			await mailModel.moveMails(getIds(mails), undoFolder, MoveMode.Mails)
+		}
+
+		const undoResult = await showUndoMoveMailSnackbar(undoModel, onUndoMove, undoMoveText)
 		switch (undoResult) {
 			case MoveMailSnackbarResult.Undo:
 				undone = true
@@ -276,17 +322,20 @@ function handleMoveError(err: Error) {
 	}
 }
 
-export async function trashMails(mailModel: MailModel, mailIds: readonly IdTuple[]): Promise<boolean> {
-	await mailModel.trashMails(mailIds).catch(handleMoveError)
+export async function trashMails(mailModel: MailModel, mails: readonly Mail[], undoModel: UndoModel): Promise<boolean> {
+	await mailModel.trashMails(getIds(mails)).catch(handleMoveError)
+	await runPostSimpleMoveActions(mailModel, undoModel, mails, MailSetKind.TRASH)
 	return true
 }
 
-export async function simpleMoveToArchive(mailIds: readonly IdTuple[]): Promise<void> {
-	await mailLocator.mailModel.simpleMoveMails(mailIds, MailSetKind.ARCHIVE).catch(handleMoveError)
+export async function simpleMoveToArchive(mails: readonly Mail[], undoModel: UndoModel): Promise<void> {
+	await mailLocator.mailModel.simpleMoveMails(getIds(mails), MailSetKind.ARCHIVE).catch(handleMoveError)
+	await runPostSimpleMoveActions(mailLocator.mailModel, undoModel, mails, MailSetKind.ARCHIVE)
 }
 
-export async function simpleMoveToInbox(mailIds: readonly IdTuple[]): Promise<void> {
-	await mailLocator.mailModel.simpleMoveMails(mailIds, MailSetKind.INBOX).catch(handleMoveError)
+export async function simpleMoveToInbox(mails: readonly Mail[], undoModel: UndoModel): Promise<void> {
+	await mailLocator.mailModel.simpleMoveMails(getIds(mails), MailSetKind.INBOX).catch(handleMoveError)
+	await runPostSimpleMoveActions(mailLocator.mailModel, undoModel, mails, MailSetKind.INBOX)
 }
 
 export function getFolderIconByType(folderType: MailSetKind): AllIcons {
