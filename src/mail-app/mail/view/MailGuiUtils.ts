@@ -35,16 +35,18 @@ import {
 	getMoveTargetFolderSystems,
 	getMoveTargetFolderSystemsForMailsInFolder,
 	getSystemFolderName,
+	MoveService,
+	MoveTargets,
 } from "../model/MailUtils.js"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
-import type { IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
 import { getElementId, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
+import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
 
 const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
 
@@ -96,8 +98,7 @@ async function getReportAnswer(targetMailFolder: MailFolder, isReportable: boole
 		return false
 	}
 	if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) && isReportable) {
-		const mailboxDetails = await mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(targetMailFolder._ownerGroup))
-		return getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel, mailboxDetails)
+		return getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel)
 	} else {
 		return false
 	}
@@ -212,33 +213,44 @@ function mailsAndFolderByFolderId(mails: readonly Mail[]): Map<string, { folder:
 }
 
 async function runPostSimpleMoveActions(
+	mailboxModel: MailboxModel,
 	mailModel: MailModel,
 	undoModel: UndoModel,
 	mails: readonly Mail[],
 	targetFolderType: SystemFolderType,
-	isReportable: boolean = false,
 ) {
+	const mailsByFolder = mailsAndFolderByFolderId(mails)
+
 	const reportableMails: Mail[] = []
+	if (targetFolderType === MailSetKind.SPAM) {
+		for (const { folder, mails: folderMails } of mailsByFolder.values()) {
+			const system = mailModel.getFolderSystemByGroupId(assertNotNull(folder._ownerGroup))
+
+			// only report mails that aren't already in Spam or its subfolders
+			if (system != null && !isOfTypeOrSubfolderOf(system, folder, MailSetKind.SPAM)) {
+				reportableMails.push(...folderMails)
+			}
+		}
+	}
+
+	const shouldReportMails = isNotEmpty(reportableMails) && (await getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel))
+
 	const onUndoMove = async () => {
-		for (const { folder, mails: folderMails } of mailsAndFolderByFolderId(mails).values()) {
+		for (const { folder, mails: folderMails } of mailsByFolder.values()) {
 			if (folder.folderType === targetFolderType) {
 				continue
 			}
 
-			if (folder.folderType === MailSetKind.SPAM) {
-				reportableMails.push(...folderMails)
-			}
 			await mailModel.moveMails(getIds(folderMails), folder, MoveMode.Mails)
 		}
 	}
-	const undoMoveMessage =
-		targetFolderType === MailSetKind.SPAM
-			? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getSystemFolderName(targetFolderType) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
-			: lang.getTranslation("undoMoveMail_msg", { "{folder}": getSystemFolderName(targetFolderType) }).text
+	const undoMoveMessage = shouldReportMails
+		? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getSystemFolderName(targetFolderType) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
+		: lang.getTranslation("undoMoveMail_msg", { "{folder}": getSystemFolderName(targetFolderType) }).text
 
 	const undoResult = await showUndoMoveMailSnackbar(undoModel, onUndoMove, undoMoveMessage)
 
-	if (isReportable && isNotEmpty(reportableMails) && undoResult !== MoveMailSnackbarResult.Undo) {
+	if (shouldReportMails && undoResult !== MoveMailSnackbarResult.Undo) {
 		await mailModel.reportMails(MailReportType.SPAM, async () => reportableMails)
 	}
 }
@@ -321,20 +333,20 @@ function handleMoveError(err: Error) {
 	}
 }
 
-export async function trashMails(mailModel: MailModel, mails: readonly Mail[], undoModel: UndoModel): Promise<boolean> {
+export async function trashMails(mailboxModel: MailboxModel, mailModel: MailModel, mails: readonly Mail[], undoModel: UndoModel): Promise<boolean> {
 	await mailModel.trashMails(getIds(mails)).catch(handleMoveError)
-	await runPostSimpleMoveActions(mailModel, undoModel, mails, MailSetKind.TRASH)
+	await runPostSimpleMoveActions(mailboxModel, mailModel, undoModel, mails, MailSetKind.TRASH)
 	return true
 }
 
-export async function simpleMoveToArchive(mails: readonly Mail[], undoModel: UndoModel): Promise<void> {
-	await mailLocator.mailModel.simpleMoveMails(getIds(mails), MailSetKind.ARCHIVE).catch(handleMoveError)
-	await runPostSimpleMoveActions(mailLocator.mailModel, undoModel, mails, MailSetKind.ARCHIVE)
-}
-
-export async function simpleMoveToInbox(mails: readonly Mail[], undoModel: UndoModel): Promise<void> {
-	await mailLocator.mailModel.simpleMoveMails(getIds(mails), MailSetKind.INBOX).catch(handleMoveError)
-	await runPostSimpleMoveActions(mailLocator.mailModel, undoModel, mails, MailSetKind.INBOX)
+export async function simpleMoveToSystemFolder(
+	mails: readonly Mail[],
+	targetFolder: SystemFolderType,
+	mailboxModel: MailboxModel,
+	undoModel: UndoModel,
+): Promise<void> {
+	await mailLocator.mailModel.simpleMoveMails(getIds(mails), targetFolder).catch(handleMoveError)
+	await runPostSimpleMoveActions(mailboxModel, mailLocator.mailModel, undoModel, mails, targetFolder)
 }
 
 export function getFolderIconByType(folderType: MailSetKind): AllIcons {
@@ -521,8 +533,8 @@ export async function showMoveMailsFromFolderDropdown(
 	const folders = await getMoveTargetFolderSystemsForMailsInFolder(mailModel, currentFolder)
 	await showMailFolderDropdown(
 		origin,
-		folders,
-		async (f) => {
+		{ moveService: MoveService.RegularMove, folders },
+		async (f: IndentedFolder) => {
 			const resolvedMails = await mails()
 			moveMails({
 				mailboxModel,
@@ -549,55 +561,94 @@ export async function showMoveMailsDropdown(
 ): Promise<void> {
 	const firstMail = first(mails)
 	if (firstMail == null) return
-	const folders = await getMoveTargetFolderSystems(mailModel, mails)
+
+	const moveTargets = await getMoveTargetFolderSystems(mailModel, mails)
 	const currentFolders = deduplicate(mails.map((mail) => mailModel.getMailFolderForMail(mail)))
 
-	await showMailFolderDropdown(
-		origin,
-		folders,
-		(f) => {
+	let onFolderClick: (f: FolderInfo | SystemFolderType) => void
+	if (moveTargets.moveService === MoveService.SimpleMove) {
+		onFolderClick = (f: SystemFolderType) => {
+			simpleMoveToSystemFolder(mails, f, mailboxModel, undoModel)
+		}
+	} else {
+		onFolderClick = (f: FolderInfo) => {
 			moveMails({
 				mailboxModel,
-				mailModel: mailModel,
+				mailModel,
 				mailIds: getIds(mails),
 				targetFolder: f.folder,
 				moveMode,
 				undoFolder: currentFolders.length === 1 ? first(currentFolders) : null,
 				undoModel,
 			})
-		},
-		opts,
-	)
+		}
+	}
+
+	await showMailFolderDropdown(origin, moveTargets, onFolderClick, opts)
 }
 
 export async function showMailFolderDropdown(
 	origin: PosRect,
-	folders: readonly FolderInfo[],
-	onClick: (folder: IndentedFolder) => unknown,
+	moveTargets: MoveTargets,
+	onClick: (folder: FolderInfo | SystemFolderType) => unknown,
 	opts?: { width?: number; withBackground?: boolean; onSelected?: () => unknown },
 ): Promise<void> {
 	const { width = 300, withBackground = false, onSelected = noOp } = opts ?? {}
 
-	if (folders.length === 0) return
-	const folderButtons = folders.map(
-		(f) =>
-			({
-				// We need to pass in the raw folder name to avoid including it in searches
-				label: lang.makeTranslation(
-					`dropdown-folder:${getFolderName(f.folder)}`,
-					lang.get("folderDepth_label", {
-						"{folderName}": getFolderName(f.folder),
-						"{depth}": f.level,
-					}),
-				),
-				text: lang.makeTranslation("folder_name", getIndentedFolderNameForDropdown(f)),
-				click: () => {
-					onSelected()
-					onClick(f)
-				},
-				icon: getFolderIcon(f.folder),
-			}) satisfies DropdownChildAttrs,
-	)
+	const folderButton = (attrs: {
+		depth: number
+		folderType: MailSetKind
+		folderName: string
+		indentedFolderName: string
+		onClick: () => unknown
+		onSelected: () => unknown
+	}): DropdownChildAttrs => {
+		return {
+			// We need to pass in the raw folder name to avoid including it in searches
+			label: lang.makeTranslation(
+				`dropdown-folder:${attrs.folderName}`,
+				lang.get("folderDepth_label", {
+					"{folderName}": attrs.folderName,
+					"{depth}": attrs.depth,
+				}),
+			),
+			text: lang.makeTranslation("folder_name", attrs.indentedFolderName),
+			click: () => {
+				onSelected()
+				attrs.onClick()
+			},
+			icon: getFolderIconByType(attrs.folderType),
+		}
+	}
+
+	let folderButtons: DropdownChildAttrs[]
+	if (moveTargets.moveService === MoveService.SimpleMove) {
+		folderButtons = moveTargets.folders.map((folderType) => {
+			const folderName = getSystemFolderName(folderType)
+
+			return folderButton({
+				depth: 0,
+				folderType,
+				folderName,
+				indentedFolderName: folderName,
+				onClick: () => onClick(folderType),
+				onSelected,
+			})
+		})
+	} else {
+		if (isEmpty(moveTargets.folders)) return
+
+		folderButtons = moveTargets.folders.map((f: FolderInfo) =>
+			folderButton({
+				depth: f.level,
+				folderType: getMailFolderType(f.folder),
+				folderName: getFolderName(f.folder),
+				indentedFolderName: getIndentedFolderNameForDropdown(f),
+				onClick: () => onClick(f),
+				onSelected,
+			}),
+		)
+	}
 
 	const dropdown = new Dropdown(() => folderButtons, width)
 	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(origin.left, origin.top, origin.width, origin.height))
