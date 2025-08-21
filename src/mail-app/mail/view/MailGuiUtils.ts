@@ -507,15 +507,28 @@ export async function showMoveMailsDropdown(
 		origin,
 		folders,
 		(f) => {
-			moveMails({
-				mailboxModel,
-				mailModel: mailModel,
-				mailIds: getIds(mails),
-				targetFolder: f.folder,
-				moveMode,
-				undoFolder: currentFolders.length === 1 ? first(currentFolders) : null,
-				undoModel,
-			})
+			const mailIds = getIds(mails)
+			switch (f.folder.folderType) {
+				case MailSetKind.TRASH:
+					trashMails(mailModel, mailIds)
+					break
+				case MailSetKind.INBOX:
+					simpleMoveToInbox(mailIds)
+					break
+				case MailSetKind.ARCHIVE:
+					simpleMoveToArchive(mailIds)
+					break
+				default:
+					moveMails({
+						mailboxModel,
+						mailModel: mailModel,
+						mailIds: getIds(mails),
+						targetFolder: f.folder,
+						moveMode,
+						undoFolder: currentFolders.length === 1 ? first(currentFolders) : null,
+						undoModel,
+					})
+			}
 		},
 		opts,
 	)
