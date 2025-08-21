@@ -96,8 +96,6 @@ import {
 } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 
-import { handleRatingByEvent } from "../../../common/ratings/UserSatisfactionDialog.js"
-
 export type MailEditorAttrs = {
 	model: SendMailModel
 	doBlockExternalContent: Stream<boolean>
@@ -838,6 +836,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				dispose()
 				dialog.close()
 
+				const { handleRatingByEvent } = await import("../../../common/ratings/UserSatisfactionDialog.js")
 				void handleRatingByEvent("Mail")
 			}
 		} catch (e) {

@@ -183,7 +183,6 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/calendar-app/calendar/export") ||
 		isIn("src/common/misc/DateParser") ||
 		isIn("src/common/misc/ElevenYearsTutaUtils") ||
-		isIn("src/common/ratings") ||
 		isIn("src/calendar-app/calendar/model") ||
 		isIn("src/calendar-app/calendar/gui") ||
 		isIn("src/common/calendar/gui") ||
@@ -285,7 +284,14 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		moduleId.includes("commonjs-dynamic-modules")
 	) {
 		return "polyfill-helpers"
-	} else if (isIn("src/common/settings") || isIn("src/common/subscription") || isIn("libs/qrcode") || isIn("libs/jsQR") || isIn("src/common/termination")) {
+	} else if (
+		isIn("src/common/settings") ||
+		isIn("src/common/subscription") ||
+		isIn("libs/qrcode") ||
+		isIn("src/common/ratings") ||
+		isIn("libs/jsQR") ||
+		isIn("src/common/termination")
+	) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
 		return "settings"
