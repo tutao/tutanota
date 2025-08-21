@@ -10,15 +10,15 @@ o.spec("Argon2id", function () {
 		const currentPath = process.cwd()
 
 		const make = $
-		make.verbose = false
+		make.verbose = true
 		make.cwd = "../../../libs/webassembly/"
 		make.env = {
 			...process.env,
 			WASM: `${currentPath}/argon2.wasm`,
+			WASM_FALLBACK: `${currentPath}/argon2.js`,
 		}
 
-		await make`make -f Makefile_argon2 build`
-		await $`wasm2js ${currentPath}/argon2.wasm -O3 --output ${currentPath}/argon2.js`
+		await make`make -f Makefile_argon2 build fallback`
 
 		make.cwd = currentPath
 	})

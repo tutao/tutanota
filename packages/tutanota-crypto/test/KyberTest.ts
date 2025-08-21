@@ -18,10 +18,10 @@ o.spec("Kyber", function () {
 		make.env = {
 			...process.env,
 			WASM: `${currentPath}/liboqs.wasm`,
+			WASM_FALLBACK: `${currentPath}/liboqs.js`,
 		}
 
-		await make`make -f Makefile_liboqs build`
-		await $`wasm2js ${currentPath}/liboqs.wasm -O3 --output ${currentPath}/liboqs.js`
+		await make`make -f Makefile_liboqs build fallback`
 
 		make.cwd = currentPath
 	})
