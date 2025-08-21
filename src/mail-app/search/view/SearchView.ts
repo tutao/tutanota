@@ -824,9 +824,18 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return () => editDraft(conversationViewModel.primaryViewModel())
 	}
 
+	private isMovingMailsAllowed() {
+		if (!mailLocator.mailModel.isMovingMailsFromSearchAllowed()) {
+			return false
+		} else {
+			const selectedMails = this.searchViewModel.getSelectedMails()
+			const firstMail = first(selectedMails)
+			return !(selectedMails.length > 1 && selectedMails.some((mail) => !isSameId(mail._ownerGroup, assertNotNull(firstMail)._ownerGroup)))
+		}
+	}
+
 	private getMoveMailsAction(): ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null {
-		const mailModel = mailLocator.mailModel
-		return mailModel.isMovingMailsFromSearchAllowed() ? (origin) => this.moveMails(origin) : null
+		return this.isMovingMailsAllowed() ? (origin) => this.moveMails(origin) : null
 	}
 
 	private getLabelsAction(): ((dom: HTMLElement | null, opts?: LabelsPopupOpts) => void) | null {
@@ -1278,7 +1287,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private async move() {
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
-		if (selectedMails.length > 0) {
+		if (selectedMails.length > 0 && this.isMovingMailsAllowed()) {
 			showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, this.undoModel, getMoveMailBounds(), selectedMails, MoveMode.Mails, {
 				onSelected: () => {
 					if (selectedMails.length > 1) {
