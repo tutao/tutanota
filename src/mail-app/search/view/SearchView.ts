@@ -700,7 +700,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						actions: (mailViewerModel: MailViewerViewModel) => {
 							return {
 								trash: () => {
-									trashMails(mailLocator.mailModel, [mailViewerModel.mail._id])
+									trashMails(mailLocator.mailModel, [mailViewerModel.mail], this.undoModel)
 								},
 								delete: mailViewerModel.isDeletableMail()
 									? () => promptAndDeleteMails(mailViewerModel.mailModel, [mailViewerModel.mail._id], null, noOp)
@@ -1167,6 +1167,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 			},
 			{
+				key: Keys.Z,
+				ctrlOrCmd: true,
+				exec: () => {
+					this.undoModel.performUndoAction()
+				},
+				help: "undo_action",
+				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+			},
+			{
 				key: Keys.U,
 				exec: () => this.toggleUnreadStatus(),
 				help: "toggleUnread_action",
@@ -1259,7 +1268,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			simpleMoveToArchive(getIds(selectedMails))
+			simpleMoveToArchive(selectedMails, this.undoModel)
 		}
 	}
 
@@ -1271,7 +1280,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			simpleMoveToInbox(getIds(selectedMails))
+			simpleMoveToInbox(selectedMails, this.undoModel)
 		}
 	}
 
@@ -1320,7 +1329,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				return {
 					deleteAction: null,
 					trashAction: () => {
-						trashMails(mailLocator.mailModel, getIds(selected))
+						trashMails(mailLocator.mailModel, selected, this.undoModel)
 					},
 				}
 			}
