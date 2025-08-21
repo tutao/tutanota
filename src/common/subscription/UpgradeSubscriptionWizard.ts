@@ -14,7 +14,6 @@ import {
 } from "../api/common/TutanotaConstants"
 import { getByAbbreviation } from "../api/common/CountryList"
 import { UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs } from "./UpgradeSubscriptionPage"
-import m from "mithril"
 import stream from "mithril/stream"
 import { InfoLink, lang, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
@@ -37,6 +36,7 @@ import { styles } from "../gui/styles.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { VariantBSubscriptionPage, VariantBSubscriptionPageAttrs } from "./VariantBSubscriptionPage.js"
+import { windowFacade } from "../misc/WindowFacade"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -244,13 +244,14 @@ export async function loadSignupWizard(
 				await locator.logins.logout(false)
 			}
 
+			// ensure that we reload the client in order to reset any state of the client that has been set when creating a session during signup.
 			if (signupData.newAccountData) {
-				m.route.set("/login", {
+				await windowFacade.reload({
 					noAutoLogin: true,
 					loginWith: signupData.newAccountData.mailAddress,
 				})
 			} else {
-				m.route.set("/login", {
+				await windowFacade.reload({
 					noAutoLogin: true,
 				})
 			}
