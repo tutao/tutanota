@@ -68,8 +68,6 @@ import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/Crypt
 const originalRandom = random.generateRandomData
 
 const liboqs = await loadLibOQSWASM()
-const liboqsFallback = (await (await import("liboqs.wasm")).loadWasm({ forceFallback: true })) as LibOQSExports
-const argon2 = await (await import("argon2.wasm")).loadWasm({ forceFallback: true })
 
 o.spec("CompatibilityTest", function () {
 	o.afterEach(function () {
@@ -110,30 +108,6 @@ o.spec("CompatibilityTest", function () {
 			// o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
 
 			const decapsulatedSharedSecret = decapsulateKyber(liboqs, privateKey, hexToUint8Array(td.cipherText))
-			o(decapsulatedSharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
-		}
-	})
-	o("kyber - fallback", async () => {
-		for (const td of testData.kyberEncryptionTests) {
-			const publicKey = bytesToKyberPublicKey(hexToUint8Array(td.publicKey))
-			const privateKey = bytesToKyberPrivateKey(hexToUint8Array(td.privateKey))
-			o(uint8ArrayToHex(kyberPublicKeyToBytes(publicKey))).deepEquals(td.publicKey)
-			o(uint8ArrayToHex(kyberPrivateKeyToBytes(privateKey))).deepEquals(td.privateKey)
-
-			const seed = hexToUint8Array(td.seed)
-
-			const randomizer = object<Randomizer>()
-			when(randomizer.generateRandomData(matchers.anything())).thenReturn(seed)
-			const encapsulation = encapsulateKyber(liboqsFallback, publicKey, randomizer)
-			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
-			//
-			// As such, we'll just test round-trip. Since we test decapsulation, if round-trip is correct, then encapsulation SHOULD be correct.
-			const roundTripSharedSecret = decapsulateKyber(liboqsFallback, privateKey, encapsulation.ciphertext)
-			o(encapsulation.sharedSecret).deepEquals(roundTripSharedSecret)
-			// o(encapsulation.sharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
-			// o(encapsulation.ciphertext).deepEquals(hexToUint8Array(td.cipherText))
-
-			const decapsulatedSharedSecret = decapsulateKyber(liboqsFallback, privateKey, hexToUint8Array(td.cipherText))
 			o(decapsulatedSharedSecret).deepEquals(hexToUint8Array(td.sharedSecret))
 		}
 	})
@@ -248,12 +222,6 @@ o.spec("CompatibilityTest", function () {
 			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
 		}
 	})
-	o("argon2id - fallback", async function () {
-		for (let td of testData.argon2idTests) {
-			let key = await generateKeyFromPassphraseArgon2id(argon2, td.password, hexToUint8Array(td.saltHex))
-			o(uint8ArrayToHex(bitArrayToUint8Array(key))).equals(td.keyHex)
-		}
-	})
 	o("compression", function () {
 		for (const td of testData.compressionTests) {
 			o(utf8Uint8ArrayToString(uncompress(base64ToUint8Array(td.compressedBase64TextJava)))).equals(td.uncompressedText)
@@ -349,47 +317,6 @@ o.spec("CompatibilityTest", function () {
 			}
 			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair, kyberKeyPair }
 			const pqFacade = new PQFacade(new WASMKyberFacade(liboqs))
-
-			const encapsulation = await pqFacade.encapsulateAndEncode(x25519KeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
-			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.
-			//
-			// As such, we'll just test round-trip. Since we test decapsulation, if round-trip is correct, then encapsulation SHOULD be correct.
-			// o(encapsulation).deepEquals(hexToUint8Array(td.pqMessage))
-
-			const decapsulation = await pqFacade.decapsulateEncoded(encapsulation, pqKeyPairs)
-			o(decapsulation.decryptedSymKeyBytes).deepEquals(bucketKey)
-			o(decapsulation.senderIdentityPubKey).deepEquals(x25519KeyPair.publicKey)
-		}
-	})
-
-	o("pqcrypt - kyber fallback", async function () {
-		for (const td of testData.pqcryptEncryptionTests) {
-			random.generateRandomData = (number) => hexToUint8Array(td.seed).slice(0, number)
-
-			const bucketKey = hexToUint8Array(td.bucketKey)
-
-			const x25519KeyPair = {
-				publicKey: hexToUint8Array(td.publicX25519Key),
-				privateKey: hexToUint8Array(td.privateX25519Key),
-			}
-
-			const ephemeralKeyPair = {
-				publicKey: hexToUint8Array(td.epheremalPublicX25519Key),
-				privateKey: hexToUint8Array(td.epheremalPrivateX25519Key),
-			}
-
-			const kyberKeyPair = {
-				publicKey: bytesToKyberPublicKey(hexToUint8Array(td.publicKyberKey)),
-				privateKey: bytesToKyberPrivateKey(hexToUint8Array(td.privateKyberKey)),
-			}
-
-			const pqPublicKeys: PQPublicKeys = {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				x25519PublicKey: x25519KeyPair.publicKey,
-				kyberPublicKey: kyberKeyPair.publicKey,
-			}
-			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair, kyberKeyPair }
-			const pqFacade = new PQFacade(new WASMKyberFacade(liboqsFallback))
 
 			const encapsulation = await pqFacade.encapsulateAndEncode(x25519KeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
 			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.

@@ -4,6 +4,7 @@ import { extractKyberPublicKeyFromKyberPrivateKey, random } from "../lib/index.j
 import { loadWasmModuleFallback, loadWasmModuleFromFile } from "./WebAssemblyTestUtils.js"
 import { $ } from "zx"
 import fs from "node:fs"
+import { assertThrows } from "@tutao/tutanota-test-utils"
 
 o.spec("Kyber", function () {
 	// We need to generate the webassembly stuff during tests
@@ -18,10 +19,9 @@ o.spec("Kyber", function () {
 		make.env = {
 			...process.env,
 			WASM: `${currentPath}/liboqs.wasm`,
-			WASM_FALLBACK: `${currentPath}/liboqs.js`,
 		}
 
-		await make`make -f Makefile_liboqs build fallback`
+		await make`make -f Makefile_liboqs build`
 
 		make.cwd = currentPath
 	})
@@ -29,7 +29,6 @@ o.spec("Kyber", function () {
 	// We remove them after the tests since we don't need them anymore
 	o.after(() => {
 		fs.rmSync("./liboqs.wasm")
-		fs.rmSync("./liboqs.js")
 	})
 
 	o("encryption roundtrip", async function () {
@@ -48,19 +47,8 @@ o.spec("Kyber", function () {
 		o(encapsulation.sharedSecret).deepEquals(decapsulatedSecret)
 	})
 
-	o("encryption roundtrip - fallback", async function () {
-		const liboqsFallback = (await loadWasmModuleFallback("../liboqs.js")) as LibOQSExports
-		const keyPair = generateKeyPair(liboqsFallback, random)
-		o(keyPair.privateKey.raw.length).equals(3168)
-		o(keyPair.publicKey.raw.length).equals(1568)
-
-		const encapsulation = encapsulate(liboqsFallback, keyPair.publicKey, random)
-		o(encapsulation.sharedSecret.length).equals(32)
-		o(encapsulation.ciphertext.length).equals(1568)
-
-		const decapsulatedSecret = decapsulate(liboqsFallback, keyPair.privateKey, encapsulation.ciphertext)
-
-		o(encapsulation.sharedSecret).deepEquals(decapsulatedSecret)
+	o("liboqs fallback unavailable", async function () {
+		await assertThrows(Error, async () => await loadWasmModuleFallback("../liboqs.js"))
 	})
 
 	o("extract public key", async function () {

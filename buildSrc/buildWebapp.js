@@ -115,22 +115,12 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 						command: "make -f Makefile_liboqs build",
 						workingDir: "libs/webassembly/",
 						outputPath: path.join(resolvedBuildDir, "liboqs.wasm"),
-						fallback: {
-							command: "make -f Makefile_liboqs fallback",
-							workingDir: "libs/webassembly/",
-							outputPath: path.join(resolvedBuildDir, "liboqs.js"),
-						},
 					},
 					{
 						name: "argon2.wasm",
-						command: "make -f Makefile_argon2 build fallback",
+						command: "make -f Makefile_argon2 build",
 						workingDir: "libs/webassembly/",
 						outputPath: path.join(resolvedBuildDir, "argon2.wasm"),
-						fallback: {
-							command: "make -f Makefile_argon2 fallback",
-							workingDir: "libs/webassembly/",
-							outputPath: path.join(resolvedBuildDir, "argon2.js"),
-						},
 					},
 				],
 			}),

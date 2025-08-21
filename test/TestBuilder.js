@@ -116,22 +116,12 @@ export async function runTestBuild({ networkDebugging = false, clean, fast = fal
 							command: "make -f Makefile_liboqs build",
 							workingDir: `${process.cwd()}/../libs/webassembly/`,
 							outputPath: `${process.cwd()}/build/liboqs.wasm`,
-							fallback: {
-								command: "make -f Makefile_liboqs fallback",
-								workingDir: `${process.cwd()}/../libs/webassembly/`,
-								outputPath: `${process.cwd()}/build/liboqs.js`,
-							},
 						},
 						{
 							name: "argon2.wasm",
 							command: "make -f Makefile_argon2 build",
 							workingDir: `${process.cwd()}/../libs/webassembly/`,
 							outputPath: `${process.cwd()}/build/argon2.wasm`,
-							fallback: {
-								command: "make -f Makefile_argon2 fallback",
-								workingDir: `${process.cwd()}/../libs/webassembly/`,
-								outputPath: `${process.cwd()}/build/argon2.js`,
-							},
 						},
 					],
 				}),
