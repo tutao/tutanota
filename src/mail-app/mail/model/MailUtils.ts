@@ -5,7 +5,7 @@ import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils.js"
-import { ReplyType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind, ReplyType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId, sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
 
 export type FolderInfo = { level: number; folder: MailFolder }
@@ -64,18 +64,22 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 		return []
 	}
 
+	const areMailsInDifferentMailboxes = mails.length > 1 && mails.some((mail) => !isSameId(firstMail._ownerGroup, mail._ownerGroup))
+
 	const areMailsInDifferentFolders =
 		mails.length > 1 &&
 		mails.some((mail) => {
 			return !isSameId(folderOfFirstMail._id, assertNotNull(foldersModel.getMailFolderForMail(mail))._id)
 		})
 
-	if (areMailsInDifferentFolders) {
+	if (areMailsInDifferentMailboxes) {
+		return folders
+			.getIndentedList()
+			.filter((f: IndentedFolder) => [MailSetKind.TRASH, MailSetKind.INBOX, MailSetKind.ARCHIVE].includes(f.folder.folderType as MailSetKind))
+	} else if (areMailsInDifferentFolders) {
 		return folders.getIndentedList()
 	} else {
-		return folders.getIndentedList().filter((f: IndentedFolder) => {
-			return !isSameId(f.folder._id, folderOfFirstMail._id)
-		})
+		return folders.getIndentedList().filter((f: IndentedFolder) => !isSameId(f.folder._id, folderOfFirstMail._id))
 	}
 }
 
