@@ -65,31 +65,27 @@ export async function reportMailsAutomatically(
 	mailReportType: MailReportType,
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
-	mailboxDetails: MailboxDetail,
 	mails: () => Promise<ReadonlyArray<Mail>>,
 ): Promise<void> {
-	const shouldReportMails = await getReportConfirmation(mailReportType, mailboxModel, mailModel, mailboxDetails)
+	const shouldReportMails = await getReportConfirmation(mailReportType, mailboxModel, mailModel)
 	if (shouldReportMails) {
 		const reportableMails = (await mails()).filter((mail) => !isTutanotaTeamMail(mail))
 		await mailModel.reportMails(mailReportType, reportableMails)
 	}
 }
 
-export async function getReportConfirmation(
-	mailReportType: MailReportType,
-	mailboxModel: MailboxModel,
-	mailModel: MailModel,
-	mailboxDetails: MailboxDetail,
-): Promise<boolean> {
+export async function getReportConfirmation(mailReportType: MailReportType, mailboxModel: MailboxModel, mailModel: MailModel): Promise<boolean> {
 	if (mailReportType !== MailReportType.SPAM) {
 		return false
 	}
 
-	const mailboxProperties = await mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+	// we always check the user's mailbox properties, even for shared mailboxes
+	const userMailboxDetails = await mailboxModel.getUserMailboxDetails()
+	const mailboxProperties = await mailboxModel.getMailboxProperties(userMailboxDetails.mailboxGroupRoot)
 	let isReportable = false
 
 	if (!mailboxProperties || mailboxProperties.reportMovedMails === ReportMovedMailsType.ALWAYS_ASK) {
-		isReportable = await confirmMailReportDialog(mailModel, mailboxDetails)
+		isReportable = await confirmMailReportDialog(mailModel, userMailboxDetails)
 	} else if (mailboxProperties.reportMovedMails === ReportMovedMailsType.AUTOMATICALLY_ONLY_SPAM) {
 		isReportable = true
 	} else if (mailboxProperties.reportMovedMails === ReportMovedMailsType.NEVER) {

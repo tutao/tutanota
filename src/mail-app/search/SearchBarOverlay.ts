@@ -261,7 +261,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 					[
 						// 3px to neutralize the svg icons internal border
 						m(Icon, {
-							icon: getMailFolderIcon(mail),
+							icon: getMailFolderIcon(mailLocator.mailModel, mail),
 							class: state.selected === mail ? "svg-content-accent-fg" : "svg-content-fg",
 						}),
 						m(Icon, {

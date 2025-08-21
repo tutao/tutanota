@@ -234,13 +234,14 @@ fn get_enabled_mail_addresses_for_group_info(group_info: &GroupInfo) -> Vec<Stri
 mod tests {
 	use super::UnreadMailStatePostIn;
 	use crate::crypto_entity_client::MockCryptoEntityClient;
-	use crate::entities::generated::tutanota::SimpleMoveMailPostIn;
+	use crate::entities::generated::tutanota::{MoveMailPostOut, SimpleMoveMailPostIn};
 	use crate::folder_system::MailSetKind;
 	use crate::mail_facade::MailFacade;
 	use crate::services::generated::tutanota::SimpleMoveMailService;
 	use crate::services::generated::tutanota::UnreadMailStateService;
 	use crate::services::service_executor::MockResolvingServiceExecutor;
 	use crate::user_facade::MockUserFacade;
+	use crate::util::test_utils::create_test_entity;
 	use crate::GeneratedId;
 	use crate::IdTupleGenerated;
 	use mockall::predicate::{always, eq};
@@ -370,12 +371,20 @@ mod tests {
 		executor
 			.expect_post::<SimpleMoveMailService>()
 			.with(eq(first_invocation), always())
-			.returning(|_, _| Ok(()));
+			.returning(|_, _| {
+				Ok(MoveMailPostOut {
+					..create_test_entity()
+				})
+			});
 
 		executor
 			.expect_post::<SimpleMoveMailService>()
 			.with(eq(second_invocation), always())
-			.returning(|_, _| Ok(()));
+			.returning(|_, _| {
+				Ok(MoveMailPostOut {
+					..create_test_entity()
+				})
+			});
 
 		let facade = MailFacade::new(
 			Arc::new(MockCryptoEntityClient::default()),
@@ -403,7 +412,11 @@ mod tests {
 		executor
 			.expect_post::<SimpleMoveMailService>()
 			.with(eq(invocation), always())
-			.returning(|_, _| Ok(()));
+			.returning(|_, _| {
+				Ok(MoveMailPostOut {
+					..create_test_entity()
+				})
+			});
 		let facade = MailFacade::new(
 			Arc::new(MockCryptoEntityClient::default()),
 			Arc::new(MockUserFacade::default()),
@@ -425,7 +438,11 @@ mod tests {
 		executor
 			.expect_post::<SimpleMoveMailService>()
 			.with(eq(invocation), always())
-			.returning(|_, _| Ok(()));
+			.returning(|_, _| {
+				Ok(MoveMailPostOut {
+					..create_test_entity()
+				})
+			});
 		let facade = MailFacade::new(
 			Arc::new(MockCryptoEntityClient::default()),
 			Arc::new(MockUserFacade::default()),

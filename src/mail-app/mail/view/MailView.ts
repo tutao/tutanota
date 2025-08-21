@@ -190,8 +190,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 												showProgressDialog("progressDeleting_msg", this.mailViewModel.finallyDeleteAllMailsInSelectedFolder(folder))
 											}
 										},
-										onTrashSwipe: async (moveMode, ownerGroup, mails) => {
-											await this.moveMailsToTrash(moveMode, ownerGroup, mails)
+										onTrashSwipe: async (ownerGroup, mails) => {
+											await this.moveMailsToTrash(ownerGroup, mails)
 										},
 										onMoveSwipe: async (targetFolderType, mails) => {
 											return await moveMailsToSystemFolder({
@@ -404,7 +404,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				actions: (mailViewerModel: MailViewerViewModel) => {
 					return {
 						trash: async () => {
-							await this.moveMailsToTrash(MoveMode.Mails, assertNotNull(mailViewerModel.mail._ownerGroup), [mailViewerModel.mail._id])
+							await this.moveMailsToTrash(assertNotNull(mailViewerModel.mail._ownerGroup), [mailViewerModel.mail._id])
 						},
 						delete: mailViewerModel.isDeletableMail()
 							? () => {
@@ -834,15 +834,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			return
 		}
 		const resolvedMails = await this.mailViewModel.getResolvedActionableMails()
-		await this.moveMailsToTrash(
-			this.mailViewModel.groupMailsByConversation() ? MoveMode.Conversation : MoveMode.Mails,
-			assertNotNull(firstMail._ownerGroup),
-			resolvedMails,
-		)
+		await this.moveMailsToTrash(assertNotNull(firstMail._ownerGroup), resolvedMails)
 	}
 
-	private async moveMailsToTrash(moveMode: MoveMode, ownerGroupId: Id, resolvedMails: readonly IdTuple[]) {
-		const currentFolder = this.mailViewModel.getFolder()
+	private async moveMailsToTrash(ownerGroupId: Id, resolvedMails: readonly IdTuple[]) {
 		const folderSystem = mailLocator.mailModel.getFolderSystemByGroupId(ownerGroupId)
 		const targetFolder = folderSystem?.getSystemFolderByType(MailSetKind.TRASH)
 
@@ -855,8 +850,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			mailModel: mailLocator.mailModel,
 			targetFolder,
 			mailIds: resolvedMails,
-			moveMode,
-			undoFolder: currentFolder,
+			moveMode: MoveMode.Mails, // when conversation grouping is enabled, move all conversation mails to trash.
 			undoModel: this.undoModel,
 		})
 
@@ -1141,7 +1135,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				targetFolder,
 				mailIds: actionableMails,
 				moveMode: this.mailViewModel.getMoveMode(currentFolder),
-				undoFolder: currentFolder,
 				undoModel: this.undoModel,
 			})
 		}

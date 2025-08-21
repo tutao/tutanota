@@ -113,7 +113,7 @@ export async function showEditFolderDialog(mailBoxDetail: MailboxDetail, editedF
 					for (const descendant of descendants) {
 						await loadAllMailsOfFolder(descendant.folder, reportableMails)
 					}
-					await reportMailsAutomatically(MailReportType.SPAM, locator.mailboxModel, mailLocator.mailModel, mailBoxDetail, async () => reportableMails)
+					await reportMailsAutomatically(MailReportType.SPAM, locator.mailboxModel, mailLocator.mailModel, async () => reportableMails)
 
 					await locator.mailFacade.updateMailFolderName(editedFolder, folderNameValue)
 					await mailLocator.mailModel.sendFolderToSpam(editedFolder)

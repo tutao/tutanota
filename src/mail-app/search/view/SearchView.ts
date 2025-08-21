@@ -74,8 +74,7 @@ import {
 	showLabelsPopup,
 	showMoveMailsDropdown,
 	ShowMoveMailsDropdownOpts,
-	simpleMoveToArchive,
-	simpleMoveToInbox,
+	simpleMoveToSystemFolder,
 	trashMails,
 } from "../../mail/view/MailGuiUtils.js"
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
@@ -704,7 +703,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						actions: (mailViewerModel: MailViewerViewModel) => {
 							return {
 								trash: () => {
-									trashMails(mailLocator.mailModel, [mailViewerModel.mail._id])
+									trashMails(mailViewerModel.mailboxModel, mailViewerModel.mailModel, this.undoModel, [mailViewerModel.mail])
 								},
 								delete: mailViewerModel.isDeletableMail()
 									? () => promptAndDeleteMails(mailViewerModel.mailModel, [mailViewerModel.mail._id], null, noOp)
@@ -1188,13 +1187,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 			{
 				key: Keys.A,
-				exec: () => this.archiveSelected(),
+				exec: () => this.moveSelectedToSystemFolder(MailSetKind.ARCHIVE),
 				help: "archive_action",
 				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 			},
 			{
 				key: Keys.I,
-				exec: () => this.moveSelectedToInbox(),
+				exec: () => this.moveSelectedToSystemFolder(MailSetKind.INBOX),
 				help: "moveToInbox_action",
 				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 			},
@@ -1300,7 +1299,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private archiveSelected(): void {
+	private moveSelectedToSystemFolder(targetFolder: SystemFolderType): void {
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
@@ -1308,19 +1307,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			simpleMoveToArchive(getIds(selectedMails))
-		}
-	}
-
-	private moveSelectedToInbox(): void {
-		const selectedMails = this.searchViewModel.getSelectedMails()
-
-		if (selectedMails.length > 0) {
-			if (selectedMails.length > 1) {
-				this.searchViewModel.listModel.selectNone()
-			}
-
-			simpleMoveToInbox(getIds(selectedMails))
+			simpleMoveToSystemFolder(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, targetFolder, selectedMails)
 		}
 	}
 
@@ -1328,7 +1315,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, this.undoModel, getMoveMailBounds(), selectedMails, MoveMode.Mails, {
+			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, getMoveMailBounds(), selectedMails, MoveMode.Mails, {
 				onSelected: () => {
 					if (selectedMails.length > 1) {
 						this.searchViewModel.listModel.selectNone()
@@ -1369,7 +1356,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				return {
 					deleteAction: null,
 					trashAction: () => {
-						trashMails(mailLocator.mailModel, getIds(selected))
+						trashMails(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, selected)
 					},
 				}
 			}

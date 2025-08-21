@@ -24,6 +24,7 @@ import {
 	MailFolderTypeRef,
 	MailSetEntryTypeRef,
 	MailTypeRef,
+	MovedMails,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	FeatureType,
@@ -34,6 +35,7 @@ import {
 	OperationType,
 	ReportMovedMailsType,
 	SimpleMoveMailTarget,
+	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants.js"
 import { CUSTOM_MIN_ID, elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -346,25 +348,30 @@ export class MailModel {
 	 * @param mails
 	 * @param targetMailFolderKind
 	 */
-	async simpleMoveMails(mails: readonly IdTuple[], targetMailFolderKind: SimpleMoveMailTarget): Promise<void> {
-		await this.mailFacade.simpleMoveMails(mails, targetMailFolderKind)
+	async simpleMoveMails(mails: readonly IdTuple[], targetMailFolderKind: SimpleMoveMailTarget): Promise<MovedMails[]> {
+		return await this.mailFacade.simpleMoveMails(mails, targetMailFolderKind)
+	}
+
+	getFolderExcludedFromMove(moveMode: MoveMode): SystemFolderType | null {
+		return moveMode === MoveMode.Conversation ? MailSetKind.SENT : null
 	}
 
 	/**
 	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
 	 */
-	async moveMails(mails: readonly IdTuple[], targetFolder: MailFolder, moveMode: MoveMode): Promise<void> {
+	async moveMails(mails: readonly IdTuple[], targetFolder: MailFolder, moveMode: MoveMode): Promise<MovedMails[]> {
 		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
 		if (folderSystem == null) {
-			return
+			return []
 		}
 
-		const excludeFolder = moveMode === MoveMode.Conversation ? assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SENT))._id : null
-		await this.mailFacade.moveMails(mails, targetFolder._id, excludeFolder)
+		const excludedFolderType = this.getFolderExcludedFromMove(moveMode)
+		const excludeFolder = excludedFolderType != null ? assertNotNull(folderSystem.getSystemFolderByType(excludedFolderType))._id : null
+		return await this.mailFacade.moveMails(mails, targetFolder._id, excludeFolder)
 	}
 
-	async trashMails(mails: readonly IdTuple[]): Promise<void> {
-		await this.mailFacade.simpleMoveMails(mails, MailSetKind.TRASH)
+	async trashMails(mails: readonly IdTuple[]): Promise<MovedMails[]> {
+		return await this.mailFacade.simpleMoveMails(mails, MailSetKind.TRASH)
 	}
 
 	/**
