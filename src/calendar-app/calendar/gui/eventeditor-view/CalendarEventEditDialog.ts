@@ -28,7 +28,6 @@ import { UserError } from "../../../../common/api/main/UserError.js"
 import { showUserError } from "../../../../common/misc/ErrorHandlerImpl.js"
 import { theme } from "../../../../common/gui/theme.js"
 import stream from "mithril/stream"
-import { handleRatingByEvent } from "../../../../common/ratings/UserSatisfactionDialog.js"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
@@ -195,7 +194,7 @@ export class EventEditorDialog {
 					finished = true
 					await okActionCallback?.()
 					finish()
-
+					const { handleRatingByEvent } = await import("../../../../common/ratings/UserSatisfactionDialog.js")
 					void handleRatingByEvent("Calendar")
 				}
 			} catch (e) {

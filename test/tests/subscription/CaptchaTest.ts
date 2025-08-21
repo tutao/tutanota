@@ -12,7 +12,7 @@ o.spec("SolvePowChallenge", () => {
 				modulus: "2",
 			})
 			const solution = await solvePowChallengeInWorker(captchaGetOut)
-			o(solution).equals(0n)
+			o(solution.solution).equals(0n)
 		}),
 	)
 })

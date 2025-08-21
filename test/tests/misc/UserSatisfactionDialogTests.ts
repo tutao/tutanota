@@ -40,6 +40,7 @@ o.spec("UserSatisfactionDialog", () => {
 			// Arrange
 			const date = new Date("2024-10-24T12:34:00Z") // 3 days ago
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(date.getTime()))
+			when(deviceConfigMock.getInstallationDate()).thenReturn(date)
 
 			// Act
 			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
