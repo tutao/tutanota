@@ -2618,7 +2618,7 @@ dependencies = [
 
 [[package]]
 name = "tuta-sdk"
-version = "303.250820.1"
+version = "303.250821.0"
 dependencies = [
  "aes",
  "android_log",
@@ -2668,7 +2668,7 @@ dependencies = [
 
 [[package]]
 name = "tutao_node-mimimi"
-version = "303.250820.1"
+version = "303.250821.0"
 dependencies = [
  "base64",
  "crypto-primitives",
