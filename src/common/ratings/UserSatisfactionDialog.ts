@@ -17,7 +17,6 @@ import { SupportTutaPage } from "./pages/SupportTutaPage.js"
 import { DissatisfactionPage } from "./pages/DissatisfactionPage.js"
 import { SuggestionPage } from "./pages/SuggestionPage.js"
 import { isApp, isIOSApp } from "../api/common/Env.js"
-import { ContactSupportPage } from "../support/pages/ContactSupportPage.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import Stream from "mithril/stream"
 import { SupportCategory, SupportTopic } from "../api/entities/tutanota/TypeRefs.js"
@@ -31,7 +30,8 @@ import { Dialog } from "../gui/base/Dialog.js"
 
 export type UserSatisfactionDialogPage = "evaluation" | "dissatisfaction" | "androidPlayStore" | "supportTuta" | "suggestion" | "contactSupport"
 
-export function showUserSatisfactionDialog(triggerType: TriggerType): void {
+export async function showUserSatisfactionDialog(triggerType: TriggerType): Promise<void> {
+	const { ContactSupportPage } = await import("../support/pages/ContactSupportPage.js")
 	completeTriggerStage(triggerType)
 
 	deviceConfig.setNextEvaluationDate(DateTime.now().plus({ month: 4 }).toJSDate())
@@ -142,7 +142,7 @@ export async function handleRatingByEvent(triggerType: TriggerType) {
 	}
 
 	if (isEventHappyMoment(getCurrentDate(), deviceConfig)) {
-		showUserSatisfactionDialog(triggerType)
+		void showUserSatisfactionDialog(triggerType)
 	}
 }
 
