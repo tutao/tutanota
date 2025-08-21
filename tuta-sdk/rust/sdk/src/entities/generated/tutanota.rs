@@ -4058,3 +4058,48 @@ impl Entity for ChangePrimaryAddressServicePutIn {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MovedMails {
+	#[serde(rename = "1713")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1714")]
+	pub targetFolder: IdTupleGenerated,
+	#[serde(rename = "1715")]
+	pub sourceFolder: IdTupleGenerated,
+	#[serde(rename = "1716")]
+	pub mailIds: Vec<super::sys::IdTupleWrapper>,
+}
+
+impl Entity for MovedMails {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1712),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MoveMailPostOut {
+	#[serde(rename = "1718")]
+	pub _format: i64,
+	#[serde(rename = "1719")]
+	pub movedMails: Vec<MovedMails>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
+}
+
+impl Entity for MoveMailPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1717),
+		}
+	}
+}
