@@ -10,25 +10,26 @@ export enum SignupFlowStage {
 	CONFIRM_PAYMENT,
 }
 
+export type ReferralType = "not_referred" | "satisfactiondialog_referral" | "organic_referral"
+
 export abstract class SignupFlowUsageTestController {
 	private static readonly USAGE_TEST_NAME = "signup.flow"
 
 	public static invalidateUsageTest() {
-		if (locator.logins.isUserLoggedIn()) return
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
 		usageTest.invalidateTest()
 	}
 
 	public static deletePing(stage: SignupFlowStage) {
-		if (locator.logins.isUserLoggedIn()) return
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
 		void usageTest.getStage(stage.valueOf()).deletePing()
 	}
 
-	public static initSignupFlowUsageTest() {
-		if (locator.logins.isUserLoggedIn()) return
+	public static initSignupFlowUsageTest(referralConversion: ReferralType) {
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
-		void usageTest.getStage(SignupFlowStage.TRIGGER).complete()
+		const stage = usageTest.getStage(SignupFlowStage.TRIGGER)
+		stage.setMetric({ name: "referralTrigger", value: referralConversion })
+		void stage.complete()
 	}
 
 	public static getUsageTestVariant(): number {
@@ -36,8 +37,13 @@ export abstract class SignupFlowUsageTestController {
 		return usageTest.variant
 	}
 
-	public static completeStage(targetStage: SignupFlowStage, plan: PlanType, interval: PaymentInterval, paymentMethod?: PaymentMethodType) {
-		if (locator.logins.isUserLoggedIn()) return
+	public static completeStage(
+		targetStage: SignupFlowStage,
+		plan: PlanType,
+		interval: PaymentInterval,
+		paymentMethod?: PaymentMethodType,
+		referralConversion?: ReferralType,
+	) {
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
 
 		const stage = usageTest.getStage(targetStage)
@@ -57,6 +63,13 @@ export abstract class SignupFlowUsageTestController {
 			stage.setMetric({
 				name: "paymentMethod",
 				value: this.paymentMethodTypeToString(paymentMethod),
+			})
+		}
+
+		if (referralConversion != null) {
+			stage.setMetric({
+				name: "referralConversion",
+				value: referralConversion,
 			})
 		}
 

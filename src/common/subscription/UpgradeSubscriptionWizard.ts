@@ -34,7 +34,7 @@ import { DialogType } from "../gui/base/Dialog.js"
 import { VariantCSubscriptionPage, VariantCSubscriptionPageAttrs } from "./VariantCSubscriptionPage.js"
 import { styles } from "../gui/styles.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
-import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { ReferralType, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { VariantBSubscriptionPage, VariantBSubscriptionPageAttrs } from "./VariantBSubscriptionPage.js"
 import { windowFacade } from "../misc/WindowFacade"
 
@@ -50,6 +50,8 @@ export type NewAccountData = {
 	recoverCode: Hex
 	password: string
 }
+export type ReferralData = { code: string; isCalledBySatisfactionDialog: boolean }
+
 export type UpgradeSubscriptionData = {
 	options: SelectedSubscriptionOptions
 	invoiceData: InvoiceData
@@ -69,7 +71,7 @@ export type UpgradeSubscriptionData = {
 	currentPlan: PlanType | null
 	subscriptionParameters: SubscriptionParameters | null
 	featureListProvider: FeatureListProvider
-	referralCode: string | null
+	referralData: null | ReferralData
 	multipleUsersAllowed: boolean
 	acceptedPlans: readonly AvailablePlanType[]
 	msg: MaybeTranslation | null
@@ -83,6 +85,8 @@ export async function showUpgradeWizard(
 	acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans,
 	msg?: MaybeTranslation,
 ): Promise<void> {
+	SignupFlowUsageTestController.invalidateUsageTest() // Invalidates the "signup.flow" usage test, because upgrades and signups should not be mixed in this usage test.
+
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
 
 	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
@@ -118,7 +122,7 @@ export async function showUpgradeWizard(
 		subscriptionParameters: null,
 		planPrices: priceDataProvider,
 		featureListProvider: featureListProvider,
-		referralCode: null,
+		referralData: null,
 		multipleUsersAllowed: false,
 		acceptedPlans,
 		msg: msg != null ? msg : null,
@@ -157,7 +161,7 @@ export function getPlanSelectorTest() {
 export async function loadSignupWizard(
 	subscriptionParameters: SubscriptionParameters | null,
 	registrationDataId: string | null,
-	referralCode: string | null,
+	referralData: null | ReferralData,
 	acceptedPlans: readonly AvailablePlanType[] = AvailablePlans,
 ): Promise<void> {
 	const usageTestModel = locator.usageTestModel
@@ -165,7 +169,7 @@ export async function loadSignupWizard(
 	usageTestModel.setStorageBehavior(StorageBehavior.Ephemeral)
 	locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests())
 
-	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(registrationDataId, locator.serviceExecutor, referralCode)
+	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(registrationDataId, locator.serviceExecutor, referralData?.code ?? null)
 	const prices = priceDataProvider.getRawPricingData()
 	const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 	const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
@@ -215,7 +219,7 @@ export async function loadSignupWizard(
 		currentPlan: null,
 		subscriptionParameters,
 		featureListProvider,
-		referralCode,
+		referralData,
 		multipleUsersAllowed: false,
 		acceptedPlans,
 		msg: message,
@@ -278,12 +282,16 @@ function initPlansPages(signupData: UpgradeSubscriptionData): {
 		pricingData.revolutionaryPrices.monthlyPrice !== pricingData.revolutionaryPrices.monthlyReferencePrice
 	const hasMessage = !!pricingData.messageTextId
 
+	let referralConversion: ReferralType = "not_referred"
+	if (signupData.referralData && signupData.referralData.isCalledBySatisfactionDialog) referralConversion = "satisfactiondialog_referral"
+	else if (signupData.referralData && !signupData.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
+	SignupFlowUsageTestController.initSignupFlowUsageTest(referralConversion)
+
 	// Any type of discounts other than global first year discount use old subscription page.
 	if (!pricingData.hasGlobalFirstYearDiscount && (firstYearDiscount !== 0 || bonusMonth !== 0 || hasDiscount || hasMessage)) {
-		SignupFlowUsageTestController.invalidateUsageTest()
+		SignupFlowUsageTestController.invalidateUsageTest() // Upgrades can't be used in the signup.flow usage test while we have multiple plan selector variants
 		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
 	}
-	SignupFlowUsageTestController.initSignupFlowUsageTest()
 
 	switch (SignupFlowUsageTestController.getUsageTestVariant()) {
 		case 1:
