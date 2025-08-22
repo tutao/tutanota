@@ -23,7 +23,7 @@ import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
-import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
@@ -51,7 +51,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			customer: null,
 			plan: data.targetPlanType,
 			date: Const.CURRENT_DATE,
-			referralCode: data.referralCode,
+			referralCode: data.referralData?.code ?? null,
 			specialPriceUserSingle: null,
 			surveyData: null,
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
@@ -230,11 +230,15 @@ export class UpgradeConfirmSubscriptionPageAttrs implements WizardPageAttrs<Upgr
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
+		let referralConversion: ReferralType = "not_referred"
+		if (this.data.referralData && this.data.referralData.isCalledBySatisfactionDialog) referralConversion = "satisfactiondialog_referral"
+		else if (this.data.referralData && !this.data.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
 		SignupFlowUsageTestController.completeStage(
 			SignupFlowStage.CONFIRM_PAYMENT,
 			this.data.targetPlanType,
 			this.data.options.paymentInterval(),
 			this.data.paymentData.paymentMethod,
+			referralConversion,
 		)
 
 		if (this.data.isCalledBySatisfactionDialog) {
