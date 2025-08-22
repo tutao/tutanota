@@ -4,7 +4,7 @@ import { KeyVerificationModel } from "../KeyVerificationModel"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import jsQR from "jsqr"
 import { IdentityKeyQrVerificationResult, IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
-import { isApp } from "../../../api/common/Env"
+import { isApp, isAppleDevice, isDesktop, isElectronClient } from "../../../api/common/Env"
 import { TitleSection } from "../../../gui/TitleSection"
 
 export type QrCodePageErrorType = "camera_permission_denied" | "malformed_qr" | "email_not_found" | "camera_not_found" | "video_source_error" | "unknown"
@@ -196,15 +196,12 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 
 	async requestCameraPermission(model: KeyVerificationModel): Promise<void> {
 		this.qrCameraState = QrCameraState.PERMISSION_CHECK
-		if (isApp()) {
-			const hasPermission = await model.requestCameraPermission()
-			if (hasPermission) {
-				this.qrCameraState = QrCameraState.INIT_VIDEO
-			} else {
-				this.qrCameraState = QrCameraState.PERMISSION_DENIED
-			}
-		} else {
+		let hasPermission = await model.requestCameraPermission()
+
+		if (hasPermission) {
 			this.qrCameraState = QrCameraState.INIT_VIDEO
+		} else {
+			this.qrCameraState = QrCameraState.PERMISSION_DENIED
 		}
 	}
 }
