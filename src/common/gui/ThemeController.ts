@@ -7,7 +7,7 @@ import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } fr
 import m from "mithril"
 import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
 import { themes } from "./builtinThemes"
-import { getWhitelabelCustomizations, ThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "../misc/WhitelabelCustomizations"
+import { getWhitelabelCustomizations, ThemeCustomizations } from "../misc/WhitelabelCustomizations"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { AppType } from "../misc/ClientConstants.js"
@@ -101,7 +101,8 @@ export class ThemeController {
 			const mappedOldTokens = newToOldColorTokenMap[newToken as keyof typeof newToOldColorTokenMap]
 			if (mappedOldTokens) {
 				for (const oldToken of mappedOldTokens) {
-					mappedCustomizations[oldToken] = hex
+					// FIXME
+					// mappedCustomizations[oldToken] = hex
 				}
 			}
 			mappedCustomizations[newToken] = hex

@@ -1,6 +1,6 @@
 import { assertMainOrNode } from "../../api/common/Env"
 import { BaseThemeId, MATERIAL_COLORS, Theme } from "../../gui/theme"
-import { clone, defer, DeferredObject, downcast } from "@tutao/tutanota-utils"
+import { clone, downcast } from "@tutao/tutanota-utils"
 import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
 import { isValidColorCode } from "../../gui/base/Color"
 import stream from "mithril/stream"
@@ -30,7 +30,6 @@ export class CustomColorsEditorViewModel {
 	private readonly _loginController: LoginController
 	private readonly _themeBeforePreview: Theme
 	readonly builtTheme: Stream<Theme>
-	private readonly inited: DeferredObject<void> = defer()
 
 	constructor(
 		currentTheme: Theme,
@@ -50,14 +49,12 @@ export class CustomColorsEditorViewModel {
 		this._entityClient = entityClient
 		this._loginController = loginController
 		this.builtTheme = stream()
-
-		const baseThemeId = themeCustomizations.base ?? "light"
-		const accentColor = themeCustomizations.primary ?? this._themeController.getDefaultTheme().primary
-		this.changeTheme({ accentColor, baseThemeId })
 	}
 
-	init() {
-		this._applyEditedTheme()
+	async init() {
+		const baseThemeId = this._customizations.base ?? "light"
+		const accentColor = this._customizations.primary ?? this._themeController.getDefaultTheme().primary
+		await this.changeTheme({ accentColor, baseThemeId })
 	}
 
 	get accentColor(): string {
@@ -147,14 +144,9 @@ export class CustomColorsEditorViewModel {
 		this._removeEmptyCustomizations()
 
 		await this._themeController.applyCustomizations(this.customizations, false)
-		this.inited.resolve()
 	}
 
 	_removeEmptyCustomizations() {
 		this._customizations = downcast(Object.fromEntries(Object.entries(this.customizations).filter(([k, v]) => v !== "")))
-	}
-
-	async _waitInited(): Promise<void> {
-		await this.inited.promise
 	}
 }
