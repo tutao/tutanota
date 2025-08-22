@@ -1,5 +1,5 @@
-import m, { Children, Component, VnodeDOM } from "mithril"
-import { Dialog } from "../../gui/base/Dialog.js"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { ImageWithOptionsDialog } from "../../gui/dialogs/ImageWithOptionsDialog.js"
 import { client } from "../../misc/ClientDetector.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
@@ -14,9 +14,12 @@ import { px } from "../../gui/size.js"
 import { assertNotNull, last, neverNull } from "@tutao/tutanota-utils"
 import { BookingTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
+import { UserSatisfactionDialogPage } from "../UserSatisfactionDialog"
+import { getReferralLink, ReferralLinkViewer } from "../../misc/news/items/ReferralLinkViewer"
 
 interface SupportTutaPageAttrs {
 	dialog: Dialog
+	navigate: (page: UserSatisfactionDialogPage) => void
 }
 
 export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
@@ -29,7 +32,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 		m.redraw()
 	}
 
-	view(): Children {
+	view(vnode: Vnode<SupportTutaPageAttrs>): Children {
 		if (!this.currentPlan) {
 			return m(
 				".full-width.full-height.flex.justify-center.items-center.flex-column",
@@ -43,9 +46,9 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 			imageStyle: { maxWidth: px(320) },
 			titleText: "ratingSupportTuta_title",
 			messageText: "ratingSupportTuta_msg",
-			mainActionText: this.getMainAction().langKey,
+			mainActionText: this.getMainAction(vnode.attrs).langKey,
 			mainActionClick: () => {
-				const mainAction = this.getMainAction()
+				const mainAction = this.getMainAction(vnode.attrs)
 				completeSupportTutaStage(mainAction.buttonType, this.currentPlan!)
 				mainAction.onClick()
 			},
@@ -59,7 +62,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 		})
 	}
 
-	private getMainAction(): Action {
+	private getMainAction(attrs: SupportTutaPageAttrs): Action {
 		if (this.currentPlan === PlanType.Free || LegacyPrivatePlans.includes(neverNull(this.currentPlan))) {
 			return {
 				buttonType: "Upgrade",
@@ -89,7 +92,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 				langKey: "referralSettings_label",
 				onClick: () => {
 					this.dialog?.close()
-					m.route.set("/settings/referral")
+					void this.showReferralLinkDialog()
 				},
 			}
 		}
@@ -141,6 +144,23 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 
 		const { showSwitchDialog } = await import("../../subscription/SwitchSubscriptionDialog.js")
 		await showSwitchDialog(customer, accountingInfo, assertNotNull(lastBooking), NewPaidPlans, null)
+	}
+
+	private async showReferralLinkDialog(): Promise<void> {
+		const userController = locator.logins.getUserController()
+		const referralLink = await getReferralLink(userController, true)
+
+		Dialog.showActionDialog({
+			title: "referralSettings_label",
+			type: DialogType.EditMedium,
+			child: () => m(".pt", m(ReferralLinkViewer, { referralLink })),
+			allowOkWithReturn: false,
+			okAction: (dialog: Dialog) => {
+				dialog.close()
+			},
+			okActionTextId: "done_action",
+			allowCancel: false,
+		})
 	}
 }
 

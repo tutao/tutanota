@@ -90,7 +90,7 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 			},
 		},
 		supportTuta: {
-			content: m(SupportTutaPage, { dialog }),
+			content: m(SupportTutaPage, { dialog, navigate: navigateToPage }),
 			rightAction: {
 				label: "notNow_label",
 				type: ButtonType.Secondary,

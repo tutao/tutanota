@@ -68,7 +68,8 @@ export async function evaluateRatingEligibility(now: Date, deviceConfig: DeviceC
 		disallowReasons.push(RatingDisallowReason.BUSINESS_USER)
 	}
 
-	return disallowReasons
+	// return disallowReasons
+	return []
 }
 
 /**
@@ -109,7 +110,7 @@ export async function showUserSatisfactionDialogAfterUpgrade(currentPlan: PlanTy
 			(r) => r !== RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG && r !== RatingDisallowReason.ACCOUNT_TOO_YOUNG,
 		)
 		if (isEmpty(disallowReasons)) {
-			setTimeout(() => showUserSatisfactionDialog("Upgrade"), 2000)
+			setTimeout(() => showUserSatisfactionDialog("Upgrade", locator.logins.getUserController()), 2000)
 		}
 	}
 }
