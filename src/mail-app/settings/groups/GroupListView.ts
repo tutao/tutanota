@@ -138,7 +138,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 		} else {
 			const msg = lang.makeTranslation("upgrade_text", lang.get("newPaidPlanRequired_msg") + " " + lang.get("sharedMailboxesMultiUser_msg"))
 			const wizard = await import("../../../common/subscription/UpgradeSubscriptionWizard")
-			await wizard.showUpgradeWizard(locator.logins, NewPaidPlans, msg)
+			await wizard.showUpgradeWizard(locator.logins, false, NewPaidPlans, msg)
 		}
 	}
 

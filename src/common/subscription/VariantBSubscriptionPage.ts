@@ -61,7 +61,7 @@ export class VariantBSubscriptionPage implements WizardPageN<UpgradeSubscription
 		// newAccountData is filled in when signing up and then going back in the signup process
 		// If the user has selected a paid plan we want to prevent them from selecting a free plan at this point,
 		// since the account will be PAID_SUBSCRIPTION_NEEDED state if the user selects free
-		if (!!data.newAccountData && data.type !== PlanType.Free) {
+		if (!!data.newAccountData && data.targetPlanType !== PlanType.Free) {
 			availablePlans = availablePlans.filter((plan) => plan !== PlanType.Free)
 		}
 
@@ -150,7 +150,7 @@ export class VariantBSubscriptionPage implements WizardPageN<UpgradeSubscription
 		showFreeSubscriptionDialog().then((confirmed) => {
 			if (confirmed) {
 				// Confirmation of free/business dialog (click on ok)
-				data.type = PlanType.Free
+				data.targetPlanType = PlanType.Free
 				data.price = null
 				data.nextYearPrice = null
 
@@ -219,7 +219,7 @@ export class VariantBSubscriptionPage implements WizardPageN<UpgradeSubscription
 
 	private setNonFreeDataAndGoToNextPage(data: UpgradeSubscriptionData, planType: PlanType): void {
 		// Confirmation of paid subscription selection (click on subscription selector)
-		data.type = planType
+		data.targetPlanType = planType
 		const { planPrices, options } = data
 		try {
 			// `data.price.rawPrice` is used for the amount parameter in the Braintree credit card verification call, so we do not include currency locale outside iOS.
@@ -309,7 +309,7 @@ export class VariantBSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 	}
 
 	nextAction(_: boolean): Promise<boolean> {
-		SignupFlowUsageTestController.completeStage(SignupFlowStage.SELECT_PLAN, this.data.type, this.data.options.paymentInterval())
+		SignupFlowUsageTestController.completeStage(SignupFlowStage.SELECT_PLAN, this.data.targetPlanType, this.data.options.paymentInterval())
 		return Promise.resolve(true)
 	}
 

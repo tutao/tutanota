@@ -1,4 +1,4 @@
-import { BookingItemFeatureType, Const, PaymentMethodType, PlanName, PlanType, PlanTypeToName, reverse } from "../api/common/TutanotaConstants"
+import { BookingItemFeatureType, Const, PaymentMethodType, PlanType, PlanTypeToName, reverse } from "../api/common/TutanotaConstants"
 import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
 import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
@@ -188,7 +188,7 @@ export class PriceAndConfigProvider {
 	 * Returns the subscription price with the currency formatting on iOS and as a plain period seperated number on other platforms
 	 */
 	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, data: UpgradeSubscriptionData): SubscriptionPrice {
-		const subscription = data.type
+		const subscription = data.targetPlanType
 
 		if (isIOSApp()) {
 			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval)

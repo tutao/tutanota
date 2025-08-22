@@ -33,7 +33,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 				emitWizardEvent(this.dom, WizardEventType.SHOW_PREVIOUS_PAGE)
 			},
 			isBusinessUse: data.options.businessUse,
-			isPaidSubscription: () => data.type !== PlanType.Free,
+			isPaidSubscription: () => data.targetPlanType !== PlanType.Free,
 			campaignToken: () => data.registrationDataId,
 			prefilledMailAddress: mailAddress,
 			readonly: !!newAccountData,
@@ -49,9 +49,9 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 	}
 
 	headerTitle(): Translation {
-		const title = getDisplayNameOfPlanType(this.data.type)
+		const title = getDisplayNameOfPlanType(this.data.targetPlanType)
 
-		if (this.data.type === PlanType.Essential || this.data.type === PlanType.Advanced) {
+		if (this.data.targetPlanType === PlanType.Essential || this.data.targetPlanType === PlanType.Advanced) {
 			return lang.makeTranslation("signup_business", title + " Business")
 		} else {
 			return lang.makeTranslation("signup_title", title)
@@ -60,7 +60,7 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
 		// next action not available for this page
-		SignupFlowUsageTestController.completeStage(SignupFlowStage.CREATE_ACCOUNT, this.data.type, this.data.options.paymentInterval())
+		SignupFlowUsageTestController.completeStage(SignupFlowStage.CREATE_ACCOUNT, this.data.targetPlanType, this.data.options.paymentInterval())
 		return Promise.resolve(true)
 	}
 
