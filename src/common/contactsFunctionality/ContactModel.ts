@@ -27,6 +27,7 @@ assertMainOrNode()
 
 export type ContactListInfo = {
 	name: string
+	sharedName: string | null
 	groupInfo: GroupInfo
 	group: Group
 	groupRoot: ContactListGroupRoot
@@ -175,10 +176,12 @@ export class ContactModel {
 		const groupRoot = await this.entityClient.load(ContactListGroupRootTypeRef, groupInfo.group)
 		const userController = this.loginController.getUserController()
 		const { getSharedGroupName } = await import("../sharing/GroupUtils.js")
-		const { hasCapabilityOnGroup, isSharedGroupOwner } = await import("../sharing/GroupUtils.js")
+		const { hasCapabilityOnGroup, isSharedGroupOwner, loadGroupMembers } = await import("../sharing/GroupUtils.js")
+		const groupMembers = await loadGroupMembers(group, this.entityClient)
 
 		return {
 			name: getSharedGroupName(groupInfo, userController, true),
+			sharedName: groupMembers.length > 1 ? groupInfo.name : null,
 			group,
 			groupInfo,
 			groupRoot,

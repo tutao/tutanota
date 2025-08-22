@@ -4,7 +4,7 @@ import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
-import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Contact, ContactTypeRef, createGroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -517,7 +517,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				},
 				[
 					this.contactListViewModel.getOwnContactListInfos().map((cl) => {
-						return this.renderContactListRow(cl, false)
+						return this.renderContactListRow(cl)
 					}),
 				],
 			),
@@ -530,7 +530,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 								name: "sharedContactLists_label",
 							},
 							this.contactListViewModel.getSharedContactListInfos().map((cl) => {
-								return this.renderContactListRow(cl, true)
+								return this.renderContactListRow(cl)
 							}),
 						),
 					)
@@ -607,7 +607,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		})
 	}
 
-	private renderContactListRow(contactListInfo: ContactListInfo, shared: boolean) {
+	private renderContactListRow(contactListInfo: ContactListInfo) {
 		const contactListButton: NavButtonAttrs = {
 			label: lang.makeTranslation("contactListName_label", contactListInfo.name),
 			icon: () => Icons.People,
@@ -619,7 +619,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			},
 		}
 
-		const moreButton = this.createContactListMoreButton(contactListInfo, shared)
+		const moreButton = this.createContactListMoreButton(contactListInfo, contactListInfo.sharedName != null)
 
 		return m(SidebarSectionRow, {
 			icon: Icons.People,
@@ -648,11 +648,19 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						label: "edit_action",
 						icon: Icons.Edit,
 						click: () => {
-							showContactListNameEditor(contactListInfo.name, (newName) => {
-								if (shared) {
-									this.editSharedContactList(contactListInfo, newName)
-								} else {
-									this.contactListViewModel.updateContactList(contactListInfo, newName, [])
+							showContactListNameEditor(contactListInfo, (newName: string, newSharedName: string | null) => {
+								if (newName !== contactListInfo.name) {
+									contactListInfo.name = newName
+									if (contactListInfo.sharedName) {
+										// If there is a shared name, this is a shared contact list and this is editing your local name
+										this.editSharedContactList(contactListInfo, newName)
+									} else {
+										this.contactListViewModel.updateContactList(contactListInfo, newName)
+									}
+								}
+								if (newSharedName && newSharedName !== contactListInfo.sharedName) {
+									contactListInfo.sharedName = newSharedName
+									this.contactListViewModel.updateContactList(contactListInfo, newSharedName)
 								}
 							})
 						},
@@ -702,6 +710,15 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 		if (existingGroupSettings) {
 			existingGroupSettings.name = newName
+		} else {
+			const newGroupSettings = createGroupSettings({
+				group: contactListInfo.groupInfo.group,
+				color: "",
+				name: newName,
+				defaultAlarmsList: [],
+				sourceUrl: null,
+			})
+			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 		}
 
 		locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
