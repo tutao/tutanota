@@ -4,7 +4,7 @@ import { ToggleButton } from "../../../../common/gui/base/buttons/ToggleButton.j
 import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import { ButtonSize } from "../../../../common/gui/base/ButtonSize.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
-import { AccountType, CalendarAttendeeStatus } from "../../../../common/api/common/TutanotaConstants.js"
+import { AccountType, CalendarAttendeeStatus, PresentableKeyVerificationState } from "../../../../common/api/common/TutanotaConstants.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
 import { Icon, IconSize } from "../../../../common/gui/base/Icon.js"
@@ -181,7 +181,9 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 						"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s.button-min-height",
 						{
 							class: option.selectable === false ? `no-hover` : "",
-							style: { color: option.value === status ? theme.content_button_selected : undefined },
+							style: {
+								color: option.value === status ? theme.content_button_selected : undefined,
+							},
 						},
 						option.name,
 					),
@@ -237,7 +239,11 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 							renderOption: (option) =>
 								m(
 									"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s.button-min-height",
-									{ style: { color: selected.address === option.address ? theme.content_button_selected : undefined } },
+									{
+										style: {
+											color: selected.address === option.address ? theme.content_button_selected : undefined,
+										},
+									},
 									option.address,
 								),
 							renderDisplay: (option) => m("", option.name ? `${option.name} <${option.address}>` : option.address),
@@ -298,7 +304,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 
 	private renderGuest(guest: Guest, { model }: Pick<AttendeeListEditorAttrs, "model">, password?: string, strength?: number): Children {
 		const { whoModel } = model.editModels
-		const { address, name, status } = guest
+		const { address, name, status, verificationState } = guest
 		const isMe = guest.address === whoModel.ownGuest?.address
 		const roleLabel = isMe ? `${lang.get("guest_label")} | ${lang.get("you_label")}` : lang.get("guest_label")
 		const renderPasswordField = whoModel.isConfidential && password != null && guest.type === RecipientType.EXTERNAL
@@ -325,6 +331,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			m(".flex.flex-column.items-center", [
 				m(".flex.items-center.flex-grow.full-width", [
 					this.renderStatusIcon(status),
+					this.renderAttendeeKeyVerificationStatus(verificationState),
 					m(".flex.flex-column.flex-grow.min-width-0", [
 						m(".small", { style: { lineHeight: px(size.vpad_small) } }, roleLabel),
 						m(".text-ellipsis", name.length > 0 ? `${name} ${address}` : address),
@@ -349,6 +356,30 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 					: null,
 			]),
 		)
+	}
+
+	private renderAttendeeKeyVerificationStatus(keyVerificationState: PresentableKeyVerificationState) {
+		switch (keyVerificationState) {
+			case PresentableKeyVerificationState.SECURE: {
+				return m(Icon, {
+					icon: Icons.Shield,
+					size: IconSize.Large,
+					style: {
+						fill: theme.success,
+					},
+				})
+			}
+			case PresentableKeyVerificationState.ALERT: {
+				return m(Icon, {
+					icon: Icons.BrokenShield,
+					size: IconSize.Large,
+					style: {
+						fill: theme.error,
+					},
+				})
+			}
+		}
+		return null
 	}
 
 	private renderPasswordField(address: string, password: string, strength: number, whoModel: CalendarEventWhoModel): Children {
