@@ -54,7 +54,7 @@ export type UpgradeSubscriptionData = {
 	options: SelectedSubscriptionOptions
 	invoiceData: InvoiceData
 	paymentData: PaymentData
-	type: PlanType
+	targetPlanType: PlanType
 	price: SubscriptionPrice | null
 	nextYearPrice: SubscriptionPrice | null
 	accountingInfo: AccountingInfo | null
@@ -74,10 +74,12 @@ export type UpgradeSubscriptionData = {
 	acceptedPlans: readonly AvailablePlanType[]
 	msg: MaybeTranslation | null
 	firstMonthForFreeOfferActive: boolean
+	isCalledBySatisfactionDialog: boolean
 }
 
 export async function showUpgradeWizard(
 	logins: LoginController,
+	isCalledBySatisfactionDialog: boolean,
 	acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans,
 	msg?: MaybeTranslation,
 ): Promise<void> {
@@ -103,7 +105,7 @@ export async function showUpgradeWizard(
 			creditCardData: null,
 		},
 		price: null,
-		type: PlanType.Revolutionary,
+		targetPlanType: PlanType.Revolutionary,
 		nextYearPrice: null,
 		accountingInfo: accountingInfo,
 		customer: customer,
@@ -121,12 +123,13 @@ export async function showUpgradeWizard(
 		acceptedPlans,
 		msg: msg != null ? msg : null,
 		firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
+		isCalledBySatisfactionDialog,
 	}
 
 	const wizardPages = [
 		wizardPageWrapper(UpgradeSubscriptionPage, new UpgradeSubscriptionPageAttrs(upgradeData)),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
-		wizardPageWrapper(UpgradeConfirmSubscriptionPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
+		wizardPageWrapper(UpgradeConfirmSubscriptionPage, new UpgradeConfirmSubscriptionPageAttrs(upgradeData)),
 	]
 	if (isIOSApp()) {
 		wizardPages.splice(1, 1) // do not show this page on AppStore payment since we are only able to show this single payment method on iOS
@@ -201,7 +204,7 @@ export async function loadSignupWizard(
 		},
 		price: null,
 		nextYearPrice: null,
-		type: PlanType.Free,
+		targetPlanType: PlanType.Free,
 		accountingInfo: null,
 		customer: null,
 		newAccountData: null,
@@ -217,6 +220,7 @@ export async function loadSignupWizard(
 		acceptedPlans,
 		msg: message,
 		firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
+		isCalledBySatisfactionDialog: false,
 	}
 
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
@@ -260,8 +264,8 @@ export async function loadSignupWizard(
 	})
 
 	// for signup specifically, we only want the invoice and payment page as well as the confirmation page to show up if signing up for a paid account (and the user did not go back to the first page!)
-	invoiceAttrs.setEnabledFunction(() => signupData.type !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
-	confirmSubscriptionAttrs.setEnabledFunction(() => signupData.type !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
+	invoiceAttrs.setEnabledFunction(() => signupData.targetPlanType !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
+	confirmSubscriptionAttrs.setEnabledFunction(() => signupData.targetPlanType !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
 
 	wizardBuilder.dialog.show()
 }

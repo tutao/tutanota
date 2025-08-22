@@ -302,7 +302,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		await showUpgradeWizard(locator.logins)
+		await showUpgradeWizard(locator.logins, false)
 	}
 
 	private async handleAppStoreSubscriptionChange() {
