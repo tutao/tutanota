@@ -21,4 +21,9 @@ export class DesktopDesktopSystemFacade implements DesktopSystemFacade {
 	async sendSocketMessage(message: string): Promise<void> {
 		this.sock.sendSocketMessage(message)
 	}
+
+	async requestVideoPermission(): Promise<boolean> {
+		const { systemPreferences } = await import("electron")
+		return systemPreferences.askForMediaAccess("camera")
+	}
 }

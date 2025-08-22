@@ -18,6 +18,7 @@ import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdenti
 import { FingerprintMismatchInfoPage } from "./dialogpages/FingerprintMismatchInfoPage"
 import { FingerprintMismatchKeepPage } from "./dialogpages/FingerprintMismatchKeepPage"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade"
 
 enum KeyVerificationDialogPages {
 	CHOOSE_METHOD = "CHOOSE_METHOD",
@@ -34,6 +35,7 @@ enum KeyVerificationDialogPages {
  */
 export async function showKeyVerificationDialog(
 	keyVerificationFacade: KeyVerificationFacade,
+	desktopSystemFacade: DesktopSystemFacade,
 	mobileSystemFacade: MobileSystemFacade,
 	usageTestController: UsageTestController,
 	publicIdentityKeyProvider: PublicIdentityKeyProvider,
@@ -44,7 +46,13 @@ export async function showKeyVerificationDialog(
 	const regretUsageTest = usageTestController.getTest("crypto.keyVerification.regret")
 	const keyVerificationUsageTestUtils = new KeyVerificationUsageTestUtils(textUsageTest, qrUsageTest, regretUsageTest)
 
-	const model = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade, keyVerificationUsageTestUtils, publicIdentityKeyProvider)
+	const model = new KeyVerificationModel(
+		keyVerificationFacade,
+		desktopSystemFacade,
+		mobileSystemFacade,
+		keyVerificationUsageTestUtils,
+		publicIdentityKeyProvider,
+	)
 	let lastError: QrCodePageErrorType | null = null
 
 	const multiPageDialog: Dialog = new MultiPageDialog<KeyVerificationDialogPages>(

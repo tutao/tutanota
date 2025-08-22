@@ -27,6 +27,7 @@ import { copyToClipboard } from "../../misc/ClipboardUtils"
 import { IdentityKeyCreator } from "../../api/worker/facades/lazy/IdentityKeyCreator"
 import { GroupTypeRef } from "../../api/entities/sys/TypeRefs"
 import { isSameId } from "../../api/common/utils/EntityUtils"
+import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade.js"
 
 /**
  * Our own identity key, which is not stored on the trust DB.
@@ -45,6 +46,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 
 	constructor(
 		private readonly keyVerificationFacade: KeyVerificationFacade,
+		private readonly desktopSystemFacade: lazy<DesktopSystemFacade>,
 		private readonly mobileSystemFacade: lazy<MobileSystemFacade>, // not available on all platforms, so only load when needed!
 		private readonly userController: UserController,
 		private readonly usageTestController: UsageTestController,
@@ -139,6 +141,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 										click: async () => {
 											await showKeyVerificationDialog(
 												this.keyVerificationFacade,
+												this.desktopSystemFacade(),
 												this.mobileSystemFacade(),
 												this.usageTestController,
 												this.publicIdentityKeyProvider,

@@ -12,4 +12,9 @@ export interface DesktopSystemFacade {
 	 * Sends message to the admin socket.
 	 */
 	sendSocketMessage(message: string): Promise<void>
+
+	/**
+	 * request permission to stream video from the camera to the browser window
+	 */
+	requestVideoPermission(): Promise<boolean>
 }
