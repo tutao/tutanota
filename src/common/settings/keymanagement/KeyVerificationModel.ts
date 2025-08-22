@@ -15,6 +15,8 @@ import { PublicIdentityKeyProvider } from "../../api/worker/facades/PublicIdenti
 import { ProgrammingError } from "../../api/common/error/ProgrammingError"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 import { TrustDBEntry } from "../../api/worker/facades/IdentityKeyTrustDatabase"
+import { DesktopSystemFacade } from "../../native/common/generatedipc/DesktopSystemFacade"
+import { isApp, isAppleDevice, isDesktop } from "../../api/common/Env"
 
 export type PublicIdentity = {
 	fingerprint: Hex
@@ -38,6 +40,7 @@ export class KeyVerificationModel {
 
 	constructor(
 		private readonly keyVerificationFacade: KeyVerificationFacade,
+		private readonly desktopSystemFacade: DesktopSystemFacade,
 		private readonly mobileSystemFacade: MobileSystemFacade,
 		private readonly test: KeyVerificationUsageTestUtils,
 		private readonly publicIdentityKeyProvider: PublicIdentityKeyProvider,
@@ -152,16 +155,21 @@ export class KeyVerificationModel {
 	}
 
 	public async requestCameraPermission(): Promise<boolean> {
-		const hasPermission = await this.mobileSystemFacade.hasPermission(PermissionType.Camera)
-		if (hasPermission) {
-			return true
-		} else {
-			try {
-				await this.mobileSystemFacade.requestPermission(PermissionType.Camera)
-				return true
-			} catch (e) {
-				return false
+		let hasPermission = true
+		if (isApp()) {
+			hasPermission = await this.mobileSystemFacade.hasPermission(PermissionType.Camera)
+			if (!hasPermission) {
+				try {
+					await this.mobileSystemFacade.requestPermission(PermissionType.Camera)
+					hasPermission = await this.mobileSystemFacade.hasPermission(PermissionType.Camera)
+				} catch (e) {
+					hasPermission = false
+				}
 			}
+		} else if (isDesktop() && isAppleDevice()) {
+			hasPermission = await this.desktopSystemFacade.requestVideoPermission()
 		}
+
+		return hasPermission
 	}
 }

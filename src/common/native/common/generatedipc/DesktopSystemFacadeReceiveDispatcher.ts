@@ -16,6 +16,9 @@ export class DesktopSystemFacadeReceiveDispatcher {
 				const message: string = arg[0]
 				return this.facade.sendSocketMessage(message)
 			}
+			case "requestVideoPermission": {
+				return this.facade.requestVideoPermission()
+			}
 		}
 	}
 }

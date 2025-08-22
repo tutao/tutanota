@@ -17,6 +17,11 @@
 			"doc": "Sends message to the admin socket.",
 			"arg": [{ "message": "string" }],
 			"ret": "void"
+		},
+		"requestVideoPermission": {
+			"doc": "request permission to stream video from the camera to the browser window",
+			"arg": [],
+			"ret": "boolean"
 		}
 	}
 }

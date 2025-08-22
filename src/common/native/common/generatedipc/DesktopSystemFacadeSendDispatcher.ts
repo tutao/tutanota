@@ -16,4 +16,7 @@ export class DesktopSystemFacadeSendDispatcher implements DesktopSystemFacade {
 	async sendSocketMessage(...args: Parameters<DesktopSystemFacade["sendSocketMessage"]>) {
 		return this.transport.invokeNative("ipc", ["DesktopSystemFacade", "sendSocketMessage", ...args])
 	}
+	async requestVideoPermission(...args: Parameters<DesktopSystemFacade["requestVideoPermission"]>) {
+		return this.transport.invokeNative("ipc", ["DesktopSystemFacade", "requestVideoPermission", ...args])
+	}
 }

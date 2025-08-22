@@ -18,21 +18,32 @@ import { PublicIdentityKeyProvider } from "../../../../src/common/api/worker/fac
 import { TrustDBEntry } from "../../../../src/common/api/worker/facades/IdentityKeyTrustDatabase"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { ProgrammingError } from "../../../../src/common/api/common/error/ProgrammingError"
+import { DesktopSystemFacade } from "../../../../src/common/native/common/generatedipc/DesktopSystemFacade"
+import { withOverriddenEnv } from "../../TestUtils"
+import { Mode } from "../../../../src/common/api/common/Env"
 
 o.spec("KeyVerificationModelTest", function () {
 	let keyVerificationModel: KeyVerificationModel
 	let keyVerificationFacade: KeyVerificationFacade
+	let desktopSystemFacade: DesktopSystemFacade
 	let mobileSystemFacade: MobileSystemFacade
 	let keyVerificationTestUtils: KeyVerificationUsageTestUtils
 	let publicIdentityKeyProvider: PublicIdentityKeyProvider
 
 	o.beforeEach(function () {
 		keyVerificationFacade = object()
+		desktopSystemFacade = object()
 		mobileSystemFacade = object()
 		keyVerificationTestUtils = object()
 		publicIdentityKeyProvider = object()
 
-		keyVerificationModel = new KeyVerificationModel(keyVerificationFacade, mobileSystemFacade, keyVerificationTestUtils, publicIdentityKeyProvider)
+		keyVerificationModel = new KeyVerificationModel(
+			keyVerificationFacade,
+			desktopSystemFacade,
+			mobileSystemFacade,
+			keyVerificationTestUtils,
+			publicIdentityKeyProvider,
+		)
 	})
 
 	o.spec("test handleMethodSwitch()", function () {
@@ -127,7 +138,9 @@ o.spec("KeyVerificationModelTest", function () {
 		})
 	})
 
-	o.spec("test requestCameraPermission()", function () {
+	o.spec("test requestCameraPermission() on mobile", function () {
+		const androidEnv: Partial<typeof env> = { mode: Mode.App, platformId: "android" }
+
 		o("permission already given", async function () {
 			when(mobileSystemFacade.hasPermission(PermissionType.Camera)).thenResolve(true)
 			const success = await keyVerificationModel.requestCameraPermission()
@@ -137,8 +150,8 @@ o.spec("KeyVerificationModelTest", function () {
 		})
 
 		o("permission not given, but granted successfully by user", async function () {
-			when(mobileSystemFacade.hasPermission(PermissionType.Camera)).thenResolve(false)
-			const success = await keyVerificationModel.requestCameraPermission()
+			when(mobileSystemFacade.hasPermission(PermissionType.Camera)).thenResolve(false, true)
+			const success = await withOverriddenEnv(androidEnv, () => keyVerificationModel.requestCameraPermission())
 
 			verify(mobileSystemFacade.requestPermission(PermissionType.Camera))
 			o(success).equals(true)
@@ -148,9 +161,30 @@ o.spec("KeyVerificationModelTest", function () {
 			when(mobileSystemFacade.hasPermission(PermissionType.Camera)).thenResolve(false)
 			when(mobileSystemFacade.requestPermission(PermissionType.Camera)).thenReject(new Error("error"))
 
-			const success = await keyVerificationModel.requestCameraPermission()
+			const success = await withOverriddenEnv(androidEnv, () => keyVerificationModel.requestCameraPermission())
 
 			verify(mobileSystemFacade.requestPermission(PermissionType.Camera))
+			o(success).equals(false)
+		})
+	})
+
+	o.spec("test requestCameraPermission() on desktop macOS", function () {
+		const desktopEnv: Partial<typeof env> = { mode: Mode.Desktop, platformId: "darwin" }
+
+		o("permission already given", async function () {
+			when(desktopSystemFacade.requestVideoPermission()).thenResolve(true)
+			const success = await withOverriddenEnv(desktopEnv, () => keyVerificationModel.requestCameraPermission())
+
+			verify(desktopSystemFacade.requestVideoPermission(), { times: 1 })
+			o(success).equals(true)
+		})
+
+		o("permission not given, and denied by user", async function () {
+			when(desktopSystemFacade.requestVideoPermission()).thenResolve(false)
+
+			const success = await withOverriddenEnv(desktopEnv, () => keyVerificationModel.requestCameraPermission())
+
+			verify(desktopSystemFacade.requestVideoPermission())
 			o(success).equals(false)
 		})
 	})
