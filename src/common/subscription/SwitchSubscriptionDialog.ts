@@ -44,6 +44,7 @@ import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { mailLocator } from "../../mail-app/mailLocator"
 import { client } from "../misc/ClientDetector.js"
 import { getClientPlatform } from "./LeavingUserSurveyUtils"
+import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -434,6 +435,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 
 		try {
 			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, postIn))
+			completeUpgradeStage(currentPlanInfo.planType, targetSubscription) // this is just a usage test
 			return targetSubscription
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) {

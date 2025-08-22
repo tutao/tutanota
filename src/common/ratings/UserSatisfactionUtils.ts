@@ -181,6 +181,15 @@ export function completeSupportTutaStage(buttonType: SupportTutaButtonType, plan
 	void stage.complete()
 }
 
+export function completeUpgradeStage(oldPlan: PlanType, newPlan: PlanType) {
+	const stage = getStage(isAndroidApp() ? 4 : 3)
+	stage.setMetric({
+		name: "plan",
+		value: PlanTypeToName[oldPlan] + "_to_" + PlanTypeToName[newPlan],
+	})
+	void stage.complete()
+}
+
 function getStage(stageNumber: number): Stage {
 	let testName
 	if (!isApp() && isDesktop()) {

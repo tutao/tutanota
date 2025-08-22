@@ -70,7 +70,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 					if (LegacyPrivatePlans.includes(neverNull(this.currentPlan))) {
 						void this.showSwitchDialog()
 					} else {
-						void showUpgradeDialog()
+						void showUpgradeDialog(true)
 					}
 				},
 			}

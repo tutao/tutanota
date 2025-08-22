@@ -24,6 +24,7 @@ import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "luxon"
 import { formatDate } from "../misc/Formatter.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -48,7 +49,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		const serviceData = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			customer: null,
-			plan: data.type,
+			plan: data.targetPlanType,
 			date: Const.CURRENT_DATE,
 			referralCode: data.referralCode,
 			specialPriceUserSingle: null,
@@ -58,6 +59,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData))
 			.then(() => {
 				// Order confirmation (click on Buy), send selected payment method as an enum
+
 				return this.close(data, this.dom)
 			})
 			.catch(
@@ -96,7 +98,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		try {
 			const result = await showProgressDialog(
 				"pleaseWait_msg",
-				locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(data.type), data.options.paymentInterval(), customerIdBytes),
+				locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(data.targetPlanType), data.options.paymentInterval(), customerIdBytes),
 			)
 			if (result.result !== MobilePaymentResultType.Success) {
 				return false
@@ -134,7 +136,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			m(".pt.pb.plr-l", [
 				m(TextField, {
 					label: "subscription_label",
-					value: getDisplayNameOfPlanType(attrs.data.type),
+					value: getDisplayNameOfPlanType(attrs.data.targetPlanType),
 					isReadOnly: true,
 				}),
 				m(TextField, {
@@ -195,7 +197,16 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 	private buildPriceLabel(isYearly: boolean, { data: { nextYearPrice, planPrices } }: WizardPageAttrs<UpgradeSubscriptionData>): MaybeTranslation {
 		if (planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly) {
-			return lang.getTranslation("priceFrom_label", { "{date}": formatDate(DateTime.now().plus({ month: 1, day: 1 }).toJSDate()) })
+			return lang.getTranslation("priceFrom_label", {
+				"{date}": formatDate(
+					DateTime.now()
+						.plus({
+							month: 1,
+							day: 1,
+						})
+						.toJSDate(),
+				),
+			})
 		}
 
 		if (isYearly && nextYearPrice) {
@@ -221,10 +232,15 @@ export class UpgradeConfirmSubscriptionPageAttrs implements WizardPageAttrs<Upgr
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
 		SignupFlowUsageTestController.completeStage(
 			SignupFlowStage.CONFIRM_PAYMENT,
-			this.data.type,
+			this.data.targetPlanType,
 			this.data.options.paymentInterval(),
 			this.data.paymentData.paymentMethod,
 		)
+
+		if (this.data.isCalledBySatisfactionDialog) {
+			completeUpgradeStage(this.data.currentPlan!, this.data.targetPlanType)
+		}
+
 		return Promise.resolve(true)
 	}
 
