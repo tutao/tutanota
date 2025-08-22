@@ -31,7 +31,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { UserError } from "../api/main/UserError"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { showUserError } from "./ErrorHandlerImpl"
-import type { SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
+import type { ReferralData, SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
 import { locator } from "../api/main/CommonLocator"
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { Params } from "mithril"
@@ -189,14 +189,14 @@ export async function showSignupDialog(urlParams: Params) {
 
 	const subscriptionParams = getSubscriptionParameters(urlParams)
 	const registrationDataId = getRegistrationDataIdFromParams(urlParams)
-	const referralCode = getReferralCodeFromParams(urlParams)
+	const referralData = getReferralCodeFromParams(urlParams)
 	const availablePlans = getAvailablePlansFromSubscriptionParameters(subscriptionParams).filter(canSubscribeToPlan)
 
 	await showProgressDialog(
 		"loading_msg",
 		locator.worker.initialized.then(async () => {
 			const { loadSignupWizard } = await import("../subscription/UpgradeSubscriptionWizard")
-			await loadSignupWizard(subscriptionParams, registrationDataId, referralCode, availablePlans)
+			await loadSignupWizard(subscriptionParams, registrationDataId, referralData, availablePlans)
 		}),
 	).catch(
 		ofClass(UserError, async (e) => {
@@ -256,11 +256,9 @@ function getSubscriptionParameters(hashParams: Params): SubscriptionParameters |
 	}
 }
 
-export function getReferralCodeFromParams(urlParams: Params): string | null {
-	if (typeof urlParams.ref === "string") {
-		return urlParams.ref
-	}
-	return null
+export function getReferralCodeFromParams(urlParams: Params): ReferralData | null {
+	if (typeof urlParams.ref !== "string") return null
+	return { code: urlParams.ref, isCalledBySatisfactionDialog: urlParams.s === "1" }
 }
 
 export function getRegistrationDataIdFromParams(hashParams: Params): string | null {
