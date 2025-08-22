@@ -10,6 +10,8 @@ export enum SignupFlowStage {
 	CONFIRM_PAYMENT,
 }
 
+export type ReferralType = "not_referred" | "satisfactiondialog_referral" | "organic_referral"
+
 export abstract class SignupFlowUsageTestController {
 	private static readonly USAGE_TEST_NAME = "signup.flow"
 
@@ -25,10 +27,12 @@ export abstract class SignupFlowUsageTestController {
 		void usageTest.getStage(stage.valueOf()).deletePing()
 	}
 
-	public static initSignupFlowUsageTest() {
+	public static initSignupFlowUsageTest(referralConversion: ReferralType) {
 		if (locator.logins.isUserLoggedIn()) return
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
-		void usageTest.getStage(SignupFlowStage.TRIGGER).complete()
+		const stage = usageTest.getStage(SignupFlowStage.TRIGGER)
+		stage.setMetric({ name: "referralTrigger", value: referralConversion })
+		void stage.complete()
 	}
 
 	public static getUsageTestVariant(): number {
@@ -36,7 +40,13 @@ export abstract class SignupFlowUsageTestController {
 		return usageTest.variant
 	}
 
-	public static completeStage(targetStage: SignupFlowStage, plan: PlanType, interval: PaymentInterval, paymentMethod?: PaymentMethodType) {
+	public static completeStage(
+		targetStage: SignupFlowStage,
+		plan: PlanType,
+		interval: PaymentInterval,
+		paymentMethod?: PaymentMethodType,
+		referralConversion?: ReferralType,
+	) {
 		if (locator.logins.isUserLoggedIn()) return
 		const usageTest = locator.usageTestController.getTest(this.USAGE_TEST_NAME)
 
@@ -57,6 +67,13 @@ export abstract class SignupFlowUsageTestController {
 			stage.setMetric({
 				name: "paymentMethod",
 				value: this.paymentMethodTypeToString(paymentMethod),
+			})
+		}
+
+		if (referralConversion != null) {
+			stage.setMetric({
+				name: "referralConversion",
+				value: referralConversion,
 			})
 		}
 

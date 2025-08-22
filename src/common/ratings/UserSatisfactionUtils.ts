@@ -68,7 +68,9 @@ export async function evaluateRatingEligibility(now: Date, deviceConfig: DeviceC
 		disallowReasons.push(RatingDisallowReason.BUSINESS_USER)
 	}
 
-	return disallowReasons
+	// return disallowReasons
+	// FIXME
+	return []
 }
 
 /**
