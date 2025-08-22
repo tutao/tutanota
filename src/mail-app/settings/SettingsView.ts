@@ -154,6 +154,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => {
 					const settingsViewer = new KeyManagementSettingsViewer(
 						locator.keyVerificationFacade,
+						() => locator.desktopSystemFacade,
 						() => locator.systemFacade, // not available in browser
 						locator.logins.getUserController(),
 						locator.usageTestController,
