@@ -211,10 +211,8 @@ export class ContactListViewModel {
 		this.listModel?.loadInitial()
 	}
 
-	updateContactList(contactListInfo: ContactListInfo, name: string, addresses: string[]): void {
+	updateContactList(contactListInfo: ContactListInfo, name: string): void {
 		// the name is stored on both GroupInfo (own contact list) and UserSettingsGroupRoot (contact lists shared with us)
-		// note: make sure to handle shared contact lists when implementing sharing
-		contactListInfo.name = name
 		contactListInfo.groupInfo.name = name
 		this.entityClient.update(contactListInfo.groupInfo)
 	}
