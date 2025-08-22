@@ -66,7 +66,7 @@ o.spec("CustomColorEditorViewModel", function () {
 				whitelabelThemeGenerator,
 			)
 			await model.init()
-			o(model.accentColor).equals("#8F4A4E")
+			o(model.sourceColor).equals("#8F4A4E")
 			o(model.baseThemeId).equals("light")
 			o(themeController.applyCustomizations.callCount).equals(1)
 		})
@@ -90,7 +90,7 @@ o.spec("CustomColorEditorViewModel", function () {
 				whitelabelThemeGenerator,
 			)
 			await model.init()
-			o(model.accentColor).equals(customizations.primary!)
+			o(model.sourceColor).equals(customizations.primary!)
 			o(model.baseThemeId).equals(customizations.base!)
 			await model.save()
 			o(entityClient.update.callCount).equals(1)

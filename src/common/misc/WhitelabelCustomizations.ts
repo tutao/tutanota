@@ -10,6 +10,7 @@ export const WHITELABEL_CUSTOMIZATION_VERSION = 1
 export type ThemeCustomizations = Partial<Theme> & {
 	version: number | null
 	base: BaseThemeId | null
+	sourceColor: string | null
 }
 export type ThemeKey = keyof Theme
 export type CustomizationKey = keyof ThemeCustomizations

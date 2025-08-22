@@ -23,7 +23,7 @@ export class CustomColorsEditorViewModel {
 	private _customizations: ThemeCustomizations
 	private readonly _whitelabelConfig: WhitelabelConfig
 	private readonly _whitelabelDomainInfo: DomainInfo
-	private _accentColor!: string
+	private _sourceColor!: string
 	private _baseTheme!: BaseThemeId
 	private readonly _themeController: ThemeController
 	private readonly _entityClient: EntityClient
@@ -53,12 +53,12 @@ export class CustomColorsEditorViewModel {
 
 	async init() {
 		const baseThemeId = this._customizations.base ?? "light"
-		const accentColor = this._customizations.primary ?? this._themeController.getDefaultTheme().primary
-		await this.changeTheme({ accentColor, baseThemeId })
+		const sourceColor = this._customizations.sourceColor ?? this._themeController.getDefaultTheme().primary
+		await this.changeTheme({ sourceColor, baseThemeId })
 	}
 
-	get accentColor(): string {
-		return this._accentColor
+	get sourceColor(): string {
+		return this._sourceColor
 	}
 
 	get customizations(): ThemeCustomizations {
@@ -70,17 +70,17 @@ export class CustomColorsEditorViewModel {
 	}
 
 	async changeAccentColor(accentColor: string) {
-		await this.changeTheme({ accentColor })
+		await this.changeTheme({ sourceColor: accentColor })
 	}
 
 	async changeBaseTheme(baseThemeId: BaseThemeId) {
 		await this.changeTheme({ baseThemeId })
 	}
 
-	private async changeTheme(attrs: { accentColor?: string; baseThemeId?: BaseThemeId }) {
-		if (attrs.accentColor != null) {
-			this._accentColor = attrs.accentColor
-			this.setCustomization("primary", attrs.accentColor)
+	private async changeTheme(attrs: { sourceColor?: string; baseThemeId?: BaseThemeId }) {
+		if (attrs.sourceColor != null) {
+			this._sourceColor = attrs.sourceColor
+			this.setCustomization("sourceColor", attrs.sourceColor)
 		}
 
 		if (attrs.baseThemeId != null) {
@@ -89,7 +89,7 @@ export class CustomColorsEditorViewModel {
 		}
 
 		const theme = await this.whitelabelThemeGenerator.generateMaterialTheme({
-			accentColor: this._accentColor,
+			sourceColor: this._sourceColor,
 			theme: this._baseTheme,
 			logo: this.customizations.logo,
 		})

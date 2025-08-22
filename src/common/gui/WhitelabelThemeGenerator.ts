@@ -5,9 +5,9 @@ import { BaseThemeId, Theme } from "./theme"
  */
 export interface WhitelabelThemeSettings {
 	/**
-	 * Primary color in hexadecimal
+	 * Source color in hexadecimal, used to generate the theme
 	 */
-	accentColor: string
+	sourceColor: string
 
 	/**
 	 * Theme to use
@@ -26,12 +26,12 @@ export class WhitelabelThemeGenerator {
 	async generateMaterialTheme(themeParams: WhitelabelThemeSettings): Promise<Partial<Theme>> {
 		const { argbFromHex, DynamicScheme, Hct, hexFromArgb, themeFromSourceColor } = await import("@material/material-color-utilities")
 
-		const primaryArgb = argbFromHex(themeParams.accentColor)
-		const materialTheme = themeFromSourceColor(primaryArgb)
+		const sourceArgb = argbFromHex(themeParams.sourceColor)
+		const materialTheme = themeFromSourceColor(sourceArgb)
 
 		const isDark = themeParams.theme === "dark"
 		const scheme = new DynamicScheme({
-			sourceColorHct: Hct.fromInt(primaryArgb),
+			sourceColorHct: Hct.fromInt(sourceArgb),
 			contrastLevel: 0.25,
 			isDark,
 			primaryPalette: materialTheme.palettes.primary,

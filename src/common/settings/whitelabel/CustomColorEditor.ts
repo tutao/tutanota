@@ -5,12 +5,9 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { DropDownSelector } from "../../gui/base/DropDownSelector.js"
 import { lang } from "../../misc/LanguageViewModel"
-import type { CustomColor } from "./CustomColorsEditorViewModel"
 import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
 import { CustomColorEditorPreview } from "./CustomColorEditorPreview"
 import { downcast } from "@tutao/tutanota-utils"
-import { expandHexTriplet } from "../../gui/base/Color"
-import { px } from "../../gui/size"
 import { BaseThemeId } from "../../gui/theme"
 
 export type SimpleCustomColorEditorAttrs = {
@@ -32,14 +29,13 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 	}
 
 	view(vnode: Vnode<SimpleCustomColorEditorAttrs>): Children {
-		const { model } = vnode.attrs
 		const simpleColorPickerAttrs: TextFieldAttrs = {
-			label: "accentColor_label",
-			value: vnode.attrs.model.accentColor,
+			label: "sourceColor_label",
+			value: vnode.attrs.model.sourceColor,
 			injectionsRight: () =>
 				renderColorPicker((inputEvent) => {
 					vnode.attrs.model.changeAccentColor(downcast<HTMLInputElement>(inputEvent.target).value).then(() => m.redraw())
-				}, vnode.attrs.model.accentColor),
+				}, vnode.attrs.model.sourceColor),
 			maxWidth: COLOR_PICKER_WIDTH,
 			isReadOnly: true,
 		}
