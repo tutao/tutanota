@@ -15,14 +15,19 @@ import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { createTestEntity } from "../TestUtils"
 import { CalendarFacade } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
 import { getStartOfDay } from "@tutao/tutanota-utils"
+import { GroupMembership, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
 
 o.spec("CalendarEventRepositoryTest", function () {
 	o.spec("entityEventsReceived", function () {
-		const eventOwnerGroupId = "ownerGroupId"
+		const initialCalendarGroupId = "initialCalendarGroupId"
+		const userGroupId = "userGroupId"
 		const shotEventsListId = "shotEventsListId"
 		const timezone = getTimeZone()
 
 		const eventControllerMock: EventController = object()
+		/**
+		 * Holds the captured callback for handling entityUpdates
+		 */
 		let entityEventsListener: EntityEventsListener | null = null
 
 		o.spec("createOrUpdateCalendarEvent", function () {
@@ -33,6 +38,8 @@ o.spec("CalendarEventRepositoryTest", function () {
 			let entityClientMock: EntityClient
 			let calendarInfosStreamMock: Stream<ReadonlyMap<Id, CalendarInfo>>
 			let calendarEventsRepositoryMock: CalendarEventsRepository
+			let initialCalendarInfos: Map<string, CalendarInfo>
+			let initialCalendarMembership: GroupMembership
 
 			o.beforeEach(function () {
 				userControllerMock = object()
@@ -47,18 +54,18 @@ o.spec("CalendarEventRepositoryTest", function () {
 					entityEventsListener = listener
 				})
 
-				when(userControllerMock.getCalendarMemberships()).thenReturn([])
+				initialCalendarMembership = object()
+				initialCalendarMembership.group = initialCalendarGroupId
+				when(userControllerMock.getCalendarMemberships()).thenReturn([initialCalendarMembership])
 				when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
 
 				when(calendarModelMock.getCalendarInfosStream()).thenReturn(calendarInfosStreamMock)
 				when(calendarInfosStreamMock.map(matchers.anything())).thenDo(() => {})
 
-				// Not sure why but after every test case getCalendarInfos lose its mock and starts to return undefined
-				// Therefore we reset the mock for each test
 				const calendarInfo: CalendarInfo = object()
 				calendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
-				const calendarInfos = new Map([[eventOwnerGroupId, calendarInfo]])
-				when(calendarModelMock.getCalendarInfos()).thenResolve(calendarInfos)
+				initialCalendarInfos = new Map([[initialCalendarGroupId, calendarInfo]])
+				when(calendarModelMock.getCalendarInfos()).thenResolve(initialCalendarInfos)
 
 				calendarEventsRepositoryMock = new CalendarEventsRepository(
 					calendarModelMock,
@@ -77,7 +84,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 
 				const eventStartDate = new Date(2025, 7, 26)
 				const event = createTestEntity(CalendarEventTypeRef, {
-					_ownerGroup: eventOwnerGroupId,
+					_ownerGroup: initialCalendarGroupId,
 					_id: [shotEventsListId, "event"],
 					startTime: eventStartDate,
 					endTime: new Date(2025, 7, 27),
@@ -98,7 +105,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				calendarEventUpdate.typeRef = CalendarEventTypeRef
 				calendarEventUpdate.operation = OperationType.CREATE
 				const updates: ReadonlyArray<EntityUpdateData> = [calendarEventUpdate]
-				await entityEventsListener!(updates, eventOwnerGroupId)
+				await entityEventsListener!(updates, initialCalendarGroupId)
 
 				// Assert
 				const eventStartOfDay = getStartOfDay(eventStartDate).getTime()
@@ -115,7 +122,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 
 				const eventStartDate = new Date(2025, 7, 26, 10, 0, 0)
 				const event = createTestEntity(CalendarEventTypeRef, {
-					_ownerGroup: eventOwnerGroupId,
+					_ownerGroup: initialCalendarGroupId,
 					_id: [shotEventsListId, "event"],
 					startTime: eventStartDate,
 					endTime: new Date(2025, 7, 26, 23, 0, 0),
@@ -135,7 +142,58 @@ o.spec("CalendarEventRepositoryTest", function () {
 				calendarEventUpdate.typeRef = CalendarEventTypeRef
 				calendarEventUpdate.operation = OperationType.CREATE
 				const updates: ReadonlyArray<EntityUpdateData> = [calendarEventUpdate]
-				await entityEventsListener!(updates, eventOwnerGroupId)
+				await entityEventsListener!(updates, initialCalendarGroupId)
+
+				// Assert
+				const daysToEvents = calendarEventsRepositoryMock.getEventsForMonths()()
+				o(daysToEvents.size).equals(1)
+				o.check(daysToEvents.get(startOfDay)?.length).equals(1)
+				o.check(daysToEvents.get(startOfDay)?.[0]).equals(event)
+			})
+
+			o.test("new event of a new calendar happens on a loaded month", async function () {
+				// Arrange
+				o.check(entityEventsListener != null).equals(true)
+
+				const eventStartDate = new Date(2025, 7, 26, 10, 0, 0)
+				const startOfDay = getStartOfDay(eventStartDate).getTime()
+				const daysToEventsMock: DaysToEvents = new Map([[startOfDay, []]])
+				when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(
+					daysToEventsMock, // Provide a initialized Map with an empty day
+				)
+				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
+				await calendarEventsRepositoryMock.loadMonthsIfNeeded([eventStartDate], stream(false), null)
+
+				const newCalendarGroupId = "newCalendarGroupId"
+				const newCalendarInfo: CalendarInfo = object()
+				newCalendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
+				const calendarInfos = new Map(initialCalendarInfos).set(newCalendarGroupId, newCalendarInfo)
+				when(calendarModelMock.getCalendarInfos()).thenResolve(calendarInfos)
+
+				const event = createTestEntity(CalendarEventTypeRef, {
+					_ownerGroup: newCalendarGroupId,
+					_id: [shotEventsListId, "event"],
+					startTime: eventStartDate,
+					endTime: new Date(2025, 7, 26, 23, 0, 0),
+				})
+				when(entityClientMock.load(CalendarEventTypeRef, matchers.anything())).thenResolve(event)
+
+				const userUpdateEventUpdate: EntityUpdateData = object()
+				userUpdateEventUpdate.typeRef = UserTypeRef
+				userUpdateEventUpdate.operation = OperationType.UPDATE
+				when(userControllerMock.isUpdateForLoggedInUserInstance(userUpdateEventUpdate, userGroupId)).thenReturn(true)
+
+				const newCalendarMembership: GroupMembership = object()
+				newCalendarMembership.group = newCalendarGroupId
+				when(userControllerMock.getCalendarMemberships()).thenReturn([initialCalendarMembership, newCalendarMembership])
+
+				await entityEventsListener!([userUpdateEventUpdate], userGroupId)
+
+				// Act
+				const calendarEventUpdate: EntityUpdateData = object()
+				calendarEventUpdate.typeRef = CalendarEventTypeRef
+				calendarEventUpdate.operation = OperationType.CREATE
+				await entityEventsListener!([calendarEventUpdate], newCalendarGroupId)
 
 				// Assert
 				const daysToEvents = calendarEventsRepositoryMock.getEventsForMonths()()

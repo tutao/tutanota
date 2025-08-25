@@ -30,7 +30,6 @@ import { generateLocalEventElementId } from "../../api/common/utils/CommonCalend
 import { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils.js"
-import { UserTypeRef } from "../../api/entities/sys/TypeRefs.js"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -135,7 +134,8 @@ export class CalendarEventsRepository {
 					try {
 						let calendarInfos = await this.calendarModel.getCalendarInfos()
 
-						if (!this.loadedMonths.has(monthRange.start)) {
+						const loadedMonth = this.loadedMonths.get(monthRange.start)
+						if (!loadedMonth || (calendarToLoad && !loadedMonth.includes(calendarToLoad))) {
 							this.loadedMonths.set(monthRange.start, Array.from(calendarInfos.keys()))
 						}
 
@@ -163,12 +163,12 @@ export class CalendarEventsRepository {
 		await promiseForThisLoadRequest
 	}
 
-	private isCalendarLoadedForRange(range: number, calendarId: string | null | undefined): boolean {
+	private isCalendarLoadedForRange(rangeStart: number, calendarId: string | null | undefined): boolean {
 		if (calendarId == null) {
 			return false
 		}
 
-		return this.loadedMonths.get(range)?.includes(calendarId) ?? false
+		return this.loadedMonths.get(rangeStart)?.includes(calendarId) ?? false
 	}
 
 	private async addOrUpdateEvent(calendarInfo: CalendarInfo | null, event: CalendarEvent) {
@@ -316,7 +316,7 @@ export class CalendarEventsRepository {
 				} else if (update.operation === OperationType.DELETE) {
 					this.removeDaysForEvent([update.instanceListId, update.instanceId])
 				}
-			} else if (isUpdateForTypeRef(UserTypeRef, update) && update.operation === OperationType.UPDATE) {
+			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				// Possible accepting/leaving a shared calendar, check if memberships has changed
 				await this.handleMembershipChanges()
 			}
