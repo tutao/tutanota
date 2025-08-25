@@ -1264,7 +1264,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		const clientOnlyCalendar = isClientOnlyCalendar(groupInfo.group)
 		if (userIsOwner && !clientOnlyCalendar) {
-			let newName = null
+			let newName: string | null = null
 			// User is the owner, so we update the entity instead of groupSettings
 			if (properties.sharedName) {
 				// if it is a shared calendar and the shared name has been changed the entity needs to be updated
