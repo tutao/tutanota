@@ -30,7 +30,8 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const color = existingGroupSettings ? "#" + existingGroupSettings.color : ""
 	const colorStream = stream(color)
 	const isDefaultGroupName = invitation.sharedGroupName === getDefaultGroupName(downcast(invitation.groupType))
-	const nameStream = stream(isDefaultGroupName ? texts.sharedGroupDefaultCustomName(invitation) : invitation.sharedGroupName)
+	const sharedName = isDefaultGroupName ? texts.sharedGroupDefaultCustomName(invitation) : invitation.sharedGroupName
+	const nameStream = stream(sharedName)
 	const alarmsStream: stream<AlarmInterval[]> = stream([])
 
 	const isMember = locator.logins
@@ -55,7 +56,8 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 						const groupSettings = createGroupSettings({
 							group: invitation.sharedGroup,
 							color: newColor,
-							name: newName,
+							// If the receiving user does not set a custom name, the name from groupInfo will be used
+							name: newName !== sharedName ? newName : null,
 							defaultAlarmsList: alarmsStream().map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) })),
 							sourceUrl: null,
 						})
