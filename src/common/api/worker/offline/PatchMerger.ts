@@ -30,10 +30,8 @@ import { InstancePipeline } from "../crypto/InstancePipeline"
 import { isSameId, removeTechnicalFields } from "../../common/utils/EntityUtils"
 import { convertDbToJsType } from "../crypto/ModelMapper"
 import { decryptValue } from "../crypto/CryptoMapper"
-import { VersionedEncryptedKey } from "../crypto/CryptoWrapper"
 import { AesKey, BitArray, extractIvFromCipherText } from "@tutao/tutanota-crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { parseKeyVersion } from "../facades/KeyLoaderFacade"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { EntityUpdateData, getLogStringForPatches } from "../../common/utils/EntityUpdateUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
@@ -119,7 +117,9 @@ export class PatchMerger {
 				const isEncryptedValue = pathResultTypeModel.values[attributeId]?.encrypted
 				let value: Nullable<ParsedValue | ParsedAssociation>
 				if ((isAggregation && typeModel.encrypted) || isEncryptedValue) {
-					const sk = await this.getSessionKey(parsedInstance, typeModel)
+					const typeRef = new TypeRef(typeModel.app, typeModel.id)
+					const instance = await this.instancePipeline.modelMapper.mapToInstance(typeRef, parsedInstance)
+					const sk = await this.cryptoFacade().resolveSessionKey(instance)
 					value = await this.decryptValueOnPatchIfNeeded(pathResult, encryptedParsedValue, sk)
 				} else {
 					value = await this.decryptValueOnPatchIfNeeded(pathResult, encryptedParsedValue, null)
@@ -132,17 +132,6 @@ export class PatchMerger {
 		} catch (e) {
 			throw new PatchOperationError(e)
 		}
-	}
-
-	public async getSessionKey(parsedInstance: ServerModelParsedInstance, typeModel: ServerTypeModel) {
-		const _ownerEncSessionKey = AttributeModel.getAttribute<Uint8Array>(parsedInstance, "_ownerEncSessionKey", typeModel)
-		const _ownerKeyVersion = parseKeyVersion(AttributeModel.getAttribute<string>(parsedInstance, "_ownerKeyVersion", typeModel))
-		const _ownerGroup = AttributeModel.getAttribute<Id>(parsedInstance, "_ownerGroup", typeModel)
-		const versionedEncryptedKey = {
-			encryptingKeyVersion: _ownerKeyVersion,
-			key: _ownerEncSessionKey,
-		} as VersionedEncryptedKey
-		return await this.cryptoFacade().decryptSessionKey(_ownerGroup, versionedEncryptedKey)
 	}
 
 	private async applyPatchOperation(
@@ -369,7 +358,11 @@ export class PatchMerger {
 			const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
 			let sk: Nullable<BitArray> = null
 			if (typeModel.encrypted) {
-				sk = await this.getSessionKey(assertNotNull(patchAppliedInstance), typeModel)
+				const instance = await this.instancePipeline.modelMapper.mapToInstance(
+					new TypeRef(typeModel.app, typeModel.id),
+					assertNotNull(patchAppliedInstance),
+				)
+				sk = await this.cryptoFacade().resolveSessionKey(instance)
 			}
 			const patchedEncryptedParsedInstance = await instancePipeline.cryptoMapper.encryptParsedInstance(
 				typeModel as unknown as ClientTypeModel,
