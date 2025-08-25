@@ -103,7 +103,7 @@ o.spec("PatchMergerTest", () => {
 	}
 
 	o.spec("Path traverse", () => {
-		o.test("when_incorrect_path_is_supplied_path_traversal_throws", async () => {
+		o.test("when_incorrect_path_is_supplied_path_traversal_returns_null", async () => {
 			const testMail = createSystemMail({
 				_id: ["listId", "elementId"],
 				_ownerEncSessionKey: encryptedSessionKey.key,
@@ -121,7 +121,7 @@ o.spec("PatchMergerTest", () => {
 				}),
 			]
 
-			await assertThrows(PatchOperationError, async () => await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			o(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches)).equals(null)
 		})
 	})
 

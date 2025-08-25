@@ -58,7 +58,10 @@ export class PatchMerger {
 			const typeModel = await this.typeModelResolver.resolveServerTypeReference(instanceType)
 			// We need to preserve the order of patches, so no promiseMap here
 			for (const patch of patches) {
-				await this.applySinglePatch(parsedInstance, typeModel, patch)
+				const appliedSuccessfully = await this.applySinglePatch(parsedInstance, typeModel, patch)
+				if (!appliedSuccessfully) {
+					return null
+				}
 			}
 			return parsedInstance
 		}
@@ -105,7 +108,10 @@ export class PatchMerger {
 	private async applySinglePatch(parsedInstance: ServerModelParsedInstance, typeModel: ServerTypeModel, patch: Patch) {
 		try {
 			const pathList: Array<string> = patch.attributePath.split("/") //== /$mailId/$attrIdRecipient/${aggregateIdRecipient}/${attrIdName}
-			const pathResult: PathResult = await this.traversePath(parsedInstance, typeModel, pathList)
+			const pathResult: PathResult | null = await this.traversePath(parsedInstance, typeModel, pathList)
+			if (pathResult == null) {
+				return false
+			}
 			const attributeId = pathResult.attributeId
 
 			const pathResultTypeModel = pathResult.typeModel
@@ -129,6 +135,7 @@ export class PatchMerger {
 				let idArray = JSON.parse(patch.value!) as Array<any>
 				await this.applyPatchOperation(patch.patchOperation, pathResult, idArray)
 			}
+			return true
 		} catch (e) {
 			throw new PatchOperationError(e)
 		}
@@ -304,7 +311,7 @@ export class PatchMerger {
 		return value // id and idTuple associations are never encrypted
 	}
 
-	private async traversePath(parsedInstance: ServerModelParsedInstance, serverTypeModel: ServerTypeModel, path: Array<string>): Promise<PathResult> {
+	private async traversePath(parsedInstance: ServerModelParsedInstance, serverTypeModel: ServerTypeModel, path: Array<string>): Promise<PathResult | null> {
 		if (path.length === 0) {
 			throw new PatchOperationError("Invalid attributePath, expected non-empty attributePath")
 		}
@@ -317,7 +324,7 @@ export class PatchMerger {
 				attributeId = parseInt(pathItem)
 			}
 			if (!Object.keys(parsedInstance).some((attribute) => attribute === attributeId.toString())) {
-				throw new PatchOperationError("attribute id " + attributeId + " not found on the parsed instance. Type: " + serverTypeModel.name)
+				return null
 			}
 
 			if (path.length === 0) {
