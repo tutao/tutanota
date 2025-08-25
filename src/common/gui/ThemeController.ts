@@ -98,13 +98,14 @@ export class ThemeController {
 
 		for (const [newToken, hex] of Object.entries(customizations)) {
 			if (!newToken || !hex) continue
-			const mappedOldTokens = newToOldColorTokenMap[newToken as keyof typeof newToOldColorTokenMap]
+			const mappedOldTokens = newToOldColorTokenMap(customizations.base === "light")[newToken as keyof Partial<Record<keyof Theme, string[]>>]
 			if (mappedOldTokens) {
 				for (const oldToken of mappedOldTokens) {
 					// FIXME
-					// mappedCustomizations[oldToken] = hex
+					mappedCustomizations[oldToken] = hex
 				}
 			}
+
 			mappedCustomizations[newToken] = hex
 		}
 
@@ -408,17 +409,20 @@ const oldToNewColorTokenMap: Record<string, keyof Theme> = {
 	error: "error",
 } as const
 
-const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
-	secondary: ["button_bubble_bg", "navigation_menu_bg"],
-	on_secondary: ["button_bubble_fg", "navigation_menu_icon"],
-	surface: ["content_bg", "header_bg", "list_bg", "elevated_bg"],
-	on_surface: ["content_fg"],
-	on_surface_variant: ["content_button", "header_button", "navigation_button", "content_message_bg", "list_message_bg"],
-	primary: ["content_accent", "content_button_selected", "header_button_selected", "list_accent_fg", "navigation_button_selected"],
-	on_primary: ["content_button_icon", "content_button_icon_selected", "navigation_button_icon", "navigation_button_icon_selected"],
-	outline: ["content_border", "header_box_shadow_bg"],
-	surface_container: ["list_alternate_bg", "navigation_bg"],
-	outline_variant: ["list_border", "navigation_border"],
-	scrim: ["modal_bg"],
-	error: ["error"],
-} as const
+function newToOldColorTokenMap(isLightTheme: boolean): Partial<Record<keyof Theme, string[]>> {
+	return {
+		secondary: ["button_bubble_bg"],
+		on_secondary: ["button_bubble_fg", "navigation_menu_icon"],
+		surface: isLightTheme ? ["content_bg", "header_bg", "list_bg", "elevated_bg"] : ["content_bg", "header_bg", "list_bg", "navigation_menu_bg"],
+		on_surface: ["content_fg"],
+		on_surface_variant: ["content_button", "header_button", "navigation_button", "content_message_bg", "list_message_bg"],
+		primary: ["content_accent", "content_button_selected", "header_button_selected", "list_accent_fg", "navigation_button_selected"],
+		on_primary: ["content_button_icon", "content_button_icon_selected", "navigation_button_icon", "navigation_button_icon_selected"],
+		outline: ["content_border", "header_box_shadow_bg"],
+		surface_container: isLightTheme ? ["list_alternate_bg", "navigation_bg"] : ["list_alternate_bg", "navigation_bg", "elevated_bg"],
+		outline_variant: ["list_border", "navigation_border"],
+		scrim: ["modal_bg"],
+		error: ["error"],
+		surface_container_high: isLightTheme ? ["navigation_menu_bg"] : [],
+	} as const
+}
