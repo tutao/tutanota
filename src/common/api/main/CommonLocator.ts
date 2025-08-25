@@ -72,6 +72,7 @@ import { SyncTracker } from "./SyncTracker.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
 import { SearchToken } from "../common/utils/QueryTokenUtils"
 import type { CalendarInviteHandler } from "../../../calendar-app/calendar/view/CalendarInvites"
+import { GroupSettingsModel } from "../../sharing/model/GroupSettingsModel"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -145,6 +146,8 @@ export interface CommonLocator {
 	recipientsModel(): Promise<RecipientsModel>
 
 	recipientsSearchModel(): Promise<RecipientsSearchModel>
+
+	readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>
 
 	initialized: Promise<void>
 	throttledRouter: lazy<Router>

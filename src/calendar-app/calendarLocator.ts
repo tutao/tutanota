@@ -113,6 +113,7 @@ import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
+import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 
 assertMainOrNode()
 
@@ -994,6 +995,11 @@ class CalendarLocator implements CommonLocator {
 			return new CredentialsProvider(new WebCredentialsFacade(deviceConfig), null, null)
 		}
 	}
+
+	readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>> = lazyMemoized(async () => {
+		const { GroupSettingsModel } = await import("../common/sharing/model/GroupSettingsModel.js")
+		return new GroupSettingsModel(this.entityClient, this.logins)
+	})
 }
 
 export type ICalendarLocator = Readonly<CalendarLocator>

@@ -16,7 +16,7 @@ import { isSameId } from "../../common/api/common/utils/EntityUtils.js"
 import { Keys } from "../../common/api/common/TutanotaConstants.js"
 import { isMailAddress } from "../../common/misc/FormatValidator.js"
 import { cleanMailAddress } from "../../common/api/common/utils/CommonCalendarUtils.js"
-import { ContactListInfo } from "../../common/contactsFunctionality/ContactModel"
+import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 
 export async function showContactListEditor(
 	contactListGroupRoot: ContactListGroupRoot | null,
@@ -75,9 +75,9 @@ export async function showContactListEditor(
 	dialog.show()
 }
 
-export async function showContactListNameEditor(contactListInfo: ContactListInfo, save: (name: string, sharedName: string | null) => void): Promise<void> {
-	let nameInput = contactListInfo.name
-	let sharedNameInput = contactListInfo.sharedName
+export async function showContactListNameEditor(contactListNameData: GroupNameData, save: (name: string, sharedName: string | null) => void): Promise<void> {
+	let nameInput = contactListNameData.name
+	let sharedNameInput = contactListNameData.sharedName?.name ?? null
 	let form = () => [
 		sharedNameInput
 			? m(TextField, {
@@ -87,7 +87,7 @@ export async function showContactListNameEditor(contactListInfo: ContactListInfo
 					oninput: (newInput) => {
 						sharedNameInput = newInput
 					},
-					isReadOnly: !contactListInfo.isOwner,
+					isReadOnly: !contactListNameData.sharedName?.editable,
 				})
 			: null,
 		m(TextField, {

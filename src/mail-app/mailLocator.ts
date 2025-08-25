@@ -148,6 +148,7 @@ import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSet
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
 import type { ContactSearchFacade } from "./workerUtils/index/ContactSearchFacade"
 import { UndoModel } from "./UndoModel"
+import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 
 assertMainOrNode()
 
@@ -354,8 +355,14 @@ class MailLocator implements CommonLocator {
 			this.contactModel,
 			await this.receivedGroupInvitationsModel(GroupType.ContactList),
 			router,
+			this.groupSettingsModel,
 			await this.redraw(),
 		)
+	})
+
+	readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>> = lazyMemoized(async () => {
+		const { GroupSettingsModel } = await import("../common/sharing/model/GroupSettingsModel.js")
+		return new GroupSettingsModel(this.entityClient, this.logins)
 	})
 
 	async receivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupType>(groupType: TypeOfGroup): Promise<ReceivedGroupInvitationsModel<TypeOfGroup>> {
