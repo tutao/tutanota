@@ -46,6 +46,7 @@ export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNam
 			locator.shareFacade,
 			locator.groupManagementFacade,
 			recipientsModel,
+			locator.groupSettingsModel,
 		),
 	).then((model) => {
 		model.onEntityUpdate.map(m.redraw.bind(m))
@@ -75,19 +76,21 @@ type GroupSharingDialogAttrs = {
 
 class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 	view(vnode: Vnode<GroupSharingDialogAttrs>): Children {
-		const { model, allowGroupNameOverride, texts, dialog } = vnode.attrs
-		const groupName = getSharedGroupName(model.info, model.logins.getUserController(), allowGroupNameOverride)
-		const originalGroupName = model.info.name === "" ? groupName : model.info.name
+		const { model, texts, dialog } = vnode.attrs
+		const { name, sharedName } = model.groupNameData
 		return m(".flex.col.pt-s", [
 			m(Table, {
 				columnHeading: [
 					{
-						label: lang.makeTranslation("column_heading", texts.participantsLabel(originalGroupName)),
-						helpText: groupName !== originalGroupName ? lang.makeTranslation("column_heading", texts.yourCustomNameLabel(groupName)) : undefined,
+						label: lang.makeTranslation("column_heading", texts.participantsLabel(sharedName?.name ?? name)),
+						//Only show help text if the shared name is different from the local name
+						helpText: sharedName && sharedName.name !== name ? lang.makeTranslation("column_heading", texts.yourCustomNameLabel(name)) : undefined,
 					},
 				],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-				lines: this._renderMemberInfos(model, texts, originalGroupName, dialog).concat(this._renderGroupInvitations(model, texts, originalGroupName)),
+				lines: this._renderMemberInfos(model, texts, sharedName?.name ?? name, dialog).concat(
+					this._renderGroupInvitations(model, texts, sharedName?.name ?? name),
+				),
 				showActionButtonColumn: true,
 				addButtonAttrs: hasCapabilityOnGroup(locator.logins.getUserController().user, model.group, ShareCapability.Invite)
 					? {

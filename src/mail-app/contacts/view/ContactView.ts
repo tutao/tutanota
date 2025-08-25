@@ -619,7 +619,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			},
 		}
 
-		const moreButton = this.createContactListMoreButton(contactListInfo, contactListInfo.sharedName != null)
+		const moreButton = this.createContactListMoreButton(contactListInfo)
 
 		return m(SidebarSectionRow, {
 			icon: Icons.People,
@@ -634,7 +634,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		} satisfies SidebarSectionRowAttrs)
 	}
 
-	createContactListMoreButton(contactListInfo: ContactListInfo, shared: boolean): IconButtonAttrs {
+	createContactListMoreButton(contactListInfo: ContactListInfo): IconButtonAttrs {
 		return attachDropdown({
 			mainButtonAttrs: {
 				title: "more_label",
@@ -647,22 +647,16 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					{
 						label: "edit_action",
 						icon: Icons.Edit,
-						click: () => {
-							showContactListNameEditor(contactListInfo, (newName: string, newSharedName: string | null) => {
-								if (newName !== contactListInfo.name) {
-									contactListInfo.name = newName
-									if (contactListInfo.sharedName) {
-										// If there is a shared name, this is a shared contact list and this is editing your local name
-										this.editSharedContactList(contactListInfo, newName)
-									} else {
-										this.contactListViewModel.updateContactList(contactListInfo, newName)
-									}
-								}
-								if (newSharedName && newSharedName !== contactListInfo.sharedName) {
-									contactListInfo.sharedName = newSharedName
-									this.contactListViewModel.updateContactList(contactListInfo, newSharedName)
-								}
-							})
+						click: async () => {
+							showContactListNameEditor(
+								await this.contactListViewModel.getContactListNameData(contactListInfo.groupInfo),
+								(newName: string, newSharedName: string | null) => {
+									this.contactListViewModel.updateContactList(contactListInfo.groupInfo, {
+										name: newName,
+										sharedName: newSharedName,
+									})
+								},
+							)
 						},
 					},
 					{

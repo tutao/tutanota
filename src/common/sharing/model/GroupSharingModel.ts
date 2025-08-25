@@ -7,7 +7,7 @@ import type { Group, GroupInfo, GroupMember, SentGroupInvitation } from "../../a
 import { GroupMemberTypeRef, GroupTypeRef, SentGroupInvitationTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { OperationType, ShareCapability } from "../../api/common/TutanotaConstants"
 import { NotFoundError } from "../../api/common/error/RestError"
-import { findAndRemove, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
+import { findAndRemove, lazy, noOp, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import type { GroupMemberInfo } from "../GroupUtils"
 import { hasCapabilityOnGroup, isSharedGroupOwner, loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
@@ -22,6 +22,7 @@ import type { GroupManagementFacade } from "../../api/worker/facades/lazy/GroupM
 import { Recipient, RecipientType } from "../../api/common/recipients/Recipient"
 import { RecipientsModel } from "../../api/main/RecipientsModel"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
+import { GroupNameData, GroupSettingsModel } from "./GroupSettingsModel"
 
 export class GroupSharingModel {
 	readonly info: GroupInfo
@@ -49,6 +50,8 @@ export class GroupSharingModel {
 		shareFacade: ShareFacade,
 		groupManagementFacade: GroupManagementFacade,
 		private readonly recipientsModel: RecipientsModel,
+		private readonly groupSettingsModel: GroupSettingsModel,
+		public readonly groupNameData: GroupNameData,
 	) {
 		this.info = groupInfo
 		this.group = group
@@ -66,8 +69,8 @@ export class GroupSharingModel {
 
 	private readonly onEntityEvents: EntityEventsListener = (events, id) => this.entityEventsReceived(events, id)
 
-	static newAsync(
-		info: GroupInfo,
+	static async newAsync(
+		groupInfo: GroupInfo,
 		eventController: EventController,
 		entityClient: EntityClient,
 		logins: LoginController,
@@ -75,27 +78,30 @@ export class GroupSharingModel {
 		shareFacade: ShareFacade,
 		groupManagementFacade: GroupManagementFacade,
 		recipientsModel: RecipientsModel,
+		lazyGroupSettingsModel: lazy<Promise<GroupSettingsModel>>,
 	): Promise<GroupSharingModel> {
-		return entityClient
-			.load(GroupTypeRef, info.group)
-			.then((group) =>
-				Promise.all([entityClient.loadAll(SentGroupInvitationTypeRef, group.invitations), loadGroupMembers(group, entityClient)]).then(
-					([sentGroupInvitations, memberInfos]) =>
-						new GroupSharingModel(
-							info,
-							group,
-							memberInfos,
-							sentGroupInvitations,
-							eventController,
-							entityClient,
-							logins,
-							mailFacade,
-							shareFacade,
-							groupManagementFacade,
-							recipientsModel,
-						),
-				),
-			)
+		const group = await entityClient.load(GroupTypeRef, groupInfo.group)
+		const groupSettingsModel = await lazyGroupSettingsModel()
+		const [sentGroupInvitations, memberInfos, groupNameData] = await Promise.all([
+			entityClient.loadAll(SentGroupInvitationTypeRef, group.invitations),
+			loadGroupMembers(group, entityClient),
+			groupSettingsModel.getNameData(groupInfo),
+		])
+		return new GroupSharingModel(
+			groupInfo,
+			group,
+			memberInfos,
+			sentGroupInvitations,
+			eventController,
+			entityClient,
+			logins,
+			mailFacade,
+			shareFacade,
+			groupManagementFacade,
+			recipientsModel,
+			groupSettingsModel,
+			groupNameData,
+		)
 	}
 
 	dispose() {
