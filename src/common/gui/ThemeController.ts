@@ -96,17 +96,20 @@ export class ThemeController {
 	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): Record<string, string | number> {
 		let mappedCustomizations: Record<string, string | number> = {}
 
+		const colorTokenMap = newToOldColorTokenMap(customizations.base === "light")
 		for (const [newToken, hex] of Object.entries(customizations)) {
 			if (!newToken || !hex) continue
-			const mappedOldTokens = newToOldColorTokenMap(customizations.base === "light")[newToken as keyof Partial<Record<keyof Theme, string[]>>]
+
+			const mappedOldTokens = colorTokenMap[newToken as keyof Partial<Record<keyof Theme, string[]>>]
 			if (mappedOldTokens) {
 				for (const oldToken of mappedOldTokens) {
-					// FIXME
 					mappedCustomizations[oldToken] = hex
 				}
 			}
-
-			mappedCustomizations[newToken] = hex
+			// prevent old tokens from being overwritten in the case where customizations includes both new and old tokens
+			if (mappedCustomizations[newToken] == null) {
+				mappedCustomizations[newToken] = hex
+			}
 		}
 
 		return mappedCustomizations
@@ -412,7 +415,7 @@ const oldToNewColorTokenMap: Record<string, keyof Theme> = {
 
 function newToOldColorTokenMap(isLightTheme: boolean): Partial<Record<keyof Theme, string[]>> {
 	return {
-		secondary: ["button_bubble_bg"],
+		secondary: [],
 		on_secondary: ["navigation_menu_icon"],
 		surface: isLightTheme ? ["content_bg", "header_bg", "list_bg", "elevated_bg"] : ["content_bg", "header_bg", "list_bg", "navigation_menu_bg"],
 		on_surface: ["content_fg", "button_bubble_fg"],
