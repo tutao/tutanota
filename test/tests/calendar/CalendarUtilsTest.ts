@@ -15,6 +15,7 @@ import {
 	eventStartsAfter,
 	findNextAlarmOccurrence,
 	getAllDayDateForTimezone,
+	getAllDayDatesUTCFromIso,
 	getAllDayDateUTCFromZone,
 	getDiffIn24hIntervals,
 	getDiffIn60mIntervals,
@@ -113,6 +114,32 @@ o.spec("calendar utils tests", function () {
 			const expected = 1675011600000
 			const result = getAllDayDateForTimezone(date, "Asia/Krasnoyarsk")
 			o(result.getTime()).equals(expected)(iso`${result.getTime()} vs ${expected}`)
+		})
+	})
+
+	o.spec("getAllDayDatesUTCFromIso", function () {
+		o("get all day in a positive timezone", function () {
+			const { startDate, endDate } = getAllDayDatesUTCFromIso("2025-09-29", "Europe/Berlin")
+			o(startDate.getTime()).equals(1759104000000)
+			o(endDate.getTime()).equals(1759190400000)
+		})
+
+		o("get all day at 1985-09-29 in a positive timezone", function () {
+			const { startDate, endDate } = getAllDayDatesUTCFromIso("1985-09-29", "Europe/Berlin")
+			o(startDate.getTime()).equals(496800000000)
+			o(endDate.getTime()).equals(496886400000)
+		})
+
+		o("get all day in a negative timezone", function () {
+			const { startDate, endDate } = getAllDayDatesUTCFromIso("2025-09-29", "America/Los_Angeles")
+			o(startDate.getTime()).equals(1759104000000)
+			o(endDate.getTime()).equals(1759190400000)
+		})
+
+		o("get all day at 1985-09-29 in a negative timezone", function () {
+			const { startDate, endDate } = getAllDayDatesUTCFromIso("1985-09-29", "America/Los_Angeles")
+			o(startDate.getTime()).equals(496800000000)
+			o(endDate.getTime()).equals(496886400000)
 		})
 	})
 
