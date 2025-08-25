@@ -9,6 +9,7 @@ import {
 	createRepeatRuleWithValues,
 	extractYearFromBirthday,
 	generateUid,
+	getAllDayDatesUTCFromIso,
 	getEventEnd,
 	getEventStart,
 	getMonthRange,
@@ -20,7 +21,7 @@ import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "..
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { deepEqual, findAllAndRemove, incrementDate, mapAndFilterNull, stringToBase64 } from "@tutao/tutanota-utils"
+import { deepEqual, findAllAndRemove, mapAndFilterNull, stringToBase64 } from "@tutao/tutanota-utils"
 import { CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, OperationType, RepeatPeriod } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { EventController } from "../../api/main/EventController.js"
@@ -355,17 +356,7 @@ export class CalendarEventsRepository {
 		const uid = generateUid(calendarId, Date.now())
 
 		const eventTitle = this.calendarModel.getBirthdayEventTitle(contact.firstName)
-
-		let fullDateIso = contact.birthdayIso!
-		// Set the year because we can have birthdays without year
-		if (contact.birthdayIso?.startsWith("--")) {
-			fullDateIso = contact.birthdayIso.replace("-", "1970")
-		}
-
-		// Set up start and end date base on UTC.
-		// Also increments a copy of startDate by one day and set it as endDate
-		const startDate = new Date(fullDateIso!) // Uses fullDateIso as UTC value, therefore it creates a new Date applying the local timezone on top of fullDateIso
-		const endDate = incrementDate(new Date(startDate), 1)
+		const { startDate, endDate } = getAllDayDatesUTCFromIso(contact.birthdayIso!, this.zone)
 
 		const newEvent = createCalendarEvent({
 			sequence: "0",

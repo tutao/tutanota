@@ -52,6 +52,7 @@ import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { BirthdayEventRegistry } from "./CalendarEventsRepository.js"
 import type { TranslationKey } from "../../misc/LanguageViewModel.js"
+import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 
 export type CalendarTimeRange = {
 	start: number
@@ -1807,6 +1808,45 @@ export function extractContactIdFromEvent(id: string | null | undefined): string
 	}
 
 	return decodeBase64("utf-8", id)
+}
+
+/**
+ * Converts a birthday ISO string into UTC start and end dates
+ * representing a full-day event in the given time zone.
+ *
+ * This is useful for recurring dates like birthdays where you want the
+ * "all-day" event range in UTC that corresponds to the local calendar day.
+ *
+ * @param {string} isoDateString - The desired date as an ISO date string (e.g., "1999-05-12").
+ * @param {string} zone - The IANA time zone identifier (e.g., "Europe/Berlin", "America/New_York").
+ * @returns {{ startDate: Date; endDate: Date }} An object containing:
+ * - `startDate`: The UTC `Date` representing the start of the day (00:00 UTC converted to local time).
+ * - `endDate`: The UTC `Date` representing the end of the day (00:00 UTC of the following day converted to local time).
+ *
+ * @example
+ * // For a birthday on May 12 in Berlin time
+ * const { startDate, endDate } = getAllDayDatesUTCFromIso("1999-05-12", "Europe/Berlin");
+ * console.log(startDate); // 1999-05-11T22:00:00.000Z (depending on DST)
+ * console.log(endDate);   // 1999-05-12T22:00:00.000Z (depending on DST)
+ */
+export function getAllDayDatesUTCFromIso(isoDateString: string, zone: string): { startDate: Date; endDate: Date } {
+	const birthday = isoDateToBirthday(isoDateString)
+	// We use Luxon to create a JsDate in the same day as the ISO string but in the specified timezone
+	const birthdayDateInTimezone = DateTime.fromObject(
+		{
+			year: parseInt(birthday.year ?? "1970"),
+			month: parseInt(birthday.month),
+			day: parseInt(birthday.day),
+		},
+		{ zone },
+	).toJSDate()
+
+	const startDateUtc = getAllDayDateUTCFromZone(birthdayDateInTimezone, zone)
+	const endDateUtc = getAllDayDateUTCFromZone(getStartOfNextDayWithZone(birthdayDateInTimezone, zone), zone)
+	return {
+		startDate: startDateUtc,
+		endDate: endDateUtc,
+	}
 }
 
 export enum ByRule {
