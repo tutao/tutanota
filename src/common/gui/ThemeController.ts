@@ -376,8 +376,8 @@ export class WebThemeFacade implements ThemeFacade {
 }
 
 const oldToNewColorTokenMap: Record<string, keyof Theme> = {
-	button_bubble_bg: "secondary",
-	button_bubble_fg: "on_secondary",
+	button_bubble_bg: "surface_container_high",
+	button_bubble_fg: "on_surface",
 	content_bg: "surface",
 	content_fg: "on_surface",
 	content_button: "on_surface_variant",
@@ -412,9 +412,9 @@ const oldToNewColorTokenMap: Record<string, keyof Theme> = {
 function newToOldColorTokenMap(isLightTheme: boolean): Partial<Record<keyof Theme, string[]>> {
 	return {
 		secondary: ["button_bubble_bg"],
-		on_secondary: ["button_bubble_fg", "navigation_menu_icon"],
+		on_secondary: ["navigation_menu_icon"],
 		surface: isLightTheme ? ["content_bg", "header_bg", "list_bg", "elevated_bg"] : ["content_bg", "header_bg", "list_bg", "navigation_menu_bg"],
-		on_surface: ["content_fg"],
+		on_surface: ["content_fg", "button_bubble_fg"],
 		on_surface_variant: ["content_button", "header_button", "navigation_button", "content_message_bg", "list_message_bg"],
 		primary: ["content_accent", "content_button_selected", "header_button_selected", "list_accent_fg", "navigation_button_selected"],
 		on_primary: ["content_button_icon", "content_button_icon_selected", "navigation_button_icon", "navigation_button_icon_selected"],
@@ -423,6 +423,6 @@ function newToOldColorTokenMap(isLightTheme: boolean): Partial<Record<keyof Them
 		outline_variant: ["list_border", "navigation_border"],
 		scrim: ["modal_bg"],
 		error: ["error"],
-		surface_container_high: isLightTheme ? ["navigation_menu_bg"] : [],
+		surface_container_high: isLightTheme ? ["button_bubble_bg", "navigation_menu_bg"] : ["button_bubble_bg"],
 	} as const
 }
