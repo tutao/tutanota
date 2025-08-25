@@ -8,7 +8,7 @@ import { elementIdPart, isSameId } from "../../../common/api/common/utils/Entity
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { px, size } from "../../../common/gui/size.js"
-import { Keys, PresentableKeyVerificationState, PublicKeyIdentifierType } from "../../../common/api/common/TutanotaConstants.js"
+import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
 import { styles } from "../../../common/gui/styles.js"
 import { responsiveCardHMargin } from "../../../common/gui/cards.js"
@@ -19,9 +19,6 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { MailViewerMoreActions } from "./MailViewerUtils"
 import { MailHeaderActions } from "./MailViewerHeader"
-import { Icon, IconSize } from "../../../common/gui/base/Icon"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { PublicEncryptionKeyProvider } from "../../../common/api/worker/facades/PublicEncryptionKeyProvider"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel
@@ -199,52 +196,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				: null
 	}
 
-	private renderKeyVerificationError(mailViewerviewModel: MailViewerViewModel) {
-		const displayedSender = mailViewerviewModel.getDisplayedSender()
-		if (!displayedSender) {
-			// This is only the case for system notifications.
-			return
-		}
-
-		if (mailViewerviewModel.mail.keyVerificationState === PresentableKeyVerificationState.ALERT) {
-			return m(
-				".error-container.nds-ptb-l.plr-l.border-radius-top-big.flex.items-start",
-				{},
-				m(Icon, { icon: Icons.BrokenShield, size: IconSize.Medium, class: "mr", style: { fill: theme.error } }),
-				m("", [
-					lang.get("keyManagement.verificationError_title") + ". " + lang.get("keyVerificationErrorGeneric_msg") + " ",
-					m(Button, {
-						label: "resolveProblem_action",
-						click: () => {
-							let publicKeyProvider: PublicEncryptionKeyProvider = locator.publicEncryptionKeyProvider
-							import("../../../common/settings/keymanagement/KeyVerificationRecoveryDialog.js").then(
-								async ({ showSenderKeyVerificationRecoveryDialog, SenderKeyVerificationRecoveryDialogPages }) => {
-									try {
-										// We are doing this for the implicit key verification. We do not care about the returned key.
-										await publicKeyProvider.loadCurrentPublicEncryptionKey({
-											identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-											identifier: displayedSender.address,
-										})
-
-										// success case
-										showSenderKeyVerificationRecoveryDialog(displayedSender, SenderKeyVerificationRecoveryDialogPages.SUCCESS)
-									} catch (e) {
-										// failure case
-										showSenderKeyVerificationRecoveryDialog(displayedSender, SenderKeyVerificationRecoveryDialogPages.INFO)
-									}
-								},
-							)
-						},
-						type: ButtonType.Secondary,
-						inline: true,
-						class: ["underline", "b", "inline-block"],
-					}),
-				]),
-			)
-		}
-		return null
-	}
-
 	private renderViewer(
 		mailViewerViewModel: MailViewerViewModel,
 		isPrimary: boolean,
@@ -266,7 +217,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
 					},
 				},
-				this.renderKeyVerificationError(mailViewerViewModel),
 				mailViewerViewModel.isCollapsed()
 					? m(CollapsedMailView, {
 							viewModel: mailViewerViewModel,

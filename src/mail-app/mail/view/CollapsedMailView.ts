@@ -5,7 +5,7 @@ import { theme } from "../../../common/gui/theme.js"
 import { AllIcons, Icon } from "../../../common/gui/base/Icon.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { responsiveCardHPadding } from "../../../common/gui/cards.js"
-import { Keys, PresentableKeyVerificationState, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
+import { Keys, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
@@ -47,9 +47,6 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				this.renderSender(viewModel),
 				m(".flex.ml-between-s.items-center", [
 					mail.attachments.length > 0 ? this.renderIcon(Icons.Attachment, lang.get("attachment_label")) : null,
-					viewModel.mail.keyVerificationState === PresentableKeyVerificationState.SECURE
-						? this.renderIcon(Icons.Shield, lang.get("keyManagement.contactVerificationConfirmationTitle_label"))
-						: null,
 					viewModel.isConfidential() ? this.renderIcon(getConfidentialIcon(mail), lang.get("confidential_label")) : null,
 					this.renderIcon(getFolderIconByType(folderInfo.folderType), folderInfo.name),
 					m(".small.font-weight-600", dateTime),
