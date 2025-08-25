@@ -46,7 +46,8 @@ export class ThemeController {
 
 		if (whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
-			const assembledTheme = await this.applyCustomizations(whitelabelCustomizations.theme, false)
+			const parsedTheme = whitelabelCustomizations.theme
+			const assembledTheme = await this.applyCustomizations(parsedTheme, false)
 			this._themePreference = assembledTheme.themeId
 		} else {
 			// It is theme info passed from native to be applied as early as possible.
@@ -75,11 +76,12 @@ export class ThemeController {
 	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
 	 */
 	public static mapOldToNewColorTokens(customizations: ThemeCustomizations | keyof typeof oldToNewColorTokenMap): ThemeCustomizations {
-		let mappedCustomizations: Record<string, string> = {}
+		let mappedCustomizations: Record<string, string | number> = {}
 		for (const [oldToken, hex] of Object.entries(customizations)) {
 			if (!oldToken || !hex) continue
 			const newToken: keyof Theme | undefined = oldToNewColorTokenMap[oldToken]
-			if (newToken) {
+
+			if (newToken && mappedCustomizations[newToken] == null) {
 				mappedCustomizations[newToken] = hex
 			}
 			mappedCustomizations[oldToken] = hex
@@ -91,18 +93,23 @@ export class ThemeController {
 	 * Color token mapper from the new to the old.
 	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
 	 */
-	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): Record<string, string> {
-		let mappedCustomizations: Record<string, string> = {}
+	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): Record<string, string | number> {
+		let mappedCustomizations: Record<string, string | number> = {}
 
+		const colorTokenMap = newToOldColorTokenMap(customizations.base === "light")
 		for (const [newToken, hex] of Object.entries(customizations)) {
 			if (!newToken || !hex) continue
-			const mappedOldTokens = newToOldColorTokenMap[newToken as keyof typeof newToOldColorTokenMap]
+
+			const mappedOldTokens = colorTokenMap[newToken as keyof Partial<Record<keyof Theme, string[]>>]
 			if (mappedOldTokens) {
 				for (const oldToken of mappedOldTokens) {
 					mappedCustomizations[oldToken] = hex
 				}
 			}
-			mappedCustomizations[newToken] = hex
+			// prevent old tokens from being overwritten in the case where customizations includes both new and old tokens
+			if (mappedCustomizations[newToken] == null) {
+				mappedCustomizations[newToken] = hex
+			}
 		}
 
 		return mappedCustomizations
@@ -220,6 +227,7 @@ export class ThemeController {
 	 */
 	async applyCustomizations(customizations: ThemeCustomizations, permanent: boolean = true): Promise<Theme> {
 		const updatedTheme = this.assembleTheme(ThemeController.mapOldToNewColorTokens(customizations))
+
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {
 			logo: "",
@@ -239,6 +247,10 @@ export class ThemeController {
 		}
 
 		return updatedTheme
+	}
+
+	async resetTheme(theme: Theme) {
+		this.applyTrustedTheme(theme, theme.themeId)
 	}
 
 	async storeCustomThemeForCustomizations(customizations: ThemeCustomizations) {
@@ -367,8 +379,8 @@ export class WebThemeFacade implements ThemeFacade {
 }
 
 const oldToNewColorTokenMap: Record<string, keyof Theme> = {
-	button_bubble_bg: "secondary",
-	button_bubble_fg: "on_secondary",
+	button_bubble_bg: "surface_container_high",
+	button_bubble_fg: "on_surface",
 	content_bg: "surface",
 	content_fg: "on_surface",
 	content_button: "on_surface_variant",
@@ -392,7 +404,8 @@ const oldToNewColorTokenMap: Record<string, keyof Theme> = {
 	navigation_bg: "surface_container",
 	navigation_border: "outline_variant",
 	navigation_button: "on_surface_variant",
-	navigation_button_icon: "on_primary",
+	navigation_button_icon: "surface_container",
+	navigation_button_icon_bg: "on_surface_variant",
 	navigation_button_selected: "primary",
 	navigation_button_icon_selected: "on_primary",
 	navigation_menu_bg: "secondary",
@@ -400,17 +413,22 @@ const oldToNewColorTokenMap: Record<string, keyof Theme> = {
 	error: "error",
 } as const
 
-const newToOldColorTokenMap: Partial<Record<keyof Theme, string[]>> = {
-	secondary: ["button_bubble_bg", "navigation_menu_bg"],
-	on_secondary: ["button_bubble_fg", "navigation_menu_icon"],
-	surface: ["content_bg", "header_bg", "list_bg", "elevated_bg"],
-	on_surface: ["content_fg"],
-	on_surface_variant: ["content_button", "header_button", "navigation_button", "content_message_bg", "list_message_bg"],
-	primary: ["content_accent", "content_button_selected", "header_button_selected", "list_accent_fg", "navigation_button_selected"],
-	on_primary: ["content_button_icon", "content_button_icon_selected", "navigation_button_icon", "navigation_button_icon_selected"],
-	outline: ["content_border", "header_box_shadow_bg"],
-	surface_container: ["list_alternate_bg", "navigation_bg"],
-	outline_variant: ["list_border", "navigation_border"],
-	scrim: ["modal_bg"],
-	error: ["error"],
-} as const
+function newToOldColorTokenMap(isLightTheme: boolean): Partial<Record<keyof Theme, string[]>> {
+	return {
+		secondary: [],
+		on_secondary: ["navigation_menu_icon"],
+		surface: isLightTheme ? ["content_bg", "header_bg", "list_bg", "elevated_bg"] : ["content_bg", "header_bg", "list_bg", "navigation_menu_bg"],
+		on_surface: ["content_fg", "button_bubble_fg"],
+		on_surface_variant: ["content_button", "header_button", "navigation_button", "content_message_bg", "list_message_bg", "navigation_button_icon_bg"],
+		primary: ["content_accent", "content_button_selected", "header_button_selected", "list_accent_fg", "navigation_button_selected"],
+		on_primary: ["content_button_icon", "content_button_icon_selected", "navigation_button_icon_selected"],
+		outline: ["content_border", "header_box_shadow_bg"],
+		surface_container: isLightTheme
+			? ["list_alternate_bg", "navigation_bg", "navigation_button_icon"]
+			: ["list_alternate_bg", "navigation_bg", "navigation_button_icon", "elevated_bg"],
+		outline_variant: ["list_border", "navigation_border"],
+		scrim: ["modal_bg"],
+		error: ["error"],
+		surface_container_high: isLightTheme ? ["button_bubble_bg", "navigation_menu_bg"] : ["button_bubble_bg"],
+	} as const
+}
