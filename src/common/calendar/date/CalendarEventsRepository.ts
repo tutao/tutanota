@@ -179,11 +179,11 @@ export class CalendarEventsRepository {
 			// to prevent unnecessary churn, we only add the event if we have the months it covers loaded.
 			const eventStartMonth = getMonthRange(getEventStart(event, this.zone), this.zone)
 			const eventEndMonth = getMonthRange(getEventEnd(event, this.zone), this.zone)
-			if (this.isCalendarLoadedForRange(eventStartMonth.start, event._ownerGroup)) {
+			if (this.loadedMonths.has(eventStartMonth.start)) {
 				await this.addDaysForEvent(event, eventStartMonth)
 			}
 			// no short event covers more than two months, so this should cover everything.
-			if (eventEndMonth.start !== eventStartMonth.start && this.isCalendarLoadedForRange(eventEndMonth.start, event._ownerGroup)) {
+			if (eventEndMonth.start !== eventStartMonth.start && this.loadedMonths.has(eventEndMonth.start)) {
 				await this.addDaysForEvent(event, eventEndMonth)
 			}
 		} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
