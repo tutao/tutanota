@@ -351,6 +351,11 @@ export class CalendarEventsRepository {
 	}
 
 	private createClientOnlyBirthdayEvent(contact: Contact, userId: Id) {
+		if (!contact.birthdayIso) {
+			console.warn("Skipping birthday event creation. Trying to create a birthday event for an invalid contact.")
+			return null
+		}
+
 		const encodedContactId = stringToBase64(contact._id.join("/"))
 		const calendarId = `${userId}#${CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID}`
 		const uid = generateUid(calendarId, Date.now())
@@ -411,7 +416,9 @@ export class CalendarEventsRepository {
 
 		for (const { contact } of filteredContacts) {
 			const newEvent = this.createClientOnlyBirthdayEvent(contact, this.logins.getUserController().userId)
-			this.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+			if (newEvent) {
+				this.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+			}
 		}
 
 		console.info(`Birthday events loaded - ${filteredContacts.length} Valid contacts / ${invalidContacts.length} Invalid contacts`)
@@ -434,6 +441,11 @@ export class CalendarEventsRepository {
 		const contact = await this.contactModel.loadContactFromId(contactId)
 
 		const newEvent = this.createClientOnlyBirthdayEvent(contact, this.logins.getUserController().userId)
+
+		if (!newEvent) {
+			return
+		}
+
 		const currentBirthdayDate = new Date(newEvent.startTime)
 		currentBirthdayDate.setFullYear(new Date().getFullYear())
 
