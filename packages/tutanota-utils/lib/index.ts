@@ -146,6 +146,7 @@ export {
 	makeSingleUse,
 	identity,
 	noOp,
+	throttle,
 	debounce,
 	debounceStart,
 	randomIntFromInterval,

@@ -238,16 +238,7 @@ export function noOp() {}
  * @return {Function}
  */
 export function debounce<F extends (...args: any) => void>(timeout: number, toThrottle: F): F {
-	let timeoutId: TimeoutID
-	let toInvoke: (...args: any) => void
-	return downcast((...args: any[]) => {
-		if (timeoutId) {
-			clearTimeout(timeoutId)
-		}
-
-		toInvoke = toThrottle.bind(null, ...args)
-		timeoutId = setTimeout(toInvoke, timeout)
-	})
+	return createDebouncer(timeout, DebouncerType.Debounce, toThrottle)
 }
 
 /**
@@ -258,21 +249,7 @@ export function debounce<F extends (...args: any) => void>(timeout: number, toTh
  * but ones in the middle (which happen too often) are discarded.
  */
 export function debounceStart<F extends (...args: any) => void>(timeout: number, toThrottle: F): F {
-	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
-	let lastInvoked = 0
-	return downcast((...args: any) => {
-		if (Date.now() - lastInvoked < timeout) {
-			if (timeoutId) clearTimeout(timeoutId)
-			timeoutId = setTimeout(() => {
-				timeoutId = null
-				toThrottle.apply(null, args)
-			}, timeout)
-		} else {
-			toThrottle.apply(null, args)
-		}
-
-		lastInvoked = Date.now()
-	})
+	return createDebouncer(timeout, DebouncerType.DebounceStart, toThrottle)
 }
 
 /**
@@ -287,20 +264,38 @@ export function debounceStart<F extends (...args: any) => void>(timeout: number,
  * is being called repeatedly.
  */
 export function throttle<F extends (...args: any[]) => void>(periodMs: number, toThrottle: F): F {
-	let lastArgs: any[] | null = null
-	return ((...args: any[]) => {
-		if (lastArgs) {
-			return
-		} else {
-			setTimeout(() => {
+	return createDebouncer(periodMs, DebouncerType.Throttle, toThrottle)
+}
+
+function createDebouncer<F extends (...args: any) => void>(timeout: number, type: DebouncerType, toThrottle: F): F {
+	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
+	let lastArgs: any[]
+	let lastInvoked = 0
+
+	return downcast((...args: any) => {
+		lastArgs = args
+
+		if (type === DebouncerType.DebounceStart && Date.now() - lastInvoked >= timeout) {
+			toThrottle.apply(null, lastArgs)
+		} else if (timeoutId == null || type !== DebouncerType.Throttle) {
+			if (timeoutId) clearTimeout(timeoutId)
+			timeoutId = setTimeout(() => {
 				try {
-					toThrottle.apply(null, args)
+					toThrottle.apply(null, lastArgs)
 				} finally {
-					lastArgs = null
+					timeoutId = null
 				}
-			}, periodMs)
+			}, timeout)
 		}
-	}) as F
+
+		lastInvoked = Date.now()
+	})
+}
+
+enum DebouncerType {
+	Throttle,
+	Debounce,
+	DebounceStart,
 }
 
 export function randomIntFromInterval(min: number, max: number): number {
