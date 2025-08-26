@@ -269,6 +269,16 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return groupSettingModel.getNameData(groupInfo)
 	}
 
+	async setCalendarGroupInfoName(groupInfo: GroupInfo, name: string): Promise<void> {
+		const groupSettingModel = await this.groupSettingsModel()
+		groupSettingModel.updateGroupDataName(groupInfo, { name, sharedName: null })
+	}
+
+	async setCalnedarGroupSettings(groupInfo: GroupInfo, groupSettings: Partial<GroupSettings>): Promise<void> {
+		const groupSettingModel = await this.groupSettingsModel()
+		groupSettingModel.updateGroupSettings(groupInfo, groupSettings)
+	}
+
 	/**
 	 * react to changes to the calendar data by making sure we have the current month + the two adjacent months
 	 * ready to be rendered

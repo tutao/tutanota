@@ -220,7 +220,7 @@ export class ContactListViewModel {
 
 	async updateContactList(groupInfo: GroupInfo, names: { name: string; sharedName: string | null }): Promise<void> {
 		const groupSettingModel = await this.groupSettingsModel()
-		await groupSettingModel.updateGroupData(groupInfo, names)
+		await groupSettingModel.updateGroupDataName(groupInfo, names)
 	}
 
 	getSelectedContactListInfo(): ContactListInfo | null {

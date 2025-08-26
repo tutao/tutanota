@@ -1003,7 +1003,7 @@ async function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
 		},
 		okAction: (dialog: Dialog) => {
 			dialog.close()
-			groupSettingsModel.updateGroupData(instance.groupInfo, { name: nameInput, sharedName: sharedNameInput })
+			groupSettingsModel.updateGroupDataName(instance.groupInfo, { name: nameInput, sharedName: sharedNameInput })
 		},
 	})
 }

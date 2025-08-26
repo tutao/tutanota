@@ -15,10 +15,11 @@ import { DEFAULT_ERROR } from "../../../common/api/common/TutanotaConstants.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
 import { generateRandomColor } from "./CalendarGuiUtils.js"
+import { SharedNameData } from "../../../common/sharing/model/GroupSettingsModel"
 
 export type CalendarProperties = {
 	name: string
-	sharedName?: string
+	sharedName: SharedNameData | null
 	color: string
 	alarms: AlarmInterval[]
 	sourceUrl: string | null
@@ -26,6 +27,7 @@ export type CalendarProperties = {
 
 export const defaultCalendarProperties: CalendarProperties = {
 	name: "",
+	sharedName: null,
 	color: "",
 	alarms: [],
 	sourceUrl: "",
@@ -66,27 +68,26 @@ function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stre
 
 function createEditCalendarComponent(
 	nameStream: Stream<string>,
-	sharedNameStream: Stream<string> | undefined,
+	sharedName: { data: SharedNameData; stream: Stream<string> } | null,
 	colorStream: Stream<string>,
 	calendarType: CalendarType,
 	alarms: AlarmInterval[],
 	urlStream: Stream<string>,
 	errorMessageStream: Stream<string>,
-	userIsOwner: boolean,
 ) {
 	return m.fragment({}, [
-		sharedNameStream
+		sharedName != null
 			? m(TextField, {
-					value: sharedNameStream(),
-					oninput: sharedNameStream,
+					value: sharedName.stream(),
+					oninput: sharedName.stream,
 					label: "calendarName_label",
-					isReadOnly: !userIsOwner,
+					isReadOnly: !sharedName.data.editable,
 				})
 			: null,
 		m(TextField, {
 			value: nameStream(),
 			oninput: nameStream,
-			label: sharedNameStream ? lang.getTranslation("calendarCustomName_label", { "{customName}": "" }) : "calendarName_label",
+			label: sharedName ? lang.getTranslation("calendarCustomName_label", { "{customName}": "" }) : "calendarName_label",
 		}),
 		m(".small.mt.mb-xs", lang.get("color_label")),
 		m(ColorPickerView, {
@@ -95,7 +96,7 @@ function createEditCalendarComponent(
 				colorStream(color)
 			},
 		}),
-		!sharedNameStream && isNormalCalendarType(calendarType)
+		sharedName == null && isNormalCalendarType(calendarType)
 			? m(RemindersEditor, {
 					alarms,
 					addAlarm: (alarm: AlarmInterval) => {
@@ -122,7 +123,6 @@ export interface CreateEditDialogAttrs {
 	calendarProperties?: CalendarProperties
 	isNewCalendar?: boolean
 	calendarModel?: CalendarModel
-	userIsOwner: boolean
 }
 
 export function showCreateEditCalendarDialog({
@@ -133,7 +133,6 @@ export function showCreateEditCalendarDialog({
 	warningMessage,
 	calendarProperties: { name, sharedName, color, alarms, sourceUrl } = defaultCalendarProperties,
 	isNewCalendar = true,
-	userIsOwner,
 	calendarModel,
 }: CreateEditDialogAttrs) {
 	if (color !== "") {
@@ -142,7 +141,7 @@ export function showCreateEditCalendarDialog({
 		color = generateRandomColor()
 	}
 
-	const sharedNameStream = sharedName ? stream(sharedName) : undefined
+	const shreadNameInput = sharedName ? { data: sharedName, stream: stream(sharedName.name) } : null
 	const nameStream = stream(name)
 	const colorStream = stream(color)
 	const urlStream = stream(sourceUrl ?? "")
@@ -167,7 +166,12 @@ export function showCreateEditCalendarDialog({
 			dialog,
 			{
 				name: nameStream(),
-				sharedName: sharedNameStream ? sharedNameStream() : undefined,
+				sharedName: shreadNameInput
+					? {
+							name: shreadNameInput.stream(),
+							editable: shreadNameInput.data.editable,
+						}
+					: null,
 				color: colorStream().substring(1),
 				alarms,
 				sourceUrl: urlStream().trim(),
@@ -215,16 +219,7 @@ export function showCreateEditCalendarDialog({
 					view: () =>
 						m(".flex.col", [
 							warningMessage ? warningMessage() : null,
-							createEditCalendarComponent(
-								nameStream,
-								sharedNameStream,
-								colorStream,
-								calendarType,
-								alarms,
-								urlStream,
-								errorMessageStream,
-								userIsOwner,
-							),
+							createEditCalendarComponent(nameStream, shreadNameInput, colorStream, calendarType, alarms, urlStream, errorMessageStream),
 						]),
 				},
 				okAction: doAction,

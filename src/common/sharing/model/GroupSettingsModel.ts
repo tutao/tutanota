@@ -5,16 +5,16 @@ import { getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../Gro
 import { getEtId, isSameId } from "../../api/common/utils/EntityUtils"
 import { noOp, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../api/main/CommonLocator"
-import { createGroupSettings } from "../../api/entities/tutanota/TypeRefs"
+import { createGroupSettings, GroupSettings } from "../../api/entities/tutanota/TypeRefs"
 import { LockedError } from "../../api/common/error/RestError"
 
-type SharedNameData = { editable: boolean; name: string } | null
+export type SharedNameData = { editable: boolean; name: string }
 
 export interface GroupNameData {
 	/** name: Can come from GroupInfo itself (if group is not shared) or group settings (if is shared). The user will always be able to edit this name. */
 	readonly name: string
 	/** sharedName: The name for the group. This always comes directly from {@link GroupInfo#name}. Can only be edited by the group owner. */
-	readonly sharedName: SharedNameData
+	readonly sharedName: SharedNameData | null
 }
 
 export class GroupSettingsModel {
@@ -46,11 +46,11 @@ export class GroupSettingsModel {
 		}
 	}
 
-	async updateGroupData(groupInfo: GroupInfo, names: { name: string; sharedName: string | null }) {
+	async updateGroupDataName(groupInfo: GroupInfo, names: { name: string; sharedName: string | null }) {
 		if (names.name !== groupInfo.name) {
 			if (names.sharedName) {
 				// If there is a shared name, this is a shared group and this is changing the group settings name
-				this.updateGroupSettingsName(groupInfo, names.name)
+				this.updateGroupSettings(groupInfo, { name: names.name })
 			} else {
 				await this.updateGroupInfoName(groupInfo, names.name)
 			}
@@ -66,19 +66,20 @@ export class GroupSettingsModel {
 		await this.entityClient.update(groupInfo)
 	}
 
-	private updateGroupSettingsName(groupInfo: GroupInfo, newName: string) {
+	updateGroupSettings(groupInfo: GroupInfo, newSettings: Partial<GroupSettings>) {
 		const { userSettingsGroupRoot } = this.loginController.getUserController()
 		const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => isSameId(gc.group, groupInfo.group)) ?? null
 
 		if (existingGroupSettings) {
-			existingGroupSettings.name = newName
+			Object.assign(existingGroupSettings, newSettings)
 		} else {
 			const newGroupSettings = createGroupSettings({
 				group: groupInfo.group,
 				color: "",
-				name: newName,
+				name: "",
 				defaultAlarmsList: [],
 				sourceUrl: null,
+				...newSettings,
 			})
 			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
 		}

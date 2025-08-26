@@ -24,7 +24,6 @@ import {
 	Contact,
 	ContactTypeRef,
 	createDefaultAlarmInfo,
-	createGroupSettings,
 	GroupSettings,
 	UserSettingsGroupRoot,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -974,7 +973,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				showCreateEditCalendarDialog({
 					calendarType,
 					titleTextId: "add_action",
-					userIsOwner: true,
 					okAction: createNormalCalendar,
 					okTextId: "save_action",
 					calendarModel: this.viewModel.getCalendarModel(),
@@ -984,7 +982,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				showCreateEditCalendarDialog({
 					calendarType,
 					titleTextId: "newCalendarSubscriptionsDialog_title",
-					userIsOwner: true,
 					okAction: createExternalCalendar,
 					okTextId: "subscribe_action",
 					warningMessage: () => m(".smaller.content-fg", lang.get("externalCalendarInfo_msg")),
@@ -1229,7 +1226,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		existingGroupSettings: GroupSettings | null,
 		userSettingsGroupRoot: UserSettingsGroupRoot,
 	) {
-		const { groupInfo, shared, userIsOwner } = calendarInfo
+		const { groupInfo } = calendarInfo
 		if (isClientOnlyCalendar(groupInfo.group) && !this.viewModel.isNewPaidPlan) {
 			showPlanUpgradeRequiredDialog(NewPaidPlans)
 			return
@@ -1244,12 +1241,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			okTextId: "save_action",
 			calendarProperties: {
 				name: nameData.name,
-				sharedName: nameData.sharedName?.name,
+				sharedName: nameData.sharedName,
 				color: colorValue.substring(1),
 				alarms: existingGroupSettings?.defaultAlarmsList.map((alarm) => parseAlarmInterval(alarm.trigger)) ?? [],
 				sourceUrl: existingGroupSettings?.sourceUrl ?? null,
 			},
-			userIsOwner,
 			isNewCalendar: false,
 			calendarModel: this.viewModel.getCalendarModel(),
 		})
@@ -1265,62 +1261,103 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const { groupInfo, shared, userIsOwner } = calendarInfo
 
 		const clientOnlyCalendar = isClientOnlyCalendar(groupInfo.group)
-		if (userIsOwner && !clientOnlyCalendar) {
-			let newName: string | null = null
-			// User is the owner, so we update the entity instead of groupSettings
-			if (properties.sharedName) {
-				// if it is a shared calendar and the shared name has been changed the entity needs to be updated
-				// the name on the entity is what is shared with everyone
-				newName = properties.sharedName
-			} else {
-				newName = properties.name
-			}
-			if (newName && newName !== groupInfo.name) {
-				groupInfo.name = newName
-				locator.entityClient.update(groupInfo)
-			}
-		}
 
-		const shouldSyncExternal = !!(existingGroupSettings && hasSourceUrl(existingGroupSettings) && existingGroupSettings.sourceUrl !== properties.sourceUrl)
-		const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
-		// color always set for existing calendar
-		if (existingGroupSettings) {
-			existingGroupSettings.color = properties.color
-			existingGroupSettings.name = shared && properties.name !== groupInfo.name ? properties.name : null
-			existingGroupSettings.defaultAlarmsList = alarms
-			existingGroupSettings.sourceUrl = properties.sourceUrl
-		} else if (clientOnlyCalendar) {
+		if (clientOnlyCalendar) {
 			this.viewModel.handleClientOnlyUpdate(groupInfo, downcast({ name: properties.name, color: properties.color }))
 			dialog.close()
 			return this.viewModel.redraw(undefined)
 		} else {
-			const newGroupSettings = createGroupSettings({
-				group: groupInfo.group,
-				color: properties.color,
-				name: shared && properties.name !== groupInfo.name ? properties.name : null,
-				defaultAlarmsList: alarms,
-				sourceUrl: properties.sourceUrl,
-			})
+			if (userIsOwner) {
+				// if it is a shared calendar and the shared name has been changed the entity needs to be updated
+				// the name on the entity is what is shared with everyone
+				this.viewModel.setCalendarGroupInfoName(groupInfo, properties.sharedName ? properties.sharedName.name : properties.name)
+			}
 
-			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
+			const shouldSyncExternal = !!(
+				existingGroupSettings &&
+				hasSourceUrl(existingGroupSettings) &&
+				existingGroupSettings.sourceUrl !== properties.sourceUrl
+			)
+			const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
+			this.viewModel
+				.setCalnedarGroupSettings(groupInfo, {
+					color: properties.color,
+					name: shared && properties.name !== groupInfo.name ? properties.name : null,
+					defaultAlarmsList: alarms,
+					sourceUrl: properties.sourceUrl,
+				})
+				.then(() => {
+					if (shouldSyncExternal)
+						this.viewModel.forceSyncExternal(existingGroupSettings)?.catch(async (e) => {
+							showSnackBar({
+								message: lang.makeTranslation("exception_msg", e.message),
+								button: {
+									label: "ok_action",
+									click: noOp,
+								},
+								waitingTime: 500,
+							})
+						})
+				})
+				.catch(ofClass(LockedError, noOp))
 		}
 
-		locator.entityClient
-			.update(userSettingsGroupRoot)
-			.then(() => {
-				if (shouldSyncExternal)
-					this.viewModel.forceSyncExternal(existingGroupSettings)?.catch(async (e) => {
-						showSnackBar({
-							message: lang.makeTranslation("exception_msg", e.message),
-							button: {
-								label: "ok_action",
-								click: noOp,
-							},
-							waitingTime: 500,
-						})
-					})
-			})
-			.catch(ofClass(LockedError, noOp))
+		// if (userIsOwner && !clientOnlyCalendar) {
+		// 	let newName: string | null = null
+		// 	// User is the owner, so we update the entity instead of groupSettings
+		// 	if (properties.sharedName) {
+		// 		// if it is a shared calendar and the shared name has been changed the entity needs to be updated
+		// 		// the name on the entity is what is shared with everyone
+		// 		newName = properties.sharedName.name
+		// 	} else {
+		// 		newName = properties.name
+		// 	}
+		// 	if (newName && newName !== groupInfo.name) {
+		// 		groupInfo.name = newName
+		// 		locator.entityClient.update(groupInfo)
+		// 	}
+		// }
+		//
+		// const shouldSyncExternal = !!(existingGroupSettings && hasSourceUrl(existingGroupSettings) && existingGroupSettings.sourceUrl !== properties.sourceUrl)
+		// const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
+		// // color always set for existing calendar
+		// if (existingGroupSettings) {
+		// 	existingGroupSettings.color = properties.color
+		// 	existingGroupSettings.name = shared && properties.name !== groupInfo.name ? properties.name : null
+		// 	existingGroupSettings.defaultAlarmsList = alarms
+		// 	existingGroupSettings.sourceUrl = properties.sourceUrl
+		// } else if (clientOnlyCalendar) {
+		// 	this.viewModel.handleClientOnlyUpdate(groupInfo, downcast({ name: properties.name, color: properties.color }))
+		// 	dialog.close()
+		// 	return this.viewModel.redraw(undefined)
+		// } else {
+		// 	const newGroupSettings = createGroupSettings({
+		// 		group: groupInfo.group,
+		// 		color: properties.color,
+		// 		name: shared && properties.name !== groupInfo.name ? properties.name : null,
+		// 		defaultAlarmsList: alarms,
+		// 		sourceUrl: properties.sourceUrl,
+		// 	})
+		//
+		// 	userSettingsGroupRoot.groupSettings.push(newGroupSettings)
+		// }
+		//
+		// locator.entityClient
+		// 	.update(userSettingsGroupRoot)
+		// 	.then(() => {
+		// 		if (shouldSyncExternal)
+		// 			this.viewModel.forceSyncExternal(existingGroupSettings)?.catch(async (e) => {
+		// 				showSnackBar({
+		// 					message: lang.makeTranslation("exception_msg", e.message),
+		// 					button: {
+		// 						label: "ok_action",
+		// 						click: noOp,
+		// 					},
+		// 					waitingTime: 500,
+		// 				})
+		// 			})
+		// 	})
+		// 	.catch(ofClass(LockedError, noOp))
 		dialog.close()
 	}
 
