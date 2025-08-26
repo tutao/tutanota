@@ -10,6 +10,7 @@ import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { debounce, isEmpty, remove } from "@tutao/tutanota-utils"
+import { IconButton, IconButtonAttrs } from "./IconButton"
 
 assertMainOrNode()
 const SNACKBAR_SHOW_TIME = 6000
@@ -21,6 +22,7 @@ export type SnackBarButtonAttrs = {
 type SnackBarAttrs = {
 	message: MaybeTranslation
 	button: ButtonAttrs | null
+	dismissButton?: IconButtonAttrs
 }
 type QueueItem = SnackBarAttrs & {
 	onClose: ((timedOut: boolean) => unknown) | null
@@ -39,6 +41,7 @@ class SnackBar implements Component<SnackBarAttrs> {
 		return m(".snackbar-content.flex.flex-space-between.border-radius.plr.pb-xs.pt-xs", [
 			m(".flex.center-vertically.smaller", lang.getTranslationText(vnode.attrs.message)),
 			vnode.attrs.button ? m(".flex-end.center-vertically.pl", m(Button, vnode.attrs.button)) : null,
+			vnode.attrs.dismissButton ? m(".flex.items-center.justify-right", [m(IconButton, vnode.attrs.dismissButton)]) : null,
 		])
 	}
 }
@@ -66,13 +69,14 @@ function makeButtonAttrsForSnackBar(button: SnackBarButtonAttrs): ButtonAttrs {
 export function showSnackBar(args: {
 	message: MaybeTranslation
 	button: SnackBarButtonAttrs
+	dismissButton?: IconButtonAttrs
 	onShow?: () => unknown
 	onClose?: (timedOut: boolean) => unknown
 	waitingTime?: number
 	showingTime?: number
 	replace?: boolean
 }): () => void {
-	const { message, button, onClose, onShow, waitingTime, showingTime = SNACKBAR_SHOW_TIME, replace = false } = args
+	const { message, button, dismissButton, onClose, onShow, waitingTime, showingTime = SNACKBAR_SHOW_TIME, replace = false } = args
 
 	let cancelled = false
 	const doCancel = {
@@ -82,9 +86,11 @@ export function showSnackBar(args: {
 	}
 
 	const buttonAttrs = makeButtonAttrsForSnackBar(button)
+
 	const queueEntry: QueueItem = {
 		message: message,
 		button: buttonAttrs,
+		dismissButton: dismissButton,
 		onClose: onClose ?? null,
 		onShow: onShow ?? null,
 		doCancel,
@@ -144,7 +150,7 @@ function getSnackBarPosition() {
 }
 
 function showNextNotification() {
-	const { message, button, onClose, onShow, doCancel, showingTime } = notificationQueue[0] //we shift later because it is still shown
+	const { message, button, dismissButton, onClose, onShow, doCancel, showingTime } = notificationQueue[0] //we shift later because it is still shown
 	clearTimeout(currentAnimationTimeout)
 	currentAnimationTimeout = null
 	const closeFunction = displayOverlay(
@@ -154,6 +160,7 @@ function showNextNotification() {
 				m(SnackBar, {
 					message,
 					button,
+					dismissButton: dismissButton,
 				}),
 		},
 		"slide-bottom",
