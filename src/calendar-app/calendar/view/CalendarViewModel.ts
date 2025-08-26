@@ -10,6 +10,7 @@ import {
 	groupByAndMapUniquely,
 	identity,
 	last,
+	lazy,
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -59,6 +60,7 @@ import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
 import { getGroupColors } from "../../../common/misc/GroupColors"
+import { GroupNameData, GroupSettingsModel } from "../../../common/sharing/model/GroupSettingsModel"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -139,6 +141,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly timeZone: string,
 		private readonly mailboxModel: MailboxModel,
 		private readonly contactModel: ContactModel,
+		private readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>,
 	) {
 		this._transientEvents = []
 
@@ -259,6 +262,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				this._hiddenCalendars.add(calendarID)
 			}
 		}
+	}
+
+	async getCalendarNameData(groupInfo: GroupInfo): Promise<GroupNameData> {
+		const groupSettingModel = await this.groupSettingsModel()
+		return groupSettingModel.getNameData(groupInfo)
 	}
 
 	/**

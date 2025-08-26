@@ -30,14 +30,15 @@ export class GroupSettingsModel {
 		// - see two, edit both (one that is group info, another that maps to custom name)
 		const group = await this.entityClient.load(GroupTypeRef, groupInfo.group)
 		const groupMembers = await loadGroupMembers(group, this.entityClient)
-		const isShared = !isEmpty(groupMembers)
 
-		const sharedName = isShared
-			? {
-					name: groupInfo.name,
-					editable: isSharedGroupOwner(group, getEtId(this.loginController.getUserController().user)),
-				}
-			: null
+		// shared group will have more than one member (if one member it is just the own user)
+		const sharedName =
+			groupMembers.length > 1
+				? {
+						name: getSharedGroupName(groupInfo, this.loginController.getUserController(), false),
+						editable: isSharedGroupOwner(group, getEtId(this.loginController.getUserController().user)),
+					}
+				: null
 
 		return {
 			name: getSharedGroupName(groupInfo, this.loginController.getUserController(), true),

@@ -1223,7 +1223,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	private onPressedEditCalendar(
+	private async onPressedEditCalendar(
 		calendarInfo: CalendarInfo,
 		colorValue: string,
 		existingGroupSettings: GroupSettings | null,
@@ -1235,14 +1235,16 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			return
 		}
 
+		const nameData = await this.viewModel.getCalendarNameData(calendarInfo.groupInfo)
+
 		showCreateEditCalendarDialog({
 			calendarType: getCalendarType(existingGroupSettings, groupInfo),
 			titleTextId: "edit_action",
 			okAction: (dialog, properties) => this.handleModifiedCalendar(dialog, properties, calendarInfo, existingGroupSettings, userSettingsGroupRoot),
 			okTextId: "save_action",
 			calendarProperties: {
-				name: getSharedGroupName(groupInfo, locator.logins.getUserController(), shared),
-				sharedName: shared ? groupInfo.name : undefined,
+				name: nameData.name,
+				sharedName: nameData.sharedName?.name,
 				color: colorValue.substring(1),
 				alarms: existingGroupSettings?.defaultAlarmsList.map((alarm) => parseAlarmInterval(alarm.trigger)) ?? [],
 				sourceUrl: existingGroupSettings?.sourceUrl ?? null,

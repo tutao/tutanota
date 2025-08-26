@@ -302,6 +302,7 @@ class CalendarLocator implements CommonLocator {
 			timeZone,
 			this.mailboxModel,
 			this.contactModel,
+			this.groupSettingsModel,
 		)
 	})
 
