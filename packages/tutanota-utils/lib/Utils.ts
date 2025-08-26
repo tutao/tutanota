@@ -287,16 +287,16 @@ export function debounceStart<F extends (...args: any) => void>(timeout: number,
  * is being called repeatedly.
  */
 export function throttle<F extends (...args: any[]) => void>(periodMs: number, toThrottle: F): F {
-	let lastArgs: any[] | null = null
+	let lastArgs: any[]
+	let timeoutId: TimeoutID | null = null
 	return ((...args: any[]) => {
-		if (lastArgs) {
-			return
-		} else {
-			setTimeout(() => {
+		lastArgs = args
+		if (timeoutId == null) {
+			timeoutId = setTimeout(() => {
 				try {
-					toThrottle.apply(null, args)
+					toThrottle.apply(null, lastArgs)
 				} finally {
-					lastArgs = null
+					timeoutId = null
 				}
 			}, periodMs)
 		}
