@@ -9,7 +9,7 @@ import { checkApprovalStatus } from "../../../common/misc/LoginUtils.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
-import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
+import { ContentBlockingStatus, ThemeModeType, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { client } from "../../../common/misc/ClientDetector.js"
@@ -35,6 +35,7 @@ import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander
 import { ColumnWidth, Table } from "../../../common/gui/base/Table"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
+import { isDarkTheme } from "../../../common/gui/theme"
 
 export type MailViewerMoreActions = {
 	disallowExternalContentAction?: () => void
@@ -302,12 +303,25 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel, more
 		})
 	}
 
+	addToggleLightModeButtonAttrs(viewModel, moreButtons)
+
 	moreButtons.push(...mailViewerMoreActions(moreActions))
 
 	// adding more optional buttons? put them above the report action so the new button
 	// is not sometimes where the report action usually sits.
 
 	return moreButtons
+}
+
+export function addToggleLightModeButtonAttrs(viewModel: MailViewerViewModel, toArray: DropdownButtonAttrs[]) {
+	if (isDarkTheme()) {
+		const oppositeDisplayMode = viewModel.getDisplayMode() === ThemeModeType.Light ? ThemeModeType.Dark : ThemeModeType.Light
+		toArray.push({
+			label: oppositeDisplayMode === ThemeModeType.Light ? "viewInLightMode_action" : "viewInDarkMode_action",
+			click: () => viewModel.setDisplayMode(oppositeDisplayMode),
+			icon: oppositeDisplayMode === ThemeModeType.Light ? Icons.Bulb : Icons.BulbOutline,
+		})
+	}
 }
 
 export function getMailViewerMoreActions({

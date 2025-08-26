@@ -5,7 +5,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, deduplicate, endsWith, first, isEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, clamp, deduplicate, endsWith, first, isEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -44,6 +44,7 @@ import { styles } from "../../../common/gui/styles"
 import { getElementId, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
+import { computeColor, hslToRGB, rgbaToRGBAString, rgbToHSL } from "../../../common/gui/base/Color"
 
 const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
 
@@ -620,12 +621,109 @@ export function getConfidentialFontIcon(mail: Mail): string {
 	return confidentialIcon === Icons.PQLock ? FontIcons.PQConfidential : FontIcons.Confidential
 }
 
-export function isMailContrastFixNeeded(editorDom: ParentNode): boolean {
-	return (
-		Array.from(editorDom.querySelectorAll("*[style]"), (e) => (e as HTMLElement).style).some(
-			(s) => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
-		) || editorDom.querySelectorAll("font[color]").length > 0
-	)
+// Selects deprecated attributes
+const BGCOLOR_SELECTOR = "body[bgcolor], td[bgcolor], th[bgcolor], tfoot[bgcolor], tr[bgcolor], table[bgcolor]"
+const FONT_COLOR_SELECTOR = "font[color]"
+
+/**
+ * Converts <font color> and bgcolor attributes into CSS styles
+ */
+function fixDeprecatedAttributes(editorDom: DocumentFragment) {
+	for (const element of Array.from(editorDom.querySelectorAll(FONT_COLOR_SELECTOR)) as HTMLElement[]) {
+		const color = assertNotNull(element.getAttribute("color"))
+		element.style.setProperty("color", rgbaToRGBAString(computeColor(color)))
+		element.removeAttribute("color")
+	}
+
+	for (const element of Array.from(editorDom.querySelectorAll(BGCOLOR_SELECTOR)) as HTMLElement[]) {
+		const color = assertNotNull(element.getAttribute("bgcolor"))
+		element.style.setProperty("background-color", rgbaToRGBAString(computeColor(color)))
+		element.removeAttribute("bgcolor")
+	}
+}
+
+function cssAttributeSetNonInherit(color: string): boolean {
+	return color !== "" && color !== "inherit"
+}
+
+export function applyContrastFix(editorDom: DocumentFragment): DocumentFragment {
+	const frag = editorDom.cloneNode(true) as DocumentFragment
+
+	fixDeprecatedAttributes(frag)
+
+	// Delete anything with a white background color that isn't inside of something else with a background
+	// color. Additionally, we want to ensure anything with a non-white background retains its font colors.
+	function applyContrastFixToElement(e: HTMLElement | Node) {
+		if (!("style" in e)) {
+			return
+		}
+
+		const style = e.style
+
+		const backgroundColorSet = cssAttributeSetNonInherit(style.backgroundColor)
+		let backgroundColorIsWhiteOrTransparent = false
+
+		if (backgroundColorSet) {
+			const backgroundColor = computeColor(style.backgroundColor)
+			backgroundColorIsWhiteOrTransparent =
+				backgroundColor.a === 0 || (backgroundColor.r === 255 && backgroundColor.g === 255 && backgroundColor.b === 255)
+		}
+
+		if (
+			cssAttributeSetNonInherit(e.style.backgroundImage) ||
+			cssAttributeSetNonInherit(e.style.background) ||
+			(backgroundColorSet && !backgroundColorIsWhiteOrTransparent)
+		) {
+			// do not apply the contrast fix to anything inside of this
+			if (!cssAttributeSetNonInherit(style.color)) {
+				style.color = "black"
+			}
+			return
+		}
+
+		if (backgroundColorIsWhiteOrTransparent) {
+			style.backgroundColor = ""
+		}
+
+		if (cssAttributeSetNonInherit(style.color)) {
+			const color = computeColor(style.color)
+			const hsl = rgbToHSL(color)
+
+			// 100 lightness = white
+			//
+			// we average the reverse with white to give us a color that has good contrast with dark backgrounds
+			hsl.l = clamp((100 + (100 - hsl.l)) / 2, 0.0, 100.0)
+
+			style.color = rgbaToRGBAString(hslToRGB(hsl))
+		}
+
+		for (const childElement of Array.from(e.children)) {
+			applyContrastFixToElement(childElement as HTMLElement)
+		}
+	}
+
+	for (const childElement of Array.from(frag.childNodes)) {
+		applyContrastFixToElement(childElement)
+	}
+
+	return frag
+}
+
+export function needsContrastFix(editorDom: ParentNode): boolean {
+	if (editorDom.querySelectorAll(BGCOLOR_SELECTOR).length > 0 || editorDom.querySelectorAll(FONT_COLOR_SELECTOR).length > 0) {
+		return true
+	}
+
+	for (const { color, backgroundColor } of Array.from(editorDom.querySelectorAll("*[style]"), (e) => (e as HTMLElement).style)) {
+		if (color && color !== "inherit") {
+			return true
+		}
+		if (backgroundColor && backgroundColor !== "inherit") {
+			return true
+		}
+	}
+
+	return false
 }
 
 export interface LabelsPopupOpts {

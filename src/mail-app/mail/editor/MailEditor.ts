@@ -46,7 +46,7 @@ import {
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import type { lazy } from "@tutao/tutanota-utils"
 import { assertNotNull, cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
-import { createInlineImage, isMailContrastFixNeeded, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
+import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
@@ -78,7 +78,7 @@ import { KnowledgebaseDialogContentAttrs } from "../../knowledgebase/view/Knowle
 import { RecipientsSearchModel } from "../../../common/misc/RecipientsSearchModel.js"
 import { createDataFile, DataFile } from "../../../common/api/common/DataFile.js"
 import { AttachmentBubble } from "../../../common/gui/AttachmentBubble.js"
-import { ContentBlockingStatus } from "../view/MailViewerViewModel.js"
+import { ContentBlockingStatus, ThemeModeType } from "../view/MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { BannerButtonAttrs, InfoBanner } from "../../../common/gui/base/InfoBanner.js"
 import { isCustomizationEnabledForCustomer } from "../../../common/api/common/utils/CustomerUtils.js"
@@ -97,7 +97,7 @@ import {
 import { mailLocator } from "../../mailLocator.js"
 
 import { handleRatingByEvent } from "../../../common/ratings/UserSatisfactionDialog.js"
-import { theme } from "../../../common/gui/theme"
+import { isDarkTheme, theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
 
 export type MailEditorAttrs = {
@@ -162,6 +162,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private blockedExternalContent: number = 0
 	private shouldCollapseQuotedReply: boolean = true
 	private collapsedReply: HTMLElement | null = null
+	private forcedDisplayMode: ThemeModeType | null = null
 
 	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
 
@@ -204,12 +205,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			this.editor.setHTML(model.getBody())
 
 			const editorDom = this.editor.getDOM()
-			const contrastFixNeeded = isMailContrastFixNeeded(editorDom)
-			// If mail body cannot be displayed as-is on the dark background then apply the background and text color
-			// fix. This class will change tutanota-quote's inside of it.
-			if (contrastFixNeeded) {
-				editorDom.classList.add("bg-fix-quoted")
-			}
 
 			this.processInlineImages()
 			const htmlBeforeProcessQuotedReply = editorDom.innerHTML
@@ -449,6 +444,29 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			icon: Icons.Attachment,
 			size: ButtonSize.Compact,
 		}
+
+		let toggleLightMode: IconButtonAttrs
+		const darkTheme = isDarkTheme()
+
+		if (darkTheme) {
+			const opposite = this.forcedDisplayMode === ThemeModeType.Light ? ThemeModeType.Dark : ThemeModeType.Light
+
+			toggleLightMode = {
+				title: "viewInLightMode_action",
+				click: (e) => {
+					this.forcedDisplayMode = opposite
+					// Stop the subject bar from being focused
+					e.stopPropagation()
+					this.editor.focus()
+					m.redraw()
+				},
+				icon: opposite === ThemeModeType.Dark ? Icons.Bulb : Icons.BulbOutline,
+				size: ButtonSize.Compact,
+			}
+		}
+
+		const forcedLightMode = darkTheme && this.forcedDisplayMode === ThemeModeType.Light
+
 		const plaintextFormatting = locator.logins.getUserController().props.sendPlaintextOnly
 		this.editor.setCreatesLists(!plaintextFormatting)
 
@@ -478,6 +496,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
 					this.knowledgeBaseInjection ? this.renderToggleKnowledgeBase(this.knowledgeBaseInjection) : null,
 					m(IconButton, attachFilesButtonAttrs),
+					toggleLightMode && m(IconButton, toggleLightMode),
 					toolbarButton(),
 				]),
 		}
@@ -632,7 +651,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				this.renderExternalContentBanner(this.attrs),
 				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(
-					".pt-s.text.scroll-x.break-word-links.flex.flex-column.flex-grow",
+					".pt-s.text.scroll-x.break-word-links.flex.flex-column.flex-grow" + (forcedLightMode ? ".bg-white.content-black.bg-fix-quoted" : ""),
 					{
 						onclick: () => this.editor.focus(),
 					},
