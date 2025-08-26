@@ -6,6 +6,7 @@ import {
 	Aes128Key,
 	Aes256Key,
 	aes256RandomKey,
+	aesDecrypt,
 	aesEncrypt,
 	AesKey,
 	decryptKey,
@@ -14,12 +15,14 @@ import {
 	unauthenticatedAesDecrypt,
 } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
-import { EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
+import { CurrentDraftDataOS, EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import type { QueuedBatch } from "../../EventQueue.js"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
+import { DraftUpdateData } from "../../../entities/tutanota/TypeRefs"
+import * as cborg from "cborg"
+import { customTypeDecoders, customTypeEncoders } from "../../offline/OfflineStorage"
 
 const VERSION: number = 2
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -63,6 +66,65 @@ export class ConfigurationDatabase {
 			const user = assertNotNull(userFacade.getLoggedInUser())
 			return dbLoadFn(user, keyLoaderFacade)
 		})
+	}
+
+	async setDraftData(draftUpdateData: DraftUpdateData): Promise<void> {
+		const { db, metaData } = await this.db.getAsync()
+		if (!db.indexingSupported) return
+
+		try {
+			const transaction = await db.createTransaction(false, [CurrentDraftDataOS])
+			const encoded = cborg.encode(draftUpdateData, { typeEncoders: customTypeEncoders })
+			const encryptedData = aesEncrypt(metaData.key, encoded, metaData.iv)
+			await transaction.put(ExternalImageListOS, "current", encryptedData) // FIXME
+		} catch (e) {
+			if (e instanceof DbError) {
+				console.error("failed to save draft:", e.message)
+				return
+			}
+			throw e
+		}
+	}
+
+	async getDraftData(draftUpdateData: DraftUpdateData): Promise<DraftUpdateData | null> {
+		const { db, metaData } = await this.db.getAsync()
+		if (!db.indexingSupported) return null
+
+		try {
+			const transaction = await db.createTransaction(false, [CurrentDraftDataOS])
+			const data = await transaction.get<Uint8Array>(CurrentDraftDataOS, "current") // FIXME
+			if (data == null) {
+				return null
+			}
+
+			const decryptedData = aesDecrypt(metaData.key, data)
+			const encoded = cborg.decode(decryptedData, { tags: customTypeDecoders })
+
+			// FIXME: How do we handle model changes?
+			return encoded as DraftUpdateData
+		} catch (e) {
+			if (e instanceof DbError) {
+				console.error("failed to load draft:", e.message)
+				return null
+			}
+			throw e
+		}
+	}
+
+	async clearDraftData(): Promise<void> {
+		const { db } = await this.db.getAsync()
+		if (!db.indexingSupported) return
+
+		try {
+			const transaction = await db.createTransaction(false, [CurrentDraftDataOS])
+			await transaction.delete(CurrentDraftDataOS, "current") // FIXME
+		} catch (e) {
+			if (e instanceof DbError) {
+				console.error("failed to load draft:", e.message)
+				return
+			}
+			throw e
+		}
 	}
 
 	async addExternalImageRule(address: string, rule: ExternalImageRule): Promise<void> {

@@ -44,8 +44,7 @@ import {
 	MailDetails,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
-import type { lazy } from "@tutao/tutanota-utils"
-import { assertNotNull, cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
+import { assertNotNull, cleanMatch, downcast, isNotNull, lazy, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
 import { createInlineImage, isMailContrastFixNeeded, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
@@ -97,12 +96,13 @@ import {
 import { mailLocator } from "../../mailLocator.js"
 
 import { handleRatingByEvent } from "../../../common/ratings/UserSatisfactionDialog.js"
+import { throttle } from "@tutao/tutanota-utils/dist/Utils"
 
 export type MailEditorAttrs = {
 	model: SendMailModel
 	doBlockExternalContent: Stream<boolean>
 	doShowToolbar: Stream<boolean>
-	onload?: (editor: Editor) => void
+	onChange?: () => unknown
 	onclose?: (...args: Array<any>) => any
 	selectedNotificationLanguage: Stream<string>
 	dialog: lazy<Dialog>
@@ -247,7 +247,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			}
 		})
 
-		model.onMailChanged.map(() => m.redraw())
+		model.onMailChanged.map(() => {
+			this.attrs.onChange?.()
+			m.redraw()
+		})
 		// Leftover text in recipient field is an error
 		model.setOnBeforeSendFunction(() => {
 			let invalidText = ""
@@ -816,15 +819,29 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
 
-	const save = (showProgress: boolean = true) => {
+	const save = async (showProgress: boolean = true) => {
 		const savePromise = model.saveDraft(true, MailMethod.NONE)
-
 		if (showProgress) {
-			return showProgressDialog("save_msg", savePromise)
+			await showProgressDialog("save_msg", savePromise)
 		} else {
-			return savePromise
+			await savePromise
 		}
 	}
+
+	// FIXME: Make this not a magic number.
+	const autosaveRemote = throttle(5000, () => {
+		console.log("Autosaving...")
+		if (dialog.visible) {
+			save(false)
+		}
+	})
+
+	// FIXME: Make this not a magic number.
+	const autosaveLocal = throttle(1000, () => {
+		if (dialog.visible) {
+			// FIXME: Save to config thing
+		}
+	})
 
 	const send = async () => {
 		if (model.isSharedMailbox() && model.containsExternalRecipients() && model.isConfidential()) {
@@ -969,6 +986,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		await locator.recipientsSearchModel(),
 		alwaysBlockExternalContent,
 	)
+
 	const shortcuts: Shortcut[] = [
 		{
 			key: Keys.ESC,
@@ -1003,6 +1021,12 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			help: "send_action",
 		},
 	]
+
+	mailEditorAttrs.onChange = () => {
+		autosaveLocal()
+		autosaveRemote()
+	}
+
 	dialog = Dialog.editDialog(headerBarAttrs, MailEditor, mailEditorAttrs)
 	dialog.setCloseHandler(() => minimize())
 
