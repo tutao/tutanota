@@ -9,7 +9,7 @@ public let OPEN_CONTACT_EDITOR_CONTACT_ID = "contactId"
 public let OPEN_SETTINGS = "settings"
 
 /// Main screen of the app.
-class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelegate {
+class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate {
 	private let themeManager: ThemeManager
 	private let alarmManager: AlarmManager
 	private let notificationsHandler: NotificationsHandler
@@ -59,6 +59,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		webView.scrollView.delegate = self
 		webView.isOpaque = false
 		webView.scrollView.contentInsetAdjustmentBehavior = .never
+		webView.uiDelegate = self
 
 		#if DEBUG
 			if #available(iOS 16.4, *) { webView.isInspectable = true }
@@ -204,6 +205,17 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 		let url = components.url!
 		webView.load(URLRequest(url: url))
+	}
+
+	@available(iOS 15.0, *) func webView(
+		_ webView: WKWebView,
+		decideMediaCapturePermissionsFor origin: WKSecurityOrigin,
+		initiatedBy frame: WKFrameInfo,
+		type: WKMediaCaptureType
+	) async -> WKPermissionDecision {
+		// Grant camera access for the web view. This does not affect the permission
+		// prompt issued by the Tuta app itself.
+		if type == .camera { return .grant } else { return .deny }
 	}
 
 	private func dictToJson(dictionary: [String: String]) -> String { try! String(data: JSONEncoder().encode(dictionary), encoding: .utf8)! }
