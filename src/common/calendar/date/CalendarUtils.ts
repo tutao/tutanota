@@ -969,10 +969,7 @@ export function addDaysForEventInstance(daysToEvents: Map<number, Array<Calendar
 			insertIntoSortedArray(event, eventsForCalculationDate, eventComparator, isSameEventInstance)
 		} else {
 			// If the duration of the original event instance was reduced, we also have to delete the remaining days of the previous event instance.
-			const removed = findAllAndRemove(
-				getFromMap(daysToEvents, calculationTime, () => []),
-				(e) => isSameEventInstance(e, event),
-			)
+			const removed = findAllAndRemove(daysToEvents.get(calculationTime) ?? [], (e) => isSameEventInstance(e, event))
 			if (!removed) {
 				// no further days this event instance occurred on
 				break
