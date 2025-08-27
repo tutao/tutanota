@@ -57,7 +57,7 @@ interface ContactWrapper {
  */
 export class CalendarEventsRepository {
 	/** timestamps of the beginning of months that we already loaded */
-	private readonly loadedMonths = new Map<number, string[]>()
+	private readonly loadedMonths: Map<number, string[]> = new Map() // First day of the month at midnight -> CalendarID
 	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
 	private pendingLoadRequest: Promise<void> = Promise.resolve()
 	private clientOnlyEvents: Map<number, BirthdayEventRegistry[]> = new Map()
