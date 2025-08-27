@@ -196,16 +196,16 @@ export async function moveMails(params: MoveMailsParams): Promise<boolean> {
 	}
 }
 
-function mailsAndFolderByFolderId(mails: readonly Mail[]): Map<string, { folder: MailFolder; mailIds: IdTuple[] }> {
-	const map: Map<string, { folder: MailFolder; mailIds: IdTuple[] }> = new Map()
+function mailsAndFolderByFolderId(mails: readonly Mail[]): Map<string, { folder: MailFolder; mails: Mail[] }> {
+	const map: Map<string, { folder: MailFolder; mails: Mail[] }> = new Map()
 	for (const mail of mails) {
 		const folder = assertNotNull(mailLocator.mailModel.getMailFolderForMail(mail))
 		const folderStringId = folder._id.toString()
 		const mailsAndFolder = map.get(folderStringId)
 		if (mailsAndFolder != null) {
-			mailsAndFolder.mailIds.push(mail._id)
+			mailsAndFolder.mails.push(mail)
 		} else {
-			map.set(folderStringId, { folder, mailIds: [mail._id] })
+			map.set(folderStringId, { folder, mails: [mail] })
 		}
 	}
 	return map
@@ -220,16 +220,15 @@ async function runPostSimpleMoveActions(
 ) {
 	const reportableMails: Mail[] = []
 	const onUndoMove = async () => {
-		for (const { folder, mailIds } of mailsAndFolderByFolderId(mails).values()) {
+		for (const { folder, mails: folderMails } of mailsAndFolderByFolderId(mails).values()) {
 			if (folder.folderType === targetFolderType) {
 				continue
 			}
 
-			const resolvedMails = await mailModel.loadAllMails(mailIds)
 			if (folder.folderType === MailSetKind.SPAM) {
-				reportableMails.push(...resolvedMails)
+				reportableMails.push(...folderMails)
 			}
-			await mailModel.moveMails(getIds(resolvedMails), folder, MoveMode.Mails)
+			await mailModel.moveMails(getIds(folderMails), folder, MoveMode.Mails)
 		}
 	}
 	const undoMoveMessage =
