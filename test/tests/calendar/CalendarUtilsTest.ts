@@ -1805,12 +1805,12 @@ o.spec("calendar utils tests", function () {
 		o("longer than a month", function () {
 			const event = createEvent(getDateInZone("2019-05-02T10:00"), getDateInZone("2019-06-02T12:00"))
 			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
-			o(eventsForDays.size).equals(3)
+			o(eventsForDays.size).equals(2)
 			o(eventsForDays.get(getDateInZone("2019-06-01").getTime())).deepEquals([event])
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([event])
-			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals([])
+			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals(undefined)
 			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
-			o(eventsForDays.size).equals(2 + 31)
+			o(eventsForDays.size).equals(2 + 30)
 			o(eventsForDays.get(getDateInZone("2019-05-01").getTime())).equals(undefined)
 			o(eventsForDays.get(getDateInZone("2019-05-02").getTime())).deepEquals([event])
 			o(eventsForDays.get(getDateInZone("2019-05-31").getTime())).deepEquals([event])
@@ -1841,19 +1841,19 @@ o.spec("calendar utils tests", function () {
 			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-06-01").getTime())).deepEquals([event])("there on the 1st")
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([event])("there on the 2nd")
-			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals([])("not there on the 3rd")
-			o(eventsForDays.size).equals(3)("no more days added for this call")
+			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals(undefined)("not there on the 3rd")
+			o(eventsForDays.size).equals(2)("no more days added for this call")
 
 			// now also add for may
 			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-01").getTime())).deepEquals([event])("there on the 1st")
 			o(eventsForDays.get(getDateInZone("2019-05-02").getTime())).deepEquals([event])("there on the 2nd")
 			o(eventsForDays.get(getDateInZone("2019-05-31").getTime())).deepEquals([event])("there on the 31st")
-			o(eventsForDays.size).equals(3 + 31)("added for each day of may but no more")
+			o(eventsForDays.size).equals(2 + 31)("added for each day of may but no more")
 
 			// also add for april
 			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-04-01"), zone), zone)
-			o(eventsForDays.size).equals(3 + 31 + 29)("now it's there for june, may, april")
+			o(eventsForDays.size).equals(2 + 31 + 29)("now it's there for june, may, april")
 			o(eventsForDays.get(getDateInZone("2019-04-01").getTime())).deepEquals(undefined)("1st of april is not touched")
 			o(eventsForDays.get(getDateInZone("2019-04-02").getTime())).deepEquals([event])("2nd it's there")
 			o(eventsForDays.get(getDateInZone("2019-04-03").getTime())).deepEquals([event])("3rd it's there")
@@ -1891,7 +1891,7 @@ o.spec("calendar utils tests", function () {
 			o(countDaysWithEvents(eventsForDays)).equals(2)("days with events after adding june twice")
 			o(eventsForDays.get(getDateInZone("2019-06-01").getTime())).deepEquals([event])
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([event])
-			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals([]) // there's one empty day
+			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals(undefined) // We do not add empty days anymore
 			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
 			addDaysForEventInstance(eventsForDays, clone(event), getMonthRange(getDateInZone("2019-05-01"), zone), zone)
 			// 2 in june plus everything in may except for the first (event starts on the 2nd)
