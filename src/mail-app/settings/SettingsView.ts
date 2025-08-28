@@ -984,7 +984,7 @@ async function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
 		child: {
 			view: () => {
 				return [
-					sharedNameInput
+					sharedNameInput != null
 						? m(TextField, {
 								value: sharedNameInput,
 								oninput: (newName) => (sharedNameInput = newName),

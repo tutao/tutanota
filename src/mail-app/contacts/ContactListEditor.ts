@@ -79,7 +79,7 @@ export async function showContactListNameEditor(contactListNameData: GroupNameDa
 	let nameInput = contactListNameData.name
 	let sharedNameInput = contactListNameData.sharedName?.name ?? null
 	let form = () => [
-		sharedNameInput
+		sharedNameInput != null
 			? m(TextField, {
 					// FIXME: figure out label
 					label: lang.makeTranslation("shared_name", "Shared name"),
