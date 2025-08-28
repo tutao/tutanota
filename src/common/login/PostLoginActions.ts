@@ -109,7 +109,7 @@ export class PostLoginActions implements PostLoginAction {
 			await this.storeNewCustomThemes()
 		}
 
-		// Only migrate white label when logged-in user is global admin
+		// Whitelabel can only be migrated when the logged-in user is global admin
 		if (!this.logins.isEnabled(FeatureType.WhitelabelChild) && this.logins.getUserController().isGlobalAdmin()) {
 			await this.migrateWhiteLabelToMaterial3()
 		}
@@ -244,13 +244,17 @@ export class PostLoginActions implements PostLoginAction {
 		})
 	}
 
-	/** Can be removed once all whitelabel users are migrated */
+	/**
+	 * Migrate old customizations to new Material3 customizations
+	 * Could be removed after all users who have whitelabel color customization are migrated.
+	 */
 	private async migrateWhiteLabelToMaterial3(): Promise<void> {
 		const whitelabelConfig = (await this.logins.getUserController().loadWhitelabelConfig())?.whitelabelConfig
 		if (whitelabelConfig && whitelabelConfig.jsonTheme) {
 			const parsedTheme = downcast<Record<string, string>>(getThemeCustomizations(whitelabelConfig))
-
-			if (parsedTheme.version == null) {
+			// jsonTheme.version was introduced with Material3, so old customizations don't have it
+			// for old whitelabel themes, content_accent is null when there are no color customizations
+			if (parsedTheme.version == null && parsedTheme.content_accent) {
 				const material3Customizations = await this.themeController.getMaterial3Customizations(parsedTheme)
 				const mappedTheme = ThemeController.mapNewToOldColorTokens(material3Customizations)
 				mappedTheme.themeId = parsedTheme.themeId
@@ -267,12 +271,14 @@ export class PostLoginActions implements PostLoginAction {
 			// jsonTheme is stored on WhitelabelConfig as an empty json string ("{}", or whatever JSON.stringify({}) gives you)
 			// so we can't just check `!whitelabelConfig.jsonTheme`
 			if (Object.keys(customizations).length > 0) {
-				// Custom theme is missing themeId, so we update it with the whitelabel domain
-				if (!customizations.themeId) {
-					customizations.themeId = domainInfoAndConfig.domainInfo.domain
-				}
+				// in case customizations are old
+				const material3Customizations = await this.themeController.getMaterial3Customizations(downcast<Record<string, string>>(customizations))
 
-				await this.themeController.storeCustomThemeForCustomizations(customizations)
+				// Custom theme is missing themeId, so we update it with the whitelabel domain
+				if (!material3Customizations.themeId) {
+					material3Customizations.themeId = domainInfoAndConfig.domainInfo.domain
+				}
+				await this.themeController.storeCustomThemeForCustomizations(material3Customizations)
 
 				// Update the already loaded custom themes to their latest version
 				const previouslySavedThemes = await this.themeController.getCustomThemes()

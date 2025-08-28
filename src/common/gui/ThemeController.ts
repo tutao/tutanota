@@ -15,7 +15,7 @@ import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
 
 assertMainOrNodeBoot()
 
-export const defaultThemeId: ThemeId = "light"
+export const defaultThemeId = "light" satisfies ThemeId
 
 export class ThemeController {
 	private readonly theme: Theme
@@ -49,9 +49,8 @@ export class ThemeController {
 		if (whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
 			const parsedTheme = whitelabelCustomizations.theme
-
-			const material3Customizations =
-				parsedTheme.version == null ? await this.getMaterial3Customizations(downcast<Record<string, string>>(parsedTheme)) : parsedTheme
+			// in case parsedTheme is old, we generate new theme from old one
+			const material3Customizations = await this.getMaterial3Customizations(downcast<Record<string, string>>(parsedTheme))
 
 			const assembledTheme = await this.applyCustomizations(material3Customizations, false)
 			this._themePreference = assembledTheme.themeId
@@ -291,14 +290,10 @@ export class ThemeController {
 			// This is a whitelabel theme where logo has not been overwritten.
 			// Generate a logo with muted colors. We do not want to color our logo in
 			// some random color.
-
-			return { ...themeWithoutLogo, ...{ logo: this.getDefaultGrayLogo() } }
+			const logoDefaultGrey = "#c5c7c7"
+			const grayedLogo = this.app === AppType.Calendar ? getCalendarLogoSvg(logoDefaultGrey) : getMailLogoSvg(logoDefaultGrey)
+			return { ...themeWithoutLogo, ...{ logo: grayedLogo } }
 		}
-	}
-
-	private getDefaultGrayLogo() {
-		const logoDefaultGrey = "#c5c7c7"
-		return this.app === AppType.Calendar ? getCalendarLogoSvg(logoDefaultGrey) : getMailLogoSvg(logoDefaultGrey)
 	}
 
 	async getCustomThemes(): Promise<Array<ThemeId>> {
@@ -307,21 +302,28 @@ export class ThemeController {
 		})
 	}
 
-	/** Can be removed once all whitelabel users are migrated */
+	/**
+	 * Get new Material3 theme customizations from old customizations
+	 * Could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
+	 */
 	async getMaterial3Customizations(customizations: Record<string, string>): Promise<ThemeCustomizations> {
-		const baseTheme: BaseThemeId = (customizations.base as BaseThemeId | null) ?? "light"
-		const sourceColor = customizations.content_accent ?? this.getBaseTheme(baseTheme).primary
+		// version is only null in old customizations
+		// for old whitelabel themes, content_accent is only null when there are no color customizations
+		if (customizations.version != null || customizations.content_accent == null) {
+			return customizations as unknown as ThemeCustomizations
+		}
 
-		const theme = await this.whitelabelThemeGenerator.generateMaterialTheme({
-			sourceColor,
+		const baseTheme = customizations.base as BaseThemeId
+		const theme = await this.whitelabelThemeGenerator.generateMaterialPalette({
+			sourceColor: customizations.content_accent,
 			theme: baseTheme,
-			logo: customizations.logo ?? this.getDefaultGrayLogo(),
 		})
 
 		return Object.assign(theme, {
 			version: WHITELABEL_CUSTOMIZATION_VERSION,
 			base: baseTheme,
-			sourceColor,
+			sourceColor: customizations.content_accent,
+			logo: customizations.logo,
 		})
 	}
 }

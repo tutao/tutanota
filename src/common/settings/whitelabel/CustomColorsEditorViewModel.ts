@@ -90,15 +90,13 @@ export class CustomColorsEditorViewModel {
 			this.setCustomization("base", attrs.baseThemeId)
 		}
 
-		const theme = await this.whitelabelThemeGenerator.generateMaterialTheme({
+		const theme = await this.whitelabelThemeGenerator.generateMaterialPalette({
 			sourceColor: this._sourceColor,
 			theme: this._baseTheme,
-			logo: this.customizations.logo,
 		})
 
-		const colors = this.getColorKeys(theme)
-		for (const c of colors) {
-			this.setCustomization(c, theme[c])
+		for (const color of MATERIAL_COLORS) {
+			this.setCustomization(color, theme[color])
 		}
 
 		this.setCustomization("version", WHITELABEL_CUSTOMIZATION_VERSION)
@@ -125,10 +123,6 @@ export class CustomColorsEditorViewModel {
 		return true
 	}
 
-	private getColorKeys(customizations: Partial<Theme>): (keyof Theme)[] {
-		return Object.keys(customizations).filter((name: keyof Theme) => MATERIAL_COLORS.includes(name)) as (keyof Theme)[]
-	}
-
 	async resetActiveClientTheme(): Promise<void> {
 		await this._themeController.resetTheme(this._themeBeforePreview)
 	}
@@ -149,6 +143,6 @@ export class CustomColorsEditorViewModel {
 	}
 
 	_removeEmptyCustomizations() {
-		this._customizations = downcast(Object.fromEntries(Object.entries(this.customizations).filter(([k, v]) => v !== "")))
+		this._customizations = downcast(Object.fromEntries(Object.entries(this.customizations).filter(([_, v]) => v != null && v !== "")))
 	}
 }
