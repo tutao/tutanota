@@ -122,7 +122,7 @@ export function isLightTheme(): boolean {
 	return theme.themeId === "light" || theme.themeId === "light_secondary"
 }
 
-export const MATERIAL_COLORS: readonly (keyof Theme)[] = Object.freeze([
+export const MATERIAL_COLORS = Object.freeze([
 	"primary",
 	"on_primary",
 	"primary_container",
@@ -144,4 +144,6 @@ export const MATERIAL_COLORS: readonly (keyof Theme)[] = Object.freeze([
 	"outline",
 	"outline_variant",
 	"scrim",
-])
+] as const satisfies (keyof Theme)[])
+
+export type MaterialPalette = Record<(typeof MATERIAL_COLORS)[number], string>

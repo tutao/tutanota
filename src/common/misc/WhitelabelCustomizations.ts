@@ -1,16 +1,15 @@
 import { BaseThemeId, Theme } from "../gui/theme"
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import type { WhitelabelConfig } from "../api/entities/sys/TypeRefs.js"
-import { ThemeController } from "../gui/ThemeController.js"
 
 assertMainOrNodeBoot()
 
 export const WHITELABEL_CUSTOMIZATION_VERSION = 1
 
 export type ThemeCustomizations = Partial<Theme> & {
-	version: number
-	base: BaseThemeId
-	sourceColor: string
+	version: number | null
+	base: BaseThemeId | null
+	sourceColor: string | null
 }
 
 export type ThemeKey = keyof Theme

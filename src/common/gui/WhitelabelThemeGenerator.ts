@@ -1,4 +1,4 @@
-import { BaseThemeId, Theme } from "./theme"
+import { BaseThemeId, MaterialPalette } from "./theme"
 
 /**
  * Whitelabel theme customizations that can be set
@@ -13,17 +13,12 @@ export interface WhitelabelThemeSettings {
 	 * Theme to use
 	 */
 	theme: BaseThemeId
-
-	/**
-	 * Optional logo (if unspecified, the app's respective default grayscale logo for that theme will be used)
-	 */
-	logo?: string
 }
 
 export class WhitelabelThemeGenerator {
 	constructor() {}
 
-	async generateMaterialTheme(themeParams: WhitelabelThemeSettings): Promise<Partial<Theme>> {
+	async generateMaterialPalette(themeParams: WhitelabelThemeSettings): Promise<MaterialPalette> {
 		const { argbFromHex, DynamicScheme, Hct, hexFromArgb, themeFromSourceColor } = await import("@material/material-color-utilities")
 
 		const sourceArgb = argbFromHex(themeParams.sourceColor)
@@ -42,11 +37,7 @@ export class WhitelabelThemeGenerator {
 		})
 
 		return {
-			// this will often not actually match the original accent color (and we don't have a place to put it), but
-			// provided you use the same theme (dark/light), using the new primary color as the accent color should
-			// result in the same color palettes
 			primary: hexFromArgb(scheme.primary),
-
 			on_primary: hexFromArgb(scheme.onPrimary),
 			primary_container: hexFromArgb(scheme.primaryContainer),
 			on_primary_container: hexFromArgb(scheme.onPrimaryContainer),
