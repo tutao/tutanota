@@ -75,6 +75,7 @@ import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getMailBodyText } from "../api/common/CommonMailUtils.js"
 import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificationMismatchError"
 import { showMultiRecipientsKeyVerificationRecoveryDialog } from "../settings/keymanagement/KeyVerificationRecoveryDialog"
+import type { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationDatabase"
 
 assertMainOrNode()
 
@@ -163,6 +164,7 @@ export class SendMailModel {
 		private readonly recipientsModel: RecipientsModel,
 		private readonly dateProvider: DateProvider,
 		private mailboxProperties: MailboxProperties,
+		private readonly configurationDatabase: ConfigurationDatabase,
 		private readonly needNewDraft: (mail: Mail) => Promise<boolean>,
 	) {
 		const userProps = logins.getUserController().props
@@ -265,6 +267,18 @@ export class SendMailModel {
 
 	hasMailChanged(): boolean {
 		return this.mailChangedAt > this.mailSavedAt
+	}
+
+	async clearLocalAutosave(): Promise<void> {
+		await this.configurationDatabase.clearDraftData()
+	}
+
+	async makeLocalAutosave(): Promise<void> {
+		const body = await this.getSanitizedBody()
+
+		await this.configurationDatabase.setDraftData({
+			body,
+		})
 	}
 
 	/**
@@ -682,6 +696,24 @@ export class SendMailModel {
 		})
 	}
 
+	private async createDraftData(body: string, attachments: ReadonlyArray<Attachment> | null, mailMethod: MailMethod): Promise<Mail> {
+		return this.mailFacade.createDraft({
+			subject: this.getSubject(),
+			bodyText: body,
+			senderMailAddress: this.senderAddress,
+			senderName: this.getSenderName(),
+			toRecipients: await this.toRecipientsResolved(),
+			ccRecipients: await this.ccRecipientsResolved(),
+			bccRecipients: await this.bccRecipientsResolved(),
+			conversationType: this.conversationType,
+			previousMessageId: this.previousMessageId,
+			attachments: attachments,
+			confidential: this.isConfidential(),
+			replyTos: await this.replyTosResolved(),
+			method: mailMethod,
+		})
+	}
+
 	isConfidential(): boolean {
 		return this.confidential || !this.containsExternalRecipients()
 	}
@@ -895,17 +927,7 @@ export class SendMailModel {
 			const attachments = saveAttachments ? this.attachments : null
 
 			// We also want to create new drafts for drafts edited from trash or spam folder
-			const { getHtmlSanitizer } = await import("../misc/HtmlSanitizer.js")
-			const unsanitized_body = this.getBody()
-			const body = getHtmlSanitizer().sanitizeHTML(unsanitized_body, {
-				// store the draft always with external links preserved. this reverts
-				// the draft-src and draft-srcset attribute stow.
-				blockExternalContent: false,
-				// since we're not displaying this, this is fine.
-				allowRelativeLinks: true,
-				// do not touch inline images, we just want to store this.
-				usePlaceholderForInlineImages: false,
-			}).html
+			const body = await this.getSanitizedBody()
 
 			this.draft =
 				this.draft == null || (await this.needNewDraft(this.draft))
@@ -936,6 +958,21 @@ export class SendMailModel {
 				throw e
 			}
 		}
+	}
+
+	private async getSanitizedBody(): Promise<string> {
+		const unsanitized_body = this.getBody()
+
+		const { getHtmlSanitizer } = await import("../misc/HtmlSanitizer.js")
+		return getHtmlSanitizer().sanitizeHTML(unsanitized_body, {
+			// store the draft always with external links preserved. this reverts
+			// the draft-src and draft-srcset attribute stow.
+			blockExternalContent: false,
+			// since we're not displaying this, this is fine.
+			allowRelativeLinks: true,
+			// do not touch inline images, we just want to store this.
+			usePlaceholderForInlineImages: false,
+		}).html
 	}
 
 	private sendApprovalMail(body: string): Promise<unknown> {

@@ -44,7 +44,7 @@ import {
 	MailDetails,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
-import { assertNotNull, cleanMatch, downcast, isNotNull, lazy, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
+import { assertNotNull, cleanMatch, debounce, downcast, isNotNull, lazy, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
 import { createInlineImage, isMailContrastFixNeeded, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
@@ -97,6 +97,13 @@ import { mailLocator } from "../../mailLocator.js"
 
 import { handleRatingByEvent } from "../../../common/ratings/UserSatisfactionDialog.js"
 import { throttle } from "@tutao/tutanota-utils/dist/Utils"
+import { secondsToMillis } from "@tutao/tutanota-utils/dist/DateUtils"
+
+// Interval where we save drafts locally.
+const AUTOSAVE_LOCAL_TIMEOUT: number = secondsToMillis(1)
+
+// Interval that must pass after the user stops typing before the draft is saved on the server.
+const AUTOSAVE_REMOTE_TIMEOUT: number = secondsToMillis(5)
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -820,7 +827,11 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	let mailEditorAttrs: MailEditorAttrs
 
 	const save = async (showProgress: boolean = true) => {
-		const savePromise = model.saveDraft(true, MailMethod.NONE)
+		const savePromise = model.saveDraft(true, MailMethod.NONE).then(() => {
+			if (!model.hasMailChanged()) {
+				model.clearLocalAutosave()
+			}
+		})
 		if (showProgress) {
 			await showProgressDialog("save_msg", savePromise)
 		} else {
@@ -828,18 +839,17 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		}
 	}
 
-	// FIXME: Make this not a magic number.
-	const autosaveRemote = throttle(5000, () => {
-		console.log("Autosaving...")
-		if (dialog.visible) {
+	// This will be called once the user stops typing.
+	const autosaveRemote = debounce(AUTOSAVE_REMOTE_TIMEOUT, () => {
+		if (dialog.visible && model.hasMailChanged()) {
 			save(false)
 		}
 	})
 
-	// FIXME: Make this not a magic number.
-	const autosaveLocal = throttle(1000, () => {
-		if (dialog.visible) {
-			// FIXME: Save to config thing
+	// This will be invoked while the user is typing.
+	const autosaveLocal = throttle(AUTOSAVE_LOCAL_TIMEOUT, () => {
+		if (dialog.visible && model.hasMailChanged()) {
+			model.makeLocalAutosave()
 		}
 	})
 

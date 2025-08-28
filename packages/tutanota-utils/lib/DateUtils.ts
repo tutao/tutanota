@@ -3,7 +3,16 @@
  * As functions here do not use Luxon it cannot be used for calculating things in different time zones, they
  * are dependent on the system time zone.
  */
-export const DAY_IN_MILLIS = 1000 * 60 * 60 * 24
+
+/**
+ * Convert the number of seconds to milliseconds.
+ * @param seconds seconds to convert
+ */
+export function secondsToMillis(seconds: number): number {
+	return seconds * 1000
+}
+
+export const DAY_IN_MILLIS = secondsToMillis(60 * 60 * 24)
 
 export const YEAR_IN_MILLIS = DAY_IN_MILLIS * 365
 

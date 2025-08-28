@@ -82,6 +82,7 @@ export {
 	isValidDate,
 	millisToDays,
 	daysToMillis,
+	secondsToMillis,
 	TIMESTAMP_ZERO_YEAR,
 } from "./DateUtils.js"
 export {

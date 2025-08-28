@@ -20,7 +20,6 @@ import { DbError } from "../../../common/error/DbError.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
-import { DraftUpdateData } from "../../../entities/tutanota/TypeRefs"
 import * as cborg from "cborg"
 import { customTypeDecoders, customTypeEncoders } from "../../offline/OfflineStorage"
 
@@ -46,6 +45,12 @@ export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes25
 	return utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, concat(iv, encryptedAddress)))
 }
 
+const LOCAL_DRAFT_VERSION: number = 1
+export type LocalDraftData = {
+	version: number
+	body: string
+}
+
 /**
  * A local configuration database that can be used as an alternative to DeviceConfig:
  * Ideal for cases where the configuration values should be stored encrypted,
@@ -68,9 +73,11 @@ export class ConfigurationDatabase {
 		})
 	}
 
-	async setDraftData(draftUpdateData: DraftUpdateData): Promise<void> {
+	async setDraftData(draftUpdateDataWithoutVersion: Omit<LocalDraftData, "version">): Promise<void> {
 		const { db, metaData } = await this.db.getAsync()
 		if (!db.indexingSupported) return
+
+		const draftUpdateData: LocalDraftData = Object.assign({}, draftUpdateDataWithoutVersion, { version: LOCAL_DRAFT_VERSION })
 
 		try {
 			const transaction = await db.createTransaction(false, [CurrentDraftDataOS])
@@ -86,7 +93,7 @@ export class ConfigurationDatabase {
 		}
 	}
 
-	async getDraftData(draftUpdateData: DraftUpdateData): Promise<DraftUpdateData | null> {
+	async getDraftData(): Promise<LocalDraftData | null> {
 		const { db, metaData } = await this.db.getAsync()
 		if (!db.indexingSupported) return null
 
@@ -101,7 +108,7 @@ export class ConfigurationDatabase {
 			const encoded = cborg.decode(decryptedData, { tags: customTypeDecoders })
 
 			// FIXME: How do we handle model changes?
-			return encoded as DraftUpdateData
+			return encoded as LocalDraftData
 		} catch (e) {
 			if (e instanceof DbError) {
 				console.error("failed to load draft:", e.message)

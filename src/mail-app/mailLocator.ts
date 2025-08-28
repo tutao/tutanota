@@ -426,6 +426,7 @@ class MailLocator implements CommonLocator {
 				recipientsModel,
 				dateProvider,
 				mailboxProperties,
+				this.configFacade,
 				async (mail: Mail) => {
 					return await isMailInSpamOrTrash(mail, mailLocator.mailModel)
 				},
