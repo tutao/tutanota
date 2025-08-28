@@ -27,10 +27,11 @@ import { copyCryptoPrimitiveCrateIntoWasmDir } from "./cryptoPrimitivesUtils.js"
  * @param minify Boolean. Set to true to perform minification.
  * @param projectDir Path to the tutanota root directory.
  * @param app App to build, 'mail' for mail app and 'calendar' for calendar app
+ * @param mobileBuild Whether the current build is for the mobile app.
  * @returns Nothing meaningful.
  */
 
-export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app }) {
+export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mobileBuild = false }) {
 	const isCalendarApp = app === "calendar"
 	const tsConfig = isCalendarApp ? "tsconfig-calendar-app.json" : "tsconfig.json"
 	const buildDir = isCalendarApp ? "build-calendar-app" : "build"
@@ -45,9 +46,12 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	console.log("started cleaning", measure())
 	await fs.emptyDir(buildDir)
 
-	// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
-	// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
-	await copyCryptoPrimitiveCrateIntoWasmDir({ wasmOutputDir: resolvedBuildDir })
+	// using native versions for mobile app
+	if (!mobileBuild) {
+		// we know which wasm need to be included in the project, instead of running branches condition on each and every file of the project we do some
+		// transformation AOT for our three files (currently only crypto-primitives but argon2 and liboqs will follow
+		await copyCryptoPrimitiveCrateIntoWasmDir({ wasmOutputDir: resolvedBuildDir })
+	}
 
 	console.log("bundling polyfill", measure())
 	const polyfillBundle = await rollup({
@@ -103,6 +107,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 				preferBuiltins: true,
 				resolveOnly: [/^@tutao\/.*$/],
 			}),
+			// should also not be included based on mobileApp param but currently the code imports it
 			rollupWasmLoader({
 				webassemblyLibraries: [
 					{

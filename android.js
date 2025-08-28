@@ -159,6 +159,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 				projectDir: path.resolve("."),
 				measure,
 				app,
+				mobileBuild: true,
 			})
 		}
 	} else {
