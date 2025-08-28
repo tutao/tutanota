@@ -1302,6 +1302,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				.catch(ofClass(LockedError, noOp))
 		}
 
+		// FIXME: remove this
 		// if (userIsOwner && !clientOnlyCalendar) {
 		// 	let newName: string | null = null
 		// 	// User is the owner, so we update the entity instead of groupSettings

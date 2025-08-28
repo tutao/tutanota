@@ -147,7 +147,9 @@ export function getSharedGroupName(groupInfo: GroupInfo, { userSettingsGroupRoot
  * Needed in order to make translations of default template group names work in SettingsView
  */
 export function getNullableSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot, allowGroupNameOverride: boolean): string | null {
-	const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)
-	// return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || getDefaultGroupName(downcast(groupInfo.groupType))
-	return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || null
+	return (allowGroupNameOverride && getCustomSharedGroupName(groupInfo, userSettingsGroupRoot)) || groupInfo.name || null
+}
+
+export function getCustomSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot): string | null {
+	return userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)?.name ?? null
 }

@@ -10,13 +10,13 @@ import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { MailRecipientsTextField } from "../../common/gui/MailRecipientsTextField.js"
 import { RecipientsSearchModel } from "../../common/misc/RecipientsSearchModel.js"
-import { lazy, noOp } from "@tutao/tutanota-utils"
+import { clone, lazy, noOp } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel.js"
 import { isSameId } from "../../common/api/common/utils/EntityUtils.js"
 import { Keys } from "../../common/api/common/TutanotaConstants.js"
 import { isMailAddress } from "../../common/misc/FormatValidator.js"
 import { cleanMailAddress } from "../../common/api/common/utils/CommonCalendarUtils.js"
-import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
+import { FullGroupNameData, NewGroupNameData, SingleGroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 
 export async function showContactListEditor(
 	contactListGroupRoot: ContactListGroupRoot | null,
@@ -75,32 +75,47 @@ export async function showContactListEditor(
 	dialog.show()
 }
 
-export async function showContactListNameEditor(contactListNameData: GroupNameData, save: (name: string, sharedName: string | null) => void): Promise<void> {
-	let nameInput = contactListNameData.name
-	let sharedNameInput = contactListNameData.sharedName?.name ?? null
-	let form = () => [
-		sharedNameInput != null
-			? m(TextField, {
-					// FIXME: figure out label
-					label: lang.makeTranslation("shared_name", "Shared name"),
-					value: sharedNameInput,
-					oninput: (newInput) => {
-						sharedNameInput = newInput
-					},
-					isReadOnly: !contactListNameData.sharedName?.editable,
-				})
-			: null,
-		m(TextField, {
-			label: "name_label",
-			value: nameInput,
-			oninput: (newInput) => {
-				nameInput = newInput
-			},
-		}),
-	]
+export async function showContactListNameEditor(contactListNameData: NewGroupNameData, save: (data: NewGroupNameData) => void): Promise<void> {
+	// FIXME: this is kind of awkward?
+	let form: () => Children
+	let newFinalData: NewGroupNameData
+	if (contactListNameData.kind === "full") {
+		const newData = clone<FullGroupNameData>(contactListNameData)
+		form = () => [
+			m(TextField, {
+				// FIXME: figure out label
+				label: lang.makeTranslation("shared_name", "Shared name"),
+				value: newData.sharedName,
+				oninput: (newInput) => {
+					newData.sharedName = newInput
+				},
+				isReadOnly: !contactListNameData.editableSharedName,
+			}),
+			m(TextField, {
+				label: "name_label",
+				value: newData.customName ?? "",
+				oninput: (newInput) => {
+					newData.customName = newInput
+				},
+			}),
+		]
+		newFinalData = newData
+	} else {
+		const newData = clone<SingleGroupNameData>(contactListNameData)
+		form = () =>
+			m(TextField, {
+				label: "name_label",
+				value: newData.name,
+				oninput: (newInput) => {
+					newData.name = newInput
+				},
+			})
+		newFinalData = newData
+	}
+
 	const okAction = async (dialog: Dialog) => {
 		dialog.close()
-		save(nameInput, sharedNameInput)
+		save(newFinalData)
 	}
 
 	Dialog.showActionDialog({
