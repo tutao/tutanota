@@ -11,6 +11,7 @@ import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
 import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
+import { SpamClassificationRow } from "../spamClassification/SpamClassifier"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -42,6 +43,7 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 		purgedWithCache: true,
 	},
 
+	// Spam classification training data
 	spam_classification: {
 		definition:
 			"CREATE TABLE IF NOT EXISTS spam_classification (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam, PRIMARY KEY (listId, elementId))",
@@ -179,7 +181,7 @@ export class OfflineStoragePersistence {
 
 	private async storeSpamClassification(mailData: Mail, body: Body): Promise<void> {
 		const allFolders = await this.storage.getWholeList(MailFolderTypeRef, listIdPart(mailData.sets[0]))
-		const spamFolder = allFolders.find((folder) => folder.folderType == MailSetKind.SPAM)!
+		const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
 
 		const isSpam = mailData.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 		const { query, params } = sql`
@@ -193,6 +195,13 @@ export class OfflineStoragePersistence {
             ${isSpam ? 1 : 0}
             )`
 		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getSpamMailClassifications(): Promise<SpamClassificationRow[]> {
+		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
+                                    from spam_classification`
+		const resultRows = await this.sqlCipherFacade.all(query, params)
+		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationRow)
 	}
 
 	async updateMailLocation(mail: Mail) {

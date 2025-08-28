@@ -113,6 +113,7 @@ import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKe
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
+import { SpamClassifier } from "../spamClassification/SpamClassifier"
 
 assertWorkerOrNode()
 
@@ -192,6 +193,9 @@ export type WorkerLocatorType = {
 
 	//contact
 	contactFacade: lazyAsync<ContactFacade>
+
+	//spam classification
+	spamClassifier: SpamClassifier
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -445,6 +449,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			)
 		}
 	})
+
+	if (isOfflineStorageAvailable()) {
+		locator.spamClassifier = new SpamClassifier(await offlineStorageIndexerPersistence(), fileFacadeSendDispatcher)
+	}
 
 	if (isIOSApp() || isAndroidApp()) {
 		locator.kyberFacade = new NativeKyberFacade(new NativeCryptoFacadeSendDispatcher(worker))
@@ -725,6 +733,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.keyLoader,
 			locator.publicEncryptionKeyProvider,
 			locator.cacheStorage,
+			locator.spamClassifier,
 		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)

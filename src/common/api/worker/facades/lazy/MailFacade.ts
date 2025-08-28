@@ -155,6 +155,8 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/Enti
 import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
+import { SpamClassifier } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
+import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -204,6 +206,7 @@ export class MailFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 		private readonly storage: CacheStorage,
+		private readonly spamClassifier: SpamClassifier | null,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -441,6 +444,25 @@ export class MailFacade {
 	async storeSpamResult(mail: Mail, isSpam: boolean): Promise<void> {
 		const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
 		await this.storage.putSpamMailClassification(mail, mailDetailsBlob.body, isSpam)
+		// fixme determine retraining interval
+		if (this.spamClassifier != null) {
+			await this.spamClassifier.train(this.userFacade.getLoggedInUser()._id)
+		}
+	}
+
+	async predictSpamResult(mail: Mail): Promise<boolean> {
+		if (isDraft(mail)) {
+			return false
+		} else {
+			const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
+			if (this.spamClassifier != null) {
+				return await this.spamClassifier.predict(
+					`${mail.subject}  ${mailDetailsBlob.body.compressedText ?? mailDetailsBlob.body.text}`,
+					this.userFacade.getLoggedInUser()._id,
+				)
+			}
+			return false
+		}
 	}
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
