@@ -54,6 +54,15 @@ export class GroupSettingsModel {
 			} else {
 				await this.updateGroupInfoName(groupInfo, names.name)
 			}
+		} else {
+			//FIXME: this will get called whenever you change the shared name if the group settings name was already null (since the same is passed through)
+			// it doesn't mess up the functionality, it does the right thing from the user's point of view
+			// but this extra call is unnecessary
+			if (names.sharedName) {
+				// This is the case where someone had changed the local name, but are now changing it to be the same as the shared name
+				// setting the group settings name to null will allow them to see changes the owner makes to the group name
+				this.updateGroupSettings(groupInfo, { name: null })
+			}
 		}
 
 		if (names.sharedName && groupInfo.name !== names.sharedName) {
