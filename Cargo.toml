@@ -13,14 +13,14 @@ publish = false
 [workspace]
 resolver = "2" # todo: can use resolver 3 after 1.84.0+
 members = [
-	"tuta-sdk/rust/sdk",
-	"packages/node-mimimi",
-	# uniffi-bindgen is a seperate crate as uniffi-bindgen does not have a cli yet:
-	# https://github.com/mozilla/uniffi-rs/blob/fbe146f/docs/manual/src/tutorial/foreign_language_bindings.md#creating-the-bindgen-binary
-	# note: not to be confused with `bindgen` binary which is from: https://github.com/rust-lang/rust-bindgen
-	"tuta-sdk/rust/uniffi-bindgen",
+    "tuta-sdk/rust/sdk",
+    "packages/node-mimimi",
+    # uniffi-bindgen is a seperate crate as uniffi-bindgen does not have a cli yet:
+    # https://github.com/mozilla/uniffi-rs/blob/fbe146f/docs/manual/src/tutorial/foreign_language_bindings.md#creating-the-bindgen-binary
+    # note: not to be confused with `bindgen` binary which is from: https://github.com/rust-lang/rust-bindgen
+    "tuta-sdk/rust/uniffi-bindgen",
+    "tuta-sdk/rust/crypto-primitives"
 ]
-exclude = ["tuta-sdk/rust/crypto-primitives"]
 
 # in most cases, we don't want to build everything.
 # this requires passing --all or --package <package-name> to
@@ -29,6 +29,7 @@ default-members = []
 
 [workspace.dependencies]
 tuta-sdk = { path = "tuta-sdk/rust/sdk", default-features = false }
+crypto-primitives = { path = "tuta-sdk/rust/crypto-primitives", default-features = false }
 thiserror = { version = "2.0" }
 base64 = { version = "0.22.1" }
 log = { version = "0.4.22" }
@@ -55,3 +56,8 @@ must_use_candidate = "warn"
 unused_async = "warn"
 implicit_clone = "warn"
 explicit_iter_loop = "warn"
+
+[profile.release-wasm]
+inherits = "release"
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"
