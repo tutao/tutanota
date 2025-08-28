@@ -15,7 +15,7 @@ import {
 	unauthenticatedAesDecrypt,
 } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
-import { CurrentDraftDataOS, EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
+import { EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, LocalDraftDataOS, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
@@ -23,7 +23,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/Enti
 import * as cborg from "cborg"
 import { customTypeDecoders, customTypeEncoders } from "../../offline/OfflineStorage"
 
-const VERSION: number = 2
+const VERSION: number = 3
 const DB_KEY_PREFIX: string = "ConfigStorage"
 const ExternalImageListOS: ObjectStoreName = "ExternalAllowListOS"
 export const ConfigurationMetaDataOS: ObjectStoreName = "MetaDataOS"
@@ -46,9 +46,23 @@ export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes25
 }
 
 const LOCAL_DRAFT_VERSION: number = 1
+export type LocalDraftAddress = {
+	name: string
+	address: string
+}
 export type LocalDraftData = {
 	version: number
+
+	mailId: IdTuple | null
+
+	subject: string
 	body: string
+
+	to: readonly LocalDraftAddress[]
+	cc: readonly LocalDraftAddress[]
+	bcc: readonly LocalDraftAddress[]
+
+	// FIXME: attachments? we don't need to keep track of un-uploaded attachments, but we may want to keep uploaded ones here
 }
 
 /**
@@ -80,10 +94,10 @@ export class ConfigurationDatabase {
 		const draftUpdateData: LocalDraftData = Object.assign({}, draftUpdateDataWithoutVersion, { version: LOCAL_DRAFT_VERSION })
 
 		try {
-			const transaction = await db.createTransaction(false, [CurrentDraftDataOS])
+			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
 			const encoded = cborg.encode(draftUpdateData, { typeEncoders: customTypeEncoders })
 			const encryptedData = aesEncrypt(metaData.key, encoded, metaData.iv)
-			await transaction.put(ExternalImageListOS, "current", encryptedData) // FIXME
+			await transaction.put(LocalDraftDataOS, "current", encryptedData) // FIXME
 		} catch (e) {
 			if (e instanceof DbError) {
 				console.error("failed to save draft:", e.message)
@@ -98,8 +112,8 @@ export class ConfigurationDatabase {
 		if (!db.indexingSupported) return null
 
 		try {
-			const transaction = await db.createTransaction(false, [CurrentDraftDataOS])
-			const data = await transaction.get<Uint8Array>(CurrentDraftDataOS, "current") // FIXME
+			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
+			const data = await transaction.get<Uint8Array>(LocalDraftDataOS, "current") // FIXME
 			if (data == null) {
 				return null
 			}
@@ -107,7 +121,6 @@ export class ConfigurationDatabase {
 			const decryptedData = aesDecrypt(metaData.key, data)
 			const encoded = cborg.decode(decryptedData, { tags: customTypeDecoders })
 
-			// FIXME: How do we handle model changes?
 			return encoded as LocalDraftData
 		} catch (e) {
 			if (e instanceof DbError) {
@@ -123,8 +136,8 @@ export class ConfigurationDatabase {
 		if (!db.indexingSupported) return
 
 		try {
-			const transaction = await db.createTransaction(false, [CurrentDraftDataOS])
-			await transaction.delete(CurrentDraftDataOS, "current") // FIXME
+			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
+			await transaction.delete(LocalDraftDataOS, "current") // FIXME
 		} catch (e) {
 			if (e instanceof DbError) {
 				console.error("failed to load draft:", e.message)
@@ -165,11 +178,14 @@ export class ConfigurationDatabase {
 	async loadConfigDb(user: User, keyLoaderFacade: KeyLoaderFacade): Promise<ConfigDb> {
 		const id = this.getDbId(user._id)
 		const db = new DbFacade(VERSION, async (event, db, dbFacade) => {
+			console.log(`MIGRATING DB FOR VERSION ${event.oldVersion}`)
+
 			if (event.oldVersion === 0) {
 				db.createObjectStore(ConfigurationMetaDataOS)
 				db.createObjectStore(ExternalImageListOS, {
 					keyPath: "address",
 				})
+				db.createObjectStore(LocalDraftDataOS)
 			}
 			const metaData =
 				(await loadEncryptionMetadata(dbFacade, id, keyLoaderFacade, ConfigurationMetaDataOS)) ||
@@ -187,7 +203,12 @@ export class ConfigurationDatabase {
 					await deleteTransaction.delete(ExternalImageListOS, entry.key)
 				}
 			}
+
+			if (event.oldVersion < 3) {
+				db.createObjectStore(LocalDraftDataOS)
+			}
 		})
+
 		const metaData =
 			(await loadEncryptionMetadata(db, id, keyLoaderFacade, ConfigurationMetaDataOS)) ||
 			(await initializeDb(db, id, keyLoaderFacade, ConfigurationMetaDataOS))

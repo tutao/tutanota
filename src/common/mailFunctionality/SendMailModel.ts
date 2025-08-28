@@ -276,9 +276,22 @@ export class SendMailModel {
 	async makeLocalAutosave(): Promise<void> {
 		const body = await this.getSanitizedBody()
 
+		const to = (await this.toRecipientsResolved()).map(({ name, address }) => ({ name, address }))
+		const cc = (await this.ccRecipientsResolved()).map(({ name, address }) => ({ name, address }))
+		const bcc = (await this.bccRecipientsResolved()).map(({ name, address }) => ({ name, address }))
+
 		await this.configurationDatabase.setDraftData({
 			body,
+			subject: this.getSubject(),
+			to,
+			cc,
+			bcc,
+
+			// will be null if it is a new (unsaved) draft
+			mailId: this.getDraft()?._id ?? null,
 		})
+
+		console.log(await this.configurationDatabase.getDraftData())
 	}
 
 	/**
