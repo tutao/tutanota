@@ -240,6 +240,17 @@ export class MailModel {
 		}
 	}
 
+	async applySpamClassificationToMail(mail: Mail): Promise<boolean> {
+		const isSpam = await this.mailFacade.predictSpamResult(mail)
+		console.log("Spam classification result: ", isSpam)
+		if (isSpam) {
+			await this.simpleMoveMails([mail._id], MailSetKind.SPAM)
+			return true
+		} else {
+			return false
+		}
+	}
+
 	async getMailboxDetailsForMail(mail: Mail): Promise<MailboxDetail | null> {
 		const detail = await this.mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(mail._ownerGroup))
 		if (detail == null) {

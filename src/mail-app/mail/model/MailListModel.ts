@@ -22,7 +22,7 @@ import { MailModel } from "./MailModel"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
-import { applyInboxRulesToEntries, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
+import { applyInboxRulesToEntries, applySpamClassificationToMails, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
 
 assertMainOrNode()
 
@@ -184,6 +184,7 @@ export class MailListModel implements MailSetListModel {
 						this.listModel.insertLoadedItem(loadedMail)
 					}
 				})
+				await this.applySpamClassificationToMails([loadedMail])
 			}
 		} else if (isUpdateForTypeRef(MailTypeRef, update)) {
 			// We only need to handle updates for Mail.
@@ -305,6 +306,7 @@ export class MailListModel implements MailSetListModel {
 			if (mailSetEntries.length > 0) {
 				items = await this.resolveMailSetEntries(mailSetEntries, this.defaultMailProvider)
 				items = await this.applyInboxRulesToEntries(items)
+				items = await this.applySpamClassificationToMails(items)
 			}
 		} catch (e) {
 			if (isOfflineError(e)) {
@@ -350,6 +352,10 @@ export class MailListModel implements MailSetListModel {
 	 */
 	private async applyInboxRulesToEntries(entries: LoadedMail[]): Promise<LoadedMail[]> {
 		return applyInboxRulesToEntries(entries, this.mailSet, this.mailModel, this.inboxRuleHandler)
+	}
+
+	private async applySpamClassificationToMails(entries: LoadedMail[]): Promise<LoadedMail[]> {
+		return applySpamClassificationToMails(entries, this.mailSet, this.mailModel)
 	}
 
 	private async loadSingleMail(id: IdTuple): Promise<LoadedMail> {
