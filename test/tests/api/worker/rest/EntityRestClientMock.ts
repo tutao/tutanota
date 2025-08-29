@@ -6,16 +6,17 @@ import {
 	firstBiggerThanSecond,
 	getElementId,
 	getListId,
+	isSameId,
 	listIdPart,
 	timestampToGeneratedId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { _verifyType, TypeModelResolver } from "../../../../../src/common/api/common/EntityFunctions.js"
 import { NotFoundError } from "../../../../../src/common/api/common/error/RestError.js"
-import { downcast, TypeRef } from "@tutao/tutanota-utils"
+import { clone, downcast, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElementEntity, ElementEntity, ListElementEntity, SomeEntity } from "../../../../../src/common/api/common/EntityTypes.js"
 import { AuthDataProvider } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { Type } from "../../../../../src/common/api/common/EntityConstants.js"
-import { clientInitializedTypeModelResolver, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { getIds } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 
 const authDataProvider: AuthDataProvider = {
@@ -33,6 +34,9 @@ export class EntityRestClientMock extends EntityRestClient {
 	_blobEntities: Record<Id, Record<Id, BlobElementEntity | Error>> = {}
 	_lastIdTimestamp: number
 	private _typeModelResolver: TypeModelResolver
+	private updatedInstances: SomeEntity[] = []
+	private createdInstances: SomeEntity[] = []
+	private idGenerator = new IdGenerator(timestampToGeneratedId(1))
 
 	constructor() {
 		const typeModelResolver = clientInitializedTypeModelResolver()
@@ -206,16 +210,36 @@ export class EntityRestClientMock extends EntityRestClient {
 		return Promise.resolve()
 	}
 
-	setup<T extends SomeEntity>(listId: Id | null | undefined, instance: T, extraHeaders?: Dict): Promise<Id> {
-		return Promise.reject("Illegal method: setup")
+	async setup<T extends SomeEntity>(listId: Id | null | undefined, instance: T, extraHeaders?: Dict): Promise<Id> {
+		const populatedInstance = clone(instance)
+		const elementId = this.idGenerator.getNext()
+		populatedInstance._id = listId == null ? elementId : [listId, elementId]
+		this.createdInstances.push(populatedInstance)
+		return elementId
+	}
+
+	getCreatedInstance<T extends SomeEntity>(type: TypeRef<T>): T {
+		const createdInstance = this.createdInstances.findLast((updated) => isSameTypeRef(type, updated._type))
+		if (createdInstance == null) {
+			throw new Error(`Did not find created instance for ${type}`)
+		}
+		return createdInstance as T
 	}
 
 	setupMultiple<T extends SomeEntity>(listId: Id | null | undefined, instances: Array<T>): Promise<Array<Id>> {
 		return Promise.reject("Illegal method: setupMultiple")
 	}
 
-	update<T extends SomeEntity>(instance: T): Promise<void> {
-		return Promise.reject("Illegal method: update")
+	async update<T extends SomeEntity>(instance: T): Promise<void> {
+		this.updatedInstances.push(clone(instance))
+	}
+
+	getUpdatedInstance<T extends SomeEntity>(instance: T): T {
+		const updatedInstance = this.updatedInstances.findLast((updated) => isSameTypeRef(instance._type, updated._type) && isSameId(instance._id, updated._id))
+		if (updatedInstance == null) {
+			throw new Error(`Did not find updated instance for ${instance._type} ${instance._id}`)
+		}
+		return updatedInstance as T
 	}
 
 	_handleDeleteMultiple(ids: Array<Id>, listId: Id) {

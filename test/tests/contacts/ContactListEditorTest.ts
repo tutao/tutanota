@@ -1,5 +1,6 @@
 import o from "ospec"
-import { ContactListEditorModel } from "../../../src/mail-app/contacts/ContactListEditor.js"
+
+import { ContactListEditorModel } from "../../../src/mail-app/contacts/ContactListEditorModel"
 
 o.spec("ContactListEditorModelTest", function () {
 	let contactListEditorModel: ContactListEditorModel

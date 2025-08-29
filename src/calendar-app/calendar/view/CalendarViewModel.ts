@@ -11,6 +11,7 @@ import {
 	identity,
 	incrementDate,
 	last,
+	lazy,
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -47,7 +48,7 @@ import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
-import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
+import { ClientOnlyCalendarsInfo, deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { Time } from "../../../common/calendar/date/Time.js"
@@ -62,8 +63,8 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
-
 import { getGroupColors } from "../../../common/misc/GroupColors"
+import { GroupSettingsModel, GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 
 export type EventsOnDays = {
@@ -145,6 +146,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly timeZone: string,
 		private readonly mailboxModel: MailboxModel,
 		private readonly contactModel: ContactModel,
+		private readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>,
 	) {
 		this._transientEvents = []
 
@@ -265,6 +267,21 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				this._hiddenCalendars.add(calendarID)
 			}
 		}
+	}
+
+	async getCalendarNameData(groupInfo: GroupInfo): Promise<GroupNameData> {
+		const groupSettingModel = await this.groupSettingsModel()
+		return groupSettingModel.getGroupNameData(groupInfo)
+	}
+
+	async setCalendarGroupInfoName(groupInfo: GroupInfo, name: string): Promise<void> {
+		const groupSettingModel = await this.groupSettingsModel()
+		groupSettingModel.updateGroupInfoName(groupInfo, name)
+	}
+
+	async setCalendarGroupSettings(groupInfo: GroupInfo, groupSettings: Partial<GroupSettings>): Promise<void> {
+		const groupSettingModel = await this.groupSettingsModel()
+		groupSettingModel.updateGroupSettings(groupInfo, groupSettings)
 	}
 
 	/**
@@ -776,7 +793,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.calendarModel
 	}
 
-	handleClientOnlyUpdate(groupInfo: GroupInfo, newGroupSettings: GroupSettings) {
+	handleClientOnlyUpdate(groupInfo: GroupInfo, newGroupSettings: ClientOnlyCalendarsInfo) {
 		this.deviceConfig.updateClientOnlyCalendars(groupInfo.group, newGroupSettings)
 	}
 

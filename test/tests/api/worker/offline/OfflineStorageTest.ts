@@ -56,7 +56,7 @@ import { MailSetKind } from "../../../../../src/common/api/common/TutanotaConsta
 import { Type as TypeId } from "../../../../../src/common/api/common/EntityConstants.js"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { DesktopSqlCipher } from "../../../../../src/common/desktop/db/DesktopSqlCipher.js"
-import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, IdGenerator, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { sql } from "../../../../../src/common/api/worker/offline/Sql.js"
 import { MailOfflineCleaner } from "../../../../../src/mail-app/workerUtils/offline/MailOfflineCleaner.js"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/common/api/worker/rest/cacheHandler/CustomCacheHandler"
@@ -66,20 +66,6 @@ import { TypeModelResolver } from "../../../../../src/common/api/common/EntityFu
 import { SqlCipherFacade } from "../../../../../src/common/native/common/generatedipc/SqlCipherFacade"
 import { expandId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"
 import { BlobArchiveRefTypeRef, createBlobArchiveRef } from "../../../../../src/common/api/entities/storage/TypeRefs"
-
-function incrementId(id: Id, ms: number) {
-	const timestamp = generatedIdToTimestamp(id)
-	return timestampToGeneratedId(timestamp + ms)
-}
-
-class IdGenerator {
-	constructor(private currentId: Id) {}
-
-	getNext(incrementByMs: number = 60000): Id {
-		this.currentId = incrementId(this.currentId, incrementByMs)
-		return this.currentId
-	}
-}
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)

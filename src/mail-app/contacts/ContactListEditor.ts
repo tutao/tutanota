@@ -10,12 +10,14 @@ import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { MailRecipientsTextField } from "../../common/gui/MailRecipientsTextField.js"
 import { RecipientsSearchModel } from "../../common/misc/RecipientsSearchModel.js"
-import { lazy, noOp } from "@tutao/tutanota-utils"
+import { clone, lazy, noOp } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel.js"
 import { isSameId } from "../../common/api/common/utils/EntityUtils.js"
 import { Keys } from "../../common/api/common/TutanotaConstants.js"
 import { isMailAddress } from "../../common/misc/FormatValidator.js"
 import { cleanMailAddress } from "../../common/api/common/utils/CommonCalendarUtils.js"
+import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
+import { ContactListEditorModel } from "./ContactListEditorModel"
 
 export async function showContactListEditor(
 	contactListGroupRoot: ContactListGroupRoot | null,
@@ -74,20 +76,15 @@ export async function showContactListEditor(
 	dialog.show()
 }
 
-export async function showContactListNameEditor(name: string, save: (name: string) => void): Promise<void> {
-	let nameInput = name
-	let form = () => [
-		m(TextField, {
-			label: "name_label",
-			value: nameInput,
-			oninput: (newInput) => {
-				nameInput = newInput
-			},
-		}),
-	]
+export async function showContactListNameEditor(contactListNameData: Readonly<GroupNameData>, save: (data: GroupNameData) => void): Promise<void> {
+	const { GroupSettingNameInputFields } = await import("../../common/sharing/view/GroupSettingNameInputFields")
+
+	const newData = clone<GroupNameData>(contactListNameData)
+	const form: () => Children = () => m(GroupSettingNameInputFields, { groupNameData: newData })
+
 	const okAction = async (dialog: Dialog) => {
 		dialog.close()
-		save(nameInput)
+		save(newData)
 	}
 
 	Dialog.showActionDialog({
@@ -96,26 +93,6 @@ export async function showContactListNameEditor(name: string, save: (name: strin
 		allowOkWithReturn: true,
 		okAction: okAction,
 	})
-}
-
-export class ContactListEditorModel {
-	name: string
-	newAddresses: Array<string>
-	currentAddresses: Array<string>
-
-	constructor(addresses: Array<string>) {
-		this.name = ""
-		this.newAddresses = []
-		this.currentAddresses = addresses
-	}
-
-	addRecipient(address: string) {
-		this.newAddresses = [address, ...this.newAddresses]
-	}
-
-	removeRecipient(address: string) {
-		this.newAddresses = this.newAddresses.filter((a) => address !== a)
-	}
 }
 
 type ContactListEditorAttrs = {

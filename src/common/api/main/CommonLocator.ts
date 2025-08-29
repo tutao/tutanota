@@ -71,6 +71,7 @@ import { SyncTracker } from "./SyncTracker.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
 import { SearchToken } from "../common/utils/QueryTokenUtils"
 import type { CalendarInviteHandler } from "../../../calendar-app/calendar/view/CalendarInvites"
+import { GroupSettingsModel } from "../../sharing/model/GroupSettingsModel"
 import { PublicEncryptionKeyProvider } from "../worker/facades/PublicEncryptionKeyProvider"
 import { IdentityKeyCreator } from "../worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../worker/facades/PublicIdentityKeyProvider"
@@ -150,6 +151,8 @@ export interface CommonLocator {
 	recipientsModel(): Promise<RecipientsModel>
 
 	recipientsSearchModel(): Promise<RecipientsSearchModel>
+
+	readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>
 
 	initialized: Promise<void>
 	throttledRouter: lazy<Router>
