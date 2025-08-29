@@ -104,6 +104,7 @@ export class EstimatingProgressMonitor implements IProgressMonitor {
 	}
 
 	public completed() {
+		clearInterval(this.progressEstimation)
 		this.workCompleted = this.totalWork
 		this.updater(WORK_MAX_PERCENTAGE)
 	}

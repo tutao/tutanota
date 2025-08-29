@@ -95,6 +95,7 @@ o.spec("CalendarViewModel", function () {
 			zone,
 			mailboxModel,
 			contactModel,
+			object(),
 		)
 		viewModel.allowDrag = () => true
 		return { viewModel, calendarModel, eventsRepository }
