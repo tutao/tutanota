@@ -114,6 +114,7 @@ import { PublicEncryptionKeyProvider } from "../common/api/worker/facades/Public
 import { ClientModelInfo, ClientTypeModelResolver } from "../common/api/common/EntityFunctions"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
+import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
 
@@ -301,6 +302,7 @@ class CalendarLocator implements CommonLocator {
 			timeZone,
 			this.mailboxModel,
 			this.contactModel,
+			this.groupSettingsModel,
 		)
 	})
 
@@ -1006,6 +1008,11 @@ class CalendarLocator implements CommonLocator {
 			return new CredentialsProvider(new WebCredentialsFacade(deviceConfig), null, null)
 		}
 	}
+
+	readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>> = lazyMemoized(async () => {
+		const { GroupSettingsModel } = await import("../common/sharing/model/GroupSettingsModel.js")
+		return new GroupSettingsModel(this.entityClient, this.logins)
+	})
 }
 
 export type ICalendarLocator = Readonly<CalendarLocator>
