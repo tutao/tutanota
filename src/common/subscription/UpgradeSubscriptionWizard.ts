@@ -250,10 +250,6 @@ export async function loadSignupWizard(
 					noAutoLogin: true,
 					loginWith: signupData.newAccountData.mailAddress,
 				})
-			} else {
-				await windowFacade.reload({
-					noAutoLogin: true,
-				})
 			}
 		},
 		dialogType: DialogType.EditLarge,
