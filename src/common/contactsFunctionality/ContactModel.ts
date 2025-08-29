@@ -7,6 +7,7 @@ import {
 	ContactListGroupRootTypeRef,
 	ContactListTypeRef,
 	ContactTypeRef,
+	UserSettingsGroupRootTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import { getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
@@ -20,7 +21,7 @@ import { DbError } from "../api/common/error/DbError.js"
 import { elementIdPart, getEtId, sortCompareById } from "../api/common/utils/EntityUtils.js"
 import { NotAuthorizedError, NotFoundError } from "../api/common/error/RestError.js"
 import { ShareCapability } from "../api/common/TutanotaConstants.js"
-import { EntityUpdateData } from "../api/common/utils/EntityUpdateUtils.js"
+import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { ContactSearchFacade } from "../../mail-app/workerUtils/index/ContactSearchFacade"
 
 assertMainOrNode()
@@ -189,7 +190,11 @@ export class ContactModel {
 
 	private readonly entityEventsReceived: EntityEventsListener = async (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> => {
 		for (const update of updates) {
-			if (this.loginController.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
+			if (
+				this.loginController.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId) ||
+				isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update) ||
+				isUpdateForTypeRef(GroupInfoTypeRef, update)
+			) {
 				await this.loadContactLists()
 			}
 		}

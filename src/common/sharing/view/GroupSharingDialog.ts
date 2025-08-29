@@ -46,6 +46,7 @@ export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNam
 			locator.shareFacade,
 			locator.groupManagementFacade,
 			recipientsModel,
+			locator.groupSettingsModel,
 		),
 	).then((model) => {
 		model.onEntityUpdate.map(m.redraw.bind(m))
@@ -75,13 +76,23 @@ type GroupSharingDialogAttrs = {
 
 class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 	view(vnode: Vnode<GroupSharingDialogAttrs>): Children {
-		const { model, allowGroupNameOverride, texts, dialog } = vnode.attrs
-		const groupName = getSharedGroupName(model.info, model.logins.getUserController(), allowGroupNameOverride)
+		const { model, texts, dialog } = vnode.attrs
 		return m(".flex.col.pt-s", [
 			m(Table, {
-				columnHeading: [lang.makeTranslation("column_heading", texts.participantsLabel(groupName))],
+				columnHeading: [
+					{
+						label: lang.makeTranslation("column_heading", texts.participantsLabel(model.groupNameData.name)),
+						//Only show help text if the shared name is different from the local name
+						helpText:
+							model.groupNameData.kind === "shared" && model.groupNameData.customName
+								? lang.makeTranslation("column_heading", texts.yourCustomNameLabel(model.groupNameData.customName))
+								: undefined,
+					},
+				],
 				columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest],
-				lines: this._renderMemberInfos(model, texts, groupName, dialog).concat(this._renderGroupInvitations(model, texts, groupName)),
+				lines: this._renderMemberInfos(model, texts, model.groupNameData.name, dialog).concat(
+					this._renderGroupInvitations(model, texts, model.groupNameData.name),
+				),
 				showActionButtonColumn: true,
 				addButtonAttrs: hasCapabilityOnGroup(locator.logins.getUserController().user, model.group, ShareCapability.Invite)
 					? {

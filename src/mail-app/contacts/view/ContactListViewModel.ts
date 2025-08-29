@@ -12,18 +12,19 @@ import { getEtId, isSameId } from "../../../common/api/common/utils/EntityUtils.
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { GroupManagementFacade } from "../../../common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { arrayEquals, debounce, lazyMemoized, memoized } from "@tutao/tutanota-utils"
+import { arrayEquals, debounce, lazy, lazyMemoized, memoized } from "@tutao/tutanota-utils"
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { Router } from "../../../common/gui/ScopedRouter.js"
 import { ContactListInfo, ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
-import { ReceivedGroupInvitation } from "../../../common/api/entities/sys/TypeRefs.js"
+import { GroupInfo, ReceivedGroupInvitation } from "../../../common/api/entities/sys/TypeRefs.js"
 import { ReceivedGroupInvitationsModel } from "../../../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { GroupType } from "../../../common/api/common/TutanotaConstants.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
+import { GroupSettingsModel, GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
 
 export class ContactListViewModel {
 	private selectedContactList: Id | null = null
@@ -42,6 +43,7 @@ export class ContactListViewModel {
 		private readonly contactModel: ContactModel,
 		private readonly contactListInvitations: ReceivedGroupInvitationsModel<GroupType.ContactList>,
 		private readonly router: Router,
+		private readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>,
 		private readonly updateUi: () => unknown,
 	) {
 		this.receivedGroupInvitations = contactListInvitations.invitations
@@ -211,12 +213,14 @@ export class ContactListViewModel {
 		this.listModel?.loadInitial()
 	}
 
-	updateContactList(contactListInfo: ContactListInfo, name: string, addresses: string[]): void {
-		// the name is stored on both GroupInfo (own contact list) and UserSettingsGroupRoot (contact lists shared with us)
-		// note: make sure to handle shared contact lists when implementing sharing
-		contactListInfo.name = name
-		contactListInfo.groupInfo.name = name
-		this.entityClient.update(contactListInfo.groupInfo)
+	async getContactListNewNameData(groupInfo: GroupInfo): Promise<GroupNameData> {
+		const groupSettingModel = await this.groupSettingsModel()
+		return groupSettingModel.getGroupNameData(groupInfo)
+	}
+
+	async updateContactList(groupInfo: GroupInfo, newData: GroupNameData): Promise<void> {
+		const groupSettingModel = await this.groupSettingsModel()
+		await groupSettingModel.updateGroupNameData(groupInfo, newData)
 	}
 
 	getSelectedContactListInfo(): ContactListInfo | null {

@@ -5,7 +5,7 @@ import Stream from "mithril/stream"
 import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
 import { lang, type TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
-import { deepEqual, isNotNull } from "@tutao/tutanota-utils"
+import { clone, deepEqual, isNotNull } from "@tutao/tutanota-utils"
 import { AlarmInterval, CalendarType, isExternalCalendarType, isNormalCalendarType } from "../../../common/calendar/date/CalendarUtils.js"
 import { RemindersEditor } from "./RemindersEditor.js"
 import { checkURLString, isIcal } from "../../../common/calendar/gui/ImportExportUtils.js"
@@ -15,16 +15,18 @@ import { DEFAULT_ERROR } from "../../../common/api/common/TutanotaConstants.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 import { ColorPickerView } from "../../../common/gui/base/colorPicker/ColorPickerView"
 import { generateRandomColor } from "./CalendarGuiUtils.js"
+import { GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
+import { GroupSettingNameInputFields } from "../../../common/sharing/view/GroupSettingNameInputFields"
 
 export type CalendarProperties = {
-	name: string
+	nameData: GroupNameData
 	color: string
 	alarms: AlarmInterval[]
 	sourceUrl: string | null
 }
 
-export const defaultCalendarProperties: CalendarProperties = {
-	name: "",
+export const defaultCalendarProperties: Readonly<CalendarProperties> & { readonly nameData: Readonly<GroupNameData> } = {
+	nameData: { kind: "single", name: "" },
 	color: "",
 	alarms: [],
 	sourceUrl: "",
@@ -64,20 +66,15 @@ function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stre
 }
 
 function createEditCalendarComponent(
-	nameStream: Stream<string>,
+	nameData: GroupNameData,
 	colorStream: Stream<string>,
-	shared: boolean,
 	calendarType: CalendarType,
 	alarms: AlarmInterval[],
 	urlStream: Stream<string>,
 	errorMessageStream: Stream<string>,
 ) {
 	return m.fragment({}, [
-		m(TextField, {
-			value: nameStream(),
-			oninput: nameStream,
-			label: "calendarName_label",
-		}),
+		m(GroupSettingNameInputFields, { groupNameData: nameData }),
 		m(".small.mt.mb-xs", lang.get("color_label")),
 		m(ColorPickerView, {
 			value: colorStream(),
@@ -85,7 +82,7 @@ function createEditCalendarComponent(
 				colorStream(color)
 			},
 		}),
-		!shared && isNormalCalendarType(calendarType)
+		nameData.kind === "single" && isNormalCalendarType(calendarType)
 			? m(RemindersEditor, {
 					alarms,
 					addAlarm: (alarm: AlarmInterval) => {
@@ -106,7 +103,6 @@ function createEditCalendarComponent(
 export interface CreateEditDialogAttrs {
 	calendarType: CalendarType
 	titleTextId: TranslationKeyType
-	shared: boolean
 	okAction: (dialog: Dialog, calendarProperties: CalendarProperties, calendarModel?: CalendarModel) => unknown
 	okTextId: TranslationKeyType
 	warningMessage?: () => Children
@@ -118,11 +114,10 @@ export interface CreateEditDialogAttrs {
 export function showCreateEditCalendarDialog({
 	calendarType,
 	titleTextId,
-	shared,
 	okAction,
 	okTextId,
 	warningMessage,
-	calendarProperties: { name, color, alarms, sourceUrl } = defaultCalendarProperties,
+	calendarProperties: { nameData, color, alarms, sourceUrl } = clone(defaultCalendarProperties),
 	isNewCalendar = true,
 	calendarModel,
 }: CreateEditDialogAttrs) {
@@ -132,7 +127,6 @@ export function showCreateEditCalendarDialog({
 		color = generateRandomColor()
 	}
 
-	const nameStream = stream(name)
 	const colorStream = stream(color)
 	const urlStream = stream(sourceUrl ?? "")
 	const errorMessageStream = stream(DEFAULT_ERROR)
@@ -155,7 +149,7 @@ export function showCreateEditCalendarDialog({
 		okAction(
 			dialog,
 			{
-				name: nameStream(),
+				nameData,
 				color: colorStream().substring(1),
 				alarms,
 				sourceUrl: urlStream().trim(),
@@ -203,7 +197,7 @@ export function showCreateEditCalendarDialog({
 					view: () =>
 						m(".flex.col", [
 							warningMessage ? warningMessage() : null,
-							createEditCalendarComponent(nameStream, colorStream, shared, calendarType, alarms, urlStream, errorMessageStream),
+							createEditCalendarComponent(nameData, colorStream, calendarType, alarms, urlStream, errorMessageStream),
 						]),
 				},
 				okAction: doAction,

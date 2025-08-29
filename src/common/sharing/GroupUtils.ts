@@ -138,6 +138,10 @@ export const TemplateGroupPreconditionFailedReason = Object.freeze({
 	UNLIMITED_REQUIRED: "templategroup.unlimited_required",
 })
 
+/**
+ * Get the name of a (possibly) shared group.
+ * Will return custom name, if any, group name, if any or default name for the group type.
+ */
 export function getSharedGroupName(groupInfo: GroupInfo, { userSettingsGroupRoot }: UserController, allowGroupNameOverride: boolean): string {
 	return getNullableSharedGroupName(groupInfo, userSettingsGroupRoot, allowGroupNameOverride) ?? getDefaultGroupName(downcast(groupInfo.groupType))
 }
@@ -147,7 +151,10 @@ export function getSharedGroupName(groupInfo: GroupInfo, { userSettingsGroupRoot
  * Needed in order to make translations of default template group names work in SettingsView
  */
 export function getNullableSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot, allowGroupNameOverride: boolean): string | null {
-	const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)
-	// return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || getDefaultGroupName(downcast(groupInfo.groupType))
-	return (allowGroupNameOverride && groupSettings && groupSettings.name) || groupInfo.name || null
+	return (allowGroupNameOverride && getCustomSharedGroupName(groupInfo, userSettingsGroupRoot)) || groupInfo.name || null
+}
+
+/** Get custom group name, if any is configured via GroupSettings */
+export function getCustomSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot): string | null {
+	return userSettingsGroupRoot.groupSettings.find((gc) => gc.group === groupInfo.group)?.name ?? null
 }
