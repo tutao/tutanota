@@ -48,6 +48,7 @@ import { getCustomMailDomains, getWhitelabelDomainInfo } from "../../api/common/
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showBuyOrSetNotificationEmailDialog } from "../EditNotificationEmailDialog.js"
+import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
 
 assertMainOrNode()
 
@@ -64,7 +65,11 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	private _entityClient: EntityClient
 	private _logins: LoginController
 
-	constructor(entityClient: EntityClient, logins: LoginController) {
+	constructor(
+		entityClient: EntityClient,
+		logins: LoginController,
+		private readonly whitelabelThemeGenerator: WhitelabelThemeGenerator,
+	) {
 		this.view = this.view.bind(this)
 		this._entityClient = entityClient
 		this._logins = logins
@@ -149,6 +154,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							whitelabelDomainInfo,
 						}
 					: null,
+			whitelabelThemeGenerator: this.whitelabelThemeGenerator,
 		}
 		return m(WhitelabelThemeSettings, whitelabelThemeSettingsAttrs)
 	}
