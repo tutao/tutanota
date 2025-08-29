@@ -174,6 +174,7 @@ import "./contacts/ContactModelTest.js"
 import "./api/worker/search/OfflinestorageIndexerTest.js"
 import "./api/worker/EventInstancePrefetcherTest.js"
 import "./misc/parsing/ParserCombinatorTest.js"
+import "./sharing/GroupSettingsModelTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"

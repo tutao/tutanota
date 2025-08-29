@@ -23,7 +23,6 @@ import {
 	Contact,
 	ContactTypeRef,
 	createDefaultAlarmInfo,
-	createGroupSettings,
 	GroupSettings,
 	UserSettingsGroupRoot,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -101,7 +100,7 @@ import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPr
 import { client } from "../../../common/misc/ClientDetector.js"
 import { FloatingActionButton } from "../../gui/FloatingActionButton.js"
 import { Icon, IconSize, progressIcon } from "../../../common/gui/base/Icon.js"
-import { Group, GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
+import { Group, User } from "../../../common/api/entities/sys/TypeRefs.js"
 import { formatDate, formatTime } from "../../../common/misc/Formatter.js"
 import { getExternalCalendarName, parseCalendarStringData, SyncStatus } from "../../../common/calendar/gui/ImportExportUtils.js"
 import type { ParsedEvent } from "../../../common/calendar/gui/CalendarImporter.js"
@@ -945,7 +944,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	private showCreateCalendarDialog(calendarType: CalendarType) {
 		const createNormalCalendar = async (dialog: Dialog, properties: CalendarProperties, calendarModel: CalendarModel) => {
-			await calendarModel.createCalendar(properties.name, properties.color, properties.alarms, null)
+			await calendarModel.createCalendar(properties.nameData.name, properties.color, properties.alarms, null)
 			dialog.close()
 		}
 		const createExternalCalendar = async (dialog: Dialog, properties: CalendarProperties, calendarModel: CalendarModel) => {
@@ -979,7 +978,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				showCreateEditCalendarDialog({
 					calendarType,
 					titleTextId: "add_action",
-					shared: false,
 					okAction: createNormalCalendar,
 					okTextId: "save_action",
 					calendarModel: this.viewModel.getCalendarModel(),
@@ -989,7 +987,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				showCreateEditCalendarDialog({
 					calendarType,
 					titleTextId: "newCalendarSubscriptionsDialog_title",
-					shared: false,
 					okAction: createExternalCalendar,
 					okTextId: "subscribe_action",
 					warningMessage: () => m(".smaller.content-fg", lang.get("externalCalendarInfo_msg")),
@@ -1032,16 +1029,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 
 		return filteredCalendarInfos.map(([_, calendarInfo]) => {
-			return this.renderCalendarItem(calendarInfo, calendarInfo.shared, toggleHidden, this.viewModel.hiddenCalendars.has(calendarInfo.group._id))
+			return this.renderCalendarItem(calendarInfo, toggleHidden, this.viewModel.hiddenCalendars.has(calendarInfo.group._id))
 		})
 	}
 
-	private renderCalendarItem(
-		calendarInfo: CalendarInfo,
-		shared: boolean,
-		toggleHidden: (viewModel: CalendarViewModel, groupRootId: string) => void,
-		isHidden: boolean,
-	) {
+	private renderCalendarItem(calendarInfo: CalendarInfo, toggleHidden: (viewModel: CalendarViewModel, groupRootId: string) => void, isHidden: boolean) {
 		const { userSettingsGroupRoot } = locator.logins.getUserController()
 		const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? null
 
@@ -1111,7 +1103,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						},
 					})
 				: null,
-			this.createCalendarActionDropdown(calendarInfo, colorValue ?? defaultCalendarColor, existingGroupSettings, userSettingsGroupRoot, shared),
+			this.createCalendarActionDropdown(calendarInfo, colorValue ?? defaultCalendarColor, existingGroupSettings, userSettingsGroupRoot),
 		])
 	}
 
@@ -1120,7 +1112,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		colorValue: string,
 		existingGroupSettings: GroupSettings | null,
 		userSettingsGroupRoot: UserSettingsGroupRoot,
-		sharedCalendar: boolean,
 	): Children {
 		const { group, groupInfo, groupRoot, isExternal } = calendarInfo
 		const user = locator.logins.getUserController().user
@@ -1136,7 +1127,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						label: "edit_action",
 						icon: Icons.Edit,
 						size: ButtonSize.Compact,
-						click: () => this.onPressedEditCalendar(groupInfo, colorValue, existingGroupSettings, userSettingsGroupRoot, sharedCalendar),
+						click: () => this.onPressedEditCalendar(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot),
 					},
 					!isExternal && !isClientOnly
 						? {
@@ -1146,7 +1137,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									if (locator.logins.getUserController().isFreeAccount()) {
 										showNotAvailableForFreeDialog()
 									} else {
-										showGroupSharingDialog(groupInfo, sharedCalendar)
+										showGroupSharingDialog(groupInfo, calendarInfo.shared)
 									}
 								},
 							}
@@ -1166,7 +1157,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									const alarmInfoList = user.alarmInfoList
 									if (alarmInfoList) {
 										exportCalendar(
-											getSharedGroupName(groupInfo, locator.logins.getUserController(), sharedCalendar),
+											getSharedGroupName(groupInfo, locator.logins.getUserController(), calendarInfo.shared),
 											groupRoot,
 											alarmInfoList.alarms,
 											new Date(),
@@ -1234,13 +1225,13 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	private onPressedEditCalendar(
-		groupInfo: GroupInfo,
+	private async onPressedEditCalendar(
+		calendarInfo: CalendarInfo,
 		colorValue: string,
 		existingGroupSettings: GroupSettings | null,
 		userSettingsGroupRoot: UserSettingsGroupRoot,
-		shared: boolean,
 	) {
+		const { groupInfo } = calendarInfo
 		if (isClientOnlyCalendar(groupInfo.group) && !this.viewModel.isNewPaidPlan) {
 			showPlanUpgradeRequiredDialog(NewPaidPlans)
 			return
@@ -1249,11 +1240,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		showCreateEditCalendarDialog({
 			calendarType: getCalendarType(existingGroupSettings, groupInfo),
 			titleTextId: "edit_action",
-			shared,
-			okAction: (dialog, properties) => this.handleModifiedCalendar(dialog, properties, shared, groupInfo, existingGroupSettings, userSettingsGroupRoot),
+			okAction: (dialog, properties) => this.handleModifiedCalendar(dialog, properties, calendarInfo, existingGroupSettings, userSettingsGroupRoot),
 			okTextId: "save_action",
 			calendarProperties: {
-				name: getSharedGroupName(groupInfo, locator.logins.getUserController(), shared),
+				nameData: await this.viewModel.getCalendarNameData(calendarInfo.groupInfo),
 				color: colorValue.substring(1),
 				alarms: existingGroupSettings?.defaultAlarmsList.map((alarm) => parseAlarmInterval(alarm.trigger)) ?? [],
 				sourceUrl: existingGroupSettings?.sourceUrl ?? null,
@@ -1266,58 +1256,53 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	private handleModifiedCalendar(
 		dialog: Dialog,
 		properties: CalendarProperties,
-		shared: boolean,
-		groupInfo: GroupInfo,
+		calendarInfo: CalendarInfo,
 		existingGroupSettings: GroupSettings | null,
 		userSettingsGroupRoot: UserSettingsGroupRoot,
 	) {
-		const clientOnlyCalendar = isClientOnlyCalendar(groupInfo.group)
-		if (!shared && !clientOnlyCalendar) {
-			// User is the owner, so we update the entity instead of groupSettings
-			groupInfo.name = properties.name
-			locator.entityClient.update(groupInfo)
-		}
+		const { groupInfo, shared, userIsOwner } = calendarInfo
 
-		const shouldSyncExternal = !!(existingGroupSettings && hasSourceUrl(existingGroupSettings) && existingGroupSettings.sourceUrl !== properties.sourceUrl)
-		const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
-		// color always set for existing calendar
-		if (existingGroupSettings) {
-			existingGroupSettings.color = properties.color
-			existingGroupSettings.name = shared && properties.name !== groupInfo.name ? properties.name : null
-			existingGroupSettings.defaultAlarmsList = alarms
-			existingGroupSettings.sourceUrl = properties.sourceUrl
-		} else if (clientOnlyCalendar) {
-			this.viewModel.handleClientOnlyUpdate(groupInfo, downcast({ name: properties.name, color: properties.color }))
+		const clientOnlyCalendar = isClientOnlyCalendar(groupInfo.group)
+
+		if (clientOnlyCalendar) {
+			this.viewModel.handleClientOnlyUpdate(groupInfo, { name: properties.nameData.name, color: properties.color })
 			dialog.close()
 			return this.viewModel.redraw(undefined)
 		} else {
-			const newGroupSettings = createGroupSettings({
-				group: groupInfo.group,
-				color: properties.color,
-				name: shared && properties.name !== groupInfo.name ? properties.name : null,
-				defaultAlarmsList: alarms,
-				sourceUrl: properties.sourceUrl,
-			})
+			if (userIsOwner) {
+				// if it is a shared calendar and the shared name has been changed the entity needs to be updated
+				// the name on the entity is what is shared with everyone
+				this.viewModel.setCalendarGroupInfoName(groupInfo, properties.nameData.name)
+			}
 
-			userSettingsGroupRoot.groupSettings.push(newGroupSettings)
-		}
-
-		locator.entityClient
-			.update(userSettingsGroupRoot)
-			.then(() => {
-				if (shouldSyncExternal)
-					this.viewModel.forceSyncExternal(existingGroupSettings)?.catch(async (e) => {
-						showSnackBar({
-							message: lang.makeTranslation("exception_msg", e.message),
-							button: {
-								label: "ok_action",
-								click: noOp,
-							},
-							waitingTime: 500,
+			const shouldSyncExternal = !!(
+				existingGroupSettings &&
+				hasSourceUrl(existingGroupSettings) &&
+				existingGroupSettings.sourceUrl !== properties.sourceUrl
+			)
+			const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
+			this.viewModel
+				.setCalendarGroupSettings(groupInfo, {
+					color: properties.color,
+					name: properties.nameData.kind === "shared" ? properties.nameData.customName : null,
+					defaultAlarmsList: alarms,
+					sourceUrl: properties.sourceUrl,
+				})
+				.then(() => {
+					if (shouldSyncExternal)
+						this.viewModel.forceSyncExternal(existingGroupSettings)?.catch(async (e) => {
+							showSnackBar({
+								message: lang.makeTranslation("exception_msg", e.message),
+								button: {
+									label: "ok_action",
+									click: noOp,
+								},
+								waitingTime: 500,
+							})
 						})
-					})
-			})
-			.catch(ofClass(LockedError, noOp))
+				})
+				.catch(ofClass(LockedError, noOp))
+		}
 		dialog.close()
 	}
 

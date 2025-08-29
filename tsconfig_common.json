@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"lib": ["es2022", "webworker", "dom"],
+		"lib": ["es2023", "webworker", "dom"],
 		"allowJs": true,
 		"checkJs": false,
 		"target": "es2022",

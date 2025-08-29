@@ -11,8 +11,7 @@ import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
 import { MailSettingsViewer } from "./MailSettingsViewer"
 import { UserListView } from "../../common/settings/UserListView.js"
-import type { ReceivedGroupInvitation, User } from "../../common/api/entities/sys/TypeRefs.js"
-import { CustomerInfoTypeRef, CustomerTypeRef } from "../../common/api/entities/sys/TypeRefs.js"
+import { CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, ReceivedGroupInvitation, User } from "../../common/api/entities/sys/TypeRefs.js"
 import { GroupListView } from "./groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
 import { Icons } from "../../common/gui/base/icons/Icons"
@@ -23,7 +22,7 @@ import { locator } from "../../common/api/main/CommonLocator"
 import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
 import { showUserImportDialog } from "../../common/settings/UserViewer.js"
-import { LazyLoaded, noOp, ofClass, partition, promiseMap } from "@tutao/tutanota-utils"
+import { clone, LazyLoaded, partition, promiseMap } from "@tutao/tutanota-utils"
 import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer.js"
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
 import { NavButtonColor } from "../../common/gui/base/NavButton.js"
@@ -41,7 +40,7 @@ import { getNullableSharedGroupName, getSharedGroupName, isSharedGroupOwner } fr
 import { DummyTemplateListView } from "./DummyTemplateListView"
 import { SettingsFolderRow } from "../../common/settings/SettingsFolderRow.js"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
-import { createGroupSettings, createUserAreaGroupDeleteData, UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
+import { createUserAreaGroupDeleteData, UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { GroupInvitationFolderRow } from "../../common/sharing/view/GroupInvitationFolderRow"
 import { TemplateGroupService } from "../../common/api/entities/tutanota/Services"
 import { exportUserCsv, loadUserExportData } from "../../common/settings/UserDataExporter.js"
@@ -61,7 +60,6 @@ import { Dialog } from "../../common/gui/base/Dialog.js"
 import { AboutDialog } from "../../common/settings/AboutDialog.js"
 import { loadTemplateGroupInstances } from "../templates/model/TemplatePopupModel.js"
 import { TemplateListView } from "./TemplateListView.js"
-import { TextField } from "../../common/gui/base/TextField.js"
 import { ContactsSettingsViewer } from "./ContactsSettingsViewer.js"
 import { NotificationSettingsViewer } from "./NotificationSettingsViewer.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
@@ -76,10 +74,11 @@ import { showSupportDialog } from "../../common/support/SupportDialog"
 import { Icon, IconSize } from "../../common/gui/base/Icon"
 import { MailExportViewer } from "./MailExportViewer"
 import { getSupportUsageTestStage } from "../../common/support/SupportUsageTestUtils.js"
-import { LockedError } from "../../common/api/common/error/RestError"
 import { shouldHideBusinessPlans } from "../../common/subscription/SubscriptionUtils"
 import { ButtonType } from "../../common/gui/base/Button"
 import { CancelledError } from "../../common/api/common/error/CancelledError"
+import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
+import { GroupSettingNameInputFields } from "../../common/sharing/view/GroupSettingNameInputFields"
 
 assertMainOrNode()
 
@@ -768,7 +767,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 				await this._customDomains.getAsync()
 				m.redraw()
-			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update) || isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 				await this.reloadTemplateData()
 				m.redraw()
 			}
@@ -976,48 +975,21 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 }
 
-function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
-	const logins = locator.logins
-	const name = stream(getSharedGroupName(instance.groupInfo, logins.getUserController(), true))
+async function showRenameTemplateListDialog(instance: TemplateGroupInstance) {
+	const groupSettingsModel = await locator.groupSettingsModel()
+	const groupNameData = await groupSettingsModel.getGroupNameData(instance.groupInfo)
+	const newData = clone<GroupNameData>(groupNameData)
 	Dialog.showActionDialog({
 		title: "renameTemplateList_label",
 		allowOkWithReturn: true,
 		child: {
-			view: () =>
-				m(TextField, {
-					value: name(),
-					oninput: name,
-					label: "templateGroupName_label",
-				}),
+			view: () => {
+				return m(GroupSettingNameInputFields, { groupNameData: newData })
+			},
 		},
 		okAction: (dialog: Dialog) => {
 			dialog.close()
-			const { userSettingsGroupRoot } = logins.getUserController()
-			const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === instance.groupInfo.group)
-			const newName = name()
-
-			if (existingGroupSettings) {
-				existingGroupSettings.name = newName
-			} else {
-				const newSettings = createGroupSettings({
-					group: getEtId(instance.group),
-					color: "",
-					name: newName,
-					defaultAlarmsList: [],
-					sourceUrl: null,
-				})
-				logins.getUserController().userSettingsGroupRoot.groupSettings.push(newSettings)
-			}
-
-			locator.entityClient
-				.update(userSettingsGroupRoot)
-				.then(() => {
-					if (isSharedGroupOwner(instance.group, logins.getUserController().user)) {
-						instance.groupInfo.name = newName
-						locator.entityClient.update(instance.groupInfo)
-					}
-				})
-				.catch(ofClass(LockedError, noOp))
+			groupSettingsModel.updateGroupNameData(instance.groupInfo, newData)
 		},
 	})
 }
