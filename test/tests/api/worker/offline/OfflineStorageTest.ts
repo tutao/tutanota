@@ -72,7 +72,7 @@ function incrementId(id: Id, ms: number) {
 	return timestampToGeneratedId(timestamp + ms)
 }
 
-class IdGenerator {
+export class IdGenerator {
 	constructor(private currentId: Id) {}
 
 	getNext(incrementByMs: number = 60000): Id {

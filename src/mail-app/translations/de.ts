@@ -2116,6 +2116,7 @@ export default {
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Sind Sie sicher, dass Sie dieses und alle zukünftigen Ereignisse löschen wollen?",
 		"duplicateEvent_label": "Diesen Termin duplizieren",
 		"addComment_label": "Kommentar hinzufügen",
-		"copyOf_title": "Kopie von {title}"
+		"copyOf_title": "Kopie von {title}",
+		"customNameGeneric_label": "Custom name"
 	}
 }
