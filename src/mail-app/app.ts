@@ -43,7 +43,18 @@ import { UndoModel } from "./UndoModel"
 assertMainOrNodeBoot()
 bootFinished()
 
-const urlQueryParams = m.parseQueryString(location.search)
+const urlQueryParams = m.parseQueryString(location.search) as Record<string, string>
+
+const reloadArgs = sessionStorage.getItem("reloadArgs")
+if (reloadArgs) {
+	const args = JSON.parse(reloadArgs) as Record<string, string>
+	sessionStorage.removeItem("reloadArgs")
+	for (const [k, v] of Object.entries(args)) {
+		if (v != null && urlQueryParams[k] == null) {
+			urlQueryParams[k] = v
+		}
+	}
+}
 
 assignEnvPlatformId(urlQueryParams)
 replaceNativeLogger(window, new Logger())

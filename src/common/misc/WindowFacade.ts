@@ -230,21 +230,20 @@ export class WindowFacade {
 	}
 
 	async reload(args: Params) {
+		if (!Object.hasOwn(args, "noAutoLogin")) {
+			args.noAutoLogin = true
+		}
+		const stringifiedArgs: Record<string, string> = {}
+		for (const [k, v] of Object.entries(args)) {
+			if (v != null) {
+				stringifiedArgs[k] = String(v)
+			}
+		}
 		if (isApp() || isElectronClient()) {
-			if (!Object.hasOwn(args, "noAutoLogin")) {
-				args.noAutoLogin = true
-			}
-
 			const { locator } = await import("../api/main/CommonLocator")
-
-			const stringifiedArgs: Record<string, string> = {}
-			for (const [k, v] of Object.entries(args)) {
-				if (v != null) {
-					stringifiedArgs[k] = String(v)
-				}
-			}
 			await locator.commonSystemFacade.reload(stringifiedArgs)
 		} else {
+			sessionStorage.setItem("reloadArgs", JSON.stringify(stringifiedArgs))
 			window.location.reload()
 		}
 	}
