@@ -4,6 +4,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.glance.material3.ColorProviders
+import androidx.glance.unit.ColorProvider
 
 object AppTheme {
 	val LightColors = lightColorScheme(
@@ -42,4 +43,13 @@ object AppTheme {
 		light = LightColors,
 		dark = DarkColors
 	)
+
+}
+
+
+fun generateColorProviderForColor(color: Color): ColorProvider {
+	return ColorProviders(
+		light = lightColorScheme(primary = color),
+		dark = darkColorScheme(primary = color)
+	).primary
 }

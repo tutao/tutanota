@@ -1,9 +1,13 @@
 package de.tutao.calendar.widget.model
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.datastore.core.IOException
+import androidx.glance.action.Action
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.lifecycle.ViewModel
+import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
 import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.calendar.widget.data.BirthdayEventDao
@@ -16,10 +20,14 @@ import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.base64ToBase64Url
+import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.isAllDayEventByTimes
 import de.tutao.tutashared.midnightInDate
 import de.tutao.tutashared.push.toSdkCredentials
+import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -245,4 +253,39 @@ class WidgetUIViewModel(
 
 		return null
 	}
+
+
+}
+
+fun openCalendarAgenda(
+	context: Context,
+	userId: String? = "",
+	date: Date = Date(),
+	eventId: IdTuple? = null
+): Action {
+	val openCalendarAgenda = Intent(context, MainActivity::class.java)
+	openCalendarAgenda.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+	openCalendarAgenda.action = MainActivity.OPEN_CALENDAR_ACTION
+	openCalendarAgenda.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
+	openCalendarAgenda.putExtra(
+		MainActivity.OPEN_CALENDAR_IN_APP_ACTION_KEY,
+		CalendarOpenAction.AGENDA.value
+	)
+
+	val localDate = date.toInstant()
+		.atZone(ZoneId.systemDefault()) // convert to local timezone
+		.toLocalDate()
+	openCalendarAgenda.putExtra(
+		MainActivity.OPEN_CALENDAR_DATE_KEY,
+		localDate.format(DateTimeFormatter.ISO_DATE)
+	)
+
+	if (eventId != null) {
+		openCalendarAgenda.putExtra(
+			MainActivity.OPEN_CALENDAR_EVENT_KEY,
+			"${eventId.listId}/${eventId.elementId}".toByteArray().toBase64().base64ToBase64Url()
+		)
+	}
+
+	return actionStartActivity(openCalendarAgenda)
 }
