@@ -1,6 +1,4 @@
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
-import { FileFacade } from "../../../common/native/common/generatedipc/FileFacade"
-import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 // @ts-ignore[untyped-import]
 import * as tf from "@tensorflow/tfjs"
@@ -29,14 +27,10 @@ export type SpamClassificationModel = {
 
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
-	private readonly modelFilename = "spam_classification_model"
 	private corpus: Corpus | null = null
 	private documentIds: string[] = []
 
-	constructor(
-		private readonly offlineStorage: OfflineStoragePersistence,
-		private readonly fileFacade: FileFacade,
-	) {}
+	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
 
 	public async train(userId: string, testRatio = 0.2): Promise<void> {
 		const data = await this.offlineStorage.getSpamMailClassifications()
@@ -59,18 +53,16 @@ export class SpamClassifier {
 		this.classifier = this.buildModel(xs.shape[1])
 		await this.classifier.fit(xsTrain, ysTrain, { epochs: 5, batchSize: 32 })
 
-		// fixme should we have train-test split at all? If yes, the corpus sizes don't match
-		// fixme either apply the same split while loadTokenizerFromOfflineDb (but corpora are not guaranteed to be same?)
 		if (testRatio > 0 && xsTest.shape[0] > 0) {
 			await this.test(xsTest, ysTest)
 		}
 
-		await this.saveModel(userId)
+		await this.saveModel()
 	}
 
-	public async predict(subjectAndBody: string, userId: string): Promise<boolean> {
+	public async predict(subjectAndBody: string): Promise<boolean> {
 		if (!this.classifier) {
-			await this.loadModel(userId)
+			await this.loadModel()
 		}
 
 		if (!this.corpus) {
@@ -213,48 +205,41 @@ export class SpamClassifier {
 	// fixme we're now saving the same information in 3 places (mail_index, spam_classification in OfflineStoragePersistence + mail and details in OfflineStorage).
 	// fixme on current master we only have 2 places (mail index table + mail and details in odb). This is unnecessary and should be optimized before merge
 	// fixme add IsSpam column to mail_index?
-	private async saveModel(userId: string): Promise<void> {
+	private async saveModel(): Promise<void> {
 		if (!this.classifier) {
 			return
 		}
 
 		await this.classifier.save(
 			tf.io.withSaveHandler(async (artifacts) => {
-				const topologyBytes = stringToUtf8Uint8Array(JSON.stringify(artifacts.modelTopology))
-				await this.fileFacade.writeToAppDir(topologyBytes, `${this.modelFilename}_${userId}_topology.json`)
+				const modelTopology = JSON.stringify(artifacts.modelTopology)
 
-				const weightSpecsBytes = stringToUtf8Uint8Array(JSON.stringify(artifacts.weightSpecs))
-				await this.fileFacade.writeToAppDir(weightSpecsBytes, `${this.modelFilename}_${userId}_weightsSpecs.json`)
+				const weightSpecs = JSON.stringify(artifacts.weightSpecs)
 
-				await this.fileFacade.writeToAppDir(
-					new Uint8Array(artifacts.weightData as ArrayBuffer), // fixme can this be ArrayBuffer[], if yes, what to do?
-					`${this.modelFilename}_${userId}_weights.bin`,
-				)
+				const weightData = new Uint8Array(artifacts.weightData as ArrayBuffer)
+
+				await this.offlineStorage.putSpamClassificationModel({
+					modelTopology,
+					weightSpecs,
+					weightData,
+				})
 
 				return {
 					modelArtifactsInfo: {
 						dateSaved: new Date(),
 						modelTopologyType: "JSON",
-						modelTopologyBytes: topologyBytes.byteLength,
-						weightSpecsBytes: weightSpecsBytes.byteLength,
-						weightDataBytes: (artifacts.weightData as ArrayBuffer).byteLength,
 					},
 				}
 			}),
 		)
 	}
 
-	private async loadModel(userId: string): Promise<void> {
-		try {
-			const topologyBytes = await this.fileFacade.readFromAppDir(`${this.modelFilename}_${userId}_topology.json`)
-			const modelTopology = JSON.parse(utf8Uint8ArrayToString(topologyBytes))
-
-			const weightSpecsBytes = await this.fileFacade.readFromAppDir(`${this.modelFilename}_${userId}_weightsSpecs.json`)
-			const weightSpecs = JSON.parse(utf8Uint8ArrayToString(weightSpecsBytes))
-
-			const weightBytes = await this.fileFacade.readFromAppDir(`${this.modelFilename}_${userId}_weights.bin`)
-			const weightData = weightBytes.buffer.slice(weightBytes.byteOffset, weightBytes.byteOffset + weightBytes.byteLength)
-
+	private async loadModel(): Promise<void> {
+		const model = await this.offlineStorage.getSpamClassificationModel()
+		if (model) {
+			const modelTopology = JSON.parse(model.modelTopology)
+			const weightSpecs = JSON.parse(model.weightSpecs)
+			const weightData = model.weightData.buffer.slice(model.weightData.byteOffset, model.weightData.byteOffset + model.weightData.byteLength)
 			this.classifier = await tf.loadLayersModel(
 				tf.io.fromMemory({
 					modelTopology,
@@ -262,8 +247,8 @@ export class SpamClassifier {
 					weightData,
 				}),
 			)
-		} catch (e) {
-			console.error("Load model failed:", e)
+		} else {
+			console.error("Loading the model from offline db failed")
 			this.classifier = null
 		}
 	}

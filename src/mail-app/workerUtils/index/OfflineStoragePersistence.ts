@@ -53,7 +53,7 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 
 	spam_classification_model: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS spam_classification_model (version NUMBER NOT NULL, modelTopology TEXT NOT NULL, weightSpecs TEXT NOT NULL, weightData BLOB NOT NULL)",
+			"CREATE TABLE IF NOT EXISTS spam_classification_model (version NUMBER NOT NULL, modelTopology TEXT NOT NULL, weightSpecs TEXT NOT NULL, weightData BLOB NOT NULL, PRIMARY KEY(version))",
 		purgedWithCache: true,
 	},
 
@@ -223,10 +223,10 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async getSpamClassificationModel(version: number): Promise<Nullable<SpamClassificationModel>> {
+	async getSpamClassificationModel(): Promise<Nullable<SpamClassificationModel>> {
 		const { query, params } = sql`SELECT modelTopology, weightSpecs, weightData
                                     FROM spam_classification_model
-                                    WHERE version = $1`
+                                    WHERE version = ${1}`
 		const resultRows = await this.sqlCipherFacade.get(query, params)
 		if (resultRows !== null) {
 			const untaggedValue = untagSqlObject(resultRows)
