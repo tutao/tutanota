@@ -574,7 +574,7 @@ export class OfflineStorage implements CacheStorage {
 	async putSpamMailClassification(mail: Mail, mailBody: Body, isSpam: boolean): Promise<void> {
 		const { query, params } = sql`
             INSERT
-            OR REPLACE INTO spam_classification(listId, elementId, subject, body, isSpam)
+            OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam)
 				VALUES (
             ${listIdPart(mail._id)},
             ${elementIdPart(mail._id)},

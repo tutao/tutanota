@@ -11,7 +11,8 @@ import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
 import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
-import { SpamClassificationRow } from "../spamClassification/SpamClassifier"
+import { SpamClassificationModel, SpamClassificationRow } from "../spamClassification/SpamClassifier"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -44,9 +45,15 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 	},
 
 	// Spam classification training data
-	spam_classification: {
+	spam_classification_training_data: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS spam_classification (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam, PRIMARY KEY (listId, elementId))",
+			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam, PRIMARY KEY (listId, elementId))",
+		purgedWithCache: true,
+	},
+
+	spam_classification_model: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS spam_classification_model (version NUMBER NOT NULL, modelTopology TEXT NOT NULL, weightSpecs TEXT NOT NULL, weightData BLOB NOT NULL)",
 		purgedWithCache: true,
 	},
 
@@ -186,7 +193,7 @@ export class OfflineStoragePersistence {
 		const isSpam = mailData.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 		const { query, params } = sql`
             INSERT
-            OR REPLACE INTO spam_classification(listId, elementId, subject, body, isSpam)
+            OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam)
 				VALUES (
             ${listIdPart(mailData._id)},
             ${elementIdPart(mailData._id)},
@@ -199,9 +206,37 @@ export class OfflineStoragePersistence {
 
 	async getSpamMailClassifications(): Promise<SpamClassificationRow[]> {
 		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
-                                    from spam_classification`
+                                    FROM spam_classification_training_data`
 		const resultRows = await this.sqlCipherFacade.all(query, params)
 		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationRow)
+	}
+
+	async putSpamClassificationModel(model: SpamClassificationModel) {
+		const { query, params } = sql`INSERT
+        OR REPLACE INTO 
+									spam_classification_model VALUES (
+      						 		${1},
+        ${model.modelTopology},
+        ${model.weightSpecs},
+        ${model.weightData}
+        )`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getSpamClassificationModel(version: number): Promise<Nullable<SpamClassificationModel>> {
+		const { query, params } = sql`SELECT modelTopology, weightSpecs, weightData
+                                    FROM spam_classification_model
+                                    WHERE version = $1`
+		const resultRows = await this.sqlCipherFacade.get(query, params)
+		if (resultRows !== null) {
+			const untaggedValue = untagSqlObject(resultRows)
+			return {
+				modelTopology: untaggedValue.modelTopology,
+				weightSpecs: untaggedValue.weightSpecs,
+				weightData: untaggedValue.weightData,
+			} as SpamClassificationModel
+		}
+		return null
 	}
 
 	async updateMailLocation(mail: Mail) {
