@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2025-08-21T08:52:12Z",
+	"updated_at": "2025-08-26T16:26:36Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -668,6 +668,7 @@ export default {
 		"finallyDeleteSelectedEmails_msg": "Вылучаныя ў сьметніцы лісты будуць незваротна выдаленыя.",
 		"fingerprintMismatchKeepTofuSubtitle_msg": "Ключ, што ня быў спраўджаны, захаваецца на тваёй прыладзе.",
 		"fingerprintMismatchKeepTofu_title": "Падазроны ключ захаваны",
+		"fingerprintMismatchManual_msg": "Код спраўджання гэтага кантакту адрозьніваецца ад коду, які ўжо быў спраўджаны.",
 		"finish_action": "Завяршыць",
 		"firstMergeContact_label": "Кантакт 1",
 		"firstMonthForFreeDetail_msg": "Бясплатны першы месяц даступны для ўсіх нашых платных тарыфных плянаў. Першы месяц цалкам бясплатны і можа быць скасаваны ў любы час.",
@@ -862,6 +863,7 @@ export default {
 		"IpAddress_label": "Адрас IP",
 		"keyboardShortcuts_title": "Клавіятурныя скароты",
 		"keyManagement.cameraNotFound_msg": "Ня знойдзена жадная камэра на прыладзе. Калі ласка, падлучы абп актывуй камэру.",
+		"keyManagement.cameraPermissionNeeded_msg": "Калі ласка, дазволь карыстацца камэрай у наладах прылады.",
 		"keyManagement.contactVerificationConfirmationTitle_label": "Ключ пасьпяхова спраўджаны",
 		"keyManagement.contactVerificationConfirmation_label": "Наступныя кантакты былі спраўджаныя:",
 		"keyManagement.invalidMailAddress_msg": "Калі ласка, увядзі карэктны адрас імэйлу.",
@@ -894,6 +896,7 @@ export default {
 		"keyVerificationErrorManual_msg": "Ключ не пасуе да ключа, які быў спраўджаны з гэтым кантактам.",
 		"keyVerificationErrorRecommendation_title": "Парада",
 		"keyVerificationLearnMoreAboutContactVerificationLink_msg": "Даведайся больш пра спраўджанне ключа",
+		"keyVerificationNotAvailable_msg": "Спраўджанне ключа даступна на дадзены момант толькі ў мабільных або настольных праграмах.",
 		"keyVerificationVerificationCode_title": "Твой ключ спраўджання",
 		"keywords_label": "Ключавыя словы",
 		"knowledgebase_label": "База ведаў",
