@@ -257,6 +257,10 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	putLastUpdateTime(value: number): Promise<void>
 
+	getLastTrainedTime(): Promise<number>
+
+	setLastTrainedTime(value: number): Promise<void>
+
 	getUserId(): Id
 
 	deleteAllOwnedBy(owner: Id): Promise<void>

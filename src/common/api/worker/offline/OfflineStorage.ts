@@ -105,6 +105,7 @@ export interface OfflineDbMeta {
 	timeRangeDays: number
 	// offline db schema version
 	"offline-version": number
+	lastTrainedTime: number
 }
 
 export const TableDefinitions = Object.freeze({
@@ -574,13 +575,14 @@ export class OfflineStorage implements CacheStorage {
 	async putSpamMailClassification(mail: Mail, mailBody: Body, isSpam: boolean): Promise<void> {
 		const { query, params } = sql`
             INSERT
-            OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam)
+            OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified)
 				VALUES (
             ${listIdPart(mail._id)},
             ${elementIdPart(mail._id)},
             ${mail.subject},
             ${htmlToText(getMailBodyText(mailBody))},
-            ${isSpam ? 1 : 0}
+            ${isSpam ? 1 : 0},
+            ${Date.now()}
             )`
 		await this.sqlCipherFacade.run(query, params)
 	}
@@ -737,6 +739,14 @@ export class OfflineStorage implements CacheStorage {
 
 	async putLastUpdateTime(ms: number): Promise<void> {
 		await this.putMetadata("lastUpdateTime", ms)
+	}
+
+	async getLastTrainedTime(): Promise<number> {
+		return (await this.getMetadata("lastTrainedTime")) ?? 0
+	}
+
+	async setLastTrainedTime(ms: number): Promise<void> {
+		await this.putMetadata("lastTrainedTime", ms)
 	}
 
 	async purgeStorage(): Promise<void> {
