@@ -451,7 +451,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 
 	if (isOfflineStorageAvailable()) {
-		locator.spamClassifier = new SpamClassifier(await offlineStorageIndexerPersistence(), fileFacadeSendDispatcher)
+		locator.spamClassifier = new SpamClassifier(await offlineStorageIndexerPersistence())
 	}
 
 	if (isIOSApp() || isAndroidApp()) {

@@ -456,10 +456,7 @@ export class MailFacade {
 		} else {
 			const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
 			if (this.spamClassifier != null) {
-				return await this.spamClassifier.predict(
-					`${mail.subject}  ${mailDetailsBlob.body.compressedText ?? mailDetailsBlob.body.text}`,
-					this.userFacade.getLoggedInUser()._id,
-				)
+				return await this.spamClassifier.predict(`${mail.subject}  ${mailDetailsBlob.body.compressedText ?? mailDetailsBlob.body.text}`)
 			}
 			return false
 		}
