@@ -16,7 +16,7 @@ import { RemoteBridge } from "./ipc/RemoteBridge.js"
 import { ASSET_PROTOCOL } from "./net/ProtocolProxy.js"
 
 import { SseInfo } from "./sse/SseInfo.js"
-import { LazyLoaded } from "@tutao/tutanota-utils"
+import { debounce, LazyLoaded } from "@tutao/tutanota-utils"
 
 const TAG = "[DesktopWindowManager]"
 
@@ -109,6 +109,7 @@ export class WindowManager {
 		await this.loadStartingBounds()
 		const w: ApplicationWindow = await this._newWindowFactory(noAutoLogin)
 		windows.unshift(w)
+
 		w.on("close", () => {
 			w.setUserId(null)
 		})
@@ -137,13 +138,20 @@ export class WindowManager {
 				w.setBounds(this._currentBounds)
 				if (showWhenReady) w.show()
 			})
+			.on("move", () => {
+				// `move` event also fires on `resize` on windows and linux, but not on mac (so we also handle `resize`)
+				this.saveWindowBounds(w)
+			})
+			.on("resize", () => {
+				this.saveWindowBounds(w)
+			})
 			.webContents.on("did-start-navigation", () => {
 				this._tray.clearBadge()
 			})
 			.on("zoom-changed", (ev: Event, direction: "in" | "out") => {
 				let scale = (this._currentBounds.scale * 100 + (direction === "out" ? -5 : 5)) / 100
 				this.changeZoom(scale)
-				this.saveBounds(w.getBounds())
+				this.saveWindowBounds(w)
 			})
 			.on("did-navigate", () => {
 				// electron likes to override the zoom factor when the URL changes.
@@ -266,6 +274,10 @@ export class WindowManager {
 
 		this._conf.setVar(DesktopConfigKey.lastBounds, this._currentBounds)
 	}
+
+	saveWindowBounds = debounce(100, (w: ApplicationWindow) => {
+		this.saveBounds(w.getBounds())
+	})
 
 	_setSpellcheckLang(l: string): void {
 		this._electron.session.defaultSession.setSpellCheckerLanguages(l === "" ? [] : [l])
