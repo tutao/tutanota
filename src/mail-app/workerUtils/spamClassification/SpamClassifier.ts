@@ -38,30 +38,32 @@ export class SpamClassifier {
 		private readonly fileFacade: FileFacade,
 	) {}
 
-	public async train(userId: string, testRatio = 0.0): Promise<void> {
+	public async train(userId: string, testRatio = 0.2): Promise<void> {
 		const data = await this.offlineStorage.getSpamMailClassifications()
-
-		const { trainSet, testSet } = this.trainTestSplit(data, testRatio)
-		console.log(`Total size: ${data.length}, train set size: ${trainSet.length}, test set size: ${testSet.length}`)
 
 		const trainTexts: string[] = []
 		this.documentIds = []
-		for (let i = 0; i < trainSet.length; i++) {
-			trainTexts.push(this.sanitizeModelInput(trainSet[i].subject, trainSet[i].body))
-			this.documentIds.push(`${trainSet[i].listId}/${trainSet[i].elementId}`)
+		for (let i = 0; i < data.length; i++) {
+			trainTexts.push(this.sanitizeModelInput(data[i].subject, data[i].body))
+			this.documentIds.push(`${data[i].listId}/${data[i].elementId}`)
 		}
 
 		this.corpus = new Corpus(this.documentIds, trainTexts)
 
 		const xs = this.buildTfIdfMatrix(this.corpus, this.documentIds)
-		const ys = tf.tensor1d(trainSet.map((d) => (d.isSpam ? 1 : 0)))
+		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
+
+		const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
+		console.log(`Total size: ${data.length}, train set size: ${xsTrain.size}, test set size: ${xsTest.size}`)
 
 		this.classifier = this.buildModel(xs.shape[1])
-		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32 })
+		await this.classifier.fit(xsTrain, ysTrain, { epochs: 5, batchSize: 32 })
 
 		// fixme should we have train-test split at all? If yes, the corpus sizes don't match
 		// fixme either apply the same split while loadTokenizerFromOfflineDb (but corpora are not guaranteed to be same?)
-		// await this.test(testSet)
+		if (testRatio > 0 && xsTest.shape[0] > 0) {
+			await this.test(xsTest, ysTest)
+		}
 
 		await this.saveModel(userId)
 	}
@@ -86,26 +88,14 @@ export class SpamClassifier {
 		return pred > 0.5
 	}
 
-	private async test(testData: SpamClassificationRow[]): Promise<void> {
+	private async test(xsTest: tf.Tensor2D, ysTest: tf.Tensor1D): Promise<void> {
 		if (!this.classifier) {
 			throw new Error("Model not loaded")
 		}
-		if (!this.corpus) {
-			throw new Error("Corpus not initialized")
-		}
 
-		const xsArray: number[][] = []
-		const ysArray: number[] = []
-
-		for (const d of testData) {
-			const text = this.sanitizeModelInput(d.subject, d.body)
-			xsArray.push(this.getTfIdfVectorForQuery(text))
-			ysArray.push(d.isSpam ? 1 : 0)
-		}
-
-		const xs = tf.tensor2d(xsArray, [xsArray.length, xsArray[0].length])
-		const predsTensor = this.classifier.predict(xs) as tf.Tensor
+		const predsTensor = this.classifier.predict(xsTest) as tf.Tensor
 		const predsArray = Array.from(await predsTensor.data()) as number[]
+		const ysArray = Array.from(await ysTest.data()) as number[]
 
 		let tp = 0,
 			tn = 0,
@@ -140,24 +130,33 @@ export class SpamClassifier {
 	}
 
 	private trainTestSplit(
-		data: SpamClassificationRow[],
+		xs: tf.Tensor2D,
+		ys: tf.Tensor1D,
 		testRatio: number,
 	): {
-		testSet: SpamClassificationRow[]
-		trainSet: SpamClassificationRow[]
+		xsTrain: tf.Tensor2D
+		ysTrain: tf.Tensor1D
+		xsTest: tf.Tensor2D
+		ysTest: tf.Tensor1D
 	} {
-		const shuffled = data.slice()
-		for (let i = shuffled.length - 1; i > 0; i--) {
-			const j = Math.floor(Math.random() * (i + 1))
-			const tmp = shuffled[i]
-			shuffled[i] = shuffled[j]
-			shuffled[j] = tmp
-		}
+		const numSamples = xs.shape[0]
+		const indices = tf.util.createShuffledIndices(numSamples)
 
-		const splitIndex = Math.floor(shuffled.length * (1 - testRatio))
-		const trainSet = shuffled.slice(0, splitIndex)
-		const testSet = shuffled.slice(splitIndex)
-		return { trainSet, testSet }
+		const testSize = Math.floor(numSamples * testRatio)
+		const trainSize = numSamples - testSize
+
+		const trainIndicesArray = Array.from(indices.slice(0, trainSize))
+		const testIndicesArray = Array.from(indices.slice(trainSize))
+
+		const trainIndices = tf.tensor1d(trainIndicesArray, "int32")
+		const testIndices = tf.tensor1d(testIndicesArray, "int32")
+
+		const xsTrain = tf.gather(xs, trainIndices)
+		const ysTrain = tf.gather(ys, trainIndices)
+		const xsTest = tf.gather(xs, testIndices)
+		const ysTest = tf.gather(ys, testIndices)
+
+		return { xsTrain, ysTrain, xsTest, ysTest }
 	}
 
 	private sanitizeModelInput(subject: string | null | undefined, body: string | null | undefined) {
