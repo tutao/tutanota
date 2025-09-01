@@ -2106,7 +2106,7 @@ export default {
 		"declined_label": "Declined",
 		"removed_label": "Removed",
 		"event_label": "Event",
-		"invitationNote_msg": "Secured with <strong><a href=\"https://tuta.com\" target=\"_blank\">Tuta Calendar</a></strong>",
+		"invitationNote_msg": "Secured with <strong>Tuta Calendar:</strong>\n<br>\n{1}",
 		"updateThisAndFutureEvents_action": "Update this and future events",
 		"deleteThisAndFutureOccurrences_action": "Delete this and future events",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Are you sure you want to delete this and all future events?",

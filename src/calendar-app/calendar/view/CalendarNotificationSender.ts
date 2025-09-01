@@ -1,4 +1,4 @@
-import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
+import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { makeInvitationCalendarFile } from "../export/CalendarExporter.js"
 import { CalendarAttendeeStatus, getAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "../../../common/api/common/TutanotaConstants.js"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
@@ -575,7 +575,9 @@ function makeHTMLBody({ event, infoBannerMessage, eventInviteEmailType, sender, 
 			<table style="padding: 24px 0">
 				<tr>
 					<td>
-						${lang.get("invitationNote_msg")}
+						${lang.get("invitationNote_msg", {
+							"{1}": `<a href=${InfoLink.CalendarHomePageFreeSignup}>${InfoLink.CalendarHomePageFreeSignup}</a>`,
+						})}
 					<td>
 				</tr>
 			</table>
