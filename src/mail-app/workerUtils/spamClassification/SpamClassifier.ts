@@ -21,12 +21,15 @@ export type SpamClassificationRow = {
 	isSpam: boolean
 }
 
-export type SpamClassificationModel = {}
+export type SpamClassificationModel = {
+	modelTopology: string
+	weightSpecs: string
+	weightData: Uint8Array
+}
 
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
 	private readonly modelFilename = "spam_classification_model"
-	private readonly tokenizerFilename = "spam_classification_tokenizer"
 	private corpus: Corpus | null = null
 	private documentIds: string[] = []
 
@@ -35,7 +38,7 @@ export class SpamClassifier {
 		private readonly fileFacade: FileFacade,
 	) {}
 
-	public async train(userId: string, testRatio = 0.2): Promise<void> {
+	public async train(userId: string, testRatio = 0.0): Promise<void> {
 		const data = await this.offlineStorage.getSpamMailClassifications()
 
 		const { trainSet, testSet } = this.trainTestSplit(data, testRatio)
@@ -45,7 +48,7 @@ export class SpamClassifier {
 		this.documentIds = []
 		for (let i = 0; i < trainSet.length; i++) {
 			trainTexts.push(this.sanitizeModelInput(trainSet[i].subject, trainSet[i].body))
-			this.documentIds.push(`doc${i}`)
+			this.documentIds.push(`${trainSet[i].listId}/${trainSet[i].elementId}`)
 		}
 
 		this.corpus = new Corpus(this.documentIds, trainTexts)
@@ -56,10 +59,11 @@ export class SpamClassifier {
 		this.classifier = this.buildModel(xs.shape[1])
 		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32 })
 
-		await this.test(testSet)
+		// fixme should we have train-test split at all? If yes, the corpus sizes don't match
+		// fixme either apply the same split while loadTokenizerFromOfflineDb (but corpora are not guaranteed to be same?)
+		// await this.test(testSet)
 
 		await this.saveModel(userId)
-		await this.saveTokenizer(userId)
 	}
 
 	public async predict(subjectAndBody: string, userId: string): Promise<boolean> {
@@ -68,7 +72,7 @@ export class SpamClassifier {
 		}
 
 		if (!this.corpus) {
-			await this.loadTokenizer(userId)
+			await this.loadTokenizerFromOfflineDb()
 		}
 
 		if (!this.classifier) {
@@ -135,7 +139,13 @@ export class SpamClassifier {
 		})
 	}
 
-	private trainTestSplit(data: SpamClassificationRow[], testRatio: number) {
+	private trainTestSplit(
+		data: SpamClassificationRow[],
+		testRatio: number,
+	): {
+		testSet: SpamClassificationRow[]
+		trainSet: SpamClassificationRow[]
+	} {
 		const shuffled = data.slice()
 		for (let i = shuffled.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1))
@@ -201,9 +211,9 @@ export class SpamClassifier {
 	}
 
 	// PERSISTENCE
-	// fixme should probably persist tokenizer (and model) in sqlite instead since they're unencrypted
-	// fixme we're now saving the same information in 4 places (mail_index, spam_classification in OfflineStoragePersistence + mail and details in OfflineStorage + the tokenizer).
+	// fixme we're now saving the same information in 3 places (mail_index, spam_classification in OfflineStoragePersistence + mail and details in OfflineStorage).
 	// fixme on current master we only have 2 places (mail index table + mail and details in odb). This is unnecessary and should be optimized before merge
+	// fixme add IsSpam column to mail_index?
 	private async saveModel(userId: string): Promise<void> {
 		if (!this.classifier) {
 			return
@@ -259,30 +269,13 @@ export class SpamClassifier {
 		}
 	}
 
-	private async loadTokenizer(userId: string): Promise<void> {
-		try {
-			const data = await this.fileFacade.readFromAppDir(`${this.tokenizerFilename}_${userId}.json`)
-			const json = utf8Uint8ArrayToString(data)
-			const state = JSON.parse(json)
-			this.documentIds = state.documentIds
-			this.corpus = new Corpus(this.documentIds, state.texts)
-		} catch (e) {
-			console.error("Load tokenizer failed: ", e)
-			this.corpus = null
-			this.documentIds = []
-		}
-	}
-
-	private async saveTokenizer(userId: string): Promise<void> {
-		if (!this.corpus) {
-			return
-		}
+	private async loadTokenizerFromOfflineDb(): Promise<void> {
+		const data = await this.offlineStorage.getSpamMailClassifications()
 		const texts: string[] = []
-		for (let i = 0; i < this.documentIds.length; i++) {
-			texts.push(this.corpus.getDocument(this.documentIds[i]).getText())
-		}
-		const state = { documentIds: this.documentIds, texts: texts }
-		const bytes = stringToUtf8Uint8Array(JSON.stringify(state))
-		await this.fileFacade.writeToAppDir(bytes, `${this.tokenizerFilename}_${userId}.json`)
+		data.map((datum) => {
+			this.documentIds.push(`${datum.listId}/${datum.elementId}`)
+			texts.push(this.sanitizeModelInput(datum.subject, datum.body))
+		})
+		this.corpus = new Corpus(this.documentIds, texts)
 	}
 }
