@@ -9,7 +9,7 @@ import { styles } from "../styles"
 import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { debounce, isEmpty, remove } from "@tutao/tutanota-utils"
+import { isEmpty, isNotEmpty, remove } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 const SNACKBAR_SHOW_TIME = 6000
@@ -26,7 +26,8 @@ type SnackBarAttrs = {
 type QueueItem = Omit<SnackBarAttrs, "onHoverChange"> & {
 	onClose: ((timedOut: boolean) => unknown) | null
 	onShow: (() => unknown) | null
-	doCancel: { cancel: () => unknown }
+	// doCancel: { cancel: () => unknown }
+	onCancel: () => unknown
 	/** display time in ms */
 	showingTime: number
 }
@@ -87,10 +88,15 @@ export function showSnackBar(args: {
 	const { message, button, onClose, onShow, waitingTime, showingTime = SNACKBAR_SHOW_TIME, replace = false } = args
 
 	let cancelled = false
-	const doCancel = {
-		cancel: () => {
-			remove(notificationQueue, queueEntry)
-		},
+	// const doCancel = {
+	// 	cancel: () => {
+	// 		remove(notificationQueue, queueEntry)
+	// 	},
+	// }
+	const cancelSnackbar = () => {
+		cancelled = true
+		remove(notificationQueue, queueEntry)
+		// doCancel.cancel()
 	}
 
 	const buttonAttrs = makeButtonAttrsForSnackBar(button)
@@ -99,13 +105,9 @@ export function showSnackBar(args: {
 		button: buttonAttrs,
 		onClose: onClose ?? null,
 		onShow: onShow ?? null,
-		doCancel,
+		onCancel: cancelSnackbar,
+		// doCancel,
 		showingTime,
-	}
-
-	const cancelSnackbar = () => {
-		cancelled = true
-		doCancel.cancel()
 	}
 
 	const triggerSnackbar = () => {
@@ -113,9 +115,9 @@ export function showSnackBar(args: {
 			return
 		}
 
-		if (replace && !isEmpty(notificationQueue)) {
-			// there is currently a notification being displayed, so we should put this one ahead of it and then run its
-			// cancel function
+		if (replace && isNotEmpty(notificationQueue)) {
+			// there is currently a notification being displayed, so we should put this one after it and then run the
+			// currently displayed notification's cancel function
 			notificationQueue.splice(1, 0, queueEntry)
 			if (cancelCurrentSnackbar) {
 				cancelCurrentSnackbar()
@@ -133,7 +135,7 @@ export function showSnackBar(args: {
 	}
 
 	if (waitingTime) {
-		debounce(waitingTime, triggerSnackbar)()
+		setTimeout(() => triggerSnackbar(), waitingTime)
 	} else {
 		triggerSnackbar()
 	}
@@ -156,7 +158,7 @@ function getSnackBarPosition() {
 }
 
 function showNextNotification() {
-	const { message, button, onClose, onShow, doCancel, showingTime } = notificationQueue[0] //we shift later because it is still shown
+	const { message, button, onClose, onShow, onCancel, showingTime } = notificationQueue[0] //we shift later because it is still shown
 	clearTimeout(currentAnimationTimeout)
 	currentAnimationTimeout = null
 	let hovered = false
@@ -179,10 +181,12 @@ function showNextNotification() {
 	)
 
 	let closed = false
+	let hoveredTimeoutId: TimeoutID | null = null
 
 	const closeAndOpenNext = (timedOut: boolean) => {
+		console.log("closeAndOpenNext..............................")
 		if (timedOut && hovered) {
-			debounce(1000, closeAndOpenNext)(true)
+			hoveredTimeoutId = setTimeout(() => closeAndOpenNext(true), 3000)
 			return
 		}
 
@@ -209,6 +213,7 @@ function showNextNotification() {
 		const originClickHandler: ClickHandler | undefined = button.click
 
 		button.click = (e, dom) => {
+			clearTimeout(hoveredTimeoutId)
 			clearTimeout(autoRemoveTimer)
 			originClickHandler?.(e, dom)
 			closeAndOpenNext(false)
@@ -219,6 +224,7 @@ function showNextNotification() {
 	doCancel.cancel = () => {
 		if (!closed) {
 			closed = true
+			clearTimeout(hoveredTimeoutId)
 			clearTimeout(autoRemoveTimer)
 			closeAndOpenNext(false)
 		}

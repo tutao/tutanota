@@ -131,7 +131,7 @@ async function showUndoMoveMailSnackbar(
 				result = MoveMailSnackbarResult.Undo
 				resolve(result)
 
-				cancelSnackbar?.()
+				// cancelSnackbar?.()
 				const mails = await resolveMails()
 				await mailModel.moveMails(getIds(mails), undoFolder, MoveMode.Mails)
 			},
