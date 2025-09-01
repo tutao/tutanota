@@ -2110,7 +2110,7 @@ export default {
 		"declined_label": "Abgelehnt",
         "removed_label": "Entfernt",
         "event_label": "Termin",
-        "invitationNote_msg": "Sicher mit dem <strong><a href=\"https://tuta.com\" target=\"_blank\">Tuta Calendar</a></strong>",
+        "invitationNote_msg": "Sicher gesendet mit <strong>Tuta Calendar:</strong>\n<br>\n{1}",
 		"updateThisAndFutureEvents_action": "Dieses und zukünftige Ereignisse aktualisiere",
 		"deleteThisAndFutureOccurrences_action": "Dieses und zukünftige Ereignisse löschen",
 		"deleteThisAndFutureOccurrencesConfirmation_msg": "Sind Sie sicher, dass Sie dieses und alle zukünftigen Ereignisse löschen wollen?",
