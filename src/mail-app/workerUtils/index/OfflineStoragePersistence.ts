@@ -47,7 +47,7 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 	// Spam classification training data
 	spam_classification_training_data: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam, PRIMARY KEY (listId, elementId))",
+			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam, lastModified NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
 		purgedWithCache: true,
 	},
 
@@ -193,20 +193,29 @@ export class OfflineStoragePersistence {
 		const isSpam = mailData.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 		const { query, params } = sql`
             INSERT
-            OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam)
+            OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified)
 				VALUES (
             ${listIdPart(mailData._id)},
             ${elementIdPart(mailData._id)},
             ${mailData.subject},
             ${htmlToText(getMailBodyText(body))},
-            ${isSpam ? 1 : 0}
+            ${isSpam ? 1 : 0},
+            ${Date.now()}
             )`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async getSpamMailClassifications(): Promise<SpamClassificationRow[]> {
+	async getAllSpamClassificationTrainingData(): Promise<SpamClassificationRow[]> {
 		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
                                     FROM spam_classification_training_data`
+		const resultRows = await this.sqlCipherFacade.all(query, params)
+		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationRow)
+	}
+
+	async getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number): Promise<SpamClassificationRow[]> {
+		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
+                                    FROM spam_classification_training_data
+                                    WHERE lastModified > ${cutoffTimestamp}`
 		const resultRows = await this.sqlCipherFacade.all(query, params)
 		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationRow)
 	}

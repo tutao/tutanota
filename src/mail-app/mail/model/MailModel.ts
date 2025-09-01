@@ -372,10 +372,15 @@ export class MailModel {
 		}
 
 		const mailData = await this.loadAllMails(mails)
+		let modelNeedsUpdate = false
 		for (const mailDatum of mailData) {
 			if ((await isMailInSpam(mailDatum, this)) && !isSpamFolder(folderSystem, targetFolder)) {
 				await this.mailFacade.storeSpamResult(mailDatum, false)
+				modelNeedsUpdate = true
 			}
+		}
+		if (modelNeedsUpdate) {
+			await this.mailFacade.updateClassifier()
 		}
 
 		const excludeFolder = moveMode === MoveMode.Conversation ? assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SENT))._id : null
@@ -420,6 +425,7 @@ export class MailModel {
 		for (const mail of mails) {
 			await this.mailFacade.reportMail(mail, reportType).catch(ofClass(NotFoundError, (e) => console.log("mail to be reported not found", e)))
 		}
+		await this.mailFacade.updateClassifier()
 	}
 
 	isMovingMailsFromSearchAllowed(): boolean {

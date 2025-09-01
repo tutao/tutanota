@@ -444,9 +444,14 @@ export class MailFacade {
 	async storeSpamResult(mail: Mail, isSpam: boolean): Promise<void> {
 		const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
 		await this.storage.putSpamMailClassification(mail, mailDetailsBlob.body, isSpam)
-		// fixme determine retraining interval
+	}
+
+	async updateClassifier(): Promise<void> {
 		if (this.spamClassifier != null) {
-			await this.spamClassifier.train(this.userFacade.getLoggedInUser()._id)
+			const modelUpdated = await this.spamClassifier.updateModel(await this.storage.getLastTrainedTime())
+			if (modelUpdated) {
+				await this.storage.setLastTrainedTime(Date.now())
+			}
 		}
 	}
 

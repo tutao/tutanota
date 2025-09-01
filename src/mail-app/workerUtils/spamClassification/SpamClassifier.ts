@@ -8,8 +8,7 @@ import { Corpus, Document } from "tiny-tfidf"
 assertWorkerOrNode()
 
 // fixme try different models/libraries
-// fixme add retraining of existing model
-// fixme determine training frequency (currently it is trained on every move to spam)
+// fixme determine training frequency (currently it is trained on every move to/out of spam)
 
 export type SpamClassificationRow = {
 	listId: string
@@ -28,27 +27,65 @@ export type SpamClassificationModel = {
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
 	private corpus: Corpus | null = null
-	private documentIds: string[] = []
+	private documents: Map<string, string> = new Map<string, string>()
 
 	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
 
-	public async train(userId: string, testRatio = 0.2): Promise<void> {
-		const data = await this.offlineStorage.getSpamMailClassifications()
+	public async updateModel(cutoffTimestamp: number, testRatio = 0.2): Promise<boolean> {
+		try {
+			await this.loadModel()
+			await this.loadTokenizerFromOfflineDb()
 
-		const trainTexts: string[] = []
-		this.documentIds = []
-		for (let i = 0; i < data.length; i++) {
-			trainTexts.push(this.sanitizeModelInput(data[i].subject, data[i].body))
-			this.documentIds.push(`${data[i].listId}/${data[i].elementId}`)
+			if (!this.classifier) {
+				console.log("No existing model found. Training from scratch...")
+				await this.train(testRatio)
+				return false
+			}
+
+			if (!this.corpus) {
+				console.error("Corpus is null. Cannot retrain.")
+				return false
+			}
+
+			const newTrainingData = await this.offlineStorage.getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
+			if (newTrainingData.length === 0) {
+				console.log("No new training data since last update.")
+				return false
+			}
+
+			console.log(`Retraining model with ${newTrainingData.length} new samples (lastModified > ${new Date(cutoffTimestamp).toString()})`)
+			const batchDocumentIds: string[] = []
+			for (let i = 0; i < newTrainingData.length; i++) {
+				batchDocumentIds.push(`${newTrainingData[i].listId}/${newTrainingData[i].elementId}`)
+			}
+
+			const xs = this.buildTfIdfMatrix(batchDocumentIds)
+			const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
+
+			const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
+
+			await this.classifier.fit(xsTrain, ysTrain, { epochs: 5, batchSize: 32 })
+
+			if (testRatio > 0 && xsTest.shape[0] > 0) {
+				await this.test(xsTest, ysTest)
+			}
+
+			await this.saveModel()
+			return true
+		} catch (e) {
+			console.error("Failed when trying to update the model:", e)
+			return false
 		}
+	}
 
-		this.corpus = new Corpus(this.documentIds, trainTexts)
+	private async train(testRatio = 0.2): Promise<void> {
+		const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
 
-		const xs = this.buildTfIdfMatrix(this.corpus, this.documentIds)
+		const xs = this.buildTfIdfMatrix(Array.from(this.documents.keys()))
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
-		console.log(`Total size: ${data.length}, train set size: ${xsTrain.size}, test set size: ${xsTest.size}`)
+		console.log(`Total size: ${data.length}, train set size: ${ysTrain.shape}, test set size: ${ysTest.shape}`)
 
 		this.classifier = this.buildModel(xs.shape[1])
 		await this.classifier.fit(xsTrain, ysTrain, { epochs: 5, batchSize: 32 })
@@ -69,8 +106,8 @@ export class SpamClassifier {
 			await this.loadTokenizerFromOfflineDb()
 		}
 
-		if (!this.classifier) {
-			console.error("Classifier not trained or model not found.")
+		if (!this.classifier || !this.corpus) {
+			console.error("Classifier or tokenizer not found.")
 			return false
 		}
 
@@ -168,9 +205,9 @@ export class SpamClassifier {
 	}
 
 	// TF - IDF helpers
-	private getTfIdfVector(corpus: Corpus, docId: string): number[] {
-		const vectorMap = corpus.getDocumentVector(docId)
-		const allTerms = corpus.getTerms()
+	private getTfIdfVector(docId: string): number[] {
+		const vectorMap = this.corpus.getDocumentVector(docId)
+		const allTerms = this.corpus.getTerms()
 		const vector: number[] = []
 		for (let i = 0; i < allTerms.length; i++) {
 			vector.push(vectorMap.get(allTerms[i]) || 0)
@@ -193,10 +230,10 @@ export class SpamClassifier {
 		return vector
 	}
 
-	private buildTfIdfMatrix(corpus: Corpus, docIds: string[]): tf.Tensor2D {
+	private buildTfIdfMatrix(docIds: string[]): tf.Tensor2D {
 		const vectors: number[][] = []
 		for (let i = 0; i < docIds.length; i++) {
-			vectors.push(this.getTfIdfVector(corpus, docIds[i]))
+			vectors.push(this.getTfIdfVector(docIds[i]))
 		}
 		return tf.tensor2d(vectors, [vectors.length, vectors[0].length])
 	}
@@ -247,6 +284,11 @@ export class SpamClassifier {
 					weightData,
 				}),
 			)
+			this.classifier.compile({
+				optimizer: "adam",
+				loss: "binaryCrossentropy",
+				metrics: ["accuracy"],
+			})
 		} else {
 			console.error("Loading the model from offline db failed")
 			this.classifier = null
@@ -254,12 +296,10 @@ export class SpamClassifier {
 	}
 
 	private async loadTokenizerFromOfflineDb(): Promise<void> {
-		const data = await this.offlineStorage.getSpamMailClassifications()
-		const texts: string[] = []
+		const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
 		data.map((datum) => {
-			this.documentIds.push(`${datum.listId}/${datum.elementId}`)
-			texts.push(this.sanitizeModelInput(datum.subject, datum.body))
+			this.documents.set(`${datum.listId}/${datum.elementId}`, this.sanitizeModelInput(datum.subject, datum.body))
 		})
-		this.corpus = new Corpus(this.documentIds, texts)
+		this.corpus = new Corpus(Array.from(this.documents.keys()), Array.from(this.documents.values()))
 	}
 }
