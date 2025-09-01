@@ -287,7 +287,8 @@ class Agenda : GlanceAppWidget() {
 	fun WidgetBody(data: WidgetUIData?, userId: String?, headerCallback: Action, newEventCallback: Action) {
 		val firstDay = if (data?.normalEvents?.isNotEmpty() == true) data.normalEvents.keys.minOf { it } else 0L
 		val isEmpty =
-			!(data?.allDayEvents?.any { it.key != firstDay && it.value.isNotEmpty() } ?: false) && data?.normalEvents?.all { it.value.isEmpty() } ?: true
+			!(data?.allDayEvents?.any { it.key != firstDay && it.value.isNotEmpty() }
+				?: false) && data?.normalEvents?.all { it.value.isEmpty() } ?: true
 
 		Column(
 			modifier = GlanceModifier.padding(
@@ -446,7 +447,7 @@ class Agenda : GlanceAppWidget() {
 							modifier = GlanceModifier.defaultWeight().wrapContentHeight()
 						)
 						Text(
-							LocalContext.current.getString(R.string.widgetNoEventsToday_msg),
+							LocalContext.current.getString(R.string.widgetNoEvents_msg),
 							style = TextStyle(
 								color = GlanceTheme.colors.onBackground,
 								fontSize = 12.sp
@@ -510,7 +511,7 @@ class Agenda : GlanceAppWidget() {
 								fontSize = 12.sp
 							),
 							maxLines = 1,
-							text = allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.eventNoTitle_title) },
+							text = allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.widgetNoEvents_msg) },
 							modifier = GlanceModifier.padding(start = 4.dp)
 								.defaultWeight()
 						)
@@ -594,7 +595,7 @@ class Agenda : GlanceAppWidget() {
 				)
 
 				val subTitle = if (hasAllDayEvents) {
-					allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.eventNoTitle_title) }
+					allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.widgetNoEvents_msg) }
 				} else {
 					dateNow.format(DateTimeFormatter.ofPattern("EEEE"))
 				}
@@ -783,7 +784,7 @@ class Agenda : GlanceAppWidget() {
 
 			CalendarIndicator(color = calendarColor)
 
-			val eventTitle = event?.summary?.ifEmpty { LocalContext.current.getString(R.string.eventNoTitle_title) }
+			val eventTitle = event?.summary?.ifEmpty { LocalContext.current.getString(R.string.widgetNoEvents_msg) }
 				?: LocalContext.current.getString(R.string.widgetNoEvents_msg)
 
 			// event title and time
