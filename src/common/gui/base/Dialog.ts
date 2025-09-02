@@ -7,7 +7,7 @@ import type { MaybeTranslation, TranslationKey } from "../../misc/LanguageViewMo
 import { lang } from "../../misc/LanguageViewModel"
 import type { Shortcut } from "../../misc/KeyManager"
 import { focusNext, focusPrevious, keyManager } from "../../misc/KeyManager"
-import { getElevatedBackground } from "../theme"
+import { getElevatedBackground, theme, ThemeId } from "../theme"
 import { px, size } from "../size"
 import { HabReminderImage } from "./icons/Icons"
 import { windowFacade } from "../../misc/WindowFacade"
@@ -786,7 +786,7 @@ export class Dialog implements ModalComponent {
 					m(
 						".plr-2l",
 						m(ImageWithOptionsDialog, {
-							image: `${window.tutao.appState.prefixWithoutFile}/images/update/update_needed_illu_${success ? "mail" : "calendar"}.svg`,
+							image: `${window.tutao.appState.prefixWithoutFile}/images/newsletter-unsubscribe/unsubscribe_${success ? "success" : "failure"}_${getUnsubscribeImageSuffix(theme.themeId)}.svg`,
 							titleText: success ? "unsubscribeSuccessful_title" : "unsubscribeFailed_title",
 							messageText: success ? "unsubscribeSuccessful_msg" : "unsubscribeFailed_msg",
 							mainActionText: "ok_action",
@@ -1120,3 +1120,18 @@ export class Dialog implements ModalComponent {
 
 export type stringValidator = (arg0: string) => (TranslationKey | null) | Promise<TranslationKey | null>
 windowFacade.addKeyboardSizeListener(Dialog.onKeyboardSizeChanged)
+
+function getUnsubscribeImageSuffix(themeId: string): ThemeId {
+	switch (themeId) {
+		case "light":
+			return "light"
+		case "dark":
+			return "dark"
+		case "light_secondary":
+			return "light_secondary"
+		case "dark_secondary":
+			return "dark_secondary"
+		default:
+			return "light"
+	}
+}
