@@ -253,7 +253,7 @@ class TutanotaNotificationsHandler(
 		}
 
 
-		val sdk = Sdk(sseInfo.sseOrigin, SdkRestClient(), SdkFileClient(this.appDir))
+		val sdk = Sdk.newWithoutSuspension(sseInfo.sseOrigin, SdkRestClient(), SdkFileClient(this.appDir))
 		val loggedInSdk = sdk.login(unencryptedCredentials.toSdkCredentials())
 
 		val mailId = notificationInfo.mailId?.toSdkIdTupleGenerated()
