@@ -868,6 +868,8 @@ impl Entity for MailFolderRef {
 pub struct MoveMailData {
 	#[serde(rename = "446")]
 	pub _format: i64,
+	#[serde(rename = "1714")]
+	pub moveReason: Option<i64>,
 	#[serde(rename = "447")]
 	pub targetFolder: IdTupleGenerated,
 	#[serde(rename = "448")]
@@ -1786,10 +1788,8 @@ impl Entity for PhotosRef {
 pub struct ListUnsubscribeData {
 	#[serde(rename = "868")]
 	pub _format: i64,
-	#[serde(rename = "870")]
-	pub recipient: String,
 	#[serde(rename = "871")]
-	pub headers: String,
+	pub postLink: String,
 	#[serde(rename = "869")]
 	pub mail: IdTupleGenerated,
 }
@@ -3392,6 +3392,8 @@ pub struct SimpleMoveMailPostIn {
 	pub _format: i64,
 	#[serde(rename = "1472")]
 	pub destinationSetType: i64,
+	#[serde(rename = "1713")]
+	pub moveReason: Option<i64>,
 	#[serde(rename = "1471")]
 	pub mails: Vec<IdTupleGenerated>,
 }

@@ -529,6 +529,7 @@ export type MoveMailData = {
 	_original?: MoveMailData
 
 	_format: NumberString;
+	moveReason: null | NumberString;
 
 	targetFolder: IdTuple;
 	mails: IdTuple[];
@@ -1090,8 +1091,7 @@ export type ListUnsubscribeData = {
 	_original?: ListUnsubscribeData
 
 	_format: NumberString;
-	recipient: string;
-	headers: string;
+	postLink: string;
 
 	mail: IdTuple;
 }
@@ -2108,6 +2108,7 @@ export type SimpleMoveMailPostIn = {
 
 	_format: NumberString;
 	destinationSetType: NumberString;
+	moveReason: null | NumberString;
 
 	mails: IdTuple[];
 }
