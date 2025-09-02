@@ -4124,7 +4124,7 @@ export type ClientPerformanceInfo = {
 	_id: Id;
 	isAutomatedBrowser: boolean;
 }
-export const AbuseDeactivationInfoTypeRef: TypeRef<AbuseDeactivationInfo> = new TypeRef("sys", 2679)
+export const AbuseDeactivationInfoTypeRef: TypeRef<AbuseDeactivationInfo> = new TypeRef("sys", 2650)
 
 export function createAbuseDeactivationInfo(values: StrippedEntity<AbuseDeactivationInfo>): AbuseDeactivationInfo {
     return Object.assign(create(typeModels[AbuseDeactivationInfoTypeRef.typeId], AbuseDeactivationInfoTypeRef), values)

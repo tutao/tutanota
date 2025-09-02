@@ -4178,10 +4178,10 @@ export const typeModels = {
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"2683": {
+			"2684": {
 				"final": false,
 				"name": "reason",
-				"id": 2683,
+				"id": 2684,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -4206,13 +4206,13 @@ export const typeModels = {
 				"refTypeId": 2295,
 				"dependency": null
 			},
-			"2684": {
+			"2685": {
 				"final": false,
 				"name": "abuseDeactivationInfos",
-				"id": 2684,
+				"id": 2685,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refTypeId": 2679,
+				"refTypeId": 2650,
 				"dependency": null
 			}
 		}
@@ -14641,38 +14641,38 @@ export const typeModels = {
 		},
 		"associations": {}
 	},
-	"2679": {
+	"2650": {
 		"name": "AbuseDeactivationInfo",
 		"app": "sys",
 		"version": 139,
 		"since": 139,
 		"type": "AGGREGATED_TYPE",
-		"id": 2679,
-		"rootId": "A3N5cwAKdw",
+		"id": 2650,
+		"rootId": "A3N5cwAKWg",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2680": {
+			"2651": {
 				"final": true,
 				"name": "_id",
-				"id": 2680,
+				"id": 2651,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"2681": {
+			"2652": {
 				"final": true,
 				"name": "criterion",
-				"id": 2681,
+				"id": 2652,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"2682": {
+			"2653": {
 				"final": true,
 				"name": "value",
-				"id": 2682,
+				"id": 2653,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": false

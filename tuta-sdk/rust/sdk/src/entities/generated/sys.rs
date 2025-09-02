@@ -1610,13 +1610,13 @@ pub struct DeleteCustomerData {
 	#[serde(rename = "1325")]
 	#[serde(with = "serde_bytes")]
 	pub authVerifier: Option<Vec<u8>>,
-	#[serde(rename = "2683")]
+	#[serde(rename = "2684")]
 	pub reason: Option<i64>,
 	#[serde(rename = "645")]
 	pub customer: GeneratedId,
 	#[serde(rename = "2312")]
 	pub surveyData: Option<SurveyData>,
-	#[serde(rename = "2684")]
+	#[serde(rename = "2685")]
 	pub abuseDeactivationInfos: Vec<AbuseDeactivationInfo>,
 }
 
@@ -6263,11 +6263,11 @@ impl Entity for ClientPerformanceInfo {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct AbuseDeactivationInfo {
-	#[serde(rename = "2680")]
+	#[serde(rename = "2651")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "2681")]
+	#[serde(rename = "2652")]
 	pub criterion: String,
-	#[serde(rename = "2682")]
+	#[serde(rename = "2653")]
 	pub value: String,
 }
 
@@ -6275,7 +6275,7 @@ impl Entity for AbuseDeactivationInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2679),
+			type_id: TypeId::from(2650),
 		}
 	}
 }
