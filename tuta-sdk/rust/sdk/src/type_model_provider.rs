@@ -244,12 +244,9 @@ impl TypeModelProvider {
 					application_models,
 				))
 			},
-			_ => {
-				let precondition = response.headers.get("precondition");
-				Err(ApiCallError::ServerResponseError {
-					source: HttpError::from_http_response(response.status, precondition)?,
-				})
-			},
+			_ => Err(ApiCallError::ServerResponseError {
+				source: HttpError::from_http_response(response.status, &response.headers)?,
+			}),
 		}
 	}
 }

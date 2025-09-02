@@ -387,9 +387,8 @@ impl EntityClient {
 				// Ok
 			},
 			_ => {
-				let precondition = response.headers.get("precondition");
 				return Err(ApiCallError::ServerResponseError {
-					source: HttpError::from_http_response(response.status, precondition)?,
+					source: HttpError::from_http_response(response.status, &response.headers)?,
 				});
 			},
 		}

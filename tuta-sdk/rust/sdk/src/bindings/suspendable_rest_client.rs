@@ -4,16 +4,11 @@ use crate::bindings::rest_client::{
 use crate::date::{DateProvider, DateTime};
 use crate::rest_error::HttpError;
 use std::cmp::PartialEq;
-use std::collections::HashMap;
-use std::ops::Mul;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::spawn;
 use tokio::sync::RwLock;
 
-/// something in our http client normalizes these to lowercase
-const RETRY_AFTER_HEADER: &str = "retry-after";
-const SUSPENSION_TIME_HEADER: &str = "suspension-time";
 #[derive(uniffi::Enum, Clone, Debug, Eq, PartialEq)]
 pub enum SuspensionBehavior {
 	/// delay the request until the suspension is over, then return the result. this is the default.
@@ -137,29 +132,24 @@ impl RestClient for SuspendableRestClient {
 /// extract a suspension from a rest response.
 #[must_use]
 pub fn get_suspension(now: DateTime, response: &RestResponse) -> Option<Suspension> {
-	let precondition = response.headers.get("Precondition");
 	if matches!(response.status, 200..=299) {
 		return None;
 	}
-	let error = HttpError::from_http_response(response.status, precondition).ok()?;
+	let error = HttpError::from_http_response(response.status, &response.headers).ok()?;
 	match error {
-		HttpError::TooManyRequestsError | HttpError::ServiceUnavailableError => {
-			let retry_after_ms = get_suspension_time(&response.headers)?;
+		HttpError::TooManyRequestsError {
+			suspension_time_sec,
+		}
+		| HttpError::ServiceUnavailableError {
+			suspension_time_sec,
+		} => {
+			let suspension_time_ms = suspension_time_sec.map(|sec| sec * 1000)?;
 			Some(Suspension {
-				until: DateTime::from_millis(now.as_millis() + retry_after_ms),
+				until: DateTime::from_millis(now.as_millis() + suspension_time_ms),
 			})
 		},
 		_ => None,
 	}
-}
-
-fn get_suspension_time(headers: &HashMap<String, String>) -> Option<u64> {
-	let time = match headers.get(RETRY_AFTER_HEADER) {
-		None => headers.get(SUSPENSION_TIME_HEADER)?,
-		Some(time) => time,
-	};
-
-	time.parse::<u64>().ok().map(|t| t.mul(1000))
 }
 
 /// tests sleep_until SystemTime against SystemTime::now to figure out how long
@@ -182,11 +172,11 @@ mod tests {
 	use crate::bindings::suspendable_rest_client::SuspensionBehavior::Suspend;
 	use crate::bindings::suspendable_rest_client::{
 		get_sleep_time, get_suspension, SuspendableRestClient, Suspension, SuspensionBehavior,
-		RETRY_AFTER_HEADER,
 	};
 	use crate::bindings::test_rest_client::TestRestClient;
 	use crate::date::date_provider::stub::DateProviderStub;
 	use crate::date::DateTime;
+	use crate::rest_error::RETRY_AFTER_HEADER;
 	use std::collections::HashMap;
 	use std::sync::Arc;
 	use std::time::Duration;

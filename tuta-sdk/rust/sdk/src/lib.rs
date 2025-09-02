@@ -188,29 +188,23 @@ impl Sdk {
 		raw_rest_client: Arc<dyn RestClient>,
 		file_client: Arc<dyn FileClient>,
 	) -> Sdk {
-		logging::init_logger();
-		log::info!("Initializing SDK...");
-
 		let date_provider = Arc::new(SystemDateProvider);
-		let rest_client = Arc::new(SuspendableRestClient::new(raw_rest_client, date_provider));
-
-		let type_model_provider = Arc::new(TypeModelProvider::new(
-			rest_client.clone(),
-			file_client,
-			base_url.clone(),
-		));
-		// TODO validate parameters
-		let instance_mapper = Arc::new(InstanceMapper::new(type_model_provider.clone()));
-		let json_serializer = Arc::new(JsonSerializer::new(type_model_provider.clone()));
-
-		Sdk {
-			type_model_provider,
-			json_serializer,
-			instance_mapper,
-			rest_client,
+		Self::new_internal(
 			base_url,
-		}
+			Arc::new(SuspendableRestClient::new(raw_rest_client, date_provider)),
+			file_client,
+		)
 	}
+
+	#[uniffi::constructor]
+	pub fn new_without_suspension(
+		base_url: String,
+		raw_rest_client: Arc<dyn RestClient>,
+		file_client: Arc<dyn FileClient>,
+	) -> Sdk {
+		Self::new_internal(base_url, raw_rest_client, file_client)
+	}
+
 	/// Authorizes the SDK's REST requests via inserting `access_token` into the HTTP headers
 	pub async fn login(&self, credentials: Credentials) -> Result<Arc<LoggedInSdk>, LoginError> {
 		self.type_model_provider
@@ -426,6 +420,31 @@ impl Sdk {
 }
 
 impl Sdk {
+	fn new_internal(
+		base_url: String,
+		rest_client: Arc<dyn RestClient>,
+		file_client: Arc<dyn FileClient>,
+	) -> Self {
+		logging::init_logger();
+		log::info!("Initializing SDK...");
+		let type_model_provider = Arc::new(TypeModelProvider::new(
+			rest_client.clone(),
+			file_client,
+			base_url.clone(),
+		));
+		// TODO validate parameters
+		let instance_mapper = Arc::new(InstanceMapper::new(type_model_provider.clone()));
+		let json_serializer = Arc::new(JsonSerializer::new(type_model_provider.clone()));
+
+		Sdk {
+			type_model_provider,
+			json_serializer,
+			instance_mapper,
+			rest_client,
+			base_url,
+		}
+	}
+
 	fn create_blob_facade(
 		&self,
 		auth_headers_provider: Arc<HeadersProvider>,
