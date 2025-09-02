@@ -1604,16 +1604,20 @@ pub struct DeleteCustomerData {
 	#[serde(rename = "643")]
 	pub undelete: bool,
 	#[serde(rename = "644")]
-	pub reason: Option<String>,
+	pub formattedReason: Option<String>,
 	#[serde(rename = "1077")]
 	pub takeoverMailAddress: Option<String>,
 	#[serde(rename = "1325")]
 	#[serde(with = "serde_bytes")]
 	pub authVerifier: Option<Vec<u8>>,
+	#[serde(rename = "2659")]
+	pub reason: Option<i64>,
 	#[serde(rename = "645")]
 	pub customer: GeneratedId,
 	#[serde(rename = "2312")]
 	pub surveyData: Option<SurveyData>,
+	#[serde(rename = "2660")]
+	pub abuseDeactivationInfos: Vec<AbuseInfo>,
 }
 
 impl Entity for DeleteCustomerData {
@@ -6252,6 +6256,26 @@ impl Entity for ClientPerformanceInfo {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2641),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct AbuseInfo {
+	#[serde(rename = "2651")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2652")]
+	pub criterion: String,
+	#[serde(rename = "2653")]
+	pub value: String,
+}
+
+impl Entity for AbuseInfo {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2650),
 		}
 	}
 }
