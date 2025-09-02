@@ -145,15 +145,16 @@ export class RestClient {
 							}
 						} else {
 							const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
+							const isSuspensionResp = isSuspensionResponse(xhr.status, suspensionTime)
 
-							if (isSuspensionResponse(xhr.status, suspensionTime) && options.suspensionBehavior === SuspensionBehavior.Throw) {
+							if (isSuspensionResp && options.suspensionBehavior === SuspensionBehavior.Throw) {
 								reject(
 									new SuspensionError(
 										`blocked for ${suspensionTime}, not suspending (${xhr.status})`,
 										suspensionTime && (parseInt(suspensionTime) * 1000).toString(),
 									),
 								)
-							} else if (isSuspensionResponse(xhr.status, suspensionTime)) {
+							} else if (isSuspensionResp) {
 								this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), resourceURL)
 
 								resolve(this.suspensionHandler.deferRequest(() => this.request(path, method, options)))

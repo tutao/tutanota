@@ -2,7 +2,16 @@ import { SseClient, SseEventHandler } from "./SseClient.js"
 import { TutaNotificationHandler } from "./TutaNotificationHandler.js"
 import { makeTaggedLogger } from "../DesktopLog.js"
 import { typeModels } from "../../api/entities/sys/TypeModels.js"
-import { assertNotNull, base64ToBase64Url, downcast, filterInt, neverNull, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	base64ToBase64Url,
+	downcast,
+	filterInt,
+	neverNull,
+	stringToUtf8Uint8Array,
+	throttleStart,
+	uint8ArrayToBase64,
+} from "@tutao/tutanota-utils"
 import { handleRestError } from "../../api/common/error/RestError.js"
 import {
 	AlarmNotificationTypeRef,
@@ -27,11 +36,13 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { hasError } from "../../api/common/utils/ErrorUtils"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { AttributeModel } from "../../api/common/AttributeModel"
-import { ClientTypeModelResolver, TypeModelResolver } from "../../api/common/EntityFunctions"
+import { ClientTypeModelResolver } from "../../api/common/EntityFunctions"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
 export const MISSED_NOTIFICATION_TTL = 30 * 24 * 60 * 60 * 1000 // 30 days
+
+const NOTIFICATION_HANDLER_THROTTLE_MS = 10_000
 
 export class TutaSseFacade implements SseEventHandler {
 	private currentSseInfo: SseInfo | null = null
@@ -114,7 +125,11 @@ export class TutaSseFacade implements SseEventHandler {
 		return JSON.stringify(untypedInstance)
 	}
 
-	private async onNotification() {
+	/**
+	 * Throttled to avoid needless download requests for notifications when we rapidly receive notification messages,
+	 * since every request downloads all the available data.
+	 */
+	private onNotification = throttleStart(NOTIFICATION_HANDLER_THROTTLE_MS, async () => {
 		if ((await this.sseStorage.getMissedNotificationCheckTime()) == null) {
 			// We set default value for  the case when Push identifier was added but no notifications were received. Then more than
 			// MISSED_NOTIFICATION_TTL has passed and notifications has expired
@@ -143,7 +158,7 @@ export class TutaSseFacade implements SseEventHandler {
 		)
 		await this.notificationHandler.onMailNotification(sseInfo, notificationInfos)
 		await this.handleAlarmNotification(encryptedMissedNotification)
-	}
+	})
 
 	/**
 	 * Decrypt alarms and schedule notifications

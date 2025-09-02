@@ -148,6 +148,7 @@ export {
 	noOp,
 	debounce,
 	debounceStart,
+	throttleStart,
 	randomIntFromInterval,
 	errorToString,
 	objectEntries,

@@ -276,29 +276,39 @@ export function debounceStart<F extends (...args: any) => void>(timeout: number,
 }
 
 /**
- * Returns a throttled function. When invoked for the first time will schedule {@param toThrottle}
- * to be called after {@param periodMs}. On subsequent invocations before {@param periodMs} amount of
- * time passes it will replace the arguments for the scheduled call (without rescheduling). After
- * {@param period} amount of time passes it will finally call {@param toThrottle} with the arguments
- * of the last call. New calls after that will behave like described in the beginning.
+ * Returns a throttled function. On the first call it is called immediately. For subsequent calls if the next call
+ * happens after {@param periodMs} it is invoked immediately. For subsequent calls it will schedule the function to
+ * run after {@param periodMs} after the last run of {@param toThrottle}. Only one invocation is scheduled, with the
+ * latest arguments.
  *
- * This makes sure that the function is called not more often but also at most after {@param periodMs}
- * amount of time. Unlike {@link debounce}, it will get called after {@param periodMs} even if it
- * is being called repeatedly.
+ * 1--2-34
+ * 1---2---4
+ *
+ * In this case, the first invocation happens immediately. 2 happens shortly before the interval expires
+ * so it is run at the end of the interval. Within the next interval, both 3 and 4 are called so at the end of the
+ * interval only 4 is called.
  */
-export function throttle<F extends (...args: any[]) => void>(periodMs: number, toThrottle: F): F {
+export function throttleStart<F extends (...args: any[]) => Promise<any>>(periodMs: number, toThrottle: F): F {
 	let lastArgs: any[] | null = null
+	let scheduledTimeout: TimeoutID | null = null
+	let scheduledDefer: DeferredObject<ReturnType<F>> | null = null
 	return ((...args: any[]) => {
-		if (lastArgs) {
-			return
-		} else {
-			setTimeout(() => {
-				try {
-					toThrottle.apply(null, args)
-				} finally {
-					lastArgs = null
+		if (scheduledTimeout == null) {
+			const result = toThrottle(...args)
+			scheduledDefer = defer<ReturnType<F>>()
+			scheduledTimeout = setTimeout(() => {
+				scheduledTimeout = null
+				if (lastArgs != null) {
+					toThrottle(...args).then(
+						(result) => scheduledDefer?.resolve(result),
+						(error) => scheduledDefer?.reject(error),
+					)
 				}
 			}, periodMs)
+			return result
+		} else {
+			lastArgs = args
+			return assertNotNull(scheduledDefer).promise
 		}
 	}) as F
 }
