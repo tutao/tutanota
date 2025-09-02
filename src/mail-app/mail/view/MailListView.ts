@@ -369,7 +369,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							state: listModel.stateStream(),
 							renderConfig: this.renderConfig,
 							onLoadMore() {
-								listModel.loadMore()
+								listModel.loadMore().then(m.redraw)
 							},
 							onRetryLoading() {
 								listModel.retryLoading()
