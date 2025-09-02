@@ -1022,9 +1022,10 @@ export type DeleteCustomerData = {
 
 	_format: NumberString;
 	undelete: boolean;
-	reason: null | string;
+	formattedReason: null | string;
 	takeoverMailAddress: null | string;
 	authVerifier: null | Uint8Array;
+	reason: null | NumberString;
 
 	customer: Id;
 	surveyData: null | SurveyData;

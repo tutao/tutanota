@@ -1,5 +1,5 @@
 const modelInfo = {
-	version: 34,
+	version: 35,
 }
 
 export default modelInfo

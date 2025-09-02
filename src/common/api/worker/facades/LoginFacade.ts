@@ -1033,6 +1033,7 @@ export class LoginFacade {
 		const deleteCustomerData = createDeleteCustomerData({
 			authVerifier: createAuthVerifier(passwordKey),
 			reason: null,
+			formattedReason: null,
 			takeoverMailAddress: null,
 			undelete: false,
 			customer: neverNull(neverNull(this.userFacade.getLoggedInUser()).customer),

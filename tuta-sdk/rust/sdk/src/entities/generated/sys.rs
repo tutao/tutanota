@@ -1604,12 +1604,14 @@ pub struct DeleteCustomerData {
 	#[serde(rename = "643")]
 	pub undelete: bool,
 	#[serde(rename = "644")]
-	pub reason: Option<String>,
+	pub formattedReason: Option<String>,
 	#[serde(rename = "1077")]
 	pub takeoverMailAddress: Option<String>,
 	#[serde(rename = "1325")]
 	#[serde(with = "serde_bytes")]
 	pub authVerifier: Option<Vec<u8>>,
+	#[serde(rename = "2679")]
+	pub reason: Option<i64>,
 	#[serde(rename = "645")]
 	pub customer: GeneratedId,
 	#[serde(rename = "2312")]
