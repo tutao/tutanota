@@ -10,6 +10,7 @@ import {
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 	MailDetails,
+	MailDetailsDraftTypeRef,
 	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import {
@@ -72,7 +73,7 @@ import { RecipientNotResolvedError } from "../api/common/error/RecipientNotResol
 import { RecipientsNotFoundError } from "../api/common/error/RecipientsNotFoundError.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
-import { isSameId, stringToCustomId } from "../api/common/utils/EntityUtils.js"
+import { elementIdPart, isSameId, stringToCustomId } from "../api/common/utils/EntityUtils.js"
 import { MailBodyTooLargeError } from "../api/common/error/MailBodyTooLargeError.js"
 import { createApprovalMail } from "../api/entities/monitor/TypeRefs.js"
 import { CustomerPropertiesTypeRef } from "../api/entities/sys/TypeRefs.js"
@@ -82,8 +83,9 @@ import { ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getMailBodyText } from "../api/common/CommonMailUtils.js"
 import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificationMismatchError"
-import { showMultiRecipientsKeyVerificationRecoveryDialog } from "../settings/keymanagement/KeyVerificationRecoveryDialog"
 import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarNotificationSender"
+import type { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationDatabase"
+import { SyncTracker } from "../api/main/SyncTracker"
 
 assertMainOrNode()
 
@@ -149,7 +151,9 @@ export class SendMailModel {
 	private availableNotificationTemplateLanguages: Array<Language> = []
 	private mailChangedAt: number = 0
 	private mailSavedAt: number = 1
+	private mailRemotelyUpdatedAt: number = 1
 	private passwords: Map<string, string> = new Map()
+	private newMail: boolean = false
 
 	// The promise for the draft currently being saved
 	private currentSavePromise: Promise<void> | null = null
@@ -157,6 +161,11 @@ export class SendMailModel {
 	// If saveDraft is called while the previous call is still running, then flag to call again afterwards
 	private doSaveAgain: boolean = false
 	private recipientsResolved = new LazyLoaded<void>(async () => {})
+
+	// Ignores one update event from the server
+	// visible for testing
+	_draftSavedRecently: boolean = false
+	private waitUntilSync: boolean = false
 
 	private _emailType: EventInviteEmailType | null = null
 
@@ -174,7 +183,9 @@ export class SendMailModel {
 		private readonly recipientsModel: RecipientsModel,
 		private readonly dateProvider: DateProvider,
 		private mailboxProperties: MailboxProperties,
+		private readonly configurationDatabase: ConfigurationDatabase,
 		private readonly needNewDraft: (mail: Mail) => Promise<boolean>,
+		private readonly syncTracker: SyncTracker,
 	) {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
@@ -251,6 +262,22 @@ export class SendMailModel {
 		this.body = body
 	}
 
+	setMailRemotelyUpdatedAt(time: number) {
+		this.mailRemotelyUpdatedAt = time
+	}
+
+	getMailRemotelyUpdatedAt(): number {
+		return this.mailRemotelyUpdatedAt
+	}
+
+	setMailSavedAt(time: number) {
+		this.mailSavedAt = time
+	}
+
+	getMailSavedAt(): number {
+		return this.mailSavedAt
+	}
+
 	/**
 	 * set the mail address used to send the mail.
 	 * @param senderAddress the mail address that will show up lowercased in the sender field of the sent mail.
@@ -274,8 +301,80 @@ export class SendMailModel {
 		return getPasswordStrengthForUser(this.getPassword(recipient.address), recipient, this.mailboxDetails, this.logins)
 	}
 
+	hasDraftDataChangedOnServer(): boolean {
+		return this.mailRemotelyUpdatedAt > this.mailSavedAt
+	}
+
 	hasMailChanged(): boolean {
 		return this.mailChangedAt > this.mailSavedAt
+	}
+
+	async clearLocalAutosave(): Promise<void> {
+		// user probably opened a different draft in a different window; we don't want to delete it
+		if (await this.autosavedDraftIsDifferentMail()) {
+			console.warn("cannot clear autosave - autosaved draft is a different mail from the one we're editing")
+		} else {
+			await this.configurationDatabase.clearAutosavedDraftData()
+			this.updateNewMailStatus()
+		}
+	}
+
+	async makeLocalAutosave(): Promise<void> {
+		// user probably opened a different draft in a different window; we don't want to write over it
+		if (await this.autosavedDraftIsDifferentMail()) {
+			console.warn("cannot make autosave - autosaved draft is a different mail from the one we're editing")
+			return
+		}
+
+		const body = await this.getSanitizedBody()
+		const subject = this.getSubject()
+		const isConfidential = this.isConfidential()
+
+		const getNameAndAddress = ({ name, address }: Recipient) => ({ name, address })
+
+		const to = (await this.toRecipientsResolved()).map(getNameAndAddress)
+		const cc = (await this.ccRecipientsResolved()).map(getNameAndAddress)
+		const bcc = (await this.bccRecipientsResolved()).map(getNameAndAddress)
+		this.updateNewMailStatus()
+
+		await this.configurationDatabase.setAutosavedDraftData({
+			body,
+			subject,
+			to,
+			cc,
+			bcc,
+			confidential: isConfidential,
+			mailGroupId: this.mailboxDetails.mailGroup._id,
+			senderAddress: this.senderAddress,
+			locallySavedTime: Date.now(),
+			editedTime: this.mailSavedAt,
+			lastUpdatedTime: this.mailRemotelyUpdatedAt,
+
+			// will be null if it is a new (unsaved) draft
+			mailId: this.getDraft()?._id ?? null,
+		})
+	}
+
+	private updateNewMailStatus() {
+		this.newMail = this.getDraft() == null
+	}
+
+	private isNewMail(): boolean {
+		return this.newMail
+	}
+
+	private async autosavedDraftIsDifferentMail(): Promise<boolean> {
+		const draftData = await this.configurationDatabase.getAutosavedDraftData()
+		if (draftData == null) {
+			return false
+		}
+		if (this.draft == null) {
+			return draftData.mailId != null
+		} else if (draftData.mailId == null) {
+			return !this.isNewMail()
+		} else {
+			return !isSameId(this.draft._id, draftData.mailId)
+		}
 	}
 
 	/**
@@ -285,6 +384,12 @@ export class SendMailModel {
 	markAsChangedIfNecessary(hasChanged: boolean) {
 		if (!hasChanged) return
 		this.mailChangedAt = this.dateProvider.now()
+
+		// If it was changed really quickly, force the timestamps to be different.
+		if (this.mailChangedAt <= this.mailSavedAt) {
+			this.mailChangedAt = this.mailSavedAt + 1
+		}
+
 		// if this method is called wherever state gets changed, onMailChanged should function properly
 		this.onMailChanged(null)
 	}
@@ -439,6 +544,8 @@ export class SendMailModel {
 		this.subject = subject
 		this.body = bodyText
 		this.draft = draft || null
+		this.waitUntilSync = true
+		this.updateNewMailStatus()
 
 		let to: RecipientList
 		let cc: RecipientList
@@ -493,6 +600,10 @@ export class SendMailModel {
 			this.mailSavedAt = this.mailChangedAt + 1
 		}
 
+		this.mailRemotelyUpdatedAt = this.mailChangedAt
+		this.mailSavedAt = this.mailChangedAt
+		this._draftSavedRecently = false
+
 		assertNotNull(this.initialized, "somehow got to the end of init without startInit called").resolve()
 
 		return this
@@ -532,6 +643,20 @@ export class SendMailModel {
 
 	replyTosResolved(): Promise<Array<Recipient>> {
 		return Promise.all(this.replyTos.map((r) => r.resolve()))
+	}
+
+	setWaitUntilSync(waitUntilSync: boolean) {
+		this.waitUntilSync = waitUntilSync
+	}
+
+	autosaveReady(): boolean {
+		return !this.waitUntilSync || this.syncTracker.isSyncDone()
+	}
+
+	async waitForSaveReady(): Promise<void> {
+		if (this.waitUntilSync) {
+			await this.syncTracker.waitSync()
+		}
 	}
 
 	/**
@@ -575,6 +700,17 @@ export class SendMailModel {
 	async addRecipient(fieldType: RecipientField, partialRecipient: PartialRecipient): Promise<void> {
 		const wasAdded = await this.insertRecipient(fieldType, partialRecipient)
 		this.markAsChangedIfNecessary(wasAdded)
+	}
+
+	/**
+	 * Add multiple recipients.
+	 */
+	async addRecipients(recipients: { to: readonly PartialRecipient[]; cc: readonly PartialRecipient[]; bcc: readonly PartialRecipient[] }) {
+		await Promise.all([
+			promiseMap(recipients.to, (r) => this.addRecipient(RecipientField.TO, r)),
+			promiseMap(recipients.cc, (r) => this.addRecipient(RecipientField.CC, r)),
+			promiseMap(recipients.bcc, (r) => this.addRecipient(RecipientField.BCC, r)),
+		])
 	}
 
 	getRecipient(type: RecipientField, address: string): ResolvableRecipient | null {
@@ -906,17 +1042,10 @@ export class SendMailModel {
 			const attachments = saveAttachments ? this.attachments : null
 
 			// We also want to create new drafts for drafts edited from trash or spam folder
-			const { getHtmlSanitizer } = await import("../misc/HtmlSanitizer.js")
-			const unsanitized_body = this.getBody()
-			const body = getHtmlSanitizer().sanitizeHTML(unsanitized_body, {
-				// store the draft always with external links preserved. this reverts
-				// the draft-src and draft-srcset attribute stow.
-				blockExternalContent: false,
-				// since we're not displaying this, this is fine.
-				allowRelativeLinks: true,
-				// do not touch inline images, we just want to store this.
-				usePlaceholderForInlineImages: false,
-			}).html
+			const body = await this.getSanitizedBody()
+
+			this._draftSavedRecently = true
+			this.waitUntilSync = false
 
 			this.draft =
 				this.draft == null || (await this.needNewDraft(this.draft))
@@ -934,6 +1063,7 @@ export class SendMailModel {
 			// Allow any changes that might occur while the mail is being saved to be accounted for
 			// if saved is called before this has completed
 			this.mailSavedAt = this.dateProvider.now()
+			this.mailRemotelyUpdatedAt = this.mailSavedAt
 		} catch (e) {
 			if (e instanceof PayloadTooLargeError) {
 				throw new UserError("requestTooLarge_msg")
@@ -947,6 +1077,21 @@ export class SendMailModel {
 				throw e
 			}
 		}
+	}
+
+	private async getSanitizedBody(): Promise<string> {
+		const unsanitized_body = this.getBody()
+
+		const { getHtmlSanitizer } = await import("../misc/HtmlSanitizer.js")
+		return getHtmlSanitizer().sanitizeHTML(unsanitized_body, {
+			// store the draft always with external links preserved. this reverts
+			// the draft-src and draft-srcset attribute stow.
+			blockExternalContent: false,
+			// since we're not displaying this, this is fine.
+			allowRelativeLinks: true,
+			// do not touch inline images, we just want to store this.
+			usePlaceholderForInlineImages: false,
+		}).html
 	}
 
 	private sendApprovalMail(body: string): Promise<unknown> {
@@ -1091,6 +1236,19 @@ export class SendMailModel {
 			this.updateAvailableNotificationTemplateLanguages()
 		} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
 			this.mailboxProperties = await this.entity.load(MailboxPropertiesTypeRef, update.instanceId)
+		} else if (isUpdateForTypeRef(MailDetailsDraftTypeRef, update) && operation === OperationType.UPDATE && this.draft != null) {
+			const mailDetailsDraftId = assertNotNull(this.draft.mailDetailsDraft)
+			if (isSameId(update.instanceId, elementIdPart(mailDetailsDraftId))) {
+				if (this._draftSavedRecently) {
+					this._draftSavedRecently = false
+				} else {
+					this.mailRemotelyUpdatedAt = this.dateProvider.now()
+					if (this.mailRemotelyUpdatedAt < this.mailSavedAt) {
+						this.mailRemotelyUpdatedAt = this.mailSavedAt + 1
+					}
+					await this.makeLocalAutosave()
+				}
+			}
 		}
 		this.markAsChangedIfNecessary(changed)
 		return Promise.resolve()

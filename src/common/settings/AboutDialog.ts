@@ -97,7 +97,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 				attachments,
 				true,
 			)
-			editor.show()
+			editor?.show()
 		} catch (e) {
 			if (e instanceof UserError) {
 				await showUserError(e)

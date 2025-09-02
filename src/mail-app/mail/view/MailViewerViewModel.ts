@@ -915,7 +915,7 @@ export class MailViewerViewModel {
 				await this.loadAll(Promise.resolve(), { notify: true })
 			}
 			const editor = await newMailEditorAsResponse(args, this.isBlockingExternalImages(), this.getLoadedInlineImages(), mailboxDetails)
-			editor.show()
+			editor?.show()
 		}
 	}
 
@@ -1060,7 +1060,7 @@ export class MailViewerViewModel {
 					this.getLoadedInlineImages(),
 					mailboxDetails,
 				)
-				editor.show()
+				editor?.show()
 			} catch (e) {
 				if (e instanceof UserError) {
 					showUserError(e)

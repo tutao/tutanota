@@ -338,9 +338,11 @@ class CalendarLocator implements CommonLocator {
 				recipientsModel,
 				dateProvider,
 				mailboxProperties,
+				this.configFacade,
 				async (mail: Mail) => {
 					return false
 				},
+				this.syncTracker,
 			)
 	}
 

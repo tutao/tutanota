@@ -4,7 +4,7 @@ import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
-import { Contact, ContactTypeRef, createGroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Contact, ContactTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ContactListView } from "./ContactListView"
 import { lang, Translation, TranslationKey } from "../../../common/misc/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -22,7 +22,6 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { ContactMergeView } from "./ContactMergeView"
 import { getMergeableContacts, mergeContacts } from "../ContactMergeUtils"
 import { exportContacts } from "../VCardExporter"
-import { NavButtonAttrs } from "../../../common/gui/base/NavButton.js"
 import { styles } from "../../../common/gui/styles"
 import { size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
@@ -918,17 +917,17 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 }
 
-export function writeMail(to: PartialRecipient, subject: string = ""): Promise<Dialog> {
-	return locator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
-		return newMailEditorFromTemplate(
-			mailboxDetails,
-			{
-				to: [to],
-			},
-			subject,
-			appendEmailSignature("", locator.logins.getUserController().props),
-		).then((editor) => editor.show())
-	})
+export async function writeMail(to: PartialRecipient, subject: string = ""): Promise<void> {
+	const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
+	const editor = await newMailEditorFromTemplate(
+		mailboxDetails,
+		{
+			to: [to],
+		},
+		subject,
+		appendEmailSignature("", locator.logins.getUserController().props),
+	)
+	editor?.show()
 }
 
 export function deleteContacts(contactList: Contact[], onConfirm: () => void = noOp): Promise<void> {

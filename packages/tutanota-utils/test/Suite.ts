@@ -10,6 +10,7 @@ import "./MathUtilsTest.js"
 import "./LazyLoadedTest.js"
 import "./CsvTest.js"
 import "./TokenizerTest.js"
+import "./TimeUtilsTest.js"
 
 const result = await o.run()
 o.printReport(result)

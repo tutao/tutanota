@@ -2096,3 +2096,6 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "viewInLightMode_action"
 	| "viewInDarkMode_action"
+	| "confirmOverwriteDraft_msg"
+	| "overwrite_action"
+	| "confirmCreateNewDraftOverAutosavedDraft_msg"

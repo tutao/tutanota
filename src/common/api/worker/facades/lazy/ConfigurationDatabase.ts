@@ -6,6 +6,7 @@ import {
 	Aes128Key,
 	Aes256Key,
 	aes256RandomKey,
+	aesDecrypt,
 	aesEncrypt,
 	AesKey,
 	decryptKey,
@@ -14,13 +15,15 @@ import {
 	unauthenticatedAesDecrypt,
 } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
-import { EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
+import { EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, LocalDraftDataOS, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
+import * as cborg from "cborg"
+import { customTypeDecoders, customTypeEncoders } from "../../offline/OfflineStorage"
 
-const VERSION: number = 2
+const VERSION: number = 3
 const DB_KEY_PREFIX: string = "ConfigStorage"
 const ExternalImageListOS: ObjectStoreName = "ExternalAllowListOS"
 export const ConfigurationMetaDataOS: ObjectStoreName = "MetaDataOS"
@@ -42,6 +45,36 @@ export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes25
 	return utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, concat(iv, encryptedAddress)))
 }
 
+const LOCAL_DRAFT_VERSION: number = 1
+
+export interface LocalDraftAddress {
+	name: string
+	address: string
+}
+
+export interface LocalAutosavedDraftData {
+	version: number
+	locallySavedTime: number
+
+	editedTime: number
+	lastUpdatedTime: number
+
+	mailId: IdTuple | null
+	mailGroupId: Id
+
+	subject: string
+	body: string
+	confidential: boolean
+
+	senderAddress: string
+	to: LocalDraftAddress[]
+	cc: LocalDraftAddress[]
+	bcc: LocalDraftAddress[]
+}
+
+// We only support one draft maximum, destroying any previous draft if one is currently stored.
+const LOCAL_DRAFT_KEY = "current"
+
 /**
  * A local configuration database that can be used as an alternative to DeviceConfig:
  * Ideal for cases where the configuration values should be stored encrypted,
@@ -62,6 +95,78 @@ export class ConfigurationDatabase {
 			const user = assertNotNull(userFacade.getLoggedInUser())
 			return dbLoadFn(user, keyLoaderFacade)
 		})
+	}
+
+	/**
+	 * Save the draft data to the database, overwriting one if there is one there.
+	 * @param draftUpdateDataWithoutVersion data to write
+	 */
+	async setAutosavedDraftData(draftUpdateDataWithoutVersion: Omit<LocalAutosavedDraftData, "version">): Promise<void> {
+		const { db, metaData } = await this.db.getAsync()
+		if (!db.indexingSupported) return
+
+		const draftUpdateData: LocalAutosavedDraftData = Object.assign({}, draftUpdateDataWithoutVersion, { version: LOCAL_DRAFT_VERSION })
+
+		try {
+			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
+			const encoded = cborg.encode(draftUpdateData, { typeEncoders: customTypeEncoders })
+			const encryptedData = aesEncrypt(metaData.key, encoded, metaData.iv)
+			await transaction.put(LocalDraftDataOS, LOCAL_DRAFT_KEY, encryptedData)
+		} catch (e) {
+			if (e instanceof DbError) {
+				console.error("failed to save draft:", e.message)
+				return
+			}
+			throw e
+		}
+	}
+
+	/**
+	 * @return the locally stored draft data, if any, or null
+	 */
+	async getAutosavedDraftData(): Promise<LocalAutosavedDraftData | null> {
+		const { db, metaData } = await this.db.getAsync()
+		if (!db.indexingSupported) {
+			return null
+		}
+
+		try {
+			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
+			const data = await transaction.get<Uint8Array>(LocalDraftDataOS, LOCAL_DRAFT_KEY)
+			if (data == null) {
+				return null
+			}
+
+			const decryptedData = aesDecrypt(metaData.key, data)
+			const decoded = cborg.decode(decryptedData, { tags: customTypeDecoders })
+
+			return decoded as LocalAutosavedDraftData
+		} catch (e) {
+			if (e instanceof DbError) {
+				console.error("failed to load draft:", e.message)
+				return null
+			}
+			throw e
+		}
+	}
+
+	/**
+	 * Deletes any locally saved draft data, if any
+	 */
+	async clearAutosavedDraftData(): Promise<void> {
+		const { db } = await this.db.getAsync()
+		if (!db.indexingSupported) return
+
+		try {
+			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
+			await transaction.delete(LocalDraftDataOS, LOCAL_DRAFT_KEY)
+		} catch (e) {
+			if (e instanceof DbError) {
+				console.error("failed to load draft:", e.message)
+				return
+			}
+			throw e
+		}
 	}
 
 	async addExternalImageRule(address: string, rule: ExternalImageRule): Promise<void> {
@@ -101,6 +206,13 @@ export class ConfigurationDatabase {
 					keyPath: "address",
 				})
 			}
+
+			if (event.oldVersion < 3) {
+				db.createObjectStore(LocalDraftDataOS)
+			}
+
+			// put all createObjectStore calls above this line because the version change transaction is not async
+
 			const metaData = await loadEncryptionMetadata(dbFacade, id, keyLoaderFacade, ConfigurationMetaDataOS)
 
 			if (event.oldVersion === 1 && metaData) {
@@ -116,6 +228,7 @@ export class ConfigurationDatabase {
 				}
 			}
 		})
+
 		const metaData =
 			(await loadEncryptionMetadata(db, id, keyLoaderFacade, ConfigurationMetaDataOS)) ||
 			(await initializeDb(db, id, keyLoaderFacade, ConfigurationMetaDataOS))

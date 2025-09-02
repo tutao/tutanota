@@ -14,6 +14,7 @@ export const enum SaveStatusEnum {
 export const enum SaveErrorReason {
 	Unknown,
 	ConnectionLost,
+	CancelledByUser,
 }
 
 export type SaveStatus =
@@ -90,10 +91,14 @@ export class MinimizedMailEditorViewModel {
 	}
 
 	getEditorForDraft(mail: Mail): MinimizedEditor | null {
+		return this.getEditorForDraftById(mail._id)
+	}
+
+	getEditorForDraftById(id: IdTuple): MinimizedEditor | null {
 		return (
 			this.getMinimizedEditors().find((e) => {
 				const draft = e.sendMailModel.getDraft()
-				return draft ? isSameId(draft._id, mail._id) : null
+				return draft ? isSameId(draft._id, id) : null
 			}) ?? null
 		)
 	}

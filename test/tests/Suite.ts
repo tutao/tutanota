@@ -175,6 +175,7 @@ import "./api/worker/search/OfflinestorageIndexerTest.js"
 import "./api/worker/EventInstancePrefetcherTest.js"
 import "./misc/parsing/ParserCombinatorTest.js"
 import "./sharing/GroupSettingsModelTest.js"
+import "./mail/editor/OpenLocallySavedDraftActionTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"

@@ -2121,5 +2121,8 @@ export default {
 		"zoomOut_action": "Herauszoomen",
 		"viewInLightMode_action": "View in light mode",
         "viewInDarkMode_action": "View in dark mode",
-    }
+		"confirmOverwriteDraft_msg": "This draft was opened for editing on {opened}, but a newer version was retrieved from the server on {updated}.\n\nWould you like to overwrite the newer draft with this one, discard this draft, or cancel saving this draft?",
+		"overwrite_action": "Overwrite",
+		"confirmCreateNewDraftOverAutosavedDraft_msg": "There are unsaved changes to a draft that will be lost."
+	}
 }

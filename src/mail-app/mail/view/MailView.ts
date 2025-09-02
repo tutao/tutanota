@@ -1028,7 +1028,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				Promise.all([locator.mailboxModel.getUserMailboxDetails(), import("../editor/MailEditor")]).then(
 					([mailboxDetails, { newMailtoUrlMailEditor }]) => {
 						newMailtoUrlMailEditor(decodedUrl, false, mailboxDetails)
-							.then((editor) => editor.show())
+							.then((editor) => editor?.show())
 							.catch(ofClass(CancelledError, noOp))
 						history.pushState("", document.title, window.location.pathname) // remove # from url
 					},
@@ -1084,7 +1084,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 			if (mailbox != null) {
 				const dialog = await newMailEditorFromTemplate(mailbox, {}, "", appendEmailSignature("", locator.logins.getUserController().props), dataFiles)
-				dialog.show()
+				dialog?.show()
 			}
 		} catch (e) {
 			if (!(e instanceof PermissionError)) throw e
@@ -1183,7 +1183,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 		const { newMailEditor } = await import("../editor/MailEditor")
 		const dialog = await newMailEditor(mailboxDetails)
-		dialog.show()
+		dialog?.show()
 	}
 
 	private async deleteCustomMailFolder(mailboxDetail: MailboxDetail, folder: MailFolder): Promise<void> {

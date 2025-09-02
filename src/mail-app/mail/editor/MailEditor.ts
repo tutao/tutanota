@@ -5,7 +5,7 @@ import { Editor, ImagePasteEvent } from "../../../common/gui/editor/Editor"
 import type { Attachment, InitAsResponseArgs, SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
-import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
+import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
@@ -44,8 +44,20 @@ import {
 	MailDetails,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
-import type { lazy } from "@tutao/tutanota-utils"
-import { assertNotNull, cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	cleanMatch,
+	debounce,
+	downcast,
+	isNotNull,
+	lazy,
+	minutesToMillis,
+	noOp,
+	ofClass,
+	secondsToMillis,
+	throttle,
+	typedValues,
+} from "@tutao/tutanota-utils"
 import { createInlineImage, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
@@ -56,7 +68,7 @@ import { createKnowledgeBaseDialogInjection } from "../../knowledgebase/view/Kno
 import { KnowledgeBaseModel } from "../../knowledgebase/model/KnowledgeBaseModel"
 import { styles } from "../../../common/gui/styles"
 import { showMinimizedMailEditor } from "../view/MinimizedMailEditorOverlay"
-import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
+import { MinimizedMailEditorViewModel, SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
 import { fileListToArray, FileReference, isTutanotaFile } from "../../../common/api/common/utils/FileUtils"
 import { parseMailtoUrl } from "../../../common/misc/parsing/MailAddressParser"
 import { CancelledError } from "../../../common/api/common/error/CancelledError"
@@ -99,11 +111,22 @@ import { mailLocator } from "../../mailLocator.js"
 import { isDarkTheme, theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
 
+import { ConfigurationDatabase, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase"
+
+// Interval where we save drafts locally.
+//
+// This will save while the user is typing, thus the user only loses a few seconds of progress at most if the app
+// unexpectedly closes (crash, power outage, etc.).
+const AUTOSAVE_LOCAL_TIMEOUT: number = secondsToMillis(5)
+
+// If the editor is left untouched for this amount of time, then the draft will automatically save to the server.
+const AUTOSAVE_REMOTE_TIMEOUT: number = minutesToMillis(5)
+
 export type MailEditorAttrs = {
 	model: SendMailModel
 	doBlockExternalContent: Stream<boolean>
 	doShowToolbar: Stream<boolean>
-	onload?: (editor: Editor) => void
+	onChange?: () => unknown
 	onclose?: (...args: Array<any>) => any
 	selectedNotificationLanguage: Stream<string>
 	dialog: lazy<Dialog>
@@ -263,7 +286,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			}
 		})
 
-		model.onMailChanged.map(() => m.redraw())
+		model.onMailChanged.map(() => {
+			this.attrs.onChange?.()
+			m.redraw()
+		})
 		// Leftover text in recipient field is an error
 		model.setOnBeforeSendFunction(() => {
 			let invalidText = ""
@@ -942,15 +968,93 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
 
-	const save = (showProgress: boolean = true) => {
+	const save = async (manuallySave: boolean = true): Promise<SaveStatus> => {
+		// If no changes were made, making an autosave is not necessary.
+		if (!model.hasMailChanged()) {
+			return { status: SaveStatusEnum.Saved }
+		}
+
+		// Create an autosave now in case this errors
+		await model.makeLocalAutosave()
+
+		// Wait for sync if needed
+		await model.waitForSaveReady()
+
+		if (model.hasDraftDataChangedOnServer()) {
+			const savedTime = model.getMailSavedAt()
+			const updatedTime = model.getMailRemotelyUpdatedAt()
+
+			const savedTimeFormat = lang.formats.dateTime.format(savedTime)
+			const updatedTimeFormat = lang.formats.dateTime.format(updatedTime)
+
+			const result = await Dialog.choiceCancellable(
+				lang.getTranslation("confirmOverwriteDraft_msg", {
+					"{opened}": savedTimeFormat,
+					"{updated}": updatedTimeFormat,
+				}),
+				[
+					{
+						text: "cancel_action",
+						value: null,
+					},
+					{
+						text: "emailSenderDiscardlist_action",
+						value: "discard",
+					},
+					{
+						text: "overwrite_action",
+						value: "overwrite",
+					},
+				],
+			)
+
+			switch (result) {
+				case "overwrite":
+					break
+				case "discard": {
+					// close the dialog and delete the local autosave
+					dialog.close()
+					await model.clearLocalAutosave()
+
+					// if we have a minimized editor, delete it, too
+					const draftMail = model.getDraft()
+					const minimizedEditor = draftMail && mailLocator.minimizedMailModel.getEditorForDraft(draftMail)
+					if (minimizedEditor != null) {
+						mailLocator.minimizedMailModel.removeMinimizedEditor(minimizedEditor)
+					}
+
+					return { status: SaveStatusEnum.NotSaved, reason: SaveErrorReason.CancelledByUser }
+				}
+				default:
+					return { status: SaveStatusEnum.NotSaved, reason: SaveErrorReason.CancelledByUser }
+			}
+		}
+
 		const savePromise = model.saveDraft(true, MailMethod.NONE)
 
-		if (showProgress) {
-			return showProgressDialog("save_msg", savePromise)
+		if (manuallySave) {
+			await showProgressDialog("save_msg", savePromise)
 		} else {
-			return savePromise
+			await savePromise
 		}
+
+		await model.clearLocalAutosave()
+		return { status: SaveStatusEnum.Saved }
 	}
+
+	// This will be called once the user stops typing.
+	const autosaveRemote = debounce(AUTOSAVE_REMOTE_TIMEOUT, () => {
+		if (dialog.visible && model.hasMailChanged() && model.autosaveReady()) {
+			save(false)
+		}
+	})
+
+	// This will be invoked while the user is typing.
+	const autosaveLocal = throttle(AUTOSAVE_LOCAL_TIMEOUT, async () => {
+		if (dialog.visible && model.hasMailChanged()) {
+			await model.makeLocalAutosave()
+		}
+	})
 
 	const send = async () => {
 		if (model.isSharedMailbox() && model.containsExternalRecipients() && model.isConfidential()) {
@@ -991,7 +1095,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		let saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saving })
 		if (model.hasMailChanged()) {
 			save(false)
-				.then(() => saveStatus({ status: SaveStatusEnum.Saved }))
+				.then((status) => saveStatus(status))
 				.catch((e) => {
 					const reason = isOfflineError(e) ? SaveErrorReason.ConnectionLost : SaveErrorReason.Unknown
 
@@ -1013,9 +1117,10 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			dispose()
 			dialog.close()
 			return
+		} else {
+			// If the mail is unchanged and there /is/ a preexisting draft, there was no change and the mail is already saved
+			saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
 		}
-		// If the mail is unchanged and there /is/ a preexisting draft, there was no change and the mail is already saved
-		else saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
 
 		if (client.isCalendarApp()) {
 			return dialog.close()
@@ -1101,6 +1206,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		await locator.recipientsSearchModel(),
 		alwaysBlockExternalContent,
 	)
+
 	const shortcuts: Shortcut[] = [
 		{
 			key: Keys.ESC,
@@ -1135,6 +1241,12 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			help: "send_action",
 		},
 	]
+
+	mailEditorAttrs.onChange = () => {
+		autosaveLocal()
+		autosaveRemote()
+	}
+
 	dialog = Dialog.editDialog(headerBarAttrs, MailEditor, mailEditorAttrs)
 	dialog.setCloseHandler(() => minimize())
 
@@ -1152,7 +1264,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
  * @private
  * @throws PermissionError
  */
-export async function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog> {
+export async function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dialog | null> {
 	// We check approval status so as to get a dialog informing the user that they cannot send mails
 	// but we still want to open the mail editor because they should still be able to contact sales@tutao.de
 	await checkApprovalStatus(locator.logins, false)
@@ -1215,7 +1327,11 @@ export async function newMailEditorAsResponse(
 	blockExternalContent: boolean,
 	inlineImages: InlineImages,
 	mailboxDetails?: MailboxDetail,
-): Promise<Dialog> {
+): Promise<Dialog | null> {
+	if (!(await confirmNewEditor(mailLocator.configFacade, mailLocator.minimizedMailModel))) {
+		return null
+	}
+
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 	await model.initAsResponse(args, inlineImages)
@@ -1227,20 +1343,79 @@ export async function newMailEditorAsResponse(
 export async function newMailEditorFromDraft(
 	mail: Mail,
 	mailDetails: MailDetails,
-	converstaionEntry: ConversationEntry,
+	conversationEntry: ConversationEntry,
 	attachments: TutanotaFile[],
 	inlineImages: InlineImages,
 	blockExternalContent: boolean,
+	localDraftData?: LocalAutosavedDraftData,
 	mailboxDetails?: MailboxDetail,
-): Promise<Dialog> {
+): Promise<Dialog | null> {
+	if (localDraftData == null && !(await confirmNewEditor(mailLocator.configFacade, mailLocator.minimizedMailModel))) {
+		return null
+	}
+
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
-	await model.initWithDraft(mail, mailDetails, converstaionEntry, attachments, inlineImages)
+	await model.initWithDraft(mail, mailDetails, conversationEntry, attachments, inlineImages)
 	const externalImageRules = await getExternalContentRulesForEditor(model, blockExternalContent)
+
+	if (localDraftData) {
+		model.markAsChangedIfNecessary(true)
+		model.setWaitUntilSync(true)
+		model.setMailRemotelyUpdatedAt(localDraftData.lastUpdatedTime)
+		model.setMailSavedAt(localDraftData.editedTime)
+		model.setBody(localDraftData.body)
+		model.setSender(localDraftData.senderAddress)
+		model.setSubject(localDraftData.subject)
+		model.setConfidential(localDraftData.confidential)
+
+		for (const to of model.toRecipients()) {
+			model.removeRecipient(to, RecipientField.TO)
+		}
+		for (const cc of model.ccRecipients()) {
+			model.removeRecipient(cc, RecipientField.CC)
+		}
+		for (const bcc of model.bccRecipients()) {
+			model.removeRecipient(bcc, RecipientField.BCC)
+		}
+
+		await model.addRecipients({ to: localDraftData.to, cc: localDraftData.cc, bcc: localDraftData.bcc })
+	}
+
 	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
-export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog> {
+async function confirmNewEditor(configurationDatabase: ConfigurationDatabase, minimizedEditorViewModel: MinimizedMailEditorViewModel): Promise<boolean> {
+	const data = await configurationDatabase.getAutosavedDraftData()
+	if (data == null) {
+		return true
+	}
+
+	const action = await Dialog.choiceCancellable("confirmCreateNewDraftOverAutosavedDraft_msg", [
+		{
+			text: "cancel_action",
+			value: null,
+		},
+		{
+			text: "overwrite_action",
+			value: "discard",
+		},
+	])
+
+	if (action == null) {
+		return false
+	} else {
+		await configurationDatabase.clearAutosavedDraftData()
+		const existingEditor = data.mailId && minimizedEditorViewModel.getEditorForDraftById(data.mailId)
+
+		if (existingEditor != null) {
+			minimizedEditorViewModel.removeMinimizedEditor(existingEditor)
+		}
+		return true
+	}
+}
+
+export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog | null> {
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const mailTo = parseMailtoUrl(mailtoUrl)
 	let dataFiles: Attachment[] = []
@@ -1300,12 +1475,38 @@ export async function newMailEditorFromTemplate(
 	confidential?: boolean,
 	senderMailAddress?: string,
 	initialChangedState?: boolean,
-): Promise<Dialog> {
+): Promise<Dialog | null> {
+	if (!(await confirmNewEditor(mailLocator.configFacade, mailLocator.minimizedMailModel))) {
+		return null
+	}
+
 	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-	return locator
-		.sendMailModel(mailboxDetails, mailboxProperties)
-		.then((model) => model.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState))
-		.then((model) => createMailEditorDialog(model))
+	const model = await locator.sendMailModel(mailboxDetails, mailboxProperties)
+	await model.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState)
+	return await createMailEditorDialog(model)
+}
+
+/**
+ * Opens a new mail editor from local draft data.
+ *
+ * This is called if the mail has not been saved to the server before and thus there is no mail ID yet.
+ *
+ * @param mailboxModel
+ * @param draft
+ */
+export async function newMailEditorFromLocalDraftData(mailboxModel: MailboxModel, draft: LocalAutosavedDraftData): Promise<Dialog | null> {
+	const details = await mailboxModel.getMailboxDetailsForMailGroup(draft.mailGroupId)
+	const recipients = {
+		to: draft.to,
+		cc: draft.cc,
+		bcc: draft.bcc,
+	}
+
+	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(details.mailboxGroupRoot)
+	const model = await locator.sendMailModel(details, mailboxProperties)
+	await model.initWithTemplate(recipients, draft.subject, draft.body, [], draft.confidential, draft.senderAddress, true)
+	model.markAsChangedIfNecessary(true)
+	return await createMailEditorDialog(model)
 }
 
 /**
@@ -1322,7 +1523,7 @@ export async function writeInviteMail(referralLink: string) {
 	})
 	const { invitationSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }))
 	const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, invitationSubject, body, [], false)
-	dialog.show()
+	dialog?.show()
 }
 
 /**

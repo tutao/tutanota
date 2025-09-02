@@ -712,7 +712,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					// disable new mails for external users.
 					import("../editor/MailEditor").then(({ newMailtoUrlMailEditor }) => {
 						newMailtoUrlMailEditor(href, !locator.logins.getUserController().props.defaultUnconfidential)
-							.then((editor) => editor.show())
+							.then((editor) => editor?.show())
 							.catch(ofClass(CancelledError, noOp))
 					})
 				}

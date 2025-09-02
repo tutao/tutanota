@@ -1144,7 +1144,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 					if (isSameTypeRef(type, MailTypeRef)) {
 						newMailEditor()
-							.then((editor) => editor.show())
+							.then((editor) => editor?.show())
 							.catch(ofClass(PermissionError, noOp))
 					} else if (isSameTypeRef(type, ContactTypeRef)) {
 						locator.contactModel.getContactListId().then((contactListId) => {
@@ -1236,7 +1236,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return {
 				click: () => {
 					newMailEditor()
-						.then((editor) => editor.show())
+						.then((editor) => editor?.show())
 						.catch(ofClass(PermissionError, noOp))
 				},
 				label: "newMail_action",
@@ -1447,7 +1447,7 @@ function getCurrentSearchMode(): SearchCategoryTypes {
 	}
 }
 
-async function newMailEditor(): Promise<Dialog> {
+async function newMailEditor(): Promise<Dialog | null> {
 	const [mailboxDetails, { newMailEditor }] = await Promise.all([locator.mailboxModel.getUserMailboxDetails(), import("../../mail/editor/MailEditor")])
 	return newMailEditor(mailboxDetails)
 }

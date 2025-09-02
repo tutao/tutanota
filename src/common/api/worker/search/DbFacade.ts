@@ -49,6 +49,18 @@ export class DbFacade {
 	private _activeTransactions: number
 	indexingSupported: boolean = true
 
+	/**
+	 * Construct an indexed db facade
+	 *
+	 * {@link onupgrade} will be called if a version upgrade is needed.
+	 *
+	 * IMPORTANT: {@link onupgrade} is not awaited! If you use any async code in your callback, all DB setup code that
+	 *            needs to be run during a version change transaction (e.g. createObjectStore) MUST be done before any
+	 *            promises are awaited
+	 *
+	 * @param version
+	 * @param onupgrade
+	 */
 	constructor(version: number, onupgrade: (event: any, db: IDBDatabase, dbFacade: DbFacade) => void) {
 		this._activeTransactions = 0
 		this._db = new LazyLoaded(() => {

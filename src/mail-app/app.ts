@@ -39,6 +39,7 @@ import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
+import { newMailEditorFromLocalDraftData } from "./mail/editor/MailEditor"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -204,6 +205,17 @@ import("./translations/en.js")
 				return new SearchOfflineRangePostLoginAction(assertNotNull(offlineStorageSettings), mailLocator.indexerFacade)
 			})
 		}
+
+		mailLocator.logins.addPostLoginAction(async () => {
+			const { OpenLocallySavedDraftAction } = await import("./mail/editor/OpenLocallySavedDraftAction.js")
+			const { newMailEditorFromLocalDraftData } = await import("./mail/editor/MailEditor.js")
+			const { createEditDraftDialog } = await import("./mail/view/MailViewerUtils")
+			return new OpenLocallySavedDraftAction(mailLocator.configFacade, mailLocator.mailboxModel, mailLocator.entityClient, {
+				newMailEditorFromLocalDraftData,
+				createEditDraftDialog,
+				mailViewerViewModelFactory: () => mailLocator.mailViewerViewModelFactory(),
+			})
+		})
 
 		if (isDesktop()) {
 			mailLocator.logins.addPostLoginAction(async () => {

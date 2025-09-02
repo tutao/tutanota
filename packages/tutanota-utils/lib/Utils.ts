@@ -276,6 +276,37 @@ export function debounceStart<F extends (...args: any) => void>(timeout: number,
 }
 
 /**
+ * Returns a throttled function. When invoked for the first time will schedule {@param toThrottle}
+ * to be called after {@param periodMs}. On subsequent invocations before {@param periodMs} amount of
+ * time passes it will replace the arguments for the scheduled call (without rescheduling). After
+ * {@param period} amount of time passes it will finally call {@param toThrottle} with the arguments
+ * of the last call. New calls after that will behave like described in the beginning.
+ *
+ * This makes sure that the function is called not more often but also at most after {@param periodMs}
+ * amount of time. Unlike {@link debounce}, it will get called after {@param periodMs} even if it
+ * is being called repeatedly.
+ */
+export function throttle<F extends (...args: any) => void>(periodMs: number, toThrottle: F): F {
+	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
+	let lastArgs: any[]
+
+	return ((...args: any) => {
+		lastArgs = args
+
+		if (timeoutId == null) {
+			if (timeoutId) clearTimeout(timeoutId)
+			timeoutId = setTimeout(() => {
+				try {
+					toThrottle.apply(null, lastArgs)
+				} finally {
+					timeoutId = null
+				}
+			}, periodMs)
+		}
+	}) as F
+}
+
+/**
  * Returns a throttled function. On the first call it is called immediately. For subsequent calls if the next call
  * happens after {@param periodMs} it is invoked immediately. For subsequent calls it will schedule the function to
  * run after {@param periodMs} after the last run of {@param toThrottle}. Only one invocation is scheduled, with the

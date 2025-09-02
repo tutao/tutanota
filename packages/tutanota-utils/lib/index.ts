@@ -63,7 +63,6 @@ export {
 	setDifference,
 } from "./CollectionUtils.js"
 export {
-	DAY_IN_MILLIS,
 	YEAR_IN_MILLIS,
 	getStartOfNextDay,
 	getEndOfDay,
@@ -81,9 +80,18 @@ export {
 	sortableTimestamp,
 	isValidDate,
 	millisToDays,
-	daysToMillis,
 	TIMESTAMP_ZERO_YEAR,
 } from "./DateUtils.js"
+export {
+	SECOND_IN_MILLIS,
+	MINUTE_IN_MILLIS,
+	HOUR_IN_MILLIS,
+	DAY_IN_MILLIS,
+	daysToMillis,
+	secondsToMillis,
+	minutesToMillis,
+	hoursToMillis,
+} from "./TimeUtils.js"
 export {
 	uint8ArrayToArrayBuffer,
 	hexToBase64,
@@ -146,6 +154,7 @@ export {
 	makeSingleUse,
 	identity,
 	noOp,
+	throttle,
 	debounce,
 	debounceStart,
 	throttleStart,
