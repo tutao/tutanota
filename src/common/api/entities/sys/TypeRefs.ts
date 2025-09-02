@@ -1022,12 +1022,14 @@ export type DeleteCustomerData = {
 
 	_format: NumberString;
 	undelete: boolean;
-	reason: null | string;
+	formattedReason: null | string;
 	takeoverMailAddress: null | string;
 	authVerifier: null | Uint8Array;
+	reason: null | NumberString;
 
 	customer: Id;
 	surveyData: null | SurveyData;
+	abuseDeactivationInfos: AbuseInfo[];
 }
 export const CustomerPropertiesTypeRef: TypeRef<CustomerProperties> = new TypeRef("sys", 656)
 
@@ -4121,4 +4123,18 @@ export type ClientPerformanceInfo = {
 
 	_id: Id;
 	isAutomatedBrowser: boolean;
+}
+export const AbuseInfoTypeRef: TypeRef<AbuseInfo> = new TypeRef("sys", 2650)
+
+export function createAbuseInfo(values: StrippedEntity<AbuseInfo>): AbuseInfo {
+    return Object.assign(create(typeModels[AbuseInfoTypeRef.typeId], AbuseInfoTypeRef), values)
+}
+
+export type AbuseInfo = {
+	_type: TypeRef<AbuseInfo>;
+	_original?: AbuseInfo
+
+	_id: Id;
+	criterion: string;
+	value: string;
 }
