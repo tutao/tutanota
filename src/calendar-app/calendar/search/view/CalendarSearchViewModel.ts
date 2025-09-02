@@ -19,7 +19,7 @@ import {
 	ofClass,
 	stringToBase64,
 	TypeRef,
-	YEAR_IN_MILLIS,
+	YEAR_IN_MILLIS_MINIMUM,
 } from "@tutao/tutanota-utils"
 import { areResultsForTheSameQuery, CalendarSearchModel, hasMoreResults, isSameSearchRestriction } from "../model/CalendarSearchModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
@@ -65,7 +65,7 @@ export class CalendarSearchViewModel {
 	get warning(): "long" | "startafterend" | null {
 		if (this.startDate && this.startDate.getTime() > this.endDate.getTime()) {
 			return "startafterend"
-		} else if (this.startDate && this.endDate.getTime() - this.startDate.getTime() > YEAR_IN_MILLIS) {
+		} else if (this.startDate && this.endDate.getTime() - this.startDate.getTime() > YEAR_IN_MILLIS_MINIMUM) {
 			return "long"
 		} else {
 			return null
@@ -372,7 +372,7 @@ export class CalendarSearchViewModel {
 		if (startDate && endDate) {
 			if (startDate.getTime() > endDate.getTime()) {
 				return "startafterend"
-			} else if (startDate && endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
+			} else if (startDate && endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS_MINIMUM) {
 				return "long"
 			}
 		}

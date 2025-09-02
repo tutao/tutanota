@@ -5,7 +5,7 @@ import { Editor, ImagePasteEvent } from "../../../common/gui/editor/Editor"
 import type { Attachment, InitAsResponseArgs, SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
-import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
+import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
@@ -44,8 +44,20 @@ import {
 	MailDetails,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
-import type { lazy } from "@tutao/tutanota-utils"
-import { assertNotNull, cleanMatch, downcast, isNotNull, noOp, ofClass, typedValues } from "@tutao/tutanota-utils"
+import {
+	assertNotNull,
+	cleanMatch,
+	debounce,
+	downcast,
+	isNotNull,
+	lazy,
+	minutesToMillis,
+	noOp,
+	ofClass,
+	secondsToMillis,
+	throttle,
+	typedValues,
+} from "@tutao/tutanota-utils"
 import { createInlineImage, isMailContrastFixNeeded, replaceCidsWithInlineImages, replaceInlineImagesWithCids } from "../view/MailGuiUtils"
 import { client } from "../../../common/misc/ClientDetector"
 import { appendEmailSignature } from "../signature/Signature"
@@ -100,11 +112,22 @@ import { handleRatingByEvent } from "../../../common/ratings/UserSatisfactionDia
 import { theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
 
+import { LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase"
+
+// Interval where we save drafts locally.
+//
+// This will save while the user is typing, thus the user only loses a few seconds of progress at most if the app
+// unexpectedly closes (crash, power outage, etc.).
+const AUTOSAVE_LOCAL_TIMEOUT: number = secondsToMillis(5)
+
+// If the editor is left untouched for this amount of time, then the draft will automatically save to the server.
+const AUTOSAVE_REMOTE_TIMEOUT: number = minutesToMillis(5)
+
 export type MailEditorAttrs = {
 	model: SendMailModel
 	doBlockExternalContent: Stream<boolean>
 	doShowToolbar: Stream<boolean>
-	onload?: (editor: Editor) => void
+	onChange?: () => unknown
 	onclose?: (...args: Array<any>) => any
 	selectedNotificationLanguage: Stream<string>
 	dialog: lazy<Dialog>
@@ -269,7 +292,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			}
 		})
 
-		model.onMailChanged.map(() => m.redraw())
+		model.onMailChanged.map(() => {
+			this.attrs.onChange?.()
+			m.redraw()
+		})
 		// Leftover text in recipient field is an error
 		model.setOnBeforeSendFunction(() => {
 			let invalidText = ""
@@ -926,7 +952,12 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
 
+	let lastAutoSave = 0
+
 	const save = async (showProgress: boolean = true): Promise<SaveStatus> => {
+		// Create an autosave now in case this errors
+		await doLocalAutosave()
+
 		// If this is not a manual save, we want to avoid autosaving if the body changed on the server
 		try {
 			if (!showProgress && (await model.serverBodyChanged())) {
@@ -939,6 +970,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			throw e
 		}
 
+		const lastAutoSaveStart = lastAutoSave
 		const savePromise = model.saveDraft(true, MailMethod.NONE)
 
 		if (showProgress) {
@@ -947,8 +979,32 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			await savePromise
 		}
 
+		// If we haven't autosaved since uploading the draft, we can remove the local autosave.
+		if (lastAutoSaveStart === lastAutoSave) {
+			await model.clearLocalAutosave()
+		}
+
 		return { status: SaveStatusEnum.Saved }
 	}
+
+	// This will be called once the user stops typing.
+	const autosaveRemote = debounce(AUTOSAVE_REMOTE_TIMEOUT, () => {
+		if (dialog.visible && model.hasMailChanged()) {
+			save(false)
+		}
+	})
+
+	const doLocalAutosave = async () => {
+		lastAutoSave = Date.now()
+		await model.makeLocalAutosave()
+	}
+
+	// This will be invoked while the user is typing.
+	const autosaveLocal = throttle(AUTOSAVE_LOCAL_TIMEOUT, async () => {
+		if (dialog.visible && model.hasMailChanged()) {
+			await doLocalAutosave()
+		}
+	})
 
 	const send = async () => {
 		if (model.isSharedMailbox() && model.containsExternalRecipients() && model.isConfidential()) {
@@ -1010,9 +1066,10 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			dispose()
 			dialog.close()
 			return
+		} else {
+			// If the mail is unchanged and there /is/ a preexisting draft, there was no change and the mail is already saved
+			saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
 		}
-		// If the mail is unchanged and there /is/ a preexisting draft, there was no change and the mail is already saved
-		else saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
 
 		if (client.isCalendarApp()) {
 			return dialog.close()
@@ -1098,6 +1155,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		await locator.recipientsSearchModel(),
 		alwaysBlockExternalContent,
 	)
+
 	const shortcuts: Shortcut[] = [
 		{
 			key: Keys.ESC,
@@ -1132,6 +1190,12 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			help: "send_action",
 		},
 	]
+
+	mailEditorAttrs.onChange = () => {
+		autosaveLocal()
+		autosaveRemote()
+	}
+
 	dialog = Dialog.editDialog(headerBarAttrs, MailEditor, mailEditorAttrs)
 	dialog.setCloseHandler(() => minimize())
 
@@ -1224,16 +1288,38 @@ export async function newMailEditorAsResponse(
 export async function newMailEditorFromDraft(
 	mail: Mail,
 	mailDetails: MailDetails,
-	converstaionEntry: ConversationEntry,
+	conversationEntry: ConversationEntry,
 	attachments: TutanotaFile[],
 	inlineImages: InlineImages,
 	blockExternalContent: boolean,
+	localDraftData?: LocalAutosavedDraftData,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog> {
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	const model = await locator.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
-	await model.initWithDraft(mail, mailDetails, converstaionEntry, attachments, inlineImages)
+	await model.initWithDraft(mail, mailDetails, conversationEntry, attachments, inlineImages)
 	const externalImageRules = await getExternalContentRulesForEditor(model, blockExternalContent)
+
+	if (localDraftData) {
+		model.setBodyOnServer(localDraftData.bodyOnServer)
+		model.setBody(localDraftData.body)
+		model.setSender(localDraftData.senderAddress)
+		model.setSubject(localDraftData.subject)
+		model.setConfidential(localDraftData.confidential)
+
+		for (const to of model.toRecipients()) {
+			model.removeRecipient(to, RecipientField.TO)
+		}
+		for (const cc of model.ccRecipients()) {
+			model.removeRecipient(cc, RecipientField.CC)
+		}
+		for (const bcc of model.bccRecipients()) {
+			model.removeRecipient(bcc, RecipientField.BCC)
+		}
+
+		await model.addRecipients({ to: localDraftData.to, cc: localDraftData.cc, bcc: localDraftData.bcc })
+	}
+
 	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
@@ -1303,6 +1389,24 @@ export async function newMailEditorFromTemplate(
 		.sendMailModel(mailboxDetails, mailboxProperties)
 		.then((model) => model.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState))
 		.then((model) => createMailEditorDialog(model))
+}
+
+export async function newMailEditorFromLocalDraftData(mailboxModel: MailboxModel, draft: LocalAutosavedDraftData): Promise<Dialog> {
+	const details = await mailboxModel.getMailboxDetailsForMailGroup(draft.mailGroupId)
+	return await newMailEditorFromTemplate(
+		details,
+		{
+			to: draft.to,
+			cc: draft.cc,
+			bcc: draft.bcc,
+		},
+		draft.subject,
+		draft.body,
+		[],
+		true,
+		draft.senderAddress,
+		true,
+	)
 }
 
 /**

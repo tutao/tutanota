@@ -49,6 +49,7 @@ import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/
 import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
 import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils"
+import { ConfigurationDatabase } from "../../../src/common/api/worker/facades/lazy/ConfigurationDatabase"
 
 const { anything, argThat } = matchers
 
@@ -102,6 +103,7 @@ o.spec("SendMailModel", function () {
 	let mailboxModel: MailboxModel, entity: EntityClient, mailFacade: MailFacade, recipientsModel: RecipientsModel
 
 	let model: SendMailModel
+	let db: ConfigurationDatabase
 
 	o.beforeEach(function () {
 		entity = instance(EntityClient)
@@ -172,6 +174,8 @@ o.spec("SendMailModel", function () {
 			return new ResolvableRecipientMock(recipient.address, recipient.name, recipient.contact, recipient.type, [INTERNAL_RECIPIENT_1.address], [], user)
 		})
 
+		db = object()
+
 		const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef)
 		model = new SendMailModel(
 			mailFacade,
@@ -184,6 +188,8 @@ o.spec("SendMailModel", function () {
 			recipientsModel,
 			new NoZoneDateProvider(),
 			mailboxProperties,
+			db,
+
 			async (mail: Mail) => {
 				return false
 			},

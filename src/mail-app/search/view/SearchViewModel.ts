@@ -72,7 +72,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
-import { YEAR_IN_MILLIS } from "@tutao/tutanota-utils/dist/DateUtils.js"
+import { YEAR_IN_MILLIS_MINIMUM } from "@tutao/tutanota-utils/dist/DateUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
@@ -108,7 +108,7 @@ export class SearchViewModel {
 		if (startDate && endDate) {
 			if (startDate.getTime() > endDate.getTime()) {
 				return "startafterend"
-			} else if (startDate && endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
+			} else if (startDate && endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS_MINIMUM) {
 				return "long"
 			}
 		}
