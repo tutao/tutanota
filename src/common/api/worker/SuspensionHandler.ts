@@ -1,24 +1,22 @@
 import type { DeferredObject } from "@tutao/tutanota-utils"
 import { defer, noOp } from "@tutao/tutanota-utils"
 import type { SystemTimeout } from "../common/utils/Scheduler.js"
-import { InfoMessageHandler } from "../../gui/InfoMessageHandler.js"
+import { ServiceUnavailableError, TooManyRequestsError } from "../common/error/RestError"
 
 export class SuspensionHandler {
 	_isSuspended: boolean
 	_suspendedUntil: number
 	_deferredRequests: Array<DeferredObject<any>>
 	_hasSentInfoMessage: boolean
-	_timeout: SystemTimeout
 
 	constructor(
-		private readonly infoMessageHandler: InfoMessageHandler,
-		systemTimeout: SystemTimeout,
+		private readonly timeout: SystemTimeout,
+		private readonly suspensionCallback: () => unknown,
 	) {
 		this._isSuspended = false
 		this._suspendedUntil = 0
 		this._deferredRequests = []
 		this._hasSentInfoMessage = false
-		this._timeout = systemTimeout
 	}
 
 	/**
@@ -31,17 +29,14 @@ export class SuspensionHandler {
 			this._isSuspended = true
 			const suspensionStartTime = Date.now()
 
-			this._timeout.setTimeout(async () => {
+			this.timeout.setTimeout(async () => {
 				this._isSuspended = false
 				console.log(`Suspension released after ${(Date.now() - suspensionStartTime) / 1000}s`)
 				await this._onSuspensionComplete()
 			}, suspensionDurationSeconds * 1000)
 
 			if (!this._hasSentInfoMessage) {
-				this.infoMessageHandler.onInfoMessage({
-					translationKey: "clientSuspensionWait_label",
-					args: {},
-				})
+				this.suspensionCallback()
 
 				this._hasSentInfoMessage = true
 			}
@@ -83,4 +78,8 @@ export class SuspensionHandler {
 			await deferredRequest.promise.catch(noOp)
 		}
 	}
+}
+
+export function isSuspensionResponse(statusCode: number, suspensionTimeNumberString: string | null): boolean {
+	return Number(suspensionTimeNumberString) > 0 && (statusCode === TooManyRequestsError.CODE || statusCode === ServiceUnavailableError.CODE)
 }

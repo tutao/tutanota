@@ -1,11 +1,10 @@
 import { assertWorkerOrNode, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
-import { ConnectionError, handleRestError, PayloadTooLargeError, ServiceUnavailableError, TooManyRequestsError } from "../../common/error/RestError"
+import { ConnectionError, handleRestError, PayloadTooLargeError } from "../../common/error/RestError"
 import { HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
 import { assertNotNull, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
-import { SuspensionHandler } from "../SuspensionHandler"
+import { isSuspensionResponse, SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
-import { ApplicationTypesFacade } from "../facades/ApplicationTypesFacade"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
@@ -366,10 +365,6 @@ export function addParamsToUrl(url: URL, urlParams: Dict): URL {
 	}
 
 	return url
-}
-
-export function isSuspensionResponse(statusCode: number, suspensionTimeNumberString: string | null): boolean {
-	return Number(suspensionTimeNumberString) > 0 && (statusCode === TooManyRequestsError.CODE || statusCode === ServiceUnavailableError.CODE)
 }
 
 function logFailedRequest(method: HttpMethod, url: URL, xhr: XMLHttpRequest, options: RestClientOptions): void {

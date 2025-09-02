@@ -175,7 +175,12 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	const mainInterface = worker.getMainInterface()
 
-	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
+	const suspensionHandler = new SuspensionHandler(self, () => {
+		mainInterface.infoMessageHandler.onInfoMessage({
+			translationKey: "clientSuspensionWait_label",
+			args: {},
+		})
+	})
 
 	const clientModelInfo = ClientModelInfo.getInstance()
 	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, (expectedHash) =>

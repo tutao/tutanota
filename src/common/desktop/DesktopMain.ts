@@ -48,7 +48,7 @@ import { DesktopWebauthnFacade } from "./2fa/DesktopWebauthnFacade.js"
 import { DesktopPostLoginActions } from "./DesktopPostLoginActions.js"
 import { DesktopInterWindowEventFacade } from "./ipc/DesktopInterWindowEventFacade.js"
 import { OfflineDbFactory, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
-import { LazyLoaded, lazyMemoized } from "@tutao/tutanota-utils"
+import { LazyLoaded, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
@@ -58,7 +58,6 @@ import { makeDbPath } from "./db/DbUtils.js"
 import { DesktopCredentialsStorage } from "./db/DesktopCredentialsStorage.js"
 import { AppPassHandler } from "./credentials/AppPassHandler.js"
 import { SseClient } from "./sse/SseClient.js"
-import { suspensionAwareFetch } from "./net/SuspensionAwareFetch.js"
 import { TutaNotificationHandler } from "./sse/TutaNotificationHandler.js"
 import { TutaSseFacade } from "./sse/TutaSseFacade.js"
 import { SseStorage } from "./sse/SseStorage.js"
@@ -79,6 +78,8 @@ import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { InstancePipeline } from "../api/worker/crypto/InstancePipeline"
 import { ClientModelInfo } from "../api/common/EntityFunctions"
 import { CommandExecutor } from "./CommandExecutor"
+import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
+import { SuspensionHandler } from "../api/worker/SuspensionHandler"
 
 mp()
 
@@ -259,6 +260,8 @@ async function createComponents(): Promise<Components> {
 	})
 
 	tray.setWindowManager(wm)
+
+	const suspensionAwareFetch = makeSuspensionAwareFetch(new SuspensionHandler(globalThis, noOp))
 
 	const notificationHandler = new TutaNotificationHandler(
 		wm,
