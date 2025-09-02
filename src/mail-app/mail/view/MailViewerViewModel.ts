@@ -540,7 +540,7 @@ export class MailViewerViewModel {
 				targetFolder: spamFolder,
 				moveMode: MoveMode.Mails,
 				undoModel: this.undoModel,
-                reportType
+				reportType,
 			})
 		} catch (e) {
 			if (e instanceof NotFoundError) {
