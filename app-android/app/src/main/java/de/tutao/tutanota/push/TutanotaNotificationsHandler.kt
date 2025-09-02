@@ -5,9 +5,14 @@ import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
 import de.tutao.tutanota.R
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
+import de.tutao.tutasdk.ApiCallException
+import de.tutao.tutasdk.HttpError
+import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
+import de.tutao.tutashared.SuspensionHandler
+import de.tutao.tutashared.await
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
@@ -20,11 +25,11 @@ import de.tutao.tutashared.toBase64
 import de.tutao.tutashared.toSdkIdTupleGenerated
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.apache.commons.io.IOUtils
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -42,16 +47,17 @@ class TutanotaNotificationsHandler(
 	private val defaultClient: OkHttpClient,
 	private val lifecycleScope: LifecycleCoroutineScope,
 	private val getSqlCipherFacade: () -> AndroidSqlCipherFacade,
-	private val appDir: File
+	private val appDir: File,
+	private val suspensionHandler: SuspensionHandler
 ) {
 
 	private val json = Json { ignoreUnknownKeys = true }
 
-	fun onNewNotificationAvailable(sseInfo: SseInfo?) {
+	fun onNewNotificationAvailable(sseInfo: SseInfo?) = lifecycleScope.launch {
 		Log.d(TAG, "onNewNotificationAvailable")
 		if (sseInfo == null) {
 			Log.d(TAG, "No stored SSE info")
-			return
+			return@launch
 		}
 		val missedNotificationSerialized: String? = downloadMissedNotification(sseInfo)
 		if (missedNotificationSerialized != null) {
@@ -76,7 +82,7 @@ class TutanotaNotificationsHandler(
 		return true
 	}
 
-	private fun downloadMissedNotification(sseInfo: SseInfo): String? {
+	private suspend fun downloadMissedNotification(sseInfo: SseInfo): String? {
 		var triesLeft = 3
 		// We try to download limited number of times. If it fails then  we are probably offline
 		var userId: String?
@@ -88,7 +94,7 @@ class TutanotaNotificationsHandler(
 			userId = sseInfo.userIds.iterator().next()
 			try {
 				Log.d(TAG, "Downloading missed notification with user id $userId")
-				return executeMissedNotificationDownload(sseInfo, userId)
+				return suspensionHandler.deferRequest { executeMissedNotificationDownload(sseInfo, userId) }
 			} catch (e: FileNotFoundException) {
 				Log.i(TAG, "MissedNotification is not found, ignoring: " + e.message)
 				return null
@@ -104,21 +110,17 @@ class TutanotaNotificationsHandler(
 					TAG, "ServiceUnavailable when downloading missed notification, waiting " +
 							e.suspensionSeconds + "s"
 				)
-				try {
-					Thread.sleep(TimeUnit.SECONDS.toMillis(e.suspensionSeconds.toLong()))
-				} catch (ignored: InterruptedException) {
-				}
+				suspensionHandler.activateSuspensionIfInactive(e.suspensionSeconds, "missed notification")
 				// tries are not decremented and we don't return, we just wait and try again.
+				// waiting happens above with `deferRequest`
 			} catch (e: TooManyRequestsException) {
 				Log.d(
 					TAG, "TooManyRequestsException when downloading missed notification, waiting " +
 							e.retryAfterSeconds + "s"
 				)
-				try {
-					Thread.sleep(TimeUnit.SECONDS.toMillis(e.retryAfterSeconds.toLong()))
-				} catch (ignored: InterruptedException) {
-				}
+				suspensionHandler.activateSuspensionIfInactive(e.retryAfterSeconds, "missed notification")
 				// tries are not decremented and we don't return, we just wait and try again.
+				// waiting happens above with `deferRequest`
 			} catch (e: ServerResponseException) {
 				triesLeft--
 				Log.w(TAG, e)
@@ -140,7 +142,7 @@ class TutanotaNotificationsHandler(
 	}
 
 	@Throws(IllegalArgumentException::class, IOException::class, HttpException::class)
-	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): String? {
+	private suspend fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): String? {
 		val url = makeAlarmNotificationUrl(sseInfo)
 		val request = Request.Builder()
 			.url(url)
@@ -162,17 +164,18 @@ class TutanotaNotificationsHandler(
 			.readTimeout(20, TimeUnit.SECONDS)
 			.build()
 			.newCall(request)
-			.execute()
+			.await()
 
 		val responseCode = response.code
 		Log.d(TAG, "MissedNotification response code $responseCode")
 		handleResponseCode(response)
 
-		response.body?.byteStream().use { inputStream ->
-			val responseString = IOUtils.toString(inputStream, StandardCharsets.UTF_8)
-			Log.d(TAG, "Loaded Missed notifications response")
-			return responseString
+		// OkHttp doesn't have a real async reading for response body so we have to make sure it's on IO dispatcher
+		val responseString = withContext(Dispatchers.IO) {
+			response.body?.string()
 		}
+		Log.d(TAG, "Loaded Missed notifications response")
+		return responseString
 	}
 
 	@Throws(
@@ -221,22 +224,35 @@ class TutanotaNotificationsHandler(
 		return URL(sseInfo.sseOrigin + "/rest/sys/missednotification/" + customId)
 	}
 
-	private fun handleNotificationInfos(sseInfo: SseInfo, notificationInfos: List<NotificationInfo>) {
-		lifecycleScope.launch(Dispatchers.IO) {
-			val metadatas = notificationInfos.map {
-				try {
-					Pair(it, downloadEmailMetadata(sseInfo, it))
-				} catch (e: Throwable) {
-					Log.w(TAG, e)
-					Pair(it, null)
+	private suspend fun handleNotificationInfos(sseInfo: SseInfo, notificationInfos: List<NotificationInfo>) {
+		val metadatas = notificationInfos.map { notificationInfo ->
+			try {
+				val metaData = try {
+					suspensionHandler.deferRequest { downloadEmailMetadata(sseInfo, notificationInfo) }
+				} catch (e: ApiCallException.ServerResponseException) {
+					val source = e.source
+					if (source is HttpError.TooManyRequestsError && source.suspensionTimeSec != null) {
+						suspensionHandler.activateSuspensionIfInactive(
+							source.suspensionTimeSec!!.toInt(),
+							"mail"
+						)
+						suspensionHandler.deferRequest { downloadEmailMetadata(sseInfo, notificationInfo) }
+					} else {
+						throw e
+					}
 				}
 
+				Pair(notificationInfo, metaData)
+			} catch (e: Throwable) {
+				Log.w(TAG, e)
+				Pair(notificationInfo, null)
 			}
-			localNotificationsFacade.sendEmailNotifications(metadatas)
+
 		}
+		localNotificationsFacade.sendEmailNotifications(metadatas)
 	}
 
-	@Throws(de.tutao.tutasdk.ApiCallException::class, Exception::class, IllegalArgumentException::class)
+	@Throws(ApiCallException::class, Exception::class, IllegalArgumentException::class, LoginException::class)
 	private suspend fun downloadEmailMetadata(sseInfo: SseInfo, notificationInfo: NotificationInfo): MailMetadata? {
 
 		val unencryptedCredentials = try {
@@ -253,8 +269,13 @@ class TutanotaNotificationsHandler(
 		}
 
 
-		val sdk = Sdk(sseInfo.sseOrigin, SdkRestClient(), SdkFileClient(this.appDir))
-		val loggedInSdk = sdk.login(unencryptedCredentials.toSdkCredentials())
+		val sdk = Sdk.newWithoutSuspension(sseInfo.sseOrigin, SdkRestClient(), SdkFileClient(this.appDir))
+		val loggedInSdk = try {
+			sdk.login(unencryptedCredentials.toSdkCredentials())
+		} catch (e: LoginException.ApiCall) {
+			// unwrap ApiCall exception to make it easier to handle on the outside
+			throw e.source
+		}
 
 		val mailId = notificationInfo.mailId?.toSdkIdTupleGenerated()
 			?: throw IllegalArgumentException("Missing mailId for notification ${sseInfo.pushIdentifier}")

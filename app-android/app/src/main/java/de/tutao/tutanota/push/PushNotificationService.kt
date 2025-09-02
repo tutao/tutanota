@@ -9,8 +9,10 @@ import de.tutao.tutanota.alarms.AlarmNotificationsManager
 import de.tutao.tutanota.alarms.SystemAlarmFacade
 import de.tutao.tutanota.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.DateProvider
 import de.tutao.tutashared.LifecycleJobService
 import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.SuspensionHandler
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
@@ -88,6 +90,7 @@ class PushNotificationService : LifecycleJobService() {
 			localNotificationsFacade
 		)
 		alarmNotificationsManager.reScheduleAlarms()
+		val suspensionHandler = SuspensionHandler(DateProvider())
 		sseClient = SseClient(
 			crypto,
 			sseStorage,
@@ -98,7 +101,8 @@ class PushNotificationService : LifecycleJobService() {
 				nativeCredentialsFacade,
 				alarmNotificationsManager,
 				NetworkUtils.defaultClient,
-				this.filesDir
+				this.filesDir,
+				suspensionHandler
 			),
 			NetworkUtils.defaultClient
 		)
@@ -195,7 +199,8 @@ class PushNotificationService : LifecycleJobService() {
 		nativeCredentialsFacade: NativeCredentialsFacade,
 		alarmNotificationsManager: AlarmNotificationsManager,
 		defaultClient: OkHttpClient,
-		appDir: File
+		appDir: File,
+		suspensionHandler: SuspensionHandler
 	) : SseListener {
 
 		private val tutanotaNotificationsHandler =
@@ -207,7 +212,8 @@ class PushNotificationService : LifecycleJobService() {
 				defaultClient,
 				lifecycleScope,
 				{ AndroidSqlCipherFacade(this@PushNotificationService) },
-				appDir
+				appDir,
+				suspensionHandler
 			)
 
 		override fun onStartingConnection(): Boolean {
