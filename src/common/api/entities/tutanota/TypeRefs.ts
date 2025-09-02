@@ -1090,8 +1090,7 @@ export type ListUnsubscribeData = {
 	_original?: ListUnsubscribeData
 
 	_format: NumberString;
-	recipient: string;
-	headers: string;
+	postLink: string;
 
 	mail: IdTuple;
 }
