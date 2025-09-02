@@ -1038,6 +1038,7 @@ export class LoginFacade {
 			undelete: false,
 			customer: neverNull(neverNull(this.userFacade.getLoggedInUser()).customer),
 			surveyData: surveyData,
+			abuseDeactivationInfos: [],
 		})
 
 		if (takeover !== "") {

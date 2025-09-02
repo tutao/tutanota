@@ -4178,10 +4178,10 @@ export const typeModels = {
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"2679": {
+			"2683": {
 				"final": false,
 				"name": "reason",
-				"id": 2679,
+				"id": 2683,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -4204,6 +4204,15 @@ export const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2295,
+				"dependency": null
+			},
+			"2684": {
+				"final": false,
+				"name": "abuseDeactivationInfos",
+				"id": 2684,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2679,
 				"dependency": null
 			}
 		}
@@ -14626,6 +14635,45 @@ export const typeModels = {
 				"name": "isAutomatedBrowser",
 				"id": 2643,
 				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"2679": {
+		"name": "AbuseDeactivationInfo",
+		"app": "sys",
+		"version": 139,
+		"since": 139,
+		"type": "AGGREGATED_TYPE",
+		"id": 2679,
+		"rootId": "A3N5cwAKdw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2680": {
+				"final": true,
+				"name": "_id",
+				"id": 2680,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2681": {
+				"final": true,
+				"name": "criterion",
+				"id": 2681,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2682": {
+				"final": true,
+				"name": "value",
+				"id": 2682,
+				"type": "String",
 				"cardinality": "One",
 				"encrypted": false
 			}

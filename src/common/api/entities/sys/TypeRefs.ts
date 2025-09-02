@@ -1029,6 +1029,7 @@ export type DeleteCustomerData = {
 
 	customer: Id;
 	surveyData: null | SurveyData;
+	abuseDeactivationInfos: AbuseDeactivationInfo[];
 }
 export const CustomerPropertiesTypeRef: TypeRef<CustomerProperties> = new TypeRef("sys", 656)
 
@@ -4122,4 +4123,18 @@ export type ClientPerformanceInfo = {
 
 	_id: Id;
 	isAutomatedBrowser: boolean;
+}
+export const AbuseDeactivationInfoTypeRef: TypeRef<AbuseDeactivationInfo> = new TypeRef("sys", 2679)
+
+export function createAbuseDeactivationInfo(values: StrippedEntity<AbuseDeactivationInfo>): AbuseDeactivationInfo {
+    return Object.assign(create(typeModels[AbuseDeactivationInfoTypeRef.typeId], AbuseDeactivationInfoTypeRef), values)
+}
+
+export type AbuseDeactivationInfo = {
+	_type: TypeRef<AbuseDeactivationInfo>;
+	_original?: AbuseDeactivationInfo
+
+	_id: Id;
+	criterion: string;
+	value: string;
 }
