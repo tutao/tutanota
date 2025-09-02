@@ -318,11 +318,10 @@ impl Executor for ServiceExecutor {
 
 		self.ensure_latest_server_model(&response).await?;
 
-		let precondition = response.headers.get("precondition");
 		match response.status {
 			200 | 201 => Ok(response.body),
 			_ => Err(ApiCallError::ServerResponseError {
-				source: HttpError::from_http_response(response.status, precondition)?,
+				source: HttpError::from_http_response(response.status, &response.headers)?,
 			}),
 		}
 	}

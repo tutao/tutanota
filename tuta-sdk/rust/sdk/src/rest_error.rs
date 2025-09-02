@@ -1,6 +1,7 @@
 //! Contains the code to handle HTTP error responses from the REST API
 
 use crate::ApiCallError;
+use std::collections::HashMap;
 use std::str::FromStr;
 use thiserror::Error;
 
@@ -305,7 +306,7 @@ pub enum HttpError {
 	#[error("Locked")]
 	LockedError,
 	#[error("Too Many Requests")]
-	TooManyRequestsError,
+	TooManyRequestsError { suspension_time_sec: Option<u64> },
 	#[error("Session Expired")]
 	SessionExpiredError,
 	#[error("Access Deactivated")]
@@ -326,7 +327,7 @@ pub enum HttpError {
 	#[error("Bad gateway")]
 	BadGatewayError,
 	#[error("Service Unavailable")]
-	ServiceUnavailableError,
+	ServiceUnavailableError { suspension_time_sec: Option<u64> },
 	#[error("Insufficient Storage")]
 	InsufficientStorageError,
 	#[error("Resource")]
@@ -339,7 +340,7 @@ impl HttpError {
 	/// Converts an HTTP response code into a `NetworkError`
 	pub fn from_http_response(
 		status: u32,
-		precondition: Option<&String>,
+		headers: &HashMap<String, String>,
 	) -> Result<HttpError, ApiCallError> {
 		use HttpError::*;
 		match status {
@@ -351,14 +352,16 @@ impl HttpError {
 			405 => Ok(MethodNotAllowedError),
 			408 => Ok(RequestTimeoutError),
 			412 => {
-				let reason = match precondition {
+				let reason = match headers.get("Precondition") {
 					Some(x) => Some(PreconditionFailedReason::from_str(x)?),
 					None => None,
 				};
 				Ok(PreconditionFailedError(reason))
 			},
 			423 => Ok(LockedError),
-			429 => Ok(TooManyRequestsError),
+			429 => Ok(TooManyRequestsError {
+				suspension_time_sec: get_suspension_time_sec(headers),
+			}),
 			440 => Ok(SessionExpiredError),
 			470 => Ok(AccessDeactivatedError),
 			471 => Ok(AccessExpiredError),
@@ -368,7 +371,9 @@ impl HttpError {
 			475 => Ok(LimitReachedError),
 			500 => Ok(InternalServerError),
 			502 => Ok(BadGatewayError),
-			503 => Ok(ServiceUnavailableError),
+			503 => Ok(ServiceUnavailableError {
+				suspension_time_sec: get_suspension_time_sec(headers),
+			}),
 			507 => Ok(InsufficientStorageError),
 			413 => Ok(PayloadTooLargeError),
 			200..=299 => Err(ApiCallError::InternalSdkError {
@@ -377,6 +382,17 @@ impl HttpError {
 			_ => Ok(ResourceError),
 		}
 	}
+}
+
+/// something in our http client normalizes these to lowercase
+pub const RETRY_AFTER_HEADER: &str = "retry-after";
+pub const SUSPENSION_TIME_HEADER: &str = "suspension-time";
+
+fn get_suspension_time_sec(headers: &HashMap<String, String>) -> Option<u64> {
+	let time = headers
+		.get(RETRY_AFTER_HEADER)
+		.or_else(|| headers.get(SUSPENSION_TIME_HEADER))?;
+	time.parse::<u64>().ok()
 }
 
 #[cfg(test)]
@@ -403,7 +419,7 @@ mod tests {
 
 	#[test]
 	fn from_http_response_non_error_test() {
-		let error = HttpError::from_http_response(202, None);
+		let error = HttpError::from_http_response(202, &Default::default());
 		error.expect_err("from_http_response_non_error_test received an Ok value!");
 	}
 
@@ -439,9 +455,11 @@ mod tests {
 
 	/// Returns the Ok value from `from_http_response` and panics if the value is None
 	fn assert_from_http_response(status: u32, precondition: Option<&str>) -> HttpError {
-		// Convert the `str` contained within `precondition` into a `String`
-		let string_precondition = precondition.map(|inner_str: &str| inner_str.to_owned());
-		let result = HttpError::from_http_response(status, string_precondition.as_ref());
+		let mut headers = HashMap::new();
+		if let Some(precondition) = precondition {
+			headers.insert("Precondition".to_owned(), precondition.to_owned());
+		}
+		let result = HttpError::from_http_response(status, &headers);
 		result.expect("An error occurred while testing precondition_failed!")
 	}
 

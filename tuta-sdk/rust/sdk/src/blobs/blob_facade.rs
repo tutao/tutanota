@@ -229,7 +229,7 @@ impl BlobFacade {
 					return self.handle_post_response_multiple(body);
 				},
 				Ok(RestResponse { status, .. }) => {
-					match HttpError::from_http_response(status, None) {
+					match HttpError::from_http_response(status, &Default::default()) {
 						// token was expired, we should evict & retry on this server.
 						// in these cases, we want to try the next server
 						Ok(
@@ -348,7 +348,7 @@ impl BlobFacade {
 					return self.handle_post_response_single_legacy(body);
 				},
 				Ok(RestResponse { status, .. }) => {
-					match HttpError::from_http_response(status, None) {
+					match HttpError::from_http_response(status, &Default::default()) {
 						// token was expired, we should evict & retry on this server.
 						// in these cases, we want to try the next server
 						Ok(
