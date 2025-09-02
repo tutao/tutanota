@@ -9,8 +9,10 @@ import de.tutao.calendar.alarms.AlarmNotificationsManager
 import de.tutao.calendar.alarms.SystemAlarmFacade
 import de.tutao.calendar.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.DateProvider
 import de.tutao.tutashared.LifecycleJobService
 import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.SuspensionHandler
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
@@ -77,7 +79,7 @@ class PushNotificationService : LifecycleJobService() {
 		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
 		val crypto = AndroidNativeCryptoFacade(this)
 		val keyStoreFacade = createAndroidKeyStoreFacade()
-		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(this, crypto, appDatabase)
+		val suspensionHandler = SuspensionHandler(DateProvider())
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val alarmNotificationsManager = AlarmNotificationsManager(
@@ -94,9 +96,9 @@ class PushNotificationService : LifecycleJobService() {
 			NotificationSseListener(
 				localNotificationsFacade,
 				sseStorage,
-				nativeCredentialsFacade,
 				alarmNotificationsManager,
-				NetworkUtils.defaultClient
+				NetworkUtils.defaultClient,
+				suspensionHandler
 			),
 			NetworkUtils.defaultClient
 		)
@@ -190,20 +192,19 @@ class PushNotificationService : LifecycleJobService() {
 	private inner class NotificationSseListener(
 		notificationsFacade: LocalNotificationsFacade,
 		sseStorage: SseStorage,
-		nativeCredentialsFacade: NativeCredentialsFacade,
 		alarmNotificationsManager: AlarmNotificationsManager,
-		defaultClient: OkHttpClient
+		defaultClient: OkHttpClient,
+		suspensionHandler: SuspensionHandler
 	) : SseListener {
 
 		private val tutanotaNotificationsHandler =
 			TutanotaNotificationsHandler(
 				notificationsFacade,
 				sseStorage,
-				nativeCredentialsFacade,
 				alarmNotificationsManager,
 				defaultClient,
 				lifecycleScope,
-				{ AndroidSqlCipherFacade(this@PushNotificationService) }
+				suspensionHandler
 			)
 
 		override fun onStartingConnection(): Boolean {

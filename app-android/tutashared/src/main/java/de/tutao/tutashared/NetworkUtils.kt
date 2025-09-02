@@ -7,19 +7,26 @@ import de.tutao.tutasdk.RestClient
 import de.tutao.tutasdk.RestClientException
 import de.tutao.tutasdk.RestClientOptions
 import de.tutao.tutasdk.RestResponse
+import kotlinx.coroutines.suspendCancellableCoroutine
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.ConnectionSpec
 import okhttp3.Dispatcher
 import okhttp3.Headers.Companion.toHeaders
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import org.conscrypt.Conscrypt
+import java.io.IOException
 import java.security.Security
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class NetworkUtils {
 	companion object {
@@ -95,7 +102,7 @@ class SdkRestClient : RestClient {
 				.readTimeout(20, TimeUnit.SECONDS)
 				.build()
 				.newCall(request)
-				.execute()
+				.await()
 			RestResponse(response.code.toUInt(), response.headers.toMap(), response.body?.bytes())
 		}
 
@@ -103,3 +110,23 @@ class SdkRestClient : RestClient {
 	}
 }
 
+
+/**
+ * Bridge OkHttp [Call] to Kotlin coroutines.
+ * Will cancel the [Call] on coroutine cancellation.
+ */
+suspend inline fun Call.await(): Response {
+	return suspendCancellableCoroutine { continuation ->
+		val callback: Callback = object : Callback {
+			override fun onResponse(call: Call, response: Response) {
+				continuation.resume(response)
+			}
+
+			override fun onFailure(call: Call, e: IOException) {
+				continuation.resumeWithException(e)
+			}
+		}
+		this.enqueue(callback)
+		continuation.invokeOnCancellation { this.cancel() }
+	}
+}
