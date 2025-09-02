@@ -1,4 +1,4 @@
-import { addParamsToUrl, isSuspensionResponse, RestClient, SuspensionBehavior } from "../../rest/RestClient.js"
+import { addParamsToUrl, RestClient, SuspensionBehavior } from "../../rest/RestClient.js"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	assertNonNull,
@@ -19,7 +19,7 @@ import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaCo
 
 import { HttpMethod, MediaType } from "../../../common/EntityFunctions.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
-import type { SuspensionHandler } from "../../SuspensionHandler.js"
+import { isSuspensionResponse, SuspensionHandler } from "../../SuspensionHandler.js"
 import { BlobService } from "../../../entities/storage/Services.js"
 import { aesDecrypt, AesKey, sha256Hash } from "@tutao/tutanota-crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"

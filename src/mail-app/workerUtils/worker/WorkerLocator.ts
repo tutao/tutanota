@@ -206,7 +206,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	const mainInterface = worker.getMainInterface()
 
-	const suspensionHandler = new SuspensionHandler(mainInterface.infoMessageHandler, self)
+	const suspensionHandler = new SuspensionHandler(self, () =>
+		mainInterface.infoMessageHandler.onInfoMessage({
+			translationKey: "clientSuspensionWait_label",
+			args: {},
+		}),
+	)
 	const fileFacadeSendDispatcher = new FileFacadeSendDispatcher(worker)
 	const fileApp = new NativeFileApp(fileFacadeSendDispatcher, new ExportFacadeSendDispatcher(worker))
 

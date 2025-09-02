@@ -3,15 +3,18 @@ import { SuspensionHandler } from "../../../../src/common/api/worker/SuspensionH
 import { deferWithHandler, downcast } from "@tutao/tutanota-utils"
 import type { SystemTimeout } from "../../../../src/common/api/common/utils/Scheduler.js"
 import { InfoMessageHandler } from "../../../../src/common/gui/InfoMessageHandler.js"
-import { matchers, object } from "testdouble"
+import { func, matchers, object } from "testdouble"
 import { spy, verify } from "@tutao/tutanota-test-utils"
 
 o.spec("SuspensionHandler test", () => {
-	let suspensionHandler
-	let systemTimeout
-	let messageHandlerMock: InfoMessageHandler
+	let suspensionHandler: SuspensionHandler
+	let systemTimeout: SystemTimeout & { finish: () => unknown }
+	let suspensionCallback: () => unknown
+
+	const requestUrl = new URL("http://example.com")
+
 	o.beforeEach(() => {
-		messageHandlerMock = object()
+		suspensionCallback = func<typeof suspensionCallback>()
 		let timeoutFn = () => {}
 
 		systemTimeout = {
@@ -21,14 +24,14 @@ o.spec("SuspensionHandler test", () => {
 			clearTimeout: spy(),
 			finish: () => timeoutFn(),
 		}
-		suspensionHandler = new SuspensionHandler(messageHandlerMock, downcast<SystemTimeout>(systemTimeout))
+		suspensionHandler = new SuspensionHandler(systemTimeout, suspensionCallback)
 	})
 	o.spec("activating suspension", function () {
 		o(
 			"should prepare callback when not suspended",
 			node(async function () {
 				suspensionHandler._isSuspended = false
-				suspensionHandler.activateSuspensionIfInactive(100)
+				suspensionHandler.activateSuspensionIfInactive(100, requestUrl)
 				o(systemTimeout.setTimeout.args[0]).notEquals(null)
 				o(systemTimeout.setTimeout.args[1]).equals(100 * 1000)
 				o(suspensionHandler.isSuspended()).equals(true)
@@ -39,17 +42,17 @@ o.spec("SuspensionHandler test", () => {
 			node(async function () {
 				suspensionHandler._isSuspended = true
 				suspensionHandler._hasSentInfoMessage = false
-				suspensionHandler.activateSuspensionIfInactive(100)
+				suspensionHandler.activateSuspensionIfInactive(100, requestUrl)
 				o(systemTimeout.setTimeout.callCount).equals(0)
 				o(suspensionHandler.isSuspended()).equals(true)
-				verify(messageHandlerMock.onInfoMessage(matchers.anything()), { times: 0 })
+				verify(suspensionCallback(), { times: 0, ignoreExtraArgs: true })
 			}),
 		)
 		o(
 			"should go to not suspended state when suspension is complete",
 			node(async function () {
 				suspensionHandler._isSuspended = false
-				suspensionHandler.activateSuspensionIfInactive(100)
+				suspensionHandler.activateSuspensionIfInactive(100, requestUrl)
 				systemTimeout.finish()
 				o(suspensionHandler.isSuspended()).equals(false)
 			}),
@@ -59,8 +62,8 @@ o.spec("SuspensionHandler test", () => {
 			node(async function () {
 				suspensionHandler._isSuspended = false
 				suspensionHandler._hasSentInfoMessage = false
-				suspensionHandler.activateSuspensionIfInactive(100)
-				verify(messageHandlerMock.onInfoMessage(matchers.anything()), { times: 1 })
+				suspensionHandler.activateSuspensionIfInactive(100, requestUrl)
+				verify(suspensionCallback(), { times: 1 })
 			}),
 		)
 		o(
@@ -68,8 +71,8 @@ o.spec("SuspensionHandler test", () => {
 			node(async function () {
 				suspensionHandler._isSuspended = false
 				suspensionHandler._hasSentInfoMessage = true
-				suspensionHandler.activateSuspensionIfInactive(100)
-				verify(messageHandlerMock.onInfoMessage(matchers.anything()), { times: 0 })
+				suspensionHandler.activateSuspensionIfInactive(100, requestUrl)
+				verify(suspensionCallback(), { times: 0, ignoreExtraArgs: true })
 			}),
 		)
 	})
@@ -91,7 +94,7 @@ o.spec("SuspensionHandler test", () => {
 				const request = spy(() => Promise.resolve("ok"))
 				const returnedPromise = suspensionHandler.deferRequest(request)
 
-				suspensionHandler._deferredRequests[0].resolve()
+				suspensionHandler._deferredRequests[0].resolve(undefined)
 
 				const returnValue = await returnedPromise
 				o(request.callCount).equals(1)

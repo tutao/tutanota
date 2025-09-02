@@ -128,6 +128,8 @@ export class TutaSseFacade implements SseEventHandler {
 	/**
 	 * Throttled to avoid needless download requests for notifications when we rapidly receive notification messages,
 	 * since every request downloads all the available data.
+	 *
+	 * This also has an effect of serializing all the requests, which is important to make suspension work.
 	 */
 	private onNotification = throttleStart(NOTIFICATION_HANDLER_THROTTLE_MS, async () => {
 		if ((await this.sseStorage.getMissedNotificationCheckTime()) == null) {
