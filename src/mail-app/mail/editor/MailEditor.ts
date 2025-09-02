@@ -926,14 +926,28 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
 
-	const save = (showProgress: boolean = true) => {
+	const save = async (showProgress: boolean = true): Promise<SaveStatus> => {
+		// If this is not a manual save, we want to avoid autosaving if the body changed on the server
+		try {
+			if (!showProgress && (await model.serverBodyChanged())) {
+				return { status: SaveStatusEnum.NotSaved, reason: SaveErrorReason.ChangedOnServer }
+			}
+		} catch (e) {
+			if (isOfflineError(e)) {
+				return { status: SaveStatusEnum.NotSaved, reason: SaveErrorReason.ConnectionLost }
+			}
+			throw e
+		}
+
 		const savePromise = model.saveDraft(true, MailMethod.NONE)
 
 		if (showProgress) {
-			return showProgressDialog("save_msg", savePromise)
+			await showProgressDialog("save_msg", savePromise)
 		} else {
-			return savePromise
+			await savePromise
 		}
+
+		return { status: SaveStatusEnum.Saved }
 	}
 
 	const send = async () => {
@@ -974,7 +988,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		let saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saving })
 		if (model.hasMailChanged()) {
 			save(false)
-				.then(() => saveStatus({ status: SaveStatusEnum.Saved }))
+				.then((status) => saveStatus(status))
 				.catch((e) => {
 					const reason = isOfflineError(e) ? SaveErrorReason.ConnectionLost : SaveErrorReason.Unknown
 

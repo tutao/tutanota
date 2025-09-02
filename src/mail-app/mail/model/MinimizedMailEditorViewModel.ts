@@ -14,6 +14,7 @@ export const enum SaveStatusEnum {
 export const enum SaveErrorReason {
 	Unknown,
 	ConnectionLost,
+	ChangedOnServer,
 }
 
 export type SaveStatus =

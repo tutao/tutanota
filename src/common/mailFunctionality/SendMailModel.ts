@@ -10,6 +10,7 @@ import {
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 	MailDetails,
+	MailDetailsDraftTypeRef,
 	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import {
@@ -82,8 +83,8 @@ import { ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getMailBodyText } from "../api/common/CommonMailUtils.js"
 import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificationMismatchError"
-import { showMultiRecipientsKeyVerificationRecoveryDialog } from "../settings/keymanagement/KeyVerificationRecoveryDialog"
 import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarNotificationSender"
+import { CacheMode } from "../api/worker/rest/EntityRestClient"
 
 assertMainOrNode()
 
@@ -157,6 +158,8 @@ export class SendMailModel {
 	// If saveDraft is called while the previous call is still running, then flag to call again afterwards
 	private doSaveAgain: boolean = false
 	private recipientsResolved = new LazyLoaded<void>(async () => {})
+
+	private bodyOnServer: string | null = null
 
 	private _emailType: EventInviteEmailType | null = null
 
@@ -272,6 +275,24 @@ export class SendMailModel {
 	 */
 	getPasswordStrength(recipient: PartialRecipient): number {
 		return getPasswordStrengthForUser(this.getPassword(recipient.address), recipient, this.mailboxDetails, this.logins)
+	}
+
+	async serverBodyChanged(): Promise<boolean> {
+		if (this.currentSavePromise != null) {
+			// If this succeeds, then it's saved successfully (thus the body on the server has not changed)
+			return this.currentSavePromise.then(() => false)
+		}
+
+		const bodyOnServer = this.bodyOnServer
+		if (bodyOnServer == null) {
+			return false
+		}
+
+		// Bypass the cache as we don't know if we've gotten all entity events yet, nor do we want to wait
+		const mailDetailsOnServer = await this.entity.load(MailDetailsDraftTypeRef, assertNotNull(this.draft?.mailDetailsDraft), {
+			cacheMode: CacheMode.WriteOnly,
+		})
+		return mailDetailsOnServer.details.body.compressedText !== bodyOnServer
 	}
 
 	hasMailChanged(): boolean {
@@ -492,6 +513,8 @@ export class SendMailModel {
 		} else {
 			this.mailSavedAt = this.mailChangedAt + 1
 		}
+
+		this.bodyOnServer = draft ? bodyText : null
 
 		assertNotNull(this.initialized, "somehow got to the end of init without startInit called").resolve()
 
@@ -934,6 +957,7 @@ export class SendMailModel {
 			// Allow any changes that might occur while the mail is being saved to be accounted for
 			// if saved is called before this has completed
 			this.mailSavedAt = this.dateProvider.now()
+			this.bodyOnServer = body
 		} catch (e) {
 			if (e instanceof PayloadTooLargeError) {
 				throw new UserError("requestTooLarge_msg")
