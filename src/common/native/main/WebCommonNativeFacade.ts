@@ -83,14 +83,11 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 		const signatureModule = await import("../../../mail-app/mail/signature/Signature")
 		await this.logins.waitForPartialLogin()
 		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
-		let editor
 
 		try {
 			if (mailToUrlString) {
-				editor = await newMailtoUrlMailEditor(mailToUrlString, false, mailboxDetails).catch(ofClass(CancelledError, noOp))
-				if (!editor) return
-
-				editor.show()
+				const editor = await newMailtoUrlMailEditor(mailToUrlString, false, mailboxDetails).catch(ofClass(CancelledError, noOp))
+				editor?.show()
 			} else {
 				const fileApp = await this.fileApp()
 				const files = await fileApp.getFilesMetaData(filesUris)
@@ -153,7 +150,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 								],
 							}
 						: {}
-					editor = await newMailEditorFromTemplate(
+					const editor = await newMailEditorFromTemplate(
 						mailboxDetails,
 						recipients,
 						subject || (files.length > 0 ? files[0].name : ""),
@@ -164,7 +161,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 						true, // we want emails created in this method to always default to saving changes
 					)
 
-					editor.show()
+					editor?.show()
 				}
 			}
 		} catch (e) {

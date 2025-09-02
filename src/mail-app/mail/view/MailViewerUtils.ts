@@ -35,6 +35,7 @@ import { ExpanderButton, ExpanderPanel } from "../../../common/gui/base/Expander
 import { ColumnWidth, Table } from "../../../common/gui/base/Table"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { OperationHandle } from "../../../common/api/main/OperationProgressTracker"
+import { LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase"
 
 export type MailViewerMoreActions = {
 	disallowExternalContentAction?: () => void
@@ -95,7 +96,7 @@ export async function loadMailDetails(mailFacade: MailFacade, mail: Mail): Promi
 	}
 }
 
-export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
+export async function createEditDraftDialog(viewModel: MailViewerViewModel, localDraftData?: LocalAutosavedDraftData): Promise<Dialog | null> {
 	const sendAllowed = await checkApprovalStatus(locator.logins, false)
 	if (sendAllowed) {
 		// check if to be opened draft has already been minimized, iff that is the case, re-open it
@@ -103,6 +104,7 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 
 		if (minimizedEditor) {
 			mailLocator.minimizedMailModel.reopenMinimizedEditor(minimizedEditor)
+			return minimizedEditor.dialog
 		} else {
 			try {
 				const [mailboxDetails, { newMailEditorFromDraft }] = await Promise.all([
@@ -110,7 +112,7 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 					import("../editor/MailEditor"),
 				])
 				if (mailboxDetails == null) {
-					return
+					return null
 				}
 
 				let conversationEntry: ConversationEntry
@@ -119,7 +121,7 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 				} catch (e) {
 					if (e instanceof NotFoundError) {
 						// draft was likely deleted
-						return
+						return null
 					} else {
 						throw e
 					}
@@ -132,18 +134,26 @@ export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
 					viewModel.getAttachments(),
 					viewModel.getLoadedInlineImages(),
 					viewModel.isBlockingExternalImages(),
+					localDraftData,
 					mailboxDetails,
 				)
-				editorDialog.show()
+				return editorDialog
 			} catch (e) {
 				if (e instanceof UserError) {
 					await showUserError(e)
+					return null
 				} else {
 					throw e
 				}
 			}
 		}
+	} else {
+		return null
 	}
+}
+
+export async function editDraft(viewModel: MailViewerViewModel): Promise<void> {
+	createEditDraftDialog(viewModel).then((dialog) => dialog?.show())
 }
 
 export async function showSourceDialog(rawHtml: string) {

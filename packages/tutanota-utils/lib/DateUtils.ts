@@ -3,9 +3,15 @@
  * As functions here do not use Luxon it cannot be used for calculating things in different time zones, they
  * are dependent on the system time zone.
  */
-export const DAY_IN_MILLIS = 1000 * 60 * 60 * 24
 
-export const YEAR_IN_MILLIS = DAY_IN_MILLIS * 365
+import { DAY_IN_MILLIS, daysToMillis } from "./TimeUtils.js"
+
+/**
+ * The minimum length of a calendar year.
+ *
+ * This should not be used for calculating duration since leap years (which are 97/400 of all years) have 366 days.
+ */
+export const YEAR_IN_MILLIS = daysToMillis(365)
 
 /**
  * dates from before 1970 have negative timestamps and are currently considered edge cases
@@ -71,7 +77,7 @@ export function isSameDay(date1: Date, date2: Date): boolean {
  * periods of time and are not subject to daylight saving.
  */
 export function getDayShifted(date: Date, days: number): Date {
-	return new Date(date.getTime() + days * DAY_IN_MILLIS)
+	return new Date(date.getTime() + daysToMillis(days))
 }
 
 /**
@@ -134,8 +140,4 @@ export function isValidDate(date: Date): boolean {
  */
 export function millisToDays(millis: number): number {
 	return millis / DAY_IN_MILLIS
-}
-
-export function daysToMillis(days: number): number {
-	return days * DAY_IN_MILLIS
 }
