@@ -132,10 +132,14 @@ class MainActivity : FragmentActivity() {
 			db,
 			createAndroidKeyStoreFacade()
 		)
+
+		// On top before CalendarFacade because we need the user agent to sync external calendars
+		webView = WebView(this)
+
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
 			AndroidFileFacade(this, localNotificationsFacade, SecureRandom(), NetworkUtils.defaultClient)
-		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient)
+		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient, webView.settings.userAgentString)
 		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
 
 
@@ -194,7 +198,6 @@ class MainActivity : FragmentActivity() {
 
 		setupPushNotifications()
 
-		webView = WebView(this)
 		webView.setBackgroundColor(Color.TRANSPARENT)
 
 		if (BuildConfig.DEBUG) {
