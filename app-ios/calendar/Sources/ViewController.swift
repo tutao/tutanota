@@ -64,6 +64,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		#endif
 
 		let commonSystemFacade = IosCommonSystemFacade(viewController: self, urlSession: urlSession)
+		let userAgent = "\(self.webView.value(forKey: "userAgent") ?? "")"
 		self.bridge = RemoteBridge(
 			webView: self.webView,
 			viewController: self,
@@ -85,7 +86,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			sqlCipherFacade: self.sqlCipherFacade,
 			contactsSynchronization: contactsSynchronization,
 			userPreferencesProvider: userPreferencesProvider,
-			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession)
+			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession, userAgent: userAgent)
 		)
 
 	}

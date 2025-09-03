@@ -9,11 +9,13 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 
 class AndroidCalendarFacade(
-	private val defaultClient: OkHttpClient
+	private val defaultClient: OkHttpClient,
+	private val userAgent: String
 ) : ExternalCalendarFacade {
 	override suspend fun fetchExternalCalendar(url: String): String {
 		val requestBuilder = Request.Builder()
 			.url(url)
+			.header("User-Agent", userAgent)
 			.method("GET", null)
 
 		val req = requestBuilder.build()

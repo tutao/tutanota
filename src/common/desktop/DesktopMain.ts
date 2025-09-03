@@ -327,7 +327,7 @@ async function createComponents(): Promise<Components> {
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider, desktopExportLock),
-			new DesktopExternalCalendarFacade(),
+			new DesktopExternalCalendarFacade(electron.app.userAgentFallback),
 			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs, path),
 			new DesktopInterWindowEventFacade(window, wm),
 			nativeCredentialsFacade,

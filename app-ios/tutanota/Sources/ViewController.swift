@@ -65,6 +65,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 			if #available(iOS 16.4, *) { webView.isInspectable = true }
 		#endif
 
+		let userAgent = "\(self.webView.value(forKey: "userAgent") ?? "")"
 		let commonSystemFacade = IosCommonSystemFacade(viewController: self, urlSession: urlSession)
 		self.bridge = RemoteBridge(
 			webView: self.webView,
@@ -87,7 +88,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 			sqlCipherFacade: self.sqlCipherFacade,
 			contactsSynchronization: contactsSynchronization,
 			userPreferencesProvider: userPreferencesProvider,
-			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession)
+			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession, userAgent: userAgent)
 		)
 
 	}
