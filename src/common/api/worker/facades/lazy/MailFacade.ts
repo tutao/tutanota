@@ -438,12 +438,14 @@ export class MailFacade {
 			reportType,
 		})
 		await this.storeSpamResult(mail, true)
-		// await this.serviceExecutor.post(ReportMailService, postData)
+		await this.serviceExecutor.post(ReportMailService, postData)
 	}
 
 	async storeSpamResult(mail: Mail, isSpam: boolean): Promise<void> {
-		const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
-		await this.storage.putSpamMailClassification(mail, mailDetailsBlob.body, isSpam)
+		if (!isDraft(mail)) {
+			const mailDetails = await this.loadMailDetailsBlob(mail)
+			await this.storage.putSpamMailClassification(mail, mailDetails.body, isSpam)
+		}
 	}
 
 	async updateClassifier(): Promise<void> {
