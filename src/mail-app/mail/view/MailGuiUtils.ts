@@ -252,10 +252,9 @@ async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportab
 	// user to undo the move...
 	let undone: boolean
 	if (undoFolder != null && !isSameId(getElementId(targetFolder), getElementId(undoFolder))) {
-		const undoMoveText =
-			targetFolder.folderType === MailSetKind.SPAM
-				? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
-				: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text
+		const undoMoveText = shouldReportMails
+			? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
+			: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text
 		const onUndoMove = async () => {
 			const mails = await resolveMails()
 			await mailModel.moveMails(getIds(mails), undoFolder, MoveMode.Mails)
