@@ -20,17 +20,21 @@ import {
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { ListElementEntity } from "../../../../../src/common/api/common/EntityTypes"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
+import { object } from "testdouble"
+import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 o.spec("OfflineStoragePersistence", () => {
 	let persistence: OfflineStoragePersistence
 	let sqlCipherFacade: SqlCipherFacade
+	let cacheStorage: CacheStorage
 	const userId = "my user id"
 
 	o.beforeEach(async () => {
 		sqlCipherFacade = new DesktopSqlCipher(":memory:", false)
-		persistence = new OfflineStoragePersistence(sqlCipherFacade)
+		cacheStorage = object()
+		persistence = new OfflineStoragePersistence(sqlCipherFacade, cacheStorage)
 		await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 
 		// Needs to be done manually since OfflineStorage would have done this

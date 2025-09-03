@@ -93,6 +93,8 @@ export class OfflineStoragePersistence {
 	static readonly MAIL_INDEXING_ENABLED = "mailIndexingEnabled"
 	static readonly CONTACTS_INDEXED = "contactsIndexed"
 
+	// fixme is injecting the cache here okay?
+	// fixme add tests for the new table
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
 		private readonly storage: CacheStorage,

@@ -42,6 +42,8 @@ import { Recipient } from "../../../../../src/common/api/common/recipients/Recip
 import { AesKey } from "@tutao/tutanota-crypto"
 import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
+import { SpamClassifier } from "../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -54,6 +56,8 @@ o.spec("MailFacade test", function () {
 	let loginFacade: LoginFacade
 	let keyLoaderFacade: KeyLoaderFacade
 	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
+	let cacheStorage: CacheStorage
+	let spamClassifier: SpamClassifier
 
 	o.beforeEach(function () {
 		userFacade = object()
@@ -65,6 +69,8 @@ o.spec("MailFacade test", function () {
 		loginFacade = object()
 		keyLoaderFacade = object()
 		publicEncryptionKeyProvider = object()
+		cacheStorage = object()
+		spamClassifier = object()
 		facade = new MailFacade(
 			userFacade,
 			entity,
@@ -75,6 +81,8 @@ o.spec("MailFacade test", function () {
 			loginFacade,
 			keyLoaderFacade,
 			publicEncryptionKeyProvider,
+			cacheStorage,
+			spamClassifier,
 		)
 	})
 

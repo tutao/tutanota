@@ -22,12 +22,14 @@ import {
 	RecipientsTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { createTestEntity } from "../../../TestUtils"
+import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
 o.spec("OfflineStorageSearchFacade", () => {
 	let sqlCipherFacade: SqlCipherFacade
 	let persistence: OfflineStoragePersistence
+	let cacheStorage: CacheStorage
 	let offlineStorageSearchFacade: OfflineStorageSearchFacade
 	let contactIndexer: ContactIndexer
 	let mailIndexer: MailIndexer
@@ -36,9 +38,9 @@ o.spec("OfflineStorageSearchFacade", () => {
 	o.beforeEach(async () => {
 		sqlCipherFacade = new DesktopSqlCipher(":memory:", false)
 		await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
-
+		cacheStorage = object()
 		// Unfortunately, this is pretty tightly coupled with real persistence
-		persistence = new OfflineStoragePersistence(sqlCipherFacade)
+		persistence = new OfflineStoragePersistence(sqlCipherFacade, cacheStorage)
 
 		// Needs to be done manually since OfflineStorage would have done this
 		for (const { definition } of typedValues(SearchTableDefinitions)) {
