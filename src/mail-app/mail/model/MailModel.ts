@@ -242,7 +242,6 @@ export class MailModel {
 
 	async applySpamClassificationToMail(mail: Mail): Promise<boolean> {
 		const isSpam = await this.mailFacade.predictSpamResult(mail)
-		console.log("Spam classification result: ", isSpam)
 		if (isSpam) {
 			await this.simpleMoveMails([mail._id], MailSetKind.SPAM)
 			return true

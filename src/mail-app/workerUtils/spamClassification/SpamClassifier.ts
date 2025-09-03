@@ -1,14 +1,13 @@
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
-// @ts-ignore[untyped-import]
 import * as tf from "@tensorflow/tfjs"
-// @ts-ignore[untyped-import]
-import { Corpus, Document } from "tiny-tfidf"
+import { TfIdfVectorizer } from "./TfIdfVectorizer"
 
 assertWorkerOrNode()
 
 // fixme try different models/libraries
 // fixme determine training frequency (currently it is trained on every move to/out of spam)
+// fixme should we do training on a separate thread?
 
 export type SpamClassificationRow = {
 	listId: string
@@ -26,25 +25,25 @@ export type SpamClassificationModel = {
 
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
-	private corpus: Corpus | null = null
 	private documents: Map<string, string> = new Map<string, string>()
+	private tfIdfVectorizer: TfIdfVectorizer | null = null
 
 	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
 
 	public async updateModel(cutoffTimestamp: number, testRatio = 0.2): Promise<boolean> {
 		try {
 			await this.loadModel()
-			await this.loadTokenizerFromOfflineDb()
+			await this.loadVectorizerFromOfflineDb()
+
+			if (!this.tfIdfVectorizer) {
+				console.error("Could not initialize tf-idf vectorizer from the mails in the offline database")
+				return false
+			}
 
 			if (!this.classifier) {
 				console.log("No existing model found. Training from scratch...")
 				await this.train(testRatio)
-				return false
-			}
-
-			if (!this.corpus) {
-				console.error("Corpus is null. Cannot retrain.")
-				return false
+				return true
 			}
 
 			const newTrainingData = await this.offlineStorage.getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
@@ -59,7 +58,7 @@ export class SpamClassifier {
 				batchDocumentIds.push(`${newTrainingData[i].listId}/${newTrainingData[i].elementId}`)
 			}
 
-			const xs = this.buildTfIdfMatrix(batchDocumentIds)
+			const xs = this.tfIdfVectorizer.transform(batchDocumentIds)
 			const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
 
 			const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
@@ -81,7 +80,7 @@ export class SpamClassifier {
 	private async train(testRatio = 0.2): Promise<void> {
 		const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
 
-		const xs = this.buildTfIdfMatrix(Array.from(this.documents.keys()))
+		const xs = this.tfIdfVectorizer!.transform(data.map((d) => this.sanitizeModelInput(d.subject, d.body)))
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
@@ -102,16 +101,16 @@ export class SpamClassifier {
 			await this.loadModel()
 		}
 
-		if (!this.corpus) {
-			await this.loadTokenizerFromOfflineDb()
+		if (!this.tfIdfVectorizer) {
+			await this.loadVectorizerFromOfflineDb()
 		}
 
-		if (!this.classifier || !this.corpus) {
+		if (!this.classifier || !this.tfIdfVectorizer) {
 			console.error("Classifier or tokenizer not found.")
 			return false
 		}
 
-		const vector = this.getTfIdfVectorForQuery(subjectAndBody)
+		const vector = this.tfIdfVectorizer.vectorize(subjectAndBody)
 		const xs = tf.tensor2d([vector], [1, vector.length])
 		const pred = (await (this.classifier.predict(xs) as tf.Tensor).data())[0]
 		return pred > 0.5
@@ -204,40 +203,6 @@ export class SpamClassifier {
 		return model
 	}
 
-	// TF - IDF helpers
-	private getTfIdfVector(docId: string): number[] {
-		const vectorMap = this.corpus.getDocumentVector(docId)
-		const allTerms = this.corpus.getTerms()
-		const vector: number[] = []
-		for (let i = 0; i < allTerms.length; i++) {
-			vector.push(vectorMap.get(allTerms[i]) || 0)
-		}
-		return vector
-	}
-
-	private getTfIdfVectorForQuery(query: string): number[] {
-		const text = query.trim().length > 0 ? query.trim() : " "
-		const terms = new Document(text).getUniqueTerms()
-		const allTerms: string[] = this.corpus!.getTerms()
-		const vector: number[] = []
-
-		for (let i = 0; i < allTerms.length; i++) {
-			const term = allTerms[i]
-			const idf = this.corpus!.getCollectionFrequencyWeight(term) || 0
-			const tf = terms.filter((t: string) => t === term).length
-			vector.push(idf * tf)
-		}
-		return vector
-	}
-
-	private buildTfIdfMatrix(docIds: string[]): tf.Tensor2D {
-		const vectors: number[][] = []
-		for (let i = 0; i < docIds.length; i++) {
-			vectors.push(this.getTfIdfVector(docIds[i]))
-		}
-		return tf.tensor2d(vectors, [vectors.length, vectors[0].length])
-	}
-
 	// PERSISTENCE
 	// fixme we're now saving the same information in 3 places (mail_index, spam_classification in OfflineStoragePersistence + mail and details in OfflineStorage).
 	// fixme on current master we only have 2 places (mail index table + mail and details in odb). This is unnecessary and should be optimized before merge
@@ -295,11 +260,12 @@ export class SpamClassifier {
 		}
 	}
 
-	private async loadTokenizerFromOfflineDb(): Promise<void> {
+	// fixme does it make sense to serialize the vectorizer separately in offline db?
+	private async loadVectorizerFromOfflineDb(): Promise<void> {
 		const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
 		data.map((datum) => {
 			this.documents.set(`${datum.listId}/${datum.elementId}`, this.sanitizeModelInput(datum.subject, datum.body))
 		})
-		this.corpus = new Corpus(Array.from(this.documents.keys()), Array.from(this.documents.values()))
+		this.tfIdfVectorizer = new TfIdfVectorizer(Array.from(this.documents.keys()), Array.from(this.documents.values()))
 	}
 }
