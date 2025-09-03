@@ -60,6 +60,7 @@ export interface UndoAction {
 
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
+	/** Beware: this can be a label. */
 	private _folder: MailFolder | null = null
 	private _listModel: MailSetListModel | null = null
 	/** id of the mail that was requested to be displayed, independent of the list state. */
@@ -472,6 +473,9 @@ export class MailViewModel {
 		return this.mailFolderElementIdToSelectedMailId
 	}
 
+	/**
+	 * Beware: this can return a label.
+	 */
 	getFolder(): MailFolder | null {
 		return this._folder
 	}

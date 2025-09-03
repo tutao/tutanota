@@ -92,12 +92,20 @@ interface MoveMailsParams {
 }
 
 /** @return whether emails should be reported */
-async function getReportAnswer(targetMailFolder: MailFolder, isReportable: boolean, mailboxModel: MailboxModel, mailModel: MailModel): Promise<boolean> {
+async function getReportAnswer(
+	targetMailFolder: MailFolder,
+	isReportable: boolean,
+	mailboxModel: MailboxModel,
+	mailModel: MailModel,
+	currentFolder: MailFolder | null,
+): Promise<boolean> {
 	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetMailFolder._ownerGroup))
 	if (system == null) {
 		return false
 	}
-	if (isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM) && isReportable) {
+	const targetFolderIsSpam = isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM)
+	const currentFolderIsSpam = currentFolder != null && isOfTypeOrSubfolderOf(system, currentFolder, MailSetKind.SPAM)
+	if (targetFolderIsSpam && !currentFolderIsSpam && isReportable) {
 		return getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel)
 	} else {
 		return false
@@ -255,21 +263,24 @@ async function runPostSimpleMoveActions(
 	}
 }
 
-async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportable = true, mailboxModel, undoFolder, undoModel }: MoveMailsParams) {
+async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportable = true, mailboxModel, undoFolder, moveMode, undoModel }: MoveMailsParams) {
 	const resolveMails = () => mailModel.loadAllMails(mailIds)
+	// the current folder is only taken into account when we know all the mails are in the same folder
+	const currentFolder = undoFolder != null && undoFolder.folderType !== MailSetKind.LABEL && moveMode === MoveMode.Mails ? undoFolder : null
 
-	const shouldReportMails = await getReportAnswer(targetFolder, isReportable, mailboxModel, mailModel)
+	const shouldReportMails = await getReportAnswer(targetFolder, isReportable, mailboxModel, mailModel, currentFolder)
 
 	// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
 	// user to undo the move...
 	let undone: boolean
-	if (undoFolder != null && !isSameId(getElementId(targetFolder), getElementId(undoFolder))) {
+	if (currentFolder != null && !isSameId(getElementId(targetFolder), getElementId(currentFolder))) {
 		const undoMoveText = shouldReportMails
 			? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
 			: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text
+
 		const onUndoMove = async () => {
 			const mails = await resolveMails()
-			await mailModel.moveMails(getIds(mails), undoFolder, MoveMode.Mails)
+			await mailModel.moveMails(getIds(mails), currentFolder, MoveMode.Mails)
 		}
 
 		const undoResult = await showUndoMoveMailSnackbar(undoModel, onUndoMove, undoMoveText)
