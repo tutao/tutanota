@@ -73,6 +73,8 @@ import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.model.WidgetUIViewModel
+import de.tutao.calendar.widget.style.AppTheme
+import de.tutao.calendar.widget.style.Dimensions
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.IdTuple
@@ -100,13 +102,6 @@ enum class HeaderVariant {
 	OUTSIDE,
 	INSIDE
 }
-
-
-const val ICON_SIZE_MEDIUM = 16
-const val CORNER_RADIUS = 8
-const val SPACING_SMALL = 8
-const val SPACING_MEDIUM = 12
-
 
 class Agenda : GlanceAppWidget() {
 	override val stateDefinition: GlanceStateDefinition<*> = WidgetStateDefinition()
@@ -236,11 +231,11 @@ class Agenda : GlanceAppWidget() {
 	@Composable
 	fun ErrorBody(error: WidgetError?, logsAction: Action, loginAction: Action) {
 		Column(
-			modifier = GlanceModifier.padding(SPACING_MEDIUM.dp)
+			modifier = GlanceModifier.padding(Dimensions.Spacing.MD.dp)
 				.background(GlanceTheme.colors.background)
 				.fillMaxSize()
 				.appWidgetBackground()
-				.cornerRadius(8.dp),
+				.cornerRadius(Dimensions.Spacing.SM.dp),
 			verticalAlignment = Alignment.CenterVertically,
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
@@ -288,7 +283,7 @@ class Agenda : GlanceAppWidget() {
 				.padding(horizontal = 16.dp)
 				.height(44.dp)
 				.background(GlanceTheme.colors.primary)
-				.cornerRadius(8.dp)
+				.cornerRadius(Dimensions.Spacing.SM.dp)
 				.clickable(
 					rippleOverride = R.drawable.transparent_ripple,
 					onClick = action
@@ -307,9 +302,9 @@ class Agenda : GlanceAppWidget() {
 
 		Column(
 			modifier = GlanceModifier.padding(
-				top = 12.dp,
-				start = 12.dp,
-				end = 12.dp,
+				top = Dimensions.Spacing.MD.dp,
+				start = Dimensions.Spacing.MD.dp,
+				end = Dimensions.Spacing.MD.dp,
 				bottom = 0.dp
 			)
 				.background(GlanceTheme.colors.background)
@@ -361,7 +356,7 @@ class Agenda : GlanceAppWidget() {
 						textAlign = TextAlign.Center
 					),
 					maxLines = 2,
-					modifier = GlanceModifier.padding(bottom = 12.dp, top = 4.dp)
+					modifier = GlanceModifier.padding(bottom = Dimensions.Spacing.MD.dp, top = 4.dp)
 				)
 				Image(
 					provider = ImageProvider(getEmptyResource()),
@@ -387,7 +382,7 @@ class Agenda : GlanceAppWidget() {
 				val currentDay = Date.from(Instant.ofEpochMilli(startOfDay))
 				val isFirstDay = dayIndex == 0
 
-				Row(modifier = GlanceModifier.padding(top = SPACING_SMALL.dp)) {
+				Row(modifier = GlanceModifier.padding(top = Dimensions.Spacing.SM.dp)) {
 					if (isFirstDay) {
 						TodayCard(
 							userId,
@@ -444,7 +439,7 @@ class Agenda : GlanceAppWidget() {
 //										)
 //										if (eventIndex < normalEvents.size - 1) {
 //											Spacer(
-//												modifier = GlanceModifier.height(12.dp)
+//												modifier = GlanceModifier.height(Dimensions.Spacing.md.dp)
 //											)
 //										}
 //									}
@@ -456,7 +451,7 @@ class Agenda : GlanceAppWidget() {
 //						modifier = GlanceModifier.height(
 //							if (data.normalEvents[startOfDay]?.isEmpty() != false ||
 //								dayIndex == data.normalEvents.size - 1
-//							) 12.dp else 6.dp
+//							) Dimensions.Spacing.md.dp else 6.dp
 //						)
 //					)
 //				}
@@ -475,10 +470,10 @@ class Agenda : GlanceAppWidget() {
 		eventGroups.forEachIndexed { index, events ->
 			Column(
 				modifier = GlanceModifier.padding(
-					start = SPACING_SMALL.dp,
-					top = if (index == 0) SPACING_SMALL.dp else 0.dp,
-					end = SPACING_SMALL.dp,
-					bottom = if (index == eventGroups.size - 1) SPACING_SMALL.dp else 0.dp,
+					start = Dimensions.Spacing.SM.dp,
+					top = if (index == 0) Dimensions.Spacing.SM.dp else 0.dp,
+					end = Dimensions.Spacing.SM.dp,
+					bottom = if (index == eventGroups.size - 1) Dimensions.Spacing.SM.dp else 0.dp,
 				)
 			) {
 				events.forEachIndexed { eventIndex, event ->
@@ -492,7 +487,7 @@ class Agenda : GlanceAppWidget() {
 					// add space between elements (no spacing after the last element)
 					if (eventIndex < normalEvents.size - 1) {
 						Spacer(
-							modifier = GlanceModifier.height(SPACING_SMALL.dp)
+							modifier = GlanceModifier.height(Dimensions.Spacing.SM.dp)
 						)
 					}
 				}
@@ -529,7 +524,7 @@ class Agenda : GlanceAppWidget() {
 		Row(
 			modifier = GlanceModifier
 				.fillMaxWidth()
-				.padding(12.dp),
+				.padding(Dimensions.Spacing.MD.dp),
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalAlignment = Alignment.CenterVertically
 		) {
@@ -546,7 +541,7 @@ class Agenda : GlanceAppWidget() {
 						color = GlanceTheme.colors.onBackground,
 						fontSize = 12.sp
 					),
-					modifier = GlanceModifier.padding(start = 8.dp, bottom = 0.dp)
+					modifier = GlanceModifier.padding(start = Dimensions.Spacing.SM.dp, bottom = 0.dp)
 				)
 			}
 		}
@@ -587,7 +582,7 @@ class Agenda : GlanceAppWidget() {
 		Column(
 			modifier = GlanceModifier
 				.background(GlanceTheme.colors.surface)
-				.cornerRadius(8.dp)
+				.cornerRadius(Dimensions.Spacing.SM.dp)
 				.fillMaxWidth()
 				.clickable(this@Agenda.openCalendarAgenda(LocalContext.current, userId, currentDay)),
 		) {
@@ -624,7 +619,7 @@ class Agenda : GlanceAppWidget() {
 				(paddingVertical).dp
 			)
 				.background(GlanceTheme.colors.surface)
-				.cornerRadius(8.dp)
+				.cornerRadius(Dimensions.Spacing.SM.dp)
 				.fillMaxWidth()
 				.clickable(this@Agenda.openCalendarAgenda(LocalContext.current, userId, currentDay)),
 		) {
@@ -656,7 +651,7 @@ class Agenda : GlanceAppWidget() {
 	private fun AllDayHeader(allDayEvents: List<UIEvent>) {
 		Row(
 			modifier = GlanceModifier
-				.padding(SPACING_MEDIUM.dp, SPACING_SMALL.dp)
+				.padding(Dimensions.Spacing.MD.dp, Dimensions.Spacing.SM.dp)
 				.fillMaxWidth()
 				.background(GlanceTheme.colors.surfaceVariant),
 			verticalAlignment = Alignment.CenterVertically
@@ -680,8 +675,8 @@ class Agenda : GlanceAppWidget() {
 			Box(
 				modifier = GlanceModifier
 					.background(calendarColor)
-					.cornerRadius((ICON_SIZE_MEDIUM / 2).dp)
-					.size(ICON_SIZE_MEDIUM.dp)
+					.cornerRadius((Dimensions.Size.SM / 2).dp)
+					.size(Dimensions.Size.SM.dp)
 					.padding(padding.dp)
 			) {
 				Image(
@@ -711,7 +706,8 @@ class Agenda : GlanceAppWidget() {
 							fontWeight = FontWeight.Bold
 						),
 						maxLines = 1,
-						modifier = GlanceModifier.padding(start = 8.dp).defaultWeight().wrapContentWidth()
+						modifier = GlanceModifier.padding(start = Dimensions.Spacing.SM.dp).defaultWeight()
+							.wrapContentWidth()
 					)
 				}
 			}
@@ -748,20 +744,20 @@ class Agenda : GlanceAppWidget() {
 		variant: HeaderVariant
 	) {
 		val hasAllDayEvents = allDayEvents.isNotEmpty()
-		val titleBottomPadding = if (hasAllDayEvents) 0.dp else (-SPACING_SMALL).dp
+		val titleBottomPadding = if (hasAllDayEvents) 0.dp else (-Dimensions.Spacing.SM).dp
 		val dateNow = LocalDateTime.now()
 
 		Row(
 			verticalAlignment = Alignment.Top,
-			modifier = GlanceModifier.fillMaxWidth().padding(bottom = SPACING_SMALL.dp)
+			modifier = GlanceModifier.fillMaxWidth().padding(bottom = Dimensions.Spacing.SM.dp)
 		) {
 			Column(
 				modifier = GlanceModifier
 					.clickable(rippleOverride = R.drawable.transparent_ripple, onClick = onTap)
 					.defaultWeight()
 					.padding(
-						start = (if (variant == HeaderVariant.INSIDE) SPACING_SMALL else 0).dp,
-						top = (if (variant == HeaderVariant.INSIDE && hasAllDayEvents) SPACING_SMALL else 0).dp
+						start = (if (variant == HeaderVariant.INSIDE) Dimensions.Spacing.SM else 0).dp,
+						top = (if (variant == HeaderVariant.INSIDE && hasAllDayEvents) Dimensions.Spacing.SM else 0).dp
 					)
 			) {
 				Text(
@@ -773,7 +769,7 @@ class Agenda : GlanceAppWidget() {
 					text = dateNow.format(DateTimeFormatter.ofPattern(if (hasAllDayEvents) "EEEE dd" else "dd")),
 					maxLines = 1,
 					modifier = GlanceModifier.defaultWeight().wrapContentHeight()
-						.padding(top = (-4).dp, bottom = titleBottomPadding)
+						.padding(bottom = titleBottomPadding)
 				)
 
 				val subTitle = if (hasAllDayEvents) {
@@ -787,32 +783,7 @@ class Agenda : GlanceAppWidget() {
 					verticalAlignment = Alignment.CenterVertically
 				) {
 					if (hasAllDayEvents) {
-						val calendarColor = Color(parseColor("#${allDayEvents.first().calendarColor}"))
-						val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
-						val allDayIconColor =
-							generateColorProviderForColor(if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface)
-
-						val image: Int
-						val padding: Int
-
-						if (allDayEvents.first().isBirthday) {
-							image = R.drawable.ic_gift
-							padding = 3
-						} else {
-							image = R.drawable.ic_all_day
-							padding = 2
-						}
-
-						Box(
-							modifier = GlanceModifier.background(calendarColor).cornerRadius(8.dp).size(16.dp)
-								.padding(padding.dp)
-						) {
-							Image(
-								provider = ImageProvider(image),
-								contentDescription = "All day event",
-								colorFilter = ColorFilter.tint(allDayIconColor),
-							)
-						}
+						AllDayIcon(allDayEvents)
 					}
 
 					Row {
@@ -835,7 +806,8 @@ class Agenda : GlanceAppWidget() {
 									fontWeight = FontWeight.Bold
 								),
 								maxLines = 1,
-								modifier = GlanceModifier.padding(start = 8.dp).defaultWeight().wrapContentWidth()
+								modifier = GlanceModifier.padding(start = Dimensions.Spacing.SM.dp).defaultWeight()
+									.wrapContentWidth()
 							)
 						}
 					}
@@ -846,7 +818,7 @@ class Agenda : GlanceAppWidget() {
 				horizontalAlignment = Alignment.End
 			) {
 				var buttonModifier = GlanceModifier
-					.size(48.dp)
+					.size(Dimensions.Size.XXL.dp)
 					.clickable(rippleOverride = R.drawable.transparent_ripple, onClick = onNewEvent)
 
 				if (variant == HeaderVariant.INSIDE) {
@@ -854,7 +826,7 @@ class Agenda : GlanceAppWidget() {
 						.background(ImageProvider(R.drawable.btn_background))
 				} else {
 					buttonModifier = buttonModifier
-						.cornerRadius(8.dp)
+						.cornerRadius(Dimensions.Spacing.SM.dp)
 						.background(GlanceTheme.colors.primary)
 				}
 
@@ -866,10 +838,41 @@ class Agenda : GlanceAppWidget() {
 						provider = ImageProvider(R.drawable.ic_add),
 						contentDescription = "Add event button",
 						colorFilter = ColorFilter.tint(GlanceTheme.colors.onPrimary),
-						modifier = GlanceModifier.size(24.dp)
+						modifier = GlanceModifier.size(Dimensions.Size.MD.dp)
 					)
 				}
 			}
+		}
+	}
+
+	@Composable
+	private fun AllDayIcon(allDayEvents: List<UIEvent>) {
+		val calendarColor = Color(parseColor("#${allDayEvents.first().calendarColor}"))
+		val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
+		val allDayIconColor =
+			generateColorProviderForColor(if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface)
+
+		val image: Int
+		val padding: Int
+
+		if (allDayEvents.first().isBirthday) {
+			image = R.drawable.ic_gift
+			padding = 3
+		} else {
+			image = R.drawable.ic_all_day
+			padding = 2
+		}
+
+		Box(
+			modifier = GlanceModifier.background(calendarColor).cornerRadius(Dimensions.Spacing.SM.dp)
+				.size(16.dp)
+				.padding(padding.dp)
+		) {
+			Image(
+				provider = ImageProvider(image),
+				contentDescription = "All day event",
+				colorFilter = ColorFilter.tint(allDayIconColor),
+			)
 		}
 	}
 
@@ -903,14 +906,14 @@ class Agenda : GlanceAppWidget() {
 		Row(
 			modifier = modifier
 				.fillMaxWidth()
-				.padding(SPACING_SMALL.dp),
+				.padding(Dimensions.Spacing.SM.dp),
 			verticalAlignment = Alignment.CenterVertically
 
 		) {
 			DayWithWeekday(GlanceModifier, currentDay, currentWeekDay)
-			Spacer(modifier = GlanceModifier.width(SPACING_MEDIUM.dp))
+			Spacer(modifier = GlanceModifier.width(Dimensions.Spacing.MD.dp))
 			CalendarIndicator(color = spacerColor)
-			Spacer(modifier = GlanceModifier.width(SPACING_MEDIUM.dp))
+			Spacer(modifier = GlanceModifier.width(Dimensions.Spacing.MD.dp))
 			val eventTitle = LocalContext.current.getString(R.string.widgetNoEvents_msg)
 			Text(
 				eventTitle,
@@ -963,11 +966,11 @@ class Agenda : GlanceAppWidget() {
 			DayWithWeekday(dateModifier, currentDay, currentWeekDay)
 
 			if (!happensToday) {
-				Spacer(modifier = GlanceModifier.width(SPACING_MEDIUM.dp))
+				Spacer(modifier = GlanceModifier.width(Dimensions.Spacing.MD.dp))
 			}
 
 			CalendarIndicator(color = Color(parseColor("#${event.calendarColor}")))
-			Spacer(modifier = GlanceModifier.width(SPACING_MEDIUM.dp))
+			Spacer(modifier = GlanceModifier.width(Dimensions.Spacing.MD.dp))
 
 			// event title and time
 			Column {

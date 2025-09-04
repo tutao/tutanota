@@ -175,7 +175,7 @@ impl CalendarFacade {
 		let (end_range, _) = self.parse_date_to_all_day_range(end_date, offset)?;
 
 		log::info!("Getting in range: {}, {}", start_range, end_range);
-		
+
 		let start_in_offset = OffsetDateTime::from_unix_timestamp(
 			DateTime::from_millis(start_range).as_seconds() as i64,
 		)
