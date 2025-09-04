@@ -73,6 +73,8 @@ import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.model.WidgetUIViewModel
+import de.tutao.calendar.widget.style.AppTheme
+import de.tutao.calendar.widget.style.Dimensions
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.IdTuple
@@ -224,8 +226,11 @@ class Agenda : GlanceAppWidget() {
 	@Composable
 	fun ErrorBody(error: WidgetError?, logsAction: Action, loginAction: Action) {
 		Column(
-			modifier = GlanceModifier.padding(12.dp).background(GlanceTheme.colors.background).fillMaxSize()
-				.appWidgetBackground().cornerRadius(8.dp),
+			modifier = GlanceModifier.padding(Dimensions.Spacing.MD.dp)
+				.background(GlanceTheme.colors.background)
+				.fillMaxSize()
+				.appWidgetBackground()
+				.cornerRadius(Dimensions.Spacing.SM.dp),
 			verticalAlignment = Alignment.CenterVertically,
 			horizontalAlignment = Alignment.CenterHorizontally
 		) {
@@ -273,7 +278,7 @@ class Agenda : GlanceAppWidget() {
 				.padding(horizontal = 16.dp)
 				.height(44.dp)
 				.background(GlanceTheme.colors.primary)
-				.cornerRadius(8.dp)
+				.cornerRadius(Dimensions.Spacing.SM.dp)
 				.clickable(
 					rippleOverride = R.drawable.transparent_ripple,
 					onClick = action
@@ -292,9 +297,9 @@ class Agenda : GlanceAppWidget() {
 
 		Column(
 			modifier = GlanceModifier.padding(
-				top = 12.dp,
-				start = 12.dp,
-				end = 12.dp,
+				top = Dimensions.Spacing.MD.dp,
+				start = Dimensions.Spacing.MD.dp,
+				end = Dimensions.Spacing.MD.dp,
 				bottom = 0.dp
 			)
 				.background(GlanceTheme.colors.background)
@@ -306,116 +311,289 @@ class Agenda : GlanceAppWidget() {
 			if (data == null) {
 				return@Column LoadingSpinner()
 			}
-
-			Header(
-				allDayEvents = data.allDayEvents[firstDay] ?: listOf(),
-				onTap = headerCallback,
-				onNewEvent = newEventCallback,
-			)
-
 			if (isEmpty) {
-				return@Column Column(
-					verticalAlignment = Alignment.Vertical.CenterVertically,
-					horizontalAlignment = Alignment.CenterHorizontally,
-					modifier = GlanceModifier
-						.fillMaxSize()
-				) {
-					Column(
-						modifier = GlanceModifier.fillMaxWidth().defaultWeight().fillMaxHeight(),
-						verticalAlignment = Alignment.CenterVertically,
-						horizontalAlignment = Alignment.CenterHorizontally
-					) {
-						Text(
-							LocalContext.current.getString(R.string.widgetNoEvents_msg),
-							style = TextStyle(
-								fontSize = 16.sp,
-								color = GlanceTheme.colors.onBackground,
-								textAlign = TextAlign.Center
-							),
-							maxLines = 2,
-							modifier = GlanceModifier.padding(bottom = 12.dp, top = 4.dp)
-						)
-						Image(
-							provider = ImageProvider(getEmptyResource()),
-							contentDescription = null,
-							contentScale = ContentScale.Fit,
-							modifier = GlanceModifier.fillMaxWidth().defaultWeight().wrapContentHeight()
-						)
-					}
-				}
+				return@Column EmptyBody(data, firstDay, headerCallback, newEventCallback)
 			}
 
-			ScrollableDaysList(data, userId)
+			ScrollableDaysList(data, headerCallback, newEventCallback, userId)
 		}
 	}
 
 	@Composable
-	private fun ScrollableDaysList(data: WidgetUIData, userId: String?) {
+	private fun EmptyBody(
+		data: WidgetUIData,
+		firstDay: Long,
+		headerCallback: Action,
+		newEventCallback: Action
+	) {
+		Header(
+			allDayEvents = data.allDayEvents[firstDay] ?: listOf(),
+			onTap = headerCallback,
+			onNewEvent = newEventCallback,
+			variant = HeaderVariant.OUTSIDE
+		)
+
+		Column(
+			verticalAlignment = Alignment.Vertical.CenterVertically,
+			horizontalAlignment = Alignment.CenterHorizontally,
+			modifier = GlanceModifier
+				.fillMaxSize()
+		) {
+			Column(
+				modifier = GlanceModifier.fillMaxWidth().defaultWeight().fillMaxHeight(),
+				verticalAlignment = Alignment.CenterVertically,
+				horizontalAlignment = Alignment.CenterHorizontally
+			) {
+				Text(
+					LocalContext.current.getString(R.string.widgetNoEvents_msg),
+					style = TextStyle(
+						fontSize = 16.sp,
+						color = GlanceTheme.colors.onBackground,
+						textAlign = TextAlign.Center
+					),
+					maxLines = 2,
+					modifier = GlanceModifier.padding(bottom = Dimensions.Spacing.MD.dp, top = 4.dp)
+				)
+				Image(
+					provider = ImageProvider(getEmptyResource()),
+					contentDescription = null,
+					contentScale = ContentScale.Fit,
+					modifier = GlanceModifier.fillMaxWidth().defaultWeight().wrapContentHeight()
+				)
+			}
+		}
+	}
+
+	@Composable
+	private fun ScrollableDaysList(
+		data: WidgetUIData,
+		headerCallback: Action,
+		newEventCallback: Action,
+		userId: String?
+	) {
 		LazyColumn {
 			itemsIndexed(data.normalEvents.keys.sorted()) { dayIndex, startOfDay ->
 				val normalEvents = data.normalEvents[startOfDay] ?: listOf()
 				val allDayEvents = data.allDayEvents[startOfDay] ?: listOf()
 				val currentDay = Date.from(Instant.ofEpochMilli(startOfDay))
-				val hasOnlyAllDay = normalEvents.isEmpty() && !allDayEvents.isEmpty()
-				Column {
-					DayCard(
-						userId,
-						normalEvents,
-						allDayEvents,
-						dayIndex == 0,
-						currentDay
-					) {
-						if (hasOnlyAllDay) {
-							Column {
-								Event(
-									modifier = GlanceModifier.defaultWeight(),
-									true,
-									currentDay,
-									null,
-									null
-								)
-							}
-						} else {
-							val eventGroups = normalEvents.chunked(5)
-							val firstEventOfTheDay = normalEvents.first()
+				val isFirstDay = dayIndex == 0
 
-							eventGroups.forEach { events ->
-								Column {
-									events.forEachIndexed { eventIndex, event ->
-										Event(
-											modifier = GlanceModifier.defaultWeight(),
-											firstEventOfTheDay.eventId == event.eventId,
-											currentDay,
-											event,
-											userId
-										)
-										if (eventIndex < normalEvents.size - 1) {
-											Spacer(
-												modifier = GlanceModifier.height(12.dp)
-											)
-										}
-									}
-								}
-							}
-						}
-					}
-					Spacer(
-						modifier = GlanceModifier.height(
-							if (data.normalEvents[startOfDay]?.isEmpty() != false ||
-								dayIndex == data.normalEvents.size - 1
-							) 12.dp else 6.dp
+				Row(modifier = GlanceModifier.padding(top = Dimensions.Spacing.SM.dp)) {
+					if (isFirstDay) {
+						TodayCard(
+							userId,
+							normalEvents,
+							allDayEvents,
+							headerCallback,
+							newEventCallback,
+							currentDay,
 						)
+					} else {
+						OtherDayCard(
+							userId,
+							normalEvents,
+							allDayEvents,
+							currentDay
+						)
+					}
+				}
+
+
+//				Column {
+//					DayCard(
+//						userId,
+//						normalEvents,
+//						allDayEvents,
+//						headerCallback,
+//						newEventCallback,
+//						isFirstDay,
+//						currentDay
+//					) {
+//						if (hasOnlyAllDay) {
+//							Column {
+//								Event(
+//									modifier = GlanceModifier.defaultWeight(),
+//									true,
+//									currentDay,
+//									null,
+//									null
+//								)
+//							}
+//						} else {
+//							val eventGroups = normalEvents.chunked(5)
+//							val firstEventOfTheDay = normalEvents.first()
+//
+//							eventGroups.forEach { events ->
+//								Column {
+//									events.forEachIndexed { eventIndex, event ->
+//										Event(
+//											modifier = GlanceModifier.defaultWeight(),
+//											firstEventOfTheDay.eventId == event.eventId,
+//											currentDay,
+//											event,
+//											userId
+//										)
+//										if (eventIndex < normalEvents.size - 1) {
+//											Spacer(
+//												modifier = GlanceModifier.height(Dimensions.Spacing.md.dp)
+//											)
+//										}
+//									}
+//								}
+//							}
+//						}
+//					}
+//					Spacer(
+//						modifier = GlanceModifier.height(
+//							if (data.normalEvents[startOfDay]?.isEmpty() != false ||
+//								dayIndex == data.normalEvents.size - 1
+//							) Dimensions.Spacing.md.dp else 6.dp
+//						)
+//					)
+//				}
+			}
+		}
+	}
+
+
+	@Composable
+	private fun EventList(userId: String?, normalEvents: List<UIEvent>, currentDay: Date) {
+
+		// we need to chunk events because columns inside scrollable elements doesn't support more than five children
+		val eventGroups = normalEvents.chunked(5)
+		val firstEventOfTheDay = normalEvents.first()
+
+		eventGroups.forEachIndexed { index, events ->
+			Column(
+				modifier = GlanceModifier.padding(
+					start = Dimensions.Spacing.SM.dp,
+					top = if (index == 0) Dimensions.Spacing.SM.dp else 0.dp,
+					end = Dimensions.Spacing.SM.dp,
+					bottom = if (index == eventGroups.size - 1) Dimensions.Spacing.SM.dp else 0.dp,
+				)
+			) {
+				events.forEachIndexed { eventIndex, event ->
+					EventRow(
+						modifier = GlanceModifier.defaultWeight(),
+						firstEventOfTheDay.eventId == event.eventId,
+						currentDay,
+						event,
+						userId
 					)
+					// add space between elements (no spacing after the last element)
+					if (eventIndex < normalEvents.size - 1) {
+						Spacer(
+							modifier = GlanceModifier.height(Dimensions.Spacing.SM.dp)
+						)
+					}
 				}
 			}
 		}
 	}
+
+	@Composable
+	private fun TodayCard(
+		userId: String?,
+		normalEvents: List<UIEvent>,
+		allDayEvents: List<UIEvent>,
+		headerCallback: Action,
+		newEventCallback: Action,
+		currentDay: Date,
+	) {
+
+		// TODO define children for today card
+		// show header (button, current day and all day events.
+		// content contains event list
+//		content()
+		SimpleCard(userId, currentDay) {
+			Header(allDayEvents, headerCallback, newEventCallback, HeaderVariant.INSIDE)
+			if (normalEvents.isEmpty()) {
+				NoEventsTodayRow()
+			} else {
+				EventList(userId, normalEvents, currentDay)
+			}
+		}
+	}
+
+	@Composable
+	private fun NoEventsTodayRow() {
+		Row(
+			modifier = GlanceModifier
+				.fillMaxWidth()
+				.padding(Dimensions.Spacing.MD.dp),
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			Row(verticalAlignment = Alignment.CenterVertically) {
+				Image(
+					provider = ImageProvider(R.drawable.dog),
+					contentDescription = null,
+					contentScale = ContentScale.Fit,
+					modifier = GlanceModifier.defaultWeight().wrapContentHeight()
+				)
+				Text(
+					LocalContext.current.getString(R.string.widgetNoEvents_msg),
+					style = TextStyle(
+						color = GlanceTheme.colors.onBackground,
+						fontSize = 12.sp
+					),
+					modifier = GlanceModifier.padding(start = Dimensions.Spacing.SM.dp, bottom = 0.dp)
+				)
+			}
+		}
+	}
+
+
+	@Composable
+	private fun OtherDayCard(
+		userId: String?,
+		normalEvents: List<UIEvent>,
+		allDayEvents: List<UIEvent>,
+		currentDay: Date
+	) {
+		SimpleCard(userId, currentDay) {
+			if (allDayEvents.isNotEmpty()) {
+				AllDayHeader(allDayEvents)
+			}
+			if (normalEvents.isEmpty()) {
+				Column {
+					NoEventsRow(
+						modifier = GlanceModifier.defaultWeight(),
+						currentDay,
+						userId
+					)
+				}
+			} else {
+				EventList(userId, normalEvents, currentDay)
+			}
+		}
+	}
+
+	@Composable
+	private fun SimpleCard(
+		userId: String?,
+		currentDay: Date,
+		content: @Composable () -> Unit
+	) {
+		Column(
+			modifier = GlanceModifier
+				.background(GlanceTheme.colors.surface)
+				.cornerRadius(Dimensions.Spacing.SM.dp)
+				.fillMaxWidth()
+				.clickable(this@Agenda.openCalendarAgenda(LocalContext.current, userId, currentDay)),
+		) {
+			content()
+		}
+	}
+
 
 	@Composable
 	private fun DayCard(
 		userId: String?,
 		normalEvents: List<UIEvent>,
 		allDayEvents: List<UIEvent>,
+		headerCallback: Action,
+		newEventCallback: Action,
 		firstDay: Boolean,
 		currentDay: Date,
 		content: @Composable () -> Unit
@@ -428,107 +606,21 @@ class Agenda : GlanceAppWidget() {
 		val paddingVertical = if (hasOnlyAllDays || showAllDayInfo) 0 else defaultVerticalPadding
 		val paddingHorizontal = if (showAllDayInfo) 0 else defaultHorizontalPadding
 
-		if (normalEvents.isEmpty() && firstDay) {
-			return Row(
-				modifier = GlanceModifier.cornerRadius(8.dp).padding(1.dp).background(GlanceTheme.colors.primary)
-			) {
-				Row(
-					modifier = GlanceModifier.cornerRadius(8.dp).background(GlanceTheme.colors.background)
-						.fillMaxWidth()
-						.padding(12.dp),
-					horizontalAlignment = Alignment.CenterHorizontally
-				) {
-					Row(verticalAlignment = Alignment.CenterVertically) {
-
-						Image(
-							provider = ImageProvider(R.drawable.dog),
-							contentDescription = null,
-							contentScale = ContentScale.Fit,
-							modifier = GlanceModifier.defaultWeight().wrapContentHeight()
-						)
-						Text(
-							LocalContext.current.getString(R.string.widgetNoEvents_msg),
-							style = TextStyle(
-								color = GlanceTheme.colors.onBackground,
-								fontSize = 12.sp
-							),
-							modifier = GlanceModifier.padding(start = 8.dp, bottom = 0.dp)
-						)
-					}
-				}
-			}
-		}
 
 		Column(
 			modifier = GlanceModifier.padding(
 				(paddingHorizontal).dp,
-				(paddingVertical).dp,
-				(paddingHorizontal).dp,
+				if (firstDay) 0.dp else (paddingVertical).dp,
+				if (firstDay) 0.dp else (paddingHorizontal).dp,
 				(paddingVertical).dp
 			)
 				.background(GlanceTheme.colors.surface)
-				.cornerRadius(8.dp)
+				.cornerRadius(Dimensions.Spacing.SM.dp)
 				.fillMaxWidth()
 				.clickable(this@Agenda.openCalendarAgenda(LocalContext.current, userId, currentDay)),
 		) {
 			if (showAllDayInfo) {
-				Row(
-					modifier = GlanceModifier.padding((defaultHorizontalPadding).dp, 8.dp).fillMaxWidth()
-						.background(GlanceTheme.colors.surfaceVariant),
-					verticalAlignment = Alignment.CenterVertically
-				) {
-					val calendarColor = Color(parseColor("#${allDayEvents.first().calendarColor}"))
-					val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
-					val allDayIconColor =
-						generateColorProviderForColor(if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface)
-
-					val image: Int
-					val padding: Int
-
-					if (allDayEvents.first().isBirthday) {
-						image = R.drawable.ic_gift
-						padding = 3
-					} else {
-						image = R.drawable.ic_all_day
-						padding = 2
-					}
-
-					Box(
-						modifier = GlanceModifier.background(calendarColor).cornerRadius(8.dp).size(16.dp)
-							.padding(padding.dp)
-					) {
-						Image(
-							provider = ImageProvider(image),
-							contentDescription = "All day event",
-							colorFilter = ColorFilter.tint(allDayIconColor),
-						)
-					}
-
-					Row {
-						Text(
-							style = TextStyle(
-								color = GlanceTheme.colors.secondary,
-								fontSize = 12.sp
-							),
-							maxLines = 1,
-							text = allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.widgetNoEvents_msg) },
-							modifier = GlanceModifier.padding(start = 4.dp)
-								.defaultWeight()
-						)
-
-						if (allDayEvents.size > 1) {
-							Text(
-								"+${allDayEvents.size - 1}", style = TextStyle(
-									color = GlanceTheme.colors.onSurfaceVariant,
-									fontSize = 12.sp,
-									fontWeight = FontWeight.Bold
-								),
-								maxLines = 1,
-								modifier = GlanceModifier.padding(start = 8.dp).defaultWeight().wrapContentWidth()
-							)
-						}
-					}
-				}
+				AllDayHeader(allDayEvents)
 			}
 
 			val innerPadding =
@@ -537,7 +629,83 @@ class Agenda : GlanceAppWidget() {
 				modifier = GlanceModifier.padding((innerPadding.first).dp, (innerPadding.second).dp)
 					.fillMaxHeight()
 			) {
+				if (firstDay) {
+					Header(
+						allDayEvents = allDayEvents,
+						onTap = headerCallback,
+						onNewEvent = newEventCallback,
+						variant = HeaderVariant.INSIDE
+					)
+				}
+
 				content()
+			}
+		}
+	}
+
+	@Composable
+	private fun AllDayHeader(allDayEvents: List<UIEvent>) {
+		Row(
+			modifier = GlanceModifier
+				.padding(Dimensions.Spacing.MD.dp, Dimensions.Spacing.SM.dp)
+				.fillMaxWidth()
+				.background(GlanceTheme.colors.surfaceVariant),
+			verticalAlignment = Alignment.CenterVertically
+		) {
+			val calendarColor = Color(parseColor("#${allDayEvents.first().calendarColor}"))
+			val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
+			val allDayIconColor =
+				generateColorProviderForColor(if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface)
+
+			val image: Int
+			val padding: Int
+
+			if (allDayEvents.first().isBirthday) {
+				image = R.drawable.ic_gift
+				padding = 3
+			} else {
+				image = R.drawable.ic_all_day
+				padding = 2
+			}
+
+			Box(
+				modifier = GlanceModifier
+					.background(calendarColor)
+					.cornerRadius((Dimensions.Size.SM / 2).dp)
+					.size(Dimensions.Size.SM.dp)
+					.padding(padding.dp)
+			) {
+				Image(
+					provider = ImageProvider(image),
+					contentDescription = "All day event",
+					colorFilter = ColorFilter.tint(allDayIconColor),
+				)
+			}
+
+			Row {
+				Text(
+					style = TextStyle(
+						color = GlanceTheme.colors.secondary,
+						fontSize = 12.sp
+					),
+					maxLines = 1,
+					text = allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.widgetNoEvents_msg) },
+					modifier = GlanceModifier.padding(start = 4.dp)
+						.defaultWeight()
+				)
+
+				if (allDayEvents.size > 1) {
+					Text(
+						"+${allDayEvents.size - 1}", style = TextStyle(
+							color = GlanceTheme.colors.onSurfaceVariant,
+							fontSize = 12.sp,
+							fontWeight = FontWeight.Bold
+						),
+						maxLines = 1,
+						modifier = GlanceModifier.padding(start = Dimensions.Spacing.SM.dp).defaultWeight()
+							.wrapContentWidth()
+					)
+				}
 			}
 		}
 	}
@@ -571,12 +739,12 @@ class Agenda : GlanceAppWidget() {
 		onNewEvent: Action,
 	) {
 		val hasAllDayEvents = allDayEvents.isNotEmpty()
-		val titleBottomPadding = if (hasAllDayEvents) 0.dp else (-8).dp
+		val titleBottomPadding = if (hasAllDayEvents) 0.dp else (-Dimensions.Spacing.SM).dp
 		val dateNow = LocalDateTime.now()
 
 		Row(
 			verticalAlignment = Alignment.Top,
-			modifier = GlanceModifier.fillMaxWidth().padding(bottom = 8.dp)
+			modifier = GlanceModifier.fillMaxWidth().padding(bottom = Dimensions.Spacing.SM.dp)
 		) {
 			Column(
 				modifier = GlanceModifier
@@ -591,7 +759,7 @@ class Agenda : GlanceAppWidget() {
 					text = dateNow.format(DateTimeFormatter.ofPattern(if (hasAllDayEvents) "EEEE dd" else "dd")),
 					maxLines = 1,
 					modifier = GlanceModifier.defaultWeight().wrapContentHeight()
-						.padding(top = (-7).dp, bottom = titleBottomPadding)
+						.padding(bottom = titleBottomPadding)
 				)
 
 				val subTitle = if (hasAllDayEvents) {
@@ -605,32 +773,7 @@ class Agenda : GlanceAppWidget() {
 					verticalAlignment = Alignment.CenterVertically
 				) {
 					if (hasAllDayEvents) {
-						val calendarColor = Color(parseColor("#${allDayEvents.first().calendarColor}"))
-						val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
-						val allDayIconColor =
-							generateColorProviderForColor(if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface)
-
-						val image: Int
-						val padding: Int
-
-						if (allDayEvents.first().isBirthday) {
-							image = R.drawable.ic_gift
-							padding = 3
-						} else {
-							image = R.drawable.ic_all_day
-							padding = 2
-						}
-
-						Box(
-							modifier = GlanceModifier.background(calendarColor).cornerRadius(8.dp).size(16.dp)
-								.padding(padding.dp)
-						) {
-							Image(
-								provider = ImageProvider(image),
-								contentDescription = "All day event",
-								colorFilter = ColorFilter.tint(allDayIconColor),
-							)
-						}
+						AllDayIcon(allDayEvents)
 					}
 
 					Row {
@@ -653,32 +796,63 @@ class Agenda : GlanceAppWidget() {
 									fontWeight = FontWeight.Bold
 								),
 								maxLines = 1,
-								modifier = GlanceModifier.padding(start = 8.dp).defaultWeight().wrapContentWidth()
+								modifier = GlanceModifier.padding(start = Dimensions.Spacing.SM.dp).defaultWeight()
+									.wrapContentWidth()
 							)
 						}
 					}
 				}
 			}
 			Row(
-				modifier = GlanceModifier.defaultWeight().padding(start = 32.dp).wrapContentWidth(),
+				modifier = GlanceModifier.defaultWeight().wrapContentWidth(),
 				horizontalAlignment = Alignment.End
 			) {
 				Box(
 					contentAlignment = Alignment.Center,
 					modifier = GlanceModifier
-						.size(48.dp)
+						.size(Dimensions.Size.XXL.dp)
 						.background(GlanceTheme.colors.primary)
-						.cornerRadius(8.dp)
 						.clickable(rippleOverride = R.drawable.transparent_ripple, onClick = onNewEvent)
 				) {
 					Image(
 						provider = ImageProvider(R.drawable.ic_add),
 						contentDescription = "Add event button",
 						colorFilter = ColorFilter.tint(GlanceTheme.colors.onPrimary),
-						modifier = GlanceModifier.size(24.dp)
+						modifier = GlanceModifier.size(Dimensions.Size.MD.dp)
 					)
 				}
 			}
+		}
+	}
+
+	@Composable
+	private fun AllDayIcon(allDayEvents: List<UIEvent>) {
+		val calendarColor = Color(parseColor("#${allDayEvents.first().calendarColor}"))
+		val isLightBg = ColorUtils.calculateLuminance(calendarColor.toArgb()) > 0.5
+		val allDayIconColor =
+			generateColorProviderForColor(if (isLightBg) AppTheme.LightColors.onSurface else AppTheme.DarkColors.onSurface)
+
+		val image: Int
+		val padding: Int
+
+		if (allDayEvents.first().isBirthday) {
+			image = R.drawable.ic_gift
+			padding = 3
+		} else {
+			image = R.drawable.ic_all_day
+			padding = 2
+		}
+
+		Box(
+			modifier = GlanceModifier.background(calendarColor).cornerRadius(Dimensions.Spacing.SM.dp)
+				.size(16.dp)
+				.padding(padding.dp)
+		) {
+			Image(
+				provider = ImageProvider(image),
+				contentDescription = "All day event",
+				colorFilter = ColorFilter.tint(allDayIconColor),
+			)
 		}
 	}
 
@@ -690,107 +864,96 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	@Composable
-	fun Event(
+	fun NoEventsRow(
 		modifier: GlanceModifier,
-		firstEventOfTheDay: Boolean,
 		currentDate: Date,
-		event: UIEvent?,
 		userId: String?
 	) {
 		val zoneId = ZoneId.systemDefault()
-
 		val currentDateAsLocal = LocalDateTime.ofInstant(currentDate.toInstant(), zoneId)
 		val currentDay = currentDateAsLocal.format(DateTimeFormatter.ofPattern("dd"))
 		val currentWeekDay = currentDateAsLocal.format(DateTimeFormatter.ofPattern("EE"))
+		val spacerColor = GlanceTheme.colors.surfaceVariant.getColor(LocalContext.current)
 
-		val happensToday = midnightInDate(zoneId, LocalDateTime.now()) == midnightInDate(zoneId, currentDateAsLocal)
-
-		val dateModifier = if (firstEventOfTheDay && event == null) {
-			GlanceModifier.visibility(Visibility.Visible)
-		} else if (happensToday) {
-			GlanceModifier.visibility(Visibility.Gone)
-		} else if (firstEventOfTheDay) {
-			GlanceModifier.visibility(Visibility.Visible).clickable(
-				this@Agenda.openCalendarAgenda(
-					LocalContext.current,
-					userId,
-					currentDate,
-				)
+		modifier.clickable(
+			this@Agenda.openCalendarAgenda(
+				LocalContext.current,
+				userId,
+				currentDate,
+				null
 			)
+		)
+		Row(
+			modifier = modifier
+				.fillMaxWidth()
+				.padding(Dimensions.Spacing.SM.dp),
+			verticalAlignment = Alignment.CenterVertically
+
+		) {
+			DayWithWeekday(GlanceModifier, currentDay, currentWeekDay)
+			Spacer(modifier = GlanceModifier.width(Dimensions.Spacing.MD.dp))
+			CalendarIndicator(color = spacerColor)
+			Spacer(modifier = GlanceModifier.width(Dimensions.Spacing.MD.dp))
+			val eventTitle = LocalContext.current.getString(R.string.widgetNoEvents_msg)
+			Text(
+				eventTitle,
+				style = TextStyle(
+					color = GlanceTheme.colors.onSurface,
+					fontWeight = FontWeight.Bold,
+					fontSize = 14.sp
+				),
+				maxLines = 1,
+			)
+		}
+	}
+
+
+	@Composable
+	fun EventRow(
+		modifier: GlanceModifier,
+		showDayAndWeekday: Boolean,
+		currentDate: Date,
+		event: UIEvent,
+		userId: String?
+	) {
+		val zoneId = ZoneId.systemDefault()
+		val currentDateAsLocal = LocalDateTime.ofInstant(currentDate.toInstant(), zoneId)
+		val currentDay = currentDateAsLocal.format(DateTimeFormatter.ofPattern("dd"))
+		val currentWeekDay = currentDateAsLocal.format(DateTimeFormatter.ofPattern("EE"))
+		val happensToday = midnightInDate(zoneId, LocalDateTime.now()) == midnightInDate(zoneId, currentDateAsLocal)
+		val eventTitle = event.summary.ifEmpty { LocalContext.current.getString(R.string.eventNoTitle_title) }
+		val dateModifier = if (happensToday) {
+			GlanceModifier.visibility(Visibility.Gone)
+		} else if (showDayAndWeekday) {
+			GlanceModifier.visibility(Visibility.Visible)
 		} else {
 			GlanceModifier.visibility(Visibility.Invisible)
 		}
 
-		val eventRowModifier = if (event != null) {
-			modifier.clickable(
-				this@Agenda.openCalendarAgenda(
-					LocalContext.current,
-					userId,
-					currentDate,
-					event.eventId
-				)
+		modifier.clickable(
+			this@Agenda.openCalendarAgenda(
+				LocalContext.current,
+				userId,
+				currentDate,
+				event.eventId
 			)
-		} else {
-			modifier
-		}
+		)
 
 		Row(
-			modifier = eventRowModifier
-				.fillMaxWidth(),
+			modifier = modifier.fillMaxWidth(),
 			verticalAlignment = Alignment.CenterVertically
 		) {
-			Row(
-				horizontalAlignment = Alignment.Start,
-				verticalAlignment = Alignment.Vertical.CenterVertically,
-				modifier = dateModifier.width(32.dp)
-			) {
-				Column(
-					horizontalAlignment = Alignment.CenterHorizontally
-				) {
-					Text(
-						style = TextStyle(
-							fontWeight = FontWeight.Bold,
-							fontSize = 22.sp,
-							color = GlanceTheme.colors.secondary
-
-						),
-						text = currentDay,
-						maxLines = 1,
-						modifier = GlanceModifier.padding(bottom = (-4).dp)
-					)
-					Text(
-						style = TextStyle(
-							fontSize = 14.sp,
-							color = GlanceTheme.colors.secondary
-						),
-						text = currentWeekDay,
-						maxLines = 1,
-						modifier = GlanceModifier.padding(top = (-4).dp)
-					)
-				}
-			}
+			DayWithWeekday(dateModifier, currentDay, currentWeekDay)
 
 			if (!happensToday) {
-				Spacer(
-					modifier = GlanceModifier.width(12.dp)
-				)
+				Spacer(modifier = GlanceModifier.width(Dimensions.Spacing.MD.dp))
 			}
 
-			val calendarColor = if (event == null) {
-				GlanceTheme.colors.surfaceVariant.getColor(LocalContext.current)
-			} else {
-				Color(parseColor("#${event.calendarColor}"))
-			}
-
-			CalendarIndicator(color = calendarColor)
-
-			val eventTitle = event?.summary?.ifEmpty { LocalContext.current.getString(R.string.widgetNoEvents_msg) }
-				?: LocalContext.current.getString(R.string.widgetNoEvents_msg)
+			CalendarIndicator(color = Color(parseColor("#${event.calendarColor}")))
+			Spacer(modifier = GlanceModifier.width(Dimensions.Spacing.MD.dp))
 
 			// event title and time
-			Column(
-				modifier = GlanceModifier.padding(start = 12.dp)
-			) {
+			Column {
 				Text(
 					eventTitle,
 					style = TextStyle(
@@ -801,16 +964,48 @@ class Agenda : GlanceAppWidget() {
 					maxLines = 1,
 				)
 
-				if (event != null) {
-					Text(
-						if (event.isAllDay) "All day" else event.startTime + " - " + event.endTime,
-						modifier = GlanceModifier,
-						style = TextStyle(
-							color = GlanceTheme.colors.onSurface,
-							fontSize = 10.sp
-						),
-					)
-				}
+				Text(
+					event.startTime + " - " + event.endTime,
+					modifier = GlanceModifier,
+					style = TextStyle(
+						color = GlanceTheme.colors.onSurface,
+						fontSize = 10.sp
+					),
+				)
+			}
+		}
+	}
+
+	@Composable
+	private fun DayWithWeekday(dateModifier: GlanceModifier, day: String, weekday: String) {
+		Row(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalAlignment = Alignment.Vertical.CenterVertically,
+			modifier = dateModifier.width(32.dp)
+		) {
+			Column(
+				horizontalAlignment = Alignment.CenterHorizontally
+			) {
+				Text(
+					style = TextStyle(
+						fontWeight = FontWeight.Bold,
+						fontSize = 22.sp,
+						color = GlanceTheme.colors.secondary
+
+					),
+					text = day,
+					maxLines = 1,
+					modifier = GlanceModifier.padding(bottom = (-4).dp)
+				)
+				Text(
+					style = TextStyle(
+						fontSize = 14.sp,
+						color = GlanceTheme.colors.secondary
+					),
+					text = weekday,
+					maxLines = 1,
+					modifier = GlanceModifier.padding(top = (-4).dp)
+				)
 			}
 		}
 	}
@@ -867,24 +1062,6 @@ class Agenda : GlanceAppWidget() {
 			)
 		)
 
-//		val tomorrow = Instant.ofEpochMilli(startOfToday).plus(1, ChronoUnit.DAYS)
-//		val startOfTomorrow =
-//			midnightInDate(ZoneId.systemDefault(), LocalDateTime.ofInstant(tomorrow, ZoneId.systemDefault()))
-//		normalEventData[startOfTomorrow] = listOf()
-//		for (i in 1..3) {
-//			normalEventData[startOfTomorrow] = normalEventData[startOfTomorrow]!!.plus(
-//				UIEvent(
-//					"previewCalendar",
-//					IdTuple("", ""),
-//					"2196f3",
-//					"Event #${i}",
-//					"08:00",
-//					"17:00",
-//					isAllDay = false,
-//					startTimestamp = tomorrow.toEpochMilli()
-//				)
-//			)
-//		}
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(

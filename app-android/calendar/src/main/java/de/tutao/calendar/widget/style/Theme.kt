@@ -1,4 +1,4 @@
-package de.tutao.calendar.widget
+package de.tutao.calendar.widget.style
 
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
