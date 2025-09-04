@@ -329,7 +329,7 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	@Composable
-	private fun Agenda.EmptyBody(
+	private fun EmptyBody(
 		data: WidgetUIData,
 		firstDay: Long,
 		headerCallback: Action,
@@ -515,6 +515,7 @@ class Agenda : GlanceAppWidget() {
 		// content contains event list
 //		content()
 		SimpleCard(userId, currentDay) {
+			Header(allDayEvents, headerCallback, newEventCallback, HeaderVariant.INSIDE)
 			if (normalEvents.isEmpty()) {
 				NoEventsTodayRow()
 			} else {
@@ -529,10 +530,10 @@ class Agenda : GlanceAppWidget() {
 			modifier = GlanceModifier
 				.fillMaxWidth()
 				.padding(12.dp),
-			horizontalAlignment = Alignment.CenterHorizontally
+			horizontalAlignment = Alignment.CenterHorizontally,
+			verticalAlignment = Alignment.CenterVertically
 		) {
 			Row(verticalAlignment = Alignment.CenterVertically) {
-
 				Image(
 					provider = ImageProvider(R.drawable.dog),
 					contentDescription = null,
@@ -747,16 +748,21 @@ class Agenda : GlanceAppWidget() {
 		variant: HeaderVariant
 	) {
 		val hasAllDayEvents = allDayEvents.isNotEmpty()
-		val titleBottomPadding = if (hasAllDayEvents) 0.dp else (-8).dp
+		val titleBottomPadding = if (hasAllDayEvents) 0.dp else (-SPACING_SMALL).dp
 		val dateNow = LocalDateTime.now()
 
 		Row(
 			verticalAlignment = Alignment.Top,
-			modifier = GlanceModifier.fillMaxWidth().padding(bottom = 8.dp)
+			modifier = GlanceModifier.fillMaxWidth().padding(bottom = SPACING_SMALL.dp)
 		) {
 			Column(
 				modifier = GlanceModifier
-					.clickable(rippleOverride = R.drawable.transparent_ripple, onClick = onTap).defaultWeight()
+					.clickable(rippleOverride = R.drawable.transparent_ripple, onClick = onTap)
+					.defaultWeight()
+					.padding(
+						start = (if (variant == HeaderVariant.INSIDE) SPACING_SMALL else 0).dp,
+						top = (if (variant == HeaderVariant.INSIDE && hasAllDayEvents) SPACING_SMALL else 0).dp
+					)
 			) {
 				Text(
 					style = TextStyle(
@@ -767,7 +773,7 @@ class Agenda : GlanceAppWidget() {
 					text = dateNow.format(DateTimeFormatter.ofPattern(if (hasAllDayEvents) "EEEE dd" else "dd")),
 					maxLines = 1,
 					modifier = GlanceModifier.defaultWeight().wrapContentHeight()
-						.padding(top = (-7).dp, bottom = titleBottomPadding)
+						.padding(top = (-4).dp, bottom = titleBottomPadding)
 				)
 
 				val subTitle = if (hasAllDayEvents) {
@@ -836,7 +842,7 @@ class Agenda : GlanceAppWidget() {
 				}
 			}
 			Row( // add event button row
-				modifier = GlanceModifier.defaultWeight().padding(start = 32.dp).wrapContentWidth(),
+				modifier = GlanceModifier.defaultWeight().wrapContentWidth(),
 				horizontalAlignment = Alignment.End
 			) {
 				var buttonModifier = GlanceModifier
@@ -902,11 +908,9 @@ class Agenda : GlanceAppWidget() {
 
 		) {
 			DayWithWeekday(GlanceModifier, currentDay, currentWeekDay)
-			Spacer(
-				modifier = GlanceModifier.width(12.dp)
-			)
+			Spacer(modifier = GlanceModifier.width(SPACING_MEDIUM.dp))
 			CalendarIndicator(color = spacerColor)
-
+			Spacer(modifier = GlanceModifier.width(SPACING_MEDIUM.dp))
 			val eventTitle = LocalContext.current.getString(R.string.widgetNoEvents_msg)
 			Text(
 				eventTitle,
@@ -934,6 +938,7 @@ class Agenda : GlanceAppWidget() {
 		val currentDay = currentDateAsLocal.format(DateTimeFormatter.ofPattern("dd"))
 		val currentWeekDay = currentDateAsLocal.format(DateTimeFormatter.ofPattern("EE"))
 		val happensToday = midnightInDate(zoneId, LocalDateTime.now()) == midnightInDate(zoneId, currentDateAsLocal)
+		val eventTitle = event.summary.ifEmpty { LocalContext.current.getString(R.string.eventNoTitle_title) }
 		val dateModifier = if (happensToday) {
 			GlanceModifier.visibility(Visibility.Gone)
 		} else if (showDayAndWeekday) {
@@ -941,6 +946,7 @@ class Agenda : GlanceAppWidget() {
 		} else {
 			GlanceModifier.visibility(Visibility.Invisible)
 		}
+
 		modifier.clickable(
 			this@Agenda.openCalendarAgenda(
 				LocalContext.current,
@@ -951,33 +957,20 @@ class Agenda : GlanceAppWidget() {
 		)
 
 		Row(
-			modifier = modifier
-				.fillMaxWidth(),
+			modifier = modifier.fillMaxWidth(),
 			verticalAlignment = Alignment.CenterVertically
 		) {
 			DayWithWeekday(dateModifier, currentDay, currentWeekDay)
 
 			if (!happensToday) {
-				Spacer(
-					modifier = GlanceModifier.width(12.dp)
-				)
+				Spacer(modifier = GlanceModifier.width(SPACING_MEDIUM.dp))
 			}
 
-			val calendarColor = if (event == null) {
-				GlanceTheme.colors.surfaceVariant.getColor(LocalContext.current)
-			} else {
-				Color(parseColor("#${event.calendarColor}"))
-			}
-
-			CalendarIndicator(color = calendarColor)
-
-			val eventTitle = event?.summary?.ifEmpty { LocalContext.current.getString(R.string.widgetNoEvents_msg) }
-				?: LocalContext.current.getString(R.string.widgetNoEvents_msg)
+			CalendarIndicator(color = Color(parseColor("#${event.calendarColor}")))
+			Spacer(modifier = GlanceModifier.width(SPACING_MEDIUM.dp))
 
 			// event title and time
-			Column(
-				modifier = GlanceModifier.padding(start = 12.dp)
-			) {
+			Column {
 				Text(
 					eventTitle,
 					style = TextStyle(
