@@ -757,7 +757,7 @@ class Agenda : GlanceAppWidget() {
 					.defaultWeight()
 					.padding(
 						start = (if (variant == HeaderVariant.INSIDE) Dimensions.Spacing.SM else 0).dp,
-						top = (if (variant == HeaderVariant.INSIDE && hasAllDayEvents) Dimensions.Spacing.SM else 0).dp
+						top = (if (variant == HeaderVariant.INSIDE && hasAllDayEvents) Dimensions.Spacing.XS else 0).dp
 					)
 			) {
 				Text(
@@ -806,7 +806,8 @@ class Agenda : GlanceAppWidget() {
 									fontWeight = FontWeight.Bold
 								),
 								maxLines = 1,
-								modifier = GlanceModifier.padding(start = Dimensions.Spacing.SM.dp).defaultWeight()
+								modifier = GlanceModifier.padding(start = Dimensions.Spacing.SM.dp)
+									.defaultWeight()
 									.wrapContentWidth()
 							)
 						}
@@ -818,7 +819,7 @@ class Agenda : GlanceAppWidget() {
 				horizontalAlignment = Alignment.End
 			) {
 				var buttonModifier = GlanceModifier
-					.size(Dimensions.Size.XXL.dp)
+					.size((if (variant == HeaderVariant.INSIDE) Dimensions.Size.XL else Dimensions.Size.XXL).dp)
 					.clickable(rippleOverride = R.drawable.transparent_ripple, onClick = onNewEvent)
 
 				if (variant == HeaderVariant.INSIDE) {
