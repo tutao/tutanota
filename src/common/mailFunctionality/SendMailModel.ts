@@ -10,6 +10,7 @@ import {
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
 	MailDetails,
+	MailDetailsDraftTypeRef,
 	MailTypeRef,
 } from "../api/entities/tutanota/TypeRefs.js"
 import {
@@ -82,8 +83,9 @@ import { ContactModel } from "../contactsFunctionality/ContactModel.js"
 import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getMailBodyText } from "../api/common/CommonMailUtils.js"
 import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificationMismatchError"
-import { showMultiRecipientsKeyVerificationRecoveryDialog } from "../settings/keymanagement/KeyVerificationRecoveryDialog"
 import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarNotificationSender"
+import type { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationDatabase"
+import { CacheMode } from "../api/worker/rest/EntityRestClient"
 
 assertMainOrNode()
 
@@ -158,6 +160,8 @@ export class SendMailModel {
 	private doSaveAgain: boolean = false
 	private recipientsResolved = new LazyLoaded<void>(async () => {})
 
+	private bodyOnServer: string | null = null
+
 	private _emailType: EventInviteEmailType | null = null
 
 	/**
@@ -174,6 +178,7 @@ export class SendMailModel {
 		private readonly recipientsModel: RecipientsModel,
 		private readonly dateProvider: DateProvider,
 		private mailboxProperties: MailboxProperties,
+		private readonly configurationDatabase: ConfigurationDatabase,
 		private readonly needNewDraft: (mail: Mail) => Promise<boolean>,
 	) {
 		const userProps = logins.getUserController().props
@@ -274,8 +279,69 @@ export class SendMailModel {
 		return getPasswordStrengthForUser(this.getPassword(recipient.address), recipient, this.mailboxDetails, this.logins)
 	}
 
+	async serverBodyChanged(): Promise<boolean> {
+		if (this.currentSavePromise != null) {
+			// If the current save succeeds, then it's saved successfully (thus the body on the server has not changed)
+			return this.currentSavePromise.then(() => false)
+		}
+
+		const bodyOnServer = this.bodyOnServer
+		if (bodyOnServer == null) {
+			return false
+		}
+
+		// Bypass the cache as we don't know if we've gotten all entity events yet, nor do we want to wait
+		const mailDetailsOnServer = await this.entity.load(MailDetailsDraftTypeRef, assertNotNull(this.draft?.mailDetailsDraft), {
+			cacheMode: CacheMode.WriteOnly,
+		})
+		return mailDetailsOnServer.details.body.compressedText !== bodyOnServer
+	}
+
 	hasMailChanged(): boolean {
 		return this.mailChangedAt > this.mailSavedAt
+	}
+
+	async clearLocalAutosave(): Promise<void> {
+		await this.configurationDatabase.clearAutosavedDraftData()
+	}
+
+	async makeLocalAutosave(): Promise<void> {
+		const body = await this.getSanitizedBody()
+		const subject = this.getSubject()
+		const bodyOnServer = this.bodyOnServer
+		const isConfidential = this.isConfidential()
+
+		const getNameAndAddress = ({ name, address }: Recipient) => ({ name, address })
+
+		const to = (await this.toRecipientsResolved()).map(getNameAndAddress)
+		const cc = (await this.ccRecipientsResolved()).map(getNameAndAddress)
+		const bcc = (await this.bccRecipientsResolved()).map(getNameAndAddress)
+
+		await this.configurationDatabase.setAutosavedDraftData({
+			body,
+			bodyOnServer,
+			subject,
+			to,
+			cc,
+			bcc,
+			confidential: isConfidential,
+			mailGroupId: this.mailboxDetails.mailGroup._id,
+			senderAddress: this.senderAddress,
+			saveTime: Date.now(),
+
+			// will be null if it is a new (unsaved) draft
+			mailId: this.getDraft()?._id ?? null,
+		})
+	}
+
+	/**
+	 * Set the cached mail body on the server.
+	 *
+	 * When checking if a draft should automatically save, the server will load the mail from the server and check that
+	 * it still matches this.
+	 */
+	setBodyOnServer(body: string | null) {
+		this.bodyOnServer = body
 	}
 
 	/**
@@ -285,6 +351,12 @@ export class SendMailModel {
 	markAsChangedIfNecessary(hasChanged: boolean) {
 		if (!hasChanged) return
 		this.mailChangedAt = this.dateProvider.now()
+
+		// If it was changed really quickly, force the timestamps to be different.
+		if (this.mailChangedAt <= this.mailSavedAt) {
+			this.mailChangedAt = this.mailSavedAt + 1
+		}
+
 		// if this method is called wherever state gets changed, onMailChanged should function properly
 		this.onMailChanged(null)
 	}
@@ -493,6 +565,8 @@ export class SendMailModel {
 			this.mailSavedAt = this.mailChangedAt + 1
 		}
 
+		this.bodyOnServer = draft ? bodyText : null
+
 		assertNotNull(this.initialized, "somehow got to the end of init without startInit called").resolve()
 
 		return this
@@ -575,6 +649,17 @@ export class SendMailModel {
 	async addRecipient(fieldType: RecipientField, partialRecipient: PartialRecipient): Promise<void> {
 		const wasAdded = await this.insertRecipient(fieldType, partialRecipient)
 		this.markAsChangedIfNecessary(wasAdded)
+	}
+
+	/**
+	 * Add multiple recipients.
+	 */
+	async addRecipients(recipients: { to: readonly PartialRecipient[]; cc: readonly PartialRecipient[]; bcc: readonly PartialRecipient[] }) {
+		await Promise.all([
+			promiseMap(recipients.to, (r) => this.addRecipient(RecipientField.TO, r)),
+			promiseMap(recipients.cc, (r) => this.addRecipient(RecipientField.CC, r)),
+			promiseMap(recipients.bcc, (r) => this.addRecipient(RecipientField.BCC, r)),
+		])
 	}
 
 	getRecipient(type: RecipientField, address: string): ResolvableRecipient | null {
@@ -906,17 +991,7 @@ export class SendMailModel {
 			const attachments = saveAttachments ? this.attachments : null
 
 			// We also want to create new drafts for drafts edited from trash or spam folder
-			const { getHtmlSanitizer } = await import("../misc/HtmlSanitizer.js")
-			const unsanitized_body = this.getBody()
-			const body = getHtmlSanitizer().sanitizeHTML(unsanitized_body, {
-				// store the draft always with external links preserved. this reverts
-				// the draft-src and draft-srcset attribute stow.
-				blockExternalContent: false,
-				// since we're not displaying this, this is fine.
-				allowRelativeLinks: true,
-				// do not touch inline images, we just want to store this.
-				usePlaceholderForInlineImages: false,
-			}).html
+			const body = await this.getSanitizedBody()
 
 			this.draft =
 				this.draft == null || (await this.needNewDraft(this.draft))
@@ -934,6 +1009,7 @@ export class SendMailModel {
 			// Allow any changes that might occur while the mail is being saved to be accounted for
 			// if saved is called before this has completed
 			this.mailSavedAt = this.dateProvider.now()
+			this.bodyOnServer = body
 		} catch (e) {
 			if (e instanceof PayloadTooLargeError) {
 				throw new UserError("requestTooLarge_msg")
@@ -947,6 +1023,21 @@ export class SendMailModel {
 				throw e
 			}
 		}
+	}
+
+	private async getSanitizedBody(): Promise<string> {
+		const unsanitized_body = this.getBody()
+
+		const { getHtmlSanitizer } = await import("../misc/HtmlSanitizer.js")
+		return getHtmlSanitizer().sanitizeHTML(unsanitized_body, {
+			// store the draft always with external links preserved. this reverts
+			// the draft-src and draft-srcset attribute stow.
+			blockExternalContent: false,
+			// since we're not displaying this, this is fine.
+			allowRelativeLinks: true,
+			// do not touch inline images, we just want to store this.
+			usePlaceholderForInlineImages: false,
+		}).html
 	}
 
 	private sendApprovalMail(body: string): Promise<unknown> {

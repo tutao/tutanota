@@ -1,5 +1,5 @@
 import stream from "mithril/stream"
-import { identity } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, identity } from "@tutao/tutanota-utils"
 import Stream from "mithril/stream"
 
 /**
@@ -9,6 +9,7 @@ import Stream from "mithril/stream"
  */
 export class SyncTracker {
 	private readonly _isSyncDone: Stream<boolean>
+	private readonly syncDone: DeferredObject<unknown> = defer()
 
 	constructor() {
 		this._isSyncDone = stream(false)
@@ -21,5 +22,10 @@ export class SyncTracker {
 	markSyncAsDone(): void {
 		console.log("Initial sync done")
 		this._isSyncDone(true)
+		this.syncDone.resolve(null)
+	}
+
+	async waitSync(): Promise<void> {
+		await this.syncDone.promise
 	}
 }

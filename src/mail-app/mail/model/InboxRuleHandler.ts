@@ -2,7 +2,7 @@ import type { InboxRule, Mail, MailFolder, MoveMailData } from "../../../common/
 import { createMoveMailData } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { InboxRuleType, MailSetKind, MAX_NBR_MOVE_DELETE_MAIL_SERVICE } from "../../../common/api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
-import { assertNotNull, asyncFind, ofClass, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
+import { assertNotNull, asyncFind, ofClass, promiseMap, splitInChunks, throttle } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
@@ -11,7 +11,6 @@ import { elementIdPart, isSameId } from "../../../common/api/common/utils/Entity
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { throttle } from "@tutao/tutanota-utils/dist/Utils.js"
 import { getMailHeaders } from "./MailUtils.js"
 import { MailModel } from "./MailModel"
 
