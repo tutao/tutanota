@@ -43,7 +43,7 @@ import { ProgrammingError } from "../../../common/api/common/error/ProgrammingEr
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../common/gui/styles"
-import { getElementId, getIds, isSameId } from "../../../common/api/common/utils/EntityUtils"
+import { getIds, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
@@ -89,27 +89,6 @@ interface MoveMailsParams {
 	isReportable?: boolean
 	/** The folder to move the mails back to; if null or undefined, then the move cannot be undone */
 	undoFolder?: MailFolder | null
-}
-
-/** @return whether emails should be reported */
-async function getReportAnswer(
-	targetMailFolder: MailFolder,
-	isReportable: boolean,
-	mailboxModel: MailboxModel,
-	mailModel: MailModel,
-	currentFolder: MailFolder | null,
-): Promise<boolean> {
-	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetMailFolder._ownerGroup))
-	if (system == null) {
-		return false
-	}
-	const targetFolderIsSpam = isOfTypeOrSubfolderOf(system, targetMailFolder, MailSetKind.SPAM)
-	const currentFolderIsSpam = currentFolder != null && isOfTypeOrSubfolderOf(system, currentFolder, MailSetKind.SPAM)
-	if (targetFolderIsSpam && !currentFolderIsSpam && isReportable) {
-		return getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel)
-	} else {
-		return false
-	}
 }
 
 enum MoveMailSnackbarResult {
@@ -190,9 +169,10 @@ async function showUndoMoveMailSnackbar(undoModel: UndoModel, onUndoMove: () => 
 export async function moveMails(params: MoveMailsParams): Promise<boolean> {
 	const { mailModel, mailIds, targetFolder, moveMode } = params
 	try {
-		await mailModel.moveMails(mailIds, targetFolder, moveMode)
+		const mails = await mailModel.loadAllMails(mailIds)
+		await mailModel.moveMails(getIds(mails), targetFolder, moveMode)
 		// run post-move actions async
-		runPostMoveActions(params)
+		runPostMoveActions(params, mails)
 		return true
 	} catch (e) {
 		//LockedError should no longer be thrown!?!
@@ -245,11 +225,9 @@ async function runPostSimpleMoveActions(
 
 	const onUndoMove = async () => {
 		for (const { folder, mails: folderMails } of mailsByFolder.values()) {
-			if (folder.folderType === targetFolderType) {
-				continue
+			if (folder.folderType !== targetFolderType) {
+				await mailModel.moveMails(getIds(folderMails), folder, MoveMode.Mails)
 			}
-
-			await mailModel.moveMails(getIds(folderMails), folder, MoveMode.Mails)
 		}
 	}
 	const undoMoveMessage = shouldReportMails
@@ -263,42 +241,59 @@ async function runPostSimpleMoveActions(
 	}
 }
 
-async function runPostMoveActions({ mailModel, mailIds, targetFolder, isReportable = true, mailboxModel, undoFolder, moveMode, undoModel }: MoveMailsParams) {
-	const resolveMails = () => mailModel.loadAllMails(mailIds)
-	// the current folder is only taken into account when we know all the mails are in the same folder
-	const currentFolder = undoFolder != null && undoFolder.folderType !== MailSetKind.LABEL && moveMode === MoveMode.Mails ? undoFolder : null
+async function runPostMoveActions({ mailModel, targetFolder, isReportable = true, mailboxModel, moveMode, undoModel }: MoveMailsParams, mails: Mail[]) {
+	const mailsByFolder = mailsAndFolderByFolderId(mails)
+	const excludedFolder = mailModel.folderExcludedFromMove(moveMode)
 
-	const shouldReportMails = await getReportAnswer(targetFolder, isReportable, mailboxModel, mailModel, currentFolder)
+	const reportableMails: Mail[] = isReportable ? getReportableMails(mailModel, targetFolder, mailsByFolder, excludedFolder) : []
+	const shouldReportMails = isEmpty(reportableMails) && (await getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel))
 
-	// If we have an undo (origin) folder and the destination and undo folder are not the same, we should allow the
-	// user to undo the move...
-	let undone: boolean
-	if (currentFolder != null && !isSameId(getElementId(targetFolder), getElementId(currentFolder))) {
-		const undoMoveText = shouldReportMails
-			? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
-			: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text
+	const undoMoveText = shouldReportMails
+		? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
+		: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(targetFolder) }).text
 
-		const onUndoMove = async () => {
-			const mails = await resolveMails()
-			await mailModel.moveMails(getIds(mails), currentFolder, MoveMode.Mails)
+	const onUndoMove = async () => {
+		for (const { folder, mails: folderMails } of mailsByFolder.values()) {
+			const areMailsNotMoved = excludedFolder != null && folder.folderType === excludedFolder
+			if (areMailsNotMoved || isSameId(folder._id, targetFolder._id)) {
+				continue
+			}
+
+			await mailModel.moveMails(getIds(folderMails), folder, MoveMode.Mails)
 		}
+	}
 
-		const undoResult = await showUndoMoveMailSnackbar(undoModel, onUndoMove, undoMoveText)
-		switch (undoResult) {
-			case MoveMailSnackbarResult.Undo:
-				undone = true
-				break
-			case MoveMailSnackbarResult.Replaced:
-			case MoveMailSnackbarResult.Timeout:
-				undone = false
-				break
+	const undoResult = await showUndoMoveMailSnackbar(undoModel, onUndoMove, undoMoveText)
+
+	if (shouldReportMails && undoResult !== MoveMailSnackbarResult.Undo) {
+		await mailModel.reportMails(MailReportType.SPAM, async () => mails)
+	}
+}
+
+function getReportableMails(
+	mailModel: MailModel,
+	targetFolder: MailFolder,
+	mailsByFolder: Map<string, { folder: MailFolder; mails: Mail[] }>,
+	excludedFolder: SystemFolderType | null,
+): Mail[] {
+	const reportableMails: Mail[] = []
+	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
+
+	// only report mails when they're moved to Spam or one of its subfolders
+	if (system != null && isOfTypeOrSubfolderOf(system, targetFolder, MailSetKind.SPAM)) {
+		for (const { folder, mails: folderMails } of mailsByFolder.values()) {
+			if (excludedFolder != null && folder.folderType === excludedFolder) {
+				continue
+			}
+
+			// only report mails that aren't already in Spam or its subfolders
+			if (!isOfTypeOrSubfolderOf(system, folder, MailSetKind.SPAM)) {
+				reportableMails.push(...folderMails)
+			}
 		}
-	} else {
-		undone = false
 	}
-	if (!undone && shouldReportMails) {
-		await mailModel.reportMails(MailReportType.SPAM, resolveMails)
-	}
+
+	return reportableMails
 }
 
 export async function moveMailsToSystemFolder({
