@@ -84,7 +84,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import androidx.core.graphics.toColorInt
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.MutableCreationExtras
@@ -96,6 +95,7 @@ import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.model.WidgetConfigModel
 import de.tutao.calendar.widget.model.WidgetConfigViewModel
+import de.tutao.calendar.widget.style.AppTheme
 import de.tutao.calendar.widget.test.WidgetConfigTestViewModel
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
