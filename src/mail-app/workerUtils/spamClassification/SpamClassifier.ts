@@ -2,6 +2,7 @@ import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
 import { TfIdfVectorizer } from "./TfIdfVectorizer"
+import { promiseMap } from "@tutao/tutanota-utils"
 
 assertWorkerOrNode()
 
@@ -53,12 +54,13 @@ export class SpamClassifier {
 			}
 
 			console.log(`Retraining model with ${newTrainingData.length} new samples (lastModified > ${new Date(cutoffTimestamp).toString()})`)
-			const batchDocumentIds: string[] = []
+			const batchDocuments: string[] = []
 			for (let i = 0; i < newTrainingData.length; i++) {
-				batchDocumentIds.push(`${newTrainingData[i].listId}/${newTrainingData[i].elementId}`)
+				batchDocuments.push(this.sanitizeModelInput(newTrainingData[i].subject, newTrainingData[i].body))
 			}
 
-			const xs = this.tfIdfVectorizer.transform(batchDocumentIds)
+			const tokenizedBatchDocuments = await promiseMap(batchDocuments, (d) => this.offlineStorage.tokenize(d))
+			const xs = this.tfIdfVectorizer.transform(tokenizedBatchDocuments)
 			const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
 
 			const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
@@ -80,7 +82,9 @@ export class SpamClassifier {
 	private async train(testRatio = 0.2): Promise<void> {
 		const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
 
-		const xs = this.tfIdfVectorizer!.transform(data.map((d) => this.sanitizeModelInput(d.subject, d.body)))
+		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
+		const tokenizedDocuments = await promiseMap(documents, (d) => this.offlineStorage.tokenize(d))
+		const xs = this.tfIdfVectorizer!.transform(tokenizedDocuments)
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
@@ -110,7 +114,8 @@ export class SpamClassifier {
 			return false
 		}
 
-		const vector = this.tfIdfVectorizer.vectorize(subjectAndBody)
+		const tokenizedInput = await this.offlineStorage.tokenize(subjectAndBody)
+		const vector = this.tfIdfVectorizer.vectorize(tokenizedInput)
 		const xs = tf.tensor2d([vector], [1, vector.length])
 		const pred = (await (this.classifier.predict(xs) as tf.Tensor).data())[0]
 		return pred > 0.5
@@ -266,6 +271,9 @@ export class SpamClassifier {
 		data.map((datum) => {
 			this.documents.set(`${datum.listId}/${datum.elementId}`, this.sanitizeModelInput(datum.subject, datum.body))
 		})
-		this.tfIdfVectorizer = new TfIdfVectorizer(Array.from(this.documents.keys()), Array.from(this.documents.values()))
+		const docIds = Array.from(this.documents.keys())
+		const texts = Array.from(this.documents.values())
+		const tokenizedTexts = await promiseMap(texts, (text) => this.offlineStorage.tokenize(text))
+		this.tfIdfVectorizer = new TfIdfVectorizer(docIds, tokenizedTexts)
 	}
 }

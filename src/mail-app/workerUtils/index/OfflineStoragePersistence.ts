@@ -102,46 +102,46 @@ export class OfflineStoragePersistence {
 
 	async getIndexedGroups(): Promise<readonly IndexedGroupData[]> {
 		const { query, params } = sql`SELECT groupId, CAST(groupType as TEXT) as type, indexedTimestamp
-                                    FROM search_group_data`
+									  FROM search_group_data`
 		const rows = await this.sqlCipherFacade.all(query, params)
 		return rows.map(untagSqlObject).map((row) => row as unknown as IndexedGroupData)
 	}
 
 	async addIndexedGroup(id: Id, groupType: GroupType, indexedTimestamp: number): Promise<void> {
 		const { query, params } = sql`INSERT
-                                    INTO search_group_data
-                                    VALUES (${id}, ${groupType}, ${indexedTimestamp})`
+									  INTO search_group_data
+									  VALUES (${id}, ${groupType}, ${indexedTimestamp})`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async updateIndexingTimestamp(groupId: Id, timestamp: number): Promise<void> {
 		const { query, params } = sql`UPDATE search_group_data
-                                    SET indexedTimestamp = ${timestamp}
-                                    WHERE groupId = ${groupId}`
+									  SET indexedTimestamp = ${timestamp}
+									  WHERE groupId = ${groupId}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async removeIndexedGroup(id: Id): Promise<void> {
 		const { query, params } = sql`DELETE
-                                    FROM search_group_data
-                                    WHERE groupId =
-                                          ${id}`
+									  FROM search_group_data
+									  WHERE groupId =
+											${id}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async setMailIndexingEnabled(enabled: boolean): Promise<void> {
 		const { query, params } = sql`INSERT
-        OR REPLACE INTO search_metadata VALUES (
-        ${OfflineStoragePersistence.MAIL_INDEXING_ENABLED},
-        ${enabled ? 1 : 0}
-        )`
+		OR REPLACE INTO search_metadata VALUES (
+		${OfflineStoragePersistence.MAIL_INDEXING_ENABLED},
+		${enabled ? 1 : 0}
+		)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async isMailIndexingEnabled(): Promise<boolean> {
 		const { query, params } = sql`SELECT CAST(value as NUMBER) as value
-                                    FROM search_metadata
-                                    WHERE key = ${OfflineStoragePersistence.MAIL_INDEXING_ENABLED}`
+									  FROM search_metadata
+									  WHERE key = ${OfflineStoragePersistence.MAIL_INDEXING_ENABLED}`
 		const row = await this.sqlCipherFacade.get(query, params)
 		return row != null && untagSqlValue(row.value) === 1
 	}
@@ -158,19 +158,19 @@ export class OfflineStoragePersistence {
 			}
 
 			const { query, params } = sql`
-                INSERT
-                OR REPLACE INTO mail_index(rowid, subject, toRecipients, ccRecipients, bccRecipients, sender,
+				INSERT
+				OR REPLACE INTO mail_index(rowid, subject, toRecipients, ccRecipients, bccRecipients, sender,
                                        body, attachments)
                 VALUES (
-                ${rowid},
-                ${mail.subject},
-                ${serializeMailAddresses(recipients.toRecipients)},
-                ${serializeMailAddresses(recipients.ccRecipients)},
-                ${serializeMailAddresses(recipients.bccRecipients)},
-                ${serializeMailAddresses([mail.sender])},
-                ${htmlToText(getMailBodyText(body))},
-                ${attachments.map((f) => f.name).join(" ")}
-                )`
+				${rowid},
+				${mail.subject},
+				${serializeMailAddresses(recipients.toRecipients)},
+				${serializeMailAddresses(recipients.ccRecipients)},
+				${serializeMailAddresses(recipients.bccRecipients)},
+				${serializeMailAddresses([mail.sender])},
+				${htmlToText(getMailBodyText(body))},
+				${attachments.map((f) => f.name).join(" ")}
+				)`
 			await this.sqlCipherFacade.run(query, params)
 
 			await this.storeSpamClassification(mail, body)
@@ -179,11 +179,11 @@ export class OfflineStoragePersistence {
 			const serializedSets = this.formatSetsValue(mail)
 
 			const contentQuery = sql`INSERT
-            OR REPLACE INTO content_mail_index(rowid, sets, receivedDate) VALUES (
-            ${rowid},
-            ${serializedSets},
-            ${mail.receivedDate.getTime()}
-            )`
+			OR REPLACE INTO content_mail_index(rowid, sets, receivedDate) VALUES (
+			${rowid},
+			${serializedSets},
+			${mail.receivedDate.getTime()}
+			)`
 			await this.sqlCipherFacade.run(contentQuery.query, contentQuery.params)
 		}
 	}
@@ -194,50 +194,50 @@ export class OfflineStoragePersistence {
 
 		const isSpam = mailData.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 		const { query, params } = sql`
-            INSERT
-            OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified)
+			INSERT
+			OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified)
 				VALUES (
-            ${listIdPart(mailData._id)},
-            ${elementIdPart(mailData._id)},
-            ${mailData.subject},
-            ${htmlToText(getMailBodyText(body))},
-            ${isSpam ? 1 : 0},
-            ${Date.now()}
-            )`
+			${listIdPart(mailData._id)},
+			${elementIdPart(mailData._id)},
+			${mailData.subject},
+			${htmlToText(getMailBodyText(body))},
+			${isSpam ? 1 : 0},
+			${Date.now()}
+			)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async getAllSpamClassificationTrainingData(): Promise<SpamClassificationRow[]> {
 		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
-                                    FROM spam_classification_training_data`
+									  FROM spam_classification_training_data`
 		const resultRows = await this.sqlCipherFacade.all(query, params)
 		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationRow)
 	}
 
 	async getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number): Promise<SpamClassificationRow[]> {
 		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
-                                    FROM spam_classification_training_data
-                                    WHERE lastModified > ${cutoffTimestamp}`
+									  FROM spam_classification_training_data
+									  WHERE lastModified > ${cutoffTimestamp}`
 		const resultRows = await this.sqlCipherFacade.all(query, params)
 		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationRow)
 	}
 
 	async putSpamClassificationModel(model: SpamClassificationModel) {
 		const { query, params } = sql`INSERT
-        OR REPLACE INTO 
+		OR REPLACE INTO
 									spam_classification_model VALUES (
       						 		${1},
-        ${model.modelTopology},
-        ${model.weightSpecs},
-        ${model.weightData}
-        )`
+		${model.modelTopology},
+		${model.weightSpecs},
+		${model.weightData}
+		)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async getSpamClassificationModel(): Promise<Nullable<SpamClassificationModel>> {
 		const { query, params } = sql`SELECT modelTopology, weightSpecs, weightData
-                                    FROM spam_classification_model
-                                    WHERE version = ${1}`
+									  FROM spam_classification_model
+									  WHERE version = ${1}`
 		const resultRows = await this.sqlCipherFacade.get(query, params)
 		if (resultRows !== null) {
 			const untaggedValue = untagSqlObject(resultRows)
@@ -256,8 +256,8 @@ export class OfflineStoragePersistence {
 			return
 		}
 		const { query, params } = sql`UPDATE content_mail_index
-                                    SET sets = ${this.formatSetsValue(mail)}
-                                    WHERE rowid = ${rowid}`
+									  SET sets = ${this.formatSetsValue(mail)}
+									  WHERE rowid = ${rowid}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -269,14 +269,14 @@ export class OfflineStoragePersistence {
 		const rowid = await this.getRowid(MailTypeRef, mailId)
 		{
 			const { query, params } = sql`DELETE
-                                        FROM mail_index
-                                        WHERE rowId = ${rowid}`
+										  FROM mail_index
+										  WHERE rowId = ${rowid}`
 			await this.sqlCipherFacade.run(query, params)
 		}
 		{
 			const { query, params } = sql`DELETE
-                                        FROM content_mail_index
-                                        WHERE rowId = ${rowid}`
+										  FROM content_mail_index
+										  WHERE rowId = ${rowid}`
 			await this.sqlCipherFacade.run(query, params)
 		}
 	}
@@ -289,14 +289,14 @@ export class OfflineStoragePersistence {
 			}
 
 			const { query, params } = sql`
-                INSERT
-                OR REPLACE INTO contact_index(rowid, firstName, lastName, mailAddresses)
+				INSERT
+				OR REPLACE INTO contact_index(rowid, firstName, lastName, mailAddresses)
                 VALUES (
-                ${rowid},
-                ${contact.firstName},
-                ${contact.lastName},
-                ${contact.mailAddresses.map((a) => a.address).join(" ")}
-                )`
+				${rowid},
+				${contact.firstName},
+				${contact.lastName},
+				${contact.mailAddresses.map((a) => a.address).join(" ")}
+				)`
 
 			await this.sqlCipherFacade.run(query, params)
 		}
@@ -304,34 +304,34 @@ export class OfflineStoragePersistence {
 
 	async deleteContactData(contactId: IdTuple): Promise<void> {
 		const { query, params } = sql`DELETE
-                                    FROM contact_index
-                                    WHERE rowId = (SELECT rowId
-                                                   FROM list_entities
-                                                   WHERE type =
-                                                         ${getTypeString(ContactTypeRef)}
-                                                     AND listId
-                                                       =
-                                                         ${listIdPart(contactId)}
-                                                     AND elementId
-                                                       =
-                                                         ${elementIdPart(contactId)} LIMIT 1)`
+									  FROM contact_index
+									  WHERE rowId = (SELECT rowId
+													 FROM list_entities
+													 WHERE type =
+														   ${getTypeString(ContactTypeRef)}
+													   AND listId
+														 =
+														   ${listIdPart(contactId)}
+													   AND elementId
+														 =
+														   ${elementIdPart(contactId)} LIMIT 1)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async areContactsIndexed(): Promise<boolean> {
 		const { query, params } = sql`SELECT CAST(value as NUMBER) as value
-                                    FROM search_metadata
-                                    WHERE key = ${OfflineStoragePersistence.CONTACTS_INDEXED}`
+									  FROM search_metadata
+									  WHERE key = ${OfflineStoragePersistence.CONTACTS_INDEXED}`
 		const value = await this.sqlCipherFacade.get(query, params)
 		return value != null && untagSqlObject(value).value === 1
 	}
 
 	async setContactsIndexed(indexed: boolean): Promise<void> {
 		const { query, params } = sql`INSERT
-        OR REPLACE INTO search_metadata (key, value) VALUES (
-        ${OfflineStoragePersistence.CONTACTS_INDEXED},
-        ${indexed ? 1 : 0}
-        )`
+		OR REPLACE INTO search_metadata (key, value) VALUES (
+		${OfflineStoragePersistence.CONTACTS_INDEXED},
+		${indexed ? 1 : 0}
+		)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -339,16 +339,20 @@ export class OfflineStoragePersistence {
 		// Find rowid from the offline storage.
 		// We could have done it in a single query but we need to insert into two tables.
 		const rowIdQuery = sql`SELECT rowid
-                               FROM list_entities
-                               WHERE type = ${getTypeString(typeRef)}
-                                 AND listId = ${listIdPart(id)}
-                                 AND elementId = ${elementIdPart(id)}`
+							   FROM list_entities
+							   WHERE type = ${getTypeString(typeRef)}
+								 AND listId = ${listIdPart(id)}
+								 AND elementId = ${elementIdPart(id)}`
 		const rowIdResult = await this.sqlCipherFacade.get(rowIdQuery.query, rowIdQuery.params)
 		if (rowIdResult == null) {
 			console.warn(`Did not find row id for ${typeRef.typeId} ${id.join(",")}`)
 			return null
 		}
 		return untagSqlObject(rowIdResult).rowid
+	}
+
+	public async tokenize(text: string): Promise<ReadonlyArray<string>> {
+		return this.sqlCipherFacade.tokenize(text)
 	}
 }
 
