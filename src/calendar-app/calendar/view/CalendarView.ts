@@ -548,6 +548,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			return null
 		}
 
+		if (!this.viewModel.eventPreviewModel && calendarLocator.syncTracker.isSyncDone()) {
+			this.exitEventDetails()
+			return null
+		}
+
 		if (!this.viewModel.eventPreviewModel) {
 			return m(".flex-center.items-center.full-height", progressIcon())
 		}
@@ -1359,7 +1364,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			const urlDateParam = args.date
 
 			if (urlDateParam) {
-				// Unlike JS Luxon assumes local time zone when parsing and not UTC. That's what we want
+				// Unlike JS, Luxon assumes local time zone when parsing and not UTC. That's what we want
 				const luxonDate = DateTime.fromISO(urlDateParam)
 
 				let date = new Date()
@@ -1410,6 +1415,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							})
 						})
 					} catch (e) {
+						this.viewSlider.focus(this.viewSlider.getMainColumn())
 						console.warn("Failed to open event", eventIdParam)
 					}
 				} else if (!eventIdParam && this.viewSlider.focusedColumn === this.eventDetails) {
