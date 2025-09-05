@@ -45,9 +45,9 @@ export class LoginButton implements Component<LoginButtonAttrs> {
 		}
 
 		if (attrs.type === LoginButtonType.FlexWidth) {
-			classes.push("plr-2l")
+			classes.push("plr-48")
 		} else {
-			classes.push("full-width plr-button")
+			classes.push("full-width plr-8")
 		}
 
 		return classes

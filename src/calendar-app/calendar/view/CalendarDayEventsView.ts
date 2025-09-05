@@ -1,5 +1,5 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
-import { px, size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../common/gui/size"
 import { DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, mapNullable, neverNull, numberRange } from "@tutao/tutanota-utils"
 import {
 	eventEndsAfterDay,
@@ -47,7 +47,7 @@ export type Attrs = {
 	disabled?: boolean
 }
 export const calendarDayTimes: Array<Time> = numberRange(0, 23).map((number) => new Time(number, 0))
-const allHoursHeight = size.calendar_hour_height * calendarDayTimes.length
+const allHoursHeight = layout_size.calendar_hour_height * calendarDayTimes.length
 
 export class CalendarDayEventsView implements Component<Attrs> {
 	private dayDom: HTMLElement | null = null
@@ -108,7 +108,8 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		const startOfEvent = eventStartsBefore(attrs.day, zone, ev) ? getStartOfDay(attrs.day) : ev.startTime
 		const endOfEvent = eventEndsAfterDay(attrs.day, zone, ev) ? getEndOfDay(attrs.day) : ev.endTime
 		const startTime = (startOfEvent.getHours() * 60 + startOfEvent.getMinutes()) * 60 * 1000
-		const height = ((endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60)) * size.calendar_hour_height - size.calendar_event_border
+		const height =
+			((endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60)) * layout_size.calendar_hour_height - layout_size.calendar_event_border
 		const fullViewWidth = attrs.fullViewWidth
 		const maxWidth = fullViewWidth != null ? px(styles.isDesktopLayout() ? fullViewWidth / 2 : fullViewWidth) : "none"
 		const colSpan = expandEvent(ev, columnIndex, columns)
@@ -135,10 +136,10 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				color: getEventColor(ev, attrs.groupColors),
 				click: (domEvent) => attrs.onEventClicked(ev, domEvent),
 				keyDown: (domEvent) => attrs.onEventKeyDown(ev, domEvent),
-				height: height - size.calendar_day_event_padding,
+				height: height - layout_size.calendar_day_event_padding,
 				hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, ev),
 				isAltered: ev.recurrenceId != null,
-				verticalPadding: size.calendar_day_event_padding,
+				verticalPadding: layout_size.calendar_day_event_padding,
 				fadeIn: !attrs.isTemporaryEvent(ev),
 				opacity: attrs.isTemporaryEvent(ev) ? TEMPORARY_EVENT_OPACITY : 1,
 				enablePointerEvents: !attrs.isTemporaryEvent(ev) && !attrs.isDragging && !attrs.disabled,

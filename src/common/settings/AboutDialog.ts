@@ -18,14 +18,14 @@ interface AboutDialogAttrs {
 export class AboutDialog implements Component<AboutDialogAttrs> {
 	view(vnode: Vnode<AboutDialogAttrs>): Children {
 		return m(".flex.col", [
-			m(".center.mt", "Powered by"),
+			m(".center.mt-16", "Powered by"),
 			m(
 				".center",
 				// Our logo must be padded but at least a certain amount.
 				// This might be a bit more than needed but it's safe.
 				{
 					style: {
-						margin: px(size.vpad_xl),
+						margin: px(size.spacing_48),
 					},
 				},
 				m.trust(getTutaLogo()),
@@ -36,18 +36,18 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 					text: "Website",
 					isCompanySite: true,
 					specialType: "me",
-					class: "mlr mt",
+					class: "mlr-12 mt-16",
 				}),
 				m(ExternalLink, {
 					href: "https://github.com/tutao/tutanota/releases",
 					text: "Releases",
 					isCompanySite: false,
-					class: "mlr mt",
+					class: "mlr-12 mt-16",
 				}),
 			]),
 			m(".flex.justify-center.selectable.flex-wrap", [
-				m("p.center.mt.mlr", `v${env.versionNumber}`),
-				m("p.text-center.mlr", "GPL-v3"),
+				m("p.center.mt-16.mlr-12", `v${env.versionNumber}`),
+				m("p.text-center.mlr-12", "GPL-v3"),
 				m("p", "© 2025 Tutao GmbH"),
 			]),
 			this._sendLogsLink(),
@@ -67,7 +67,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 
 	_sendLogsLink(): Children {
 		return m(
-			".mt",
+			".mt-16",
 			m(Button, {
 				label: "sendLogs_action",
 				click: () => this._sendDeviceLogs(),

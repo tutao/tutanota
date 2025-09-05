@@ -1,18 +1,18 @@
 import { pureComponent } from "./base/PureComponent.js"
 import m from "mithril"
-import { px, size } from "./size.js"
+import { component_size, px, size } from "./size.js"
 import { responsiveCardHMargin } from "./cards.js"
 
 /** Toolbar layout that is used in the second/list column. */
 export const DesktopListToolbar = pureComponent((__, children) => {
 	return m(
-		".flex.pt-xs.pb-xs.items-center.list-bg",
+		".flex.pt-4.pb-4.items-center.list-bg",
 		{
 			style: {
-				"border-radius": `${size.border_radius}px 0 0 ${size.border_radius}px`,
+				"border-radius": `${size.radius_8}px 0 0 ${size.radius_8}px`,
 				// matching the list
 				marginLeft: `5px`,
-				marginBottom: px(size.hpad_large),
+				marginBottom: px(size.spacing_24),
 			},
 		},
 		children,
@@ -33,19 +33,19 @@ export const DesktopViewerToolbar = pureComponent((__, children) => {
 			class: responsiveCardHMargin(),
 			style: {
 				marginLeft: 0,
-				marginBottom: px(size.hpad_large),
+				marginBottom: px(size.spacing_24),
 			},
 		},
 		m(
-			".flex.list-bg.pt-xs.pb-xs.plr-m",
+			".flex.list-bg.pt-4.pb-4.plr-12",
 			{
 				style: {
-					"border-radius": `0 ${size.border_radius_larger}px ${size.border_radius_larger}px 0`,
+					"border-radius": `0 ${size.radius_8}px ${size.radius_8}px 0`,
 				},
 			},
 			[
 				// Height keeps the toolbar showing for consistency, even if there are no actions
-				m(".flex-grow", { style: { height: px(size.button_height) } }),
+				m(".flex-grow", { style: { height: px(component_size.button_height) } }),
 				children,
 			],
 		),

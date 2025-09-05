@@ -14,7 +14,7 @@ export class SettingsFolderRow implements Component<SettingsFolderRowAttrs> {
 	view(vnode: Vnode<SettingsFolderRowAttrs>): Children {
 		const { mainButtonAttrs, extraButton } = vnode.attrs
 		const isSelected = isNavButtonSelected(mainButtonAttrs)
-		const selector = `.folder-row.flex-start.pl-button.pr-m${isSelected ? ".row-selected" : ""}`
+		const selector = `.folder-row.flex-start.pl-8.pr-16${isSelected ? ".row-selected" : ""}`
 		return m(selector, [m(NavButton, mainButtonAttrs), extraButton && isSelected ? extraButton : null])
 	}
 }

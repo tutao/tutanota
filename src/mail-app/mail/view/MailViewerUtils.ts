@@ -76,7 +76,7 @@ export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 		{
 			view: () =>
 				m(
-					".white-space-pre.pt.pb.selectable",
+					".white-space-pre.pt-16.pb-16.selectable",
 					state.state === "loading" ? m(".center", progressIcon()) : (state.headers ?? m(".center", lang.get("noEntries_msg"))),
 				),
 		},
@@ -232,7 +232,7 @@ function handleExportEmailsResult(mailList: Mail[]) {
 			title: "failedToExport_title",
 			child: () =>
 				m("", [
-					m(".pt-m", lang.get("failedToExport_msg")),
+					m(".pt-12", lang.get("failedToExport_msg")),
 					m(".flex-start.items-center", [
 						m(ExpanderButton, {
 							label: lang.makeTranslation(
@@ -467,11 +467,11 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 	}
 
 	const dialogContent = [
-		m(Card, m("", m("p.h4.m-0", lang.get(dialogAttrs.subHeading)), m("p.mt-s", lang.get(dialogAttrs.text)))),
+		m(Card, m("", m("p.h4.m-0", lang.get(dialogAttrs.subHeading)), m("p.mt-8", lang.get(dialogAttrs.text)))),
 		m(
 			Card,
 			m(
-				"p.m-0.mt-s",
+				"p.m-0.mt-8",
 				nextUnsubscribeAction.type !== UnsubscribeType.HTTP_POST_UNSUBSCRIBE
 					? nextUnsubscribeAction.requestUrl
 					: isBrowser()
@@ -494,7 +494,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 				[
 					dialogHeaderBarAttrs.noHeader ? null : m(DialogHeaderBar, dialogHeaderBarAttrs),
 					m(
-						".scroll.hide-outline.plr-l.flex-grow",
+						".scroll.hide-outline.plr-24.flex-grow",
 						{ style: { "overflow-x": "hidden" } },
 						m(
 							ContentWithOptionsDialog,
@@ -559,7 +559,7 @@ export function showReportPhishingMailDialog(onReport: () => unknown) {
 		title: "reportEmail_action",
 		child: () =>
 			m(
-				".flex.col.mt-m",
+				".flex.col.mt-12",
 				{
 					// So that space below buttons doesn't look huge
 					style: {
@@ -573,7 +573,7 @@ export function showReportPhishingMailDialog(onReport: () => unknown) {
 							href: link,
 							text: lang.get("whatIsPhishing_msg"),
 							isCompanySite: true,
-							class: "mt-s",
+							class: "mt-8",
 						}),
 					),
 					m(".flex-wrap.flex-end", [

@@ -44,7 +44,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 				}
 			: null
 		return [
-			m(".flex-space-between.items-center.mt-l.mb-s", [
+			m(".flex-space-between.items-center.mt-32.mb-8", [
 				m(".h4", lang.get("mailAddresses_label")),
 				m(ExpanderButton, {
 					label: "show_action",
@@ -70,14 +70,14 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 			model.aliasCount
 				? [
 						m(
-							".mt-s",
+							".mt-8",
 							lang.get("amountUsedAndActivatedOf_label", {
 								"{used}": model.aliasCount.usedAliases,
 								"{active}": model.aliasCount.enabledAliases,
 								"{totalAmount}": model.aliasCount.totalAliases,
 							}),
 						),
-						m(".small.mt-s", lang.get(model.aliasLimitIncludesCustomDomains() ? "mailAddressInfoLegacy_msg" : "mailAddressInfo_msg")),
+						m(".small.mt-8", lang.get(model.aliasLimitIncludesCustomDomains() ? "mailAddressInfoLegacy_msg" : "mailAddressInfo_msg")),
 					]
 				: null,
 		]

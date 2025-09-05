@@ -86,7 +86,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 
 	view({ attrs }: Vnode<RepeatRuleEditorAttrs>): Children {
 		return m(
-			".pb.pt.flex.col.gap-vpad.fit-height",
+			".pb-16.pt-16.flex.col.gap-16.fit-height",
 			{
 				class: this.repeatRuleType !== null ? "box-content" : "",
 				style: {
@@ -96,12 +96,12 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			[
 				this.hasUnsupportedRules ? this.renderUnsupportedAdvancedRulesWarning() : null,
 				m(".flex.col", [
-					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText("frequency_title")),
+					m("small.uppercase.pb-8.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText("frequency_title")),
 					m(
 						Card,
 						{
 							style: {
-								padding: `${size.vpad}px`,
+								padding: `${size.spacing_16}px`,
 							},
 						},
 						m(RadioGroup, {
@@ -137,14 +137,14 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		}
 
 		return m(".flex.col", [
-			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("calendarRepeatStopCondition_label")),
+			m("small.uppercase.pb-8.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("calendarRepeatStopCondition_label")),
 			m(
 				Card,
 				{
 					style: {
-						padding: `${size.vpad}px`,
+						padding: `${size.spacing_16}px`,
 					},
-					classes: ["flex", "col", "gap-vpad-s", "rel"],
+					classes: ["flex", "col", "gap-8", "rel"],
 				},
 				[
 					m(RadioGroup, {
@@ -169,7 +169,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		}
 
 		return m(".flex.col", [
-			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("interval_title")),
+			m("small.uppercase.pb-8.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("interval_title")),
 			m(
 				Card,
 				{
@@ -286,14 +286,14 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						noIcon: false,
 						expanded: false,
 						classes: ["no-appearance"],
-						renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
+						renderDisplay: (option) => m(".flex.items-center.gap-8", [m("span", this.getNameAndAppendTimeFormat(option))]),
 						renderOption: (option) =>
 							m(
 								"button.items-center.flex-grow",
 								{
 									...(option.value === this.repeatInterval ? { "aria-selected": "true" } : {}),
 									class:
-										"state-bg button-content dropdown-button pt-s pb-s button-min-height" +
+										"state-bg button-content dropdown-button pt-8 pb-8 button-min-height" +
 										(option.value === this.repeatInterval ? "content-accent-fg row-selected icon-accent" : ""),
 								},
 								option.name,
@@ -399,7 +399,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						{
 							...(option.value === this.repeatOccurrences ? { "aria-selected": "true" } : {}),
 							class:
-								"state-bg button-content dropdown-button pt-s pb-s button-min-height" +
+								"state-bg button-content dropdown-button pt-8 pb-8 button-min-height" +
 								(option.value === this.repeatOccurrences ? "content-accent-fg row-selected icon-accent" : ""),
 						},
 						option.name,

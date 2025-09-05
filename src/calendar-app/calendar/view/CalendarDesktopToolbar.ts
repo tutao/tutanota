@@ -1,6 +1,6 @@
 import { CalendarNavConfiguration, getIconForViewType } from "../gui/CalendarGuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { IconSegmentControl } from "../../../common/gui/base/IconSegmentControl.js"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
@@ -18,17 +18,17 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 	view({ attrs }: Vnode<CalendarDesktopToolbarAttrs>): Children {
 		const { navConfig } = attrs
 		return m(
-			".flex.row.items-center.content-bg.border-radius-big.mlr-l.rel.pr.pl-vpad-m",
+			".flex.row.items-center.content-bg.border-radius-12.mlr-24.rel.pr-12.pl-16",
 			{
 				style: {
 					marginLeft: `5px`,
-					marginBottom: px(size.hpad_large),
+					marginBottom: px(size.spacing_16),
 				},
 			},
 			[
 				m("h1", navConfig.title),
 				m(".flex.items-center.justify-center.flex-grow.height-100p", this.renderViewSelector(attrs)),
-				m(".flex.pt-xs.pb-xs", [
+				m(".flex.pt-4.pb-4", [
 					navConfig.back ?? m(".button-width-fixed"),
 					m(
 						".flex",
@@ -81,7 +81,7 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 					left: 0,
 					right: 0,
 					// need explicit width to center the control
-					width: px(size.icon_segment_control_button_width * 4),
+					width: px(component_size.icon_segment_control_button_width * 4),
 				},
 			},
 			m(IconSegmentControl, {

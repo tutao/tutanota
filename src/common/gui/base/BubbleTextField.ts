@@ -87,7 +87,7 @@ export class BubbleTextField<T> implements ClassComponent<BubbleTextFieldAttrs<T
 						return m(".flex.overflow-hidden.items-end", [
 							m(".flex-no-grow-shrink-auto.overflow-hidden", m(BaseButton, baseButtonAttrs)),
 							// Comma is shown when there's text/another bubble afterwards or if the field is active
-							this.active || idx < items.length - 1 || attrs.text !== "" ? m("span.pr", ",") : null,
+							this.active || idx < items.length - 1 || attrs.text !== "" ? m("span.pr-12", ",") : null,
 						])
 					})
 				},

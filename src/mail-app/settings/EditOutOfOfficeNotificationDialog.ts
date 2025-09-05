@@ -107,7 +107,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 			this.renderEnabled(model),
 			this.renderRecipients(model),
 			m(
-				".mt.flex-start",
+				".mt-16.flex-start",
 				m(Checkbox, {
 					label: () => lang.get("outOfOfficeTimeRange_msg"),
 					checked: model.timeRangeEnabled(),
@@ -116,10 +116,10 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 				}),
 			),
 			model.timeRangeEnabled() ? this.renderTimeRangeSelector(model, startOfTheWeekOffset) : null,
-			m(".mt-l", lang.get("outOfOfficeUnencrypted_msg")),
+			m(".mt-32", lang.get("outOfOfficeUnencrypted_msg")),
 			organizationEnabled ? this.renderOrganizations(model, organizationMessageEditor) : null,
 			defaultEnabled ? this.renderDefault(organizationEnabled, model, defaultMessageEditor) : null,
-			m(".pb", ""),
+			m(".pb-16", ""),
 		]
 	}
 
@@ -138,14 +138,14 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 
 	private renderDefault(organizationEnabled: boolean, model: EditOutOfOfficeNotificationDialogModel, defaultMessageEditor: HtmlEditor) {
 		return [
-			m(".h4.text-center.mt-l", getDefaultNotificationLabel(organizationEnabled)),
+			m(".h4.text-center.mt-32", getDefaultNotificationLabel(organizationEnabled)),
 			m(TextField, {
 				label: "subject_label",
 				value: model.defaultSubject(),
 				oninput: model.defaultSubject,
 				injectionsLeft: () =>
 					m(
-						".flex-no-grow-no-shrink-auto.pr-s",
+						".flex-no-grow-no-shrink-auto.pr-4",
 						{
 							style: {
 								"line-height": px(24),
@@ -161,14 +161,14 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 
 	private renderOrganizations(model: EditOutOfOfficeNotificationDialogModel, organizationMessageEditor: HtmlEditor) {
 		return [
-			m(".h4.text-center.mt-l", lang.get("outOfOfficeInternal_msg")),
+			m(".h4.text-center.mt-32", lang.get("outOfOfficeInternal_msg")),
 			m(TextField, {
 				label: "subject_label",
 				value: model.organizationSubject(),
 				oninput: model.organizationSubject,
 				injectionsLeft: () =>
 					m(
-						".flex-no-grow-no-shrink-auto.pr-s",
+						".flex-no-grow-no-shrink-auto.pr-4",
 						{
 							style: {
 								"line-height": px(24),

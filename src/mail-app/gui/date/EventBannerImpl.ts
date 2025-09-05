@@ -19,7 +19,7 @@ import {
 import { Time } from "../../../common/calendar/date/Time"
 import { theme } from "../../../common/gui/theme"
 import { styles } from "../../../common/gui/styles"
-import { px, size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../common/gui/size"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
@@ -131,7 +131,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 		/* Event Banner */
 		return m(
-			".border-radius-m.border-sm.grid.full-width.mb-s",
+			".border-radius-8.border-sm.grid.full-width.mb-8",
 			{
 				style: styles.isSingleColumnLayout()
 					? {
@@ -142,16 +142,16 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 						}
 					: {
 							"grid-template-columns": recipientIsOrganizer ? "min-content max-content" : "min-content min-content 1fr",
-							"max-width": recipientIsOrganizer ? "max-content" : px(size.two_column_layout_width),
+							"max-width": recipientIsOrganizer ? "max-content" : px(layout_size.two_column_layout_width),
 							"border-color": theme.surface_container_high,
 						},
 			},
 			[
 				/* Date Column */
 				m(
-					".flex.flex-column.center.items-center.pb.pt.justify-center.fill-grid-column",
+					".flex.flex-column.center.items-center.pb-16.pt-16.justify-center.fill-grid-column",
 					{
-						class: styles.isSingleColumnLayout() ? "plr-vpad" : "pr-vpad-l pl-vpad-l",
+						class: styles.isSingleColumnLayout() ? "plr-16" : "pr-32 pl-32",
 						style: {
 							"background-color": theme.surface_container_high,
 							color: theme.on_surface_variant,
@@ -164,21 +164,21 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					],
 				),
 				/* Invite Column */
-				m(".flex.flex-column.plr-vpad.pb.pt.justify-start", [
+				m(".flex.flex-column.plr-16.pb-16.pt-16.justify-start", [
 					m(".flex", [
 						m(Icon, {
 							icon: BootIcons.Calendar,
 							container: "div",
-							class: "mr-xsm",
+							class: "mr-4",
 							style: { fill: theme.on_surface },
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 						}),
 						m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
 					]),
 					event.organizer?.address
-						? m(".flex.items-center.small.mt-s", [
+						? m(".flex.items-center.small.mt-8", [
 								m("span.b", lang.get("when_label")),
-								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+								m("span.ml-4", formatEventTimes(getStartOfDay(event.startTime), event, "")),
 							])
 						: null,
 					replySection,
@@ -186,7 +186,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				/* Time Overview */
 				!recipientIsOrganizer
 					? m(
-							".flex.flex-column.plr-vpad.pb.pt.justify-start",
+							".flex.flex-column.plr-16.pb-16.pt-16.justify-start",
 							{
 								class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 								style: {
@@ -195,21 +195,20 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 								},
 							},
 							[
-								m(".flex.flex-column.mb-s", [
-									m(".flex", [
+								m(".flex.flex-column.mb-8", [
+									m(".flex.items-center.gap-4", [
 										m(Icon, {
 											icon: Icons.Time,
 											container: "div",
-											class: "mr-xsm mt-xxs",
 											style: { fill: theme.on_surface },
-											size: IconSize.Medium,
+											size: IconSize.PX24,
 										}),
 										m("span.b.h5", lang.get("timeOverview_title")),
 									]),
 									agenda
-										? m(".mb-s", [
+										? m(".mb-8", [
 												m(
-													".flex.mt-hpad-small.fit-content",
+													".flex.mt-4.fit-content",
 													{
 														class: agenda && agenda.conflictCount > 1 ? "nav-button" : undefined,
 														onclick: () =>
@@ -221,11 +220,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 														m(Icon, {
 															icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
 															container: "div",
-															class: "mr-xsm",
+															class: "mr-4",
 															style: {
 																fill: hasConflict ? theme.warning : theme.success,
 															},
-															size: IconSize.Medium,
+															size: IconSize.PX24,
 														}),
 														this.renderConflictInfoText(agenda.regularEvents.length, agenda.allDayEvents.length),
 													],
@@ -235,7 +234,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 															"",
 															{
 																style: {
-																	"margin-left": px(size.icon_size_large + size.vpad_xsm),
+																	"margin-left": px(size.icon_24 + size.spacing_4),
 																},
 															},
 															[
@@ -294,7 +293,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		}
 
 		return m(
-			".small.flex.gap-vpad-xs.items-center.fit-content",
+			".small.flex.gap-8.items-center.fit-content",
 			{
 				style: {
 					"line-height": px(19.5),
@@ -307,7 +306,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 							icon: BootIcons.Expand,
 							container: "div",
 							class: `fit-content`,
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 							style: {
 								fill: theme.on_surface,
 								rotate: this.displayConflictingAgenda ? "180deg" : "0deg",
@@ -403,11 +402,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					]),
 				)
 			} else if (!needsAction) {
-				children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15.lh", lang.get("alreadyReplied_msg")))
+				children.push(m(".align-self-start.start.small.mt-8.mb-8.lh", lang.get("alreadyReplied_msg")))
 				children.push(viewOnCalendarButton)
 			}
 		} else if (method === CalendarMethod.REPLY) {
-			children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15.lh", lang.get("eventNotificationUpdated_msg")))
+			children.push(m(".align-self-start.start.small.mt-8.mb-8.lh", lang.get("eventNotificationUpdated_msg")))
 			children.push(viewOnCalendarButton)
 		} else {
 			return null
@@ -418,7 +417,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 	private renderCommentInputBox(): Children {
 		return m(ExpandableTextArea, {
-			classes: ["mt-s"],
+			classes: ["mt-8"],
 			variant: "outlined",
 			value: this.comment,
 			oninput: (newValue: string) => {
