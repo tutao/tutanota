@@ -17,7 +17,7 @@ export default function renderSwitchMonthArrowIcon(forward: boolean, size: numbe
 			class: "center-h",
 			size: IconSize.Normal,
 			style: {
-				fill: theme.content_fg,
+				fill: theme.on_surface,
 			},
 		}),
 		style: {

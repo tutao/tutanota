@@ -43,7 +43,7 @@ export class BubbleButton implements Component<BubbleButtonAttrs> {
 						icon: attrs.icon,
 						container: "div",
 						class: "mr-xs mb-xs",
-						style: { fill: theme.button_bubble_fg },
+						style: { fill: theme.on_surface },
 					}),
 				iconWrapperSelector: ".icon.mr-hpad-small",
 				style: { height: px(bubbleButtonHeight()), maxHeight: px(bubbleButtonHeight()) },

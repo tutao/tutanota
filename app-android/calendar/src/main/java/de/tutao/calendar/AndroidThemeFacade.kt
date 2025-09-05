@@ -31,9 +31,9 @@ class AndroidThemeFacade(
 		private const val TAG = "AndroidThemeFacade"
 		private val LIGHT_FALLBACK_THEME = mapOf(
 			"themeId" to "light-fallback",
-			"content_bg" to "#ffffff",
-			"header_bg" to "#ffffff",
-			"navigation_bg" to "#f6f6f6",
+			"surface" to "#ffffff",
+			"surface" to "#ffffff",
+			"surface_container" to "#f6f6f6",
 		)
 	}
 
@@ -103,13 +103,13 @@ class AndroidThemeFacade(
 
 	private fun doApplyTheme(theme: Theme) {
 		Log.d(TAG, "changeTheme: " + theme["themeId"])
-		@ColorInt val backgroundColor = parseColor(getColor(theme, "content_bg"))
+		@ColorInt val backgroundColor = parseColor(getColor(theme, "surface"))
 		activity.window.setBackgroundDrawable(ColorDrawable(backgroundColor))
 
 		// It is not an accident that navBg and headerBg seem to be swapped, the original color scheme was reused in
 		// this way.
 
-		val navBg = getColor(theme, "header_bg")
+		val navBg = getColor(theme, "surface")
 
 		@ColorInt val navColor = parseColor(navBg)
 		val isNavBarLight = navBg.isLightHexColor()
@@ -119,7 +119,7 @@ class AndroidThemeFacade(
 
 		windowInsetController.isAppearanceLightNavigationBars = isNavBarLight
 
-		val headerBg = getColor(theme, "navigation_bg")
+		val headerBg = getColor(theme, "surface_container")
 		@ColorInt val statusBarColor = parseColor(headerBg)
 		val isStatusBarLight = headerBg.isLightHexColor()
 
