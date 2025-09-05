@@ -1,6 +1,6 @@
 import m, { Children, Component, RouteLinkAttrs, Vnode } from "mithril"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
-import { px, size } from "../size"
+import { component_size, px, size } from "../size"
 import type { lazy } from "@tutao/tutanota-utils"
 import { lazyStringValue, neverNull } from "@tutao/tutanota-utils"
 import type { lazyIcon } from "./Icon"
@@ -96,11 +96,11 @@ export class NavButton implements Component<NavButtonAttrs> {
 		const isSelected = isNavButtonSelected(a)
 
 		if (a.colors === NavButtonColor.Header && !styles.isDesktopLayout()) {
-			return "flex-end items-center icon-xl" + (isSelected ? " selected" : "")
+			return "flex-end items-center icon-32" + (isSelected ? " selected" : "")
 		} else if (a.small === true) {
 			return "flex-center items-center icon" + (isSelected ? " selected" : "")
 		} else {
-			return "flex-center items-center icon-large" + (isSelected ? " selected" : "")
+			return "flex-center items-center icon-24" + (isSelected ? " selected" : "")
 		}
 	}
 
@@ -202,7 +202,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 	}
 
 	getHeight(): number {
-		return size.button_height
+		return component_size.button_height
 	}
 }
 

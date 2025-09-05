@@ -131,7 +131,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 							Array(Math.pow(2, index)).fill(
 								m(Icon, {
 									icon: Icons.Gift,
-									size: IconSize.Medium,
+									size: IconSize.PX24,
 								}),
 							),
 						),

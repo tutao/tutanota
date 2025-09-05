@@ -57,7 +57,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				styles.isDesktopLayout()
 					? m(Icon, {
 							icon: BootIcons.Search,
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 							style: {
 								fill: theme.on_surface_variant,
 							},
@@ -82,7 +82,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							label: attrs.busy ? "loading_msg" : "close_alt",
 							icon: m(Icon, {
 								container: "div",
-								size: IconSize.Medium,
+								size: IconSize.PX24,
 								icon: attrs.busy ? BootIcons.Progress : Icons.Close,
 								class: "center-h  " + (attrs.busy ? "icon-progress-search icon-progress" : ""),
 								style: {

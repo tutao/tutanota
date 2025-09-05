@@ -366,7 +366,7 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, ava
 			? null
 			: m(Icon, {
 					icon: isBusiness ? BootIcons.User : Icons.Business,
-					size: IconSize.Large,
+					size: IconSize.PX20,
 					class: "mr-xsm",
 					style: {
 						fill: theme.primary,

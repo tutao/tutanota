@@ -1,4 +1,4 @@
-import { size } from "../size"
+import { component_size, size } from "../size"
 
 export const enum DirectionLock {
 	Horizontal,
@@ -64,7 +64,7 @@ export class SwipeHandler {
 			if (!this.isAnimating) {
 				this.onHorizontalDrag(x, y)
 			} // If we don't have a vertical lock yet but we would like to have it, lock vertically
-		} else if (this.directionLock !== DirectionLock.Vertical && Math.abs(y) > Math.abs(x) && Math.abs(y) > size.list_row_height) {
+		} else if (this.directionLock !== DirectionLock.Vertical && Math.abs(y) > Math.abs(x) && Math.abs(y) > component_size.list_row_height) {
 			this.directionLock = DirectionLock.Vertical
 
 			if (!this.isAnimating) {

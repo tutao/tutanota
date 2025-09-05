@@ -60,7 +60,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 		return m(Icon, {
 			icon,
 			class: "pr",
-			size: IconSize.Medium,
+			size: IconSize.PX24,
 			style: Object.assign(
 				{
 					fill: theme.on_surface,

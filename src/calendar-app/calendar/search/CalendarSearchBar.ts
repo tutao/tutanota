@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../../../common/gui/size"
+import { component_size, px, size } from "../../../common/gui/size"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { PositionRect } from "../../../common/gui/base/Overlay"
@@ -265,14 +265,14 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 			}
 		} else if (window.innerWidth < 500) {
 			overlayRect = {
-				top: px(size.navbar_height_mobile + 6),
+				top: px(component_size.navbar_height_mobile + 6),
 				left: px(16),
 				right: px(16),
 				zIndex: LayerType.LowPriorityOverlay,
 			}
 		} else {
 			overlayRect = {
-				top: px(size.navbar_height_mobile + 6),
+				top: px(component_size.navbar_height_mobile + 6),
 				left: px(domRect.left),
 				right: px(window.innerWidth - domRect.right),
 				zIndex: LayerType.LowPriorityOverlay,

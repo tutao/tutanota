@@ -76,7 +76,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 						m(Icon, {
 							icon: BootIcons.Progress,
 							class: "flex-center items-center icon-progress-tiny icon-progress ml-s",
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 						}),
 						m(IconButton, {
 							title: "cancel_action",

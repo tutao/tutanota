@@ -18,7 +18,7 @@ import {
 	SelectableRowSelectedSetter,
 	shouldAlwaysShowMultiselectCheckbox,
 } from "../../../common/gui/SelectableRowContainer.js"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { shiftByForCheckbox, translateXHide, translateXShow } from "./ContactRow.js"
 import { styles } from "../../../common/gui/styles.js"
 
@@ -68,7 +68,7 @@ export class ContactListRecipientView implements Component<ContactListViewAttrs>
 	}
 
 	private readonly renderConfig: RenderConfig<ContactListEntry, RecipientRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {

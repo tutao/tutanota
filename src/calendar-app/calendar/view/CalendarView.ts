@@ -64,7 +64,7 @@ import { styles } from "../../../common/gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { px, size } from "../../../common/gui/size"
+import { component_size, px, size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { exportCalendar, handleCalendarImport } from "../../../common/calendar/gui/CalendarImporterDialog.js"
@@ -1095,7 +1095,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				? m(Icon, {
 						title: lastSyncStr,
 						icon: Icons.SyncProblem,
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 						class: "pr-s",
 						style: {
 							fill: theme.on_surface_variant,
@@ -1534,7 +1534,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		// side of month's name, so we hardcoded the left spacing to be the same used by the month name, so doesn't matter
 		// if the user clicks on month's name or on the icon
 		// noinspection JSSuspiciousNameCombination
-		const elementRect = { ...dom.getBoundingClientRect(), left: size.button_height }
+		const elementRect = { ...dom.getBoundingClientRect(), left: component_size.button_height }
 
 		const selector = new DaySelectorPopup(elementRect, {
 			selectedDate: getStartOfDay(this.viewModel.selectedDate()),

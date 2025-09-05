@@ -26,7 +26,7 @@ export class SettingsNavButton implements Component<SettingsNavButtonAttrs> {
 							icon: attrs.icon?.(),
 							container: "div",
 							class: "center-h",
-							size: IconSize.Large,
+							size: IconSize.PX20,
 						})
 					: null,
 				onclick: attrs.click,
@@ -36,7 +36,7 @@ export class SettingsNavButton implements Component<SettingsNavButtonAttrs> {
 				icon: Icons.ArrowForward,
 				container: "div",
 				class: "center-h items-ends",
-				size: IconSize.Large,
+				size: IconSize.PX20,
 			}),
 		)
 

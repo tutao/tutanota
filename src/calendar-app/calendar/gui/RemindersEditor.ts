@@ -142,7 +142,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 						},
 						m(Icon, {
 							icon: Icons.Cancel,
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 							style: {
 								fill: getColors(ButtonColor.Content).button,
 							},
