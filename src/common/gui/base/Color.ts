@@ -154,6 +154,33 @@ export function hexToRGBAString(color: string, alpha: number) {
 	return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
+export function rgbaToRGBAString(color: { r: number; g: number; b: number; a?: number }): string {
+	if (color.a == null || color.a < 1.0) {
+		return `rgb(${color.r}, ${color.g}, ${color.b})`
+	} else {
+		return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`
+	}
+}
+
+export function computeColor(color: string): { r: number; g: number; b: number; a: number } {
+	// We have to create an element in the DOM because colors of elements not in the DOM can't be computed
+	const element = document.createElement("span")
+	element.style.color = color
+	document.body.appendChild(element)
+	const computed = getComputedStyle(element).color.replace(" ", "")
+	document.body.removeChild(element)
+
+	if (computed.startsWith("rgb(")) {
+		const [r, g, b] = computed.slice(4, computed.length - 1).split(",")
+		return { r: Number(r), g: Number(g), b: Number(b), a: 1.0 }
+	} else if (computed.startsWith("rgba(")) {
+		const [r, g, b, a] = computed.slice(5, computed.length - 1).split(",")
+		return { r: Number(r), g: Number(g), b: Number(b), a: Number(a) }
+	} else {
+		throw new Error(`color ${color} did not result in rgb/rgba somehow`)
+	}
+}
+
 /**
  * Convert RGB to RRGGBB
  */

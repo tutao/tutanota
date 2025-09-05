@@ -136,13 +136,17 @@ export function getNavigationMenuIcon(): string {
 }
 
 export function isLightTheme(): boolean {
-	return theme.themeId === "light" || theme.themeId === "light_secondary"
+	return isColorLight(theme.content_bg)
+}
+
+export function isDarkTheme(): boolean {
+	return !isLightTheme()
 }
 
 export function getLightOrDarkTutaLogo(isCalendarApp: boolean): string {
 	// Use tuta logo with our brand colors
 	const isCalendarTheme = (theme.themeId === "light" && isCalendarApp) || (theme.themeId === "light_secondary" && !isCalendarApp)
-	if (isColorLight(theme.content_bg) && !isCalendarTheme) {
+	if (isLightTheme() && !isCalendarTheme) {
 		return getTutaLogoSvg(tutaRed, tutaDunkel)
 	} else {
 		return getTutaLogoSvg(logoDefaultGrey, logoDefaultGrey)

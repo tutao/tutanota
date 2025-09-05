@@ -43,7 +43,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { getReferencedAttachments, isMailContrastFixNeeded, isTutanotaTeamMail, loadInlineImages, moveMails } from "./MailGuiUtils"
+import { applyContrastFix, getReferencedAttachments, isTutanotaTeamMail, loadInlineImages, moveMails } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -87,13 +87,23 @@ export const enum ContentBlockingStatus {
 	AlwaysBlock = "4",
 }
 
+export enum ThemeModeType {
+	Light,
+	Dark,
+}
+
+interface SanitizedFragmentWithDark extends SanitizedFragment {
+	/** Clean HTML fragment, converted to dark mode */
+	fragmentDark: DocumentFragment
+}
+
 export class MailViewerViewModel {
-	private contrastFixNeeded: boolean = false
 	// always sanitized in this.sanitizeMailBody
 
-	private sanitizeResult: SanitizedFragment | null = null
+	private sanitizeResult: SanitizedFragmentWithDark | null = null
 	private loadingAttachments: boolean = false
 	private attachments: TutanotaFile[] = []
+	private displayMode: ThemeModeType | null = null
 
 	private contentBlockingStatus: ContentBlockingStatus | null = null
 
@@ -266,6 +276,14 @@ export class MailViewerViewModel {
 		}
 	}
 
+	setDisplayMode(displayMode: ThemeModeType | null) {
+		this.displayMode = displayMode
+	}
+
+	getDisplayMode(): ThemeModeType | null {
+		return this.displayMode
+	}
+
 	isLoading(): boolean {
 		return this.loadingState.isLoading()
 	}
@@ -284,10 +302,6 @@ export class MailViewerViewModel {
 
 	getLoadedInlineImages(): InlineImages {
 		return this.loadedInlineImages ?? new Map()
-	}
-
-	isContrastFixNeeded(): boolean {
-		return this.contrastFixNeeded
 	}
 
 	isDraftMail() {
@@ -333,8 +347,12 @@ export class MailViewerViewModel {
 		return this.mail._id
 	}
 
-	getSanitizedMailBody(): DocumentFragment | null {
-		return this.sanitizeResult?.fragment ?? null
+	getSanitizedMailBody(darkMode: ThemeModeType): DocumentFragment | null {
+		if (this.sanitizeResult == null) {
+			return null
+		}
+
+		return darkMode ? this.sanitizeResult.fragmentDark : this.sanitizeResult.fragment
 	}
 
 	getMailBody(): string {
@@ -971,28 +989,21 @@ export class MailViewerViewModel {
 		}
 	}
 
-	private async sanitizeMailBody(mail: Mail, blockExternalContent: boolean): Promise<SanitizedFragment> {
+	private async sanitizeMailBody(mail: Mail, blockExternalContent: boolean): Promise<SanitizedFragmentWithDark> {
 		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
 		const rawBody = this.getMailBody()
 		const urlified = await this.workerFacade.urlify(rawBody).catch((e) => {
 			console.warn("Failed to urlify mail body!", e)
 			return rawBody
 		})
+
 		const sanitizeResult = getHtmlSanitizer().sanitizeFragment(urlified, {
 			blockExternalContent,
 			allowRelativeLinks: isTutanotaTeamMail(mail),
 			highlightedStrings: this.highlightedStrings,
 		})
 		const { fragment, inlineImageCids, links, blockedExternalContent } = sanitizeResult
-
-		/**
-		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
-		 * the html body of the mail
-		 *  * any tag with a style attribute that has the color property set (besides "inherit")
-		 *  * any tag with a style attribute that has the background-color set (besides "inherit")
-		 *  * any font tag with the color attribute set
-		 */
-		this.contrastFixNeeded = isMailContrastFixNeeded(fragment)
+		const fragmentDark = applyContrastFix(fragment)
 
 		m.redraw()
 		return {
@@ -1000,6 +1011,7 @@ export class MailViewerViewModel {
 			// and the fragment is left empty. If we cache the fragment and then append that directly to the DOM tree when rendering, there are cases where
 			// we would try to do so twice, and on the second pass the mail body will be left blank
 			fragment,
+			fragmentDark,
 			inlineImageCids,
 			links,
 			blockedExternalContent,
