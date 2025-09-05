@@ -407,6 +407,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 							.then(() => {
 								this.search()
 								this.onFocus()
+								mailLocator.mailFacade.updateClassifier()
 							})
 							.catch(
 								ofClass(IndexingNotSupportedError, () => {
