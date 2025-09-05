@@ -6,7 +6,7 @@ import { on_secondary_fixed, secondary_fixed } from "../builtinThemes"
 import { ClickHandler } from "./GuiUtils"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { lang, Translation } from "../../misc/LanguageViewModel"
-import { px, size } from "../size"
+import { component_size, px, size } from "../size"
 
 export interface FilterChipAttrs {
 	label: Translation
@@ -37,7 +37,7 @@ export class FilterChip implements Component<FilterChipAttrs> {
 			selectors,
 			{
 				style: {
-					minHeight: px(size.button_icon_bg_size),
+					minHeight: px(component_size.button_icon_bg_size),
 					...(selected
 						? {
 								background: secondary_fixed,

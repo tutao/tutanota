@@ -14,7 +14,7 @@ import { GroupDetailsModel } from "./GroupDetailsModel.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../../../common/gui/SelectableRowContainer.js"
 import Stream from "mithril/stream"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { size } from "../../../common/gui/size.js"
+import { component_size, size } from "../../../common/gui/size.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { compareGroupInfos } from "../../../common/api/common/utils/GroupUtils.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
@@ -36,7 +36,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
 	private listModel: ListElementListModel<GroupInfo>
 	private readonly renderConfig: RenderConfig<GroupInfo, GroupRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {

@@ -27,7 +27,7 @@ export class IconMessageBox implements Component<InfoMessaggeBoxAttrs> {
 						style: {
 							fill: attrs.color,
 						},
-						class: "icon-message-box",
+						class: "icon-80",
 					})
 				: null,
 			m(

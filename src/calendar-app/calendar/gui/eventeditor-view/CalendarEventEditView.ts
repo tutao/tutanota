@@ -375,7 +375,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 							icon: Icons.Clock,
 							style: { fill: getColors(ButtonColor.Content).button },
 							title: lang.get("reminderBeforeEvent_label"),
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 						}),
 					],
 				),

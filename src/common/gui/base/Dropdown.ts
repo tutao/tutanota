@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { modal, ModalComponent } from "./Modal"
 import { animations, opacity, transform, TransformEnum } from "../animation/Animations"
 import { ease } from "../animation/Easing"
-import { px, size } from "../size"
+import { component_size, px, size } from "../size"
 import { focusNext, focusPrevious, Shortcut } from "../../misc/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
@@ -384,7 +384,7 @@ export class Dropdown implements ModalComponent {
 	}
 
 	private getFilterHeight(): number {
-		return this.isFilterable ? size.button_height + size.vpad_xs : 0
+		return this.isFilterable ? component_size.button_height + size.vpad_xs : 0
 	}
 }
 

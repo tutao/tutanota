@@ -116,7 +116,6 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 				[
 					m(Icon, {
 						icon,
-						size: IconSize.Normal,
 						style: {
 							fill: planBoxColors.getFeatureIconColor(isSelected, isDisabled, PlanType.Free, hasCampaign),
 						},
@@ -143,7 +142,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 		if (styles.isMobileLayout()) {
 			return "0 0 0 0"
 		} else {
-			return `0 0 ${px(size.border_radius_large)} ${px(size.border_radius_large)}`
+			return `0 0 ${px(size.radius_12)} ${px(size.radius_12)}`
 		}
 	}
 }

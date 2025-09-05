@@ -10,11 +10,11 @@ import {
 import { getContactListName } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { NBSP, noOp } from "@tutao/tutanota-utils"
 import m, { Children } from "mithril"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { splitTextForHighlighting, SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
-export const shiftByForCheckbox = px(size.checkbox_size + size.hpad)
+export const shiftByForCheckbox = px(component_size.checkbox_size + size.hpad)
 export const translateXShow = `translateX(${shiftByForCheckbox})`
 export const translateXHide = "translateX(0)"
 

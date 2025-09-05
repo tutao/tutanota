@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../gui/size"
+import { component_size, px, size } from "../gui/size"
 import { lang } from "../misc/LanguageViewModel"
 import { type Callback } from "@tutao/tutanota-utils"
 import { PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
@@ -107,8 +107,8 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 							"background-color": theme.go_european,
 							color: theme.on_go_european,
 							...(!styles.isMobileLayout() && {
-								"border-radius": `${isLegendPlan ? "0" : px(size.border_radius_large)}
-									${isLegendPlan ? px(size.border_radius_large) : "0"} 0 0`,
+								"border-radius": `${isLegendPlan ? "0" : px(size.radius_12)}
+									${isLegendPlan ? px(size.radius_12) : "0"} 0 0`,
 							}),
 						},
 					},
@@ -174,7 +174,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						style: {
 							"justify-content": isLegendPlan ? "start" : "end",
 							"flex-direction": isLegendPlan ? "row-reverse" : "row",
-							height: px(size.button_height_compact),
+							height: px(component_size.button_height_compact),
 						},
 					},
 					isCurrentPlan ? m(CurrentPlanLabel) : m(".smaller", isLegendPlan ? lang.get("allYouNeed_label") : lang.get("mostPopular_label")),
@@ -263,7 +263,6 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 				},
 				m(Icon, {
 					icon,
-					size: IconSize.Normal,
 					style: {
 						fill: planBoxColors.getFeatureIconColor(isSelected, isDisabled, planType, hasCampaign),
 					},
@@ -287,7 +286,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 	}
 
 	private getLegendBorderRadius(hasBanner: boolean) {
-		const topRightRadius = hasBanner ? "0" : px(size.border_radius_large)
+		const topRightRadius = hasBanner ? "0" : px(size.radius_12)
 		if (styles.isMobileLayout()) {
 			return `0 0 0 0`
 		} else {
@@ -309,7 +308,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 	}
 
 	private getRevoBorderRadius(hasBanner: boolean) {
-		const topLeftRadius = hasBanner ? "0" : px(size.border_radius_large)
+		const topLeftRadius = hasBanner ? "0" : px(size.radius_12)
 		if (styles.isMobileLayout()) {
 			return `0 0 0 0`
 		} else {

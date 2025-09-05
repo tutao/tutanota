@@ -31,7 +31,7 @@ export class CalendarSearchBarOverlay implements Component<CalendarSearchBarOver
 					{
 						style: {
 							height: px(52),
-							"border-left": px(size.border_selection) + " solid transparent",
+							"border-left": px(size.radius_4) + " solid transparent",
 						},
 						// avoid closing overlay before the click event can be received
 						onmousedown: (e: MouseEvent) => e.preventDefault(),

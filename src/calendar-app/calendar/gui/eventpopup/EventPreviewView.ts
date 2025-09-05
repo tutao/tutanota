@@ -134,7 +134,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
 		return m(Icon, {
 			icon,
-			size: IconSize.Medium,
+			size: IconSize.PX24,
 			style: Object.assign(
 				{
 					fill: theme.content_button,
