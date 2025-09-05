@@ -68,7 +68,7 @@ export class LeavingUserSurveyReasonPage implements WizardPageN<LeavingUserSurve
 					},
 					dropdownWidth: 350,
 				} satisfies DropDownSelectorAttrs<NumberString | null>),
-				m(".pt", m(this.customReasonEditor)),
+				m(".pt-16", m(this.customReasonEditor)),
 			],
 		)
 	}

@@ -102,7 +102,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 				label: "language_label",
 				value: this.model.selectedContent() ? lang.getTranslationText(getLanguageName(this.model.selectedContent())) : "",
 				injectionsRight: () =>
-					m(".flex.ml-between-s", [
+					m(".flex.ml-between-4", [
 						this.model.getAddedLanguages().length > 1 ? [this.renderRemoveLangButton(), this.renderSelectLangButton()] : null,
 						this.renderAddLangButton(),
 					]),

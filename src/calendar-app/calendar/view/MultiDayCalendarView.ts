@@ -15,7 +15,7 @@ import {
 } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarDayEventsView, calendarDayTimes } from "./CalendarDayEventsView"
 import { theme } from "../../../common/gui/theme"
-import { px, size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../common/gui/size"
 import { EventTextTimeOption, Keys, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { PageView } from "../../../common/gui/base/PageView"
@@ -183,10 +183,10 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	private renderDateSelector(attrs: MultiDayCalendarViewAttrs, isDayView: boolean): Children {
 		return m("", [
 			m(
-				".header-bg.pb-s.overflow-hidden",
+				".header-bg.pb-8.overflow-hidden",
 				{
 					style: {
-						"margin-left": px(size.calendar_hour_width_mobile),
+						"margin-left": px(layout_size.calendar_hour_width_mobile),
 					},
 				},
 				m(DaySelector, {
@@ -231,7 +231,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			containerStyle = {
 				marginLeft: "5px",
 				overflow: "hidden",
-				marginBottom: px(size.hpad_large),
+				marginBottom: px(size.spacing_24),
 			}
 		} else {
 			containerStyle = {}
@@ -241,9 +241,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		const isMainView = thisPeriod === mainPeriod
 
 		const resolveClasses = (): string => {
-			const classes = isDesktopLayout
-				? ["mlr-l", "border-radius-big"]
-				: ["border-radius-top-left-big", "border-radius-top-right-big", "content-bg", "mlr-safe-inset"]
+			const classes = isDesktopLayout ? ["mlr-24", "border-radius-12"] : ["border-radius-top-12", "content-bg", "mlr-safe-inset"]
 
 			return classes.join(" ")
 		}
@@ -283,7 +281,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 							this.isProgrammaticScrollInProgress = false
 							if (isMainView) {
 								if (attrs.selectedTime) {
-									attrs.onScrollPositionChange(size.calendar_hour_height * attrs.selectedTime.hour)
+									attrs.onScrollPositionChange(layout_size.calendar_hour_height * attrs.selectedTime.hour)
 								}
 								this.scrollDOMs(vnode, attrs, false)
 								attrs.onViewChanged(vnode)
@@ -322,7 +320,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 						m(
 							".flex.col",
 							calendarDayTimes.map((time) => {
-								const width = isDesktopLayout ? size.calendar_hour_width : size.calendar_hour_width_mobile
+								const width = isDesktopLayout ? layout_size.calendar_hour_width : layout_size.calendar_hour_width_mobile
 								return m(
 									".calendar-hour.flex.cursor-pointer",
 									{
@@ -332,12 +330,12 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 										},
 									},
 									m(
-										".pl-s.pr-s.center.small.flex.flex-column.justify-center",
+										".pl-4.pr-4.center.small.flex.flex-column.justify-center",
 										{
 											style: {
-												"line-height": isDesktopLayout ? px(size.calendar_hour_height) : "unset",
+												"line-height": isDesktopLayout ? px(layout_size.calendar_hour_height) : "unset",
 												width: px(width),
-												height: px(size.calendar_hour_height),
+												height: px(layout_size.calendar_hour_height),
 												"border-right": `1px solid ${theme.outline_variant}`,
 											},
 										},
@@ -363,7 +361,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 									{
 										class: !isDayView ? "calendar-column-border" : "",
 										style: {
-											height: px(calendarDayTimes.length * size.calendar_hour_height),
+											height: px(calendarDayTimes.length * layout_size.calendar_hour_height),
 										},
 									},
 									m(CalendarDayEventsView, {
@@ -441,14 +439,14 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		// We calculate the height manually because we want the header to transition between heights when swiping left and right
 		// Hardcoding some styles instead of classes so that we can avoid nasty magic numbers
 		const mainPageEventsCount = longEventsResult.rows
-		const padding = mainPageEventsCount !== 0 ? size.vpad_small : 0
+		const padding = mainPageEventsCount !== 0 ? size.spacing_8 : 0
 		// Set bottom padding in height, because it will be ignored in the style
 		const height = mainPageEventsCount * CALENDAR_EVENT_HEIGHT + padding
 		return m(
-			".calendar-long-events-header.flex-fixed.calendar-hour-margin.pr-l.rel",
+			".calendar-long-events-header.flex-fixed.calendar-hour-margin.pr-24.rel",
 			{
 				style: {
-					marginLeft: size.calendar_hour_width_mobile,
+					marginLeft: layout_size.calendar_hour_width_mobile,
 					borderBottom: "none",
 					height: px(height),
 					paddingTop: px(padding),
@@ -462,7 +460,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	private renderHeaderDesktop(attrs: MultiDayCalendarViewAttrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
 		const { daysInPeriod, onDateSelected, onEventClicked, onEventKeyDown, groupColors, temporaryEvents } = attrs
 		// `scrollbar-gutter-stable-or-fallback` is needed because the scroll bar brings the calendar body out of line with the header
-		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-s.scrollbar-gutter-stable-or-fallback", [
+		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-8.scrollbar-gutter-stable-or-fallback", [
 			this.renderDayNamesRow(thisPageEvents.days, attrs.weekIndicator, onDateSelected, attrs.selectedDate, false, attrs.getEventsOnDays),
 			m(".content-bg", [
 				m(
@@ -496,9 +494,9 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 
 	private renderShortWeekHeader(attrs: MultiDayCalendarViewAttrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
 		const { daysInPeriod, onDateSelected, onEventClicked, onEventKeyDown, groupColors, temporaryEvents } = attrs
-		return m("flex-fixed.pt-s.scrollbar-gutter-stable-or-fallback", [
+		return m("flex-fixed.pt-8.scrollbar-gutter-stable-or-fallback", [
 			this.renderDayNamesRow(thisPageEvents.days, null, (day, _) => onDateSelected(day), attrs.selectedDate, true, attrs.getEventsOnDays),
-			m(".calendar-hour-margin.mb-s", [
+			m(".calendar-hour-margin.mb-8", [
 				this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, onEventKeyDown, temporaryEvents, false),
 			]),
 		])
@@ -532,7 +530,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			isDesktopLayout,
 		)
 		return m(
-			".rel.mb-xs",
+			".rel.mb-4",
 			{
 				oncreate: (vnode) => {
 					if (mainPageEvents === thisPageEvents) {
@@ -633,7 +631,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			}
 		}
 		const dayWidth =
-			(this.longEventsDom != null ? this.longEventsDom.offsetWidth : this.viewDom!.offsetWidth - size.calendar_hour_width_mobile) / dayRange.length
+			(this.longEventsDom != null ? this.longEventsDom.offsetWidth : this.viewDom!.offsetWidth - layout_size.calendar_hour_width_mobile) / dayRange.length
 		let maxEventsInColumn = 0
 		const firstDay = dayRange[0]
 		const lastDay = lastThrow(dayRange)
@@ -732,7 +730,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			return null
 		}
 
-		const rowSize = px(size.calendar_days_header_height)
+		const rowSize = px(layout_size.calendar_days_header_height)
 
 		const getCircleClass = (date: Date) => {
 			if (highlightSelectedDay && isSameDay(date, selectedDate)) {
@@ -745,7 +743,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		}
 
 		return m(
-			".flex.mb-s",
+			".flex.mb-8",
 			weekIndicator ? m(".calendar-hour-column.calendar-day-indicator.b.center-horizontally", weekIndicator) : m(".calendar-hour-margin"),
 			days.length === 1
 				? null
@@ -759,7 +757,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 							m(
 								".flex.center-horizontally.flex-grow.center.b.items-center",
 								{
-									class: !styles.isDesktopLayout() && shouldShowEventIndicator ? "mb-s" : "",
+									class: !styles.isDesktopLayout() && shouldShowEventIndicator ? "mb-8" : "",
 								},
 								[
 									m(
@@ -773,7 +771,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 										lang.formats.weekdayShort.format(day) + " ",
 									),
 									m(
-										".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
+										".rel.click.flex.items-center.justify-center.rel.ml-4",
 										{
 											"aria-label": day.toLocaleDateString(),
 											onclick,

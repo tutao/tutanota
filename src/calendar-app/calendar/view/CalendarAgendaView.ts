@@ -11,7 +11,7 @@ import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { theme } from "../../../common/gui/theme.js"
-import { px, size } from "../../../common/gui/size.js"
+import { layout_size, px, size } from "../../../common/gui/size.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
@@ -73,7 +73,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		if (isDesktopLayout) {
 			containerStyle = {
 				marginLeft: "5px",
-				marginBottom: px(size.hpad_large),
+				marginBottom: px(size.spacing_24),
 			}
 		} else {
 			containerStyle = {}
@@ -93,7 +93,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		return m(
 			".fill-absolute.flex.col",
 			{
-				class: isDesktopLayout ? "mlr-l height-100p" : "mlr-safe-inset",
+				class: isDesktopLayout ? "mlr-24 height-100p" : "mlr-safe-inset",
 				style: containerStyle,
 			},
 			[
@@ -101,7 +101,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				m(
 					".rel.flex-grow.flex.col",
 					{
-						class: isDesktopLayout ? "overflow-hidden" : "content-bg scroll border-radius-top-left-big border-radius-top-right-big",
+						class: isDesktopLayout ? "overflow-hidden" : "content-bg scroll border-radius-top-12",
 						oncreate: (vnode: VnodeDOM) => {
 							if (!isDesktopLayout) this.listDom = vnode.dom as HTMLElement
 						},
@@ -123,10 +123,10 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			: m(
 					"",
 					m(
-						".header-bg.pb-s.overflow-hidden",
+						".header-bg.pb-8.overflow-hidden",
 						{
 							style: {
-								"margin-left": px(size.calendar_hour_width_mobile),
+								"margin-left": px(layout_size.calendar_hour_width_mobile),
 							},
 						},
 						m(DaySelector, {
@@ -164,7 +164,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				color: theme.on_surface_variant,
 			})
 		} else {
-			return m(".flex.mb-s.col", this.renderEventsForDay(events, getTimeZone(), attrs.selectedDate, attrs))
+			return m(".flex.mb-8.col", this.renderEventsForDay(events, getTimeZone(), attrs.selectedDate, attrs))
 		}
 	}
 
@@ -205,15 +205,15 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 
 								e.preventDefault()
 							},
-							class: "mt-s",
+							class: "mt-8",
 						})
 					: null,
 			})
 		} else {
 			return m(
-				".pt-s.flex.mb-s.col.overflow-y-scroll.height-100p",
+				".pt-8.flex.mb-8.col.overflow-y-scroll.height-100p",
 				{
-					style: { marginLeft: px(size.calendar_hour_width_mobile) },
+					style: { marginLeft: px(layout_size.calendar_hour_width_mobile) },
 					oncreate: (vnode: VnodeDOM) => {
 						attrs.onViewChanged(vnode)
 					},
@@ -240,8 +240,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				".flex-grow.rel.overflow-y-scroll",
 				{
 					style: {
-						"min-width": px(size.second_col_min_width),
-						"max-width": px(size.second_col_max_width),
+						"min-width": px(layout_size.second_col_min_width),
+						"max-width": px(layout_size.second_col_max_width),
 					},
 					oncreate: (vnode: VnodeDOM) => {
 						this.listDom = vnode.dom as HTMLElement
@@ -254,7 +254,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				[this.renderDesktopEventList(attrs)],
 			),
 			m(
-				".ml-l.flex-grow.scroll",
+				".ml-24.flex-grow.scroll",
 				{},
 				attrs.eventPreviewModel == null
 					? m(
@@ -331,7 +331,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			if (eventToShowTimeIndicator === eventIndex && isSameDay(new Date(), event.startTime)) {
 				eventsNodes.push(
 					m(
-						".mt-xs.mb-xs",
+						".mt-4.mb-4",
 						{
 							id: "timeIndicator",
 							key: "timeIndicator",
@@ -409,7 +409,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		// Do not scroll to the next element if a scroll command (page up etc.) is given
 		if (attrs.scrollPosition === this.lastScrollPosition) attrs.onScrollPositionChange(newScrollPosition - (agendaItemHeight + agendaGap))
 		return events.length === 0
-			? m(".mb-s", lang.get("noEntries_msg"))
+			? m(".mb-8", lang.get("noEntries_msg"))
 			: m(
 					".flex.col",
 					{

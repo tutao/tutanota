@@ -8,7 +8,7 @@ import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
-import { px, size } from "../size.js"
+import { component_size, px, size } from "../size.js"
 import { InfoIcon } from "./InfoIcon.js"
 
 assertMainOrNode()
@@ -123,7 +123,7 @@ export class Table implements Component<TableAttrs> {
 						"",
 						{ class: useHelpButton ? "flex items-center height-100p full-width" : "" },
 						m(
-							".text-ellipsis.pr.pt-s" +
+							".text-ellipsis.pr-12.pt-8" +
 								(bold ? ".b" : "") +
 								(cellTextData.click ? ".click" : "" + (cellTextData.mainStyle ? cellTextData.mainStyle : "")) +
 								(columnAlignments[index] ? ".right" : ""),
@@ -146,7 +146,7 @@ export class Table implements Component<TableAttrs> {
 		} else {
 			cells = lineAttrs.cells.map((text, index) =>
 				m(
-					"td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index] + (bold ? ".b" : "") + (columnAlignments[index] ? ".right" : ""),
+					"td.text-ellipsis.pr-12.pt-8.pb-8." + columnWidths[index] + (bold ? ".b" : "") + (columnAlignments[index] ? ".right" : ""),
 					{
 						title: text, // show the text as tooltip, so ellipsed lines can be shown
 					},
@@ -161,7 +161,7 @@ export class Table implements Component<TableAttrs> {
 					"td",
 					{
 						style: {
-							width: px(size.button_height_compact),
+							width: px(component_size.button_height_compact),
 						},
 					},
 					lineAttrs.actionButtonAttrs ? m(IconButton, lineAttrs.actionButtonAttrs) : [],
@@ -182,7 +182,7 @@ export class Table implements Component<TableAttrs> {
 			return m(InfoIcon, { text: info.join("\n") })
 		} else {
 			return m(
-				".small.text-ellipsis.pr" + (cellTextData.click ? ".click" : ""),
+				".small.text-ellipsis.pr-12" + (cellTextData.click ? ".click" : ""),
 				{
 					onclick: cellTextData.click
 						? (event: MouseEvent) => {

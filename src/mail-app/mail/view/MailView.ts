@@ -18,7 +18,7 @@ import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxMod
 import { locator } from "../../../common/api/main/CommonLocator"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { styles } from "../../../common/gui/styles"
-import { px, size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../common/gui/size"
 import {
 	getConversationTitle,
 	getMoveMailBounds,
@@ -233,8 +233,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width,
-				maxWidth: deviceConfig.getMailListSize(userId) ?? size.second_col_max_width,
+				minWidth: layout_size.second_col_min_width,
+				maxWidth: deviceConfig.getMailListSize(userId) ?? layout_size.second_col_max_width,
 				headerCenter: () => {
 					const folder = this.mailViewModel.getFolder()
 					return folder ? lang.makeTranslation("folder_name", getFolderName(folder)) : "emptyString_msg"
@@ -258,8 +258,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.third_col_min_width,
-				maxWidth: size.third_col_max_width,
+				minWidth: layout_size.third_col_min_width,
+				maxWidth: layout_size.third_col_max_width,
 				ariaLabel: () => lang.get("email_label"),
 				testId: "mail-area",
 			},
@@ -930,8 +930,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			},
 			editingFolderForMailGroup ? ColumnType.Background : ColumnType.Foreground,
 			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
+				minWidth: layout_size.first_col_min_width,
+				maxWidth: layout_size.first_col_max_width,
 				headerCenter: "folderTitle_label",
 			},
 		)
@@ -1327,9 +1327,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			m(RowButton, {
 				label: "addLabel_action",
 				icon: Icons.Add,
-				class: "folder-row mlr-button border-radius-small",
+				class: "folder-row mlr-8 border-radius-4",
 				style: {
-					width: `calc(100% - ${px(size.hpad_button * 2)})`,
+					width: `calc(100% - ${px(size.spacing_8 * 2)})`,
 				},
 				onclick: () => {
 					this.showLabelAddDialog(mailboxDetail.mailbox)

@@ -53,13 +53,13 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 		}
 
 		return m(
-			".left.mb",
+			".left.mb-16",
 			m(TextField, {
 				label: "totpCode_label",
 				value: otp.codeFieldValue,
 				autocompleteAs: Autocomplete.oneTimeCode,
 				oninput: (value) => otp.onValueChanged(value.trim()),
-				injectionsRight: () => (otp.inProgress ? m(".mr-s", progressIcon()) : null),
+				injectionsRight: () => (otp.inProgress ? m(".mr-8", progressIcon()) : null),
 				onReturnKeyPressed: () => otp.onConfirmOtp(),
 			}),
 		)
@@ -94,7 +94,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 				break
 
 			case "progress":
-				items = [m(".flex.justify-center", [m(".mr-s", progressIcon()), m("", lang.get("waitingForU2f_msg"))])]
+				items = [m(".flex.justify-center", [m(".mr-8", progressIcon()), m("", lang.get("waitingForU2f_msg"))])]
 				break
 
 			case "error":
@@ -102,10 +102,10 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 					m(".flex.col.items-center", [
 						m(".flex.items-center", [
 							m(
-								".mr-s",
+								".mr-8",
 								m(Icon, {
 									icon: Icons.Cancel,
-									size: IconSize.Medium,
+									size: IconSize.PX24,
 									style: {
 										fill: theme.primary,
 									},
@@ -122,7 +122,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 				throw new Error()
 		}
 
-		return [m(".flex-center", m("img", { src: SecondFactorImage })), m(".mt.flex.col", items)]
+		return [m(".flex-center", m("img", { src: SecondFactorImage })), m(".mt-16.flex.col", items)]
 	}
 
 	_renderOtherDomainLogin({ otherDomainLoginUrl }: WebauthnAnotherDomainParams): Children {
@@ -148,7 +148,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 			return null
 		}
 
-		return m(".small.text-center.pt", [
+		return m(".small.text-center.pt-16", [
 			m(
 				`a[href=#]`,
 				{

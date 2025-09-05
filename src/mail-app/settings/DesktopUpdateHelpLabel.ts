@@ -36,7 +36,7 @@ export class DesktopUpdateHelpLabel {
 		}
 
 		return m(
-			"span.text-break.pr-s",
+			"span.text-break.pr-4",
 			m(
 				"button.underline",
 				{
@@ -64,7 +64,7 @@ export class DesktopUpdateHelpLabel {
 			ret = lang.get("noUpdateAvailable_msg")
 		}
 
-		return m("span.pr-s", ret + " ")
+		return m("span.pr-4", ret + " ")
 	}
 
 	getIcon(): Child {

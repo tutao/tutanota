@@ -118,7 +118,7 @@ export class ContactMergeView {
 				onremove: () => this.windowCloseUnsubscribe?.(),
 			},
 			[
-				m(".flex-center.mt", [
+				m(".flex-center.mt-16", [
 					m(".full-width.max-width-s", [
 						m(LoginButton, {
 							label: "mergeContacts_action",
@@ -133,7 +133,7 @@ export class ContactMergeView {
 						[
 							m(".items-center", [
 								m(".items-base.flex-space-between", [
-									m(".h4.mt-l", lang.get("firstMergeContact_label")),
+									m(".h4.mt-32", lang.get("firstMergeContact_label")),
 									this._createDeleteContactButton(ContactMergeAction.DeleteFirst),
 								]),
 							]),
@@ -145,7 +145,7 @@ export class ContactMergeView {
 						[
 							m(".items-center", [
 								m(".items-base.flex-space-between", [
-									m(".h4.mt-l", lang.get("secondMergeContact_label")),
+									m(".h4.mt-32", lang.get("secondMergeContact_label")),
 									this._createDeleteContactButton(ContactMergeAction.DeleteSecond),
 								]),
 							]),
@@ -161,23 +161,23 @@ export class ContactMergeView {
 				roleFields ? m(".non-wrapping-row", roleFields) : null,
 				mailAddresses1.length > 0 || mailAddresses2.length > 0
 					? m(".non-wrapping-row", [
-							m(".mail.mt-l", [m("", lang.get("email_label")), mailAddresses1.length > 0 ? mailAddresses1 : emptyFieldPlaceholder]),
-							m(".mail.mt-l", [m("", lang.get("email_label")), mailAddresses2.length > 0 ? mailAddresses2 : emptyFieldPlaceholder]),
+							m(".mail.mt-32", [m("", lang.get("email_label")), mailAddresses1.length > 0 ? mailAddresses1 : emptyFieldPlaceholder]),
+							m(".mail.mt-32", [m("", lang.get("email_label")), mailAddresses2.length > 0 ? mailAddresses2 : emptyFieldPlaceholder]),
 						])
 					: null,
 				phones1.length > 0 || phones2.length > 0
 					? m(".non-wrapping-row", [
-							m(".phone.mt-l", [m("", lang.get("phone_label")), m(".aggregateEditors", [phones1.length > 0 ? phones1 : emptyFieldPlaceholder])]),
-							m(".phone.mt-l", [m("", lang.get("phone_label")), m(".aggregateEditors", [phones2.length > 0 ? phones2 : emptyFieldPlaceholder])]),
+							m(".phone.mt-32", [m("", lang.get("phone_label")), m(".aggregateEditors", [phones1.length > 0 ? phones1 : emptyFieldPlaceholder])]),
+							m(".phone.mt-32", [m("", lang.get("phone_label")), m(".aggregateEditors", [phones2.length > 0 ? phones2 : emptyFieldPlaceholder])]),
 						])
 					: null,
 				addresses1.length > 0 || addresses2.length > 0
 					? m(".non-wrapping-row", [
-							m(".address.mt-l.flex.flex-column", [
+							m(".address.mt-32.flex.flex-column", [
 								m("", lang.get("address_label")),
 								m(".aggregateEditors.flex.flex-column.flex-grow", [addresses1.length > 0 ? addresses1 : emptyHTMLFieldPlaceholder]),
 							]),
-							m(".address.mt-l", [
+							m(".address.mt-32", [
 								m("", lang.get("address_label")),
 								m(".aggregateEditors.flex.flex-column.flex-grow", [addresses2.length > 0 ? addresses2 : emptyHTMLFieldPlaceholder]),
 							]),
@@ -185,18 +185,18 @@ export class ContactMergeView {
 					: null,
 				socials1.length > 0 || socials2.length > 0
 					? m(".non-wrapping-row", [
-							m(".social.mt-l", [
+							m(".social.mt-32", [
 								m("", lang.get("social_label")),
 								m(".aggregateEditors", socials1.length > 0 ? socials1 : emptyFieldPlaceholder),
 							]),
-							m(".social.mt-l", [
+							m(".social.mt-32", [
 								m("", lang.get("social_label")),
 								m(".aggregateEditors", socials2.length > 0 ? socials2 : emptyFieldPlaceholder),
 							]),
 						])
 					: null,
 				commentField1 && commentField2
-					? m(".non-wrapping-row", [m(".mt-l.flex.flex-column", [commentField1]), m(".mt-l.flex.flex-column", [commentField2])])
+					? m(".non-wrapping-row", [m(".mt-32.flex.flex-column", [commentField1]), m(".mt-32.flex.flex-column", [commentField2])])
 					: null,
 				presharedPasswordFields ? m(".non-wrapping-row", presharedPasswordFields) : null,
 				m(

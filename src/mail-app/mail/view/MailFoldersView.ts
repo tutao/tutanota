@@ -180,9 +180,9 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			label: "addFolder_action",
 			key: "addFolder",
 			icon: Icons.Add,
-			class: "folder-row mlr-button border-radius-small",
+			class: "folder-row mlr-8 border-radius-4",
 			style: {
-				width: `calc(100% - ${px(size.hpad_button * 2)})`,
+				width: `calc(100% - ${px(size.spacing_8 * 2)})`,
 			},
 			onclick: () => {
 				attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, null)
@@ -220,9 +220,9 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				const lowerSpace = window.innerHeight - original.bottom - getSafeAreaInsetBottom()
 				// Shift the dropdown up by the icon size to hide the fact that the more button disappears after being clicked on
 				if (lowerSpace < upperSpace) {
-					return new DOMRect(original.x, original.y + size.icon_size_large, original.width, original.height)
+					return new DOMRect(original.x, original.y + size.icon_24, original.width, original.height)
 				} else {
-					return new DOMRect(original.x, original.y - size.icon_size_large, original.width, original.height)
+					return new DOMRect(original.x, original.y - size.icon_24, original.width, original.height)
 				}
 			},
 			childAttrs: () => {

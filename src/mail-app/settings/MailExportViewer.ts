@@ -27,8 +27,8 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		return [
 			m(
-				".fill-absolute.scroll.plr-l.pb-xl",
-				m(".h4.mt-l", lang.get("mailExportSettings_label")),
+				".fill-absolute.scroll.plr-24.pb-48",
+				m(".h4.mt-32", lang.get("mailExportSettings_label")),
 				isDesktop() ? this.renderMailExportSettings() : this.renderExportOnlyOnDesktopText(),
 			),
 		]
@@ -47,10 +47,10 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 	private renderExportOnlyOnDesktopText() {
 		return [
 			m(
-				".flex-column.mt",
+				".flex-column.mt-16",
 				m(".p", lang.get("mailExportOnlyOnDesktop_label")),
 				m(
-					".flex-start.mt-l",
+					".flex-start.mt-32",
 					m(LoginButton, {
 						type: LoginButtonType.FlexWidth,
 						label: "downloadDesktopClient_label",
@@ -65,7 +65,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 					}),
 				),
 				m(
-					".flex-v-center.full-width.mt-xl",
+					".flex-v-center.full-width.mt-48",
 					m("img", {
 						src: `${window.tutao.appState.prefixWithoutFile}/images/mail-import/email-import-webapp.svg`,
 						alt: "",
