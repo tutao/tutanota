@@ -1,4 +1,4 @@
-import { px, size } from "../../../common/gui/size"
+import { component_size, px, size } from "../../../common/gui/size"
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade, windowSizeListener } from "../../../common/misc/WindowFacade"
@@ -227,7 +227,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					},
 					style: {
 						height: "24px",
-						width: px(size.button_height_compact),
+						width: px(component_size.button_height_compact),
 					},
 				}),
 			),
@@ -468,7 +468,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			quoteIndicator,
 			m(Icon, {
 				icon: Icons.More,
-				class: "icon-xl mlr",
+				class: "icon-32 mlr",
 				container: "div",
 				style: {
 					fill: theme.on_surface_variant,

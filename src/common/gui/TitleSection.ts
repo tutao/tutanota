@@ -27,7 +27,7 @@ export class TitleSection implements Component<SettingsTitleSectionAttrsType> {
 					attrs.icon
 						? m(Icon, {
 								icon: attrs.icon,
-								size: IconSize.XXL,
+								size: IconSize.PX64,
 								style: {
 									fill: attrs.iconOptions?.color,
 								},

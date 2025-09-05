@@ -64,7 +64,7 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 				class: "flex-center row center-vertically",
 				icon: m(Icon, {
 					icon: Icons.Trash,
-					size: IconSize.Medium,
+					size: IconSize.PX24,
 					class: "mr-s flex-center",
 					style: {
 						fill: theme.on_primary,

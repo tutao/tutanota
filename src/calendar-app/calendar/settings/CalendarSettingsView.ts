@@ -15,7 +15,7 @@ import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { LoginSettingsViewer } from "../../../common/settings/login/LoginSettingsViewer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../common/gui/theme.js"
@@ -164,7 +164,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 								class: this.isTabletView() ? "border-radius-top-left-big" : "",
 								style: this.isTabletView()
 									? {
-											"margin-top": px(size.navbar_height_mobile + size.vpad_small),
+											"margin-top": px(component_size.navbar_height_mobile + size.vpad_small),
 										}
 									: {},
 							},
@@ -221,7 +221,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 					text: m(".pl-s", lang.getTranslation("supportMenu_label").text),
 					icon: m(Icon, {
 						icon: Icons.SpeechBubbleFill,
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 						class: "center-h",
 						container: "div",
 						style: { fill: theme.on_surface_variant },

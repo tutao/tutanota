@@ -2,7 +2,7 @@ import m, { Children, Component, VnodeDOM } from "mithril"
 import { LayerType } from "../../../RootView"
 import { lazy, makeSingleUse } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../../api/common/Env"
-import { px, size } from "../size.js"
+import { component_size, px, size } from "../size.js"
 import { styles } from "../styles.js"
 import { getSafeAreaInsetBottom } from "../HtmlUtils.js"
 
@@ -85,7 +85,7 @@ export const overlay: Component<OverlayParentAttrs> = {
 					display: visible ? "" : "none",
 					"margin-top": "env(safe-area-inset-top)", // insets for iPhone X
 					// keep the bottom nav bar clear & inset for iOS
-					"margin-bottom": styles.isUsingBottomNavigation() ? px(size.bottom_nav_bar + getSafeAreaInsetBottom()) : "unset",
+					"margin-bottom": styles.isUsingBottomNavigation() ? px(component_size.bottom_nav_bar + getSafeAreaInsetBottom()) : "unset",
 					// we would need to change this if we wanted something to appear from the side
 					"margin-left": "env(safe-area-inset-left)",
 					"margin-right": "env(safe-area-inset-right)",

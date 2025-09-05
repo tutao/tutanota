@@ -73,7 +73,7 @@ export function getActiveSubscriptionActionButtonReplacement(): () => Children {
 			".buyOptionBox.content-accent-fg.center-vertically.text-center",
 			{
 				style: {
-					"border-radius": px(size.border_radius_small),
+					"border-radius": px(size.radius_4),
 				},
 			},
 			lang.get("pricing.currentPlan_label"),

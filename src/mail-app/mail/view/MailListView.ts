@@ -3,7 +3,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 
 import { Keys, MailSetKind, MailState, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { size } from "../../../common/gui/size"
+import { component_size, size } from "../../../common/gui/size"
 import { styles } from "../../../common/gui/styles"
 import { Icon } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
@@ -75,7 +75,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private readonly renderConfig: RenderConfig<Mail, MailRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		createElement: (dom: HTMLElement) => {
 			const mailRow = new MailRow(

@@ -19,7 +19,7 @@ import {
 } from "../../common/api/entities/tutanota/TypeRefs.js"
 import m from "mithril"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../common/gui/base/List.js"
-import { size } from "../../common/gui/size.js"
+import { component_size, size } from "../../common/gui/size.js"
 import { UserError } from "../../common/api/main/UserError.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../common/gui/base/Button.js"
@@ -256,7 +256,7 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 	const viewModel: ContactImportDialogViewModel = new ContactImportDialogViewModel()
 	viewModel.selectContacts(contacts)
 	const renderConfig: RenderConfig<Contact, KindaContactRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {

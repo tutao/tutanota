@@ -1,7 +1,7 @@
 import m, { Component, Vnode } from "mithril"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { BaseButton } from "../base/buttons/BaseButton"
-import { px, size } from "../size"
+import { component_size, px, size } from "../size"
 import { theme } from "../theme"
 
 // The subActionText is optional, if null is passed it will not display the second Option
@@ -26,7 +26,7 @@ export class ContentWithOptionsDialog implements Component<ContentWithOptionsDia
 					onclick: attrs.mainActionClick,
 					class: "full-width border-radius-m center b flash accent-bg button-content",
 					style: {
-						height: px(size.button_height + size.vpad_xs * 1.5),
+						height: px(component_size.button_height + size.vpad_xs * 1.5),
 					},
 				}),
 
@@ -38,7 +38,7 @@ export class ContentWithOptionsDialog implements Component<ContentWithOptionsDia
 							class: "full-width border-radius-m center b flash",
 							style: {
 								border: `2px solid ${theme.primary}`,
-								height: px(size.button_height + size.vpad_xs * 1.5),
+								height: px(component_size.button_height + size.vpad_xs * 1.5),
 								color: theme.primary,
 							},
 						})
