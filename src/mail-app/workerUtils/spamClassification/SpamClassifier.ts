@@ -60,7 +60,8 @@ export class SpamClassifier {
 			}
 
 			const tokenizedBatchDocuments = await promiseMap(batchDocuments, (d) => this.offlineStorage.tokenize(d))
-			const xs = this.tfIdfVectorizer.transform(tokenizedBatchDocuments)
+			const vectors = this.tfIdfVectorizer.transform(tokenizedBatchDocuments)
+			const xs = tf.tensor2d(vectors, [vectors.length, this.tfIdfVectorizer.vocabulary.length])
 			const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
 
 			const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
@@ -84,7 +85,8 @@ export class SpamClassifier {
 
 		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
 		const tokenizedDocuments = await promiseMap(documents, (d) => this.offlineStorage.tokenize(d))
-		const xs = this.tfIdfVectorizer!.transform(tokenizedDocuments)
+		const vectors = this.tfIdfVectorizer!.transform(tokenizedDocuments)
+		const xs = tf.tensor2d(vectors, [vectors.length, this.tfIdfVectorizer!.vocabulary.length])
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
