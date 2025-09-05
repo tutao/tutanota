@@ -82,7 +82,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 							{
 								expanded: TUTA_MAIL_ADDRESS_DOMAINS.includes(formDomain.domain),
 							},
-							m(".pt", lang.get("permanentAliasWarning_msg")),
+							m(".pt-16", lang.get("permanentAliasWarning_msg")),
 						),
 						m(TextField, {
 							label: "mailName_label",

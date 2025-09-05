@@ -10,7 +10,7 @@ interface MultiSelectionBarAttrs {
 export class MultiSelectionBar {
 	view(vnode: Vnode<MultiSelectionBarAttrs>): Children {
 		return m(
-			".flex.items-center.justify-between.pl-s.pr-s",
+			".flex.items-center.justify-between.pl-4.pr-4",
 			{
 				style: {
 					height: "100%",
@@ -23,7 +23,7 @@ export class MultiSelectionBar {
 					click: vnode.attrs.selectNoneHandler,
 					icon: Icons.Cancel,
 				}),
-				m(".ml-s.b", vnode.attrs.text),
+				m(".ml-8.b", vnode.attrs.text),
 				vnode.children,
 			],
 		)

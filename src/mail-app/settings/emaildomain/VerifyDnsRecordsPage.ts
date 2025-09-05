@@ -32,13 +32,13 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
 		const a = vnode.attrs
 		return [
-			m("h4.mt-l.text-center", lang.get("verifyDNSRecords_title")),
+			m("h4.mt-32.text-center", lang.get("verifyDNSRecords_title")),
 			m("p", lang.get("verifyDNSRecords_msg")),
 			a.data.domainStatus.status.isLoaded()
 				? m("", [
 						renderCheckResult(a.data.domainStatus),
 						m(
-							".flex-center.full-width.pt-l.mb-l",
+							".flex-center.full-width.pt-32.mb-32",
 							m(LoginButton, {
 								label: "finish_action",
 								class: "small-login-button",
@@ -50,7 +50,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 				: m("", [
 						lang.get("loadingDNSRecords_msg"),
 						m(
-							".flex-center.full-width.pt-l.mb-l",
+							".flex-center.full-width.pt-32.mb-32",
 							m(Button, {
 								type: ButtonType.Secondary,
 								label: "refresh_action",
@@ -168,7 +168,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 			}
 		})
 		return [
-			m(".mt-m.mb-s", lang.get("setDnsRecords_msg")),
+			m(".mt-12.mb-8", lang.get("setDnsRecords_msg")),
 			createDnsRecordTableN(
 				validatedRecords,
 				hideRefreshButton
@@ -180,7 +180,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 							click: () => _updateDnsStatus(domainStatus),
 						},
 			),
-			m(MoreInfoLink, { link: InfoLink.DomainInfo, class: "mt-m", isSmall: true }),
+			m(MoreInfoLink, { link: InfoLink.DomainInfo, class: "mt-12", isSmall: true }),
 		]
 	} else {
 		const errorMessageMap: Record<CustomDomainCheckResult, TranslationKey> = {

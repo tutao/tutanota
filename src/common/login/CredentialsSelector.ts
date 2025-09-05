@@ -34,7 +34,7 @@ export class CredentialsSelector implements Component<CredentialsSelectorAttrs> 
 				)
 			}
 
-			return m(".flex-space-between.pt.child-grow.last-child-fixed", buttons)
+			return m(".flex-space-between.pt-16.child-grow.last-child-fixed", buttons)
 		})
 	}
 }

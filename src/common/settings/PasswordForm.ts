@@ -8,7 +8,7 @@ import { assertMainOrNode } from "../api/common/Env.js"
 import { getEnabledMailAddressesForGroupInfo } from "../api/common/utils/GroupUtils.js"
 import { showPasswordGeneratorDialog } from "../misc/passwords/PasswordGeneratorDialog.js"
 import { theme } from "../gui/theme.js"
-import { px, size } from "../gui/size.js"
+import { font_size, px, size } from "../gui/size.js"
 import { UsageTestController } from "@tutao/tutanota-usagetests"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -231,7 +231,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							status: attrs.model.getOldPasswordStatus(),
 							oninput: (input) => attrs.model.setOldPassword(input),
 							autocompleteAs: Autocomplete.currentPassword,
-							fontSize: px(size.font_size_smaller),
+							fontSize: px(font_size.smaller),
 						} satisfies PasswordFieldAttrs)
 					: null,
 				m(PasswordField, {
@@ -242,7 +242,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					status: attrs.model.getNewPasswordStatus(),
 					oninput: (input) => attrs.model.setNewPassword(input),
 					autocompleteAs: Autocomplete.newPassword,
-					fontSize: px(size.font_size_smaller),
+					fontSize: px(font_size.smaller),
 				}),
 				attrs.model.config.hideConfirmation
 					? null
@@ -252,16 +252,16 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							autocompleteAs: Autocomplete.newPassword,
 							status: attrs.model.getRepeatedPasswordStatus(),
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
-							fontSize: px(size.font_size_smaller),
+							fontSize: px(font_size.smaller),
 						}),
-				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
+				attrs.passwordInfoKey ? m(".small.mt-8", lang.get(attrs.passwordInfoKey)) : null,
 			],
 		)
 	}
 
 	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
 		return m(
-			"button.b.mr-xs.hover.click.darkest-hover.mt-xs",
+			"button.b.mr-4.hover.click.darkest-hover.mt-4",
 			{
 				style: { display: "inline-block", color: theme.primary },
 				onclick: async () => {

@@ -7,7 +7,7 @@ import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, o
 import { getElevatedBackground, theme } from "../../../common/gui/theme.js"
 import { INPUT } from "../../../common/gui/base/Dialog.js"
 import { ease } from "../../../common/gui/animation/Easing.js"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, layout_size, px, size } from "../../../common/gui/size.js"
 import { styles } from "../../../common/gui/styles.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 
@@ -60,16 +60,16 @@ export class EditFoldersDialog implements ModalComponent {
 			this.close()
 		}
 		this.usedBottomNavBefore = styles.isUsingBottomNavigation()
-		const marginTop = this.usedBottomNavBefore ? "env(safe-area-inset-top)" : px(size.navbar_height)
+		const marginTop = this.usedBottomNavBefore ? "env(safe-area-inset-top)" : px(component_size.navbar_height)
 		return m(
 			".flex.col",
 			{
 				style: {
-					width: px(size.first_col_max_width - size.button_height),
+					width: px(layout_size.first_col_max_width - component_size.button_height),
 					height: `calc(100% - ${marginTop})`,
 					// for the header
 					marginTop,
-					marginLeft: px(size.button_height),
+					marginLeft: px(component_size.button_height),
 				},
 				onclick: (e: MouseEvent) => e.stopPropagation(),
 				// do not propagate clicks on the dialog as the Modal expects all propagated clicks to be clicks on the background
@@ -104,7 +104,7 @@ export class EditFoldersDialog implements ModalComponent {
 			},
 			[
 				m(
-					".plr-button.mt.mb",
+					".plr-8.mt-16.mb-16",
 					m(LoginButton, {
 						label: "done_action",
 						onclick: () => this.close(),

@@ -45,7 +45,7 @@ export class SectionButton implements Component<SectionButtonAttrs> {
 						icon: leftIcon.icon,
 						style: { fill: leftIcon.fill ?? getColors(ButtonColor.Content).button },
 						title: lang.get(leftIcon.title),
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 					}),
 			injectionLeft == null ? null : injectionLeft,
 		])
@@ -57,13 +57,13 @@ export class SectionButton implements Component<SectionButtonAttrs> {
 						icon: Icons.ArrowForward,
 						style: { fill: getColors(ButtonColor.Content).button },
 						title: lang.get("next_action"),
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 					})
 				: m(Icon, {
 						icon: rightIcon.icon,
 						style: { fill: rightIcon.fill ?? getColors(ButtonColor.Content).button },
 						title: lang.get(rightIcon.title),
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 					}),
 		])
 
@@ -77,7 +77,7 @@ export class SectionButton implements Component<SectionButtonAttrs> {
 				onclick,
 			},
 			m(Card, { classes: ["flex", "justify-between", "flex-grow", "items-center"] }, [
-				leftIcon || injectionLeft ? m(".flex.items-center.mr-s", [leftPart]) : null,
+				leftIcon || injectionLeft ? m(".flex.items-center.mr-8", [leftPart]) : null,
 				m("span.flex-grow.full-width.white-space", lang.getTranslationText(text)),
 				rightPart,
 			]),

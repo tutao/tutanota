@@ -50,7 +50,7 @@ function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stre
 	if (urlStream().trim() === "") helperMessage = "E.g: https://tuta.com/ics/example.ics - webcals://example.com/calendar.ics"
 	else if (isNotNull(errorMessage) && errorMessage !== DEFAULT_ERROR) helperMessage = errorMessage
 	return m(TextField, {
-		class: `pt pb ${helperMessage.length ? "" : "mb-small-line-height"}`,
+		class: `pt-16 pb-16 ${helperMessage.length ? "" : "mb-small-line-height"}`,
 		value: urlStream(),
 		oninput: (url: string, inputElement: HTMLInputElement) => {
 			const assertionResult = checkURLString(url)
@@ -78,7 +78,7 @@ function createEditCalendarComponent(
 	const currentColor = colorStream() ? `#${colorStream()}` : ""
 	return m.fragment({}, [
 		m(GroupSettingNameInputFields, { groupNameData: nameData }),
-		m(".small.mt.mb-xs", lang.get("color_label")),
+		m(".small.mt-16.mb-4", lang.get("color_label")),
 		m(ColorPickerView, {
 			value: currentColor,
 			onselect: (color: string) => {
@@ -164,7 +164,7 @@ export function showCreateEditCalendarDialog({
 		child: {
 			view: () =>
 				m(".flex.col", [
-					m(".mt.mb.h6.b", lang.get(titleTextId)),
+					m(".mt-16.mb-16.h6.b", lang.get(titleTextId)),
 					warningMessage ? warningMessage() : null,
 					sourceUrlInputField(urlStream, errorMessageStream),
 					m(LoginButton, {
@@ -180,7 +180,7 @@ export function showCreateEditCalendarDialog({
 								})
 								.catch((e) => Dialog.message(lang.makeTranslation("error_message", e.message)))
 						},
-						class: errorMessageStream().trim() !== "" ? "mt-s no-hover disabled-button" : "mt-s",
+						class: errorMessageStream().trim() !== "" ? "mt-8 no-hover disabled-button" : "mt-8",
 						disabled: errorMessageStream().trim() !== "",
 					}),
 				]),
@@ -233,7 +233,7 @@ export function showEditBirthdayCalendarDialog(editBirthdayCalendarAttrs: EditBi
 						value: lang.get("birthdayCalendar_label"),
 						isReadOnly: true,
 					}),
-					m(".small.mt.mb-xs", lang.get("color_label")),
+					m(".small.mt-16.mb-4", lang.get("color_label")),
 					m(ColorPickerView, {
 						value: colorStream(),
 						onselect: (color: string) => {

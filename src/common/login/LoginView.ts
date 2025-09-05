@@ -98,7 +98,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
-						".flex.col.flex-grow-shrink-auto.max-width-m.plr-l." + (styles.isSingleColumnLayout() ? "pt" : "pt-l"),
+						".flex.col.flex-grow-shrink-auto.max-width-m.plr-24." + (styles.isSingleColumnLayout() ? "pt-16" : "pt-32"),
 						{
 							...landmarkAttrs(AriaLandmarks.Main, isApp() || isDesktop() ? lang.get("addAccount_action") : lang.get("login_label")),
 							oncreate: (vnode) => {
@@ -107,9 +107,9 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						},
 						[
 							m(
-								".content-bg.border-radius-big.pb",
+								".content-bg.border-radius-12.pb-16",
 								{
-									class: styles.isSingleColumnLayout() ? "plr-l" : "plr-2l",
+									class: styles.isSingleColumnLayout() ? "plr-24" : "plr-48",
 								},
 								this._renderFormForDisplayMode(),
 								this.renderMoreOptions(),
@@ -247,7 +247,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	_renderLoginForm(): Children {
-		return m(".flex.col.pb", [
+		return m(".flex.col.pb-16", [
 			m(LoginForm, {
 				oncreate: (vnode) => {
 					const form = vnode as Vnode<unknown, LoginForm>
@@ -283,12 +283,12 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	_renderCredentialsSelector(): Children {
-		return m(".flex.col.pb-l", [
+		return m(".flex.col.pb-32", [
 			m(
 				".small.center.statusTextColor",
 				{
 					...liveDataAttrs(),
-					class: styles.isSingleColumnLayout() ? "" : "pt-xs",
+					class: styles.isSingleColumnLayout() ? "" : "pt-4",
 				},
 				lang.getTranslationText(this.viewModel.helpText),
 			),
@@ -320,7 +320,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 	}
 
 	_renderAppButtons(): Children {
-		return m(".flex-center.pt-l.ml-between-s", [
+		return m(".flex-center.pt-32.ml-between-4", [
 			client.isDesktopDevice() || client.device === DeviceType.ANDROID
 				? m(IconButton, {
 						title: "appInfoAndroidImageAlt_alt",

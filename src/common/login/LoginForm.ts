@@ -129,14 +129,14 @@ export class LoginForm implements Component<LoginFormAttrs> {
 							)
 					: null,
 				m(
-					".pt",
+					".pt-16",
 					m(LoginButton, {
 						label: isApp() || isDesktop() ? "addAccount_action" : "login_action",
 						onclick: () => a.onSubmit(a.mailAddress(), a.password()),
 					}),
 				),
 				m(
-					"p.center.statusTextColor.mt-s",
+					"p.center.statusTextColor.mt-8",
 					{
 						style: {
 							// browser reset

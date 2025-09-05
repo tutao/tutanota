@@ -122,7 +122,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// When set to true, ignores the next setting of selectedTime
 	ignoreNextValidTimeSelection: boolean
 
-	private scrollPosition: number = 0 // size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
+	private scrollPosition: number = 0 // layout_size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
 	// The maximum scroll value of the list in the view
 	private scrollMax: number | null = null
 	// The size of the list in the view

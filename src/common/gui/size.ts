@@ -2,45 +2,144 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 export const size = {
-	new_design: {
-		vpad_large: 20,
+	/*
+	 Base & core size
+	 Use core sizes whenever it's possible.
+	 It reduces the cognitive load on users, and enable developers to make better and faster decisions with fewer options.
+	 Increments of 4 (base) are allowed for design flexibility, but try to use the core sizes first.
+	 See also: https://www.figma.com/design/AGqWHYG9dYRMCFcW5sKWhp/Switch---Tuta-Design-System?node-id=19-4
+	*/
+	base_4: 4,
+	core_8: 8,
+	core_16: 16,
+	core_24: 24,
+	core_32: 32,
+	core_40: 40,
+	core_48: 48,
+	core_56: 56,
+	core_64: 64,
+	core_72: 72,
+	core_80: 80,
+	core_96: 96,
+	core_112: 112,
+	core_128: 128,
+
+	// Spacings
+	get spacing_4(): number {
+		return this.base_4
+	},
+	get spacing_8(): number {
+		return this.core_8
+	},
+	get spacing_12(): number {
+		return this.core_8 + this.base_4
+	},
+	get spacing_16(): number {
+		return this.core_16
+	},
+	get spacing_24(): number {
+		return this.core_24
+	},
+	get spacing_32(): number {
+		return this.core_32
+	},
+	get spacing_48(): number {
+		return this.core_48
+	},
+	get spacing_64(): number {
+		return this.core_64
 	},
 
-	icon_size_xxl: 64,
-	icon_size_xl: 32,
-	icon_size_large: 24,
-	icon_size_medium_large: 20,
-	icon_size_medium: 16,
-	icon_size_small: 12,
-	icon_message_box: 80,
-	hpad_small: 5,
-	hpad: 10,
-	hpad_medium: 20,
-	hpad_large: 20,
-	hpad_large_mobile: 6,
-	hpad_button: 6,
-	hpad_nav_button: 9,
-	// 6 + 9 = 15px
-	vpad_unit: 1,
-	vpad_xxs: 2,
-	vpad_xs: 3,
-	vpad_xsm: 4,
-	vpad: 16,
-	vpad_small: 8,
-	vpad_ml: 25,
-	vpad_large: 32,
-	vpad_xl: 48,
-	vpad_xxl: 64,
-	text_bubble_tpad: 20,
-	border_radius_small: 3,
-	border_radius: 6,
-	border_radius_medium: 8,
-	border_radius_larger: 9,
-	border_radius_large: 12,
-	border_selection: 4,
-	font_size_base: 16,
-	font_size_smaller: 14,
-	font_size_small: 12,
+	// Icons
+	get icon_12(): number {
+		return this.core_8 + this.base_4
+	},
+	get icon_16(): number {
+		return this.core_16
+	},
+	get icon_20(): number {
+		return this.core_16 + this.base_4
+	},
+	get icon_24(): number {
+		return this.core_24
+	},
+	get icon_32(): number {
+		return this.core_32
+	},
+	get icon_64(): number {
+		return this.core_64
+	},
+	get icon_80(): number {
+		return this.core_80
+	},
+
+	// Radii
+	get radius_4(): number {
+		return this.base_4
+	},
+	get radius_8(): number {
+		return this.core_8
+	},
+	get radius_12(): number {
+		return this.core_8 + this.base_4
+	},
+	get radius_16(): number {
+		return this.core_16
+	},
+}
+
+export const font_size = {
+	base: 16,
+	smaller: 14,
+	small: 12,
+	line_height: 1.428571429,
+	line_height_m: 1.6,
+	line_height_l: 1.8,
+
+	get line_height_input(): number {
+		return this.base + 8
+	},
+}
+
+export const layout_size = {
+	get calendar_line_height(): number {
+		return font_size.small + 6
+	},
+
+	get calendar_hour_height(): number {
+		return (this.calendar_line_height + 2 * this.calendar_event_border + this.calendar_day_event_padding) * 4
+	},
+
+	calendar_days_header_height: 25,
+	calendar_hour_width: 80,
+	calendar_hour_width_mobile: 30,
+	calendar_event_margin: 6,
+	calendar_event_margin_mobile: 2,
+	calendar_event_border: 1,
+	calendar_day_event_padding: 2,
+	drawer_menu_width: 44,
+	column_width_s_desktop: 135,
+	column_width_s_mobile: 70,
+	first_col_min_width: 240,
+	first_col_max_width: 300,
+	second_col_min_width: 300,
+	second_col_max_width: 350,
+	third_col_min_width: 600,
+	third_col_max_width: 2400,
+	only_show_in_single_column_min_max_width: 10000, // viewport >= every mobile device viewport
+
+	get desktop_layout_width(): number {
+		return this.first_col_min_width + this.second_col_min_width + this.third_col_min_width
+	},
+
+	get two_column_layout_width(): number {
+		return this.second_col_min_width + this.third_col_min_width
+	},
+
+	column_resize_element_width: 5,
+}
+
+export const component_size = {
 	button_height: 44,
 	button_height_accent: 40,
 	button_height_bubble: 30,
@@ -58,64 +157,14 @@ export const size = {
 	header_logo_height: 38,
 	header_logo_height_mobile: 32,
 	list_row_height: 68,
-	column_width_s_desktop: 135,
-	column_width_s_mobile: 70,
-	line_height: 1.428571429,
-	// 20/14,
-	line_height_m: 1.6,
-	line_height_l: 1.8,
-
-	get calendar_line_height(): number {
-		return this.font_size_small + 6
-	},
-
-	get calendar_hour_height(): number {
-		return (this.calendar_line_height + 2 * this.calendar_event_border + this.calendar_day_event_padding) * 4
-	},
-
-	calendar_days_header_height: 25,
-	calendar_hour_width: 80,
-	calendar_hour_width_mobile: 30,
-	calendar_event_margin: 6,
-	calendar_event_margin_mobile: 2,
-	calendar_event_border: 1,
-	calendar_day_event_padding: 2,
-	drawer_menu_width: 44,
-	first_col_min_width: 240,
-	first_col_max_width: 300,
-	second_col_min_width: 300,
-	second_col_max_width: 350,
-	third_col_min_width: 600,
-	third_col_max_width: 2400,
-	only_show_in_single_column_min_max_width: 10000, // viewport >= every mobile device viewport
-
-	// Using the breakpoint set by bootstrap to cover small tablets as well
-	// https://getbootstrap.com/docs/5.0/layout/breakpoints/
-	tablet_min_size: 576,
-
-	get desktop_layout_width(): number {
-		return this.first_col_min_width + this.second_col_min_width + this.third_col_min_width
-	},
-
-	get two_column_layout_width(): number {
-		return this.second_col_min_width + this.third_col_min_width
-	},
-
 	dot_size: 7,
 	checkbox_size: 14,
 	checkbox_border_size: 2,
 	get checkbox_helper_text_margin(): number {
-		return this.checkbox_size + this.checkbox_border_size + this.hpad_small
+		return this.checkbox_size + this.checkbox_border_size + size.spacing_4
 	},
-
-	column_resize_element_width: 5,
 }
-export const inputLineHeight: number = size.font_size_base + 8
 
 export function px(value: number): string {
 	return value + "px"
-}
-
-export function pt(value: number): string {
-	return value + "pt"
 }

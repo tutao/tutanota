@@ -19,7 +19,7 @@ export class DummyTemplateListView implements Component<DummyTemplateListViewAtt
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".flex.flex-space-between.center-vertically.plr-l",
+					".flex.flex-space-between.center-vertically.plr-24",
 					m(BaseSearchBar, {
 						text: this.searchQuery,
 						onInput: (text) => (this.searchQuery = text),
@@ -31,7 +31,7 @@ export class DummyTemplateListView implements Component<DummyTemplateListViewAtt
 						placeholder: lang.get("searchTemplates_placeholder"),
 					} satisfies BaseSearchBarAttrs),
 					m(
-						".mr-negative-s",
+						".mr-negative-8",
 						m(IconButton, {
 							title: "addTemplate_label",
 							icon: Icons.Add,

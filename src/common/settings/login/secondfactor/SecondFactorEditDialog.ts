@@ -134,7 +134,7 @@ export class SecondFactorEditDialog {
 	private renderU2FFields(): Children {
 		return this.model.verificationStatus === VerificationStatus.Initial
 			? null
-			: m("p.flex.items-center", [m(".mr-s", this.statusIcon()), m("", this.statusMessage())])
+			: m("p.flex.items-center", [m(".mr-8", this.statusIcon()), m("", this.statusMessage())])
 	}
 
 	private renderOtpFields(): Children {
@@ -144,7 +144,7 @@ export class SecondFactorEditDialog {
 			icon: Icons.Clipboard,
 			size: ButtonSize.Compact,
 		}
-		return m(".mb", [
+		return m(".mb-16", [
 			m(TextField, {
 				label: "totpSecret_label",
 				helpLabel: () => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
@@ -154,7 +154,7 @@ export class SecondFactorEditDialog {
 			}),
 			isApp()
 				? m(
-						".pt",
+						".pt-16",
 						m(LoginButton, {
 							label: "addOpenOTPApp_action",
 							onclick: () => this.openOtpLink(),
@@ -178,7 +178,7 @@ export class SecondFactorEditDialog {
 		if (otpInfo) {
 			const qrCodeSvg = assertNotNull(otpInfo.qrCodeSvg)
 			// sanitized in the model
-			return m(".flex-center.pt", m.trust(qrCodeSvg))
+			return m(".flex-center.pt-16", m.trust(qrCodeSvg))
 		} else {
 			return null
 		}
@@ -226,7 +226,7 @@ export class SecondFactorEditDialog {
 			case VerificationStatus.Success:
 				return m(Icon, {
 					icon: Icons.Checkmark,
-					size: IconSize.Medium,
+					size: IconSize.PX24,
 					style: {
 						fill: theme.primary,
 					},
@@ -235,7 +235,7 @@ export class SecondFactorEditDialog {
 			case VerificationStatus.Failed:
 				return m(Icon, {
 					icon: Icons.Cancel,
-					size: IconSize.Medium,
+					size: IconSize.PX24,
 					style: {
 						fill: theme.primary,
 					},

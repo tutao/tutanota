@@ -220,7 +220,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 	view({ attrs }: Vnode<ExternalLoginViewAttrs>): Children {
 		return m(".main-view.flex.col.nav-bg", [
 			m(LoginScreenHeader),
-			m(".flex-grow.flex.col.items-center.scroll", m(".flex-grow-shrink-auto.flex.col.max-width-m.pt.pb.plr-l", this.renderContent())),
+			m(".flex-grow.flex.col.items-center.scroll", m(".flex-grow-shrink-auto.flex.col.max-width-m.pt-16.pb-16.plr-24", this.renderContent())),
 		])
 	}
 
@@ -231,9 +231,9 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 			return m("p.center", m(MessageBox, {}, lang.getTranslationText(this.viewModel.errorMessageId)))
 		} else {
 			return [
-				m(".flex.col.content-bg.border-radius-big.plr-2l.mt", [
+				m(".flex.col.content-bg.border-radius-12.plr-48.mt-16", [
 					this.viewModel.showAutoLoginButton ? this.renderAutoLoginButton() : this.renderForm(),
-					m("p.center.statusTextColor.mt-xs.mb-s", m("small", lang.getTranslationText(this.viewModel.helpText), [])),
+					m("p.center.statusTextColor.mt-4.mb-8", m("small", lang.getTranslationText(this.viewModel.helpText), [])),
 				]),
 				m(".flex-grow"),
 				renderInfoLinks(),
@@ -243,7 +243,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 
 	renderAutoLoginButton(): Children {
 		return m(
-			".pt-l",
+			".pt-32",
 			m(LoginButton, {
 				label: "showMail_action",
 				onclick: () => this.viewModel.loginWithStoredCredentials(),
@@ -267,7 +267,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 				onChecked: (checked) => (this.viewModel.doSavePassword = checked),
 			}),
 			m(
-				".pt",
+				".pt-16",
 				m(LoginButton, {
 					label: "showMail_action",
 					onclick: () => this.viewModel.formLogin(),

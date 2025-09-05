@@ -15,7 +15,7 @@ export class PlanBadge implements Component<PlanBadgeAttrs> {
 				style: {
 					color: theme.on_surface_variant,
 					border: `1px solid ${theme.outline}`,
-					padding: `${px(size.vpad_xs)} ${px(size.hpad_button)}`,
+					padding: `${px(size.spacing_4)} ${px(size.spacing_8)}`,
 				},
 			},
 			lang.getTranslation(attrs.langKey).text,

@@ -45,7 +45,7 @@ export class VerificationErrorPage implements Component<VerificationErrorPageAtt
 			}
 		}
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-16", [
 			m(TitleSection, {
 				title,
 				subTitle,

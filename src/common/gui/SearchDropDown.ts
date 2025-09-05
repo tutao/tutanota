@@ -55,7 +55,7 @@ export class SearchDropDown<T extends Suggestion> implements ClassComponent<Sear
 		let dropdownHeight = EntryHeight * Math.min(attrs.maxHeight ?? Number.MAX_VALUE, attrs.suggestions.length)
 		if (this.domSuggestions) {
 			const top = this.domSuggestions.getBoundingClientRect().top
-			const availableHeight = window.innerHeight - top - this.keyboardHeight - size.vpad
+			const availableHeight = window.innerHeight - top - this.keyboardHeight - size.spacing_16
 			dropdownHeight = Math.min(availableHeight, dropdownHeight)
 		}
 
@@ -80,12 +80,12 @@ export class SearchDropDown<T extends Suggestion> implements ClassComponent<Sear
 		}
 
 		return m(
-			".pt-s.pb-s.click.content-hover",
+			".pt-8.pb-8.click.content-hover",
 			{
 				class: selected ? "content-accent-fg row-selected icon-accent" : "",
 				onmousedown: () => attrs.onSuggestionSelected(idx),
 				style: {
-					"padding-left": selected ? px(size.hpad_large - 3) : px(size.hpad_large),
+					"padding-left": selected ? px(size.spacing_24 - 3) : px(size.spacing_24),
 					"border-left": selected ? "3px solid" : null,
 					height: px(EntryHeight),
 				},

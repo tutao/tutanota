@@ -2,7 +2,7 @@ import m, { Children, VnodeDOM } from "mithril"
 import { modal, ModalComponent } from "./Modal"
 import { animations, opacity, transform, TransformEnum } from "../animation/Animations"
 import { ease } from "../animation/Easing"
-import { px, size } from "../size"
+import { component_size, px } from "../size"
 import { focusNext, focusPrevious, Shortcut } from "../../misc/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
@@ -190,7 +190,7 @@ export class Dropdown implements ModalComponent {
 						const rawBodyHeight = children.reduce((acc, el) => acc + el.offsetHeight, 0)
 
 						const filterH = this.getFilterHeight()
-						const MIN_BODY_HEIGHT = size.button_height
+						const MIN_BODY_HEIGHT = component_size.button_height
 						const panelHeight = filterH + Math.max(rawBodyHeight, MIN_BODY_HEIGHT)
 
 						const firstRender = this._lastAppliedHeight == null

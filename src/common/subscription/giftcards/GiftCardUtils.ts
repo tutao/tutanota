@@ -81,9 +81,9 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 			{
 				view: () => [
 					m(
-						".flex-center.full-width.pt.pb",
+						".flex-center.full-width.pt-16.pb-16",
 						m(
-							".pt-l", // Needed to center SVG
+							".pt-32", // Needed to center SVG
 							{
 								style: {
 									width: "480px",

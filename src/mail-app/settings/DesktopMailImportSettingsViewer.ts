@@ -41,8 +41,8 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 	}
 
 	view(): Children {
-		return m(".fill-absolute.scroll.plr-l.pb-xl", [
-			m(".h4.mt-l", lang.get("mailImportSettings_label")),
+		return m(".fill-absolute.scroll.plr-24.pb-48", [
+			m(".h4.mt-32", lang.get("mailImportSettings_label")),
 			this.renderTargetFolderControls(),
 			!this.mailImporter().shouldRenderImportStatus() ? this.renderStartNewImportControls() : null,
 			this.mailImporter().shouldRenderImportStatus() ? this.renderImportStatus() : null,
@@ -107,9 +107,9 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 
 	private renderStartNewImportControls() {
 		return [
-			m(".flex-start.mt-m", this.renderImportInfoText()),
+			m(".flex-start.mt-12", this.renderImportInfoText()),
 			m(
-				".flex-start.mt-s",
+				".flex-start.mt-8",
 				m(LoginButton, {
 					type: LoginButtonType.FlexWidth,
 					label: "import_action",
@@ -171,19 +171,19 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		return [
 			[
 				m(
-					".flex-space-between.p.small.mt-m",
+					".flex-space-between.p.small.mt-12",
 					getReadableUiImportStatus(assertNotNull(this.mailImporter().getUiStatus())),
 					this.mailImporter().shouldRenderProcessedMails() ? processedMailsCountLabel : null,
 				),
 			],
-			[m(".flex-space-between.border-radius-big.mt-s.rel.nav-bg.full-width", this.renderMailImportProgressBar(), ...buttonControls)],
+			[m(".flex-space-between.border-radius-12.mt-8.rel.nav-bg.full-width", this.renderMailImportProgressBar(), ...buttonControls)],
 		]
 	}
 
 	private renderMailImportProgressBar() {
 		// the ProgressBar uses progress values 0 ... 1
 		return m(
-			".rel.border-radius-big.full-width",
+			".rel.border-radius-12.full-width",
 			m(ProgressBar, {
 				progress: this.mailImporter().getProgress() / 100,
 				type: ProgressBarType.Large,
@@ -193,7 +193,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 
 	private renderImportHistory() {
 		return [
-			m(".flex-space-between.items-center.mt-l.mb-s", [
+			m(".flex-space-between.items-center.mt-32.mb-8", [
 				m(".h4", lang.get("mailImportHistory_label")),
 				m(ExpanderButton, {
 					label: "show_action",

@@ -39,7 +39,7 @@ class AppLockMethodDialog {
 				return m("", [
 					null,
 					m(SelectAppLockMethodView, {
-						class: "scroll pt plr-l height-100p",
+						class: "scroll pt-16 plr-24 height-100p",
 						error: this.error,
 						onConfirm: (mode) => this.onMethodSelected(mode),
 						supportedModes: this.supportedModes,
@@ -118,10 +118,10 @@ export class SelectAppLockMethodView implements Component<SelectAppLockMethodDia
 					class: attrs.class,
 				},
 				[
-					attrs.error ? m(".small.center.statusTextColor.pb-s", liveDataAttrs(), attrs.error) : null,
+					attrs.error ? m(".small.center.statusTextColor.pb-8", liveDataAttrs(), attrs.error) : null,
 					m("", lang.get("credentialsEncryptionModeSelection_msg")),
 					m(
-						".mt",
+						".mt-16",
 						m(RadioSelector, {
 							name: "credentialsEncryptionMode_label",
 							options,

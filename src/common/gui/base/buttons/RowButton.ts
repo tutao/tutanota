@@ -29,7 +29,7 @@ export class RowButton implements Component<RowButtonAttrs> {
 		return m(BaseButton, {
 			label: attrs.label,
 			text: m(
-				".plr-button.text-ellipsis",
+				".plr-8.text-ellipsis",
 				{
 					style: { color },
 					// When the label doesn't match content, screen readers read both
@@ -44,14 +44,14 @@ export class RowButton implements Component<RowButtonAttrs> {
 					? m(Icon, {
 							icon: attrs.icon,
 							container: "div",
-							class: "mr-button",
+							class: "mr-8",
 							style: { fill: color },
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 						})
 					: attrs.icon === "none"
-						? m(".icon-large.mr-button")
+						? m(".icon-24.mr-8")
 						: null,
-			class: "flex items-center state-bg button-content plr-button " + attrs.class,
+			class: "flex items-center state-bg button-content plr-8 " + attrs.class,
 			style: {
 				...attrs.style,
 				color,

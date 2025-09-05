@@ -37,7 +37,7 @@ export class LeavingUserSurveyCategoryPage implements WizardPageN<LeavingUserSur
 					dropdownWidth: 350,
 				} satisfies DropDownSelectorAttrs<NumberString | null>),
 				// this currently "mocks" the helplabel of the dropdown. We have to take another look once we decide on applying the dropdown styling to the entire app.
-				m(".mlr-s.mt-xs", m("small", lang.get("cancellationConfirmation_msg"))),
+				m(".mlr-4.mt-4", m("small", lang.get("cancellationConfirmation_msg"))),
 			],
 		)
 	}

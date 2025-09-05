@@ -42,7 +42,7 @@ export class OutlineButton implements ClassComponent<OutlineButtonAttrs> {
 			"button-content",
 			"border-accent",
 			"border-radius",
-			"plr-button",
+			"plr-8",
 			"limit-width",
 			"noselect",
 			"bg-transparent",

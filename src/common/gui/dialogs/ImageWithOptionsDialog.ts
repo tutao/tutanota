@@ -1,7 +1,7 @@
 import m, { Component, Vnode } from "mithril"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { BaseButton } from "../base/buttons/BaseButton"
-import { px, size } from "../size"
+import { component_size, px, size } from "../size"
 import { theme } from "../theme"
 
 // The subActionText is optional, if null is passed it will not display the second Option
@@ -19,12 +19,12 @@ interface ImageWithOptionsDialogAttrs {
 // Returns the layout for this dialog type
 export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogAttrs> {
 	view({ attrs }: Vnode<ImageWithOptionsDialogAttrs>) {
-		return m(".flex.flex-column.pb-ml.height-100p.text-break", [
+		return m(".flex.flex-column.pb-24.height-100p.text-break", [
 			m(
 				"section",
 				m(
-					".flex-center.mt-m",
-					m("img.pb.pt.block.height-100p", {
+					".flex-center.mt-12",
+					m("img.pb-16.pt-16.block.height-100p", {
 						src: attrs.image,
 						alt: "",
 						rel: "noreferrer",
@@ -46,9 +46,9 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 					label: attrs.mainActionText,
 					text: lang.getTranslationText(attrs.mainActionText),
 					onclick: attrs.mainActionClick,
-					class: "full-width border-radius-small center b flash accent-bg button-content",
+					class: "full-width border-radius-4 center b flash accent-bg button-content",
 					style: {
-						height: px(size.button_height + size.vpad_xs * 1.5),
+						height: px(component_size.button_height + size.spacing_4 * 1.5),
 					},
 				}),
 
@@ -57,10 +57,10 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 							label: attrs.subActionText,
 							text: lang.getTranslationText(attrs.subActionText),
 							onclick: attrs.subActionClick,
-							class: "full-width border-radius-small center b flash",
+							class: "full-width border-radius-4 center b flash",
 							style: {
 								border: `2px solid ${theme.primary}`,
-								height: px(size.button_height + size.vpad_xs * 1.5),
+								height: px(component_size.button_height + size.spacing_4 * 1.5),
 								color: theme.primary,
 							},
 						})

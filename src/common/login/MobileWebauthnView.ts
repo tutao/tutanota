@@ -45,7 +45,7 @@ export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 		}
 
 		return m(
-			".mt.flex.col.flex-center.center",
+			".mt-16.flex.col.flex-center.center",
 			{
 				style: {
 					margin: "0 auto",
@@ -54,8 +54,8 @@ export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 			[
 				m(".flex.col.justify-center", [
 					m(DialogHeaderBar, headerBarAttrs),
-					m(".flex-center.mt-s", m("img", { src: SecondFactorImage })),
-					m(".mt.flex.col", [m(".flex.justify-center", [m(".mr-s", progressIcon()), m("", lang.get("waitingForU2f_msg"))])]),
+					m(".flex-center.mt-8", m("img", { src: SecondFactorImage })),
+					m(".mt-16.flex.col", [m(".flex.justify-center", [m(".mr-8", progressIcon()), m("", lang.get("waitingForU2f_msg"))])]),
 				]),
 			],
 		)

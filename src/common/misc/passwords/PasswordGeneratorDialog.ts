@@ -66,7 +66,7 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 		const { updateAction, okAction, password } = vnode.attrs
 		return m("", [
 			m(
-				".editor-border.mt.flex.center-horizontally.center-vertically",
+				".editor-border.mt-16.flex.center-horizontally.center-vertically",
 				{
 					style: {
 						minHeight: px(65), // needs 65px for displaying two rows
@@ -74,7 +74,7 @@ class PasswordGeneratorDialog implements Component<PasswordGeneratorDialogAttrs>
 				},
 				m(".center.b.monospace", password),
 			),
-			m(".small.mt-xs", [
+			m(".small.mt-4", [
 				lang.get("passphraseGeneratorHelp_msg"),
 				" ",
 				m(ExternalLink, {

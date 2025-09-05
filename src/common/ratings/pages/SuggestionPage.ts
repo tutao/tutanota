@@ -27,7 +27,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 
 	view(): Children {
 		return m(
-			".flex.flex-column.pt.height-100p.gap-vpad",
+			".flex.flex-column.pt-16.height-100p.gap-16",
 			m(Card, [
 				m("img.block.center-h", {
 					src: `${window.tutao.appState.prefixWithoutFile}/images/rating/suggestion-${client.isCalendarApp() ? "calendar" : "mail"}.png`,
@@ -40,7 +40,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						maxWidth: px(160),
 					},
 				}),
-				m(".h3.text-center.pb-s.pt-s", lang.get("ratingSuggestionPage_title")),
+				m(".h3.text-center.pb-8.pt-8", lang.get("ratingSuggestionPage_title")),
 			]),
 			m(
 				Card,
@@ -57,7 +57,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 				}),
 			),
 			m(
-				".flex.flex-column.gap-vpad.pb",
+				".flex.flex-column.gap-16.pb-16",
 				{
 					style: {
 						marginTop: "auto",

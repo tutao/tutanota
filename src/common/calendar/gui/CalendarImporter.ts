@@ -8,7 +8,7 @@ import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../gui/base/List.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
-import { size } from "../../gui/size.js"
+import { component_size, size } from "../../gui/size.js"
 import { DialogHeaderBar } from "../../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../gui/base/Button.js"
 import m from "mithril"
@@ -59,7 +59,7 @@ export function showEventsImportDialog(
 	calendarInfo: CalendarInfoBase,
 ) {
 	const renderConfig: RenderConfig<CalendarEvent, KindaCalendarRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {
@@ -91,9 +91,9 @@ export function showEventsImportDialog(
 				],
 			}),
 			/** variable-size child container that may be scrollable. */
-			m(".dialog-max-height.plr-s.pb.text-break.nav-bg", [
+			m(".dialog-max-height.plr-4.pb-16.text-break.nav-bg", [
 				m(
-					".flex.col.rel.mt-s",
+					".flex.col.rel.mt-8",
 					{
 						style: {
 							height: "80vh",
@@ -184,7 +184,7 @@ export function calendarSelectionDialog(
 				],
 			}),
 
-			m(".dialog-max-height.plr-l.pt.pb.text-break.scroll", [
+			m(".dialog-max-height.plr-24.pt-16.pb-16.text-break.scroll", [
 				m(".text-break.selectable", lang.get("calendarImportSelection_label")),
 				m(DropDownSelector, {
 					label: "calendar_label",

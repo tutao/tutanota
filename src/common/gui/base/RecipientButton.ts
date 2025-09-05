@@ -10,7 +10,7 @@ export type Attrs = {
 export class RecipientButton implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		return m(
-			"button.mr-button.content-accent-fg.print.small",
+			"button.mr-8.content-accent-fg.print.small",
 			{
 				style: Object.assign(
 					{

@@ -13,7 +13,7 @@ import { CalendarEventModel, CalendarOperation, ReadonlyReason } from "../evente
 import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
 import { RemindersEditor, RemindersEditorAttrs } from "../RemindersEditor.js"
 import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
-import { px, size } from "../../../../common/gui/size.js"
+import { font_size, px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
 import { Select, SelectAttributes, SelectOption } from "../../../../common/gui/base/Select.js"
 import { Icon, IconSize } from "../../../../common/gui/base/Icon.js"
@@ -153,16 +153,16 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		}
 
 		if (this.pageWidth === -1 && dom.parentElement) {
-			this.pageWidth = dom.parentElement.clientWidth - size.hpad_large * 2
+			this.pageWidth = dom.parentElement.clientWidth - size.spacing_24 * 2
 			// Twice the page width (Main Page + Guests/Repeat) plus the gap between pages (64px)
-			;(vnode.dom as HTMLElement).style.width = px(this.pageWidth * 2 + size.vpad_xxl)
+			;(vnode.dom as HTMLElement).style.width = px(this.pageWidth * 2 + size.spacing_64)
 			m.redraw()
 		}
 	}
 
 	view(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
 		return m(
-			".flex.gap-vpad-xxl.fit-content.transition-transform",
+			".flex.gap-64.fit-content.transition-transform",
 			{
 				style: {
 					transform: `translateX(${this.translate}px)`,
@@ -207,7 +207,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				placeholder: lang.get("title_placeholder"),
 				disabled: !model.isFullyWritable(),
 				style: {
-					fontSize: px(size.font_size_base * 1.25), // Overriding the component style
+					fontSize: px(font_size.base * 1.25), // Overriding the component style
 				},
 				type: TextFieldType.Text,
 			}),
@@ -239,7 +239,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderEventTimeEditor(attrs: CalendarEventEditViewAttrs): Children {
-		const padding = px(size.vpad_small)
+		const padding = px(size.spacing_8)
 		const { whenModel } = attrs.model.editModels
 		return m(
 			Card,
@@ -273,7 +273,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private transitionTo(target: EditorPages, navigationCallback: (targetPage: EditorPages) => unknown) {
 		this.hasAnimationEnded = false
 		this.transitionPage = target
-		this.translate = -(this.pageWidth + size.vpad_xxl)
+		this.translate = -(this.pageWidth + size.spacing_64)
 		navigationCallback(target)
 	}
 
@@ -326,7 +326,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				options: stream(options),
 				expanded: true,
 				selected,
-				classes: ["button-min-height", "pl-vpad-s", "pr-vpad-s"],
+				classes: ["button-min-height", "pl-8", "pr-8"],
 				renderOption: (option) => this.renderCalendarOptions(option, deepEqual(option.value, selected.value), false),
 				renderDisplay: (option) => this.renderCalendarOptions(option, false, true),
 				ariaLabel: lang.get("calendar_label"),
@@ -337,16 +337,16 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderCalendarOptions(option: CalendarSelectItem, isSelected: boolean, isDisplay: boolean) {
 		return m(
-			".flex.items-center.gap-vpad-s.flex-grow.overflow-hidden",
-			{ class: `${isDisplay ? "" : "state-bg plr-button button-content dropdown-button pt-s pb-s button-min-height"}` },
+			".flex.items-center.gap-8.flex-grow.overflow-hidden",
+			{ class: `${isDisplay ? "" : "state-bg plr-8 button-content dropdown-button pt-8 pb-8 button-min-height"}` },
 			[
 				m(".no-shrink", {
 					style: {
-						width: px(size.hpad_large),
-						height: px(size.hpad_large),
+						width: px(size.spacing_24),
+						height: px(size.spacing_24),
 						borderRadius: "50%",
 						backgroundColor: option.color,
-						marginInline: px(size.vpad_xsm / 2),
+						marginInline: px(size.spacing_4 / 2),
 					},
 				}),
 				m(
@@ -368,7 +368,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		return m(
 			Card,
 			{ classes: ["button-min-height", "flex", "items-center"] },
-			m(".flex.gap-vpad-s.items-start.flex-grow", [
+			m(".flex.gap-8.items-start.flex-grow", [
 				m(
 					".flex",
 					{
@@ -379,7 +379,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 							icon: Icons.Clock,
 							style: { fill: getColors(ButtonColor.Content).button },
 							title: lang.get("reminderBeforeEvent_label"),
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 						}),
 					],
 				),
@@ -402,7 +402,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				style: { padding: "0" },
 			},
 			m(
-				".flex.gap-vpad-s.items-center",
+				".flex.gap-8.items-center",
 				m(SingleLineTextField, {
 					value: model.editModels.location.content,
 					oninput: (newValue: string) => {
@@ -442,7 +442,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderMainPage(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
 		return m(
-			".pb.pt.flex.col.gap-vpad.fit-height.box-content",
+			".pb-16.pt-16.flex.col.gap-16.fit-height.box-content",
 			{
 				style: {
 					// The date picker dialogs have position: fixed, and they are fixed relative to the most recent ancestor with

@@ -21,9 +21,9 @@ export class DialogInjectionRight<T extends object> implements Component<DialogI
 		const { component, componentAttrs } = attrs
 
 		if (attrs.visible()) {
-			return m(".flex-grow-shrink-auto.flex-transition.ml-s.rel.dialog.dialog-width-m.elevated-bg.dropdown-shadow.border-radius", [
+			return m(".flex-grow-shrink-auto.flex-transition.ml-8.rel.dialog.dialog-width-m.elevated-bg.dropdown-shadow.border-radius", [
 				m(DialogHeaderBar, resolveMaybeLazy(attrs.headerAttrs)),
-				m(".dialog-container.scroll.plr-l", m(component, componentAttrs)),
+				m(".dialog-container.scroll.plr-24", m(component, componentAttrs)),
 			])
 		} else {
 			return m(".flex-hide.flex-transition.rel", {

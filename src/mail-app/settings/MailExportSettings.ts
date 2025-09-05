@@ -67,16 +67,16 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 			case "exporting":
 				return [
 					m(
-						".flex-start.mt-m.small",
+						".flex-start.mt-12.small",
 						lang.get("exportingEmails_label", {
 							"{count}": state.exportedMails,
 						}),
 					),
-					m(".flex-space-between.border-radius-big.mt-s.rel.nav-bg.full-width.center-vertically", [
+					m(".flex-space-between.border-radius-12.mt-8.rel.nav-bg.full-width.center-vertically", [
 						m(Icon, {
 							icon: BootIcons.Progress,
-							class: "flex-center items-center icon-progress-tiny icon-progress ml-s",
-							size: IconSize.Medium,
+							class: "flex-center items-center icon-progress-tiny icon-progress ml-8",
+							size: IconSize.PX24,
 						}),
 						m(IconButton, {
 							title: "cancel_action",
@@ -87,13 +87,13 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 							size: ButtonSize.Normal,
 						}),
 					]),
-					state.paused ? m(".flex-start.mt-m.small", lang.getTranslation("mailExportLimitReached_msg").text) : null,
+					state.paused ? m(".flex-start.mt-12.small", lang.getTranslation("mailExportLimitReached_msg").text) : null,
 				]
 			case "idle":
 				return [
-					m(".flex-start.mt-m", this.renderExportInfoText()),
+					m(".flex-start.mt-12", this.renderExportInfoText()),
 					m(
-						".flex-start.mt-s",
+						".flex-start.mt-8",
 						m(LoginButton, {
 							type: LoginButtonType.FlexWidth,
 							label: "export_action",
@@ -107,7 +107,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				]
 			case "error":
 				return [
-					m(".flex-space-between.items-center.mt.mb-s", [
+					m(".flex-space-between.items-center.mt-16.mb-8", [
 						m("small.noselect", state.message),
 						m(Button, {
 							label: "retry_action",
@@ -125,7 +125,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				return [
 					m("small.noselect", lang.get("exportFinished_label")),
 					m(
-						".flex-start.mt-s",
+						".flex-start.mt-8",
 						m(LoginButton, {
 							type: LoginButtonType.FlexWidth,
 							label: "open_action",
@@ -135,7 +135,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				]
 			case "locked":
 				return [
-					m(".flex-space-between.items-center.mt.mb-s.button-height", [
+					m(".flex-space-between.items-center.mt-16.mb-8.button-height", [
 						m("small.noselect", `${lang.get("exportRunningElsewhere_label")} ${lang.get("pleaseWait_msg")}`),
 					]),
 				]

@@ -27,16 +27,16 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 				? lang.get("keyVerificationErrorManual_msg")
 				: lang.get("keyVerificationErrorGeneric_msg")
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-16", [
 			m(TitleSection, {
 				title,
 				subTitle,
 			}),
 			m(
 				Card,
-				m(".plr.flex.flex-column.gap-vpad", [
+				m(".plr-12.flex.flex-column.gap-16", [
 					m("", m.trust(lang.get("keyVerificationErrorWarning_msg", { "{mailAddress}": contactMailAddress }))),
-					m(".b.mt", lang.get("keyVerificationErrorRecommendation_title")),
+					m(".b.mt-16", lang.get("keyVerificationErrorRecommendation_title")),
 					m("", m.trust(lang.get("keyVerificationErrorRecommendation_msg"))),
 					m(ExternalLink, {
 						isCompanySite: true,
@@ -51,8 +51,8 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 				onclick: async () => vnode.attrs.goToRejectPage(),
 				icon: m(Icon, {
 					icon: Icons.XCheckmark,
-					size: IconSize.Large,
-					class: "mr-s flex-center",
+					size: IconSize.PX20,
+					class: "mr-8 flex-center",
 				}),
 			}),
 			m(OutlineButton, {

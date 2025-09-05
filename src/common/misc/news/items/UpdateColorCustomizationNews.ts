@@ -26,10 +26,10 @@ export class UpdateColorCustomizationNews implements NewsListItem {
 		}
 
 		return m(".full-width", [
-			m(".h4.pb", lang.get("updateColorCustomizationNews_title")),
-			m(".pb", lang.get("updateColorCustomizationNews_msg")),
+			m(".h4.pb-16", lang.get("updateColorCustomizationNews_title")),
+			m(".pb-16", lang.get("updateColorCustomizationNews_msg")),
 			m(
-				".flex-end.gap-hpad.flex-no-grow-no-shrink-auto.flex-wrap",
+				".flex-end.gap-12.flex-no-grow-no-shrink-auto.flex-wrap",
 				m(Button, {
 					label: "updateColorCustomizationNewsButton_label",
 					click: async () => {

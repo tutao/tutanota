@@ -12,7 +12,7 @@ export class SetupLockPage implements Component<SetupLockPageAttrs> {
 	view({ attrs }: Vnode<SetupLockPageAttrs>): Children {
 		return m(SetupPageLayout, { image: "lock", buttonLabel: "finish_action" }, [
 			m(SelectAppLockMethodView, {
-				class: "mt",
+				class: "mt-16",
 				error: attrs.error,
 				supportedModes: attrs.supportedModes,
 				previousSelection: attrs.currentMode,

@@ -123,7 +123,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		if (isFirstMonthForFree) {
-			return wrapInDiv(lang.get("firstMonthForFree_msg"), { marginTop: px(size.vpad), marginBottom: px(size.vpad) })
+			return wrapInDiv(lang.get("firstMonthForFree_msg"), { marginTop: px(size.spacing_16), marginBottom: px(size.spacing_16) })
 		}
 
 		if (isCampaign && !isBusiness && (isIOSApp() ? priceAndConfigProvider.getIosIntroOfferEligibility() : true)) {
@@ -192,7 +192,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				if (!revoRefPriceStr || !legendRefPriceStr) return
 
 				return m(
-					".flex.column-gap-s",
+					".flex.column-gap-4",
 					m("span", m("sup", "1")),
 					m(
 						"span",
@@ -205,7 +205,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			}
 
 			if (priceAndConfigProvider.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly && (!currentPlan || currentPlan === PlanType.Free)) {
-				return m(".flex.column-gap-s", m("span", m("sup", "1")), m("span", lang.get("firstMonthForFreeDetail_msg")))
+				return m(".flex.column-gap-4", m("span", m("sup", "1")), m("span", lang.get("firstMonthForFreeDetail_msg")))
 			}
 
 			return undefined
@@ -215,8 +215,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 		additionalInfo = m(".flex.flex-column", [
 			featureExpander.All, // global feature expander
-			m(".smaller.mb", subscriptionPeriodInfoMsg),
-			footnoteElement && m(".smaller.mb", footnoteElement),
+			m(".smaller.mb-16", subscriptionPeriodInfoMsg),
+			footnoteElement && m(".smaller.mb-16", footnoteElement),
 		])
 
 		const buyBoxesViewPlacement = plans

@@ -39,9 +39,9 @@ class QuickActionBar implements Component<Attrs> {
 					maxHeight: "80vh",
 					background: theme.surface_container_high,
 					color: theme.on_surface,
-					borderRadius: px(size.border_radius_large),
+					borderRadius: px(size.radius_12),
 					margin: "10vh auto",
-					padding: px(size.hpad),
+					padding: px(size.spacing_12),
 					"box-shadow": boxShadowHigh,
 				},
 			},
@@ -81,7 +81,7 @@ class QuickActionBar implements Component<Attrs> {
 					},
 				}),
 				m(
-					".flex.col.ul.mt-s.scroll.flex-grow",
+					".flex.col.ul.mt-8.scroll.flex-grow",
 					{
 						style: {
 							"list-style": "none",
@@ -94,7 +94,7 @@ class QuickActionBar implements Component<Attrs> {
 					this.results.map((result, index) => {
 						const isSelected = index === this.selectedIndex
 						return m(
-							"li.border-radius-small.plr-s.click",
+							"li.border-radius-small.plr-4.click",
 							{
 								style: {
 									padding: "4px",

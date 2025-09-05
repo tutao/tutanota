@@ -65,7 +65,7 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 		child: () => {
 			// @ts-ignore
 			const text = agreementTexts[version]
-			return m(".pt", [
+			return m(".pt-16", [
 				m.trust(text.heading),
 				m(".flex-center", m(".dialog-width-s", [m(addressEditor), m(".small", lang.get("contractorInfo_msg"))])),
 				m.trust(text.content),
@@ -121,7 +121,7 @@ export function showForViewing(agreement: OrderProcessingAgreement, signerUserGr
 			// @ts-ignore
 			const text = agreementTexts[agreement.version]
 			return m(
-				"#agreement-content.pt",
+				"#agreement-content.pt-16",
 				{
 					onremove: cleanupPrintElement,
 				},

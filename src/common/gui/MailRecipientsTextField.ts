@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { BubbleTextField, BubbleTextFieldAttrs, BubbleTextFieldClickBehaviour } from "./base/BubbleTextField.js"
 import { Recipient } from "../api/common/recipients/Recipient.js"
-import { px, size } from "./size.js"
+import { component_size, px, size } from "./size.js"
 import { Icon, IconSize, progressIcon } from "./base/Icon.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
@@ -80,7 +80,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
 					return m(Icon, {
 						icon: Icons.BrokenShield,
-						size: IconSize.Large, // we want 20px
+						size: IconSize.PX20, // we want 20px
 						style: {
 							fill: theme.error,
 							position: "relative",
@@ -91,7 +91,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				} else if (recipient.verificationState === PresentableKeyVerificationState.SECURE) {
 					return m(Icon, {
 						icon: Icons.Shield,
-						size: IconSize.Large,
+						size: IconSize.PX20,
 						style: {
 							fill: theme.success,
 							position: "relative",
@@ -157,11 +157,11 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				// Placeholder element for the suggestion progress icon with a fixed width and height to avoid flickering.
 				// when reaching the end of the input line and when entering a text into the second line.
 				m(
-					".flex.align-right.mr-s.flex.items-end.pb-s",
+					".flex.align-right.mr-8.flex.items-end.pb-8",
 					{
 						style: {
 							width: px(20), // in case the progress icon is not shown we reserve the width of the progress icon
-							height: px(size.button_height_compact),
+							height: px(component_size.button_height_compact),
 						},
 					},
 					attrs.search.isLoading() ? progressIcon() : null,

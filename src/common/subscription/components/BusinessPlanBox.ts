@@ -91,7 +91,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 			"div.flex.flex-column",
 			{
 				style: {
-					transform: isSelected && !styles.isMobileLayout() ? `translateY(${px(-size.vpad)})` : "initial",
+					transform: isSelected && !styles.isMobileLayout() ? `translateY(${px(-size.core_16)})` : "initial",
 					transition: `transform ${DefaultAnimationTime}ms, box-shadow ${DefaultAnimationTime}ms, background-color ${DefaultAnimationTime}ms`,
 				},
 				onclick: handleSelect,
@@ -123,7 +123,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 						borderColor: isSelected ? localTheme.primary : localTheme.outline_variant,
 						backgroundColor: isSelected ? localTheme.surface_container_high : localTheme.surface,
 						borderRadius: hasCampaign ? `0 0 ${px(12)} ${px(12)}` : px(12),
-						padding: `${px(styles.isMobileLayout() ? 12 : size.vpad_ml)} ${px(styles.isMobileLayout() ? 12 : size.hpad_medium)}`,
+						padding: `${px(styles.isMobileLayout() ? 12 : size.spacing_24)} ${px(styles.isMobileLayout() ? 12 : size.spacing_24)}`,
 						opacity: isDisabled ? 0.6 : 1,
 						"box-shadow": isSelected ? boxShadowHigh : "initial",
 						height: "100%",
@@ -131,12 +131,12 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 				},
 				[
 					// header
-					m(`div.flex.items-center.justify-between.gap-vpad${styles.isMobileLayout() ? ".flex" : ".flex-column"}`, [
-						m(`${styles.isMobileLayout() ? ".flex.gap-hpad.items-center" : ".flex.flex-column.gap-vpad-s"}`, [
-							m(`div.items-center.justify-center.flex.gap-hpad`, [
+					m(`div.flex.items-center.justify-between.gap-16${styles.isMobileLayout() ? ".flex" : ".flex-column"}`, [
+						m(`${styles.isMobileLayout() ? ".flex.gap-12.items-center" : ".flex.flex-column.gap-8"}`, [
+							m(`div.items-center.justify-center.flex.gap-12`, [
 								m(Icon, {
 									icon: planConfig.icon,
-									size: IconSize.Medium,
+									size: IconSize.PX24,
 									style: {
 										fill: theme.on_surface_variant,
 									},
@@ -144,7 +144,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 								m(Icon, {
 									icon: Icons.ChevronDown,
 									class: `flex-center items-center`,
-									size: IconSize.Large,
+									size: IconSize.PX20,
 									style: {
 										display: styles.isMobileLayout() ? "block" : "none",
 										margin: "-3px",
@@ -175,7 +175,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 											fontSize: px(12),
 										},
 									},
-									lang.get(planConfig.tagLine),
+									lang.getTranslationText(planConfig.tagLine),
 								),
 							]),
 						]),
@@ -187,11 +187,15 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 								: m(`div.no-wrap${styles.isMobileLayout() ? ".right" : ".center"}`, [
 										m("div.lh-s", [
 											referencePrice
-												? m("span.strike.mr-s.smaller", { style: { color: localTheme.on_surface_variant } }, referencePrice)
+												? m("span.strike.mr-8.smaller", { style: { color: localTheme.on_surface_variant } }, referencePrice)
 												: null,
 											m("span.h1", price),
 										]),
-										m("div.small", { style: { color: localTheme.on_surface_variant } }, lang.get("pricing.perUserMonth_label")),
+										m(
+											"div.small",
+											{ style: { color: localTheme.on_surface_variant } },
+											lang.getTranslationText("pricing.perUserMonth_label"),
+										),
 									]),
 						),
 					]),
@@ -240,7 +244,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 							},
 						},
 						m(
-							".flex.flex-column.gap-vpad-s",
+							".flex.flex-column.gap-8",
 							planConfig.features.map((feature) => renderFeature(feature.label, feature.icon, feature.replacementKey)),
 						),
 					),
@@ -255,17 +259,16 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 				".flex.feature-row",
 				{
 					style: {
-						gap: px(size.hpad_small),
+						gap: px(size.base_4),
 					},
 				},
 				m(Icon, {
 					icon,
-					size: IconSize.Normal,
 					style: {
 						fill: theme.secondary,
 					},
 				}),
-				m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider))),
+				m(".smaller", lang.getTranslation(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider)).text),
 			)
 		}
 	}

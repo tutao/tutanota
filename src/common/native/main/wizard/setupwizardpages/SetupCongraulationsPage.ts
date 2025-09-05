@@ -6,8 +6,8 @@ import { SetupPageLayout } from "./SetupPageLayout.js"
 export class SetupCongratulationsPage implements WizardPageN<null> {
 	view(): Children {
 		return m(SetupPageLayout, { image: "congratulations", class: "onboarding-logo-large" }, [
-			m("h2.mt-l.b", lang.get("welcome_text")),
-			m("p.mt-s.full-width", lang.get("onboarding_text")),
+			m("h2.mt-32.b", lang.get("welcome_text")),
+			m("p.mt-8.full-width", lang.get("onboarding_text")),
 		])
 	}
 }

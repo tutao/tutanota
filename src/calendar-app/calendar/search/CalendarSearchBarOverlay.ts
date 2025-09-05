@@ -27,11 +27,11 @@ export class CalendarSearchBarOverlay implements Component<CalendarSearchBarOver
 		return m("ul.list.click.mail-list", [
 			state.entities.map((result) => {
 				return m(
-					"li.plr-l.flex-v-center.",
+					"li.plr-24.flex-v-center.",
 					{
 						style: {
 							height: px(52),
-							"border-left": px(size.border_selection) + " solid transparent",
+							"border-left": px(size.radius_4) + " solid transparent",
 						},
 						// avoid closing overlay before the click event can be received
 						onmousedown: (e: MouseEvent) => e.preventDefault(),
@@ -82,7 +82,7 @@ export class CalendarSearchBarOverlay implements Component<CalendarSearchBarOver
 
 		return indexInfo
 			? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)]
-			: m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
+			: m("li.plr-24.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
 	}
 
 	private renderCalendarEventResult(event: CalendarEvent): Children {

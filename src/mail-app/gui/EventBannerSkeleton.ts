@@ -1,13 +1,13 @@
 import { pureComponent } from "../../common/gui/base/PureComponent"
 import m from "mithril"
 import { styles } from "../../common/gui/styles"
-import { px, size } from "../../common/gui/size"
+import { layout_size, px, size } from "../../common/gui/size"
 import { Skeleton } from "../../common/gui/base/Skeleton"
 import { theme } from "../../common/gui/theme.js"
 
 export const EventBannerSkeleton = pureComponent(() =>
 	m(
-		".border-sm.skeleton-border-1.border-radius-m.grid.clip",
+		".border-sm.skeleton-border-1.border-radius-8.grid.clip",
 		{
 			class: styles.isSingleColumnLayout() ? "" : "fit-content",
 			style: styles.isSingleColumnLayout()
@@ -19,12 +19,12 @@ export const EventBannerSkeleton = pureComponent(() =>
 					}
 				: {
 						"grid-template-columns": "min-content 40% 1fr",
-						"max-width": px(size.two_column_layout_width),
+						"max-width": px(layout_size.two_column_layout_width),
 						width: "100%",
 					},
 		},
 		[
-			m(".flex.flex-column.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt.justify-center.skeleton-bg-1.gap-vpad-xs.fill-grid-column", [
+			m(".flex.flex-column.center.items-center.pr-32.pl-32.pb-16.pt-16.justify-center.skeleton-bg-1.gap-4.fill-grid-column", [
 				m(Skeleton, {
 					style: {
 						width: "25px",
@@ -47,7 +47,7 @@ export const EventBannerSkeleton = pureComponent(() =>
 					},
 				}),
 			]),
-			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.skeleton-bg-2.gap-vpad-xs", [
+			m(".flex.flex-column.pr-32.pl-32.pb-16.pt-16.skeleton-bg-2.gap-4", [
 				m(Skeleton, {
 					style: {
 						width: "75%",
@@ -68,7 +68,7 @@ export const EventBannerSkeleton = pureComponent(() =>
 				}),
 			]),
 			m(
-				".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.skeleton-bg-2.gap-vpad-xs.skeleton-border-1",
+				".flex.flex-column.pr-32.pl-32.pb-16.pt-16.skeleton-bg-2.gap-4.skeleton-border-1",
 				{
 					class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 				},

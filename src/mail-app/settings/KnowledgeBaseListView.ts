@@ -3,7 +3,7 @@ import type { KnowledgeBaseEntry, TemplateGroupRoot } from "../../common/api/ent
 import { KnowledgeBaseEntryTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../common/misc/LanguageViewModel"
 
-import { size } from "../../common/gui/size"
+import { component_size, size } from "../../common/gui/size"
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { isSameId, listIdPart } from "../../common/api/common/utils/EntityUtils"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
@@ -43,7 +43,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	private listModel: ListElementListModel<KnowledgeBaseEntry>
 	private listStateSubscription: Stream<unknown> | null = null
 	private readonly renderConfig: RenderConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {
@@ -114,7 +114,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".flex.flex-space-between.center-vertically.plr-l",
+					".flex.flex-space-between.center-vertically.plr-24",
 					m(BaseSearchBar, {
 						text: this.searchQuery,
 						onInput: (text) => this.updateQuery(text),
@@ -129,7 +129,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 					} satisfies BaseSearchBarAttrs),
 					this.userCanEdit()
 						? m(
-								".mr-negative-s",
+								".mr-negative-8",
 								m(IconButton, {
 									title: "addEntry_label",
 									icon: Icons.Add,
@@ -225,7 +225,7 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 					oncreate: (vnode) => (this.entryTitleDom = vnode.dom as HTMLElement),
 				}),
 				// to create a second row
-				m(".smaller.mt-xxs", NBSP),
+				m(".smaller.mt-4", NBSP),
 			]),
 		)
 	}
@@ -239,7 +239,7 @@ export class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDeta
 
 	renderView(): Children {
 		return m(
-			".plr-l",
+			".plr-24",
 			m(KnowledgeBaseEntryView, {
 				entry: this.entry,
 				onTemplateSelected: (templateId) => m.route.set(`/settings/templates/${listIdPart(templateId)}}`),

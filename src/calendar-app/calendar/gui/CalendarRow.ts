@@ -66,7 +66,7 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 				},
 			} satisfies SelectableRowContainerAttrs,
 			m(
-				".flex.items-center.gap-vpad.click.border-radius",
+				".flex.items-center.gap-16.click.border-radius",
 				{
 					class: (styles.isDesktopLayout() ? "" : "state-bg") + "limit-width full-width",
 					style: {

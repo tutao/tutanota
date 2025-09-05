@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { assertMainOrNode } from "../../../../common/api/common/Env"
 import { downcast } from "@tutao/tutanota-utils"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../../common/gui/base/List.js"
-import { size } from "../../../../common/gui/size.js"
+import { component_size, size } from "../../../../common/gui/size.js"
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import ColumnEmptyMessageBox from "../../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
@@ -78,7 +78,7 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 	}
 
 	private readonly calendarRenderConfig: RenderConfig<CalendarSearchResultListEntry, SearchResultListRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom: HTMLElement) => {
