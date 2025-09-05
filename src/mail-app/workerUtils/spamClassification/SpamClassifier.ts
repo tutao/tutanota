@@ -1,8 +1,8 @@
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
-import { TfIdfVectorizer } from "./TfIdfVectorizer"
 import { promiseMap } from "@tutao/tutanota-utils"
+import { HashingVectorizer } from "./HashingVectorizer"
 
 assertWorkerOrNode()
 
@@ -11,8 +11,7 @@ assertWorkerOrNode()
 // fixme should we do training on a separate thread?
 
 export type SpamClassificationRow = {
-	listId: string
-	elementId: string
+	rowid: string
 	subject: string
 	body: string
 	isSpam: boolean
@@ -26,20 +25,13 @@ export type SpamClassificationModel = {
 
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
-	private documents: Map<string, string> = new Map<string, string>()
-	private tfIdfVectorizer: TfIdfVectorizer | null = null
+	private hashingVectorizer: HashingVectorizer = new HashingVectorizer()
 
 	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
 
 	public async updateModel(cutoffTimestamp: number, testRatio = 0.2): Promise<boolean> {
 		try {
 			await this.loadModel()
-			await this.loadVectorizerFromOfflineDb()
-
-			if (!this.tfIdfVectorizer) {
-				console.error("Could not initialize tf-idf vectorizer from the mails in the offline database")
-				return false
-			}
 
 			if (!this.classifier) {
 				console.log("No existing model found. Training from scratch...")
@@ -60,8 +52,8 @@ export class SpamClassifier {
 			}
 
 			const tokenizedBatchDocuments = await promiseMap(batchDocuments, (d) => this.offlineStorage.tokenize(d))
-			const vectors = this.tfIdfVectorizer.transform(tokenizedBatchDocuments)
-			const xs = tf.tensor2d(vectors, [vectors.length, this.tfIdfVectorizer.vocabulary.length])
+			const vectors = this.hashingVectorizer.transform(tokenizedBatchDocuments)
+			const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
 			const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
 
 			const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
@@ -85,8 +77,8 @@ export class SpamClassifier {
 
 		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
 		const tokenizedDocuments = await promiseMap(documents, (d) => this.offlineStorage.tokenize(d))
-		const vectors = this.tfIdfVectorizer!.transform(tokenizedDocuments)
-		const xs = tf.tensor2d(vectors, [vectors.length, this.tfIdfVectorizer!.vocabulary.length])
+		const vectors = this.hashingVectorizer.transform(tokenizedDocuments)
+		const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
@@ -107,17 +99,14 @@ export class SpamClassifier {
 			await this.loadModel()
 		}
 
-		if (!this.tfIdfVectorizer) {
-			await this.loadVectorizerFromOfflineDb()
-		}
-
-		if (!this.classifier || !this.tfIdfVectorizer) {
-			console.error("Classifier or tokenizer not found.")
+		if (!this.classifier) {
+			console.error("Classifier not found.")
+			await this.updateModel(0)
 			return false
 		}
 
 		const tokenizedInput = await this.offlineStorage.tokenize(subjectAndBody)
-		const vector = this.tfIdfVectorizer.vectorize(tokenizedInput)
+		const vector = this.hashingVectorizer.vectorize(tokenizedInput)
 		const xs = tf.tensor2d([vector], [1, vector.length])
 		const pred = (await (this.classifier.predict(xs) as tf.Tensor).data())[0]
 		return pred > 0.5
@@ -265,17 +254,5 @@ export class SpamClassifier {
 			console.error("Loading the model from offline db failed")
 			this.classifier = null
 		}
-	}
-
-	// fixme does it make sense to serialize the vectorizer separately in offline db?
-	private async loadVectorizerFromOfflineDb(): Promise<void> {
-		const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
-		data.map((datum) => {
-			this.documents.set(`${datum.listId}/${datum.elementId}`, this.sanitizeModelInput(datum.subject, datum.body))
-		})
-		const docIds = Array.from(this.documents.keys())
-		const texts = Array.from(this.documents.values())
-		const tokenizedTexts = await promiseMap(texts, (text) => this.offlineStorage.tokenize(text))
-		this.tfIdfVectorizer = new TfIdfVectorizer(docIds, tokenizedTexts)
 	}
 }
