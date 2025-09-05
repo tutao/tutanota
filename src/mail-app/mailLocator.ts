@@ -150,6 +150,7 @@ import type { ContactSearchFacade } from "./workerUtils/index/ContactSearchFacad
 import { PublicEncryptionKeyProvider } from "../common/api/worker/facades/PublicEncryptionKeyProvider"
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
+import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
 import { UndoModel } from "./UndoModel"
 
 assertMainOrNode()
@@ -217,6 +218,7 @@ class MailLocator implements CommonLocator {
 	bulkMailLoader!: BulkMailLoader
 	mailExportFacade!: MailExportFacade
 	syncTracker!: SyncTracker
+	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private mailImporter: MailImporter | null = null
@@ -845,6 +847,7 @@ class MailLocator implements CommonLocator {
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 		this.Const = Const
+		this.whitelabelThemeGenerator = new WhitelabelThemeGenerator()
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/main/WebDesktopFacade")
 			const { WebMobileFacade } = await import("../common/native/main/WebMobileFacade.js")
@@ -1004,7 +1007,7 @@ class MailLocator implements CommonLocator {
 			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
 			: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 
-		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Mail)
+		this.themeController = new ThemeController(theme, selectedThemeFacade, lazySanitizer, AppType.Mail, this.whitelabelThemeGenerator)
 
 		// For native targets WebCommonNativeFacade notifies themeController because Android and Desktop do not seem to work reliably via media queries
 		if (selectedThemeFacade instanceof WebThemeFacade) {
