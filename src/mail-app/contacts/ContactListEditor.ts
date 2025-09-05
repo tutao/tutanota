@@ -5,7 +5,7 @@ import { ButtonType } from "../../common/gui/base/Button.js"
 import { Dialog } from "../../common/gui/base/Dialog.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { TextField } from "../../common/gui/base/TextField.js"
-import { px, size } from "../../common/gui/size.js"
+import { component_size, px, size } from "../../common/gui/size.js"
 import { IconButton } from "../../common/gui/base/IconButton.js"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { MailRecipientsTextField } from "../../common/gui/MailRecipientsTextField.js"
@@ -184,7 +184,7 @@ class ContactListEditor implements Component<ContactListEditorAttrs> {
 			".flex",
 			{
 				style: {
-					height: px(size.button_height),
+					height: px(component_size.button_height),
 					borderBottom: "1px transparent",
 					marginTop: px(size.vpad),
 				},

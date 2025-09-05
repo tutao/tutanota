@@ -4,7 +4,7 @@ import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
 import { AllIcons, Icon } from "../Icon.js"
 import { theme } from "../../theme.js"
 import { styles } from "../../styles.js"
-import { px, size } from "../../size.js"
+import { component_size, px, size } from "../../size.js"
 
 export interface BubbleButtonAttrs {
 	label: MaybeTranslation
@@ -14,7 +14,7 @@ export interface BubbleButtonAttrs {
 }
 
 export function bubbleButtonHeight(): number {
-	return usingMobileBubbleButton() ? size.button_height : size.button_height_bubble
+	return usingMobileBubbleButton() ? component_size.button_height : component_size.button_height_bubble
 }
 
 export function usingMobileBubbleButton() {

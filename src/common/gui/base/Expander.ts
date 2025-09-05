@@ -70,7 +70,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 					m(Icon, {
 						icon: BootIcons.Expand,
 						class: "flex-center items-center",
-						size: a.isBig ? IconSize.Medium : IconSize.Normal,
+						size: a.isBig ? IconSize.PX24 : undefined,
 						style: {
 							fill: a.color ? a.color : theme.content_button,
 							"margin-right": px(-4),

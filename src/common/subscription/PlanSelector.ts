@@ -5,7 +5,7 @@ import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants.js"
-import { px, size } from "../gui/size.js"
+import { component_size, px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -176,7 +176,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			".flex.flex-column.gap-vpad-l",
 			{
 				style: this.shouldFixButtonPos() && {
-					"padding-bottom": px(size.button_floating_size + size.vpad),
+					"padding-bottom": px(component_size.button_floating_size + size.vpad),
 				},
 				lang: lang.code,
 			},
@@ -262,7 +262,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 						{
 							style: this.shouldFixButtonPos() && {
 								position: "fixed",
-								height: px(size.button_floating_size + size.vpad_xsm * 2),
+								height: px(component_size.button_floating_size + size.vpad_xsm * 2),
 								bottom: 0,
 								left: 0,
 								right: 0,
@@ -323,7 +323,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			const contentHeight = parseInt(getComputedStyle(planSelectorEl).height)
 			const containerHeight = parseInt(getComputedStyle(containerEl).height)
 
-			this.shouldFixButtonPos(contentHeight + size.button_floating_size > containerHeight)
+			this.shouldFixButtonPos(contentHeight + component_size.button_floating_size > containerHeight)
 		}
 	}
 }

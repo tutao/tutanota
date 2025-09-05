@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { NotFoundError } from "../api/common/error/RestError.js"
-import { size } from "../gui/size.js"
+import { component_size, size } from "../gui/size.js"
 import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupMemberTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { contains, LazyLoaded, noOp } from "@tutao/tutanota-utils"
@@ -48,7 +48,7 @@ export class UserListView implements UpdatableSettingsViewer {
 			m.render(dom, row.render())
 			return row
 		},
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		swipe: null,
 		multiselectionAllowed: MultiselectMode.Disabled,
 	}

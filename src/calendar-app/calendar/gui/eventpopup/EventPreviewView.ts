@@ -135,7 +135,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		return m(Icon, {
 			icon,
 			class: "pr",
-			size: IconSize.Medium,
+			size: IconSize.PX24,
 			style: Object.assign(
 				{
 					fill: theme.content_button,

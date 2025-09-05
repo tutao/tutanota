@@ -1,6 +1,6 @@
 import { CalendarNavConfiguration, getIconForViewType } from "../gui/CalendarGuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { IconSegmentControl } from "../../../common/gui/base/IconSegmentControl.js"
 import { AllIcons } from "../../../common/gui/base/Icon.js"
@@ -81,7 +81,7 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 					left: 0,
 					right: 0,
 					// need explicit width to center the control
-					width: px(size.icon_segment_control_button_width * 4),
+					width: px(component_size.icon_segment_control_button_width * 4),
 				},
 			},
 			m(IconSegmentControl, {

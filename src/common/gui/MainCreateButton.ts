@@ -2,7 +2,7 @@ import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { ClickHandler } from "./base/GuiUtils.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "./theme.js"
-import { px, size } from "./size.js"
+import { component_size, px, size } from "./size.js"
 import { BaseButton, BaseButtonAttrs } from "./base/buttons/BaseButton.js"
 
 export interface MainCreateButtonAttrs {
@@ -24,7 +24,7 @@ export class MainCreateButton implements Component<MainCreateButtonAttrs> {
 			style: {
 				border: `2px solid ${theme.content_accent}`,
 				// matching toolbar
-				height: px(size.button_height + size.vpad_xs * 2),
+				height: px(component_size.button_height + size.vpad_xs * 2),
 				color: theme.content_accent,
 			},
 		} satisfies BaseButtonAttrs)

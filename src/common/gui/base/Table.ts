@@ -8,7 +8,7 @@ import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
-import { px, size } from "../size.js"
+import { component_size, px, size } from "../size.js"
 import { InfoIcon } from "./InfoIcon.js"
 
 assertMainOrNode()
@@ -161,7 +161,7 @@ export class Table implements Component<TableAttrs> {
 					"td",
 					{
 						style: {
-							width: px(size.button_height_compact),
+							width: px(component_size.button_height_compact),
 						},
 					},
 					lineAttrs.actionButtonAttrs ? m(IconButton, lineAttrs.actionButtonAttrs) : [],

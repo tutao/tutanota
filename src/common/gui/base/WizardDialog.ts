@@ -355,7 +355,7 @@ export class WizardPagingButton {
 			isPreviousPage
 				? m(Icon, {
 						icon: Icons.Checkmark,
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 						style: {
 							fill: theme.content_bg,
 						},

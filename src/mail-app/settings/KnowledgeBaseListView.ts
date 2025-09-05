@@ -3,7 +3,7 @@ import type { KnowledgeBaseEntry, TemplateGroupRoot } from "../../common/api/ent
 import { KnowledgeBaseEntryTypeRef } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { lang } from "../../common/misc/LanguageViewModel"
 
-import { size } from "../../common/gui/size"
+import { component_size, size } from "../../common/gui/size"
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { isSameId, listIdPart } from "../../common/api/common/utils/EntityUtils"
 import { hasCapabilityOnGroup } from "../../common/sharing/GroupUtils"
@@ -43,7 +43,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	private listModel: ListElementListModel<KnowledgeBaseEntry>
 	private listStateSubscription: Stream<unknown> | null = null
 	private readonly renderConfig: RenderConfig<KnowledgeBaseEntry, KnowledgeBaseRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {
