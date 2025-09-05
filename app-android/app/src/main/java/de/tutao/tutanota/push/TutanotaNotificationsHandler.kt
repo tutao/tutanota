@@ -5,9 +5,12 @@ import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
 import de.tutao.tutanota.R
 import de.tutao.tutanota.alarms.AlarmNotificationsManager
+import de.tutao.tutasdk.ApiCallException
+import de.tutao.tutasdk.HttpError
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
+import de.tutao.tutashared.SuspensionHandler
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
@@ -18,9 +21,11 @@ import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.push.toSdkCredentials
 import de.tutao.tutashared.toBase64
 import de.tutao.tutashared.toSdkIdTupleGenerated
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -33,6 +38,8 @@ import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 class TutanotaNotificationsHandler(
 	private val localNotificationsFacade: LocalNotificationsFacade,
@@ -42,16 +49,17 @@ class TutanotaNotificationsHandler(
 	private val defaultClient: OkHttpClient,
 	private val lifecycleScope: LifecycleCoroutineScope,
 	private val getSqlCipherFacade: () -> AndroidSqlCipherFacade,
-	private val appDir: File
+	private val appDir: File,
+	private val suspensionHandler: SuspensionHandler
 ) {
 
 	private val json = Json { ignoreUnknownKeys = true }
 
-	fun onNewNotificationAvailable(sseInfo: SseInfo?) {
+	suspend fun onNewNotificationAvailable(sseInfo: SseInfo?) = lifecycleScope.launch {
 		Log.d(TAG, "onNewNotificationAvailable")
 		if (sseInfo == null) {
 			Log.d(TAG, "No stored SSE info")
-			return
+			return@launch
 		}
 		val missedNotificationSerialized: String? = downloadMissedNotification(sseInfo)
 		if (missedNotificationSerialized != null) {
@@ -76,7 +84,7 @@ class TutanotaNotificationsHandler(
 		return true
 	}
 
-	private fun downloadMissedNotification(sseInfo: SseInfo): String? {
+	private suspend fun downloadMissedNotification(sseInfo: SseInfo): String? {
 		var triesLeft = 3
 		// We try to download limited number of times. If it fails then  we are probably offline
 		var userId: String?
@@ -104,21 +112,17 @@ class TutanotaNotificationsHandler(
 					TAG, "ServiceUnavailable when downloading missed notification, waiting " +
 							e.suspensionSeconds + "s"
 				)
-				try {
-					Thread.sleep(TimeUnit.SECONDS.toMillis(e.suspensionSeconds.toLong()))
-				} catch (ignored: InterruptedException) {
-				}
+				suspensionHandler.activateSuspensionIfInactive(e.suspensionSeconds, "missed notification")
 				// tries are not decremented and we don't return, we just wait and try again.
+				suspensionHandler.waitForSuspension()
 			} catch (e: TooManyRequestsException) {
 				Log.d(
 					TAG, "TooManyRequestsException when downloading missed notification, waiting " +
 							e.retryAfterSeconds + "s"
 				)
-				try {
-					Thread.sleep(TimeUnit.SECONDS.toMillis(e.retryAfterSeconds.toLong()))
-				} catch (ignored: InterruptedException) {
-				}
+				suspensionHandler.activateSuspensionIfInactive(e.retryAfterSeconds, "missed notification")
 				// tries are not decremented and we don't return, we just wait and try again.
+				suspensionHandler.waitForSuspension()
 			} catch (e: ServerResponseException) {
 				triesLeft--
 				Log.w(TAG, e)
@@ -140,7 +144,7 @@ class TutanotaNotificationsHandler(
 	}
 
 	@Throws(IllegalArgumentException::class, IOException::class, HttpException::class)
-	private fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): String? {
+	private suspend fun executeMissedNotificationDownload(sseInfo: SseInfo, userId: String?): String? {
 		val url = makeAlarmNotificationUrl(sseInfo)
 		val request = Request.Builder()
 			.url(url)
@@ -162,7 +166,7 @@ class TutanotaNotificationsHandler(
 			.readTimeout(20, TimeUnit.SECONDS)
 			.build()
 			.newCall(request)
-			.execute()
+			.await()
 
 		val responseCode = response.code
 		Log.d(TAG, "MissedNotification response code $responseCode")
@@ -221,19 +225,32 @@ class TutanotaNotificationsHandler(
 		return URL(sseInfo.sseOrigin + "/rest/sys/missednotification/" + customId)
 	}
 
-	private fun handleNotificationInfos(sseInfo: SseInfo, notificationInfos: List<NotificationInfo>) {
-		lifecycleScope.launch(Dispatchers.IO) {
-			val metadatas = notificationInfos.map {
-				try {
-					Pair(it, downloadEmailMetadata(sseInfo, it))
-				} catch (e: Throwable) {
-					Log.w(TAG, e)
-					Pair(it, null)
+	private suspend fun handleNotificationInfos(sseInfo: SseInfo, notificationInfos: List<NotificationInfo>) {
+		val metadatas = notificationInfos.map {
+			try {
+				val metaData = try {
+					downloadEmailMetadata(sseInfo, it)
+				} catch (e: ApiCallException.ServerResponseException) {
+					val source = e.source
+					if (source is HttpError.TooManyRequestsError && source.suspensionTimeSec != null) {
+						suspensionHandler.activateSuspensionIfInactive(
+							source.suspensionTimeSec!!.toInt(),
+							"mail"
+						)
+						suspensionHandler.deferRequest { downloadEmailMetadata(sseInfo, it) }
+					} else {
+						throw e
+					}
 				}
 
+				Pair(it, metaData)
+			} catch (e: Throwable) {
+				Log.w(TAG, e)
+				Pair(it, null)
 			}
-			localNotificationsFacade.sendEmailNotifications(metadatas)
+
 		}
+		localNotificationsFacade.sendEmailNotifications(metadatas)
 	}
 
 	@Throws(de.tutao.tutasdk.ApiCallException::class, Exception::class, IllegalArgumentException::class)
@@ -344,5 +361,21 @@ class TutanotaNotificationsHandler(
 	companion object {
 		private const val TAG = "TutanotaNotifications"
 		private val MISSED_NOTIFICATION_TTL = TimeUnit.DAYS.toMillis(30)
+	}
+}
+
+internal suspend inline fun Call.await(): Response {
+	return suspendCancellableCoroutine { continuation ->
+		val callback: Callback = object : Callback {
+			override fun onResponse(call: Call, response: Response) {
+				continuation.resume(response)
+			}
+
+			override fun onFailure(call: Call, e: IOException) {
+				continuation.resumeWithException(e)
+			}
+		}
+		this.enqueue(callback)
+		continuation.invokeOnCancellation { this.cancel() }
 	}
 }
