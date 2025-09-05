@@ -6,6 +6,8 @@ assertMainOrNodeBoot()
 
 export const WHITELABEL_CUSTOMIZATION_VERSION = 1
 
+/** ThemeCustomizations that might be old or new. */
+export type UnknownThemeCustomizations = Record<string, unknown>
 export type ThemeCustomizations = Partial<Theme> & {
 	version: number | null
 	base: BaseThemeId | null
@@ -16,7 +18,7 @@ export type ThemeKey = keyof Theme
 export type CustomizationKey = keyof ThemeCustomizations
 
 export type WhitelabelCustomizations = {
-	theme: ThemeCustomizations | null
+	theme: UnknownThemeCustomizations | null
 	germanLanguageCode: string
 	registrationDomains: string[] | null
 	imprintUrl: string | null
@@ -32,6 +34,6 @@ export function getWhitelabelCustomizations(window: Window): WhitelabelCustomiza
 	return window.whitelabelCustomizations
 }
 
-export function getThemeCustomizations(whitelabelConfig: WhitelabelConfig): ThemeCustomizations {
+export function getThemeCustomizations(whitelabelConfig: WhitelabelConfig): UnknownThemeCustomizations {
 	return JSON.parse(whitelabelConfig.jsonTheme, (k, v) => (k === "__proto__" ? undefined : v))
 }
