@@ -2,10 +2,30 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 export const size = {
+	/**
+	 * hogehoge
+	 */
+	base: 4,
+	core_8: 8,
+	core_16: 16,
+	core_24: 24,
+	core_32: 32,
+	core_40: 40,
+	core_48: 48,
+	core_56: 56,
+	core_64: 64,
+	core_72: 72,
+	core_80: 80,
+	core_96: 96,
+	core_112: 112,
+	core_128: 128,
+	get spacing_8() {
+		return this.core_8
+	},
 	new_design: {
 		vpad_large: 20,
 	},
-
+	// FIXME: update to "icon_<px>" tokens
 	icon_size_xxl: 64,
 	icon_size_xl: 32,
 	icon_size_large: 24,
@@ -13,6 +33,7 @@ export const size = {
 	icon_size_medium: 16,
 	icon_size_small: 12,
 	icon_message_box: 80,
+	// FIXME: update to "spacing_<px>" tokens
 	hpad_small: 5,
 	hpad: 10,
 	hpad_medium: 20,
@@ -32,6 +53,7 @@ export const size = {
 	vpad_xl: 48,
 	vpad_xxl: 64,
 	text_bubble_tpad: 20,
+	// FIXME: update to "radius_<px>" tokens
 	border_radius_small: 3,
 	border_radius: 6,
 	border_radius_medium: 8,
@@ -41,6 +63,7 @@ export const size = {
 	font_size_base: 16,
 	font_size_smaller: 14,
 	font_size_small: 12,
+	// FIXME: Create component_size object
 	button_height: 44,
 	button_height_accent: 40,
 	button_height_bubble: 30,
@@ -81,6 +104,7 @@ export const size = {
 	calendar_event_border: 1,
 	calendar_day_event_padding: 2,
 	drawer_menu_width: 44,
+	// FIXME: Create a layout_size object
 	first_col_min_width: 240,
 	first_col_max_width: 300,
 	second_col_min_width: 300,
@@ -88,10 +112,6 @@ export const size = {
 	third_col_min_width: 600,
 	third_col_max_width: 2400,
 	only_show_in_single_column_min_max_width: 10000, // viewport >= every mobile device viewport
-
-	// Using the breakpoint set by bootstrap to cover small tablets as well
-	// https://getbootstrap.com/docs/5.0/layout/breakpoints/
-	tablet_min_size: 576,
 
 	get desktop_layout_width(): number {
 		return this.first_col_min_width + this.second_col_min_width + this.third_col_min_width
