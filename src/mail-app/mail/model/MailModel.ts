@@ -351,7 +351,7 @@ export class MailModel {
 		await this.mailFacade.simpleMoveMails(mails, targetMailFolderKind)
 	}
 
-	folderExcludedFromMove(moveMode: MoveMode): SystemFolderType | null {
+	getFolderExcludedFromMove(moveMode: MoveMode): SystemFolderType | null {
 		return moveMode === MoveMode.Conversation ? MailSetKind.SENT : null
 	}
 
@@ -364,7 +364,7 @@ export class MailModel {
 			return
 		}
 
-		const excludedFolderType = this.folderExcludedFromMove(moveMode)
+		const excludedFolderType = this.getFolderExcludedFromMove(moveMode)
 		const excludeFolder = excludedFolderType != null ? assertNotNull(folderSystem.getSystemFolderByType(excludedFolderType))._id : null
 		await this.mailFacade.moveMails(mails, targetFolder._id, excludeFolder)
 	}

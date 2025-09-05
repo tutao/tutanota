@@ -243,9 +243,24 @@ async function runPostSimpleMoveActions(
 
 async function runPostMoveActions({ mailModel, targetFolder, isReportable = true, mailboxModel, moveMode, undoModel }: MoveMailsParams, mails: Mail[]) {
 	const mailsByFolder = mailsAndFolderByFolderId(mails)
-	const excludedFolder = mailModel.folderExcludedFromMove(moveMode)
+	const excludedFolder = mailModel.getFolderExcludedFromMove(moveMode)
 
-	const reportableMails: Mail[] = isReportable ? getReportableMails(mailModel, targetFolder, mailsByFolder, excludedFolder) : []
+	const reportableMails: Mail[] = []
+	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
+	// only report mails when they're moved to Spam or one of its subfolders
+	if (system != null && isOfTypeOrSubfolderOf(system, targetFolder, MailSetKind.SPAM)) {
+		for (const { folder, mails: folderMails } of mailsByFolder.values()) {
+			if (excludedFolder != null && folder.folderType === excludedFolder) {
+				continue
+			}
+
+			// only report mails that aren't already in Spam or its subfolders
+			if (!isOfTypeOrSubfolderOf(system, folder, MailSetKind.SPAM)) {
+				reportableMails.push(...folderMails)
+			}
+		}
+	}
+
 	const shouldReportMails = isEmpty(reportableMails) && (await getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel))
 
 	const undoMoveText = shouldReportMails
@@ -270,31 +285,31 @@ async function runPostMoveActions({ mailModel, targetFolder, isReportable = true
 	}
 }
 
-function getReportableMails(
-	mailModel: MailModel,
-	targetFolder: MailFolder,
-	mailsByFolder: Map<string, { folder: MailFolder; mails: Mail[] }>,
-	excludedFolder: SystemFolderType | null,
-): Mail[] {
-	const reportableMails: Mail[] = []
-	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
-
-	// only report mails when they're moved to Spam or one of its subfolders
-	if (system != null && isOfTypeOrSubfolderOf(system, targetFolder, MailSetKind.SPAM)) {
-		for (const { folder, mails: folderMails } of mailsByFolder.values()) {
-			if (excludedFolder != null && folder.folderType === excludedFolder) {
-				continue
-			}
-
-			// only report mails that aren't already in Spam or its subfolders
-			if (!isOfTypeOrSubfolderOf(system, folder, MailSetKind.SPAM)) {
-				reportableMails.push(...folderMails)
-			}
-		}
-	}
-
-	return reportableMails
-}
+// function getReportableMails(
+// 	mailModel: MailModel,
+// 	targetFolder: MailFolder,
+// 	mailsByFolder: Map<string, { folder: MailFolder; mails: Mail[] }>,
+// 	excludedFolder: SystemFolderType | null,
+// ): Mail[] {
+// 	const reportableMails: Mail[] = []
+// 	const system = mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
+//
+// 	// only report mails when they're moved to Spam or one of its subfolders
+// 	if (system != null && isOfTypeOrSubfolderOf(system, targetFolder, MailSetKind.SPAM)) {
+// 		for (const { folder, mails: folderMails } of mailsByFolder.values()) {
+// 			if (excludedFolder != null && folder.folderType === excludedFolder) {
+// 				continue
+// 			}
+//
+// 			// only report mails that aren't already in Spam or its subfolders
+// 			if (!isOfTypeOrSubfolderOf(system, folder, MailSetKind.SPAM)) {
+// 				reportableMails.push(...folderMails)
+// 			}
+// 		}
+// 	}
+//
+// 	return reportableMails
+// }
 
 export async function moveMailsToSystemFolder({
 	mailboxModel,
