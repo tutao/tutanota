@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { createResizeObserver, debounce, memoized, numberRange } from "@tutao/tutanota-utils"
-import { px, size } from "../size.js"
+import { component_size, px, size } from "../size.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
 import { client } from "../../misc/ClientDetector.js"
@@ -396,7 +396,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		const rowHeight = attrs.renderConfig.itemHeight
 		// plus loading indicator
 		// should depend on whether we are completely loaded maybe?
-		const statusHeight = attrs.state.loadingStatus === ListLoadingState.Done ? 0 : size.list_row_height
+		const statusHeight = attrs.state.loadingStatus === ListLoadingState.Done ? 0 : component_size.list_row_height
 		this.innerDom!.style.height = px(attrs.state.items.length * rowHeight + statusHeight)
 		if (attrs.state.activeIndex != null && attrs.state.activeIndex !== this.activeIndex) {
 			const index = attrs.state.activeIndex
@@ -474,7 +474,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			".flex-center.items-center",
 			{
 				style: {
-					height: px(size.list_row_height),
+					height: px(component_size.list_row_height),
 					width: "100%",
 					position: "absolute",
 					gap: px(size.hpad_small),
@@ -495,7 +495,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			".plr-l.flex-center.items-center",
 			{
 				style: {
-					height: px(size.list_row_height),
+					height: px(component_size.list_row_height),
 				},
 			},
 			m(Button, {
@@ -525,7 +525,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		return m("li.list-row", {
 			style: {
 				bottom: 0,
-				height: px(size.list_row_height),
+				height: px(component_size.list_row_height),
 				display: this.shouldDisplayStatusRow() ? "none" : null,
 			},
 			oncreate: (vnode) => {

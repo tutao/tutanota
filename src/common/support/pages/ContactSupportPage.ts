@@ -180,7 +180,6 @@ export class ContactSupportPage implements Component<Props> {
 											paddingInline: px((size.icon_24 - size.icon_16) / 2),
 										},
 										title: lang.get("remove_action"),
-										size: IconSize.Normal,
 									}),
 								),
 							),

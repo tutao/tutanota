@@ -14,7 +14,7 @@ import {
 	setVisibility,
 	shouldAlwaysShowMultiselectCheckbox,
 } from "../../../common/gui/SelectableRowContainer.js"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
@@ -295,7 +295,7 @@ export class MailRow implements VirtualRow<Mail> {
 					{
 						"aria-hidden": "true",
 						style: {
-							marginLeft: px(size.checkbox_size + size.vpad_xs),
+							marginLeft: px(component_size.checkbox_size + size.vpad_xs),
 						},
 					},
 					[

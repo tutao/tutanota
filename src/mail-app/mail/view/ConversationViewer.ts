@@ -7,7 +7,7 @@ import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { elementIdPart, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
 import { styles } from "../../../common/gui/styles.js"
@@ -146,7 +146,9 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		// Having more room at the bottom allows the last email so it is (almost) always in the same place on the screen.
 		// We reduce space by 100 for the header of the viewer and a bit more
 		const height =
-			document.body.offsetHeight - (styles.isUsingBottomNavigation() ? size.navbar_height_mobile + size.bottom_nav_bar : size.navbar_height) - 300
+			document.body.offsetHeight -
+			(styles.isUsingBottomNavigation() ? component_size.navbar_height_mobile + component_size.bottom_nav_bar : component_size.navbar_height) -
+			300
 		return m(".mt-l.noprint", {
 			style: {
 				height: px(height),

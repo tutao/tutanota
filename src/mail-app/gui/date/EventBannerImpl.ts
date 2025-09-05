@@ -165,7 +165,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 							container: "div",
 							class: "mr-xsm",
 							style: { fill: theme.on_surface },
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 						}),
 						m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
 					]),
@@ -196,7 +196,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 											container: "div",
 											class: "mr-xsm mt-xxs",
 											style: { fill: theme.on_surface },
-											size: IconSize.Medium,
+											size: IconSize.PX24,
 										}),
 										m("span.b.h5", lang.get("timeOverview_title")),
 									]),
@@ -209,7 +209,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 													style: {
 														fill: hasConflict ? theme.warning : theme.success,
 													}, // TODO [colors] Use new material like colors tokens
-													size: IconSize.Medium,
+													size: IconSize.PX24,
 												}),
 												this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
 											])

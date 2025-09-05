@@ -1,5 +1,5 @@
 import { styles } from "./styles"
-import { px, size } from "./size"
+import { px, size, component_size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
@@ -525,7 +525,7 @@ styles.registerStyle("main", () => {
 			"padding-bottom": px(size.vpad_ml),
 		},
 		".pb-floating": {
-			"padding-bottom": px(size.button_floating_size + size.hpad_large),
+			"padding-bottom": px(component_size.button_floating_size + size.hpad_large),
 		},
 		".pb-hpad-button": {
 			"padding-bottom": px(size.hpad_button),
@@ -709,7 +709,7 @@ styles.registerStyle("main", () => {
 			width: "auto",
 		},
 		".min-width-l": {
-			"min-width": px(size.icon_segment_control_button_width),
+			"min-width": px(component_size.icon_segment_control_button_width),
 		},
 		".min-width-0": {
 			"min-width": 0,
@@ -1040,22 +1040,22 @@ styles.registerStyle("main", () => {
 			color: theme.primary,
 		},
 		".button-height": {
-			height: px(size.button_height),
+			height: px(component_size.button_height),
 		},
 		".button-min-height": {
-			"min-height": px(size.button_height),
+			"min-height": px(component_size.button_height),
 		},
 		".button-min-width": {
-			"min-width": px(size.button_height),
+			"min-width": px(component_size.button_height),
 		},
 		".button-width-fixed": {
-			width: px(size.button_height),
+			width: px(component_size.button_height),
 		},
 		".large-button-height": {
-			height: px(size.button_floating_size),
+			height: px(component_size.button_floating_size),
 		},
 		".large-button-width": {
-			width: px(size.button_floating_size),
+			width: px(component_size.button_floating_size),
 		},
 		".notification-min-width": {
 			"min-width": px(400),
@@ -1308,46 +1308,47 @@ styles.registerStyle("main", () => {
 			transition: "flex 200ms linear",
 		},
 		".border-radius": {
-			"border-radius": px(size.border_radius),
+			"border-radius": px(size.radius_8),
 		},
 		".border-radius-top": {
-			"border-top-left-radius": px(size.border_radius),
-			"border-top-right-radius": px(size.border_radius),
+			"border-top-left-radius": px(size.radius_8),
+			"border-top-right-radius": px(size.radius_8),
 		},
 		".border-radius-top-big": {
-			"border-top-left-radius": px(size.border_radius_larger),
-			"border-top-right-radius": px(size.border_radius_larger),
+			"border-top-left-radius": px(size.radius_12),
+			"border-top-right-radius": px(size.radius_12),
 		},
 		".border-radius-top-left-big": {
-			"border-top-left-radius": px(size.border_radius_larger),
+			"border-top-left-radius": px(size.radius_12),
 		},
 		".border-radius-top-right-big": {
-			"border-top-right-radius": px(size.border_radius_larger),
+			"border-top-right-radius": px(size.radius_12),
 		},
 		".border-radius-bottom": {
-			"border-bottom-left-radius": px(size.border_radius),
-			"border-bottom-right-radius": px(size.border_radius),
+			"border-bottom-left-radius": px(size.radius_8),
+			"border-bottom-right-radius": px(size.radius_8),
 		},
 		".border-radius-small": {
-			"border-radius": px(size.border_radius_small),
+			"border-radius": px(size.radius_4),
 		},
 		".border-radius-big": {
-			"border-radius": px(size.border_radius_larger),
+			"border-radius": px(size.radius_12),
 		},
+		// FIXME: combine to border-radius or use larger radius token
 		".border-radius-m": {
-			"border-radius": px(size.border_radius_medium),
+			"border-radius": px(size.radius_8),
 		},
 		".border-radius-top-left-m": {
-			"border-top-left-radius": px(size.border_radius_medium),
+			"border-top-left-radius": px(size.radius_8),
 		},
 		".border-radius-bottom-left-m": {
-			"border-bottom-left-radius": px(size.border_radius_medium),
+			"border-bottom-left-radius": px(size.radius_8),
 		},
 		".border-radius-bottom-right-m": {
-			"border-bottom-right-radius": px(size.border_radius_medium),
+			"border-bottom-right-radius": px(size.radius_8),
 		},
 		".border-radius-top-right-m": {
-			"border-top-right-radius": px(size.border_radius_medium),
+			"border-top-right-radius": px(size.radius_8),
 		},
 		".settings-item": {
 			border: 0,
@@ -1391,7 +1392,7 @@ styles.registerStyle("main", () => {
 			width: px(size.icon_16),
 		},
 		// a bit cursed solution to make the visible icon not too huge relative to the tiny "close" icon that we have but also to keep the size consistent
-		// with icon-large so that the text field doesn't jump around
+		// with icon-24 so that the text field doesn't jump around
 		".icon-progress-search": {
 			height: `${px(20)} !important`,
 			width: `${px(20)} !important`,
@@ -1430,43 +1431,43 @@ styles.registerStyle("main", () => {
 			height: px(size.icon_12),
 			width: px(size.icon_12),
 		},
-		".icon-large": {
+		".icon-24": {
 			height: px(size.icon_24),
 			width: px(size.icon_24),
 		},
-		".icon-medium-large": {
+		".icon-20": {
 			height: px(size.icon_20),
 			width: px(size.icon_20),
 		},
-		".icon-medium-large > svg": {
+		".icon-20 > svg": {
 			height: px(size.icon_20),
 			width: px(size.icon_20),
 		},
-		".icon-large > svg": {
+		".icon-24 > svg": {
 			height: px(size.icon_24),
 			width: px(size.icon_24),
 		},
-		".icon-xl": {
+		".icon-32": {
 			height: px(size.icon_32),
 			width: px(size.icon_32),
 		},
-		".icon-xl > svg": {
+		".icon-32 > svg": {
 			height: px(size.icon_32),
 			width: px(size.icon_32),
 		},
-		".icon-xxl": {
+		".icon-64": {
 			height: px(size.icon_64),
 			width: px(size.icon_64),
 		},
-		".icon-xxl > svg": {
+		".icon-64 > svg": {
 			height: px(size.icon_64),
 			width: px(size.icon_64),
 		},
-		".icon-message-box": {
+		".icon-80": {
 			height: px(size.icon_80),
 			width: px(size.icon_80),
 		},
-		".icon-message-box > svg": {
+		".icon-80 > svg": {
 			height: px(size.icon_80),
 			width: px(size.icon_80),
 		},
@@ -1480,20 +1481,20 @@ styles.registerStyle("main", () => {
 		},
 		".icon-button": {
 			"border-radius": "25%",
-			width: px(size.button_height),
-			height: px(size.button_height),
-			"max-width": px(size.button_height),
-			"max-height": px(size.button_height),
+			width: px(component_size.button_height),
+			height: px(component_size.button_height),
+			"max-width": px(component_size.button_height),
+			"max-height": px(component_size.button_height),
 		},
 		".center-h": {
 			margin: "0 auto",
 		},
 		".toggle-button": {
 			"border-radius": "25%",
-			width: px(size.button_height),
-			height: px(size.button_height),
-			"max-width": px(size.button_height),
-			"max-height": px(size.button_height),
+			width: px(component_size.button_height),
+			height: px(component_size.button_height),
+			"max-width": px(component_size.button_height),
+			"max-height": px(component_size.button_height),
 		},
 		".wizard-next-button": {
 			"margin-top": "auto",
@@ -1536,14 +1537,14 @@ styles.registerStyle("main", () => {
 			transition: `border-top-color ${DefaultAnimationTime}ms ease-out`,
 		},
 		".compact": {
-			width: `${size.button_height_compact}px !important`,
-			height: `${size.button_height_compact}px !important`,
+			width: `${component_size.button_height_compact}px !important`,
+			height: `${component_size.button_height_compact}px !important`,
 		},
 		".large": {
-			width: `${size.button_floating_size}px`,
-			height: `${size.button_floating_size}px`,
-			"max-width": `${size.button_floating_size}px`,
-			"max-height": `${size.button_floating_size}px`,
+			width: `${component_size.button_floating_size}px`,
+			height: `${component_size.button_floating_size}px`,
+			"max-width": `${component_size.button_floating_size}px`,
+			"max-height": `${component_size.button_floating_size}px`,
 		},
 		// state-bg is a simulation of a "state layer" from Material but without an additional layer
 		// We don't exactly follow transparency for it because we combine transparency with light grey color which works well on both light and dark themes
@@ -1653,7 +1654,7 @@ styles.registerStyle("main", () => {
 		},
 		// header
 		".header-nav": {
-			height: px(size.navbar_height),
+			height: px(component_size.navbar_height),
 			"background-color": theme.surface_container,
 			"z-index": 2,
 		},
@@ -1664,7 +1665,7 @@ styles.registerStyle("main", () => {
             */
 			"box-sizing": "border-box",
 			"border-top": `1px solid ${theme.outline_variant}`,
-			height: `calc(${size.bottom_nav_bar}px + env(safe-area-inset-bottom))`,
+			height: `calc(${component_size.bottom_nav_bar}px + env(safe-area-inset-bottom))`,
 			background: theme.surface,
 			"padding-bottom": "env(safe-area-inset-bottom)",
 			"z-index": 2,
@@ -1675,14 +1676,14 @@ styles.registerStyle("main", () => {
 			"padding-top": px(size.vpad),
 		},
 		".logo-circle": {
-			width: px(size.button_icon_bg_size),
-			height: px(size.button_icon_bg_size),
+			width: px(component_size.button_icon_bg_size),
+			height: px(component_size.button_icon_bg_size),
 			"border-radius": "50%",
 			overflow: "hidden",
 		},
 		".dot": {
-			width: px(size.dot_size),
-			height: px(size.dot_size),
+			width: px(component_size.dot_size),
+			height: px(component_size.dot_size),
 			"border-radius": "50%",
 			overflow: "hidden",
 			"margin-top": px(6),
@@ -1691,14 +1692,14 @@ styles.registerStyle("main", () => {
 			position: "relative",
 		},
 		".logo-text": {
-			height: px(size.header_logo_height),
+			height: px(component_size.header_logo_height),
 			width: px(128),
 		},
 		".logo-height": {
-			height: px(size.header_logo_height),
+			height: px(component_size.header_logo_height),
 		},
 		".logo-height > svg, .logo-height > img": {
-			height: px(size.header_logo_height),
+			height: px(component_size.header_logo_height),
 		},
 		".custom-logo": {
 			width: px(200),
@@ -1731,10 +1732,10 @@ styles.registerStyle("main", () => {
 		},
 		".dialog-header": {
 			"border-bottom": `1px solid ${theme.outline_variant}`,
-			height: px(size.button_height + 1),
+			height: px(component_size.button_height + 1),
 		},
 		".dialog-header-line-height": {
-			"line-height": px(size.button_height),
+			"line-height": px(component_size.button_height),
 		},
 		".dialog-progress": {
 			"text-align": "center",
@@ -1745,7 +1746,7 @@ styles.registerStyle("main", () => {
 			"max-width": "100%",
 			height: "auto",
 		},
-		".dialog-container": position_absolute(size.button_height + 1, 0, 0, 0),
+		".dialog-container": position_absolute(component_size.button_height + 1, 0, 0, 0),
 		".dialog-contentButtonsBottom": {
 			padding: `0 ${px(size.hpad_large)} ${px(size.vpad)} ${px(size.hpad_large)}`,
 		},
@@ -1789,7 +1790,7 @@ styles.registerStyle("main", () => {
 			position: "relative",
 		},
 		".template-list-row": {
-			"border-left": px(size.border_selection) + " solid transparent",
+			"border-left": px(size.radius_4) + " solid transparent",
 			"align-items": "center",
 			position: "relative",
 		},
@@ -1813,8 +1814,8 @@ styles.registerStyle("main", () => {
 			color: `${theme.primary}`,
 		},
 		".expander": {
-			height: px(size.button_height),
-			"min-width": px(size.button_height),
+			height: px(component_size.button_height),
+			"min-width": px(component_size.button_height),
 		},
 		// mail view editor
 		".mail-viewer-firstLine": {
@@ -1856,7 +1857,7 @@ styles.registerStyle("main", () => {
 			position: "absolute",
 			left: 0,
 			right: 0,
-			height: px(size.list_row_height),
+			height: px(component_size.list_row_height),
 		},
 		".odd-row": {
 			"background-color": theme.surface,
@@ -1948,7 +1949,7 @@ styles.registerStyle("main", () => {
 			"border-color": theme.outline,
 			"padding-bottom": "1px",
 			"z-index": 1,
-			"border-radius": `${size.border_radius}px ${size.border_radius}px 0 0`,
+			"border-radius": `${size.radius_8}px ${size.radius_8}px 0 0`,
 			color: theme.on_surface,
 		},
 		".dropdown-bar:focus": {
@@ -1958,7 +1959,7 @@ styles.registerStyle("main", () => {
 			"padding-bottom": "0px",
 		},
 		".dropdown-button": {
-			height: px(size.button_height),
+			height: px(component_size.button_height),
 			"padding-left": px(size.vpad),
 			"padding-right": px(size.vpad),
 		},
@@ -1990,33 +1991,33 @@ styles.registerStyle("main", () => {
 				}
 			: {},
 		".button-icon": {
-			width: px(size.button_icon_bg_size),
-			height: px(size.button_icon_bg_size),
-			"border-radius": px(size.button_icon_bg_size),
-			"min-width": px(size.button_icon_bg_size),
+			width: px(component_size.button_icon_bg_size),
+			height: px(component_size.button_icon_bg_size),
+			"border-radius": px(component_size.button_icon_bg_size),
+			"min-width": px(component_size.button_icon_bg_size),
 		},
 		".login": {
 			width: "100%",
-			"border-radius": px(size.border_radius),
+			"border-radius": px(size.radius_8),
 		},
 		".small-login-button": {
 			width: "260px",
 		},
 		".button-content": {
-			height: px(size.button_height),
-			"min-width": px(size.button_height),
+			height: px(component_size.button_height),
+			"min-width": px(component_size.button_height),
 		},
 		".text-bubble": {
 			"padding-top": px(size.text_bubble_tpad),
 		},
 		".bubble": {
-			"border-radius": px(size.border_radius),
+			"border-radius": px(size.radius_8),
 			"background-color": theme.surface_container_high,
 			color: theme.on_surface,
 		},
 		".keyword-bubble": {
 			"max-width": "300px",
-			"border-radius": px(size.border_radius),
+			"border-radius": px(size.radius_8),
 			"margin-bottom": px(size.vpad_small / 2),
 			"margin-right": px(size.vpad_small / 2),
 			"background-color": theme.surface_container_high,
@@ -2025,7 +2026,7 @@ styles.registerStyle("main", () => {
 		},
 		".keyword-bubble-no-padding": {
 			"max-width": "300px",
-			"border-radius": px(size.border_radius),
+			"border-radius": px(size.radius_8),
 			margin: px(size.vpad_small / 2),
 			"background-color": theme.surface_container_high,
 			color: theme.on_surface,
@@ -2040,8 +2041,8 @@ styles.registerStyle("main", () => {
 		},
 		".segmentControl": {
 			// same border as for bubble buttons
-			"border-top": `${px((size.button_height - size.button_height_bubble) / 2)} solid transparent`,
-			"border-bottom": `${px((size.button_height - size.button_height_bubble) / 2)} solid transparent`,
+			"border-top": `${px((component_size.button_height - component_size.button_height_bubble) / 2)} solid transparent`,
+			"border-bottom": `${px((component_size.button_height - component_size.button_height_bubble) / 2)} solid transparent`,
 		},
 		".segmentControl-border": {
 			border: `1px solid ${theme.outline}`,
@@ -2058,25 +2059,25 @@ styles.registerStyle("main", () => {
 			background: "transparent",
 		},
 		".segmentControlItem:last-child": {
-			"border-bottom-right-radius": px(size.border_radius_small),
-			"border-top-right-radius": px(size.border_radius_small),
+			"border-bottom-right-radius": px(size.radius_4),
+			"border-top-right-radius": px(size.radius_4),
 		},
 		".segmentControlItem:first-child": {
-			"border-bottom-left-radius": px(size.border_radius_small),
-			"border-top-left-radius": px(size.border_radius_small),
+			"border-bottom-left-radius": px(size.radius_4),
+			"border-top-left-radius": px(size.radius_4),
 		},
 
 		// IconSegmentControl
 		".icon-segment-control": {
-			"border-radius": px(size.border_radius),
+			"border-radius": px(size.radius_8),
 		},
 		".icon-segment-control-item": {
 			// Make thin border between items via border-right
 			"border-top": `1px solid ${theme.outline_variant}`,
 			"border-bottom": `1px solid ${theme.outline_variant}`,
 			"border-right": `0.5px solid ${theme.outline_variant}`,
-			width: px(size.icon_segment_control_button_width),
-			height: px(size.icon_segment_control_button_height),
+			width: px(component_size.icon_segment_control_button_width),
+			height: px(component_size.icon_segment_control_button_height),
 			cursor: "pointer",
 			background: "transparent",
 		},
@@ -2086,13 +2087,13 @@ styles.registerStyle("main", () => {
 			"transition-duration": ".3s",
 		},
 		".icon-segment-control-item:first-child": {
-			"border-bottom-left-radius": px(size.border_radius),
-			"border-top-left-radius": px(size.border_radius),
+			"border-bottom-left-radius": px(size.radius_8),
+			"border-top-left-radius": px(size.radius_8),
 			"border-left": `1px solid ${theme.outline_variant}`,
 		},
 		".icon-segment-control-item:last-child": {
-			"border-bottom-right-radius": px(size.border_radius),
-			"border-top-right-radius": px(size.border_radius),
+			"border-bottom-right-radius": px(size.radius_8),
+			"border-top-right-radius": px(size.radius_8),
 			"border-right": `1px solid ${theme.outline_variant}`,
 		},
 		".payment-logo": {
@@ -2365,9 +2366,9 @@ styles.registerStyle("main", () => {
 			// reset browser style
 			margin: "0",
 			display: "block",
-			width: px(size.checkbox_size),
-			height: px(size.checkbox_size),
-			border: `${px(size.checkbox_border_size)} solid ${theme.outline}`,
+			width: px(component_size.checkbox_size),
+			height: px(component_size.checkbox_size),
+			border: `${px(component_size.checkbox_border_size)} solid ${theme.outline}`,
 			"border-radius": "3px",
 			position: "relative",
 			transition: `border ${DefaultAnimationTime}ms cubic-bezier(.4,.0,.23,1)`,
@@ -2408,7 +2409,7 @@ styles.registerStyle("main", () => {
 			// position relative to the inner size of checkbox (inside the border)
 			top: "-10px",
 			left: "-10px",
-			"border-radius": px(size.border_radius),
+			"border-radius": px(size.radius_8),
 			// position is relate to padding and we animate padding so to keep the checkbox in place we also animate position so it looks like it doesn't move
 			transition: `all ${DefaultAnimationTime}ms cubic-bezier(.4,.0,.23,1)`,
 		},
@@ -2749,7 +2750,7 @@ styles.registerStyle("main", () => {
 				bottom: 0,
 			},
 			".fixed-bottom-right": {
-				bottom: px(size.hpad_large_mobile + size.bottom_nav_bar),
+				bottom: px(size.hpad_large_mobile + component_size.bottom_nav_bar),
 				right: px(size.hpad_large_mobile),
 			},
 			".custom-logo": {
@@ -2967,7 +2968,7 @@ styles.registerStyle("main", () => {
 		".tutaui-card-container": {
 			"box-sizing": "border-box",
 			"background-color": theme.surface,
-			"border-radius": px(size.border_radius_medium),
+			"border-radius": px(size.radius_8),
 			padding: px(size.vpad_small),
 			height: "fit-content",
 		},
@@ -2983,7 +2984,7 @@ styles.registerStyle("main", () => {
 			"box-sizing": "border-box",
 			"background-color": "transparent",
 			border: "none",
-			"border-radius": px(size.border_radius_medium),
+			"border-radius": px(size.radius_8),
 			color: theme.on_surface,
 			width: "100%",
 			padding: px(size.vpad_small),
@@ -3073,8 +3074,8 @@ styles.registerStyle("main", () => {
 		},
 		".tutaui-button-outline": {
 			border: "1px solid",
-			"border-radius": px(size.border_radius_medium),
-			padding: px(size.border_radius_medium),
+			"border-radius": px(size.radius_8),
+			padding: px(size.radius_8),
 			"text-align": "center",
 		},
 		".unstyled-list": {
@@ -3130,7 +3131,7 @@ styles.registerStyle("main", () => {
 		},
 		".outlined": {
 			border: `2px solid ${theme.outline}`,
-			"border-radius": px(size.border_radius_medium),
+			"border-radius": px(size.radius_8),
 		},
 		".capitalize": {
 			"text-transform": "capitalize",

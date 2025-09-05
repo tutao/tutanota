@@ -9,7 +9,7 @@ import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchM
 import { Guest } from "../../view/CalendarInvites.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { IconButton } from "../../../../common/gui/base/IconButton.js"
-import { px, size } from "../../../../common/gui/size.js"
+import { component_size, px, size } from "../../../../common/gui/size.js"
 import { CalendarEventWhoModel } from "../eventeditor-model/CalendarEventWhoModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { CalendarEventModel, CalendarOperation } from "../eventeditor-model/CalendarEventModel.js"
@@ -363,7 +363,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 					{
 						style: {
 							paddingLeft: px(size.hpad_medium + size.vpad_small),
-							paddingRight: px((size.button_height - size.button_height_compact) / 2),
+							paddingRight: px((component_size.button_height - component_size.button_height_compact) / 2),
 						},
 					},
 					[

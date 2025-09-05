@@ -1,7 +1,7 @@
 import m, { Children, Component } from "mithril"
 import type { PositionRect } from "./base/Overlay"
 import { displayOverlay } from "./base/Overlay"
-import { px, size } from "./size"
+import { component_size, px, size } from "./size"
 import { Icons } from "./base/icons/Icons"
 import { assertMainOrNode } from "../api/common/Env"
 import { lang } from "../misc/LanguageViewModel"
@@ -61,9 +61,9 @@ export class SearchInPageOverlay {
 	}
 
 	private getRect(): PositionRect {
-		const bottomNavHeight = size.bottom_nav_bar + getSafeAreaInsetBottom()
+		const bottomNavHeight = component_size.bottom_nav_bar + getSafeAreaInsetBottom()
 		return {
-			height: px(size.navbar_height_mobile),
+			height: px(component_size.navbar_height_mobile),
 			// Place the search overlay on top of the bottom nav bar
 			bottom: px(styles.isUsingBottomNavigation() ? -bottomNavHeight : 0),
 			right: px(0),
@@ -95,7 +95,7 @@ export class SearchInPageOverlay {
 				style: {
 					width: px(250),
 					top: 0,
-					height: px(size.button_height),
+					height: px(component_size.button_height),
 					left: 0,
 				},
 			},

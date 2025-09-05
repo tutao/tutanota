@@ -71,7 +71,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 					".button-height.flex.items-center.plr-button",
 					m(Icon, {
 						icon: attrs.icon,
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 						style: {
 							fill: attrs.iconColor ?? (isNavButtonSelected(navButtonAttrs) ? theme.primary : theme.on_surface_variant),
 						},

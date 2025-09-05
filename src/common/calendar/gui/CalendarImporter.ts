@@ -8,7 +8,7 @@ import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../gui/base/List.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
-import { size } from "../../gui/size.js"
+import { component_size, size } from "../../gui/size.js"
 import { DialogHeaderBar } from "../../gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../gui/base/Button.js"
 import m from "mithril"
@@ -54,7 +54,7 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
  */
 export function showEventsImportDialog(events: CalendarEvent[], okAction: (dialog: Dialog) => unknown, title: MaybeTranslation) {
 	const renderConfig: RenderConfig<CalendarEvent, KindaCalendarRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {

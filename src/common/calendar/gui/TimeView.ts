@@ -230,7 +230,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 									icon: hasAnyConflict ? Icons.AlertCircle : Icons.Checkmark,
 									container: "div",
 									class: "mr-xxs",
-									size: IconSize.Normal,
 									style: {
 										fill: hasAnyConflict ? theme.on_warning_container : theme.on_success_container,
 									},

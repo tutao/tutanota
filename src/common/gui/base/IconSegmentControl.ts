@@ -50,7 +50,7 @@ export class IconSegmentControl<T> implements Component<IconSegmentControlAttrs<
 							icon: item.icon,
 							container: "div",
 							class: "center-h",
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 							style: {
 								fill: item.value === vnode.attrs.selectedValue ? theme.on_secondary_container : theme.on_surface_variant,
 							},
