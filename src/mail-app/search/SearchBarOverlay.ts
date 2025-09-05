@@ -49,11 +49,11 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			m("ul.list.click.mail-list", [
 				state.entities.map((result) => {
 					return m(
-						"li.plr-l.flex-v-center.",
+						"li.plr-24.flex-v-center.",
 						{
 							style: {
 								height: px(52),
-								"border-left": px(size.border_selection) + " solid transparent",
+								"border-left": px(size.radius_4) + " solid transparent",
 							},
 							// avoid closing overlay before the click event can be received
 							onmousedown: (e: MouseEvent) => e.preventDefault(),
@@ -66,7 +66,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			]),
 			searchInOurAppsElement &&
 				m(
-					".bottom.small.pt-s.pb-s.plr.text-center",
+					".bottom.small.pt-8.pb-8.plr-12.text-center",
 					{
 						// avoid closing overlay before the click event can be received
 						onmousedown: (e: MouseEvent) => e.preventDefault(),
@@ -93,11 +93,11 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	_renderProgress(state: SearchBarState): Children {
 		return m(".flex.col.rel", [
 			m(
-				".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-s",
+				".plr-24.pt-8.pb-8.flex.items-center.flex-space-between.mr-negative-8",
 				{
 					style: {
 						height: px(52),
-						borderLeft: `${px(size.border_selection)} solid transparent`,
+						borderLeft: `${px(size.radius_4)} solid transparent`,
 					},
 				},
 				[
@@ -146,11 +146,11 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		return m(".flex.rel", [
 			m(
-				".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-s",
+				".plr-24.pt-8.pb-8.flex.items-center.flex-space-between.mr-negative-8",
 				{
 					style: {
 						height: px(52),
-						borderLeft: `${px(size.border_selection)} solid transparent`,
+						borderLeft: `${px(size.radius_4)} solid transparent`,
 					},
 				},
 				[
@@ -214,7 +214,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		return indexInfo
 			? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)]
-			: m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
+			: m("li.plr-24.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
 	}
 
 	private renderContactResult(contact: Contact): Children {
@@ -241,7 +241,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 					? m(
 							Badge,
 							{
-								classes: ".small.mr-s",
+								classes: ".small.mr-8",
 							},
 							companyTeamLabel,
 						)

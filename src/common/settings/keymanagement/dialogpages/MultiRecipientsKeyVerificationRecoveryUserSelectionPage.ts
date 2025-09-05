@@ -31,7 +31,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 
 		const selectableRecipients = this.makeRecipientOptions(vnode.attrs.model.getUnverifiedRecipients())
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-16", [
 			m(TitleSection, {
 				title,
 				subTitle: "",
@@ -40,7 +40,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 			}),
 			m(
 				Card,
-				m(".plr.flex.flex-column.gap-vpad.pt-s.pb-s", [
+				m(".plr-12.flex.flex-column.gap-16.pt-8.pb-8", [
 					lang.get("keyManagement.mailRecipientsVerificationMismatchError_msg"),
 					m(
 						"",
@@ -73,14 +73,14 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 		const title = lang.get("keyManagement.reverifyRecipientsCompleted_title")
 		const message = lang.get("keyManagement.reverifyRecipientsCompleted_msg")
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-16", [
 			m(TitleSection, {
 				title,
 				subTitle: "",
 				icon: Icons.CheckCircleOutline,
 				iconOptions: { color: theme.success },
 			}),
-			m(Card, m(".plr.flex.flex-column.gap-vpad.pt-s.pb-s", [message])),
+			m(Card, m(".plr-12.flex.flex-column.gap-16.pt-8.pb-8", [message])),
 		])
 	}
 

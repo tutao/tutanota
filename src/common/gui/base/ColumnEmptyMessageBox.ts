@@ -20,14 +20,14 @@ export type InfoMessaggeBoxAttrs = {
 /** Displays a big message with an option icon above it. */
 export class IconMessageBox implements Component<InfoMessaggeBoxAttrs> {
 	view({ attrs }: Vnode<InfoMessaggeBoxAttrs>): Children {
-		return m(".flex.col.items-center.justify-center.mlr.translucent", [
+		return m(".flex.col.items-center.justify-center.mlr-12.translucent", [
 			attrs.icon
 				? m(Icon, {
 						icon: attrs.icon,
 						style: {
 							fill: attrs.color,
 						},
-						class: "icon-message-box",
+						class: "icon-80",
 					})
 				: null,
 			m(
@@ -64,7 +64,7 @@ export default class ColumnEmptyMessageBox implements Component<ColumnEmptyMessa
 				{
 					style: {
 						// move up *only* this element, not the whole .fill-absolute parent to not overflow into the items above us
-						"margin-top": px(attrs.icon ? -size.icon_message_box - size.vpad_xl : -size.vpad_xl),
+						"margin-top": px(attrs.icon ? -size.icon_80 - size.spacing_48 : -size.spacing_48),
 					},
 				},
 				[

@@ -136,7 +136,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		return [
-			m("#global-settings.fill-absolute.scroll.plr-l", [
+			m("#global-settings.fill-absolute.scroll.plr-24", [
 				m(ExpandableTable, {
 					title: "adminSpam_action",
 					table: spamRuleTableAttrs,

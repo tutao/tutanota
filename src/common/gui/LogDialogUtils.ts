@@ -27,7 +27,7 @@ export async function showLogsDialog(logContent: string) {
 		},
 		class {
 			view() {
-				return m(".fill-absolute.selectable.scroll.white-space-pre.plr.pt.pb", logContent)
+				return m(".fill-absolute.selectable.scroll.white-space-pre.plr-12.pt-16.pb-16", logContent)
 			}
 		},
 		{},

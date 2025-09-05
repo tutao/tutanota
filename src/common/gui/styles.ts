@@ -1,5 +1,5 @@
 import { Cat, log, timer } from "../misc/Log"
-import { size } from "./size"
+import { layout_size, size } from "./size"
 import { assertMainOrNodeBoot, isAdminClient, isTest } from "../api/common/Env"
 import { windowFacade } from "../misc/WindowFacade"
 import { theme } from "./theme"
@@ -66,7 +66,7 @@ class Styles {
 	 * Provides the information if a (wide) desktop width is used. Please note that there is an intermediate width between mobileLayout and desktopLayout.
 	 */
 	isDesktopLayout(): boolean {
-		return this.bodyWidth >= size.desktop_layout_width
+		return this.bodyWidth >= layout_size.desktop_layout_width
 	}
 
 	/**
@@ -85,11 +85,11 @@ class Styles {
 	}
 
 	isSingleColumnLayout(): boolean {
-		return this.bodyWidth < size.two_column_layout_width
+		return this.bodyWidth < layout_size.two_column_layout_width
 	}
 
 	isTwoColumnLayout(): boolean {
-		return this.bodyWidth >= size.two_column_layout_width && this.bodyWidth < size.desktop_layout_width
+		return this.bodyWidth >= layout_size.two_column_layout_width && this.bodyWidth < layout_size.desktop_layout_width
 	}
 
 	isUsingBottomNavigation(): boolean {

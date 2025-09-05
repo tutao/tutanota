@@ -24,12 +24,12 @@ export class SupportCategoryPage implements Component<Props> {
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-16", [
 			m(Card, [
 				m(
 					"",
 					m(".h4.mb-0", getCategoryName(currentlySelectedCategory!, languageTag)),
-					m("p.mt-xs.mb-s", getCategoryIntroduction(currentlySelectedCategory!, languageTag)),
+					m("p.mt-4.mb-8", getCategoryIntroduction(currentlySelectedCategory!, languageTag)),
 				),
 			]),
 			m(Card, { shouldDivide: true }, [

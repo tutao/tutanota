@@ -11,7 +11,7 @@ export interface SelectAllCheckboxAttrs {
 
 export const SelectAllCheckbox = pureComponent((attrs: SelectAllCheckboxAttrs) => {
 	return m(
-		".flex.items-center.pl-s.mlr.button-height",
+		".flex.items-center.pl-4.mlr-12.button-height",
 		{ style: attrs.style },
 		m("input.checkbox", {
 			type: "checkbox",

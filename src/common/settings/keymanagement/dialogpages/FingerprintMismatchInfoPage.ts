@@ -35,7 +35,7 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 			throw new Error("unsupported source of trust")
 		}
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-16", [
 			m(TitleSection, {
 				title,
 				subTitle: m.trust(subTitle),
@@ -44,9 +44,9 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 			}),
 			m(
 				Card,
-				m(".plr.flex.flex-column.gap-vpad", [
+				m(".plr-12.flex.flex-column.gap-16", [
 					m("", m.trust(warning)),
-					m(".b.mt", lang.get("keyVerificationErrorRecommendation_title")),
+					m(".b.mt-16", lang.get("keyVerificationErrorRecommendation_title")),
 					m("", m.trust(recommendation)),
 					m(ExternalLink, {
 						isCompanySite: true,
@@ -64,8 +64,8 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 				class: "flex-center row center-vertically",
 				icon: m(Icon, {
 					icon: Icons.Trash,
-					size: IconSize.Medium,
-					class: "mr-s flex-center",
+					size: IconSize.PX24,
+					class: "mr-8 flex-center",
 					style: {
 						fill: theme.on_primary,
 					},

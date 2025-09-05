@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { size } from "../../gui/size"
+import { component_size, size } from "../../gui/size"
 import { getCapabilityText } from "../GroupUtils"
 import { downcast } from "@tutao/tutanota-utils"
 import { showGroupInvitationDialog } from "./ReceivedGroupInvitationDialog.js"
@@ -18,14 +18,14 @@ export class GroupInvitationFolderRow implements Component<GroupInvitationFolder
 	view(vnode: Vnode<GroupInvitationFolderRowAttrs>): Children {
 		const { invitation, icon } = vnode.attrs
 		return [
-			m(".folder-row.flex-start.plr-l", [
+			m(".folder-row.flex-start.plr-24", [
 				m(
 					".flex-v-center.flex-grow.button-height",
 					{
 						style: {
 							// It's kinda hard to tell this element to not eat up all the row and truncate text instead because it
 							// is vertical flex. With this it will stop at 80% of what it could be and that's enough for the button.
-							"max-width": `calc(100% - ${size.button_height}px)`,
+							"max-width": `calc(100% - ${component_size.button_height}px)`,
 						},
 					},
 					[

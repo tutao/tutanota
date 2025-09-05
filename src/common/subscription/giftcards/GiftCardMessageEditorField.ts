@@ -20,7 +20,7 @@ export class GiftCardMessageEditorField implements Component<GiftCardMessageEdit
 
 	view(vnode: Vnode<GiftCardMessageEditorFieldAttrs>): Children {
 		const a = vnode.attrs
-		return m("label.small.mt-form.i.flex-center.flex-column", [
+		return m("label.small.mt-24.i.flex-center.flex-column", [
 			// Cannot wrap the label in a span to apply the `small` class as it will break screen readers
 			lang.get("yourMessage_label"),
 			m("textarea.monospace.normal-font-size.overflow-hidden.resize-none" + (this.isActive ? ".editor-border-active" : ".editor-border"), {

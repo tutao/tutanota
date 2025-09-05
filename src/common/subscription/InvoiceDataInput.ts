@@ -46,7 +46,7 @@ export class InvoiceDataInput implements Component {
 		return [
 			this.businessUse || this.location !== InvoiceDataInputLocation.InWizard
 				? m("", [
-						m(".pt", m(this.invoiceAddressComponent)),
+						m(".pt-16", m(this.invoiceAddressComponent)),
 						m(".small", lang.get(this.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
 					])
 				: null,

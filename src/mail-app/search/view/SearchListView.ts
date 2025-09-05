@@ -4,7 +4,7 @@ import { downcast, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { size } from "../../../common/gui/size.js"
+import { component_size, size } from "../../../common/gui/size.js"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
 import { SearchableTypes } from "./SearchViewModel.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -118,7 +118,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	}
 
 	private readonly calendarRenderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {
@@ -131,7 +131,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	}
 
 	private readonly mailRenderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {
@@ -149,7 +149,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	}
 
 	private readonly contactRenderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {

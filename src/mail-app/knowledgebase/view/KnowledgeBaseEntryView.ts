@@ -50,17 +50,17 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 			},
 			[
 				m(
-					".flex.mt-l.center-vertically.selectable",
+					".flex.mt-32.center-vertically.selectable",
 					m(".h4.text-ellipsis", entry.title),
 					!readonly ? [m(".flex.flex-grow.justify-end", [this.renderEditButton(entry), this.renderRemoveButton(entry)])] : null,
 				),
 				m("", [
-					m(".mt-s.flex.mt-s.wrap", [
+					m(".mt-8.flex.mt-8.wrap", [
 						entry.keywords.map((entryKeyword) => {
 							return m(".keyword-bubble.selectable", entryKeyword.keyword)
 						}),
 					]),
-					m(".flex.flex-column.mt-s", [m(".editor-border.text-break.selectable", m.trust(this._sanitizedEntry(entry).content))]),
+					m(".flex.flex-column.mt-8", [m(".editor-border.text-break.selectable", m.trust(this._sanitizedEntry(entry).content))]),
 				]),
 			],
 		)

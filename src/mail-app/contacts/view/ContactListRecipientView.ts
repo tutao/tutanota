@@ -18,7 +18,7 @@ import {
 	SelectableRowSelectedSetter,
 	shouldAlwaysShowMultiselectCheckbox,
 } from "../../../common/gui/SelectableRowContainer.js"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px } from "../../../common/gui/size.js"
 import { shiftByForCheckbox, translateXHide, translateXShow } from "./ContactRow.js"
 import { styles } from "../../../common/gui/styles.js"
 
@@ -68,7 +68,7 @@ export class ContactListRecipientView implements Component<ContactListViewAttrs>
 	}
 
 	private readonly renderConfig: RenderConfig<ContactListEntry, RecipientRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {
@@ -140,8 +140,8 @@ export class RecipientRow implements VirtualRow<ContactListEntry> {
 				},
 				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
-			m(".mt-xs.abs", [
-				m(".text-ellipsis.smaller.mt-xxs", {
+			m(".mt-4.abs", [
+				m(".text-ellipsis.smaller", {
 					style: {
 						height: px(9),
 					},
@@ -162,7 +162,7 @@ export class RecipientRow implements VirtualRow<ContactListEntry> {
 						checkboxOpacity(this.checkboxDom, false)
 					},
 				}),
-				m(".text-ellipsis.smaller.mt-xxs", {
+				m(".text-ellipsis.smaller", {
 					style: {
 						height: px(9),
 					},
@@ -170,7 +170,7 @@ export class RecipientRow implements VirtualRow<ContactListEntry> {
 			]),
 			m(".flex.col.overflow-hidden.flex-grow", [
 				m("", [
-					m(".text-ellipsis.smaller.mt-xxs", {
+					m(".text-ellipsis.smaller", {
 						style: {
 							height: px(9),
 						},
@@ -178,7 +178,7 @@ export class RecipientRow implements VirtualRow<ContactListEntry> {
 					m(".text-ellipsis.badge-line-height", {
 						oncreate: (vnode) => (this.titleDom = vnode.dom as HTMLElement),
 					}),
-					m(".text-ellipsis.smaller.mt-xxs", {
+					m(".text-ellipsis.smaller.mt-4", {
 						style: {
 							height: px(9),
 						},

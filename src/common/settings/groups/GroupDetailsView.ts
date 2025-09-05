@@ -29,11 +29,11 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	 * @private
 	 */
 	private renderHeader(): Children {
-		return m(".h4.mt-l", getGroupTypeDisplayName(this.model.getGroupType()))
+		return m(".h4.mt-32", getGroupTypeDisplayName(this.model.getGroupType()))
 	}
 
 	renderView(): Children {
-		return m("#user-viewer.fill-absolute.scroll.plr-l", [this.renderHeader(), this.renderCommonInfo(), this.renderMailGroupInfo()])
+		return m("#user-viewer.fill-absolute.scroll.plr-24", [this.renderHeader(), this.renderCommonInfo(), this.renderMailGroupInfo()])
 	}
 
 	/**
@@ -217,7 +217,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			lines,
 		}
 
-		return [m(".h5.mt-l.mb-s", lang.get("groupMembers_label")), m(Table, membersTableAttrs)]
+		return [m(".h5.mt-32.mb-8", lang.get("groupMembers_label")), m(Table, membersTableAttrs)]
 	}
 }
 

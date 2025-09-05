@@ -48,7 +48,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 
 	private renderRow(headerIcon: AllIcons, children: Children, isAlignedLeft?: boolean): Children {
 		return m(
-			".flex.pb-s",
+			".flex.pb-8",
 			{
 				class: isAlignedLeft ? "items-start" : "items-center",
 			},
@@ -59,8 +59,8 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
 		return m(Icon, {
 			icon,
-			class: "pr",
-			size: IconSize.Medium,
+			class: "pr-12",
+			size: IconSize.PX24,
 			style: Object.assign(
 				{
 					fill: theme.on_surface,
@@ -72,7 +72,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 	}
 
 	private renderActions(contact: Contact): Children {
-		return m(".flex.pb-s", m(ActionButtons, contact))
+		return m(".flex.pb-8", m(ActionButtons, contact))
 	}
 }
 
@@ -100,7 +100,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 	const renderIcon = (icon: AllIcons, fillColor: string) =>
 		m(Icon, {
 			icon,
-			class: "flex-center items-center mr-xs",
+			class: "flex-center items-center mr-4",
 			style: {
 				fill: fillColor,
 			},
@@ -166,7 +166,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 		showMailDropdown(event, dom)
 	}
 
-	return m(".full-width.flex.items-center.flex-end.mt-s.gap-vpad-s.mr-s", [
+	return m(".full-width.flex.items-center.flex-end.mt-8.gap-8.mr-8", [
 		contact.mailAddresses.length
 			? m(
 					singleEmailAdress && client.isCalendarApp() ? `a[href="mailto:${contact.mailAddresses[0].address}"][target=_blank].no-text-decoration` : "",

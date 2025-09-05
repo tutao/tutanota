@@ -15,7 +15,7 @@ export function show(model: CustomColorsEditorViewModel) {
 	model.builtTheme.map(() => m.redraw())
 	const form = {
 		view: () => {
-			return m(".pb", [
+			return m(".pb-16", [
 				m(CustomColorEditor, {
 					model: model,
 				}),

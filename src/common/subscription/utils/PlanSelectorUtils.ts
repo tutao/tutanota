@@ -104,11 +104,11 @@ export function getBorderColor(isSelected: boolean, hasCampaign: boolean, localT
 }
 
 export function getBorderRadius(hasBanner: boolean, position: PlanBoxPosition) {
-	const topOuterRadius = hasBanner ? "0" : px(size.border_radius_large)
+	const topOuterRadius = hasBanner ? "0" : px(size.radius_8)
 	if (styles.isMobileLayout()) {
 		return `0 0 0 0`
 	} else if (position === "bottom") {
-		return `0 0 ${px(size.border_radius_large)} ${px(size.border_radius_large)}`
+		return `0 0 ${px(size.radius_8)} ${px(size.radius_8)}`
 	} else {
 		return position === "left" ? `${topOuterRadius} 0 0 0` : `0 ${topOuterRadius} 0 0`
 	}

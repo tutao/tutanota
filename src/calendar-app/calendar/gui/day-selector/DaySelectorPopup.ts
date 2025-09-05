@@ -42,7 +42,7 @@ export class DaySelectorPopup implements ModalComponent {
 
 	view(): Children {
 		return m(
-			".abs.elevated-bg.plr.pt-s.pb-m.border-radius.dropdown-shadow.flex.flex-column",
+			".abs.elevated-bg.plr-12.pt-8.pb-12.border-radius.dropdown-shadow.flex.flex-column",
 			{
 				style: {
 					opacity: "0",
@@ -88,7 +88,7 @@ export class DaySelectorPopup implements ModalComponent {
 	}
 
 	private renderPickerHeader(date: Date): Children {
-		return m(".flex.flex-space-between.pb-s.items-center", [
+		return m(".flex.flex-space-between.pb-8.items-center", [
 			m(
 				".b",
 				{

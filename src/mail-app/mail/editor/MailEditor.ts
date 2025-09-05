@@ -396,12 +396,12 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const quoteIndicator = document.createElement("div")
 		quoteIndicator.style.borderLeft = `2px solid ${theme.outline}`
 		quoteIndicator.style.paddingLeft = "2px"
-		quoteIndicator.style.marginTop = px(size.vpad)
+		quoteIndicator.style.marginTop = px(size.spacing_16)
 
 		m.render(
 			quoteIndicator,
 			m(
-				".ml-button.fit-content",
+				".ml-8.fit-content",
 				{
 					style: {
 						borderRadius: "25%",
@@ -502,7 +502,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			value: model.getSubject(),
 			oninput: (val) => model.setSubject(val),
 			injectionsRight: () =>
-				m(".flex.end.ml-between-s.items-center", [
+				m(".flex.end.ml-between-4.items-center", [
 					isDarkTheme()
 						? m(IconButton, {
 								title: "viewInLightMode_action",
@@ -659,7 +659,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 										}),
 									),
 									editCustomNotificationMailAttrs
-										? m(".pt.flex-no-grow.flex-end.border-bottom.flex.items-center", m(IconButton, editCustomNotificationMailAttrs))
+										? m(".pt-16.flex-no-grow.flex-end.border-bottom.flex.items-center", m(IconButton, editCustomNotificationMailAttrs))
 										: null,
 								],
 							)
@@ -668,20 +668,20 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				isConfidential ? this.renderPasswordFields() : null,
 				m(".row", m(TextField, subjectFieldAttrs)),
 				m(
-					".flex-start.flex-wrap.mt-s.mb-s.gap-hpad",
+					".flex-start.flex-wrap.mt-8.mb-8.gap-12",
 					attachmentBubbleAttrs.map((a) => m(AttachmentBubble, a)),
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
 				this.renderExternalContentBanner(this.attrs),
 				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(
-					".pt-s.text.scroll-x.break-word-links.flex.flex-column.flex-grow" + (forcedLightMode ? ".bg-white.content-black.bg-fix-quoted" : ""),
+					".pt-8.text.scroll-x.break-word-links.flex.flex-column.flex-grow" + (forcedLightMode ? ".bg-white.content-black.bg-fix-quoted" : ""),
 					{
 						onclick: () => this.editor.focus(),
 					},
 					m(this.editor),
 				),
-				m(".pb"),
+				m(".pb-16"),
 			],
 		)
 	}
@@ -1443,7 +1443,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 			(await Dialog.confirm("attachmentWarning_msg", "attachFiles_action", () =>
 				dataFiles.map((df, i) =>
 					m(
-						".text-break.selectable.mt-xs",
+						".text-break.selectable.mt-4",
 						{
 							title: attach[i],
 						},

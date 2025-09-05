@@ -41,7 +41,7 @@ export class IdentifierRow implements Component<IdentifierRowAttrs> {
 		return m(".flex.flex-column.full-width", [
 			m(".flex.items-center.selectable", [
 				m("span" + (vnode.attrs.current ? ".b" : ""), vnode.attrs.name),
-				vnode.attrs.disabled ? m(".mlr", `(${lang.get("notificationsDisabled_label")})`) : null,
+				vnode.attrs.disabled ? m(".mlr-12", `(${lang.get("notificationsDisabled_label")})`) : null,
 				m(".flex-grow"),
 				m(IconButton, dropdownAttrs),
 			]),
@@ -51,8 +51,8 @@ export class IdentifierRow implements Component<IdentifierRowAttrs> {
 
 	private renderIdentifier({ identifier, formatIdentifier }: IdentifierRowAttrs): Children {
 		const identifierText = formatIdentifier
-			? neverNull(identifier.match(/.{2}/g)).map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el))
+			? neverNull(identifier.match(/.{2}/g)).map((el, i) => m("span.pr-4" + (i % 2 === 0 ? ".b" : ""), el))
 			: identifier
-		return m(".text-break.small.monospace.mt-negative-hpad-button.selectable", identifierText)
+		return m(".text-break.small.monospace.mt-negative-8.selectable", identifierText)
 	}
 }

@@ -97,9 +97,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			return null
 		}
 
-		const margin = px(size.vpad_xsm)
+		const margin = px(size.spacing_4)
 		return m(
-			".flex.mb-xs.flex-wrap",
+			".flex.mb-4.flex-wrap",
 			{
 				style: {
 					columnGap: margin,
@@ -138,7 +138,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		const displayedSender = viewModel.getDisplayedSender()
 		return m(
-			".flex.mt-xs.click.col",
+			".flex.mt-4.click.col",
 			{
 				class: responsiveCardHMargin(),
 				role: "button",
@@ -164,12 +164,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				m(".flex", [
 					this.getRecipientEmailAddress(attrs),
 					m(".flex-grow"),
-					m(".flex.items-center.white-space-pre.ml-s.ml-between-s", {
+					m(".flex.items-center.white-space-pre.ml-8.ml-between-4", {
 						// Orca refuses to read ut unless it's not focusable
 						tabindex: TabIndex.Default,
 						"aria-label": lang.get(viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action") + ", " + dateTime,
 					}),
-					m(".flex.ml-between-s.items-center", [
+					m(".flex.ml-between-4.items-center", [
 						viewModel.isConfidential()
 							? m(Icon, {
 									icon: getConfidentialIcon(viewModel.mail),
@@ -214,7 +214,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			m(
 				".flex.flex-grow.align-self-start.items-start.overflow-hidden",
 				{
-					class: styles.isSingleColumnLayout() ? "mt-m" : "mt",
+					class: styles.isSingleColumnLayout() ? "mt-12" : "mt-16",
 					role: "button",
 					"mail-expander": "true",
 					// "aria-expanded" is always true because this component is only used in expanded view
@@ -235,7 +235,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					viewModel.isUnread() ? this.renderUnreadDot() : null,
 					viewModel.isDraftMail()
 						? m(
-								".mr-xs.align-self-center",
+								".mr-4.align-self-center",
 								m(Icon, {
 									icon: Icons.Edit,
 									container: "div",
@@ -254,9 +254,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				],
 			),
 			m(
-				".flex-end.items-start.ml-between-s",
+				".flex-end.items-start.ml-between-4",
 				{
-					class: styles.isSingleColumnLayout() ? "" : "mt-xs",
+					class: styles.isSingleColumnLayout() ? "" : "mt-4",
 					style: {
 						// align "more" button with the datetime text
 						marginRight: styles.isSingleColumnLayout() ? "-3px" : "6px",
@@ -270,7 +270,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderUnreadDot(): Children {
 		return m(
-			".flex.flex-no-grow.no-shrink.pr-s",
+			".flex.flex-no-grow.no-shrink.pr-4",
 			{
 				"data-testid": "unread-indicator",
 				style: {
@@ -284,9 +284,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private makeSubjectActionsLineClasses() {
 		let classes = ".flex.click"
 		if (styles.isSingleColumnLayout()) {
-			classes += ".ml"
+			classes += ".ml-12"
 		} else {
-			classes += ".pl-l"
+			classes += ".pl-24"
 		}
 
 		return classes
@@ -312,7 +312,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 
 		const hasEventInvitation = viewModel.getCalendarEventAttachment()
-		return isEmpty(banners) && !hasEventInvitation ? [m("hr.hr.mt-xs." + responsiveCardHMargin())] : [...banners]
+		return isEmpty(banners) && !hasEventInvitation ? [m("hr.hr.mt-4." + responsiveCardHMargin())] : [...banners]
 	}
 
 	private renderFailureBanner(viewModel: MailViewerViewModel): Children | null {
@@ -381,7 +381,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		return m("." + responsiveCardHPadding(), liveDataAttrs(), [
 			m(
-				".mt-s",
+				".mt-8",
 				displayedSender == null
 					? null
 					: [
@@ -434,12 +434,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: null,
 			),
 			m(
-				".mt-s",
+				".mt-8",
 				viewModel.getToRecipients().length
 					? [
 							m(".small.b", lang.get("to_label")),
 							m(
-								".flex.col.mt-between-s",
+								".flex.col.mt-between-4",
 								viewModel.getToRecipients().map((recipient) =>
 									m(
 										".flex",
@@ -465,7 +465,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: null,
 			),
 			m(
-				".mt-s",
+				".mt-8",
 				viewModel.getCcRecipients().length
 					? [
 							m(".small.b", lang.get("cc_label")),
@@ -492,7 +492,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: null,
 			),
 			m(
-				".mt-s",
+				".mt-8",
 				viewModel.getBccRecipients().length
 					? [
 							m(".small.b", lang.get("bcc_label")),
@@ -519,7 +519,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: null,
 			),
 			m(
-				".mt-s",
+				".mt-8",
 				viewModel.getReplyTos().length
 					? [
 							m(".small.b", lang.get("replyTo_label")),
@@ -552,8 +552,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		// Show a loading symbol if we are loading attachments
 		if (viewModel.isLoadingAttachments() && !viewModel.isConnectionLost()) {
 			return m(".flex." + responsiveCardHMargin(), [
-				m(".flex-v-center.pl-button", progressIcon()),
-				m(".small.flex-v-center.plr.button-height", lang.get("loading_msg")),
+				m(".flex-v-center.pl-8", progressIcon()),
+				m(".small.flex-v-center.plr-12.button-height", lang.get("loading_msg")),
 			])
 		} else {
 			const attachments = viewModel.getNonInlineAttachments()
@@ -571,7 +571,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			}
 
 			return [
-				m(".flex.mt-s.mb-s" + "." + responsiveCardHMargin(), liveDataAttrs(), [
+				m(".flex.mt-8.mb-8" + "." + responsiveCardHMargin(), liveDataAttrs(), [
 					attachmentCount === 1
 						? // If we have exactly one attachment, just show the attachment
 							this.renderAttachmentContainer(viewModel, attachments, importFile)
@@ -606,7 +606,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								expanded: this.filesExpanded,
 							},
 							m(".flex.col." + responsiveCardHMargin(), [
-								m(".flex.flex-wrap.gap-hpad", this.renderAttachmentContainer(viewModel, attachments, importFile)),
+								m(".flex.flex-wrap.gap-12", this.renderAttachmentContainer(viewModel, attachments, importFile)),
 								isIOSApp()
 									? null
 									: m(
@@ -646,7 +646,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			? m(
 					Badge,
 					{
-						classes: ".mr-s",
+						classes: ".mr-8",
 					},
 					companyTeamLabel,
 				)
@@ -887,7 +887,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		if (relevantRecipient) {
 			const numberOfAllRecipients = viewModel.getNumberOfRecipients()
 			return m(
-				".flex.click.small.ml-between-s.items-center",
+				".flex.click.small.ml-between-4.items-center",
 				{
 					style: {
 						// use this to allow the container to shrink, otherwise it doesn't want to cut the recipient address

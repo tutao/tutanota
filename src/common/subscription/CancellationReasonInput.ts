@@ -16,7 +16,7 @@ export type CancellationReasonInputAttrs = {
 export class CancellationReasonInput {
 	view(vnode: Vnode<CancellationReasonInputAttrs>): Children {
 		return [
-			m(".mt.pb-s.b.center", lang.get("cancellationInfo_msg")),
+			m(".mt-16.pb-8.b.center", lang.get("cancellationInfo_msg")),
 			m(DropDownSelector, {
 				label: "whyLeave_msg",
 				items: [

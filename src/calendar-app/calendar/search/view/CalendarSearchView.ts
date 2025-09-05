@@ -10,7 +10,7 @@ import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEven
 import m, { Children, Vnode } from "mithril"
 import { NavButton } from "../../../../common/gui/base/NavButton.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
-import { size } from "../../../../common/gui/size.js"
+import { layout_size, size } from "../../../../common/gui/size.js"
 import { lang, type MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -115,8 +115,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width,
-				maxWidth: size.second_col_max_width,
+				minWidth: layout_size.second_col_min_width,
+				maxWidth: layout_size.second_col_max_width,
 				headerCenter: "searchResult_label",
 			},
 		)
@@ -126,8 +126,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.third_col_min_width,
-				maxWidth: size.third_col_max_width,
+				minWidth: layout_size.third_col_min_width,
+				maxWidth: layout_size.third_col_max_width,
 			},
 		)
 		this.viewSlider = new ViewSlider([this.resultListColumn, this.resultDetailsColumn], false)
@@ -190,7 +190,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			),
 			right: rightActions,
 			center: m(
-				".flex-grow.flex.justify-center.mr",
+				".flex-grow.flex.justify-center.mr-12",
 				m(searchBar, {
 					placeholder: this.searchBarPlaceholder(),
 					returnListener: () => this.resultListColumn.focus(),
@@ -273,11 +273,11 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	private renderEventDetails(selectedEvent: CalendarEvent) {
 		return m(
-			".height-100p.overflow-y-scroll.mb-l.fill-absolute.pb-l",
+			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
 			m(
-				".border-radius-big.flex.col.flex-grow.content-bg",
+				".border-radius-12.flex.col.flex-grow.content-bg",
 				{
-					class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
+					class: styles.isDesktopLayout() ? "mlr-24" : "mlr-12",
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
@@ -363,7 +363,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		return m(
 			".flex.col",
 			m(
-				".pl-s.flex-grow.flex-space-between.flex-column",
+				".pl-4.flex-grow.flex-space-between.flex-column",
 				m(DatePicker, {
 					date: this.searchViewModel.startDate ?? undefined,
 					onDateSelected: (date) => {
@@ -378,7 +378,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				} satisfies DatePickerAttrs),
 			),
 			m(
-				".pl-s.flex-grow.flex-space-between.flex-column",
+				".pl-4.flex-grow.flex-space-between.flex-column",
 				m(DatePicker, {
 					date: this.searchViewModel.endDate,
 					onDateSelected: (date) => {
@@ -458,7 +458,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	private renderRepeatingFilter(): Children {
 		return m(
-			".mlr-button",
+			".mlr-8",
 			m(Checkbox, {
 				label: () => lang.get("includeRepeatingEvents_action"),
 				checked: this.searchViewModel.includeRepeatingEvents,
@@ -486,7 +486,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderFilterBar(): Children {
-		return m(".flex.gap-vpad-s.pl-vpad-m.pr-vpad-m.pt-s.pb-s.scroll-x", this.renderCalendarFilterChips())
+		return m(".flex.gap-8.pl-16.pr-16.pt-8.pb-8.scroll-x", this.renderCalendarFilterChips())
 	}
 
 	private async onCalendarDateRangeSelect() {

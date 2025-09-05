@@ -65,7 +65,7 @@ export class HtmlEditor implements Component {
 		const getPlaceholder = () =>
 			!this.active && this.isEmpty()
 				? m(
-						".abs.text-ellipsis.noselect.z1.i.pr-s",
+						".abs.text-ellipsis.noselect.z1.i.pr-4",
 						{
 							oncreate: (vnode) => (this.placeholderDomElement = vnode.dom as HTMLElement),
 							onclick: () =>
@@ -91,18 +91,18 @@ export class HtmlEditor implements Component {
 						},
 					})
 				: null,
-			this.label ? m(".small.mt-form", lang.getTranslationText(this.label)) : null,
+			this.label ? m(".small.mt-24", lang.getTranslationText(this.label)) : null,
 			m(borderClasses, [
 				getPlaceholder(),
 				this.mode === HtmlEditorMode.WYSIWYG
 					? m(".wysiwyg.rel.overflow-hidden.selectable", [
 							this.editor.isEnabled() && (this.toolbarEnabled || renderedInjections)
 								? [
-										m(".flex-end.sticky.pb-2", [
+										m(".flex-end.sticky.pb-4", [
 											this.toolbarEnabled ? m(RichTextToolbar, Object.assign({ editor: this.editor }, this.toolbarAttrs)) : null,
 											renderedInjections,
 										]),
-										m("hr.hr.mb-s"),
+										m("hr.hr.mb-8"),
 									]
 								: null,
 							m(this.editor, {

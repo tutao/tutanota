@@ -38,7 +38,7 @@ export class WhitelabelNotificationEmailSettings implements Component<Whitelabel
 		onRemoveTemplate: (arg0: NotificationMailTemplate) => unknown,
 	): Children {
 		return [
-			m(".flex-space-between.items-center.mt-l.mb-s", [
+			m(".flex-space-between.items-center.mt-32.mb-8", [
 				m(".h4", lang.get("customNotificationEmails_label")),
 				m(ExpanderButton, {
 					label: "show_action",

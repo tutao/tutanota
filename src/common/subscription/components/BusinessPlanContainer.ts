@@ -139,7 +139,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 
 		const container = styles.isMobileLayout()
 			? {
-					width: `calc(100% + 2 * ${px(size.hpad_large)})`,
+					width: `calc(100% + 2 * ${px(size.spacing_24)})`,
 					left: "50%",
 					transform: "translateX(-50%)",
 				}
@@ -149,7 +149,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 				}
 
 		return m(
-			`${styles.isMobileLayout() ? ".flex.flex-column.gap-vpad" : ".flex.gap-vpad"}`,
+			`${styles.isMobileLayout() ? ".flex.flex-column.gap-16" : ".flex.gap-16"}`,
 			{
 				"data-testid": "dialog:select-subscription-business",
 				style: { position: "relative", paddingInline: px(8), ...container },

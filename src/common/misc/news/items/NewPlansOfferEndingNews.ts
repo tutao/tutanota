@@ -51,13 +51,13 @@ export class NewPlansOfferEndingNews implements NewsListItem {
 		return m(".full-width", [
 			m(".h4", lang.get("newPlansOfferEndingNews_title")),
 			m(
-				".pb",
+				".pb-16",
 				lang.get("newPlansExplanationPast_msg", {
 					"{plan1}": "Revolutionary",
 					"{plan2}": "Legend",
 				}),
 			),
-			m(".pb", lang.get("newPlansOfferEnding_msg")),
+			m(".pb-16", lang.get("newPlansOfferEnding_msg")),
 			m(
 				".flex-end.flex-no-grow-no-shrink-auto.flex-wrap",
 				buttonAttrs.map((a) => m(Button, a)),

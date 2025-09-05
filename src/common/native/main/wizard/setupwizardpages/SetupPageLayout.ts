@@ -11,7 +11,7 @@ interface SetupPageLayoutAttrs {
 
 export class SetupPageLayout implements Component<SetupPageLayoutAttrs> {
 	view({ attrs, children }: Vnode<SetupPageLayoutAttrs>): Children {
-		return m("section.center.flex.flex-column.dialog-height-small.mt", [
+		return m("section.center.flex.flex-column.dialog-height-small.mt-16", [
 			m("img.onboarding-logo.center-h", {
 				src: `${window.tutao.appState.prefixWithoutFile}/images/onboarding-wizard/${attrs.image}.svg`,
 				alt: "",

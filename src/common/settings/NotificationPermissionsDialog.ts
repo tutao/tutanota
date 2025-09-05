@@ -58,7 +58,7 @@ export interface NotificationPermissionsBodyAttrs {
 export class NotificationPermissionsBody implements Component<NotificationPermissionsBodyAttrs> {
 	view({ attrs }: Vnode<NotificationPermissionsBodyAttrs>) {
 		return [
-			m("p.mb-s", lang.get("allowNotifications_msg")),
+			m("p.mb-8", lang.get("allowNotifications_msg")),
 			renderPermissionButton("grant_notification_permission_action", attrs.isNotificationPermissionGranted, async () => {
 				// Ask for the notification permission
 				const isNotificationPermissionGranted = await locator.systemPermissionHandler.requestPermission(
@@ -73,8 +73,8 @@ export class NotificationPermissionsBody implements Component<NotificationPermis
 			}),
 			!isAndroidApp()
 				? null
-				: m("section.mt-s.mb", [
-						m("p.mb-s.mt-s", lang.get("allowBatteryPermission_msg")),
+				: m("section.mt-8.mb-16", [
+						m("p.mb-8.mt-8", lang.get("allowBatteryPermission_msg")),
 						renderPermissionButton("grant_battery_permission_action", attrs.isBatteryPermissionGranted, async () => {
 							// Ask for permission to disable battery optimisations
 							const isBatteryPermissionGranted = await locator.systemPermissionHandler.requestPermission(

@@ -73,10 +73,10 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 		return m(".color-picker", [
 			this.renderHuePicker(attrs.onselect),
 			m(
-				".flex.wrap.full-width.items-center.justify-between.p0.plr-s",
+				".flex.wrap.full-width.items-center.justify-between.p0.plr-4",
 				{
 					style: {
-						rowGap: px(size.vpad_xs),
+						rowGap: px(size.spacing_4),
 						marginTop: px(12),
 					},
 				},
@@ -87,7 +87,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 						selectedColor: attrs.value,
 						onselect: attrs.onselect,
 						// add right divider to first color option
-						className: i === 0 ? ".pr-vpad-s.mr-hpad-small" : undefined,
+						className: i === 0 ? ".pr-8.mr-4" : undefined,
 						style:
 							i === 0
 								? {
@@ -137,7 +137,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 	}
 
 	private renderCustomColorContainer(attrs: ColorPickerViewAttrs) {
-		return m(".custom-color-container.flex.items-start.gap-hpad", [
+		return m(".custom-color-container.flex.items-start.gap-12", [
 			m("", [
 				m(TextField, {
 					value: this.customColorHex.replace("#", ""),
@@ -154,7 +154,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 					this.postionSliderOnHue(assertNotNull(this.hueImgDom), assertNotNull(this.hueSliderDom))
 					attrs.onselect(color)
 				},
-				className: ".mt-m",
+				className: ".mt-12",
 			}),
 		])
 	}
@@ -224,7 +224,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 				style,
 			},
 			m(
-				".border-radius-m",
+				".border-radius-8",
 				{
 					style: {
 						padding: "1px",

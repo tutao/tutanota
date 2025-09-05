@@ -10,7 +10,7 @@ export const LoginScreenHeader = pureComponent(() =>
 	styles.isDesktopLayout()
 		? m(DesktopBaseHeader)
 		: m(
-				".mt-l.flex.justify-center.mb",
+				".mt-32.flex.justify-center.mb-16",
 				m(
 					".logo.logo-height.mt-safe-inset",
 					{

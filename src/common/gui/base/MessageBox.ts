@@ -13,7 +13,7 @@ export type MessageBoxAttrs = {
 export class MessageBox implements Component<MessageBoxAttrs> {
 	view({ attrs, children }: Vnode<MessageBoxAttrs>): Children {
 		return m(
-			".justify-center.items-start.dialog-width-s.pt.pb.plr.border-radius",
+			".justify-center.items-start.dialog-width-s.pt-16.pb-16.plr-12.border-radius",
 			{
 				style: Object.assign(
 					{

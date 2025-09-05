@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils.js"
-import { px, size, size as sizes } from "../size.js"
+import { layout_size, px, size, size as sizes } from "../size.js"
 import { theme } from "../theme.js"
 
 export interface DesktopBaseHeaderAttrs {
@@ -27,7 +27,7 @@ export class DesktopBaseHeader implements ClassComponent<DesktopBaseHeaderAttrs>
 			{
 				...landmarkAttrs(AriaLandmarks.Banner, "Tuta logo"),
 				style: {
-					"padding-left": px(sizes.drawer_menu_width + size.hpad + size.hpad_button),
+					"padding-left": px(layout_size.drawer_menu_width + size.spacing_12 + size.spacing_8),
 					width: px(width),
 				},
 			},

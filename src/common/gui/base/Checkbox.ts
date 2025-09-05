@@ -5,7 +5,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
 import { theme } from "../theme.js"
 import { encodeSVG, getOperatingClasses } from "./GuiUtils.js"
-import { px, size } from "../size"
+import { component_size, px, size } from "../size"
 
 export type CheckboxAttrs = {
 	label: lazy<string | Children>
@@ -30,7 +30,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 					`small.block.content-fg${Checkbox.getBreakClass(helpLabelText)}`,
 					{
 						style: {
-							marginLeft: px(size.checkbox_helper_text_margin),
+							marginLeft: px(component_size.checkbox_helper_text_margin),
 						},
 					},
 					helpLabelText,
@@ -38,7 +38,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 			: []
 		const userClasses = a.class == null ? "" : " " + a.class
 		return m(
-			`.pt`,
+			`.pt-16`,
 			{
 				"aria-disabled": a.disabled != null ? String(a.disabled) : undefined,
 				class: getOperatingClasses(a.disabled, "click flash") + userClasses,

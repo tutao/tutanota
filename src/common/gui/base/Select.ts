@@ -117,7 +117,7 @@ export interface SelectState {
  *     expanded: true,
  *     selected: this.selected,
  *     renderOption: (option) => {
- *       return m(".flex.items-center.gap-vpad-xs", [
+ *       return m(".flex.items-center.gap-4", [
  *         m("div", { style: { width: "24px", height: "24px", borderRadius: "50%", backgroundColor: option.color } }),
  *       m("span", option.name),
  *       ])
@@ -203,7 +203,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 									icon: BootIcons.Expand,
 									container: "div",
 									class: `fit-content`,
-									size: IconSize.Medium,
+									size: IconSize.PX24,
 									style: {
 										fill: iconColor ?? getColors(ButtonColor.Content).button,
 									},
@@ -414,12 +414,12 @@ class OptionListContainer implements ClassComponent {
 								const children = Array.from(vnode.dom.children) as Array<HTMLElement>
 								const indexToNotCount = children.length - 1
 								this.maxHeight = Math.min(
-									250 + size.vpad,
+									250 + size.spacing_16,
 									children.reduce(
 										(accumulator, children, currentIndex, array) =>
 											currentIndex < indexToNotCount ? accumulator + children.offsetHeight : accumulator,
 										0,
-									) + size.vpad,
+									) + size.spacing_16,
 								)
 
 								if (this.origin) {
@@ -563,11 +563,11 @@ class OptionListContainer implements ClassComponent {
 		const children = Array.from(vnode.dom.children) as Array<HTMLElement>
 		const indexToNotCount = children.length - 1
 		const contentHeight = Math.min(
-			250 + size.vpad,
+			250 + size.spacing_16,
 			children.reduce(
 				(accumulator, children, currentIndex, array) => (currentIndex < indexToNotCount ? accumulator + children.offsetHeight : accumulator),
 				0,
-			) + size.vpad,
+			) + size.spacing_16,
 		)
 
 		this.maxHeight = lowerSpace > upperSpace ? Math.min(contentHeight, lowerSpace) : Math.min(contentHeight, upperSpace)

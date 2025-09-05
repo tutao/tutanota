@@ -75,8 +75,8 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 		child: {
 			view: () =>
 				m(".flex.col", [
-					m(".mb", [
-						m(".pt.selectable", isMember ? lang.getTranslationText(texts.alreadyGroupMemberMessage) : texts.receivedGroupInvitationMessage),
+					m(".mb-16", [
+						m(".pt-16.selectable", isMember ? lang.getTranslationText(texts.alreadyGroupMemberMessage) : texts.receivedGroupInvitationMessage),
 						m(TextField, {
 							value: nameStream(),
 							oninput: nameStream,
@@ -147,7 +147,7 @@ function renderCalendarGroupInvitationFields(
 ): Children {
 	let alarms = alarmsStream()
 	return [
-		m(".small.mt.mb-xs", lang.get("color_label")),
+		m(".small.mt-16.mb-4", lang.get("color_label")),
 		m(ColorPickerView, {
 			value: selectedColourValue(),
 			onselect: selectedColourValue,

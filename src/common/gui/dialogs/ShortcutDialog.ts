@@ -52,7 +52,7 @@ class ShortcutDialog implements Component<ShortcutDialogAttrs> {
 				isReadOnly: true,
 			}))
 		return m(
-			"div.pb",
+			"div.pb-16",
 			textFieldAttrs.map((t) => m(TextField, t)),
 		)
 	}

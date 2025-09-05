@@ -35,12 +35,12 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 		const userController = logins.getUserController()
 
 		return m(
-			"drawer-menu.flex.col.items-center.pt.pb.noprint",
+			"drawer-menu.flex.col.items-center.pt-16.pb-16.noprint",
 			{
 				...landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
 				style: {
 					"padding-left": getSafeAreaInsetLeft(),
-					"border-top-right-radius": styles.isDesktopLayout() ? px(size.border_radius_larger) : "",
+					"border-top-right-radius": styles.isDesktopLayout() ? px(size.radius_12) : "",
 				},
 			},
 			[

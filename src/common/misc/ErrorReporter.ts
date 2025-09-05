@@ -165,7 +165,7 @@ function showReportDialog(
 					{
 						expanded: detailsExpanded,
 					},
-					m(".selectable", [m(".selectable", subject), message.split("\n").map((l) => (l.trim() === "" ? m(".pb", "") : m("", l)))]),
+					m(".selectable", [m(".selectable", subject), message.split("\n").map((l) => (l.trim() === "" ? m(".pb-16", "") : m("", l)))]),
 				),
 			]
 		},
@@ -207,7 +207,7 @@ async function showLogDialog(heading: string, text: string) {
 			middle: lang.makeTranslation("heading", heading),
 		},
 		{
-			view: () => m(".white-space-pre.pt.pb.selectable", text),
+			view: () => m(".white-space-pre.pt-16.pb-16.selectable", text),
 		},
 	)
 		.addShortcut({
@@ -226,7 +226,7 @@ export async function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 
 	const info = () => [
 		m(
-			".flex.col.items-end.plr",
+			".flex.col.items-end.plr-12",
 			{
 				style: {
 					marginTop: "-16px",
@@ -234,7 +234,7 @@ export async function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 			},
 			[
 				m(
-					"div.mr-negative-xs",
+					"div.mr-negative-4",
 					m(ExpanderButton, {
 						expanded: expanded(),
 						onExpandedChange: expanded,
@@ -250,7 +250,7 @@ export async function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 			},
 			[
 				m(
-					".flex-end.plr",
+					".flex-end.plr-12",
 					m(Button, {
 						label: "copy_action",
 						click: () => copyToClipboard(message),
@@ -258,7 +258,7 @@ export async function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 					}),
 				),
 				m(
-					".plr.selectable.pb.scroll.text-pre",
+					".plr-12.selectable.pb-16.scroll.text-pre",
 					{
 						style: {
 							height: px(200),

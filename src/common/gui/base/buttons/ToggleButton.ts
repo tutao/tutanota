@@ -24,7 +24,7 @@ export class ToggleButton implements Component<ToggleButtonAttrs> {
 				icon: attrs.icon,
 				container: "div",
 				class: "center-h",
-				size: IconSize.Medium,
+				size: IconSize.PX24,
 				style: {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
 				},

@@ -262,7 +262,7 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 	private setPageWidth(dom: HTMLElement) {
 		const parentElement = dom.parentElement
 		if (parentElement) {
-			this.pageWidth = dom.parentElement.clientWidth - size.hpad_large * 2
+			this.pageWidth = dom.parentElement.clientWidth - size.spacing_24 * 2
 		}
 	}
 
@@ -330,7 +330,7 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 		this.tryScrollToTop()
 
 		const target = vnode.attrs.currentPageStream()
-		this.translate = -(this.pageWidth + size.vpad_xxl)
+		this.translate = -(this.pageWidth + size.spacing_64)
 		m.redraw.sync()
 
 		vnode.attrs.isAnimating(true)
@@ -358,12 +358,12 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 		vnode.attrs.isAnimating(true)
 		this.transitionPage(target)
 		this.transitionClass = "transition-transform"
-		this.translate = -(this.pageWidth + size.vpad_xxl)
+		this.translate = -(this.pageWidth + size.spacing_64)
 	}
 
 	view(vnode: Vnode<Props>): Children {
 		return m(
-			".flex.gap-vpad-xxl.fit-content",
+			".flex.gap-64.fit-content",
 			{
 				id: "multi-page-dialog",
 				class: this.transitionClass,

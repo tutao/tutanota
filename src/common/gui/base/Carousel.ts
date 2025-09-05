@@ -19,7 +19,7 @@ export class Carousel implements Component<CarouselAttrs> {
 	view(vnode: Vnode<CarouselAttrs>): Children {
 		const attrs = vnode.attrs
 		return m(
-			"section.flex-space-around.column-gap-s",
+			"section.flex-space-around.column-gap-4",
 			{
 				role: "group",
 				"aria-roledescription": "carousel",

@@ -42,10 +42,10 @@ export class FingerprintRow implements Component<FingerprintRowAttrs> {
 		const { mailAddress, publicKeyFingerprint, action, publicKeyVersion, publicKeyType } = vnode.attrs
 
 		return m(Card, [
-			m(".flex.items-center.selectable.pl-vpad-s.mb-s.gap-vpad-xs", [
+			m(".flex.items-center.selectable.pl-8.mb-8.gap-4", [
 				m(Icon, {
 					icon: Icons.Shield,
-					size: IconSize.Large,
+					size: IconSize.PX20,
 					style: { fill: theme.success },
 				}),
 				m(".text-break.b.selectable", mailAddress),
@@ -65,10 +65,10 @@ export class FingerprintRow implements Component<FingerprintRowAttrs> {
 				text: publicKeyFingerprint,
 				chunkSize: 4,
 				chunksPerLine: 8,
-				classes: ".small.flex-start.lh-l.pl-vpad-s.mb-s",
+				classes: ".small.flex-start.lh-l.pl-8.mb-8",
 				border: false,
 			}),
-			m(".small.pl-vpad-s.mb-s", m("", `v${publicKeyVersion}, via ${getProtocolName(publicKeyType)}`)),
+			m(".small.pl-8.mb-8", m("", `v${publicKeyVersion}, via ${getProtocolName(publicKeyType)}`)),
 		])
 	}
 }

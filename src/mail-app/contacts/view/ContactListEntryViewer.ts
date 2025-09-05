@@ -22,16 +22,16 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 	view({ attrs }: Vnode<ContactListEntryViewerAttrs>): Children {
 		return m(".flex.flex-column", [
 			m(
-				".border-radius-big.rel",
+				".border-radius-12.rel",
 				{
 					class: responsiveCardHMargin(),
 					style: {
 						backgroundColor: theme.surface,
 					},
 				},
-				m(".plr-l.pt.pb.mlr-safe-inset", m(".h2.selectable.text-break", attrs.entry.emailAddress)),
+				m(".plr-24.pt-16.pb-16.mlr-safe-inset", m(".h2.selectable.text-break", attrs.entry.emailAddress)),
 			),
-			m(".mt-l"),
+			m(".mt-32"),
 			attrs.contacts.length >= 1
 				? attrs.contacts.map((contact) =>
 						m(ContactCardViewer, {
@@ -42,7 +42,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 						}),
 					)
 				: m(
-						".border-radius-big.rel",
+						".border-radius-12.rel",
 						{
 							class: responsiveCardHMargin(),
 							style: {
@@ -50,7 +50,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 							},
 						},
 						m(
-							".plr-l.pt.pb.mlr-safe-inset",
+							".plr-24.pt-16.pb-16.mlr-safe-inset",
 							lang.get("noContactFound_msg"),
 							m(Button, {
 								label: "createContact_action",

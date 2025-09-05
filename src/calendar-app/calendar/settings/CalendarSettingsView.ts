@@ -15,7 +15,7 @@ import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { LoginSettingsViewer } from "../../../common/settings/login/LoginSettingsViewer.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { AppearanceSettingsViewer } from "../../../common/settings/AppearanceSettingsViewer.js"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, layout_size, px, size } from "../../../common/gui/size.js"
 import { lang, MaybeTranslation } from "../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../common/gui/theme.js"
@@ -142,8 +142,8 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
+				minWidth: layout_size.first_col_min_width,
+				maxWidth: layout_size.first_col_max_width,
 				headerCenter: "settings_label",
 			},
 		)
@@ -157,14 +157,14 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				view: () =>
 					m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
-						classes: this.isTabletView() ? "pr-m pl-vpad-s" : "",
+						classes: this.isTabletView() ? "pr-16 pl-8" : "",
 						columnLayout: m(
-							".mlr-safe-inset.fill-absolute.content-bg.border-radius-top-left-m.border-radius-top-right-m",
+							".mlr-safe-inset.fill-absolute.content-bg.border-radius-top-left-8.border-radius-top-right-8",
 							{
-								class: this.isTabletView() ? "border-radius-top-left-big" : "",
+								class: this.isTabletView() ? "border-radius-top-left-12" : "",
 								style: this.isTabletView()
 									? {
-											"margin-top": px(size.navbar_height_mobile + size.vpad_small),
+											"margin-top": px(component_size.navbar_height_mobile + size.spacing_8),
 										}
 									: {},
 							},
@@ -190,8 +190,8 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.third_col_min_width,
-				maxWidth: size.third_col_max_width,
+				minWidth: layout_size.third_col_min_width,
+				maxWidth: layout_size.third_col_max_width,
 				headerCenter: this.selectedFolder.name,
 			},
 		)
@@ -202,26 +202,26 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		const safeArea = isIOSApp() ? getSafeAreaInsetBottom() : 0
 
 		return m(
-			".pb.pt-l.flex-no-shrink.flex.col.justify-end.items-center.gap-vpad",
+			".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.items-center.gap-16",
 			{
 				style: {
-					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.vpad),
+					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.spacing_16),
 				},
 			},
 			[
 				// Support button
 				m(BaseButton, {
-					class: "flash flex justify-center center-vertically pt-s pb-s plr border-radius",
+					class: "flash flex justify-center center-vertically pt-8 pb-8 plr-12 border-radius",
 					style: {
 						marginInline: "auto",
 						border: `1px solid ${theme.outline}`,
 						color: theme.on_surface_variant,
 					},
 					label: "supportMenu_label",
-					text: m(".pl-s", lang.getTranslation("supportMenu_label").text),
+					text: m(".pl-4", lang.getTranslation("supportMenu_label").text),
 					icon: m(Icon, {
 						icon: Icons.SpeechBubbleFill,
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 						class: "center-h",
 						container: "div",
 						style: { fill: theme.on_surface_variant },
@@ -377,14 +377,14 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		}
 
 		return m(
-			".flex.col.pl-vpad-m.pt-s.pb-s",
+			".flex.col.pl-16.pt-8.pb-8",
 			{
-				class: styles.isSingleColumnLayout() ? "pr-m" : "pr-vpad-s",
+				class: styles.isSingleColumnLayout() ? "pr-16" : "pr-8",
 			},
 			[
-				m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText(title)),
+				m("small.uppercase.pb-8.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText(title)),
 				m(
-					".flex.col.border-radius-m.list-bg",
+					".flex.col.border-radius-8.list-bg",
 					folders
 						.filter((folder) => folder.isVisible())
 						.map((folder) => {

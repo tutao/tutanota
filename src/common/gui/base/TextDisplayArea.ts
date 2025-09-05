@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { theme } from "../theme"
-import { inputLineHeight, px, size } from "../size"
+import { font_size, px, size } from "../size"
 import type { lazy } from "@tutao/tutanota-utils"
 
 export type TextDisplayAreaAttrs = {
@@ -15,12 +15,12 @@ export type TextDisplayAreaAttrs = {
  */
 export class TextDisplayArea implements Component<TextDisplayAreaAttrs> {
 	view(vnode: Vnode<TextDisplayAreaAttrs>): Children {
-		return m(".flex.flex-grow.flex-column.text.pt", [
+		return m(".flex.flex-grow.flex-column.text.pt-16", [
 			m(
-				"label.text-ellipsis.noselect.z1.i.pr-s",
+				"label.text-ellipsis.noselect.z1.i.pr-4",
 				{
 					style: {
-						fontSize: px(size.font_size_small),
+						fontSize: px(font_size.small),
 					},
 				},
 				lang.getTranslationText(vnode.attrs.label),
@@ -30,8 +30,8 @@ export class TextDisplayArea implements Component<TextDisplayAreaAttrs> {
 				{
 					style: {
 						borderBottom: `1px solid ${theme.outline}`,
-						lineHeight: px(inputLineHeight),
-						minHeight: px(inputLineHeight),
+						lineHeight: px(font_size.line_height_input),
+						minHeight: px(font_size.line_height_input),
 					},
 					isReadOnly: true,
 				},

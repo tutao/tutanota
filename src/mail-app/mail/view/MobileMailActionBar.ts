@@ -6,7 +6,7 @@ import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
 import { modal } from "../../../common/gui/base/Modal.js"
 import type { MailViewerMoreActions } from "./MailViewerUtils.js"
 import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { noOp } from "@tutao/tutanota-utils"
 
 export interface MobileMailActionBarAttrs {
@@ -31,7 +31,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		const { attrs } = vnode
 
 		return m(
-			".bottom-nav.bottom-action-bar.flex.items-center.plr-l.justify-between",
+			".bottom-nav.bottom-action-bar.flex.items-center.plr-24.justify-between",
 			{
 				oncreate: (vnode) => {
 					this.dom = vnode.dom as HTMLElement
@@ -50,7 +50,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 	private placeholder() {
 		return m("", {
 			style: {
-				width: px(size.button_height),
+				width: px(component_size.button_height),
 			},
 		})
 	}

@@ -42,7 +42,7 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
-			".state-bg.border.border-radius.flex.items-center.mb.pl-l.pr",
+			".state-bg.border.border-radius.flex.items-center.mb-16.pl-24.pr-12",
 			{
 				// Make the option the same size as a button if a description is not given
 				class: "button-min-width button-min-height" + attrClasses,
@@ -56,7 +56,7 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 				},
 			},
 			[
-				m("input[type=radio].m-0.mr-button.content-accent-accent", {
+				m("input[type=radio].m-0.mr-8.content-accent-accent", {
 					/* The `name` attribute defines the group the radio button belongs to. Not the name/label of the radio button itself.
 					 * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#defining_a_radio_group
 					 */
@@ -66,7 +66,7 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 					// Handle changes in value from the attributes
 					checked: isSelected ? true : null,
 				}),
-				m("label.b.left.pt-xs.pb-xs", { for: optionId }, lang.getTranslationText(option.name)),
+				m("label.b.left.pt-4.pb-4", { for: optionId }, lang.getTranslationText(option.name)),
 			],
 		)
 	}

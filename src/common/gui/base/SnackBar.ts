@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../size"
+import { layout_size, px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { displayOverlay } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
@@ -41,9 +41,9 @@ class SnackBar implements Component<SnackBarAttrs> {
 	view(vnode: Vnode<SnackBarAttrs>) {
 		// use same padding as MinimizedEditor
 		return m(
-			".snackbar-content.flex.flex-space-between.border-radius.pb-xs.pt-xs",
+			".snackbar-content.flex.flex-space-between.border-radius.pb-4.pt-4",
 			{
-				class: vnode.attrs.dismissButton ? "pl" : "plr",
+				class: vnode.attrs.dismissButton ? "pl-12" : "plr-12",
 				onmouseenter: () => {
 					vnode.attrs.onHoverChange(true)
 				},
@@ -53,7 +53,7 @@ class SnackBar implements Component<SnackBarAttrs> {
 			},
 			[
 				m(".flex.center-vertically.smaller", lang.getTranslationText(vnode.attrs.message)),
-				vnode.attrs.button ? m(".flex-end.center-vertically.pl", m(Button, vnode.attrs.button)) : null,
+				vnode.attrs.button ? m(".flex-end.center-vertically.pl-12", m(Button, vnode.attrs.button)) : null,
 				vnode.attrs.dismissButton ? m(".flex.items-center.justify-right", [m(IconButton, vnode.attrs.dismissButton)]) : null,
 			],
 		)
@@ -152,8 +152,8 @@ export function showSnackBar(args: {
 
 function getSnackBarPosition() {
 	// The snackbar will be moved up from off the bottom of the viewport by the transformation animation.
-	const snackBarMargin = styles.isUsingBottomNavigation() ? size.hpad : size.hpad_medium
-	const leftOffset = styles.isDesktopLayout() ? size.drawer_menu_width : 0
+	const snackBarMargin = styles.isUsingBottomNavigation() ? size.spacing_12 : size.spacing_24
+	const leftOffset = styles.isDesktopLayout() ? layout_size.drawer_menu_width : 0
 	const snackBarWidth = Math.min(window.innerWidth - leftOffset - 2 * snackBarMargin, MAX_SNACKBAR_WIDTH)
 	return {
 		bottom: px(snackBarMargin),

@@ -58,12 +58,12 @@ export class WeekRepetitionSelector implements Component<WeekRepetitionSelectorA
 						expanded: false,
 						classes: ["no-appearance"],
 						responsive: true,
-						renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", option.name)]),
+						renderDisplay: (option) => m(".flex.items-center.gap-8", [m("span", option.name)]),
 						renderOption: (option) =>
 							m(
 								"button.items-center.flex-grow",
 								{
-									class: "state-bg button-content dropdown-button pt-s pb-s button-min-height",
+									class: "state-bg button-content dropdown-button pt-8 pb-8 button-min-height",
 								},
 								option.name,
 							),

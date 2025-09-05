@@ -215,7 +215,7 @@ export class ContactEditor {
 				this.renderCommentField(),
 			]),
 			m(".wrapping-row", [
-				m(".custom-dates.mt-xl", [
+				m(".custom-dates.mt-48", [
 					m(".h4", lang.get("dates_label")),
 					m(".aggregateEditors", [
 						this.customDates.map(([date, id], index) => {
@@ -224,7 +224,7 @@ export class ContactEditor {
 						}),
 					]),
 				]),
-				m(".mail.mt-xl", [
+				m(".mail.mt-48", [
 					m(".h4", lang.get("email_label")),
 					m(".aggregateEditors", [
 						this.mailAddresses.map(([address, id], index) => {
@@ -233,7 +233,7 @@ export class ContactEditor {
 						}),
 					]),
 				]),
-				m(".phone.mt-xl", [
+				m(".phone.mt-48", [
 					m(".h4", lang.get("phone_label")),
 					m(".aggregateEditors", [
 						this.phoneNumbers.map(([phoneNumber, id], index) => {
@@ -242,7 +242,7 @@ export class ContactEditor {
 						}),
 					]),
 				]),
-				m(".relationship.mt-xl", [
+				m(".relationship.mt-48", [
 					m(".h4", lang.get("relatedPeople_label")),
 					m(".aggregateEditors", [
 						this.relationships.map(([relationship, id], index) => {
@@ -251,7 +251,7 @@ export class ContactEditor {
 						}),
 					]),
 				]),
-				m(".address.mt-xl", [
+				m(".address.mt-48", [
 					m(".h4", lang.get("address_label")),
 					m(".aggregateEditors", [
 						this.addresses.map(([address, id], index) => {
@@ -262,7 +262,7 @@ export class ContactEditor {
 				]),
 			]),
 			m(".wrapping-row", [
-				m(".pronouns.mt-xl", [
+				m(".pronouns.mt-48", [
 					m(".h4", lang.get("pronouns_label")),
 					m(".aggregateEditors", [
 						this.pronouns.map(([pronouns, id], index) => {
@@ -271,7 +271,7 @@ export class ContactEditor {
 						}),
 					]),
 				]),
-				m(".social.mt-xl", [
+				m(".social.mt-48", [
 					m(".h4", lang.get("social_label")),
 					m(".aggregateEditors", [
 						this.socialIds.map(([socialId, id], index) => {
@@ -280,7 +280,7 @@ export class ContactEditor {
 						}),
 					]),
 				]),
-				m(".website.mt-xl", [
+				m(".website.mt-48", [
 					m(".h4", lang.get("websites_label")),
 					m(".aggregateEditors", [
 						this.websites.map(([website, id], index) => {
@@ -289,7 +289,7 @@ export class ContactEditor {
 						}),
 					]),
 				]),
-				m(".instant-message.mt-xl", [
+				m(".instant-message.mt-48", [
 					m(".h4", lang.get("messenger_handles_label")),
 					m(".aggregateEditors", [
 						this.messengerHandles.map(([handle, id], index) => {
@@ -300,7 +300,7 @@ export class ContactEditor {
 				]),
 			]),
 			this.renderPresharedPasswordField(),
-			m(".pb"),
+			m(".pb-16"),
 		])
 	}
 
@@ -729,7 +729,7 @@ export class ContactEditor {
 		}
 
 		return m(".wrapping-row", [
-			m(".passwords.mt-xl", [
+			m(".passwords.mt-48", [
 				m(".h4", lang.get("presharedPassword_label")),
 				m(PasswordField, {
 					value: this.contact.presharedPassword ?? "",

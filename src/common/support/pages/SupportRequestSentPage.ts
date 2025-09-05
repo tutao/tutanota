@@ -33,17 +33,17 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 		const isCalendarApp = client.isCalendarApp()
 
 		return m(
-			".pt.pb.flex.gap-vpad.col",
+			".pt-16.pb-16.flex.gap-16.col",
 			m(
 				Card,
 				m(
 					"",
-					m(".h4.center.pb-s.pt-s", lang.get("supportRequestReceived_title")),
+					m(".h4.center.pb-8.pt-8", lang.get("supportRequestReceived_title")),
 					m("p.center.m-0", lang.get("supportRequestReceived_msg")),
 					m(
-						".mt-l.mb-s",
+						".mt-32.mb-8",
 						{},
-						m("img.pb.block.full-width.height-100p", {
+						m("img.pb-16.block.full-width.height-100p", {
 							src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/other.png`,
 							alt: "",
 							rel: "noreferrer",
@@ -54,7 +54,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 				),
 			),
 			isCalendarApp
-				? m(Card, { shouldDivide: true }, m(".plr.pt.pb", "You can access the response in Tuta Mail using your Tuta Calendar credentials."), [
+				? m(Card, { shouldDivide: true }, m(".plr-12.pt-16.pb-16", "You can access the response in Tuta Mail using your Tuta Calendar credentials."), [
 						m(SectionButton, {
 							text: "getTutaMail_action",
 							onclick: () => {

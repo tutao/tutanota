@@ -32,7 +32,7 @@ export type RadioGroupAttrs<T> = {
 export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 	view({ attrs }: Vnode<RadioGroupAttrs<T>>): Children {
 		return m(
-			"ul.unstyled-list.flex.col.gap-vpad",
+			"ul.unstyled-list.flex.col.gap-16",
 			{
 				ariaLabel: lang.getTranslationText(attrs.ariaLabel),
 				role: AriaRole.RadioGroup,
@@ -60,7 +60,7 @@ export class RadioGroup<T> implements Component<RadioGroupAttrs<T>> {
 
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
-			"li.flex.gap-vpad.cursor-pointer.full-width.flash",
+			"li.flex.gap-16.cursor-pointer.full-width.flash",
 			{
 				class: optionClass ?? "",
 				onclick: () => {

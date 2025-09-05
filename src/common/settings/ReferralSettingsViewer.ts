@@ -15,7 +15,7 @@ export class ReferralSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		return m(".mt-l.plr-l.pb-xl", m(ReferralLinkViewer, { referralLink: this.referralLink }))
+		return m(".mt-32.plr-24.pb-48", m(ReferralLinkViewer, { referralLink: this.referralLink }))
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {

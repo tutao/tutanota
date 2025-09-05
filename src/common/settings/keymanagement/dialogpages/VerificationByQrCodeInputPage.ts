@@ -40,7 +40,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 	}
 
 	view(vnode: Vnode<VerificationByQrCodePageAttrs>): Children {
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-16", [
 			m(TitleSection, {
 				title: lang.get("keyManagement.qrVerification_label"),
 				subTitle: lang.get("keyManagement.verificationByQrCodeScan_label"),
@@ -96,7 +96,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 				},
 				style: { display: "block", "max-width": "100%" },
 			})
-			return m(".mt.mb.ml.mr.border-radius", { style: { overflow: "clip" } }, video)
+			return m(".mt-16.mb-16.ml-12.mr-12.border-radius", { style: { overflow: "clip" } }, video)
 		}
 	}
 

@@ -48,8 +48,8 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 			return m(
 				ListColumnWrapper,
 				m(
-					"section.fill-absolute.scroll.plr-l",
-					m("h4.mt-l", lang.get("affiliateSettings_label")),
+					"section.fill-absolute.scroll.plr-24",
+					m("h4.mt-32", lang.get("affiliateSettings_label")),
 					m(TextField, {
 						isReadOnly: true,
 						label: "referralLink_label",
@@ -75,7 +75,7 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 						value: formatPrice(Number(avm!.data!.creditedCommission), true),
 					}),
 					m(
-						".flex.center-horizontally.mt-m",
+						".flex.center-horizontally.mt-12",
 						m(Button, {
 							label: this.getIsShowingKpis() ? "affiliateSettingsHideKpis_label" : "affiliateSettingsShowKpis_label",
 							type: ButtonType.Secondary,

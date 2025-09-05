@@ -110,7 +110,7 @@ export class Dialog implements ModalComponent {
 		]
 
 		this.view = (): Children => {
-			const marginPx = px(size.hpad)
+			const marginPx = px(size.spacing_12)
 			const isEditLarge = dialogType === DialogType.EditLarge
 			const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : marginPx
 			return m(
@@ -246,18 +246,18 @@ export class Dialog implements ModalComponent {
 	}
 
 	private getDialogStyle(dialogType: DialogType): string {
-		let dialogStyle = ".dialog.elevated-bg.flex-grow.border-radius-top"
+		let dialogStyle = ".dialog.elevated-bg.flex-grow.border-radius-top-8"
 
 		if (dialogType === DialogType.Progress) {
-			dialogStyle += ".dialog-width-s.dialog-progress.border-radius-bottom"
+			dialogStyle += ".dialog-width-s.dialog-progress.border-radius-bottom-8"
 		} else if (dialogType === DialogType.Alert) {
-			dialogStyle += ".dialog-width-alert.pt.border-radius-bottom"
+			dialogStyle += ".dialog-width-alert.pt-16.border-radius-bottom-8"
 		} else if (dialogType === DialogType.Reminder) {
-			dialogStyle += ".dialog-width-m.pt.flex.flex-column.border-radius-bottom"
+			dialogStyle += ".dialog-width-m.pt-16.flex.flex-column.border-radius-bottom-8"
 		} else if (dialogType === DialogType.EditSmall) {
-			dialogStyle += ".dialog-width-s.flex.flex-column.border-radius-bottom"
+			dialogStyle += ".dialog-width-s.flex.flex-column.border-radius-bottom-8"
 		} else if (dialogType === DialogType.EditMedium) {
-			dialogStyle += ".dialog-width-m.border-radius-bottom"
+			dialogStyle += ".dialog-width-m.border-radius-bottom-8"
 		} else if (dialogType === DialogType.EditLarge || dialogType === DialogType.EditLarger) {
 			dialogStyle += ".dialog-width-l"
 		}
@@ -434,7 +434,7 @@ export class Dialog implements ModalComponent {
 			dialog = new Dialog(DialogType.Alert, {
 				view: () =>
 					m("", [
-						m(".dialog-contentButtonsBottom.text-break", [m(Button, downloadButtonAttrs), m(".pt", lang.get("saveDownloadNotPossibleIos_msg"))]),
+						m(".dialog-contentButtonsBottom.text-break", [m(Button, downloadButtonAttrs), m(".pt-16", lang.get("saveDownloadNotPossibleIos_msg"))]),
 						m(".flex-center.dialog-buttons", m(Button, closeButtonAttrs)),
 					]),
 			})
@@ -620,7 +620,7 @@ export class Dialog implements ModalComponent {
 
 			const dialog = new Dialog(DialogType.Alert, {
 				view: () =>
-					m(".flex.flex-column.pl-l.pr-l.pb-s", [
+					m(".flex.flex-column.pl-24.pr-24.pb-8", [
 						m("#dialog-message.dialog-max-height.text-break.text-prewrap.selectable.scroll", getContent()),
 						buttonAttrs.length === 0
 							? null
@@ -688,7 +688,7 @@ export class Dialog implements ModalComponent {
 				middle: lang.makeTranslation("title", title()),
 			}
 			saveDialog = new Dialog(DialogType.EditMedium, {
-				view: () => m("", [m(DialogHeaderBar, actionBarAttrs), m(".plr-l.pb.text-break", m(child))]),
+				view: () => m("", [m(DialogHeaderBar, actionBarAttrs), m(".plr-24.pb-16.text-break", m(child))]),
 			})
 				.setCloseHandler(closeAction)
 				.show()
@@ -709,7 +709,7 @@ export class Dialog implements ModalComponent {
 			dialog = new Dialog(DialogType.EditMedium, {
 				view: () =>
 					m(
-						".plr-l",
+						".plr-24",
 						m(ImageWithOptionsDialog, {
 							image: `${window.tutao.appState.prefixWithoutFile}/images/update/update_needed_illu_${
 								client.isCalendarApp() ? "calendar" : "mail"
@@ -781,10 +781,10 @@ export class Dialog implements ModalComponent {
 		return new Dialog(DialogType.Reminder, {
 			view: () => [
 				m(".dialog-contentButtonsBottom.text-break.scroll", [
-					m(".h2.pb", title),
+					m(".h2.pb-16", title),
 					m(".flex-direction-change.items-center", [
-						m("#dialog-message.pb.selectable", typeof message === "function" ? message() : message),
-						m("img.dialog-img.mb.bg-white.border-radius", {
+						m("#dialog-message.pb-16.selectable", typeof message === "function" ? message() : message),
+						m("img.dialog-img.mb-16.bg-white.border-radius", {
 							style: {
 								"min-width": "150px",
 							},
@@ -813,7 +813,7 @@ export class Dialog implements ModalComponent {
 			dialog = new Dialog(DialogType.EditMedium, {
 				view: () =>
 					m(
-						".plr-2l",
+						".plr-48",
 						m(ImageWithOptionsDialog, {
 							image: `${window.tutao.appState.prefixWithoutFile}/images/newsletter-unsubscribe/unsubscribe_${success ? "success" : "failure"}_${getUnsubscribeImageSuffix(theme.themeId)}.svg`,
 							titleText: success ? "unsubscribeSuccessful_title" : "unsubscribeFailed_title",
@@ -919,7 +919,7 @@ export class Dialog implements ModalComponent {
 		dialog = new Dialog(type, {
 			view: () => [
 				m(DialogHeaderBar, actionBarAttrs),
-				m(".dialog-max-height.plr-l.pb.text-break.scroll", ["function" === typeof child ? child() : m(child)]),
+				m(".dialog-max-height.plr-24.pb-16.text-break.scroll", ["function" === typeof child ? child() : m(child)]),
 			],
 		}).setCloseHandler(doCancel)
 		dialog.addShortcut({
@@ -1067,7 +1067,7 @@ export class Dialog implements ModalComponent {
 	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
-				return m("", [m(DialogHeaderBar, headerBarAttrs), m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child)))])
+				return m("", [m(DialogHeaderBar, headerBarAttrs), m(".dialog-container.scroll", m(".fill-absolute.plr-24", m(child)))])
 			},
 		})
 	}
@@ -1079,7 +1079,7 @@ export class Dialog implements ModalComponent {
 					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 					/** variable-size child container that may be scrollable. */
-					m(".dialog-container.scroll.hide-outline", m(".fill-absolute.plr-l", m(child, childAttrs))),
+					m(".dialog-container.scroll.hide-outline", m(".fill-absolute.plr-24", m(child, childAttrs))),
 				]),
 		})
 	}
@@ -1096,7 +1096,7 @@ export class Dialog implements ModalComponent {
 					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 					/** variable-size child container that may be scrollable. */
-					m(".scroll.hide-outline.plr-l.flex-grow", { style: { "overflow-x": "hidden" } }, m(child, childAttrs)),
+					m(".scroll.hide-outline.plr-24.flex-grow", { style: { "overflow-x": "hidden" } }, m(child, childAttrs)),
 				]),
 		})
 	}
@@ -1107,7 +1107,7 @@ export class Dialog implements ModalComponent {
 				/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 				headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 				/** variable-size child container that may be scrollable. */
-				m(".scroll.hide-outline.plr-l", child()),
+				m(".scroll.hide-outline.plr-24", child()),
 			],
 		})
 	}

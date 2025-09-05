@@ -15,9 +15,9 @@ export function renderInfoLinks(): Children {
 	const imprintLink = getImprintLink()
 
 	return m(
-		".flex.col.mt-l",
+		".flex.col.mt-32",
 		m(
-			".flex.wrap.justify-center.gap-vpad",
+			".flex.wrap.justify-center.gap-16",
 			!isApp() && privacyPolicyLink
 				? m(ExternalLink, {
 						href: privacyPolicyLink,
@@ -38,7 +38,7 @@ export function renderInfoLinks(): Children {
 			m(LanguageDropdown, { variant: "Link" }),
 		),
 		m(
-			".mt.mb.center.small.full-width",
+			".mt-16.mb-16.center.small.full-width",
 			{
 				onclick: (e: MouseEvent) => showVersionDropdown(e),
 			},

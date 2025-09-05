@@ -13,7 +13,7 @@ export type ActionBarAttrs = {
 export class ActionBar implements Component<ActionBarAttrs> {
 	view(vnode: Vnode<ActionBarAttrs>): Children {
 		return m(
-			".action-bar.flex-end.items-center.ml-between-s",
+			".action-bar.flex-end.items-center.ml-between-4",
 			vnode.attrs.buttons.map((b) => m(IconButton, b)),
 		)
 	}

@@ -23,12 +23,12 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 
 	view({ attrs }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const { newAccountData } = attrs.data
-		const bottomPad = Math.max(size.vpad, getSafeAreaInsetBottom())
+		const bottomPad = Math.max(size.spacing_16, getSafeAreaInsetBottom())
 
 		return [
-			m(".center.h4.pt", lang.get("accountCreationCongratulation_msg")),
+			m(".center.h4.pt-16", lang.get("accountCreationCongratulation_msg")),
 			newAccountData
-				? m(".plr-l", [
+				? m(".plr-24", [
 						m(RecoverCodeField, {
 							showMessage: true,
 							recoverCode: assertNotNull(newAccountData.recoverCode),
@@ -40,7 +40,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 					])
 				: null,
 			m(
-				".flex-center.full-width.pt-l",
+				".flex-center.full-width.pt-32",
 				{ style: { "padding-bottom": px(bottomPad) } },
 				m(LoginButton, {
 					label: "ok_action",

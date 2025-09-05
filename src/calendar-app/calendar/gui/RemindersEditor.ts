@@ -93,7 +93,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 		textFieldAttrs[0].label = vnode.attrs.label
 
 		return m(
-			".flex.col.flex-half.pl-s",
+			".flex.col.flex-half.pl-4",
 			textFieldAttrs.map((a) => m(TextField, a)),
 		)
 	}
@@ -125,9 +125,9 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 			ariaValue: lang.get("addReminder_label"),
 		}
 
-		return m("ul.unstyled-list.flex.col.flex-grow.gap-vpad-s", [
+		return m("ul.unstyled-list.flex.col.flex-grow.gap-8", [
 			alarms.map((alarm) =>
-				m("li.flex.justify-between.flew-grow.items-center.gap-vpad-s", [
+				m("li.flex.justify-between.flew-grow.items-center.gap-8", [
 					m("span.flex.justify-between", humanDescriptionForAlarmInterval(alarm, lang.languageTag)),
 					m(
 						BaseButton,
@@ -142,7 +142,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 						},
 						m(Icon, {
 							icon: Icons.Cancel,
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 							style: {
 								fill: getColors(ButtonColor.Content).button,
 							},
@@ -185,7 +185,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 			"button.items-center.flex-grow",
 			{
 				tabIndex: isDisplay ? TabIndex.Programmatic : undefined,
-				class: isDisplay ? `flex ${hasAlarms ? "text-fade" : ""}` : "state-bg button-content button-min-height dropdown-button pt-s pb-s",
+				class: isDisplay ? `flex ${hasAlarms ? "text-fade" : ""}` : "state-bg button-content button-min-height dropdown-button pt-8 pb-8",
 			},
 			option.text,
 		)
@@ -201,7 +201,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 			child: {
 				view: () => {
 					const unitItems = createCustomRepeatRuleUnitValues() ?? []
-					return m(".flex full-width pt-s", [
+					return m(".flex full-width pt-8", [
 						m(TextField, {
 							type: TextFieldType.Number,
 							min: 0,
@@ -218,7 +218,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 							label: "emptyString_msg",
 							selectedValue: timeReminderUnit,
 							items: unitItems,
-							class: "flex-half pl-s",
+							class: "flex-half pl-4",
 							selectionChangedHandler: (selectedValue: AlarmIntervalUnit) => (timeReminderUnit = selectedValue as AlarmIntervalUnit),
 							disabled: false,
 						}),
