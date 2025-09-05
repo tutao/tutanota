@@ -18,7 +18,7 @@ export class MobileActionBar implements Component<MobileActionBarAttrs> {
 		const { attrs } = vnode
 
 		return m(
-			".bottom-nav.bottom-action-bar.flex.items-center.plr-l",
+			".bottom-nav.bottom-action-bar.flex.items-center.plr-24",
 			{
 				style: {
 					justifyContent: "space-around",

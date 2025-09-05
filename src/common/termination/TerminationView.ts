@@ -54,14 +54,14 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
-						".flex-grow-shrink-auto.max-width-m.pb",
+						".flex-grow-shrink-auto.max-width-m.pb-16",
 						{
 							...landmarkAttrs(AriaLandmarks.Main, lang.get("terminationForm_title")),
 							oncreate: (vnode) => {
 								;(vnode.dom as HTMLElement).focus()
 							},
 						},
-						m(".flex.col.pt.plr-l.content-bg.border-radius-big", [
+						m(".flex.col.pt-16.plr-24.content-bg.border-radius-12", [
 							this.model.acceptedTerminationRequest
 								? this.renderTerminationInfo(this.model.mailAddress, this.model.acceptedTerminationRequest)
 								: this.renderTerminationForm(),
@@ -74,9 +74,9 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 
 	private renderTerminationInfo(mailAddress: string, acceptedTerminationRequest: CustomerAccountTerminationRequest): Children {
 		return m("", [
-			m(".h3.mt", "Termination successful"),
+			m(".h3.mt-16", "Termination successful"),
 			m(
-				"p.mt",
+				"p.mt-16",
 				lang.get("terminationSuccessful_msg", {
 					"{accountName}": mailAddress,
 					"{receivedDate}": formatDateTime(acceptedTerminationRequest.terminationRequestDate),

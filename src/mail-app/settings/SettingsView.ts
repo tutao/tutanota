@@ -27,7 +27,7 @@ import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettin
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
 import { NavButtonColor } from "../../common/gui/base/NavButton.js"
 import { SETTINGS_PREFIX } from "../../common/misc/RouteChange"
-import { size } from "../../common/gui/size"
+import { layout_size, size } from "../../common/gui/size"
 import { FolderColumnView } from "../../common/gui/FolderColumnView.js"
 import { getEtId } from "../../common/api/common/utils/EntityUtils"
 import { KnowledgeBaseListView } from "./KnowledgeBaseListView"
@@ -319,8 +319,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			},
 			ColumnType.Foreground,
 			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
+				minWidth: layout_size.first_col_min_width,
+				maxWidth: layout_size.first_col_max_width,
 				headerCenter: "settings_label",
 			},
 		)
@@ -334,7 +334,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						columnLayout: m(
 							".mlr-safe-inset.fill-absolute.content-bg",
 							{
-								class: styles.isUsingBottomNavigation() ? "" : "border-radius-top-left-big",
+								class: styles.isUsingBottomNavigation() ? "" : "border-radius-top-left-12",
 							},
 							m(this._getCurrentViewer()!),
 						),
@@ -792,20 +792,20 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	_bottomSection(): Children {
 		const isFirstPartyDomain = locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 
-		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end.gap-vpad", [
+		return m(".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.gap-16", [
 			// Support button
 			m(BaseButton, {
-				class: "flash flex justify-center center-vertically pt-s pb-s plr border-radius",
+				class: "flash flex justify-center center-vertically pt-8 pb-8 plr-12 border-radius",
 				style: {
 					marginInline: "auto",
 					border: `1px solid ${theme.on_surface_variant}`,
 					color: theme.on_surface_variant,
 				},
 				label: "supportMenu_label",
-				text: m(".pl-s", lang.getTranslation("supportMenu_label").text),
+				text: m(".pl-4", lang.getTranslation("supportMenu_label").text),
 				icon: m(Icon, {
 					icon: Icons.SpeechBubbleFill,
-					size: IconSize.Medium,
+					size: IconSize.PX24,
 					class: "center-h",
 					container: "div",
 					style: { fill: theme.on_surface_variant },

@@ -135,8 +135,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._giftCardsExpanded = stream<boolean>(false)
 
 		this.view = (): Children => {
-			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
-				m(".h4.mt-l", lang.get("currentlyBooked_label")),
+			return m("#subscription-settings.fill-absolute.scroll.plr-24", [
+				m(".h4.mt-32", lang.get("currentlyBooked_label")),
 				m(TextField, {
 					label: "subscription_label",
 					value: this._subscriptionFieldValue(),
@@ -172,8 +172,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 							isReadOnly: true,
 						})
 					: null,
-				m(".small.mt-s", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
-				m(".small.mt-s", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
+				m(".small.mt-8", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
+				m(".small.mt-8", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 				m(
 					SettingsExpander,
 					{
@@ -185,7 +185,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				),
 				LegacyPlans.includes(this.currentPlanType)
 					? [
-							m(".h4.mt-l", lang.get("adminPremiumFeatures_action")),
+							m(".h4.mt-32", lang.get("adminPremiumFeatures_action")),
 							m(TextField, {
 								label: "storageCapacity_label",
 								value: this._storageFieldValue(),

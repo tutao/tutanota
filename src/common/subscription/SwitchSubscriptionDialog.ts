@@ -119,9 +119,9 @@ export async function showSwitchDialog({
 		}
 
 		return m(
-			".pt",
+			".pt-16",
 			// Headline for general messages
-			// reason && m(".flex-center.items-center.gap-hpad.mb", m(".b.center.smaller", lang.getTranslationText(reason))),
+			// reason && m(".flex-center.items-center.gap-12.mb-16", m(".b.center.smaller", lang.getTranslationText(reason))),
 			reason && m(PlanSelectorHeadline, { translation: lang.getTranslation(reason) }),
 			m(PlanSelector, {
 				options,
@@ -419,7 +419,7 @@ async function cancelSubscription(
 ): Promise<PlanType> {
 	const confirmCancelSubscription = Dialog.confirm("unsubscribeConfirm_msg", "ok_action", () => {
 		return m(
-			".pt",
+			".pt-16",
 			m("ul.usage-test-opt-in-bullets", [
 				m("li", lang.get("importedMailsWillBeDeleted_label")),
 				m("li", lang.get("accountWillBeDeactivatedIn6Month_label")),

@@ -101,7 +101,7 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 		},
 	}: Vnode<PlanBoxContainerAttrs>): Children {
 		return m(
-			`.flex-column${allowSwitchingPaymentInterval ? "" : ".mt"}`,
+			`.flex-column${allowSwitchingPaymentInterval ? "" : ".mt-16"}`,
 			{
 				"data-testid": "dialog:select-subscription",
 				style: {
@@ -109,7 +109,7 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 					...(styles.isMobileLayout()
 						? {
 								// Ignore the horizontal paddings to use full width of the dialog for mobile
-								width: `calc(100% + 2 * ${px(size.hpad_large)})`,
+								width: `calc(100% + 2 * ${px(size.spacing_24)})`,
 								left: "50%",
 								transform: "translateX(-50%)",
 							}

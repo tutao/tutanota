@@ -26,12 +26,12 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		return [
 			m(
-				".fill-absolute.scroll.plr-l.pb-xl",
+				".fill-absolute.scroll.plr-24.pb-48",
 				{
 					role: "group",
 				},
 				[
-					m(".h4.mt-l", lang.get("contactsManagement_label")),
+					m(".h4.mt-32", lang.get("contactsManagement_label")),
 					this.renderImportContactsButton(),
 					locator.logins.isEnabled(FeatureType.DisableContacts) ? null : this.renderAutoCreateContactsPreference(),
 					this.renderContactsSyncDropdown(),
@@ -85,7 +85,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 			helpLabel: () =>
 				m("div", [
 					lang.get("contactsSynchronizationWarning_msg"),
-					m("span.mlr-s", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
+					m("span.mlr-4", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 				]),
 			items: [
 				{

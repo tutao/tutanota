@@ -7,7 +7,7 @@ import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import { elementIdPart, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager.js"
 import { styles } from "../../../common/gui/styles.js"
@@ -30,7 +30,7 @@ export interface ConversationViewerAttrs {
 
 const SCROLL_FACTOR = 4 / 5
 
-export const conversationCardMargin = size.hpad_large
+export const conversationCardMargin = size.spacing_24
 
 /**
  * Displays mails in a conversation
@@ -146,8 +146,10 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		// Having more room at the bottom allows the last email so it is (almost) always in the same place on the screen.
 		// We reduce space by 100 for the header of the viewer and a bit more
 		const height =
-			document.body.offsetHeight - (styles.isUsingBottomNavigation() ? size.navbar_height_mobile + size.bottom_nav_bar : size.navbar_height) - 300
-		return m(".mt-l.noprint", {
+			document.body.offsetHeight -
+			(styles.isUsingBottomNavigation() ? component_size.navbar_height_mobile + component_size.bottom_nav_bar : component_size.navbar_height) -
+			300
+		return m(".mt-32.noprint", {
 			style: {
 				height: px(height),
 			},
@@ -190,7 +192,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				)
 			: !viewModel.isFinished()
 				? m(
-						".font-weight-600.center.mt-l" + "." + responsiveCardHMargin(),
+						".font-weight-600.center.mt-32" + "." + responsiveCardHMargin(),
 						{
 							style: {
 								color: theme.on_surface_variant,
@@ -213,7 +215,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		return m(
 			".mlr-safe-inset",
 			m(
-				".border-radius-big.rel",
+				".border-radius-12.rel",
 				{
 					class: responsiveCardHMargin(),
 					key: elementIdPart(mailViewerViewModel.mail.conversationEntry),
@@ -221,7 +223,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 						backgroundColor: theme.surface,
 						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
 						// column resize element takes some space, reduce margin to make the gap smaller
-						marginLeft: styles.isSingleColumnLayout() ? undefined : px(size.hpad_large - size.column_resize_element_width),
+						marginLeft: styles.isSingleColumnLayout() ? undefined : px(size.spacing_16),
 					},
 				},
 				mailViewerViewModel.isCollapsed()

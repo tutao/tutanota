@@ -4,7 +4,7 @@ import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants.js"
-import { px, size } from "../gui/size.js"
+import { component_size, px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -90,7 +90,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 			if (discountDetail?.discountType === "GlobalFirstYear" && isYearly) {
 				return m(
-					".flex.column-gap-s",
+					".flex.column-gap-4",
 					m("span", m("sup", "1")),
 					m(
 						"span",
@@ -132,7 +132,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 		const renderPaymentIntervalSwitch = () => {
 			return m(
-				".flex.gap-hpad.items-center",
+				".flex.gap-12.items-center",
 				m(`div.right.full-width${isYearly ? ".font-weight-600" : ""}`, lang.getTranslationText("pricing.yearly_label")),
 				m(PaymentIntervalSwitch, {
 					state: isYearly ? "left" : "right",
@@ -151,16 +151,16 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		}
 
 		return m(
-			"#plan-selector.flex.flex-column.gap-vpad-l",
+			"#plan-selector.flex.flex-column.gap-32",
 			{
 				style: this.shouldFixButtonPos() && {
-					"padding-bottom": px(size.button_floating_size + size.vpad),
+					"padding-bottom": px(component_size.button_floating_size + size.spacing_16),
 				},
 				lang: lang.code,
 			},
 			[
 				m(
-					".flex.flex-column.gap-vpad-l",
+					".flex.flex-column.gap-32",
 					!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) && allowSwitchingPaymentInterval && renderPaymentIntervalSwitch(),
 				),
 
@@ -177,13 +177,13 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					discountDetail,
 				}),
 				m(
-					".flex.flex-column.gap-vpad",
+					".flex.flex-column.gap-16",
 					m(
-						"#continue-wrapper.flex-v-center.plr",
+						"#continue-wrapper.flex-v-center.plr-12",
 						{
 							style: this.shouldFixButtonPos() && {
 								position: "fixed",
-								height: px(size.button_floating_size + size.vpad_xsm * 2),
+								height: px(component_size.button_floating_size + size.spacing_4 * 2),
 								bottom: 0,
 								left: 0,
 								right: 0,
@@ -207,8 +207,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				),
 				!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) &&
 					m(".flex.flex-column", [
-						m(".small.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
-						m(".small.mb", renderFootnoteElement()),
+						m(".small.mb-16.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
+						m(".small.mb-16", renderFootnoteElement()),
 					]),
 			],
 		)
@@ -225,7 +225,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			const contentHeight = parseInt(getComputedStyle(planSelectorEl).height)
 			const containerHeight = parseInt(getComputedStyle(containerEl).height)
 
-			this.shouldFixButtonPos(contentHeight + size.button_floating_size > containerHeight)
+			this.shouldFixButtonPos(contentHeight + component_size.button_floating_size > containerHeight)
 		}
 	}
 }

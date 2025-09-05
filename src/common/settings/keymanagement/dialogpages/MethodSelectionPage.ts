@@ -25,7 +25,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 		})
 
 		return m(
-			".pt.pb.flex.col.gap-vpad",
+			".pt-16.pb-16.flex.col.gap-16",
 			{
 				style: {
 					height: px(DEFAULT_HEIGHT),
@@ -36,16 +36,16 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 				{ shouldDivide: true },
 
 				m(
-					"section.pt-s.pb-s",
+					"section.pt-8.pb-8",
 					{
 						style: {
-							padding: px(size.vpad_small),
+							padding: px(size.spacing_8),
 						},
 					},
 					[
-						m(".h4.mb-0.pl-vpad-s", lang.get("keyManagement.selectMethodShort_label")),
+						m(".h4.mb-0.pl-8", lang.get("keyManagement.selectMethodShort_label")),
 						m(
-							"p.mt-xs.mb-s.pl-vpad-s",
+							"p.mt-4.mb-8.pl-8",
 							m.trust(
 								lang.get("keyManagement.selectMethodLong_label", {
 									"{compareVerificationCode}": lang.get("keyManagement.text_label"),
@@ -71,7 +71,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 	private renderTextMethodButton(onclick: () => void): Children {
 		return m(SectionButton, {
 			text: "keyManagement.text_label",
-			classes: "pl-vpad-s",
+			classes: "pl-8",
 			onclick,
 		})
 	}
@@ -79,7 +79,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 	private renderQRMethodButton(onclick: () => void): Children {
 		return m(SectionButton, {
 			text: "keyManagement.qrCode_label",
-			classes: "pl-vpad-s",
+			classes: "pl-8",
 			onclick,
 		})
 	}

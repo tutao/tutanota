@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
-import { px, size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../common/gui/size"
 import { EventTextTimeOption, Keys, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import {
 	CalendarDay,
@@ -146,9 +146,9 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		if (isDesktopLayout) {
 			containerStyle = {
 				overflow: "hidden",
-				marginBottom: px(size.hpad_large),
+				marginBottom: px(size.spacing_24),
 			}
-			weekdayDaysClasses = "content-bg border-radius-top-left-big border-radius-top-right-big"
+			weekdayDaysClasses = "content-bg border-radius-top-12"
 		} else {
 			containerStyle = {
 				paddingBottom: isIOSApp() && client.isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
@@ -159,13 +159,13 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		return m(
 			".fill-absolute.flex.col",
 			{
-				class: isDesktopLayout ? " mlr-l border-radius-big" : "mlr-safe-inset",
+				class: isDesktopLayout ? " mlr-24 border-radius-12" : "mlr-safe-inset",
 				style: isDesktopLayout ? { marginLeft: px(5) } : null,
 				onwheel: changePeriodOnWheel(attrs.onChangeMonth),
 			},
 			[
 				m(
-					".flex.pt-s.pb-m",
+					".flex.pt-8.pb-12",
 					{
 						class: weekdayDaysClasses,
 					},
@@ -176,7 +176,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					{
 						class:
 							(!styles.isUsingBottomNavigation() || (isIOSApp() && client.isCalendarApp()) ? "content-bg" : "") +
-							(!isDesktopLayout ? " border-radius-top-left-big border-radius-top-right-big" : ""),
+							(!isDesktopLayout ? " border-radius-top-12" : ""),
 						style: containerStyle,
 					},
 					m(PageView, {
@@ -324,7 +324,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				},
 			},
 			[
-				m(".mb-xs", {
+				m(".mb-4", {
 					style: {
 						height: px(SELECTED_DATE_INDICATOR_THICKNESS),
 					},
@@ -354,7 +354,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	): Children {
 		const size = styles.isDesktopLayout() ? px(22) : px(20)
 		return m(
-			".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
+			".rel.click.flex.items-center.justify-center.rel.ml-4",
 			{
 				"aria-label": date.toLocaleDateString(),
 				onclick: (e: MouseEvent) => {
@@ -398,14 +398,14 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 		const weekHeight = this.getHeightForWeek()
 
-		const eventHeight = size.calendar_line_height + spaceBetweenEvents() // height + border
+		const eventHeight = layout_size.calendar_line_height + spaceBetweenEvents() // height + border
 
 		const maxEventsPerDay = (weekHeight - dayHeight()) / eventHeight
 		const numberOfEventsPerDayToRender = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
 
 		/** initially, we have 0 extra, non-rendered events on each day of the week */
 		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
-		const eventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
+		const eventMargin = styles.isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
 		const firstDayOfNextWeek = getStartOfNextDayWithZone(lastDayOfWeek.date, zone)
 		return layOutEvents(
 			Array.from(events),
@@ -538,10 +538,10 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		calendarDayHeight: number,
 		columnIndex: number,
 	): SimplePosRect {
-		const top = (size.calendar_line_height + spaceBetweenEvents()) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
+		const top = (layout_size.calendar_line_height + spaceBetweenEvents()) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
 		const dayOfStartDateInWeek = getDiffIn24IntervalsFast(eventStart, firstDayOfWeek)
 		const dayOfEndDateInWeek = getDiffIn24IntervalsFast(eventEnd, firstDayOfWeek)
-		const calendarEventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
+		const calendarEventMargin = styles.isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
 		const left = (eventStart < firstDayOfWeek ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
 		const right = (eventEnd >= firstDayOfNextWeek ? 0 : (6 - dayOfEndDateInWeek) * calendarDayWidth) + calendarEventMargin
 		return {

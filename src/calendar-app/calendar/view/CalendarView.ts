@@ -57,7 +57,7 @@ import { styles } from "../../../common/gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { size } from "../../../common/gui/size"
+import { component_size, layout_size, px, size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { exportCalendar, handleCalendarImport } from "../../../common/calendar/gui/CalendarImporterDialog.js"
@@ -251,8 +251,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			ColumnType.Foreground,
 			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
+				minWidth: layout_size.first_col_min_width,
+				maxWidth: layout_size.first_col_max_width,
 				headerCenter: this.currentViewType === CalendarViewType.WEEK ? "month_label" : "calendar_label",
 			},
 		)
@@ -458,8 +458,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width + size.third_col_min_width,
-				maxWidth: size.second_col_max_width + size.third_col_max_width,
+				minWidth: layout_size.second_col_min_width + layout_size.third_col_min_width,
+				maxWidth: layout_size.second_col_max_width + layout_size.third_col_max_width,
 			},
 		)
 
@@ -478,8 +478,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					// first place, this would break on screen orientation changes for large mobile devices,
 					// (basically every tablet), because landscape orientation uses the mobileDesktopLayout and
 					// the portrait orientation uses the singleColumnLayout.
-					minWidth: size.only_show_in_single_column_min_max_width,
-					maxWidth: size.only_show_in_single_column_min_max_width,
+					minWidth: layout_size.only_show_in_single_column_min_max_width,
+					maxWidth: layout_size.only_show_in_single_column_min_max_width,
 				},
 			)
 
@@ -590,11 +590,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 
 		return m(
-			".height-100p.overflow-y-scroll.mb-l.fill-absolute.pb-l",
+			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
 			m(
-				".border-radius-big.flex.col.flex-grow.content-bg",
+				".border-radius-12.flex.col.flex-grow.content-bg",
 				{
-					class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
+					class: styles.isDesktopLayout() ? "mlr-24" : "mlr-12",
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: this.viewModel.eventPreviewModel,
@@ -1370,7 +1370,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		// side of month's name, so we hardcoded the left spacing to be the same used by the month name, so doesn't matter
 		// if the user clicks on month's name or on the icon
 		// noinspection JSSuspiciousNameCombination
-		const elementRect = { ...dom.getBoundingClientRect(), left: size.button_height }
+		const elementRect = { ...dom.getBoundingClientRect(), left: component_size.button_height }
 
 		const selector = new DaySelectorPopup(elementRect, {
 			selectedDate: getStartOfDay(this.viewModel.selectedDate()),

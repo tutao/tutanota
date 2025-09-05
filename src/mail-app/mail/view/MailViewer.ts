@@ -1,4 +1,4 @@
-import { px, size } from "../../../common/gui/size"
+import { component_size, font_size, px, size } from "../../../common/gui/size"
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade, windowSizeListener } from "../../../common/misc/WindowFacade"
@@ -161,7 +161,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.renderMailHeader(vnode.attrs),
 				this.renderMailSubject(vnode.attrs),
 				m(
-					".flex-grow.scroll-x.pt.pb.border-radius-big" + (forceWhiteBackground ? ".bg-white.content-black" : ""),
+					".flex-grow.scroll-x.pt-16.pb-16.border-radius-12" + (forceWhiteBackground ? ".bg-white.content-black" : ""),
 					{
 						class: responsiveCardHPadding(),
 						oncreate: (vnode) => {
@@ -177,7 +177,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	private renderMailSubject(attrs: MailViewerAttrs) {
 		return m(
-			"h4.font-weight-600.mt.mb.text-break.selectable." + responsiveCardHMargin(),
+			"h4.font-weight-600.mt-16.mb-16.text-break.selectable." + responsiveCardHMargin(),
 			{
 				"data-testid": `h:${lang.getTestId("subject_label")}`,
 			},
@@ -226,7 +226,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					},
 					style: {
 						height: "24px",
-						width: px(size.button_height_compact),
+						width: px(component_size.button_height_compact),
 					},
 				}),
 			),
@@ -356,7 +356,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				}
 			},
 			style: {
-				"line-height": this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height,
+				"line-height": this.bodyLineHeight ? this.bodyLineHeight.toString() : font_size.line_height,
 				"transform-origin": "top left",
 			},
 		})
@@ -408,7 +408,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		wrapNode.id = "shadow-mail-body"
 		wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
 		wrapNode.setAttribute("data-testid", "mailBody_label")
-		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
+		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : font_size.line_height)
 		wrapNode.style.transformOrigin = "0px 0px"
 
 		// Remove "align" property from the top-level content as it causes overflow.
@@ -467,7 +467,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			quoteIndicator,
 			m(Icon, {
 				icon: Icons.More,
-				class: "icon-xl mlr",
+				class: "icon-32 mlr-12",
 				container: "div",
 				style: {
 					fill: theme.on_surface_variant,
@@ -585,11 +585,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const width = dom.offsetWidth
 
 		if (width > 900) {
-			this.bodyLineHeight = size.line_height_l
+			this.bodyLineHeight = font_size.line_height_l
 		} else if (width > 600) {
-			this.bodyLineHeight = size.line_height_m
+			this.bodyLineHeight = font_size.line_height_m
 		} else {
-			this.bodyLineHeight = size.line_height
+			this.bodyLineHeight = font_size.line_height
 		}
 
 		dom.style.lineHeight = String(this.bodyLineHeight)

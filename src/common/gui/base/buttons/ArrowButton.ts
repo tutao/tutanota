@@ -15,7 +15,6 @@ export default function renderSwitchMonthArrowIcon(forward: boolean, size: numbe
 			icon: forward ? Icons.ArrowForward : BootIcons.Back,
 			container: "div",
 			class: "center-h",
-			size: IconSize.Normal,
 			style: {
 				fill: theme.on_surface,
 			},

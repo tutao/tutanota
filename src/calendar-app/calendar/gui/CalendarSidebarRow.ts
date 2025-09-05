@@ -42,11 +42,11 @@ export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
 						background: isHidden ? "" : `#${color}`,
 						transition: "all 0.3s",
 						cursor: "pointer",
-						marginLeft: px(size.hpad_button),
+						marginLeft: px(size.spacing_4),
 					},
 				}),
 				m(
-					".pl-m.b.flex-grow.text-ellipsis",
+					".pl-12.b.flex-grow.text-ellipsis",
 					{
 						style: {
 							width: 0,
@@ -59,8 +59,8 @@ export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
 				? m(Icon, {
 						title: rightIcon.title,
 						icon: rightIcon.icon,
-						size: IconSize.Medium,
-						class: "pr-s",
+						size: IconSize.PX24,
+						class: "pr-4",
 						style: {
 							fill: theme.on_surface_variant,
 						},

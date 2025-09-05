@@ -86,7 +86,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		return m(
-			"#invoicing-settings.fill-absolute.scroll.plr-l",
+			"#invoicing-settings.fill-absolute.scroll.plr-24",
 			{
 				role: "group",
 			},
@@ -248,10 +248,10 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		} else {
 			const balance = this.balance
 			return [
-				m(".h4.mt-l", lang.get("currentBalance_label")),
+				m(".h4.mt-32", lang.get("currentBalance_label")),
 				m(".flex.center-horizontally.center-vertically.col", [
 					m(
-						"div.h4.pt.pb" + (this.isAmountOwed() ? ".content-accent-fg" : ""),
+						"div.h4.pt-16.pb-16" + (this.isAmountOwed() ? ".content-accent-fg" : ""),
 						formatPrice(balance, true) + (this.accountBalance() !== balance ? ` (${formatPrice(this.accountBalance(), true)})` : ""),
 					),
 					this.accountBalance() !== balance
@@ -264,7 +264,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						: null,
 					this.isPayButtonVisible()
 						? m(
-								".pb",
+								".pb-16",
 								{
 									style: {
 										width: "200px",
@@ -284,7 +284,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(this.invoiceInfo.paymentErrorInfo.errorCode)))
 						: m(".small.underline.b", lang.get("failedDebitAttempt_msg"))
 					: null,
-				m(".flex-space-between.items-center.mt-l.mb-s", [
+				m(".flex-space-between.items-center.mt-32.mb-8", [
 					m(".h4", lang.get("postings_label")),
 					m(ExpanderButton, {
 						label: "show_action",
@@ -480,7 +480,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	private renderInvoiceData(): Children {
 		return [
-			m(".flex-space-between.items-center.mt-l.mb-s", [
+			m(".flex-space-between.items-center.mt-32.mb-8", [
 				m(".h4", lang.get("invoiceData_msg")),
 				m(IconButton, {
 					title: "invoiceData_msg",
@@ -535,9 +535,9 @@ function showPayConfirmDialog(price: number): Promise<boolean> {
 			view: (): Children => [
 				m(DialogHeaderBar, actionBarAttrs),
 				m(
-					".plr-l.pb",
+					".plr-24.pb-16",
 					m("", [
-						m(".pt", lang.get("invoicePayConfirm_msg")),
+						m(".pt-16", lang.get("invoicePayConfirm_msg")),
 						m(TextField, {
 							label: "price_label",
 							value: formatPrice(-price, true),

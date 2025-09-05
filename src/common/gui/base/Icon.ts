@@ -12,11 +12,10 @@ assertMainOrNode()
 export type AllIcons = BootIcons | Icons
 
 export enum IconSize {
-	Normal,
-	Medium,
-	Large,
-	XL,
-	XXL,
+	PX20,
+	PX24,
+	PX32,
+	PX64,
 }
 
 export type IconAttrs = {
@@ -87,7 +86,7 @@ export class Icon implements Component<IconAttrs> {
 		tooltip.style.removeProperty("left")
 		const tooltipRect = tooltip.getBoundingClientRect()
 		// Get the width of the area in pixels that the tooltip penetrates the viewport
-		const distanceOver = tooltipRect.x + tooltipRect.width + size.hpad_large - window.innerWidth
+		const distanceOver = tooltipRect.x + tooltipRect.width + size.spacing_24 - window.innerWidth
 		if (distanceOver > 0) {
 			const parentRect = root.getBoundingClientRect()
 			// Chromium based browsers return a different value for tooltipRect
@@ -122,20 +121,19 @@ export class Icon implements Component<IconAttrs> {
 	getClass(attrs: IconAttrs): string {
 		let cls = ""
 		switch (attrs.size) {
-			case IconSize.Medium:
-				cls += "icon-large "
+			case IconSize.PX24:
+				cls += "icon-24 "
 				break
-			case IconSize.Large:
-				cls += "icon-medium-large "
+			case IconSize.PX20:
+				cls += "icon-20 "
 				break
-			case IconSize.XL:
-				cls += "icon-xl "
+			case IconSize.PX32:
+				cls += "icon-32 "
 				break
-			case IconSize.XXL:
-				cls += "icon-xxl "
+			case IconSize.PX64:
+				cls += "icon-64 "
 				break
 
-			case IconSize.Normal:
 			default:
 				break
 		}
@@ -159,6 +157,6 @@ export class Icon implements Component<IconAttrs> {
 export function progressIcon(): Vnode<IconAttrs> {
 	return m(Icon, {
 		icon: BootIcons.Progress,
-		class: "icon-large icon-progress",
+		class: "icon-24 icon-progress",
 	})
 }
