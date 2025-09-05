@@ -23,6 +23,7 @@ export const size = {
 	core_96: 96,
 	core_112: 112,
 	core_128: 128,
+
 	// Spacings
 	get spacing_4() {
 		return this.base
@@ -45,12 +46,16 @@ export const size = {
 	get spacing_64() {
 		return this.core_64
 	},
+
 	// Icons
 	get icon_12() {
-		return this.core_16 + this.base
+		return this.core_8 + this.base
 	},
 	get icon_16() {
 		return this.core_16
+	},
+	get icon_20() {
+		return this.core_16 + this.base
 	},
 	get icon_24() {
 		return this.core_24
@@ -64,6 +69,7 @@ export const size = {
 	get icon_80() {
 		return this.core_80
 	},
+
 	// Radii
 	get radius_4() {
 		return this.base
@@ -74,14 +80,6 @@ export const size = {
 	get radius_16() {
 		return this.core_16
 	},
-	// FIXME: update to "icon_<px>" tokens
-	icon_size_xxl: 64,
-	icon_size_xl: 32,
-	icon_size_large: 24,
-	icon_size_medium_large: 20,
-	icon_size_medium: 16,
-	icon_size_small: 12,
-	icon_message_box: 80,
 	// FIXME: update to "spacing_<px>" tokens
 	hpad_small: 5,
 	hpad: 10,
