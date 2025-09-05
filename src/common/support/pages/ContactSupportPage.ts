@@ -177,7 +177,7 @@ export class ContactSupportPage implements Component<Props> {
 										icon: Icons.Trash,
 										style: {
 											fill: getColors(ButtonColor.Content).button,
-											paddingInline: px((size.icon_size_large - size.icon_size_medium) / 2),
+											paddingInline: px((size.icon_24 - size.icon_16) / 2),
 										},
 										title: lang.get("remove_action"),
 										size: IconSize.Normal,
