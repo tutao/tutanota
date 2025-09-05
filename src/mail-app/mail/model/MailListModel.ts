@@ -184,7 +184,6 @@ export class MailListModel implements MailSetListModel {
 						this.listModel.insertLoadedItem(loadedMail)
 					}
 				})
-				await this.applySpamClassificationToMails([loadedMail])
 			}
 		} else if (isUpdateForTypeRef(MailTypeRef, update)) {
 			// We only need to handle updates for Mail.

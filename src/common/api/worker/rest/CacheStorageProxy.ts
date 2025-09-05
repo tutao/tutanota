@@ -179,8 +179,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.putMultiple(typeRef, instances)
 	}
 
-	putSpamMailClassification(mail: Mail, mailBody: Body, isSpam: boolean): Promise<void> {
-		return this.inner.putSpamMailClassification(mail, mailBody, isSpam)
+	putSpamMailClassification(mail: Mail, isSpam: boolean): Promise<void> {
+		return this.inner.putSpamMailClassification(mail, isSpam)
 	}
 
 	putLastBatchIdForGroup(groupId: Id, batchId: Id): Promise<void> {

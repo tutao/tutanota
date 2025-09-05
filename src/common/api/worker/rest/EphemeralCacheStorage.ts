@@ -259,7 +259,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		}
 	}
 
-	async putSpamMailClassification(mail: Mail, mailBody: Body, isSpam: boolean): Promise<void> {
+	async putSpamMailClassification(mail: Mail, isSpam: boolean): Promise<void> {
 		// fixme should we have the ML functionality on web at all? Probably not worth it
 	}
 

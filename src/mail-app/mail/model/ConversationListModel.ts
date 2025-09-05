@@ -251,7 +251,6 @@ export class ConversationListModel implements MailSetListModel {
 	}> {
 		const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
 		const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
-		await this.applySpamClassificationToMails(loadedMails)
 		return this._insertOrUpdateLoadedMails(loadedMails)
 	}
 

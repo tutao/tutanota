@@ -224,7 +224,7 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	putMultiple(typeRef: TypeRef<unknown>, instances: ServerModelParsedInstance[]): Promise<void>
 
-	putSpamMailClassification(mail: Mail, mailBody: Body, isSpam: boolean): Promise<void>
+	putSpamMailClassification(mail: Mail, isSpam: boolean): Promise<void>
 
 	getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null>
 

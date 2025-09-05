@@ -46,7 +46,7 @@ import { TypeModelResolver } from "../../common/EntityFunctions"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
-import { Mail, Body } from "../../entities/tutanota/TypeRefs"
+import { Mail, Body, MailTypeRef } from "../../entities/tutanota/TypeRefs"
 import { htmlToText } from "../search/IndexUtils"
 import { getMailBodyText } from "../../common/CommonMailUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
@@ -572,19 +572,36 @@ export class OfflineStorage implements CacheStorage {
 		tm?.endMeasurement()
 	}
 
-	async putSpamMailClassification(mail: Mail, mailBody: Body, isSpam: boolean): Promise<void> {
+	async putSpamMailClassification(mail: Mail, isSpam: boolean): Promise<void> {
+		const rowid = await this.getRowid(MailTypeRef, mail._id)
+		if (rowid == null) {
+			return
+		}
+
 		const { query, params } = sql`
             INSERT
-            OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified)
+            OR REPLACE INTO mail_index(rowid, isSpam, lastModified)
 				VALUES (
-            ${listIdPart(mail._id)},
-            ${elementIdPart(mail._id)},
-            ${mail.subject},
-            ${htmlToText(getMailBodyText(mailBody))},
+            ${rowid},
             ${isSpam ? 1 : 0},
             ${Date.now()}
             )`
 		await this.sqlCipherFacade.run(query, params)
+	}
+
+	private async getRowid<T extends ListElementEntity>(typeRef: TypeRef<T>, id: IdTuple): Promise<SqlValue | null> {
+		// Find rowid from the offline storage.
+		const rowIdQuery = sql`SELECT rowid
+                               FROM list_entities
+                               WHERE type = ${getTypeString(typeRef)}
+                                 AND listId = ${listIdPart(id)}
+                                 AND elementId = ${elementIdPart(id)}`
+		const rowIdResult = await this.sqlCipherFacade.get(rowIdQuery.query, rowIdQuery.params)
+		if (rowIdResult == null) {
+			console.warn(`Did not find row id for ${typeRef.typeId} ${id.join(",")}`)
+			return null
+		}
+		return untagSqlObject(rowIdResult).rowid
 	}
 
 	private insertMultipleFormattedQuery(query: string, nestedlistOfParams: Array<Array<SqlValue>>): FormattedQuery {
