@@ -295,14 +295,10 @@ function initPlansPages(signupData: UpgradeSubscriptionData): {
 
 	switch (SignupFlowUsageTestController.getUsageTestVariant()) {
 		case 1:
-			return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
-		case 2:
-			return { pageClass: VariantBSubscriptionPage, attrs: new VariantBSubscriptionPageAttrs(signupData) }
-		case 3:
 			return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
 		default:
 			SignupFlowUsageTestController.invalidateUsageTest()
 			console.error("Received an unexpected usage test variant: ", SignupFlowUsageTestController.getUsageTestVariant())
-			return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
+			return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
 	}
 }
