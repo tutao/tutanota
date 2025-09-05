@@ -2,9 +2,13 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
 export const size = {
-	/**
-	 * hogehoge
-	 */
+	/*
+	 Base & core size
+	 Use core sizes whenever it's possible.
+	 It reduces the cognitive load on users, and enable us to make better and faster decisions with fewer options.
+	 Increments of 4 (base) are allowed for design flexibility, but try to use the core sizes first.
+	 See also: https://www.figma.com/design/AGqWHYG9dYRMCFcW5sKWhp/Switch---Tuta-Design-System?node-id=19-4
+	*/
 	base: 4,
 	core_8: 8,
 	core_16: 16,
@@ -19,11 +23,56 @@ export const size = {
 	core_96: 96,
 	core_112: 112,
 	core_128: 128,
+	// Spacings
+	get spacing_4() {
+		return this.base
+	},
 	get spacing_8() {
 		return this.core_8
 	},
-	new_design: {
-		vpad_large: 20,
+	get spacing_16() {
+		return this.core_16
+	},
+	get spacing_24() {
+		return this.core_24
+	},
+	get spacing_32() {
+		return this.core_32
+	},
+	get spacing_48() {
+		return this.core_48
+	},
+	get spacing_64() {
+		return this.core_64
+	},
+	// Icons
+	get icon_12() {
+		return this.core_16 + this.base
+	},
+	get icon_16() {
+		return this.core_16
+	},
+	get icon_24() {
+		return this.core_24
+	},
+	get icon_32() {
+		return this.core_32
+	},
+	get icon_64() {
+		return this.core_64
+	},
+	get icon_80() {
+		return this.core_80
+	},
+	// Radii
+	get radius_4() {
+		return this.base
+	},
+	get radius_8() {
+		return this.core_8
+	},
+	get radius_16() {
+		return this.core_16
 	},
 	// FIXME: update to "icon_<px>" tokens
 	icon_size_xxl: 64,
