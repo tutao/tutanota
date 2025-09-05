@@ -337,7 +337,8 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 								".flex.full-width",
 								{
 									style: {
-										padding: `0 0 ${px(size.vpad_xsm)} ${px(size.vpad_small + size.icon_size_medium_large)}`,
+										// FIXME: Replace with size.spacing token (before this was icon_size_medium_large)
+										padding: `0 0 ${px(size.vpad_xsm)} ${px(size.vpad_small + 20)}`,
 									},
 								},
 								m(Divider, {

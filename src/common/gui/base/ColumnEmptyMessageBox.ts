@@ -64,7 +64,7 @@ export default class ColumnEmptyMessageBox implements Component<ColumnEmptyMessa
 				{
 					style: {
 						// move up *only* this element, not the whole .fill-absolute parent to not overflow into the items above us
-						"margin-top": px(attrs.icon ? -size.icon_message_box - size.vpad_xl : -size.vpad_xl),
+						"margin-top": px(attrs.icon ? -size.icon_80 - size.vpad_xl : -size.vpad_xl),
 					},
 				},
 				[
