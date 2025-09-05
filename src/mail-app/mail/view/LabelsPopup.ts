@@ -91,7 +91,7 @@ export class LabelsPopup implements ModalComponent {
 								[
 									m(Icon, {
 										icon: this.iconForState(state),
-										size: IconSize.Medium,
+										size: IconSize.PX24,
 										style: {
 											fill: getLabelColor(label.color),
 											opacity,

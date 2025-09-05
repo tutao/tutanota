@@ -1401,7 +1401,7 @@ styles.registerStyle("main", () => {
 			width: px(size.icon_16),
 		},
 		// a bit cursed solution to make the visible icon not too huge relative to the tiny "close" icon that we have but also to keep the size consistent
-		// with icon-large so that the text field doesn't jump around
+		// with icon-24 so that the text field doesn't jump around
 		".icon-progress-search": {
 			height: `${px(20)} !important`,
 			width: `${px(20)} !important`,
@@ -1440,43 +1440,43 @@ styles.registerStyle("main", () => {
 			height: px(size.icon_12),
 			width: px(size.icon_12),
 		},
-		".icon-large": {
+		".icon-24": {
 			height: px(size.icon_24),
 			width: px(size.icon_24),
 		},
-		".icon-medium-large": {
+		".icon-20": {
 			height: px(size.icon_20),
 			width: px(size.icon_20),
 		},
-		".icon-medium-large > svg": {
+		".icon-20 > svg": {
 			height: px(size.icon_20),
 			width: px(size.icon_20),
 		},
-		".icon-large > svg": {
+		".icon-24 > svg": {
 			height: px(size.icon_24),
 			width: px(size.icon_24),
 		},
-		".icon-xl": {
+		".icon-32": {
 			height: px(size.icon_32),
 			width: px(size.icon_32),
 		},
-		".icon-xl > svg": {
+		".icon-32 > svg": {
 			height: px(size.icon_32),
 			width: px(size.icon_32),
 		},
-		".icon-xxl": {
+		".icon-64": {
 			height: px(size.icon_64),
 			width: px(size.icon_64),
 		},
-		".icon-xxl > svg": {
+		".icon-64 > svg": {
 			height: px(size.icon_64),
 			width: px(size.icon_64),
 		},
-		".icon-message-box": {
+		".icon-80": {
 			height: px(size.icon_80),
 			width: px(size.icon_80),
 		},
-		".icon-message-box > svg": {
+		".icon-80 > svg": {
 			height: px(size.icon_80),
 			width: px(size.icon_80),
 		},

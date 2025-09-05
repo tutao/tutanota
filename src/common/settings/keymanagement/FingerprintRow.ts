@@ -45,7 +45,7 @@ export class FingerprintRow implements Component<FingerprintRowAttrs> {
 			m(".flex.items-center.selectable.pl-vpad-s.mb-s.gap-vpad-xs", [
 				m(Icon, {
 					icon: Icons.Shield,
-					size: IconSize.Large,
+					size: IconSize.PX20,
 					style: { fill: theme.success },
 				}),
 				m(".text-break.b.selectable", mailAddress),

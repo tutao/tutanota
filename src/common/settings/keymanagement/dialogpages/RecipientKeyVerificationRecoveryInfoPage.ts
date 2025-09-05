@@ -51,7 +51,7 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 				onclick: async () => vnode.attrs.goToRejectPage(),
 				icon: m(Icon, {
 					icon: Icons.XCheckmark,
-					size: IconSize.Large,
+					size: IconSize.PX20,
 					class: "mr-s flex-center",
 				}),
 			}),

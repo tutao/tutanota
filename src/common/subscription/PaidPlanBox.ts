@@ -245,7 +245,6 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 				},
 				m(Icon, {
 					icon,
-					size: IconSize.Normal,
 					style: {
 						fill: planBoxColors.getFeatureIconColor(isSelected, planType, hasCampaign),
 					},

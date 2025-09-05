@@ -107,7 +107,6 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 				[
 					m(Icon, {
 						icon,
-						size: IconSize.Normal,
 						style: {
 							fill: planBoxColors.getFeatureIconColor(isSelected, PlanType.Free, hasCampaign),
 						},

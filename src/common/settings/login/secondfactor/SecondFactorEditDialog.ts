@@ -202,7 +202,7 @@ export class SecondFactorEditDialog {
 			case VerificationStatus.Success:
 				return m(Icon, {
 					icon: Icons.Checkmark,
-					size: IconSize.Medium,
+					size: IconSize.PX24,
 					style: {
 						fill: theme.content_accent,
 					},
@@ -211,7 +211,7 @@ export class SecondFactorEditDialog {
 			case VerificationStatus.Failed:
 				return m(Icon, {
 					icon: Icons.Cancel,
-					size: IconSize.Medium,
+					size: IconSize.PX24,
 					style: {
 						fill: theme.content_accent,
 					},

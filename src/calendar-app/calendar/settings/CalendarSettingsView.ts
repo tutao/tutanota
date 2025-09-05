@@ -221,7 +221,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 					text: m(".pl-s", lang.getTranslation("supportMenu_label").text),
 					icon: m(Icon, {
 						icon: Icons.SpeechBubbleFill,
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 						class: "center-h",
 						container: "div",
 						style: { fill: theme.navigation_button },

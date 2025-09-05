@@ -1104,7 +1104,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				? m(Icon, {
 						title: lastSyncStr,
 						icon: Icons.SyncProblem,
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 						class: "pr-s",
 						style: {
 							fill: theme.content_button,

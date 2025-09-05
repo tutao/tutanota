@@ -9,7 +9,7 @@ export const size = {
 	 Increments of 4 (base) are allowed for design flexibility, but try to use the core sizes first.
 	 See also: https://www.figma.com/design/AGqWHYG9dYRMCFcW5sKWhp/Switch---Tuta-Design-System?node-id=19-4
 	*/
-	base: 4,
+	base_4: 4,
 	core_8: 8,
 	core_16: 16,
 	core_24: 24,
@@ -26,7 +26,7 @@ export const size = {
 
 	// Spacings
 	get spacing_4() {
-		return this.base
+		return this.base_4
 	},
 	get spacing_8() {
 		return this.core_8
@@ -49,13 +49,13 @@ export const size = {
 
 	// Icons
 	get icon_12() {
-		return this.core_8 + this.base
+		return this.core_8 + this.base_4
 	},
 	get icon_16() {
 		return this.core_16
 	},
 	get icon_20() {
-		return this.core_16 + this.base
+		return this.core_16 + this.base_4
 	},
 	get icon_24() {
 		return this.core_24
@@ -72,7 +72,7 @@ export const size = {
 
 	// Radii
 	get radius_4() {
-		return this.base
+		return this.base_4
 	},
 	get radius_8() {
 		return this.core_8

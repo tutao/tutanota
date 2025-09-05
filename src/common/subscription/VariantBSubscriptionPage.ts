@@ -118,7 +118,7 @@ export class VariantBSubscriptionPage implements WizardPageN<UpgradeSubscription
 					".flex-center.items-center.gap-hpad.mb",
 					m(Icon, {
 						icon: BootIcons.Heart,
-						size: IconSize.XL,
+						size: IconSize.PX32,
 						container: "div",
 						style: { fill: theme.experimental_tertiary },
 					}),
@@ -342,7 +342,7 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, upd
 				? null
 				: m(Icon, {
 						icon: Icons.Business,
-						size: IconSize.Large,
+						size: IconSize.PX20,
 						class: "mr-xsm",
 						style: {
 							fill: theme.content_accent,

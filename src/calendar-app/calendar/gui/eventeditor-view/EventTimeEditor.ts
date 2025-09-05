@@ -40,7 +40,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							fill: theme.content_fg,
 						},
 						title: lang.get("timeSection_label"),
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 					}),
 					m(
 						Switch,

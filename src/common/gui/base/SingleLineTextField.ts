@@ -85,13 +85,13 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 		let padding
 
 		if (fontSize > 16 && fontSize < 32) {
-			iconSize = IconSize.Large
+			iconSize = IconSize.PX20
 			padding = size.icon_24
 		} else if (fontSize > 32) {
-			iconSize = IconSize.XL
+			iconSize = IconSize.PX32
 			padding = size.icon_32
 		} else {
-			iconSize = IconSize.Medium
+			iconSize = IconSize.PX24
 			// FIXME: Replace with size.spacing token
 			padding = 20
 		}

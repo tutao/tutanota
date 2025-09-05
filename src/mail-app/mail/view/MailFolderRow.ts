@@ -106,7 +106,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					},
 					m(Icon, {
 						icon,
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 						style: {
 							fill: isNavButtonSelected(button) ? theme.navigation_button_selected : theme.navigation_button,
 						},

@@ -80,7 +80,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				if (recipient.verificationState === PresentableKeyVerificationState.ALERT) {
 					return m(Icon, {
 						icon: Icons.BrokenShield,
-						size: IconSize.Large, // we want 20px
+						size: IconSize.PX20, // we want 20px
 						style: {
 							fill: theme.error,
 							position: "relative",
@@ -91,7 +91,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				} else if (recipient.verificationState === PresentableKeyVerificationState.SECURE) {
 					return m(Icon, {
 						icon: Icons.Shield,
-						size: IconSize.Large,
+						size: IconSize.PX20,
 						style: {
 							fill: theme.success,
 							position: "relative",
