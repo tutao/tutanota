@@ -55,7 +55,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 				m(".mt-s.mr-s.abs", this.renderIcon(icon, type ?? null)), // absolute position makes the icon fixed to the top left corner of the banner
 				m(
 					"",
-					{ style: { "margin-left": px(size.icon_size_large + 1) } }, // allow room for the icon
+					{ style: { "margin-left": px(size.icon_24 + 1) } }, // allow room for the icon
 					[
 						m(".mr.pt-s.pb-s", typeof message === "function" ? message() : m(".small.text-break", lang.get(message))),
 						m(".flex.ml-negative-s", { style: buttonContainerStyle }, [this.renderButtons(buttons), this.renderHelpLink(helpLink)]),

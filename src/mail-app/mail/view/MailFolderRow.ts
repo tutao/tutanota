@@ -54,7 +54,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 
 		const indentationMargin = indentationLevel * size.hpad
 		const paddingNeeded = size.hpad_button
-		const buttonWidth = size.icon_size_large + paddingNeeded * 2
+		const buttonWidth = size.icon_24 + paddingNeeded * 2
 
 		return m(
 			".folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg",
@@ -142,7 +142,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 		const lineSize = 2
 		const border = `${lineSize}px solid ${theme.content_border}`
 		const verticalOffsetInsideRow = size.button_height / 2 + 1
-		const verticalOffsetForParent = (size.button_height - size.icon_size_large) / 2
+		const verticalOffsetForParent = (size.button_height - size.icon_24) / 2
 		const lengthOfHorizontalLine = size.hpad - 2
 		const leftOffset = indentationMargin
 

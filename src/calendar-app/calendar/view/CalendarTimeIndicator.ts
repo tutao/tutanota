@@ -11,7 +11,7 @@ export type CalendarTimeIndicatorAttrs = {
  */
 export class CalendarTimeIndicator implements Component<CalendarTimeIndicatorAttrs> {
 	view({ attrs }: Vnode<CalendarTimeIndicatorAttrs>): Children {
-		const iconRadius = size.icon_size_small / 2
+		const iconRadius = size.icon_12 / 2
 		const leftOffset = attrs.circleLeftTangent ? 0 : -iconRadius
 		return m(
 			".accent-bg",
