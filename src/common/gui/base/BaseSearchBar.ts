@@ -94,7 +94,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							},
 							disabled: attrs.busy,
 							style: {
-								width: size.icon_size_large,
+								width: size.icon_24,
 							},
 						} satisfies BaseButtonAttrs)
 					: null,

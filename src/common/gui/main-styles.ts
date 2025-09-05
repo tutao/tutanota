@@ -1367,8 +1367,8 @@ styles.registerStyle("main", () => {
 			margin: 0,
 			"flex-shrink": 0,
 			"-webkit-tap-highlight-color": "rgba(255, 255, 255, 0)",
-			"padding-bottom": px(size.icon_size_small),
-			"padding-top": px(size.icon_size_small),
+			"padding-bottom": px(size.icon_12),
+			"padding-top": px(size.icon_12),
 			"border-bottom": `1px solid ${theme.button_bubble_bg} !important`,
 		},
 		".settings-item:last-child": {
@@ -1393,12 +1393,12 @@ styles.registerStyle("main", () => {
 		},
 		// icon
 		".icon": {
-			height: px(size.icon_size_medium),
-			width: px(size.icon_size_medium),
+			height: px(size.icon_16),
+			width: px(size.icon_16),
 		},
 		".icon > svg": {
-			height: px(size.icon_size_medium),
-			width: px(size.icon_size_medium),
+			height: px(size.icon_16),
+			width: px(size.icon_16),
 		},
 		// a bit cursed solution to make the visible icon not too huge relative to the tiny "close" icon that we have but also to keep the size consistent
 		// with icon-large so that the text field doesn't jump around
@@ -1433,52 +1433,52 @@ styles.registerStyle("main", () => {
 			width: px(15),
 		},
 		".icon-small": {
-			height: px(size.icon_size_small),
-			width: px(size.icon_size_small),
+			height: px(size.icon_12),
+			width: px(size.icon_12),
 		},
 		".icon-small > svg": {
-			height: px(size.icon_size_small),
-			width: px(size.icon_size_small),
+			height: px(size.icon_12),
+			width: px(size.icon_12),
 		},
 		".icon-large": {
-			height: px(size.icon_size_large),
-			width: px(size.icon_size_large),
+			height: px(size.icon_24),
+			width: px(size.icon_24),
 		},
 		".icon-medium-large": {
-			height: px(size.icon_size_medium_large),
-			width: px(size.icon_size_medium_large),
+			height: px(size.icon_20),
+			width: px(size.icon_20),
 		},
 		".icon-medium-large > svg": {
-			height: px(size.icon_size_medium_large),
-			width: px(size.icon_size_medium_large),
+			height: px(size.icon_20),
+			width: px(size.icon_20),
 		},
 		".icon-large > svg": {
-			height: px(size.icon_size_large),
-			width: px(size.icon_size_large),
+			height: px(size.icon_24),
+			width: px(size.icon_24),
 		},
 		".icon-xl": {
-			height: px(size.icon_size_xl),
-			width: px(size.icon_size_xl),
+			height: px(size.icon_32),
+			width: px(size.icon_32),
 		},
 		".icon-xl > svg": {
-			height: px(size.icon_size_xl),
-			width: px(size.icon_size_xl),
+			height: px(size.icon_32),
+			width: px(size.icon_32),
 		},
 		".icon-xxl": {
-			height: px(size.icon_size_xxl),
-			width: px(size.icon_size_xxl),
+			height: px(size.icon_64),
+			width: px(size.icon_64),
 		},
 		".icon-xxl > svg": {
-			height: px(size.icon_size_xxl),
-			width: px(size.icon_size_xxl),
+			height: px(size.icon_64),
+			width: px(size.icon_64),
 		},
 		".icon-message-box": {
-			height: px(size.icon_message_box),
-			width: px(size.icon_message_box),
+			height: px(size.icon_80),
+			width: px(size.icon_80),
 		},
 		".icon-message-box > svg": {
-			height: px(size.icon_message_box),
-			width: px(size.icon_message_box),
+			height: px(size.icon_80),
+			width: px(size.icon_80),
 		},
 		".icon-progress > svg": {
 			"animation-name": "rotate-icon",
