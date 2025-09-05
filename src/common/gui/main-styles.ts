@@ -471,11 +471,6 @@ styles.registerStyle("main", () => {
 		".pt-l": {
 			"padding-top": px(size.vpad_large),
 		},
-		// New design system
-		".nds-ptb-l": {
-			"padding-top": px(size.new_design.vpad_large),
-			"padding-bottom": px(size.new_design.vpad_large),
-		},
 		".pt-m": {
 			"padding-top": px(size.hpad),
 		},
