@@ -3,11 +3,13 @@ package de.tutao.calendar.widget.component
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
+import androidx.glance.LocalContext
 import androidx.glance.layout.Column
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import de.tutao.calendar.widget.data.UIEvent
+import de.tutao.calendar.widget.model.openCalendarAgenda
 import de.tutao.calendar.widget.style.Dimensions
 import java.util.Date
 
@@ -35,7 +37,8 @@ fun EventList(userId: String?, normalEvents: List<UIEvent>, currentDay: Date) {
 					firstEventOfTheDay.eventId == event.eventId,
 					currentDay,
 					event,
-					userId
+					userId,
+					openCalendarAgenda(LocalContext.current, userId, currentDay, event.eventId)
 				)
 				// add space between elements (no spacing after the last element)
 				if (eventIndex < normalEvents.size - 1) {

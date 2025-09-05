@@ -11,13 +11,10 @@ import androidx.glance.background
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxWidth
 import de.tutao.calendar.widget.style.Dimensions
-import java.util.Date
 
 @Composable
-fun SimpleCard(
-	userId: String?,
-	currentDay: Date,
-	clickAction: Action,
+fun Card(
+	onTapAction: Action,
 	content: @Composable () -> Unit
 ) {
 	Column(
@@ -25,7 +22,7 @@ fun SimpleCard(
 			.background(GlanceTheme.colors.surface)
 			.cornerRadius(Dimensions.Spacing.SM.dp)
 			.fillMaxWidth()
-			.clickable(clickAction),
+			.clickable(onTapAction),
 	) {
 		content()
 	}

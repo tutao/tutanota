@@ -16,7 +16,7 @@ fun OtherDayCard(
 	currentDay: Date
 ) {
 
-	SimpleCard(userId, currentDay, clickAction) {
+	Card(clickAction) {
 		if (allDayEvents.isNotEmpty()) {
 			AllDaySection(allDayEvents)
 		}

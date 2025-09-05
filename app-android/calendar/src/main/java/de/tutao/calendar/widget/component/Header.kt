@@ -11,6 +11,8 @@ import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
@@ -21,12 +23,15 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.wrapContentHeight
 import androidx.glance.layout.wrapContentWidth
+import androidx.glance.preview.ExperimentalGlancePreviewApi
+import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.Dimensions
+import de.tutao.tutashared.IdTuple
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -36,7 +41,7 @@ fun Header(
 	onNewEvent: Action,
 ) {
 	val hasAllDayEvents = allDayEvents.isNotEmpty()
-	val titleBottomPadding = if (hasAllDayEvents) 0.dp else (-Dimensions.Spacing.SM).dp
+	val titleBottomPadding = if (hasAllDayEvents) 0.dp else (-Dimensions.Spacing.XS).dp
 	val dateNow = LocalDateTime.now()
 
 	Row(
@@ -49,17 +54,17 @@ fun Header(
 			modifier = GlanceModifier
 				.defaultWeight()
 				.padding(
-					start = (Dimensions.Spacing.SM).dp,
-					top = (if (hasAllDayEvents) Dimensions.Spacing.XS else 0).dp
+					start = Dimensions.Spacing.LG.dp,
+					top = Dimensions.Spacing.SM.dp
 				)
 		) {
 			Text(
 				style = TextStyle(
 					fontWeight = FontWeight.Bold,
-					fontSize = if (hasAllDayEvents) 20.sp else 32.sp,
+					fontSize = if (hasAllDayEvents) 16.sp else 28.sp,
 					color = GlanceTheme.colors.secondary
 				),
-				text = dateNow.format(DateTimeFormatter.ofPattern(if (hasAllDayEvents) "EEEE dd" else "dd")),
+				text = dateNow.format(DateTimeFormatter.ofPattern(if (hasAllDayEvents) "dd EEEE" else "dd")),
 				maxLines = 1,
 				modifier = GlanceModifier.defaultWeight().wrapContentHeight()
 					.padding(bottom = titleBottomPadding)
@@ -128,4 +133,53 @@ fun Header(
 			}
 		}
 	}
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 250, heightDp = 80)
+@Composable
+fun HeaderPreview() {
+	Header(allDayEvents = listOf(), onNewEvent = actionRunCallback<ActionCallback>())
+}
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 250, heightDp = 80)
+@Composable
+fun HeaderWIthAllDayPreview() {
+	Header(
+		allDayEvents = listOf(
+			UIEvent(
+				"calendarId",
+				IdTuple("list", "elemnt"),
+				"dd55ff",
+				"My all day",
+				"",
+				"",
+				true,
+				0L
+			)
+		), onNewEvent = actionRunCallback<ActionCallback>()
+	)
+}
+
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 250, heightDp = 80)
+@Composable
+fun HeaderWIthAllDayBirthdayPreview() {
+	Header(
+		allDayEvents = listOf(
+			UIEvent(
+				"calendarId",
+				IdTuple("list", "elemnt"),
+				"AA55ff",
+				"My all day",
+				"",
+				"",
+				true,
+				0L,
+				true
+			)
+		), onNewEvent = actionRunCallback<ActionCallback>()
+	)
 }

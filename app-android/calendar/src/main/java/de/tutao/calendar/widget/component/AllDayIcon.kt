@@ -40,8 +40,8 @@ fun AllDayIcon(allDayEvents: List<UIEvent>) {
 	}
 
 	Box(
-		modifier = GlanceModifier.background(calendarColor).cornerRadius(Dimensions.Spacing.SM.dp)
-			.size(16.dp)
+		modifier = GlanceModifier.background(calendarColor).cornerRadius(Dimensions.Size.XS.dp)
+			.size(Dimensions.Size.SM.dp)
 			.padding(padding.dp)
 	) {
 		Image(
