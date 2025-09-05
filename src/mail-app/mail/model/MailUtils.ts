@@ -3,10 +3,28 @@ import { Header, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } 
 import { assertNotNull, first } from "@tutao/tutanota-utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { MailSetKind, ReplyType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind, ReplyType, SYSTEM_FOLDERS, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId, sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
 
 export type FolderInfo = { level: number; folder: MailFolder }
+
+export const enum MoveService {
+	RegularMove = "RegularMove",
+	SimpleMove = "SimpleMove",
+}
+
+interface RegularMoveTargets {
+	moveService: MoveService.RegularMove
+	folders: readonly FolderInfo[]
+}
+
+interface SimpleMoveTargets {
+	moveService: MoveService.SimpleMove
+	folders: readonly SystemFolderType[]
+}
+
+export type MoveTargets = RegularMoveTargets | SimpleMoveTargets
+
 export const MAX_FOLDER_INDENT_LEVEL = 10
 
 export function getFolderName(folder: MailFolder): string {
@@ -50,22 +68,39 @@ export function getIndentedFolderNameForDropdown(folderInfo: FolderInfo) {
 	return ". ".repeat(indentLevel) + getFolderName(folderInfo.folder)
 }
 
-export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails: readonly Mail[]): Promise<Array<FolderInfo>> {
+export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails: readonly Mail[]): Promise<MoveTargets> {
+	const regularMoveTargets = (folders: readonly FolderInfo[]): RegularMoveTargets => ({
+		moveService: MoveService.RegularMove,
+		folders,
+	})
+
 	const firstMail = first(mails)
-	if (firstMail == null) return []
+	if (firstMail == null) return regularMoveTargets([])
 
 	const mailboxDetails = await foldersModel.getMailboxDetailsForMail(firstMail)
 	if (mailboxDetails == null || mailboxDetails.mailbox.folders == null) {
-		return []
+		return regularMoveTargets([])
 	}
 
 	const folders = await foldersModel.getMailboxFoldersForId(mailboxDetails.mailbox.folders._id)
 	if (folders == null) {
-		return []
+		return regularMoveTargets([])
 	}
 	const folderOfFirstMail = foldersModel.getMailFolderForMail(firstMail)
 	if (folderOfFirstMail == null) {
-		return []
+		return regularMoveTargets([])
+	}
+
+	const areMailsInDifferentMailboxes = mails.length > 1 && mails.some((mail) => !isSameId(firstMail._ownerGroup, mail._ownerGroup))
+	if (areMailsInDifferentMailboxes) {
+		const areMailsInDifferentFolderTypes = mails.some((mail) => {
+			return folderOfFirstMail.folderType !== foldersModel.getMailFolderForMail(mail)?.folderType
+		})
+
+		return {
+			moveService: MoveService.SimpleMove,
+			folders: areMailsInDifferentFolderTypes ? SYSTEM_FOLDERS : SYSTEM_FOLDERS.filter((f) => f !== folderOfFirstMail.folderType),
+		}
 	}
 
 	const areMailsInDifferentFolders =
@@ -75,11 +110,9 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 		})
 
 	if (areMailsInDifferentFolders) {
-		return folders.getIndentedList()
+		return regularMoveTargets(folders.getIndentedList())
 	} else {
-		return folders.getIndentedList().filter((f: IndentedFolder) => {
-			return !isSameId(f.folder._id, folderOfFirstMail._id)
-		})
+		return regularMoveTargets(folders.getIndentedList().filter((f: IndentedFolder) => !isSameId(f.folder._id, folderOfFirstMail._id)))
 	}
 }
 

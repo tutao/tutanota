@@ -34,6 +34,7 @@ import {
 	OperationType,
 	ReportMovedMailsType,
 	SimpleMoveMailTarget,
+	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants.js"
 import { CUSTOM_MIN_ID, elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -350,6 +351,10 @@ export class MailModel {
 		await this.mailFacade.simpleMoveMails(mails, targetMailFolderKind)
 	}
 
+	getFolderExcludedFromMove(moveMode: MoveMode): SystemFolderType | null {
+		return moveMode === MoveMode.Conversation ? MailSetKind.SENT : null
+	}
+
 	/**
 	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
 	 */
@@ -359,7 +364,8 @@ export class MailModel {
 			return
 		}
 
-		const excludeFolder = moveMode === MoveMode.Conversation ? assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SENT))._id : null
+		const excludedFolderType = this.getFolderExcludedFromMove(moveMode)
+		const excludeFolder = excludedFolderType != null ? assertNotNull(folderSystem.getSystemFolderByType(excludedFolderType))._id : null
 		await this.mailFacade.moveMails(mails, targetFolder._id, excludeFolder)
 	}
 

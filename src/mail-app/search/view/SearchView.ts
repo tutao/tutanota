@@ -2,7 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../common/misc/LanguageViewModel"
-import { FeatureType, Keys, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { FeatureType, Keys, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import { assertMainOrNode, isApp, isBrowser } from "../../../common/api/common/Env"
 import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
@@ -73,8 +73,7 @@ import {
 	showLabelsPopup,
 	showMoveMailsDropdown,
 	ShowMoveMailsDropdownOpts,
-	simpleMoveToArchive,
-	simpleMoveToInbox,
+	simpleMoveToSystemFolder,
 	trashMails,
 } from "../../mail/view/MailGuiUtils.js"
 import { SelectAllCheckbox } from "../../../common/gui/SelectAllCheckbox.js"
@@ -700,7 +699,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						actions: (mailViewerModel: MailViewerViewModel) => {
 							return {
 								trash: () => {
-									trashMails(mailLocator.mailModel, [mailViewerModel.mail], this.undoModel)
+									trashMails(mailViewerModel.mailboxModel, mailViewerModel.mailModel, [mailViewerModel.mail], this.undoModel)
 								},
 								delete: mailViewerModel.isDeletableMail()
 									? () => promptAndDeleteMails(mailViewerModel.mailModel, [mailViewerModel.mail._id], null, noOp)
@@ -1148,13 +1147,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 			{
 				key: Keys.A,
-				exec: () => this.archiveSelected(),
+				exec: () => this.moveSelectedToSystemFolder(MailSetKind.ARCHIVE),
 				help: "archive_action",
 				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 			},
 			{
 				key: Keys.I,
-				exec: () => this.moveSelectedToInbox(),
+				exec: () => this.moveSelectedToSystemFolder(MailSetKind.INBOX),
 				help: "moveToInbox_action",
 				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 			},
@@ -1260,7 +1259,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private archiveSelected(): void {
+	private moveSelectedToSystemFolder(targetFolder: SystemFolderType): void {
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
@@ -1268,19 +1267,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				this.searchViewModel.listModel.selectNone()
 			}
 
-			simpleMoveToArchive(selectedMails, this.undoModel)
-		}
-	}
-
-	private moveSelectedToInbox(): void {
-		const selectedMails = this.searchViewModel.getSelectedMails()
-
-		if (selectedMails.length > 0) {
-			if (selectedMails.length > 1) {
-				this.searchViewModel.listModel.selectNone()
-			}
-
-			simpleMoveToInbox(selectedMails, this.undoModel)
+			simpleMoveToSystemFolder(selectedMails, targetFolder, mailLocator.mailboxModel, this.undoModel)
 		}
 	}
 
@@ -1288,7 +1275,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
 		if (selectedMails.length > 0) {
-			showMoveMailsDropdown(locator.mailboxModel, mailLocator.mailModel, this.undoModel, getMoveMailBounds(), selectedMails, MoveMode.Mails, {
+			showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, getMoveMailBounds(), selectedMails, MoveMode.Mails, {
 				onSelected: () => {
 					if (selectedMails.length > 1) {
 						this.searchViewModel.listModel.selectNone()
@@ -1329,7 +1316,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				return {
 					deleteAction: null,
 					trashAction: () => {
-						trashMails(mailLocator.mailModel, selected, this.undoModel)
+						trashMails(mailLocator.mailboxModel, mailLocator.mailModel, selected, this.undoModel)
 					},
 				}
 			}
