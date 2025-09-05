@@ -220,9 +220,9 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				const lowerSpace = window.innerHeight - original.bottom - getSafeAreaInsetBottom()
 				// Shift the dropdown up by the icon size to hide the fact that the more button disappears after being clicked on
 				if (lowerSpace < upperSpace) {
-					return new DOMRect(original.x, original.y + size.icon_size_large, original.width, original.height)
+					return new DOMRect(original.x, original.y + size.icon_24, original.width, original.height)
 				} else {
-					return new DOMRect(original.x, original.y - size.icon_size_large, original.width, original.height)
+					return new DOMRect(original.x, original.y - size.icon_24, original.width, original.height)
 				}
 			},
 			childAttrs: () => {

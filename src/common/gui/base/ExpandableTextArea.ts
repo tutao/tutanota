@@ -116,7 +116,7 @@ export class ExpandableTextArea implements ClassComponent<ExpandableTextAreaAttr
 							class: "flex-center items-center abs",
 							size: IconSize.Medium,
 							style: {
-								top: this.initialHeight === 0 ? 0 : px(this.initialHeight / 2 - size.icon_size_large / 2),
+								top: this.initialHeight === 0 ? 0 : px(this.initialHeight / 2 - size.icon_24 / 2),
 								bottom: this.initialHeight === 0 ? 0 : undefined,
 								margin: this.initialHeight === 0 ? "auto 0" : undefined,
 								right: "8px",

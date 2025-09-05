@@ -86,13 +86,14 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 
 		if (fontSize > 16 && fontSize < 32) {
 			iconSize = IconSize.Large
-			padding = size.icon_size_large
+			padding = size.icon_24
 		} else if (fontSize > 32) {
 			iconSize = IconSize.XL
-			padding = size.icon_size_xl
+			padding = size.icon_32
 		} else {
 			iconSize = IconSize.Medium
-			padding = size.icon_size_medium_large
+			// FIXME: Replace with size.spacing token
+			padding = 20
 		}
 
 		return m(".rel.flex.flex-grow", [
