@@ -1,5 +1,3 @@
-import * as tf from "@tensorflow/tfjs"
-
 export class TfIdfVectorizer {
 	// VisibleForTesting
 	readonly vocabulary: string[] = []
@@ -39,9 +37,8 @@ export class TfIdfVectorizer {
 		})
 	}
 
-	public transform(tokenizedDocuments: Array<ReadonlyArray<string>>): tf.Tensor2D {
-		const vectors = tokenizedDocuments.map((doc) => this.vectorize(doc))
-		return tf.tensor2d(vectors, [vectors.length, this.vocabulary.length])
+	public transform(tokenizedDocuments: Array<ReadonlyArray<string>>): number[][] {
+		return tokenizedDocuments.map((doc) => this.vectorize(doc))
 	}
 
 	public vectorize(tokenizedText: ReadonlyArray<string>): number[] {
