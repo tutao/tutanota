@@ -3,7 +3,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 
 import { Keys, MailSetKind, MailState, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { size } from "../../../common/gui/size"
+import { component_size, size } from "../../../common/gui/size"
 import { styles } from "../../../common/gui/styles"
 import { Icon } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
@@ -74,7 +74,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private readonly renderConfig: RenderConfig<Mail, MailRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		createElement: (dom: HTMLElement) => {
 			const mailRow = new MailRow(
@@ -393,9 +393,9 @@ export class MailListView implements Component<MailListViewAttrs> {
 		return m(".flex.col", [
 			this.showingSpamOrTrash
 				? [
-						m(".flex.flex-column.plr-l", [
-							m(".small.flex-grow.pt", lang.get("storageDeletion_msg")),
-							m(".mr-negative-s.align-self-end", m(Button, purgeButtonAttrs)),
+						m(".flex.flex-column.plr-24", [
+							m(".small.flex-grow.pt-16", lang.get("storageDeletion_msg")),
+							m(".mr-negative-8.align-self-end", m(Button, purgeButtonAttrs)),
 						]),
 					]
 				: null,
@@ -460,14 +460,14 @@ export class MailListView implements Component<MailListViewAttrs> {
 					m(Icon, {
 						icon: Icons.Cancel,
 					}),
-					m(".pl-s", lang.get("cancel_action")), // if this is the drafts folder, we can only cancel the selection as we have nowhere else to put the mail
+					m(".pl-4", lang.get("cancel_action")), // if this is the drafts folder, we can only cancel the selection as we have nowhere else to put the mail
 				]
 			: [
 					m(Icon, {
 						icon: Icons.Folder,
 					}),
 					m(
-						".pl-s",
+						".pl-4",
 						this.showingSpamOrTrash
 							? lang.get("recover_label") // show "recover" if this is the trash/spam folder
 							: this.showingArchive // otherwise show "inbox" or "archive" depending on the folder
@@ -482,7 +482,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			m(Icon, {
 				icon: Icons.Trash,
 			}),
-			m(".pl-s", lang.get("delete_action")),
+			m(".pl-4", lang.get("delete_action")),
 		]
 	}
 }

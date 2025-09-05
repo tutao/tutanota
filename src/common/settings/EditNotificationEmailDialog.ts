@@ -133,7 +133,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 	})
 
 	const editTabContent = () => [
-		m(".small.mt-s", lang.get("templateHelp_msg")),
+		m(".small.mt-8", lang.get("templateHelp_msg")),
 		existingTemplate
 			? m(TextField, {
 					label: "notificationMailLanguage_label",
@@ -174,7 +174,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 			value: subject().replace(/{sender}/g, senderName),
 			isReadOnly: true,
 		}),
-		m(".small.mt.mb", lang.get("mailBody_label")),
+		m(".small.mt-16.mb-16", lang.get("mailBody_label")),
 		m.trust(sanitizePreview(savedHtml.replace(/{sender}/g, senderName).replace(/{link}/g, senderDomain))),
 	]
 

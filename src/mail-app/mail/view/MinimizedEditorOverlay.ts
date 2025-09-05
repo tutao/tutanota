@@ -54,7 +54,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 	view(vnode: Vnode<MinimizedEditorOverlayAttrs>): Children {
 		const { minimizedEditor, viewModel, eventController } = vnode.attrs
 		const subject = minimizedEditor.sendMailModel.getSubject()
-		return m(".elevated-bg.pl.border-radius", [
+		return m(".elevated-bg.pl-12.border-radius", [
 			m(CounterBadge, {
 				count: viewModel.getMinimizedEditors().indexOf(minimizedEditor) + 1,
 				position: {
@@ -64,7 +64,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 				color: theme.surface_container,
 				background: theme.on_surface_variant,
 			}),
-			m(".flex.justify-between.pb-xs.pt-xs", [
+			m(".flex.justify-between.pb-4.pt-4", [
 				m(
 					".flex.col.justify-center.min-width-0.flex-grow",
 					{

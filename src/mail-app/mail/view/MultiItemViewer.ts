@@ -49,7 +49,7 @@ export class MultiItemViewer<T> implements Component<MultiItemViewerAttrs<T>> {
 							stopLoadAll()
 						},
 					}),
-					m(".flex.items-center.plr-button", progressIcon()),
+					m(".flex.items-center.plr-8", progressIcon()),
 				])
 			: selectedEntities.length === 0
 				? null

@@ -57,7 +57,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 		}
 
 		return m(
-			".folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg.border-radius-small",
+			".folder-row.flex.flex-row.mlr-8.border-radius-4.state-bg",
 			{
 				style: { background: isNavButtonSelected(navButtonAttrs) ? theme.state_bg_hover : "" },
 				onmouseenter: onHover,
@@ -68,10 +68,10 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 			[
 				// we render icon on our own to be able to override the color and to control the padding
 				m(
-					".button-height.flex.items-center.plr-button",
+					".button-height.flex.items-center.plr-8",
 					m(Icon, {
 						icon: attrs.icon,
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 						style: {
 							fill: attrs.iconColor ?? (isNavButtonSelected(navButtonAttrs) ? theme.primary : theme.on_surface_variant),
 						},

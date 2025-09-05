@@ -34,7 +34,7 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 				: m(RadioSelector, {
 						name: "theme_label",
 						options: [...themeOptions(client.isCalendarApp()), ...this.customThemes],
-						class: "mb-s",
+						class: "mb-8",
 						selectedOption: locator.themeController.themePreference,
 						onOptionSelected: (option) => {
 							locator.themeController.setThemePreference(option, true)

@@ -34,7 +34,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	view(vnode: Vnode<MailViewerToolbarAttrs>) {
 		const singleMailActions = this.renderSingleMailActions(vnode.attrs)
 
-		return m(".flex.ml-between-s.items-center", { "data-testid": "nav:action_bar" }, [
+		return m(".flex.ml-between-4.items-center", { "data-testid": "nav:action_bar" }, [
 			singleMailActions,
 			singleMailActions != null ? m(".nav-bar-spacer") : null,
 			this.renderActions(vnode.attrs),

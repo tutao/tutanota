@@ -32,7 +32,7 @@ import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/Subscript
 import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 import { calendarAttendeeStatusSymbol, formatEventDuration, getDisplayEventTitle, repeatRuleOptions } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
-import { inputLineHeight, px, size } from "../../../../common/gui/size.js"
+import { font_size, px, size } from "../../../../common/gui/size.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../common/gui/TextHighlightViewUtils"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../common/gui/base/ExpandableTextArea.js"
@@ -80,7 +80,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 			participation.ownAttendee.status === status ? highlightColors : colors,
 		)
 
-	return m(".flex.items-center.mt-s.gap-vpad-s.fit-content", [
+	return m(".flex.items-center.mt-8.gap-8.fit-content", [
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.ACCEPTED, "yes_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.TENTATIVE, "maybe_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.DECLINED, "no_label")),
@@ -125,7 +125,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	private renderRow(headerIcon: AllIcons, children: Children, isAlignedLeft: boolean = false, isEventTitle: boolean = false): Children {
-		return m(".flex.gap-hpad.mb-s", [
+		return m(".flex.gap-12.mb-8", [
 			this.renderSectionIndicator(headerIcon, isAlignedLeft ? { marginTop: isEventTitle ? "6px" : "2px" } : undefined),
 			m(".selectable.full-width.align-self-center.text-break", children),
 		])
@@ -134,7 +134,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
 		return m(Icon, {
 			icon,
-			size: IconSize.Medium,
+			size: IconSize.PX24,
 			style: Object.assign(
 				{
 					fill: theme.on_surface_variant,
@@ -202,11 +202,14 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	): Children {
 		if (attendees.length === 0 || participation == null || event._ownerGroup == null) return null
 		return m("", [
-			m(".flex.pb-s", [
+			m(".flex.pb-8", [
 				this.renderSectionIndicator(BootIcons.Contacts),
 				m(".flex.flex-column", [
 					m(".small", lang.get("invitedToEvent_msg")),
-					m(".fit-content", { style: { "min-height": px(inputLineHeight * 7) } }, [m(ReplyButtons, participation), this.renderCommentSection(model)]),
+					m(".fit-content", { style: { "min-height": px(font_size.line_height_input * 7) } }, [
+						m(ReplyButtons, participation),
+						this.renderCommentSection(model),
+					]),
 				]),
 			]),
 		])
@@ -214,7 +217,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 
 	private renderCommentSection(model: CalendarEventPreviewViewModel): Children {
 		return m(ExpandableTextArea, {
-			classes: ["mt-s"],
+			classes: ["mt-8"],
 			variant: "outlined",
 			value: model.comment,
 			maxLines: 3,
@@ -245,7 +248,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				? getAttendeeStatus(participation.ownAttendee)
 				: getAttendeeStatus(attendee)
 
-		return m(".flex.items-center", [m(".span.line-break-anywhere.selectable", attendeeField), m(".span.pl-s", calendarAttendeeStatusSymbol(status))])
+		return m(".flex.items-center", [m(".span.line-break-anywhere.selectable", attendeeField), m(".span.pl-4", calendarAttendeeStatusSymbol(status))])
 	}
 
 	private renderDescription(sanitizedDescription: string | null, highlightedStrings?: readonly SearchToken[]) {
@@ -254,7 +257,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	private renderCalendar(calendarName: string, calendarColor: string, calendarType: TranslationKey) {
-		return m(".flex.gap-hpad.mb-s", [
+		return m(".flex.gap-12.mb-8", [
 			m(
 				".flex.items-center.justify-center",
 				{
@@ -266,8 +269,8 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				m("", {
 					style: {
 						borderRadius: "50%",
-						width: px(size.hpad_large),
-						height: px(size.hpad_large),
+						width: px(size.spacing_24),
+						height: px(size.spacing_24),
 						backgroundColor: `#${calendarColor}`,
 					},
 				}),

@@ -45,7 +45,7 @@ export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel
 			onOkClicked(dialog)
 		},
 		child: () =>
-			m(".flex.col.gap-vpad", [
+			m(".flex.col.gap-16", [
 				m(TextField, {
 					label: "name_label",
 					value: name,

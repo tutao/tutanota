@@ -27,7 +27,7 @@ function attrToFirstLine(attr: OfflineIndicatorAttrs): Children {
 		case OfflineIndicatorState.Synchronizing:
 			return m("span", lang.get("online_label"))
 		case OfflineIndicatorState.Offline:
-			return m("span", [lang.get("offline_label"), m("span.b.content-accent-fg.mlr-s", lang.get("reconnect_action"))])
+			return m("span", [lang.get("offline_label"), m("span.b.content-accent-fg.mlr-4", lang.get("reconnect_action"))])
 		case OfflineIndicatorState.Connecting:
 			return m("span", lang.get("offline_label"))
 	}
@@ -81,7 +81,7 @@ export class OfflineIndicator implements Component<OfflineIndicatorAttrs> {
 		return m(
 			"button.small",
 			{
-				class: a.isSingleColumn ? "center mb-xs" : "mlr-l flex col",
+				class: a.isSingleColumn ? "center mb-4" : "mlr-24 flex col",
 				type: "button",
 				href: "#",
 				tabindex: "0",

@@ -137,7 +137,7 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 		const lastIndex = visiblePages.length - 1
 
 		return m(
-			"#wizardDialogContent.pt",
+			"#wizardDialogContent.pt-16",
 			{
 				oncreate: (vnode) => {
 					this.wizardContentDom = vnode.dom as HTMLElement
@@ -147,7 +147,7 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 				a.currentPage && a.currentPage.attrs.hideAllPagingButtons
 					? null
 					: m(
-							"nav#wizard-paging.flex-space-around.center-vertically.mb-s.plr-2l",
+							"nav#wizard-paging.flex-space-around.center-vertically.mb-8.plr-48",
 							{
 								"aria-label": "Breadcrumb",
 							},
@@ -355,7 +355,7 @@ export class WizardPagingButton {
 			isPreviousPage
 				? m(Icon, {
 						icon: Icons.Checkmark,
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 						style: {
 							fill: theme.surface,
 						},

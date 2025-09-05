@@ -32,15 +32,15 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 		const appClasses = isApp() ? ["smaller"] : []
 
 		return m(".flex", [
-			m(".flex.col.flex-grow.gap-vpad-s", [
-				m(".flex.gap-vpad-s.items-center.pr-vpad-s", [
+			m(".flex.col.flex-grow.gap-8", [
+				m(".flex.gap-8.items-center.pr-8", [
 					m(Icon, {
 						icon: Icons.Time,
 						style: {
 							fill: theme.on_surface,
 						},
 						title: lang.get("timeSection_label"),
-						size: IconSize.Medium,
+						size: IconSize.PX24,
 					}),
 					m(
 						Switch,
@@ -54,12 +54,12 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 						lang.get("allDay_label"),
 					),
 				]),
-				m(".flex.col.full-width.flex-grow.gap-vpad-s", { style: { paddingLeft: px(size.icon_size_large + size.vpad_small) } }, [
+				m(".flex.col.full-width.flex-grow.gap-8", { style: { paddingLeft: px(size.icon_24 + size.spacing_8) } }, [
 					m(Divider, { color: theme.outline_variant }),
-					m(".time-selection-grid.pr-vpad-s", [
+					m(".time-selection-grid.pr-8", [
 						m("", lang.get("dateFrom_label")),
 						m(
-							`${isApp() ? "" : ".pl-vpad-l"}`,
+							`${isApp() ? "" : ".pl-32"}`,
 							m(DatePicker, {
 								classes: appClasses,
 								date: attrs.editModel.startDate,
@@ -88,7 +88,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 						),
 						m("", lang.get("dateTo_label")),
 						m(
-							`${isApp() ? "" : ".pl-vpad-l"}`,
+							`${isApp() ? "" : ".pl-32"}`,
 							m(DatePicker, {
 								classes: appClasses,
 								date: attrs.editModel.endDate,

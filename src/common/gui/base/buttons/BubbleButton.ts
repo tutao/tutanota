@@ -4,7 +4,7 @@ import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
 import { AllIcons, Icon } from "../Icon.js"
 import { theme } from "../../theme.js"
 import { styles } from "../../styles.js"
-import { px, size } from "../../size.js"
+import { component_size, px, size } from "../../size.js"
 
 export interface BubbleButtonAttrs {
 	label: MaybeTranslation
@@ -14,7 +14,7 @@ export interface BubbleButtonAttrs {
 }
 
 export function bubbleButtonHeight(): number {
-	return usingMobileBubbleButton() ? size.button_height : size.button_height_bubble
+	return usingMobileBubbleButton() ? component_size.button_height : component_size.button_height_bubble
 }
 
 export function usingMobileBubbleButton() {
@@ -22,7 +22,7 @@ export function usingMobileBubbleButton() {
 }
 
 export function bubbleButtonPadding(): string {
-	return usingMobileBubbleButton() ? "plr-button-double" : "plr-button"
+	return usingMobileBubbleButton() ? "plr-16" : "plr-8"
 }
 
 /**
@@ -42,10 +42,10 @@ export class BubbleButton implements Component<BubbleButtonAttrs> {
 					m(Icon, {
 						icon: attrs.icon,
 						container: "div",
-						class: "mr-xs mb-xs",
+						class: "mr-4 mb-4",
 						style: { fill: theme.on_surface },
 					}),
-				iconWrapperSelector: ".icon.mr-hpad-small",
+				iconWrapperSelector: ".icon.mr-4",
 				style: { height: px(bubbleButtonHeight()), maxHeight: px(bubbleButtonHeight()) },
 				class: `smaller bubble flex center-vertically limit-width ${bubbleButtonPadding()} flash`,
 				onclick: attrs.onclick,

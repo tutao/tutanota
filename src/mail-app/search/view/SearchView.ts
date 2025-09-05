@@ -8,7 +8,7 @@ import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
-import { size } from "../../../common/gui/size"
+import { layout_size, size } from "../../../common/gui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -179,7 +179,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							m(SidebarSection, {
 								name: "searchFilters_label",
 							}),
-							m(".flex.wrap.plr-button-double.gap-vpad-s.flex-shrink-children", this.renderFilterChips()),
+							m(".flex.wrap.plr-16.gap-8.flex-shrink-children", this.renderFilterChips()),
 							m(".flex-grow"),
 							this.renderAppPromo(),
 						],
@@ -189,8 +189,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 			ColumnType.Foreground,
 			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
+				minWidth: layout_size.first_col_min_width,
+				maxWidth: layout_size.first_col_max_width,
 				headerCenter: "search_label",
 			},
 		)
@@ -213,8 +213,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width,
-				maxWidth: deviceConfig.getMailListSize(userId) ?? size.second_col_max_width,
+				minWidth: layout_size.second_col_min_width,
+				maxWidth: deviceConfig.getMailListSize(userId) ?? layout_size.second_col_max_width,
 				headerCenter: "searchResult_label",
 				resizeCallback: (size) => {
 					deviceConfig.setMailListSize(userId, size)
@@ -227,8 +227,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.third_col_min_width,
-				maxWidth: size.third_col_max_width,
+				minWidth: layout_size.third_col_min_width,
+				maxWidth: layout_size.third_col_max_width,
 			},
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])
@@ -269,7 +269,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderFilterBar(): Children {
-		return m(".flex.gap-vpad-s.pl-vpad-m.pr-vpad-m.pt-s.pb-s.scroll-x", this.renderFilterChips())
+		return m(".flex.gap-8.pl-16.pr-16.pt-8.pb-8.scroll-x", this.renderFilterChips())
 	}
 
 	private renderCategoryChip(label: TranslationKey, icon: AllIcons): Children {
@@ -483,7 +483,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (searchText == null) {
 			return null
 		}
-		return m("div.ml-button.mt-m.small.plr-button.content-fg.mb", m(Card, searchText))
+		return m("div.ml-8.mt-12.small.plr-8.content-fg.mb-16", m(Card, searchText))
 	}
 
 	oncreate(): void {
@@ -535,12 +535,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							},
 						}),
 					)
-				: m(".ml-s"),
+				: m(".ml-8"),
 			right: rightActions,
 			center: m(
 				".flex-grow.flex.justify-center",
 				{
-					class: rightActions.length === 0 ? "mr" : "",
+					class: rightActions.length === 0 ? "mr-12" : "",
 				},
 				m(searchBar, {
 					placeholder: this.searchBarPlaceholder(),
@@ -915,11 +915,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private renderEventDetails(selectedEvent: CalendarEvent): Children {
 		return m(
-			".height-100p.overflow-y-scroll.mb-l.fill-absolute.pb-l",
+			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
 			m(
-				".border-radius-big.flex.col.flex-grow.content-bg",
+				".border-radius-12.flex.col.flex-grow.content-bg",
 				{
-					class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
+					class: styles.isDesktopLayout() ? "mlr-24" : "mlr-12",
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
