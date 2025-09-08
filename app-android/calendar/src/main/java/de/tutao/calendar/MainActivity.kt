@@ -49,7 +49,6 @@ import de.tutao.calendar.push.AndroidNativePushFacade
 import de.tutao.calendar.push.LocalNotificationsFacade
 import de.tutao.calendar.push.PushNotificationService
 import de.tutao.calendar.webauthn.AndroidWebauthnFacade
-import de.tutao.calendar.widget.WIDGET_SETTINGS_DATASTORE_FILE
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CancelledError
@@ -127,10 +126,14 @@ class MainActivity : FragmentActivity() {
 			db,
 			createAndroidKeyStoreFacade()
 		)
+
+		// On top before CalendarFacade because we need the user agent to sync external calendars
+		webView = WebView(this)
+
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
 			AndroidFileFacade(this, localNotificationsFacade, SecureRandom(), NetworkUtils.defaultClient)
-		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient)
+		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient, webView.settings.userAgentString)
 		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
 
 
@@ -189,7 +192,6 @@ class MainActivity : FragmentActivity() {
 
 		setupPushNotifications()
 
-		webView = WebView(this)
 		webView.setBackgroundColor(Color.TRANSPARENT)
 
 		if (BuildConfig.DEBUG) {
