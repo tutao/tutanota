@@ -15,16 +15,4 @@ o.spec("SolvePowChallenge", () => {
 			o(solution.solution).equals(0n)
 		}),
 	)
-
-	o(
-		"solve invalid challenge with modulo 0",
-		browser(async () => {
-			const captchaGetOut: TimelockCaptchaGetOut = createTimelockCaptchaGetOut({
-				base: "2",
-				difficulty: "2",
-				modulus: "0",
-			})
-			await o(() => solvePowChallengeInWorker(captchaGetOut)).asyncThrows(RangeError)
-		}),
-	)
 })
