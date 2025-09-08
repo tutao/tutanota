@@ -38,6 +38,7 @@ import { OperationHandle } from "../../../common/api/main/OperationProgressTrack
 import { ContentWithOptionsDialog } from "../../../common/gui/dialogs/ContentWithOptionsDialog"
 import { Card } from "../../../common/gui/base/Card"
 import { theme } from "../../../common/gui/theme"
+import { isDarkTheme } from "../../../common/gui/theme"
 
 export type MailViewerMoreActions = {
 	disallowExternalContentAction?: () => void
@@ -306,12 +307,25 @@ export function singleMailViewerMoreActions(viewModel: MailViewerViewModel, more
 		})
 	}
 
+	addToggleLightModeButtonAttrs(viewModel, moreButtons)
+
 	moreButtons.push(...mailViewerMoreActions(moreActions))
 
 	// adding more optional buttons? put them above the report action so the new button
 	// is not sometimes where the report action usually sits.
 
 	return moreButtons
+}
+
+export function addToggleLightModeButtonAttrs(viewModel: MailViewerViewModel, toArray: DropdownButtonAttrs[]) {
+	if (isDarkTheme()) {
+		const willForceLightMode = !viewModel.getForceLightMode()
+		toArray.push({
+			label: willForceLightMode ? "viewInLightMode_action" : "viewInDarkMode_action",
+			click: () => viewModel.setForceLightMode(willForceLightMode),
+			icon: willForceLightMode ? Icons.Bulb : Icons.BulbOutline,
+		})
+	}
 }
 
 export function getMailViewerMoreActions({
