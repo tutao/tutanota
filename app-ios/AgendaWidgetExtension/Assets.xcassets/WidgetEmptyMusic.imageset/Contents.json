@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "widget_empty_one_light.svg",
+      "filename" : "widget_empty_one_dark.svg",
       "idiom" : "universal"
     },
     {
@@ -11,7 +11,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "widget_empty_one_dark.svg",
+      "filename" : "widget_empty_one_light 1.svg",
       "idiom" : "universal"
     }
   ],
