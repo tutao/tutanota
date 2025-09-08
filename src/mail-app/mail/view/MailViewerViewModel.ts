@@ -45,7 +45,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import m from "mithril"
 import { LockedError, NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { haveSameId, isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { getReferencedAttachments, isMailContrastFixNeeded, isTutanotaTeamMail, loadInlineImages, moveMails } from "./MailGuiUtils"
+import { getReferencedAttachments, isTutanotaTeamMail, loadInlineImages, moveMails } from "./MailGuiUtils"
 import { SanitizedFragment } from "../../../common/misc/HtmlSanitizer"
 import { CALENDAR_MIME_TYPE, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -106,7 +106,7 @@ export const enum UnsubscribeType {
 export const LIST_UNSUBSCRIBE_POST_PAYLOAD = "List-Unsubscribe=One-Click"
 
 export class MailViewerViewModel {
-	private contrastFixNeeded: boolean = false
+	private forceLightMode: boolean = false
 	// always sanitized in this.sanitizeMailBody
 
 	private sanitizeResult: SanitizedFragment | null = null
@@ -305,8 +305,12 @@ export class MailViewerViewModel {
 		return this.loadedInlineImages ?? new Map()
 	}
 
-	isContrastFixNeeded(): boolean {
-		return this.contrastFixNeeded
+	setForceLightMode(forceLightMode: boolean) {
+		this.forceLightMode = forceLightMode
+	}
+
+	getForceLightMode(): boolean {
+		return this.forceLightMode
 	}
 
 	isDraftMail() {
@@ -1080,15 +1084,6 @@ export class MailViewerViewModel {
 			highlightedStrings: this.highlightedStrings,
 		})
 		const { fragment, inlineImageCids, links, blockedExternalContent } = sanitizeResult
-
-		/**
-		 * Check if we need to improve contrast for dark theme. We apply the contrast fix if any of the following is contained in
-		 * the html body of the mail
-		 *  * any tag with a style attribute that has the color property set (besides "inherit")
-		 *  * any tag with a style attribute that has the background-color set (besides "inherit")
-		 *  * any font tag with the color attribute set
-		 */
-		this.contrastFixNeeded = isMailContrastFixNeeded(fragment)
 
 		m.redraw()
 		return {

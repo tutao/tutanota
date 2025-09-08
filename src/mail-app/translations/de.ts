@@ -2118,6 +2118,8 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"viewInLightMode_action": "View in light mode",
+		"viewInDarkMode_action": "View in dark mode",
 	}
 }

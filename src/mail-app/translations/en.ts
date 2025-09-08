@@ -2114,6 +2114,8 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"viewInLightMode_action": "View in light mode",
+		"viewInDarkMode_action": "View in dark mode",
 	}
 }

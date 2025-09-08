@@ -20,7 +20,7 @@ import { isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
-import { editDraft, MailViewerMoreActions, singleMailViewerMoreActions, unsubscribe } from "./MailViewerUtils.js"
+import { addToggleLightModeButtonAttrs, editDraft, MailViewerMoreActions, singleMailViewerMoreActions, unsubscribe } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../common/gui/AriaUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { AttachmentBubble, getAttachmentType } from "../../../common/gui/AttachmentBubble.js"
@@ -811,6 +811,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						icon: Icons.Folder,
 					})
 					actionButtons.push(deleteOrTrashAction)
+					addToggleLightModeButtonAttrs(viewModel, actionButtons)
 				} else {
 					if (viewModel.canReply()) {
 						actionButtons.push({

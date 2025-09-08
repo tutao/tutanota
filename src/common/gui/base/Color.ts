@@ -155,6 +155,45 @@ export function hexToRGBAString(color: string, alpha: number) {
 }
 
 /**
+ * Compute the given color string as ARGB using the document in the current window.
+ *
+ * The color string can be a hex string, a color name, argb()/rgb() syntax, or anything else recognizable by the web
+ * view's CSS engine.
+ *
+ * @param color color string to compute
+ */
+export function computeColor(color: string): { r: number; g: number; b: number; a: number } {
+	// We have to create an element in the DOM because colors of elements not in the DOM can't be computed, including
+	// DocumentFragment. Shouldn't affect anything if it's just an empty span element.
+	//
+	// We can then just use getComputedStyle to quickly see what was computed.
+	const element = document.createElement("span")
+	element.style.color = color
+	document.body.appendChild(element)
+	const computed = getComputedStyle(element).color.replace(" ", "")
+	document.body.removeChild(element)
+
+	// All computed colors are rgb() or rgba().
+	//
+	// MDN:
+	//
+	// "For compatibility reasons, serialized color values are expressed as rgb() colors if
+	// the alpha channel value is exactly 1, and rgba() colors otherwise. In both cases,
+	// legacy syntax is used, with commas as separators (for example rgb(255, 0, 0))."
+	//
+	// https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle
+	if (computed.startsWith("rgb(")) {
+		const [r, g, b] = computed.slice(4, computed.length - 1).split(",")
+		return { r: Number(r), g: Number(g), b: Number(b), a: 1.0 }
+	} else if (computed.startsWith("rgba(")) {
+		const [r, g, b, a] = computed.slice(5, computed.length - 1).split(",")
+		return { r: Number(r), g: Number(g), b: Number(b), a: Number(a) }
+	} else {
+		throw new Error(`color ${color} did not result in rgb/rgba somehow`)
+	}
+}
+
+/**
  * Convert RGB to RRGGBB
  */
 export function expandHexTriplet(triplet: string): string {

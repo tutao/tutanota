@@ -5,7 +5,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, endsWith, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { $Promisable, assertNotNull, clamp, endsWith, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
 import {
 	EncryptionAuthStatus,
 	getMailFolderType,
@@ -47,6 +47,7 @@ import { elementIdPart, getIds, isSameId } from "../../../common/api/common/util
 import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
+import { computeColor, rgbToHSL } from "../../../common/gui/base/Color"
 
 const UNDO_SNACKBAR_SHOW_TIME = 10 * 1000 // ms
 
@@ -697,12 +698,93 @@ export function getConfidentialFontIcon(mail: Mail): string {
 	return confidentialIcon === Icons.PQLock ? FontIcons.PQConfidential : FontIcons.Confidential
 }
 
-export function isMailContrastFixNeeded(editorDom: ParentNode): boolean {
-	return (
-		Array.from(editorDom.querySelectorAll("*[style]"), (e) => (e as HTMLElement).style).some(
-			(s) => (s.color && s.color !== "inherit") || (s.backgroundColor && s.backgroundColor !== "inherit"),
-		) || editorDom.querySelectorAll("font[color]").length > 0
-	)
+function cssAttributeSetNonInherit(color: string): boolean {
+	return color !== "" && color !== "inherit"
+}
+
+/**
+ * All tags that used bgcolor in HTML4
+ */
+const BGCOLOR_TAGS: readonly string[] = Object.freeze(["body", "td", "th", "tfoot", "tr", "table"])
+
+/**
+ * Clone the given dom and return a version of it suitable for dark themes.
+ */
+export function applyDarkThemeFix<T extends NonElementParentNode & ParentNode>(node: T): T {
+	const fixed = node.cloneNode(true) as T
+
+	// Delete anything with a white background color that isn't inside of something else with a background
+	// color. Additionally, we want to ensure anything with a non-white background retains its font colors.
+	function applyDarkThemeFixToElement(e: HTMLElement | Node, fontColorSetByParent: string | null) {
+		if (!("style" in e)) {
+			return
+		}
+
+		// Fixup deprecated HTML4 attributes to use CSS so we can properly handle them
+		const tagName = e.tagName.toLowerCase()
+		if (tagName === "font" && e.hasAttribute("color")) {
+			// <font style> is technically valid since even unrecognized HTML tags should effectively be treated the
+			// same as <span> elements
+			e.style.color = assertNotNull(e.getAttribute("color"))
+			e.removeAttribute("color")
+		}
+		if (BGCOLOR_TAGS.includes(tagName) && e.hasAttribute("bgcolor")) {
+			e.style.backgroundColor = assertNotNull(e.getAttribute("bgcolor"))
+			e.removeAttribute("bgcolor")
+		}
+
+		const style = e.style
+
+		const fontColorSet = cssAttributeSetNonInherit(style.color)
+		const backgroundColorSet = cssAttributeSetNonInherit(style.backgroundColor)
+		let backgroundColorIsWhiteOrTransparent = false
+
+		if (backgroundColorSet) {
+			const backgroundColor = computeColor(style.backgroundColor)
+			backgroundColorIsWhiteOrTransparent =
+				backgroundColor.a === 0 || (backgroundColor.r === 255 && backgroundColor.g === 255 && backgroundColor.b === 255)
+		}
+
+		// We want to hold onto the 'original' color for the check below.
+		const effectiveFontColor = fontColorSet ? style.color : fontColorSetByParent
+
+		if (
+			cssAttributeSetNonInherit(e.style.backgroundImage) ||
+			cssAttributeSetNonInherit(e.style.background) ||
+			(backgroundColorSet && !backgroundColorIsWhiteOrTransparent)
+		) {
+			// do not apply the contrast fix to anything inside of this
+			style.color = effectiveFontColor != null ? effectiveFontColor : "#000"
+			return
+		}
+
+		if (backgroundColorIsWhiteOrTransparent) {
+			style.backgroundColor = ""
+		}
+
+		// If this, in particular, has a font color set, we want it to look good on a dark background
+		if (fontColorSet) {
+			const color = computeColor(style.color)
+			const hsl = rgbToHSL(color)
+
+			// 100 lightness = white
+			//
+			// we average the reverse with white to give us a color that has good contrast with dark backgrounds
+			hsl.l = clamp((100 + (100 - hsl.l)) / 2, 0.0, 100.0)
+
+			style.color = `hsl(${hsl.h} ${hsl.s}% ${hsl.l}% / ${color.a})`
+		}
+
+		for (const childElement of Array.from(e.children)) {
+			applyDarkThemeFixToElement(childElement, effectiveFontColor)
+		}
+	}
+
+	for (const childElement of Array.from(fixed.childNodes)) {
+		applyDarkThemeFixToElement(childElement, null)
+	}
+
+	return fixed
 }
 
 export interface LabelsPopupOpts {
