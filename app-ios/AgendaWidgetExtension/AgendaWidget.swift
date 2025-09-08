@@ -169,255 +169,38 @@ extension View {
 
 struct AgendaWidgetEntryView: View {
 	var normalEvents: EventMap
-	var allDayEvents: LongEventsDataMap
+	var allDayEventsData: LongEventsDataMap
 	var error: WidgetError?
 	var userId: String
 
-	private let eventTimeFormatter: DateFormatter = {
-		let formatter = DateFormatter()
-		formatter.dateStyle = .none
-		formatter.timeStyle = .short
-		return formatter
-	}()
-
 	@Environment(\.widgetRenderingMode) var renderingMode
-
-	private func AllDayEventsRow(allDayEventsData: SimpleLongEventsData, textColor: Color?) -> some View {
-		let allDayBackgroundColor: UIColor = UIColor(hex: allDayEventsData.event?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
-		let foregroundColor: Color = if allDayBackgroundColor.getLuminance() > 0.5 { .black } else { .white }
-
-		let (allDayImage, allDayPadding): (ImageResource, CGFloat) =
-			if let firstEvent = allDayEventsData.event, firstEvent.isBirthdayEvent { (.giftIcon, 4) } else { (.allDayIcon, 2) }
-
-		let eventTitle: String =
-			if let title: String = allDayEventsData.event?.summary, !title.isEmpty { allDayEventsData.event!.summary } else {
-				translate("TutaoNoTitleLabel", default: "<No Title>")
-			}
-
-		return HStack(alignment: .center, spacing: 4) {
-			Image(allDayImage).foregroundStyle(foregroundColor).font(.system(size: 14)).padding(allDayPadding).background(Color(allDayBackgroundColor.cgColor))
-				.clipShape(.rect(cornerRadii: .init(topLeading: 12, bottomLeading: 12, bottomTrailing: 12, topTrailing: 12)))
-			Text(eventTitle).lineLimit(1).font(.system(size: 12)).if(textColor != nil) { $0.foregroundStyle(textColor!) }
-
-			if allDayEventsData.count > 1 {
-				Text("+\(allDayEventsData.count - 1)").lineLimit(1).font(.system(size: 12)).fontWeight(.medium)
-					.if(textColor != nil) { $0.foregroundStyle(textColor!) }
-			}
-		}
-	}
-	private func AllDayHeader(allDayEventsData: SimpleLongEventsData, weekday: String, day: String) -> some View {
-		Group {
-			Text(weekday + " " + day).fontWeight(.bold).font(.system(size: 20)).padding(.top, -4)
-			AllDayEventsRow(allDayEventsData: allDayEventsData, textColor: nil)
-		}
-	}
-
-	private func EmptyList(_ isSmallView: Bool) -> some View {
-		let errorImages = [ImageResource.widgetEmptyDog, ImageResource.widgetEmptyMusic]
-		let imageIndex = Int.random(in: 0...1)
-
-		return VStack(alignment: .center) {
-			Text(translate("TutaoWidgetNoEventsMsg", default: "No Events")).lineLimit(2).multilineTextAlignment(.center).foregroundStyle(Color(.onSurface))
-				.padding([.top, .bottom], 8)
-
-			if !isSmallView { Image(errorImages[imageIndex]).resizable().scaledToFit() }
-		}
-		.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-	}
-
-	private func DaysList() -> some View {
-		LazyVStack(alignment: .leading, spacing: 6) {
-			ForEach(normalEvents.keys.sorted(by: { $0 < $1 }), id: \.self) { startOfDay in
-				let parsedDay = Date(timeIntervalSince1970: startOfDay)
-				let events = normalEvents[startOfDay] ?? []
-				let allDayEvents = allDayEvents[startOfDay] ?? SimpleLongEventsData(event: nil, count: 0)
-				let hasOnlyAllDays = events.isEmpty && allDayEvents.count > 0
-				let hasAllDayEvents = allDayEvents.count > 0
-				let hasAllDayAndNotToday = hasAllDayEvents && !Calendar.current.isDateInToday(parsedDay)
-				if Calendar.current.isDateInToday(parsedDay) && events.isEmpty {
-					HStack(alignment: .center) {
-						Text(translate("TutaoWidgetNoEventsTodayMsg", default: "No upcoming events today")).lineLimit(2).multilineTextAlignment(.center)
-							.foregroundStyle(Color(.onSurface)).padding([.top, .bottom], 8)
-					}
-					.frame(maxWidth: .infinity, alignment: .center)
-				} else {
-					Button(intent: WidgetActionsIntent(userId: userId, date: parsedDay, action: WidgetActions.agenda)) {
-						VStack(spacing: 0) {
-							if hasAllDayAndNotToday {
-								HStack(alignment: .center) {
-									AllDayEventsRow(allDayEventsData: allDayEvents, textColor: Color(.onSurfaceVariant)).padding(.vertical, 8)
-										.padding(.horizontal, 12)
-								}
-								.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surfaceVariant))
-								.clipShape(.rect(cornerRadii: .init(topLeading: 8, bottomLeading: 0, bottomTrailing: 0, topTrailing: 8)))
-							}
-
-							if hasOnlyAllDays {
-								VStack {
-									EventBody(
-										happensToday: false,
-										isFirstEventOfDay: true,
-										calendarColor: UIColor(resource: .surfaceVariant),
-										eventDate: parsedDay
-									)
-									.padding(.horizontal, 12).padding(.vertical, 8)
-								}
-								.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surface))
-								.clipShape(.rect(cornerRadii: .init(topLeading: 0, bottomLeading: 8, bottomTrailing: 8, topTrailing: 0)))
-							} else {
-								VStack { EventsList(events: events) }.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surface))
-									.clipShape(
-										.rect(
-											cornerRadii: .init(
-												topLeading: hasAllDayAndNotToday ? 0 : 8,
-												bottomLeading: 8,
-												bottomTrailing: 8,
-												topTrailing: hasAllDayAndNotToday ? 0 : 8
-											)
-										)
-									)
-							}
-						}
-					}
-					.buttonStyle(.plain)
-				}
-			}
-		}
-	}
-
-	private func EventBody(
-		happensToday: Bool,
-		isFirstEventOfDay: Bool,
-		calendarColor: UIColor,
-		eventDate: Date,
-		eventTime: String? = nil,
-		event: CalendarEventData? = nil
-	) -> some View {
-		let eventTitle = if event != nil { event!.summary } else { translate("TutaoWidgetNoEventsMsg", default: "No upcoming events") }
-		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: eventDate)
-		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
-		let weekday = DateFormatter().shortWeekdaySymbols[(dateComponents.weekday ?? 0) - 1]
-
-		return HStack(alignment: VerticalAlignment.center, spacing: 12) {
-			if !happensToday {
-				HStack(alignment: VerticalAlignment.center) {
-					VStack(spacing: -2) {
-						Text(day).font(.system(size: 20, weight: .bold))
-						Text(weekday).font(.system(size: 14, weight: .regular))
-					}
-				}
-				.opacity(isFirstEventOfDay ? 1 : 0).frame(width: 32, alignment: .leading)
-			}
-			Button(
-				intent: WidgetActionsIntent(
-					userId: userId,
-					date: eventDate,
-					action: event?.id == nil ? WidgetActions.agenda : WidgetActions.eventDetails,
-					eventId: event?.id
-				)
-			) {
-				HStack(spacing: 12) {
-					VStack {
-						Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).frame(maxHeight: .infinity)
-							.clipShape(.rect(cornerRadii: .init(topLeading: 3, bottomLeading: 3, bottomTrailing: 3, topTrailing: 3)))
-					}
-					VStack(alignment: .leading) {
-						Text(eventTitle).fontWeight(.bold).font(.system(size: 14)).lineLimit(1)
-						if eventTime != nil { Text(eventTime!).font(.system(size: 10)) }
-					}
-					.foregroundStyle(Color(.onSurface)).frame(maxHeight: .infinity, alignment: .center)
-				}
-				.frame(maxWidth: .infinity, alignment: .leading)
-			}
-			.buttonStyle(.plain)
-		}
-		.frame(alignment: .leading)
-	}
-	private func EventsList(events: [CalendarEventData]) -> some View {
-		VStack(alignment: .leading, spacing: 6) {
-			ForEach(Array(events.enumerated()), id: \.element) { index, event in
-				let calendarColor = UIColor(hex: event.calendarColor) ?? .white
-				let eventTime = eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)
-				let happensToday = Calendar.current.isDateInToday(event.startDate)
-
-				EventBody(
-					happensToday: happensToday,
-					isFirstEventOfDay: index == 0,
-					calendarColor: calendarColor,
-					eventDate: event.startDate,
-					eventTime: eventTime,
-					event: event
-				)
-			}
-		}
-		.padding(.horizontal, 12).padding(.vertical, 8)
-	}
-
-	private func Header() -> some View {
-		let startOfToday = Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
-		let hasAllDayEvents = (allDayEvents[startOfToday]?.count ?? 0) > 0
-
-		let titleBottomPadding: CGFloat = if hasAllDayEvents { 0 } else { -4 }
-
-		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: Date())
-		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
-
-		let weekday = DateFormatter().weekdaySymbols[(dateComponents.weekday ?? 0) - 1]
-
-		return HStack(alignment: .top) {
-			Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.agenda)) {
-				HStack {
-					VStack(alignment: .leading, spacing: titleBottomPadding) {
-						if hasAllDayEvents {
-							AllDayHeader(allDayEventsData: allDayEvents[startOfToday] ?? SimpleLongEventsData(event: nil, count: 0), weekday: weekday, day: day)
-						} else {
-							Text(day).fontWeight(.bold).font(.system(size: 32)).padding(.top, -7)
-							Text(weekday).font(.system(size: 12))
-						}
-					}
-					.foregroundStyle(Color(.onSurface))
-					Spacer()
-				}
-			}
-			.buttonStyle(.plain)
-			HeaderButton()
-		}
-	}
-
-	private func HeaderButton() -> some View {
-		var image = Image(systemName: "plus")
-		let imageColor = renderingMode == .accented ? Color(.onSurface) : Color(.onPrimary)
-
-		return Button(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor)) {
-			image.tinted(renderingMode: renderingMode).fontWeight(.medium).foregroundStyle(imageColor).font(.system(size: 20))
-		}
-		.buttonStyle(.plain).frame(width: 48, height: 48).background(Color(.primary))
-		.clipShape(.rect(cornerRadii: .init(topLeading: 8, bottomLeading: 8, bottomTrailing: 8, topTrailing: 8)))
-	}
 
 	@Environment(\.widgetFamily) var family
 	var body: some View {
-		GeometryReader { _ in
+		GeometryReader { g in
 			VStack {
 				if let err = error {
 					ErrorBody(error: err)
 				} else {
-					Header()
-
-					if normalEvents.allSatisfy({ $0.value.isEmpty })
-						&& !(allDayEvents.contains(where: {
+					let isEmpty =
+						normalEvents.allSatisfy({ $0.value.isEmpty })
+						&& !(allDayEventsData.contains(where: {
 							if let today = normalEvents.keys.min() { return $0.key != today && $0.value.count != 0 }
 
 							return false
 						}))
-					{
-						EmptyList(family == .systemMedium)
-					} else {
-						DaysList()
-					}
+
+					DaysList(
+						userId: userId,
+						isEmpty: isEmpty,
+						family: family,
+						widgetHeight: g.size.height,
+						normalEvents: normalEvents,
+						allDayEventsData: allDayEventsData
+					)
 				}
 			}
-			.frame(maxHeight: .infinity, alignment: .top)
+			.frame(maxHeight: g.size.height, alignment: .top)
 		}
 		.containerBackground(for: .widget) { Color(.background) }.tinted(renderingMode: renderingMode)
 	}
@@ -429,7 +212,7 @@ struct AgendaWidget: Widget {
 	var body: some WidgetConfiguration {
 		let appIntentConfiguration = AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: AgendaProvider()) { entry in
 			let userId = entry.configuration.account?.id ?? ""
-			return AgendaWidgetEntryView(normalEvents: entry.events.0, allDayEvents: entry.events.1, error: entry.error, userId: userId)
+			return AgendaWidgetEntryView(normalEvents: entry.events.0, allDayEventsData: entry.events.1, error: entry.error, userId: userId)
 		}
 		.configurationDisplayName("Agenda").description(translate("TutaoWidgetDescription", default: "Show today's upcoming events"))
 		.supportedFamilies([.systemMedium, .systemLarge, .systemExtraLarge])
