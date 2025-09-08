@@ -6,7 +6,7 @@ import { lang } from "../../../misc/LanguageViewModel.js"
 import { hexToHSL, hslToHex, isColorLight, isValidCSSHexColor, MAX_HUE_ANGLE, normalizeHueAngle } from "../Color.js"
 import { ColorPickerModel } from "./ColorPickerModel.js"
 import { client } from "../../../misc/ClientDetector.js"
-import { theme } from "../../theme.js"
+import { isDarkTheme, theme } from "../../theme.js"
 import { assertNotNull, clamp, filterInt } from "@tutao/tutanota-utils"
 import { Keys, TabIndex } from "../../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../../misc/KeyManager"
@@ -32,7 +32,7 @@ export type ColorPickerViewAttrs = {
 
 export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 	private readonly palette = Array<string | null>(ColorPickerModel.PALETTE_SIZE).fill(null)
-	private readonly model: ColorPickerModel = new ColorPickerModel(!isColorLight(theme.content_bg))
+	private readonly model: ColorPickerModel = new ColorPickerModel(isDarkTheme())
 	private selectedHueAngle = Math.floor(Math.random() * MAX_HUE_ANGLE)
 	private fallbackVariantIndex: number = PaletteIndex.defaultVariant
 	private isAdvanced = false
@@ -330,9 +330,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 						},
 					},
 					m("img.block.full-width", {
-						src: `${window.tutao.appState.prefixWithoutFile}/images/color-hue-picker/hue-gradient-${
-							!isColorLight(theme.content_bg) ? "dark" : "light"
-						}.png`,
+						src: `${window.tutao.appState.prefixWithoutFile}/images/color-hue-picker/hue-gradient-${isDarkTheme() ? "dark" : "light"}.png`,
 						alt: "",
 						draggable: false,
 						style: {

@@ -71,7 +71,7 @@ import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent }
 import { AdvancedRepeatRule, CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { size } from "../../../common/gui/size.js"
-import { hslToHex, isColorLight, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
+import { hslToHex, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
@@ -84,7 +84,7 @@ import { ClientOnlyCalendarsInfo } from "../../../common/misc/DeviceConfig.js"
 import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
-import { theme } from "../../../common/gui/theme.js"
+import { isDarkTheme } from "../../../common/gui/theme.js"
 import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
 import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
@@ -1099,7 +1099,7 @@ export function getDisplayEventTitle(title: string): string {
 export type ColorString = string
 
 export function generateRandomColor(): ColorString {
-	const model = new ColorPickerModel(!isColorLight(theme.content_bg))
+	const model = new ColorPickerModel(isDarkTheme())
 	return hslToHex(model.getColor(Math.floor(Math.random() * MAX_HUE_ANGLE), 2))
 }
 

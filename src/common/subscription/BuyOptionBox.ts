@@ -11,8 +11,7 @@ import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
 import { InfoIcon } from "../gui/base/InfoIcon.js"
-import { theme } from "../gui/theme.js"
-import { isColorLight } from "../gui/base/Color.js"
+import { isDarkTheme, theme } from "../gui/theme.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { goEuropeanBlue } from "../gui/builtinThemes.js"
 
@@ -159,10 +158,9 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 			}
 
 			if (attrs.isFirstMonthForFree && isPersonalPaidPlan && isYearly) {
-				const isDarkTheme = !isColorLight(theme.content_bg)
 				return m(
 					".ribbon-horizontal.nota",
-					m(".text-center.b", { style: { padding: px(3), color: isDarkTheme ? "#fff" : undefined } }, lang.get("oneMonthTrial_label")),
+					m(".text-center.b", { style: { padding: px(3), color: isDarkTheme() ? "#fff" : undefined } }, lang.get("oneMonthTrial_label")),
 				)
 			}
 
