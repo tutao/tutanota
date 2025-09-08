@@ -68,7 +68,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		this.dom = vnode.dom as HTMLElement
 		const data = vnode.attrs.data
 
-		if (!data.acceptedPlans.includes(data.type as AvailablePlanType)) {
+		if (!data.acceptedPlans.includes(data.targetPlanType as AvailablePlanType)) {
 			throw new Error("Invalid plan is selected")
 		}
 

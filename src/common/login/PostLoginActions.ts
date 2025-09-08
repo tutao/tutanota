@@ -274,7 +274,7 @@ export class PostLoginActions implements PostLoginAction {
 			const confirmed = await Dialog.upgradeReminder(lang.get("upgradeReminderTitle_msg"), lang.get("premiumOffer_msg"))
 			if (confirmed) {
 				const wizard = await import("../subscription/UpgradeSubscriptionWizard.js")
-				await wizard.showUpgradeWizard({ logins: this.logins })
+				await wizard.showUpgradeWizard({ logins: this.logins, isCalledBySatisfactionDialog: false })
 			}
 
 			const newCustomerProperties = createCustomerProperties(await this.logins.getUserController().loadCustomerProperties())

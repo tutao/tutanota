@@ -16,7 +16,6 @@ import { boxShadow } from "../gui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getApplePriceStr, getPriceStr } from "./SubscriptionUtils.js"
 import { PaymentIntervalSwitch } from "./PaymentIntervalSwitch.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -245,17 +244,15 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									})
 								}),
 						),
-						variant === "C" &&
-							!hideFreePlan &&
-							m(FreePlanBox, {
-								isSelected: this.selectedPlan() === PlanType.Free,
+						m(FreePlanBox, {
+							isSelected: this.selectedPlan() === PlanType.Free,
 							isDisabled: !availablePlans.includes(PlanType.Free) || currentPlan === PlanType.Free,
 							isCurrentPlan: currentPlan === PlanType.Free,
-								select: () => this.selectedPlan(PlanType.Free),
-								priceAndConfigProvider,
-								scale: this.scale[PlanType.Free],
-								hasCampaign,
-							}),
+							select: () => this.selectedPlan(PlanType.Free),
+							priceAndConfigProvider,
+							scale: this.scale[PlanType.Free],
+							hasCampaign,
+						}),
 					),
 				),
 				m(
@@ -286,14 +283,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 							renderActionButton(),
 						),
 					),
-
-					variant === "B" &&
-						!hideFreePlan &&
-						m(Button, {
-							type: ButtonType.Secondary,
-							label: lang.makeTranslation("", "Start with a free account"),
-							click: (event, dom) => actionButtons[PlanType.Free]().onclick(event, dom),
-						}),
 				),
 				!hidePaidPlans &&
 					m(".flex.flex-column", [

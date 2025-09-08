@@ -21,7 +21,7 @@ export async function showNotAvailableForFreeDialog(acceptedPlans: readonly Avai
 		NewPersonalPlans.includes(downcast(customerInfo.plan))
 	const msg = businessPlanRequired ? "pricing.notSupportedByPersonalPlan_msg" : "newPaidPlanRequired_msg"
 
-	await wizard.showUpgradeWizard({ logins: locator.logins, false, acceptedPlans, msg })
+	await wizard.showUpgradeWizard({ logins: locator.logins, isCalledBySatisfactionDialog: false, acceptedPlans, msg })
 }
 
 export function createNotAvailableForFreeClickHandler(

@@ -35,7 +35,6 @@ import { VariantCSubscriptionPage, VariantCSubscriptionPageAttrs } from "./Varia
 import { styles } from "../gui/styles.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { ReferralType, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
-import { VariantBSubscriptionPage, VariantBSubscriptionPageAttrs } from "./VariantBSubscriptionPage.js"
 import { windowFacade } from "../misc/WindowFacade"
 
 assertMainOrNode()
@@ -81,12 +80,13 @@ export type UpgradeSubscriptionData = {
 
 export async function showUpgradeWizard({
 	logins,
+	isCalledBySatisfactionDialog = false,
 	acceptedPlans = NewPaidPlans,
 	msg,
 	useNewPlanSelector,
 }: {
 	logins: LoginController
-	isCalledBySatisfactionDialog: boolean,
+	isCalledBySatisfactionDialog?: boolean
 	acceptedPlans?: readonly AvailablePlanType[]
 	msg?: MaybeTranslation
 	useNewPlanSelector?: boolean
@@ -281,8 +281,8 @@ export async function loadSignupWizard(
 }
 
 function initPlansPages(signupData: UpgradeSubscriptionData): {
-	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantBSubscriptionPage> | Class<VariantCSubscriptionPage>
-	attrs: UpgradeSubscriptionPageAttrs | VariantBSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
+	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantCSubscriptionPage>
+	attrs: UpgradeSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
 } {
 	const pricingData = signupData.planPrices.getRawPricingData()
 	const firstYearDiscount = Number(pricingData.legendaryPrices.firstYearDiscount)

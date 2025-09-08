@@ -35,10 +35,6 @@ type PlanBoxAttrs = {
 	scale: CSSStyleDeclaration["scale"]
 	hasCampaign: boolean
 	isApplePrice: boolean
-	/*
-	 * Depends on whether the free plan box is rendered under the paid plans, styles for the paid plan boxes will be changed
-	 */
-	hideFreePlan: boolean
 	showMultiUser: boolean
 }
 
@@ -72,7 +68,6 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 			hasCampaign,
 			isApplePrice,
 			showMultiUser,
-            hideFreePlan
 		},
 	}: Vnode<PlanBoxAttrs>) {
 		const isLegendPlan = plan === PlanType.Legend
@@ -82,7 +77,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 		const localTheme = hasCampaign ? getBlueTheme() : theme
 
 		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected, isDisabled, hasCampaign)
-		const getPriceHintStr = (): String => {
+		const getPriceHintStr = (): string => {
 			if (showMultiUser) {
 				return lang.get("pricing.perUserMonth_label")
 			}
@@ -129,12 +124,8 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						height: "100%",
 						"border-style": "solid",
 						"border-color": planBoxColors.getOutlineColor(isSelected),
-						"border-width": isLegendPlan
-							? this.getLegendBorderWidth(isSelected, hasCampaign, hideFreePlan)
-							: this.getRevoBorderWidth(isSelected, hasCampaign, hideFreePlan),
-						"border-radius": isLegendPlan
-							? this.getLegendBorderRadius(hasCampaign, hideFreePlan)
-							: this.getRevoBorderRadius(hasCampaign, hideFreePlan),
+						"border-width": isLegendPlan ? this.getLegendBorderWidth(isSelected, hasCampaign) : this.getRevoBorderWidth(isSelected, hasCampaign),
+						"border-radius": isLegendPlan ? this.getLegendBorderRadius(hasCampaign) : this.getRevoBorderRadius(hasCampaign),
 						...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
 						overflow: "hidden",
 						padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
@@ -282,53 +273,47 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 		}
 	}
 
-	private getLegendBorderWidth(isSelected: boolean, hasBanner: boolean, hideFreePlan: boolean) {
-		const bottomBorderWidth = hideFreePlan ? "2px" : "1px"
-
+	private getLegendBorderWidth(isSelected: boolean, hasBanner: boolean) {
 		if (isSelected) {
 			return "0"
 		}
 
 		const topBorderWidth = hasBanner ? "0" : "2px"
 		if (styles.isMobileLayout()) {
-			return `${topBorderWidth} 0 ${bottomBorderWidth} 1px`
+			return `${topBorderWidth} 0 1px 1px`
 		} else {
-			return `${topBorderWidth} 2px ${bottomBorderWidth} 1px`
+			return `${topBorderWidth} 2px 1px 1px`
 		}
 	}
 
-	private getLegendBorderRadius(hasBanner: boolean, hideFreePlan: boolean) {
-		const bottomRightRadius = hideFreePlan ? px(size.border_radius_large) : 0
+	private getLegendBorderRadius(hasBanner: boolean) {
 		const topRightRadius = hasBanner ? "0" : px(size.border_radius_large)
 		if (styles.isMobileLayout()) {
 			return `0 0 0 0`
 		} else {
-			return `0 ${topRightRadius} ${bottomRightRadius} 0`
+			return `0 ${topRightRadius} 0 0`
 		}
 	}
 
-	private getRevoBorderWidth(isSelected: boolean, hasBanner: boolean, hideFreePlan: boolean) {
-		const bottomBorderWidth = hideFreePlan ? "2px" : "1px"
-
+	private getRevoBorderWidth(isSelected: boolean, hasBanner: boolean) {
 		if (isSelected) {
 			return "0"
 		}
 
 		const topBorderWidth = hasBanner ? "0" : "2px"
 		if (styles.isMobileLayout()) {
-			return `${topBorderWidth} 1px ${bottomBorderWidth} 0`
+			return `${topBorderWidth} 1px 1px 0`
 		} else {
-			return `${topBorderWidth} 1px ${bottomBorderWidth} 2px`
+			return `${topBorderWidth} 1px 1px 2px`
 		}
 	}
 
-	private getRevoBorderRadius(hasBanner: boolean, hideFreePlan: boolean) {
-		const bottomLeftRadius = hideFreePlan ? px(size.border_radius_large) : 0
+	private getRevoBorderRadius(hasBanner: boolean) {
 		const topLeftRadius = hasBanner ? "0" : px(size.border_radius_large)
 		if (styles.isMobileLayout()) {
 			return `0 0 0 0`
 		} else {
-			return `${topLeftRadius} 0 0 ${bottomLeftRadius}`
+			return `${topLeftRadius} 0 0 0`
 		}
 	}
 
