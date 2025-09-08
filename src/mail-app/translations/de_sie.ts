@@ -2118,6 +2118,8 @@ export default {
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-        "customNameGeneric_label": "Custom name"
-	}
+        "customNameGeneric_label": "Custom name",
+		"viewInLightMode_action": "View in light mode",
+        "viewInDarkMode_action": "View in dark mode",
+    }
 }

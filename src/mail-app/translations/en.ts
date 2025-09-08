@@ -2114,6 +2114,8 @@ export default {
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-        "customNameGeneric_label": "Custom name"
+        "customNameGeneric_label": "Custom name",
+		"viewInLightMode_action": "View in light mode",
+		"viewInDarkMode_action": "View in dark mode",
 	}
 }
