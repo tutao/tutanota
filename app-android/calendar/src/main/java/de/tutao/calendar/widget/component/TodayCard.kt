@@ -9,6 +9,7 @@ import androidx.glance.appwidget.action.actionStartActivity
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.tutashared.ipc.CalendarOpenAction
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Date
@@ -19,7 +20,7 @@ fun TodayCard(
 	normalEvents: List<UIEvent>,
 	allDayEvents: List<UIEvent>,
 	cardAction: Action,
-	currentDay: Date,
+	currentDay: LocalDateTime,
 ) {
 	fun openCalendarEditor(context: Context, userId: String? = ""): Action {
 		val openCalendarEventEditor = Intent(context, MainActivity::class.java)

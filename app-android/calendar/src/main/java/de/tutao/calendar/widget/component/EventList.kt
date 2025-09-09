@@ -11,11 +11,11 @@ import androidx.glance.layout.padding
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.model.openCalendarAgenda
 import de.tutao.calendar.widget.style.Dimensions
-import java.util.Date
+import java.time.LocalDateTime
 
 
 @Composable
-fun EventList(userId: String?, normalEvents: List<UIEvent>, currentDay: Date) {
+fun EventList(userId: String?, normalEvents: List<UIEvent>, currentDay: LocalDateTime) {
 
 	// we need to chunk events because columns inside scrollable elements doesn't support more than five children
 	val eventGroups = normalEvents.chunked(5)
