@@ -233,7 +233,8 @@ async function runPostMoveActions({ mailModel, mailIds, targetFolder, mailboxMod
 		undone = false
 	}
 	if (!undone && shouldReportMails) {
-		await mailModel.reportMails(MailReportType.SPAM, resolveMails)
+		const reportableMails = (await resolveMails()).filter((mail) => !isTutanotaTeamMail(mail))
+		await mailModel.reportMails(MailReportType.SPAM, reportableMails)
 	}
 }
 

@@ -6,10 +6,10 @@ import { MailReportType, ReportMovedMailsType } from "../../../common/api/common
 import { ButtonAttrs, ButtonType } from "../../../common/gui/base/Button.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { showSnackBar } from "../../../common/gui/base/SnackBar"
 import { MailModel } from "../model/MailModel.js"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { isTutanotaTeamMail } from "./MailGuiUtils"
 
 function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDetail): Promise<boolean> {
 	return newPromise((resolve) => {
@@ -70,7 +70,8 @@ export async function reportMailsAutomatically(
 ): Promise<void> {
 	const shouldReportMails = await getReportConfirmation(mailReportType, mailboxModel, mailModel, mailboxDetails)
 	if (shouldReportMails) {
-		await mailModel.reportMails(mailReportType, mails)
+		const reportableMails = (await mails()).filter((mail) => !isTutanotaTeamMail(mail))
+		await mailModel.reportMails(mailReportType, reportableMails)
 	}
 }
 

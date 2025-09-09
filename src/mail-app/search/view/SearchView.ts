@@ -788,7 +788,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return viewModel.canReport()
 			? () => {
 					showReportPhishingMailDialog(async () => {
-						await mailLocator.mailModel.reportMails(MailReportType.PHISHING, async () => [viewModel.mail])
+						await mailLocator.mailModel.reportMails(MailReportType.PHISHING, [viewModel.mail])
 						this.getReportAction(viewModel, MailReportType.PHISHING)
 					})
 				}
