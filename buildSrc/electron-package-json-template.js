@@ -18,8 +18,8 @@ import { getElectronVersion } from "./getInstalledModuleVersion.js"
  * @param p.architecture
  */
 export default async function generateTemplate({ nameSuffix, version, updateUrl, iconPath, sign, notarize, unpacked, architecture }) {
-	const appName = "tutanota-desktop" + nameSuffix + "spam_classification"
-	const appId = "de.tutao.tutanota" + nameSuffix + "spam_classification"
+	const appName = "tutanota-desktop" + nameSuffix
+	const appId = "de.tutao.tutanota" + nameSuffix
 	if (process.env.JENKINS_HOME && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
 	const debugKey = process.env.DEBUG_SIGN ? readFileSync(path.join(process.env.DEBUG_SIGN, "test.pubkey"), { encoding: "utf8" }) : undefined
 	const log = console.log.bind(console)
