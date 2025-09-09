@@ -41,15 +41,14 @@ import java.util.Date
 fun EventRow(
 	modifier: GlanceModifier,
 	showDayAndWeekday: Boolean,
-	currentDate: Date,
+	currentDate: LocalDateTime,
 	event: UIEvent,
 	openEventAction: Action
 ) {
 	val zoneId = ZoneId.systemDefault()
-	val currentDateAsLocal = LocalDateTime.ofInstant(currentDate.toInstant(), zoneId)
-	val currentDay = currentDateAsLocal.format(DateTimeFormatter.ofPattern("dd"))
-	val currentWeekDay = currentDateAsLocal.format(DateTimeFormatter.ofPattern("EE"))
-	val happensToday = midnightInDate(zoneId, LocalDateTime.now()) == midnightInDate(zoneId, currentDateAsLocal)
+	val currentDay = currentDate.format(DateTimeFormatter.ofPattern("dd"))
+	val currentWeekDay = currentDate.format(DateTimeFormatter.ofPattern("EE"))
+	val happensToday = midnightInDate(zoneId, LocalDateTime.now()) == midnightInDate(zoneId, currentDate)
 	val eventTitle = event.summary.ifEmpty { LocalContext.current.getString(R.string.eventNoTitle_title) }
 	val dateModifier = if (happensToday) {
 		GlanceModifier.visibility(Visibility.Gone)
@@ -110,7 +109,7 @@ fun EventRowTodayPreview() {
 	EventRow(
 		modifier = GlanceModifier,
 		true,
-		Date(),
+		LocalDateTime.now(),
 		UIEvent(
 			"previewCalendar",
 			IdTuple("", ""),
@@ -134,7 +133,7 @@ fun EventRowTomorrowPreview() {
 	EventRow(
 		modifier = GlanceModifier,
 		true,
-		Date.from(startOfTomorrow),
+		LocalDateTime.ofInstant(startOfTomorrow, ZoneId.systemDefault()),
 		UIEvent(
 			"previewCalendar",
 			IdTuple("", ""),

@@ -80,7 +80,7 @@ fun AllDaySection(allDayEvents: List<UIEvent>) {
 					fontSize = 12.sp
 				),
 				maxLines = 1,
-				text = allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.widgetNoEvents_msg) },
+				text = allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.eventNoTitle_title) },
 				modifier = GlanceModifier.padding(start = 4.dp)
 					.defaultWeight()
 			)

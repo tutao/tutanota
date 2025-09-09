@@ -32,8 +32,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
@@ -144,8 +147,10 @@ class WidgetUIViewModel(
 			eventList.shortEvents.plus(eventList.longEvents).forEach { loadedEvent ->
 				val zoneId = ZoneId.systemDefault()
 				val startAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
+
 				val start = LocalDateTime.ofInstant(startAsInstant, zoneId)
 				val end = LocalDateTime.ofInstant(Instant.ofEpochMilli(loadedEvent.endTime.toLong()), zoneId)
+
 				val formatter = DateTimeFormatter.ofPattern("HH:mm")
 				val isAllDay = isAllDayEventByTimes(
 					Date.from(Instant.ofEpochMilli(loadedEvent.startTime.toLong())),
@@ -163,16 +168,27 @@ class WidgetUIViewModel(
 					loadedEvent.startTime.toLong()
 				)
 
-				val startOfDay = midnightInDate(zoneId, start)
-				if (!normalEvents.containsKey(startOfDay)) {
-					normalEvents[startOfDay] = listOf()
-					allDayEvents[startOfDay] = listOf()
+				val referenceDate = if (isAllDay) {
+					val eventDate = LocalDateTime.ofInstant(startAsInstant, ZoneOffset.UTC)
+					LocalDateTime
+						.of(LocalDate.of(eventDate.year, eventDate.month, eventDate.dayOfMonth), LocalTime.MIDNIGHT)
+						.atZone(ZoneId.systemDefault()).toLocalDateTime()
+				} else {
+					start
 				}
 
-				if (isAllDay) {
-					allDayEvents[startOfDay] = allDayEvents[startOfDay]!!.plus(event)
-				} else {
-					normalEvents[startOfDay] = normalEvents[startOfDay]!!.plus(event)
+				val startOfDay = midnightInDate(zoneId, referenceDate)
+				if (startOfDay >= startOfToday) {
+					if (!normalEvents.containsKey(startOfDay)) {
+						normalEvents[startOfDay] = listOf()
+						allDayEvents[startOfDay] = listOf()
+					}
+
+					if (isAllDay) {
+						allDayEvents[startOfDay] = allDayEvents[startOfDay]!!.plus(event)
+					} else {
+						normalEvents[startOfDay] = normalEvents[startOfDay]!!.plus(event)
+					}
 				}
 			}
 
@@ -195,12 +211,20 @@ class WidgetUIViewModel(
 					isBirthday = true
 				)
 
-				val startOfDay = midnightInDate(zoneId, start)
-				if (!allDayEvents.containsKey(startOfDay)) {
-					normalEvents[startOfDay] = listOf()
-					allDayEvents[startOfDay] = listOf()
+				val eventDate = LocalDateTime.ofInstant(startAsInstant, ZoneOffset.UTC)
+				val referenceDate = LocalDateTime
+					.of(LocalDate.of(eventDate.year, eventDate.month, eventDate.dayOfMonth), LocalTime.MIDNIGHT)
+					.atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+				val startOfDay = midnightInDate(zoneId, referenceDate)
+				if (startOfDay >= startOfToday) {
+
+					if (!allDayEvents.containsKey(startOfDay)) {
+						normalEvents[startOfDay] = listOf()
+						allDayEvents[startOfDay] = listOf()
+					}
+					allDayEvents[startOfDay] = allDayEvents[startOfDay]!!.plus(event)
 				}
-				allDayEvents[startOfDay] = allDayEvents[startOfDay]!!.plus(event)
 			}
 		}
 
@@ -260,7 +284,7 @@ class WidgetUIViewModel(
 fun openCalendarAgenda(
 	context: Context,
 	userId: String? = "",
-	date: Date = Date(),
+	date: LocalDateTime = LocalDateTime.now(),
 	eventId: IdTuple? = null
 ): Action {
 	val openCalendarAgenda = Intent(context, MainActivity::class.java)
@@ -272,14 +296,10 @@ fun openCalendarAgenda(
 		CalendarOpenAction.AGENDA.value
 	)
 
-	val localDate = date.toInstant()
-		.atZone(ZoneId.systemDefault()) // convert to local timezone
-		.toLocalDate()
 	openCalendarAgenda.putExtra(
 		MainActivity.OPEN_CALENDAR_DATE_KEY,
-		localDate.format(DateTimeFormatter.ISO_DATE)
+		date.format(DateTimeFormatter.ISO_DATE_TIME.withZone(ZoneId.systemDefault()))
 	)
-
 	if (eventId != null) {
 		openCalendarAgenda.putExtra(
 			MainActivity.OPEN_CALENDAR_EVENT_KEY,

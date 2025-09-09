@@ -13,6 +13,8 @@ import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.model.openCalendarAgenda
 import de.tutao.calendar.widget.style.Dimensions
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Date
 
 @Composable
@@ -25,7 +27,7 @@ fun ScrollableDaysList(
 		itemsIndexed(data.normalEvents.keys.sorted()) { dayIndex, startOfDay ->
 			val normalEvents = data.normalEvents[startOfDay] ?: listOf()
 			val allDayEvents = data.allDayEvents[startOfDay] ?: listOf()
-			val currentDay = Date.from(Instant.ofEpochMilli(startOfDay))
+			val currentDay = LocalDateTime.ofInstant(Instant.ofEpochMilli(startOfDay), ZoneId.systemDefault())
 			val isFirstDay = dayIndex == 0
 			val topPadding = if (!isFirstDay) {
 				Dimensions.Spacing.SM.dp

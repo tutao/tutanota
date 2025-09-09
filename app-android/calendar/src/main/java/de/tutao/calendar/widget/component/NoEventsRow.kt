@@ -26,12 +26,10 @@ import java.util.Date
 @Composable
 fun NoEventsRow(
 	modifier: GlanceModifier,
-	currentDate: Date,
+	currentDate: LocalDateTime,
 ) {
-	val zoneId = ZoneId.systemDefault()
-	val currentDateAsLocal = LocalDateTime.ofInstant(currentDate.toInstant(), zoneId)
-	val currentDay = currentDateAsLocal.format(DateTimeFormatter.ofPattern("dd"))
-	val currentWeekDay = currentDateAsLocal.format(DateTimeFormatter.ofPattern("EE"))
+	val currentDay = currentDate.format(DateTimeFormatter.ofPattern("dd"))
+	val currentWeekDay = currentDate.format(DateTimeFormatter.ofPattern("EE"))
 	val spacerColor = GlanceTheme.colors.surfaceVariant.getColor(LocalContext.current)
 
 	Row(
@@ -63,6 +61,6 @@ fun NoEventsRow(
 fun NoEventsRowPreview() {
 	NoEventsRow(
 		modifier = GlanceModifier,
-		Date(),
+		LocalDateTime.now(),
 	)
 }
