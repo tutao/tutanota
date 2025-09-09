@@ -8,6 +8,7 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.padding
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.Dimensions
+import java.time.LocalDateTime
 import java.util.Date
 
 @Composable
@@ -16,7 +17,7 @@ fun OtherDayCard(
 	normalEvents: List<UIEvent>,
 	allDayEvents: List<UIEvent>,
 	clickAction: Action,
-	currentDay: Date
+	currentDay: LocalDateTime
 ) {
 	Card(clickAction) {
 		if (allDayEvents.isNotEmpty()) {
