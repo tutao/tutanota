@@ -89,6 +89,7 @@ module.exports.install = install`,
  * 5. commit the generated ./libs.changes file
  */
 async function applyGitPatch(patchFile) {
+	if (process.platform === "win32") return
 	const exec = promisify(child_process.exec)
 	console.log("applying a patch to botd.js")
 	await exec(`git apply ${patchFile}`)
