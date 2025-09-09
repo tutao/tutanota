@@ -355,7 +355,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			? () => {
 					showReportPhishingMailDialog(async () => {
 						this.mailViewModel.clearStickyMail()
-						await mailLocator.mailModel.reportMails(MailReportType.PHISHING, async () => [viewModel.mail])
+						await mailLocator.mailModel.reportMails(MailReportType.PHISHING, [viewModel.mail])
 						viewModel
 							.reportMail(MailReportType.PHISHING)
 							.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
