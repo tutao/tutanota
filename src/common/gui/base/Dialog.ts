@@ -28,7 +28,6 @@ import { isOfflineError } from "../../api/common/utils/ErrorUtils.js"
 import Stream from "mithril/stream"
 import { client } from "../../misc/ClientDetector"
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
-import { ImageWithOptionsDialog } from "../dialogs/ImageWithOptionsDialog"
 
 assertMainOrNode()
 export const INPUT = "input, textarea, div[contenteditable='true']"
@@ -772,7 +771,8 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static showUnsubscribeFinishedDialog(success: boolean): Promise<void> {
+	static async showUnsubscribeFinishedDialog(success: boolean): Promise<void> {
+		const { ImageWithOptionsDialog } = await import("../dialogs/ImageWithOptionsDialog")
 		return newPromise((resolve) => {
 			let dialog: Dialog
 
