@@ -1,25 +1,47 @@
+import OSLog
 import TutanotaSharedFramework
 import UserNotifications
 import tutasdk
+
+var suspensionEndTime: Date?
 
 class NotificationService: UNNotificationServiceExtension {
 	private var contentHandler: ((UNNotificationContent) -> Void)?
 	private var bestAttemptContent: UNMutableNotificationContent?
 	private let urlSession: URLSession = makeUrlSession()
+	private let logger = Logger(subsystem: "Notifications", category: "Notifications")
 
 	override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
 		self.contentHandler = contentHandler
 		bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
+		logger.notice("Receive notification")
 		if let bestAttemptContent {
 			Task {
 				// Catch all errors to always call contentHandler, otherwise we will use up our quota to time out
-				do { try await handleNotification(content: bestAttemptContent) } catch { printLog("Failed to populate notification: \(error)") }
+				do { try await handleNotification(content: bestAttemptContent) } catch {
+					printLog("Failed to populate notification: \(error)")
+					var errorSource: HttpError?
+					if let error = error as? ApiCallError, case let .ServerResponseError(source) = error { errorSource = source }
+					logger.notice("Failed to populate notification: \(error) \(String(describing: errorSource))")
+				}
 				contentHandler(bestAttemptContent)
 			}
 		}
 	}
 
 	private func handleNotification(content: UNMutableNotificationContent) async throws {
+		if let suspensionTime = suspensionEndTime {
+			if suspensionTime.timeIntervalSinceNow < 0 {
+				logger.notice("Suspension over, clearing")
+				suspensionEndTime = nil
+			} else {
+				logger.notice("Suspension until \(suspensionTime), cannot handle notification")
+				// We cannot try again later because the system only gives a limited time to process the notification, that time will probably be passed by the
+				// time the suspension is over so we just return here
+				return
+			}
+		}
+
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
@@ -43,15 +65,33 @@ class NotificationService: UNNotificationServiceExtension {
 			credentialType: tutasdk.CredentialType.internal
 		)
 		let sdk = Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession), fileClient: SdkFileClient())
-		let loggedInSdk = try await sdk.login(credentials: sdkCredentials)
-		guard let mailServerModelParsed = try await getParsedMail(sdk: loggedInSdk, mailId) else { return }
+		var loggedInSdk: LoggedInSdk
+		do { loggedInSdk = try await sdk.login(credentials: sdkCredentials) } catch {
+			if let error = error as? LoginError, case .ApiCall(let error) = error { checkForSuspensionError(error: error) }
+			throw error
+		}
+
+		let mailServerModelParsed = try await getParsedMail(sdk: loggedInSdk, mailId)
 		guard let mail = try makeTypedMail(sdk: sdk, mailServerModelParsed) else { return }
 		try await populateNotification(content: content, mail: mail, credentials: credentials)
 		try await insertMail(sdk: sdk, credentials, mailServerModelParsed, mail)
 	}
 
-	private func getParsedMail(sdk: LoggedInSdk, _ mailId: [String]) async throws -> [String: ElementValue]? {
-		try await sdk.mailFacade().loadUntypedMail(idTuple: tutasdk.IdTupleGenerated(listId: mailId[0], elementId: mailId[1]))
+	private func getParsedMail(sdk: LoggedInSdk, _ mailId: [String]) async throws -> [String: ElementValue] {
+		do { return try await sdk.mailFacade().loadUntypedMail(idTuple: tutasdk.IdTupleGenerated(listId: mailId[0], elementId: mailId[1])) } catch {
+			if let error = error as? ApiCallError { checkForSuspensionError(error: error) }
+			throw error
+		}
+	}
+	private func checkForSuspensionError(error: ApiCallError) {
+		if case let .ServerResponseError(error) = error {
+			switch error {
+			case let .serviceUnavailableError(suspensionTimeSec: .some(time)), let .tooManyRequestsError(suspensionTimeSec: .some(time)):
+				logger.notice("Suspension received, suspending for \(time) seconds")
+				suspensionEndTime = Date(timeIntervalSinceNow: Double(time))
+			default: break
+			}
+		}
 	}
 	private func getSenderOfMail(_ mail: tutasdk.Mail) -> String {
 		if mail.sender.name.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines).isEmpty { return mail.sender.address } else { return mail.sender.name }
