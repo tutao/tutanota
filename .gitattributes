@@ -1,3 +1,2 @@
 app-ios/tutanota/Sources/Offline/sqlite3.* linguist-vendored
 libs/* linguist-vendored
-libs/botd.mjs text eol=lf
