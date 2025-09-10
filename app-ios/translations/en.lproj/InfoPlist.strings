@@ -19,7 +19,6 @@ TutaoWidgetOpenAppAction = "Open the app";
 TutaoWidgetUnexpectedErrorMsg = "Oops! Something went wrong.";
 TutaoWidgetSendLogsAction = "Send Logs";
 TutaoWidgetNoEventsMsg = "No events";
-TutaoWidgetNoEventsTodayMsg = "No upcoming events today";
 TutaoWidgetCredentialsErrorMsg = "No credentials available";
 TutaoAccountLabel = "User";
 TutaoCalendarsLabel = "Calendars";
