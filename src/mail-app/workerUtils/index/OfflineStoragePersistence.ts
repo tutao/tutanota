@@ -44,19 +44,6 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 		purgedWithCache: true,
 	},
 
-	// Spam classification training data
-	spam_classification_training_data: {
-		definition:
-			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam, lastModified NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
-		purgedWithCache: true,
-	},
-
-	spam_classification_model: {
-		definition:
-			"CREATE TABLE IF NOT EXISTS spam_classification_model (version NUMBER NOT NULL, modelTopology TEXT NOT NULL, weightSpecs TEXT NOT NULL, weightData BLOB NOT NULL, PRIMARY KEY(version))",
-		purgedWithCache: true,
-	},
-
 	// Content of the mail that we might need while matching, but that should not be indexed by fts5
 	// we would love to use the contentless_unindexed option, but it's only available from SQLite 3.47.0 onwards
 	content_mail_index: {
@@ -80,6 +67,22 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 	},
 })
 
+// fixme add tests for the new tables
+export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
+	// Spam classification training data
+	spam_classification_training_data: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, lastModified NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
+		purgedWithCache: true,
+	},
+
+	spam_classification_model: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS spam_classification_model (version NUMBER NOT NULL, modelTopology TEXT NOT NULL, weightSpecs TEXT NOT NULL, weightData BLOB NOT NULL, PRIMARY KEY(version))",
+		purgedWithCache: true,
+	},
+})
+
 export interface IndexedGroupData {
 	groupId: Id
 	type: GroupType
@@ -93,12 +96,7 @@ export class OfflineStoragePersistence {
 	static readonly MAIL_INDEXING_ENABLED = "mailIndexingEnabled"
 	static readonly CONTACTS_INDEXED = "contactsIndexed"
 
-	// fixme is injecting the cache here okay?
-	// fixme add tests for the new table
-	constructor(
-		private readonly sqlCipherFacade: SqlCipherFacade,
-		private readonly storage: CacheStorage,
-	) {}
+	constructor(private readonly sqlCipherFacade: SqlCipherFacade) {}
 
 	async getIndexedGroups(): Promise<readonly IndexedGroupData[]> {
 		const { query, params } = sql`SELECT groupId, CAST(groupType as TEXT) as type, indexedTimestamp
@@ -173,8 +171,6 @@ export class OfflineStoragePersistence {
 				)`
 			await this.sqlCipherFacade.run(query, params)
 
-			await this.storeSpamClassification(mail, body)
-
 			// Sets are element IDs surrounded with spaces
 			const serializedSets = this.formatSetsValue(mail)
 
@@ -188,11 +184,7 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	private async storeSpamClassification(mailData: Mail, body: Body): Promise<void> {
-		const allFolders = await this.storage.getWholeList(MailFolderTypeRef, listIdPart(mailData.sets[0]))
-		const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
-
-		const isSpam = mailData.sets.some((folderId) => isSameId(folderId, spamFolder._id))
+	async storeSpamClassification(mailData: Mail, body: Body, isSpam: boolean): Promise<void> {
 		const { query, params } = sql`
 			INSERT
 			OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified)
@@ -205,6 +197,16 @@ export class OfflineStoragePersistence {
 			${Date.now()}
 			)`
 		await this.sqlCipherFacade.run(query, params)
+	}
+	async getStoredClassification(mailData: Mail, body: Body): Promise<boolean> {
+		const { query, params } = sql`
+			SELECT isSpam FROM spam_classification_training_data where listId=${listIdPart(mailData._id)} and elementId=${elementIdPart(mailData._id)} `
+		const result = await this.sqlCipherFacade.get(query, params)
+		if (!result) {
+			return false
+		} else {
+			return untagSqlObject(result).isSpam === 1
+		}
 	}
 
 	async getAllSpamClassificationTrainingData(): Promise<SpamClassificationRow[]> {
