@@ -37,7 +37,7 @@ fun DayWithWeekday(dateModifier: GlanceModifier, day: String, weekday: String) {
 			)
 			Text(
 				style = TextStyle(
-					fontSize = 14.sp,
+					fontSize = 12.sp,
 					color = GlanceTheme.colors.secondary
 				),
 				text = weekday,
