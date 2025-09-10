@@ -32,6 +32,28 @@ struct WidgetModel {
 
 	init(userId: String) async throws { self.sdk = try await SdkFactory.createSdk(userId: userId) }
 
+	func replaceDateTimeZone(date: Date) -> Date {
+		var gmtCalendar = Calendar.current
+		gmtCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
+
+		let eventOgDateComponents = gmtCalendar.dateComponents([.day, .month, .year], from: date)
+		var eventMidnightAtCurrentZone: Date = Calendar.current.startOfDay(for: date)
+
+		if let dt = Calendar.current.date(bySetting: .year, value: eventOgDateComponents.year!, of: eventMidnightAtCurrentZone) {
+			eventMidnightAtCurrentZone = dt
+		}
+
+		if let dt = Calendar.current.date(bySetting: .month, value: eventOgDateComponents.month!, of: eventMidnightAtCurrentZone) {
+			eventMidnightAtCurrentZone = dt
+		}
+
+		if let dt = Calendar.current.date(bySetting: .day, value: eventOgDateComponents.day!, of: eventMidnightAtCurrentZone) {
+			eventMidnightAtCurrentZone = dt
+		}
+
+		return eventMidnightAtCurrentZone
+	}
+
 	func getEventsForCalendars(_ calendars: [CalendarEntity], date: Date) async throws -> (EventMap, LongEventsDataMap) {
 		let dateInMiliseconds = UInt64(date.timeIntervalSince1970) * 1000
 		let end = UInt64(Calendar.current.date(byAdding: .day, value: 7, to: date)!.timeIntervalSince1970) * 1000
@@ -50,7 +72,7 @@ struct WidgetModel {
 				let eventEnd = Date(timeIntervalSince1970: Double(event.calendarEvent.endTime) / 1000)
 				let eventId = if let id = event.calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
 
-				let startOfEventDay = Calendar.current.startOfDay(for: eventStart).timeIntervalSince1970
+				let startOfEventDay = Calendar.current.startOfDay(for: self.replaceDateTimeZone(date: eventStart)).timeIntervalSince1970
 
 				let eventData = CalendarEventData(
 					id: eventId,
@@ -79,30 +101,35 @@ struct WidgetModel {
 						isAllDayEvent(startDate: eventStart, endDate: eventEnd)
 						|| isAllDayOnReferenceDate(startDate: eventStart, endDate: eventEnd, referenceDate: date)
 
-					let startOfEventDay = Calendar.current.startOfDay(for: eventStart).timeIntervalSince1970
-
 					let eventId = if let id = event.id { id.listId + "/" + id.elementId } else { "" }
 
-					let eventData = CalendarEventData(
-						id: eventId,
-						summary: event.summary,
-						startDate: eventStart,
-						endDate: eventEnd,
-						calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
-						isBirthdayEvent: false
-					)
+					var referenceDate: Date
 
-					if longEvents.index(forKey: startOfEventDay) == nil {
-						longEvents.updateValue(SimpleLongEventsData(event: nil, count: 0), forKey: startOfEventDay)
-						normalEvents.updateValue([], forKey: startOfEventDay)
-					}
+					if isAllDay { referenceDate = self.replaceDateTimeZone(date: eventStart) } else { referenceDate = eventStart }
 
-					if isAllDay {
-						if longEvents[startOfEventDay]?.event == nil { longEvents[startOfEventDay]?.event = eventData }
-						longEvents[startOfEventDay]?.count += 1
-					} else if normalEventCount <= 8 {
-						normalEvents[startOfEventDay]?.append(eventData)
-						normalEventCount += 1
+					let startOfEventDay = Calendar.current.startOfDay(for: referenceDate).timeIntervalSince1970
+					if startOfEventDay >= startOfToday {
+						let eventData = CalendarEventData(
+							id: eventId,
+							summary: event.summary,
+							startDate: eventStart,
+							endDate: eventEnd,
+							calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
+							isBirthdayEvent: false
+						)
+
+						if longEvents.index(forKey: startOfEventDay) == nil {
+							longEvents.updateValue(SimpleLongEventsData(event: nil, count: 0), forKey: startOfEventDay)
+							normalEvents.updateValue([], forKey: startOfEventDay)
+						}
+
+						if isAllDay {
+							if longEvents[startOfEventDay]?.event == nil { longEvents[startOfEventDay]?.event = eventData }
+							longEvents[startOfEventDay]?.count += 1
+						} else if normalEventCount <= 8 {
+							normalEvents[startOfEventDay]?.append(eventData)
+							normalEventCount += 1
+						}
 					}
 				}
 		}
