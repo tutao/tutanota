@@ -40,7 +40,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 		await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 		cacheStorage = object()
 		// Unfortunately, this is pretty tightly coupled with real persistence
-		persistence = new OfflineStoragePersistence(sqlCipherFacade, cacheStorage)
+		persistence = new OfflineStoragePersistence(sqlCipherFacade)
 
 		// Needs to be done manually since OfflineStorage would have done this
 		for (const { definition } of typedValues(SearchTableDefinitions)) {

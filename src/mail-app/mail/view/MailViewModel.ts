@@ -259,7 +259,6 @@ export class MailViewModel {
 		if (cached) {
 			// Mails opened through the notification were not getting the inbox rule applied to them, so we apply it here
 			this.mailModel.applyInboxRuleToMail(cached)
-			this.mailModel.applySpamClassificationToMail(cached)
 			console.log(TAG, "displaying cached mail", mailId)
 			await this.displayExplicitMailTarget(cached)
 		}

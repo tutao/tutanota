@@ -6,10 +6,6 @@ import { HashingVectorizer } from "./HashingVectorizer"
 
 assertWorkerOrNode()
 
-// fixme try different models/libraries
-// fixme determine training frequency (currently it is trained on every move to/out of spam)
-// fixme should we do training on a separate thread?
-
 export type SpamClassificationRow = {
 	rowid: string
 	subject: string

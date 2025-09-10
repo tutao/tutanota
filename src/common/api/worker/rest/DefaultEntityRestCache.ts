@@ -811,10 +811,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			try {
 				switch (operation) {
 					case OperationType.CREATE:
-						await handler.onEntityEventCreate?.(id)
+						await handler.onEntityEventCreate?.(id, filteredUpdateEvents)
 						break
 					case OperationType.UPDATE:
-						await handler.onEntityEventUpdate?.(id)
+						await handler.onEntityEventUpdate?.(id, filteredUpdateEvents)
 						break
 					case OperationType.DELETE:
 						await handler.onEntityEventDelete?.(id)

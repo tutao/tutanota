@@ -1,4 +1,4 @@
-import { applyInboxRulesToEntries, applySpamClassificationToMails, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
+import { applyInboxRulesToEntries, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import { Mail, MailFolder, MailFolderTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
@@ -249,7 +249,6 @@ export class ConversationListModel implements MailSetListModel {
 	}> {
 		const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
 		const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
-		await this.applySpamClassificationToMails(loadedMails)
 		return this._insertOrUpdateLoadedMails(loadedMails)
 	}
 
@@ -469,7 +468,6 @@ export class ConversationListModel implements MailSetListModel {
 				this.lastFetchedMailSetEntryId = getElementId(lastThrow(mailSetEntries))
 				items = await this.resolveMailSetEntries(mailSetEntries, this.defaultMailProvider)
 				items = await this.applyInboxRulesToEntries(items)
-				items = await this.applySpamClassificationToMails(items)
 			}
 		} catch (e) {
 			if (isOfflineError(e)) {
@@ -500,10 +498,6 @@ export class ConversationListModel implements MailSetListModel {
 
 	private async applyInboxRulesToEntries(entries: LoadedMail[]): Promise<LoadedMail[]> {
 		return applyInboxRulesToEntries(entries, this.mailSet, this.mailModel, this.inboxRuleHandler)
-	}
-
-	private async applySpamClassificationToMails(entries: LoadedMail[]): Promise<LoadedMail[]> {
-		return applySpamClassificationToMails(entries, this.mailSet, this.mailModel)
 	}
 
 	// @VisibleForTesting

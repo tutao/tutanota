@@ -294,14 +294,3 @@ export async function applyInboxRulesToEntries(
 		return ruleApplied == null
 	})
 }
-
-export async function applySpamClassificationToMails(entries: LoadedMail[], mailSet: MailFolder, mailModel: MailModel) {
-	const mailboxDetail = await mailModel.getMailboxDetailsForMailFolder(mailSet)
-	if (!mailboxDetail) {
-		return entries
-	}
-	return await promiseFilter(entries, async (entry) => {
-		await mailModel.applySpamClassificationToMail(entry.mail)
-		return true
-	})
-}

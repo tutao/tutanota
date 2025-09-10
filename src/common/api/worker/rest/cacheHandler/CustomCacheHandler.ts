@@ -81,7 +81,7 @@ export interface CustomCacheHandler<T extends SomeEntity> {
 	 *
 	 * @param id ID of the entity
 	 */
-	onEntityEventCreate?: (id: T["_id"]) => Promise<void>
+	onEntityEventCreate?: (id: T["_id"], events: EntityUpdateData[]) => Promise<void>
 
 	/**
 	 * Called after receiving an update event for an entity.
@@ -91,7 +91,7 @@ export interface CustomCacheHandler<T extends SomeEntity> {
 	 *
 	 * @param id ID of the entity
 	 */
-	onEntityEventUpdate?: (id: T["_id"]) => Promise<void>
+	onEntityEventUpdate?: (id: T["_id"], events: EntityUpdateData[]) => Promise<void>
 
 	/**
 	 * Called after receiving a deletion event for an entity.

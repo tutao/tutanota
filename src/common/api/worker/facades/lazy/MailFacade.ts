@@ -437,7 +437,6 @@ export class MailFacade {
 			mailSessionKey: bitArrayToUint8Array(mailSessionKey),
 			reportType,
 		})
-		await this.storeSpamResult(mail, true)
 		await this.serviceExecutor.post(ReportMailService, postData)
 	}
 
@@ -467,6 +466,10 @@ export class MailFacade {
 			}
 			return false
 		}
+	}
+
+	public hasClassifier() {
+		return this.spamClassifier != null
 	}
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
