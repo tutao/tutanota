@@ -11,8 +11,8 @@ import WidgetKit
 struct NoEventsSmall: View {
 	var body: some View {
 		HStack(alignment: .center) {
-			Text(translate("TutaoWidgetNoEventsTodayMsg", default: "No upcoming events today")).lineLimit(2).multilineTextAlignment(.center)
-				.foregroundStyle(Color(.onSurface)).padding([.top, .bottom], 8)
+			Text(translate("TutaoWidgetNoEventsMsg", default: "No events")).lineLimit(2).multilineTextAlignment(.center).foregroundStyle(Color(.onSurface))
+				.padding([.top, .bottom], 8)
 		}
 		.frame(maxWidth: .infinity, alignment: .center)
 	}

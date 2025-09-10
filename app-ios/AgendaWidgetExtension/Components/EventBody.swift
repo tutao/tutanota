@@ -18,7 +18,7 @@ struct EventBody: View {
 	var event: CalendarEventData?
 
 	var body: some View {
-		let eventTitle = if event != nil { event!.summary } else { translate("TutaoWidgetNoEventsMsg", default: "No upcoming events") }
+		let eventTitle = if event != nil { event!.summary } else { translate("TutaoWidgetNoEventsMsg", default: "No events") }
 		let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: eventDate)
 		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
 		let weekday = DateFormatter().shortWeekdaySymbols[(dateComponents.weekday ?? 0) - 1]
