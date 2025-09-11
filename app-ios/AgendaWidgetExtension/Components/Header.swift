@@ -16,7 +16,7 @@ struct Header: View {
 
 	var body: some View {
 		let hasAllDayEvents = (allDayEvents[startOfToday]?.count ?? 0) > 0
-		let titleBottomPadding: CGFloat = if hasAllDayEvents { 0 } else { -4 }
+		let titleBottomPadding: CGFloat = if hasAllDayEvents { 0 } else { -Dimensions.Spacing.XS }
 
 		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
 		let weekday = DateFormatter().weekdaySymbols[(dateComponents.weekday ?? 0) - 1]
@@ -36,7 +36,7 @@ struct Header: View {
 					Spacer()
 				}
 			}
-			.buttonStyle(.plain).padding(.leading, 12).padding(.top, 8)
+			.buttonStyle(.plain).padding(.leading, Dimensions.Spacing.MD).padding(.top, Dimensions.Spacing.SM)
 			HeaderButton(intent: WidgetActionsIntent(userId: userId, date: Date(), action: WidgetActions.eventEditor))
 		}
 	}
