@@ -460,7 +460,7 @@ o.spec("MailIndexer", () => {
 				const entities = addEntities()
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				await indexer.afterMailCreated(mailIdTuple, null)
+				await indexer.afterMailCreated(mailIdTuple, entities)
 				verify(backend.onMailCreated(entities))
 			})
 			o.test("no-op if draft details fail to download", async () => {
