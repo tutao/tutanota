@@ -57,13 +57,8 @@ fun EventRow(
 		GlanceModifier.visibility(Visibility.Invisible)
 	}
 
-	modifier.clickable(
-		openEventAction
-	)
-
-
 	Row(
-		modifier = modifier.fillMaxWidth(),
+		modifier = modifier.clickable(openEventAction).fillMaxWidth(),
 		verticalAlignment = Alignment.CenterVertically
 	) {
 		DayWithWeekday(dateModifier, currentDay, currentWeekDay)

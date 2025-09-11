@@ -82,6 +82,15 @@ class WidgetUIViewModel(
 		try {
 			settings = repository.loadSettings(context, widgetId) ?: return WidgetUIData(normalEvents, allDayEvents)
 			lastSync = repository.loadLastSync(context, widgetId)
+
+			if (sdk != null) {
+				val loadedCalendars = repository.loadCalendars(settings.userId, credentialsFacade, sdk)
+				for (key in loadedCalendars.keys) {
+					settings.calendars[key]?.color = loadedCalendars[key]?.color ?: continue
+				}
+				repository.storeSettings(context, widgetId, settings)
+			}
+
 			calendars = settings.calendars.keys.toList()
 		} catch (e: Exception) {
 			// We couldn't load widget settings, so we must show an error to User
