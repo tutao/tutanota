@@ -1,4 +1,4 @@
-import { arrayHash, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { arrayHashUnsigned, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 
 export class HashingVectorizer {
 	public readonly dimension: number
@@ -11,7 +11,7 @@ export class HashingVectorizer {
 		const vector = new Array(this.dimension).fill(0)
 
 		for (const token of tokens) {
-			const index = arrayHash(stringToUtf8Uint8Array(token)) % this.dimension
+			const index = arrayHashUnsigned(stringToUtf8Uint8Array(token)) % this.dimension
 			vector[index] += 1
 		}
 		this.normalize(vector)

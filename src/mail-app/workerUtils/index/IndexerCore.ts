@@ -35,7 +35,7 @@
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
 	$Promisable,
-	arrayHash,
+	arrayHashSigned,
 	assertNotNull,
 	defer,
 	DeferredObject,
@@ -413,7 +413,7 @@ export class IndexerCore {
 	): Promise<any> {
 		this._cancelIfNeeded()
 		// Collect hashes of all instances we want to delete to check it faster later
-		const encInstanceIdSet = new Set(instanceInfos.map((e) => arrayHash(e.encInstanceId)))
+		const encInstanceIdSet = new Set(instanceInfos.map((e) => arrayHashSigned(e.encInstanceId)))
 		return transaction.get(SearchIndexMetaDataOS, metaRowKey).then((encMetaDataRow) => {
 			if (!encMetaDataRow) {
 				// already deleted
@@ -446,7 +446,7 @@ export class IndexerCore {
 					// Find all entries we need to remove by hash of the encrypted ID
 					const rangesToRemove: Array<[number, number]> = []
 					iterateBinaryBlocks(indexEntriesRow, (block, start, end) => {
-						if (encInstanceIdSet.has(arrayHash(getIdFromEncSearchIndexEntry(block)))) {
+						if (encInstanceIdSet.has(arrayHashSigned(getIdFromEncSearchIndexEntry(block)))) {
 							rangesToRemove.push([start, end])
 						}
 					})
@@ -691,11 +691,9 @@ export class IndexerCore {
 					}
 
 					const timestampToEntries: Map<number, Array<Uint8Array>> = new Map()
-					const existingIds = new Set()
 					// Iterate all entries in a block, decrypt id of each and put it into the map
 					iterateBinaryBlocks(binaryBlock, (encSearchIndexEntry) => {
 						const encId = getIdFromEncSearchIndexEntry(encSearchIndexEntry)
-						existingIds.add(arrayHash(encId))
 						const decId = decryptIndexKey(encryptionData.key, encId, encryptionData.iv)
 						const timeStamp = generatedIdToTimestamp(decId)
 						getFromMap(timestampToEntries, timeStamp, () => []).push(encSearchIndexEntry)
