@@ -2094,3 +2094,5 @@ export type TranslationKeyType =
 	| "zoomOut_action"
 	| "emptyString_msg"
 	| "customNameGeneric_label"
+	| "viewInLightMode_action"
+	| "viewInDarkMode_action"

@@ -12,7 +12,7 @@ import type { Shortcut } from "../../../common/misc/KeyManager"
 import { keyManager } from "../../../common/misc/KeyManager"
 import { Icon, progressIcon } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { theme } from "../../../common/gui/theme"
+import { isDarkTheme, theme } from "../../../common/gui/theme"
 import { client } from "../../../common/misc/ClientDetector"
 import { styles } from "../../../common/gui/styles"
 import { DropdownButtonAttrs, showDropdownAtPosition } from "../../../common/gui/base/Dropdown.js"
@@ -36,7 +36,6 @@ import { getExistingRuleForType } from "../model/MailUtils.js"
 import { createResizeObserver } from "@tutao/tutanota-utils/dist/Utils"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
-import { MailViewModel } from "./MailViewModel"
 
 assertMainOrNode()
 
@@ -157,19 +156,25 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	view(vnode: Vnode<MailViewerAttrs>): Children {
 		this.handleContentBlockingOnRender()
 
+		const onDarkTheme = isDarkTheme()
+		const useDarkMode = onDarkTheme && !this.viewModel.getForceLightMode()
+
+		// the client theme can change intermittently
+		const forceWhiteBackground = onDarkTheme && !useDarkMode
+
 		return [
 			m(".mail-viewer.overflow-x-hidden", [
 				this.renderMailHeader(vnode.attrs),
 				this.renderMailSubject(vnode.attrs),
 				m(
-					".flex-grow.scroll-x.pt.pb.border-radius-big" + (this.viewModel.isContrastFixNeeded() ? ".bg-white.content-black" : " "),
+					".flex-grow.scroll-x.pt.pb.border-radius-big" + (forceWhiteBackground ? ".bg-white.content-black" : ""),
 					{
 						class: responsiveCardHPadding(),
 						oncreate: (vnode) => {
 							this.scrollDom = vnode.dom as HTMLElement
 						},
 					},
-					this.renderMailBodySection(vnode.attrs),
+					this.renderMailBodySection(vnode.attrs, useDarkMode),
 				),
 				this.renderQuoteExpanderButton(),
 			]),
@@ -267,7 +272,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		return !shouldSkipRender
 	}
 
-	private renderMailBodySection(attrs: MailViewerAttrs): Children {
+	private renderMailBodySection(attrs: MailViewerAttrs, darkMode: boolean): Children {
 		if (this.viewModel.didErrorsOccur()) {
 			return m(IconMessageBox, {
 				message: "corrupted_msg",
@@ -276,7 +281,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			})
 		}
 
-		const sanitizedMailBody = this.viewModel.getSanitizedMailBody()
+		const sanitizedMailBody = this.viewModel.getSanitizedMailBody(darkMode)
 
 		// Do not render progress spinner or mail body while we are animating.
 		if (this.viewModel.shouldDelayRendering()) {

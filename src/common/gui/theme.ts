@@ -135,14 +135,28 @@ export function getNavigationMenuIcon(): string {
 	return theme.navigation_menu_icon || theme.navigation_button_icon
 }
 
-export function isLightTheme(): boolean {
+export function isDefaultLightTheme(): boolean {
 	return theme.themeId === "light" || theme.themeId === "light_secondary"
+}
+
+/**
+ * @return true if the current theme is a light theme
+ */
+export function isLightTheme(): boolean {
+	return isColorLight(theme.content_bg)
+}
+
+/**
+ * @return true if the current theme is a dark theme
+ */
+export function isDarkTheme(): boolean {
+	return !isLightTheme()
 }
 
 export function getLightOrDarkTutaLogo(isCalendarApp: boolean): string {
 	// Use tuta logo with our brand colors
 	const isCalendarTheme = (theme.themeId === "light" && isCalendarApp) || (theme.themeId === "light_secondary" && !isCalendarApp)
-	if (isColorLight(theme.content_bg) && !isCalendarTheme) {
+	if (isDefaultLightTheme() && !isCalendarTheme) {
 		return getTutaLogoSvg(tutaRed, tutaDunkel)
 	} else {
 		return getTutaLogoSvg(logoDefaultGrey, logoDefaultGrey)
