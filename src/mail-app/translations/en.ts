@@ -1161,6 +1161,7 @@ export default {
 		"newContact_action": "New contact",
 		"newEvent_action": "New event",
 		"newMail_action": "New email",
+        "newDriveItem_action": "New",
 		"newMails_msg": "New Tuta email received.",
 		"newPaidPlanRequired_msg": "To use this feature, please switch to one of the following plans.",
 		"newPassword_label": "Set password",
@@ -1666,6 +1667,7 @@ export default {
 		"restart_action": "Restart",
 		"restartBefore_action": "Restart Tuta before sending",
 		"restoreExcludedRecurrences_action": "Restore events",
+		"restoreFromTrash_action": "Restore",
 		"resubscribe_action": "Resubscribe",
 		"resumeMailImport_action": "Resume import",
 		"resumeSetup_label": "Resume setup",
@@ -2181,6 +2183,21 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		// FIXME: add
+		"driveView_action": "Drive",
+		"driveHome_label": "Home",
+		"driveTrash_label": "Trash",
+		"itemsSelected_label": "{number} items selected",
+		"size_label": "Size",
+		"renameItem_action": "Rename item",
+		"enterNewName_label": "Enter new name:",
+		"trashIsEmpty_msg": "Trash is empty",
+		"dropFilesHere_msg": "Drop files or folders here",
+		"uploadFile_action": "Upload file",
+		"createFolder_action": "Create folder",
+		"sortDescending_label": "Descending",
+		"sortAscending_label": "Ascending",
+		"sortNeutral_label": "Unsorted"
 	}
 }

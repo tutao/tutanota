@@ -1,4 +1,4 @@
-import type { File as TutanotaFile } from "../entities/tutanota/TypeRefs.js"
+import { DownloadableFileEntity } from "./utils/BlobUtils"
 
 /**
  * a structure containing file content and metadata
@@ -25,7 +25,7 @@ export function createDataFile(name: string, mimeType: string, data: Uint8Array,
 	}
 }
 
-export function convertToDataFile(file: File | TutanotaFile, data: Uint8Array): DataFile {
+export function convertToDataFile(file: File | DownloadableFileEntity, data: Uint8Array): DataFile {
 	if ("_type" in file) {
 		return {
 			_type: "DataFile",

@@ -2,7 +2,9 @@ import { WorkerClient } from "./WorkerClient.js"
 import { FileController } from "../../file/FileController.js"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
 import { SearchTextInAppFacade } from "../../native/common/generatedipc/SearchTextInAppFacade.js"
-import { InterWindowEventFacadeSendDispatcher } from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
+import {
+	InterWindowEventFacadeSendDispatcher
+} from "../../native/common/generatedipc/InterWindowEventFacadeSendDispatcher.js"
 import { WebauthnClient } from "../../misc/2fa/webauthn/WebauthnClient.js"
 import { SystemPermissionHandler } from "../../native/main/SystemPermissionHandler.js"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
@@ -58,15 +60,22 @@ import { CalendarEvent, Contact, Mail, MailboxProperties } from "../entities/tut
 import { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
 import { RecipientsSearchModel } from "../../misc/RecipientsSearchModel.js"
 import type { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
-import type { CalendarEventModel, CalendarOperation } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
-import type { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
+import type {
+	CalendarEventModel,
+	CalendarOperation
+} from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import type {
+	CalendarEventPreviewViewModel
+} from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { RecipientsModel } from "./RecipientsModel.js"
 import { ThemeController } from "../../gui/ThemeController.js"
 import { MobilePaymentsFacade } from "../../native/common/generatedipc/MobilePaymentsFacade.js"
 import { WorkerRandomizer } from "../worker/workerInterfaces.js"
 import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
-import type { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
+import type {
+	CalendarContactPreviewViewModel
+} from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { SyncTracker } from "./SyncTracker.js"
 import { KeyVerificationFacade } from "../worker/facades/lazy/KeyVerificationFacade"
 import { SearchToken } from "../common/utils/QueryTokenUtils"
@@ -77,6 +86,8 @@ import { IdentityKeyCreator } from "../worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../worker/facades/PublicIdentityKeyProvider"
 import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
 import { LoginViewModel } from "../../login/LoginViewModel"
+import { DriveFacade } from "../worker/facades/DriveFacade.js"
+import { UploadProgressListener } from "./UploadProgressListener"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -122,6 +133,7 @@ export interface CommonLocator {
 	random: WorkerRandomizer
 	connectivityModel: WebsocketConnectivityModel
 	identityKeyCreator: IdentityKeyCreator
+	driveFacade: DriveFacade
 
 	mailboxModel: MailboxModel
 
@@ -139,6 +151,7 @@ export interface CommonLocator {
 	usageTestModel: UsageTestModel
 	webMobileFacade: WebMobileFacade
 	operationProgressTracker: OperationProgressTracker
+	uploadProgressListener: UploadProgressListener
 	Const: Record<string, any>
 
 	domainConfigProvider(): DomainConfigProvider

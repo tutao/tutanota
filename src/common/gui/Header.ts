@@ -3,7 +3,7 @@ import { NavBar } from "./base/NavBar.js"
 import { isSelectedPrefix, NavButton, NavButtonColor } from "./base/NavButton.js"
 import { FeatureType } from "../api/common/TutanotaConstants.js"
 import { BootIcons } from "./base/icons/BootIcons.js"
-import { CALENDAR_PREFIX, CONTACTLIST_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX } from "../misc/RouteChange.js"
+import { CALENDAR_PREFIX, CONTACTLIST_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, MAIL_PREFIX } from "../misc/RouteChange.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { OfflineIndicatorViewModel } from "./base/OfflineIndicatorViewModel.js"
@@ -11,7 +11,9 @@ import { NewsModel } from "../misc/news/NewsModel.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { ProgressBar } from "./base/ProgressBar.js"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
-import { layout_size, size as sizes } from "./size"
+import { layout_size } from "./size"
+import { Icons } from "./base/icons/Icons"
+import { isDriveEnabled } from "../api/common/drive/DriveUtils"
 
 assertMainOrNode()
 
@@ -83,6 +85,15 @@ export class Header implements ClassComponent<HeaderAttrs> {
 						href: CALENDAR_PREFIX,
 						colors: NavButtonColor.Header,
 						click: () => m.route.get().startsWith(CALENDAR_PREFIX),
+					})
+				: null,
+			isDriveEnabled(locator.logins)
+				? m(NavButton, {
+						label: "driveView_action",
+						icon: () => Icons.Drive,
+						href: DRIVE_PREFIX,
+						colors: NavButtonColor.Header,
+						click: () => m.route.get().startsWith(DRIVE_PREFIX),
 					})
 				: null,
 		]

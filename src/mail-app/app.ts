@@ -42,6 +42,8 @@ import { UndoModel } from "./UndoModel"
 import { FeatureType } from "../common/api/common/TutanotaConstants"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import type { SignupView, SignupViewAttrs, SignupViewModel } from "../common/signup/SignupView"
+import type { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
+import type { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -622,6 +624,46 @@ import("./translations/en.js")
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
+						bottomNav,
+						lazySearchBar,
+					}),
+				},
+				mailLocator.logins,
+			),
+			drive: makeViewResolver<
+				DriveViewAttrs,
+				DriveView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					driveViewModel: DriveViewModel
+					bottomNav: () => Children
+					lazySearchBar: () => Children
+				}
+			>(
+				{
+					prepareRoute: async (cache) => {
+						const { DriveView } = await import("../drive-app/drive/view/DriveView.js")
+						const { lazySearchBar } = await import("./LazySearchBar.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						return {
+							component: DriveView,
+							cache: cache ?? {
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+								driveViewModel: await mailLocator.driveViewModel(),
+								bottomNav: () => m(BottomNav),
+								lazySearchBar: () =>
+									m(lazySearchBar, {
+										placeholder: lang.get("searchCalendar_placeholder"),
+									}),
+							},
+						}
+					},
+					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, bottomNav, lazySearchBar }) => ({
+						drawerAttrs: drawerAttrsFactory(),
+						header,
+						driveViewModel,
 						bottomNav,
 						lazySearchBar,
 					}),

@@ -958,29 +958,32 @@ export class Dialog implements ModalComponent {
 		let textFieldType = props.textFieldType ?? TextFieldType.Text
 
 		let result = props.defaultValue ?? ""
-		Dialog.showActionDialog({
+		let dialog: Dialog
+		const wrappedOkAction = async () => {
+			try {
+				await okAction(result)
+				dialog.close()
+			} catch (error) {
+				if (!isOfflineError(error)) {
+					dialog.close()
+				}
+				throw error
+			}
+		}
+		dialog = Dialog.showActionDialog({
 			title: props.title,
 			child: () =>
 				m(TextField, {
 					label: props.label,
 					value: result,
 					type: textFieldType,
+					onReturnKeyPressed: wrappedOkAction,
 					oninput: (newValue) => (result = newValue),
 					helpLabel: () => (props.infoMsgId ? lang.getTranslationText(props.infoMsgId) : ""),
 				}),
 			validator: () => (props.inputValidator ? props.inputValidator(result) : null),
 			allowOkWithReturn: true,
-			okAction: async (dialog: Dialog) => {
-				try {
-					await okAction(result)
-					dialog.close()
-				} catch (error) {
-					if (!isOfflineError(error)) {
-						dialog.close()
-					}
-					throw error
-				}
-			},
+			okAction: wrappedOkAction,
 		})
 	}
 

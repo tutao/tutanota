@@ -24,6 +24,7 @@ export const enum DropType {
 	ExternalFile = "ExternalFile",
 	Mail = "Mail",
 	Folder = "Folder",
+	DriveItems = "DriveItems",
 }
 
 export type MailDropData = {

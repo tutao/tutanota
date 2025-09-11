@@ -15,7 +15,7 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
+import { ArchiveDataType, CANCEL_UPLOAD_EVENT, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
 import { HttpMethod, MediaType } from "../../../common/EntityFunctions.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
@@ -25,7 +25,7 @@ import { aesDecrypt, AesKey, sha256Hash } from "@tutao/tutanota-crypto"
 import type { FileUri, NativeFileApp } from "../../../../native/common/FileApp.js"
 import type { AesApp } from "../../../../native/worker/AesApp.js"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "../../../entities/sys/TypeRefs.js"
-import { FileReference } from "../../../common/utils/FileUtils.js"
+import { FileReference, splitFileIntoChunks } from "../../../common/utils/FileUtils.js"
 import { handleRestError } from "../../../common/error/RestError.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { BlobGetInTypeRef, BlobPostOutTypeRef, BlobServerAccessInfo, createBlobGetIn, createBlobId } from "../../../entities/storage/TypeRefs.js"
@@ -38,6 +38,9 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
+import { ChunkedUploadInfo } from "../../../common/drive/DriveTypes"
+import { UploadGuid } from "../DriveFacade"
+import { CancelledError } from "../../../common/error/CancelledError"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -75,15 +78,89 @@ export class BlobFacade {
 	 *
 	 * @returns blobReferenceToken that must be used to reference a blobs from an instance. Only to be used once.
 	 */
-	async encryptAndUpload(archiveDataType: ArchiveDataType, blobData: Uint8Array, ownerGroupId: Id, sessionKey: AesKey): Promise<BlobReferenceTokenWrapper[]> {
+	async encryptAndUpload(
+		archiveDataType: ArchiveDataType,
+		blobData: Uint8Array,
+		ownerGroupId: Id,
+		sessionKey: AesKey,
+		onChunkUploaded?: (info: ChunkedUploadInfo) => void,
+		fileId?: UploadGuid,
+		onCancelListener?: EventTarget,
+	): Promise<BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
+
+		let uploadIsCanceledByUser = false
+		const doCancelUpload = ({ detail }: CustomEvent) => {
+			if (detail === fileId) {
+				uploadIsCanceledByUser = true
+			}
+		}
+
+		onCancelListener?.addEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
+
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return promiseMap(chunks, async (chunk) => await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey))
+			const receivedTokens: BlobReferenceTokenWrapper[] = []
+
+			for (const chunk of chunks) {
+				if (uploadIsCanceledByUser) {
+					return []
+				}
+				const blobReferenceTokenWrapper = await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey)
+				onChunkUploaded?.({ fileId: assertNotNull(fileId), totalBytes: blobData.length, uploadedBytes: chunk.length })
+				receivedTokens.push(blobReferenceTokenWrapper)
+			}
+			// TODO: careful we need to also remove in case of a failure and inside a catch block or finally block
+			onCancelListener?.removeEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
+			return receivedTokens
 		}
+
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
 
+		/* TODO: Communicate retry case to UploadProgressListener so it can reset the model state / inform the user via the UI */
 		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+	}
+
+	/**
+	 * Encrypts and uploads binary data to the blob store. The binary data is split into multiple blobs in case it
+	 * is too big.
+	 *
+	 * @returns blobReferenceToken that must be used to reference a blobs from an instance. Only to be used once.
+	 */
+	async *streamEncryptAndUpload(
+		archiveDataType: ArchiveDataType,
+		file: File,
+		ownerGroupId: Id,
+		sessionKey: AesKey,
+		abortSignal: AbortSignal,
+	): AsyncGenerator<{ uploadedBytes: number; totalBytes: number }, BlobReferenceTokenWrapper[], void> {
+		const fileSize = file.size
+
+		// Convert chunkSize to bytes (e.g., 1024 * 1024 for 1MB)
+		const chunkSizeBytes = MAX_BLOB_SIZE_BYTES
+
+		const doBlobRequest = async (chunk: Uint8Array) => {
+			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
+			return await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey)
+		}
+		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
+		const blobReferenceTokenWrappers: BlobReferenceTokenWrapper[] = []
+
+		for (const chunkBlob of splitFileIntoChunks(chunkSizeBytes, file)) {
+			const chunkData = await chunkBlob.arrayBuffer()
+			// Process the chunkData here (e.g., upload it to a server)
+			const tokenWrapper = await doBlobRequestWithRetry(() => {
+				if (abortSignal.aborted) {
+					throw new CancelledError("Upload aborted")
+				}
+				return doBlobRequest(new Uint8Array(chunkData))
+			}, doEvictToken)
+			yield { totalBytes: fileSize, uploadedBytes: chunkData.byteLength }
+			blobReferenceTokenWrappers.push(tokenWrapper)
+		}
+
+		console.log("Finished reading the file with custom chunk sizes.")
+		return blobReferenceTokenWrappers
 	}
 
 	/**

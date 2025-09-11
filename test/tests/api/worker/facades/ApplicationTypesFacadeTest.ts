@@ -65,6 +65,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 			gossip: { version: 10, types: {}, name: AppNameEnum.Gossip },
 			storage: { version: 10, types: {}, name: AppNameEnum.Storage },
 			accounting: { version: 10, types: {}, name: AppNameEnum.Accounting },
+			drive: { version: 10, types: {}, name: AppNameEnum.Drive },
 		} satisfies ServerModels),
 	}
 	let mockResponse = compressString(JSON.stringify(mockModel))

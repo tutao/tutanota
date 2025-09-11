@@ -1,11 +1,12 @@
 import { keyManager } from "./KeyManager.js"
 import { FeatureType, Keys } from "../api/common/TutanotaConstants.js"
 import m from "mithril"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, LogoutUrl, MAIL_PREFIX, SETTINGS_PREFIX } from "./RouteChange.js"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, LogoutUrl, MAIL_PREFIX, SETTINGS_PREFIX } from "./RouteChange.js"
 import { showQuickActionBar } from "./quickactions/QuickActionBar"
 import { LoginController } from "../api/main/LoginController"
 import { QuickActionsModel } from "./quickactions/QuickActionsModel"
 import { SessionType } from "../api/common/SessionType"
+import { isDriveEnabled } from "../api/common/drive/DriveUtils"
 
 export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsModel: () => Promise<QuickActionsModel>; logins: LoginController }) {
 	function hasInAppNavigation() {
@@ -30,6 +31,13 @@ export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsM
 			enabled: () => hasInAppNavigation(),
 			exec: () => m.route.set(CALENDAR_PREFIX),
 			help: "calendarView_action",
+		},
+
+		{
+			key: Keys.P,
+			enabled: () => hasInAppNavigation() && isDriveEnabled(logins),
+			exec: () => m.route.set(DRIVE_PREFIX),
+			help: "driveView_action",
 		},
 		{
 			key: Keys.S,

@@ -99,7 +99,7 @@ export function createAttachmentBubbleAttrs(model: SendMailModel, inlineImageEle
 	}))
 }
 
-async function _openAndDownloadAttachment(attachment: Attachment) {
+export async function _openAndDownloadAttachment(attachment: Attachment) {
 	try {
 		if (isFileReference(attachment)) {
 			await locator.fileApp.open(attachment)

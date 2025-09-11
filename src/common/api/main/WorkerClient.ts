@@ -108,6 +108,9 @@ export class WorkerClient {
 				async syncTracker() {
 					return locator.syncTracker
 				},
+				async uploadProgressListener() {
+					return locator.uploadProgressListener
+				},
 			}),
 		}
 	}

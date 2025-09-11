@@ -58,7 +58,6 @@ import { InterWindowEventFacadeSendDispatcher } from "../../../common/native/com
 import { SqlCipherFacadeSendDispatcher } from "../../../common/native/common/generatedipc/SqlCipherFacadeSendDispatcher.js"
 import { EntropyFacade } from "../../../common/api/worker/facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../../common/api/worker/facades/BlobAccessTokenFacade.js"
-
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade.js"
@@ -118,6 +117,7 @@ import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 import { PublicEncryptionKeyCache } from "../../../common/api/worker/facades/PublicEncryptionKeyCache"
 import { InstanceSessionKeysCache } from "../../../common/api/worker/facades/InstanceSessionKeysCache"
+import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
 
 assertWorkerOrNode()
 
@@ -202,6 +202,9 @@ export type WorkerLocatorType = {
 	//spam classification
 	spamClassifier: lazyAsync<SpamClassifier>
 	spamClassifierStorageFacade: lazyAsync<SpamClassifierStorageFacade>
+
+	// drive
+	driveFacade: lazyAsync<DriveFacade>
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -858,6 +861,19 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { MailExportTokenFacade } = await import("../../../common/api/worker/facades/lazy/MailExportTokenFacade.js")
 		const mailExportTokenFacade = new MailExportTokenFacade(locator.serviceExecutor)
 		return new MailExportFacade(mailExportTokenFacade, await locator.bulkMailLoader(), await locator.blob(), locator.crypto, locator.blobAccessToken)
+	})
+	locator.driveFacade = lazyMemoized(async () => {
+		return new DriveFacade(
+			locator.keyLoader,
+			await locator.blob(),
+			locator.user,
+			locator.cachingEntityClient,
+			locator.serviceExecutor,
+			locator.crypto,
+			locator.cryptoWrapper,
+			mainInterface.uploadProgressListener,
+			dateProvider,
+		)
 	})
 }
 
