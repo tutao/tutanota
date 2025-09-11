@@ -1267,6 +1267,8 @@ export const enum ArchiveDataType {
 	AuthorityRequests = "0",
 	Attachments = "1",
 	MailDetails = "2",
+	ErrorReports = "3",
+	DriveFile = "4",
 }
 
 export const OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 31
@@ -1421,3 +1423,5 @@ export enum ProcessingState {
 }
 
 export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"
+
+export const CANCEL_UPLOAD_EVENT = "CANCEL_UPLOAD_EVENT"

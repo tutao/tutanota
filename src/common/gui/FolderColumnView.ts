@@ -8,7 +8,7 @@ import { MainCreateButton } from "./MainCreateButton.js"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
-	button: { label: TranslationKey; click: ClickHandler } | null | undefined
+	button: { label: TranslationKey; click: ClickHandler; disabled?: boolean } | null | undefined
 	content: Children
 	ariaLabel: MaybeTranslation
 	drawer: DrawerMenuAttrs
@@ -27,7 +27,10 @@ export class FolderColumnView implements Component<Attrs> {
 
 	private renderMainButton(attrs: Attrs): Children {
 		if (attrs.button) {
-			return m(".plr-button-double.scrollbar-gutter-stable-or-fallback", m(MainCreateButton, { label: attrs.button.label, click: attrs.button.click }))
+			return m(
+				".plr-button-double.scrollbar-gutter-stable-or-fallback",
+				m(MainCreateButton, { label: attrs.button.label, click: attrs.button.click, disabled: attrs.button.disabled }),
+			)
 		} else {
 			return null
 		}

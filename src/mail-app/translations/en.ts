@@ -1137,6 +1137,7 @@ export default {
 		"newContact_action": "New contact",
 		"newEvent_action": "New event",
 		"newMail_action": "New email",
+        "newFile_action": "New file",
 		"newMails_msg": "New Tuta email received.",
 		"newPaidPlanRequired_msg": "To use this feature, please switch to one of the following plans.",
 		"newPassword_label": "Set password",

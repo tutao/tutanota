@@ -15,7 +15,7 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
+import { ArchiveDataType, CANCEL_UPLOAD_EVENT, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
 import { HttpMethod, MediaType } from "../../../common/EntityFunctions.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
@@ -38,6 +38,9 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
+import { ExposedProgressTracker } from "../../../main/ProgressTracker"
+import { ChunkedUploadInfo } from "../../../common/drive/DriveTypes"
+import { UploadGuid } from "../DriveFacade"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -48,6 +51,11 @@ export interface BlobLoadOptions {
 	suspensionBehavior?: SuspensionBehavior
 	/** override origin for the request */
 	baseUrl?: string
+}
+
+// FIXME: Just for testing. Remove me later!
+function timeout(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**
@@ -67,6 +75,7 @@ export class BlobFacade {
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
+		private readonly progressTracker: ExposedProgressTracker,
 	) {}
 
 	/**
@@ -75,15 +84,127 @@ export class BlobFacade {
 	 *
 	 * @returns blobReferenceToken that must be used to reference a blobs from an instance. Only to be used once.
 	 */
-	async encryptAndUpload(archiveDataType: ArchiveDataType, blobData: Uint8Array, ownerGroupId: Id, sessionKey: AesKey): Promise<BlobReferenceTokenWrapper[]> {
+	async encryptAndUpload(
+		archiveDataType: ArchiveDataType,
+		blobData: Uint8Array,
+		ownerGroupId: Id,
+		sessionKey: AesKey,
+		onChunkUploaded?: (info: ChunkedUploadInfo) => void,
+		fileId?: UploadGuid,
+		onCancelListener?: EventTarget,
+	): Promise<BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
+
+		let uploadIsCanceledByUser = false
+		const doCancelUpload = ({ detail }: CustomEvent) => {
+			if (detail === fileId) {
+				uploadIsCanceledByUser = true
+			}
+		}
+
+		onCancelListener?.addEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
+
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return promiseMap(chunks, async (chunk) => await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey))
+			const receivedTokens: BlobReferenceTokenWrapper[] = []
+
+			for (const chunk of chunks) {
+				if (uploadIsCanceledByUser) {
+					return []
+				}
+				const blobReferenceTokenWrapper = await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey)
+				onChunkUploaded?.({ fileId: assertNotNull(fileId), totalBytes: blobData.length, uploadedBytes: chunk.length })
+				receivedTokens.push(blobReferenceTokenWrapper)
+			}
+			// TODO: careful we need to also remove in case of a failure and inside a catch block or finally block
+			onCancelListener?.removeEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
+			return receivedTokens
 		}
+
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
 
+		/* TODO: Communicate retry case to UploadProgressListener so it can reset the model state / inform the user via the UI */
 		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
+	}
+
+	/**
+	 * Encrypts and uploads binary data to the blob store. The binary data is split into multiple blobs in case it
+	 * is too big.
+	 *
+	 * @returns blobReferenceToken that must be used to reference a blobs from an instance. Only to be used once.
+	 */
+	async streamEncryptAndUpload(
+		archiveDataType: ArchiveDataType,
+		file: File,
+		ownerGroupId: Id,
+		sessionKey: AesKey,
+		onChunkUploaded?: (info: ChunkedUploadInfo) => void,
+		fileId?: UploadGuid,
+		onCancelListener?: EventTarget,
+	): Promise<BlobReferenceTokenWrapper[]> {
+		let uploadIsCanceledByUser = false
+		const doCancelUpload = ({ detail }: CustomEvent) => {
+			console.log("Trying to cancel upload #", detail)
+			if (detail === fileId) {
+				console.log("upload has been cancelled by user")
+				uploadIsCanceledByUser = true
+			}
+		}
+
+		onCancelListener?.addEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
+
+		let offset = 0
+		const fileSize = file.size
+
+		// Convert chunkSize to bytes (e.g., 1024 * 1024 for 1MB)
+		const chunkSizeBytes = MAX_BLOB_SIZE_BYTES
+
+		const doBlobRequest = async (chunk: Uint8Array) => {
+			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
+			const blobReferenceTokenWrapper = await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey)
+			onChunkUploaded?.({ fileId: assertNotNull(fileId), totalBytes: fileSize, uploadedBytes: chunk.length })
+			//onCancelListener?.removeEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
+			return blobReferenceTokenWrapper
+		}
+		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
+		const blobReferenceTokenWrappers: BlobReferenceTokenWrapper[] = []
+
+		while (offset < fileSize) {
+			if (uploadIsCanceledByUser) {
+				console.log("UPLOAD CANCELLED, RETURNING")
+				return []
+			}
+
+			// Determine the end of the current chunk (exclusive)
+			const chunkEnd = Math.min(offset + chunkSizeBytes, fileSize)
+
+			// Use File.slice() to get the chunk as a Blob
+			const chunkBlob = file.slice(offset, chunkEnd)
+
+			const chunkData = await chunkBlob.arrayBuffer()
+			//
+			// const decoder = new TextDecoder()
+			// const str = decoder.decode(chunkData)
+			// console.log(str)
+			// 'chunkData' now holds the raw data for the chunk
+
+			console.log(`Read chunk from byte ${offset} to ${chunkEnd - 1}. Size: ${chunkBlob.size} bytes.`)
+
+			// Increment the offset for the next iteration
+			offset = chunkEnd
+
+			// Process the chunkData here (e.g., upload it to a server)
+
+			/* TODO: Communicate retry case to UploadProgressListener so it can reset the model state / inform the user via the UI */
+			const tokenWrapper = await doBlobRequestWithRetry(() => doBlobRequest(new Uint8Array(chunkData)), doEvictToken)
+			blobReferenceTokenWrappers.push(tokenWrapper)
+		}
+
+		// TODO: This probably does not handle failure scenarios well...
+		onCancelListener?.removeEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
+
+		console.log("Finished reading the file with custom chunk sizes.")
+		return blobReferenceTokenWrappers
 	}
 
 	/**

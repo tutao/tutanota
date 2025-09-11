@@ -4,6 +4,7 @@ export type AppName = Values<typeof AppNameEnum>
 export const AppNameEnum = Object.freeze({
 	Accounting: "accounting",
 	Base: "base",
+	Drive: "drive",
 	Gossip: "gossip",
 	Monitor: "monitor",
 	Storage: "storage",

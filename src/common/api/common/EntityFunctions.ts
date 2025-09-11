@@ -8,6 +8,7 @@ import { typeModels as accountingTypeModels } from "../entities/accounting/TypeM
 import { typeModels as gossipTypeModels } from "../entities/gossip/TypeModels.js"
 import { typeModels as storageTypeModels } from "../entities/storage/TypeModels.js"
 import { typeModels as usageTypeModels } from "../entities/usage/TypeModels.js"
+import { typeModels as driveTypeModels } from "../entities/drive/TypeModels"
 import sysModelInfo from "../entities/sys/ModelInfo.js"
 import baseModelInfo from "../entities/base/ModelInfo.js"
 import tutanotaModelInfo from "../entities/tutanota/ModelInfo.js"
@@ -16,6 +17,7 @@ import accountingModelInfo from "../entities/accounting/ModelInfo.js"
 import gossipModelInfo from "../entities/gossip/ModelInfo.js"
 import storageModelInfo from "../entities/storage/ModelInfo.js"
 import usageModelInfo from "../entities/usage/ModelInfo.js"
+import driveModelInfo from "../entities/drive/ModelInfo.js"
 import { AppName, AppNameEnum } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants"
@@ -96,6 +98,7 @@ export class ClientModelInfo {
 		gossip: gossipTypeModels,
 		storage: storageTypeModels,
 		usage: usageTypeModels,
+		drive: driveTypeModels,
 	} as const)
 
 	public readonly modelInfos: ModelInfos = Object.freeze({
@@ -107,6 +110,7 @@ export class ClientModelInfo {
 		gossip: gossipModelInfo,
 		storage: storageModelInfo,
 		usage: usageModelInfo,
+		drive: driveModelInfo,
 	} as const)
 
 	public applicationVersionSum(): ApplicationVersionSum {

@@ -119,6 +119,8 @@ import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicId
 import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/worker/facades/lazy/AutosaveFacade"
 import { lang } from "../common/misc/LanguageViewModel.js"
+import { DriveFacade } from "../common/api/worker/facades/DriveFacade"
+import { UploadProgressListener } from "../common/api/main/UploadProgressListener"
 
 assertMainOrNode()
 
@@ -177,6 +179,8 @@ class CalendarLocator implements CommonLocator {
 	syncTracker!: SyncTracker
 	identityKeyCreator!: IdentityKeyCreator
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
+	driveFacade!: DriveFacade
+	uploadProgressListener!: UploadProgressListener
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -584,6 +588,7 @@ class CalendarLocator implements CommonLocator {
 			sqlCipherFacade,
 			contactFacade,
 			identityKeyCreator,
+			driveFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -603,6 +608,7 @@ class CalendarLocator implements CommonLocator {
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade
+		this.driveFacade = driveFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
 		this.identityKeyCreator = identityKeyCreator

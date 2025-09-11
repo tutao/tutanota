@@ -52,13 +52,24 @@ export abstract class FileController {
 		protected readonly observeProgress: ProgressObserver,
 	) {}
 
-	private async doDownload(tutanotaFiles: TutanotaFile[], action: DownloadPostProcessing, progress?: stream<number>): Promise<void> {
+	private async doDownload(
+		tutanotaFiles: TutanotaFile[],
+		action: DownloadPostProcessing,
+		options: {
+			progress?: stream<number>
+			archiveType: ArchiveDataType
+		} = {
+			archiveType: ArchiveDataType.Attachments,
+		},
+	): Promise<void> {
+		let { progress, archiveType } = options
+
 		const downloadedFiles: Array<FileReference | DataFile> = []
 		try {
 			let isOffline = false
 			for (const file of tutanotaFiles) {
 				try {
-					const downloadedFile = await this.downloadAndDecrypt(file)
+					const downloadedFile = await this.downloadAndDecrypt(file, archiveType)
 					downloadedFiles.push(downloadedFile)
 					if (progress != null) {
 						progress(((tutanotaFiles.indexOf(file) + 1) / tutanotaFiles.length) * 100)
@@ -94,9 +105,9 @@ export abstract class FileController {
 	/**
 	 * get the referenced TutanotaFile as a DataFile without writing anything to disk
 	 */
-	async getAsDataFile(file: TutanotaFile): Promise<DataFile> {
+	async getAsDataFile(file: TutanotaFile, archiveType: ArchiveDataType = ArchiveDataType.Attachments): Promise<DataFile> {
 		// using the browser's built-in download since we don't want to write anything to disk here
-		return downloadAndDecryptDataFile(file, this.blobFacade)
+		return downloadAndDecryptFromArchive(file, this.blobFacade, archiveType)
 	}
 
 	/**
@@ -116,17 +127,17 @@ export abstract class FileController {
 	 *
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	async downloadAll(files: Array<TutanotaFile>): Promise<void> {
+	async downloadAll(files: Array<TutanotaFile>, archiveType: ArchiveDataType): Promise<void> {
 		const progress = stream(0)
-		await this.observeProgress(this.doDownload(files, DownloadPostProcessing.Write, progress), progress)
+		await this.observeProgress(this.doDownload(files, DownloadPostProcessing.Write, { progress, archiveType }), progress)
 	}
 
 	/**
 	 * Open a file in the host system
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	async open(file: TutanotaFile) {
-		await this.observeProgress(this.doDownload([file], DownloadPostProcessing.Open))
+	async open(file: TutanotaFile, archiveType: ArchiveDataType = ArchiveDataType.Attachments) {
+		await this.observeProgress(this.doDownload([file], DownloadPostProcessing.Open, { archiveType }))
 	}
 
 	protected abstract writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
@@ -138,7 +149,7 @@ export abstract class FileController {
 	/**
 	 * Get a file from the server and decrypt it
 	 */
-	protected abstract downloadAndDecrypt(file: TutanotaFile): Promise<FileReference | DataFile>
+	protected abstract downloadAndDecrypt(file: TutanotaFile, archiveType: ArchiveDataType): Promise<FileReference | DataFile>
 }
 
 export function handleDownloadErrors<R>(e: Error, errorAction: (msg: TranslationKey) => R): R {
@@ -182,7 +193,11 @@ export function readLocalFiles(nativeFiles: Array<File>): Promise<Array<DataFile
  * @param allowMultiple allow selecting multiple files
  * @param allowedExtensions Array of extensions strings without "."
  */
-export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<DataFile>> {
+export function runFileChooser<T>(
+	allowMultiple: boolean,
+	onChangeCallback: (e: Event, resolve: (value: Array<T> | PromiseLike<Array<T>>) => void) => void,
+	allowedExtensions?: Array<string>,
+): Promise<Array<T>> {
 	// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 	// remove the last file input
 	const fileInput = document.getElementById("hiddenFileChooser")
@@ -207,15 +222,9 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 	}
 
 	newFileInput.style.display = "none"
-	const promise: Promise<Array<DataFile>> = newPromise((resolve) => {
+	const promise: Promise<Array<T>> = newPromise((resolve) => {
 		newFileInput.addEventListener("change", (e: Event) => {
-			readLocalFiles((e.target as any).files)
-				.then(resolve)
-				.catch(async (e) => {
-					console.log(e)
-					await Dialog.message("couldNotAttachFile_msg")
-					resolve([])
-				})
+			onChangeCallback(e, resolve)
 		})
 		newFileInput.addEventListener("cancel", () => resolve([]))
 	})
@@ -223,6 +232,28 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 	body.appendChild(newFileInput)
 	newFileInput.click()
 	return promise
+}
+
+export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<DataFile>> {
+	return runFileChooser<DataFile>(
+		allowMultiple,
+		(e: Event, resolve) => {
+			readLocalFiles((e.target as any).files)
+				.then(resolve)
+				.catch(async (e) => {
+					console.log(e)
+					await Dialog.message("couldNotAttachFile_msg")
+					resolve([])
+				})
+		},
+		allowedExtensions,
+	)
+}
+
+export function showStandardsFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<File>> {
+	return runFileChooser<File>(allowMultiple, (e: Event, resolve) => {
+		resolve((e.target as any).files as Array<File>)
+	})
 }
 
 /**
@@ -303,8 +334,8 @@ export async function openDataFileInBrowser(dataFile: DataFile): Promise<void> {
 	}
 }
 
-export async function downloadAndDecryptDataFile(file: TutanotaFile, blobFacade: BlobFacade): Promise<DataFile> {
-	const bytes = await blobFacade.downloadAndDecrypt(ArchiveDataType.Attachments, createReferencingInstance(file))
+export async function downloadAndDecryptFromArchive(file: TutanotaFile, blobFacade: BlobFacade, archiveDataType: ArchiveDataType): Promise<DataFile> {
+	const bytes = await blobFacade.downloadAndDecrypt(archiveDataType, createReferencingInstance(file))
 	return convertToDataFile(file, bytes)
 }
 

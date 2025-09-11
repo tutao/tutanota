@@ -1,0 +1,25 @@
+import m, { Children, Component, Vnode } from "mithril"
+import { File } from "../../../common/api/entities/tutanota/TypeRefs"
+import { DriveViewModel } from "./DriveViewModel"
+import { DriveFolderNav } from "./DriveFolderNav"
+import { DriveFolderContent } from "./DriveFolderContent"
+import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
+
+export interface DriveFolderViewAttrs {
+	onUploadClick: (dom: HTMLElement) => void
+	// FIXME: folders
+	files: DriveFile[]
+	driveViewModel: DriveViewModel
+}
+
+export class DriveFolderView implements Component<DriveFolderViewAttrs> {
+	view(vnode: Vnode<DriveFolderViewAttrs>): Children {
+		const { driveViewModel, onUploadClick } = vnode.attrs
+		return m(
+			"div.col.flex",
+			{ style: { gap: "15px" } },
+			m(DriveFolderNav, { driveViewModel, onUploadClick }),
+			m(DriveFolderContent, { files: vnode.attrs.files, driveViewModel }),
+		)
+	}
+}

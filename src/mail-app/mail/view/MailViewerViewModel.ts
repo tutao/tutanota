@@ -9,6 +9,7 @@ import {
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
+	ArchiveDataType,
 	ConversationType,
 	EncryptionAuthStatus,
 	ExternalImageRule,
@@ -1160,7 +1161,7 @@ export class MailViewerViewModel {
 	async downloadAll(): Promise<void> {
 		const nonInlineAttachments = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, this.getNonInlineAttachments())
 		try {
-			await this.fileController.downloadAll(nonInlineAttachments)
+			await this.fileController.downloadAll(nonInlineAttachments, ArchiveDataType.Attachments)
 		} catch (e) {
 			if (e instanceof FileOpenError) {
 				console.warn("FileOpenError", e)

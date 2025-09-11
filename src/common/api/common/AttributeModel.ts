@@ -25,6 +25,7 @@ export class AttributeModel {
 		accounting: new Map(),
 		sys: new Map(),
 		storage: new Map(),
+		drive: new Map(),
 	}
 
 	static removeNetworkDebuggingInfoIfNeeded<T extends ClientModelUntypedInstance | ServerModelUntypedInstance>(untypedInstance: T): T {
