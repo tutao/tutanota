@@ -17,7 +17,7 @@ struct HeaderButton: View {
 	var body: some View {
 		let imageColor = renderingMode == .accented ? Color(.onSurface) : Color(.onPrimary)
 		return Button(intent: intent) { image.tinted(renderingMode: renderingMode).fontWeight(.medium).foregroundStyle(imageColor).font(.system(size: 20)) }
-			.buttonStyle(.plain).frame(width: 48, height: 48).background(Color(.primary))
-			.clipShape(.rect(cornerRadii: .init(topLeading: 0, bottomLeading: 8, bottomTrailing: 0, topTrailing: 8)))
+			.buttonStyle(.plain).frame(width: Dimensions.Size.XXL, height: Dimensions.Size.XXL).background(Color(.primary))
+			.clipShape(.rect(cornerRadii: .init(topLeading: 0, bottomLeading: Dimensions.Size.XS, bottomTrailing: 0, topTrailing: Dimensions.Size.XS)))
 	}
 }

@@ -15,6 +15,6 @@ struct NoEvents: View {
 
 	var body: some View {
 		EventBody(userId: userId, happensToday: isToday, isFirstEventOfDay: true, calendarColor: UIColor(resource: .surfaceVariant), eventDate: date)
-			.padding(.horizontal, 12).padding(.vertical, 8)
+			.padding(.horizontal, Dimensions.Spacing.MD).padding(.vertical, Dimensions.Spacing.SM)
 	}
 }

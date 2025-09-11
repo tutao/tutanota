@@ -13,9 +13,9 @@ struct AllDayHeader: View {
 
 	var body: some View {
 		HStack(alignment: .center) {
-			AllDayEventRow(allDayEventsData: allDayEventsData, textColor: Color(.onSurfaceVariant)).padding(.vertical, 8).padding(.horizontal, 12)
+			AllDayEventRow(allDayEventsData: allDayEventsData, textColor: Color(.onSurfaceVariant)).padding(.vertical, Dimensions.Spacing.XS)
+				.padding(.horizontal, Dimensions.Spacing.MD)
 		}
 		.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surfaceVariant))
-		.clipShape(.rect(cornerRadii: .init(topLeading: 8, bottomLeading: 0, bottomTrailing: 0, topTrailing: 8)))
 	}
 }

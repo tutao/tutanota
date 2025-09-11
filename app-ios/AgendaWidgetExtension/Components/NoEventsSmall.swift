@@ -12,7 +12,7 @@ struct NoEventsSmall: View {
 	var body: some View {
 		HStack(alignment: .center) {
 			Text(translate("TutaoWidgetNoEventsMsg", default: "No events")).lineLimit(2).multilineTextAlignment(.center).foregroundStyle(Color(.onSurface))
-				.padding([.top, .bottom], 8)
+				.padding([.top, .bottom], Dimensions.Spacing.SM).fontWeight(.bold).font(.system(size: 14))
 		}
 		.frame(maxWidth: .infinity, alignment: .center)
 	}

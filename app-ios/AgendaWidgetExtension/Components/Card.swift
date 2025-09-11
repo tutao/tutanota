@@ -12,7 +12,7 @@ struct Card<Content: View>: View {
 	@ViewBuilder var children: () -> Content
 
 	var body: some View {
-		VStack { children() }.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surface))
-			.clipShape(.rect(cornerSize: .init(width: 8.0, height: 8.0)))
+		VStack(spacing: 0) { children() }.frame(maxWidth: .infinity, alignment: .leading).background(Color(.surface))
+			.clipShape(.rect(cornerRadius: Dimensions.Size.XS))
 	}
 }
