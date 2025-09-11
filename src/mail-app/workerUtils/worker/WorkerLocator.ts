@@ -116,6 +116,7 @@ import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/Ide
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
+import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
 
 assertWorkerOrNode()
 
@@ -200,6 +201,9 @@ export type WorkerLocatorType = {
 	//spam classification
 	spamClassifier: lazyAsync<SpamClassifier>
 	spamClassifierStorageFacade: lazyAsync<SpamClassifierStorageFacade>
+
+	// drive
+	driveFacade: lazyAsync<DriveFacade>
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -723,7 +727,16 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), random)
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
-		return new BlobFacade(locator.restClient, suspensionHandler, fileApp, aesApp, locator.instancePipeline, locator.crypto, locator.blobAccessToken)
+		return new BlobFacade(
+			locator.restClient,
+			suspensionHandler,
+			fileApp,
+			aesApp,
+			locator.instancePipeline,
+			locator.crypto,
+			locator.blobAccessToken,
+			mainInterface.progressTracker,
+		)
 	})
 	locator.mail = lazyMemoized(async () => {
 		const { MailFacade } = await import("../../../common/api/worker/facades/lazy/MailFacade.js")
@@ -854,6 +867,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { MailExportTokenFacade } = await import("../../../common/api/worker/facades/lazy/MailExportTokenFacade.js")
 		const mailExportTokenFacade = new MailExportTokenFacade(locator.serviceExecutor)
 		return new MailExportFacade(mailExportTokenFacade, await locator.bulkMailLoader(), await locator.blob(), locator.crypto, locator.blobAccessToken)
+	})
+	locator.driveFacade = lazyMemoized(async () => {
+		return new DriveFacade(
+			locator.keyLoader,
+			await locator.blob(),
+			locator.user,
+			locator.cachingEntityClient,
+			locator.serviceExecutor,
+			mainInterface.progressTracker,
+			locator.crypto,
+			mainInterface.uploadProgressListener,
+		)
 	})
 }
 

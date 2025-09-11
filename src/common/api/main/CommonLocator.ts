@@ -77,6 +77,8 @@ import { IdentityKeyCreator } from "../worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../worker/facades/PublicIdentityKeyProvider"
 import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
 import { LoginViewModel } from "../../login/LoginViewModel"
+import { DriveFacade } from "../worker/facades/DriveFacade.js"
+import { UploadProgressListener } from "./UploadProgressListener"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -122,6 +124,7 @@ export interface CommonLocator {
 	random: WorkerRandomizer
 	connectivityModel: WebsocketConnectivityModel
 	identityKeyCreator: IdentityKeyCreator
+	driveFacade: DriveFacade
 
 	mailboxModel: MailboxModel
 
@@ -139,6 +142,7 @@ export interface CommonLocator {
 	usageTestModel: UsageTestModel
 	webMobileFacade: WebMobileFacade
 	operationProgressTracker: OperationProgressTracker
+	uploadProgressListener: UploadProgressListener
 	Const: Record<string, any>
 
 	domainConfigProvider(): DomainConfigProvider

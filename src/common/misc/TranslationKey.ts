@@ -519,6 +519,7 @@ export type TranslationKeyType =
 	| "resumeMailImport_action"
 	| "resubscribe_action"
 	| "restoreExcludedRecurrences_action"
+	| "restoreFromTrash_action"
 	| "restart_action"
 	| "restartBefore_action"
 	| "responsiblePersons_label"
@@ -2122,3 +2123,4 @@ export type TranslationKeyType =
 	| "fediverse_label"
 	| "matrix_label"
 	| "emptyString_msg"
+	| "newDriveItem_action"

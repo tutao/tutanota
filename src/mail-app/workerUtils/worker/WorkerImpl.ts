@@ -50,6 +50,7 @@ import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/Iden
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { SpamClassifier } from "../spamClassification/SpamClassifier"
+import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
 
 assertWorkerOrNode()
 
@@ -95,6 +96,7 @@ export interface WorkerInterface {
 	readonly identityKeyCreator: IdentityKeyCreator
 	readonly spamClassifier: SpamClassifier
 	readonly autosaveFacade: AutosaveFacade
+	readonly driveFacade: DriveFacade
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -309,6 +311,9 @@ export class WorkerImpl implements NativeInterface {
 			},
 			async spamClassifier() {
 				return locator.spamClassifier()
+			},
+			async driveFacade() {
+				return locator.driveFacade()
 			},
 		}
 	}
