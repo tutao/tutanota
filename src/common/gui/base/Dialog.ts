@@ -559,6 +559,36 @@ export class Dialog implements ModalComponent {
 	}
 
 	/**
+	 * show a dialog with several buttons on the bottom and return the option that was selected.
+	 *
+	 * @return the choice the user made or null if the user escaped without selecting anything
+	 */
+	static choiceCancellable<T>(
+		message: MaybeTranslation,
+		choices: Array<{
+			text: MaybeTranslation
+			value: T
+		}>,
+	): Promise<T | null> {
+		return newPromise((resolve) => {
+			let selection: T | null = null
+			const choose = (choice: T) => {
+				selection = choice
+				dialog.onClose()
+			}
+
+			const buttonAttrs = choices.map((choice) => {
+				return {
+					label: choice.text,
+					click: () => choose(choice.value),
+					type: ButtonType.Secondary,
+				}
+			})
+			const dialog = Dialog.confirmMultiple(message, buttonAttrs, () => resolve(selection))
+		})
+	}
+
+	/**
 	 * Shows a (not-cancellable) multiple-choice dialog.
 	 * @returns the selected option.
 	 */

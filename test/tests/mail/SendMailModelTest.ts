@@ -15,6 +15,7 @@ import {
 	MailboxGroupRootTypeRef,
 	MailboxPropertiesTypeRef,
 	MailBoxTypeRef,
+	MailDetailsDraftTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
 	NotificationMailTypeRef,
@@ -41,7 +42,6 @@ import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFaca
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { RecipientsModel } from "../../../src/common/api/main/RecipientsModel"
 import { ResolvableRecipientMock } from "./ResolvableRecipientMock.js"
-import { NoZoneDateProvider } from "../../../src/common/api/common/utils/NoZoneDateProvider.js"
 import { createTestEntity } from "../TestUtils.js"
 import { ContactModel } from "../../../src/common/contactsFunctionality/ContactModel.js"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
@@ -49,6 +49,10 @@ import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/common/
 import { RecipientField } from "../../../src/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/common/contactsFunctionality/ContactUtils.js"
 import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils"
+import { ConfigurationDatabase } from "../../../src/common/api/worker/facades/lazy/ConfigurationDatabase"
+import { SyncTracker } from "../../../src/common/api/main/SyncTracker"
+import { DateProvider } from "../../../src/common/api/common/DateProvider"
+import { ProgrammingError } from "../../../src/common/api/common/error/ProgrammingError"
 
 const { anything, argThat } = matchers
 
@@ -102,8 +106,12 @@ o.spec("SendMailModel", function () {
 	let mailboxModel: MailboxModel, entity: EntityClient, mailFacade: MailFacade, recipientsModel: RecipientsModel
 
 	let model: SendMailModel
+	let db: ConfigurationDatabase
+	let syncTracker: SyncTracker
+	let now: number
 
 	o.beforeEach(function () {
+		now = 0
 		entity = instance(EntityClient)
 		when(
 			entity.loadRoot(
@@ -172,6 +180,18 @@ o.spec("SendMailModel", function () {
 			return new ResolvableRecipientMock(recipient.address, recipient.name, recipient.contact, recipient.type, [INTERNAL_RECIPIENT_1.address], [], user)
 		})
 
+		db = object()
+		syncTracker = object()
+
+		const dateProvider: DateProvider = {
+			now(): number {
+				return now
+			},
+			timeZone(): string {
+				throw new ProgrammingError("timeZone was called when it shouldn't have")
+			},
+		}
+
 		const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef)
 		model = new SendMailModel(
 			mailFacade,
@@ -182,11 +202,14 @@ o.spec("SendMailModel", function () {
 			eventController,
 			mailboxDetails,
 			recipientsModel,
-			new NoZoneDateProvider(),
+			dateProvider,
 			mailboxProperties,
+			db,
+
 			async (mail: Mail) => {
 				return false
 			},
+			syncTracker,
 		)
 
 		replace(model, "getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)
@@ -786,6 +809,99 @@ o.spec("SendMailModel", function () {
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
 			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
+		})
+		o.spec("mail draft update", () => {
+			const draftListId = "some draft list id"
+			const draftElementId = "some draft element id"
+
+			o.beforeEach(() => {
+				model.draft = createTestEntity(MailTypeRef, {
+					mailDetailsDraft: [draftListId, draftElementId],
+				})
+			})
+
+			o.spec("non matching", () => {
+				o.test("different id", async () => {
+					model._draftSavedRecently = false
+					model.setMailSavedAt(1000)
+					model.setMailRemotelyUpdatedAt(1000)
+					now = 1234
+
+					await model.handleEntityEvent({
+						typeRef: MailDetailsDraftTypeRef,
+						operation: OperationType.UPDATE,
+						instanceListId: draftListId,
+						instanceId: `not ${draftElementId}`,
+						...noPatchesAndInstance,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
+					})
+
+					o.check(model.getMailRemotelyUpdatedAt()).equals(1000)
+					o.check(model.hasDraftDataChangedOnServer()).equals(false)
+
+					verify(db.setAutosavedDraftData(matchers.anything()), { times: 0 })
+				})
+				o.test("no draft", async () => {
+					model.draft = null
+					model._draftSavedRecently = false
+					model.setMailSavedAt(0)
+					model.setMailRemotelyUpdatedAt(0)
+					now = 1234
+
+					await model.handleEntityEvent({
+						typeRef: MailDetailsDraftTypeRef,
+						operation: OperationType.UPDATE,
+						instanceListId: draftListId,
+						instanceId: draftElementId,
+						...noPatchesAndInstance,
+						prefetchStatus: PrefetchStatus.NotPrefetched,
+					})
+
+					o.check(model.getMailRemotelyUpdatedAt()).equals(0)
+					o.check(model.hasDraftDataChangedOnServer()).equals(false)
+
+					verify(db.setAutosavedDraftData(matchers.anything()), { times: 0 })
+				})
+			})
+
+			o.test("matching, recently saved", async () => {
+				model._draftSavedRecently = true
+				model.setMailSavedAt(1000)
+				model.setMailRemotelyUpdatedAt(1000)
+				now = 1234
+				await model.handleEntityEvent({
+					typeRef: MailDetailsDraftTypeRef,
+					operation: OperationType.UPDATE,
+					instanceListId: draftListId,
+					instanceId: draftElementId,
+					...noPatchesAndInstance,
+					prefetchStatus: PrefetchStatus.NotPrefetched,
+				})
+				o.check(model._draftSavedRecently).equals(false)
+				o.check(model.getMailRemotelyUpdatedAt()).equals(1000)
+				o.check(model.hasDraftDataChangedOnServer()).equals(false)
+
+				verify(db.setAutosavedDraftData(matchers.anything()), { times: 0 })
+			})
+
+			o.test("matching, not recently saved", async () => {
+				model._draftSavedRecently = false
+				model.setMailSavedAt(1000)
+				model.setMailRemotelyUpdatedAt(1000)
+				now = 1234
+				await model.handleEntityEvent({
+					typeRef: MailDetailsDraftTypeRef,
+					operation: OperationType.UPDATE,
+					instanceListId: draftListId,
+					instanceId: draftElementId,
+					...noPatchesAndInstance,
+					prefetchStatus: PrefetchStatus.NotPrefetched,
+				})
+				o.check(model.getMailRemotelyUpdatedAt()).equals(1234)
+				o.check(model.hasDraftDataChangedOnServer()).equals(true)
+
+				verify(db.setAutosavedDraftData(matchers.anything()), { times: 1 })
+			})
 		})
 	})
 })

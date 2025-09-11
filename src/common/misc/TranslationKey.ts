@@ -2094,3 +2094,6 @@ export type TranslationKeyType =
 	| "zoomOut_action"
 	| "emptyString_msg"
 	| "customNameGeneric_label"
+	| "confirmOverwriteDraft_msg"
+	| "overwrite_action"
+	| "confirmCreateNewDraftOverAutosavedDraft_msg"

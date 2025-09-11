@@ -232,22 +232,29 @@ export function identity<T>(t: T): T {
  */
 export function noOp() {}
 
+export type DebounceFunction = (...args: any) => unknown
+
 /**
  * Return a function, which executed {@param toThrottle} only after it is not invoked for {@param timeout} ms.
  * Executes function with the last passed arguments
  * @return {Function}
  */
-export function debounce<F extends (...args: any) => void>(timeout: number, toThrottle: F): F {
-	let timeoutId: TimeoutID
-	let toInvoke: (...args: any) => void
-	return downcast((...args: any[]) => {
-		if (timeoutId) {
-			clearTimeout(timeoutId)
-		}
+export function debounce<F extends DebounceFunction>(timeout: number, toThrottle: F): F {
+	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
+	let lastArgs: any[]
 
-		toInvoke = toThrottle.bind(null, ...args)
-		timeoutId = setTimeout(toInvoke, timeout)
-	})
+	return ((...args: any) => {
+		lastArgs = args
+
+		if (timeoutId) clearTimeout(timeoutId)
+		timeoutId = setTimeout(() => {
+			try {
+				toThrottle.apply(null, lastArgs)
+			} finally {
+				timeoutId = null
+			}
+		}, timeout)
+	}) as F
 }
 
 /**
@@ -257,22 +264,60 @@ export function debounce<F extends (...args: any) => void>(timeout: number, toTh
  * So the first and the last invocations in a series of invocations always take place
  * but ones in the middle (which happen too often) are discarded.
  */
-export function debounceStart<F extends (...args: any) => void>(timeout: number, toThrottle: F): F {
+export function debounceStart<F extends DebounceFunction>(timeout: number, toThrottle: F): F {
 	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
+	let lastArgs: any[]
 	let lastInvoked = 0
-	return downcast((...args: any) => {
-		if (Date.now() - lastInvoked < timeout) {
+
+	return ((...args: any) => {
+		lastArgs = args
+
+		if (Date.now() - lastInvoked >= timeout) {
+			toThrottle.apply(null, lastArgs)
+		} else if (timeoutId == null) {
 			if (timeoutId) clearTimeout(timeoutId)
 			timeoutId = setTimeout(() => {
-				timeoutId = null
-				toThrottle.apply(null, args)
+				try {
+					toThrottle.apply(null, lastArgs)
+				} finally {
+					timeoutId = null
+				}
 			}, timeout)
-		} else {
-			toThrottle.apply(null, args)
 		}
 
 		lastInvoked = Date.now()
-	})
+	}) as F
+}
+
+/**
+ * Returns a throttled function. When invoked for the first time will schedule {@param toThrottle}
+ * to be called after {@param periodMs}. On subsequent invocations before {@param periodMs} amount of
+ * time passes it will replace the arguments for the scheduled call (without rescheduling). After
+ * {@param period} amount of time passes it will finally call {@param toThrottle} with the arguments
+ * of the last call. New calls after that will behave like described in the beginning.
+ *
+ * This makes sure that the function is called not more often but also at most after {@param periodMs}
+ * amount of time. Unlike {@link debounce}, it will get called after {@param periodMs} even if it
+ * is being called repeatedly.
+ */
+export function throttle<F extends DebounceFunction>(periodMs: number, toThrottle: F): F {
+	let timeoutId: ReturnType<typeof setTimeout> | null | undefined
+	let lastArgs: any[]
+
+	return ((...args: any) => {
+		lastArgs = args
+
+		if (timeoutId == null) {
+			if (timeoutId) clearTimeout(timeoutId)
+			timeoutId = setTimeout(() => {
+				try {
+					toThrottle.apply(null, lastArgs)
+				} finally {
+					timeoutId = null
+				}
+			}, periodMs)
+		}
+	}) as F
 }
 
 /**

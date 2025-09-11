@@ -10,6 +10,7 @@ export const MetaDataOS: ObjectStoreName = "MetaData"
 export const GroupDataOS: ObjectStoreName = "GroupMetaData"
 export const SearchTermSuggestionsOS: ObjectStoreName = "SearchTermSuggestions"
 export const SearchIndexWordsIndex: IndexName = "SearchIndexWords"
+export const LocalDraftDataOS: ObjectStoreName = "LocalDraftData"
 
 export const Metadata = Object.freeze({
 	userEncDbKey: "userEncDbKey",
