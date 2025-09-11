@@ -18,7 +18,7 @@ struct EmptyBody: View {
 		let imageIndex = Int.random(in: 0...1)
 		return VStack(alignment: .center) {
 			Text(translate("TutaoWidgetNoEventsMsg", default: "No events")).lineLimit(2).multilineTextAlignment(.center).foregroundStyle(Color(.onSurface))
-				.padding([.top, .bottom], 8)
+				.padding([.top, .bottom], Dimensions.Spacing.SM)
 
 			if family != WidgetFamily.systemMedium { Image(emptyImages[imageIndex]).resizable().scaledToFit() }
 		}

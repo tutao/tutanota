@@ -28,23 +28,21 @@ struct DaysList: View {
 				let isToday = Calendar.current.isDateInToday(parsedDay)
 
 				return Button(intent: WidgetActionsIntent(userId: userId, date: parsedDay, action: WidgetActions.agenda)) {
-					VStack(spacing: 0) {
-						Card {
-							if isToday {
-								Header(allDayEvents: allDayEventsData, userId: userId)
-							} else if hasAllDayEvents {
-								AllDayHeader(allDayEventsData: allDayEvents)
-							}
+					Card {
+						if isToday {
+							Header(allDayEvents: allDayEventsData, userId: userId)
+						} else if hasAllDayEvents {
+							AllDayHeader(allDayEventsData: allDayEvents)
+						}
 
-							if isEmpty {
-								EmptyBody(widgetHeight: widgetHeight, family: family)
+						if isEmpty {
+							EmptyBody(widgetHeight: widgetHeight, family: family)
+						} else {
+							// Has at least one all day event
+							if events.isEmpty {
+								self.RenderOnlyAllDayEvents(date: parsedDay, hasAllDay: hasAllDayEvents)
 							} else {
-								// Has at least one all day event
-								if events.isEmpty {
-									self.RenderOnlyAllDayEvents(date: parsedDay, hasAllDay: hasAllDayEvents)
-								} else {
-									EventsList(userId: userId, events: events)
-								}
+								EventsList(userId: userId, events: events)
 							}
 						}
 					}

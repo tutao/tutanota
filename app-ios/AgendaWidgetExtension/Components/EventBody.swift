@@ -23,15 +23,15 @@ struct EventBody: View {
 		let day = String(dateComponents.day ?? 00).padStart(length: 2, char: "0")
 		let weekday = DateFormatter().shortWeekdaySymbols[(dateComponents.weekday ?? 0) - 1]
 
-		return HStack(alignment: VerticalAlignment.center, spacing: 12) {
+		return HStack(alignment: VerticalAlignment.center, spacing: Dimensions.Spacing.MD) {
 			if !happensToday {
 				HStack(alignment: VerticalAlignment.center) {
 					VStack(spacing: -2) {
 						Text(day).font(.system(size: 20, weight: .bold))
-						Text(weekday).font(.system(size: 14, weight: .regular))
+						Text(weekday).font(.system(size: 12, weight: .regular)).lineLimit(1)
 					}
 				}
-				.opacity(isFirstEventOfDay ? 1 : 0).frame(width: 32, alignment: .leading)
+				.opacity(isFirstEventOfDay ? 1 : 0).frame(width: 28, alignment: .leading)
 			}
 			Button(
 				intent: WidgetActionsIntent(
@@ -41,13 +41,10 @@ struct EventBody: View {
 					eventId: event?.id
 				)
 			) {
-				HStack(spacing: 12) {
-					VStack {
-						Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).frame(maxHeight: .infinity)
-							.clipShape(.rect(cornerRadii: .init(topLeading: 3, bottomLeading: 3, bottomTrailing: 3, topTrailing: 3)))
-					}
+				HStack(spacing: Dimensions.Spacing.MD) {
+					VStack { Rectangle().fill(Color(calendarColor.cgColor)).frame(width: 3).frame(maxHeight: .infinity).clipShape(.rect(cornerRadius: 3)) }
 					VStack(alignment: .leading) {
-						Text(eventTitle).fontWeight(.bold).font(.system(size: 14)).lineLimit(1)
+						Text(eventTitle).fontWeight(.bold).font(.system(size: 14))
 						if eventTime != nil { Text(eventTime!).font(.system(size: 10)) }
 					}
 					.foregroundStyle(Color(.onSurface)).frame(maxHeight: .infinity, alignment: .center)
@@ -56,6 +53,5 @@ struct EventBody: View {
 			}
 			.buttonStyle(.plain)
 		}
-		.frame(alignment: .leading)
 	}
 }
