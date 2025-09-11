@@ -13,6 +13,7 @@ type ViewResolvers = {
 	search: RouteResolver
 	settings: RouteResolver
 	calendar: RouteResolver
+	drive: RouteResolver
 	signup: RouteResolver
 	giftcard: RouteResolver
 	recover: RouteResolver
@@ -30,6 +31,7 @@ export function applicationPaths({
 	search,
 	settings,
 	calendar,
+	drive,
 	signup,
 	giftcard,
 	recover,
@@ -61,6 +63,7 @@ export function applicationPaths({
 		"/calendar/:view": calendar,
 		"/calendar/:view/:date": calendar,
 		"/calendar/:view/:date/:eventId": calendar,
+		"/drive": drive,
 		"/giftcard/": giftcard,
 		"/webauthn": webauthn,
 		"/webauthnmobile": webauthnmobile,

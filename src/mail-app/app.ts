@@ -39,6 +39,7 @@ import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
+import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -471,6 +472,46 @@ import("./translations/en.js")
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
+						bottomNav,
+						lazySearchBar,
+					}),
+				},
+				mailLocator.logins,
+			),
+			drive: makeViewResolver<
+				DriveViewAttrs,
+				DriveView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					driveViewModel: any
+					bottomNav: () => Children
+					lazySearchBar: () => Children
+				}
+			>(
+				{
+					prepareRoute: async (cache) => {
+						const { DriveView } = await import("../drive-app/drive/view/DriveView.js")
+						const { lazySearchBar } = await import("./LazySearchBar.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						return {
+							component: DriveView,
+							cache: cache ?? {
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+								driveViewModel: {}, //await mailLocator.calendarViewModel(),
+								bottomNav: () => m(BottomNav),
+								lazySearchBar: () =>
+									m(lazySearchBar, {
+										placeholder: lang.get("searchCalendar_placeholder"),
+									}),
+							},
+						}
+					},
+					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, bottomNav, lazySearchBar }) => ({
+						drawerAttrs: drawerAttrsFactory(),
+						header,
+						driveViewModel,
 						bottomNav,
 						lazySearchBar,
 					}),
