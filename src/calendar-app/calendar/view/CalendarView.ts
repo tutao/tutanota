@@ -1318,6 +1318,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					})
 			})
 			.catch(ofClass(LockedError, noOp))
+
+		if (client.isCalendarApp()) {
+			calendarLocator.systemFacade.requestWidgetRefresh()
+		}
+
 		dialog.close()
 	}
 

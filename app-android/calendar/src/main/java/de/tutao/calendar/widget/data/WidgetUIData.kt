@@ -1,7 +1,6 @@
 package de.tutao.calendar.widget.data
 
 data class WidgetUIData(
-	val normalEvents: List<UIEvent>,
-	val allDayEvents: List<UIEvent>,
-	val allDayEventsCount: Int = allDayEvents.size
+	val normalEvents: HashMap<Long, List<UIEvent>>,
+	val allDayEvents: HashMap<Long, List<UIEvent>>,
 )

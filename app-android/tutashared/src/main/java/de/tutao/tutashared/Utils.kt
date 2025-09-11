@@ -20,6 +20,10 @@ import java.io.*
 import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
@@ -210,4 +214,20 @@ fun isSameDay(time1: Long, time2: Long, timeZone: TimeZone = TimeZone.getDefault
 	val customDateFormat = SimpleDateFormat("yyyy-MM-dd")
 	customDateFormat.setTimeZone(timeZone)
 	return customDateFormat.format(time1).equals(customDateFormat.format(time2))
+}
+
+/**
+ * Returns the epoch millisecond timestamp representing midnight (00:00) of the given date
+ * in the specified time zone.
+ *
+ * The input date is truncated to remove time components (hours, minutes, seconds, etc.),
+ * then converted to an instant using the offset rules of the provided ZoneId, and finally
+ * converted to milliseconds since the epoch (1970-01-01T00:00:00Z).
+ *
+ * @param zoneId the time zone to apply when determining the midnight instant
+ * @param date the local date and time to be truncated to midnight
+ * @return the number of milliseconds since the Unix epoch for midnight of the given date in the specified time zone
+ */
+fun midnightInDate(zoneId: ZoneId, date: LocalDateTime): Long {
+	return date.truncatedTo(ChronoUnit.DAYS).toInstant(zoneId.rules.getOffset(date)).toEpochMilli()
 }
