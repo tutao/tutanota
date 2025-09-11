@@ -9,7 +9,7 @@ import { ViewHolder } from "../../../common/gui/base/List.js"
 import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 
-import { formatEventDuration, getClientOnlyColors, getEventColor } from "./CalendarGuiUtils.js"
+import { formatEventDuration, getEventColor } from "./CalendarGuiUtils.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
@@ -34,13 +34,7 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 		this.top = 0
 		this.entity = null
 
-		const clientOnlyColors = getClientOnlyColors(locator.logins.getUserController().userId, locator.deviceConfig.getClientOnlyCalendars())
-		const groupColors = getGroupColors(locator.logins.getUserController().userSettingsGroupRoot)
-		for (let [calendarId, color] of clientOnlyColors.entries()) {
-			groupColors.set(calendarId, color)
-		}
-
-		this.colors = groupColors
+		this.colors = getGroupColors(locator.logins.getUserController().userSettingsGroupRoot)
 	}
 
 	update(event: CalendarEvent, selected: boolean, isInMultiSelect: boolean): void {

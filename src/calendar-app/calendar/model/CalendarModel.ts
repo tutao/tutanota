@@ -8,6 +8,7 @@ import {
 	delay,
 	downcast,
 	filterInt,
+	getFirstOrThrow,
 	getFromMap,
 	isNotEmpty,
 	isSameDay,
@@ -15,7 +16,13 @@ import {
 	splitInChunks,
 	symmetricDifference,
 } from "@tutao/tutanota-utils"
-import { CalendarMethod, defaultCalendarColor, EXTERNAL_CALENDAR_SYNC_INTERVAL, FeatureType, OperationType } from "../../../common/api/common/TutanotaConstants"
+import {
+	BIRTHDAY_CALENDAR_BASE_ID,
+	CalendarMethod,
+	EXTERNAL_CALENDAR_SYNC_INTERVAL,
+	FeatureType,
+	OperationType,
+} from "../../../common/api/common/TutanotaConstants"
 import { EventController } from "../../../common/api/main/EventController"
 import {
 	createDateWrapper,
@@ -86,16 +93,14 @@ import {
 	AlarmInterval,
 	assignEventId,
 	CalendarEventValidity,
+	CalendarType,
 	checkEventValidity,
-	getCalendarRenderType,
 	getTimeZone,
 	hasSourceUrl,
-	isClientOnlyCalendar,
-	RenderType,
 } from "../../../common/calendar/date/CalendarUtils.js"
-import { getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
+import { isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
-import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig.js"
+import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
 	eventHasSameFields,
@@ -107,11 +112,11 @@ import {
 	SyncStatus,
 } from "../../../common/calendar/gui/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { lang, TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
-import { getClientOnlyCalendars } from "../gui/CalendarGuiUtils.js"
 import { SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
+import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_BIRTHDAY_CALENDAR_NAME } from "../view/CalendarViewModel"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -126,10 +131,20 @@ export type CalendarInfo = {
 	isExternal: boolean
 }
 
+export type BirthdayCalendarInfo = {
+	id: string
+	contactGroupId: Id
+	name: TranslationKey
+	color: string
+}
+
 export type CalendarRenderInfo = {
+	id: string
 	name: string
 	color: string
-	renderType: RenderType
+	isHidden: boolean
+	sharedCalendar: boolean
+	calendarType: CalendarType
 }
 
 type ExternalCalendarQueueItem = {
@@ -188,6 +203,8 @@ export class CalendarModel {
 	private externalCalendarSyncQueue: ExternalCalendarQueueItem[] = []
 	private externalCalendarRetryCount: Map<Id, number> = new Map()
 
+	private readonly birthdayCalendarInfo: BirthdayCalendarInfo
+
 	constructor(
 		private readonly notifications: Notifications,
 		private readonly alarmScheduler: () => Promise<AlarmScheduler>,
@@ -216,6 +233,28 @@ export class CalendarModel {
 				syncStatus?.end()
 			}
 		})
+
+		this.birthdayCalendarInfo = this.createBirthdayCalendarInfo()
+	}
+
+	private createBirthdayCalendarInfo(): BirthdayCalendarInfo {
+		const birthdayCalendarId = `${this.logins.getUserController().userId}#${BIRTHDAY_CALENDAR_BASE_ID}`
+
+		const birthdayCalendarColor = this.deviceConfig.getClientOnlyCalendars().get(birthdayCalendarId)?.color || DEFAULT_BIRTHDAY_CALENDAR_COLOR
+		return {
+			id: birthdayCalendarId,
+			contactGroupId: getFirstOrThrow(this.logins.getUserController().getContactGroupMemberships()).group,
+			name: DEFAULT_BIRTHDAY_CALENDAR_NAME,
+			color: birthdayCalendarColor,
+		}
+	}
+
+	getBirthdayCalendarInfo(): BirthdayCalendarInfo {
+		return this.birthdayCalendarInfo
+	}
+
+	isBirthdayCalendar(id: string) {
+		return this.birthdayCalendarInfo.id === id
 	}
 
 	getCalendarInfos(): Promise<ReadonlyMap<Id, CalendarInfo>> {
@@ -224,31 +263,6 @@ export class CalendarModel {
 
 	getCalendarInfosStream(): Stream<ReadonlyMap<Id, CalendarInfo>> {
 		return this.calendarInfos.stream
-	}
-
-	getCalendarRenderInfo(calendarId: Id, existingGroupSettings?: GroupSettings | null): CalendarRenderInfo {
-		if (isClientOnlyCalendar(calendarId)) {
-			const clientOnlyCalendar = getClientOnlyCalendars(this.logins.getUserController().userId, deviceConfig.getClientOnlyCalendars()).find(
-				(calendar) => calendar.id === calendarId,
-			)
-			return {
-				name: clientOnlyCalendar?.name ?? "",
-				color: clientOnlyCalendar?.color ?? "",
-				renderType: RenderType.ClientOnly,
-			}
-		}
-
-		const calendarInfo = this.calendarInfos.stream().get(calendarId)
-		if (!calendarInfo) throw new Error("Calendar infos not loaded")
-		let groupSettings = existingGroupSettings
-		if (!groupSettings) {
-			const { userSettingsGroupRoot } = this.logins.getUserController()
-			groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? undefined
-		}
-		const color = "#" + (groupSettings?.color ?? defaultCalendarColor)
-		const name = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), calendarInfo.shared)
-		const renderType = getCalendarRenderType(calendarInfo)
-		return { name, color, renderType }
 	}
 
 	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {

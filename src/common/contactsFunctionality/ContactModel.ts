@@ -148,7 +148,7 @@ export class ContactModel {
 		return await this.entityClient.load(ContactTypeRef, contactId)
 	}
 
-	async getContactGroupId(): Promise<Id> {
+	getContactGroupId(): Id {
 		return getFirstOrThrow(this.loginController.getUserController().getContactGroupMemberships()).group
 	}
 

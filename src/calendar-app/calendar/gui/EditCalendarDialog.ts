@@ -128,7 +128,7 @@ export function showCreateEditCalendarDialog({
 }: CreateEditDialogAttrs) {
 	if (color !== "") {
 		color = "#" + color
-	} else if (isNewCalendar && isExternalCalendarType(calendarType)) {
+	} else if (isNewCalendar && calendarType) {
 		color = generateRandomColor()
 	}
 
