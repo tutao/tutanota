@@ -52,6 +52,7 @@ import {
 	isSharingActive,
 	isWhitelabelActive,
 	queryAppStoreSubscriptionOwnership,
+	shouldShowApplePrices,
 	SubscriptionApp,
 } from "./SubscriptionUtils"
 import { TextField } from "../gui/base/TextField.js"
@@ -487,8 +488,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private showPriceData(): boolean {
-		const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
-		return locator.logins.getUserController().isPaidAccount() && !isIOSApp() && !isAppStorePayment
+		return locator.logins.getUserController().isPaidAccount() && !shouldShowApplePrices(this._accountingInfo)
 	}
 
 	private async updatePriceInfo(): Promise<void> {
@@ -673,11 +673,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderIntervals() {
-		const isAppStorePayment = this._accountingInfo && getPaymentMethodType(this._accountingInfo) === PaymentMethodType.AppStore
-		if (isIOSApp() || isAppStorePayment) {
-			return
-		}
-
 		const subscriptionPeriods: SelectorItemList<PaymentInterval | null> = [
 			{
 				name: lang.get("pricing.yearly_label"),
