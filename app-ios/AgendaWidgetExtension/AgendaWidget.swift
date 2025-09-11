@@ -112,6 +112,15 @@ struct AgendaProvider: AppIntentTimelineProvider {
 			return Timeline(entries: [errorEntry], policy: .never)
 		}
 
+		do {
+			let loadedCalendars = try await CalendarEntity.fetchCalendars(userId)
+			if let calendars = configuration.calendars {
+				for var calendar in calendars {
+					if let newColor = loadedCalendars.first(where: { c in c.id == calendar.id })?.color { calendar.color = newColor }
+				}
+			}
+		} catch { printLog("Failed to refresh calendars: \(error)") }
+
 		guard let calendars = configuration.calendars else { return Timeline(entries: [], policy: .never) }
 
 		do {
