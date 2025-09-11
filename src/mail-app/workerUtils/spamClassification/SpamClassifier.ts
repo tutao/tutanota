@@ -25,14 +25,21 @@ export class SpamClassifier {
 
 	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
 
+	public async initialize() {
+		await this.loadModel()
+
+		if (!this.classifier) {
+			console.log("No existing model found. Training from scratch...")
+			await this.initialTraining()
+			return true
+		}
+	}
+
 	public async updateModel(cutoffTimestamp: number, testRatio = 0.2): Promise<boolean> {
 		try {
-			await this.loadModel()
-
 			if (!this.classifier) {
-				console.log("No existing model found. Training from scratch...")
-				await this.train(testRatio)
-				return true
+				console.warn("No existing model found. Check if there errors during training")
+				return false
 			}
 
 			const newTrainingData = await this.offlineStorage.getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
@@ -68,7 +75,7 @@ export class SpamClassifier {
 		}
 	}
 
-	private async train(testRatio = 0.2): Promise<void> {
+	private async initialTraining(testRatio = 0.2): Promise<void> {
 		const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
 
 		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
@@ -78,16 +85,15 @@ export class SpamClassifier {
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
-		console.log(`Total size: ${data.length}, train set size: ${ysTrain.shape}, test set size: ${ysTest.shape}`)
-
 		this.classifier = this.buildModel(xs.shape[1])
-		await this.classifier.fit(xsTrain, ysTrain, { epochs: 5, batchSize: 32 })
 
+		await this.classifier.fit(xsTrain, ysTrain, { epochs: 5, batchSize: 32 })
 		if (testRatio > 0 && xsTest.shape[0] > 0) {
 			await this.test(xsTest, ysTest)
 		}
-
 		await this.saveModel()
+
+		console.log(`### Finished Training ### Total size: ${data.length}, train set size: ${ysTrain.shape}, test set size: ${ysTest.shape}`)
 	}
 
 	public async predict(subjectAndBody: string): Promise<boolean> {
@@ -105,6 +111,7 @@ export class SpamClassifier {
 		const vector = this.hashingVectorizer.vectorize(tokenizedInput)
 		const xs = tf.tensor2d([vector], [1, vector.length])
 		const pred = (await (this.classifier.predict(xs) as tf.Tensor).data())[0]
+
 		return pred > 0.5
 	}
 

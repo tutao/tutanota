@@ -1186,9 +1186,9 @@ o.spec("IndexedDbIndexer", () => {
 
 			o.test("create", async () => {
 				await indexer._processEntityEvents(testBatch)
-				verify(mailIndexer.afterMailCreated(["create", "id-1"]))
-				verify(mailIndexer.afterMailCreated(["create", "id-3"]))
-				verify(mailIndexer.afterMailCreated(matchers.anything()), { times: 2 })
+				verify(mailIndexer.afterMailCreated(["create", "id-1"], null))
+				verify(mailIndexer.afterMailCreated(["create", "id-3"], null))
+				verify(mailIndexer.afterMailCreated(matchers.anything(), matchers.anything()), { times: 2 })
 				verify(core.writeGroupDataBatchId(testBatch.groupId, testBatch.batchId))
 			})
 			o.test("update", async () => {
@@ -1207,13 +1207,13 @@ o.spec("IndexedDbIndexer", () => {
 			})
 
 			o.test("gracefully handles not found errors", async () => {
-				when(mailIndexer.afterMailCreated(["create", "id-1"])).thenReject(new NotFoundError("Not found :("))
-				when(mailIndexer.afterMailCreated(["update", "id-4"])).thenReject(new NotFoundError("Not found :("))
+				when(mailIndexer.afterMailCreated(["create", "id-1"], null)).thenReject(new NotFoundError("Not found :("))
+				when(mailIndexer.afterMailCreated(["update", "id-4"], null)).thenReject(new NotFoundError("Not found :("))
 				await indexer._processEntityEvents(testBatch)
 
-				verify(mailIndexer.afterMailCreated(["create", "id-1"]))
-				verify(mailIndexer.afterMailCreated(["create", "id-3"]))
-				verify(mailIndexer.afterMailCreated(matchers.anything()), { times: 2 })
+				verify(mailIndexer.afterMailCreated(["create", "id-1"], null))
+				verify(mailIndexer.afterMailCreated(["create", "id-3"], null))
+				verify(mailIndexer.afterMailCreated(matchers.anything(), matchers.anything()), { times: 2 })
 
 				verify(mailIndexer.afterMailUpdated(["update", "id-4"]))
 				verify(mailIndexer.afterMailUpdated(["update", "id-6"]))
@@ -1227,13 +1227,13 @@ o.spec("IndexedDbIndexer", () => {
 			})
 
 			o.test("gracefully handles not authorized errors", async () => {
-				when(mailIndexer.afterMailCreated(["create", "id-1"])).thenReject(new NotAuthorizedError("You shall not pass :("))
-				when(mailIndexer.afterMailCreated(["update", "id-4"])).thenReject(new NotAuthorizedError("You shall not pass :("))
+				when(mailIndexer.afterMailCreated(["create", "id-1"], null)).thenReject(new NotAuthorizedError("You shall not pass :("))
+				when(mailIndexer.afterMailCreated(["update", "id-4"], null)).thenReject(new NotAuthorizedError("You shall not pass :("))
 				await indexer._processEntityEvents(testBatch)
 
-				verify(mailIndexer.afterMailCreated(["create", "id-1"]))
-				verify(mailIndexer.afterMailCreated(["create", "id-3"]))
-				verify(mailIndexer.afterMailCreated(matchers.anything()), { times: 2 })
+				verify(mailIndexer.afterMailCreated(["create", "id-1"], null))
+				verify(mailIndexer.afterMailCreated(["create", "id-3"], null))
+				verify(mailIndexer.afterMailCreated(matchers.anything(), matchers.anything()), { times: 2 })
 
 				verify(mailIndexer.afterMailUpdated(["update", "id-4"]))
 				verify(mailIndexer.afterMailUpdated(["update", "id-6"]))

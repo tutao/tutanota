@@ -34,7 +34,7 @@ o.spec("OfflineStoragePersistence", () => {
 	o.beforeEach(async () => {
 		sqlCipherFacade = new DesktopSqlCipher(":memory:", false)
 		cacheStorage = object()
-		persistence = new OfflineStoragePersistence(sqlCipherFacade, cacheStorage)
+		persistence = new OfflineStoragePersistence(sqlCipherFacade)
 		await sqlCipherFacade.openDb(userId, offlineDatabaseTestKey)
 
 		// Needs to be done manually since OfflineStorage would have done this

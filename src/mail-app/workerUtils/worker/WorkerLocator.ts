@@ -603,8 +603,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
-				console.log("initIndexer after log in")
+				console.log("initIndexer and spam classifier after log in")
 				fullLoginIndexerInit(worker)
+				initializeSpamClassificationTraining(locator.spamClassifier)
 			}
 
 			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
@@ -873,4 +874,14 @@ if (typeof self !== "undefined") {
  */
 export function isWebAssemblySupported() {
 	return typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"
+}
+
+function initializeSpamClassificationTraining(spamClassifier: SpamClassifier) {
+	//should we load mails here? How many?
+	try {
+		spamClassifier.initialize()
+	} catch (e) {
+		console.log("failed to initialize spam classifier", e)
+	}
+	// Start spamClassifier Training
 }

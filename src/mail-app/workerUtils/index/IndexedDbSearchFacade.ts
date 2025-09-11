@@ -1,7 +1,7 @@
 import { Contact, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
-	arrayHash,
+	arrayHashSigned,
 	asyncFind,
 	contains,
 	downcast,
@@ -344,7 +344,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 							.thenOrApply((indexEntries: EncryptedSearchIndexEntry[]) => {
 								return indexEntries.map((entry) => ({
 									encEntry: entry,
-									idHash: arrayHash(getIdFromEncSearchIndexEntry(entry)),
+									idHash: arrayHashSigned(getIdFromEncSearchIndexEntry(entry)),
 								}))
 							})
 							.thenOrApply((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
