@@ -174,6 +174,7 @@ export class ListModel<ItemType, IdType> {
 
 				const loadingStatus = complete ? ListLoadingState.Done : ListLoadingState.Idle
 				this.updateState({ loadingStatus, unfilteredItems: newUnfilteredItems, filteredItems: newFilteredItems })
+                m.redraw()
 			} catch (e) {
 				this.updateLoadingStatus(ListLoadingState.ConnectionLost)
 				if (!isOfflineError(e)) {
