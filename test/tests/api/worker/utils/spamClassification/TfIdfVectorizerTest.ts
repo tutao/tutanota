@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { TfIdfVectorizer } from "../../../../../src/mail-app/workerUtils/spamClassification/TfIdfVectorizer"
+import { TfIdfVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/TfIdfVectorizer"
 
 o.spec("TfIdfVectorizer", () => {
 	const tokenize = (text: string): string[] =>

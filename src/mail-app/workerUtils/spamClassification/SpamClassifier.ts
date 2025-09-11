@@ -30,7 +30,9 @@ export class SpamClassifier {
 
 		if (!this.classifier) {
 			console.log("No existing model found. Training from scratch...")
-			await this.initialTraining()
+			const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
+			await this.initialTraining(data)
+			await this.saveModel()
 			return true
 		}
 	}
@@ -59,13 +61,7 @@ export class SpamClassifier {
 			const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
 			const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
 
-			const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
-
-			await this.classifier.fit(xsTrain, ysTrain, { epochs: 5, batchSize: 32 })
-
-			if (testRatio > 0 && xsTest.shape[0] > 0) {
-				await this.test(xsTest, ysTest)
-			}
+			await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32 })
 
 			await this.saveModel()
 			return true
@@ -75,25 +71,17 @@ export class SpamClassifier {
 		}
 	}
 
-	private async initialTraining(testRatio = 0.2): Promise<void> {
-		const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
-
+	//visibleForTesting
+	public async initialTraining(data: SpamClassificationRow[]): Promise<void> {
 		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
 		const tokenizedDocuments = await promiseMap(documents, (d) => this.offlineStorage.tokenize(d))
 		const vectors = this.hashingVectorizer.transform(tokenizedDocuments)
 		const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
-		const { xsTrain, ysTrain, xsTest, ysTest } = this.trainTestSplit(xs, ys, testRatio)
 		this.classifier = this.buildModel(xs.shape[1])
-
-		await this.classifier.fit(xsTrain, ysTrain, { epochs: 5, batchSize: 32 })
-		if (testRatio > 0 && xsTest.shape[0] > 0) {
-			await this.test(xsTest, ysTest)
-		}
-		await this.saveModel()
-
-		console.log(`### Finished Training ### Total size: ${data.length}, train set size: ${ysTrain.shape}, test set size: ${ysTest.shape}`)
+		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32 })
+		console.log(`### Finished Training ### Total size: ${data.length}`)
 	}
 
 	public async predict(subjectAndBody: string): Promise<boolean> {
@@ -115,14 +103,17 @@ export class SpamClassifier {
 		return pred > 0.5
 	}
 
-	private async test(xsTest: tf.Tensor2D, ysTest: tf.Tensor1D): Promise<void> {
+	public async test(data: SpamClassificationRow[]): Promise<void> {
 		if (!this.classifier) {
 			throw new Error("Model not loaded")
 		}
 
-		const predsTensor = this.classifier.predict(xsTest) as tf.Tensor
-		const predsArray = Array.from(await predsTensor.data()) as number[]
-		const ysArray = Array.from(await ysTest.data()) as number[]
+		let predsArray: number[] = []
+		for (let row of data) {
+			const prediction = await this.predict(`${row.subject} ${row.body}`)
+			predsArray.push(prediction ? 1 : 0)
+		}
+		const ysArray = data.map((row) => (row.isSpam ? 1 : 0))
 
 		let tp = 0,
 			tn = 0,
@@ -150,40 +141,10 @@ export class SpamClassifier {
 		console.log(`Recall: ${(recall * 100).toFixed(2)}%`)
 		console.log(`F1 Score: ${(f1 * 100).toFixed(2)}%`)
 		console.log("\nConfusion Matrix:")
-		console.table({
-			Predicted_Spam: { Actual_Spam: tp, Actual_Ham: fp },
-			Predicted_Ham: { Actual_Spam: fn, Actual_Ham: tn },
+		console.log({
+			Predicted_Spam: { True_Positive: tp, False_Positive: fp },
+			Predicted_Ham: { False_Negative: fn, True_Negative: tn },
 		})
-	}
-
-	private trainTestSplit(
-		xs: tf.Tensor2D,
-		ys: tf.Tensor1D,
-		testRatio: number,
-	): {
-		xsTrain: tf.Tensor2D
-		ysTrain: tf.Tensor1D
-		xsTest: tf.Tensor2D
-		ysTest: tf.Tensor1D
-	} {
-		const numSamples = xs.shape[0]
-		const indices = tf.util.createShuffledIndices(numSamples)
-
-		const testSize = Math.floor(numSamples * testRatio)
-		const trainSize = numSamples - testSize
-
-		const trainIndicesArray = Array.from(indices.slice(0, trainSize))
-		const testIndicesArray = Array.from(indices.slice(trainSize))
-
-		const trainIndices = tf.tensor1d(trainIndicesArray, "int32")
-		const testIndices = tf.tensor1d(testIndicesArray, "int32")
-
-		const xsTrain = tf.gather(xs, trainIndices)
-		const ysTrain = tf.gather(ys, trainIndices)
-		const xsTest = tf.gather(xs, testIndices)
-		const ysTest = tf.gather(ys, testIndices)
-
-		return { xsTrain, ysTrain, xsTest, ysTest }
 	}
 
 	private sanitizeModelInput(subject: string | null | undefined, body: string | null | undefined) {

@@ -1,15 +1,15 @@
 import o from "@tutao/otest"
-import { HashingVectorizer } from "../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
+import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { arrayEquals } from "@tutao/tutanota-utils"
 
-o.spec("HashingVectorizer", () => {
-	const tokenize = (text: string): string[] =>
-		text
-			.toLowerCase()
-			.split(/\s+/)
-			.map((t) => t.replace(/[^a-z0-9-]/gi, "")) // remove punctuation
-			.filter((t) => t.length > 1)
+export const tokenize = (text: string): string[] =>
+	text
+		.toLowerCase()
+		.split(/\s+/)
+		.map((t) => t.replace(/[^a-z0-9-]/gi, "")) // remove punctuation
+		.filter((t) => t.length > 1)
 
+o.spec("HashingVectorizer", () => {
 	const rawDocuments = [
 		"Tuta is an encrypted email service that prioritizes privacy and open-source principles.",
 		"With Tuta, your emails and contacts are stored securely using end-to-end encryption.",
