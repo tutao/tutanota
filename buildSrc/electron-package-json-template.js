@@ -23,6 +23,123 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 	if (process.env.JENKINS_HOME && process.env.DEBUG_SIGN) throw new Error("Tried to DEBUG_SIGN in CI!")
 	const debugKey = process.env.DEBUG_SIGN ? readFileSync(path.join(process.env.DEBUG_SIGN, "test.pubkey"), { encoding: "utf8" }) : undefined
 	const log = console.log.bind(console)
+	/** @type import("app-builder-lib").FuseOptionsV1*/
+	const electronFuses = {
+		runAsNode: false,
+		enableNodeOptionsEnvironmentVariable: false,
+		enableNodeCliInspectArguments: false,
+		enableEmbeddedAsarIntegrityValidation: true,
+		onlyLoadAppFromAsar: true,
+		grantFileProtocolExtraPrivileges: false,
+	}
+	/** @type import("app-builder-lib").Configuration */
+	const buildOptions = {
+		electronVersion: await getElectronVersion(log),
+		icon: iconPath,
+		appId: appId,
+		productName: nameSuffix.length > 0 ? nameSuffix.slice(1) + " Tuta Mail" : "Tuta Mail",
+		// name of the appImage
+		artifactName: "${name}-${os}.${ext}",
+		asarUnpack: "desktop/*.node",
+		afterSign: notarize ? "buildSrc/notarize.cjs" : undefined,
+		protocols: [
+			{
+				name: "Mailto Links",
+				schemes: ["mailto"],
+				role: "Editor",
+			},
+		],
+		forceCodeSigning: sign,
+		publish: updateUrl
+			? {
+					provider: "generic",
+					url: updateUrl,
+					channel: "latest",
+					publishAutoUpdate: true,
+					useMultipleRangeRequest: false,
+				}
+			: undefined,
+		directories: {
+			output: "installers",
+		},
+		extraResources: {
+			from: path.dirname(iconPath),
+			to: "./icons/",
+		},
+		win: {
+			// relative to the project dir which is ./build/
+			extraFiles: ["mapirs.dll"],
+			verifyUpdateCodeSignature: sign,
+			signExts: [".dll", ".node"],
+			signtoolOptions: {
+				sign: sign ? "./buildSrc/winsigner.cjs" : undefined,
+				signingHashAlgorithms: sign ? ["sha256"] : undefined,
+			},
+			target: [
+				{
+					target: unpacked ? "dir" : "nsis",
+					arch: architecture,
+				},
+			],
+		},
+		nsis: {
+			oneClick: false,
+			perMachine: false,
+			createStartMenuShortcut: true,
+			allowElevation: true,
+			allowToChangeInstallationDirectory: true,
+			include: path.join("..", "..", "buildSrc", "windows-installer.nsh"),
+			warningsAsErrors: true,
+		},
+		mac: {
+			hardenedRuntime: true,
+			type: "distribution",
+			gatekeeperAssess: false,
+			entitlements: "buildSrc/mac-entitlements.plist",
+			entitlementsInherit: "buildSrc/mac-entitlements.plist",
+			icon: path.join(path.dirname(iconPath), "logo-solo-red.png.icns"),
+			extendInfo: {
+				LSUIElement: 1, //hide dock icon on startup
+			},
+			// The build process is somewhat silly as we build two apps for each arch (x64 and arm64).
+			// We do not pre-lipo the NAPI binaries so each of these apps will have libraries for both architectures.
+			// But it doesn't matter because in the end both apps are smashed together into a single package.
+			// If each of the app parts had only one binary we would add them to "singleArchFiles" to tell @electron/universal to not merge them into a
+			// single asar.
+			//
+			// This option tells @electron/universal that it's okay to have a file for the mismatching architecture in the app (which we will have because
+			// we have both binaries).
+			// It will also disable LIPO for this file which is what we want.
+			x64ArchFiles: "**/*.node",
+			target: unpacked
+				? [{ target: "dir", arch: architecture }]
+				: [
+						{
+							target: "zip",
+							arch: architecture,
+						},
+						{
+							target: "dmg",
+							arch: architecture,
+						},
+					],
+		},
+		linux: {
+			// name of the unpacked executable inside the AppImage/Flatpak,
+			// defaults to productName if not specified
+			executableName: appName,
+			icon: path.join(path.dirname(iconPath), "icon/"),
+			synopsis: "Tuta Mail Desktop Client",
+			category: "Network",
+			target: [
+				{
+					target: unpacked ? "dir" : "AppImage",
+					arch: architecture,
+				},
+			],
+		},
+		electronFuses,
+	}
 	return {
 		name: appName,
 		main: "./desktop/DesktopMain.js",
@@ -77,111 +194,6 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 			},
 		},
 		dependencies: {},
-		build: {
-			electronVersion: await getElectronVersion(log),
-			icon: iconPath,
-			appId: appId,
-			productName: nameSuffix.length > 0 ? nameSuffix.slice(1) + " Tuta Mail" : "Tuta Mail",
-			// name of the appImage
-			artifactName: "${name}-${os}.${ext}",
-			asarUnpack: "desktop/*.node",
-			afterSign: notarize ? "buildSrc/notarize.cjs" : undefined,
-			protocols: [
-				{
-					name: "Mailto Links",
-					schemes: ["mailto"],
-					role: "Editor",
-				},
-			],
-			forceCodeSigning: sign,
-			publish: updateUrl
-				? {
-						provider: "generic",
-						url: updateUrl,
-						channel: "latest",
-						publishAutoUpdate: true,
-						useMultipleRangeRequest: false,
-					}
-				: undefined,
-			directories: {
-				output: "installers",
-			},
-			extraResources: {
-				from: path.dirname(iconPath),
-				to: "./icons/",
-			},
-			win: {
-				// relative to the project dir which is ./build/
-				extraFiles: ["mapirs.dll"],
-				verifyUpdateCodeSignature: sign,
-				signExts: [".dll", ".node"],
-				signtoolOptions: {
-					sign: sign ? "./buildSrc/winsigner.cjs" : undefined,
-					signingHashAlgorithms: sign ? ["sha256"] : undefined,
-				},
-				target: [
-					{
-						target: unpacked ? "dir" : "nsis",
-						arch: architecture,
-					},
-				],
-			},
-			nsis: {
-				oneClick: false,
-				perMachine: false,
-				createStartMenuShortcut: true,
-				allowElevation: true,
-				allowToChangeInstallationDirectory: true,
-				include: path.join("..", "..", "buildSrc", "windows-installer.nsh"),
-				warningsAsErrors: true,
-			},
-			mac: {
-				hardenedRuntime: true,
-				type: "distribution",
-				gatekeeperAssess: false,
-				entitlements: "buildSrc/mac-entitlements.plist",
-				entitlementsInherit: "buildSrc/mac-entitlements.plist",
-				icon: path.join(path.dirname(iconPath), "logo-solo-red.png.icns"),
-				extendInfo: {
-					LSUIElement: 1, //hide dock icon on startup
-				},
-				// The build process is somewhat silly as we build two apps for each arch (x64 and arm64).
-				// We do not pre-lipo the NAPI binaries so each of these apps will have libraries for both architectures.
-				// But it doesn't matter because in the end both apps are smashed together into a single package.
-				// If each of the app parts had only one binary we would add them to "singleArchFiles" to tell @electron/universal to not merge them into a
-				// single asar.
-				//
-				// This option tells @electron/universal that it's okay to have a file for the mismatching architecture in the app (which we will have because
-				// we have both binaries).
-				// It will also disable LIPO for this file which is what we want.
-				x64ArchFiles: "**/*.node",
-				target: unpacked
-					? [{ target: "dir", arch: architecture }]
-					: [
-							{
-								target: "zip",
-								arch: architecture,
-							},
-							{
-								target: "dmg",
-								arch: architecture,
-							},
-						],
-			},
-			linux: {
-				// name of the unpacked executable inside the AppImage/Flatpak,
-				// defaults to productName if not specified
-				executableName: appName,
-				icon: path.join(path.dirname(iconPath), "icon/"),
-				synopsis: "Tuta Mail Desktop Client",
-				category: "Network",
-				target: [
-					{
-						target: unpacked ? "dir" : "AppImage",
-						arch: architecture,
-					},
-				],
-			},
-		},
+		build: buildOptions,
 	}
 }
