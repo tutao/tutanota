@@ -14,14 +14,13 @@ class NotificationService: UNNotificationServiceExtension {
 	override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
 		self.contentHandler = contentHandler
 		bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
-		logger.notice("Receive notification")
 		if let bestAttemptContent {
 			Task {
 				// Catch all errors to always call contentHandler, otherwise we will use up our quota to time out
 				do { try await handleNotification(content: bestAttemptContent) } catch {
-					printLog("Failed to populate notification: \(error)")
 					var errorSource: HttpError?
 					if let error = error as? ApiCallError, case let .ServerResponseError(source) = error { errorSource = source }
+					printLog("Failed to populate notification: \(error)")
 					logger.notice("Failed to populate notification: \(error) \(String(describing: errorSource))")
 				}
 				contentHandler(bestAttemptContent)
@@ -35,7 +34,7 @@ class NotificationService: UNNotificationServiceExtension {
 				logger.notice("Suspension over, clearing")
 				suspensionEndTime = nil
 			} else {
-				logger.notice("Suspension until \(suspensionTime), cannot handle notification")
+				logger.notice("Cannot handle notification, suspension for \(suspensionTime.timeIntervalSinceNow)")
 				// We cannot try again later because the system only gives a limited time to process the notification, that time will probably be passed by the
 				// time the suspension is over so we just return here
 				return
