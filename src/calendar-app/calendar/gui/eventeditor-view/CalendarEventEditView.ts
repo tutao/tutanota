@@ -333,10 +333,10 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderCalendarOptions(option: CalendarSelectItem, isSelected: boolean, isDisplay: boolean) {
 		return m(
-			".flex.items-center.gap-vpad-s.flex-grow",
+			".flex.items-center.gap-vpad-s.flex-grow.overflow-hidden",
 			{ class: `${isDisplay ? "" : "state-bg plr-button button-content dropdown-button pt-s pb-s button-min-height"}` },
 			[
-				m("div", {
+				m(".no-shrink", {
 					style: {
 						width: px(size.hpad_large),
 						height: px(size.hpad_large),
@@ -345,7 +345,14 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 						marginInline: px(size.vpad_xsm / 2),
 					},
 				}),
-				m("span", { style: { color: isSelected ? theme.content_button_selected : undefined } }, option.name),
+				m(
+					"span",
+					{
+						class: `${isDisplay ? "text-ellipsis" : ""}`,
+						style: { color: isSelected ? theme.content_button_selected : undefined },
+					},
+					option.name,
+				),
 			],
 		)
 	}
