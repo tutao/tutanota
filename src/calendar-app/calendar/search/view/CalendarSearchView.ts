@@ -10,7 +10,7 @@ import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEven
 import m, { Children, Vnode } from "mithril"
 import { NavButton } from "../../../../common/gui/base/NavButton.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
-import { px, size } from "../../../../common/gui/size.js"
+import { size } from "../../../../common/gui/size.js"
 import { lang, type MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -274,10 +274,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				".border-radius-big.flex.col.flex-grow.content-bg",
 				{
 					class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
-					style: {
-						"min-width": styles.isDesktopLayout() ? px(size.third_col_min_width) : null,
-						"max-width": styles.isDesktopLayout() ? px(size.third_col_max_width) : null,
-					},
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),

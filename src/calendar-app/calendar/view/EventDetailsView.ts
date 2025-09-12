@@ -23,7 +23,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 		this.model = attrs.eventPreviewModel
 		return m(".content-bg.border-radius-big.pl-l.pb-s.flex.pr", [
 			m(
-				".flex-grow",
+				".flex-grow.scroll.visible-scrollbar",
 				{
 					style: {
 						// align text to the buttons on the right
