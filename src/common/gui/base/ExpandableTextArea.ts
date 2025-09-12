@@ -120,7 +120,7 @@ export class ExpandableTextArea implements ClassComponent<ExpandableTextAreaAttr
 								bottom: this.initialHeight === 0 ? 0 : undefined,
 								margin: this.initialHeight === 0 ? "auto 0" : undefined,
 								right: "8px",
-								fill: theme.content_button,
+								fill: theme.on_surface_variant,
 								transform: `rotateZ(${this.isExpanded ? 180 : 0}deg)`,
 								transition: `transform ${DefaultAnimationTime}ms`,
 							},
