@@ -133,11 +133,12 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 
 	fileprivate lazy var setPosRules = repeatRule.advancedRules.filter { item in item.ruleType == ByRuleType.bysetpos }
 		.map { rule in
-			let parsedInterval = Int(string: rule.interval)!
+			if let parsedInterval = Int(string: rule.interval) {
+				if parsedInterval < 0 { return expandedEvents.count - abs(parsedInterval) }
+				return parsedInterval - 1
+			}
 
-			if parsedInterval < 0 { return expandedEvents.count - abs(parsedInterval) }
-
-			return parsedInterval - 1
+			return -1
 		}
 		.filter { interval in interval >= 0 && interval < repeatRule.frequency.getMaxDaysInPeriod() }
 
@@ -146,8 +147,20 @@ private struct LazyEventSequence: Sequence, IteratorProtocol {
 			if case let .count(n) = repeatRule.endCondition, occurrenceNumber >= n { return nil }
 			if expandedEvents.isEmpty {
 
-				let expansionProgenitor = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * intervalNumber, to: calcEventStart)!
-				let progenitorTime = UInt64(expansionProgenitor.timeIntervalSince1970)
+				guard let expansionProgenitor = cal.date(byAdding: self.calendarComponent, value: repeatRule.interval * intervalNumber, to: calcEventStart)
+				else {
+					printLog(
+						"Received an invalid progenitor! Stopping alarm generation... \(calcEventStart) for interval \(repeatRule.interval) at iteration \(intervalNumber)"
+					)
+					return nil
+				}
+				guard let progenitorTime = UInt64(exactly: expansionProgenitor.timeIntervalSince1970.rounded()) else {
+					printLog(
+						"Received an invalid date! Stopping alarm generation for date... \(calcEventStart) for interval \(repeatRule.interval) at iteration \(intervalNumber)"
+					)
+					return nil
+				}
+
 				let eventFacade = EventFacade()
 				let byRules = repeatRule.advancedRules.map { $0.toSDKRule() }
 				let progenitorTimeInMilis = progenitorTime * 1000
