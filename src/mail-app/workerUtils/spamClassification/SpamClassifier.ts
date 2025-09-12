@@ -80,7 +80,8 @@ export class SpamClassifier {
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		this.classifier = this.buildModel(xs.shape[1])
-		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32 })
+		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: false })
+
 		console.log(`### Finished Training ### Total size: ${data.length}`)
 	}
 
@@ -156,9 +157,26 @@ export class SpamClassifier {
 
 	private buildModel(inputDim: number): tf.LayersModel {
 		const model = tf.sequential()
-		model.add(tf.layers.dense({ inputShape: [inputDim], units: 128, activation: "relu" }))
-		model.add(tf.layers.dropout({ rate: 0.2 }))
-		model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }))
+		// TODO experiment with a different arguments, meaning the file names.
+		// TODO experiment with different layers and try to understand it
+		model.add(
+			tf.layers.dense({
+				inputShape: [inputDim],
+				units: 128,
+				activation: "relu",
+				kernelInitializer: tf.initializers.glorotUniform({ seed: 42 }),
+				biasInitializer: tf.initializers.zeros(),
+			}),
+		)
+		model.add(tf.layers.dropout({ rate: 0.2, seed: 42 }))
+		model.add(
+			tf.layers.dense({
+				units: 1,
+				activation: "sigmoid",
+				kernelInitializer: tf.initializers.glorotUniform({ seed: 42 }),
+				biasInitializer: tf.initializers.zeros(),
+			}),
+		)
 		model.compile({ optimizer: "adam", loss: "binaryCrossentropy", metrics: ["accuracy"] })
 		return model
 	}

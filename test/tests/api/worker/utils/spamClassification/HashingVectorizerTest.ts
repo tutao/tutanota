@@ -1,6 +1,7 @@
 import o from "@tutao/otest"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { arrayEquals } from "@tutao/tutanota-utils"
+import fs from "node:fs"
 
 export const tokenize = (text: string): string[] =>
 	text
@@ -8,6 +9,12 @@ export const tokenize = (text: string): string[] =>
 		.split(/\s+/)
 		.map((t) => t.replace(/[^a-z0-9-]/gi, "")) // remove punctuation
 		.filter((t) => t.length > 1)
+
+async function getAllTextFromDataset(datasetFilePath: string) {
+	const file = await fs.promises.readFile(datasetFilePath)
+	const entireFile = file.toString()
+	return entireFile
+}
 
 o.spec("HashingVectorizer", () => {
 	const rawDocuments = [
@@ -51,5 +58,18 @@ o.spec("HashingVectorizer", () => {
 		for (const vec of tensor) {
 			o(vec.length).equals(vectorizer.dimension)
 		}
+	})
+
+	o("verify hash collisions of different dimensions", async () => {
+		const datasetFilePath = ""
+		if (datasetFilePath === "") {
+			return
+		}
+		const allText = await getAllTextFromDataset(datasetFilePath)
+
+		const vectorizer = new HashingVectorizer()
+		const tokens = tokenize(allText)
+		const result = vectorizer.verifyCollisions(tokens)
+		console.log(`Count of collisions: ${result.collisionCount} Mean collisionScore: ${result.meanCollisionScore}`)
 	})
 })
