@@ -102,7 +102,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 
 		const renderInfo = calendarEventPreviewModel.getCalendarRenderInfo()
 
-		return m(".flex.col.smaller.scroll.visible-scrollbar", [
+		return m(".flex.col.smaller", [
 			this.renderRow(
 				BootIcons.Calendar,
 				[m("span.h3", highlightedStrings ? highlightTextInQueryAsChildren(eventTitle, highlightedStrings) : eventTitle)],
@@ -125,16 +125,15 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	private renderRow(headerIcon: AllIcons, children: Children, isAlignedLeft: boolean = false, isEventTitle: boolean = false): Children {
-		return m(".flex.pb-s", [
+		return m(".flex.gap-hpad.mb-s", [
 			this.renderSectionIndicator(headerIcon, isAlignedLeft ? { marginTop: isEventTitle ? "6px" : "2px" } : undefined),
-			m(".selectable.text-break.full-width.align-self-center", children),
+			m(".selectable.full-width.align-self-center.text-break", children),
 		])
 	}
 
 	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
 		return m(Icon, {
 			icon,
-			class: "pr",
 			size: IconSize.Medium,
 			style: Object.assign(
 				{
@@ -255,9 +254,9 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	private renderCalendar(calendarName: string, calendarColor: string, calendarRenderType: TranslationKey) {
-		return m(".flex.pb-s", [
+		return m(".flex.gap-hpad.mb-s", [
 			m(
-				".flex.items-center.justify-center.mr",
+				".flex.items-center.justify-center",
 				{
 					style: {
 						width: "24px",
