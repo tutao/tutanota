@@ -6,6 +6,7 @@ import { SpamClassificationRow, SpamClassifier } from "../../../../../../src/mai
 import { tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
+import { arrayHashUnsigned, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 
 async function enumerateDir(rootDir, files: string[] = []): Promise<string[]> {
 	const entries = await fs.promises.readdir(rootDir, { withFileTypes: true })
@@ -44,6 +45,10 @@ function shuffleArray(
 	trainSet: SpamClassificationRow[]
 	testSet: SpamClassificationRow[]
 } {
+	data = data.sort((a, b) => {
+		return arrayHashUnsigned(stringToUtf8Uint8Array(a.subject + a.body)) - arrayHashUnsigned(stringToUtf8Uint8Array(b.subject + b.body))
+	})
+
 	const trainIndicesArray: SpamClassificationRow[] = []
 	const testIndicesArray: SpamClassificationRow[] = []
 	for (let i = 0; i < data.length; i++) {
@@ -55,52 +60,82 @@ function shuffleArray(
 		}
 	}
 
-	// let result = new Array(data.length).fill(null)
-	// for (let i = 0; i < data.length; i++) {
-	// 	const hash = arrayHashUnsigned(stringToUtf8Uint8Array(data[i].subject))
-	// 	const index = hash % result.length
-	// 	result[index] = data[i]
-	// }
-	// result = result.filter((d) => d != null)
-
-	// const testSize = Math.floor(result.length * testRatio)
-	// const trainSize = result.length - testSize
-	//
-	// const trainIndicesArray = Array.from(result.slice(0, trainSize))
-	// const testIndicesArray = Array.from(result.slice(trainSize))
-
 	return { trainSet: trainIndicesArray, testSet: testIndicesArray }
 }
 
 // TODO: remove randomness from tensorflow
 // Change dimension
 // Change tensorflow inner layers
+async function parseCustomDataset(customDataset: string) {
+	const file = await fs.promises.readFile(customDataset)
+	const csv = parseCsv(file.toString())
+	let spamData: any[] = []
+	let hamData: any[] = []
+	for (let i = 1; i < csv.rows.length; i++) {
+		const isSpam = csv.rows[i][0] === "spam"
+		const subject = ""
+		const body = csv.rows[i][1]
+		if (isSpam) {
+			spamData.push({
+				rowid: "0",
+				subject,
+				body,
+				isSpam,
+			})
+		} else {
+			hamData.push({
+				rowid: "0",
+				subject,
+				body,
+				isSpam,
+			})
+		}
+	}
+	return { hamData, spamData }
+}
+
 // Initial training (cutoff by day or amount)
 o.spec("SpamClassifier", () => {
 	o("Test Classification on external mail data", async () => {
-		o.timeout(200000)
+		o.timeout(20_000_000)
 
-		const externalSpamPath = "/home/das/Documents/csvspam/"
-		const externalHamPath = "/home/das/Documents/csvham/"
+		const externalSpamPath = "csvspam/"
+		const externalHamPath = "csvham/"
 
-		const spamData = await readMailData(externalSpamPath, true)
-		const hamData = await readMailData(externalHamPath, false)
-		const mockOfflineStorage = object() as OfflineStoragePersistence
-		mockOfflineStorage.tokenize = async (text) => {
-			return testTokenize(text)
+		//const spamData = await readMailData(externalSpamPath, true)
+		//const hamData = await readMailData(externalHamPath, false)
+
+		const customDatasetCsv = "spam_dataset.csv"
+		const { hamData, spamData } = await parseCustomDataset(customDatasetCsv)
+
+		console.log("Ham count:" + hamData.length)
+		console.log("Spam count:" + spamData.length)
+		for (let hamCount = 1000; hamCount <= 1000; hamCount += 400) {
+			const hamSlice = hamData.slice(0, hamCount)
+			for (let spamCount = 500; spamCount <= 500; spamCount += 100) {
+				const spamSlice = spamData.slice(0, spamCount)
+
+				const mockOfflineStorage = object() as OfflineStoragePersistence
+				mockOfflineStorage.tokenize = async (text) => {
+					return testTokenize(text)
+				}
+
+				const data = hamSlice.concat(spamSlice)
+				//const { trainSet, testSet } = shuffleArray(data, 0.2)
+				const { trainSet } = shuffleArray(data, 0.2)
+				const { testSet } = shuffleArray(spamData.concat(hamData), 0.4)
+
+				const classifier = new SpamClassifier(mockOfflineStorage)
+
+				let start = Date.now()
+				await classifier.initialTraining(trainSet)
+				console.log(`trained in ${Date.now() - start}ms`)
+
+				start = Date.now()
+				console.log(` Result when testing with ${hamCount} Ham mails and ${spamCount} Spam-Mails`)
+				await classifier.test(testSet)
+				console.log(`tested in ${Date.now() - start}ms`)
+			}
 		}
-
-		const data = spamData.concat(hamData)
-		const { trainSet, testSet } = shuffleArray(data, 0.2)
-
-		const classifier = new SpamClassifier(mockOfflineStorage)
-
-		let start = Date.now()
-		await classifier.initialTraining(trainSet)
-		console.log(`trained in ${Date.now() - start}ms`)
-
-		start = Date.now()
-		await classifier.test(testSet)
-		console.log(`tested in ${Date.now() - start}ms`)
 	})
 })
