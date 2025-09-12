@@ -8,7 +8,6 @@ use base64::Engine;
 use regex::{Match, Regex};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::ops::{Add, Sub};
 use time::util::weeks_in_year;
 use time::{Date, Duration, Month, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset, Weekday};
 use time_tz::{timezones, Offset, TimeZone};
@@ -118,17 +117,26 @@ impl WeekdayString for Weekday {
 }
 
 trait DateExpansion {
-	fn add_month(&self) -> Date;
+	fn add_month(&self) -> Option<Date>;
 }
 
 impl DateExpansion for Date {
-	fn add_month(&self) -> Date {
-		self.add(Duration::days(i64::from(self.month().length(self.year()))))
+	fn add_month(&self) -> Option<Date> {
+		self.checked_add(Duration::days(i64::from(self.month().length(self.year()))))
 	}
 }
 
 #[derive(uniffi::Object)]
 pub struct EventFacade;
+
+impl EventFacade {
+	fn filter_result<T, U>(&self, result: Result<T, U>) -> Option<T> {
+		match result {
+			Ok(rt) => Some(rt),
+			_ => None,
+		}
+	}
+}
 
 #[uniffi::export]
 impl EventFacade {
@@ -202,17 +210,17 @@ impl EventFacade {
 		let valid_months: Vec<u8> = by_month_rules
 			.iter()
 			.clone()
-			.map(|&x| x.interval.parse::<u8>().unwrap())
+			.filter_map(|&x| self.filter_result(x.interval.parse::<u8>()))
 			.collect();
 		let valid_month_days: Vec<i8> = by_month_day_rules
 			.iter()
 			.clone()
-			.map(|&x| x.interval.parse::<i8>().unwrap())
+			.filter_map(|&x| self.filter_result(x.interval.parse::<i8>()))
 			.collect();
 		let valid_year_days: Vec<i16> = by_year_day_rules
 			.iter()
 			.clone()
-			.map(|&x| x.interval.parse::<i16>().unwrap())
+			.filter_map(|&x| self.filter_result(x.interval.parse::<i16>()))
 			.collect();
 
 		let month_applied_events: Vec<PrimitiveDateTime> =
@@ -366,11 +374,23 @@ impl EventFacade {
 			};
 
 			let repeat_frequency = repeat_rule.frequency;
-			start_time = self.increment_date_by_repeat_period(
+			start_time = match self.increment_date_by_repeat_period(
 				&start_time,
 				interval_multiplier * repeat_interval,
 				&repeat_frequency,
-			);
+			) {
+				Some(date) => date,
+				_ => {
+					return Err(ApiCallError::InternalSdkError {
+						error_message: format!(
+							"Failed to increment date by repeat period E:{} M:{} I:{}",
+							start_time.unix_timestamp(),
+							interval_multiplier,
+							repeat_interval
+						),
+					})
+				},
+			};
 
 			let tz = match timezones::get_by_name(&time_zone) {
 				Some(tz) => tz,
@@ -565,7 +585,7 @@ impl EventFacade {
 		let mut new_dates: Vec<PrimitiveDateTime> = Vec::new();
 
 		for &rule in rules {
-			for date in &dates {
+			'date_loop: for date in &dates {
 				let parsed_week: i8 = match rule.interval.parse::<i8>() {
 					Ok(week) => week,
 					_ => continue,
@@ -623,7 +643,18 @@ impl EventFacade {
 					.replace_date(Date::from_iso_week_date(year, week_number, week_start).unwrap());
 
 				for i in 0..7 {
-					let final_date = new_date.add(Duration::days(i));
+					let Some(final_date) = new_date.checked_add(Duration::days(i)) else {
+						log::error!(
+							"{}",
+							format!(
+								"Failed to add {} days to date {}",
+								i,
+								new_date.assume_utc().unix_timestamp()
+							)
+						);
+						continue 'date_loop;
+					};
+
 					if final_date.year() > new_date.year() {
 						break;
 					}
@@ -658,19 +689,47 @@ impl EventFacade {
 
 				let mut new_date: PrimitiveDateTime;
 				if parsed_day.is_negative() {
-					new_date = date
+					new_date = match date
 						.replace_month(Month::December)
 						.unwrap()
 						.replace_day(31)
 						.unwrap()
-						.sub(Duration::days((parsed_day.unsigned_abs() - 1) as i64));
+						.checked_sub(Duration::days((parsed_day.unsigned_abs() - 1) as i64))
+					{
+						Some(new_date) => new_date,
+						None => {
+							log::error!(
+								"{}",
+								format!(
+									"Failed to sub {} days to end of {}",
+									parsed_day.unsigned_abs() - 1,
+									date.year()
+								)
+							);
+							continue;
+						},
+					};
 				} else {
-					new_date = date
+					new_date = match date
 						.replace_month(Month::January)
 						.unwrap()
 						.replace_day(1)
 						.unwrap()
-						.add(Duration::days(parsed_day - 1));
+						.checked_add(Duration::days(parsed_day - 1))
+					{
+						Some(new_date) => new_date,
+						None => {
+							log::error!(
+								"{}",
+								format!(
+									"Failed to add {} days to start of {}",
+									parsed_day.unsigned_abs() - 1,
+									date.year()
+								)
+							);
+							continue;
+						},
+					}
 				}
 
 				let year_offset = if new_date.assume_utc().unix_timestamp()
@@ -854,19 +913,47 @@ impl EventFacade {
 			// If there's no target week day, we just set the day of the year.
 			if target_week_day.is_none() {
 				if week_change > 0 {
-					new_date = date
+					new_date = match date
 						.replace_day(1)
 						.unwrap()
 						.replace_month(Month::January)
 						.unwrap()
-						.add(Duration::days(week_change - 1))
+						.checked_add(Duration::days(week_change - 1))
+					{
+						Some(date) => date,
+						None => {
+							log::error!(
+								"{}",
+								format!(
+									"Failed to add {} days to start of {}",
+									week_change - 1,
+									date.year()
+								)
+							);
+							return;
+						},
+					}
 				} else {
-					new_date = date
+					new_date = match date
 						.replace_month(Month::December)
 						.unwrap()
 						.replace_day(31)
 						.unwrap()
-						.sub(Duration::days(week_change.abs() - 1))
+						.checked_sub(Duration::days(week_change.abs() - 1))
+					{
+						Some(date) => date,
+						None => {
+							log::error!(
+								"{}",
+								format!(
+									"Failed to sub {} days to end of {}",
+									week_change - 1,
+									date.year()
+								)
+							);
+							return;
+						},
+					}
 				}
 			} else {
 				let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
@@ -886,7 +973,21 @@ impl EventFacade {
 						0
 					};
 					while week_count < absolute_week {
-						new_date = new_date.add(Duration::days(1));
+						new_date = match new_date.checked_add(Duration::days(1)) {
+							Some(new_date) => new_date,
+							None => {
+								log::error!(
+									"{}",
+									format!(
+										"Failed to add {} days to {}",
+										1,
+										new_date.assume_utc().unix_timestamp()
+									)
+								);
+								return;
+							},
+						};
+
 						if new_date.weekday() == parsed_weekday {
 							week_count += 1
 						}
@@ -894,25 +995,80 @@ impl EventFacade {
 				} else {
 					// There's a target week day  without byMonth so the occurrenceNumber indicates the week of the year that the event will happen
 					if week_change > 0 {
-						new_date = date
+						new_date = match date
 							.replace_day(1)
 							.unwrap()
 							.replace_month(Month::January)
 							.unwrap()
-							.add(Duration::weeks(week_change - 1));
+							.checked_add(Duration::weeks(week_change - 1))
+						{
+							Some(date) => date,
+							None => {
+								log::error!(
+									"{}",
+									format!(
+										"Failed to add {} weeks to start of {}",
+										week_change - 1,
+										date.year()
+									)
+								);
+								return;
+							},
+						};
 
 						while new_date.weekday() != parsed_weekday {
-							new_date = new_date.add(Duration::days(1));
+							new_date = match new_date.checked_add(Duration::days(1)) {
+								Some(new_date) => new_date,
+								None => {
+									log::error!(
+										"{}",
+										format!(
+											"Failed to add {} days to {}",
+											1,
+											new_date.assume_utc().unix_timestamp()
+										)
+									);
+									return;
+								},
+							};
 						}
 					} else {
-						new_date = date
+						new_date = match date
 							.replace_month(Month::December)
 							.unwrap()
 							.replace_day(31)
 							.unwrap()
-							.sub(Duration::weeks(week_change.abs() - 1));
+							.checked_sub(Duration::weeks(week_change.abs() - 1))
+						{
+							Some(date) => date,
+							None => {
+								log::error!(
+									"{}",
+									format!(
+										"Failed to sub {} weeks to end of {}",
+										week_change.abs() - 1,
+										date.year()
+									)
+								);
+								return;
+							},
+						};
+
 						while new_date.weekday() != parsed_weekday {
-							new_date = new_date.sub(Duration::days(1));
+							new_date = match new_date.checked_sub(Duration::days(1)) {
+								Some(new_date) => new_date,
+								None => {
+									log::error!(
+										"{}",
+										format!(
+											"Failed to sub {} days to {}",
+											1,
+											new_date.assume_utc().unix_timestamp()
+										)
+									);
+									return;
+								},
+							};
 						}
 					}
 				}
@@ -935,7 +1091,18 @@ impl EventFacade {
 			let interval_start = date.replace_date(
 				Date::from_iso_week_date(date.year(), date.iso_week(), week_start).unwrap(),
 			);
-			let week_ahead = interval_start.add(Duration::days(7));
+
+			let Some(week_ahead) = interval_start.checked_add(Duration::days(7)) else {
+				log::error!(
+					"{}",
+					format!(
+						"Failed to add {} days to {}",
+						7,
+						interval_start.assume_utc().unix_timestamp()
+					)
+				);
+				return;
+			};
 
 			if new_date.assume_utc().unix_timestamp() > week_ahead.assume_utc().unix_timestamp()
 				|| new_date.assume_utc().unix_timestamp() < date.assume_utc().unix_timestamp()
@@ -943,7 +1110,20 @@ impl EventFacade {
 			} else if new_date.assume_utc().unix_timestamp()
 				< interval_start.assume_utc().unix_timestamp()
 			{
-				new_dates.push(interval_start.add(Duration::days(7)));
+				match interval_start.checked_add(Duration::days(7)) {
+					Some(new_date) => new_dates.push(new_date),
+					None => {
+						log::error!(
+							"{}",
+							format!(
+								"Failed to add {} days to {}",
+								7,
+								interval_start.assume_utc().unix_timestamp()
+							)
+						);
+						return;
+					},
+				};
 			} else {
 				new_dates.push(new_date);
 			}
@@ -969,13 +1149,39 @@ impl EventFacade {
 				new_dates.push(current_date);
 			}
 
-			current_date = current_date.add(Duration::days(7));
+			current_date = match current_date.checked_add(Duration::days(7)) {
+				Some(new_date) => new_date,
+				None => {
+					log::error!(
+						"{}",
+						format!(
+							"Failed to add {} days to {}",
+							7,
+							current_date.assume_utc().unix_timestamp()
+						)
+					);
+					return;
+				},
+			};
 
 			while current_date.assume_utc().unix_timestamp()
 				< stop_condition.assume_utc().unix_timestamp()
 			{
 				new_dates.push(current_date);
-				current_date = current_date.add(Duration::days(7));
+				current_date = match current_date.checked_add(Duration::days(7)) {
+					Some(new_date) => new_date,
+					None => {
+						log::error!(
+							"{}",
+							format!(
+								"Failed to add {} days to {}",
+								7,
+								current_date.assume_utc().unix_timestamp()
+							)
+						);
+						break;
+					},
+				};
 			}
 		}
 	}
@@ -996,7 +1202,18 @@ impl EventFacade {
 			.unwrap_or_default();
 
 		let base_date = date.replace_day(1).unwrap();
-		let stop_condition = PrimitiveDateTime::new(base_date.date().add_month(), base_date.time());
+		let Some(next_month) = base_date.date().add_month() else {
+			log::error!(
+				"{}",
+				format!(
+					"Failed to add {} months to {}",
+					1,
+					base_date.assume_utc().unix_timestamp()
+				)
+			);
+			return;
+		};
+		let stop_condition = PrimitiveDateTime::new(next_month, base_date.time());
 
 		// Calculate allowed days parsing negative values
 		// to valid days in the month. e.g -1 to 31 in JAN
@@ -1039,7 +1256,20 @@ impl EventFacade {
 						break;
 					}
 
-					new_date = new_date.sub(Duration::days(1));
+					new_date = match new_date.checked_sub(Duration::days(1)) {
+						Some(new_date) => new_date,
+						None => {
+							log::error!(
+								"{}",
+								format!(
+									"Failed to sub {} days to {}",
+									1,
+									new_date.assume_utc().unix_timestamp()
+								)
+							);
+							return;
+						},
+					};
 				}
 
 				if new_date.month() != base_date.month() {
@@ -1047,10 +1277,38 @@ impl EventFacade {
 				}
 			} else {
 				while new_date.weekday() != parsed_weekday {
-					new_date = new_date.add(Duration::days(1));
+					new_date = match new_date.checked_add(Duration::days(1)) {
+						Some(new_date) => new_date,
+						None => {
+							log::error!(
+								"{}",
+								format!(
+									"Failed to add {} days to {}",
+									1,
+									new_date.assume_utc().unix_timestamp()
+								)
+							);
+							return;
+						},
+					};
 				}
 
-				new_date = new_date.add(Duration::weeks((week_change.unsigned_abs() - 1) as i64));
+				new_date = match new_date
+					.checked_add(Duration::weeks((week_change.unsigned_abs() - 1) as i64))
+				{
+					Some(new_date) => new_date,
+					None => {
+						log::error!(
+							"{}",
+							format!(
+								"Failed to add {} weeks to {}",
+								week_change.unsigned_abs() - 1,
+								new_date.assume_utc().unix_timestamp()
+							)
+						);
+						return;
+					},
+				}
 			}
 
 			if new_date.assume_utc().unix_timestamp() >= base_date.assume_utc().unix_timestamp()
@@ -1083,7 +1341,20 @@ impl EventFacade {
 					new_dates.push(new_date)
 				}
 
-				current_date = new_date.add(Duration::days(7));
+				current_date = match new_date.checked_add(Duration::days(7)) {
+					Some(new_date) => new_date,
+					None => {
+						log::error!(
+							"{}",
+							format!(
+								"Failed to add {} days to {}",
+								7,
+								new_date.assume_utc().unix_timestamp()
+							)
+						);
+						return;
+					},
+				};
 			}
 		}
 	}
@@ -1101,38 +1372,97 @@ impl EventFacade {
 		// Go back to week start, so we don't miss any events
 		let mut interval_start = *date;
 		while interval_start.date().weekday() != week_start {
-			interval_start = interval_start.sub(Duration::days(1));
+			interval_start = match interval_start.checked_sub(Duration::days(1)) {
+				Some(some_date) => some_date,
+				None => {
+					log::error!(
+						"{}",
+						format!(
+							"Failed to sub {} days to {}",
+							1,
+							interval_start.assume_utc().unix_timestamp()
+						)
+					);
+					return;
+				},
+			};
 		}
 
 		// Move forward until we reach the target day
 		let mut new_date = interval_start;
 		while new_date.weekday() != parsed_target_week_day {
-			new_date = new_date.add(Duration::days(1))
+			new_date = match new_date.checked_add(Duration::days(1)) {
+				Some(new_date) => new_date,
+				None => {
+					log::error!(
+						"{}",
+						format!(
+							"Failed to add {} days to {}",
+							1,
+							new_date.assume_utc().unix_timestamp()
+						)
+					);
+					return;
+				},
+			};
 		}
 
 		// Calculate next event to avoid creating events too ahead in the future
-		let next_event = date.add(Duration::weeks(1)).assume_utc().unix_timestamp();
+		let next_event = match date.checked_add(Duration::weeks(1)) {
+			Some(new_date) => new_date.assume_utc().unix_timestamp(),
+			None => {
+				log::error!(
+					"{}",
+					format!(
+						"Failed to add {} weeks to {}",
+						1,
+						date.assume_utc().unix_timestamp()
+					)
+				);
+				return;
+			},
+		};
 
-		if new_date.assume_utc().unix_timestamp()
-			>= interval_start
-				.add(Duration::weeks(1))
-				.assume_utc()
-				.unix_timestamp()
-		{
+		let next_week = match interval_start.checked_add(Duration::weeks(1)) {
+			Some(next_week) => next_week.assume_utc().unix_timestamp(),
+			_ => {
+				log::error!(
+					"{}",
+					format!(
+						"Failed to add {} weeks to {}",
+						1,
+						interval_start.assume_utc().unix_timestamp()
+					)
+				);
+				return;
+			},
+		};
+
+		if new_date.assume_utc().unix_timestamp() >= next_week {
 			// The event is actually next week, so discard
 			return;
 		} else if new_date.assume_utc().unix_timestamp() < date.assume_utc().unix_timestamp() {
 			// Event is behind progenitor, go forward one week
-			new_date = new_date.add(Duration::weeks(1));
+			new_date = match new_date.checked_add(Duration::weeks(1)) {
+				Some(new_date) => new_date,
+				None => {
+					log::error!(
+						"{}",
+						format!(
+							"Failed to add {} weeks to {}",
+							1,
+							new_date.assume_utc().unix_timestamp()
+						)
+					);
+					return;
+				},
+			};
 		}
 
 		if (new_date.assume_utc().unix_timestamp() >= next_event)
 			|| (week_start != Weekday::Monday // We have WKST
             && new_date.assume_utc().unix_timestamp()
-            >= interval_start
-            .add(Duration::weeks(1))
-            .assume_utc()
-            .unix_timestamp())
+            >= next_week)
 		{
 			// Or we created an event after the first event or within the next week
 			return;
@@ -1218,29 +1548,29 @@ impl EventFacade {
 		start_date: &OffsetDateTime,
 		repeat_interval: u8,
 		repeat_period: &RepeatPeriod,
-	) -> OffsetDateTime {
+	) -> Option<OffsetDateTime> {
 		match repeat_period {
-			RepeatPeriod::Daily => start_date.add(Duration::days(repeat_interval as i64)),
-			RepeatPeriod::Weekly => start_date.add(Duration::weeks(repeat_interval as i64)),
+			RepeatPeriod::Daily => start_date.checked_add(Duration::days(repeat_interval as i64)),
+			RepeatPeriod::Weekly => start_date.checked_add(Duration::weeks(repeat_interval as i64)),
 			RepeatPeriod::Monthly => self.add_months_to_date(start_date, repeat_interval),
 			RepeatPeriod::Annually => self.add_years_to_date(start_date, repeat_interval),
 		}
 	}
 
-	fn add_years_to_date(&self, date: &OffsetDateTime, years: u8) -> OffsetDateTime {
+	fn add_years_to_date(&self, date: &OffsetDateTime, years: u8) -> Option<OffsetDateTime> {
 		self.add_months_to_date(date, years * 12)
 	}
 
-	fn add_months_to_date(&self, date: &OffsetDateTime, months: u8) -> OffsetDateTime {
+	fn add_months_to_date(&self, date: &OffsetDateTime, months: u8) -> Option<OffsetDateTime> {
 		if months == 0 {
-			return *date;
+			return Some(*date);
 		}
 
 		let mut new_date = *date;
 
 		let mut total_months = months as i64;
 		while total_months > 0 {
-			let temp_date = new_date.add(Duration::weeks(1));
+			let temp_date = new_date.checked_add(Duration::weeks(1))?;
 
 			if temp_date.month() != new_date.month() {
 				total_months -= 1;
@@ -1255,7 +1585,10 @@ impl EventFacade {
 			date.day()
 		};
 
-		new_date.replace_day(target_day).unwrap()
+		match new_date.replace_day(target_day) {
+			Ok(new_date) => Some(new_date),
+			_ => None,
+		}
 	}
 
 	pub fn is_all_day_event_by_times(event_start_time: DateTime, event_end_time: DateTime) -> bool {
@@ -1330,7 +1663,11 @@ impl EventFacade {
 
 		let birthday_date_time =
 			OffsetDateTime::new_utc(birthday_date, Time::from_hms(0, 0, 0).unwrap());
-		let end_date_time = birthday_date_time.checked_add(Duration::days(1)).unwrap();
+		let Some(end_date_time) = birthday_date_time.checked_add(Duration::days(1)) else {
+			return Err(ApiCallError::internal(
+				"Failed to calculate birthday event end".to_string(),
+			));
+		};
 
 		// Set up start and end date base on UTC.
 		// Also increments a copy of startDate by one day and set it as endDate
@@ -1425,6 +1762,7 @@ pub enum EndType {
 mod tests {
 	use super::*;
 	use crate::util::test_utils::create_test_entity;
+	use std::ops::Add;
 	use time::{Date, Month, PrimitiveDateTime, Time};
 
 	trait PrimitiveToDateTime {
@@ -1999,28 +2337,33 @@ mod tests {
 		.assume_utc();
 
 		assert_eq!(
-			event_facade.add_months_to_date(&jan_31, 1).date(),
+			event_facade.add_months_to_date(&jan_31, 1).unwrap().date(),
 			Date::from_calendar_date(2025, Month::February, 28).unwrap()
 		);
 
 		assert_eq!(
-			event_facade.add_months_to_date(&jan_31, 2).date(),
+			event_facade.add_months_to_date(&jan_31, 2).unwrap().date(),
 			Date::from_calendar_date(2025, Month::March, 31).unwrap()
 		);
 
 		assert_eq!(
-			event_facade.add_months_to_date(&jan_31, 3).date(),
+			event_facade.add_months_to_date(&jan_31, 3).unwrap().date(),
 			Date::from_calendar_date(2025, Month::April, 30).unwrap()
 		);
 
 		assert_eq!(
-			event_facade.add_months_to_date(&dec_31, 1).date(),
+			event_facade.add_months_to_date(&dec_31, 1).unwrap().date(),
 			Date::from_calendar_date(2025, Month::January, 31).unwrap()
 		);
 
 		assert_eq!(
-			event_facade.add_months_to_date(&feb_29, 12).date(),
+			event_facade.add_months_to_date(&feb_29, 12).unwrap().date(),
 			Date::from_calendar_date(2025, Month::February, 28).unwrap()
+		);
+
+		assert_eq!(
+			event_facade.add_months_to_date(&Date::MAX.midnight().assume_utc(), 12),
+			None
 		);
 	}
 
