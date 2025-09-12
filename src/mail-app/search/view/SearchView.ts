@@ -8,7 +8,7 @@ import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
-import { px, size } from "../../../common/gui/size"
+import { size } from "../../../common/gui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -940,10 +940,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				".border-radius-big.flex.col.flex-grow.content-bg",
 				{
 					class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
-					style: {
-						"min-width": styles.isDesktopLayout() ? px(size.third_col_min_width) : null,
-						"max-width": styles.isDesktopLayout() ? px(size.third_col_max_width) : null,
-					},
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
