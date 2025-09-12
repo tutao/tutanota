@@ -77,6 +77,7 @@ import {
 	MailDetailsDraftTypeRef,
 	MailFolder,
 	MailTypeRef,
+	MovedMails,
 	ReportedMailFieldMarker,
 	SendDraftData,
 	SymEncInternalRecipientKeyData,
@@ -376,18 +377,18 @@ export class MailFacade {
 	/**
 	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
 	 */
-	async moveMails(mails: readonly IdTuple[], targetFolder: IdTuple, excludeMailSet: IdTuple | null): Promise<void> {
+	async moveMails(mails: readonly IdTuple[], targetFolder: IdTuple, excludeMailSet: IdTuple | null): Promise<MovedMails[]> {
 		if (isEmpty(mails)) {
-			return
+			return []
 		}
 
 		// group by listId (for locking it on the server) because mails in the same Set can still be from different mail bags.
 		const mailsPerList = groupBy(mails, (mailId) => listIdPart(mailId))
-
+		const movedMails: MovedMails[] = []
 		for (const [_, mailsInList] of mailsPerList) {
 			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailsInList)
 			for (const mails of mailChunks) {
-				await this.serviceExecutor.post(
+				const moveMailPostOut = await this.serviceExecutor.post(
 					MoveMailService,
 					createMoveMailData({
 						mails,
@@ -395,25 +396,30 @@ export class MailFacade {
 						targetFolder,
 					}),
 				)
+				movedMails.push(...moveMailPostOut.movedMails)
 			}
 		}
+		return movedMails
 	}
 
-	async simpleMoveMails(mails: readonly IdTuple[], targetFolderKind: SimpleMoveMailTarget): Promise<void> {
+	async simpleMoveMails(mails: readonly IdTuple[], targetFolderKind: SimpleMoveMailTarget): Promise<MovedMails[]> {
 		if (isEmpty(mails)) {
-			return
+			return []
 		}
 
 		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails)
+		const movedMails: MovedMails[] = []
 		for (const mails of mailChunks) {
-			await this.serviceExecutor.post(
+			const simpleMove = await this.serviceExecutor.post(
 				SimpleMoveMailService,
 				createSimpleMoveMailPostIn({
 					mails,
 					destinationSetType: targetFolderKind,
 				}),
 			)
+			movedMails.push(...simpleMove.movedMails)
 		}
+		return movedMails
 	}
 
 	async reportMail(mail: Mail, reportType: MailReportType): Promise<void> {
