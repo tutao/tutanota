@@ -255,12 +255,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			),
 			m(
 				".ml-l.flex-grow.scroll",
-				{
-					style: {
-						"min-width": px(size.third_col_min_width),
-						"max-width": px(size.third_col_max_width),
-					},
-				},
+				{},
 				attrs.eventPreviewModel == null
 					? m(
 							".rel.flex-grow.height-100p",
