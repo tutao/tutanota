@@ -596,18 +596,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			return null
 		}
 
-		const eventPreviewModel: CalendarEventPreviewViewModel | undefined = this.viewModel.eventPreviewModel
-
 		return m(
 			".height-100p.overflow-y-scroll.mb-l.fill-absolute.pb-l",
 			m(
 				".border-radius-big.flex.col.flex-grow.content-bg",
 				{
 					class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
-					style: {
-						"min-width": styles.isDesktopLayout() ? px(size.third_col_min_width) : null,
-						"max-width": styles.isDesktopLayout() ? px(size.third_col_max_width) : null,
-					},
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: this.viewModel.eventPreviewModel,
