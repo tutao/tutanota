@@ -8,6 +8,7 @@ import { OfflineStoragePersistence } from "../../../../../mail-app/workerUtils/i
 import { MailSetKind } from "../../../common/TutanotaConstants"
 import { CacheStorage } from "../DefaultEntityRestCache"
 import { isSameId, listIdPart } from "../../../common/utils/EntityUtils"
+import { ClientClassifierType } from "../../../../../mail-app/workerUtils/spamClassification/ClientClassifierType"
 
 /**
  * Handles telling the indexer to index or un-index mail data on updates.
@@ -46,6 +47,7 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 			const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
 
 			const isStoredInSpamFolder = newMailData.mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
+			const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
 			// isStoredInSpamFolder is true
 			// this might be run multiple times for a single user if they use multiple devices
 			const predictedSpam = await mailFacade.predictSpamResult(newMailData.mail)
@@ -58,9 +60,9 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 
 			if (mailFacade.hasClassifier()) {
 				if (predictedSpam && !isStoredInSpamFolder) {
-					await mailFacade.simpleMoveMails([id], MailSetKind.SPAM)
+					await mailFacade.simpleMoveMails([id], MailSetKind.SPAM, usedClientSpamClassifier)
 				} else if (!predictedSpam && isStoredInSpamFolder) {
-					await mailFacade.simpleMoveMails([id], MailSetKind.INBOX)
+					await mailFacade.simpleMoveMails([id], MailSetKind.INBOX, usedClientSpamClassifier)
 				}
 			}
 		}

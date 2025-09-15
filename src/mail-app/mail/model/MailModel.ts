@@ -51,7 +51,6 @@ import { EntityClient } from "../../../common/api/common/EntityClient.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
-import { isMailInSpam, isSpamFolder } from "./MailChecks"
 import { TutanotaError } from "@tutao/tutanota-error"
 
 interface MailboxSets {
@@ -348,7 +347,7 @@ export class MailModel {
 	 * @param targetMailFolderKind
 	 */
 	async simpleMoveMails(mails: readonly IdTuple[], targetMailFolderKind: SimpleMoveMailTarget): Promise<void> {
-		await this.mailFacade.simpleMoveMails(mails, targetMailFolderKind)
+		await this.mailFacade.simpleMoveMails(mails, targetMailFolderKind, null)
 	}
 
 	/**
@@ -365,7 +364,7 @@ export class MailModel {
 	}
 
 	async trashMails(mails: readonly IdTuple[]): Promise<void> {
-		await this.mailFacade.simpleMoveMails(mails, MailSetKind.TRASH)
+		await this.mailFacade.simpleMoveMails(mails, MailSetKind.TRASH, null)
 	}
 
 	/**

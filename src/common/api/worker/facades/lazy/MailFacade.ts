@@ -157,6 +157,8 @@ import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificat
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
 import { SpamClassifier } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { ClientClassifierType } from "../../../../../mail-app/workerUtils/spamClassification/ClientClassifierType"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -412,7 +414,11 @@ export class MailFacade {
 		}
 	}
 
-	async simpleMoveMails(mails: readonly IdTuple[], targetFolderKind: SimpleMoveMailTarget): Promise<void> {
+	async simpleMoveMails(
+		mails: readonly IdTuple[],
+		targetFolderKind: SimpleMoveMailTarget,
+		clientSpamClassifier: Nullable<ClientClassifierType>,
+	): Promise<void> {
 		if (isEmpty(mails)) {
 			return
 		}
@@ -424,7 +430,7 @@ export class MailFacade {
 				createSimpleMoveMailPostIn({
 					mails,
 					destinationSetType: targetFolderKind,
-					moveReason: null,
+					moveReason: clientSpamClassifier,
 				}),
 			)
 		}
