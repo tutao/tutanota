@@ -1,5 +1,4 @@
 import { mp } from "./DesktopMonkeyPatch"
-import { err } from "./DesktopErrorHandler"
 import { DesktopConfig } from "./config/DesktopConfig"
 import * as electron from "electron"
 import { app, type Session } from "electron"
@@ -80,6 +79,7 @@ import { ClientModelInfo } from "../api/common/EntityFunctions"
 import { CommandExecutor } from "./CommandExecutor"
 import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { SuspensionHandler } from "../api/worker/SuspensionHandler"
+import { DesktopErrorHandler } from "./DesktopErrorHandler"
 
 mp()
 
@@ -104,7 +104,8 @@ type Components = {
 	readonly credentialsEncryption: NativeCredentialsFacade
 }
 const tfs = new TempFs(fs, electron, cryptoFns)
-const desktopUtils = new DesktopUtils(process.argv, tfs, electron)
+const commandExecutor = new CommandExecutor(child_process)
+const desktopUtils = new DesktopUtils(process, tfs, electron, commandExecutor)
 // Argon2 is already built for the web part, we don't need to have another copy.
 const loadArgon2 = async () => {
 	const wasmSourcePath = path.join(electron.app.getAppPath(), "argon2.wasm")
@@ -147,6 +148,8 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 } else {
 	createComponents().then(startupInstance)
 }
+
+const err: DesktopErrorHandler = new DesktopErrorHandler(desktopUtils)
 
 async function createComponents(): Promise<Components> {
 	const en = (await import("../../mail-app/translations/en.js")).default
@@ -289,7 +292,6 @@ async function createComponents(): Promise<Components> {
 		nativeInstancePipeline,
 		clientModelInfo,
 	)
-	const commandExecutor = new CommandExecutor(child_process)
 
 	// It should be ok to await this, all we are waiting for is dynamic imports
 	const integrator = await getDesktopIntegratorForPlatform(
@@ -394,7 +396,7 @@ async function startupInstance(components: Components) {
 async function onAppReady(components: Components) {
 	const { wm, keyStoreFacade, conf } = components
 	// We await for it to not open any windows on top of keychain dialogs
-	await unlockDeviceKeychain(keyStoreFacade, wm, conf)
+	await unlockDeviceKeychain(keyStoreFacade, wm, conf, desktopUtils)
 	app.on("window-all-closed", async () => {
 		if (!(await conf.getVar(DesktopConfigKey.runAsTrayApp))) {
 			app.quit()
@@ -447,7 +449,7 @@ function manageDownloadsForSession(session: Session, dictUrl: string) {
 		.on("spellcheck-dictionary-download-failure", (ev, lcode) => log.debug(TAG, "spellcheck-dictionary-download-failure", lcode))
 }
 
-async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: WindowManager, conf: DesktopConfig) {
+async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: WindowManager, conf: DesktopConfig, utils: DesktopUtils) {
 	await keyStoreFacade.getDeviceKey().catch(async () => {
 		const { response } = await electron.dialog.showMessageBox({
 			type: "error",
@@ -465,7 +467,7 @@ async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: W
 			case 0:
 				break
 			case 1:
-				app.relaunch()
+				utils.relaunch()
 				for (const window of wm.getAll()) {
 					log.debug("Closing window ", window.id)
 					// ideally we would destroy the window but it leads to obscure segfaults
@@ -481,7 +483,7 @@ async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: W
 				log.debug("App exited")
 				break
 			case 2:
-				app.relaunch()
+				utils.relaunch()
 				app.quit()
 				break
 			default:

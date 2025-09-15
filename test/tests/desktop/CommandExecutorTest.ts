@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { Captor, matchers, object, when } from "testdouble"
-import { CommandExecutor, ProcessIOEncoding, ProcessParams } from "../../../src/common/desktop/CommandExecutor"
+import { CommandExecutor, ProcessIOEncoding, RunParams } from "../../../src/common/desktop/CommandExecutor"
 import { ChildProcessExports } from "../../../src/common/desktop/ElectronExportTypes"
 import { ChildProcessWithoutNullStreams } from "node:child_process"
 import { Readable } from "node:stream"
@@ -44,7 +44,7 @@ o.spec("CommandExecutor", () => {
 
 	o.spec("run with output", () => {
 		o.test("string data", async () => {
-			const params: ProcessParams = {
+			const params: RunParams = {
 				executable: "some executable",
 				args: ["some", "args"],
 				// this is the default
@@ -66,7 +66,7 @@ o.spec("CommandExecutor", () => {
 			o.check(result.exitCode).equals(0)
 		})
 		o.test("binary", async () => {
-			const params: ProcessParams<ProcessIOEncoding.Binary> = {
+			const params: RunParams<ProcessIOEncoding.Binary> = {
 				executable: "some executable",
 				args: ["some", "args"],
 				stdoutEncoding: ProcessIOEncoding.Binary,
@@ -87,7 +87,7 @@ o.spec("CommandExecutor", () => {
 			o.check(result.exitCode).equals(0)
 		})
 		o.test("ignored", async () => {
-			const params: ProcessParams<ProcessIOEncoding.Ignore> = {
+			const params: RunParams<ProcessIOEncoding.Ignore> = {
 				executable: "some executable",
 				args: ["some", "args"],
 				stdoutEncoding: ProcessIOEncoding.Ignore,
@@ -111,7 +111,7 @@ o.spec("CommandExecutor", () => {
 
 	o.spec("run with stderr", () => {
 		o.test("default/string data", async () => {
-			const params: ProcessParams<ProcessIOEncoding.Ignore> = {
+			const params: RunParams<ProcessIOEncoding.Ignore> = {
 				executable: "some executable",
 				args: ["some", "args"],
 				stdoutEncoding: ProcessIOEncoding.Ignore,
@@ -134,7 +134,7 @@ o.spec("CommandExecutor", () => {
 			o.check(result.exitCode).equals(0)
 		})
 		o.test("binary", async () => {
-			const params: ProcessParams<ProcessIOEncoding.Ignore, ProcessIOEncoding.Binary> = {
+			const params: RunParams<ProcessIOEncoding.Ignore, ProcessIOEncoding.Binary> = {
 				executable: "some executable",
 				args: ["some", "args"],
 				stdoutEncoding: ProcessIOEncoding.Ignore,
@@ -156,7 +156,7 @@ o.spec("CommandExecutor", () => {
 			o.check(result.exitCode).equals(0)
 		})
 		o.test("ignored", async () => {
-			const params: ProcessParams<ProcessIOEncoding.Ignore, ProcessIOEncoding.Ignore> = {
+			const params: RunParams<ProcessIOEncoding.Ignore, ProcessIOEncoding.Ignore> = {
 				executable: "some executable",
 				args: ["some", "args"],
 				stdoutEncoding: ProcessIOEncoding.Ignore,
@@ -180,7 +180,7 @@ o.spec("CommandExecutor", () => {
 	})
 
 	o.test("returns exit code", async () => {
-		const params: ProcessParams = {
+		const params: RunParams = {
 			executable: "some executable",
 			args: ["some", "args"],
 			stdoutEncoding: ProcessIOEncoding.Utf8,
@@ -200,7 +200,7 @@ o.spec("CommandExecutor", () => {
 	})
 
 	o.test("error", async () => {
-		const params: ProcessParams = {
+		const params: RunParams = {
 			executable: "some executable",
 			args: ["some", "args"],
 			stdoutEncoding: ProcessIOEncoding.Utf8,
