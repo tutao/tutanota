@@ -1377,3 +1377,12 @@ export function asPublicKeySignatureType(maybe: NumberString): PublicKeySignatur
 	}
 	throw new Error("bad public key signature type")
 }
+
+export enum DeactivationReason {
+	UserRequest,
+	AntiSpam,
+	Unused,
+	PaymentDispute,
+	Custom,
+	MassSignup,
+}
