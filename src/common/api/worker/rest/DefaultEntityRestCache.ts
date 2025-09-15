@@ -8,7 +8,7 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isNotEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -633,17 +633,20 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const elementsToAdd = wasReverseRequest ? receivedEntities.reverse() : receivedEntities
 		const firstElementToAddIndexWithError = elementsToAdd.findIndex((elementToAdd) => hasError(elementToAdd))
 		const elementsToAddWithoutErrors = firstElementToAddIndexWithError !== -1 ? elementsToAdd.slice(0, firstElementToAddIndexWithError) : elementsToAdd
-		const elementsToAddWithoutErrorsCount = elementsToAddWithoutErrors.length
+
 		await this.storage.putMultiple(typeRef, elementsToAddWithoutErrors)
 
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const isCustomId = isCustomIdType(await this.typeModelResolver.resolveClientTypeReference(typeRef))
+
+		const isFinishedLoading = elementsToAddWithoutErrors.length === receivedEntities.length && receivedEntities.length < countRequested
 		if (wasReverseRequest) {
 			// Ensure that elements are cached in ascending (not reverse) order
-			if (elementsToAddWithoutErrorsCount === receivedEntities.length && receivedEntities.length < countRequested) {
+			if (isFinishedLoading) {
 				console.log("finished loading, setting min id")
 				await this.storage.setLowerRangeForList(typeRef, listId, isCustomId ? CUSTOM_MIN_ID : GENERATED_MIN_ID)
-			} else {
+			} else if (isNotEmpty(elementsToAddWithoutErrors)) {
+				// elementsToAddWithoutErrors can be empty when the first element has errors, if so, do nothing
 				// After reversing the list the first element in the list is the lower range limit
 				await this.storage.setLowerRangeForList(
 					typeRef,
@@ -653,11 +656,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 		} else {
 			// Last element in the list is the upper range limit
-			if (elementsToAddWithoutErrorsCount === receivedEntities.length && receivedEntities.length < countRequested) {
+			if (isFinishedLoading) {
 				// all elements have been loaded, so the upper range must be set to MAX_ID
 				console.log("finished loading, setting max id")
 				await this.storage.setUpperRangeForList(typeRef, listId, isCustomId ? CUSTOM_MAX_ID : GENERATED_MAX_ID)
-			} else {
+			} else if (isNotEmpty(elementsToAddWithoutErrors)) {
+				// elementsToAddWithoutErrors can be empty when the first element has errors. if so, do nothing
 				await this.storage.setUpperRangeForList(
 					typeRef,
 					listId,
