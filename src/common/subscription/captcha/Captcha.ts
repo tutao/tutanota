@@ -114,8 +114,14 @@ export async function runCaptchaFlow({
 						powChallengeSolution,
 					})
 				} else if (e instanceof AccessExpiredError) {
-					await Dialog.message("createAccountAccessDeactivated_msg")
-					return null
+					await Dialog.message("requestTimeout_msg")
+					return runCaptchaFlow({
+						mailAddress,
+						isBusinessUse,
+						isPaidSubscription,
+						campaignToken,
+						powChallengeSolution,
+					})
 				} else {
 					throw e
 				}
