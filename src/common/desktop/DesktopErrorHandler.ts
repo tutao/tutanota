@@ -5,6 +5,7 @@ import path from "node:path"
 import os from "node:os"
 import type { WindowManager } from "./DesktopWindowManager"
 import { log } from "./DesktopLog"
+import { DesktopUtils } from "./DesktopUtils"
 
 type ErrorLog = {
 	name: string
@@ -20,7 +21,7 @@ export class DesktopErrorHandler {
 	lastErrorLog: ErrorLog | null = null
 	private _showingErrorDialog: boolean
 
-	constructor() {
+	constructor(private readonly utils: DesktopUtils) {
 		this._errorLogPath = path.join(app.getPath("userData"), "lasterror.log")
 		this._showingErrorDialog = false
 	}
@@ -88,10 +89,7 @@ export class DesktopErrorHandler {
 					if (checkboxChecked) {
 						log.debug("writing error log to", this._errorLogPath)
 						fs.writeFileSync(this._errorLogPath, this.lastErrorLog ? JSON.stringify(this.lastErrorLog) : "")
-						app.relaunch({
-							args: process.argv.slice(1),
-						})
-						app.exit(0)
+						this.utils.relaunch()
 					} else {
 						const loggedInWindow = this.wm.getAll().find((w) => w.getUserId() != null)
 
@@ -128,5 +126,3 @@ export class DesktopErrorHandler {
 		})
 	}
 }
-
-export const err: DesktopErrorHandler = new DesktopErrorHandler()
