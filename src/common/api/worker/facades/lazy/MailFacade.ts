@@ -400,6 +400,7 @@ export class MailFacade {
 						mails,
 						excludeMailSet,
 						targetFolder,
+						moveReason: null,
 					}),
 				)
 			}
@@ -418,6 +419,7 @@ export class MailFacade {
 				createSimpleMoveMailPostIn({
 					mails,
 					destinationSetType: targetFolderKind,
+					moveReason: null,
 				}),
 			)
 		}

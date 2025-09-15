@@ -138,6 +138,7 @@ export class InboxRuleHandler {
 							targetFolder: inboxRule.targetFolder,
 							mails: [mail._id],
 							excludeMailSet: null,
+							moveReason: null,
 						})
 						moveMailDataPerFolder.push(moveMailData)
 					}

@@ -112,6 +112,7 @@ impl MailFacade {
 						_format: 0,
 						destinationSetType: folder_type as i64,
 						mails: mail.to_vec(),
+						moveReason: None,
 					},
 					Default::default(),
 				)
@@ -357,11 +358,13 @@ mod tests {
 			_format: 0,
 			mails: mails[..50].to_vec(),
 			destinationSetType: MailSetKind::Trash as i64,
+			moveReason: None,
 		};
 		let second_invocation = SimpleMoveMailPostIn {
 			_format: 0,
 			mails: mails[50..].to_vec(),
 			destinationSetType: MailSetKind::Trash as i64,
+			moveReason: None,
 		};
 
 		executor
@@ -395,6 +398,7 @@ mod tests {
 			_format: 0,
 			mails: vec![mails[0].clone()],
 			destinationSetType: MailSetKind::Trash as i64,
+			moveReason: None,
 		};
 		executor
 			.expect_post::<SimpleMoveMailService>()
@@ -416,6 +420,7 @@ mod tests {
 			_format: 0,
 			mails: mails.clone(),
 			destinationSetType: MailSetKind::Trash as i64,
+			moveReason: None,
 		};
 		executor
 			.expect_post::<SimpleMoveMailService>()
