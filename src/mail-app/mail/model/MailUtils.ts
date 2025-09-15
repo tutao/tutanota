@@ -1,11 +1,9 @@
 import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
 import { Header, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { assertNotNull, contains, first, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, first } from "@tutao/tutanota-utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { UserController } from "../../../common/api/main/UserController.js"
-import { getEnabledMailAddressesForGroupInfo } from "../../../common/api/common/utils/GroupUtils.js"
-import { ReplyType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import { MailSetKind, ReplyType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId, sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
 
 export type FolderInfo = { level: number; folder: MailFolder }
@@ -13,25 +11,31 @@ export const MAX_FOLDER_INDENT_LEVEL = 10
 
 export function getFolderName(folder: MailFolder): string {
 	switch (folder.folderType) {
-		case "0":
+		case MailSetKind.CUSTOM:
 			return folder.name
+		default:
+			return getSystemFolderName(folder.folderType as MailSetKind)
+	}
+}
 
-		case "1":
+export function getSystemFolderName(folderType: MailSetKind): string {
+	switch (folderType) {
+		case MailSetKind.INBOX:
 			return lang.get("received_action")
 
-		case "2":
+		case MailSetKind.SENT:
 			return lang.get("sent_action")
 
-		case "3":
+		case MailSetKind.TRASH:
 			return lang.get("trash_action")
 
-		case "4":
+		case MailSetKind.ARCHIVE:
 			return lang.get("archive_label")
 
-		case "5":
+		case MailSetKind.SPAM:
 			return lang.get("spam_action")
 
-		case "6":
+		case MailSetKind.DRAFT:
 			return lang.get("draft_action")
 
 		default:
