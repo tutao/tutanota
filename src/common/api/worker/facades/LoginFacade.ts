@@ -28,7 +28,7 @@ import {
 	TakeOverDeletedAddressService,
 	VerifierTokenService,
 } from "../../entities/sys/Services"
-import { asKdfType, CloseEventBusOption, Const, DEFAULT_KDF_TYPE, KdfType, RolloutType } from "../../common/TutanotaConstants"
+import { asKdfType, CloseEventBusOption, Const, DeactivationReason, DEFAULT_KDF_TYPE, KdfType, RolloutType } from "../../common/TutanotaConstants"
 import {
 	Challenge,
 	createChangeKdfPostIn,
@@ -1032,7 +1032,7 @@ export class LoginFacade {
 		const passwordKey = await this.deriveUserPassphraseKey(passphraseKeyData)
 		const deleteCustomerData = createDeleteCustomerData({
 			authVerifier: createAuthVerifier(passwordKey),
-			reason: null,
+			reason: DeactivationReason.UserRequest.toString(),
 			formattedReason: null,
 			takeoverMailAddress: null,
 			undelete: false,
