@@ -61,7 +61,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		const groupIds = await locator.groupManagementFacade.loadTeamGroupIds()
 		console.log("groupIds for this user :: ", groupIds)
 
-		let memberships = getUserGroupMemberships(locator.logins.getUserController().user, GroupType.Mail)
+		let memberships = getUserGroupMemberships(locator.logins.getUserController().user, GroupType.File)
 		console.log("groupMemberships:: for this user :: ", memberships)
 
 		let fileGroupMembership = memberships[0]
@@ -77,11 +77,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		//random.addStaticEntropy(Uint8Array.from([10, 50, 90, 30]))
 		const aStupidKey = [0, 1, 2, 3, 4, 5, 6, 7]
 
-		const blobReferenceTokenWrappers = await blobFacade.encryptAndUpload(
-			ArchiveDataType.Attachments,
-			(files[0] as DataFile).data /*FileUri*/,
-			assertNotNull(ownerGroupId),
-			aStupidKey,
+		const blobReferenceTokenWrappers = await Promise.all(
+			files.map((f: DataFile) => blobFacade.encryptAndUpload(ArchiveDataType.DriveFile, f.data /*FileUri*/, assertNotNull(ownerGroupId), aStupidKey)),
 		)
 		console.log(`received ::`, blobReferenceTokenWrappers)
 	}

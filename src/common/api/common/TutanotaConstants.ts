@@ -1247,6 +1247,8 @@ export const enum ArchiveDataType {
 	AuthorityRequests = "0",
 	Attachments = "1",
 	MailDetails = "2",
+	ErrorReports = "3",
+	DriveFile = "4",
 }
 
 export const OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 31
