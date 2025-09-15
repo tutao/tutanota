@@ -1,20 +1,12 @@
+const INITIAL_MAX_VOCABULARY_SIZE = 5000
+
 export class TfIdfVectorizer {
 	// VisibleForTesting
-	readonly vocabulary: string[] = []
+	private termToIndex: Map<string, number> = new Map()
 	// VisibleForTesting
-	readonly termToIndex: Map<string, number> = new Map()
-	// VisibleForTesting
-	readonly inverseDocumentFrequencies: number[] = []
+	private inverseDocumentFrequencies: number[] = []
 
-	constructor(
-		docIds: string[],
-		tokenizedDocuments: Array<ReadonlyArray<string>>,
-		private readonly maxVocabSize: number = 1000,
-	) {
-		if (docIds.length !== tokenizedDocuments.length) {
-			throw new Error("docIds and tokenizedDocuments must have the same length")
-		}
-
+	static getTermToDocumentFrequency(tokenizedDocuments: Array<ReadonlyArray<string>>) {
 		const termToDocumentFrequency: Map<string, number> = new Map()
 
 		for (const doc of tokenizedDocuments) {
@@ -23,11 +15,33 @@ export class TfIdfVectorizer {
 			}
 		}
 
+		return termToDocumentFrequency
+	}
+
+	static generateVocabulary(tokenizedDocuments: Array<ReadonlyArray<string>>) {
+		const termToDocumentFrequency = this.getTermToDocumentFrequency(tokenizedDocuments)
+
 		const sortedTerms = Array.from(termToDocumentFrequency.entries())
 			.sort((a, b) => b[1] - a[1])
-			.slice(0, this.maxVocabSize)
+			.slice(0, INITIAL_MAX_VOCABULARY_SIZE)
 
-		this.vocabulary = sortedTerms.map(([term]) => term)
+		const vocabulary = sortedTerms.map(([term]) => term)
+		return vocabulary
+	}
+
+	constructor(
+		docIds: string[],
+		tokenizedDocuments: Array<ReadonlyArray<string>>,
+		readonly vocabulary: Array<string>,
+		readonly max_length: number = INITIAL_MAX_VOCABULARY_SIZE,
+	) {
+		if (docIds.length !== tokenizedDocuments.length) {
+			throw new Error("docIds and tokenizedDocuments must have the same length")
+		}
+
+		//TODO: Find a way to not need to re-create these term frequencies and assign them multiple times.
+		const termToDocumentFrequency = TfIdfVectorizer.getTermToDocumentFrequency(tokenizedDocuments)
+
 		this.termToIndex = new Map(this.vocabulary.map((term, index) => [term, index]))
 
 		const numDocuments = tokenizedDocuments.length
@@ -37,6 +51,27 @@ export class TfIdfVectorizer {
 		})
 	}
 
+	public expandVocabulary(newVocabulary: ReadonlyArray<string>) {
+		for (const token of newVocabulary) {
+			if (!this.termToIndex.get(token) && this.vocabulary.length < this.max_length) {
+				this.vocabulary.push(token)
+			}
+		}
+		// TODO: we need to update the frequency after expanding the vocabulary
+		this.generateIndexAndFrequency()
+	}
+
+	private generateIndexAndFrequency() {
+		this.termToIndex = new Map(this.vocabulary.map((term, index) => [term, index]))
+
+		// const numDocuments = tokenizedDocuments.length
+		// this.inverseDocumentFrequencies = this.vocabulary.map((term) => {
+		// 	const documentFrequencyForTerm = termToDocumentFrequency.get(term) || 0
+		// 	return Math.log((numDocuments + 1) / (documentFrequencyForTerm + 1)) + 1
+		// })
+	}
+
+	//retrain()
 	public transform(tokenizedDocuments: Array<ReadonlyArray<string>>): number[][] {
 		return tokenizedDocuments.map((doc) => this.vectorize(doc))
 	}
@@ -44,7 +79,7 @@ export class TfIdfVectorizer {
 	public vectorize(tokenizedText: ReadonlyArray<string>): number[] {
 		const termCounts: Map<string, number> = this.countTermFrequencies(tokenizedText)
 
-		const vector = new Array(this.vocabulary.length).fill(0)
+		const vector = new Array(this.max_length).fill(0)
 
 		for (const [term, count] of termCounts.entries()) {
 			const index = this.termToIndex.get(term)

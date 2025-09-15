@@ -6,7 +6,7 @@ import { SpamClassificationRow, SpamClassifier } from "../../../../../../src/mai
 import { tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
-import { arrayHashUnsigned, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { arrayEquals, arrayHashUnsigned, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 
 async function enumerateDir(rootDir, files: string[] = []): Promise<string[]> {
 	const entries = await fs.promises.readdir(rootDir, { withFileTypes: true })
@@ -137,5 +137,69 @@ o.spec("SpamClassifier", () => {
 				console.log(`tested in ${Date.now() - start}ms`)
 			}
 		}
+	})
+
+	o("Test fit and refit.", async () => {
+		o.timeout(20_000_000)
+
+		const customDatasetCsv = "spam_dataset.csv"
+		const { hamData, spamData } = await parseCustomDataset(customDatasetCsv)
+
+		console.log("Ham count:" + hamData.length)
+		console.log("Spam count:" + spamData.length)
+		const hamSlice = hamData.slice(0, 500)
+		const spamSlice = spamData.slice(0, 500)
+
+		const mockOfflineStorage = object() as OfflineStoragePersistence
+		mockOfflineStorage.tokenize = async (text) => {
+			return testTokenize(text)
+		}
+
+		const data = hamSlice.concat(spamSlice)
+		const { trainSet, testSet } = shuffleArray(data, 0.2)
+		const trainSetHalf = trainSet.slice(0, trainSet.length / 2)
+		const trainSetSecondHalf = trainSet.slice(trainSet.length / 2, trainSet.length)
+
+		const classifierAll = new SpamClassifier(mockOfflineStorage)
+		let start = Date.now()
+		await classifierAll.initialTraining(trainSet)
+		console.log(`trained in ${Date.now() - start}ms`)
+
+		start = Date.now()
+		console.log(` Result when testing with 0-200 mails in one go.`)
+		await classifierAll.test(testSet)
+		console.log(`tested in ${Date.now() - start}ms`)
+		let weightsAll = await classifierAll.getWeightData()
+		console.log("wei?", weightsAll)
+
+		mockOfflineStorage.getSpamClassificationTrainingDataAfterCutoff = async (cutoff) => {
+			return trainSetSecondHalf
+		}
+		const classifierBySteps = new SpamClassifier(mockOfflineStorage)
+		start = Date.now()
+		await classifierBySteps.initialTraining(trainSetHalf)
+		await classifierBySteps.updateModel(0)
+		let weights = await classifierBySteps.getWeightData()
+		console.log("wei?", weights)
+		console.log(`trained in ${Date.now() - start}ms`)
+		console.log("THE #### ARE EQUAL?", arrayEquals(weights, weightsAll))
+
+		start = Date.now()
+		console.log(` Result when testing with 0-200 mails in two steps.`)
+		await classifierBySteps.test(testSet)
+		console.log(`tested in ${Date.now() - start}ms`)
+
+		const classiOnlySecondHalf = new SpamClassifier(mockOfflineStorage)
+		start = Date.now()
+		await classiOnlySecondHalf.initialTraining(trainSetSecondHalf)
+		console.log(`trained in ${Date.now() - start}ms`)
+
+		start = Date.now()
+		console.log(` Result when testing with 100-200 mails.`)
+		await classiOnlySecondHalf.test(testSet)
+		console.log(`tested in ${Date.now() - start}ms`)
+		let weightSecond = await classiOnlySecondHalf.getWeightData()
+		console.log("wei?", weightSecond)
+		console.log("THE #### ARE EQUAL?", arrayEquals(weights, weightSecond))
 	})
 })
