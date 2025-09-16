@@ -2,12 +2,11 @@ import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
 import { promiseMap } from "@tutao/tutanota-utils"
-import { HashingVectorizer } from "./HashingVectorizer"
+import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 
 assertWorkerOrNode()
 
 export type SpamClassificationRow = {
-	rowid: string
 	subject: string
 	body: string
 	isSpam: boolean
@@ -21,7 +20,8 @@ export type SpamClassificationModel = {
 
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
-	private hashingVectorizer: HashingVectorizer = new HashingVectorizer()
+	// private hashingVectorizer: HashingVectorizer = new HashingVectorizer()
+	public dynamicTfVectorizer: DynamicTfVectorizer = new DynamicTfVectorizer()
 
 	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
 
@@ -32,7 +32,7 @@ export class SpamClassifier {
 			console.log("No existing model found. Training from scratch...")
 			const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
 			await this.initialTraining(data)
-			await this.saveModel()
+			//await this.saveModel()
 			return true
 		}
 	}
@@ -57,13 +57,13 @@ export class SpamClassifier {
 			}
 
 			const tokenizedBatchDocuments = await promiseMap(batchDocuments, (d) => this.offlineStorage.tokenize(d))
-			const vectors = this.hashingVectorizer.transform(tokenizedBatchDocuments)
-			const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
+			const vectors = this.dynamicTfVectorizer.transform(tokenizedBatchDocuments)
+			const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])
 			const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
 
 			await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32 })
 
-			await this.saveModel()
+			// await this.saveModel()
 			return true
 		} catch (e) {
 			console.error("Failed when trying to update the model:", e)
@@ -71,12 +71,13 @@ export class SpamClassifier {
 		}
 	}
 
-	//visibleForTesting
+	// visibleForTesting
 	public async initialTraining(data: SpamClassificationRow[]): Promise<void> {
 		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
 		const tokenizedDocuments = await promiseMap(documents, (d) => this.offlineStorage.tokenize(d))
-		const vectors = this.hashingVectorizer.transform(tokenizedDocuments)
-		const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
+		this.dynamicTfVectorizer.generateVocabulary(tokenizedDocuments)
+		const vectors = this.dynamicTfVectorizer.transform(tokenizedDocuments)
+		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		this.classifier = this.buildModel(xs.shape[1])
@@ -97,7 +98,7 @@ export class SpamClassifier {
 		}
 
 		const tokenizedInput = await this.offlineStorage.tokenize(subjectAndBody)
-		const vector = this.hashingVectorizer.vectorize(tokenizedInput)
+		const vector = this.dynamicTfVectorizer.vectorize(tokenizedInput)
 		const xs = tf.tensor2d([vector], [1, vector.length])
 		const pred = (await (this.classifier.predict(xs) as tf.Tensor).data())[0]
 
@@ -185,34 +186,34 @@ export class SpamClassifier {
 	// fixme we're now saving the same information in 3 places (mail_index, spam_classification in OfflineStoragePersistence + mail and details in OfflineStorage).
 	// fixme on current master we only have 2 places (mail index table + mail and details in odb). This is unnecessary and should be optimized before merge
 	// fixme add IsSpam column to mail_index?
-	private async saveModel(): Promise<void> {
-		if (!this.classifier) {
-			return
-		}
-
-		await this.classifier.save(
-			tf.io.withSaveHandler(async (artifacts) => {
-				const modelTopology = JSON.stringify(artifacts.modelTopology)
-
-				const weightSpecs = JSON.stringify(artifacts.weightSpecs)
-
-				const weightData = new Uint8Array(artifacts.weightData as ArrayBuffer)
-
-				await this.offlineStorage.putSpamClassificationModel({
-					modelTopology,
-					weightSpecs,
-					weightData,
-				})
-
-				return {
-					modelArtifactsInfo: {
-						dateSaved: new Date(),
-						modelTopologyType: "JSON",
-					},
-				}
-			}),
-		)
-	}
+	// private async saveModel(): Promise<void> {
+	// 	if (!this.classifier) {
+	// 		return
+	// 	}
+	//
+	// 	await this.classifier.save(
+	// 		tf.io.withSaveHandler(async (artifacts) => {
+	// 			const modelTopology = JSON.stringify(artifacts.modelTopology)
+	//
+	// 			const weightSpecs = JSON.stringify(artifacts.weightSpecs)
+	//
+	// 			const weightData = new Uint8Array(artifacts.weightData as ArrayBuffer)
+	//
+	// 			await this.offlineStorage.putSpamClassificationModel({
+	// 				modelTopology,
+	// 				weightSpecs,
+	// 				weightData,
+	// 			})
+	//
+	// 			return {
+	// 				modelArtifactsInfo: {
+	// 					dateSaved: new Date(),
+	// 					modelTopologyType: "JSON",
+	// 				},
+	// 			}
+	// 		}),
+	// 	)
+	// }
 
 	private async loadModel(): Promise<void> {
 		const model = await this.offlineStorage.getSpamClassificationModel()

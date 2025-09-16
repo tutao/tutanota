@@ -6,7 +6,7 @@ import { SpamClassificationRow, SpamClassifier } from "../../../../../../src/mai
 import { tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
-import { arrayEquals, arrayHashUnsigned, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { arrayHashUnsigned, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 
 async function enumerateDir(rootDir, files: string[] = []): Promise<string[]> {
 	const entries = await fs.promises.readdir(rootDir, { withFileTypes: true })
@@ -20,22 +20,32 @@ async function enumerateDir(rootDir, files: string[] = []): Promise<string[]> {
 	return files
 }
 
-async function readMailData(externalSpamPath: string, isSpam: boolean): Promise<SpamClassificationRow[]> {
-	const files = await enumerateDir(externalSpamPath)
-	let data: SpamClassificationRow[] = []
-	for (const filePath of files) {
-		const file = await fs.promises.readFile(filePath)
-		const csv = parseCsv(file.toString())
-		const [subject, body] = csv.rows[1]
-		data.push({
-			rowid: "0",
+async function readMailData(filePath: string): Promise<{ spamData: SpamClassificationRow[]; hamData: SpamClassificationRow[] }> {
+	const file = await fs.promises.readFile(filePath)
+	const csv = parseCsv(file.toString())
+
+	let spamData: SpamClassificationRow[] = []
+	let hamData: SpamClassificationRow[] = []
+	for (const row of csv.rows.slice(1)) {
+		let isSpam: boolean
+		if (row[1] == "ham") isSpam = true
+		else if (row[1] == "spam") isSpam = false
+		else {
+			throw new Error("Incorrect label: " + row[1])
+		}
+
+		const lines = row[2].split("\n")
+		const subject: string = lines[0].split(":").splice(1).join("")
+		const body: string = lines.slice(1).join("\n")
+		const targetData = isSpam ? spamData : hamData
+		targetData.push({
 			subject,
 			body,
 			isSpam,
 		})
 	}
 
-	return data
+	return { spamData, hamData }
 }
 
 function shuffleArray(
@@ -63,51 +73,12 @@ function shuffleArray(
 	return { trainSet: trainIndicesArray, testSet: testIndicesArray }
 }
 
-// TODO: remove randomness from tensorflow
-// Change dimension
-// Change tensorflow inner layers
-async function parseCustomDataset(customDataset: string) {
-	const file = await fs.promises.readFile(customDataset)
-	const csv = parseCsv(file.toString())
-	let spamData: any[] = []
-	let hamData: any[] = []
-	for (let i = 1; i < csv.rows.length; i++) {
-		const isSpam = csv.rows[i][0] === "spam"
-		const subject = ""
-		const body = csv.rows[i][1]
-		if (isSpam) {
-			spamData.push({
-				rowid: "0",
-				subject,
-				body,
-				isSpam,
-			})
-		} else {
-			hamData.push({
-				rowid: "0",
-				subject,
-				body,
-				isSpam,
-			})
-		}
-	}
-	return { hamData, spamData }
-}
-
 // Initial training (cutoff by day or amount)
 o.spec("SpamClassifier", () => {
 	o("Test Classification on external mail data", async () => {
 		o.timeout(20_000_000)
 
-		const externalSpamPath = "csvspam/"
-		const externalHamPath = "csvham/"
-
-		//const spamData = await readMailData(externalSpamPath, true)
-		//const hamData = await readMailData(externalHamPath, false)
-
-		const customDatasetCsv = "spam_dataset.csv"
-		const { hamData, spamData } = await parseCustomDataset(customDatasetCsv)
-
+		const { spamData, hamData } = await readMailData("/home/sug/Downloads/spam-ham/spam_ham_dataset.csv")
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 		for (let hamCount = 1000; hamCount <= 1000; hamCount += 400) {
@@ -121,14 +92,15 @@ o.spec("SpamClassifier", () => {
 				}
 
 				const data = hamSlice.concat(spamSlice)
-				//const { trainSet, testSet } = shuffleArray(data, 0.2)
-				const { trainSet } = shuffleArray(data, 0.2)
-				const { testSet } = shuffleArray(spamData.concat(hamData), 0.4)
+				const { trainSet, testSet } = shuffleArray(data, 0.2)
+				// const { trainSet } = shuffleArray(data, 0.2)
+				// const { testSet } = shuffleArray(spamData.concat(hamData), 0.4)
 
 				const classifier = new SpamClassifier(mockOfflineStorage)
 
 				let start = Date.now()
 				await classifier.initialTraining(trainSet)
+				console.log("Vocab: " + classifier.dynamicTfVectorizer.vocabulary.length)
 				console.log(`trained in ${Date.now() - start}ms`)
 
 				start = Date.now()
@@ -142,9 +114,7 @@ o.spec("SpamClassifier", () => {
 	o("Test fit and refit.", async () => {
 		o.timeout(20_000_000)
 
-		const customDatasetCsv = "spam_dataset.csv"
-		const { hamData, spamData } = await parseCustomDataset(customDatasetCsv)
-
+		const { spamData, hamData } = await readMailData("/home/sug/Downloads/spam-ham/spam_ham_dataset.csv")
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 		const hamSlice = hamData.slice(0, 500)
@@ -169,8 +139,6 @@ o.spec("SpamClassifier", () => {
 		console.log(` Result when testing with 0-200 mails in one go.`)
 		await classifierAll.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
-		let weightsAll = await classifierAll.getWeightData()
-		console.log("wei?", weightsAll)
 
 		mockOfflineStorage.getSpamClassificationTrainingDataAfterCutoff = async (cutoff) => {
 			return trainSetSecondHalf
@@ -179,10 +147,7 @@ o.spec("SpamClassifier", () => {
 		start = Date.now()
 		await classifierBySteps.initialTraining(trainSetHalf)
 		await classifierBySteps.updateModel(0)
-		let weights = await classifierBySteps.getWeightData()
-		console.log("wei?", weights)
 		console.log(`trained in ${Date.now() - start}ms`)
-		console.log("THE #### ARE EQUAL?", arrayEquals(weights, weightsAll))
 
 		start = Date.now()
 		console.log(` Result when testing with 0-200 mails in two steps.`)
@@ -198,8 +163,5 @@ o.spec("SpamClassifier", () => {
 		console.log(` Result when testing with 100-200 mails.`)
 		await classiOnlySecondHalf.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
-		let weightSecond = await classiOnlySecondHalf.getWeightData()
-		console.log("wei?", weightSecond)
-		console.log("THE #### ARE EQUAL?", arrayEquals(weights, weightSecond))
 	})
 })
