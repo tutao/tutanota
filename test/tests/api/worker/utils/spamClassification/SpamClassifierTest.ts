@@ -85,8 +85,8 @@ o.spec("SpamClassifier", () => {
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 
-		const hamCount = 10000
-		const spamCount = 10000
+		const hamCount = 200
+		const spamCount = 100
 
 		const hamSlice = hamData.slice(0, hamCount)
 		const spamSlice = spamData.slice(0, spamCount)
@@ -96,8 +96,11 @@ o.spec("SpamClassifier", () => {
 			return testTokenize(text)
 		}
 
-		const data = hamSlice.concat(spamSlice)
-		const { trainSet, testSet } = shuffleArray(data, 0.2)
+		const { trainSet: hamTrainSet, testSet: hamTestSet } = shuffleArray(hamSlice, 0.3)
+		const { trainSet: spamTrainSet, testSet: spamTestSet } = shuffleArray(spamSlice, 0.3)
+
+		let trainSet = hamTrainSet.concat(spamTrainSet)
+		let testSet = hamTestSet.concat(spamTestSet)
 		// const { trainSet } = shuffleArray(data, 0.2)
 		// const { testSet } = shuffleArray(spamData.concat(hamData), 0.4)
 
@@ -120,8 +123,8 @@ o.spec("SpamClassifier", () => {
 		const { spamData, hamData } = await readMailData("/home/jhm/Downloads/spam-ham/extracted_mails.csv")
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
-		const hamSlice = hamData.slice(0, 500)
-		const spamSlice = spamData.slice(0, 500)
+		const hamSlice = hamData.slice(0, 200)
+		const spamSlice = spamData.slice(0, 100)
 
 		const mockOfflineStorage = object() as OfflineStoragePersistence
 		mockOfflineStorage.tokenize = async (text) => {
