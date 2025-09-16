@@ -23,6 +23,7 @@ export enum RatingDisallowReason {
 	ACCOUNT_TOO_YOUNG = 3,
 	RATING_DISMISSED = 4,
 	BUSINESS_USER = 5,
+	NOT_INTERNAL_USER = 6,
 }
 
 /**
@@ -34,11 +35,16 @@ export enum RatingDisallowReason {
  * 3. The dialog must not have been shown within the last year (When the dialog is dismissed with the cancel button it is not considered being shown).
  * 4. The retry prompt timer (if set) must have expired.
  * 5. The current user must not be a business user.
+ * 6. The current user must not be an external user.
  *
  * @returns A list of reasons why the rating prompt is disallowed. If the list is empty, it is allowed to ask the user for their rating.
  */
 export async function evaluateRatingEligibility(now: Date, deviceConfig: DeviceConfig, isApp: boolean): Promise<RatingDisallowReason[]> {
 	const disallowReasons: RatingDisallowReason[] = []
+
+	if (!locator.logins.isInternalUserLoggedIn()) {
+		return [RatingDisallowReason.NOT_INTERNAL_USER]
+	}
 
 	let appInstallationDate: Date | undefined
 	if (isApp) {
