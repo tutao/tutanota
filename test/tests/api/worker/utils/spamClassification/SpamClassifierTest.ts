@@ -96,8 +96,8 @@ o.spec("SpamClassifier", () => {
 			return testTokenize(text)
 		}
 
-		const { trainSet: hamTrainSet, testSet: hamTestSet } = shuffleArray(hamSlice, 0.3)
-		const { trainSet: spamTrainSet, testSet: spamTestSet } = shuffleArray(spamSlice, 0.3)
+		const { trainSet: hamTrainSet, testSet: hamTestSet } = shuffleArray(hamSlice, 0.2)
+		const { trainSet: spamTrainSet, testSet: spamTestSet } = shuffleArray(spamSlice, 0.2)
 
 		let trainSet = hamTrainSet.concat(spamTrainSet)
 		let testSet = hamTestSet.concat(spamTestSet)
@@ -108,7 +108,7 @@ o.spec("SpamClassifier", () => {
 
 		let start = Date.now()
 		await classifier.initialTraining(trainSet)
-		console.log("Vocab: " + classifier.dynamicTfVectorizer.vocabulary.length)
+		//console.log("Vocab: " + classifier.dynamicTfVectorizer.vocabulary.length)
 		console.log(`trained in ${Date.now() - start}ms`)
 
 		start = Date.now()

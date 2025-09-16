@@ -3,6 +3,7 @@ import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
 import { promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
+import { HashingVectorizer } from "./HashingVectorizer"
 
 assertWorkerOrNode()
 
@@ -20,7 +21,7 @@ export type SpamClassificationModel = {
 
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
-	// private hashingVectorizer: HashingVectorizer = new HashingVectorizer()
+	//public hashingVectorizer: HashingVectorizer = new HashingVectorizer()
 	public dynamicTfVectorizer: DynamicTfVectorizer = new DynamicTfVectorizer()
 
 	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
@@ -58,7 +59,9 @@ export class SpamClassifier {
 
 			const tokenizedBatchDocuments = await promiseMap(batchDocuments, (d) => this.offlineStorage.tokenize(d))
 			const vectors = this.dynamicTfVectorizer.transform(tokenizedBatchDocuments)
+			//const vectors = this.hashingVectorizer.transform(tokenizedBatchDocuments)
 			const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])
+			//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
 			const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
 
 			await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32 })
@@ -78,6 +81,8 @@ export class SpamClassifier {
 		this.dynamicTfVectorizer.generateVocabulary(tokenizedDocuments)
 		const vectors = this.dynamicTfVectorizer.transform(tokenizedDocuments)
 		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])
+		//const vectors = this.hashingVectorizer.transform(tokenizedDocuments)
+		//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		this.classifier = this.buildModel(xs.shape[1])
@@ -99,6 +104,7 @@ export class SpamClassifier {
 
 		const tokenizedInput = await this.offlineStorage.tokenize(subjectAndBody)
 		const vector = this.dynamicTfVectorizer.vectorize(tokenizedInput)
+		//const vector = this.hashingVectorizer.vectorize(tokenizedInput)
 		const xs = tf.tensor2d([vector], [1, vector.length])
 		const pred = (await (this.classifier.predict(xs) as tf.Tensor).data())[0]
 

@@ -4,7 +4,7 @@ export class HashingVectorizer {
 	public readonly dimension: number
 
 	//TODO: Figure out the right dimension, based on time taken to train and speed with accuracy and other metrics.
-	constructor(dimension = 1056) {
+	constructor(dimension = 7500) {
 		this.dimension = dimension
 	}
 
