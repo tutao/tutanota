@@ -628,11 +628,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		wasReverseRequest: boolean,
 		receivedEntities: ServerModelParsedInstance[],
 	) {
-		// Filter out parsed instances after the first instances with _errors (i.e. decryption errors),
+		// Filter out parsed instances with _errors (i.e. decryption errors),
 		// because we should NEVER store instances in the storage that failed to be decrypted!
 		const elementsToAdd = wasReverseRequest ? receivedEntities.reverse() : receivedEntities
-		const firstElementToAddIndexWithError = elementsToAdd.findIndex((elementToAdd) => hasError(elementToAdd))
-		const elementsToAddWithoutErrors = firstElementToAddIndexWithError !== -1 ? elementsToAdd.slice(0, firstElementToAddIndexWithError) : elementsToAdd
+		const elementsToAddWithoutErrors = elementsToAdd.filter((elementToAdd) => !hasError(elementToAdd))
 
 		await this.storage.putMultiple(typeRef, elementsToAddWithoutErrors)
 
@@ -646,8 +645,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				console.log("finished loading, setting min id")
 				await this.storage.setLowerRangeForList(typeRef, listId, isCustomId ? CUSTOM_MIN_ID : GENERATED_MIN_ID)
 			} else if (isNotEmpty(elementsToAddWithoutErrors)) {
-				// elementsToAddWithoutErrors can be empty when the first element has errors, if so, do nothing
-				// After reversing the list the first element in the list is the lower range limit
+				// When all receivedEntities have errors, do nothing
 				await this.storage.setLowerRangeForList(
 					typeRef,
 					listId,
@@ -661,7 +659,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				console.log("finished loading, setting max id")
 				await this.storage.setUpperRangeForList(typeRef, listId, isCustomId ? CUSTOM_MAX_ID : GENERATED_MAX_ID)
 			} else if (isNotEmpty(elementsToAddWithoutErrors)) {
-				// elementsToAddWithoutErrors can be empty when the first element has errors. if so, do nothing
+				// When all receivedEntities have errors, do nothing
 				await this.storage.setUpperRangeForList(
 					typeRef,
 					listId,
