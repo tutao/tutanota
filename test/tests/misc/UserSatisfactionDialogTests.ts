@@ -40,6 +40,7 @@ o.spec("UserSatisfactionDialog", () => {
 			// Arrange
 			const date = new Date("2024-10-24T12:34:00Z") // 3 days ago
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(date.getTime()))
+			when(locatorMock.logins.isInternalUserLoggedIn()).thenReturn(true)
 			when(deviceConfigMock.getInstallationDate()).thenReturn(date)
 
 			// Act
@@ -58,6 +59,7 @@ o.spec("UserSatisfactionDialog", () => {
 			const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
 			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
+			when(locatorMock.logins.isInternalUserLoggedIn()).thenReturn(true)
 
 			// Act
 			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
@@ -78,6 +80,7 @@ o.spec("UserSatisfactionDialog", () => {
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
 			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
 			when(locatorMock.logins.getUserController().getPlanType()).thenResolve(PlanType.PremiumBusiness)
+			when(locatorMock.logins.isInternalUserLoggedIn()).thenReturn(true)
 
 			// Act
 			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
@@ -86,6 +89,24 @@ o.spec("UserSatisfactionDialog", () => {
 			o(res).satisfies((disallowReasons) => ({
 				pass: disallowReasons.includes(RatingDisallowReason.BUSINESS_USER),
 				message: "Customer is a business user.",
+			}))
+		})
+
+		o("secure external user", async () => {
+			// Arrange
+			const appInstallationDate = new Date("2024-08-23T12:34:00Z") // 2 months ago
+			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
+			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenReject(new Error("can't access customer info if external user"))
+			when(locatorMock.logins.getUserController().getPlanType()).thenReject(new Error("can't access customer info (and thus plan type) if external user"))
+			when(locatorMock.logins.isInternalUserLoggedIn()).thenReturn(false)
+
+			// Act
+			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
+
+			// Assert
+			o(res).satisfies((disallowReasons) => ({
+				pass: disallowReasons.includes(RatingDisallowReason.NOT_INTERNAL_USER),
+				message: "Customer is an external user.",
 			}))
 		})
 
@@ -98,6 +119,7 @@ o.spec("UserSatisfactionDialog", () => {
 			when(deviceConfigMock.getNextEvaluationDate()).thenReturn(retryRatingPromptAfter)
 			when(locatorMock.systemFacade.getInstallationDate()).thenResolve(String(appInstallationDate.getTime()))
 			when(locatorMock.logins.getUserController().loadCustomerInfo()).thenResolve({ creationTime: customerCreationDate })
+			when(locatorMock.logins.isInternalUserLoggedIn()).thenReturn(true)
 
 			// Act
 			const res = await evaluateRatingEligibility(now, deviceConfigMock, isApp())
