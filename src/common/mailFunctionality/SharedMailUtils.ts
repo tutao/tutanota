@@ -155,6 +155,11 @@ export interface ImageHandler {
 }
 
 export function getTemplateLanguages(sortedLanguages: Array<Language>, entityClient: EntityClient, loginController: LoginController): Promise<Array<Language>> {
+	// External users do not have templates
+	if (!loginController.isInternalUserLoggedIn()) {
+		return Promise.resolve([])
+	}
+
 	return loginController
 		.getUserController()
 		.loadCustomer()
