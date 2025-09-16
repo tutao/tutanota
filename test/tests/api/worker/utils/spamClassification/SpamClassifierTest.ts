@@ -20,16 +20,19 @@ async function enumerateDir(rootDir, files: string[] = []): Promise<string[]> {
 	return files
 }
 
-async function readMailData(filePath: string): Promise<{ spamData: SpamClassificationRow[]; hamData: SpamClassificationRow[] }> {
+async function readMailData(filePath: string): Promise<{
+	spamData: SpamClassificationRow[]
+	hamData: SpamClassificationRow[]
+}> {
 	const file = await fs.promises.readFile(filePath)
 	const csv = parseCsv(file.toString())
 
 	let spamData: SpamClassificationRow[] = []
 	let hamData: SpamClassificationRow[] = []
-	for (const row of csv.rows.slice(1)) {
+	for (const row of csv.rows.slice(1, csv.rows.length - 1)) {
 		let isSpam: boolean
-		if (row[1] == "ham") isSpam = true
-		else if (row[1] == "spam") isSpam = false
+		if (row[1] === "ham") isSpam = false
+		else if (row[1] === "spam") isSpam = true
 		else {
 			throw new Error("Incorrect label: " + row[1])
 		}
@@ -78,43 +81,43 @@ o.spec("SpamClassifier", () => {
 	o("Test Classification on external mail data", async () => {
 		o.timeout(20_000_000)
 
-		const { spamData, hamData } = await readMailData("/home/sug/Downloads/spam-ham/spam_ham_dataset.csv")
+		const { spamData, hamData } = await readMailData("/home/jhm/Downloads/spam-ham/extracted_mails.csv")
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
-		for (let hamCount = 1000; hamCount <= 1000; hamCount += 400) {
-			const hamSlice = hamData.slice(0, hamCount)
-			for (let spamCount = 500; spamCount <= 500; spamCount += 100) {
-				const spamSlice = spamData.slice(0, spamCount)
 
-				const mockOfflineStorage = object() as OfflineStoragePersistence
-				mockOfflineStorage.tokenize = async (text) => {
-					return testTokenize(text)
-				}
+		const hamCount = 10000
+		const spamCount = 10000
 
-				const data = hamSlice.concat(spamSlice)
-				const { trainSet, testSet } = shuffleArray(data, 0.2)
-				// const { trainSet } = shuffleArray(data, 0.2)
-				// const { testSet } = shuffleArray(spamData.concat(hamData), 0.4)
+		const hamSlice = hamData.slice(0, hamCount)
+		const spamSlice = spamData.slice(0, spamCount)
 
-				const classifier = new SpamClassifier(mockOfflineStorage)
-
-				let start = Date.now()
-				await classifier.initialTraining(trainSet)
-				console.log("Vocab: " + classifier.dynamicTfVectorizer.vocabulary.length)
-				console.log(`trained in ${Date.now() - start}ms`)
-
-				start = Date.now()
-				console.log(` Result when testing with ${hamCount} Ham mails and ${spamCount} Spam-Mails`)
-				await classifier.test(testSet)
-				console.log(`tested in ${Date.now() - start}ms`)
-			}
+		const mockOfflineStorage = object() as OfflineStoragePersistence
+		mockOfflineStorage.tokenize = async (text) => {
+			return testTokenize(text)
 		}
+
+		const data = hamSlice.concat(spamSlice)
+		const { trainSet, testSet } = shuffleArray(data, 0.2)
+		// const { trainSet } = shuffleArray(data, 0.2)
+		// const { testSet } = shuffleArray(spamData.concat(hamData), 0.4)
+
+		const classifier = new SpamClassifier(mockOfflineStorage)
+
+		let start = Date.now()
+		await classifier.initialTraining(trainSet)
+		console.log("Vocab: " + classifier.dynamicTfVectorizer.vocabulary.length)
+		console.log(`trained in ${Date.now() - start}ms`)
+
+		start = Date.now()
+		console.log(`==> Result when testing with ${hamCount} Ham mails and ${spamCount} Spam-Mails`)
+		await classifier.test(testSet)
+		console.log(`tested in ${Date.now() - start}ms`)
 	})
 
 	o("Test fit and refit.", async () => {
 		o.timeout(20_000_000)
 
-		const { spamData, hamData } = await readMailData("/home/sug/Downloads/spam-ham/spam_ham_dataset.csv")
+		const { spamData, hamData } = await readMailData("/home/jhm/Downloads/spam-ham/extracted_mails.csv")
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 		const hamSlice = hamData.slice(0, 500)
@@ -136,7 +139,7 @@ o.spec("SpamClassifier", () => {
 		console.log(`trained in ${Date.now() - start}ms`)
 
 		start = Date.now()
-		console.log(` Result when testing with 0-200 mails in one go.`)
+		console.log(`==> Result when testing with all mails in one go.`)
 		await classifierAll.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 
@@ -150,7 +153,7 @@ o.spec("SpamClassifier", () => {
 		console.log(`trained in ${Date.now() - start}ms`)
 
 		start = Date.now()
-		console.log(` Result when testing with 0-200 mails in two steps.`)
+		console.log(`==> Result when testing with mails in two steps (first step).`)
 		await classifierBySteps.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 
@@ -160,7 +163,7 @@ o.spec("SpamClassifier", () => {
 		console.log(`trained in ${Date.now() - start}ms`)
 
 		start = Date.now()
-		console.log(` Result when testing with 100-200 mails.`)
+		console.log(`==> Result when testing with mails in two steps (second step).`)
 		await classiOnlySecondHalf.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 	})
