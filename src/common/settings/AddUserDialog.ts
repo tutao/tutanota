@@ -12,7 +12,7 @@ import { TextField } from "../gui/base/TextField.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "../api/common/Env.js"
 import { getAvailableDomains } from "./mailaddress/MailAddressesUtils.js"
-import { toFeatureType } from "../subscription/SubscriptionUtils.js"
+import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 import { showUpgradeWizard } from "../subscription/UpgradeSubscriptionWizard.js"
 
 assertMainOrNode()

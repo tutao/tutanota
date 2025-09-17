@@ -5,7 +5,7 @@ import { IconButton, IconButtonAttrs } from "../../common/gui/base/IconButton"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
 import { assertNotNull, lazy } from "@tutao/tutanota-utils"
 import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
-import { HighestTierPlans, ImportStatus, MailSetKind, PlanType } from "../../common/api/common/TutanotaConstants"
+import { AvailablePlanType, HighestTierPlans, ImportStatus, MailSetKind } from "../../common/api/common/TutanotaConstants"
 import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../common/misc/LanguageViewModel"
 import { MailImporter, UiImportStatus } from "../mail/import/MailImporter.js"
@@ -13,7 +13,7 @@ import { MailFolder } from "../../common/api/entities/tutanota/TypeRefs"
 import { elementIdPart, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../common/api/common/utils/EntityUtils"
 import { Icons } from "../../common/gui/base/icons/Icons.js"
 import { DropDownSelector, SelectorItemList } from "../../common/gui/base/DropDownSelector.js"
-import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs.js"
+import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../common/misc/SubscriptionDialogs.js"
 import { ProgressBar, ProgressBarType } from "../../common/gui/base/ProgressBar.js"
 import { ExpanderButton, ExpanderPanel } from "../../common/gui/base/Expander.js"
 import { ColumnWidth, Table, TableLineAttrs } from "../../common/gui/base/Table.js"
@@ -50,10 +50,11 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 	}
 
 	private async onImportButtonClick(dom: HTMLElement) {
-		const currentPlanType = await mailLocator.logins.getUserController().getPlanType()
+		const userController = mailLocator.logins.getUserController()
+		const currentPlanType = await userController.getPlanType()
 		const isHighestTierPlan = HighestTierPlans.includes(currentPlanType)
 		if (!isHighestTierPlan) {
-			showNotAvailableForFreeDialog([PlanType.Legend, PlanType.Unlimited]).then()
+			await showUpgradeWizardOrSwitchSubscriptionDialog(userController, HighestTierPlans as readonly AvailablePlanType[])
 			return
 		}
 

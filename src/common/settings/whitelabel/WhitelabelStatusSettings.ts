@@ -5,7 +5,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { TextField } from "../../gui/base/TextField.js"
 import { IconButton } from "../../gui/base/IconButton.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { getAvailablePlansWithWhitelabel } from "../../subscription/SubscriptionUtils.js"
+import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
 
 export type WhitelabelStatusSettingsAttrs = {
 	isWhitelabelActive: boolean

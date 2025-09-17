@@ -1,8 +1,9 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { AriaRole } from "../gui/AriaUtils.js"
-import { Keys, TabIndex } from "../api/common/TutanotaConstants.js"
-import { isKeyPressed } from "../misc/KeyManager.js"
-import { locator } from "../api/main/CommonLocator.js"
+import { AriaRole } from "../../gui/AriaUtils.js"
+import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
+import { isKeyPressed } from "../../misc/KeyManager.js"
+import { locator } from "../../api/main/CommonLocator.js"
+import { theme } from "../../gui/theme"
 
 type SwitchState = "left" | "right"
 
@@ -40,11 +41,8 @@ export class PaymentIntervalSwitch implements ClassComponent<PaymentIntervalSwit
 
 	private renderTogglePillComponent(checked: boolean = false, onclick: (state: SwitchState) => unknown) {
 		return m(
-			`span.tutaui-toggle-pill${locator.themeController.isLightTheme() ? ".payment-interval.light" : ".payment-interval.dark"}`,
+			`span.tutaui-toggle-pill.payment-interval`,
 			{
-				style: {
-					"background-color": locator.themeController.isLightTheme() ? "black" : "white",
-				},
 				class: this.checkboxDom?.checked ? "checked" : "unchecked",
 			},
 			m("input[type='checkbox']", {

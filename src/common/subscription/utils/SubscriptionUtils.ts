@@ -1,4 +1,4 @@
-import type { TranslationKey } from "../misc/LanguageViewModel"
+import type { TranslationKey } from "../../misc/LanguageViewModel"
 import {
 	AccountType,
 	AvailablePlans,
@@ -14,19 +14,19 @@ import {
 	PaymentMethodType,
 	PlanType,
 	PlanTypeToName,
-} from "../api/common/TutanotaConstants"
-import type { AccountingInfo, Customer, CustomerInfo, PlanConfiguration } from "../api/entities/sys/TypeRefs.js"
-import { Booking, createPaymentDataServiceGetData } from "../api/entities/sys/TypeRefs.js"
+} from "../../api/common/TutanotaConstants"
+import type { AccountingInfo, Customer, CustomerInfo, PlanConfiguration } from "../../api/entities/sys/TypeRefs.js"
+import { Booking, createPaymentDataServiceGetData } from "../../api/entities/sys/TypeRefs.js"
 import { downcast, isEmpty, LazyLoaded } from "@tutao/tutanota-utils"
-import { locator } from "../api/main/CommonLocator"
-import { PaymentDataService } from "../api/entities/sys/Services"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { IServiceExecutor } from "../api/common/ServiceRequest.js"
-import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
-import { client } from "../misc/ClientDetector"
+import { locator } from "../../api/main/CommonLocator"
+import { PaymentDataService } from "../../api/entities/sys/Services"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
+import { MobilePaymentSubscriptionOwnership } from "../../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
+import { client } from "../../misc/ClientDetector"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
-import { ReplacementKey, UpgradePriceType } from "./FeatureListProvider.js"
-import { isIOSApp } from "../api/common/Env.js"
+import { ReplacementKey, UpgradePriceType } from "../FeatureListProvider.js"
+import { isIOSApp } from "../../api/common/Env.js"
 
 export const enum UpgradeType {
 	/**
@@ -207,7 +207,7 @@ export async function getAvailableMatchingPlans(
 	serviceExecutor: IServiceExecutor,
 	predicate: (configuration: PlanConfiguration) => boolean,
 ): Promise<Array<AvailablePlanType>> {
-	const { PriceAndConfigProvider } = await import("../subscription/PriceUtils.js")
+	const { PriceAndConfigProvider } = await import("./PriceUtils.js")
 	const priceAndConfigProvider = await PriceAndConfigProvider.getInitializedInstance(null, serviceExecutor, null)
 	return NewPaidPlans.filter((p) => {
 		const config = priceAndConfigProvider.getPlanPricesForPlan(p).planConfiguration

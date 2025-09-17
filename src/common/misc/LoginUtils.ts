@@ -185,7 +185,7 @@ export function getLoginErrorStateAndMessage(error: Error): { errorMessage: Mayb
 }
 
 export async function showSignupDialog(urlParams: Params) {
-	const { canSubscribeToPlan } = await import("../subscription/SubscriptionUtils")
+	const { canSubscribeToPlan } = await import("../subscription/utils/SubscriptionUtils")
 
 	const subscriptionParams = getSubscriptionParameters(urlParams)
 	const registrationDataId = getRegistrationDataIdFromParams(urlParams)

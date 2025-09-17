@@ -132,7 +132,7 @@ async function checkCanAcceptGroupInvitation(invitation: ReceivedGroupInvitation
 	}
 	const planConfig = await locator.logins.getUserController().getPlanConfig()
 	if (isTemplateGroup(getInvitationGroupType(invitation)) && !planConfig.templates) {
-		const { getAvailablePlansWithTemplates } = await import("../../subscription/SubscriptionUtils.js")
+		const { getAvailablePlansWithTemplates } = await import("../../subscription/utils/SubscriptionUtils.js")
 		const plans = await getAvailablePlansWithTemplates()
 		return showPlanUpgradeRequiredDialog(plans)
 	} else {

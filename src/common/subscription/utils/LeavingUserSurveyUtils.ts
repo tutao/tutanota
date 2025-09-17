@@ -1,6 +1,6 @@
-import { isAndroidApp, isApp, isDesktop, isIOSApp } from "../api/common/Env"
-import { client } from "../misc/ClientDetector"
-import { AppType } from "../misc/ClientConstants"
+import { isAndroidApp, isApp, isDesktop, isIOSApp } from "../../api/common/Env"
+import { client } from "../../misc/ClientDetector"
+import { AppType } from "../../misc/ClientConstants"
 
 export const enum ClientPlatform {
 	// this should be unused and exists so the clients that don't write the field get assigned

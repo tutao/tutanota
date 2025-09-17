@@ -12,7 +12,7 @@ import { downcast, isEmpty, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
-import { getAvailableMatchingPlans } from "../../../common/subscription/SubscriptionUtils.js"
+import { getAvailableMatchingPlans } from "../../../common/subscription/utils/SubscriptionUtils.js"
 import { getCustomMailDomains } from "../../../common/api/common/utils/CustomerUtils.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 

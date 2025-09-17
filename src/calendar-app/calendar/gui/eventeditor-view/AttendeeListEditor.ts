@@ -122,7 +122,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 							if (!(await hasPlanWithInvites(logins)) && !this.hasPlanWithInvites) {
 								if (logins.getUserController().user.accountType === AccountType.EXTERNAL) return
 								if (logins.getUserController().isGlobalAdmin()) {
-									const { getAvailablePlansWithEventInvites } = await import("../../../../common/subscription/SubscriptionUtils.js")
+									const { getAvailablePlansWithEventInvites } = await import("../../../../common/subscription/utils/SubscriptionUtils.js")
 									const plansWithEventInvites = await getAvailablePlansWithEventInvites()
 									if (plansWithEventInvites.length === 0) return
 									//entity event updates are too slow to call updateBusinessFeature()

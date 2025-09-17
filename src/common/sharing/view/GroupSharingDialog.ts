@@ -283,7 +283,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 						)
 					} else if (e instanceof PreconditionFailedError) {
 						if (locator.logins.getUserController().isGlobalAdmin()) {
-							const { getAvailablePlansWithSharing } = await import("../../subscription/SubscriptionUtils.js")
+							const { getAvailablePlansWithSharing } = await import("../../subscription/utils/SubscriptionUtils.js")
 							const plans = await getAvailablePlansWithSharing()
 							await showPlanUpgradeRequiredDialog(plans)
 						} else {

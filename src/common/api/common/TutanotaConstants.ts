@@ -85,7 +85,7 @@ export const enum PermissionType {
 	Public_Symmetric = "2",
 	/** Instances without ownerEncSessionKey (e.g. MailBody, FileData) after asymmetric decryption, used for reference counting. */
 	Unencrypted = "3",
-	/** Sending parts of email for external users. */
+	/** Sending components of email for external users. */
 	External = "5",
 	/** Used to mark the owner of the list. */
 	Owner_List = "8",
@@ -1387,3 +1387,5 @@ export enum DeactivationReason {
 	Custom,
 	MassSignup,
 }
+
+export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"

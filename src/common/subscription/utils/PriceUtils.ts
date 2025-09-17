@@ -1,17 +1,17 @@
-import { BookingItemFeatureType, Const, PaymentMethodType, PlanType, PlanTypeToName, reverse } from "../api/common/TutanotaConstants"
-import { assertTranslation, lang, TranslationKey } from "../misc/LanguageViewModel"
+import { BookingItemFeatureType, Const, PaymentMethodType, PlanType, PlanTypeToName, reverse } from "../../api/common/TutanotaConstants"
+import { assertTranslation, lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/tutanota-utils"
-import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../api/entities/sys/TypeRefs.js"
-import { createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
-import { UpgradePriceType, WebsitePlanPrices } from "./FeatureListProvider"
-import { UpgradePriceService } from "../api/entities/sys/Services"
-import { IServiceExecutor } from "../api/common/ServiceRequest"
-import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
-import { UserError } from "../api/main/UserError.js"
-import { isIOSApp } from "../api/common/Env"
-import { MobilePlanPrice } from "../native/common/generatedipc/MobilePlanPrice"
-import { locator } from "../api/main/CommonLocator.js"
-import { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard.js"
+import type { AccountingInfo, PlanPrices, PriceData, PriceItemData } from "../../api/entities/sys/TypeRefs.js"
+import { createUpgradePriceServiceData, UpgradePriceServiceReturn } from "../../api/entities/sys/TypeRefs.js"
+import { UpgradePriceType, WebsitePlanPrices } from "../FeatureListProvider"
+import { UpgradePriceService } from "../../api/entities/sys/Services"
+import { IServiceExecutor } from "../../api/common/ServiceRequest"
+import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
+import { UserError } from "../../api/main/UserError.js"
+import { isIOSApp } from "../../api/common/Env"
+import { MobilePlanPrice } from "../../native/common/generatedipc/MobilePlanPrice"
+import { locator } from "../../api/main/CommonLocator.js"
+import { UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard.js"
 
 export enum PaymentInterval {
 	Monthly = 1,
@@ -208,9 +208,9 @@ export class PriceAndConfigProvider {
 
 		switch (paymentInterval) {
 			case PaymentInterval.Monthly:
-				return { displayPrice: applePrices.displayMonthlyPerMonth, rawPrice: applePrices.rawMonthlyPerMonth }
+				return { displayPrice: applePrices.displayMonthlyPerMonth, rawPrice: applePrices.rawMonthlyPerMonth.toString() }
 			case PaymentInterval.Yearly: {
-				return { displayPrice: applePrices.displayYearlyPerYear, rawPrice: applePrices.rawYearlyPerYear }
+				return { displayPrice: applePrices.displayYearlyPerYear, rawPrice: applePrices.rawYearlyPerYear.toString() }
 			}
 		}
 	}

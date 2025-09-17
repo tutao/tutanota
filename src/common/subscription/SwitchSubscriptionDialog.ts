@@ -1,6 +1,6 @@
 import m from "mithril"
 import { Dialog } from "../gui/base/Dialog"
-import { lang, MaybeTranslation } from "../misc/LanguageViewModel"
+import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { ButtonType } from "../gui/base/Button.js"
 import { AccountingInfo, Booking, createSurveyData, createSwitchAccountTypePostIn, Customer, SurveyData } from "../api/entities/sys/TypeRefs.js"
 import {
@@ -18,7 +18,7 @@ import {
 	PlanTypeToName,
 	UnsubscribeFailureReason,
 } from "../api/common/TutanotaConstants"
-import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
+import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { DialogHeaderBarAttrs } from "../gui/base/DialogHeaderBar"
@@ -28,7 +28,7 @@ import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services.js"
 import { BadRequestError, InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError.js"
 import { FeatureListProvider } from "./FeatureListProvider"
-import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
+import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, delay, downcast, lazy } from "@tutao/tutanota-utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { getByAbbreviation } from "../api/common/CountryList.js"
@@ -39,18 +39,26 @@ import { SURVEY_VERSION_NUMBER } from "./LeavingUserSurveyConstants.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
-import { appStorePlanName, getCurrentPaymentInterval, hasRunningAppStoreSubscription, shouldShowApplePrices, SubscriptionApp } from "./SubscriptionUtils.js"
+import {
+	appStorePlanName,
+	getCurrentPaymentInterval,
+	hasRunningAppStoreSubscription,
+	shouldShowApplePrices,
+	SubscriptionApp,
+} from "./utils/SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { mailLocator } from "../../mail-app/mailLocator"
 import { client } from "../misc/ClientDetector.js"
-import { getClientPlatform } from "./LeavingUserSurveyUtils"
+import { getClientPlatform } from "./utils/LeavingUserSurveyUtils"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { PlanSelector } from "./PlanSelector.js"
-import { getPrivateBusinessSwitchButton } from "./VariantCSubscriptionPage.js"
+import { getPrivateBusinessSwitchButton } from "./SubscriptionPage.js"
+import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
  * Note: Only shown if the user is already a Premium user.
+ * TODO: Apply DiscountDetails for global first year discount
  */
 export async function showSwitchDialog({
 	customer,
@@ -58,14 +66,12 @@ export async function showSwitchDialog({
 	lastBooking,
 	acceptedPlans,
 	reason,
-	useNewPlanSelector = false,
 }: {
 	customer: Customer
 	accountingInfo: AccountingInfo
 	lastBooking: Booking
 	acceptedPlans: readonly AvailablePlanType[]
-	reason: MaybeTranslation | null
-	useNewPlanSelector?: boolean
+	reason: TranslationKey | null
 }): Promise<void> {
 	if (hasRunningAppStoreSubscription(accountingInfo) && !isIOSApp()) {
 		await showManageThroughAppStoreDialog()
@@ -103,44 +109,25 @@ export async function showSwitchDialog({
 				type: ButtonType.Secondary,
 			},
 		],
-		right: isApplePrice || !useNewPlanSelector ? [] : [getPrivateBusinessSwitchButton(businessUse)],
+		right: isApplePrice ? [] : [getPrivateBusinessSwitchButton(businessUse, acceptedPlans)],
 		middle: "subscription_label",
 	}
 
-	const renderNewPlanSelector = () => {
+	const renderPlanSelector = () => {
 		// Reassigning the right button for header to update the label
 		if (!isApplePrice) {
-			newPlanSelectorHeaderBarAttrs.right = [getPrivateBusinessSwitchButton(businessUse)]
-		}
-		if (businessUse()) {
-			return m(".pt", [
-				m(SubscriptionSelector, {
-					options,
-					priceInfoTextId: priceAndConfigProvider.getPriceInfoMessage(),
-					boxWidth: 230,
-					boxHeight: 270,
-					acceptedPlans: NewBusinessPlans.filter((businessPlan) => acceptedPlans.includes(businessPlan)),
-					allowSwitchingPaymentInterval: currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
-					currentPlanType: currentPlanInfo.planType,
-					actionButtons: subscriptionActionButtons,
-					featureListProvider: featureListProvider,
-					priceAndConfigProvider,
-					multipleUsersAllowed,
-					msg: reason,
-					accountingInfo: accountingInfo,
-				}),
-			])
+			newPlanSelectorHeaderBarAttrs.right = [getPrivateBusinessSwitchButton(businessUse, acceptedPlans)]
 		}
 
 		return m(
 			".pt",
 			// Headline for general messages
-			reason && m(".flex-center.items-center.gap-hpad.mb", m(".b.center.smaller", lang.getTranslationText(reason))),
+			// reason && m(".flex-center.items-center.gap-hpad.mb", m(".b.center.smaller", lang.getTranslationText(reason))),
+			reason && m(PlanSelectorHeadline, { translation: lang.getTranslation(reason) }),
 			m(PlanSelector, {
 				options,
 				actionButtons: subscriptionActionButtons,
 				priceAndConfigProvider,
-				hasCampaign: false,
 				availablePlans: acceptedPlans,
 				isApplePrice,
 				currentPlan: currentPlanInfo.planType,
@@ -152,33 +139,9 @@ export async function showSwitchDialog({
 		)
 	}
 
-	const renderOldPlanSelector = () => {
-		return m(
-			".pt",
-			m(SubscriptionSelector, {
-				options: {
-					businessUse,
-					paymentInterval: paymentInterval,
-				},
-				priceInfoTextId: priceAndConfigProvider.getPriceInfoMessage(),
-				msg: reason,
-				boxWidth: 230,
-				boxHeight: 270,
-				acceptedPlans: acceptedPlans,
-				currentPlanType: currentPlanInfo.planType,
-				accountingInfo,
-				allowSwitchingPaymentInterval: currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
-				actionButtons: subscriptionActionButtons,
-				featureListProvider: featureListProvider,
-				priceAndConfigProvider,
-				multipleUsersAllowed,
-			}),
-		)
-	}
-
 	const dialog: Dialog = Dialog.largeDialog(newPlanSelectorHeaderBarAttrs, {
 		view: () => {
-			return useNewPlanSelector ? renderNewPlanSelector() : renderOldPlanSelector()
+			return renderPlanSelector()
 		},
 	})
 		.addShortcut({

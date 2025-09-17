@@ -54,7 +54,7 @@ import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { CustomerAccountService } from "../../../entities/tutanota/Services.js"
 import { BookingFacade } from "./BookingFacade.js"
 import { UserFacade } from "../UserFacade.js"
-import { PaymentInterval } from "../../../../subscription/PriceUtils.js"
+import { PaymentInterval } from "../../../../subscription/utils/PriceUtils.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
 import { formatNameAndAddress } from "../../../common/utils/CommonFormatter.js"
 import { PQFacade } from "../PQFacade.js"
@@ -70,7 +70,7 @@ import { XRechnungInvoiceGenerator } from "../../invoicegen/XRechnungInvoiceGene
 import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
-import { SubscriptionApp } from "../../../../subscription/SubscriptionUtils"
+import { SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
 import { bitArrayToUint8Array, hexToRsaPublicKey, PQKeyPairs } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()

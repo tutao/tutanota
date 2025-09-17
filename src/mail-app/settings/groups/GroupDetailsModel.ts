@@ -20,7 +20,7 @@ import { compareGroupInfos, getGroupInfoDisplayName } from "../../../common/api/
 import { MailboxPropertiesTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { BookingParams } from "../../../common/subscription/BuyDialog.js"
-import { toFeatureType } from "../../../common/subscription/SubscriptionUtils.js"
+import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 
 export class GroupDetailsModel {

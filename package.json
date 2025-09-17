@@ -23,7 +23,7 @@
 		"preinstall": "git config core.hooksPath githooks || true",
 		"postinstall": "node buildSrc/postinstall.js",
 		"bump-version": "node buildSrc/bump-version.js",
-		"generate-ipc": "npm run build -w @tutao/licc && licc ./ipc-schema",
+		"generate-ipc": "npm run build -w @tutao/licc && licc ./ipc-schema && npm run style:fix",
 		"style:check": "prettier -c \"**/*.(ts|js|json|json5)\" --cache --cache-location cache/prettier",
 		"style:fix": "prettier -w \"**/*.(ts|js|json|json5)\"",
 		"lint:check": "eslint . --cache --cache-location cache/eslint",

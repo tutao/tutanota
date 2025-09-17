@@ -49,13 +49,7 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 	}
 
 	headerTitle(): Translation {
-		const title = getDisplayNameOfPlanType(this.data.targetPlanType)
-
-		if (this.data.targetPlanType === PlanType.Essential || this.data.targetPlanType === PlanType.Advanced) {
-			return lang.makeTranslation("signup_business", title + " Business")
-		} else {
-			return lang.makeTranslation("signup_title", title)
-		}
+		return lang.makeTranslation("signup_title", getDisplayNameOfPlanType(this.data.targetPlanType))
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {

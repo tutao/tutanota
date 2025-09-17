@@ -2,6 +2,7 @@ import { assert } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
+
 // 3 or 6 digit hex color codes
 export const VALID_HEX_CODE_FORMAT: RegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
@@ -26,11 +27,6 @@ export function getColorLuminance(c: string): number {
 	// Counting the perceptive luminance
 	// human eye favors green color...
 	return (0.299 * r + 0.587 * g + 0.114 * b) / 255
-}
-
-export function isMonochrome(c: string): boolean {
-	const { r, g, b } = hexToRgb(c)
-	return r === g && g === b
 }
 
 export function isColorLight(c: string): boolean {
