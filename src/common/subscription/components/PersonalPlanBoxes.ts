@@ -25,6 +25,12 @@ export type PlanBoxesAttrs = {
 }
 
 export class PersonalPlanBoxes implements Component<PlanBoxesAttrs> {
+	oncreate({ attrs }: Vnode<PlanBoxesAttrs>) {
+		if (![PlanType.Free, PlanType.Revolutionary, PlanType.Legend].includes(attrs.selectedPlan())) {
+			attrs.selectedPlan(PlanType.Revolutionary)
+		}
+	}
+
 	view({
 		attrs: {
 			allowSwitchingPaymentInterval,
