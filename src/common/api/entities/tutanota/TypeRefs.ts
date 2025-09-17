@@ -2546,3 +2546,20 @@ export type ChangePrimaryAddressServicePutIn = {
 
 	user: Id;
 }
+export const DriveGroupRootTypeRef: TypeRef<DriveGroupRoot> = new TypeRef("tutanota", 1712)
+
+export function createDriveGroupRoot(values: StrippedEntity<DriveGroupRoot>): DriveGroupRoot {
+    return Object.assign(create(typeModels[DriveGroupRootTypeRef.typeId], DriveGroupRootTypeRef), values)
+}
+
+export type DriveGroupRoot = {
+	_type: TypeRef<DriveGroupRoot>;
+	_original?: DriveGroupRoot
+
+	_id: Id;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+
+	root: IdTuple;
+}

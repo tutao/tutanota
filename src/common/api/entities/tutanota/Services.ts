@@ -103,6 +103,15 @@ export const DraftService = Object.freeze({
 	delete: null,
 } as const)
 
+export const DriveService = Object.freeze({
+	app: "tutanota",
+	name: "DriveService",
+	get: null,
+	post: null,
+	put: null,
+	delete: null,
+} as const)
+
 export const EncryptTutanotaPropertiesService = Object.freeze({
 	app: "tutanota",
 	name: "EncryptTutanotaPropertiesService",

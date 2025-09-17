@@ -15,6 +15,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { getUserGroupMemberships } from "../../../common/api/common/utils/GroupUtils"
 import { GroupTypeRef } from "../../../common/api/entities/sys/TypeRefs"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import { createFile, DriveGroupRootTypeRef, FileTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -41,14 +42,12 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			m(IconButton, {
 				title: "attachFiles_action",
 				click: (ev, dom) =>
-					showFileChooserForAttachments(dom.getBoundingClientRect())
-						.then((files) => {
-							if (files) {
-								this.files = [...files]
-								this.uploadFiles(this.files)
-							}
-						})
-						.then(() => m.redraw()),
+					showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
+						if (files) {
+							this.files = [...files]
+							this.uploadFiles(this.files)
+						}
+					}),
 				icon: Icons.Attachment,
 				size: ButtonSize.Compact,
 			}),
@@ -64,11 +63,24 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		let memberships = getUserGroupMemberships(locator.logins.getUserController().user, GroupType.File)
 		console.log("groupMemberships:: for this user :: ", memberships)
 
-		let fileGroupMembership = memberships[0]
-		console.log("fileGroupMembership:: for this user :: ", fileGroupMembership)
+		const fileGroupMembership = memberships[0]
 
+		console.log("fileGroupMembership:: for this user :: ", fileGroupMembership)
 		let fileGroup = await locator.entityClient.load(GroupTypeRef, fileGroupMembership.group)
 		console.log("fileGroup:: for this user :: ", fileGroup)
+
+		// [x] file grouyp root to get file root
+		// [x] new file
+		// set blobs
+		// set name ?
+		// set size
+		// upload
+		const driveGroupRoot = await locator.entityClient.load(DriveGroupRootTypeRef, fileGroup._id)
+		console.log(`driveGroupRoot :: `, driveGroupRoot)
+
+		const rootFileIdTuple = driveGroupRoot.root
+		const rootFile = await locator.entityClient.load(FileTypeRef, rootFileIdTuple)
+		console.log(`rootFile :: `, rootFile)
 
 		const ownerGroupId = fileGroup._ownerGroup
 		console.log(`fileGroupOwnerGroup :: ${ownerGroupId}`)
@@ -78,7 +90,21 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		const aStupidKey = [0, 1, 2, 3, 4, 5, 6, 7]
 
 		const blobReferenceTokenWrappers = await Promise.all(
-			files.map((f: DataFile) => blobFacade.encryptAndUpload(ArchiveDataType.DriveFile, f.data /*FileUri*/, assertNotNull(ownerGroupId), aStupidKey)),
+			files.map(async (f: DataFile) => {
+				const blobs = await blobFacade.encryptAndUpload(ArchiveDataType.DriveFile, f.data /*FileUri*/, assertNotNull(ownerGroupId), aStupidKey)
+
+				const file = files[0]
+				const fileToBeUploaded = createFile({
+					name: file.name,
+					mimeType: file.mimeType,
+					size: file.size,
+					cid: null,
+					blobs: ,
+					parent: null,
+					subFiles: null,
+				})
+				return blobs[0].blobReferenceToken
+			}),
 		)
 		console.log(`received ::`, blobReferenceTokenWrappers)
 	}

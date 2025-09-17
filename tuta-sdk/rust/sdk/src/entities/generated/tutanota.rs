@@ -4058,3 +4058,27 @@ impl Entity for ChangePrimaryAddressServicePutIn {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveGroupRoot {
+	#[serde(rename = "1714")]
+	pub _id: Option<GeneratedId>,
+	#[serde(rename = "1715")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "1716")]
+	pub _format: i64,
+	#[serde(rename = "1717")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "1718")]
+	pub root: IdTupleGenerated,
+}
+
+impl Entity for DriveGroupRoot {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1712),
+		}
+	}
+}
