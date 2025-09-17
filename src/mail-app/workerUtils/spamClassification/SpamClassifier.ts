@@ -1,6 +1,7 @@
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
+//import * as tf from "@tensorflow/tfjs-node"
 import { assertNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
@@ -104,7 +105,8 @@ export class SpamClassifier {
 		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
 		const tokenizedDocuments = await promiseMap(documents, (d) => assertNotNull(this.offlineStorage).tokenize(d))
 
-		this.dynamicTfVectorizer = new DynamicTfVectorizer(tokenizedDocuments)
+		this.dynamicTfVectorizer.useStemming = true
+		this.dynamicTfVectorizer= new DynamicTfVectorizer(tokenizedDocuments)
 		const vectors = this.dynamicTfVectorizer.transform(tokenizedDocuments)
 
 		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])

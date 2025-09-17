@@ -7,6 +7,7 @@ import { tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
 import { arrayHashUnsigned, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import * as tf from "@tensorflow/tfjs"
 
 async function enumerateDir(rootDir, files: string[] = []): Promise<string[]> {
 	const entries = await fs.promises.readdir(rootDir, { withFileTypes: true })
@@ -81,12 +82,12 @@ o.spec("SpamClassifier", () => {
 	o("Test Classification on external mail data", async () => {
 		o.timeout(20_000_000)
 
-		const { spamData, hamData } = await readMailData("/home/jhm/Downloads/spam-ham/extracted_mails.csv")
+		const { spamData, hamData } = await readMailData("/home/jhm/Downloads/spam-ham/spam_ham_dataset.csv")
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 
-		const hamCount = 200
-		const spamCount = 100
+		const hamCount = 4000
+		const spamCount = 2000
 
 		const hamSlice = hamData.slice(0, hamCount)
 		const spamSlice = spamData.slice(0, spamCount)
@@ -96,11 +97,17 @@ o.spec("SpamClassifier", () => {
 			return testTokenize(text)
 		}
 
-		const { trainSet: hamTrainSet, testSet: hamTestSet } = shuffleArray(hamSlice, 0.2)
-		const { trainSet: spamTrainSet, testSet: spamTestSet } = shuffleArray(spamSlice, 0.2)
+		const dataSlice = hamSlice.concat(spamSlice)
+		tf.util.shuffle(dataSlice)
+		const trainTestSplit = dataSlice.length * 0.8
+		const trainSet = dataSlice.slice(0, trainTestSplit)
+		const testSet = dataSlice.slice(trainTestSplit)
 
-		let trainSet = hamTrainSet.concat(spamTrainSet)
-		let testSet = hamTestSet.concat(spamTestSet)
+		// const { trainSet: hamTrainSet, testSet: hamTestSet } = shuffleArray(hamSlice, 0.2)
+		// const { trainSet: spamTrainSet, testSet: spamTestSet } = shuffleArray(spamSlice, 0.2)
+		//
+		// let trainSet = hamTrainSet.concat(spamTrainSet)
+		// let testSet = hamTestSet.concat(spamTestSet)
 		// const { trainSet } = shuffleArray(data, 0.2)
 		// const { testSet } = shuffleArray(spamData.concat(hamData), 0.4)
 
@@ -120,7 +127,7 @@ o.spec("SpamClassifier", () => {
 	o("Test fit and refit.", async () => {
 		o.timeout(20_000_000)
 
-		const { spamData, hamData } = await readMailData("/home/jhm/Downloads/spam-ham/extracted_mails.csv")
+		const { spamData, hamData } = await readMailData("/home/jhm/Downloads/spam-ham/spam_ham_dataset.csv")
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 		const hamSlice = hamData.slice(0, 200)
@@ -131,8 +138,12 @@ o.spec("SpamClassifier", () => {
 			return testTokenize(text)
 		}
 
-		const data = hamSlice.concat(spamSlice)
-		const { trainSet, testSet } = shuffleArray(data, 0.2)
+		const dataSlice = hamSlice.concat(spamSlice)
+		tf.util.shuffle(dataSlice)
+		const trainTestSplit = dataSlice.length * 0.8
+		const trainSet = dataSlice.slice(0, trainTestSplit)
+		const testSet = dataSlice.slice(trainTestSplit)
+
 		const trainSetHalf = trainSet.slice(0, trainSet.length / 2)
 		const trainSetSecondHalf = trainSet.slice(trainSet.length / 2, trainSet.length)
 

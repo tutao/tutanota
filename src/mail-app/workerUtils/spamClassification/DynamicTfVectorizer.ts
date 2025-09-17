@@ -1,4 +1,7 @@
+import { stemmer } from "stemmer"
+
 const INITIAL_USED_MAX_VOCABULARY_SIZE = 5000
+const INITIAL_MAX_VOCABULARY_SIZE = INITIAL_USED_MAX_VOCABULARY_SIZE + INITIAL_USED_MAX_VOCABULARY_SIZE * 0.5
 
 export type Stats = {
 	/// This is the lowest frequency of word found in current vocabulary
@@ -12,13 +15,18 @@ export type Stats = {
 // TODO:
 // in offline db: store word->frequency map instead of copy of whole(body, subject) mail,
 export class DynamicTfVectorizer {
-	public readonly dimension = 8000
+    public useStemming: boolean = true
+	public readonly dimension = INITIAL_MAX_VOCABULARY_SIZE
 	private readonly vocabularyOfTrainedModel: Map<string, number> = new Map()
 	private readonly newVocabulary: Map<string, number> = new Map()
 	public stats: Stats
 
 	private getTermFrequency(outputFrequencyMap: Map<string, number>, termCollection: ReadonlyArray<string>) {
-		for (const token of termCollection) {
+		for (let token of termCollection) {
+            if (this.useStemming) {
+                token = stemmer(token)
+            }
+
 			outputFrequencyMap.set(token, (outputFrequencyMap.get(token) || 0) + 1)
 		}
 		return outputFrequencyMap
