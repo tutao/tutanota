@@ -60,7 +60,7 @@ export class ApplicationWindow {
 
 	/** User logged in in this window. Reset from WindowManager. */
 	private userId: Id | null = null
-	private setBoundsTimeout: ReturnType<typeof setTimeout> | null = null
+	private correctBoundsTimeout: ReturnType<typeof setTimeout> | null = null
 	private findingInPage: boolean = false
 	private skipNextSearchBarBlur: boolean = false
 	private lastSearchRequest: [string, { forward: boolean; matchCase: boolean }] | null = null
@@ -654,7 +654,7 @@ export class ApplicationWindow {
 		this._desktopFacade.openFindInPage()
 	}
 
-	setBounds(bounds: WindowBounds) {
+	setBounds(bounds: WindowBounds, correctBounds: boolean = true) {
 		this._browserWindow.setFullScreen(bounds.fullscreen)
 
 		this.setZoomFactor(bounds.scale)
@@ -662,21 +662,22 @@ export class ApplicationWindow {
 
 		this._browserWindow.setBounds(bounds.rect)
 
-		if (process.platform !== "linux") return
-		if (this.setBoundsTimeout) clearTimeout(this.setBoundsTimeout)
-		this.setBoundsTimeout = setTimeout(() => {
-			if (this._browserWindow.isDestroyed()) {
-				return
-			}
+		if (correctBounds && process.platform === "linux") {
+			if (this.correctBoundsTimeout) clearTimeout(this.correctBoundsTimeout)
+			this.correctBoundsTimeout = setTimeout(() => {
+				if (this._browserWindow.isDestroyed()) {
+					return
+				}
 
-			const newRect = this._browserWindow.getBounds()
+				const newRect = this._browserWindow.getBounds()
 
-			if (bounds.rect.y !== newRect.y) {
-				// window was moved by some bug/OS interaction, so we move it back twice the distance.
-				// should end up right where we want it. https://github.com/electron/electron/issues/10388
-				this._browserWindow.setPosition(newRect.x, newRect.y + 2 * (bounds.rect.y - newRect.y))
-			}
-		}, 200)
+				if (bounds.rect.y !== newRect.y) {
+					// window was moved by some bug/OS interaction, so we move it back twice the distance.
+					// should end up right where we want it. https://github.com/electron/electron/issues/10388
+					this._browserWindow.setPosition(newRect.x, newRect.y + 2 * (bounds.rect.y - newRect.y))
+				}
+			}, 200)
+		}
 	}
 
 	getBounds(): WindowBounds {

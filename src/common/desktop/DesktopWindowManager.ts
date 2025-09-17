@@ -110,6 +110,9 @@ export class WindowManager {
 		const w: ApplicationWindow = await this._newWindowFactory(noAutoLogin)
 		windows.unshift(w)
 
+		// we set bounds here because "move" fires before "ready-to-show" and would overwrite bounds with default
+		w.setBounds(this._currentBounds, false)
+
 		w.on("close", () => {
 			w.setUserId(null)
 		})
