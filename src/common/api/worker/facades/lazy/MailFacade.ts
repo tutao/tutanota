@@ -500,7 +500,6 @@ export class MailFacade {
 				if (isApp() || isDesktop()) {
 					const { location } = await this.fileApp.writeDataFile(providedFile)
 					referenceTokens = await this.blobFacade.encryptAndUploadNative(ArchiveDataType.Attachments, location, senderMailGroupId, fileSessionKey)
-					await this.fileApp.deleteFile(location)
 				} else {
 					referenceTokens = await this.blobFacade.encryptAndUpload(ArchiveDataType.Attachments, providedFile.data, senderMailGroupId, fileSessionKey)
 				}
@@ -534,7 +533,7 @@ export class MailFacade {
 			.then((attachments) => attachments.filter(isNotNull))
 			.then((it) => {
 				// only delete the temporary files after all attachments have been uploaded
-				if (isApp()) {
+				if (isApp() || isDesktop()) {
 					this.fileApp.clearFileData().catch((e) => console.warn("Failed to clear files", e))
 				}
 
