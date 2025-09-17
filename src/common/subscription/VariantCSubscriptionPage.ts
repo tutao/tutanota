@@ -3,14 +3,14 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
+import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
 import { getCurrentPaymentInterval, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Keys, NewBusinessPlans, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { UpgradePriceType } from "./FeatureListProvider"
 import { PaymentInterval } from "./PriceUtils.js"
@@ -89,27 +89,6 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 			[PlanType.Unlimited]: createPaidPlanActionButtons(PlanType.Unlimited),
 		}
 
-		// Show the old plan selector for business plans
-		if (data.options.businessUse()) {
-			return m(".pt", [
-				m(SubscriptionSelector, {
-					options: data.options,
-					priceInfoTextId: data.priceInfoTextId,
-					boxWidth: 230,
-					boxHeight: 270,
-					acceptedPlans: NewBusinessPlans.filter((businessPlan) => acceptedPlans.includes(businessPlan)),
-					allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
-					currentPlanType: data.currentPlan,
-					actionButtons: actionButtons,
-					featureListProvider: featureListProvider,
-					priceAndConfigProvider: planPrices,
-					multipleUsersAllowed: data.multipleUsersAllowed,
-					msg: data.msg,
-					accountingInfo: accountingInfo,
-				}),
-			])
-		}
-
 		// Under *ALL* circumstances, there *MUST* be this empty wrapper element around it.
 		return m(".", [
 			// Headline for a global campaign
@@ -143,6 +122,7 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 				currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
 				allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
 				showMultiUser: false,
+				businessUse: data.options.businessUse(),
 			}),
 		])
 	}

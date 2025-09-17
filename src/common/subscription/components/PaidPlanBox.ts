@@ -1,21 +1,21 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../gui/size"
-import { lang } from "../misc/LanguageViewModel"
+import { px, size } from "../../gui/size"
+import { lang } from "../../misc/LanguageViewModel"
 import { type Callback } from "@tutao/tutanota-utils"
-import { PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
-import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
+import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
+import { PaymentInterval, PriceAndConfigProvider } from "../PriceUtils"
 import Stream from "mithril/stream"
-import { theme } from "../gui/theme.js"
-import { ReplacementKey } from "./FeatureListProvider.js"
-import { Icon, IconSize } from "../gui/base/Icon.js"
-import { Icons } from "../gui/base/icons/Icons.js"
-import { TranslationKeyType } from "../misc/TranslationKey.js"
-import { styles } from "../gui/styles.js"
-import { getBlueTheme, planBoxColors } from "./PlanBoxColors.js"
-import { locator } from "../api/main/CommonLocator.js"
-import { isIOSApp } from "../api/common/Env"
-import { getFeaturePlaceholderReplacement } from "./SubscriptionUtils.js"
-import { CurrentPlanLabel } from "./parts/CurrentPlanLabel.js"
+import { theme } from "../../gui/theme.js"
+import { ReplacementKey } from "../FeatureListProvider.js"
+import { Icon, IconSize } from "../../gui/base/Icon.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { TranslationKeyType } from "../../misc/TranslationKey.js"
+import { styles } from "../../gui/styles.js"
+import { getBlueTheme, planBoxColors } from "../PlanBoxColors.js"
+import { locator } from "../../api/main/CommonLocator.js"
+import { isIOSApp } from "../../api/common/Env"
+import { getFeaturePlaceholderReplacement } from "../SubscriptionUtils.js"
+import { CurrentPlanLabel } from "./CurrentPlanLabel.js"
 
 type AvailablePlan = PlanType.Revolutionary | PlanType.Legend
 
@@ -32,7 +32,6 @@ type PlanBoxAttrs = {
 	plan: AvailablePlan
 	onclick: Callback<AvailablePlan>
 	priceAndConfigProvider: PriceAndConfigProvider
-	scale: CSSStyleDeclaration["scale"]
 	hasCampaign: boolean
 	isApplePrice: boolean
 	showMultiUser: boolean
@@ -41,14 +40,25 @@ type PlanBoxAttrs = {
 export class PaidPlanBox implements Component<PlanBoxAttrs> {
 	private revoIconSvg: string | undefined
 	private legendIconSvg: string | undefined
+	private scale: string = "initial"
+	private preventRescaling: boolean = true
 
-	async oninit() {
+	async oninit({ attrs }: Vnode<PlanBoxAttrs>) {
 		const [revo, legend] = await Promise.all([
 			fetch(`${window.tutao.appState.prefixWithoutFile}/images/revo.svg`),
 			fetch(`${window.tutao.appState.prefixWithoutFile}/images/legend.svg`),
 		])
 		this.revoIconSvg = await revo.text()
 		this.legendIconSvg = await legend.text()
+
+		if (attrs.isSelected) {
+			setTimeout(() => {
+				this.preventRescaling = false
+				m.redraw()
+			}, 500)
+		} else {
+			this.preventRescaling = false
+		}
 
 		m.redraw()
 	}
@@ -64,12 +74,12 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 			plan,
 			onclick,
 			priceAndConfigProvider,
-			scale,
 			hasCampaign,
 			isApplePrice,
 			showMultiUser,
 		},
 	}: Vnode<PlanBoxAttrs>) {
+		this.scale = isSelected && !this.preventRescaling ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
 		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const strikethroughPrice = isYearly ? referencePrice : undefined
@@ -92,7 +102,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 			`.buyOptionBox-v2${isSelected ? ".selected" : ""}${isDisabled ? "" : ".cursor-pointer"}`,
 			{
 				style: {
-					scale,
+					scale: this.scale,
 					"z-index": isSelected ? "1" : "initial",
 					"transform-origin": isLegendPlan ? "center right" : "center left",
 					"pointer-event": isDisabled ? "none" : "initial",

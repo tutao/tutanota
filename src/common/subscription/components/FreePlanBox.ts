@@ -1,17 +1,17 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../gui/size"
-import { lang } from "../misc/LanguageViewModel"
-import { PlanType } from "../api/common/TutanotaConstants"
-import { PriceAndConfigProvider } from "./PriceUtils"
-import { theme } from "../gui/theme.js"
-import { ReplacementKey } from "./FeatureListProvider.js"
-import { Icon, IconSize } from "../gui/base/Icon.js"
-import { Icons } from "../gui/base/icons/Icons.js"
-import { TranslationKeyType } from "../misc/TranslationKey.js"
-import { getBlueTheme, planBoxColors } from "./PlanBoxColors.js"
-import { styles } from "../gui/styles.js"
-import { getFeaturePlaceholderReplacement } from "./SubscriptionUtils.js"
-import { CurrentPlanLabel } from "./parts/CurrentPlanLabel.js"
+import { px, size } from "../../gui/size"
+import { lang } from "../../misc/LanguageViewModel"
+import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType } from "../../api/common/TutanotaConstants"
+import { PriceAndConfigProvider } from "../PriceUtils"
+import { theme } from "../../gui/theme.js"
+import { ReplacementKey } from "../FeatureListProvider.js"
+import { Icon, IconSize } from "../../gui/base/Icon.js"
+import { Icons } from "../../gui/base/icons/Icons.js"
+import { TranslationKeyType } from "../../misc/TranslationKey.js"
+import { getBlueTheme, planBoxColors } from "../PlanBoxColors.js"
+import { styles } from "../../gui/styles.js"
+import { getFeaturePlaceholderReplacement } from "../SubscriptionUtils.js"
+import { CurrentPlanLabel } from "./CurrentPlanLabel.js"
 
 type FreePlanBoxAttrs = {
 	isSelected: boolean
@@ -19,12 +19,12 @@ type FreePlanBoxAttrs = {
 	isCurrentPlan: boolean
 	select: VoidFunction
 	priceAndConfigProvider: PriceAndConfigProvider
-	scale: CSSStyleDeclaration["scale"]
 	hasCampaign: boolean
 }
 
 export class FreePlanBox implements Component<FreePlanBoxAttrs> {
-	view({ attrs: { isSelected, isDisabled, isCurrentPlan, select, priceAndConfigProvider, scale, hasCampaign } }: Vnode<FreePlanBoxAttrs>) {
+	view({ attrs: { isSelected, isDisabled, isCurrentPlan, select, priceAndConfigProvider, hasCampaign } }: Vnode<FreePlanBoxAttrs>) {
+		const scale = isSelected && !styles.isMobileLayout() ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
 		const renderFeature = this.generateRenderFeature(priceAndConfigProvider, isSelected, isDisabled, hasCampaign)
 		// Only for Go European campaign, this should be removed after the campaign.
 		const localTheme = hasCampaign ? getBlueTheme() : theme

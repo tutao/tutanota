@@ -1,6 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel"
-import { PaidPlanBox } from "./PaidPlanBox.js"
 import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
@@ -11,11 +10,12 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { theme } from "../gui/theme.js"
 import { styles } from "../gui/styles.js"
-import { FreePlanBox } from "./FreePlanBox.js"
 import { boxShadowHigh } from "../gui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getApplePriceStr, getPriceStr } from "./SubscriptionUtils.js"
 import { PaymentIntervalSwitch } from "./PaymentIntervalSwitch.js"
+import { PersonalPlanBoxes, PlanBoxesAttrs } from "./components/PersonalPlanBoxes"
+import { BusinessPlanBoxes } from "./components/BusinessPlanBoxes"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -28,25 +28,12 @@ type PlanSelectorAttr = {
 	currentPaymentInterval?: PaymentInterval
 	allowSwitchingPaymentInterval: boolean
 	showMultiUser: boolean
+	businessUse: boolean
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
 	private readonly selectedPlan: Stream<AvailablePlans> = stream(PlanType.Revolutionary)
 	private readonly shouldFixButtonPos: Stream<boolean> = stream(false)
-
-	/**
-	 * Timeout to scale the plan boxes. This is used to animate the scale of the selected plan box on load.
-	 */
-	private scaleTimeout?: ReturnType<typeof setTimeout>
-
-	/**
-	 * The scale of the plan boxes. This is used to animate the scale of the selected plan box.
-	 */
-	private scale: Record<AvailablePlans, CSSStyleDeclaration["scale"]> = {
-		[PlanType.Revolutionary]: "initial",
-		[PlanType.Legend]: "initial",
-		[PlanType.Free]: "initial",
-	}
 
 	oncreate({ attrs: { availablePlans, currentPlan } }: Vnode<PlanSelectorAttr>) {
 		if (availablePlans.includes(PlanType.Free) && availablePlans.length === 1) {
@@ -57,25 +44,11 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			this.selectedPlan(PlanType.Legend)
 		}
 
-		// Set the scale of the selected plan box to `1.03` after a timeout to animate the scale of the selected plan box on loading.
-		this.scaleTimeout = setTimeout(() => {
-			this.scale = { ...this.scale, [PlanType.Revolutionary]: SELECTED_PLAN_SCALE.toString() }
-			// Subscribe to the current plan to update the scale of the selected plan box when the user selects a different plan.
-			this.selectedPlan.map(this.scaleCurrentPlan)
-		}, 500)
-
 		this.handleResize()
 		windowFacade.addResizeListener(this.handleResize)
 	}
 
-	/**
-	 * Clears the timeout to scale the plan boxes, if it exists.
-	 */
 	onbeforeremove(): void {
-		if (this.scaleTimeout) {
-			clearTimeout(this.scaleTimeout)
-		}
-
 		windowFacade.removeResizeListener(this.handleResize)
 	}
 
@@ -91,6 +64,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			currentPaymentInterval,
 			allowSwitchingPaymentInterval,
 			showMultiUser,
+			businessUse,
 		},
 	}: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
@@ -181,80 +155,36 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				lang: lang.code,
 			},
 			[
-				m(
-					"#plan-selector.flex.flex-column.gap-vpad-l",
-					!hidePaidPlans && allowSwitchingPaymentInterval && renderPaymentIntervalSwitch(),
-					m(
-						`.flex-column${allowSwitchingPaymentInterval ? "" : ".mt"}`,
-						{
-							"data-testid": "dialog:select-subscription",
-							style: {
-								position: "relative",
-								...(styles.isMobileLayout()
-									? {
-											// Ignore the horizontal paddings to use full width of the dialog for mobile
-											width: `calc(100% + 2 * ${px(size.hpad_large)})`,
-											left: "50%",
-											transform: "translateX(-50%)",
-										}
-									: {
-											width: "fit-content",
-											"margin-inline": "auto",
-											"max-width": px(500),
-										}),
-							},
-						},
-						m(
-							"div.flex",
-							{
-								style: {
-									width: "100%",
-								},
-							},
-							!hidePaidPlans &&
-								[PlanType.Revolutionary, PlanType.Legend].map((plan: PlanType.Legend | PlanType.Revolutionary) => {
-									const getPriceStrProps = {
-										priceAndConfigProvider,
-										targetPlan: plan,
-										paymentInterval: options.paymentInterval(),
-									}
-									const { referencePriceStr, priceStr } = isApplePrice ? getApplePriceStr(getPriceStrProps) : getPriceStr(getPriceStrProps)
-									const isCurrentPlanAndInterval = currentPlan === plan && currentPaymentInterval === options.paymentInterval()
+				m("#plan-selector.flex.flex-column.gap-vpad-l", !hidePaidPlans && allowSwitchingPaymentInterval && renderPaymentIntervalSwitch()),
+				// PersonalPlanBoxes Component here
 
-									return m(PaidPlanBox, {
-										price: priceStr,
-										referencePrice: referencePriceStr,
-										plan,
-										isSelected: plan === this.selectedPlan(),
-										// We have to allow payment interval switch for iOS in the plan selector as we hide payment interval switch in the setting
-										isDisabled:
-											(plan === PlanType.Revolutionary && !availablePlans.includes(PlanType.Revolutionary)) ||
-											(plan === PlanType.Legend && !availablePlans.includes(PlanType.Legend)) ||
-											isApplePrice
-												? isCurrentPlanAndInterval
-												: currentPlan === plan,
-										isCurrentPlan: isApplePrice ? isCurrentPlanAndInterval : currentPlan === plan,
-										onclick: (newPlan) => this.selectedPlan(newPlan),
-										scale: this.scale[plan],
-										selectedPaymentInterval: options.paymentInterval,
-										priceAndConfigProvider,
-										hasCampaign,
-										isApplePrice,
-										showMultiUser,
-									})
-								}),
-						),
-						m(FreePlanBox, {
-							isSelected: this.selectedPlan() === PlanType.Free,
-							isDisabled: !availablePlans.includes(PlanType.Free) || currentPlan === PlanType.Free,
-							isCurrentPlan: currentPlan === PlanType.Free,
-							select: () => this.selectedPlan(PlanType.Free),
-							priceAndConfigProvider,
-							scale: this.scale[PlanType.Free],
+				businessUse
+					? m(BusinessPlanBoxes, {
+							allowSwitchingPaymentInterval,
+							availablePlans,
+							currentPaymentInterval,
+							currentPlan,
 							hasCampaign,
-						}),
-					),
-				),
+							hidePaidPlans,
+							isApplePrice,
+							priceAndConfigProvider,
+							selectedPlan: this.selectedPlan,
+							selectedSubscriptionOptions: options,
+							showMultiUser,
+						} satisfies PlanBoxesAttrs)
+					: m(PersonalPlanBoxes, {
+							allowSwitchingPaymentInterval,
+							availablePlans,
+							currentPaymentInterval,
+							currentPlan,
+							hasCampaign,
+							hidePaidPlans,
+							isApplePrice,
+							priceAndConfigProvider,
+							selectedPlan: this.selectedPlan,
+							selectedSubscriptionOptions: options,
+							showMultiUser,
+						} satisfies PlanBoxesAttrs),
 				m(
 					".flex.flex-column.gap-vpad",
 					m(
@@ -294,25 +224,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	}
 
 	/**
-	 * Zoom the currently selected plan to emphasize it.
-	 */
-	private scaleCurrentPlan = (selectedPlan: keyof typeof this.scale) => {
-		let newScale: string = SELECTED_PLAN_SCALE.toString()
-
-		if (selectedPlan === PlanType.Free && styles.isMobileLayout()) {
-			newScale = "initial"
-		}
-
-		this.scale = {
-			[PlanType.Revolutionary]: "initial",
-			[PlanType.Legend]: "initial",
-			[PlanType.Free]: "initial",
-			[selectedPlan]: newScale,
-		}
-		m.redraw()
-	}
-
-	/**
 	 * Change the position of the "Continue" button to be fixed on the bottom
 	 * if there is not enough space to show the button without scrolling.
 	 */
@@ -328,8 +239,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	}
 }
 
-const SELECTED_PLAN_SCALE = 1.03
-
-type AvailablePlans = PlanType.Revolutionary | PlanType.Legend | PlanType.Free
+export type AvailablePlans = PlanType.Revolutionary | PlanType.Legend | PlanType.Free
 
 export type SubscriptionActionButtons = Record<AvailablePlans, lazy<LoginButtonAttrs>>
