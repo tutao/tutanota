@@ -25,7 +25,7 @@ o.spec("DynamicTfVectorizer", () => {
 
 	o("builds correct vocabulary with filtered tokens", () => {
 		const vectorizer = new DynamicTfVectorizer()
-		vectorizer.generateVocabulary(tokenizedDocuments)
+		vectorizer.initializeVocabulary(tokenizedDocuments)
 		o(vectorizer.vocabulary.includes("tuta")).equals(true)
 		o(vectorizer.vocabulary.includes("email")).equals(true)
 		o(vectorizer.vocabulary.includes("a")).equals(false)
@@ -33,7 +33,7 @@ o.spec("DynamicTfVectorizer", () => {
 
 	o("vectorize returns correct TF vector", () => {
 		const vectorizer = new DynamicTfVectorizer()
-		vectorizer.generateVocabulary(tokenizedDocuments)
+		vectorizer.initializeVocabulary(tokenizedDocuments)
 		const tokens = ["email", "encryption"]
 		const vector = vectorizer.vectorize(tokens)
 		o(vector.length).equals(vectorizer.dimension)
@@ -46,7 +46,7 @@ o.spec("DynamicTfVectorizer", () => {
 
 	o("transform returns correct tensor shape", () => {
 		const vectorizer = new DynamicTfVectorizer()
-		vectorizer.generateVocabulary(tokenizedDocuments)
+		vectorizer.initializeVocabulary(tokenizedDocuments)
 		const inputTokens = [
 			["privacy", "encryption"],
 			["user", "data"],
@@ -62,7 +62,7 @@ o.spec("DynamicTfVectorizer", () => {
 
 	o("adds unknown words to vocabulary when still enough space", () => {
 		const vectorizer = new DynamicTfVectorizer()
-		vectorizer.generateVocabulary(tokenizedDocuments)
+		vectorizer.initializeVocabulary(tokenizedDocuments)
 		const tokens = ["hannover", "munich"]
 		const vector = vectorizer.vectorize(tokens)
 		const nonZero = vector.some((val) => val > 0)

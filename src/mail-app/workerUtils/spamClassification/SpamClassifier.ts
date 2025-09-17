@@ -3,8 +3,7 @@ import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
 import { promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
-import { HashingVectorizer } from "./HashingVectorizer"
-import { Tensor2D } from "@tensorflow/tfjs"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 assertWorkerOrNode()
 
@@ -22,8 +21,7 @@ export type SpamClassificationModel = {
 
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
-	//public hashingVectorizer: HashingVectorizer = new HashingVectorizer()
-	public dynamicTfVectorizer: DynamicTfVectorizer = new DynamicTfVectorizer()
+	private dynamicTfVectorizer: Nullable<DynamicTfVectorizer> = null
 
 	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
 
@@ -43,6 +41,9 @@ export class SpamClassifier {
 		try {
 			if (!this.classifier) {
 				console.warn("No existing model found. Check if there errors during training")
+				return false
+			} else if (!this.dynamicTfVectorizer) {
+				console.warn("No vectorizer found. Make sure you call initialTraining first")
 				return false
 			}
 
@@ -79,13 +80,11 @@ export class SpamClassifier {
 	public async initialTraining(data: SpamClassificationRow[]): Promise<void> {
 		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
 		const tokenizedDocuments = await promiseMap(documents, (d) => this.offlineStorage.tokenize(d))
-		this.dynamicTfVectorizer.generateVocabulary(tokenizedDocuments)
-		const vectors = this.dynamicTfVectorizer.transform(tokenizedDocuments)
-		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])
-		//const vectors = this.hashingVectorizer.transform(tokenizedDocuments)
-		//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
 
-		// this array contains isSpamValue [0,1,1,1,0]
+		this.dynamicTfVectorizer = new DynamicTfVectorizer(tokenizedDocuments)
+		const vectors = this.dynamicTfVectorizer.transform(tokenizedDocuments)
+
+		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		this.classifier = this.buildModel(xs.shape[1]) // our vocabulary length
@@ -98,14 +97,20 @@ export class SpamClassifier {
 		if (!this.classifier) {
 			await this.loadModel()
 		}
-
 		if (!this.classifier) {
 			console.error("Classifier not found.")
 			await this.updateModel(0)
 			return false
+		} else if (!this.dynamicTfVectorizer) {
+			console.error("Vectorizer not found.")
+			return false
 		}
 
 		const tokenizedInput = await this.offlineStorage.tokenize(subjectAndBody)
+		const needsRetraining = this.dynamicTfVectorizer.expandVocabulary(tokenizedInput)
+		if (needsRetraining) {
+		}
+
 		const vector = this.dynamicTfVectorizer.vectorize(tokenizedInput)
 		//const vector = this.hashingVectorizer.vectorize(tokenizedInput)
 		const xs = tf.tensor2d([vector], [1, vector.length])
