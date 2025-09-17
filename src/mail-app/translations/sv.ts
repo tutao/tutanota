@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-09-01T13:03:58Z",
+	"updated_at": "2025-09-17T12:47:26Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1608,7 +1608,7 @@ export default {
 		"reportPhishing_action": "Rapportera nätfiske",
 		"reportSpam_action": "Rapportera spam",
 		"requestApproval_msg": "Du kan inte skicka eller ta emot mejl (förutom till Tutas support) innan ditt konto har godkänts, detta för att undvika spam. Kontakta oss på approval@tutao.de direkt från ditt Tuta konto och beskriv vad du vill använda det här e-postkontot till. Skriv på Engelska eller Tyska så att vi förstår dig. Tack!",
-		"requestTimeout_msg": "Ett moment tog för lång tid på grund av långsam internetanslutning. Försök igen vid en senare tidpunkt.",
+		"requestTimeout_msg": "Ett moment tog för lång tid. Försök igen.",
 		"requestTooLarge_msg": "Mängden data är för stor. Vänligen förkorta texten.",
 		"requiresNewWindow_msg": "Ändringen aktiveras i alla nya fönster.",
 		"resetZoomFactor_action": "Återställ zoom",

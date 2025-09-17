@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-09-01T19:22:49Z",
+	"updated_at": "2025-09-17T12:47:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1614,7 +1614,7 @@ export default {
 		"reportPhishing_action": "Zgłoś wyłudzenie informacji\n",
 		"reportSpam_action": "Zgłoś spam",
 		"requestApproval_msg": "Przepraszamy, obecnie nie możesz wysyłać ani odbierać wiadomości e-mail (z wyjątkiem pomocy technicznej Tuta), ponieważ twoje konto zostało oznaczone do zatwierdzenia w celu uniknięcia nadużyć, takich jak spam. Napisz do nas na adres approval@tutao.de bezpośrednio ze swojego konta Tuta i opisz do czego zamierzasz używać swojego konta. Prosimy pisać po angielsku lub niemiecku, abyśmy mogli cię zrozumieć. Dzięki!",
-		"requestTimeout_msg": "Operacja trwała zbyt długo z powodu wolnego połączenia internetowego. Spróbuj ponownie później.",
+		"requestTimeout_msg": "Operacja trwała zbyt długo. Spróbuj ponownie.",
 		"requestTooLarge_msg": "Ilość danych jest za duża. Skróć tekst.",
 		"requiresNewWindow_msg": "Będzie obowiązywać w każdym nowym oknie.",
 		"resetZoomFactor_action": "Przywróć domyślne przybliżenie",

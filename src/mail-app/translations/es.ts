@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-09-02T11:46:08Z",
+	"updated_at": "2025-09-17T12:47:26Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1612,7 +1612,7 @@ export default {
 		"reportPhishing_action": "Denunciar phishing",
 		"reportSpam_action": "Denunciar spam",
 		"requestApproval_msg": "Lo sentimos, actualmente no se te permite enviar ni recibir mensajes (excepto al soporte de Tuta) ya que tu cuenta ha sido marcada para revisión para evitar el abuso y el envío de spam. Por favor contacta con nosotros en approval@tutao.de y descríbenos el propósito de esta cuenta. \nPor favor escríbenos en inglés o en alemán para que podamos entenderte. ¡Gracias!",
-		"requestTimeout_msg": "Una operación ha tomado demasiado tiempo debido a una conexión a Internet muy lenta. Por favor, prueba de nuevo más tarde.",
+		"requestTimeout_msg": "Una operación ha tomado demasiado tiempo. Por favor, prueba de nuevo más tarde.",
 		"requestTooLarge_msg": "La cantidad de datos es excesiva. Por favor acorta el texto.",
 		"requiresNewWindow_msg": "Entrará en vigor en cualquier ventana nueva.",
 		"resetZoomFactor_action": "Restablecer el factor de zoom",

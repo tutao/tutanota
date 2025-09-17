@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-09-03T06:35:16Z",
+	"updated_at": "2025-09-17T12:47:26Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1606,7 +1606,7 @@ export default {
 		"reportPhishing_action": "舉報網絡釣魚",
 		"reportSpam_action": "舉報垃圾郵件",
 		"requestApproval_msg": "抱歉，您目前不能發送或接收電郵（與Tuta支援的通訊除外），因為您的帳戶被標記為尚待核准，以避免濫用（例如垃圾電郵）。請直接使用您的Tuta帳戶發送電郵到 approval@tutao.de 聯絡我們，並描述您的電郵帳戶的用途。請以英語或德語撰寫，以便我們了解。謝謝！",
-		"requestTimeout_msg": "操作耗時太長，因為網絡連線慢。請稍後再試。",
+		"requestTimeout_msg": "操作耗時太長。請再試。",
 		"requestTooLarge_msg": "數據量太大。請縮短文字。",
 		"requiresNewWindow_msg": "將在新開的視窗生效。",
 		"resetZoomFactor_action": "重設放大縮小系數",
