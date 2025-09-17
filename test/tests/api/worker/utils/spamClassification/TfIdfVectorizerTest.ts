@@ -36,7 +36,7 @@ o.spec("DynamicTfVectorizer", () => {
 		vectorizer.initializeVocabulary(tokenizedDocuments)
 		const tokens = ["email", "encryption"]
 		const vector = vectorizer.vectorize(tokens)
-		o(vector.length).equals(vectorizer.dimension)
+		o(vector.length).equals(vectorizer.featureVectorDimension)
 
 		const emailIndex = vectorizer.vocabulary.includes("email")!
 		const encryptionIndex = vectorizer.vocabulary.includes("encryption")!
@@ -54,7 +54,7 @@ o.spec("DynamicTfVectorizer", () => {
 		const vector = vectorizer.transform(inputTokens)
 
 		o(vector.length).equals(2)
-		o(vector[0].length).equals(vectorizer.dimension)
+		o(vector[0].length).equals(vectorizer.featureVectorDimension)
 
 		const allZeros = Array.from(vector.flat()).every((v) => v === 0)
 		o(allZeros).equals(false)

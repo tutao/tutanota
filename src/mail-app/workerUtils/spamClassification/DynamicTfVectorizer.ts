@@ -1,109 +1,110 @@
 import { stemmer } from "stemmer"
 
-const INITIAL_USED_MAX_VOCABULARY_SIZE = 5000
-const INITIAL_MAX_VOCABULARY_SIZE = INITIAL_USED_MAX_VOCABULARY_SIZE + INITIAL_USED_MAX_VOCABULARY_SIZE * 0.5
+const DEFAULT_TOKEN_VOCABULARY_LIMIT = 5000
+const DEFAULT_USE_TOKEN_STEMMING = true
 
 export type Stats = {
-	/// This is the lowest frequency of word found in current vocabulary
-	/// which means all included vocabulary item have frequency higher than or equal to
-	/// this frequency,
+	/// This is the lowest frequency of word found in current vocabulary,
+	/// which means all included vocabulary item have frequency higher than or equal to this frequency.
 	lowestIncludedFrequency: number
-	/// Out of total corpse of data, these many items were excluded from vocabulary,
-	excludedVocabCount: number
+	/// Out of total corpus of token vocabulary, these many items were excluded from vocabulary,
+	excludedTokenVocabularyCount: number
 }
 
 // TODO:
-// in offline db: store word->frequency map instead of copy of whole(body, subject) mail,
+//  - offline db: store tokenVocabulary
+//  - offline db: store useTokenStemming configuration
+
 export class DynamicTfVectorizer {
-    public useStemming: boolean = true
-	public readonly dimension = INITIAL_MAX_VOCABULARY_SIZE
-	private readonly vocabularyOfTrainedModel: Map<string, number> = new Map()
-	private readonly newVocabulary: Map<string, number> = new Map()
-	public stats: Stats
+	readonly featureVectorDimension: number
 
-	private getTermFrequency(outputFrequencyMap: Map<string, number>, termCollection: ReadonlyArray<string>) {
-		for (let token of termCollection) {
-            if (this.useStemming) {
-                token = stemmer(token)
-            }
-
-			outputFrequencyMap.set(token, (outputFrequencyMap.get(token) || 0) + 1)
-		}
-		return outputFrequencyMap
+	private stats: Stats | null = null
+	public constructor(
+		tokenVocabulary: Set<string>,
+		readonly useTokenStemming: boolean = DEFAULT_USE_TOKEN_STEMMING,
+		readonly tokenVocabularyLimit: number = DEFAULT_TOKEN_VOCABULARY_LIMIT,
+	) {
+		this.tokenVocabulary = tokenVocabulary
+		// we account for 50% more vocabulary than initially occupied
+		this.featureVectorDimension = tokenVocabularyLimit + tokenVocabularyLimit * 0.5
 	}
 
-	public newEmpty() {
-		return new DynamicTfVectorizer([])
-	}
+	private tokenVocabulary: Set<string>
 
-	public newWithTokenizedDocument(tokenizedDocuments: ReadonlyArray<ReadonlyArray<string>>) {
-		return new DynamicTfVectorizer(tokenizedDocuments)
-	}
+	public buildInitialTokenVocabulary(initialTokenizedMails: ReadonlyArray<ReadonlyArray<string>>) {
+		const allTokenFrequencies = initialTokenizedMails.reduce((_, tokenizedMail) => this.getTokenFrequency(tokenizedMail), new Map<string, number>())
 
-	// TODO: Perhaps look at excluding the tokens not by available slot but token count, e.g. ignore tokens that only show up once.
-	private constructor(tokenizedDocuments: ReadonlyArray<ReadonlyArray<string>>) {
-		/// While training we only consume 75% of total available vocabulary slot,
-		const maxDimensionToConsume = this.dimension * 0.75
-		const allTermFrequency = tokenizedDocuments.reduce(this.getTermFrequency, new Map<string, number>())
-
-		const mostCommonTermsArray = Array.from(allTermFrequency.entries())
+		const mostCommonTokens = Array.from(allTokenFrequencies.entries())
 			.sort((a, b) => b[1] - a[1])
-			.slice(0, maxDimensionToConsume)
+			.slice(0, this.tokenVocabularyLimit)
 
-		const lowestIncludedFrequency = mostCommonTermsArray[mostCommonTermsArray.length - 1][1]
-		const excludedVocabCount = allTermFrequency.size - mostCommonTermsArray.length
+		const lowestIncludedFrequency = mostCommonTokens[mostCommonTokens.length - 1][1]
+		const excludedTokenVocabularyCount = allTokenFrequencies.size - mostCommonTokens.length
 
-		this.vocabularyOfTrainedModel = new Map(mostCommonTermsArray)
-		this.stats = { lowestIncludedFrequency, excludedVocabCount }
+		this.tokenVocabulary = new Set(mostCommonTokens.map(([token, _frequency]) => token))
+		this.stats = { lowestIncludedFrequency, excludedTokenVocabularyCount }
 	}
 
-	// Fill out vocabulary table with these new sets of vocabs,
-	// If we overflow
-	// @returns: weather a retrain is required or not
-	public expandVocabulary(tokenizedTexts: ReadonlyArray<string>): boolean {
-		const mappedTokens = new Map()
-		this.getTermFrequency(mappedTokens, tokenizedTexts)
-		let affectedExistingFrequency = 0
-
-		for (const [newVocab, newVocabFrequency] of mappedTokens) {
-			const oldFrequency = this.vocabularyOfTrainedModel.get(newVocab)
-			if (oldFrequency) {
-				affectedExistingFrequency += 1
-				this.vocabularyOfTrainedModel.set(newVocab, oldFrequency + newVocabFrequency)
-				// we can also delete it from newVocab so once we are out of this loop,
-				// newVocab will only have the vocab that we have not seen before,
-				mappedTokens.delete(newVocab)
+	private getTokenFrequency(tokenCollection: ReadonlyArray<string>, expandTokenVocabulary = false) {
+		const resultTokenFrequencyMap = new Map<string, number>()
+		for (let token of tokenCollection) {
+			if (this.useTokenStemming) {
+				token = stemmer(token)
 			}
+			if (expandTokenVocabulary && !this.tokenVocabulary.has(token)) {
+				this.expandTokenVocabulary(token)
+			}
+
+			resultTokenFrequencyMap.set(token, (resultTokenFrequencyMap.get(token) || 0) + 1)
 		}
-
-		const availableSpace = this.dimension - this.vocabularyOfTrainedModel.size
-		const affectedExistingFrequencyRatio = affectedExistingFrequency / this.vocabularyOfTrainedModel.size
-		const needsRetraining = availableSpace < mappedTokens.size || affectedExistingFrequencyRatio > 0.4
-
-		mappedTokens.forEach((newVocabFrequency, newVocab) => this.vocabularyOfTrainedModel.set(newVocab, newVocabFrequency))
-		mappedTokens.clear()
-		return needsRetraining
+		return resultTokenFrequencyMap
 	}
 
-	public transform(tokenizedDocuments: Array<ReadonlyArray<string>>): number[][] {
-		return tokenizedDocuments.map((doc) => this.vectorize(doc))
+	/**
+	 * Expand (add to) the token vocabulary with the new token.
+	 */
+	private expandTokenVocabulary(token: string) {
+		this.tokenVocabulary.add(token)
 	}
 
-	public vectorize(tokenizedText: ReadonlyArray<string>): number[] {
-		const termFrequency = new Map()
-		const tokenMap = this.getTermFrequency(termFrequency, tokenizedText)
+	public transform(tokenizedMails: Array<ReadonlyArray<string>>): number[][] {
+		return this._transform(tokenizedMails, false)
+	}
+
+	/**
+	 * transform method to be used when refitting
+	 * @returns: null in case a full retraining of the model is required
+	 */
+	public refitTransform(tokenizedMails: Array<ReadonlyArray<string>>): number[][] | null {
+		const transformResult = this._transform(tokenizedMails, true)
+
+		const availableSpace = this.featureVectorDimension - this.tokenVocabulary.size
+		if (availableSpace <= 0) {
+			return null
+		} else {
+			return transformResult
+		}
+	}
+
+	private _transform(tokenizedMails: Array<ReadonlyArray<string>>, expandTokenVocabulary = false): number[][] {
+		return tokenizedMails.map((tokenizedMail) => this.vectorize(tokenizedMail, expandTokenVocabulary))
+	}
+
+	// visibleForTesting
+	public vectorize(tokenizedMail: ReadonlyArray<string>, expandTokenVocabulary = false): number[] {
+		const tokenFrequencyMap = this.getTokenFrequency(tokenizedMail, expandTokenVocabulary)
 
 		let index = 0
-		let vector = new Array<number>(this.vocabularyOfTrainedModel.size).fill(0)
-		for (const [term, _] of this.vocabularyOfTrainedModel.entries()) {
-			vector[index] = tokenMap.get(term) ?? 0
+		let vector = new Array<number>(this.featureVectorDimension).fill(0)
+		for (const [token, _] of this.tokenVocabulary.entries()) {
+			vector[index] = tokenFrequencyMap.get(token) ?? 0
 			index += 1
 		}
 
 		return vector
 	}
 
-	public getStats(): Readonly<Stats> {
+	public getStats(): Stats | null {
 		return Object.seal(this.stats)
 	}
 }

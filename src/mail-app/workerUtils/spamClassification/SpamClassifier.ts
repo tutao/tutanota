@@ -84,16 +84,21 @@ export class SpamClassifier {
 
 			// we have offline storage at this point. see WorkerLocator.initializeSpamClassificationTrainingIfEnabled
 			const tokenizedBatchDocuments = await promiseMap(batchDocuments, (d) => assertNotNull(this.offlineStorage).tokenize(d))
-			const vectors = this.dynamicTfVectorizer.transform(tokenizedBatchDocuments)
-			//const vectors = this.hashingVectorizer.transform(tokenizedBatchDocuments)
-			const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])
-			//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
-			const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
+			const vectors = this.dynamicTfVectorizer.refitTransform(tokenizedBatchDocuments)
+			if (vectors == null) {
+				// todo drop and retrain the entire model from scratch!
+				return false
+			} else {
+				//const vectors = this.hashingVectorizer.transform(tokenizedBatchDocuments)
+				const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.featureVectorDimension])
+				//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
+				const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
 
-			await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32 })
+				await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32 })
 
-			// await this.saveModel()
-			return true
+				// await this.saveModel()
+				return true
+			}
 		} catch (e) {
 			console.error("Failed when trying to update the model:", e)
 			return false
@@ -105,11 +110,11 @@ export class SpamClassifier {
 		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
 		const tokenizedDocuments = await promiseMap(documents, (d) => assertNotNull(this.offlineStorage).tokenize(d))
 
-		this.dynamicTfVectorizer.useStemming = true
-		this.dynamicTfVectorizer= new DynamicTfVectorizer(tokenizedDocuments)
+		this.dynamicTfVectorizer = new DynamicTfVectorizer(new Set(), true)
+		this.dynamicTfVectorizer.buildInitialTokenVocabulary(tokenizedDocuments)
 		const vectors = this.dynamicTfVectorizer.transform(tokenizedDocuments)
 
-		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])
+		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.featureVectorDimension])
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		this.classifier = this.buildModel(xs.shape[1]) // our vocabulary length
@@ -128,13 +133,9 @@ export class SpamClassifier {
 			return false
 		}
 
-		const tokenizedInput = await assertNotNull(this.offlineStorage).tokenize(subjectAndBody)
-		const needsRetraining = this.dynamicTfVectorizer.expandVocabulary(tokenizedInput)
-		if (needsRetraining) {
-		}
-		const vector = this.dynamicTfVectorizer.vectorize(tokenizedInput)
-		//const vector = this.hashingVectorizer.vectorize(tokenizedInput)
-		const xs = tf.tensor2d([vector], [1, vector.length])
+		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(subjectAndBody)
+		const vectors = this.dynamicTfVectorizer.transform([tokenizedMail])
+		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.featureVectorDimension])
 		const pred = (await (assertNotNull(this.classifier).predict(xs) as tf.Tensor).data())[0]
 
 		return pred > 0.5
