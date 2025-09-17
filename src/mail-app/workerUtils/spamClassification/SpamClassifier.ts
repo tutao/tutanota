@@ -4,6 +4,7 @@ import * as tf from "@tensorflow/tfjs"
 import { promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
+import { Tensor2D } from "@tensorflow/tfjs"
 
 assertWorkerOrNode()
 
@@ -83,9 +84,11 @@ export class SpamClassifier {
 		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])
 		//const vectors = this.hashingVectorizer.transform(tokenizedDocuments)
 		//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
+
+		// this array contains isSpamValue [0,1,1,1,0]
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
-		this.classifier = this.buildModel(xs.shape[1])
+		this.classifier = this.buildModel(xs.shape[1]) // our vocabulary length
 		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: false })
 
 		console.log(`### Finished Training ### Total size: ${data.length}`)
