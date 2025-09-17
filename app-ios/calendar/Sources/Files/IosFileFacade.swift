@@ -50,7 +50,12 @@ class IosFileFacade: FileFacade {
 		return returnfiles
 	}
 
-	func deleteFile(_ file: String) async throws { try FileManager.default.removeItem(atPath: file) }
+	func deleteFile(_ file: String) async throws {
+		do { try FileManager.default.removeItem(atPath: file) } catch {
+			if let err = error as? NSError, err.code == NSFileNoSuchFileError { return printLog("Tried to delete file \(file) that does not exist.") }
+			throw TUTErrorFactory.wrapNativeError(withDomain: FILES_ERROR_DOMAIN, message: "Failed to delete file \(file)", error: error)
+		}
+	}
 
 	func getName(_ file: String) async throws -> String {
 		let fileName = (file as NSString).lastPathComponent

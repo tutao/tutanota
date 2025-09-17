@@ -14,7 +14,6 @@ import { AlarmInterval, getTimeFormatForUser, parseAlarmInterval } from "../../.
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { assertNotNull, noOp, Thunk } from "@tutao/tutanota-utils"
 import { PosRect } from "../../../../common/gui/base/Dropdown.js"
-import { Mail } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import type { HtmlEditor } from "../../../../common/gui/editor/HtmlEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { CalendarEventEditView, EditorPages } from "./CalendarEventEditView.js"
@@ -84,7 +83,7 @@ export class EventEditorDialog {
 	 * the generic way to open any calendar edit dialog. the caller should know what to do after the
 	 * dialog is closed.
 	 */
-	async showCalendarEventEditDialog(model: CalendarEventModel, responseMail: Mail | null, handler: EditDialogOkHandler): Promise<void> {
+	async showCalendarEventEditDialog(model: CalendarEventModel, handler: EditDialogOkHandler): Promise<void> {
 		const recipientsSearch = await locator.recipientsSearchModel()
 		const { HtmlEditor } = await import("../../../../common/gui/editor/HtmlEditor.js")
 		const groupSettings = locator.logins.getUserController().userSettingsGroupRoot.groupSettings
@@ -209,7 +208,7 @@ export class EventEditorDialog {
 			}
 		}
 
-		return this.showCalendarEventEditDialog(model, null, okAction)
+		return this.showCalendarEventEditDialog(model, okAction)
 	}
 
 	/**
@@ -221,7 +220,7 @@ export class EventEditorDialog {
 	 * @param identity the identity of the event to edit
 	 * @param responseMail a mail containing an invite and/or update for this event in case we need to reply to the organizer
 	 */
-	async showExistingCalendarEventEditDialog(model: CalendarEventModel, identity: CalendarEventIdentity, responseMail: Mail | null = null): Promise<void> {
+	async showExistingCalendarEventEditDialog(model: CalendarEventModel, identity: CalendarEventIdentity): Promise<void> {
 		let finished = false
 
 		if (identity.uid == null) {
@@ -259,7 +258,7 @@ export class EventEditorDialog {
 				}
 			}
 
-			this.showCalendarEventEditDialog(model, responseMail, okAction)
+			this.showCalendarEventEditDialog(model, okAction)
 		})
 	}
 

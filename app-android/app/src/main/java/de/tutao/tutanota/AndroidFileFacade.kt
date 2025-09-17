@@ -57,8 +57,18 @@ class AndroidFileFacade(
 	override suspend fun deleteFile(file: String) {
 		if (file.startsWith(Uri.fromFile(activity.filesDir).toString())) {
 			// we do not deleteAlarmNotification files that are not stored in our cache dir
-			if (!File(Uri.parse(file).path!!).delete()) {
-				throw Exception("could not delete file $file")
+			val fileInstance = File(Uri.parse(file).path!!)
+			try {
+				val deleted = fileInstance.delete()
+				if (!deleted && fileInstance.exists()) {
+					throw Exception("Could not delete file $file")
+				}
+				Log.d(TAG, "Deleted file: $fileInstance")
+			} catch (e: Exception) {
+				Log.e(
+					TAG,
+					"Error type: ${e.javaClass}\nError message: ${e.message}\nStack Trace: ${e.stackTraceToString()}\nCause: ${e.cause}"
+				)
 			}
 		}
 	}
