@@ -574,6 +574,7 @@ export enum FeatureType {
 	Unused16 = "16",
 	MultipleUsers = "17", // Multi-user support for new personal plans.
 	KeyVerification = "18", // Enables key verification for internal testing and volunteers
+	SpamClientClassification = "19",
 }
 
 export const FULL_INDEXED_TIMESTAMP: number = 0
