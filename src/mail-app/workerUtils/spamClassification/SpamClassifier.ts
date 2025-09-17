@@ -22,11 +22,30 @@ export type SpamClassificationModel = {
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
 	private dynamicTfVectorizer: Nullable<DynamicTfVectorizer> = null
-    public isEnabled: boolean = false
+	public isEnabled: boolean = false
 
-	constructor(private readonly offlineStorage: OfflineStoragePersistence | null) {}
+	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
 
 	public async initialize() {
+		const model = await assertNotNull(this.offlineStorage).getSpamClassificationModel()
+		if (model) {
+			const modelTopology = JSON.parse(model.modelTopology)
+			const weightSpecs = JSON.parse(model.weightSpecs)
+			const weightData = model.weightData.buffer.slice(model.weightData.byteOffset, model.weightData.byteOffset + model.weightData.byteLength)
+			this.classifier = await tf.loadLayersModel(
+				tf.io.fromMemory({
+					modelTopology,
+					weightSpecs,
+					weightData,
+				}),
+			)
+			this.classifier.compile({
+				optimizer: "adam",
+				loss: "binaryCrossentropy",
+				metrics: ["accuracy"],
+			})
+		}
+
 		await this.loadModel()
 
 		if (!this.classifier) {

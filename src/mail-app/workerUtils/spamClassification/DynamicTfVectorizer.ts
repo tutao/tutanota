@@ -1,5 +1,3 @@
-import { Shape } from "@tensorflow/tfjs"
-
 const INITIAL_USED_MAX_VOCABULARY_SIZE = 5000
 
 export type Stats = {
@@ -26,8 +24,16 @@ export class DynamicTfVectorizer {
 		return outputFrequencyMap
 	}
 
+	public newEmpty() {
+		return new DynamicTfVectorizer([])
+	}
+
+	public newWithTokenizedDocument(tokenizedDocuments: ReadonlyArray<ReadonlyArray<string>>) {
+		return new DynamicTfVectorizer(tokenizedDocuments)
+	}
+
 	// TODO: Perhaps look at excluding the tokens not by available slot but token count, e.g. ignore tokens that only show up once.
-	public constructor(tokenizedDocuments: ReadonlyArray<ReadonlyArray<string>>) {
+	private constructor(tokenizedDocuments: ReadonlyArray<ReadonlyArray<string>>) {
 		/// While training we only consume 75% of total available vocabulary slot,
 		const maxDimensionToConsume = this.dimension * 0.75
 		const allTermFrequency = tokenizedDocuments.reduce(this.getTermFrequency, new Map<string, number>())
