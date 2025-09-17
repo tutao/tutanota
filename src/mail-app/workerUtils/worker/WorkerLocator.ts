@@ -20,7 +20,7 @@ import {
 	isOfflineStorageAvailable,
 	isTest,
 } from "../../../common/api/common/Env.js"
-import { Const } from "../../../common/api/common/TutanotaConstants.js"
+import { Const, FeatureType } from "../../../common/api/common/TutanotaConstants.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
@@ -362,6 +362,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		}
 	} else {
 		offlineStorageProvider = async () => null
+		locator.spamClassifier = new SpamClassifier(null)
 	}
 	const ephemeralStorageProvider = async () => {
 		const customCacheHandler = new CustomCacheHandlerMap({
@@ -600,12 +601,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				await indexer.partialLoginInit()
 			}
 		},
-		onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
+		async onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
 				console.log("initIndexer and spam classifier after log in")
 				fullLoginIndexerInit(worker)
-				initializeSpamClassificationTraining(locator.spamClassifier)
+				await initializeSpamClassificationTrainingIfEnabled(locator.spamClassifier)
 			}
 
 			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
@@ -876,12 +877,16 @@ export function isWebAssemblySupported() {
 	return typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"
 }
 
-function initializeSpamClassificationTraining(spamClassifier: SpamClassifier) {
+async function initializeSpamClassificationTrainingIfEnabled(spamClassifier: SpamClassifier) {
 	//should we load mails here? How many?
-	try {
-		spamClassifier.initialize()
-	} catch (e) {
-		console.log("failed to initialize spam classifier", e)
+	const customerFacade = await locator.customer()
+	await customerFacade.loadCustomizations()
+	if (isOfflineStorageAvailable() && (await customerFacade.isEnabled(FeatureType.SpamClientClassification))) {
+		try {
+			spamClassifier.initialize()
+		} catch (e) {
+			console.log("failed to initialize spam classifier", e)
+		}
+		// Start spamClassifier Training
 	}
-	// Start spamClassifier Training
 }

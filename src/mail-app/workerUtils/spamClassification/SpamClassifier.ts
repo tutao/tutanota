@@ -1,7 +1,7 @@
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
-import { promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
@@ -22,32 +22,35 @@ export type SpamClassificationModel = {
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
 	private dynamicTfVectorizer: Nullable<DynamicTfVectorizer> = null
+    public isEnabled: boolean = false
 
-	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
+	constructor(private readonly offlineStorage: OfflineStoragePersistence | null) {}
 
 	public async initialize() {
 		await this.loadModel()
 
 		if (!this.classifier) {
 			console.log("No existing model found. Training from scratch...")
-			const data = await this.offlineStorage.getAllSpamClassificationTrainingData()
+			const data = await assertNotNull(this.offlineStorage).getAllSpamClassificationTrainingData()
 			await this.initialTraining(data)
 			//await this.saveModel()
 			return true
+		} else {
+			this.isEnabled = true
 		}
 	}
 
 	public async updateModel(cutoffTimestamp: number, testRatio = 0.2): Promise<boolean> {
 		try {
-			if (!this.classifier) {
-				console.warn("No existing model found. Check if there errors during training")
+			if (!this.isEnabled) {
+				console.warn("Client spam classification is not enabled or there were errors during training")
 				return false
 			} else if (!this.dynamicTfVectorizer) {
 				console.warn("No vectorizer found. Make sure you call initialTraining first")
 				return false
 			}
 
-			const newTrainingData = await this.offlineStorage.getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
+			const newTrainingData = await assertNotNull(this.offlineStorage).getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
 			if (newTrainingData.length === 0) {
 				console.log("No new training data since last update.")
 				return false
@@ -59,14 +62,15 @@ export class SpamClassifier {
 				batchDocuments.push(this.sanitizeModelInput(newTrainingData[i].subject, newTrainingData[i].body))
 			}
 
-			const tokenizedBatchDocuments = await promiseMap(batchDocuments, (d) => this.offlineStorage.tokenize(d))
+			// we have offline storage at this point. see WorkerLocator.initializeSpamClassificationTrainingIfEnabled
+			const tokenizedBatchDocuments = await promiseMap(batchDocuments, (d) => assertNotNull(this.offlineStorage).tokenize(d))
 			const vectors = this.dynamicTfVectorizer.transform(tokenizedBatchDocuments)
 			//const vectors = this.hashingVectorizer.transform(tokenizedBatchDocuments)
 			const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.dimension])
 			//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
 			const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
 
-			await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32 })
+			await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32 })
 
 			// await this.saveModel()
 			return true
@@ -79,7 +83,7 @@ export class SpamClassifier {
 	// visibleForTesting
 	public async initialTraining(data: SpamClassificationRow[]): Promise<void> {
 		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
-		const tokenizedDocuments = await promiseMap(documents, (d) => this.offlineStorage.tokenize(d))
+		const tokenizedDocuments = await promiseMap(documents, (d) => assertNotNull(this.offlineStorage).tokenize(d))
 
 		this.dynamicTfVectorizer = new DynamicTfVectorizer(tokenizedDocuments)
 		const vectors = this.dynamicTfVectorizer.transform(tokenizedDocuments)
@@ -94,11 +98,8 @@ export class SpamClassifier {
 	}
 
 	public async predict(subjectAndBody: string): Promise<boolean> {
-		if (!this.classifier) {
-			await this.loadModel()
-		}
-		if (!this.classifier) {
-			console.error("Classifier not found.")
+		if (!this.isEnabled) {
+			console.error("Classifier not found or client classificat is not enabled")
 			await this.updateModel(0)
 			return false
 		} else if (!this.dynamicTfVectorizer) {
@@ -106,15 +107,14 @@ export class SpamClassifier {
 			return false
 		}
 
-		const tokenizedInput = await this.offlineStorage.tokenize(subjectAndBody)
+		const tokenizedInput = await assertNotNull(this.offlineStorage).tokenize(subjectAndBody)
 		const needsRetraining = this.dynamicTfVectorizer.expandVocabulary(tokenizedInput)
 		if (needsRetraining) {
 		}
-
 		const vector = this.dynamicTfVectorizer.vectorize(tokenizedInput)
 		//const vector = this.hashingVectorizer.vectorize(tokenizedInput)
 		const xs = tf.tensor2d([vector], [1, vector.length])
-		const pred = (await (this.classifier.predict(xs) as tf.Tensor).data())[0]
+		const pred = (await (assertNotNull(this.classifier).predict(xs) as tf.Tensor).data())[0]
 
 		return pred > 0.5
 	}
@@ -230,7 +230,7 @@ export class SpamClassifier {
 	// }
 
 	private async loadModel(): Promise<void> {
-		const model = await this.offlineStorage.getSpamClassificationModel()
+		const model = await assertNotNull(this.offlineStorage).getSpamClassificationModel()
 		if (model) {
 			const modelTopology = JSON.parse(model.modelTopology)
 			const weightSpecs = JSON.parse(model.weightSpecs)

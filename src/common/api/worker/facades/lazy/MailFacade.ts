@@ -208,7 +208,7 @@ export class MailFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 		private readonly storage: CacheStorage,
-		private readonly spamClassifier: SpamClassifier | null,
+		private readonly spamClassifier: SpamClassifier,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -454,7 +454,7 @@ export class MailFacade {
 	}
 
 	async updateClassifier(): Promise<void> {
-		if (this.spamClassifier != null) {
+		if (this.spamClassifier.isEnabled) {
 			const modelUpdated = await this.spamClassifier.updateModel(await this.storage.getLastTrainedTime())
 			if (modelUpdated) {
 				await this.storage.setLastTrainedTime(Date.now())
@@ -467,7 +467,7 @@ export class MailFacade {
 			return false
 		} else {
 			const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
-			if (this.spamClassifier != null) {
+			if (this.spamClassifier.isEnabled) {
 				return await this.spamClassifier.predict(`${mail.subject}  ${mailDetailsBlob.body.compressedText ?? mailDetailsBlob.body.text}`)
 			}
 			return false

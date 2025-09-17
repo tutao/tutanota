@@ -460,13 +460,17 @@ export class CustomerFacade {
 	}
 
 	async loadCustomizations(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<string[] | null> {
-		const user = this.userFacade.getLoggedInUser()
-		if (isInternalUser(user)) {
-			const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer), { cacheMode })
-			this.customizations = customer.customizations.map((f) => f.feature)
+		if (this.customizations) {
 			return this.customizations
 		} else {
-			return null
+			const user = this.userFacade.getLoggedInUser()
+			if (isInternalUser(user)) {
+				const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer), { cacheMode })
+				this.customizations = customer.customizations.map((f) => f.feature)
+				return this.customizations
+			} else {
+				return null
+			}
 		}
 	}
 }

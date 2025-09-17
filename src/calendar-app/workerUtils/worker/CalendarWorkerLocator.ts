@@ -90,6 +90,7 @@ import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKe
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
+import { SpamClassifier } from "../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
 assertWorkerOrNode()
 
@@ -523,7 +524,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.keyLoader,
 			locator.publicEncryptionKeyProvider,
 			locator.cacheStorage,
-			null,
+			new SpamClassifier(null),
 		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
