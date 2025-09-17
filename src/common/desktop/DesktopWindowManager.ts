@@ -136,14 +136,15 @@ export class WindowManager {
 				this._tray.update(this._notifier)
 
 				w.setBounds(this._currentBounds)
+				// "move" fires before "ready-to-show" and would overwrite bounds with default.
+				w.on("move", () => {
+					// `move` event also fires on `resize` on windows and linux, but not on mac (so we also handle `resize`)
+					this.saveWindowBounds(w)
+				}).on("resize", () => {
+					this.saveWindowBounds(w)
+				})
+
 				if (showWhenReady) w.show()
-			})
-			.on("move", () => {
-				// `move` event also fires on `resize` on windows and linux, but not on mac (so we also handle `resize`)
-				this.saveWindowBounds(w)
-			})
-			.on("resize", () => {
-				this.saveWindowBounds(w)
 			})
 			.webContents.on("did-start-navigation", () => {
 				this._tray.clearBadge()
@@ -262,21 +263,25 @@ export class WindowManager {
 	}
 
 	/**
-	 * Set window size & location in the WindowManager and save them and the manager's window scale to config.
-	 * The WindowManagers scale will be retained even if passed bounds has a different scale.
-	 * @param bounds {WindowBounds} the bounds containing the size & location to save
+	 * Save the WindowManager's current window bounds and scale to config.
 	 */
-	saveBounds(bounds: WindowBounds): void {
+	saveCurrentBounds(): void {
+		this._conf.setVar(DesktopConfigKey.lastBounds, this._currentBounds)
+	}
+
+	/**
+	 * Set window size & location in the WindowManager and save them and the manager's window scale to config.
+	 * The WindowManagers scale will be retained even if the window bounds have a different scale.
+	 */
+	saveWindowBounds = debounce(100, (w: ApplicationWindow) => {
+		const bounds = w.getBounds()
 		const displayRect = screen.getDisplayMatching(bounds.rect).bounds
+
 		if (!isRectContainedInRect(displayRect, bounds.rect)) return
 		this._currentBounds.fullscreen = bounds.fullscreen
 		this._currentBounds.rect = bounds.rect
 
-		this._conf.setVar(DesktopConfigKey.lastBounds, this._currentBounds)
-	}
-
-	saveWindowBounds = debounce(100, (w: ApplicationWindow) => {
-		this.saveBounds(w.getBounds())
+		this.saveCurrentBounds()
 	})
 
 	_setSpellcheckLang(l: string): void {
@@ -289,13 +294,14 @@ export class WindowManager {
 	 */
 	async loadStartingBounds(): Promise<void> {
 		const loadedBounds: WindowBounds = await this._conf.getVar(DesktopConfigKey.lastBounds)
-		if (!loadedBounds) this.saveBounds(this._currentBounds)
 		const lastBounds = loadedBounds || this._currentBounds
 		const displayRect = screen.getDisplayMatching(lastBounds.rect).bounds
 		// we may have loaded bounds that are not in bounds of the screen
 		// if ie the resolution changed, more/less screens, ...
-		const result = isRectContainedInRect(displayRect, lastBounds.rect) ? Object.assign(this._currentBounds, lastBounds) : this._currentBounds
-		this.saveBounds(result)
+		if (isRectContainedInRect(displayRect, lastBounds.rect)) {
+			this._currentBounds = Object.assign(this._currentBounds, lastBounds)
+		}
+		this.saveCurrentBounds()
 	}
 
 	private async _newWindow(electron: ElectronExports, localShortcut: LocalShortcutManager, noAutoLogin: boolean | null): Promise<ApplicationWindow> {
