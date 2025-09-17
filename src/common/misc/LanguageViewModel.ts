@@ -9,6 +9,7 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
 export type TranslationKey = TranslationKeyType
 
 /**
+ * @deprecated
  * Legacy type that is either a TranslationKey or a Translation.
  * New code should either use TranslationKey or Translation.
  */
@@ -30,6 +31,9 @@ export type Translation = {
 	// to the m hyperscript function like m('div', ResolvedTranslation{tkey: "dummy", text: "yeah"})
 	oninit?: object
 }
+
+export type TranslationReplacements = Record<string, string | number>
+
 assertMainOrNodeBoot()
 export type DateTimeFormatOptions = {
 	hourCycle?: "h11" | "h12" | "h23" | "h24"
@@ -520,7 +524,7 @@ export class LanguageViewModel {
 	/**
 	 * Resolve TranslationKey to Translation.
 	 */
-	getTranslation(id: TranslationKey, replacements?: Record<string, string | number>): Translation {
+	getTranslation(id: TranslationKey, replacements?: TranslationReplacements): Translation {
 		return this.makeTranslation(id, this.get(id, replacements))
 	}
 
@@ -532,11 +536,12 @@ export class LanguageViewModel {
 	}
 
 	/**
+	 * @deprecated
 	 * Legacy. Use getTranslation instead.
 	 *
 	 * Should only be used to write the text of a TranslationKey to the dom.
 	 */
-	get(id: TranslationKey, replacements?: Record<string, string | number>): string {
+	get(id: TranslationKey, replacements?: TranslationReplacements): string {
 		if (id == null) {
 			return ""
 		}

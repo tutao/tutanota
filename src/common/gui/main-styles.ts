@@ -3041,12 +3041,6 @@ styles.registerStyle("main", () => {
 			left: 0,
 			transition: `left ${DefaultAnimationTime}ms ease-out`,
 		},
-		".payment-interval.light:after": {
-			"background-color": "#fff",
-		},
-		".payment-interval.dark:after": {
-			"background-color": "#303030",
-		},
 		".tutaui-toggle-pill.checked": {
 			"background-color": theme.primary,
 			border: `2px solid ${theme.primary}`,
@@ -3059,6 +3053,19 @@ styles.registerStyle("main", () => {
 			"z-index": "-1",
 			visibility: "hidden",
 			position: "absolute",
+		},
+		".payment-interval": {
+			"background-color": theme.surface_container_high,
+		},
+		".payment-interval.checked": {
+			border: `2px solid ${theme.outline}`,
+			"background-color": theme.surface_container_high,
+		},
+		".payment-interval:after": {
+			"background-color": theme.on_surface,
+		},
+		".payment-interval.checked:after": {
+			"background-color": theme.on_surface,
 		},
 		".tutaui-select-trigger": {
 			display: "flex",

@@ -11,7 +11,7 @@ import { AccessDeactivatedError, AccessExpiredError, InvalidDataError } from "..
 import { Dialog } from "../../gui/base/Dialog.js"
 import { defer } from "@tutao/tutanota-utils"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
-import { PowChallengeParameters } from "../ProofOfWorkCaptchaUtils.js"
+import { PowChallengeParameters } from "../utils/ProofOfWorkCaptchaUtils.js"
 import { showCaptchaDialog } from "./CaptchaDialog.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { PowSolution } from "../../api/common/pow-worker"

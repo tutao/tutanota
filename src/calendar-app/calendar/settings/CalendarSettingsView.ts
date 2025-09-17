@@ -42,7 +42,7 @@ import { BaseButton } from "../../../common/gui/base/buttons/BaseButton.js"
 import { Icon, IconSize } from "../../../common/gui/base/Icon.js"
 import { showSupportDialog } from "../../../common/support/SupportDialog.js"
 import { getSupportUsageTestStage } from "../../../common/support/SupportUsageTestUtils.js"
-import { shouldHideBusinessPlans } from "../../../common/subscription/SubscriptionUtils"
+import { shouldHideBusinessPlans } from "../../../common/subscription/utils/SubscriptionUtils"
 
 assertMainOrNode()
 

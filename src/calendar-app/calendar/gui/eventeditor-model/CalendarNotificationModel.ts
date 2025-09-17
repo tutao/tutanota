@@ -49,7 +49,7 @@ export class CalendarNotificationModel {
 			(sendModels.updateModel != null || sendModels.cancelModel != null || sendModels.inviteModel != null) &&
 			!(await hasPlanWithInvites(this.loginController))
 		) {
-			const { getAvailablePlansWithCalendarInvites } = await import("../../../../common/subscription/SubscriptionUtils.js")
+			const { getAvailablePlansWithCalendarInvites } = await import("../../../../common/subscription/utils/SubscriptionUtils.js")
 			throw new UpgradeRequiredError("upgradeRequired_msg", await getAvailablePlansWithCalendarInvites())
 		}
 		// we need to exclude the exclusions that are only there because of altered instances specifically

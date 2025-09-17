@@ -13,7 +13,7 @@ import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
 import { LeavingUserSurveyData } from "../subscription/LeavingUserSurveyWizard.js"
 import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstants.js"
-import { getClientPlatform } from "../subscription/LeavingUserSurveyUtils"
+import { getClientPlatform } from "../subscription/utils/LeavingUserSurveyUtils"
 
 assertMainOrNode()
 

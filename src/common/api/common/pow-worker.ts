@@ -1,4 +1,4 @@
-import { PowChallengeParameters, solvePowChallenge } from "../../subscription/ProofOfWorkCaptchaUtils.js"
+import { PowChallengeParameters, solvePowChallenge } from "../../subscription/utils/ProofOfWorkCaptchaUtils.js"
 
 export type PowSolution = {
 	solution: bigint

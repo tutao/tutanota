@@ -3,8 +3,9 @@
 	"type": "struct",
 	"fields": {
 		"name": "string",
-		"rawMonthlyPerMonth": "string",
-		"rawYearlyPerYear": "string",
+		"rawMonthlyPerMonth": "number",
+		"rawYearlyPerYear": "number",
+		"rawOfferYearlyPerYear": "number?",
 		"displayMonthlyPerMonth": "string",
 		"displayYearlyPerYear": "string",
 		"displayOfferYearlyPerYear": "string?",

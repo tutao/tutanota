@@ -35,7 +35,7 @@ import {
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/tutanota-utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import { Icons } from "../gui/base/icons/Icons"
-import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./PriceUtils"
+import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./utils/PriceUtils"
 import { formatDate, formatStorageSize } from "../misc/Formatter"
 import { showUpgradeWizard } from "./UpgradeSubscriptionWizard"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog"
@@ -54,7 +54,7 @@ import {
 	isWhitelabelActive,
 	queryAppStoreSubscriptionOwnership,
 	SubscriptionApp,
-} from "./SubscriptionUtils"
+} from "./utils/SubscriptionUtils"
 import { TextField } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { ColumnWidth, Table } from "../gui/base/Table.js"
@@ -287,7 +287,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					lastBooking: this._lastBooking,
 					acceptedPlans: AvailablePlans,
 					reason: null,
-					useNewPlanSelector: true,
 				})
 			}
 		}
@@ -307,7 +306,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		await showUpgradeWizard({ logins: locator.logins, useNewPlanSelector: true })
+		await showUpgradeWizard({ logins: locator.logins })
 	}
 
 	private async handleAppStoreSubscriptionChange() {
@@ -394,7 +393,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 						lastBooking: this._lastBooking,
 						acceptedPlans: AvailablePlans,
 						reason: null,
-						useNewPlanSelector: true,
 					})
 				}
 			}
@@ -406,7 +404,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					lastBooking: this._lastBooking,
 					acceptedPlans: AvailablePlans,
 					reason: null,
-					useNewPlanSelector: true,
 				})
 			}
 		}

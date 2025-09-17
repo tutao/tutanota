@@ -15,7 +15,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { getAvailablePlansWithWhitelabel } from "../../../common/subscription/SubscriptionUtils.js"
+import { getAvailablePlansWithWhitelabel } from "../../subscription/utils/SubscriptionUtils.js"
 
 export type WhitelabelBrandingDomainSettingsAttrs = {
 	customerInfo: CustomerInfo

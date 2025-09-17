@@ -22,7 +22,7 @@ import { getLoginErrorMessage, handleExpectedLoginError } from "../../misc/Login
 import { RecoverCodeField } from "../../settings/login/RecoverCodeDialog.js"
 import { HabReminderImage } from "../../gui/base/icons/Icons"
 import { PaymentMethodType, PlanType } from "../../api/common/TutanotaConstants"
-import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvider } from "../PriceUtils"
+import { formatPrice, getPaymentMethodName, PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import { TextField } from "../../gui/base/TextField.js"
 import { elementIdPart, isSameId } from "../../api/common/utils/EntityUtils"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"

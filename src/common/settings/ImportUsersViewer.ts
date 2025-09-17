@@ -9,7 +9,7 @@ import { showBuyDialog } from "../subscription/BuyDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { OperationId } from "../api/main/OperationProgressTracker.js"
-import { toFeatureType } from "../subscription/SubscriptionUtils.js"
+import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 
 const delayTime = 900
 type UserImportDetails = {

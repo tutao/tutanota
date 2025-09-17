@@ -8,7 +8,7 @@ import { BadRequestError } from "../api/common/error/RestError"
 import type { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 import type { InvoiceData } from "../api/common/TutanotaConstants"
 import { ofClass } from "@tutao/tutanota-utils"
-import { asPaymentInterval } from "./PriceUtils.js"
+import { asPaymentInterval } from "./utils/PriceUtils.js"
 
 export function show(
 	businessUse: boolean,

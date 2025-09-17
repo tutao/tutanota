@@ -2,7 +2,7 @@ import { AccountingInfoTypeRef, BookingItemTypeRef, BookingTypeRef, CustomerType
 import { AccountType, BookingItemFeatureType, FeatureType, PlanType } from "../../../src/common/api/common/TutanotaConstants.js"
 import o from "@tutao/otest"
 import { SwitchSubscriptionDialogModel } from "../../../src/common/subscription/SwitchSubscriptionDialogModel.js"
-import { PaymentInterval } from "../../../src/common/subscription/PriceUtils.js"
+import { PaymentInterval } from "../../../src/common/subscription/utils/PriceUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 
 o.spec("SwitchSubscriptionDialogModelTest", function () {

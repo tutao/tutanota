@@ -11,7 +11,7 @@ import { LimitReachedError } from "../../api/common/error/RestError.js"
 import { UserError } from "../../api/main/UserError.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../api/common/ServiceRequest.js"
-import { getAvailableMatchingPlans } from "../../subscription/SubscriptionUtils.js"
+import { getAvailableMatchingPlans } from "../../subscription/utils/SubscriptionUtils.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils.js"
 

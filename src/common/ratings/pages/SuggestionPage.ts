@@ -12,7 +12,7 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { client } from "../../misc/ClientDetector.js"
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
-import { getClientPlatform } from "../../subscription/LeavingUserSurveyUtils"
+import { getClientPlatform } from "../../subscription/utils/LeavingUserSurveyUtils"
 
 interface SuggestionPageAttrs {
 	dialog: Dialog

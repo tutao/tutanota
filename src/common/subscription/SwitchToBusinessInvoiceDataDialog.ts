@@ -6,7 +6,7 @@ import { BadRequestError } from "../api/common/error/RestError"
 import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { InvoiceData } from "../api/common/TutanotaConstants"
-import { asPaymentInterval } from "./PriceUtils.js"
+import { asPaymentInterval } from "./utils/PriceUtils.js"
 import { defer, ofClass } from "@tutao/tutanota-utils"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 

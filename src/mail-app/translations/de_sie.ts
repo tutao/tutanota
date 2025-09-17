@@ -2118,6 +2118,11 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"pricing.taglineForFreelancers": "For Freelancers",
+		"pricing.taglineForTeams": "For Teams",
+		"pricing.taglineForBusinesses": "For Businesses",
+		"pricing.bonusMonth_label": "+{months} months",
+		"pricing.saveAmountFirstYear_label": "Save {amount} for first year",
 	}
 }

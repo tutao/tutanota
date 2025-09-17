@@ -29,8 +29,9 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 
 	public func getPlanPrices() async throws -> [MobilePlanPrice] {
 		struct TempMobilePlanPrice {
-			var rawMonthlyPerMonth: String?
-			var rawYearlyPerYear: String?
+			var rawMonthlyPerMonth: Int?
+			var rawYearlyPerYear: Int?
+			var rawOfferYearlyPerYear: Int?
 			var displayMonthlyPerMonth: String?
 			var displayYearlyPerYear: String?
 			var displayOfferYearlyPerYear: String?
@@ -49,6 +50,7 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 				?? TempMobilePlanPrice(
 					rawMonthlyPerMonth: nil,
 					rawYearlyPerYear: nil,
+					rawOfferYearlyPerYear: nil,
 					displayMonthlyPerMonth: nil,
 					displayYearlyPerYear: nil,
 					displayOfferYearlyPerYear: nil,
@@ -64,12 +66,14 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 				let introductoryPrice = product.subscription?.introductoryOffer?.displayPrice
 				let isEligible: Bool = await product.subscription!.isEligibleForIntroOffer
 
-				plan.rawYearlyPerYear = String(describing: product.price)
+				plan.rawYearlyPerYear = NSDecimalNumber(decimal: product.price).intValue
+				let rawOfferYearly = product.subscription?.introductoryOffer?.price
+				plan.rawOfferYearlyPerYear = rawOfferYearly == nil ? nil : NSDecimalNumber(decimal: rawOfferYearly!).intValue
 				plan.displayYearlyPerYear = yearlyPerYearPrice
 				plan.displayOfferYearlyPerYear = introductoryPrice
 				plan.isEligibleForIntroOffer = isEligible
 			case .month:
-				plan.rawMonthlyPerMonth = String(describing: product.price)
+				plan.rawMonthlyPerMonth = NSDecimalNumber(decimal: product.price).intValue
 				plan.displayMonthlyPerMonth = product.displayPrice
 			default: fatalError("unexpected subscription period unit \(unit)")
 			}
@@ -80,6 +84,7 @@ public class IosMobilePaymentsFacade: MobilePaymentsFacade {
 				name: name,
 				rawMonthlyPerMonth: prices.rawMonthlyPerMonth!,
 				rawYearlyPerYear: prices.rawYearlyPerYear!,
+				rawOfferYearlyPerYear: prices.rawOfferYearlyPerYear,
 				displayMonthlyPerMonth: prices.displayMonthlyPerMonth!,
 				displayYearlyPerYear: prices.displayYearlyPerYear!,
 				displayOfferYearlyPerYear: prices.displayOfferYearlyPerYear,

@@ -2,8 +2,9 @@
 
 export interface MobilePlanPrice {
 	readonly name: string
-	readonly rawMonthlyPerMonth: string
-	readonly rawYearlyPerYear: string
+	readonly rawMonthlyPerMonth: number
+	readonly rawYearlyPerYear: number
+	readonly rawOfferYearlyPerYear: number | null
 	readonly displayMonthlyPerMonth: string
 	readonly displayYearlyPerYear: string
 	readonly displayOfferYearlyPerYear: string | null

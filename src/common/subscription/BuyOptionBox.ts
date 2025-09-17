@@ -6,7 +6,7 @@ import type { lazy } from "@tutao/tutanota-utils"
 import { Icon } from "../gui/base/Icon"
 import { SegmentControl } from "../gui/base/SegmentControl"
 import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants"
-import { PaymentInterval } from "./PriceUtils"
+import { PaymentInterval } from "./utils/PriceUtils"
 import Stream from "mithril/stream"
 import { Icons } from "../gui/base/icons/Icons"
 import { BootIcons } from "../gui/base/icons/BootIcons"
@@ -54,7 +54,14 @@ export type BuyOptionDetailsAttr = {
 		title: string | null
 		key: string
 		featureCount: { max: number }
-		features: Array<{ text: string; toolTip?: Child; key: string; antiFeature?: boolean; omit: boolean; heart: boolean }>
+		features: Array<{
+			text: string
+			toolTip?: Child
+			key: string
+			antiFeature?: boolean
+			omit: boolean
+			heart: boolean
+		}>
 	}>
 	featuresExpanded?: boolean
 	renderCategoryTitle: boolean
@@ -110,7 +117,10 @@ export class BuyOptionDetails implements Component<BuyOptionDetailsAttr> {
 											icon: BootIcons.Heart,
 											style: attrs.iconStyle,
 										})
-									: m(Icon, { icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark, style: attrs.iconStyle }),
+									: m(Icon, {
+											icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark,
+											style: attrs.iconStyle,
+										}),
 								m(".small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", [m("span", f.text)]),
 								f.toolTip ? m(InfoIcon, { text: f.toolTip }) : null,
 							]),
@@ -162,7 +172,16 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 				const isDarkTheme = !isColorLight(theme.surface)
 				return m(
 					".ribbon-horizontal.nota",
-					m(".text-center.b", { style: { padding: px(3), color: isDarkTheme ? "#fff" : undefined } }, lang.get("oneMonthTrial_label")),
+					m(
+						".text-center.b",
+						{
+							style: {
+								padding: px(3),
+								color: isDarkTheme ? "#fff" : undefined,
+							},
+						},
+						lang.get("oneMonthTrial_label"),
+					),
 				)
 			}
 

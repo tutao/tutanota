@@ -33,7 +33,7 @@ import { NotAuthorizedError } from "../api/common/error/RestError.js"
 import { Dialog } from "../gui/base/Dialog.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { getClientPlatform } from "../subscription/LeavingUserSurveyUtils"
+import { getClientPlatform } from "../subscription/utils/LeavingUserSurveyUtils"
 
 export type AccountMaintenanceUpdateNotifier = (updates: ReadonlyArray<EntityUpdateData>) => void
 

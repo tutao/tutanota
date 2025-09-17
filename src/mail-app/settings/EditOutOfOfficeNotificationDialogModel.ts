@@ -13,7 +13,7 @@ import { UserError } from "../../common/api/main/UserError"
 import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../common/api/common/ServiceRequest.js"
 
-import { getAvailablePlansWithAutoResponder } from "../../common/subscription/SubscriptionUtils.js"
+import { getAvailablePlansWithAutoResponder } from "../../common/subscription/utils/SubscriptionUtils.js"
 
 export const enum RecipientMessageType {
 	EXTERNAL_TO_EVERYONE = 0,

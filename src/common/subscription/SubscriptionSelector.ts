@@ -5,7 +5,7 @@ import type { BuyOptionBoxAttr, BuyOptionDetailsAttr } from "./BuyOptionBox"
 import { BOX_MARGIN, BuyOptionBox, BuyOptionDetails, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
 import type { SegmentControlItem } from "../gui/base/SegmentControl"
 import { SegmentControl } from "../gui/base/SegmentControl"
-import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider, PriceType } from "./PriceUtils"
+import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider, PriceType } from "./utils/PriceUtils"
 import {
 	FeatureCategory,
 	FeatureListItem,
@@ -34,7 +34,7 @@ import { px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { isIOSApp } from "../api/common/Env"
 import { locator } from "../api/main/CommonLocator.js"
-import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils.js"
+import { getApplePriceStr, getPriceStr, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils.js"
 import { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 
 const BusinessUseItems: SegmentControlItem<boolean>[] = [

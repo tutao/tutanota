@@ -75,6 +75,7 @@ export interface ButtonAttrs {
 	icon?: Children
 	class?: Array<string>
 	inline?: boolean
+	isDisabled?: boolean
 }
 
 /**
@@ -90,9 +91,12 @@ export class Button implements ClassComponent<ButtonAttrs> {
 			icon: attrs.icon,
 			class: classes.join(" "),
 			style: {
+				opacity: attrs.isDisabled ? "0.6" : "initial",
+				pointerEvents: attrs.isDisabled ? "none" : "auto",
+				filter: attrs.isDisabled ? "grayscale(0.8)" : "initial",
 				borderColor: getColors(attrs.colors).border,
 			},
-			onclick: attrs.click ?? noOp,
+			onclick: attrs.isDisabled || attrs.click === undefined ? noOp : attrs.click,
 		})
 	}
 

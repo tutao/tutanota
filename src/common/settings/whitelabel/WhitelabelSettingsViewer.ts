@@ -26,7 +26,7 @@ import { progressIcon } from "../../gui/base/Icon.js"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog.js"
 
 import * as EditNotificationEmailDialog from "../../settings/EditNotificationEmailDialog"
-import { isWhitelabelActive } from "../../subscription/SubscriptionUtils.js"
+import { isWhitelabelActive } from "../../subscription/utils/SubscriptionUtils.js"
 import { GENERATED_MAX_ID } from "../../api/common/utils/EntityUtils.js"
 import { WhitelabelBrandingDomainSettings } from "./WhitelabelBrandingDomainSettings"
 import { WhitelabelThemeSettings } from "./WhitelabelThemeSettings"

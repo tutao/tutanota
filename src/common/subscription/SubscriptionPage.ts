@@ -3,17 +3,17 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import { SubscriptionActionButtons, SubscriptionSelector } from "./SubscriptionSelector"
+import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
-import { getCurrentPaymentInterval, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./SubscriptionUtils"
+import { getCurrentPaymentInterval, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
-import { Keys, NewBusinessPlans, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { AvailablePlanType, Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { UpgradePriceType } from "./FeatureListProvider"
-import { PaymentInterval } from "./PriceUtils.js"
+import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
@@ -25,6 +25,9 @@ import { theme } from "../gui/theme.js"
 import { isIOSApp } from "../api/common/Env.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { DiscountDetail, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
+import { TranslationKeyType } from "../misc/TranslationKey"
+import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({
@@ -36,7 +39,7 @@ export const PlanTypeParameter = Object.freeze({
 	UNLIMITED: "unlimited",
 })
 
-export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
+export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>): void {
@@ -51,17 +54,16 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 	}
 
 	view({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		const { featureListProvider, planPrices, acceptedPlans, newAccountData, accountingInfo } = data
+		const { planPrices, acceptedPlans, newAccountData, targetPlanType, accountingInfo } = data
 		let availablePlans = acceptedPlans
 		const isApplePrice = shouldShowApplePrices(accountingInfo)
-		const hasCampaign = isApplePrice
-			? planPrices.getIosIntroOfferEligibility() && hasAppleIntroOffer(planPrices)
-			: planPrices.getRawPricingData().hasGlobalFirstYearDiscount
+		const discountDetail = this.getDiscountDetail(isApplePrice, planPrices)
+		const promotionMessage = planPrices.getRawPricingData().messageTextId as TranslationKeyType
 
 		// newAccountData is filled in when signing up and then going back in the signup process
 		// If the user has selected a paid plan we want to prevent them from selecting a free plan at this point,
 		// since the account will be PAID_SUBSCRIPTION_NEEDED state if the user selects free
-		if (!!data.newAccountData && data.targetPlanType !== PlanType.Free) {
+		if (!!newAccountData && targetPlanType !== PlanType.Free) {
 			availablePlans = availablePlans.filter((plan) => plan !== PlanType.Free)
 		}
 
@@ -89,62 +91,84 @@ export class VariantCSubscriptionPage implements WizardPageN<UpgradeSubscription
 			[PlanType.Unlimited]: createPaidPlanActionButtons(PlanType.Unlimited),
 		}
 
-		// Show the old plan selector for business plans
-		if (data.options.businessUse()) {
-			return m(".pt", [
-				m(SubscriptionSelector, {
-					options: data.options,
-					priceInfoTextId: data.priceInfoTextId,
-					boxWidth: 230,
-					boxHeight: 270,
-					acceptedPlans: NewBusinessPlans.filter((businessPlan) => acceptedPlans.includes(businessPlan)),
-					allowSwitchingPaymentInterval: data.upgradeType !== UpgradeType.Switch,
-					currentPlanType: data.currentPlan,
-					actionButtons: actionButtons,
-					featureListProvider: featureListProvider,
-					priceAndConfigProvider: planPrices,
-					multipleUsersAllowed: data.multipleUsersAllowed,
-					msg: data.msg,
-					accountingInfo: accountingInfo,
-				}),
-			])
-		}
-
 		// Under *ALL* circumstances, there *MUST* be this empty wrapper element around it.
 		return m(".", [
 			// Headline for a global campaign
-			hasCampaign &&
-				m(
-					".flex-center.items-center.gap-hpad.mb",
-					m(Icon, {
-						icon: BootIcons.Heart,
-						size: IconSize.XL,
-						container: "div",
-						style: { fill: theme.experimental_tertiary },
-					}),
-					// This text should not be translated to other languages.
-					m(
-						".b.center.smaller",
-						isIOSApp()
-							? lang.getTranslationText("pricing.goEuropeanHeadlineIos_msg")
-							: lang.getTranslation("pricing.goEuropeanHeadline_msg", { "{amount}": "50%" }).text,
-					),
-				),
+			discountDetail?.discountType === "GlobalFirstYear" &&
+				m(PlanSelectorHeadline, {
+					translation: isIOSApp()
+						? lang.getTranslation("pricing.goEuropeanHeadlineIos_msg")
+						: lang.getTranslation("pricing.goEuropeanHeadline_msg", { "{amount}": "50%" }),
+					icon: BootIcons.Heart,
+				}),
 			// Headline for general messages
-			data.msg && m(".flex-center.items-center.gap-hpad.mb", m(".b.center.smaller", lang.getTranslationText(data.msg))),
+			data.msg && m(PlanSelectorHeadline, { translation: data.msg }),
+			// Headline for promotional messages
+			promotionMessage && m(PlanSelectorHeadline, { translation: lang.getTranslation(promotionMessage) }),
+
 			m(PlanSelector, {
 				options: data.options,
 				actionButtons,
 				priceAndConfigProvider: planPrices,
-				hasCampaign: hasCampaign && data.options.paymentInterval() === PaymentInterval.Yearly,
 				availablePlans,
 				isApplePrice,
 				currentPlan: data.currentPlan ?? undefined,
 				currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
 				allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
 				showMultiUser: false,
+				discountDetail,
 			}),
 		])
+	}
+
+	private getDiscountDetail(isApplePrice: boolean, planPrices: PriceAndConfigProvider): DiscountDetail | undefined {
+		const pricingData = planPrices.getRawPricingData()
+
+		const firstYearDiscount = getFirstYearDiscount()
+		const bonusMonth = Number(pricingData.bonusMonthsForYearlyPlan)
+		const legendMonthlyRefPrice = Number(pricingData.legendaryPrices.monthlyReferencePrice)
+		const legendYearlyRefPrice = legendMonthlyRefPrice * 10
+		const legendMonthlyPrice = Number(pricingData.legendaryPrices.monthlyPrice)
+		const permanentDiscountPercentage = Math.floor((1 - legendMonthlyPrice / legendMonthlyRefPrice) * 100)
+		const firstYearDiscountPercentage = Math.floor((firstYearDiscount / legendYearlyRefPrice) * 100)
+		const hasGlobalCampaign = isApplePrice
+			? planPrices.getIosIntroOfferEligibility() && hasAppleIntroOffer(planPrices)
+			: planPrices.getRawPricingData().hasGlobalFirstYearDiscount
+
+		function getFirstYearDiscount(): number {
+			if (isApplePrice) {
+				if (planPrices.getIosIntroOfferEligibility() && hasAppleIntroOffer(planPrices)) {
+					const rawYearlyPrice = planPrices.getMobilePrices().get("legend")?.rawYearlyPerYear
+					const rawOfferYearlyPrice = planPrices.getMobilePrices().get("legend")?.rawOfferYearlyPerYear
+					if (rawYearlyPrice && rawOfferYearlyPrice) return rawYearlyPrice - rawOfferYearlyPrice
+				}
+				return 0
+			} else {
+				return Number(pricingData.legendaryPrices.firstYearDiscount)
+			}
+		}
+
+		if (bonusMonth > 0) {
+			return {
+				ribbonTranslation: lang.getTranslation("pricing.bonusMonth_label", { "{months}": bonusMonth }),
+				discountType: "BonusMonths",
+			}
+		} else if (permanentDiscountPercentage > 0) {
+			return {
+				ribbonTranslation: lang.getTranslation("pricing.saveAmount_label", { "{amount}": `${permanentDiscountPercentage}%` }),
+				discountType: "Permanent",
+			}
+		} else if (hasGlobalCampaign) {
+			return {
+				ribbonTranslation: lang.getTranslation("pricing.saveAmountFirstYear_label", { "{amount}": `${firstYearDiscountPercentage}%` }),
+				discountType: "GlobalFirstYear",
+			}
+		} else if (firstYearDiscount > 0) {
+			return {
+				ribbonTranslation: lang.getTranslation("pricing.saveAmountFirstYear_label", { "{amount}": `${firstYearDiscountPercentage}%` }),
+				discountType: "IndividualFirstYear",
+			}
+		}
 	}
 
 	private selectFree(data: UpgradeSubscriptionData) {
@@ -299,7 +323,7 @@ function showFreeSubscriptionDialog(): Promise<boolean> {
 	})
 }
 
-export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
+export class SubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
 	data: UpgradeSubscriptionData
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
@@ -324,7 +348,7 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 	public rightAction = shouldHideBusinessPlans()
 		? undefined
 		: (update: VoidFunction): ButtonAttrs => {
-				return getPrivateBusinessSwitchButton(this.data.options.businessUse, update)
+				return getPrivateBusinessSwitchButton(this.data.options.businessUse, this.data.acceptedPlans, update)
 			}
 
 	isEnabled(): boolean {
@@ -332,26 +356,27 @@ export class VariantCSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSub
 	}
 }
 
-export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, update?: VoidFunction): ButtonAttrs {
+export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, availablePlans: readonly AvailablePlanType[], update?: VoidFunction): ButtonAttrs {
+	const isBusiness = businessUse()
 	return {
-		label: businessUse() ? "privateUse_action" : "forBusiness_action",
+		label: isBusiness ? "privateUse_action" : "forBusiness_action",
 		type: ButtonType.Primary,
 		class: ["block"], // Use block class to override the `flex` class, thus allowing the button text to be wrapped using ellipses.
-		icon:
-			businessUse() || styles.isMobileLayout()
-				? null
-				: m(Icon, {
-						icon: Icons.Business,
-						size: IconSize.Large,
-						class: "mr-xsm",
-						style: {
-							fill: theme.primary,
-							"vertical-align": "sub",
-						},
-					}),
+		icon: styles.isMobileLayout()
+			? null
+			: m(Icon, {
+					icon: isBusiness ? BootIcons.User : Icons.Business,
+					size: IconSize.Large,
+					class: "mr-xsm",
+					style: {
+						fill: theme.primary,
+						"vertical-align": "sub",
+					},
+				}),
 		click: () => {
-			businessUse(!businessUse())
+			businessUse(!isBusiness)
 			update?.()
 		},
+		isDisabled: !isPersonalPlanAvailable(availablePlans),
 	}
 }
