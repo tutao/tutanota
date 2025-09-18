@@ -22,8 +22,8 @@ export class BannerButton implements Component<BannerButtonAttrs> {
 			text: lang.getTranslationText(attrs.text),
 			class: `border-radius center ${attrs.class} ${attrs.disabled ? "disabled" : ""}`,
 			style: {
-				border: `2px solid ${attrs.disabled ? theme.content_button : attrs.borderColor}`,
-				color: attrs.disabled ? theme.content_button : attrs.color,
+				border: `2px solid ${attrs.disabled ? theme.on_surface_variant : attrs.borderColor}`,
+				color: attrs.disabled ? theme.on_surface_variant : attrs.color,
 				padding: px(size.vpad_small),
 				minWidth: "60px",
 			},

@@ -38,8 +38,7 @@ import { WhitelabelNotificationEmailSettings } from "./WhitelabelNotificationEma
 import type { GermanLanguageCode } from "./WhitelabelGermanLanguageFileSettings"
 import { WhitelabelGermanLanguageFileSettings } from "./WhitelabelGermanLanguageFileSettings"
 import type { UpdatableSettingsViewer } from "../Interfaces.js"
-import type { ThemeCustomizations } from "../../misc/WhitelabelCustomizations.js"
-import { getThemeCustomizations } from "../../misc/WhitelabelCustomizations.js"
+import { getThemeCustomizations, ThemeCustomizations } from "../../misc/WhitelabelCustomizations.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { SelectorItem, SelectorItemList } from "../../gui/base/DropDownSelector.js"
 import { BrandingDomainService } from "../../api/entities/sys/Services.js"
@@ -48,6 +47,8 @@ import { getCustomMailDomains, getWhitelabelDomainInfo } from "../../api/common/
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { showBuyOrSetNotificationEmailDialog } from "../EditNotificationEmailDialog.js"
+import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
+import type { ThemeController } from "../../gui/ThemeController"
 
 assertMainOrNode()
 
@@ -64,7 +65,12 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	private _entityClient: EntityClient
 	private _logins: LoginController
 
-	constructor(entityClient: EntityClient, logins: LoginController) {
+	constructor(
+		entityClient: EntityClient,
+		logins: LoginController,
+		private readonly themeController: ThemeController,
+		private readonly whitelabelThemeGenerator: WhitelabelThemeGenerator,
+	) {
 		this.view = this.view.bind(this)
 		this._entityClient = entityClient
 		this._logins = logins
@@ -149,6 +155,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 							whitelabelDomainInfo,
 						}
 					: null,
+			whitelabelThemeGenerator: this.whitelabelThemeGenerator,
 		}
 		return m(WhitelabelThemeSettings, whitelabelThemeSettingsAttrs)
 	}
@@ -320,12 +327,18 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		const data = await this._tryLoadWhitelabelConfig(this._whitelabelDomainInfo)
 		this._whitelabelConfig = data?.whitelabelConfig ?? null
 		this._certificateInfo = data?.certificateInfo ?? null
-		return locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true).then((bookings) => {
-			this._lastBooking = bookings.length === 1 ? bookings[0] : null
-			this._customJsonTheme = this._whitelabelConfig ? getThemeCustomizations(this._whitelabelConfig) : null
-			m.redraw()
-			this._customerProperties.getAsync().then(m.redraw)
-		})
+		return locator.entityClient
+			.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+			.then((bookings) => {
+				this._lastBooking = bookings.length === 1 ? bookings[0] : null
+				const unknownCustomizations = this._whitelabelConfig ? getThemeCustomizations(this._whitelabelConfig) : null
+				return unknownCustomizations ? this.themeController.getMaterial3Customizations(unknownCustomizations) : null
+			})
+			.then((themeCustomizations) => {
+				this._customJsonTheme = themeCustomizations
+				m.redraw()
+				this._customerProperties.getAsync().then(m.redraw)
+			})
 	}
 
 	_renderNotificationEmailSettings(): Children {
