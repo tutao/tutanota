@@ -13,6 +13,7 @@ import { PlanConfig } from "./BusinessPlanBoxes"
 import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { styles } from "../../gui/styles"
+import { boxShadowHigh } from "../../gui/main-styles"
 
 type BusinessPlanBoxAttrs = {
 	planConfig: PlanConfig
@@ -99,76 +100,69 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 					border: isSelected ? `3px solid ${localTheme.primary}` : `1px solid ${localTheme.outline}`,
 					backgroundColor: isSelected ? localTheme.surface_container_high : localTheme.surface,
 					borderRadius: px(12),
-					padding: isSelected ? `${px(12)} ${px(12)}` : `${px(14)} ${px(14)}`,
+					// This padding is required to prevent layout shifting by the change of border weight
+					padding: isSelected ? `${px(size.vpad_ml)} ${px(size.hpad_medium)}` : `${px(size.vpad_ml + 2)} ${px(size.hpad_medium + 2)}`,
 					marginBottom: px(14),
-					maxWidth: px(560),
 					opacity: isDisabled ? 0.6 : 1,
+					"box-shadow": isSelected ? boxShadowHigh : "initial",
+					transform: isSelected && !styles.isMobileLayout() ? `translateY(${px(-size.vpad)})` : "initial",
+					transition: `transform ${DefaultAnimationTime}ms, box-shadow ${DefaultAnimationTime}ms, background-color ${DefaultAnimationTime}ms`,
 				},
 			},
 			[
 				// header
 				m(`div.flex.items-center.justify-between.gap-vpad${styles.isMobileLayout() ? ".flex" : ".flex-column"}`, [
-					m(`div.items-center.justify-center.flex`, [
-						m("img", {
-							src: `${window.tutao.appState.prefixWithoutFile}/images/${planConfig.icon}.svg`,
-							alt: "",
-							rel: "noreferrer",
-							loading: "lazy",
-							decoding: "async",
-							style: {
-								margin: styles.isMobileLayout() ? "0 0 0 0" : "16px 0 0 0",
-							},
-						}),
-						m(Icon, {
-							icon: BootIcons.Expand,
-							class: `flex-center items-center `,
-							size: IconSize.XL,
-							style: {
-								display: styles.isMobileLayout() ? "block" : "none",
-								margin: "-3px",
-								transform: `rotateZ(${attrs.isSelected ? 180 : 0}deg)`,
-								transition: `transform ${DefaultAnimationTime}ms`,
-							},
-						}),
-					]),
-					m(`div.flex-grow${styles.isMobileLayout() ? ".left" : ".center"}`, [
-						m(
-							"div",
-							{
+					m("", [
+						m(`div.items-center.justify-center.flex`, [
+							m("img", {
+								src: `${window.tutao.appState.prefixWithoutFile}/images/${planConfig.icon}.svg`,
+								alt: "",
+								rel: "noreferrer",
+								loading: "lazy",
+								decoding: "async",
+							}),
+							m(Icon, {
+								icon: BootIcons.Expand,
+								class: `flex-center items-center `,
+								size: IconSize.XL,
 								style: {
-									fontWeight: "bold",
-									fontSize: px(24),
-									color: isSelected ? localTheme.primary : localTheme.on_surface,
+									display: styles.isMobileLayout() ? "block" : "none",
+									margin: "-3px",
+									transform: `rotateZ(${attrs.isSelected ? 180 : 0}deg)`,
+									transition: `transform ${DefaultAnimationTime}ms`,
 								},
-							},
-							PlanTypeToName[planConfig.type],
-						),
-						m(
-							"div",
-							{
-								style: {
-									display: styles.isMobileLayout() ? "none" : "block",
-									fontSize: px(12),
+							}),
+						]),
+						m(`div.flex-grow${styles.isMobileLayout() ? ".left" : ".center"}`, [
+							m(
+								"div.font-mdio",
+								{
+									style: {
+										fontWeight: "bold",
+										fontSize: px(24),
+										color: isSelected ? localTheme.primary : localTheme.on_surface,
+									},
 								},
-							},
-							lang.get(planConfig.tagLine),
-						),
+								PlanTypeToName[planConfig.type],
+							),
+							m(
+								"div",
+								{
+									style: {
+										display: styles.isMobileLayout() ? "none" : "block",
+										fontSize: px(12),
+									},
+								},
+								lang.get(planConfig.tagLine),
+							),
+						]),
 					]),
 					m(`div.no-wrap${styles.isMobileLayout() ? ".right" : ".center"}`, [
 						m("div.lh-s", [
 							referencePrice ? m("span.strike.mr-s.smaller", { style: { color: localTheme.on_surface_variant } }, referencePrice) : null,
-							m(
-								"span",
-								{
-									style: {
-										fontSize: px(30),
-										color: localTheme.on_surface,
-									},
-								},
-								price,
-							),
+							m("span.h1", price),
 						]),
-						m("div.smaller", { style: { color: localTheme.on_surface_variant } }, lang.get("pricing.perUserMonth_label")),
+						m("div.small", { style: { color: localTheme.on_surface_variant } }, lang.get("pricing.perUserMonth_label")),
 					]),
 				]),
 
