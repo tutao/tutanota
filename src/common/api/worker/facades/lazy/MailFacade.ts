@@ -102,6 +102,7 @@ import {
 	assertNotNull,
 	byteLength,
 	contains,
+	debounce,
 	defer,
 	freshVersioned,
 	groupBy,
@@ -453,14 +454,14 @@ export class MailFacade {
 		}
 	}
 
-	async updateClassifier(): Promise<void> {
+	updateClassifier = debounce(5000, async () => {
 		if (this.spamClassifier.isEnabled) {
 			const modelUpdated = await this.spamClassifier.updateModel(await this.storage.getLastTrainedTime())
 			if (modelUpdated) {
 				await this.storage.setLastTrainedTime(Date.now())
 			}
 		}
-	}
+	})
 
 	async predictSpamResult(mail: Mail): Promise<boolean> {
 		if (isDraft(mail)) {
