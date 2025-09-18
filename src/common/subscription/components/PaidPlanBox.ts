@@ -12,14 +12,13 @@ import { Icons } from "../../gui/base/icons/Icons.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { styles } from "../../gui/styles.js"
 import { getBlueTheme, planBoxColors } from "../PlanBoxColors.js"
-import { locator } from "../../api/main/CommonLocator.js"
 import { isIOSApp } from "../../api/common/Env"
 import { getFeaturePlaceholderReplacement } from "../SubscriptionUtils.js"
 import { CurrentPlanLabel } from "./CurrentPlanLabel.js"
-
-type AvailablePlan = PlanType.Revolutionary | PlanType.Legend
+import { PlanConfig } from "./BusinessPlanBoxes"
 
 type PlanBoxAttrs = {
+	planConfig: PlanConfig
 	price: string
 	/**
 	 * Null when we do not want to show the difference between actual price and reference price.
@@ -29,28 +28,19 @@ type PlanBoxAttrs = {
 	isSelected: boolean
 	isDisabled: boolean
 	isCurrentPlan: boolean
-	plan: AvailablePlan
-	onclick: Callback<AvailablePlan>
+	onclick: Callback<PlanType>
 	priceAndConfigProvider: PriceAndConfigProvider
 	hasCampaign: boolean
 	isApplePrice: boolean
 	showMultiUser: boolean
+	position: "left" | "right"
 }
 
 export class PaidPlanBox implements Component<PlanBoxAttrs> {
-	private revoIconSvg: string | undefined
-	private legendIconSvg: string | undefined
 	private scale: string = "initial"
 	private preventRescaling: boolean = true
 
 	async oninit({ attrs }: Vnode<PlanBoxAttrs>) {
-		const [revo, legend] = await Promise.all([
-			fetch(`${window.tutao.appState.prefixWithoutFile}/images/revo.svg`),
-			fetch(`${window.tutao.appState.prefixWithoutFile}/images/legend.svg`),
-		])
-		this.revoIconSvg = await revo.text()
-		this.legendIconSvg = await legend.text()
-
 		if (attrs.isSelected) {
 			setTimeout(() => {
 				this.preventRescaling = false
@@ -65,28 +55,28 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 
 	view({
 		attrs: {
+			planConfig,
 			price,
 			referencePrice,
 			selectedPaymentInterval,
 			isSelected,
 			isDisabled,
 			isCurrentPlan,
-			plan,
 			onclick,
 			priceAndConfigProvider,
 			hasCampaign,
 			isApplePrice,
 			showMultiUser,
+			position,
 		},
 	}: Vnode<PlanBoxAttrs>) {
 		this.scale = isSelected && !this.preventRescaling ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
-		const isLegendPlan = plan === PlanType.Legend
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const strikethroughPrice = isYearly ? referencePrice : undefined
 		// Only for Go European campaign as the campaign needs to use the blue theme always. This should be removed after the campaign.
 		const localTheme = hasCampaign ? getBlueTheme() : theme
 
-		const renderFeature = this.generateRenderFeature(plan, priceAndConfigProvider, isSelected, isDisabled, hasCampaign)
+		const renderFeature = this.generateRenderFeature(planConfig.type, priceAndConfigProvider)
 		const getPriceHintStr = (): string => {
 			if (showMultiUser) {
 				return lang.get("pricing.perUserMonth_label")
@@ -104,7 +94,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 				style: {
 					scale: this.scale,
 					"z-index": isSelected ? "1" : "initial",
-					"transform-origin": isLegendPlan ? "center right" : "center left",
+					"transform-origin": position === "right" ? "center right" : "center left",
 					"pointer-event": isDisabled ? "none" : "initial",
 				},
 			},
@@ -117,8 +107,8 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 							"background-color": theme.go_european,
 							color: theme.on_go_european,
 							...(!styles.isMobileLayout() && {
-								"border-radius": `${isLegendPlan ? "0" : px(size.border_radius_large)}
-									${isLegendPlan ? px(size.border_radius_large) : "0"} 0 0`,
+								"border-radius": `${position === "right" ? "0" : px(size.border_radius_large)}
+									${position === "right" ? px(size.border_radius_large) : "0"} 0 0`,
 							}),
 						},
 					},
@@ -128,19 +118,20 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 				"",
 				{
 					style: {
-						"background-color": planBoxColors.getBgColor(isSelected),
-						color: planBoxColors.getTextColor(isSelected, isDisabled, hasCampaign),
+						"background-color": isSelected ? localTheme.surface_container_high : localTheme.surface,
+						color: localTheme.on_surface,
 						"min-height": px(270),
 						height: "100%",
 						"border-style": "solid",
 						"border-color": planBoxColors.getOutlineColor(isSelected),
-						"border-width": isLegendPlan ? this.getLegendBorderWidth(isSelected, hasCampaign) : this.getRevoBorderWidth(isSelected, hasCampaign),
-						"border-radius": isLegendPlan ? this.getLegendBorderRadius(hasCampaign) : this.getRevoBorderRadius(hasCampaign),
+						"border-width":
+							position === "right" ? this.getLegendBorderWidth(isSelected, hasCampaign) : this.getRevoBorderWidth(isSelected, hasCampaign),
+						"border-radius": position === "right" ? this.getLegendBorderRadius(hasCampaign) : this.getRevoBorderRadius(hasCampaign),
 						...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
 						overflow: "hidden",
 						padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
 					},
-					onclick: () => !isDisabled && onclick?.(plan),
+					onclick: () => !isDisabled && onclick?.(planConfig.type),
 				},
 
 				m(
@@ -148,14 +139,13 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 					{
 						style: {
 							gap: "8px",
-							"border-bottom": `1px solid ${this.getIconColor({ isSelected })}`,
 							...(styles.isMobileLayout()
 								? {
-										"align-items": plan === PlanType.Revolutionary ? "flex-end" : "flex-start",
+										"align-items": position === "left" ? "flex-end" : "flex-start",
 										"flex-direction": "column",
 									}
 								: {
-										...(plan === PlanType.Revolutionary && { "flex-direction": "row-reverse" }),
+										...(position === "left" && { "flex-direction": "row-reverse" }),
 									}),
 						},
 					},
@@ -163,7 +153,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						name: "BuyOptionBox",
 						checked: isSelected,
 						style: {
-							"accent-color": localTheme.experimental_on_primary_container,
+							"accent-color": localTheme.on_primary_container,
 							opacity: isDisabled ? "0" : "1",
 						},
 						disabled: isDisabled,
@@ -173,40 +163,56 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						{
 							style: {
 								"font-size": px(styles.isMobileLayout() ? 18 : 20),
+								color: isSelected ? localTheme.primary : localTheme.on_surface,
 							},
 						},
-						PlanTypeToName[plan],
+						PlanTypeToName[planConfig.type],
 					),
 				),
+
+				m("hr", {
+					style: {
+						height: px(1),
+						display: "block",
+						border: "none",
+						backgroundColor: localTheme.outline_variant,
+					},
+				}),
 				m(
 					".flex.mt-s",
 					{
 						style: {
-							"justify-content": isLegendPlan ? "start" : "end",
-							"flex-direction": isLegendPlan ? "row-reverse" : "row",
+							"justify-content": position === "right" ? "start" : "end",
+							"flex-direction": position === "right" ? "row-reverse" : "row",
 							height: px(size.button_height_compact),
 						},
 					},
-					isCurrentPlan ? m(CurrentPlanLabel) : m(".smaller", isLegendPlan ? lang.get("allYouNeed_label") : lang.get("mostPopular_label")),
+					isCurrentPlan ? m(CurrentPlanLabel) : m(".smaller", lang.get(planConfig.tagLine)),
 				),
-				m(".flex-space-between.gap-hpad.mt.mb", { style: { "flex-direction": isLegendPlan ? "row-reverse" : "row" } }, [
+				m(".flex-space-between.gap-hpad.mt.mb", { style: { "flex-direction": position === "right" ? "row-reverse" : "row" } }, [
 					m(
 						"",
 						{
 							style: {
 								height: px(35),
-								fill: this.getIconColor({ isSelected }),
+								fill: localTheme.on_surface_variant,
 							},
 						},
-						!this.revoIconSvg || !this.legendIconSvg || styles.bodyWidth <= 420
+						styles.bodyWidth <= 420
 							? null
-							: m.trust(isLegendPlan ? this.legendIconSvg : this.revoIconSvg),
+							: m(Icon, {
+									icon: planConfig.icon,
+									size: IconSize.Medium,
+									style: {
+										fill: theme.on_surface_variant,
+									},
+								}),
 					),
 					m(
 						".flex.flex-column",
 						{
 							style: {
-								"align-items": isLegendPlan ? "start" : "end",
+								"align-items": position === "right" ? "start" : "end",
 							},
 						},
 						m(
@@ -214,8 +220,8 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 							{
 								style: {
 									gap: px(3),
-									"flex-direction": isLegendPlan ? "row-reverse" : "row",
-									"justify-content": isLegendPlan ? "start" : "end",
+									"flex-direction": position === "right" ? "row-reverse" : "row",
+									"justify-content": position === "right" ? "start" : "end",
 								},
 							},
 							strikethroughPrice?.trim() !== ""
@@ -223,6 +229,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 										".strike",
 										{
 											style: {
+												color: localTheme.on_surface_variant,
 												fontSize: px(size.font_size_smaller),
 												justifySelf: "end",
 											},
@@ -252,17 +259,13 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 
 				m(
 					".flex.flex-column.gap-vpad-s",
-					renderFeature("pricing.comparisonStorage_msg", Icons.PricingStorage, "storage"),
-					renderFeature("pricing.calendarsPremium_label", Icons.PricingCalendar),
-					renderFeature("pricing.mailAddressAliasesShort_label", Icons.PricingMail, "mailAddressAliases"),
-					renderFeature("pricing.comparisonCustomDomains_msg", Icons.PricingCustomDomain, "customDomains"),
-					renderFeature(isLegendPlan ? "pricing.comparisonSupportPro_msg" : "pricing.comparisonSupportPremium_msg", Icons.PricingSupport),
+					planConfig.features.map((feature) => renderFeature(feature.label, feature.icon, feature.replacementKey)),
 				),
 			),
 		)
 	}
 
-	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, isSelected: boolean, isDisabled: boolean, hasCampaign: boolean) {
+	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider) {
 		return (langKey: TranslationKeyType, icon: Icons, replacement?: ReplacementKey) => {
 			return m(
 				".flex",
@@ -275,7 +278,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 					icon,
 					size: IconSize.Normal,
 					style: {
-						fill: planBoxColors.getFeatureIconColor(isSelected, isDisabled, planType, hasCampaign),
+						fill: theme.secondary,
 					},
 				}),
 				m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider))),
@@ -324,23 +327,6 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 			return `0 0 0 0`
 		} else {
 			return `${topLeftRadius} 0 0 0`
-		}
-	}
-
-	// TODO: Update color to follow the Material 3 color rules after the color token update
-	private getIconColor({ isSelected }: { isSelected: boolean }): string {
-		if (locator.themeController.isLightTheme()) {
-			if (isSelected) {
-				return "#DED2CB" // light-dark-peach
-			} else {
-				return "#D5D5D5"
-			}
-		} else {
-			if (isSelected) {
-				return "#9F8D83" // dark-dark-peach
-			} else {
-				return "#707070"
-			}
 		}
 	}
 }

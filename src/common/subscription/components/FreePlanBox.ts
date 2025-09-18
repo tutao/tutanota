@@ -33,8 +33,8 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 			`.buyOptionBox-v2${isSelected ? ".selected" : ""}${isDisabled ? "" : ".cursor-pointer"}`,
 			{
 				style: {
-					"background-color": planBoxColors.getBgColor(isSelected),
-					color: planBoxColors.getTextColor(isSelected, isDisabled, hasCampaign),
+					"background-color": isSelected ? localTheme.surface_container_high : localTheme.surface,
+					color: localTheme.on_surface,
 					display: "flex",
 					"z-index": isSelected ? "1" : "initial",
 					scale,
@@ -45,7 +45,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 					"border-width": this.getBorderWidth({ isSelected }),
 					"border-radius": this.getBorderRadius(),
 					"border-style": "solid",
-					"border-color": planBoxColors.getOutlineColor(isSelected),
+					"border-color": isSelected ? "transparent" : localTheme.outline_variant,
 					padding: "24px 16px",
 					"pointer-events": isDisabled ? "none" : "initial",
 				},
@@ -62,6 +62,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 							{
 								style: {
 									"font-size": px(styles.isMobileLayout() ? 18 : 20),
+									color: isSelected ? localTheme.primary : localTheme.on_surface,
 								},
 							},
 							"Free",
@@ -73,7 +74,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 							name: "BuyOptionBox",
 							checked: isSelected,
 							style: {
-								"accent-color": localTheme.experimental_on_primary_container,
+								"accent-color": localTheme.on_primary_container,
 							},
 						}),
 				),
@@ -118,7 +119,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 						icon,
 						size: IconSize.Normal,
 						style: {
-							fill: planBoxColors.getFeatureIconColor(isSelected, isDisabled, PlanType.Free, hasCampaign),
+							fill: theme.secondary,
 						},
 					}),
 					m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, PlanType.Free, provider))),

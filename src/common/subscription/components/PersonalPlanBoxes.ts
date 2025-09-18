@@ -8,7 +8,8 @@ import { PaidPlanBox } from "./PaidPlanBox"
 import { getApplePriceStr, getPriceStr } from "../SubscriptionUtils"
 import { FreePlanBox } from "./FreePlanBox"
 import Stream from "mithril/stream"
-import { AvailablePlans } from "../PlanSelector"
+import { PlanConfig } from "./BusinessPlanBoxes"
+import { Icons } from "../../gui/base/icons/Icons"
 
 export type PlanBoxesAttrs = {
 	allowSwitchingPaymentInterval: boolean
@@ -19,12 +20,76 @@ export type PlanBoxesAttrs = {
 	hidePaidPlans: boolean
 	isApplePrice: boolean
 	priceAndConfigProvider: PriceAndConfigProvider
-	selectedPlan: Stream<AvailablePlans>
+	selectedPlan: Stream<PlanType>
 	selectedSubscriptionOptions: SelectedSubscriptionOptions
 	showMultiUser: boolean
 }
 
 export class PersonalPlanBoxes implements Component<PlanBoxesAttrs> {
+	private paidPlanConfigs: PlanConfig[] = [
+		{
+			type: PlanType.Revolutionary,
+			tagLine: "mostPopular_label",
+			icon: Icons.BusinessEssential,
+			features: [
+				{
+					label: "pricing.comparisonStorage_msg",
+					icon: Icons.PricingStorage,
+					replacementKey: "storage",
+				},
+				{
+					label: "pricing.calendarsPremium_label",
+					icon: Icons.PricingCalendar,
+				},
+				{
+					label: "pricing.mailAddressAliasesShort_label",
+					icon: Icons.PricingMail,
+					replacementKey: "mailAddressAliases",
+				},
+				{
+					label: "pricing.comparisonCustomDomains_msg",
+					icon: Icons.PricingCustomDomain,
+					replacementKey: "customDomains",
+				},
+				{
+					label: "pricing.comparisonSupportPremium_msg",
+					icon: Icons.PricingSupport,
+				},
+			],
+		},
+
+		{
+			type: PlanType.Legend,
+			tagLine: "allYouNeed_label",
+			icon: Icons.BusinessUnlimited,
+			features: [
+				{
+					label: "pricing.comparisonStorage_msg",
+					icon: Icons.PricingStorage,
+					replacementKey: "storage",
+				},
+				{
+					label: "pricing.calendarsPremium_label",
+					icon: Icons.PricingCalendar,
+				},
+				{
+					label: "pricing.mailAddressAliasesShort_label",
+					icon: Icons.PricingMail,
+					replacementKey: "mailAddressAliases",
+				},
+				{
+					label: "pricing.comparisonCustomDomains_msg",
+					icon: Icons.PricingCustomDomain,
+					replacementKey: "customDomains",
+				},
+				{
+					label: "pricing.comparisonSupportPro_msg",
+					icon: Icons.PricingSupport,
+				},
+			],
+		},
+	]
+
 	oncreate({ attrs }: Vnode<PlanBoxesAttrs>) {
 		if (![PlanType.Free, PlanType.Revolutionary, PlanType.Legend].includes(attrs.selectedPlan())) {
 			attrs.selectedPlan(PlanType.Revolutionary)
@@ -74,34 +139,36 @@ export class PersonalPlanBoxes implements Component<PlanBoxesAttrs> {
 					},
 				},
 				!hidePaidPlans &&
-					[PlanType.Revolutionary, PlanType.Legend].map((plan: PlanType.Legend | PlanType.Revolutionary) => {
+					this.paidPlanConfigs.map((planCofig: PlanConfig, idx) => {
 						const getPriceStrProps = {
 							priceAndConfigProvider,
-							targetPlan: plan,
+							targetPlan: planCofig.type,
 							paymentInterval: selectedSubscriptionOptions.paymentInterval(),
 						}
 						const { referencePriceStr, priceStr } = isApplePrice ? getApplePriceStr(getPriceStrProps) : getPriceStr(getPriceStrProps)
-						const isCurrentPlanAndInterval = currentPlan === plan && currentPaymentInterval === selectedSubscriptionOptions.paymentInterval()
+						const isCurrentPlanAndInterval =
+							currentPlan === planCofig.type && currentPaymentInterval === selectedSubscriptionOptions.paymentInterval()
 
 						return m(PaidPlanBox, {
+							planConfig: planCofig,
 							price: priceStr,
 							referencePrice: referencePriceStr,
-							plan,
-							isSelected: plan === selectedPlan(),
+							isSelected: planCofig.type === selectedPlan(),
 							// We have to allow payment interval switch for iOS in the plan selector as we hide payment interval switch in the setting
 							isDisabled:
-								(plan === PlanType.Revolutionary && !availablePlans.includes(PlanType.Revolutionary)) ||
-								(plan === PlanType.Legend && !availablePlans.includes(PlanType.Legend)) ||
+								(planCofig.type === PlanType.Revolutionary && !availablePlans.includes(PlanType.Revolutionary)) ||
+								(planCofig.type === PlanType.Legend && !availablePlans.includes(PlanType.Legend)) ||
 								isApplePrice
 									? isCurrentPlanAndInterval
-									: currentPlan === plan,
-							isCurrentPlan: isApplePrice ? isCurrentPlanAndInterval : currentPlan === plan,
+									: currentPlan === planCofig.type,
+							isCurrentPlan: isApplePrice ? isCurrentPlanAndInterval : currentPlan === planCofig.type,
 							onclick: (newPlan) => selectedPlan(newPlan),
 							selectedPaymentInterval: selectedSubscriptionOptions.paymentInterval,
 							priceAndConfigProvider,
 							hasCampaign,
 							isApplePrice,
 							showMultiUser,
+							position: idx % 2 === 0 ? "left" : "right",
 						})
 					}),
 			),

@@ -32,7 +32,7 @@ type PlanSelectorAttr = {
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
-	private readonly selectedPlan: Stream<AvailablePlans> = stream(PlanType.Revolutionary)
+	private readonly selectedPlan: Stream<PlanType> = stream(PlanType.Revolutionary)
 	private readonly shouldFixButtonPos: Stream<boolean> = stream(false)
 
 	oncreate({ attrs: { availablePlans, currentPlan } }: Vnode<PlanSelectorAttr>) {

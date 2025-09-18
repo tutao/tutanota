@@ -20,7 +20,7 @@ export type PlanBoxesAttrs = {
 	hidePaidPlans: boolean
 	isApplePrice: boolean
 	priceAndConfigProvider: PriceAndConfigProvider
-	selectedPlan: Stream<AvailablePlans>
+	selectedPlan: Stream<PlanType>
 	selectedSubscriptionOptions: SelectedSubscriptionOptions
 	showMultiUser: boolean
 }
