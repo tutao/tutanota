@@ -48,7 +48,7 @@ fun EventRow(
 	val currentDay = currentDate.format(DateTimeFormatter.ofPattern("dd"))
 	val currentWeekDay = currentDate.format(DateTimeFormatter.ofPattern("EE"))
 	val happensToday = midnightInDate(zoneId, LocalDateTime.now()) == midnightInDate(zoneId, currentDate)
-	val eventTitle = event.summary.ifEmpty { LocalContext.current.getString(R.string.eventNoTitle_title) }
+	val eventTitle = event.summary.ifEmpty { LocalContext.current.getString(R.string.noTitle_label) }
 	val dateModifier = if (happensToday) {
 		GlanceModifier.visibility(Visibility.Gone)
 	} else if (showDayAndWeekday) {

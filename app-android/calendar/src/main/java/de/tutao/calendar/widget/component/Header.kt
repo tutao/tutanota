@@ -70,7 +70,7 @@ fun Header(
 			)
 
 			val subTitle = if (hasAllDayEvents) {
-				allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.eventNoTitle_title) }
+				allDayEvents.first().summary.ifEmpty { LocalContext.current.getString(R.string.noTitle_label) }
 			} else {
 				dateNow.format(DateTimeFormatter.ofPattern("EEEE"))
 			}
