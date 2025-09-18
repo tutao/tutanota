@@ -164,6 +164,11 @@ async function showUndoMoveMailSnackbar(
 					clearUndoAction()
 				},
 			},
+			dismissButton: {
+				title: "close_alt",
+				click: () => cancelSnackbar(),
+				icon: Icons.Cancel,
+			},
 			onShow: () => {
 				// we don't want to immediately set the undo action, as the user might be looking at a different snackbar
 				// than this one momentarily
