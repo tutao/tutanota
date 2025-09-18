@@ -20,4 +20,5 @@
     <string name="birthdayCalendar_label">Syntymäpäivät</string>
     <string name="birthdayEvent_title">Henkilön {name} syntymäpäivä</string>
     <string name="birthdayEventAge_title">{age}-vuotias</string>
+    <string name="noTitle_label"><Ei otsikkoa></string>
 </resources>

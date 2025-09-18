@@ -10,4 +10,5 @@
     <string name="markRead_action">Marcar como lido</string>
     <string name="sendLogs_action">Enviar registros</string>
     <string name="account_label">Usuário</string>
+    <string name="noTitle_label"><Sem título></string>
 </resources>

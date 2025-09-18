@@ -20,7 +20,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:56:15Z",
-	"updated_at": "2025-08-21T09:13:34Z",
+	"updated_at": "2025-09-15T08:43:24Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",

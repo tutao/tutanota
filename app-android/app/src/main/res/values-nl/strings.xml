@@ -16,4 +16,5 @@
     <string name="birthdayCalendar_label">Verjaardagen</string>
     <string name="birthdayEvent_title">{name}s verjaardag</string>
     <string name="birthdayEventAge_title">{age} jaar</string>
+    <string name="noTitle_label"><Geen titel></string>
 </resources>

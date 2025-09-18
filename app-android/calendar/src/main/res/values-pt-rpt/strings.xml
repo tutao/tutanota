@@ -10,4 +10,5 @@
     <string name="markRead_action">Marcar como lida</string>
     <string name="sendLogs_action">Enviar registos</string>
     <string name="account_label">Utilizador</string>
+    <string name="noTitle_label"><Sem título></string>
 </resources>

@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-04-02T12:56:44Z",
-	"updated_at": "2025-09-07T13:31:11Z",
+	"updated_at": "2025-09-17T12:47:26Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1608,7 +1608,7 @@ export default {
 		"reportPhishing_action": "Adathalászat jelentése",
 		"reportSpam_action": "Levélszemét jelentése",
 		"requestApproval_msg": "Sajnos jelenleg nincs lehetősége e-maileket küldeni és fogadni (kivéve a Tuta ügyfélszolgálatát), mert fiókja további jóváhagyást igényel a visszaélések, pl. spam, elkerülése érdekében. Kérjük, vegye fel velünk a kapcsolatot közvetlenül Tuta fiókján keresztül az approval@tutao.de címen, és írja le, mire szeretné használni ezt az e-mail-címet!",
-		"requestTimeout_msg": "A művelet túl sokáig tartott a lassú internetkapcsolat miatt. Kérjük, próbálja meg később újra!",
+		"requestTimeout_msg": "A művelet túl sokáig tartott. Kérjük, próbálja meg újra!",
 		"requestTooLarge_msg": "Túl nagy érték. Kérjük, rövidítse a szöveget!",
 		"requiresNewWindow_msg": "Hatással lesz több új ablakban",
 		"resetZoomFactor_action": "Zoom Faktor Helyreállítása",
