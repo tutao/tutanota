@@ -2563,3 +2563,49 @@ export type DriveGroupRoot = {
 
 	root: IdTuple;
 }
+export const DriveUploadedFileTypeRef: TypeRef<DriveUploadedFile> = new TypeRef("tutanota", 1719)
+
+export function createDriveUploadedFile(values: StrippedEntity<DriveUploadedFile>): DriveUploadedFile {
+    return Object.assign(create(typeModels[DriveUploadedFileTypeRef.typeId], DriveUploadedFileTypeRef), values)
+}
+
+export type DriveUploadedFile = {
+	_type: TypeRef<DriveUploadedFile>;
+	_original?: DriveUploadedFile
+
+	_id: Id;
+	encFileName: Uint8Array;
+	encMimeType: Uint8Array;
+	encCid: null | Uint8Array;
+	ownerEncSessionKey: Uint8Array;
+
+	referenceTokens: BlobReferenceTokenWrapper[];
+}
+export const DriveCreateDataTypeRef: TypeRef<DriveCreateData> = new TypeRef("tutanota", 1726)
+
+export function createDriveCreateData(values: StrippedEntity<DriveCreateData>): DriveCreateData {
+    return Object.assign(create(typeModels[DriveCreateDataTypeRef.typeId], DriveCreateDataTypeRef), values)
+}
+
+export type DriveCreateData = {
+	_type: TypeRef<DriveCreateData>;
+	_errors: Object;
+	_original?: DriveCreateData
+
+	_format: NumberString;
+
+	uploadedFile: DriveUploadedFile;
+}
+export const DriveCreateReturnTypeRef: TypeRef<DriveCreateReturn> = new TypeRef("tutanota", 1729)
+
+export function createDriveCreateReturn(values: StrippedEntity<DriveCreateReturn>): DriveCreateReturn {
+    return Object.assign(create(typeModels[DriveCreateReturnTypeRef.typeId], DriveCreateReturnTypeRef), values)
+}
+
+export type DriveCreateReturn = {
+	_type: TypeRef<DriveCreateReturn>;
+	_errors: Object;
+	_original?: DriveCreateReturn
+
+	_format: NumberString;
+}

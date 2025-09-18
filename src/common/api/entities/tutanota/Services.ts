@@ -9,6 +9,8 @@ import { DraftCreateDataTypeRef } from "./TypeRefs.js"
 import { DraftCreateReturnTypeRef } from "./TypeRefs.js"
 import { DraftUpdateDataTypeRef } from "./TypeRefs.js"
 import { DraftUpdateReturnTypeRef } from "./TypeRefs.js"
+import { DriveCreateDataTypeRef } from "./TypeRefs.js"
+import { DriveCreateReturnTypeRef } from "./TypeRefs.js"
 import { EncryptTutanotaPropertiesDataTypeRef } from "./TypeRefs.js"
 import { EntropyDataTypeRef } from "./TypeRefs.js"
 import { ExternalUserDataTypeRef } from "./TypeRefs.js"
@@ -107,7 +109,7 @@ export const DriveService = Object.freeze({
 	app: "tutanota",
 	name: "DriveService",
 	get: null,
-	post: null,
+	post: { data: DriveCreateDataTypeRef, return: DriveCreateReturnTypeRef },
 	put: null,
 	delete: null,
 } as const)

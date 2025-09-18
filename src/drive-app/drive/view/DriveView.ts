@@ -15,7 +15,8 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { getUserGroupMemberships } from "../../../common/api/common/utils/GroupUtils"
 import { GroupTypeRef } from "../../../common/api/entities/sys/TypeRefs"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import { createFile, DriveGroupRootTypeRef, FileTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { createDriveCreateData, createDriveUploadedFile, DriveGroupRootTypeRef, FileTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { DriveService } from "../../../common/api/entities/tutanota/Services"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -89,23 +90,22 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		//random.addStaticEntropy(Uint8Array.from([10, 50, 90, 30]))
 		const aStupidKey = [0, 1, 2, 3, 4, 5, 6, 7]
 
-		const blobReferenceTokenWrappers = await Promise.all(
+		const driveCreateResponses = await Promise.all(
 			files.map(async (f: DataFile) => {
-				const blobs = await blobFacade.encryptAndUpload(ArchiveDataType.DriveFile, f.data /*FileUri*/, assertNotNull(ownerGroupId), aStupidKey)
+				const blobRefTokens = await blobFacade.encryptAndUpload(ArchiveDataType.DriveFile, f.data /*FileUri*/, assertNotNull(ownerGroupId), aStupidKey)
 
-				const file = files[0]
-				const fileToBeUploaded = createFile({
-					name: file.name,
-					mimeType: file.mimeType,
-					size: file.size,
-					cid: null,
-					blobs: ,
-					parent: null,
-					subFiles: null,
+				const uploadedFile = createDriveUploadedFile({
+					referenceTokens: blobRefTokens,
+					encFileName: new Uint8Array(0),
+					encCid: new Uint8Array(0),
+					encMimeType: new Uint8Array(0),
+					ownerEncSessionKey: new Uint8Array(0),
 				})
-				return blobs[0].blobReferenceToken
+				const data = createDriveCreateData({ uploadedFile: uploadedFile })
+				const response = await locator.serviceExecutor.post(DriveService, data, { sessionKey: aStupidKey })
+				return response
 			}),
 		)
-		console.log(`received ::`, blobReferenceTokenWrappers)
+		console.log(`received ::`, driveCreateResponses)
 	}
 }

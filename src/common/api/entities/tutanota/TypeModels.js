@@ -9163,5 +9163,126 @@ export const typeModels = {
 				"dependency": null
 			}
 		}
+	},
+	"1719": {
+		"name": "DriveUploadedFile",
+		"app": "tutanota",
+		"version": 94,
+		"since": 94,
+		"type": "AGGREGATED_TYPE",
+		"id": 1719,
+		"rootId": "CHR1dGFub3RhAAa3",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1720": {
+				"final": true,
+				"name": "_id",
+				"id": 1720,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1721": {
+				"final": true,
+				"name": "encFileName",
+				"id": 1721,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1722": {
+				"final": true,
+				"name": "encMimeType",
+				"id": 1722,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1723": {
+				"final": true,
+				"name": "encCid",
+				"id": 1723,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"1724": {
+				"final": true,
+				"name": "ownerEncSessionKey",
+				"id": 1724,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"1725": {
+				"final": true,
+				"name": "referenceTokens",
+				"id": 1725,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1990,
+				"dependency": "sys"
+			}
+		}
+	},
+	"1726": {
+		"name": "DriveCreateData",
+		"app": "tutanota",
+		"version": 94,
+		"since": 94,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1726,
+		"rootId": "CHR1dGFub3RhAAa-",
+		"versioned": false,
+		"encrypted": true,
+		"isPublic": true,
+		"values": {
+			"1727": {
+				"final": false,
+				"name": "_format",
+				"id": 1727,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"1728": {
+				"final": true,
+				"name": "uploadedFile",
+				"id": 1728,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1719,
+				"dependency": null
+			}
+		}
+	},
+	"1729": {
+		"name": "DriveCreateReturn",
+		"app": "tutanota",
+		"version": 94,
+		"since": 94,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1729,
+		"rootId": "CHR1dGFub3RhAAbB",
+		"versioned": false,
+		"encrypted": true,
+		"isPublic": true,
+		"values": {
+			"1730": {
+				"final": false,
+				"name": "_format",
+				"id": 1730,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
 	}
 }

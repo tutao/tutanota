@@ -4082,3 +4082,77 @@ impl Entity for DriveGroupRoot {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveUploadedFile {
+	#[serde(rename = "1720")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1721")]
+	#[serde(with = "serde_bytes")]
+	pub encFileName: Vec<u8>,
+	#[serde(rename = "1722")]
+	#[serde(with = "serde_bytes")]
+	pub encMimeType: Vec<u8>,
+	#[serde(rename = "1723")]
+	#[serde(with = "serde_bytes")]
+	pub encCid: Option<Vec<u8>>,
+	#[serde(rename = "1724")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	#[serde(rename = "1725")]
+	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
+}
+
+impl Entity for DriveUploadedFile {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1719),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveCreateData {
+	#[serde(rename = "1727")]
+	pub _format: i64,
+	#[serde(rename = "1728")]
+	pub uploadedFile: DriveUploadedFile,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
+}
+
+impl Entity for DriveCreateData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1726),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveCreateReturn {
+	#[serde(rename = "1730")]
+	pub _format: i64,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
+}
+
+impl Entity for DriveCreateReturn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1729),
+		}
+	}
+}
