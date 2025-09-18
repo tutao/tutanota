@@ -198,7 +198,6 @@ export class SpamClassifier {
 		return model
 	}
 
-	// PERSISTENCE
 	private async saveModel(): Promise<void> {
 		if (!this.classifier) {
 			return

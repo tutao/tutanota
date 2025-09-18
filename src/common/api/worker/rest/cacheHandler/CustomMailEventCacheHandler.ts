@@ -50,7 +50,6 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 	}
 
 	private async processSpam(newMailData: MailWithDetailsAndAttachments | null, mailFacade: MailFacade, id: readonly [string, string]) {
-		// fixme extract to separate class
 		// update spam classification table
 		if (newMailData) {
 			const allFolders = await this.storage.getWholeList(MailFolderTypeRef, listIdPart(newMailData.mail.sets[0]))
@@ -66,7 +65,8 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 			// of spam.
 			const isSpam = mailFacade.isSpamClassificationEnabled() ? predictedSpam : isStoredInSpamFolder
 			const offlineStoragePersistence = await this.offlineStoragePersistence()
-			await offlineStoragePersistence.storeSpamClassification(newMailData.mail, newMailData.mailDetails.body, isSpam, isStoredInSpamFolder)
+			const isCertain = isSpam
+			await offlineStoragePersistence.storeSpamClassification(newMailData.mail, newMailData.mailDetails.body, isSpam, isCertain)
 
 			if (mailFacade.isSpamClassificationEnabled()) {
 				if (predictedSpam && !isStoredInSpamFolder) {
@@ -91,7 +91,6 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 			const currentSpamClassification = await offlineStoragePersistence.getStoredClassification(mail)
 			await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, true)
 			if (isSpam !== currentSpamClassification) {
-				// FIXME debounce
 				await mailFacade.updateClassifier()
 			}
 		}
