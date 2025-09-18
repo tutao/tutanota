@@ -110,9 +110,6 @@ export class WindowManager {
 		const w: ApplicationWindow = await this._newWindowFactory(noAutoLogin)
 		windows.unshift(w)
 
-		// we set bounds here because "move" fires before "ready-to-show" and would overwrite bounds with default
-		w.setBounds(this._currentBounds, false)
-
 		w.on("close", () => {
 			w.setUserId(null)
 		})
@@ -139,14 +136,15 @@ export class WindowManager {
 				this._tray.update(this._notifier)
 
 				w.setBounds(this._currentBounds)
+				// "move" fires before "ready-to-show" and would overwrite bounds with default.
+				w.on("move", () => {
+					// `move` event also fires on `resize` on windows and linux, but not on mac (so we also handle `resize`)
+					this.saveWindowBounds(w)
+				}).on("resize", () => {
+					this.saveWindowBounds(w)
+				})
+
 				if (showWhenReady) w.show()
-			})
-			.on("move", () => {
-				// `move` event also fires on `resize` on windows and linux, but not on mac (so we also handle `resize`)
-				this.saveWindowBounds(w)
-			})
-			.on("resize", () => {
-				this.saveWindowBounds(w)
 			})
 			.webContents.on("did-start-navigation", () => {
 				this._tray.clearBadge()
