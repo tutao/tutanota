@@ -20,4 +20,5 @@
     <string name="birthdayCalendar_label">Születésnapok</string>
     <string name="birthdayEvent_title">{name}születésnapja</string>
     <string name="birthdayEventAge_title">{age} éves</string>
+    <string name="noTitle_label"><Nincs cím></string>
 </resources>

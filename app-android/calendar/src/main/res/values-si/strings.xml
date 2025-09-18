@@ -13,4 +13,5 @@
     <string name="birthdayCalendar_label">උපන් දින</string>
     <string name="birthdayEvent_title">{name}ගේ උපන් දිනය</string>
     <string name="birthdayEventAge_title">වයස අවුරුදු {age}</string>
+    <string name="noTitle_label"><සිරැසියක් නැත></string>
 </resources>

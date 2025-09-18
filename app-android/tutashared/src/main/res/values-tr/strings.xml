@@ -20,4 +20,5 @@
     <string name="birthdayCalendar_label">Doğum günleri</string>
     <string name="birthdayEvent_title">{name} doğum günü</string>
     <string name="birthdayEventAge_title">{age} yaşında</string>
+    <string name="noTitle_label"><Başlık yok></string>
 </resources>

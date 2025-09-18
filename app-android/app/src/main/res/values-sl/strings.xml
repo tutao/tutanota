@@ -13,9 +13,12 @@
     <string name="calendars_label">Koledarji</string>
     <string name="widgetNoCredentialsInfo_msg">Poverilnice niso na voljo</string>
     <string name="widgetUnexpectedError_msg">Ups! Nekaj se je zalomilo.</string>
+    <string name="widgetCredentialsError_msg">Prosimo, prijavite se v aplikacijo koledar</string>
     <string name="widgetOpenApp_action">Odpri aplikacijo</string>
     <string name="widgetNoEvents_msg">Ni dogodkov</string>
+    <string name="widgetDescription_msg">Prikaži današnje prihajajoče dogodke</string>
     <string name="birthdayCalendar_label">Rojstni dnevi</string>
     <string name="birthdayEvent_title">Rojstni dan osebe {name}</string>
     <string name="birthdayEventAge_title">{age} let</string>
+    <string name="noTitle_label"><Brez naslova></string>
 </resources>
