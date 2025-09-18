@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-09-17T14:23:42Z",
+	"updated_at": "2025-09-18T12:50:16Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1991,9 +1991,9 @@ export default {
 		"unsubscribeHttpPostInfoWeb_msg": "\"Unsubscribing automatically\" will send the unsubscribe link to our Tuta server, allowing us to unsubscribe you from the newsletter or mailing list. Unsubscribe links are never stored in Tuta.",
 		"unsubscribeHttpPost_msg": "This newsletter or mailing list does support unsubscribing automatically. Would you like to unsubscribe?",
 		"unsubscribeMail_action": "Open mail editor",
-		"unsubscribeMail_msg": "This newsletter or mailing list does not support to unsubscribe automatically. However, the sender indicates that sending a mail with the following information will allow you to unsubscribe.",
+		"unsubscribeMail_msg": "This newsletter or mailing list does not support to unsubscribe automatically. However, the sender indicates that sending a mail with the following information will allow you to unsubscribe. Note: The mail editor will be prefilled with the required information to unsubscribe. However we recommend that you remove your custom signature, if you have one.",
 		"unsubscribeManually_label": "Unsubscribe manually",
-		"unsubscribeSecondAttempt_label": "Unsubscribe failed. Retry manually?",
+		"unsubscribeSecondAttempt_label": "Error. Try again?",
 		"unsubscribeSuccessful_msg": "The newsletter or mailing list has been cancelled successfully!",
 		"unsubscribeSuccessful_title": "Unsubscribe successful",
 		"unsubscribeViaLink_label": "Unsubscribe via link",

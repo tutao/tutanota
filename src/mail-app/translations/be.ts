@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2022-02-03T06:52:08Z",
-	"updated_at": "2025-09-17T15:53:31Z",
+	"updated_at": "2025-09-18T12:34:31Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
