@@ -16,9 +16,10 @@ export type Stats = {
 //  - offline db: store useTokenStemming configuration
 
 export class DynamicTfVectorizer {
-	readonly featureVectorDimension: number
+	readonly dimension: number
 
 	private stats: Stats | null = null
+
 	public constructor(
 		tokenVocabulary: Set<string>,
 		readonly useTokenStemming: boolean = DEFAULT_USE_TOKEN_STEMMING,
@@ -26,7 +27,7 @@ export class DynamicTfVectorizer {
 	) {
 		this.tokenVocabulary = tokenVocabulary
 		// we account for 50% more vocabulary than initially occupied
-		this.featureVectorDimension = tokenVocabularyLimit + tokenVocabularyLimit * 0.5
+		this.dimension = tokenVocabularyLimit + tokenVocabularyLimit * 0.5
 	}
 
 	private tokenVocabulary: Set<string>
@@ -78,7 +79,7 @@ export class DynamicTfVectorizer {
 	public refitTransform(tokenizedMails: Array<ReadonlyArray<string>>): number[][] | null {
 		const transformResult = this._transform(tokenizedMails, true)
 
-		const availableSpace = this.featureVectorDimension - this.tokenVocabulary.size
+		const availableSpace = this.dimension - this.tokenVocabulary.size
 		if (availableSpace <= 0) {
 			return null
 		} else {
@@ -95,7 +96,7 @@ export class DynamicTfVectorizer {
 		const tokenFrequencyMap = this.getTokenFrequency(tokenizedMail, expandTokenVocabulary)
 
 		let index = 0
-		let vector = new Array<number>(this.featureVectorDimension).fill(0)
+		let vector = new Array<number>(this.dimension).fill(0)
 		for (const [token, _] of this.tokenVocabulary.entries()) {
 			vector[index] = tokenFrequencyMap.get(token) ?? 0
 			index += 1

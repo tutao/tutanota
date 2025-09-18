@@ -4,7 +4,7 @@ import * as tf from "@tensorflow/tfjs"
 //import * as tf from "@tensorflow/tfjs-node"
 import { assertNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { HashingVectorizer } from "./HashingVectorizer"
 
 assertWorkerOrNode()
 
@@ -22,10 +22,12 @@ export type SpamClassificationModel = {
 
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
-	private dynamicTfVectorizer: Nullable<DynamicTfVectorizer> = null
 	public isEnabled: boolean = false
 
-	constructor(private readonly offlineStorage: OfflineStoragePersistence | null) {}
+	constructor(
+		private readonly offlineStorage: OfflineStoragePersistence | null,
+		private readonly vectorizer: DynamicTfVectorizer | HashingVectorizer = new DynamicTfVectorizer(new Set()),
+	) {}
 
 	public async initialize() {
 		await this.loadModel()
@@ -47,7 +49,7 @@ export class SpamClassifier {
 			if (!this.isEnabled) {
 				console.warn("Client spam classification is not enabled or there were errors during training")
 				return false
-			} else if (!this.dynamicTfVectorizer) {
+			} else if (!this.vectorizer) {
 				console.warn("No vectorizer found. Make sure you call initialTraining first")
 				return false
 			}
@@ -66,13 +68,14 @@ export class SpamClassifier {
 
 			// we have offline storage at this point. see WorkerLocator.initializeSpamClassificationTrainingIfEnabled
 			const tokenizedBatchDocuments = await promiseMap(batchDocuments, (d) => assertNotNull(this.offlineStorage).tokenize(d))
-			const vectors = this.dynamicTfVectorizer.refitTransform(tokenizedBatchDocuments)
+			//const vectors = this.dynamicTfVectorizer.refitTransform(tokenizedBatchDocuments)
+			const vectors = await this.vectorizer.transform(tokenizedBatchDocuments)
 			if (vectors == null) {
 				// todo drop and retrain the entire model from scratch!
 				return false
 			} else {
 				//const vectors = this.hashingVectorizer.transform(tokenizedBatchDocuments)
-				const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.featureVectorDimension])
+				const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
 				//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
 				const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
 
@@ -92,11 +95,12 @@ export class SpamClassifier {
 		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
 		const tokenizedDocuments = await promiseMap(documents, (d) => assertNotNull(this.offlineStorage).tokenize(d))
 
-		this.dynamicTfVectorizer = new DynamicTfVectorizer(new Set(), true)
-		this.dynamicTfVectorizer.buildInitialTokenVocabulary(tokenizedDocuments)
-		const vectors = this.dynamicTfVectorizer.transform(tokenizedDocuments)
+		if (this.vectorizer instanceof DynamicTfVectorizer) {
+			this.vectorizer.buildInitialTokenVocabulary(tokenizedDocuments)
+		}
+		const vectors = await this.vectorizer.transform(tokenizedDocuments)
 
-		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.featureVectorDimension])
+		const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
 		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
 
 		this.classifier = this.buildModel(xs.shape[1]) // our vocabulary length
@@ -108,14 +112,16 @@ export class SpamClassifier {
 	public async predict(subjectAndBody: string): Promise<boolean> {
 		if (!this.isEnabled) {
 			throw new Error("SpamClassifier is not enabled yet")
-		} else if (!this.dynamicTfVectorizer) {
+		} else if (!this.vectorizer) {
 			console.error("Vectorizer not found.")
 			return false
 		}
 
 		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(subjectAndBody)
-		const vectors = this.dynamicTfVectorizer.transform([tokenizedMail])
-		const xs = tf.tensor2d(vectors, [vectors.length, this.dynamicTfVectorizer.featureVectorDimension])
+		// const vectors = this.dynamicTfVectorizer.transform([tokenizedMail])
+		const vectors = await assertNotNull(this.vectorizer).transform([tokenizedMail])
+
+		const xs = tf.tensor2d(vectors, [vectors.length, assertNotNull(this.vectorizer).dimension])
 		const pred = (await (assertNotNull(this.classifier).predict(xs) as tf.Tensor).data())[0]
 
 		return pred > 0.5

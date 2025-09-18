@@ -1,53 +1,66 @@
-import { arrayHashUnsigned, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { arrayHashUnsigned, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import * as tf from "@tensorflow/tfjs"
 
 export class HashingVectorizer {
 	public readonly dimension: number
 
 	//TODO: Figure out the right dimension, based on time taken to train and speed with accuracy and other metrics.
-	constructor(dimension = 7500) {
+	constructor(
+		dimension = 7500,
+		private readonly hasher = arrayHashUnsigned,
+	) {
 		this.dimension = dimension
 	}
 
-	public vectorize(tokens: ReadonlyArray<string>): number[] {
-		const vector = new Array(this.dimension).fill(0)
+	public async vectorize(tokens: ReadonlyArray<string>): Promise<number[]> {
+		const tokens2 = Array.from(tokens)
+		const indexes = (await tf.string.stringToHashBucketFast(tf.tensor1d(tokens2, "string"), this.dimension).array()) as Array<number>
 
-		for (const token of tokens) {
-			const index = arrayHashUnsigned(stringToUtf8Uint8Array(token)) % this.dimension
-			vector[index] += 1
+		const vector = new Array(this.dimension).fill(0)
+		for (const i of indexes) {
+			vector[i] += 1
 		}
-		this.normalize(vector)
+
+		// for (const token of tokens) {
+		// 	const index = this.hasher(stringToUtf8Uint8Array(token)) % this.dimension
+		// 	vector[index] += 1
+		// }
+		// this.normalize(vector)
 		return vector
 	}
 
-	public verifyCollisions(tokens: ReadonlyArray<string>): { collisionCount: number; meanCollisionScore: number } {
-		let collisionMap: any = {}
-		let collisionCount = 0
+	public verifyCollisions(tokens: ReadonlyArray<string>) {
+		let mapOfUniqueTokens = new Array<Set<string>>(this.dimension)
+		for (let i = 0; i < this.dimension; i++) mapOfUniqueTokens[i] = new Set()
+
+		let nmbrOfTokenPerIndex = new Array<number>(this.dimension).fill(0)
+		let nmbrOfUniqueTokenPerIndex = new Array<number>(this.dimension).fill(0)
+		let nmbrOfUniqueTokens = 0
+
 		for (const token of tokens) {
-			const index = arrayHashUnsigned(stringToUtf8Uint8Array(token)) % this.dimension
-			if (!collisionMap[index]) {
-				collisionMap[index] = new Set()
-			}
-			collisionMap[index].add(token)
+			const index = this.hasher(stringToUtf8Uint8Array(token)) % this.dimension
+			const seenThisTokenBefore = mapOfUniqueTokens[index].has(token)
+			nmbrOfUniqueTokens += seenThisTokenBefore ? 0 : 1
+			nmbrOfUniqueTokenPerIndex[index] += seenThisTokenBefore ? 0 : 1
+			nmbrOfTokenPerIndex[index] += 1
+			mapOfUniqueTokens[index].add(token)
 		}
 
-		let meanCollisionScore = 0
-		let isInuseCount = 0
+		const collidingUniqueTokens = nmbrOfUniqueTokenPerIndex.filter((count) => count > 1).reduce((sum, count) => sum + (count - 1), 0)
+		const indexCountWithAtLeastOneToken = mapOfUniqueTokens.filter((set) => set.size > 0).length
+		const collisionAverage = collidingUniqueTokens / indexCountWithAtLeastOneToken
+
+		let variance = 0
 		for (let i = 0; i < this.dimension; i++) {
-			if (collisionMap[i]) {
-				isInuseCount++
-			}
-			if (collisionMap[i]?.size > 1) {
-				collisionCount += collisionMap[i].size - 1
-				meanCollisionScore += collisionMap[i].size
-			}
+			variance += Math.pow(nmbrOfUniqueTokenPerIndex[i] - collisionAverage, 2)
 		}
-		meanCollisionScore = meanCollisionScore / this.dimension
+		const standard_deviation = Math.sqrt(variance / indexCountWithAtLeastOneToken)
 
-		return { collisionCount, meanCollisionScore }
+		return { collisionAverage, standard_deviation, indexCountWithAtLeastOneToken }
 	}
 
-	public transform(docs: Array<ReadonlyArray<string>>): number[][] {
-		return docs.map((doc) => this.vectorize(doc))
+	public async transform(docs: Array<ReadonlyArray<string>>): Promise<number[][]> {
+		return await promiseMap(docs, (doc) => this.vectorize(doc), { concurrency: 1 })
 	}
 
 	private normalize(vec: number[]): void {

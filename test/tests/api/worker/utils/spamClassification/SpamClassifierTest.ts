@@ -8,6 +8,8 @@ import { OfflineStoragePersistence } from "../../../../../../src/mail-app/worker
 import { object } from "testdouble"
 import { arrayHashUnsigned, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import * as tf from "@tensorflow/tfjs"
+import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
+import { DynamicTfVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/DynamicTfVectorizer"
 
 async function enumerateDir(rootDir, files: string[] = []): Promise<string[]> {
 	const entries = await fs.promises.readdir(rootDir, { withFileTypes: true })
@@ -21,7 +23,7 @@ async function enumerateDir(rootDir, files: string[] = []): Promise<string[]> {
 	return files
 }
 
-async function readMailData(filePath: string): Promise<{
+export async function readMailData(filePath: string): Promise<{
 	spamData: SpamClassificationRow[]
 	hamData: SpamClassificationRow[]
 }> {
@@ -79,15 +81,18 @@ function shuffleArray(
 
 // Initial training (cutoff by day or amount)
 o.spec("SpamClassifier", () => {
+	// const vectorizer = new DynamicTfVectorizer(new Set())
+	const vectorizer = new HashingVectorizer()
+
 	o("Test Classification on external mail data", async () => {
 		o.timeout(20_000_000)
 
-		const { spamData, hamData } = await readMailData("/home/jhm/Downloads/spam-ham/spam_ham_dataset.csv")
+		const { spamData, hamData } = await readMailData("/home/kib/spam_ham_dataset.csv")
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 
 		const hamCount = 4000
-		const spamCount = 2000
+		const spamCount = 1000
 
 		const hamSlice = hamData.slice(0, hamCount)
 		const spamSlice = spamData.slice(0, spamCount)
@@ -111,7 +116,7 @@ o.spec("SpamClassifier", () => {
 		// const { trainSet } = shuffleArray(data, 0.2)
 		// const { testSet } = shuffleArray(spamData.concat(hamData), 0.4)
 
-		const classifier = new SpamClassifier(mockOfflineStorage)
+		const classifier = new SpamClassifier(mockOfflineStorage, vectorizer)
 
 		let start = Date.now()
 		await classifier.initialTraining(trainSet)
@@ -127,7 +132,7 @@ o.spec("SpamClassifier", () => {
 	o("Test fit and refit.", async () => {
 		o.timeout(20_000_000)
 
-		const { spamData, hamData } = await readMailData("/home/jhm/Downloads/spam-ham/spam_ham_dataset.csv")
+		const { spamData, hamData } = await readMailData("/home/kib/spam_ham_dataset.csv")
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 		const hamSlice = hamData.slice(0, 200)
@@ -147,7 +152,7 @@ o.spec("SpamClassifier", () => {
 		const trainSetHalf = trainSet.slice(0, trainSet.length / 2)
 		const trainSetSecondHalf = trainSet.slice(trainSet.length / 2, trainSet.length)
 
-		const classifierAll = new SpamClassifier(mockOfflineStorage)
+		const classifierAll = new SpamClassifier(mockOfflineStorage, vectorizer)
 		let start = Date.now()
 		await classifierAll.initialTraining(trainSet)
 		console.log(`trained in ${Date.now() - start}ms`)
@@ -160,7 +165,7 @@ o.spec("SpamClassifier", () => {
 		mockOfflineStorage.getSpamClassificationTrainingDataAfterCutoff = async (cutoff) => {
 			return trainSetSecondHalf
 		}
-		const classifierBySteps = new SpamClassifier(mockOfflineStorage)
+		const classifierBySteps = new SpamClassifier(mockOfflineStorage, vectorizer)
 		start = Date.now()
 		await classifierBySteps.initialTraining(trainSetHalf)
 		await classifierBySteps.updateModel(0)
@@ -171,7 +176,7 @@ o.spec("SpamClassifier", () => {
 		await classifierBySteps.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 
-		const classiOnlySecondHalf = new SpamClassifier(mockOfflineStorage)
+		const classiOnlySecondHalf = new SpamClassifier(mockOfflineStorage, vectorizer)
 		start = Date.now()
 		await classiOnlySecondHalf.initialTraining(trainSetSecondHalf)
 		console.log(`trained in ${Date.now() - start}ms`)

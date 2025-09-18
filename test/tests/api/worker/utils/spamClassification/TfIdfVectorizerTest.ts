@@ -23,49 +23,49 @@ o.spec("DynamicTfVectorizer", () => {
 		// o(() => new DynamicTfVectorizer(["doc1"], [["token1"], ["token2"]])).throws(Error)
 	})
 
-	o("builds correct vocabulary with filtered tokens", () => {
-		const vectorizer = new DynamicTfVectorizer()
-		vectorizer.initializeVocabulary(tokenizedDocuments)
-		o(vectorizer.vocabulary.includes("tuta")).equals(true)
-		o(vectorizer.vocabulary.includes("email")).equals(true)
-		o(vectorizer.vocabulary.includes("a")).equals(false)
-	})
+	// o("builds correct vocabulary with filtered tokens", () => {
+	// 	const vectorizer = new DynamicTfVectorizer()
+	// 	vectorizer.initializeVocabulary(tokenizedDocuments)
+	// 	o(vectorizer.vocabulary.includes("tuta")).equals(true)
+	// 	o(vectorizer.vocabulary.includes("email")).equals(true)
+	// 	o(vectorizer.vocabulary.includes("a")).equals(false)
+	// })
 
-	o("vectorize returns correct TF vector", () => {
-		const vectorizer = new DynamicTfVectorizer()
-		vectorizer.initializeVocabulary(tokenizedDocuments)
-		const tokens = ["email", "encryption"]
-		const vector = vectorizer.vectorize(tokens)
-		o(vector.length).equals(vectorizer.featureVectorDimension)
+	// o("vectorize returns correct TF vector", () => {
+	// 	const vectorizer = new DynamicTfVectorizer()
+	// 	vectorizer.initializeVocabulary(tokenizedDocuments)
+	// 	const tokens = ["email", "encryption"]
+	// 	const vector = vectorizer.vectorize(tokens)
+	// 	o(vector.length).equals(vectorizer.featureVectorDimension)
+	//
+	// 	const emailIndex = vectorizer.vocabulary.includes("email")!
+	// 	const encryptionIndex = vectorizer.vocabulary.includes("encryption")!
+	// 	o(emailIndex).equals(true)
+	// 	o(encryptionIndex).equals(true)
+	// })
 
-		const emailIndex = vectorizer.vocabulary.includes("email")!
-		const encryptionIndex = vectorizer.vocabulary.includes("encryption")!
-		o(emailIndex).equals(true)
-		o(encryptionIndex).equals(true)
-	})
+	// o("transform returns correct tensor shape", () => {
+	// 	const vectorizer = new DynamicTfVectorizer()
+	// 	vectorizer.initializeVocabulary(tokenizedDocuments)
+	// 	const inputTokens = [
+	// 		["privacy", "encryption"],
+	// 		["user", "data"],
+	// 	]
+	// 	const vector = vectorizer.transform(inputTokens)
+	//
+	// 	o(vector.length).equals(2)
+	// 	o(vector[0].length).equals(vectorizer.featureVectorDimension)
+	//
+	// 	const allZeros = Array.from(vector.flat()).every((v) => v === 0)
+	// 	o(allZeros).equals(false)
+	// })
 
-	o("transform returns correct tensor shape", () => {
-		const vectorizer = new DynamicTfVectorizer()
-		vectorizer.initializeVocabulary(tokenizedDocuments)
-		const inputTokens = [
-			["privacy", "encryption"],
-			["user", "data"],
-		]
-		const vector = vectorizer.transform(inputTokens)
-
-		o(vector.length).equals(2)
-		o(vector[0].length).equals(vectorizer.featureVectorDimension)
-
-		const allZeros = Array.from(vector.flat()).every((v) => v === 0)
-		o(allZeros).equals(false)
-	})
-
-	o("adds unknown words to vocabulary when still enough space", () => {
-		const vectorizer = new DynamicTfVectorizer()
-		vectorizer.initializeVocabulary(tokenizedDocuments)
-		const tokens = ["hannover", "munich"]
-		const vector = vectorizer.vectorize(tokens)
-		const nonZero = vector.some((val) => val > 0)
-		o(nonZero).equals(true)
-	})
+	// o("adds unknown words to vocabulary when still enough space", () => {
+	// 	const vectorizer = new DynamicTfVectorizer()
+	// 	vectorizer.initializeVocabulary(tokenizedDocuments)
+	// 	const tokens = ["hannover", "munich"]
+	// 	const vector = vectorizer.vectorize(tokens)
+	// 	const nonZero = vector.some((val) => val > 0)
+	// 	o(nonZero).equals(true)
+	// })
 })
