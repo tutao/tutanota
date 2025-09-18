@@ -20,4 +20,5 @@
     <string name="birthdayCalendar_label">Narozeniny</string>
     <string name="birthdayEvent_title">Narozeniny: {name}</string>
     <string name="birthdayEventAge_title">{age} let</string>
+    <string name="noTitle_label">&lt;Bez názvu&gt;</string>
 </resources>

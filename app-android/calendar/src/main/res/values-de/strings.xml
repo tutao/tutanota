@@ -20,4 +20,5 @@
     <string name="birthdayCalendar_label">Geburtstage</string>
     <string name="birthdayEvent_title">{name}s Geburtstag</string>
     <string name="birthdayEventAge_title">{age} Jahre alt</string>
+    <string name="noTitle_label">&lt;Kein Titel&gt;</string>
 </resources>

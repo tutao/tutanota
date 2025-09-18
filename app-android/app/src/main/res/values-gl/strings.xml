@@ -20,4 +20,5 @@
     <string name="birthdayCalendar_label">Aniversarios</string>
     <string name="birthdayEvent_title">Aniversario de {name}</string>
     <string name="birthdayEventAge_title">{age} anos de idade</string>
+    <string name="noTitle_label">&lt;Sen título&gt;</string>
 </resources>

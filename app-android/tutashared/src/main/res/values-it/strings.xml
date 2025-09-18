@@ -12,4 +12,5 @@
     <string name="account_label">Utente</string>
     <string name="birthdayCalendar_label">Compleanni</string>
     <string name="birthdayEvent_title">Compleanno di {name}</string>
+    <string name="noTitle_label">&lt;Nessun titolo&gt;</string>
 </resources>

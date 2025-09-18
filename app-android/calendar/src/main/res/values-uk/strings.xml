@@ -20,4 +20,5 @@
     <string name="birthdayCalendar_label">Дні народження</string>
     <string name="birthdayEvent_title">День народження {name}</string>
     <string name="birthdayEventAge_title">{age} років</string>
+    <string name="noTitle_label">&lt;Нема назви&gt;</string>
 </resources>

@@ -13,4 +13,5 @@
     <string name="birthdayCalendar_label">Fødselsdager</string>
     <string name="birthdayEvent_title">Fødselsdag for {name}</string>
     <string name="birthdayEventAge_title">{age} år gammel</string>
+    <string name="noTitle_label">&lt;Ingen tittel&gt;</string>
 </resources>

@@ -14,4 +14,5 @@
     <string name="birthdayCalendar_label">Rođendani</string>
     <string name="birthdayEvent_title">{name}\'s rođendan</string>
     <string name="birthdayEventAge_title">{age} godina star</string>
+    <string name="noTitle_label">&lt;Bez naslova&gt;</string>
 </resources>

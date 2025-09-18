@@ -427,6 +427,7 @@ export type TranslationKeyType =
 	| "customLogoInfo_msg"
 	| "customLogo_label"
 	| "customMetaTags_label"
+	| "customNameGeneric_label"
 	| "customName_label"
 	| "customNotificationEmailsHelp_msg"
 	| "customNotificationEmails_label"
@@ -2093,4 +2094,3 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
-	| "customNameGeneric_label"
