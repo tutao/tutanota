@@ -2097,6 +2097,7 @@ export type TranslationKeyType =
 	| "updateColorCustomizationNews_msg"
 	| "updateColorCustomizationNewsButton_label"
 	| "sourceColor_label"
+	| "customNameGeneric_label"
 	| "pricing.taglineForFreelancers"
 	| "pricing.taglineForTeams"
 	| "pricing.taglineForBusinesses"

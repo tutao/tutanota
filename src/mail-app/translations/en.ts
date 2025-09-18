@@ -2114,8 +2114,9 @@ export default {
         "you_label": "You",
         "zoomIn_action": "Zoom In",
         "zoomOut_action": "Zoom Out",
+        "customNameGeneric_label": "Custom name",
         "pricing.taglineForFreelancers": "For Freelancers",
         "pricing.taglineForTeams": "For Teams",
-        "pricing.taglineForBusinesses": "For Businesses",
+        "pricing.taglineForBusinesses": "For Businesses"
     }
 }

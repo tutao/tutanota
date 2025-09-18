@@ -3,14 +3,13 @@ import Stream from "mithril/stream"
 import { styles } from "../../gui/styles"
 import { px, size } from "../../gui/size"
 import { AvailablePlanType, PlanType } from "../../api/common/TutanotaConstants"
-import { SelectedSubscriptionOptions } from "../FeatureListProvider"
+import { ReplacementKey, SelectedSubscriptionOptions } from "../FeatureListProvider"
 import { PaymentInterval, PriceAndConfigProvider } from "../PriceUtils"
 import { getPriceStr } from "../SubscriptionUtils"
 import { AvailablePlans } from "../PlanSelector"
 import { BusinessPlanBox } from "./BusinessPlanBox"
 import { Icons } from "../../gui/base/icons/Icons"
 import { TranslationKey } from "../../misc/LanguageViewModel"
-import { ReplacementKey } from "../../../../fdroid-metadata-workaround/build/intermediates/assets/fdroidDebug/mergeFdroidDebugAssets/tutanota/prebuilt/src/common/subscription/FeatureListProvider"
 
 export type PlanBoxesAttrs = {
 	allowSwitchingPaymentInterval: boolean
