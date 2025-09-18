@@ -9,10 +9,11 @@ import { styles } from "../styles"
 import { LayerType } from "../../../RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { debounce, isEmpty, remove } from "@tutao/tutanota-utils"
+import { isNotEmpty, remove } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
-const SNACKBAR_SHOW_TIME = 6000
+const SNACKBAR_SHOW_TIME = 6000 // ms
+const SNACKBAR_HIDE_DELAY_TIME = 1500 // ms
 const MAX_SNACKBAR_WIDTH = 400
 export type SnackBarButtonAttrs = {
 	label: MaybeTranslation
@@ -86,8 +87,8 @@ export function showSnackBar(args: {
 }): () => void {
 	const { message, button, onClose, onShow, waitingTime, showingTime = SNACKBAR_SHOW_TIME, replace = false } = args
 
-	let cancelled = false
 	const doCancel = {
+		/** cancel will be overwritten in {@link showNextNotification } once the snackbar  is shown */
 		cancel: () => {
 			remove(notificationQueue, queueEntry)
 		},
@@ -103,19 +104,20 @@ export function showSnackBar(args: {
 		showingTime,
 	}
 
+	let currentSnackbarTimeout: TimeoutID | null = null
 	const cancelSnackbar = () => {
-		cancelled = true
+		if (currentSnackbarTimeout != null) {
+			// The Snackbar was cancelled before it was shown (triggerSnackbar not yet called)
+			clearTimeout(currentSnackbarTimeout)
+			currentSnackbarTimeout = null
+		}
 		doCancel.cancel()
 	}
 
 	const triggerSnackbar = () => {
-		if (cancelled) {
-			return
-		}
-
-		if (replace && !isEmpty(notificationQueue)) {
-			// there is currently a notification being displayed, so we should put this one ahead of it and then run its
-			// cancel function
+		if (replace && isNotEmpty(notificationQueue)) {
+			// there is currently a notification being displayed, so we should put this one after it and then run the
+			// currently displayed notification's cancel function
 			notificationQueue.splice(1, 0, queueEntry)
 			if (cancelCurrentSnackbar) {
 				cancelCurrentSnackbar()
@@ -133,7 +135,7 @@ export function showSnackBar(args: {
 	}
 
 	if (waitingTime) {
-		debounce(waitingTime, triggerSnackbar)()
+		currentSnackbarTimeout = setTimeout(triggerSnackbar, waitingTime)
 	} else {
 		triggerSnackbar()
 	}
@@ -159,7 +161,9 @@ function showNextNotification() {
 	const { message, button, onClose, onShow, doCancel, showingTime } = notificationQueue[0] //we shift later because it is still shown
 	clearTimeout(currentAnimationTimeout)
 	currentAnimationTimeout = null
+
 	let hovered = false
+	let hoveredTimer: TimeoutID | null = null
 
 	const closeFunction = displayOverlay(
 		() => getSnackBarPosition(),
@@ -182,7 +186,7 @@ function showNextNotification() {
 
 	const closeAndOpenNext = (timedOut: boolean) => {
 		if (timedOut && hovered) {
-			debounce(1000, closeAndOpenNext)(true)
+			hoveredTimer = setTimeout(closeAndOpenNext, SNACKBAR_HIDE_DELAY_TIME, true)
 			return
 		}
 
@@ -209,6 +213,7 @@ function showNextNotification() {
 		const originClickHandler: ClickHandler | undefined = button.click
 
 		button.click = (e, dom) => {
+			clearTimeout(hoveredTimer)
 			clearTimeout(autoRemoveTimer)
 			originClickHandler?.(e, dom)
 			closeAndOpenNext(false)
@@ -219,6 +224,7 @@ function showNextNotification() {
 	doCancel.cancel = () => {
 		if (!closed) {
 			closed = true
+			clearTimeout(hoveredTimer)
 			clearTimeout(autoRemoveTimer)
 			closeAndOpenNext(false)
 		}
