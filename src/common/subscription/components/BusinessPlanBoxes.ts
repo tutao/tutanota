@@ -34,7 +34,7 @@ export type PlanFeature = {
 export type PlanConfig = {
 	type: PlanType
 	tagLine: TranslationKey
-	icon: "revo" | "legend"
+	icon: Icons
 	features: PlanFeature[]
 }
 
@@ -68,7 +68,7 @@ export class BusinessPlanBoxes implements Component<PlanBoxesAttrs> {
 			{
 				type: PlanType.Essential,
 				tagLine: "pricing.taglineForFreelancers",
-				icon: "revo",
+				icon: Icons.BusinessEssential,
 				features: [
 					{
 						label: "pricing.comparisonStorage_msg",
@@ -98,7 +98,7 @@ export class BusinessPlanBoxes implements Component<PlanBoxesAttrs> {
 			{
 				type: PlanType.Advanced,
 				tagLine: "pricing.taglineForTeams",
-				icon: "legend",
+				icon: Icons.BusinessAdvanced,
 				features: [
 					{
 						label: "pricing.comparisonStorage_msg",
@@ -128,7 +128,7 @@ export class BusinessPlanBoxes implements Component<PlanBoxesAttrs> {
 			{
 				type: PlanType.Unlimited,
 				tagLine: "pricing.taglineForBusinesses",
-				icon: "legend",
+				icon: Icons.BusinessUnlimited,
 				features: [
 					{
 						label: "pricing.comparisonStorage_msg",

@@ -317,18 +317,17 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, upd
 		label: businessUse() ? "privateUse_action" : "forBusiness_action",
 		type: ButtonType.Primary,
 		class: ["block"], // Use block class to override the `flex` class, thus allowing the button text to be wrapped using ellipses.
-		icon:
-			businessUse() || styles.isMobileLayout()
-				? null
-				: m(Icon, {
-						icon: Icons.Business,
-						size: IconSize.Large,
-						class: "mr-xsm",
-						style: {
-							fill: theme.primary,
-							"vertical-align": "sub",
-						},
-					}),
+		icon: styles.isMobileLayout()
+			? null
+			: m(Icon, {
+					icon: businessUse() ? BootIcons.User : Icons.Business,
+					size: IconSize.Large,
+					class: "mr-xsm",
+					style: {
+						fill: theme.primary,
+						"vertical-align": "sub",
+					},
+				}),
 		click: () => {
 			businessUse(!businessUse())
 			update?.()

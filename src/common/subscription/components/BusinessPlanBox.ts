@@ -101,7 +101,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 					backgroundColor: isSelected ? localTheme.surface_container_high : localTheme.surface,
 					borderRadius: px(12),
 					// This padding is required to prevent layout shifting by the change of border weight
-					padding: isSelected ? `${px(size.vpad_ml)} ${px(size.hpad_medium)}` : `${px(size.vpad_ml + 2)} ${px(size.hpad_medium + 2)}`,
+					padding: this.getBoxPadding(isSelected),
 					marginBottom: px(14),
 					opacity: isDisabled ? 0.6 : 1,
 					"box-shadow": isSelected ? boxShadowHigh : "initial",
@@ -112,24 +112,25 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 			[
 				// header
 				m(`div.flex.items-center.justify-between.gap-vpad${styles.isMobileLayout() ? ".flex" : ".flex-column"}`, [
-					m("", [
-						m(`div.items-center.justify-center.flex`, [
-							m("img", {
-								src: `${window.tutao.appState.prefixWithoutFile}/images/${planConfig.icon}.svg`,
-								alt: "",
-								rel: "noreferrer",
-								loading: "lazy",
-								decoding: "async",
+					m(`${styles.isMobileLayout() ? ".flex.gap-hpad.items-center" : ".flex-column"}`, [
+						m(`div.items-center.justify-center.flex.gap-hpad`, [
+							m(Icon, {
+								icon: planConfig.icon,
+								size: IconSize.Medium,
+								style: {
+									fill: theme.on_surface_variant,
+								},
 							}),
 							m(Icon, {
-								icon: BootIcons.Expand,
-								class: `flex-center items-center `,
-								size: IconSize.XL,
+								icon: Icons.ChevronDown,
+								class: `flex-center items-center`,
+								size: IconSize.Large,
 								style: {
 									display: styles.isMobileLayout() ? "block" : "none",
 									margin: "-3px",
 									transform: `rotateZ(${attrs.isSelected ? 180 : 0}deg)`,
 									transition: `transform ${DefaultAnimationTime}ms`,
+									color: theme.on_surface_variant,
 								},
 							}),
 						]),
@@ -139,7 +140,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 								{
 									style: {
 										fontWeight: "bold",
-										fontSize: px(24),
+										fontSize: px(styles.isMobileLayout() ? 18 : 20),
 										color: isSelected ? localTheme.primary : localTheme.on_surface,
 									},
 								},
@@ -236,6 +237,16 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 				}),
 				m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider))),
 			)
+		}
+	}
+
+	private getBoxPadding(isSelected: boolean) {
+		const verticalPad = styles.isMobileLayout() ? 12 : size.vpad_ml
+		const horizontalPad = styles.isMobileLayout() ? 12 : size.hpad_medium
+		if (isSelected) {
+			return `${px(verticalPad)} ${px(horizontalPad)}`
+		} else {
+			return `${px(verticalPad + 2)} ${px(horizontalPad + 2)}`
 		}
 	}
 }

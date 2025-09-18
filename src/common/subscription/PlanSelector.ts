@@ -13,7 +13,7 @@ import { styles } from "../gui/styles.js"
 import { boxShadowHigh } from "../gui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getApplePriceStr, getPriceStr } from "./SubscriptionUtils.js"
-import { PaymentIntervalSwitch } from "./PaymentIntervalSwitch.js"
+import { PaymentIntervalSwitch } from "./components/PaymentIntervalSwitch.js"
 import { PersonalPlanBoxes, PlanBoxesAttrs } from "./components/PersonalPlanBoxes"
 import { BusinessPlanBoxes } from "./components/BusinessPlanBoxes"
 
