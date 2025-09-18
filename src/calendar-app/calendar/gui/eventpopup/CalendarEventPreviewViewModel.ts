@@ -3,6 +3,7 @@ import {
 	addDaysForRecurringEvent,
 	calendarEventHasMoreThanOneOccurrencesLeft,
 	CalendarTimeRange,
+	findFirstPrivateCalendar,
 	getStartOfDayWithZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
@@ -18,6 +19,7 @@ import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
+import { isSameId } from "../../../../common/api/common/utils/EntityUtils"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -287,6 +289,14 @@ export class CalendarEventPreviewViewModel {
 			})
 			newEventModel.editModels.whenModel.deleteExcludedDates()
 			newEventModel.editModels.whoModel.resetGuestsStatus()
+
+			if (newEventModel.editModels.alarmModel.alarms.length) {
+				const calendarInfos = await this.calendarModel.getCalendarInfos()
+				const firstPrivateCalendar = findFirstPrivateCalendar(calendarInfos)
+				if (firstPrivateCalendar && isSameId(newEventModel.editModels.whoModel.selectedCalendar.group._id, firstPrivateCalendar.group._id)) {
+					newEventModel.editModels.alarmModel.removeAll()
+				}
+			}
 
 			const eventEditor = new EventEditorDialog()
 			return await eventEditor.showNewCalendarEventEditDialog(newEventModel)

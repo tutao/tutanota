@@ -34,6 +34,7 @@ import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
 	extractContactIdFromEvent,
+	findFirstPrivateCalendar,
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
@@ -64,7 +65,7 @@ import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarConta
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { getGroupColors } from "../../../common/misc/GroupColors"
-import { GroupSettingsModel, GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
+import { GroupNameData, GroupSettingsModel } from "../../../common/sharing/model/GroupSettingsModel"
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 
 export type EventsOnDays = {
@@ -451,6 +452,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		editModel.editModels.whenModel.rescheduleEvent({ millisecond: timeToMoveBy })
 		editModel.editModels.whenModel.deleteExcludedDates()
 		editModel.editModels.whoModel.resetGuestsStatus()
+
+		if (editModel.editModels.alarmModel.alarms.length) {
+			const calendarInfos = await this.calendarModel.getCalendarInfos()
+			const firstPrivateCalendar = findFirstPrivateCalendar(calendarInfos)
+			if (firstPrivateCalendar && isSameId(event._ownerGroup, firstPrivateCalendar.group._id)) {
+				editModel.editModels.alarmModel.removeAll()
+			}
+		}
 
 		const dialog = new EventEditorDialog()
 		return await dialog.showNewCalendarEventEditDialog(editModel)
