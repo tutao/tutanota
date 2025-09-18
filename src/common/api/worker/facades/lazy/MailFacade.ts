@@ -474,8 +474,8 @@ export class MailFacade {
 		}
 	}
 
-	public hasClassifier() {
-		return this.spamClassifier != null
+	public isSpamClassificationEnabled() {
+		return this.spamClassifier.isEnabled
 	}
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {

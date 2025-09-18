@@ -25,35 +25,17 @@ export class SpamClassifier {
 	private dynamicTfVectorizer: Nullable<DynamicTfVectorizer> = null
 	public isEnabled: boolean = false
 
-	constructor(private readonly offlineStorage: OfflineStoragePersistence) {}
+	constructor(private readonly offlineStorage: OfflineStoragePersistence | null) {}
 
 	public async initialize() {
-		const model = await assertNotNull(this.offlineStorage).getSpamClassificationModel()
-		if (model) {
-			const modelTopology = JSON.parse(model.modelTopology)
-			const weightSpecs = JSON.parse(model.weightSpecs)
-			const weightData = model.weightData.buffer.slice(model.weightData.byteOffset, model.weightData.byteOffset + model.weightData.byteLength)
-			this.classifier = await tf.loadLayersModel(
-				tf.io.fromMemory({
-					modelTopology,
-					weightSpecs,
-					weightData,
-				}),
-			)
-			this.classifier.compile({
-				optimizer: "adam",
-				loss: "binaryCrossentropy",
-				metrics: ["accuracy"],
-			})
-		}
-
 		await this.loadModel()
 
 		if (!this.classifier) {
 			console.log("No existing model found. Training from scratch...")
 			const data = await assertNotNull(this.offlineStorage).getAllSpamClassificationTrainingData()
 			await this.initialTraining(data)
-			//await this.saveModel()
+			await this.saveModel()
+			this.isEnabled = true
 			return true
 		} else {
 			this.isEnabled = true
@@ -125,9 +107,7 @@ export class SpamClassifier {
 
 	public async predict(subjectAndBody: string): Promise<boolean> {
 		if (!this.isEnabled) {
-			console.error("Classifier not found or client classificat is not enabled")
-			await this.updateModel(0)
-			return false
+			throw new Error("SpamClassifier is not enabled yet")
 		} else if (!this.dynamicTfVectorizer) {
 			console.error("Vectorizer not found.")
 			return false
@@ -219,37 +199,34 @@ export class SpamClassifier {
 	}
 
 	// PERSISTENCE
-	// fixme we're now saving the same information in 3 places (mail_index, spam_classification in OfflineStoragePersistence + mail and details in OfflineStorage).
-	// fixme on current master we only have 2 places (mail index table + mail and details in odb). This is unnecessary and should be optimized before merge
-	// fixme add IsSpam column to mail_index?
-	// private async saveModel(): Promise<void> {
-	// 	if (!this.classifier) {
-	// 		return
-	// 	}
-	//
-	// 	await this.classifier.save(
-	// 		tf.io.withSaveHandler(async (artifacts) => {
-	// 			const modelTopology = JSON.stringify(artifacts.modelTopology)
-	//
-	// 			const weightSpecs = JSON.stringify(artifacts.weightSpecs)
-	//
-	// 			const weightData = new Uint8Array(artifacts.weightData as ArrayBuffer)
-	//
-	// 			await this.offlineStorage.putSpamClassificationModel({
-	// 				modelTopology,
-	// 				weightSpecs,
-	// 				weightData,
-	// 			})
-	//
-	// 			return {
-	// 				modelArtifactsInfo: {
-	// 					dateSaved: new Date(),
-	// 					modelTopologyType: "JSON",
-	// 				},
-	// 			}
-	// 		}),
-	// 	)
-	// }
+	private async saveModel(): Promise<void> {
+		if (!this.classifier) {
+			return
+		}
+
+		await this.classifier.save(
+			tf.io.withSaveHandler(async (artifacts) => {
+				const modelTopology = JSON.stringify(artifacts.modelTopology)
+
+				const weightSpecs = JSON.stringify(artifacts.weightSpecs)
+
+				const weightData = new Uint8Array(artifacts.weightData as ArrayBuffer)
+
+				await assertNotNull(this.offlineStorage).putSpamClassificationModel({
+					modelTopology,
+					weightSpecs,
+					weightData,
+				})
+
+				return {
+					modelArtifactsInfo: {
+						dateSaved: new Date(),
+						modelTopologyType: "JSON",
+					},
+				}
+			}),
+		)
+	}
 
 	private async loadModel(): Promise<void> {
 		const model = await assertNotNull(this.offlineStorage).getSpamClassificationModel()

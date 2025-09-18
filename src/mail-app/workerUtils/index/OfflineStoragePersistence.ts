@@ -1,16 +1,15 @@
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { sql } from "../../../common/api/worker/offline/Sql"
 import { SqlValue, untagSqlObject, untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
-import { GroupType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { GroupType } from "../../../common/api/common/TutanotaConstants"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/tutanota-utils"
-import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef, Body, MailFolderTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { elementIdPart, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { Body, Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
-import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { SpamClassificationModel, SpamClassificationRow } from "../spamClassification/SpamClassifier"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
@@ -72,7 +71,7 @@ export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> 
 	// Spam classification training data
 	spam_classification_training_data: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, lastModified NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
+			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, lastModified NUMBER NOT NULL, isCertain NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
 		purgedWithCache: true,
 	},
 
@@ -184,21 +183,35 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async storeSpamClassification(mailData: Mail, body: Body, isSpam: boolean): Promise<void> {
+	async storeSpamClassification(mailData: Mail, body: Body, isSpam: boolean, isCertain: boolean): Promise<void> {
 		const { query, params } = sql`
-			INSERT
-			OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified)
+            INSERT
+            OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified, isCertain)
 				VALUES (
-			${listIdPart(mailData._id)},
-			${elementIdPart(mailData._id)},
-			${mailData.subject},
-			${htmlToText(getMailBodyText(body))},
-			${isSpam ? 1 : 0},
-			${Date.now()}
-			)`
+            ${listIdPart(mailData._id)},
+            ${elementIdPart(mailData._id)},
+            ${mailData.subject},
+            ${htmlToText(getMailBodyText(body))},
+            ${isSpam ? 1 : 0},
+            ${Date.now()},
+            ${isCertain ? 1 : 0}
+            )`
 		await this.sqlCipherFacade.run(query, params)
 	}
-	async getStoredClassification(mailData: Mail, body: Body): Promise<boolean> {
+
+	async updateSpamClassificationData(id: IdTuple, isSpam: boolean, isCertain: boolean): Promise<void> {
+		const { query, params } = sql`
+            UPDATE spam_classification_training_data
+            SET lastModified=${Date.now()},
+                isCertain=${isCertain ? 1 : 0},
+                isSpam=${isSpam ? 1 : 0}
+            WHERE listId = ${listIdPart(id)}
+              AND elementId = ${elementIdPart(id)}
+        `
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getStoredClassification(mailData: Mail): Promise<boolean> {
 		const { query, params } = sql`
 			SELECT isSpam FROM spam_classification_training_data where listId=${listIdPart(mailData._id)} and elementId=${elementIdPart(mailData._id)} `
 		const result = await this.sqlCipherFacade.get(query, params)
