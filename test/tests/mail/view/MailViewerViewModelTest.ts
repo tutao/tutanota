@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { MailViewerViewModel, UnsubscribeType } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
+import { LIST_UNSUBSCRIBE_POST_PAYLOAD, MailViewerViewModel, UnsubscribeType } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import {
 	ConversationEntryTypeRef,
 	HeaderTypeRef,
@@ -161,11 +161,13 @@ o.spec("MailViewerViewModel", function () {
 			const postResult = await viewModel.unsubscribePost(unsubscribeAction)
 
 			if (!isBrowser()) {
-				verify(commonSystemFacade.executePostRequest(unsubscribeAction.postUrl, "List-Unsubscribe: One-Click"), { times: expectedPostResult ? 1 : 0 })
+				verify(commonSystemFacade.executePostRequest(unsubscribeAction.requestUrl, LIST_UNSUBSCRIBE_POST_PAYLOAD), {
+					times: expectedPostResult ? 1 : 0,
+				})
 			} else {
-				verify(mailModel.unsubscribe(mail, unsubscribeAction.postUrl))
+				verify(mailModel.serverUnsubscribe(mail, unsubscribeAction.requestUrl))
 			}
-			o(unsubscribeAction.postUrl).equals(expectedUrl)
+			o(unsubscribeAction.requestUrl).equals(expectedUrl)
 			o(postResult).equals(expectedPostResult)
 		}
 
@@ -220,7 +222,7 @@ o.spec("MailViewerViewModel", function () {
 				const viewModel = initUnsubscribeHeaders(headers)
 				const unsubscribeActions = await viewModel.determineUnsubscribeOrder()
 				o(unsubscribeActions.length).equals(0)
-				verify(mailModel.unsubscribe(matchers.anything(), matchers.anything()), { times: 0 })
+				verify(mailModel.serverUnsubscribe(matchers.anything(), matchers.anything()), { times: 0 })
 				verify(commonSystemFacade.executePostRequest(matchers.anything(), matchers.anything()), { times: 0 })
 			})
 			o("determineUnsubscribeOrder with mailto", async function () {
@@ -228,7 +230,7 @@ o.spec("MailViewerViewModel", function () {
 				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
 				const unsubOrder = await viewModel.determineUnsubscribeOrder()
 				o(unsubOrder.length).equals(1)
-				o(unsubOrder[0].postUrl).equals("mailto:unsubscribe@newsletter.de")
+				o(unsubOrder[0].requestUrl).equals("mailto:unsubscribe@newsletter.de")
 				o(unsubOrder[0].type).equals(UnsubscribeType.MAILTO_UNSUBSCRIBE)
 			})
 			o("determineUnsubscribeOrder with post", async function () {
@@ -236,7 +238,7 @@ o.spec("MailViewerViewModel", function () {
 				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
 				const unsubOrder = await viewModel.determineUnsubscribeOrder()
 				o(unsubOrder.length).equals(1)
-				o(unsubOrder[0].postUrl).equals("http://unsub.me?id=2134")
+				o(unsubOrder[0].requestUrl).equals("http://unsub.me?id=2134")
 				o(unsubOrder[0].type).equals(UnsubscribeType.HTTP_POST_UNSUBSCRIBE)
 			})
 			o("determineUnsubscribeOrder with get", async function () {
@@ -244,7 +246,7 @@ o.spec("MailViewerViewModel", function () {
 				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
 				const unsubOrder = await viewModel.determineUnsubscribeOrder()
 				o(unsubOrder.length).equals(1)
-				o(unsubOrder[0].postUrl).equals("http://unsub.me?id=2134")
+				o(unsubOrder[0].requestUrl).equals("http://unsub.me?id=2134")
 				o(unsubOrder[0].type).equals(UnsubscribeType.HTTP_GET_UNSUBSCRIBE)
 			})
 			o("determineUnsubscribeOrder with get + mailto", async function () {
@@ -252,9 +254,9 @@ o.spec("MailViewerViewModel", function () {
 				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
 				const unsubOrder = await viewModel.determineUnsubscribeOrder()
 				o(unsubOrder.length).equals(2)
-				o(unsubOrder[0].postUrl).equals("http://unsub.me?id=2134")
+				o(unsubOrder[0].requestUrl).equals("http://unsub.me?id=2134")
 				o(unsubOrder[0].type).equals(UnsubscribeType.HTTP_GET_UNSUBSCRIBE)
-				o(unsubOrder[1].postUrl).equals("mailto:unsubscribe@newsletter.de")
+				o(unsubOrder[1].requestUrl).equals("mailto:unsubscribe@newsletter.de")
 				o(unsubOrder[1].type).equals(UnsubscribeType.MAILTO_UNSUBSCRIBE)
 			})
 			o("determineUnsubscribeOrder with post + mailto", async function () {
@@ -262,9 +264,9 @@ o.spec("MailViewerViewModel", function () {
 				const viewModel = initUnsubscribeHeaders(headers.join("\r\n"))
 				const unsubOrder = await viewModel.determineUnsubscribeOrder()
 				o(unsubOrder.length).equals(2)
-				o(unsubOrder[0].postUrl).equals("http://unsub.me?id=2134")
+				o(unsubOrder[0].requestUrl).equals("http://unsub.me?id=2134")
 				o(unsubOrder[0].type).equals(UnsubscribeType.HTTP_POST_UNSUBSCRIBE)
-				o(unsubOrder[1].postUrl).equals("mailto:unsubscribe@newsletter.de")
+				o(unsubOrder[1].requestUrl).equals("mailto:unsubscribe@newsletter.de")
 				o(unsubOrder[1].type).equals(UnsubscribeType.MAILTO_UNSUBSCRIBE)
 			})
 			o("determineUnsubscribeOrder with invalid prefixes are not parsed", async function () {

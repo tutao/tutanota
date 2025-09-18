@@ -568,7 +568,7 @@ export class MailModel {
 		await this.mailFacade.clearFolder(folder._id)
 	}
 
-	async unsubscribe(mail: Mail, postUrl: string) {
+	async serverUnsubscribe(mail: Mail, postUrl: string) {
 		await this.mailFacade.unsubscribe(mail._id, postUrl)
 	}
 

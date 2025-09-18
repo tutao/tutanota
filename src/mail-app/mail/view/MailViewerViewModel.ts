@@ -94,7 +94,7 @@ export const enum ContentBlockingStatus {
 
 export type UnsubscribeAction = {
 	type: UnsubscribeType
-	postUrl: string
+	requestUrl: string
 }
 
 export const enum UnsubscribeType {
@@ -102,6 +102,8 @@ export const enum UnsubscribeType {
 	HTTP_GET_UNSUBSCRIBE = "HTTP_GET_UNSUBSCRIBE",
 	MAILTO_UNSUBSCRIBE = "MAILTO_UNSUBSCRIBE",
 }
+
+export const LIST_UNSUBSCRIBE_POST_PAYLOAD = "List-Unsubscribe=One-Click"
 
 export class MailViewerViewModel {
 	private contrastFixNeeded: boolean = false
@@ -642,11 +644,13 @@ export class MailViewerViewModel {
 			return unsubscribeActions
 		}
 
-		const unsubPostHeader = mailHeaders
-			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
-			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
-			.split("\n") // split headers
-			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe-post"))
+		const unsubPostHeader = first(
+			mailHeaders
+				.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
+				.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
+				.split("\n") // split headers
+				.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe-post")),
+		)
 
 		const [_, ...value] = listUnsubscribeHeaders[0].split(":")
 		const headerValue = value.join(":")
@@ -656,13 +660,13 @@ export class MailViewerViewModel {
 			const trimmedLink = link.trim()
 			if (trimmedLink.startsWith("<http") && trimmedLink.endsWith(">")) {
 				unsubscribeActions.push({
-					postUrl: trimmedLink.slice(1, -1),
-					type: unsubPostHeader.length > 0 ? UnsubscribeType.HTTP_POST_UNSUBSCRIBE : UnsubscribeType.HTTP_GET_UNSUBSCRIBE,
+					type: unsubPostHeader != null ? UnsubscribeType.HTTP_POST_UNSUBSCRIBE : UnsubscribeType.HTTP_GET_UNSUBSCRIBE,
+					requestUrl: trimmedLink.slice(1, -1),
 				})
 			} else if (trimmedLink.startsWith("<mailto:") && trimmedLink.endsWith(">")) {
 				unsubscribeActions.push({
-					postUrl: trimmedLink.slice(1, -1),
 					type: UnsubscribeType.MAILTO_UNSUBSCRIBE,
+					requestUrl: trimmedLink.slice(1, -1),
 				})
 			}
 		}
@@ -694,15 +698,15 @@ export class MailViewerViewModel {
 			return false
 		}
 
-		const unsubscribePostUrl = assertNotNull(unsubscribeAction.postUrl)
+		const unsubscribePostUrl = assertNotNull(unsubscribeAction.requestUrl)
 		if (isBrowser()) {
 			// In case we are on the webApp we can not execute the POST request directly
 			// from the client. However, the user is informed that the list unsubscribe url will
 			// be sent to our server in this case.
-			await this.mailModel.unsubscribe(this.mail, unsubscribePostUrl)
+			await this.mailModel.serverUnsubscribe(this.mail, unsubscribePostUrl)
 			return true
 		} else {
-			const isPostRequestSuccessful = await assertNotNull(this.commonSystemFacade).executePostRequest(unsubscribePostUrl, "List-Unsubscribe: One-Click")
+			const isPostRequestSuccessful = await assertNotNull(this.commonSystemFacade).executePostRequest(unsubscribePostUrl, LIST_UNSUBSCRIBE_POST_PAYLOAD)
 			if (isPostRequestSuccessful) {
 				this.mail.listUnsubscribe = false
 				await this.entityClient.update(this.mail)

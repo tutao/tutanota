@@ -422,8 +422,8 @@ export async function unsubscribe(viewModel: MailViewerViewModel): Promise<void>
 	await showUnsubscribeDialog(unsubscribeOrder, viewModel, false)
 }
 
-async function showUnsubscribeDialog(unsubscribeOrder: Array<UnsubscribeAction>, viewModel: MailViewerViewModel, secondAttempt: boolean): Promise<void> {
-	let nextUnsubscribeAction = unsubscribeOrder.shift()
+async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAction>, viewModel: MailViewerViewModel, secondAttempt: boolean): Promise<void> {
+	let nextUnsubscribeAction = nextUnsubscribeActions.shift()
 	if (nextUnsubscribeAction == null) {
 		return Dialog.showUnsubscribeFinishedDialog(false)
 	}
@@ -450,7 +450,7 @@ async function showUnsubscribeDialog(unsubscribeOrder: Array<UnsubscribeAction>,
 			m(
 				"p.m-0.mt-s",
 				nextUnsubscribeAction.type !== UnsubscribeType.HTTP_POST_UNSUBSCRIBE
-					? nextUnsubscribeAction.postUrl
+					? nextUnsubscribeAction.requestUrl
 					: isBrowser()
 						? lang.get("unsubscribeHttpPostInfoWeb_msg")
 						: lang.get("unsubscribeHttpPostInfoApp_msg"),
@@ -481,7 +481,7 @@ async function showUnsubscribeDialog(unsubscribeOrder: Array<UnsubscribeAction>,
 									if (nextUnsubscribeAction.type === UnsubscribeType.MAILTO_UNSUBSCRIBE) {
 										const { newMailtoUrlMailEditor } = await import("../editor/MailEditor")
 										const newMailDialog = await newMailtoUrlMailEditor(
-											nextUnsubscribeAction.postUrl!,
+											nextUnsubscribeAction.requestUrl!,
 											false,
 											assertNotNull(await viewModel.getMailboxDetails()),
 										)
@@ -489,22 +489,28 @@ async function showUnsubscribeDialog(unsubscribeOrder: Array<UnsubscribeAction>,
 										newMailDialog.show()
 									} else if (nextUnsubscribeAction.type === UnsubscribeType.HTTP_GET_UNSUBSCRIBE) {
 										if (isApp()) {
-											mailLocator.systemFacade.openLink(nextUnsubscribeAction.postUrl)
+											mailLocator.systemFacade.openLink(nextUnsubscribeAction.requestUrl)
 										} else {
-											open(nextUnsubscribeAction.postUrl)
+											open(nextUnsubscribeAction.requestUrl)
 										}
 										dialog.close()
 									} else {
 										showProgressDialog("unsubscribing_msg", viewModel.unsubscribePost(nextUnsubscribeAction))
-											.then((result) => Dialog.showUnsubscribeFinishedDialog(result))
+											.then((isSuccess) => {
+												if (isSuccess || (!isSuccess && isEmpty(nextUnsubscribeActions))) {
+													return Dialog.showUnsubscribeFinishedDialog(isSuccess)
+												} else {
+													return showUnsubscribeDialog(nextUnsubscribeActions, viewModel, true)
+												}
+											})
 											.catch((e) => {
 												if (e instanceof LockedError) {
 													return Dialog.message("operationStillActive_msg")
 												} else {
-													if (isEmpty(unsubscribeOrder)) {
+													if (isEmpty(nextUnsubscribeActions)) {
 														return Dialog.showUnsubscribeFinishedDialog(false)
 													}
-													return showUnsubscribeDialog(unsubscribeOrder, viewModel, true)
+													return showUnsubscribeDialog(nextUnsubscribeActions, viewModel, true)
 												}
 											})
 										dialog.close()
