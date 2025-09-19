@@ -161,7 +161,7 @@ export class ContactSupportPage implements Component<Props> {
 						(this.sendMailModel?.getAttachments() ?? []).map((attachment) =>
 							m(
 								".flex.center-vertically.flex-space-between.pb-s.pt-s",
-								{ style: { paddingInline: px(size.vpad_small) } },
+								{ style: { paddingInline: px(size.spacing_8) } },
 								m("span.smaller", attachment.name),
 								m(
 									BaseButton,

@@ -14,7 +14,7 @@ import { component_size, px, size } from "../../../common/gui/size.js"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { splitTextForHighlighting, SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
-export const shiftByForCheckbox = px(component_size.checkbox_size + size.hpad)
+export const shiftByForCheckbox = px(component_size.checkbox_size + size.spacing_12)
 export const translateXShow = `translateX(${shiftByForCheckbox})`
 export const translateXHide = "translateX(0)"
 

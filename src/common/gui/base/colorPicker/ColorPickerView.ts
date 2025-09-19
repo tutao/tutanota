@@ -76,7 +76,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 				".flex.wrap.full-width.items-center.justify-between.p0.plr-s",
 				{
 					style: {
-						rowGap: px(size.vpad_xs),
+						rowGap: px(size.spacing_4),
 						marginTop: px(12),
 					},
 				},

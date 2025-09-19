@@ -39,7 +39,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 					"section.pt-s.pb-s",
 					{
 						style: {
-							padding: px(size.vpad_small),
+							padding: px(size.spacing_8),
 						},
 					},
 					[

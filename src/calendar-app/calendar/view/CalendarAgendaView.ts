@@ -73,7 +73,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		if (isDesktopLayout) {
 			containerStyle = {
 				marginLeft: "5px",
-				marginBottom: px(size.hpad_large),
+				marginBottom: px(size.spacing_24),
 			}
 		} else {
 			containerStyle = {}

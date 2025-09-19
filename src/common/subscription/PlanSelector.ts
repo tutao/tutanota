@@ -151,7 +151,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			"#plan-selector.flex.flex-column.gap-vpad-l",
 			{
 				style: this.shouldFixButtonPos() && {
-					"padding-bottom": px(component_size.button_floating_size + size.vpad),
+					"padding-bottom": px(component_size.button_floating_size + size.spacing_16),
 				},
 				lang: lang.code,
 			},
@@ -180,7 +180,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 						{
 							style: this.shouldFixButtonPos() && {
 								position: "fixed",
-								height: px(component_size.button_floating_size + size.vpad_xsm * 2),
+								height: px(component_size.button_floating_size + size.spacing_4 * 2),
 								bottom: 0,
 								left: 0,
 								right: 0,

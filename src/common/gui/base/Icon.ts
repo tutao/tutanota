@@ -86,7 +86,7 @@ export class Icon implements Component<IconAttrs> {
 		tooltip.style.removeProperty("left")
 		const tooltipRect = tooltip.getBoundingClientRect()
 		// Get the width of the area in pixels that the tooltip penetrates the viewport
-		const distanceOver = tooltipRect.x + tooltipRect.width + size.hpad_large - window.innerWidth
+		const distanceOver = tooltipRect.x + tooltipRect.width + size.spacing_24 - window.innerWidth
 		if (distanceOver > 0) {
 			const parentRect = root.getBoundingClientRect()
 			// Chromium based browsers return a different value for tooltipRect

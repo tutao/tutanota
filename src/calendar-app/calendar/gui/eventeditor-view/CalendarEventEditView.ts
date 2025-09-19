@@ -153,9 +153,9 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		}
 
 		if (this.pageWidth === -1 && dom.parentElement) {
-			this.pageWidth = dom.parentElement.clientWidth - size.hpad_large * 2
+			this.pageWidth = dom.parentElement.clientWidth - size.spacing_24 * 2
 			// Twice the page width (Main Page + Guests/Repeat) plus the gap between pages (64px)
-			;(vnode.dom as HTMLElement).style.width = px(this.pageWidth * 2 + size.vpad_xxl)
+			;(vnode.dom as HTMLElement).style.width = px(this.pageWidth * 2 + size.spacing_64)
 			m.redraw()
 		}
 	}
@@ -239,7 +239,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderEventTimeEditor(attrs: CalendarEventEditViewAttrs): Children {
-		const padding = px(size.vpad_small)
+		const padding = px(size.spacing_8)
 		const { whenModel } = attrs.model.editModels
 		return m(
 			Card,
@@ -273,7 +273,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private transitionTo(target: EditorPages, navigationCallback: (targetPage: EditorPages) => unknown) {
 		this.hasAnimationEnded = false
 		this.transitionPage = target
-		this.translate = -(this.pageWidth + size.vpad_xxl)
+		this.translate = -(this.pageWidth + size.spacing_64)
 		navigationCallback(target)
 	}
 
@@ -338,11 +338,11 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			[
 				m(".no-shrink", {
 					style: {
-						width: px(size.hpad_large),
-						height: px(size.hpad_large),
+						width: px(size.spacing_24),
+						height: px(size.spacing_24),
 						borderRadius: "50%",
 						backgroundColor: option.color,
-						marginInline: px(size.vpad_xsm / 2),
+						marginInline: px(size.spacing_4 / 2),
 					},
 				}),
 				m(

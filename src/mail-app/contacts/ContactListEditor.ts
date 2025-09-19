@@ -163,7 +163,7 @@ class ContactListEditor implements Component<ContactListEditorAttrs> {
 				style: {
 					height: px(component_size.button_height),
 					borderBottom: "1px transparent",
-					marginTop: px(size.vpad),
+					marginTop: px(size.spacing_16),
 				},
 			},
 			[

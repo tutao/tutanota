@@ -313,14 +313,14 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			}
 		} else if (window.innerWidth < 500) {
 			overlayRect = {
-				bottom: px(size.vpad),
+				bottom: px(size.spacing_16),
 				left: px(16),
 				right: px(16),
 				zIndex: LayerType.LowPriorityOverlay,
 			}
 		} else {
 			overlayRect = {
-				bottom: px(size.vpad),
+				bottom: px(size.spacing_16),
 				left: px(domRect.left),
 				right: px(window.innerWidth - domRect.right),
 				zIndex: LayerType.LowPriorityOverlay,
