@@ -35,7 +35,6 @@ import { DropType } from "../../../common/gui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
-import { MoveMode } from "../model/MailModel"
 
 assertMainOrNode()
 
@@ -48,7 +47,7 @@ export interface MailListViewAttrs {
 	onSingleInclusiveSelection: ListElementListModel<Mail>["onSingleInclusiveSelection"]
 	onRangeSelectionTowards: ListElementListModel<Mail>["selectRangeTowards"]
 	onSingleExclusiveSelection: ListElementListModel<Mail>["onSingleExclusiveSelection"]
-	onTrashSwipe: (moveMode: MoveMode, ownerGroup: Id, mails: readonly IdTuple[]) => unknown
+	onTrashSwipe: (ownerGroup: Id, mails: readonly IdTuple[]) => unknown
 	onMoveSwipe: (targetFolderType: SystemFolderType, mails: readonly IdTuple[]) => Promise<boolean>
 }
 
@@ -426,11 +425,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			)
 			return wereDeleted ? ListSwipeDecision.Commit : ListSwipeDecision.Cancel
 		} else {
-			this.attrs.onTrashSwipe(
-				this.mailViewModel.groupMailsByConversation() ? MoveMode.Conversation : MoveMode.Mails,
-				assertNotNull(listElement._ownerGroup),
-				actionableMails,
-			)
+			this.attrs.onTrashSwipe(assertNotNull(listElement._ownerGroup), actionableMails)
 			return ListSwipeDecision.Commit
 		}
 	}
