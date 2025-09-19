@@ -69,7 +69,6 @@ import {
 	getConversationTitle,
 	getMoveMailBounds,
 	LabelsPopupOpts,
-	moveMailsToSystemFolder,
 	promptAndDeleteMails,
 	showLabelsPopup,
 	showMoveMailsDropdown,
@@ -795,32 +794,17 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private getReportMultipleEmailSpamAction(): (() => unknown) | null {
-		return async () => {
-			await this.moveSelectedMailsToSystemFolder(MailSetKind.SPAM)
-		}
-	}
-
-	private async moveSelectedMailsToSystemFolder(targetFolderType: SystemFolderType) {
-		const selection = this.searchViewModel.getSelectedMails()
-		const firstMail = first(selection)
-		if (firstMail === null) {
-			return
-		}
 		const mailModel = mailLocator.mailModel
-		const folderOfFirstMail = mailModel.getMailFolderForMail(firstMail)
-		if (folderOfFirstMail == null) {
-			return
-		}
+		return mailModel.isMovingMailsFromSearchAllowed()
+			? async () => {
+					const selectedMails = this.searchViewModel.getSelectedMails()
+					if (isEmpty(selectedMails)) {
+						return
+					}
 
-		moveMailsToSystemFolder({
-			mailboxModel: mailLocator.mailboxModel,
-			mailModel: mailLocator.mailModel,
-			currentFolder: folderOfFirstMail,
-			mailIds: getIds(selection),
-			targetFolderType,
-			moveMode: MoveMode.Mails,
-			undoModel: this.undoModel,
-		})
+					simpleMoveToSystemFolder(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, MailSetKind.SPAM, selectedMails)
+				}
+			: null
 	}
 
 	private getForwardAction(conversationViewModel: ConversationViewModel): (() => void) | null {
