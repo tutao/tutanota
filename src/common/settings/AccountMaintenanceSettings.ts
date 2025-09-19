@@ -85,7 +85,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 		}
 
 		return [
-			m(".mt-l", [
+			m(".mt-32", [
 				m(".h4", lang.get("security_title")),
 				m(DropDownSelector, {
 					label: "saveEncryptedIpAddress_title",
@@ -137,7 +137,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 								: null,
 							this.customer
 								? m(
-										".mt-l",
+										".mt-32",
 										m(ExpandableTable, {
 											title: "auditLog_title",
 											table: auditLogTableAttrs,

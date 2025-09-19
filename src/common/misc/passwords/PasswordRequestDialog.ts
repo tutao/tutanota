@@ -50,7 +50,7 @@ export function showRequestPasswordDialog(props: {
 					])
 				: m(Icon, {
 						icon: BootIcons.Progress,
-						class: "icon-32 icon-progress block mt mb",
+						class: "icon-32 icon-progress block mt-16 mb",
 						style: {
 							marginLeft: "auto",
 							marginRight: "auto",

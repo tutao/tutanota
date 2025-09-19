@@ -14,7 +14,7 @@ export function renderInfoLinks(): Children {
 	const privacyPolicyLink = getPrivacyStatementLink()
 	const imprintLink = getImprintLink()
 	return m(
-		".flex.col.mt-l",
+		".flex.col.mt-32",
 		m(
 			".flex.wrap.justify-center",
 			!isApp() && privacyPolicyLink

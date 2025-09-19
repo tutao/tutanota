@@ -205,7 +205,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 
 								e.preventDefault()
 							},
-							class: "mt-s",
+							class: "mt-8",
 						})
 					: null,
 			})
@@ -331,7 +331,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			if (eventToShowTimeIndicator === eventIndex && isSameDay(new Date(), event.startTime)) {
 				eventsNodes.push(
 					m(
-						".mt-xs.mb-xs",
+						".mt-4.mb-xs",
 						{
 							id: "timeIndicator",
 							key: "timeIndicator",

@@ -300,7 +300,7 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 			/** variable-size child container that may be scrollable. */
 			m(".dialog-max-height.plr-s.pb.text-break.nav-bg", [
 				m(
-					".list-bg.border-radius.mt-s.ml-s.mr-s",
+					".list-bg.border-radius.mt-8.ml-s.mr-s",
 					m(SelectAllCheckbox, {
 						style: {
 							"padding-left": "0",
@@ -311,7 +311,7 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 					}),
 				),
 				m(
-					".flex.col.rel.mt-s",
+					".flex.col.rel.mt-8",
 					{
 						style: {
 							height: "80vh",

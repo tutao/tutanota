@@ -67,12 +67,12 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 			case "exporting":
 				return [
 					m(
-						".flex-start.mt-m.small",
+						".flex-start.mt-12.small",
 						lang.get("exportingEmails_label", {
 							"{count}": state.exportedMails,
 						}),
 					),
-					m(".flex-space-between.border-radius-big.mt-s.rel.nav-bg.full-width.center-vertically", [
+					m(".flex-space-between.border-radius-big.mt-8.rel.nav-bg.full-width.center-vertically", [
 						m(Icon, {
 							icon: BootIcons.Progress,
 							class: "flex-center items-center icon-progress-tiny icon-progress ml-s",
@@ -90,9 +90,9 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				]
 			case "idle":
 				return [
-					m(".flex-start.mt-m", this.renderExportInfoText()),
+					m(".flex-start.mt-12", this.renderExportInfoText()),
 					m(
-						".flex-start.mt-s",
+						".flex-start.mt-8",
 						m(LoginButton, {
 							type: LoginButtonType.FlexWidth,
 							label: "export_action",
@@ -124,7 +124,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				return [
 					m("small.noselect", lang.get("exportFinished_label")),
 					m(
-						".flex-start.mt-s",
+						".flex-start.mt-8",
 						m(LoginButton, {
 							type: LoginButtonType.FlexWidth,
 							label: "open_action",

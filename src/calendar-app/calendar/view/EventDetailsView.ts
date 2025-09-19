@@ -38,7 +38,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 					highlightedStrings: attrs.highlightedStrings,
 				}),
 			),
-			m(".flex.mt-xs", [
+			m(".flex.mt-4", [
 				this.renderSendUpdateButton(),
 				this.renderDuplicateButton(),
 				this.renderEditButton(attrs.editCallback),

@@ -193,7 +193,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					: [
 							m(SelectMailAddressForm, mailAddressFormAttrs), // Leave as is
 							a.isPaidSubscription()
-								? m(".small.mt-s", lang.get("configureCustomDomainAfterSignup_msg"), [
+								? m(".small.mt-8", lang.get("configureCustomDomainAfterSignup_msg"), [
 										m(ExternalLink, { href: InfoLink.DomainInfo, isCompanySite: true }),
 									])
 								: null,
@@ -214,7 +214,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 							m(Checkbox, confirmAgeCheckBoxAttrs),
 						],
 				m(
-					".mt-l.mb-l",
+					".mt-32.mb-l",
 					m(LoginButton, {
 						label: "next_action",
 						onclick: submit,

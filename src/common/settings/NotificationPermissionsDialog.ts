@@ -73,8 +73,8 @@ export class NotificationPermissionsBody implements Component<NotificationPermis
 			}),
 			!isAndroidApp()
 				? null
-				: m("section.mt-s.mb", [
-						m("p.mb-s.mt-s", lang.get("allowBatteryPermission_msg")),
+				: m("section.mt-8.mb", [
+						m("p.mb-s.mt-8", lang.get("allowBatteryPermission_msg")),
 						renderPermissionButton("grant_battery_permission_action", attrs.isBatteryPermissionGranted, async () => {
 							// Ask for permission to disable battery optimisations
 							const isBatteryPermissionGranted = await locator.systemPermissionHandler.requestPermission(

@@ -54,7 +54,7 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 
 	private static renderHelpLabel(value: string, strength: number | undefined, status: StatusSetting | undefined, helpLabel: lazy<Children> | null): Children {
 		const displayedStatus = PasswordField.parseStatusSetting(status, value, strength)
-		return m(".mt-xs", [
+		return m(".mt-4", [
 			m(".flex.items-center", [
 				strength != null
 					? m(CompletenessIndicator, {

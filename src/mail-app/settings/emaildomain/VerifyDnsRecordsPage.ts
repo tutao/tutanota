@@ -32,7 +32,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
 		const a = vnode.attrs
 		return [
-			m("h4.mt-l.text-center", lang.get("verifyDNSRecords_title")),
+			m("h4.mt-32.text-center", lang.get("verifyDNSRecords_title")),
 			m("p", lang.get("verifyDNSRecords_msg")),
 			a.data.domainStatus.status.isLoaded()
 				? m("", [
@@ -168,7 +168,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 			}
 		})
 		return [
-			m(".mt-m.mb-s", lang.get("setDnsRecords_msg")),
+			m(".mt-12.mb-s", lang.get("setDnsRecords_msg")),
 			createDnsRecordTableN(
 				validatedRecords,
 				hideRefreshButton
@@ -180,7 +180,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 							click: () => _updateDnsStatus(domainStatus),
 						},
 			),
-			m(MoreInfoLink, { link: InfoLink.DomainInfo, class: "mt-m", isSmall: true }),
+			m(MoreInfoLink, { link: InfoLink.DomainInfo, class: "mt-12", isSmall: true }),
 		]
 	} else {
 		const errorMessageMap: Record<CustomDomainCheckResult, TranslationKey> = {

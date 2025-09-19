@@ -157,17 +157,17 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			const user = locator.logins.getUserController()
 			return m("", [
 				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
-					m(".h4.mt-l", lang.get("loginCredentials_label")),
+					m(".h4.mt-32", lang.get("loginCredentials_label")),
 					this.renderName(user.userGroupInfo),
 					m(TextField, mailAddressAttrs),
 					m(TextField, passwordAttrs),
 					user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
 					this.renderAppLockField(),
 					m(this._secondFactorsForm),
-					m(".h4.mt-l", lang.get("activeSessions_label")),
+					m(".h4.mt-32", lang.get("activeSessions_label")),
 					this._renderActiveSessions(),
 					m(".small", lang.get("sessionsInfo_msg")),
-					m(".flex-space-between.items-center.mt-l.mb-s", [
+					m(".flex-space-between.items-center.mt-32.mb-s", [
 						m(".h4", lang.get("closedSessions_label")),
 						m(ExpanderButton, {
 							label: "show_action",
@@ -187,7 +187,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m(".small", lang.get("sessionsInfo_msg")),
 					this._usageTestModel.isCustomerOptedOut()
 						? null
-						: m("", [m(".h4.mt-l", lang.get("usageData_label")), m(DropDownSelector, usageDataOptInAttrs)]),
+						: m("", [m(".h4.mt-32", lang.get("usageData_label")), m(DropDownSelector, usageDataOptInAttrs)]),
 				]),
 			])
 		} else {
