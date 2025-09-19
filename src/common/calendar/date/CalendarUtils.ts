@@ -1254,11 +1254,6 @@ function* eventOccurencesGenerator(
 	yield { startTime: calcStartTime, endTime: calcEndTime }
 
 	while ((endOccurrences == null || iteration <= endOccurrences) && (repeatEndTime == null || calcStartTime.getTime() < repeatEndTime.getTime())) {
-		// We reached our range end, no need to continue generating/evaluating events
-		if (calcStartTime.getTime() > maxDate.getTime()) {
-			break
-		}
-
 		const byMonthRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTH)
 		const byDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYDAY)
 		const byMonthDayRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYMONTHDAY)
@@ -1296,20 +1291,31 @@ function* eventOccurencesGenerator(
 			),
 			validMonths as MonthNumbers[],
 			eventStartTime,
-		)
+		).sort((a, b) => a.toMillis() - b.toMillis())
 
 		const setPosRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYSETPOS)
 		const setPosRulesValues = setPosRules.map((rule) => rule.interval)
 		const shouldApplySetPos = isNotEmpty(setPosRules) && setPosRules.length < repeatRule.advancedRules.length
 		let eventCount = 0
 
+		// We reached our range end, no need to continue generating/evaluating events
+		if (calcStartTime.getTime() > maxDate.getTime() && events.length === 0) {
+			return
+		}
+
 		for (const generatedEvent of events) {
+			const newStartTime = generatedEvent.toJSDate()
+
+			// We reached our range end, no need to continue generating/evaluating events
+			if (newStartTime.getTime() > maxDate.getTime()) {
+				return
+			}
+
 			if (iteration === 1 && generatedEvent.toJSDate().getTime() === eventStartTime.getTime()) {
 				// Already yielded
 				continue
 			}
 
-			const newStartTime = generatedEvent.toJSDate()
 			const newEndTime = allDay
 				? incrementByRepeatPeriod(newStartTime, RepeatPeriod.DAILY, calcDuration, repeatTimeZone)
 				: DateTime.fromJSDate(newStartTime).plus(calcDuration).toJSDate()
