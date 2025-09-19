@@ -41,7 +41,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 					m(".h4.center.pb-s.pt-s", lang.get("supportRequestReceived_title")),
 					m("p.center.m-0", lang.get("supportRequestReceived_msg")),
 					m(
-						".mt-l.mb-s",
+						".mt-32.mb-s",
 						{},
 						m("img.pb.block.full-width.height-100p", {
 							src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/other.png`,

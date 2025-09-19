@@ -667,7 +667,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				isConfidential ? this.renderPasswordFields() : null,
 				m(".row", m(TextField, subjectFieldAttrs)),
 				m(
-					".flex-start.flex-wrap.mt-s.mb-s.gap-hpad",
+					".flex-start.flex-wrap.mt-8.mb-s.gap-hpad",
 					attachmentBubbleAttrs.map((a) => m(AttachmentBubble, a)),
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
@@ -1433,7 +1433,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 			(await Dialog.confirm("attachmentWarning_msg", "attachFiles_action", () =>
 				dataFiles.map((df, i) =>
 					m(
-						".text-break.selectable.mt-xs",
+						".text-break.selectable.mt-4",
 						{
 							title: attach[i],
 						},

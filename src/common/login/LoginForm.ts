@@ -136,7 +136,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					}),
 				),
 				m(
-					"p.center.statusTextColor.mt-s",
+					"p.center.statusTextColor.mt-8",
 					{
 						style: {
 							// browser reset

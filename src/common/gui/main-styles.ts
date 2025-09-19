@@ -327,35 +327,26 @@ styles.registerStyle("main", () => {
 		".m-0": {
 			margin: 0,
 		},
-		".mt": {
-			"margin-top": px(size.spacing_16),
-		},
-		".mt-xxs": {
-			"margin-top": px(2),
-		},
-		".mt-xs": {
+		".mt-4": {
 			"margin-top": px(size.spacing_4),
 		},
-		".mt-xsm-15": {
-			"margin-top": px(size.spacing_4 * 1.5),
-		},
-		".mt-s": {
+		".mt-8": {
 			"margin-top": px(size.spacing_8),
 		},
-		".mt-m": {
+		".mt-12": {
 			"margin-top": px(size.spacing_12),
 		},
-		".mt-l": {
-			"margin-top": px(size.spacing_32),
+		".mt-16": {
+			"margin-top": px(size.spacing_16),
 		},
-		".mt-xl": {
-			"margin-top": px(size.spacing_48),
-		},
-		".mt-form": {
+		".mt-24": {
 			"margin-top": px(size.spacing_24),
 		},
-		".mt-hpad-small": {
-			"margin-top": px(size.spacing_4),
+		".mt-32": {
+			"margin-top": px(size.spacing_32),
+		},
+		".mt-48": {
+			"margin-top": px(size.spacing_48),
 		},
 		".mb-0": {
 			"margin-bottom": 0,

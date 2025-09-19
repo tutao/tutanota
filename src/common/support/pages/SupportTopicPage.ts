@@ -59,7 +59,7 @@ export class SupportTopicPage implements Component<Props> {
 					buttonText &&
 						!locator.logins.getUserController().isFreeAccount() &&
 						m(
-							".flex.center-horizontally.mt",
+							".flex.center-horizontally.mt-16",
 							m(Button, {
 								label: lang.makeTranslation("", buttonText),
 								type: ButtonType.Primary,

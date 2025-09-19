@@ -124,8 +124,8 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 	private addressHelpLabel(): Children {
 		return this.isVerificationBusy
-			? m(".flex.items-center.mt-s", [this.progressIcon(), lang.get("mailAddressBusy_msg")])
-			: m(".mt-s", lang.get(this.messageId ?? VALID_MESSAGE_ID))
+			? m(".flex.items-center.mt-8", [this.progressIcon(), lang.get("mailAddressBusy_msg")])
+			: m(".mt-8", lang.get(this.messageId ?? VALID_MESSAGE_ID))
 	}
 
 	private progressIcon(): Children {

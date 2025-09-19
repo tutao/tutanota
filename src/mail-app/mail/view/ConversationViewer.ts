@@ -144,7 +144,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			document.body.offsetHeight -
 			(styles.isUsingBottomNavigation() ? component_size.navbar_height_mobile + component_size.bottom_nav_bar : component_size.navbar_height) -
 			300
-		return m(".mt-l.noprint", {
+		return m(".mt-32.noprint", {
 			style: {
 				height: px(height),
 			},
@@ -187,7 +187,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				)
 			: !viewModel.isFinished()
 				? m(
-						".font-weight-600.center.mt-l" + "." + responsiveCardHMargin(),
+						".font-weight-600.center.mt-32" + "." + responsiveCardHMargin(),
 						{
 							style: {
 								color: theme.on_surface_variant,

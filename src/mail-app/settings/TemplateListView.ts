@@ -229,7 +229,7 @@ export class TemplateRow implements VirtualRow<EmailTemplate> {
 						oncreate: (vnode) => (this.titleDom = vnode.dom as HTMLElement),
 					}),
 				]),
-				m(".smaller.mt-xxs", {
+				m(".smaller.mt-4", {
 					oncreate: (vnode) => (this.idDom = vnode.dom as HTMLElement),
 				}),
 			]),

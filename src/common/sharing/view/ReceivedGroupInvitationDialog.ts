@@ -147,7 +147,7 @@ function renderCalendarGroupInvitationFields(
 ): Children {
 	let alarms = alarmsStream()
 	return [
-		m(".small.mt.mb-xs", lang.get("color_label")),
+		m(".small.mt-16.mb-xs", lang.get("color_label")),
 		m(ColorPickerView, {
 			value: selectedColourValue(),
 			onselect: selectedColourValue,

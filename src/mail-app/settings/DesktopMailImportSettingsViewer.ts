@@ -41,7 +41,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 
 	view(): Children {
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
-			m(".h4.mt-l", lang.get("mailImportSettings_label")),
+			m(".h4.mt-32", lang.get("mailImportSettings_label")),
 			this.renderTargetFolderControls(),
 			!this.mailImporter().shouldRenderImportStatus() ? this.renderStartNewImportControls() : null,
 			this.mailImporter().shouldRenderImportStatus() ? this.renderImportStatus() : null,
@@ -104,9 +104,9 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 
 	private renderStartNewImportControls() {
 		return [
-			m(".flex-start.mt-m", this.renderImportInfoText()),
+			m(".flex-start.mt-12", this.renderImportInfoText()),
 			m(
-				".flex-start.mt-s",
+				".flex-start.mt-8",
 				m(LoginButton, {
 					type: LoginButtonType.FlexWidth,
 					label: "import_action",
@@ -168,12 +168,12 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		return [
 			[
 				m(
-					".flex-space-between.p.small.mt-m",
+					".flex-space-between.p.small.mt-12",
 					getReadableUiImportStatus(assertNotNull(this.mailImporter().getUiStatus())),
 					this.mailImporter().shouldRenderProcessedMails() ? processedMailsCountLabel : null,
 				),
 			],
-			[m(".flex-space-between.border-radius-big.mt-s.rel.nav-bg.full-width", this.renderMailImportProgressBar(), ...buttonControls)],
+			[m(".flex-space-between.border-radius-big.mt-8.rel.nav-bg.full-width", this.renderMailImportProgressBar(), ...buttonControls)],
 		]
 	}
 
@@ -190,7 +190,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 
 	private renderImportHistory() {
 		return [
-			m(".flex-space-between.items-center.mt-l.mb-s", [
+			m(".flex-space-between.items-center.mt-32.mb-s", [
 				m(".h4", lang.get("mailImportHistory_label")),
 				m(ExpanderButton, {
 					label: "show_action",

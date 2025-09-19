@@ -35,7 +35,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 			return m(
 				".full-width.full-height.flex.justify-center.items-center.flex-column",
 				m(".flex-center", progressIcon()),
-				m("p.m-0.mt-s.text-center", lang.getTranslationText("loading_msg")),
+				m("p.m-0.mt-8.text-center", lang.getTranslationText("loading_msg")),
 			)
 		}
 

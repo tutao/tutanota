@@ -88,7 +88,7 @@ export function showEventsImportDialog(events: CalendarEvent[], okAction: (dialo
 			/** variable-size child container that may be scrollable. */
 			m(".dialog-max-height.plr-s.pb.text-break.nav-bg", [
 				m(
-					".flex.col.rel.mt-s",
+					".flex.col.rel.mt-8",
 					{
 						style: {
 							height: "80vh",

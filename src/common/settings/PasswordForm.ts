@@ -254,14 +254,14 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
 							fontSize: px(font_size.smaller),
 						}),
-				attrs.passwordInfoKey ? m(".small.mt-s", lang.get(attrs.passwordInfoKey)) : null,
+				attrs.passwordInfoKey ? m(".small.mt-8", lang.get(attrs.passwordInfoKey)) : null,
 			],
 		)
 	}
 
 	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
 		return m(
-			"button.b.mr-xs.hover.click.darkest-hover.mt-xs",
+			"button.b.mr-xs.hover.click.darkest-hover.mt-4",
 			{
 				style: { display: "inline-block", color: theme.primary },
 				onclick: async () => {
