@@ -28,7 +28,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 					paddingBottom: "12px",
 					// this is an adjustment to keep tha columns aligned, space between columns is too big otherwise.
 					// this is an obscure place to put it and ideally should not be done here or should be passed down here.
-					marginRight: styles.isSingleColumnLayout() ? px(size.hpad_small) : "0",
+					marginRight: styles.isSingleColumnLayout() ? px(size.spacing_4) : "0",
 					transition: `background 200ms`,
 				},
 				tabindex: "0",

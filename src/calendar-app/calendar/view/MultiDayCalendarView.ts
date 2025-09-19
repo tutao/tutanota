@@ -231,7 +231,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			containerStyle = {
 				marginLeft: "5px",
 				overflow: "hidden",
-				marginBottom: px(size.hpad_large),
+				marginBottom: px(size.spacing_24),
 			}
 		} else {
 			containerStyle = {}
@@ -441,7 +441,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		// We calculate the height manually because we want the header to transition between heights when swiping left and right
 		// Hardcoding some styles instead of classes so that we can avoid nasty magic numbers
 		const mainPageEventsCount = longEventsResult.rows
-		const padding = mainPageEventsCount !== 0 ? size.vpad_small : 0
+		const padding = mainPageEventsCount !== 0 ? size.spacing_8 : 0
 		// Set bottom padding in height, because it will be ignored in the style
 		const height = mainPageEventsCount * CALENDAR_EVENT_HEIGHT + padding
 		return m(

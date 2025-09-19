@@ -111,7 +111,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 						onfocus: attrs.onfocus,
 						classes: this.resolveInputClasses(attrs.variant),
 						style: {
-							padding: `${px(size.vpad_small)} 0`,
+							padding: `${px(size.spacing_8)} 0`,
 						},
 						type: TextFieldType.Text,
 					}),
@@ -121,7 +121,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 					{
 						style: {
 							display: this.isFocused ? "none" : "block",
-							padding: `${px(size.vpad_small)} 0`,
+							padding: `${px(size.spacing_8)} 0`,
 							...attrs.displayStyle,
 						},
 					},

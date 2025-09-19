@@ -182,7 +182,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			icon: Icons.Add,
 			class: "folder-row mlr-button border-radius-small",
 			style: {
-				width: `calc(100% - ${px(size.hpad_button * 2)})`,
+				width: `calc(100% - ${px(size.spacing_8 * 2)})`,
 			},
 			onclick: () => {
 				attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, null)

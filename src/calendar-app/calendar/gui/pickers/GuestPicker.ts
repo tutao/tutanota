@@ -80,7 +80,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 			"button.pt-s.pb-s.click.content-hover.state-bg.button-min-height.flex.col",
 			{
 				style: {
-					"padding-left": px(size.hpad_large),
+					"padding-left": px(size.spacing_24),
 				},
 			},
 			[m("span.small.full-width.text-ellipsis.box-content", firstRow), m("span.name.full-width.text-ellipsis.box-content", secondRow)],

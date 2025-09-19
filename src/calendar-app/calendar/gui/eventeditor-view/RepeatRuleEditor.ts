@@ -101,7 +101,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						Card,
 						{
 							style: {
-								padding: `${size.vpad}px`,
+								padding: `${size.spacing_16}px`,
 							},
 						},
 						m(RadioGroup, {
@@ -142,7 +142,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				Card,
 				{
 					style: {
-						padding: `${size.vpad}px`,
+						padding: `${size.spacing_16}px`,
 					},
 					classes: ["flex", "col", "gap-vpad-s", "rel"],
 				},

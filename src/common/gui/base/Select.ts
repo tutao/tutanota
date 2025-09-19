@@ -414,12 +414,12 @@ class OptionListContainer implements ClassComponent {
 								const children = Array.from(vnode.dom.children) as Array<HTMLElement>
 								const indexToNotCount = children.length - 1
 								this.maxHeight = Math.min(
-									250 + size.vpad,
+									250 + size.spacing_16,
 									children.reduce(
 										(accumulator, children, currentIndex, array) =>
 											currentIndex < indexToNotCount ? accumulator + children.offsetHeight : accumulator,
 										0,
-									) + size.vpad,
+									) + size.spacing_16,
 								)
 
 								if (this.origin) {
@@ -563,11 +563,11 @@ class OptionListContainer implements ClassComponent {
 		const children = Array.from(vnode.dom.children) as Array<HTMLElement>
 		const indexToNotCount = children.length - 1
 		const contentHeight = Math.min(
-			250 + size.vpad,
+			250 + size.spacing_16,
 			children.reduce(
 				(accumulator, children, currentIndex, array) => (currentIndex < indexToNotCount ? accumulator + children.offsetHeight : accumulator),
 				0,
-			) + size.vpad,
+			) + size.spacing_16,
 		)
 
 		this.maxHeight = lowerSpace > upperSpace ? Math.min(contentHeight, lowerSpace) : Math.min(contentHeight, upperSpace)

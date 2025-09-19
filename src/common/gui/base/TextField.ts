@@ -78,7 +78,7 @@ export const enum Autocapitalize {
 }
 
 export const inputLineHeight: number = size.font_size_base + 8
-const inputMarginTop = size.font_size_small + size.hpad_small + 3
+const inputMarginTop = size.font_size_small + size.spacing_4 + 3
 
 // this is not always correct because font size can be bigger/smaller, and we ideally should take that into account
 const baseLabelPosition = 21

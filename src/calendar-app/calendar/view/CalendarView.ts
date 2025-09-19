@@ -1078,7 +1078,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						background: isHidden ? "" : colorValue,
 						transition: "all 0.3s",
 						cursor: "pointer",
-						marginLeft: px(size.hpad_button),
+						marginLeft: px(size.spacing_8),
 					},
 				}),
 				m(

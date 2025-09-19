@@ -48,7 +48,7 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 					onclick: attrs.mainActionClick,
 					class: "full-width border-radius-small center b flash accent-bg button-content",
 					style: {
-						height: px(component_size.button_height + size.vpad_xs * 1.5),
+						height: px(component_size.button_height + size.spacing_4 * 1.5),
 					},
 				}),
 
@@ -60,7 +60,7 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 							class: "full-width border-radius-small center b flash",
 							style: {
 								border: `2px solid ${theme.content_accent}`,
-								height: px(component_size.button_height + size.vpad_xs * 1.5),
+								height: px(component_size.button_height + size.spacing_4 * 1.5),
 								color: theme.content_accent,
 							},
 						})

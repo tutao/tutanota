@@ -42,7 +42,7 @@ export class PasswordInput implements ClassComponent<PasswordInputAttributes> {
 				value: vnode.attrs.password,
 				oninput: vnode.attrs.oninput,
 				style: {
-					padding: `${px(size.vpad_xsm)} ${px(size.vpad_small)}`,
+					padding: `${px(size.spacing_4)} ${px(size.spacing_8)}`,
 				},
 				placeholder: lang.get("password_label"),
 			}),

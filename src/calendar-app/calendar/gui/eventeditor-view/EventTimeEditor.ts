@@ -54,7 +54,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 						lang.get("allDay_label"),
 					),
 				]),
-				m(".flex.col.full-width.flex-grow.gap-vpad-s", { style: { paddingLeft: px(size.icon_24 + size.vpad_small) } }, [
+				m(".flex.col.full-width.flex-grow.gap-vpad-s", { style: { paddingLeft: px(size.icon_24 + size.spacing_8) } }, [
 					m(Divider, { color: theme.button_bubble_bg }),
 					m(".time-selection-grid.pr-vpad-s", [
 						m("", lang.get("dateFrom_label")),

@@ -96,10 +96,10 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 
 	private getFeaturesGap() {
 		if (styles.isMobileLayout()) {
-			return `${px(size.vpad_small)} 0`
+			return `${px(size.spacing_8)} 0`
 		}
 
-		return `${px(size.vpad_small)} ${px(size.hpad_medium)}`
+		return `${px(size.spacing_8)} ${px(size.spacing_24)}`
 	}
 
 	private generateRenderFeature = (provider: PriceAndConfigProvider, isSelected: boolean, isDisabled: boolean, hasCampaign: boolean) => {
@@ -109,8 +109,8 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 				{
 					style: {
 						width: styles.isMobileLayout() ? "50%" : "fit-content",
-						gap: px(size.hpad_small),
-						"padding-left": shouldShift && styles.isMobileLayout() ? px(size.vpad) : "initial",
+						gap: px(size.spacing_4),
+						"padding-left": shouldShift && styles.isMobileLayout() ? px(size.spacing_16) : "initial",
 					},
 				},
 				[

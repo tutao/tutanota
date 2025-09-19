@@ -258,7 +258,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 				".flex",
 				{
 					style: {
-						gap: px(size.hpad_small),
+						gap: px(size.spacing_4),
 					},
 				},
 				m(Icon, {

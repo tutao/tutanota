@@ -10,7 +10,7 @@ export class CurrentPlanLabel implements Component {
 				style: {
 					color: planBoxColors.getTextColor(false, false),
 					border: `1px solid ${planBoxColors.getTextColor(false, false)}`,
-					padding: `${px(size.vpad_xs)} ${px(size.hpad_button)}`,
+					padding: `${px(size.spacing_4)} ${px(size.spacing_8)}`,
 				},
 			},
 			"Current plan",

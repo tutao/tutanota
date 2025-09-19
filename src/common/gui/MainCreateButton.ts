@@ -24,7 +24,7 @@ export class MainCreateButton implements Component<MainCreateButtonAttrs> {
 			style: {
 				border: `2px solid ${theme.content_accent}`,
 				// matching toolbar
-				height: px(component_size.button_height + size.vpad_xs * 2),
+				height: px(component_size.button_height + size.spacing_4 * 2),
 				color: theme.content_accent,
 			},
 		} satisfies BaseButtonAttrs)

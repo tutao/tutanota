@@ -185,7 +185,7 @@ export class LabelsPopup implements ModalComponent {
 
 		// restrict label height to showing maximum 6 labels to avoid overflow
 		const displayedLabels = Math.min(this.labels.length, 6)
-		const height = (displayedLabels + 1) * component_size.button_height + size.vpad_small * 2
+		const height = (displayedLabels + 1) * component_size.button_height + size.spacing_8 * 2
 		showDropdown(this.origin, this.dom, height, this.width).then(() => {
 			const firstLabel = vnode.dom.getElementsByTagName("label-item").item(0)
 			if (firstLabel !== null) {

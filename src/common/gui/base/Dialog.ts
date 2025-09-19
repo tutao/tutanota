@@ -111,7 +111,7 @@ export class Dialog implements ModalComponent {
 		]
 
 		this.view = (): Children => {
-			const marginPx = px(size.hpad)
+			const marginPx = px(size.spacing_12)
 			const isEditLarge = dialogType === DialogType.EditLarge
 			const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : marginPx
 			return m(

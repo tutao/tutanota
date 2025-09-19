@@ -24,7 +24,7 @@ export class BannerButton implements Component<BannerButtonAttrs> {
 			style: {
 				border: `2px solid ${attrs.disabled ? theme.content_button : attrs.borderColor}`,
 				color: attrs.disabled ? theme.content_button : attrs.color,
-				padding: px(size.vpad_small),
+				padding: px(size.spacing_8),
 				minWidth: "60px",
 			},
 			disabled: attrs.disabled,

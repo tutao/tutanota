@@ -266,8 +266,8 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				m("", {
 					style: {
 						borderRadius: "50%",
-						width: px(size.hpad_large),
-						height: px(size.hpad_large),
+						width: px(size.spacing_24),
+						height: px(size.spacing_24),
 						backgroundColor: calendarColor,
 					},
 				}),

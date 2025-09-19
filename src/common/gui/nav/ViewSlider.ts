@@ -313,7 +313,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		let foregroundColumn = this.viewColumns.find((column) => column.columnType === ColumnType.Foreground)
 
 		if (foregroundColumn) {
-			let remainingSpace = window.innerWidth - foregroundColumn.minWidth - size.hpad_large
+			let remainingSpace = window.innerWidth - foregroundColumn.minWidth - size.spacing_24
 			let additionalSpaceForColumn = Math.min(remainingSpace, foregroundColumn.maxWidth - foregroundColumn.minWidth)
 			foregroundColumn.width = foregroundColumn.minWidth + additionalSpaceForColumn
 		}

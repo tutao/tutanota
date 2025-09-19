@@ -54,9 +54,9 @@ function showMinimizedEditorOverlay(viewModel: MinimizedMailEditorViewModel, min
 
 function getOverlayPosition() {
 	return {
-		bottom: styles.isUsingBottomNavigation() ? px(size.hpad) : px(size.vpad),
+		bottom: styles.isUsingBottomNavigation() ? px(size.spacing_12) : px(size.spacing_16),
 		// position will change with translateY
-		right: styles.isUsingBottomNavigation() ? px(size.hpad) : px(size.hpad_medium),
+		right: styles.isUsingBottomNavigation() ? px(size.spacing_12) : px(size.spacing_24),
 		width: px(styles.isSingleColumnLayout() ? MINIMIZED_OVERLAY_WIDTH_SMALL : MINIMIZED_OVERLAY_WIDTH_WIDE),
 		zIndex: LayerType.LowPriorityOverlay,
 	}

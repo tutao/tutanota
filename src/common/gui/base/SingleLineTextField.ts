@@ -106,7 +106,7 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 					style: { fill: attrs.leadingIcon.color },
 				}),
 			),
-			this.renderInput(attrs, px(padding + size.vpad)),
+			this.renderInput(attrs, px(padding + size.spacing_16)),
 		])
 	}
 

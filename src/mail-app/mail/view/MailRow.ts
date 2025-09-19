@@ -295,7 +295,7 @@ export class MailRow implements VirtualRow<Mail> {
 					{
 						"aria-hidden": "true",
 						style: {
-							marginLeft: px(component_size.checkbox_size + size.vpad_xs),
+							marginLeft: px(component_size.checkbox_size + size.spacing_4),
 						},
 					},
 					[
@@ -349,8 +349,8 @@ export class MailRow implements VirtualRow<Mail> {
 					// in dark theme override saturation to aid readability. This is not relative but absolute saturation. We preserve the hue.
 					border: `2px solid ${getLabelColor(theme.content_button)}`,
 					color: getLabelColor(theme.content_button),
-					padding: `0px ${size.vpad_xsm}px 1px`,
-					marginRight: px(size.vpad_xsm),
+					padding: `0px ${size.spacing_4}px 1px`,
+					marginRight: px(size.spacing_4),
 					minWidth: px(16),
 					lineHeight: px(8),
 				},
@@ -367,8 +367,8 @@ export class MailRow implements VirtualRow<Mail> {
 			".flex.overflow-hidden",
 			{
 				style: {
-					margin: `0 ${size.vpad_xsm}px`,
-					columnGap: px(size.vpad_xsm),
+					margin: `0 ${size.spacing_4}px`,
+					columnGap: px(size.spacing_4),
 					maxWidth: "fit-content",
 				},
 			},
@@ -380,7 +380,7 @@ export class MailRow implements VirtualRow<Mail> {
 					m("span.small.text-center.text-ellipsis.border-radius-m", {
 						"data-testid": "label",
 						style: {
-							padding: `2px ${size.vpad_xsm}px`,
+							padding: `2px ${size.spacing_4}px`,
 							minWidth: "4ch",
 							maxWidth: px(48),
 							lineHeight: "100%",

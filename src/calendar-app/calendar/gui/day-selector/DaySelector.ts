@@ -200,7 +200,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 				backgroundColor: hexToRGBAString(theme.content_accent, 0.2),
 				height: px(styles.isDesktopLayout() ? 19 : 25),
 				borderRadius: px(styles.isDesktopLayout() ? 6 : 25),
-				width: `calc(100% - ${px(size.hpad_small)})`,
+				width: `calc(100% - ${px(size.spacing_4)})`,
 			}
 		} else {
 			style = {}

@@ -30,7 +30,7 @@ export interface ConversationViewerAttrs {
 
 const SCROLL_FACTOR = 4 / 5
 
-export const conversationCardMargin = size.hpad_large
+export const conversationCardMargin = size.spacing_24
 
 /**
  * Displays mails in a conversation
@@ -218,7 +218,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 						backgroundColor: theme.content_bg,
 						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
 						// column resize element takes some space, reduce margin to make the gap smaller
-						marginLeft: styles.isSingleColumnLayout() ? undefined : px(size.hpad_large - size.column_resize_element_width),
+						marginLeft: styles.isSingleColumnLayout() ? undefined : px(size.spacing_16),
 					},
 				},
 				mailViewerViewModel.isCollapsed()

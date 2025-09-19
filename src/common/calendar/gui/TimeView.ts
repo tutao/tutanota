@@ -3,7 +3,7 @@ import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "../date/Time"
 import { clone, getStartOfNextDay } from "@tutao/tutanota-utils"
 import { deepMemoized } from "@tutao/tutanota-utils/dist/memoized"
-import { px } from "../../gui/size.js"
+import { px, size } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { theme } from "../../gui/theme.js"
@@ -113,8 +113,13 @@ export class TimeView implements Component<TimeViewAttributes> {
 				dates.map((date) => {
 					// Events Columns
 					return m(
-						".grid.plr-unit.gap.z1.grid-auto-columns.rel",
+						".grid.z1.grid-auto-columns.rel",
 						{
+							style: {
+								"padding-right": px(1),
+								"padding-left": px(1),
+								gap: px(1),
+							},
 							oncreate(vnode): any {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 							},
