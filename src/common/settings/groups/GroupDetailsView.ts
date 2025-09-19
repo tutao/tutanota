@@ -29,7 +29,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	 * @private
 	 */
 	private renderHeader(): Children {
-		return m(".h4.mt-l", getGroupTypeDisplayName(this.model.getGroupType()))
+		return m(".h4.mt-32", getGroupTypeDisplayName(this.model.getGroupType()))
 	}
 
 	renderView(): Children {
@@ -217,7 +217,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			lines,
 		}
 
-		return [m(".h5.mt-l.mb-s", lang.get("groupMembers_label")), m(Table, membersTableAttrs)]
+		return [m(".h5.mt-32.mb-s", lang.get("groupMembers_label")), m(Table, membersTableAttrs)]
 	}
 }
 

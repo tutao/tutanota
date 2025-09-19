@@ -86,7 +86,7 @@ export class ExpandableTextArea implements ClassComponent<ExpandableTextAreaAttr
 			"maxLength",
 		) as TextAreaAttributes
 		return m(
-			".rel.mt-s",
+			".rel.mt-8",
 			{
 				onclick: () => this.domInput?.focus(),
 			},

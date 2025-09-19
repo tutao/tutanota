@@ -138,7 +138,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		const displayedSender = viewModel.getDisplayedSender()
 		return m(
-			".flex.mt-xs.click.col",
+			".flex.mt-4.click.col",
 			{
 				class: responsiveCardHMargin(),
 				role: "button",
@@ -214,7 +214,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			m(
 				".flex.flex-grow.align-self-start.items-start.overflow-hidden",
 				{
-					class: styles.isSingleColumnLayout() ? "mt-m" : "mt",
+					class: styles.isSingleColumnLayout() ? "mt-12" : "mt",
 					role: "button",
 					"mail-expander": "true",
 					// "aria-expanded" is always true because this component is only used in expanded view
@@ -256,7 +256,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			m(
 				".flex-end.items-start.ml-between-s",
 				{
-					class: styles.isSingleColumnLayout() ? "" : "mt-xs",
+					class: styles.isSingleColumnLayout() ? "" : "mt-4",
 					style: {
 						// align "more" button with the datetime text
 						marginRight: styles.isSingleColumnLayout() ? "-3px" : "6px",
@@ -317,7 +317,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 
 		const hasEventInvitation = viewModel.getCalendarEventAttachment()
-		return isEmpty(banners) && !hasEventInvitation ? [m("hr.hr.mt-xs." + responsiveCardHMargin())] : [...banners]
+		return isEmpty(banners) && !hasEventInvitation ? [m("hr.hr.mt-4." + responsiveCardHMargin())] : [...banners]
 	}
 
 	private renderConnectionLostBanner(viewModel: MailViewerViewModel): Children {
@@ -367,7 +367,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		return m("." + responsiveCardHPadding(), liveDataAttrs(), [
 			m(
-				".mt-s",
+				".mt-8",
 				displayedSender == null
 					? null
 					: [
@@ -420,7 +420,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: null,
 			),
 			m(
-				".mt-s",
+				".mt-8",
 				viewModel.getToRecipients().length
 					? [
 							m(".small.b", lang.get("to_label")),
@@ -451,7 +451,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: null,
 			),
 			m(
-				".mt-s",
+				".mt-8",
 				viewModel.getCcRecipients().length
 					? [
 							m(".small.b", lang.get("cc_label")),
@@ -478,7 +478,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: null,
 			),
 			m(
-				".mt-s",
+				".mt-8",
 				viewModel.getBccRecipients().length
 					? [
 							m(".small.b", lang.get("bcc_label")),
@@ -505,7 +505,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					: null,
 			),
 			m(
-				".mt-s",
+				".mt-8",
 				viewModel.getReplyTos().length
 					? [
 							m(".small.b", lang.get("replyTo_label")),
@@ -557,7 +557,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			}
 
 			return [
-				m(".flex.mt-s.mb-s" + "." + responsiveCardHMargin(), liveDataAttrs(), [
+				m(".flex.mt-8.mb-s" + "." + responsiveCardHMargin(), liveDataAttrs(), [
 					attachmentCount === 1
 						? // If we have exactly one attachment, just show the attachment
 							this.renderAttachmentContainer(viewModel, attachments, importFile)

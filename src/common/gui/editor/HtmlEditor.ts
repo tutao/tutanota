@@ -91,7 +91,7 @@ export class HtmlEditor implements Component {
 						},
 					})
 				: null,
-			this.label ? m(".small.mt-form", lang.getTranslationText(this.label)) : null,
+			this.label ? m(".small.mt-24", lang.getTranslationText(this.label)) : null,
 			m(borderClasses, [
 				getPlaceholder(),
 				this.mode === HtmlEditorMode.WYSIWYG

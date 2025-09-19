@@ -66,7 +66,7 @@ export class AddGroupDialog implements Component<AddGroupDialogAttrs> {
 							onBusyStateChanged,
 							onDomainChanged,
 						}),
-						m(".mt-m", ""),
+						m(".mt-12", ""),
 						m(MoreInfoLink, { link: InfoLink.SharedMailboxes, isSmall: true }),
 					])
 				: m(""),

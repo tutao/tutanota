@@ -86,12 +86,12 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 			"#global-settings.fill-absolute.scroll.plr-l",
 			brandingDomainConfig
 				? [
-						m(".h4.mt-l", lang.get("whitelabel_label")),
+						m(".h4.mt-32", lang.get("whitelabel_label")),
 						m(".small", lang.get("whitelabelDomainLinkInfo_msg") + " "),
 						m("small.text-break", [m(`a[href=${InfoLink.Whitelabel}][target=_blank]`, InfoLink.Whitelabel)]),
 						this._renderWhitelabelStatusSettings(),
 						this._renderNotificationEmailSettings(),
-						m(".h4.mt-l", lang.get("whitelabelDomain_label")),
+						m(".h4.mt-32", lang.get("whitelabelDomain_label")),
 						brandingDomainConfig,
 						this._renderThemeSettings(),
 						this._renderCustomMetaTagsSettings(),
@@ -100,7 +100,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						this._renderWhitelabelRegistrationSettings(),
 						m(".mb-l"),
 					]
-				: [m(".flex-center.items-center.button-height.mt-l", progressIcon())],
+				: [m(".flex-center.items-center.button-height.mt-32", progressIcon())],
 		)
 	}
 

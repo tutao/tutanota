@@ -169,7 +169,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 					),
 				),
 				m(
-					".flex.mt-s",
+					".flex.mt-8",
 					{
 						style: {
 							"justify-content": isLegendPlan ? "start" : "end",

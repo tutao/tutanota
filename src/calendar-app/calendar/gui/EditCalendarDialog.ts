@@ -179,7 +179,7 @@ export function showCreateEditCalendarDialog({
 								})
 								.catch((e) => Dialog.message(lang.makeTranslation("error_message", e.message)))
 						},
-						class: errorMessageStream().trim() !== "" ? "mt-s no-hover button-bg" : "mt-s",
+						class: errorMessageStream().trim() !== "" ? "mt-8 no-hover button-bg" : "mt-8",
 						disabled: errorMessageStream().trim() !== "",
 					}),
 				]),

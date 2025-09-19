@@ -142,7 +142,7 @@ export class SelectCredentialsEncryptionModeView implements Component<SelectCred
 					attrs.error ? m(".small.center.statusTextColor.pb-s", liveDataAttrs(), attrs.error) : null,
 					m("", lang.get("credentialsEncryptionModeSelection_msg")),
 					m(
-						".mt",
+						".mt-16",
 						m(RadioSelector, {
 							name: "credentialsEncryptionMode_label",
 							options,

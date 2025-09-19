@@ -162,7 +162,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
 				renderAcceptGiftCardTermsCheckbox(model.confirmed, (checked) => (model.confirmed = checked), "pt-l"),
 				m(LoginButton, {
 					label: "buy_action",
-					class: "mt-l mb-l",
+					class: "mt-32 mb-l",
 					onclick: () => this.onBuyButtonPressed(model, onGiftCardPurchased).catch(ofClass(UserError, showUserError)),
 				}),
 			]),

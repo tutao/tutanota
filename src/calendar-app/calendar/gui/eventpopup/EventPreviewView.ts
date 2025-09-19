@@ -80,7 +80,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 			participation.ownAttendee.status === status ? highlightColors : colors,
 		)
 
-	return m(".flex.items-center.mt-s.gap-vpad-s.fit-content", [
+	return m(".flex.items-center.mt-8.gap-vpad-s.fit-content", [
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.ACCEPTED, "yes_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.TENTATIVE, "maybe_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.DECLINED, "no_label")),
@@ -217,7 +217,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 
 	private renderCommentSection(model: CalendarEventPreviewViewModel): Children {
 		return m(ExpandableTextArea, {
-			classes: ["mt-s"],
+			classes: ["mt-8"],
 			variant: "outlined",
 			value: model.comment,
 			maxLines: 3,

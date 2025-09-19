@@ -31,7 +31,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 					role: "group",
 				},
 				[
-					m(".h4.mt-l", lang.get("contactsManagement_label")),
+					m(".h4.mt-32", lang.get("contactsManagement_label")),
 					this.renderImportContactsButton(),
 					locator.logins.isEnabled(FeatureType.DisableContacts) ? null : this.renderAutoCreateContactsPreference(),
 					this.renderContactsSyncDropdown(),

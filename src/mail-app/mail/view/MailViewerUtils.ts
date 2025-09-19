@@ -444,11 +444,11 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 	}
 
 	const dialogContent = [
-		m(Card, m("", m("p.h4.m-0", lang.get(dialogAttrs.subHeading)), m("p.mt-s", lang.get(dialogAttrs.text)))),
+		m(Card, m("", m("p.h4.m-0", lang.get(dialogAttrs.subHeading)), m("p.mt-8", lang.get(dialogAttrs.text)))),
 		m(
 			Card,
 			m(
-				"p.m-0.mt-s",
+				"p.m-0.mt-8",
 				nextUnsubscribeAction.type !== UnsubscribeType.HTTP_POST_UNSUBSCRIBE
 					? nextUnsubscribeAction.requestUrl
 					: isBrowser()
@@ -534,7 +534,7 @@ export function showReportPhishingMailDialog(onReport: () => unknown) {
 		title: "reportEmail_action",
 		child: () =>
 			m(
-				".flex.col.mt-m",
+				".flex.col.mt-12",
 				{
 					// So that space below buttons doesn't look huge
 					style: {
@@ -548,7 +548,7 @@ export function showReportPhishingMailDialog(onReport: () => unknown) {
 							href: link,
 							text: lang.get("whatIsPhishing_msg"),
 							isCompanySite: true,
-							class: "mt-s",
+							class: "mt-8",
 						}),
 					),
 					m(".flex-wrap.flex-end", [

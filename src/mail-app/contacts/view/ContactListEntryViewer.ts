@@ -31,7 +31,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 				},
 				m(".plr-l.pt.pb.mlr-safe-inset", m(".h2.selectable.text-break", attrs.entry.emailAddress)),
 			),
-			m(".mt-l"),
+			m(".mt-32"),
 			attrs.contacts.length >= 1
 				? attrs.contacts.map((contact) =>
 						m(ContactCardViewer, {

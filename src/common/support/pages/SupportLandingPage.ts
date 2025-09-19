@@ -33,7 +33,7 @@ export class SupportLandingPage implements Component<Props> {
 			categories.length === 0
 				? m(
 						".flex-center.items-center.full-height",
-						m("div", m(".flex-center", progressIcon()), m("p.m-0.mt-s", lang.getTranslationText("loading_msg"))),
+						m("div", m(".flex-center", progressIcon()), m("p.m-0.mt-8", lang.getTranslationText("loading_msg"))),
 					)
 				: m("", [
 						m(TitleSection, {

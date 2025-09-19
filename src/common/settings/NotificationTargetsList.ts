@@ -15,7 +15,7 @@ export interface NotificationTargetsListAttrs {
 export class NotificationTargetsList implements Component<NotificationTargetsListAttrs> {
 	view(vnode: Vnode<NotificationTargetsListAttrs>) {
 		return m("", [
-			m(".flex-space-between.items-center.mt-s.mb-s", [
+			m(".flex-space-between.items-center.mt-8.mb-s", [
 				m(".h5", lang.get("notificationTargets_label")),
 				m(ExpanderButton, {
 					label: "show_action",

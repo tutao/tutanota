@@ -110,11 +110,11 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 						expanded: this._advancedSettingsEnabled(),
 					},
 					[
-						m(".small.mt", lang.get("customColorsInfo_msg")),
+						m(".small.mt-16", lang.get("customColorsInfo_msg")),
 						m(".flex.flex-column", [
 							Object.entries(this._getGroupedColors(model.customColors)).map(([name, colors]) => {
 								return m("", [
-									m(".h4.mt-l", capitalizeFirstLetterOfString(name)),
+									m(".h4.mt-32", capitalizeFirstLetterOfString(name)),
 									m(
 										".editor-border.text-break.wrapping-row",
 										{

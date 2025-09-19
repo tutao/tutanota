@@ -122,7 +122,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 				throw new Error()
 		}
 
-		return [m(".flex-center", m("img", { src: SecondFactorImage })), m(".mt.flex.col", items)]
+		return [m(".flex-center", m("img", { src: SecondFactorImage })), m(".mt-16.flex.col", items)]
 	}
 
 	_renderOtherDomainLogin({ otherDomainLoginUrl }: WebauthnAnotherDomainParams): Children {

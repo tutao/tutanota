@@ -24,11 +24,11 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 			".flex.mb-xs.border-radius.pt-m.pb-m.pl.pr.ml-s",
 			{
 				style: {
-					paddingTop: "14px",
+					paddingTop: "12px",
 					paddingBottom: "12px",
 					// this is an adjustment to keep tha columns aligned, space between columns is too big otherwise.
 					// this is an obscure place to put it and ideally should not be done here or should be passed down here.
-					marginRight: styles.isSingleColumnLayout() ? px(size.spacing_4) : "0",
+					marginRight: styles.isSingleColumnLayout() ? px(size.spacing_8) : "0",
 					transition: `background 200ms`,
 				},
 				tabindex: "0",

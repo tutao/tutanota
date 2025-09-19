@@ -482,7 +482,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (searchText == null) {
 			return null
 		}
-		return m("div.ml-button.mt-m.small.plr-button.content-fg.mb", m(Card, searchText))
+		return m("div.ml-button.mt-12.small.plr-button.content-fg.mb", m(Card, searchText))
 	}
 
 	oncreate(): void {

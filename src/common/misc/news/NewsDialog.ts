@@ -41,7 +41,7 @@ export function showNewsDialog(newsModel: NewsModel) {
 								liveNewsListItems: newsModel.liveNewsListItems,
 							})
 						: m(
-								".flex-center.mt-l",
+								".flex-center.mt-32",
 								m(".flex-v-center", [m(".full-width.flex-center", progressIcon()), m("p", lang.getTranslationText("pleaseWait_msg"))]),
 							),
 				]),
