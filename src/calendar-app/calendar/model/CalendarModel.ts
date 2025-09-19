@@ -1382,6 +1382,10 @@ export class CalendarModel {
 	getAgeString(age: number) {
 		return this.lang.get("birthdayEventAge_title", { "{age}": age })
 	}
+
+	getGroupSettings(): GroupSettings[] {
+		return this.logins.getUserController().userSettingsGroupRoot.groupSettings
+	}
 }
 
 /** return false when the given events (representing the new and old version of the same event) are both long events

@@ -6,6 +6,9 @@ import { EventType } from "../../../../src/calendar-app/calendar/gui/eventeditor
 import { object, when } from "testdouble"
 import { DateProvider } from "../../../../src/common/api/common/DateProvider.js"
 import { AlarmIntervalUnit, StandardAlarmInterval } from "../../../../src/common/calendar/date/CalendarUtils.js"
+import { createTestEntity } from "../../TestUtils"
+import { DefaultAlarmInfoTypeRef, GroupSettingsTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs"
+import { serializeAlarmInterval } from "../../../../src/common/api/common/utils/CommonCalendarUtils"
 
 const dateProvider: DateProvider = object()
 when(dateProvider.now()).thenReturn(42)
@@ -58,12 +61,52 @@ o.spec("CalendarEventAlarmModel", function () {
 	o.spec("isEqualAlarms", function () {
 		o("two equal alarms", function () {
 			const model = new CalendarEventAlarmModel(EventType.OWN, [StandardAlarmInterval.ONE_HOUR], dateProvider)
-			o(model.isEqualAlarms(StandardAlarmInterval.ONE_HOUR, { value: 60, unit: AlarmIntervalUnit.MINUTE })).equals(true)
+			o(
+				model.isEqualAlarms(StandardAlarmInterval.ONE_HOUR, {
+					value: 60,
+					unit: AlarmIntervalUnit.MINUTE,
+				}),
+			).equals(true)
 		})
 
 		o("two different alarms", function () {
 			const model = new CalendarEventAlarmModel(EventType.OWN, [StandardAlarmInterval.ONE_HOUR], dateProvider)
-			o(model.isEqualAlarms(StandardAlarmInterval.ONE_HOUR, { value: 1, unit: AlarmIntervalUnit.DAY })).equals(false)
+			o(
+				model.isEqualAlarms(StandardAlarmInterval.ONE_HOUR, {
+					value: 1,
+					unit: AlarmIntervalUnit.DAY,
+				}),
+			).equals(false)
+		})
+	})
+
+	o.spec("removeCalendarDefaultAlarms", function () {
+		const defaultAlarms = [StandardAlarmInterval.FIVE_MINUTES]
+		const calendarId = "calendarTest"
+		const groupSettings = [
+			createTestEntity(GroupSettingsTypeRef, {
+				group: calendarId,
+				defaultAlarmsList: defaultAlarms.map((alarm) => createTestEntity(DefaultAlarmInfoTypeRef, { trigger: serializeAlarmInterval(alarm) })),
+			}),
+		]
+
+		o.test("event has only default alarms", async function () {
+			// Arrange
+			const model = new CalendarEventAlarmModel(EventType.OWN, defaultAlarms, dateProvider)
+			// Act
+			await model.removeCalendarDefaultAlarms(calendarId, groupSettings)
+			// Assert
+			o.check(model.alarms.length).equals(0)
+		})
+
+		o.test("event has default alarms + custom alarms", async function () {
+			// Arrange
+			const model = new CalendarEventAlarmModel(EventType.OWN, [...defaultAlarms, StandardAlarmInterval.ONE_HOUR], dateProvider)
+			// Act
+			await model.removeCalendarDefaultAlarms(calendarId, groupSettings)
+			// Assert
+			o.check(model.alarms.length).equals(1)
+			o.check(model.alarms.at(0)).deepEquals(StandardAlarmInterval.ONE_HOUR)
 		})
 	})
 })

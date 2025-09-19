@@ -412,7 +412,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	async duplicateEvent(event: CalendarEvent, timeToMoveBy: number) {
 		const editModel = await this.createCalendarEventEditModel(CalendarOperation.Create, event)
 		if (!editModel) {
-			throw new Error("Failed to instantiate")
+			throw new Error("Failed to duplicate event ${event._id} - Failed to instantiate editModel")
 		}
 
 		editModel.editModels.summary.content = lang.get("copyOf_title", {
@@ -421,6 +421,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		editModel.editModels.whenModel.rescheduleEvent({ millisecond: timeToMoveBy })
 		editModel.editModels.whenModel.deleteExcludedDates()
 		editModel.editModels.whoModel.resetGuestsStatus()
+
+		await editModel.editModels.alarmModel.removeCalendarDefaultAlarms(
+			event._ownerGroup,
+			this.logins.getUserController().userSettingsGroupRoot.groupSettings,
+		)
 
 		const dialog = new EventEditorDialog()
 		return await dialog.showNewCalendarEventEditDialog(editModel)
@@ -534,7 +539,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	/**
 	 * move an event to a new start time
 	 * @param event the actually dragged event (may be a repeated instance)
-	 * @param editModel passed in from the outside for corresponding event
 	 * @param diff the amount of milliseconds to shift the event by
 	 * @param mode which parts of the series should be rescheduled?
 	 */

@@ -297,6 +297,9 @@ export class CalendarEventPreviewViewModel {
 			newEventModel.editModels.whenModel.deleteExcludedDates()
 			newEventModel.editModels.whoModel.resetGuestsStatus()
 
+			const calendarId = newEventModel.editModels.whoModel.selectedCalendar.group._id
+			await newEventModel.editModels.alarmModel.removeCalendarDefaultAlarms(calendarId, this.calendarModel.getGroupSettings())
+
 			const eventEditor = new EventEditorDialog()
 			return await eventEditor.showNewCalendarEventEditDialog(newEventModel)
 		} catch (err) {
