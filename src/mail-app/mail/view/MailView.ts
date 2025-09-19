@@ -1328,7 +1328,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				icon: Icons.Add,
 				class: "folder-row mlr-button border-radius-small",
 				style: {
-					width: `calc(100% - ${px(size.hpad_button * 2)})`,
+					width: `calc(100% - ${px(size.spacing_8 * 2)})`,
 				},
 				onclick: () => {
 					this.showLabelAddDialog(mailboxDetail.mailbox)

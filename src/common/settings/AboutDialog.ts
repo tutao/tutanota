@@ -25,7 +25,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 				// This might be a bit more than needed but it's safe.
 				{
 					style: {
-						margin: px(size.vpad_xl),
+						margin: px(size.spacing_48),
 					},
 				},
 				m.trust(getTutaLogo()),

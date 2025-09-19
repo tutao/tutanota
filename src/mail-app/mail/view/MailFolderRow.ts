@@ -51,8 +51,8 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 			if (event.key === "Tab" && event.shiftKey) this.hovered = false
 		}
 
-		const indentationMargin = indentationLevel * size.hpad
-		const paddingNeeded = size.hpad_button
+		const indentationMargin = indentationLevel * size.spacing_12
+		const paddingNeeded = size.spacing_8
 		const buttonWidth = size.icon_24 + paddingNeeded * 2
 
 		return m(
@@ -126,7 +126,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 							},
 							onkeydown: handleForwardsTab,
 						})
-					: m("", { style: { marginRight: px(size.hpad_button) } }, [
+					: m("", { style: { marginRight: px(size.spacing_8) } }, [
 							m(CounterBadge, {
 								count,
 								color: theme.surface_container,
@@ -143,7 +143,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 		const border = `${lineSize}px solid ${theme.outline}`
 		const verticalOffsetInsideRow = component_size.button_height / 2 + 1
 		const verticalOffsetForParent = (component_size.button_height - size.icon_24) / 2
-		const lengthOfHorizontalLine = size.hpad - 2
+		const lengthOfHorizontalLine = size.spacing_12 - 2
 		const leftOffset = indentationMargin
 
 		return indentationLevel !== 0

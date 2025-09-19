@@ -24,7 +24,7 @@ export class MainCreateButton implements Component<MainCreateButtonAttrs> {
 			class: `full-width border-radius-big center b flash ${vnode.attrs.class}`,
 			style: {
 				// matching toolbar
-				height: px(component_size.button_height + size.vpad_xs * 2),
+				height: px(component_size.button_height + size.spacing_4 * 2),
 				"background-color": theme.primary_container,
 				color: theme.on_primary_container,
 				"box-shadow": boxShadowLow,

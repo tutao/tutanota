@@ -110,7 +110,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						position: "inherit",
 						borderColor: "transparent",
 						pointerEvents: "none",
-						padding: `${px(size.vpad_small)} 0`,
+						padding: `${px(size.spacing_8)} 0`,
 						opacity: attrs.disabled ? 0.7 : 1.0,
 					},
 				},

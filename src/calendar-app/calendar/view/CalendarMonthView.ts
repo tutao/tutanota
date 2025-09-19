@@ -146,7 +146,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		if (isDesktopLayout) {
 			containerStyle = {
 				overflow: "hidden",
-				marginBottom: px(size.hpad_large),
+				marginBottom: px(size.spacing_24),
 			}
 			weekdayDaysClasses = "content-bg border-radius-top-left-big border-radius-top-right-big"
 		} else {

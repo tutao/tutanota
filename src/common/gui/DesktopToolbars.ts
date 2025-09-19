@@ -12,7 +12,7 @@ export const DesktopListToolbar = pureComponent((__, children) => {
 				"border-radius": `${size.radius_8}px 0 0 ${size.radius_8}px`,
 				// matching the list
 				marginLeft: `5px`,
-				marginBottom: px(size.hpad_large),
+				marginBottom: px(size.spacing_24),
 			},
 		},
 		children,
@@ -33,7 +33,7 @@ export const DesktopViewerToolbar = pureComponent((__, children) => {
 			class: responsiveCardHMargin(),
 			style: {
 				marginLeft: 0,
-				marginBottom: px(size.hpad_large),
+				marginBottom: px(size.spacing_24),
 			},
 		},
 		m(

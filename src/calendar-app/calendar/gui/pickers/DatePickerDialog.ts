@@ -47,7 +47,7 @@ export function showDateRangeSelectionDialog({
 						style: {
 							display: "grid",
 							"grid-template-columns": "2fr 6fr 1fr",
-							"grid-gap": px(size.vpad_small),
+							"grid-gap": px(size.spacing_8),
 							"align-items": "center",
 						},
 					},

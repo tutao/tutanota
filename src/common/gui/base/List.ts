@@ -478,7 +478,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 					height: px(component_size.list_row_height),
 					width: "100%",
 					position: "absolute",
-					gap: px(size.hpad_small),
+					gap: px(size.spacing_4),
 				},
 				"data-testid": "list-progress",
 			},

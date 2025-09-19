@@ -152,7 +152,7 @@ export function showSnackBar(args: {
 
 function getSnackBarPosition() {
 	// The snackbar will be moved up from off the bottom of the viewport by the transformation animation.
-	const snackBarMargin = styles.isUsingBottomNavigation() ? size.hpad : size.hpad_medium
+	const snackBarMargin = styles.isUsingBottomNavigation() ? size.spacing_12 : size.spacing_24
 	const leftOffset = styles.isDesktopLayout() ? size.drawer_menu_width : 0
 	const snackBarWidth = Math.min(window.innerWidth - leftOffset - 2 * snackBarMargin, MAX_SNACKBAR_WIDTH)
 	return {
