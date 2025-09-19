@@ -27,7 +27,7 @@ import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettin
 import type { NavButtonAttrs } from "../../common/gui/base/NavButton.js"
 import { NavButtonColor } from "../../common/gui/base/NavButton.js"
 import { SETTINGS_PREFIX } from "../../common/misc/RouteChange"
-import { size } from "../../common/gui/size"
+import { layout_size, size } from "../../common/gui/size"
 import { FolderColumnView } from "../../common/gui/FolderColumnView.js"
 import { getEtId } from "../../common/api/common/utils/EntityUtils"
 import { KnowledgeBaseListView } from "./KnowledgeBaseListView"
@@ -319,8 +319,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			},
 			ColumnType.Foreground,
 			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
+				minWidth: layout_size.first_col_min_width,
+				maxWidth: layout_size.first_col_max_width,
 				headerCenter: "settings_label",
 			},
 		)

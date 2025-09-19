@@ -11,7 +11,7 @@ import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
 import ColumnEmptyMessageBox from "../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
 import { theme } from "../../../common/gui/theme.js"
-import { px, size } from "../../../common/gui/size.js"
+import { layout_size, px, size } from "../../../common/gui/size.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
@@ -126,7 +126,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 						".header-bg.pb-s.overflow-hidden",
 						{
 							style: {
-								"margin-left": px(size.calendar_hour_width_mobile),
+								"margin-left": px(layout_size.calendar_hour_width_mobile),
 							},
 						},
 						m(DaySelector, {
@@ -213,7 +213,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			return m(
 				".pt-s.flex.mb-s.col.overflow-y-scroll.height-100p",
 				{
-					style: { marginLeft: px(size.calendar_hour_width_mobile) },
+					style: { marginLeft: px(layout_size.calendar_hour_width_mobile) },
 					oncreate: (vnode: VnodeDOM) => {
 						attrs.onViewChanged(vnode)
 					},
@@ -240,8 +240,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				".flex-grow.rel.overflow-y-scroll",
 				{
 					style: {
-						"min-width": px(size.second_col_min_width),
-						"max-width": px(size.second_col_max_width),
+						"min-width": px(layout_size.second_col_min_width),
+						"max-width": px(layout_size.second_col_max_width),
 					},
 					oncreate: (vnode: VnodeDOM) => {
 						this.listDom = vnode.dom as HTMLElement

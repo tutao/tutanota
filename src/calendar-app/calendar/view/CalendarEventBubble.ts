@@ -1,5 +1,5 @@
 import m, { Child, Children, Component, Vnode } from "mithril"
-import { px, size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../common/gui/size"
 import { Icon } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { ClickHandler, colorForBg } from "../../../common/gui/base/GuiUtils"
@@ -22,7 +22,7 @@ export type CalendarEventBubbleAttrs = {
 	opacity: number
 	enablePointerEvents: boolean
 }
-const lineHeight = size.calendar_line_height
+const lineHeight = layout_size.calendar_line_height
 const lineHeightPx = px(lineHeight)
 
 export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> {

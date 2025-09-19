@@ -1,7 +1,7 @@
 import { pureComponent } from "../../common/gui/base/PureComponent"
 import m from "mithril"
 import { styles } from "../../common/gui/styles"
-import { px, size } from "../../common/gui/size"
+import { layout_size, px, size } from "../../common/gui/size"
 import { Skeleton } from "../../common/gui/base/Skeleton"
 
 export const EventBannerSkeleton = pureComponent(() =>
@@ -18,7 +18,7 @@ export const EventBannerSkeleton = pureComponent(() =>
 					}
 				: {
 						"grid-template-columns": "min-content 40% 1fr",
-						"max-width": px(size.two_column_layout_width),
+						"max-width": px(layout_size.two_column_layout_width),
 						width: "100%",
 					},
 		},

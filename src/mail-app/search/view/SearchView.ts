@@ -8,7 +8,7 @@ import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
-import { size } from "../../../common/gui/size"
+import { layout_size, size } from "../../../common/gui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -189,8 +189,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 			ColumnType.Foreground,
 			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
+				minWidth: layout_size.first_col_min_width,
+				maxWidth: layout_size.first_col_max_width,
 				headerCenter: "search_label",
 			},
 		)
@@ -213,8 +213,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width,
-				maxWidth: deviceConfig.getMailListSize(userId) ?? size.second_col_max_width,
+				minWidth: layout_size.second_col_min_width,
+				maxWidth: deviceConfig.getMailListSize(userId) ?? layout_size.second_col_max_width,
 				headerCenter: "searchResult_label",
 				resizeCallback: (size) => {
 					deviceConfig.setMailListSize(userId, size)
@@ -227,8 +227,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.third_col_min_width,
-				maxWidth: size.third_col_max_width,
+				minWidth: layout_size.third_col_min_width,
+				maxWidth: layout_size.third_col_max_width,
 			},
 		)
 		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn])

@@ -70,7 +70,7 @@ import { DateTime, Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { AdvancedRepeatRule, CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { size } from "../../../common/gui/size.js"
+import { layout_size, size } from "../../../common/gui/size.js"
 import { hslToHex, isColorLight, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
@@ -698,7 +698,7 @@ export const createCustomRepeatRuleUnitValues = (): SelectorItemList<AlarmInterv
 		},
 	]
 }
-export const CALENDAR_EVENT_HEIGHT: number = size.calendar_line_height + 2
+export const CALENDAR_EVENT_HEIGHT: number = layout_size.calendar_line_height + 2
 export const TEMPORARY_EVENT_OPACITY = 0.7
 
 export const enum EventLayoutMode {
@@ -849,8 +849,8 @@ function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEven
 	const firstEventStartOnSameDay = isSameDay(firstEventStart, firstEventEnd) ? firstEventStart.getTime() : getStartOfDay(firstEventEnd).getTime()
 	const eventDurationMs = firstEventEnd.getTime() - firstEventStartOnSameDay
 	const eventDurationHours = eventDurationMs / (1000 * 60 * 60)
-	const height = eventDurationHours * size.calendar_hour_height - size.calendar_event_border
-	return firstEventEnd.getTime() === secondEventStart.getTime() && height < size.calendar_line_height
+	const height = eventDurationHours * layout_size.calendar_hour_height - layout_size.calendar_event_border
+	return firstEventEnd.getTime() === secondEventStart.getTime() && height < layout_size.calendar_line_height
 }
 
 export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>): number {

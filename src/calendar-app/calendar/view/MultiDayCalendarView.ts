@@ -15,7 +15,7 @@ import {
 } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarDayEventsView, calendarDayTimes } from "./CalendarDayEventsView"
 import { theme } from "../../../common/gui/theme"
-import { px, size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../common/gui/size"
 import { EventTextTimeOption, Keys, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { PageView } from "../../../common/gui/base/PageView"
@@ -186,7 +186,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				".header-bg.pb-s.overflow-hidden",
 				{
 					style: {
-						"margin-left": px(size.calendar_hour_width_mobile),
+						"margin-left": px(layout_size.calendar_hour_width_mobile),
 					},
 				},
 				m(DaySelector, {
@@ -283,7 +283,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 							this.isProgrammaticScrollInProgress = false
 							if (isMainView) {
 								if (attrs.selectedTime) {
-									attrs.onScrollPositionChange(size.calendar_hour_height * attrs.selectedTime.hour)
+									attrs.onScrollPositionChange(layout_size.calendar_hour_height * attrs.selectedTime.hour)
 								}
 								this.scrollDOMs(vnode, attrs, false)
 								attrs.onViewChanged(vnode)
@@ -322,7 +322,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 						m(
 							".flex.col",
 							calendarDayTimes.map((time) => {
-								const width = isDesktopLayout ? size.calendar_hour_width : size.calendar_hour_width_mobile
+								const width = isDesktopLayout ? layout_size.calendar_hour_width : layout_size.calendar_hour_width_mobile
 								return m(
 									".calendar-hour.flex.cursor-pointer",
 									{
@@ -335,9 +335,9 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 										".pl-s.pr-s.center.small.flex.flex-column.justify-center",
 										{
 											style: {
-												"line-height": isDesktopLayout ? px(size.calendar_hour_height) : "unset",
+												"line-height": isDesktopLayout ? px(layout_size.calendar_hour_height) : "unset",
 												width: px(width),
-												height: px(size.calendar_hour_height),
+												height: px(layout_size.calendar_hour_height),
 												"border-right": `1px solid ${theme.content_border}`,
 											},
 										},
@@ -363,7 +363,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 									{
 										class: !isDayView ? "calendar-column-border" : "",
 										style: {
-											height: px(calendarDayTimes.length * size.calendar_hour_height),
+											height: px(calendarDayTimes.length * layout_size.calendar_hour_height),
 										},
 									},
 									m(CalendarDayEventsView, {
@@ -448,7 +448,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			".calendar-long-events-header.flex-fixed.calendar-hour-margin.pr-l.rel",
 			{
 				style: {
-					marginLeft: size.calendar_hour_width_mobile,
+					marginLeft: layout_size.calendar_hour_width_mobile,
 					borderBottom: "none",
 					height: px(height),
 					paddingTop: px(padding),
@@ -633,7 +633,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			}
 		}
 		const dayWidth =
-			(this.longEventsDom != null ? this.longEventsDom.offsetWidth : this.viewDom!.offsetWidth - size.calendar_hour_width_mobile) / dayRange.length
+			(this.longEventsDom != null ? this.longEventsDom.offsetWidth : this.viewDom!.offsetWidth - layout_size.calendar_hour_width_mobile) / dayRange.length
 		let maxEventsInColumn = 0
 		const firstDay = dayRange[0]
 		const lastDay = lastThrow(dayRange)
@@ -732,7 +732,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			return null
 		}
 
-		const rowSize = px(size.calendar_days_header_height)
+		const rowSize = px(layout_size.calendar_days_header_height)
 
 		const getCircleClass = (date: Date) => {
 			if (highlightSelectedDay && isSameDay(date, selectedDate)) {

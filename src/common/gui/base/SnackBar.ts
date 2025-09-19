@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../size"
+import { layout_size, px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { displayOverlay } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
@@ -132,7 +132,7 @@ export function showSnackBar(args: {
 function getSnackBarPosition() {
 	// The snackbar will be moved up from off the bottom of the viewport by the transformation animation.
 	const snackBarMargin = styles.isUsingBottomNavigation() ? size.spacing_12 : size.spacing_24
-	const leftOffset = styles.isDesktopLayout() ? size.drawer_menu_width : 0
+	const leftOffset = styles.isDesktopLayout() ? layout_size.drawer_menu_width : 0
 	const snackBarWidth = Math.min(window.innerWidth - leftOffset - 2 * snackBarMargin, MAX_SNACKBAR_WIDTH)
 	return {
 		bottom: px(snackBarMargin),

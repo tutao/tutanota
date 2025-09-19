@@ -24,7 +24,7 @@ import { getMergeableContacts, mergeContacts } from "../ContactMergeUtils"
 import { exportContacts } from "../VCardExporter"
 import { NavButtonAttrs } from "../../../common/gui/base/NavButton.js"
 import { styles } from "../../../common/gui/styles"
-import { size } from "../../../common/gui/size"
+import { layout_size, size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { getGroupInfoDisplayName } from "../../../common/api/common/utils/GroupUtils"
 import { SidebarSection, SidebarSectionAttrs } from "../../../common/gui/SidebarSection"
@@ -122,8 +122,8 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			},
 			ColumnType.Foreground,
 			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
+				minWidth: layout_size.first_col_min_width,
+				maxWidth: layout_size.first_col_max_width,
 				headerCenter: "folderTitle_label",
 			},
 		)
@@ -135,8 +135,8 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width,
-				maxWidth: size.second_col_max_width,
+				minWidth: layout_size.second_col_min_width,
+				maxWidth: layout_size.second_col_max_width,
 				headerCenter: this.getHeaderLabel(),
 			},
 		)
@@ -166,8 +166,8 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.third_col_min_width,
-				maxWidth: size.third_col_max_width,
+				minWidth: layout_size.third_col_min_width,
+				maxWidth: layout_size.third_col_max_width,
 				ariaLabel: () => lang.get("contacts_label"),
 			},
 		)

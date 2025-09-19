@@ -7,7 +7,7 @@ import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, o
 import { getElevatedBackground, theme } from "../../../common/gui/theme.js"
 import { INPUT } from "../../../common/gui/base/Dialog.js"
 import { ease } from "../../../common/gui/animation/Easing.js"
-import { component_size, px, size } from "../../../common/gui/size.js"
+import { component_size, layout_size, px, size } from "../../../common/gui/size.js"
 import { styles } from "../../../common/gui/styles.js"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton.js"
 
@@ -65,7 +65,7 @@ export class EditFoldersDialog implements ModalComponent {
 			".flex.col",
 			{
 				style: {
-					width: px(size.first_col_max_width - component_size.button_height),
+					width: px(layout_size.first_col_max_width - component_size.button_height),
 					height: `calc(100% - ${marginTop})`,
 					// for the header
 					marginTop,

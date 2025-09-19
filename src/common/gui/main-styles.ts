@@ -1,5 +1,5 @@
 import { styles } from "./styles"
-import { px, size, component_size } from "./size"
+import { px, size, component_size, layout_size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
@@ -1788,7 +1788,7 @@ styles.registerStyle("main", () => {
 		},
 		".column-resize-margin": {
 			// prevent overlap of scrollbar with resize element
-			"margin-right": px(size.column_resize_element_width),
+			"margin-right": px(layout_size.column_resize_element_width),
 		},
 		".folders": {
 			"margin-bottom": px(12),
@@ -2184,7 +2184,7 @@ styles.registerStyle("main", () => {
 			padding: 0,
 		},
 		".column-width-small": {
-			width: px(size.column_width_s_desktop),
+			width: px(layout_size.column_width_s_desktop),
 		},
 		".column-width-largest": {},
 		".buyOptionBox": {
@@ -2451,7 +2451,7 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-hour": {
 			"border-bottom": `1px solid ${theme.content_border}`,
-			height: px(size.calendar_hour_height),
+			height: px(layout_size.calendar_hour_height),
 			flex: "1 0 auto",
 		},
 		".calendar-hour:hover": {
@@ -2464,13 +2464,13 @@ styles.registerStyle("main", () => {
 			"border-right": "none",
 		},
 		".calendar-hour-margin": {
-			"margin-left": px(size.calendar_hour_width),
+			"margin-left": px(layout_size.calendar_hour_width),
 		},
 		".calendar-hour-column": {
-			width: px(size.calendar_hour_width),
+			width: px(layout_size.calendar_hour_width),
 		},
 		".calendar-days-header-row": {
-			height: px(size.calendar_days_header_height),
+			height: px(layout_size.calendar_days_header_height),
 		},
 		".calendar-day": {
 			"border-top": `1px solid ${theme.list_border}`,
@@ -2482,8 +2482,8 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-day-indicator": {
 			// overridden for mobile
-			height: px(size.calendar_days_header_height),
-			"line-height": px(size.calendar_days_header_height),
+			height: px(layout_size.calendar_days_header_height),
+			"line-height": px(layout_size.calendar_days_header_height),
 			"text-align": "center",
 			"font-size": "14px",
 		},
@@ -2497,7 +2497,7 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-event": {
 			"border-radius": px(4),
-			border: ` ${size.calendar_event_border}px solid ${theme.content_bg}`,
+			border: ` ${layout_size.calendar_event_border}px solid ${theme.content_bg}`,
 			"padding-left": "4px",
 			"font-weight": "600",
 			"box-sizing": "content-box",
@@ -2705,7 +2705,7 @@ styles.registerStyle("main", () => {
 				"justify-content": "center",
 			},
 			".column-width-small": {
-				width: px(size.column_width_s_mobile),
+				width: px(layout_size.column_width_s_mobile),
 			},
 			// Speed up SVG rendering in the onboarding wizard by disabling antialiasing
 			"svg, img": {
@@ -2725,7 +2725,7 @@ styles.registerStyle("main", () => {
 			fill: theme.navigation_button,
 		},
 		"drawer-menu": {
-			width: px(size.drawer_menu_width),
+			width: px(layout_size.drawer_menu_width),
 			background: getNavigationMenuBg(),
 		},
 		".menu-shadow": {
@@ -2747,7 +2747,7 @@ styles.registerStyle("main", () => {
 			transform: "translate(-50%)",
 			opacity: "1",
 		},
-		[`@media (max-width: ${size.desktop_layout_width - 1}px)`]: {
+		[`@media (max-width: ${layout_size.desktop_layout_width - 1}px)`]: {
 			".main-view": {
 				top: 0,
 				bottom: 0,
@@ -2773,7 +2773,7 @@ styles.registerStyle("main", () => {
 				width: "20px",
 			},
 			".calendar-hour-margin": {
-				"margin-left": px(size.calendar_hour_width_mobile),
+				"margin-left": px(layout_size.calendar_hour_width_mobile),
 			},
 			".calendar-month-week-number": {
 				"font-size": "10px",
