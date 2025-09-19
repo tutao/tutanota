@@ -15,7 +15,7 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLEleme
  * @example
  * m(Card, {
  *     rootElementType: "section", // Changing the default root element
- *     classes: ["mt"], // Adding new styles
+ *     classes: ["mt-16"], // Adding new styles
  *     style: {
  *         "font-size": px(font_size.base * 1.25) // Overriding the component style
  *     }

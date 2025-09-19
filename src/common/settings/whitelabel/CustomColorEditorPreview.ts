@@ -25,7 +25,7 @@ export class CustomColorEditorPreview implements Component {
 
 	view(): Children {
 		return m(
-			".editor-border.mt-l.flex.col",
+			".editor-border.mt-32.flex.col",
 			{
 				style: {
 					alignItems: "center",

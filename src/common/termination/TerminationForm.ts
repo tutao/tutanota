@@ -47,7 +47,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 			},
 			[
 				m(".h3", lang.get("terminationForm_title")),
-				m(".mt-s", lang.get("termination_text")),
+				m(".mt-8", lang.get("termination_text")),
 				m(
 					"",
 					{
@@ -88,8 +88,8 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 					},
 				}),
 				m(".list-border-bottom.pb-l", [
-					m(".h3.mt-l", lang.get("terminationDateRequest_title")),
-					m(".mt-s", lang.get("terminationDateRequest_msg")),
+					m(".h3.mt-32", lang.get("terminationDateRequest_title")),
+					m(".mt-8", lang.get("terminationDateRequest_msg")),
 					m(DropDownSelector, {
 						label: "emptyString_msg",
 						class: "", // by specifying an empty class attribute we remove the padding top for the DropDownSelector
@@ -118,7 +118,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 							})
 						: null,
 				]),
-				m(".mt-l.text-center", lang.get("surveySecondaryMessageDelete_label")),
+				m(".mt-32.text-center", lang.get("surveySecondaryMessageDelete_label")),
 				m(
 					".mt.flex-center",
 					m(Button, {

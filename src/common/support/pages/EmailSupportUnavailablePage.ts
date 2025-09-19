@@ -22,7 +22,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 				Card,
 				{ shouldDivide: true },
 				m("div.pt-s.pb-s.plr", [
-					m(".h4.mt-xs", lang.get("supportNoDirectSupport_title")),
+					m(".h4.mt-4", lang.get("supportNoDirectSupport_title")),
 					m("p", lang.get("supportNoDirectSupport_msg")),
 					m("img.block", {
 						src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/account.png`,
@@ -55,7 +55,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 				}),
 			),
 			m(
-				".mt-l.center",
+				".mt-32.center",
 				m(BaseButton, {
 					label: "upgrade_action",
 					text: lang.get("upgrade_action"),

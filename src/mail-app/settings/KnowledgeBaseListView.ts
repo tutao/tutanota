@@ -225,7 +225,7 @@ export class KnowledgeBaseRow implements VirtualRow<KnowledgeBaseEntry> {
 					oncreate: (vnode) => (this.entryTitleDom = vnode.dom as HTMLElement),
 				}),
 				// to create a second row
-				m(".smaller.mt-xxs", NBSP),
+				m(".smaller.mt-4", NBSP),
 			]),
 		)
 	}

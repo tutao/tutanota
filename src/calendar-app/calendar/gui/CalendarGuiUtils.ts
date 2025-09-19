@@ -1104,7 +1104,7 @@ export function generateRandomColor(): ColorString {
 
 export function renderCalendarColor(selectedCalendar: CalendarInfo | null, groupColors: Map<Id, string>) {
 	const color = selectedCalendar ? (groupColors.get(selectedCalendar.groupInfo.group) ?? defaultCalendarColor) : null
-	return m(".mt-xs", {
+	return m(".mt-4", {
 		style: {
 			width: "100px",
 			height: "10px",

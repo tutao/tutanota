@@ -78,7 +78,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 
 	_renderKeywords(model: KnowledgeBaseModel): Children {
 		const matchedKeywords = model.getMatchedKeywordsInContent()
-		return m(".flex.mt-s.wrap", [
+		return m(".flex.mt-8.wrap", [
 			matchedKeywords.length > 0 ? m(".small.full-width", lang.get("matchingKeywords_label")) : null,
 			matchedKeywords.map((keyword) => {
 				return m(".keyword-bubble-no-padding.plr-button.pl-s.pr-s.border-radius.no-wrap.mr-s.min-content", keyword)
@@ -88,7 +88,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 
 	_renderList(model: KnowledgeBaseModel, attrs: KnowledgebaseDialogContentAttrs): Children {
 		return m(
-			".mt-s.scroll",
+			".mt-8.scroll",
 			{
 				oncreate: (vnode) => {
 					this._selectionChangedListener = model.selectedEntry.map(

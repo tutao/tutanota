@@ -117,7 +117,7 @@ export class RecoverCodeField {
 				: m("", lang.get("emptyString_msg")),
 			m(MonospaceTextDisplay, { text: splitRecoverCode }),
 			showButtons
-				? m(".flex.flex-end.mt-m", [
+				? m(".flex.flex-end.mt-12", [
 						m(IconButton, {
 							title: "copy_action",
 							icon: Icons.Clipboard,

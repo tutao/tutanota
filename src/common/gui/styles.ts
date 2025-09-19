@@ -9,7 +9,7 @@ import { ThemeController } from "./ThemeController.js"
 
 assertMainOrNodeBoot()
 
-export type StyleSheetId = "main" | "outline"
+export type StyleSheetId = "main" | "outline" | "test"
 
 /**
  * Writes all styles to a single dom <style>-tag

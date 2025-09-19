@@ -43,7 +43,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 					}
 				: undefined
 		return m(
-			".center-vertically.border-bottom.pr-s.pl.border-radius.mt-xs",
+			".center-vertically.border-bottom.pr-s.pl.border-radius.mt-4",
 			{
 				style: {
 					border: `solid 2px ${type === BannerType.Warning ? theme.warning : theme.outline}`,
@@ -52,7 +52,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 				},
 			},
 			[
-				m(".mt-s.mr-s.abs", this.renderIcon(icon, type ?? null)), // absolute position makes the icon fixed to the top left corner of the banner
+				m(".mt-8.mr-s.abs", this.renderIcon(icon, type ?? null)), // absolute position makes the icon fixed to the top left corner of the banner
 				m(
 					"",
 					{ style: { "margin-left": px(size.icon_24 + 1) } }, // allow room for the icon

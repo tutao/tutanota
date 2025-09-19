@@ -70,7 +70,7 @@ export class ContactRow implements VirtualRow<Contact> {
 				},
 				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
-			m(".mt-xs.abs", [
+			m(".mt-4.abs", [
 				m("input.checkbox.list-checkbox", {
 					type: "checkbox",
 					style: {
@@ -97,7 +97,7 @@ export class ContactRow implements VirtualRow<Contact> {
 				m(".text-ellipsis.badge-line-height", {
 					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
 				}),
-				m(".text-ellipsis.smaller.mt-xxs", {
+				m(".text-ellipsis.smaller.mt-4", {
 					oncreate: (vnode) => (this.domAddress = vnode.dom as HTMLElement),
 				}),
 			]),

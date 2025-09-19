@@ -42,7 +42,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private renderTitleLine(): Children {
-		return m(".flex.mt-l.center-vertically", [
+		return m(".flex.mt-32.center-vertically", [
 			m(".h4.text-ellipsis", this.template.title),
 			!this.isReadOnly()
 				? m(ActionBar, {
@@ -71,7 +71,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 				isReadOnly: true,
 			}),
 			this.sanitizedContents.map(({ text, languageCodeTextId }) => {
-				return m(".flex.flex-column", [m(".h4.mt-l", lang.get(languageCodeTextId)), m(".editor-border.text-break", m.trust(text))])
+				return m(".flex.flex-column", [m(".h4.mt-32", lang.get(languageCodeTextId)), m(".editor-border.text-break", m.trust(text))])
 			}),
 		])
 	}

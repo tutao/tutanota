@@ -154,7 +154,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 					this.postionSliderOnHue(assertNotNull(this.hueImgDom), assertNotNull(this.hueSliderDom))
 					attrs.onselect(color)
 				},
-				className: ".mt-m",
+				className: ".mt-12",
 			}),
 		])
 	}

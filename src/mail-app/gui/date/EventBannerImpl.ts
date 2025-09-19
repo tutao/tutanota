@@ -170,7 +170,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 						m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
 					]),
 					event.organizer?.address
-						? m(".flex.items-center.small.mt-s", [
+						? m(".flex.items-center.small.mt-8", [
 								m("span.b", lang.get("when_label")),
 								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
 							])
@@ -190,18 +190,17 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 							},
 							[
 								m(".flex.flex-column.mb-s", [
-									m(".flex", [
+									m(".flex.items-center.gap-vpad-xs", [
 										m(Icon, {
 											icon: Icons.Time,
 											container: "div",
-											class: "mr-xsm mt-xxs",
 											style: { fill: theme.on_surface },
 											size: IconSize.PX24,
 										}),
 										m("span.b.h5", lang.get("timeOverview_title")),
 									]),
 									agenda
-										? m(".flex.mt-hpad-small", [
+										? m(".flex.mt-4", [
 												m(Icon, {
 													icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
 													container: "div",
@@ -306,11 +305,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					]),
 				)
 			} else if (!needsAction) {
-				children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15.lh", lang.get("alreadyReplied_msg")))
+				children.push(m(".align-self-start.start.small.mt-8.mb-xsm-15.lh", lang.get("alreadyReplied_msg")))
 				children.push(viewOnCalendarButton)
 			}
 		} else if (method === CalendarMethod.REPLY) {
-			children.push(m(".align-self-start.start.small.mt-s.mb-xsm-15.lh", lang.get("eventNotificationUpdated_msg")))
+			children.push(m(".align-self-start.start.small.mt-8.mb-xsm-15.lh", lang.get("eventNotificationUpdated_msg")))
 			children.push(viewOnCalendarButton)
 		} else {
 			return null
@@ -321,7 +320,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 	private renderCommentInputBox(): Children {
 		return m(ExpandableTextArea, {
-			classes: ["mt-s"],
+			classes: ["mt-8"],
 			variant: "outlined",
 			value: this.comment,
 			oninput: (newValue: string) => {

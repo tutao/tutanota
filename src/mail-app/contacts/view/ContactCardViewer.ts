@@ -39,7 +39,7 @@ export class ContactCardViewer implements Component<ContactCardAttrs> {
 					highlightedStrings,
 				}),
 			),
-			m(".mt-l"),
+			m(".mt-32"),
 		]
 	}
 }
