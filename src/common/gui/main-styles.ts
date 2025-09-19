@@ -1,5 +1,5 @@
 import { styles } from "./styles"
-import { px, size, component_size, layout_size } from "./size"
+import { px, size, component_size, layout_size, font_size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
@@ -43,7 +43,7 @@ styles.registerStyle("main", () => {
 		"#link-tt": isElectronClient()
 			? {
 					"pointer-events": "none",
-					"font-size": px(size.font_size_small),
+					"font-size": px(font_size.small),
 					"padding-left": px(size.spacing_4),
 					"padding-right": px(size.spacing_4),
 					"padding-top": px(size.spacing_4),
@@ -173,19 +173,19 @@ styles.registerStyle("main", () => {
 			overflow: "hidden",
 			// see: https://www.smashingmagazine.com/2015/11/using-system-ui-fonts-practical-guide/ and github
 			"font-family": getFonts(),
-			"font-size": px(size.font_size_base),
-			"line-height": size.line_height,
+			"font-size": px(font_size.base),
+			"line-height": font_size.line_height,
 			color: theme.on_surface,
 			"-webkit-text-size-adjust": "none", // fix for safari browser
 		},
 		"small, .small": {
-			"font-size": px(size.font_size_small),
+			"font-size": px(font_size.small),
 		},
 		".smaller": {
-			"font-size": px(size.font_size_smaller),
+			"font-size": px(font_size.smaller),
 		},
 		".normal-font-size": {
-			"font-size": px(size.font_size_base),
+			"font-size": px(font_size.base),
 		},
 		".b": {
 			"font-weight": "bold",
@@ -268,25 +268,25 @@ styles.registerStyle("main", () => {
 			"border-left-width": "2px",
 		},
 		".big": {
-			"font-size": px(size.font_size_base * 2.5),
+			"font-size": px(font_size.base * 2.5),
 		},
 		"h1, .h1": {
-			"font-size": px(size.font_size_base * 2),
+			"font-size": px(font_size.base * 2),
 		},
 		"h2, .h2": {
-			"font-size": px(size.font_size_base * 1.8),
+			"font-size": px(font_size.base * 1.8),
 		},
 		"h3, .h3": {
-			"font-size": px(size.font_size_base * 1.6),
+			"font-size": px(font_size.base * 1.6),
 		},
 		"h4, .h4": {
-			"font-size": px(size.font_size_base * 1.4),
+			"font-size": px(font_size.base * 1.4),
 		},
 		"h5, .h5": {
-			"font-size": px(size.font_size_base * 1.2),
+			"font-size": px(font_size.base * 1.2),
 		},
 		"h6, .h6": {
-			"font-size": px(size.font_size_base * 1.1),
+			"font-size": px(font_size.base * 1.1),
 		},
 		"input, button, select, textarea": {
 			"font-family": "inherit",
@@ -1800,7 +1800,7 @@ styles.registerStyle("main", () => {
 			"padding-right": px(4),
 			"border-radius": px(8),
 			"line-height": px(16),
-			"font-size": px(size.font_size_small),
+			"font-size": px(font_size.small),
 			"font-weight": "bold",
 			"min-width": px(16),
 			"min-height": px(16),
@@ -2730,8 +2730,8 @@ styles.registerStyle("main", () => {
 			"box-shadow": "0 4px 5px 2px rgba(0,0,0,0.14), 0 4px 5px 2px rgba(0,0,0,0.14), 0 4px 5px 2px rgba(0,0,0,0.14)",
 		},
 		".big-input input": {
-			"font-size": px(size.font_size_base * 1.4),
-			"line-height": `${px(size.font_size_base * 1.4 + 2)} !important`,
+			"font-size": px(font_size.base * 1.4),
+			"line-height": `${px(font_size.base * 1.4 + 2)} !important`,
 		},
 		".hidden-until-focus": {
 			position: "absolute",
@@ -2964,7 +2964,7 @@ styles.registerStyle("main", () => {
 			right: px(size.spacing_24),
 		},
 		".mb-small-line-height": {
-			"margin-bottom": px(size.line_height * size.font_size_small),
+			"margin-bottom": px(font_size.line_height * font_size.small),
 		},
 		".tutaui-card-container": {
 			"box-sizing": "border-box",

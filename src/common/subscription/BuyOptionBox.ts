@@ -1,5 +1,5 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { px, size } from "../gui/size"
+import { font_size, px, size } from "../gui/size"
 import type { MaybeTranslation } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { lazy } from "@tutao/tutanota-utils"
@@ -251,7 +251,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						{
 							style: {
 								color: theme.on_surface_variant,
-								fontSize: px(size.font_size_base),
+								fontSize: px(font_size.base),
 								...(!isApplePrice && { "justify-self": "end" }),
 							},
 						},

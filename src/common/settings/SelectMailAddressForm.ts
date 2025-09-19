@@ -7,8 +7,8 @@ import { formatMailAddressFromParts } from "../misc/Formatter.js"
 import { Icon } from "../gui/base/Icon.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "../api/common/Env.js"
-import { px, size } from "../gui/size.js"
-import { Autocapitalize, Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.js"
+import { font_size, px } from "../gui/size.js"
+import { Autocapitalize, Autocomplete, TextField } from "../gui/base/TextField.js"
 import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
@@ -79,7 +79,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			autocompleteAs: Autocomplete.newPassword,
 			autocapitalize: Autocapitalize.none,
 			helpLabel: () => this.addressHelpLabel(),
-			fontSize: px(size.font_size_smaller),
+			fontSize: px(font_size.smaller),
 			oninput: (value) => {
 				this.username = value
 				this.verifyMailAddress(attrs)
@@ -91,8 +91,8 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 						style: {
 							"padding-bottom": "1px",
 							flex: "1 1 auto",
-							fontSize: px(size.font_size_smaller),
-							lineHeight: px(inputLineHeight),
+							fontSize: px(font_size.smaller),
+							lineHeight: px(font_size.line_height_input),
 						},
 					},
 					`@${attrs.selectedDomain.domain}`,

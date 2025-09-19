@@ -1,4 +1,4 @@
-import { component_size, px, size } from "../../../common/gui/size"
+import { component_size, font_size, px, size } from "../../../common/gui/size"
 import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import { windowFacade, windowSizeListener } from "../../../common/misc/WindowFacade"
@@ -356,7 +356,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				}
 			},
 			style: {
-				"line-height": this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height,
+				"line-height": this.bodyLineHeight ? this.bodyLineHeight.toString() : font_size.line_height,
 				"transform-origin": "top left",
 			},
 		})
@@ -408,7 +408,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		wrapNode.id = "shadow-mail-body"
 		wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
 		wrapNode.setAttribute("data-testid", "mailBody_label")
-		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : size.line_height)
+		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : font_size.line_height)
 		wrapNode.style.transformOrigin = "0px 0px"
 
 		// Remove "align" property from the top-level content as it causes overflow.
@@ -585,11 +585,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const width = dom.offsetWidth
 
 		if (width > 900) {
-			this.bodyLineHeight = size.line_height_l
+			this.bodyLineHeight = font_size.line_height_l
 		} else if (width > 600) {
-			this.bodyLineHeight = size.line_height_m
+			this.bodyLineHeight = font_size.line_height_m
 		} else {
-			this.bodyLineHeight = size.line_height
+			this.bodyLineHeight = font_size.line_height
 		}
 
 		dom.style.lineHeight = String(this.bodyLineHeight)
