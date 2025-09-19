@@ -113,10 +113,11 @@ export const size = {
 	// 20/14,
 	line_height_m: 1.6,
 	line_height_l: 1.8,
+}
 
-	// FIXME: Create a layout_size object
+export const layout_size = {
 	get calendar_line_height(): number {
-		return this.font_size_small + 6
+		return size.font_size_small + 6
 	},
 
 	get calendar_hour_height(): number {
