@@ -62,7 +62,7 @@ export type InputAttrs<T extends TextFieldType> = T extends TextFieldType.Number
  *     disabled: model.isReadonly,
  *     classes: ["custom-text-color"], // Adding new styles
  *     style: {
- *         "font-size": px(size.font_size_base * 1.25) // Overriding the component style
+ *         "font-size": px(font_size.base * 1.25) // Overriding the component style
  *     }
  * }),
  */

@@ -13,7 +13,7 @@ import { CalendarEventModel, CalendarOperation, ReadonlyReason } from "../evente
 import { getSharedGroupName } from "../../../../common/sharing/GroupUtils.js"
 import { RemindersEditor, RemindersEditorAttrs } from "../RemindersEditor.js"
 import { SingleLineTextField } from "../../../../common/gui/base/SingleLineTextField.js"
-import { px, size } from "../../../../common/gui/size.js"
+import { font_size, px, size } from "../../../../common/gui/size.js"
 import { Card } from "../../../../common/gui/base/Card.js"
 import { Select, SelectAttributes, SelectOption } from "../../../../common/gui/base/Select.js"
 import { Icon, IconSize } from "../../../../common/gui/base/Icon.js"
@@ -207,7 +207,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				placeholder: lang.get("title_placeholder"),
 				disabled: !model.isFullyWritable(),
 				style: {
-					fontSize: px(size.font_size_base * 1.25), // Overriding the component style
+					fontSize: px(font_size.base * 1.25), // Overriding the component style
 				},
 				type: TextFieldType.Text,
 			}),

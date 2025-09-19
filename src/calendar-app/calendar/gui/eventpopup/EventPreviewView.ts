@@ -32,7 +32,7 @@ import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/Subscript
 import { ExternalLink } from "../../../../common/gui/base/ExternalLink.js"
 import { calendarAttendeeStatusSymbol, formatEventDuration, getDisplayEventTitle, repeatRuleOptions } from "../CalendarGuiUtils.js"
 import { hasError } from "../../../../common/api/common/utils/ErrorUtils.js"
-import { inputLineHeight, px, size } from "../../../../common/gui/size.js"
+import { font_size, px, size } from "../../../../common/gui/size.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../common/gui/TextHighlightViewUtils"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../common/gui/base/ExpandableTextArea.js"
@@ -206,7 +206,10 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				this.renderSectionIndicator(BootIcons.Contacts),
 				m(".flex.flex-column", [
 					m(".small", lang.get("invitedToEvent_msg")),
-					m(".fit-content", { style: { "min-height": px(inputLineHeight * 7) } }, [m(ReplyButtons, participation), this.renderCommentSection(model)]),
+					m(".fit-content", { style: { "min-height": px(font_size.line_height_input * 7) } }, [
+						m(ReplyButtons, participation),
+						this.renderCommentSection(model),
+					]),
 				]),
 			]),
 		])
