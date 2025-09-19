@@ -1634,6 +1634,8 @@ export function alarmIntervalToLuxonDurationLikeObject(alarmInterval: AlarmInter
 			return { days: alarmInterval.value }
 		case AlarmIntervalUnit.WEEK:
 			return { weeks: alarmInterval.value }
+		default:
+			throw new Error(`Unknown alarm unit: ${alarmInterval.unit}`)
 	}
 }
 
@@ -1673,20 +1675,32 @@ export function areAllAdvancedRepeatRulesValid(advancedRules: AdvancedRepeatRule
 
 /**
  * Converts db representation of alarm to a runtime one.
+ * Deserializes an alarm interval string (e.g. "5M") into an AlarmInterval object.
+ *
+ * @example
+ * parseAlarmInterval("5M") // => { value: 5, unit: AlarmIntervalUnit.MINUTE }
+ *
+ * @param serialized - The alarm interval string in the format (\d+)([MHDW])
+ * @returns An {@link AlarmInterval} object with numeric value and unit as {@link AlarmIntervalUnit}
+ *
+ * @throws {ParserError} If the string does not match the expected format
+ *
+ * @see {@link serializeAlarmInterval} - The inverse operation
  */
 export function parseAlarmInterval(serialized: string): AlarmInterval {
 	const matched = serialized.match(/^(\d+)([MHDW])$/)
-	if (matched) {
-		const [_, digits, unit] = matched
-		const value = filterInt(digits)
-		if (isNaN(value)) {
-			throw new ParserError(`Invalid value: ${value}`)
-		} else {
-			return { value, unit: unit as AlarmIntervalUnit }
-		}
-	} else {
-		throw new ParserError(`Invalid alarm interval: ${serialized}`)
+
+	if (!matched) {
+		throw new ParserError(`Invalid alarm interval: ${serialized} - Uknown format`)
 	}
+
+	const [_, digits, unit] = matched
+	const value = filterInt(digits)
+	if (isNaN(value)) {
+		throw new ParserError(`Invalid alarm interval: ${serialized} - NaN value`)
+	}
+
+	return { value, unit: unit as AlarmIntervalUnit }
 }
 
 export enum CalendarType {
