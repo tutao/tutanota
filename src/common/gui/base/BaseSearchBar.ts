@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils.js"
-import { inputLineHeight, px, size } from "../size.js"
+import { font_size, px, size } from "../size.js"
 import { styles } from "../styles.js"
 import { TabIndex } from "../../api/common/TutanotaConstants.js"
 import { BootIcons } from "./icons/BootIcons.js"
@@ -39,7 +39,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				...landmarkAttrs(AriaLandmarks.Search),
 				class: getOperatingClasses(attrs.disabled),
 				style: {
-					"min-height": px(inputLineHeight + 2),
+					"min-height": px(font_size.line_height_input + 2),
 					"margin-top": px(6),
 					"margin-bottom": px(6),
 				},
@@ -135,7 +135,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				attrs.onKeyDown?.(e)
 			},
 			style: {
-				"line-height": px(inputLineHeight),
+				"line-height": px(font_size.line_height_input),
 			},
 		})
 	}

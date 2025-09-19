@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { component_size, px, size } from "../gui/size"
+import { component_size, font_size, px, size } from "../gui/size"
 import { lang } from "../misc/LanguageViewModel"
 import { type Callback } from "@tutao/tutanota-utils"
 import { PlanType, PlanTypeToName } from "../api/common/TutanotaConstants"
@@ -213,7 +213,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 										".strike",
 										{
 											style: {
-												fontSize: px(size.font_size_smaller),
+												fontSize: px(font_size.smaller),
 												justifySelf: "end",
 											},
 										},

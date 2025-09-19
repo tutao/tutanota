@@ -86,38 +86,24 @@ export const size = {
 	get radius_16() {
 		return this.core_16
 	},
+}
 
-	// TODO: Update classes that were using the old size tokens
-	// hpad_small: 5,  -> spacing_4
-	// hpad: 10,  -> spacing_12
-	// hpad_medium: 20,  -> spacing_24
-	// hpad_large: 20, -> spacing_24
-	// hpad_large_mobile: 6, -> spacing_8
-	// hpad_button: 6, -> spacing_8
-	// hpad_nav_button: 9, -> spacing_8
-	// vpad_xxs: 2, -> spacing_4
-	// vpad_xs: 3,  -> spacing_4
-	// vpad_xsm: 4, -> spacing_4
-	// vpad: 16, -> spacing_16
-	// vpad_small: 8, -> spacing_16
-	// vpad_ml: 25, -> spacing_24
-	// vpad_large: 32, -> spacing_32
-	// vpad_xl: 48, -> spacing_48
-	// vpad_xxl: 64, -> spacing_64
-	// text_bubble_tpad: 20, -> spacing_64
-
-	font_size_base: 16,
-	font_size_smaller: 14,
-	font_size_small: 12,
+export const font_size = {
+	base: 16,
+	smaller: 14,
+	small: 12,
 	line_height: 1.428571429,
-	// 20/14,
 	line_height_m: 1.6,
 	line_height_l: 1.8,
+
+	get line_height_input(): number {
+		return this.base + 8
+	},
 }
 
 export const layout_size = {
 	get calendar_line_height(): number {
-		return size.font_size_small + 6
+		return font_size.small + 6
 	},
 
 	get calendar_hour_height(): number {
@@ -171,24 +157,6 @@ export const component_size = {
 	header_logo_height: 38,
 	header_logo_height_mobile: 32,
 	list_row_height: 68,
-	column_width_s_desktop: 135,
-	column_width_s_mobile: 70,
-
-	get calendar_line_height(): number {
-		return size.font_size_small + 6
-	},
-
-	get calendar_hour_height(): number {
-		return (this.calendar_line_height + 2 * this.calendar_event_border + this.calendar_day_event_padding) * 4
-	},
-	calendar_days_header_height: 25,
-	calendar_hour_width: 80,
-	calendar_hour_width_mobile: 30,
-	calendar_event_margin: 6,
-	calendar_event_margin_mobile: 2,
-	calendar_event_border: 1,
-	calendar_day_event_padding: 2,
-	drawer_menu_width: 44,
 	dot_size: 7,
 	checkbox_size: 14,
 	checkbox_border_size: 2,
@@ -197,12 +165,6 @@ export const component_size = {
 	},
 }
 
-export const inputLineHeight: number = size.font_size_base + 8
-
 export function px(value: number): string {
 	return value + "px"
-}
-
-export function pt(value: number): string {
-	return value + "pt"
 }

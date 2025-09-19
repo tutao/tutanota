@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { theme } from "../theme"
-import { inputLineHeight, px, size } from "../size"
+import { font_size, px, size } from "../size"
 import type { lazy } from "@tutao/tutanota-utils"
 
 export type TextDisplayAreaAttrs = {
@@ -20,7 +20,7 @@ export class TextDisplayArea implements Component<TextDisplayAreaAttrs> {
 				"label.text-ellipsis.noselect.z1.i.pr-s",
 				{
 					style: {
-						fontSize: px(size.font_size_small),
+						fontSize: px(font_size.small),
 					},
 				},
 				lang.getTranslationText(vnode.attrs.label),
@@ -30,8 +30,8 @@ export class TextDisplayArea implements Component<TextDisplayAreaAttrs> {
 				{
 					style: {
 						borderBottom: `1px solid ${theme.content_border}`,
-						lineHeight: px(inputLineHeight),
-						minHeight: px(inputLineHeight),
+						lineHeight: px(font_size.line_height_input),
+						minHeight: px(font_size.line_height_input),
 					},
 					isReadOnly: true,
 				},
