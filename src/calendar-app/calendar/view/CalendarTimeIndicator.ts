@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { px, size } from "../../../common/gui/size.js"
+import { layout_size, px, size } from "../../../common/gui/size.js"
 
 export type CalendarTimeIndicatorAttrs = {
 	/** Make the circle tangent to the left side of the line rather than intersecting it */
@@ -18,7 +18,7 @@ export class CalendarTimeIndicator implements Component<CalendarTimeIndicatorAtt
 			{
 				"aria-hidden": "true",
 				style: {
-					height: px(size.calendar_day_event_padding),
+					height: px(layout_size.calendar_day_event_padding),
 				},
 			},
 			m(`.circle.icon-small.accent-bg`, {
