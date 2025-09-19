@@ -202,7 +202,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 							? null
 							: m(Icon, {
 									icon: planConfig.icon,
-									size: IconSize.Medium,
+									size: IconSize.XL,
 									style: {
 										fill: theme.on_surface_variant,
 									},

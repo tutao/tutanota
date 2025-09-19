@@ -30,7 +30,7 @@ export class PersonalPlanBoxes implements Component<PlanBoxesAttrs> {
 		{
 			type: PlanType.Revolutionary,
 			tagLine: "mostPopular_label",
-			icon: Icons.BusinessEssential,
+			icon: Icons.Revo,
 			features: [
 				{
 					label: "pricing.comparisonStorage_msg",
@@ -61,7 +61,7 @@ export class PersonalPlanBoxes implements Component<PlanBoxesAttrs> {
 		{
 			type: PlanType.Legend,
 			tagLine: "allYouNeed_label",
-			icon: Icons.BusinessUnlimited,
+			icon: Icons.Legend,
 			features: [
 				{
 					label: "pricing.comparisonStorage_msg",

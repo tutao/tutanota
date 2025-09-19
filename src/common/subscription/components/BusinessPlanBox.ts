@@ -10,7 +10,6 @@ import { Icon, IconSize } from "../../gui/base/Icon"
 import { lang } from "../../misc/LanguageViewModel"
 import { getFeaturePlaceholderReplacement } from "../SubscriptionUtils"
 import { PlanConfig } from "./BusinessPlanBoxes"
-import { BootIcons } from "../../gui/base/icons/BootIcons"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { styles } from "../../gui/styles"
 import { boxShadowHigh } from "../../gui/main-styles"
@@ -112,7 +111,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 			[
 				// header
 				m(`div.flex.items-center.justify-between.gap-vpad${styles.isMobileLayout() ? ".flex" : ".flex-column"}`, [
-					m(`${styles.isMobileLayout() ? ".flex.gap-hpad.items-center" : ".flex-column"}`, [
+					m(`${styles.isMobileLayout() ? ".flex.gap-hpad.items-center" : ".flex.flex-column.gap-vpad-s"}`, [
 						m(`div.items-center.justify-center.flex.gap-hpad`, [
 							m(Icon, {
 								icon: planConfig.icon,
@@ -139,6 +138,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 								"div.font-mdio",
 								{
 									style: {
+										lineHeight: 1,
 										fontWeight: "bold",
 										fontSize: px(styles.isMobileLayout() ? 18 : 20),
 										color: isSelected ? localTheme.primary : localTheme.on_surface,

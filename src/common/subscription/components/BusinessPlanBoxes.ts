@@ -160,7 +160,7 @@ export class BusinessPlanBoxes implements Component<PlanBoxesAttrs> {
 		const visible = hidePaidPlans ? [] : this.ORDER.filter((p) => availablePlans.includes(p as AvailablePlanType))
 
 		if (!visible.includes(selectedPlan() as PlanType) && visible.length) {
-			selectedPlan(visible[0] as AvailablePlans)
+			selectedPlan(visible[1] as AvailablePlans) // Preselect Advanced Plan (i.e. the one in the middle)
 		}
 
 		return m(
