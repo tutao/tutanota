@@ -24,7 +24,7 @@ import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { IServiceExecutor } from "../api/common/ServiceRequest.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 import { client } from "../misc/ClientDetector"
-import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
+import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils.js"
 import { ReplacementKey, UpgradePriceType } from "./FeatureListProvider.js"
 import { isIOSApp } from "../api/common/Env.js"
 
@@ -207,7 +207,7 @@ export async function getAvailableMatchingPlans(
 	serviceExecutor: IServiceExecutor,
 	predicate: (configuration: PlanConfiguration) => boolean,
 ): Promise<Array<AvailablePlanType>> {
-	const { PriceAndConfigProvider } = await import("../subscription/PriceUtils.js")
+	const { PriceAndConfigProvider } = await import("./utils/PriceUtils.js")
 	const priceAndConfigProvider = await PriceAndConfigProvider.getInitializedInstance(null, serviceExecutor, null)
 	return NewPaidPlans.filter((p) => {
 		const config = priceAndConfigProvider.getPlanPricesForPlan(p).planConfiguration

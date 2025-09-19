@@ -13,7 +13,7 @@ import {
 	InvoiceInfoTypeRef,
 } from "../api/entities/sys/TypeRefs.js"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
-import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./PriceUtils"
+import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./utils/PriceUtils"
 import * as InvoiceDataDialog from "./InvoiceDataDialog"
 import { Icons } from "../gui/base/icons/Icons"
 import { ColumnWidth, Table, TableLineAttrs } from "../gui/base/Table.js"

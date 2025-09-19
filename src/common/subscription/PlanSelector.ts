@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel"
-import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
+import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants.js"
@@ -14,8 +14,9 @@ import { boxShadowHigh } from "../gui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getApplePriceStr, getPriceStr } from "./SubscriptionUtils.js"
 import { PaymentIntervalSwitch } from "./components/PaymentIntervalSwitch.js"
-import { PersonalPlanBoxes, PlanBoxesAttrs } from "./components/PersonalPlanBoxes"
-import { BusinessPlanBoxes } from "./components/BusinessPlanBoxes"
+import { PersonalPlanContainer } from "./components/PersonalPlanContainer"
+import { BusinessPlanContainer } from "./components/BusinessPlanContainer"
+import { PlanBoxesAttrs } from "./utils/PlanSelectorUtils"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -68,7 +69,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		},
 	}: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
-		const hidePaidPlans = availablePlans.includes(PlanType.Free) && availablePlans.length === 1
 
 		const renderFootnoteElement = (): Children => {
 			const getRevoPriceStrProps = {
@@ -155,36 +155,23 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				lang: lang.code,
 			},
 			[
-				m("#plan-selector.flex.flex-column.gap-vpad-l", !hidePaidPlans && allowSwitchingPaymentInterval && renderPaymentIntervalSwitch()),
-				// PersonalPlanBoxes Component here
+				m(
+					"#plan-selector.flex.flex-column.gap-vpad-l",
+					!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) && allowSwitchingPaymentInterval && renderPaymentIntervalSwitch(),
+				),
 
-				businessUse
-					? m(BusinessPlanBoxes, {
-							allowSwitchingPaymentInterval,
-							availablePlans,
-							currentPaymentInterval,
-							currentPlan,
-							hasCampaign,
-							hidePaidPlans,
-							isApplePrice,
-							priceAndConfigProvider,
-							selectedPlan: this.selectedPlan,
-							selectedSubscriptionOptions: options,
-							showMultiUser,
-						} satisfies PlanBoxesAttrs)
-					: m(PersonalPlanBoxes, {
-							allowSwitchingPaymentInterval,
-							availablePlans,
-							currentPaymentInterval,
-							currentPlan,
-							hasCampaign,
-							hidePaidPlans,
-							isApplePrice,
-							priceAndConfigProvider,
-							selectedPlan: this.selectedPlan,
-							selectedSubscriptionOptions: options,
-							showMultiUser,
-						} satisfies PlanBoxesAttrs),
+				m(businessUse ? BusinessPlanContainer : PersonalPlanContainer, {
+					allowSwitchingPaymentInterval,
+					availablePlans,
+					currentPaymentInterval,
+					currentPlan,
+					hasCampaign,
+					isApplePrice,
+					priceAndConfigProvider,
+					selectedPlan: this.selectedPlan,
+					selectedSubscriptionOptions: options,
+					showMultiUser,
+				} satisfies PlanBoxesAttrs),
 				m(
 					".flex.flex-column.gap-vpad",
 					m(
@@ -214,7 +201,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 						),
 					),
 				),
-				!hidePaidPlans &&
+				!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) &&
 					m(".flex.flex-column", [
 						m(".small.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
 						m(".small.mb", renderFootnoteElement()),

@@ -13,7 +13,7 @@ import {
 	SubscriptionType,
 } from "../api/common/TutanotaConstants"
 import { getByAbbreviation } from "../api/common/CountryList"
-import { UpgradeSubscriptionPage, UpgradeSubscriptionPageAttrs } from "./UpgradeSubscriptionPage"
+import { LegacySubscriptionPage, UpgradeSubscriptionPageAttrs } from "./LegacySubscriptionPage"
 import stream from "mithril/stream"
 import { InfoLink, lang, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../gui/base/WizardDialog.js"
@@ -26,12 +26,12 @@ import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { queryAppStoreSubscriptionOwnership, UpgradeType } from "./SubscriptionUtils"
 import { UpgradeConfirmSubscriptionPage, UpgradeConfirmSubscriptionPageAttrs } from "./UpgradeConfirmSubscriptionPage.js"
-import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "./PriceUtils"
+import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "./utils/PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership.js"
 import { DialogType } from "../gui/base/Dialog.js"
-import { VariantCSubscriptionPage, VariantCSubscriptionPageAttrs } from "./VariantCSubscriptionPage.js"
+import { SubscriptionPage, VariantCSubscriptionPageAttrs } from "./SubscriptionPage.js"
 import { styles } from "../gui/styles.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { ReferralType, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
@@ -83,13 +83,11 @@ export async function showUpgradeWizard({
 	isCalledBySatisfactionDialog = false,
 	acceptedPlans = NewPaidPlans,
 	msg,
-	useNewPlanSelector,
 }: {
 	logins: LoginController
 	isCalledBySatisfactionDialog?: boolean
 	acceptedPlans?: readonly AvailablePlanType[]
 	msg?: MaybeTranslation
-	useNewPlanSelector?: boolean
 }): Promise<void> {
 	SignupFlowUsageTestController.invalidateUsageTest() // Invalidates the "signup.flow" usage test, because upgrades and signups should not be mixed in this usage test.
 	const [customer, accountingInfo] = await Promise.all([logins.getUserController().loadCustomer(), logins.getUserController().loadAccountingInfo()])
@@ -136,10 +134,6 @@ export async function showUpgradeWizard({
 	}
 
 	let { pageClass: planPageClass, attrs: planPageAttrs } = initPlansPages(upgradeData)
-	if (!useNewPlanSelector) {
-		planPageClass = UpgradeSubscriptionPage
-		planPageAttrs = new UpgradeSubscriptionPageAttrs(upgradeData)
-	}
 	const wizardPages = [
 		wizardPageWrapper(planPageClass, planPageAttrs),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
@@ -281,7 +275,7 @@ export async function loadSignupWizard(
 }
 
 function initPlansPages(signupData: UpgradeSubscriptionData): {
-	pageClass: Class<UpgradeSubscriptionPage> | Class<VariantCSubscriptionPage>
+	pageClass: Class<LegacySubscriptionPage> | Class<SubscriptionPage>
 	attrs: UpgradeSubscriptionPageAttrs | VariantCSubscriptionPageAttrs
 } {
 	const pricingData = signupData.planPrices.getRawPricingData()
@@ -300,15 +294,15 @@ function initPlansPages(signupData: UpgradeSubscriptionData): {
 	// Any type of discounts other than global first year discount use old subscription page.
 	if (!pricingData.hasGlobalFirstYearDiscount && (firstYearDiscount !== 0 || bonusMonth !== 0 || hasDiscount || hasMessage)) {
 		SignupFlowUsageTestController.invalidateUsageTest() // Upgrades can't be used in the signup.flow usage test while we have multiple plan selector variants
-		return { pageClass: UpgradeSubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
+		return { pageClass: LegacySubscriptionPage, attrs: new UpgradeSubscriptionPageAttrs(signupData) }
 	}
 
 	switch (SignupFlowUsageTestController.getUsageTestVariant()) {
 		case 1:
-			return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
+			return { pageClass: SubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
 		default:
 			SignupFlowUsageTestController.invalidateUsageTest()
 			console.error("Received an unexpected usage test variant: ", SignupFlowUsageTestController.getUsageTestVariant())
-			return { pageClass: VariantCSubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
+			return { pageClass: SubscriptionPage, attrs: new VariantCSubscriptionPageAttrs(signupData) }
 	}
 }

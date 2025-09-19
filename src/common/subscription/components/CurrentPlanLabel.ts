@@ -1,6 +1,7 @@
 import m, { Component } from "mithril"
-import { planBoxColors } from "../PlanBoxColors.js"
 import { px, size } from "../../gui/size.js"
+import { lang } from "../../misc/LanguageViewModel"
+import { theme } from "../../gui/theme"
 
 export class CurrentPlanLabel implements Component {
 	view() {
@@ -8,12 +9,12 @@ export class CurrentPlanLabel implements Component {
 			"span.small.fit-height.border-radius",
 			{
 				style: {
-					color: planBoxColors.getTextColor(false, false),
-					border: `1px solid ${planBoxColors.getTextColor(false, false)}`,
+					color: theme.on_surface_variant,
+					border: `1px solid ${theme.outline}`,
 					padding: `${px(size.vpad_xs)} ${px(size.hpad_button)}`,
 				},
 			},
-			"Current plan",
+			lang.get("pricing.currentPlan_label"),
 		)
 	}
 }

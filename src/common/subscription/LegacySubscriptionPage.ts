@@ -12,7 +12,7 @@ import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { UpgradePriceType } from "./FeatureListProvider"
-import { asPaymentInterval, PaymentInterval } from "./PriceUtils.js"
+import { asPaymentInterval, PaymentInterval } from "./utils/PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
@@ -31,7 +31,7 @@ export const PlanTypeParameter = Object.freeze({
 	UNLIMITED: "unlimited",
 })
 
-export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
+export class LegacySubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private _dom: HTMLElement | null = null
 	private upgradeType: UpgradeType | null = null
 

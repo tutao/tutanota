@@ -3,7 +3,7 @@ import { px, size } from "../../gui/size"
 import { lang } from "../../misc/LanguageViewModel"
 import { type Callback } from "@tutao/tutanota-utils"
 import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
-import { PaymentInterval, PriceAndConfigProvider } from "../PriceUtils"
+import { PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import Stream from "mithril/stream"
 import { theme } from "../../gui/theme.js"
 import { ReplacementKey } from "../FeatureListProvider.js"
@@ -11,14 +11,16 @@ import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { styles } from "../../gui/styles.js"
-import { getBlueTheme, planBoxColors } from "../PlanBoxColors.js"
 import { isIOSApp } from "../../api/common/Env"
 import { getFeaturePlaceholderReplacement } from "../SubscriptionUtils.js"
 import { CurrentPlanLabel } from "./CurrentPlanLabel.js"
-import { PlanConfig } from "./BusinessPlanBoxes"
+import { PlanConfig } from "./BusinessPlanContainer"
+import { boxShadowHigh } from "../../gui/main-styles"
+import { getBorderRadius, getBorderWidth } from "../utils/PlanSelectorUtils"
 
-type PlanBoxAttrs = {
+type PersonalPlanBoxAttrs = {
 	planConfig: PlanConfig
+	availablePlans: readonly PlanType[]
 	price: string
 	/**
 	 * Null when we do not want to show the difference between actual price and reference price.
@@ -36,11 +38,11 @@ type PlanBoxAttrs = {
 	position: "left" | "right"
 }
 
-export class PaidPlanBox implements Component<PlanBoxAttrs> {
+export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 	private scale: string = "initial"
 	private preventRescaling: boolean = true
 
-	async oninit({ attrs }: Vnode<PlanBoxAttrs>) {
+	async oncreate({ attrs }: Vnode<PersonalPlanBoxAttrs>) {
 		if (attrs.isSelected) {
 			setTimeout(() => {
 				this.preventRescaling = false
@@ -56,6 +58,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 	view({
 		attrs: {
 			planConfig,
+			availablePlans,
 			price,
 			referencePrice,
 			selectedPaymentInterval,
@@ -69,12 +72,10 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 			showMultiUser,
 			position,
 		},
-	}: Vnode<PlanBoxAttrs>) {
+	}: Vnode<PersonalPlanBoxAttrs>) {
 		this.scale = isSelected && !this.preventRescaling ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const strikethroughPrice = isYearly ? referencePrice : undefined
-		// Only for Go European campaign as the campaign needs to use the blue theme always. This should be removed after the campaign.
-		const localTheme = hasCampaign ? getBlueTheme() : theme
 
 		const renderFeature = this.generateRenderFeature(planConfig.type, priceAndConfigProvider)
 		const getPriceHintStr = (): string => {
@@ -92,6 +93,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 			`.buyOptionBox-v2${isSelected ? ".selected" : ""}${isDisabled ? "" : ".cursor-pointer"}`,
 			{
 				style: {
+					opacity: isDisabled ? 0.6 : 1,
 					scale: this.scale,
 					"z-index": isSelected ? "1" : "initial",
 					"transform-origin": position === "right" ? "center right" : "center left",
@@ -118,20 +120,19 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 				"",
 				{
 					style: {
-						"background-color": isSelected ? localTheme.surface_container_high : localTheme.surface,
-						color: localTheme.on_surface,
+						"background-color": isSelected ? theme.surface_container_high : theme.surface,
+						color: theme.on_surface,
 						"min-height": px(270),
 						height: "100%",
 						"border-style": "solid",
-						"border-color": planBoxColors.getOutlineColor(isSelected),
-						"border-width":
-							position === "right" ? this.getLegendBorderWidth(isSelected, hasCampaign) : this.getRevoBorderWidth(isSelected, hasCampaign),
-						"border-radius": position === "right" ? this.getLegendBorderRadius(hasCampaign) : this.getRevoBorderRadius(hasCampaign),
-						...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
+						"border-color": isSelected ? "transparent" : theme.outline_variant,
+						"border-width": getBorderWidth(isSelected, hasCampaign, position, availablePlans),
+						"border-radius": getBorderRadius(hasCampaign, position, availablePlans),
+						"box-shadow": isSelected ? boxShadowHigh : "none",
 						overflow: "hidden",
 						padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
 					},
-					onclick: () => !isDisabled && onclick?.(planConfig.type),
+					onclick: () => !isDisabled && onclick(planConfig.type),
 				},
 
 				m(
@@ -153,7 +154,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						name: "BuyOptionBox",
 						checked: isSelected,
 						style: {
-							"accent-color": localTheme.on_primary_container,
+							"accent-color": theme.on_primary_container,
 							opacity: isDisabled ? "0" : "1",
 						},
 						disabled: isDisabled,
@@ -163,7 +164,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						{
 							style: {
 								"font-size": px(styles.isMobileLayout() ? 18 : 20),
-								color: isSelected ? localTheme.primary : localTheme.on_surface,
+								color: isSelected ? theme.primary : theme.on_surface,
 							},
 						},
 						PlanTypeToName[planConfig.type],
@@ -175,7 +176,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						height: px(1),
 						display: "block",
 						border: "none",
-						backgroundColor: localTheme.outline_variant,
+						backgroundColor: theme.outline_variant,
 					},
 				}),
 				m(
@@ -195,7 +196,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 						{
 							style: {
 								height: px(35),
-								fill: localTheme.on_surface_variant,
+								fill: theme.on_surface_variant,
 							},
 						},
 						styles.bodyWidth <= 420
@@ -229,7 +230,7 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 										".strike",
 										{
 											style: {
-												color: localTheme.on_surface_variant,
+												color: theme.on_surface_variant,
 												fontSize: px(size.font_size_smaller),
 												justifySelf: "end",
 											},
@@ -283,50 +284,6 @@ export class PaidPlanBox implements Component<PlanBoxAttrs> {
 				}),
 				m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider))),
 			)
-		}
-	}
-
-	private getLegendBorderWidth(isSelected: boolean, hasBanner: boolean) {
-		if (isSelected) {
-			return "0"
-		}
-
-		const topBorderWidth = hasBanner ? "0" : "2px"
-		if (styles.isMobileLayout()) {
-			return `${topBorderWidth} 0 1px 1px`
-		} else {
-			return `${topBorderWidth} 2px 1px 1px`
-		}
-	}
-
-	private getLegendBorderRadius(hasBanner: boolean) {
-		const topRightRadius = hasBanner ? "0" : px(size.border_radius_large)
-		if (styles.isMobileLayout()) {
-			return `0 0 0 0`
-		} else {
-			return `0 ${topRightRadius} 0 0`
-		}
-	}
-
-	private getRevoBorderWidth(isSelected: boolean, hasBanner: boolean) {
-		if (isSelected) {
-			return "0"
-		}
-
-		const topBorderWidth = hasBanner ? "0" : "2px"
-		if (styles.isMobileLayout()) {
-			return `${topBorderWidth} 1px 1px 0`
-		} else {
-			return `${topBorderWidth} 1px 1px 2px`
-		}
-	}
-
-	private getRevoBorderRadius(hasBanner: boolean) {
-		const topLeftRadius = hasBanner ? "0" : px(size.border_radius_large)
-		if (styles.isMobileLayout()) {
-			return `0 0 0 0`
-		} else {
-			return `${topLeftRadius} 0 0 0`
 		}
 	}
 }

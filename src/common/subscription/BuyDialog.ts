@@ -8,7 +8,7 @@ import { formatDate } from "../misc/Formatter.js"
 import type { PriceData, PriceServiceReturn } from "../api/entities/sys/TypeRefs.js"
 import { AccountingInfoTypeRef, PriceItemData } from "../api/entities/sys/TypeRefs.js"
 import { NotAuthorizedError } from "../api/common/error/RestError.js"
-import { asPaymentInterval, formatPrice, getPriceItem, PaymentInterval } from "./PriceUtils.js"
+import { asPaymentInterval, formatPrice, getPriceItem, PaymentInterval } from "./utils/PriceUtils.js"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "../api/common/Env.js"
@@ -35,7 +35,12 @@ export async function showBuyDialog(params: BookingParams): Promise<boolean> {
 	const priceChangeModel = await showProgressDialog("pleaseWait_msg", prepareDialog(params))
 	if (priceChangeModel) {
 		return showDialog(priceChangeModel.getActionLabel(), () =>
-			m(ConfirmSubscriptionView, { priceChangeModel, count: params.count, freeAmount: params.freeAmount, bookingText: params.bookingText }),
+			m(ConfirmSubscriptionView, {
+				priceChangeModel,
+				count: params.count,
+				freeAmount: params.freeAmount,
+				bookingText: params.bookingText,
+			}),
 		)
 	} else {
 		return false

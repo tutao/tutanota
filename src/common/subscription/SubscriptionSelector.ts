@@ -5,7 +5,7 @@ import type { BuyOptionBoxAttr, BuyOptionDetailsAttr } from "./BuyOptionBox"
 import { BOX_MARGIN, BuyOptionBox, BuyOptionDetails, getActiveSubscriptionActionButtonReplacement } from "./BuyOptionBox"
 import type { SegmentControlItem } from "../gui/base/SegmentControl"
 import { SegmentControl } from "../gui/base/SegmentControl"
-import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider, PriceType } from "./PriceUtils"
+import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider, PriceType } from "./utils/PriceUtils"
 import {
 	FeatureCategory,
 	FeatureListItem,

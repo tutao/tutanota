@@ -1,7 +1,7 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog } from "../gui/base/Dialog"
 import { lang, MaybeTranslation, type TranslationKey } from "../misc/LanguageViewModel"
-import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./PriceUtils"
+import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
 import { createSwitchAccountTypePostIn } from "../api/entities/sys/TypeRefs.js"
 import { AccountType, Const, PaymentMethodType } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"

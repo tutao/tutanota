@@ -2,17 +2,18 @@ import m, { Children, Component, Vnode } from "mithril"
 import { px, size } from "../../gui/size"
 import { PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
 import { Theme, theme } from "../../gui/theme"
-import { PriceAndConfigProvider } from "../PriceUtils"
+import { PriceAndConfigProvider } from "../utils/PriceUtils"
 import { TranslationKeyType } from "../../misc/TranslationKey"
 import { Icons } from "../../gui/base/icons/Icons"
 import { ReplacementKey } from "../FeatureListProvider"
 import { Icon, IconSize } from "../../gui/base/Icon"
 import { lang } from "../../misc/LanguageViewModel"
 import { getFeaturePlaceholderReplacement } from "../SubscriptionUtils"
-import { PlanConfig } from "./BusinessPlanBoxes"
+import { PlanConfig } from "./BusinessPlanContainer"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { styles } from "../../gui/styles"
 import { boxShadowHigh } from "../../gui/main-styles"
+import { CurrentPlanLabel } from "./CurrentPlanLabel"
 
 type BusinessPlanBoxAttrs = {
 	planConfig: PlanConfig
@@ -158,13 +159,21 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 							),
 						]),
 					]),
-					m(`div.no-wrap${styles.isMobileLayout() ? ".right" : ".center"}`, [
-						m("div.lh-s", [
-							referencePrice ? m("span.strike.mr-s.smaller", { style: { color: localTheme.on_surface_variant } }, referencePrice) : null,
-							m("span.h1", price),
-						]),
-						m("div.small", { style: { color: localTheme.on_surface_variant } }, lang.get("pricing.perUserMonth_label")),
-					]),
+					m(
+						".flex.justify-center.items-center",
+						{ style: { minHeight: px(50) } },
+						isDisabled
+							? m(CurrentPlanLabel)
+							: m(`div.no-wrap${styles.isMobileLayout() ? ".right" : ".center"}`, [
+									m("div.lh-s", [
+										referencePrice
+											? m("span.strike.mr-s.smaller", { style: { color: localTheme.on_surface_variant } }, referencePrice)
+											: null,
+										m("span.h1", price),
+									]),
+									m("div.small", { style: { color: localTheme.on_surface_variant } }, lang.get("pricing.perUserMonth_label")),
+								]),
+					),
 				]),
 
 				m("hr", {

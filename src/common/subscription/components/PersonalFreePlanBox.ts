@@ -2,54 +2,56 @@ import m, { Component, Vnode } from "mithril"
 import { px, size } from "../../gui/size"
 import { lang } from "../../misc/LanguageViewModel"
 import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType } from "../../api/common/TutanotaConstants"
-import { PriceAndConfigProvider } from "../PriceUtils"
+import { PriceAndConfigProvider } from "../utils/PriceUtils"
 import { theme } from "../../gui/theme.js"
 import { ReplacementKey } from "../FeatureListProvider.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
-import { getBlueTheme, planBoxColors } from "../PlanBoxColors.js"
 import { styles } from "../../gui/styles.js"
 import { getFeaturePlaceholderReplacement } from "../SubscriptionUtils.js"
 import { CurrentPlanLabel } from "./CurrentPlanLabel.js"
+import { Callback } from "@tutao/tutanota-utils"
+import { boxShadowHigh } from "../../gui/main-styles"
+import { getBorderRadius, getBorderWidth } from "../utils/PlanSelectorUtils"
 
 type FreePlanBoxAttrs = {
+	availablePlans: readonly PlanType[]
 	isSelected: boolean
 	isDisabled: boolean
 	isCurrentPlan: boolean
-	select: VoidFunction
+	onclick: Callback<PlanType>
 	priceAndConfigProvider: PriceAndConfigProvider
 	hasCampaign: boolean
 }
 
-export class FreePlanBox implements Component<FreePlanBoxAttrs> {
-	view({ attrs: { isSelected, isDisabled, isCurrentPlan, select, priceAndConfigProvider, hasCampaign } }: Vnode<FreePlanBoxAttrs>) {
+export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
+	view({ attrs: { availablePlans, isSelected, isDisabled, isCurrentPlan, onclick, priceAndConfigProvider, hasCampaign } }: Vnode<FreePlanBoxAttrs>) {
 		const scale = isSelected && !styles.isMobileLayout() ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
 		const renderFeature = this.generateRenderFeature(priceAndConfigProvider, isSelected, isDisabled, hasCampaign)
-		// Only for Go European campaign, this should be removed after the campaign.
-		const localTheme = hasCampaign ? getBlueTheme() : theme
 
 		return m(
 			`.buyOptionBox-v2${isSelected ? ".selected" : ""}${isDisabled ? "" : ".cursor-pointer"}`,
 			{
 				style: {
-					"background-color": isSelected ? localTheme.surface_container_high : localTheme.surface,
-					color: localTheme.on_surface,
+					"background-color": isSelected ? theme.surface_container_high : theme.surface,
+					opacity: isDisabled ? 0.6 : 1,
+					color: theme.on_surface,
 					display: "flex",
 					"z-index": isSelected ? "1" : "initial",
 					scale,
 					"flex-direction": "column",
 					width: "100%",
 					"transform-origin": "bottom",
-					...(isSelected && { "box-shadow": planBoxColors.getBoxShadow() }),
-					"border-width": this.getBorderWidth({ isSelected }),
-					"border-radius": this.getBorderRadius(),
+					"box-shadow": isSelected ? boxShadowHigh : "none",
+					"border-width": getBorderWidth(isSelected, hasCampaign, "bottom", availablePlans),
+					"border-radius": getBorderRadius(hasCampaign, "bottom", availablePlans),
 					"border-style": "solid",
-					"border-color": isSelected ? "transparent" : localTheme.outline_variant,
+					"border-color": isSelected ? "transparent" : theme.outline_variant,
 					padding: "24px 16px",
 					"pointer-events": isDisabled ? "none" : "initial",
 				},
-				onclick: () => !isDisabled && select(),
+				onclick: () => !isDisabled && onclick(PlanType.Free),
 			},
 			[
 				m(
@@ -62,7 +64,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 							{
 								style: {
 									"font-size": px(styles.isMobileLayout() ? 18 : 20),
-									color: isSelected ? localTheme.primary : localTheme.on_surface,
+									color: isSelected ? theme.primary : theme.on_surface,
 								},
 							},
 							"Free",
@@ -74,7 +76,7 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 							name: "BuyOptionBox",
 							checked: isSelected,
 							style: {
-								"accent-color": localTheme.on_primary_container,
+								"accent-color": theme.on_primary_container,
 							},
 						}),
 				),
@@ -125,26 +127,6 @@ export class FreePlanBox implements Component<FreePlanBoxAttrs> {
 					m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, PlanType.Free, provider))),
 				],
 			)
-		}
-	}
-
-	private getBorderWidth({ isSelected }: { isSelected: boolean }) {
-		if (isSelected) {
-			return "0"
-		}
-
-		if (styles.isMobileLayout()) {
-			return "1px 0 2px 0"
-		} else {
-			return "1px 2px 2px 2px"
-		}
-	}
-
-	private getBorderRadius() {
-		if (styles.isMobileLayout()) {
-			return "0 0 0 0"
-		} else {
-			return `0 0 ${px(size.border_radius_large)} ${px(size.border_radius_large)}`
 		}
 	}
 }
