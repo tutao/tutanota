@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../../common/gui/size"
+import { layout_size, px, size } from "../../common/gui/size"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { PositionRect } from "../../common/gui/base/Overlay"
@@ -125,7 +125,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			"form.full-width",
 			{
 				style: {
-					maxWidth: styles.isUsingBottomNavigation() ? "" : px(size.second_col_max_width + 50),
+					maxWidth: styles.isUsingBottomNavigation() ? "" : px(layout_size.second_col_max_width + 50),
 				},
 				onsubmit: (e: SubmitEvent) => {
 					e.stopPropagation()

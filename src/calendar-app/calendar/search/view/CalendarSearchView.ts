@@ -10,7 +10,7 @@ import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEven
 import m, { Children, Vnode } from "mithril"
 import { NavButton } from "../../../../common/gui/base/NavButton.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
-import { size } from "../../../../common/gui/size.js"
+import { layout_size, size } from "../../../../common/gui/size.js"
 import { lang, type MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../../common/gui/BackgroundColumnLayout.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -112,8 +112,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width,
-				maxWidth: size.second_col_max_width,
+				minWidth: layout_size.second_col_min_width,
+				maxWidth: layout_size.second_col_max_width,
 				headerCenter: "searchResult_label",
 			},
 		)
@@ -123,8 +123,8 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.third_col_min_width,
-				maxWidth: size.third_col_max_width,
+				minWidth: layout_size.third_col_min_width,
+				maxWidth: layout_size.third_col_max_width,
 			},
 		)
 		this.viewSlider = new ViewSlider([this.resultListColumn, this.resultDetailsColumn], false)

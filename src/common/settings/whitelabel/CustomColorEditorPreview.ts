@@ -1,5 +1,5 @@
 import m, { Children, Component } from "mithril"
-import { component_size, px, size } from "../../gui/size"
+import { component_size, layout_size, px, size } from "../../gui/size"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { createMail, createMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { MailRow } from "../../../mail-app/mail/view/MailRow"
@@ -123,7 +123,7 @@ export class CustomColorEditorPreview implements Component {
 			".rel",
 			{
 				style: {
-					width: px(size.second_col_max_width),
+					width: px(layout_size.second_col_max_width),
 					height: px(component_size.list_row_height * 2),
 				},
 			},

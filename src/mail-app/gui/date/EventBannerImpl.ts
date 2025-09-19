@@ -19,7 +19,7 @@ import {
 import { Time } from "../../../common/calendar/date/Time"
 import { isLightTheme, theme } from "../../../common/gui/theme"
 import { styles } from "../../../common/gui/styles"
-import { px, size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../common/gui/size"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
@@ -136,7 +136,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 						}
 					: {
 							"grid-template-columns": recipientIsOrganizer ? "min-content max-content" : "min-content min-content 1fr",
-							"max-width": recipientIsOrganizer ? "max-content" : px(size.two_column_layout_width),
+							"max-width": recipientIsOrganizer ? "max-content" : px(layout_size.two_column_layout_width),
 							"border-color": theme.surface_container_high,
 						},
 			},

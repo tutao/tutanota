@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
-import { px, size } from "../../../common/gui/size"
+import { layout_size, px, size } from "../../../common/gui/size"
 import { EventTextTimeOption, Keys, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import {
 	CalendarDay,
@@ -398,14 +398,14 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 		const weekHeight = this.getHeightForWeek()
 
-		const eventHeight = size.calendar_line_height + spaceBetweenEvents() // height + border
+		const eventHeight = layout_size.calendar_line_height + spaceBetweenEvents() // height + border
 
 		const maxEventsPerDay = (weekHeight - dayHeight()) / eventHeight
 		const numberOfEventsPerDayToRender = Math.floor(maxEventsPerDay) - 1 // preserve some space for the more events indicator
 
 		/** initially, we have 0 extra, non-rendered events on each day of the week */
 		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
-		const eventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
+		const eventMargin = styles.isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
 		const firstDayOfNextWeek = getStartOfNextDayWithZone(lastDayOfWeek.date, zone)
 		return layOutEvents(
 			Array.from(events),
@@ -538,10 +538,10 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		calendarDayHeight: number,
 		columnIndex: number,
 	): SimplePosRect {
-		const top = (size.calendar_line_height + spaceBetweenEvents()) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
+		const top = (layout_size.calendar_line_height + spaceBetweenEvents()) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
 		const dayOfStartDateInWeek = getDiffIn24IntervalsFast(eventStart, firstDayOfWeek)
 		const dayOfEndDateInWeek = getDiffIn24IntervalsFast(eventEnd, firstDayOfWeek)
-		const calendarEventMargin = styles.isDesktopLayout() ? size.calendar_event_margin : size.calendar_event_margin_mobile
+		const calendarEventMargin = styles.isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
 		const left = (eventStart < firstDayOfWeek ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
 		const right = (eventEnd >= firstDayOfNextWeek ? 0 : (6 - dayOfEndDateInWeek) * calendarDayWidth) + calendarEventMargin
 		return {
