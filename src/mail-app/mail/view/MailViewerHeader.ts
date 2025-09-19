@@ -97,7 +97,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			return null
 		}
 
-		const margin = px(size.vpad_xsm)
+		const margin = px(size.spacing_4)
 		return m(
 			".flex.mb-xs.flex-wrap",
 			{

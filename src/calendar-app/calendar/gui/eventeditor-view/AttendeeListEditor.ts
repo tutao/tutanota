@@ -84,7 +84,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			guestItems.push(() => this.renderGuest(ownGuest, attrs))
 		}
 
-		const verticalPadding = guestItems.length > 0 ? size.vpad_small : 0
+		const verticalPadding = guestItems.length > 0 ? size.spacing_8 : 0
 
 		return guestItems.length === 0
 			? m(
@@ -92,9 +92,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 					{
 						classes: ["min-h-s flex flex-column gap-vpad-s"],
 						style: {
-							padding: `${px(verticalPadding)} ${px(guestItems.length === 0 ? size.vpad_small : 0)} ${px(size.vpad_small)} ${px(
-								verticalPadding,
-							)}`,
+							padding: `${px(verticalPadding)} ${px(guestItems.length === 0 ? size.spacing_8 : 0)} ${px(size.spacing_8)} ${px(verticalPadding)}`,
 						},
 					},
 					m(".flex.items-center.justify-center.min-h-s", [
@@ -307,7 +305,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		let rightContent: Children = null
 
 		if (isMe) {
-			rightContent = m("", { style: { paddingRight: px(size.vpad_small) } }, this.renderAttendeeStatus(model.editModels.whoModel, guest))
+			rightContent = m("", { style: { paddingRight: px(size.spacing_8) } }, this.renderAttendeeStatus(model.editModels.whoModel, guest))
 		} else if (whoModel.canModifyGuests) {
 			rightContent = m(IconButton, {
 				title: "remove_action",
@@ -320,13 +318,13 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			Card,
 			{
 				style: {
-					padding: `${px(size.vpad_small)} ${px(0)} ${px(size.vpad_small)} ${px(size.vpad_small)}`,
+					padding: `${px(size.spacing_8)} ${px(0)} ${px(size.spacing_8)} ${px(size.spacing_8)}`,
 				},
 			},
 			m(".flex.flex-column.items-center", [
 				m(".flex.items-center.flex-grow.full-width", [
 					m(".flex.flex-column.flex-grow.min-width-0", [
-						m(".small", { style: { lineHeight: px(size.vpad_small) } }, guestStatusAndRole),
+						m(".small", { style: { lineHeight: px(size.spacing_8) } }, guestStatusAndRole),
 						m(".text-ellipsis", name.length > 0 ? `${name} ${address}` : address),
 					]),
 					rightContent,
@@ -338,7 +336,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 								{
 									style: {
 										// FIXME: Replace with size.spacing token (before this was icon_size_medium_large)
-										padding: `0 0 ${px(size.vpad_xsm)} ${px(size.vpad_small + 20)}`,
+										padding: `0 0 ${px(size.spacing_4)} ${px(size.spacing_8 + 20)}`,
 									},
 								},
 								m(Divider, {
@@ -362,7 +360,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 					".flex.flex-column.full-width",
 					{
 						style: {
-							paddingLeft: px(size.hpad_medium + size.vpad_small),
+							paddingLeft: px(size.spacing_24 + size.spacing_8),
 							paddingRight: px((component_size.button_height - component_size.button_height_compact) / 2),
 						},
 					},

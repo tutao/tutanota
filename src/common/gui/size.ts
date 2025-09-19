@@ -31,6 +31,9 @@ export const size = {
 	get spacing_8() {
 		return this.core_8
 	},
+	get spacing_12() {
+		return this.core_8 + this.base_4
+	},
 	get spacing_16() {
 		return this.core_16
 	},
@@ -84,26 +87,24 @@ export const size = {
 		return this.core_16
 	},
 
-	// FIXME: update to "spacing_<px>" tokens
-	hpad_small: 5,
-	hpad: 10,
-	hpad_medium: 20,
-	hpad_large: 20,
-	hpad_large_mobile: 6,
-	hpad_button: 6,
-	hpad_nav_button: 9,
-	// 6 + 9 = 15px
-	vpad_unit: 1,
-	vpad_xxs: 2,
-	vpad_xs: 3,
-	vpad_xsm: 4,
-	vpad: 16,
-	vpad_small: 8,
-	vpad_ml: 25,
-	vpad_large: 32,
-	vpad_xl: 48,
-	vpad_xxl: 64,
-	text_bubble_tpad: 20,
+	// TODO: Update classes that were using the old size tokens
+	// hpad_small: 5,  -> spacing_4
+	// hpad: 10,  -> spacing_12
+	// hpad_medium: 20,  -> spacing_24
+	// hpad_large: 20, -> spacing_24
+	// hpad_large_mobile: 6, -> spacing_8
+	// hpad_button: 6, -> spacing_8
+	// hpad_nav_button: 9, -> spacing_8
+	// vpad_xxs: 2, -> spacing_4
+	// vpad_xs: 3,  -> spacing_4
+	// vpad_xsm: 4, -> spacing_4
+	// vpad: 16, -> spacing_16
+	// vpad_small: 8, -> spacing_16
+	// vpad_ml: 25, -> spacing_24
+	// vpad_large: 32, -> spacing_32
+	// vpad_xl: 48, -> spacing_48
+	// vpad_xxl: 64, -> spacing_64
+	// text_bubble_tpad: 20, -> spacing_64
 
 	font_size_base: 16,
 	font_size_smaller: 14,
@@ -191,7 +192,7 @@ export const component_size = {
 	checkbox_size: 14,
 	checkbox_border_size: 2,
 	get checkbox_helper_text_margin(): number {
-		return this.checkbox_size + this.checkbox_border_size + size.hpad_small
+		return this.checkbox_size + this.checkbox_border_size + size.spacing_4
 	},
 }
 

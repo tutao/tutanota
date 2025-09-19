@@ -123,7 +123,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		}
 
 		if (isFirstMonthForFree) {
-			return wrapInDiv(lang.get("firstMonthForFree_msg"), { marginTop: px(size.vpad), marginBottom: px(size.vpad) })
+			return wrapInDiv(lang.get("firstMonthForFree_msg"), { marginTop: px(size.spacing_16), marginBottom: px(size.spacing_16) })
 		}
 
 		if (isCampaign && !isBusiness && (isIOSApp() ? priceAndConfigProvider.getIosIntroOfferEligibility() : true)) {

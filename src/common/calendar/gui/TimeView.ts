@@ -113,8 +113,13 @@ export class TimeView implements Component<TimeViewAttributes> {
 				dates.map((date) => {
 					// Events Columns
 					return m(
-						".grid.plr-unit.gap.z1.grid-auto-columns.rel",
+						".grid.z1.grid-auto-columns.rel",
 						{
+							style: {
+								"padding-right": px(1),
+								"padding-left": px(1),
+								gap: px(1),
+							},
 							oncreate(vnode): any {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 							},

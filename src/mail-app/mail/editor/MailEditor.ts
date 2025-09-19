@@ -396,7 +396,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const quoteIndicator = document.createElement("div")
 		quoteIndicator.style.borderLeft = `2px solid ${theme.outline}`
 		quoteIndicator.style.paddingLeft = "2px"
-		quoteIndicator.style.marginTop = px(size.vpad)
+		quoteIndicator.style.marginTop = px(size.spacing_16)
 
 		m.render(
 			quoteIndicator,

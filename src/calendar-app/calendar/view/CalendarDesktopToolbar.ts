@@ -22,7 +22,7 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 			{
 				style: {
 					marginLeft: `5px`,
-					marginBottom: px(size.hpad_large),
+					marginBottom: px(size.spacing_16),
 				},
 			},
 			[

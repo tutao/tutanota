@@ -164,7 +164,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 								class: this.isTabletView() ? "border-radius-top-left-big" : "",
 								style: this.isTabletView()
 									? {
-											"margin-top": px(component_size.navbar_height_mobile + size.vpad_small),
+											"margin-top": px(component_size.navbar_height_mobile + size.spacing_8),
 										}
 									: {},
 							},
@@ -205,7 +205,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			".pb.pt-l.flex-no-shrink.flex.col.justify-end.items-center.gap-vpad",
 			{
 				style: {
-					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.vpad),
+					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.spacing_16),
 				},
 			},
 			[

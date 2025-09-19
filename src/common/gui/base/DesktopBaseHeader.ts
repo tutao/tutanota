@@ -27,7 +27,7 @@ export class DesktopBaseHeader implements ClassComponent<DesktopBaseHeaderAttrs>
 			{
 				...landmarkAttrs(AriaLandmarks.Banner, "Tuta logo"),
 				style: {
-					"padding-left": px(sizes.drawer_menu_width + size.hpad + size.hpad_button),
+					"padding-left": px(sizes.drawer_menu_width + size.spacing_12 + size.spacing_8),
 					width: px(width),
 				},
 			},
