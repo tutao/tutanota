@@ -5,6 +5,8 @@ import * as tf from "@tensorflow/tfjs"
 import { assertNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
+import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
+import { DATE_PATTERN, DATE_PATTERN_TOKEN, EMAIL_ADDR_PATTERN, EMAIL_ADDR_PATTERN_TOKEN, URL_PATTERN, URL_PATTERN_TOKEN } from "./customTokenPattern"
 
 assertWorkerOrNode()
 
@@ -109,6 +111,16 @@ export class SpamClassifier {
 		console.log(`### Finished Training ### Total size: ${data.length}`)
 	}
 
+	public preprocessMailForClassification(subjectAndBody: string): string {
+		let sanitizedMail = htmlToText(subjectAndBody)
+		// Replace Text with patterns
+		sanitizedMail = sanitizedMail.replace(DATE_PATTERN, DATE_PATTERN_TOKEN)
+		sanitizedMail = sanitizedMail.replace(EMAIL_ADDR_PATTERN, EMAIL_ADDR_PATTERN_TOKEN)
+		sanitizedMail = sanitizedMail.replace(URL_PATTERN, URL_PATTERN_TOKEN)
+
+		return sanitizedMail
+	}
+
 	public async predict(subjectAndBody: string): Promise<boolean> {
 		if (!this.isEnabled) {
 			throw new Error("SpamClassifier is not enabled yet")
@@ -117,7 +129,8 @@ export class SpamClassifier {
 			return false
 		}
 
-		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(subjectAndBody)
+		const sanitizedMail = this.preprocessMailForClassification(subjectAndBody)
+		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(sanitizedMail)
 		// const vectors = this.dynamicTfVectorizer.transform([tokenizedMail])
 		const vectors = await assertNotNull(this.vectorizer).transform([tokenizedMail])
 
