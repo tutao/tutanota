@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import type { MaybeTranslation } from "../../../common/misc/LanguageViewModel"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { inputLineHeight, px } from "../../../common/gui/size"
+import { font_size, px } from "../../../common/gui/size"
 import { keyboardEventToKeyPress, keyHandler } from "../../../common/misc/KeyManager"
 import { theme } from "../../../common/gui/theme"
 import { assertNotNull } from "@tutao/tutanota-utils"
@@ -48,7 +48,7 @@ export class TemplateSearchBar implements ClassComponent<TemplateSearchBarAttrs>
 				a.oninput?.(domInput.value, domInput)
 			},
 			style: {
-				lineHeight: px(inputLineHeight),
+				lineHeight: px(font_size.line_height_input),
 			},
 		})
 	}
