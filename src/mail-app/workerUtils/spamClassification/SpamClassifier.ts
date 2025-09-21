@@ -7,6 +7,7 @@ import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
 import { DATE_PATTERN, DATE_PATTERN_TOKEN, EMAIL_ADDR_PATTERN, EMAIL_ADDR_PATTERN_TOKEN, URL_PATTERN, URL_PATTERN_TOKEN } from "./customTokenPattern"
+import { MailWithDetailsAndAttachments } from "../index/MailIndexerBackend"
 
 assertWorkerOrNode()
 
@@ -31,7 +32,7 @@ export class SpamClassifier {
 		private readonly vectorizer: DynamicTfVectorizer | HashingVectorizer = new DynamicTfVectorizer(new Set()),
 	) {}
 
-	public async initialize() {
+	public async initialize(mailLoader: InitialMailLoader) {
 		await this.loadModel()
 
 		if (!this.classifier) {
@@ -269,4 +270,8 @@ export class SpamClassifier {
 			this.classifier = null
 		}
 	}
+}
+
+export interface InitialMailLoader {
+	(): Promise<Array<MailWithDetailsAndAttachments>>
 }

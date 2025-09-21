@@ -20,7 +20,7 @@ import {
 	isOfflineStorageAvailable,
 	isTest,
 } from "../../../common/api/common/Env.js"
-import { Const, FeatureType } from "../../../common/api/common/TutanotaConstants.js"
+import { Const, FeatureType, getMailSetKind, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
@@ -96,7 +96,14 @@ import type { Indexer } from "../index/Indexer"
 import type { SearchFacade } from "../index/SearchFacade"
 import type { ContactIndexer } from "../index/ContactIndexer"
 import { CustomCacheHandlerMap } from "../../../common/api/worker/rest/cacheHandler/CustomCacheHandler"
-import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import {
+	CalendarEventTypeRef,
+	ContactTypeRef,
+	MailboxGroupRootTypeRef,
+	MailBoxTypeRef,
+	MailFolderTypeRef,
+	MailTypeRef,
+} from "../../../common/api/entities/tutanota/TypeRefs"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomUserCacheHandler"
 import { CustomCalendarEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomCalendarEventCacheHandler"
 import { CustomMailEventCacheHandler } from "../../../common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
@@ -113,8 +120,12 @@ import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKe
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
-import { SpamClassifier } from "../spamClassification/SpamClassifier"
+import { InitialMailLoader, SpamClassifier } from "../spamClassification/SpamClassifier"
 import { SpamClassificationDefinitions } from "../index/OfflineStoragePersistence"
+import { MailWithDetailsAndAttachments } from "../index/MailIndexerBackend"
+import { filterMailMemberships } from "../../../common/api/worker/search/IndexUtils"
+import { INITIAL_MAIL_INDEX_INTERVAL_DAYS } from "../index/MailIndexer"
+import { isSameId, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 
 assertWorkerOrNode()
 
@@ -605,8 +616,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
 				console.log("initIndexer and spam classifier after log in")
-				fullLoginIndexerInit(worker)
-				await initializeSpamClassificationTrainingIfEnabled(locator.spamClassifier)
+				const indexingDone = fullLoginIndexerInit(worker)
+
+				await initializeSpamClassificationTrainingIfEnabled(indexingDone, locator.spamClassifier)
 			}
 
 			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
@@ -877,13 +889,51 @@ export function isWebAssemblySupported() {
 	return typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"
 }
 
-async function initializeSpamClassificationTrainingIfEnabled(spamClassifier: SpamClassifier) {
-	//should we load mails here? How many?
+async function initializeSpamClassificationTrainingIfEnabled(indexingDone: Promise<void>, spamClassifier: SpamClassifier) {
+	// populate the spam classification data with the last 28 days of mails if they are
+	// available in the current mail bag
+	const mailLoader: InitialMailLoader = async (): Promise<Array<MailWithDetailsAndAttachments>> => {
+		await indexingDone
+		const mailFacade = await locator.mail()
+		const entityClient = locator.cachingEntityClient
+		const user = assertNotNull(locator.user.getUser())
+		const memberships = filterMailMemberships(user)
+		for (let mailGroupMembership of memberships) {
+			const mailGroupId = mailGroupMembership.group
+			const mailboxGroupRoot = await entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
+			const mailbox = await entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+			// assertNotNull(mailbox.folders).folders
+			const mailSets = await entityClient.loadAll(MailFolderTypeRef, assertNotNull(mailbox.folders).folders)
+			const spamFolder = mailSets.find((s) => getMailSetKind(s) === MailSetKind.SPAM)!
+			const inboxFolder = mailSets.find((s) => getMailSetKind(s) === MailSetKind.INBOX)!
+			const mailList = assertNotNull(mailbox.currentMailBag).mails
+			const dateProvider = new LocalTimeDateProvider()
+			const startTime = dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
+			const start = timestampToGeneratedId(startTime)
+			const mails = await entityClient.loadAll(MailTypeRef, mailList, start)
+			console.log(">>>>>>>>>>>", mails)
+			// unread inbox == not certain
+			// read == certain
+			// otherFolders == certain
+			for (const mail of mails) {
+				const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
+				const isCertain = !mail.unread || !mail.sets.some((folderId) => isSameId(folderId, inboxFolder._id))
+				if (mail.sets) {
+					// TODO populate spam_classification table
+					// invoke the initial mail loader from spamclassifier if needed
+				}
+			}
+		}
+		return []
+	}
+	await mailLoader()
+	console.log("DONE")
+
 	const customerFacade = await locator.customer()
 	await customerFacade.loadCustomizations()
 	if (isOfflineStorageAvailable() && (await customerFacade.isEnabled(FeatureType.SpamClientClassification))) {
 		try {
-			spamClassifier.initialize()
+			spamClassifier.initialize(mailLoader)
 		} catch (e) {
 			console.log("failed to initialize spam classifier", e)
 		}
