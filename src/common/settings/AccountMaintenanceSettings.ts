@@ -188,7 +188,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 					)
 				: null,
 			m(
-				".mb-l",
+				".mb-32",
 				m(
 					SettingsExpander,
 					{

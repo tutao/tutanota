@@ -43,7 +43,7 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 				},
 			}),
 			m(
-				".flex-center.full-width.pt-l.mb-l",
+				".flex-center.full-width.pt-l.mb-32",
 				m(LoginButton, {
 					label: "next_action",
 					class: "small-login-button",

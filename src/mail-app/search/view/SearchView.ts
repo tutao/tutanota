@@ -912,7 +912,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private renderEventDetails(selectedEvent: CalendarEvent): Children {
 		return m(
-			".height-100p.overflow-y-scroll.mb-l.fill-absolute.pb-l",
+			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-l",
 			m(
 				".border-radius-big.flex.col.flex-grow.content-bg",
 				{
