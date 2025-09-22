@@ -214,7 +214,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 							m(Checkbox, confirmAgeCheckBoxAttrs),
 						],
 				m(
-					".mt-32.mb-l",
+					".mt-32.mb-32",
 					m(LoginButton, {
 						label: "next_action",
 						onclick: submit,

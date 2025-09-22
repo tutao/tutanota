@@ -29,7 +29,7 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 					this.enableSync(attrs)
 				},
 				isContactSyncEnabled,
-				"mb-l",
+				"mb-32",
 			),
 			m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 		]
