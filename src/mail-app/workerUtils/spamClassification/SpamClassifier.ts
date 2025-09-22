@@ -80,23 +80,23 @@ export class SpamClassifier {
 			}
 
 			console.log(`Retraining model with ${newTrainingData.length} new samples (lastModified > ${new Date(cutoffTimestamp).toString()})`)
-			const batchDocuments: string[] = []
+			const mailBatch: string[] = []
 			for (let i = 0; i < newTrainingData.length; i++) {
-				batchDocuments.push(this.sanitizeModelInput(newTrainingData[i].subject, newTrainingData[i].body))
+				mailBatch.push(this.preprocessMail(this.concatSubjectAndBody(newTrainingData[i].subject, newTrainingData[i].body)))
 			}
 
 			// we have offline storage at this point. see WorkerLocator.initializeSpamClassificationTrainingIfEnabled
-			const tokenizedBatchDocuments = await promiseMap(batchDocuments, (d) => assertNotNull(this.offlineStorage).tokenize(d))
-			//const vectors = this.dynamicTfVectorizer.refitTransform(tokenizedBatchDocuments)
-			const vectors = await this.vectorizer.transform(tokenizedBatchDocuments)
+			const tokenizedMailBatch = await promiseMap(mailBatch, (d) => assertNotNull(this.offlineStorage).tokenize(d))
+			//const vectors = this.dynamicTfVectorizer.refitTransform(tokenizedMailBatch)
+			const vectors = await this.vectorizer.transform(tokenizedMailBatch)
 			if (vectors == null) {
 				// todo drop and retrain the entire model from scratch!
 				return false
 			} else {
-				//const vectors = this.hashingVectorizer.transform(tokenizedBatchDocuments)
+				//const vectors = this.hashingVectorizer.transform(tokenizedMailBatch)
 				const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
 				//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
-				const ys = tf.tensor1d(newTrainingData.map((d: SpamClassificationRow) => (d.isSpam ? 1 : 0)))
+				const ys = tf.tensor1d(newTrainingData.map((mail: SpamClassificationRow) => (mail.isSpam ? 1 : 0)))
 
 				await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32 })
 
@@ -110,22 +110,22 @@ export class SpamClassifier {
 	}
 
 	// visibleForTesting
-	public async initialTraining(data: SpamClassificationRow[]): Promise<void> {
-		const documents = data.map((d) => this.sanitizeModelInput(d.subject, d.body))
-		const tokenizedDocuments = await promiseMap(documents, (d) => assertNotNull(this.offlineStorage).tokenize(d))
+	public async initialTraining(mails: SpamClassificationRow[]): Promise<void> {
+		const preprocessedMails = mails.map((mail) => this.preprocessMail(this.concatSubjectAndBody(mail.subject, mail.body)))
+		const tokenizedMails = await promiseMap(preprocessedMails, (d) => assertNotNull(this.offlineStorage).tokenize(d))
 
 		if (this.vectorizer instanceof DynamicTfVectorizer) {
-			this.vectorizer.buildInitialTokenVocabulary(tokenizedDocuments)
+			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)
 		}
-		const vectors = await this.vectorizer.transform(tokenizedDocuments)
+		const vectors = await this.vectorizer.transform(tokenizedMails)
 
 		const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
-		const ys = tf.tensor1d(data.map((d) => (d.isSpam ? 1 : 0)))
+		const ys = tf.tensor1d(mails.map((d) => (d.isSpam ? 1 : 0)))
 
 		this.classifier = this.buildModel(xs.shape[1]) // our vocabulary length
 		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: false })
 
-		console.log(`### Finished Training ### Total size: ${data.length}`)
+		console.log(`### Finished Training ### Total size: ${mails.length}`)
 	}
 
 	public preprocessMail(subjectAndBody: string): string {
@@ -169,8 +169,8 @@ export class SpamClassifier {
 			return false
 		}
 
-		const sanitizedMail = this.preprocessMail(subjectAndBody)
-		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(sanitizedMail)
+		const preprocessedMail = this.preprocessMail(subjectAndBody)
+		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(preprocessedMail)
 		// const vectors = this.dynamicTfVectorizer.transform([tokenizedMail])
 		const vectors = await assertNotNull(this.vectorizer).transform([tokenizedMail])
 
@@ -224,7 +224,7 @@ export class SpamClassifier {
 		})
 	}
 
-	private sanitizeModelInput(subject: string | null | undefined, body: string | null | undefined) {
+	private concatSubjectAndBody(subject: string | null | undefined, body: string | null | undefined) {
 		const s = subject || ""
 		const b = body || ""
 		const text = `${s} ${b}`.trim()
