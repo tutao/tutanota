@@ -134,6 +134,7 @@ struct WidgetModel {
 				}
 		}
 
+		normalEvents.forEach { key, value in normalEvents[key] = value.sorted { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 } }
 		return (normalEvents, longEvents)
 	}
 
