@@ -23,11 +23,11 @@ export const CREDIT_CARD_REGEX = /\b(\d\s?){4}\b|\b[0-9]\d{13,16}\b/g
 
 export const CREDIT_CARD_TOKEN = "<CREDIT-CARD>"
 
-export const NUMBER_SEQUENCE_REGEX = /\b\d*\b/g
+export const NUMBER_SEQUENCE_REGEX = /\b\d+\b/g
 
 export const NUMBER_SEQUENCE_TOKEN = "<NUMBER>"
 
-export const SPECIAL_CHARACTER_REGEX = /\b[!@#$%^&*()-+`_=\\{}[]"';:?\/<>,.~]*\b/g
+export const SPECIAL_CHARACTER_REGEX = /\b[!@#$%^&*()-+`_=\\{}[]"';?\/,.~]+\b/g
 export const SPECIAL_CHARACTER_TOKEN = ""
 
 export const UNREADABLE_SEQUENCE_REGEX = /[^aeiouyAEIOUY0-9\\W_\\-\\.h]{5}/g

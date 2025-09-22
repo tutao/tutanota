@@ -5,7 +5,7 @@ import { SpamClassificationRow, SpamClassifier } from "../../../../../../src/mai
 import { tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { arrayHashUnsigned, assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { htmlToText } from "../../../../../../src/common/api/worker/search/IndexUtils"
 
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/extracted_mails.csv"
@@ -37,6 +37,31 @@ export async function readMailData(filePath: string): Promise<{
 	return { spamData, hamData }
 }
 
+function shuffleArray(
+	data: SpamClassificationRow[],
+	testRatio: number,
+): {
+	trainSet: SpamClassificationRow[]
+	testSet: SpamClassificationRow[]
+} {
+	data = data.sort((a, b) => {
+		return arrayHashUnsigned(stringToUtf8Uint8Array(a.subject + a.body)) - arrayHashUnsigned(stringToUtf8Uint8Array(b.subject + b.body))
+	})
+
+	const trainIndicesArray: SpamClassificationRow[] = []
+	const testIndicesArray: SpamClassificationRow[] = []
+	for (let i = 0; i < data.length; i++) {
+		const iMod = i % 10
+		if (iMod < testRatio * 10) {
+			testIndicesArray.push(data[i])
+		} else {
+			trainIndicesArray.push(data[i])
+		}
+	}
+
+	return { trainSet: trainIndicesArray, testSet: testIndicesArray }
+}
+
 // Initial training (cutoff by day or amount)
 o.spec("SpamClassifier", () => {
 	o("Test Classification on external mail data", async () => {
@@ -46,8 +71,8 @@ o.spec("SpamClassifier", () => {
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 
-		const hamCount = 4000
-		const spamCount = 1000
+		const hamCount = 1000
+		const spamCount = 500
 
 		const hamSlice = hamData.slice(0, hamCount)
 		const spamSlice = spamData.slice(0, spamCount)
@@ -63,7 +88,7 @@ o.spec("SpamClassifier", () => {
 		const trainSet = dataSlice.slice(0, trainTestSplit)
 		const testSet = dataSlice.slice(trainTestSplit)
 
-		const classifier = new SpamClassifier(mockOfflineStorage, true)
+		const classifier = new SpamClassifier(mockOfflineStorage, true, true, true)
 		classifier.isEnabled = true
 
 		let start = Date.now()

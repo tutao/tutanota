@@ -33,7 +33,11 @@ export class DynamicTfVectorizer {
 	private tokenVocabulary: Set<string>
 
 	public buildInitialTokenVocabulary(initialTokenizedMails: ReadonlyArray<ReadonlyArray<string>>) {
+		console.log(initialTokenizedMails)
+
 		const allTokenFrequencies = initialTokenizedMails.reduce((_, tokenizedMail) => this.getTokenFrequency(tokenizedMail), new Map<string, number>())
+
+		console.log(allTokenFrequencies)
 
 		const mostCommonTokens = Array.from(allTokenFrequencies.entries())
 			.sort((a, b) => b[1] - a[1])
@@ -42,7 +46,10 @@ export class DynamicTfVectorizer {
 		const lowestIncludedFrequency = mostCommonTokens[mostCommonTokens.length - 1][1]
 		const excludedTokenVocabularyCount = allTokenFrequencies.size - mostCommonTokens.length
 
+		console.log(mostCommonTokens)
+
 		this.tokenVocabulary = new Set(mostCommonTokens.map(([token, _frequency]) => token))
+		console.log(this.tokenVocabulary)
 		this.stats = { lowestIncludedFrequency, excludedTokenVocabularyCount }
 	}
 

@@ -13,17 +13,11 @@ import {
 	DATE_PATTERN_TOKEN,
 	DATE_REGEX,
 	EMAIL_ADDR_PATTERN_TOKEN,
-	NUMBER_SEQUENCE_REGEX,
-	NUMBER_SEQUENCE_TOKEN,
-	SPECIAL_CHARACTER_REGEX,
-	SPECIAL_CHARACTER_TOKEN,
-	UNREADABLE_SEQUENCE_REGEX,
-	UNREADABLE_SEQUENCE_TOKEN,
 	URL_PATTERN_TOKEN,
 } from "./PreprocessPatterns"
-import { MailWithDetailsAndAttachments } from "../index/MailIndexerBackend"
 import { DOMAIN_REGEX, EMAIL_ADDR_REGEX } from "../../../common/misc/FormatValidator"
 import { random } from "@tutao/tutanota-crypto"
+import {MailWithDetailsAndAttachments} from "../index/MailIndexerBackend";
 
 assertWorkerOrNode()
 
@@ -42,11 +36,13 @@ export type SpamClassificationModel = {
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
 	public isEnabled: boolean = false
-	private vectorizer: DynamicTfVectorizer | HashingVectorizer = new HashingVectorizer()
+    private vectorizer: DynamicTfVectorizer | HashingVectorizer = new HashingVectorizer()
 
-	constructor(
+    constructor(
 		private readonly offlineStorage: OfflineStoragePersistence | null,
-		private readonly deterministic: boolean = false,
+		private readonly isPreprocessMails: boolean = true,
+		private readonly isRemoveHTML: boolean = true,
+        private readonly deterministic: boolean = false
 	) {
 	}
 
@@ -65,15 +61,76 @@ export class SpamClassifier {
 		}
 	}
 
+	public preprocessMail(subjectAndBody: string): string {
+		if (!this.isPreprocessMails) {
+			return subjectAndBody
+		}
+
+		let preprocessedMail = subjectAndBody
+
+		// 1. Remove HTML code
+		if (this.isRemoveHTML) {
+			preprocessedMail = htmlToText(preprocessedMail)
+		}
+
+		// 2. Replace dates
+		for (const datePattern of DATE_REGEX) {
+			preprocessedMail = preprocessedMail.replaceAll(datePattern, DATE_PATTERN_TOKEN)
+		}
+
+		// 3. Replace urls
+		preprocessedMail = preprocessedMail.replaceAll(DOMAIN_REGEX, URL_PATTERN_TOKEN)
+
+		// 4. Replace email addresses
+		preprocessedMail = preprocessedMail.replaceAll(EMAIL_ADDR_REGEX, EMAIL_ADDR_PATTERN_TOKEN)
+
+		// 5. Replace Bitcoin addresses
+		preprocessedMail = preprocessedMail.replaceAll(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)
+
+		// 6. Replace credit card numbers
+		preprocessedMail = preprocessedMail.replaceAll(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)
+
+		// // 7. Replace remaining numbers
+		// preprocessedMail = preprocessedMail.replaceAll(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
+
+		// // 8. Remove special characters
+		// preprocessedMail = preprocessedMail.replaceAll(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
+
+		// // 9. Replace unreadable expressions
+		// preprocessedMail = preprocessedMail.replaceAll(UNREADABLE_SEQUENCE_REGEX, UNREADABLE_SEQUENCE_TOKEN)
+
+		return preprocessedMail
+	}
+
+	public async initialTraining(mails: SpamClassificationRow[]): Promise<void> {
+		const preprocessedMails = mails.map((mail) => {
+			return this.preprocessMail(this.concatSubjectAndBody(mail.subject, mail.body))
+		})
+		const tokenizedMails = await promiseMap(preprocessedMails, (d) => assertNotNull(this.offlineStorage).tokenize(d))
+
+		if (this.vectorizer instanceof DynamicTfVectorizer) {
+			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)
+		}
+		const vectors = await this.vectorizer.transform(tokenizedMails)
+
+		const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
+		const ys = tf.tensor1d(mails.map((d) => (d.isSpam ? 1 : 0)))
+
+		this.classifier = this.buildModel(xs.shape[1]) // our vocabulary length
+		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: false })
+
+		console.log(`### Finished Training ### Total size: ${mails.length}`)
+	}
+
 	public async updateModel(cutoffTimestamp: number, testRatio = 0.2): Promise<boolean> {
 		try {
-			if (!this.isEnabled) {
-				console.warn("Client spam classification is not enabled or there were errors during training")
-				return false
-			} else if (!this.vectorizer) {
-				console.warn("No vectorizer found. Make sure you call initialTraining first")
-				return false
-			}
+			// if (!this.isEnabled) {
+			// 	console.warn("Client spam classification is not enabled or there were errors during training")
+			// 	return false
+			// } else if (!this.vectorizer) {
+			// 	console.warn("No vectorizer found. Make sure you call initialTraining first")
+			// 	return false
+			// }
 
 			const newTrainingData = await assertNotNull(this.offlineStorage).getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
 			if (newTrainingData.length === 0) {
@@ -112,64 +169,13 @@ export class SpamClassifier {
 	}
 
 	// visibleForTesting
-	public async initialTraining(mails: SpamClassificationRow[]): Promise<void> {
-		const preprocessedMails = mails.map((mail) => this.preprocessMail(this.concatSubjectAndBody(mail.subject, mail.body)))
-		const tokenizedMails = await promiseMap(preprocessedMails, (d) => assertNotNull(this.offlineStorage).tokenize(d))
-
-		if (this.vectorizer instanceof DynamicTfVectorizer) {
-			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)
-		}
-		const vectors = await this.vectorizer.transform(tokenizedMails)
-
-		const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
-		const ys = tf.tensor1d(mails.map((d) => (d.isSpam ? 1 : 0)))
-
-		this.classifier = this.buildModel(xs.shape[1]) // our vocabulary length
-		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: false })
-
-		console.log(`### Finished Training ### Total size: ${mails.length}`)
-	}
-
-	public preprocessMail(subjectAndBody: string): string {
-		// 1. Remove HTML code
-		let strippedSubjectAndBody = htmlToText(subjectAndBody)
-
-		// 2. Replace dates
-		for (const datePattern of DATE_REGEX) {
-			strippedSubjectAndBody = strippedSubjectAndBody.replace(datePattern, DATE_PATTERN_TOKEN)
-		}
-
-		// 3. Replace urls
-		strippedSubjectAndBody = strippedSubjectAndBody.replace(DOMAIN_REGEX, URL_PATTERN_TOKEN)
-
-		// 4. Replace email addresses
-		strippedSubjectAndBody = strippedSubjectAndBody.replace(EMAIL_ADDR_REGEX, EMAIL_ADDR_PATTERN_TOKEN)
-
-		// 5. Replace Bitcoin addresses
-		strippedSubjectAndBody = strippedSubjectAndBody.replace(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)
-
-		// 6. Replace credit card numbers
-		strippedSubjectAndBody = strippedSubjectAndBody.replace(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)
-
-		// 9. Replace remaining numbers
-		strippedSubjectAndBody = strippedSubjectAndBody.replace(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
-
-		// 10. Remove special characters
-		strippedSubjectAndBody = strippedSubjectAndBody.replace(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
-
-		// 11. Replace unreadable expressions
-		strippedSubjectAndBody = strippedSubjectAndBody.replace(UNREADABLE_SEQUENCE_REGEX, UNREADABLE_SEQUENCE_TOKEN)
-
-		return strippedSubjectAndBody
-	}
-
 	public async predict(subjectAndBody: string): Promise<boolean> {
-		if (!this.isEnabled) {
-			throw new Error("SpamClassifier is not enabled yet")
-		} else if (!this.vectorizer) {
-			console.error("Vectorizer not found.")
-			return false
-		}
+		// if (!this.isEnabled) {
+		// 	throw new Error("SpamClassifier is not enabled yet")
+		// } else if (!this.vectorizer) {
+		// 	console.error("Vectorizer not found.")
+		// 	return false
+		// }
 
 		const preprocessedMail = this.preprocessMail(subjectAndBody)
 		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(preprocessedMail)
