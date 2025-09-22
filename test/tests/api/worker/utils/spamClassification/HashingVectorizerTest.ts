@@ -1,24 +1,16 @@
 import o from "@tutao/otest"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
-import { arrayEquals, arrayHashUnsigned, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { arrayEquals, arrayHashUnsigned } from "@tutao/tutanota-utils"
 import fs from "node:fs"
-import { readMailData } from "./SpamClassifierTest"
-import { sha256Hash } from "@tutao/tutanota-crypto"
+import { DATASET_FILE_PATH, readMailData } from "./SpamClassifierTest"
+import * as crypto from "node:crypto"
 
 export const tokenize = (text: string): string[] =>
 	text
 		.toLowerCase()
 		.split(/\s+/)
-		.map((t) => t.replace(/[^a-z0-9-]/gi, "")) // remove punctuation
+		.map((t) => t.replace(/[^a-z0-9]/gi, "")) // remove punctuation
 		.filter((t) => t.length > 1)
-
-async function getAllTextFromDataset(datasetFilePath: string) {
-	const file = await fs.promises.readFile(datasetFilePath)
-	const entireFile = file.toString()
-	return entireFile
-}
-
-import * as crypto from "node:crypto"
 
 o.spec("HashingVectorizer", () => {
 	const rawDocuments = [
@@ -76,8 +68,7 @@ o.spec("HashingVectorizer", () => {
 			return 1
 		}
 
-		const datasetFilePath = "/home/kib/spam_ham_dataset.csv"
-		const { hamData, spamData } = await readMailData(datasetFilePath)
+		const { hamData, spamData } = await readMailData(DATASET_FILE_PATH)
 		const allText = hamData
 			.concat(spamData)
 			.map((r) => [r.subject, r.body].join(" "))
@@ -85,6 +76,7 @@ o.spec("HashingVectorizer", () => {
 
 		const tokens = tokenize(allText)
 		const uniqueTokens = new Set(tokens)
+		fs.writeFileSync("unique-tokens.txt", new Array(...uniqueTokens.values()).sort().join("\n"))
 		console.log(`Number of unique tokens: ${uniqueTokens.size}. Un-unique: ${tokens.length}`)
 
 		{
