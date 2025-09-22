@@ -6,8 +6,24 @@ import { assertNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
-import { DATE_PATTERN, DATE_PATTERN_TOKEN, EMAIL_ADDR_PATTERN, EMAIL_ADDR_PATTERN_TOKEN, URL_PATTERN, URL_PATTERN_TOKEN } from "./customTokenPattern"
+import {
+	BITCOIN_PATTERN_TOKEN,
+	BITCOIN_REGEX,
+	CREDIT_CARD_REGEX,
+	CREDIT_CARD_TOKEN,
+	DATE_PATTERN_TOKEN,
+	DATE_REGEX,
+	EMAIL_ADDR_PATTERN_TOKEN,
+	NUMBER_SEQUENCE_REGEX,
+	NUMBER_SEQUENCE_TOKEN,
+	SPECIAL_CHARACTER_REGEX,
+	SPECIAL_CHARACTER_TOKEN,
+	UNREADABLE_SEQUENCE_REGEX,
+	UNREADABLE_SEQUENCE_TOKEN,
+	URL_PATTERN_TOKEN,
+} from "./PreprocessPatterns"
 import { MailWithDetailsAndAttachments } from "../index/MailIndexerBackend"
+import { DOMAIN_REGEX, EMAIL_ADDR_REGEX } from "../../../common/misc/FormatValidator"
 
 assertWorkerOrNode()
 
@@ -112,14 +128,37 @@ export class SpamClassifier {
 		console.log(`### Finished Training ### Total size: ${data.length}`)
 	}
 
-	public preprocessMailForClassification(subjectAndBody: string): string {
-		let sanitizedMail = htmlToText(subjectAndBody)
-		// Replace Text with patterns
-		sanitizedMail = sanitizedMail.replace(DATE_PATTERN, DATE_PATTERN_TOKEN)
-		sanitizedMail = sanitizedMail.replace(EMAIL_ADDR_PATTERN, EMAIL_ADDR_PATTERN_TOKEN)
-		sanitizedMail = sanitizedMail.replace(URL_PATTERN, URL_PATTERN_TOKEN)
+	public preprocessMail(subjectAndBody: string): string {
+		// 1. Remove HTML code
+		let strippedSubjectAndBody = htmlToText(subjectAndBody)
 
-		return sanitizedMail
+		// 2. Replace dates
+		for (const datePattern of DATE_REGEX) {
+			strippedSubjectAndBody = strippedSubjectAndBody.replace(datePattern, DATE_PATTERN_TOKEN)
+		}
+
+		// 3. Replace urls
+		strippedSubjectAndBody = strippedSubjectAndBody.replace(DOMAIN_REGEX, URL_PATTERN_TOKEN)
+
+		// 4. Replace email addresses
+		strippedSubjectAndBody = strippedSubjectAndBody.replace(EMAIL_ADDR_REGEX, EMAIL_ADDR_PATTERN_TOKEN)
+
+		// 5. Replace Bitcoin addresses
+		strippedSubjectAndBody = strippedSubjectAndBody.replace(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)
+
+		// 6. Replace credit card numbers
+		strippedSubjectAndBody = strippedSubjectAndBody.replace(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)
+
+		// 9. Replace remaining numbers
+		strippedSubjectAndBody = strippedSubjectAndBody.replace(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
+
+		// 10. Remove special characters
+		strippedSubjectAndBody = strippedSubjectAndBody.replace(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
+
+		// 11. Replace unreadable expressions
+		strippedSubjectAndBody = strippedSubjectAndBody.replace(UNREADABLE_SEQUENCE_REGEX, UNREADABLE_SEQUENCE_TOKEN)
+
+		return strippedSubjectAndBody
 	}
 
 	public async predict(subjectAndBody: string): Promise<boolean> {
@@ -130,7 +169,7 @@ export class SpamClassifier {
 			return false
 		}
 
-		const sanitizedMail = this.preprocessMailForClassification(subjectAndBody)
+		const sanitizedMail = this.preprocessMail(subjectAndBody)
 		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(sanitizedMail)
 		// const vectors = this.dynamicTfVectorizer.transform([tokenizedMail])
 		const vectors = await assertNotNull(this.vectorizer).transform([tokenizedMail])
