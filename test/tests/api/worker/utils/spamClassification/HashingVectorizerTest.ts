@@ -1,9 +1,6 @@
 import o from "@tutao/otest"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
-import { arrayEquals, arrayHashUnsigned } from "@tutao/tutanota-utils"
-import fs from "node:fs"
-import { DATASET_FILE_PATH, readMailData } from "./SpamClassifierTest"
-import * as crypto from "node:crypto"
+import { arrayEquals } from "@tutao/tutanota-utils"
 
 export const tokenize = (text: string): string[] =>
 	text
@@ -53,62 +50,6 @@ o.spec("HashingVectorizer", () => {
 		o(tensor.length).equals(tokenizedDocuments.length)
 		for (const vec of tensor) {
 			o(vec.length).equals(vectorizer.dimension)
-		}
-	})
-
-	o("verify hash collisions of different dimensions", async () => {
-		const dimension = 7500
-		const sha3NumberMapper = (inp) => {
-			const shaHash = crypto.createHash("sha256").update(inp).digest("hex")
-			const shaNum = BigInt(`0x${shaHash.slice(0, 32)}`)
-			const modulus = shaNum % BigInt(dimension)
-			return Number(modulus)
-		}
-		const sameIndexHasher = (_) => {
-			return 1
-		}
-
-		const { hamData, spamData } = await readMailData(DATASET_FILE_PATH)
-		const allText = hamData
-			.concat(spamData)
-			.map((r) => [r.subject, r.body].join(" "))
-			.join(" ")
-
-		const tokens = tokenize(allText)
-		const uniqueTokens = new Set(tokens)
-		fs.writeFileSync("unique-tokens.txt", new Array(...uniqueTokens.values()).sort().join("\n"))
-		console.log(`Number of unique tokens: ${uniqueTokens.size}. Un-unique: ${tokens.length}`)
-
-		{
-			const vectorizer = new HashingVectorizer(dimension, arrayHashUnsigned)
-			const resultForCustomHash = vectorizer.verifyCollisions(tokens)
-			console.log(
-				`[Our hash]
-			Total indexes used: ${resultForCustomHash.indexCountWithAtLeastOneToken}
-			Average of collision: ${resultForCustomHash.collisionAverage}
-			Standard deviation: ${resultForCustomHash.standard_deviation}`,
-			)
-		}
-
-		{
-			const sha3Vectorizer = new HashingVectorizer(dimension, sha3NumberMapper)
-			const resultForSha3Hash = sha3Vectorizer.verifyCollisions(tokens)
-			console.log(
-				`[Sha3 hash]
-			Total indexes used: ${resultForSha3Hash.indexCountWithAtLeastOneToken}
-			Average of collision: ${resultForSha3Hash.collisionAverage}
-			Standard deviation: ${resultForSha3Hash.standard_deviation}`,
-			)
-		}
-		{
-			const sameIndexVectorizer = new HashingVectorizer(dimension, sameIndexHasher)
-			const resultForRandomHash = sameIndexVectorizer.verifyCollisions(tokens)
-			console.log(
-				`[Same hash]
-			Total indexes used: ${resultForRandomHash.indexCountWithAtLeastOneToken}
-			Average of collision: ${resultForRandomHash.collisionAverage}
-			Standard deviation: ${resultForRandomHash.standard_deviation}`,
-			)
 		}
 	})
 })

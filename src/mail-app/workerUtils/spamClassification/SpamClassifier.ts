@@ -1,7 +1,6 @@
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
-//import * as tf from "@tensorflow/tfjs-node"
 import { assertNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
@@ -24,6 +23,7 @@ import {
 } from "./PreprocessPatterns"
 import { MailWithDetailsAndAttachments } from "../index/MailIndexerBackend"
 import { DOMAIN_REGEX, EMAIL_ADDR_REGEX } from "../../../common/misc/FormatValidator"
+import { random } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -42,11 +42,13 @@ export type SpamClassificationModel = {
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
 	public isEnabled: boolean = false
+	private vectorizer: DynamicTfVectorizer | HashingVectorizer = new HashingVectorizer()
 
 	constructor(
 		private readonly offlineStorage: OfflineStoragePersistence | null,
-		private readonly vectorizer: DynamicTfVectorizer | HashingVectorizer = new DynamicTfVectorizer(new Set()),
-	) {}
+		private readonly deterministic: boolean = false,
+	) {
+	}
 
 	public async initialize(mailLoader: InitialMailLoader) {
 		await this.loadModel()
@@ -180,6 +182,8 @@ export class SpamClassifier {
 		return pred > 0.5
 	}
 
+	// TODO:
+	// Move to SpamClassifierTest.ts after beta stage
 	public async test(data: SpamClassificationRow[]): Promise<void> {
 		if (!this.classifier) {
 			throw new Error("Model not loaded")
@@ -240,17 +244,20 @@ export class SpamClassifier {
 				inputShape: [inputDim],
 				units: 128,
 				activation: "relu",
-				kernelInitializer: tf.initializers.glorotUniform({ seed: 42 }),
-				biasInitializer: tf.initializers.zeros(),
+				kernelInitializer: tf.initializers.glorotUniform({ seed: this.deterministic ? 42 : random.generateRandomNumber(4) }),
 			}),
 		)
-		model.add(tf.layers.dropout({ rate: 0.2, seed: 42 }))
+		model.add(
+			tf.layers.dropout({
+				rate: 0.2,
+				seed: this.deterministic ? 42 : random.generateRandomNumber(4),
+			}),
+		)
 		model.add(
 			tf.layers.dense({
 				units: 1,
 				activation: "sigmoid",
-				kernelInitializer: tf.initializers.glorotUniform({ seed: 42 }),
-				biasInitializer: tf.initializers.zeros(),
+				kernelInitializer: tf.initializers.glorotUniform({ seed: this.deterministic ? 42 : random.generateRandomNumber(4) }),
 			}),
 		)
 		model.compile({ optimizer: "adam", loss: "binaryCrossentropy", metrics: ["accuracy"] })

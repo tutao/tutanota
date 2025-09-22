@@ -6,8 +6,6 @@ import { tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import * as tf from "@tensorflow/tfjs"
-import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { htmlToText } from "../../../../../../src/common/api/worker/search/IndexUtils"
 
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/extracted_mails.csv"
@@ -41,9 +39,6 @@ export async function readMailData(filePath: string): Promise<{
 
 // Initial training (cutoff by day or amount)
 o.spec("SpamClassifier", () => {
-	// const vectorizer = new DynamicTfVectorizer(new Set())
-	const vectorizer = new HashingVectorizer()
-
 	o("Test Classification on external mail data", async () => {
 		o.timeout(20_000_000)
 
@@ -63,20 +58,13 @@ o.spec("SpamClassifier", () => {
 		}
 
 		const dataSlice = hamSlice.concat(spamSlice)
-		tf.util.shuffle(dataSlice)
+		seededShuffle(dataSlice, 33)
 		const trainTestSplit = dataSlice.length * 0.8
 		const trainSet = dataSlice.slice(0, trainTestSplit)
 		const testSet = dataSlice.slice(trainTestSplit)
 
-		// const { trainSet: hamTrainSet, testSet: hamTestSet } = shuffleArray(hamSlice, 0.2)
-		// const { trainSet: spamTrainSet, testSet: spamTestSet } = shuffleArray(spamSlice, 0.2)
-		//
-		// let trainSet = hamTrainSet.concat(spamTrainSet)
-		// let testSet = hamTestSet.concat(spamTestSet)
-		// const { trainSet } = shuffleArray(data, 0.2)
-		// const { testSet } = shuffleArray(spamData.concat(hamData), 0.4)
-
-		const classifier = new SpamClassifier(mockOfflineStorage, vectorizer)
+		const classifier = new SpamClassifier(mockOfflineStorage, true)
+		classifier.isEnabled = true
 
 		let start = Date.now()
 		await classifier.initialTraining(trainSet)
@@ -104,7 +92,7 @@ o.spec("SpamClassifier", () => {
 		}
 
 		const dataSlice = hamSlice.concat(spamSlice)
-		tf.util.shuffle(dataSlice)
+		seededShuffle(dataSlice, 42)
 		const trainTestSplit = dataSlice.length * 0.8
 		const trainSet = dataSlice.slice(0, trainTestSplit)
 		const testSet = dataSlice.slice(trainTestSplit)
@@ -112,7 +100,7 @@ o.spec("SpamClassifier", () => {
 		const trainSetHalf = trainSet.slice(0, trainSet.length / 2)
 		const trainSetSecondHalf = trainSet.slice(trainSet.length / 2, trainSet.length)
 
-		const classifierAll = new SpamClassifier(mockOfflineStorage, vectorizer)
+		const classifierAll = new SpamClassifier(mockOfflineStorage, true)
 		let start = Date.now()
 		await classifierAll.initialTraining(trainSet)
 		console.log(`trained in ${Date.now() - start}ms`)
@@ -125,7 +113,7 @@ o.spec("SpamClassifier", () => {
 		mockOfflineStorage.getSpamClassificationTrainingDataAfterCutoff = async (cutoff) => {
 			return trainSetSecondHalf
 		}
-		const classifierBySteps = new SpamClassifier(mockOfflineStorage, vectorizer)
+		const classifierBySteps = new SpamClassifier(mockOfflineStorage, true)
 		start = Date.now()
 		await classifierBySteps.initialTraining(trainSetHalf)
 		await classifierBySteps.updateModel(0)
@@ -136,7 +124,7 @@ o.spec("SpamClassifier", () => {
 		await classifierBySteps.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 
-		const classiOnlySecondHalf = new SpamClassifier(mockOfflineStorage, vectorizer)
+		const classiOnlySecondHalf = new SpamClassifier(mockOfflineStorage, true)
 		start = Date.now()
 		await classiOnlySecondHalf.initialTraining(trainSetSecondHalf)
 		console.log(`trained in ${Date.now() - start}ms`)
@@ -147,3 +135,26 @@ o.spec("SpamClassifier", () => {
 		console.log(`tested in ${Date.now() - start}ms`)
 	})
 })
+
+// For testing, we need deterministic shuffling which is not provided by tf.util.shuffle(dataSlice)
+// Seeded Fisher-Yates shuffle
+function seededShuffle<T>(array: T[], seed: number): void {
+	const random = seededRandom(seed)
+	for (let i = array.length - 1; i > 0; i--) {
+		const j = Math.floor(random() * (i + 1))
+		;[array[i], array[j]] = [array[j], array[i]]
+	}
+}
+
+function seededRandom(seed: number): () => number {
+	const m = 0x80000000 // 2^31
+	const a = 1103515245
+	const c = 12345
+
+	let state = seed
+
+	return function (): number {
+		state = (a * state + c) % m
+		return state / m
+	}
+}
