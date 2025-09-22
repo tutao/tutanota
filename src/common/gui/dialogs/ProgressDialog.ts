@@ -32,7 +32,7 @@ export async function showProgressDialog<T>(
 				headerBarAttrs
 					? m(DialogHeaderBar, {
 							...headerBarAttrs,
-							class: "mb-l mt-negative-l mr-negative-l ml-negative-l",
+							class: "mb-32 mt-negative-l mr-negative-l ml-negative-l",
 						})
 					: null,
 				m(

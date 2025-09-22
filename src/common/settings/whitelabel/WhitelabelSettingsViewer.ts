@@ -104,7 +104,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						this._renderImprintAndPrivacySettings(),
 						this._renderDefaultGermanLanguageFileSettings(),
 						this._renderWhitelabelRegistrationSettings(),
-						m(".mb-l"),
+						m(".mb-32"),
 					]
 				: [m(".flex-center.items-center.button-height.mt-32", progressIcon())],
 		)

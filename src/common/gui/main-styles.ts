@@ -363,13 +363,13 @@ styles.registerStyle("main", () => {
 		".mb-xsm-15": {
 			"margin-bottom": px(size.spacing_4 * 1.5),
 		},
-		".mb-l": {
+		".mb-32": {
 			"margin-bottom": px(size.spacing_32),
 		},
-		".mb-xl": {
+		".mb-48": {
 			"margin-bottom": px(size.spacing_48),
 		},
-		".mb-xxl": {
+		".mb-64": {
 			"margin-bottom": px(size.spacing_64),
 		},
 		".mlr-8": {
