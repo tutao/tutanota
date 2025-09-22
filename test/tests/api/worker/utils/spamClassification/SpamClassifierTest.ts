@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import fs from "node:fs"
 import { parseCsv } from "../../../../../../src/common/misc/parsing/CsvParser"
 import { SpamClassificationRow, SpamClassifier } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
-import { tokenize as testTokenize } from "./HashingVectorizerTest"
+import { tokenize, tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
 import { arrayHashUnsigned, assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
@@ -159,7 +159,81 @@ o.spec("SpamClassifier", () => {
 		await classiOnlySecondHalf.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 	})
+
+	o("tokenize ai", async () => {
+		const { spamData, hamData } = await readMailData(DATASET_FILE_PATH)
+		const all = hamData.concat(spamData)
+
+		const mockOfflineStorage = object() as OfflineStoragePersistence
+		const classifier = new SpamClassifier(mockOfflineStorage, true)
+
+		const vocab = buildVocab(
+			all.map((m) => tokenize(m.body)),
+			5,
+		)
+		const tokenized = Array.from(new Set(all.map((m) => tokenize(cleanEmailBody(m.body))).reduce((previous, current) => previous.concat(current), [])))
+		const shrinked = Array.from(new Set(replaceWithPlaceholders(tokenized, vocab)))
+		fs.writeFileSync("/tmp/unique-tokens", shrinked.sort().join("\n"))
+		console.log(tokenized.length)
+		console.log(shrinked.length)
+		// const vectorizer = new HashingVectorizer()
+		// const tensor = await vectorizer.transform(tokenized)
+	})
 })
+
+export function cleanEmailBody(text: string): string {
+	// 1. Lowercase
+	let cleaned = text.toLowerCase()
+
+	// 2. Remove common headers / separators
+	cleaned = cleaned.replace(/^(from|to|subject|cc|bcc):.*$/gim, "")
+	cleaned = cleaned.replace(/-{2,}.*original message.*-{2,}/gims, "")
+
+	// 3. Replace emails / URLs
+	cleaned = cleaned.replace(/\b\S+@\S+\b/g, " <EMAIL> ")
+	cleaned = cleaned.replace(/https?:\/\/\S+|www\.\S+/g, " <URL> ")
+
+	// 4. Replace numbers and long IDs
+	cleaned = cleaned.replace(/\b\d{4,}\b/g, " <NUM> ") // long numbers
+	cleaned = cleaned.replace(/\b[0-9a-f]{8,}\b/g, " <HEX> ") // hex-like strings
+
+	// 5. Remove non-alphabetic chars except special tokens
+	cleaned = cleaned.replace(/[^a-z\s<>]/g, " ")
+
+	// 6. Normalize whitespace
+	cleaned = cleaned.replace(/\s+/g, " ").trim()
+
+	return cleaned
+}
+
+export function buildVocab(tokenizedDocs: string[][], minFreq: number = 5): Set<string> {
+	const freqMap = new Map<string, number>()
+
+	// Count frequencies
+	for (const doc of tokenizedDocs) {
+		for (const token of doc) {
+			freqMap.set(token, (freqMap.get(token) ?? 0) + 1)
+		}
+	}
+
+	// Filter by minFreq
+	const vocab = new Set<string>()
+	for (const [token, freq] of freqMap.entries()) {
+		if (freq >= minFreq) {
+			vocab.add(token)
+		}
+	}
+
+	// Add special tokens
+	vocab.add("<UNK>") // unknown token
+	vocab.add("<PAD>") // padding (if needed)
+
+	return vocab
+}
+
+export function replaceWithPlaceholders(tokens: string[], vocab: Set<string>, placeholder: string = "<UNK>"): string[] {
+	return tokens.map((token) => (vocab.has(token) ? token : placeholder))
+}
 
 // For testing, we need deterministic shuffling which is not provided by tf.util.shuffle(dataSlice)
 // Seeded Fisher-Yates shuffle
