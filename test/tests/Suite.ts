@@ -221,6 +221,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/SocketeerTest.js")
 		await import("./desktop/config/ConfigFileTest.js")
 		await import("./desktop/config/DesktopConfigTest.js")
+		await import("./desktop/DesktopUtilsTest.js")
 		await import("./desktop/config/migrations/DesktopConfigMigratorTest.js")
 		await import("./desktop/credentials/AppPassHandlerTest.js")
 		await import("./desktop/credentials/DesktopCredentialsStorageTest.js")

@@ -10,7 +10,7 @@ export const DEFAULT_TIMEOUT = 30 * SECOND_MS
 /**
  * Parameters to use for executing commands.
  */
-export interface ProcessParams<STDOUT extends ProcessIOEncoding = ProcessIOEncoding.Utf8, STDERR extends ProcessIOEncoding = ProcessIOEncoding.Utf8> {
+export interface ProcessParams {
 	/**
 	 * Executable/command to run.
 	 */
@@ -27,7 +27,13 @@ export interface ProcessParams<STDOUT extends ProcessIOEncoding = ProcessIOEncod
 	 * By default, the current working directory will be used.
 	 */
 	currentDirectory?: string
+}
 
+/**
+ * Parameters to use for executing commands with standard I/O.
+ */
+export interface RunParams<STDOUT extends ProcessIOEncoding = ProcessIOEncoding.Utf8, STDERR extends ProcessIOEncoding = ProcessIOEncoding.Utf8>
+	extends ProcessParams {
 	/**
 	 * Timeout in milliseconds.
 	 *
@@ -113,13 +119,13 @@ export class CommandExecutor {
 	constructor(private readonly childProcess: ChildProcessExports) {}
 
 	/**
-	 * Run the given command.
+	 * Run the given command, resolving when the command exits.
 	 * @param params params to execute
-	 * @return output from the command
+	 * @return a promise that resolves when the command exits containing standard I/O data
 	 * @throws Error if the command failed to execute
 	 */
 	run<STDOUT extends ProcessIOEncoding = ProcessIOEncoding.Utf8, STDERR extends ProcessIOEncoding = ProcessIOEncoding.Utf8>(
-		params: ProcessParams<STDOUT, STDERR>,
+		params: RunParams<STDOUT, STDERR>,
 	): Promise<CommandOutput<OutputBufferFor<STDOUT>, OutputBufferFor<STDERR>>> {
 		const {
 			executable,
@@ -178,6 +184,23 @@ export class CommandExecutor {
 			})
 		})
 	}
+
+	/**
+	 * Run the given command detached from the process.
+	 *
+	 * This function returns immediately after the process is spawned, and it can continue to run even after the
+	 * caller's process ends.
+	 *
+	 * @param params params to execute
+	 */
+	runDetached(params: ProcessParams): void {
+		const { executable, args, currentDirectory } = params
+		this.childProcess.spawn(executable, args, {
+			cwd: currentDirectory,
+			detached: true,
+			stdio: "ignore",
+		})
+	}
 }
 
 function appendBuffer(toBuffer: OutputBuffer, withData: string | Buffer, encoding: ProcessIOEncoding): OutputBuffer {
@@ -198,7 +221,7 @@ function appendBuffer(toBuffer: OutputBuffer, withData: string | Buffer, encodin
 	}
 }
 
-function setEncodingForReadable(readable: Readable, encoding: ProcessIOEncoding) {
+function setEncodingForReadable(readable: Readable, encoding: ProcessIOEncoding): void {
 	switch (encoding) {
 		case ProcessIOEncoding.Utf8:
 			readable.setEncoding("utf8")

@@ -1,7 +1,6 @@
 import path from "node:path"
 import { spawn } from "node:child_process"
-import type { Rectangle } from "electron"
-import { app, NativeImage } from "electron"
+import type { NativeImage, Rectangle } from "electron"
 import { defer, delay } from "@tutao/tutanota-utils"
 import { log } from "./DesktopLog"
 import { swapFilename } from "./PathUtils"
@@ -12,6 +11,7 @@ import { TempFs } from "./files/TempFs.js"
 import { ElectronExports } from "./ElectronExportTypes.js"
 import { WindowManager } from "./DesktopWindowManager.js"
 import { DesktopNotifier } from "./notifications/DesktopNotifier"
+import { CommandExecutor } from "./CommandExecutor"
 
 export const TUTA_PROTOCOL_NOTIFICATION_ACTION = "notification"
 
@@ -19,11 +19,12 @@ export class DesktopUtils {
 	private mailtoArg: string | null
 
 	constructor(
-		argv: Array<string>,
+		private readonly process: NodeJS.Process,
 		private readonly tfs: TempFs,
 		private readonly electron: ElectronExports,
+		private readonly executor: CommandExecutor,
 	) {
-		this.mailtoArg = findMailToUrlInArgv(process.argv)
+		this.mailtoArg = findMailToUrlInArgv(this.process.argv)
 	}
 
 	/**
@@ -48,41 +49,34 @@ export class DesktopUtils {
 	async registerAsMailtoHandler(): Promise<void> {
 		log.debug("trying to register mailto...")
 
-		switch (process.platform) {
-			case "win32":
-				await this.doRegisterMailtoOnWin32WithCurrentUser()
-				break
-			case "darwin": {
-				const didRegister = this.electron.app.setAsDefaultProtocolClient("mailto")
-				if (!didRegister) {
-					throw new Error("Could not register as mailto handler")
-				}
-				break
+		if (this.isWindows()) {
+			await this.doRegisterMailtoOnWin32WithCurrentUser()
+		} else if (this.isMacOs()) {
+			const didRegister = this.electron.app.setAsDefaultProtocolClient("mailto")
+			if (!didRegister) {
+				throw new Error("Could not register as mailto handler")
 			}
-			case "linux":
-				throw new Error("Registering protocols on Linux does not work")
-			default:
-				throw new Error(`Invalid process.platform: ${process.platform}`)
+		} else if (this.isLinux()) {
+			throw new Error("Registering protocols on Linux does not work")
+		} else {
+			throw new Error(`Unsupported process.platform for mailto: ${this.process.platform}`)
 		}
 	}
 
 	async unregisterAsMailtoHandler(): Promise<void> {
 		log.debug("trying to unregister mailto...")
-		switch (process.platform) {
-			case "win32":
-				await this.doUnregisterMailtoOnWin32WithCurrentUser()
-				break
-			case "darwin": {
-				const didUnregister = this.electron.app.removeAsDefaultProtocolClient("mailto")
-				if (!didUnregister) {
-					throw new Error("Could not unregister as mailto handler")
-				}
-				break
+
+		if (this.isWindows()) {
+			await this.doUnregisterMailtoOnWin32WithCurrentUser()
+		} else if (this.isMacOs()) {
+			const didUnregister = this.electron.app.removeAsDefaultProtocolClient("mailto")
+			if (!didUnregister) {
+				throw new Error("Could not unregister as mailto handler")
 			}
-			case "linux":
-				throw new Error("Registering protocols on Linux does not work")
-			default:
-				throw new Error(`Invalid process.platform: ${process.platform}`)
+		} else if (this.isLinux()) {
+			throw new Error("Registering protocols on Linux does not work")
+		} else {
+			throw new Error(`Unsupported process.platform for mailto: ${this.process.platform}`)
 		}
 	}
 
@@ -122,12 +116,12 @@ export class DesktopUtils {
 	 */
 	async handleSecondInstance(wm: WindowManager, notifier: DesktopNotifier, args: Array<string>): Promise<void> {
 		if (await this.tfs.singleInstanceLockOverridden()) {
-			app.quit()
+			this.electron.app.quit()
 		} else {
 			if (wm.getAll().length === 0) {
 				await wm.newWindow(true)
 			} else {
-				if (process.platform === "win32") {
+				if (this.isWindows()) {
 					// Prevent statically importing this as we do not want to load the module during tests
 					const { sendDummyKeystroke } = await import("@indutny/simple-windows-notifications")
 
@@ -208,7 +202,7 @@ export class DesktopUtils {
 	}
 
 	async doRegisterMailtoOnWin32WithCurrentUser(): Promise<void> {
-		if (process.platform !== "win32") {
+		if (!this.isWindows()) {
 			throw new ProgrammingError("Not win32")
 		}
 		// any app that wants to use tutanota over MAPI needs to know which dll to load.
@@ -217,7 +211,7 @@ export class DesktopUtils {
 		// * where to log (this depends on the current user -> %USERPROFILE%)
 		// * where to put tmp files (also user-dependent)
 		// all these must be set in the registry
-		const execPath = process.execPath
+		const execPath = this.process.execPath
 		const dllPath = swapFilename(execPath, "mapirs.dll")
 		// we may be a per-machine installation that's used by multiple users, so the dll will replace %USERPROFILE%
 		// with the value of the USERPROFILE env var.
@@ -231,7 +225,7 @@ export class DesktopUtils {
 	}
 
 	async doUnregisterMailtoOnWin32WithCurrentUser(): Promise<void> {
-		if (process.platform !== "win32") {
+		if (!this.isWindows()) {
 			throw new ProgrammingError("Not win32")
 		}
 		this.electron.app.removeAsDefaultProtocolClient("mailto")
@@ -260,6 +254,48 @@ export class DesktopUtils {
 			return w.commonNativeFacade.createMailEditor(/* filesUris */ [], /* text */ "", /* addresses */ [], /* subject */ "", /* mailtoURL */ mailToArg)
 		}
 	}
+
+	relaunch() {
+		// we do not want to use
+		const appImage = this.getAppImagePath()
+
+		if (appImage) {
+			// TODO: We should verify the AppImage.
+
+			// electon.app.relaunch doesn't work inside AppImage, so we instead manually execute the appimage
+			this.executor.runDetached({
+				executable: appImage,
+
+				// argv[0] is the path to the executable, argv[1...] are the arguments
+				args: this.process.argv.slice(1),
+			})
+		} else {
+			this.electron.app.relaunch()
+		}
+
+		this.electron.app.quit()
+		this.electron.app.exit(0)
+	}
+
+	private getAppImagePath(): string | null {
+		if (!this.isLinux() || !this.electron.app.isPackaged) {
+			return null
+		} else {
+			return this.process.env.APPIMAGE ?? null
+		}
+	}
+
+	isWindows(): boolean {
+		return this.process.platform === "win32"
+	}
+
+	isMacOs(): boolean {
+		return this.process.platform === "darwin"
+	}
+
+	isLinux(): boolean {
+		return this.process.platform === "linux"
+	}
 }
 
 export function isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectangle): boolean {
@@ -271,6 +307,6 @@ export function isRectContainedInRect(closestRect: Rectangle, lastBounds: Rectan
 	)
 }
 
-function findMailToUrlInArgv(argv: string[]): string | null {
+function findMailToUrlInArgv(argv: readonly string[]): string | null {
 	return argv.find((arg) => arg.startsWith("mailto")) ?? null
 }

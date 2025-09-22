@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
-import { Captor, matchers, object, when } from "testdouble"
-import { CommandExecutor, ProcessIOEncoding, ProcessParams } from "../../../src/common/desktop/CommandExecutor"
+import { Captor, matchers, object, verify, when } from "testdouble"
+import { CommandExecutor, ProcessIOEncoding, RunParams } from "../../../src/common/desktop/CommandExecutor"
 import { ChildProcessExports } from "../../../src/common/desktop/ElectronExportTypes"
 import { ChildProcessWithoutNullStreams } from "node:child_process"
 import { Readable } from "node:stream"
 
 o.spec("CommandExecutor", () => {
-	let facade: CommandExecutor
+	let executor: CommandExecutor
 
 	let childProcessExports: ChildProcessExports
 	let childProcessObject: ChildProcessWithoutNullStreams
@@ -39,12 +39,12 @@ o.spec("CommandExecutor", () => {
 		when(stdout.on("data", onStdoutData.capture())).thenReturn({})
 		when(stderr.on("data", onStderrData.capture())).thenReturn({})
 
-		facade = new CommandExecutor(childProcessExports)
+		executor = new CommandExecutor(childProcessExports)
 	})
 
 	o.spec("run with output", () => {
 		o.test("string data", async () => {
-			const params: ProcessParams = {
+			const params: RunParams = {
 				executable: "some executable",
 				args: ["some", "args"],
 				// this is the default
@@ -60,13 +60,13 @@ o.spec("CommandExecutor", () => {
 				return childProcessObject
 			})
 
-			const result = await facade.run(params)
+			const result = await executor.run(params)
 			o.check(result.stdout).equals("some data\nmore data")
 			o.check(result.stderr).equals("")
 			o.check(result.exitCode).equals(0)
 		})
 		o.test("binary", async () => {
-			const params: ProcessParams<ProcessIOEncoding.Binary> = {
+			const params: RunParams<ProcessIOEncoding.Binary> = {
 				executable: "some executable",
 				args: ["some", "args"],
 				stdoutEncoding: ProcessIOEncoding.Binary,
@@ -81,13 +81,13 @@ o.spec("CommandExecutor", () => {
 				return childProcessObject
 			})
 
-			const result = await facade.run(params)
+			const result = await executor.run(params)
 			o.check(result.stdout).deepEquals(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 			o.check(result.stderr).equals("")
 			o.check(result.exitCode).equals(0)
 		})
 		o.test("ignored", async () => {
-			const params: ProcessParams<ProcessIOEncoding.Ignore> = {
+			const params: RunParams<ProcessIOEncoding.Ignore> = {
 				executable: "some executable",
 				args: ["some", "args"],
 				stdoutEncoding: ProcessIOEncoding.Ignore,
@@ -102,7 +102,7 @@ o.spec("CommandExecutor", () => {
 				return childProcessObject
 			})
 
-			const result = await facade.run(params)
+			const result = await executor.run(params)
 			o.check(result.stdout).deepEquals(null)
 			o.check(result.stderr).equals("")
 			o.check(result.exitCode).equals(0)
@@ -111,7 +111,7 @@ o.spec("CommandExecutor", () => {
 
 	o.spec("run with stderr", () => {
 		o.test("default/string data", async () => {
-			const params: ProcessParams<ProcessIOEncoding.Ignore> = {
+			const params: RunParams<ProcessIOEncoding.Ignore> = {
 				executable: "some executable",
 				args: ["some", "args"],
 				stdoutEncoding: ProcessIOEncoding.Ignore,
@@ -128,13 +128,13 @@ o.spec("CommandExecutor", () => {
 				return childProcessObject
 			})
 
-			const result = await facade.run(params)
+			const result = await executor.run(params)
 			o.check(result.stdout).equals(null)
 			o.check(result.stderr).equals("some data\nmore data")
 			o.check(result.exitCode).equals(0)
 		})
 		o.test("binary", async () => {
-			const params: ProcessParams<ProcessIOEncoding.Ignore, ProcessIOEncoding.Binary> = {
+			const params: RunParams<ProcessIOEncoding.Ignore, ProcessIOEncoding.Binary> = {
 				executable: "some executable",
 				args: ["some", "args"],
 				stdoutEncoding: ProcessIOEncoding.Ignore,
@@ -150,13 +150,13 @@ o.spec("CommandExecutor", () => {
 				return childProcessObject
 			})
 
-			const result = await facade.run(params)
+			const result = await executor.run(params)
 			o.check(result.stdout).equals(null)
 			o.check(result.stderr).deepEquals(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 			o.check(result.exitCode).equals(0)
 		})
 		o.test("ignored", async () => {
-			const params: ProcessParams<ProcessIOEncoding.Ignore, ProcessIOEncoding.Ignore> = {
+			const params: RunParams<ProcessIOEncoding.Ignore, ProcessIOEncoding.Ignore> = {
 				executable: "some executable",
 				args: ["some", "args"],
 				stdoutEncoding: ProcessIOEncoding.Ignore,
@@ -172,7 +172,7 @@ o.spec("CommandExecutor", () => {
 				return childProcessObject
 			})
 
-			const result = await facade.run(params)
+			const result = await executor.run(params)
 			o.check(result.stdout).deepEquals(null)
 			o.check(result.stderr).equals(null)
 			o.check(result.exitCode).equals(0)
@@ -180,7 +180,7 @@ o.spec("CommandExecutor", () => {
 	})
 
 	o.test("returns exit code", async () => {
-		const params: ProcessParams = {
+		const params: RunParams = {
 			executable: "some executable",
 			args: ["some", "args"],
 			stdoutEncoding: ProcessIOEncoding.Utf8,
@@ -193,14 +193,14 @@ o.spec("CommandExecutor", () => {
 			return childProcessObject
 		})
 
-		const result = await facade.run(params)
+		const result = await executor.run(params)
 		o.check(result.stdout).equals("")
 		o.check(result.stderr).equals("")
 		o.check(result.exitCode).equals(123)
 	})
 
 	o.test("error", async () => {
-		const params: ProcessParams = {
+		const params: RunParams = {
 			executable: "some executable",
 			args: ["some", "args"],
 			stdoutEncoding: ProcessIOEncoding.Utf8,
@@ -216,10 +216,26 @@ o.spec("CommandExecutor", () => {
 		})
 
 		try {
-			await facade.run(params)
+			await executor.run(params)
 			throw new Error("should have exceptioned")
 		} catch (e) {
 			o.check(e).equals(someError)
 		}
+	})
+
+	o.test("runDetached", () => {
+		executor.runDetached({
+			executable: "an executable",
+			args: ["some", "args"],
+			currentDirectory: "/some/directory",
+		})
+
+		verify(
+			childProcessExports.spawn("an executable", ["some", "args"], {
+				cwd: "/some/directory",
+				detached: true,
+				stdio: "ignore",
+			}),
+		)
 	})
 })
