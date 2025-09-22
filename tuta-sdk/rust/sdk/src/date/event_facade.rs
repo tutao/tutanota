@@ -463,6 +463,11 @@ impl EventFacade {
 
 				let ev = *expanded_events.get(index).unwrap();
 
+				if ev.as_seconds() < event_start_time.as_seconds() {
+					// Event is in the past, we don't want it
+					continue;
+				}
+
 				if max_date.is_none()
 					|| (max_date.is_some() && ev.as_seconds() < max_date.unwrap().as_seconds())
 				{
@@ -1441,22 +1446,6 @@ impl EventFacade {
 		if new_date.assume_utc().unix_timestamp() >= next_week {
 			// The event is actually next week, so discard
 			return;
-		} else if new_date.assume_utc().unix_timestamp() < date.assume_utc().unix_timestamp() {
-			// Event is behind progenitor, go forward one week
-			new_date = match new_date.checked_add(Duration::weeks(1)) {
-				Some(new_date) => new_date,
-				None => {
-					log::error!(
-						"{}",
-						format!(
-							"Failed to add {} weeks to {}",
-							1,
-							new_date.assume_utc().unix_timestamp()
-						)
-					);
-					return;
-				},
-			};
 		}
 
 		if (new_date.assume_utc().unix_timestamp() >= next_event)
@@ -3461,6 +3450,52 @@ mod tests {
 	}
 
 	#[test]
+	fn test_generate_events_biweekly() {
+		let events_facade = EventFacade {};
+
+		let repeat_rule = EventRepeatRule {
+			frequency: RepeatPeriod::Weekly,
+			by_rules: vec![
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "MO".to_string(),
+				},
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "TU".to_string(),
+				},
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "WE".to_string(),
+				},
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "TH".to_string(),
+				},
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "FR".to_string(),
+				},
+			],
+		};
+
+		let events = events_facade.create_event_instances(
+			DateTime::from_seconds(1756893600),
+			DateTime::from_seconds(1756895400),
+			repeat_rule,
+			2,
+			EndType::Never,
+			None,
+			vec![],
+			None,
+			Some(DateTime::from_seconds(1759096799)),
+			"Europe/Berlin".to_string(),
+		);
+
+		assert!(events.is_ok())
+	}
+
+	#[test]
 	fn test_flow_with_by_month_daily() {
 		let time = Time::from_hms(13, 23, 00).unwrap();
 		let date = PrimitiveDateTime::new(
@@ -3729,6 +3764,10 @@ mod tests {
 		let repeat_rule = EventRepeatRule {
 			frequency: RepeatPeriod::Weekly,
 			by_rules: vec![
+				ByRule {
+					by_rule: ByRuleType::Wkst,
+					interval: "SU".to_string(),
+				},
 				ByRule {
 					by_rule: ByRuleType::ByDay,
 					interval: "MO".to_string(),
