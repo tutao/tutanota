@@ -1118,6 +1118,7 @@ export type TranslationKeyType =
 	| "newCalendarSubscriptionsDialog_title"
 	| "newContact_action"
 	| "newEvent_action"
+	| "newFile_action"
 	| "newMails_msg"
 	| "newMail_action"
 	| "newPaidPlanRequired_msg"
