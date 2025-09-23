@@ -6,12 +6,8 @@ import { DriveViewModel } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
-import { GroupType } from "../../../common/api/common/TutanotaConstants"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { getUserGroupMemberships } from "../../../common/api/common/utils/GroupUtils"
-import { GroupTypeRef } from "../../../common/api/entities/sys/TypeRefs"
-import { createDriveGetIn, DriveGroupRootTypeRef, File, FileTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { DriveService } from "../../../common/api/entities/tutanota/Services"
+import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
@@ -50,11 +46,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	oninit({ attrs }: m.Vnode<TopLevelAttrs>) {
-		console.log(this.files)
-
-		this.driveFacade.testDriveFacade().then((value) => console.log("Testing Drive Facade: it returns ", value))
-
-		//this.loadDriveRoot()
+		this.loadDriveRoot()
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
@@ -100,6 +92,14 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				view: () => {
 					return [
 						m("p", "welcome to the drive"),
+						// m(List, {
+						// 	renderConfig: {
+						// 		createElement: (dom) => {
+						// 			m.render(dom, m("div"))
+						// 			return row
+						// 		},
+						// 	},
+						// }),
 						this.currentFolderFiles.map((value) => m("", `File named "${value.name}", size: ${value.size}, ID: ${value._id}`)),
 					]
 				},
@@ -172,87 +172,14 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	// }
 
 	async loadDriveRoot(): Promise<void> {
-		const serviceExecutor = locator.serviceExecutor
-
-		const data = createDriveGetIn({ nodeId: null })
-		const driveGetOut = await serviceExecutor.get(DriveService, data)
-		console.log("DriveGetOut: ", driveGetOut)
-
-		console.log("doing it like babies would do")
-
-		const files = await Promise.all(driveGetOut.subFilesIds.map((idTupple) => locator.entityClient.load(FileTypeRef, idTupple)))
-		console.log(files)
-
-		this.currentFolderFiles = files
-
-		// console.log(".... and NOW")
-		// console.log("doing it like Bernd would do")
-		// const files2 = await locator.entityClient.loadAll(FileTypeRef, driveGetOut.subFilesIds[0][0])
-		// console.log(files2)
+		this.currentFolderFiles = await this.driveFacade.getRootFiles()
 	}
 
 	async onNewFile_Click(dom: HTMLElement): Promise<void> {
 		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
 			if (files) {
-				this.files = [...files]
-				this.uploadFiles(this.files)
+				this.driveFacade.uploadFiles([...files]).then((files) => this.currentFolderFiles.push(...files))
 			}
 		})
-	}
-
-	async uploadFiles(files: (FileReference | DataFile)[]): Promise<void> {
-		// We should inject this dependency somewhere else, but this is a prototype so we don't care. Wheeeeee!
-		const blobFacade = locator.blobFacade
-		const groupIds = await locator.groupManagementFacade.loadTeamGroupIds()
-		console.log("groupIds for this user :: ", groupIds)
-
-		let memberships = getUserGroupMemberships(locator.logins.getUserController().user, GroupType.File)
-		console.log("groupMemberships:: for this user :: ", memberships)
-
-		const fileGroupMembership = memberships[0]
-
-		console.log("fileGroupMembership:: for this user :: ", fileGroupMembership)
-		let fileGroup = await locator.entityClient.load(GroupTypeRef, fileGroupMembership.group)
-		console.log("fileGroup:: for this user :: ", fileGroup)
-
-		// [x] file grouyp root to get file root
-		// [x] new file
-		// set blobs
-		// set name ?
-		// set size
-		// upload
-		const driveGroupRoot = await locator.entityClient.load(DriveGroupRootTypeRef, fileGroup._id)
-		console.log(`driveGroupRoot :: `, driveGroupRoot)
-
-		const rootFileIdTuple = driveGroupRoot.root
-		const rootFile = await locator.entityClient.load(FileTypeRef, rootFileIdTuple)
-		console.log(`rootFile :: `, rootFile)
-
-		const ownerGroupId = fileGroup._ownerGroup
-		console.log(`fileGroupOwnerGroup :: ${ownerGroupId}`)
-		console.log(`fileGroup_Id :: ${fileGroup._id}`)
-
-		// TODO: Move into DriveFacade
-		// const fileGroupKey = await locator.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
-		// const sk = aes256RandomKey()
-		// const ownerEncSessionKey = _encryptKeyWithVersionedKey(fileGroupKey, sk)
-		// const driveCreateResponses = await Promise.all(
-		// 	files.map(async (f: DataFile) => {
-		// 		const blobRefTokens = await blobFacade.encryptAndUpload(ArchiveDataType.DriveFile, f.data /*FileUri*/, assertNotNull(ownerGroupId), aStupidKey)
-		//
-		// 		const uploadedFile = createDriveUploadedFile({
-		// 			referenceTokens: blobRefTokens,
-		// 			encFileName: new Uint8Array(0),
-		// 			encCid: new Uint8Array(0),
-		// 			encMimeType: new Uint8Array(0),
-		// 			ownerEncSessionKey: ownerEncSessionKey.key,
-		// 			_ownerGroup: assertNotNull(ownerGroupId),
-		// 		})
-		// 		const data = createDriveCreateData({ uploadedFile: uploadedFile })
-		// 		const response = await locator.serviceExecutor.post(DriveService, data)
-		// 		return response
-		// 	}),
-		// )
-		//console.log(`received ::`, driveCreateResponses)
 	}
 }

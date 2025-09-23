@@ -816,7 +816,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new MailExportFacade(mailExportTokenFacade, await locator.bulkMailLoader(), await locator.blob(), locator.crypto, locator.blobAccessToken)
 	})
 	locator.driveFacade = lazyMemoized(async () => {
-		return new DriveFacade(locator.keyLoader, locator.cachingEntityClient, locator.serviceExecutor)
+		return new DriveFacade(locator.keyLoader, await locator.blob(), locator.user, locator.cachingEntityClient, locator.serviceExecutor)
 	})
 }
 
