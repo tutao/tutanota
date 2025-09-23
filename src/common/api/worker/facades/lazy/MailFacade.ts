@@ -209,7 +209,7 @@ export class MailFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 		private readonly storage: CacheStorage,
-		private readonly spamClassifier: SpamClassifier,
+		private readonly spamClassifier: SpamClassifier | null,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -455,8 +455,8 @@ export class MailFacade {
 	}
 
 	updateClassifier = debounce(5000, async () => {
-		if (this.spamClassifier.isEnabled) {
-			const modelUpdated = await this.spamClassifier.updateModel(await this.storage.getLastTrainedTime())
+		if (this.isSpamClassificationEnabled()) {
+			const modelUpdated = await assertNotNull(this.spamClassifier).updateModel(await this.storage.getLastTrainedTime())
 			if (modelUpdated) {
 				await this.storage.setLastTrainedTime(Date.now())
 			}
@@ -468,15 +468,15 @@ export class MailFacade {
 			return false
 		} else {
 			const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
-			if (this.spamClassifier.isEnabled) {
-				return await this.spamClassifier.predict(`${mail.subject}  ${mailDetailsBlob.body.compressedText ?? mailDetailsBlob.body.text}`)
+			if (this.isSpamClassificationEnabled()) {
+				return await assertNotNull(this.spamClassifier).predict(`${mail.subject}  ${mailDetailsBlob.body.compressedText ?? mailDetailsBlob.body.text}`)
 			}
 			return false
 		}
 	}
 
-	public isSpamClassificationEnabled() {
-		return this.spamClassifier.isEnabled
+	public isSpamClassificationEnabled(): boolean {
+		return this.spamClassifier != null && this.spamClassifier.isEnabled
 	}
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {

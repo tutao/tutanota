@@ -19,8 +19,8 @@ import {
 } from "./PreprocessPatterns"
 import { DOMAIN_REGEX, EMAIL_ADDR_REGEX } from "../../../common/misc/FormatValidator"
 import { random } from "@tutao/tutanota-crypto"
-import { MailWithDetailsAndAttachments } from "../index/MailIndexerBackend"
-import fs from "fs"
+import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
+import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 
 assertWorkerOrNode()
 
@@ -43,21 +43,32 @@ export class SpamClassifier {
 
 	constructor(
 		private readonly offlineStorage: OfflineStoragePersistence | null,
+		private readonly initializer: SpamClassificationInitializer,
 		private readonly isPreprocessMails: boolean = true,
 		private readonly isRemoveHTML: boolean = true,
 		private readonly deterministic: boolean = false,
 	) {}
 
-	public async initialize(mailLoader: InitialMailLoader) {
+	public async initialize(indexingDone: Promise<void>): Promise<void> {
 		await this.loadModel()
 
 		if (!this.classifier) {
 			console.log("No existing model found. Training from scratch...")
-			const data = await assertNotNull(this.offlineStorage).getAllSpamClassificationTrainingData()
+
+			// Wait until indexing is done, as its populate offlineDb
+			await indexingDone
+			const data: Array<SpamClassificationRow> = (await this.initializer.init())
+				.filter((classificationData) => classificationData.isCertain)
+				.map((classificationData) => {
+					return {
+						subject: classificationData.mail.subject,
+						body: getMailBodyText(classificationData.mailDetails.body),
+						isSpam: classificationData.isSpam,
+					}
+				})
 			await this.initialTraining(data)
 			await this.saveModel()
 			this.isEnabled = true
-			return true
 		} else {
 			this.isEnabled = true
 		}
@@ -131,13 +142,10 @@ export class SpamClassifier {
 
 	public async updateModel(cutoffTimestamp: number, testRatio = 0.2): Promise<boolean> {
 		try {
-			// if (!this.isEnabled) {
-			// 	console.warn("Client spam classification is not enabled or there were errors during training")
-			// 	return false
-			// } else if (!this.vectorizer) {
-			// 	console.warn("No vectorizer found. Make sure you call initialTraining first")
-			// 	return false
-			// }
+			if (!this.isEnabled) {
+				console.warn("Client spam classification is not enabled or there were errors during training")
+				return false
+			}
 
 			const newTrainingData = await assertNotNull(this.offlineStorage).getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
 			if (newTrainingData.length === 0) {
@@ -177,12 +185,9 @@ export class SpamClassifier {
 
 	// visibleForTesting
 	public async predict(subjectAndBody: string): Promise<boolean> {
-		// if (!this.isEnabled) {
-		// 	throw new Error("SpamClassifier is not enabled yet")
-		// } else if (!this.vectorizer) {
-		// 	console.error("Vectorizer not found.")
-		// 	return false
-		// }
+		if (!this.isEnabled) {
+			throw new Error("SpamClassifier is not enabled yet")
+		}
 
 		const preprocessedMail = this.preprocessMail(subjectAndBody)
 		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(preprocessedMail)
@@ -329,8 +334,4 @@ export class SpamClassifier {
 			this.classifier = null
 		}
 	}
-}
-
-export interface InitialMailLoader {
-	(): Promise<Array<MailWithDetailsAndAttachments>>
 }

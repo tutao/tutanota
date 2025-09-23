@@ -185,35 +185,38 @@ export class OfflineStoragePersistence {
 
 	async storeSpamClassification(mailData: Mail, body: Body, isSpam: boolean, isCertain: boolean): Promise<void> {
 		const { query, params } = sql`
-            INSERT
-            OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified, isCertain)
+			INSERT
+			OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified, isCertain)
 				VALUES (
-            ${listIdPart(mailData._id)},
-            ${elementIdPart(mailData._id)},
-            ${mailData.subject},
-            ${htmlToText(getMailBodyText(body))},
-            ${isSpam ? 1 : 0},
-            ${Date.now()},
-            ${isCertain ? 1 : 0}
-            )`
+			${listIdPart(mailData._id)},
+			${elementIdPart(mailData._id)},
+			${mailData.subject},
+			${htmlToText(getMailBodyText(body))},
+			${isSpam ? 1 : 0},
+			${Date.now()},
+			${isCertain ? 1 : 0}
+			)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async updateSpamClassificationData(id: IdTuple, isSpam: boolean, isCertain: boolean): Promise<void> {
 		const { query, params } = sql`
-            UPDATE spam_classification_training_data
-            SET lastModified=${Date.now()},
-                isCertain=${isCertain ? 1 : 0},
-                isSpam=${isSpam ? 1 : 0}
-            WHERE listId = ${listIdPart(id)}
-              AND elementId = ${elementIdPart(id)}
-        `
+			UPDATE spam_classification_training_data
+			SET lastModified=${Date.now()},
+				isCertain=${isCertain ? 1 : 0},
+				isSpam=${isSpam ? 1 : 0}
+			WHERE listId = ${listIdPart(id)}
+			  AND elementId = ${elementIdPart(id)}
+		`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async getStoredClassification(mailData: Mail): Promise<boolean> {
 		const { query, params } = sql`
-			SELECT isSpam FROM spam_classification_training_data where listId=${listIdPart(mailData._id)} and elementId=${elementIdPart(mailData._id)} `
+			SELECT isSpam
+			FROM spam_classification_training_data
+			where listId = ${listIdPart(mailData._id)}
+			  and elementId = ${elementIdPart(mailData._id)} `
 		const result = await this.sqlCipherFacade.get(query, params)
 		if (!result) {
 			return false
