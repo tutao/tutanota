@@ -2,7 +2,6 @@ import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EntityEventsListener, EventController } from "../../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, MailTypeRef } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { CLIENT_ONLY_CALENDARS } from "../../../../common/api/common/TutanotaConstants.js"
 import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElement } from "../../../../common/api/common/utils/EntityUtils.js"
 import { ListLoadingState, ListState } from "../../../../common/gui/base/List.js"
 import {
@@ -34,7 +33,7 @@ import { CalendarInfo } from "../../model/CalendarModel.js"
 import m from "mithril"
 import { CalendarFacade } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
-import { ClientOnlyCalendarsInfo, ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig.js"
+import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { SearchRouter } from "../../../../common/search/view/SearchRouter.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
@@ -43,6 +42,7 @@ import { getClientOnlyCalendars } from "../../gui/CalendarGuiUtils"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 import { getSharedGroupName } from "../../../../common/sharing/GroupUtils"
+import { BIRTHDAY_CALENDAR_BASE_ID } from "../../../../common/api/common/TutanotaConstants"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -140,7 +140,6 @@ export class CalendarSearchViewModel {
 		private readonly progressTracker: ProgressTracker,
 		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly updateUi: () => unknown,
-		private readonly localCalendars: Map<Id, ClientOnlyCalendarsInfo>,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""
 		this._listModel = this.createList()
@@ -263,7 +262,7 @@ export class CalendarSearchViewModel {
 		const selectedCalendar = this.extractCalendarListIds(restriction.folderIds)
 		if (!selectedCalendar || Array.isArray(selectedCalendar)) {
 			this._selectedCalendar = selectedCalendar
-		} else if (CLIENT_ONLY_CALENDARS.has(selectedCalendar.toString())) {
+		} else if (selectedCalendar.toString().includes(BIRTHDAY_CALENDAR_BASE_ID)) {
 			this.getUserHasNewPaidPlan()
 				.getAsync()
 				.then((isNewPaidPlan) => {
@@ -655,7 +654,7 @@ export class CalendarSearchViewModel {
 	}
 
 	getLocalCalendars() {
-		return getClientOnlyCalendars(this.logins.getUserController().userId, this.localCalendars)
+		return getClientOnlyCalendars(this.logins.getUserController().userId)
 	}
 
 	dispose() {
