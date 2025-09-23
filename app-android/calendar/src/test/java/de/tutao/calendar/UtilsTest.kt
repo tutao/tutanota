@@ -1,9 +1,13 @@
 package de.tutao.calendar
 
+import de.tutao.tutashared.isAllDayEventByTimes
 import de.tutao.tutashared.isLightHexColor
 import de.tutao.tutashared.parseColor
 import org.junit.Assert
 import org.junit.Test
+import java.time.Instant
+import java.time.LocalDateTime
+import java.util.Date
 
 class UtilsTest {
 	@Test
@@ -43,5 +47,19 @@ class UtilsTest {
 		Assert.assertEquals(parseColor("#000").toLong(), -0x1000000)
 		Assert.assertEquals(parseColor("#FFF").toLong(), -0x1)
 		Assert.assertEquals(parseColor("#BAD").toLong(), -0x445523)
+	}
+
+	@Test
+	fun testIsAllDayByTimesFunction() {
+		val dateStart = Date.from(Instant.ofEpochMilli(1758326400000L))
+		val dateEnd = Date.from(Instant.ofEpochMilli(1758412800000L))
+		Assert.assertTrue(isAllDayEventByTimes(dateStart, dateEnd))
+	}
+
+	@Test
+	fun testIsNotAllDayByTimesFunction() {
+		val dateStart = Date.from(Instant.ofEpochMilli(1758326400000L))
+		val dateEnd = Date.from(Instant.ofEpochMilli(1758319200000L))
+		Assert.assertFalse(isAllDayEventByTimes(dateStart, dateEnd))
 	}
 }
