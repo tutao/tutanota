@@ -39,6 +39,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Date
 
 class WidgetUIViewModel(
@@ -46,7 +47,8 @@ class WidgetUIViewModel(
 	private val widgetId: Int,
 	private val credentialsFacade: NativeCredentialsFacade,
 	private val cryptoFacade: AndroidNativeCryptoFacade,
-	private val sdk: Sdk?
+	private val sdk: Sdk?,
+	private val calendar: Calendar
 ) : ViewModel() {
 	private val _uiState = MutableStateFlow<WidgetUIData?>(null)
 	val uiState: StateFlow<WidgetUIData?> = _uiState.asStateFlow()
@@ -58,14 +60,15 @@ class WidgetUIViewModel(
 		private const val TAG = "WidgetUIViewModel"
 	}
 
-	suspend fun loadUIState(context: Context): WidgetUIData? {
+	suspend fun loadUIState(context: Context, now: LocalDateTime): WidgetUIData? {
 		val allDayEvents: HashMap<Long, List<UIEvent>> = HashMap()
 		val normalEvents: HashMap<Long, List<UIEvent>> = HashMap()
 
 		val zone = ZoneId.systemDefault()
-		val todayMidnight = LocalDate.now(zone).atStartOfDay(zone).toInstant()
-		val tomorrowMidnight = LocalDate.now(zone)
+		val todayMidnight = now.toLocalDate().atStartOfDay(zone).toInstant()
+		val tomorrowMidnight = now
 			.plusDays(1)
+			.toLocalDate()
 			.atStartOfDay(zone)
 			.toInstant()
 
@@ -134,7 +137,7 @@ class WidgetUIViewModel(
 				repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
 			}
 
-		val startOfToday = midnightInDate(ZoneId.systemDefault(), LocalDateTime.now())
+		val startOfToday = midnightInDate(ZoneId.systemDefault(), now)
 		normalEvents[startOfToday] = listOf() // The first day should always be included even if there are no events
 		allDayEvents[startOfToday] = listOf()
 

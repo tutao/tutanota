@@ -55,6 +55,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.util.Calendar
 
 const val TAG = "AgendaWidget"
 
@@ -86,7 +87,7 @@ class Agenda : GlanceAppWidget() {
 			val preferences = currentState<Preferences>()
 
 			LaunchedEffect(preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]) {
-				widgetUIViewModel.loadUIState(context)
+				widgetUIViewModel.loadUIState(context, LocalDateTime.now())
 			}
 
 			GlanceTheme(
@@ -126,7 +127,7 @@ class Agenda : GlanceAppWidget() {
 		}
 
 		val widgetUIViewModel =
-			WidgetUIViewModel(context.widgetDataRepository, appWidgetId, nativeCredentialsFacade, crypto, sdk)
+			WidgetUIViewModel(context.widgetDataRepository, appWidgetId, nativeCredentialsFacade, crypto, sdk, Calendar.getInstance())
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 
 		return Pair(widgetUIViewModel, userId)
