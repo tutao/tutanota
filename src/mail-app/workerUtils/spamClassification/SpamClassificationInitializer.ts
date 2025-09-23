@@ -1,6 +1,6 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
-import { assertNotNull, groupByAndMap, isNotNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, groupByAndMap, isNotNull, lazy, promiseMap } from "@tutao/tutanota-utils"
 import { filterMailMemberships } from "../../../common/api/worker/search/IndexUtils"
 import { GroupMembership } from "../../../common/api/entities/sys/TypeRefs"
 import {
@@ -37,7 +37,7 @@ export class SpamClassificationInitializer {
 		// available in the current mail bag
 		const user = assertNotNull(this.userFacade.getUser())
 		const memberships = filterMailMemberships(user)
-		const result = (await promiseMap(memberships, this.downloadMailAndMailDetailsByGroupMembership)).flat()
+		const result = (await promiseMap(memberships, (group) => this.downloadMailAndMailDetailsByGroupMembership(group))).flat()
 		for (const spamClassification of result) {
 			await this.offlineStorage.storeSpamClassification(
 				spamClassification.mail,

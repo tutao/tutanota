@@ -396,7 +396,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	}
 
 	locator.cache = cache ?? entityRestClient
-
 	locator.cachingEntityClient = new EntityClient(locator.cache, typeModelResolver)
 	const nonCachingEntityClient = new EntityClient(entityRestClient, typeModelResolver)
 

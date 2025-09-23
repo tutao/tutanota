@@ -124,7 +124,7 @@ export class SpamClassifier {
 		const flatTokens = tokenizedMails.flat().join("\n")
 
 		//FIXME remove this line
-		fs.writeFileSync("/tmp/with_preprocess.txt", flatTokens, "utf-8")
+		// fs.writeFileSync("/tmp/with_preprocess.txt", flatTokens, "utf-8")
 
 		if (this.vectorizer instanceof DynamicTfVectorizer) {
 			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)

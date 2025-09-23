@@ -1,6 +1,6 @@
 import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import * as tf from "@tensorflow/tfjs"
-import crypto from "node:crypto"
+import { sha256Hash } from "@tutao/tutanota-crypto"
 
 export class HashingVectorizer {
 	public readonly dimension: number = 2048
@@ -57,7 +57,7 @@ export class HashingVectorizer {
 	 */
 	public sha3Hash(array: Array<string>): Array<number> {
 		return array.map((token) => {
-			const shaHash = crypto.createHash("sha256").update(stringToUtf8Uint8Array(token)).digest("hex")
+			const shaHash = sha256Hash(stringToUtf8Uint8Array(token))
 			const shaNum = BigInt(`0x${shaHash.slice(0, 32)}`)
 			const modulus = shaNum % BigInt(this.dimension)
 			return Number(modulus)
