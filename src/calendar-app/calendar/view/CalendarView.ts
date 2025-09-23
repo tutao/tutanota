@@ -27,7 +27,7 @@ import {
 	UserSettingsGroupRoot,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
-	DEFAULT_CLIENT_ONLY_CALENDAR_COLORS,
+	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 	defaultCalendarColor,
 	GroupType,
 	Keys,
@@ -1041,9 +1041,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		let groupName = renderInfo.name
 		if (isClientOnlyCalendar(calendarInfo.group._id)) {
 			const clientOnlyId = calendarInfo.group._id.match(/#(.*)/)?.[1]!
-			const clientOnlyCalendarConfig = deviceConfig.getClientOnlyCalendars().get(calendarInfo.group._id)
-			colorValue = "#" + (clientOnlyCalendarConfig?.color ?? DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(clientOnlyId))
-			groupName = clientOnlyCalendarConfig?.name ?? clientOnlyId
+			colorValue = "#" + DEFAULT_BIRTHDAY_CALENDAR_COLOR // FIXME get color from userSettings
+			groupName = lang.get("birthdayCalendar_label")
 		}
 
 		const lastSyncEntry = deviceConfig.getLastExternalCalendarSync().get(calendarInfo.group._id)

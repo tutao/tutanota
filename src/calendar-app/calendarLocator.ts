@@ -57,7 +57,7 @@ import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
-import { CLIENT_ONLY_CALENDARS, Const, DEFAULT_CLIENT_ONLY_CALENDAR_COLORS, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
+import { Const, FeatureType, GroupType, KdfType } from "../common/api/common/TutanotaConstants.js"
 import { ShareableGroupType } from "../common/sharing/GroupUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
@@ -104,7 +104,6 @@ import { AppType } from "../common/misc/ClientConstants.js"
 import type { ParsedEvent } from "../common/calendar/gui/CalendarImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
-import { lang } from "../common/misc/LanguageViewModel.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactSuggestion } from "../common/native/common/generatedipc/ContactSuggestion"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
@@ -238,7 +237,6 @@ class CalendarLocator implements CommonLocator {
 				this.progressTracker,
 				calendarEventsRepository,
 				redraw,
-				deviceConfig.getClientOnlyCalendars(),
 			)
 		}
 	}
@@ -259,7 +257,6 @@ class CalendarLocator implements CommonLocator {
 				this.progressTracker,
 				calendarEventsRepository,
 				redraw,
-				deviceConfig.getClientOnlyCalendars(),
 			)
 		}
 	}
@@ -938,7 +935,6 @@ class CalendarLocator implements CommonLocator {
 			this.themeController,
 			this.syncTracker,
 			() => this.showSetupWizard(),
-			() => this.setUpClientOnlyCalendars(),
 			() => this.updateClients(),
 		)
 	})
@@ -956,20 +952,6 @@ class CalendarLocator implements CommonLocator {
 				deviceConfig,
 				false,
 			)
-		}
-	}
-
-	setUpClientOnlyCalendars() {
-		let configs = deviceConfig.getClientOnlyCalendars()
-
-		for (const [id, name] of CLIENT_ONLY_CALENDARS.entries()) {
-			const calendarId = `${this.logins.getUserController().userId}#${id}`
-			const config = configs.get(calendarId)
-			if (!config)
-				deviceConfig.updateClientOnlyCalendars(calendarId, {
-					name: lang.get(name),
-					color: DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)!,
-				})
 		}
 	}
 
