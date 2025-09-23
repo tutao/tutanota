@@ -28,13 +28,11 @@ import {
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
-	defaultCalendarColor,
 	GroupType,
 	Keys,
 	NewPaidPlans,
 	reverse,
 	ShareCapability,
-	TabIndex,
 	TimeFormat,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants"
@@ -47,10 +45,8 @@ import {
 	getTimeZone,
 	hasSourceUrl,
 	isBirthdayEvent,
+	isCalendarInfoOfRenderType,
 	isClientOnlyCalendar,
-	isExternalRenderType,
-	isPrivateRenderType,
-	isSharedRenderType,
 	parseAlarmInterval,
 	RenderType,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -64,7 +60,7 @@ import { styles } from "../../../common/gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { px, size } from "../../../common/gui/size"
+import { size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { exportCalendar, handleCalendarImport } from "../../../common/calendar/gui/CalendarImporterDialog.js"
@@ -99,10 +95,9 @@ import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { FloatingActionButton } from "../../gui/FloatingActionButton.js"
-import { Icon, IconSize, progressIcon } from "../../../common/gui/base/Icon.js"
+import { progressIcon } from "../../../common/gui/base/Icon.js"
 import { Group, User } from "../../../common/api/entities/sys/TypeRefs.js"
-import { formatDate, formatTime } from "../../../common/misc/Formatter.js"
-import { getExternalCalendarName, parseCalendarStringData, SyncStatus } from "../../../common/calendar/gui/ImportExportUtils.js"
+import { getExternalCalendarName, parseCalendarStringData } from "../../../common/calendar/gui/ImportExportUtils.js"
 import type { ParsedEvent } from "../../../common/calendar/gui/CalendarImporter.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { elementIdPart } from "../../../common/api/common/utils/EntityUtils.js"
@@ -124,6 +119,7 @@ import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardVi
 import { calendarLocator } from "../../calendarLocator.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
+import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
 
 export type GroupColors = Map<Id, string>
 
@@ -219,7 +215,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									}),
 									hideIfEmpty: true,
 								},
-								this.renderCalendars([RenderType.Private, RenderType.ClientOnly]),
+								this.renderCalendar(RenderType.Private),
+								this.renderBirthdayCalendar(),
 							),
 							m(
 								SidebarSection,
@@ -227,7 +224,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									name: "calendarShared_label",
 									hideIfEmpty: true,
 								},
-								this.renderCalendars([RenderType.Shared]),
+								this.renderCalendar(RenderType.Shared),
 							),
 							m(
 								SidebarSection,
@@ -235,7 +232,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									name: "calendarSubscriptions_label",
 									hideIfEmpty: true,
 								},
-								this.renderCalendars([RenderType.External]),
+								this.renderCalendar(RenderType.External),
 							),
 							this.viewModel.calendarInvitations().length > 0
 								? m(
@@ -995,114 +992,36 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 	}
 
-	private renderCalendars(renderTypes: RenderType[]): Children {
-		const includeLocalCalendars = renderTypes.includes(RenderType.ClientOnly)
-		const toggleHidden = (viewModel: CalendarViewModel, groupRootId: string) => {
-			const newHiddenCalendars = new Set(viewModel.hiddenCalendars)
-			if (viewModel.hiddenCalendars.has(groupRootId)) {
-				newHiddenCalendars.delete(groupRootId)
-			} else {
-				newHiddenCalendars.add(groupRootId)
-			}
-
-			viewModel.setHiddenCalendars(newHiddenCalendars)
-		}
-
-		const calendarInfos = [...this.viewModel.calendarInfos, ...(includeLocalCalendars ? this.viewModel.clientOnlyCalendars : [])]
-
+	private renderCalendar(renderType: RenderType): Children {
+		const calendarInfos = Array.from(this.viewModel.calendarInfos.entries())
 		const filteredCalendarInfos = calendarInfos.filter(([_, calendarInfo]) => {
-			const renderTypeToCondition: ReadonlyMap<RenderType, (calendarInfo: CalendarInfo) => boolean> = new Map([
-				[RenderType.ClientOnly, (calendarInfo: CalendarInfo) => isClientOnlyCalendar(calendarInfo.group._id)],
-				[RenderType.Private, isPrivateRenderType],
-				[RenderType.Shared, isSharedRenderType],
-				[RenderType.External, isExternalRenderType],
-			])
-			/**
-			 * Dynamically filters calendarInfoList according to the renderTypes
-			 */
-			const conditions: Array<(calendarInfo: CalendarInfo) => boolean> = []
-			for (const renderType of renderTypes) {
-				conditions.push(renderTypeToCondition.get(renderType)!)
-			}
-			return conditions.reduce((result, condition) => result || condition(calendarInfo), false)
+			return isCalendarInfoOfRenderType(calendarInfo, renderType)
 		})
 
-		return filteredCalendarInfos.map(([_, calendarInfo]) => {
-			return this.renderCalendarItem(calendarInfo, toggleHidden, this.viewModel.hiddenCalendars.has(calendarInfo.group._id))
+		return filteredCalendarInfos.map(([calendarId, calendarInfo]) => {
+			const { name, color, renderType } = this.viewModel.getCalendarRenderInfo(calendarInfo)
+			const rightIconData = this.viewModel.getIcon(renderType, calendarId)
+			return m(CalendarSidebarRow, {
+				id: calendarId,
+				name,
+				color,
+				isHidden: this.viewModel.hiddenCalendars.has(calendarId),
+				toggleHiddenCalendar: this.viewModel.toggleHiddenCalendar,
+				rightIcon: rightIconData,
+			} satisfies CalendarSidebarRowAttrs)
 		})
 	}
 
-	private renderCalendarItem(calendarInfo: CalendarInfo, toggleHidden: (viewModel: CalendarViewModel, groupRootId: string) => void, isHidden: boolean) {
-		const { userSettingsGroupRoot } = locator.logins.getUserController()
-		const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? null
+	private renderBirthdayCalendar() {
+		const { id, contactGroupId } = this.viewModel.getCalendarModel().getBirthdayCalendarInfo()
 
-		const renderInfo = this.viewModel.getCalendarModel().getCalendarRenderInfo(calendarInfo.groupInfo.group, existingGroupSettings)
-		let colorValue = renderInfo.color
-		let groupName = renderInfo.name
-		if (isClientOnlyCalendar(calendarInfo.group._id)) {
-			const clientOnlyId = calendarInfo.group._id.match(/#(.*)/)?.[1]!
-			colorValue = "#" + DEFAULT_BIRTHDAY_CALENDAR_COLOR // FIXME get color from userSettings
-			groupName = lang.get("birthdayCalendar_label")
-		}
-
-		const lastSyncEntry = deviceConfig.getLastExternalCalendarSync().get(calendarInfo.group._id)
-		const lastSyncDate = lastSyncEntry?.lastSuccessfulSync ? new Date(lastSyncEntry.lastSuccessfulSync) : null
-		const lastSyncStr = lastSyncDate
-			? lang.get("lastSync_label", { "{date}": `${formatDate(lastSyncDate)} at ${formatTime(lastSyncDate)}` })
-			: lang.get("iCalNotSync_msg")
-
-		const groupRootId = calendarInfo.groupRoot._id
-		const handleToggleCalendar = () => {
-			if (!isClientOnlyCalendar(groupRootId) || this.viewModel.isNewPaidPlan) toggleHidden(this.viewModel, groupRootId)
-			else showPlanUpgradeRequiredDialog(NewPaidPlans)
-		}
-
-		return m(".folder-row.flex-start.plr-button", [
-			m(".flex.flex-grow.center-vertically.button-height", [
-				m(".calendar-checkbox", {
-					role: "checkbox",
-					title: groupName,
-					tabindex: TabIndex.Default,
-					"aria-checked": (!isHidden).toString(),
-					"aria-label": groupName,
-					onclick: handleToggleCalendar,
-					onkeydown: (e: KeyboardEvent) => {
-						if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
-							toggleHidden(this.viewModel, groupRootId)
-							e.preventDefault()
-						}
-					},
-					style: {
-						"border-color": colorValue,
-						background: isHidden ? "" : colorValue,
-						transition: "all 0.3s",
-						cursor: "pointer",
-						marginLeft: px(size.hpad_button),
-					},
-				}),
-				m(
-					".pl-m.b.flex-grow.text-ellipsis",
-					{
-						style: {
-							width: 0,
-						},
-					},
-					groupName,
-				),
-			]),
-			hasSourceUrl(existingGroupSettings) && lastSyncEntry?.lastSyncStatus === SyncStatus.Failed
-				? m(Icon, {
-						title: lastSyncStr,
-						icon: Icons.SyncProblem,
-						size: IconSize.Medium,
-						class: "pr-s",
-						style: {
-							fill: theme.on_surface_variant,
-						},
-					})
-				: null,
-			this.createCalendarActionDropdown(calendarInfo, colorValue ?? defaultCalendarColor, existingGroupSettings, userSettingsGroupRoot),
-		])
+		return m(CalendarSidebarRow, {
+			id: id,
+			name: lang.get("birthdayCalendar_label"),
+			color: `#${DEFAULT_BIRTHDAY_CALENDAR_COLOR}`, // FIXME get new persisted color
+			isHidden: this.viewModel.hiddenCalendars.has(id),
+			toggleHiddenCalendar: this.viewModel.toggleHiddenCalendar,
+		} satisfies CalendarSidebarRowAttrs)
 	}
 
 	private createCalendarActionDropdown(
