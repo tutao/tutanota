@@ -27,7 +27,8 @@ export const NUMBER_SEQUENCE_REGEX = /\b\d+\b/g
 
 export const NUMBER_SEQUENCE_TOKEN = " <NUMBER> "
 
-export const SPECIAL_CHARACTER_REGEX = /[!@#$%^&*()+`_=\\{}"';?/,.~]+|(?!\w)-+(?!\w)/g
+export const SPECIAL_CHARACTER_REGEX = /[!@#$%^&*()+`_=\\{}"';?/,.~]+|(?!\w)[-+]+(?!\w)/g
+
 export const SPECIAL_CHARACTER_TOKEN = " <SPECIAL-CHAR> "
 
 export const UNREADABLE_SEQUENCE_REGEX = /[^aeiouyAEIOUY0-9\\W_\\-\\.h]{5}/g

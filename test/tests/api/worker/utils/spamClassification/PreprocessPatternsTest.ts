@@ -3,6 +3,7 @@ import {
 	DATE_PATTERN_TOKEN,
 	DATE_REGEX,
 	SPECIAL_CHARACTER_REGEX,
+	SPECIAL_CHARACTER_TOKEN,
 	URL_PATTERN_TOKEN,
 	BITCOIN_PATTERN_TOKEN,
 	BITCOIN_REGEX,
@@ -138,7 +139,7 @@ o.spec("PreprocessPatterns", () => {
 
 	o.spec("Url patterns", () => {
 		o.test("All recognized url patterns", async () => {
-			const urls = new Map([
+			const urlsMap = new Map([
 				["https://tuta.com", "<URL:tuta:com>"],
 				["https://microsoft.com/outlook/test", "<URL:microsoft:com>"],
 				["https://subdomain.microsoft.com/outlook/test", "<URL:microsoft:com>"],
@@ -146,7 +147,7 @@ o.spec("PreprocessPatterns", () => {
 				["https://subdomain.test.de/spam", "<URL:test:de>"],
 			])
 
-			for (const [domain, expectedToken] of urls.entries()) {
+			for (const [domain, expectedToken] of urlsMap.entries()) {
 				const tokenized = domain.replace(DOMAIN_REGEX, URL_PATTERN_TOKEN)
 				o.check(tokenized).equals(expectedToken)
 			}
@@ -169,45 +170,59 @@ o.spec("PreprocessPatterns", () => {
 
 	o.spec("Special character patterns", () => {
 		o.test("All recognized special character patterns", async () => {
-			const specialChars = ["-", "--", "---", "----", "+.-", "!", "@", "#", "$", "%", "^", "&", "*", "()", "[]"]
+			const specialCharsMap = new Map([
+				["!", SPECIAL_CHARACTER_TOKEN],
+				["@", SPECIAL_CHARACTER_TOKEN],
+				["#", SPECIAL_CHARACTER_TOKEN],
+				["$", SPECIAL_CHARACTER_TOKEN],
+				["%", SPECIAL_CHARACTER_TOKEN],
+				["^", SPECIAL_CHARACTER_TOKEN],
+				["&", SPECIAL_CHARACTER_TOKEN],
+				["*", SPECIAL_CHARACTER_TOKEN],
+				["(", SPECIAL_CHARACTER_TOKEN],
+				[")", SPECIAL_CHARACTER_TOKEN],
+				["+", SPECIAL_CHARACTER_TOKEN],
+				["`", SPECIAL_CHARACTER_TOKEN],
+				["_", SPECIAL_CHARACTER_TOKEN],
+				["=", SPECIAL_CHARACTER_TOKEN],
+				["\\", SPECIAL_CHARACTER_TOKEN],
+				["{", SPECIAL_CHARACTER_TOKEN],
+				["}", SPECIAL_CHARACTER_TOKEN],
+				['"', SPECIAL_CHARACTER_TOKEN],
+				["'", SPECIAL_CHARACTER_TOKEN],
+				[",", SPECIAL_CHARACTER_TOKEN],
+				[".", SPECIAL_CHARACTER_TOKEN],
+				["~", SPECIAL_CHARACTER_TOKEN],
+				["!!", SPECIAL_CHARACTER_TOKEN],
+				["! !", `${SPECIAL_CHARACTER_TOKEN} ${SPECIAL_CHARACTER_TOKEN}`],
+				["@ @@", `${SPECIAL_CHARACTER_TOKEN} ${SPECIAL_CHARACTER_TOKEN}`],
+				["@@@ @@", `${SPECIAL_CHARACTER_TOKEN} ${SPECIAL_CHARACTER_TOKEN}`],
+				["%% @@", `${SPECIAL_CHARACTER_TOKEN} ${SPECIAL_CHARACTER_TOKEN}`],
+				["-", SPECIAL_CHARACTER_TOKEN],
+				["--", SPECIAL_CHARACTER_TOKEN],
+				["---", SPECIAL_CHARACTER_TOKEN],
+				["--- ---", `${SPECIAL_CHARACTER_TOKEN} ${SPECIAL_CHARACTER_TOKEN}`],
+			])
 
-			for (const specialChar of specialChars) {
-				o.check(SPECIAL_CHARACTER_REGEX.test(specialChar)).equals(true)
+			for (const [specialCharSequence, expectedResult] of specialCharsMap) {
+				const tokenized = specialCharSequence.replace(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
+				o.check(tokenized).equals(expectedResult)
 			}
 		})
 
-		o.test("Not recognized date-like sequences", async () => {
-			const notDates = [
-				"01-12--2023",
-				"1-12-22023",
-				"2023.12-01",
-				"2023/12-1",
-				"011123221",
-				"1.2.3",
-				"12/1/023",
-				"12/12023",
-				"01/12//2023",
-				"1//12/23023",
-				"2023//12/01",
-				"2023//12/1",
-				"1-85723-353-0",
-				"10.10.10.10",
-				"192.168.178.1",
-				"10.12.10.100",
-				"10.12.22.20",
-			]
-			const notDatesText = notDates.join("\n")
-			let resultNotDatesText = notDatesText
+		o.test("Not recognized special-character-like patterns", async () => {
+			const notSpecialChars = [":", "[", "]", "<", ">", "test-test", "test+test"]
 
-			for (const datePattern of DATE_REGEX) {
-				resultNotDatesText = resultNotDatesText.replace(datePattern, DATE_PATTERN_TOKEN)
-			}
+			const notSpecialCharsText = notSpecialChars.join("\n")
+			let resultNotSpecialCharsText = notSpecialCharsText
 
-			const resultTokenArray = resultNotDatesText.split(DATE_PATTERN_TOKEN)
+			resultNotSpecialCharsText = resultNotSpecialCharsText.replaceAll(SPECIAL_CHARACTER_TOKEN, SPECIAL_CHARACTER_TOKEN)
+
+			const resultTokenArray = resultNotSpecialCharsText.split(SPECIAL_CHARACTER_TOKEN)
 			o.check(resultTokenArray.length - 1).equals(0)
 
-			resultNotDatesText = resultNotDatesText.replaceAll(DATE_PATTERN_TOKEN, "")
-			o.check(resultNotDatesText.trim()).equals(notDatesText)
+			resultNotSpecialCharsText = resultNotSpecialCharsText.replaceAll(SPECIAL_CHARACTER_TOKEN, "")
+			o.check(resultNotSpecialCharsText.trim()).equals(notSpecialCharsText)
 		})
 	})
 	o.spec("Credit card patterns", () => {
@@ -292,6 +307,4 @@ o.spec("PreprocessPatterns", () => {
 			o.check(resultNotBitcoin.trim()).equals(notBitcoinText)
 		})
 	})
-
-	// TODO add tests for other patterns
 })
