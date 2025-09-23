@@ -607,11 +607,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				// index new items in background
 				console.log("initIndexer and spam classifier after log in")
 				const indexingDone = fullLoginIndexerInit(worker)
-				let customerFacade = await locator.customer()
-				await customerFacade.loadCustomizations()
-				if (locator.spamClassifier && (await customerFacade.isEnabled(FeatureType.SpamClientClassification))) {
-					locator.spamClassifier.initialize(indexingDone)
-				}
 			}
 
 			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)

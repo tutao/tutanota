@@ -1,6 +1,6 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
-import { assertNotNull, groupByAndMap, isNotNull, lazy, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, groupByAndMap, isNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { filterMailMemberships } from "../../../common/api/worker/search/IndexUtils"
 import { GroupMembership } from "../../../common/api/entities/sys/TypeRefs"
 import {
@@ -17,6 +17,7 @@ import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider"
 import { INITIAL_MAIL_INDEX_INTERVAL_DAYS } from "../index/MailIndexer"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
+import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 
 export type MailClassificationData = {
 	mail: Mail
@@ -49,6 +50,7 @@ export class SpamClassificationInitializer {
 		return result.flat()
 	}
 
+	// TODO: can we re-use MailBulkLoader
 	private async downloadMailAndMailDetailsByGroupMembership(mailGroupMembership: GroupMembership): Promise<Array<MailClassificationData>> {
 		const mailGroupId = mailGroupMembership.group
 		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
@@ -69,7 +71,7 @@ export class SpamClassificationInitializer {
 			elementIdPart,
 		)
 		const loadedMailDetailsBlobs = await promiseMap(groupedMailDetailIds, ([mailDetailListId, mailDetailElementIds]) =>
-			this.entityClient.loadMultiple(MailDetailsBlobTypeRef, mailDetailListId, mailDetailElementIds),
+			this.entityClient.loadMultiple(MailDetailsBlobTypeRef, mailDetailListId, mailDetailElementIds, undefined, { cacheMode: CacheMode.ReadOnly }),
 		)
 		const loadedMailDetailsById = loadedMailDetailsBlobs.flat().reduce((map, detailsBlob) => {
 			map.set(elementIdPart(detailsBlob._id), detailsBlob.details)

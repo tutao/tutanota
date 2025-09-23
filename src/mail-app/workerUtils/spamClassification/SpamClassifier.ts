@@ -66,14 +66,11 @@ export class SpamClassifier {
 		},
 	) {}
 
-	public async initialize(indexingDone: Promise<void>): Promise<void> {
+	public async initialize(): Promise<void> {
 		await this.loadModel()
 
 		if (!this.classifier) {
 			console.log("No existing model found. Training from scratch...")
-
-			// Wait until indexing is done, as its populate offlineDb
-			await indexingDone
 			const data: Array<SpamClassificationMail> = (await this.initializer.init())
 				.filter((classificationData) => classificationData.isCertain)
 				.map((classificationData) => {

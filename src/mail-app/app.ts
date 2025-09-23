@@ -199,9 +199,14 @@ import("./translations/en.js")
 					),
 			)
 			mailLocator.logins.addPostLoginAction(async () => {
-				const { SearchOfflineRangePostLoginAction } = await import("./search/model/SearchOfflineRangePostLoginAction")
+				const { MailIndexAndSpamClassificationPostLoginAction } = await import("./search/model/MailIndexAndSpamClassificationPostLoginAction")
 				const offlineStorageSettings = await mailLocator.offlineStorageSettingsModel()
-				return new SearchOfflineRangePostLoginAction(assertNotNull(offlineStorageSettings), mailLocator.indexerFacade)
+				return new MailIndexAndSpamClassificationPostLoginAction(
+					assertNotNull(offlineStorageSettings),
+					mailLocator.indexerFacade,
+					mailLocator.spamClassifier,
+					mailLocator.customerFacade,
+				)
 			})
 		}
 

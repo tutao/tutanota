@@ -154,7 +154,7 @@ export class BulkMailLoader {
 				return chunk.length > 0
 					? this.mailDataEntityClient.loadMultiple(typeRef, listId, chunk, ownerEncSessionKeyProvider, {
 							...options,
-							cacheMode: CacheMode.ReadOnly,
+							cacheMode: CacheMode.ReadAndWrite,
 						})
 					: Promise.resolve([])
 			},
