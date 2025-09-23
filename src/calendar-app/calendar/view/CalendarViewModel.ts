@@ -15,7 +15,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
-	CLIENT_ONLY_CALENDARS,
+	BIRTHDAY_CALENDAR_BASE_ID,
 	EndType,
 	EXTERNAL_CALENDAR_SYNC_INTERVAL,
 	getWeekStart,
@@ -48,7 +48,7 @@ import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
-import { ClientOnlyCalendarsInfo, deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
+import { ClientOnlyCalendarsInfo, DeviceConfig } from "../../../common/misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { Time } from "../../../common/calendar/date/Time.js"
@@ -64,7 +64,7 @@ import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarConta
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { getGroupColors } from "../../../common/misc/GroupColors"
-import { GroupSettingsModel, GroupNameData } from "../../../common/sharing/model/GroupSettingsModel"
+import { GroupNameData, GroupSettingsModel } from "../../../common/sharing/model/GroupSettingsModel"
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 
 export type EventsOnDays = {
@@ -228,7 +228,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	loadCalendarColors() {
-		const clientOnlyColors = getClientOnlyColors(this.logins.getUserController().userId, deviceConfig.getClientOnlyCalendars())
+		const clientOnlyColors = getClientOnlyColors(this.logins.getUserController().userId)
 		const groupColors = getGroupColors(this.logins.getUserController().userSettingsGroupRoot)
 		for (let [calendarId, color] of clientOnlyColors.entries()) {
 			groupColors.set(calendarId, color)
@@ -243,29 +243,24 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 * Load client only calendars or generate them if missing
 	 */
 	private prepareClientCalendars() {
-		for (const [clientOnlyCalendarBaseId, name] of CLIENT_ONLY_CALENDARS) {
-			const calendarID = `${this.logins.getUserController().userId}#${clientOnlyCalendarBaseId}`
-			const clientOnlyCalendarConfig = deviceConfig.getClientOnlyCalendars().get(calendarID)
+		const calendarID = `${this.logins.getUserController().userId}#${BIRTHDAY_CALENDAR_BASE_ID}`
 
-			this.localCalendars.set(
-				calendarID,
-				downcast({
-					groupRoot: { _id: calendarID },
-					groupInfo: clientOnlyCalendarConfig
-						? { name: clientOnlyCalendarConfig.name, group: calendarID }
-						: {
-								name: lang.get(name),
-								group: calendarID,
-							},
-					group: { _id: calendarID },
-					shared: false,
-					userIsOwner: true,
-				}),
-			)
+		this.localCalendars.set(
+			calendarID,
+			downcast({
+				groupRoot: { _id: calendarID },
+				groupInfo: {
+					name: lang.get("birthdayCalendar_label"),
+					group: calendarID,
+				},
+				group: { _id: calendarID },
+				shared: false,
+				userIsOwner: true,
+			}),
+		)
 
-			if (!this.isNewPaidPlan && !this.hiddenCalendars.has(calendarID)) {
-				this._hiddenCalendars.add(calendarID)
-			}
+		if (!this.isNewPaidPlan && !this.hiddenCalendars.has(calendarID)) {
+			this._hiddenCalendars.add(calendarID)
 		}
 	}
 
@@ -794,7 +789,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	handleClientOnlyUpdate(groupInfo: GroupInfo, newGroupSettings: ClientOnlyCalendarsInfo) {
-		this.deviceConfig.updateClientOnlyCalendars(groupInfo.group, newGroupSettings)
+		console.log("Update userSettings...") //FIXME
 	}
 
 	get isNewPaidPlan(): Readonly<boolean> {

@@ -34,7 +34,7 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 		this.top = 0
 		this.entity = null
 
-		const clientOnlyColors = getClientOnlyColors(locator.logins.getUserController().userId, locator.deviceConfig.getClientOnlyCalendars())
+		const clientOnlyColors = getClientOnlyColors(locator.logins.getUserController().userId)
 		const groupColors = getGroupColors(locator.logins.getUserController().userSettingsGroupRoot)
 		for (let [calendarId, color] of clientOnlyColors.entries()) {
 			groupColors.set(calendarId, color)
