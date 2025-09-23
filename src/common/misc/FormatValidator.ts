@@ -1,13 +1,12 @@
 import { startsWith } from "@tutao/tutanota-utils"
 
 const DOMAIN_PART_REGEX = "[\\w\\-\\+_]+"
-export const DOMAIN_REGEX = new RegExp(`^(?:${DOMAIN_PART_REGEX})*?\\.(${DOMAIN_PART_REGEX})\\.(${DOMAIN_PART_REGEX})\\s*$`, "g")
-
+export const DOMAIN_REGEXP = new RegExp(`^${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
 const DOMAIN_OR_TLD_REGEXP = new RegExp(`^(${DOMAIN_PART_REGEX}.)*${DOMAIN_PART_REGEX}$`)
 const STRICT_USERNAME_MAIL_ADDR_REGEXP = new RegExp(
 	`^\\s*${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`,
 )
-export const EMAIL_ADDR_REGEX = new RegExp(`^[^\\s\\@]+\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`, "g")
+export const EMAIL_ADDR_REGEXP = new RegExp(`^[^\\s\\@]+\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
 
 /**
  * Checks if the given string is a valid email address format.
@@ -57,7 +56,7 @@ export function isMailAddress(string: string, strictUserName: boolean): boolean 
 		return STRICT_USERNAME_MAIL_ADDR_REGEXP.test(string)
 	} else {
 		// see https://web.archive.org/web/20180813043723/http://ntt.cc/2008/05/10/over-10-useful-javascript-regular-expression-functions-to-improve-your-web-applications-efficiency.html
-		return EMAIL_ADDR_REGEX.test(string)
+		return EMAIL_ADDR_REGEXP.test(string)
 	}
 }
 
@@ -75,7 +74,7 @@ export function isDomainName(domainName: string): boolean {
 		return false
 	}
 
-	return DOMAIN_REGEX.test(domainName)
+	return DOMAIN_REGEXP.test(domainName)
 }
 
 export function isDomainOrTopLevelDomain(value: string): boolean {

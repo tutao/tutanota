@@ -11,8 +11,13 @@ export const DATE_REGEX = [
 
 export const DATE_PATTERN_TOKEN = " <DATE> "
 
-export const URL_PATTERN_TOKEN = " <URL:$1:$2> "
+// export const URL_PATTERN = /(?:http|https|ftp|sftp):\/\/(([\w\-+_]+\.[\w\-+_]+\/?)+)[^\s]*/g
 
+export const URL_PATTERN = /(?:http|https|ftp|sftp):\/\/([\w.-]+)(?:\/[^\s]*)?/g
+
+export const URL_PATTERN_TOKEN = " <URL-$1> "
+
+export const EMAIL_ADDR_PATTERN = /(?:mailto:)?[A-Za-z0-9_+\-.]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
 export const EMAIL_ADDR_PATTERN_TOKEN = " <EMAIL> "
 
 export const BITCOIN_REGEX = /\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b/g
@@ -27,9 +32,6 @@ export const NUMBER_SEQUENCE_REGEX = /\b\d+\b/g
 
 export const NUMBER_SEQUENCE_TOKEN = " <NUMBER> "
 
-export const SPECIAL_CHARACTER_REGEX = /[!@#$%^&*()+`_=\\{}"';?/,.~]+|(?!\w)[-+]+(?!\w)/g
+export const SPECIAL_CHARACTER_REGEX = /(?<!<url-[^>]*)([!@#$%^&*()+`_=\\{}"':;?/,.~]+)(?![^<]*>)|(?!\w)[-+]+(?!\w)/g
 
 export const SPECIAL_CHARACTER_TOKEN = " <SPECIAL-CHAR> "
-
-export const UNREADABLE_SEQUENCE_REGEX = /[^aeiouyAEIOUY0-9\\W_\\-\\.h]{5}/g
-export const UNREADABLE_SEQUENCE_TOKEN = ""

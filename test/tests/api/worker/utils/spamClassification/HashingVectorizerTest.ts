@@ -1,7 +1,6 @@
 import o from "@tutao/otest"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { arrayEquals } from "@tutao/tutanota-utils"
-import { stemmer } from "stemmer"
 
 export const tokenize = (text: string): string[] =>
 	text

@@ -12,12 +12,15 @@ import {
 	CREDIT_CARD_TOKEN,
 	DATE_PATTERN_TOKEN,
 	DATE_REGEX,
+	EMAIL_ADDR_PATTERN,
 	EMAIL_ADDR_PATTERN_TOKEN,
+	NUMBER_SEQUENCE_REGEX,
+	NUMBER_SEQUENCE_TOKEN,
 	SPECIAL_CHARACTER_REGEX,
 	SPECIAL_CHARACTER_TOKEN,
+	URL_PATTERN,
 	URL_PATTERN_TOKEN,
 } from "./PreprocessPatterns"
-import { DOMAIN_REGEX, EMAIL_ADDR_REGEX } from "../../../common/misc/FormatValidator"
 import { random } from "@tutao/tutanota-crypto"
 import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
@@ -46,9 +49,9 @@ export type PreprocessConfiguration = {
 const PREDICTION_THRESHOLD = 0.5
 
 export class SpamClassifier {
-    public isEnabled: boolean = false
+	public isEnabled: boolean = false
 
-    private classifier: tf.LayersModel | null = null
+	private classifier: tf.LayersModel | null = null
 	private vectorizer: DynamicTfVectorizer | HashingVectorizer = new HashingVectorizer()
 
 	constructor(
@@ -58,8 +61,8 @@ export class SpamClassifier {
 		private readonly preprocessConfiguration: PreprocessConfiguration = {
 			isPreprocessMails: true,
 			isRemoveHTML: true,
-			isReplaceUrls: false,
-			isReplaceMailAddresses: false,
+			isReplaceUrls: true,
+			isReplaceMailAddresses: true,
 		},
 	) {}
 
@@ -107,12 +110,12 @@ export class SpamClassifier {
 
 		// 3. Replace urls
 		if (this.preprocessConfiguration.isReplaceUrls) {
-			preprocessedMail = preprocessedMail.replaceAll(DOMAIN_REGEX, URL_PATTERN_TOKEN)
+			preprocessedMail = preprocessedMail.replaceAll(URL_PATTERN, URL_PATTERN_TOKEN)
 		}
 
 		// 4. Replace email addresses
 		if (this.preprocessConfiguration.isReplaceMailAddresses) {
-			preprocessedMail = preprocessedMail.replaceAll(EMAIL_ADDR_REGEX, EMAIL_ADDR_PATTERN_TOKEN)
+			preprocessedMail = preprocessedMail.replaceAll(EMAIL_ADDR_PATTERN, EMAIL_ADDR_PATTERN_TOKEN)
 		}
 
 		// 5. Replace Bitcoin addresses
@@ -121,14 +124,11 @@ export class SpamClassifier {
 		// 6. Replace credit card numbers
 		preprocessedMail = preprocessedMail.replaceAll(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)
 
-		// // 7. Replace remaining numbers
-		// preprocessedMail = preprocessedMail.replaceAll(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
+		// 7. Replace remaining numbers
+		preprocessedMail = preprocessedMail.replaceAll(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
 
 		// 8. Remove special characters
 		preprocessedMail = preprocessedMail.replaceAll(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
-
-		// // 9. Replace unreadable expressions
-		// preprocessedMail = preprocessedMail.replaceAll(UNREADABLE_SEQUENCE_REGEX, UNREADABLE_SEQUENCE_TOKEN)
 
 		return preprocessedMail
 	}

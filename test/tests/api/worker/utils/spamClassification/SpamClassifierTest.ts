@@ -7,6 +7,10 @@ import { OfflineStoragePersistence } from "../../../../../../src/mail-app/worker
 import { object } from "testdouble"
 import { arrayHashUnsigned, assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { htmlToText } from "../../../../../../src/common/api/worker/search/IndexUtils"
+import {
+	MailClassificationData,
+	SpamClassificationInitializer,
+} from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassificationInitializer"
 
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/extracted_mails.csv"
 
@@ -83,13 +87,31 @@ o.spec("SpamClassifier", () => {
 		}
 
 		const dataSlice = hamSlice.concat(spamSlice)
+		const mockSpamClassificationIntializer = object() as SpamClassificationInitializer
+		mockSpamClassificationIntializer.init = async () => {
+			return dataSlice.map((data) => {
+				return {
+					mail: {
+						subject: data.subject,
+					},
+					mailDetails: {
+						body: {
+							compressedText: data.body,
+						},
+					},
+					isCertain: true,
+					isSpam: data.isSpam,
+				} as MailClassificationData
+			})
+		}
+
 		seededShuffle(dataSlice, 33)
 		const trainTestSplit = dataSlice.length * 0.8
 		const trainSet = dataSlice.slice(0, trainTestSplit)
 		const testSet = dataSlice.slice(trainTestSplit)
 
-		const classifier = new SpamClassifier(mockOfflineStorage, true)
-		classifier.isFeatureFlagEnabled = true
+		const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationIntializer)
+		classifier.isEnabled = true
 
 		let start = Date.now()
 		await classifier.initialTraining(trainSet)
@@ -117,15 +139,70 @@ o.spec("SpamClassifier", () => {
 		}
 
 		const dataSlice = hamSlice.concat(spamSlice)
+		const mockSpamClassificationIntializer = object() as SpamClassificationInitializer
+		mockSpamClassificationIntializer.init = async () => {
+			return dataSlice.map((data) => {
+				return {
+					mail: {
+						subject: data.subject,
+					},
+					mailDetails: {
+						body: {
+							compressedText: data.body,
+						},
+					},
+					isCertain: true,
+					isSpam: data.isSpam,
+				} as MailClassificationData
+			})
+		}
+
 		seededShuffle(dataSlice, 42)
 		const trainTestSplit = dataSlice.length * 0.8
 		const trainSet = dataSlice.slice(0, trainTestSplit)
 		const testSet = dataSlice.slice(trainTestSplit)
 
 		const trainSetHalf = trainSet.slice(0, trainSet.length / 2)
+
+		const mockSpamClassificationIntializerTrainSetHalf = object() as SpamClassificationInitializer
+		mockSpamClassificationIntializer.init = async () => {
+			return trainSetHalf.map((data) => {
+				return {
+					mail: {
+						subject: data.subject,
+					},
+					mailDetails: {
+						body: {
+							compressedText: data.body,
+						},
+					},
+					isCertain: true,
+					isSpam: data.isSpam,
+				} as MailClassificationData
+			})
+		}
+
 		const trainSetSecondHalf = trainSet.slice(trainSet.length / 2, trainSet.length)
 
-		const classifierAll = new SpamClassifier(mockOfflineStorage, true)
+		const mockSpamClassificationIntializerTrainSetSecondHalf = object() as SpamClassificationInitializer
+		mockSpamClassificationIntializer.init = async () => {
+			return trainSetSecondHalf.map((data) => {
+				return {
+					mail: {
+						subject: data.subject,
+					},
+					mailDetails: {
+						body: {
+							compressedText: data.body,
+						},
+					},
+					isCertain: true,
+					isSpam: data.isSpam,
+				} as MailClassificationData
+			})
+		}
+
+		const classifierAll = new SpamClassifier(mockOfflineStorage, mockSpamClassificationIntializer)
 		let start = Date.now()
 		await classifierAll.initialTraining(trainSet)
 		console.log(`trained in ${Date.now() - start}ms`)
@@ -138,7 +215,7 @@ o.spec("SpamClassifier", () => {
 		mockOfflineStorage.getSpamClassificationTrainingDataAfterCutoff = async (cutoff) => {
 			return trainSetSecondHalf
 		}
-		const classifierBySteps = new SpamClassifier(mockOfflineStorage, true)
+		const classifierBySteps = new SpamClassifier(mockOfflineStorage, mockSpamClassificationIntializerTrainSetHalf)
 		start = Date.now()
 		await classifierBySteps.initialTraining(trainSetHalf)
 		await classifierBySteps.updateModel(0)
@@ -149,7 +226,7 @@ o.spec("SpamClassifier", () => {
 		await classifierBySteps.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 
-		const classiOnlySecondHalf = new SpamClassifier(mockOfflineStorage, true)
+		const classiOnlySecondHalf = new SpamClassifier(mockOfflineStorage, mockSpamClassificationIntializerTrainSetSecondHalf)
 		start = Date.now()
 		await classiOnlySecondHalf.initialTraining(trainSetSecondHalf)
 		console.log(`trained in ${Date.now() - start}ms`)
@@ -162,16 +239,34 @@ o.spec("SpamClassifier", () => {
 
 	o("tokenize ai", async () => {
 		const { spamData, hamData } = await readMailData(DATASET_FILE_PATH)
-		const all = hamData.concat(spamData)
+		const allData = hamData.concat(spamData)
+
+		const mockSpamClassificationIntializer = object() as SpamClassificationInitializer
+		mockSpamClassificationIntializer.init = async () => {
+			return allData.map((data) => {
+				return {
+					mail: {
+						subject: data.subject,
+					},
+					mailDetails: {
+						body: {
+							compressedText: data.body,
+						},
+					},
+					isCertain: true,
+					isSpam: data.isSpam,
+				} as MailClassificationData
+			})
+		}
 
 		const mockOfflineStorage = object() as OfflineStoragePersistence
-		const classifier = new SpamClassifier(mockOfflineStorage, true)
+		const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationIntializer)
 
 		const vocab = buildVocab(
-			all.map((m) => tokenize(m.body)),
+			allData.map((m) => tokenize(m.body)),
 			5,
 		)
-		const tokenized = Array.from(new Set(all.map((m) => tokenize(cleanEmailBody(m.body))).reduce((previous, current) => previous.concat(current), [])))
+		const tokenized = Array.from(new Set(allData.map((m) => tokenize(cleanEmailBody(m.body))).reduce((previous, current) => previous.concat(current), [])))
 		const shrinked = Array.from(new Set(replaceWithPlaceholders(tokenized, vocab)))
 		fs.writeFileSync("/tmp/unique-tokens", shrinked.sort().join("\n"))
 		console.log(tokenized.length)

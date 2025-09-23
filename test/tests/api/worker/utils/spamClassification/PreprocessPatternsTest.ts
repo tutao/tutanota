@@ -6,11 +6,14 @@ import {
 	CREDIT_CARD_TOKEN,
 	DATE_PATTERN_TOKEN,
 	DATE_REGEX,
+	EMAIL_ADDR_PATTERN,
+	EMAIL_ADDR_PATTERN_TOKEN,
 	SPECIAL_CHARACTER_REGEX,
 	SPECIAL_CHARACTER_TOKEN,
+	URL_PATTERN,
 	URL_PATTERN_TOKEN,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/PreprocessPatterns"
-import { DOMAIN_REGEX } from "../../../../../../src/common/misc/FormatValidator"
+import { DOMAIN_REGEXP, isMailAddress } from "../../../../../../src/common/misc/FormatValidator"
 
 o.spec("PreprocessPatterns", () => {
 	o.spec("Date patterns", () => {
@@ -82,16 +85,16 @@ o.spec("PreprocessPatterns", () => {
 	o.spec("Url patterns", () => {
 		o.test("All recognized url patterns", async () => {
 			const urlsMap = new Map([
-				["https://tuta.com", "<URL:tuta:com>"],
-				["https://microsoft.com/outlook/test", "<URL:microsoft:com>"],
-				["https://subdomain.microsoft.com/outlook/test", "<URL:microsoft:com>"],
-				["https://subdomain.spam.com/this/is/not/cool/dsfalkfjd2309jlk234oi2k", "<URL:spam:com>"],
-				["https://subdomain.test.de/spam", "<URL:test:de>"],
+				["https://tuta.com", "<URL-tuta.com>"],
+				["https://microsoft.com/outlook/test", "<URL-microsoft.com>"],
+				["https://subdomain.microsoft.com/outlook/test", "<URL-subdomain.microsoft.com>"],
+				["https://subdomain.spam.com/this/is/not/cool/dsfalkfjd2309jlk234oi2k", "<URL-subdomain.spam.com>"],
+				["https://subdomain.test.de/spam!", "<URL-subdomain.test.de>"],
 			])
 
 			for (const [domain, expectedToken] of urlsMap.entries()) {
-				const tokenized = domain.replace(DOMAIN_REGEX, URL_PATTERN_TOKEN)
-				o.check(tokenized).equals(expectedToken)
+				const cleaned = domain.replace(URL_PATTERN, URL_PATTERN_TOKEN)
+				o.check(cleaned.trim()).equals(expectedToken)
 			}
 		})
 
@@ -100,13 +103,33 @@ o.spec("PreprocessPatterns", () => {
 			const notUrlsText = notUrls.join("\n")
 			let resultNotUrlsText = notUrlsText
 
-			resultNotUrlsText = resultNotUrlsText.replaceAll(DOMAIN_REGEX, URL_PATTERN_TOKEN)
+			resultNotUrlsText = resultNotUrlsText.replaceAll(DOMAIN_REGEXP, URL_PATTERN_TOKEN)
 
 			const resultTokenArray = resultNotUrlsText.split(URL_PATTERN_TOKEN)
 			o.check(resultTokenArray.length - 1).equals(0)
 
 			resultNotUrlsText = resultNotUrlsText.replaceAll(URL_PATTERN_TOKEN, "")
 			o.check(resultNotUrlsText.trim()).equals(notUrlsText)
+		})
+	})
+
+	o.spec("Email patterns", () => {
+		o.test("All recognized email patterns", async () => {
+			const emails = [
+				"test@example.com",
+				"mailto:test@example.com",
+				"plus+addressing@example.com",
+				"cool_user-name123@example.com",
+				"cool_user-name123@sub.example.com",
+			]
+
+			for (const email of emails) {
+				const replaced = email.replace(EMAIL_ADDR_PATTERN, EMAIL_ADDR_PATTERN_TOKEN)
+				if (!isMailAddress(email, false)) {
+					console.log(email)
+				}
+				o.check(replaced).equals(EMAIL_ADDR_PATTERN_TOKEN)
+			}
 		})
 	})
 
@@ -197,7 +220,7 @@ o.spec("PreprocessPatterns", () => {
 			})
 
 			o.test("Not recognized other-format sequences", async () => {
-				const notCreditCardText = [...otherNumberFormats, ...bitcoinAddresses].join("\n")
+				const notCreditCardText = otherNumberFormats.join("\n")
 
 				let resultNotCreditCard = otherNumberFormats.map((cc) => cc.replace(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)).join("\n")
 
