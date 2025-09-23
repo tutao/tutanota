@@ -4,7 +4,6 @@ import {
 	clone,
 	debounce,
 	deepEqual,
-	downcast,
 	findAndRemove,
 	getStartOfDay,
 	groupByAndMapUniquely,
@@ -15,11 +14,12 @@ import {
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
-	BIRTHDAY_CALENDAR_BASE_ID,
+	defaultCalendarColor,
 	EndType,
 	EXTERNAL_CALENDAR_SYNC_INTERVAL,
 	getWeekStart,
 	GroupType,
+	NewPaidPlans,
 	OperationType,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants"
@@ -34,11 +34,13 @@ import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
 	extractContactIdFromEvent,
+	getCalendarRenderType,
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
 	isClientOnlyCalendar,
 	isEventBetweenDays,
+	RenderType,
 } from "../../../common/calendar/date/CalendarUtils"
 import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
@@ -48,7 +50,7 @@ import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
-import { ClientOnlyCalendarsInfo, DeviceConfig } from "../../../common/misc/DeviceConfig"
+import { ClientOnlyCalendarsInfo, deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { Time } from "../../../common/calendar/date/Time.js"
@@ -66,6 +68,12 @@ import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { getGroupColors } from "../../../common/misc/GroupColors"
 import { GroupNameData, GroupSettingsModel } from "../../../common/sharing/model/GroupSettingsModel"
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
+import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
+import { formatDate, formatTime } from "../../../common/misc/Formatter"
+import { CalendarSidebarIconData } from "../gui/CalendarSidebarRow"
+import { Icons } from "../../../common/gui/base/icons/Icons"
+import { getSharedGroupName } from "../../../common/sharing/GroupUtils"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -93,6 +101,13 @@ export type CalendarEventPreviewModelFactory = (
 ) => Promise<CalendarEventPreviewViewModel>
 export type CalendarContactPreviewModelFactory = (event: CalendarEvent, contact: Contact, canEdit: boolean) => Promise<CalendarContactPreviewViewModel>
 export type CalendarPreviewModels = CalendarEventPreviewViewModel | CalendarContactPreviewViewModel
+
+export type CalendarRenderInfo = {
+	// FIXME later use this tupe only to extract the sidebar calendar row
+	name: string
+	color: string
+	renderType: RenderType
+}
 
 export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// Should not be changed directly but only through the URL
@@ -125,7 +140,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private viewSize: number | null = null
 
 	private _isNewPaidPlan: boolean = false
-	private localCalendars: Map<Id, CalendarInfo> = new Map<Id, CalendarInfo>()
 	private _calendarColors: GroupColors = new Map()
 	isCreatingExternalCalendar: boolean = false
 
@@ -187,12 +201,17 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		this.loadCalendarColors()
 
+		// disable birthday calendars by default if the user is not on a new paid plan.
 		logins
 			.getUserController()
 			.isNewPaidPlan()
 			.then((isNewPaidPlan) => {
 				this._isNewPaidPlan = isNewPaidPlan
-				this.prepareClientCalendars()
+				if (!isNewPaidPlan && !this.hiddenCalendars.has(this.calendarModel.getBirthdayCalendarInfo().id)) {
+					const hidden = new Set(this._hiddenCalendars)
+					hidden.add(this.calendarModel.getBirthdayCalendarInfo().id)
+					this.setHiddenCalendars(hidden)
+				}
 			})
 	}
 
@@ -236,31 +255,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		if (!deepEqual(this._calendarColors, groupColors)) {
 			this._calendarColors = new Map(groupColors)
-		}
-	}
-
-	/**
-	 * Load client only calendars or generate them if missing
-	 */
-	private prepareClientCalendars() {
-		const calendarID = `${this.logins.getUserController().userId}#${BIRTHDAY_CALENDAR_BASE_ID}`
-
-		this.localCalendars.set(
-			calendarID,
-			downcast({
-				groupRoot: { _id: calendarID },
-				groupInfo: {
-					name: lang.get("birthdayCalendar_label"),
-					group: calendarID,
-				},
-				group: { _id: calendarID },
-				shared: false,
-				userIsOwner: true,
-			}),
-		)
-
-		if (!this.isNewPaidPlan && !this.hiddenCalendars.has(calendarID)) {
-			this._hiddenCalendars.add(calendarID)
 		}
 	}
 
@@ -325,10 +319,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	get calendarColors(): GroupColors {
 		return this._calendarColors
-	}
-
-	get clientOnlyCalendars(): ReadonlyMap<Id, CalendarInfo> {
-		return this.localCalendars
 	}
 
 	get calendarInfos(): ReadonlyMap<Id, CalendarInfo> {
@@ -789,11 +779,60 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	handleClientOnlyUpdate(groupInfo: GroupInfo, newGroupSettings: ClientOnlyCalendarsInfo) {
-		console.log("Update userSettings...") //FIXME
+		console.log("Update to handle new birthday colors at userSettings") // FIXME
 	}
 
 	get isNewPaidPlan(): Readonly<boolean> {
 		return this._isNewPaidPlan
+	}
+
+	public isBirthdayCalendar(id: string): boolean {
+		return this.calendarModel.isBirthdayCalendar(id)
+	}
+
+	toggleHiddenCalendar = (calendarId: string) => {
+		if (this.isBirthdayCalendar(calendarId) && !this.isNewPaidPlan) {
+			showPlanUpgradeRequiredDialog(NewPaidPlans)
+			return
+		}
+
+		const newHiddenCalendars = new Set(this.hiddenCalendars)
+		if (this.hiddenCalendars.has(calendarId)) {
+			newHiddenCalendars.delete(calendarId)
+		} else {
+			newHiddenCalendars.add(calendarId)
+		}
+		this.setHiddenCalendars(newHiddenCalendars)
+	}
+
+	getCalendarRenderInfo(calendarInfo: CalendarInfo): CalendarRenderInfo {
+		const { userSettingsGroupRoot } = this.logins.getUserController()
+		const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? undefined
+
+		const sharedGroupName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), calendarInfo.shared)
+		const color = "#" + (groupSettings?.color ?? defaultCalendarColor)
+		const calendarType = getCalendarRenderType(calendarInfo)
+		return {
+			name: sharedGroupName,
+			color,
+			renderType: calendarType,
+		}
+	}
+
+	getIcon(renderType: RenderType, calendarId: string): CalendarSidebarIconData | undefined {
+		switch (renderType) {
+			case RenderType.External: {
+				const lastSyncEntry = deviceConfig.getLastExternalCalendarSync().get(calendarId)
+				const lastSyncDate = lastSyncEntry?.lastSuccessfulSync ? new Date(lastSyncEntry.lastSuccessfulSync) : null
+				const lastSyncStr = lastSyncDate
+					? lang.get("lastSync_label", { "{date}": `${formatDate(lastSyncDate)} at ${formatTime(lastSyncDate)}` })
+					: lang.get("iCalNotSync_msg")
+				return {
+					icon: Icons.SyncProblem,
+					title: lastSyncStr,
+				}
+			}
+		}
 	}
 }
 

@@ -7,7 +7,7 @@ import {
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
-import { CalendarModel, CalendarRenderInfo } from "../../model/CalendarModel.js"
+import { CalendarModel } from "../../model/CalendarModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { CalendarAttendeeStatus, EndType } from "../../../../common/api/common/TutanotaConstants.js"
 import m from "mithril"
@@ -18,6 +18,7 @@ import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
+import { CalendarRenderInfo } from "../../view/CalendarViewModel"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
