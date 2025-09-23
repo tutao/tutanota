@@ -17,7 +17,6 @@ import { UserFacade } from "../UserFacade.js"
 import { EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
-import type { QueuedBatch } from "../../EventQueue.js"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 
@@ -102,11 +101,9 @@ export class ConfigurationDatabase {
 					keyPath: "address",
 				})
 			}
-			const metaData =
-				(await loadEncryptionMetadata(dbFacade, id, keyLoaderFacade, ConfigurationMetaDataOS)) ||
-				(await initializeDb(dbFacade, id, keyLoaderFacade, ConfigurationMetaDataOS))
+			const metaData = await loadEncryptionMetadata(dbFacade, id, keyLoaderFacade, ConfigurationMetaDataOS)
 
-			if (event.oldVersion === 1) {
+			if (event.oldVersion === 1 && metaData) {
 				// migrate from plain, mac-and-static-iv aes256 to aes256 with mac
 				const transaction = await dbFacade.createTransaction(true, [ExternalImageListOS])
 				const entries = await transaction.getAll(ExternalImageListOS)
