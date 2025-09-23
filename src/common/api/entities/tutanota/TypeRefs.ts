@@ -2609,3 +2609,32 @@ export type DriveCreateReturn = {
 
 	_format: NumberString;
 }
+export const DriveGetInTypeRef: TypeRef<DriveGetIn> = new TypeRef("tutanota", 1731)
+
+export function createDriveGetIn(values: StrippedEntity<DriveGetIn>): DriveGetIn {
+    return Object.assign(create(typeModels[DriveGetInTypeRef.typeId], DriveGetInTypeRef), values)
+}
+
+export type DriveGetIn = {
+	_type: TypeRef<DriveGetIn>;
+	_errors: Object;
+	_original?: DriveGetIn
+
+	_format: NumberString;
+	nodeId: null | Id;
+}
+export const DriveGetOutTypeRef: TypeRef<DriveGetOut> = new TypeRef("tutanota", 1734)
+
+export function createDriveGetOut(values: StrippedEntity<DriveGetOut>): DriveGetOut {
+    return Object.assign(create(typeModels[DriveGetOutTypeRef.typeId], DriveGetOutTypeRef), values)
+}
+
+export type DriveGetOut = {
+	_type: TypeRef<DriveGetOut>;
+	_errors: Object;
+	_original?: DriveGetOut
+
+	_format: NumberString;
+
+	subFilesIds: IdTuple[];
+}
