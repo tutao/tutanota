@@ -4,8 +4,70 @@ import {
 	DATE_REGEX,
 	SPECIAL_CHARACTER_REGEX,
 	URL_PATTERN_TOKEN,
+	BITCOIN_PATTERN_TOKEN,
+	BITCOIN_REGEX,
+	CREDIT_CARD_REGEX,
+	CREDIT_CARD_TOKEN,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/PreprocessPatterns"
 import { DOMAIN_REGEX } from "../../../../../../src/common/misc/FormatValidator"
+
+const creditCards = [
+	"5002355116026522",
+	"4041594058552089",
+	"4917900523734890",
+	"4041 3751 9030 3866",
+	"5340 5434 1970 9263",
+	"5007662906271472",
+	"4098150719517227",
+	"4175005629562877",
+	"5010124099980232",
+]
+const bitcoinAddresses = [
+	"159S1vV25PAxMiCVaErjPznbWB8YBvANAi",
+	"18wUQ7NqX1sWuzbtCz4aoDEoLwZrAsq5XD",
+	"1FUm2eZK2ETeAo8v95WhZioQDy32YSerkD",
+	"1NJmLtKTyHyqdKo6epyF9ecMyuH1xFWjEt",
+	"1U11iKhWKyDv7RsRHNf98GSvwCLT6TJvr",
+]
+
+const otherNumberFormats = [
+	//MAC Address
+	"FB-94-77-45-96-74",
+	"91-58-81-D5-55-7C",
+	"B4-09-49-2A-DE-D4",
+	// ISBN
+	"718385414-0",
+	"733065633-X",
+	"632756390-2",
+	// SSN
+	"227-78-2283",
+	"134-34-1253",
+	"591-61-6459",
+	// SHA
+	"585eab9b3a5e4430e08f5096d636d0d475a8c69dae21a61c6f1b26c4bd8dd8c1",
+	"7233d153f2e0725d3d212d1f27f30258fafd72b286d07b3b1d94e7e3c35dce67",
+	"769f65bf44557df44fc5f99c014cbe98894107c9d7be0801f37c55b3776c3990",
+	// Phone Numbers
+	"(341) 2027690",
+	"+385 958 638 7625",
+	"430-284-9438",
+	// VIN(Vehicle identification number
+	"3FADP4AJ3BM438397",
+	"WAULT64B82N564937",
+	"KMHTC6AD6EU278390",
+	//GUIDs
+	"781a9631-0716-4f9c-bb36-25c3364b754b",
+	"325783d4-a64e-453b-85e6-ed4b2cd4c9bf",
+	"0f77794c-04c9-4c21-ae89-8047796c77c4",
+	//Hex Colors
+	"#2016c1",
+	"#c090a4",
+	"#c855f5",
+	//IPV4
+	"91.17.182.120",
+	"47.232.175.0",
+	"171.90.3.93",
+]
 
 o.spec("PreprocessPatterns", () => {
 	o.spec("Date patterns", () => {
@@ -148,5 +210,88 @@ o.spec("PreprocessPatterns", () => {
 			o.check(resultNotDatesText.trim()).equals(notDatesText)
 		})
 	})
+	o.spec("Credit card patterns", () => {
+		o.test("All recognized credit card patterns", async () => {
+			let resultCreditCardsText = creditCards.join("\n")
+
+			resultCreditCardsText = resultCreditCardsText.replace(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)
+
+			const resultTokenArray = resultCreditCardsText.split(CREDIT_CARD_TOKEN)
+			o.check(resultTokenArray.length - 1).equals(creditCards.length)
+
+			resultCreditCardsText = resultCreditCardsText.replaceAll(CREDIT_CARD_TOKEN, "")
+			o.check(resultCreditCardsText.trim()).equals("")
+		})
+
+		o.test("Not recognized credit-card-like sequences", async () => {
+			const notCreditCards = ["1234", "1234 1234", "1234 1234 1234", "90009", "1 1 1 1", "4444-4444"]
+			const notCreditCardText = notCreditCards.join("\n")
+
+			let resultNotCreditCard = notCreditCards.map((cc) => cc.replace(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)).join("\n")
+
+			const resultTokenArray = resultNotCreditCard.split(CREDIT_CARD_TOKEN)
+			o.check(resultTokenArray.length - 1).equals(0)
+
+			resultNotCreditCard = resultNotCreditCard.replaceAll(CREDIT_CARD_TOKEN, "")
+			o.check(resultNotCreditCard.trim()).equals(notCreditCardText)
+		})
+
+		o.test("Not recognized other-format sequences", async () => {
+			const notCreditCardText = [...otherNumberFormats, ...bitcoinAddresses].join("\n")
+
+			let resultNotCreditCard = otherNumberFormats.map((cc) => cc.replace(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)).join("\n")
+
+			const resultTokenArray = resultNotCreditCard.split(CREDIT_CARD_TOKEN)
+			o.check(resultTokenArray.length - 1).equals(0)
+
+			resultNotCreditCard = resultNotCreditCard.replaceAll(CREDIT_CARD_TOKEN, "")
+			o.check(resultNotCreditCard.trim()).equals(notCreditCardText)
+		})
+	})
+
+	o.spec("Bitcoin patterns", () => {
+		o.test("All recognized bitcoin patterns", async () => {
+			let resultBitcoinsText = bitcoinAddresses.join("\n")
+
+			resultBitcoinsText = resultBitcoinsText.replace(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)
+
+			const resultTokenArray = resultBitcoinsText.split(BITCOIN_PATTERN_TOKEN)
+			o.check(resultTokenArray.length - 1).equals(bitcoinAddresses.length)
+
+			resultBitcoinsText = resultBitcoinsText.replaceAll(BITCOIN_PATTERN_TOKEN, "")
+			o.check(resultBitcoinsText.trim()).equals("")
+		})
+
+		o.test("Not recognized bitcoin-like sequences", async () => {
+			const notBitcoins = [
+				"5213nYwhhGw2qpNijzfnKcbCG4z3hnrVA",
+				"1lwUQ7NqX1sWuzbtCz4aoDEoLwZrAsq5XD",
+				"1OUm2eZK2ETeAo8v95WhZioQDy32YSerkD",
+				"1IJmLtKTyHyqdKo6epyF9ecMyuH1xFWjEt",
+			]
+			const notBitcoinText = notBitcoins.join("\n")
+
+			let resultNotBitcoin = notBitcoins.map((cc) => cc.replace(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)).join("\n")
+
+			const resultTokenArray = resultNotBitcoin.split(BITCOIN_PATTERN_TOKEN)
+			o.check(resultTokenArray.length - 1).equals(0)
+
+			resultNotBitcoin = resultNotBitcoin.replaceAll(BITCOIN_PATTERN_TOKEN, "")
+			o.check(resultNotBitcoin.trim()).equals(notBitcoinText)
+		})
+
+		o.test("Not recognized other-format sequences", async () => {
+			const notBitcoinText = otherNumberFormats.join("\n")
+
+			let resultNotBitcoin = otherNumberFormats.map((cc) => cc.replace(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)).join("\n")
+
+			const resultTokenArray = resultNotBitcoin.split(BITCOIN_PATTERN_TOKEN)
+			o.check(resultTokenArray.length - 1).equals(0)
+
+			resultNotBitcoin = resultNotBitcoin.replaceAll(BITCOIN_PATTERN_TOKEN, "")
+			o.check(resultNotBitcoin.trim()).equals(notBitcoinText)
+		})
+	})
+
 	// TODO add tests for other patterns
 })

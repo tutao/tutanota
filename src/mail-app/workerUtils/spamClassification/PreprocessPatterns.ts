@@ -19,7 +19,7 @@ export const BITCOIN_REGEX = /\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b/g
 
 export const BITCOIN_PATTERN_TOKEN = " <BITCOIN> "
 
-export const CREDIT_CARD_REGEX = /\b(\d\s?){4}\b|\b[0-9]\d{13,16}\b/g
+export const CREDIT_CARD_REGEX = /\b(\d{4}\s?){4}\b|\b[0-9]\d{13,16}\b/g
 
 export const CREDIT_CARD_TOKEN = " <CREDIT-CARD> "
 
