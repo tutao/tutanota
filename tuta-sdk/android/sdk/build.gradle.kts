@@ -7,12 +7,12 @@ plugins {
 }
 
 dependencies {
-	implementation("net.java.dev.jna:jna:5.14.0@aar")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
-	implementation("androidx.annotation:annotation:1.8.0")
+	implementation("net.java.dev.jna:jna:5.18.0@aar")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+	implementation("androidx.annotation:annotation:1.9.1")
 	testImplementation("junit:junit:4.13.2")
-	androidTestImplementation("androidx.test.ext:junit:1.2.1")
-	androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+	androidTestImplementation("androidx.test.ext:junit:1.3.0")
+	androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
 }
 
 val tutanota3Root = layout.projectDirectory
@@ -30,6 +30,9 @@ cargo {
 	targets = getABITargets()
 	profile = getActiveBuildType()
 	targetDirectory = tutanota3Root.dir("target").toString()
+	exec = { spec, toolchain ->
+		spec.environment("RUSTFLAGS", "-C link-arg=-Wl,-z,max-page-size=16384")
+	}
 }
 
 fun getActiveBuildType(): String {
@@ -111,7 +114,7 @@ android {
 		jvmTarget = "1.8"
 	}
 	sourceSets["main"].java.srcDirs(file("${layout.buildDirectory.asFile.get()}/generated-sources/tuta-sdk"))
-	ndkVersion = "26.1.10909125"
+	ndkVersion = "28.2.13676358"
 }
 
 tasks.register("generateBinding") {
