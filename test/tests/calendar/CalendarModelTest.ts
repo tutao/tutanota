@@ -14,7 +14,14 @@ import { CalendarAttendeeStatus, CalendarMethod, OperationType, RepeatPeriod } f
 import { DateTime } from "luxon"
 import { EntityEventsListener, EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
-import { AlarmInfo, AlarmInfoTypeRef, UserAlarmInfoListTypeTypeRef, UserAlarmInfoTypeRef, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
+import {
+	AlarmInfo,
+	AlarmInfoTypeRef,
+	GroupMembershipTypeRef,
+	UserAlarmInfoListTypeTypeRef,
+	UserAlarmInfoTypeRef,
+	UserTypeRef,
+} from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
 import { NotFoundError } from "../../../src/common/api/common/error/RestError.js"
@@ -857,6 +864,8 @@ function makeLoginController(): LoginController {
 	})
 	when(loginController.getUserController()).thenReturn(userController)
 	when(userController.getCalendarMemberships()).thenReturn([])
+	const contactGroupMembership = createTestEntity(GroupMembershipTypeRef, { group: "contactGroup" })
+	when(userController.getContactGroupMemberships()).thenReturn([contactGroupMembership])
 	return loginController
 }
 
