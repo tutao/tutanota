@@ -3,32 +3,32 @@
 
 export const DATE_REGEX = [
 	/\b(?:\d{1,2}-){2}(?:\d\d|\d{4})\b/g, // 01-12-2023 | 1-12-2023
-	/\b(?:\d{1,2}\.){2}(?:\d\d|\d{4})\b/g, // 01.12.2023 | 1.12.2023
+	/\b(?:\d{1,2}\.){2}(?:\d\d|\d{4})(?!\.)/g, // 01.12.2023 | 1.12.2023
 	/\b(?:\d{1,2}\/){2}(?:\d\d|\d{4})\b/g, // 12/01/2023 | 12/1/2023 | 01/12/2023 | 1/12/2023
 	/\b\d{4}(?:\/\d{1,2}){2}\b/g, // 2023/12/01 | 2023/12/1
 	/\b\d{4}(?:-\d{1,2}){2}\b/g, // 2023-12-01 | 2023-12-1
 ]
 
-export const DATE_PATTERN_TOKEN = "<DATE>"
+export const DATE_PATTERN_TOKEN = " <DATE> "
 
-export const URL_PATTERN_TOKEN = "<URL:$1:$2>"
+export const URL_PATTERN_TOKEN = " <URL:$1:$2> "
 
-export const EMAIL_ADDR_PATTERN_TOKEN = "<EMAIL>"
+export const EMAIL_ADDR_PATTERN_TOKEN = " <EMAIL> "
 
-export const BITCOIN_REGEX = /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/g
+export const BITCOIN_REGEX = /\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b/g
 
-export const BITCOIN_PATTERN_TOKEN = "<BITCOIN>"
+export const BITCOIN_PATTERN_TOKEN = " <BITCOIN> "
 
 export const CREDIT_CARD_REGEX = /\b(\d\s?){4}\b|\b[0-9]\d{13,16}\b/g
 
-export const CREDIT_CARD_TOKEN = "<CREDIT-CARD>"
+export const CREDIT_CARD_TOKEN = " <CREDIT-CARD> "
 
 export const NUMBER_SEQUENCE_REGEX = /\b\d+\b/g
 
-export const NUMBER_SEQUENCE_TOKEN = "<NUMBER>"
+export const NUMBER_SEQUENCE_TOKEN = " <NUMBER> "
 
-export const SPECIAL_CHARACTER_REGEX = /\b[!@#$%^&*()-+`_=\\{}[]"';?\/,.~]+\b/g
-export const SPECIAL_CHARACTER_TOKEN = ""
+export const SPECIAL_CHARACTER_REGEX = /[!@#$%^&*()+`_=\\{}"';?/,.~]+|(?!\w)-+(?!\w)/g
+export const SPECIAL_CHARACTER_TOKEN = " <SPECIAL-CHAR> "
 
 export const UNREADABLE_SEQUENCE_REGEX = /[^aeiouyAEIOUY0-9\\W_\\-\\.h]{5}/g
 export const UNREADABLE_SEQUENCE_TOKEN = ""

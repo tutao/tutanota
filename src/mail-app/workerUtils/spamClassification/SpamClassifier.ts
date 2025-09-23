@@ -13,11 +13,14 @@ import {
 	DATE_PATTERN_TOKEN,
 	DATE_REGEX,
 	EMAIL_ADDR_PATTERN_TOKEN,
+	SPECIAL_CHARACTER_REGEX,
+	SPECIAL_CHARACTER_TOKEN,
 	URL_PATTERN_TOKEN,
 } from "./PreprocessPatterns"
 import { DOMAIN_REGEX, EMAIL_ADDR_REGEX } from "../../../common/misc/FormatValidator"
 import { random } from "@tutao/tutanota-crypto"
-import {MailWithDetailsAndAttachments} from "../index/MailIndexerBackend";
+import { MailWithDetailsAndAttachments } from "../index/MailIndexerBackend"
+import fs from "fs"
 
 assertWorkerOrNode()
 
@@ -36,15 +39,14 @@ export type SpamClassificationModel = {
 export class SpamClassifier {
 	private classifier: tf.LayersModel | null = null
 	public isEnabled: boolean = false
-    private vectorizer: DynamicTfVectorizer | HashingVectorizer = new HashingVectorizer()
+	private vectorizer: DynamicTfVectorizer | HashingVectorizer = new HashingVectorizer()
 
-    constructor(
+	constructor(
 		private readonly offlineStorage: OfflineStoragePersistence | null,
 		private readonly isPreprocessMails: boolean = true,
 		private readonly isRemoveHTML: boolean = true,
-        private readonly deterministic: boolean = false
-	) {
-	}
+		private readonly deterministic: boolean = false,
+	) {}
 
 	public async initialize(mailLoader: InitialMailLoader) {
 		await this.loadModel()
@@ -93,8 +95,8 @@ export class SpamClassifier {
 		// // 7. Replace remaining numbers
 		// preprocessedMail = preprocessedMail.replaceAll(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
 
-		// // 8. Remove special characters
-		// preprocessedMail = preprocessedMail.replaceAll(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
+		// 8. Remove special characters
+		preprocessedMail = preprocessedMail.replaceAll(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
 
 		// // 9. Replace unreadable expressions
 		// preprocessedMail = preprocessedMail.replaceAll(UNREADABLE_SEQUENCE_REGEX, UNREADABLE_SEQUENCE_TOKEN)
@@ -107,6 +109,11 @@ export class SpamClassifier {
 			return this.preprocessMail(this.concatSubjectAndBody(mail.subject, mail.body))
 		})
 		const tokenizedMails = await promiseMap(preprocessedMails, (d) => assertNotNull(this.offlineStorage).tokenize(d))
+
+		const flatTokens = tokenizedMails.flat().join("\n")
+
+		//FIXME remove this line
+		fs.writeFileSync("/tmp/with_preprocess.txt", flatTokens, "utf-8")
 
 		if (this.vectorizer instanceof DynamicTfVectorizer) {
 			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)

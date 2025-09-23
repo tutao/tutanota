@@ -3,7 +3,7 @@ import * as tf from "@tensorflow/tfjs"
 import crypto from "node:crypto"
 
 export class HashingVectorizer {
-	public readonly dimension: number = 1024
+	public readonly dimension: number = 2048
 	private readonly hasher = this.tensorHash
 
 	constructor() {}

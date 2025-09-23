@@ -1,12 +1,12 @@
 import o from "@tutao/otest"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { arrayEquals } from "@tutao/tutanota-utils"
+import { stemmer } from "stemmer"
 
 export const tokenize = (text: string): string[] =>
 	text
 		.toLowerCase()
 		.split(/\s+/)
-		.map((t) => t.replace(/[^a-z0-9]/gi, "")) // remove punctuation
 		.filter((t) => t.length > 1)
 
 o.spec("HashingVectorizer", () => {
