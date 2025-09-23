@@ -34,6 +34,7 @@ import { ApplicationTypesFacade } from "./facades/ApplicationTypesFacade"
 import { PublicEncryptionKeyProvider } from "./facades/PublicEncryptionKeyProvider"
 import { IdentityKeyCreator } from "./facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "./facades/PublicIdentityKeyProvider"
+import { DriveFacade } from "./facades/DriveFacade"
 
 export interface WorkerRandomizer {
 	generateRandomNumber(numBytes: number): Promise<number>
@@ -88,4 +89,5 @@ export interface CommonWorkerInterface {
 	readonly contactFacade: ContactFacade
 	readonly applicationTypesFacade: ApplicationTypesFacade
 	readonly identityKeyCreator: IdentityKeyCreator
+	readonly driveFacade: DriveFacade
 }

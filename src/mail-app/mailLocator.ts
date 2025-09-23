@@ -151,6 +151,7 @@ import { PublicEncryptionKeyProvider } from "../common/api/worker/facades/Public
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
 import { UndoModel } from "./UndoModel"
+import { DriveFacade } from "../common/api/worker/facades/DriveFacade"
 
 assertMainOrNode()
 
@@ -217,6 +218,7 @@ class MailLocator implements CommonLocator {
 	bulkMailLoader!: BulkMailLoader
 	mailExportFacade!: MailExportFacade
 	syncTracker!: SyncTracker
+	driveFacade!: DriveFacade
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private mailImporter: MailImporter | null = null
@@ -762,6 +764,7 @@ class MailLocator implements CommonLocator {
 			bulkMailLoader,
 			mailExportFacade,
 			contactSearchFacade,
+			driveFacade,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -785,6 +788,7 @@ class MailLocator implements CommonLocator {
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade
+		this.driveFacade = driveFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
 		this.logins = new LoginController(

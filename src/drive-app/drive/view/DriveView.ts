@@ -6,25 +6,18 @@ import { DriveViewModel } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
-import { ArchiveDataType, GroupType } from "../../../common/api/common/TutanotaConstants"
+import { GroupType } from "../../../common/api/common/TutanotaConstants"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { getUserGroupMemberships } from "../../../common/api/common/utils/GroupUtils"
 import { GroupTypeRef } from "../../../common/api/entities/sys/TypeRefs"
-import { assertNotNull } from "@tutao/tutanota-utils"
-import {
-	createDriveCreateData,
-	createDriveGetIn,
-	createDriveUploadedFile,
-	DriveGroupRootTypeRef,
-	File,
-	FileTypeRef,
-} from "../../../common/api/entities/tutanota/TypeRefs"
+import { createDriveGetIn, DriveGroupRootTypeRef, File, FileTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { DriveService } from "../../../common/api/entities/tutanota/Services"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
 import { size } from "../../../common/gui/size"
 import { showFileChooserForAttachments } from "../../../mail-app/mail/editor/MailEditorViewModel"
+import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -39,6 +32,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	private readonly driveNavColumn: ViewColumn
 	private readonly currentFolderColumn: ViewColumn
 
+	private readonly driveFacade: DriveFacade
+
 	private currentFolderFiles: File[] = []
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {}
@@ -50,12 +45,16 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs) // this is where we see the left bar
 		this.currentFolderColumn = this.createCurrentFolderColumn() // this where we see the files of the selected folder being listed
 		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn])
+
+		this.driveFacade = locator.driveFacade
 	}
 
 	oninit({ attrs }: m.Vnode<TopLevelAttrs>) {
 		console.log(this.files)
 
-		this.loadDriveRoot()
+		this.driveFacade.testDriveFacade().then((value) => console.log("Testing Drive Facade: it returns ", value))
+
+		//this.loadDriveRoot()
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
@@ -233,25 +232,27 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		console.log(`fileGroupOwnerGroup :: ${ownerGroupId}`)
 		console.log(`fileGroup_Id :: ${fileGroup._id}`)
 
-		//random.addStaticEntropy(Uint8Array.from([10, 50, 90, 30]))
-		const aStupidKey = [0, 1, 2, 3, 4, 5, 6, 7]
-
-		const driveCreateResponses = await Promise.all(
-			files.map(async (f: DataFile) => {
-				const blobRefTokens = await blobFacade.encryptAndUpload(ArchiveDataType.DriveFile, f.data /*FileUri*/, assertNotNull(ownerGroupId), aStupidKey)
-
-				const uploadedFile = createDriveUploadedFile({
-					referenceTokens: blobRefTokens,
-					encFileName: new Uint8Array(0),
-					encCid: new Uint8Array(0),
-					encMimeType: new Uint8Array(0),
-					ownerEncSessionKey: new Uint8Array(0),
-				})
-				const data = createDriveCreateData({ uploadedFile: uploadedFile })
-				const response = await locator.serviceExecutor.post(DriveService, data)
-				return response
-			}),
-		)
-		console.log(`received ::`, driveCreateResponses)
+		// TODO: Move into DriveFacade
+		// const fileGroupKey = await locator.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
+		// const sk = aes256RandomKey()
+		// const ownerEncSessionKey = _encryptKeyWithVersionedKey(fileGroupKey, sk)
+		// const driveCreateResponses = await Promise.all(
+		// 	files.map(async (f: DataFile) => {
+		// 		const blobRefTokens = await blobFacade.encryptAndUpload(ArchiveDataType.DriveFile, f.data /*FileUri*/, assertNotNull(ownerGroupId), aStupidKey)
+		//
+		// 		const uploadedFile = createDriveUploadedFile({
+		// 			referenceTokens: blobRefTokens,
+		// 			encFileName: new Uint8Array(0),
+		// 			encCid: new Uint8Array(0),
+		// 			encMimeType: new Uint8Array(0),
+		// 			ownerEncSessionKey: ownerEncSessionKey.key,
+		// 			_ownerGroup: assertNotNull(ownerGroupId),
+		// 		})
+		// 		const data = createDriveCreateData({ uploadedFile: uploadedFile })
+		// 		const response = await locator.serviceExecutor.post(DriveService, data)
+		// 		return response
+		// 	}),
+		// )
+		//console.log(`received ::`, driveCreateResponses)
 	}
 }

@@ -116,6 +116,7 @@ import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
+import { DriveFacade } from "../common/api/worker/facades/DriveFacade"
 
 assertMainOrNode()
 
@@ -173,6 +174,7 @@ class CalendarLocator implements CommonLocator {
 	Const!: Record<string, any>
 	syncTracker!: SyncTracker
 	identityKeyCreator!: IdentityKeyCreator
+	driveFacade!: DriveFacade
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -588,6 +590,7 @@ class CalendarLocator implements CommonLocator {
 			sqlCipherFacade,
 			contactFacade,
 			identityKeyCreator,
+			driveFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -607,6 +610,7 @@ class CalendarLocator implements CommonLocator {
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade
+		this.driveFacade = driveFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
 		this.identityKeyCreator = identityKeyCreator

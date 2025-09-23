@@ -90,6 +90,7 @@ import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKe
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
+import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
 
 assertWorkerOrNode()
 
@@ -161,6 +162,9 @@ export type CalendarWorkerLocatorType = {
 
 	//contact
 	contactFacade: lazyAsync<ContactFacade>
+
+	// drive
+	driveFacade: lazyAsync<DriveFacade>
 }
 export const locator: CalendarWorkerLocatorType = {} as any
 
@@ -601,6 +605,9 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.contactFacade = lazyMemoized(async () => {
 		const { ContactFacade } = await import("../../../common/api/worker/facades/lazy/ContactFacade.js")
 		return new ContactFacade(new EntityClient(locator.cache, typeModelResolver))
+	})
+	locator.driveFacade = lazyMemoized(async () => {
+		return new DriveFacade(locator.keyLoader, locator.cachingEntityClient, locator.serviceExecutor)
 	})
 }
 

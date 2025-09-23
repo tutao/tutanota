@@ -74,6 +74,7 @@ import type { CalendarInviteHandler } from "../../../calendar-app/calendar/view/
 import { PublicEncryptionKeyProvider } from "../worker/facades/PublicEncryptionKeyProvider"
 import { IdentityKeyCreator } from "../worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../worker/facades/PublicIdentityKeyProvider"
+import { DriveFacade } from "../worker/facades/DriveFacade.js"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -118,6 +119,7 @@ export interface CommonLocator {
 	random: WorkerRandomizer
 	connectivityModel: WebsocketConnectivityModel
 	identityKeyCreator: IdentityKeyCreator
+	driveFacade: DriveFacade
 
 	mailboxModel: MailboxModel
 

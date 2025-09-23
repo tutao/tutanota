@@ -48,6 +48,7 @@ import { SearchFacade } from "../index/SearchFacade"
 import { ContactSearchFacade } from "../index/ContactSearchFacade"
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
+import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
 
 assertWorkerOrNode()
 
@@ -91,6 +92,7 @@ export interface WorkerInterface {
 	readonly bulkMailLoader: BulkMailLoader
 	readonly applicationTypesFacade: ApplicationTypesFacade
 	readonly identityKeyCreator: IdentityKeyCreator
+	readonly driveFacade: DriveFacade
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -299,6 +301,9 @@ export class WorkerImpl implements NativeInterface {
 			},
 			async applicationTypesFacade() {
 				return locator.applicationTypesFacade
+			},
+			async driveFacade() {
+				return locator.driveFacade()
 			},
 		}
 	}
