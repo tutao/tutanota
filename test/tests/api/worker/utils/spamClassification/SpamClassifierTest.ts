@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import fs from "node:fs"
 import { parseCsv } from "../../../../../../src/common/misc/parsing/CsvParser"
-import { SpamClassificationRow, SpamClassifier } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+import { SpamClassificationMail, SpamClassifier } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { tokenize, tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
@@ -11,14 +11,14 @@ import { htmlToText } from "../../../../../../src/common/api/worker/search/Index
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/extracted_mails.csv"
 
 export async function readMailData(filePath: string): Promise<{
-	spamData: SpamClassificationRow[]
-	hamData: SpamClassificationRow[]
+	spamData: SpamClassificationMail[]
+	hamData: SpamClassificationMail[]
 }> {
 	const file = await fs.promises.readFile(filePath)
 	const csv = parseCsv(file.toString())
 
-	let spamData: SpamClassificationRow[] = []
-	let hamData: SpamClassificationRow[] = []
+	let spamData: SpamClassificationMail[] = []
+	let hamData: SpamClassificationMail[] = []
 	for (const row of csv.rows.slice(1, csv.rows.length - 1)) {
 		const subject = row[8]
 		const body = htmlToText(row[10])
@@ -38,18 +38,18 @@ export async function readMailData(filePath: string): Promise<{
 }
 
 function shuffleArray(
-	data: SpamClassificationRow[],
+	data: SpamClassificationMail[],
 	testRatio: number,
 ): {
-	trainSet: SpamClassificationRow[]
-	testSet: SpamClassificationRow[]
+	trainSet: SpamClassificationMail[]
+	testSet: SpamClassificationMail[]
 } {
 	data = data.sort((a, b) => {
 		return arrayHashUnsigned(stringToUtf8Uint8Array(a.subject + a.body)) - arrayHashUnsigned(stringToUtf8Uint8Array(b.subject + b.body))
 	})
 
-	const trainIndicesArray: SpamClassificationRow[] = []
-	const testIndicesArray: SpamClassificationRow[] = []
+	const trainIndicesArray: SpamClassificationMail[] = []
+	const testIndicesArray: SpamClassificationMail[] = []
 	for (let i = 0; i < data.length; i++) {
 		const iMod = i % 10
 		if (iMod < testRatio * 10) {
@@ -88,8 +88,8 @@ o.spec("SpamClassifier", () => {
 		const trainSet = dataSlice.slice(0, trainTestSplit)
 		const testSet = dataSlice.slice(trainTestSplit)
 
-		const classifier = new SpamClassifier(mockOfflineStorage, true, true, true)
-		classifier.isEnabled = true
+		const classifier = new SpamClassifier(mockOfflineStorage, true)
+		classifier.isFeatureFlagEnabled = true
 
 		let start = Date.now()
 		await classifier.initialTraining(trainSet)

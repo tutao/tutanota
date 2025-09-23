@@ -24,7 +24,7 @@ import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 
 assertWorkerOrNode()
 
-export type SpamClassificationRow = {
+export type SpamClassificationMail = {
 	subject: string
 	body: string
 	isSpam: boolean
@@ -36,17 +36,31 @@ export type SpamClassificationModel = {
 	weightData: Uint8Array
 }
 
+export type PreprocessConfiguration = {
+	isPreprocessMails: boolean
+	isRemoveHTML: boolean
+	isReplaceUrls: boolean
+	isReplaceMailAddresses: boolean
+}
+
+const PREDICTION_THRESHOLD = 0.5
+
 export class SpamClassifier {
-	private classifier: tf.LayersModel | null = null
-	public isEnabled: boolean = false
+    public isEnabled: boolean = false
+
+    private classifier: tf.LayersModel | null = null
 	private vectorizer: DynamicTfVectorizer | HashingVectorizer = new HashingVectorizer()
 
 	constructor(
 		private readonly offlineStorage: OfflineStoragePersistence | null,
 		private readonly initializer: SpamClassificationInitializer,
-		private readonly isPreprocessMails: boolean = true,
-		private readonly isRemoveHTML: boolean = true,
 		private readonly deterministic: boolean = false,
+		private readonly preprocessConfiguration: PreprocessConfiguration = {
+			isPreprocessMails: true,
+			isRemoveHTML: true,
+			isReplaceUrls: false,
+			isReplaceMailAddresses: false,
+		},
 	) {}
 
 	public async initialize(indexingDone: Promise<void>): Promise<void> {
@@ -57,7 +71,7 @@ export class SpamClassifier {
 
 			// Wait until indexing is done, as its populate offlineDb
 			await indexingDone
-			const data: Array<SpamClassificationRow> = (await this.initializer.init())
+			const data: Array<SpamClassificationMail> = (await this.initializer.init())
 				.filter((classificationData) => classificationData.isCertain)
 				.map((classificationData) => {
 					return {
@@ -74,15 +88,15 @@ export class SpamClassifier {
 		}
 	}
 
-	public preprocessMail(subjectAndBody: string): string {
-		if (!this.isPreprocessMails) {
-			return subjectAndBody
+	private preprocessMail(mailText: string): string {
+		if (!this.preprocessConfiguration.isPreprocessMails) {
+			return mailText
 		}
 
-		let preprocessedMail = subjectAndBody
+		let preprocessedMail = mailText
 
 		// 1. Remove HTML code
-		if (this.isRemoveHTML) {
+		if (this.preprocessConfiguration.isRemoveHTML) {
 			preprocessedMail = htmlToText(preprocessedMail)
 		}
 
@@ -92,10 +106,14 @@ export class SpamClassifier {
 		}
 
 		// 3. Replace urls
-		preprocessedMail = preprocessedMail.replaceAll(DOMAIN_REGEX, URL_PATTERN_TOKEN)
+		if (this.preprocessConfiguration.isReplaceUrls) {
+			preprocessedMail = preprocessedMail.replaceAll(DOMAIN_REGEX, URL_PATTERN_TOKEN)
+		}
 
 		// 4. Replace email addresses
-		preprocessedMail = preprocessedMail.replaceAll(EMAIL_ADDR_REGEX, EMAIL_ADDR_PATTERN_TOKEN)
+		if (this.preprocessConfiguration.isReplaceMailAddresses) {
+			preprocessedMail = preprocessedMail.replaceAll(EMAIL_ADDR_REGEX, EMAIL_ADDR_PATTERN_TOKEN)
+		}
 
 		// 5. Replace Bitcoin addresses
 		preprocessedMail = preprocessedMail.replaceAll(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)
@@ -115,29 +133,28 @@ export class SpamClassifier {
 		return preprocessedMail
 	}
 
-	public async initialTraining(mails: SpamClassificationRow[]): Promise<void> {
-		const preprocessedMails = mails.map((mail) => {
-			return this.preprocessMail(this.concatSubjectAndBody(mail.subject, mail.body))
-		})
-		const tokenizedMails = await promiseMap(preprocessedMails, (d) => assertNotNull(this.offlineStorage).tokenize(d))
+	public async initialTraining(mails: SpamClassificationMail[]): Promise<void> {
+		const preprocessedMails = mails.map((mail) => this.concatSubjectAndBody(mail)).map((mailText) => this.preprocessMail(mailText))
 
-		const flatTokens = tokenizedMails.flat().join("\n")
+		const tokenizedMails = await promiseMap(preprocessedMails, (preprocessedMail) => assertNotNull(this.offlineStorage).tokenize(preprocessedMail))
 
-		//FIXME remove this line
+		// FIXME remove these two lines
+		// const flatTokens = tokenizedMails.flat().join("\n")
 		// fs.writeFileSync("/tmp/with_preprocess.txt", flatTokens, "utf-8")
 
 		if (this.vectorizer instanceof DynamicTfVectorizer) {
 			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)
 		}
+
 		const vectors = await this.vectorizer.transform(tokenizedMails)
 
 		const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
-		const ys = tf.tensor1d(mails.map((d) => (d.isSpam ? 1 : 0)))
+		const ys = tf.tensor1d(mails.map((mail) => (mail.isSpam ? 1 : 0)))
 
-		this.classifier = this.buildModel(xs.shape[1]) // our vocabulary length
+		this.classifier = this.buildModel(xs.shape[1])
 		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: false })
 
-		console.log(`### Finished Training ### Total size: ${mails.length}`)
+		console.log(`### Finished Initial Training ### Total trained Mails: ${mails.length}`)
 	}
 
 	public async updateModel(cutoffTimestamp: number, testRatio = 0.2): Promise<boolean> {
@@ -156,7 +173,7 @@ export class SpamClassifier {
 			console.log(`Retraining model with ${newTrainingData.length} new samples (lastModified > ${new Date(cutoffTimestamp).toString()})`)
 			const mailBatch: string[] = []
 			for (let i = 0; i < newTrainingData.length; i++) {
-				mailBatch.push(this.preprocessMail(this.concatSubjectAndBody(newTrainingData[i].subject, newTrainingData[i].body)))
+				mailBatch.push(this.preprocessMail(this.concatSubjectAndBody(newTrainingData[i])))
 			}
 
 			// we have offline storage at this point. see WorkerLocator.initializeSpamClassificationTrainingIfEnabled
@@ -170,7 +187,7 @@ export class SpamClassifier {
 				//const vectors = this.hashingVectorizer.transform(tokenizedMailBatch)
 				const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
 				//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
-				const ys = tf.tensor1d(newTrainingData.map((mail: SpamClassificationRow) => (mail.isSpam ? 1 : 0)))
+				const ys = tf.tensor1d(newTrainingData.map((mail: SpamClassificationMail) => (mail.isSpam ? 1 : 0)))
 
 				await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32 })
 
@@ -184,25 +201,24 @@ export class SpamClassifier {
 	}
 
 	// visibleForTesting
-	public async predict(subjectAndBody: string): Promise<boolean> {
+	public async predict(mailText: string): Promise<boolean> {
 		if (!this.isEnabled) {
 			throw new Error("SpamClassifier is not enabled yet")
 		}
 
-		const preprocessedMail = this.preprocessMail(subjectAndBody)
+		const preprocessedMail = this.preprocessMail(mailText)
 		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(preprocessedMail)
-		// const vectors = this.dynamicTfVectorizer.transform([tokenizedMail])
 		const vectors = await assertNotNull(this.vectorizer).transform([tokenizedMail])
 
 		const xs = tf.tensor2d(vectors, [vectors.length, assertNotNull(this.vectorizer).dimension])
 		const pred = (await (assertNotNull(this.classifier).predict(xs) as tf.Tensor).data())[0]
 
-		return pred > 0.5
+		return pred > PREDICTION_THRESHOLD
 	}
 
 	// TODO:
 	// Move to SpamClassifierTest.ts after beta stage
-	public async test(data: SpamClassificationRow[]): Promise<void> {
+	public async test(data: SpamClassificationMail[]): Promise<void> {
 		if (!this.classifier) {
 			throw new Error("Model not loaded")
 		}
@@ -246,11 +262,11 @@ export class SpamClassifier {
 		})
 	}
 
-	private concatSubjectAndBody(subject: string | null | undefined, body: string | null | undefined) {
-		const s = subject || ""
-		const b = body || ""
-		const text = `${s} ${b}`.trim()
-		return text.length > 0 ? text : " "
+	private concatSubjectAndBody(mail: SpamClassificationMail) {
+		const subject = mail.subject || ""
+		const body = mail.body || ""
+		const concatenated = `${subject} ${body}`.trim()
+		return concatenated.length > 0 ? concatenated : " "
 	}
 
 	private buildModel(inputDim: number): tf.LayersModel {

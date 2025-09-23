@@ -10,7 +10,7 @@ import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
-import { SpamClassificationModel, SpamClassificationRow } from "../spamClassification/SpamClassifier"
+import { SpamClassificationModel, SpamClassificationMail } from "../spamClassification/SpamClassifier"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
@@ -225,19 +225,19 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async getAllSpamClassificationTrainingData(): Promise<SpamClassificationRow[]> {
+	async getAllSpamClassificationTrainingData(): Promise<SpamClassificationMail[]> {
 		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
 									  FROM spam_classification_training_data`
 		const resultRows = await this.sqlCipherFacade.all(query, params)
-		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationRow)
+		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationMail)
 	}
 
-	async getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number): Promise<SpamClassificationRow[]> {
+	async getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number): Promise<SpamClassificationMail[]> {
 		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
 									  FROM spam_classification_training_data
 									  WHERE lastModified > ${cutoffTimestamp}`
 		const resultRows = await this.sqlCipherFacade.all(query, params)
-		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationRow)
+		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationMail)
 	}
 
 	async putSpamClassificationModel(model: SpamClassificationModel) {
