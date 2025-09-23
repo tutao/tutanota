@@ -8,7 +8,6 @@ import { ContactSocialId, MailFolder } from "../entities/tutanota/TypeRefs.js"
 import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
-import { TranslationKey } from "../../misc/LanguageViewModel.js"
 
 export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
 export const MAX_NBR_OF_CONVERSATIONS = 50
@@ -1328,9 +1327,8 @@ export function asPublicKeyIdentifier(maybe: NumberString): PublicKeyIdentifierT
 	throw new Error("bad key identifier type")
 }
 
-export const CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID = "clientOnly_birthdays"
-export const CLIENT_ONLY_CALENDARS: Map<Id, TranslationKey> = new Map([[CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, "birthdayCalendar_label"]])
-export const DEFAULT_CLIENT_ONLY_CALENDAR_COLORS: Map<Id, string> = new Map([[CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, "FF9933"]])
+export const BIRTHDAY_CALENDAR_BASE_ID = "birthday_calendar"
+export const DEFAULT_BIRTHDAY_CALENDAR_COLOR = "FF9933"
 
 export const MAX_LABELS_PER_MAIL = 5
 

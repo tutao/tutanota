@@ -5,7 +5,7 @@ import { EntityEventsListener, EventController } from "../../../common/api/main/
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes.js"
 import {
-	CLIENT_ONLY_CALENDARS,
+	BIRTHDAY_CALENDAR_BASE_ID,
 	FULL_INDEXED_TIMESTAMP,
 	MailSetKind,
 	NOTHING_INDEXED_TIMESTAMP,
@@ -66,7 +66,7 @@ import m from "mithril"
 import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
-import { ClientOnlyCalendarsInfo, ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
+import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { generateCalendarInstancesInRange, retrieveClientOnlyEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
@@ -227,7 +227,6 @@ export class SearchViewModel {
 		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly updateUi: () => unknown,
 		private readonly selectionBehavior: ListAutoSelectBehavior,
-		private readonly localCalendars: Map<Id, ClientOnlyCalendarsInfo>,
 		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""
@@ -389,7 +388,7 @@ export class SearchViewModel {
 				const selectedCalendar = this.extractCalendarListIds(restriction.folderIds)
 				if (!selectedCalendar || Array.isArray(selectedCalendar)) {
 					this._selectedCalendar = selectedCalendar
-				} else if (CLIENT_ONLY_CALENDARS.has(selectedCalendar.toString())) {
+				} else if (selectedCalendar.toString().includes(BIRTHDAY_CALENDAR_BASE_ID)) {
 					this.getUserHasNewPaidPlan()
 						.getAsync()
 						.then((isNewPaidPlan) => {
@@ -1115,7 +1114,7 @@ export class SearchViewModel {
 	}
 
 	getLocalCalendars() {
-		return getClientOnlyCalendars(this.logins.getUserController().userId, this.localCalendars)
+		return getClientOnlyCalendars(this.logins.getUserController().userId)
 	}
 
 	dispose() {

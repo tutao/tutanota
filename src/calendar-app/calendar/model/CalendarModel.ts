@@ -95,7 +95,7 @@ import {
 } from "../../../common/calendar/date/CalendarUtils.js"
 import { getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
-import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig.js"
+import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
 	eventHasSameFields,
@@ -228,9 +228,7 @@ export class CalendarModel {
 
 	getCalendarRenderInfo(calendarId: Id, existingGroupSettings?: GroupSettings | null): CalendarRenderInfo {
 		if (isClientOnlyCalendar(calendarId)) {
-			const clientOnlyCalendar = getClientOnlyCalendars(this.logins.getUserController().userId, deviceConfig.getClientOnlyCalendars()).find(
-				(calendar) => calendar.id === calendarId,
-			)
+			const clientOnlyCalendar = getClientOnlyCalendars(this.logins.getUserController().userId).find((calendar) => calendar.id === calendarId)
 			return {
 				name: clientOnlyCalendar?.name ?? "",
 				color: clientOnlyCalendar?.color ?? "",

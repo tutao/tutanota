@@ -52,9 +52,9 @@ import {
 } from "../../../common/calendar/date/CalendarUtils.js"
 import {
 	AccountType,
+	BIRTHDAY_CALENDAR_BASE_ID,
 	CalendarAttendeeStatus,
-	CLIENT_ONLY_CALENDARS,
-	DEFAULT_CLIENT_ONLY_CALENDAR_COLORS,
+	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 	defaultCalendarColor,
 	EndType,
 	EventTextTimeOption,
@@ -923,37 +923,19 @@ export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = O
 	[CalendarAttendeeStatus.ADDED]: Icons.CircleHelp,
 })
 
-export const getClientOnlyColors = (userId: Id, clientOnlyCalendarsInfo: Map<Id, ClientOnlyCalendarsInfo>) => {
-	const colors: Map<Id, string> = new Map()
-	for (const [id, _] of CLIENT_ONLY_CALENDARS) {
-		const calendarId = `${userId}#${id}`
-		colors.set(calendarId, clientOnlyCalendarsInfo.get(calendarId)?.color ?? DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(id)!)
-	}
-	return colors
+export const getClientOnlyColors = (userId: Id) => {
+	const calendarId = `${userId}#${BIRTHDAY_CALENDAR_BASE_ID}`
+	return new Map([[calendarId, DEFAULT_BIRTHDAY_CALENDAR_COLOR]])
 }
 
 export const getClientOnlyCalendars = (
 	userId: Id,
-	clientOnlyCalendarInfo: Map<Id, ClientOnlyCalendarsInfo>,
 ): (ClientOnlyCalendarsInfo & {
 	id: string
 	name: string
 })[] => {
-	const userCalendars: (ClientOnlyCalendarsInfo & { id: string; name: string })[] = []
-
-	for (const [id, key] of CLIENT_ONLY_CALENDARS) {
-		const calendarId = `${userId}#${id}`
-		const calendar = clientOnlyCalendarInfo.get(calendarId)
-		if (calendar) {
-			userCalendars.push({
-				...calendar,
-				id: calendarId,
-				name: calendar.name ? calendar.name : lang.get(key),
-			})
-		}
-	}
-
-	return userCalendars
+	const calendarId = `${userId}#${BIRTHDAY_CALENDAR_BASE_ID}`
+	return [{ id: calendarId, name: lang.get("birthdayCalendar_label"), color: DEFAULT_BIRTHDAY_CALENDAR_COLOR }]
 }
 
 /**

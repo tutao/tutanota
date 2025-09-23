@@ -71,7 +71,6 @@ interface ConfigObject {
 	/** True if the credentials have been migrated to native */
 	isCredentialsMigratedToNative: boolean
 	lastExternalCalendarSync: Record<Id, LastExternalCalendarSyncEntry>
-	clientOnlyCalendars: Map<Id, ClientOnlyCalendarsInfo>
 	installationDate: string
 	/** Map from user id to the size of the list */
 	mailListSize: Record<Id, number>
@@ -156,7 +155,6 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 			isSetupComplete: loadedConfig.isSetupComplete ?? false,
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
 			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},
-			clientOnlyCalendars: loadedConfig.clientOnlyCalendars ? new Map(typedEntries(loadedConfig.clientOnlyCalendars)) : new Map(),
 			mailListSize: loadedConfig.mailListSize ?? {},
 			events: loadedConfig.events ?? [],
 			lastRatingPromptedDate: loadedConfig.lastRatingPromptedDate ?? null,
@@ -310,8 +308,6 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 					JSON.stringify(this.config, (key, value) => {
 						if (key === "_credentials") {
 							return Object.fromEntries(this.config._credentials.entries())
-						} else if (key === "clientOnlyCalendars") {
-							return Object.fromEntries(this.config.clientOnlyCalendars.entries())
 						} else {
 							return value
 						}
@@ -466,15 +462,6 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage {
 
 	setMailAutoSelectBehavior(action: ListAutoSelectBehavior) {
 		this.config.mailAutoSelectBehavior = action
-		this.writeToStorage()
-	}
-
-	getClientOnlyCalendars() {
-		return this.config.clientOnlyCalendars
-	}
-
-	updateClientOnlyCalendars(calendarId: Id, clientOnlyCalendarConfig: ClientOnlyCalendarsInfo): void {
-		this.config.clientOnlyCalendars.set(calendarId, clientOnlyCalendarConfig)
 		this.writeToStorage()
 	}
 

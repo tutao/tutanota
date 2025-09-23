@@ -20,14 +20,7 @@ import {
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/tutanota-utils"
-import {
-	CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID,
-	CLIENT_ONLY_CALENDARS,
-	EndType,
-	EventTextTimeOption,
-	RepeatPeriod,
-	TimeFormat,
-} from "../../api/common/TutanotaConstants"
+import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod, TimeFormat } from "../../api/common/TutanotaConstants"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import {
 	AdvancedRepeatRule,
@@ -84,7 +77,7 @@ export function generateUid(groupId: Id, timestamp: number): string {
 }
 
 export function isBirthdayEvent(uid?: string | null) {
-	return uid?.includes(CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID) ?? false
+	return uid?.includes(BIRTHDAY_CALENDAR_BASE_ID) ?? false
 }
 
 /** get the timestamps of the start date and end date of the month the given date is in. */
@@ -1711,6 +1704,19 @@ export const RENDER_TYPE_TRANSLATION_MAP: ReadonlyMap<RenderType, TranslationKey
 	]),
 )
 
+export function isCalendarInfoOfRenderType(calendarInfo: CalendarInfo, renderType: RenderType) {
+	switch (renderType) {
+		case RenderType.Private:
+			return isPrivateRenderType(calendarInfo)
+		case RenderType.Shared:
+			return isSharedRenderType(calendarInfo)
+		case RenderType.External:
+			return isExternalRenderType(calendarInfo)
+		default:
+			return false
+	}
+}
+
 export function isPrivateRenderType(calendarInfo: CalendarInfo) {
 	return calendarInfo.userIsOwner && !calendarInfo.isExternal && !isClientOnlyCalendar(calendarInfo.group._id)
 }
@@ -1731,12 +1737,7 @@ export function getCalendarRenderType(calendarInfo: CalendarInfo): RenderType {
 }
 
 export function isClientOnlyCalendar(calendarId: Id) {
-	const clientOnlyId = calendarId.match(/#(.*)/)?.[1]!
-	return CLIENT_ONLY_CALENDARS.has(clientOnlyId)
-}
-
-export function isClientOnlyCalendarType(calendarType: CalendarType) {
-	return calendarType === CalendarType.CLIENT_ONLY
+	return calendarId.includes(BIRTHDAY_CALENDAR_BASE_ID)
 }
 
 export function isNormalCalendarType(calendarType: CalendarType) {
