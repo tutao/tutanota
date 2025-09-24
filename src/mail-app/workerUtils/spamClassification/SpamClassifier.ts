@@ -23,6 +23,7 @@ import {
 } from "./PreprocessPatterns"
 import { random } from "@tutao/tutanota-crypto"
 import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
+import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider"
 
 assertWorkerOrNode()
 
@@ -246,7 +247,48 @@ export class SpamClassifier {
 		return prediction > PREDICTION_THRESHOLD
 	}
 
-	// FIXME
+	/*
+	 * TODO: Only for internal release
+	 *
+	 * Allows to check the accuracy of your currently trained classifier against the content of mailbox itself
+	 * How-to:
+	 * 1) Put a breakpoint somewhere in this file ( right at end of updateModel/ initialTraining makes more sense )
+	 * 2) Execute this method in console: `locator.spamClassifier.getSpamMetricsForCurrentMailBox()`
+	 * 3) Let execution continue from breakpoint
+	 *
+	 * Since we change constant of this.initializer,
+	 * it's better to restart the client to not have unexpected effect
+	 */
+	public async getSpamMetricsForCurrentMailBox(): Promise<void> {
+		const dateProvider = new LocalTimeDateProvider()
+
+		const getIdOfClassificationMail = (classificationData: any) => {
+			return ((classificationData.listId as Id) + "/" + classificationData.elementId) as Id
+		}
+
+		const readingAllSpamStart = performance.now()
+		const trainedMails = await assertNotNull(this.offlineStorage)
+			.getCertainSpamClassificationTrainingDataAfterCutoff(0)
+			.then((mails) => mails.map((cd) => getIdOfClassificationMail(cd)))
+			.then((mails) => new Set(mails))
+		console.log(`Done reading ${trainedMails.size} certain training mail data in: ${performance.now() - readingAllSpamStart}ms`)
+
+		// since we train with last -28 days, we can test with last -90
+		;(this.initializer as any).TIME_LIMIT = dateProvider.getStartOfDayShiftedBy(-90)
+		// if exists, try to test with at least same number of mails as in training sample
+		;(this.initializer as any).MIN_MAILS_COUNT = trainedMails.size
+
+		const downloadingExtraMailsStart = performance.now()
+		const testingMails = (await this.initializer.init())
+			// do not test with the same mails that was used to train
+			.filter((classificationData) => !trainedMails.has(getIdOfClassificationMail(classificationData)))
+		console.log(`Done downloading extra ${testingMails.length} of last 90 days mail data in: ${performance.now() - downloadingExtraMailsStart}ms`)
+
+		const testingAllSamplesStart = performance.now()
+		await this.test(testingMails)
+		console.log(`Done testing all extra mails sample in: ${performance.now() - testingAllSamplesStart}ms`)
+	}
+
 	public async test(mails: SpamTrainMailDatum[]): Promise<void> {
 		if (!this.classifier) {
 			throw new Error("Model has not been loaded")
@@ -257,7 +299,7 @@ export class SpamClassifier {
 			const prediction = await this.predict(mail)
 			predictionArray.push(prediction ? 1 : 0)
 		}
-		const ysArray = mails.map((mail) => (mail.isSpam ? 1 : 0))
+		const ysArray = mails.map((mail) => mail.isSpam)
 
 		let tp = 0,
 			tn = 0,
@@ -265,12 +307,12 @@ export class SpamClassifier {
 			fn = 0
 
 		for (let i = 0; i < predictionArray.length; i++) {
-			const pred = predictionArray[i] > 0.5 ? 1 : 0
-			const actual = ysArray[i]
-			if (pred === 1 && actual === 1) tp++
-			else if (pred === 0 && actual === 0) tn++
-			else if (pred === 1 && actual === 0) fp++
-			else if (pred === 0 && actual === 1) fn++
+			const predictedSpam = predictionArray[i] > 0.5
+			const isActuallyASpam = ysArray[i]!
+			if (predictedSpam && isActuallyASpam) tp++
+			else if (!predictedSpam && !isActuallyASpam) tn++
+			else if (predictedSpam && !isActuallyASpam) fp++
+			else if (!predictedSpam && isActuallyASpam) fn++
 		}
 
 		const total = tp + tn + fp + fn
