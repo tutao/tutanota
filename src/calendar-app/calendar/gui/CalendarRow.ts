@@ -1,5 +1,4 @@
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { locator } from "../../../common/api/main/CommonLocator.js"
 import m, { Children, VnodeDOM } from "mithril"
 
 import { SelectableRowContainer, SelectableRowContainerAttrs, SelectableRowSelectedSetter } from "../../../common/gui/SelectableRowContainer.js"
@@ -9,17 +8,16 @@ import { ViewHolder } from "../../../common/gui/base/List.js"
 import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 
-import { formatEventDuration, getClientOnlyColors, getEventColor } from "./CalendarGuiUtils.js"
+import { formatEventDuration, getEventColor } from "./CalendarGuiUtils.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
-
-import { getGroupColors } from "../../../common/misc/GroupColors"
+import { CalendarInfoBase } from "../model/CalendarModel"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
 	top: number
 
 	entity: CalendarEvent | null
-	colors: GroupColors
+	colors: GroupColors = new Map()
 
 	private selectionSetter!: SelectableRowSelectedSetter
 	private calendarIndicatorDom!: HTMLElement
@@ -29,18 +27,15 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 
 	constructor(
 		readonly domElement: HTMLElement,
+		private readonly availableCalendars: ReadonlyArray<CalendarInfoBase>,
 		private readonly getHighlightedStrings?: () => readonly SearchToken[],
 	) {
 		this.top = 0
 		this.entity = null
 
-		const clientOnlyColors = getClientOnlyColors(locator.logins.getUserController().userId)
-		const groupColors = getGroupColors(locator.logins.getUserController().userSettingsGroupRoot)
-		for (let [calendarId, color] of clientOnlyColors.entries()) {
-			groupColors.set(calendarId, color)
+		for (let { id, color } of availableCalendars) {
+			this.colors.set(id, color)
 		}
-
-		this.colors = groupColors
 	}
 
 	update(event: CalendarEvent, selected: boolean, isInMultiSelect: boolean): void {
@@ -115,9 +110,10 @@ export class KindaCalendarRow implements ViewHolder<CalendarEvent> {
 
 	constructor(
 		dom: HTMLElement,
+		private readonly availableCalendars: ReadonlyArray<CalendarInfoBase>,
 		private readonly getHighlightedStrings?: () => readonly SearchToken[],
 	) {
-		this.cr = new CalendarRow(dom, getHighlightedStrings)
+		this.cr = new CalendarRow(dom, availableCalendars, getHighlightedStrings)
 		this.domElement = dom
 		m.render(dom, this.cr.render())
 	}
