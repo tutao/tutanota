@@ -6,7 +6,7 @@ typealias Theme = [String: String]
 
 private let SELECTED_THEME = "theme"
 private let THEMES = "themes"
-private let LIGHT_FALLBACK_THEME = ["themeId": "light-fallback", "content_bg": "#ffffff", "header_bg": "#ffffff", "navigation_bg": "f6f6f6"]
+private let LIGHT_FALLBACK_THEME = ["themeId": "light-fallback", "surface": "#ffffff"]
 
 class ThemeManager: NSObject {
 	private let userPreferencesProvider: UserPreferencesProvider

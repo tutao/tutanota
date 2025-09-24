@@ -349,7 +349,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					"span",
 					{
 						class: `${isDisplay ? "text-ellipsis" : ""}`,
-						style: { color: isSelected ? theme.content_button_selected : undefined },
+						style: { color: isSelected ? theme.primary : undefined },
 					},
 					option.name,
 				),
@@ -448,7 +448,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 					// Ideally we could do this inside DatePicker itself, but the rendering breaks and the dialog appears below it's siblings
 					// We also don't want to do this for all dialogs because it could potentially cause other issues
 					transform: "translate(0)",
-					color: theme.button_bubble_fg,
+					color: theme.on_surface,
 					"pointer-events": `${this.allowRenderMainPage() ? "auto" : "none"}`,
 					width: px(this.pageWidth),
 				},

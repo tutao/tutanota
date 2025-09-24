@@ -5,18 +5,22 @@ import Stream from "mithril/stream"
 import { assertMainOrNodeBoot, isApp, isDesktop } from "../api/common/Env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "@tutao/tutanota-utils"
 import m from "mithril"
-import type { BaseThemeId, Theme, ThemeId, ThemePreference } from "./theme"
-import { logoDefaultGrey, themes } from "./builtinThemes"
-import type { ThemeCustomizations } from "../misc/WhitelabelCustomizations"
-import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations"
+import { BaseThemeId, theme, Theme, ThemeId, ThemePreference } from "./theme"
+import { themes } from "./builtinThemes"
+import {
+	getWhitelabelCustomizations,
+	ThemeCustomizations,
+	UnknownThemeCustomizations,
+	WHITELABEL_CUSTOMIZATION_VERSION,
+} from "../misc/WhitelabelCustomizations"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import { ThemeFacade } from "../native/common/generatedipc/ThemeFacade"
 import { AppType } from "../misc/ClientConstants.js"
-import { locator } from "../api/main/CommonLocator.js"
+import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
 
 assertMainOrNodeBoot()
 
-export const defaultThemeId: ThemeId = "light"
+export const defaultThemeId = "light" satisfies ThemeId
 
 export class ThemeController {
 	private readonly theme: Theme
@@ -31,6 +35,7 @@ export class ThemeController {
 		private readonly themeFacade: ThemeFacade,
 		private readonly htmlSanitizer: () => Promise<HtmlSanitizer>,
 		private readonly app: AppType,
+		private readonly whitelabelThemeGenerator: WhitelabelThemeGenerator,
 	) {
 		// this will be overwritten quickly
 		this._themeId = defaultThemeId
@@ -48,7 +53,11 @@ export class ThemeController {
 
 		if (whitelabelCustomizations && whitelabelCustomizations.theme) {
 			// no need to persist anything if we are on whitelabel domain
-			const assembledTheme = await this.applyCustomizations(whitelabelCustomizations.theme, false)
+			const parsedTheme = whitelabelCustomizations.theme
+			// in case parsedTheme is old, we generate new theme from old one
+			const material3Customizations = await this.getMaterial3Customizations(parsedTheme)
+
+			const assembledTheme = await this.applyCustomizations(material3Customizations, false)
 			this._themePreference = assembledTheme.themeId
 		} else {
 			// It is theme info passed from native to be applied as early as possible.
@@ -68,6 +77,32 @@ export class ThemeController {
 			// theme after that.
 			await this.setThemePreference((await this.themeFacade.getThemePreference()) ?? this._themePreference)
 		}
+	}
+
+	/**
+	 * Color token mapper from the new to the old.
+	 * This mapper could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
+	 */
+	public static mapNewToOldColorTokens(customizations: Partial<ThemeCustomizations>): Record<string, string | number> {
+		let mappedCustomizations: Record<string, string | number> = {}
+
+		const colorTokenMap = newToOldColorTokenMap(customizations.base === "light")
+		for (const [newToken, hex] of Object.entries(customizations)) {
+			if (!newToken || !hex) continue
+			const mappedOldTokens = colorTokenMap[newToken as keyof Theme]
+			if (mappedOldTokens) {
+				for (const oldToken of mappedOldTokens) {
+					mappedCustomizations[oldToken] = hex
+				}
+			}
+
+			// prevent old tokens from being overwritten in the case where customizations include both new and old tokens
+			if (mappedCustomizations[newToken] == null) {
+				mappedCustomizations[newToken] = hex
+			}
+		}
+
+		return mappedCustomizations
 	}
 
 	/**
@@ -182,6 +217,7 @@ export class ThemeController {
 	 */
 	async applyCustomizations(customizations: ThemeCustomizations, permanent: boolean = true): Promise<Theme> {
 		const updatedTheme = this.assembleTheme(customizations)
+
 		// Set no logo until we sanitize it.
 		const filledWithoutLogo = Object.assign({}, updatedTheme, {
 			logo: "",
@@ -201,6 +237,10 @@ export class ThemeController {
 		}
 
 		return updatedTheme
+	}
+
+	async resetTheme(theme: Theme) {
+		this.applyTrustedTheme(theme, theme.themeId)
 	}
 
 	async storeCustomThemeForCustomizations(customizations: ThemeCustomizations) {
@@ -255,10 +295,8 @@ export class ThemeController {
 			// This is a whitelabel theme where logo has not been overwritten.
 			// Generate a logo with muted colors. We do not want to color our logo in
 			// some random color.
-			const grayedLogo =
-				this.app === AppType.Calendar
-					? getCalendarLogoSvg(logoDefaultGrey, logoDefaultGrey, logoDefaultGrey)
-					: getMailLogoSvg(logoDefaultGrey, logoDefaultGrey, logoDefaultGrey)
+			const logoDefaultGrey = "#c5c7c7"
+			const grayedLogo = this.app === AppType.Calendar ? getCalendarLogoSvg(logoDefaultGrey) : getMailLogoSvg(logoDefaultGrey)
 			return { ...themeWithoutLogo, ...{ logo: grayedLogo } }
 		}
 	}
@@ -266,6 +304,32 @@ export class ThemeController {
 	async getCustomThemes(): Promise<Array<ThemeId>> {
 		return mapAndFilterNull(await this.themeFacade.getThemes(), (theme) => {
 			return !(theme.themeId in themes()) ? theme.themeId : null
+		})
+	}
+
+	/**
+	 * Get new Material3 theme customizations from old customizations
+	 * Could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
+	 */
+	async getMaterial3Customizations(unknownCustomizations: UnknownThemeCustomizations): Promise<ThemeCustomizations> {
+		// version is only null in old customizations
+		// for old whitelabel themes, content_accent is only null when there are no color customizations
+		if (unknownCustomizations.version != null || unknownCustomizations.content_accent == null) {
+			return unknownCustomizations as ThemeCustomizations
+		}
+		const oldCustomizations = unknownCustomizations as Record<string, string>
+
+		const baseTheme = oldCustomizations.base as BaseThemeId
+		const theme = await this.whitelabelThemeGenerator.generateMaterialPalette({
+			sourceColor: oldCustomizations.content_accent,
+			theme: baseTheme,
+		})
+
+		return Object.assign(theme, {
+			version: WHITELABEL_CUSTOMIZATION_VERSION,
+			base: baseTheme,
+			sourceColor: oldCustomizations.content_accent,
+			logo: oldCustomizations.logo,
 		})
 	}
 }
@@ -328,4 +392,24 @@ export class WebThemeFacade implements ThemeFacade {
 	addDarkListener(listener: () => unknown) {
 		this.mediaQuery?.addEventListener("change", listener)
 	}
+}
+
+function newToOldColorTokenMap(isLightTheme: boolean): Partial<Record<keyof Theme, string[]>> {
+	return {
+		secondary: [],
+		on_secondary: ["navigation_menu_icon"],
+		surface: isLightTheme ? ["content_bg", "header_bg", "list_bg", "elevated_bg"] : ["content_bg", "header_bg", "list_bg", "navigation_menu_bg"],
+		on_surface: ["content_fg", "button_bubble_fg"],
+		on_surface_variant: ["content_button", "header_button", "navigation_button", "content_message_bg", "list_message_bg", "navigation_button_icon_bg"],
+		primary: ["content_accent", "content_button_selected", "header_button_selected", "list_accent_fg", "navigation_button_selected"],
+		on_primary: ["content_button_icon", "content_button_icon_selected", "navigation_button_icon_selected"],
+		outline: ["content_border", "header_box_shadow_bg"],
+		surface_container: isLightTheme
+			? ["list_alternate_bg", "navigation_bg", "navigation_button_icon"]
+			: ["list_alternate_bg", "navigation_bg", "navigation_button_icon", "elevated_bg"],
+		surface_container_high: isLightTheme ? ["button_bubble_bg", "navigation_menu_bg"] : ["button_bubble_bg"],
+		outline_variant: ["list_border", "navigation_border"],
+		scrim: ["modal_bg"],
+		error: ["error"],
+	} as const
 }
