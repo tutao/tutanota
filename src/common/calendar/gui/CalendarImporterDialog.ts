@@ -19,6 +19,7 @@ import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { isApp } from "../../api/common/Env.js"
 
 import { EventImportRejectionReason, EventWrapper, sortOutParsedEvents } from "./ImportExportUtils.js"
+import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 
 /**
  * show an error dialog detailing the reason and amount for events that failed to import
@@ -40,6 +41,7 @@ async function partialImportConfirmation(skippedEvents: CalendarEvent[], confirm
 
 export async function handleCalendarImport(
 	calendarGroupRoot: CalendarGroupRoot,
+	calendarInfo: CalendarInfoBase,
 	importedParsedEvents: ParsedEvent[] | null = null,
 	calendarType: CalendarType = CalendarType.NORMAL,
 ): Promise<void> {
@@ -65,6 +67,7 @@ export async function handleCalendarImport(
 					await importEvents(eventsForCreation)
 				},
 				"importEvents_label",
+				calendarInfo,
 			)
 	}
 }

@@ -6,12 +6,12 @@ import { size } from "../../../../common/gui/size.js"
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
 import ColumnEmptyMessageBox from "../../../../common/gui/base/ColumnEmptyMessageBox.js"
 import { BootIcons } from "../../../../common/gui/base/icons/BootIcons.js"
-import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { VirtualRow } from "../../../../common/gui/base/ListUtils.js"
 import { styles } from "../../../../common/gui/styles.js"
 import { KindaCalendarRow } from "../../gui/CalendarRow.js"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
+import { CalendarInfoBase } from "../../model/CalendarModel"
 
 assertMainOrNode()
 
@@ -27,18 +27,18 @@ export interface CalendarSearchListViewAttrs {
 	listModel: ListElementListModel<CalendarSearchResultListEntry>
 	onSingleSelection: (item: CalendarSearchResultListEntry) => unknown
 	isFreeAccount: boolean
-	cancelCallback: () => unknown | null
+	cancelCallback: () => unknown | null //FIXME add highlights?
+	availableCalendars: ReadonlyArray<CalendarInfoBase>
 }
 
 export class CalendarSearchListView implements Component<CalendarSearchListViewAttrs> {
-	private listModel: ListElementListModel<CalendarSearchResultListEntry>
+	private attrs: CalendarSearchListViewAttrs
 
 	constructor({ attrs }: Vnode<CalendarSearchListViewAttrs>) {
-		this.listModel = attrs.listModel
+		this.attrs = attrs
 	}
 
 	view({ attrs }: Vnode<CalendarSearchListViewAttrs>): Children {
-		this.listModel = attrs.listModel
 		const icon = BootIcons.Calendar
 		const renderConfig = this.calendarRenderConfig
 
@@ -82,7 +82,7 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom: HTMLElement) => {
-			const row: SearchResultListRow = new SearchResultListRow(new KindaCalendarRow(dom))
+			const row: SearchResultListRow = new SearchResultListRow(new KindaCalendarRow(dom, this.attrs.availableCalendars))
 			m.render(dom, row.render())
 			return row
 		},

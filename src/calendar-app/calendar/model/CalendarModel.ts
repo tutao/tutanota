@@ -274,7 +274,7 @@ export class CalendarModel {
 		return this.calendarInfos.stream
 	}
 
-	getAvailableCalendars(includesBirthday: boolean = false): Array<CalendarInfoBase> {
+	getAvailableCalendars(includesBirthday: boolean = false): ReadonlyArray<CalendarInfoBase> {
 		if (this.userHasNewPaidPlan.isLoaded() && this.calendarInfos.isLoaded()) {
 			// Load user's calendar list
 			const calendarInfos: Array<CalendarInfoBase> = Array.from(this.calendarInfos.getLoaded().values())

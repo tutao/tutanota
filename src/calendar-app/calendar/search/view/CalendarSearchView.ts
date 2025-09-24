@@ -147,6 +147,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 						this.searchViewModel.sendStopLoadingSignal()
 					},
 					isFreeAccount: calendarLocator.logins.getUserController().isFreeAccount(),
+					availableCalendars: this.searchViewModel.getAvailableCalendars(true),
 				} satisfies CalendarSearchListViewAttrs),
 			),
 		])

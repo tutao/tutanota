@@ -28,6 +28,7 @@ import {
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
+	defaultCalendarColor,
 	GroupType,
 	Keys,
 	NewPaidPlans,
@@ -962,7 +963,18 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			const calendarGroup = await calendarModel.createCalendar(getExternalCalendarName(iCalStr), properties.color, [], properties.sourceUrl)
 			const calendarGroupRoot = await locator.entityClient.load(CalendarGroupRootTypeRef, calendarGroup._id)
 			deviceConfig.updateLastSync(calendarGroup._id)
-			await handleCalendarImport(calendarGroupRoot, events, CalendarType.URL)
+
+			let calendarInfo = await this.viewModel.getCalendarModel().getCalendarInfo(calendarGroup._id)
+			if (!calendarInfo) {
+				console.warn(`CalendarInfo not available during external calendar subscription - CalendarId (${calendarGroup._id})`)
+				calendarInfo = {
+					id: calendarGroup._id,
+					name: "",
+					color: defaultCalendarColor,
+					renderType: RenderType.External,
+				}
+			}
+			await handleCalendarImport(calendarGroupRoot, calendarInfo, events, CalendarType.URL)
 			this.viewModel.isCreatingExternalCalendar = false
 			dialog.close()
 		}
@@ -1061,7 +1073,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						? {
 								label: "import_action",
 								icon: Icons.Import,
-								click: () => handleCalendarImport(groupRoot),
+								click: () => handleCalendarImport(groupRoot, calendarInfo),
 							}
 						: null,
 					!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read) && !isClientOnly
