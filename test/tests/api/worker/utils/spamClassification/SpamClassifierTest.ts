@@ -12,9 +12,9 @@ import {
 	SpamClassificationInitializer,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassificationInitializer"
 
-export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/extracted_mails.csv"
+export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
 
-export async function readMailData(filePath: string): Promise<{
+export async function readMailDataFromCSV(filePath: string): Promise<{
 	spamData: SpamClassificationMail[]
 	hamData: SpamClassificationMail[]
 }> {
@@ -29,7 +29,7 @@ export async function readMailData(filePath: string): Promise<{
 		const label = row[11]
 
 		let isSpam = label === "spam" ? true : label === "ham" ? false : null
-		isSpam = assertNotNull(isSpam, "Unknown label found: " + label)
+		isSpam = assertNotNull(isSpam, "Unknown label detected: " + label)
 		const targetData = isSpam ? spamData : hamData
 		targetData.push({
 			subject,
@@ -41,37 +41,11 @@ export async function readMailData(filePath: string): Promise<{
 	return { spamData, hamData }
 }
 
-function shuffleArray(
-	data: SpamClassificationMail[],
-	testRatio: number,
-): {
-	trainSet: SpamClassificationMail[]
-	testSet: SpamClassificationMail[]
-} {
-	data = data.sort((a, b) => {
-		return arrayHashUnsigned(stringToUtf8Uint8Array(a.subject + a.body)) - arrayHashUnsigned(stringToUtf8Uint8Array(b.subject + b.body))
-	})
-
-	const trainIndicesArray: SpamClassificationMail[] = []
-	const testIndicesArray: SpamClassificationMail[] = []
-	for (let i = 0; i < data.length; i++) {
-		const iMod = i % 10
-		if (iMod < testRatio * 10) {
-			testIndicesArray.push(data[i])
-		} else {
-			trainIndicesArray.push(data[i])
-		}
-	}
-
-	return { trainSet: trainIndicesArray, testSet: testIndicesArray }
-}
-
-// Initial training (cutoff by day or amount)
 o.spec("SpamClassifier", () => {
-	o("Test Classification on external mail data", async () => {
+	o("Test Classification on external csv mail data (spam_classification_test_mails.csv)", async () => {
 		o.timeout(20_000_000)
 
-		const { spamData, hamData } = await readMailData(DATASET_FILE_PATH)
+		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 
@@ -87,20 +61,20 @@ o.spec("SpamClassifier", () => {
 		}
 
 		const dataSlice = hamSlice.concat(spamSlice)
-		const mockSpamClassificationIntializer = object() as SpamClassificationInitializer
-		mockSpamClassificationIntializer.init = async () => {
-			return dataSlice.map((data) => {
+		const mockSpamClassificationInitializer = object() as SpamClassificationInitializer
+		mockSpamClassificationInitializer.init = async () => {
+			return dataSlice.map((mail) => {
 				return {
 					mail: {
-						subject: data.subject,
+						subject: mail.subject,
 					},
 					mailDetails: {
 						body: {
-							compressedText: data.body,
+							compressedText: mail.body,
 						},
 					},
+					isSpam: mail.isSpam,
 					isCertain: true,
-					isSpam: data.isSpam,
 				} as MailClassificationData
 			})
 		}
@@ -110,12 +84,11 @@ o.spec("SpamClassifier", () => {
 		const trainSet = dataSlice.slice(0, trainTestSplit)
 		const testSet = dataSlice.slice(trainTestSplit)
 
-		const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationIntializer)
+		const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
 		classifier.isEnabled = true
 
 		let start = Date.now()
 		await classifier.initialTraining(trainSet)
-		//console.log("Vocab: " + classifier.dynamicTfVectorizer.vocabulary.length)
 		console.log(`trained in ${Date.now() - start}ms`)
 
 		start = Date.now()
@@ -127,7 +100,7 @@ o.spec("SpamClassifier", () => {
 	o("Test fit and refit.", async () => {
 		o.timeout(20_000_000)
 
-		const { spamData, hamData } = await readMailData(DATASET_FILE_PATH)
+		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
 		const hamSlice = hamData.slice(0, 200)
@@ -238,7 +211,7 @@ o.spec("SpamClassifier", () => {
 	})
 
 	o("tokenize ai", async () => {
-		const { spamData, hamData } = await readMailData(DATASET_FILE_PATH)
+		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
 		const allData = hamData.concat(spamData)
 
 		const mockSpamClassificationIntializer = object() as SpamClassificationInitializer

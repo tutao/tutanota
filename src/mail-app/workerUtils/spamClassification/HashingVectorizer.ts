@@ -19,8 +19,8 @@ export class HashingVectorizer {
 		return vector
 	}
 
-	public async transform(docs: Array<ReadonlyArray<string>>): Promise<number[][]> {
-		return await promiseMap(docs, (doc) => this.vectorize(doc), { concurrency: 1 })
+	public async transform(preprocessedMails: Array<ReadonlyArray<string>>): Promise<number[][]> {
+		return await promiseMap(preprocessedMails, (preprocessedMail) => this.vectorize(preprocessedMail), { concurrency: 1 })
 	}
 
 	/**

@@ -19,11 +19,12 @@ import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 
+// FIXME can we reduce it to one type? SpamClassificationMail
 export type MailClassificationData = {
 	mail: Mail
 	mailDetails: MailDetails
-	isCertain: boolean
 	isSpam: boolean
+	isCertain: boolean
 }
 
 export class SpamClassificationInitializer {

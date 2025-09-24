@@ -24,6 +24,7 @@ import {
 import { random } from "@tutao/tutanota-crypto"
 import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
+import fs from "node:fs"
 
 assertWorkerOrNode()
 
@@ -160,9 +161,12 @@ export class SpamClassifier {
 
 		const tokenizedMails = await promiseMap(preprocessedMails, (preprocessedMail) => assertNotNull(this.offlineStorage).tokenize(preprocessedMail))
 
-		// FIXME remove these two lines
-		// const flatTokens = tokenizedMails.flat().join("\n")
-		// fs.writeFileSync("/tmp/with_preprocess.txt", flatTokens, "utf-8")
+		const flatTokens = tokenizedMails.flat()
+		const uniqueTokenSet = new Set(flatTokens)
+		console.log(`Vocabulary size: ${uniqueTokenSet.size}`)
+
+		// FIXME remove these lines
+		fs.writeFileSync("/tmp/with_preprocess.txt", flatTokens.join("\n"), "utf-8")
 
 		if (this.vectorizer instanceof DynamicTfVectorizer) {
 			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)
@@ -206,8 +210,8 @@ export class SpamClassifier {
 			const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
 			const ys = tf.tensor1d(newTrainingMails.map((mail) => (mail.isSpam ? 1 : 0)))
 
-			await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32 })
-			// FIXME await this.saveModel()
+			await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: false })
+			await this.saveModel()
 			return true
 		} catch (e) {
 			console.error("Failed trying to update the model: ", e)
@@ -226,7 +230,9 @@ export class SpamClassifier {
 		const vectors = await assertNotNull(this.vectorizer).transform([tokenizedMail])
 
 		const xs = tf.tensor2d(vectors, [vectors.length, assertNotNull(this.vectorizer).dimension])
-		const prediction = (await (assertNotNull(this.classifier).predict(xs) as tf.Tensor).data())[0]
+		const predictionTensor = assertNotNull(this.classifier).predict(xs) as tf.Tensor
+		const predictionData = await predictionTensor.data()
+		const prediction = predictionData[0]
 
 		return prediction > PREDICTION_THRESHOLD
 	}
@@ -276,13 +282,11 @@ export class SpamClassifier {
 		})
 	}
 
-	private buildModel(inputDim: number): tf.LayersModel {
+	private buildModel(inputDimension: number): tf.LayersModel {
 		const model = tf.sequential()
-		// TODO experiment with a different arguments, meaning the file names.
-		// TODO experiment with different layers and try to understand it
 		model.add(
 			tf.layers.dense({
-				inputShape: [inputDim],
+				inputShape: [inputDimension],
 				units: 128,
 				activation: "relu",
 				kernelInitializer: tf.initializers.glorotUniform({ seed: this.deterministic ? 42 : random.generateRandomNumber(4) }),
