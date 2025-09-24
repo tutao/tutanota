@@ -1718,7 +1718,7 @@ export function isCalendarInfoOfRenderType(calendarInfo: CalendarInfo, renderTyp
 }
 
 export function isPrivateRenderType(calendarInfo: CalendarInfo) {
-	return calendarInfo.userIsOwner && !calendarInfo.isExternal && !isClientOnlyCalendar(calendarInfo.group._id)
+	return calendarInfo.userIsOwner && !calendarInfo.isExternal && !isBirthdayCalendar(calendarInfo.group._id)
 }
 
 export function isSharedRenderType(calendarInfo: CalendarInfo) {
@@ -1736,7 +1736,7 @@ export function getCalendarRenderType(calendarInfo: CalendarInfo): RenderType {
 	throw new Error("Unknown calendar Render Type")
 }
 
-export function isClientOnlyCalendar(calendarId: Id) {
+export function isBirthdayCalendar(calendarId: Id) {
 	return calendarId.includes(BIRTHDAY_CALENDAR_BASE_ID)
 }
 
@@ -1754,7 +1754,7 @@ export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
 
 export function getCalendarType(groupSettings: GroupSettings | null, groupInfo: GroupInfo): CalendarType {
 	if (hasSourceUrl(groupSettings)) return CalendarType.URL
-	if (isClientOnlyCalendar(groupSettings ? groupSettings._id : groupInfo.group)) return CalendarType.CLIENT_ONLY
+	if (isBirthdayCalendar(groupSettings ? groupSettings._id : groupInfo.group)) return CalendarType.CLIENT_ONLY
 	return CalendarType.NORMAL
 }
 
@@ -1775,12 +1775,12 @@ export function extractYearFromBirthday(birthday: string | null): number | null 
 	return Number.parseInt(dateParts[0])
 }
 
-export async function retrieveClientOnlyEventsForUser(logins: LoginController, events: IdTuple[], localEvents: Map<number, BirthdayEventRegistry[]>) {
+export async function retrieveBirthdayEventsForUser(logins: LoginController, events: IdTuple[], localEvents: Map<number, BirthdayEventRegistry[]>) {
 	if (!(await logins.getUserController().isNewPaidPlan())) {
 		return []
 	}
 
-	const clientOnlyEvents = events.filter(([calendarId, _]) => isClientOnlyCalendar(calendarId)).flatMap((event) => event.join("/"))
+	const clientOnlyEvents = events.filter(([calendarId, _]) => isBirthdayCalendar(calendarId)).flatMap((event) => event.join("/"))
 	const retrievedEvents: CalendarEvent[] = []
 
 	for (const event of Array.from(localEvents.values()).flat()) {

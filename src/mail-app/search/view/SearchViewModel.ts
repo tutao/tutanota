@@ -68,7 +68,7 @@ import { CalendarFacade } from "../../../common/api/worker/facades/lazy/Calendar
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { generateCalendarInstancesInRange, retrieveClientOnlyEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, retrieveBirthdayEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -1070,7 +1070,7 @@ export class SearchViewModel {
 	}
 
 	private async getClientOnlyEventsSeries(start: number, end: number, events: IdTuple[]) {
-		const eventList = await retrieveClientOnlyEventsForUser(this.logins, events, this.eventsRepository.getBirthdayEvents())
+		const eventList = await retrieveBirthdayEventsForUser(this.logins, events, this.eventsRepository.getBirthdayEvents())
 		return generateCalendarInstancesInRange(eventList, { start, end })
 	}
 
