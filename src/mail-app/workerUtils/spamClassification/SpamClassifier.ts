@@ -42,11 +42,28 @@ export type SpamClassificationModel = {
 export type PreprocessConfiguration = {
 	isPreprocessMails: boolean
 	isRemoveHTML: boolean
+	isReplaceDates: boolean
 	isReplaceUrls: boolean
 	isReplaceMailAddresses: boolean
+	isReplaceBitcoinAddress: boolean
+	isReplaceCreditCards: boolean
+	isReplaceNumbers: boolean
+	isReplaceSpecialCharacters: boolean
 }
 
 const PREDICTION_THRESHOLD = 0.5
+
+const DEFAULT_PREPROCESS_CONFIGURATION = {
+	isPreprocessMails: true,
+	isRemoveHTML: true,
+	isReplaceDates: true,
+	isReplaceUrls: true,
+	isReplaceMailAddresses: true,
+	isReplaceBitcoinAddress: true,
+	isReplaceCreditCards: true,
+	isReplaceNumbers: true,
+	isReplaceSpecialCharacters: true,
+}
 
 export class SpamClassifier {
 	public isEnabled: boolean = false
@@ -58,12 +75,7 @@ export class SpamClassifier {
 		private readonly offlineStorage: OfflineStoragePersistence | null,
 		private readonly initializer: SpamClassificationInitializer,
 		private readonly deterministic: boolean = false,
-		private readonly preprocessConfiguration: PreprocessConfiguration = {
-			isPreprocessMails: true,
-			isRemoveHTML: true,
-			isReplaceUrls: true,
-			isReplaceMailAddresses: true,
-		},
+		private readonly preprocessConfiguration: PreprocessConfiguration = DEFAULT_PREPROCESS_CONFIGURATION,
 	) {}
 
 	public async initialize(): Promise<void> {
@@ -88,7 +100,8 @@ export class SpamClassifier {
 		}
 	}
 
-	private preprocessMail(mailText: string): string {
+	// visibleForTesting
+	public preprocessMail(mailText: string): string {
 		if (!this.preprocessConfiguration.isPreprocessMails) {
 			return mailText
 		}
@@ -101,8 +114,10 @@ export class SpamClassifier {
 		}
 
 		// 2. Replace dates
-		for (const datePattern of DATE_REGEX) {
-			preprocessedMail = preprocessedMail.replaceAll(datePattern, DATE_PATTERN_TOKEN)
+		if (this.preprocessConfiguration.isReplaceDates) {
+			for (const datePattern of DATE_REGEX) {
+				preprocessedMail = preprocessedMail.replaceAll(datePattern, DATE_PATTERN_TOKEN)
+			}
 		}
 
 		// 3. Replace urls
@@ -116,16 +131,24 @@ export class SpamClassifier {
 		}
 
 		// 5. Replace Bitcoin addresses
-		preprocessedMail = preprocessedMail.replaceAll(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)
+		if (this.preprocessConfiguration.isReplaceBitcoinAddress) {
+			preprocessedMail = preprocessedMail.replaceAll(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)
+		}
 
 		// 6. Replace credit card numbers
-		preprocessedMail = preprocessedMail.replaceAll(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)
+		if (this.preprocessConfiguration.isReplaceCreditCards) {
+			preprocessedMail = preprocessedMail.replaceAll(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)
+		}
 
 		// 7. Replace remaining numbers
-		preprocessedMail = preprocessedMail.replaceAll(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
+		if (this.preprocessConfiguration.isReplaceNumbers) {
+			preprocessedMail = preprocessedMail.replaceAll(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
+		}
 
 		// 8. Remove special characters
-		preprocessedMail = preprocessedMail.replaceAll(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
+		if (this.preprocessConfiguration.isReplaceSpecialCharacters) {
+			preprocessedMail = preprocessedMail.replaceAll(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
+		}
 
 		return preprocessedMail
 	}
