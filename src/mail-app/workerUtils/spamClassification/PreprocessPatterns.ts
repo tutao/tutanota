@@ -11,8 +11,6 @@ export const DATE_REGEX = [
 
 export const DATE_PATTERN_TOKEN = " <DATE> "
 
-// export const URL_PATTERN = /(?:http|https|ftp|sftp):\/\/(([\w\-+_]+\.[\w\-+_]+\/?)+)[^\s]*/g
-
 export const URL_PATTERN = /(?:http|https|ftp|sftp):\/\/([\w.-]+)(?:\/[^\s]*)?/g
 
 export const URL_PATTERN_TOKEN = " <URL-$1> "

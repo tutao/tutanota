@@ -19,6 +19,8 @@ import { GENERATED_MAX_ID, GENERATED_MIN_ID } from "../../../../../../src/common
 import { MailSetKind } from "../../../../../../src/common/api/common/TutanotaConstants"
 import { ClientClassifierType } from "../../../../../../src/mail-app/workerUtils/spamClassification/ClientClassifierType"
 import { EntityUpdateData } from "../../../../../../src/common/api/common/utils/EntityUpdateUtils"
+import { SpamTrainMailDatum } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+import { getMailBodyText } from "../../../../../../src/common/api/common/CommonMailUtils"
 
 /**
  * These tests should verify that the following are obeyed:
@@ -85,7 +87,15 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
 
-			verify(offlineStorage.storeSpamClassification(), { times: 1 })
+			const spamTrainMailDatum: SpamTrainMailDatum = {
+				mailId: mail._id,
+				subject: mail.subject,
+				body: getMailBodyText(body),
+				isSpam: true,
+				isCertain: true,
+			}
+
+			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
 		})
 
 		o("processSpam uses client classification when enabled", async function () {
@@ -103,7 +113,15 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
 
-			verify(offlineStorage.storeSpamClassification(), { times: 1 })
+			const spamTrainMailDatum: SpamTrainMailDatum = {
+				mailId: mail._id,
+				subject: mail.subject,
+				body: getMailBodyText(body),
+				isSpam: false,
+				isCertain: false,
+			}
+
+			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
 		})
 
 		o("processSpam correctly verifies if email is stored in spam folder", async function () {
@@ -121,7 +139,15 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
 
-			verify(offlineStorage.storeSpamClassification(), { times: 1 })
+			const spamTrainMailDatum: SpamTrainMailDatum = {
+				mailId: mail._id,
+				subject: mail.subject,
+				body: getMailBodyText(body),
+				isSpam: false,
+				isCertain: false,
+			}
+
+			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
 		})
 
 		o("processSpam moves mail to spam when detected as such and its not already in spam", async function () {
@@ -145,7 +171,15 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
 
-			verify(offlineStorage.storeSpamClassification(), { times: 1 })
+			const spamTrainMailDatum: SpamTrainMailDatum = {
+				mailId: mail._id,
+				subject: mail.subject,
+				body: getMailBodyText(body),
+				isSpam: true,
+				isCertain: true,
+			}
+
+			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
 			verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.SPAM, ClientClassifierType.CLIENT_CLASSIFICATION))
 		})
 
@@ -170,7 +204,15 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
 
-			verify(offlineStorage.storeSpamClassification(), { times: 1 })
+			const spamTrainMailDatum: SpamTrainMailDatum = {
+				mailId: mail._id,
+				subject: mail.subject,
+				body: getMailBodyText(body),
+				isSpam: false,
+				isCertain: false,
+			}
+
+			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
 			verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.INBOX, ClientClassifierType.CLIENT_CLASSIFICATION))
 		})
 	})
