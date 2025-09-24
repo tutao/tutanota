@@ -258,10 +258,6 @@ export class CalendarModel {
 		}
 	}
 
-	isBirthdayCalendar(id: string) {
-		return this.birthdayCalendarInfo.id === id
-	}
-
 	getBirthdayCalendarInfo(): BirthdayCalendarInfo {
 		return this.birthdayCalendarInfo
 	}
