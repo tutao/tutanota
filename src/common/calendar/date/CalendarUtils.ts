@@ -1704,35 +1704,29 @@ export const RENDER_TYPE_TRANSLATION_MAP: ReadonlyMap<RenderType, TranslationKey
 	]),
 )
 
-export function isCalendarInfoOfRenderType(calendarInfo: CalendarInfo, renderType: RenderType) {
-	switch (renderType) {
-		case RenderType.Private:
-			return isPrivateRenderType(calendarInfo)
-		case RenderType.Shared:
-			return isSharedRenderType(calendarInfo)
-		case RenderType.External:
-			return isExternalRenderType(calendarInfo)
-		default:
-			return false
-	}
+export function isPrivateRenderType(renderTypeInfo: RenderTypeInfo) {
+	return renderTypeInfo.isUserOwner && !renderTypeInfo.isExternalCalendar && !isBirthdayCalendar(renderTypeInfo.calendarId)
 }
 
-export function isPrivateRenderType(calendarInfo: CalendarInfo) {
-	return calendarInfo.userIsOwner && !calendarInfo.isExternal && !isBirthdayCalendar(calendarInfo.group._id)
+export function isSharedRenderType(renderTypeInfo: RenderTypeInfo) {
+	return !renderTypeInfo.isUserOwner
 }
 
-export function isSharedRenderType(calendarInfo: CalendarInfo) {
-	return !calendarInfo.userIsOwner
+export function isExternalRenderType(renderTypeInfo: RenderTypeInfo) {
+	return renderTypeInfo.isUserOwner && renderTypeInfo.isExternalCalendar
 }
 
-export function isExternalRenderType(calendarInfo: CalendarInfo) {
-	return calendarInfo.userIsOwner && calendarInfo.isExternal
+export type RenderTypeInfo = {
+	calendarId: string
+	isExternalCalendar: boolean
+	isUserOwner: boolean
 }
 
-export function getCalendarRenderType(calendarInfo: CalendarInfo): RenderType {
-	if (isPrivateRenderType(calendarInfo)) return RenderType.Private
-	if (isSharedRenderType(calendarInfo)) return RenderType.Shared
-	if (isExternalRenderType(calendarInfo)) return RenderType.External
+export function getCalendarRenderType(renderTypeInfo: RenderTypeInfo): RenderType {
+	if (isBirthdayCalendar(renderTypeInfo.calendarId)) return RenderType.ClientOnly
+	if (isPrivateRenderType(renderTypeInfo)) return RenderType.Private
+	if (isSharedRenderType(renderTypeInfo)) return RenderType.Shared
+	if (isExternalRenderType(renderTypeInfo)) return RenderType.External
 	throw new Error("Unknown calendar Render Type")
 }
 
@@ -1775,16 +1769,22 @@ export function extractYearFromBirthday(birthday: string | null): number | null 
 	return Number.parseInt(dateParts[0])
 }
 
-export async function retrieveBirthdayEventsForUser(logins: LoginController, events: IdTuple[], localEvents: Map<number, BirthdayEventRegistry[]>) {
+export async function retrieveBirthdayEventsForUser(
+	logins: LoginController,
+	searchResultEventIds: IdTuple[],
+	birthdayEventsByMonth: Map<number, BirthdayEventRegistry[]>,
+) {
 	if (!(await logins.getUserController().isNewPaidPlan())) {
 		return []
 	}
 
-	const clientOnlyEvents = events.filter(([calendarId, _]) => isBirthdayCalendar(calendarId)).flatMap((event) => event.join("/"))
+	const birthdayEventsFromSearchResult = searchResultEventIds.filter(([calendarId, _]) => isBirthdayCalendar(calendarId))
+	const birthdayEventIdsString = birthdayEventsFromSearchResult.flatMap((eventId) => eventId.join("/"))
 	const retrievedEvents: CalendarEvent[] = []
 
-	for (const event of Array.from(localEvents.values()).flat()) {
-		if (clientOnlyEvents.includes(event.event._id.join("/"))) {
+	const allBirthdayEvents = Array.from(birthdayEventsByMonth.values()).flat()
+	for (const event of allBirthdayEvents) {
+		if (birthdayEventIdsString.includes(event.event._id.join("/"))) {
 			retrievedEvents.push(event.event)
 		}
 	}

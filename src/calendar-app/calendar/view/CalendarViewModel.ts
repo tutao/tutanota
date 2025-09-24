@@ -14,7 +14,6 @@ import {
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
-	defaultCalendarColor,
 	EndType,
 	EXTERNAL_CALENDAR_SYNC_INTERVAL,
 	getWeekStart,
@@ -34,7 +33,6 @@ import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
 	extractContactIdFromEvent,
-	getCalendarRenderType,
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
@@ -44,13 +42,13 @@ import {
 } from "../../../common/calendar/date/CalendarUtils"
 import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
-import { askIfShouldSendCalendarUpdatesToAttendees, getClientOnlyColors, getEventType, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
+import { askIfShouldSendCalendarUpdatesToAttendees, getEventType, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { ReceivedGroupInvitationsModel } from "../../../common/sharing/model/ReceivedGroupInvitationsModel"
 import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
-import { ClientOnlyCalendarsInfo, deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
+import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { Time } from "../../../common/calendar/date/Time.js"
@@ -60,20 +58,17 @@ import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../comm
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { getEnabledMailAddressesWithUser } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
-import type { GroupColors } from "./CalendarView.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog.js"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
-import { getGroupColors } from "../../../common/misc/GroupColors"
 import { GroupNameData, GroupSettingsModel } from "../../../common/sharing/model/GroupSettingsModel"
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
 import { formatDate, formatTime } from "../../../common/misc/Formatter"
 import { CalendarSidebarIconData } from "../gui/CalendarSidebarRow"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { getSharedGroupName } from "../../../common/sharing/GroupUtils"
-import { locator } from "../../../common/api/main/CommonLocator"
+import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -101,13 +96,6 @@ export type CalendarEventPreviewModelFactory = (
 ) => Promise<CalendarEventPreviewViewModel>
 export type CalendarContactPreviewModelFactory = (event: CalendarEvent, contact: Contact, canEdit: boolean) => Promise<CalendarContactPreviewViewModel>
 export type CalendarPreviewModels = CalendarEventPreviewViewModel | CalendarContactPreviewViewModel
-
-export type CalendarRenderInfo = {
-	// FIXME later use this tupe only to extract the sidebar calendar row
-	name: string
-	color: string
-	renderType: RenderType
-}
 
 export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// Should not be changed directly but only through the URL
@@ -140,7 +128,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private viewSize: number | null = null
 
 	private _isNewPaidPlan: boolean = false
-	private _calendarColors: GroupColors = new Map()
 	isCreatingExternalCalendar: boolean = false
 
 	private cancelSignal: Stream<boolean> = stream(false)
@@ -199,8 +186,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.doRedraw()
 		})
 
-		this.loadCalendarColors()
-
 		// disable birthday calendars by default if the user is not on a new paid plan.
 		logins
 			.getUserController()
@@ -246,16 +231,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.deviceConfig.setCalendarDaySelectorExpanded(expanded)
 	}
 
-	loadCalendarColors() {
-		const clientOnlyColors = getClientOnlyColors(this.logins.getUserController().userId)
-		const groupColors = getGroupColors(this.logins.getUserController().userSettingsGroupRoot)
-		for (let [calendarId, color] of clientOnlyColors.entries()) {
-			groupColors.set(calendarId, color)
+	get calendarColors() {
+		const calendarColors = new Map()
+		for (let calendarInfo of this.calendarModel.getAvailableCalendars(true)) {
+			calendarColors.set(calendarInfo.id, calendarInfo.color)
 		}
-
-		if (!deepEqual(this._calendarColors, groupColors)) {
-			this._calendarColors = new Map(groupColors)
-		}
+		return calendarColors
 	}
 
 	async getCalendarNameData(groupInfo: GroupInfo): Promise<GroupNameData> {
@@ -315,10 +296,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	get calendarInvitations(): Stream<Array<ReceivedGroupInvitation>> {
 		return this.calendarInvitationsModel.invitations
-	}
-
-	get calendarColors(): GroupColors {
-		return this._calendarColors
 	}
 
 	get calendarInfos(): ReadonlyMap<Id, CalendarInfo> {
@@ -778,7 +755,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.calendarModel
 	}
 
-	handleClientOnlyUpdate(groupInfo: GroupInfo, newGroupSettings: ClientOnlyCalendarsInfo) {
+	handleClientOnlyUpdate(groupInfo: GroupInfo, newBirthdayColor: string) {
 		console.log("Update to handle new birthday colors at userSettings") // FIXME
 	}
 
@@ -805,24 +782,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.setHiddenCalendars(newHiddenCalendars)
 	}
 
-	getCalendarRenderInfo(calendarInfo: CalendarInfo): CalendarRenderInfo {
-		const { userSettingsGroupRoot } = this.logins.getUserController()
-		const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? undefined
-
-		const sharedGroupName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, calendarInfo.shared)
-		const color = "#" + (groupSettings?.color ?? defaultCalendarColor)
-		const calendarType = getCalendarRenderType(calendarInfo)
-		return {
-			name: sharedGroupName,
-			color,
-			renderType: calendarType,
-		}
-	}
-
 	getIcon(renderType: RenderType, calendarId: string): CalendarSidebarIconData | undefined {
 		switch (renderType) {
 			case RenderType.External: {
 				const lastSyncEntry = deviceConfig.getLastExternalCalendarSync().get(calendarId)
+				if (!lastSyncEntry || lastSyncEntry.lastSyncStatus === SyncStatus.Success) {
+					// lastSyncEntry won't exist in the webClient
+					return
+				}
 				const lastSyncDate = lastSyncEntry?.lastSuccessfulSync ? new Date(lastSyncEntry.lastSuccessfulSync) : null
 				const lastSyncStr = lastSyncDate
 					? lang.get("lastSync_label", { "{date}": `${formatDate(lastSyncDate)} at ${formatTime(lastSyncDate)}` })

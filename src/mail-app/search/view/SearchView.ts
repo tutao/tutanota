@@ -119,6 +119,7 @@ import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { UndoModel } from "../../UndoModel"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
+import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 
 assertMainOrNode()
 
@@ -142,8 +143,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
-			const calendars = await this.searchViewModel.getLazyCalendarInfos().getAsync()
-			const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendars, this.searchViewModel.getHighlightedStrings())
+			const calendars = await this.searchViewModel.getAvailableCalendars(false)
+			const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
+			const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendarInfosMap, this.searchViewModel.getHighlightedStrings())
 			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
 			return eventPreviewModel
 		}).load(),
@@ -1260,11 +1262,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		const dateToUse = this.searchViewModel.startDate ? setNextHalfHour(new Date(this.searchViewModel.startDate)) : setNextHalfHour(new Date())
 
 		// Disallow creation of events when there is no existing calendar
-		const lazyCalendarInfo = this.searchViewModel.getLazyCalendarInfos()
-		const calendarInfos = lazyCalendarInfo.isLoaded() ? lazyCalendarInfo.getSync() : lazyCalendarInfo.getAsync()
-
-		if (calendarInfos instanceof Promise) {
-			await showProgressDialog("pleaseWait_msg", calendarInfos)
+		const calendarInfos = this.searchViewModel.getAvailableCalendars(false)
+		if (!calendarInfos.length) {
+			await showProgressDialog("pleaseWait_msg", this.searchViewModel.loadCalendarInfos())
 		}
 
 		const mailboxDetails = await locator.mailboxModel.getUserMailboxDetails()
@@ -1375,7 +1375,8 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderCalendarFilterChips() {
-		const availableCalendars = this.searchViewModel.getAvailableCalendars()
+		const availableCalendars = this.searchViewModel.getAvailableCalendars(true)
+		const selectedCalendar = this.searchViewModel.selectedCalendar
 		return [
 			this.renderCategoryChip("calendar_label", BootIcons.Calendar),
 			m(FilterChip, {
@@ -1392,10 +1393,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				onClick: (_) => this.onCalendarDateRangeSelect(),
 			}),
 			m(FilterChip, {
-				label: this.searchViewModel.selectedCalendar
-					? lang.makeTranslation("calendar_label", availableCalendars.find((f) => f.info === this.searchViewModel.selectedCalendar)?.name ?? "")
+				label: selectedCalendar
+					? lang.makeTranslation(
+							"calendar_label",
+							availableCalendars.find((calendarInfo) => isSameId(calendarInfo.id, selectedCalendar?.id))?.name ?? "",
+						)
 					: lang.getTranslation("calendar_label"),
-				selected: this.searchViewModel.selectedCalendar != null,
+				selected: selectedCalendar != null,
 				chevron: true,
 				onClick: createDropdown({
 					lazyButtons: () => [
@@ -1403,9 +1407,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							label: lang.getTranslation("all_label"),
 							click: () => this.searchViewModel.selectCalendar(null),
 						},
-						...availableCalendars.map((f) => ({
-							label: lang.makeTranslation(f.name, f.name),
-							click: () => this.searchViewModel.selectCalendar(f.info),
+						...availableCalendars.map((calendarInfo) => ({
+							label: lang.makeTranslation(calendarInfo.name, calendarInfo.name),
+							click: () => this.searchViewModel.selectCalendar(calendarInfo),
 						})),
 					],
 				}),

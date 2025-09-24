@@ -12,7 +12,6 @@ import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils.js"
 import { SyncStatus } from "../calendar/gui/ImportExportUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import type { GroupSettings } from "../api/entities/tutanota/TypeRefs.js"
 
 assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -32,8 +31,6 @@ export type LastExternalCalendarSyncEntry = {
 	lastSuccessfulSync: number | undefined | null
 	lastSyncStatus: SyncStatus
 }
-
-export type ClientOnlyCalendarsInfo = Pick<GroupSettings, "name" | "color">
 
 /**
  * Definition of the config object that will be saved to local storage
