@@ -108,6 +108,9 @@ o.spec("PreprocessPatterns", () => {
 				"192.168.178.1",
 				"10.12.10.100",
 				"10.12.22.20",
+				"94-77-45",
+				"12-12-12",
+				"33-33-33",
 			]
 			const notDatesText = notDates.join("\n")
 			let resultNotDatesText = notDatesText

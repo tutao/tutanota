@@ -231,6 +231,187 @@ o.spec("SpamClassifier", () => {
 		console.log(`Token count: ${tokenized.length}`)
 		console.log(`Reduced token count: ${reducedTokens.length}`)
 	})
+
+	o("preprocessMail outputs expected tokens for mail content", async () => {
+		const classifier = new SpamClassifier(null, object())
+		const mail = {
+			subject: `Sample Tokens and values`,
+			body: `Hello, these are my MAC Address
+				FB-94-77-45-96-74
+				91-58-81-D5-55-7C
+				B4-09-49-2A-DE-D4
+				along with my ISBNs
+				718385414-0
+				733065633-X
+				632756390-2
+				SSN
+				227-78-2283
+				134-34-1253
+				591-61-6459
+				SHAs
+				585eab9b3a5e4430e08f5096d636d0d475a8c69dae21a61c6f1b26c4bd8dd8c1
+				7233d153f2e0725d3d212d1f27f30258fafd72b286d07b3b1d94e7e3c35dce67
+				769f65bf44557df44fc5f99c014cbe98894107c9d7be0801f37c55b3776c3990
+				Phone Numbers
+				(341) 2027690
+				+385 958 638 7625
+				430-284-9438
+				VIN (Vehicle identification number)
+				3FADP4AJ3BM438397
+				WAULT64B82N564937
+				GUIDs
+				781a9631-0716-4f9c-bb36-25c3364b754b
+				325783d4-a64e-453b-85e6-ed4b2cd4c9bf
+				Hex Colors
+				#2016c1
+				#c090a4
+				#c855f5
+				#000000
+				IPV4
+				91.17.182.120
+				47.232.175.0
+				171.90.3.93
+				On Date:
+				01-12-2023 
+				1-12-2023
+				Not Date
+				2023/12-1
+				URL
+				https://tuta.com
+				https://subdomain.microsoft.com/outlook/test
+				NOT URL
+				https://tuta/com
+				MAIL
+				test@example.com
+				plus+addressing@example.com
+				Credit Card
+				5002355116026522
+				4041 3751 9030 3866
+				Not Credit Card
+				1234 1234
+				Bit Coin Address
+				159S1vV25PAxMiCVaErjPznbWB8YBvANAi
+				1NJmLtKTyHyqdKo6epyF9ecMyuH1xFWjEt
+				Not BTC
+				5213nYwhhGw2qpNijzfnKcbCG4z3hnrVA
+				1OUm2eZK2ETeAo8v95WhZioQDy32YSerkD
+				Special Characters
+				!
+				@
+				Not Special Characters
+				]
+				Number Sequences:
+				26098375
+				IBAN: DE91 1002 0370 0320 2239 82
+				Not Number Sequences
+				SHLT116
+				gb_67ca4b
+				Other values found in mails
+				❓
+				5.090 € 37 m²1 Zi 100%
+				Fax (089) 13 33 87 88
+				August 12, 2025
+				5:20 PM - 5:25 PM
+				<this gets removed by HTML>
+				< this gets removed too
+				🐟
+				and all text on other lines it seems.
+				<div>
+<a rel="noopener noreferrer" target="_blank" href="https://www.somewebsite.de/?key=c2f395513421312029680" style="background-color:#055063;border-radius:3px;color:#ffffff;display:inline-block;font-size: 14px; font-family: sans-serif;font-weight:bold;line-height:36px;height:36px;text-align:center;text-decoration:none;width:157px;-webkit-text-size-adjust:none; margin-bottom:20px">Button Text</a>
+</div>
+<table cellpadding="0" cellspacing="0" border="0" role="presentation" width="100%"><tbody><tr><td align="center"><a href="https://mail.abc-web.de/optiext/optiextension.dll?ID=someid" rel="noopener noreferrer" target="_blank" style="text-decoration:none"><img id="OWATemporaryImageDivContainer1" src="https://mail.some-domain.de/images/SMC/grafik/image.png" alt="" border="0" class="" width="100%" style="max-width:100%;display:block;width:100%"></a></td></tr></tbody></table>
+this text is shown
+`,
+		} as SpamClassificationMail
+		const preprocessedMail = classifier.preprocessMail(mail)
+		const expectedOutput = `Sample Tokens and values Hello <SPECIAL-CHAR>  these are my MAC Address
+				FB <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> -D5 <SPECIAL-CHAR>  <NUMBER> -7C
+				B4 <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> -2A-DE-D4
+				along with my ISBNs
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				 <NUMBER> -X
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				SSN
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				SHAs
+				585eab9b3a5e4430e08f5096d636d0d475a8c69dae21a61c6f1b26c4bd8dd8c1
+				7233d153f2e0725d3d212d1f27f30258fafd72b286d07b3b1d94e7e3c35dce67
+				769f65bf44557df44fc5f99c014cbe98894107c9d7be0801f37c55b3776c3990
+				Phone Numbers
+				 <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>   <NUMBER> 
+				 <SPECIAL-CHAR>  <NUMBER>   <NUMBER>   <NUMBER>   <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				VIN  <SPECIAL-CHAR> Vehicle identification number <SPECIAL-CHAR> 
+				3FADP4AJ3BM438397
+				WAULT64B82N564937
+				GUIDs
+				781a9631 <SPECIAL-CHAR>  <NUMBER> -4f9c-bb36-25c3364b754b
+				325783d4-a64e-453b-85e6-ed4b2cd4c9bf
+				Hex Colors
+				 <SPECIAL-CHAR> 2016c1
+				 <SPECIAL-CHAR> c090a4
+				 <SPECIAL-CHAR> c855f5
+				 <SPECIAL-CHAR>  <NUMBER> 
+				IPV4
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				On Date <SPECIAL-CHAR> 
+				 <DATE>  
+				 <DATE> 
+				Not Date
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				URL
+				 <URL-tuta.com> 
+				 <URL-subdomain.microsoft.com> 
+				NOT URL
+				 <URL-tuta> 
+				MAIL
+				 <EMAIL> 
+				 <EMAIL> 
+				Credit Card
+				 <CREDIT-CARD> 
+				 <CREDIT-CARD> 
+				Not Credit Card
+				 <NUMBER>   <NUMBER> 
+				Bit Coin Address
+				 <BITCOIN> 
+				 <BITCOIN> 
+				Not BTC
+				5213nYwhhGw2qpNijzfnKcbCG4z3hnrVA
+				1OUm2eZK2ETeAo8v95WhZioQDy32YSerkD
+				Special Characters
+				 <SPECIAL-CHAR> 
+				 <SPECIAL-CHAR> 
+				Not Special Characters
+				]
+				Number Sequences <SPECIAL-CHAR> 
+				 <NUMBER> 
+				IBAN <SPECIAL-CHAR>  DE91  <CREDIT-CARD>  <NUMBER> 
+				Not Number Sequences
+				SHLT116
+				gb <SPECIAL-CHAR> 67ca4b
+				Other values found in mails
+				❓
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  €  <NUMBER>  m² <NUMBER>  Zi  <NUMBER>  <SPECIAL-CHAR> 
+				Fax  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>   <NUMBER>   <NUMBER>   <NUMBER> 
+				August  <NUMBER>  <SPECIAL-CHAR>   <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  PM  <SPECIAL-CHAR>   <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  PM
+				 
+				 
+ Button Text 
+ 
+           
+this text is shown`
+		o.check(preprocessedMail).equals(expectedOutput)
+		// const vectorizer = new HashingVectorizer()
+		// const tensor = await vectorizer.transform(tokenized)
+	})
+
+	//preprocessMail
 })
 
 // FIXME do we need that? If yes, should we replace it whith the preprocessMail method?
