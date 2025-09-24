@@ -23,7 +23,6 @@ import {
 } from "./PreprocessPatterns"
 import { random } from "@tutao/tutanota-crypto"
 import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
-import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 
 assertWorkerOrNode()
 
@@ -101,7 +100,7 @@ export class SpamClassifier {
 	}
 
 	// visibleForTesting
-	public preprocessMail(mail: SpamTrainMailDatum): string {
+	public preprocessMail(mail: SpamTrainMailDatum | SpamPredMailDatum): string {
 		const mailText = this.concatSubjectAndBody(mail)
 
 		if (!this.preprocessConfiguration.isPreprocessMails) {
@@ -230,12 +229,12 @@ export class SpamClassifier {
 	}
 
 	// visibleForTesting
-	public async predict(mail: SpamTrainMailDatum): Promise<boolean> {
+	public async predict(spamPredMailDatum: SpamPredMailDatum): Promise<boolean> {
 		if (!this.isEnabled) {
 			throw new Error("SpamClassifier is not enabled yet")
 		}
 
-		const preprocessedMail = this.preprocessMail(mail)
+		const preprocessedMail = this.preprocessMail(spamPredMailDatum)
 		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(preprocessedMail)
 		const vectors = await assertNotNull(this.vectorizer).transform([tokenizedMail])
 
@@ -371,7 +370,7 @@ export class SpamClassifier {
 		}
 	}
 
-	private concatSubjectAndBody(mail: SpamTrainMailDatum) {
+	private concatSubjectAndBody(mail: SpamTrainMailDatum | SpamPredMailDatum) {
 		const subject = mail.subject || ""
 		const body = mail.body || ""
 		const concatenated = `${subject} ${body}`.trim()

@@ -156,10 +156,11 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/Enti
 import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
-import { SpamTrainMailDatum, SpamClassifier } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
+import { SpamTrainMailDatum, SpamClassifier, SpamPredMailDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { ClientClassifierType } from "../../../../../mail-app/workerUtils/spamClassification/ClientClassifierType"
+import { getMailBodyText } from "../../../common/CommonMailUtils"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -451,12 +452,12 @@ export class MailFacade {
 			return false
 		} else {
 			if (this.isSpamClassificationEnabled()) {
-				const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
-				const spamClassificationMail: SpamTrainMailDatum = {
+				const mailDetails = await this.loadMailDetailsBlob(mail)
+				const spamPredMailDatum: SpamPredMailDatum = {
 					subject: mail.subject,
-					body: mailDetailsBlob.body.compressedText ?? mailDetailsBlob.body.text!,
+					body: getMailBodyText(mailDetails.body),
 				}
-				return await assertNotNull(this.spamClassifier).predict(spamClassificationMail)
+				return await assertNotNull(this.spamClassifier).predict(spamPredMailDatum)
 			}
 			return false
 		}
