@@ -5,7 +5,7 @@ import { SpamClassificationMail, SpamClassifier } from "../../../../../../src/ma
 import { tokenize, tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
-import { arrayHashUnsigned, assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import { htmlToText } from "../../../../../../src/common/api/worker/search/IndexUtils"
 import {
 	MailClassificationData,
@@ -42,7 +42,7 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 }
 
 o.spec("SpamClassifier", () => {
-	o("Test Classification on external csv mail data (spam_classification_test_mails.csv)", async () => {
+	o("Test initial fit", async () => {
 		o.timeout(20_000_000)
 
 		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
@@ -79,7 +79,7 @@ o.spec("SpamClassifier", () => {
 			})
 		}
 
-		seededShuffle(dataSlice, 33)
+		seededShuffle(dataSlice, 42)
 		const trainTestSplit = dataSlice.length * 0.8
 		const trainSet = dataSlice.slice(0, trainTestSplit)
 		const testSet = dataSlice.slice(trainTestSplit)
@@ -97,14 +97,14 @@ o.spec("SpamClassifier", () => {
 		console.log(`tested in ${Date.now() - start}ms`)
 	})
 
-	o("Test fit and refit.", async () => {
+	o("Test initial fit and refit.", async () => {
 		o.timeout(20_000_000)
 
 		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
 		console.log("Ham count:" + hamData.length)
 		console.log("Spam count:" + spamData.length)
-		const hamSlice = hamData.slice(0, 200)
-		const spamSlice = spamData.slice(0, 100)
+		const hamSlice = hamData.slice(0, 1000)
+		const spamSlice = spamData.slice(0, 500)
 
 		const mockOfflineStorage = object() as OfflineStoragePersistence
 		mockOfflineStorage.tokenize = async (text) => {
@@ -112,8 +112,8 @@ o.spec("SpamClassifier", () => {
 		}
 
 		const dataSlice = hamSlice.concat(spamSlice)
-		const mockSpamClassificationIntializer = object() as SpamClassificationInitializer
-		mockSpamClassificationIntializer.init = async () => {
+		const mockSpamClassificationInitializer = object() as SpamClassificationInitializer
+		mockSpamClassificationInitializer.init = async () => {
 			return dataSlice.map((data) => {
 				return {
 					mail: {
@@ -137,8 +137,8 @@ o.spec("SpamClassifier", () => {
 
 		const trainSetHalf = trainSet.slice(0, trainSet.length / 2)
 
-		const mockSpamClassificationIntializerTrainSetHalf = object() as SpamClassificationInitializer
-		mockSpamClassificationIntializer.init = async () => {
+		const mockSpamClassificationInitializerTrainSetHalf = object() as SpamClassificationInitializer
+		mockSpamClassificationInitializer.init = async () => {
 			return trainSetHalf.map((data) => {
 				return {
 					mail: {
@@ -157,8 +157,8 @@ o.spec("SpamClassifier", () => {
 
 		const trainSetSecondHalf = trainSet.slice(trainSet.length / 2, trainSet.length)
 
-		const mockSpamClassificationIntializerTrainSetSecondHalf = object() as SpamClassificationInitializer
-		mockSpamClassificationIntializer.init = async () => {
+		const mockSpamClassificationInitializerTrainSetSecondHalf = object() as SpamClassificationInitializer
+		mockSpamClassificationInitializer.init = async () => {
 			return trainSetSecondHalf.map((data) => {
 				return {
 					mail: {
@@ -175,7 +175,9 @@ o.spec("SpamClassifier", () => {
 			})
 		}
 
-		const classifierAll = new SpamClassifier(mockOfflineStorage, mockSpamClassificationIntializer)
+		const classifierAll = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
+		classifierAll.isEnabled = true
+
 		let start = Date.now()
 		await classifierAll.initialTraining(trainSet)
 		console.log(`trained in ${Date.now() - start}ms`)
@@ -188,7 +190,9 @@ o.spec("SpamClassifier", () => {
 		mockOfflineStorage.getSpamClassificationTrainingDataAfterCutoff = async (cutoff) => {
 			return trainSetSecondHalf
 		}
-		const classifierBySteps = new SpamClassifier(mockOfflineStorage, mockSpamClassificationIntializerTrainSetHalf)
+		const classifierBySteps = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializerTrainSetHalf)
+		classifierBySteps.isEnabled = true
+
 		start = Date.now()
 		await classifierBySteps.initialTraining(trainSetHalf)
 		await classifierBySteps.updateModel(0)
@@ -199,14 +203,16 @@ o.spec("SpamClassifier", () => {
 		await classifierBySteps.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 
-		const classiOnlySecondHalf = new SpamClassifier(mockOfflineStorage, mockSpamClassificationIntializerTrainSetSecondHalf)
+		const classifierOnlySecondHalf = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializerTrainSetSecondHalf)
+		classifierOnlySecondHalf.isEnabled = true
+
 		start = Date.now()
-		await classiOnlySecondHalf.initialTraining(trainSetSecondHalf)
+		await classifierOnlySecondHalf.initialTraining(trainSetSecondHalf)
 		console.log(`trained in ${Date.now() - start}ms`)
 
 		start = Date.now()
 		console.log(`==> Result when testing with mails in two steps (second step).`)
-		await classiOnlySecondHalf.test(testSet)
+		await classifierOnlySecondHalf.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 	})
 
@@ -214,41 +220,20 @@ o.spec("SpamClassifier", () => {
 		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
 		const allData = hamData.concat(spamData)
 
-		const mockSpamClassificationIntializer = object() as SpamClassificationInitializer
-		mockSpamClassificationIntializer.init = async () => {
-			return allData.map((data) => {
-				return {
-					mail: {
-						subject: data.subject,
-					},
-					mailDetails: {
-						body: {
-							compressedText: data.body,
-						},
-					},
-					isCertain: true,
-					isSpam: data.isSpam,
-				} as MailClassificationData
-			})
-		}
-
-		const mockOfflineStorage = object() as OfflineStoragePersistence
-		const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationIntializer)
-
 		const vocab = buildVocab(
 			allData.map((m) => tokenize(m.body)),
 			5,
 		)
 		const tokenized = Array.from(new Set(allData.map((m) => tokenize(cleanEmailBody(m.body))).reduce((previous, current) => previous.concat(current), [])))
-		const shrinked = Array.from(new Set(replaceWithPlaceholders(tokenized, vocab)))
-		fs.writeFileSync("/tmp/unique-tokens", shrinked.sort().join("\n"))
-		console.log(tokenized.length)
-		console.log(shrinked.length)
-		// const vectorizer = new HashingVectorizer()
-		// const tensor = await vectorizer.transform(tokenized)
+		const reducedTokens = Array.from(new Set(replaceWithPlaceholders(tokenized, vocab)))
+
+		fs.writeFileSync("/tmp/unique-tokens", reducedTokens.sort().join("\n"))
+		console.log(`Token count: ${tokenized.length}`)
+		console.log(`Reduced token count: ${reducedTokens.length}`)
 	})
 })
 
+// FIXME do we need that? If yes, should we replace it whith the preprocessMail method?
 export function cleanEmailBody(text: string): string {
 	// 1. Lowercase
 	let cleaned = text.toLowerCase()
@@ -274,6 +259,7 @@ export function cleanEmailBody(text: string): string {
 	return cleaned
 }
 
+// FIXME do we still need this?
 export function buildVocab(tokenizedDocs: string[][], minFreq: number = 5): Set<string> {
 	const freqMap = new Map<string, number>()
 
