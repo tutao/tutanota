@@ -80,7 +80,6 @@ import { EventsOnDays } from "../view/CalendarViewModel.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { UserController } from "../../../common/api/main/UserController.js"
-import { ClientOnlyCalendarsInfo } from "../../../common/misc/DeviceConfig.js"
 import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
@@ -927,16 +926,6 @@ export const getClientOnlyColors = (userId: Id) => {
 	return new Map([[calendarId, DEFAULT_BIRTHDAY_CALENDAR_COLOR]])
 }
 
-export const getClientOnlyCalendars = (
-	userId: Id,
-): (ClientOnlyCalendarsInfo & {
-	id: string
-	name: string
-})[] => {
-	const calendarId = `${userId}#${BIRTHDAY_CALENDAR_BASE_ID}`
-	return [{ id: calendarId, name: lang.get("birthdayCalendar_label"), color: DEFAULT_BIRTHDAY_CALENDAR_COLOR }]
-}
-
 /**
  *  find out how we ended up with this event, which determines the capabilities we have with it.
  *  for shared events in calendar where we have read-write access, we can still only view events that have
@@ -1108,7 +1097,11 @@ export function renderCalendarColor(selectedCalendar: CalendarInfo | null, group
  *   // Handle macOS modifier logic
  * }
  */
-export function extractCalendarEventModifierKey<T extends MouseEvent | KeyboardEvent>(event: T & { redraw?: boolean }): Key | undefined {
+export function extractCalendarEventModifierKey<T extends MouseEvent | KeyboardEvent>(
+	event: T & {
+		redraw?: boolean
+	},
+): Key | undefined {
 	let key
 	if (event.metaKey && isAppleDevice()) {
 		key = Keys.META

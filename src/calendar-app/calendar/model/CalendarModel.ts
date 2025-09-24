@@ -12,6 +12,7 @@ import {
 	getFromMap,
 	isNotEmpty,
 	isSameDay,
+	LazyLoaded,
 	Require,
 	splitInChunks,
 	symmetricDifference,
@@ -19,6 +20,7 @@ import {
 import {
 	BIRTHDAY_CALENDAR_BASE_ID,
 	CalendarMethod,
+	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 	defaultCalendarColor,
 	EXTERNAL_CALENDAR_SYNC_INTERVAL,
 	FeatureType,
@@ -98,6 +100,8 @@ import {
 	getCalendarRenderType,
 	getTimeZone,
 	hasSourceUrl,
+	isBirthdayCalendar,
+	RenderType,
 } from "../../../common/calendar/date/CalendarUtils.js"
 import { getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
@@ -117,13 +121,19 @@ import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 import { SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
-import { CalendarRenderInfo } from "../view/CalendarViewModel"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
 const EXTERNAL_CALENDAR_RETRY_DELAY_MS = 1000
 
-export type CalendarInfo = {
+export type CalendarInfoBase = {
+	id: string
+	name: string
+	color: string
+	renderType: RenderType // FIXME should we still use renderType - maybe merge with CalendarType?
+}
+
+export type CalendarInfo = CalendarInfoBase & {
 	groupRoot: CalendarGroupRoot
 	groupInfo: GroupInfo
 	group: Group
@@ -132,9 +142,16 @@ export type CalendarInfo = {
 	isExternal: boolean
 }
 
-export type BirthdayCalendarInfo = {
-	id: string
+export type BirthdayCalendarInfo = CalendarInfoBase & {
 	contactGroupId: Id
+}
+
+export function isBirthdayCalendarInfo(calendarInfoBase: CalendarInfoBase): calendarInfoBase is BirthdayCalendarInfo {
+	return calendarInfoBase.renderType === RenderType.ClientOnly
+}
+
+export function isCalendarInfo(calendarInfoBase: CalendarInfoBase): calendarInfoBase is CalendarInfo {
+	return calendarInfoBase.renderType !== RenderType.ClientOnly
 }
 
 type ExternalCalendarQueueItem = {
@@ -187,6 +204,10 @@ export class CalendarModel {
 		return calendarInfoPromise
 	}, new Map())
 
+	private readonly userHasNewPaidPlan: LazyLoaded<boolean> = new LazyLoaded<boolean>(async () => {
+		return await this.logins.getUserController().isNewPaidPlan()
+	})
+
 	/**
 	 * Stores the queued calendars to be synchronized
 	 */
@@ -224,11 +245,15 @@ export class CalendarModel {
 			}
 		})
 		this.birthdayCalendarInfo = this.createBirthdayCalendarInfo()
+		this.userHasNewPaidPlan.getAsync().then(m.redraw)
 	}
 
 	private createBirthdayCalendarInfo(): BirthdayCalendarInfo {
 		return {
 			id: `${this.logins.getUserController().userId}#${BIRTHDAY_CALENDAR_BASE_ID}`,
+			name: lang.get("birthdayCalendar_label"),
+			color: DEFAULT_BIRTHDAY_CALENDAR_COLOR, // FIXME
+			renderType: RenderType.ClientOnly,
 			contactGroupId: getFirstOrThrow(this.logins.getUserController().getContactGroupMemberships()).group,
 		}
 	}
@@ -249,18 +274,26 @@ export class CalendarModel {
 		return this.calendarInfos.stream
 	}
 
-	getCalendarRenderInfo(calendarId: Id, existingGroupSettings?: GroupSettings | null): CalendarRenderInfo {
-		const calendarInfo = this.calendarInfos.stream().get(calendarId)
-		if (!calendarInfo) throw new Error("Calendar infos not loaded")
-		let groupSettings = existingGroupSettings
-		if (!groupSettings) {
-			const { userSettingsGroupRoot } = this.logins.getUserController()
-			groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? undefined
+	getAvailableCalendars(includesBirthday: boolean = false): Array<CalendarInfoBase> {
+		if (this.userHasNewPaidPlan.isLoaded() && this.calendarInfos.isLoaded()) {
+			// Load user's calendar list
+			const calendarInfos: Array<CalendarInfoBase> = Array.from(this.calendarInfos.getLoaded().values())
+			if (includesBirthday && this.userHasNewPaidPlan.getLoaded()) {
+				const birthdayCalendarInfo = this.getBirthdayCalendarInfo()
+				calendarInfos.push(birthdayCalendarInfo)
+			}
+			return calendarInfos
+		} else {
+			return []
 		}
-		const color = "#" + (groupSettings?.color ?? defaultCalendarColor)
-		const name = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, calendarInfo.shared)
-		const renderType = getCalendarRenderType(calendarInfo)
-		return { name, color, renderType }
+	}
+
+	async getCalendarInfo(calendarId: Id): Promise<CalendarInfoBase | undefined> {
+		if (isBirthdayCalendar(calendarId)) {
+			return this.birthdayCalendarInfo
+		}
+		const calendars = await this.getCalendarInfos()
+		return calendars.get(calendarId)
 	}
 
 	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
@@ -328,14 +361,28 @@ export class CalendarModel {
 		}
 
 		const calendarInfos: Map<Id, CalendarInfo> = new Map()
-		const groupSettings = userController.userSettingsGroupRoot.groupSettings
+		const groupSettingsList = userController.userSettingsGroupRoot.groupSettings
 		for (const [groupRoot, groupInfo, group] of groupInstances) {
 			try {
 				const groupMembers = await loadGroupMembers(group, this.entityClient)
 				const shared = groupMembers.length > 1
 				const userIsOwner = !shared || isSharedGroupOwner(group, userController.userId)
-				const isExternal = hasSourceUrl(groupSettings.find((groupSettings) => groupSettings.group === group._id))
+				const groupSettings = groupSettingsList.find((groupSettings) => groupSettings.group === group._id)
+				const isExternal = hasSourceUrl(groupSettings)
+				const calendarId = groupRoot._id
+				const color = groupSettings?.color ?? defaultCalendarColor
+				const sharedGroupName = getSharedGroupName(groupInfo, userController.userSettingsGroupRoot, shared)
+				const calendarType = getCalendarRenderType({
+					calendarId: calendarId,
+					isExternalCalendar: isExternal,
+					isUserOwner: userIsOwner,
+				})
+
 				calendarInfos.set(groupRoot._id, {
+					id: groupRoot._id,
+					name: sharedGroupName,
+					color: color,
+					renderType: calendarType,
 					groupRoot,
 					groupInfo,
 					group: group,
@@ -1233,6 +1280,7 @@ export class CalendarModel {
 				// and user might have subscribed to a new calendar, so we must reload
 				// calendar infos to make sure that the calendar has been put in the correct section
 				this.calendarInfos.reload()
+				this.userHasNewPaidPlan.reload()
 			}
 		}
 

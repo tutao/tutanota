@@ -226,30 +226,12 @@ class CalendarLocator implements CommonLocator {
 		const redraw = await this.redraw()
 		const searchRouter = await this.scopedSearchRouter()
 		const calendarEventsRepository = await this.calendarEventsRepository()
+		const calendarModel = await this.calendarModel()
 		return () => {
 			return new CalendarSearchViewModel(
 				searchRouter,
 				this.search,
-				this.logins,
-				this.entityClient,
-				this.eventController,
-				this.calendarFacade,
-				this.progressTracker,
-				calendarEventsRepository,
-				redraw,
-			)
-		}
-	}
-
-	async calendarSearchViewModelFactory(): Promise<() => CalendarSearchViewModel> {
-		const { CalendarSearchViewModel } = await import("./calendar/search/view/CalendarSearchViewModel.js")
-		const redraw = await this.redraw()
-		const searchRouter = await this.scopedSearchRouter()
-		const calendarEventsRepository = await this.calendarEventsRepository()
-		return () => {
-			return new CalendarSearchViewModel(
-				searchRouter,
-				this.search,
+				calendarModel,
 				this.logins,
 				this.entityClient,
 				this.eventController,

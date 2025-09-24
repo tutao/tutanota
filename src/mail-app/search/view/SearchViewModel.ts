@@ -4,13 +4,7 @@ import { SearchRestriction, SearchResult } from "../../../common/api/worker/sear
 import { EntityEventsListener, EventController } from "../../../common/api/main/EventController.js"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes.js"
-import {
-	BIRTHDAY_CALENDAR_BASE_ID,
-	FULL_INDEXED_TIMESTAMP,
-	MailSetKind,
-	NOTHING_INDEXED_TIMESTAMP,
-	OperationType,
-} from "../../../common/api/common/TutanotaConstants.js"
+import { FULL_INDEXED_TIMESTAMP, MailSetKind, NOTHING_INDEXED_TIMESTAMP, OperationType } from "../../../common/api/common/TutanotaConstants.js"
 import {
 	assertIsEntity,
 	assertIsEntity2,
@@ -33,7 +27,6 @@ import {
 	incrementMonth,
 	isSameDayOfDate,
 	isSameTypeRef,
-	LazyLoaded,
 	memoizedWithHiddenArgument,
 	neverNull,
 	ofClass,
@@ -61,18 +54,15 @@ import { EntityClient, loadMultipleFromLists } from "../../../common/api/common/
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "../../mail/view/MailViewModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
-import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel.js"
-import { locator } from "../../../common/api/main/CommonLocator.js"
-import m from "mithril"
+import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { generateCalendarInstancesInRange, retrieveBirthdayEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
-import { getClientOnlyCalendars } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../common/misc/ClientDetector"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
@@ -82,7 +72,6 @@ import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { compareMails } from "../../mail/model/MailUtils"
 import { isOfflineStorageAvailable } from "../../../common/api/common/Env"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
-import { getSharedGroupName } from "../../../common/sharing/GroupUtils"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -159,20 +148,20 @@ export class SearchViewModel {
 	}
 
 	// isn't an IdTuple because it is two list ids
-	private _selectedCalendar: readonly [Id, Id] | string | null = null
-	get selectedCalendar(): CalendarInfo | string | null {
-		const calendars = this.getAvailableCalendars()
-		return (
-			calendars.find((calendar) => {
-				if (typeof calendar.info === "string") {
-					return calendar.info === this._selectedCalendar
+	private _selectedCalendar: readonly [Id, Id] | Id | null = null // [longListId, shorListId] || birthDay_calendar_id | null
+	get selectedCalendar(): CalendarInfoBase | null {
+		const calendars = this.getAvailableCalendars(true)
+		const selectedCalendar =
+			calendars.find((calendarInfo) => {
+				if (isBirthdayCalendarInfo(calendarInfo)) {
+					return calendarInfo.id === this._selectedCalendar
 				}
-
-				// It isn't a string, so it can be only a Calendar Info
-				const calendarValue = calendar.info
-				return isSameId([calendarValue.groupRoot.longEvents, calendarValue.groupRoot.shortEvents], this._selectedCalendar)
-			})?.info ?? null
-		)
+				if (isCalendarInfo(calendarInfo)) {
+					const groupRoot = calendarInfo.groupRoot
+					return isSameId([groupRoot.longEvents, groupRoot.shortEvents], this._selectedCalendar)
+				}
+			}) ?? null
+		return selectedCalendar
 	}
 
 	private _mailboxes: MailboxDetail[] = []
@@ -195,16 +184,6 @@ export class SearchViewModel {
 	private resultSubscription: Stream<void> | null = null
 	private listStateSubscription: Stream<unknown> | null = null
 	loadingAllForSearchResult: SearchResult | null = null
-	private readonly lazyCalendarInfos: LazyLoaded<ReadonlyMap<string, CalendarInfo>> = new LazyLoaded(async () => {
-		const calendarModel = await locator.calendarModel()
-		const calendarInfos = await calendarModel.getCalendarInfos()
-		m.redraw()
-		return calendarInfos
-	})
-
-	private readonly userHasNewPaidPlan: LazyLoaded<boolean> = new LazyLoaded<boolean>(async () => {
-		return await this.logins.getUserController().isNewPaidPlan()
-	})
 
 	private currentQuery: string = ""
 
@@ -225,46 +204,13 @@ export class SearchViewModel {
 		private readonly progressTracker: ProgressTracker,
 		private readonly conversationViewModelFactory: ConversationViewModelFactory | null,
 		private readonly eventsRepository: CalendarEventsRepository,
+		private readonly calendarModel: CalendarModel,
 		private readonly updateUi: () => unknown,
 		private readonly selectionBehavior: ListAutoSelectBehavior,
 		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""
 		this._listModel = this.createList()
-	}
-
-	getLazyCalendarInfos() {
-		return this.lazyCalendarInfos
-	}
-
-	getAvailableCalendars(): Array<{ info: CalendarInfo | string; name: string }> {
-		if (this.getLazyCalendarInfos().isLoaded() && this.getUserHasNewPaidPlan().isLoaded()) {
-			// Load user's calendar list
-			const items: {
-				info: CalendarInfo | string
-				name: string
-			}[] = Array.from(this.getLazyCalendarInfos().getLoaded().values()).map((ci) => ({
-				info: ci,
-				name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, true),
-			}))
-
-			if (this.getUserHasNewPaidPlan().getSync()) {
-				const localCalendars = this.getLocalCalendars().map((cal) => ({
-					info: cal.id,
-					name: cal.name,
-				}))
-
-				items.push(...localCalendars)
-			}
-
-			return items
-		} else {
-			return []
-		}
-	}
-
-	getUserHasNewPaidPlan() {
-		return this.userHasNewPaidPlan
 	}
 
 	async init(extendIndexConfirmationCallback: SearchViewModel["extendIndexConfirmationCallback"]) {
@@ -380,24 +326,19 @@ export class SearchViewModel {
 				this._startDate = restriction.start ? new Date(restriction.start) : null
 				this._endDate = restriction.end ? new Date(restriction.end) : null
 				this._includeRepeatingEvents = restriction.eventSeries ?? true
-				this.lazyCalendarInfos.load()
-				this.userHasNewPaidPlan.load()
 				this.latestCalendarRestriction = restriction
 
-				// Check if user is trying to search in a client only calendar while using a free account
-				const selectedCalendar = this.extractCalendarListIds(restriction.folderIds)
-				if (!selectedCalendar || Array.isArray(selectedCalendar)) {
-					this._selectedCalendar = selectedCalendar
-				} else if (selectedCalendar.toString().includes(BIRTHDAY_CALENDAR_BASE_ID)) {
-					this.getUserHasNewPaidPlan()
-						.getAsync()
-						.then((isNewPaidPlan) => {
-							if (!isNewPaidPlan) {
-								return (this._selectedCalendar = null)
-							}
-
-							this._selectedCalendar = selectedCalendar
-						})
+				// Check if user is trying to search in a birthday calendar while using a free account
+				const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
+				if (!listIdsOrBirthdayCalendarId || Array.isArray(listIdsOrBirthdayCalendarId)) {
+					this._selectedCalendar = listIdsOrBirthdayCalendarId
+				} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
+					const availableCalendars = this.getAvailableCalendars(true)
+					if (availableCalendars.some(isBirthdayCalendarInfo)) {
+						this._selectedCalendar = listIdsOrBirthdayCalendarId
+					}
+					this._selectedCalendar = null
+					return
 				}
 
 				if (args.id != null) {
@@ -566,10 +507,12 @@ export class SearchViewModel {
 		return PaidFunctionResult.Success
 	}
 
-	selectCalendar(calendarInfo: CalendarInfo | string | null) {
-		if (typeof calendarInfo === "string" || calendarInfo == null) {
-			this._selectedCalendar = calendarInfo
-		} else {
+	selectCalendar(calendarInfo: CalendarInfoBase | null) {
+		if (!calendarInfo) {
+			this._selectedCalendar = null
+		} else if (isBirthdayCalendarInfo(calendarInfo)) {
+			this._selectedCalendar = calendarInfo.id
+		} else if (isCalendarInfo(calendarInfo)) {
 			this._selectedCalendar = [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents]
 		}
 		this.searchAgain()
@@ -693,13 +636,14 @@ export class SearchViewModel {
 	}
 
 	private getCalendarLists(): string[] {
-		if (typeof this.selectedCalendar === "string") {
-			return [this.selectedCalendar]
-		} else if (this.selectedCalendar != null) {
-			const calendarInfo = this.selectedCalendar
-			return [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents]
+		const selectedCalendar = this.selectedCalendar
+		if (!selectedCalendar) {
+			return []
+		} else if (isBirthdayCalendarInfo(selectedCalendar)) {
+			return [this.selectedCalendar.id]
+		} else if (isCalendarInfo(selectedCalendar)) {
+			return [selectedCalendar.groupRoot.longEvents, selectedCalendar.groupRoot.shortEvents]
 		}
-
 		return []
 	}
 
@@ -1074,6 +1018,14 @@ export class SearchViewModel {
 		return generateCalendarInstancesInRange(eventList, { start, end })
 	}
 
+	getAvailableCalendars(includesBirthday: boolean): Array<CalendarInfoBase> {
+		return this.calendarModel.getAvailableCalendars(includesBirthday)
+	}
+
+	loadCalendarInfos() {
+		return this.calendarModel.getCalendarInfos()
+	}
+
 	/**
 	 * take a list of IDs and load them by list, filtering out the ones that could not be loaded.
 	 * updates the passed currentResult.result list to not include the failed IDs anymore
@@ -1111,10 +1063,6 @@ export class SearchViewModel {
 
 	sendStopLoadingSignal() {
 		this.search.sendCancelSignal()
-	}
-
-	getLocalCalendars() {
-		return getClientOnlyCalendars(this.logins.getUserController().userId)
 	}
 
 	dispose() {
