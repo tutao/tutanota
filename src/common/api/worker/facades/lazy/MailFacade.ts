@@ -156,7 +156,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/Enti
 import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
-import { SpamClassificationMail, SpamClassifier } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
+import { SpamTrainMailDatum, SpamClassifier } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { ClientClassifierType } from "../../../../../mail-app/workerUtils/spamClassification/ClientClassifierType"
@@ -452,7 +452,7 @@ export class MailFacade {
 		} else {
 			if (this.isSpamClassificationEnabled()) {
 				const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
-				const spamClassificationMail: SpamClassificationMail = {
+				const spamClassificationMail: SpamTrainMailDatum = {
 					subject: mail.subject,
 					body: mailDetailsBlob.body.compressedText ?? mailDetailsBlob.body.text!,
 				}

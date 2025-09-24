@@ -18,14 +18,8 @@ import { INITIAL_MAIL_INDEX_INTERVAL_DAYS } from "../index/MailIndexer"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
-
-// FIXME can we reduce it to one type? SpamClassificationMail
-export type MailClassificationData = {
-	mail: Mail
-	mailDetails: MailDetails
-	isSpam: boolean
-	isCertain: boolean
-}
+import { SpamTrainMailDatum } from "./SpamClassifier"
+import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 
 export class SpamClassificationInitializer {
 	constructor(
@@ -39,20 +33,15 @@ export class SpamClassificationInitializer {
 		// available in the current mail bag
 		const user = assertNotNull(this.userFacade.getUser())
 		const memberships = filterMailMemberships(user)
-		const result = (await promiseMap(memberships, (group) => this.downloadMailAndMailDetailsByGroupMembership(group))).flat()
-		for (const spamClassification of result) {
-			await this.offlineStorage.storeSpamClassification(
-				spamClassification.mail,
-				spamClassification.mailDetails.body,
-				spamClassification.isSpam,
-				spamClassification.isCertain,
-			)
+		const spamTrainMailData = (await promiseMap(memberships, (group) => this.downloadMailAndMailDetailsByGroupMembership(group))).flat()
+		for (const spamTrainMailDatum of spamTrainMailData) {
+			await this.offlineStorage.storeSpamClassification(spamTrainMailDatum)
 		}
-		return result.flat()
+		return spamTrainMailData.flat()
 	}
 
 	// TODO: can we re-use MailBulkLoader
-	private async downloadMailAndMailDetailsByGroupMembership(mailGroupMembership: GroupMembership): Promise<Array<MailClassificationData>> {
+	private async downloadMailAndMailDetailsByGroupMembership(mailGroupMembership: GroupMembership): Promise<Array<SpamTrainMailDatum>> {
 		const mailGroupId = mailGroupMembership.group
 		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
@@ -79,7 +68,7 @@ export class SpamClassificationInitializer {
 			return map
 		}, new Map<Id, MailDetails>())
 
-		const classifiedMails = mails.map((mail) => {
+		const classifiedMails = mails.map((mail: Mail) => {
 			const mailDetails = loadedMailDetailsById.get(elementIdPart(mail.mailDetails!))
 			if (!mailDetails) {
 				// Mail details might have been deleted in the meantime.
@@ -88,7 +77,13 @@ export class SpamClassificationInitializer {
 			}
 			const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 			const isCertain = !mail.unread || !mail.sets.some((folderId) => isSameId(folderId, inboxFolder._id))
-			return { mail, mailDetails, isSpam, isCertain }
+			return {
+				mailId: mail._id,
+				subject: mail.subject,
+				body: getMailBodyText(mailDetails.body),
+				isSpam: isSpam,
+				isCertain: isCertain,
+			} as SpamTrainMailDatum
 		})
 		return classifiedMails.filter(isNotNull)
 	}

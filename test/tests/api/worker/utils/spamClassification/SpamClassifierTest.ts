@@ -1,41 +1,39 @@
 import o from "@tutao/otest"
 import fs from "node:fs"
 import { parseCsv } from "../../../../../../src/common/misc/parsing/CsvParser"
-import { SpamClassificationMail, SpamClassifier } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
-import { tokenize, tokenize as testTokenize } from "./HashingVectorizerTest"
+import { SpamClassifier, SpamTrainMailDatum } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+import { tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import { htmlToText } from "../../../../../../src/common/api/worker/search/IndexUtils"
-import {
-	MailClassificationData,
-	SpamClassificationInitializer,
-} from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassificationInitializer"
+import { SpamClassificationInitializer } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassificationInitializer"
 
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
 
 export async function readMailDataFromCSV(filePath: string): Promise<{
-	spamData: SpamClassificationMail[]
-	hamData: SpamClassificationMail[]
+	spamData: SpamTrainMailDatum[]
+	hamData: SpamTrainMailDatum[]
 }> {
 	const file = await fs.promises.readFile(filePath)
 	const csv = parseCsv(file.toString())
 
-	let spamData: SpamClassificationMail[] = []
-	let hamData: SpamClassificationMail[] = []
+	let spamData: SpamTrainMailDatum[] = []
+	let hamData: SpamTrainMailDatum[] = []
 	for (const row of csv.rows.slice(1, csv.rows.length - 1)) {
 		const subject = row[8]
-		const body = htmlToText(row[10])
+		const body = row[10]
 		const label = row[11]
 
 		let isSpam = label === "spam" ? true : label === "ham" ? false : null
 		isSpam = assertNotNull(isSpam, "Unknown label detected: " + label)
 		const targetData = isSpam ? spamData : hamData
 		targetData.push({
+			mailId: ["mailListId", "mailElementId"],
 			subject,
 			body,
 			isSpam,
-		})
+			isCertain: true,
+		} as SpamTrainMailDatum)
 	}
 
 	return { spamData, hamData }
@@ -64,20 +62,7 @@ o.spec("SpamClassifier", () => {
 		const dataSlice = hamSlice.concat(spamSlice)
 		const mockSpamClassificationInitializer = object() as SpamClassificationInitializer
 		mockSpamClassificationInitializer.init = async () => {
-			return dataSlice.map((mail) => {
-				return {
-					mail: {
-						subject: mail.subject,
-					},
-					mailDetails: {
-						body: {
-							compressedText: mail.body,
-						},
-					},
-					isSpam: mail.isSpam,
-					isCertain: true,
-				} as MailClassificationData
-			})
+			return dataSlice
 		}
 
 		seededShuffle(dataSlice, 42)
@@ -115,20 +100,7 @@ o.spec("SpamClassifier", () => {
 		const dataSlice = hamSlice.concat(spamSlice)
 		const mockSpamClassificationInitializer = object() as SpamClassificationInitializer
 		mockSpamClassificationInitializer.init = async () => {
-			return dataSlice.map((data) => {
-				return {
-					mail: {
-						subject: data.subject,
-					},
-					mailDetails: {
-						body: {
-							compressedText: data.body,
-						},
-					},
-					isCertain: true,
-					isSpam: data.isSpam,
-				} as MailClassificationData
-			})
+			return dataSlice
 		}
 
 		seededShuffle(dataSlice, 42)
@@ -140,40 +112,14 @@ o.spec("SpamClassifier", () => {
 
 		const mockSpamClassificationInitializerTrainSetHalf = object() as SpamClassificationInitializer
 		mockSpamClassificationInitializer.init = async () => {
-			return trainSetHalf.map((data) => {
-				return {
-					mail: {
-						subject: data.subject,
-					},
-					mailDetails: {
-						body: {
-							compressedText: data.body,
-						},
-					},
-					isCertain: true,
-					isSpam: data.isSpam,
-				} as MailClassificationData
-			})
+			return trainSetHalf
 		}
 
 		const trainSetSecondHalf = trainSet.slice(trainSet.length / 2, trainSet.length)
 
 		const mockSpamClassificationInitializerTrainSetSecondHalf = object() as SpamClassificationInitializer
 		mockSpamClassificationInitializer.init = async () => {
-			return trainSetSecondHalf.map((data) => {
-				return {
-					mail: {
-						subject: data.subject,
-					},
-					mailDetails: {
-						body: {
-							compressedText: data.body,
-						},
-					},
-					isCertain: true,
-					isSpam: data.isSpam,
-				} as MailClassificationData
-			})
+			return trainSetSecondHalf
 		}
 
 		const classifierAll = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
@@ -188,7 +134,7 @@ o.spec("SpamClassifier", () => {
 		await classifierAll.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 
-		mockOfflineStorage.getCertainSpamClassificationTrainingDataAfterCutoff = async (cutoff) => {
+		mockOfflineStorage.getCertainSpamClassificationTrainingDataAfterCutoff = async (_cutoff) => {
 			return trainSetSecondHalf
 		}
 		const classifierBySteps = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializerTrainSetHalf)
@@ -307,7 +253,7 @@ o.spec("SpamClassifier", () => {
 <table cellpadding="0" cellspacing="0" border="0" role="presentation" width="100%"><tbody><tr><td align="center"><a href="https://mail.abc-web.de/optiext/optiextension.dll?ID=someid" rel="noopener noreferrer" target="_blank" style="text-decoration:none"><img id="OWATemporaryImageDivContainer1" src="https://mail.some-domain.de/images/SMC/grafik/image.png" alt="" border="0" class="" width="100%" style="max-width:100%;display:block;width:100%"></a></td></tr></tbody></table>
 this text is shown
 `,
-		} as SpamClassificationMail
+		} as SpamTrainMailDatum
 		const preprocessedMail = classifier.preprocessMail(mail)
 		const expectedOutput = `Sample Tokens and values Hello <SPECIAL-CHAR>  these are my MAC Address
 				FB <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>

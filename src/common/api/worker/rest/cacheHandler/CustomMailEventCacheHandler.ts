@@ -69,7 +69,7 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		const isSpam = mailFacade.isSpamClassificationEnabled() ? predictedSpam : isStoredInSpamFolder
 		const offlineStoragePersistence = await this.offlineStoragePersistence()
 		const isCertain = isSpam
-		await offlineStoragePersistence.storeSpamClassification(newMailData.mail, newMailData.mailDetails.body, isSpam, isCertain)
+		await offlineStoragePersistence.storeSpamClassification()
 
 		if (mailFacade.isSpamClassificationEnabled()) {
 			if (predictedSpam && !isStoredInSpamFolder) {

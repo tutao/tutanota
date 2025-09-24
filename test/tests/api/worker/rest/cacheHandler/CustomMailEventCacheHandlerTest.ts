@@ -85,7 +85,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
 
-			verify(offlineStorage.storeSpamClassification(mail, body, true, true), { times: 1 })
+			verify(offlineStorage.storeSpamClassification(), { times: 1 })
 		})
 
 		o("processSpam uses client classification when enabled", async function () {
@@ -103,7 +103,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
 
-			verify(offlineStorage.storeSpamClassification(mail, body, false, false), { times: 1 })
+			verify(offlineStorage.storeSpamClassification(), { times: 1 })
 		})
 
 		o("processSpam correctly verifies if email is stored in spam folder", async function () {
@@ -121,7 +121,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
 
-			verify(offlineStorage.storeSpamClassification(mail, body, false, false), { times: 1 })
+			verify(offlineStorage.storeSpamClassification(), { times: 1 })
 		})
 
 		o("processSpam moves mail to spam when detected as such and its not already in spam", async function () {
@@ -145,7 +145,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
 
-			verify(offlineStorage.storeSpamClassification(mail, body, true, true), { times: 1 })
+			verify(offlineStorage.storeSpamClassification(), { times: 1 })
 			verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.SPAM, ClientClassifierType.CLIENT_CLASSIFICATION))
 		})
 
@@ -170,7 +170,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
 
-			verify(offlineStorage.storeSpamClassification(mail, body, false, false), { times: 1 })
+			verify(offlineStorage.storeSpamClassification(), { times: 1 })
 			verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.INBOX, ClientClassifierType.CLIENT_CLASSIFICATION))
 		})
 	})

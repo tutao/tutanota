@@ -27,17 +27,26 @@ import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 
 assertWorkerOrNode()
 
-export type SpamClassificationMail = {
-	subject: string
-	body: string
-	isSpam?: boolean
-}
-
 export type SpamClassificationModel = {
 	modelTopology: string
 	weightSpecs: string
 	weightData: Uint8Array
 }
+
+export type SpamTrainMailDatum = {
+	mailId: IdTuple
+	subject: string
+	body: string
+	isSpam: boolean
+	isCertain: boolean
+}
+
+export type SpamPredMailDatum = {
+	subject: string
+	body: string
+}
+
+const PREDICTION_THRESHOLD = 0.5
 
 export type PreprocessConfiguration = {
 	isPreprocessMails: boolean
@@ -50,8 +59,6 @@ export type PreprocessConfiguration = {
 	isReplaceNumbers: boolean
 	isReplaceSpecialCharacters: boolean
 }
-
-const PREDICTION_THRESHOLD = 0.5
 
 const DEFAULT_PREPROCESS_CONFIGURATION = {
 	isPreprocessMails: true,
@@ -87,22 +94,14 @@ export class SpamClassifier {
 		}
 
 		console.log("No existing model found. Training from scratch...")
-		const data: Array<SpamClassificationMail> = (await this.initializer.init())
-			.filter((classificationData) => classificationData.isCertain)
-			.map((classificationData) => {
-				return {
-					subject: classificationData.mail.subject,
-					body: getMailBodyText(classificationData.mailDetails.body),
-					isSpam: classificationData.isSpam,
-				}
-			})
+		const data: Array<SpamTrainMailDatum> = (await this.initializer.init()).filter((classificationData) => classificationData.isCertain)
 		await this.initialTraining(data)
 		await this.saveModel()
 		this.isEnabled = true
 	}
 
 	// visibleForTesting
-	public preprocessMail(mail: SpamClassificationMail): string {
+	public preprocessMail(mail: SpamTrainMailDatum): string {
 		const mailText = this.concatSubjectAndBody(mail)
 
 		if (!this.preprocessConfiguration.isPreprocessMails) {
@@ -156,7 +155,7 @@ export class SpamClassifier {
 		return preprocessedMail
 	}
 
-	public async initialTraining(mails: SpamClassificationMail[]): Promise<void> {
+	public async initialTraining(mails: SpamTrainMailDatum[]): Promise<void> {
 		const notPreprocessedMails = mails.map((mail) => this.concatSubjectAndBody(mail))
 		const preprocessedMails = mails.map((mail) => this.preprocessMail(mail))
 
@@ -231,7 +230,7 @@ export class SpamClassifier {
 	}
 
 	// visibleForTesting
-	public async predict(mail: SpamClassificationMail): Promise<boolean> {
+	public async predict(mail: SpamTrainMailDatum): Promise<boolean> {
 		if (!this.isEnabled) {
 			throw new Error("SpamClassifier is not enabled yet")
 		}
@@ -249,7 +248,7 @@ export class SpamClassifier {
 	}
 
 	// FIXME
-	public async test(mails: SpamClassificationMail[]): Promise<void> {
+	public async test(mails: SpamTrainMailDatum[]): Promise<void> {
 		if (!this.classifier) {
 			throw new Error("Model has not been loaded")
 		}
@@ -372,7 +371,7 @@ export class SpamClassifier {
 		}
 	}
 
-	private concatSubjectAndBody(mail: SpamClassificationMail) {
+	private concatSubjectAndBody(mail: SpamTrainMailDatum) {
 		const subject = mail.subject || ""
 		const body = mail.body || ""
 		const concatenated = `${subject} ${body}`.trim()
