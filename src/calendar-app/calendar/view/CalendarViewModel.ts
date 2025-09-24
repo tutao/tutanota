@@ -809,7 +809,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		const { userSettingsGroupRoot } = this.logins.getUserController()
 		const groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? undefined
 
-		const sharedGroupName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), calendarInfo.shared)
+		const sharedGroupName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, calendarInfo.shared)
 		const color = "#" + (groupSettings?.color ?? defaultCalendarColor)
 		const calendarType = getCalendarRenderType(calendarInfo)
 		return {

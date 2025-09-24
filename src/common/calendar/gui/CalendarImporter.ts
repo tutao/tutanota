@@ -185,7 +185,7 @@ export function calendarSelectionDialog(
 					label: "calendar_label",
 					items: availableCalendars.map((calendarInfo) => {
 						return {
-							name: getSharedGroupName(calendarInfo.groupInfo, userController, calendarInfo.shared),
+							name: getSharedGroupName(calendarInfo.groupInfo, userController.userSettingsGroupRoot, calendarInfo.shared),
 							value: calendarInfo,
 						}
 					}),
