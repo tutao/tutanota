@@ -58,6 +58,8 @@ import { formatDate } from "../../../../common/misc/Formatter"
 import { createDropdown } from "../../../../common/gui/base/Dropdown"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError"
 import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog"
+import { isSameId } from "../../../../common/api/common/utils/EntityUtils"
+import { CalendarInfo } from "../../model/CalendarModel"
 
 assertMainOrNode()
 
@@ -77,8 +79,9 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
-			const calendars = await this.searchViewModel.getLazyCalendarInfos().getAsync()
-			const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendars, [])
+			const calendars = await this.searchViewModel.getAvailableCalendars(false)
+			const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
+			const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendarInfosMap, [])
 			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
 			return eventPreviewModel
 		}).load(),
@@ -431,11 +434,9 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		const dateToUse = this.searchViewModel.startDate ? setNextHalfHour(new Date(this.searchViewModel.startDate)) : setNextHalfHour(new Date())
 
 		// Disallow creation of events when there is no existing calendar
-		const lazyCalendarInfo = this.searchViewModel.getLazyCalendarInfos()
-		const calendarInfos = lazyCalendarInfo.isLoaded() ? lazyCalendarInfo.getSync() : lazyCalendarInfo.getAsync()
-
-		if (calendarInfos instanceof Promise) {
-			await showProgressDialog("pleaseWait_msg", calendarInfos)
+		const calendarInfos = this.searchViewModel.getAvailableCalendars(false)
+		if (!calendarInfos.length) {
+			await showProgressDialog("pleaseWait_msg", this.searchViewModel.loadCalendarInfos())
 		}
 
 		const mailboxDetails = await calendarLocator.mailboxModel.getUserMailboxDetails()
@@ -515,7 +516,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderCalendarFilterChips() {
-		const availableCalendars = this.searchViewModel.getAvailableCalendars()
+		const availableCalendars = this.searchViewModel.getAvailableCalendars(true)
 		const selectedCalendar = this.searchViewModel.selectedCalendar
 		return [
 			m(FilterChip, {
@@ -533,7 +534,10 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			}),
 			m(FilterChip, {
 				label: selectedCalendar
-					? lang.makeTranslation("calendar_label", availableCalendars.find((f) => f.info === this.searchViewModel.selectedCalendar)?.name ?? "")
+					? lang.makeTranslation(
+							"calendar_label",
+							availableCalendars.find((calendarInfo) => isSameId(calendarInfo.id, selectedCalendar.id))?.name ?? "",
+						)
 					: lang.getTranslation("calendar_label"),
 				selected: selectedCalendar != null,
 				chevron: true,
@@ -543,9 +547,9 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 							label: lang.getTranslation("all_label"),
 							click: () => this.searchViewModel.selectCalendar(null),
 						},
-						...availableCalendars.map((f) => ({
-							label: lang.makeTranslation(f.name, f.name),
-							click: () => this.searchViewModel.selectCalendar(f.info),
+						...availableCalendars.map((calendarInfo) => ({
+							label: lang.makeTranslation(calendarInfo.name, calendarInfo.name),
+							click: () => this.searchViewModel.selectCalendar(calendarInfo),
 						})),
 					],
 				}),

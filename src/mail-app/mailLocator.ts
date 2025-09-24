@@ -300,6 +300,7 @@ class MailLocator implements CommonLocator {
 		const searchRouter = await this.scopedSearchRouter()
 		const calendarEventsRepository = await this.calendarEventsRepository()
 		const offlineStorageSettings = await this.offlineStorageSettingsModel()
+		const calendarModel = await this.calendarModel()
 		return () => {
 			return new SearchViewModel(
 				searchRouter,
@@ -315,6 +316,7 @@ class MailLocator implements CommonLocator {
 				this.progressTracker,
 				conversationViewModelFactory,
 				calendarEventsRepository,
+				calendarModel,
 				redraw,
 				deviceConfig.getMailAutoSelectBehavior(),
 				offlineStorageSettings,
