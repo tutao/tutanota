@@ -27,7 +27,7 @@ import { LayerType } from "../../RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../common/gui/base/BaseSearchBar.js"
 import { SearchRouter } from "../../common/search/view/SearchRouter.js"
 import { PageSize } from "../../common/gui/base/ListUtils.js"
-import { generateCalendarInstancesInRange, isClientOnlyCalendar, retrieveClientOnlyEventsForUser } from "../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../common/calendar/date/CalendarUtils.js"
 import { ListElementEntity } from "../../common/api/common/EntityTypes.js"
 
 import { loadMultipleFromLists } from "../../common/api/common/EntityClient.js"
@@ -519,11 +519,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	private async showResultsInOverlay(result: SearchResult): Promise<void> {
 		let entries: Entry[]
 		if (isSameTypeRef(CalendarEventTypeRef, result.restriction.type)) {
-			const serverEventIds = result.results.filter(([calendarId, eventId]) => !isClientOnlyCalendar(calendarId))
+			const serverEventIds = result.results.filter(([calendarId, eventId]) => !isBirthdayCalendar(calendarId))
 			const eventsRepository = await mailLocator.calendarEventsRepository()
 			entries = [
 				...(await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, serverEventIds)),
-				...(await retrieveClientOnlyEventsForUser(mailLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
+				...(await retrieveBirthdayEventsForUser(mailLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
 			]
 		} else {
 			entries = await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, result.results)
