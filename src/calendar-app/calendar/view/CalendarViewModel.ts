@@ -66,9 +66,9 @@ import { GroupNameData, GroupSettingsModel } from "../../../common/sharing/model
 import { EventEditorDialog } from "../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
 import { formatDate, formatTime } from "../../../common/misc/Formatter"
-import { CalendarSidebarIconData } from "../gui/CalendarSidebarRow"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
+import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 
 export type EventsOnDays = {
 	days: Array<Date>
@@ -782,7 +782,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.setHiddenCalendars(newHiddenCalendars)
 	}
 
-	getIcon(renderType: RenderType, calendarId: string): CalendarSidebarIconData | undefined {
+	getIcon(renderType: RenderType, calendarId: string): CalendarSidebarRowIconData | undefined {
 		switch (renderType) {
 			case RenderType.External: {
 				const lastSyncEntry = deviceConfig.getLastExternalCalendarSync().get(calendarId)
