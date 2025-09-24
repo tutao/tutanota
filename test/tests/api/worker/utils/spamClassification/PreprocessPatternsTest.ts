@@ -8,6 +8,8 @@ import {
 	DATE_REGEX,
 	EMAIL_ADDR_PATTERN,
 	EMAIL_ADDR_PATTERN_TOKEN,
+	NUMBER_SEQUENCE_REGEX,
+	NUMBER_SEQUENCE_TOKEN,
 	SPECIAL_CHARACTER_REGEX,
 	SPECIAL_CHARACTER_TOKEN,
 	URL_PATTERN,
@@ -16,6 +18,46 @@ import {
 import { DOMAIN_REGEXP, isMailAddress } from "../../../../../../src/common/misc/FormatValidator"
 
 o.spec("PreprocessPatterns", () => {
+	const otherNumberFormats = [
+		//MAC Address
+		"FB-94-77-45-96-74",
+		"91-58-81-D5-55-7C",
+		"B4-09-49-2A-DE-D4",
+		// ISBN
+		"718385414-0",
+		"733065633-X",
+		"632756390-2",
+		// SSN
+		"227-78-2283",
+		"134-34-1253",
+		"591-61-6459",
+		// SHA
+		"585eab9b3a5e4430e08f5096d636d0d475a8c69dae21a61c6f1b26c4bd8dd8c1",
+		"7233d153f2e0725d3d212d1f27f30258fafd72b286d07b3b1d94e7e3c35dce67",
+		"769f65bf44557df44fc5f99c014cbe98894107c9d7be0801f37c55b3776c3990",
+		// Phone Numbers
+		"(341) 2027690",
+		"+385 958 638 7625",
+		"430-284-9438",
+		// VIN (Vehicle identification number)
+		"3FADP4AJ3BM438397",
+		"WAULT64B82N564937",
+		"KMHTC6AD6EU278390",
+		//GUIDs
+		"781a9631-0716-4f9c-bb36-25c3364b754b",
+		"325783d4-a64e-453b-85e6-ed4b2cd4c9bf",
+		"0f77794c-04c9-4c21-ae89-8047796c77c4",
+		//Hex Colors
+		"#2016c1",
+		"#c090a4",
+		"#c855f5",
+		"#000000",
+		//IPV4
+		"91.17.182.120",
+		"47.232.175.0",
+		"171.90.3.93",
+	]
+
 	o.spec("Date patterns", () => {
 		o.test("All recognized date patterns", async () => {
 			const dates = [
@@ -134,53 +176,6 @@ o.spec("PreprocessPatterns", () => {
 	})
 
 	o.spec("Payment patterns", () => {
-		const bitcoinAddresses = [
-			"159S1vV25PAxMiCVaErjPznbWB8YBvANAi",
-			"18wUQ7NqX1sWuzbtCz4aoDEoLwZrAsq5XD",
-			"1FUm2eZK2ETeAo8v95WhZioQDy32YSerkD",
-			"1NJmLtKTyHyqdKo6epyF9ecMyuH1xFWjEt",
-			"1U11iKhWKyDv7RsRHNf98GSvwCLT6TJvr",
-		]
-
-		const otherNumberFormats = [
-			//MAC Address
-			"FB-94-77-45-96-74",
-			"91-58-81-D5-55-7C",
-			"B4-09-49-2A-DE-D4",
-			// ISBN
-			"718385414-0",
-			"733065633-X",
-			"632756390-2",
-			// SSN
-			"227-78-2283",
-			"134-34-1253",
-			"591-61-6459",
-			// SHA
-			"585eab9b3a5e4430e08f5096d636d0d475a8c69dae21a61c6f1b26c4bd8dd8c1",
-			"7233d153f2e0725d3d212d1f27f30258fafd72b286d07b3b1d94e7e3c35dce67",
-			"769f65bf44557df44fc5f99c014cbe98894107c9d7be0801f37c55b3776c3990",
-			// Phone Numbers
-			"(341) 2027690",
-			"+385 958 638 7625",
-			"430-284-9438",
-			// VIN (Vehicle identification number)
-			"3FADP4AJ3BM438397",
-			"WAULT64B82N564937",
-			"KMHTC6AD6EU278390",
-			//GUIDs
-			"781a9631-0716-4f9c-bb36-25c3364b754b",
-			"325783d4-a64e-453b-85e6-ed4b2cd4c9bf",
-			"0f77794c-04c9-4c21-ae89-8047796c77c4",
-			//Hex Colors
-			"#2016c1",
-			"#c090a4",
-			"#c855f5",
-			//IPV4
-			"91.17.182.120",
-			"47.232.175.0",
-			"171.90.3.93",
-		]
-
 		o.spec("Credit card patterns", () => {
 			o.test("All recognized credit card patterns", async () => {
 				const creditCards = [
@@ -234,6 +229,13 @@ o.spec("PreprocessPatterns", () => {
 
 		o.spec("Bitcoin patterns", () => {
 			o.test("All recognized bitcoin patterns", async () => {
+				const bitcoinAddresses = [
+					"159S1vV25PAxMiCVaErjPznbWB8YBvANAi",
+					"18wUQ7NqX1sWuzbtCz4aoDEoLwZrAsq5XD",
+					"1FUm2eZK2ETeAo8v95WhZioQDy32YSerkD",
+					"1NJmLtKTyHyqdKo6epyF9ecMyuH1xFWjEt",
+					"1U11iKhWKyDv7RsRHNf98GSvwCLT6TJvr",
+				]
 				let resultBitcoinsText = bitcoinAddresses.join("\n")
 
 				resultBitcoinsText = resultBitcoinsText.replace(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)
@@ -332,6 +334,52 @@ o.spec("PreprocessPatterns", () => {
 
 			resultNotSpecialCharsText = resultNotSpecialCharsText.replaceAll(SPECIAL_CHARACTER_TOKEN, "")
 			o.check(resultNotSpecialCharsText.trim()).equals(notSpecialCharsText)
+		})
+	})
+
+	o.spec("Number sequence patterns", () => {
+		o.test("All recognized number sequence patterns", async () => {
+			const numberSequenceMap = new Map([
+				["19328493214", NUMBER_SEQUENCE_TOKEN],
+				["1", NUMBER_SEQUENCE_TOKEN],
+				["als 100 partner", `als ${NUMBER_SEQUENCE_TOKEN} partner`],
+				["26098375", `${NUMBER_SEQUENCE_TOKEN}`],
+				["t24-group, 65, 10557", `t24-group, ${NUMBER_SEQUENCE_TOKEN}, ${NUMBER_SEQUENCE_TOKEN}`],
+				[
+					"IBAN: DE91 1002 0370 0320 2239 82",
+					`IBAN: DE91 ${NUMBER_SEQUENCE_TOKEN} ${NUMBER_SEQUENCE_TOKEN} ${NUMBER_SEQUENCE_TOKEN} ${NUMBER_SEQUENCE_TOKEN} ${NUMBER_SEQUENCE_TOKEN}`,
+				],
+				["2020-0000-1580", `${NUMBER_SEQUENCE_TOKEN}-${NUMBER_SEQUENCE_TOKEN}-${NUMBER_SEQUENCE_TOKEN}`],
+				["809,95 €", `${NUMBER_SEQUENCE_TOKEN},${NUMBER_SEQUENCE_TOKEN} €`],
+				["99999999999999999999999999999", NUMBER_SEQUENCE_TOKEN],
+			])
+
+			for (const [specialCharSequence, expectedResult] of numberSequenceMap) {
+				const tokenized = specialCharSequence.replace(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
+				o.check(tokenized).equals(expectedResult)
+			}
+		})
+
+		o.test("Not recognized number-like sequences", async () => {
+			const notNumberSequences = ["SHLT116", "Scout24", "gb_67ca4b", "one", "16mb"]
+			const notNumberSequenceText = notNumberSequences.join("\n")
+
+			let resultNotNumberSequence = notNumberSequences.map((cc) => cc.replace(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)).join("\n")
+
+			const resultTokenArray = resultNotNumberSequence.split(NUMBER_SEQUENCE_TOKEN)
+			o.check(resultTokenArray.length - 1).equals(0)
+
+			resultNotNumberSequence = resultNotNumberSequence.replaceAll(NUMBER_SEQUENCE_TOKEN, "")
+			o.check(resultNotNumberSequence.trim()).equals(notNumberSequenceText)
+		})
+
+		o.test("number sequence results on other-format sequences outputs as expected", async () => {
+			let resultNotNumberSequence = otherNumberFormats.map((cc) => cc.replace(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)).join("\n")
+
+			const resultTokenArray = resultNotNumberSequence.split(NUMBER_SEQUENCE_TOKEN)
+
+			const expectedNumberOfTokens = 49
+			o.check(resultTokenArray.length).equals(expectedNumberOfTokens)
 		})
 	})
 })
