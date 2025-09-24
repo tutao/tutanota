@@ -14,7 +14,7 @@ import {
 	getEventStart,
 	getMonthRange,
 	isBirthdayEvent,
-	isClientOnlyCalendar,
+	isBirthdayCalendar,
 } from "./CalendarUtils.js"
 import { Birthday, CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, createCalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
@@ -257,7 +257,7 @@ export class CalendarEventsRepository {
 	}
 
 	private addDaysForRecurringEvent(event: CalendarEvent, month: CalendarTimeRange): void {
-		if (!isClientOnlyCalendar(listIdPart(event._id)) && -DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
+		if (!isBirthdayCalendar(listIdPart(event._id)) && -DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
 			console.log("repeating event is too far into the past", event)
 			return
 		}

@@ -46,7 +46,7 @@ import {
 	hasSourceUrl,
 	isBirthdayEvent,
 	isCalendarInfoOfRenderType,
-	isClientOnlyCalendar,
+	isBirthdayCalendar,
 	parseAlarmInterval,
 	RenderType,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -1032,7 +1032,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	): Children {
 		const { group, groupInfo, groupRoot, isExternal } = calendarInfo
 		const user = locator.logins.getUserController().user
-		const isClientOnly = isClientOnlyCalendar(calendarInfo.group._id)
+		const isClientOnly = isBirthdayCalendar(calendarInfo.group._id)
 		return m(IconButton, {
 			title: "more_label",
 			colors: ButtonColor.Nav,
@@ -1113,7 +1113,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			group.type === GroupType.Calendar &&
 			hasCapabilityOnGroup(user, group, ShareCapability.Write) &&
 			!hasSourceUrl(groupSettings) &&
-			!isClientOnlyCalendar(group._id)
+			!isBirthdayCalendar(group._id)
 		)
 	}
 
@@ -1149,7 +1149,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		userSettingsGroupRoot: UserSettingsGroupRoot,
 	) {
 		const { groupInfo } = calendarInfo
-		if (isClientOnlyCalendar(groupInfo.group) && !this.viewModel.isNewPaidPlan) {
+		if (isBirthdayCalendar(groupInfo.group) && !this.viewModel.isNewPaidPlan) {
 			showPlanUpgradeRequiredDialog(NewPaidPlans)
 			return
 		}
@@ -1179,7 +1179,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	) {
 		const { groupInfo, shared, userIsOwner } = calendarInfo
 
-		const clientOnlyCalendar = isClientOnlyCalendar(groupInfo.group)
+		const clientOnlyCalendar = isBirthdayCalendar(groupInfo.group)
 
 		if (clientOnlyCalendar) {
 			this.viewModel.handleClientOnlyUpdate(groupInfo, { name: properties.nameData.name, color: properties.color })
