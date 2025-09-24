@@ -31,7 +31,7 @@ export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipient
 				bcc,
 			},
 			texts.shareEmailSubject,
-			texts.shareEmailBody(senderDisplayName, getSharedGroupName(sharedGroupInfo, locator.logins.getUserController(), true)),
+			texts.shareEmailBody(senderDisplayName, getSharedGroupName(sharedGroupInfo, locator.logins.getUserController().userSettingsGroupRoot, true)),
 			senderMailAddress,
 		)
 	})

@@ -610,7 +610,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	private _leaveTemplateGroup(templateInfo: TemplateGroupInstance) {
 		return getConfirmation(
 			lang.getTranslation("confirmLeaveSharedGroup_msg", {
-				"{groupName}": getSharedGroupName(templateInfo.groupInfo, this.logins.getUserController(), false),
+				"{groupName}": getSharedGroupName(templateInfo.groupInfo, this.logins.getUserController().userSettingsGroupRoot, false),
 			}),
 		).confirmed(() => locator.groupManagementFacade.removeUserFromGroup(getEtId(this.logins.getUserController().user), templateInfo.groupInfo.group))
 	}

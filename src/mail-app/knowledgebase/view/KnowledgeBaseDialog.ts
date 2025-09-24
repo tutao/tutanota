@@ -90,7 +90,10 @@ function createAddButtonAttrs(model: KnowledgeBaseModel): ButtonAttrs {
 				lazyButtons: () =>
 					templateGroupInstances.map((groupInstances) => {
 						return {
-							label: lang.makeTranslation("group_name", getSharedGroupName(groupInstances.groupInfo, model.userController, true)),
+							label: lang.makeTranslation(
+								"group_name",
+								getSharedGroupName(groupInstances.groupInfo, model.userController.userSettingsGroupRoot, true),
+							),
 							click: () => {
 								showKnowledgeBaseEditor(null, groupInstances.groupRoot)
 							},

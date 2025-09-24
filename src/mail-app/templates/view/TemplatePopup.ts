@@ -32,8 +32,8 @@ import { IconButton, IconButtonAttrs } from "../../../common/gui/base/IconButton
 import { TEMPLATE_LIST_ENTRY_WIDTH, TEMPLATE_POPUP_HEIGHT, TEMPLATE_POPUP_TWO_COLUMN_MIN_WIDTH } from "./TemplateConstants.js"
 
 /**
- *	Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.
- *	Also allows user to change desired language when pasting.
+ *    Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.
+ *    Also allows user to change desired language when pasting.
  */
 export function showTemplatePopupInEditor(templateModel: TemplatePopupModel, editor: Editor, template: EmailTemplate | null, highlightedText: string) {
 	const initialSearchString = template ? TEMPLATE_SHORTCUT_PREFIX + template.tag : highlightedText
@@ -308,7 +308,10 @@ export class TemplatePopup implements ModalComponent {
 				childAttrs: () =>
 					writeableGroups.map((groupInstances) => {
 						return {
-							label: lang.makeTranslation("group_name", getSharedGroupName(groupInstances.groupInfo, locator.logins.getUserController(), true)),
+							label: lang.makeTranslation(
+								"group_name",
+								getSharedGroupName(groupInstances.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, true),
+							),
 							click: () => this.showTemplateEditor(null, groupInstances.groupRoot),
 						}
 					}),

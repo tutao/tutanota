@@ -293,7 +293,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		const availableCalendars = model.editModels.whoModel.getAvailableCalendars()
 
 		const options: CalendarSelectItem[] = availableCalendars.map((calendarInfo) => {
-			const name = getSharedGroupName(calendarInfo.groupInfo, model.userController, calendarInfo.shared)
+			const name = getSharedGroupName(calendarInfo.groupInfo, model.userController.userSettingsGroupRoot, calendarInfo.shared)
 			return {
 				name,
 				color: "#" + (groupColors.get(calendarInfo.group._id) ?? defaultCalendarColor),
@@ -303,7 +303,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		})
 
 		const selectedCalendarInfo = model.editModels.whoModel.selectedCalendar
-		const selectedCalendarName = getSharedGroupName(selectedCalendarInfo.groupInfo, model.userController, selectedCalendarInfo.shared)
+		const selectedCalendarName = getSharedGroupName(selectedCalendarInfo.groupInfo, model.userController.userSettingsGroupRoot, selectedCalendarInfo.shared)
 		let selected: CalendarSelectItem = {
 			name: selectedCalendarName,
 			color: "#" + (groupColors.get(selectedCalendarInfo.group._id) ?? defaultCalendarColor),

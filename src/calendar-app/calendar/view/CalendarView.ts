@@ -44,9 +44,9 @@ import {
 	getCalendarType,
 	getTimeZone,
 	hasSourceUrl,
+	isBirthdayCalendar,
 	isBirthdayEvent,
 	isCalendarInfoOfRenderType,
-	isBirthdayCalendar,
 	parseAlarmInterval,
 	RenderType,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -1074,7 +1074,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									const alarmInfoList = user.alarmInfoList
 									if (alarmInfoList) {
 										exportCalendar(
-											getSharedGroupName(groupInfo, locator.logins.getUserController(), calendarInfo.shared),
+											getSharedGroupName(groupInfo, locator.logins.getUserController().userSettingsGroupRoot, calendarInfo.shared),
 											groupRoot,
 											alarmInfoList.alarms,
 											new Date(),
@@ -1118,7 +1118,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private confirmDeleteCalendar(calendarInfo: CalendarInfo) {
-		const calendarName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), false)
+		const calendarName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, false)
 		loadGroupMembers(calendarInfo.group, locator.entityClient).then((members) => {
 			const ownerMail = locator.logins.getUserController().userGroupInfo.mailAddress
 			const otherMembers = members.filter((member) => member.info.mailAddress !== ownerMail)
