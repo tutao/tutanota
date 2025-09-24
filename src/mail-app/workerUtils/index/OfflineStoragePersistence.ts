@@ -10,7 +10,7 @@ import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
-import { SpamClassificationModel, SpamClassificationMail } from "../spamClassification/SpamClassifier"
+import { SpamClassificationMail, SpamClassificationModel } from "../spamClassification/SpamClassifier"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
@@ -211,31 +211,27 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async getStoredClassification(mailData: Mail): Promise<boolean> {
+	async getStoredClassification(mailData: Mail): Promise<Nullable<{ isSpam: boolean; isCertain: boolean }>> {
 		const { query, params } = sql`
-			SELECT isSpam
+			SELECT isSpam, isCertain
 			FROM spam_classification_training_data
 			where listId = ${listIdPart(mailData._id)}
-			  and elementId = ${elementIdPart(mailData._id)} `
+			  AND elementId = ${elementIdPart(mailData._id)} `
 		const result = await this.sqlCipherFacade.get(query, params)
 		if (!result) {
-			return false
+			return null
 		} else {
-			return untagSqlObject(result).isSpam === 1
+			const isSpam = untagSqlObject(result).isSpam === 1
+			const isCertain = untagSqlObject(result).isCertain === 1
+			return { isSpam, isCertain }
 		}
 	}
 
-	async getAllSpamClassificationTrainingData(): Promise<SpamClassificationMail[]> {
-		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
-									  FROM spam_classification_training_data`
-		const resultRows = await this.sqlCipherFacade.all(query, params)
-		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationMail)
-	}
-
-	async getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number): Promise<SpamClassificationMail[]> {
+	async getCertainSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number): Promise<SpamClassificationMail[]> {
 		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
 									  FROM spam_classification_training_data
-									  WHERE lastModified > ${cutoffTimestamp}`
+									  WHERE lastModified > ${cutoffTimestamp}
+										AND isCertain = 1`
 		const resultRows = await this.sqlCipherFacade.all(query, params)
 		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamClassificationMail)
 	}

@@ -1,7 +1,7 @@
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
-import { assertNotNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, isNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
@@ -24,7 +24,6 @@ import {
 import { random } from "@tutao/tutanota-crypto"
 import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
-import fs from "node:fs"
 
 assertWorkerOrNode()
 
@@ -81,24 +80,25 @@ export class SpamClassifier {
 
 	public async initialize(): Promise<void> {
 		await this.loadModel()
-
-		if (!this.classifier) {
-			console.log("No existing model found. Training from scratch...")
-			const data: Array<SpamClassificationMail> = (await this.initializer.init())
-				.filter((classificationData) => classificationData.isCertain)
-				.map((classificationData) => {
-					return {
-						subject: classificationData.mail.subject,
-						body: getMailBodyText(classificationData.mailDetails.body),
-						isSpam: classificationData.isSpam,
-					}
-				})
-			await this.initialTraining(data)
-			await this.saveModel()
+		if (isNotNull(this.classifier)) {
+			console.log("Loaded existing spam classification model from database")
 			this.isEnabled = true
-		} else {
-			this.isEnabled = true
+			return
 		}
+
+		console.log("No existing model found. Training from scratch...")
+		const data: Array<SpamClassificationMail> = (await this.initializer.init())
+			.filter((classificationData) => classificationData.isCertain)
+			.map((classificationData) => {
+				return {
+					subject: classificationData.mail.subject,
+					body: getMailBodyText(classificationData.mailDetails.body),
+					isSpam: classificationData.isSpam,
+				}
+			})
+		await this.initialTraining(data)
+		await this.saveModel()
+		this.isEnabled = true
 	}
 
 	// visibleForTesting
@@ -165,9 +165,6 @@ export class SpamClassifier {
 		const uniqueTokenSet = new Set(flatTokens)
 		console.log(`Vocabulary size: ${uniqueTokenSet.size}`)
 
-		// FIXME remove these lines
-		fs.writeFileSync("/tmp/with_preprocess.txt", flatTokens.join("\n"), "utf-8")
-
 		if (this.vectorizer instanceof DynamicTfVectorizer) {
 			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)
 		}
@@ -190,12 +187,13 @@ export class SpamClassifier {
 				return false
 			}
 
-			const newTrainingMails = await assertNotNull(this.offlineStorage).getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
+			const newTrainingMails = await assertNotNull(this.offlineStorage).getCertainSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
 			if (newTrainingMails.length === 0) {
 				console.log("No new training data since last update.")
 				return false
 			}
 
+			const retrainingStart = performance.now()
 			console.log(`Retraining model with ${newTrainingMails.length} new mails (lastModified > ${new Date(cutoffTimestamp).toString()})`)
 			const mailBatch: string[] = []
 			for (const newTrainingMail of newTrainingMails) {
@@ -210,8 +208,12 @@ export class SpamClassifier {
 			const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
 			const ys = tf.tensor1d(newTrainingMails.map((mail) => (mail.isSpam ? 1 : 0)))
 
-			await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: false })
-			await this.saveModel()
+			// Avoid potentially running .predict() at the same time while we are re-fitting
+			this.isEnabled = false
+			await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32 })
+			this.isEnabled = true
+
+			console.log(`Retraining finished. Took: ${performance.now() - retrainingStart}ms`)
 			return true
 		} catch (e) {
 			console.error("Failed trying to update the model: ", e)
@@ -282,7 +284,8 @@ export class SpamClassifier {
 		})
 	}
 
-	private buildModel(inputDimension: number): tf.LayersModel {
+	// visibleForTesting
+	public buildModel(inputDimension: number): tf.LayersModel {
 		const model = tf.sequential()
 		model.add(
 			tf.layers.dense({
@@ -309,7 +312,7 @@ export class SpamClassifier {
 		return model
 	}
 
-	private async saveModel(): Promise<void> {
+	public async saveModel(): Promise<void> {
 		if (!this.classifier) {
 			throw new Error("Model is not available, and therefore can not be saved")
 		}
@@ -317,9 +320,7 @@ export class SpamClassifier {
 		await this.classifier.save(
 			tf.io.withSaveHandler(async (artifacts) => {
 				const modelTopology = JSON.stringify(artifacts.modelTopology)
-
 				const weightSpecs = JSON.stringify(artifacts.weightSpecs)
-
 				const weightData = new Uint8Array(artifacts.weightData as ArrayBuffer)
 
 				await assertNotNull(this.offlineStorage).putSpamClassificationModel({

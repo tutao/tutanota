@@ -212,7 +212,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(mailFolders)
 
 			const offlineStorage = object() as OfflineStoragePersistence
-			when(offlineStorage.getStoredClassification(mail)).thenResolve(false)
+			when(offlineStorage.getStoredClassification(mail)).thenResolve({ isSpam: false, isCertain: false })
 			when(offlineStorageMock()).thenResolve(offlineStorage)
 			mail.unread = false
 			when(cacheStorageMock.get(MailTypeRef, "listId", "elementId")).thenResolve(mail)
@@ -238,7 +238,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(mailFolders)
 
 			const offlineStorage = object() as OfflineStoragePersistence
-			when(offlineStorage.getStoredClassification(mail)).thenResolve(false)
+			when(offlineStorage.getStoredClassification(mail)).thenResolve({ isSpam: false, isCertain: false })
 			when(offlineStorageMock()).thenResolve(offlineStorage)
 			mail.unread = true
 			when(cacheStorageMock.get(MailTypeRef, "listId", "elementId")).thenResolve(mail)

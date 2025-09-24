@@ -50,30 +50,32 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 	}
 
 	private async processSpam(newMailData: MailWithDetailsAndAttachments | null, mailFacade: MailFacade, id: readonly [string, string]) {
+		if (newMailData == null) {
+			return
+		}
 		// update spam classification table
-		if (newMailData) {
-			const allFolders = await this.storage.getWholeList(MailFolderTypeRef, listIdPart(newMailData.mail.sets[0]))
-			const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
 
-			const isStoredInSpamFolder = newMailData.mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
-			const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
-			// isStoredInSpamFolder is true
-			// this might be run multiple times for a single user if they use multiple devices
-			const predictedSpam = await mailFacade.predictSpamResult(newMailData.mail)
+		const allFolders = await this.storage.getWholeList(MailFolderTypeRef, listIdPart(newMailData.mail.sets[0]))
+		const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
 
-			// use the server classification for initial training, mixed with data from when user moves mails in and out
-			// of spam.
-			const isSpam = mailFacade.isSpamClassificationEnabled() ? predictedSpam : isStoredInSpamFolder
-			const offlineStoragePersistence = await this.offlineStoragePersistence()
-			const isCertain = isSpam
-			await offlineStoragePersistence.storeSpamClassification(newMailData.mail, newMailData.mailDetails.body, isSpam, isCertain)
+		const isStoredInSpamFolder = newMailData.mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
+		const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
+		// isStoredInSpamFolder is true
+		// this might be run multiple times for a single user if they use multiple devices
+		const predictedSpam = await mailFacade.predictSpamResult(newMailData.mail)
 
-			if (mailFacade.isSpamClassificationEnabled()) {
-				if (predictedSpam && !isStoredInSpamFolder) {
-					await mailFacade.simpleMoveMails([id], MailSetKind.SPAM, usedClientSpamClassifier)
-				} else if (!predictedSpam && isStoredInSpamFolder) {
-					await mailFacade.simpleMoveMails([id], MailSetKind.INBOX, usedClientSpamClassifier)
-				}
+		// use the server classification for initial training, mixed with data from when user moves mails in and out
+		// of spam.
+		const isSpam = mailFacade.isSpamClassificationEnabled() ? predictedSpam : isStoredInSpamFolder
+		const offlineStoragePersistence = await this.offlineStoragePersistence()
+		const isCertain = isSpam
+		await offlineStoragePersistence.storeSpamClassification(newMailData.mail, newMailData.mailDetails.body, isSpam, isCertain)
+
+		if (mailFacade.isSpamClassificationEnabled()) {
+			if (predictedSpam && !isStoredInSpamFolder) {
+				await mailFacade.simpleMoveMails([id], MailSetKind.SPAM, usedClientSpamClassifier)
+			} else if (!predictedSpam && isStoredInSpamFolder) {
+				await mailFacade.simpleMoveMails([id], MailSetKind.INBOX, usedClientSpamClassifier)
 			}
 		}
 	}
@@ -88,9 +90,12 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 			const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
 			const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 
-			const currentSpamClassification = await offlineStoragePersistence.getStoredClassification(mail)
-			await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, true)
-			if (isSpam !== currentSpamClassification) {
+			const { isSpam: isAlreadySpam, isCertain: isAlreadyCertain } = assertNotNull(
+				await offlineStoragePersistence.getStoredClassification(mail),
+				"We expect to always call storeSpamClassification before updating model",
+			)
+			if (!isAlreadyCertain || isAlreadySpam !== isSpam) {
+				await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, true)
 				await mailFacade.updateClassifier()
 			}
 		}

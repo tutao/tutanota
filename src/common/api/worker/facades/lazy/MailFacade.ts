@@ -464,8 +464,10 @@ export class MailFacade {
 
 	updateClassifier = debounce(5000, async () => {
 		if (this.isSpamClassificationEnabled()) {
-			const isModelUpdated = await assertNotNull(this.spamClassifier).updateModel(await this.storage.getLastTrainedTime())
+			const spamClassifier = assertNotNull(this.spamClassifier)
+			const isModelUpdated = await spamClassifier.updateModel(await this.storage.getLastTrainedTime())
 			if (isModelUpdated) {
+				await spamClassifier.saveModel()
 				await this.storage.setLastTrainedTime(Date.now())
 			}
 		}
