@@ -80,11 +80,7 @@ export class SpamClassificationInitializer {
 		return downloadedMailClassificationDatas
 	}
 
-	private async downloadMailAndMailDetailsByMailbag(
-		mailbag: MailBag,
-		spamFolder: MailFolder,
-		inboxFolder: MailFolder,
-	): Promise<Array<SpamTrainMailDatum>> {
+	private async downloadMailAndMailDetailsByMailbag(mailbag: MailBag, spamFolder: MailFolder, inboxFolder: MailFolder): Promise<Array<SpamTrainMailDatum>> {
 		const dateProvider = new LocalTimeDateProvider()
 		const startTime = dateProvider.getStartOfDayShiftedBy(this.TIME_LIMIT).getTime()
 		const mails = await this.entityClient.loadAll(MailTypeRef, mailbag.mails, timestampToGeneratedId(startTime)).then((mails) => {

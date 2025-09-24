@@ -254,7 +254,7 @@ export class SpamClassifier {
 	 *
 	 * Allows to check the accuracy of your currently trained classifier against the content of mailbox itself
 	 * How-to:
-	 * 1) Put a breakpoint somewhere in this file ( right at end of updateModel/ initialTraining makes more sense )
+	 * 1) Open console and switch context to worker-bootstrap.js
 	 * 2) Execute this method in console: `locator.spamClassifier.getSpamMetricsForCurrentMailBox()`
 	 * 3) Let execution continue from breakpoint
 	 *
@@ -271,14 +271,17 @@ export class SpamClassifier {
 		const readingAllSpamStart = performance.now()
 		const trainedMails = await assertNotNull(this.offlineStorage)
 			.getCertainSpamClassificationTrainingDataAfterCutoff(0)
-			.then((mails) => mails.map((cd) => getIdOfClassificationMail(cd)))
-			.then((mails) => new Set(mails))
+			.then((mails) => new Set(mails.map(getIdOfClassificationMail)))
 		console.log(`Done reading ${trainedMails.size} certain training mail data in: ${performance.now() - readingAllSpamStart}ms`)
 
 		// since we train with last -28 days, we can test with last -90
 		;(this.initializer as any).TIME_LIMIT = dateProvider.getStartOfDayShiftedBy(-90)
-		// if exists, try to test with at least same number of mails as in training sample
-		;(this.initializer as any).MIN_MAILS_COUNT = trainedMails.size
+		// if exists, try to test with at 5xleast same number of mails as in training sample
+		;(this.initializer as any).MIN_MAILS_COUNT = trainedMails.size * 5
+		// to avoid putting stuff into offline storage
+		;(this.initializer as any).offlineStorage.storeSpamClassification = async () => {
+			console.log("not putting classification datum into offline storage")
+		}
 
 		const downloadingExtraMailsStart = performance.now()
 		const testingMails = (await this.initializer.init())
@@ -310,7 +313,7 @@ export class SpamClassifier {
 
 		for (let i = 0; i < predictionArray.length; i++) {
 			const predictedSpam = predictionArray[i] > 0.5
-			const isActuallyASpam = ysArray[i]!
+			const isActuallyASpam = ysArray[i]
 			if (predictedSpam && isActuallyASpam) tp++
 			else if (!predictedSpam && !isActuallyASpam) tn++
 			else if (predictedSpam && !isActuallyASpam) fp++
