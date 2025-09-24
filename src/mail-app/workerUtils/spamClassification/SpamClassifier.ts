@@ -80,7 +80,6 @@ export class SpamClassifier {
 	) {}
 
 	public async initialize(): Promise<void> {
-		await tf.setBackend("webgl")
 		await this.loadModel()
 
 		if (!this.classifier) {
