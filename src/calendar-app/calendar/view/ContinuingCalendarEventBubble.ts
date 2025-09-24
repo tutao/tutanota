@@ -51,7 +51,7 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 					fadeIn: attrs.fadeIn,
 					opacity: attrs.opacity,
 					enablePointerEvents: attrs.enablePointerEvents,
-					isClientOnly: isBirthdayCalendar(listIdPart(attrs.event._id)),
+					isBirthday: isBirthdayCalendar(listIdPart(attrs.event._id)),
 				}),
 			),
 			attrs.endsAfter

@@ -75,7 +75,7 @@ import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultTo
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { CalendarInfo, CalendarModel } from "../model/CalendarModel"
+import { CalendarInfo, CalendarModel, isBirthdayCalendarInfo } from "../model/CalendarModel"
 import type Stream from "mithril/stream"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { createDropdown, PosRect } from "../../../common/gui/base/Dropdown.js"
@@ -1042,7 +1042,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	): Children {
 		const { group, groupInfo, groupRoot, isExternal } = calendarInfo
 		const user = locator.logins.getUserController().user
-		const isClientOnly = isBirthdayCalendar(calendarInfo.group._id)
+		const isBirthdayCalendar = isBirthdayCalendarInfo(calendarInfo)
 		return m(IconButton, {
 			title: "more_label",
 			colors: ButtonColor.Nav,
@@ -1056,7 +1056,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						size: ButtonSize.Compact,
 						click: () => this.onPressedEditCalendar(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot),
 					},
-					!isExternal && !isClientOnly
+					!isExternal && !isBirthdayCalendar
 						? {
 								label: "sharing_label",
 								icon: Icons.ContactImport,
@@ -1076,7 +1076,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								click: () => handleCalendarImport(groupRoot, calendarInfo),
 							}
 						: null,
-					!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read) && !isClientOnly
+					!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read) && !isBirthdayCalendar
 						? {
 								label: "export_action",
 								icon: Icons.Export,
@@ -1106,7 +1106,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								},
 							}
 						: null,
-					calendarInfo.userIsOwner && !isClientOnly
+					calendarInfo.userIsOwner && !isBirthdayCalendar
 						? {
 								label: isExternal ? "unsubscribe_action" : "delete_action",
 								icon: Icons.Trash,
