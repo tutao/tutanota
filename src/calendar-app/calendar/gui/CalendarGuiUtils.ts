@@ -52,9 +52,7 @@ import {
 } from "../../../common/calendar/date/CalendarUtils.js"
 import {
 	AccountType,
-	BIRTHDAY_CALENDAR_BASE_ID,
 	CalendarAttendeeStatus,
-	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 	defaultCalendarColor,
 	EndType,
 	EventTextTimeOption,
@@ -920,11 +918,6 @@ export const iconForAttendeeStatus: Record<CalendarAttendeeStatus, AllIcons> = O
 	[CalendarAttendeeStatus.NEEDS_ACTION]: Icons.CircleHelp,
 	[CalendarAttendeeStatus.ADDED]: Icons.CircleHelp,
 })
-
-export const getClientOnlyColors = (userId: Id) => {
-	const calendarId = `${userId}#${BIRTHDAY_CALENDAR_BASE_ID}`
-	return new Map([[calendarId, DEFAULT_BIRTHDAY_CALENDAR_COLOR]])
-}
 
 /**
  *  find out how we ended up with this event, which determines the capabilities we have with it.

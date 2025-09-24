@@ -15,7 +15,7 @@ import m from "mithril"
 import { DropDownSelector, DropDownSelectorAttrs } from "../../gui/base/DropDownSelector.js"
 import { getSharedGroupName, hasCapabilityOnGroup } from "../../sharing/GroupUtils.js"
 import { BootIcons } from "../../gui/base/icons/BootIcons.js"
-import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
+import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import { UserController } from "../../api/main/UserController.js"
 import { ShareCapability } from "../../api/common/TutanotaConstants.js"
 import { renderCalendarColor } from "../../../calendar-app/calendar/gui/CalendarGuiUtils.js"
@@ -52,13 +52,18 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
  * @param okAction The action to be executed when the user press the ok or continue button
  * @param title
  */
-export function showEventsImportDialog(events: CalendarEvent[], okAction: (dialog: Dialog) => unknown, title: MaybeTranslation) {
+export function showEventsImportDialog(
+	events: CalendarEvent[],
+	okAction: (dialog: Dialog) => unknown,
+	title: MaybeTranslation,
+	calendarInfo: CalendarInfoBase,
+) {
 	const renderConfig: RenderConfig<CalendarEvent, KindaCalendarRow> = {
 		itemHeight: size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {
-			return new KindaCalendarRow(dom)
+			return new KindaCalendarRow(dom, [calendarInfo])
 		},
 	}
 
@@ -133,7 +138,7 @@ export async function importCalendarFile(calendarModel: CalendarModel, userContr
 
 	calendarSelectionDialog(Array.from(calendarInfos.values()), userController, groupColors, (dialog, selectedCalendar) => {
 		dialog.close()
-		handleCalendarImport(selectedCalendar.groupRoot, events)
+		handleCalendarImport(selectedCalendar.groupRoot, selectedCalendar, events)
 	})
 }
 
