@@ -47,12 +47,12 @@ import {
 	appStorePlanName,
 	getCurrentCount,
 	getTotalStorageCapacityPerCustomer,
+	isAppStorePayment,
 	isAutoResponderActive,
 	isEventInvitesActive,
 	isSharingActive,
 	isWhitelabelActive,
 	queryAppStoreSubscriptionOwnership,
-	shouldShowApplePrices,
 	SubscriptionApp,
 } from "./SubscriptionUtils"
 import { TextField } from "../gui/base/TextField.js"
@@ -488,7 +488,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private showPriceData(): boolean {
-		return locator.logins.getUserController().isPaidAccount() && !shouldShowApplePrices(this._accountingInfo)
+		return locator.logins.getUserController().isPaidAccount() && !isAppStorePayment(this._accountingInfo)
 	}
 
 	private async updatePriceInfo(): Promise<void> {

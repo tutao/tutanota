@@ -360,7 +360,15 @@ export function getApplePriceStr({ priceAndConfigProvider, targetPlan, paymentIn
 }
 
 /**
- * Returns whether the apple prices should be displayed.
+ * Returns whether the current payment method is AppStore.
+ */
+export function isAppStorePayment(accountingInfo: AccountingInfo | null): boolean {
+	const paymentMethod = downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod)
+	return paymentMethod === PaymentMethodType.AppStore
+}
+
+/**
+ * Returns whether the apple prices should be displayed when upgrading or switching a subscription.
  */
 export function shouldShowApplePrices(accountingInfo: AccountingInfo | null): boolean {
 	const paymentMethod = downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod)
