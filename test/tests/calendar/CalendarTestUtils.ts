@@ -41,6 +41,7 @@ import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
 import { matchers, object, when } from "testdouble"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
+import { RenderType } from "../../../src/common/calendar/date/CalendarUtils"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
@@ -131,6 +132,9 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 	[
 		"ownCalendar",
 		{
+			id: "ownCalendar",
+			name: "Private Calendar",
+			color: "",
 			groupRoot: createTestEntity(CalendarGroupRootTypeRef, {}),
 			shared: false,
 			userIsOwner: true,
@@ -142,11 +146,15 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				type: GroupType.Calendar,
 			}),
 			isExternal: false,
+			renderType: RenderType.Private,
 		},
 	],
 	[
 		"ownSharedCalendar",
 		{
+			id: "ownSharedCalendar",
+			name: "Owned Shared Calendar",
+			color: "",
 			groupRoot: createTestEntity(CalendarGroupRootTypeRef, {}),
 			shared: true,
 			userIsOwner: true,
@@ -158,11 +166,15 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				type: GroupType.Calendar,
 			}),
 			isExternal: false,
+			renderType: RenderType.Shared,
 		},
 	],
 	[
 		"ownExternalCalendar",
 		{
+			id: "ownExternalCalendar",
+			name: "External Calendar",
+			color: "",
 			groupRoot: createTestEntity(CalendarGroupRootTypeRef, {}),
 			shared: false,
 			userIsOwner: true,
@@ -174,11 +186,15 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				type: GroupType.Calendar,
 			}),
 			isExternal: true,
+			renderType: RenderType.External,
 		},
 	],
 	[
 		"sharedCalendar",
 		{
+			id: "sharedCalendar",
+			name: "Shared Calendar",
+			color: "",
 			groupRoot: createTestEntity(CalendarGroupRootTypeRef, {}),
 			shared: true,
 			userIsOwner: false,
@@ -190,6 +206,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				type: GroupType.Calendar,
 			}),
 			isExternal: false,
+			renderType: RenderType.Shared,
 		},
 	],
 ])
@@ -277,8 +294,11 @@ export function makeUserController(
 	})
 }
 
-export function makeCalendarInfo(type: "own" | "shared" | "external", id: string): CalendarInfo {
+export function makeCalendarInfo(id: string, isOwner: boolean, renderType: RenderType): CalendarInfo {
 	return {
+		id: id,
+		name: "",
+		color: "",
 		groupRoot: downcast({
 			longEvents: "longEventsList",
 			shortEvents: "shortEventsList",
@@ -287,11 +307,12 @@ export function makeCalendarInfo(type: "own" | "shared" | "external", id: string
 		group: createTestEntity(GroupTypeRef, {
 			_id: id,
 			type: GroupType.Calendar,
-			user: type === "own" ? ownerId : "anotherUserId",
+			user: isOwner ? ownerId : "anotherUserId",
 		}),
-		shared: type === "shared",
-		userIsOwner: type === "own",
-		isExternal: type === "external",
+		shared: isOwner && renderType === RenderType.Shared,
+		userIsOwner: isOwner && renderType === RenderType.Private,
+		isExternal: isOwner && renderType === RenderType.External,
+		renderType: renderType,
 	}
 }
 
