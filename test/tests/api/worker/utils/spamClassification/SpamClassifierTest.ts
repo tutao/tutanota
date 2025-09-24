@@ -217,22 +217,6 @@ o.spec("SpamClassifier", () => {
 		console.log(`tested in ${Date.now() - start}ms`)
 	})
 
-	o("tokenize ai", async () => {
-		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
-		const allData = hamData.concat(spamData)
-
-		const vocab = buildVocab(
-			allData.map((m) => tokenize(m.body)),
-			5,
-		)
-		const tokenized = Array.from(new Set(allData.map((m) => tokenize(cleanEmailBody(m.body))).reduce((previous, current) => previous.concat(current), [])))
-		const reducedTokens = Array.from(new Set(replaceWithPlaceholders(tokenized, vocab)))
-
-		fs.writeFileSync("/tmp/unique-tokens", reducedTokens.sort().join("\n"))
-		console.log(`Token count: ${tokenized.length}`)
-		console.log(`Reduced token count: ${reducedTokens.length}`)
-	})
-
 	o("preprocessMail outputs expected tokens for mail content", async () => {
 		const classifier = new SpamClassifier(null, object())
 		const mail = {
@@ -411,65 +395,7 @@ this text is shown`
 		// const vectorizer = new HashingVectorizer()
 		// const tensor = await vectorizer.transform(tokenized)
 	})
-
-	//preprocessMail
 })
-
-// FIXME do we need that? If yes, should we replace it whith the preprocessMail method?
-export function cleanEmailBody(text: string): string {
-	// 1. Lowercase
-	let cleaned = text.toLowerCase()
-
-	// 2. Remove common headers / separators
-	cleaned = cleaned.replace(/^(from|to|subject|cc|bcc):.*$/gim, "")
-	cleaned = cleaned.replace(/-{2,}.*original message.*-{2,}/gims, "")
-
-	// 3. Replace emails / URLs
-	cleaned = cleaned.replace(/\b\S+@\S+\b/g, " <EMAIL> ")
-	cleaned = cleaned.replace(/https?:\/\/\S+|www\.\S+/g, " <URL> ")
-
-	// 4. Replace numbers and long IDs
-	cleaned = cleaned.replace(/\b\d{4,}\b/g, " <NUM> ") // long numbers
-	cleaned = cleaned.replace(/\b[0-9a-f]{8,}\b/g, " <HEX> ") // hex-like strings
-
-	// 5. Remove non-alphabetic chars except special tokens
-	cleaned = cleaned.replace(/[^a-z\s<>]/g, " ")
-
-	// 6. Normalize whitespace
-	cleaned = cleaned.replace(/\s+/g, " ").trim()
-
-	return cleaned
-}
-
-// FIXME do we still need this?
-export function buildVocab(tokenizedDocs: string[][], minFreq: number = 5): Set<string> {
-	const freqMap = new Map<string, number>()
-
-	// Count frequencies
-	for (const doc of tokenizedDocs) {
-		for (const token of doc) {
-			freqMap.set(token, (freqMap.get(token) ?? 0) + 1)
-		}
-	}
-
-	// Filter by minFreq
-	const vocab = new Set<string>()
-	for (const [token, freq] of freqMap.entries()) {
-		if (freq >= minFreq) {
-			vocab.add(token)
-		}
-	}
-
-	// Add special tokens
-	vocab.add("<UNK>") // unknown token
-	vocab.add("<PAD>") // padding (if needed)
-
-	return vocab
-}
-
-export function replaceWithPlaceholders(tokens: string[], vocab: Set<string>, placeholder: string = "<UNK>"): string[] {
-	return tokens.map((token) => (vocab.has(token) ? token : placeholder))
-}
 
 // For testing, we need deterministic shuffling which is not provided by tf.util.shuffle(dataSlice)
 // Seeded Fisher-Yates shuffle
