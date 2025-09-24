@@ -11,7 +11,7 @@ export type CalendarEventBubbleAttrs = {
 	color: string
 	hasAlarm: boolean
 	isAltered: boolean
-	isClientOnly: boolean
+	isBirthday: boolean
 	click: ClickHandler
 	keyDown: (event: KeyboardEvent, dom: HTMLElement) => unknown
 	height?: number
@@ -84,7 +84,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 							class: "icon-small",
 						})
 					: null,
-				attrs.isClientOnly
+				attrs.isBirthday
 					? m(Icon, {
 							icon: Icons.Gift,
 							style: {
