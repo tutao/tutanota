@@ -171,8 +171,8 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 	const recipientsText = stream("")
 	const recipients = [] as Array<ResolvableRecipient>
 	const capability = stream<ShareCapability>(ShareCapability.Read)
-	const realGroupName = getSharedGroupName(model.info, locator.logins.getUserController(), false)
-	const customGroupName = getSharedGroupName(model.info, locator.logins.getUserController(), true)
+	const realGroupName = getSharedGroupName(model.info, locator.logins.getUserController().userSettingsGroupRoot, false)
+	const customGroupName = getSharedGroupName(model.info, locator.logins.getUserController().userSettingsGroupRoot, true)
 
 	const search = await locator.recipientsSearchModel()
 	const recipientsModel = await locator.recipientsModel()
