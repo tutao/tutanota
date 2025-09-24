@@ -763,12 +763,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this._isNewPaidPlan
 	}
 
-	public isBirthdayCalendar(id: string): boolean {
-		return this.calendarModel.isBirthdayCalendar(id)
-	}
-
 	toggleHiddenCalendar = (calendarId: string) => {
-		if (this.isBirthdayCalendar(calendarId) && !this.isNewPaidPlan) {
+		if (isBirthdayCalendar(calendarId) && !this.isNewPaidPlan) {
 			showPlanUpgradeRequiredDialog(NewPaidPlans)
 			return
 		}
