@@ -5,10 +5,12 @@ import { filterMailMemberships } from "../../../common/api/worker/search/IndexUt
 import { GroupMembership } from "../../../common/api/entities/sys/TypeRefs"
 import {
 	Mail,
+	MailBag,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailDetails,
 	MailDetailsBlobTypeRef,
+	MailFolder,
 	MailFolderTypeRef,
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs"
@@ -22,6 +24,13 @@ import { SpamTrainMailDatum } from "./SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 
 export class SpamClassificationInitializer {
+	/*
+	 * While downloading mails, we start from current mailbag, but it might be that current mailbag is too new,
+	 * If there are less than this mail in current mailbag, we will also try to fetch previous one
+	 */
+	public readonly MIN_MAILS_COUNT: number = 300
+	public readonly TIME_LIMIT: number = INITIAL_MAIL_INDEX_INTERVAL_DAYS * -1
+
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly userFacade: UserFacade,
@@ -34,13 +43,20 @@ export class SpamClassificationInitializer {
 		const user = assertNotNull(this.userFacade.getUser())
 		const memberships = filterMailMemberships(user)
 		const spamTrainMailData = (await promiseMap(memberships, (group) => this.downloadMailAndMailDetailsByGroupMembership(group))).flat()
+
+		let spamMailsCount = 0
+		let hamMailsCount = 0
 		for (const spamTrainMailDatum of spamTrainMailData) {
 			await this.offlineStorage.storeSpamClassification(spamTrainMailDatum)
+
+			if (spamTrainMailDatum.isSpam) spamMailsCount += 1
+			else hamMailsCount += 1
 		}
+
+		console.log(`Downloaded ${spamMailsCount} spam mails and ${hamMailsCount} ham mails. Spam:Ham ratio is: ${spamMailsCount / hamMailsCount}`)
 		return spamTrainMailData.flat()
 	}
 
-	// TODO: can we re-use MailBulkLoader
 	private async downloadMailAndMailDetailsByGroupMembership(mailGroupMembership: GroupMembership): Promise<Array<SpamTrainMailDatum>> {
 		const mailGroupId = mailGroupMembership.group
 		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
@@ -48,10 +64,30 @@ export class SpamClassificationInitializer {
 		const mailSets = await this.entityClient.loadAll(MailFolderTypeRef, assertNotNull(mailbox.folders).folders)
 		const spamFolder = mailSets.find((s) => getMailSetKind(s) === MailSetKind.SPAM)!
 		const inboxFolder = mailSets.find((s) => getMailSetKind(s) === MailSetKind.INBOX)!
-		const mailList = assertNotNull(mailbox.currentMailBag).mails
+
+		const downloadedMailClassificationDatas = new Array<SpamTrainMailDatum>()
+		const allMailbags = [assertNotNull(mailbox.currentMailBag), ...mailbox.archivedMailBags].reverse() // sorted from latest to oldest
+
+		for (
+			let currentMailbag = allMailbags.pop();
+			isNotNull(currentMailbag) && downloadedMailClassificationDatas.length < this.MIN_MAILS_COUNT;
+			currentMailbag = allMailbags.pop()
+		) {
+			const mailsOfThisMailbag = await this.downloadMailAndMailDetailsByMailbag(currentMailbag, spamFolder, inboxFolder)
+			downloadedMailClassificationDatas.push(...mailsOfThisMailbag)
+		}
+
+		return downloadedMailClassificationDatas
+	}
+
+	private async downloadMailAndMailDetailsByMailbag(
+		mailbag: MailBag,
+		spamFolder: MailFolder,
+		inboxFolder: MailFolder,
+	): Promise<Array<SpamTrainMailDatum>> {
 		const dateProvider = new LocalTimeDateProvider()
-		const startTime = dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
-		const mails = await this.entityClient.loadAll(MailTypeRef, mailList, timestampToGeneratedId(startTime)).then((mails) => {
+		const startTime = dateProvider.getStartOfDayShiftedBy(this.TIME_LIMIT).getTime()
+		const mails = await this.entityClient.loadAll(MailTypeRef, mailbag.mails, timestampToGeneratedId(startTime)).then((mails) => {
 			// Filter out draft mails
 			return mails.filter((m) => isNotNull(m.mailDetails))
 		})
@@ -83,6 +119,8 @@ export class SpamClassificationInitializer {
 				body: getMailBodyText(mailDetails.body),
 				isSpam: isSpam,
 				isCertain: isCertain,
+				listId: listIdPart(mail._id),
+				elementId: elementIdPart(mail._id),
 			} as SpamTrainMailDatum
 		})
 		return classifiedMails.filter(isNotNull)
