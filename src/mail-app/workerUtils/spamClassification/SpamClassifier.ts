@@ -280,10 +280,10 @@ export class SpamClassifier {
 		const f1 = 2 * ((precision * recall) / (precision + recall + 1e-7))
 
 		console.log("\n--- Evaluation Metrics ---")
-		console.log(`Accuracy: 	${(accuracy * 100).toFixed(2)}%`)
-		console.log(`Precision: ${(precision * 100).toFixed(2)}%`)
-		console.log(`Recall: 	${(recall * 100).toFixed(2)}%`)
-		console.log(`F1 Score: 	${(f1 * 100).toFixed(2)}%`)
+		console.log(`Accuracy: \t${(accuracy * 100).toFixed(2)}%`)
+		console.log(`Precision:\t${(precision * 100).toFixed(2)}%`)
+		console.log(`Recall:   \t${(recall * 100).toFixed(2)}%`)
+		console.log(`F1 Score: \t${(f1 * 100).toFixed(2)}%`)
 		console.log("\nConfusion Matrix:")
 		console.log({
 			Predicted_Spam: { True_Positive: tp, False_Positive: fp },
