@@ -156,7 +156,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/Enti
 import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
-import { SpamClassifier } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
+import { SpamClassificationMail, SpamClassifier } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { ClientClassifierType } from "../../../../../mail-app/workerUtils/spamClassification/ClientClassifierType"
@@ -229,6 +229,7 @@ export class MailFacade {
 
 	/**
 	 * Updates a mail folder's name, if needed
+	 * @param folder to be updated
 	 * @param newName - if this is the same as the folder's current name, nothing is done
 	 */
 	async updateMailFolderName(folder: MailFolder, newName: string): Promise<void> {
@@ -238,15 +239,9 @@ export class MailFacade {
 		}
 	}
 
-	async updateListUnsubscribe(mail: Mail): Promise<void> {
-		if (mail.listUnsubscribe !== null) {
-			mail.listUnsubscribe = false
-			await this.entityClient.update(mail)
-		}
-	}
-
 	/**
 	 * Updates a mail folder's parent, if needed
+	 * @param folder to be updated
 	 * @param newParent - if this is the same as the folder's current parent, nothing is done
 	 */
 	async updateMailFolderParent(folder: MailFolder, newParent: IdTuple | null): Promise<void> {
@@ -447,37 +442,34 @@ export class MailFacade {
 		await this.serviceExecutor.post(ReportMailService, postData)
 	}
 
-	async storeSpamResult(mail: Mail, isSpam: boolean): Promise<void> {
-		if (!isDraft(mail)) {
-			const mailDetails = await this.loadMailDetailsBlob(mail)
-			await this.storage.putSpamMailClassification(mail, mailDetails.body, isSpam)
-		}
+	public isSpamClassificationEnabled(): boolean {
+		return this.spamClassifier != null && this.spamClassifier.isEnabled
 	}
-
-	updateClassifier = debounce(5000, async () => {
-		if (this.isSpamClassificationEnabled()) {
-			const modelUpdated = await assertNotNull(this.spamClassifier).updateModel(await this.storage.getLastTrainedTime())
-			if (modelUpdated) {
-				await this.storage.setLastTrainedTime(Date.now())
-			}
-		}
-	})
 
 	async predictSpamResult(mail: Mail): Promise<boolean> {
 		if (isDraft(mail)) {
 			return false
 		} else {
-			const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
 			if (this.isSpamClassificationEnabled()) {
-				return await assertNotNull(this.spamClassifier).predict(`${mail.subject}  ${mailDetailsBlob.body.compressedText ?? mailDetailsBlob.body.text}`)
+				const mailDetailsBlob = await this.loadMailDetailsBlob(mail)
+				const spamClassificationMail: SpamClassificationMail = {
+					subject: mail.subject,
+					body: mailDetailsBlob.body.compressedText ?? mailDetailsBlob.body.text!,
+				}
+				return await assertNotNull(this.spamClassifier).predict(spamClassificationMail)
 			}
 			return false
 		}
 	}
 
-	public isSpamClassificationEnabled(): boolean {
-		return this.spamClassifier != null && this.spamClassifier.isEnabled
-	}
+	updateClassifier = debounce(5000, async () => {
+		if (this.isSpamClassificationEnabled()) {
+			const isModelUpdated = await assertNotNull(this.spamClassifier).updateModel(await this.storage.getLastTrainedTime())
+			if (isModelUpdated) {
+				await this.storage.setLastTrainedTime(Date.now())
+			}
+		}
+	})
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
 		if (isEmpty(mails)) {

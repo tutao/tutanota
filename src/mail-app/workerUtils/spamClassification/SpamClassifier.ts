@@ -30,7 +30,7 @@ assertWorkerOrNode()
 export type SpamClassificationMail = {
 	subject: string
 	body: string
-	isSpam: boolean
+	isSpam?: boolean
 }
 
 export type SpamClassificationModel = {
@@ -101,7 +101,9 @@ export class SpamClassifier {
 	}
 
 	// visibleForTesting
-	public preprocessMail(mailText: string): string {
+	public preprocessMail(mail: SpamClassificationMail): string {
+		const mailText = this.concatSubjectAndBody(mail)
+
 		if (!this.preprocessConfiguration.isPreprocessMails) {
 			return mailText
 		}
@@ -154,7 +156,7 @@ export class SpamClassifier {
 	}
 
 	public async initialTraining(mails: SpamClassificationMail[]): Promise<void> {
-		const preprocessedMails = mails.map((mail) => this.concatSubjectAndBody(mail)).map((mailText) => this.preprocessMail(mailText))
+		const preprocessedMails = mails.map((mail) => this.preprocessMail(mail))
 
 		const tokenizedMails = await promiseMap(preprocessedMails, (preprocessedMail) => assertNotNull(this.offlineStorage).tokenize(preprocessedMail))
 
@@ -171,92 +173,84 @@ export class SpamClassifier {
 		const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
 		const ys = tf.tensor1d(mails.map((mail) => (mail.isSpam ? 1 : 0)))
 
-		this.classifier = this.buildModel(xs.shape[1])
+		this.classifier = this.buildModel(this.vectorizer.dimension)
 		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: false })
 
-		console.log(`### Finished Initial Training ### Total trained Mails: ${mails.length}`)
+		console.log(`### Finished Initial Training ### (total trained mails: ${mails.length})`)
 	}
 
-	public async updateModel(cutoffTimestamp: number, testRatio = 0.2): Promise<boolean> {
+	public async updateModel(cutoffTimestamp: number): Promise<boolean> {
 		try {
 			if (!this.isEnabled) {
 				console.warn("Client spam classification is not enabled or there were errors during training")
 				return false
 			}
 
-			const newTrainingData = await assertNotNull(this.offlineStorage).getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
-			if (newTrainingData.length === 0) {
+			const newTrainingMails = await assertNotNull(this.offlineStorage).getSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp)
+			if (newTrainingMails.length === 0) {
 				console.log("No new training data since last update.")
 				return false
 			}
 
-			console.log(`Retraining model with ${newTrainingData.length} new samples (lastModified > ${new Date(cutoffTimestamp).toString()})`)
+			console.log(`Retraining model with ${newTrainingMails.length} new mails (lastModified > ${new Date(cutoffTimestamp).toString()})`)
 			const mailBatch: string[] = []
-			for (let i = 0; i < newTrainingData.length; i++) {
-				mailBatch.push(this.preprocessMail(this.concatSubjectAndBody(newTrainingData[i])))
+			for (const newTrainingMail of newTrainingMails) {
+				const preprocessedMail = this.preprocessMail(newTrainingMail)
+				mailBatch.push(preprocessedMail)
 			}
 
 			// we have offline storage at this point. see WorkerLocator.initializeSpamClassificationTrainingIfEnabled
-			const tokenizedMailBatch = await promiseMap(mailBatch, (d) => assertNotNull(this.offlineStorage).tokenize(d))
-			//const vectors = this.dynamicTfVectorizer.refitTransform(tokenizedMailBatch)
+			const tokenizedMailBatch = await promiseMap(mailBatch, (preprocessedMail) => assertNotNull(this.offlineStorage).tokenize(preprocessedMail))
+			// const vectors = this.dynamicTfVectorizer.refitTransform(tokenizedMailBatch)
 			const vectors = await this.vectorizer.transform(tokenizedMailBatch)
-			if (vectors == null) {
-				// todo drop and retrain the entire model from scratch!
-				return false
-			} else {
-				//const vectors = this.hashingVectorizer.transform(tokenizedMailBatch)
-				const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
-				//const xs = tf.tensor2d(vectors, [vectors.length, this.hashingVectorizer.dimension])
-				const ys = tf.tensor1d(newTrainingData.map((mail: SpamClassificationMail) => (mail.isSpam ? 1 : 0)))
+			const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
+			const ys = tf.tensor1d(newTrainingMails.map((mail) => (mail.isSpam ? 1 : 0)))
 
-				await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32 })
-
-				// await this.saveModel()
-				return true
-			}
+			await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32 })
+			// FIXME await this.saveModel()
+			return true
 		} catch (e) {
-			console.error("Failed when trying to update the model:", e)
+			console.error("Failed trying to update the model: ", e)
 			return false
 		}
 	}
 
 	// visibleForTesting
-	public async predict(mailText: string): Promise<boolean> {
+	public async predict(mail: SpamClassificationMail): Promise<boolean> {
 		if (!this.isEnabled) {
 			throw new Error("SpamClassifier is not enabled yet")
 		}
 
-		const preprocessedMail = this.preprocessMail(mailText)
+		const preprocessedMail = this.preprocessMail(mail)
 		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(preprocessedMail)
 		const vectors = await assertNotNull(this.vectorizer).transform([tokenizedMail])
 
 		const xs = tf.tensor2d(vectors, [vectors.length, assertNotNull(this.vectorizer).dimension])
-		const pred = (await (assertNotNull(this.classifier).predict(xs) as tf.Tensor).data())[0]
+		const prediction = (await (assertNotNull(this.classifier).predict(xs) as tf.Tensor).data())[0]
 
-		return pred > PREDICTION_THRESHOLD
+		return prediction > PREDICTION_THRESHOLD
 	}
 
-	// TODO:
-	// Move to SpamClassifierTest.ts after beta stage
-	public async test(data: SpamClassificationMail[]): Promise<void> {
+	// FIXME: Move to SpamClassifierTest.ts
+	public async test(mails: SpamClassificationMail[]): Promise<void> {
 		if (!this.classifier) {
-			throw new Error("Model not loaded")
+			throw new Error("Model has not been loaded")
 		}
 
-		let predsArray: number[] = []
-		for (let row of data) {
-			const prediction = await this.predict(`${row.subject} ${row.body}`)
-			predsArray.push(prediction ? 1 : 0)
+		let predictionArray: number[] = []
+		for (let mail of mails) {
+			const prediction = await this.predict(mail)
+			predictionArray.push(prediction ? 1 : 0)
 		}
-		const ysArray = data.map((row) => (row.isSpam ? 1 : 0))
+		const ysArray = mails.map((mail) => (mail.isSpam ? 1 : 0))
 
 		let tp = 0,
 			tn = 0,
 			fp = 0,
 			fn = 0
 
-		for (let i = 0; i < predsArray.length; i++) {
-			const pred = predsArray[i] > 0.5 ? 1 : 0
+		for (let i = 0; i < predictionArray.length; i++) {
+			const pred = predictionArray[i] > 0.5 ? 1 : 0
 			const actual = ysArray[i]
 			if (pred === 1 && actual === 1) tp++
 			else if (pred === 0 && actual === 0) tn++
@@ -280,13 +274,6 @@ export class SpamClassifier {
 			Predicted_Spam: { True_Positive: tp, False_Positive: fp },
 			Predicted_Ham: { False_Negative: fn, True_Negative: tn },
 		})
-	}
-
-	private concatSubjectAndBody(mail: SpamClassificationMail) {
-		const subject = mail.subject || ""
-		const body = mail.body || ""
-		const concatenated = `${subject} ${body}`.trim()
-		return concatenated.length > 0 ? concatenated : " "
 	}
 
 	private buildModel(inputDim: number): tf.LayersModel {
@@ -320,7 +307,7 @@ export class SpamClassifier {
 
 	private async saveModel(): Promise<void> {
 		if (!this.classifier) {
-			return
+			throw new Error("Model is not available, and therefore can not be saved")
 		}
 
 		await this.classifier.save(
@@ -369,5 +356,12 @@ export class SpamClassifier {
 			console.error("Loading the model from offline db failed")
 			this.classifier = null
 		}
+	}
+
+	private concatSubjectAndBody(mail: SpamClassificationMail) {
+		const subject = mail.subject || ""
+		const body = mail.body || ""
+		const concatenated = `${subject} ${body}`.trim()
+		return concatenated.length > 0 ? concatenated : " "
 	}
 }
