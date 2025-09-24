@@ -18,6 +18,7 @@ import { AllIcons } from "../../../common/gui/base/Icon.js"
 import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { shouldAlwaysShowMultiselectCheckbox } from "../../../common/gui/SelectableRowContainer"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
+import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 
 assertMainOrNode()
 
@@ -37,6 +38,7 @@ export interface SearchListViewAttrs {
 	cancelCallback: () => unknown | null
 	getLabelsForMail: (mail: Mail) => MailFolder[]
 	highlightedStrings: readonly SearchToken[]
+	availableCalendars: ReadonlyArray<CalendarInfoBase>
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
@@ -120,7 +122,9 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {
-			const row: SearchResultListRow = new SearchResultListRow(new KindaCalendarRow(dom, () => this.attrs.highlightedStrings))
+			const row: SearchResultListRow = new SearchResultListRow(
+				new KindaCalendarRow(dom, this.attrs.availableCalendars, () => this.attrs.highlightedStrings),
+			)
 			m.render(dom, row.render())
 			return row
 		},
