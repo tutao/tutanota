@@ -53,19 +53,19 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		if (newMailData == null) {
 			return
 		}
-		// update spam classification table
 
+		// update spam classification table
 		const allFolders = await this.storage.getWholeList(MailFolderTypeRef, listIdPart(newMailData.mail.sets[0]))
 		const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
 
 		const isStoredInSpamFolder = newMailData.mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 		const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
+
 		// isStoredInSpamFolder is true
 		// this might be run multiple times for a single user if they use multiple devices
 		const predictedSpam = await mailFacade.predictSpamResult(newMailData.mail)
 
-		// use the server classification for initial training, mixed with data from when user moves mails in and out
-		// of spam.
+		// use the server classification for initial training, mixed with data from when user moves mails in and out of spam
 		const isSpam = mailFacade.isSpamClassificationEnabled() ? predictedSpam : isStoredInSpamFolder
 		const offlineStoragePersistence = await this.offlineStoragePersistence()
 		const isCertain = isSpam

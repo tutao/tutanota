@@ -183,15 +183,15 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async storeSpamClassification(mailData: Mail, body: Body, isSpam: boolean, isCertain: boolean): Promise<void> {
+	async storeSpamClassification(mail: Mail, body: Body, isSpam: boolean, isCertain: boolean): Promise<void> {
 		const { query, params } = sql`
 			INSERT
 			OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified, isCertain)
 				VALUES (
-			${listIdPart(mailData._id)},
-			${elementIdPart(mailData._id)},
-			${mailData.subject},
-			${htmlToText(getMailBodyText(body))},
+			${listIdPart(mail._id)},
+			${elementIdPart(mail._id)},
+			${mail.subject},
+			${getMailBodyText(body)},
 			${isSpam ? 1 : 0},
 			${Date.now()},
 			${isCertain ? 1 : 0}

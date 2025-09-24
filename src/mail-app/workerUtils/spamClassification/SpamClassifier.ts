@@ -157,13 +157,22 @@ export class SpamClassifier {
 	}
 
 	public async initialTraining(mails: SpamClassificationMail[]): Promise<void> {
+		const notPreprocessedMails = mails.map((mail) => this.concatSubjectAndBody(mail))
 		const preprocessedMails = mails.map((mail) => this.preprocessMail(mail))
 
+		const tokenizedMailsNotPreprocessed = await promiseMap(notPreprocessedMails, (notPreprocessedMail) =>
+			assertNotNull(this.offlineStorage).tokenize(notPreprocessedMail),
+		)
 		const tokenizedMails = await promiseMap(preprocessedMails, (preprocessedMail) => assertNotNull(this.offlineStorage).tokenize(preprocessedMail))
 
 		const flatTokens = tokenizedMails.flat()
 		const uniqueTokenSet = new Set(flatTokens)
-		console.log(`Vocabulary size: ${uniqueTokenSet.size}`)
+		const flatTokenNotPreprocessed = tokenizedMailsNotPreprocessed.flat()
+		const uniqueTokenSetNotPreprocessed = new Set(flatTokenNotPreprocessed)
+		console.log(`Vocabulary size not unique (not preprocessed): ${flatTokenNotPreprocessed.length}`)
+		console.log(`Vocabulary size unique (not preprocessed): ${uniqueTokenSetNotPreprocessed.size}`)
+		console.log(`Vocabulary size not unique: ${flatTokens.length}`)
+		console.log(`Vocabulary size unique: ${uniqueTokenSet.size}`)
 
 		if (this.vectorizer instanceof DynamicTfVectorizer) {
 			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)
@@ -175,7 +184,7 @@ export class SpamClassifier {
 		const ys = tf.tensor1d(mails.map((mail) => (mail.isSpam ? 1 : 0)))
 
 		this.classifier = this.buildModel(this.vectorizer.dimension)
-		await this.classifier.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: false })
+		await this.classifier.fit(xs, ys, { epochs: 16, batchSize: 128, shuffle: true })
 
 		console.log(`### Finished Initial Training ### (total trained mails: ${mails.length})`)
 	}
@@ -210,7 +219,7 @@ export class SpamClassifier {
 
 			// Avoid potentially running .predict() at the same time while we are re-fitting
 			this.isEnabled = false
-			await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32 })
+			await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: true })
 			this.isEnabled = true
 
 			console.log(`Retraining finished. Took: ${performance.now() - retrainingStart}ms`)
@@ -239,7 +248,7 @@ export class SpamClassifier {
 		return prediction > PREDICTION_THRESHOLD
 	}
 
-	// FIXME: Move to SpamClassifierTest.ts
+	// FIXME
 	public async test(mails: SpamClassificationMail[]): Promise<void> {
 		if (!this.classifier) {
 			throw new Error("Model has not been loaded")
@@ -273,10 +282,10 @@ export class SpamClassifier {
 		const f1 = 2 * ((precision * recall) / (precision + recall + 1e-7))
 
 		console.log("\n--- Evaluation Metrics ---")
-		console.log(`Accuracy: ${(accuracy * 100).toFixed(2)}%`)
+		console.log(`Accuracy: 	${(accuracy * 100).toFixed(2)}%`)
 		console.log(`Precision: ${(precision * 100).toFixed(2)}%`)
-		console.log(`Recall: ${(recall * 100).toFixed(2)}%`)
-		console.log(`F1 Score: ${(f1 * 100).toFixed(2)}%`)
+		console.log(`Recall: 	${(recall * 100).toFixed(2)}%`)
+		console.log(`F1 Score: 	${(f1 * 100).toFixed(2)}%`)
 		console.log("\nConfusion Matrix:")
 		console.log({
 			Predicted_Spam: { True_Positive: tp, False_Positive: fp },
