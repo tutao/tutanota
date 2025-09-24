@@ -100,7 +100,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		const attendees = prepareAttendees(event.attendees, event.organizer)
 		const eventTitle = getDisplayEventTitle(event.summary)
 
-		const renderInfo = calendarEventPreviewModel.getCalendarRenderInfo()
+		const renderInfo = calendarEventPreviewModel.getCalendarInfoBase()
 
 		return m(".flex.col.smaller", [
 			this.renderRow(

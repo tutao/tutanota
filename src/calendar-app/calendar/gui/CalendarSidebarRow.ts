@@ -58,7 +58,7 @@ export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
 						size: IconSize.Medium,
 						class: "pr-s",
 						style: {
-							fill: theme.content_button,
+							fill: theme.on_surface_variant,
 						},
 					})
 				: null,

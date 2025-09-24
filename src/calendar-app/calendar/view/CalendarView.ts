@@ -46,7 +46,6 @@ import {
 	hasSourceUrl,
 	isBirthdayCalendar,
 	isBirthdayEvent,
-	isCalendarInfoOfRenderType,
 	parseAlarmInterval,
 	RenderType,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -262,7 +261,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		this.contentColumn = new ViewColumn(
 			{
 				view: () => {
-					this.viewModel.loadCalendarColors()
 					switch (this.currentViewType) {
 						case CalendarViewType.MONTH:
 							return m(BackgroundColumnLayout, {
@@ -995,11 +993,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	private renderCalendar(renderType: RenderType): Children {
 		const calendarInfos = Array.from(this.viewModel.calendarInfos.entries())
 		const filteredCalendarInfos = calendarInfos.filter(([_, calendarInfo]) => {
-			return isCalendarInfoOfRenderType(calendarInfo, renderType)
+			return calendarInfo.renderType === renderType
 		})
 
 		return filteredCalendarInfos.map(([calendarId, calendarInfo]) => {
-			const { name, color, renderType } = this.viewModel.getCalendarRenderInfo(calendarInfo)
+			const { name, color, renderType } = calendarInfo
 			const rightIconData = this.viewModel.getIcon(renderType, calendarId)
 			return m(CalendarSidebarRow, {
 				id: calendarId,
@@ -1018,7 +1016,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return m(CalendarSidebarRow, {
 			id: id,
 			name: lang.get("birthdayCalendar_label"),
-			color: `#${DEFAULT_BIRTHDAY_CALENDAR_COLOR}`, // FIXME get new persisted color
+			color: DEFAULT_BIRTHDAY_CALENDAR_COLOR, // FIXME get new persisted color
 			isHidden: this.viewModel.hiddenCalendars.has(id),
 			toggleHiddenCalendar: this.viewModel.toggleHiddenCalendar,
 		} satisfies CalendarSidebarRowAttrs)
@@ -1182,7 +1180,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const clientOnlyCalendar = isBirthdayCalendar(groupInfo.group)
 
 		if (clientOnlyCalendar) {
-			this.viewModel.handleClientOnlyUpdate(groupInfo, { name: properties.nameData.name, color: properties.color })
+			this.viewModel.handleClientOnlyUpdate(groupInfo, properties.color)
 			dialog.close()
 			return this.viewModel.redraw(undefined)
 		} else {
