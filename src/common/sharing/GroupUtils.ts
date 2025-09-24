@@ -142,7 +142,7 @@ export const TemplateGroupPreconditionFailedReason = Object.freeze({
  * Get the name of a (possibly) shared group.
  * Will return custom name, if any, group name, if any or default name for the group type.
  */
-export function getSharedGroupName(groupInfo: GroupInfo, { userSettingsGroupRoot }: UserController, allowGroupNameOverride: boolean): string {
+export function getSharedGroupName(groupInfo: GroupInfo, userSettingsGroupRoot: UserSettingsGroupRoot, allowGroupNameOverride: boolean): string {
 	return getNullableSharedGroupName(groupInfo, userSettingsGroupRoot, allowGroupNameOverride) ?? getDefaultGroupName(downcast(groupInfo.groupType))
 }
 

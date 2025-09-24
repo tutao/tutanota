@@ -157,7 +157,7 @@ export class CalendarSearchViewModel {
 				name: string
 			}[] = Array.from(this.getLazyCalendarInfos().getLoaded().values()).map((ci) => ({
 				info: ci,
-				name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController(), true),
+				name: getSharedGroupName(ci.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, true),
 			}))
 
 			if (this.getUserHasNewPaidPlan().getSync()) {

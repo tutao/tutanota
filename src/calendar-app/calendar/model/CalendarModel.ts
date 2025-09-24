@@ -258,7 +258,7 @@ export class CalendarModel {
 			groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? undefined
 		}
 		const color = "#" + (groupSettings?.color ?? defaultCalendarColor)
-		const name = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), calendarInfo.shared)
+		const name = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, calendarInfo.shared)
 		const renderType = getCalendarRenderType(calendarInfo)
 		return { name, color, renderType }
 	}
