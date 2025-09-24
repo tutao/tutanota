@@ -1,5 +1,3 @@
-import { stemmer } from "stemmer"
-
 const DEFAULT_TOKEN_VOCABULARY_LIMIT = 5000
 const DEFAULT_USE_TOKEN_STEMMING = true
 
@@ -57,7 +55,7 @@ export class DynamicTfVectorizer {
 		const resultTokenFrequencyMap = new Map<string, number>()
 		for (let token of tokenCollection) {
 			if (this.useTokenStemming) {
-				token = stemmer(token)
+				//token = stemmer(token)
 			}
 			if (expandTokenVocabulary && !this.tokenVocabulary.has(token)) {
 				this.expandTokenVocabulary(token)
