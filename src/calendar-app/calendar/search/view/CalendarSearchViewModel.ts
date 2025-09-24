@@ -596,7 +596,7 @@ export class CalendarSearchViewModel {
 		return generateCalendarInstancesInRange(eventList, { start, end })
 	}
 
-	getAvailableCalendars(includesBirthday: boolean): Array<CalendarInfoBase> {
+	getAvailableCalendars(includesBirthday: boolean): ReadonlyArray<CalendarInfoBase> {
 		return this.calendarModel.getAvailableCalendars(includesBirthday)
 	}
 

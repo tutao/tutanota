@@ -1088,7 +1088,7 @@ class MailLocator implements CommonLocator {
 
 			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, (dialog, selectedCalendar) => {
 				dialog.close()
-				handleCalendarImport(selectedCalendar.groupRoot, parsedEvents)
+				handleCalendarImport(selectedCalendar.groupRoot, selectedCalendar, parsedEvents)
 			})
 		}
 	}
