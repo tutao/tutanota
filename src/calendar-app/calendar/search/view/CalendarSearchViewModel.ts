@@ -25,7 +25,7 @@ import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
 import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { generateCalendarInstancesInRange, retrieveClientOnlyEventsForUser } from "../../../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, retrieveBirthdayEventsForUser } from "../../../../common/calendar/date/CalendarUtils.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { EntityClient } from "../../../../common/api/common/EntityClient.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -645,7 +645,7 @@ export class CalendarSearchViewModel {
 	}
 
 	private async getClientOnlyEventsSeries(start: number, end: number, events: IdTuple[]) {
-		const eventList = await retrieveClientOnlyEventsForUser(this.logins, events, this.eventsRepository.getBirthdayEvents())
+		const eventList = await retrieveBirthdayEventsForUser(this.logins, events, this.eventsRepository.getBirthdayEvents())
 		return generateCalendarInstancesInRange(eventList, { start, end })
 	}
 

@@ -38,7 +38,7 @@ import {
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
-	isClientOnlyCalendar,
+	isBirthdayCalendar,
 	isEventBetweenDays,
 	RenderType,
 } from "../../../common/calendar/date/CalendarUtils"
@@ -664,7 +664,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		} else {
 			const calendarInfos = await this.calendarModel.getCalendarInfosCreateIfNeeded()
 			let previewModel: CalendarPreviewModels
-			if (isClientOnlyCalendar(listIdPart(event._id))) {
+			if (isBirthdayCalendar(listIdPart(event._id))) {
 				const idParts = event._id[1].split("#")!
 				const contactId = extractContactIdFromEvent(last(idParts))!
 				const contactIdParts = contactId.split("/")

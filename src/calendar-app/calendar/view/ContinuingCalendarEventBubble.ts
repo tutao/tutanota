@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { hasAlarmsForTheUser, isClientOnlyCalendar } from "../../../common/calendar/date/CalendarUtils"
+import { hasAlarmsForTheUser, isBirthdayCalendar } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { User } from "../../../common/api/entities/sys/TypeRefs.js"
@@ -51,7 +51,7 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 					fadeIn: attrs.fadeIn,
 					opacity: attrs.opacity,
 					enablePointerEvents: attrs.enablePointerEvents,
-					isClientOnly: isClientOnlyCalendar(listIdPart(attrs.event._id)),
+					isClientOnly: isBirthdayCalendar(listIdPart(attrs.event._id)),
 				}),
 			),
 			attrs.endsAfter
