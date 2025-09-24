@@ -4,15 +4,13 @@ import { isKeyPressed } from "../../../common/misc/KeyManager"
 import { px, size } from "../../../common/gui/size"
 import { Icon, IconAttrs, IconSize } from "../../../common/gui/base/Icon"
 import { theme } from "../../../common/gui/theme"
+import { CalendarInfoBase } from "../model/CalendarModel"
 
-export type CalendarSidebarIconData = Pick<IconAttrs, "icon" | "title">
-export type CalendarSidebarRowAttrs = {
-	id: string
-	name: string
-	color: string
+export type CalendarSidebarRowIconData = Pick<IconAttrs, "icon" | "title">
+export type CalendarSidebarRowAttrs = Omit<CalendarInfoBase, "renderType"> & {
 	isHidden: boolean
 	toggleHiddenCalendar: (calendarId: string) => void
-	rightIcon?: CalendarSidebarIconData
+	rightIcon?: CalendarSidebarRowIconData
 }
 
 export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
@@ -34,8 +32,8 @@ export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
 						}
 					},
 					style: {
-						"border-color": color,
-						background: isHidden ? "" : color,
+						"border-color": `#${color}`,
+						background: isHidden ? "" : `#${color}`,
 						transition: "all 0.3s",
 						cursor: "pointer",
 						marginLeft: px(size.hpad_button),
