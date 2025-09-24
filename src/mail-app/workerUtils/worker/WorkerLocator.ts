@@ -20,7 +20,7 @@ import {
 	isOfflineStorageAvailable,
 	isTest,
 } from "../../../common/api/common/Env.js"
-import { Const, FeatureType } from "../../../common/api/common/TutanotaConstants.js"
+import { Const } from "../../../common/api/common/TutanotaConstants.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { ShareFacade } from "../../../common/api/worker/facades/lazy/ShareFacade.js"
@@ -605,7 +605,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		async onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
-				console.log("initIndexer and spam classifier after log in")
+				console.log("initIndexer and SpamClassifier after log in")
 				const indexingDone = fullLoginIndexerInit(worker)
 			}
 

@@ -244,6 +244,8 @@ export class SpamClassifier {
 		const predictionData = await predictionTensor.data()
 		const prediction = predictionData[0]
 
+		console.log(`predicted new mail to be with probability ${prediction} spam`)
+
 		return prediction > PREDICTION_THRESHOLD
 	}
 

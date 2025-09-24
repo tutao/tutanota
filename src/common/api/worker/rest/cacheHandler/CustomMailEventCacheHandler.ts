@@ -102,10 +102,17 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 			const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
 			const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 
-			const { isSpam: isAlreadySpam, isCertain: isAlreadyCertain } = assertNotNull(
-				await offlineStoragePersistence.getStoredClassification(mail),
-				"We expect to always call storeSpamClassification before updating model",
-			)
+			const storedClassification = await offlineStoragePersistence.getStoredClassification(mail)
+			if (!storedClassification) {
+				const { mailIndexer, mailFacade } = await this.indexerAndMailFacade()
+				// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
+				const newMailData = await mailIndexer.downloadNewMailData(id)
+				await mailIndexer.afterMailCreated(id, newMailData)
+				await this.processSpam(newMailData, mailFacade, id)
+				return
+			}
+			const { isSpam: isAlreadySpam, isCertain: isAlreadyCertain } = storedClassification
+
 			if (!isAlreadyCertain || isAlreadySpam !== isSpam) {
 				await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, true)
 				await mailFacade.updateClassifier()
