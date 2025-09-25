@@ -221,10 +221,20 @@ o.spec("CustomMailEventCacheHandler", function () {
 		let mailIndexer = object() as MailIndexer
 		let mailFacade = object() as MailFacade
 		let mail: Mail
+		let body: Body
+		let mailDetails: MailDetails
 
 		o.beforeEach(function () {
 			when(indexerAndMailFacadeMock()).thenResolve({ mailIndexer, mailFacade })
 			mail = object({ sets: [[GENERATED_MIN_ID, GENERATED_MIN_ID]] }) as unknown as Mail
+
+			body = object({ text: "Body Text" }) as Body
+			mailDetails = object({ body }) as MailDetails
+			mail = object({ sets: [[GENERATED_MIN_ID, GENERATED_MIN_ID]] }) as unknown as Mail
+			when(mailIndexer.downloadNewMailData(matchers.anything())).thenResolve({
+				mail,
+				mailDetails,
+			})
 		})
 
 		o("does nothing if mail has not been read and not moved or had label applied.", async function () {
@@ -263,7 +273,8 @@ o.spec("CustomMailEventCacheHandler", function () {
 			await cacheHandler.onEntityEventUpdate(["listId", "elementId"], [])
 
 			verify(offlineStorage.updateSpamClassificationData(["listId", "elementId"], false, true), { times: 1 })
-			verify(mailFacade.updateClassifier(), { times: 0 })
+			verify(mailFacade.updateClassifier(), { times: 1 })
+			verify(mailFacade.predictSpamResult(mail), { times: 0 })
 		})
 
 		o("does update spam classification data if mail has not been read but moved", async function () {
@@ -290,6 +301,41 @@ o.spec("CustomMailEventCacheHandler", function () {
 			await cacheHandler.onEntityEventUpdate(["listId", "elementId"], [event])
 
 			verify(offlineStorage.updateSpamClassificationData(["listId", "elementId"], true, true), { times: 1 })
+			verify(mailFacade.updateClassifier())
+		})
+
+		o("does update spam classification data if mail was not previously included", async function () {
+			const mailFolders = [
+				object({
+					folderType: MailSetKind.INBOX,
+					_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
+				}) as unknown as MailFolder,
+				object({
+					folderType: MailSetKind.SPAM,
+					_id: [GENERATED_MIN_ID, GENERATED_MAX_ID],
+				}) as unknown as MailFolder,
+			]
+			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(mailFolders)
+
+			const offlineStorage = object() as OfflineStoragePersistence
+			when(offlineStorage.getStoredClassification(mail)).thenResolve(null)
+			when(offlineStorageMock()).thenResolve(offlineStorage)
+			mail.unread = true
+			when(cacheStorageMock.get(MailTypeRef, "listId", "elementId")).thenResolve(mail)
+			const event = object({ typeRef: MailSetEntryTypeRef }) as unknown as EntityUpdateData
+
+			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
+			await cacheHandler.onEntityEventUpdate(["listId", "elementId"], [event])
+
+			const spamTrainMailDatum: SpamTrainMailDatum = {
+				mailId: mail._id,
+				subject: mail.subject,
+				body: getMailBodyText(body),
+				isSpam: false,
+				isCertain: true,
+			}
+
+			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
 			verify(mailFacade.updateClassifier())
 		})
 	})
