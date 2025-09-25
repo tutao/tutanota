@@ -1,16 +1,14 @@
 import m, { Children, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
-import { Dropdown, DROPDOWN_MARGIN, PosRect } from "../../../common/gui/base/Dropdown.js"
+import { DROPDOWN_MARGIN, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
-import { modal } from "../../../common/gui/base/Modal"
 
 export interface MobileMailMultiselectionActionBarAttrs {
 	selectNone: () => unknown
 	deleteMailsAction: (() => void) | null
 	trashMailsAction: (() => void) | null
-	markMailsAsSpamAction: (() => void) | null
 	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
 	applyLabelsAction: ((dom: HTMLElement, opts?: LabelsPopupOpts) => void) | null
 	setUnreadStateAction: ((unread: boolean) => void) | null
@@ -87,36 +85,13 @@ export class MobileMailMultiselectionActionBar {
 		)
 	}
 
-	private renderTrashAction({ trashMailsAction, markMailsAsSpamAction }: MobileMailMultiselectionActionBarAttrs) {
+	private renderTrashAction({ trashMailsAction }: MobileMailMultiselectionActionBarAttrs) {
 		return (
 			trashMailsAction &&
 			m(IconButton, {
 				icon: Icons.Trash,
 				title: "trash_action",
-				click:
-					markMailsAsSpamAction != null
-						? (_, dom) => {
-								const dropdown = new Dropdown(
-									() => [
-										{
-											label: "trash_action",
-											icon: Icons.Trash,
-											click: trashMailsAction,
-										},
-										{
-											label: "spam_action",
-											icon: Icons.Spam,
-											click: markMailsAsSpamAction,
-										},
-									],
-									this.dropdownWidth(dom) ?? 300,
-								)
-
-								const domRect = this.dom?.getBoundingClientRect() ?? dom.getBoundingClientRect()
-								dropdown.setOrigin(domRect)
-								modal.displayUnique(dropdown, true)
-							}
-						: trashMailsAction,
+				click: trashMailsAction,
 			})
 		)
 	}
