@@ -755,7 +755,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.calendarModel
 	}
 
-	handleClientOnlyUpdate(groupInfo: GroupInfo, newBirthdayColor: string) {
+	handleBirthdayCalendarUpdate(newBirthdayColor: string) {
 		console.log("Update to handle new birthday colors at userSettings") // FIXME
 	}
 

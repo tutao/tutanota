@@ -5,17 +5,23 @@ import { px, size } from "../../../common/gui/size"
 import { Icon, IconAttrs, IconSize } from "../../../common/gui/base/Icon"
 import { theme } from "../../../common/gui/theme"
 import { CalendarInfoBase } from "../model/CalendarModel"
+import { IconButton } from "../../../common/gui/base/IconButton"
+import { ButtonColor } from "../../../common/gui/base/Button"
+import { Icons } from "../../../common/gui/base/icons/Icons"
+import { ButtonSize } from "../../../common/gui/base/ButtonSize"
+import { createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown"
 
 export type CalendarSidebarRowIconData = Pick<IconAttrs, "icon" | "title">
 export type CalendarSidebarRowAttrs = Omit<CalendarInfoBase, "type"> & {
 	isHidden: boolean
 	toggleHiddenCalendar: (calendarId: string) => void
 	rightIcon?: CalendarSidebarRowIconData
+	actions: ReadonlyArray<DropdownChildAttrs>
 }
 
 export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
 	view(vnode: Vnode<CalendarSidebarRowAttrs>) {
-		const { id, name, color, isHidden, toggleHiddenCalendar, rightIcon } = vnode.attrs
+		const { id, name, color, isHidden, toggleHiddenCalendar, rightIcon, actions } = vnode.attrs
 		return m(".folder-row.flex-start.plr-button", [
 			m(".flex.flex-grow.center-vertically.button-height", [
 				m(".calendar-checkbox", {
@@ -60,7 +66,15 @@ export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
 						},
 					})
 				: null,
-			// this.createCalendarActionDropdown(calendarInfo, colorValue ?? defaultCalendarColor, existingGroupSettings, userSettingsGroupRoot),
+			m(IconButton, {
+				title: "more_label",
+				colors: ButtonColor.Nav,
+				icon: Icons.More,
+				size: ButtonSize.Compact,
+				click: createDropdown({
+					lazyButtons: () => actions,
+				}),
+			}),
 		])
 	}
 }
