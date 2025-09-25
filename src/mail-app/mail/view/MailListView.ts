@@ -305,6 +305,18 @@ export class MailListView implements Component<MailListViewAttrs> {
 		return newFiles.concat(existingFiles)
 	}
 
+	// listeners to indicate the when mod key is held, dragging will do something
+	private readonly onKeyDown = (event: KeyboardEvent) => {
+		if (isDragAndDropModifierHeld(event)) {
+			this._listDom?.classList.add("drag-mod-key")
+		}
+	}
+
+	private readonly onKeyUp = (event: KeyboardEvent) => {
+		// The event doesn't have a
+		this._listDom?.classList.remove("drag-mod-key")
+	}
+
 	view(vnode: Vnode<MailListViewAttrs>): Children {
 		this.attrs = vnode.attrs
 
@@ -319,18 +331,6 @@ export class MailListView implements Component<MailListViewAttrs> {
 			},
 		}
 
-		// listeners to indicate the when mod key is held, dragging will do something
-		const onKeyDown = (event: KeyboardEvent) => {
-			if (isDragAndDropModifierHeld(event)) {
-				this._listDom?.classList.add("drag-mod-key")
-			}
-		}
-
-		const onKeyUp = (event: KeyboardEvent) => {
-			// The event doesn't have a
-			this._listDom?.classList.remove("drag-mod-key")
-		}
-
 		const listModel = vnode.attrs.mailViewModel.listModel
 		return m(
 			".mail-list-wrapper",
@@ -339,14 +339,14 @@ export class MailListView implements Component<MailListViewAttrs> {
 					this._listDom = downcast(vnode.dom.firstChild)
 
 					if (canDoDragAndDropExport()) {
-						assertNotNull(document.body).addEventListener("keydown", onKeyDown)
-						assertNotNull(document.body).addEventListener("keyup", onKeyUp)
+						assertNotNull(document.body).addEventListener("keydown", this.onKeyDown)
+						assertNotNull(document.body).addEventListener("keyup", this.onKeyUp)
 					}
 				},
-				onbeforeremove: (vnode) => {
+				onremove: (vnode) => {
 					if (canDoDragAndDropExport()) {
-						assertNotNull(document.body).removeEventListener("keydown", onKeyDown)
-						assertNotNull(document.body).removeEventListener("keyup", onKeyUp)
+						assertNotNull(document.body).removeEventListener("keydown", this.onKeyDown)
+						assertNotNull(document.body).removeEventListener("keyup", this.onKeyUp)
 					}
 				},
 			},
