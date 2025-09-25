@@ -970,7 +970,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					reportSpam: null,
 					reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 				}),
-				spamAction: this.getReportSelectedMailsSpamAction(),
+				moveMailsToSpamAction: this.getReportSelectedMailsSpamAction(),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {
@@ -1033,7 +1033,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					moveMailsAction: this.getMoveMailsAction(),
 					applyLabelsAction: this.getLabelsAction(),
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
-					markMailsAsSpamAction: this.getReportSelectedMailsSpamAction(),
 				})
 			} else if (this.viewSlider.focusedColumn === this.resultListColumn) {
 				return m(
