@@ -11,6 +11,7 @@ import { sha256Hash } from "@tutao/tutanota-crypto"
 import { assertNotNull, splitUint8ArrayInChunks, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
 import url from "node:url"
+import type { WriteStream } from "node:fs"
 import FsModule from "node:fs"
 import { Buffer } from "node:buffer"
 import { default as stream } from "node:stream"
@@ -26,9 +27,9 @@ import { TempFs } from "./TempFs.js"
 import { HttpMethod } from "../../api/common/EntityFunctions"
 import { FetchImpl } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
-import type { WriteStream } from "node:fs"
 
 import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { CommandExecutor } from "../CommandExecutor"
 
 const TAG = "[DesktopFileFacade]"
 
@@ -45,6 +46,8 @@ export class DesktopFileFacade implements FileFacade {
 		private readonly tfs: TempFs,
 		private readonly fs: FsExports,
 		private readonly path: PathExports,
+		private readonly commandExecutor: CommandExecutor,
+		private readonly process: NodeJS.Process,
 	) {
 		this.lastOpenedFileManagerAt = null
 	}
@@ -139,32 +142,49 @@ export class DesktopFileFacade implements FileFacade {
 		return fileUri
 	}
 
-	open(location: string /* , mimeType: string omitted */): Promise<void> {
-		const tryOpen = () =>
+	async open(location: string /* , mimeType: string omitted */): Promise<void> {
+		const openWithElectronShell = () =>
 			this.electron.shell
 				.openPath(location) // may resolve with "" or an error message
-				.catch(() => "failed to open path.")
-				.then((errMsg) => (errMsg === "" ? Promise.resolve() : Promise.reject(new FileOpenError("Could not open " + location + ", " + errMsg))))
+				.catch((e) => {
+					const message = "failed to open path." + e
+					throw new FileOpenError("Could not open " + location + ", " + message)
+				})
 
 		// only windows will happily execute a just downloaded program
-		if (process.platform === "win32" && looksExecutable(location)) {
-			return this.electron.dialog
-				.showMessageBox({
-					type: "warning",
-					buttons: [lang.get("yes_label"), lang.get("no_label")],
-					title: lang.get("executableOpen_label"),
-					message: lang.get("executableOpen_msg"),
-					defaultId: 1, // default button
+		if (this.process.platform === "win32" && looksExecutable(location)) {
+			const { response } = await this.electron.dialog.showMessageBox({
+				type: "warning",
+				buttons: [lang.get("yes_label"), lang.get("no_label")],
+				title: lang.get("executableOpen_label"),
+				message: lang.get("executableOpen_msg"),
+				defaultId: 1, // default button
+			})
+			if (response === 0) {
+				await openWithElectronShell()
+			}
+		} else if (this.process.platform === "linux") {
+			// temporary fix for the electron fix:
+			// https://github.com/electron/electron/issues/45129#issuecomment-3334644846
+			// https://github.com/tutao/tutanota/issues/9696
+			await this.commandExecutor
+				.run({
+					executable: "xdg-open",
+					args: [location],
+					env:
+						// electron replaces XDG_CURRENT_DESKTOP in some cases which breaks gio open which breaks xdg-open
+						this.process.env.ORIGINAL_XDG_CURRENT_DESKTOP == null
+							? undefined
+							: {
+									...this.process.env,
+									XDG_CURRENT_DESKTOP: this.process.env.ORIGINAL_XDG_CURRENT_DESKTOP,
+								},
 				})
-				.then(({ response }) => {
-					if (response === 0) {
-						return tryOpen()
-					} else {
-						return Promise.resolve()
-					}
+				.catch((e) => {
+					throw new FileOpenError("Could not open " + location + ", " + e)
 				})
 		} else {
-			return tryOpen()
+			await openWithElectronShell()
 		}
 	}
 
@@ -307,7 +327,7 @@ export class DesktopFileFacade implements FileFacade {
 
 		if (lastOpenedFileManagerAt == null || this.dateProvider.now() - lastOpenedFileManagerAt > fileManagerTimeout) {
 			this.lastOpenedFileManagerAt = this.dateProvider.now()
-			await this.electron.shell.openPath(path.dirname(savePath))
+			this.electron.shell.showItemInFolder(savePath)
 		}
 	}
 }

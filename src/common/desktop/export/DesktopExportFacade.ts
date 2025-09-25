@@ -206,7 +206,7 @@ export class DesktopExportFacade implements ExportFacade {
 		if (exportState == null || exportState.type !== "finished") {
 			throw new ProgrammingError("Export is not finished")
 		}
-		await this.electron.shell.openPath(exportState.exportDirectoryPath)
+		this.electron.shell.showItemInFolder(exportState.exportDirectoryPath)
 	}
 
 	private async getExportDirectoryPath(): Promise<string> {

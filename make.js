@@ -48,8 +48,7 @@ await program
 				const buildDir = app === "calendar" ? "build-calendar-app" : "build"
 				const env = Object.assign({}, process.env, { ELECTRON_ENABLE_SECURITY_WARNINGS: "TRUE", ELECTRON_START_WITH_DEV_TOOLS: devTools })
 				// we don't want to quit here because we want to keep piping output to our stdout.
-				spawn("npx", [`electron --inspect=5858 ./${buildDir}/`], {
-					shell: true,
+				spawn("node_modules/.bin/electron", ["--inspect=5858", `./${buildDir}/`], {
 					stdio: "inherit",
 					env: options.verbose ? Object.assign({}, env, { ELECTRON_ENABLE_LOGGING: 1 }) : env,
 				})

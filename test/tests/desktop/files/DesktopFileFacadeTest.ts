@@ -7,7 +7,6 @@ import { ElectronExports, FsExports, PathExports } from "../../../../src/common/
 import { NotFoundError, PreconditionFailedError, TooManyRequestsError } from "../../../../src/common/api/common/error/RestError.js"
 import type fs from "node:fs"
 import { assertThrows } from "@tutao/tutanota-test-utils"
-import n from "../../nodemocker.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { DesktopConfig } from "../../../../src/common/desktop/config/DesktopConfig.js"
 import { DesktopUtils } from "../../../../src/common/desktop/DesktopUtils.js"
@@ -16,6 +15,7 @@ import { TempFs } from "../../../../src/common/desktop/files/TempFs.js"
 import { BuildConfigKey, DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKeys.js"
 import { HttpMethod } from "../../../../src/common/api/common/EntityFunctions"
 import { FetchImpl, FetchResult } from "../../../../src/common/desktop/net/NetAgent"
+import { CommandExecutor } from "../../../../src/common/desktop/CommandExecutor"
 
 const DEFAULT_DOWNLOAD_PATH = "/a/download/path/"
 
@@ -30,6 +30,8 @@ o.spec("DesktopFileFacade", function () {
 	let tfs: TempFs
 	let ff: DesktopFileFacade
 	let path: PathExports
+	let executor: CommandExecutor
+	let process: Writeable<Partial<NodeJS.Process>>
 
 	o.beforeEach(function () {
 		win = object()
@@ -38,18 +40,23 @@ o.spec("DesktopFileFacade", function () {
 		tfs = object()
 		path = object()
 		fs.promises = object()
+		process = {
+			env: {},
+		}
 		when(fs.promises.stat(matchers.anything())).thenResolve({ size: 42 })
 		electron = object()
 		// @ts-ignore read-only prop
 		electron["shell"] = object()
 		// @ts-ignore read-only prop
 		electron["dialog"] = object()
+		process.platform = "linux"
 
 		conf = object()
 		du = object()
 		dp = object()
+		executor = object()
 
-		ff = new DesktopFileFacade(win, conf, dp, fetch, electron, tfs, fs, path)
+		ff = new DesktopFileFacade(win, conf, dp, fetch, electron, tfs, fs, path, executor, process as NodeJS.Process)
 	})
 	o.spec("saveDataFile", function () {
 		o("when there's no existing file it will be simply written", async function () {
@@ -309,18 +316,45 @@ o.spec("DesktopFileFacade", function () {
 	})
 
 	o.spec("open", function () {
-		o("open valid", async function () {
-			when(electron.shell.openPath("/some/folder/file")).thenResolve("")
-			await ff.open("/some/folder/file")
+		o.spec("open on linux", () => {
+			o.test("open on ubuntu", async function () {
+				when(electron.shell.openPath("/some/folder/file")).thenReject(new Error("wrong function"))
+				when(executor.run(matchers.anything())).thenResolve({})
+				process.env!.ORIGINAL_XDG_CURRENT_DESKTOP = "original ;)"
+				process.env!.SOMETHING_ELSE = "something else!"
+				await ff.open("/some/folder/file")
+
+				verify(
+					executor.run({
+						executable: "xdg-open",
+						args: ["/some/folder/file"],
+						env: {
+							XDG_CURRENT_DESKTOP: "original ;)",
+							ORIGINAL_XDG_CURRENT_DESKTOP: "original ;)",
+							SOMETHING_ELSE: "something else!",
+						},
+					}),
+				)
+			})
+			o.test("open on non ubuntu", async function () {
+				when(electron.shell.openPath("/some/folder/file")).thenReject(new Error("wrong function"))
+				when(executor.run(matchers.anything())).thenResolve({})
+				process.env!.ORIGINAL_XDG_CURRENT_DESKTOP = undefined
+				process.env!.SOMETHING_ELSE = "something else!"
+				await ff.open("/some/folder/file")
+
+				verify(
+					executor.run({
+						executable: "xdg-open",
+						args: ["/some/folder/file"],
+						env: undefined,
+					}),
+				)
+			})
 		})
 
-		o("open invalid", async () => {
-			await assertThrows(Error, () => ff.open("invalid"))
-			verify(electron.shell.openPath("invalid"), { times: 1 })
-		})
-
-		o("open on windows", async function () {
-			n.setPlatform("win32")
+		o.test("open on windows", async function () {
+			process.platform = "win32"
 			when(electron.dialog.showMessageBox(matchers.anything())).thenReturn(
 				Promise.resolve({
 					response: 1,
@@ -384,7 +418,7 @@ o.spec("DesktopFileFacade", function () {
 			const dir = "/path/to"
 			const p = dir + "/file.txt"
 			await ff.showInFileExplorer(p)
-			verify(electron.shell.openPath(dir), { times: 1 })
+			verify(electron.shell.showItemInFolder(p), { times: 1 })
 		})
 
 		o("two downloads, open two filemanagers after a pause", async function () {
@@ -394,10 +428,10 @@ o.spec("DesktopFileFacade", function () {
 			await ff.showInFileExplorer(p)
 			when(dp.now()).thenReturn(time)
 			when(conf.getConst(BuildConfigKey.fileManagerTimeout)).thenResolve(2)
-			verify(electron.shell.openPath(dir), { times: 1 })
+			verify(electron.shell.showItemInFolder(p), { times: 1 })
 			when(dp.now()).thenReturn(time + 10)
 			await ff.showInFileExplorer(p)
-			verify(electron.shell.openPath(dir), { times: 2 })
+			verify(electron.shell.showItemInFolder(p), { times: 2 })
 		})
 	})
 

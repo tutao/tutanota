@@ -27,6 +27,11 @@ export interface ProcessParams {
 	 * By default, the current working directory will be used.
 	 */
 	currentDirectory?: string
+
+	/**
+	 * Environment variables to set on subprocesses
+	 */
+	env?: { [key: string]: string | undefined }
 }
 
 /**
@@ -134,6 +139,7 @@ export class CommandExecutor {
 			stdoutEncoding = ProcessIOEncoding.Utf8,
 			stderrEncoding = ProcessIOEncoding.Utf8,
 			currentDirectory,
+			env,
 		} = params
 
 		if (isNaN(timeout) || timeout < 0) {
@@ -145,6 +151,7 @@ export class CommandExecutor {
 			const process = this.childProcess.spawn(executable, args, {
 				timeout: timeout === 0 ? undefined : timeout,
 				cwd: currentDirectory,
+				env,
 			})
 
 			let stdout = initializeOutputBuffer(stdoutEncoding)
