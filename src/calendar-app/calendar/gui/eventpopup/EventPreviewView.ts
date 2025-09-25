@@ -14,9 +14,9 @@ import { Icons } from "../../../../common/gui/base/icons/Icons.js"
 import {
 	areAllAdvancedRepeatRulesValid,
 	ByRule,
+	CALENDAR_TYPE_TRANSLATION_MAP,
 	getRepeatEndTimeForDisplay,
 	getTimeZone,
-	RENDER_TYPE_TRANSLATION_MAP,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarAttendeeStatus, EndType, getAttendeeStatus, RepeatPeriod } from "../../../../common/api/common/TutanotaConstants.js"
 import { downcast, memoized } from "@tutao/tutanota-utils"
@@ -100,7 +100,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		const attendees = prepareAttendees(event.attendees, event.organizer)
 		const eventTitle = getDisplayEventTitle(event.summary)
 
-		const renderInfo = calendarEventPreviewModel.getCalendarInfoBase()
+		const calendarInfo = calendarEventPreviewModel.getCalendarInfoBase()
 
 		return m(".flex.col.smaller", [
 			this.renderRow(
@@ -109,8 +109,8 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				true,
 				true,
 			),
-			renderInfo
-				? this.renderCalendar(renderInfo.name, renderInfo.color, RENDER_TYPE_TRANSLATION_MAP.get(renderInfo.renderType) ?? "yourCalendars_label")
+			calendarInfo
+				? this.renderCalendar(calendarInfo.name, calendarInfo.color, CALENDAR_TYPE_TRANSLATION_MAP.get(calendarInfo.type) ?? "yourCalendars_label")
 				: null,
 			this.renderRow(
 				Icons.Time,
@@ -253,7 +253,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		return this.renderRow(Icons.AlignLeft, [m.trust(sanitizedDescription)], true)
 	}
 
-	private renderCalendar(calendarName: string, calendarColor: string, calendarRenderType: TranslationKey) {
+	private renderCalendar(calendarName: string, calendarColor: string, calendarType: TranslationKey) {
 		return m(".flex.gap-hpad.mb-s", [
 			m(
 				".flex.items-center.justify-center",
@@ -272,7 +272,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 					},
 				}),
 			),
-			m(".flex.col", [calendarName, m("small.text-fade", lang.get(calendarRenderType!))]),
+			m(".flex.col", [calendarName, m("small.text-fade", lang.get(calendarType!))]),
 		])
 	}
 }
