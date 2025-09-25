@@ -42,13 +42,11 @@ import {
 	CalendarType,
 	extractContactIdFromEvent,
 	findFirstPrivateCalendar,
-	getCalendarType,
 	getTimeZone,
 	hasSourceUrl,
 	isBirthdayCalendar,
 	isBirthdayEvent,
 	parseAlarmInterval,
-	RenderType,
 } from "../../../common/calendar/date/CalendarUtils"
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
@@ -197,7 +195,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 															{
 																label: "addCalendar_action",
 																colors: ButtonColor.Nav,
-																click: () => this.onPressedAddCalendar(CalendarType.NORMAL),
+																click: () => this.onPressedAddCalendar(CalendarType.Private),
 																icon: Icons.Add,
 																size: ButtonSize.Compact,
 															},
@@ -205,17 +203,17 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 																label: "addCalendarFromURL_action",
 																icon: Icons.Link,
 																size: ButtonSize.Compact,
-																click: () => this.onPressedAddCalendar(CalendarType.URL),
+																click: () => this.onPressedAddCalendar(CalendarType.External),
 															},
 														],
 													})
-												: () => this.onPressedAddCalendar(CalendarType.NORMAL),
+												: () => this.onPressedAddCalendar(CalendarType.Private),
 										icon: Icons.Add,
 										size: ButtonSize.Compact,
 									}),
 									hideIfEmpty: true,
 								},
-								this.renderCalendar(RenderType.Private),
+								this.renderCalendar(CalendarType.Private),
 								this.renderBirthdayCalendar(),
 							),
 							m(
@@ -224,7 +222,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									name: "calendarShared_label",
 									hideIfEmpty: true,
 								},
-								this.renderCalendar(RenderType.Shared),
+								this.renderCalendar(CalendarType.Shared),
 							),
 							m(
 								SidebarSection,
@@ -232,7 +230,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									name: "calendarSubscriptions_label",
 									hideIfEmpty: true,
 								},
-								this.renderCalendar(RenderType.External),
+								this.renderCalendar(CalendarType.External),
 							),
 							this.viewModel.calendarInvitations().length > 0
 								? m(
@@ -929,7 +927,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			showNotAvailableForFreeDialog()
 			return
 		}
-		if (calendarType === CalendarType.URL)
+		if (calendarType === CalendarType.External)
 			userController.isNewPaidPlan().then((isNewPaidPlan) => {
 				if (isNewPaidPlan) this.showCreateCalendarDialog(calendarType)
 				else showPlanUpgradeRequiredDialog(NewPaidPlans)
@@ -971,16 +969,16 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					id: calendarGroup._id,
 					name: "",
 					color: defaultCalendarColor,
-					renderType: RenderType.External,
+					type: CalendarType.External,
 				}
 			}
-			await handleCalendarImport(calendarGroupRoot, calendarInfo, events, CalendarType.URL)
+			await handleCalendarImport(calendarGroupRoot, calendarInfo, events, CalendarType.External)
 			this.viewModel.isCreatingExternalCalendar = false
 			dialog.close()
 		}
 
 		switch (calendarType) {
-			case CalendarType.NORMAL:
+			case CalendarType.Private:
 				showCreateEditCalendarDialog({
 					calendarType,
 					titleTextId: "add_action",
@@ -989,7 +987,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					calendarModel: this.viewModel.getCalendarModel(),
 				})
 				break
-			case CalendarType.URL:
+			case CalendarType.External:
 				showCreateEditCalendarDialog({
 					calendarType,
 					titleTextId: "newCalendarSubscriptionsDialog_title",
@@ -999,23 +997,25 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					calendarModel: this.viewModel.getCalendarModel(),
 				})
 				break
+			default:
+				throw new Error(`Not allowed to create a calendar of type ${calendarType.toString()}`)
 		}
 	}
 
-	private renderCalendar(renderType: RenderType): Children {
-		const calendarInfos = Array.from(this.viewModel.calendarInfos.entries())
-		const filteredCalendarInfos = calendarInfos.filter(([_, calendarInfo]) => {
-			return calendarInfo.renderType === renderType
+	private renderCalendar(calendarType: CalendarType): Children {
+		const calendarInfos = this.viewModel.getCalendarModel().getAvailableCalendars()
+		const filteredCalendarInfos = calendarInfos.filter((calendarInfo) => {
+			return calendarInfo.type === calendarType
 		})
 
-		return filteredCalendarInfos.map(([calendarId, calendarInfo]) => {
-			const { name, color, renderType } = calendarInfo
-			const rightIconData = this.viewModel.getIcon(renderType, calendarId)
+		return filteredCalendarInfos.map((calendarInfo) => {
+			const { id, name, color, type } = calendarInfo
+			const rightIconData = this.viewModel.getIcon(id, type)
 			return m(CalendarSidebarRow, {
-				id: calendarId,
+				id,
 				name,
 				color,
-				isHidden: this.viewModel.hiddenCalendars.has(calendarId),
+				isHidden: this.viewModel.hiddenCalendars.has(id),
 				toggleHiddenCalendar: this.viewModel.toggleHiddenCalendar,
 				rightIcon: rightIconData,
 			} satisfies CalendarSidebarRowAttrs)
@@ -1165,7 +1165,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 
 		showCreateEditCalendarDialog({
-			calendarType: getCalendarType(existingGroupSettings, groupInfo),
+			calendarType: calendarInfo.type,
 			titleTextId: "edit_action",
 			okAction: (dialog, properties) => this.handleModifiedCalendar(dialog, properties, calendarInfo, existingGroupSettings, userSettingsGroupRoot),
 			okTextId: "save_action",

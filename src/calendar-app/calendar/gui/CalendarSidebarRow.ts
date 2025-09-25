@@ -7,7 +7,7 @@ import { theme } from "../../../common/gui/theme"
 import { CalendarInfoBase } from "../model/CalendarModel"
 
 export type CalendarSidebarRowIconData = Pick<IconAttrs, "icon" | "title">
-export type CalendarSidebarRowAttrs = Omit<CalendarInfoBase, "renderType"> & {
+export type CalendarSidebarRowAttrs = Omit<CalendarInfoBase, "type"> & {
 	isHidden: boolean
 	toggleHiddenCalendar: (calendarId: string) => void
 	rightIcon?: CalendarSidebarRowIconData

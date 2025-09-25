@@ -41,7 +41,7 @@ import { DateTime } from "luxon"
 import { createTestEntity } from "../TestUtils.js"
 import { matchers, object, when } from "testdouble"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
-import { RenderType } from "../../../src/common/calendar/date/CalendarUtils"
+import { CalendarType } from "../../../src/common/calendar/date/CalendarUtils"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
@@ -146,7 +146,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				type: GroupType.Calendar,
 			}),
 			isExternal: false,
-			renderType: RenderType.Private,
+			type: CalendarType.Private,
 		},
 	],
 	[
@@ -166,7 +166,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				type: GroupType.Calendar,
 			}),
 			isExternal: false,
-			renderType: RenderType.Shared,
+			type: CalendarType.Shared,
 		},
 	],
 	[
@@ -186,7 +186,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				type: GroupType.Calendar,
 			}),
 			isExternal: true,
-			renderType: RenderType.External,
+			type: CalendarType.External,
 		},
 	],
 	[
@@ -206,7 +206,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 				type: GroupType.Calendar,
 			}),
 			isExternal: false,
-			renderType: RenderType.Shared,
+			type: CalendarType.Shared,
 		},
 	],
 ])
@@ -294,7 +294,7 @@ export function makeUserController(
 	})
 }
 
-export function makeCalendarInfo(id: string, isOwner: boolean, renderType: RenderType): CalendarInfo {
+export function makeCalendarInfo(id: string, isOwner: boolean, calendarType: CalendarType): CalendarInfo {
 	return {
 		id: id,
 		name: "",
@@ -309,10 +309,10 @@ export function makeCalendarInfo(id: string, isOwner: boolean, renderType: Rende
 			type: GroupType.Calendar,
 			user: isOwner ? ownerId : "anotherUserId",
 		}),
-		shared: isOwner && renderType === RenderType.Shared,
-		userIsOwner: isOwner && renderType === RenderType.Private,
-		isExternal: isOwner && renderType === RenderType.External,
-		renderType: renderType,
+		shared: isOwner && calendarType === CalendarType.Shared,
+		userIsOwner: isOwner && calendarType === CalendarType.Private,
+		isExternal: isOwner && calendarType === CalendarType.External,
+		type: calendarType,
 	}
 }
 

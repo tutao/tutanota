@@ -34,7 +34,7 @@ import {
 	UserSettingsGroupRoot,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
-import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, GroupInfo, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
+import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId, StrippedEntity } from "../../api/common/utils/EntityUtils"
 import type { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
@@ -1684,72 +1684,52 @@ export function parseAlarmInterval(serialized: string): AlarmInterval {
 }
 
 export enum CalendarType {
-	NORMAL,
-	URL, // External calendar
-	CLIENT_ONLY,
-}
-
-export enum RenderType {
 	Private,
 	Shared,
 	External,
-	ClientOnly,
+	Birthday,
 }
 
-export const RENDER_TYPE_TRANSLATION_MAP: ReadonlyMap<RenderType, TranslationKey> = freezeMap(
+export const CALENDAR_TYPE_TRANSLATION_MAP: ReadonlyMap<CalendarType, TranslationKey> = freezeMap(
 	new Map([
-		[RenderType.Private, "yourCalendars_label"],
-		[RenderType.External, "calendarSubscriptions_label"],
-		[RenderType.Shared, "calendarShared_label"],
+		[CalendarType.Private, "yourCalendars_label"],
+		[CalendarType.External, "calendarSubscriptions_label"],
+		[CalendarType.Shared, "calendarShared_label"],
 	]),
 )
 
-export function isPrivateRenderType(renderTypeInfo: RenderTypeInfo) {
-	return renderTypeInfo.isUserOwner && !renderTypeInfo.isExternalCalendar && !isBirthdayCalendar(renderTypeInfo.calendarId)
-}
-
-export function isSharedRenderType(renderTypeInfo: RenderTypeInfo) {
-	return !renderTypeInfo.isUserOwner
-}
-
-export function isExternalRenderType(renderTypeInfo: RenderTypeInfo) {
-	return renderTypeInfo.isUserOwner && renderTypeInfo.isExternalCalendar
-}
-
-export type RenderTypeInfo = {
+type CalendarTypeInfo = {
 	calendarId: string
 	isExternalCalendar: boolean
 	isUserOwner: boolean
 }
 
-export function getCalendarRenderType(renderTypeInfo: RenderTypeInfo): RenderType {
-	if (isBirthdayCalendar(renderTypeInfo.calendarId)) return RenderType.ClientOnly
-	if (isPrivateRenderType(renderTypeInfo)) return RenderType.Private
-	if (isSharedRenderType(renderTypeInfo)) return RenderType.Shared
-	if (isExternalRenderType(renderTypeInfo)) return RenderType.External
+export function getCalendarType(calendarTypeInfo: CalendarTypeInfo): CalendarType {
+	if (isBirthdayCalendar(calendarTypeInfo.calendarId)) return CalendarType.Birthday
+	if (isPrivateRenderType(calendarTypeInfo)) return CalendarType.Private
+	if (isSharedRenderType(calendarTypeInfo)) return CalendarType.Shared
+	if (isExternalRenderType(calendarTypeInfo)) return CalendarType.External
 	throw new Error("Unknown calendar Render Type")
+}
+
+function isPrivateRenderType(calendarTypeInfo: CalendarTypeInfo) {
+	return calendarTypeInfo.isUserOwner && !calendarTypeInfo.isExternalCalendar && !isBirthdayCalendar(calendarTypeInfo.calendarId)
+}
+
+function isSharedRenderType(calendarTypeInfo: CalendarTypeInfo) {
+	return !calendarTypeInfo.isUserOwner
+}
+
+function isExternalRenderType(calendarTypeInfo: CalendarTypeInfo) {
+	return calendarTypeInfo.isUserOwner && calendarTypeInfo.isExternalCalendar
 }
 
 export function isBirthdayCalendar(calendarId: Id) {
 	return calendarId.includes(BIRTHDAY_CALENDAR_BASE_ID)
 }
 
-export function isNormalCalendarType(calendarType: CalendarType) {
-	return calendarType === CalendarType.NORMAL
-}
-
-export function isExternalCalendarType(calendarType: CalendarType) {
-	return calendarType === CalendarType.URL
-}
-
 export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
 	return isNotNull(groupSettings?.sourceUrl) && groupSettings?.sourceUrl !== ""
-}
-
-export function getCalendarType(groupSettings: GroupSettings | null, groupInfo: GroupInfo): CalendarType {
-	if (hasSourceUrl(groupSettings)) return CalendarType.URL
-	if (isBirthdayCalendar(groupSettings ? groupSettings._id : groupInfo.group)) return CalendarType.CLIENT_ONLY
-	return CalendarType.NORMAL
 }
 
 export function extractYearFromBirthday(birthday: string | null): number | null {

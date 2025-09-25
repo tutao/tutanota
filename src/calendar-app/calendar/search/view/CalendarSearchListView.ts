@@ -27,7 +27,7 @@ export interface CalendarSearchListViewAttrs {
 	listModel: ListElementListModel<CalendarSearchResultListEntry>
 	onSingleSelection: (item: CalendarSearchResultListEntry) => unknown
 	isFreeAccount: boolean
-	cancelCallback: () => unknown | null //FIXME add highlights?
+	cancelCallback: () => unknown | null // TODO add search highlights?
 	availableCalendars: ReadonlyArray<CalendarInfoBase>
 }
 
