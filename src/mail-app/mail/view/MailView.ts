@@ -519,9 +519,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								mailViewerMoreActions: getMailViewerMoreActions({
 									viewModel: this.conversationViewModel.primaryViewModel(),
 									print: this.getPrintAction(),
-									reportSpam: this.getReportMailsAsSpamAction(),
+									reportSpam: null,
 									reportPhishing: this.getSingleMailPhishingAction(this.conversationViewModel.primaryViewModel()),
 								}),
+								spamAction: this.getReportMailsAsSpamAction(),
 							})
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 							? m(MobileMailMultiselectionActionBar, {
@@ -531,6 +532,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 									moveMailsAction: this.getMoveMailsAction(),
 									applyLabelsAction: this.getLabelsAction(),
 									setUnreadStateAction: this.getSetUnreadStateAction(),
+									markMailsAsSpamAction: this.getReportMailsAsSpamAction(),
 								})
 							: m(BottomNav),
 			}),
