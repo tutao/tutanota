@@ -6,20 +6,20 @@ import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
 import {
-	BITCOIN_PATTERN_TOKEN,
-	BITCOIN_REGEX,
-	CREDIT_CARD_REGEX,
-	CREDIT_CARD_TOKEN,
-	DATE_PATTERN_TOKEN,
-	DATE_REGEX,
-	EMAIL_ADDR_PATTERN,
-	EMAIL_ADDR_PATTERN_TOKEN,
-	NUMBER_SEQUENCE_REGEX,
-	NUMBER_SEQUENCE_TOKEN,
-	SPECIAL_CHARACTER_REGEX,
-	SPECIAL_CHARACTER_TOKEN,
-	URL_PATTERN,
-	URL_PATTERN_TOKEN,
+	ML_BITCOIN_REGEX,
+	ML_BITCOIN_TOKEN,
+	ML_CREDIT_CARD_REGEX,
+	ML_CREDIT_CARD_TOKEN,
+	ML_DATE_REGEX,
+	ML_DATE_TOKEN,
+	ML_EMAIL_ADDR_REGEX,
+	ML_EMAIL_ADDR_TOKEN,
+	ML_NUMBER_SEQUENCE_REGEX,
+	ML_NUMBER_SEQUENCE_TOKEN,
+	ML_SPECIAL_CHARACTER_REGEX,
+	ML_SPECIAL_CHARACTER_TOKEN,
+	ML_URL_REGEX,
+	ML_URL_TOKEN,
 } from "./PreprocessPatterns"
 import { random } from "@tutao/tutanota-crypto"
 import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
@@ -117,39 +117,39 @@ export class SpamClassifier {
 
 		// 2. Replace dates
 		if (this.preprocessConfiguration.isReplaceDates) {
-			for (const datePattern of DATE_REGEX) {
-				preprocessedMail = preprocessedMail.replaceAll(datePattern, DATE_PATTERN_TOKEN)
+			for (const datePattern of ML_DATE_REGEX) {
+				preprocessedMail = preprocessedMail.replaceAll(datePattern, ML_DATE_TOKEN)
 			}
 		}
 
 		// 3. Replace urls
 		if (this.preprocessConfiguration.isReplaceUrls) {
-			preprocessedMail = preprocessedMail.replaceAll(URL_PATTERN, URL_PATTERN_TOKEN)
+			preprocessedMail = preprocessedMail.replaceAll(ML_URL_REGEX, ML_URL_TOKEN)
 		}
 
 		// 4. Replace email addresses
 		if (this.preprocessConfiguration.isReplaceMailAddresses) {
-			preprocessedMail = preprocessedMail.replaceAll(EMAIL_ADDR_PATTERN, EMAIL_ADDR_PATTERN_TOKEN)
+			preprocessedMail = preprocessedMail.replaceAll(ML_EMAIL_ADDR_REGEX, ML_EMAIL_ADDR_TOKEN)
 		}
 
 		// 5. Replace Bitcoin addresses
 		if (this.preprocessConfiguration.isReplaceBitcoinAddress) {
-			preprocessedMail = preprocessedMail.replaceAll(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)
+			preprocessedMail = preprocessedMail.replaceAll(ML_BITCOIN_REGEX, ML_BITCOIN_TOKEN)
 		}
 
 		// 6. Replace credit card numbers
 		if (this.preprocessConfiguration.isReplaceCreditCards) {
-			preprocessedMail = preprocessedMail.replaceAll(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)
+			preprocessedMail = preprocessedMail.replaceAll(ML_CREDIT_CARD_REGEX, ML_CREDIT_CARD_TOKEN)
 		}
 
 		// 7. Replace remaining numbers
 		if (this.preprocessConfiguration.isReplaceNumbers) {
-			preprocessedMail = preprocessedMail.replaceAll(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
+			preprocessedMail = preprocessedMail.replaceAll(ML_NUMBER_SEQUENCE_REGEX, ML_NUMBER_SEQUENCE_TOKEN)
 		}
 
 		// 8. Remove special characters
 		if (this.preprocessConfiguration.isReplaceSpecialCharacters) {
-			preprocessedMail = preprocessedMail.replaceAll(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
+			preprocessedMail = preprocessedMail.replaceAll(ML_SPECIAL_CHARACTER_REGEX, ML_SPECIAL_CHARACTER_TOKEN)
 		}
 
 		return preprocessedMail

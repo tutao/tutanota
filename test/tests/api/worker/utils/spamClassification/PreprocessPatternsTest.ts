@@ -1,19 +1,19 @@
 import o from "@tutao/otest"
 import {
-	BITCOIN_PATTERN_TOKEN,
-	BITCOIN_REGEX,
-	CREDIT_CARD_REGEX,
-	CREDIT_CARD_TOKEN,
-	DATE_PATTERN_TOKEN,
-	DATE_REGEX,
-	EMAIL_ADDR_PATTERN,
-	EMAIL_ADDR_PATTERN_TOKEN,
-	NUMBER_SEQUENCE_REGEX,
-	NUMBER_SEQUENCE_TOKEN,
-	SPECIAL_CHARACTER_REGEX,
-	SPECIAL_CHARACTER_TOKEN,
-	URL_PATTERN,
-	URL_PATTERN_TOKEN,
+	ML_BITCOIN_REGEX,
+	ML_BITCOIN_TOKEN,
+	ML_CREDIT_CARD_REGEX,
+	ML_CREDIT_CARD_TOKEN,
+	ML_DATE_REGEX,
+	ML_DATE_TOKEN,
+	ML_EMAIL_ADDR_REGEX,
+	ML_EMAIL_ADDR_TOKEN,
+	ML_NUMBER_SEQUENCE_REGEX,
+	ML_NUMBER_SEQUENCE_TOKEN,
+	ML_SPECIAL_CHARACTER_REGEX,
+	ML_SPECIAL_CHARACTER_TOKEN,
+	ML_URL_REGEX,
+	ML_URL_TOKEN,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/PreprocessPatterns"
 import { isMailAddress } from "../../../../../../src/common/misc/FormatValidator"
 
@@ -82,14 +82,14 @@ o.spec("PreprocessPatterns", () => {
 			]
 			let resultDatesText = dates.join("\n")
 
-			for (const datePattern of DATE_REGEX) {
-				resultDatesText = resultDatesText.replace(datePattern, DATE_PATTERN_TOKEN)
+			for (const datePattern of ML_DATE_REGEX) {
+				resultDatesText = resultDatesText.replace(datePattern, ML_DATE_TOKEN)
 			}
 
-			const resultTokenArray = resultDatesText.split(DATE_PATTERN_TOKEN)
+			const resultTokenArray = resultDatesText.split(ML_DATE_TOKEN)
 			o.check(resultTokenArray.length - 1).equals(dates.length)
 
-			resultDatesText = resultDatesText.replaceAll(DATE_PATTERN_TOKEN, "")
+			resultDatesText = resultDatesText.replaceAll(ML_DATE_TOKEN, "")
 			o.check(resultDatesText.trim()).equals("")
 		})
 
@@ -116,14 +116,14 @@ o.spec("PreprocessPatterns", () => {
 			const notDatesText = notDates.join("\n")
 			let resultNotDatesText = notDatesText
 
-			for (const datePattern of DATE_REGEX) {
-				resultNotDatesText = resultNotDatesText.replace(datePattern, DATE_PATTERN_TOKEN)
+			for (const datePattern of ML_DATE_REGEX) {
+				resultNotDatesText = resultNotDatesText.replace(datePattern, ML_DATE_TOKEN)
 			}
 
-			const resultTokenArray = resultNotDatesText.split(DATE_PATTERN_TOKEN)
+			const resultTokenArray = resultNotDatesText.split(ML_DATE_TOKEN)
 			o.check(resultTokenArray.length - 1).equals(0)
 
-			resultNotDatesText = resultNotDatesText.replaceAll(DATE_PATTERN_TOKEN, "")
+			resultNotDatesText = resultNotDatesText.replaceAll(ML_DATE_TOKEN, "")
 			o.check(resultNotDatesText.trim()).equals(notDatesText)
 		})
 	})
@@ -139,7 +139,7 @@ o.spec("PreprocessPatterns", () => {
 			])
 
 			for (const [domain, expectedToken] of urlsMap.entries()) {
-				const cleaned = domain.replace(URL_PATTERN, URL_PATTERN_TOKEN)
+				const cleaned = domain.replace(ML_URL_REGEX, ML_URL_TOKEN)
 				o.check(cleaned.trim()).equals(expectedToken)
 			}
 		})
@@ -151,12 +151,12 @@ o.spec("PreprocessPatterns", () => {
 			const notUrlsText = notUrls.join("\n")
 			let resultNotUrlsText = notUrlsText
 
-			resultNotUrlsText = resultNotUrlsText.replaceAll(URL_PATTERN, URL_PATTERN_TOKEN)
+			resultNotUrlsText = resultNotUrlsText.replaceAll(ML_URL_REGEX, ML_URL_TOKEN)
 
-			const resultTokenArray = resultNotUrlsText.split(URL_PATTERN_TOKEN)
+			const resultTokenArray = resultNotUrlsText.split(ML_URL_TOKEN)
 			o.check(resultTokenArray.length - 1).equals(0)
 
-			resultNotUrlsText = resultNotUrlsText.replaceAll(URL_PATTERN_TOKEN, "")
+			resultNotUrlsText = resultNotUrlsText.replaceAll(ML_URL_TOKEN, "")
 			o.check(resultNotUrlsText.trim()).equals(notUrlsText)
 		})
 	})
@@ -172,11 +172,11 @@ o.spec("PreprocessPatterns", () => {
 			]
 
 			for (const email of emails) {
-				const replaced = email.replace(EMAIL_ADDR_PATTERN, EMAIL_ADDR_PATTERN_TOKEN)
+				const replaced = email.replace(ML_EMAIL_ADDR_REGEX, ML_EMAIL_ADDR_TOKEN)
 				if (!isMailAddress(email, false)) {
 					console.log(email)
 				}
-				o.check(replaced).equals(EMAIL_ADDR_PATTERN_TOKEN)
+				o.check(replaced).equals(ML_EMAIL_ADDR_TOKEN)
 			}
 		})
 	})
@@ -198,12 +198,12 @@ o.spec("PreprocessPatterns", () => {
 
 				let resultCreditCardsText = creditCards.join("\n")
 
-				resultCreditCardsText = resultCreditCardsText.replace(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)
+				resultCreditCardsText = resultCreditCardsText.replace(ML_CREDIT_CARD_REGEX, ML_CREDIT_CARD_TOKEN)
 
-				const resultTokenArray = resultCreditCardsText.split(CREDIT_CARD_TOKEN)
+				const resultTokenArray = resultCreditCardsText.split(ML_CREDIT_CARD_TOKEN)
 				o.check(resultTokenArray.length - 1).equals(creditCards.length)
 
-				resultCreditCardsText = resultCreditCardsText.replaceAll(CREDIT_CARD_TOKEN, "")
+				resultCreditCardsText = resultCreditCardsText.replaceAll(ML_CREDIT_CARD_TOKEN, "")
 				o.check(resultCreditCardsText.trim()).equals("")
 			})
 
@@ -211,24 +211,24 @@ o.spec("PreprocessPatterns", () => {
 				const notCreditCards = ["1234", "1234 1234", "1234 1234 1234", "90009", "1 1 1 1", "4444-4444"]
 				const notCreditCardText = notCreditCards.join("\n")
 
-				let resultNotCreditCard = notCreditCards.map((cc) => cc.replace(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)).join("\n")
+				let resultNotCreditCard = notCreditCards.map((cc) => cc.replace(ML_CREDIT_CARD_REGEX, ML_CREDIT_CARD_TOKEN)).join("\n")
 
-				const resultTokenArray = resultNotCreditCard.split(CREDIT_CARD_TOKEN)
+				const resultTokenArray = resultNotCreditCard.split(ML_CREDIT_CARD_TOKEN)
 				o.check(resultTokenArray.length - 1).equals(0)
 
-				resultNotCreditCard = resultNotCreditCard.replaceAll(CREDIT_CARD_TOKEN, "")
+				resultNotCreditCard = resultNotCreditCard.replaceAll(ML_CREDIT_CARD_TOKEN, "")
 				o.check(resultNotCreditCard.trim()).equals(notCreditCardText)
 			})
 
 			o.test("Not recognized other-format sequences", async () => {
 				const notCreditCardText = otherNumberFormats.join("\n")
 
-				let resultNotCreditCard = otherNumberFormats.map((cc) => cc.replace(CREDIT_CARD_REGEX, CREDIT_CARD_TOKEN)).join("\n")
+				let resultNotCreditCard = otherNumberFormats.map((cc) => cc.replace(ML_CREDIT_CARD_REGEX, ML_CREDIT_CARD_TOKEN)).join("\n")
 
-				const resultTokenArray = resultNotCreditCard.split(CREDIT_CARD_TOKEN)
+				const resultTokenArray = resultNotCreditCard.split(ML_CREDIT_CARD_TOKEN)
 				o.check(resultTokenArray.length - 1).equals(0)
 
-				resultNotCreditCard = resultNotCreditCard.replaceAll(CREDIT_CARD_TOKEN, "")
+				resultNotCreditCard = resultNotCreditCard.replaceAll(ML_CREDIT_CARD_TOKEN, "")
 				o.check(resultNotCreditCard.trim()).equals(notCreditCardText)
 			})
 		})
@@ -244,12 +244,12 @@ o.spec("PreprocessPatterns", () => {
 				]
 				let resultBitcoinsText = bitcoinAddresses.join("\n")
 
-				resultBitcoinsText = resultBitcoinsText.replace(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)
+				resultBitcoinsText = resultBitcoinsText.replace(ML_BITCOIN_REGEX, ML_BITCOIN_TOKEN)
 
-				const resultTokenArray = resultBitcoinsText.split(BITCOIN_PATTERN_TOKEN)
+				const resultTokenArray = resultBitcoinsText.split(ML_BITCOIN_TOKEN)
 				o.check(resultTokenArray.length - 1).equals(bitcoinAddresses.length)
 
-				resultBitcoinsText = resultBitcoinsText.replaceAll(BITCOIN_PATTERN_TOKEN, "")
+				resultBitcoinsText = resultBitcoinsText.replaceAll(ML_BITCOIN_TOKEN, "")
 				o.check(resultBitcoinsText.trim()).equals("")
 			})
 
@@ -262,24 +262,24 @@ o.spec("PreprocessPatterns", () => {
 				]
 				const notBitcoinText = notBitcoins.join("\n")
 
-				let resultNotBitcoin = notBitcoins.map((cc) => cc.replace(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)).join("\n")
+				let resultNotBitcoin = notBitcoins.map((cc) => cc.replace(ML_BITCOIN_REGEX, ML_BITCOIN_TOKEN)).join("\n")
 
-				const resultTokenArray = resultNotBitcoin.split(BITCOIN_PATTERN_TOKEN)
+				const resultTokenArray = resultNotBitcoin.split(ML_BITCOIN_TOKEN)
 				o.check(resultTokenArray.length - 1).equals(0)
 
-				resultNotBitcoin = resultNotBitcoin.replaceAll(BITCOIN_PATTERN_TOKEN, "")
+				resultNotBitcoin = resultNotBitcoin.replaceAll(ML_BITCOIN_TOKEN, "")
 				o.check(resultNotBitcoin.trim()).equals(notBitcoinText)
 			})
 
 			o.test("Not recognized other-format sequences", async () => {
 				const notBitcoinText = otherNumberFormats.join("\n")
 
-				let resultNotBitcoin = otherNumberFormats.map((cc) => cc.replace(BITCOIN_REGEX, BITCOIN_PATTERN_TOKEN)).join("\n")
+				let resultNotBitcoin = otherNumberFormats.map((cc) => cc.replace(ML_BITCOIN_REGEX, ML_BITCOIN_TOKEN)).join("\n")
 
-				const resultTokenArray = resultNotBitcoin.split(BITCOIN_PATTERN_TOKEN)
+				const resultTokenArray = resultNotBitcoin.split(ML_BITCOIN_TOKEN)
 				o.check(resultTokenArray.length - 1).equals(0)
 
-				resultNotBitcoin = resultNotBitcoin.replaceAll(BITCOIN_PATTERN_TOKEN, "")
+				resultNotBitcoin = resultNotBitcoin.replaceAll(ML_BITCOIN_TOKEN, "")
 				o.check(resultNotBitcoin.trim()).equals(notBitcoinText)
 			})
 		})
@@ -288,41 +288,41 @@ o.spec("PreprocessPatterns", () => {
 	o.spec("Special character patterns", () => {
 		o.test("All recognized special character patterns", async () => {
 			const specialCharsMap = new Map([
-				["!", SPECIAL_CHARACTER_TOKEN],
-				["@", SPECIAL_CHARACTER_TOKEN],
-				["#", SPECIAL_CHARACTER_TOKEN],
-				["$", SPECIAL_CHARACTER_TOKEN],
-				["%", SPECIAL_CHARACTER_TOKEN],
-				["^", SPECIAL_CHARACTER_TOKEN],
-				["&", SPECIAL_CHARACTER_TOKEN],
-				["*", SPECIAL_CHARACTER_TOKEN],
-				["(", SPECIAL_CHARACTER_TOKEN],
-				[")", SPECIAL_CHARACTER_TOKEN],
-				["+", SPECIAL_CHARACTER_TOKEN],
-				["`", SPECIAL_CHARACTER_TOKEN],
-				["_", SPECIAL_CHARACTER_TOKEN],
-				["=", SPECIAL_CHARACTER_TOKEN],
-				["\\", SPECIAL_CHARACTER_TOKEN],
-				["{", SPECIAL_CHARACTER_TOKEN],
-				["}", SPECIAL_CHARACTER_TOKEN],
-				['"', SPECIAL_CHARACTER_TOKEN],
-				["'", SPECIAL_CHARACTER_TOKEN],
-				[",", SPECIAL_CHARACTER_TOKEN],
-				[".", SPECIAL_CHARACTER_TOKEN],
-				["~", SPECIAL_CHARACTER_TOKEN],
-				["!!", SPECIAL_CHARACTER_TOKEN],
-				["! !", `${SPECIAL_CHARACTER_TOKEN} ${SPECIAL_CHARACTER_TOKEN}`],
-				["@ @@", `${SPECIAL_CHARACTER_TOKEN} ${SPECIAL_CHARACTER_TOKEN}`],
-				["@@@ @@", `${SPECIAL_CHARACTER_TOKEN} ${SPECIAL_CHARACTER_TOKEN}`],
-				["%% @@", `${SPECIAL_CHARACTER_TOKEN} ${SPECIAL_CHARACTER_TOKEN}`],
-				["-", SPECIAL_CHARACTER_TOKEN],
-				["--", SPECIAL_CHARACTER_TOKEN],
-				["---", SPECIAL_CHARACTER_TOKEN],
-				["--- ---", `${SPECIAL_CHARACTER_TOKEN} ${SPECIAL_CHARACTER_TOKEN}`],
+				["!", ML_SPECIAL_CHARACTER_TOKEN],
+				["@", ML_SPECIAL_CHARACTER_TOKEN],
+				["#", ML_SPECIAL_CHARACTER_TOKEN],
+				["$", ML_SPECIAL_CHARACTER_TOKEN],
+				["%", ML_SPECIAL_CHARACTER_TOKEN],
+				["^", ML_SPECIAL_CHARACTER_TOKEN],
+				["&", ML_SPECIAL_CHARACTER_TOKEN],
+				["*", ML_SPECIAL_CHARACTER_TOKEN],
+				["(", ML_SPECIAL_CHARACTER_TOKEN],
+				[")", ML_SPECIAL_CHARACTER_TOKEN],
+				["+", ML_SPECIAL_CHARACTER_TOKEN],
+				["`", ML_SPECIAL_CHARACTER_TOKEN],
+				["_", ML_SPECIAL_CHARACTER_TOKEN],
+				["=", ML_SPECIAL_CHARACTER_TOKEN],
+				["\\", ML_SPECIAL_CHARACTER_TOKEN],
+				["{", ML_SPECIAL_CHARACTER_TOKEN],
+				["}", ML_SPECIAL_CHARACTER_TOKEN],
+				['"', ML_SPECIAL_CHARACTER_TOKEN],
+				["'", ML_SPECIAL_CHARACTER_TOKEN],
+				[",", ML_SPECIAL_CHARACTER_TOKEN],
+				[".", ML_SPECIAL_CHARACTER_TOKEN],
+				["~", ML_SPECIAL_CHARACTER_TOKEN],
+				["!!", ML_SPECIAL_CHARACTER_TOKEN],
+				["! !", `${ML_SPECIAL_CHARACTER_TOKEN} ${ML_SPECIAL_CHARACTER_TOKEN}`],
+				["@ @@", `${ML_SPECIAL_CHARACTER_TOKEN} ${ML_SPECIAL_CHARACTER_TOKEN}`],
+				["@@@ @@", `${ML_SPECIAL_CHARACTER_TOKEN} ${ML_SPECIAL_CHARACTER_TOKEN}`],
+				["%% @@", `${ML_SPECIAL_CHARACTER_TOKEN} ${ML_SPECIAL_CHARACTER_TOKEN}`],
+				["-", ML_SPECIAL_CHARACTER_TOKEN],
+				["--", ML_SPECIAL_CHARACTER_TOKEN],
+				["---", ML_SPECIAL_CHARACTER_TOKEN],
+				["--- ---", `${ML_SPECIAL_CHARACTER_TOKEN} ${ML_SPECIAL_CHARACTER_TOKEN}`],
 			])
 
 			for (const [specialCharSequence, expectedResult] of specialCharsMap) {
-				const tokenized = specialCharSequence.replace(SPECIAL_CHARACTER_REGEX, SPECIAL_CHARACTER_TOKEN)
+				const tokenized = specialCharSequence.replace(ML_SPECIAL_CHARACTER_REGEX, ML_SPECIAL_CHARACTER_TOKEN)
 				o.check(tokenized).equals(expectedResult)
 			}
 		})
@@ -333,12 +333,12 @@ o.spec("PreprocessPatterns", () => {
 			const notSpecialCharsText = notSpecialChars.join("\n")
 			let resultNotSpecialCharsText = notSpecialCharsText
 
-			resultNotSpecialCharsText = resultNotSpecialCharsText.replaceAll(SPECIAL_CHARACTER_TOKEN, SPECIAL_CHARACTER_TOKEN)
+			resultNotSpecialCharsText = resultNotSpecialCharsText.replaceAll(ML_SPECIAL_CHARACTER_TOKEN, ML_SPECIAL_CHARACTER_TOKEN)
 
-			const resultTokenArray = resultNotSpecialCharsText.split(SPECIAL_CHARACTER_TOKEN)
+			const resultTokenArray = resultNotSpecialCharsText.split(ML_SPECIAL_CHARACTER_TOKEN)
 			o.check(resultTokenArray.length - 1).equals(0)
 
-			resultNotSpecialCharsText = resultNotSpecialCharsText.replaceAll(SPECIAL_CHARACTER_TOKEN, "")
+			resultNotSpecialCharsText = resultNotSpecialCharsText.replaceAll(ML_SPECIAL_CHARACTER_TOKEN, "")
 			o.check(resultNotSpecialCharsText.trim()).equals(notSpecialCharsText)
 		})
 	})
@@ -346,22 +346,22 @@ o.spec("PreprocessPatterns", () => {
 	o.spec("Number sequence patterns", () => {
 		o.test("All recognized number sequence patterns", async () => {
 			const numberSequenceMap = new Map([
-				["19328493214", NUMBER_SEQUENCE_TOKEN],
-				["1", NUMBER_SEQUENCE_TOKEN],
-				["als 100 partner", `als ${NUMBER_SEQUENCE_TOKEN} partner`],
-				["26098375", `${NUMBER_SEQUENCE_TOKEN}`],
-				["t24-group, 65, 10557", `t24-group, ${NUMBER_SEQUENCE_TOKEN}, ${NUMBER_SEQUENCE_TOKEN}`],
+				["19328493214", ML_NUMBER_SEQUENCE_TOKEN],
+				["1", ML_NUMBER_SEQUENCE_TOKEN],
+				["als 100 partner", `als ${ML_NUMBER_SEQUENCE_TOKEN} partner`],
+				["26098375", `${ML_NUMBER_SEQUENCE_TOKEN}`],
+				["t24-group, 65, 10557", `t24-group, ${ML_NUMBER_SEQUENCE_TOKEN}, ${ML_NUMBER_SEQUENCE_TOKEN}`],
 				[
 					"IBAN: DE91 1002 0370 0320 2239 82",
-					`IBAN: DE91 ${NUMBER_SEQUENCE_TOKEN} ${NUMBER_SEQUENCE_TOKEN} ${NUMBER_SEQUENCE_TOKEN} ${NUMBER_SEQUENCE_TOKEN} ${NUMBER_SEQUENCE_TOKEN}`,
+					`IBAN: DE91 ${ML_NUMBER_SEQUENCE_TOKEN} ${ML_NUMBER_SEQUENCE_TOKEN} ${ML_NUMBER_SEQUENCE_TOKEN} ${ML_NUMBER_SEQUENCE_TOKEN} ${ML_NUMBER_SEQUENCE_TOKEN}`,
 				],
-				["2020-0000-1580", `${NUMBER_SEQUENCE_TOKEN}-${NUMBER_SEQUENCE_TOKEN}-${NUMBER_SEQUENCE_TOKEN}`],
-				["809,95 €", `${NUMBER_SEQUENCE_TOKEN},${NUMBER_SEQUENCE_TOKEN} €`],
-				["99999999999999999999999999999", NUMBER_SEQUENCE_TOKEN],
+				["2020-0000-1580", `${ML_NUMBER_SEQUENCE_TOKEN}-${ML_NUMBER_SEQUENCE_TOKEN}-${ML_NUMBER_SEQUENCE_TOKEN}`],
+				["809,95 €", `${ML_NUMBER_SEQUENCE_TOKEN},${ML_NUMBER_SEQUENCE_TOKEN} €`],
+				["99999999999999999999999999999", ML_NUMBER_SEQUENCE_TOKEN],
 			])
 
 			for (const [specialCharSequence, expectedResult] of numberSequenceMap) {
-				const tokenized = specialCharSequence.replace(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)
+				const tokenized = specialCharSequence.replace(ML_NUMBER_SEQUENCE_REGEX, ML_NUMBER_SEQUENCE_TOKEN)
 				o.check(tokenized).equals(expectedResult)
 			}
 		})
@@ -370,19 +370,19 @@ o.spec("PreprocessPatterns", () => {
 			const notNumberSequences = ["SHLT116", "Scout24", "gb_67ca4b", "one", "16mb"]
 			const notNumberSequenceText = notNumberSequences.join("\n")
 
-			let resultNotNumberSequence = notNumberSequences.map((cc) => cc.replace(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)).join("\n")
+			let resultNotNumberSequence = notNumberSequences.map((cc) => cc.replace(ML_NUMBER_SEQUENCE_REGEX, ML_NUMBER_SEQUENCE_TOKEN)).join("\n")
 
-			const resultTokenArray = resultNotNumberSequence.split(NUMBER_SEQUENCE_TOKEN)
+			const resultTokenArray = resultNotNumberSequence.split(ML_NUMBER_SEQUENCE_TOKEN)
 			o.check(resultTokenArray.length - 1).equals(0)
 
-			resultNotNumberSequence = resultNotNumberSequence.replaceAll(NUMBER_SEQUENCE_TOKEN, "")
+			resultNotNumberSequence = resultNotNumberSequence.replaceAll(ML_NUMBER_SEQUENCE_TOKEN, "")
 			o.check(resultNotNumberSequence.trim()).equals(notNumberSequenceText)
 		})
 
 		o.test("number sequence results on other-format sequences outputs as expected", async () => {
-			let resultNotNumberSequence = otherNumberFormats.map((cc) => cc.replace(NUMBER_SEQUENCE_REGEX, NUMBER_SEQUENCE_TOKEN)).join("\n")
+			let resultNotNumberSequence = otherNumberFormats.map((cc) => cc.replace(ML_NUMBER_SEQUENCE_REGEX, ML_NUMBER_SEQUENCE_TOKEN)).join("\n")
 
-			const resultTokenArray = resultNotNumberSequence.split(NUMBER_SEQUENCE_TOKEN)
+			const resultTokenArray = resultNotNumberSequence.split(ML_NUMBER_SEQUENCE_TOKEN)
 
 			const expectedNumberOfTokens = 49
 			o.check(resultTokenArray.length).equals(expectedNumberOfTokens)
