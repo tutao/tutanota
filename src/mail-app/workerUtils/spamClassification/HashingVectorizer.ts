@@ -32,6 +32,7 @@ export class HashingVectorizer {
 	 * }
 	 */
 	private tensorHash(array: Array<string>): Array<number> {
+		// FIXME make it asynchronous
 		return tf.string.stringToHashBucketFast(tf.tensor1d(array, "string"), this.dimension).arraySync() as Array<number>
 	}
 
