@@ -6,7 +6,7 @@ import { TextField, TextFieldType } from "../../../common/gui/base/TextField.js"
 import { lang, type TranslationKey } from "../../../common/misc/LanguageViewModel.js"
 import type { TranslationKeyType } from "../../../common/misc/TranslationKey.js"
 import { clone, deepEqual, isNotNull } from "@tutao/tutanota-utils"
-import { AlarmInterval, CalendarType, isExternalCalendarType, isNormalCalendarType } from "../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, CalendarType } from "../../../common/calendar/date/CalendarUtils.js"
 import { RemindersEditor } from "./RemindersEditor.js"
 import { checkURLString, isIcal } from "../../../common/calendar/gui/ImportExportUtils.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -25,7 +25,9 @@ export type CalendarProperties = {
 	sourceUrl: string | null
 }
 
-export const defaultCalendarProperties: Readonly<CalendarProperties> & { readonly nameData: Readonly<GroupNameData> } = {
+export const defaultCalendarProperties: Readonly<CalendarProperties> & {
+	readonly nameData: Readonly<GroupNameData>
+} = {
 	nameData: { kind: "single", name: "" },
 	color: "",
 	alarms: [],
@@ -73,16 +75,17 @@ function createEditCalendarComponent(
 	urlStream: Stream<string>,
 	errorMessageStream: Stream<string>,
 ) {
+	const currentColor = colorStream() ? `#${colorStream()}` : ""
 	return m.fragment({}, [
 		m(GroupSettingNameInputFields, { groupNameData: nameData }),
 		m(".small.mt.mb-xs", lang.get("color_label")),
 		m(ColorPickerView, {
-			value: colorStream(),
+			value: currentColor,
 			onselect: (color: string) => {
-				colorStream(color)
+				colorStream(color.substring(1))
 			},
 		}),
-		nameData.kind === "single" && isNormalCalendarType(calendarType)
+		nameData.kind === "single" && calendarType
 			? m(RemindersEditor, {
 					alarms,
 					addAlarm: (alarm: AlarmInterval) => {
@@ -96,7 +99,7 @@ function createEditCalendarComponent(
 					useNewEditor: false,
 				})
 			: null,
-		isExternalCalendarType(calendarType) ? sourceUrlInputField(urlStream, errorMessageStream) : null,
+		calendarType === CalendarType.External ? sourceUrlInputField(urlStream, errorMessageStream) : null,
 	])
 }
 
@@ -121,10 +124,8 @@ export function showCreateEditCalendarDialog({
 	isNewCalendar = true,
 	calendarModel,
 }: CreateEditDialogAttrs) {
-	if (color !== "") {
-		color = "#" + color
-	} else if (isNewCalendar && isExternalCalendarType(calendarType)) {
-		color = generateRandomColor()
+	if (isNewCalendar && calendarType === CalendarType.External) {
+		color = generateRandomColor().substring(1)
 	}
 
 	const colorStream = stream(color)
@@ -150,7 +151,7 @@ export function showCreateEditCalendarDialog({
 			dialog,
 			{
 				nameData,
-				color: colorStream().substring(1),
+				color: colorStream(),
 				alarms,
 				sourceUrl: urlStream().trim(),
 			},
@@ -202,7 +203,7 @@ export function showCreateEditCalendarDialog({
 				},
 				okAction: doAction,
 			},
-			isNewCalendar && isExternalCalendarType(calendarType) ? externalCalendarDialogProps : {},
+			isNewCalendar && calendarType === CalendarType.External ? externalCalendarDialogProps : {},
 		),
 	)
 	dialog.show()

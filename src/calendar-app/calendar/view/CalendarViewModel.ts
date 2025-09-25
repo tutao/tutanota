@@ -32,13 +32,13 @@ import Stream from "mithril/stream"
 import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
+	CalendarType,
 	extractContactIdFromEvent,
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
 	isBirthdayCalendar,
 	isEventBetweenDays,
-	RenderType,
 } from "../../../common/calendar/date/CalendarUtils"
 import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
@@ -778,9 +778,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.setHiddenCalendars(newHiddenCalendars)
 	}
 
-	getIcon(renderType: RenderType, calendarId: string): CalendarSidebarRowIconData | undefined {
-		switch (renderType) {
-			case RenderType.External: {
+	getIcon(calendarId: string, calendarType: CalendarType): CalendarSidebarRowIconData | undefined {
+		switch (calendarType) {
+			case CalendarType.External: {
 				const lastSyncEntry = deviceConfig.getLastExternalCalendarSync().get(calendarId)
 				if (!lastSyncEntry || lastSyncEntry.lastSyncStatus === SyncStatus.Success) {
 					// lastSyncEntry won't exist in the webClient
