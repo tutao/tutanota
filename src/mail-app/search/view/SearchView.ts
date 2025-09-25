@@ -628,7 +628,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					replyAllAction: null,
 					forwardAction: null,
 					mailViewerMoreActions: null,
-					reportSpamAction: this.getReportMultipleEmailSpamAction(),
+					reportSpamAction: this.getReportSelectedMailsSpamAction(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -674,11 +674,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					forwardAction: this.getForwardAction(conversationViewModel),
 					mailViewerMoreActions: getMailViewerMoreActions({
 						viewModel: conversationViewModel.primaryViewModel(),
-						reportSpam: this.getReportAction(conversationViewModel.primaryViewModel()),
 						print: this.getPrintAction(),
-						reportPhishing: null,
+						reportSpam: null,
+						reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 					}),
-					reportSpamAction: null,
+					reportSpamAction: this.getReportSelectedMailsSpamAction(),
 				})
 				return m(BackgroundColumnLayout, {
 					backgroundColor: theme.navigation_bg,
@@ -719,13 +719,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								},
 							}
 						},
-						moreActions: (mailViewerModel) =>
-							getMailViewerMoreActions({
+						moreActions: (mailViewerModel) => {
+							return getMailViewerMoreActions({
 								viewModel: mailViewerModel,
-								reportSpam: this.getReportAction(mailViewerModel),
 								print: this.getPrintAction(),
-								reportPhishing: this.getReportSingleEmailPhishingAction(mailViewerModel),
-							}),
+								reportSpam: this.getSingleMailSpamAction(mailViewerModel),
+								reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
+							})
+						},
 					}),
 				})
 			}
@@ -771,40 +772,34 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 	}
 
-	private getReportAction(viewModel: MailViewerViewModel, reportType = MailReportType.SPAM): (() => unknown) | null {
+	private reportSingleMail(viewModel: MailViewerViewModel, reportType: MailReportType): void {
+		viewModel
+			.reportMail(reportType)
+			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+			.finally(m.redraw)
+	}
+
+	private getSingleMailSpamAction(viewModel: MailViewerViewModel): () => void {
+		return () => this.reportSingleMail(viewModel, MailReportType.SPAM)
+	}
+
+	private getSingleMailPhishingAction(viewModel: MailViewerViewModel): (() => void) | null {
 		return viewModel.canReport()
 			? () => {
-					viewModel
-						.reportMail(reportType ?? MailReportType.SPAM)
-						.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-						.finally(m.redraw)
+					showReportPhishingMailDialog(async () => this.reportSingleMail(viewModel, MailReportType.PHISHING))
 				}
 			: null
 	}
 
-	private getReportSingleEmailPhishingAction(viewModel: MailViewerViewModel): (() => unknown) | null {
-		return viewModel.canReport()
-			? () => {
-					showReportPhishingMailDialog(async () => {
-						await mailLocator.mailModel.reportMails(MailReportType.PHISHING, [viewModel.mail])
-						this.getReportAction(viewModel, MailReportType.PHISHING)
-					})
-				}
-			: null
-	}
+	private getReportSelectedMailsSpamAction(): (() => unknown) | null {
+		return async () => {
+			const selectedMails = this.searchViewModel.getSelectedMails()
+			if (isEmpty(selectedMails)) {
+				return
+			}
 
-	private getReportMultipleEmailSpamAction(): (() => unknown) | null {
-		const mailModel = mailLocator.mailModel
-		return mailModel.isMovingMailsFromSearchAllowed()
-			? async () => {
-					const selectedMails = this.searchViewModel.getSelectedMails()
-					if (isEmpty(selectedMails)) {
-						return
-					}
-
-					simpleMoveToSystemFolder(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, MailSetKind.SPAM, selectedMails)
-				}
-			: null
+			simpleMoveToSystemFolder(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, MailSetKind.SPAM, selectedMails)
+		}
 	}
 
 	private getForwardAction(conversationViewModel: ConversationViewModel): (() => void) | null {
@@ -851,8 +846,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private getMoveMailsAction(): ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null {
-		const mailModel = mailLocator.mailModel
-		return mailModel.isMovingMailsFromSearchAllowed() ? (origin) => this.moveMails(origin) : null
+		return (origin) => this.moveMails(origin)
 	}
 
 	private getLabelsAction(): ((dom: HTMLElement | null, opts?: LabelsPopupOpts) => void) | null {
@@ -972,9 +966,9 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				forwardAction: this.getForwardAction(conversationViewModel),
 				mailViewerMoreActions: getMailViewerMoreActions({
 					viewModel: conversationViewModel.primaryViewModel(),
-					reportSpam: this.getReportAction(conversationViewModel.primaryViewModel()),
 					print: this.getPrintAction(),
-					reportPhishing: null,
+					reportSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
+					reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 				}),
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {

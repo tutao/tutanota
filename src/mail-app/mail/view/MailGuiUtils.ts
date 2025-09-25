@@ -87,7 +87,6 @@ interface MoveMailsParams {
 	mailIds: ReadonlyArray<IdTuple>
 	targetFolder: MailFolder
 	moveMode: MoveMode
-	reportType?: MailReportType
 }
 
 enum MoveMailSnackbarResult {

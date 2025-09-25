@@ -410,10 +410,6 @@ export class MailModel {
 		}
 	}
 
-	isMovingMailsFromSearchAllowed(): boolean {
-		return this.logins.getUserController().isInternalUser()
-	}
-
 	canManageLabels(): boolean {
 		return this.logins.getUserController().isInternalUser()
 	}
