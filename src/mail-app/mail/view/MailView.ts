@@ -310,11 +310,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			forwardAction: this.getForwardAction(viewModel),
 			mailViewerMoreActions: getMailViewerMoreActions({
 				viewModel: viewModel.primaryViewModel(),
-				reportSpam: null,
 				print: this.getPrintAction(),
-				reportPhishing: null,
+				reportSpam: null,
+				reportPhishing: this.getSingleMailPhishingAction(viewModel.primaryViewModel()),
 			}),
-			reportSpamAction: this.getReportSingleEmailSpamAction(viewModel.primaryViewModel()),
+			reportSpamAction: this.getReportMailsAsSpamAction(),
 		})
 	}
 
@@ -328,52 +328,33 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 	}
 
-	private getReportSingleEmailSpamAction(viewModel: MailViewerViewModel): (() => unknown) | null {
-		const isSpamFolder = this.mailViewModel.getFolder()?.folderType === MailSetKind.SPAM
-		if (isSpamFolder) {
-			return null
-		}
+	private reportSingleMail(viewModel: MailViewerViewModel, reportType: MailReportType): void {
+		this.mailViewModel.clearStickyMail()
+		viewModel
+			.reportMail(reportType)
+			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+			.finally(m.redraw)
+	}
 
+	private getSingleMailSpamAction(viewModel: MailViewerViewModel): () => void {
+		return () => this.reportSingleMail(viewModel, MailReportType.SPAM)
+	}
+
+	private getSingleMailPhishingAction(viewModel: MailViewerViewModel): (() => void) | null {
 		return viewModel.canReport()
 			? () => {
-					this.mailViewModel.clearStickyMail()
-					viewModel
-						.reportMail()
-						.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-						.finally(m.redraw)
+					showReportPhishingMailDialog(async () => this.reportSingleMail(viewModel, MailReportType.PHISHING))
 				}
 			: null
 	}
 
-	private getReportSingleEmailPhishingAction(viewModel: MailViewerViewModel): (() => unknown) | null {
+	private getReportMailsAsSpamAction(): (() => unknown) | null {
 		const isSpamFolder = this.mailViewModel.getFolder()?.folderType === MailSetKind.SPAM
-		if (isSpamFolder) {
-			return null
-		}
-
-		return viewModel.canReport()
-			? () => {
-					showReportPhishingMailDialog(async () => {
-						this.mailViewModel.clearStickyMail()
-						await mailLocator.mailModel.reportMails(MailReportType.PHISHING, [viewModel.mail])
-						viewModel
-							.reportMail(MailReportType.PHISHING)
-							.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-							.finally(m.redraw)
-					})
+		return isSpamFolder
+			? null
+			: async () => {
+					await this.moveMailsToSystemFolder(MailSetKind.SPAM)
 				}
-			: null
-	}
-
-	private getReportMultipleEmailSpamAction(): (() => unknown) | null {
-		const isSpamFolder = this.mailViewModel.getFolder()?.folderType === MailSetKind.SPAM
-		if (isSpamFolder) {
-			return null
-		}
-
-		return async () => {
-			await this.moveMailsToSystemFolder(MailSetKind.SPAM)
-		}
 	}
 
 	private renderSingleMailViewer(header: AppHeaderAttrs, viewModel: ConversationViewModel) {
@@ -427,9 +408,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				moreActions: (mailViewerModel: MailViewerViewModel) => {
 					return getMailViewerMoreActions({
 						viewModel: mailViewerModel,
-						reportSpam: this.getReportSingleEmailSpamAction(mailViewerModel),
 						print: this.getPrintAction(),
-						reportPhishing: this.getReportSingleEmailPhishingAction(mailViewerModel),
+						reportSpam: this.getSingleMailSpamAction(mailViewerModel),
+						reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
 					})
 				},
 			}),
@@ -452,7 +433,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			replyAllAction: null,
 			forwardAction: null,
 			mailViewerMoreActions: null,
-			reportSpamAction: this.getReportMultipleEmailSpamAction(),
+			reportSpamAction: this.getReportMailsAsSpamAction(),
 		})
 	}
 
@@ -537,9 +518,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								forwardAction: this.getForwardAction(this.conversationViewModel),
 								mailViewerMoreActions: getMailViewerMoreActions({
 									viewModel: this.conversationViewModel.primaryViewModel(),
-									reportSpam: this.getReportMultipleEmailSpamAction(),
 									print: this.getPrintAction(),
-									reportPhishing: null,
+									reportSpam: this.getReportMailsAsSpamAction(),
+									reportPhishing: this.getSingleMailPhishingAction(this.conversationViewModel.primaryViewModel()),
 								}),
 							})
 						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
@@ -862,7 +843,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (folder == null) {
 			return
 		}
+
 		const actionableMails = await this.mailViewModel.getResolvedActionableMails()
+		if (isEmpty(actionableMails)) {
+			return
+		}
 
 		moveMailsToSystemFolder({
 			mailboxModel: locator.mailboxModel,
