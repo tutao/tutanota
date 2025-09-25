@@ -40,19 +40,22 @@ import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
 import { newMailEditorFromLocalDraftData } from "./mail/editor/MailEditor"
+import { isSessionStorageAvailable } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNodeBoot()
 bootFinished()
 
 const urlQueryParams = m.parseQueryString(location.search) as Record<string, string>
 
-const reloadArgs = sessionStorage.getItem("reloadArgs")
-if (reloadArgs) {
-	const args = JSON.parse(reloadArgs) as Record<string, string>
-	sessionStorage.removeItem("reloadArgs")
-	for (const [k, v] of Object.entries(args)) {
-		if (v != null && urlQueryParams[k] == null) {
-			urlQueryParams[k] = v
+if (isSessionStorageAvailable()) {
+	const reloadArgs = sessionStorage.getItem("reloadArgs")
+	if (reloadArgs) {
+		const args = JSON.parse(reloadArgs) as Record<string, string>
+		sessionStorage.removeItem("reloadArgs")
+		for (const [k, v] of Object.entries(args)) {
+			if (v != null && urlQueryParams[k] == null) {
+				urlQueryParams[k] = v
+			}
 		}
 	}
 }
