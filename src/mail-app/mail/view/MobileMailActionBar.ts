@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
+import { createDropdown, Dropdown, DROPDOWN_MARGIN, DropdownButtonAttrs, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils.js"
 import { modal } from "../../../common/gui/base/Modal.js"
 import type { MailViewerMoreActions } from "./MailViewerUtils.js"
 import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { px, size } from "../../../common/gui/size.js"
-import { noOp } from "@tutao/tutanota-utils"
+import { lazy, noOp } from "@tutao/tutanota-utils"
 
 export interface MobileMailActionBarAttrs {
 	deleteMailsAction: (() => void) | null
@@ -22,6 +22,7 @@ export interface MobileMailActionBarAttrs {
 	replyAllAction: (() => void) | null
 	forwardAction: (() => void) | null
 	mailViewerMoreActions: MailViewerMoreActions | null
+	spamAction: (() => void) | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -40,7 +41,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 			[
 				this.editButton(attrs) ?? this.replyButton(attrs) ?? this.placeholder(),
 				this.forwardButton(attrs),
-				this.deleteButton(attrs) ?? this.trashButton(attrs),
+				this.deleteButton(attrs) ?? this.trashAndSpamButton(attrs),
 				this.moveButton(attrs) ?? this.placeholder(),
 				this.moreButton(attrs),
 			],
@@ -136,12 +137,18 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		)
 	}
 
-	private trashButton({ trashMailsAction }: MobileMailActionBarAttrs): Children {
+	private trashAndSpamButton({ trashMailsAction, spamAction }: MobileMailActionBarAttrs): Children {
 		return (
 			trashMailsAction &&
 			m(IconButton, {
 				title: "trash_action",
-				click: trashMailsAction,
+				click:
+					spamAction != null
+						? this.showMultiActionDropdown(() => [
+								{ label: "trash_action", icon: Icons.Trash, click: trashMailsAction },
+								{ label: "spam_action", icon: Icons.Spam, click: spamAction },
+							])
+						: trashMailsAction,
 				icon: Icons.Trash,
 			})
 		)
@@ -157,6 +164,16 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		})
 	}
 
+	private showMultiActionDropdown(actions: lazy<readonly DropdownChildAttrs[]>) {
+		return (_: MouseEvent, dom: HTMLElement) => {
+			const dropdown = new Dropdown(actions, this.dropdownWidth() ?? 300)
+
+			const domRect = this.dom?.getBoundingClientRect() ?? dom.getBoundingClientRect()
+			dropdown.setOrigin(domRect)
+			modal.displayUnique(dropdown, true)
+		}
+	}
+
 	private replyButton({ replyAction, replyAllAction }: MobileMailActionBarAttrs) {
 		return (
 			replyAction &&
@@ -164,27 +181,18 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 				title: "reply_action",
 				click:
 					replyAllAction != null
-						? (e, dom) => {
-								const dropdown = new Dropdown(
-									() => [
-										{
-											label: "replyAll_action",
-											icon: Icons.ReplyAll,
-											click: replyAllAction,
-										},
-										{
-											label: "reply_action",
-											icon: Icons.Reply,
-											click: replyAction,
-										},
-									],
-									this.dropdownWidth() ?? 300,
-								)
-
-								const domRect = this.dom?.getBoundingClientRect() ?? dom.getBoundingClientRect()
-								dropdown.setOrigin(domRect)
-								modal.displayUnique(dropdown, true)
-							}
+						? this.showMultiActionDropdown(() => [
+								{
+									label: "replyAll_action",
+									icon: Icons.ReplyAll,
+									click: replyAllAction,
+								},
+								{
+									label: "reply_action",
+									icon: Icons.Reply,
+									click: replyAction,
+								},
+							])
 						: replyAction,
 				icon: replyAllAction != null ? Icons.ReplyAll : Icons.Reply,
 			})
