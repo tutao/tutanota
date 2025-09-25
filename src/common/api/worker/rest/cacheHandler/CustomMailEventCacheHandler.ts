@@ -102,20 +102,36 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 			const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
 			const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 
-			const storedClassification = await offlineStoragePersistence.getStoredClassification(mail)
+			let storedClassification = await offlineStoragePersistence.getStoredClassification(mail)
 			if (!storedClassification) {
 				const { mailIndexer, mailFacade } = await this.indexerAndMailFacade()
 				// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
 				const newMailData = await mailIndexer.downloadNewMailData(id)
-				await mailIndexer.afterMailCreated(id, newMailData)
-				await this.processSpam(newMailData, mailFacade, id)
-				return
-			}
-			const { isSpam: isAlreadySpam, isCertain: isAlreadyCertain } = storedClassification
+				storedClassification = {
+					isSpam,
+					isCertain: true,
+				}
+				if (newMailData) {
+					const spamTrainMailDatum: SpamTrainMailDatum = {
+						mailId: mail._id,
+						subject: mail.subject,
+						body: getMailBodyText(newMailData.mailDetails.body),
+						isSpam,
+						isCertain: true,
+					}
 
-			if (!isAlreadyCertain || isAlreadySpam !== isSpam) {
-				await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, true)
-				await mailFacade.updateClassifier()
+					await offlineStoragePersistence.storeSpamClassification(spamTrainMailDatum)
+					await mailFacade.updateClassifier() // model has not been trained with this datum before, so we retrain
+				} else {
+					// race: mail deleted in meantime
+				}
+			} else {
+				const { isSpam: isAlreadySpam, isCertain: isAlreadyCertain } = storedClassification
+
+				if (!isAlreadyCertain || isAlreadySpam !== isSpam) {
+					await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, true)
+					await mailFacade.updateClassifier()
+				}
 			}
 		}
 	}
