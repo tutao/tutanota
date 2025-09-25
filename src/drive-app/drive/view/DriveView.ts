@@ -72,7 +72,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							label: "newFile_action",
 							click: (ev, dom) => this.onNewFile_Click(dom),
 						},
-						content: "prout",
+						content: "",
 						ariaLabel: "folderTitle_label",
 					})
 				},
@@ -91,7 +91,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			{
 				view: () => {
 					return [
-						m("p", "welcome to the drive"),
+						m("h1", "Welcome to your drive."),
+						m("br"),
 						// m(List, {
 						// 	renderConfig: {
 						// 		createElement: (dom) => {
@@ -100,7 +101,20 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						// 		},
 						// 	},
 						// }),
-						this.currentFolderFiles.map((value) => m("", `File named "${value.name}", size: ${value.size}, ID: ${value._id}`)),
+						this.currentFolderFiles.map((value) =>
+							m(
+								"pre",
+								JSON.stringify(
+									{
+										id: value._id[1],
+										name: value.name,
+										size: value.size,
+									},
+									null,
+									2,
+								),
+							),
+						),
 					]
 				},
 			},
@@ -178,7 +192,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	async onNewFile_Click(dom: HTMLElement): Promise<void> {
 		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
 			if (files) {
-				this.driveFacade.uploadFiles([...files]).then((files) => this.currentFolderFiles.push(...files))
+				for (const f of files) {
+					this.driveFacade.uploadFiles([f]).then((files) => this.currentFolderFiles.push(...files))
+				}
 			}
 		})
 	}
