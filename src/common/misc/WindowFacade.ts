@@ -6,6 +6,7 @@ import type { IndexedDbIndexer } from "../../mail-app/workerUtils/index/IndexedD
 import { noOp, remove } from "@tutao/tutanota-utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
+import { isSessionStorageAvailable } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown
@@ -243,7 +244,9 @@ export class WindowFacade {
 			const { locator } = await import("../api/main/CommonLocator")
 			await locator.commonSystemFacade.reload(stringifiedArgs)
 		} else {
-			sessionStorage.setItem("reloadArgs", JSON.stringify(stringifiedArgs))
+			if (isSessionStorageAvailable()) {
+				sessionStorage.setItem("reloadArgs", JSON.stringify(stringifiedArgs))
+			}
 			window.location.reload()
 		}
 	}

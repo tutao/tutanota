@@ -641,3 +641,11 @@ function traceUnresolvedPromises<T>(promise: Promise<T>, callerArgs: any = "dumm
 		}
 	}, 60000)
 }
+
+export function isSessionStorageAvailable(): boolean {
+	try {
+		return typeof sessionStorage !== "undefined"
+	} catch (e) {
+		return false
+	}
+}
