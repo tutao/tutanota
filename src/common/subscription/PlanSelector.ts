@@ -148,7 +148,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		}
 
 		return m(
-			".flex.flex-column.gap-vpad-l",
+			"#plan-selector.flex.flex-column.gap-vpad-l",
 			{
 				style: this.shouldFixButtonPos() && {
 					"padding-bottom": px(size.button_floating_size + size.vpad),
@@ -157,7 +157,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			},
 			[
 				m(
-					"#plan-selector.flex.flex-column.gap-vpad-l",
+					".flex.flex-column.gap-vpad-l",
 					!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) && allowSwitchingPaymentInterval && renderPaymentIntervalSwitch(),
 				),
 
