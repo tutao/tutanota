@@ -277,7 +277,7 @@ o.spec("CryptoMapper", function () {
 		} as any as ServerModelEncryptedParsedInstance
 		const instance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, null)
 		o(instance[1]).equals("") // default value is assigned in case of crypto errors
-		o(typeof instance._errors?.[1]).equals("string")
+		o(instance._errors?.[14]).equals("Probably temporary SessionKeyNotFound")
 	})
 
 	o("encryptParsedInstance with missing sk throws", async function () {

@@ -8,7 +8,7 @@ import {
 	ServerModelParsedInstance,
 	ServerTypeModel,
 } from "../../common/EntityTypes"
-import { Base64, base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { assertNotNull, Base64, base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
@@ -17,6 +17,8 @@ import { convertDbToJsType, convertJsToDbType, decompressString, isDefaultValue,
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { isWebClient } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
+import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundError"
+import { AttributeModel } from "../../common/AttributeModel"
 
 // Exported for testing
 export function encryptValue(
@@ -92,7 +94,9 @@ export class CryptoMapper {
 					const encryptedString = encryptedValue as Base64
 					decrypted[valueId] = decryptValue(encryptedValueInfo, encryptedString, sk)
 				} else {
-					throw new CryptoError("session key is null, but value is encrypted. valueName: " + valueName + " valueType: " + JSON.stringify(valueInfo))
+					throw new SessionKeyNotFoundError(
+						"session key is null, but value is encrypted. valueName: " + valueName + " valueType: " + JSON.stringify(valueInfo),
+					)
 				}
 				if (valueInfo.encrypted) {
 					if (encryptedValue === "") {
@@ -113,9 +117,13 @@ export class CryptoMapper {
 					decrypted._errors = {}
 				}
 				decrypted[valueId] = valueToDefault(valueInfo.type)
-
-				decrypted._errors[valueId] = JSON.stringify(e)
-				console.log("error when decrypting value on type:", `[${serverTypeModel.app},${serverTypeModel.name}]`, "valueName:", valueName, e)
+				if (e instanceof SessionKeyNotFoundError) {
+					const skAttrId = assertNotNull(AttributeModel.getAttributeId(serverTypeModel, "_ownerEncSessionKey"))
+					decrypted._errors[skAttrId] = "Probably temporary SessionKeyNotFound"
+				} else {
+					decrypted._errors[valueId] = JSON.stringify(e)
+					console.log("error when decrypting value on type:", `[${serverTypeModel.app},${serverTypeModel.name}]`, "valueName:", valueName, e)
+				}
 			}
 		}
 
