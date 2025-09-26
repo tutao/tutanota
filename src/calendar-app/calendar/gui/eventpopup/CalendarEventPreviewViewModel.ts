@@ -7,11 +7,11 @@ import {
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../eventeditor-model/CalendarEventModel.js"
 import { NotFoundError } from "../../../../common/api/common/error/RestError.js"
-import { CalendarModel, CalendarRenderInfo } from "../../model/CalendarModel.js"
+import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { CalendarAttendeeStatus, EndType } from "../../../../common/api/common/TutanotaConstants.js"
 import m from "mithril"
-import { clone, deepEqual, incrementDate, Thunk } from "@tutao/tutanota-utils"
+import { clone, deepEqual, incrementDate, LazyLoaded, Thunk } from "@tutao/tutanota-utils"
 import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
@@ -48,6 +48,13 @@ export class CalendarEventPreviewViewModel {
 	 * Comment to be sent together with the event reply
 	 */
 	comment: string = ""
+
+	private readonly calendar: LazyLoaded<CalendarInfoBase | undefined> = new LazyLoaded<CalendarInfoBase | undefined>(async () => {
+		if (!this.calendarEvent?._ownerGroup) {
+			return undefined
+		}
+		return this.calendarModel.getCalendarInfo(this.calendarEvent._ownerGroup)
+	})
 
 	/**
 	 *
@@ -92,6 +99,8 @@ export class CalendarEventPreviewViewModel {
 
 		this.isRepeatingForEditing =
 			(calendarEvent.repeatRule != null || calendarEvent.recurrenceId != null) && (eventType === EventType.OWN || eventType === EventType.SHARED_RW)
+
+		this.calendar.getAsync().then(m.redraw)
 	}
 
 	/** for deleting, an event that has only one non-deleted instance behaves as if it wasn't repeating
@@ -369,8 +378,8 @@ export class CalendarEventPreviewViewModel {
 	}
 
 	// Returns null if there is no ownerGroup, which might be the case if an event invitation is being viewed
-	getCalendarRenderInfo(): CalendarRenderInfo | null {
-		if (!this.calendarEvent._ownerGroup) return null
-		return this.calendarModel.getCalendarRenderInfo(this.calendarEvent._ownerGroup)
+	getCalendarInfoBase(): CalendarInfoBase | undefined {
+		if (!this.calendarEvent._ownerGroup) return undefined
+		return this.calendar.getLoaded()
 	}
 }

@@ -175,7 +175,7 @@ export class ContactModel {
 		const { hasCapabilityOnGroup, isSharedGroupOwner } = await import("../sharing/GroupUtils.js")
 
 		return {
-			name: getSharedGroupName(groupInfo, userController, true),
+			name: getSharedGroupName(groupInfo, userController.userSettingsGroupRoot, true),
 			group,
 			groupInfo,
 			groupRoot,

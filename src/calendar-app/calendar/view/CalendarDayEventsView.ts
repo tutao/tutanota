@@ -7,7 +7,7 @@ import {
 	getTimeTextFormatForLongEvent,
 	getTimeZone,
 	hasAlarmsForTheUser,
-	isClientOnlyCalendar,
+	isBirthdayCalendar,
 } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -17,8 +17,8 @@ import {
 	EventLayoutMode,
 	expandEvent,
 	formatEventTime,
-	getEventColor,
 	getDisplayEventTitle,
+	getEventColor,
 	getTimeFromMousePos,
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
@@ -142,7 +142,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				fadeIn: !attrs.isTemporaryEvent(ev),
 				opacity: attrs.isTemporaryEvent(ev) ? TEMPORARY_EVENT_OPACITY : 1,
 				enablePointerEvents: !attrs.isTemporaryEvent(ev) && !attrs.isDragging && !attrs.disabled,
-				isClientOnly: isClientOnlyCalendar(listIdPart(ev._id)),
+				isBirthday: isBirthdayCalendar(listIdPart(ev._id)),
 			}),
 		)
 	}

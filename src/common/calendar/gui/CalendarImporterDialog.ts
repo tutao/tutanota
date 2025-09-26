@@ -13,12 +13,13 @@ import { UserAlarmInfoTypeRef } from "../../api/entities/sys/TypeRefs.js"
 import { convertToDataFile } from "../../api/common/DataFile.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { ofClass, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { CalendarType, getTimeZone, isExternalCalendarType } from "../date/CalendarUtils.js"
+import { CalendarType, getTimeZone } from "../date/CalendarUtils.js"
 import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { isApp } from "../../api/common/Env.js"
 
 import { EventImportRejectionReason, EventWrapper, sortOutParsedEvents } from "./ImportExportUtils.js"
+import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 
 /**
  * show an error dialog detailing the reason and amount for events that failed to import
@@ -40,8 +41,9 @@ async function partialImportConfirmation(skippedEvents: CalendarEvent[], confirm
 
 export async function handleCalendarImport(
 	calendarGroupRoot: CalendarGroupRoot,
+	calendarInfo: CalendarInfoBase,
 	importedParsedEvents: ParsedEvent[] | null = null,
-	calendarType: CalendarType = CalendarType.NORMAL,
+	calendarType: CalendarType = CalendarType.Private,
 ): Promise<void> {
 	const parsedEvents: ParsedEvent[] = importedParsedEvents ?? (await showProgressDialog("loading_msg", selectAndParseIcalFile()))
 	if (parsedEvents.length === 0) return
@@ -56,7 +58,7 @@ export async function handleCalendarImport(
 	if (!(await partialImportConfirmation(rejectedEvents.get(EventImportRejectionReason.Pre1970) ?? [], "importPre1970StartInEvent_msg", total))) return
 
 	if (eventsForCreation.length > 0) {
-		if (isExternalCalendarType(calendarType)) await importEvents(eventsForCreation)
+		if (calendarType === CalendarType.External) await importEvents(eventsForCreation)
 		else
 			showEventsImportDialog(
 				eventsForCreation.map((ev) => ev.event),
@@ -65,6 +67,7 @@ export async function handleCalendarImport(
 					await importEvents(eventsForCreation)
 				},
 				"importEvents_label",
+				calendarInfo,
 			)
 	}
 }

@@ -14,7 +14,7 @@ import {
 	getEventStart,
 	getMonthRange,
 	isBirthdayEvent,
-	isClientOnlyCalendar,
+	isBirthdayCalendar,
 } from "./CalendarUtils.js"
 import { Birthday, CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, createCalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
@@ -22,7 +22,7 @@ import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
 import { deepEqual, findAllAndRemove, mapAndFilterNull, stringToBase64 } from "@tutao/tutanota-utils"
-import { CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID, OperationType, RepeatPeriod } from "../../api/common/TutanotaConstants.js"
+import { BIRTHDAY_CALENDAR_BASE_ID, OperationType, RepeatPeriod } from "../../api/common/TutanotaConstants.js"
 import { NotAuthorizedError, NotFoundError } from "../../api/common/error/RestError.js"
 import { EventController } from "../../api/main/EventController.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../api/common/utils/EntityUpdateUtils.js"
@@ -257,7 +257,7 @@ export class CalendarEventsRepository {
 	}
 
 	private addDaysForRecurringEvent(event: CalendarEvent, month: CalendarTimeRange): void {
-		if (!isClientOnlyCalendar(listIdPart(event._id)) && -DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
+		if (!isBirthdayCalendar(listIdPart(event._id)) && -DateTime.fromJSDate(event.startTime).diffNow("year").years > LIMIT_PAST_EVENTS_YEARS) {
 			console.log("repeating event is too far into the past", event)
 			return
 		}
@@ -357,7 +357,7 @@ export class CalendarEventsRepository {
 		}
 
 		const encodedContactId = stringToBase64(contact._id.join("/"))
-		const calendarId = `${userId}#${CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID}`
+		const calendarId = `${userId}#${BIRTHDAY_CALENDAR_BASE_ID}`
 		const uid = generateUid(calendarId, Date.now())
 
 		const eventTitle = this.calendarModel.getBirthdayEventTitle(contact.firstName)

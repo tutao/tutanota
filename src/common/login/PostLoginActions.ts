@@ -55,7 +55,6 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly themeController: ThemeController,
 		private readonly syncTracker: SyncTracker,
 		private readonly showSetupWizard: () => unknown,
-		private readonly setUpClientOnlyCalendars: () => unknown,
 		private readonly updateClient: () => unknown,
 	) {}
 
@@ -177,8 +176,6 @@ export class PostLoginActions implements PostLoginAction {
 
 			this.handleExternalSync()
 		}
-
-		this.setUpClientOnlyCalendars()
 
 		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
 			const receiveInfoData = createReceiveInfoServiceData({

@@ -20,14 +20,7 @@ import {
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/tutanota-utils"
-import {
-	CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID,
-	CLIENT_ONLY_CALENDARS,
-	EndType,
-	EventTextTimeOption,
-	RepeatPeriod,
-	TimeFormat,
-} from "../../api/common/TutanotaConstants"
+import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod, TimeFormat } from "../../api/common/TutanotaConstants"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import {
 	AdvancedRepeatRule,
@@ -41,7 +34,7 @@ import {
 	UserSettingsGroupRoot,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
-import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, GroupInfo, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
+import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId, StrippedEntity } from "../../api/common/utils/EntityUtils"
 import type { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
@@ -84,7 +77,7 @@ export function generateUid(groupId: Id, timestamp: number): string {
 }
 
 export function isBirthdayEvent(uid?: string | null) {
-	return uid?.includes(CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID) ?? false
+	return uid?.includes(BIRTHDAY_CALENDAR_BASE_ID) ?? false
 }
 
 /** get the timestamps of the start date and end date of the month the given date is in. */
@@ -1691,70 +1684,52 @@ export function parseAlarmInterval(serialized: string): AlarmInterval {
 }
 
 export enum CalendarType {
-	NORMAL,
-	URL, // External calendar
-	CLIENT_ONLY,
-}
-
-export enum RenderType {
 	Private,
 	Shared,
 	External,
-	ClientOnly,
+	Birthday,
 }
 
-export const RENDER_TYPE_TRANSLATION_MAP: ReadonlyMap<RenderType, TranslationKey> = freezeMap(
+export const CALENDAR_TYPE_TRANSLATION_MAP: ReadonlyMap<CalendarType, TranslationKey> = freezeMap(
 	new Map([
-		[RenderType.Private, "yourCalendars_label"],
-		[RenderType.External, "calendarSubscriptions_label"],
-		[RenderType.Shared, "calendarShared_label"],
+		[CalendarType.Private, "yourCalendars_label"],
+		[CalendarType.External, "calendarSubscriptions_label"],
+		[CalendarType.Shared, "calendarShared_label"],
 	]),
 )
 
-export function isPrivateRenderType(calendarInfo: CalendarInfo) {
-	return calendarInfo.userIsOwner && !calendarInfo.isExternal && !isClientOnlyCalendar(calendarInfo.group._id)
+type CalendarTypeInfo = {
+	calendarId: string
+	isExternalCalendar: boolean
+	isUserOwner: boolean
 }
 
-export function isSharedRenderType(calendarInfo: CalendarInfo) {
-	return !calendarInfo.userIsOwner
-}
-
-export function isExternalRenderType(calendarInfo: CalendarInfo) {
-	return calendarInfo.userIsOwner && calendarInfo.isExternal
-}
-
-export function getCalendarRenderType(calendarInfo: CalendarInfo): RenderType {
-	if (isPrivateRenderType(calendarInfo)) return RenderType.Private
-	if (isSharedRenderType(calendarInfo)) return RenderType.Shared
-	if (isExternalRenderType(calendarInfo)) return RenderType.External
+export function getCalendarType(calendarTypeInfo: CalendarTypeInfo): CalendarType {
+	if (isBirthdayCalendar(calendarTypeInfo.calendarId)) return CalendarType.Birthday
+	if (isPrivateRenderType(calendarTypeInfo)) return CalendarType.Private
+	if (isSharedRenderType(calendarTypeInfo)) return CalendarType.Shared
+	if (isExternalRenderType(calendarTypeInfo)) return CalendarType.External
 	throw new Error("Unknown calendar Render Type")
 }
 
-export function isClientOnlyCalendar(calendarId: Id) {
-	const clientOnlyId = calendarId.match(/#(.*)/)?.[1]!
-	return CLIENT_ONLY_CALENDARS.has(clientOnlyId)
+function isPrivateRenderType(calendarTypeInfo: CalendarTypeInfo) {
+	return calendarTypeInfo.isUserOwner && !calendarTypeInfo.isExternalCalendar && !isBirthdayCalendar(calendarTypeInfo.calendarId)
 }
 
-export function isClientOnlyCalendarType(calendarType: CalendarType) {
-	return calendarType === CalendarType.CLIENT_ONLY
+function isSharedRenderType(calendarTypeInfo: CalendarTypeInfo) {
+	return !calendarTypeInfo.isUserOwner
 }
 
-export function isNormalCalendarType(calendarType: CalendarType) {
-	return calendarType === CalendarType.NORMAL
+function isExternalRenderType(calendarTypeInfo: CalendarTypeInfo) {
+	return calendarTypeInfo.isUserOwner && calendarTypeInfo.isExternalCalendar
 }
 
-export function isExternalCalendarType(calendarType: CalendarType) {
-	return calendarType === CalendarType.URL
+export function isBirthdayCalendar(calendarId: Id) {
+	return calendarId.includes(BIRTHDAY_CALENDAR_BASE_ID)
 }
 
 export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
 	return isNotNull(groupSettings?.sourceUrl) && groupSettings?.sourceUrl !== ""
-}
-
-export function getCalendarType(groupSettings: GroupSettings | null, groupInfo: GroupInfo): CalendarType {
-	if (hasSourceUrl(groupSettings)) return CalendarType.URL
-	if (isClientOnlyCalendar(groupSettings ? groupSettings._id : groupInfo.group)) return CalendarType.CLIENT_ONLY
-	return CalendarType.NORMAL
 }
 
 export function extractYearFromBirthday(birthday: string | null): number | null {
@@ -1774,16 +1749,22 @@ export function extractYearFromBirthday(birthday: string | null): number | null 
 	return Number.parseInt(dateParts[0])
 }
 
-export async function retrieveClientOnlyEventsForUser(logins: LoginController, events: IdTuple[], localEvents: Map<number, BirthdayEventRegistry[]>) {
+export async function retrieveBirthdayEventsForUser(
+	logins: LoginController,
+	searchResultEventIds: IdTuple[],
+	birthdayEventsByMonth: Map<number, BirthdayEventRegistry[]>,
+) {
 	if (!(await logins.getUserController().isNewPaidPlan())) {
 		return []
 	}
 
-	const clientOnlyEvents = events.filter(([calendarId, _]) => isClientOnlyCalendar(calendarId)).flatMap((event) => event.join("/"))
+	const birthdayEventsFromSearchResult = searchResultEventIds.filter(([calendarId, _]) => isBirthdayCalendar(calendarId))
+	const birthdayEventIdsString = birthdayEventsFromSearchResult.flatMap((eventId) => eventId.join("/"))
 	const retrievedEvents: CalendarEvent[] = []
 
-	for (const event of Array.from(localEvents.values()).flat()) {
-		if (clientOnlyEvents.includes(event.event._id.join("/"))) {
+	const allBirthdayEvents = Array.from(birthdayEventsByMonth.values()).flat()
+	for (const event of allBirthdayEvents) {
+		if (birthdayEventIdsString.includes(event.event._id.join("/"))) {
 			retrievedEvents.push(event.event)
 		}
 	}

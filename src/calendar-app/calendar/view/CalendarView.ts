@@ -19,22 +19,21 @@ import {
 } from "@tutao/tutanota-utils"
 import {
 	CalendarEvent,
+	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
 	Contact,
 	ContactTypeRef,
 	createDefaultAlarmInfo,
 	GroupSettings,
-	UserSettingsGroupRoot,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
-	DEFAULT_CLIENT_ONLY_CALENDAR_COLORS,
+	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 	defaultCalendarColor,
 	GroupType,
 	Keys,
 	NewPaidPlans,
 	reverse,
 	ShareCapability,
-	TabIndex,
 	TimeFormat,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants"
@@ -43,16 +42,11 @@ import {
 	CalendarType,
 	extractContactIdFromEvent,
 	findFirstPrivateCalendar,
-	getCalendarType,
 	getTimeZone,
 	hasSourceUrl,
+	isBirthdayCalendar,
 	isBirthdayEvent,
-	isClientOnlyCalendar,
-	isExternalRenderType,
-	isPrivateRenderType,
-	isSharedRenderType,
 	parseAlarmInterval,
-	RenderType,
 } from "../../../common/calendar/date/CalendarUtils"
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { CalendarMonthView } from "./CalendarMonthView"
@@ -64,13 +58,12 @@ import { styles } from "../../../common/gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { px, size } from "../../../common/gui/size"
+import { size } from "../../../common/gui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { exportCalendar, handleCalendarImport } from "../../../common/calendar/gui/CalendarImporterDialog.js"
 import { showNotAvailableForFreeDialog, showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs"
 import { getSharedGroupName, hasCapabilityOnGroup, loadGroupMembers } from "../../../common/sharing/GroupUtils"
-import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvitationFolderRow"
 import { SidebarSection } from "../../../common/gui/SidebarSection"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
@@ -79,10 +72,10 @@ import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultTo
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { CalendarInfo, CalendarModel } from "../model/CalendarModel"
+import { BirthdayCalendarInfo, CalendarInfo, CalendarModel } from "../model/CalendarModel"
 import type Stream from "mithril/stream"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
-import { createDropdown, PosRect } from "../../../common/gui/base/Dropdown.js"
+import { createDropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView.js"
@@ -99,10 +92,9 @@ import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { client } from "../../../common/misc/ClientDetector.js"
 import { FloatingActionButton } from "../../gui/FloatingActionButton.js"
-import { Icon, IconSize, progressIcon } from "../../../common/gui/base/Icon.js"
-import { Group, User } from "../../../common/api/entities/sys/TypeRefs.js"
-import { formatDate, formatTime } from "../../../common/misc/Formatter.js"
-import { getExternalCalendarName, parseCalendarStringData, SyncStatus } from "../../../common/calendar/gui/ImportExportUtils.js"
+import { progressIcon } from "../../../common/gui/base/Icon.js"
+import { Group, GroupInfo, User } from "../../../common/api/entities/sys/TypeRefs.js"
+import { getExternalCalendarName, parseCalendarStringData } from "../../../common/calendar/gui/ImportExportUtils.js"
 import type { ParsedEvent } from "../../../common/calendar/gui/CalendarImporter.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { elementIdPart } from "../../../common/api/common/utils/EntityUtils.js"
@@ -124,6 +116,9 @@ import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardVi
 import { calendarLocator } from "../../calendarLocator.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
+import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
+import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
+import { UserController } from "../../../common/api/main/UserController"
 
 export type GroupColors = Map<Id, string>
 
@@ -201,7 +196,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 															{
 																label: "addCalendar_action",
 																colors: ButtonColor.Nav,
-																click: () => this.onPressedAddCalendar(CalendarType.NORMAL),
+																click: () => this.onPressedAddCalendar(CalendarType.Private),
 																icon: Icons.Add,
 																size: ButtonSize.Compact,
 															},
@@ -209,17 +204,18 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 																label: "addCalendarFromURL_action",
 																icon: Icons.Link,
 																size: ButtonSize.Compact,
-																click: () => this.onPressedAddCalendar(CalendarType.URL),
+																click: () => this.onPressedAddCalendar(CalendarType.External),
 															},
 														],
 													})
-												: () => this.onPressedAddCalendar(CalendarType.NORMAL),
+												: () => this.onPressedAddCalendar(CalendarType.Private),
 										icon: Icons.Add,
 										size: ButtonSize.Compact,
 									}),
 									hideIfEmpty: true,
 								},
-								this.renderCalendars([RenderType.Private, RenderType.ClientOnly]),
+								this.renderCalendars(CalendarType.Private),
+								this.renderBirthdayCalendar(),
 							),
 							m(
 								SidebarSection,
@@ -227,7 +223,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									name: "calendarShared_label",
 									hideIfEmpty: true,
 								},
-								this.renderCalendars([RenderType.Shared]),
+								this.renderCalendars(CalendarType.Shared),
 							),
 							m(
 								SidebarSection,
@@ -235,7 +231,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									name: "calendarSubscriptions_label",
 									hideIfEmpty: true,
 								},
-								this.renderCalendars([RenderType.External]),
+								this.renderCalendars(CalendarType.External),
 							),
 							this.viewModel.calendarInvitations().length > 0
 								? m(
@@ -265,7 +261,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		this.contentColumn = new ViewColumn(
 			{
 				view: () => {
-					this.viewModel.loadCalendarColors()
 					switch (this.currentViewType) {
 						case CalendarViewType.MONTH:
 							return m(BackgroundColumnLayout, {
@@ -933,7 +928,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			showNotAvailableForFreeDialog()
 			return
 		}
-		if (calendarType === CalendarType.URL)
+		if (calendarType === CalendarType.External)
 			userController.isNewPaidPlan().then((isNewPaidPlan) => {
 				if (isNewPaidPlan) this.showCreateCalendarDialog(calendarType)
 				else showPlanUpgradeRequiredDialog(NewPaidPlans)
@@ -967,13 +962,24 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			const calendarGroup = await calendarModel.createCalendar(getExternalCalendarName(iCalStr), properties.color, [], properties.sourceUrl)
 			const calendarGroupRoot = await locator.entityClient.load(CalendarGroupRootTypeRef, calendarGroup._id)
 			deviceConfig.updateLastSync(calendarGroup._id)
-			await handleCalendarImport(calendarGroupRoot, events, CalendarType.URL)
+
+			let calendarInfo = await this.viewModel.getCalendarModel().getCalendarInfo(calendarGroup._id)
+			if (!calendarInfo) {
+				console.warn(`CalendarInfo not available during external calendar subscription - CalendarId (${calendarGroup._id})`)
+				calendarInfo = {
+					id: calendarGroup._id,
+					name: "",
+					color: defaultCalendarColor,
+					type: CalendarType.External,
+				}
+			}
+			await handleCalendarImport(calendarGroupRoot, calendarInfo, events, CalendarType.External)
 			this.viewModel.isCreatingExternalCalendar = false
 			dialog.close()
 		}
 
 		switch (calendarType) {
-			case CalendarType.NORMAL:
+			case CalendarType.Private:
 				showCreateEditCalendarDialog({
 					calendarType,
 					titleTextId: "add_action",
@@ -982,7 +988,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					calendarModel: this.viewModel.getCalendarModel(),
 				})
 				break
-			case CalendarType.URL:
+			case CalendarType.External:
 				showCreateEditCalendarDialog({
 					calendarType,
 					titleTextId: "newCalendarSubscriptionsDialog_title",
@@ -992,215 +998,58 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					calendarModel: this.viewModel.getCalendarModel(),
 				})
 				break
+			default:
+				throw new Error(`Not allowed to create a calendar of type ${calendarType.toString()}`)
 		}
 	}
 
-	private renderCalendars(renderTypes: RenderType[]): Children {
-		const includeLocalCalendars = renderTypes.includes(RenderType.ClientOnly)
-		const toggleHidden = (viewModel: CalendarViewModel, groupRootId: string) => {
-			const newHiddenCalendars = new Set(viewModel.hiddenCalendars)
-			if (viewModel.hiddenCalendars.has(groupRootId)) {
-				newHiddenCalendars.delete(groupRootId)
-			} else {
-				newHiddenCalendars.add(groupRootId)
-			}
+	private renderCalendars(calendarType: CalendarType): Children {
+		const calendarInfos = this.viewModel
+			.getCalendarModel()
+			.getAvailableCalendars()
+			.filter((calendarInfo) => {
+				return calendarInfo.type === calendarType
+			}) as Array<CalendarInfo>
 
-			viewModel.setHiddenCalendars(newHiddenCalendars)
-		}
+		const userController = locator.logins.getUserController()
 
-		const calendarInfos = [...this.viewModel.calendarInfos, ...(includeLocalCalendars ? this.viewModel.clientOnlyCalendars : [])]
+		return calendarInfos.map((calendarInfo) => {
+			const rightIconData = this.viewModel.getIcon(calendarInfo.id, calendarInfo.type)
+			const existingGroupSettings = userController.userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group)
 
-		const filteredCalendarInfos = calendarInfos.filter(([_, calendarInfo]) => {
-			const renderTypeToCondition: ReadonlyMap<RenderType, (calendarInfo: CalendarInfo) => boolean> = new Map([
-				[RenderType.ClientOnly, (calendarInfo: CalendarInfo) => isClientOnlyCalendar(calendarInfo.group._id)],
-				[RenderType.Private, isPrivateRenderType],
-				[RenderType.Shared, isSharedRenderType],
-				[RenderType.External, isExternalRenderType],
-			])
-			/**
-			 * Dynamically filters calendarInfoList according to the renderTypes
-			 */
-			const conditions: Array<(calendarInfo: CalendarInfo) => boolean> = []
-			for (const renderType of renderTypes) {
-				conditions.push(renderTypeToCondition.get(renderType)!)
-			}
-			return conditions.reduce((result, condition) => result || condition(calendarInfo), false)
-		})
-
-		return filteredCalendarInfos.map(([_, calendarInfo]) => {
-			return this.renderCalendarItem(calendarInfo, toggleHidden, this.viewModel.hiddenCalendars.has(calendarInfo.group._id))
+			return m(CalendarSidebarRow, {
+				id: calendarInfo.id,
+				name: calendarInfo.name,
+				color: calendarInfo.color,
+				isHidden: this.viewModel.hiddenCalendars.has(calendarInfo.id),
+				toggleHiddenCalendar: this.viewModel.toggleHiddenCalendar,
+				rightIcon: rightIconData,
+				actions: this.buildActions(calendarInfo, userController, existingGroupSettings),
+			} satisfies CalendarSidebarRowAttrs)
 		})
 	}
 
-	private renderCalendarItem(calendarInfo: CalendarInfo, toggleHidden: (viewModel: CalendarViewModel, groupRootId: string) => void, isHidden: boolean) {
-		const { userSettingsGroupRoot } = locator.logins.getUserController()
-		const existingGroupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? null
+	private renderBirthdayCalendar() {
+		const calendarInfo = this.viewModel.getCalendarModel().getBirthdayCalendarInfo()
 
-		const renderInfo = this.viewModel.getCalendarModel().getCalendarRenderInfo(calendarInfo.groupInfo.group, existingGroupSettings)
-		let colorValue = renderInfo.color
-		let groupName = renderInfo.name
-		if (isClientOnlyCalendar(calendarInfo.group._id)) {
-			const clientOnlyId = calendarInfo.group._id.match(/#(.*)/)?.[1]!
-			const clientOnlyCalendarConfig = deviceConfig.getClientOnlyCalendars().get(calendarInfo.group._id)
-			colorValue = "#" + (clientOnlyCalendarConfig?.color ?? DEFAULT_CLIENT_ONLY_CALENDAR_COLORS.get(clientOnlyId))
-			groupName = clientOnlyCalendarConfig?.name ?? clientOnlyId
-		}
-
-		const lastSyncEntry = deviceConfig.getLastExternalCalendarSync().get(calendarInfo.group._id)
-		const lastSyncDate = lastSyncEntry?.lastSuccessfulSync ? new Date(lastSyncEntry.lastSuccessfulSync) : null
-		const lastSyncStr = lastSyncDate
-			? lang.get("lastSync_label", { "{date}": `${formatDate(lastSyncDate)} at ${formatTime(lastSyncDate)}` })
-			: lang.get("iCalNotSync_msg")
-
-		const groupRootId = calendarInfo.groupRoot._id
-		const handleToggleCalendar = () => {
-			if (!isClientOnlyCalendar(groupRootId) || this.viewModel.isNewPaidPlan) toggleHidden(this.viewModel, groupRootId)
-			else showPlanUpgradeRequiredDialog(NewPaidPlans)
-		}
-
-		return m(".folder-row.flex-start.plr-button", [
-			m(".flex.flex-grow.center-vertically.button-height", [
-				m(".calendar-checkbox", {
-					role: "checkbox",
-					title: groupName,
-					tabindex: TabIndex.Default,
-					"aria-checked": (!isHidden).toString(),
-					"aria-label": groupName,
-					onclick: handleToggleCalendar,
-					onkeydown: (e: KeyboardEvent) => {
-						if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
-							toggleHidden(this.viewModel, groupRootId)
-							e.preventDefault()
-						}
-					},
-					style: {
-						"border-color": colorValue,
-						background: isHidden ? "" : colorValue,
-						transition: "all 0.3s",
-						cursor: "pointer",
-						marginLeft: px(size.hpad_button),
-					},
-				}),
-				m(
-					".pl-m.b.flex-grow.text-ellipsis",
-					{
-						style: {
-							width: 0,
-						},
-					},
-					groupName,
-				),
-			]),
-			hasSourceUrl(existingGroupSettings) && lastSyncEntry?.lastSyncStatus === SyncStatus.Failed
-				? m(Icon, {
-						title: lastSyncStr,
-						icon: Icons.SyncProblem,
-						size: IconSize.Medium,
-						class: "pr-s",
-						style: {
-							fill: theme.content_button,
-						},
-					})
-				: null,
-			this.createCalendarActionDropdown(calendarInfo, colorValue ?? defaultCalendarColor, existingGroupSettings, userSettingsGroupRoot),
-		])
+		return m(CalendarSidebarRow, {
+			id: calendarInfo.id,
+			name: lang.get("birthdayCalendar_label"),
+			color: DEFAULT_BIRTHDAY_CALENDAR_COLOR, // FIXME get new persisted color
+			isHidden: this.viewModel.hiddenCalendars.has(calendarInfo.id),
+			toggleHiddenCalendar: this.viewModel.toggleHiddenCalendar,
+			actions: [
+				{
+					label: "edit_action",
+					icon: Icons.Edit,
+					click: () => this.onPressedEditBirthdayCalendar(calendarInfo),
+				},
+			],
+		} satisfies CalendarSidebarRowAttrs)
 	}
 
-	private createCalendarActionDropdown(
-		calendarInfo: CalendarInfo,
-		colorValue: string,
-		existingGroupSettings: GroupSettings | null,
-		userSettingsGroupRoot: UserSettingsGroupRoot,
-	): Children {
-		const { group, groupInfo, groupRoot, isExternal } = calendarInfo
-		const user = locator.logins.getUserController().user
-		const isClientOnly = isClientOnlyCalendar(calendarInfo.group._id)
-		return m(IconButton, {
-			title: "more_label",
-			colors: ButtonColor.Nav,
-			icon: Icons.More,
-			size: ButtonSize.Compact,
-			click: createDropdown({
-				lazyButtons: () => [
-					{
-						label: "edit_action",
-						icon: Icons.Edit,
-						size: ButtonSize.Compact,
-						click: () => this.onPressedEditCalendar(calendarInfo, colorValue, existingGroupSettings, userSettingsGroupRoot),
-					},
-					!isExternal && !isClientOnly
-						? {
-								label: "sharing_label",
-								icon: Icons.ContactImport,
-								click: () => {
-									if (locator.logins.getUserController().isFreeAccount()) {
-										showNotAvailableForFreeDialog()
-									} else {
-										showGroupSharingDialog(groupInfo, calendarInfo.shared)
-									}
-								},
-							}
-						: null,
-					this.allowCalendarImport(group, user, existingGroupSettings)
-						? {
-								label: "import_action",
-								icon: Icons.Import,
-								click: () => handleCalendarImport(groupRoot),
-							}
-						: null,
-					!isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read) && !isClientOnly
-						? {
-								label: "export_action",
-								icon: Icons.Export,
-								click: () => {
-									const alarmInfoList = user.alarmInfoList
-									if (alarmInfoList) {
-										exportCalendar(
-											getSharedGroupName(groupInfo, locator.logins.getUserController(), calendarInfo.shared),
-											groupRoot,
-											alarmInfoList.alarms,
-											new Date(),
-											getTimeZone(),
-										)
-									}
-								},
-							}
-						: null,
-					(isApp() || isDesktop()) && isExternal
-						? {
-								label: lang.makeTranslation("sync_action", "Sync"),
-								icon: Icons.Sync,
-								size: ButtonSize.Compact,
-								click: () => {
-									this.viewModel.forceSyncExternal(existingGroupSettings, true)?.catch(async (e) => {
-										await Dialog.message(lang.makeTranslation("confirm_msg", e.message))
-									})
-								},
-							}
-						: null,
-					calendarInfo.userIsOwner && !isClientOnly
-						? {
-								label: isExternal ? "unsubscribe_action" : "delete_action",
-								icon: Icons.Trash,
-								click: () => this.confirmDeleteCalendar(calendarInfo),
-							}
-						: null,
-				],
-			}),
-		})
-	}
-
-	private allowCalendarImport(group: Group, user: User, groupSettings: GroupSettings | null) {
-		return (
-			group.type === GroupType.Calendar &&
-			hasCapabilityOnGroup(user, group, ShareCapability.Write) &&
-			!hasSourceUrl(groupSettings) &&
-			!isClientOnlyCalendar(group._id)
-		)
-	}
-
-	private confirmDeleteCalendar(calendarInfo: CalendarInfo) {
-		const calendarName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), false)
+	private handleDelete(calendarInfo: CalendarInfo) {
+		const calendarName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, false)
 		loadGroupMembers(calendarInfo.group, locator.entityClient).then((members) => {
 			const ownerMail = locator.logins.getUserController().userGroupInfo.mailAddress
 			const otherMembers = members.filter((member) => member.info.mailAddress !== ownerMail)
@@ -1224,26 +1073,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	private async onPressedEditCalendar(
-		calendarInfo: CalendarInfo,
-		colorValue: string,
-		existingGroupSettings: GroupSettings | null,
-		userSettingsGroupRoot: UserSettingsGroupRoot,
-	) {
-		const { groupInfo } = calendarInfo
-		if (isClientOnlyCalendar(groupInfo.group) && !this.viewModel.isNewPaidPlan) {
-			showPlanUpgradeRequiredDialog(NewPaidPlans)
-			return
-		}
-
+	private async handleEdit(calendarInfo: CalendarInfo, existingGroupSettings?: GroupSettings) {
 		showCreateEditCalendarDialog({
-			calendarType: getCalendarType(existingGroupSettings, groupInfo),
+			calendarType: calendarInfo.type,
 			titleTextId: "edit_action",
-			okAction: (dialog, properties) => this.handleModifiedCalendar(dialog, properties, calendarInfo, existingGroupSettings, userSettingsGroupRoot),
+			okAction: (dialog, properties) => this.handleModifiedCalendar(dialog, properties, calendarInfo, existingGroupSettings),
 			okTextId: "save_action",
 			calendarProperties: {
 				nameData: await this.viewModel.getCalendarNameData(calendarInfo.groupInfo),
-				color: colorValue.substring(1),
+				color: calendarInfo.color,
 				alarms: existingGroupSettings?.defaultAlarmsList.map((alarm) => parseAlarmInterval(alarm.trigger)) ?? [],
 				sourceUrl: existingGroupSettings?.sourceUrl ?? null,
 			},
@@ -1252,56 +1090,68 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	private handleModifiedCalendar(
-		dialog: Dialog,
-		properties: CalendarProperties,
-		calendarInfo: CalendarInfo,
-		existingGroupSettings: GroupSettings | null,
-		userSettingsGroupRoot: UserSettingsGroupRoot,
-	) {
-		const { groupInfo, shared, userIsOwner } = calendarInfo
+	private async onPressedEditBirthdayCalendar(calendarInfo: BirthdayCalendarInfo) {
+		if (!this.viewModel.isNewPaidPlan) {
+			showPlanUpgradeRequiredDialog(NewPaidPlans)
+			return
+		}
 
-		const clientOnlyCalendar = isClientOnlyCalendar(groupInfo.group)
-
-		if (clientOnlyCalendar) {
-			this.viewModel.handleClientOnlyUpdate(groupInfo, { name: properties.nameData.name, color: properties.color })
+		const handleUpdateBirthdayCalendar = (dialog: Dialog, properties: CalendarProperties) => {
+			this.viewModel.handleBirthdayCalendarUpdate(properties.color)
 			dialog.close()
 			return this.viewModel.redraw(undefined)
-		} else {
-			if (userIsOwner) {
-				// if it is a shared calendar and the shared name has been changed the entity needs to be updated
-				// the name on the entity is what is shared with everyone
-				this.viewModel.setCalendarGroupInfoName(groupInfo, properties.nameData.name)
-			}
-
-			const shouldSyncExternal = !!(
-				existingGroupSettings &&
-				hasSourceUrl(existingGroupSettings) &&
-				existingGroupSettings.sourceUrl !== properties.sourceUrl
-			)
-			const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
-			this.viewModel
-				.setCalendarGroupSettings(groupInfo, {
-					color: properties.color,
-					name: properties.nameData.kind === "shared" ? properties.nameData.customName : null,
-					defaultAlarmsList: alarms,
-					sourceUrl: properties.sourceUrl,
-				})
-				.then(() => {
-					if (shouldSyncExternal)
-						this.viewModel.forceSyncExternal(existingGroupSettings)?.catch(async (e) => {
-							showSnackBar({
-								message: lang.makeTranslation("exception_msg", e.message),
-								button: {
-									label: "ok_action",
-									click: noOp,
-								},
-								waitingTime: 500,
-							})
-						})
-				})
-				.catch(ofClass(LockedError, noOp))
 		}
+
+		showCreateEditCalendarDialog({
+			calendarType: calendarInfo.type,
+			titleTextId: "edit_action",
+			okAction: handleUpdateBirthdayCalendar,
+			okTextId: "save_action",
+			calendarProperties: {
+				nameData: {
+					kind: "single",
+					name: calendarInfo.name,
+				}, // FIXME handle birthday (name is not editable)
+				color: calendarInfo.color,
+				alarms: [],
+				sourceUrl: null,
+			},
+			isNewCalendar: false,
+			calendarModel: this.viewModel.getCalendarModel(),
+		})
+	}
+
+	private handleModifiedCalendar(dialog: Dialog, properties: CalendarProperties, calendarInfo: CalendarInfo, existingGroupSettings?: GroupSettings) {
+		const { groupInfo, shared, userIsOwner } = calendarInfo
+		if (userIsOwner) {
+			// if it is a shared calendar and the shared name has been changed the entity needs to be updated
+			// the name on the entity is what is shared with everyone
+			this.viewModel.setCalendarGroupInfoName(groupInfo, properties.nameData.name)
+		}
+
+		const shouldSyncExternal = !!(existingGroupSettings && hasSourceUrl(existingGroupSettings) && existingGroupSettings.sourceUrl !== properties.sourceUrl)
+		const alarms = properties.alarms.map((alarm) => createDefaultAlarmInfo({ trigger: serializeAlarmInterval(alarm) }))
+		this.viewModel
+			.setCalendarGroupSettings(groupInfo, {
+				color: properties.color,
+				name: properties.nameData.kind === "shared" ? properties.nameData.customName : null,
+				defaultAlarmsList: alarms,
+				sourceUrl: properties.sourceUrl,
+			})
+			.then(() => {
+				if (shouldSyncExternal)
+					this.viewModel.forceSyncExternal(existingGroupSettings)?.catch(async (e) => {
+						showSnackBar({
+							message: lang.makeTranslation("exception_msg", e.message),
+							button: {
+								label: "ok_action",
+								click: noOp,
+							},
+							waitingTime: 500,
+						})
+					})
+			})
+			.catch(ofClass(LockedError, noOp))
 
 		if (client.isCalendarApp()) {
 			calendarLocator.systemFacade.requestWidgetRefresh()
@@ -1576,5 +1426,102 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		// We do not want to consume the event, just append one action to it
 		return false
+	}
+
+	private buildActions(calendarInfo: CalendarInfo, userController: UserController, existingGroupSettings?: GroupSettings) {
+		const { group, groupInfo, groupRoot, isExternal, userIsOwner, shared } = calendarInfo
+		const actions: Array<DropdownChildAttrs> = [
+			{
+				label: "edit_action",
+				icon: Icons.Edit,
+				click: () => this.handleEdit(calendarInfo, existingGroupSettings),
+			},
+		]
+
+		if (this.canShare(isExternal)) {
+			actions.push({
+				label: "sharing_label",
+				icon: Icons.ContactImport,
+				click: () => this.handleShare(userController, groupInfo, shared),
+			})
+		}
+
+		if (this.canImport(group, userController.user, existingGroupSettings)) {
+			actions.push({
+				label: "import_action",
+				icon: Icons.Import,
+				click: () => handleCalendarImport(groupRoot, calendarInfo),
+			})
+		}
+
+		if (this.canExport(group, userController.user)) {
+			actions.push({
+				label: "export_action",
+				icon: Icons.Export,
+				click: () => this.handleExport(groupInfo, groupRoot, shared, userController),
+			})
+		}
+
+		if (this.canSync(isExternal)) {
+			actions.push({
+				label: lang.makeTranslation("sync_action", "Sync"),
+				icon: Icons.Sync,
+				click: () =>
+					this.viewModel.forceSyncExternal(existingGroupSettings ?? null, true)?.catch(async (e) => {
+						await Dialog.message(lang.makeTranslation("confirm_msg", e.message))
+					}),
+			})
+		}
+
+		if (userIsOwner) {
+			actions.push({
+				label: isExternal ? "unsubscribe_action" : "delete_action",
+				icon: Icons.Trash,
+				click: () => this.handleDelete(calendarInfo),
+			})
+		}
+		return actions
+	}
+
+	private canImport(group: Group, user: User, groupSettings?: GroupSettings) {
+		return (
+			group.type === GroupType.Calendar &&
+			hasCapabilityOnGroup(user, group, ShareCapability.Write) &&
+			!hasSourceUrl(groupSettings) &&
+			!isBirthdayCalendar(group._id)
+		)
+	}
+
+	private canShare(isExternal: boolean): boolean {
+		return !isExternal
+	}
+
+	private canExport(group: Group, user: User): boolean {
+		return !isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read)
+	}
+
+	private canSync(isExternal: boolean): boolean {
+		return (isApp() || isDesktop()) && isExternal
+	}
+
+	private handleShare(userController: UserController, groupInfo: GroupInfo, shared: boolean) {
+		if (userController.isFreeAccount()) {
+			showNotAvailableForFreeDialog()
+		} else {
+			showGroupSharingDialog(groupInfo, shared)
+		}
+	}
+
+	private handleExport(groupInfo: GroupInfo, groupRoot: CalendarGroupRoot, shared: boolean, userController: UserController) {
+		const alarmInfoList = userController.user.alarmInfoList
+		if (alarmInfoList) {
+			exportCalendar(
+				getSharedGroupName(groupInfo, userController.userSettingsGroupRoot, shared),
+				groupRoot,
+				alarmInfoList.alarms,
+				new Date(),
+				getTimeZone(),
+			)
+		}
 	}
 }

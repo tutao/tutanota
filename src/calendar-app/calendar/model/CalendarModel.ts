@@ -8,14 +8,24 @@ import {
 	delay,
 	downcast,
 	filterInt,
+	getFirstOrThrow,
 	getFromMap,
 	isNotEmpty,
 	isSameDay,
+	LazyLoaded,
 	Require,
 	splitInChunks,
 	symmetricDifference,
 } from "@tutao/tutanota-utils"
-import { CalendarMethod, defaultCalendarColor, EXTERNAL_CALENDAR_SYNC_INTERVAL, FeatureType, OperationType } from "../../../common/api/common/TutanotaConstants"
+import {
+	BIRTHDAY_CALENDAR_BASE_ID,
+	CalendarMethod,
+	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
+	defaultCalendarColor,
+	EXTERNAL_CALENDAR_SYNC_INTERVAL,
+	FeatureType,
+	OperationType,
+} from "../../../common/api/common/TutanotaConstants"
 import { EventController } from "../../../common/api/main/EventController"
 import {
 	createDateWrapper,
@@ -40,6 +50,7 @@ import {
 	createGroupSettings,
 	FileTypeRef,
 	GroupSettings,
+	UserSettingsGroupRoot,
 	UserSettingsGroupRootTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
@@ -86,16 +97,16 @@ import {
 	AlarmInterval,
 	assignEventId,
 	CalendarEventValidity,
+	CalendarType,
 	checkEventValidity,
-	getCalendarRenderType,
+	getCalendarType,
 	getTimeZone,
 	hasSourceUrl,
-	isClientOnlyCalendar,
-	RenderType,
+	isBirthdayCalendar,
 } from "../../../common/calendar/date/CalendarUtils.js"
 import { getSharedGroupName, isSharedGroupOwner, loadGroupMembers } from "../../../common/sharing/GroupUtils.js"
 import { ExternalCalendarFacade } from "../../../common/native/common/generatedipc/ExternalCalendarFacade.js"
-import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig.js"
+import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
 	eventHasSameFields,
@@ -109,7 +120,6 @@ import {
 import { UserError } from "../../../common/api/main/UserError.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
-import { getClientOnlyCalendars } from "../gui/CalendarGuiUtils.js"
 import { SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 
@@ -117,19 +127,32 @@ const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
 const EXTERNAL_CALENDAR_RETRY_DELAY_MS = 1000
 
-export type CalendarInfo = {
+export type CalendarInfoBase = {
+	id: string
+	name: string
+	color: string
+	type: CalendarType
+}
+
+export type CalendarInfo = CalendarInfoBase & {
 	groupRoot: CalendarGroupRoot
 	groupInfo: GroupInfo
 	group: Group
-	shared: boolean
+	shared: boolean // FIXME rename and make it clear it means multiple members
 	userIsOwner: boolean
 	isExternal: boolean
 }
 
-export type CalendarRenderInfo = {
-	name: string
-	color: string
-	renderType: RenderType
+export type BirthdayCalendarInfo = CalendarInfoBase & {
+	contactGroupId: Id
+}
+
+export function isBirthdayCalendarInfo(calendarInfoBase: CalendarInfoBase): calendarInfoBase is BirthdayCalendarInfo {
+	return calendarInfoBase.type === CalendarType.Birthday
+}
+
+export function isCalendarInfo(calendarInfoBase: CalendarInfoBase): calendarInfoBase is CalendarInfo {
+	return calendarInfoBase.type !== CalendarType.Birthday
 }
 
 type ExternalCalendarQueueItem = {
@@ -182,11 +205,17 @@ export class CalendarModel {
 		return calendarInfoPromise
 	}, new Map())
 
+	private readonly userHasNewPaidPlan: LazyLoaded<boolean> = new LazyLoaded<boolean>(async () => {
+		return await this.logins.getUserController().isNewPaidPlan()
+	}, false)
+
 	/**
 	 * Stores the queued calendars to be synchronized
 	 */
 	private externalCalendarSyncQueue: ExternalCalendarQueueItem[] = []
 	private externalCalendarRetryCount: Map<Id, number> = new Map()
+
+	private readonly birthdayCalendarInfo: BirthdayCalendarInfo
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -216,6 +245,22 @@ export class CalendarModel {
 				syncStatus?.end()
 			}
 		})
+		this.birthdayCalendarInfo = this.createBirthdayCalendarInfo()
+		this.userHasNewPaidPlan.getAsync().then(m.redraw)
+	}
+
+	private createBirthdayCalendarInfo(): BirthdayCalendarInfo {
+		return {
+			id: `${this.logins.getUserController().userId}#${BIRTHDAY_CALENDAR_BASE_ID}`,
+			name: lang.get("birthdayCalendar_label"),
+			color: DEFAULT_BIRTHDAY_CALENDAR_COLOR, // FIXME
+			type: CalendarType.Birthday,
+			contactGroupId: getFirstOrThrow(this.logins.getUserController().getContactGroupMemberships()).group,
+		}
+	}
+
+	getBirthdayCalendarInfo(): BirthdayCalendarInfo {
+		return this.birthdayCalendarInfo
 	}
 
 	getCalendarInfos(): Promise<ReadonlyMap<Id, CalendarInfo>> {
@@ -226,29 +271,26 @@ export class CalendarModel {
 		return this.calendarInfos.stream
 	}
 
-	getCalendarRenderInfo(calendarId: Id, existingGroupSettings?: GroupSettings | null): CalendarRenderInfo {
-		if (isClientOnlyCalendar(calendarId)) {
-			const clientOnlyCalendar = getClientOnlyCalendars(this.logins.getUserController().userId, deviceConfig.getClientOnlyCalendars()).find(
-				(calendar) => calendar.id === calendarId,
-			)
-			return {
-				name: clientOnlyCalendar?.name ?? "",
-				color: clientOnlyCalendar?.color ?? "",
-				renderType: RenderType.ClientOnly,
+	getAvailableCalendars(includesBirthday: boolean = false): ReadonlyArray<CalendarInfoBase> {
+		if (this.calendarInfos.isLoaded()) {
+			// Load user's calendar list
+			const calendarInfos: Array<CalendarInfoBase> = Array.from(this.calendarInfos.getLoaded().values())
+			if (this.userHasNewPaidPlan.getSync() && includesBirthday) {
+				const birthdayCalendarInfo = this.getBirthdayCalendarInfo()
+				calendarInfos.push(birthdayCalendarInfo)
 			}
+			return calendarInfos
+		} else {
+			return []
 		}
+	}
 
-		const calendarInfo = this.calendarInfos.stream().get(calendarId)
-		if (!calendarInfo) throw new Error("Calendar infos not loaded")
-		let groupSettings = existingGroupSettings
-		if (!groupSettings) {
-			const { userSettingsGroupRoot } = this.logins.getUserController()
-			groupSettings = userSettingsGroupRoot.groupSettings.find((gc) => gc.group === calendarInfo.groupInfo.group) ?? undefined
+	async getCalendarInfo(calendarId: Id): Promise<CalendarInfoBase | undefined> {
+		if (isBirthdayCalendar(calendarId)) {
+			return this.birthdayCalendarInfo
 		}
-		const color = "#" + (groupSettings?.color ?? defaultCalendarColor)
-		const name = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController(), calendarInfo.shared)
-		const renderType = getCalendarRenderType(calendarInfo)
-		return { name, color, renderType }
+		const calendars = await this.getCalendarInfos()
+		return calendars.get(calendarId)
 	}
 
 	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
@@ -316,21 +358,10 @@ export class CalendarModel {
 		}
 
 		const calendarInfos: Map<Id, CalendarInfo> = new Map()
-		const groupSettings = userController.userSettingsGroupRoot.groupSettings
 		for (const [groupRoot, groupInfo, group] of groupInstances) {
 			try {
-				const groupMembers = await loadGroupMembers(group, this.entityClient)
-				const shared = groupMembers.length > 1
-				const userIsOwner = !shared || isSharedGroupOwner(group, userController.userId)
-				const isExternal = hasSourceUrl(groupSettings.find((groupSettings) => groupSettings.group === group._id))
-				calendarInfos.set(groupRoot._id, {
-					groupRoot,
-					groupInfo,
-					group: group,
-					shared,
-					userIsOwner,
-					isExternal,
-				})
+				const calendarInfo = await this.makeCalendarInfo(userController.userId, group, userController.userSettingsGroupRoot, groupRoot, groupInfo)
+				calendarInfos.set(groupRoot._id, calendarInfo)
 			} catch (e) {
 				if (e instanceof NotAuthorizedError) {
 					console.log("NotAuthorizedError when initializing calendar. Calendar has been removed ")
@@ -354,6 +385,40 @@ export class CalendarModel {
 				.catch((e) => console.log("error cleaning up membership for group: ", membership.group))
 		}
 		return calendarInfos
+	}
+
+	private async makeCalendarInfo(
+		userId: Id,
+		group: Group,
+		userSettingsGroupRoot: UserSettingsGroupRoot,
+		groupRoot: CalendarGroupRoot,
+		groupInfo: GroupInfo,
+	): Promise<CalendarInfo> {
+		const groupMembers = await loadGroupMembers(group, this.entityClient)
+		const shared = groupMembers.length > 1
+		const userIsOwner = !shared || isSharedGroupOwner(group, userId)
+		const groupSettings = userSettingsGroupRoot.groupSettings.find((groupSettings) => groupSettings.group === group._id)
+		const isExternal = hasSourceUrl(groupSettings)
+		const calendarId = groupRoot._id
+		const color = groupSettings?.color ?? defaultCalendarColor
+		const sharedGroupName = getSharedGroupName(groupInfo, userSettingsGroupRoot, shared)
+		const calendarType = getCalendarType({
+			calendarId: calendarId,
+			isExternalCalendar: isExternal,
+			isUserOwner: userIsOwner,
+		})
+		return {
+			id: groupRoot._id,
+			name: sharedGroupName,
+			color: color,
+			type: calendarType,
+			groupRoot,
+			groupInfo,
+			group: group,
+			shared,
+			userIsOwner,
+			isExternal,
+		}
 	}
 
 	public async fetchExternalCalendar(url: string): Promise<string> {
@@ -1221,6 +1286,7 @@ export class CalendarModel {
 				// and user might have subscribed to a new calendar, so we must reload
 				// calendar infos to make sure that the calendar has been put in the correct section
 				this.calendarInfos.reload()
+				this.userHasNewPaidPlan.reload()
 			}
 		}
 

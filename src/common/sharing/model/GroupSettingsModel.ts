@@ -55,7 +55,7 @@ export class GroupSettingsModel {
 		if (groupMembers.length > 1 || (customName && customName !== groupInfo.name)) {
 			return {
 				kind: "shared",
-				name: getSharedGroupName(groupInfo, this.loginController.getUserController(), false),
+				name: getSharedGroupName(groupInfo, this.loginController.getUserController().userSettingsGroupRoot, false),
 				customName: getCustomSharedGroupName(groupInfo, userSettingsGroupRoot),
 				editableName: isSharedGroupOwner(group, getEtId(this.loginController.getUserController().user)),
 			}
@@ -68,7 +68,7 @@ export class GroupSettingsModel {
 			} else {
 				return {
 					kind: "single",
-					name: getSharedGroupName(groupInfo, this.loginController.getUserController(), false),
+					name: getSharedGroupName(groupInfo, this.loginController.getUserController().userSettingsGroupRoot, false),
 				}
 			}
 		}
@@ -82,7 +82,7 @@ export class GroupSettingsModel {
 				break
 			}
 			case "shared": {
-				const oldGroupName = getSharedGroupName(groupInfo, this.loginController.getUserController(), false)
+				const oldGroupName = getSharedGroupName(groupInfo, this.loginController.getUserController().userSettingsGroupRoot, false)
 				if (data.name !== oldGroupName) {
 					await this.updateGroupInfoName(groupInfo, data.name)
 				}

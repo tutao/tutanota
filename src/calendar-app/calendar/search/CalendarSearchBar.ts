@@ -18,7 +18,7 @@ import { hasMoreResults } from "./model/CalendarSearchModel.js"
 import type { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { LayerType } from "../../../RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../common/gui/base/BaseSearchBar.js"
-import { generateCalendarInstancesInRange, isClientOnlyCalendar, retrieveClientOnlyEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
 
 import { loadMultipleFromLists } from "../../../common/api/common/EntityClient.js"
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
@@ -426,12 +426,12 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 	}
 
 	private async showResultsInOverlay(result: SearchResult): Promise<void> {
-		const filteredEvents = result.results.filter(([calendarId, eventId]) => !isClientOnlyCalendar(calendarId))
+		const filteredEvents = result.results.filter(([calendarId, eventId]) => !isBirthdayCalendar(calendarId))
 
 		const eventsRepository = await calendarLocator.calendarEventsRepository()
 		const entries = [
 			...(await loadMultipleFromLists(result.restriction.type, calendarLocator.entityClient, filteredEvents)),
-			...(await retrieveClientOnlyEventsForUser(calendarLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
+			...(await retrieveBirthdayEventsForUser(calendarLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
 		]
 
 		// If there was no new search while we've been downloading the result
