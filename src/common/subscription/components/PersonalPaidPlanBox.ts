@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../../gui/size"
+import { component_size, font_size, px, size } from "../../gui/size"
 import { lang } from "../../misc/LanguageViewModel"
 import { type Callback } from "@tutao/tutanota-utils"
 import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
@@ -176,7 +176,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						style: {
 							"justify-content": position === "right" ? "start" : "end",
 							"flex-direction": position === "right" ? "row-reverse" : "row",
-							height: px(size.button_height_compact),
+							height: px(component_size.button_height_compact),
 						},
 					},
 					isCurrentPlan || isDisabled
@@ -196,7 +196,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 							? null
 							: m(Icon, {
 									icon: planConfig.icon,
-									size: IconSize.XL,
+									size: IconSize.PX32,
 									style: {
 										fill: theme.on_surface_variant,
 									},
@@ -224,7 +224,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 									{
 										style: {
 											color: theme.on_surface_variant,
-											fontSize: px(size.font_size_smaller),
+											fontSize: px(font_size.smaller),
 											justifySelf: "end",
 										},
 									},
@@ -264,12 +264,11 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 				".flex",
 				{
 					style: {
-						gap: px(size.hpad_small),
+						gap: px(size.spacing_4),
 					},
 				},
 				m(Icon, {
 					icon,
-					size: IconSize.Normal,
 					style: {
 						fill: theme.secondary,
 					},

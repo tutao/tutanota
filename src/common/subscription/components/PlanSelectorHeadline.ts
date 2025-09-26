@@ -27,7 +27,7 @@ export class PlanSelectorHeadline implements Component<PlanSelectorHeadlineAttrs
 			icon &&
 				m(Icon, {
 					icon,
-					size: IconSize.Medium,
+					size: IconSize.PX24,
 					container: "div",
 					style: { fill: theme.primary },
 				}),

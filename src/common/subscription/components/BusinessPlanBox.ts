@@ -36,7 +36,6 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 	private collapsedH = 0
 	private animating = false
 	private prevSelected?: boolean
-	private readonly collapsedVisibleCount = 2
 
 	private measureCollapsed() {
 		const root = this.contentEl
@@ -96,7 +95,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 			"div.flex.flex-column",
 			{
 				style: {
-					transform: isSelected && !styles.isMobileLayout() ? `translateY(${px(-size.vpad)})` : "initial",
+					transform: isSelected && !styles.isMobileLayout() ? `translateY(${px(-size.core_16)})` : "initial",
 					transition: `transform ${DefaultAnimationTime}ms, box-shadow ${DefaultAnimationTime}ms, background-color ${DefaultAnimationTime}ms`,
 				},
 				onclick: handleSelect,
@@ -142,7 +141,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 							m(`div.items-center.justify-center.flex.gap-hpad`, [
 								m(Icon, {
 									icon: planConfig.icon,
-									size: IconSize.Medium,
+									size: IconSize.PX24,
 									style: {
 										fill: theme.on_surface_variant,
 									},
@@ -150,7 +149,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 								m(Icon, {
 									icon: Icons.ChevronDown,
 									class: `flex-center items-center`,
-									size: IconSize.Large,
+									size: IconSize.PX20,
 									style: {
 										display: styles.isMobileLayout() ? "block" : "none",
 										margin: "-3px",
@@ -181,7 +180,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 											fontSize: px(12),
 										},
 									},
-									lang.get(planConfig.tagLine),
+									lang.getTranslationText(planConfig.tagLine),
 								),
 							]),
 						]),
@@ -197,7 +196,11 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 												: null,
 											m("span.h1", price),
 										]),
-										m("div.small", { style: { color: localTheme.on_surface_variant } }, lang.get("pricing.perUserMonth_label")),
+										m(
+											"div.small",
+											{ style: { color: localTheme.on_surface_variant } },
+											lang.getTranslationText("pricing.perUserMonth_label"),
+										),
 									]),
 						),
 					]),
@@ -261,24 +264,23 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 				".flex.feature-row",
 				{
 					style: {
-						gap: px(size.hpad_small),
+						gap: px(size.base_4),
 					},
 				},
 				m(Icon, {
 					icon,
-					size: IconSize.Normal,
 					style: {
 						fill: theme.secondary,
 					},
 				}),
-				m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider))),
+				m(".smaller", lang.getTranslation(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider)).text),
 			)
 		}
 	}
 
 	private getBoxPadding(isSelected: boolean) {
-		const verticalPad = styles.isMobileLayout() ? 12 : size.vpad_ml
-		const horizontalPad = styles.isMobileLayout() ? 12 : size.hpad_medium
+		const verticalPad = styles.isMobileLayout() ? size.spacing_12 : size.spacing_24
+		const horizontalPad = styles.isMobileLayout() ? size.spacing_12 : size.spacing_24
 		if (isSelected) {
 			return `${px(verticalPad)} ${px(horizontalPad)}`
 		} else {
