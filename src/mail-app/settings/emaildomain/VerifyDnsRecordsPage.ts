@@ -168,7 +168,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 			}
 		})
 		return [
-			m(".mt-12.mb-s", lang.get("setDnsRecords_msg")),
+			m(".mt-12.mb-8", lang.get("setDnsRecords_msg")),
 			createDnsRecordTableN(
 				validatedRecords,
 				hideRefreshButton

@@ -46,7 +46,7 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 				Card,
 				m(".plr.flex.flex-column.gap-vpad", [
 					m("", m.trust(warning)),
-					m(".b.mt", lang.get("keyVerificationErrorRecommendation_title")),
+					m(".b.mt-16", lang.get("keyVerificationErrorRecommendation_title")),
 					m("", m.trust(recommendation)),
 					m(ExternalLink, {
 						isCompanySite: true,

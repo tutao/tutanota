@@ -44,7 +44,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 				}
 			: null
 		return [
-			m(".flex-space-between.items-center.mt-32.mb-s", [
+			m(".flex-space-between.items-center.mt-32.mb-8", [
 				m(".h4", lang.get("mailAddresses_label")),
 				m(ExpanderButton, {
 					label: "show_action",

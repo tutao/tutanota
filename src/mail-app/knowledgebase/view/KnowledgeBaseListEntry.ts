@@ -21,7 +21,7 @@ export class KnowledgeBaseListEntry implements Component<KnowledgebaseListEntryA
 				},
 			},
 			[
-				m(".text-ellipsis.mb-xs.b", title),
+				m(".text-ellipsis.mb-4.b", title),
 				m(".flex.badge-line-height.text-ellipsis", [
 					keywords.map((keyword) => {
 						return m("small.teamLabel.pl-s.pr-s.border-radius.no-wrap.small.mr-s.min-content", keyword.keyword)

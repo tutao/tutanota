@@ -284,7 +284,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						? m(".small.underline.b", lang.get(getPreconditionFailedPaymentMsg(this.invoiceInfo.paymentErrorInfo.errorCode)))
 						: m(".small.underline.b", lang.get("failedDebitAttempt_msg"))
 					: null,
-				m(".flex-space-between.items-center.mt-32.mb-s", [
+				m(".flex-space-between.items-center.mt-32.mb-8", [
 					m(".h4", lang.get("postings_label")),
 					m(ExpanderButton, {
 						label: "show_action",
@@ -480,7 +480,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	private renderInvoiceData(): Children {
 		return [
-			m(".flex-space-between.items-center.mt-32.mb-s", [
+			m(".flex-space-between.items-center.mt-32.mb-8", [
 				m(".h4", lang.get("invoiceData_msg")),
 				m(IconButton, {
 					title: "invoiceData_msg",

@@ -177,7 +177,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	private renderMailSubject(attrs: MailViewerAttrs) {
 		return m(
-			"h4.font-weight-600.mt.mb.text-break.selectable." + responsiveCardHMargin(),
+			"h4.font-weight-600.mt-16.mb-16.text-break.selectable." + responsiveCardHMargin(),
 			{
 				"data-testid": `h:${lang.getTestId("subject_label")}`,
 			},

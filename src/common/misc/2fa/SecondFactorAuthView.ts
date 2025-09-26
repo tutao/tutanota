@@ -53,7 +53,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 		}
 
 		return m(
-			".left.mb",
+			".left.mb-16",
 			m(TextField, {
 				label: "totpCode_label",
 				value: otp.codeFieldValue,

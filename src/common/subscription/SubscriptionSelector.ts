@@ -215,8 +215,8 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 		additionalInfo = m(".flex.flex-column", [
 			featureExpander.All, // global feature expander
-			m(".smaller.mb", subscriptionPeriodInfoMsg),
-			footnoteElement && m(".smaller.mb", footnoteElement),
+			m(".smaller.mb-16", subscriptionPeriodInfoMsg),
+			footnoteElement && m(".smaller.mb-16", footnoteElement),
 		])
 
 		const buyBoxesViewPlacement = plans

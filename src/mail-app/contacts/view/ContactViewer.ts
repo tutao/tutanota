@@ -96,7 +96,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 					]),
 					this.renderActions(contact, attrs),
 				),
-				m("hr.hr.mt.mb"),
+				m("hr.hr.mt-16.mb-16"),
 			]),
 			this.renderCustomDatesAndRelationships(contact),
 			this.renderMailAddressesAndPhones(contact, onWriteMail),

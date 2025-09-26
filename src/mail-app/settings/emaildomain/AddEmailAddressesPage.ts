@@ -75,7 +75,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 		}
 		return m("", [
 			m("h4.mt-32.text-center", lang.get("addCustomDomainAddresses_title")),
-			m(".mt.mb", lang.get("addCustomDomainAddAdresses_msg")),
+			m(".mt-16.mb-16", lang.get("addCustomDomainAddAdresses_msg")),
 			m(SelectMailAddressForm, mailFormAttrs),
 			locator.logins.getUserController().userGroupInfo.mailAddressAliases.length ? m(Table, aliasesTableAttrs) : null,
 			m(

@@ -26,7 +26,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 				},
 				[
 					m(
-						".mb",
+						".mb-16",
 						{
 							style: {
 								height: styles.isDesktopLayout() ? "360px" : "",

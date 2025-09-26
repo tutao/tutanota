@@ -75,7 +75,7 @@ function createEditCalendarComponent(
 ) {
 	return m.fragment({}, [
 		m(GroupSettingNameInputFields, { groupNameData: nameData }),
-		m(".small.mt.mb-xs", lang.get("color_label")),
+		m(".small.mt-16.mb-4", lang.get("color_label")),
 		m(ColorPickerView, {
 			value: colorStream(),
 			onselect: (color: string) => {
@@ -163,7 +163,7 @@ export function showCreateEditCalendarDialog({
 		child: {
 			view: () =>
 				m(".flex.col", [
-					m(".mt.mb.h6.b", lang.get(titleTextId)),
+					m(".mt-16.mb-16.h6.b", lang.get(titleTextId)),
 					warningMessage ? warningMessage() : null,
 					sourceUrlInputField(urlStream, errorMessageStream),
 					m(LoginButton, {

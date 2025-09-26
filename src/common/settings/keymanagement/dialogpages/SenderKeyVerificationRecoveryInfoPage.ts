@@ -44,7 +44,7 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 							}),
 						),
 					),
-					m(".b.mt", lang.get("keyVerificationErrorRecommendation_title")),
+					m(".b.mt-16", lang.get("keyVerificationErrorRecommendation_title")),
 					m("", m.trust(lang.get("keyVerificationErrorRecommendation_msg"))),
 					m(ExternalLink, {
 						isCompanySite: true,

@@ -125,7 +125,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	private renderRow(headerIcon: AllIcons, children: Children, isAlignedLeft: boolean = false, isEventTitle: boolean = false): Children {
-		return m(".flex.gap-hpad.mb-s", [
+		return m(".flex.gap-hpad.mb-8", [
 			this.renderSectionIndicator(headerIcon, isAlignedLeft ? { marginTop: isEventTitle ? "6px" : "2px" } : undefined),
 			m(".selectable.full-width.align-self-center.text-break", children),
 		])
@@ -257,7 +257,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	private renderCalendar(calendarName: string, calendarColor: string, calendarRenderType: TranslationKey) {
-		return m(".flex.gap-hpad.mb-s", [
+		return m(".flex.gap-hpad.mb-8", [
 			m(
 				".flex.items-center.justify-center",
 				{

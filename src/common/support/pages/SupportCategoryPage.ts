@@ -29,7 +29,7 @@ export class SupportCategoryPage implements Component<Props> {
 				m(
 					"",
 					m(".h4.mb-0", getCategoryName(currentlySelectedCategory!, languageTag)),
-					m("p.mt-4.mb-s", getCategoryIntroduction(currentlySelectedCategory!, languageTag)),
+					m("p.mt-4.mb-8", getCategoryIntroduction(currentlySelectedCategory!, languageTag)),
 				),
 			]),
 			m(Card, { shouldDivide: true }, [

@@ -118,7 +118,7 @@ export class ContactMergeView {
 				onremove: () => this.windowCloseUnsubscribe?.(),
 			},
 			[
-				m(".flex-center.mt", [
+				m(".flex-center.mt-16", [
 					m(".full-width.max-width-s", [
 						m(LoginButton, {
 							label: "mergeContacts_action",

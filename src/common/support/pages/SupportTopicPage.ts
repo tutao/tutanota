@@ -52,7 +52,7 @@ export class SupportTopicPage implements Component<Props> {
 					Card,
 					{
 						rootElementType: "div",
-						classes: ["scroll", "mb"],
+						classes: ["scroll", "mb-16"],
 					},
 					m(".h4.m-0.pb", issue),
 					m.trust(sanitisedSolution),
