@@ -45,10 +45,10 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		if (attrs.selectedMails.length > 0) {
 			return [
 				this.renderDeleteButton(attrs) ?? this.renderTrashButton(attrs),
+				this.renderReportSpamButton(attrs),
 				this.renderMoveButton(attrs),
 				this.renderLabelButton(attrs),
 				this.renderReadButton(attrs),
-				this.renderReportSpamButton(attrs),
 				this.renderExtraButtons(attrs.exportAction, attrs.mailViewerMoreActions),
 			]
 		}

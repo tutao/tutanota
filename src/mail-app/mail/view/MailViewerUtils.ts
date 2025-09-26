@@ -335,8 +335,8 @@ export function getMailViewerMoreActions({
 	reportPhishing,
 }: {
 	viewModel: MailViewerViewModel
-	reportSpam: (() => unknown) | null
 	print: (() => unknown) | null
+	reportSpam: (() => unknown) | null
 	reportPhishing: (() => unknown) | null
 }): MailViewerMoreActions {
 	const actions: MailViewerMoreActions = {}

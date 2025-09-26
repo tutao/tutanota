@@ -517,19 +517,27 @@ export class MailViewerViewModel {
 		this.contentBlockingStatus = status
 	}
 
-	async markAsNotPhishing(): Promise<void> {
+	async updateMailPhishingStatus(newStatus: MailPhishingStatus): Promise<void> {
 		const oldStatus = this.getPhishingStatus()
 
-		if (oldStatus === MailPhishingStatus.WHITELISTED) {
+		if (oldStatus === newStatus) {
 			return
 		}
 
-		this.setPhishingStatus(MailPhishingStatus.WHITELISTED)
+		this.setPhishingStatus(newStatus)
 
 		await this.entityClient.update(this.mail).catch(() => this.setPhishingStatus(oldStatus))
 	}
 
-	async reportMail(reportType = MailReportType.SPAM): Promise<void> {
+	async markAsNotPhishing(): Promise<void> {
+		await this.updateMailPhishingStatus(MailPhishingStatus.WHITELISTED)
+	}
+
+	async markAsPhishing(): Promise<void> {
+		await this.updateMailPhishingStatus(MailPhishingStatus.SUSPICIOUS)
+	}
+
+	async reportMail(reportType: MailReportType): Promise<void> {
 		try {
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(this.mail)
 			// We should always have a mailbox, the check above throws due AssertNotNull in response.
@@ -538,16 +546,23 @@ export class MailViewerViewModel {
 			}
 			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 			const spamFolder = assertSystemFolderOfType(folders, MailSetKind.SPAM)
-			//The moving of mails will mark the email as spam.
-			await moveMails({
-				mailboxModel: this.mailboxModel,
-				mailModel: this.mailModel,
-				mailIds: [this.mail._id],
-				targetFolder: spamFolder,
-				moveMode: MoveMode.Mails,
-				undoModel: this.undoModel,
-				reportType,
-			})
+
+			if (reportType === MailReportType.PHISHING) {
+				// When reported as phishing mail is moved to spam, this move can't be undone
+				await this.markAsPhishing()
+				await this.mailModel.moveMails([this.mail._id], spamFolder, MoveMode.Mails)
+				await this.mailModel.reportMails(MailReportType.PHISHING, [this.mail])
+			} else {
+				// The moving of mails into spam folder will mark them as spam
+				await moveMails({
+					mailboxModel: this.mailboxModel,
+					mailModel: this.mailModel,
+					mailIds: [this.mail._id],
+					targetFolder: spamFolder,
+					moveMode: MoveMode.Mails,
+					undoModel: this.undoModel,
+				})
+			}
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				console.log("mail already moved")
