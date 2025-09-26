@@ -57,7 +57,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 		}
 
 		return m(
-			".folder-row.flex.flex-row.mlr-button.border-radius-small.state-bg.border-radius-small",
+			".folder-row.flex.flex-row.mlr-8.border-radius-small.state-bg.border-radius-small",
 			{
 				style: { background: isNavButtonSelected(navButtonAttrs) ? theme.state_bg_hover : "" },
 				onmouseenter: onHover,

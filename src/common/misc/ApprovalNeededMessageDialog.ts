@@ -39,7 +39,7 @@ export async function showApprovalNeededMessageDialog(): Promise<void> {
 	const dialog = new Dialog(DialogType.EditSmall, {
 		view: () => [
 			m(DialogHeaderBar, headerAttrs),
-			m("div.mt-16.mb-16.mlr", [
+			m("div.mt-16.mb-16.mlr-12", [
 				m(
 					"p",
 					{

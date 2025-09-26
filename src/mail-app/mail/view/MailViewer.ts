@@ -467,7 +467,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			quoteIndicator,
 			m(Icon, {
 				icon: Icons.More,
-				class: "icon-32 mlr",
+				class: "icon-32 mlr-12",
 				container: "div",
 				style: {
 					fill: theme.on_surface_variant,

@@ -41,7 +41,7 @@ export class IdentifierRow implements Component<IdentifierRowAttrs> {
 		return m(".flex.flex-column.full-width", [
 			m(".flex.items-center.selectable", [
 				m("span" + (vnode.attrs.current ? ".b" : ""), vnode.attrs.name),
-				vnode.attrs.disabled ? m(".mlr", `(${lang.get("notificationsDisabled_label")})`) : null,
+				vnode.attrs.disabled ? m(".mlr-12", `(${lang.get("notificationsDisabled_label")})`) : null,
 				m(".flex-grow"),
 				m(IconButton, dropdownAttrs),
 			]),

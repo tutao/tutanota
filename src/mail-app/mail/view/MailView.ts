@@ -1326,7 +1326,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			m(RowButton, {
 				label: "addLabel_action",
 				icon: Icons.Add,
-				class: "folder-row mlr-button border-radius-small",
+				class: "folder-row mlr-8 border-radius-small",
 				style: {
 					width: `calc(100% - ${px(size.spacing_8 * 2)})`,
 				},

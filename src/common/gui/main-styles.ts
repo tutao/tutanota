@@ -373,15 +373,11 @@ styles.registerStyle("main", () => {
 			"margin-left": px(size.spacing_8),
 			"margin-right": px(size.spacing_8),
 		},
-		".mlr": {
+		".mlr-12": {
 			"margin-left": px(size.spacing_12),
 			"margin-right": px(size.spacing_12),
 		},
-		".mlr-button": {
-			"margin-left": px(size.spacing_8),
-			"margin-right": px(size.spacing_8),
-		},
-		".mlr-l": {
+		".mlr-24": {
 			"margin-left": px(size.spacing_24),
 			"margin-right": px(size.spacing_24),
 		},
