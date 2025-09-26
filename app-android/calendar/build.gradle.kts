@@ -5,8 +5,8 @@ plugins {
 	id("com.android.application")
 	id("org.jetbrains.kotlin.android")
 	id("kotlin-kapt")
-	id("org.jetbrains.kotlin.plugin.serialization") version "1.9.21"
-	id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" // this version matches the Kotlin version
+	id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
+	id("org.jetbrains.kotlin.plugin.compose") version "2.2.20" // this version matches the Kotlin version
 }
 
 group = "de.tutao"
@@ -15,7 +15,7 @@ android {
 	namespace = "de.tutao.calendar"
 
 	defaultConfig {
-		compileSdk = 35
+		compileSdk = 36
 		applicationId = "de.tutao.calendar"
 		minSdk = 26
 		targetSdk = 35
@@ -155,29 +155,29 @@ android {
 			assets.srcDirs(files("$projectDir/schemas"))
 		}
 	}
-	ndkVersion = "26.1.10909125"
+	ndkVersion = "28.2.13676358"
 }
 
 dependencies {
-	implementation("androidx.appcompat:appcompat:1.7.0")
-	val room_version = "2.4.2"
-	val lifecycle_version = "2.4.1"
-	val activity_version = "1.4.0"
-	val coroutines_version = "1.8.0"
+	implementation("androidx.appcompat:appcompat:1.7.1")
+	val room_version = "2.8.0"
+	val lifecycle_version = "2.9.4"
+	val activity_version = "1.11.0"
+	val coroutines_version = "1.10.2"
 
 	implementation("de.tutao:tutasdk")
 	implementation(project(":tutashared"))
 
 	// Important: cannot be updated without additional measures as Android 6 and 7 do not have Java 9
 	//noinspection GradleDependency
-	implementation("commons-io:commons-io:2.5")
+	implementation("commons-io:commons-io:2.20.0")
 
-	implementation("androidx.core:core-ktx:1.8.0")
+	implementation("androidx.core:core-ktx:1.17.0")
 	implementation("androidx.activity:activity-ktx:$activity_version")
-	implementation("androidx.browser:browser:1.8.0")
+	implementation("androidx.browser:browser:1.9.0")
 	implementation("androidx.biometric:biometric:1.1.0")
 	implementation("androidx.core:core-splashscreen:1.0.1")
-	implementation("androidx.datastore:datastore-preferences:1.1.1")
+	implementation("androidx.datastore:datastore-preferences:1.1.7")
 
 	implementation("androidx.room:room-runtime:$room_version")
 	// For Kotlin use kapt instead of annotationProcessor
@@ -186,38 +186,38 @@ dependencies {
 
 	implementation(files("../libs/sqlcipher-android.aar"))
 
-	implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
+	implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
 	implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
 
-	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-	implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
+	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+	implementation("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
 	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version")
 
 	// TLS1.3 backwards compatibility for Android < 10
-	implementation("org.conscrypt:conscrypt-android:2.5.2")
-	implementation("com.squareup.okhttp3:okhttp:4.11.0")
+	implementation("org.conscrypt:conscrypt-android:2.5.3")
+	implementation("com.squareup.okhttp3:okhttp:5.1.0")
 
-	implementation("net.java.dev.jna:jna:5.13.0@aar")
+	implementation("net.java.dev.jna:jna:5.18.0@aar")
 
-	testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.22")
-	testImplementation("androidx.test.ext:junit-ktx:1.1.3")
+	testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.20")
+	testImplementation("androidx.test.ext:junit-ktx:1.3.0")
 	testImplementation("junit:junit:4.13.2")
-	testImplementation("org.robolectric:robolectric:4.11.1")
-	testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
+	testImplementation("org.robolectric:robolectric:4.16")
+	testImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
 	// JVM-based unit tests (that don't need a real device or emulator)
 	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
 
 	androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito-inline-extended:2.28.1") {
 		exclude(group = "org.mockito", module = "mockito-core")
 	}
-	androidTestImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
-	androidTestImplementation("org.mockito:mockito-core:5.15.2")
-	androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
-	androidTestImplementation("androidx.test:runner:1.4.0")
-	androidTestImplementation("androidx.test.ext:junit-ktx:1.1.3")
-	androidTestImplementation("androidx.test:rules:1.4.0")
-	androidTestImplementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
-	androidTestImplementation("androidx.room:room-testing:2.4.2")
+	androidTestImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
+	androidTestImplementation("org.mockito:mockito-core:5.20.0")
+	androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+	androidTestImplementation("androidx.test:runner:1.7.0")
+	androidTestImplementation("androidx.test.ext:junit-ktx:1.3.0")
+	androidTestImplementation("androidx.test:rules:1.7.0")
+	androidTestImplementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
+	androidTestImplementation("androidx.room:room-testing:2.8.0")
 
 	// Setup for Jetpack Compose
 	val composeBom = platform("androidx.compose:compose-bom:2025.01.01")
@@ -239,12 +239,12 @@ dependencies {
 	implementation("androidx.compose.material:material-icons-extended")
 
 	// Optional - Integration with activities
-	implementation("androidx.activity:activity-compose:1.10.1")
+	implementation("androidx.activity:activity-compose:1.11.0")
 	// Optional - Integration with ViewModels
-	implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+	implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
 
 	// Jetpack WorkManager for background sync
-	implementation("androidx.work:work-runtime-ktx:2.10.0")
+	implementation("androidx.work:work-runtime-ktx:2.10.4")
 
 
 	// For interop APIs with Material 3
