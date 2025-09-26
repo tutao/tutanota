@@ -1,27 +1,18 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
-import { assertNotNull, groupByAndMap, isNotNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, isNotNull, lazyAsync, promiseMap } from "@tutao/tutanota-utils"
 import { filterMailMemberships } from "../../../common/api/worker/search/IndexUtils"
 import { GroupMembership } from "../../../common/api/entities/sys/TypeRefs"
-import {
-	Mail,
-	MailBag,
-	MailboxGroupRootTypeRef,
-	MailBoxTypeRef,
-	MailDetails,
-	MailDetailsBlobTypeRef,
-	MailFolder,
-	MailFolderTypeRef,
-	MailTypeRef,
-} from "../../../common/api/entities/tutanota/TypeRefs"
+import { MailBag, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolder, MailFolderTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { getMailSetKind, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider"
 import { INITIAL_MAIL_INDEX_INTERVAL_DAYS } from "../index/MailIndexer"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
-import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
 import { SpamTrainMailDatum } from "./SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
+import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
+import { hasError } from "../../../common/api/common/utils/ErrorUtils"
 
 export class SpamClassificationInitializer {
 	/*
@@ -35,6 +26,7 @@ export class SpamClassificationInitializer {
 		private readonly entityClient: EntityClient,
 		private readonly userFacade: UserFacade,
 		private readonly offlineStorage: OfflineStoragePersistence,
+		private readonly bulkMailLoader: lazyAsync<BulkMailLoader>,
 	) {}
 
 	public async init() {
@@ -83,42 +75,30 @@ export class SpamClassificationInitializer {
 	private async downloadMailAndMailDetailsByMailbag(mailbag: MailBag, spamFolder: MailFolder, inboxFolder: MailFolder): Promise<Array<SpamTrainMailDatum>> {
 		const dateProvider = new LocalTimeDateProvider()
 		const startTime = dateProvider.getStartOfDayShiftedBy(this.TIME_LIMIT).getTime()
-		const mails = await this.entityClient.loadAll(MailTypeRef, mailbag.mails, timestampToGeneratedId(startTime)).then((mails) => {
-			// Filter out draft mails
-			return mails.filter((m) => isNotNull(m.mailDetails))
-		})
-		const groupedMailDetailIds = groupByAndMap(
-			mails.map((m) => m.mailDetails!),
-			listIdPart,
-			elementIdPart,
-		)
-		const loadedMailDetailsBlobs = await promiseMap(groupedMailDetailIds, ([mailDetailListId, mailDetailElementIds]) =>
-			this.entityClient.loadMultiple(MailDetailsBlobTypeRef, mailDetailListId, mailDetailElementIds, undefined, { cacheMode: CacheMode.ReadOnly }),
-		)
-		const loadedMailDetailsById = loadedMailDetailsBlobs.flat().reduce((map, detailsBlob) => {
-			map.set(elementIdPart(detailsBlob._id), detailsBlob.details)
-			return map
-		}, new Map<Id, MailDetails>())
+		const bulkMailLoader = await this.bulkMailLoader()
+		return await this.entityClient
+			.loadAll(MailTypeRef, mailbag.mails, timestampToGeneratedId(startTime))
+			// Filter out draft mails and mails with error
+			.then((mails) => {
+				return mails.filter((m) => isNotNull(m.mailDetails) && !hasError(m))
+			})
+			// Download mail details
+			.then((mails) => bulkMailLoader.loadMailDetails(mails))
+			// Map to spam mail datum
+			.then((mails) => mails.map((m) => this.mailWithDetailsToMailDatum(spamFolder, inboxFolder, m)))
+	}
 
-		const classifiedMails = mails.map((mail: Mail) => {
-			const mailDetails = loadedMailDetailsById.get(elementIdPart(mail.mailDetails!))
-			if (!mailDetails) {
-				// Mail details might have been deleted in the meantime.
-				// but is not a problem
-				return null
-			}
-			const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
-			const isCertain = !mail.unread || !mail.sets.some((folderId) => isSameId(folderId, inboxFolder._id))
-			return {
-				mailId: mail._id,
-				subject: mail.subject,
-				body: getMailBodyText(mailDetails.body),
-				isSpam: isSpam,
-				isCertain: isCertain,
-				listId: listIdPart(mail._id),
-				elementId: elementIdPart(mail._id),
-			} as SpamTrainMailDatum
-		})
-		return classifiedMails.filter(isNotNull)
+	private mailWithDetailsToMailDatum(spamFolder: MailFolder, inboxFolder: MailFolder, { mail, mailDetails }: MailWithMailDetails): SpamTrainMailDatum {
+		const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
+		const isCertain = !mail.unread || !mail.sets.some((folderId) => isSameId(folderId, inboxFolder._id))
+		return {
+			mailId: mail._id,
+			subject: mail.subject,
+			body: getMailBodyText(mailDetails.body),
+			isSpam: isSpam,
+			isCertain: isCertain,
+			listId: listIdPart(mail._id),
+			elementId: elementIdPart(mail._id),
+		} as SpamTrainMailDatum
 	}
 }

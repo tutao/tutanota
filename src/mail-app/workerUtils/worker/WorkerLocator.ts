@@ -334,7 +334,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
 			const offlineStorage = await offlineStorageIndexerPersistence()
-			const spamClassifierInitializer = new SpamClassificationInitializer(locator.cachingEntityClient, locator.user, offlineStorage)
+			const spamClassifierInitializer = new SpamClassificationInitializer(
+				locator.cachingEntityClient,
+				locator.user,
+				offlineStorage,
+				locator.bulkMailLoader,
+			)
 			locator.spamClassifier = new SpamClassifier(offlineStorage, spamClassifierInitializer)
 			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase.js")
 			const { SearchTableDefinitions, SpamClassificationDefinitions } = await import("../index/OfflineStoragePersistence.js")

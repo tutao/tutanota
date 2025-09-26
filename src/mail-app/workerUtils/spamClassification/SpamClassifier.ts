@@ -218,8 +218,9 @@ export class SpamClassifier {
 
 			// Avoid potentially running .predict() at the same time while we are re-fitting
 			this.isEnabled = false
-			await assertNotNull(this.classifier).fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: true })
-			this.isEnabled = true
+			await assertNotNull(this.classifier)
+				.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: true })
+				.finally(() => (this.isEnabled = true))
 
 			console.log(`Retraining finished. Took: ${performance.now() - retrainingStart}ms`)
 			return true
