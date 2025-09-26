@@ -389,7 +389,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [
-								m(".flex-space-between.items-center.mt-32.mb-s", [
+								m(".flex-space-between.items-center.mt-32.mb-8", [
 									m(".h4", lang.get("inboxRulesSettings_action")),
 									m(ExpanderButton, {
 										label: "showInboxRules_action",
@@ -591,7 +591,7 @@ async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSetting
 					nullSelectionText: helpText,
 					rightAlignDropdown: false,
 				} satisfies DatePickerAttrs),
-				m(".mt", lang.get("storedDataTimeRangeHelpText_msg")),
+				m(".mt-16", lang.get("storedDataTimeRangeHelpText_msg")),
 			])
 		},
 		okAction: async () => {

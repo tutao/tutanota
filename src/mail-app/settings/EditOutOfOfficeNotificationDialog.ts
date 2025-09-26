@@ -107,7 +107,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 			this.renderEnabled(model),
 			this.renderRecipients(model),
 			m(
-				".mt.flex-start",
+				".mt-16.flex-start",
 				m(Checkbox, {
 					label: () => lang.get("outOfOfficeTimeRange_msg"),
 					checked: model.timeRangeEnabled(),

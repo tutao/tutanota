@@ -37,7 +37,7 @@ export function renderInfoLinks(): Children {
 				: null,
 		),
 		m(
-			".mt.mb.center.small.full-width",
+			".mt-16.mb-16.center.small.full-width",
 			{
 				onclick: (e: MouseEvent) => showVersionDropdown(e),
 			},

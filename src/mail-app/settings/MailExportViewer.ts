@@ -47,7 +47,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 	private renderExportOnlyOnDesktopText() {
 		return [
 			m(
-				".flex-column.mt",
+				".flex-column.mt-16",
 				m(".p", lang.get("mailExportOnlyOnDesktop_label")),
 				m(
 					".flex-start.mt-32",

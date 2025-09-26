@@ -125,7 +125,7 @@ export class SecondFactorEditDialog {
 			icon: Icons.Clipboard,
 			size: ButtonSize.Compact,
 		}
-		return m(".mb", [
+		return m(".mb-16", [
 			m(TextField, {
 				label: "totpSecret_label",
 				helpLabel: () => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),

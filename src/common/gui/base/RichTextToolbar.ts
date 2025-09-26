@@ -58,7 +58,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			},
 			[
 				m(
-					".flex-end.wrap.items-center.mb-xs.mt-4.ml-between-s",
+					".flex-end.wrap.items-center.mb-4.mt-4.ml-between-s",
 					this.renderStyleButtons(attrs),
 					this.renderCustomButtons(attrs),
 					this.renderAlignDropDown(attrs),

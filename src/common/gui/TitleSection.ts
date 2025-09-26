@@ -35,7 +35,7 @@ export class TitleSection implements Component<SettingsTitleSectionAttrsType> {
 						: null,
 				),
 				m(
-					".center.mb",
+					".center.mb-16",
 					{
 						style: {
 							fontSize: "20px",

@@ -36,7 +36,7 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 				Card,
 				m(".plr.flex.flex-column.gap-vpad", [
 					m("", m.trust(lang.get("keyVerificationErrorWarning_msg", { "{mailAddress}": contactMailAddress }))),
-					m(".b.mt", lang.get("keyVerificationErrorRecommendation_title")),
+					m(".b.mt-16", lang.get("keyVerificationErrorRecommendation_title")),
 					m("", m.trust(lang.get("keyVerificationErrorRecommendation_msg"))),
 					m(ExternalLink, {
 						isCompanySite: true,

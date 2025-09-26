@@ -72,7 +72,7 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 }
 
 function renderColorPicker(onInput: (arg0: Event) => unknown, value: string, oncreate?: (vnode: VnodeDOM<void>) => void): Child {
-	return m("input.color-picker.mb-xs", {
+	return m("input.color-picker.mb-4", {
 		type: "color",
 		value: value,
 		oninput: onInput,

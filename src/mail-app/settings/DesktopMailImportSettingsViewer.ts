@@ -190,7 +190,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 
 	private renderImportHistory() {
 		return [
-			m(".flex-space-between.items-center.mt-32.mb-s", [
+			m(".flex-space-between.items-center.mt-32.mb-8", [
 				m(".h4", lang.get("mailImportHistory_label")),
 				m(ExpanderButton, {
 					label: "show_action",

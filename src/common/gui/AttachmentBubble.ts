@@ -193,7 +193,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		// It is somewhat harder as it looks different with mobile layout.
 		const { remove, open, download, attachment, fileImport, type } = this.attrs
 		return m(
-			".flex.mb-s.pr",
+			".flex.mb-8.pr",
 			{
 				oncreate: (vnode) => (this.domContent = vnode.dom as HTMLElement),
 			},

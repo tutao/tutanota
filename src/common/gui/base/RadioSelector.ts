@@ -42,7 +42,7 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
-			".state-bg.border.border-radius.flex.items-center.mb.pl-l.pr",
+			".state-bg.border.border-radius.flex.items-center.mb-16.pl-l.pr",
 			{
 				// Make the option the same size as a button if a description is not given
 				class: "button-min-width button-min-height" + attrClasses,

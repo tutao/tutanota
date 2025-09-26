@@ -74,9 +74,9 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 
 	private renderTerminationInfo(mailAddress: string, acceptedTerminationRequest: CustomerAccountTerminationRequest): Children {
 		return m("", [
-			m(".h3.mt", "Termination successful"),
+			m(".h3.mt-16", "Termination successful"),
 			m(
-				"p.mt",
+				"p.mt-16",
 				lang.get("terminationSuccessful_msg", {
 					"{accountName}": mailAddress,
 					"{receivedDate}": formatDateTime(acceptedTerminationRequest.terminationRequestDate),
