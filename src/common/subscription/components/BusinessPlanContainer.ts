@@ -139,7 +139,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 
 		const container = styles.isMobileLayout()
 			? {
-					width: `calc(100% + 2 * ${px(size.hpad_large)})`,
+					width: `calc(100% + 2 * ${px(size.spacing_24)})`,
 					left: "50%",
 					transform: "translateX(-50%)",
 				}
