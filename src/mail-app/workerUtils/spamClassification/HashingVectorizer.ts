@@ -4,14 +4,14 @@ import { sha256Hash } from "@tutao/tutanota-crypto"
 
 export class HashingVectorizer {
 	public readonly dimension: number = 2048
-	private readonly hasher = this.tensorHash
+	private readonly hasher: (tokens: Array<string>) => Promise<Array<number>> = this.tensorHash
 
 	constructor() {}
 
 	public async vectorize(tokens: ReadonlyArray<string>): Promise<number[]> {
 		const vector = new Array(this.dimension).fill(0)
 
-		const indexes = this.hasher(downcast<Array<string>>(tokens))
+		const indexes = await this.hasher(downcast<Array<string>>(tokens))
 		for (const index of indexes) {
 			vector[index] += 1
 		}
@@ -31,7 +31,7 @@ export class HashingVectorizer {
 	 *   Predicted_Ham: { False_Negative: 13, True_Negative: 543 }
 	 * }
 	 */
-	private tensorHash(array: Array<string>): Array<number> {
+	private async tensorHash(array: Array<string>): Promise<Array<number>> {
 		// FIXME make it asynchronous
 		return tf.string.stringToHashBucketFast(tf.tensor1d(array, "string"), this.dimension).arraySync() as Array<number>
 	}
@@ -44,7 +44,7 @@ export class HashingVectorizer {
 	 *   Predicted_Ham: { False_Negative: 13, True_Negative: 541 }
 	 * }
 	 */
-	public unsignedHash(array: Array<string>): Array<number> {
+	public async unsignedHash(array: Array<string>): Promise<Array<number>> {
 		return array.map((token) => arrayHashUnsigned(stringToUtf8Uint8Array(token)))
 	}
 
@@ -56,7 +56,7 @@ export class HashingVectorizer {
 	 *   Predicted_Ham: { False_Negative: 9, True_Negative: 540 }
 	 * }
 	 */
-	public sha3Hash(array: Array<string>): Array<number> {
+	public async sha3Hash(array: Array<string>): Promise<Array<number>> {
 		return array.map((token) => {
 			const shaHash = sha256Hash(stringToUtf8Uint8Array(token))
 			const shaNum = BigInt(`0x${shaHash.slice(0, 32)}`)
