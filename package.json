@@ -51,7 +51,7 @@
 		"@types/qrcode-svg": "1.1.4",
 		"cborg": "4.2.2",
 		"dompurify": "3.2.6",
-		"electron": "37.5.1",
+		"electron": "38.1.2",
 		"electron-updater": "6.3.4",
 		"jsqr": "1.4.0",
 		"jszip": "3.10.1",
