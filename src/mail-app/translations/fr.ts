@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-16T12:59:04Z",
-	"updated_at": "2025-09-15T08:43:24Z",
+	"updated_at": "2025-09-22T07:20:34Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1824,7 +1824,7 @@ export default {
 		"unavailable_label": "Indisponible",
 		"undecided_label": "Non décidé",
 		"undoMailReport_msg": "Le(s) courriel(s) sera(ont) rapporté(s) sous forme non chiffrée.",
-		"undoMoveMail_msg": "Le (les) e-mail(s) ont été déplacés vers le dossier \"{folder}\".",
+		"undoMoveMail_msg": "Le(s) e-mail(s) ont été déplacés vers le dossier \"{folder}\".",
 		"undo_action": "Annuler",
 		"unencryptedTransmission_msg": "Le(s) e-mail(s) déplacé(s) vers le dossier spam sera(ont) transmis au serveur sous forme non chiffrée afin d'améliorer la protection contre le spam.",
 		"unknownError_msg": "Une erreur inattendue est survenue. Veuillez réessayer ultérieurement.",
