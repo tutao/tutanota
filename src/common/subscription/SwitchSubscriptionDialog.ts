@@ -122,7 +122,7 @@ export async function showSwitchDialog({
 		return m(
 			".pt",
 			// Headline for general messages
-			// reason && m(".flex-center.items-center.gap-hpad.mb", m(".b.center.smaller", lang.getTranslationText(reason))),
+			// reason && m(".flex-center.items-center.gap-hpad.mb-16", m(".b.center.smaller", lang.getTranslationText(reason))),
 			reason && m(PlanSelectorHeadline, { translation: lang.getTranslation(reason) }),
 			m(PlanSelector, {
 				options,

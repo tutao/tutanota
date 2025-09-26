@@ -167,7 +167,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-32", lang.get("activeSessions_label")),
 					this._renderActiveSessions(),
 					m(".small", lang.get("sessionsInfo_msg")),
-					m(".flex-space-between.items-center.mt-32.mb-s", [
+					m(".flex-space-between.items-center.mt-32.mb-8", [
 						m(".h4", lang.get("closedSessions_label")),
 						m(ExpanderButton, {
 							label: "show_action",

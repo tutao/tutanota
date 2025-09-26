@@ -164,7 +164,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				color: theme.on_surface_variant,
 			})
 		} else {
-			return m(".flex.mb-s.col", this.renderEventsForDay(events, getTimeZone(), attrs.selectedDate, attrs))
+			return m(".flex.mb-8.col", this.renderEventsForDay(events, getTimeZone(), attrs.selectedDate, attrs))
 		}
 	}
 
@@ -211,7 +211,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			})
 		} else {
 			return m(
-				".pt-s.flex.mb-s.col.overflow-y-scroll.height-100p",
+				".pt-s.flex.mb-8.col.overflow-y-scroll.height-100p",
 				{
 					style: { marginLeft: px(layout_size.calendar_hour_width_mobile) },
 					oncreate: (vnode: VnodeDOM) => {
@@ -331,7 +331,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			if (eventToShowTimeIndicator === eventIndex && isSameDay(new Date(), event.startTime)) {
 				eventsNodes.push(
 					m(
-						".mt-4.mb-xs",
+						".mt-4.mb-4",
 						{
 							id: "timeIndicator",
 							key: "timeIndicator",
@@ -409,7 +409,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		// Do not scroll to the next element if a scroll command (page up etc.) is given
 		if (attrs.scrollPosition === this.lastScrollPosition) attrs.onScrollPositionChange(newScrollPosition - (agendaItemHeight + agendaGap))
 		return events.length === 0
-			? m(".mb-s", lang.get("noEntries_msg"))
+			? m(".mb-8", lang.get("noEntries_msg"))
 			: m(
 					".flex.col",
 					{

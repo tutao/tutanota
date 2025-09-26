@@ -189,7 +189,7 @@ export class TemplatePopup implements ModalComponent {
 			},
 			[
 				this._renderHeader(),
-				m(".flex.flex-grow.scroll.mb-s", [
+				m(".flex.flex-grow.scroll.mb-8", [
 					m(
 						".flex.flex-column.scroll" + (showTwoColumns ? ".pr" : ""),
 						{

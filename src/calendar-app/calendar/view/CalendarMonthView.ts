@@ -324,7 +324,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				},
 			},
 			[
-				m(".mb-xs", {
+				m(".mb-4", {
 					style: {
 						height: px(SELECTED_DATE_INDICATOR_THICKNESS),
 					},

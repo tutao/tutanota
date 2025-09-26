@@ -785,7 +785,7 @@ export class Dialog implements ModalComponent {
 					m(".h2.pb", title),
 					m(".flex-direction-change.items-center", [
 						m("#dialog-message.pb.selectable", typeof message === "function" ? message() : message),
-						m("img.dialog-img.mb.bg-white.border-radius", {
+						m("img.dialog-img.mb-16.bg-white.border-radius", {
 							style: {
 								"min-width": "150px",
 							},

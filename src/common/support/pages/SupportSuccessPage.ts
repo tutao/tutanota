@@ -30,7 +30,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 					m(".h4.center.pb-s.pt-s", lang.get("supportSuccess_msg")),
 					m("p.center.m-0", lang.get("supportRatingRequest_msg")),
 					m(
-						".mt-32.mb-s",
+						".mt-32.mb-8",
 						{},
 						m("img.block.full-width.height-100p", {
 							src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/problem.png`,

@@ -174,7 +174,7 @@ export function show(existingTemplate: NotificationMailTemplate | null, customer
 			value: subject().replace(/{sender}/g, senderName),
 			isReadOnly: true,
 		}),
-		m(".small.mt-16.mb", lang.get("mailBody_label")),
+		m(".small.mt-16.mb-16", lang.get("mailBody_label")),
 		m.trust(sanitizePreview(savedHtml.replace(/{sender}/g, senderName).replace(/{link}/g, senderDomain))),
 	]
 

@@ -86,7 +86,7 @@ export function showDateRangeSelectionDialog({
 						),
 					],
 				),
-				warning ? m(".mt.center", warning) : null,
+				warning ? m(".mt-16.center", warning) : null,
 			),
 	}
 	return newPromise((resolve) => {

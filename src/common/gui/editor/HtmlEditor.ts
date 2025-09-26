@@ -102,7 +102,7 @@ export class HtmlEditor implements Component {
 											this.toolbarEnabled ? m(RichTextToolbar, Object.assign({ editor: this.editor }, this.toolbarAttrs)) : null,
 											renderedInjections,
 										]),
-										m("hr.hr.mb-s"),
+										m("hr.hr.mb-8"),
 									]
 								: null,
 							m(this.editor, {

@@ -120,7 +120,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 				]),
 				m(".mt-32.text-center", lang.get("surveySecondaryMessageDelete_label")),
 				m(
-					".mt.flex-center",
+					".mt-16.flex-center",
 					m(Button, {
 						type: ButtonType.Secondary,
 						label: "surveyParticipate_action",
@@ -130,7 +130,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 					}),
 				),
 				m(
-					".mt",
+					".mt-16",
 					m(LoginButton, {
 						label: "termination_action",
 						onclick: () => {
@@ -138,7 +138,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 						},
 					}),
 				),
-				m(".small.center.statusTextColor.mt.mb", liveDataAttrs(), [a.helpText]),
+				m(".small.center.statusTextColor.mt-16.mb-16", liveDataAttrs(), [a.helpText]),
 			],
 		)
 	}

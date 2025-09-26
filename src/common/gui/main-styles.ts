@@ -351,17 +351,14 @@ styles.registerStyle("main", () => {
 		".mb-0": {
 			"margin-bottom": 0,
 		},
-		".mb": {
+		".mb-16": {
 			"margin-bottom": px(size.spacing_16),
 		},
-		".mb-s": {
-			"margin-bottom": px(size.spacing_8),
-		},
-		".mb-xs": {
+		".mb-4": {
 			"margin-bottom": px(size.spacing_4),
 		},
-		".mb-xsm-15": {
-			"margin-bottom": px(size.spacing_4 * 1.5),
+		".mb-8": {
+			"margin-bottom": px(size.spacing_8),
 		},
 		".mb-32": {
 			"margin-bottom": px(size.spacing_32),

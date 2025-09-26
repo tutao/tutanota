@@ -21,7 +21,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 	private renderNoImportOnWebText() {
 		return [
 			m(
-				".flex-column.mt",
+				".flex-column.mt-16",
 				m(".p", lang.get("mailImportNoImportOnWeb_label")),
 				m(
 					".flex-start.mt-32",

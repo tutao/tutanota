@@ -125,7 +125,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 		/* Event Banner */
 		return m(
-			".border-radius-m.border-sm.grid.full-width.mb-s",
+			".border-radius-m.border-sm.grid.full-width.mb-8",
 			{
 				style: styles.isSingleColumnLayout()
 					? {
@@ -189,7 +189,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 								},
 							},
 							[
-								m(".flex.flex-column.mb-s", [
+								m(".flex.flex-column.mb-8", [
 									m(".flex.items-center.gap-vpad-xs", [
 										m(Icon, {
 											icon: Icons.Time,
@@ -305,11 +305,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					]),
 				)
 			} else if (!needsAction) {
-				children.push(m(".align-self-start.start.small.mt-8.mb-xsm-15.lh", lang.get("alreadyReplied_msg")))
+				children.push(m(".align-self-start.start.small.mt-8.mb-8.lh", lang.get("alreadyReplied_msg")))
 				children.push(viewOnCalendarButton)
 			}
 		} else if (method === CalendarMethod.REPLY) {
-			children.push(m(".align-self-start.start.small.mt-8.mb-xsm-15.lh", lang.get("eventNotificationUpdated_msg")))
+			children.push(m(".align-self-start.start.small.mt-8.mb-8.lh", lang.get("eventNotificationUpdated_msg")))
 			children.push(viewOnCalendarButton)
 		} else {
 			return null

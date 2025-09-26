@@ -106,7 +106,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				]
 			case "error":
 				return [
-					m(".flex-space-between.items-center.mt.mb-s", [
+					m(".flex-space-between.items-center.mt-16.mb-8", [
 						m("small.noselect", state.message),
 						m(Button, {
 							label: "retry_action",
@@ -134,7 +134,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 				]
 			case "locked":
 				return [
-					m(".flex-space-between.items-center.mt.mb-s.button-height", [
+					m(".flex-space-between.items-center.mt-16.mb-8.button-height", [
 						m("small.noselect", `${lang.get("exportRunningElsewhere_label")} ${lang.get("pleaseWait_msg")}`),
 					]),
 				]

@@ -99,7 +99,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		const margin = px(size.spacing_4)
 		return m(
-			".flex.mb-xs.flex-wrap",
+			".flex.mb-4.flex-wrap",
 			{
 				style: {
 					columnGap: margin,
@@ -214,7 +214,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			m(
 				".flex.flex-grow.align-self-start.items-start.overflow-hidden",
 				{
-					class: styles.isSingleColumnLayout() ? "mt-12" : "mt",
+					class: styles.isSingleColumnLayout() ? "mt-12" : "mt-16",
 					role: "button",
 					"mail-expander": "true",
 					// "aria-expanded" is always true because this component is only used in expanded view
@@ -557,7 +557,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			}
 
 			return [
-				m(".flex.mt-8.mb-s" + "." + responsiveCardHMargin(), liveDataAttrs(), [
+				m(".flex.mt-8.mb-8" + "." + responsiveCardHMargin(), liveDataAttrs(), [
 					attachmentCount === 1
 						? // If we have exactly one attachment, just show the attachment
 							this.renderAttachmentContainer(viewModel, attachments, importFile)

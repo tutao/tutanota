@@ -204,8 +204,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				),
 				!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) &&
 					m(".flex.flex-column", [
-						m(".small.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
-						m(".small.mb", renderFootnoteElement()),
+						m(".small.mb-16.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
+						m(".small.mb-16", renderFootnoteElement()),
 					]),
 			],
 		)

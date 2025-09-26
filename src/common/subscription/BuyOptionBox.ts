@@ -103,7 +103,7 @@ export class BuyOptionDetails implements Component<BuyOptionDetailsAttr> {
 		this.featuresExpanded = attrs.featuresExpanded || false
 
 		return m(
-			".mt.pl",
+			".mt-16.pl",
 			attrs.categories.map((fc) => {
 				return [
 					this.renderCategoryTitle(fc, attrs.renderCategoryTitle),

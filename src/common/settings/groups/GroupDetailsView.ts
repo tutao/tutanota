@@ -217,7 +217,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 			lines,
 		}
 
-		return [m(".h5.mt-32.mb-s", lang.get("groupMembers_label")), m(Table, membersTableAttrs)]
+		return [m(".h5.mt-32.mb-8", lang.get("groupMembers_label")), m(Table, membersTableAttrs)]
 	}
 }
 

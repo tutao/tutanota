@@ -667,7 +667,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				isConfidential ? this.renderPasswordFields() : null,
 				m(".row", m(TextField, subjectFieldAttrs)),
 				m(
-					".flex-start.flex-wrap.mt-8.mb-s.gap-hpad",
+					".flex-start.flex-wrap.mt-8.mb-8.gap-hpad",
 					attachmentBubbleAttrs.map((a) => m(AttachmentBubble, a)),
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
