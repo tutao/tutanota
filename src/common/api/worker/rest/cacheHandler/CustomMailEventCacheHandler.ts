@@ -107,7 +107,7 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 				const { mailIndexer, mailFacade } = await this.indexerAndMailFacade()
 				// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
 				const newMailData = await mailIndexer.downloadNewMailData(id)
-	2			if (newMailData) {
+				if (newMailData) {
 					const spamTrainMailDatum: SpamTrainMailDatum = {
 						mailId: mail._id,
 						subject: mail.subject,
