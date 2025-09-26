@@ -1,10 +1,12 @@
 import { generateEventElementId, serializeAlarmInterval } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { noOp, remove } from "@tutao/tutanota-utils"
+import { deepEqual, findAllAndRemove, isEmpty, noOp } from "@tutao/tutanota-utils"
 import { EventType } from "./CalendarEventModel.js"
 import { DateProvider } from "../../../../common/api/common/DateProvider.js"
-import { AlarmInterval, alarmIntervalToLuxonDurationLikeObject } from "../../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, alarmIntervalToLuxonDurationLikeObject, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { Duration } from "luxon"
 import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
+import { isSameId } from "../../../../common/api/common/utils/EntityUtils"
+import { GroupSettings } from "../../../../common/api/entities/tutanota/TypeRefs"
 
 export type CalendarEventAlarmModelResult = {
 	alarms: Array<AlarmInfoTemplate>
@@ -47,7 +49,7 @@ export class CalendarEventAlarmModel {
 	 * deactivate the alarm for the given interval.
 	 */
 	removeAlarm(alarmInterval: AlarmInterval) {
-		remove(this._alarms, alarmInterval)
+		findAllAndRemove(this._alarms, (savedAlarm) => deepEqual(savedAlarm, alarmInterval))
 		this.uiUpdateCallback()
 	}
 
@@ -88,5 +90,38 @@ export class CalendarEventAlarmModel {
 		const luxonAlarmTwo = Duration.fromDurationLike(alarmIntervalToLuxonDurationLikeObject(alarmTwo)).shiftToAll()
 
 		return luxonAlarmOne.equals(luxonAlarmTwo)
+	}
+
+	/**
+	 * Removes the default alarms for a given calendar.
+	 *
+	 * This function looks up the group settings associated with the provided `calendarId`
+	 * and removes all alarms listed in `defaultAlarmsList`.
+	 *
+	 * If the current model has no alarms or the `calendarId` is invalid, the function exits early.
+	 *
+	 * @param {Id} calendarId - The unique identifier of the calendar whose alarms should be removed.
+	 * @param {GroupSettings[]} groupSettings - Array of group settings to search for matching calendar group.
+	 *
+	 * @throws {Error} If no group settings are found for the specified calendarId.
+	 *
+	 * @example
+	 * await myEventAlarmModel.removeCalendarDefaultAlarms('calendar123', allGroupSettings)
+	 */
+	async removeCalendarDefaultAlarms(calendarId: Id | null, groupSettings: GroupSettings[]) {
+		if (!calendarId || isEmpty(this._alarms)) {
+			return
+		}
+
+		const calendarGroupSettings = groupSettings.find((groupSettings) => isSameId(groupSettings.group, calendarId))
+
+		if (!calendarGroupSettings) {
+			throw new Error(`Failed to remove default alarms - Missing groupSettings for calendar ${calendarId}`)
+		}
+
+		for (const alarm of calendarGroupSettings.defaultAlarmsList) {
+			const alarmInterval = parseAlarmInterval(alarm.trigger)
+			this.removeAlarm(alarmInterval)
+		}
 	}
 }
