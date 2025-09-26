@@ -159,7 +159,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		return m(
 			".fill-absolute.flex.col",
 			{
-				class: isDesktopLayout ? " mlr-l border-radius-big" : "mlr-safe-inset",
+				class: isDesktopLayout ? " mlr-24 border-radius-big" : "mlr-safe-inset",
 				style: isDesktopLayout ? { marginLeft: px(5) } : null,
 				onwheel: changePeriodOnWheel(attrs.onChangeMonth),
 			},

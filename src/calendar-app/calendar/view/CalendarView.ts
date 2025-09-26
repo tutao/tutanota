@@ -600,7 +600,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			m(
 				".border-radius-big.flex.col.flex-grow.content-bg",
 				{
-					class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
+					class: styles.isDesktopLayout() ? "mlr-24" : "mlr-12",
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: this.viewModel.eventPreviewModel,

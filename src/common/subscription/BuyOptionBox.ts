@@ -307,7 +307,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	private renderHeading(heading: string): Children {
 		return m(
 			// we need some margin for the discount banner for longer translations shown on the website
-			".h4.text-center.mb-small-line-height.flex.col.center-horizontally.mlr-l.dialog-header",
+			".h4.text-center.mb-small-line-height.flex.col.center-horizontally.mlr-24.dialog-header",
 			{
 				style: {
 					"font-size": heading.length > 20 ? "smaller" : undefined,
