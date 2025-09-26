@@ -52,6 +52,14 @@ export const testTypeModel: TypeModel = {
 			final: false,
 			encrypted: false,
 		},
+		"14": {
+			id: 14,
+			name: "_ownerEncSessionKey",
+			type: ValueType.Bytes,
+			cardinality: Cardinality.ZeroOrOne,
+			final: true,
+			encrypted: false,
+		},
 	},
 	associations: {
 		"3": {
