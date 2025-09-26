@@ -81,7 +81,7 @@ export class OfflineIndicator implements Component<OfflineIndicatorAttrs> {
 		return m(
 			"button.small",
 			{
-				class: a.isSingleColumn ? "center mb-4" : "mlr-l flex col",
+				class: a.isSingleColumn ? "center mb-4" : "mlr-24 flex col",
 				type: "button",
 				href: "#",
 				tabindex: "0",

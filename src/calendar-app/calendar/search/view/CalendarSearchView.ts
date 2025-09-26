@@ -273,7 +273,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			m(
 				".border-radius-big.flex.col.flex-grow.content-bg",
 				{
-					class: styles.isDesktopLayout() ? "mlr-l" : "mlr",
+					class: styles.isDesktopLayout() ? "mlr-24" : "mlr-12",
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
@@ -456,7 +456,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	private renderRepeatingFilter(): Children {
 		return m(
-			".mlr-button",
+			".mlr-8",
 			m(Checkbox, {
 				label: () => lang.get("includeRepeatingEvents_action"),
 				checked: this.searchViewModel.includeRepeatingEvents,

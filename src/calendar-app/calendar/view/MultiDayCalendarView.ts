@@ -242,7 +242,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 
 		const resolveClasses = (): string => {
 			const classes = isDesktopLayout
-				? ["mlr-l", "border-radius-big"]
+				? ["mlr-24", "border-radius-big"]
 				: ["border-radius-top-left-big", "border-radius-top-right-big", "content-bg", "mlr-safe-inset"]
 
 			return classes.join(" ")

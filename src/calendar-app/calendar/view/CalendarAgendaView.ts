@@ -93,7 +93,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		return m(
 			".fill-absolute.flex.col",
 			{
-				class: isDesktopLayout ? "mlr-l height-100p" : "mlr-safe-inset",
+				class: isDesktopLayout ? "mlr-24 height-100p" : "mlr-safe-inset",
 				style: containerStyle,
 			},
 			[

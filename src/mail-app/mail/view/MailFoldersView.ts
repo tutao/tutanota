@@ -180,7 +180,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			label: "addFolder_action",
 			key: "addFolder",
 			icon: Icons.Add,
-			class: "folder-row mlr-button border-radius-small",
+			class: "folder-row mlr-8 border-radius-small",
 			style: {
 				width: `calc(100% - ${px(size.spacing_8 * 2)})`,
 			},
