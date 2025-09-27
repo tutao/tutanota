@@ -2123,8 +2123,10 @@ export default {
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"confirmOverwriteDraft_msg": "This draft was opened for editing on {opened}, but a newer version was retrieved from the server on {updated}.\n\nWould you like to overwrite the newer draft with this one, discard this draft, or cancel saving this draft?",
-		"overwrite_action": "Overwrite",
+		"remoteDraftVersion_msg": "There is a remotely saved version of this draft from: ",
+		"confirmOverwriteServerDraft_msg": "Would you like to override the remote draft?",
+		"conflictDetected_label": "Conflict detected",
 		"confirmCreateNewDraftOverAutosavedDraft_msg": "There are unsaved changes to a draft that will be lost.",
+		"discardDraft_action": "Discard draft"
 	}
 }
