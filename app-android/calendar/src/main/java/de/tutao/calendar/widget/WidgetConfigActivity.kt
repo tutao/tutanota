@@ -117,7 +117,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-val CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID = "clientOnly_birthdays"
+const val BIRTHDAY_CALENDAR_BASE_ID = "clientOnly_birthdays"
 
 class WidgetConfigActivity : AppCompatActivity() {
 	private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -542,7 +542,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 
 	@Composable
 	private fun getCalendarName(id: GeneratedId, calendar: CalendarRenderData): String {
-		if (id.contains(CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID)) {
+		if (id.contains(BIRTHDAY_CALENDAR_BASE_ID)) {
 			return getString(R.string.birthdayCalendar_label)
 		}
 
