@@ -1244,6 +1244,7 @@ export type UserSettingsGroupRoot = {
 	startOfTheWeek: NumberString;
 	usageDataOptedIn: null | boolean;
 	_ownerKeyVersion: null | NumberString;
+	birthdayCalendarColor: null | string;
 
 	groupSettings: GroupSettings[];
 }

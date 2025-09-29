@@ -755,8 +755,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.calendarModel
 	}
 
-	handleBirthdayCalendarUpdate(newBirthdayColor: string) {
-		console.log("Update to handle new birthday colors at userSettings") // FIXME
+	async handleBirthdayCalendarUpdate(newBirthdayColor: string) {
+		const userSettingsGroupRoot = this.logins.getUserController().userSettingsGroupRoot
+		userSettingsGroupRoot.birthdayCalendarColor = newBirthdayColor
+		await this.entityClient.update(userSettingsGroupRoot)
 	}
 
 	get isNewPaidPlan(): Readonly<boolean> {

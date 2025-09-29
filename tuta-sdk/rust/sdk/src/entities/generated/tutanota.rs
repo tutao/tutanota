@@ -2047,6 +2047,8 @@ pub struct UserSettingsGroupRoot {
 	pub usageDataOptedIn: Option<bool>,
 	#[serde(rename = "1403")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "1724")]
+	pub birthdayCalendarColor: Option<String>,
 	#[serde(rename = "979")]
 	pub groupSettings: Vec<GroupSettings>,
 
