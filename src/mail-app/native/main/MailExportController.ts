@@ -21,7 +21,7 @@ assertMainOrNode()
 
 export type MailExportState =
 	| { type: "idle" }
-	| { type: "exporting"; mailboxDetail: MailboxDetail; progress: number; exportedMails: number }
+	| { type: "exporting"; mailboxDetail: MailboxDetail; progress: number; exportedMails: number; paused: boolean }
 	| { type: "locked" }
 	| { type: "error"; message: string }
 	| {
@@ -77,7 +77,7 @@ export class MailExportController {
 			}
 		}
 
-		this._state({ type: "exporting", mailboxDetail: mailboxDetail, progress: 0, exportedMails: 0 })
+		this._state({ type: "exporting", mailboxDetail: mailboxDetail, progress: 0, exportedMails: 0, paused: false })
 
 		await this.runExport(mailboxDetail, allMailBags, GENERATED_MAX_ID)
 	}
@@ -98,6 +98,7 @@ export class MailExportController {
 					mailboxDetail: mailboxDetail,
 					progress: 0,
 					exportedMails: exportState.exportedMails,
+					paused: false,
 				})
 				await this.resumeExport(mailboxDetail, exportState.mailBagId, exportState.mailId)
 			} else if (exportState.type === "finished") {
@@ -196,7 +197,11 @@ export class MailExportController {
 				if (currentState.type !== "exporting") {
 					return
 				}
-				this._state({ ...currentState, exportedMails: currentState.exportedMails + downloadedMails.length })
+				this._state({
+					...currentState,
+					exportedMails: currentState.exportedMails + downloadedMails.length,
+					paused: false,
+				})
 			} catch (e) {
 				if (isOfflineError(e)) {
 					console.log(TAG, "Offline, will retry later")
@@ -204,6 +209,10 @@ export class MailExportController {
 				} else if (e instanceof SuspensionError) {
 					const timeToWait = Math.max(filterInt(assertNotNull(e.data)), 1)
 					console.log(TAG, `Pausing for ${Math.floor(timeToWait / 1000 + 0.5)} seconds`)
+					const currentState = this._state()
+					if (currentState.type === "exporting" && !currentState.paused) {
+						this._state({ ...currentState, paused: true })
+					}
 					await delay(timeToWait)
 					if (this._state().type !== "exporting") {
 						return
