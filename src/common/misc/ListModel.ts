@@ -1,3 +1,4 @@
+import m from "mithril"
 import { ListLoadingState, ListState } from "../gui/base/List.js"
 import {
 	assertNonNull,
@@ -110,6 +111,7 @@ export class ListModel<ItemType, IdType> {
 
 	private updateState(newStatePart: Partial<PrivateListState<ItemType>>) {
 		this.rawStateStream({ ...this.rawState, ...newStatePart })
+		m.redraw()
 	}
 
 	private waitUtilInit(): Promise<unknown> {
