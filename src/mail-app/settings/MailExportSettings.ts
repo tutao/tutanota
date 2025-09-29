@@ -87,6 +87,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 							size: ButtonSize.Normal,
 						}),
 					]),
+					state.paused ? m(".flex-start.mt-m.small", lang.getTranslation("mailExportLimitReached_msg").text) : null,
 				]
 			case "idle":
 				return [
