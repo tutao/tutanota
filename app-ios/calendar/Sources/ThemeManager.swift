@@ -7,6 +7,7 @@ typealias Theme = [String: String]
 private let SELECTED_THEME = "theme"
 private let THEMES = "themes"
 private let LIGHT_FALLBACK_THEME = ["themeId": "light-fallback", "surface": "#ffffff"]
+private let DARK_FALLBACK_THEME = ["themeId": "dark-fallback", "surface": "#dddddd"]
 
 class ThemeManager: NSObject {
 	private let userPreferencesProvider: UserPreferencesProvider
@@ -30,7 +31,20 @@ class ThemeManager: NSObject {
 		}
 	}
 
-	public var currentThemeWithFallback: Theme { get { currentTheme ?? LIGHT_FALLBACK_THEME } }
+	public var currentThemeWithFallback: Theme {
+		get {
+			if currentTheme == nil {
+				return LIGHT_FALLBACK_THEME
+			} else {
+				// Use fallback for new color theme migration
+				if currentTheme!["content_bg"] != nil {
+					return (UITraitCollection.current.userInterfaceStyle == .dark) ? DARK_FALLBACK_THEME : LIGHT_FALLBACK_THEME
+				} else {
+					return currentTheme!
+				}
+			}
+		}
+	}
 
 	private func resolveThemePreference() -> ThemeId? {
 		let pref = self.themePreference
