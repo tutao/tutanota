@@ -85,7 +85,7 @@ function createEditCalendarComponent(
 				colorStream(color.substring(1))
 			},
 		}),
-		nameData.kind === "single" && calendarType
+		calendarType === CalendarType.Private
 			? m(RemindersEditor, {
 					alarms,
 					addAlarm: (alarm: AlarmInterval) => {
