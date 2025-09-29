@@ -9314,17 +9314,19 @@ export const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
-			},
-			"1734": {
-				"final": true,
-				"name": "nodeId",
-				"id": 1734,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
 			}
 		},
-		"associations": {}
+		"associations": {
+			"1734": {
+				"final": false,
+				"name": "folder",
+				"id": 1734,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 13,
+				"dependency": null
+			}
+		}
 	},
 	"1735": {
 		"name": "DriveGetOut",
@@ -9354,6 +9356,15 @@ export const typeModels = {
 				"id": 1737,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
+				"refTypeId": 13,
+				"dependency": null
+			},
+			"1738": {
+				"final": false,
+				"name": "parent",
+				"id": 1738,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
 				"refTypeId": 13,
 				"dependency": null
 			}

@@ -2620,7 +2620,8 @@ export type DriveGetIn = {
 	_original?: DriveGetIn
 
 	_format: NumberString;
-	nodeId: null | Id;
+
+	folder: null | IdTuple;
 }
 export const DriveGetOutTypeRef: TypeRef<DriveGetOut> = new TypeRef("tutanota", 1735)
 
@@ -2635,4 +2636,5 @@ export type DriveGetOut = {
 	_format: NumberString;
 
 	subFilesIds: IdTuple[];
+	parent: IdTuple;
 }
