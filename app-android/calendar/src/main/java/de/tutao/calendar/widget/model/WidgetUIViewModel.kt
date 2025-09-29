@@ -253,14 +253,13 @@ class WidgetUIViewModel(
 			Log.d(TAG, "Calendars loaded successfully!")
 		} catch (e: LoginException.ApiCall) {
 			// Failed to login into SDK, probably because of connection issues
-			Log.w(TAG, "Calendar colors could not be loaded. Falling back to cached values.", e)
+			Log.e(TAG, "Calendar colors could not be loaded due credential issues. Falling back to cached values.", e)
 		} catch (e: IOException) {
-			// We couldn't load widget settings, so we must show an error to User
-			_error.value = WidgetError(
-				"Error writing to DataStore (WidgetId $widgetId)",
-				e.stackTraceToString(),
-				WidgetErrorType.UNEXPECTED
-			)
+			// We couldn't store widget settings, so calendar colors will stay cached
+			Log.e(TAG, "Failed to store calendar colors. Falling back to cached values.", e)
+		} catch (e: Exception) {
+			// Something else happened, we catch here to continue loading events with cached calendar values
+			Log.e(TAG, "Failed to retrieve calendar colors. Falling back to cached values.", e)
 		}
 	}
 
