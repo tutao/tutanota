@@ -215,7 +215,7 @@ export {
 
 export { mod, clamp } from "./MathUtils.js"
 
-export { renderCsv } from "./Csv.js"
+export { renderCsv, renderCsvBody, renderCsvHeader } from "./Csv.js"
 
 export { tokenize } from "./Tokenizer.js"
 export { memoizedWithHiddenArgument, memoized, deepMemoized, lazyMemoized } from "./memoized.js"
