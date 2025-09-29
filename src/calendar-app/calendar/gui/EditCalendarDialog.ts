@@ -208,3 +208,41 @@ export function showCreateEditCalendarDialog({
 	)
 	dialog.show()
 }
+
+export interface EditBirthdayCalendarAttrs {
+	okAction: (dialog: Dialog, newColorValue: string) => unknown
+	color: string
+}
+
+export function showEditBirthdayCalendarDialog(editBirthdayCalendarAttrs: EditBirthdayCalendarAttrs) {
+	const colorStream = stream("#" + editBirthdayCalendarAttrs.color)
+
+	const doAction = async (dialog: Dialog) => {
+		editBirthdayCalendarAttrs.okAction(dialog, colorStream().substring(1))
+	}
+
+	const dialog = Dialog.createActionDialog({
+		allowOkWithReturn: true,
+		okActionTextId: "save_action",
+		title: "edit_action",
+		child: {
+			view: () =>
+				m(".flex.col", [
+					m(TextField, {
+						label: "name_label",
+						value: lang.get("birthdayCalendar_label"),
+						isReadOnly: true,
+					}),
+					m(".small.mt.mb-xs", lang.get("color_label")),
+					m(ColorPickerView, {
+						value: colorStream(),
+						onselect: (color: string) => {
+							colorStream(color)
+						},
+					}),
+				]),
+		},
+		okAction: doAction,
+	})
+	dialog.show()
+}

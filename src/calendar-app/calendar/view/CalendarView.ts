@@ -27,7 +27,6 @@ import {
 	GroupSettings,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
-	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 	defaultCalendarColor,
 	GroupType,
 	Keys,
@@ -53,7 +52,7 @@ import { CalendarMonthView } from "./CalendarMonthView"
 import { DateTime } from "luxon"
 import { LockedError, NotFoundError } from "../../../common/api/common/error/RestError"
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
-import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarDialog } from "../gui/EditCalendarDialog.js"
+import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarDialog, showEditBirthdayCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../../common/gui/styles"
 import { MultiDayCalendarView } from "./MultiDayCalendarView"
 import { Dialog } from "../../../common/gui/base/Dialog"
@@ -1035,7 +1034,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		return m(CalendarSidebarRow, {
 			id: calendarInfo.id,
 			name: lang.get("birthdayCalendar_label"),
-			color: DEFAULT_BIRTHDAY_CALENDAR_COLOR, // FIXME get new persisted color
+			color: calendarInfo.color,
 			isHidden: this.viewModel.hiddenCalendars.has(calendarInfo.id),
 			toggleHiddenCalendar: this.viewModel.toggleHiddenCalendar,
 			actions: [
@@ -1095,29 +1094,16 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			showPlanUpgradeRequiredDialog(NewPaidPlans)
 			return
 		}
-
-		const handleUpdateBirthdayCalendar = (dialog: Dialog, properties: CalendarProperties) => {
-			this.viewModel.handleBirthdayCalendarUpdate(properties.color)
+		const handleUpdateBirthdayCalendar = (dialog: Dialog, newColor: string) => {
+			this.viewModel.handleBirthdayCalendarUpdate(newColor)
+			if (client.isCalendarApp()) {
+				calendarLocator.systemFacade.requestWidgetRefresh()
+			}
 			dialog.close()
-			return this.viewModel.redraw(undefined)
 		}
-
-		showCreateEditCalendarDialog({
-			calendarType: calendarInfo.type,
-			titleTextId: "edit_action",
+		showEditBirthdayCalendarDialog({
 			okAction: handleUpdateBirthdayCalendar,
-			okTextId: "save_action",
-			calendarProperties: {
-				nameData: {
-					kind: "single",
-					name: calendarInfo.name,
-				}, // FIXME handle birthday (name is not editable)
-				color: calendarInfo.color,
-				alarms: [],
-				sourceUrl: null,
-			},
-			isNewCalendar: false,
-			calendarModel: this.viewModel.getCalendarModel(),
+			color: calendarInfo.color,
 		})
 	}
 

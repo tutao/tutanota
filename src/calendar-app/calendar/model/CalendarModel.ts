@@ -215,7 +215,7 @@ export class CalendarModel {
 	private externalCalendarSyncQueue: ExternalCalendarQueueItem[] = []
 	private externalCalendarRetryCount: Map<Id, number> = new Map()
 
-	private readonly birthdayCalendarInfo: BirthdayCalendarInfo
+	private birthdayCalendarInfo: BirthdayCalendarInfo
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -253,7 +253,7 @@ export class CalendarModel {
 		return {
 			id: `${this.logins.getUserController().userId}#${BIRTHDAY_CALENDAR_BASE_ID}`,
 			name: lang.get("birthdayCalendar_label"),
-			color: DEFAULT_BIRTHDAY_CALENDAR_COLOR, // FIXME
+			color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 			type: CalendarType.Birthday,
 			contactGroupId: getFirstOrThrow(this.logins.getUserController().getContactGroupMemberships()).group,
 		}
@@ -1285,6 +1285,7 @@ export class CalendarModel {
 				// Usually this type of update comes alone after all other calendar updates,
 				// and user might have subscribed to a new calendar, so we must reload
 				// calendar infos to make sure that the calendar has been put in the correct section
+				this.birthdayCalendarInfo = this.createBirthdayCalendarInfo()
 				this.calendarInfos.reload()
 				this.userHasNewPaidPlan.reload()
 			}
