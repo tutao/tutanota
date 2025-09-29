@@ -45,6 +45,15 @@ import { isSessionStorageAvailable } from "@tutao/tutanota-utils/dist/Utils"
 assertMainOrNodeBoot()
 bootFinished()
 
+// Since it is not easy to migrate app.tutanota.com to app.tuta.com because 2FA data is stored in each domain,
+// we dynamically insert a noindex tag that can still be read by Google's crawler.
+if (window.location.hostname.includes("tutanota")) {
+	const metaRobotsEl = document.createElement("meta")
+	metaRobotsEl.name = "robots"
+	metaRobotsEl.content = "noindex"
+	document.head.appendChild(metaRobotsEl)
+}
+
 const urlQueryParams = m.parseQueryString(location.search) as Record<string, string>
 
 if (isSessionStorageAvailable()) {
