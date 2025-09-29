@@ -1108,7 +1108,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private handleModifiedCalendar(dialog: Dialog, properties: CalendarProperties, calendarInfo: CalendarInfo, existingGroupSettings?: GroupSettings) {
-		const { groupInfo, shared, userIsOwner } = calendarInfo
+		const { groupInfo, hasMultipleMembers, userIsOwner } = calendarInfo
 		if (userIsOwner) {
 			// if it is a shared calendar and the shared name has been changed the entity needs to be updated
 			// the name on the entity is what is shared with everyone
@@ -1415,7 +1415,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private buildActions(calendarInfo: CalendarInfo, userController: UserController, existingGroupSettings?: GroupSettings) {
-		const { group, groupInfo, groupRoot, isExternal, userIsOwner, shared } = calendarInfo
+		const { group, groupInfo, groupRoot, isExternal, userIsOwner, hasMultipleMembers } = calendarInfo
 		const actions: Array<DropdownChildAttrs> = [
 			{
 				label: "edit_action",
@@ -1428,7 +1428,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			actions.push({
 				label: "sharing_label",
 				icon: Icons.ContactImport,
-				click: () => this.handleShare(userController, groupInfo, shared),
+				click: () => this.handleShare(userController, groupInfo, hasMultipleMembers),
 			})
 		}
 
@@ -1444,7 +1444,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			actions.push({
 				label: "export_action",
 				icon: Icons.Export,
-				click: () => this.handleExport(groupInfo, groupRoot, shared, userController),
+				click: () => this.handleExport(groupInfo, groupRoot, hasMultipleMembers, userController),
 			})
 		}
 

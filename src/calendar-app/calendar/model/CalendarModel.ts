@@ -138,7 +138,7 @@ export type CalendarInfo = CalendarInfoBase & {
 	groupRoot: CalendarGroupRoot
 	groupInfo: GroupInfo
 	group: Group
-	shared: boolean // FIXME rename and make it clear it means multiple members
+	hasMultipleMembers: boolean
 	userIsOwner: boolean
 	isExternal: boolean
 }
@@ -415,7 +415,7 @@ export class CalendarModel {
 			groupRoot,
 			groupInfo,
 			group: group,
-			shared,
+			hasMultipleMembers: shared,
 			userIsOwner,
 			isExternal,
 		}
