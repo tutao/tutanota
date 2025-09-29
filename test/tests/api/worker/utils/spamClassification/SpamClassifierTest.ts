@@ -142,7 +142,7 @@ o.spec("SpamClassifier", () => {
 
 		start = Date.now()
 		await classifierBySteps.initialTraining(trainSetHalf)
-		await classifierBySteps.updateModel(0)
+		await classifierBySteps.updateModelFromCutoff(0)
 		console.log(`trained in ${Date.now() - start}ms`)
 
 		start = Date.now()
@@ -340,6 +340,51 @@ this text is shown
 this text is shown`
 		o.check(preprocessedMail).equals(expectedOutput)
 	})
+
+	o("time to refit", async () => {
+		o.timeout(20_000_000)
+		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
+		const hamSlice = hamData.slice(0, 100)
+		const spamSlice = spamData.slice(0, 50)
+		const dataSlice = hamSlice.concat(spamSlice)
+		seededShuffle(dataSlice, 42)
+
+		const mockOfflineStorage = object() as OfflineStoragePersistence
+		mockOfflineStorage.tokenize = async (text) => {
+			return testTokenize(text)
+		}
+
+		const mockSpamClassificationInitializer = object() as SpamClassificationInitializer
+		mockSpamClassificationInitializer.init = async () => {
+			return dataSlice
+		}
+
+		const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
+		classifier.isEnabled = true
+
+		const start = performance.now()
+		await classifier.initialTraining(dataSlice)
+		const initialTrainingDuration = performance.now() - start
+		console.log(`initial training time ${initialTrainingDuration}ms`)
+
+		for (let i = 0; i < 20; i++) {
+			const nowSpam = [...hamSlice.slice(0, i), ...spamSlice.slice(0, i)]
+			nowSpam.map((formerHam) => (formerHam.isSpam = true))
+			const retrainingStart = performance.now()
+			await classifier.updateModel(nowSpam)
+			const retrainingDuration = performance.now() - retrainingStart
+			console.log(`retraining time ${retrainingDuration}ms`)
+		}
+	})
+	//============================
+	// ### Finished Initial Training ### (total trained mails: 110)
+	// initial training time 5156ms
+	// Retraining finished. Took: 575ms
+	// retraining time 575ms
+	//### Finished Initial Training ### (total trained mails: 1100)
+	// initial training time 45592ms
+	// Retraining finished. Took: 667ms
+	// retraining time 667ms
 })
 
 // For testing, we need deterministic shuffling which is not provided by tf.util.shuffle(dataSlice)

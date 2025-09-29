@@ -188,7 +188,7 @@ export class SpamClassifier {
 		console.log(`### Finished Initial Training ### (total trained mails: ${mails.length})`)
 	}
 
-	public async updateModel(cutoffTimestamp: number): Promise<boolean> {
+	public async updateModelFromCutoff(cutoffTimestamp: number): Promise<boolean> {
 		try {
 			if (!this.isEnabled) {
 				console.warn("Client spam classification is not enabled or there were errors during training")
@@ -200,34 +200,39 @@ export class SpamClassifier {
 				console.log("No new training data since last update.")
 				return false
 			}
-
-			const retrainingStart = performance.now()
 			console.log(`Retraining model with ${newTrainingMails.length} new mails (lastModified > ${new Date(cutoffTimestamp).toString()})`)
-			const mailBatch: string[] = []
-			for (const newTrainingMail of newTrainingMails) {
-				const preprocessedMail = this.preprocessMail(newTrainingMail)
-				mailBatch.push(preprocessedMail)
-			}
 
-			// we have offline storage at this point. see WorkerLocator.initializeSpamClassificationTrainingIfEnabled
-			const tokenizedMailBatch = await promiseMap(mailBatch, (preprocessedMail) => assertNotNull(this.offlineStorage).tokenize(preprocessedMail))
-			// const vectors = this.dynamicTfVectorizer.refitTransform(tokenizedMailBatch)
-			const vectors = await this.vectorizer.transform(tokenizedMailBatch)
-			const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
-			const ys = tf.tensor1d(newTrainingMails.map((mail) => (mail.isSpam ? 1 : 0)))
-
-			// Avoid potentially running .predict() at the same time while we are re-fitting
-			this.isEnabled = false
-			await assertNotNull(this.classifier)
-				.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: true })
-				.finally(() => (this.isEnabled = true))
-
-			console.log(`Retraining finished. Took: ${performance.now() - retrainingStart}ms`)
-			return true
+			return await this.updateModel(newTrainingMails)
 		} catch (e) {
 			console.error("Failed trying to update the model: ", e)
 			return false
 		}
+	}
+
+	// VisibleForTesting
+	async updateModel(newTrainingMails: SpamTrainMailDatum[]) {
+		const retrainingStart = performance.now()
+		const mailBatch: string[] = []
+		for (const newTrainingMail of newTrainingMails) {
+			const preprocessedMail = this.preprocessMail(newTrainingMail)
+			mailBatch.push(preprocessedMail)
+		}
+
+		// we have offline storage at this point. see WorkerLocator.initializeSpamClassificationTrainingIfEnabled
+		const tokenizedMailBatch = await promiseMap(mailBatch, (preprocessedMail) => assertNotNull(this.offlineStorage).tokenize(preprocessedMail))
+		// const vectors = this.dynamicTfVectorizer.refitTransform(tokenizedMailBatch)
+		const vectors = await this.vectorizer.transform(tokenizedMailBatch)
+		const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
+		const ys = tf.tensor1d(newTrainingMails.map((mail) => (mail.isSpam ? 1 : 0)))
+
+		// Avoid potentially running .predict() at the same time while we are re-fitting
+		this.isEnabled = false
+		await assertNotNull(this.classifier)
+			.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: true })
+			.finally(() => (this.isEnabled = true))
+
+		console.log(`Retraining finished. Took: ${performance.now() - retrainingStart}ms`)
+		return true
 	}
 
 	// visibleForTesting
