@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveViewModel } from "./DriveViewModel"
+import { DriveFolderContentListViewModel } from "./DriveFolderContentListViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
@@ -14,11 +14,12 @@ import { FolderColumnView } from "../../../common/gui/FolderColumnView"
 import { size } from "../../../common/gui/size"
 import { showFileChooserForAttachments } from "../../../mail-app/mail/editor/MailEditorViewModel"
 import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
+import { DriveFolderContentListView } from "./DriveFolderContentListView"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
-	driveViewModel: DriveViewModel
+	driveViewModel: DriveFolderContentListViewModel
 	bottomNav?: () => Children
 	lazySearchBar: () => Children
 }
@@ -36,6 +37,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	protected files: (DataFile | FileReference)[] = []
 
+	private listModel
+
 	constructor(vnode: Vnode<DriveViewAttrs>) {
 		super()
 		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs) // this is where we see the left bar
@@ -43,10 +46,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn])
 
 		this.driveFacade = locator.driveFacade
-	}
-
-	oninit({ attrs }: m.Vnode<TopLevelAttrs>) {
-		this.loadDriveRoot()
+		this.listModel = new DriveFolderContentListViewModel(locator.entityClient, this.driveFacade)
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
@@ -93,28 +93,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					return [
 						m("h1", "Welcome to your drive."),
 						m("br"),
-						// m(List, {
-						// 	renderConfig: {
-						// 		createElement: (dom) => {
-						// 			m.render(dom, m("div"))
-						// 			return row
-						// 		},
-						// 	},
-						// }),
-						this.currentFolderFiles.map((value) =>
-							m(
-								"pre",
-								JSON.stringify(
-									{
-										id: value._id[1],
-										name: value.name,
-										size: value.size,
-									},
-									null,
-									2,
-								),
-							),
-						),
+						m(DriveFolderContentListView, {
+							folderContentListViewModel: this.listModel,
+						}),
 					]
 				},
 			},
@@ -184,10 +165,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	// 		)
 	// 	}
 	// }
-
-	async loadDriveRoot(): Promise<void> {
-		this.currentFolderFiles = await this.driveFacade.getRootFiles()
-	}
 
 	async onNewFile_Click(dom: HTMLElement): Promise<void> {
 		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
