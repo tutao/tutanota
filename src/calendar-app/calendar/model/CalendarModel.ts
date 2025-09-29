@@ -226,6 +226,10 @@ export class CalendarModel {
 		return this.calendarInfos.stream
 	}
 
+	getGroupSettings(): Array<GroupSettings> {
+		return this.logins.getUserController().userSettingsGroupRoot.groupSettings
+	}
+
 	getCalendarRenderInfo(calendarId: Id, existingGroupSettings?: GroupSettings | null): CalendarRenderInfo {
 		if (isClientOnlyCalendar(calendarId)) {
 			const clientOnlyCalendar = getClientOnlyCalendars(this.logins.getUserController().userId, deviceConfig.getClientOnlyCalendars()).find(
