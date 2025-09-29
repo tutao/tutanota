@@ -309,7 +309,7 @@ export function makeCalendarInfo(id: string, isOwner: boolean, calendarType: Cal
 			type: GroupType.Calendar,
 			user: isOwner ? ownerId : "anotherUserId",
 		}),
-		shared: isOwner && calendarType === CalendarType.Shared,
+		hasMultipleMembers: isOwner && calendarType === CalendarType.Shared,
 		userIsOwner: isOwner && calendarType === CalendarType.Private,
 		isExternal: isOwner && calendarType === CalendarType.External,
 		type: calendarType,

@@ -968,7 +968,7 @@ export function getEventType(
 		return EventType.OWN
 	}
 
-	if (calendarInfoForEvent.shared) {
+	if (calendarInfoForEvent.hasMultipleMembers) {
 		const canWrite = hasCapabilityOnGroup(user, calendarInfoForEvent.group, ShareCapability.Write)
 		if (canWrite) {
 			const organizerAddress = cleanMailAddress(existingOrganizer?.address ?? "")

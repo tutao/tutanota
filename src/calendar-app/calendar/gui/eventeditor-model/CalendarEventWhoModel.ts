@@ -137,9 +137,9 @@ export class CalendarEventWhoModel {
 		 * they can link any of their owned calendars(private or shared) to said event
 		 * even if the event has guests
 		 **/
-		if (!v.userIsOwner && v.shared && this._attendees.size > 0) {
+		if (!v.userIsOwner && v.hasMultipleMembers && this._attendees.size > 0) {
 			throw new ProgrammingError("tried to select shared calendar while there are guests.")
-		} else if (!v.userIsOwner && v.shared && this.isNew && this._organizer != null) {
+		} else if (!v.userIsOwner && v.hasMultipleMembers && this.isNew && this._organizer != null) {
 			// for new events, it's possible to have an organizer but no attendees if you only add yourself.
 			this._organizer = null
 		}
@@ -171,7 +171,9 @@ export class CalendarEventWhoModel {
 		 * if the user is the event's organiser and the owner of its linked calendar, the user can modify the guests freely
 		 **/
 		const userIsOwner = this.eventType === EventType.OWN && this.selectedCalendar.userIsOwner
-		return userIsOwner || !(this.selectedCalendar?.shared || this.eventType === EventType.INVITE || this.operation === CalendarOperation.EditThis)
+		return (
+			userIsOwner || !(this.selectedCalendar?.hasMultipleMembers || this.eventType === EventType.INVITE || this.operation === CalendarOperation.EditThis)
+		)
 	}
 
 	/**
@@ -191,14 +193,14 @@ export class CalendarEventWhoModel {
 			 * they can link any of their owned calendars(private or shared) to said event
 			 * even if the event has guests
 			 **/
-			return calendarArray.filter((calendarInfo) => calendarInfo.userIsOwner || !calendarInfo.shared)
+			return calendarArray.filter((calendarInfo) => calendarInfo.userIsOwner || !calendarInfo.hasMultipleMembers)
 		} else if (this._attendees.size > 0 && this.eventType === EventType.OWN) {
 			return calendarArray.filter((calendarInfo) => calendarInfo.userIsOwner)
 		} else if (this._attendees.size > 0 || this.eventType === EventType.INVITE) {
 			// We don't allow inviting in a shared calendar.
 			// If we have attendees, we cannot select a shared calendar.
 			// We also don't allow accepting invites into shared calendars.
-			return calendarArray.filter((calendarInfo) => !calendarInfo.shared || haveSameId(calendarInfo.group, this.selectedCalendar.group))
+			return calendarArray.filter((calendarInfo) => !calendarInfo.hasMultipleMembers || haveSameId(calendarInfo.group, this.selectedCalendar.group))
 		} else {
 			return calendarArray.filter((calendarInfo) => hasCapabilityOnGroup(this.userController.user, calendarInfo.group, ShareCapability.Write))
 		}
