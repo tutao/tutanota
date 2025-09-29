@@ -8,6 +8,7 @@ import de.tutao.calendar.widget.data.LastSyncDao
 import de.tutao.calendar.widget.data.SettingsDao
 import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.model.WidgetUIViewModel
+import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CredentialType
@@ -55,7 +56,6 @@ class WidgetUIViewModelTest {
 		return mock<WidgetRepository> {
 			onBlocking { loadSettings(any(), any()) } doReturn SettingsDao("", calendars = mapOf())
 			onBlocking { loadLastSync(any(), any()) } doReturn LastSyncDao(0, WidgetUpdateTrigger.APP, false)
-			onBlocking { loadCalendars(any(), any(), any()) } doReturn mapOf()
 			onBlocking { storeSettings(any(), any(), any()) } doReturn Unit
 			onBlocking { loadEvents(any(), any(), any(), any(), any(), any(), any()) } doReturn
 					mapOf(
@@ -70,6 +70,9 @@ class WidgetUIViewModelTest {
 	fun testEventsFromCache() = runTest {
 		mockContext = mock<Context>()
 		val repository = getRepository()
+
+		wheneverBlocking { repository.loadCalendars(any(), any(), any()) }
+			.doReturn(mapOf())
 
 		wheneverBlocking {
 			repository.loadLastSync(any(), any())
@@ -89,6 +92,9 @@ class WidgetUIViewModelTest {
 	fun testEventsFromCacheOnError() = runTest {
 		mockContext = mock<Context>()
 		val repository = getRepository()
+
+		wheneverBlocking { repository.loadCalendars(any(), any(), any()) }
+			.doReturn(mapOf())
 
 		// Modifies non-cached loadEvents function to throw an error
 		wheneverBlocking {
@@ -113,6 +119,9 @@ class WidgetUIViewModelTest {
 		val mockedCalendar = Calendar.getInstance()
 		mockedCalendar.timeInMillis = 1758333600000
 
+		wheneverBlocking { repository.loadCalendars(any(), any(), any()) }
+			.doReturn(mapOf())
+
 		val model = WidgetUIViewModel(repository, 0, credentialsFacade, cryptoFacade, sdk, mockedCalendar)
 		val events = model.loadUIState(
 			context = mockContext,
@@ -122,6 +131,38 @@ class WidgetUIViewModelTest {
 		assert(events != null)
 		assert(events?.normalEvents?.size == 1)
 
+		verify(repository, times(0)).loadEvents(any(), any(), any(), any(), any())
+		verify(repository, times(1)).loadEvents(any(), any(), any(), any(), any(), any(), any())
+
+		val key = events?.normalEvents?.keys?.first()
+		val dayEvents = events?.normalEvents?.get(key)
+
+		assert(dayEvents?.get(0)?.eventId == eventFour.id)
+		assert(dayEvents?.get(2)?.eventId == eventThree.id)
+	}
+
+	@Test
+	fun testCanFetchEventsWhenLoadCalendarsFail() = runTest {
+		mockContext = mock<Context>()
+
+		val repository = getRepository()
+
+		wheneverBlocking { repository.loadCalendars(any(), any(), any()) }
+			.doThrow(RuntimeException())
+
+		val mockedCalendar = Calendar.getInstance()
+		mockedCalendar.timeInMillis = 1758333600000
+
+		val model = WidgetUIViewModel(repository, 0, credentialsFacade, cryptoFacade, sdk, mockedCalendar)
+		val events = model.loadUIState(
+			context = mockContext,
+			LocalDateTime.ofInstant(Instant.ofEpochMilli(1758333600000), ZoneId.of("Europe/Berlin"))
+		)
+
+		assert(events != null)
+		assert(events?.normalEvents?.size == 1)
+
+		verify(repository, times(1)).loadCalendars(any(), any(),any())
 		verify(repository, times(0)).loadEvents(any(), any(), any(), any(), any())
 		verify(repository, times(1)).loadEvents(any(), any(), any(), any(), any(), any(), any())
 
