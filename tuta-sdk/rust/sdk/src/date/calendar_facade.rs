@@ -31,9 +31,9 @@ use time::{OffsetDateTime, Time, UtcDateTime, UtcOffset};
 pub const DEFAULT_CALENDAR_NAME: &str = "";
 pub const DEFAULT_CALENDAR_COLOR: &str = "2196f3";
 
-pub const CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID: &str = "clientOnly_birthdays";
-pub const CLIENT_ONLY_CALENDAR_BIRTHDAYS_TRANSLATION_KEY: &str = "birthdayCalendar_label";
-pub const CLIENT_ONLY_CALENDAR_BIRTHDAYS_COLOR: &str = "FF9933";
+pub const BIRTHDAY_CALENDAR_BASE_ID: &str = "clientOnly_birthdays";
+pub const BIRTHDAY_TRANSLATION_KEY: &str = "birthdayCalendar_label";
+pub const DEFAULT_BIRTHDAY_CALENDAR_COLOR: &str = "FF9933";
 
 #[derive(uniffi::Record)]
 pub struct CalendarData {
@@ -87,6 +87,7 @@ impl CalendarFacade {
 	///  Fetches all user calendars
 	async fn fetch_calendars_data(
 		&self,
+		user_settings_group_root: &UserSettingsGroupRoot,
 	) -> Result<HashMap<GeneratedId, CalendarData>, ApiCallError> {
 		let user = self.user_facade.get_user();
 		let memberships: Vec<&GroupMembership> = user
@@ -102,10 +103,6 @@ impl CalendarFacade {
 			));
 		}
 
-		let user_settings_group_root: UserSettingsGroupRoot = self
-			.crypto_entity_client
-			.load(&user.userGroup.group)
-			.await?;
 		let mut calendars_data: HashMap<GeneratedId, CalendarData> = HashMap::new();
 		for membership in memberships {
 			let group_info: GroupInfo = self
@@ -559,7 +556,10 @@ impl CalendarFacade {
 		Ok([].to_vec())
 	}
 
-	pub async fn generate_client_only_calendars(&self) -> HashMap<GeneratedId, CalendarRenderData> {
+	pub async fn get_birthday_calendar_data(
+		&self,
+		user_settings_group_root: &UserSettingsGroupRoot,
+	) -> HashMap<GeneratedId, CalendarRenderData> {
 		let user: Arc<User> = self.user_facade.get_user();
 		if user.accountType != AccountType::PAID as i64 {
 			return HashMap::new();
@@ -589,13 +589,17 @@ impl CalendarFacade {
 		let birthday_calendar_id = format!(
 			"{}#{}",
 			user._id.as_ref().unwrap(),
-			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
+			BIRTHDAY_CALENDAR_BASE_ID
 		);
+
 		HashMap::from([(
 			GeneratedId(birthday_calendar_id),
 			CalendarRenderData {
-				name: String::from(CLIENT_ONLY_CALENDAR_BIRTHDAYS_TRANSLATION_KEY),
-				color: String::from(CLIENT_ONLY_CALENDAR_BIRTHDAYS_COLOR),
+				name: String::from(BIRTHDAY_TRANSLATION_KEY),
+				color: user_settings_group_root
+					.birthdayCalendarColor
+					.clone()
+					.unwrap_or(String::from(DEFAULT_BIRTHDAY_CALENDAR_COLOR)),
 			},
 		)])
 	}
@@ -696,12 +700,20 @@ impl CalendarFacade {
 
 #[uniffi::export]
 impl CalendarFacade {
-	pub async fn get_calendars_render_data(&self) -> HashMap<GeneratedId, CalendarRenderData> {
-		let calendars_data = match self.fetch_calendars_data().await {
+	pub async fn get_calendars_render_data(
+		&self,
+	) -> Result<HashMap<GeneratedId, CalendarRenderData>, ApiCallError> {
+		let user = self.user_facade.get_user();
+		let user_settings_group_root: UserSettingsGroupRoot = self
+			.crypto_entity_client
+			.load(&user.userGroup.group)
+			.await?;
+
+		let calendars_data = match self.fetch_calendars_data(&user_settings_group_root).await {
 			Ok(cal_data) => cal_data,
 			Err(e) => {
 				log::error!("Failed to fetch calendars data: {}", e);
-				return HashMap::new();
+				return Ok(HashMap::new());
 			},
 		};
 
@@ -731,10 +743,12 @@ impl CalendarFacade {
 			calendars_render_data.insert(calendar_id, render_data);
 		}
 
-		let client_only_calendars = self.generate_client_only_calendars().await;
-		calendars_render_data.extend(client_only_calendars);
+		let birthday_calendar = self
+			.get_birthday_calendar_data(&user_settings_group_root)
+			.await;
+		calendars_render_data.extend(birthday_calendar);
 
-		calendars_render_data
+		Ok(calendars_render_data)
 	}
 
 	pub async fn get_calendar_events(
@@ -743,10 +757,7 @@ impl CalendarFacade {
 		start: DateTime,
 		end: DateTime,
 	) -> CalendarEventsList {
-		if calendar_id
-			.0
-			.contains(CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID)
-		{
+		if calendar_id.0.contains(BIRTHDAY_CALENDAR_BASE_ID) {
 			return self.fetch_birthday_events(start, end).await.unwrap();
 		}
 
@@ -778,8 +789,8 @@ fn get_max_timestamp_id() -> CustomId {
 #[cfg(test)]
 mod calendar_facade_unit_tests {
 	use super::{
-		CalendarFacade, RangeWithOffset, CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID,
-		DEFAULT_CALENDAR_COLOR, DEFAULT_CALENDAR_NAME,
+		CalendarFacade, RangeWithOffset, BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_CALENDAR_COLOR,
+		DEFAULT_CALENDAR_NAME,
 	};
 	use crate::contacts::contact_facade::MockContactFacade;
 	use crate::crypto_entity_client::MockCryptoEntityClient;
@@ -1365,7 +1376,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(event_facade),
 		);
 
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
 		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
 
 		assert_eq!(calendar_render_data.name, DEFAULT_CALENDAR_NAME);
@@ -1411,7 +1422,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(event_facade),
 		);
 
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
 		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
 
 		assert_eq!(calendar_render_data.name, custom_name);
@@ -1455,7 +1466,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(event_facade),
 		);
 
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
 		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
 
 		assert_eq!(calendar_render_data.name, DEFAULT_CALENDAR_NAME);
@@ -1501,7 +1512,7 @@ mod calendar_facade_unit_tests {
 			Arc::new(event_facade),
 		);
 
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
 		let calendar_render_data = calendars_render_data.get(&calendar_id).unwrap();
 
 		assert_eq!(calendar_render_data.name, custom_name.to_string());
@@ -1527,7 +1538,7 @@ mod calendar_facade_unit_tests {
 			create_mock_user_settings_group_root(None, None, None, None);
 		mock_crypto_entity_client
 			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root));
+			.return_const(Ok(mock_user_settings_group_root.clone()));
 
 		let mock_group_info = create_mock_group_info(&calendar_id, None);
 		mock_crypto_entity_client
@@ -1551,17 +1562,15 @@ mod calendar_facade_unit_tests {
 			Arc::new(event_facade),
 		);
 
-		let formated_id = format!(
-			"{}#{}",
-			user_id.as_str(),
-			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
-		);
+		let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
 		let birthday_calendar_id = GeneratedId(formated_id);
 
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
 		let render_data = calendars_render_data.get(&birthday_calendar_id).unwrap();
 
-		let client_only_calendars = calendar_facade.generate_client_only_calendars().await;
+		let client_only_calendars = calendar_facade
+			.get_birthday_calendar_data(&mock_user_settings_group_root)
+			.await;
 		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id).unwrap();
 
 		assert_eq!(render_data.name, birthday_calendar.name);
@@ -1587,7 +1596,7 @@ mod calendar_facade_unit_tests {
 			create_mock_user_settings_group_root(None, None, None, None);
 		mock_crypto_entity_client
 			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root));
+			.return_const(Ok(mock_user_settings_group_root.clone()));
 
 		let mock_group_info = create_mock_group_info(&calendar_id, None);
 		mock_crypto_entity_client
@@ -1611,18 +1620,16 @@ mod calendar_facade_unit_tests {
 			Arc::new(event_facade),
 		);
 
-		let formated_id = format!(
-			"{}#{}",
-			user_id.as_str(),
-			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
-		);
+		let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
 		let birthday_calendar_id = GeneratedId(formated_id);
 
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
 		let render_data = calendars_render_data.get(&birthday_calendar_id);
 		assert!(render_data.is_none());
 
-		let client_only_calendars = calendar_facade.generate_client_only_calendars().await;
+		let client_only_calendars = calendar_facade
+			.get_birthday_calendar_data(&mock_user_settings_group_root)
+			.await;
 		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id);
 		assert!(birthday_calendar.is_none());
 	}
@@ -1646,7 +1653,7 @@ mod calendar_facade_unit_tests {
 			create_mock_user_settings_group_root(None, None, None, None);
 		mock_crypto_entity_client
 			.expect_load::<UserSettingsGroupRoot, GeneratedId>()
-			.return_const(Ok(mock_user_settings_group_root));
+			.return_const(Ok(mock_user_settings_group_root.clone()));
 
 		let mock_group_info = create_mock_group_info(&calendar_id, None);
 		mock_crypto_entity_client
@@ -1661,18 +1668,16 @@ mod calendar_facade_unit_tests {
 			Arc::new(event_facade),
 		);
 
-		let formated_id = format!(
-			"{}#{}",
-			user_id.as_str(),
-			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
-		);
+		let formated_id = format!("{}#{}", user_id.as_str(), BIRTHDAY_CALENDAR_BASE_ID);
 		let birthday_calendar_id = GeneratedId(formated_id);
 
-		let calendars_render_data = calendar_facade.get_calendars_render_data().await;
+		let calendars_render_data = calendar_facade.get_calendars_render_data().await.unwrap();
 		let render_data = calendars_render_data.get(&birthday_calendar_id);
 		assert!(render_data.is_none());
 
-		let client_only_calendars = calendar_facade.generate_client_only_calendars().await;
+		let client_only_calendars = calendar_facade
+			.get_birthday_calendar_data(&mock_user_settings_group_root)
+			.await;
 		let birthday_calendar = client_only_calendars.get(&birthday_calendar_id);
 		assert!(birthday_calendar.is_none());
 	}

@@ -1,4 +1,4 @@
-use crate::date::calendar_facade::CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID;
+use crate::date::calendar_facade::BIRTHDAY_CALENDAR_BASE_ID;
 use crate::date::DateTime;
 use crate::entities::generated::tutanota::{CalendarEvent, Contact};
 use crate::util::generate_event_uid;
@@ -1634,7 +1634,7 @@ impl EventFacade {
 		let birthday_calendar_id = GeneratedId(format!(
 			"{}#{}",
 			user_id.as_str(),
-			CLIENT_ONLY_CALENDAR_BIRTHDAYS_BASE_ID
+			BIRTHDAY_CALENDAR_BASE_ID
 		));
 
 		let uid: String = generate_event_uid(&birthday_calendar_id, DateTime::from_millis(0));

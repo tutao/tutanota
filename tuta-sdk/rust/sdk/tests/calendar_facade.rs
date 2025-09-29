@@ -46,7 +46,7 @@ async fn load_free_user_calendars() {
 	})
 	.await;
 	// Should return only the default private calendar created on login (or, for tests, on the TestTool)
-	let calendars = calendar_facade.get_calendars_render_data().await;
+	let calendars = calendar_facade.get_calendars_render_data().await.unwrap();
 	assert_eq!(calendars.len(), 1);
 	let default_private_calendar = calendars.values().next().unwrap();
 	assert_eq!(default_private_calendar.name, DEFAULT_CALENDAR_NAME);
@@ -65,7 +65,7 @@ async fn load_premium_user_calendars() {
 		password: "bed".to_string(),
 	})
 	.await;
-	let calendars = calendar_facade.get_calendars_render_data().await;
+	let calendars = calendar_facade.get_calendars_render_data().await.unwrap();
 	assert_eq!(calendars.len(), 2); // Default private + brithdays
 	log::info!("Test::Loaded user calendars correctly!");
 }
@@ -81,7 +81,7 @@ async fn load_calendar_events() {
 		password: "arm".to_string(),
 	})
 	.await;
-	let calendars = calendar_facade.get_calendars_render_data().await;
+	let calendars = calendar_facade.get_calendars_render_data().await.unwrap();
 	assert_eq!(calendars.len(), 1);
 	let default_private_calendar_id = calendars.keys().next().unwrap();
 
