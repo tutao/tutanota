@@ -255,26 +255,26 @@ this text is shown
 		} as SpamTrainMailDatum
 		const preprocessedMail = classifier.preprocessMail(mail)
 		const expectedOutput = `Sample Tokens and values Hello <SPECIAL-CHAR>  these are my MAC Address
-				FB <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				FB <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
 				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> -D5 <SPECIAL-CHAR>  <NUMBER> -7C
 				B4 <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> -2A-DE-D4
 				along with my ISBNs
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
 				 <NUMBER> -X
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
 				SSN
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
 				SHAs
 				585eab9b3a5e4430e08f5096d636d0d475a8c69dae21a61c6f1b26c4bd8dd8c1
 				7233d153f2e0725d3d212d1f27f30258fafd72b286d07b3b1d94e7e3c35dce67
 				769f65bf44557df44fc5f99c014cbe98894107c9d7be0801f37c55b3776c3990
 				Phone Numbers
-				 <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>   <NUMBER> 
-				 <SPECIAL-CHAR>  <NUMBER>   <NUMBER>   <NUMBER>   <NUMBER> 
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
-				VIN  <SPECIAL-CHAR> Vehicle identification number <SPECIAL-CHAR> 
+				 <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>
+				 <SPECIAL-CHAR>  <NUMBER>   <NUMBER>   <NUMBER>   <NUMBER>
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+				VIN  <SPECIAL-CHAR> Vehicle identification number <SPECIAL-CHAR>
 				3FADP4AJ3BM438397
 				WAULT64B82N564937
 				GUIDs
@@ -284,72 +284,69 @@ this text is shown
 				 <SPECIAL-CHAR> 2016c1
 				 <SPECIAL-CHAR> c090a4
 				 <SPECIAL-CHAR> c855f5
-				 <SPECIAL-CHAR>  <NUMBER> 
+				 <SPECIAL-CHAR>  <NUMBER>
 				IPV4
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
-				On Date <SPECIAL-CHAR> 
-				 <DATE> 
-				 <DATE> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+				On Date <SPECIAL-CHAR>
+				 <DATE>
+				 <DATE>
 				Not Date
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
 				URL
-				 <URL-tuta.com> 
-				 <URL-subdomain.microsoft.com> 
+				 <URL-tuta.com>
+				 <URL-subdomain.microsoft.com>
 				NOT URL
-				 <URL-tuta> 
+				 <URL-tuta>
 				MAIL
-				 <EMAIL> 
-				 <EMAIL> 
+				 <EMAIL>
+				 <EMAIL>
 				Credit Card
-				 <CREDIT-CARD> 
-				 <CREDIT-CARD> 
+				 <CREDIT-CARD>
+				 <CREDIT-CARD>
 				Not Credit Card
-				 <NUMBER>   <NUMBER> 
+				 <NUMBER>   <NUMBER>
 				Bit Coin Address
-				 <BITCOIN> 
-				 <BITCOIN> 
+				 <BITCOIN>
+				 <BITCOIN>
 				Not BTC
 				5213nYwhhGw2qpNijzfnKcbCG4z3hnrVA
 				1OUm2eZK2ETeAo8v95WhZioQDy32YSerkD
 				Special Characters
-				 <SPECIAL-CHAR> 
-				 <SPECIAL-CHAR> 
+				 <SPECIAL-CHAR>
+				 <SPECIAL-CHAR>
 				Not Special Characters
 				]
-				Number Sequences <SPECIAL-CHAR> 
-				 <NUMBER> 
-				IBAN <SPECIAL-CHAR>  DE91  <CREDIT-CARD>  <NUMBER> 
+				Number Sequences <SPECIAL-CHAR>
+				 <NUMBER>
+				IBAN <SPECIAL-CHAR>  DE91  <CREDIT-CARD>  <NUMBER>
 				Not Number Sequences
 				SHLT116
 				gb <SPECIAL-CHAR> 67ca4b
 				Other values found in mails
 				❓
-				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  €  <NUMBER>  m² <NUMBER>  Zi  <NUMBER>  <SPECIAL-CHAR> 
-				Fax  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>   <NUMBER>   <NUMBER>   <NUMBER> 
-				August  <NUMBER>  <SPECIAL-CHAR>   <NUMBER> 
+				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  €  <NUMBER>  m² <NUMBER>  Zi  <NUMBER>  <SPECIAL-CHAR>
+				Fax  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>   <NUMBER>   <NUMBER>   <NUMBER>
+				August  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>
 				 <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  PM  <SPECIAL-CHAR>   <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  PM
-				 
+
 				🐟
-				and all text on other lines it seems <SPECIAL-CHAR> 
-				 
- Button Text 
- 
-           
+				and all text on other lines it seems <SPECIAL-CHAR>
+
+ Button Text
+
+
 this text is shown`
 		o.check(preprocessedMail).equals(expectedOutput)
 	})
+})
 
-	o("time to refit", async () => {
-		o.timeout(20_000_000)
-		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
-		const hamSlice = hamData.slice(0, 100)
-		const spamSlice = spamData.slice(0, 50)
-		const dataSlice = hamSlice.concat(spamSlice)
-		seededShuffle(dataSlice, 42)
-
-		const mockOfflineStorage = object() as OfflineStoragePersistence
+o.spec("Training and ReFitting the model", () => {
+	const mockOfflineStorage = object() as OfflineStoragePersistence
+	let classifier = object() as SpamClassifier
+	let dataSlice
+	o.beforeEach(() => {
 		mockOfflineStorage.tokenize = async (text) => {
 			return testTokenize(text)
 		}
@@ -358,9 +355,17 @@ this text is shown`
 		mockSpamClassificationInitializer.init = async () => {
 			return dataSlice
 		}
-
-		const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
+		classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
 		classifier.isEnabled = true
+	})
+
+	o("time to refit", async () => {
+		o.timeout(20_000_000)
+		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
+		const hamSlice = hamData.slice(0, 1000)
+		const spamSlice = spamData.slice(0, 400)
+		dataSlice = hamSlice.concat(spamSlice)
+		seededShuffle(dataSlice, 42)
 
 		const start = performance.now()
 		await classifier.initialTraining(dataSlice)
@@ -368,7 +373,7 @@ this text is shown`
 		console.log(`initial training time ${initialTrainingDuration}ms`)
 
 		for (let i = 0; i < 20; i++) {
-			const nowSpam = [...hamSlice.slice(0, i), ...spamSlice.slice(0, i)]
+			const nowSpam = [hamSlice[0]]
 			nowSpam.map((formerHam) => (formerHam.isSpam = true))
 			const retrainingStart = performance.now()
 			await classifier.updateModel(nowSpam)
@@ -376,16 +381,120 @@ this text is shown`
 			console.log(`retraining time ${retrainingDuration}ms`)
 		}
 	})
-	//============================
-	// ### Finished Initial Training ### (total trained mails: 110)
-	// initial training time 5156ms
-	// Retraining finished. Took: 575ms
-	// retraining time 575ms
-	//### Finished Initial Training ### (total trained mails: 1100)
-	// initial training time 45592ms
-	// Retraining finished. Took: 667ms
-	// retraining time 667ms
+
+	o("refit after moving a false negative classification multiple times", async () => {
+		o.timeout(20_000_000)
+		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
+		const hamSlice = hamData.slice(0, 1000)
+		const spamSlice = spamData.slice(0, 10)
+		dataSlice = hamSlice.concat(spamSlice)
+		// seededShuffle(dataSlice, 42)
+
+		await classifier.initialTraining(dataSlice)
+		const falseNegatives = spamData
+			.slice(10)
+			.filter(async (mailDatum) => mailDatum.isSpam !== (await classifier.predict(mailDatum)))
+			.slice(0, 10)
+
+		let retrainingNeeded = new Array<number>(falseNegatives.length).fill(0)
+		for (let i = 0; i < falseNegatives.length; i++) {
+			const sample = falseNegatives[i]
+			const copiedClassifier = await classifier.cloneClassifier()
+
+			let retrainCount = 0
+			let predictedSpam = false
+			while (!predictedSpam && retrainCount++ <= 10) {
+				await copiedClassifier.updateModel([{ ...sample, isSpam: false }])
+				await copiedClassifier.updateModel([{ ...sample, isSpam: true }])
+				predictedSpam = await copiedClassifier.predict(sample)
+			}
+			retrainingNeeded[i] = retrainCount
+		}
+
+		console.log(retrainingNeeded)
+		const maxRetrain = Math.max(...retrainingNeeded)
+		o.check(retrainingNeeded.length >= 10).equals(true)
+		o.check(maxRetrain < 3).equals(true)
+	})
+
+	o("refit after moving a false positive classification multiple times", async () => {
+		o.timeout(20_000_000)
+		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
+		const hamSlice = hamData.slice(0, 10)
+		const spamSlice = spamData.slice(0, 100)
+		dataSlice = hamSlice.concat(spamSlice)
+		// seededShuffle(dataSlice, 42)
+
+		await classifier.initialTraining(dataSlice)
+		const falsePositive = hamData
+			.slice(10)
+			.filter(async (mailDatum) => mailDatum.isSpam !== (await classifier.predict(mailDatum)))
+			.slice(0, 10)
+		let retrainingNeeded = new Array<number>(falsePositive.length).fill(0)
+		for (let i = 0; i < falsePositive.length; i++) {
+			const sample = falsePositive[i]
+			const copiedClassifier = await classifier.cloneClassifier()
+
+			let retrainCount = 0
+			let predictedSpam = false
+			while (!predictedSpam && retrainCount++ <= 10) {
+				await copiedClassifier.updateModel([{ ...sample, isSpam: true }])
+				await copiedClassifier.updateModel([{ ...sample, isSpam: false }])
+				predictedSpam = await copiedClassifier.predict(sample)
+			}
+			retrainingNeeded[i] = retrainCount
+		}
+
+		console.log(retrainingNeeded)
+		const maxRetrain = Math.max(...retrainingNeeded)
+		o.check(retrainingNeeded.length >= 10).equals(true)
+		o.check(maxRetrain < 3).equals(true)
+	})
+
+	o("retrain after moving a false negative classification multiple times", async () => {
+		o.timeout(20_000_000)
+		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
+		const hamSlice = hamData.slice(0, 100)
+		const spamSlice = spamData.slice(0, 10)
+		dataSlice = hamSlice.concat(spamSlice)
+		seededShuffle(dataSlice, 42)
+
+		await classifier.initialTraining(dataSlice)
+		const falseNegatives = spamData
+			.slice(10)
+			.filter(async (mailDatum) => mailDatum.isSpam !== (await classifier.predict(mailDatum)))
+			.slice(0, 10)
+
+		let retrainingNeeded = new Array<number>(falseNegatives.length).fill(0)
+		for (let i = 0; i < falseNegatives.length; i++) {
+			const sample = falseNegatives[i]
+			const copiedClassifier = await classifier.cloneClassifier()
+
+			let retrainCount = 0
+			let predictedSpam = false
+			while (!predictedSpam && retrainCount++ <= 10) {
+				await copiedClassifier.initialTraining([...dataSlice, sample])
+				predictedSpam = await copiedClassifier.predict(sample)
+			}
+			retrainingNeeded[i] = retrainCount
+		}
+
+		console.log(retrainingNeeded)
+		const maxRetrain = Math.max(...retrainingNeeded)
+		o.check(retrainingNeeded.length >= 10).equals(true)
+		o.check(maxRetrain < 3).equals(true)
+	})
 })
+
+/*
+[
+  12,  2, 2, 5,  2,
+   2, 12, 3, 2, 12
+]
+
+
+
+ */
 
 // For testing, we need deterministic shuffling which is not provided by tf.util.shuffle(dataSlice)
 // Seeded Fisher-Yates shuffle

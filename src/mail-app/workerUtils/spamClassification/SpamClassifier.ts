@@ -1,7 +1,7 @@
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
-import { assertNotNull, isNotNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, isNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
@@ -94,7 +94,7 @@ export class SpamClassifier {
 		}
 
 		console.log("No existing model found. Training from scratch...")
-		const data: Array<SpamTrainMailDatum> = (await this.initializer.init()).filter((classificationData) => classificationData.isCertain)
+		const data: Array<SpamTrainMailDatum> = (await this.initializer.init()).filter((classificationData) => classificationData.importance > 0)
 		await this.initialTraining(data)
 		await this.saveModel()
 		this.isEnabled = true
@@ -250,7 +250,7 @@ export class SpamClassifier {
 		const predictionData = await predictionTensor.data()
 		const prediction = predictionData[0]
 
-		console.log(`predicted new mail to be with probability ${prediction.toFixed(2)} spam`)
+		// console.log(`predicted new mail to be with probability ${prediction.toFixed(2)} spam`)
 
 		return prediction > PREDICTION_THRESHOLD
 	}
@@ -377,26 +377,39 @@ export class SpamClassifier {
 			throw new Error("Model is not available, and therefore can not be saved")
 		}
 
-		await this.classifier.save(
-			tf.io.withSaveHandler(async (artifacts) => {
+		const { spamClassificationModel } = await this.getModelArtifacts()
+		await assertNotNull(this.offlineStorage).putSpamClassificationModel(spamClassificationModel)
+	}
+
+	private async getModelArtifacts() {
+		const classifier = assertNotNull(this.classifier)
+		const spamClassificationModel = defer<SpamClassificationModel>()
+		const modelArtificats = new Promise<tf.io.ModelArtifacts>((resolve) => {
+			const saveInfo = tf.io.withSaveHandler(async (artifacts) => {
+				resolve(artifacts)
 				const modelTopology = JSON.stringify(artifacts.modelTopology)
 				const weightSpecs = JSON.stringify(artifacts.weightSpecs)
 				const weightData = new Uint8Array(artifacts.weightData as ArrayBuffer)
 
-				await assertNotNull(this.offlineStorage).putSpamClassificationModel({
+				spamClassificationModel.resolve({
 					modelTopology,
 					weightSpecs,
 					weightData,
 				})
-
 				return {
 					modelArtifactsInfo: {
 						dateSaved: new Date(),
 						modelTopologyType: "JSON",
 					},
 				}
-			}),
-		)
+			})
+			classifier.save(saveInfo)
+		})
+
+		return {
+			modelArtifacts: await modelArtificats,
+			spamClassificationModel: await spamClassificationModel.promise,
+		}
 	}
 
 	private async loadModel(): Promise<void> {
@@ -428,5 +441,19 @@ export class SpamClassifier {
 		const body = mail.body || ""
 		const concatenated = `${subject} ${body}`.trim()
 		return concatenated.length > 0 ? concatenated : " "
+	}
+
+	// === Testing methods
+	public async cloneClassifier(): Promise<SpamClassifier> {
+		const newClassifier = new SpamClassifier(this.offlineStorage, this.initializer, this.deterministic, this.preprocessConfiguration)
+		newClassifier.isEnabled = this.isEnabled
+		const { modelArtifacts } = await this.getModelArtifacts()
+		newClassifier.classifier = await tf.loadLayersModel(tf.io.fromMemory(modelArtifacts))
+		newClassifier.classifier.compile({
+			optimizer: "adam",
+			loss: "binaryCrossentropy",
+			metrics: ["accuracy"],
+		})
+		return newClassifier
 	}
 }
