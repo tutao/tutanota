@@ -1,15 +1,13 @@
 import type { DesktopNotifier } from "./notifications/DesktopNotifier"
 import { lang } from "../misc/LanguageViewModel"
 import type { DesktopConfig } from "./config/DesktopConfig"
-import { assertNotNull, delay, downcast, LazyLoaded, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, delay, downcast, LazyLoaded, neverNull, newPromise } from "@tutao/tutanota-utils"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import type { App, NativeImage } from "electron"
 import type { UpdaterWrapper } from "./UpdaterWrapper"
 import type { UpdateDownloadedEvent, UpdateInfo } from "electron-updater"
 import { BuildConfigKey, DesktopConfigKey } from "./config/ConfigKeys"
 import { FsExports } from "./ElectronExportTypes.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 /**
  * Wraps electron-updater for Tutanota Desktop

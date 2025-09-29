@@ -1,6 +1,6 @@
 import { client } from "./ClientDetector"
 
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils"
 
 function fallbackCopyToClipboard(text: string): Promise<void> {
 	return newPromise((resolve, reject) => {

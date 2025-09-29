@@ -11,7 +11,7 @@ import type {
 } from "../../common/EntityTypes"
 import { AttributeModel } from "../../common/AttributeModel"
 import { InstancePipeline } from "./InstancePipeline"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Nullable } from "@tutao/tutanota-utils"
 
 export class EntityAdapter implements Entity {
 	isAdapter = true

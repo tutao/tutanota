@@ -1,5 +1,5 @@
 import { assertWorkerOrNode, isApp, isDesktop } from "../../common/Env.js"
-import { defer, DeferredObject } from "@tutao/tutanota-utils/dist/Utils"
+import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { ApplicationTypesHash, HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
 import { FileFacade } from "../../../native/common/generatedipc/FileFacade"
 import { stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/tutanota-utils"

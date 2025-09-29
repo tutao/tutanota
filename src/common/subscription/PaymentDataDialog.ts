@@ -7,14 +7,12 @@ import { updatePaymentData } from "./InvoiceAndPaymentDataPage"
 import { px } from "../gui/size"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { PaymentMethodType } from "../api/common/TutanotaConstants"
-import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull, newPromise } from "@tutao/tutanota-utils"
 import type { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import { asPaymentInterval } from "./utils/PriceUtils.js"
 import { getLazyLoadedPayPalUrl } from "./utils/SubscriptionUtils.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 /**
  * @returns {boolean} true if the payment data update was successful

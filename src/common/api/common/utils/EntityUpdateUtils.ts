@@ -4,7 +4,7 @@ import { BlobElementEntity, ListElementEntity, ServerModelParsedInstance, SomeEn
 import { AppName, getTypeString, isSameTypeRef, TypeRef } from "@tutao/tutanota-utils"
 import { isSameId } from "./EntityUtils.js"
 import { ClientTypeModelResolver } from "../EntityFunctions"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Nullable } from "@tutao/tutanota-utils"
 
 /**
  * A type similar to {@link EntityUpdate} but mapped to make it easier to work with.

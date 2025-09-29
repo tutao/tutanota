@@ -1,6 +1,6 @@
 import { InfoLink, lang, TranslationKey } from "../../misc/LanguageViewModel.js"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
-import { assertNotNull, Hex, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, Hex, newPromise, noOp, ofClass } from "@tutao/tutanota-utils"
 import m, { Child, Children, Vnode } from "mithril"
 import { assertMainOrNode, isApp } from "../../api/common/Env.js"
 import { copyToClipboard } from "../../misc/ClipboardUtils.js"
@@ -14,8 +14,6 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 type Action = "get" | "create"
 assertMainOrNode()

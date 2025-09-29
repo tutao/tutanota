@@ -13,7 +13,7 @@ import {
 	listIdPart,
 	stringToCustomId,
 } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { arrayOf, assertNotNull, clone, deepEqual, downcast, isSameTypeRef, last, Nullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import {
 	createEntityUpdate,
 	createPatch,
@@ -58,7 +58,6 @@ import { PatchOperationType, TypeModelResolver } from "../../../../../src/common
 import { ModelMapper } from "../../../../../src/common/api/worker/crypto/ModelMapper"
 import { Entity, ServerModelParsedInstance, SomeEntity } from "../../../../../src/common/api/common/EntityTypes"
 import { EntityUpdateData, entityUpdateToUpdateData, PrefetchStatus } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { PatchMerger } from "../../../../../src/common/api/worker/offline/PatchMerger"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 import { collapseId } from "../../../../../src/common/api/worker/rest/RestClientIdUtils"

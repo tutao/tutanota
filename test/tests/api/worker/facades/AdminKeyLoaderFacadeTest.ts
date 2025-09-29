@@ -1,4 +1,4 @@
-import o from "../../../../../packages/otest/dist/otest.js"
+import o from "@tutao/otest"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"

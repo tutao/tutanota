@@ -13,7 +13,7 @@ import {
 import { Dialog } from "../gui/base/Dialog"
 import { lang } from "./LanguageViewModel"
 import { assertMainOrNode, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
-import { assertNotNull, noOp } from "@tutao/tutanota-utils"
+import { assertNotNull, newPromise, noOp } from "@tutao/tutanota-utils"
 import { OutOfSyncError } from "../api/common/error/OutOfSyncError"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { IndexingNotSupportedError } from "../api/common/error/IndexingNotSupportedError"
@@ -33,7 +33,6 @@ import { UserTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { showRequestPasswordDialog } from "./passwords/PasswordRequestDialog.js"
 import { ServerModelsUnavailableError } from "../api/common/error/ServerModelsUnavailableError"
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
 

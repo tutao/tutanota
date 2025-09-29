@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { debounce, memoized, numberRange } from "@tutao/tutanota-utils"
+import { createResizeObserver, debounce, memoized, numberRange } from "@tutao/tutanota-utils"
 import { px, size } from "../size.js"
 import { isKeyPressed } from "../../misc/KeyManager.js"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants.js"
@@ -12,7 +12,6 @@ import { theme, ThemeId } from "../theme.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { Coordinate2D } from "./SwipeHandler.js"
 import { styles } from "../styles.js"
-import { createResizeObserver } from "@tutao/tutanota-utils/dist/Utils"
 
 export type ListState<T> = Readonly<{
 	items: ReadonlyArray<T>

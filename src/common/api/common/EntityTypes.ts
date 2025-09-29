@@ -1,8 +1,8 @@
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
 import { TypeRef } from "@tutao/tutanota-utils"
 import type { BlobElement, Element, ListElement } from "./utils/EntityUtils.js"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
+import { Nullable } from "@tutao/tutanota-utils"
+import { AppName } from "@tutao/tutanota-utils"
 import { BucketKey } from "../entities/sys/TypeRefs"
 
 /**

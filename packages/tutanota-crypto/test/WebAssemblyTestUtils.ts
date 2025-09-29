@@ -1,4 +1,4 @@
-import { WASMExports } from "@tutao/tutanota-utils/dist/WebAssembly.js"
+import { WASMExports } from "@tutao/tutanota-utils"
 
 /**
  * Helper function to load a wasm module from file for testing.

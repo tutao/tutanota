@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
-import { assertNotNull, last, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/tutanota-utils"
 import { InfoLink, lang, TranslationKey } from "../misc/LanguageViewModel"
 import {
 	AccountingInfo,
@@ -56,8 +56,6 @@ import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
 import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { createDropdown } from "../gui/base/Dropdown.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
 

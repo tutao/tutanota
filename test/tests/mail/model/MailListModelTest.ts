@@ -1,4 +1,4 @@
-import o from "../../../../packages/otest/dist/otest"
+import o from "@tutao/otest"
 import { MailListModel } from "../../../../src/mail-app/mail/model/MailListModel"
 import {
 	createMailSetEntry,

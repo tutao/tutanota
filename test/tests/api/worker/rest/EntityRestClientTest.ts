@@ -32,6 +32,7 @@ import {
 	deepEqual,
 	KeyVersion,
 	Mapper,
+	Nullable,
 	ofClass,
 	promiseMap,
 	TypeRef,
@@ -63,7 +64,6 @@ import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/Ke
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"
 
 const { anything, argThat, captor } = matchers

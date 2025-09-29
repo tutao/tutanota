@@ -1,4 +1,4 @@
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils.js"
+import { newPromise, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { RegistrationCaptchaService } from "../../api/entities/sys/Services.js"
@@ -8,7 +8,6 @@ import { Button, ButtonAttrs, ButtonType } from "../../gui/base/Button.js"
 import m, { Children } from "mithril"
 import { TextField } from "../../gui/base/TextField.js"
 import { lang } from "../../misc/LanguageViewModel.js"
-import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { px } from "../../gui/size"
 
 const enum CaptchaType {

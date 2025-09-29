@@ -1,4 +1,4 @@
-import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
+import { AppName } from "@tutao/tutanota-utils"
 import {
 	AttributeId,
 	AttributeName,
@@ -13,7 +13,7 @@ import {
 } from "./EntityTypes"
 import { ProgrammingError } from "./error/ProgrammingError"
 import { assertNotNull, downcast } from "@tutao/tutanota-utils"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Nullable } from "@tutao/tutanota-utils"
 
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {

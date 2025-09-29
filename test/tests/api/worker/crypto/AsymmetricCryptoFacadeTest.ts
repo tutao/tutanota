@@ -1,4 +1,4 @@
-import o from "../../../../../packages/otest/dist/otest.js"
+import o from "@tutao/otest"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { RsaImplementation } from "../../../../../src/common/api/worker/crypto/RsaImplementation.js"
 import { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
@@ -29,14 +29,13 @@ import {
 import { KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { CryptoWrapper } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
 import { IServiceExecutor } from "../../../../../src/common/api/common/ServiceRequest.js"
-import { Versioned } from "@tutao/tutanota-utils"
+import { KeyVersion, Versioned } from "@tutao/tutanota-utils"
 import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Services.js"
 import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
-import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {

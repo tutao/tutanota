@@ -1,16 +1,14 @@
 import { BlobElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
 import { customIdToBase64Url, ensureBase64Ext, firstBiggerThanSecond } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
-import { assertNotNull, clone, filterNull, getFromMap, getTypeString, remove, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, filterNull, getFromMap, getTypeString, Nullable, parseTypeString, remove, TypeRef } from "@tutao/tutanota-utils"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { AttributeModel } from "../../common/AttributeModel"
 import { ModelMapper } from "../crypto/ModelMapper"
-import { parseTypeString } from "@tutao/tutanota-utils/dist/TypeRef"
 import { ServerTypeModelResolver } from "../../common/EntityFunctions"
 import { expandId } from "./RestClientIdUtils"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { hasError } from "../../common/utils/ErrorUtils"
 
 /** Cache for a single list. */

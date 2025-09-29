@@ -179,6 +179,10 @@ export {
 	BoundedExecutor,
 	freshVersioned,
 	isKeyVersion,
+	newPromise,
+	isSessionStorageAvailable,
+	assertValidURL,
+	createResizeObserver,
 } from "./Utils.js"
 export type {
 	Callback,
@@ -192,6 +196,7 @@ export type {
 	ErrorInfo,
 	Versioned,
 	KeyVersion,
+	Nullable,
 } from "./Utils.js"
 
 export {

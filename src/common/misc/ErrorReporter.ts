@@ -7,7 +7,7 @@ import m from "mithril"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../gui/base/Expander"
-import { downcast, ErrorInfo, errorToString, neverNull, typedKeys, uint8ArrayToString } from "@tutao/tutanota-utils"
+import { downcast, ErrorInfo, errorToString, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/tutanota-utils"
 import { locator } from "../api/main/CommonLocator"
 import { AccountType, ConversationType, Keys, MailMethod, PresentableKeyVerificationState } from "../api/common/TutanotaConstants"
 import { copyToClipboard } from "./ClipboardUtils"
@@ -23,8 +23,6 @@ import { ErrorReportClientType } from "./ClientConstants.js"
 import { client } from "./ClientDetector.js"
 import { BubbleButton } from "../gui/base/buttons/BubbleButton.js"
 import { getTimeZone } from "../calendar/date/CalendarUtils.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 type FeedbackContent = {
 	message: string

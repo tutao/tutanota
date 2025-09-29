@@ -1,7 +1,7 @@
 import { Dialog } from "../gui/base/Dialog.js"
 import { convertToDataFile, createDataFile, DataFile } from "../api/common/DataFile"
 import { assertMainOrNode, isApp } from "../api/common/Env"
-import { assertNotNull, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull, newPromise, promiseMap } from "@tutao/tutanota-utils"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BrowserType } from "../misc/ClientConstants.js"
 import { client } from "../misc/ClientDetector.js"
@@ -21,7 +21,6 @@ import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"

@@ -1,13 +1,11 @@
 /**
  * This is a little wrapper around electron-updater to decouple logic.
  */
-import { downcast, noOp } from "@tutao/tutanota-utils"
+import { downcast, newPromise, noOp } from "@tutao/tutanota-utils"
 import path from "node:path"
 import fs from "node:fs"
 import { app } from "electron"
 import electronUpdater, { AppUpdater } from "electron-updater"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 const { autoUpdater } = electronUpdater
 

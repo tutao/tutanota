@@ -13,7 +13,7 @@ import { AssociationType, Cardinality, Type, ValueType } from "../../common/Enti
 import { compress, uncompress } from "../Compression"
 import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation, ParsedValue, ServerModelParsedInstance } from "../../common/EntityTypes"
 import { assertWorkerOrNode, isWebClient } from "../../common/Env"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Nullable } from "@tutao/tutanota-utils"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { random } from "@tutao/tutanota-crypto"
 

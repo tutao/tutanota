@@ -7,7 +7,7 @@
 import { isWorker } from "../Env.js"
 import { Transport } from "./Transport.js"
 import { objToError } from "../utils/ErrorUtils.js"
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils"
 
 export type Command<T> = (msg: Request<T>) => Promise<any>
 export type Commands<T extends string> = Record<T, Command<T>>

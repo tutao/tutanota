@@ -9,7 +9,7 @@ import { InfoLink, lang } from "../LanguageViewModel.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../../gui/base/ExternalLink.js"
 
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils"
 
 let dictionary: string[] | null = null
 

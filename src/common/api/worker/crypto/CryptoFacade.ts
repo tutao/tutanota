@@ -2,8 +2,10 @@ import {
 	assertNotNull,
 	downcast,
 	isSameTypeRef,
+	KeyVersion,
 	lazy,
 	neverNull,
+	Nullable,
 	ofClass,
 	promiseMap,
 	stringToUtf8Uint8Array,
@@ -86,7 +88,6 @@ import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, VersionedEncryptedKey, VersionedKey } from "./CryptoWrapper.js"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import { PublicEncryptionKeyProvider } from "../facades/PublicEncryptionKeyProvider.js"
-import { KeyVersion, Nullable } from "@tutao/tutanota-utils/dist/Utils.js"
 import { KeyRotationFacade } from "../facades/KeyRotationFacade.js"
 import { InstancePipeline } from "./InstancePipeline"
 import { EntityAdapter } from "./EntityAdapter"
@@ -505,7 +506,10 @@ export class CryptoFacade {
 			// we do not want to fail mail decryption here, e.g. in case an alias was removed we would get a permanent NotFoundError.
 			// in those cases we will just show a warning banner but still want to display the mail
 			console.error("Could not authenticate sender", e)
-			return { authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT }
+			return {
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
+				verificationState: PresentableKeyVerificationState.ALERT,
+			}
 		}
 	}
 

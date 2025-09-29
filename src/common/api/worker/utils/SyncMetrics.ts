@@ -1,4 +1,4 @@
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Nullable } from "@tutao/tutanota-utils"
 
 /**
  * Metrics sum up of time periods

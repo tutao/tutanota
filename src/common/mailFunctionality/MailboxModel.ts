@@ -14,7 +14,7 @@ import stream from "mithril/stream"
 import { EventController } from "../api/main/EventController.js"
 import { EntityClient } from "../api/common/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { assertNotNull, lazyMemoized, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyMemoized, newPromise, ofClass } from "@tutao/tutanota-utils"
 import { OperationType } from "../api/common/TutanotaConstants.js"
 import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { PreconditionFailedError } from "../api/common/error/RestError.js"
@@ -22,8 +22,6 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/Entity
 import m from "mithril"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 import { isSameId } from "../api/common/utils/EntityUtils.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 export type MailboxDetail = {
 	mailbox: MailBox

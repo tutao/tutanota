@@ -28,8 +28,7 @@ import { showUserError } from "../../../../common/misc/ErrorHandlerImpl.js"
 import { theme } from "../../../../common/gui/theme.js"
 import stream from "mithril/stream"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils"
 
 const enum ConfirmationResult {
 	Cancel,

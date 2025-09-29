@@ -1,7 +1,7 @@
 import { Aes256Key } from "../../encryption/Aes.js"
 import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { uint8ArrayToBitArray } from "../../misc/Utils.js"
-import { WASMExports } from "@tutao/tutanota-utils/dist/WebAssembly.js"
+import { WASMExports } from "@tutao/tutanota-utils"
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 export const ARGON2ID_ITERATIONS = 4
 export const ARGON2ID_MEMORY_IN_KiB = 32 * 1024

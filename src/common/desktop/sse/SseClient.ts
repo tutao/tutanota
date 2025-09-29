@@ -5,7 +5,7 @@ import { Scheduler } from "../../api/common/utils/Scheduler.js"
 import { ProgrammingError } from "../../api/common/error/ProgrammingError.js"
 import { reverse } from "../../api/common/TutanotaConstants.js"
 
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils"
 
 const log = makeTaggedLogger("[SSE]")
 
@@ -56,7 +56,12 @@ type State =
 	| { state: ConnectionState.disconnected }
 	| { state: ConnectionState.connecting; options: SseConnectOptions; attempt: number; connection: http.ClientRequest }
 	| { state: ConnectionState.delayedReconnect; options: SseConnectOptions; attempt: number; timeout: NodeJS.Timeout }
-	| { state: ConnectionState.connected; options: SseConnectOptions; connection: http.ClientRequest; receivedHeartbeat: boolean }
+	| {
+			state: ConnectionState.connected
+			options: SseConnectOptions
+			connection: http.ClientRequest
+			receivedHeartbeat: boolean
+	  }
 
 /**
  * Generic Server Sent Events client.
@@ -223,7 +228,12 @@ export class SseClient {
 		}
 		log.debug("Scheduling exponential reconnect")
 		const timeout = this.scheduler.scheduleAfter(() => this.retryConnect(), this.delay.reconnectDelay(this.state.attempt))
-		this.state = { state: ConnectionState.delayedReconnect, attempt: this.state.attempt + 1, options: this.state.options, timeout }
+		this.state = {
+			state: ConnectionState.delayedReconnect,
+			attempt: this.state.attempt + 1,
+			options: this.state.options,
+			timeout,
+		}
 	}
 
 	private delayedReconnect() {

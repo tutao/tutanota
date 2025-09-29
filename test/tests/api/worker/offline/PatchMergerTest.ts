@@ -12,7 +12,7 @@ import { CacheStorage, DefaultEntityRestCache } from "../../../../../src/common/
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
 import { Entity, ModelValue, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
-import { assertNotNull, downcast, Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { assertNotNull, downcast, Nullable } from "@tutao/tutanota-utils"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
 import {
 	clientInitializedTypeModelResolver,
@@ -34,7 +34,6 @@ import {
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailFolderRefTypeRef,
-	MailFolderTypeRef,
 	MailTypeRef,
 	OutOfOfficeNotificationRecipientListTypeRef,
 	RecipientsTypeRef,

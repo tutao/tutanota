@@ -4,7 +4,7 @@ import { PublicKeyService } from "../../entities/sys/Services.js"
 import { parseKeyVersion } from "./KeyLoaderFacade.js"
 import { lazyAsync, uint8ArrayToHex, Versioned } from "@tutao/tutanota-utils"
 import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
-import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
+import { KeyVersion } from "@tutao/tutanota-utils"
 import { InvalidDataError } from "../../common/error/RestError.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import {

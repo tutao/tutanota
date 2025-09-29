@@ -7,8 +7,7 @@ import {
 	NotificationSessionKeyTypeRef,
 } from "../../api/entities/sys/TypeRefs"
 import { AttributeModel } from "../../api/common/AttributeModel"
-import { Base64, base64ToUint8Array } from "@tutao/tutanota-utils"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Base64, base64ToUint8Array, Nullable } from "@tutao/tutanota-utils"
 import { ClientTypeModelResolver } from "../../api/common/EntityFunctions"
 
 export class EncryptedMissedNotification {

@@ -3,7 +3,7 @@ import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
 import { root } from "../RootView.js"
-import { assertNotNull, neverNull } from "@tutao/tutanota-utils"
+import { assertNotNull, isSessionStorageAvailable, neverNull } from "@tutao/tutanota-utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { styles } from "../common/gui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
@@ -39,8 +39,6 @@ import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
-import { newMailEditorFromLocalDraftData } from "./mail/editor/MailEditor"
-import { isSessionStorageAvailable } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNodeBoot()
 bootFinished()

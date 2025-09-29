@@ -12,7 +12,7 @@ import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
 import { AesKey, Ed25519PrivateKey } from "@tutao/tutanota-crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
-import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
+import { KeyVersion } from "@tutao/tutanota-utils"
 
 assertWorkerOrNode()
 

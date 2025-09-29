@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertNotNull, filterInt, incrementDate, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, filterInt, incrementDate, newPromise, ofClass } from "@tutao/tutanota-utils"
 import { TextField, TextFieldType } from "../gui/base/TextField.js"
 import { Dialog, DialogType } from "../gui/base/Dialog.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
@@ -12,8 +12,6 @@ import { asPaymentInterval, formatPrice, getPriceItem, PaymentInterval } from ".
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "../api/common/Env.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
 

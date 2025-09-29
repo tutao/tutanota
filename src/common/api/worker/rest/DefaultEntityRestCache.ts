@@ -48,7 +48,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { collapseId, expandId } from "./RestClientIdUtils"
 import { PatchMerger } from "../offline/PatchMerger"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Nullable } from "@tutao/tutanota-utils"
 import { hasError } from "../../common/utils/ErrorUtils"
 
 assertWorkerOrNode()

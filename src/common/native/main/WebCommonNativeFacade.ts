@@ -1,6 +1,6 @@
 import { CommonNativeFacade } from "../common/generatedipc/CommonNativeFacade.js"
 import { lang, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel.js"
-import { decodeBase64, lazyAsync, noOp, ofClass } from "@tutao/tutanota-utils"
+import { decodeBase64, lazyAsync, newPromise, noOp, ofClass } from "@tutao/tutanota-utils"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { UserError } from "../../api/main/UserError.js"
 import m from "mithril"
@@ -18,8 +18,6 @@ import { ContactTypeRef } from "../../api/entities/tutanota/TypeRefs.js"
 import { isDesktop } from "../../api/common/Env"
 import { HighestTierPlans } from "../../api/common/TutanotaConstants.js"
 import { CalendarOpenAction } from "../common/generatedipc/CalendarOpenAction.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 export class WebCommonNativeFacade implements CommonNativeFacade {
 	constructor(

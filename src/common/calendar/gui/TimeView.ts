@@ -2,7 +2,7 @@ import m, { Child, ChildArray, Children, Component, Vnode, VnodeDOM } from "mith
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "../date/Time"
 import { clone, getStartOfNextDay } from "@tutao/tutanota-utils"
-import { deepMemoized } from "@tutao/tutanota-utils/dist/memoized"
+import { deepMemoized } from "@tutao/tutanota-utils"
 import { px } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"

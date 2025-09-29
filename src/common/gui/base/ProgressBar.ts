@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils"
 
 export type ProgressBarAttrs = {
 	progress: number

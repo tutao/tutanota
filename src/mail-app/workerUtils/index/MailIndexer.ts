@@ -33,6 +33,7 @@ import {
 	first,
 	isEmpty,
 	isNotNull,
+	newPromise,
 	ofClass,
 	promiseMap,
 } from "@tutao/tutanota-utils"
@@ -52,7 +53,6 @@ import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day

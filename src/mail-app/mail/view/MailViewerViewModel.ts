@@ -36,6 +36,7 @@ import {
 	isEmpty,
 	lazyAsync,
 	noOp,
+	Nullable,
 	ofClass,
 	startsWith,
 	utf8Uint8ArrayToString,
@@ -82,7 +83,6 @@ import { mailLocator } from "../../mailLocator.js"
 import { UndoModel } from "../../UndoModel"
 import { isBrowser } from "../../../common/api/common/Env"
 import { CommonSystemFacade } from "../../../common/native/common/generatedipc/CommonSystemFacade"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export const enum ContentBlockingStatus {
 	Block = "0",

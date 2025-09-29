@@ -5,7 +5,7 @@ import { ClientModelParsedInstance, ClientModelUntypedInstance, Entity, ServerMo
 import { ModelMapper } from "./ModelMapper"
 import { downcast, TypeRef } from "@tutao/tutanota-utils"
 import { AesKey } from "@tutao/tutanota-crypto"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Nullable } from "@tutao/tutanota-utils"
 import { isWebClient } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 

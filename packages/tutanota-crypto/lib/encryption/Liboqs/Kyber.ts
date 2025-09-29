@@ -2,7 +2,7 @@ import { KyberEncapsulation, KyberKeyPair, KyberPrivateKey, KyberPublicKey } fro
 import { callWebAssemblyFunctionWithArguments, mutableSecureFree, Ptr, secureFree } from "@tutao/tutanota-utils"
 import { Randomizer } from "../../random/Randomizer.js"
 import { CryptoError } from "../../misc/CryptoError.js"
-import { WASMExports } from "@tutao/tutanota-utils/dist/WebAssembly.js"
+import { WASMExports } from "@tutao/tutanota-utils"
 
 /**
  * Number of random bytes required for a Kyber operation

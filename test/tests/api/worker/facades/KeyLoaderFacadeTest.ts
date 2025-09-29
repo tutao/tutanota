@@ -35,12 +35,11 @@ import { EntityClient } from "../../../../../src/common/api/common/EntityClient.
 import { matchers, object, reset, verify, when } from "testdouble"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { stringToCustomId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
-import { freshVersioned, hexToUint8Array } from "@tutao/tutanota-utils"
+import { freshVersioned, hexToUint8Array, KeyVersion } from "@tutao/tutanota-utils"
 import { KeyCache } from "../../../../../src/common/api/worker/facades/KeyCache.js"
 import { assertThrows } from "@tutao/tutanota-test-utils"
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CryptoWrapper, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
-import { KeyVersion } from "@tutao/tutanota-utils/dist/Utils.js"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { RSA_TEST_KEYPAIR } from "./RsaPqPerformanceTest.js"
 

@@ -2,7 +2,7 @@ import type { BrowserWindow, ContextMenuParams, HandlerDetails, NativeImage, Res
 import type { WindowBounds, WindowManager } from "./DesktopWindowManager"
 import url from "node:url"
 import type { lazy } from "@tutao/tutanota-utils"
-import { capitalizeFirstLetter, noOp, typedEntries, typedKeys } from "@tutao/tutanota-utils"
+import { capitalizeFirstLetter, newPromise, noOp, typedEntries, typedKeys } from "@tutao/tutanota-utils"
 import { Keys } from "../api/common/TutanotaConstants"
 import type { Key } from "../misc/KeyManager"
 import path from "node:path"
@@ -20,8 +20,6 @@ import { InterWindowEventFacadeSendDispatcher } from "../native/common/generated
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade"
 import { CalendarOpenAction } from "../native/common/generatedipc/CalendarOpenAction.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {

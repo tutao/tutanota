@@ -41,7 +41,7 @@ import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from ".
 import { InstancePipeline } from "./crypto/InstancePipeline"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../common/utils/EntityUpdateUtils"
 import { CryptoFacade } from "./crypto/CryptoFacade"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { Nullable } from "@tutao/tutanota-utils"
 import { EntityAdapter } from "./crypto/EntityAdapter"
 import { EventInstancePrefetcher } from "./EventInstancePrefetcher"
 import { AttributeModel } from "../common/AttributeModel"

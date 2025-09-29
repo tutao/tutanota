@@ -8,7 +8,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { MailModel } from "../model/MailModel.js"
 
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils"
 import { isTutanotaTeamMail } from "./MailGuiUtils"
 
 function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDetail): Promise<boolean> {

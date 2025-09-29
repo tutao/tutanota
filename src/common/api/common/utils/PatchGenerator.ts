@@ -2,7 +2,7 @@ import { ClientModelEncryptedParsedInstance, ClientModelParsedInstance, ClientMo
 import { ClientTypeReferenceResolver, PatchOperationType } from "../EntityFunctions"
 import { createPatch, createPatchList, Patch, PatchList } from "../../entities/sys/TypeRefs"
 import { AssociationType, Cardinality, ValueType } from "../EntityConstants"
-import { assertNotNull, deepEqual, Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { assertNotNull, deepEqual, Nullable } from "@tutao/tutanota-utils"
 import { arrayEquals, arrayEqualsWithPredicate, isEmpty, TypeRef } from "@tutao/tutanota-utils"
 import { AttributeModel } from "../AttributeModel"
 import { ProgrammingError } from "../error/ProgrammingError"

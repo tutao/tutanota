@@ -1,12 +1,10 @@
 import m, { Children, Component, VnodeDOM } from "mithril"
 import { LayerType } from "../../../RootView"
-import { lazy, makeSingleUse } from "@tutao/tutanota-utils"
+import { lazy, makeSingleUse, newPromise } from "@tutao/tutanota-utils"
 import { assertMainOrNodeBoot } from "../../api/common/Env"
 import { px, size } from "../size.js"
 import { styles } from "../styles.js"
 import { getSafeAreaInsetBottom } from "../HtmlUtils.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNodeBoot()
 export type PositionRect = {

@@ -14,7 +14,7 @@ import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailAddressTableModel } from "../../../common/settings/mailaddress/MailAddressTableModel.js"
 import { DialogType } from "../../../common/gui/base/Dialog.js"
 
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 export type AddDomainData = {
@@ -34,7 +34,11 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 		customerInfo: customerInfo,
 		// will be filled oncreate by the page
 		// not actually spf, but the type TXT only matters here
-		expectedVerificationRecord: createDnsRecord({ subdomain: null, type: DnsRecordType.DNS_RECORD_TYPE_TXT_SPF, value: "" }),
+		expectedVerificationRecord: createDnsRecord({
+			subdomain: null,
+			type: DnsRecordType.DNS_RECORD_TYPE_TXT_SPF,
+			value: "",
+		}),
 		editAliasFormAttrs: {
 			model: mailAddressTableModel,
 			expanded: mailAddressTableExpanded,

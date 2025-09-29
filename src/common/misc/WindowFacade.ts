@@ -3,10 +3,9 @@ import { assertMainOrNodeBoot, isApp, isElectronClient, isIOSApp, Mode } from ".
 import { lang } from "./LanguageViewModel"
 import { client } from "./ClientDetector"
 import type { IndexedDbIndexer } from "../../mail-app/workerUtils/index/IndexedDbIndexer.js"
-import { noOp, remove } from "@tutao/tutanota-utils"
+import { isSessionStorageAvailable, noOp, remove } from "@tutao/tutanota-utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { isSessionStorageAvailable } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNodeBoot()
 export type KeyboardSizeListener = (keyboardSize: number) => unknown

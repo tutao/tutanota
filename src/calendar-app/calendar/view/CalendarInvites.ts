@@ -20,8 +20,7 @@ import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctional
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils" // not picking the status directly from CalendarEventAttendee because it's a NumberString
+import { newPromise } from "@tutao/tutanota-utils"
 
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }

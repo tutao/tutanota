@@ -10,7 +10,7 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import type { ButtonAttrs } from "../../../common/gui/base/Button.js"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { assertNotNull, AsyncResult, downcast, neverNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, AsyncResult, downcast, neverNull, newPromise, promiseMap } from "@tutao/tutanota-utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { getElementId, getLetId, haveSameId } from "../../../common/api/common/utils/EntityUtils"
 import { promptAndDeleteMails } from "./MailGuiUtils"
@@ -34,7 +34,6 @@ import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 assertMainOrNode()
 

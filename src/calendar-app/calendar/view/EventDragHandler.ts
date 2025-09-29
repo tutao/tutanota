@@ -4,8 +4,7 @@ import { getAllDayDateUTC, isAllDayEvent } from "../../../common/api/common/util
 import { Time } from "../../../common/calendar/date/Time.js"
 import { showDropdownAtPosition } from "../../../common/gui/base/Dropdown.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils"
 import { isKeyPressed, Key } from "../../../common/misc/KeyManager.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { isAppleDevice } from "../../../common/api/common/Env.js"

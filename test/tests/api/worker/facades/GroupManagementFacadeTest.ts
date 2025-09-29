@@ -1,4 +1,4 @@
-import o from "../../../../../packages/otest/dist/otest.js"
+import o from "@tutao/otest"
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { CounterFacade } from "../../../../../src/common/api/worker/facades/lazy/CounterFacade.js"

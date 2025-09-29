@@ -1,5 +1,5 @@
 import { X25519PublicKey } from "@tutao/tutanota-crypto"
-import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils/dist/Encoding.js"
+import { byteArraysToBytes, bytesToByteArrays } from "@tutao/tutanota-utils"
 
 export type PQMessage = {
 	senderIdentityPubKey: X25519PublicKey

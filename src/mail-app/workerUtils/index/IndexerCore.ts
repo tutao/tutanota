@@ -103,9 +103,6 @@ import {
 	SearchIndexOS,
 	SearchIndexWordsIndex,
 } from "../../../common/api/worker/search/IndexTables.js"
-import { AppName } from "@tutao/tutanota-utils/dist/TypeRef"
-import { SomeEntity } from "../../../common/api/common/EntityTypes"
-import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { ContactList } from "../../../common/api/entities/tutanota/TypeRefs"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"

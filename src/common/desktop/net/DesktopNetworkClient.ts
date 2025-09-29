@@ -3,8 +3,7 @@ import https from "node:https"
 import { ConnectionError } from "../../api/common/error/RestError.js"
 import { log } from "../DesktopLog.js"
 import type { ReadStream } from "node:fs"
-
-import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
+import { newPromise } from "@tutao/tutanota-utils"
 
 const TAG = "[DesktopNetworkClient]"
 
