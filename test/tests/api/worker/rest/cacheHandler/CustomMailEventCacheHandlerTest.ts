@@ -24,10 +24,10 @@ import { getMailBodyText } from "../../../../../../src/common/api/common/CommonM
 
 /**
  * These tests should verify that the following are obeyed:
- * - All Mails in Spam are certain (during create)
- * - Moved Mails are Certain (event update)
- * - Read Mails are Certain (event update)
- * - Inbox is not certain.
+ * - All Mails in Spam have importance of 1 (during create)
+ * - Moved Mails have importance of 1 (event update)
+ * - Read Mails have importance of  1 (event update)
+ * - Mails in Inbox have importance of 0.
  */
 o.spec("CustomMailEventCacheHandler", function () {
 	let cacheStorageMock: CacheStorage
@@ -92,7 +92,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 				subject: mail.subject,
 				body: getMailBodyText(body),
 				isSpam: true,
-				isCertain: true,
+				importance: 1,
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
@@ -118,7 +118,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 				subject: mail.subject,
 				body: getMailBodyText(body),
 				isSpam: false,
-				isCertain: false,
+				importance: 0,
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
@@ -144,7 +144,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 				subject: mail.subject,
 				body: getMailBodyText(body),
 				isSpam: false,
-				isCertain: false,
+				importance: 0,
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
@@ -176,7 +176,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 				subject: mail.subject,
 				body: getMailBodyText(body),
 				isSpam: true,
-				isCertain: true,
+				importance: 1,
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
@@ -209,7 +209,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 				subject: mail.subject,
 				body: getMailBodyText(body),
 				isSpam: false,
-				isCertain: false,
+				importance: 0,
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
@@ -264,7 +264,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(mailFolders)
 
 			const offlineStorage = object() as OfflineStoragePersistence
-			when(offlineStorage.getStoredClassification(mail)).thenResolve({ isSpam: false, isCertain: false })
+			when(offlineStorage.getStoredClassification(mail)).thenResolve({ isSpam: false, importance: 0 })
 			when(offlineStorageMock()).thenResolve(offlineStorage)
 			mail.unread = false
 			when(cacheStorageMock.get(MailTypeRef, "listId", "elementId")).thenResolve(mail)
@@ -272,7 +272,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventUpdate(["listId", "elementId"], [])
 
-			verify(offlineStorage.updateSpamClassificationData(["listId", "elementId"], false, true), { times: 1 })
+			verify(offlineStorage.updateSpamClassificationData(["listId", "elementId"], false, 1), { times: 1 })
 			verify(mailFacade.updateClassifier(), { times: 1 })
 			verify(mailFacade.predictSpamResult(mail), { times: 0 })
 		})
@@ -291,7 +291,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(mailFolders)
 
 			const offlineStorage = object() as OfflineStoragePersistence
-			when(offlineStorage.getStoredClassification(mail)).thenResolve({ isSpam: false, isCertain: false })
+			when(offlineStorage.getStoredClassification(mail)).thenResolve({ isSpam: false, importance: 0 })
 			when(offlineStorageMock()).thenResolve(offlineStorage)
 			mail.unread = true
 			when(cacheStorageMock.get(MailTypeRef, "listId", "elementId")).thenResolve(mail)
@@ -300,7 +300,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 			await cacheHandler.onEntityEventUpdate(["listId", "elementId"], [event])
 
-			verify(offlineStorage.updateSpamClassificationData(["listId", "elementId"], true, true), { times: 1 })
+			verify(offlineStorage.updateSpamClassificationData(["listId", "elementId"], true, 4), { times: 1 })
 			verify(mailFacade.updateClassifier())
 		})
 
@@ -332,7 +332,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 				subject: mail.subject,
 				body: getMailBodyText(body),
 				isSpam: false,
-				isCertain: true,
+				importance: 1,
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })

@@ -96,7 +96,7 @@ export class SpamClassificationInitializer {
 			subject: mail.subject,
 			body: getMailBodyText(mailDetails.body),
 			isSpam: isSpam,
-			isCertain: isCertain,
+			importance: isCertain ? 1 : 0,
 			listId: listIdPart(mail._id),
 			elementId: elementIdPart(mail._id),
 		} as SpamTrainMailDatum

@@ -71,14 +71,14 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		// use the server classification for initial training, mixed with data from when user moves mails in and out of spam
 		const isSpam = mailFacade.isSpamClassificationEnabled() ? predictedSpam : isStoredInSpamFolder
 		const offlineStoragePersistence = await this.offlineStoragePersistence()
-		const isCertain = isSpam
+		const importance = isSpam ? 1 : 0
 
 		const spamTrainMailDatum: SpamTrainMailDatum = {
 			mailId: mail._id,
 			subject: mail.subject,
 			body: getMailBodyText(newMailData.mailDetails.body),
 			isSpam,
-			isCertain,
+			importance,
 		}
 
 		await offlineStoragePersistence.storeSpamClassification(spamTrainMailDatum)
@@ -103,7 +103,15 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 			const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 
 			let storedClassification = await offlineStoragePersistence.getStoredClassification(mail)
-			if (!storedClassification) {
+			if (storedClassification) {
+				// email is in classification data
+				const { isSpam: previousSpamFlag, importance: isAlreadyCertain } = storedClassification
+				if (!isAlreadyCertain || previousSpamFlag !== isSpam) {
+					// the model has trained on the mail but the spamFlag was wrong so we refit with higher importance
+					await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, mailMovedOrLabelApplied ? 4 : 1)
+					await mailFacade.updateClassifier()
+				}
+			} else {
 				const { mailIndexer, mailFacade } = await this.indexerAndMailFacade()
 				// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
 				const newMailData = await mailIndexer.downloadNewMailData(id)
@@ -113,20 +121,13 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 						subject: mail.subject,
 						body: getMailBodyText(newMailData.mailDetails.body),
 						isSpam,
-						isCertain: true,
+						importance: mailMovedOrLabelApplied ? 4 : 1,
 					}
 
 					await offlineStoragePersistence.storeSpamClassification(spamTrainMailDatum)
 					await mailFacade.updateClassifier() // model has not been trained with this datum before, so we retrain
 				} else {
 					// race: mail deleted in meantime
-				}
-			} else {
-				const { isSpam: isAlreadySpam, isCertain: isAlreadyCertain } = storedClassification
-
-				if (!isAlreadyCertain || isAlreadySpam !== isSpam) {
-					await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, true)
-					await mailFacade.updateClassifier()
 				}
 			}
 		}

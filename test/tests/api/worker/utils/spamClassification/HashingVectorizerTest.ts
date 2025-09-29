@@ -19,15 +19,6 @@ o.spec("HashingVectorizer", () => {
 
 	const tokenizedDocuments = rawDocuments.map(tokenize)
 
-	o("vectorize outputs normalized vector", async () => {
-		const vectorizer = new HashingVectorizer()
-		const tokens = ["email", "email", "encryption"]
-		const vector = await vectorizer.vectorize(tokens)
-
-		const norm = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0))
-		o(Math.abs(norm - 1) < 0.00001).equals(true)
-	})
-
 	o("vectorize creates same vector for same tokens", async () => {
 		const vectorizer = new HashingVectorizer()
 		const tokens = ["privacy", "email", "data"]

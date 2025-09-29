@@ -1,7 +1,7 @@
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
-import { assertNotNull, defer, isNotNull, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, groupByAndMap, isNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
 import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
@@ -38,7 +38,7 @@ export type SpamTrainMailDatum = {
 	subject: string
 	body: string
 	isSpam: boolean
-	isCertain: boolean
+	importance: number
 }
 
 export type SpamPredMailDatum = {
@@ -212,24 +212,43 @@ export class SpamClassifier {
 	// VisibleForTesting
 	async updateModel(newTrainingMails: SpamTrainMailDatum[]) {
 		const retrainingStart = performance.now()
-		const mailBatch: string[] = []
-		for (const newTrainingMail of newTrainingMails) {
-			const preprocessedMail = this.preprocessMail(newTrainingMail)
-			mailBatch.push(preprocessedMail)
-		}
 
-		// we have offline storage at this point. see WorkerLocator.initializeSpamClassificationTrainingIfEnabled
-		const tokenizedMailBatch = await promiseMap(mailBatch, (preprocessedMail) => assertNotNull(this.offlineStorage).tokenize(preprocessedMail))
-		// const vectors = this.dynamicTfVectorizer.refitTransform(tokenizedMailBatch)
-		const vectors = await this.vectorizer.transform(tokenizedMailBatch)
-		const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
-		const ys = tf.tensor1d(newTrainingMails.map((mail) => (mail.isSpam ? 1 : 0)))
+		const classifier = assertNotNull(this.classifier)
+		const offlineStorage = assertNotNull(this.offlineStorage)
+		const tokenizedMailsArray = await promiseMap(newTrainingMails, async (mail) => {
+			const preprocessedMail = this.preprocessMail(mail)
+			const tokenizedMail = await offlineStorage.tokenize(preprocessedMail)
+			return { tokenizedMail, importance: mail.importance }
+		})
+		const tokenizedMailsByImportance = groupByAndMap(
+			tokenizedMailsArray,
+			({ importance }) => importance,
+			({ tokenizedMail }) => tokenizedMail,
+		)
 
-		// Avoid potentially running .predict() at the same time while we are re-fitting
 		this.isEnabled = false
-		await assertNotNull(this.classifier)
-			.fit(xs, ys, { epochs: 5, batchSize: 32, shuffle: true })
-			.finally(() => (this.isEnabled = true))
+		try {
+			for (const [importance, tokenizedMails] of tokenizedMailsByImportance) {
+				const vectors = await this.vectorizer.transform(tokenizedMails)
+				const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
+				const ys = tf.tensor1d(newTrainingMails.map((mail) => (mail.isSpam ? 1 : 0)))
+
+				// We need a way to put weight on a specific mail, ideal way would be to pass sampleWeight to modelFitArgs,
+				// but is not yet implemented: https://github.com/tensorflow/tfjs/blob/0fc04d958ea592f3b8db79a8b3b497b5c8904097/tfjs-layers/src/engine/training.ts#L1195
+				//
+				// work around:
+				// current: Re fit the vector of mail multiple times corresponding to `importance`
+				// tried approaches:
+				// 1) Increasing value in vectorizer by importance instead of 1
+				// 2) duplicating the emails with higher importance and calling .fit once
+				const modelFitArgs: tf.ModelFitArgs = { epochs: 5, batchSize: 32, shuffle: true }
+				for (let i = 0; i <= importance; i++) {
+					await classifier.fit(xs, ys, modelFitArgs)
+				}
+			}
+		} finally {
+			this.isEnabled = true
+		}
 
 		console.log(`Retraining finished. Took: ${performance.now() - retrainingStart}ms`)
 		return true
@@ -250,7 +269,7 @@ export class SpamClassifier {
 		const predictionData = await predictionTensor.data()
 		const prediction = predictionData[0]
 
-		// console.log(`predicted new mail to be with probability ${prediction.toFixed(2)} spam`)
+		console.log(`predicted new mail to be with probability ${prediction.toFixed(2)} spam`)
 
 		return prediction > PREDICTION_THRESHOLD
 	}

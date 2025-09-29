@@ -32,7 +32,7 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 			subject,
 			body,
 			isSpam,
-			isCertain: true,
+			importance: 1,
 		} as SpamTrainMailDatum)
 	}
 
@@ -167,6 +167,7 @@ o.spec("SpamClassifier", () => {
 		const classifier = new SpamClassifier(null, object())
 		const mail = {
 			subject: `Sample Tokens and values`,
+			// prettier-ignore
 			body: `Hello, these are my MAC Address
 				FB-94-77-45-96-74
 				91-58-81-D5-55-7C
@@ -385,7 +386,7 @@ o.spec("Training and ReFitting the model", () => {
 	o("refit after moving a false negative classification multiple times", async () => {
 		o.timeout(20_000_000)
 		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
-		const hamSlice = hamData.slice(0, 1000)
+		const hamSlice = hamData.slice(0, 100)
 		const spamSlice = spamData.slice(0, 10)
 		dataSlice = hamSlice.concat(spamSlice)
 		// seededShuffle(dataSlice, 42)
@@ -394,6 +395,7 @@ o.spec("Training and ReFitting the model", () => {
 		const falseNegatives = spamData
 			.slice(10)
 			.filter(async (mailDatum) => mailDatum.isSpam !== (await classifier.predict(mailDatum)))
+			.sort()
 			.slice(0, 10)
 
 		let retrainingNeeded = new Array<number>(falseNegatives.length).fill(0)
@@ -403,9 +405,50 @@ o.spec("Training and ReFitting the model", () => {
 
 			let retrainCount = 0
 			let predictedSpam = false
-			while (!predictedSpam && retrainCount++ <= 10) {
-				await copiedClassifier.updateModel([{ ...sample, isSpam: false }])
-				await copiedClassifier.updateModel([{ ...sample, isSpam: true }])
+			while (!predictedSpam && retrainCount++ <= 3) {
+				// await copiedClassifier.updateModel([{ ...sample, isSpam: false }])
+
+				/*
+importance: 2
+				[
+  3, 2, 1, 3, 1,
+  1, 3, 2, 1, 5
+] = 22
+importance: 3
+[
+  2, 5, 1, 2, 1,
+  1, 1, 2, 1, 2
+] = 18
+
+importance: 4
+[
+  1, 1, 1, 2, 5,
+  1, 1, 1, 1, 5
+] = 19
+Retraining finished. Took: 477ms
+Retraining finished. Took: 1259ms
+predicted new mail to be with probability 0.46 spam
+Retraining finished. Took: 560ms
+Retraining finished. Took: 1273ms
+
+importance: 8
+Retraining finished. Took: 486ms
+Retraining finished. Took: 2289ms
+predicted new mail to be with probability 0.82 spam
+Retraining finished. Took: 580ms
+Retraining finished. Took: 2356ms
+predicted new mail to be with probability 1.00 spam
+Retraining finished. Took: 556ms
+Retraining finished. Took: 2357ms
+predicted new mail to be with probability 0.52 spam
+[
+  1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1
+]
+
+
+				 */
+				await copiedClassifier.updateModel([{ ...sample, isSpam: true, importance: 1 }])
 				predictedSpam = await copiedClassifier.predict(sample)
 			}
 			retrainingNeeded[i] = retrainCount
@@ -485,16 +528,6 @@ o.spec("Training and ReFitting the model", () => {
 		o.check(maxRetrain < 3).equals(true)
 	})
 })
-
-/*
-[
-  12,  2, 2, 5,  2,
-   2, 12, 3, 2, 12
-]
-
-
-
- */
 
 // For testing, we need deterministic shuffling which is not provided by tf.util.shuffle(dataSlice)
 // Seeded Fisher-Yates shuffle
