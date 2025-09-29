@@ -1,6 +1,6 @@
 import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import * as tf from "@tensorflow/tfjs"
 import { sha256Hash } from "@tutao/tutanota-crypto"
+import * as tf from "@tensorflow/tfjs"
 
 export class HashingVectorizer {
 	public readonly dimension: number = 2048

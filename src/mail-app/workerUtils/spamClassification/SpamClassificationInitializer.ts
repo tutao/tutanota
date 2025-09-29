@@ -1,12 +1,10 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { assertNotNull, isNotNull, lazyAsync, promiseMap } from "@tutao/tutanota-utils"
-import { filterMailMemberships } from "../../../common/api/worker/search/IndexUtils"
-import { GroupMembership } from "../../../common/api/entities/sys/TypeRefs"
+import { GroupMembership, type User } from "../../../common/api/entities/sys/TypeRefs"
 import { MailBag, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolder, MailFolderTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { getMailSetKind, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { getMailSetKind, GroupType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider"
-import { INITIAL_MAIL_INDEX_INTERVAL_DAYS } from "../index/MailIndexer"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { SpamTrainMailDatum } from "./SpamClassifier"
@@ -14,13 +12,15 @@ import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
 
+const INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS = 28 // FIXME, for now keep in sync with MailIndexr/INITIAL_MAIL_INDEX_INTERVAL_DAYS
+
 export class SpamClassificationInitializer {
 	/*
 	 * While downloading mails, we start from current mailbag, but it might be that current mailbag is too new,
 	 * If there are less than this mail in current mailbag, we will also try to fetch previous one
 	 */
 	public readonly MIN_MAILS_COUNT: number = 300
-	public readonly TIME_LIMIT: number = INITIAL_MAIL_INDEX_INTERVAL_DAYS * -1
+	public readonly TIME_LIMIT: number = INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS * -1
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -101,4 +101,10 @@ export class SpamClassificationInitializer {
 			elementId: elementIdPart(mail._id),
 		} as SpamTrainMailDatum
 	}
+}
+
+// FIXME!
+// This is for now copied from IndexUtils.ts, but we should probably move it to a common bundle
+export function filterMailMemberships(user: User): GroupMembership[] {
+	return user.memberships.filter((m) => m.groupType === GroupType.Mail)
 }

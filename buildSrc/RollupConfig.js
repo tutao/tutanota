@@ -21,6 +21,8 @@ export const dependencyMap = {
 	jsqr: path.normalize("./libs/jsQR.js"),
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
+	"@tensorflow/tfjs": path.normalize("./libs/tensorflow.js"),
+	"@tensorflow/tfjs-core": path.normalize("./libs/tensorflow-core.js"),
 }
 
 /**
@@ -243,7 +245,10 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/common/native/worker") ||
 		isIn("src/mail-app/workerUtils/worker") ||
 		isIn("src/calendar-app/worker") ||
-		isIn("src/mail-app/workerUtils/offline")
+		isIn("src/mail-app/workerUtils/offline") ||
+		isIn("src/mail-app/workerUtils/spamClassification") ||
+		moduleId.includes("libs/tensorflow.js") ||
+		moduleId.includes("libs/tensorflow-core.js")
 	) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {

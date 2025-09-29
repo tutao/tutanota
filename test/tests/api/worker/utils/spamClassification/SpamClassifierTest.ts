@@ -6,6 +6,7 @@ import { tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { object } from "testdouble"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import * as tf from "@tensorflow/tfjs"
 import { SpamClassificationInitializer } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassificationInitializer"
 
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
@@ -44,43 +45,48 @@ o.spec("SpamClassifier", () => {
 	o("Test initial fit", async () => {
 		o.timeout(20_000_000)
 
-		const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
-		console.log("Ham count:" + hamData.length)
-		console.log("Spam count:" + spamData.length)
+		const profileInfo = await tf.profile(async () => {
+			const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
+			console.log("Ham count:" + hamData.length)
+			console.log("Spam count:" + spamData.length)
 
-		const hamCount = 1000
-		const spamCount = 500
+			const hamCount = 1000
+			const spamCount = 500
 
-		const hamSlice = hamData.slice(0, hamCount)
-		const spamSlice = spamData.slice(0, spamCount)
+			const hamSlice = hamData.slice(0, hamCount)
+			const spamSlice = spamData.slice(0, spamCount)
 
-		const mockOfflineStorage = object() as OfflineStoragePersistence
-		mockOfflineStorage.tokenize = async (text) => {
-			return testTokenize(text)
-		}
+			const mockOfflineStorage = object() as OfflineStoragePersistence
+			mockOfflineStorage.tokenize = async (text) => {
+				return testTokenize(text)
+			}
 
-		const dataSlice = hamSlice.concat(spamSlice)
-		const mockSpamClassificationInitializer = object() as SpamClassificationInitializer
-		mockSpamClassificationInitializer.init = async () => {
-			return dataSlice
-		}
+			const dataSlice = hamSlice.concat(spamSlice)
+			const mockSpamClassificationInitializer = object() as SpamClassificationInitializer
+			mockSpamClassificationInitializer.init = async () => {
+				return dataSlice
+			}
 
-		seededShuffle(dataSlice, 42)
-		const trainTestSplit = dataSlice.length * 0.8
-		const trainSet = dataSlice.slice(0, trainTestSplit)
-		const testSet = dataSlice.slice(trainTestSplit)
+			seededShuffle(dataSlice, 42)
+			const trainTestSplit = dataSlice.length * 0.8
+			const trainSet = dataSlice.slice(0, trainTestSplit)
+			const testSet = dataSlice.slice(trainTestSplit)
 
-		const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
-		classifier.isEnabled = true
+			const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
+			classifier.isEnabled = true
 
-		let start = Date.now()
-		await classifier.initialTraining(trainSet)
-		console.log(`trained in ${Date.now() - start}ms`)
+			let start = Date.now()
+			await classifier.initialTraining(trainSet)
+			console.log(`trained in ${Date.now() - start}ms`)
 
-		start = Date.now()
-		console.log(`==> Result when testing with ${hamCount} Ham mails and ${spamCount} Spam-Mails`)
-		await classifier.test(testSet)
-		console.log(`tested in ${Date.now() - start}ms`)
+			start = Date.now()
+			console.log(`==> Result when testing with ${hamCount} Ham mails and ${spamCount} Spam-Mails`)
+			await classifier.test(testSet)
+			console.log(`tested in ${Date.now() - start}ms`)
+		})
+
+		const kernelNames = profileInfo.kernelNames
+		console.log(kernelNames)
 	})
 
 	o("Test initial fit and refit.", async () => {
