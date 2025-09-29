@@ -262,7 +262,7 @@ export class RestClient {
 				} else {
 					xhr.send(options.body)
 				}
-			}, "restClient:request")
+			})
 		}
 	}
 

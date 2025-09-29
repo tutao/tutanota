@@ -643,21 +643,16 @@ export type Nullable<T> = T | null
 /**
  * Factory method to allow tracing unresolved promises.
  */
-export function newPromise<T>(
-	executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void,
-	callerArgs: any = "dummy caller",
-) {
-	// @ts-ignore
+export function newPromise<T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void, tag?: string) {
 	const promise = new Promise(executor)
 
 	// only to be enabled for local debugging purposes
-	// traceUnresolvedPromises(promise)
+	// traceUnresolvedPromises(promise, tag)
 
 	return promise
 }
 
-// @ts-ignore
-function traceUnresolvedPromises<T>(promise: Promise<T>, callerArgs: any = "dummy caller") {
+function traceUnresolvedPromises<T>(promise: Promise<T>, tag?: string) {
 	let pending = true
 	promise.then(
 		() => (pending = false),
@@ -668,7 +663,7 @@ function traceUnresolvedPromises<T>(promise: Promise<T>, callerArgs: any = "dumm
 	const stack = ""
 	setTimeout(() => {
 		if (pending) {
-			console.trace(">>> Programming error: Promise not done after 60s", callerArgs, stack)
+			console.trace(">>> Programming error: Promise not done after 60s", tag, stack)
 		}
 	}, 60000)
 }

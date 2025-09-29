@@ -52,6 +52,7 @@ import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { parseKeyVersion } from "../../../common/api/worker/facades/KeyLoaderFacade.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
+import { newPromise } from "@tutao/tutanota-utils/dist/Utils"
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = DAY_IN_MILLIS // one day
@@ -456,14 +457,21 @@ export class MailIndexer {
 
 	/** A helper to cancel an async operation with {@link CancelledError} as soon as possible. */
 	private abortAware<T>(loading: () => Promise<T>): Promise<T> {
-		return Promise.race([loading(), this.abortPromise()])
-	}
+		type AbortEventListener = Parameters<AbortSignal["addEventListener"]>[1]
 
-	private abortPromise(): Promise<any> {
-		return new Promise<void>((_, reject) => {
-			// return right away if already aborted
-			if (this.abortController.signal.aborted) reject(new CancelledError("mail indexing canceled"))
-			this.abortController.signal.addEventListener("abort", () => reject(new CancelledError("mail indexing canceled")), { once: true })
+		let listener: AbortEventListener | null = null
+		return Promise.race([
+			loading(),
+			newPromise<T>((_, reject) => {
+				// return right away if already aborted
+				if (this.abortController.signal.aborted) reject(new CancelledError("mail indexing canceled"))
+				listener = () => reject(new CancelledError("mail indexing canceled"))
+				this.abortController.signal.addEventListener("abort", listener, { once: true })
+			}),
+		]).finally(() => {
+			if (listener) {
+				this.abortController.signal.removeEventListener("abort", listener)
+			}
 		})
 	}
 
