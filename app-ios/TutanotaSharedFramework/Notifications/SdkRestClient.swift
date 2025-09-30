@@ -17,10 +17,11 @@ public class SdkRestClient: RestClient {
 			request.httpBody = options.body
 			let (data, urlResponse) = try await self.urlSession.data(for: request)
 			let httpUrlResponse = urlResponse as! HTTPURLResponse  // We should only ever receive HTTP URLs
-			guard let headers = httpUrlResponse.allHeaderFields as? [String: String] else {
+			guard let rawHeaders = httpUrlResponse.allHeaderFields as? [String: String] else {
 				throw TUTErrorFactory.createError("Response headers were not a [String:String]")
 			}
-			return RestResponse(status: UInt32(httpUrlResponse.statusCode), headers: headers, body: data)
+			let normalizedHeaders = Dictionary(uniqueKeysWithValues: rawHeaders.map { (key, value) in (key.lowercased(), value) })
+			return RestResponse(status: UInt32(httpUrlResponse.statusCode), headers: normalizedHeaders, body: data)
 		} catch { throw mapExceptionToError(e: error) }
 	}
 	// see: SdkFileClient::mapExceptionToError

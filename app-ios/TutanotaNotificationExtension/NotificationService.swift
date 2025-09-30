@@ -16,15 +16,17 @@ class NotificationService: UNNotificationServiceExtension {
 		bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
 		if let bestAttemptContent {
 			Task {
-				// Catch all errors to always call contentHandler, otherwise we will use up our quota to time out
-				do { try await handleNotification(content: bestAttemptContent) } catch {
-					var errorSource: HttpError?
-					if let error = error as? ApiCallError, case let .ServerResponseError(source) = error { errorSource = source }
-					printLog("Failed to populate notification: \(error)")
-					logger.notice("Failed to populate notification: \(error) \(String(describing: errorSource))")
-				}
+				await notificationHandleTask(bestAttemptContent)
 				contentHandler(bestAttemptContent)
 			}
+		}
+	}
+
+	private func notificationHandleTask(_ bestAttemptContent: UNMutableNotificationContent) async {
+		// Catch all errors to always call contentHandler, otherwise we will use up our quota to time out
+		do { try await handleNotification(content: bestAttemptContent) } catch {
+			printLog("Failed to populate notification: \(error)")
+			logger.notice("Failed to populate notification: \(error, privacy: .public)")
 		}
 	}
 
@@ -34,7 +36,7 @@ class NotificationService: UNNotificationServiceExtension {
 				logger.notice("Suspension over, clearing")
 				suspensionEndTime = nil
 			} else {
-				logger.notice("Cannot handle notification, suspension for \(suspensionTime.timeIntervalSinceNow)")
+				logger.notice("Cannot handle notification due to previous suspension: \(suspensionTime.timeIntervalSinceNow, privacy: .public)s")
 				// We cannot try again later because the system only gives a limited time to process the notification, that time will probably be passed by the
 				// time the suspension is over so we just return here
 				return
@@ -63,7 +65,8 @@ class NotificationService: UNNotificationServiceExtension {
 			encryptedPassphraseKey: encryptedPassphraseKey.data,
 			credentialType: tutasdk.CredentialType.internal
 		)
-		let sdk = Sdk(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession), fileClient: SdkFileClient())
+		// do not use SDK with built-in suspension: we don't have time budget to wait for it, we just want to mark that we are suspended for further requests
+		let sdk = Sdk.newWithoutSuspension(baseUrl: origin, rawRestClient: SdkRestClient(urlSession: self.urlSession), fileClient: SdkFileClient())
 		var loggedInSdk: LoggedInSdk
 		do { loggedInSdk = try await sdk.login(credentials: sdkCredentials) } catch {
 			if let error = error as? LoginError, case .ApiCall(let error) = error { checkForSuspensionError(error: error) }
@@ -86,7 +89,7 @@ class NotificationService: UNNotificationServiceExtension {
 		if case let .ServerResponseError(error) = error {
 			switch error {
 			case let .serviceUnavailableError(suspensionTimeSec: .some(time)), let .tooManyRequestsError(suspensionTimeSec: .some(time)):
-				logger.notice("Suspension received, suspending for \(time) seconds")
+				logger.notice("Suspension received, suspending for \(time, privacy: .public)s")
 				suspensionEndTime = Date(timeIntervalSinceNow: Double(time))
 			default: break
 			}
