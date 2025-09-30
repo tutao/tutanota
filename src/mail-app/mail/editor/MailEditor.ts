@@ -1063,6 +1063,17 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			return
 		}
 
+		// Check if there's a conflict between what is on the server and what the user is editing.
+		//
+		// If we were to run save() with a conflict, we'll get a confirmation dialog, and the email won't be remotely
+		// saved until the user chooses an option.
+		//
+		// Since autosaveRemote is being triggered after a very long period of inactivity, the user is almost certainly
+		// not present to do that. As such, autosaveRemote() cannot actually autosave remotely.
+		if (model.hasDraftDataChangedOnServer()) {
+			return
+		}
+
 		// The user is currently sending the email, and that is going to save the email for us.
 		if (isSending) {
 			return
