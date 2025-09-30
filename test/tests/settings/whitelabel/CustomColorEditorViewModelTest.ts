@@ -12,7 +12,7 @@ import { spy } from "@tutao/tutanota-test-utils"
 import { createTestEntity } from "../../TestUtils.js"
 import { WhitelabelThemeGenerator } from "../../../../src/common/gui/WhitelabelThemeGenerator"
 import { matchers, object, when } from "testdouble"
-import { MaterialPalette } from "../../../../src/common/gui/theme"
+import { BaseThemeId, MaterialPalette, Theme } from "../../../../src/common/gui/theme"
 
 o.spec("CustomColorEditorViewModel", () => {
 	let model: CustomColorsEditorViewModel
@@ -40,6 +40,9 @@ o.spec("CustomColorEditorViewModel", () => {
 			getDefaultTheme: () => {
 				return themes()["light"]
 			},
+			getBaseTheme(baseId: BaseThemeId): Theme {
+				return themes()[baseId]
+			},
 		} as Partial<ThemeController> as ThemeController
 		whitelabelThemeGenerator = object()
 		whitelabelConfig = createTestEntity(WhitelabelConfigTypeRef)
@@ -58,7 +61,7 @@ o.spec("CustomColorEditorViewModel", () => {
 	o.spec("openEditor", () => {
 		o.test("open Editor without custom theme, default values should be applied no matter what", async () => {
 			const customizations: ThemeCustomizations = downcast({})
-			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({})
+			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({ outline_variant: "#aabbcc" })
 			model = new CustomColorsEditorViewModel(
 				defaultTheme,
 				customizations,
@@ -83,6 +86,7 @@ o.spec("CustomColorEditorViewModel", () => {
 			const materialPalette: Partial<MaterialPalette> = {
 				surface: "#1df3ed",
 				scrim: "#1aa1aa",
+				outline_variant: "#a8b89a",
 			}
 			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve(materialPalette)
 			model = new CustomColorsEditorViewModel(
@@ -104,6 +108,9 @@ o.spec("CustomColorEditorViewModel", () => {
 				ThemeController.mapNewToOldColorTokens(
 					Object.assign({}, defaultCustomizations, customizations, materialPalette, {
 						themeId: "test.domain.com",
+						state_bg_hover: "#a8b89a77",
+						state_bg_focus: "#a8b89a99",
+						state_bg_active: "#a8b89aaa",
 					}),
 				),
 			)
@@ -112,7 +119,7 @@ o.spec("CustomColorEditorViewModel", () => {
 	o.spec("closeEditor", () => {
 		o.test("pressed cancel, all values should reset", async () => {
 			const customizations: ThemeCustomizations = downcast({})
-			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({})
+			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({ outline_variant: "#aabbcc" })
 			model = new CustomColorsEditorViewModel(
 				defaultTheme,
 				customizations,
@@ -136,8 +143,12 @@ o.spec("CustomColorEditorViewModel", () => {
 				base: "dark",
 				sourceColor: "#aaaaaa",
 				themeId: "test.domain.com",
+				outline_variant: "#a8b89a",
+				state_bg_hover: "#a8b89a77",
+				state_bg_focus: "#a8b89a99",
+				state_bg_active: "#a8b89aaa",
 			}
-			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({})
+			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({ outline_variant: "#a8b89a" })
 			model = new CustomColorsEditorViewModel(
 				defaultTheme,
 				customizations,
@@ -161,7 +172,7 @@ o.spec("CustomColorEditorViewModel", () => {
 		})
 		o.test("pressed save when on non-whitelabel domain, should not revert back to initial theme", async () => {
 			const customizations: ThemeCustomizations = downcast({})
-			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({})
+			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({ outline_variant: "#aabbcc" })
 			model = new CustomColorsEditorViewModel(
 				defaultTheme,
 				customizations,
@@ -180,7 +191,7 @@ o.spec("CustomColorEditorViewModel", () => {
 		o.test("pressed save when on whitelabel domain, should not revert back to initial theme", async () => {
 			const customizations: ThemeCustomizations = downcast({})
 			isWhitelabelEnabled = true
-			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({})
+			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({ outline_variant: "#aabbcc" })
 			model = new CustomColorsEditorViewModel(
 				defaultTheme,
 				customizations,
@@ -204,9 +215,14 @@ o.spec("CustomColorEditorViewModel", () => {
 				sourceColor: "#ffccf2",
 				primary_container: "blah",
 				themeId: "test.domain.com",
+				outline_variant: "#aa7863",
+				state_bg_hover: "#aa786344",
+				state_bg_focus: "#aa786355",
+				state_bg_active: "#aa786366",
 			}
 			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({
 				primary_container: "blah",
+				outline_variant: "#aa7863",
 			})
 			model = new CustomColorsEditorViewModel(
 				defaultTheme,
@@ -236,8 +252,14 @@ o.spec("CustomColorEditorViewModel", () => {
 			const expectedCustomizations: Partial<ThemeCustomizations> = {
 				themeId: "test.domain.com",
 				base: "dark",
+				outline_variant: "#aa7863",
+				state_bg_hover: "#aa786377",
+				state_bg_focus: "#aa786399",
+				state_bg_active: "#aa7863aa",
 			}
-			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({})
+			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({
+				outline_variant: "#aa7863",
+			})
 			model = new CustomColorsEditorViewModel(
 				defaultTheme,
 				customizations,
@@ -256,6 +278,49 @@ o.spec("CustomColorEditorViewModel", () => {
 			o.check(JSON.parse(entityClient.update.args[0].jsonTheme)).deepEquals(
 				ThemeController.mapNewToOldColorTokens(Object.assign({}, defaultCustomizations, expectedCustomizations)),
 			)
+		})
+	})
+	o.spec("set state colors", () => {
+		o.test("generate state bg colors from outline_variant for light theme", async () => {
+			const customizations: ThemeCustomizations = downcast({})
+			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({
+				outline_variant: "#aef643",
+			})
+			model = new CustomColorsEditorViewModel(
+				defaultTheme,
+				customizations,
+				whitelabelConfig,
+				whitelabelDomainInfo,
+				themeController,
+				entityClient,
+				loginController,
+				whitelabelThemeGenerator,
+			)
+			await model.init()
+			o.check(model.customizations.state_bg_hover).equals("#aef64344")
+			o.check(model.customizations.state_bg_focus).equals("#aef64355")
+			o.check(model.customizations.state_bg_active).equals("#aef64366")
+		})
+		o.test("generate state bg colors from outline_variant for dark theme", async () => {
+			const customizations: ThemeCustomizations = downcast({})
+			when(whitelabelThemeGenerator.generateMaterialPalette(matchers.anything())).thenResolve({
+				outline_variant: "#aef643",
+			})
+			model = new CustomColorsEditorViewModel(
+				defaultTheme,
+				customizations,
+				whitelabelConfig,
+				whitelabelDomainInfo,
+				themeController,
+				entityClient,
+				loginController,
+				whitelabelThemeGenerator,
+			)
+			await model.init()
+			await model.changeBaseTheme("dark")
+			o.check(model.customizations.state_bg_hover).equals("#aef64377")
+			o.check(model.customizations.state_bg_focus).equals("#aef64399")
+			o.check(model.customizations.state_bg_active).equals("#aef643aa")
 		})
 	})
 })

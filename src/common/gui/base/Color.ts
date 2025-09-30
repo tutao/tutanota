@@ -3,23 +3,53 @@ import { assertMainOrNodeBoot } from "../../api/common/Env"
 
 assertMainOrNodeBoot()
 
+/**
+ * Red-Green-Blue color representation with each channel in the
+ * range of 0 to 255
+ */
+export interface RGB {
+	r: number
+	g: number
+	b: number
+}
+
+/**
+ * RGB but with Alpha channel.
+ */
+export interface RGBA extends RGB {
+	/** the alpha is a number in 0-255 range */
+	a: number
+}
+
+/**
+ * Hue-Saturation-Lightness color representation.
+ */
+export interface HSL {
+	/** hue angle between 0 and 360 */
+	h: number
+	/** saturation percentage between 0 and 100 */
+	s: number
+	/** lightness percentage between 0 and 100 */
+	l: number
+}
+
 // 3 or 6 digit hex color codes
-export const VALID_HEX_CODE_FORMAT: RegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
+export const VALID_SOLID_HEX_CODE_FORMAT: RegExp = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
 
 export const MAX_HUE_ANGLE = 360
 
 /**
- * Returns true if the color code is a valid hex color code.
+ * Returns true if the color code is a valid solid color hex code.
  *
  * The format can be #RGB or #RRGGBB, and it is not case-sensitive, but the digits must be hexadecimal,
  * with 1 or 2 digits per color channel, and the code must be prefixed with an octothorpe character (`#`).
  */
-export function isValidColorCode(colorCode: string): boolean {
-	return VALID_HEX_CODE_FORMAT.test(colorCode)
+export function isValidSolidColorCode(colorCode: string): boolean {
+	return VALID_SOLID_HEX_CODE_FORMAT.test(colorCode)
 }
 
 export function isValidCSSHexColor(colorCode: string): boolean {
-	return isValidColorCode(colorCode) && CSS.supports("color", colorCode)
+	return isValidSolidColorCode(colorCode) && CSS.supports("color", colorCode)
 }
 
 export function getColorLuminance(c: string): number {
@@ -37,18 +67,18 @@ export function normalizeHueAngle(hue: number): number {
 	return ((hue % MAX_HUE_ANGLE) + MAX_HUE_ANGLE) % MAX_HUE_ANGLE
 }
 
-export function hexToHSL(hex: string): { h: number; s: number; l: number } {
+export function hexToHSL(hex: string): HSL {
 	return rgbToHSL(hexToRgb(hex))
 }
 
-export function hslToHex(color: { h: number; s: number; l: number }): string {
+export function hslToHex(color: HSL): string {
 	return rgbToHex(hslToRGB(color))
 }
 
 /*
  * Source: https://www.w3.org/TR/2011/REC-css3-color-20110607/#hsl-color
  */
-export function hslToRGB(color: { h: number; s: number; l: number }): { r: number; g: number; b: number } {
+export function hslToRGB(color: HSL): RGB {
 	let { h, s, l } = color
 
 	h = h % MAX_HUE_ANGLE
@@ -77,7 +107,7 @@ export function hslToRGB(color: { h: number; s: number; l: number }): { r: numbe
  * CC0-1.0 license from MDN
  * Source: https://github.com/mdn/css-examples/blob/main/modules/colors.html
  */
-export function rgbToHSL(color: { r: number; g: number; b: number }): { h: number; s: number; l: number } {
+export function rgbToHSL(color: RGB): HSL {
 	let { r, g, b } = color
 
 	// Let's have r, g, b in the range [0, 1]
@@ -114,12 +144,58 @@ export function rgbToHSL(color: { r: number; g: number; b: number }): { h: numbe
 	return { h: Math.round(h), s: Math.round(s), l: Math.round(l) }
 }
 
-export function hexToRgb(colorCode: string): {
-	r: number
-	g: number
-	b: number
-} {
-	assert(isValidColorCode(colorCode), "Invalid color code: " + colorCode)
+/**
+ * Convert {@param colorCode} in hex (including mandatory leading #)
+ * into RGBA. Defaults alpha to 255 if the input is #RRGGBB or #RGB.
+ */
+export function hexToRgba(colorCode: string): RGBA {
+	const longMatch = colorCode.match(/^#([\da-fA-F]{2})([\da-fA-F]{2})([\da-fA-F]{2})([\da-fA-F]{2})?$/)
+
+	if (longMatch != null) {
+		const [, r, g, b, a] = longMatch
+
+		return {
+			r: parseInt(r, 16),
+			g: parseInt(g, 16),
+			b: parseInt(b, 16),
+			a: a == null ? 0xff : parseInt(a, 16),
+		}
+	}
+
+	const shortMatch = colorCode.match(/^#([\da-fA-F])([\da-fA-F])([\da-fA-F])([\da-fA-F])?$/)
+	if (shortMatch != null) {
+		const [, rs, gs, bs, as] = shortMatch
+		const r = parseInt(rs, 16)
+		const g = parseInt(gs, 16)
+		const b = parseInt(bs, 16)
+		const a = as == null ? 0xf : parseInt(as, 16)
+
+		// if there's only one digit per channel provided e.g. "a" we
+		// want to convert it to "aa". "a" would look like
+		// 0 0 0 0 1 0 1 0
+		// and we want the result to look like
+		// 1 0 1 0 1 0 1 0
+		// so we do the shift which make it
+		// 1 0 1 0 0 0 0 0
+		// and then we OR it with itself (which only has the lowest
+		// bits) which brings it to
+		// 1 0 1 0 1 0 1 0
+		return {
+			r: (r << 4) | r,
+			g: (g << 4) | g,
+			b: (b << 4) | b,
+			a: (a << 4) | a,
+		}
+	}
+	throw new Error("Invalid hex color: " + colorCode)
+}
+
+/**
+ * Convert {@param colorCode} in hex (including mandatory leading #)
+ * into RGB.
+ */
+export function hexToRgb(colorCode: string): RGB {
+	assert(isValidSolidColorCode(colorCode), "Invalid color code: " + colorCode)
 	let hexWithoutHash = colorCode.slice(1)
 
 	if (hexWithoutHash.length === 3) {
@@ -128,6 +204,11 @@ export function hexToRgb(colorCode: string): {
 
 	const rgb = parseInt(hexWithoutHash, 16) // convert rrggbb to decimal
 
+	// each channel is one byte with red being in the most significant
+	// bytes and blue in the least significant.
+	// we shift each part to the least significant byte and then
+	// mask it in a way that only the lowest significant byte is present
+	// (0xff is a shorthand for 0x0000ff)
 	const r = (rgb >> 16) & 0xff // extract red
 
 	const g = (rgb >> 8) & 0xff // extract green
@@ -141,8 +222,20 @@ export function hexToRgb(colorCode: string): {
 	}
 }
 
-export function rgbToHex(color: { r: number; g: number; b: number }): string {
-	return "#" + ((1 << 24) + (color.r << 16) + (color.g << 8) + color.b).toString(16).slice(1)
+/**
+ * Convert {@param color} in RGB into 6-letter hex with leading "#", not
+ * including the alpha.
+ */
+export function rgbToHex(color: RGB): string {
+	return "#" + ((color.r << 16) | (color.g << 8) | color.b).toString(16).padStart(6, "0")
+}
+
+/**
+ * Convert {@param color} in RGBA into 8-letter hex with leading "#",
+ * including the alpha.
+ */
+export function rgbaToHex(color: RGBA): string {
+	return rgbToHex(color) + color.a.toString(16).padStart(2, "0")
 }
 
 export function hexToRGBAString(color: string, alpha: number) {
@@ -158,7 +251,7 @@ export function hexToRGBAString(color: string, alpha: number) {
  *
  * @param color color string to compute
  */
-export function computeColor(color: string): { r: number; g: number; b: number; a: number } {
+export function computeColor(color: string): RGBA {
 	// We have to create an element in the DOM because colors of elements not in the DOM can't be computed, including
 	// DocumentFragment. Shouldn't affect anything if it's just an empty span element.
 	//
