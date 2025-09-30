@@ -58,6 +58,7 @@ pub trait RestClient: Send + Sync + 'static {
 #[derive(uniffi::Record, Clone, Debug)]
 pub struct RestResponse {
 	pub status: u32,
+	/// Map of response headers. **Header names must be lowercased**.
 	pub headers: HashMap<String, String>,
 	pub body: Option<Vec<u8>>,
 }
