@@ -161,6 +161,7 @@ import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { ClientClassifierType } from "../../../../../mail-app/workerUtils/spamClassification/ClientClassifierType"
 import { getMailBodyText } from "../../../common/CommonMailUtils"
+import { locator } from "../../../../../mail-app/workerUtils/worker/WorkerLocator"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -464,6 +465,7 @@ export class MailFacade {
 	}
 
 	updateClassifier = debounce(5000, async () => {
+		;(this as any).spamClassifier = locator.spamClassifier
 		if (this.isSpamClassificationEnabled()) {
 			const spamClassifier = assertNotNull(this.spamClassifier)
 			const isModelUpdated = await spamClassifier.updateModelFromCutoff(await this.storage.getLastTrainedTime())
