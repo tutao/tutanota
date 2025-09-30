@@ -34,9 +34,7 @@ type BusinessPlanBoxAttrs = {
 export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 	private contentEl?: HTMLElement
 	private collapsedH = 0
-	private animating = false
 	private prevSelected?: boolean
-	private readonly collapsedVisibleCount = 2
 
 	private measureCollapsed() {
 		const root = this.contentEl
@@ -61,7 +59,6 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 
 	private animateTo(selected: boolean) {
 		if (!this.contentEl) return
-		this.animating = true
 
 		const el = this.contentEl
 		const start = selected ? this.collapsedH : el.scrollHeight
@@ -72,7 +69,6 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 		el.style.maxHeight = px(end)
 
 		const done = () => {
-			this.animating = false
 			el.removeEventListener("transitionend", done)
 			m.redraw()
 		}
@@ -86,7 +82,6 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const hasCampaign = getHasCampaign(discountDetail, isYearly)
-		const borderWidth = isSelected ? px(2) : px(1)
 		const handleSelect = (event: Event) => {
 			if (event instanceof KeyboardEvent && ![" ", "Enter"].includes((event as KeyboardEvent).key)) return
 			return !isDisabled && onclick(planConfig.type)
@@ -124,12 +119,11 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 						cursor: isDisabled ? "not-allowed" : "pointer",
 						userSelect: "none",
 						borderStyle: "solid",
-						borderWidth: hasCampaign ? `0 ${borderWidth} ${borderWidth} ${borderWidth}` : borderWidth,
-						borderColor: isSelected ? localTheme.primary : localTheme.outline,
+						borderWidth: hasCampaign ? `0 ${px(2)} ${px(2)} ${px(2)}` : px(2),
+						borderColor: isSelected ? localTheme.primary : localTheme.outline_variant,
 						backgroundColor: isSelected ? localTheme.surface_container_high : localTheme.surface,
 						borderRadius: hasCampaign ? `0 0 ${px(12)} ${px(12)}` : px(12),
-						// This padding is required to prevent layout shifting by the change of border weight
-						padding: this.getBoxPadding(isSelected),
+						padding: `${px(styles.isMobileLayout() ? 12 : size.vpad_ml)} ${px(styles.isMobileLayout() ? 12 : size.hpad_medium)}`,
 						opacity: isDisabled ? 0.6 : 1,
 						"box-shadow": isSelected ? boxShadowHigh : "initial",
 						height: "100%",
@@ -273,16 +267,6 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 				}),
 				m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider))),
 			)
-		}
-	}
-
-	private getBoxPadding(isSelected: boolean) {
-		const verticalPad = styles.isMobileLayout() ? 12 : size.vpad_ml
-		const horizontalPad = styles.isMobileLayout() ? 12 : size.hpad_medium
-		if (isSelected) {
-			return `${px(verticalPad)} ${px(horizontalPad)}`
-		} else {
-			return `${px(verticalPad + 2)} ${px(horizontalPad + 2)}`
 		}
 	}
 }
