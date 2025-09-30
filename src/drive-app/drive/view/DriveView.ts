@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveFolderViewModel } from "./DriveFolderViewModel"
+import { DriveViewModel } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
@@ -21,7 +21,7 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
-	driveViewModel: DriveFolderViewModel
+	driveViewModel: DriveViewModel
 	bottomNav?: () => Children
 	lazySearchBar: () => Children
 }
@@ -33,11 +33,21 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	private readonly driveFacade: DriveFacade
 
-	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {}
+	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
+		console.log("onNewUrl fired with args", args, "requestedPath:", requestedPath)
+		const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
+
+		if (folderListId && folderElementId) {
+			this.driveViewModel.loadFolderContentsByIdTuple([folderListId, folderElementId]).then(() => m.redraw())
+		} else {
+			// No folder given, load the drive root
+			this.driveViewModel.navigateToRootFolder()
+		}
+	}
 
 	protected files: (DataFile | FileReference)[] = []
 
-	private driveFolderViewModel: DriveFolderViewModel
+	private driveViewModel: DriveViewModel
 
 	constructor(vnode: Vnode<DriveViewAttrs>) {
 		super()
@@ -46,9 +56,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn])
 
 		this.driveFacade = locator.driveFacade
-		this.driveFolderViewModel = new DriveFolderViewModel(locator.entityClient, this.driveFacade)
+		this.driveViewModel = vnode.attrs.driveViewModel
 
-		this.driveFolderViewModel.loadDriveRoot().then(() => m.redraw())
+		// this.driveViewModel.loadDriveRoot().then(() => m.redraw())
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
@@ -102,7 +112,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					return [
 						//m(DriveNav),
 						m(DriveFolderView, {
-							driveFolderViewModel: this.driveFolderViewModel,
+							driveViewModel: this.driveViewModel,
 						}),
 					]
 				},
@@ -177,7 +187,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	async onNewFile_Click(dom: HTMLElement): Promise<void> {
 		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
 			if (files) {
-				this.driveFolderViewModel.uploadFiles([...files]).then(() => m.redraw())
+				this.driveViewModel.uploadFiles([...files]).then(() => m.redraw())
 			}
 		})
 	}
@@ -196,7 +206,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				}
 
 				console.log("User called the folder: ", folderName)
-				this.driveFolderViewModel.createNewFolder(folderName).then(() => m.redraw())
+				this.driveViewModel.createNewFolder(folderName).then(() => m.redraw())
 			},
 		)
 	}

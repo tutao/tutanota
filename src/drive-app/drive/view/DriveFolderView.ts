@@ -1,15 +1,16 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveFolderViewModel } from "./DriveFolderViewModel"
+import { DriveViewModel } from "./DriveViewModel"
 import { DriveFolderNav } from "./DriveFolderNav"
 import { DriveFolderContent } from "./DriveFolderContent"
 
 export interface DriveFolderViewAttrs {
-	driveFolderViewModel: DriveFolderViewModel
+	driveViewModel: DriveViewModel
 }
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	view(vnode: Vnode<DriveFolderViewAttrs>): Children {
-		const files = vnode.attrs.driveFolderViewModel.currentFolderFiles
-		return [m(DriveFolderNav), m(DriveFolderContent, { files })]
+		const driveViewModel = vnode.attrs.driveViewModel
+		const files = driveViewModel.currentFolderFiles
+		return [m(DriveFolderNav), m(DriveFolderContent, { files, driveViewModel })]
 	}
 }

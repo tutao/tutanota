@@ -40,6 +40,7 @@ import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
 import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
+import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -484,7 +485,7 @@ import("./translations/en.js")
 				{
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
-					driveViewModel: any
+					driveViewModel: DriveViewModel
 					bottomNav: () => Children
 					lazySearchBar: () => Children
 				}
@@ -499,7 +500,7 @@ import("./translations/en.js")
 							cache: cache ?? {
 								drawerAttrsFactory,
 								header: await mailLocator.appHeaderAttrs(),
-								driveViewModel: {}, //await mailLocator.calendarViewModel(),
+								driveViewModel: await mailLocator.driveViewModel(),
 								bottomNav: () => m(BottomNav),
 								lazySearchBar: () =>
 									m(lazySearchBar, {

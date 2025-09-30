@@ -21,11 +21,23 @@ export class DriveFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 	) {}
 
-	public async getFolderContents(folder: File | null): Promise<File[]> {
+	public async loadDriveGroupRoot() {
+		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
+		console.log("fileGroupId:: for this user :: ", fileGroupId)
+
+		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+		console.log(`driveGroupRoot :: `, driveGroupRoot)
+
+		const rootFileIdTuple = driveGroupRoot.root
+		//const rootFile = await this.loadFileFromIdTuple(rootFileIdTuple)
+		return rootFileIdTuple
+	}
+
+	public async getFolderContents(folderId: IdTuple): Promise<File[]> {
 		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
 		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(fileGroupId)
 
-		const data = createDriveGetIn({ folder: folder?._id || null })
+		const data = createDriveGetIn({ folder: folderId })
 		const driveGetOut = await this.serviceExecutor.get(DriveService, data)
 		console.log("DriveGetOut: ", driveGetOut)
 
@@ -35,18 +47,28 @@ export class DriveFacade {
 		return files
 	}
 
-	public async uploadFiles(files: (FileReference | DataFile)[]) {
-		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
-		console.log("fileGroupId:: for this user :: ", fileGroupId)
+	// find a better way !
+	// public async uploadFilesToRoot(files: (FileReference | DataFile)[]) {
+	// 	let fileGroupId = this.userFacade.getGroupId(GroupType.File)
+	// 	console.log("fileGroupId:: for this user :: ", fileGroupId)
+	//
+	// 	const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+	// 	console.log(`driveGroupRoot :: `, driveGroupRoot)
+	//
+	// 	const rootFileIdTuple = driveGroupRoot.root
+	// 	const rootFile = await this.entityClient.load(FileTypeRef, rootFileIdTuple)
+	// 	console.log(`rootFile :: `, rootFile)
+	//
+	// 	return this.uploadFiles(rootFile, files)
+	// }
 
-		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
-		console.log(`driveGroupRoot :: `, driveGroupRoot)
-
-		const rootFileIdTuple = driveGroupRoot.root
-		const rootFile = await this.entityClient.load(FileTypeRef, rootFileIdTuple)
-		console.log(`rootFile :: `, rootFile)
-
-		const ownerGroupId = fileGroupId
+	/**
+	 *
+	 * @param files the files to upload
+	 * @param to this is the folder where the file will be uploaded, if itś null we assume uploading to the root folder
+	 */
+	public async uploadFiles(files: (FileReference | DataFile)[], to: IdTuple) {
+		const ownerGroupId = this.userFacade.getGroupId(GroupType.File)
 		console.log(`fileGroupOwnerGroup :: ${ownerGroupId}`)
 
 		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
@@ -69,7 +91,7 @@ export class DriveFacade {
 					ownerEncSessionKey: ownerEncSessionKey.key,
 					_ownerGroup: assertNotNull(ownerGroupId),
 				})
-				const data = createDriveCreateData({ uploadedFile: uploadedFile })
+				const data = createDriveCreateData({ uploadedFile: uploadedFile, parent: to })
 				const response = await this.serviceExecutor.post(DriveService, data)
 				return response.createdFile
 			}),
@@ -83,18 +105,9 @@ export class DriveFacade {
 	 * @param folderName the name of the folder, duh
 	 * @param parentFolder not implemented yet, used for creating a folder inside a folder that is not the root drive
 	 */
-	public async createFolder(folderName: string, parentFolder?: IdTuple) {
-		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
-		console.log("fileGroupId:: for this user :: ", fileGroupId)
-
-		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
-		console.log(`driveGroupRoot :: `, driveGroupRoot)
-
-		const rootFileIdTuple = driveGroupRoot.root
-		const rootFile = await this.entityClient.load(FileTypeRef, rootFileIdTuple)
-		console.log(`rootFile :: `, rootFile)
-
-		const ownerGroupId = fileGroupId
+	public async createFolder(folderName: string, parentFolder: IdTuple) {
+		// TODO put the drive group root and file id load in the drive service for performance reason
+		const ownerGroupId = this.userFacade.getGroupId(GroupType.File)
 		console.log(`fileGroupOwnerGroup :: ${ownerGroupId}`)
 
 		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
@@ -108,8 +121,12 @@ export class DriveFacade {
 			ownerEncSessionKey: ownerEncSessionKey.key,
 			_ownerGroup: assertNotNull(ownerGroupId),
 		})
-		const data = createDriveCreateData({ uploadedFile: uploadedFolder }) // we use the File type for folder and we check the mimeTy
+		const data = createDriveCreateData({ uploadedFile: uploadedFolder, parent: parentFolder }) // we use the File type for folder and we check the mimeTy
 		const response = await this.serviceExecutor.post(DriveService, data)
 		return this.entityClient.load(FileTypeRef, response.createdFile)
+	}
+
+	public async loadFileFromIdTuple(idTuple: IdTuple) {
+		return this.entityClient.load(FileTypeRef, idTuple)
 	}
 }

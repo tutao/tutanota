@@ -1,9 +1,11 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { DriveFolderContentEntry } from "./DriveFolderContentEntry"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
+import { DriveViewModel } from "./DriveViewModel"
 
 export interface DriveFolderContentAttrs {
 	files: File[]
+	driveViewModel: DriveViewModel
 }
 
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
@@ -29,6 +31,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 						file,
 						onSelect: (f) => {},
 						checked: false,
+						driveViewModel: vnode.attrs.driveViewModel,
 					}),
 				),
 			),
