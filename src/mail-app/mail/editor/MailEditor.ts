@@ -970,11 +970,6 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	let isSending = false
 
 	const save = async (manuallySave: boolean = true): Promise<SaveStatus> => {
-		// If no changes were made, then saving is not necessary.
-		if (!model.hasMailChanged()) {
-			return { status: SaveStatusEnum.Saved }
-		}
-
 		// Create an autosave now in case this errors
 		await model.makeLocalAutosave()
 
