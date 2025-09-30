@@ -104,12 +104,12 @@ export class DriveFacade {
 			referenceTokens: [],
 			encFileName: aesEncrypt(sessionKey, stringToUtf8Uint8Array(folderName)),
 			encCid: aesEncrypt(sessionKey, stringToUtf8Uint8Array("")),
-			encMimeType: stringToUtf8Uint8Array("tuta/folder"), // TODO: make a constant !
+			encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array("tuta/folder")), // TODO: make a constant !
 			ownerEncSessionKey: ownerEncSessionKey.key,
 			_ownerGroup: assertNotNull(ownerGroupId),
 		})
 		const data = createDriveCreateData({ uploadedFile: uploadedFolder }) // we use the File type for folder and we check the mimeTy
 		const response = await this.serviceExecutor.post(DriveService, data)
-		return response.createdFile
+		return this.entityClient.load(FileTypeRef, response.createdFile)
 	}
 }

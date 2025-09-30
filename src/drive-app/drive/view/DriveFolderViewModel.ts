@@ -26,6 +26,7 @@ export class DriveFolderViewModel {
 	}
 
 	async createNewFolder(folderName: string): Promise<void> {
-		await this.driveFacade.createFolder(folderName)
+		const uploadedFolder = await this.driveFacade.createFolder(folderName)
+		this.currentFolderFiles.push(uploadedFolder)
 	}
 }
