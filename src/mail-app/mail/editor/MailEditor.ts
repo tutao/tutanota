@@ -967,9 +967,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 async function createMailEditorDialog(model: SendMailModel, blockExternalContent = false, alwaysBlockExternalContent = false): Promise<Dialog> {
 	let dialog: Dialog
 	let mailEditorAttrs: MailEditorAttrs
+	let isSending = false
 
 	const save = async (manuallySave: boolean = true): Promise<SaveStatus> => {
-		// If no changes were made, making an autosave is not necessary.
+		// If no changes were made, then saving is not necessary.
 		if (!model.hasMailChanged()) {
 			return { status: SaveStatusEnum.Saved }
 		}
@@ -1044,16 +1045,50 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 
 	// This will be called once the user stops typing.
 	const autosaveRemote = debounce(AUTOSAVE_REMOTE_TIMEOUT, () => {
-		if (dialog.visible && model.hasMailChanged() && model.autosaveReady()) {
-			save(false)
+		// Autosaving should stop working if the dialog is closed.
+		if (!dialog.visible) {
+			return
 		}
+
+		// If the mail was already saved before this was triggered, don't save again.
+		if (!model.hasMailChanged()) {
+			return
+		}
+
+		// Don't try to save remotely until everything is synced (and can thus determine if there's a conflict).
+		//
+		// This is highly unlikely to return false given the user has to be inactive for a large amount of time for this
+		// function to be called, but we really should still check.
+		if (!model.autosaveReady()) {
+			return
+		}
+
+		// The user is currently sending the email, and that is going to save the email for us.
+		if (isSending) {
+			return
+		}
+
+		save(false)
 	})
 
 	// This will be invoked while the user is typing.
 	const autosaveLocal = throttle(AUTOSAVE_LOCAL_TIMEOUT, async () => {
-		if (dialog.visible && model.hasMailChanged()) {
-			await model.makeLocalAutosave()
+		// Autosaving should stop working if the dialog is closed.
+		if (!dialog.visible) {
+			return
 		}
+
+		// If the mail was already saved before this was triggered, don't save again.
+		if (!model.hasMailChanged()) {
+			return
+		}
+
+		// The user is currently sending the email, and that is going to save the email for us.
+		if (isSending) {
+			return
+		}
+
+		await model.makeLocalAutosave()
 	})
 
 	const send = async () => {
@@ -1062,7 +1097,10 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			return
 		}
 
+		isSending = true
 		try {
+			// Note: model.send() will save without checking for conflicts, but unlike saving, send() will only ever be
+			// triggered by the user, so this is acceptable.
 			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog)
 			if (success) {
 				dispose()
@@ -1077,6 +1115,8 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			} else {
 				throw e
 			}
+		} finally {
+			isSending = false
 		}
 	}
 

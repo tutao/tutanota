@@ -320,12 +320,6 @@ export class SendMailModel {
 	}
 
 	async makeLocalAutosave(): Promise<void> {
-		// user probably opened a different draft in a different window; we don't want to write over it
-		if (await this.autosavedDraftIsDifferentMail()) {
-			console.warn("cannot make autosave - autosaved draft is a different mail from the one we're editing")
-			return
-		}
-
 		const body = await this.getSanitizedBody()
 		const subject = this.getSubject()
 		const isConfidential = this.isConfidential()
@@ -337,22 +331,31 @@ export class SendMailModel {
 		const bcc = (await this.bccRecipientsResolved()).map(getNameAndAddress)
 		this.updateNewMailStatus()
 
-		await this.configurationDatabase.setAutosavedDraftData({
-			body,
-			subject,
-			to,
-			cc,
-			bcc,
-			confidential: isConfidential,
-			mailGroupId: this.mailboxDetails.mailGroup._id,
-			senderAddress: this.senderAddress,
-			locallySavedTime: Date.now(),
-			editedTime: this.mailSavedAt,
-			lastUpdatedTime: this.mailRemotelyUpdatedAt,
+		if (this.hasMailChanged()) {
+			// user probably opened a different draft in a different window; we don't want to write over it
+			if (await this.autosavedDraftIsDifferentMail()) {
+				console.warn("cannot make autosave - autosaved draft is a different mail from the one we're editing")
+				return
+			}
 
-			// will be null if it is a new (unsaved) draft
-			mailId: this.getDraft()?._id ?? null,
-		})
+			// otherwise, we can save the draft
+			await this.configurationDatabase.setAutosavedDraftData({
+				body,
+				subject,
+				to,
+				cc,
+				bcc,
+				confidential: isConfidential,
+				mailGroupId: this.mailboxDetails.mailGroup._id,
+				senderAddress: this.senderAddress,
+				locallySavedTime: Date.now(),
+				editedTime: this.mailSavedAt,
+				lastUpdatedTime: this.mailRemotelyUpdatedAt,
+
+				// will be null if it is a new (unsaved) draft
+				mailId: this.getDraft()?._id ?? null,
+			})
+		}
 	}
 
 	private updateNewMailStatus() {
@@ -913,9 +916,14 @@ export class SendMailModel {
 				return false
 			}
 
-			await this.saveDraft(true, mailMethod)
+			// Don't safe unnecessarily.
+			if (this.hasMailChanged() || this.draft == null) {
+				await this.saveDraft(true, mailMethod)
+			}
+
 			await this.updateContacts(recipients)
 			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage)
+			await this.clearLocalAutosave() // no need to keep a local copy of a draft of an email that was sent
 			await this.updatePreviousMail()
 			await this.updateExternalLanguage()
 			return true
@@ -1023,6 +1031,10 @@ export class SendMailModel {
 		}
 
 		return this.currentSavePromise
+	}
+
+	isSaving(): boolean {
+		return this.currentSavePromise != null
 	}
 
 	/**

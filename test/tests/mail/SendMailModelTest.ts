@@ -888,6 +888,7 @@ o.spec("SendMailModel", function () {
 				model._draftSavedRecently = false
 				model.setMailSavedAt(1000)
 				model.setMailRemotelyUpdatedAt(1000)
+				model.setBody("we changed the body")
 				now = 1234
 				await model.handleEntityEvent({
 					typeRef: MailDetailsDraftTypeRef,
