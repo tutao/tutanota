@@ -4,6 +4,8 @@ import { formatStorageSize } from "../../../common/misc/Formatter"
 import { generatedIdToTimestamp, getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { Checkbox } from "../../../common/gui/base/Checkbox"
 import { DriveViewModel } from "./DriveViewModel"
+import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { Icons } from "../../../common/gui/base/icons/Icons"
 
 export interface DriveFolderContentEntryAttrs {
 	file: File
@@ -12,20 +14,31 @@ export interface DriveFolderContentEntryAttrs {
 	driveViewModel: DriveViewModel
 }
 
+export const isFolder = ({ mimeType }: File) => {
+	return mimeType === "tuta/folder"
+}
+
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
 	view({ attrs: { file, checked, onSelect, driveViewModel } }: m.Vnode<DriveFolderContentEntryAttrs>): Children {
 		const uploadDate = new Date(generatedIdToTimestamp(getElementId(file)))
 		const router = driveViewModel
 
+		const thisFileIsAFolder = isFolder(file)
+
 		return m("tr", [
 			m("td", m(Checkbox, { label: () => "selected", checked, onChecked: () => onSelect(file) })),
+			m("td", thisFileIsAFolder ? m(Icon, { icon: Icons.Folder, size: IconSize.Normal }) : null),
 			m(
 				"td",
 				m(
 					"span",
 					{
 						onclick: () => {
-							driveViewModel.navigateToFolder(file._id)
+							if (thisFileIsAFolder) {
+								driveViewModel.navigateToFolder(file._id)
+							} else {
+								// download
+							}
 						},
 					},
 					file.name,

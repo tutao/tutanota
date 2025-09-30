@@ -15,7 +15,9 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 			m(
 				"thead",
 				m("tr", [
-					// checked
+					// Checked or not
+					m("th", []),
+					// Icons...
 					m("th", []),
 					m("th", "Name"),
 					m("th", "Type"),
