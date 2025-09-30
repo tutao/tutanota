@@ -6,6 +6,7 @@ import { DataFile } from "../../../common/api/common/DataFile"
 import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
+import { NotFoundError } from "../../../common/api/common/error/RestError"
 
 export class DriveViewModel {
 	currentFolderFiles: File[] = []
@@ -30,7 +31,15 @@ export class DriveViewModel {
 	}
 
 	async loadFolderContentsByIdTuple(idTuple: IdTuple): Promise<void> {
-		this.currentFolderFiles = await this.driveFacade.getFolderContents(idTuple)
+		try {
+			this.currentFolderFiles = await this.driveFacade.getFolderContents(idTuple)
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				this.navigateToRootFolder()
+			} else {
+				throw e
+			}
+		}
 		this.currentFolder = idTuple
 	}
 
