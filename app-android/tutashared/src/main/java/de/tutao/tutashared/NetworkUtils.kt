@@ -103,7 +103,9 @@ class SdkRestClient : RestClient {
 				.build()
 				.newCall(request)
 				.await()
-			RestResponse(response.code.toUInt(), response.headers.toMap(), response.body?.bytes())
+			val normalizedHeaders =
+				response.headers.associateTo(HashMap(response.headers.size)) { (key, value) -> key.lowercase() to value }
+			RestResponse(response.code.toUInt(), normalizedHeaders, response.body?.bytes())
 		}
 
 		return response.getOrElse { e -> throw mapExceptionToError(e) }
