@@ -228,7 +228,7 @@ export class OfflineStoragePersistence {
 	}
 
 	async getCertainSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number): Promise<SpamTrainMailDatum[]> {
-		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam
+		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam, importance
 									  FROM spam_classification_training_data
 									  WHERE lastModified > ${cutoffTimestamp}
 										AND importance > 0`
