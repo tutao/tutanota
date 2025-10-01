@@ -1,6 +1,5 @@
 import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { sha256Hash } from "@tutao/tutanota-crypto"
-import * as tf from "@tensorflow/tfjs"
+import * as tfCore from "@tensorflow/tfjs-core"
 
 export class HashingVectorizer {
 	public readonly dimension: number = 2048
@@ -32,8 +31,7 @@ export class HashingVectorizer {
 	 * }
 	 */
 	private async tensorHash(array: Array<string>): Promise<Array<number>> {
-		// FIXME make it asynchronous
-		return tf.string.stringToHashBucketFast(tf.tensor1d(array, "string"), this.dimension).arraySync() as Array<number>
+		return tfCore.string.stringToHashBucketFast(tfCore.tensor1d(array, "string"), this.dimension).array() as Promise<Array<number>>
 	}
 
 	/**
@@ -46,22 +44,5 @@ export class HashingVectorizer {
 	 */
 	public async unsignedHash(array: Array<string>): Promise<Array<number>> {
 		return array.map((token) => arrayHashUnsigned(stringToUtf8Uint8Array(token)))
-	}
-
-	/**
-	 * Faster than tensor hash and best overall but more FP than tensorHash
-	 * Confusion Matrix:
-	 * {
-	 *   Predicted_Spam: { True_Positive: 80, False_Positive: 6 },
-	 *   Predicted_Ham: { False_Negative: 9, True_Negative: 540 }
-	 * }
-	 */
-	public async sha3Hash(array: Array<string>): Promise<Array<number>> {
-		return array.map((token) => {
-			const shaHash = sha256Hash(stringToUtf8Uint8Array(token))
-			const shaNum = BigInt(`0x${shaHash.slice(0, 32)}`)
-			const modulus = shaNum % BigInt(this.dimension)
-			return Number(modulus)
-		})
 	}
 }

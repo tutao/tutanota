@@ -17,7 +17,7 @@ import {
 } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { GENERATED_MAX_ID, GENERATED_MIN_ID } from "../../../../../../src/common/api/common/utils/EntityUtils"
 import { MailSetKind } from "../../../../../../src/common/api/common/TutanotaConstants"
-import { ClientClassifierType } from "../../../../../../src/mail-app/workerUtils/spamClassification/ClientClassifierType"
+import { ClientClassifierType } from "../../../../../../src/common/api/common/ClientClassifierType"
 import { EntityUpdateData } from "../../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { SpamTrainMailDatum } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../../../../src/common/api/common/CommonMailUtils"

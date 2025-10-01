@@ -1,0 +1,41 @@
+Subject: [PATCH] patch for core lib
+---
+Index: libs/tensorflow-core.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/libs/tensorflow-core.js b/libs/tensorflow-core.js
+--- a/libs/tensorflow-core.js	(revision 7014a71377897f2bd79c1a35f8a985de477044c8)
++++ b/libs/tensorflow-core.js	(revision 0230c94fc16ecfe870d1a70ffe844b61470ec54e)
+@@ -8406,16 +8406,12 @@
+     // We are wrapping this within an object so it can be stubbed by Jasmine.
+     var getNodeFetch = {
+         // tslint:disable-next-line:no-require-imports
+-        importFetch: function () { return require('node-fetch'); }
++        importFetch: function () { throw new Error("node-fetch has been patched out, check updateLibs.js"); }
+     };
+     var systemFetch;
+     var PlatformNode = /** @class */ (function () {
+         function PlatformNode() {
+-            // tslint:disable-next-line:no-require-imports
+-            this.util = require('util');
+-            // According to the spec, the built-in encoder can do only UTF-8 encoding.
+-            // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
+-            this.textEncoder = new this.util.TextEncoder();
++			throw new Error("util has been patched out, check updateLibs.js");
+         }
+         PlatformNode.prototype.fetch = function (path, requestInits) {
+             if (env().global.fetch != null) {
+@@ -16994,11 +16990,6 @@
+             //
+             if (module.exports) {
+                 module.exports = seedrandom;
+-                // When in node.js, try using crypto package for autoseeding.
+-                try {
+-                    nodecrypto = require('crypto');
+-                }
+-                catch (ex) { }
+             }
+             else {
+                 // When included as a plain script, set up Math.seedrandom global.

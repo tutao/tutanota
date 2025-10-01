@@ -157,7 +157,7 @@ import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
 import { SpamClassifier, SpamPredMailDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
-import { ClientClassifierType } from "../../../../../mail-app/workerUtils/spamClassification/ClientClassifierType"
+import { ClientClassifierType } from "../../../common/ClientClassifierType"
 import { getMailBodyText } from "../../../common/CommonMailUtils"
 
 assertWorkerOrNode()

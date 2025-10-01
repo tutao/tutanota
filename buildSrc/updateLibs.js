@@ -44,8 +44,9 @@ const clientDependencies = [
 	{ src: "../node_modules/@signalapp/sqlcipher/dist/index.mjs", target: "node-sqlcipher.mjs", bundling: "copy" },
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb", patch: "./libs/botd.patch" },
-	{ src: "../libs/custom_tfjs/custom_tfjs.js", target: "tensorflow.js", bundling: "rollupWeb" }, // FIXME do library review!
-	{ src: "../libs/custom_tfjs/custom_tfjs_core.js", target: "tensorflow-core.js", bundling: "rollupWeb" }, // FIXME do library review!
+	{ src: "../node_modules/@tensorflow/tfjs-core/dist/tf-core.js", target: "tensorflow-core.js", bundling: "copy", patch: "./libs/tfjs-core.patch" },
+	{ src: "../node_modules/@tensorflow/tfjs-layers/dist/tf-layers.js", target: "tensorflow-layers.js", bundling: "copy" },
+	{ src: "../node_modules/@tensorflow/tfjs-backend-webgl/dist/tf-backend-webgl.js", target: "tensorflow-backend-webgl.js", bundling: "copy" },
 ]
 
 async function applyPatch() {
@@ -80,38 +81,12 @@ module.exports.install = install`,
 	await fs.writeFile(undiciPath, replaced, { encoding: "utf-8" })
 }
 
-async function applyTensorflowPatch() {
-	console.log("applying a patch to tensorflow")
-	const tensorflowPath = path.join(__dirname, "../node_modules/@tensorflow/tfjs/dist/tf.min.js")
-	const contents = await fs.readFile(tensorflowPath, { encoding: "utf-8" })
-	const replaced = contents
-		.replace(`return require("node-fetch")`, `throw new Error("node-fetch has been patched out, check updateLibs.js")`)
-		.replace(
-			`l(this,e),this.util=require("util"),this.textEncoder=new this.util.TextEncoder`,
-			`throw new Error("util has been patched out, check updateLibs.js")`,
-		)
-		.replace(
-			`var t=!1;k0().get("IS_BROWSER")?t=e instanceof TextDecoder:t=e instanceof require("string_decoder").StringDecoder`,
-			`throw new Error("string_decoder has been patched out, check updateLibs.js")`,
-		)
-		.replace(
-			`var a=require("string_decoder").StringDecoder;t.decoder=new a("utf8")`,
-			`throw new Error("string_decoder has been patched out, check updateLibs.js")`,
-		)
-		.replace(
-			`return ege(this.input)&&k0().get("IS_NODE")&&(t=require("fs"),this.input=t.readFileSync(this.input.slice(7))),e.abrupt("return",new Jme(this.input,this.options))`,
-			`throw new Error("fs has been patched out, check updateLibs.js")`,
-		)
-		.replace(`try{a=require("crypto")}catch(e){}`, `throw new Error("crypto has been patched out, check updateLibs.js")`)
-	await fs.writeFile(tensorflowPath, replaced, { encoding: "utf-8" })
-}
-
 /**
  * applies a git patch file that was created as such:
  * 1. get the unpatched version of whatever library you want to add / change
  * 2. make a commit with the changes that you want to make
  * 3. format the patch by running:
- *    git format-patch -k --stdout HEAD~1..HEAD > /.libs/changes.patch
+ *    git format-patch -k --stdout HEAD~1..HEAD > ./libs/changes.patch
  * 4. revert the commit by running:
  *    git reset --hard HEAD~1
  * 5. commit the generated ./libs.changes file
@@ -119,7 +94,7 @@ async function applyTensorflowPatch() {
 async function applyGitPatch(patchFile) {
 	if (process.platform === "win32") return
 	const exec = promisify(child_process.exec)
-	console.log("applying a patch to botd.js")
+	console.log(`applying a patch to ${patchFile}`)
 	await exec(`git apply ${patchFile}`)
 }
 
@@ -129,7 +104,6 @@ async function applyGitPatch(patchFile) {
  */
 async function copyToLibs(dependencies) {
 	await applyPatch()
-	//await applyTensorflowPatch()
 
 	for (let { bundling, src, target, banner, patch } of dependencies) {
 		switch (bundling) {

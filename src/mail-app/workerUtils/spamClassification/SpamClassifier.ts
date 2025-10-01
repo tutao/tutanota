@@ -1,5 +1,7 @@
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
-import * as tf from "@tensorflow/tfjs"
+import * as tfLayers from "@tensorflow/tfjs-layers"
+import * as tfCore from "@tensorflow/tfjs-core"
+import "@tensorflow/tfjs-backend-webgl"
 import { assertNotNull, defer, groupByAndMap, isNotNull, promiseMap } from "@tutao/tutanota-utils"
 import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
@@ -19,9 +21,7 @@ import {
 	ML_URL_REGEX,
 	ML_URL_TOKEN,
 } from "./PreprocessPatterns"
-import { random } from "@tutao/tutanota-crypto"
 import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
-import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider"
 import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 
@@ -77,7 +77,7 @@ const TRAINING_INTERVAL = 1000 * 60 * 10 //todo: discuss training interval time.
 export class SpamClassifier {
 	public isEnabled: boolean = false
 
-	private classifier: tf.LayersModel | null = null
+	private classifier: tfLayers.LayersModel | null = null
 	private vectorizer: DynamicTfVectorizer | HashingVectorizer = new HashingVectorizer()
 
 	constructor(
@@ -200,8 +200,10 @@ export class SpamClassifier {
 
 		const vectors = await this.vectorizer.transform(tokenizedMails)
 
-		const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
-		const ys = tf.tensor1d(mails.map((mail) => (mail.isSpam ? 1 : 0)))
+		// FIXME with webgl backend we need to dispose tensors manually, there is no
+		// automated garbage collection https://www.tensorflow.org/js/guide/platform_environment#memory_management
+		const xs = tfCore.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
+		const ys = tfCore.tensor1d(mails.map((mail) => (mail.isSpam ? 1 : 0)))
 
 		this.classifier = this.buildModel(this.vectorizer.dimension)
 		await this.classifier.fit(xs, ys, { epochs: 16, batchSize: 128, shuffle: true })
@@ -253,18 +255,18 @@ export class SpamClassifier {
 		try {
 			for (const [importance, tokenizedMails] of tokenizedMailsByImportance) {
 				const vectors = await this.vectorizer.transform(tokenizedMails.map(({ tokenizedMail }) => tokenizedMail))
-				const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
-				const ys = tf.tensor1d(tokenizedMails.map(({ isSpam }) => isSpam))
+				const xs = tfCore.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
+				const ys = tfCore.tensor1d(tokenizedMails.map(({ isSpam }) => isSpam))
 
 				// We need a way to put weight on a specific mail, ideal way would be to pass sampleWeight to modelFitArgs,
-				// but is not yet implemented: https://github.com/tensorflow/tfjs/blob/0fc04d958ea592f3b8db79a8b3b497b5c8904097/tfjs-layers/src/engine/training.ts#L1195
+				// but is not yet implemented: https://github.com/tensorflow/tfLayersjs/blob/0fc04d958ea592f3b8db79a8b3b497b5c8904097/tfLayersjs-layers/src/engine/training.ts#L1195
 				//
 				// work around:
 				// current: Re fit the vector of mail multiple times corresponding to `importance`
 				// tried approaches:
 				// 1) Increasing value in vectorizer by importance instead of 1
 				// 2) duplicating the emails with higher importance and calling .fit once
-				const modelFitArgs: tf.ModelFitArgs = { epochs: 5, batchSize: 32, shuffle: true }
+				const modelFitArgs: tfLayers.ModelFitArgs = { epochs: 5, batchSize: 32, shuffle: true }
 				for (let i = 0; i <= importance; i++) {
 					await classifier.fit(xs, ys, modelFitArgs)
 				}
@@ -287,8 +289,8 @@ export class SpamClassifier {
 		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(preprocessedMail)
 		const vectors = await assertNotNull(this.vectorizer).transform([tokenizedMail])
 
-		const xs = tf.tensor2d(vectors, [vectors.length, assertNotNull(this.vectorizer).dimension])
-		const predictionTensor = assertNotNull(this.classifier).predict(xs) as tf.Tensor
+		const xs = tfCore.tensor2d(vectors, [vectors.length, assertNotNull(this.vectorizer).dimension])
+		const predictionTensor = assertNotNull(this.classifier).predict(xs) as tfCore.Tensor
 		const predictionData = await predictionTensor.data()
 		const prediction = predictionData[0]
 
@@ -310,6 +312,7 @@ export class SpamClassifier {
 	 * it's better to restart the client to not have unexpected effect
 	 */
 	public async getSpamMetricsForCurrentMailBox(): Promise<void> {
+		const { LocalTimeDateProvider } = await import("../../../common/api/worker/DateProvider.js")
 		const dateProvider = new LocalTimeDateProvider()
 
 		const getIdOfClassificationMail = (classificationData: any) => {
@@ -387,27 +390,35 @@ export class SpamClassifier {
 	}
 
 	// visibleForTesting
-	public buildModel(inputDimension: number): tf.LayersModel {
-		const model = tf.sequential()
+	public buildModel(inputDimension: number): tfLayers.LayersModel {
+		const model = tfLayers.sequential()
 		model.add(
-			tf.layers.dense({
+			tfLayers.layers.dense({
 				inputShape: [inputDimension],
 				units: 128,
 				activation: "relu",
-				kernelInitializer: tf.initializers.glorotUniform({ seed: this.deterministic ? 42 : random.generateRandomNumber(4) }),
+				kernelInitializer: this.deterministic ? tfLayers.initializers.glorotUniform({ seed: 42 }) : tfLayers.initializers.glorotUniform({}),
 			}),
 		)
+		if (this.deterministic) {
+			model.add(
+				tfLayers.layers.dropout({
+					rate: 0.2,
+					seed: 42,
+				}),
+			)
+		} else {
+			model.add(
+				tfLayers.layers.dropout({
+					rate: 0.2,
+				}),
+			)
+		}
 		model.add(
-			tf.layers.dropout({
-				rate: 0.2,
-				seed: this.deterministic ? 42 : random.generateRandomNumber(4),
-			}),
-		)
-		model.add(
-			tf.layers.dense({
+			tfLayers.layers.dense({
 				units: 1,
 				activation: "sigmoid",
-				kernelInitializer: tf.initializers.glorotUniform({ seed: this.deterministic ? 42 : random.generateRandomNumber(4) }),
+				kernelInitializer: this.deterministic ? tfLayers.initializers.glorotUniform({ seed: 42 }) : tfLayers.initializers.glorotUniform({}),
 			}),
 		)
 		model.compile({ optimizer: "adam", loss: "binaryCrossentropy", metrics: ["accuracy"] })
@@ -426,8 +437,8 @@ export class SpamClassifier {
 	private async getModelArtifacts() {
 		const classifier = assertNotNull(this.classifier)
 		const spamClassificationModel = defer<SpamClassificationModel>()
-		const modelArtificats = new Promise<tf.io.ModelArtifacts>((resolve) => {
-			const saveInfo = tf.io.withSaveHandler(async (artifacts) => {
+		const modelArtificats = new Promise<tfCore.io.ModelArtifacts>((resolve) => {
+			const saveInfo = tfCore.io.withSaveHandler(async (artifacts) => {
 				resolve(artifacts)
 				const modelTopology = JSON.stringify(artifacts.modelTopology)
 				const weightSpecs = JSON.stringify(artifacts.weightSpecs)
@@ -460,8 +471,8 @@ export class SpamClassifier {
 			const modelTopology = JSON.parse(model.modelTopology)
 			const weightSpecs = JSON.parse(model.weightSpecs)
 			const weightData = model.weightData.buffer.slice(model.weightData.byteOffset, model.weightData.byteOffset + model.weightData.byteLength)
-			this.classifier = await tf.loadLayersModel(
-				tf.io.fromMemory({
+			this.classifier = await tfLayers.loadLayersModel(
+				tfCore.io.fromMemory({
 					modelTopology,
 					weightSpecs,
 					weightData,
@@ -496,7 +507,7 @@ export class SpamClassifier {
 		)
 		newClassifier.isEnabled = this.isEnabled
 		const { modelArtifacts } = await this.getModelArtifacts()
-		newClassifier.classifier = await tf.loadLayersModel(tf.io.fromMemory(modelArtifacts))
+		newClassifier.classifier = await tfLayers.loadLayersModel(tfCore.io.fromMemory(modelArtifacts))
 		newClassifier.classifier.compile({
 			optimizer: "adam",
 			loss: "binaryCrossentropy",
