@@ -75,7 +75,7 @@ o.spec("SpamClassifier", () => {
 			const trainSet = dataSlice.slice(0, trainTestSplit)
 			const testSet = dataSlice.slice(trainTestSplit)
 
-			const classifier = new SpamClassifier(mockOfflineStorage, mockOfflineStorageCache, mockSpamClassificationInitializer)
+			const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
 			classifier.isEnabled = true
 
 			let start = Date.now()
