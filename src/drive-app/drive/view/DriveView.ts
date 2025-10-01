@@ -17,6 +17,8 @@ import { DriveFolderView } from "./DriveFolderView"
 import { LoginButton } from "../../../common/gui/base/buttons/LoginButton"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
+import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
+import { theme } from "../../../common/gui/theme"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -109,12 +111,18 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return new ViewColumn(
 			{
 				view: () => {
-					return [
+					return m(
+						BackgroundColumnLayout,
+						{
+							backgroundColor: theme.navigation_bg,
+							desktopToolbar: () => [],
+							columnLayout: m(DriveFolderView, {
+								driveViewModel: this.driveViewModel,
+							}),
+							mobileHeader: () => [],
+						},
 						//m(DriveNav),
-						m(DriveFolderView, {
-							driveViewModel: this.driveViewModel,
-						}),
-					]
+					)
 				},
 			},
 			ColumnType.Background,

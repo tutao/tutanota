@@ -47,7 +47,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				),
 			),
 			m("td", file.mimeType?.split("/")[1]),
-			m("td", formatStorageSize(Number(file.size))),
+			m("td", thisFileIsAFolder ? "🐱" : formatStorageSize(Number(file.size))),
 			m("td", uploadDate.toLocaleString()),
 			m("td", "actions"),
 		])
