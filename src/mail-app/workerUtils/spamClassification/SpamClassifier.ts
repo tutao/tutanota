@@ -239,20 +239,22 @@ export class SpamClassifier {
 		const tokenizedMailsArray = await promiseMap(newTrainingMails, async (mail) => {
 			const preprocessedMail = this.preprocessMail(mail)
 			const tokenizedMail = await offlineStorage.tokenize(preprocessedMail)
-			return { tokenizedMail, importance: mail.importance }
+			return { tokenizedMail, importance: mail.importance, isSpam: mail.isSpam ? 1 : 0 }
 		})
 		const tokenizedMailsByImportance = groupByAndMap(
 			tokenizedMailsArray,
 			({ importance }) => importance,
-			({ tokenizedMail }) => tokenizedMail,
+			({ isSpam, tokenizedMail }) => {
+				return { isSpam, tokenizedMail }
+			},
 		)
 
 		this.isEnabled = false
 		try {
 			for (const [importance, tokenizedMails] of tokenizedMailsByImportance) {
-				const vectors = await this.vectorizer.transform(tokenizedMails)
+				const vectors = await this.vectorizer.transform(tokenizedMails.map(({ tokenizedMail }) => tokenizedMail))
 				const xs = tf.tensor2d(vectors, [vectors.length, this.vectorizer.dimension])
-				const ys = tf.tensor1d(newTrainingMails.map((mail) => (mail.isSpam ? 1 : 0)))
+				const ys = tf.tensor1d(tokenizedMails.map(({ isSpam }) => isSpam))
 
 				// We need a way to put weight on a specific mail, ideal way would be to pass sampleWeight to modelFitArgs,
 				// but is not yet implemented: https://github.com/tensorflow/tfjs/blob/0fc04d958ea592f3b8db79a8b3b497b5c8904097/tfjs-layers/src/engine/training.ts#L1195

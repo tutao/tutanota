@@ -147,7 +147,6 @@ import { NativeFileApp } from "../../../../native/common/FileApp.js"
 import { LoginFacade } from "../LoginFacade.js"
 import { ProgrammingError } from "../../../common/error/ProgrammingError.js"
 import { OwnerEncSessionKeyProvider } from "../../rest/EntityRestClient.js"
-import { CacheStorage } from "../../rest/DefaultEntityRestCache.js"
 import { KeyLoaderFacade, parseKeyVersion } from "../KeyLoaderFacade.js"
 import { _encryptBytes, _encryptKeyWithVersionedKey, _encryptString, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider.js"
@@ -160,7 +159,6 @@ import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { ClientClassifierType } from "../../../../../mail-app/workerUtils/spamClassification/ClientClassifierType"
 import { getMailBodyText } from "../../../common/CommonMailUtils"
-import { locator } from "../../../../../mail-app/workerUtils/worker/WorkerLocator"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -209,7 +207,6 @@ export class MailFacade {
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
-		private readonly storage: CacheStorage,
 		private readonly spamClassifier: SpamClassifier | null,
 	) {}
 

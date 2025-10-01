@@ -1,5 +1,5 @@
-import { Mail, MailFolderTypeRef, MailTypeRef } from "../../../entities/tutanota/TypeRefs"
-import { assertNotNull, lazy, lazyAsync } from "@tutao/tutanota-utils"
+import { Mail, MailFolderTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../../entities/tutanota/TypeRefs"
+import { assertNotNull, isSameTypeRef, lazy, lazyAsync } from "@tutao/tutanota-utils"
 import { MailIndexer } from "../../../../../mail-app/workerUtils/index/MailIndexer"
 import { CustomCacheHandler } from "./CustomCacheHandler"
 import { EntityUpdateData } from "../../../common/utils/EntityUpdateUtils"
@@ -46,9 +46,9 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 	}
 
 	async onEntityEventUpdate(id: IdTuple, events: EntityUpdateData[]) {
-		const { mailIndexer, mailFacade } = await this.indexerAndMailFacade()
+		const { mailIndexer } = await this.indexerAndMailFacade()
 		await mailIndexer.afterMailUpdated(id)
-		await this.updateSpamClassificationData(events, id, mailFacade)
+		await this.updateSpamClassificationData(events, id)
 	}
 
 	private async processSpam(newMailData: MailWithDetailsAndAttachments | null, mailFacade: MailFacade, id: readonly [string, string]) {
@@ -92,33 +92,37 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		}
 	}
 
-	private async updateSpamClassificationData(events: EntityUpdateData[], id: readonly [string, string], mailFacade: MailFacade) {
-		const offlineStoragePersistence = await this.offlineStoragePersistence()
+	private async updateSpamClassificationData(events: EntityUpdateData[], id: readonly [string, string]) {
+		// Enum { JUST_BORN, CLASSIFIED_BY_CLIENT, MOVED_BY_USER,  }
+		// Mails: { lastMoveReason: boolean | null = null }
+		// if ( null ) classify() ;
+		// put clientRes = prediction
 		const mail = assertNotNull(await this.storage.get(MailTypeRef, listIdPart(id), elementIdPart(id)))
-		const allFolders = await this.storage.getWholeList(MailFolderTypeRef, listIdPart(mail.sets[0]))
-		const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
-
+		const changedMailSetEntry = events.some((ev) => isSameTypeRef(ev.typeRef, MailSetEntryTypeRef))
 		const mailHasBeenRead = !mail.unread
-		const mailIsInCustomFolder = mail.sets.some((folderid) => {
-			return allFolders.find((f) => isSameId(f._id, folderid))?.folderType === MailSetKind.CUSTOM
-		})
-		const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
-		const storedClassification = await offlineStoragePersistence.getStoredClassification(mail)
-		const isSpamFlagChanged = storedClassification != null && storedClassification.isSpam !== isSpam
-		const mailIsMoved = mailIsInCustomFolder || isSpamFlagChanged
 
-		if (!mailHasBeenRead && !mailIsMoved) {
+		if (!mailHasBeenRead && !changedMailSetEntry) {
 			return
 		}
 
+		const changedByClientModel = false // todo
+
+		const allFolders = await this.storage.getWholeList(MailFolderTypeRef, listIdPart(mail.sets[0]))
+		const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
+		const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
+		const importance = changedMailSetEntry && changedByClientModel ? 4 : 1
+
+		const offlineStoragePersistence = await this.offlineStoragePersistence()
+		const storedClassification = await offlineStoragePersistence.getStoredClassification(mail)
+
 		if (storedClassification != null) {
 			// email is in classification data
-			if (storedClassification.importance == 0 || isSpamFlagChanged) {
+			if (isSpam !== storedClassification.isSpam || importance !== storedClassification.importance) {
 				// the model has trained on the mail but the spamFlag was wrong so we refit with higher importance
-				await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, mailIsMoved ? 4 : 1)
+				await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, importance)
 			}
 		} else {
-			const { mailIndexer, mailFacade } = await this.indexerAndMailFacade()
+			const { mailIndexer } = await this.indexerAndMailFacade()
 			// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
 			const newMailData = await mailIndexer.downloadNewMailData(id)
 			if (newMailData) {
@@ -127,7 +131,7 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 					subject: mail.subject,
 					body: getMailBodyText(newMailData.mailDetails.body),
 					isSpam,
-					importance: mailIsMoved ? 4 : 1,
+					importance,
 				}
 
 				await offlineStoragePersistence.storeSpamClassification(spamTrainMailDatum)
