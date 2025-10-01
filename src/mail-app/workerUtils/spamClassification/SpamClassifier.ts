@@ -19,9 +19,7 @@ import {
 	ML_URL_REGEX,
 	ML_URL_TOKEN,
 } from "./PreprocessPatterns"
-import { random } from "@tutao/tutanota-crypto"
 import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
-import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider"
 import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 
@@ -310,6 +308,7 @@ export class SpamClassifier {
 	 * it's better to restart the client to not have unexpected effect
 	 */
 	public async getSpamMetricsForCurrentMailBox(): Promise<void> {
+		const { LocalTimeDateProvider } = await import("../../../common/api/worker/DateProvider.js")
 		const dateProvider = new LocalTimeDateProvider()
 
 		const getIdOfClassificationMail = (classificationData: any) => {
@@ -394,20 +393,28 @@ export class SpamClassifier {
 				inputShape: [inputDimension],
 				units: 128,
 				activation: "relu",
-				kernelInitializer: tf.initializers.glorotUniform({ seed: this.deterministic ? 42 : random.generateRandomNumber(4) }),
+				kernelInitializer: this.deterministic ? tf.initializers.glorotUniform({ seed: 42 }) : tf.initializers.glorotUniform({}),
 			}),
 		)
-		model.add(
-			tf.layers.dropout({
-				rate: 0.2,
-				seed: this.deterministic ? 42 : random.generateRandomNumber(4),
-			}),
-		)
+		if (this.deterministic) {
+			model.add(
+				tf.layers.dropout({
+					rate: 0.2,
+					seed: 42,
+				}),
+			)
+		} else {
+			model.add(
+				tf.layers.dropout({
+					rate: 0.2,
+				}),
+			)
+		}
 		model.add(
 			tf.layers.dense({
 				units: 1,
 				activation: "sigmoid",
-				kernelInitializer: tf.initializers.glorotUniform({ seed: this.deterministic ? 42 : random.generateRandomNumber(4) }),
+				kernelInitializer: this.deterministic ? tf.initializers.glorotUniform({ seed: 42 }) : tf.initializers.glorotUniform({}),
 			}),
 		)
 		model.compile({ optimizer: "adam", loss: "binaryCrossentropy", metrics: ["accuracy"] })

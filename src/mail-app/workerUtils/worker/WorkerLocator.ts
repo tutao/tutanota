@@ -113,8 +113,7 @@ import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKe
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
-import { SpamClassifier } from "../spamClassification/SpamClassifier"
-import { SpamClassificationInitializer } from "../spamClassification/SpamClassificationInitializer"
+import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 
 assertWorkerOrNode()
 
@@ -333,6 +332,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	if (isOfflineStorageAvailable() && !isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
+			const { SpamClassifier } = await import("../spamClassification/SpamClassifier")
+			const { SpamClassificationInitializer } = await import("../spamClassification/SpamClassificationInitializer")
+
 			const offlineStorage = await offlineStorageIndexerPersistence()
 			const spamClassifierInitializer = new SpamClassificationInitializer(
 				locator.cachingEntityClient,

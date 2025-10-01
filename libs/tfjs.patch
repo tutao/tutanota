@@ -1,0 +1,79 @@
+Subject: [PATCH] prepare patch 2
+---
+Index: libs/tensorflow.js
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/libs/tensorflow.js b/libs/tensorflow.js
+--- a/libs/tensorflow.js	(revision 343d0c11cbd2ca53a50f5fa969a7c10ac1a5f877)
++++ b/libs/tensorflow.js	(revision f747825f0d6aa410fcbdcfd23a54b4e7297ddf61)
+@@ -28055,7 +28055,7 @@
+ 	var getNodeFetch = {
+ 	  // tslint:disable-next-line:no-require-imports
+ 	  importFetch: function importFetch() {
+-	    return require('node-fetch');
++		throw new Error("node-fetch has been patched out, check updateLibs.js");
+ 	  }
+ 	};
+ 	var systemFetch;
+@@ -28073,11 +28073,7 @@
+ 	var PlatformNode = /*#__PURE__*/function () {
+ 	  function PlatformNode() {
+ 	    _classCallCheck(this, PlatformNode);
+-	    // tslint:disable-next-line:no-require-imports
+-	    this.util = require('util');
+-	    // According to the spec, the built-in encoder can do only UTF-8 encoding.
+-	    // https://developer.mozilla.org/en-US/docs/Web/API/TextEncoder/TextEncoder
+-	    this.textEncoder = new this.util.TextEncoder();
++		throw new Error("util has been patched out, check updateLibs.js")
+ 	  }
+ 	  _createClass(PlatformNode, [{
+ 	    key: "fetch",
+@@ -37771,10 +37767,6 @@
+ 	    //
+ 	    if ('object' == 'object' && module.exports) {
+ 	      module.exports = seedrandom;
+-	      // When in node.js, try using crypto package for autoseeding.
+-	      try {
+-	        nodecrypto = require('crypto');
+-	      } catch (ex) {}
+ 	    } else if (typeof undefined == 'function' && undefined.amd) {
+ 	      undefined(function () {
+ 	        return seedrandom;
+@@ -92842,10 +92834,7 @@
+ 	  if (env().get('IS_BROWSER')) {
+ 	    isTextDecoder = obj instanceof TextDecoder;
+ 	  } else {
+-	    // tslint:disable-next-line:no-require-imports
+-	    var _require = require('string_decoder'),
+-	      StringDecoder = _require.StringDecoder;
+-	    isTextDecoder = obj instanceof StringDecoder;
++		throw new Error("string_decoder has been patched out, check updateLibs.js")
+ 	  }
+ 	  return obj != null && !ArrayBuffer.isView(obj) && (Array.isArray(obj) || _typeof(obj) === 'object' && !(obj instanceof Tensor) && !(obj instanceof Promise) && !isTextDecoder);
+ 	}
+@@ -97428,10 +97417,7 @@
+ 	    if (env().get('IS_BROWSER')) {
+ 	      _this2.decoder = new TextDecoder('utf-8');
+ 	    } else {
+-	      // tslint:disable-next-line:no-require-imports
+-	      var _require = require('string_decoder'),
+-	        StringDecoder = _require.StringDecoder;
+-	      _this2.decoder = new StringDecoder('utf8');
++		  throw new Error("string_decoder has been patched out, check updateLibs.js")
+ 	    }
+ 	    return _this2;
+ 	  }
+@@ -97722,9 +97708,7 @@
+ 	          while (1) switch (_context.prev = _context.next) {
+ 	            case 0:
+ 	              if (isLocalPath(this.input) && env().get('IS_NODE')) {
+-	                // tslint:disable-next-line:no-require-imports
+-	                fs = require('fs');
+-	                this.input = fs.readFileSync(this.input.slice(7));
++					throw new Error("fs has been patched out, check updateLibs.js")
+ 	              }
+ 	              // TODO(kangyizhang): Add LocalFileChunkIterator to split local streaming
+ 	              // with file in browser.
+

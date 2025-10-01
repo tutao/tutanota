@@ -4,13 +4,12 @@ import { assertNotNull, isNotNull, lazyAsync, promiseMap } from "@tutao/tutanota
 import { GroupMembership, type User } from "../../../common/api/entities/sys/TypeRefs"
 import { MailBag, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolder, MailFolderTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { getMailSetKind, GroupType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
-import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
-import { SpamTrainMailDatum } from "./SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
+import { SpamTrainMailDatum } from "./SpamClassifier"
 
 const INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS = 28 // FIXME, for now keep in sync with MailIndexr/INITIAL_MAIL_INDEX_INTERVAL_DAYS
 
@@ -73,6 +72,7 @@ export class SpamClassificationInitializer {
 	}
 
 	private async downloadMailAndMailDetailsByMailbag(mailbag: MailBag, spamFolder: MailFolder, inboxFolder: MailFolder): Promise<Array<SpamTrainMailDatum>> {
+		const { LocalTimeDateProvider } = await import("../../../common/api/worker/DateProvider.js")
 		const dateProvider = new LocalTimeDateProvider()
 		const startTime = dateProvider.getStartOfDayShiftedBy(this.TIME_LIMIT).getTime()
 		const bulkMailLoader = await this.bulkMailLoader()

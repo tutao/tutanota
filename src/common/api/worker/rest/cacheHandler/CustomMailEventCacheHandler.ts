@@ -8,10 +8,10 @@ import { OfflineStoragePersistence } from "../../../../../mail-app/workerUtils/i
 import { MailSetKind } from "../../../common/TutanotaConstants"
 import { CacheStorage } from "../DefaultEntityRestCache"
 import { elementIdPart, isSameId, listIdPart } from "../../../common/utils/EntityUtils"
-import { ClientClassifierType } from "../../../../../mail-app/workerUtils/spamClassification/ClientClassifierType"
+import { ClientClassifierType } from "../../../common/ClientClassifierType"
 import { MailWithDetailsAndAttachments } from "../../../../../mail-app/workerUtils/index/MailIndexerBackend"
-import { SpamTrainMailDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../common/CommonMailUtils"
+import { SpamTrainMailDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
 /**
  * Handles telling the indexer to index or un-index mail data on updates.
