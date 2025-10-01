@@ -40,6 +40,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 								// download
 							}
 						},
+						class: "cursor-pointer",
 					},
 					file.name,
 				),
