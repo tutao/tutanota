@@ -11,6 +11,7 @@ import {
 	incrementDate,
 	last,
 	lazy,
+	memoized,
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -44,7 +45,7 @@ import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUt
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { askIfShouldSendCalendarUpdatesToAttendees, getEventType, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { ReceivedGroupInvitationsModel } from "../../../common/sharing/model/ReceivedGroupInvitationsModel"
-import type { CalendarInfo, CalendarModel } from "../model/CalendarModel"
+import type { CalendarInfo, CalendarInfoBase, CalendarModel } from "../model/CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
@@ -132,6 +133,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	private cancelSignal: Stream<boolean> = stream(false)
 
+	private calendarColorsMap: (availableCalendars: ReadonlyArray<CalendarInfoBase>) => Map<Id, string>
+
 	constructor(
 		private readonly logins: LoginController,
 		private readonly createCalendarEventEditModel: CalendarEventEditModelsFactory,
@@ -149,6 +152,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly contactModel: ContactModel,
 		private readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>,
 	) {
+		this.calendarColorsMap = memoized((availableCalendars: ReadonlyArray<CalendarInfoBase>) => {
+			const calendarColors = new Map()
+			for (let calendarInfo of availableCalendars) {
+				calendarColors.set(calendarInfo.id, calendarInfo.color)
+			}
+			return calendarColors
+		})
+
 		this._transientEvents = []
 
 		const userId = logins.getUserController().user._id
@@ -232,11 +243,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	get calendarColors() {
-		const calendarColors = new Map()
-		for (let calendarInfo of this.calendarModel.getAvailableCalendars(true)) {
-			calendarColors.set(calendarInfo.id, calendarInfo.color)
-		}
-		return calendarColors
+		const availableCalendars = this.calendarModel.getAvailableCalendars(true)
+		return this.calendarColorsMap(availableCalendars)
 	}
 
 	async getCalendarNameData(groupInfo: GroupInfo): Promise<GroupNameData> {

@@ -272,7 +272,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 					},
 				}),
 			),
-			m(".flex.col", [calendarName, m("small.text-fade", lang.get(calendarType!))]),
+			m(".flex.col", [calendarName, m("small.text-fade", lang.getTranslationText(calendarType))]),
 		])
 	}
 }

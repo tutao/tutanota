@@ -378,8 +378,8 @@ export class CalendarEventPreviewViewModel {
 	}
 
 	// Returns null if there is no ownerGroup, which might be the case if an event invitation is being viewed
-	getCalendarInfoBase(): CalendarInfoBase | undefined {
-		if (!this.calendarEvent._ownerGroup) return undefined
-		return this.calendar.getLoaded()
+	getCalendarInfoBase(): CalendarInfoBase | null {
+		if (!this.calendarEvent._ownerGroup) return null
+		return this.calendar.getSync() ?? null
 	}
 }
