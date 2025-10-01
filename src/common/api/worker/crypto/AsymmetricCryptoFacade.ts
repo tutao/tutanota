@@ -26,14 +26,13 @@ import {
 	EncryptionKeyVerificationState,
 	PresentableKeyVerificationState,
 } from "../../common/TutanotaConstants.js"
-import { arrayEquals, assertNotNull, lazy, lazyAsync, Versioned } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, lazy, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { createPublicKeyPutIn, PubEncKeyData } from "../../entities/sys/TypeRefs.js"
 import { CryptoWrapper } from "./CryptoWrapper.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
-import type { KeyVerificationFacade } from "../facades/lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../facades/PublicEncryptionKeyProvider.js"
 import { KeyVersion } from "@tutao/tutanota-utils"
 import { TypeId } from "../../common/EntityTypes"
@@ -71,7 +70,6 @@ export class AsymmetricCryptoFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly serviceExecutor: IServiceExecutor,
-		private readonly lazyKeyVerificationFacade: lazyAsync<KeyVerificationFacade>,
 		private readonly publicKeyProvider: PublicEncryptionKeyProvider,
 		private readonly adminKeyLoaderFacade: lazy<AdminKeyLoaderFacade>,
 	) {}

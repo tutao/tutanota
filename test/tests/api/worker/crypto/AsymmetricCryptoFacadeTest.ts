@@ -34,7 +34,7 @@ import { PublicKeyService } from "../../../../../src/common/api/entities/sys/Ser
 import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
+import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 
@@ -44,7 +44,6 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 	let cryptoWrapper: CryptoWrapper
 	let serviceExecutor: IServiceExecutor
-	let keyVerificationFacade: KeyVerificationFacade
 	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
 	let adminKeyLoaderFacade: AdminKeyLoaderFacade
 
@@ -56,7 +55,6 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		keyLoaderFacade = object()
 		cryptoWrapper = object()
 		serviceExecutor = object()
-		keyVerificationFacade = object()
 		publicEncryptionKeyProvider = object()
 		adminKeyLoaderFacade = object()
 		asymmetricCryptoFacade = new AsymmetricCryptoFacade(
@@ -65,7 +63,6 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			keyLoaderFacade,
 			cryptoWrapper,
 			serviceExecutor,
-			async () => keyVerificationFacade,
 			publicEncryptionKeyProvider,
 			() => adminKeyLoaderFacade,
 		)

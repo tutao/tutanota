@@ -460,15 +460,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.keyAuthenticationFacade = new KeyAuthenticationFacade(locator.cryptoWrapper)
 	locator.keyLoader = new KeyLoaderFacade(locator.keyCache, locator.user, locator.cachingEntityClient, locator.cacheManagement, locator.cryptoWrapper)
-	locator.adminKeyLoader = new AdminKeyLoaderFacade(
-		locator.user,
-		locator.cachingEntityClient,
-		locator.keyLoader,
-		locator.cacheManagement,
-		locator.asymmetricCrypto,
-		locator.cryptoWrapper,
-		locator.keyAuthenticationFacade,
-	)
 
 	locator.identityKeyTrustDatabase = new IdentityKeyTrustDatabase(locator.sqlCipherFacade, () => locator.login)
 	locator.publicIdentityKeyProvider = new PublicIdentityKeyProvider(
@@ -492,9 +483,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.keyLoader,
 		locator.cryptoWrapper,
 		locator.serviceExecutor,
-		locator.keyVerification,
 		locator.publicEncryptionKeyProvider,
 		adminKeyLoaderProvider,
+	)
+
+	locator.adminKeyLoader = new AdminKeyLoaderFacade(
+		locator.user,
+		locator.cachingEntityClient,
+		locator.keyLoader,
+		locator.cacheManagement,
+		locator.asymmetricCrypto,
+		locator.cryptoWrapper,
+		locator.keyAuthenticationFacade,
 	)
 
 	locator.crypto = new CryptoFacade(
