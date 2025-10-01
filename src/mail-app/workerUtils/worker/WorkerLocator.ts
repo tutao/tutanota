@@ -340,7 +340,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				offlineStorage,
 				locator.bulkMailLoader,
 			)
-			locator.spamClassifier = new SpamClassifier(offlineStorage, spamClassifierInitializer)
+			locator.spamClassifier = new SpamClassifier(offlineStorage, locator.cacheStorage, spamClassifierInitializer)
 			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase.js")
 			const { SearchTableDefinitions, SpamClassificationDefinitions } = await import("../index/OfflineStoragePersistence.js")
 

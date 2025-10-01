@@ -102,7 +102,6 @@ import {
 	assertNotNull,
 	byteLength,
 	contains,
-	debounce,
 	defer,
 	freshVersioned,
 	groupBy,
@@ -463,18 +462,6 @@ export class MailFacade {
 			return false
 		}
 	}
-
-	updateClassifier = debounce(5000, async () => {
-		;(this as any).spamClassifier = locator.spamClassifier
-		if (this.isSpamClassificationEnabled()) {
-			const spamClassifier = assertNotNull(this.spamClassifier)
-			const isModelUpdated = await spamClassifier.updateModelFromCutoff(await this.storage.getLastTrainedTime())
-			if (isModelUpdated) {
-				await spamClassifier.saveModel()
-				await this.storage.setLastTrainedTime(Date.now())
-			}
-		}
-	})
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
 		if (isEmpty(mails)) {

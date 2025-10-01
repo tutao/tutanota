@@ -1,4 +1,3 @@
-import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import * as tf from "@tensorflow/tfjs"
 import { assertNotNull, defer, groupByAndMap, isNotNull, promiseMap } from "@tutao/tutanota-utils"
@@ -23,6 +22,8 @@ import {
 import { random } from "@tutao/tutanota-crypto"
 import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider"
+import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
+import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 
 assertWorkerOrNode()
 
@@ -71,6 +72,8 @@ const DEFAULT_PREPROCESS_CONFIGURATION = {
 	isReplaceSpecialCharacters: true,
 }
 
+const TRAINING_INTERVAL = 1000 * 60 * 10 //todo: discuss training interval time.
+
 export class SpamClassifier {
 	public isEnabled: boolean = false
 
@@ -78,7 +81,9 @@ export class SpamClassifier {
 	private vectorizer: DynamicTfVectorizer | HashingVectorizer = new HashingVectorizer()
 
 	constructor(
+		//TODO: check if we can have only a single storage and not persistence and CacheStorage
 		private readonly offlineStorage: OfflineStoragePersistence | null,
+		private readonly offlineStorageCache: CacheStorage,
 		private readonly initializer: SpamClassificationInitializer,
 		private readonly deterministic: boolean = false,
 		private readonly preprocessConfiguration: PreprocessConfiguration = DEFAULT_PREPROCESS_CONFIGURATION,
@@ -86,9 +91,15 @@ export class SpamClassifier {
 
 	public async initialize(): Promise<void> {
 		await this.loadModel()
+
+		const storage = assertNotNull(this.offlineStorageCache)
 		if (isNotNull(this.classifier)) {
 			console.log("Loaded existing spam classification model from database")
 			this.isEnabled = true
+			await this.updateAndSaveModel(storage)
+			setInterval(async () => {
+				await this.updateAndSaveModel(storage)
+			}, TRAINING_INTERVAL)
 			return
 		}
 
@@ -97,6 +108,17 @@ export class SpamClassifier {
 		await this.initialTraining(data)
 		await this.saveModel()
 		this.isEnabled = true
+		setInterval(async () => {
+			await this.updateAndSaveModel(storage)
+		}, TRAINING_INTERVAL)
+	}
+
+	private async updateAndSaveModel(storage: CacheStorage) {
+		const isModelUpdated = await this.updateModelFromCutoff(await storage.getLastTrainedTime())
+		if (isModelUpdated) {
+			await this.saveModel()
+			await storage.setLastTrainedTime(Date.now())
+		}
 	}
 
 	// visibleForTesting
@@ -463,7 +485,13 @@ export class SpamClassifier {
 
 	// === Testing methods
 	public async cloneClassifier(): Promise<SpamClassifier> {
-		const newClassifier = new SpamClassifier(this.offlineStorage, this.initializer, this.deterministic, this.preprocessConfiguration)
+		const newClassifier = new SpamClassifier(
+			this.offlineStorage,
+			this.offlineStorageCache,
+			this.initializer,
+			this.deterministic,
+			this.preprocessConfiguration,
+		)
 		newClassifier.isEnabled = this.isEnabled
 		const { modelArtifacts } = await this.getModelArtifacts()
 		newClassifier.classifier = await tf.loadLayersModel(tf.io.fromMemory(modelArtifacts))

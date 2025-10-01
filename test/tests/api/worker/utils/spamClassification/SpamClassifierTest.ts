@@ -8,6 +8,7 @@ import { object } from "testdouble"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import * as tf from "@tensorflow/tfjs"
 import { SpamClassificationInitializer } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassificationInitializer"
+import { CacheStorage } from "../../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
 
@@ -42,6 +43,8 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 
 // Initial training (cutoff by day or amount)
 o.spec("SpamClassifier", () => {
+	const mockOfflineStorageCache = object() as CacheStorage
+
 	o("Test initial fit", async () => {
 		o.timeout(20_000_000)
 
@@ -72,7 +75,7 @@ o.spec("SpamClassifier", () => {
 			const trainSet = dataSlice.slice(0, trainTestSplit)
 			const testSet = dataSlice.slice(trainTestSplit)
 
-			const classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
+			const classifier = new SpamClassifier(mockOfflineStorage, mockOfflineStorageCache, mockSpamClassificationInitializer)
 			classifier.isEnabled = true
 
 			let start = Date.now()
@@ -128,7 +131,7 @@ o.spec("SpamClassifier", () => {
 			return trainSetSecondHalf
 		}
 
-		const classifierAll = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
+		const classifierAll = new SpamClassifier(mockOfflineStorage, mockOfflineStorageCache, mockSpamClassificationInitializer)
 		classifierAll.isEnabled = true
 
 		let start = Date.now()
@@ -143,7 +146,7 @@ o.spec("SpamClassifier", () => {
 		mockOfflineStorage.getCertainSpamClassificationTrainingDataAfterCutoff = async (_cutoff) => {
 			return trainSetSecondHalf
 		}
-		const classifierBySteps = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializerTrainSetHalf)
+		const classifierBySteps = new SpamClassifier(mockOfflineStorage, mockOfflineStorageCache, mockSpamClassificationInitializerTrainSetHalf)
 		classifierBySteps.isEnabled = true
 
 		start = Date.now()
@@ -156,7 +159,7 @@ o.spec("SpamClassifier", () => {
 		await classifierBySteps.test(testSet)
 		console.log(`tested in ${Date.now() - start}ms`)
 
-		const classifierOnlySecondHalf = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializerTrainSetSecondHalf)
+		const classifierOnlySecondHalf = new SpamClassifier(mockOfflineStorage, mockOfflineStorageCache, mockSpamClassificationInitializerTrainSetSecondHalf)
 		classifierOnlySecondHalf.isEnabled = true
 
 		start = Date.now()
@@ -170,7 +173,7 @@ o.spec("SpamClassifier", () => {
 	})
 
 	o("preprocessMail outputs expected tokens for mail content", async () => {
-		const classifier = new SpamClassifier(null, object())
+		const classifier = new SpamClassifier(null, object(), object())
 		const mail = {
 			subject: `Sample Tokens and values`,
 			// prettier-ignore
@@ -350,6 +353,7 @@ this text is shown`
 })
 
 o.spec("Training and ReFitting the model", () => {
+	const mockOfflineStorageCache = object() as CacheStorage
 	const mockOfflineStorage = object() as OfflineStoragePersistence
 	let classifier = object() as SpamClassifier
 	let dataSlice
@@ -362,7 +366,7 @@ o.spec("Training and ReFitting the model", () => {
 		mockSpamClassificationInitializer.init = async () => {
 			return dataSlice
 		}
-		classifier = new SpamClassifier(mockOfflineStorage, mockSpamClassificationInitializer)
+		classifier = new SpamClassifier(mockOfflineStorage, mockOfflineStorageCache, mockSpamClassificationInitializer)
 		classifier.isEnabled = true
 	})
 

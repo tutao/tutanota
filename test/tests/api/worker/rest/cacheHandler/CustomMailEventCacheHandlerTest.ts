@@ -247,7 +247,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 			await cacheHandler.onEntityEventUpdate(["listId", "elementId"], [])
 
 			verify(offlineStorage.updateSpamClassificationData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
-			verify(mailFacade.updateClassifier(), { times: 0 })
 		})
 
 		o("does update spam classification data if mail has been read in inbox and not moved", async function () {
@@ -273,7 +272,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 			await cacheHandler.onEntityEventUpdate(["listId", "elementId"], [])
 
 			verify(offlineStorage.updateSpamClassificationData(["listId", "elementId"], false, 1), { times: 1 })
-			verify(mailFacade.updateClassifier(), { times: 1 })
 			verify(mailFacade.predictSpamResult(mail), { times: 0 })
 		})
 
@@ -301,7 +299,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 			await cacheHandler.onEntityEventUpdate(["listId", "elementId"], [event])
 
 			verify(offlineStorage.updateSpamClassificationData(["listId", "elementId"], true, 4), { times: 1 })
-			verify(mailFacade.updateClassifier())
 		})
 
 		o("does update spam classification data if mail was not previously included", async function () {
@@ -336,7 +333,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
-			verify(mailFacade.updateClassifier())
 		})
 	})
 })

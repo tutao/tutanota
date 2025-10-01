@@ -116,7 +116,6 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 			if (storedClassification.importance == 0 || isSpamFlagChanged) {
 				// the model has trained on the mail but the spamFlag was wrong so we refit with higher importance
 				await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, mailIsMoved ? 4 : 1)
-				await mailFacade.updateClassifier()
 			}
 		} else {
 			const { mailIndexer, mailFacade } = await this.indexerAndMailFacade()
@@ -132,7 +131,6 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 				}
 
 				await offlineStoragePersistence.storeSpamClassification(spamTrainMailDatum)
-				await mailFacade.updateClassifier() // model has not been trained with this datum before, so we retrain
 			} else {
 				// race: mail deleted in meantime
 			}
