@@ -2285,7 +2285,7 @@ o.spec("calendar utils tests", function () {
 			}
 			const calendars = new Map()
 			calendars.set("ownergroup", {
-				shared: true,
+				hasMultipleMembers: true,
 				group: createTestEntity(GroupTypeRef, {
 					_id: "calendarGroup",
 					type: GroupType.Calendar,
@@ -2315,7 +2315,7 @@ o.spec("calendar utils tests", function () {
 			}
 			const calendars = new Map()
 			calendars.set("ownergroup", {
-				shared: true,
+				hasMultipleMembers: true,
 				group: createTestEntity(GroupTypeRef, {
 					_id: "calendarGroup",
 					type: GroupType.Calendar,
@@ -2346,7 +2346,7 @@ o.spec("calendar utils tests", function () {
 			}
 			const calendars = new Map()
 			calendars.set("ownergroup", {
-				shared: false,
+				hasMultipleMembers: false,
 				group: createTestEntity(GroupTypeRef, {
 					_id: "calendarGroup",
 					type: GroupType.Calendar,
@@ -2374,7 +2374,7 @@ o.spec("calendar utils tests", function () {
 		}
 		const calendars = new Map()
 		calendars.set("ownergroup", {
-			shared: true,
+			hasMultipleMembers: true,
 			group: createTestEntity(GroupTypeRef, {
 				_id: "calendarGroup",
 				type: GroupType.Calendar,
@@ -2412,7 +2412,7 @@ o.spec("calendar utils tests", function () {
 		}
 		const calendars = new Map()
 		calendars.set("ownergroup", {
-			shared: false,
+			hasMultipleMembers: false,
 			group: createTestEntity(GroupTypeRef, {
 				_id: "calendarGroup",
 				type: GroupType.Calendar,
