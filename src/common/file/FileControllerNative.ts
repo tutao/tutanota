@@ -65,9 +65,9 @@ export class FileControllerNative extends FileController {
 	}
 
 	/** Public for testing */
-	async downloadAndDecrypt(tutanotaFile: TutanotaFile): Promise<FileReference> {
+	async downloadAndDecrypt(tutanotaFile: TutanotaFile, archiveType: ArchiveDataType): Promise<FileReference> {
 		return await this.blobFacade.downloadAndDecryptNative(
-			ArchiveDataType.Attachments,
+			archiveType,
 			createReferencingInstance(tutanotaFile),
 			tutanotaFile.name,
 			assertNotNull(tutanotaFile.mimeType, "tried to call blobfacade.downloadAndDecryptNative with null mimeType"),

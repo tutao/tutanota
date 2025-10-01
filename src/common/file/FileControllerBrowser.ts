@@ -5,6 +5,7 @@ import { FileController, openDataFileInBrowser, ProgressObserver, zipDataFiles }
 import { sortableTimestamp } from "@tutao/tutanota-utils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { assertOnlyDataFiles, FileReference } from "../api/common/utils/FileUtils.js"
+import { ArchiveDataType } from "../api/common/TutanotaConstants"
 
 assertMainOrNode()
 
@@ -17,8 +18,8 @@ export class FileControllerBrowser extends FileController {
 		return openDataFileInBrowser(file)
 	}
 
-	async downloadAndDecrypt(file: TutanotaFile): Promise<DataFile | FileReference> {
-		return this.getAsDataFile(file)
+	async downloadAndDecrypt(file: TutanotaFile, archiveType: ArchiveDataType): Promise<DataFile | FileReference> {
+		return this.getAsDataFile(file, archiveType)
 	}
 
 	async writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void> {

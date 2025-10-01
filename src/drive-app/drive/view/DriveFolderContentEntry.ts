@@ -2,7 +2,6 @@ import m, { Children, Component } from "mithril"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { formatStorageSize } from "../../../common/misc/Formatter"
 import { generatedIdToTimestamp, getElementId } from "../../../common/api/common/utils/EntityUtils"
-import { Checkbox } from "../../../common/gui/base/Checkbox"
 import { DriveViewModel } from "./DriveViewModel"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
@@ -26,8 +25,9 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		const thisFileIsAFolder = isFolder(file)
 
 		return m("tr", [
-			m("td", m(Checkbox, { label: () => "selected", checked, onChecked: () => onSelect(file) })),
-			m("td", thisFileIsAFolder ? m(Icon, { icon: Icons.Folder, size: IconSize.Normal }) : null),
+			m("td", m("input[type=checkbox]")),
+			// m("td", m(Checkbox, { label: () => "selected", checked, onChecked: () => onSelect(file) })),
+			m("td", thisFileIsAFolder ? m(Icon, { icon: Icons.Folder, size: IconSize.Normal, style: { position: "relative", top: "2px" } }) : null),
 			m(
 				"td",
 				m(
@@ -38,6 +38,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 								driveViewModel.navigateToFolder(file._id)
 							} else {
 								// download
+								driveViewModel.downloadFile(file)
 							}
 						},
 						class: "cursor-pointer",

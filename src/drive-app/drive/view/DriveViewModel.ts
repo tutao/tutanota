@@ -7,6 +7,8 @@ import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
 
 export class DriveViewModel {
 	currentFolderFiles: File[] = []
@@ -62,5 +64,10 @@ export class DriveViewModel {
 
 	async navigateToRootFolder(): Promise<void> {
 		this.navigateToFolder(this.rootFolder)
+	}
+
+	async downloadFile(file: File): Promise<void> {
+		// a bit ugly -- should we rename and move that one?
+		locator.fileController.open(file, ArchiveDataType.DriveFile)
 	}
 }
