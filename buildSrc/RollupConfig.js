@@ -22,7 +22,6 @@ export const dependencyMap = {
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
 	"@tensorflow/tfjs": path.normalize("./libs/tensorflow.js"),
-	"@tensorflow/tfjs-core": path.normalize("./libs/tensorflow-core.js"),
 }
 
 /**
@@ -47,7 +46,8 @@ export const allowedImports = {
 	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor"],
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "contacts"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
-	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback"],
+	"spam-classifier": ["polyfill-helpers", "common", "common-min", /*fixme*/ "worker"], // FixME: should not allow the worker here.
+	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback", "spam-classifier"],
 	"pow-worker": [],
 	settings: [
 		"polyfill-helpers",
@@ -241,14 +241,13 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "wasm"
 	} else if (moduleId.includes("wasm-fallback")) {
 		return "wasm-fallback"
+	} else if (isIn("src/mail-app/workerUtils/spamClassification") || moduleId.includes("libs/tensorflow.js") || moduleId.includes("libs/tensorflow-core.js")) {
+		return "spam-classifier"
 	} else if (
 		isIn("src/common/native/worker") ||
 		isIn("src/mail-app/workerUtils/worker") ||
 		isIn("src/calendar-app/worker") ||
-		isIn("src/mail-app/workerUtils/offline") ||
-		isIn("src/mail-app/workerUtils/spamClassification") ||
-		moduleId.includes("libs/tensorflow.js") ||
-		moduleId.includes("libs/tensorflow-core.js")
+		isIn("src/mail-app/workerUtils/offline")
 	) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {

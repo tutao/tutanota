@@ -44,8 +44,7 @@ const clientDependencies = [
 	{ src: "../node_modules/@signalapp/sqlcipher/dist/index.mjs", target: "node-sqlcipher.mjs", bundling: "copy" },
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb", patch: "./libs/botd.patch" },
-	{ src: "../libs/custom_tfjs/custom_tfjs.js", target: "tensorflow.js", bundling: "rollupWeb" }, // FIXME do library review!
-	{ src: "../libs/custom_tfjs/custom_tfjs_core.js", target: "tensorflow-core.js", bundling: "rollupWeb" }, // FIXME do library review!
+	{ src: "../node_modules/@tensorflow/tfjs/dist/tf.min.js", target: "tensorflow.js", bundling: "copy" },
 ]
 
 async function applyPatch() {
@@ -81,6 +80,7 @@ module.exports.install = install`,
 }
 
 async function applyTensorflowPatch() {
+	//Use a patch instead of replacing
 	console.log("applying a patch to tensorflow")
 	const tensorflowPath = path.join(__dirname, "../node_modules/@tensorflow/tfjs/dist/tf.min.js")
 	const contents = await fs.readFile(tensorflowPath, { encoding: "utf-8" })
@@ -129,7 +129,7 @@ async function applyGitPatch(patchFile) {
  */
 async function copyToLibs(dependencies) {
 	await applyPatch()
-	//await applyTensorflowPatch()
+	await applyTensorflowPatch()
 
 	for (let { bundling, src, target, banner, patch } of dependencies) {
 		switch (bundling) {
