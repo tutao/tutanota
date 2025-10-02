@@ -78,16 +78,19 @@ export function arrayEqualsWithPredicate<T>(a1: ReadonlyArray<T>, a2: ReadonlyAr
 	return false
 }
 
-export function arrayHash(array: Uint8Array): number {
+export function arrayHashSigned(array: Uint8Array): number {
 	let hash = 0
 	hash |= 0
 
 	for (let i = 0; i < array.length; i++) {
 		hash = (hash << 5) - hash + array[i]
-		hash |= 0 // Convert to 32bit integer
+		hash |= 0 // Convert to 32bit signed integer
 	}
-
 	return hash
+}
+
+export function arrayHashUnsigned(array: Uint8Array): number {
+	return arrayHashSigned(array) >>> 0
 }
 
 /**

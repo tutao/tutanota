@@ -11,17 +11,7 @@ import {
 	SearchIndexEntry,
 	SearchIndexMetaDataRow,
 } from "../../../../../src/common/api/worker/search/SearchTypes.js"
-import {
-	_createNewIndexUpdate,
-	decryptIndexKey,
-	decryptMetaData,
-	decryptSearchIndexEntry,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptMetaData,
-	getIdFromEncSearchIndexEntry,
-	typeRefToTypeInfo,
-} from "../../../../../src/common/api/worker/search/IndexUtils.js"
+import { _createNewIndexUpdate, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, PromisableWrapper, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { spy } from "@tutao/tutanota-test-utils"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
@@ -37,6 +27,14 @@ import { AttributeModel } from "../../../../../src/common/api/common/AttributeMo
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 import { EntityUpdateData } from "../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { CancelledError } from "../../../../../src/common/api/common/error/CancelledError.js"
+import {
+	decryptIndexKey,
+	decryptMetaData,
+	decryptSearchIndexEntry,
+	encryptIndexKeyBase64,
+	encryptIndexKeyUint8Array,
+	encryptMetaData,
+} from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
 
 const mailTypeInfo = typeRefToTypeInfo(MailTypeRef)
 const contactTypeInfo = typeRefToTypeInfo(ContactTypeRef)
