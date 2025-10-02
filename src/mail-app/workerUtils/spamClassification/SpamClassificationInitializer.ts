@@ -10,8 +10,9 @@ import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
 import { SpamTrainMailDatum } from "./SpamClassifier"
+import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 
-const INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS = 28 // FIXME, for now keep in sync with MailIndexr/INITIAL_MAIL_INDEX_INTERVAL_DAYS
+const INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS = 28
 
 export class SpamClassificationInitializer {
 	/*
@@ -101,10 +102,4 @@ export class SpamClassificationInitializer {
 			elementId: elementIdPart(mail._id),
 		} as SpamTrainMailDatum
 	}
-}
-
-// FIXME!
-// This is for now copied from IndexUtils.ts, but we should probably move it to a common bundle
-export function filterMailMemberships(user: User): GroupMembership[] {
-	return user.memberships.filter((m) => m.groupType === GroupType.Mail)
 }

@@ -54,17 +54,7 @@ import {
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
 import { elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import {
-	compareMetaEntriesOldest,
-	decryptIndexKey,
-	decryptMetaData,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptMetaData,
-	encryptSearchIndexEntry,
-	getIdFromEncSearchIndexEntry,
-	typeRefToTypeInfo,
-} from "../../../common/api/worker/search/IndexUtils.js"
+import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import type {
 	AttributeHandler,
 	B64EncIndexKey,
@@ -106,6 +96,14 @@ import {
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { ContactList } from "../../../common/api/entities/tutanota/TypeRefs"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
+import {
+	decryptIndexKey,
+	decryptMetaData,
+	encryptIndexKeyBase64,
+	encryptIndexKeyUint8Array,
+	encryptMetaData,
+	encryptSearchIndexEntry,
+} from "../../../common/api/worker/search/IndexEncryptionUtils"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 

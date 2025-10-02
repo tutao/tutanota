@@ -6,7 +6,7 @@ import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
-import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
+import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
@@ -66,7 +66,6 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 	},
 })
 
-// fixme add tests for the new tables
 export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	// Spam classification training data
 	spam_classification_training_data: {
@@ -75,6 +74,7 @@ export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> 
 		purgedWithCache: true,
 	},
 
+	// TODO add test for new table
 	spam_classification_model: {
 		definition:
 			"CREATE TABLE IF NOT EXISTS spam_classification_model (version NUMBER NOT NULL, modelTopology TEXT NOT NULL, weightSpecs TEXT NOT NULL, weightData BLOB NOT NULL, PRIMARY KEY(version))",

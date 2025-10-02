@@ -9,10 +9,6 @@ export type Stats = {
 	excludedTokenVocabularyCount: number
 }
 
-// TODO:
-//  - offline db: store tokenVocabulary
-//  - offline db: store useTokenStemming configuration
-
 export class DynamicTfVectorizer {
 	readonly dimension: number
 

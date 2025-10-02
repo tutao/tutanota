@@ -75,7 +75,6 @@ o.spec("PreprocessPatterns", () => {
 				"1/12/2023",
 				"2023/12/01",
 				"2023/12/1",
-				//TODO: possibly filter better so that these are not dates
 				"12-12-12",
 				"33-33-33",
 				"33.33.33",
@@ -145,7 +144,7 @@ o.spec("PreprocessPatterns", () => {
 		})
 
 		o.test("Not recognized url-like sequences", async () => {
-			//TODO: "https://microsoft;com/outlook/test" is being recognized as a URL
+			// "https://microsoft;com/outlook/test" is being recognized as a URL
 			// and probably it should not.
 			const notUrls = ["subdomain.:spam.com"]
 			const notUrlsText = notUrls.join("\n")

@@ -120,7 +120,7 @@ import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships } from "../../../common/utils/GroupUtils.js"
 import { containsId, elementIdPart, getElementId, getLetId, isSameId, listIdPart, stringToCustomId } from "../../../common/utils/EntityUtils.js"
-import { htmlToText } from "../../search/IndexUtils.js"
+import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
 import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
 import {

@@ -12,7 +12,7 @@ import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/wo
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
 import { contains, daysToMillis, defer, downcast, first, isNotNull, last, millisToDays, neverNull, ofClass, promiseMap } from "@tutao/tutanota-utils"
 import { firstBiggerThanSecond, GENERATED_MAX_ID, getElementId, isSameId } from "../../../common/api/common/utils/EntityUtils.js"
-import { filterIndexMemberships } from "../../../common/api/worker/search/IndexUtils.js"
+import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
 import { ContactIndexer } from "./ContactIndexer.js"

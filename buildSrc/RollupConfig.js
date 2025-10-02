@@ -46,7 +46,7 @@ export const allowedImports = {
 	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor"],
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "contacts"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
-	"spam-classifier": ["polyfill-helpers", "common", "common-min"], // FixME: should not allow the worker here.
+	"spam-classifier": ["polyfill-helpers", "common", "common-min"],
 	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback", "spam-classifier"],
 	"pow-worker": [],
 	settings: [

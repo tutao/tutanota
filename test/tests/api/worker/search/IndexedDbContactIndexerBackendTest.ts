@@ -9,7 +9,7 @@ import {
 	ContactTypeRef,
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/common/api/common/TutanotaConstants.js"
-import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/worker/search/IndexUtils.js"
+import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/common/api/common/EntityClient"
 import { matchers, object, verify, when } from "testdouble"

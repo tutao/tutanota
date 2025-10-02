@@ -38,7 +38,7 @@ import {
 	promiseMap,
 } from "@tutao/tutanota-utils"
 import { deconstructMailSetEntryId, elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { filterMailMemberships } from "../../../common/api/worker/search/IndexUtils.js"
+import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
