@@ -95,9 +95,11 @@ import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../comm
 import {
 	AlarmInterval,
 	assignEventId,
+	assignPendingEventId,
 	CalendarEventValidity,
 	CalendarType,
 	checkEventValidity,
+	findFirstPrivateCalendar,
 	getCalendarType,
 	getTimeZone,
 	hasSourceUrl,
@@ -318,8 +320,14 @@ export class CalendarModel {
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
 			(await didLongStateChange(newEvent, existingEvent, zone))
 		) {
+			const defaultCalendarGroupRootId = this.logins.getUserController().userSettingsGroupRoot.defaultCalendar
+			if (groupRoot._id === defaultCalendarGroupRootId && listIdPart(existingEvent._id) === groupRoot.pendingEvents?.list) {
+				await this.createPendingEvent(newEvent, groupRoot, newAlarms, existingEvent)
+			} else {
+				await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
+			}
+
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
-			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
 			newEvent._ownerGroup = groupRoot._id
@@ -682,7 +690,8 @@ export class CalendarModel {
 		if (!this.logins.isInternalUserLoggedIn() || findFirstPrivateCalendar(calendarInfos)) {
 			return calendarInfos
 		} else {
-			await this.createCalendar("", null, [], null)
+			const group = await this.createCalendar("", null, [], null)
+			await this.calendarFacade.setCalendarAsDefault(group._id, this.logins.getUserController().userSettingsGroupRoot)
 			return await this.loadCalendarInfos(progressMonitor)
 		}
 	}
@@ -734,6 +743,33 @@ export class CalendarModel {
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
 		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent ?? null).then(this.requestWidgetRefresh)
+	}
+
+	private async createPendingEvent(
+		event: CalendarEvent,
+		groupRoot: CalendarGroupRoot,
+		alarmInfos: ReadonlyArray<AlarmInfoTemplate>,
+		existingEvent: CalendarEvent | null = null,
+	): Promise<void> {
+		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
+		removeTechnicalFields(event)
+
+		const { assignPendingEventId } = await import("../../../common/calendar/date/CalendarUtils")
+		// if values of the existing events have changed that influence the alarm time then delete the old event and create a new
+		// one.
+		assignPendingEventId(event, groupRoot)
+
+		// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
+		event._ownerEncSessionKey = null
+		if (event.repeatRule != null) {
+			event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
+		}
+
+		// Reset permissions because server will assign them
+		downcast(event)._permissions = null
+		event._ownerGroup = groupRoot._id
+
+		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent)
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
@@ -937,12 +973,11 @@ export class CalendarModel {
 		// We want to operate on the latest events only, otherwise we might lose some data.
 		const dbEvents = await this.calendarFacade.getEventsByUid(calendarData.contents[0].event.uid, CachingMode.Bypass)
 
+		const defaultCalendarGroupRoot = await this.getDefaultCalendarGroupRoot()
 		if (dbEvents == null) {
-			// if we ever want to display event invites in the calendar before accepting them,
-			// we probably need to do something else here.
-			console.log(TAG, "received event update for event that has not been saved to the server, ignoring.")
-			return
+			return await this.handleNewCalendarInvitation(sender, calendarData, defaultCalendarGroupRoot)
 		}
+
 		const method = calendarData.method
 		for (const content of calendarData.contents) {
 			const updateAlarms = content.alarms
@@ -951,6 +986,52 @@ export class CalendarModel {
 			// like accepting another altered instance invite or accepting the progenitor after accepting only an altered instance.
 			await this.processCalendarEventMessage(sender, method, updateEvent, updateAlarms, dbEvents)
 		}
+	}
+
+	/* Fetches all calendars and filter out external calendars; Tries to find the default one by the field default;
+	 * Defaults to the oldest calendar if no calendar is marked as default;
+	 *
+	 * Throws an error if it fails to find a valid calendar after a set number of retries
+	 *
+	 * @return {CalendarGroupRoot}
+	 * @throws if can not create a default calendar when needed
+	 */
+	async getDefaultCalendarGroupRoot(): Promise<CalendarGroupRoot> {
+		const storedDefaultCalendarGroupRoot = this.logins.getUserController().userSettingsGroupRoot.defaultCalendar
+		if (storedDefaultCalendarGroupRoot) {
+			return await this.entityClient.load(CalendarGroupRootTypeRef, storedDefaultCalendarGroupRoot)
+		}
+
+		const calendarInfos = await this.loadOrCreateCalendarInfo(this.readProgressMonitor.next().value)
+		const firstCalendar = findFirstPrivateCalendar(calendarInfos)
+
+		if (!firstCalendar) {
+			console.warn("No non-external calendar available, creating default one...")
+			throw new Error(`Could not create an default calendar for user ${this.logins.getUserController().user._id}`)
+		}
+
+		// If there is no default calendar, we assume the "oldest" calendar as default
+		return firstCalendar.groupRoot
+	}
+
+	/** Handles new Calendar Invitations, creating an entry for them inside the pendingEvents of the default CalendarGroupRoot
+	 * and also inserts an index entry into CalendarEventUidIndexTypeRef
+	 */
+	async handleNewCalendarInvitation(sender: string, calendarData: ParsedCalendarData, defaultCalendarGroupRoot: CalendarGroupRoot) {
+		if (calendarData.method !== CalendarMethod.REQUEST) {
+			return // We don't handle anything different form an invitation
+		}
+
+		const eventsPromises = calendarData.contents.map((parsed) => {
+			const fullEvent = {
+				...parsed.event,
+				sender,
+			}
+
+			return this.createPendingEvent(fullEvent, defaultCalendarGroupRoot, parsed.alarms)
+		})
+
+		await Promise.all(eventsPromises)
 	}
 
 	/**

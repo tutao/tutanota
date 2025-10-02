@@ -8,6 +8,7 @@ import { IProgressMonitor } from "../../../../common/api/common/utils/ProgressMo
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository.js"
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
+import { EventRenderWrapper } from "../../view/CalendarViewModel.js"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -108,7 +109,7 @@ export class CalendarSearchModel {
 			await calendarModel.loadMonthsIfNeeded(daysInMonths, this.cancelSignal, monitor)
 			monitor.completed()
 
-			const eventsForDays = calendarModel.getEventsForMonths()()
+			const eventsForDays: ReadonlyMap<number, ReadonlyArray<EventRenderWrapper>> = calendarModel.getEventsForMonths()()
 
 			assertNonNull(restriction.start)
 			assertNonNull(restriction.end)
@@ -154,27 +155,27 @@ export class CalendarSearchModel {
 							continue
 						}
 
-						const key = idToKey(event._id)
+						const key = idToKey(event.event._id)
 
-						if (!followCommonRestrictions(key, event)) {
+						if (!followCommonRestrictions(key, event.event)) {
 							continue
 						}
 
 						for (const token of tokens) {
-							if (event.summary.toLowerCase().includes(token)) {
+							if (event.event.summary.toLowerCase().includes(token)) {
 								alreadyAdded.add(key)
-								calendarResult.results.push(event._id)
+								calendarResult.results.push(event.event._id)
 								continue eventLoop
 							}
 						}
 
 						// checking the summary was cheap, now we store the sanitized description to check it against
 						// all tokens.
-						const descriptionToSearch = event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
+						const descriptionToSearch = event.event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
 						for (const token of tokens) {
 							if (descriptionToSearch.includes(token)) {
 								alreadyAdded.add(key)
-								calendarResult.results.push(event._id)
+								calendarResult.results.push(event.event._id)
 								continue eventLoop
 							}
 						}

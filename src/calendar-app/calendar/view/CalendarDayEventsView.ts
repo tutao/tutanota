@@ -23,7 +23,7 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventRenderWrapper } from "./CalendarViewModel"
 import type { GroupColors } from "./CalendarView"
 import { styles } from "../../../common/gui/styles"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -34,14 +34,14 @@ export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler
 	onEventKeyDown: CalendarEventBubbleKeyDownHandler
 	groupColors: GroupColors
-	events: Array<CalendarEvent>
+	events: Array<EventRenderWrapper>
 	displayTimeIndicator: boolean
 	onTimePressed: (hours: number, minutes: number) => unknown
 	onTimeContextPressed: (hours: number, minutes: number) => unknown
 	day: Date
 	setCurrentDraggedEvent: (ev: CalendarEvent) => unknown
 	setTimeUnderMouse: (time: Time) => unknown
-	isTemporaryEvent: (event: CalendarEvent) => boolean
+	isTemporaryEvent: (event: EventRenderWrapper) => boolean
 	isDragging: boolean
 	fullViewWidth?: number
 	disabled?: boolean
@@ -98,21 +98,21 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		return m(".abs", { style: { top: px(top), left: 0, right: 0 } }, m(CalendarTimeIndicator))
 	}
 
-	private renderEvents(attrs: Attrs, events: Array<CalendarEvent>): Children {
+	private renderEvents(attrs: Attrs, events: Array<EventRenderWrapper>): Children {
 		return layOutEvents(events, getTimeZone(), (columns) => this.renderColumns(attrs, columns), EventLayoutMode.TimeBasedColumn)
 	}
 
-	private renderEvent(attrs: Attrs, ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>, columnWidth: number): Children {
+	private renderEvent(attrs: Attrs, ev: EventRenderWrapper, columnIndex: number, columns: Array<Array<EventRenderWrapper>>, columnWidth: number): Children {
 		// If an event starts in the previous day or ends in the next, we want to clamp top/height to fit within just this day
 		const zone = getTimeZone()
-		const startOfEvent = eventStartsBefore(attrs.day, zone, ev) ? getStartOfDay(attrs.day) : ev.startTime
-		const endOfEvent = eventEndsAfterDay(attrs.day, zone, ev) ? getEndOfDay(attrs.day) : ev.endTime
+		const startOfEvent = eventStartsBefore(attrs.day, zone, ev.event) ? getStartOfDay(attrs.day) : ev.event.startTime
+		const endOfEvent = eventEndsAfterDay(attrs.day, zone, ev.event) ? getEndOfDay(attrs.day) : ev.event.endTime
 		const startTime = (startOfEvent.getHours() * 60 + startOfEvent.getMinutes()) * 60 * 1000
 		const height = ((endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60)) * size.calendar_hour_height - size.calendar_event_border
 		const fullViewWidth = attrs.fullViewWidth
 		const maxWidth = fullViewWidth != null ? px(styles.isDesktopLayout() ? fullViewWidth / 2 : fullViewWidth) : "none"
-		const colSpan = expandEvent(ev, columnIndex, columns)
-		const eventTitle = getDisplayEventTitle(ev.summary)
+		const colSpan = expandEvent(ev.event, columnIndex, columns)
+		const eventTitle = getDisplayEventTitle(ev.event.summary)
 		return m(
 			".abs.darker-hover",
 			{
@@ -125,35 +125,36 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				},
 				onmousedown: () => {
 					if (!attrs.isTemporaryEvent(ev)) {
-						attrs.setCurrentDraggedEvent(ev)
+						attrs.setCurrentDraggedEvent(ev.event)
 					}
 				},
 			},
 			m(CalendarEventBubble, {
 				text: eventTitle,
-				secondLineText: mapNullable(getTimeTextFormatForLongEvent(ev, attrs.day, attrs.day, zone), (option) => formatEventTime(ev, option)),
-				color: getEventColor(ev, attrs.groupColors),
-				click: (domEvent) => attrs.onEventClicked(ev, domEvent),
-				keyDown: (domEvent) => attrs.onEventKeyDown(ev, domEvent),
+				secondLineText: mapNullable(getTimeTextFormatForLongEvent(ev.event, attrs.day, attrs.day, zone), (option) => formatEventTime(ev.event, option)),
+				color: getEventColor(ev.event, attrs.groupColors, ev.isGhost),
+				border: ev.isGhost ? `2px dashed #${getEventColor(ev.event, attrs.groupColors)}` : undefined,
+				click: (domEvent) => attrs.onEventClicked(ev.event, domEvent),
+				keyDown: (domEvent) => attrs.onEventKeyDown(ev.event, domEvent),
 				height: height - size.calendar_day_event_padding,
-				hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, ev),
-				isAltered: ev.recurrenceId != null,
+				hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, ev.event),
+				isAltered: ev.event.recurrenceId != null,
 				verticalPadding: size.calendar_day_event_padding,
 				fadeIn: !attrs.isTemporaryEvent(ev),
 				opacity: attrs.isTemporaryEvent(ev) ? TEMPORARY_EVENT_OPACITY : 1,
 				enablePointerEvents: !attrs.isTemporaryEvent(ev) && !attrs.isDragging && !attrs.disabled,
-				isBirthday: isBirthdayCalendar(listIdPart(ev._id)),
+				isBirthday: isBirthdayCalendar(listIdPart(ev.event._id)),
 			}),
 		)
 	}
 
-	private renderColumns(attrs: Attrs, columns: Array<Array<CalendarEvent>>): ChildArray {
+	private renderColumns(attrs: Attrs, columns: Array<Array<EventRenderWrapper>>): ChildArray {
 		const columnWidth = neverNull(this.dayDom).clientWidth / columns.length
 		return columns.map((column, index) => {
 			return column.map((event) => {
 				return this.renderEvent(attrs, event, index, columns, Math.floor(columnWidth))
-			})
-		})
+			}) as ChildArray
+		}) as ChildArray
 	}
 }
 

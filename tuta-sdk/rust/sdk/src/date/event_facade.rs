@@ -1711,6 +1711,7 @@ impl EventFacade {
 	) -> CalendarEvent {
 		CalendarEvent {
 			sequence: 0,
+			sender: None,
 			recurrenceId: None,
 			hashedUid: None,
 			summary: event_title,
