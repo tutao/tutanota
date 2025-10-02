@@ -5,7 +5,18 @@ import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/C
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, clone, filterNull, getHourOfDay, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/tutanota-utils"
+import {
+    base64ToBase64Url,
+    clone,
+    filterNull,
+    getHourOfDay,
+    getStartOfDay,
+
+    isNotNull,
+    isSameDay,
+    partition,
+    stringToBase64,
+} from "@tutao/tutanota-utils"
 import {
 	EventConflictRenderPolicy,
 	TIME_SCALE_BASE_VALUE,
@@ -191,68 +202,45 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 								},
 							},
 							[
-								m(".flex.flex-column.mb-s", [
-									m(".flex", [
-										m(Icon, {
-											icon: Icons.Time,
-											container: "div",
-											class: "mr-xsm mt-xxs",
-											style: { fill: theme.on_surface },
-											size: IconSize.Medium,
-										}),
-										m("span.b.h5", lang.get("timeOverview_title")),
-									]),
-									agenda
-										? m(".mb-s", [
-												m(
-													".flex.mt-hpad-small.fit-content",
-													{
-														class: agenda && agenda.conflictCount > 1 ? "nav-button" : undefined,
-														onclick: () =>
-															agenda && agenda.conflictCount > 1
-																? (this.displayConflictingAgenda = !this.displayConflictingAgenda)
-																: null,
-													},
-													[
-														m(Icon, {
-															icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
-															container: "div",
-															class: "mr-xsm",
-															style: {
-																fill: hasConflict ? theme.warning : theme.success,
-															},
-															size: IconSize.Medium,
-														}),
-														this.renderConflictInfoText(agenda.regularEvents.length, agenda.allDayEvents.length),
-													],
-												),
-												m(
-													"",
-													{
+								m(
+									".flex.flex-column.mb-s",
+									{
+										class: agenda && agenda.conflictCount > 1 ? "nav-button" : undefined,
+										onclick: () =>
+											agenda && agenda.conflictCount > 1 ? (this.displayConflictingAgenda = !this.displayConflictingAgenda) : null,
+									},
+									[
+										m(".flex", [
+											m(Icon, {
+												icon: Icons.Time,
+												container: "div",
+												class: "mr-xsm mt-xxs",
+												style: { fill: theme.on_surface },
+												size: IconSize.Medium,
+											}),
+											m("span.b.h5", lang.get("timeOverview_title")),
+										]),
+										agenda
+											? m(".flex.mt-hpad-small", [
+													m(Icon, {
+														icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
+														container: "div",
+														class: "mr-xsm",
 														style: {
-															"margin-left": px(size.icon_size_large + size.vpad_xsm),
+															fill: hasConflict ? theme.warning : theme.success,
 														},
-													},
-													[
-														m(
-															ExpanderPanel,
-															{
-																expanded: this.displayConflictingAgenda,
-															},
-															m(".selectable", [
-																agenda.regularEvents && agenda.regularEvents.length > 0
-																	? this.renderNormalConflictingEvents(event.startTime, agenda.regularEvents)
-																	: null,
-																agenda.allDayEvents.length > 0
-																	? this.renderAllDayConflictingEvents(event.startTime, agenda.allDayEvents)
-																	: null,
-															]),
-														),
-													],
-												),
-											])
-										: null,
-								]),
+														size: IconSize.Medium,
+													}),
+													this.renderConflictInfoText(
+														agenda.conflictCount,
+														event.startTime,
+														agenda.allDayEvents,
+														agenda.regularEvents,
+													),
+												])
+											: null,
+									],
+								),
 								agenda
 									? m(TimeView, {
 											events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
@@ -271,64 +259,52 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		)
 	}
 
-	private renderConflictInfoText(normalEventsConflictCount: number, allDayEventsConflictCount: number) {
-		const hasAllDayEvent = allDayEventsConflictCount > 0
-		const hasOnlyAllDayConflicts = normalEventsConflictCount === 0 && allDayEventsConflictCount > 0
-
-		const stringParts: Array<string> = []
-
-		if (normalEventsConflictCount && !this.displayConflictingAgenda) {
-			stringParts.push(normalEventsConflictCount.toString(), lang.getTranslationText("simultaneousEvents_msg"))
-		}
-
-		if (hasAllDayEvent && !this.displayConflictingAgenda) {
-			if (normalEventsConflictCount) {
-				stringParts.push(`+${allDayEventsConflictCount}`)
-			} else {
-				stringParts.push(`${allDayEventsConflictCount}`)
-			}
-
-			stringParts.push(`${lang.getTranslationText("allDay_label").toLowerCase()}`)
-		}
-
-		if (this.displayConflictingAgenda) {
-			stringParts.push((normalEventsConflictCount + allDayEventsConflictCount).toString(), lang.getTranslationText("conflicts_label"))
-		}
-
-		return m(
-			".small.flex.gap-vpad-xs.items-center.fit-content",
-			{
-				style: {
-					"line-height": px(19.5),
-				},
-			},
-			[
-				m("span.b", stringParts.join(" ")),
-				m(Icon, {
-					icon: BootIcons.Expand,
-					container: "div",
-					class: `fit-content`,
-					size: IconSize.Medium,
+	private renderConflictInfoText(
+		conflictCount: number,
+		eventDate: Date,
+		allDayEvents: Array<TimeViewEventWrapper>,
+		conflictingRegularEvents?: Array<TimeViewEventWrapper>,
+	) {
+		const hasOnlyAllDayConflicts = conflictCount > 0 && conflictCount === allDayEvents.length
+		return m(".mb-s", [
+			m(
+				".small.flex.gap-vpad-xs-15.items-center",
+				{
 					style: {
-						fill: theme.on_surface,
-						rotate: this.displayConflictingAgenda ? "180deg" : "0deg",
+						"line-height": px(19.5),
 					},
-				}),
-			],
-		)
-	}
-
-	private renderAllDayConflictingEvents(referenceDate: Date, conflictingAllDayEvents: Array<TimeViewEventWrapper>) {
-		return m("", [
-			m("strong.small.content-fg", `${conflictingAllDayEvents.length} ${lang.getTranslationText("allDayEvents_label")}`),
-			conflictingAllDayEvents?.map((l) => this.buildConflictingEventInfoText(referenceDate, l, true)),
-		])
-	}
-
-	private renderNormalConflictingEvents(referenceDate: Date, conflictingRegularEvents: Array<TimeViewEventWrapper>) {
-		return m("", [
-			m("strong.small.content-fg", `${conflictingRegularEvents.length} ${lang.getTranslationText("simultaneousEvents_msg")}`),
-			conflictingRegularEvents?.map((l) => this.buildConflictingEventInfoText(referenceDate, l, false)),
+				},
+				[
+					!hasOnlyAllDayConflicts
+						? m(
+								"span",
+								conflictCount > 0
+									? [m("strong", conflictCount), ` ${lang.get("simultaneousEvents_msg")}`]
+									: lang.get("noSimultaneousEvents_msg"),
+							)
+						: null,
+					isNotEmpty(allDayEvents)
+						? m(
+								"span.border-radius.pt-xxs.pb-xxs.plr-sm.text-break",
+								{ style: { color: theme.on_warning_container, "background-color": theme.warning_container } },
+								[
+									m("strong", allDayEvents.length === 1 ? `1 ${lang.get("allDay_label").toLowerCase()}: ` : `${allDayEvents.length} `),
+									allDayEvents.length === 1 ? allDayEvents[0].event.summary : lang.get("allDay_label").toLowerCase(),
+								],
+							)
+						: null,
+				],
+			),
+			m(
+				ExpanderPanel,
+				{
+					expanded: this.displayConflictingAgenda,
+				},
+				m(".selectable.mt-xs", [
+					allDayEvents.map((l) => this.buildConflictingEventInfoText(eventDate, l)),
+					conflictingRegularEvents?.map((l) => this.buildConflictingEventInfoText(eventDate, l)),
+				]),
+			),
 		])
 	}
 
@@ -354,9 +330,18 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		return timeParts
 	}
 
-	private buildConflictingEventInfoText(referenceDate: Date, eventWrapper: TimeViewEventWrapper, isAllDay: boolean) {
-		const timeText = !isAllDay ? this.getTimeParts(referenceDate, eventWrapper).join(" - ") : ""
-		return m(".small.selectable", `• ${eventWrapper.event.summary} ${timeText}`)
+	private buildConflictingEventInfoText(referenceDate: Date, eventWrapper: TimeViewEventWrapper) {
+		return m(".flex.items-center", [
+			m(".icon-small.circle", {
+				style: {
+					backgroundColor: eventWrapper.color,
+				},
+			}),
+			m(".flex.items-center.ml-xsm", [
+				m(".small.selectable.faded-text", `${eventWrapper.event.summary}:`),
+				m(".small.selectable.faded-text.b.ml-s", this.getTimeParts(referenceDate, eventWrapper).join(" - ")),
+			]),
+		])
 	}
 
 	private buildReplySection(
