@@ -5,7 +5,18 @@ import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/C
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, clone, filterNull, getHourOfDay, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/tutanota-utils"
+import {
+	base64ToBase64Url,
+	clone,
+	filterNull,
+	getHourOfDay,
+	getStartOfDay,
+
+	isNotNull,
+	isSameDay,
+	partition,
+	stringToBase64,
+} from "@tutao/tutanota-utils"
 import {
 	EventConflictRenderPolicy,
 	TIME_SCALE_BASE_VALUE,
@@ -191,19 +202,26 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 								},
 							},
 							[
-								m(".flex.flex-column.mb-s", [
-									m(".flex", [
-										m(Icon, {
-											icon: Icons.Time,
-											container: "div",
-											class: "mr-xsm mt-xxs",
-											style: { fill: theme.on_surface },
-											size: IconSize.Medium,
-										}),
-										m("span.b.h5", lang.get("timeOverview_title")),
-									]),
-									agenda
-										? m(".mb-s", [
+								m(
+									".flex.flex-column.mb-s",
+									{
+										class: agenda && agenda.conflictCount > 1 ? "nav-button" : undefined,
+										onclick: () =>
+											agenda && agenda.conflictCount > 1 ? (this.displayConflictingAgenda = !this.displayConflictingAgenda) : null,
+									},
+									[
+										m(".flex", [
+											m(Icon, {
+												icon: Icons.Time,
+												container: "div",
+												class: "mr-xsm mt-xxs",
+												style: { fill: theme.on_surface },
+												size: IconSize.Medium,
+											}),
+											m("span.b.h5", lang.get("timeOverview_title")),
+										]),
+										agenda
+											? m(".mb-s", [
 												m(
 													".flex.mt-hpad-small.fit-content",
 													{
@@ -212,18 +230,18 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 															agenda && agenda.conflictCount > 1
 																? (this.displayConflictingAgenda = !this.displayConflictingAgenda)
 																: null,
-													},
-													[
-														m(Icon, {
-															icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
-															container: "div",
-															class: "mr-xsm",
-															style: {
-																fill: hasConflict ? theme.warning : theme.success,
-															},
-															size: IconSize.Medium,
-														}),
-														this.renderConflictInfoText(agenda.regularEvents.length, agenda.allDayEvents.length),
+													}, [
+													m(Icon, {
+														icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
+														container: "div",
+														class: "mr-xsm",
+														style: {
+															fill: hasConflict ? theme.warning : theme.success,
+														},
+														size: IconSize.Medium,
+													}),
+													this.renderConflictInfoText(
+														agenda.regularEvents.length, agenda.allDayEvents.length),
 													],
 												),
 												m(
@@ -244,15 +262,19 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 																	? this.renderNormalConflictingEvents(event.startTime, agenda.regularEvents)
 																	: null,
 																agenda.allDayEvents.length > 0
-																	? this.renderAllDayConflictingEvents(event.startTime, agenda.allDayEvents)
-																	: null,
+																	? this.renderAllDayConflictingEvents(event.startTime,
+														event.startTime,
+														agenda.allDayEvents,
+														agenda.regularEvents,
+													): null,
 															]),
 														),
 													],
 												),
-											])
-										: null,
-								]),
+												])
+											: null,
+									],
+								),
 								agenda
 									? m(TimeView, {
 											events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
