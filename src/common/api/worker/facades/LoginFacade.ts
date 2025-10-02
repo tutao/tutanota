@@ -53,7 +53,7 @@ import {
 } from "../../entities/sys/TypeRefs.js"
 import { TutanotaPropertiesTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import { HttpMethod, MediaType, TypeModelResolver } from "../../common/EntityFunctions"
-import { assertWorkerOrNode, isAdminClient } from "../../common/Env"
+import { assertWorkerOrNode } from "../../common/Env"
 import { ConnectMode, EventBusClient } from "../EventBusClient"
 import { CacheMode, EntityRestClient, typeModelToRestPath } from "../rest/EntityRestClient"
 import { AccessExpiredError, ConnectionError, LockedError, NotAuthenticatedError, NotFoundError, SessionExpiredError } from "../../common/error/RestError"
@@ -310,9 +310,7 @@ export class LoginFacade {
 		}
 		this.triggerPartialLoginSuccess(sessionType, cacheInfo, credentials).finally(() => this.triggerFullLoginSuccess(sessionType, cacheInfo, credentials))
 
-		if (modernKdfType && sessionType !== SessionType.Temporary) {
-			await this.initializeClientRollouts(userPassphraseKey)
-		}
+		await this.initializeKeyRotationRollouts(userPassphraseKey, modernKdfType, sessionType)
 
 		return {
 			user,
@@ -325,19 +323,17 @@ export class LoginFacade {
 		}
 	}
 
-	private async initializeClientRollouts(userPassphraseKey: AesKey) {
+	private async initializeKeyRotationRollouts(userPassphraseKey: AesKey, modernKdfType: boolean, sessionType: SessionType) {
 		// configure key rotation rollouts. For admin group key or user group key rotation we need access to the password key.
 		// We bind this here to the rollout action. The actual key rotation is then executed after the client is synchronized.
-		if (!isAdminClient()) {
-			const rollouts = await this.rolloutFacade.getScheduledRolloutTypes()
-			for (const rolloutType of rollouts) {
-				// the server will schedule either one or the other, but not both at the same time
-				if (rolloutType === RolloutType.AdminOrUserGroupKeyRotation || rolloutType === RolloutType.OtherGroupKeyRotation) {
-					await this.rolloutFacade.configureRollout(
-						rolloutType,
-						new KeyRotationRolloutAction(this.keyRotationFacade, this.userFacade, rolloutType, userPassphraseKey),
-					)
-				}
+		const rollouts = await this.rolloutFacade.getScheduledRolloutTypes()
+		for (const rolloutType of rollouts) {
+			// the server will schedule either one or the other, but not both at the same time
+			if (rolloutType === RolloutType.AdminOrUserGroupKeyRotation || rolloutType === RolloutType.OtherGroupKeyRotation) {
+				await this.rolloutFacade.configureRollout(
+					rolloutType,
+					new KeyRotationRolloutAction(this.keyRotationFacade, this.userFacade, rolloutType, userPassphraseKey, modernKdfType, sessionType),
+				)
 			}
 		}
 	}
@@ -753,9 +749,8 @@ export class LoginFacade {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
 
-		if (modernKdfType) {
-			await this.initializeClientRollouts(userPassphraseKey)
-		}
+		await this.initializeKeyRotationRollouts(userPassphraseKey, modernKdfType, SessionType.Persistent)
+
 		return { type: "success", data, asyncResumeCompleted: null }
 	}
 
