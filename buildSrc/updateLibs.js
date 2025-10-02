@@ -44,6 +44,7 @@ const clientDependencies = [
 	{ src: "../node_modules/@signalapp/sqlcipher/dist/index.mjs", target: "node-sqlcipher.mjs", bundling: "copy" },
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb", patch: "./libs/botd.patch" },
+	{ src: "../node_modules/@tensorflow/tfjs/dist/tf.js", target: "tensorflow.js", bundling: "copy", patch: "./libs/tfjs.patch" },
 ]
 
 async function applyPatch() {
@@ -83,7 +84,7 @@ module.exports.install = install`,
  * 1. get the unpatched version of whatever library you want to add / change
  * 2. make a commit with the changes that you want to make
  * 3. format the patch by running:
- *    git format-patch -k --stdout HEAD~1..HEAD > /.libs/changes.patch
+ *    git format-patch -k --stdout HEAD~1..HEAD > ./libs/changes.patch
  * 4. revert the commit by running:
  *    git reset --hard HEAD~1
  * 5. commit the generated ./libs.changes file
@@ -91,7 +92,7 @@ module.exports.install = install`,
 async function applyGitPatch(patchFile) {
 	if (process.platform === "win32") return
 	const exec = promisify(child_process.exec)
-	console.log("applying a patch to botd.js")
+	console.log(`applying a patch to ${patchFile}`)
 	await exec(`git apply ${patchFile}`)
 }
 

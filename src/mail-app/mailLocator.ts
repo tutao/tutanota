@@ -152,6 +152,7 @@ import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKe
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
 import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
 import { UndoModel } from "./UndoModel"
+import { SpamClassifier } from "./workerUtils/spamClassification/SpamClassifier"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 
 assertMainOrNode()
@@ -219,6 +220,7 @@ class MailLocator implements CommonLocator {
 	bulkMailLoader!: BulkMailLoader
 	mailExportFacade!: MailExportFacade
 	syncTracker!: SyncTracker
+	spamClassifier: SpamClassifier | null = null
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 
 	private nativeInterfaces: NativeInterfaces | null = null
@@ -775,6 +777,7 @@ class MailLocator implements CommonLocator {
 			bulkMailLoader,
 			mailExportFacade,
 			contactSearchFacade,
+			spamClassifier,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -1024,6 +1027,7 @@ class MailLocator implements CommonLocator {
 		if (selectedThemeFacade instanceof WebThemeFacade) {
 			selectedThemeFacade.addDarkListener(() => mailLocator.themeController.reloadTheme())
 		}
+		this.spamClassifier = spamClassifier
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {

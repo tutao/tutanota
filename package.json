@@ -38,6 +38,7 @@
 		"@fingerprintjs/botd": "1.9.1",
 		"@material/material-color-utilities": "git+https://github.com/tutao/material-color-utilities#064dcc2768cb0c8106c150a819eedb6233bb1d0a",
 		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#8d7eaa36321d7147faa3583231635855d8a991e7",
+		"@tensorflow/tfjs": "^4.22.0",
 		"@tutao/node-mimimi": "310.250926.0",
 		"@tutao/oxmsg": "0.0.9-beta.0",
 		"@tutao/tuta-wasm-loader": "310.250926.0",
