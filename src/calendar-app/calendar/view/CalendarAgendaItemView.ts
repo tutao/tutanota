@@ -6,11 +6,12 @@ import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.j
 import { px } from "../../../common/gui/size.js"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
+import { EventRenderWrapper } from "./CalendarViewModel.js"
 
 export interface CalendarAgendaItemViewAttrs {
 	day: Date
 	zone: string
-	event: CalendarEvent
+	event: EventRenderWrapper
 	color: string
 	click: (domEvent: MouseEvent) => unknown
 	keyDown: (event: KeyboardEvent) => unknown
@@ -24,7 +25,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 	private isFocused: boolean = false
 
 	view({ attrs }: Vnode<CalendarAgendaItemViewAttrs>): Children {
-		const eventTitle = getDisplayEventTitle(attrs.event.summary)
+		const eventTitle = getDisplayEventTitle(attrs.event.event.summary)
 
 		return m(
 			".flex.items-center.click.plr.border-radius.pt-s.pb-s.rel.limit-width.full-width",

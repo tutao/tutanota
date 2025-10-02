@@ -1168,6 +1168,7 @@ export type CalendarGroupRoot = {
 
 	shortEvents: Id;
 	longEvents: Id;
+	pendingEvents: Id;
 	index: null | CalendarEventIndexRef;
 }
 export const UserAreaGroupDataTypeRef: TypeRef<UserAreaGroupData> = new TypeRef("tutanota", 956)

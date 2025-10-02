@@ -46,6 +46,7 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { BirthdayEventRegistry } from "./CalendarEventsRepository.js"
 import type { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
+import { EventRenderWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 
 export type CalendarTimeRange = {
 	start: number
@@ -140,14 +141,14 @@ export function getStartOfDayWithZone(date: Date, zone: string): Date {
  * @returns a date object representing the start of the next calendar date (2nd of May 2023 00:00) in {@param zone} */
 export function getStartOfNextDayWithZone(date: Date, zone: string): Date {
 	return DateTime.fromJSDate(date, { zone })
-		.set({
-			hour: 0,
-			minute: 0,
-			second: 0,
-			millisecond: 0,
-		})
-		.plus({ day: 1 })
-		.toJSDate()
+				   .set({
+					   hour: 0,
+					   minute: 0,
+					   second: 0,
+					   millisecond: 0,
+				   })
+				   .plus({ day: 1 })
+				   .toJSDate()
 }
 
 export function getEndOfDayWithZone(date: Date, zone: string): Date {
@@ -160,16 +161,16 @@ export function calculateAlarmTime(date: Date, interval: AlarmInterval, ianaTime
 	return DateTime.fromJSDate(date, {
 		zone: ianaTimeZone,
 	})
-		.minus(diff)
-		.toJSDate()
+				   .minus(diff)
+				   .toJSDate()
 }
 
 /** takes a date which encodes the day in UTC and produces a date that encodes the same date but in local time zone. All times must be 0. */
 export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
 	return DateTime.fromJSDate(utcDate, { zone: "utc" })
-		.setZone(zone, { keepLocalTime: true })
-		.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
-		.toJSDate()
+				   .setZone(zone, { keepLocalTime: true })
+				   .set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
+				   .toJSDate()
 }
 
 /**
@@ -703,37 +704,37 @@ export function incrementByRepeatPeriod(date: Date, repeatPeriod: RepeatPeriod, 
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-				.plus({
-					days: interval,
-				})
-				.toJSDate()
+						   .plus({
+							   days: interval,
+						   })
+						   .toJSDate()
 
 		case RepeatPeriod.WEEKLY:
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-				.plus({
-					weeks: interval,
-				})
-				.toJSDate()
+						   .plus({
+							   weeks: interval,
+						   })
+						   .toJSDate()
 
 		case RepeatPeriod.MONTHLY:
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-				.plus({
-					months: interval,
-				})
-				.toJSDate()
+						   .plus({
+							   months: interval,
+						   })
+						   .toJSDate()
 
 		case RepeatPeriod.ANNUALLY:
 			return DateTime.fromJSDate(date, {
 				zone: ianaTimeZone,
 			})
-				.plus({
-					years: interval,
-				})
-				.toJSDate()
+						   .plus({
+							   years: interval,
+						   })
+						   .toJSDate()
 
 		default:
 			throw new Error("Unknown repeat period")
@@ -858,14 +859,14 @@ export function getEventStartByTimes(startTime: Date, endTime: Date, timeZone: s
  * @returns {Date} encodes the same calendar date in UTC */
 export function getAllDayDateUTCFromZone(date: Date, zone: string): Date {
 	return DateTime.fromJSDate(date, { zone })
-		.setZone("utc", { keepLocalTime: true })
-		.set({
-			hour: 0,
-			minute: 0,
-			second: 0,
-			millisecond: 0,
-		})
-		.toJSDate()
+				   .setZone("utc", { keepLocalTime: true })
+				   .set({
+					   hour: 0,
+					   minute: 0,
+					   second: 0,
+					   millisecond: 0,
+				   })
+				   .toJSDate()
 }
 
 export function isLongEvent(event: CalendarEvent, zone: string): boolean {
@@ -883,10 +884,13 @@ export function assignEventId(event: CalendarEvent, zone: string, groupRoot: Cal
 }
 
 /** predicate that tells us if two CalendarEvent objects refer to the same instance or different ones.*/
-export function isSameEventInstance(left: Pick<CalendarEvent, "_id" | "startTime">, right: Pick<CalendarEvent, "_id" | "startTime">): boolean {
+export function isSameEventInstance(left: { event: Pick<CalendarEvent, "_id" | "startTime">, isGhost: boolean }, right: {
+	event: Pick<CalendarEvent, "_id" | "startTime">,
+	isGhost: boolean
+}): boolean {
 	// in addition to the id we compare the start time equality to be able to distinguish repeating events. They have the same id but different start time.
 	// altered events with recurrenceId never have the same Id as another event instance, but might start at the same time.
-	return isSameId(left._id, right._id) && left.startTime.getTime() === right.startTime.getTime()
+	return isSameId(left.event._id, right.event._id) && left.event.startTime.getTime() === right.event.startTime.getTime()
 }
 
 export function hasAlarmsForTheUser(user: User, event: CalendarEvent): boolean {
@@ -894,8 +898,8 @@ export function hasAlarmsForTheUser(user: User, event: CalendarEvent): boolean {
 	return event.alarmInfos.some(([listId]) => isSameId(listId, useAlarmList))
 }
 
-export function eventComparator(l: CalendarEvent, r: CalendarEvent): number {
-	return l.startTime.getTime() - r.startTime.getTime()
+export function eventComparator(l: EventRenderWrapper, r: EventRenderWrapper): number {
+	return l.event.startTime.getTime() - r.event.startTime.getTime()
 }
 
 function assertDateIsValid(date: Date) {
@@ -944,9 +948,9 @@ const MAX_EVENT_ITERATIONS = 10000
  * @param range
  * @param zone
  */
-export function addDaysForEventInstance(daysToEvents: Map<number, Array<CalendarEvent>>, event: CalendarEvent, range: CalendarTimeRange, zone: string) {
+export function addDaysForEventInstance(daysToEvents: Map<number, Array<EventRenderWrapper>>, event: EventRenderWrapper, range: CalendarTimeRange, zone: string) {
 	const { start: rangeStart, end: rangeEnd } = range
-	const clippedRange = clipRanges(getEventStart(event, zone).getTime(), getEventEnd(event, zone).getTime(), rangeStart, rangeEnd)
+	const clippedRange = clipRanges(getEventStart(event.event, zone).getTime(), getEventEnd(event.event, zone).getTime(), rangeStart, rangeEnd)
 	// the event and range do not intersect
 	if (clippedRange == null) return
 	const { start: eventStartInRange, end: eventEndInRange } = clippedRange
@@ -1040,21 +1044,21 @@ function filterEventOccurancesBySetPos(posRulesValues: string[], frequency: Repe
  * @param timeZone
  */
 export function addDaysForRecurringEvent(
-	daysToEvents: Map<number, Array<CalendarEvent>>,
-	event: CalendarEvent,
+	daysToEvents: Map<number, Array<EventRenderWrapper>>,
+	event: EventRenderWrapper,
 	range: CalendarTimeRange,
 	timeZone: string = getTimeZone(),
 ) {
-	const repeatRule = event.repeatRule
+	const repeatRule = event.event.repeatRule
 
 	if (repeatRule == null) {
 		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
 	}
-	const allDay = isAllDayEvent(event)
+	const allDay = isAllDayEvent(event.event)
 	const exclusions = allDay
 		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
 		: repeatRule.excludedDates
-	const generatedEvents = eventOccurencesGenerator(event, timeZone, new Date(range.end))
+	const generatedEvents = eventOccurencesGenerator(event.event, timeZone, new Date(range.end))
 
 	for (const { startTime, endTime } of generatedEvents) {
 		if (startTime.getTime() > range.end) break
@@ -1065,11 +1069,11 @@ export function addDaysForRecurringEvent(
 		} else {
 			const eventClone = clone(event)
 			if (allDay) {
-				eventClone.startTime = getAllDayDateUTCFromZone(startTime, timeZone)
-				eventClone.endTime = getAllDayDateUTCFromZone(endTime, timeZone)
+				eventClone.event.startTime = getAllDayDateUTCFromZone(startTime, timeZone)
+				eventClone.event.endTime = getAllDayDateUTCFromZone(endTime, timeZone)
 			} else {
-				eventClone.startTime = new Date(startTime)
-				eventClone.endTime = new Date(endTime)
+				eventClone.event.startTime = new Date(startTime)
+				eventClone.event.endTime = new Date(endTime)
 			}
 
 			addDaysForEventInstance(daysToEvents, eventClone, range, timeZone)
