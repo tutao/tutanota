@@ -344,7 +344,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderEventBanner(viewModel: MailViewerViewModel): Children {
 		const eventAttachment = viewModel.getCalendarEventAttachment()
-		const groupColors: Map<Id, string> = getGroupColors(viewModel.logins.getUserController().userSettingsGroupRoot)
+		const groupColors: Map<Id, string> = getGroupColors(
+			viewModel.logins.getUserController().user._id,
+			viewModel.logins.getUserController().userSettingsGroupRoot,
+		)
 
 		return eventAttachment
 			? m(
