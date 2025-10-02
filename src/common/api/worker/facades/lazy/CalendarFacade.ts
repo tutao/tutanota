@@ -25,7 +25,6 @@ import {
 	flatMap,
 	getFromMap,
 	groupBy,
-	groupByAndMap,
 	groupByAndMapUniquely,
 	isNotNull,
 	neverNull,
@@ -71,6 +70,7 @@ import type { EventWrapper } from "../../../../calendar/gui/ImportExportUtils.js
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
 import { ClientModelUntypedInstance } from "../../../common/EntityTypes"
+import { EventRenderWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel"
 
 assertWorkerOrNode()
 
@@ -142,20 +142,21 @@ export class CalendarFacade {
 		// Note: there may be issues if we get entity update before other calendars finish loading but the chance is low and we do not
 		// take care of this now.
 
-		const calendars: Array<{ long: CalendarEvent[]; short: CalendarEvent[] }> = []
+		const calendars: Array<{ long: EventRenderWrapper[]; short: EventRenderWrapper[] }> = []
 
 		for (const { groupRoot } of calendarInfos.values()) {
-			const [shortEventsResult, longEventsResult] = await Promise.all([
-				this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200),
-				this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
-			])
+			const shortEventsResult = await this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200)
+			const longEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents)
+
+			const shortEvents: Array<EventRenderWrapper> = shortEventsResult.elements.map((e) => ({ event: e, isGhost: false }))
+			const longEvents: Array<EventRenderWrapper> = longEventsResult.map((e) => ({ event: e, isGhost: false }))
 
 			calendars.push({
-				short: shortEventsResult.elements,
-				long: longEventsResult,
+				short: shortEvents,
+				long: longEvents,
 			})
 		}
-		const newEvents = new Map<number, Array<CalendarEvent>>(Array.from(daysToEvents.entries()).map(([day, events]) => [day, events.slice()]))
+		const newEvents = new Map<number, Array<EventRenderWrapper>>(Array.from(daysToEvents.entries()).map(([day, events]) => [day, events.slice()]))
 
 		// Generate events occurrences per calendar to avoid calendars flashing in the screen
 		for (const calendar of calendars) {
@@ -167,8 +168,8 @@ export class CalendarFacade {
 	}
 
 	private generateEventOccurrences(
-		eventMap: Map<number, CalendarEvent[]>,
-		events: CalendarEvent[],
+		eventMap: Map<number, EventRenderWrapper[]>,
+		events: EventRenderWrapper[],
 		range: CalendarTimeRange,
 		zone: string,
 		overwriteRange: boolean,
@@ -177,9 +178,9 @@ export class CalendarFacade {
 			// Overrides end of range to prevent events from being truncated. Generating them until the end of the event
 			// instead of the original end guarantees that the event will be fully displayed. This WILL NOT end in an
 			// endless loop, because short events last a maximum of two weeks.
-			const generationRange = overwriteRange ? { ...range, end: e.endTime.getTime() } : range
+			const generationRange = overwriteRange ? { ...range, end: e.event.endTime.getTime() } : range
 
-			if (e.repeatRule) {
+			if (e.event.repeatRule) {
 				addDaysForRecurringEvent(eventMap, e, generationRange, zone)
 			} else {
 				addDaysForEventInstance(eventMap, e, generationRange, zone)
@@ -643,12 +644,6 @@ export function sortByRecurrenceId(arr: Array<CalendarEventAlteredInstance>): vo
 
 async function loadAlteredInstancesFromIndexEntry(entityClient: EntityClient, indexEntry: CalendarEventUidIndex): Promise<Array<CalendarEventAlteredInstance>> {
 	if (indexEntry.alteredInstances.length === 0) return []
-	const indexedEventIds: Map<Id, Array<Id>> = groupByAndMap<IdTuple, Id, Id>(
-		indexEntry.alteredInstances,
-		(e: IdTuple) => listIdPart(e),
-		(e: IdTuple) => elementIdPart(e),
-	)
-
 	const isAlteredInstance = (e: CalendarEventAlteredInstance): e is CalendarEventAlteredInstance => e.recurrenceId != null && e.uid != null
 	const indexedEvents = await loadMultipleFromLists(CalendarEventTypeRef, entityClient, indexEntry.alteredInstances)
 	const alteredInstances: Array<CalendarEventAlteredInstance> = indexedEvents.filter(isAlteredInstance)
