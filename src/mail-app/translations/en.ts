@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-09-26T04:39:12Z",
+	"updated_at": "2025-09-30T13:39:11Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -309,6 +309,7 @@ export default {
 		"confidential_label": "Confidential",
 		"configureCustomDomainAfterSignup_msg": "Custom domains with unlimited email addresses can be configured once the account is created:\n",
 		"confirmCountry_msg": "To calculate the value added tax we need you to confirm your country: {1}.",
+		"confirmCreateNewDraftOverAutosavedDraft_msg": "There are unsaved changes to a draft that will be lost.",
 		"confirmCustomDomainDeletion_msg": "Are you sure you want to remove the custom email domain \"{domain}\"?",
 		"confirmDeactivateCustomColors_msg": "Would you really like to deactivate your custom colors?",
 		"confirmDeactivateCustomLogo_msg": "Would you really like to deactivate your custom logo?",
@@ -324,8 +325,10 @@ export default {
 		"confirmFreeAccount_label": "Free account confirmation",
 		"confirmLeaveSharedGroup_msg": "Are you sure you want to stop using \"{groupName}\"? The owner of the contact list would then have to re-invite you, if necessary.",
 		"confirmNoOtherFreeAccount_msg": "I do not own any other Free account.",
+		"confirmOverwriteServerDraft_msg": "Would you like to override this remote draft?",
 		"confirmPrivateUse_msg": "I will not use this account for business.",
 		"confirmSpamCustomFolder_msg": "Do you really want to move the folder '{1}' with all of its content (e.g. emails, subfolders) to spam?\n\nAll contained emails will be reported as spam.\n\nFolders containing no emails will be permanently deleted.",
+		"conflictDetected_label": "Conflict detected",
 		"connectionLostLong_msg": "The connection to the server was lost. Please try again.",
 		"contactAdmin_msg": "Please contact your administrator.",
 		"contactFormEnterPasswordInfo_msg": "Please enter a password, so you can later log in and read your personal answer.",
@@ -526,6 +529,7 @@ export default {
 		"deviceEncryptionSaveCredentialsHelpText_msg": "To activate device encryption (pin/biometric unlock), you need to store your credentials to the device. You can do this the next time you log in.",
 		"differentSecurityKeyDomain_msg": "Your security key is not registered for this domain. Please login in another tab at {domain}.\n\nThen login here again and accept the login from the other tab.",
 		"disallowExternalContent_action": "Block external content",
+		"discardDraft_action": "Discard draft",
 		"discord_label": "Discord",
 		"display_action": "Display",
 		"dnsRecordHostOrName_label": "Host/Name",
@@ -1585,6 +1589,7 @@ export default {
 		"reminderBeforeEvent_label": "Reminder before event",
 		"remindersUsageDescription_msg": "Shows notification when new email arrives.",
 		"reminder_label": "Reminder",
+		"remoteDraftVersion_msg": "There is a remotely saved version of this draft from:",
 		"removeAccount_action": "Remove account",
 		"removeCalendarParticipantConfirm_msg": "Are you sure you want to remove {participant} from the calendar \"{calendarName}\"?",
 		"removeDNSValue_label": "Remove value",
@@ -2122,11 +2127,6 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"remoteDraftVersion_msg": "There is a remotely saved version of this draft from: ",
-		"confirmOverwriteServerDraft_msg": "Would you like to override the remote draft?",
-		"conflictDetected_label": "Conflict detected",
-		"confirmCreateNewDraftOverAutosavedDraft_msg": "There are unsaved changes to a draft that will be lost.",
-		"discardDraft_action": "Discard draft"
+		"zoomOut_action": "Zoom Out"
 	}
 }

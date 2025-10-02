@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Ta et bilde eller video for å legge dette til som vedlegg.";
 NSPhotoLibraryUsageDescription = "Legg til et bilde fra ditt bibliotek som vedlegg.";
 NSMicrophoneUsageDescription = "Brukes når man innspiller en video som vedlegg.";
-NSContactsUsageDescription = "1. Finn mottakerens e-postadresse i kontakter.\n2. Du kan eventuelt synkronisere Tuta-kontakter til enheten din.";
+NSContactsUsageDescription = "Tuta kan vise deg forslag fra kontaktene som er lagret på enheten som mottagere for e-post. Tuta kan også synkronisere kontaktene dine mellom enhetene din og Tuta-kontoen. Hvis du skrur på synkronisering i innstilligene vil kontaktene på enheten bli lastet opp etter kryptering og Tuta-kontaktene vil bli tilgjengelige for andre applikasjoner.";
 NSRemindersUsageDescription = "Viser varsling når det kommer ny e-post";
 TutaoShowCameraAction = "Kamera";
 TutaoChoosePhotosAction = "Bilder";
@@ -17,6 +17,7 @@ TutaoDeleteAction = "Slett";
 TutaoMarkReadAction = "Marker som lest";
 TutaoWidgetSendLogsAction = "Send loggene";
 TutaoAccountLabel = "Bruker";
+TutaoCalendarsLabel = "Kalendere";
 TutaoNoTitleLabel = "<Ingen tittel>";
 TutaoDefaultCalendarNameTitle = "Privat";
 TutaoBirthdayEventTitle = "Fødselsdag for {name}";

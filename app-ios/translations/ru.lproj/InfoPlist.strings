@@ -1,7 +1,7 @@
 NSCameraUsageDescription = "Сделайте снимок или видео, чтобы приложить его к сообщению.";
 NSPhotoLibraryUsageDescription = "Разместите изображение из библиотеки как вложение. ";
 NSMicrophoneUsageDescription = "Используется при записи видео-приложения.";
-NSContactsUsageDescription = "1. Найдите адрес электронной почты получателя в контактах.\n2. По желанию синхронизируйте контакты Tuta с устройством.";
+NSContactsUsageDescription = "Tuta теперь может подсказывать получателей из контактов, сохранённых на вашем устройстве. Также вы можете разрешить Tuta синхронизировать ваши контакты между вашим устройством и аккаунтом Tuta. Если вы разрешите синхронизацию в настройках, контакты с вашего устройства будут загружены на сервер в зашифрованном виде, после чего контакты Tuta будут доступны также и другим приложениям.";
 NSRemindersUsageDescription = "Показывает уведомление, когда приходит новое сообщение. ";
 TutaoShowCameraAction = "Камера";
 TutaoChoosePhotosAction = "Фотографии";
@@ -25,6 +25,7 @@ TutaoCalendarsLabel = "Календари";
 TutaoNoTitleLabel = "<Без темы>";
 TutaoWidgetDescription = "Показать предстоящие события";
 TutaoDefaultCalendarNameTitle = "Приватный";
+TutaoWidgetMissingConfigurationErrorMsg = "Пожалуйста, настройте этот виджет";
 TutaoBirthdayEventTitle = "День рождения {name}";
 TutaoBirthdayEventAgeTitle = "{age} лет";
 TutaoBirthdayCalendarLabel = "Дни рождения";

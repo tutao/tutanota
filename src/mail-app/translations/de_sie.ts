@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2018-01-12T10:51:54Z",
-	"updated_at": "2025-09-26T04:39:13Z",
+	"updated_at": "2025-09-30T13:39:11Z",
 	"source_locale": {
 		"id": "2001c6fdcc9cd338c1d600cb2636918b",
 		"name": "de",
@@ -313,6 +313,7 @@ export default {
 		"confidential_label": "Vertraulich",
 		"configureCustomDomainAfterSignup_msg": "Eigene E-Mail-Domains mit unlimitierten E-Mail-Adressen können nach dem Erstellen des Accounts eingerichtet werden:\n",
 		"confirmCountry_msg": "Zur Bestimmung der zu berechnenden Mehrwertsteuer benötigen wir die Bestätigung, dass Sie in diesem Land wohnen: {1}.",
+		"confirmCreateNewDraftOverAutosavedDraft_msg": "Es gibt ungespeicherte Änderungen an einem Entwurf, die verloren gehen werden.",
 		"confirmCustomDomainDeletion_msg": "Sind Sie sicher, dass Sie die eigene Domain \"{domain}\" entfernen möchten?",
 		"confirmDeactivateCustomColors_msg": "Möchten Sie wirklich Ihre eigenen Farben deaktivieren?",
 		"confirmDeactivateCustomLogo_msg": "Möchten Sie wirklich Ihr eigenes Logo deaktivieren?",
@@ -328,8 +329,10 @@ export default {
 		"confirmFreeAccount_label": "Bestätigung Free-Account",
 		"confirmLeaveSharedGroup_msg": "Sind Sie sicher, dass Sie \"{groupName}\" nicht mehr verwenden möchten? Der Inhaber der Kontaktliste müsste Sie dann gegebenenfalls erneut einladen.",
 		"confirmNoOtherFreeAccount_msg": "Ich besitze keinen anderen Free-Account.",
+		"confirmOverwriteServerDraft_msg": "Möchten Sie diesen Remote-Entwurf überschreiben?",
 		"confirmPrivateUse_msg": "Ich werde diesen Account nicht geschäftlich nutzen.",
 		"confirmSpamCustomFolder_msg": "Möchten Sie wirklich den Ordner '{1}' mit seinem gesamten Inhalt (z.B. E-Mails, Unterordner) in Spam verschieben? \n\nAlle enthaltenen E-Mails werden als Spam gemeldet. \n\nLeere Ordner werden dauerhaft gelöscht.",
+		"conflictDetected_label": "Konflikt entdeckt",
 		"connectionLostLong_msg": "Die Verbindung zum Server ist abgebrochen. Bitte versuchen Sie es erneut.",
 		"contactAdmin_msg": "Bitte wenden Sie sich an Ihren Administrator.",
 		"contactFormEnterPasswordInfo_msg": "Bitte geben Sie ein persönliches Passwort an, mit dem Sie sich später einloggen und unsere Antwort lesen können.",
@@ -530,6 +533,7 @@ export default {
 		"deviceEncryptionSaveCredentialsHelpText_msg": "Um die Geräteverschlüsselung (Pin/biometrische Entsperrung) zu aktivieren, müssen die Anmeldedaten auf dem Gerät gespeichert werden. Sie können dies bei der nächsten Anmeldung tun.",
 		"differentSecurityKeyDomain_msg": "Ihr Sicherheitsschlüssel ist nicht für diese Domain registriert. Bitte melden Sie sich in einem anderen Tab unter {domain} an.\n\nMelden SIe sich dann erneut hier an und akzeptieren Sie die Anmeldung aus dem anderen Tab.",
 		"disallowExternalContent_action": "Bilder blockieren",
+		"discardDraft_action": "Entwurf verwerfen",
 		"discord_label": "Discord",
 		"display_action": "Anzeige",
 		"dnsRecordHostOrName_label": "Host/Name",
@@ -1589,6 +1593,7 @@ export default {
 		"reminderBeforeEvent_label": "Terminerinnerung",
 		"remindersUsageDescription_msg": "Eine Nachricht beim Empfang von E-Mails anzeigen.",
 		"reminder_label": "Erinnerung",
+		"remoteDraftVersion_msg": "Es gibt eine remote gespeicherte Version dieses Entwurfs vom:",
 		"removeAccount_action": "Account entfernen",
 		"removeCalendarParticipantConfirm_msg": "Sind Sie sicher, dass Sie den Teilnehmer {participant} aus dem Kalender {calendarName} entfernen möchten?",
 		"removeDNSValue_label": "Wert entfernen",
@@ -2126,11 +2131,6 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"remoteDraftVersion_msg": "There is a remotely saved version of this draft from: ",
-		"confirmOverwriteServerDraft_msg": "Would you like to override the remote draft?",
-		"conflictDetected_label": "Conflict detected",
-		"confirmCreateNewDraftOverAutosavedDraft_msg": "There are unsaved changes to a draft that will be lost.",
-		"discardDraft_action": "Discard draft"
+		"zoomOut_action": "Herauszoomen"
 	}
 }

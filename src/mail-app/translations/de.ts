@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-09-26T04:39:12Z",
+	"updated_at": "2025-09-30T13:39:11Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -313,6 +313,7 @@ export default {
 		"confidential_label": "Vertraulich",
 		"configureCustomDomainAfterSignup_msg": "Eigene E-Mail-Domains mit unlimitierten E-Mail-Adressen können nach dem Erstellen des Accounts eingerichtet werden:\n",
 		"confirmCountry_msg": "Zur Bestimmung der zu berechnenden Mehrwertsteuer benötigen wir die Bestätigung, dass du in diesem Land wohnst: {1}.",
+		"confirmCreateNewDraftOverAutosavedDraft_msg": "Es gibt ungespeicherte Änderungen an einem Entwurf, die verloren gehen werden.",
 		"confirmCustomDomainDeletion_msg": "Bist du sicher, dass du die eigene Domain \"{domain}\" entfernen möchtest?",
 		"confirmDeactivateCustomColors_msg": "Möchtest du wirklich deine eigenen Farben deaktivieren?",
 		"confirmDeactivateCustomLogo_msg": "Möchtest du wirklich dein eigenes Logo deaktivieren?",
@@ -328,8 +329,10 @@ export default {
 		"confirmFreeAccount_label": "Bestätigung Free-Account",
 		"confirmLeaveSharedGroup_msg": "Bist du sicher, dass du \"{groupName}\" nicht mehr verwenden möchtest? Der Inhaber der Kontaktliste müsste dich dann gegebenenfalls erneut einladen.",
 		"confirmNoOtherFreeAccount_msg": "Ich besitze keinen anderen Free-Account.",
+		"confirmOverwriteServerDraft_msg": "Möchtest du diesen Remote-Entwurf überschreiben?",
 		"confirmPrivateUse_msg": "Ich werde diesen Account nicht geschäftlich nutzen.",
 		"confirmSpamCustomFolder_msg": "Möchtest du wirklich den Ordner '{1}' mit seinem gesamten Inhalt (z.B. E-Mails, Unterordner) in Spam verschieben? \n\nAlle enthaltenen E-Mails werden als Spam gemeldet. \n\nLeere Ordner werden dauerhaft gelöscht.",
+		"conflictDetected_label": "Konflikt entdeckt",
 		"connectionLostLong_msg": "Die Verbindung zum Server ist abgebrochen. Bitte versuche es erneut.",
 		"contactAdmin_msg": "Bitte wende dich an deinen Administrator.",
 		"contactFormEnterPasswordInfo_msg": "Bitte gib ein persönliches Passwort an, mit dem du dich später einloggen und unsere Antwort lesen kannst.",
@@ -530,6 +533,7 @@ export default {
 		"deviceEncryptionSaveCredentialsHelpText_msg": "Um die Geräteverschlüsselung (Pin/biometrische Entsperrung) zu aktivieren, müssen die Anmeldedaten auf dem Gerät gespeichert werden. Du kannst dies bei der nächsten Anmeldung tun.",
 		"differentSecurityKeyDomain_msg": "Dein Sicherheitsschlüssel ist nicht für diese Domain registriert. Bitte melde dich in einem anderen Tab unter {Domain} an.\n\nMelde dich dann erneut hier an und akzeptiere die Anmeldung aus dem anderen Tab.",
 		"disallowExternalContent_action": "Bilder blockieren",
+		"discardDraft_action": "Entwurf verwerfen",
 		"discord_label": "Discord",
 		"display_action": "Anzeige",
 		"dnsRecordHostOrName_label": "Host/Name",
@@ -1589,6 +1593,7 @@ export default {
 		"reminderBeforeEvent_label": "Terminerinnerung",
 		"remindersUsageDescription_msg": "Zeige eine Nachricht beim Empfang von E-Mails an.",
 		"reminder_label": "Erinnerung",
+		"remoteDraftVersion_msg": "Es gibt eine remote gespeicherte Version dieses Entwurfs vom:",
 		"removeAccount_action": "Account entfernen",
 		"removeCalendarParticipantConfirm_msg": "Bist du sicher, dass du den Teilnehmer {participant} aus dem Kalender {calendarName} entfernen möchtest?",
 		"removeDNSValue_label": "Wert entfernen",
@@ -2126,11 +2131,6 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"you_label": "Du",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"remoteDraftVersion_msg": "There is a remotely saved version of this draft from: ",
-		"confirmOverwriteServerDraft_msg": "Would you like to override the remote draft?",
-		"conflictDetected_label": "Conflict detected",
-		"confirmCreateNewDraftOverAutosavedDraft_msg": "There are unsaved changes to a draft that will be lost.",
-		"discardDraft_action": "Discard draft"
+		"zoomOut_action": "Herauszoomen"
 	}
 }

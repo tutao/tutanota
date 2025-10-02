@@ -24,7 +24,7 @@ export default {
 		"other"
 	],
 	"created_at": "2016-04-11T12:51:55Z",
-	"updated_at": "2025-09-17T12:47:26Z",
+	"updated_at": "2025-09-30T09:24:37Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -2041,6 +2041,8 @@ export default {
 		"verifyDomainOwnership_title": "Comprobar autorización",
 		"verifyOwnershipTXTrecord_msg": "Configura un novo rexistro DNS de tipo TXT co valor mostrado aquí embaixo.",
 		"viewEvent_action": "Ver evento",
+		"viewInDarkMode_action": "Ver no modo escuro",
+		"viewInLightMode_action": "Ver no modo claro",
 		"viewInWeb_action": "Abrir no navegador",
 		"viewNextPeriod_action": "Ver seguinte período",
 		"viewOnCalendar_action": "Ver no calendario",

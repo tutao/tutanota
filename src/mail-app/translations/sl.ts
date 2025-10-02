@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-06-09T09:37:05Z",
-	"updated_at": "2025-09-26T05:50:50Z",
+	"updated_at": "2025-09-30T09:24:37Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -328,8 +328,10 @@ export default {
 		"confirmFreeAccount_label": "Potrditev o brezplačnem računu",
 		"confirmLeaveSharedGroup_msg": "Ste prepričani, da želite prenehati uporabljati \"{groupName}\"? Lastnik seznama stikov vas bo moral po potrebi ponovno povabiti.",
 		"confirmNoOtherFreeAccount_msg": "Nimam nobenega drugega brezplačnega računa.",
+		"confirmOverwriteServerDraft_msg": "Želite prepisati ta oddaljen osnutek?",
 		"confirmPrivateUse_msg": "Tega računa ne bom uporabljal v poslovne namene.",
 		"confirmSpamCustomFolder_msg": "Ali res želite premakniti mapo '{1}' z vso njeno vsebino (sporočila, podmape...) v neželeno pošto?\n\nVsa vsebovana sporočila bodo prijavljena kot neželena pošta.\n\nMape, v katerih ni sporočil, bodo trajno izbrisane.",
+		"conflictDetected_label": "Zaznan spor",
 		"connectionLostLong_msg": "Povezava s strežnikom je bila izgubljena. Poskusite znova.",
 		"contactAdmin_msg": "Obrnite se na skrbnika.",
 		"contactFormEnterPasswordInfo_msg": "Prosimo, vnesite geslo, da se boste kasneje lahko prijavili in prebrali vaš osebni odgovor.",
@@ -1588,6 +1590,7 @@ export default {
 		"reminderBeforeEvent_label": "Opomnik pred dogodkom",
 		"remindersUsageDescription_msg": "Prikaže obvestilo, ko prispe novo sporočilo.",
 		"reminder_label": "Opomnik",
+		"remoteDraftVersion_msg": "Obstaja oddaljeno shranjena različica tega osnutka od:",
 		"removeAccount_action": "Odstrani račun",
 		"removeCalendarParticipantConfirm_msg": "Ali ste prepričani, da želite odstraniti {participant} iz koledarja \"{calendarName}\"?",
 		"removeDNSValue_label": "Odstrani vrednost",
