@@ -48,6 +48,7 @@ import { SyncTracker } from "../../../src/common/api/main/SyncTracker.js"
 import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 import { EntityRestClient } from "../../../src/common/api/worker/rest/EntityRestClient"
 import { eventHasSameFields } from "../../../src/common/calendar/gui/ImportExportUtils"
+import { LanguageViewModel } from "../../../src/common/misc/LanguageViewModel.js"
 
 o.spec("CalendarModel", function () {
 	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
@@ -928,6 +929,7 @@ function init({
 	syncTracker = makeSyncTracker(),
 }): CalendarModel {
 	const lazyScheduler = async () => alarmScheduler
+	const langMock: LanguageViewModel = object()
 
 	return new CalendarModel(
 		notifications,
@@ -951,5 +953,6 @@ function init({
 		}),
 		syncTracker,
 		() => {},
+		langMock,
 	)
 }

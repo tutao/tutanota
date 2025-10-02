@@ -118,7 +118,7 @@ import {
 	SyncStatus,
 } from "../../../common/calendar/gui/ImportExportUtils.js"
 import { UserError } from "../../../common/api/main/UserError.js"
-import { lang } from "../../../common/misc/LanguageViewModel.js"
+import { LanguageViewModel } from "../../../common/misc/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/main/NativePushServiceApp.js"
 import { SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { CacheMode } from "../../../common/api/worker/rest/EntityRestClient"
@@ -234,6 +234,7 @@ export class CalendarModel {
 		private readonly pushService: NativePushServiceApp | null,
 		private readonly syncTracker: SyncTracker,
 		private readonly requestWidgetRefresh: () => void,
+		private readonly lang: LanguageViewModel,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
 		eventController.addEntityListener((updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId))
@@ -252,7 +253,7 @@ export class CalendarModel {
 	private createBirthdayCalendarInfo(): BirthdayCalendarInfo {
 		return {
 			id: `${this.logins.getUserController().userId}#${BIRTHDAY_CALENDAR_BASE_ID}`,
-			name: lang.get("birthdayCalendar_label"),
+			name: this.lang.get("birthdayCalendar_label"),
 			color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 			type: CalendarType.Birthday,
 			contactGroupId: getFirstOrThrow(this.logins.getUserController().getContactGroupMemberships()).group,
@@ -570,7 +571,7 @@ export class CalendarModel {
 		}
 
 		if (skippedCalendars.size) {
-			let errorMessage = lang.get("iCalSync_error") + (longErrorMessage ? "\n\n" : "")
+			let errorMessage = this.lang.get("iCalSync_error") + (longErrorMessage ? "\n\n" : "")
 			for (const [group, details] of skippedCalendars.entries()) {
 				if (longErrorMessage) errorMessage += `${details.calendarName} - ${details.error.message}\n`
 				this.deviceConfig.updateLastSync(group, SyncStatus.Failed)
@@ -1371,13 +1372,13 @@ export class CalendarModel {
 	}
 
 	getBirthdayEventTitle(contactName: string) {
-		return lang.get("birthdayEvent_title", {
+		return this.lang.get("birthdayEvent_title", {
 			"{name}": contactName,
 		})
 	}
 
 	getAgeString(age: number) {
-		return lang.get("birthdayEventAge_title", { "{age}": age })
+		return this.lang.get("birthdayEventAge_title", { "{age}": age })
 	}
 }
 

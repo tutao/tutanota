@@ -152,6 +152,7 @@ import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicId
 import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
 import { UndoModel } from "./UndoModel"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
+import { lang } from "../common/misc/LanguageViewModel.js"
 
 assertMainOrNode()
 
@@ -1047,6 +1048,7 @@ class MailLocator implements CommonLocator {
 			!isBrowser() ? this.pushService : null,
 			this.syncTracker,
 			noOp,
+			lang,
 		)
 	})
 

@@ -117,6 +117,7 @@ import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
 import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
+import { lang } from "../common/misc/LanguageViewModel.js"
 
 assertMainOrNode()
 
@@ -837,6 +838,7 @@ class CalendarLocator implements CommonLocator {
 			() => {
 				this.systemFacade.requestWidgetRefresh()
 			},
+			lang,
 		)
 	})
 
