@@ -153,6 +153,7 @@ import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator
 import { UndoModel } from "./UndoModel"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import { AutosaveFacade } from "../common/api/worker/facades/lazy/AutosaveFacade"
+import { lang } from "../common/misc/LanguageViewModel.js"
 
 assertMainOrNode()
 
@@ -1051,6 +1052,7 @@ class MailLocator implements CommonLocator {
 			!isBrowser() ? this.pushService : null,
 			this.syncTracker,
 			noOp,
+			lang,
 		)
 	})
 
