@@ -603,6 +603,7 @@ function getContents(eventObjects: ICalObject[], zone: string) {
 		}
 
 		const event = createCalendarEvent({
+			sender: null, // FIXME Maybe the sender should be set here
 			description,
 			startTime,
 			endTime,

@@ -9,6 +9,7 @@ export type CalendarEventBubbleAttrs = {
 	text: string
 	secondLineText?: string | null
 	color: string
+	border?: string
 	hasAlarm: boolean
 	isAltered: boolean
 	isBirthday: boolean
@@ -51,6 +52,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					"padding-top": px(attrs.verticalPadding || 0),
 					opacity: attrs.opacity,
 					pointerEvents: enablePointerEvents ? "auto" : "none",
+					border: attrs.border,
 				},
 				tabIndex: enablePointerEvents ? TabIndex.Default : TabIndex.Programmatic,
 				onclick: (e: MouseEvent) => {
