@@ -96,6 +96,7 @@ export type TranslationKeyType =
 	| "ageConfirmation_msg"
 	| "agenda_label"
 	| "allDay_label"
+	| "allDayEvents_label"
 	| "allowBatteryPermission_msg"
 	| "allowContactReadWrite_msg"
 	| "allowContactSynchronization"
@@ -2105,3 +2106,4 @@ export type TranslationKeyType =
 	| "confirmOverwriteDraft_msg"
 	| "overwrite_action"
 	| "confirmCreateNewDraftOverAutosavedDraft_msg"
+	| "conflicts_label"

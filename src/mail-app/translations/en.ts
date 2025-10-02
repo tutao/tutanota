@@ -2126,5 +2126,7 @@ export default {
 		"confirmOverwriteDraft_msg": "This draft was opened for editing on {opened}, but a newer version was retrieved from the server on {updated}.\n\nWould you like to overwrite the newer draft with this one, discard this draft, or cancel saving this draft?",
 		"overwrite_action": "Overwrite",
 		"confirmCreateNewDraftOverAutosavedDraft_msg": "There are unsaved changes to a draft that will be lost.",
+		"allDayEvents_label": "all day events",
+		"conflicts_label": "conflicts"
 	}
 }
