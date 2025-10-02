@@ -44,6 +44,28 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 // Initial training (cutoff by day or amount)
 o.spec("SpamClassifier", () => {
 	const mockOfflineStorageCache = object() as CacheStorage
+	o("reduce dataset size", async () => {
+		const outputPath = "./tests/api/worker/utils/spamClassification/new_data.csv"
+		const file = await fs.promises.readFile(DATASET_FILE_PATH)
+		const csv = parseCsv(file.toString())
+
+		let spamData: Array<string> = []
+		let hamData: Array<string> = []
+		for (const row of csv.rows.slice(1, csv.rows.length - 1)) {
+			const label = row[11]
+
+			let isSpam = label === "spam" ? true : label === "ham" ? false : null
+			isSpam = assertNotNull(isSpam, "Unknown label detected: " + label)
+			const targetData = isSpam ? spamData : hamData
+			const line = row.map((c) => c)
+			targetData.push(line.join(","))
+		}
+
+		seededShuffle(spamData, Math.random())
+		seededShuffle(hamData, Math.random())
+		const newCsv = [csv.rows[0].map((c) => c), ...spamData.slice(0, 100), ...hamData.slice(0, 560)]
+		fs.writeFileSync(outputPath, newCsv.join("\n"))
+	})
 
 	o("Test initial fit", async () => {
 		o.timeout(20_000_000)
