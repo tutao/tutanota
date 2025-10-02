@@ -112,7 +112,8 @@ import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/Pub
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
-import { IdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
+import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
+import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 
 assertWorkerOrNode()
 
@@ -185,6 +186,7 @@ export type WorkerLocatorType = {
 	pdfWriter: lazyAsync<PdfWriter>
 	bulkMailLoader: lazyAsync<BulkMailLoader>
 	mailExportFacade: lazyAsync<MailExportFacade>
+	autosaveFacade: lazyAsync<AutosaveFacade>
 
 	// used to cache between resets
 	_worker: WorkerImpl
@@ -319,6 +321,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		offlineStorageProvider = async () => {
 			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase.js")
 			const { SearchTableDefinitions } = await import("../index/OfflineStoragePersistence.js")
+			const { AutosaveDraftsTableDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineStorageAutosaveFacade.js")
 
 			const customCacheHandler = new CustomCacheHandlerMap(
 				{
@@ -337,7 +340,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
 				customCacheHandler,
-				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions),
+				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions, AutosaveDraftsTableDefinitions),
 			)
 		}
 	} else {
@@ -759,6 +762,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/ConfigurationDatabase.js")
 		return new ConfigurationDatabase(locator.keyLoader, locator.user)
 	})
+
+	if (isOfflineStorageAvailable()) {
+		locator.autosaveFacade = lazyMemoized(async () => {
+			const { OfflineStorageAutosaveFacade } = await import("../../../common/api/worker/facades/lazy/OfflineStorageAutosaveFacade.js")
+			return new OfflineStorageAutosaveFacade(locator.sqlCipherFacade)
+		})
+	} else {
+		locator.autosaveFacade = locator.configFacade
+	}
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
 		mainInterface.wsConnectivityListener,

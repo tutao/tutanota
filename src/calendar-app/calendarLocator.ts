@@ -118,6 +118,7 @@ import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
 import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
+import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/worker/facades/lazy/AutosaveFacade"
 
 assertMainOrNode()
 
@@ -328,6 +329,15 @@ class CalendarLocator implements CommonLocator {
 		const { SendMailModel } = await import("../common/mailFunctionality/SendMailModel.js")
 		const recipientsModel = await this.recipientsModel()
 		const dateProvider = await this.noZoneDateProvider()
+
+		const noOpAutosave: AutosaveFacade = {
+			async clearAutosavedDraftData(): Promise<void> {},
+			async getAutosavedDraftData(): Promise<LocalAutosavedDraftData | null> {
+				return null
+			},
+			async setAutosavedDraftData(_draftData: LocalAutosavedDraftData): Promise<void> {},
+		}
+
 		return () =>
 			new SendMailModel(
 				this.mailFacade,
@@ -340,7 +350,7 @@ class CalendarLocator implements CommonLocator {
 				recipientsModel,
 				dateProvider,
 				mailboxProperties,
-				this.configFacade,
+				noOpAutosave,
 				async (mail: Mail) => {
 					return false
 				},

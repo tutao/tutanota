@@ -84,8 +84,8 @@ import { getContactDisplayName } from "../contactsFunctionality/ContactUtils.js"
 import { getMailBodyText } from "../api/common/CommonMailUtils.js"
 import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificationMismatchError"
 import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarNotificationSender"
-import type { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationDatabase"
 import { SyncTracker } from "../api/main/SyncTracker"
+import { AutosaveFacade } from "../api/worker/facades/lazy/AutosaveFacade"
 
 assertMainOrNode()
 
@@ -183,7 +183,7 @@ export class SendMailModel {
 		private readonly recipientsModel: RecipientsModel,
 		private readonly dateProvider: DateProvider,
 		private mailboxProperties: MailboxProperties,
-		private readonly configurationDatabase: ConfigurationDatabase,
+		private readonly autosaveFacade: AutosaveFacade,
 		private readonly needNewDraft: (mail: Mail) => Promise<boolean>,
 		private readonly syncTracker: SyncTracker,
 	) {
@@ -314,7 +314,7 @@ export class SendMailModel {
 		if (await this.autosavedDraftIsDifferentMail()) {
 			console.warn("cannot clear autosave - autosaved draft is a different mail from the one we're editing")
 		} else {
-			await this.configurationDatabase.clearAutosavedDraftData()
+			await this.autosaveFacade.clearAutosavedDraftData()
 			this.updateNewMailStatus()
 		}
 	}
@@ -326,9 +326,9 @@ export class SendMailModel {
 
 		const getNameAndAddress = ({ name, address }: Recipient) => ({ name, address })
 
-		const to = (await this.toRecipientsResolved()).map(getNameAndAddress)
-		const cc = (await this.ccRecipientsResolved()).map(getNameAndAddress)
-		const bcc = (await this.bccRecipientsResolved()).map(getNameAndAddress)
+		const to = this.toRecipients().map(getNameAndAddress)
+		const cc = this.ccRecipients().map(getNameAndAddress)
+		const bcc = this.bccRecipients().map(getNameAndAddress)
 		this.updateNewMailStatus()
 
 		if (this.hasMailChanged()) {
@@ -339,7 +339,7 @@ export class SendMailModel {
 			}
 
 			// otherwise, we can save the draft
-			await this.configurationDatabase.setAutosavedDraftData({
+			await this.autosaveFacade.setAutosavedDraftData({
 				body,
 				subject,
 				to,
@@ -367,7 +367,7 @@ export class SendMailModel {
 	}
 
 	private async autosavedDraftIsDifferentMail(): Promise<boolean> {
-		const draftData = await this.configurationDatabase.getAutosavedDraftData()
+		const draftData = await this.autosaveFacade.getAutosavedDraftData()
 		if (draftData == null) {
 			return false
 		}

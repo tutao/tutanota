@@ -220,7 +220,7 @@ import("./translations/en.js")
 			const { OpenLocallySavedDraftAction } = await import("./mail/editor/OpenLocallySavedDraftAction.js")
 			const { newMailEditorFromLocalDraftData } = await import("./mail/editor/MailEditor.js")
 			const { createEditDraftDialog } = await import("./mail/view/MailViewerUtils")
-			return new OpenLocallySavedDraftAction(mailLocator.configFacade, mailLocator.mailboxModel, mailLocator.entityClient, {
+			return new OpenLocallySavedDraftAction(mailLocator.autosaveFacade, mailLocator.mailboxModel, mailLocator.entityClient, {
 				newMailEditorFromLocalDraftData,
 				createEditDraftDialog,
 				mailViewerViewModelFactory: () => mailLocator.mailViewerViewModelFactory(),

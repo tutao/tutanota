@@ -38,7 +38,7 @@ import { OperationHandle } from "../../../common/api/main/OperationProgressTrack
 import { ContentWithOptionsDialog } from "../../../common/gui/dialogs/ContentWithOptionsDialog"
 import { Card } from "../../../common/gui/base/Card"
 import { isDarkTheme, theme } from "../../../common/gui/theme"
-import { LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase"
+import { LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 
 export type MailViewerMoreActions = {
 	disallowExternalContentAction?: () => void

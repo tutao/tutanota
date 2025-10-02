@@ -111,7 +111,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { isDarkTheme, theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
 
-import { ConfigurationDatabase, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase"
+import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
 
 // Interval where we save drafts locally.
@@ -1350,7 +1350,7 @@ export async function newMailEditorAsResponse(
 	inlineImages: InlineImages,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog | null> {
-	if (!(await confirmNewEditor(mailLocator.configFacade, mailLocator.minimizedMailModel))) {
+	if (!(await confirmNewEditor(mailLocator.autosaveFacade, mailLocator.minimizedMailModel))) {
 		return null
 	}
 
@@ -1372,7 +1372,7 @@ export async function newMailEditorFromDraft(
 	localDraftData?: LocalAutosavedDraftData,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog | null> {
-	if (localDraftData == null && !(await confirmNewEditor(mailLocator.configFacade, mailLocator.minimizedMailModel))) {
+	if (localDraftData == null && !(await confirmNewEditor(mailLocator.autosaveFacade, mailLocator.minimizedMailModel))) {
 		return null
 	}
 
@@ -1407,8 +1407,8 @@ export async function newMailEditorFromDraft(
 	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
-async function confirmNewEditor(configurationDatabase: ConfigurationDatabase, minimizedEditorViewModel: MinimizedMailEditorViewModel): Promise<boolean> {
-	const data = await configurationDatabase.getAutosavedDraftData()
+async function confirmNewEditor(autosaveFacade: AutosaveFacade, minimizedEditorViewModel: MinimizedMailEditorViewModel): Promise<boolean> {
+	const data = await autosaveFacade.getAutosavedDraftData()
 	if (data == null) {
 		return true
 	}
@@ -1417,7 +1417,7 @@ async function confirmNewEditor(configurationDatabase: ConfigurationDatabase, mi
 
 	if (action === "discard") {
 		// Create a new draft
-		await configurationDatabase.clearAutosavedDraftData()
+		await autosaveFacade.clearAutosavedDraftData()
 		const existingEditor = data.mailId && minimizedEditorViewModel.getEditorForDraftById(data.mailId)
 
 		if (existingEditor != null) {
@@ -1489,7 +1489,7 @@ export async function newMailEditorFromTemplate(
 	senderMailAddress?: string,
 	initialChangedState?: boolean,
 ): Promise<Dialog | null> {
-	if (!(await confirmNewEditor(mailLocator.configFacade, mailLocator.minimizedMailModel))) {
+	if (!(await confirmNewEditor(mailLocator.autosaveFacade, mailLocator.minimizedMailModel))) {
 		return null
 	}
 
