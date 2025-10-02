@@ -384,7 +384,8 @@ impl HttpError {
 	}
 }
 
-/// something in our http client normalizes these to lowercase
+/// hyper-based RestClient normalizes custom header names to lowercase, see HeaderName.
+/// Swift and Kotlin impls also uphold this contract.
 pub const RETRY_AFTER_HEADER: &str = "retry-after";
 pub const SUSPENSION_TIME_HEADER: &str = "suspension-time";
 

@@ -1,5 +1,5 @@
 import type { LoggedInEvent, PostLoginAction } from "../../../common/api/main/LoginController"
-import type { ConfigurationDatabase, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase"
+import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import type { Dialog } from "../../../common/gui/base/Dialog"
 import type { MailViewerViewModel } from "../view/MailViewerViewModel"
@@ -22,7 +22,7 @@ export interface OpenDraftFunctions {
  */
 export class OpenLocallySavedDraftAction implements PostLoginAction {
 	constructor(
-		private readonly db: ConfigurationDatabase,
+		private readonly autosaveFacade: AutosaveFacade,
 		private readonly mailboxModel: MailboxModel,
 		private readonly entityClient: EntityClient,
 		private readonly openDraftFunctions: OpenDraftFunctions,
@@ -39,7 +39,7 @@ export class OpenLocallySavedDraftAction implements PostLoginAction {
 	 * visible for testing
 	 */
 	async _loadAutosavedDraft(): Promise<void> {
-		const draft = await this.db.getAutosavedDraftData()
+		const draft = await this.autosaveFacade.getAutosavedDraftData()
 		if (draft == null) {
 			return
 		}

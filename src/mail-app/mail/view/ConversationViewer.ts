@@ -49,6 +49,11 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 
 	private setupShortcuts(viewModel: () => MailViewerViewModel | undefined): Array<Shortcut> {
 		const userController = locator.logins.getUserController()
+		const isReplyAndForwardEnabled = () => {
+			const mailViewerViewModel = viewModel()
+			return mailViewerViewModel != null && !mailViewerViewModel.isDraftMail()
+		}
+
 		const shortcuts: Shortcut[] = [
 			{
 				key: Keys.PAGE_UP,
@@ -75,7 +80,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				exec: () => {
 					assertNotNull(viewModel()).reply(false)
 				},
-				enabled: () => !viewModel()?.isDraftMail(),
+				enabled: isReplyAndForwardEnabled,
 				help: "reply_action",
 			},
 			{
@@ -84,7 +89,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 				exec: () => {
 					assertNotNull(viewModel()).reply(true)
 				},
-				enabled: () => !viewModel()?.isDraftMail(),
+				enabled: isReplyAndForwardEnabled,
 				help: "replyAll_action",
 			},
 		]
@@ -92,7 +97,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 			shortcuts.push({
 				key: Keys.F,
 				shift: true,
-				enabled: () => !viewModel()?.isDraftMail(),
+				enabled: isReplyAndForwardEnabled,
 				exec: () => {
 					assertNotNull(viewModel()).forward().catch(ofClass(UserError, showUserError))
 				},

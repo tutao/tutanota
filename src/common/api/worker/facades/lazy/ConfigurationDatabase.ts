@@ -20,12 +20,12 @@ import { DbError } from "../../../common/error/DbError.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
-import * as cborg from "cborg"
-import { customTypeDecoders, customTypeEncoders } from "../../offline/OfflineStorage"
+import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraftData, LOCAL_DRAFT_KEY, LocalAutosavedDraftData } from "./AutosaveFacade"
 
 const VERSION: number = 3
 const DB_KEY_PREFIX: string = "ConfigStorage"
 const ExternalImageListOS: ObjectStoreName = "ExternalAllowListOS"
+
 export const ConfigurationMetaDataOS: ObjectStoreName = "MetaDataOS"
 type EncryptionMetadata = {
 	readonly key: Aes128Key
@@ -45,43 +45,15 @@ export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes25
 	return utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, concat(iv, encryptedAddress)))
 }
 
-const LOCAL_DRAFT_VERSION: number = 1
-
-export interface LocalDraftAddress {
-	name: string
-	address: string
-}
-
-export interface LocalAutosavedDraftData {
-	version: number
-	locallySavedTime: number
-
-	editedTime: number
-	lastUpdatedTime: number
-
-	mailId: IdTuple | null
-	mailGroupId: Id
-
-	subject: string
-	body: string
-	confidential: boolean
-
-	senderAddress: string
-	to: LocalDraftAddress[]
-	cc: LocalDraftAddress[]
-	bcc: LocalDraftAddress[]
-}
-
-// We only support one draft maximum, destroying any previous draft if one is currently stored.
-const LOCAL_DRAFT_KEY = "current"
-
 /**
  * A local configuration database that can be used as an alternative to DeviceConfig:
  * Ideal for cases where the configuration values should be stored encrypted,
  * Or when the configuration is a growing list or object, which would be unsuitable for localStorage
  * Or when the configuration is only required in the Worker
+ *
+ * Also handles maintaining and encrypting autosaved draft data
  */
-export class ConfigurationDatabase {
+export class ConfigurationDatabase implements AutosaveFacade {
 	// visible for testing
 	readonly db: LazyLoaded<ConfigDb>
 
@@ -99,17 +71,15 @@ export class ConfigurationDatabase {
 
 	/**
 	 * Save the draft data to the database, overwriting one if there is one there.
-	 * @param draftUpdateDataWithoutVersion data to write
+	 * @param draftData data to write
 	 */
-	async setAutosavedDraftData(draftUpdateDataWithoutVersion: Omit<LocalAutosavedDraftData, "version">): Promise<void> {
+	async setAutosavedDraftData(draftData: LocalAutosavedDraftData): Promise<void> {
 		const { db, metaData } = await this.db.getAsync()
 		if (!db.indexingSupported) return
 
-		const draftUpdateData: LocalAutosavedDraftData = Object.assign({}, draftUpdateDataWithoutVersion, { version: LOCAL_DRAFT_VERSION })
-
 		try {
 			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
-			const encoded = cborg.encode(draftUpdateData, { typeEncoders: customTypeEncoders })
+			const encoded = encodeLocalAutosavedDraftData(draftData)
 			const encryptedData = aesEncrypt(metaData.key, encoded, metaData.iv)
 			await transaction.put(LocalDraftDataOS, LOCAL_DRAFT_KEY, encryptedData)
 		} catch (e) {
@@ -138,9 +108,7 @@ export class ConfigurationDatabase {
 			}
 
 			const decryptedData = aesDecrypt(metaData.key, data)
-			const decoded = cborg.decode(decryptedData, { tags: customTypeDecoders })
-
-			return decoded as LocalAutosavedDraftData
+			return decodeLocalAutosavedDraftData(decryptedData)
 		} catch (e) {
 			if (e instanceof DbError) {
 				console.error("failed to load draft:", e.message)

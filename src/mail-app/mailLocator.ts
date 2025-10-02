@@ -153,6 +153,7 @@ import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicId
 import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
 import { UndoModel } from "./UndoModel"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
+import { AutosaveFacade } from "../common/api/worker/facades/lazy/AutosaveFacade"
 
 assertMainOrNode()
 
@@ -220,6 +221,7 @@ class MailLocator implements CommonLocator {
 	mailExportFacade!: MailExportFacade
 	syncTracker!: SyncTracker
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
+	autosaveFacade!: AutosaveFacade
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private mailImporter: MailImporter | null = null
@@ -437,7 +439,7 @@ class MailLocator implements CommonLocator {
 				recipientsModel,
 				dateProvider,
 				mailboxProperties,
-				this.configFacade,
+				this.autosaveFacade,
 				async (mail: Mail) => {
 					return await isMailInSpamOrTrash(mail, mailLocator.mailModel)
 				},
@@ -775,6 +777,7 @@ class MailLocator implements CommonLocator {
 			bulkMailLoader,
 			mailExportFacade,
 			contactSearchFacade,
+			autosaveFacade,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -835,6 +838,7 @@ class MailLocator implements CommonLocator {
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
 			mailLocator.search.indexState(state)
 		})
+		this.autosaveFacade = autosaveFacade
 
 		this.usageTestModel = new UsageTestModel(
 			{

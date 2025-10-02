@@ -23,7 +23,7 @@ export class TitleSection implements Component<SettingsTitleSectionAttrsType> {
 					},
 				},
 				m(
-					".center",
+					".center.pb-s.pt-m",
 					attrs.icon
 						? m(Icon, {
 								icon: attrs.icon,

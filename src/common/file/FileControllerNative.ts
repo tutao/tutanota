@@ -107,7 +107,7 @@ export class FileControllerNative extends FileController {
 		if (downloadedFiles.length < 1) {
 			return
 		}
-		console.log("downloaded files in processing", downloadedFiles)
+		console.log("downloaded files in processing", downloadedFiles.length)
 		const dataFiles = (await promiseMap(downloadedFiles, (f) => this.fileApp.readDataFile(f.location))).filter(Boolean)
 		const fileInTemp =
 			dataFiles.length === 1

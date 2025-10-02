@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
 import { OpenDraftFunctions, OpenLocallySavedDraftAction } from "../../../../src/mail-app/mail/editor/OpenLocallySavedDraftAction"
-import { ConfigurationDatabase, LocalAutosavedDraftData } from "../../../../src/common/api/worker/facades/lazy/ConfigurationDatabase"
 import { matchers, object, verify, when } from "testdouble"
 import { MailboxModel } from "../../../../src/common/mailFunctionality/MailboxModel"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient"
@@ -8,12 +7,13 @@ import { MailViewerViewModel } from "../../../../src/mail-app/mail/view/MailView
 import { Mail, MailTypeRef } from "../../../../src/common/api/entities/tutanota/TypeRefs"
 import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer"
 import type { Dialog } from "../../../../src/common/gui/base/Dialog"
+import { AutosaveFacade, LocalAutosavedDraftData } from "../../../../src/common/api/worker/facades/lazy/AutosaveFacade"
 
 o.spec("OpenLocallySavedDraftAction", () => {
 	let action: OpenLocallySavedDraftAction
 
 	let mail: Mail
-	let db: ConfigurationDatabase
+	let db: AutosaveFacade
 	let mailboxModel: MailboxModel
 	let entityClient: EntityClient
 	let openDraftFunctions: OpenDraftFunctions
@@ -48,7 +48,6 @@ o.spec("OpenLocallySavedDraftAction", () => {
 
 	o.test("draft with unset mail id", async () => {
 		const draftData: LocalAutosavedDraftData = {
-			version: 1,
 			locallySavedTime: 1,
 
 			mailId: null,
@@ -79,7 +78,6 @@ o.spec("OpenLocallySavedDraftAction", () => {
 
 	o.test("draft with set mail id but no draft is opened", async () => {
 		const draftData: LocalAutosavedDraftData = {
-			version: 1,
 			locallySavedTime: 1,
 
 			mailId: ["mail list", "mail id"],
@@ -112,7 +110,6 @@ o.spec("OpenLocallySavedDraftAction", () => {
 
 	o.test("draft with set mail id and draft is opened", async () => {
 		const draftData: LocalAutosavedDraftData = {
-			version: 1,
 			locallySavedTime: 1,
 
 			mailId: ["mail list", "mail id"],

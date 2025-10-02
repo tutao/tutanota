@@ -111,7 +111,8 @@ import { mailLocator } from "../../mailLocator.js"
 import { isDarkTheme, theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
 
-import { ConfigurationDatabase, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase"
+import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
+import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
 
 // Interval where we save drafts locally.
 //
@@ -977,53 +978,28 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		await model.waitForSaveReady()
 
 		if (model.hasDraftDataChangedOnServer()) {
-			const savedTime = model.getMailSavedAt()
-			const updatedTime = model.getMailRemotelyUpdatedAt()
+			const result: "cancel" | "overwrite" | "discard" = await showOverwriteRemoteDraftDialog(model.getMailRemotelyUpdatedAt())
 
-			const savedTimeFormat = lang.formats.dateTime.format(savedTime)
-			const updatedTimeFormat = lang.formats.dateTime.format(updatedTime)
+			if (result === "cancel") {
+				// the user closed the dialog without making a choice
+				return { status: SaveStatusEnum.NotSaved, reason: SaveErrorReason.CancelledByUser }
+			} else if (result === "discard") {
+				// Discard and do not save
+				await model.clearLocalAutosave()
 
-			const result = await Dialog.choiceCancellable(
-				lang.getTranslation("confirmOverwriteDraft_msg", {
-					"{opened}": savedTimeFormat,
-					"{updated}": updatedTimeFormat,
-				}),
-				[
-					{
-						text: "cancel_action",
-						value: null,
-					},
-					{
-						text: "emailSenderDiscardlist_action",
-						value: "discard",
-					},
-					{
-						text: "overwrite_action",
-						value: "overwrite",
-					},
-				],
-			)
-
-			switch (result) {
-				case "overwrite":
-					break
-				case "discard": {
-					// close the dialog and delete the local autosave
-					dialog.close()
-					await model.clearLocalAutosave()
-
-					// if we have a minimized editor, delete it, too
-					const draftMail = model.getDraft()
-					const minimizedEditor = draftMail && mailLocator.minimizedMailModel.getEditorForDraft(draftMail)
-					if (minimizedEditor != null) {
-						mailLocator.minimizedMailModel.removeMinimizedEditor(minimizedEditor)
-					}
-
-					return { status: SaveStatusEnum.NotSaved, reason: SaveErrorReason.CancelledByUser }
+				// if we have a minimized editor, delete it, too
+				const draftMail = model.getDraft()
+				const minimizedEditor = draftMail && mailLocator.minimizedMailModel.getEditorForDraft(draftMail)
+				if (minimizedEditor != null) {
+					mailLocator.minimizedMailModel.removeMinimizedEditor(minimizedEditor)
 				}
-				default:
-					return { status: SaveStatusEnum.NotSaved, reason: SaveErrorReason.CancelledByUser }
+
+				return {
+					status: SaveStatusEnum.NotSaved,
+					reason: SaveErrorReason.CancelledByUser,
+				}
 			}
+			// Nothing needs to be done if the result is "overwrite", it will go on to the save code below
 		}
 
 		const savePromise = model.saveDraft(true, MailMethod.NONE)
@@ -1265,7 +1241,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			key: Keys.S,
 			ctrlOrCmd: true,
 			exec: () => {
-				save().catch(ofClass(UserError, showUserError))
+				save(true).catch(ofClass(UserError, showUserError))
 			},
 			help: "save_action",
 		},
@@ -1374,7 +1350,7 @@ export async function newMailEditorAsResponse(
 	inlineImages: InlineImages,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog | null> {
-	if (!(await confirmNewEditor(mailLocator.configFacade, mailLocator.minimizedMailModel))) {
+	if (!(await confirmNewEditor(mailLocator.autosaveFacade, mailLocator.minimizedMailModel))) {
 		return null
 	}
 
@@ -1396,7 +1372,7 @@ export async function newMailEditorFromDraft(
 	localDraftData?: LocalAutosavedDraftData,
 	mailboxDetails?: MailboxDetail,
 ): Promise<Dialog | null> {
-	if (localDraftData == null && !(await confirmNewEditor(mailLocator.configFacade, mailLocator.minimizedMailModel))) {
+	if (localDraftData == null && !(await confirmNewEditor(mailLocator.autosaveFacade, mailLocator.minimizedMailModel))) {
 		return null
 	}
 
@@ -1431,27 +1407,17 @@ export async function newMailEditorFromDraft(
 	return createMailEditorDialog(model, externalImageRules?.blockExternalContent, externalImageRules?.alwaysBlockExternalContent)
 }
 
-async function confirmNewEditor(configurationDatabase: ConfigurationDatabase, minimizedEditorViewModel: MinimizedMailEditorViewModel): Promise<boolean> {
-	const data = await configurationDatabase.getAutosavedDraftData()
+async function confirmNewEditor(autosaveFacade: AutosaveFacade, minimizedEditorViewModel: MinimizedMailEditorViewModel): Promise<boolean> {
+	const data = await autosaveFacade.getAutosavedDraftData()
 	if (data == null) {
 		return true
 	}
 
-	const action = await Dialog.choiceCancellable("confirmCreateNewDraftOverAutosavedDraft_msg", [
-		{
-			text: "cancel_action",
-			value: null,
-		},
-		{
-			text: "overwrite_action",
-			value: "discard",
-		},
-	])
+	const action: "cancel" | "discard" = await showOverwriteDraftDialog()
 
-	if (action == null) {
-		return false
-	} else {
-		await configurationDatabase.clearAutosavedDraftData()
+	if (action === "discard") {
+		// Create a new draft
+		await autosaveFacade.clearAutosavedDraftData()
 		const existingEditor = data.mailId && minimizedEditorViewModel.getEditorForDraftById(data.mailId)
 
 		if (existingEditor != null) {
@@ -1459,6 +1425,7 @@ async function confirmNewEditor(configurationDatabase: ConfigurationDatabase, mi
 		}
 		return true
 	}
+	return false
 }
 
 export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog | null> {
@@ -1522,7 +1489,7 @@ export async function newMailEditorFromTemplate(
 	senderMailAddress?: string,
 	initialChangedState?: boolean,
 ): Promise<Dialog | null> {
-	if (!(await confirmNewEditor(mailLocator.configFacade, mailLocator.minimizedMailModel))) {
+	if (!(await confirmNewEditor(mailLocator.autosaveFacade, mailLocator.minimizedMailModel))) {
 		return null
 	}
 

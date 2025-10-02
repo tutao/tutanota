@@ -2,7 +2,7 @@ import { assertMainOrNode } from "../../api/common/Env"
 import { BaseThemeId, MATERIAL_COLORS, Theme } from "../../gui/theme"
 import { clone, downcast } from "@tutao/tutanota-utils"
 import type { DomainInfo, WhitelabelConfig } from "../../api/entities/sys/TypeRefs.js"
-import { isValidColorCode } from "../../gui/base/Color"
+import { hexToRgba, isValidSolidColorCode, rgbaToHex } from "../../gui/base/Color"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { CustomizationKey, ThemeCustomizations, ThemeKey, WHITELABEL_CUSTOMIZATION_VERSION } from "../../misc/WhitelabelCustomizations"
@@ -99,9 +99,28 @@ export class CustomColorsEditorViewModel {
 			this.setCustomization(color, theme[color])
 		}
 
+		this.setStateBgColors(theme.outline_variant)
 		this.setCustomization("version", WHITELABEL_CUSTOMIZATION_VERSION)
 
 		await this._applyEditedTheme()
+	}
+
+	/**
+	 * For state colors, we don't use Material 3 color tokens (done this way to simplify state representations)
+	 * For builtin themes, state colors are based on outline_variant with varying alphas
+	 */
+	private setStateBgColors(baseColorHex: string): void {
+		const baseTheme = this._themeController.getBaseTheme(this._baseTheme)
+
+		const baseColor = hexToRgba(baseColorHex)
+		// We use the same alpha values as the base theme
+		const hoverAlpha = hexToRgba(baseTheme.state_bg_hover).a
+		const focusAlpha = hexToRgba(baseTheme.state_bg_focus).a
+		const activeAlpha = hexToRgba(baseTheme.state_bg_active).a
+
+		this.setCustomization("state_bg_hover", rgbaToHex({ ...baseColor, a: hoverAlpha }))
+		this.setCustomization("state_bg_focus", rgbaToHex({ ...baseColor, a: focusAlpha }))
+		this.setCustomization("state_bg_active", rgbaToHex({ ...baseColor, a: activeAlpha }))
 	}
 
 	/**
@@ -133,7 +152,7 @@ export class CustomColorsEditorViewModel {
 	}
 
 	private _isValidColorValue(colorValue: string): boolean {
-		return isValidColorCode(colorValue.trim()) || colorValue.trim() === ""
+		return isValidSolidColorCode(colorValue.trim()) || colorValue.trim() === ""
 	}
 
 	private async _applyEditedTheme() {
