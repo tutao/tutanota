@@ -49,6 +49,7 @@ import { ContactSearchFacade } from "../index/ContactSearchFacade"
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
+import { SpamClassifier } from "../spamClassification/SpamClassifier"
 
 assertWorkerOrNode()
 
@@ -92,6 +93,7 @@ export interface WorkerInterface {
 	readonly bulkMailLoader: BulkMailLoader
 	readonly applicationTypesFacade: ApplicationTypesFacade
 	readonly identityKeyCreator: IdentityKeyCreator
+	readonly spamClassifier: SpamClassifier | null
 	readonly autosaveFacade: AutosaveFacade
 }
 
@@ -304,6 +306,9 @@ export class WorkerImpl implements NativeInterface {
 			},
 			async autosaveFacade() {
 				return locator.autosaveFacade()
+			},
+			async spamClassifier() {
+				return locator.spamClassifier
 			},
 		}
 	}

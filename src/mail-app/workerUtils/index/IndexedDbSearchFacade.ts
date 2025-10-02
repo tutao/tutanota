@@ -1,7 +1,7 @@
 import { Contact, ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
-	arrayHash,
+	arrayHashSigned,
 	asyncFind,
 	contains,
 	downcast,
@@ -32,11 +32,8 @@ import type {
 	SearchRestriction,
 	SearchResult,
 } from "../../../common/api/worker/search/SearchTypes.js"
-import type { TypeInfo } from "../../../common/api/worker/search/IndexUtils.js"
+import type { TypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import {
-	decryptMetaData,
-	decryptSearchIndexEntry,
-	encryptIndexKeyBase64,
 	getIdFromEncSearchIndexEntry,
 	getPerformanceTimestamp,
 	getSearchEndTimestamp,
@@ -44,7 +41,7 @@ import {
 	markStart,
 	printMeasure,
 	typeRefToTypeInfo,
-} from "../../../common/api/worker/search/IndexUtils.js"
+} from "../../../common/api/common/utils/IndexUtils.js"
 import { compareNewestFirst, elementIdPart, firstBiggerThanSecond, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils.js"
 import { MailIndexer } from "./MailIndexer.js"
 import { SuggestionFacade } from "./SuggestionFacade.js"
@@ -60,6 +57,7 @@ import { ClientTypeModelResolver } from "../../../common/api/common/EntityFuncti
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { SearchFacade } from "./SearchFacade"
 import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
+import { decryptMetaData, decryptSearchIndexEntry, encryptIndexKeyBase64 } from "../../../common/api/worker/search/IndexEncryptionUtils"
 
 type RowsToReadForIndexKey = {
 	indexKey: string
@@ -344,7 +342,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 							.thenOrApply((indexEntries: EncryptedSearchIndexEntry[]) => {
 								return indexEntries.map((entry) => ({
 									encEntry: entry,
-									idHash: arrayHash(getIdFromEncSearchIndexEntry(entry)),
+									idHash: arrayHashSigned(getIdFromEncSearchIndexEntry(entry)),
 								}))
 							})
 							.thenOrApply((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {

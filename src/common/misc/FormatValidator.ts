@@ -1,12 +1,12 @@
 import { startsWith } from "@tutao/tutanota-utils"
 
 const DOMAIN_PART_REGEX = "[\\w\\-\\+_]+"
-const DOMAIN_REGEXP = new RegExp(`^${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
+export const DOMAIN_REGEXP = new RegExp(`^${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
 const DOMAIN_OR_TLD_REGEXP = new RegExp(`^(${DOMAIN_PART_REGEX}.)*${DOMAIN_PART_REGEX}$`)
 const STRICT_USERNAME_MAIL_ADDR_REGEXP = new RegExp(
 	`^\\s*${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`,
 )
-const EMAIL_ADDR_REGEXP = new RegExp(`^[^\\s\\@]+\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
+export const EMAIL_ADDR_REGEXP = new RegExp(`^[^\\s\\@]+\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
 
 /**
  * Checks if the given string is a valid email address format.
