@@ -11,14 +11,18 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
 import { size } from "../../../common/gui/size"
-import { showFileChooserForAttachments } from "../../../mail-app/mail/editor/MailEditorViewModel"
 import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
 import { DriveFolderView } from "./DriveFolderView"
-import { LoginButton } from "../../../common/gui/base/buttons/LoginButton"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { Dialog } from "../../../common/gui/base/Dialog"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
 import { theme } from "../../../common/gui/theme"
+import { SidebarSection } from "../../../common/gui/SidebarSection"
+import { showFileChooserForAttachments } from "../../../mail-app/mail/editor/MailEditorViewModel"
+import { Dialog } from "../../../common/gui/base/Dialog"
+import { SettingsFolderRow } from "../../../common/settings/SettingsFolderRow"
+import { Icons } from "../../../common/gui/base/icons/Icons"
+import { NavButtonColor } from "../../../common/gui/base/NavButton"
+import { createDropdown } from "../../../common/gui/base/Dropdown"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -85,13 +89,32 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							drawer: drawerAttrs,
 							button: {
 								label: "newFile_action",
-								click: (ev, dom) => this.onNewFile_Click(dom),
+								click: (ev, dom) => {
+									//
+									createDropdown({
+										lazyButtons: () => [
+											{
+												click: (event, dom) => {
+													this.onNewFile_Click(dom)
+												},
+												label: lang.makeTranslation("UploadFile", () => "Upload file"),
+											},
+											{
+												click: (event, dom) => {
+													this.onNewFolder_Click(dom)
+												},
+												label: lang.makeTranslation("CreateFolder", () => "Create folder"),
+											},
+										],
+									})(ev, ev.target as HTMLElement)
+								},
 							},
 							content: [
-								m(LoginButton, {
-									label: lang.makeTranslation("newFolder_action", () => "New folder"),
-									onclick: (event, dom) => this.onNewFolder_Click(dom),
-								}),
+								// m(LoginButton, {
+								// 	label: lang.makeTranslation("newFolder_action", () => "New folder"),
+								// 	onclick: (event, dom) => ,
+								// }),
+								this.renderSidebarFolders(),
 							],
 							ariaLabel: "folderTitle_label",
 						}),
@@ -133,64 +156,36 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		)
 	}
 
-	// private renderFoldersAndLabels(editingFolderForMailGroup: Id | null) {
-	// 	const details = locator.mailboxModel.mailboxDetails() ?? []
-	// 	return [
-	// 		...details.map((mailboxDetail) => {
-	// 			return this.renderFoldersAndLabelsForMailbox(mailboxDetail, editingFolderForMailGroup)
-	// 		}),
-	// 	]
-	// }
-	//
-	// private renderFoldersAndLabelsForMailbox(mailboxDetail: MailboxDetail, editingFolderForMailGroup: string | null) {
-	// 	const inEditMode = editingFolderForMailGroup === mailboxDetail.mailGroup._id
-	// 	// Only show folders for mailbox in which edit was selected
-	// 	if (editingFolderForMailGroup && !inEditMode) {
-	// 		return null
-	// 	} else {
-	// 		return m(
-	// 			SidebarSection,
-	// 			{
-	// 				name: lang.makeTranslation("mailbox_name", getMailboxName(locator.logins, mailboxDetail)),
-	// 			},
-	// 			[
-	// 				this.createMailboxFolderItems(mailboxDetail, inEditMode, () => {
-	// 					EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
-	// 				}),
-	// 				mailLocator.mailModel.canManageLabels()
-	// 					? this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
-	// 						EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
-	// 					})
-	// 					: null,
-	// 			],
-	// 		)
-	// 	}
-	// }
-
-	// private renderSidebar(mailboxDetail: MailboxDetail, editingFolderForMailGroup: string | null) {
-	// 	const inEditMode = editingFolderForMailGroup === mailboxDetail.mailGroup._id
-	// 	// Only show folders for mailbox in which edit was selected
-	// 	if (editingFolderForMailGroup && !inEditMode) {
-	// 		return null
-	// 	} else {
-	// 		return m(
-	// 			SidebarSection,
-	// 			{
-	// 				name: lang.makeTranslation("mailbox_name", getMailboxName(locator.logins, mailboxDetail)),
-	// 			},
-	// 			[
-	// 				this.createMailboxFolderItems(mailboxDetail, inEditMode, () => {
-	// 					EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
-	// 				}),
-	// 				mailLocator.mailModel.canManageLabels()
-	// 					? this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
-	// 							EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
-	// 						})
-	// 					: null,
-	// 			],
-	// 		)
-	// 	}
-	// }
+	private renderSidebarFolders() {
+		return m(
+			SidebarSection,
+			{
+				name: lang.makeTranslation("driveFolders_title", () => "user@tutanota.de"), // TODO: use real user account address
+			},
+			[
+				m(SettingsFolderRow, {
+					mainButtonAttrs: {
+						label: lang.makeTranslation("asdf", () => "Home"), // TODO
+						icon: () => Icons.Desktop,
+						href: "/drive",
+						colors: NavButtonColor.Nav,
+						click: () => {},
+						persistentBackground: true,
+					},
+				}),
+				m(SettingsFolderRow, {
+					mainButtonAttrs: {
+						label: lang.makeTranslation("asdf2", () => "Favourites"), // TODO
+						icon: () => Icons.Gift,
+						href: "/drive", // TODO
+						colors: NavButtonColor.Nav,
+						click: () => {},
+						persistentBackground: false,
+					},
+				}),
+			],
+		)
+	}
 
 	async onNewFile_Click(dom: HTMLElement): Promise<void> {
 		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
