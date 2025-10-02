@@ -2112,3 +2112,4 @@ export type TranslationKeyType =
 	| "confirmOverwriteDraft_msg"
 	| "overwrite_action"
 	| "conflicts_label"
+	| "conflicts_label"
