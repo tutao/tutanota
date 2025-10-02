@@ -86,7 +86,7 @@ import { PQFacade } from "./PQFacade.js"
 import { AdminGroupKeyRotationService, GroupKeyRotationService, MembershipService, UserGroupKeyRotationService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { CryptoFacade } from "../crypto/CryptoFacade.js"
-import { assertWorkerOrNode } from "../../common/Env.js"
+import { assertWorkerOrNode, isAdminClient } from "../../common/Env.js"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { getUserGroupMemberships } from "../../common/utils/GroupUtils.js"
 import { RecoverCodeFacade } from "./lazy/RecoverCodeFacade.js"
@@ -104,6 +104,7 @@ import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
 import { RolloutAction } from "./RolloutFacade"
+import { SessionType } from "../../common/SessionType"
 
 assertWorkerOrNode()
 
@@ -1384,13 +1385,18 @@ export class KeyRotationRolloutAction implements RolloutAction {
 		private readonly userFacade: UserFacade,
 		private readonly rolloutType: RolloutType,
 		private readonly userPassphraseKey: AesKey,
+		private readonly modernKdfType: boolean,
+		private readonly sessionType: SessionType,
 	) {}
 
 	public async execute() {
-		const user = this.userFacade.getUser()
-		if (user && user.accountType !== AccountType.EXTERNAL) {
-			const requiredPasswordKey = this.rolloutType === RolloutType.AdminOrUserGroupKeyRotation ? this.userPassphraseKey : null
-			await this.keyRotationFacade.loadAndProcessPendingKeyRotations(user, requiredPasswordKey)
+		// If we have not migrated to argon2 we postpone key rotation.
+		if (!isAdminClient() && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
+			const user = this.userFacade.getUser()
+			if (user && user.accountType !== AccountType.EXTERNAL) {
+				const requiredPasswordKey = this.rolloutType === RolloutType.AdminOrUserGroupKeyRotation ? this.userPassphraseKey : null
+				await this.keyRotationFacade.loadAndProcessPendingKeyRotations(user, requiredPasswordKey)
+			}
 		}
 	}
 }
