@@ -11,6 +11,6 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	view(vnode: Vnode<DriveFolderViewAttrs>): Children {
 		const driveViewModel = vnode.attrs.driveViewModel
 		const files = driveViewModel.currentFolderFiles
-		return [m(DriveFolderNav), m(DriveFolderContent, { files, driveViewModel })]
+		return [m(DriveFolderNav, { driveViewModel }), m(DriveFolderContent, { files, driveViewModel })]
 	}
 }

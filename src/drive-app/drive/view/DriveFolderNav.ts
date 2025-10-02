@@ -1,17 +1,19 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { DriveBreadcrumb } from "./DriveBreadcrumb"
+import { DriveViewModel } from "./DriveViewModel"
 
 export interface DriveFolderNavAttrs {
-	placeholder: string
+	driveViewModel: DriveViewModel
 }
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 	view(vnode: Vnode<DriveFolderNavAttrs>): Children {
+		const driveViewModel = vnode.attrs.driveViewModel
+
 		return m(
-			"div",
-			"[DriveFolderNav]",
+			"",
 			// TODO: FilterBox
-			m(DriveBreadcrumb, { path: [["root", ["SomeListID", "SomeElementID"]]] }), // FIXME: hardcoded path
+			m(DriveBreadcrumb, { driveViewModel, path: [["root", ["SomeListID", "SomeElementID"]]] }), // FIXME: hardcoded path
 			// TODO: ActionButtons
 		)
 	}

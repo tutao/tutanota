@@ -12,7 +12,7 @@ import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
 
 export class DriveViewModel {
 	currentFolderFiles: File[] = []
-	currentFolder!: IdTuple
+	currentFolder!: File
 	rootFolder!: IdTuple
 
 	// maybe we will need a File instance
@@ -28,12 +28,21 @@ export class DriveViewModel {
 		await this.loadFolderContentsByIdTuple(this.rootFolder)
 	}
 
+	getCurrentFolder() {
+		return this.currentFolder
+	}
+
+	currentFolderIsRoot() {
+		return this.currentFolder._id === this.rootFolder
+	}
+
 	async loadFileOrFolder(idTuple: IdTuple): Promise<File> {
 		return this.driveFacade.loadFileFromIdTuple(idTuple)
 	}
 
 	async loadFolderContentsByIdTuple(idTuple: IdTuple): Promise<void> {
 		try {
+			this.currentFolder = await this.driveFacade.loadFileFromIdTuple(idTuple)
 			this.currentFolderFiles = await this.driveFacade.getFolderContents(idTuple)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
@@ -42,16 +51,15 @@ export class DriveViewModel {
 				throw e
 			}
 		}
-		this.currentFolder = idTuple
 	}
 
 	async uploadFiles(files: (DataFile | FileReference)[]): Promise<void> {
-		const uploadedFiles = await this.driveFacade.uploadFiles(files, this.currentFolder)
+		const uploadedFiles = await this.driveFacade.uploadFiles(files, this.currentFolder._id)
 		this.currentFolderFiles.push(...uploadedFiles)
 	}
 
 	async createNewFolder(folderName: string): Promise<void> {
-		const uploadedFolder = await this.driveFacade.createFolder(folderName, this.currentFolder)
+		const uploadedFolder = await this.driveFacade.createFolder(folderName, this.currentFolder._id)
 		this.currentFolderFiles.push(uploadedFolder)
 	}
 
