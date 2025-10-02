@@ -1,6 +1,6 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
-import { assertNotNull, groupBy, isNotNull, lazyAsync, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, isNotNull, lazyAsync, promiseMap } from "@tutao/tutanota-utils"
 import { GroupMembership, type User } from "../../../common/api/entities/sys/TypeRefs"
 import { MailBag, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolder, MailFolderTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { getMailSetKind, GroupType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
@@ -28,7 +28,7 @@ export class SpamClassificationInitializer {
 		private readonly bulkMailLoader: lazyAsync<BulkMailLoader>,
 	) {}
 
-	public async init(): Promise<SpamTrainMailDatum[]> {
+	public async init() {
 		// populate the spam classification data with the last 28 days of mails if they are
 		// available in the current mail bag
 		const user = assertNotNull(this.userFacade.getUser())
@@ -99,7 +99,6 @@ export class SpamClassificationInitializer {
 			importance: isCertain ? 1 : 0,
 			listId: listIdPart(mail._id),
 			elementId: elementIdPart(mail._id),
-			ownerGroup: assertNotNull(mail._ownerGroup),
 		} as SpamTrainMailDatum
 	}
 }

@@ -93,7 +93,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 				body: getMailBodyText(body),
 				isSpam: true,
 				importance: 1,
-				ownerGroup: "owner",
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
@@ -120,7 +119,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 				body: getMailBodyText(body),
 				isSpam: false,
 				importance: 0,
-				ownerGroup: "owner",
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
@@ -146,7 +144,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 				subject: mail.subject,
 				body: getMailBodyText(body),
 				isSpam: false,
-				ownerGroup: "owner",
 				importance: 0,
 			}
 
@@ -180,7 +177,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 				body: getMailBodyText(body),
 				isSpam: true,
 				importance: 1,
-				ownerGroup: "owner",
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
@@ -214,7 +210,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 				body: getMailBodyText(body),
 				isSpam: false,
 				importance: 0,
-				ownerGroup: "owner",
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
@@ -231,10 +226,11 @@ o.spec("CustomMailEventCacheHandler", function () {
 
 		o.beforeEach(function () {
 			when(indexerAndMailFacadeMock()).thenResolve({ mailIndexer, mailFacade })
+			mail = object({ sets: [[GENERATED_MIN_ID, GENERATED_MIN_ID]] }) as unknown as Mail
 
 			body = object({ text: "Body Text" }) as Body
 			mailDetails = object({ body }) as MailDetails
-			mail = object({ sets: [[GENERATED_MIN_ID, GENERATED_MIN_ID]], _ownerGroup: "owner" }) as unknown as Mail
+			mail = object({ sets: [[GENERATED_MIN_ID, GENERATED_MIN_ID]] }) as unknown as Mail
 			when(mailIndexer.downloadNewMailData(matchers.anything())).thenResolve({
 				mail,
 				mailDetails,
@@ -334,7 +330,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 				body: getMailBodyText(body),
 				isSpam: false,
 				importance: 1,
-				ownerGroup: "owner",
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })

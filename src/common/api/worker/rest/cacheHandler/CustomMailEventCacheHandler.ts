@@ -79,7 +79,6 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 			body: getMailBodyText(newMailData.mailDetails.body),
 			isSpam,
 			importance,
-			ownerGroup: assertNotNull(mail._ownerGroup),
 		}
 
 		await offlineStoragePersistence.storeSpamClassification(spamTrainMailDatum)
@@ -94,6 +93,10 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 	}
 
 	private async updateSpamClassificationData(events: EntityUpdateData[], id: readonly [string, string]) {
+		// Enum { JUST_BORN, CLASSIFIED_BY_CLIENT, MOVED_BY_USER,  }
+		// Mails: { lastMoveReason: boolean | null = null }
+		// if ( null ) classify() ;
+		// put clientRes = prediction
 		const mail = assertNotNull(await this.storage.get(MailTypeRef, listIdPart(id), elementIdPart(id)))
 		const changedMailSetEntry = events.some((ev) => isSameTypeRef(ev.typeRef, MailSetEntryTypeRef))
 		const mailHasBeenRead = !mail.unread
@@ -127,7 +130,6 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 					body: getMailBodyText(newMailData.mailDetails.body),
 					isSpam,
 					importance,
-					ownerGroup: assertNotNull(mail._ownerGroup),
 				}
 
 				await offlineStoragePersistence.storeSpamClassification(spamTrainMailDatum)

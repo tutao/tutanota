@@ -71,7 +71,7 @@ export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> 
 	// Spam classification training data
 	spam_classification_training_data: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, lastModified NUMBER NOT NULL, importance NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
+			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, lastModified NUMBER NOT NULL, importance NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
 		purgedWithCache: true,
 	},
 
@@ -186,11 +186,10 @@ export class OfflineStoragePersistence {
 	async storeSpamClassification(spamTrainMailDatum: SpamTrainMailDatum): Promise<void> {
 		const { query, params } = sql`
 			INSERT
-			OR REPLACE INTO spam_classification_training_data(listId, elementId, ownerGroup, subject, body, isSpam, lastModified, importance)
+			OR REPLACE INTO spam_classification_training_data(listId, elementId, subject, body, isSpam, lastModified, importance)
 				VALUES (
 			${listIdPart(spamTrainMailDatum.mailId)},
 			${elementIdPart(spamTrainMailDatum.mailId)},
-			${spamTrainMailDatum.ownerGroup},
 			${spamTrainMailDatum.subject},
 			${spamTrainMailDatum.body},
 			${spamTrainMailDatum.isSpam ? 1 : 0},
@@ -228,12 +227,11 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async getCertainSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number, ownerGroupId: Id): Promise<SpamTrainMailDatum[]> {
+	async getCertainSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number): Promise<SpamTrainMailDatum[]> {
 		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam, importance
 									  FROM spam_classification_training_data
 									  WHERE lastModified > ${cutoffTimestamp}
-										AND importance > 0
-										AND ownerGroup = ${ownerGroupId}`
+										AND importance > 0`
 		const resultRows = await this.sqlCipherFacade.all(query, params)
 		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamTrainMailDatum)
 	}
