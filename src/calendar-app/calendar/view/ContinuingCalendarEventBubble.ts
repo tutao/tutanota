@@ -1,18 +1,18 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { hasAlarmsForTheUser, isBirthdayCalendar } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
-import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { User } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { EventTextTimeOption } from "../../../common/api/common/TutanotaConstants"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventRenderWrapper } from "./CalendarViewModel"
 import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 
 type ContinuingCalendarEventBubbleAttrs = {
-	event: CalendarEvent
+	event: EventRenderWrapper
 	startsBefore: boolean
 	endsAfter: boolean
 	color: string
+	border?: string
 	onEventClicked: CalendarEventBubbleClickHandler
 	onEventKeyDown: CalendarEventBubbleKeyDownHandler
 	showTime: EventTextTimeOption | null
@@ -24,7 +24,7 @@ type ContinuingCalendarEventBubbleAttrs = {
 
 export class ContinuingCalendarEventBubble implements Component<ContinuingCalendarEventBubbleAttrs> {
 	view({ attrs }: Vnode<ContinuingCalendarEventBubbleAttrs>): Children {
-		const eventTitle = getDisplayEventTitle(attrs.event.summary)
+		const eventTitle = getDisplayEventTitle(attrs.event.event.summary)
 
 		return m(".flex.calendar-event-container.darker-hover", [
 			attrs.startsBefore
@@ -40,18 +40,19 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 			m(
 				".flex-grow.overflow-hidden",
 				m(CalendarEventBubble, {
-					text: (attrs.showTime != null ? formatEventTime(attrs.event, attrs.showTime) + " " : "") + eventTitle,
+					text: (attrs.showTime != null ? formatEventTime(attrs.event.event, attrs.showTime) + " " : "") + eventTitle,
 					color: attrs.color,
-					click: (e) => attrs.onEventClicked(attrs.event, e),
-					keyDown: (e) => attrs.onEventKeyDown(attrs.event, e),
+					border: attrs.border,
+					click: (e) => attrs.onEventClicked(attrs.event.event, e),
+					keyDown: (e) => attrs.onEventKeyDown(attrs.event.event, e),
 					noBorderLeft: attrs.startsBefore,
 					noBorderRight: attrs.endsAfter,
-					hasAlarm: hasAlarmsForTheUser(attrs.user, attrs.event),
-					isAltered: attrs.event.recurrenceId != null,
+					hasAlarm: hasAlarmsForTheUser(attrs.user, attrs.event.event),
+					isAltered: attrs.event.event.recurrenceId != null,
 					fadeIn: attrs.fadeIn,
 					opacity: attrs.opacity,
 					enablePointerEvents: attrs.enablePointerEvents,
-					isBirthday: isBirthdayCalendar(listIdPart(attrs.event._id)),
+					isBirthday: isBirthdayCalendar(listIdPart(attrs.event.event._id)),
 				}),
 			),
 			attrs.endsAfter

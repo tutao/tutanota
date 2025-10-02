@@ -17,6 +17,7 @@ import {
 	isNotEmpty,
 	isSameDay,
 	isSameDayOfDate,
+	newPromise,
 	numberRange,
 	typedValues,
 } from "@tutao/tutanota-utils"
@@ -74,18 +75,17 @@ import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
-import { EventsOnDays } from "../view/CalendarViewModel.js"
+import { EventRenderWrapper, EventsOnDays } from "../view/CalendarViewModel.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
-import { isDarkTheme } from "../../../common/gui/theme.js"
+import { isDarkTheme, isLightTheme } from "../../../common/gui/theme.js"
 import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
 import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
-import { newPromise } from "@tutao/tutanota-utils"
 import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
 import { Key } from "../../../common/misc/KeyManager.js"
 import { isAppleDevice } from "../../../common/api/common/Env.js"
@@ -710,30 +710,30 @@ export const enum EventLayoutMode {
  * in one column on a single day (it will "stretch" events from the day start until the next day).
  */
 export function layOutEvents(
-	events: Array<CalendarEvent>,
+	events: Array<EventRenderWrapper>,
 	zone: string,
-	renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray,
+	renderer: (columns: Array<Array<EventRenderWrapper>>) => ChildArray,
 	layoutMode: EventLayoutMode,
 ): ChildArray {
 	events.sort((e1, e2) => {
-		const e1Start = getEventStart(e1, zone)
-		const e2Start = getEventStart(e2, zone)
+		const e1Start = getEventStart(e1.event, zone)
+		const e2Start = getEventStart(e2.event, zone)
 		if (e1Start < e2Start) return -1
 		if (e1Start > e2Start) return 1
-		const e1End = getEventEnd(e1, zone)
-		const e2End = getEventEnd(e2, zone)
+		const e1End = getEventEnd(e1.event, zone)
+		const e2End = getEventEnd(e2.event, zone)
 		if (e1End < e2End) return -1
 		if (e1End > e2End) return 1
 		return 0
 	})
 	let lastEventEnding: Date | null = null
 	let lastEventStart: Date | null = null
-	let columns: Array<Array<CalendarEvent>> = []
+	let columns: Array<Array<EventRenderWrapper>> = []
 	const children: Array<Children> = []
 	// Cache for calculation events
 	const calcEvents = new Map()
 	for (const e of events) {
-		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, layoutMode))
+		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e.event, zone, layoutMode))
 		// Check if a new event group needs to be started
 		if (
 			lastEventEnding != null &&
@@ -757,7 +757,7 @@ export function layOutEvents(
 		for (let i = 0; i < columns.length; i++) {
 			const col = columns[i]
 			const lastEvent = col[col.length - 1]
-			const lastCalcEvent = getFromMap(calcEvents, lastEvent, () => getCalculationEvent(lastEvent, zone, layoutMode))
+			const lastCalcEvent = getFromMap(calcEvents, lastEvent, () => getCalculationEvent(lastEvent.event, zone, layoutMode))
 
 			if (
 				!collidesWith(lastCalcEvent, calcEvent) &&
@@ -849,7 +849,7 @@ function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEven
 	return firstEventEnd.getTime() === secondEventStart.getTime() && height < size.calendar_line_height
 }
 
-export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>): number {
+export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Array<Array<EventRenderWrapper>>): number {
 	let colSpan = 1
 
 	for (let i = columnIndex + 1; i < columns.length; i++) {
@@ -858,7 +858,7 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 		for (let j = 0; j < col.length; j++) {
 			let ev1 = col[j]
 
-			if (collidesWith(ev, ev1) || visuallyOverlaps(ev.startTime, ev.endTime, ev1.startTime)) {
+			if (collidesWith(ev, ev1.event) || visuallyOverlaps(ev.startTime, ev.endTime, ev1.event.startTime)) {
 				return colSpan
 			}
 		}
@@ -869,8 +869,10 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 	return colSpan
 }
 
-export function getEventColor(event: CalendarEvent, groupColors: GroupColors): string {
-	return (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? defaultCalendarColor
+export function getEventColor(event: CalendarEvent, groupColors: GroupColors, isGhost: boolean = false): string {
+	const color = (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? defaultCalendarColor
+	const alpha = isGhost ? (isLightTheme() ? "AA" : "7F") : "FF"
+	return `${color}${alpha}`
 }
 
 export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): string {

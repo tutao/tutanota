@@ -228,7 +228,7 @@ export class CalendarEventPreviewViewModel {
 					end: getStartOfDayWithZone(this.calendarEvent.startTime, this.calendarEvent.repeatRule!.timeZone).getTime(),
 				}
 				const occurrencesPerDay = new Map()
-				addDaysForRecurringEvent(occurrencesPerDay, progenitor, generationRange, newEventModel.editModels.whenModel.zone)
+				addDaysForRecurringEvent(occurrencesPerDay, { isGhost: false, event: progenitor }, generationRange, newEventModel.editModels.whenModel.zone)
 
 				const occurrencesLeft =
 					newEventModel.editModels.whenModel.repeatEndOccurrences -

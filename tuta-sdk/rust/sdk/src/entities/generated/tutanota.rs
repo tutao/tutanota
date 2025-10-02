@@ -1879,6 +1879,8 @@ pub struct CalendarEvent {
 	pub recurrenceId: Option<DateTime>,
 	#[serde(rename = "1401")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "1741")]
+	pub sender: Option<String>,
 	#[serde(rename = "945")]
 	pub repeatRule: Option<CalendarRepeatRule>,
 	#[serde(rename = "946")]
@@ -1925,6 +1927,8 @@ pub struct CalendarGroupRoot {
 	pub longEvents: GeneratedId,
 	#[serde(rename = "1103")]
 	pub index: Option<CalendarEventIndexRef>,
+	#[serde(rename = "1739")]
+	pub pendingEvents: Option<CalendarEventsRef>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -2055,6 +2059,8 @@ pub struct UserSettingsGroupRoot {
 	pub birthdayCalendarColor: Option<String>,
 	#[serde(rename = "979")]
 	pub groupSettings: Vec<GroupSettings>,
+	#[serde(rename = "1740")]
+	pub defaultCalendar: Option<GeneratedId>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4143,6 +4149,24 @@ impl Entity for ClientClassifierResultPostIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1730),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CalendarEventsRef {
+	#[serde(rename = "1737")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1738")]
+	pub list: GeneratedId,
+}
+
+impl Entity for CalendarEventsRef {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1736),
 		}
 	}
 }
