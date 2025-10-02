@@ -10,9 +10,10 @@ import { theme } from "../../gui/theme.js"
 import { colorForBg } from "../../gui/base/GuiUtils.js"
 import { formatTime } from "../../misc/Formatter.js"
 import { getTimeZone } from "../date/CalendarUtils"
+import { EventRenderWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 
 export interface TimeViewEventWrapper {
-	event: CalendarEvent
+	event: EventRenderWrapper
 	conflictsWithMainEvent: boolean
 	/**
 	 * Color applied to the event bubble background
@@ -201,7 +202,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			}
 
 			return agendaEntries.map((event, _, events) => {
-				const { start, end } = this.getRowBounds(event.event, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
+				const { start, end } = this.getRowBounds(event.event.event, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
 
 				return m(
 					// EventBubble
@@ -214,13 +215,13 @@ export class TimeView implements Component<TimeViewAttributes> {
 							background: event.color,
 							color: !event.featured ? colorForBg(event.color) : undefined,
 							"grid-row": `${start} / ${end}`,
-							"border-top-left-radius": event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
-							"border-top-right-radius": event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
-							"border-bottom-left-radius": event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
-							"border-bottom-right-radius": event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
+							"border-top-left-radius": event.event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
+							"border-top-right-radius": event.event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
+							"border-bottom-left-radius": event.event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
+							"border-bottom-right-radius": event.event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
 							border: event.featured ? `1.5px dashed ${hasAnyConflict ? theme.on_warning_container : theme.on_success_container}` : "none",
-							"border-top": event.event.startTime < timeRangeAsDate.start ? "none" : undefined,
-							"border-bottom": event.event.endTime > timeRangeAsDate.end ? "none" : undefined,
+							"border-top": event.event.event.startTime < timeRangeAsDate.start ? "none" : undefined,
+							"border-bottom": event.event.event.endTime > timeRangeAsDate.end ? "none" : undefined,
 							"-webkit-line-clamp": 2,
 						},
 					},
@@ -238,10 +239,10 @@ export class TimeView implements Component<TimeViewAttributes> {
 								m(
 									".break-word.b.text-ellipsis-multi-line.lh",
 									{ style: { "-webkit-line-clamp": 2, color: hasAnyConflict ? theme.on_warning_container : theme.on_success_container } },
-									event.event.summary,
+									event.event.event.summary,
 								),
 							])
-						: event.event.summary,
+						: event.event.event.summary, // FIXME for god sake, we need to get rid of those event.event.event
 				)
 			}) as ChildArray
 		},

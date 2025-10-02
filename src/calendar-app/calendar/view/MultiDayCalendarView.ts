@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getStartOfDay, incrementDate, isSameDay, isToday, lastThrow, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../../common/misc/Formatter"
 import {
@@ -16,7 +16,7 @@ import {
 import { CalendarDayEventsView, calendarDayTimes } from "./CalendarDayEventsView"
 import { theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
-import { EventTextTimeOption, Keys, WeekStart } from "../../../common/api/common/TutanotaConstants"
+import { EventTextTimeOption, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { PageView } from "../../../common/gui/base/PageView"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -37,7 +37,7 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventRenderWrapper, EventsOnDays } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { CalendarViewType, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -45,8 +45,7 @@ import { DateTime } from "luxon"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
-import { isAppleDevice } from "../../../common/api/common/Env.js"
-import { isModifierKeyPressed, Key } from "../../../common/misc/KeyManager.js"
+import { isModifierKeyPressed } from "../../../common/misc/KeyManager.js"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date
@@ -59,7 +58,7 @@ export type MultiDayCalendarViewAttrs = {
 	groupColors: GroupColors
 	startOfTheWeek: WeekStart
 	onChangeViewPeriod: (next: boolean) => unknown
-	temporaryEvents: Array<CalendarEvent>
+	temporaryEvents: Array<EventRenderWrapper>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
 	isDaySelectorExpanded: boolean
 	weekIndicator: string | null
@@ -427,7 +426,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
-		temporaryEvents: Array<CalendarEvent>,
+		temporaryEvents: Array<EventRenderWrapper>,
 	): Children {
 		const longEventsResult = this.renderLongEvents(
 			thisPageEvents.days,
@@ -510,7 +509,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
-		temporaryEvents: Array<CalendarEvent>,
+		temporaryEvents: Array<EventRenderWrapper>,
 		isDesktopLayout: boolean,
 	): Children {
 		const thisPageLongEvents = this.renderLongEvents(
@@ -562,11 +561,11 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	 */
 	private renderLongEvents(
 		dayRange: Array<Date>,
-		events: Array<CalendarEvent>,
+		events: Array<EventRenderWrapper>,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
-		temporaryEvents: Array<CalendarEvent>,
+		temporaryEvents: Array<EventRenderWrapper>,
 		isDesktopLayout: boolean,
 	): {
 		children: Children
@@ -589,39 +588,37 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	 */
 	private renderLongEventsForSingleDay(
 		day: Date,
-		events: Array<CalendarEvent>,
+		events: Array<EventRenderWrapper>,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
-		temporaryEvents: Array<CalendarEvent>,
+		temporaryEvents: Array<EventRenderWrapper>,
 	): Children {
 		const zone = getTimeZone()
-		return [
-			m(
-				"",
-				events.map((event) => {
-					return this.renderLongEventBubble(
-						event,
-						getTimeTextFormatForLongEvent(event, day, day, zone),
-						eventStartsBefore(day, zone, event),
-						eventEndsAfterDay(day, zone, event),
-						groupColors,
-						(_, domEvent) => onEventClicked(event, domEvent),
-						(_, domEvent) => onEventKeyDown(event, domEvent),
-						temporaryEvents.includes(event),
-					)
-				}),
-			),
-		]
+		return m(
+			"",
+			events.map((wrapper) => {
+				return this.renderLongEventBubble(
+					wrapper,
+					getTimeTextFormatForLongEvent(wrapper.event, day, day, zone),
+					eventStartsBefore(day, zone, wrapper.event),
+					eventEndsAfterDay(day, zone, wrapper.event),
+					groupColors,
+					(_, domEvent) => onEventClicked(wrapper.event, domEvent),
+					(_, domEvent) => onEventKeyDown(wrapper.event, domEvent),
+					temporaryEvents.includes(wrapper),
+				)
+			}),
+		)
 	}
 
 	private renderLongEventsForMultipleDays(
 		dayRange: Array<Date>,
-		events: Array<CalendarEvent>,
+		events: Array<EventRenderWrapper>,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
-		temporaryEvents: Array<CalendarEvent>,
+		temporaryEvents: Array<EventRenderWrapper>,
 	): {
 		children: Children
 		rows: number
@@ -644,13 +641,13 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			(columns) => {
 				maxEventsInColumn = Math.max(maxEventsInColumn, columns.length)
 				return columns.map((rows, c) =>
-					rows.map((event) => {
-						const isAllDay = isAllDayEvent(event)
-						const eventEnd = isAllDay ? incrementDate(getEventEnd(event, zone), -1) : event.endTime
-						const dayOfStartDate = getDiffIn24hIntervals(firstDay, getEventStart(event, zone))
+					rows.map((wrapper) => {
+						const isAllDay = isAllDayEvent(wrapper.event)
+						const eventEnd = isAllDay ? incrementDate(getEventEnd(wrapper.event, zone), -1) : wrapper.event.endTime
+						const dayOfStartDate = getDiffIn24hIntervals(firstDay, getEventStart(wrapper.event, zone))
 						const dayOfEndDate = getDiffIn24hIntervals(firstDay, eventEnd)
-						const startsBefore = eventStartsBefore(firstDay, zone, event)
-						const endsAfter = eventEndsAfterDay(lastDay, zone, event)
+						const startsBefore = eventStartsBefore(firstDay, zone, wrapper.event)
+						const endsAfter = eventEndsAfterDay(lastDay, zone, wrapper.event)
 						const left = startsBefore ? 0 : dayOfStartDate * dayWidth
 						const right = endsAfter ? 0 : (dayRange.length - 1 - dayOfEndDate) * dayWidth
 						return m(
@@ -660,29 +657,30 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 									top: px(c * CALENDAR_EVENT_HEIGHT),
 									left: px(left),
 									right: px(right),
+									opacity: wrapper.isGhost ? 0.5 : 1,
 								},
-								key: event._id[0] + event._id[1] + event.startTime.getTime(),
+								key: wrapper.event._id[0] + wrapper.event._id[1] + wrapper.event.startTime.getTime(),
 								onmousedown: () => {
 									// Only allow dragging all-day events on the desktop layout, since the header supports it
 									if (styles.isDesktopLayout()) {
 										this.isHeaderEventBeingDragged = true
-										this.startEventDrag(event)
+										this.startEventDrag(wrapper.event)
 									}
 								},
 							},
 							this.renderLongEventBubble(
-								event,
+								wrapper,
 								isAllDay ? null : EventTextTimeOption.START_END_TIME,
 								startsBefore,
 								endsAfter,
 								groupColors,
 								onEventClicked,
 								onEventKeyDown,
-								temporaryEvents.includes(event),
+								temporaryEvents.includes(wrapper),
 							),
 						)
 					}),
-				)
+				) as ChildArray
 			},
 			EventLayoutMode.DayBasedColumn,
 		)
@@ -693,7 +691,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	}
 
 	private renderLongEventBubble(
-		event: CalendarEvent,
+		event: EventRenderWrapper,
 		showTime: EventTextTimeOption | null,
 		startsBefore: boolean,
 		endsAfter: boolean,
@@ -709,7 +707,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			event,
 			startsBefore,
 			endsAfter,
-			color: getEventColor(event, groupColors),
+			color: getEventColor(event.event, groupColors),
 			onEventClicked,
 			onEventKeyDown: onEventKeyDown,
 			showTime,

@@ -35,6 +35,7 @@ import type { EventBannerAttrs } from "../../mail/view/EventBanner"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../common/gui/base/ExpandableTextArea.js"
 import { ExpanderPanel } from "../../../common/gui/base/Expander.js"
 import { formatDateTime, formatTime } from "../../../common/misc/Formatter.js"
+import { EventRenderWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
@@ -47,7 +48,7 @@ export interface InviteAgenda {
 	main: TimeViewEventWrapper
 	allDayEvents: Array<TimeViewEventWrapper>
 	regularEvents: Array<TimeViewEventWrapper>
-	existingEvent?: CalendarEvent
+	existingEvent?: EventRenderWrapper
 	conflictCount: number
 }
 
@@ -73,7 +74,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			const responded = await sendResponse(event, recipient, status, previousMail, this.comment)
 			if (responded) {
 				this.agenda = await loadEventsAroundInvite(eventsRepository, iCalContents, recipient, groupColors, true)
-				updateAttendeeStatusIfNeeded(event, recipient, this.agenda.get(event.uid ?? "")?.existingEvent)
+				updateAttendeeStatusIfNeeded(event, recipient, this.agenda.get(event.uid ?? "")?.existingEvent?.event)
 				m.redraw()
 			}
 			return responded
@@ -91,7 +92,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 		return eventsReplySection.map(({ event, replySection }) => {
 			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, recipient, replySection)
-		})
+		}) as Children
 	}
 
 	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, recipient: string, replySection: Children) {
@@ -103,16 +104,16 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		const hasConflict = Boolean(agenda?.conflictCount! > 0)
 		const events = filterNull([agenda?.before, agenda?.main, agenda?.after])
 
-		let eventFocusBound = agenda?.main.event?.startTime!
+		let eventFocusBound = agenda?.main.event?.event.startTime!
 		let shortestTimeFrame: number = this.findShortestDuration(event, event) // In this case we just get the event duration and later reevaluate
 		if (agenda?.before) {
-			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.before.event)
+			shortestTimeFrame = this.findShortestDuration(agenda.main.event.event, agenda.before.event.event)
 		}
 		if (!agenda?.before && agenda?.after) {
 			if (agenda?.after?.conflictsWithMainEvent) {
-				eventFocusBound = agenda.after.event.startTime
+				eventFocusBound = agenda.after.event.event.startTime
 			}
-			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
+			shortestTimeFrame = this.findShortestDuration(agenda.main.event.event, agenda.after.event.event)
 		}
 
 		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestTimeFrame)
@@ -268,8 +269,8 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 											timeScale,
 											timeRange,
 											conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-											dates: [getStartOfDay(agenda.main.event.startTime)],
-											timeIndicator: Time.fromDate(agenda.main.event.startTime),
+											dates: [getStartOfDay(agenda.main.event.event.startTime)],
+											timeIndicator: Time.fromDate(agenda.main.event.event.startTime),
 											hasAnyConflict: hasConflict,
 										} satisfies TimeViewAttributes)
 									: m("", "ERROR: Could not load the agenda for this day."),
@@ -342,22 +343,23 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	}
 
 	private getTimeParts(referenceDate: Date, eventWrapper: TimeViewEventWrapper): Array<string> {
-		if (isAllDayEvent(eventWrapper.event)) {
+		// FIXME Again, wrapper from wrapper + event from event hahahahah
+		if (isAllDayEvent(eventWrapper.event.event)) {
 			return [lang.getTranslationText("allDay_label")]
 		}
 
 		const timeParts: Array<string> = []
 
-		if (isSameDay(referenceDate, eventWrapper.event.startTime)) {
-			timeParts.push(formatTime(eventWrapper.event.startTime))
+		if (isSameDay(referenceDate, eventWrapper.event.event.startTime)) {
+			timeParts.push(formatTime(eventWrapper.event.event.startTime))
 		} else {
-			timeParts.push(formatDateTime(eventWrapper.event.startTime))
+			timeParts.push(formatDateTime(eventWrapper.event.event.startTime))
 		}
 
-		if (isSameDay(referenceDate, eventWrapper.event.endTime)) {
-			timeParts.push(formatTime(eventWrapper.event.endTime))
+		if (isSameDay(referenceDate, eventWrapper.event.event.endTime)) {
+			timeParts.push(formatTime(eventWrapper.event.event.endTime))
 		} else {
-			timeParts.push(formatDateTime(eventWrapper.event.endTime))
+			timeParts.push(formatDateTime(eventWrapper.event.event.endTime))
 		}
 
 		return timeParts
@@ -365,7 +367,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 	private buildConflictingEventInfoText(referenceDate: Date, eventWrapper: TimeViewEventWrapper, isAllDay: boolean) {
 		const timeText = !isAllDay ? this.getTimeParts(referenceDate, eventWrapper).join(" - ") : ""
-		return m(".small.selectable", `• ${eventWrapper.event.summary} ${timeText}`)
+		return m(".small.selectable", `• ${eventWrapper.event.event.summary} ${timeText}`)
 	}
 
 	private buildReplySection(
@@ -377,7 +379,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		sendResponse: EventBannerImplAttrs["sendResponse"],
 	): Children {
 		const shallowEvent = agenda.get(event.uid ?? "")?.existingEvent
-		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(shallowEvent?.attendees ?? event.attendees, [recipient])
+		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(shallowEvent?.event.attendees ?? event.attendees, [recipient])
 
 		const children: Children = [] as ChildArray
 		const viewOnCalendarButton = m(BannerButton, {
@@ -404,7 +406,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 						m(ReplyButtons, {
 							ownAttendee,
 							setParticipation: async (status: CalendarAttendeeStatus) => {
-								sendResponse(shallowEvent ?? event, recipient, status, mail)
+								sendResponse(shallowEvent?.event ?? event, recipient, status, mail)
 							},
 						}),
 						this.renderCommentInputBox(),
@@ -451,8 +453,8 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		if (!currentEvent) {
 			throw new ProgrammingError("Missing corresponding event in calendar")
 		}
-		const eventDate = formatJSDate(currentEvent.startTime)
-		const eventId = base64ToBase64Url(stringToBase64(currentEvent._id.join("/")))
+		const eventDate = formatJSDate(currentEvent.event.startTime)
+		const eventId = base64ToBase64Url(stringToBase64(currentEvent.event._id.join("/")))
 		m.route.set(`/calendar/agenda/${eventDate}/${eventId}`)
 	}
 
@@ -468,9 +470,10 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 		return events.flatMap((event) => {
 			if (
-				(event.event.endTime > rangeStartDate && event.event.endTime <= rangeEndDate) || // Ends during event
-				(event.event.startTime >= rangeStartDate && event.event.startTime < rangeEndDate) || // Starts during event
-				(event.event.startTime <= rangeStartDate && event.event.endTime >= rangeEndDate)
+				//FIXME Christ.... event.event.event hahahahahaha
+				(event.event.event.endTime > rangeStartDate && event.event.event.endTime <= rangeEndDate) || // Ends during event
+				(event.event.event.startTime >= rangeStartDate && event.event.event.startTime < rangeEndDate) || // Starts during event
+				(event.event.event.startTime <= rangeStartDate && event.event.event.endTime >= rangeEndDate)
 			) {
 				// Overlaps range
 				return [event]
@@ -538,33 +541,36 @@ export async function loadEventsAroundInvite(
 		const endOfDay = getStartOfDay(iCalEvent.endTime)
 		const eventsForStartDay = events.get(startOfDay.getTime()) ?? []
 		const eventsForEndDay = events.get(endOfDay.getTime()) ?? []
-		const allExistingEvents = Array.from(new Set([...eventsForStartDay, ...eventsForEndDay]))
+		const allExistingEvents: Array<EventRenderWrapper> = Array.from(new Set([...eventsForStartDay, ...eventsForEndDay]))
 
-		const currentExistingEvent = allExistingEvents.find((e) => isSameExternalEvent(e, iCalEvent))
-		updateAttendeeStatusIfNeeded(iCalEvent, recipient, currentExistingEvent)
+		const currentExistingEvent = allExistingEvents.find((e) => isSameExternalEvent(e.event, iCalEvent))
+		updateAttendeeStatusIfNeeded(iCalEvent, recipient, currentExistingEvent?.event)
 
 		const [allDayAndLongEvents, normalEvents] = partition(allExistingEvents, (ev) => {
-			const eventHas24HoursOrMore = getDurationInMinutes(ev) >= 60 * 24
-			return isAllDayEvent(ev) || eventHas24HoursOrMore
+			const eventHas24HoursOrMore = getDurationInMinutes(ev.event) >= 60 * 24
+			return isAllDayEvent(ev.event) || eventHas24HoursOrMore
 		})
 
-		const conflictingNormalEvents = normalEvents.filter((ev) => !isSameExternalEvent(ev, iCalEvent) && collidesWith(ev, iCalEvent))
+		const conflictingNormalEvents = normalEvents.filter((ev) => !isSameExternalEvent(ev.event, iCalEvent) && collidesWith(ev.event, iCalEvent))
 
 		// Decides if we already have a conflicting event or if we should pick an event from event list that happens before the invitation
 		const closestConflictingEventBeforeStartTime = conflictingNormalEvents
-			.filter((ev) => ev.startTime <= iCalEvent.startTime)
-			.reduce((closest: CalendarEvent | null, ev, index) => {
+			.filter((ev) => ev.event.startTime <= iCalEvent.startTime)
+			.reduce((closest: EventRenderWrapper | null, ev, index) => {
 				if (!closest) return ev
-				if (iCalEvent.startTime.getTime() - ev.startTime.getTime() < iCalEvent.startTime.getTime() - closest.startTime.getTime()) return ev
+				if (iCalEvent.startTime.getTime() - ev.event.startTime.getTime() < iCalEvent.startTime.getTime() - closest.event.startTime.getTime()) return ev
 				return closest
 			}, null)
 
 		// Decides if we already have a conflicting event or if we should pick an event from event list that happens after the invitation
 		const closestConflictingEventAfterStartTime = conflictingNormalEvents
-			.filter((ev) => ev.startTime > iCalEvent.startTime)
-			.reduce((closest: CalendarEvent | null, ev, index) => {
+			.filter((ev) => ev.event.startTime > iCalEvent.startTime)
+			.reduce((closest: EventRenderWrapper | null, ev, index) => {
 				if (!closest) return ev
-				if (Math.abs(iCalEvent.startTime.getTime() - ev.startTime.getTime()) < Math.abs(iCalEvent.startTime.getTime() - closest.startTime.getTime()))
+				if (
+					Math.abs(iCalEvent.startTime.getTime() - ev.event.startTime.getTime()) <
+					Math.abs(iCalEvent.startTime.getTime() - closest.event.startTime.getTime())
+				)
 					return ev
 				return closest
 			}, null)
@@ -573,23 +579,23 @@ export async function loadEventsAroundInvite(
 			before: null,
 			after: null,
 			main: {
-				event: iCalEvent,
+				event: { event: iCalEvent, isGhost: false },
 				conflictsWithMainEvent: false,
 				color: theme.success_container,
 				featured: true,
 			},
-			allDayEvents: allDayAndLongEvents.map((event) => ({
-				event,
+			allDayEvents: allDayAndLongEvents.map((wrapper) => ({
+				event: wrapper,
 				conflictsWithMainEvent: true,
-				color: `#${getEventColor(event, groupColors)}`,
+				color: `#${getEventColor(wrapper.event, groupColors)}`,
 				featured: false,
 			})),
 			existingEvent: currentExistingEvent,
 			conflictCount: conflictingNormalEvents.length + allDayAndLongEvents.length,
-			regularEvents: conflictingNormalEvents.map((event) => ({
-				event,
+			regularEvents: conflictingNormalEvents.map((wrapper) => ({
+				event: wrapper,
 				conflictsWithMainEvent: true,
-				color: `#${getEventColor(event, groupColors)}`,
+				color: `#${getEventColor(wrapper.event, groupColors)}`,
 				featured: false,
 			})),
 		}
@@ -597,19 +603,19 @@ export async function loadEventsAroundInvite(
 		const oneHour = SECOND_MS * 3600
 		if (!closestConflictingEventBeforeStartTime) {
 			const eventBefore = normalEvents
-				.sort((a, b) => b.startTime.getTime() - a.startTime.getTime())
+				.sort((a, b) => b.event.startTime.getTime() - a.event.startTime.getTime())
 				.find(
 					(ev) =>
-						!isSameExternalEvent(ev, iCalEvent) &&
-						ev.startTime <= iCalEvent.startTime &&
-						iCalEvent.startTime.getTime() - ev.endTime.getTime() <= oneHour,
+						!isSameExternalEvent(ev.event, iCalEvent) &&
+						ev.event.startTime <= iCalEvent.startTime &&
+						iCalEvent.startTime.getTime() - ev.event.endTime.getTime() <= oneHour,
 				)
 
 			if (eventBefore) {
 				eventList.before = {
 					event: eventBefore,
 					conflictsWithMainEvent: false,
-					color: `#${getEventColor(eventBefore, groupColors)}`,
+					color: `#${getEventColor(eventBefore.event, groupColors)}`,
 					featured: false,
 				}
 			}
@@ -617,38 +623,38 @@ export async function loadEventsAroundInvite(
 			eventList.before = {
 				event: closestConflictingEventBeforeStartTime,
 				conflictsWithMainEvent: true,
-				color: `#${getEventColor(closestConflictingEventBeforeStartTime, groupColors)}`,
+				color: `#${getEventColor(closestConflictingEventBeforeStartTime.event, groupColors)}`,
 				featured: false,
 			}
 		}
 
 		if (!closestConflictingEventAfterStartTime) {
 			const eventAfter = normalEvents
-				.sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+				.sort((a, b) => a.event.startTime.getTime() - b.event.startTime.getTime())
 				.find(
 					(ev) =>
-						!isSameExternalEvent(ev, iCalEvent) &&
-						ev.startTime > iCalEvent.startTime &&
-						ev.startTime.getTime() - iCalEvent.endTime.getTime() <= oneHour,
+						!isSameExternalEvent(ev.event, iCalEvent) &&
+						ev.event.startTime > iCalEvent.startTime &&
+						ev.event.startTime.getTime() - iCalEvent.endTime.getTime() <= oneHour,
 				)
 
 			if (eventAfter) {
 				eventList.after = {
 					event: eventAfter,
 					conflictsWithMainEvent: false,
-					color: `#${getEventColor(eventAfter, groupColors)}`,
+					color: `#${getEventColor(eventAfter.event, groupColors)}`,
 					featured: false,
 				}
 			}
 		} else {
 			const time = getHourOfDay(
-				closestConflictingEventAfterStartTime.startTime ?? new Date(),
-				closestConflictingEventAfterStartTime.startTime.getHours() ?? 0,
+				closestConflictingEventAfterStartTime?.event.startTime ?? new Date(),
+				closestConflictingEventAfterStartTime?.event.startTime.getHours() ?? 0,
 			).getTime()
 			eventList.after = {
 				event: closestConflictingEventAfterStartTime,
 				conflictsWithMainEvent: true,
-				color: `#${getEventColor(closestConflictingEventAfterStartTime, groupColors)}`,
+				color: `#${getEventColor(closestConflictingEventAfterStartTime.event, groupColors)}`,
 				featured: false,
 			}
 		}

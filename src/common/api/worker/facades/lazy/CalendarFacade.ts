@@ -38,11 +38,17 @@ import {
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { GroupType, OperationType } from "../../../common/TutanotaConstants.js"
 import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule } from "../../../entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef, CalendarEventUidIndexTypeRef, CalendarGroupRootTypeRef, createCalendarDeleteData } from "../../../entities/tutanota/TypeRefs.js"
+import {
+	CalendarEventTypeRef,
+	CalendarEventUidIndexTypeRef,
+	CalendarGroupRootTypeRef,
+	createCalendarDeleteData,
+	createCalendarEvent,
+} from "../../../entities/tutanota/TypeRefs.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError, PayloadTooLargeError } from "../../../common/error/RestError.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
-import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId } from "../../../common/utils/EntityUtils.js"
+import { elementIdPart, getLetId, getListId, isSameId, listIdPart, Stripped, uint8arrayToCustomId } from "../../../common/utils/EntityUtils.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
 import { ImportError } from "../../../common/error/ImportError.js"
@@ -71,6 +77,7 @@ import type { EventWrapper } from "../../../../calendar/gui/ImportExportUtils.js
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
 import { ClientModelUntypedInstance } from "../../../common/EntityTypes"
+import { EventRenderWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel.js"
 
 assertWorkerOrNode()
 
@@ -142,7 +149,7 @@ export class CalendarFacade {
 		// Note: there may be issues if we get entity update before other calendars finish loading but the chance is low and we do not
 		// take care of this now.
 
-		const calendars: Array<{ long: CalendarEvent[]; short: CalendarEvent[] }> = []
+		const calendars: Array<{ long: EventRenderWrapper[]; short: EventRenderWrapper[] }> = []
 
 		for (const { groupRoot } of calendarInfos.values()) {
 			const [shortEventsResult, longEventsResult] = await Promise.all([
@@ -150,12 +157,41 @@ export class CalendarFacade {
 				this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
 			])
 
+			const shortEvents = shortEventsResult.elements.map((e) => ({ event: e, isGhost: false }))
+			const longEvents = longEventsResult.map((e) => ({ event: e, isGhost: false }))
+
+			if (shortEvents.length > 0) {
+				shortEvents.push({
+					event: createCalendarEvent({
+						...shortEvents[0].event,
+						_id: [getListId(shortEvents[0].event), "bar"],
+						summary: "I'm a ghost uuuuuu",
+						description: "Ghost event, nothing to see",
+						startTime: new Date(),
+						endTime: new Date(2025, 9, 2, 16, 0, 0),
+						location: "",
+						uid: "A-shit-uid",
+						hashedUid: null,
+						sequence: "0",
+						invitedConfidentially: null,
+						recurrenceId: null,
+						repeatRule: null,
+						alarmInfos: [],
+						attendees: [],
+						organizer: null,
+					} as Stripped<CalendarEvent>),
+					isGhost: true,
+				})
+			}
+
+			console.log("WHOWWWW", shortEvents)
+
 			calendars.push({
-				short: shortEventsResult.elements,
-				long: longEventsResult,
+				short: shortEvents,
+				long: longEvents,
 			})
 		}
-		const newEvents = new Map<number, Array<CalendarEvent>>(Array.from(daysToEvents.entries()).map(([day, events]) => [day, events.slice()]))
+		const newEvents = new Map<number, Array<EventRenderWrapper>>(Array.from(daysToEvents.entries()).map(([day, events]) => [day, events.slice()]))
 
 		// Generate events occurrences per calendar to avoid calendars flashing in the screen
 		for (const calendar of calendars) {
@@ -167,8 +203,8 @@ export class CalendarFacade {
 	}
 
 	private generateEventOccurrences(
-		eventMap: Map<number, CalendarEvent[]>,
-		events: CalendarEvent[],
+		eventMap: Map<number, EventRenderWrapper[]>,
+		events: EventRenderWrapper[],
 		range: CalendarTimeRange,
 		zone: string,
 		overwriteRange: boolean,
@@ -177,9 +213,9 @@ export class CalendarFacade {
 			// Overrides end of range to prevent events from being truncated. Generating them until the end of the event
 			// instead of the original end guarantees that the event will be fully displayed. This WILL NOT end in an
 			// endless loop, because short events last a maximum of two weeks.
-			const generationRange = overwriteRange ? { ...range, end: e.endTime.getTime() } : range
+			const generationRange = overwriteRange ? { ...range, end: e.event.endTime.getTime() } : range
 
-			if (e.repeatRule) {
+			if (e.event.repeatRule) {
 				addDaysForRecurringEvent(eventMap, e, generationRange, zone)
 			} else {
 				addDaysForEventInstance(eventMap, e, generationRange, zone)

@@ -71,10 +71,15 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 
+export type EventRenderWrapper = {
+	event: CalendarEvent
+	isGhost: boolean
+}
+
 export type EventsOnDays = {
 	days: Array<Date>
-	shortEventsPerDay: Array<Array<CalendarEvent>>
-	longEvents: Array<CalendarEvent>
+	shortEventsPerDay: Array<Array<EventRenderWrapper>>
+	longEvents: Array<EventRenderWrapper>
 }
 
 /** container to for the information needed to render & handle a reschedule with drag-and-drop */
@@ -114,7 +119,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private _hiddenCalendars: Set<Id>
 	/** Events that have been dropped but still need to be rendered as temporary while waiting for entity updates. */
 	// visible for tests
-	readonly _transientEvents: Array<CalendarEvent>
+	readonly _transientEvents: Array<EventRenderWrapper>
 	// visible for tests
 	_draggedEvent: DraggedEvent | null = null
 	private readonly _redrawStream: Stream<void> = stream()
@@ -225,10 +230,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 
 		const date = this.selectedDate().getTime()
-		const event = this.eventsForDays.get(date)?.find((ev) => isSameId(ev._id, id))
+		const event = this.eventsForDays.get(date)?.find((ev) => isSameId(ev.event._id, id))
 
 		if (event) {
-			return this.updatePreviewedEvent(event)
+			return this.updatePreviewedEvent(event.event) // FIXME ...
 		}
 
 		return Promise.resolve()
@@ -293,10 +298,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 			if (this.previewedEventId != null) {
 				const date = this.selectedDate().getTime()
-				const event = this.eventsForDays.get(date)?.find((ev) => isSameId(ev._id, this.previewedEventId))
+				const event = this.eventsForDays.get(date)?.find((ev) => isSameId(ev.event._id, this.previewedEventId))
 
 				if (event) {
-					this.updatePreviewedEvent(event)
+					this.updatePreviewedEvent(event.event) // FIXME do i have to say?
 				}
 			}
 		}
@@ -430,8 +435,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._draggedEvent = null
 	}
 
-	get temporaryEvents(): Array<CalendarEvent> {
-		return this._transientEvents.concat(this._draggedEvent ? [this._draggedEvent.eventClone] : [])
+	get temporaryEvents(): Array<EventRenderWrapper> {
+		return this._transientEvents.concat(this._draggedEvent ? [{ event: this._draggedEvent.eventClone, isGhost: false }] : [])
 	}
 
 	setHiddenCalendars(newHiddenCalendars: Set<Id>) {
@@ -464,40 +469,41 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		// this means we can't use a set to deduplicate these.
 
 		/** A map from event id and start time to the event instance. It is not enough to just use an id because different occurrences will have the same id. */
-		const longEvents: Map<string, CalendarEvent> = new Map()
-		let shortEvents: Array<Array<CalendarEvent>> = []
+		const longEvents: Map<string, EventRenderWrapper> = new Map()
+		let shortEvents: Array<Array<EventRenderWrapper>> = []
 		// It might be the case that a UID is shared by events across calendars, so we need to differentiate them by list ID aswell
 		const transientEventUidsByCalendar = groupByAndMapUniquely(
 			this._transientEvents,
-			(event) => getListId(event),
-			(event) => event.uid,
+			(event) => getListId(event.event),
+			(event) => event.event.uid,
 		)
 
-		const sortEvent = (event: CalendarEvent, shortEventsForDay: Array<CalendarEvent>) => {
-			if (isAllDayEvent(event) || getDiffIn60mIntervals(event.startTime, event.endTime) >= 24) {
-				longEvents.set(getElementId(event) + event.startTime.toString(), event)
+		const sortEvent = (event: EventRenderWrapper, shortEventsForDay: Array<EventRenderWrapper>) => {
+			if (isAllDayEvent(event.event) || getDiffIn60mIntervals(event.event.startTime, event.event.endTime) >= 24) {
+				longEvents.set(getElementId(event.event) + event.event.startTime.toString(), event)
 			} else {
-				shortEventsForDay.push(event)
+				shortEventsForDay.push(event) // FIXME Get rid of event.event
 			}
 		}
 
 		for (const day of days) {
-			const shortEventsForDay: CalendarEvent[] = []
-			const eventsForDay = this.eventsRepository.getEventsForMonths()().get(day.getTime()) || []
+			const shortEventsForDay: EventRenderWrapper[] = []
+			const eventsForDay: ReadonlyArray<EventRenderWrapper> = this.eventsRepository.getEventsForMonths()().get(day.getTime()) || []
 
 			for (const event of eventsForDay) {
-				if (transientEventUidsByCalendar.get(getListId(event))?.has(event.uid)) {
+				if (transientEventUidsByCalendar.get(getListId(event.event))?.has(event.event.uid)) {
+					// FIXME get rid of event.event
 					continue
 				}
 
-				if (this._draggedEvent?.originalEvent !== event && shouldDisplayEvent(event, this._hiddenCalendars)) {
+				if (this._draggedEvent?.originalEvent !== event.event && shouldDisplayEvent(event.event, this._hiddenCalendars)) {
 					// this is not the dragged event (not rendered) and does not belong to a hidden calendar, so we should render it.
 					sortEvent(event, shortEventsForDay)
 				}
 			}
 
 			for (const event of this._transientEvents) {
-				if (isEventBetweenDays(event, day, day, this.timeZone)) {
+				if (isEventBetweenDays(event.event, day, day, this.timeZone)) {
 					sortEvent(event, shortEventsForDay)
 				}
 			}
@@ -505,7 +511,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			const temporaryEvent = this._draggedEvent?.eventClone
 
 			if (temporaryEvent && isEventBetweenDays(temporaryEvent, day, day, this.timeZone)) {
-				sortEvent(temporaryEvent, shortEventsForDay)
+				sortEvent({ event: temporaryEvent, isGhost: false }, shortEventsForDay)
 			}
 
 			shortEvents.push(shortEventsForDay)
@@ -524,11 +530,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	_addTransientEvent(event: CalendarEvent) {
-		this._transientEvents.push(event)
+		this._transientEvents.push({ event, isGhost: false })
 	}
 
 	_removeTransientEvent(event: CalendarEvent) {
-		findAndRemove(this._transientEvents, (transient) => transient.uid === event.uid)
+		findAndRemove(this._transientEvents, (transient) => transient.event.uid === event.uid)
 	}
 
 	/**
@@ -592,7 +598,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				end: getStartOfDayWithZone(event.startTime, event.repeatRule!.timeZone).getTime(),
 			}
 			const occurrencesPerDay = new Map()
-			addDaysForRecurringEvent(occurrencesPerDay, progenitor, generationRange, newEventModel.editModels.whenModel.zone)
+			addDaysForRecurringEvent(occurrencesPerDay, { event: progenitor, isGhost: false }, generationRange, newEventModel.editModels.whenModel.zone)
 
 			const occurrencesLeft =
 				newEventModel.editModels.whenModel.repeatEndOccurrences -
@@ -690,9 +696,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 						}
 					}
 				}
-				const transientEvent = this._transientEvents.find((transientEvent) => isSameId(transientEvent._id, eventId))
+				const transientEvent = this._transientEvents.find((transientEvent) => isSameId(transientEvent.event._id, eventId))
 				if (transientEvent) {
-					this._removeTransientEvent(transientEvent)
+					this._removeTransientEvent(transientEvent.event)
 					this.doRedraw()
 				}
 			} else if (isUpdateForTypeRef(ContactTypeRef, update) && this.isNewPaidPlan) {
