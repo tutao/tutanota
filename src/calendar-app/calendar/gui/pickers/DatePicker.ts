@@ -51,6 +51,7 @@ export interface DatePickerAttrs {
  */
 export class DatePicker implements Component<DatePickerAttrs> {
 	private inputText: string = ""
+	private inputDate: Date | null = null
 	private showingDropdown: boolean = false
 	private domInput: HTMLElement | null = null
 	private documentInteractionListener: ((e: MouseEvent) => unknown) | null = null
@@ -101,7 +102,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						},
 						value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
 						oninput: (event: InputEvent) => {
-							this.handleNativeInput(event.target as HTMLInputElement, onDateSelected)
+							this.handleNativeInput((event.target as HTMLInputElement).valueAsDate, onDateSelected)
 						},
 					})
 				: null,
@@ -302,9 +303,18 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			// On iOS we use "onfocusout" instead of "oninput" because the native date picker changes the input immediately, triggering an "oninput" event.
 			// And tapping "done" has the same effect as tapping outside the picker, it only closes the picker.
 			// Note that "onfocusout" firing on picker opening and closing only happens on iOS.
-			[isIOSApp() ? "onfocusout" : "oninput"]: ({ target }: { target: HTMLInputElement }) => {
-				this.handleNativeInput(target, onDateSelected)
-			},
+			onfocusout: isIOSApp()
+				? ({ target }: { target: HTMLInputElement }) => {
+						this.handleNativeInput(this.inputDate, onDateSelected)
+					}
+				: noOp,
+			oninput: isIOSApp()
+				? ({ target }: { target: HTMLInputElement }) => {
+						this.inputDate = target.valueAsDate
+					}
+				: ({ target }: { target: HTMLInputElement }) => {
+						this.handleNativeInput(target.valueAsDate, onDateSelected)
+					},
 		})
 	}
 
@@ -347,10 +357,10 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		return this.handleEscapePress(key)
 	}
 
-	private handleNativeInput(inputElement: HTMLInputElement, onDateSelected: (date: Date) => unknown) {
+	private handleNativeInput(htmlDate: Date | null, onDateSelected: (date: Date) => unknown) {
 		// valueAsDate is always 00:00 UTC
 		// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
-		const htmlDate = inputElement.valueAsDate
+		// const htmlDate = inputElement.valueAsDate
 		// It can be null if user clicks "clear". Ignore it.
 		if (htmlDate != null) {
 			this.handleSelectedDate(getAllDayDateLocal(htmlDate), onDateSelected)
