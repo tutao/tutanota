@@ -166,7 +166,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				m(SettingsFolderRow, {
 					mainButtonAttrs: {
 						label: lang.makeTranslation("asdf", () => "Home"), // TODO
-						icon: () => Icons.Desktop,
+						icon: () => Icons.Drive,
 						href: "/drive",
 						colors: NavButtonColor.Nav,
 						click: () => {},
@@ -176,7 +176,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				m(SettingsFolderRow, {
 					mainButtonAttrs: {
 						label: lang.makeTranslation("asdf2", () => "Favourites"), // TODO
-						icon: () => Icons.Gift,
+						icon: () => Icons.Heart,
 						href: "/drive", // TODO
 						colors: NavButtonColor.Nav,
 						click: () => {},

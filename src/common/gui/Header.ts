@@ -90,7 +90,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 			locator.logins.isInternalUserLoggedIn()
 				? m(NavButton, {
 						label: lang.makeTranslation("drive_label", () => "Drive"),
-						icon: () => Icons.Desktop,
+						icon: () => Icons.Drive,
 						href: DRIVE_PREFIX,
 						colors: NavButtonColor.Header,
 						click: () => m.route.get().startsWith(DRIVE_PREFIX),
