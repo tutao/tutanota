@@ -2105,3 +2105,4 @@ export type TranslationKeyType =
 	| "confirmOverwriteDraft_msg"
 	| "overwrite_action"
 	| "confirmCreateNewDraftOverAutosavedDraft_msg"
+	| "mailExportLimitReached_msg"
