@@ -37,6 +37,7 @@ export type SpamTrainMailDatum = {
 	body: string
 	isSpam: boolean
 	importance: number
+	ownerGroup: Id
 }
 
 export type SpamPredMailDatum = {
