@@ -42,6 +42,10 @@ export class RolloutFacade {
 		return (await this.rolloutActions.getAsync()).keys()
 	}
 
+	public async postponeRollout(rolloutType: RolloutType) {
+		;(await this.rolloutActions.getAsync()).delete(rolloutType)
+	}
+
 	/**
 	 * Configures an action to execute for a given RolloutType.
 	 *

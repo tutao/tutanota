@@ -310,8 +310,8 @@ export class LoginFacade {
 		}
 		this.triggerPartialLoginSuccess(sessionType, cacheInfo, credentials).finally(() => this.triggerFullLoginSuccess(sessionType, cacheInfo, credentials))
 
-		if (modernKdfType && sessionType !== SessionType.Temporary) {
-			await this.initializeClientRollouts(userPassphraseKey)
+		if (sessionType !== SessionType.Temporary) {
+			await this.initializeClientRollouts(userPassphraseKey, modernKdfType)
 		}
 
 		return {
@@ -325,7 +325,7 @@ export class LoginFacade {
 		}
 	}
 
-	private async initializeClientRollouts(userPassphraseKey: AesKey) {
+	private async initializeClientRollouts(userPassphraseKey: AesKey, ismodernKdfType: boolean) {
 		// configure key rotation rollouts. For admin group key or user group key rotation we need access to the password key.
 		// We bind this here to the rollout action. The actual key rotation is then executed after the client is synchronized.
 		if (!isAdminClient()) {
@@ -333,10 +333,15 @@ export class LoginFacade {
 			for (const rolloutType of rollouts) {
 				// the server will schedule either one or the other, but not both at the same time
 				if (rolloutType === RolloutType.AdminOrUserGroupKeyRotation || rolloutType === RolloutType.OtherGroupKeyRotation) {
-					await this.rolloutFacade.configureRollout(
-						rolloutType,
-						new KeyRotationRolloutAction(this.keyRotationFacade, this.userFacade, rolloutType, userPassphraseKey),
-					)
+					if (ismodernKdfType) {
+						await this.rolloutFacade.configureRollout(
+							rolloutType,
+							new KeyRotationRolloutAction(this.keyRotationFacade, this.userFacade, rolloutType, userPassphraseKey),
+						)
+					} else {
+						// If we have not migrated to argon2 we postpone key rotation until next login.
+						await this.rolloutFacade.postponeRollout(rolloutType)
+					}
 				}
 			}
 		}
@@ -753,9 +758,8 @@ export class LoginFacade {
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
 
-		if (modernKdfType) {
-			await this.initializeClientRollouts(userPassphraseKey)
-		}
+		await this.initializeClientRollouts(userPassphraseKey, modernKdfType)
+
 		return { type: "success", data, asyncResumeCompleted: null }
 	}
 
