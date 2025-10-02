@@ -5,7 +5,18 @@ import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/C
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, clone, filterNull, getHourOfDay, getStartOfDay, isNotEmpty, isNotNull, partition, stringToBase64 } from "@tutao/tutanota-utils"
+import {
+	base64ToBase64Url,
+	clone,
+	filterNull,
+	getHourOfDay,
+	getStartOfDay,
+	isNotEmpty,
+	isNotNull,
+	isSameDay,
+	partition,
+	stringToBase64,
+} from "@tutao/tutanota-utils"
 import {
 	EventConflictRenderPolicy,
 	TIME_SCALE_BASE_VALUE,
@@ -17,7 +28,7 @@ import {
 	TimeViewEventWrapper,
 } from "../../../common/calendar/gui/TimeView"
 import { Time } from "../../../common/calendar/date/Time"
-import { isLightTheme, theme } from "../../../common/gui/theme"
+import { theme } from "../../../common/gui/theme"
 import { styles } from "../../../common/gui/styles"
 import { px, size } from "../../../common/gui/size"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
@@ -33,6 +44,8 @@ import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
 import type { EventBannerAttrs } from "../../mail/view/EventBanner"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../common/gui/base/ExpandableTextArea.js"
+import { ExpanderPanel } from "../../../common/gui/base/Expander.js"
+import { formatDateTime, formatTime } from "../../../common/misc/Formatter.js"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
@@ -44,6 +57,7 @@ export interface InviteAgenda {
 	after: TimeViewEventWrapper | null
 	main: TimeViewEventWrapper
 	allDayEvents: Array<TimeViewEventWrapper>
+	regularEvents: Array<TimeViewEventWrapper>
 	existingEvent?: CalendarEvent
 	conflictCount: number
 }
@@ -51,6 +65,7 @@ export interface InviteAgenda {
 export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	private agenda: Map<string, InviteAgenda> | null = null
 	private comment: string = ""
+	private displayConflictingAgenda: boolean = false
 
 	oncreate({ attrs }: VnodeDOM<EventBannerImplAttrs>) {
 		Promise.resolve().then(async () => {
@@ -105,7 +120,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.before.event)
 		}
 		if (!agenda?.before && agenda?.after) {
-			if (!agenda?.before?.conflictsWithMainEvent && agenda?.after?.conflictsWithMainEvent) {
+			if (agenda?.after?.conflictsWithMainEvent) {
 				eventFocusBound = agenda.after.event.startTime
 			}
 			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
@@ -120,8 +135,6 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			start: timeRangeStart,
 			end: timeRangeStartEnd,
 		}
-
-		const bannerColor = isLightTheme() ? theme.secondary : theme.surface
 
 		/* Event Banner */
 		return m(
@@ -189,32 +202,45 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 								},
 							},
 							[
-								m(".flex.flex-column.mb-s", [
-									m(".flex", [
-										m(Icon, {
-											icon: Icons.Time,
-											container: "div",
-											class: "mr-xsm mt-xxs",
-											style: { fill: theme.on_surface },
-											size: IconSize.Medium,
-										}),
-										m("span.b.h5", lang.get("timeOverview_title")),
-									]),
-									agenda
-										? m(".flex.mt-hpad-small", [
-												m(Icon, {
-													icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
-													container: "div",
-													class: "mr-xsm",
-													style: {
-														fill: hasConflict ? theme.warning : theme.success,
-													}, // TODO [colors] Use new material like colors tokens
-													size: IconSize.Medium,
-												}),
-												this.renderConflictInfoText(agenda.conflictCount, agenda.allDayEvents),
-											])
-										: null,
-								]),
+								m(
+									".flex.flex-column.mb-s",
+									{
+										class: agenda && agenda.conflictCount > 1 ? "nav-button" : undefined,
+										onclick: () =>
+											agenda && agenda.conflictCount > 1 ? (this.displayConflictingAgenda = !this.displayConflictingAgenda) : null,
+									},
+									[
+										m(".flex", [
+											m(Icon, {
+												icon: Icons.Time,
+												container: "div",
+												class: "mr-xsm mt-xxs",
+												style: { fill: theme.on_surface },
+												size: IconSize.Medium,
+											}),
+											m("span.b.h5", lang.get("timeOverview_title")),
+										]),
+										agenda
+											? m(".flex.mt-hpad-small", [
+													m(Icon, {
+														icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
+														container: "div",
+														class: "mr-xsm",
+														style: {
+															fill: hasConflict ? theme.warning : theme.success,
+														},
+														size: IconSize.Medium,
+													}),
+													this.renderConflictInfoText(
+														agenda.conflictCount,
+														event.startTime,
+														agenda.allDayEvents,
+														agenda.regularEvents,
+													),
+												])
+											: null,
+									],
+								),
 								agenda
 									? m(TimeView, {
 											events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
@@ -233,34 +259,90 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		)
 	}
 
-	private renderConflictInfoText(conflictCount: number, allDayEvents: Array<TimeViewEventWrapper>) {
+	private renderConflictInfoText(
+		conflictCount: number,
+		eventDate: Date,
+		allDayEvents: Array<TimeViewEventWrapper>,
+		conflictingRegularEvents?: Array<TimeViewEventWrapper>,
+	) {
 		const hasOnlyAllDayConflicts = conflictCount > 0 && conflictCount === allDayEvents.length
-		return m(
-			".small.flex.gap-vpad-xs-15.items-center",
-			{
-				style: {
-					"line-height": px(19.5),
+		return m(".mb-s", [
+			m(
+				".small.flex.gap-vpad-xs-15.items-center",
+				{
+					style: {
+						"line-height": px(19.5),
+					},
 				},
-			},
-			[
-				!hasOnlyAllDayConflicts
-					? m(
-							"span",
-							conflictCount > 0 ? [m("strong", conflictCount), ` ${lang.get("simultaneousEvents_msg")}`] : lang.get("noSimultaneousEvents_msg"),
-						)
-					: null,
-				isNotEmpty(allDayEvents)
-					? m(
-							"span.border-radius.pt-xxs.pb-xxs.plr-sm.text-break",
-							{ style: { color: theme.on_warning_container, "background-color": theme.warning_container } },
-							[
-								m("strong", allDayEvents.length === 1 ? `1 ${lang.get("allDay_label").toLowerCase()}: ` : `${allDayEvents.length} `),
-								allDayEvents.length === 1 ? allDayEvents[0].event.summary : lang.get("allDay_label").toLowerCase(),
-							],
-						)
-					: null,
-			],
-		)
+				[
+					!hasOnlyAllDayConflicts
+						? m(
+								"span",
+								conflictCount > 0
+									? [m("strong", conflictCount), ` ${lang.get("simultaneousEvents_msg")}`]
+									: lang.get("noSimultaneousEvents_msg"),
+							)
+						: null,
+					isNotEmpty(allDayEvents)
+						? m(
+								"span.border-radius.pt-xxs.pb-xxs.plr-sm.text-break",
+								{ style: { color: theme.on_warning_container, "background-color": theme.warning_container } },
+								[
+									m("strong", allDayEvents.length === 1 ? `1 ${lang.get("allDay_label").toLowerCase()}: ` : `${allDayEvents.length} `),
+									allDayEvents.length === 1 ? allDayEvents[0].event.summary : lang.get("allDay_label").toLowerCase(),
+								],
+							)
+						: null,
+				],
+			),
+			m(
+				ExpanderPanel,
+				{
+					expanded: this.displayConflictingAgenda,
+				},
+				m(".selectable.mt-xs", [
+					allDayEvents.map((l) => this.buildConflictingEventInfoText(eventDate, l)),
+					conflictingRegularEvents?.map((l) => this.buildConflictingEventInfoText(eventDate, l)),
+				]),
+			),
+		])
+	}
+
+	private getTimeParts(referenceDate: Date, eventWrapper: TimeViewEventWrapper): Array<string> {
+		if (isAllDayEvent(eventWrapper.event)) {
+			return [lang.getTranslationText("allDay_label")]
+		}
+
+		const timeParts: Array<string> = []
+
+		if (isSameDay(referenceDate, eventWrapper.event.startTime)) {
+			timeParts.push(formatTime(eventWrapper.event.startTime))
+		} else {
+			timeParts.push(formatDateTime(eventWrapper.event.startTime))
+		}
+
+		if (isSameDay(referenceDate, eventWrapper.event.endTime)) {
+			timeParts.push(formatTime(eventWrapper.event.endTime))
+		} else {
+			timeParts.push(formatDateTime(eventWrapper.event.endTime))
+		}
+
+		return timeParts
+	}
+
+	private buildConflictingEventInfoText(referenceDate: Date, eventWrapper: TimeViewEventWrapper) {
+		console.log(eventWrapper.color)
+		return m(".flex.items-center", [
+			m(".icon-small.circle", {
+				style: {
+					backgroundColor: eventWrapper.color,
+				},
+			}),
+			m(".flex.items-center.ml-xsm", [
+				m(".small.selectable.faded-text", `${eventWrapper.event.summary}:`),
+				m(".small.selectable.faded-text.b.ml-s", this.getTimeParts(referenceDate, eventWrapper).join(" - ")),
+			]),
+		])
 	}
 
 	private buildReplySection(
@@ -481,6 +563,12 @@ export async function loadEventsAroundInvite(
 			})),
 			existingEvent: currentExistingEvent,
 			conflictCount: conflictingNormalEvents.length + allDayAndLongEvents.length,
+			regularEvents: conflictingNormalEvents.map((event) => ({
+				event,
+				conflictsWithMainEvent: true,
+				color: `#${getEventColor(event, groupColors)}`,
+				featured: false,
+			})),
 		}
 
 		const oneHour = SECOND_MS * 3600
