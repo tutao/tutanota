@@ -39,6 +39,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Date
 
 class WidgetUIViewModel(
@@ -46,7 +47,8 @@ class WidgetUIViewModel(
 	private val widgetId: Int,
 	private val credentialsFacade: NativeCredentialsFacade,
 	private val cryptoFacade: AndroidNativeCryptoFacade,
-	private val sdk: Sdk?
+	private val sdk: Sdk?,
+	private val calendar: Calendar
 ) : ViewModel() {
 	private val _uiState = MutableStateFlow<WidgetUIData?>(null)
 	val uiState: StateFlow<WidgetUIData?> = _uiState.asStateFlow()
@@ -58,14 +60,15 @@ class WidgetUIViewModel(
 		private const val TAG = "WidgetUIViewModel"
 	}
 
-	suspend fun loadUIState(context: Context): WidgetUIData? {
+	suspend fun loadUIState(context: Context, now: LocalDateTime): WidgetUIData? {
 		val allDayEvents: HashMap<Long, List<UIEvent>> = HashMap()
 		val normalEvents: HashMap<Long, List<UIEvent>> = HashMap()
 
 		val zone = ZoneId.systemDefault()
-		val todayMidnight = LocalDate.now(zone).atStartOfDay(zone).toInstant()
-		val tomorrowMidnight = LocalDate.now(zone)
+		val todayMidnight = now.toLocalDate().atStartOfDay(zone).toInstant()
+		val tomorrowMidnight = now
 			.plusDays(1)
+			.toLocalDate()
 			.atStartOfDay(zone)
 			.toInstant()
 
@@ -134,7 +137,7 @@ class WidgetUIViewModel(
 				repository.loadEvents(context, widgetId, calendars, credentials, cryptoFacade)
 			}
 
-		val startOfToday = midnightInDate(ZoneId.systemDefault(), LocalDateTime.now())
+		val startOfToday = midnightInDate(ZoneId.systemDefault(), now)
 		normalEvents[startOfToday] = listOf() // The first day should always be included even if there are no events
 		allDayEvents[startOfToday] = listOf()
 
@@ -250,14 +253,13 @@ class WidgetUIViewModel(
 			Log.d(TAG, "Calendars loaded successfully!")
 		} catch (e: LoginException.ApiCall) {
 			// Failed to login into SDK, probably because of connection issues
-			Log.w(TAG, "Calendar colors could not be loaded. Falling back to cached values.", e)
+			Log.e(TAG, "Calendar colors could not be loaded due credential issues. Falling back to cached values.", e)
 		} catch (e: IOException) {
-			// We couldn't load widget settings, so we must show an error to User
-			_error.value = WidgetError(
-				"Error writing to DataStore (WidgetId $widgetId)",
-				e.stackTraceToString(),
-				WidgetErrorType.UNEXPECTED
-			)
+			// We couldn't store widget settings, so calendar colors will stay cached
+			Log.e(TAG, "Failed to store calendar colors. Falling back to cached values.", e)
+		} catch (e: Exception) {
+			// Something else happened, we catch here to continue loading events with cached calendar values
+			Log.e(TAG, "Failed to retrieve calendar colors. Falling back to cached values.", e)
 		}
 	}
 
