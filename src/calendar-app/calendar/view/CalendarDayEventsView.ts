@@ -133,6 +133,7 @@ export class CalendarDayEventsView implements Component<Attrs> {
 				text: eventTitle,
 				secondLineText: mapNullable(getTimeTextFormatForLongEvent(ev.event, attrs.day, attrs.day, zone), (option) => formatEventTime(ev.event, option)),
 				color: getEventColor(ev.event, attrs.groupColors, ev.isGhost),
+				border: ev.isGhost ? `2px dashed #${getEventColor(ev.event, attrs.groupColors)}` : undefined,
 				click: (domEvent) => attrs.onEventClicked(ev.event, domEvent),
 				keyDown: (domEvent) => attrs.onEventKeyDown(ev.event, domEvent),
 				height: height - size.calendar_day_event_padding,

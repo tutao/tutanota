@@ -46,6 +46,7 @@ import { Time } from "../../../common/calendar/date/Time.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { isModifierKeyPressed } from "../../../common/misc/KeyManager.js"
+import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date
@@ -376,7 +377,8 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 										day: weekday,
 										setCurrentDraggedEvent: (event) => this.startEventDrag(event),
 										setTimeUnderMouse: (time) => (this.dateUnderMouse = combineDateWithTime(weekday, time)),
-										isTemporaryEvent: (event) => attrs.temporaryEvents.includes(event),
+										isTemporaryEvent: (event) =>
+											attrs.temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, event.event)),
 										isDragging: this.eventDragHandler.isDragging,
 										fullViewWidth: this.viewDom?.getBoundingClientRect().width,
 										disabled: !isMainView,
@@ -606,7 +608,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 					groupColors,
 					(_, domEvent) => onEventClicked(wrapper.event, domEvent),
 					(_, domEvent) => onEventKeyDown(wrapper.event, domEvent),
-					temporaryEvents.includes(wrapper),
+					temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, wrapper.event)),
 				)
 			}),
 		)
@@ -676,7 +678,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 								groupColors,
 								onEventClicked,
 								onEventKeyDown,
-								temporaryEvents.includes(wrapper),
+								temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, wrapper.event)),
 							),
 						)
 					}),
@@ -707,7 +709,8 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			event,
 			startsBefore,
 			endsAfter,
-			color: getEventColor(event.event, groupColors),
+			color: getEventColor(event.event, groupColors, event.isGhost),
+			border: event.isGhost ? `2px dashed #${getEventColor(event.event, groupColors)}` : undefined,
 			onEventClicked,
 			onEventKeyDown: onEventKeyDown,
 			showTime,

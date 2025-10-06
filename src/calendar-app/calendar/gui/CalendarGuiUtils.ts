@@ -82,7 +82,7 @@ import { UserController } from "../../../common/api/main/UserController.js"
 import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
-import { isDarkTheme } from "../../../common/gui/theme.js"
+import { isDarkTheme, isLightTheme } from "../../../common/gui/theme.js"
 import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
 import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
@@ -871,7 +871,8 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 
 export function getEventColor(event: CalendarEvent, groupColors: GroupColors, isGhost: boolean = false): string {
 	const color = (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? defaultCalendarColor
-	return `${color}${isGhost ? "AA" : "FF"}`
+	const alpha = isGhost ? (isLightTheme() ? "AA" : "7F") : "FF"
+	return `${color}${alpha}`
 }
 
 export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): string {

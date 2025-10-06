@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
@@ -19,6 +18,7 @@ export interface CalendarAgendaItemViewAttrs {
 	selected?: boolean
 	height?: number
 	id: string
+	border?: string
 }
 
 export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewAttrs> {
@@ -26,7 +26,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 
 	view({ attrs }: Vnode<CalendarAgendaItemViewAttrs>): Children {
 		const eventTitle = getDisplayEventTitle(attrs.event.event.summary)
-
+		console.log({ attrs })
 		return m(
 			".flex.items-center.click.plr.border-radius.pt-s.pb-s.rel.limit-width.full-width",
 			{
@@ -42,6 +42,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 					transition: `background ${DefaultAnimationTime}ms`,
 					background: CalendarAgendaItemView.getBackground(attrs.selected ?? false, this.isFocused),
 					height: attrs.height ? px(attrs.height) : undefined,
+					border: attrs.border,
 				},
 			},
 			[

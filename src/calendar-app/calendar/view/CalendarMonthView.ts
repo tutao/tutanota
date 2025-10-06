@@ -17,7 +17,6 @@ import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../../common/gui/styles"
 import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
-import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
 import { EventDragHandler } from "./EventDragHandler"
@@ -46,6 +45,7 @@ import { isAppleDevice, isIOSApp } from "../../../common/api/common/Env"
 import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { isModifierKeyPressed, Key } from "../../../common/misc/KeyManager.js"
+import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -488,7 +488,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		attrs: CalendarMonthAttrs,
 		isDisabled: boolean,
 	): Children {
-		const isTemporary = attrs.temporaryEvents.includes(event)
+		const isTemporary = attrs.temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, event.event))
 		return m(
 			".abs.overflow-hidden",
 			{
@@ -513,7 +513,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				event: event,
 				startsBefore: eventStart < firstDayOfWeek,
 				endsAfter: firstDayOfNextWeek <= eventEnd,
-				color: getEventColor(event.event, attrs.groupColors),
+				color: getEventColor(event.event, attrs.groupColors, event.isGhost),
+				border: event.isGhost ? `2px dashed #${getEventColor(event.event, attrs.groupColors)}` : undefined,
 				showTime: styles.isDesktopLayout() && !isAllDayEvent(event.event) ? EventTextTimeOption.START_TIME : null,
 				user: locator.logins.getUserController().user,
 				onEventClicked: (e, domEvent) => {

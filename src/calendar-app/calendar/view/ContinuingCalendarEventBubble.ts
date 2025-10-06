@@ -12,6 +12,7 @@ type ContinuingCalendarEventBubbleAttrs = {
 	startsBefore: boolean
 	endsAfter: boolean
 	color: string
+	border?: string
 	onEventClicked: CalendarEventBubbleClickHandler
 	onEventKeyDown: CalendarEventBubbleKeyDownHandler
 	showTime: EventTextTimeOption | null
@@ -41,6 +42,7 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 				m(CalendarEventBubble, {
 					text: (attrs.showTime != null ? formatEventTime(attrs.event.event, attrs.showTime) + " " : "") + eventTitle,
 					color: attrs.color,
+					border: attrs.border,
 					click: (e) => attrs.onEventClicked(attrs.event.event, e),
 					keyDown: (e) => attrs.onEventKeyDown(attrs.event.event, e),
 					noBorderLeft: attrs.startsBefore,

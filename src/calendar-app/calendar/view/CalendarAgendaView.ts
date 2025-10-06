@@ -2,7 +2,7 @@ import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { base64ToBase64Url, incrementDate, isSameDay, stringToBase64 } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getTimeZone, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils"
-import { CalendarEvent, Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, EventRenderWrapper } from "./CalendarViewModel"
 import { styles } from "../../../common/gui/styles.js"
@@ -359,12 +359,14 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				return sibling
 			}
 
+			const eventColor = getEventColor(event.event, colors)
 			eventsNodes.push(
 				m(CalendarAgendaItemView, {
 					key: getListId(event.event) + getElementId(event.event) + event.event.startTime.toISOString(),
 					id: base64ToBase64Url(stringToBase64(event.event._id.join("/"))),
 					event: event,
-					color: getEventColor(event.event, colors),
+					color: eventColor,
+					border: event.isGhost ? `2px dashed #${eventColor}` : undefined,
 					selected: event.event === (modelPromise as CalendarEventPreviewViewModel)?.calendarEvent,
 					click: (domEvent) => click(event.event, domEvent),
 					keyDown: (domEvent) => {
