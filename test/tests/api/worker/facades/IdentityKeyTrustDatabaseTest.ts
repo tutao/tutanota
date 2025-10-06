@@ -108,9 +108,29 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 
 			// @formatter:off
 			const query =
-				"\n\t\t\tINSERT INTO identity_store (mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust)\n\t\t\tVALUES (?, ?, ?, ?, ?)"
+				"\n\t\t\tINSERT INTO identity_store (mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust)\n\t\t\tSELECT ?,\n\t\t\t\t?,\n\t\t\t\t?,\n\t\t\t\t?,\n\t\t\t\t?\n\t\t\tWHERE NOT EXISTS\n\t\t\t(SELECT 1 FROM identity_store WHERE mailAddress = ?\n\t\t\t\tAND publicIdentityKey = ?\n\t\t\t\tAND identityKeyVersion = ?\n\t\t\t\tAND identityKeyType = ?\n\t\t\t\tAND sourceOfTrust = ?)"
 			// @formatter:on
 			const params: TaggedSqlValue[] = [
+				{
+					type: SqlType.String,
+					value: TRUSTED_MAIL_ADDRESS,
+				},
+				{
+					type: SqlType.Bytes,
+					value: PUBLIC_KEY_BYTES,
+				},
+				{
+					type: SqlType.Number,
+					value: 0,
+				},
+				{
+					type: SqlType.Number,
+					value: SigningKeyPairType.Ed25519,
+				},
+				{
+					type: SqlType.Number,
+					value: IdentityKeySourceOfTrust.TOFU,
+				},
 				{
 					type: SqlType.String,
 					value: TRUSTED_MAIL_ADDRESS,
