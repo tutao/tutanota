@@ -61,7 +61,6 @@ import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
 	generateCalendarInstancesInRange,
-	getTimeZone,
 	isBirthdayCalendar,
 	isLongEvent,
 } from "../../../../calendar/date/CalendarUtils.js"

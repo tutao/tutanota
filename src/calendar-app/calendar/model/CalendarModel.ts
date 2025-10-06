@@ -323,8 +323,14 @@ export class CalendarModel {
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
 			(await didLongStateChange(newEvent, existingEvent, zone))
 		) {
+			const defaultCalendarGroupRootId = this.logins.getUserController().userSettingsGroupRoot.defaultCalendar
+			if (groupRoot._id === defaultCalendarGroupRootId && listIdPart(existingEvent._id) === groupRoot.pendingEvents) {
+				await this.createPendingEvent(newEvent, groupRoot, newAlarms, existingEvent)
+			} else {
+				await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
+			}
+
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
-			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
 			newEvent._ownerGroup = groupRoot._id
@@ -741,7 +747,12 @@ export class CalendarModel {
 		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent ?? null).then(this.requestWidgetRefresh)
 	}
 
-	private async createPendingEvent(event: CalendarEvent, groupRoot: CalendarGroupRoot, alarmInfos: ReadonlyArray<AlarmInfoTemplate>): Promise<void> {
+	private async createPendingEvent(
+		event: CalendarEvent,
+		groupRoot: CalendarGroupRoot,
+		alarmInfos: ReadonlyArray<AlarmInfoTemplate>,
+		existingEvent: CalendarEvent | null = null,
+	): Promise<void> {
 		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
 		removeTechnicalFields(event)
 
@@ -760,7 +771,7 @@ export class CalendarModel {
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
 
-		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, null)
+		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent)
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
