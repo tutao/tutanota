@@ -2107,3 +2107,6 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "twoFactorRequired_message"
+	| "enforceTwoFactor_title"
+	| "enforceTwoFactor_label"

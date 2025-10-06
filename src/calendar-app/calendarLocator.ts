@@ -950,6 +950,7 @@ class CalendarLocator implements CommonLocator {
 			() => this.showSetupWizard(),
 			() => this.setUpClientOnlyCalendars(),
 			() => this.updateClients(),
+			this.loginFacade,
 		)
 	})
 
