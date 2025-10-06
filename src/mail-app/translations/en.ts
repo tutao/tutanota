@@ -2128,6 +2128,8 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"enforceTwoFactor_title": "Require 2FA for all users",
+        "enforceTwoFactor_label": "Force users to enable two-factor authentication (2FA) upon logging in.",
 	}
 }

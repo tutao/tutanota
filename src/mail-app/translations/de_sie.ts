@@ -2132,6 +2132,9 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"twoFactorRequired_message": "2FA is required (stub)",
+		"enforceTwoFactor_title": "Require 2FA (stub)",
+		"enforceTwoFactor_label": "Make all users enable 2FA (stub)",
 	}
 }
