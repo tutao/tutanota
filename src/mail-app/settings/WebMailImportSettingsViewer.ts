@@ -1,5 +1,4 @@
 import m, { Children } from "mithril"
-import { lazy } from "@tutao/tutanota-utils"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { LoginButton, LoginButtonType } from "../../common/gui/base/buttons/LoginButton"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
