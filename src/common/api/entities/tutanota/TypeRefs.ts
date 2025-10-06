@@ -2582,7 +2582,23 @@ export type DriveUploadedFile = {
 
 	referenceTokens: BlobReferenceTokenWrapper[];
 }
-export const DriveCreateDataTypeRef: TypeRef<DriveCreateData> = new TypeRef("tutanota", 1727)
+export const DriveBreadcrumbEntryTypeRef: TypeRef<DriveBreadcrumbEntry> = new TypeRef("tutanota", 1727)
+
+export function createDriveBreadcrumbEntry(values: StrippedEntity<DriveBreadcrumbEntry>): DriveBreadcrumbEntry {
+    return Object.assign(create(typeModels[DriveBreadcrumbEntryTypeRef.typeId], DriveBreadcrumbEntryTypeRef), values)
+}
+
+export type DriveBreadcrumbEntry = {
+	_type: TypeRef<DriveBreadcrumbEntry>;
+	_original?: DriveBreadcrumbEntry
+
+	_id: Id;
+	ownerEncSessionKey: Uint8Array;
+	encName: Uint8Array;
+
+	folder: IdTuple;
+}
+export const DriveCreateDataTypeRef: TypeRef<DriveCreateData> = new TypeRef("tutanota", 1732)
 
 export function createDriveCreateData(values: StrippedEntity<DriveCreateData>): DriveCreateData {
     return Object.assign(create(typeModels[DriveCreateDataTypeRef.typeId], DriveCreateDataTypeRef), values)
@@ -2597,7 +2613,7 @@ export type DriveCreateData = {
 	parent: null | IdTuple;
 	uploadedFile: DriveUploadedFile;
 }
-export const DriveCreateReturnTypeRef: TypeRef<DriveCreateReturn> = new TypeRef("tutanota", 1731)
+export const DriveCreateReturnTypeRef: TypeRef<DriveCreateReturn> = new TypeRef("tutanota", 1736)
 
 export function createDriveCreateReturn(values: StrippedEntity<DriveCreateReturn>): DriveCreateReturn {
     return Object.assign(create(typeModels[DriveCreateReturnTypeRef.typeId], DriveCreateReturnTypeRef), values)
@@ -2611,7 +2627,7 @@ export type DriveCreateReturn = {
 
 	createdFile: IdTuple;
 }
-export const DriveGetInTypeRef: TypeRef<DriveGetIn> = new TypeRef("tutanota", 1734)
+export const DriveGetInTypeRef: TypeRef<DriveGetIn> = new TypeRef("tutanota", 1739)
 
 export function createDriveGetIn(values: StrippedEntity<DriveGetIn>): DriveGetIn {
     return Object.assign(create(typeModels[DriveGetInTypeRef.typeId], DriveGetInTypeRef), values)
@@ -2625,7 +2641,7 @@ export type DriveGetIn = {
 
 	folder: null | IdTuple;
 }
-export const DriveGetOutTypeRef: TypeRef<DriveGetOut> = new TypeRef("tutanota", 1737)
+export const DriveGetOutTypeRef: TypeRef<DriveGetOut> = new TypeRef("tutanota", 1742)
 
 export function createDriveGetOut(values: StrippedEntity<DriveGetOut>): DriveGetOut {
     return Object.assign(create(typeModels[DriveGetOutTypeRef.typeId], DriveGetOutTypeRef), values)
@@ -2639,4 +2655,5 @@ export type DriveGetOut = {
 
 	subFilesIds: IdTuple[];
 	parent: IdTuple;
+	parents: DriveBreadcrumbEntry[];
 }

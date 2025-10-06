@@ -10,8 +10,28 @@ export interface DriveBreadcrumbAttrs {
 
 export class DriveBreadcrumb implements Component<DriveBreadcrumbAttrs> {
 	view(vnode: Vnode<DriveBreadcrumbAttrs>): Children {
-		const isRoot = vnode.attrs.driveViewModel.currentFolderIsRoot()
+		// const isRoot = vnode.attrs.driveViewModel.currentFolderIsRoot()
+		//
+		// return m("div", isRoot ? "/" : `/${vnode.attrs.driveViewModel.getCurrentFolder().name}`)
 
-		return m("div", isRoot ? "/" : `/${vnode.attrs.driveViewModel.getCurrentFolder().name}`)
+		const parents = vnode.attrs.driveViewModel.getCurrentParents()
+		return m(
+			"div",
+			parents
+				.map((entry, index) => [
+					m("span.plr", "/"),
+					m(
+						"span",
+						{
+							onclick: () => {
+								vnode.attrs.driveViewModel.navigateToFolder(entry.folder)
+							},
+							class: "cursor-pointer",
+						},
+						entry.folderName,
+					),
+				])
+				.flat(),
+		)
 	}
 }

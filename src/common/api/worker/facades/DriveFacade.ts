@@ -9,8 +9,14 @@ import { aes256RandomKey, aesEncrypt } from "@tutao/tutanota-crypto"
 import { _encryptKeyWithVersionedKey } from "../crypto/CryptoWrapper"
 import { FileReference } from "../../common/utils/FileUtils"
 import { DataFile } from "../../common/DataFile"
-import { assertNotNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assertNotNull, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { DriveService } from "../../entities/tutanota/Services"
+import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
+
+export interface BreadcrumbEntry {
+	folderName: string
+	folder: IdTuple
+}
 
 export class DriveFacade {
 	constructor(
@@ -33,7 +39,7 @@ export class DriveFacade {
 		return rootFileIdTuple
 	}
 
-	public async getFolderContents(folderId: IdTuple): Promise<File[]> {
+	public async getFolderContents(folderId: IdTuple): Promise<[File[], BreadcrumbEntry[]]> {
 		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
 		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(fileGroupId)
 
@@ -42,9 +48,20 @@ export class DriveFacade {
 		console.log("DriveGetOut: ", driveGetOut)
 
 		const files = await Promise.all(driveGetOut.subFilesIds.map((idTupple) => this.entityClient.load(FileTypeRef, idTupple)))
+		const parents = driveGetOut.parents
 		console.log(files)
 
-		return files
+		const decryptedNamesAndFiles = parents.map((entry, index) => {
+			if (index > 0) {
+				const key = locator.cryptoWrapper.decryptKey(fileGroupKey.object, entry.ownerEncSessionKey)
+				const currentFolderName = locator.cryptoWrapper.aesDecrypt(key, entry.encName, true)
+
+				return { folderName: utf8Uint8ArrayToString(currentFolderName), folder: entry.folder } as BreadcrumbEntry
+			}
+			return { folderName: "Home", folder: entry.folder }
+		})
+
+		return [files, decryptedNamesAndFiles]
 	}
 
 	// find a better way !
@@ -73,7 +90,7 @@ export class DriveFacade {
 
 		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
 		const sessionKey = aes256RandomKey()
-		const ownerEncSessionKey = _encryptKeyWithVersionedKey(fileGroupKey, sessionKey)
+		const ownerEncSessionKey = locator.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
 		const driveCreateResponses = await Promise.all(
 			files.map(async (f: DataFile) => {
 				const blobRefTokens = await this.blobFacade.encryptAndUpload(
@@ -88,7 +105,7 @@ export class DriveFacade {
 					encFileName: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.name)),
 					encCid: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.cid ?? "")),
 					encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.mimeType)),
-					ownerEncSessionKey: ownerEncSessionKey.key,
+					ownerEncSessionKey: ownerEncSessionKey,
 					_ownerGroup: assertNotNull(ownerGroupId),
 				})
 				const data = createDriveCreateData({ uploadedFile: uploadedFile, parent: to })

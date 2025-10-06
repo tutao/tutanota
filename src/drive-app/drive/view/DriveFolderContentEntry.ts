@@ -18,6 +18,8 @@ export const isFolder = ({ mimeType }: File) => {
 }
 
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
+	private globalIconFill = "transparent"
+
 	view({ attrs: { file, checked, onSelect, driveViewModel } }: m.Vnode<DriveFolderContentEntryAttrs>): Children {
 		const uploadDate = new Date(generatedIdToTimestamp(getElementId(file)))
 		const router = driveViewModel
@@ -66,12 +68,13 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 						{
 							onclick: () => {
 								console.log("add to favourite")
+								this.globalIconFill = "#707070" // icon outline color
 							},
 						},
 						m(Icon, {
 							icon: Icons.HeartEmpty,
 							size: IconSize.Normal,
-							style: { position: "relative", top: "2px" },
+							style: { fill: this.globalIconFill, position: "relative", top: "2px" },
 							class: "cursor-pointer",
 						}),
 					),

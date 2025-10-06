@@ -1,5 +1,5 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
+import { BreadcrumbEntry, DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
 import { DataFile } from "../../../common/api/common/DataFile"
@@ -13,6 +13,7 @@ import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
 export class DriveViewModel {
 	currentFolderFiles: File[] = []
 	currentFolder!: File
+	currentParents: BreadcrumbEntry[] = []
 	rootFolder!: IdTuple
 
 	// maybe we will need a File instance
@@ -32,6 +33,10 @@ export class DriveViewModel {
 		return this.currentFolder
 	}
 
+	getCurrentParents(): BreadcrumbEntry[] {
+		return this.currentParents
+	}
+
 	currentFolderIsRoot() {
 		return this.currentFolder._id === this.rootFolder
 	}
@@ -43,7 +48,10 @@ export class DriveViewModel {
 	async loadFolderContentsByIdTuple(idTuple: IdTuple): Promise<void> {
 		try {
 			this.currentFolder = await this.driveFacade.loadFileFromIdTuple(idTuple)
-			this.currentFolderFiles = await this.driveFacade.getFolderContents(idTuple)
+
+			const [currentFolderFiles, parents] = await this.driveFacade.getFolderContents(idTuple)
+			this.currentFolderFiles = currentFolderFiles
+			this.currentParents = parents
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				this.navigateToRootFolder()
