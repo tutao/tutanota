@@ -6,14 +6,13 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { mailLocator } from "../mailLocator.js"
 import { isWebClient } from "../../common/api/common/Env.js"
+import stream from "mithril/stream"
 
 /**
  * Settings viewer for mail import rendered only in the WebApp, Android and iOS.
  * See {@link DesktopMailImportSettingsViewer} for the Desktop client.
  */
 export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
-	constructor() {}
-
 	view(): Children {
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [m(".h4.mt-l", lang.get("mailImportSettings_label")), this.renderNoImportOnWebText()])
 	}
@@ -38,17 +37,18 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 						},
 					}),
 				),
-				m(
-					".flex-v-center.full-width.mt-xl",
-					m("img", {
-						src: `${window.tutao.appState.prefixWithoutFile}/images/mail-import/email-import-webapp.svg`,
-						alt: "",
-						rel: "noreferrer",
-						loading: "lazy",
-						decoding: "async",
-						class: "settings-illustration-large",
-					}),
-				),
+
+				// m(
+				// 	".flex-v-center.full-width.mt-xl",
+				// 	m("img", {
+				// 		src: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-test.svg`,
+				// 		alt: "",
+				// 		rel: "noreferrer",
+				// 		loading: "lazy",
+				// 		decoding: "async",
+				// 		class: "settings-illustration-large",
+				// 	}),
+				// ),
 			),
 		]
 	}
