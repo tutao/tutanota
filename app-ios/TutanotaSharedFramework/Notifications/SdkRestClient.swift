@@ -28,6 +28,14 @@ public class SdkRestClient: RestClient {
 	private func mapExceptionToError(e: Error) -> RestClientError {
 		// why we don't match on e? see: sdkFileClient::mapExceptionToError
 		TUTSLog("Exception in SdkRestClient: \(e). Assuming .Unknown")
+		if let e = e as? URLError {
+			switch e.code {
+			case .notConnectedToInternet, .timedOut, .cannotFindHost, .networkConnectionLost, URLError.Code.notConnectedToInternet,
+				URLError.Code.dnsLookupFailed:
+				return .NetworkError
+			default: break
+			}
+		}
 		return RestClientError.Unknown
 	}
 }

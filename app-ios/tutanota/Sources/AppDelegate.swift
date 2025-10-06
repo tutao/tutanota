@@ -16,6 +16,8 @@ public let MAILTO_SCHEME = "mailto"
 	private var viewController: ViewController!
 	private let urlSession: URLSession = makeUrlSession()
 
+	private var notificationStorage: NotificationStorage!
+
 	@MainActor func registerForPushNotifications() async throws -> String {
 		#if targetEnvironment(simulator)
 			return ""
@@ -32,7 +34,7 @@ public let MAILTO_SCHEME = "mailto"
 		spawnTransactionFinisher()
 
 		let userPreferencesProvider = UserPreferencesProviderImpl()
-		let notificationStorage = NotificationStorage(userPreferencesProvider: userPreferencesProvider)
+		self.notificationStorage = NotificationStorage(userPreferencesProvider: userPreferencesProvider)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
 		let dateProvider: SystemDateProvider = SystemDateProvider()
@@ -92,7 +94,10 @@ public let MAILTO_SCHEME = "mailto"
 		return true
 	}
 
-	func applicationWillEnterForeground(_ application: UIApplication) { UIApplication.shared.applicationIconBadgeNumber = 0 }
+	func applicationWillEnterForeground(_ application: UIApplication) {
+		UIApplication.shared.applicationIconBadgeNumber = 0
+		self.notificationStorage.resetNotificaitonCount()
+	}
 
 	func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
 		let stringToken = deviceTokenAsString(deviceToken: deviceToken)
