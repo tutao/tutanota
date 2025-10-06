@@ -2113,3 +2113,6 @@ export type TranslationKeyType =
 	| "overwrite_action"
 	| "conflicts_label"
 	| "relatedPeople_label"
+	| "twoFactorRequired_message"
+	| "enforceTwoFactor_title"
+	| "enforceTwoFactor_label"

@@ -2133,6 +2133,8 @@ export default {
 		"overwrite_action": "Overwrite",
 		"allDayEvents_label": "all day events",
 		"conflicts_label": "conflicts",
-		"relatedPeople_label": "Related people"
+		"relatedPeople_label": "Related people",
+		"enforceTwoFactor_title": "Require 2FA for all users",
+        "enforceTwoFactor_label": "Force users to enable two-factor authentication (2FA) upon logging in.",
 	}
 }

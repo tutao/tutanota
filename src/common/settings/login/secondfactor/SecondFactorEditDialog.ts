@@ -25,18 +25,30 @@ import { UserError } from "../../../api/main/UserError.js"
 import { LoginButton } from "../../../gui/base/buttons/LoginButton.js"
 import { NotAuthorizedError } from "../../../api/common/error/RestError"
 
+export interface SecondFactorEditDialogAttrs {
+	allowCancel?: boolean
+	onTokenExpired?: () => unknown
+	onComplete?: () => unknown
+}
+
 export class SecondFactorEditDialog {
 	private readonly dialog: Dialog
 
-	constructor(private readonly model: SecondFactorEditModel) {
+	constructor(
+		private readonly model: SecondFactorEditModel,
+		private readonly attrs?: SecondFactorEditDialogAttrs,
+	) {
 		this.dialog = Dialog.createActionDialog({
 			title: "add_action",
 			allowOkWithReturn: true,
 			child: {
 				view: () => this.render(),
 			},
-			okAction: () => showProgressDialog("pleaseWait_msg", this.okAction()),
-			allowCancel: true,
+			okAction: async () => {
+				await showProgressDialog("pleaseWait_msg", this.okAction())
+				attrs?.onComplete?.()
+			},
+			allowCancel: attrs?.allowCancel ?? true,
 			okActionTextId: "save_action",
 			cancelAction: () => this.model.abort(),
 			validator: () => this.model.validationMessage(),
@@ -56,7 +68,11 @@ export class SecondFactorEditDialog {
 				Dialog.message(lang.makeTranslation("error_msg", e.message))
 			} else if (e instanceof NotAuthorizedError) {
 				this.dialog.close()
-				Dialog.message("contactFormSubmitError_msg")
+				if (this.attrs?.onTokenExpired) {
+					this.attrs?.onTokenExpired()
+				} else {
+					Dialog.message("contactFormSubmitError_msg")
+				}
 				return
 			} else {
 				throw e
@@ -69,8 +85,8 @@ export class SecondFactorEditDialog {
 		RecoverCodeDialog.showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user)
 	}
 
-	static async loadAndShow(entityClient: EntityClient, lazyUser: LazyLoaded<User>, token?: string): Promise<void> {
-		const dialog: SecondFactorEditDialog = await showProgressDialog("pleaseWait_msg", this.loadWebauthnClient(entityClient, lazyUser, token))
+	static async loadAndShow(entityClient: EntityClient, lazyUser: LazyLoaded<User>, token?: string, attrs?: SecondFactorEditDialogAttrs): Promise<void> {
+		const dialog: SecondFactorEditDialog = await showProgressDialog("pleaseWait_msg", this.loadWebauthnClient(entityClient, lazyUser, token, attrs))
 		dialog.dialog.show()
 	}
 
@@ -178,7 +194,12 @@ export class SecondFactorEditDialog {
 		}
 	}
 
-	private static async loadWebauthnClient(entityClient: EntityClient, lazyUser: LazyLoaded<User>, token?: string): Promise<SecondFactorEditDialog> {
+	private static async loadWebauthnClient(
+		entityClient: EntityClient,
+		lazyUser: LazyLoaded<User>,
+		token?: string,
+		attrs?: SecondFactorEditDialogAttrs,
+	): Promise<SecondFactorEditDialog> {
 		const totpKeys = await locator.loginFacade.generateTotpSecret()
 		const user = await lazyUser.getAsync()
 		const webauthnSupported = await locator.webAuthn.isSupported()
@@ -194,7 +215,7 @@ export class SecondFactorEditDialog {
 			m.redraw,
 			token,
 		)
-		return new SecondFactorEditDialog(model)
+		return new SecondFactorEditDialog(model, attrs)
 	}
 
 	private statusIcon(): Children {

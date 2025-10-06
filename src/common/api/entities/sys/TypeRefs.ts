@@ -1048,6 +1048,7 @@ export type CustomerProperties = {
 	lastUpgradeReminder: null | Date;
 	_ownerGroup: null | Id;
 	usageDataOptedOut: boolean;
+	requireTwoFactor: boolean;
 
 	smallLogo: null | File;
 	bigLogo: null | File;

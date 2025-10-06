@@ -1193,6 +1193,7 @@ class MailLocator implements CommonLocator {
 			this.syncTracker,
 			() => this.showSetupWizard(),
 			() => this.updateClients(),
+			this.loginFacade,
 		)
 	})
 

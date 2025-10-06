@@ -2,7 +2,7 @@ import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
 import { isAdminClient, isApp, isDesktop, LOGIN_TITLE } from "../api/common/Env"
-import { assertNotNull, defer, delay, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, delay, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
@@ -17,7 +17,7 @@ import { Dialog } from "../gui/base/Dialog"
 import { CloseEventBusOption, Const, FeatureType, SecondFactorType } from "../api/common/TutanotaConstants"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
 import { notifications } from "../gui/Notifications"
-import { LockedError } from "../api/common/error/RestError"
+import { LockedError, NotAuthorizedError } from "../api/common/error/RestError"
 import { CredentialsProvider, usingKeychainAuthenticationWithOptions } from "../misc/credentials/CredentialsProvider.js"
 import { getThemeCustomizations } from "../misc/WhitelabelCustomizations.js"
 import { CredentialEncryptionMode } from "../misc/credentials/CredentialEncryptionMode.js"
@@ -36,6 +36,9 @@ import { ThemeController } from "../gui/ThemeController.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { showSnackBar } from "../gui/base/SnackBar"
 import { SyncTracker } from "../api/main/SyncTracker"
+import { GENERATED_MIN_ID } from "../api/common/utils/EntityUtils"
+import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
+import { LoginFacade } from "../api/worker/facades/LoginFacade"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -55,6 +58,7 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly syncTracker: SyncTracker,
 		private readonly showSetupWizard: () => unknown,
 		private readonly updateClient: () => unknown,
+		private readonly loginFacade: LoginFacade,
 	) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<{ asyncAction: Promise<void> }> {
@@ -114,10 +118,8 @@ export class PostLoginActions implements PostLoginAction {
 			return
 		}
 
-		// Do not wait
-		this.fullLoginAsyncActions()
-
-		this.showSetupWizardIfNeeded()
+		// Show credentials reminder after everything is done (and avoid showing it over the setup wizard)
+		Promise.all([this.fullLoginAsyncActions(), this.showSetupWizardIfNeeded(), this.syncTracker.waitSync()]).then(() => this.enforceUpToDateCredentials())
 	}
 
 	// Runs the user approval check after the user has been updated or after a timeout
@@ -188,8 +190,6 @@ export class PostLoginActions implements PostLoginAction {
 				})
 			}
 		}
-
-		this.enforcePasswordChange()
 
 		const usageTestModel = locator.usageTestModel
 		await usageTestModel.init()
@@ -308,6 +308,11 @@ export class PostLoginActions implements PostLoginAction {
 		}
 	}
 
+	private async enforceUpToDateCredentials(): Promise<void> {
+		await this.enforcePasswordChange()
+		await this.enforceTwoFactor()
+	}
+
 	private async enforcePasswordChange(): Promise<void> {
 		if (this.logins.getUserController().user.requirePasswordUpdate) {
 			const { showChangeOwnPasswordDialog } = await import("../settings/login/ChangePasswordDialogs.js")
@@ -337,6 +342,81 @@ export class PostLoginActions implements PostLoginAction {
 				])
 			}
 		}
+	}
+
+	private async enforceTwoFactor(): Promise<void> {
+		// First check if the setting is turned on.
+		const customerProperties = await this.logins.getUserController().loadCustomerProperties()
+		if (!customerProperties.requireTwoFactor) {
+			return
+		}
+
+		// Next, check if we have at least one.
+		const user = this.logins.getUserController().user
+		const secondFactors = await this.entityClient.loadRange(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors, GENERATED_MIN_ID, 1, false)
+		if (!isEmpty(secondFactors)) {
+			return
+		}
+
+		// Admins can disregard this nag once per login as well as close any and all dialogs in this process.
+		const isAdmin = this.logins.getUserController().isGlobalAdmin()
+		if (!isAdmin) {
+			await Dialog.message("twoFactorRequired_message")
+		} else {
+			const shouldProceed = await Dialog.confirm("twoFactorRequired_message")
+			if (!shouldProceed) {
+				return
+			}
+		}
+
+		// The user will have to deal with another two dialogs: the password entry dialog (to get a token) and the 2FA
+		// dialog.
+		//
+		// If they are not an admin, these dialogs cannot be closed without exiting the app.
+		return newPromise<void>((accept, reject) => {
+			const showDialog = () => {
+				const dialog = showRequestPasswordDialog({
+					action: async (passphrase) => {
+						try {
+							const { SecondFactorEditDialog } = await import("../settings/login/secondfactor/SecondFactorEditDialog.js")
+							const token = await this.loginFacade.getVerifierToken(passphrase)
+
+							await SecondFactorEditDialog.loadAndShow(this.entityClient, LazyLoaded.newLoaded(user), token, {
+								allowCancel: isAdmin,
+
+								// If the token expires (which is possible if the user takes too long), they need to retry
+								onTokenExpired: async () => {
+									await Dialog.message("requestTimeout_msg")
+									showDialog()
+								},
+
+								// Otherwise, we can proceed
+								onComplete: () => {
+									accept()
+								},
+							})
+						} catch (e) {
+							if (e instanceof NotAuthorizedError) {
+								return lang.getTranslation("invalidPassword_msg").text
+							} else {
+								reject(e)
+								throw e
+							}
+						}
+						dialog.close()
+						return ""
+					},
+					cancel: isAdmin
+						? {
+								textId: "cancel_action",
+								action: noOp,
+							}
+						: null,
+				})
+			}
+
+			showDialog()
+		})
 	}
 
 	// Show the onboarding wizard if this is the first time the app has been opened since install

@@ -1646,6 +1646,8 @@ pub struct CustomerProperties {
 	pub _ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "2025")]
 	pub usageDataOptedOut: bool,
+	#[serde(rename = "2661")]
+	pub requireTwoFactor: bool,
 	#[serde(rename = "922")]
 	pub smallLogo: Option<File>,
 	#[serde(rename = "923")]

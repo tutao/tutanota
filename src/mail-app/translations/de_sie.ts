@@ -2137,6 +2137,9 @@ export default {
 		"overwrite_action": "Overwrite",
 		"allDayEvents_label": "ganztags Termine",
 		"conflicts_label": "Konfliktes",
-		"relatedPeople_label": "Related people"
+		"relatedPeople_label": "Related people",
+		"twoFactorRequired_message": "2FA is required (stub)",
+		"enforceTwoFactor_title": "Require 2FA (stub)",
+		"enforceTwoFactor_label": "Make all users enable 2FA (stub)",
 	}
 }

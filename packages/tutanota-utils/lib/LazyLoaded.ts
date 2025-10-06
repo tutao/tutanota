@@ -5,7 +5,13 @@ import type { lazyAsync } from "./Utils.js"
  * If the object was loaded once it is not loaded again.
  */
 export class LazyLoaded<T> {
-	private state: { state: "not_loaded" } | { state: "loading"; promise: Promise<T> } | { state: "loaded"; value: T } = { state: "not_loaded" }
+	private state:
+		| { state: "not_loaded" }
+		| { state: "loading"; promise: Promise<T> }
+		| {
+				state: "loaded"
+				value: T
+		  } = { state: "not_loaded" }
 
 	/**
 	 * @param loadFunction The function that actually loads the object as soon as getAsync() is called the first time.
@@ -15,6 +21,15 @@ export class LazyLoaded<T> {
 		private readonly loadFunction: lazyAsync<T>,
 		private defaultValue: T | null = null,
 	) {}
+
+	/**
+	 * Returns a LazyLoaded object that has already been loaded and can be retrieved with getSync()
+	 */
+	static newLoaded<T>(object: T): LazyLoaded<T> {
+		const loaded = new LazyLoaded(async () => object)
+		loaded.state = { state: "loaded", value: object }
+		return loaded
+	}
 
 	load(): this {
 		this.getAsync()

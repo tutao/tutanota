@@ -89,6 +89,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 				m(".h4", lang.get("security_title")),
 				this.renderSaveEncryptedIpAddress(attrs),
 				this.renderEnforcePasswordChange(attrs),
+				this.renderEnforce2fa(),
 				this.renderAuditLog(auditLogTableAttrs),
 			]),
 			this.renderUsageData(),
@@ -247,6 +248,37 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 				dropdownWidth: 250,
 			})
 		}
+	}
+
+	private renderEnforce2fa(): Children {
+		const customerProperties = this.customerProperties.getSync()
+		if (customerProperties == null || !locator.logins.getUserController().isPaidAccount()) {
+			return
+		}
+
+		return m(DropDownSelector, {
+			label: "enforceTwoFactor_title",
+			helpLabel: () => lang.getTranslation("enforceTwoFactor_label").text,
+			selectedValue: customerProperties.requireTwoFactor,
+			selectionChangedHandler: (value) => {
+				const customerProps = this.customerProperties.getSync()
+				if (customerProps != null) {
+					customerProps.requireTwoFactor = value as boolean
+					locator.entityClient.update(customerProps)
+				}
+			},
+			items: [
+				{
+					name: lang.getTranslation("yes_label").text,
+					value: true,
+				},
+				{
+					name: lang.getTranslation("no_label").text,
+					value: false,
+				},
+			],
+			dropdownWidth: 250,
+		})
 	}
 
 	private updateAuditLog(): Promise<void> {
