@@ -27,7 +27,16 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		return m("tr", [
 			m("td", m("input[type=checkbox]")),
 			// m("td", m(Checkbox, { label: () => "selected", checked, onChecked: () => onSelect(file) })),
-			m("td", thisFileIsAFolder ? m(Icon, { icon: Icons.Folder, size: IconSize.Normal, style: { position: "relative", top: "2px" } }) : null),
+			m(
+				"td",
+				thisFileIsAFolder
+					? m(Icon, {
+							icon: Icons.Folder,
+							size: IconSize.Normal,
+							style: { position: "relative", top: "2px" },
+						})
+					: null,
+			),
 			m(
 				"td",
 				m(
@@ -49,7 +58,25 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			m("td", file.mimeType?.split("/")[1]),
 			m("td", thisFileIsAFolder ? "🐱" : formatStorageSize(Number(file.size))),
 			m("td", uploadDate.toLocaleString()),
-			m("td", "actions"),
+			m(
+				"td",
+				m("div", [
+					m(
+						"span",
+						{
+							onclick: () => {
+								console.log("add to favourite")
+							},
+						},
+						m(Icon, {
+							icon: Icons.HeartEmpty,
+							size: IconSize.Normal,
+							style: { position: "relative", top: "2px" },
+							class: "cursor-pointer",
+						}),
+					),
+				]),
+			),
 		])
 	}
 }
