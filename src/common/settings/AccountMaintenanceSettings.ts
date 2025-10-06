@@ -1,4 +1,4 @@
-import m, { Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel.js"
 import { DropDownSelector } from "../gui/base/DropDownSelector.js"
 import {
@@ -87,150 +87,166 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 		return [
 			m(".mt-l", [
 				m(".h4", lang.get("security_title")),
-				m(DropDownSelector, {
-					label: "saveEncryptedIpAddress_title",
-					helpLabel: () => lang.get("saveEncryptedIpAddress_label"),
-					selectedValue: this.saveIpAddress,
-					selectionChangedHandler: (value) => {
-						const newProps = Object.assign({}, attrs.customerServerProperties(), {
-							saveEncryptedIpAddressInSession: value,
-						})
-						locator.entityClient.update(newProps)
-					},
-					items: [
-						{
-							name: lang.get("yes_label"),
-							value: true,
-						},
-						{
-							name: lang.get("no_label"),
-							value: false,
-						},
-					],
-					dropdownWidth: 250,
-				}),
-				locator.logins.getUserController().isGlobalAdmin()
-					? m("", [
-							locator.logins.getUserController().isPaidAccount()
-								? m(DropDownSelector, {
-										label: "enforcePasswordUpdate_title",
-										helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
-										selectedValue: this.requirePasswordUpdateAfterReset,
-										selectionChangedHandler: (value) => {
-											const newProps: CustomerServerProperties = Object.assign({}, attrs.customerServerProperties(), {
-												requirePasswordUpdateAfterReset: value,
-											})
-											locator.entityClient.update(newProps)
-										},
-										items: [
-											{
-												name: lang.get("yes_label"),
-												value: true,
-											},
-											{
-												name: lang.get("no_label"),
-												value: false,
-											},
-										],
-										dropdownWidth: 250,
-									})
-								: null,
-							this.customer
-								? m(
-										".mt-l",
-										m(ExpandableTable, {
-											title: "auditLog_title",
-											table: auditLogTableAttrs,
-											infoMsg: "auditLogInfo_msg",
-											onExpand: () => {
-												// if the user did not load this when the view was created (i.e. due to a lost connection), attempt to reload it
-												if (!this.auditLogLoaded) {
-													showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw())
-												}
-											},
-										}),
-									)
-								: null,
-						])
-					: null,
+				this.renderSaveEncryptedIpAddress(attrs),
+				this.renderEnforcePasswordChange(attrs),
+				this.renderAuditLog(auditLogTableAttrs),
 			]),
-			locator.logins.getUserController().isPaidAccount()
-				? m(
-						SettingsExpander,
-						{
-							title: "usageData_label",
-							expanded: this.usageDataExpanded,
-						},
-						this.customerProperties.isLoaded()
-							? m(DropDownSelector, {
-									label: "customerUsageDataOptOut_label",
-									items: [
-										{
-											name: lang.get("customerUsageDataGloballyDeactivated_label"),
-											value: true,
-										},
-										{
-											name: lang.get("customerUsageDataGloballyPossible_label"),
-											value: false,
-										},
-									],
-									selectedValue: this.customerProperties.getSync()!.usageDataOptedOut,
-									selectionChangedHandler: (v) => {
-										if (this.customerProperties.isLoaded()) {
-											const customerProps = this.customerProperties.getSync()!
-											customerProps.usageDataOptedOut = v as boolean
-											locator.entityClient.update(customerProps)
-										}
-									},
-									dropdownWidth: 250,
-								})
-							: null,
-					)
-				: null,
-			m(
-				".mb-l",
-				m(
-					SettingsExpander,
-					{
-						title: "adminDeleteAccount_action",
-						buttonText: "adminDeleteAccount_action",
-						expanded: this.deleteAccountExpanded,
-					},
-					m(
-						".flex-center",
-						m(
-							"",
-							{
-								style: {
-									width: "200px",
+			this.renderUsageData(),
+			this.renderDeleteAccount(),
+		]
+	}
+
+	private renderUsageData(): Children {
+		if (locator.logins.getUserController().isPaidAccount()) {
+			return m(
+				SettingsExpander,
+				{
+					title: "usageData_label",
+					expanded: this.usageDataExpanded,
+				},
+				this.customerProperties.isLoaded()
+					? m(DropDownSelector, {
+							label: "customerUsageDataOptOut_label",
+							items: [
+								{
+									name: lang.get("customerUsageDataGloballyDeactivated_label"),
+									value: true,
 								},
+								{
+									name: lang.get("customerUsageDataGloballyPossible_label"),
+									value: false,
+								},
+							],
+							selectedValue: this.customerProperties.getSync()!.usageDataOptedOut,
+							selectionChangedHandler: (v) => {
+								if (this.customerProperties.isLoaded()) {
+									const customerProps = this.customerProperties.getSync()!
+									customerProps.usageDataOptedOut = v as boolean
+									locator.entityClient.update(customerProps)
+								}
 							},
-							m(LoginButton, {
-								label: "adminDeleteAccount_action",
-								onclick: () => {
-									const isPremium = locator.logins.getUserController().isPaidAccount()
-									showLeavingUserSurveyWizard(isPremium, false).then((reason) => {
-										if (reason.submitted && reason.category && reason.reason) {
-											const surveyData = createSurveyData({
-												category: reason.category,
-												details: reason.details,
-												reason: reason.reason,
-												version: SURVEY_VERSION_NUMBER,
-												clientVersion: env.versionNumber,
-												clientPlatform: getClientPlatform().valueOf().toString(),
-											})
-											showDeleteAccountDialog(surveyData)
-										} else {
-											showDeleteAccountDialog()
-										}
-									})
-								},
-							}),
-						),
+							dropdownWidth: 250,
+						})
+					: null,
+			)
+		}
+	}
+
+	private renderDeleteAccount() {
+		return m(
+			".mb-l",
+			m(
+				SettingsExpander,
+				{
+					title: "adminDeleteAccount_action",
+					buttonText: "adminDeleteAccount_action",
+					expanded: this.deleteAccountExpanded,
+				},
+				m(
+					".flex-center",
+					m(
+						"",
+						{
+							style: {
+								width: "200px",
+							},
+						},
+						m(LoginButton, {
+							label: "adminDeleteAccount_action",
+							onclick: () => {
+								const isPremium = locator.logins.getUserController().isPaidAccount()
+								showLeavingUserSurveyWizard(isPremium, false).then((reason) => {
+									if (reason.submitted && reason.category && reason.reason) {
+										const surveyData = createSurveyData({
+											category: reason.category,
+											details: reason.details,
+											reason: reason.reason,
+											version: SURVEY_VERSION_NUMBER,
+											clientVersion: env.versionNumber,
+											clientPlatform: getClientPlatform().valueOf().toString(),
+										})
+										showDeleteAccountDialog(surveyData)
+									} else {
+										showDeleteAccountDialog()
+									}
+								})
+							},
+						}),
 					),
 				),
 			),
-		]
+		)
+	}
+
+	private renderAuditLog(auditLogTableAttrs: TableAttrs): Children {
+		if (this.customer != null) {
+			return m(
+				".mt-l",
+				m(ExpandableTable, {
+					title: "auditLog_title",
+					table: auditLogTableAttrs,
+					infoMsg: "auditLogInfo_msg",
+					onExpand: () => {
+						// if the user did not load this when the view was created (i.e. due to a lost connection), attempt to reload it
+						if (!this.auditLogLoaded) {
+							showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw())
+						}
+					},
+				}),
+			)
+		}
+	}
+
+	private renderSaveEncryptedIpAddress(attrs: AccountMaintenanceSettingsAttrs): Children {
+		return m(DropDownSelector, {
+			label: "saveEncryptedIpAddress_title",
+			helpLabel: () => lang.get("saveEncryptedIpAddress_label"),
+			selectedValue: this.saveIpAddress,
+			selectionChangedHandler: (value) => {
+				const newProps = Object.assign({}, attrs.customerServerProperties(), {
+					saveEncryptedIpAddressInSession: value,
+				})
+				locator.entityClient.update(newProps)
+			},
+			items: [
+				{
+					name: lang.get("yes_label"),
+					value: true,
+				},
+				{
+					name: lang.get("no_label"),
+					value: false,
+				},
+			],
+			dropdownWidth: 250,
+		})
+	}
+
+	private renderEnforcePasswordChange(attrs: AccountMaintenanceSettingsAttrs): Children {
+		if (locator.logins.getUserController().isPaidAccount()) {
+			return m(DropDownSelector, {
+				label: "enforcePasswordUpdate_title",
+				helpLabel: () => lang.get("enforcePasswordUpdate_msg"),
+				selectedValue: this.requirePasswordUpdateAfterReset,
+				selectionChangedHandler: (value) => {
+					const newProps: CustomerServerProperties = Object.assign({}, attrs.customerServerProperties(), {
+						requirePasswordUpdateAfterReset: value,
+					})
+					locator.entityClient.update(newProps)
+				},
+				items: [
+					{
+						name: lang.get("yes_label"),
+						value: true,
+					},
+					{
+						name: lang.get("no_label"),
+						value: false,
+					},
+				],
+				dropdownWidth: 250,
+			})
+		}
 	}
 
 	private updateAuditLog(): Promise<void> {
