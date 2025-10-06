@@ -7,6 +7,7 @@ private let LAST_PROCESSED_NOTIFICAION_ID_KEY = "lastProcessedNotificationId"
 private let LAST_MISSED_NOTIFICATION_CHECK_TIME = "lastMissedNotificationCheckTime"
 private let EXTENDED_NOTIFICATION_MODE = "extendedNotificationMode"
 private let RECEIVE_CALENDAR_NOTIFICATION_CONFIG = "receiveCalendarNotificationConfig"
+private let NOTIFICAITON_COUNT_KEY = "notificationCount"
 
 public class NotificationStorage {
 	private let userPreferencesProvider: UserPreferencesProvider
@@ -78,6 +79,13 @@ public class NotificationStorage {
 		get { self.userPreferencesProvider.getObject(forKey: LAST_MISSED_NOTIFICATION_CHECK_TIME) as! Date? }
 		set { return self.userPreferencesProvider.setValue(newValue, forKey: LAST_MISSED_NOTIFICATION_CHECK_TIME) }
 	}
+
+	/// Count of email notifications received but not viewed
+	public var notificationCount: Int { get { self.userPreferencesProvider.getObject(forKey: NOTIFICAITON_COUNT_KEY) as! Int? ?? 0 } }
+
+	public func incrementNotificationCount() { self.userPreferencesProvider.setValue(self.notificationCount + 1, forKey: NOTIFICAITON_COUNT_KEY) }
+
+	public func resetNotificaitonCount() { self.userPreferencesProvider.setValue(0, forKey: NOTIFICAITON_COUNT_KEY) }
 
 	public func clear() {
 		TUTSLog("UserPreference clear")
