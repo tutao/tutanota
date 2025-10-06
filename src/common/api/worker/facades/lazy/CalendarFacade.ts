@@ -37,18 +37,12 @@ import {
 } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { GroupType, OperationType } from "../../../common/TutanotaConstants.js"
-import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule } from "../../../entities/tutanota/TypeRefs.js"
-import {
-	CalendarEventTypeRef,
-	CalendarEventUidIndexTypeRef,
-	CalendarGroupRootTypeRef,
-	createCalendarDeleteData,
-	createCalendarEvent,
-} from "../../../entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule, UserSettingsGroupRoot } from "../../../entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, CalendarEventUidIndexTypeRef, CalendarGroupRootTypeRef, createCalendarDeleteData } from "../../../entities/tutanota/TypeRefs.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError, PayloadTooLargeError } from "../../../common/error/RestError.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
-import { elementIdPart, getLetId, getListId, isSameId, listIdPart, Stripped, uint8arrayToCustomId } from "../../../common/utils/EntityUtils.js"
+import { elementIdPart, getLetId, getListId, isSameId, listIdPart, uint8arrayToCustomId } from "../../../common/utils/EntityUtils.js"
 import { GroupManagementFacade } from "./GroupManagementFacade.js"
 import { SetupMultipleError } from "../../../common/error/SetupMultipleError.js"
 import { ImportError } from "../../../common/error/ImportError.js"
@@ -67,7 +61,9 @@ import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
 	generateCalendarInstancesInRange,
+	getTimeZone,
 	isBirthdayCalendar,
+	isLongEvent,
 } from "../../../../calendar/date/CalendarUtils.js"
 import { CalendarInfo } from "../../../../../calendar-app/calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
@@ -152,39 +148,24 @@ export class CalendarFacade {
 		const calendars: Array<{ long: EventRenderWrapper[]; short: EventRenderWrapper[] }> = []
 
 		for (const { groupRoot } of calendarInfos.values()) {
-			const [shortEventsResult, longEventsResult] = await Promise.all([
+			const [shortEventsResult, longEventsResult, pendingEventsResult] = await Promise.all([
 				this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200),
 				this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
+				this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.pendingEvents),
 			])
 
-			const shortEvents = shortEventsResult.elements.map((e) => ({ event: e, isGhost: false }))
-			const longEvents = longEventsResult.map((e) => ({ event: e, isGhost: false }))
+			const shortEvents: Array<EventRenderWrapper> = shortEventsResult.elements.map((e) => ({ event: e, isGhost: false }))
+			const longEvents: Array<EventRenderWrapper> = longEventsResult.map((e) => ({ event: e, isGhost: false }))
+			const pendingEvents: Array<EventRenderWrapper> = pendingEventsResult.map((e) => ({ event: e, isGhost: true }))
 
-			if (shortEvents.length > 0) {
-				shortEvents.push({
-					event: createCalendarEvent({
-						...shortEvents[0].event,
-						_id: [getListId(shortEvents[0].event), "bar"],
-						summary: "I'm a ghost uuuuuu",
-						description: "Ghost event, nothing to see",
-						startTime: new Date(),
-						endTime: new Date(2025, 9, 2, 16, 0, 0),
-						location: "",
-						uid: "A-shit-uid",
-						hashedUid: null,
-						sequence: "0",
-						invitedConfidentially: null,
-						recurrenceId: null,
-						repeatRule: null,
-						alarmInfos: [],
-						attendees: [],
-						organizer: null,
-					} as Stripped<CalendarEvent>),
-					isGhost: true,
-				})
+			for (const ev of pendingEvents) {
+				const isLongEvents = isLongEvent(ev.event, zone)
+				if (isLongEvents) {
+					longEvents.push(ev)
+				} else {
+					shortEvents.push(ev)
+				}
 			}
-
-			console.log("WHOWWWW", shortEvents)
 
 			calendars.push({
 				short: shortEvents,
@@ -381,6 +362,11 @@ export class CalendarFacade {
 
 	async deleteCalendar(groupRootId: Id): Promise<void> {
 		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteData({ groupRootId }))
+	}
+
+	async setCalendarAsDefault(groupRootId: Id, userSettingsGroupRoot: UserSettingsGroupRoot): Promise<void> {
+		userSettingsGroupRoot.defaultCalendar = groupRootId
+		await this.entityRestCache.update(userSettingsGroupRoot)
 	}
 
 	async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {

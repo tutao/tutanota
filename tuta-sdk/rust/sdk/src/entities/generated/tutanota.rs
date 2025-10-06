@@ -1875,6 +1875,8 @@ pub struct CalendarEvent {
 	pub recurrenceId: Option<DateTime>,
 	#[serde(rename = "1401")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "1727")]
+	pub sender: Option<String>,
 	#[serde(rename = "945")]
 	pub repeatRule: Option<CalendarRepeatRule>,
 	#[serde(rename = "946")]
@@ -1921,6 +1923,8 @@ pub struct CalendarGroupRoot {
 	pub longEvents: GeneratedId,
 	#[serde(rename = "1103")]
 	pub index: Option<CalendarEventIndexRef>,
+	#[serde(rename = "1725")]
+	pub pendingEvents: GeneratedId,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -2051,6 +2055,8 @@ pub struct UserSettingsGroupRoot {
 	pub birthdayCalendarColor: Option<String>,
 	#[serde(rename = "979")]
 	pub groupSettings: Vec<GroupSettings>,
+	#[serde(rename = "1726")]
+	pub defaultCalendar: Option<GeneratedId>,
 
 	#[serde(default)]
 	pub _errors: Errors,

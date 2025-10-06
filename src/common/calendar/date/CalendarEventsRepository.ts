@@ -371,6 +371,7 @@ export class CalendarEventsRepository {
 		const newEvent = createCalendarEvent({
 			sequence: "0",
 			recurrenceId: null,
+			sender: null,
 			hashedUid: null,
 			summary: eventTitle,
 			startTime: startDate,

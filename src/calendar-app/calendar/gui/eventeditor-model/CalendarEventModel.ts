@@ -484,6 +484,7 @@ export function assembleCalendarEventEditResult(models: CalendarEventEditModels)
 
 	return {
 		eventValues: {
+			sender: null,
 			// when?
 			startTime: whenResult.startTime,
 			endTime: whenResult.endTime,
@@ -558,6 +559,7 @@ async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"], calend
 
 function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
 	return {
+		sender: null,
 		alarmInfos: [],
 		invitedConfidentially: null,
 		hashedUid: null,
