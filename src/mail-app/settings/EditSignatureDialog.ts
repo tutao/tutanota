@@ -1,6 +1,6 @@
 import m from "mithril"
 import { Dialog, DialogType } from "../../common/gui/base/Dialog"
-import { lang, MaybeTranslation } from "../../common/misc/LanguageViewModel"
+import { lang } from "../../common/misc/LanguageViewModel"
 import { EmailSignatureType, FeatureType } from "../../common/api/common/TutanotaConstants"
 import { HtmlEditor } from "../../common/gui/editor/HtmlEditor"
 import type { TutanotaProperties } from "../../common/api/entities/tutanota/TypeRefs.js"
@@ -8,7 +8,7 @@ import { PayloadTooLargeError } from "../../common/api/common/error/RestError"
 import { showProgressDialog } from "../../common/gui/dialogs/ProgressDialog"
 import { downcast, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { locator } from "../../common/api/main/CommonLocator"
-import { assertMainOrNode } from "../../common/api/common/Env"
+import { assertMainOrNode, isApp } from "../../common/api/common/Env"
 import { DropDownSelector } from "../../common/gui/base/DropDownSelector.js"
 import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality/SharedMailUtils.js"
 
@@ -32,7 +32,8 @@ export function show(props: TutanotaProperties) {
 			.setValue(getSignature(selectedType, defaultSignature, currentCustomSignature))
 			.enableToolbar()
 			.setToolbarOptions({
-				imageButtonClickHandler: insertInlineImageB64ClickHandler,
+				//Inline images require transporting over IPC boundary and we have not implemented a suitable way yet
+				imageButtonClickHandler: isApp() ? null : insertInlineImageB64ClickHandler,
 			})
 			.setEnabled(selectedType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
 

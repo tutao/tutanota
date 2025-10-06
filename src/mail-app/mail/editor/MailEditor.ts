@@ -759,6 +759,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			[
 				m(RichTextToolbar, {
 					editor: this.editor,
+					//Inline images require transporting over IPC boundary and we have not implemented a suitable way yet
 					imageButtonClickHandler: isApp()
 						? null
 						: (event: Event) => this.imageButtonClickHandler(model, (event.target as HTMLElement).getBoundingClientRect()),
