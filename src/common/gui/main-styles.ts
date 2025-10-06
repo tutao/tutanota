@@ -3233,5 +3233,27 @@ styles.registerStyle("main", () => {
 			transform: "translate(-50%, calc(-50% + 1px))",
 			"border-radius": "50%",
 		},
+		".svg-illust-wrapper > svg": {
+			width: "100%",
+			height: "100%",
+		},
+		".svg-fill-primary_container": {
+			fill: theme.primary_container,
+		},
+		".svg-fill-secondary_container": {
+			fill: theme.secondary_container,
+		},
+		".svg-fill-outline_variant": {
+			fill: theme.outline_variant,
+		},
+		".svg-fill-on_surface": {
+			fill: theme.on_surface,
+		},
+		".svg-fill-success": {
+			fill: theme.success,
+		},
+		".svg-fill-surface": {
+			fill: theme.surface,
+		},
 	}
 })
