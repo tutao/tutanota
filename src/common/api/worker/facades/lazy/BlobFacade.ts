@@ -2,6 +2,7 @@ import { addParamsToUrl, RestClient, SuspensionBehavior } from "../../rest/RestC
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	assertNonNull,
+	assertNotNull,
 	base64ToBase64Ext,
 	clear,
 	concat,
@@ -130,7 +131,7 @@ export class BlobFacade {
 		// If this changes we need to group by archive and do request for each archive and then concatenate all the chunks.
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOptions)
-			return this.downloadAndDecryptMultipleBlobsOfArchive(referencingInstance.blobs, blobServerAccessInfo, sessionKey, blobLoadOptions)
+			return this.downloadAndDecryptMultipleBlobsOfArchives(referencingInstance.blobs, blobServerAccessInfo, sessionKey, blobLoadOptions)
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
 
@@ -240,26 +241,32 @@ export class BlobFacade {
 			throw new ProgrammingError("Environment is not app or Desktop!")
 		}
 		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
-		const decryptedChunkFileUris: FileUri[] = []
+		let blobIdToDecryptedFileUri: Map<Id, FileUri> = new Map()
 		const doBlobRequest = async () => {
-			clear(decryptedChunkFileUris) // ensure that the decrypted file uris are emtpy in case we retry because of NotAuthorized error
-			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, {})
-			return promiseMap(referencingInstance.blobs, async (blob) => {
-				decryptedChunkFileUris.push(await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey))
-			}).catch(async (e: Error) => {
-				// cleanup every temporary file in the native part in case an error occured when downloading chun
-				for (const decryptedChunkFileUri of decryptedChunkFileUris) {
-					await this.fileApp.deleteFile(decryptedChunkFileUri)
+			blobIdToDecryptedFileUri = new Map()
+			const blobServerAccessInfos = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, {})
+
+			const archiveIdToBlobs = groupBy(referencingInstance.blobs, (blob) => blob.archiveId)
+			for (const [archiveId, blobs] of archiveIdToBlobs) {
+				const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
+				for (const blob of blobs) {
+					const fileUri = await this.downloadAndDecryptChunkNative(blob, blobServerAccessInfo, sessionKey).catch(async (e: Error) => {
+						// cleanup every temporary file in the native part in case an error occured when downloading chun
+						for (const [blobId, decryptedChunkFileUri] of blobIdToDecryptedFileUri) {
+							await this.fileApp.deleteFile(decryptedChunkFileUri)
+						}
+						throw e
+					})
+					blobIdToDecryptedFileUri.set(blob.blobId, fileUri)
 				}
-				throw e
-			})
+			}
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictReadBlobsToken(referencingInstance)
 
 		await doBlobRequestWithRetry(doBlobRequest, doEvictToken)
 
-		// now decryptedChunkFileUris has the correct order of downloaded blobs, and we need to tell native to join them
-		// check if output already exists and return cached?
+		// order decryptedChunkFileUris so that we can tell native to join them
+		const decryptedChunkFileUris = referencingInstance.blobs.map((blob) => assertNotNull(blobIdToDecryptedFileUri.get(blob.blobId)))
 		try {
 			const decryptedFileUri = await this.fileApp.joinFiles(fileName, decryptedChunkFileUris)
 			const size = await this.fileApp.getSize(decryptedFileUri)
@@ -362,13 +369,21 @@ export class BlobFacade {
 		return createBlobReferenceTokenWrapper({ blobReferenceToken })
 	}
 
-	private async downloadAndDecryptMultipleBlobsOfArchive(
+	private async downloadAndDecryptMultipleBlobsOfArchives(
 		blobs: readonly Blob[],
-		blobServerAccessInfo: BlobServerAccessInfo,
+		blobServerAccessInfos: Map<Id, BlobServerAccessInfo>,
 		sessionKey: AesKey,
 		blobLoadOptions: BlobLoadOptions,
 	): Promise<Map<Id, Uint8Array>> {
-		const mapWithEncryptedBlobs = await this.downloadBlobsOfOneArchive(blobs, blobServerAccessInfo, blobLoadOptions)
+		const archiveIdToBlobs = groupBy(blobs, (blob) => blob.archiveId)
+		let mapWithEncryptedBlobs: Map<Id, Uint8Array> = new Map()
+		for (const [archiveId, blobs] of archiveIdToBlobs) {
+			const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
+			const mapWithEncryptedBlobsOfArchive = await this.downloadBlobsOfOneArchive(blobs, blobServerAccessInfo, blobLoadOptions)
+			for (const [k, v] of mapWithEncryptedBlobsOfArchive) {
+				mapWithEncryptedBlobs.set(k, v)
+			}
+		}
 		return mapMap(mapWithEncryptedBlobs, (blob) => aesDecrypt(sessionKey, blob))
 	}
 

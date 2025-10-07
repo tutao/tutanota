@@ -128,25 +128,29 @@ export class BlobAccessTokenFacade {
 		archiveDataType: ArchiveDataType,
 		referencingInstance: BlobReferencingInstance,
 		blobLoadOptions: BlobLoadOptions,
-	): Promise<BlobServerAccessInfo> {
-		const archiveId = this.getArchiveId([referencingInstance])
-		const requestNewToken = async () => {
-			const instanceListId = referencingInstance.listId
-			const instanceId = referencingInstance.elementId
-			const instanceIds = [createInstanceId({ instanceId })]
-			const tokenRequest = createBlobAccessTokenPostIn({
-				archiveDataType,
-				read: createBlobReadData({
-					archiveId,
-					instanceListId,
-					instanceIds,
-				}),
-				write: null,
-			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, blobLoadOptions)
-			return blobAccessInfo
+	): Promise<Map<Id, BlobServerAccessInfo>> {
+		const archiveIds = this.getArchiveIds([referencingInstance])
+		const archiveIdsToAccessInfo = new Map<Id, BlobServerAccessInfo>()
+		for (const archiveId of archiveIds) {
+			const requestNewToken = async () => {
+				const instanceListId = referencingInstance.listId
+				const instanceId = referencingInstance.elementId
+				const instanceIds = [createInstanceId({ instanceId })]
+				const tokenRequest = createBlobAccessTokenPostIn({
+					archiveDataType,
+					read: createBlobReadData({
+						archiveId: archiveId,
+						instanceListId,
+						instanceIds,
+					}),
+					write: null,
+				})
+				return (await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, blobLoadOptions)).blobAccessInfo
+			}
+			const blobServerAccessInfo = await this.readCache.getToken(archiveId, [referencingInstance.elementId], requestNewToken)
+			archiveIdsToAccessInfo.set(archiveId, blobServerAccessInfo)
 		}
-		return this.readCache.getToken(archiveId, [referencingInstance.elementId], requestNewToken)
+		return archiveIdsToAccessInfo
 	}
 
 	/**
@@ -198,7 +202,7 @@ export class BlobAccessTokenFacade {
 		this.readCache.evictArchiveOrGroupKey(archiveId)
 	}
 
-	private getArchiveId(referencingInstances: readonly BlobReferencingInstance[]): Id {
+	private getArchiveIds(referencingInstances: readonly BlobReferencingInstance[]): Set<Id> {
 		if (isEmpty(referencingInstances)) {
 			throw new ProgrammingError("Must pass at least one referencing instance")
 		}
@@ -211,11 +215,15 @@ export class BlobAccessTokenFacade {
 				archiveIds.add(blob.archiveId)
 			}
 		}
+		return archiveIds
+	}
 
+	private getArchiveId(referencingInstances: readonly BlobReferencingInstance[]): Id {
+		const archiveIds = this.getArchiveIds(referencingInstances)
 		if (archiveIds.size !== 1) {
 			throw new Error(`only one archive id allowed, but was ${archiveIds}`)
 		}
-		return referencingInstances[0].blobs[0].archiveId
+		return archiveIds.values().next().value
 	}
 
 	/**
