@@ -77,7 +77,8 @@ o.spec("BlobAccessTokenFacade", function () {
 			})
 			when(serviceMock.post(BlobAccessTokenService, anything(), loadOptions)).thenResolve(newToken)
 			const readToken = await blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, loadOptions)
-			o(readToken).equals(newToken.blobAccessInfo)
+			const blobAccessInfos = new Map([[archiveId, newToken.blobAccessInfo]])
+			o(readToken).deepEquals(blobAccessInfos)
 		})
 
 		o("evict archive read token", async function () {
@@ -157,7 +158,8 @@ o.spec("BlobAccessTokenFacade", function () {
 						write: null,
 					}),
 				)
-				o(readToken).equals(expectedToken.blobAccessInfo)
+				const blobAccessInfos = new Map([[archiveId, expectedToken.blobAccessInfo]])
+				o(readToken).deepEquals(blobAccessInfos)
 			})
 
 			o("read token ET", async function () {
@@ -194,7 +196,8 @@ o.spec("BlobAccessTokenFacade", function () {
 						write: null,
 					}),
 				)
-				o(readToken).equals(expectedToken.blobAccessInfo)
+				const blobAccessInfos = new Map([[archiveId, expectedToken.blobAccessInfo]])
+				o(readToken).deepEquals(blobAccessInfos)
 			})
 		})
 
