@@ -1,6 +1,7 @@
 import stream from "mithril/stream"
 import { IProgressMonitor, ProgressMonitorId } from "../common/utils/ProgressMonitor"
 import { EstimatingProgressMonitor } from "../common/utils/EstimatingProgressMonitor"
+import { takeFromMap } from "@tutao/tutanota-utils"
 
 export type ExposedProgressTracker = Pick<ProgressTracker, "registerMonitor" | "workDoneForMonitor" | "totalWorkDoneForMonitor">
 
@@ -51,6 +52,11 @@ export class ProgressTracker {
 		this.getMonitor(id)?.totalWorkDone(totalAmount)
 	}
 
+	/** Removes the monitor from the monitors map before calling completed on it */
+	private workCompletedForMonitor(id: ProgressMonitorId): void {
+		takeFromMap(this.monitors, id).item?.completed()
+	}
+
 	getMonitor(id: ProgressMonitorId): IProgressMonitor | null {
 		return this.monitors.get(id) ?? null
 	}
@@ -59,7 +65,7 @@ export class ProgressTracker {
 		// notify
 		this.onProgressUpdate(this.completedAmount())
 		// we might be done with this one
-		if (percentage >= 100) this.monitors.delete(id)
+		if (percentage >= 100) this.workCompletedForMonitor(id)
 	}
 
 	/**
