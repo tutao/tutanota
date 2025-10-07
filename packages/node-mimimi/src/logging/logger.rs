@@ -16,9 +16,10 @@ impl Logger {
 	}
 	fn execute_log(&self, env: Env, log_message: LogMessage) {
 		let globals = env.get_global().expect("no globals in env");
-		let console: JsObject = globals
-			.get_named_property("console")
-			.expect("console property not found");
+		let Ok(console) = globals.get_named_property::<JsObject>("console") else {
+			// can't log into the console; it might not exist yet
+			return;
+		};
 
 		let formatted_message = format!(
 			"[{} {}] {}",
