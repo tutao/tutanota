@@ -9,18 +9,30 @@ import m from "mithril"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
+import { assertNotNull } from "@tutao/tutanota-utils"
+
+export enum VirtualFolder {
+	None,
+	Favourites,
+}
+
+export interface DisplayFolder {
+	// shared properties between virtual and real folders
+	files: File[]
+	parents: BreadcrumbEntry[]
+	isVirtual: boolean
+
+	// properties for real folders
+	folder: File | null // null is only set for virtual folders
+
+	// properties for virtual folders
+	virtualFolder: VirtualFolder
+}
 
 export class DriveViewModel {
-	// favourite files
-	favouriteFiles: File[] = []
-
 	// normal folder view
-	currentFolderFiles: File[] = []
-	currentFolder!: File
-	currentParents: BreadcrumbEntry[] = []
+	currentFolder!: DisplayFolder
 	rootFolder!: IdTuple
-
-	// maybe we will need a File instance
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -30,11 +42,7 @@ export class DriveViewModel {
 
 	async initialize() {
 		this.rootFolder = await this.driveFacade.loadDriveGroupRoot()
-		await this.loadFolderContentsByIdTuple(this.rootFolder)
-		await this.loadFavourites()
 	}
-
-	// metadata
 
 	/**
 	 * We assume metadata are ALWAYS created along the uploaded file in the server
@@ -49,22 +57,26 @@ export class DriveViewModel {
 		await this.driveFacade.updateMetadata(file)
 	}
 
-	async loadFavourites() {
-		this.favouriteFiles = await this.driveFacade.loadFavourites()
-	}
+	async loadVirtualFolder(virtualFolder: VirtualFolder) {
+		if (virtualFolder === VirtualFolder.Favourites) {
+			const files = await this.driveFacade.loadFavourites()
 
-	// folder
-
-	getCurrentFolder() {
-		return this.currentFolder
+			this.currentFolder = {
+				files: files,
+				virtualFolder: VirtualFolder.Favourites,
+				isVirtual: true,
+				parents: [],
+				folder: null,
+			}
+		}
 	}
 
 	getCurrentParents(): BreadcrumbEntry[] {
-		return this.currentParents
+		return this.currentFolder.parents
 	}
 
 	currentFolderIsRoot() {
-		return this.currentFolder._id === this.rootFolder
+		return this.currentFolder.folder?._id === this.rootFolder
 	}
 
 	async loadFileOrFolder(idTuple: IdTuple): Promise<File> {
@@ -73,11 +85,16 @@ export class DriveViewModel {
 
 	async loadFolderContentsByIdTuple(idTuple: IdTuple): Promise<void> {
 		try {
-			this.currentFolder = await this.driveFacade.loadFileFromIdTuple(idTuple)
-
+			const folder = await this.driveFacade.loadFileFromIdTuple(idTuple)
 			const [currentFolderFiles, parents] = await this.driveFacade.getFolderContents(idTuple)
-			this.currentFolderFiles = currentFolderFiles
-			this.currentParents = parents
+
+			this.currentFolder = {
+				folder: folder,
+				files: currentFolderFiles,
+				parents: parents,
+				isVirtual: false,
+				virtualFolder: VirtualFolder.None,
+			}
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				this.navigateToRootFolder()
@@ -88,13 +105,13 @@ export class DriveViewModel {
 	}
 
 	async uploadFiles(files: (DataFile | FileReference)[]): Promise<void> {
-		const uploadedFiles = await this.driveFacade.uploadFiles(files, this.currentFolder._id)
-		this.currentFolderFiles.push(...uploadedFiles)
+		const uploadedFiles = await this.driveFacade.uploadFiles(files, assertNotNull(this.currentFolder.folder)._id)
+		this.currentFolder.files.push(...uploadedFiles)
 	}
 
 	async createNewFolder(folderName: string): Promise<void> {
-		const uploadedFolder = await this.driveFacade.createFolder(folderName, this.currentFolder._id)
-		this.currentFolderFiles.push(uploadedFolder)
+		const uploadedFolder = await this.driveFacade.createFolder(folderName, assertNotNull(this.currentFolder.folder)._id)
+		this.currentFolder.files.push(uploadedFolder)
 	}
 
 	async navigateToFolder(folderId: IdTuple): Promise<void> {

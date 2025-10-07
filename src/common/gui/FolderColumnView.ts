@@ -1,16 +1,15 @@
 import { DrawerMenu, DrawerMenuAttrs } from "./nav/DrawerMenu.js"
 import { theme } from "./theme.js"
 import m, { Children, Component, Vnode } from "mithril"
-import type { TranslationKey, MaybeTranslation } from "../misc/LanguageViewModel.js"
+import type { MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
 import { lang } from "../misc/LanguageViewModel.js"
 import { AriaLandmarks, landmarkAttrs } from "./AriaUtils.js"
 import type { ClickHandler } from "./base/GuiUtils.js"
-import type { lazy } from "@tutao/tutanota-utils"
 import { MainCreateButton } from "./MainCreateButton.js"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
-	button: { label: TranslationKey; click: ClickHandler } | null | undefined
+	button: { label: TranslationKey; click: ClickHandler; disabled?: boolean } | null | undefined
 	content: Children
 	ariaLabel: MaybeTranslation
 	drawer: DrawerMenuAttrs
@@ -45,7 +44,7 @@ export class FolderColumnView implements Component<Attrs> {
 		if (attrs.button) {
 			return m(
 				".plr-button-double.scrollbar-gutter-stable-or-fallback.scroll",
-				m(MainCreateButton, { label: attrs.button.label, click: attrs.button.click }),
+				m(MainCreateButton, { label: attrs.button.label, click: attrs.button.click, disabled: attrs.button.disabled }),
 			)
 		} else {
 			return null

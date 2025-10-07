@@ -4,13 +4,14 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { SettingsFolderRow } from "../../../common/settings/SettingsFolderRow"
 import { NavButtonColor } from "../../../common/gui/base/NavButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
+import { VirtualFolder } from "./DriveViewModel"
 
 export enum SelectedSidebarSection {
 	Home,
 	Favourites = 1,
 }
 
-export function renderSidebarFolders(whichOneIsActive: SelectedSidebarSection) {
+export function renderSidebarFolders(virtualFolder: VirtualFolder) {
 	return m(
 		SidebarSection,
 		{
@@ -24,7 +25,7 @@ export function renderSidebarFolders(whichOneIsActive: SelectedSidebarSection) {
 					href: "/drive",
 					colors: NavButtonColor.Nav,
 					click: () => {},
-					persistentBackground: whichOneIsActive === SelectedSidebarSection.Home,
+					persistentBackground: virtualFolder === VirtualFolder.None,
 				},
 			}),
 			m(SettingsFolderRow, {
@@ -34,7 +35,7 @@ export function renderSidebarFolders(whichOneIsActive: SelectedSidebarSection) {
 					href: "/drive/favourites", // TODO
 					colors: NavButtonColor.Nav,
 					click: () => {},
-					persistentBackground: whichOneIsActive === SelectedSidebarSection.Favourites,
+					persistentBackground: virtualFolder === VirtualFolder.Favourites,
 				},
 			}),
 		],

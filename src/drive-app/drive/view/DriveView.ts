@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveViewModel } from "./DriveViewModel"
+import { DriveViewModel, VirtualFolder } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
@@ -19,7 +19,7 @@ import { theme } from "../../../common/gui/theme"
 import { showFileChooserForAttachments } from "../../../mail-app/mail/editor/MailEditorViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { createDropdown } from "../../../common/gui/base/Dropdown"
-import { renderSidebarFolders, SelectedSidebarSection } from "./Sidebar"
+import { renderSidebarFolders } from "./Sidebar"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -38,6 +38,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
 		console.log("onNewUrl fired with args", args, "requestedPath:", requestedPath)
+
+		if (args.virtualFolder === "favourites") {
+			this.driveViewModel.loadVirtualFolder(VirtualFolder.Favourites).then(() => m.redraw())
+			return
+		}
 
 		// /drive/folderId/listElementId
 		const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
@@ -88,6 +93,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						m(FolderColumnView, {
 							drawer: drawerAttrs,
 							button: {
+								disabled: this.driveViewModel.currentFolder.isVirtual,
 								label: "newFile_action",
 								click: (ev, dom) => {
 									//
@@ -114,7 +120,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								// 	label: lang.makeTranslation("newFolder_action", () => "New folder"),
 								// 	onclick: (event, dom) => ,
 								// }),
-								renderSidebarFolders(SelectedSidebarSection.Home),
+								renderSidebarFolders(this.driveViewModel.currentFolder.virtualFolder),
 							],
 							ariaLabel: "folderTitle_label",
 						}),
@@ -140,7 +146,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							backgroundColor: theme.navigation_bg,
 							desktopToolbar: () => [],
 							columnLayout: m(DriveFolderView, {
-								files: this.driveViewModel.currentFolderFiles,
+								files: this.driveViewModel.currentFolder.files,
 								driveViewModel: this.driveViewModel,
 							}),
 							mobileHeader: () => [],

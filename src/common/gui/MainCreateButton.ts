@@ -9,6 +9,7 @@ export interface MainCreateButtonAttrs {
 	label: TranslationKey
 	click: ClickHandler
 	class?: string
+	disabled?: boolean
 }
 
 /**
@@ -18,6 +19,7 @@ export class MainCreateButton implements Component<MainCreateButtonAttrs> {
 	view(vnode: Vnode<MainCreateButtonAttrs>): Children {
 		return m(BaseButton, {
 			label: vnode.attrs.label,
+			disabled: vnode.attrs.disabled,
 			text: lang.get(vnode.attrs.label),
 			onclick: vnode.attrs.click,
 			class: `full-width border-radius-big center b flash ${vnode.attrs.class}`,
