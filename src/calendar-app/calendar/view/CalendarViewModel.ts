@@ -9,6 +9,7 @@ import {
 	groupByAndMapUniquely,
 	identity,
 	incrementDate,
+	insertIntoSortedArray,
 	last,
 	lazy,
 	memoized,
@@ -34,12 +35,14 @@ import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
 	CalendarType,
+	eventComparator,
 	extractContactIdFromEvent,
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
 	isBirthdayCalendar,
 	isEventBetweenDays,
+	isSameEventInstance,
 } from "../../../common/calendar/date/CalendarUtils"
 import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { CalendarEventModel, CalendarOperation, EventSaveResult, EventType, getNonOrganizerAttendees } from "../gui/eventeditor-model/CalendarEventModel.js"
@@ -441,7 +444,16 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	get temporaryEvents(): Array<EventRenderWrapper> {
-		return this._transientEvents.concat(this._draggedEvent ? [{ event: this._draggedEvent.eventClone, isGhost: false }] : [])
+		return this._transientEvents.concat(
+			this._draggedEvent
+				? [
+						{
+							event: this._draggedEvent.eventClone,
+							isGhost: false,
+						},
+					]
+				: [],
+		)
 	}
 
 	setHiddenCalendars(newHiddenCalendars: Set<Id>) {
@@ -487,7 +499,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (isAllDayEvent(event.event) || getDiffIn60mIntervals(event.event.startTime, event.event.endTime) >= 24) {
 				longEvents.set(getElementId(event.event) + event.event.startTime.toString(), event)
 			} else {
-				shortEventsForDay.push(event) // FIXME Get rid of event.event
+				insertIntoSortedArray(event, shortEventsForDay, eventComparator, isSameEventInstance)
 			}
 		}
 
@@ -602,7 +614,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				end: getStartOfDayWithZone(event.startTime, event.repeatRule!.timeZone).getTime(),
 			}
 			const occurrencesPerDay = new Map()
-			addDaysForRecurringEvent(occurrencesPerDay, { event: progenitor, isGhost: false }, generationRange, newEventModel.editModels.whenModel.zone)
+			addDaysForRecurringEvent(
+				occurrencesPerDay,
+				{
+					event: progenitor,
+					isGhost: false,
+				},
+				generationRange,
+				newEventModel.editModels.whenModel.zone,
+			)
 
 			const occurrencesLeft =
 				newEventModel.editModels.whenModel.repeatEndOccurrences -
