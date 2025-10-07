@@ -281,13 +281,5 @@ function initPlansPages(signupData: UpgradeSubscriptionData): {
 	if (signupData.referralData && signupData.referralData.isCalledBySatisfactionDialog) referralConversion = "satisfactiondialog_referral"
 	else if (signupData.referralData && !signupData.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
 	SignupFlowUsageTestController.initSignupFlowUsageTest(referralConversion)
-
-	switch (SignupFlowUsageTestController.getUsageTestVariant()) {
-		case 1:
-			return { pageClass: SubscriptionPage, attrs: new SubscriptionPageAttrs(signupData) }
-		default:
-			SignupFlowUsageTestController.invalidateUsageTest()
-			console.error("Received an unexpected usage test variant: ", SignupFlowUsageTestController.getUsageTestVariant())
-			return { pageClass: SubscriptionPage, attrs: new SubscriptionPageAttrs(signupData) }
-	}
+	return { pageClass: SubscriptionPage, attrs: new SubscriptionPageAttrs(signupData) }
 }
