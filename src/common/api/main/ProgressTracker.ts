@@ -32,7 +32,7 @@ export class ProgressTracker {
 	 */
 	registerMonitorSync(work: number): ProgressMonitorId {
 		const id = this.idCounter++
-		const monitor = new EstimatingProgressMonitor(work, (percentage) => this.onProgress(id, percentage))
+		const monitor = new EstimatingProgressMonitor(`monitor-${id}`, work, (percentage) => this.onProgress(id, percentage))
 		monitor.continueEstimation()
 		this.monitors.set(id, monitor)
 
