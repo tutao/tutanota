@@ -20,6 +20,7 @@ export function exportContacts(contacts: Contact[]): Promise<void> {
 		cid: null,
 		parent: null,
 		subFiles: null,
+		metadata: null,
 	})
 	return locator.fileController.saveDataFile(convertToDataFile(tmpFile, data))
 }

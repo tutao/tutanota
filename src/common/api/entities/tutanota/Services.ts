@@ -9,6 +9,8 @@ import { DraftCreateDataTypeRef } from "./TypeRefs.js"
 import { DraftCreateReturnTypeRef } from "./TypeRefs.js"
 import { DraftUpdateDataTypeRef } from "./TypeRefs.js"
 import { DraftUpdateReturnTypeRef } from "./TypeRefs.js"
+import { DriveFileMetadataCreateDataTypeRef } from "./TypeRefs.js"
+import { DriveFileMetadataCreateReturnTypeRef } from "./TypeRefs.js"
 import { DriveGetInTypeRef } from "./TypeRefs.js"
 import { DriveGetOutTypeRef } from "./TypeRefs.js"
 import { DriveCreateDataTypeRef } from "./TypeRefs.js"
@@ -104,6 +106,15 @@ export const DraftService = Object.freeze({
 	get: null,
 	post: { data: DraftCreateDataTypeRef, return: DraftCreateReturnTypeRef },
 	put: { data: DraftUpdateDataTypeRef, return: DraftUpdateReturnTypeRef },
+	delete: null,
+} as const)
+
+export const DriveFileMetadataService = Object.freeze({
+	app: "tutanota",
+	name: "DriveFileMetadataService",
+	get: null,
+	post: { data: DriveFileMetadataCreateDataTypeRef, return: DriveFileMetadataCreateReturnTypeRef },
+	put: null,
 	delete: null,
 } as const)
 

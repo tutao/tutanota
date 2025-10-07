@@ -16,6 +16,8 @@ use crate::entities::generated::tutanota::DraftCreateData;
 use crate::entities::generated::tutanota::DraftCreateReturn;
 use crate::entities::generated::tutanota::DraftUpdateData;
 use crate::entities::generated::tutanota::DraftUpdateReturn;
+use crate::entities::generated::tutanota::DriveFileMetadataCreateData;
+use crate::entities::generated::tutanota::DriveFileMetadataCreateReturn;
 use crate::entities::generated::tutanota::DriveCreateData;
 use crate::entities::generated::tutanota::DriveCreateReturn;
 use crate::entities::generated::tutanota::DriveGetIn;
@@ -96,6 +98,12 @@ pub struct DraftService;
 crate::service_impl!(declare, DraftService, "tutanota/draftservice", 94);
 crate::service_impl!(POST, DraftService, DraftCreateData, DraftCreateReturn);
 crate::service_impl!(PUT, DraftService, DraftUpdateData, DraftUpdateReturn);
+
+
+pub struct DriveFileMetadataService;
+
+crate::service_impl!(declare, DriveFileMetadataService, "tutanota/drivefilemetadataservice", 94);
+crate::service_impl!(POST, DriveFileMetadataService, DriveFileMetadataCreateData, DriveFileMetadataCreateReturn);
 
 
 pub struct DriveService;

@@ -67,14 +67,13 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 						"span",
 						{
 							onclick: () => {
-								console.log("add to favourite")
-								this.globalIconFill = "#707070" // icon outline color
+								driveViewModel.addToFavorite(file).then(() => m.redraw())
 							},
 						},
 						m(Icon, {
 							icon: Icons.HeartEmpty,
 							size: IconSize.Normal,
-							style: { fill: this.globalIconFill, position: "relative", top: "2px" },
+							style: { fill: file.metadata?.isFavorite ? "#707070" : this.globalIconFill, position: "relative", top: "2px" },
 							class: "cursor-pointer",
 						}),
 					),

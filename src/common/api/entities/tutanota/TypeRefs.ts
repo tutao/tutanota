@@ -48,6 +48,7 @@ export type File = {
 	parent: null | IdTuple;
 	subFiles: null | Subfiles;
 	blobs: Blob[];
+	metadata: null | DriveFileMetadata;
 }
 export const FileSystemTypeRef: TypeRef<FileSystem> = new TypeRef("tutanota", 28)
 
@@ -2562,7 +2563,7 @@ export type DriveGroupRoot = {
 	_ownerGroup: null | Id;
 
 	root: IdTuple;
-	favourites: IdTuple;
+	favourites: IdTuple[];
 }
 export const DriveUploadedFileTypeRef: TypeRef<DriveUploadedFile> = new TypeRef("tutanota", 1720)
 
@@ -2656,4 +2657,44 @@ export type DriveGetOut = {
 	subFilesIds: IdTuple[];
 	parent: IdTuple;
 	parents: DriveBreadcrumbEntry[];
+}
+export const DriveFileMetadataTypeRef: TypeRef<DriveFileMetadata> = new TypeRef("tutanota", 1748)
+
+export function createDriveFileMetadata(values: StrippedEntity<DriveFileMetadata>): DriveFileMetadata {
+    return Object.assign(create(typeModels[DriveFileMetadataTypeRef.typeId], DriveFileMetadataTypeRef), values)
+}
+
+export type DriveFileMetadata = {
+	_type: TypeRef<DriveFileMetadata>;
+	_original?: DriveFileMetadata
+
+	_id: Id;
+	isFavorite: boolean;
+}
+export const DriveFileMetadataCreateDataTypeRef: TypeRef<DriveFileMetadataCreateData> = new TypeRef("tutanota", 1752)
+
+export function createDriveFileMetadataCreateData(values: StrippedEntity<DriveFileMetadataCreateData>): DriveFileMetadataCreateData {
+    return Object.assign(create(typeModels[DriveFileMetadataCreateDataTypeRef.typeId], DriveFileMetadataCreateDataTypeRef), values)
+}
+
+export type DriveFileMetadataCreateData = {
+	_type: TypeRef<DriveFileMetadataCreateData>;
+	_original?: DriveFileMetadataCreateData
+
+	_format: NumberString;
+	isFavorite: boolean;
+
+	file: IdTuple;
+}
+export const DriveFileMetadataCreateReturnTypeRef: TypeRef<DriveFileMetadataCreateReturn> = new TypeRef("tutanota", 1756)
+
+export function createDriveFileMetadataCreateReturn(values: StrippedEntity<DriveFileMetadataCreateReturn>): DriveFileMetadataCreateReturn {
+    return Object.assign(create(typeModels[DriveFileMetadataCreateReturnTypeRef.typeId], DriveFileMetadataCreateReturnTypeRef), values)
+}
+
+export type DriveFileMetadataCreateReturn = {
+	_type: TypeRef<DriveFileMetadataCreateReturn>;
+	_original?: DriveFileMetadataCreateReturn
+
+	_format: NumberString;
 }

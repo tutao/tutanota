@@ -32,6 +32,7 @@ export function makeInvitationCalendarFile(event: CalendarEvent, method: Calenda
 		blobs: [],
 		parent: null,
 		subFiles: null,
+		metadata: null,
 	})
 	return convertToDataFile(tmpFile, data)
 }

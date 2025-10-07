@@ -159,6 +159,15 @@ export const typeModels = {
 				"cardinality": "Any",
 				"refTypeId": 1882,
 				"dependency": "sys"
+			},
+			"1751": {
+				"final": false,
+				"name": "metadata",
+				"id": 1751,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1748,
+				"dependency": null
 			}
 		}
 	},
@@ -9167,7 +9176,7 @@ export const typeModels = {
 				"name": "favourites",
 				"id": 1719,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
+				"cardinality": "Any",
 				"refTypeId": 13,
 				"dependency": null
 			}
@@ -9445,5 +9454,100 @@ export const typeModels = {
 				"dependency": null
 			}
 		}
+	},
+	"1748": {
+		"name": "DriveFileMetadata",
+		"app": "tutanota",
+		"version": 94,
+		"since": 94,
+		"type": "AGGREGATED_TYPE",
+		"id": 1748,
+		"rootId": "CHR1dGFub3RhAAbU",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1749": {
+				"final": true,
+				"name": "_id",
+				"id": 1749,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1750": {
+				"final": false,
+				"name": "isFavorite",
+				"id": 1750,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"1752": {
+		"name": "DriveFileMetadataCreateData",
+		"app": "tutanota",
+		"version": 94,
+		"since": 94,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1752,
+		"rootId": "CHR1dGFub3RhAAbY",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1753": {
+				"final": false,
+				"name": "_format",
+				"id": 1753,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1754": {
+				"final": false,
+				"name": "isFavorite",
+				"id": 1754,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"1755": {
+				"final": true,
+				"name": "file",
+				"id": 1755,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 13,
+				"dependency": null
+			}
+		}
+	},
+	"1756": {
+		"name": "DriveFileMetadataCreateReturn",
+		"app": "tutanota",
+		"version": 94,
+		"since": 94,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1756,
+		"rootId": "CHR1dGFub3RhAAbc",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1757": {
+				"final": false,
+				"name": "_format",
+				"id": 1757,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
 	}
 }

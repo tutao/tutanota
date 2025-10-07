@@ -2,7 +2,16 @@ import { KeyLoaderFacade } from "./KeyLoaderFacade"
 import { EntityClient } from "../../common/EntityClient"
 import { IServiceExecutor } from "../../common/ServiceRequest"
 import { ArchiveDataType, GroupType } from "../../common/TutanotaConstants"
-import { createDriveCreateData, createDriveGetIn, createDriveUploadedFile, DriveGroupRootTypeRef, File, FileTypeRef } from "../../entities/tutanota/TypeRefs"
+import {
+	createDriveCreateData,
+	createDriveFileMetadataCreateData,
+	createDriveGetIn,
+	createDriveUploadedFile,
+	DriveFileMetadata,
+	DriveGroupRootTypeRef,
+	File,
+	FileTypeRef,
+} from "../../entities/tutanota/TypeRefs"
 import { BlobFacade } from "./lazy/BlobFacade"
 import { UserFacade } from "./UserFacade"
 import { aes256RandomKey, aesEncrypt } from "@tutao/tutanota-crypto"
@@ -10,7 +19,7 @@ import { _encryptKeyWithVersionedKey } from "../crypto/CryptoWrapper"
 import { FileReference } from "../../common/utils/FileUtils"
 import { DataFile } from "../../common/DataFile"
 import { assertNotNull, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
-import { DriveService } from "../../entities/tutanota/Services"
+import { DriveFileMetadataService, DriveService } from "../../entities/tutanota/Services"
 import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
 
 export interface BreadcrumbEntry {
@@ -26,6 +35,11 @@ export class DriveFacade {
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
 	) {}
+
+	public async updateMetadata(file: File & { metadata: DriveFileMetadata }) {
+		const data = createDriveFileMetadataCreateData({ isFavorite: file.metadata.isFavorite, file: file._id })
+		await this.serviceExecutor.post(DriveFileMetadataService, data)
+	}
 
 	public async loadDriveGroupRoot() {
 		let fileGroupId = this.userFacade.getGroupId(GroupType.File)

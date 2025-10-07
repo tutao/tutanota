@@ -29,6 +29,23 @@ export class DriveViewModel {
 		await this.loadFolderContentsByIdTuple(this.rootFolder)
 	}
 
+	// metadata
+
+	/**
+	 * We assume metadata are ALWAYS created along the uploaded file in the server
+	 * but for compatibility reason the metadata property is marked as nullable
+	 * so we force our way here to calm Typescript which is throwing a tantrum.
+	 * @param file
+	 */
+	async addToFavorite(file: File) {
+		// @ts-ignore
+		file.metadata.isFavorite = !file.metadata.isFavorite
+		// @ts-ignore
+		await this.driveFacade.updateMetadata(file)
+	}
+
+	// folder
+
 	getCurrentFolder() {
 		return this.currentFolder
 	}
