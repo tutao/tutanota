@@ -1328,7 +1328,7 @@ export function asPublicKeyIdentifier(maybe: NumberString): PublicKeyIdentifierT
 	throw new Error("bad key identifier type")
 }
 
-export const BIRTHDAY_CALENDAR_BASE_ID = "birthday_calendar"
+export const BIRTHDAY_CALENDAR_BASE_ID = "clientOnly_birthdays"
 export const DEFAULT_BIRTHDAY_CALENDAR_COLOR = "FF9933"
 
 export const MAX_LABELS_PER_MAIL = 5
