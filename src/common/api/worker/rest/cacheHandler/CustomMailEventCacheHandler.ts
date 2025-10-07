@@ -1,5 +1,5 @@
-import { Mail, MailFolderTypeRef, MailSetEntryTypeRef, MailTypeRef, MovedMails } from "../../../entities/tutanota/TypeRefs"
-import { assertNotNull, isSameTypeRef, lazy, lazyAsync, newPromise } from "@tutao/tutanota-utils"
+import { Mail, MailFolder, MailFolderTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../../entities/tutanota/TypeRefs"
+import { assertNotNull, isSameTypeRef, lazy, lazyAsync } from "@tutao/tutanota-utils"
 import { MailIndexer } from "../../../../../mail-app/workerUtils/index/MailIndexer"
 import { CustomCacheHandler } from "./CustomCacheHandler"
 import { EntityUpdateData } from "../../../common/utils/EntityUpdateUtils"
@@ -52,6 +52,7 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 	}
 
 	private async processSpam(newMailData: MailWithDetailsAndAttachments | null, mailFacade: MailFacade, id: readonly [string, string]) {
+		const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
 		if (newMailData == null) {
 			return
 		}
@@ -62,30 +63,29 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
 
 		const isStoredInSpamFolder = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
-		const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
+		const { isStoredInTrashFolder, confidence } = this.getSpamConfidence(allFolders, mail)
 
 		// isStoredInSpamFolder is true
 		// this might be run multiple times for a single user if they use multiple devices
-		const predictedSpam = await mailFacade.predictSpamResult(mail)
+		const predictedSpam = isStoredInTrashFolder ? null : await mailFacade.predictSpamResult(mail)
 		// use the server classification for initial training, mixed with data from when user moves mails in and out of spam
 		const isSpam = predictedSpam ?? isStoredInSpamFolder
 		const offlineStoragePersistence = await this.offlineStoragePersistence()
 
-		const isSpamConfidence = isSpam || !mail.unread ? 1 : 0
 		const spamTrainMailDatum: SpamTrainMailDatum = {
 			mailId: mail._id,
 			subject: mail.subject,
 			body: getMailBodyText(newMailData.mailDetails.body),
 			isSpam,
-			isSpamConfidence,
+			isSpamConfidence: confidence,
 			ownerGroup: assertNotNull(mail._ownerGroup),
 		}
 
 		let moveServiceCall
-		if (isSpam && !isStoredInSpamFolder) {
+		if (!isStoredInTrashFolder && isSpam && !isStoredInSpamFolder) {
 			spamTrainMailDatum.isSpamConfidence = 1
 			moveServiceCall = mailFacade.simpleMoveMails([id], MailSetKind.SPAM, usedClientSpamClassifier)
-		} else if (!isSpam && isStoredInSpamFolder) {
+		} else if (!isStoredInTrashFolder && !isSpam && isStoredInSpamFolder) {
 			spamTrainMailDatum.isSpamConfidence = 0
 			moveServiceCall = mailFacade.simpleMoveMails([id], MailSetKind.INBOX, usedClientSpamClassifier)
 		}
@@ -105,14 +105,18 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		const allFolders = await this.storage.getWholeList(MailFolderTypeRef, listIdPart(mail.sets[0]))
 		const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
 		const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
-		const isSpamConfidence = isSpam || !mail.unread ? 1 : 0
+		let { confidence: isSpamConfidence, isStoredInTrashFolder } = this.getSpamConfidence(allFolders, mail)
 
 		const offlineStoragePersistence = await this.offlineStoragePersistence()
 		const storedClassification = await offlineStoragePersistence.getStoredClassification(mail)
 
 		if (storedClassification != null) {
 			// email is in classification data
-			if (isSpam !== storedClassification.isSpam || isSpamConfidence !== storedClassification.isSpamConfidence) {
+
+			const wasDeletedFromSpamFolder = isStoredInTrashFolder && storedClassification.isSpam
+			if (wasDeletedFromSpamFolder) {
+				// This is the case if we delete from spam Folder, in that case we do not need any change in storedClassification
+			} else if (isSpam !== storedClassification.isSpam || isSpamConfidence !== storedClassification.isSpamConfidence) {
 				// the model has trained on the mail but the spamFlag was wrong so we refit with higher isSpamConfidence
 				await offlineStoragePersistence.updateSpamClassificationData(id, isSpam, isSpamConfidence)
 			}
@@ -126,7 +130,7 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 					subject: mail.subject,
 					body: getMailBodyText(newMailData.mailDetails.body),
 					isSpam,
-					isSpamConfidence: isSpamConfidence,
+					isSpamConfidence,
 					ownerGroup: assertNotNull(mail._ownerGroup),
 				}
 
@@ -134,6 +138,22 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 			} else {
 				// race: mail deleted in meantime
 			}
+		}
+	}
+
+	// visible for testing
+	public getSpamConfidence(allFolders: Array<MailFolder>, mail: Mail): { confidence: number; isStoredInTrashFolder: boolean } {
+		const spamFolder = allFolders.find((folder) => folder.folderType === MailSetKind.SPAM)!
+		const trashFolder = allFolders.find((folder) => folder.folderType === MailSetKind.TRASH)!
+
+		const isStoredInSpamFolder = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
+		const isStoredInTrashFolder = mail.sets.some((folderId) => isSameId(folderId, trashFolder._id))
+
+		const isReadAndNotInSpamAndNotInTrash = !mail.unread && !isStoredInSpamFolder && !isStoredInTrashFolder
+		if (isStoredInSpamFolder || isReadAndNotInSpamAndNotInTrash) {
+			return { confidence: 1, isStoredInTrashFolder }
+		} else {
+			return { confidence: 0, isStoredInTrashFolder }
 		}
 	}
 }

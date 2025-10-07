@@ -6,21 +6,13 @@ import { MailFacade } from "../../../../../../src/common/api/worker/facades/lazy
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { CacheStorage } from "../../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { CustomMailEventCacheHandler } from "../../../../../../src/common/api/worker/rest/cacheHandler/CustomMailEventCacheHandler"
-import {
-	Body,
-	Mail,
-	MailDetails,
-	MailFolder,
-	MailFolderTypeRef,
-	MailSetEntryTypeRef,
-	MailTypeRef,
-} from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
-import { GENERATED_MAX_ID, GENERATED_MIN_ID } from "../../../../../../src/common/api/common/utils/EntityUtils"
+import { Body, Mail, MailDetails, MailFolderTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { MailSetKind } from "../../../../../../src/common/api/common/TutanotaConstants"
 import { ClientClassifierType } from "../../../../../../src/common/api/common/ClientClassifierType"
 import { EntityUpdateData } from "../../../../../../src/common/api/common/utils/EntityUpdateUtils"
 import { SpamTrainMailDatum } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../../../../src/common/api/common/CommonMailUtils"
+import { createTestEntity } from "../../../../TestUtils"
 
 /**
  * These tests should verify that the following are obeyed:
@@ -34,10 +26,17 @@ o.spec("CustomMailEventCacheHandler", function () {
 	let offlineStorageMock: lazy<Promise<OfflineStoragePersistence>>
 	let indexerAndMailFacadeMock: lazyAsync<{ mailIndexer: MailIndexer; mailFacade: MailFacade }>
 
+	const inboxFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "inbox"], folderType: MailSetKind.INBOX })
+	const trashFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "trash"], folderType: MailSetKind.TRASH })
+	const spamFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "spam"], folderType: MailSetKind.SPAM })
+	const allFolders = [inboxFolder, trashFolder, spamFolder]
+
 	o.beforeEach(function () {
 		cacheStorageMock = object() as CacheStorage
 		offlineStorageMock = func() as lazy<Promise<OfflineStoragePersistence>>
 		indexerAndMailFacadeMock = func() as lazyAsync<{ mailIndexer: MailIndexer; mailFacade: MailFacade }>
+
+		when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(allFolders)
 	})
 
 	o.spec("onEntityEventCreate", function () {
@@ -52,13 +51,13 @@ o.spec("CustomMailEventCacheHandler", function () {
 
 			body = object({ text: "Body Text" }) as Body
 			mailDetails = object({ body }) as MailDetails
-			mail = object({
+			mail = createTestEntity(MailTypeRef, {
 				_id: ["listId", "elementId"],
-				sets: [[GENERATED_MIN_ID, GENERATED_MIN_ID]],
+				sets: [spamFolder._id],
 				subject: "subject",
 				_ownerGroup: "owner",
 				unread: false,
-			}) as unknown as Mail
+			})
 			when(mailIndexer.downloadNewMailData(matchers.anything())).thenResolve({
 				mail,
 				mailDetails,
@@ -67,7 +66,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 
 		o("does not process spam e-mails when it fails to download new mail", async function () {
 			when(mailIndexer.downloadNewMailData(matchers.anything())).thenResolve(null)
-			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve([])
 
 			const offlineStorage = object() as OfflineStoragePersistence
 			when(offlineStorageMock()).thenResolve(offlineStorage)
@@ -79,12 +77,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 		})
 
 		o("processSpam maintains server classification when client classification is not enabled", async function () {
-			const mailFolder = object({
-				folderType: MailSetKind.SPAM,
-				_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
-			}) as unknown as MailFolder
-			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve([mailFolder])
-
 			const offlineStorage = object() as OfflineStoragePersistence
 			when(offlineStorageMock()).thenResolve(offlineStorage)
 			when(mailFacade.predictSpamResult(mail)).thenResolve(null)
@@ -105,12 +97,6 @@ o.spec("CustomMailEventCacheHandler", function () {
 		})
 
 		o("processSpam uses client classification when enabled", async function () {
-			const mailFolder = object({
-				folderType: MailSetKind.SPAM,
-				_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
-			}) as unknown as MailFolder
-			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve([mailFolder])
-
 			const offlineStorage = object() as OfflineStoragePersistence
 			when(offlineStorageMock()).thenResolve(offlineStorage)
 			when(mailFacade.predictSpamResult(mail)).thenResolve(false)
@@ -131,11 +117,8 @@ o.spec("CustomMailEventCacheHandler", function () {
 		})
 
 		o("processSpam correctly verifies if email is stored in spam folder", async function () {
-			const mailFolder = object({
-				folderType: MailSetKind.SPAM,
-				_id: [GENERATED_MIN_ID, GENERATED_MAX_ID],
-			}) as unknown as MailFolder
-			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve([mailFolder])
+			mail.sets = [spamFolder._id]
+			mail.unread = true
 
 			const offlineStorage = object() as OfflineStoragePersistence
 			when(offlineStorageMock()).thenResolve(offlineStorage)
@@ -150,25 +133,40 @@ o.spec("CustomMailEventCacheHandler", function () {
 				body: getMailBodyText(body),
 				isSpam: false,
 				ownerGroup: "owner",
-				isSpamConfidence: 1,
+				isSpamConfidence: 0,
 			}
 
 			verify(offlineStorage.storeSpamClassification(spamTrainMailDatum), { times: 1 })
 		})
 
-		o("processSpam moves mail to spam when detected as such and its not already in spam", async function () {
-			const mailFolders = [
-				object({
-					folderType: MailSetKind.INBOX,
-					_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
-				}) as unknown as MailFolder,
-				object({
-					folderType: MailSetKind.SPAM,
-					_id: [GENERATED_MIN_ID, GENERATED_MAX_ID],
-				}) as unknown as MailFolder,
-			]
-			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(mailFolders)
+		o("getSpamConfidence is 0 for mail in trash folder ", async function () {
+			mail.unread = false
+			mail.sets = [["listId", "trash"]]
 
+			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
+			o(cacheHandler.getSpamConfidence(allFolders, mail).confidence).equals(0)
+		})
+
+		o("getSpamConfidence is 1 for mail in spam folder ", async function () {
+			mail.unread = true
+			mail.sets = [spamFolder._id]
+
+			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
+			o(cacheHandler.getSpamConfidence(allFolders, mail).confidence).equals(1)
+		})
+
+		o("getSpamConfidence for inbox folder depends on read status", async function () {
+			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
+			mail.sets = [inboxFolder._id]
+
+			mail.unread = true
+			o(cacheHandler.getSpamConfidence(allFolders, mail).confidence).equals(0)
+			mail.unread = false
+			o(cacheHandler.getSpamConfidence(allFolders, mail).confidence).equals(1)
+		})
+
+		o("processSpam moves mail to spam when detected as such and its not already in spam", async function () {
+			mail.sets = [inboxFolder._id]
 			const offlineStorage = object() as OfflineStoragePersistence
 			when(offlineStorageMock()).thenResolve(offlineStorage)
 			when(mailFacade.predictSpamResult(mail)).thenResolve(true)
@@ -191,20 +189,9 @@ o.spec("CustomMailEventCacheHandler", function () {
 		})
 
 		o("processSpam moves mail to inbox when detected as such and its not already in inbox", async function () {
-			const mailFolders = [
-				object({
-					folderType: MailSetKind.INBOX,
-					_id: [GENERATED_MIN_ID, GENERATED_MAX_ID],
-				}) as unknown as MailFolder,
-				object({
-					folderType: MailSetKind.SPAM,
-					_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
-				}) as unknown as MailFolder,
-			]
-			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(mailFolders)
 			const offlineStorage = object() as OfflineStoragePersistence
 			when(offlineStorageMock()).thenResolve(offlineStorage)
-			mail.sets = [[GENERATED_MIN_ID, GENERATED_MIN_ID]] // the mail is in spam folder
+			mail.sets = [spamFolder._id] // the mail is in spam folder
 			when(mailFacade.predictSpamResult(mail)).thenResolve(false)
 
 			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
@@ -236,12 +223,12 @@ o.spec("CustomMailEventCacheHandler", function () {
 
 			body = object({ text: "Body Text" }) as Body
 			mailDetails = object({ body }) as MailDetails
-			mail = object({
+			mail = createTestEntity(MailTypeRef, {
 				_id: ["listId", "elementId"],
 				subject: "subject",
-				sets: [[GENERATED_MIN_ID, GENERATED_MIN_ID]],
+				sets: [inboxFolder._id],
 				_ownerGroup: "owner",
-			}) as unknown as Mail
+			})
 			when(mailIndexer.downloadNewMailData(matchers.anything())).thenResolve({
 				mail,
 				mailDetails,
@@ -260,19 +247,24 @@ o.spec("CustomMailEventCacheHandler", function () {
 			verify(offlineStorage.updateSpamClassificationData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
 
-		o("does update spam classification data if mail has been read in inbox and not moved", async function () {
-			const mailFolders = [
-				object({
-					folderType: MailSetKind.INBOX,
-					_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
-				}) as unknown as MailFolder,
-				object({
-					folderType: MailSetKind.SPAM,
-					_id: [GENERATED_MIN_ID, GENERATED_MAX_ID],
-				}) as unknown as MailFolder,
-			]
-			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(mailFolders)
+		o("does nothing if we delete a mail from spam folder", async function () {
+			const offlineStorage = object() as OfflineStoragePersistence
+			when(offlineStorageMock()).thenResolve(offlineStorage)
+			when(cacheStorageMock.get(MailTypeRef, "listId", "elementId")).thenResolve(mail)
+			const cacheHandler = new CustomMailEventCacheHandler(indexerAndMailFacadeMock, offlineStorageMock, cacheStorageMock)
 
+			mail.sets = [spamFolder._id]
+			await cacheHandler.onEntityEventCreate(["listId", "elementId"], [])
+			verify(offlineStorage.storeSpamClassification(matchers.anything()), { times: 1 })
+
+			mail.sets = [trashFolder._id]
+			await cacheHandler.onEntityEventUpdate(["listId", "elementId"], [])
+
+			verify(offlineStorage.updateSpamClassificationData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+		})
+
+		o("does update spam classification data if mail has been read in inbox and not moved", async function () {
+			mail.sets = [inboxFolder._id]
 			const offlineStorage = object() as OfflineStoragePersistence
 			when(offlineStorage.getStoredClassification(mail)).thenResolve({ isSpam: false, isSpamConfidence: 0 })
 			when(offlineStorageMock()).thenResolve(offlineStorage)
@@ -287,18 +279,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 		})
 
 		o("does update spam classification data if mail has not been read but moved", async function () {
-			const mailFolders = [
-				object({
-					folderType: MailSetKind.INBOX,
-					_id: [GENERATED_MIN_ID, GENERATED_MAX_ID],
-				}) as unknown as MailFolder,
-				object({
-					folderType: MailSetKind.SPAM,
-					_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
-				}) as unknown as MailFolder,
-			]
-			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(mailFolders)
-
+			mail.sets = [spamFolder._id]
 			const offlineStorage = object() as OfflineStoragePersistence
 			when(offlineStorage.getStoredClassification(mail)).thenResolve({ isSpam: false, isSpamConfidence: 0 })
 			when(offlineStorageMock()).thenResolve(offlineStorage)
@@ -313,18 +294,7 @@ o.spec("CustomMailEventCacheHandler", function () {
 		})
 
 		o("does update spam classification data if mail was not previously included", async function () {
-			const mailFolders = [
-				object({
-					folderType: MailSetKind.INBOX,
-					_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
-				}) as unknown as MailFolder,
-				object({
-					folderType: MailSetKind.SPAM,
-					_id: [GENERATED_MIN_ID, GENERATED_MAX_ID],
-				}) as unknown as MailFolder,
-			]
-			when(cacheStorageMock.getWholeList(MailFolderTypeRef, matchers.anything())).thenResolve(mailFolders)
-
+			mail.sets = [inboxFolder._id]
 			const offlineStorage = object() as OfflineStoragePersistence
 			when(offlineStorage.getStoredClassification(mail)).thenResolve(null)
 			when(offlineStorageMock()).thenResolve(offlineStorage)
