@@ -2,7 +2,7 @@ import m, { Component } from "mithril"
 import type { LoggedInEvent, PostLoginAction } from "../api/main/LoginController"
 import { LoginController } from "../api/main/LoginController"
 import { isAdminClient, isApp, isDesktop, LOGIN_TITLE } from "../api/common/Env"
-import { assertNotNull, defer, delay, isEmpty, LazyLoaded, neverNull, noOp, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, delay, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
@@ -121,7 +121,8 @@ export class PostLoginActions implements PostLoginAction {
 		// Do not wait
 		this.fullLoginAsyncActions()
 
-		this.showSetupWizardIfNeeded()
+		// All of these functions can cause dialogs to appear, so these should not be done concurrently
+		this.enforceUpToDateCredentials().then(() => this.showSetupWizardIfNeeded())
 	}
 
 	// Runs the user approval check after the user has been updated or after a timeout
@@ -194,8 +195,6 @@ export class PostLoginActions implements PostLoginAction {
 				})
 			}
 		}
-
-		this.enforceUpToDateCredentials()
 
 		const usageTestModel = locator.usageTestModel
 		await usageTestModel.init()
@@ -379,42 +378,50 @@ export class PostLoginActions implements PostLoginAction {
 		// dialog.
 		//
 		// If they are not an admin, these dialogs cannot be closed without exiting the app.
-		const showDialog = () => {
-			const dialog = showRequestPasswordDialog({
-				action: async (passphrase) => {
-					try {
-						const { SecondFactorEditDialog } = await import("../settings/login/secondfactor/SecondFactorEditDialog.js")
-						const token = await this.loginFacade.getVerifierToken(passphrase)
+		return newPromise<void>((accept, reject) => {
+			const showDialog = () => {
+				const dialog = showRequestPasswordDialog({
+					action: async (passphrase) => {
+						try {
+							const { SecondFactorEditDialog } = await import("../settings/login/secondfactor/SecondFactorEditDialog.js")
+							const token = await this.loginFacade.getVerifierToken(passphrase)
 
-						await SecondFactorEditDialog.loadAndShow(this.entityClient, LazyLoaded.newLoaded(user), token, {
-							allowCancel: isAdmin,
+							await SecondFactorEditDialog.loadAndShow(this.entityClient, LazyLoaded.newLoaded(user), token, {
+								allowCancel: isAdmin,
 
-							// If the token expires (which is possible if the user takes too long), they need to retry
-							onTokenExpired: async () => {
-								await Dialog.message("requestTimeout_msg")
-								showDialog()
-							},
-						})
-					} catch (e) {
-						if (e instanceof NotAuthorizedError) {
-							return lang.getTranslation("invalidPassword_msg").text
-						} else {
-							throw e
+								// If the token expires (which is possible if the user takes too long), they need to retry
+								onTokenExpired: async () => {
+									await Dialog.message("requestTimeout_msg")
+									showDialog()
+								},
+
+								// Otherwise, we can proceed
+								onComplete: () => {
+									accept()
+								},
+							})
+						} catch (e) {
+							if (e instanceof NotAuthorizedError) {
+								return lang.getTranslation("invalidPassword_msg").text
+							} else {
+								reject(e)
+								throw e
+							}
 						}
-					}
-					dialog.close()
-					return ""
-				},
-				cancel: isAdmin
-					? {
-							textId: "cancel_action",
-							action: noOp,
-						}
-					: null,
-			})
-		}
+						dialog.close()
+						return ""
+					},
+					cancel: isAdmin
+						? {
+								textId: "cancel_action",
+								action: noOp,
+							}
+						: null,
+				})
+			}
 
-		showDialog()
+			showDialog()
+		})
 	}
 
 	// Show the onboarding wizard if this is the first time the app has been opened since install

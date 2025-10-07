@@ -28,6 +28,7 @@ import { NotAuthorizedError } from "../../../api/common/error/RestError"
 export interface SecondFactorEditDialogAttrs {
 	allowCancel?: boolean
 	onTokenExpired?: () => unknown
+	onComplete?: () => unknown
 }
 
 export class SecondFactorEditDialog {
@@ -43,7 +44,10 @@ export class SecondFactorEditDialog {
 			child: {
 				view: () => this.render(),
 			},
-			okAction: () => showProgressDialog("pleaseWait_msg", this.okAction()),
+			okAction: async () => {
+				await showProgressDialog("pleaseWait_msg", this.okAction())
+				attrs?.onComplete?.()
+			},
 			allowCancel: attrs?.allowCancel ?? true,
 			okActionTextId: "save_action",
 			cancelAction: () => this.model.abort(),
