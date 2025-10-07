@@ -11,6 +11,7 @@ import {
 	decodeBase64,
 	downcast,
 	getStartOfDay,
+	incrementDate,
 	isSameDayOfDate,
 	last,
 	noOp,
@@ -118,6 +119,7 @@ import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
 import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { UserController } from "../../../common/api/main/UserController"
+import { EventConflictRenderPolicy, TimeView, TimeViewAttributes } from "../../../common/calendar/gui/TimeView.js"
 
 export type GroupColors = Map<Id, string>
 

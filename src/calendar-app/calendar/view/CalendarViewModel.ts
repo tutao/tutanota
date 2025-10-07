@@ -436,7 +436,16 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	get temporaryEvents(): Array<EventRenderWrapper> {
-		return this._transientEvents.concat(this._draggedEvent ? [{ event: this._draggedEvent.eventClone, isGhost: false }] : [])
+		return this._transientEvents.concat(
+			this._draggedEvent
+				? [
+						{
+							event: this._draggedEvent.eventClone,
+							isGhost: false,
+						},
+					]
+				: [],
+		)
 	}
 
 	setHiddenCalendars(newHiddenCalendars: Set<Id>) {
@@ -598,7 +607,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				end: getStartOfDayWithZone(event.startTime, event.repeatRule!.timeZone).getTime(),
 			}
 			const occurrencesPerDay = new Map()
-			addDaysForRecurringEvent(occurrencesPerDay, { event: progenitor, isGhost: false }, generationRange, newEventModel.editModels.whenModel.zone)
+			addDaysForRecurringEvent(
+				occurrencesPerDay,
+				{
+					event: progenitor,
+					isGhost: false,
+				},
+				generationRange,
+				newEventModel.editModels.whenModel.zone,
+			)
 
 			const occurrencesLeft =
 				newEventModel.editModels.whenModel.repeatEndOccurrences -
