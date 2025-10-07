@@ -11,6 +11,10 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
 
 export class DriveViewModel {
+	// favourite files
+	favouriteFiles: File[] = []
+
+	// normal folder view
 	currentFolderFiles: File[] = []
 	currentFolder!: File
 	currentParents: BreadcrumbEntry[] = []
@@ -27,6 +31,7 @@ export class DriveViewModel {
 	async initialize() {
 		this.rootFolder = await this.driveFacade.loadDriveGroupRoot()
 		await this.loadFolderContentsByIdTuple(this.rootFolder)
+		await this.loadFavourites()
 	}
 
 	// metadata
@@ -42,6 +47,10 @@ export class DriveViewModel {
 		file.metadata.isFavorite = !file.metadata.isFavorite
 		// @ts-ignore
 		await this.driveFacade.updateMetadata(file)
+	}
+
+	async loadFavourites() {
+		this.favouriteFiles = await this.driveFacade.loadFavourites()
 	}
 
 	// folder

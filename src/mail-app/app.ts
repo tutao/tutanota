@@ -41,6 +41,7 @@ import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
 import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
+import { DriveFavouritesView } from "../drive-app/drive/view/DriveFavouritesView"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -497,6 +498,46 @@ import("./translations/en.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						return {
 							component: DriveView,
+							cache: cache ?? {
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+								driveViewModel: await mailLocator.driveViewModel(),
+								bottomNav: () => m(BottomNav),
+								lazySearchBar: () =>
+									m(lazySearchBar, {
+										placeholder: lang.get("searchCalendar_placeholder"),
+									}),
+							},
+						}
+					},
+					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, bottomNav, lazySearchBar }) => ({
+						drawerAttrs: drawerAttrsFactory(),
+						header,
+						driveViewModel,
+						bottomNav,
+						lazySearchBar,
+					}),
+				},
+				mailLocator.logins,
+			),
+			driveFavourites: makeViewResolver<
+				DriveViewAttrs,
+				DriveFavouritesView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					driveViewModel: DriveViewModel
+					bottomNav: () => Children
+					lazySearchBar: () => Children
+				}
+			>(
+				{
+					prepareRoute: async (cache) => {
+						const { DriveFavouritesView } = await import("../drive-app/drive/view/DriveFavouritesView.js")
+						const { lazySearchBar } = await import("./LazySearchBar.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						return {
+							component: DriveFavouritesView,
 							cache: cache ?? {
 								drawerAttrsFactory,
 								header: await mailLocator.appHeaderAttrs(),

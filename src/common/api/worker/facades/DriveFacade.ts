@@ -41,6 +41,15 @@ export class DriveFacade {
 		await this.serviceExecutor.post(DriveFileMetadataService, data)
 	}
 
+	public async loadFavourites() {
+		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
+		console.log("fileGroupId:: for this user :: ", fileGroupId)
+		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+
+		const favouriteFiles = Promise.all(driveGroupRoot.favourites.map((idTuple) => this.entityClient.load(FileTypeRef, idTuple)))
+		return favouriteFiles
+	}
+
 	public async loadDriveGroupRoot() {
 		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
 		console.log("fileGroupId:: for this user :: ", fileGroupId)

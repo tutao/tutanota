@@ -12,13 +12,9 @@ import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
 import { size } from "../../../common/gui/size"
 import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
-import { DriveFolderView } from "./DriveFolderView"
-import { lang } from "../../../common/misc/LanguageViewModel"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
 import { theme } from "../../../common/gui/theme"
-import { showFileChooserForAttachments } from "../../../mail-app/mail/editor/MailEditorViewModel"
-import { Dialog } from "../../../common/gui/base/Dialog"
-import { createDropdown } from "../../../common/gui/base/Dropdown"
+import { DriveFolderView } from "./DriveFolderView"
 import { renderSidebarFolders, SelectedSidebarSection } from "./Sidebar"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
@@ -29,7 +25,11 @@ export interface DriveViewAttrs extends TopLevelAttrs {
 	lazySearchBar: () => Children
 }
 
-export class DriveView extends BaseTopLevelView implements TopLevelView<DriveViewAttrs> {
+export enum VirtualFolderType {
+	Favourites = 0,
+}
+
+export class DriveFavouritesView extends BaseTopLevelView implements TopLevelView<DriveViewAttrs> {
 	private readonly viewSlider: ViewSlider
 	private readonly driveNavColumn: ViewColumn
 	private readonly currentFolderColumn: ViewColumn
@@ -38,17 +38,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
 		console.log("onNewUrl fired with args", args, "requestedPath:", requestedPath)
-
-		// /drive/folderId/listElementId
-		const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
-
-		if (folderListId && folderElementId) {
-			this.driveViewModel.loadFolderContentsByIdTuple([folderListId, folderElementId]).then(() => m.redraw())
-		} else {
-			// /drive
-			// No folder given, load the drive root
-			this.driveViewModel.navigateToRootFolder()
-		}
 	}
 
 	protected files: (DataFile | FileReference)[] = []
@@ -63,8 +52,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 		this.driveFacade = locator.driveFacade
 		this.driveViewModel = vnode.attrs.driveViewModel
-
-		// this.driveViewModel.loadDriveRoot().then(() => m.redraw())
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
@@ -87,34 +74,13 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					return [
 						m(FolderColumnView, {
 							drawer: drawerAttrs,
-							button: {
-								label: "newFile_action",
-								click: (ev, dom) => {
-									//
-									createDropdown({
-										lazyButtons: () => [
-											{
-												click: (event, dom) => {
-													this.onNewFile_Click(dom)
-												},
-												label: lang.makeTranslation("UploadFile", () => "Upload file"),
-											},
-											{
-												click: (event, dom) => {
-													this.onNewFolder_Click(dom)
-												},
-												label: lang.makeTranslation("CreateFolder", () => "Create folder"),
-											},
-										],
-									})(ev, ev.target as HTMLElement)
-								},
-							},
+							button: null,
 							content: [
 								// m(LoginButton, {
 								// 	label: lang.makeTranslation("newFolder_action", () => "New folder"),
 								// 	onclick: (event, dom) => ,
 								// }),
-								renderSidebarFolders(SelectedSidebarSection.Home),
+								renderSidebarFolders(SelectedSidebarSection.Favourites),
 							],
 							ariaLabel: "folderTitle_label",
 						}),
@@ -139,10 +105,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						{
 							backgroundColor: theme.navigation_bg,
 							desktopToolbar: () => [],
-							columnLayout: m(DriveFolderView, {
-								files: this.driveViewModel.currentFolderFiles,
-								driveViewModel: this.driveViewModel,
-							}),
+							columnLayout: m(DriveFolderView, { files: this.driveViewModel.favouriteFiles, driveViewModel: this.driveViewModel }),
 							mobileHeader: () => [],
 						},
 						//m(DriveNav),
@@ -153,33 +116,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			{
 				minWidth: size.second_col_min_width,
 				maxWidth: size.second_col_max_width,
-			},
-		)
-	}
-
-	async onNewFile_Click(dom: HTMLElement): Promise<void> {
-		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
-			if (files) {
-				this.driveViewModel.uploadFiles([...files]).then(() => m.redraw())
-			}
-		})
-	}
-
-	async onNewFolder_Click(dom: HTMLElement): Promise<void> {
-		Dialog.showProcessTextInputDialog(
-			{
-				title: lang.makeTranslation("newFolder_title", () => "New folder"),
-				label: lang.makeTranslation("newFolder_label", () => "Folder name"),
-				defaultValue: "Untitled folder",
-			},
-			async (newName) => {
-				const folderName = newName
-				if (folderName === "") {
-					return
-				}
-
-				console.log("User called the folder: ", folderName)
-				this.driveViewModel.createNewFolder(folderName).then(() => m.redraw())
 			},
 		)
 	}
