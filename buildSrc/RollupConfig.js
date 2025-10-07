@@ -21,9 +21,7 @@ export const dependencyMap = {
 	jsqr: path.normalize("./libs/jsQR.js"),
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
-	"@tensorflow/tfjs-core": path.normalize("./libs/tensorflow-core.js"),
-	"@tensorflow/tfjs-layers": path.normalize("./libs/tensorflow-layers.js"),
-	"@tensorflow/tfjs-backend-webgl": path.normalize("./libs/tensorflow-backend-webgl.js"),
+	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
 }
 
 /**
@@ -244,12 +242,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "wasm"
 	} else if (moduleId.includes("wasm-fallback")) {
 		return "wasm-fallback"
-	} else if (
-		isIn("src/mail-app/workerUtils/spamClassification") ||
-		moduleId.includes("libs/tensorflow-core.js") ||
-		moduleId.includes("libs/tensorflow-layers.js") ||
-		moduleId.includes("libs/tensorflow-backend-webgl.js")
-	) {
+	} else if (isIn("src/mail-app/workerUtils/spamClassification") || moduleId.includes("libs/tensorflow.js")) {
 		return "spam-classifier"
 	} else if (
 		isIn("src/common/native/worker") ||

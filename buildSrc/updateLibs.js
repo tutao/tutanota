@@ -14,14 +14,21 @@ import { promisify } from "node:util"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+async function stripCommentsFromTensorflow() {
+	let str = fs.readFileSync("libs/tensorflow.js").toString()
+	str = str.replace(/\/\*[\s\S]*?\*\/|(?<=[^:])\/\/.*|^\/\/.*/g, "")
+	fs.writeFileSync("libs/tensorflow-stripped.js", str)
+}
+
 export async function updateLibs() {
 	await copyToLibs(clientDependencies)
+	await stripCommentsFromTensorflow()
 }
 
 /**
  * Should correspond to {@link import("./RollupConfig").dependencyMap}
  *
- * @typedef {"rollupWeb" | "rollupDesktop" | "copy"} BundlingStrategy
+ * @typedef {"rollupWeb" | "rollupTF" | "rollupDesktop" | "copy"} BundlingStrategy
  * @typedef {{src: string, target: string, bundling: BundlingStrategy, banner?: string, patch?: string}} DependencyDescription
  * @type Array<DependencyDescription>
  *
@@ -44,9 +51,8 @@ const clientDependencies = [
 	{ src: "../node_modules/@signalapp/sqlcipher/dist/index.mjs", target: "node-sqlcipher.mjs", bundling: "copy" },
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb", patch: "./libs/botd.patch" },
-	{ src: "../node_modules/@tensorflow/tfjs-core/dist/tf-core.js", target: "tensorflow-core.js", bundling: "copy", patch: "./libs/tfjs-core.patch" },
-	{ src: "../node_modules/@tensorflow/tfjs-layers/dist/tf-layers.js", target: "tensorflow-layers.js", bundling: "copy" },
-	{ src: "../node_modules/@tensorflow/tfjs-backend-webgl/dist/tf-backend-webgl.js", target: "tensorflow-backend-webgl.js", bundling: "copy" },
+	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb", patch: "./libs/botd.patch" },
+	{ src: "../src/mail-app/workerUtils/spamClassification/tensorflow-custom.js", target: "tensorflow.js", bundling: "rollupTF" },
 ]
 
 async function applyPatch() {
@@ -113,6 +119,9 @@ async function copyToLibs(dependencies) {
 			case "rollupWeb":
 				await rollWebDep(src, target, banner)
 				break
+			case "rollupTF":
+				await rollupTensorFlow(src, target, banner)
+				break
 			case "rollupDesktop":
 				await rollDesktopDep(src, target, banner)
 				break
@@ -132,6 +141,21 @@ async function copyToLibs(dependencies) {
  */
 async function rollWebDep(src, target, banner) {
 	const bundle = await rollup({ input: path.join(__dirname, src), plugins: [nodeResolve()] })
+	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
+}
+
+async function rollupTensorFlow(src, target, banner) {
+	const bundle = await rollup({
+		input: path.join(__dirname, src),
+		treeshake: {
+			moduleSideEffects: false, // Ensures better tree-shaking
+			preset: "smallest",
+		},
+		output: {
+			format: "esm",
+		},
+		plugins: [nodeResolve(), commonjs()],
+	})
 	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
 }
 

@@ -1,5 +1,5 @@
 import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import * as tfCore from "@tensorflow/tfjs-core"
+import { stringToHashBucketFast, tensor1d } from "./tensorflow-custom"
 
 export class HashingVectorizer {
 	private readonly hasher: (tokens: Array<string>) => Promise<Array<number>> = this.tensorHash
@@ -30,8 +30,8 @@ export class HashingVectorizer {
 	 * }
 	 */
 	private async tensorHash(array: Array<string>): Promise<Array<number>> {
-		const inputTensor = tfCore.tensor1d(array, "string")
-		const rankTensor = tfCore.string.stringToHashBucketFast(inputTensor, this.dimension)
+		const inputTensor = tensor1d(array, "string")
+		const rankTensor = stringToHashBucketFast(inputTensor, this.dimension)
 		const resultArray = (await rankTensor.array()) as Array<number>
 
 		// When using the webgl backend we need to manually dispose @tensorflow tensors
