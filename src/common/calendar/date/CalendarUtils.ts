@@ -1706,21 +1706,21 @@ type CalendarTypeInfo = {
 
 export function getCalendarType(calendarTypeInfo: CalendarTypeInfo): CalendarType {
 	if (isBirthdayCalendar(calendarTypeInfo.calendarId)) return CalendarType.Birthday
-	if (isPrivateRenderType(calendarTypeInfo)) return CalendarType.Private
-	if (isSharedRenderType(calendarTypeInfo)) return CalendarType.Shared
-	if (isExternalRenderType(calendarTypeInfo)) return CalendarType.External
+	if (isPrivateCalendarType(calendarTypeInfo)) return CalendarType.Private
+	if (isSharedCalendarType(calendarTypeInfo)) return CalendarType.Shared
+	if (isExternalCalendarType(calendarTypeInfo)) return CalendarType.External
 	throw new Error("Unknown calendar Render Type")
 }
 
-function isPrivateRenderType(calendarTypeInfo: CalendarTypeInfo) {
+function isPrivateCalendarType(calendarTypeInfo: CalendarTypeInfo) {
 	return calendarTypeInfo.isUserOwner && !calendarTypeInfo.isExternalCalendar && !isBirthdayCalendar(calendarTypeInfo.calendarId)
 }
 
-function isSharedRenderType(calendarTypeInfo: CalendarTypeInfo) {
+function isSharedCalendarType(calendarTypeInfo: CalendarTypeInfo) {
 	return !calendarTypeInfo.isUserOwner
 }
 
-function isExternalRenderType(calendarTypeInfo: CalendarTypeInfo) {
+function isExternalCalendarType(calendarTypeInfo: CalendarTypeInfo) {
 	return calendarTypeInfo.isUserOwner && calendarTypeInfo.isExternalCalendar
 }
 

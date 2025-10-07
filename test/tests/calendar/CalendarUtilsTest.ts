@@ -9,6 +9,7 @@ import {
 	calendarEventHasMoreThanOneOccurrencesLeft,
 	CalendarEventValidity,
 	CalendarMonth,
+	CalendarType,
 	checkEventValidity,
 	createRepeatRuleWithValues,
 	eventEndsBefore,
@@ -17,6 +18,7 @@ import {
 	getAllDayDateForTimezone,
 	getAllDayDatesUTCFromIso,
 	getAllDayDateUTCFromZone,
+	getCalendarType,
 	getDiffIn24hIntervals,
 	getDiffIn60mIntervals,
 	getMonthRange,
@@ -30,7 +32,7 @@ import {
 } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { lang } from "../../../src/common/misc/LanguageViewModel.js"
 import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, RepeatRule, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs.js"
-import { AccountType, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/common/api/common/TutanotaConstants.js"
+import { AccountType, BIRTHDAY_CALENDAR_BASE_ID, EndType, GroupType, RepeatPeriod, ShareCapability } from "../../../src/common/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../src/common/misc/Formatter.js"
 import { DateTime } from "luxon"
 import {
@@ -2451,6 +2453,70 @@ o.spec("calendar utils tests", function () {
 		o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.HOUR })).equals("2H")
 		o(serializeAlarmInterval({ value: 35, unit: AlarmIntervalUnit.DAY })).equals("35D")
 		o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.WEEK })).equals("2W")
+	})
+
+	o.spec("getCalendarType", () => {
+		o("birthday calendar type", () => {
+			o(
+				getCalendarType({
+					calendarId: BIRTHDAY_CALENDAR_BASE_ID,
+					isExternalCalendar: false,
+					isUserOwner: false,
+				}),
+			).deepEquals(CalendarType.Birthday)
+
+			o(
+				getCalendarType({
+					calendarId: BIRTHDAY_CALENDAR_BASE_ID,
+					isExternalCalendar: true,
+					isUserOwner: true,
+				}),
+			).deepEquals(CalendarType.Birthday)
+		})
+
+		o("private calendar type", () => {
+			o(
+				getCalendarType({
+					calendarId: "calendar-group-id",
+					isExternalCalendar: false,
+					isUserOwner: true,
+				}),
+			).deepEquals(CalendarType.Private)
+		})
+
+		o("external calendar type", () => {
+			o(
+				getCalendarType({
+					calendarId: "calendar-group-id",
+					isExternalCalendar: true,
+					isUserOwner: true,
+				}),
+			).deepEquals(CalendarType.External)
+		})
+
+		o("shared calendar type", () => {
+			o(
+				getCalendarType({
+					calendarId: "calendar-group-id",
+					isExternalCalendar: true,
+					isUserOwner: false,
+				}),
+			).deepEquals(CalendarType.Shared)
+			o(
+				getCalendarType({
+					calendarId: "calendar-group-id",
+					isExternalCalendar: false,
+					isUserOwner: false,
+				}),
+			).deepEquals(CalendarType.Shared)
+		})
+
+		o("does not accept invalid values", () => {
+			// it does accept values like "05M". should it tho?
+			for (const value of ["-1M", "M", "3G", "3", "H5"]) {
+				o(() => parseAlarmInterval(value)).throws(ParserError)(`Should throw on ${value}`)
+			}
+		})
 	})
 })
 
