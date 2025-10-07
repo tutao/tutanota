@@ -317,8 +317,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									currentViewType: this.currentViewType,
+									showWeekDays: !styles.isDesktopLayout(),
 								}),
 								floatingActionButton: this.renderFab.bind(this),
+								columnLayoutWrapperClass: "min-height-0",
 							})
 
 						case CalendarViewType.WEEK:
@@ -351,8 +353,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									currentViewType: this.currentViewType,
+									showWeekDays: true,
 								}),
 								floatingActionButton: this.renderFab.bind(this),
+								columnLayoutWrapperClass: "min-height-0",
 							})
 
 						case CalendarViewType.THREE_DAY:
@@ -385,8 +389,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									currentViewType: this.currentViewType,
+									showWeekDays: true,
 								}),
 								floatingActionButton: this.renderFab.bind(this),
+								columnLayoutWrapperClass: "min-height-0",
 							})
 
 						case CalendarViewType.AGENDA:

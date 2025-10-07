@@ -1,5 +1,5 @@
 import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { getStartOfDay, incrementDate, isSameDay, isToday, lastThrow, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
+import { deduplicate, getStartOfDay, incrementDate, lastThrow, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../../common/misc/Formatter"
 import {
 	combineDateWithTime,
@@ -12,13 +12,13 @@ import {
 	getStartOfWeek,
 	getTimeTextFormatForLongEvent,
 	getTimeZone,
+	isSameEventInstance,
 } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarDayEventsView, calendarDayTimes } from "./CalendarDayEventsView"
 import { theme } from "../../../common/gui/theme"
 import { px, size } from "../../../common/gui/size"
 import { EventTextTimeOption, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { PageView } from "../../../common/gui/base/PageView"
 import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
@@ -33,6 +33,8 @@ import {
 	daysHaveEvents,
 	EventLayoutMode,
 	extractCalendarEventModifierKey,
+	generateRandomColor,
+	getDayCircleClass,
 	getEventColor,
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
@@ -41,12 +43,12 @@ import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { CalendarViewType, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { DateTime } from "luxon"
 import { Time } from "../../../common/calendar/date/Time.js"
-import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
-import { isModifierKeyPressed } from "../../../common/misc/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { EventConflictRenderPolicy, TimeView, TimeViewAttributes, TimeViewEventWrapper } from "../../../common/calendar/gui/TimeView.js"
+import { CalendarViewComponent, CalendarViewComponentAttrs } from "./calendarViewComponent/CalendarViewComponent"
+import { HeaderVariant } from "./calendarViewComponent/HeaderComponent"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date
@@ -67,7 +69,9 @@ export type MultiDayCalendarViewAttrs = {
 	scrollPosition: number
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
-	currentViewType: CalendarViewType
+	currentViewType: CalendarViewType // FIXME is it necessary?
+
+	showWeekDays: boolean
 }
 
 export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs> {
@@ -83,6 +87,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	private scrollEndTime: TimeoutID | null = null
 	private lastScrollPosition: number | null = null
 	private viewType: CalendarViewType
+	private color = generateRandomColor()
 
 	constructor({ attrs }: Vnode<MultiDayCalendarViewAttrs>) {
 		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
@@ -119,99 +124,103 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	}
 
 	view({ attrs }: Vnode<MultiDayCalendarViewAttrs>): Children {
-		// Special case for week view
+		const { previous, current, next } = this.getPeriods(attrs.selectedDate, attrs.daysInPeriod, attrs.startOfTheWeek, attrs.getEventsOnDays)
 
-		const startOfThisPeriod =
-			attrs.daysInPeriod === 7 ? getStartOfWeek(attrs.selectedDate, getStartOfTheWeekOffset(attrs.startOfTheWeek)) : attrs.selectedDate
-		const startOfPreviousPeriod = incrementDate(new Date(startOfThisPeriod), -attrs.daysInPeriod)
-		const startOfNextPeriod = incrementDate(new Date(startOfThisPeriod), attrs.daysInPeriod)
-
-		const previousPageEvents = this.getEventsInRange(attrs.getEventsOnDays, attrs.daysInPeriod, startOfPreviousPeriod)
-		const currentPageEvents = this.getEventsInRange(attrs.getEventsOnDays, attrs.daysInPeriod, startOfThisPeriod)
-		const nextPageEvents = this.getEventsInRange(attrs.getEventsOnDays, attrs.daysInPeriod, startOfNextPeriod)
-		const startOfWeek = getStartOfWeek(attrs.selectedDate, getStartOfTheWeekOffset(attrs.startOfTheWeek))
-		const weekEvents = this.getEventsInRange(attrs.getEventsOnDays, 7, startOfWeek)
-
-		const isDayView = attrs.daysInPeriod === 1
-		const isDesktopLayout = styles.isDesktopLayout()
-
-		return m(
-			".flex.col.fill-absolute",
-			{
-				class: this.eventDragHandler.isDragging && isModifierKeyPressed(this.eventDragHandler.pressedDragKey) ? "drag-mod-key" : "",
+		return m(CalendarViewComponent, {
+			headerComponentAttrs: {
+				dates: getRangeOfDays(current.start, attrs.daysInPeriod),
+				selectedDate: attrs.selectedDate,
+				onDateClick: attrs.onDateSelected,
+				startOfWeek: attrs.startOfTheWeek,
+				isDaySelectorExpanded: attrs.isDaySelectorExpanded,
+				variant: styles.isDesktopLayout() || attrs.currentViewType === CalendarViewType.THREE_DAY ? HeaderVariant.NORMAL : HeaderVariant.SWIPEABLE,
+				showWeekDays: attrs.showWeekDays,
 			},
-			[
-				!isDesktopLayout && attrs.currentViewType !== CalendarViewType.THREE_DAY
-					? [
-							this.renderDateSelector(attrs, isDayView),
-							this.renderHeaderMobile(
-								isDayView ? currentPageEvents : weekEvents,
-								attrs.groupColors,
-								attrs.onEventClicked,
-								attrs.onEventKeyDown,
-								attrs.temporaryEvents,
-							),
-						]
-					: !isDesktopLayout && attrs.currentViewType === CalendarViewType.THREE_DAY
-						? this.renderShortWeekHeader(attrs, currentPageEvents, currentPageEvents)
-						: null,
-
-				m(PageView, {
-					previousPage: {
-						key: startOfPreviousPeriod.getTime(),
-						nodes: this.renderDays(attrs, previousPageEvents, currentPageEvents, isDayView, isDesktopLayout),
-					},
-					currentPage: {
-						key: startOfThisPeriod.getTime(),
-						nodes: this.renderDays(attrs, currentPageEvents, currentPageEvents, isDayView, isDesktopLayout),
-					},
-					nextPage: {
-						key: startOfNextPeriod.getTime(),
-						nodes: this.renderDays(attrs, nextPageEvents, currentPageEvents, isDayView, isDesktopLayout),
-					},
-					onChangePage: (next) => attrs.onChangeViewPeriod(next),
-				}),
-			],
-		)
+			bodyComponentAttrs: {
+				previous: {
+					key: previous.start.getTime(),
+					dates: previous.dates,
+					events: previous.events,
+				},
+				current: {
+					key: current.start.getTime(),
+					dates: current.dates,
+					events: current.events,
+				},
+				next: {
+					key: next.start.getTime(),
+					dates: next.dates,
+					events: next.events,
+				},
+				onChangePage: attrs.onChangeViewPeriod,
+			},
+		} satisfies CalendarViewComponentAttrs)
 	}
 
-	private getEventsInRange(getEventsFunction: (range: Date[]) => EventsOnDays, daysInPeriod: number, startOfPeriod: Date) {
+	private getPeriods(baseDate: Date, daysInPeriod: number, startOfWeek: WeekStart, getEventsFunction: (range: Date[]) => EventsOnDays) {
+		const periods = this.getStartOfPeriods(baseDate, daysInPeriod, startOfWeek)
+		const previousEvents = this.getEventsInPeriod(getEventsFunction, daysInPeriod, periods.previous)
+		const currentEvents = this.getEventsInPeriod(getEventsFunction, daysInPeriod, periods.current)
+		const nextEvents = this.getEventsInPeriod(getEventsFunction, daysInPeriod, periods.next)
+
+		return {
+			previous: {
+				start: periods.previous,
+				dates: previousEvents.days,
+				events: {
+					short: deduplicate(
+						previousEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType.bind(this))),
+						(a, b) => isSameEventInstance(a.event, b.event),
+					),
+					long: previousEvents.longEvents.map(this.fixType),
+				},
+			},
+			current: {
+				start: periods.current,
+				dates: currentEvents.days,
+				events: {
+					short: deduplicate(
+						currentEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType.bind(this))),
+						(a, b) => isSameEventInstance(a.event, b.event),
+					),
+					long: currentEvents.longEvents.map(this.fixType),
+				},
+			},
+			next: {
+				start: periods.next,
+				dates: nextEvents.days,
+				events: {
+					short: deduplicate(
+						nextEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType.bind(this))),
+						(a, b) => isSameEventInstance(a.event, b.event),
+					),
+					long: nextEvents.longEvents.map(this.fixType),
+				},
+			},
+		}
+	}
+
+	// FIXME remove :=)
+	private fixType(event: EventRenderWrapper): TimeViewEventWrapper {
+		return {
+			event,
+			conflictsWithMainEvent: false,
+			color: "#EE00B5",
+			featured: false,
+		}
+	}
+
+	private getStartOfPeriods(baseDate: Date, daysInPeriod: number, startOfWeek: WeekStart) {
+		const startOfThisPeriod = daysInPeriod === 7 ? getStartOfWeek(baseDate, getStartOfTheWeekOffset(startOfWeek)) : baseDate
+		const startOfPreviousPeriod = incrementDate(new Date(startOfThisPeriod), -daysInPeriod)
+		const startOfNextPeriod = incrementDate(new Date(startOfThisPeriod), daysInPeriod)
+
+		return { previous: startOfPreviousPeriod, current: startOfThisPeriod, next: startOfNextPeriod }
+	}
+
+	private getEventsInPeriod(getEventsFunction: (range: Date[]) => EventsOnDays, daysInPeriod: number, startOfPeriod: Date) {
 		const weekRange = getRangeOfDays(startOfPeriod, daysInPeriod)
 		return getEventsFunction(weekRange)
-	}
-
-	private renderDateSelector(attrs: MultiDayCalendarViewAttrs, isDayView: boolean): Children {
-		return m("", [
-			m(
-				".header-bg.pb-s.overflow-hidden",
-				{
-					style: {
-						"margin-left": px(size.calendar_hour_width_mobile),
-					},
-				},
-				m(DaySelector, {
-					selectedDate: attrs.selectedDate,
-					onDateSelected: (date) => attrs.onDateSelected(date),
-					wide: true,
-					startOfTheWeekOffset: getStartOfTheWeekOffset(attrs.startOfTheWeek),
-					isDaySelectorExpanded: attrs.isDaySelectorExpanded,
-					handleDayPickerSwipe: (isNext: boolean) => {
-						const sign = isNext ? 1 : -1
-						const duration = {
-							month: sign * (attrs.isDaySelectorExpanded ? 1 : 0),
-							days: sign * (attrs.daysInPeriod ? 0 : 1),
-						}
-
-						attrs.onDateSelected(DateTime.fromJSDate(attrs.selectedDate).plus(duration).toJSDate())
-					},
-					showDaySelection: isDayView,
-					highlightToday: true,
-					highlightSelectedWeek: !isDayView,
-					useNarrowWeekName: styles.isSingleColumnLayout() || attrs.currentViewType === CalendarViewType.THREE_DAY,
-					hasEventOn: (date) => daysHaveEvents(attrs.getEventsOnDays([date])),
-				}),
-			),
-		])
 	}
 
 	private static getTodayTimestamp(): number {
@@ -225,6 +234,31 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		isDayView: boolean,
 		isDesktopLayout: boolean,
 	): Children {
+		return m(
+			".height-100p.rel",
+			{ "overflow-y": "auto" },
+			m(TimeView, {
+				timeRange: {
+					start: new Time(0, 0),
+					end: new Time(23, 0),
+				},
+				timeScale: 1,
+				dates: thisPeriod.days,
+				conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
+				events: deduplicate(
+					thisPeriod.shortEventsPerDay.flatMap((e) => {
+						return e.map((ev) => ({
+							event: ev,
+							conflictsWithMainEvent: false,
+							featured: false,
+							color: "#FF0000",
+						}))
+					}),
+					(a, b) => isSameEventInstance(a.event, b.event),
+				),
+			} satisfies TimeViewAttributes),
+		)
+
 		let containerStyle
 
 		if (isDesktopLayout) {
@@ -733,17 +767,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			return null
 		}
 
-		const rowSize = px(size.calendar_days_header_height)
-
-		const getCircleClass = (date: Date) => {
-			if (highlightSelectedDay && isSameDay(date, selectedDate)) {
-				return { circle: "calendar-selected-day-circle", text: "calendar-selected-day-text" }
-			} else if (isToday(date)) {
-				return { circle: "calendar-current-day-circle", text: "calendar-current-day-text" }
-			}
-
-			return { circle: "", text: "" }
-		}
+		const getCircleClass = (date: Date) => getDayCircleClass(date, selectedDate)
 
 		return m(
 			".flex.mb-s",
@@ -752,69 +776,81 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				? null
 				: days.map((day) => {
 						// the click handler is set on each child individually so as to not make the entire flex container clickable, only the text
-						const onclick = () => onDateSelected(day, CalendarViewType.DAY)
-						const eventsOnDay = getEventsOnDays([day])
-						const shouldShowEventIndicator = !daysHaveAllDayEvents(eventsOnDay) && daysHaveEvents(eventsOnDay)
-						const classes = getCircleClass(day)
-						return m(".flex.flex-column.center-horizontally.flex-grow.center.b.items-center.rel", [
-							m(
-								".flex.center-horizontally.flex-grow.center.b.items-center",
-								{
-									class: !styles.isDesktopLayout() && shouldShowEventIndicator ? "mb-s" : "",
-								},
-								[
-									m(
-										".calendar-day-indicator.clickable",
-										{
-											onclick,
-											style: {
-												"padding-right": px(4),
-											},
-										},
-										lang.formats.weekdayShort.format(day) + " ",
-									),
-									m(
-										".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
-										{
-											"aria-label": day.toLocaleDateString(),
-											onclick,
-										},
-										[
-											m(".abs.z1.circle", {
-												class: classes.circle,
-												style: {
-													width: rowSize,
-													height: rowSize,
-												},
-											}),
-											m(
-												".full-width.height-100p.center.z2",
-												{
-													class: classes.text,
-													style: {
-														fontSize: px(14),
-														lineHeight: rowSize,
-													},
-												},
-												day.getDate(),
-											),
-										],
-									),
-								],
-							),
-							!styles.isDesktopLayout() && shouldShowEventIndicator
-								? m(".day-events-indicator", {
-										style: styles.isDesktopLayout()
-											? {
-													width: "3px",
-													height: "3px",
-												}
-											: {},
-									})
-								: null,
-						])
+						return this.renderDayHeader(onDateSelected, day, getEventsOnDays, getCircleClass)
 					}),
 		)
+	}
+
+	private renderDayHeader(
+		onDateSelected: (arg0: Date, arg1: CalendarViewType) => unknown,
+		day: Date,
+		getEventsOnDays: (dateRange: Date[]) => EventsOnDays,
+		getCircleClass: (date: Date) => {
+			circle: string
+			text: string
+		},
+	) {
+		const onclick = () => onDateSelected(day, CalendarViewType.DAY)
+		const eventsOnDay = getEventsOnDays([day])
+		const shouldShowEventIndicator = !daysHaveAllDayEvents(eventsOnDay) && daysHaveEvents(eventsOnDay)
+		const classes = getCircleClass(day)
+		return m(".flex.flex-column.center-horizontally.flex-grow.center.b.items-center.rel", [
+			m(
+				".flex.center-horizontally.flex-grow.center.b.items-center",
+				{
+					class: !styles.isDesktopLayout() && shouldShowEventIndicator ? "mb-s" : "",
+				},
+				[
+					m(
+						".calendar-day-indicator.clickable",
+						{
+							onclick,
+							style: {
+								"padding-right": px(4),
+							},
+						},
+						lang.formats.weekdayShort.format(day) + " ",
+					),
+					m(
+						".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
+						{
+							"aria-label": day.toLocaleDateString(),
+							onclick,
+						},
+						[
+							m(".abs.z1.circle", {
+								class: classes.circle,
+								style: {
+									width: px(size.calendar_days_header_height),
+									height: px(size.calendar_days_header_height),
+								},
+							}),
+							m(
+								".full-width.height-100p.center.z2",
+								{
+									class: classes.text,
+									style: {
+										fontSize: px(14),
+										lineHeight: px(size.calendar_days_header_height),
+									},
+								},
+								day.getDate(),
+							),
+						],
+					),
+				],
+			),
+			!styles.isDesktopLayout() && shouldShowEventIndicator
+				? m(".day-events-indicator", {
+						style: styles.isDesktopLayout()
+							? {
+									width: "3px",
+									height: "3px",
+								}
+							: {},
+					})
+				: null,
+		])
 	}
 
 	private endDrag(pos: MousePos) {
