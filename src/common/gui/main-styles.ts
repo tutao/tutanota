@@ -472,6 +472,14 @@ styles.registerStyle("main", () => {
 		".pt-l": {
 			"padding-top": px(size.vpad_large),
 		},
+		".py-core-4": {
+			"padding-top": px(size.spacing.core_4),
+			"padding-bottom": px(size.spacing.core_4),
+		},
+		".py-core-8": {
+			"padding-top": px(size.spacing.core_8),
+			"padding-bottom": px(size.spacing.core_8),
+		},
 		// New design system
 		".nds-ptb-l": {
 			"padding-top": px(size.new_design.vpad_large),
@@ -676,6 +684,9 @@ styles.registerStyle("main", () => {
 		".mr-negative-m": {
 			"margin-right": px(-(size.hpad_button + size.hpad_nav_button)),
 		},
+		".top-0": {
+			top: 0,
+		},
 		// negative margin to handle the padding of a nav button
 		".fixed-bottom-right": {
 			position: "fixed",
@@ -793,13 +804,14 @@ styles.registerStyle("main", () => {
 			background: theme.outline_variant,
 			position: "absolute",
 			bottom: "-1px",
+			left: 0,
 		},
 		// borders
 		".border-bottom": {
 			"border-bottom": `1px solid ${theme.outline_variant}`,
 		},
 		".border-right": {
-			"border-right": `1px solid ${theme.outline}`,
+			"border-right": `1px solid ${theme.outline_variant}`,
 		},
 		".border-left": {
 			"border-left": `1px solid ${theme.outline_variant}`,
@@ -1046,6 +1058,9 @@ styles.registerStyle("main", () => {
 		},
 		".button-height": {
 			height: px(size.button_height),
+		},
+		".min-height-0": {
+			"min-height": px(0),
 		},
 		".button-min-height": {
 			"min-height": px(size.button_height),
@@ -2476,7 +2491,6 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-day-indicator": {
 			// overridden for mobile
-			height: px(size.calendar_days_header_height),
 			"line-height": px(size.calendar_days_header_height),
 			"text-align": "center",
 			"font-size": "14px",
@@ -2764,7 +2778,6 @@ styles.registerStyle("main", () => {
 				"padding-top": px(size.vpad_small),
 			},
 			".calendar-day-indicator": {
-				height: "20px",
 				"line-height": "20px",
 				"text-align": "center",
 				"font-size": "14px",
