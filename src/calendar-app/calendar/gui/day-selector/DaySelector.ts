@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertNotNull, getStartOfDay, incrementDate, isSameDayOfDate, isToday } from "@tutao/tutanota-utils"
+import { assertNotNull, getStartOfDay, incrementDate, isSameDayOfDate } from "@tutao/tutanota-utils"
 import { DateTime } from "luxon"
 import { Carousel } from "../../../../common/gui/base/Carousel.js"
-import { changePeriodOnWheel, getCalendarMonth } from "../CalendarGuiUtils.js"
+import { changePeriodOnWheel, getCalendarMonth, getDayCircleClass } from "../CalendarGuiUtils.js"
 import { CalendarDay, CalendarMonth } from "../../../../common/calendar/date/CalendarUtils.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
 import { ExpanderPanel } from "../../../../common/gui/base/Expander.js"
@@ -141,15 +141,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 
 	private renderDay({ date, day, isPaddingDay }: CalendarDay, attrs: DaySelectorAttrs, hidden: boolean): Children {
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
-		let circleClass = ""
-		let textClass = ""
-		if (isSelectedDay && attrs.showDaySelection) {
-			circleClass = "calendar-selected-day-circle"
-			textClass = "calendar-selected-day-text"
-		} else if (isToday(date) && attrs.highlightToday) {
-			circleClass = "calendar-current-day-circle-small"
-			textClass = "calendar-current-day-text-small"
-		}
+		const classes = getDayCircleClass(date, attrs.selectedDate)
 
 		const size = this.getElementSize(attrs)
 
@@ -166,7 +158,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			},
 			[
 				m(".abs.z1.circle", {
-					class: circleClass,
+					class: classes.circle,
 					style: {
 						width: px(size * 0.625),
 						height: px(size * 0.625),
@@ -175,14 +167,23 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 				m(
 					".full-width.height-100p.center.z2",
 					{
-						class: textClass,
+						class: classes.text,
 						style: {
 							fontSize: px(attrs.wide ? 14 : 12),
 						},
 					},
 					day,
 				),
-				attrs.hasEventOn(date) ? m(".day-events-indicator", { style: styles.isDesktopLayout() ? { width: "3px", height: "3px" } : {} }) : null,
+				attrs.hasEventOn(date)
+					? m(".day-events-indicator", {
+							style: styles.isDesktopLayout()
+								? {
+										width: "3px",
+										height: "3px",
+									}
+								: {},
+						})
+					: null,
 			],
 		)
 	}

@@ -764,13 +764,14 @@ styles.registerStyle("main", () => {
 			background: theme.outline_variant,
 			position: "absolute",
 			bottom: "-1px",
+			left: 0,
 		},
 		// borders
 		".border-bottom": {
 			"border-bottom": `1px solid ${theme.outline_variant}`,
 		},
 		".border-right": {
-			"border-right": `1px solid ${theme.outline}`,
+			"border-right": `1px solid ${theme.outline_variant}`,
 		},
 		".border-left": {
 			"border-left": `1px solid ${theme.outline_variant}`,
@@ -1018,6 +1019,9 @@ styles.registerStyle("main", () => {
 		},
 		".button-height": {
 			height: px(component_size.button_height),
+		},
+		".min-height-0": {
+			"min-height": px(0),
 		},
 		".button-min-height": {
 			"min-height": px(component_size.button_height),
@@ -2445,7 +2449,6 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-day-indicator": {
 			// overridden for mobile
-			height: px(layout_size.calendar_days_header_height),
 			"line-height": px(layout_size.calendar_days_header_height),
 			"text-align": "center",
 			"font-size": "14px",
@@ -2733,7 +2736,6 @@ styles.registerStyle("main", () => {
 				"padding-top": px(size.spacing_8),
 			},
 			".calendar-day-indicator": {
-				height: "20px",
 				"line-height": "20px",
 				"text-align": "center",
 				"font-size": "14px",
