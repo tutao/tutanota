@@ -2,7 +2,7 @@ import m, { Child, ChildArray, Children, Component, Vnode, VnodeDOM } from "mith
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "../date/Time"
 import { clone, deepMemoized, downcast, getStartOfNextDay } from "@tutao/tutanota-utils"
-import { px, size } from "../../gui/size.js"
+import { px } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { theme } from "../../gui/theme.js"
@@ -11,11 +11,6 @@ import { formatTime } from "../../misc/Formatter.js"
 import { getTimeZone } from "../date/CalendarUtils"
 import { EventRenderWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { DateTime } from "../../../../libs/luxon.js"
-import { CalendarViewType } from "../../api/common/utils/CommonCalendarUtils"
-import { styles } from "../../gui/styles"
-import { lang } from "../../misc/LanguageViewModel"
-import { DaySelector, DaySelectorAttrs } from "../../../calendar-app/calendar/gui/day-selector/DaySelector"
-import { getStartOfTheWeekOffset } from "../../misc/weekOffset"
 import { WeekStart } from "../../api/common/TutanotaConstants"
 
 export interface TimeViewEventWrapper {
@@ -63,11 +58,6 @@ export enum EventConflictRenderPolicy {
 	PARALLEL,
 }
 
-export type TimeHeaderProps = {
-	onDateClick: (date: Date) => unknown
-	isDaySelectorExpanded: boolean
-}
-
 export interface TimeViewAttributes {
 	/**
 	 * Days to render events
@@ -89,8 +79,6 @@ export interface TimeViewAttributes {
 	conflictRenderPolicy: EventConflictRenderPolicy
 	timeIndicator?: Time
 	hasAnyConflict?: boolean
-	headerProps?: TimeHeaderProps
-	startOfWeek?: WeekStart
 }
 
 export class TimeView implements Component<TimeViewAttributes> {
@@ -108,7 +96,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 		const subRowAsMinutes = TIME_SCALE_BASE_VALUE / timeScale / 12
 
 		return m(
-			".grid",
+			".grid.overflow-hidden.height-100p",
 			{
 				style: {
 					"overflow-x": "hidden",
@@ -125,149 +113,44 @@ export class TimeView implements Component<TimeViewAttributes> {
 				},
 			},
 			[
-				m("", { style: { "grid-row-start": 1 } }),
+				// Body - days,events
 				m(
-					"",
+					".grid",
 					{
 						style: {
-							"grid-row-start": 1,
-							"grid-column-start": 2,
-							"grid-column-end": -1,
-							position: "sticky",
+							"grid-column": "1 / -1",
+							"grid-row-start": 2,
+							"grid-template-columns": "subgrid",
+							"overflow-x": "hidden",
 						},
-					},
-					styles.isDesktopLayout()
-						? dates.map((date) => {
-								return this.renderDayHeader(
-									() => null,
-									date,
-									false,
-									() => ({ circle: "", text: "" }),
-								)
-							})
-						: this.renderDateSelector(attrs, false),
-				),
-				this.buildTimeColumn(timeColumnIntervals), // Time column
-				dates.map((date) => {
-					return m(
-						".grid.plr-unit.gap.z1.grid-auto-columns.rel",
-						{
-							oncreate(vnode): any {
-								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
-							},
-						},
-						[
-							this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
-							this.buildEventsColumn(events, timeRange, subRowAsMinutes, conflictRenderPolicy, subRowCount, timeScale, date, hasAnyConflict),
-						],
-					)
-				}),
-			],
-		)
-	}
-
-	private renderDateSelector(attrs: TimeViewAttributes, isDayView: boolean): Children {
-		return m("", [
-			m(
-				".header-bg.pb-s.overflow-hidden",
-				m(DaySelector, {
-					selectedDate: attrs.dates[0],
-					onDateSelected: (date) => attrs.headerProps?.onDateClick(date),
-					wide: true,
-					startOfTheWeekOffset: getStartOfTheWeekOffset(attrs.startOfWeek ?? WeekStart.MONDAY),
-					isDaySelectorExpanded: attrs.headerProps?.isDaySelectorExpanded ?? false,
-					handleDayPickerSwipe: (isNext: boolean) => {
-						const sign = isNext ? 1 : -1
-						const duration = {
-							month: sign * (attrs.headerProps?.isDaySelectorExpanded ? 1 : 0),
-							days: sign * attrs.dates.length,
-						}
-
-						attrs.headerProps?.onDateClick(DateTime.fromJSDate(attrs.dates[0]).plus(duration).toJSDate())
-					},
-					showDaySelection: isDayView,
-					highlightToday: true,
-					highlightSelectedWeek: !isDayView,
-					useNarrowWeekName: styles.isSingleColumnLayout(),
-					hasEventOn: (date) => false,
-				} satisfies DaySelectorAttrs),
-			),
-		])
-	}
-
-	private renderDayHeader(
-		onDateSelected: (arg0: Date, arg1: CalendarViewType) => unknown,
-		day: Date,
-		shouldShowEventIndicator: boolean,
-		getCircleClass: (date: Date) => {
-			circle: string
-			text: string
-		},
-	) {
-		const onclick = () => onDateSelected(day, CalendarViewType.DAY)
-		const classes = getCircleClass(day)
-
-		return m(
-			".flex.flex-column.center-horizontally.items-center.text-center.b",
-			{
-				"grid-row-start": 1,
-			},
-			[
-				m(
-					".flex.center-horizontally.flex-grow.center.b.items-center",
-					{
-						class: !styles.isDesktopLayout() && shouldShowEventIndicator ? "mb-s" : "",
 					},
 					[
-						m(
-							".calendar-day-indicator.clickable",
-							{
-								onclick,
-								style: {
-									"padding-right": px(4),
+						this.buildTimeColumn(timeColumnIntervals), // Time column
+						dates.map((date) => {
+							return m(
+								".grid.plr-unit.gap.z1.grid-auto-columns.rel",
+								{
+									oncreate(vnode): any {
+										;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
+									},
 								},
-							},
-							lang.formats.weekdayShort.format(day) + " ",
-						),
-						m(
-							".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
-							{
-								"aria-label": day.toLocaleDateString(),
-								onclick,
-							},
-							[
-								m(".abs.z1.circle", {
-									class: classes.circle,
-									style: {
-										width: px(size.calendar_days_header_height),
-										height: px(size.calendar_days_header_height),
-									},
-								}),
-								m(
-									".full-width.height-100p.center.z2",
-									{
-										class: classes.text,
-										style: {
-											fontSize: px(14),
-											lineHeight: px(size.calendar_days_header_height),
-										},
-									},
-									day.getDate(),
-								),
-							],
-						),
+								[
+									this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
+									this.buildEventsColumn(
+										events,
+										timeRange,
+										subRowAsMinutes,
+										conflictRenderPolicy,
+										subRowCount,
+										timeScale,
+										date,
+										hasAnyConflict,
+									),
+								],
+							)
+						}),
 					],
 				),
-				!styles.isDesktopLayout() && shouldShowEventIndicator
-					? m(".day-events-indicator", {
-							style: styles.isDesktopLayout()
-								? {
-										width: "3px",
-										height: "3px",
-									}
-								: {},
-						})
-					: null,
 			],
 		)
 	}
@@ -308,7 +191,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 			{
 				style: {
 					"grid-template-rows": `repeat(${times.length}, 1fr)`,
-					"grid-row-start": 2,
 				},
 			},
 			times.map((time, index) =>

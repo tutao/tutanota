@@ -59,7 +59,7 @@ export class SwipeHandler {
 		) {
 			this.directionLock = DirectionLock.Horizontal
 			// Do not scroll the list
-			e.preventDefault()
+			e.stopImmediatePropagation()
 
 			if (!this.isAnimating) {
 				this.onHorizontalDrag(x, y)

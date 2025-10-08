@@ -1,5 +1,5 @@
 import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { deduplicate, getStartOfDay, incrementDate, isSameDay, isToday, lastThrow, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
+import { deduplicate, getStartOfDay, incrementDate, lastThrow, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../../common/misc/Formatter"
 import {
 	combineDateWithTime,
@@ -34,6 +34,7 @@ import {
 	daysHaveEvents,
 	EventLayoutMode,
 	extractCalendarEventModifierKey,
+	getDayCircleClass,
 	getEventColor,
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
@@ -49,6 +50,7 @@ import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { isModifierKeyPressed } from "../../../common/misc/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { EventConflictRenderPolicy, TimeView, TimeViewAttributes } from "../../../common/calendar/gui/TimeView.js"
+import { CalendarViewComponent, CalendarViewComponentAttrs } from "../../../common/calendar/gui/CalendarViewComponent"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date
@@ -69,7 +71,9 @@ export type MultiDayCalendarViewAttrs = {
 	scrollPosition: number
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
-	currentViewType: CalendarViewType
+	currentViewType: CalendarViewType // FIXME is it necessary?
+
+	showWeekDays: boolean
 }
 
 export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs> {
@@ -121,8 +125,6 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	}
 
 	view({ attrs }: Vnode<MultiDayCalendarViewAttrs>): Children {
-		// Special case for week view
-
 		const startOfThisPeriod =
 			attrs.daysInPeriod === 7 ? getStartOfWeek(attrs.selectedDate, getStartOfTheWeekOffset(attrs.startOfTheWeek)) : attrs.selectedDate
 		const startOfPreviousPeriod = incrementDate(new Date(startOfThisPeriod), -attrs.daysInPeriod)
@@ -131,6 +133,23 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		const previousPageEvents = this.getEventsInRange(attrs.getEventsOnDays, attrs.daysInPeriod, startOfPreviousPeriod)
 		const currentPageEvents = this.getEventsInRange(attrs.getEventsOnDays, attrs.daysInPeriod, startOfThisPeriod)
 		const nextPageEvents = this.getEventsInRange(attrs.getEventsOnDays, attrs.daysInPeriod, startOfNextPeriod)
+
+		const dates = getRangeOfDays(startOfPreviousPeriod, attrs.daysInPeriod * 3)
+
+		return m(CalendarViewComponent, {
+			dates,
+			showWeekDays: attrs.showWeekDays,
+			headerComponentAttrs: {
+				dates: getRangeOfDays(startOfThisPeriod, attrs.daysInPeriod),
+				selectedDate: attrs.selectedDate,
+				onDateClick: attrs.onDateSelected,
+				startOfWeek: attrs.startOfTheWeek,
+				isDaySelectorExpanded: attrs.isDaySelectorExpanded,
+			},
+		} satisfies CalendarViewComponentAttrs)
+
+		// Special case for week view
+
 		const startOfWeek = getStartOfWeek(attrs.selectedDate, getStartOfTheWeekOffset(attrs.startOfTheWeek))
 		const weekEvents = this.getEventsInRange(attrs.getEventsOnDays, 7, startOfWeek)
 
@@ -745,15 +764,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			return null
 		}
 
-		const getCircleClass = (date: Date) => {
-			if (highlightSelectedDay && isSameDay(date, selectedDate)) {
-				return { circle: "calendar-selected-day-circle", text: "calendar-selected-day-text" }
-			} else if (isToday(date)) {
-				return { circle: "calendar-current-day-circle", text: "calendar-current-day-text" }
-			}
-
-			return { circle: "", text: "" }
-		}
+		const getCircleClass = (date: Date) => getDayCircleClass(date, selectedDate)
 
 		return m(
 			".flex.mb-s",

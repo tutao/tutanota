@@ -182,7 +182,16 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 					},
 					day,
 				),
-				attrs.hasEventOn(date) ? m(".day-events-indicator", { style: styles.isDesktopLayout() ? { width: "3px", height: "3px" } : {} }) : null,
+				attrs.hasEventOn(date)
+					? m(".day-events-indicator", {
+							style: styles.isDesktopLayout()
+								? {
+										width: "3px",
+										height: "3px",
+									}
+								: {},
+						})
+					: null,
 			],
 		)
 	}
