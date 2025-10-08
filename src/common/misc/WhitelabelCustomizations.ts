@@ -4,12 +4,12 @@ import type { WhitelabelConfig } from "../api/entities/sys/TypeRefs.js"
 
 assertMainOrNodeBoot()
 
-export const WHITELABEL_CUSTOMIZATION_VERSION = 1
+export const WHITELABEL_CUSTOMIZATION_VERSION = "1"
 
 /** ThemeCustomizations that might be old or new. */
 export type UnknownThemeCustomizations = Record<string, unknown>
 export type ThemeCustomizations = Partial<Theme> & {
-	version: number | null
+	version: NumberString | null
 	base: BaseThemeId | null
 	sourceColor: string | null
 }

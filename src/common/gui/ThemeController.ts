@@ -309,9 +309,18 @@ export class ThemeController {
 
 	/**
 	 * Get new Material3 theme customizations from old customizations
-	 * Could be removed after all users who have whitelabel color customization have migrated to the new color tokens.
+	 * Could be removed after:
+	 * 	- all users who have whitelabel color customization have migrated to the new color tokens.
+	 * 	- the client affected by issue#9790 is outdated, and the `version` field is migrated on all affected themes.
 	 */
 	async getMaterial3Customizations(unknownCustomizations: UnknownThemeCustomizations): Promise<ThemeCustomizations> {
+		// the customizations' version was first introduced as number in 5592c691.
+		// this number-to-string conversation is band-aid solution to issue#9790 that can be removed once the affected
+		// client (310.251002.0) is no longer supported.
+		if (typeof unknownCustomizations.version === "number") {
+			unknownCustomizations["version"] = unknownCustomizations["version"].toString()
+		}
+
 		// version is only null in old customizations
 		// for old whitelabel themes, content_accent is only null when there are no color customizations
 		if (unknownCustomizations.version != null || unknownCustomizations.content_accent == null) {

@@ -256,7 +256,7 @@ o.spec("ThemeController", () => {
 				logo: "nice_logo",
 				primary: "#ff00cc",
 				content_accent: "#0ccfff",
-				version: 1,
+				version: "1",
 			}
 			whitelabelGenerator = {
 				generateMaterialPalette: spy(),
