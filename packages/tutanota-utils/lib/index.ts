@@ -184,6 +184,7 @@ export {
 	isSessionStorageAvailable,
 	assertValidURL,
 	createResizeObserver,
+	singleAsync,
 } from "./Utils.js"
 export type {
 	Callback,
