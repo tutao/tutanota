@@ -194,7 +194,11 @@ export function readLocalFiles(nativeFiles: Array<File>): Promise<Array<DataFile
  * @param allowMultiple allow selecting multiple files
  * @param allowedExtensions Array of extensions strings without "."
  */
-export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<DataFile>> {
+export function runFileChooser<T>(
+	allowMultiple: boolean,
+	onChangeCallback: (e: Event, resolve: (value: Array<T> | PromiseLike<Array<T>>) => void) => void,
+	allowedExtensions?: Array<string>,
+): Promise<Array<T>> {
 	// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 	// remove the last file input
 	const fileInput = document.getElementById("hiddenFileChooser")
@@ -219,15 +223,9 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 	}
 
 	newFileInput.style.display = "none"
-	const promise: Promise<Array<DataFile>> = newPromise((resolve) => {
+	const promise: Promise<Array<T>> = newPromise((resolve) => {
 		newFileInput.addEventListener("change", (e: Event) => {
-			readLocalFiles((e.target as any).files)
-				.then(resolve)
-				.catch(async (e) => {
-					console.log(e)
-					await Dialog.message("couldNotAttachFile_msg")
-					resolve([])
-				})
+			onChangeCallback(e, resolve)
 		})
 		newFileInput.addEventListener("cancel", () => resolve([]))
 	})
@@ -235,6 +233,22 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 	body.appendChild(newFileInput)
 	newFileInput.click()
 	return promise
+}
+
+export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<DataFile>> {
+	return runFileChooser<DataFile>(
+		allowMultiple,
+		(e: Event, resolve) => {
+			readLocalFiles((e.target as any).files)
+				.then(resolve)
+				.catch(async (e) => {
+					console.log(e)
+					await Dialog.message("couldNotAttachFile_msg")
+					resolve([])
+				})
+		},
+		allowedExtensions,
+	)
 }
 
 /**
