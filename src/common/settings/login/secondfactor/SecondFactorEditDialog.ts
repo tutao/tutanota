@@ -44,6 +44,9 @@ export class SecondFactorEditDialog {
 	}
 
 	async okAction(): Promise<void> {
+		if (!this.dialog.visible) {
+			return
+		}
 		try {
 			const user = await this.model.save()
 			if (user != null) this.finalize(user)
@@ -148,7 +151,7 @@ export class SecondFactorEditDialog {
 				helpLabel: () => this.statusMessage(),
 				autocompleteAs: Autocomplete.oneTimeCode,
 				oninput: (newValue) => this.model.onTotpValueChange(newValue),
-				onReturnKeyPressed: () => this.model.save(),
+				onReturnKeyPressed: () => this.okAction(),
 			}),
 		])
 	}

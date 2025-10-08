@@ -344,6 +344,24 @@ export function throttleStart<F extends (...args: any[]) => Promise<any>>(period
 	}) as F
 }
 
+/**
+ * Returns an async function that will only be executed once until it has settled. Subsequent calls will return the
+ * original promise if it hasn't yet resolved.
+ *
+ * If the function throws before it can be awaited, it will not be caught.
+ */
+export function singleAsync<T, R>(fn: () => Promise<R>): () => Promise<R> {
+	let promise: Promise<R> | null = null
+	return async () => {
+		if (promise != null) {
+			return promise
+		} else {
+			promise = fn().finally(() => (promise = null))
+			return promise
+		}
+	}
+}
+
 export function randomIntFromInterval(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min + 1) + min)
 }
