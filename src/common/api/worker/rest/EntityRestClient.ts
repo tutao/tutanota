@@ -10,7 +10,7 @@ import {
 	NotFoundError,
 	PayloadTooLargeError,
 } from "../../common/error/RestError"
-import { assertNotNull, downcast, KeyVersion, lazy, Mapper, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, KeyVersion, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, TypeRef } from "@tutao/tutanota-utils"
 import { assertWorkerOrNode } from "../../common/Env"
 import type {
 	ClientModelUntypedInstance,
@@ -35,7 +35,6 @@ import { BlobAccessTokenFacade } from "../facades/BlobAccessTokenFacade.js"
 import { AesKey } from "@tutao/tutanota-crypto"
 import { isOfflineError } from "../../common/utils/ErrorUtils.js"
 import { VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
-import { Nullable } from "@tutao/tutanota-utils"
 import { InstancePipeline } from "../crypto/InstancePipeline"
 import { EntityAdapter } from "../crypto/EntityAdapter"
 import { AttributeModel } from "../../common/AttributeModel"

@@ -252,6 +252,7 @@ export type Mail = {
 	mailDetailsDraft: null | IdTuple;
 	bucketKey: null | BucketKey;
 	sets: IdTuple[];
+	clientTrainingDatum: null | IdTuple;
 }
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", 125)
 
@@ -282,6 +283,7 @@ export type MailBox = {
 	importedAttachments: Id;
 	mailImportStates: Id;
 	extractedFeatures: null | Id;
+	clientSpamTrainingDatumList: null | Id;
 }
 export const CreateExternalUserGroupDataTypeRef: TypeRef<CreateExternalUserGroupData> = new TypeRef("tutanota", 138)
 
@@ -2577,4 +2579,28 @@ export type MoveMailPostOut = {
 	_format: NumberString;
 
 	movedMails: MovedMails[];
+}
+export const ClientSideSpamTrainingDatumTypeRef: TypeRef<ClientSideSpamTrainingDatum> = new TypeRef("tutanota", 1724)
+
+export function createClientSideSpamTrainingDatum(values: StrippedEntity<ClientSideSpamTrainingDatum>): ClientSideSpamTrainingDatum {
+    return Object.assign(create(typeModels[ClientSideSpamTrainingDatumTypeRef.typeId], ClientSideSpamTrainingDatumTypeRef), values)
+}
+
+export type ClientSideSpamTrainingDatum = {
+	_type: TypeRef<ClientSideSpamTrainingDatum>;
+	_errors: Object;
+	_original?: ClientSideSpamTrainingDatum
+
+	_id: IdTuple;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array;
+	_ownerKeyVersion: null | NumberString;
+	isSpam: boolean;
+	confidence: NumberString;
+	version: NumberString;
+	compressedVector: string;
+
+	mail: IdTuple;
 }
