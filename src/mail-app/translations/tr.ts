@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:15:41Z",
-	"updated_at": "2025-09-30T09:24:37Z",
+	"updated_at": "2025-10-07T07:07:28Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -533,6 +533,7 @@ export default {
 		"deviceEncryptionSaveCredentialsHelpText_msg": "Cihaz şifrelemesini (pin/biyometrik kilit açma) etkinleştirmek için kimlik bilgilerinizi cihaza kaydetmeniz gerekir. Bunu bir sonraki oturum açışınızda yapabilirsiniz.",
 		"differentSecurityKeyDomain_msg": "Güvenlik anahtarınız bu alan adı için kayıtlı değil. Lütfen \"{domain}\" adresinde başka bir sekmede oturum açın.\n\nArdından burada tekrar oturum açın ve diğer sekmeden girişi kabul edin.",
 		"disallowExternalContent_action": "Harici içeriği engelle",
+		"discardDraft_action": "Taslağı sil",
 		"discord_label": "Discord",
 		"display_action": "Göster",
 		"dnsRecordHostOrName_label": "sunucu/isim",
@@ -1051,6 +1052,7 @@ export default {
 		"mailbox_label": "Posta kutusu",
 		"mailExportHistory_label": "Dışa aktarma geçmişi",
 		"mailExportInfoText_label": "EML dosyalarını dışa aktarabilirsiniz",
+		"mailExportLimitReached_msg": "Dışa aktarma limiti aşıldı. Dışa aktarma duraklatıldı ve daha sonra otomatik olarak devam edecek.",
 		"mailExportModeHelp_msg": "E-postaları dışa aktarırken veya sürükle bırak yaparken kullanılacak dosya formatı",
 		"mailExportMode_label": "E-posta dışarı aktarım dosya formatı",
 		"mailExportOnlyOnDesktop_label": "E-posta dışa aktarma şu an sadece masaüstü istemcisinde mümkün.",

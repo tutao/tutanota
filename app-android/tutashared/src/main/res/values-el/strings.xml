@@ -10,4 +10,5 @@
     <string name="markRead_action">Σήμανση ως αναγνωσμένου</string>
     <string name="sendLogs_action">Αποστολή αρχείων καταγραφής</string>
     <string name="account_label">Χρήστης</string>
+    <string name="noTitle_label">&lt;Χωρίς τίτλο&gt;</string>
 </resources>

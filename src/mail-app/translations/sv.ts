@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-23T11:36:16Z",
-	"updated_at": "2025-09-30T15:32:53Z",
+	"updated_at": "2025-10-06T18:11:34Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1048,6 +1048,7 @@ export default {
 		"mailbox_label": "Brevlåda",
 		"mailExportHistory_label": "Exporthistorik",
 		"mailExportInfoText_label": "Du kan exportera EML filer.",
+		"mailExportLimitReached_msg": "Exportgräns är nådd. Din export har pausats och återupptas automatiskt senare.",
 		"mailExportModeHelp_msg": "Filformat för e-post som ska användas vid export eller dra och släpp",
 		"mailExportMode_label": "Filformat export e-post",
 		"mailExportOnlyOnDesktop_label": "Export av e-post är för närvarande endast tillgängligt i vår stationära klient.",

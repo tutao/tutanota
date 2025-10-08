@@ -17,5 +17,6 @@ TutaoDeleteAction = "Διαγραφή";
 TutaoMarkReadAction = "Σήμανση ως αναγνωσμένου";
 TutaoWidgetSendLogsAction = "Αποστολή αρχείων καταγραφής";
 TutaoAccountLabel = "Χρήστης";
+TutaoNoTitleLabel = "<Χωρίς τίτλο>";
 TutaoDefaultCalendarNameTitle = "Ιδιωτικό";
 TutaoAllDayLabel = "Όλη ημέρα";

@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:40:31Z",
-	"updated_at": "2025-09-30T13:39:11Z",
+	"updated_at": "2025-10-06T13:39:12Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -1052,6 +1052,7 @@ export default {
 		"mailbox_label": "Postfach",
 		"mailExportHistory_label": "Export-Verlauf",
 		"mailExportInfoText_label": "Du kannst EML-Dateien exportieren.",
+		"mailExportLimitReached_msg": "Exportlimit erreicht. Dein Export wurde gestoppt und wird später automatisch fortgesetzt.",
 		"mailExportModeHelp_msg": "Dateiformat beim Exportieren und bei Drag & Drop",
 		"mailExportMode_label": "Dateiformat für E-Mail-Export",
 		"mailExportOnlyOnDesktop_label": "Der E-Mail-Export ist derzeit nur in unserem Desktop-Client verfügbar.",

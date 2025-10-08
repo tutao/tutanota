@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-03-10T10:52:15Z",
-	"updated_at": "2025-09-30T09:24:37Z",
+	"updated_at": "2025-10-06T15:18:39Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -529,6 +529,7 @@ export default {
 		"deviceEncryptionSaveCredentialsHelpText_msg": "Jos haluat käyttää laitteen salausta (tunnuskoodi/biometrinen lukitus), tunnukset on tallennettava laitteelle. Voit tehdä näin ensi kirjautumisen yhteydessä.",
 		"differentSecurityKeyDomain_msg": "Turva-avainta ei ole rekisteröity tälle verkkotunnukselle. Kirjaudu osoitteessa {domain} eri välilehdellä.\n\nKokeile sitten kirjautua täältä uudestaan, ja hyväksy kirjautuminen toiselta välilehdeltä.",
 		"disallowExternalContent_action": "Estä ulkopuolinen sisältö",
+		"discardDraft_action": "Hylkää luonnos",
 		"discord_label": "Discord",
 		"display_action": "Näytä",
 		"dnsRecordHostOrName_label": "Palvelin/nimi",
@@ -1047,6 +1048,7 @@ export default {
 		"mailbox_label": "Postilaatikko",
 		"mailExportHistory_label": "Vientihistoria",
 		"mailExportInfoText_label": "Voit viedä EML-tiedostoja.",
+		"mailExportLimitReached_msg": "Vientiraja on saavutettu. Vientisi on keskeytetty ja sitä jatketaan automaattisesti myöhemmin.",
 		"mailExportModeHelp_msg": "Vetämällä ja pudottamalla vietävien sähköpostien tiedostomuoto",
 		"mailExportMode_label": "Vietävien sähköpostien tiedostomuoto",
 		"mailExportOnlyOnDesktop_label": "Sähköpostiviestejä voi toistaiseksi viedä vain työpöytäsovelluksillamme.",

@@ -1026,6 +1026,7 @@ export type TranslationKeyType =
 	| "mailbox_label"
 	| "mailExportHistory_label"
 	| "mailExportInfoText_label"
+	| "mailExportLimitReached_msg"
 	| "mailExportModeHelp_msg"
 	| "mailExportMode_label"
 	| "mailExportOnlyOnDesktop_label"

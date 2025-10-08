@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-02-04T09:55:56Z",
-	"updated_at": "2025-09-30T09:24:37Z",
+	"updated_at": "2025-10-02T20:28:38Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -127,8 +127,11 @@ export default {
 		"appInfoIosImageAlt_alt": "Εφαρμογή iOS στο Apple Store",
 		"apply_action": "Εφαρμογή",
 		"appStoreNotAvailable_msg": "Οι συνδρομές στο App Store δεν είναι διαθέσιμες προς το παρόν.",
+		"appStoreRenewProblemBody_msg": "Γειά {expirationDate}",
 		"appStoreRenewProblemSubject_msg": "Αποτυχία χρέωσης στο App Store",
+		"appStoreSubscriptionEndedBody_msg": "Γειά {expirationDate}\n\nΗ συνδρομή σας έληξε στις {expirationDate}. Παρακαλώ πληρώστε τη συνδρομή σας ή αλλάξτε σε Δωρεάν συνδρομή, ειδάλλως ο λογαριασμός σας θα ανασταλεί.\n\nΜείνετε ασφαλής",
 		"appStoreSubscriptionEndedSubject_msg": "Η συνδρομή σας έχει λήξει",
+		"appStoreSubscriptionError_msg": "Συγγνώμη, η πληρωμή δεν ολοκληρώθηκε. Παρακαλούμε δοκιμάστε αργότερα ή επικοινωνήστε με την ομάδα υποστήριξης.",
 		"archive_action": "Αρχειοθήκη",
 		"archive_label": "Αρχείο",
 		"assistant_label": "Βοηθός",
@@ -998,6 +1001,7 @@ export default {
 		"notificationSettings_action": "Ειδοποιήσεις ",
 		"notificationSync_msg": "Συγχρονισμός ειδοποιήσεων",
 		"notificationTargets_label": "Στόχοι ειδοποιήσεων",
+		"noTitle_label": "<Χωρίς τίτλο>",
 		"notSigned_msg": "Δεν υπογράφηκε.",
 		"noUpdateAvailable_msg": "Δεν βρέθηκε ενημέρωση.",
 		"noValidMembersToAdd_msg": "Δεν διαχειρίζεστε χρήστες που δεν είναι ήδη μέλη αυτής της ομάδας.",

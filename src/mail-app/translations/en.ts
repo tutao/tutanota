@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-13T20:10:13Z",
-	"updated_at": "2025-09-30T13:39:11Z",
+	"updated_at": "2025-10-06T13:39:12Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1048,6 +1048,7 @@ export default {
 		"mailbox_label": "Mailbox",
 		"mailExportHistory_label": "Export history",
 		"mailExportInfoText_label": "You can export EML files.",
+		"mailExportLimitReached_msg": "Export limit reached. Your export is paused and will automatically resume later.",
 		"mailExportModeHelp_msg": "Email file format to use when exporting or drag & dropping",
 		"mailExportMode_label": "Email export file format",
 		"mailExportOnlyOnDesktop_label": "Email export is currently only available in our desktop client.",

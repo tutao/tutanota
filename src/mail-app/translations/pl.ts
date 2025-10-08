@@ -22,7 +22,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:41Z",
-	"updated_at": "2025-09-30T09:24:37Z",
+	"updated_at": "2025-10-06T17:50:56Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -537,6 +537,7 @@ export default {
 		"deviceEncryptionSaveCredentialsHelpText_msg": "Aby aktywować szyfrowanie urządzenia (odblokowywanie: kodem PIN/biometrycznie), musisz zapisać swoje dane uwierzytelniające na urządzeniu. Możesz to zrobić przy następnym logowaniu.",
 		"differentSecurityKeyDomain_msg": "Twój klucz bezpieczeństwa nie został zarejestrowany dla tej domeny. Zaloguj się, korzystając z innej karty, na {domain}.\n\nNastępnie zaloguj się tutaj ponownie i zaakceptuj logowanie z innej zakładki.",
 		"disallowExternalContent_action": "Zablokuj treści z zewnątrz",
+		"discardDraft_action": "Odrzuć szkic",
 		"discord_label": "Spór",
 		"display_action": "Wyświetl",
 		"dnsRecordHostOrName_label": "Host/Nazwa",
@@ -1054,6 +1055,7 @@ export default {
 		"mailbox_label": "Skrzynka odbiorcza",
 		"mailExportHistory_label": "Eksportuj historię",
 		"mailExportInfoText_label": "Może eksportować pliki EML.",
+		"mailExportLimitReached_msg": "Osiągnięto limit eksportu. Eksport został wstrzymany i zostanie automatycznie wznowiony później.",
 		"mailExportModeHelp_msg": "Format pliku e-mail do użycia podczas eksportowania lub \"przeciągania i upuszczania\"",
 		"mailExportMode_label": "Format pliku eksportowanej wiadomości e-mail",
 		"mailExportOnlyOnDesktop_label": "Eksport wiadomości e-mail jest obecnie dostępny tylko w naszym kliencie na komputery stacjonarne.",
