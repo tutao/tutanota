@@ -4,6 +4,7 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { ArchiveDataType, GroupType } from "../../common/TutanotaConstants"
 import {
 	createDriveCreateData,
+	createDriveDeleteIn,
 	createDriveFileMetadataCreateData,
 	createDriveGetIn,
 	createDriveUploadedFile,
@@ -48,6 +49,22 @@ export class DriveFacade {
 
 		const favouriteFiles = Promise.all(driveGroupRoot.favourites.map((idTuple) => this.entityClient.load(FileTypeRef, idTuple)))
 		return favouriteFiles
+	}
+
+	public async loadTrash() {
+		// TODO: refactor this load grouproot
+		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
+		console.log("fileGroupId:: for this user :: ", fileGroupId)
+		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+
+		const trashContents = await this.getFolderContents(driveGroupRoot.trash) // modify breadcrumb ?
+		return trashContents[0]
+	}
+
+	public async moveToTrash(file: File) {
+		const deleteData = createDriveDeleteIn({ fileToDelete: file._id })
+
+		await this.serviceExecutor.delete(DriveService, deleteData)
 	}
 
 	public async loadDriveGroupRoot() {

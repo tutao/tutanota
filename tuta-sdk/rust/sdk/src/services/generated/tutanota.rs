@@ -22,6 +22,8 @@ use crate::entities::generated::tutanota::DriveCreateData;
 use crate::entities::generated::tutanota::DriveCreateReturn;
 use crate::entities::generated::tutanota::DriveGetIn;
 use crate::entities::generated::tutanota::DriveGetOut;
+use crate::entities::generated::tutanota::DriveDeleteIn;
+use crate::entities::generated::tutanota::DriveDeleteOut;
 use crate::entities::generated::tutanota::EncryptTutanotaPropertiesData;
 use crate::entities::generated::tutanota::EntropyData;
 use crate::entities::generated::tutanota::ExternalUserData;
@@ -111,6 +113,7 @@ pub struct DriveService;
 crate::service_impl!(declare, DriveService, "tutanota/driveservice", 94);
 crate::service_impl!(POST, DriveService, DriveCreateData, DriveCreateReturn);
 crate::service_impl!(GET, DriveService, DriveGetIn, DriveGetOut);
+crate::service_impl!(DELETE, DriveService, DriveDeleteIn, DriveDeleteOut);
 
 
 pub struct EncryptTutanotaPropertiesService;

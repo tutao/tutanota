@@ -6,11 +6,6 @@ import { NavButtonColor } from "../../../common/gui/base/NavButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { VirtualFolder } from "./DriveViewModel"
 
-export enum SelectedSidebarSection {
-	Home,
-	Favourites = 1,
-}
-
 export function renderSidebarFolders(virtualFolder: VirtualFolder) {
 	return m(
 		SidebarSection,
@@ -36,6 +31,16 @@ export function renderSidebarFolders(virtualFolder: VirtualFolder) {
 					colors: NavButtonColor.Nav,
 					click: () => {},
 					persistentBackground: virtualFolder === VirtualFolder.Favourites,
+				},
+			}),
+			m(SettingsFolderRow, {
+				mainButtonAttrs: {
+					label: lang.makeTranslation("asdf2", () => "Trash"), // TODO
+					icon: () => Icons.Trash,
+					href: "/drive/trash", // TODO
+					colors: NavButtonColor.Nav,
+					click: () => {},
+					persistentBackground: virtualFolder === VirtualFolder.Trash,
 				},
 			}),
 		],

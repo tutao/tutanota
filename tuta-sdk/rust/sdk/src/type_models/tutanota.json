@@ -153,13 +153,13 @@
 				"refTypeId": 1882,
 				"dependency": "sys"
 			},
-			"1751": {
+			"1758": {
 				"final": false,
 				"name": "metadata",
-				"id": 1751,
+				"id": 1758,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 1748,
+				"refTypeId": 1754,
 				"dependency": null
 			}
 		}
@@ -9172,40 +9172,41 @@
 				"cardinality": "Any",
 				"refTypeId": 13,
 				"dependency": null
+			},
+			"1720": {
+				"final": false,
+				"name": "trash",
+				"id": 1720,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 13,
+				"dependency": null
 			}
 		}
 	},
-	"1720": {
+	"1721": {
 		"name": "DriveUploadedFile",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "AGGREGATED_TYPE",
-		"id": 1720,
-		"rootId": "CHR1dGFub3RhAAa4",
+		"id": 1721,
+		"rootId": "CHR1dGFub3RhAAa5",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1721": {
-				"final": true,
-				"name": "_id",
-				"id": 1721,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
 			"1722": {
 				"final": true,
-				"name": "encFileName",
+				"name": "_id",
 				"id": 1722,
-				"type": "Bytes",
+				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"1723": {
 				"final": true,
-				"name": "encMimeType",
+				"name": "encFileName",
 				"id": 1723,
 				"type": "Bytes",
 				"cardinality": "One",
@@ -9213,26 +9214,34 @@
 			},
 			"1724": {
 				"final": true,
-				"name": "encCid",
+				"name": "encMimeType",
 				"id": 1724,
 				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"encrypted": false
 			},
 			"1725": {
 				"final": true,
-				"name": "ownerEncSessionKey",
+				"name": "encCid",
 				"id": 1725,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"1726": {
+				"final": true,
+				"name": "ownerEncSessionKey",
+				"id": 1726,
 				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"1726": {
+			"1727": {
 				"final": true,
 				"name": "referenceTokens",
-				"id": 1726,
+				"id": 1727,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1990,
@@ -9240,48 +9249,48 @@
 			}
 		}
 	},
-	"1727": {
+	"1728": {
 		"name": "DriveBreadcrumbEntry",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "AGGREGATED_TYPE",
-		"id": 1727,
-		"rootId": "CHR1dGFub3RhAAa_",
+		"id": 1728,
+		"rootId": "CHR1dGFub3RhAAbA",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1728": {
-				"final": true,
-				"name": "_id",
-				"id": 1728,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
 			"1729": {
 				"final": true,
-				"name": "ownerEncSessionKey",
+				"name": "_id",
 				"id": 1729,
-				"type": "Bytes",
+				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"1730": {
 				"final": true,
-				"name": "encName",
+				"name": "ownerEncSessionKey",
 				"id": 1730,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1731": {
+				"final": true,
+				"name": "encName",
+				"id": 1731,
 				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"1731": {
+			"1732": {
 				"final": true,
 				"name": "folder",
-				"id": 1731,
+				"id": 1732,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 13,
@@ -9289,74 +9298,74 @@
 			}
 		}
 	},
-	"1732": {
+	"1733": {
 		"name": "DriveCreateData",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1732,
-		"rootId": "CHR1dGFub3RhAAbE",
+		"id": 1733,
+		"rootId": "CHR1dGFub3RhAAbF",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1733": {
+			"1734": {
 				"final": false,
 				"name": "_format",
-				"id": 1733,
+				"id": 1734,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"1734": {
+			"1735": {
 				"final": true,
 				"name": "parent",
-				"id": 1734,
+				"id": 1735,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 13,
 				"dependency": null
 			},
-			"1735": {
+			"1736": {
 				"final": true,
 				"name": "uploadedFile",
-				"id": 1735,
+				"id": 1736,
 				"type": "AGGREGATION",
 				"cardinality": "One",
-				"refTypeId": 1720,
+				"refTypeId": 1721,
 				"dependency": null
 			}
 		}
 	},
-	"1736": {
+	"1737": {
 		"name": "DriveCreateReturn",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1736,
-		"rootId": "CHR1dGFub3RhAAbI",
+		"id": 1737,
+		"rootId": "CHR1dGFub3RhAAbJ",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1737": {
+			"1738": {
 				"final": false,
 				"name": "_format",
-				"id": 1737,
+				"id": 1738,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"1738": {
+			"1739": {
 				"final": false,
 				"name": "createdFile",
-				"id": 1738,
+				"id": 1739,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 13,
@@ -9364,32 +9373,32 @@
 			}
 		}
 	},
-	"1739": {
+	"1740": {
 		"name": "DriveGetIn",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1739,
-		"rootId": "CHR1dGFub3RhAAbL",
+		"id": 1740,
+		"rootId": "CHR1dGFub3RhAAbM",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1740": {
+			"1741": {
 				"final": false,
 				"name": "_format",
-				"id": 1740,
+				"id": 1741,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"1741": {
+			"1742": {
 				"final": false,
 				"name": "folder",
-				"id": 1741,
+				"id": 1742,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 13,
@@ -9397,63 +9406,63 @@
 			}
 		}
 	},
-	"1742": {
+	"1743": {
 		"name": "DriveGetOut",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1742,
-		"rootId": "CHR1dGFub3RhAAbO",
+		"id": 1743,
+		"rootId": "CHR1dGFub3RhAAbP",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1743": {
+			"1744": {
 				"final": false,
 				"name": "_format",
-				"id": 1743,
+				"id": 1744,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"1744": {
-				"final": false,
-				"name": "subFilesIds",
-				"id": 1744,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "Any",
-				"refTypeId": 13,
-				"dependency": null
-			},
 			"1745": {
 				"final": false,
-				"name": "parent",
+				"name": "subFilesIds",
 				"id": 1745,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
+				"cardinality": "Any",
 				"refTypeId": 13,
 				"dependency": null
 			},
 			"1746": {
 				"final": false,
-				"name": "parents",
+				"name": "parent",
 				"id": 1746,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 13,
+				"dependency": null
+			},
+			"1747": {
+				"final": false,
+				"name": "parents",
+				"id": 1747,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refTypeId": 1727,
+				"refTypeId": 1728,
 				"dependency": null
 			}
 		}
 	},
 	"1748": {
-		"name": "DriveFileMetadata",
+		"name": "DriveDeleteIn",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
-		"type": "AGGREGATED_TYPE",
+		"type": "DATA_TRANSFER_TYPE",
 		"id": 1748,
 		"rootId": "CHR1dGFub3RhAAbU",
 		"versioned": false,
@@ -9461,58 +9470,19 @@
 		"isPublic": true,
 		"values": {
 			"1749": {
-				"final": true,
-				"name": "_id",
-				"id": 1749,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"1750": {
-				"final": false,
-				"name": "isFavorite",
-				"id": 1750,
-				"type": "Boolean",
-				"cardinality": "One",
-				"encrypted": false
-			}
-		},
-		"associations": {}
-	},
-	"1752": {
-		"name": "DriveFileMetadataCreateData",
-		"app": "tutanota",
-		"version": 94,
-		"since": 94,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 1752,
-		"rootId": "CHR1dGFub3RhAAbY",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
-			"1753": {
 				"final": false,
 				"name": "_format",
-				"id": 1753,
+				"id": 1749,
 				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"1754": {
-				"final": false,
-				"name": "isFavorite",
-				"id": 1754,
-				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"1755": {
-				"final": true,
-				"name": "file",
-				"id": 1755,
+			"1750": {
+				"final": false,
+				"name": "fileToDelete",
+				"id": 1750,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 13,
@@ -9520,22 +9490,125 @@
 			}
 		}
 	},
-	"1756": {
+	"1751": {
+		"name": "DriveDeleteOut",
+		"app": "tutanota",
+		"version": 94,
+		"since": 94,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1751,
+		"rootId": "CHR1dGFub3RhAAbX",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1752": {
+				"final": false,
+				"name": "_format",
+				"id": 1752,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"1754": {
+		"name": "DriveFileMetadata",
+		"app": "tutanota",
+		"version": 94,
+		"since": 94,
+		"type": "AGGREGATED_TYPE",
+		"id": 1754,
+		"rootId": "CHR1dGFub3RhAAba",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1755": {
+				"final": true,
+				"name": "_id",
+				"id": 1755,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1756": {
+				"final": false,
+				"name": "isFavorite",
+				"id": 1756,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1757": {
+				"final": false,
+				"name": "isInTrash",
+				"id": 1757,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"1759": {
+		"name": "DriveFileMetadataCreateData",
+		"app": "tutanota",
+		"version": 94,
+		"since": 94,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1759,
+		"rootId": "CHR1dGFub3RhAAbf",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1760": {
+				"final": false,
+				"name": "_format",
+				"id": 1760,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1761": {
+				"final": false,
+				"name": "isFavorite",
+				"id": 1761,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"1762": {
+				"final": true,
+				"name": "file",
+				"id": 1762,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 13,
+				"dependency": null
+			}
+		}
+	},
+	"1763": {
 		"name": "DriveFileMetadataCreateReturn",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1756,
-		"rootId": "CHR1dGFub3RhAAbc",
+		"id": 1763,
+		"rootId": "CHR1dGFub3RhAAbj",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1757": {
+			"1764": {
 				"final": false,
 				"name": "_format",
-				"id": 1757,
+				"id": 1764,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false

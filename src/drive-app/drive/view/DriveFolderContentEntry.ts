@@ -67,13 +67,35 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 						"span",
 						{
 							onclick: () => {
-								driveViewModel.addToFavorite(file).then(() => m.redraw())
+								driveViewModel.changeFavoriteStatus(file).then(() => m.redraw())
 							},
 						},
 						m(Icon, {
 							icon: Icons.HeartEmpty,
 							size: IconSize.Normal,
-							style: { fill: file.metadata?.isFavorite ? "#707070" : this.globalIconFill, position: "relative", top: "2px" },
+							style: {
+								fill: file.metadata?.isFavorite ? "#707070" : this.globalIconFill,
+								position: "relative",
+								top: "2px",
+							},
+							class: "cursor-pointer",
+						}),
+					),
+					m(
+						"span",
+						{
+							onclick: () => {
+								driveViewModel.moveToTrash(file).then(() => m.redraw())
+							},
+						},
+						m(Icon, {
+							icon: Icons.Trash,
+							size: IconSize.Normal,
+							style: {
+								fill: "#707070",
+								position: "relative",
+								top: "2px",
+							},
 							class: "cursor-pointer",
 						}),
 					),

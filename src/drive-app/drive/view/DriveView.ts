@@ -42,6 +42,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		if (args.virtualFolder === "favourites") {
 			this.driveViewModel.loadVirtualFolder(VirtualFolder.Favourites).then(() => m.redraw())
 			return
+		} else if (args.virtualFolder === "trash") {
+			this.driveViewModel.loadVirtualFolder(VirtualFolder.Trash).then(() => m.redraw())
+			return
 		}
 
 		// /drive/folderId/listElementId

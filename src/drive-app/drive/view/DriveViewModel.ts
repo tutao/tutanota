@@ -9,11 +9,12 @@ import m from "mithril"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull } from "@tutao/tutanota-utils"
 
 export enum VirtualFolder {
 	None,
 	Favourites,
+	Trash,
 }
 
 export interface DisplayFolder {
@@ -45,12 +46,23 @@ export class DriveViewModel {
 	}
 
 	/**
+	 * Move to trash just like addToFavourites change the metadata of the file
+	 * a file is
+	 */
+	async moveToTrash(file: File) {
+		await this.driveFacade.moveToTrash(file)
+		this.currentFolder.files = this.currentFolder.files.filter((f) => {
+			return !arrayEquals(f._id as [string, string], file._id as [string, string])
+		}) // performance issue here
+	}
+
+	/**
 	 * We assume metadata are ALWAYS created along the uploaded file in the server
 	 * but for compatibility reason the metadata property is marked as nullable
 	 * so we force our way here to calm Typescript which is throwing a tantrum.
 	 * @param file
 	 */
-	async addToFavorite(file: File) {
+	async changeFavoriteStatus(file: File) {
 		// @ts-ignore
 		file.metadata.isFavorite = !file.metadata.isFavorite
 		// @ts-ignore
@@ -64,6 +76,16 @@ export class DriveViewModel {
 			this.currentFolder = {
 				files: files,
 				virtualFolder: VirtualFolder.Favourites,
+				isVirtual: true,
+				parents: [],
+				folder: null,
+			}
+		} else if (virtualFolder === VirtualFolder.Trash) {
+			const files = await this.driveFacade.loadTrash()
+
+			this.currentFolder = {
+				files: files,
+				virtualFolder: VirtualFolder.Trash,
 				isVirtual: true,
 				parents: [],
 				folder: null,
@@ -118,7 +140,10 @@ export class DriveViewModel {
 		// Ideally we'd like to use Tuta's router, but navigating back from a folder then entering it again doesn't seem to work.
 		// Using Mithril's router directly seems to avoid this problem.
 		// this.router.routeTo("/drive/:folderListId/:folderElementId", { folderListId: listIdPart(folderId), folderElementId: elementIdPart(folderId) })
-		m.route.set("/drive/:folderListId/:folderElementId", { folderListId: listIdPart(folderId), folderElementId: elementIdPart(folderId) })
+		m.route.set("/drive/:folderListId/:folderElementId", {
+			folderListId: listIdPart(folderId),
+			folderElementId: elementIdPart(folderId),
+		})
 	}
 
 	async navigateToRootFolder(): Promise<void> {

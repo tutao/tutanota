@@ -15,6 +15,8 @@ import { DriveGetInTypeRef } from "./TypeRefs.js"
 import { DriveGetOutTypeRef } from "./TypeRefs.js"
 import { DriveCreateDataTypeRef } from "./TypeRefs.js"
 import { DriveCreateReturnTypeRef } from "./TypeRefs.js"
+import { DriveDeleteInTypeRef } from "./TypeRefs.js"
+import { DriveDeleteOutTypeRef } from "./TypeRefs.js"
 import { EncryptTutanotaPropertiesDataTypeRef } from "./TypeRefs.js"
 import { EntropyDataTypeRef } from "./TypeRefs.js"
 import { ExternalUserDataTypeRef } from "./TypeRefs.js"
@@ -124,7 +126,7 @@ export const DriveService = Object.freeze({
 	get: { data: DriveGetInTypeRef, return: DriveGetOutTypeRef },
 	post: { data: DriveCreateDataTypeRef, return: DriveCreateReturnTypeRef },
 	put: null,
-	delete: null,
+	delete: { data: DriveDeleteInTypeRef, return: DriveDeleteOutTypeRef },
 } as const)
 
 export const EncryptTutanotaPropertiesService = Object.freeze({
