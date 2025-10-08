@@ -10,13 +10,12 @@ import { tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { matchers, object, when } from "testdouble"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import * as tfLayers from "@tensorflow/tfjs-layers"
-import * as tfCore from "@tensorflow/tfjs-core"
 import { SpamClassificationInitializer } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassificationInitializer"
 import { CacheStorage } from "../../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { mockAttribute } from "@tutao/tutanota-test-utils"
 import "@tensorflow/tfjs-backend-cpu"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
+import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
 
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
 
@@ -293,8 +292,8 @@ this text is shown`
 	})
 
 	o("predict uses different models for different owner groups", async () => {
-		const firstGroupModel = object<tfLayers.LayersModel>()
-		const secondGroupModel = object<tfLayers.LayersModel>()
+		const firstGroupModel = object<LayersModel>()
+		const secondGroupModel = object<LayersModel>()
 		mockAttribute(spamClassifier, spamClassifier.loadModel, (ownerGroup) => {
 			if (ownerGroup === "firstGroup") {
 				return Promise.resolve(firstGroupModel)
@@ -308,9 +307,9 @@ this text is shown`
 			return Promise.resolve()
 		})
 
-		const firstGroupReturnTensor = tfCore.tensor1d([1.0])
+		const firstGroupReturnTensor = tensor1d([1.0], undefined)
 		when(firstGroupModel.predict(matchers.anything())).thenReturn(firstGroupReturnTensor)
-		const secondGroupReturnTensor = tfCore.tensor1d([0.0])
+		const secondGroupReturnTensor = tensor1d([0.0], undefined)
 		when(secondGroupModel.predict(matchers.anything())).thenReturn(secondGroupReturnTensor)
 
 		await spamClassifier.initialize("firstGroup")

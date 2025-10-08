@@ -11,6 +11,7 @@ import { nodeResolve } from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import child_process from "node:child_process"
 import { promisify } from "node:util"
+import alias from "@rollup/plugin-alias"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -144,17 +145,37 @@ async function rollWebDep(src, target, banner) {
 	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
 }
 
+// const logResolvePlugin = {
+// 	name: "log-resolve",
+// 	resolveId(source, importer) {
+// 		console.log(`Resolving: source='${source}', importer='${importer}'`)
+// 		return null
+// 	},
+// }
+
 async function rollupTensorFlow(src, target, banner) {
 	const bundle = await rollup({
 		input: path.join(__dirname, src),
 		treeshake: {
-			moduleSideEffects: false, // Ensures better tree-shaking
+			moduleSideEffects: false,
 			preset: "smallest",
 		},
+		plugins: [
+			alias({
+				entries: [
+					{
+						find: /\.\/http/,
+						replacement: path.resolve(__dirname, "../libs/http-stub.js"),
+					},
+				],
+			}),
+			// logResolvePlugin,
+			nodeResolve(),
+			commonjs(),
+		],
 		output: {
 			format: "esm",
 		},
-		plugins: [nodeResolve(), commonjs()],
 	})
 	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
 }
