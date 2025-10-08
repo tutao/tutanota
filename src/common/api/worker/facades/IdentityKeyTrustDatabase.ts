@@ -18,6 +18,7 @@ import { LoginFacade } from "./LoginFacade"
 export const KeyVerificationTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	trusted_identities: {
 		definition:
+			// TODO remove this table
 			"CREATE TABLE IF NOT EXISTS trusted_identities (mailAddress TEXT NOT NULL, fingerprint TEXT NOT NULL, keyVersion INTEGER NOT NULL, keyType INTEGER NOT NULL, PRIMARY KEY (mailAddress, keyVersion))",
 		purgedWithCache: false,
 	},
@@ -81,11 +82,22 @@ export class IdentityKeyTrustDatabase {
 				// @formatter:on
 				break
 			case IdentityKeySourceOfTrust.TOFU:
-				//we do not want to override a manual trusted entry with TOFU if it exists
+				// we do not want to override a manual trusted entry with TOFU if it exists,
+				// but we do not want the query to fail when inserting the exact same row that already exists because of a race condition
 				// @formatter:off
 				sqlQuery = sql`
 			INSERT INTO identity_store (mailAddress, publicIdentityKey, identityKeyVersion, identityKeyType, sourceOfTrust)
-			VALUES (${mailAddress}, ${identityKeyBytes}, ${identityKey.version}, ${identityKeyType}, ${sourceOfTrust.valueOf()})`
+			SELECT ${mailAddress},
+				${identityKeyBytes},
+				${identityKey.version},
+				${identityKeyType},
+				${sourceOfTrust.valueOf()}
+			WHERE NOT EXISTS
+			(SELECT 1 FROM identity_store WHERE mailAddress = ${mailAddress}
+				AND publicIdentityKey = ${identityKeyBytes}
+				AND identityKeyVersion = ${identityKey.version}
+				AND identityKeyType = ${identityKeyType}
+				AND sourceOfTrust = ${sourceOfTrust.valueOf()})`
 				// @formatter:on
 				break
 			case IdentityKeySourceOfTrust.Not_Supported:
