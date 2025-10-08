@@ -16,10 +16,9 @@ import { LoginFacade } from "./LoginFacade"
  * Defines tables created for this interface
  */
 export const KeyVerificationTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
-	trusted_identities: {
+	identity_store: {
 		definition:
-			// TODO remove this table
-			"CREATE TABLE IF NOT EXISTS trusted_identities (mailAddress TEXT NOT NULL, fingerprint TEXT NOT NULL, keyVersion INTEGER NOT NULL, keyType INTEGER NOT NULL, PRIMARY KEY (mailAddress, keyVersion))",
+			"CREATE TABLE IF NOT EXISTS identity_store (mailAddress TEXT NOT NULL, publicIdentityKey BLOB NOT NULL, identityKeyVersion INTEGER NOT NULL, identityKeyType INTEGER NOT NULL, sourceOfTrust INTEGER NOT NULL, PRIMARY KEY (mailAddress, identityKeyVersion))",
 		purgedWithCache: false,
 	},
 })
