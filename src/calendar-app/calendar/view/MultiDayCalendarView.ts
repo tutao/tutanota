@@ -51,6 +51,7 @@ import { isModifierKeyPressed } from "../../../common/misc/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { EventConflictRenderPolicy, TimeView, TimeViewAttributes } from "../../../common/calendar/gui/TimeView.js"
 import { CalendarViewComponent, CalendarViewComponentAttrs } from "./calendarViewComponent/CalendarViewComponent"
+import { HeaderVariant } from "./calendarViewComponent/HeaderComponent"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date
@@ -145,6 +146,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				onDateClick: attrs.onDateSelected,
 				startOfWeek: attrs.startOfTheWeek,
 				isDaySelectorExpanded: attrs.isDaySelectorExpanded,
+				variant: styles.isDesktopLayout() || attrs.currentViewType === CalendarViewType.THREE_DAY ? HeaderVariant.NORMAL : HeaderVariant.SWIPEABLE,
 			},
 		} satisfies CalendarViewComponentAttrs)
 

@@ -1107,8 +1107,10 @@ export function extractCalendarEventModifierKey<T extends MouseEvent | KeyboardE
 	return key
 }
 
-export function getDayCircleClass(date: Date, selectedDate: Date) {
-	if (isSameDay(date, selectedDate)) {
+export function getDayCircleClass(date: Date, selectedDate: Date | null) {
+	if (selectedDate == null) {
+		return { circle: "", text: "" }
+	} else if (isSameDay(date, selectedDate)) {
 		return { circle: "calendar-selected-day-circle", text: "calendar-selected-day-text" }
 	} else if (isToday(date)) {
 		return { circle: "calendar-current-day-circle", text: "calendar-current-day-text" }

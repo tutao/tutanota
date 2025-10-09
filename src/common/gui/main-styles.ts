@@ -472,6 +472,14 @@ styles.registerStyle("main", () => {
 		".pt-l": {
 			"padding-top": px(size.vpad_large),
 		},
+		".py-core-4": {
+			"padding-top": px(size.spacing.core_4),
+			"padding-bottom": px(size.spacing.core_4),
+		},
+		".py-core-8": {
+			"padding-top": px(size.spacing.core_8),
+			"padding-bottom": px(size.spacing.core_8),
+		},
 		// New design system
 		".nds-ptb-l": {
 			"padding-top": px(size.new_design.vpad_large),

@@ -11,6 +11,11 @@ import { DurationLikeObject } from "luxon"
 import { DateTime } from "../../../../../libs/luxon"
 import { CalendarViewComponentAttrs } from "./CalendarViewComponent"
 
+export enum HeaderVariant {
+	NORMAL,
+	SWIPEABLE,
+}
+
 export interface HeaderComponentAttrs {
 	/**
 	 * Days for the current period
@@ -19,12 +24,13 @@ export interface HeaderComponentAttrs {
 	selectedDate: Date
 	onDateClick: (date: Date, viewType?: CalendarViewType) => unknown
 	isDaySelectorExpanded: boolean
+	variant: HeaderVariant
 	startOfWeek?: WeekStart
 }
 
 export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
 	view({ attrs }: Vnode<HeaderComponentAttrs>) {
-		if (styles.isDesktopLayout()) {
+		if (attrs.variant === HeaderVariant.NORMAL) {
 			return m(
 				".grid.calendar-day-indicator",
 				{
@@ -37,7 +43,8 @@ export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
 				}),
 			)
 		}
-		return this.renderMobileHeader(attrs, false)
+
+		return this.renderMobileHeader(attrs)
 	}
 
 	private renderDay(onClick: (arg0: Date) => unknown, day: Date, selectedDate: Date) {
@@ -83,10 +90,10 @@ export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
 		)
 	}
 
-	private renderMobileHeader(attrs: HeaderComponentAttrs, isDayView: boolean): Children {
+	private renderMobileHeader(attrs: HeaderComponentAttrs): Children {
 		const { dates, selectedDate, onDateClick, isDaySelectorExpanded, startOfWeek } = attrs
 		return m(
-			".header-bg.pb-s.overflow-hidden",
+			".header-bg.overflow-hidden",
 			m(DaySelector, {
 				selectedDate,
 				onDateSelected: (date) => attrs.onDateClick(date),
@@ -97,14 +104,14 @@ export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
 					const sign = isNext ? 1 : -1
 					const duration: DurationLikeObject = {
 						month: sign * (isDaySelectorExpanded ? 1 : 0),
-						days: sign * dates.length,
+						days: sign * (isDaySelectorExpanded ? 0 : 7),
 					}
 
-					onDateClick(DateTime.fromJSDate(dates[0]).plus(duration).toJSDate())
+					onDateClick(DateTime.fromJSDate(dates[0]).plus(duration).toJSDate()) // FIXME Swipe day by day depending on the speed
 				},
-				showDaySelection: isDayView,
+				showDaySelection: true,
 				highlightToday: true,
-				highlightSelectedWeek: !isDayView,
+				highlightSelectedWeek: dates.length === 7,
 				useNarrowWeekName: styles.isSingleColumnLayout(),
 				hasEventOn: (date) => false,
 			} satisfies DaySelectorAttrs),
