@@ -11,7 +11,7 @@ export interface DriveFolderContentAttrs {
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	view(vnode: Vnode<DriveFolderContentAttrs>): Children {
 		// TODO: render table with FolderContentHeader and FolderContentEntry
-		return m("table", { style: { "border-spacing": "32px 0px", "text-align": "left" } }, [
+		return m("table", { style: { "border-spacing": "32px 0px", "text-align": "left", "table-layout": "fixed" } }, [
 			m(
 				"thead",
 				m("tr", [
@@ -19,10 +19,10 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 					m("th", []),
 					// Icons...
 					m("th", []),
-					m("th", "Name"),
-					m("th", "Type"),
-					m("th", "Size"),
-					m("th", "Date"),
+					m("th", { style: { width: "300px" } }, "Name"),
+					m("th", { style: { width: "100px" } }, "Type"),
+					m("th", { style: { width: "50px" } }, "Size"),
+					m("th", { style: { width: "300px" } }, "Date"),
 					m("th", "Actions"),
 				]),
 			), // DriveFolderContentHeader
