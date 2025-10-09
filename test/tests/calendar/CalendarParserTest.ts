@@ -380,4 +380,44 @@ o.spec("CalendarParser", function () {
 			o(parsedId).deepEquals(getDateInUTC("2023-03-09T22:00:00Z"))
 		})
 	})
+
+	o.spec("parseICalendar - line folding", function () {
+		o("handles empty lines between tags correctly", function () {
+			const calendar =
+				"BEGIN:VCALENDAR\n" +
+				"VERSION:2.0\n" +
+				"BEGIN:VEVENT\n" +
+				"UID:test-123\n" +
+				"DTSTART:20250110T100000Z\n" +
+				"DTEND:20250110T110000Z\n" +
+				"SUMMARY:Test Event\n" +
+				"END:VEVENT\n" +
+				"\n" + // Empty line before END:VCALENDAR
+				"END:VCALENDAR"
+
+			const result = parseICalendar(calendar)
+			o(result.type).equals("VCALENDAR")
+			o(result.children.length).equals(1)
+			o(result.children[0].type).equals("VEVENT")
+		})
+
+		o("handles properly folded lines", function () {
+			const calendar =
+				"BEGIN:VCALENDAR\n" +
+				"VERSION:2.0\n" +
+				"BEGIN:VEVENT\n" +
+				"UID:test-123\n" +
+				"DTSTART:20250110T100000Z\n" +
+				"DTEND:20250110T110000Z\n" +
+				"SUMMARY:This is a very long summary that is folded across multiple li\n" +
+				" nes according to RFC 5545\n" + // Space at beginning indicates continuation
+				"END:VEVENT\n" +
+				"END:VCALENDAR"
+
+			const result = parseICalendar(calendar)
+			o(result.type).equals("VCALENDAR")
+			const summary = result.children[0].properties.find((p) => p.name === "SUMMARY")
+			o(summary?.value).equals("This is a very long summary that is folded across multiple lines according to RFC 5545")
+		})
+	})
 })
