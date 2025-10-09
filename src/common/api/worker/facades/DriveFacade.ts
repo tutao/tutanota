@@ -125,36 +125,37 @@ export class DriveFacade {
 	 * @param to this is the folder where the file will be uploaded, if itś null we assume uploading to the root folder
 	 */
 	public async uploadFiles(files: (FileReference | DataFile)[], to: IdTuple) {
+		console.log(`adding to: `, to)
 		const ownerGroupId = this.userFacade.getGroupId(GroupType.File)
 		console.log(`fileGroupOwnerGroup :: ${ownerGroupId}`)
 
 		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = locator.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
-		const driveCreateResponses = await Promise.all(
-			files.map(async (f: DataFile) => {
-				const blobRefTokens = await this.blobFacade.encryptAndUpload(
-					ArchiveDataType.DriveFile,
-					f.data /*FileUri*/,
-					assertNotNull(ownerGroupId),
-					sessionKey,
-				)
+		const createdFilesResponse: Array<readonly [string, string]> = []
+		for (const f of files) {
+			const blobRefTokens = await this.blobFacade.encryptAndUpload(
+				ArchiveDataType.DriveFile,
+				(f as DataFile).data /*FileUri*/,
+				assertNotNull(ownerGroupId),
+				sessionKey,
+			)
 
-				const uploadedFile = createDriveUploadedFile({
-					referenceTokens: blobRefTokens,
-					encFileName: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.name)),
-					encCid: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.cid ?? "")),
-					encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.mimeType)),
-					ownerEncSessionKey: ownerEncSessionKey,
-					_ownerGroup: assertNotNull(ownerGroupId),
-				})
-				const data = createDriveCreateData({ uploadedFile: uploadedFile, parent: to })
-				const response = await this.serviceExecutor.post(DriveService, data)
-				return response.createdFile
-			}),
-		)
+			const uploadedFile = createDriveUploadedFile({
+				referenceTokens: blobRefTokens,
+				encFileName: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.name)),
+				encCid: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.cid ?? "")),
+				encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.mimeType)),
+				ownerEncSessionKey: ownerEncSessionKey,
+				_ownerGroup: assertNotNull(ownerGroupId),
+			})
+			const data = createDriveCreateData({ uploadedFile: uploadedFile, parent: to })
+			const response = await this.serviceExecutor.post(DriveService, data)
+			createdFilesResponse.push(response.createdFile)
+		}
+		//)
 
-		const createdFiles = Promise.all(driveCreateResponses.map((idTuple) => this.entityClient.load(FileTypeRef, idTuple)))
+		const createdFiles = await Promise.all(createdFilesResponse.map((idTuple) => this.entityClient.load(FileTypeRef, idTuple)))
 		return createdFiles
 	}
 
