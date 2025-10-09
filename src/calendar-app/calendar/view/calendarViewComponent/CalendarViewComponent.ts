@@ -6,21 +6,43 @@ import { HeaderComponent, HeaderComponentAttrs } from "./HeaderComponent"
 import { TimeColumn, TimeColumnAttrs } from "../../../../common/calendar/gui/TimeColumn"
 import { Time } from "../../../../common/calendar/date/Time"
 import { size } from "../../../../common/gui/size"
+import { PageView } from "../../../../common/gui/base/PageView"
+import { EventConflictRenderPolicy, TimeView, TimeViewAttributes, TimeViewEventWrapper } from "../../../../common/calendar/gui/TimeView"
+
+interface PageAttrs {
+	/**
+	 * Period start timestamp
+	 */
+	key: number
+	dates: Array<Date>
+	events: {
+		short: Array<TimeViewEventWrapper>
+		long: Array<TimeViewEventWrapper>
+	}
+}
+
+interface BodyComponentAttrs {
+	previous: PageAttrs
+	current: PageAttrs
+	next: PageAttrs
+	onChangePage: (moveForward: boolean) => unknown
+}
 
 export interface CalendarViewComponentAttrs {
-	/**
-	 * Days to render events
-	 */
-	dates: Array<Date>
 	/**
 	 * Define header attrs
 	 */
 	headerComponentAttrs?: HeaderComponentAttrs
-	showWeekDays?: boolean
+	bodyComponentAttrs: BodyComponentAttrs
 }
 
 export class CalendarViewComponent implements ClassComponent<CalendarViewComponentAttrs> {
 	view({ attrs }: Vnode<CalendarViewComponentAttrs>) {
+		console.log("Evs", {
+			current: attrs.bodyComponentAttrs.current,
+			previous: attrs.bodyComponentAttrs.previous,
+			next: attrs.bodyComponentAttrs.next,
+		})
 		const classes = [styles.isDesktopLayout() ? "content-bg" : "nav-bg", styles.isDesktopLayout() ? "border-bottom" : ""].join(" ")
 		const renderHeader = () => {
 			const children = []
@@ -36,7 +58,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 					),
 				)
 
-				if (attrs.showWeekDays) {
+				if (attrs.headerComponentAttrs.showWeekDays) {
 					children.push(
 						m("", { style: { gridArea: "header" } }, m(HeaderComponent, { ...attrs.headerComponentAttrs } satisfies HeaderComponentAttrs)),
 					)
@@ -78,7 +100,25 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 							width: styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile,
 						} satisfies TimeColumnAttrs),
 					),
-					m(".content-bg.border-radius-top-right-big", { style: { gridArea: "calendarGrid" } }, "calendarGrid"),
+					m(
+						".content-bg.border-radius-top-right-big",
+						{ style: { gridArea: "calendarGrid" } },
+						m(PageView, {
+							previousPage: {
+								key: attrs.bodyComponentAttrs.previous.key,
+								nodes: this.renderEventGrid(attrs.bodyComponentAttrs.previous.dates, attrs.bodyComponentAttrs.previous.events.short),
+							},
+							currentPage: {
+								key: attrs.bodyComponentAttrs.current.key,
+								nodes: this.renderEventGrid(attrs.bodyComponentAttrs.current.dates, attrs.bodyComponentAttrs.current.events.short),
+							},
+							nextPage: {
+								key: attrs.bodyComponentAttrs.next.key,
+								nodes: this.renderEventGrid(attrs.bodyComponentAttrs.next.dates, attrs.bodyComponentAttrs.next.events.short),
+							},
+							onChangePage: (next) => attrs.bodyComponentAttrs.onChangePage(next),
+						}),
+					),
 				],
 			)
 		}
@@ -102,5 +142,18 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			},
 			[renderHeader(), renderBody()],
 		)
+	}
+
+	private renderEventGrid(dates: Array<Date>, events: Array<TimeViewEventWrapper>) {
+		return m(TimeView, {
+			timeRange: {
+				start: new Time(0, 0),
+				end: new Time(23, 0),
+			},
+			timeScale: 1,
+			dates,
+			conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
+			events,
+		} satisfies TimeViewAttributes)
 	}
 }

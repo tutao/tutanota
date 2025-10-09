@@ -9,7 +9,6 @@ import { DaySelector, DaySelectorAttrs } from "../../gui/day-selector/DaySelecto
 import { getStartOfTheWeekOffset } from "../../../../common/misc/weekOffset"
 import { DurationLikeObject } from "luxon"
 import { DateTime } from "../../../../../libs/luxon"
-import { CalendarViewComponentAttrs } from "./CalendarViewComponent"
 
 export enum HeaderVariant {
 	NORMAL,
@@ -20,12 +19,13 @@ export interface HeaderComponentAttrs {
 	/**
 	 * Days for the current period
 	 */
-	dates: CalendarViewComponentAttrs["dates"]
+	dates: Array<Date>
 	selectedDate: Date
 	onDateClick: (date: Date, viewType?: CalendarViewType) => unknown
 	isDaySelectorExpanded: boolean
 	variant: HeaderVariant
 	startOfWeek?: WeekStart
+	showWeekDays?: boolean
 }
 
 export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {

@@ -99,7 +99,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 				style: {
 					"overflow-x": "hidden",
 					"grid-template-columns": `repeat(${dates.length}, 1fr)`,
-					"grid-template-rows": `auto 1fr`, // FIXME add support to alldays and big evs
 				},
 				oninit: (vnode: VnodeDOM) => {
 					if (this.timeRowHeight == null) {
@@ -110,34 +109,20 @@ export class TimeView implements Component<TimeViewAttributes> {
 					}
 				},
 			},
-			[
-				// Body - days,events
-				m(
-					".grid",
+			dates.map((date) => {
+				return m(
+					".grid.plr-unit.gap.z1.grid-auto-columns.rel",
 					{
-						style: {
-							"grid-column": "1 / -1",
-							"grid-row-start": 2,
-							"grid-template-columns": "subgrid",
-							"overflow-x": "hidden",
+						oncreate(vnode): any {
+							;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 						},
 					},
-					dates.map((date) => {
-						return m(
-							".grid.plr-unit.gap.z1.grid-auto-columns.rel",
-							{
-								oncreate(vnode): any {
-									;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
-								},
-							},
-							[
-								this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
-								this.buildEventsColumn(events, timeRange, subRowAsMinutes, conflictRenderPolicy, subRowCount, timeScale, date, hasAnyConflict),
-							],
-						)
-					}),
-				),
-			],
+					[
+						this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
+						this.buildEventsColumn(events, timeRange, subRowAsMinutes, conflictRenderPolicy, subRowCount, timeScale, date, hasAnyConflict),
+					],
+				)
+			}),
 		)
 	}
 
