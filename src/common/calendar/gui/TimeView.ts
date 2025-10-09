@@ -1,17 +1,16 @@
-import m, { Child, ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "../date/Time"
-import { clone, deepMemoized, downcast, getStartOfNextDay } from "@tutao/tutanota-utils"
+import { deepMemoized, downcast, getStartOfNextDay } from "@tutao/tutanota-utils"
 import { px } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { theme } from "../../gui/theme.js"
 import { colorForBg } from "../../gui/base/GuiUtils.js"
-import { formatTime } from "../../misc/Formatter.js"
 import { getTimeZone } from "../date/CalendarUtils"
 import { EventRenderWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { DateTime } from "../../../../libs/luxon.js"
-import { WeekStart } from "../../api/common/TutanotaConstants"
+import { TimeColumn } from "./TimeColumn"
 
 export interface TimeViewEventWrapper {
 	event: EventRenderWrapper
@@ -39,7 +38,7 @@ export const TIME_SCALE_BASE_VALUE = 60 // 60 minutes
  * const timeScale4: TimeScale = 4
  * const intervalOf15Minutes = TIME_SCALE_BASE_VALUE / timeScale4
  * */
-export type TimeScale = 1 | 2 | 4
+export type TimeScale = 1 | 2 | 4 // FIXME update docs
 /**
  * Tuple of {@link TimeScale} and timeScaleInMinutes
  * @example
@@ -90,8 +89,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 	 */
 	view({ attrs }: Vnode<TimeViewAttributes>) {
 		const { timeScale, timeRange, events, conflictRenderPolicy, dates, timeIndicator, hasAnyConflict } = attrs
-		const timeColumnIntervals = this.createTimeColumnIntervals(timeScale, timeRange)
-
+		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(attrs.timeScale, attrs.timeRange)
 		const subRowCount = 12 * timeColumnIntervals.length
 		const subRowAsMinutes = TIME_SCALE_BASE_VALUE / timeScale / 12
 
@@ -100,8 +98,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 			{
 				style: {
 					"overflow-x": "hidden",
-					"grid-template-columns": `auto repeat(${dates.length}, 1fr)`,
-					"grid-template-rows": `auto 1fr`,
+					"grid-template-columns": `repeat(${dates.length}, 1fr)`,
+					"grid-template-rows": `auto 1fr`, // FIXME add support to alldays and big evs
 				},
 				oninit: (vnode: VnodeDOM) => {
 					if (this.timeRowHeight == null) {
@@ -124,32 +122,20 @@ export class TimeView implements Component<TimeViewAttributes> {
 							"overflow-x": "hidden",
 						},
 					},
-					[
-						this.buildTimeColumn(timeColumnIntervals), // Time column
-						dates.map((date) => {
-							return m(
-								".grid.plr-unit.gap.z1.grid-auto-columns.rel",
-								{
-									oncreate(vnode): any {
-										;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
-									},
+					dates.map((date) => {
+						return m(
+							".grid.plr-unit.gap.z1.grid-auto-columns.rel",
+							{
+								oncreate(vnode): any {
+									;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 								},
-								[
-									this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
-									this.buildEventsColumn(
-										events,
-										timeRange,
-										subRowAsMinutes,
-										conflictRenderPolicy,
-										subRowCount,
-										timeScale,
-										date,
-										hasAnyConflict,
-									),
-								],
-							)
-						}),
-					],
+							},
+							[
+								this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
+								this.buildEventsColumn(events, timeRange, subRowAsMinutes, conflictRenderPolicy, subRowCount, timeScale, date, hasAnyConflict),
+							],
+						)
+					}),
 				),
 			],
 		)
@@ -170,40 +156,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 			},
 		})
 	}
-
-	private createTimeColumnIntervals(timeScale: TimeScale, timeRange: TimeRange): Array<string> {
-		let timeInterval = TIME_SCALE_BASE_VALUE / timeScale
-		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeInterval) / timeInterval
-		const timeKeys: Array<string> = []
-
-		for (let i = 0; i < numberOfIntervals; i++) {
-			const agendaRowTime = clone(timeRange.start).add({ minutes: timeInterval * i })
-
-			timeKeys.push(formatTime(agendaRowTime.toDate()))
-		}
-
-		return timeKeys
-	}
-
-	private buildTimeColumn = deepMemoized((times: Array<string>): Child => {
-		return m(
-			".grid",
-			{
-				style: {
-					"grid-template-rows": `repeat(${times.length}, 1fr)`,
-				},
-			},
-			times.map((time, index) =>
-				m(
-					".flex.ptb-button-double.small.pr-vpad-s.border-right.rel.items-center",
-					{
-						class: index !== times.length - 1 ? "after-as-border-bottom" : "",
-					},
-					time,
-				),
-			),
-		)
-	})
 
 	private buildEventsColumn = deepMemoized(
 		(
