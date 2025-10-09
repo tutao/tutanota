@@ -79,7 +79,7 @@ import { AdminGroupKeyRotationService, GroupKeyRotationService, UserGroupKeyRota
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "@tutao/tutanota-utils"
 import type { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper.js"
-import { RecoverCodeFacade, RecoverData } from "../../../../../src/common/api/worker/facades/lazy/RecoverCodeFacade.js"
+import { RecoverCodeFacade } from "../../../../../src/common/api/worker/facades/lazy/RecoverCodeFacade.js"
 import { UserFacade } from "../../../../../src/common/api/worker/facades/UserFacade.js"
 import { ShareFacade } from "../../../../../src/common/api/worker/facades/lazy/ShareFacade.js"
 import { GroupManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/GroupManagementFacade.js"
@@ -101,6 +101,7 @@ import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/f
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/common/api/worker/facades/lazy/KeyVerificationFacade"
 import { KeyVerificationMismatchError } from "../../../../../src/common/api/common/error/KeyVerificationMismatchError"
+import { SessionType } from "../../../../../src/common/api/common/SessionType"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = KEY_LENGTH_BYTES_AES_256 / 4
@@ -2230,7 +2231,14 @@ o.spec("KeyRotationFacade", function () {
 				const rolloutType = RolloutType.AdminOrUserGroupKeyRotation
 				const passphraseKey: AesKey = object()
 
-				const rolloutAction = new KeyRotationRolloutAction(keyRotationFacadeMock, userFacadeMock, rolloutType, passphraseKey)
+				const rolloutAction = new KeyRotationRolloutAction(
+					keyRotationFacadeMock,
+					userFacadeMock,
+					rolloutType,
+					passphraseKey,
+					true,
+					SessionType.Persistent,
+				)
 				await rolloutAction.execute()
 				verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(user, passphraseKey), { times: 1 })
 			})
@@ -2246,7 +2254,49 @@ o.spec("KeyRotationFacade", function () {
 				const rolloutType = RolloutType.AdminOrUserGroupKeyRotation
 				const passphraseKey: AesKey = object()
 
-				const rolloutAction = new KeyRotationRolloutAction(keyRotationFacadeMock, userFacadeMock, rolloutType, passphraseKey)
+				const rolloutAction = new KeyRotationRolloutAction(keyRotationFacadeMock, userFacadeMock, rolloutType, passphraseKey, true, SessionType.Login)
+				await rolloutAction.execute()
+
+				verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(matchers.anything(), matchers.anything()), { times: 0 })
+			})
+			o("If we have not migrated to argon2, do not execute", async function () {
+				const keyRotationFacadeMock: KeyRotationFacade = object()
+				const userFacadeMock: UserFacade = object()
+				const user: User = object()
+				when(userFacadeMock.getUser()).thenReturn(user)
+
+				const rolloutType = RolloutType.AdminOrUserGroupKeyRotation
+				const passphraseKey: AesKey = object()
+
+				const rolloutAction = new KeyRotationRolloutAction(
+					keyRotationFacadeMock,
+					userFacadeMock,
+					rolloutType,
+					passphraseKey,
+					false,
+					SessionType.Persistent,
+				)
+				await rolloutAction.execute()
+
+				verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(matchers.anything(), matchers.anything()), { times: 0 })
+			})
+			o("If we have a temporary session, do not execute", async function () {
+				const keyRotationFacadeMock: KeyRotationFacade = object()
+				const userFacadeMock: UserFacade = object()
+				const user: User = object()
+				when(userFacadeMock.getUser()).thenReturn(user)
+
+				const rolloutType = RolloutType.AdminOrUserGroupKeyRotation
+				const passphraseKey: AesKey = object()
+
+				const rolloutAction = new KeyRotationRolloutAction(
+					keyRotationFacadeMock,
+					userFacadeMock,
+					rolloutType,
+					passphraseKey,
+					true,
+					SessionType.Temporary,
+				)
 				await rolloutAction.execute()
 
 				verify(keyRotationFacadeMock.loadAndProcessPendingKeyRotations(matchers.anything(), matchers.anything()), { times: 0 })
