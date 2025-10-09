@@ -90,6 +90,10 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			.filter(isNotNull)
 
 		return eventsReplySection.map(({ event, replySection }) => {
+			if (agenda.get(event.uid ?? "")?.conflictCount === 1) {
+				this.displayConflictingAgenda = true
+			}
+
 			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, recipient, replySection)
 		})
 	}
@@ -226,30 +230,27 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 														this.renderConflictInfoText(agenda.regularEvents.length, agenda.allDayEvents.length),
 													],
 												),
-												m(
-													"",
-													{
-														style: {
-															"margin-left": px(size.icon_size_large + size.vpad_xsm),
-														},
-													},
-													[
-														m(
-															ExpanderPanel,
+												agenda.conflictCount > 0
+													? m(
+															"",
 															{
-																expanded: this.displayConflictingAgenda,
+																style: {
+																	"margin-left": px(size.icon_size_large + size.vpad_xsm),
+																},
 															},
-															m(".selectable", [
-																agenda.regularEvents && agenda.regularEvents.length > 0
-																	? this.renderNormalConflictingEvents(event.startTime, agenda.regularEvents)
-																	: null,
-																agenda.allDayEvents.length > 0
-																	? this.renderAllDayConflictingEvents(event.startTime, agenda.allDayEvents)
-																	: null,
-															]),
-														),
-													],
-												),
+															[
+																agenda.conflictCount > 1
+																	? m(
+																			ExpanderPanel,
+																			{
+																				expanded: this.displayConflictingAgenda,
+																			},
+																			this.conflictingAgenda(agenda, event),
+																		)
+																	: this.conflictingAgenda(agenda, event),
+															],
+														)
+													: null,
 											])
 										: null,
 								]),
@@ -271,27 +272,52 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		)
 	}
 
-	private renderConflictInfoText(normalEventsConflictCount: number, allDayEventsConflictCount: number) {
-		const hasAllDayEvent = allDayEventsConflictCount > 0
-		const hasOnlyAllDayConflicts = normalEventsConflictCount === 0 && allDayEventsConflictCount > 0
+	private conflictingAgenda(agenda: InviteAgenda, event: CalendarEvent): m.Children {
+		return m(".selectable", [
+			agenda.regularEvents && agenda.regularEvents.length > 0
+				? this.renderNormalConflictingEvents(event.startTime, agenda.regularEvents, agenda.conflictCount > 1)
+				: null,
+			agenda.allDayEvents.length > 0 ? this.renderAllDayConflictingEvents(event.startTime, agenda.allDayEvents, agenda.conflictCount > 1) : null,
+		])
+	}
 
-		const stringParts: Array<string> = []
-
-		if (normalEventsConflictCount && !this.displayConflictingAgenda) {
-			stringParts.push(normalEventsConflictCount.toString(), lang.getTranslationText("simultaneousEvents_msg"))
+	private populateMultipleConflictsTexts(stringParts: Array<string>, normalConflictsCount: number, allDayConflictsCount: number) {
+		if (normalConflictsCount && !this.displayConflictingAgenda) {
+			stringParts.push(normalConflictsCount.toString(), lang.getTranslationText("simultaneousEvents_msg"))
 		}
 
-		if (hasAllDayEvent && !this.displayConflictingAgenda) {
-			if (normalEventsConflictCount) {
-				stringParts.push(`+${allDayEventsConflictCount}`)
+		if (allDayConflictsCount > 0 && !this.displayConflictingAgenda) {
+			if (normalConflictsCount) {
+				stringParts.push(`+${allDayConflictsCount}`)
 			} else {
-				stringParts.push(`${allDayEventsConflictCount}`)
+				stringParts.push(`${allDayConflictsCount}`)
 			}
 
 			stringParts.push(`${lang.getTranslationText("allDay_label").toLowerCase()}`)
 		}
+	}
 
-		if (this.displayConflictingAgenda) {
+	private populateSingleConflictText(stringParts: Array<string>, normalEventsConflictCount: number) {
+		if (normalEventsConflictCount === 0) {
+			return stringParts.push(`1 ${lang.getTranslationText("allDayEvents_label").toLowerCase()}`)
+		}
+
+		return stringParts.push(normalEventsConflictCount.toString(), lang.getTranslationText("simultaneousEvents_msg"))
+	}
+
+	private renderConflictInfoText(normalEventsConflictCount: number, allDayEventsConflictCount: number) {
+		const totalConflicts = allDayEventsConflictCount + normalEventsConflictCount
+		const stringParts: Array<string> = []
+
+		if (totalConflicts === 0) {
+			stringParts.push(lang.getTranslationText("noSimultaneousEvents_msg"))
+		} else if (totalConflicts === 1) {
+			this.populateSingleConflictText(stringParts, normalEventsConflictCount)
+		} else {
+			this.populateMultipleConflictsTexts(stringParts, normalEventsConflictCount, allDayEventsConflictCount)
+		}
+
+		if (totalConflicts > 1 && this.displayConflictingAgenda) {
 			stringParts.push((normalEventsConflictCount + allDayEventsConflictCount).toString(), lang.getTranslationText("conflicts_label"))
 		}
 
@@ -303,31 +329,33 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				},
 			},
 			[
-				m("span.b", stringParts.join(" ")),
-				m(Icon, {
-					icon: BootIcons.Expand,
-					container: "div",
-					class: `fit-content`,
-					size: IconSize.Medium,
-					style: {
-						fill: theme.on_surface,
-						rotate: this.displayConflictingAgenda ? "180deg" : "0deg",
-					},
-				}),
+				m("span", { class: totalConflicts > 0 ? "b" : "" }, stringParts.join(" ")),
+				totalConflicts > 1
+					? m(Icon, {
+							icon: BootIcons.Expand,
+							container: "div",
+							class: `fit-content`,
+							size: IconSize.Medium,
+							style: {
+								fill: theme.on_surface,
+								rotate: this.displayConflictingAgenda ? "180deg" : "0deg",
+							},
+						})
+					: null,
 			],
 		)
 	}
 
-	private renderAllDayConflictingEvents(referenceDate: Date, conflictingAllDayEvents: Array<TimeViewEventWrapper>) {
+	private renderAllDayConflictingEvents(referenceDate: Date, conflictingAllDayEvents: Array<TimeViewEventWrapper>, showLabel: boolean) {
 		return m("", [
-			m("strong.small.content-fg", `${conflictingAllDayEvents.length} ${lang.getTranslationText("allDayEvents_label")}`),
+			showLabel ? m("strong.small.content-fg", `${conflictingAllDayEvents.length} ${lang.getTranslationText("allDayEvents_label")}`) : null,
 			conflictingAllDayEvents?.map((l) => this.buildConflictingEventInfoText(referenceDate, l, true)),
 		])
 	}
 
-	private renderNormalConflictingEvents(referenceDate: Date, conflictingRegularEvents: Array<TimeViewEventWrapper>) {
+	private renderNormalConflictingEvents(referenceDate: Date, conflictingRegularEvents: Array<TimeViewEventWrapper>, showLabel: boolean) {
 		return m("", [
-			m("strong.small.content-fg", `${conflictingRegularEvents.length} ${lang.getTranslationText("simultaneousEvents_msg")}`),
+			showLabel ? m("strong.small.content-fg", `${conflictingRegularEvents.length} ${lang.getTranslationText("simultaneousEvents_msg")}`) : null,
 			conflictingRegularEvents?.map((l) => this.buildConflictingEventInfoText(referenceDate, l, false)),
 		])
 	}
@@ -356,7 +384,8 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 	private buildConflictingEventInfoText(referenceDate: Date, eventWrapper: TimeViewEventWrapper, isAllDay: boolean) {
 		const timeText = !isAllDay ? this.getTimeParts(referenceDate, eventWrapper).join(" - ") : ""
-		return m(".small.selectable", `• ${eventWrapper.event.summary} ${timeText}`)
+		const eventTitle = eventWrapper.event.summary.trim() !== "" ? eventWrapper.event.summary : lang.getTranslationText("noTitle_label")
+		return m(".small.selectable", `• ${eventTitle} ${timeText}`)
 	}
 
 	private buildReplySection(
