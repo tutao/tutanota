@@ -50,7 +50,7 @@ import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { isModifierKeyPressed } from "../../../common/misc/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
 import { EventConflictRenderPolicy, TimeView, TimeViewAttributes } from "../../../common/calendar/gui/TimeView.js"
-import { CalendarViewComponent, CalendarViewComponentAttrs } from "../../../common/calendar/gui/CalendarViewComponent"
+import { CalendarViewComponent, CalendarViewComponentAttrs } from "./calendarViewComponent/CalendarViewComponent"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date

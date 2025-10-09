@@ -1,59 +1,17 @@
+import { CalendarViewType } from "../../../../common/api/common/utils/CommonCalendarUtils"
+import { WeekStart } from "../../../../common/api/common/TutanotaConstants"
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { styles } from "../../gui/styles"
-import { px, size } from "../../gui/size"
-import { lang } from "../../misc/LanguageViewModel"
-import { DaySelector, DaySelectorAttrs } from "../../../calendar-app/calendar/gui/day-selector/DaySelector"
-import { getStartOfTheWeekOffset } from "../../misc/weekOffset"
-import { WeekStart } from "../../api/common/TutanotaConstants"
-import { DateTime } from "../../../../libs/luxon"
-import { calendarWeek, getDayCircleClass } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { styles } from "../../../../common/gui/styles"
+import { getDayCircleClass } from "../../gui/CalendarGuiUtils"
+import { lang } from "../../../../common/misc/LanguageViewModel"
+import { px, size } from "../../../../common/gui/size"
+import { DaySelector, DaySelectorAttrs } from "../../gui/day-selector/DaySelector"
+import { getStartOfTheWeekOffset } from "../../../../common/misc/weekOffset"
 import { DurationLikeObject } from "luxon"
-import { CalendarViewType } from "../../api/common/utils/CommonCalendarUtils"
+import { DateTime } from "../../../../../libs/luxon"
+import { CalendarViewComponentAttrs } from "./CalendarViewComponent"
 
-export interface CalendarViewComponentAttrs {
-	/**
-	 * Days to render events
-	 */
-	dates: Array<Date>
-	/**
-	 * Define header attrs
-	 */
-	headerComponentAttrs?: HeaderComponentAttrs
-	showWeekDays?: boolean
-}
-
-export class CalendarViewComponent implements ClassComponent<CalendarViewComponentAttrs> {
-	view({ attrs }: Vnode<CalendarViewComponentAttrs>) {
-		return m(
-			".grid.height-100p",
-			{
-				style: {
-					gridTemplateAreas: `'weekNumber 	header'
-										'empty 			calendarGrid'
-										'timeColumn 	calendarGrid'`,
-					gridTemplateRows: "auto auto 1fr",
-					gridTemplateColumns: "auto 1fr",
-				} satisfies Partial<CSSStyleDeclaration>,
-			},
-			[
-				styles.isDesktopLayout() && attrs.headerComponentAttrs
-					? m(
-							".b.text-center.calendar-day-indicator",
-							{ style: { gridArea: "weekNumber" } },
-							calendarWeek(attrs.headerComponentAttrs.selectedDate, attrs.headerComponentAttrs.startOfWeek ?? WeekStart.MONDAY),
-						)
-					: null,
-				m("", { style: { gridArea: "timeColumn" } }, "timeColumn"),
-				attrs.showWeekDays && attrs.headerComponentAttrs
-					? m("", { style: { gridArea: "header" } }, m(HeaderComponent, { ...attrs.headerComponentAttrs } satisfies HeaderComponentAttrs))
-					: null,
-				m("", { style: { gridArea: "calendarGrid" } }, "calendarGrid"),
-			],
-		)
-	}
-}
-
-interface HeaderComponentAttrs {
+export interface HeaderComponentAttrs {
 	/**
 	 * Days for the current period
 	 */
@@ -64,7 +22,7 @@ interface HeaderComponentAttrs {
 	startOfWeek?: WeekStart
 }
 
-class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
+export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
 	view({ attrs }: Vnode<HeaderComponentAttrs>) {
 		if (styles.isDesktopLayout()) {
 			return m(
