@@ -45,7 +45,7 @@ export async function handleUrlSubscription(calendarModel: CalendarModel, url: s
 function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stream<string>) {
 	const errorMessage = errorMessageStream().trim()
 	let helperMessage = ""
-	if (urlStream().trim() === "") helperMessage = "E.g: https://tuta.com/ics/example.ics"
+	if (urlStream().trim() === "") helperMessage = "E.g: https://tuta.com/ics/example.ics or webcal://example.com/calendar.ics"
 	else if (isNotNull(errorMessage) && errorMessage !== DEFAULT_ERROR) helperMessage = errorMessage
 	return m(TextField, {
 		class: `pt pb ${helperMessage.length ? "" : "mb-small-line-height"}`,

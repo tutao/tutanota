@@ -191,12 +191,26 @@ export const enum SyncStatus {
 export function checkURLString(url: string): TranslationKey | URL {
 	const assertResult = assertValidURL(url)
 	if (!assertResult) return "invalidURL_msg"
-	if (!hasValidProtocol(assertResult, ["https:"])) return "invalidURLProtocol_msg"
+	if (!hasValidProtocol(assertResult, ["https:", "webcal:", "webcals:"])) return "invalidURLProtocol_msg"
 	return assertResult
 }
 
 export function hasValidProtocol(url: URL, validProtocols: string[]) {
 	return validProtocols.includes(url.protocol)
+}
+
+/**
+ * Normalizes calendar URLs by converting webcal/webcals protocols to https.
+ * webcal:// and webcals:// are calendar subscription protocols that should be fetched over HTTPS.
+ */
+export function normalizeCalendarUrl(url: string): string {
+	if (url.startsWith("webcal://")) {
+		return url.replace("webcal://", "https://")
+	}
+	if (url.startsWith("webcals://")) {
+		return url.replace("webcals://", "https://")
+	}
+	return url
 }
 
 export function shallowIsSameEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
