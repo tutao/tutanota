@@ -280,7 +280,7 @@ function parseIcalObject(tag: string, iterator: Iterator<string>): ICalObject {
 
 export function parseICalendar(stringData: string): ICalObject {
 	const withFoldedLines = stringData
-		.replace(/\r?\n\s/g, "")
+		.replace(/\r?\n[ \t]/g, "")
 		.split(/\r?\n/)
 		.filter((e) => e !== "")
 	const iterator = withFoldedLines.values()
