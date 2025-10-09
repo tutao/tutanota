@@ -23,6 +23,7 @@ export class EstimatingProgressMonitor implements IProgressMonitor {
 	progressEstimation: TimeoutID
 
 	constructor(
+		private readonly monitorTag: string,
 		totalWork: number,
 		private readonly updater: ProgressListener,
 	) {
@@ -37,6 +38,7 @@ export class EstimatingProgressMonitor implements IProgressMonitor {
 	public continueEstimation() {
 		clearInterval(this.progressEstimation)
 		this.progressEstimation = setInterval(() => {
+			console.log(`${this.monitorTag}: ${this.percentage().toFixed(2)}% of work completed`)
 			if (this.ratePerSecondHistory.length < MINIMUM_HISTORY_LENGTH_FOR_ESTIMATION) {
 				this.workEstimate(DEFAULT_RATE_PER_SECOND)
 			} else {

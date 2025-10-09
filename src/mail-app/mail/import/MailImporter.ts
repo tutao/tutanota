@@ -36,6 +36,7 @@ type ActiveImport = {
 }
 
 export class MailImporter {
+	private idCounter: number = 0
 	private finalisedImportStates: Map<Id, ImportMailState> = new Map()
 	private activeImport: ActiveImport | null = null
 	public foldersForMailbox: FolderSystem | undefined
@@ -166,7 +167,8 @@ export class MailImporter {
 	}
 
 	private createEstimatingProgressMonitor(totalWork: number = DEFAULT_TOTAL_WORK) {
-		return new EstimatingProgressMonitor(totalWork, (_) => {
+		const id = this.idCounter++
+		return new EstimatingProgressMonitor(`import-monitor-${id}`, totalWork, (_) => {
 			m.redraw()
 		})
 	}
