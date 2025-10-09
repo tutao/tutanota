@@ -30,7 +30,13 @@ import { getDateInZone } from "./CalendarTestUtils.js"
 import { Require } from "@tutao/tutanota-utils"
 import { createTestEntity } from "../TestUtils.js"
 import { getAllDayDateUTCFromZone } from "../../../src/common/calendar/date/CalendarUtils.js"
-import { EventImportRejectionReason, parseCalendarStringData, sortOutParsedEvents } from "../../../src/common/calendar/gui/ImportExportUtils.js"
+import {
+	checkURLString,
+	EventImportRejectionReason,
+	normalizeCalendarUrl,
+	parseCalendarStringData,
+	sortOutParsedEvents,
+} from "../../../src/common/calendar/gui/ImportExportUtils.js"
 
 const zone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")
@@ -1647,5 +1653,53 @@ END:VCALENDAR`
 		o(serializeTrigger("10D")).equals("-P10D")
 		o(serializeTrigger("5W")).equals("-P5W")
 		o(serializeTrigger("50W")).equals("-P50W")
+	})
+
+	o.spec("normalizeCalendarUrl", function () {
+		o("converts webcal:// to https://", function () {
+			o(normalizeCalendarUrl("webcal://example.com/calendar.ics")).equals("https://example.com/calendar.ics")
+		})
+
+		o("converts webcals:// to https://", function () {
+			o(normalizeCalendarUrl("webcals://example.com/calendar.ics")).equals("https://example.com/calendar.ics")
+		})
+
+		o("leaves https:// unchanged", function () {
+			o(normalizeCalendarUrl("https://example.com/calendar.ics")).equals("https://example.com/calendar.ics")
+		})
+
+		o("leaves http:// unchanged", function () {
+			o(normalizeCalendarUrl("http://example.com/calendar.ics")).equals("http://example.com/calendar.ics")
+		})
+	})
+
+	o.spec("checkURLString", function () {
+		o("accepts https:// protocol", function () {
+			const result = checkURLString("https://example.com/calendar.ics")
+			o(result instanceof URL).equals(true)
+			o((result as URL).protocol).equals("https:")
+		})
+
+		o("accepts webcal:// protocol", function () {
+			const result = checkURLString("webcal://example.com/calendar.ics")
+			o(result instanceof URL).equals(true)
+			o((result as URL).protocol).equals("webcal:")
+		})
+
+		o("accepts webcals:// protocol", function () {
+			const result = checkURLString("webcals://example.com/calendar.ics")
+			o(result instanceof URL).equals(true)
+			o((result as URL).protocol).equals("webcals:")
+		})
+
+		o("rejects http:// protocol", function () {
+			const result = checkURLString("http://example.com/calendar.ics")
+			o(result).equals("invalidURLProtocol_msg")
+		})
+
+		o("rejects invalid URLs", function () {
+			const result = checkURLString("not a url")
+			o(result).equals("invalidURL_msg")
+		})
 	})
 })

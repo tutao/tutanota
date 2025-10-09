@@ -112,6 +112,7 @@ import {
 	eventHasSameFields,
 	EventImportRejectionReason,
 	EventWrapper,
+	normalizeCalendarUrl,
 	parseCalendarStringData,
 	shallowIsSameEvent,
 	sortOutParsedEvents,
@@ -424,7 +425,8 @@ export class CalendarModel {
 
 	public async fetchExternalCalendar(url: string): Promise<string> {
 		if (!this.externalCalendarFacade) throw new Error(`externalCalendarFacade is ${typeof this.externalCalendarFacade} at CalendarModel`)
-		const calendarStr = await this.externalCalendarFacade?.fetchExternalCalendar(url)
+		const normalizedUrl = normalizeCalendarUrl(url)
+		const calendarStr = await this.externalCalendarFacade?.fetchExternalCalendar(normalizedUrl)
 		return calendarStr ?? ""
 	}
 
