@@ -255,20 +255,22 @@ async function signup(
 		if (regDataId) {
 			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 			const recoverCode = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)
+			let userGroupId
 			if (!logins.isUserLoggedIn()) {
 				// we do not know the userGroupId at group creation time,
 				// so we log in and create the identity key pair now
-				const login = await logins.createSession(mailAddress, password, SessionType.Temporary)
-
-				await identityKeyCreator.createIdentityKeyPair(
-					login.userGroupInfo.group,
-					{
-						object: keyPairs[0], // user group key pair
-						version: 0, //new group
-					},
-					[],
-				)
+				userGroupId = (await logins.createSession(mailAddress, password, SessionType.Temporary)).userGroupInfo.group
+			} else {
+				userGroupId = logins.getUserController().userGroupInfo.group
 			}
+			await identityKeyCreator.createIdentityKeyPair(
+				userGroupId,
+				{
+					object: keyPairs[0], // user group key pair
+					version: 0, //new group
+				},
+				[],
+			)
 			return {
 				mailAddress,
 				password,
