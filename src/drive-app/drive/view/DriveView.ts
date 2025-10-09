@@ -169,7 +169,10 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	async onNewFile_Click(dom: HTMLElement): Promise<void> {
 		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
 			if (files) {
-				this.driveViewModel.uploadFiles([...files]).then(() => m.redraw())
+				this.driveViewModel.uploadFiles([...files]).then(() => {
+					console.log("uploaded completed; redrawing...")
+					m.redraw()
+				})
 			}
 		})
 	}

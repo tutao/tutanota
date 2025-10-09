@@ -616,7 +616,14 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new ContactFacade(new EntityClient(locator.cache, typeModelResolver))
 	})
 	locator.driveFacade = lazyMemoized(async () => {
-		return new DriveFacade(locator.keyLoader, await locator.blob(), locator.user, locator.cachingEntityClient, locator.serviceExecutor)
+		return new DriveFacade(
+			locator.keyLoader,
+			await locator.blob(),
+			locator.user,
+			locator.cachingEntityClient,
+			locator.serviceExecutor,
+			mainInterface.progressTracker,
+		)
 	})
 }
 

@@ -82,19 +82,23 @@ export class BlobFacade {
 	 *
 	 * @returns blobReferenceToken that must be used to reference a blobs from an instance. Only to be used once.
 	 */
-	async encryptAndUpload(archiveDataType: ArchiveDataType, blobData: Uint8Array, ownerGroupId: Id, sessionKey: AesKey): Promise<BlobReferenceTokenWrapper[]> {
+	async encryptAndUpload(
+		archiveDataType: ArchiveDataType,
+		blobData: Uint8Array,
+		ownerGroupId: Id,
+		sessionKey: AesKey,
+		onChunkUploaded?: (totalChunks: number, doneChunks: number) => Promise<void>,
+	): Promise<BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
-
-		const uploadMonitorId = await this.progressTracker.registerMonitor(chunks.length)
 
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return promiseMap(chunks, async (chunk) => {
+			return promiseMap(chunks, async (chunk, index) => {
 				const blobReferenceTokenWrapper = await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey)
 				//await timeout(500)
 
 				// TODO: Handle cancelled/failed upload -> stop progress tracker.
-				await this.progressTracker.workDoneForMonitor(uploadMonitorId, 1)
+				await onChunkUploaded?.(chunks.length, index)
 
 				return blobReferenceTokenWrapper
 			})
