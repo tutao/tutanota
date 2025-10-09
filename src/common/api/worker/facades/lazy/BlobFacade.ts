@@ -38,6 +38,7 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
+import { ExposedProgressTracker } from "../../../main/ProgressTracker"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -48,6 +49,11 @@ export interface BlobLoadOptions {
 	suspensionBehavior?: SuspensionBehavior
 	/** override origin for the request */
 	baseUrl?: string
+}
+
+// FIXME: Just for testing. Remove me later!
+function timeout(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**
@@ -67,6 +73,7 @@ export class BlobFacade {
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
+		private readonly progressTracker: ExposedProgressTracker,
 	) {}
 
 	/**
@@ -77,9 +84,20 @@ export class BlobFacade {
 	 */
 	async encryptAndUpload(archiveDataType: ArchiveDataType, blobData: Uint8Array, ownerGroupId: Id, sessionKey: AesKey): Promise<BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
+
+		const uploadMonitorId = await this.progressTracker.registerMonitor(chunks.length)
+
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return promiseMap(chunks, async (chunk) => await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey))
+			return promiseMap(chunks, async (chunk) => {
+				const blobReferenceTokenWrapper = await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey)
+				//await timeout(500)
+
+				// TODO: Handle cancelled/failed upload -> stop progress tracker.
+				await this.progressTracker.workDoneForMonitor(uploadMonitorId, 1)
+
+				return blobReferenceTokenWrapper
+			})
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
 
