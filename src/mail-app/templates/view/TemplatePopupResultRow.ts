@@ -15,7 +15,7 @@ export class TemplatePopupResultRow implements Component<TemplateResultRowAttrs>
 	view(vnode: Vnode<TemplateResultRowAttrs>): Children {
 		const { title, tag } = vnode.attrs.template
 		return m(
-			".flex.flex-column.overflow-hidden.full-width.ml-s",
+			".flex.flex-column.overflow-hidden.full-width.ml-8",
 			{
 				style: {
 					height: px(TEMPLATE_LIST_ENTRY_HEIGHT),

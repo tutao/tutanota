@@ -131,7 +131,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 	private progressIcon(): Children {
 		return m(Icon, {
 			icon: BootIcons.Progress,
-			class: "icon-progress mr-s",
+			class: "icon-progress mr-8",
 		})
 	}
 

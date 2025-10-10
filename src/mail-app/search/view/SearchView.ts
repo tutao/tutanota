@@ -532,12 +532,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							},
 						}),
 					)
-				: m(".ml-s"),
+				: m(".ml-8"),
 			right: rightActions,
 			center: m(
 				".flex-grow.flex.justify-center",
 				{
-					class: rightActions.length === 0 ? "mr" : "",
+					class: rightActions.length === 0 ? "mr-12" : "",
 				},
 				m(searchBar, {
 					placeholder: this.searchBarPlaceholder(),

@@ -254,7 +254,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				[this.renderDesktopEventList(attrs)],
 			),
 			m(
-				".ml-l.flex-grow.scroll",
+				".ml-24.flex-grow.scroll",
 				{},
 				attrs.eventPreviewModel == null
 					? m(

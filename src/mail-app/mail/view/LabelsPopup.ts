@@ -97,7 +97,7 @@ export class LabelsPopup implements ModalComponent {
 											opacity,
 										},
 									}),
-									m(".button-height.flex.items-center.ml.overflow-hidden", { style: { color, opacity } }, m(".text-ellipsis", label.name)),
+									m(".button-height.flex.items-center.ml-12.overflow-hidden", { style: { color, opacity } }, m(".text-ellipsis", label.name)),
 								],
 							)
 						}),

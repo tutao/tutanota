@@ -96,7 +96,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 				},
 				style: { display: "block", "max-width": "100%" },
 			})
-			return m(".mt-16.mb-16.ml.mr.border-radius", { style: { overflow: "clip" } }, video)
+			return m(".mt-16.mb-16.ml-12.mr-12.border-radius", { style: { overflow: "clip" } }, video)
 		}
 	}
 

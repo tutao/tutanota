@@ -163,7 +163,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 						m(Icon, {
 							icon: BootIcons.Calendar,
 							container: "div",
-							class: "mr-xsm",
+							class: "mr-4",
 							style: { fill: theme.on_surface },
 							size: IconSize.PX24,
 						}),
@@ -172,7 +172,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-8", [
 								m("span.b", lang.get("when_label")),
-								m("span.ml-xsm", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+								m("span.ml-4", formatEventTimes(getStartOfDay(event.startTime), event, "")),
 							])
 						: null,
 					replySection,
@@ -204,7 +204,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 												m(Icon, {
 													icon: hasConflict ? Icons.AlertCircle : Icons.CheckCircleFilled,
 													container: "div",
-													class: "mr-xsm",
+													class: "mr-4",
 													style: {
 														fill: hasConflict ? theme.warning : theme.success,
 													}, // TODO [colors] Use new material like colors tokens

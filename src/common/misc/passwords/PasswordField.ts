@@ -58,7 +58,7 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 			m(".flex.items-center", [
 				strength != null
 					? m(CompletenessIndicator, {
-							class: "mr-s",
+							class: "mr-8",
 							percentageCompleted: scaleToVisualPasswordStrength(strength),
 						})
 					: null,

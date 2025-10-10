@@ -77,7 +77,7 @@ export class SectionButton implements Component<SectionButtonAttrs> {
 				onclick,
 			},
 			m(Card, { classes: ["flex", "justify-between", "flex-grow", "items-center"] }, [
-				leftIcon || injectionLeft ? m(".flex.items-center.mr-s", [leftPart]) : null,
+				leftIcon || injectionLeft ? m(".flex.items-center.mr-8", [leftPart]) : null,
 				m("span.flex-grow.full-width.white-space", lang.getTranslationText(text)),
 				rightPart,
 			]),

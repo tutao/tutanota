@@ -100,7 +100,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 	const renderIcon = (icon: AllIcons, fillColor: string) =>
 		m(Icon, {
 			icon,
-			class: "flex-center items-center mr-xs",
+			class: "flex-center items-center mr-4",
 			style: {
 				fill: fillColor,
 			},
@@ -166,7 +166,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 		showMailDropdown(event, dom)
 	}
 
-	return m(".full-width.flex.items-center.flex-end.mt-8.gap-vpad-s.mr-s", [
+	return m(".full-width.flex.items-center.flex-end.mt-8.gap-vpad-s.mr-8", [
 		contact.mailAddresses.length
 			? m(
 					singleEmailAdress && client.isCalendarApp() ? `a[href="mailto:${contact.mailAddresses[0].address}"][target=_blank].no-text-decoration` : "",

@@ -87,7 +87,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 						selectedColor: attrs.value,
 						onselect: attrs.onselect,
 						// add right divider to first color option
-						className: i === 0 ? ".pr-vpad-s.mr-hpad-small" : undefined,
+						className: i === 0 ? ".pr-vpad-s.mr-4" : undefined,
 						style:
 							i === 0
 								? {

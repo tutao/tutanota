@@ -45,7 +45,7 @@ export class CustomColorEditor implements Component<SimpleCustomColorEditorAttrs
 				m(".flex", [
 					m(".flex-grow", m(TextField, simpleColorPickerAttrs)),
 					m(
-						".ml-s.flex-grow",
+						".ml-8.flex-grow",
 						m(DropDownSelector, {
 							label: "baseTheme_label",
 							items: [

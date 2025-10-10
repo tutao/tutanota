@@ -33,7 +33,7 @@ export class TemplateExpander implements Component<TemplateExpanderAttrs> {
 		const { model, template } = attrs
 		const selectedContent = model.getSelectedContent()
 		return m(
-			".flex.flex-column.flex-grow.scroll.ml-s",
+			".flex.flex-column.flex-grow.scroll.ml-8",
 			{
 				style: {
 					// maxHeight has to be set, because otherwise the content would overflow outside the flexbox (-44 because of header height)

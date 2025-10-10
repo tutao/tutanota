@@ -303,7 +303,7 @@ export class MailRow implements VirtualRow<Mail> {
 							m(
 								Badge,
 								{
-									classes: ".small.mr-s",
+									classes: ".small.mr-8",
 									oncreate: (vnode) => (this.teamLabelDom = vnode.dom as HTMLElement),
 								},
 								companyTeamLabel,
@@ -331,7 +331,7 @@ export class MailRow implements VirtualRow<Mail> {
 								oncreate: (vnode) => (this.subjectDom = vnode.dom as HTMLElement),
 							}),
 							m(".flex-grow"),
-							m("span.ion.ml-s.list-font-icons", {
+							m("span.ion.ml-8.list-font-icons", {
 								oncreate: (vnode) => (this.iconsDom = vnode.dom as HTMLElement),
 							}),
 						]),

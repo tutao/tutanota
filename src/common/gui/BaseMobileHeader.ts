@@ -26,7 +26,7 @@ export const BaseMobileHeader = pureComponent(({ left, center, right, injections
 			m(
 				".flex-grow.flex.items-center.min-width-0",
 				{
-					class: !left ? "ml-hpad_small" : "",
+					class: !left ? "ml-4" : "",
 				},
 				center ?? null,
 			),
