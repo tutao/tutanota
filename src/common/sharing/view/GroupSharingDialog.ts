@@ -250,7 +250,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 					return m("", customGroupName === realGroupName ? null : texts.yourCustomNameLabel(customGroupName))
 				},
 			}),
-			m(".pt", texts.addMemberMessage(customGroupName || realGroupName)),
+			m(".pt-16", texts.addMemberMessage(customGroupName || realGroupName)),
 		],
 		okAction: async () => {
 			if (recipients.length === 0) {

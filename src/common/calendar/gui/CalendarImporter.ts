@@ -179,7 +179,7 @@ export function calendarSelectionDialog(
 				],
 			}),
 
-			m(".dialog-max-height.plr-l.pt.pb.text-break.scroll", [
+			m(".dialog-max-height.plr-l.pt-16.pb.text-break.scroll", [
 				m(".text-break.selectable", lang.get("calendarImportSelection_label")),
 				m(DropDownSelector, {
 					label: "calendar_label",

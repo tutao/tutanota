@@ -246,7 +246,7 @@ class PaypalInput {
 				}),
 			),
 			m(
-				".small.pt.center",
+				".small.pt-16.center",
 				isPaypalAssigned(attrs.accountingInfo)
 					? lang.get("paymentDataPayPalFinished_msg", {
 							"{accountAddress}": attrs.accountingInfo.paymentMethodInfo ?? "",

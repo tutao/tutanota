@@ -182,7 +182,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 		return m(
 			"#signup-account-dialog.flex-center",
-			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
+			m(".flex-grow-shrink-auto.max-width-m.pt-16.pb.plr-l", [
 				a.readonly
 					? m(TextField, {
 							label: "mailAddress_label",

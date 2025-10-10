@@ -301,7 +301,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 				title: "auditLog_title",
 				child: {
 					view: () =>
-						m("table.pt", [
+						m("table.pt-16", [
 							m("tr", [m("td", lang.get("action_label")), m("td.pl", entry.action)]),
 							m("tr", [m("td", lang.get("actor_label")), m("td.pl", entry.actorMailAddress)]),
 							m("tr", [m("td", lang.get("IpAddress_label")), m("td.pl", entry.actorIpAddress ? entry.actorIpAddress : "")]),

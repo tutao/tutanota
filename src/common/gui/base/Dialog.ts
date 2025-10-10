@@ -251,9 +251,9 @@ export class Dialog implements ModalComponent {
 		if (dialogType === DialogType.Progress) {
 			dialogStyle += ".dialog-width-s.dialog-progress.border-radius-bottom"
 		} else if (dialogType === DialogType.Alert) {
-			dialogStyle += ".dialog-width-alert.pt.border-radius-bottom"
+			dialogStyle += ".dialog-width-alert.pt-16.border-radius-bottom"
 		} else if (dialogType === DialogType.Reminder) {
-			dialogStyle += ".dialog-width-m.pt.flex.flex-column.border-radius-bottom"
+			dialogStyle += ".dialog-width-m.pt-16.flex.flex-column.border-radius-bottom"
 		} else if (dialogType === DialogType.EditSmall) {
 			dialogStyle += ".dialog-width-s.flex.flex-column.border-radius-bottom"
 		} else if (dialogType === DialogType.EditMedium) {
@@ -434,7 +434,7 @@ export class Dialog implements ModalComponent {
 			dialog = new Dialog(DialogType.Alert, {
 				view: () =>
 					m("", [
-						m(".dialog-contentButtonsBottom.text-break", [m(Button, downloadButtonAttrs), m(".pt", lang.get("saveDownloadNotPossibleIos_msg"))]),
+						m(".dialog-contentButtonsBottom.text-break", [m(Button, downloadButtonAttrs), m(".pt-16", lang.get("saveDownloadNotPossibleIos_msg"))]),
 						m(".flex-center.dialog-buttons", m(Button, closeButtonAttrs)),
 					]),
 			})

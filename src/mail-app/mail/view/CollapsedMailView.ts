@@ -24,7 +24,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 		if (!folderInfo) return null
 
 		return m(
-			".flex.items-center.pt.pb.click.no-wrap",
+			".flex.items-center.pt-16.pb.click.no-wrap",
 			{
 				class: responsiveCardHPadding(),
 				role: "button",

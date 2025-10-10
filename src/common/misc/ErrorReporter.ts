@@ -207,7 +207,7 @@ async function showLogDialog(heading: string, text: string) {
 			middle: lang.makeTranslation("heading", heading),
 		},
 		{
-			view: () => m(".white-space-pre.pt.pb.selectable", text),
+			view: () => m(".white-space-pre.pt-16.pb.selectable", text),
 		},
 	)
 		.addShortcut({

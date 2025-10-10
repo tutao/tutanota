@@ -40,7 +40,7 @@ export function showDateRangeSelectionDialog({
 	const form: Component = {
 		view: () =>
 			m(
-				".flex.col.pt",
+				".flex.col.pt-16",
 				m(
 					"",
 					{

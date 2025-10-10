@@ -33,7 +33,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 		const isCalendarApp = client.isCalendarApp()
 
 		return m(
-			".pt.pb.flex.gap-vpad.col",
+			".pt-16.pb.flex.gap-vpad.col",
 			m(
 				Card,
 				m(
@@ -54,7 +54,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 				),
 			),
 			isCalendarApp
-				? m(Card, { shouldDivide: true }, m(".plr.pt.pb", "You can access the response in Tuta Mail using your Tuta Calendar credentials."), [
+				? m(Card, { shouldDivide: true }, m(".plr.pt-16.pb", "You can access the response in Tuta Mail using your Tuta Calendar credentials."), [
 						m(SectionButton, {
 							text: "getTutaMail_action",
 							onclick: () => {

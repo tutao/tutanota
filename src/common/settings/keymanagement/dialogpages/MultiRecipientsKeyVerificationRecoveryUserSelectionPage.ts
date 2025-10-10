@@ -31,7 +31,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 
 		const selectableRecipients = this.makeRecipientOptions(vnode.attrs.model.getUnverifiedRecipients())
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title,
 				subTitle: "",
@@ -73,7 +73,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 		const title = lang.get("keyManagement.reverifyRecipientsCompleted_title")
 		const message = lang.get("keyManagement.reverifyRecipientsCompleted_msg")
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title,
 				subTitle: "",

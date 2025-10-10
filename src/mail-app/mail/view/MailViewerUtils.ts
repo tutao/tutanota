@@ -76,7 +76,7 @@ export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 		{
 			view: () =>
 				m(
-					".white-space-pre.pt.pb.selectable",
+					".white-space-pre.pt-16.pb.selectable",
 					state.state === "loading" ? m(".center", progressIcon()) : (state.headers ?? m(".center", lang.get("noEntries_msg"))),
 				),
 		},

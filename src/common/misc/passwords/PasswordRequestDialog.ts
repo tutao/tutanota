@@ -38,7 +38,7 @@ export function showRequestPasswordDialog(props: {
 			const savedState = state
 			return savedState.type === "idle"
 				? m("", [
-						props.messageText ? m(".pt", props.messageText) : null,
+						props.messageText ? m(".pt-16", props.messageText) : null,
 						m(PasswordField, {
 							label: title,
 							helpLabel: () => savedState.message,

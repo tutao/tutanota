@@ -24,7 +24,7 @@ export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogA
 				"section",
 				m(
 					".flex-center.mt-12",
-					m("img.pb.pt.block.height-100p", {
+					m("img.pb.pt-16.block.height-100p", {
 						src: attrs.image,
 						alt: "",
 						rel: "noreferrer",

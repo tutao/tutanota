@@ -28,7 +28,7 @@ export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user
 	Dialog.showActionDialog({
 		title: "recoveryCode_label",
 		type: DialogType.EditMedium,
-		child: () => m(".pt", lang.get("recoveryCode_msg")),
+		child: () => m(".pt-16", lang.get("recoveryCode_msg")),
 		allowOkWithReturn: true,
 		okAction: (dialog: Dialog) => {
 			dialog.close()
@@ -104,7 +104,7 @@ export class RecoverCodeField {
 							m(".flex-grow-shrink-half.plr-l.flex-center.align-self-center", this.renderRecoveryText()),
 							m(
 								".flex-grow-shrink-half.plr-l.flex-center.align-self-center",
-								m("img.pt.bg-white.pt.pb", {
+								m("img.pt-16.bg-white.pt-16.pb", {
 									src: image.src,
 									alt: lang.getTranslationText(image.alt),
 									style: {
@@ -137,6 +137,6 @@ export class RecoverCodeField {
 
 	private renderRecoveryText(): Child {
 		const link = InfoLink.RecoverCode
-		return m(".pt.pb", [lang.get("recoveryCode_msg"), m("", [m(MoreInfoLink, { link, isSmall: true })])])
+		return m(".pt-16.pb", [lang.get("recoveryCode_msg"), m("", [m(MoreInfoLink, { link, isSmall: true })])])
 	}
 }

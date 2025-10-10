@@ -129,7 +129,7 @@ class ContactListEditor implements Component<ContactListEditorAttrs> {
 			this.showNameInput
 				? m(TextField, {
 						label: "name_label",
-						class: "big-input pt flex-grow",
+						class: "big-input pt-16 flex-grow",
 						value: this.model.name,
 						oninput: (name) => (this.model.name = name),
 					})

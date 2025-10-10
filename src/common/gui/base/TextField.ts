@@ -115,7 +115,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
 				"aria-haspopup": a.hasPopup,
 				"data-testid": `tf:${lang.getTestId(a.label)}`,
-				class: a.class != null ? a.class : "pt" + " " + getOperatingClasses(a.disabled),
+				class: a.class != null ? a.class : "pt-16" + " " + getOperatingClasses(a.disabled),
 				style: maxWidth
 					? {
 							maxWidth: px(maxWidth),

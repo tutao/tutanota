@@ -264,7 +264,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 		return [
 			m(
 				".flex-grow.flex-center.scroll",
-				m(".flex-grow-shrink-auto.max-width-s.pt.plr-l", [this.renderLoginForm(model), this.renderCredentialsSelector(model)]),
+				m(".flex-grow-shrink-auto.max-width-s.pt-16.plr-l", [this.renderLoginForm(model), this.renderCredentialsSelector(model)]),
 			),
 		]
 	}
@@ -451,7 +451,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 	private renderInfoForFreeAccounts(model: RedeemGiftCardModel): Children {
 		return [
 			m(".pt-l.plr-l", `${lang.get("giftCardUpgradeNotifyRevolutionary_msg")} ${this.getCreditOrDebitMessage(model)}`),
-			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
+			m(".center.h4.pt-16", lang.get("upgradeConfirm_msg")),
 			m(".flex-space-around.flex-wrap", [
 				m(".flex-grow-shrink-half.plr-l", [
 					m(TextField, {
@@ -477,7 +477,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 				]),
 				m(
 					".flex-grow-shrink-half.plr-l.flex-center.items-end",
-					m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {
+					m("img[src=" + HabReminderImage + "].pt-16.bg-white.border-radius", {
 						style: {
 							width: "200px",
 						},
@@ -497,7 +497,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 			),
 			m(
 				".flex-grow-shrink-half.plr-l.flex-center.items-end",
-				m("img[src=" + HabReminderImage + "].pt.bg-white.border-radius", {
+				m("img[src=" + HabReminderImage + "].pt-16.bg-white.border-radius", {
 					style: {
 						width: "200px",
 					},

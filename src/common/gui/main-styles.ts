@@ -420,7 +420,7 @@ styles.registerStyle("main", () => {
 		".p-xsm": {
 			padding: px(size.spacing_4),
 		},
-		".pt": {
+		".pt-16": {
 			"padding-top": px(size.spacing_16),
 		},
 		".pt-0": {

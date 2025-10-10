@@ -151,7 +151,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 		Dialog.showActionDialog({
 			title: "referralSettings_label",
 			type: DialogType.EditMedium,
-			child: () => m(".pt", m(ReferralLinkViewer, { referralLink })),
+			child: () => m(".pt-16", m(ReferralLinkViewer, { referralLink })),
 			allowOkWithReturn: false,
 			okAction: (dialog: Dialog) => {
 				dialog.close()

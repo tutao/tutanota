@@ -24,7 +24,7 @@ export const EventBannerSkeleton = pureComponent(() =>
 					},
 		},
 		[
-			m(".flex.flex-column.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt.justify-center.skeleton-bg-1.gap-vpad-xs.fill-grid-column", [
+			m(".flex.flex-column.center.items-center.pr-vpad-l.pl-vpad-l.pb.pt-16.justify-center.skeleton-bg-1.gap-vpad-xs.fill-grid-column", [
 				m(Skeleton, {
 					style: {
 						width: "25px",
@@ -47,7 +47,7 @@ export const EventBannerSkeleton = pureComponent(() =>
 					},
 				}),
 			]),
-			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.skeleton-bg-2.gap-vpad-xs", [
+			m(".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt-16.skeleton-bg-2.gap-vpad-xs", [
 				m(Skeleton, {
 					style: {
 						width: "75%",
@@ -68,7 +68,7 @@ export const EventBannerSkeleton = pureComponent(() =>
 				}),
 			]),
 			m(
-				".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt.skeleton-bg-2.gap-vpad-xs.skeleton-border-1",
+				".flex.flex-column.pr-vpad-l.pl-vpad-l.pb.pt-16.skeleton-bg-2.gap-vpad-xs.skeleton-border-1",
 				{
 					class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 				},

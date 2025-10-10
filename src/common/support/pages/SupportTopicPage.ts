@@ -40,7 +40,7 @@ export class SupportTopicPage implements Component<Props> {
 		const buttonText = getContactSupportText(topic, languageTag)
 
 		return m(
-			".flex.flex-column.pt.pb",
+			".flex.flex-column.pt-16.pb",
 			{
 				style: {
 					"overflow-x": "auto",

@@ -25,7 +25,7 @@ export class ScrollSelectList<T> implements ClassComponent<ScrollSelectListAttrs
 			".flex.flex-column.scroll-no-overlay",
 			a.items.length > 0
 				? a.items.map((item) => this.renderRow(item, vnode))
-				: m(".row-selected.text-center.pt", lang.get(resolveMaybeLazy(a.emptyListMessage))),
+				: m(".row-selected.text-center.pt-16", lang.get(resolveMaybeLazy(a.emptyListMessage))),
 		)
 	}
 

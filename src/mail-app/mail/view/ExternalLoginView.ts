@@ -220,7 +220,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 	view({ attrs }: Vnode<ExternalLoginViewAttrs>): Children {
 		return m(".main-view.flex.col.nav-bg", [
 			m(LoginScreenHeader),
-			m(".flex-grow.flex.col.items-center.scroll", m(".flex-grow-shrink-auto.flex.col.max-width-m.pt.pb.plr-l", this.renderContent())),
+			m(".flex-grow.flex.col.items-center.scroll", m(".flex-grow-shrink-auto.flex.col.max-width-m.pt-16.pb.plr-l", this.renderContent())),
 		])
 	}
 
@@ -267,7 +267,7 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 				onChecked: (checked) => (this.viewModel.doSavePassword = checked),
 			}),
 			m(
-				".pt",
+				".pt-16",
 				m(LoginButton, {
 					label: "showMail_action",
 					onclick: () => this.viewModel.formLogin(),

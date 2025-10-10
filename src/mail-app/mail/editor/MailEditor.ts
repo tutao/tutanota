@@ -659,7 +659,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 										}),
 									),
 									editCustomNotificationMailAttrs
-										? m(".pt.flex-no-grow.flex-end.border-bottom.flex.items-center", m(IconButton, editCustomNotificationMailAttrs))
+										? m(".pt-16.flex-no-grow.flex-end.border-bottom.flex.items-center", m(IconButton, editCustomNotificationMailAttrs))
 										: null,
 								],
 							)

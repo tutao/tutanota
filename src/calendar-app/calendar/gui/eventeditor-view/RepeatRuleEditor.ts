@@ -86,7 +86,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 
 	view({ attrs }: Vnode<RepeatRuleEditorAttrs>): Children {
 		return m(
-			".pb.pt.flex.col.gap-vpad.fit-height",
+			".pb.pt-16.flex.col.gap-vpad.fit-height",
 			{
 				class: this.repeatRuleType !== null ? "box-content" : "",
 				style: {

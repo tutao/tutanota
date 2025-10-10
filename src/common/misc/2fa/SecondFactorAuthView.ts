@@ -148,7 +148,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 			return null
 		}
 
-		return m(".small.text-center.pt", [
+		return m(".small.text-center.pt-16", [
 			m(
 				`a[href=#]`,
 				{

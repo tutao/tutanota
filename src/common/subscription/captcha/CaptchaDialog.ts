@@ -180,7 +180,7 @@ function renderDialogContent(actionBarAttrs: DialogHeaderBarAttrs, viewModel: Ca
 	return [
 		m(DialogHeaderBar, actionBarAttrs),
 		m(
-			".pt.plr-l.pb.flex.col#captcha_wrapper",
+			".pt-16.plr-l.pb.flex.col#captcha_wrapper",
 			{
 				style: {
 					flex: "1 1 auto",
