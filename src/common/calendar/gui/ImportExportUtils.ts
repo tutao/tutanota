@@ -9,12 +9,11 @@ import {
 import type { AlarmInfoTemplate } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { assignEventId, CalendarEventValidity, checkEventValidity, getTimeZone } from "../date/CalendarUtils.js"
 import { ParsedCalendarData, ParsedEvent } from "./CalendarImporter.js"
-import { deepEqual, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/tutanota-utils"
+import { assertValidURL, deepEqual, getFromMap, groupBy, insertIntoSortedArray } from "@tutao/tutanota-utils"
 import { generateEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { createDateWrapper, DateWrapper } from "../../api/entities/sys/TypeRefs.js"
 import { parseCalendarEvents, parseICalendar } from "../../../calendar-app/calendar/export/CalendarParser.js"
 import { lang, type TranslationKey } from "../../misc/LanguageViewModel.js"
-import { assertValidURL } from "@tutao/tutanota-utils"
 import { Stripped } from "../../api/common/utils/EntityUtils"
 
 export enum EventImportRejectionReason {
@@ -204,13 +203,7 @@ export function hasValidProtocol(url: URL, validProtocols: string[]) {
  * webcal:// and webcals:// are calendar subscription protocols that should be fetched over HTTPS.
  */
 export function normalizeCalendarUrl(url: string): string {
-	if (url.startsWith("webcal://")) {
-		return url.replace("webcal://", "https://")
-	}
-	if (url.startsWith("webcals://")) {
-		return url.replace("webcals://", "https://")
-	}
-	return url
+	return url.replace(/^webcal[s]?:\/\//, "https://")
 }
 
 export function shallowIsSameEvent(eventA: CalendarEvent, eventB: CalendarEvent) {
