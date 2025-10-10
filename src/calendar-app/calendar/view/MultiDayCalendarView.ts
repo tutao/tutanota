@@ -33,6 +33,7 @@ import {
 	daysHaveEvents,
 	EventLayoutMode,
 	extractCalendarEventModifierKey,
+	generateRandomColor,
 	getDayCircleClass,
 	getEventColor,
 	layOutEvents,
@@ -203,13 +204,13 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		return {
 			event,
 			conflictsWithMainEvent: false,
-			color: "#FF0000",
+			color: generateRandomColor(),
 			featured: false,
 		}
 	}
 
 	private getStartOfPeriods(baseDate: Date, daysInPeriod: number, startOfWeek: WeekStart) {
-		const startOfThisPeriod = daysInPeriod ? getStartOfWeek(baseDate, getStartOfTheWeekOffset(startOfWeek)) : baseDate
+		const startOfThisPeriod = daysInPeriod === 7 ? getStartOfWeek(baseDate, getStartOfTheWeekOffset(startOfWeek)) : baseDate
 		const startOfPreviousPeriod = incrementDate(new Date(startOfThisPeriod), -daysInPeriod)
 		const startOfNextPeriod = incrementDate(new Date(startOfThisPeriod), daysInPeriod)
 

@@ -811,7 +811,7 @@ styles.registerStyle("main", () => {
 			"border-bottom": `1px solid ${theme.outline_variant}`,
 		},
 		".border-right": {
-			"border-right": `1px solid ${theme.outline}`,
+			"border-right": `1px solid ${theme.outline_variant}`,
 		},
 		".border-left": {
 			"border-left": `1px solid ${theme.outline_variant}`,

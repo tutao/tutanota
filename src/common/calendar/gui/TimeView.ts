@@ -111,7 +111,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			},
 			dates.map((date) => {
 				return m(
-					".grid.plr-unit.gap.z1.grid-auto-columns.rel",
+					".grid.plr-unit.gap.z1.grid-auto-columns.rel.border-right",
 					{
 						oncreate(vnode): any {
 							;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
@@ -119,7 +119,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 					},
 					[
 						this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
-						this.buildEventsColumn(events, timeRange, subRowAsMinutes, conflictRenderPolicy, subRowCount, timeScale, date, hasAnyConflict),
+						this.renderEvents(events, timeRange, subRowAsMinutes, conflictRenderPolicy, subRowCount, timeScale, date, hasAnyConflict),
 					],
 				)
 			}),
@@ -142,7 +142,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 		})
 	}
 
-	private buildEventsColumn = deepMemoized(
+	private renderEvents = deepMemoized(
 		(
 			agendaEntries: Array<TimeViewEventWrapper>,
 			timeRange: TimeRange,
@@ -162,6 +162,9 @@ export class TimeView implements Component<TimeViewAttributes> {
 				 */
 				end: timeRange.end.toDateTime(baseDate, getTimeZone()).plus({ minute: interval }).toJSDate(),
 			}
+
+			const maxAvailableColumns = 5 // FIXME maxConflictNumber
+
 			return agendaEntries.flatMap((event) => {
 				const passesThroughToday =
 					event.event.event.startTime.getTime() < timeRangeAsDate.start.getTime() &&
@@ -178,6 +181,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 				}
 
 				const { start, end } = this.getRowBounds(event.event.event, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
+				const numOfConflicts = 1 // FIXME getNumberOfConflictingEvents
+				const spanSize = Math.ceil(maxAvailableColumns / (numOfConflicts + 1)) // FIXME what about the last ev of the row?
 
 				return [
 					m(
@@ -187,7 +192,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 							style: {
 								"min-height": px(0),
 								"min-width": px(0),
-								"grid-column": conflictRenderPolicy === EventConflictRenderPolicy.OVERLAP ? 1 : undefined,
+								"grid-column": `span ${spanSize}`,
 								background: event.color,
 								color: !event.featured ? colorForBg(event.color) : undefined,
 								"grid-row": `${start} / ${end}`,
@@ -199,7 +204,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 								"border-top": event.event.event.startTime < timeRangeAsDate.start ? "none" : undefined,
 								"border-bottom": event.event.event.endTime > timeRangeAsDate.end ? "none" : undefined,
 								"-webkit-line-clamp": 2,
-							},
+							} satisfies Partial<CSSStyleDeclaration> & Record<string, any>,
 						},
 						event.featured
 							? m(".flex.items-start", [
