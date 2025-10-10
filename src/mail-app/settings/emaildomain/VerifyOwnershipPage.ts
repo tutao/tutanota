@@ -49,7 +49,7 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 			m("p", lang.get("verifyOwnershipTXTrecord_msg")),
 			createDnsRecordTable([vnode.attrs.data.expectedVerificationRecord]),
 			m(
-				".flex-center.full-width.pt-l.mb-32",
+				".flex-center.full-width.pt-32.mb-32",
 				m(LoginButton, {
 					label: "next_action",
 					class: "small-login-button",

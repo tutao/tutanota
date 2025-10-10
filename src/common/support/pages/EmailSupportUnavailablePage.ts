@@ -17,11 +17,11 @@ type EmailSupportUnavailableAttrs = {
 export class EmailSupportUnavailablePage implements Component<EmailSupportUnavailableAttrs> {
 	view({ attrs: { data, goToContactSupportPage } }: Vnode<EmailSupportUnavailableAttrs>): Children {
 		return m(
-			".pt-16.pb",
+			".pt-16.pb-16",
 			m(
 				Card,
 				{ shouldDivide: true },
-				m("div.pt-s.pb-s.plr", [
+				m("div.pt-8.pb-8.plr", [
 					m(".h4.mt-4", lang.get("supportNoDirectSupport_title")),
 					m("p", lang.get("supportNoDirectSupport_msg")),
 					m("img.block", {

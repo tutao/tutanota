@@ -33,7 +33,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 
 		const publicIdentity = model.getPublicIdentity()
 
-		return m(".pt-16.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title: lang.get("keyManagement.textVerification_label"),
 				subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),

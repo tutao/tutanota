@@ -165,7 +165,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			},
 			[
 				m(
-					".flex.pt-s.pb-m",
+					".flex.pt-8.pb-12",
 					{
 						class: weekdayDaysClasses,
 					},

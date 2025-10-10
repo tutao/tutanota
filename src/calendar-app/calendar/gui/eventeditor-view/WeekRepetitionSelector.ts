@@ -63,7 +63,7 @@ export class WeekRepetitionSelector implements Component<WeekRepetitionSelectorA
 							m(
 								"button.items-center.flex-grow",
 								{
-									class: "state-bg button-content dropdown-button pt-s pb-s button-min-height",
+									class: "state-bg button-content dropdown-button pt-8 pb-8 button-min-height",
 								},
 								option.name,
 							),

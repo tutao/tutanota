@@ -6,7 +6,7 @@ import { responsiveCardHMargin } from "./cards.js"
 /** Toolbar layout that is used in the second/list column. */
 export const DesktopListToolbar = pureComponent((__, children) => {
 	return m(
-		".flex.pt-xs.pb-xs.items-center.list-bg",
+		".flex.pt-4.pb-4.items-center.list-bg",
 		{
 			style: {
 				"border-radius": `${size.radius_8}px 0 0 ${size.radius_8}px`,
@@ -37,7 +37,7 @@ export const DesktopViewerToolbar = pureComponent((__, children) => {
 			},
 		},
 		m(
-			".flex.list-bg.pt-xs.pb-xs.plr-m",
+			".flex.list-bg.pt-4.pb-4.plr-m",
 			{
 				style: {
 					"border-radius": `0 ${size.radius_8}px ${size.radius_8}px 0`,

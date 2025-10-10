@@ -269,7 +269,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	private renderEventDetails(selectedEvent: CalendarEvent) {
 		return m(
-			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-l",
+			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
 			m(
 				".border-radius-big.flex.col.flex-grow.content-bg",
 				{
@@ -484,7 +484,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderFilterBar(): Children {
-		return m(".flex.gap-vpad-s.pl-vpad-m.pr-vpad-m.pt-s.pb-s.scroll-x", this.renderCalendarFilterChips())
+		return m(".flex.gap-vpad-s.pl-vpad-m.pr-vpad-m.pt-8.pb-8.scroll-x", this.renderCalendarFilterChips())
 	}
 
 	private async onCalendarDateRangeSelect() {

@@ -426,62 +426,53 @@ styles.registerStyle("main", () => {
 		".pt-0": {
 			"padding-top": 0,
 		},
-		".pt-s": {
+		".pt-8": {
 			"padding-top": px(size.spacing_8),
 		},
-		".pt-l": {
+		".pt-32": {
 			"padding-top": px(size.spacing_32),
 		},
-		".pt-m": {
+		".pt-12": {
 			"padding-top": px(size.spacing_12),
 		},
-		".pt-ml": {
+		".pt-24": {
 			"padding-top": px(size.spacing_24),
 		},
-		".pt-xl": {
+		".pt-48": {
 			"padding-top": px(size.spacing_48),
 		},
-		".pt-xxs": {
+		".pt-4": {
 			"padding-top": px(size.spacing_4),
 		},
-		".pt-xs": {
-			"padding-top": px(size.spacing_4),
-		},
-		".pt-hpad-button": {
+		".pt-8": {
 			"padding-top": px(size.spacing_8),
 		},
 		".pb-0": {
 			"padding-bottom": 0,
 		},
-		".pb": {
+		".pb-16": {
 			"padding-bottom": px(size.spacing_16),
 		},
-		".pb-2": {
-			"padding-bottom": "2px",
-		},
 		// for dropdown toggles
-		".pb-s": {
+		".pb-8": {
 			"padding-bottom": px(size.spacing_8),
 		},
 		".drag": {
 			"touch-action": "auto",
 		},
-		".pb-xxs": {
+		".pb-4": {
 			"padding-bottom": px(size.spacing_4),
 		},
-		".pb-xs": {
-			"padding-bottom": px(size.spacing_4),
-		},
-		".pb-l": {
+		".pb-32": {
 			"padding-bottom": px(size.spacing_32),
 		},
-		".pb-xl": {
+		".pb-48": {
 			"padding-bottom": px(size.spacing_48),
 		},
-		".pb-m": {
+		".pb-12": {
 			"padding-bottom": px(size.spacing_12),
 		},
-		".pb-ml": {
+		".pb-24": {
 			"padding-bottom": px(size.spacing_24),
 		},
 		".pb-floating": {

@@ -25,7 +25,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 		})
 
 		return m(
-			".pt-16.pb.flex.col.gap-vpad",
+			".pt-16.pb-16.flex.col.gap-vpad",
 			{
 				style: {
 					height: px(DEFAULT_HEIGHT),
@@ -36,7 +36,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 				{ shouldDivide: true },
 
 				m(
-					"section.pt-s.pb-s",
+					"section.pt-8.pb-8",
 					{
 						style: {
 							padding: px(size.spacing_8),

@@ -15,7 +15,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 	constructor() {}
 
 	view(): Children {
-		return m(".fill-absolute.scroll.plr-l.pb-xl", [m(".h4.mt-32", lang.get("mailImportSettings_label")), this.renderNoImportOnWebText()])
+		return m(".fill-absolute.scroll.plr-l.pb-48", [m(".h4.mt-32", lang.get("mailImportSettings_label")), this.renderNoImportOnWebText()])
 	}
 
 	private renderNoImportOnWebText() {

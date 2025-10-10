@@ -202,7 +202,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	): Children {
 		if (attendees.length === 0 || participation == null || event._ownerGroup == null) return null
 		return m("", [
-			m(".flex.pb-s", [
+			m(".flex.pb-8", [
 				this.renderSectionIndicator(BootIcons.Contacts),
 				m(".flex.flex-column", [
 					m(".small", lang.get("invitedToEvent_msg")),

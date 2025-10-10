@@ -104,7 +104,7 @@ export class RecoverCodeField {
 							m(".flex-grow-shrink-half.plr-l.flex-center.align-self-center", this.renderRecoveryText()),
 							m(
 								".flex-grow-shrink-half.plr-l.flex-center.align-self-center",
-								m("img.pt-16.bg-white.pt-16.pb", {
+								m("img.pt-16.bg-white.pt-16.pb-16", {
 									src: image.src,
 									alt: lang.getTranslationText(image.alt),
 									style: {
@@ -137,6 +137,6 @@ export class RecoverCodeField {
 
 	private renderRecoveryText(): Child {
 		const link = InfoLink.RecoverCode
-		return m(".pt-16.pb", [lang.get("recoveryCode_msg"), m("", [m(MoreInfoLink, { link, isSmall: true })])])
+		return m(".pt-16.pb-16", [lang.get("recoveryCode_msg"), m("", [m(MoreInfoLink, { link, isSmall: true })])])
 	}
 }

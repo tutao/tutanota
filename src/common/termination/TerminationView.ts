@@ -54,7 +54,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
-						".flex-grow-shrink-auto.max-width-m.pb",
+						".flex-grow-shrink-auto.max-width-m.pb-16",
 						{
 							...landmarkAttrs(AriaLandmarks.Main, lang.get("terminationForm_title")),
 							oncreate: (vnode) => {

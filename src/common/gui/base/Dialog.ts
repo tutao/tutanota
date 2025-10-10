@@ -620,7 +620,7 @@ export class Dialog implements ModalComponent {
 
 			const dialog = new Dialog(DialogType.Alert, {
 				view: () =>
-					m(".flex.flex-column.pl-l.pr-l.pb-s", [
+					m(".flex.flex-column.pl-l.pr-l.pb-8", [
 						m("#dialog-message.dialog-max-height.text-break.text-prewrap.selectable.scroll", getContent()),
 						buttonAttrs.length === 0
 							? null
@@ -688,7 +688,7 @@ export class Dialog implements ModalComponent {
 				middle: lang.makeTranslation("title", title()),
 			}
 			saveDialog = new Dialog(DialogType.EditMedium, {
-				view: () => m("", [m(DialogHeaderBar, actionBarAttrs), m(".plr-l.pb.text-break", m(child))]),
+				view: () => m("", [m(DialogHeaderBar, actionBarAttrs), m(".plr-l.pb-16.text-break", m(child))]),
 			})
 				.setCloseHandler(closeAction)
 				.show()
@@ -781,9 +781,9 @@ export class Dialog implements ModalComponent {
 		return new Dialog(DialogType.Reminder, {
 			view: () => [
 				m(".dialog-contentButtonsBottom.text-break.scroll", [
-					m(".h2.pb", title),
+					m(".h2.pb-16", title),
 					m(".flex-direction-change.items-center", [
-						m("#dialog-message.pb.selectable", typeof message === "function" ? message() : message),
+						m("#dialog-message.pb-16.selectable", typeof message === "function" ? message() : message),
 						m("img.dialog-img.mb-16.bg-white.border-radius", {
 							style: {
 								"min-width": "150px",
@@ -918,7 +918,7 @@ export class Dialog implements ModalComponent {
 		dialog = new Dialog(type, {
 			view: () => [
 				m(DialogHeaderBar, actionBarAttrs),
-				m(".dialog-max-height.plr-l.pb.text-break.scroll", ["function" === typeof child ? child() : m(child)]),
+				m(".dialog-max-height.plr-l.pb-16.text-break.scroll", ["function" === typeof child ? child() : m(child)]),
 			],
 		}).setCloseHandler(doCancel)
 		dialog.addShortcut({

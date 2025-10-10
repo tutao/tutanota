@@ -80,7 +80,7 @@ export class SearchDropDown<T extends Suggestion> implements ClassComponent<Sear
 		}
 
 		return m(
-			".pt-s.pb-s.click.content-hover",
+			".pt-8.pb-8.click.content-hover",
 			{
 				class: selected ? "content-accent-fg row-selected icon-accent" : "",
 				onmousedown: () => attrs.onSuggestionSelected(idx),

@@ -34,7 +34,7 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 
 		return m(
 			isDesktop() ? ".plr-m.mt-24" : ".plr-m.mt-8",
-			m(".elevated-bg.pt-s.pb-m.border-radius.flex.flex-column", [
+			m(".elevated-bg.pt-8.pb-12.border-radius.flex.flex-column", [
 				this.renderPickerHeader(this.currentDate),
 				m(".flex-grow.overflow-hidden", [
 					m(DaySelector, {
@@ -59,7 +59,7 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 	}
 
 	private renderPickerHeader(date: Date): Children {
-		return m(".flex.flex-space-between.pb.items-center.mlr-4", [
+		return m(".flex.flex-space-between.pb-16.items-center.mlr-4", [
 			renderSwitchMonthArrowIcon(false, 24, () => this.onMonthChange(false)),
 			m(
 				".b.mlr-4",

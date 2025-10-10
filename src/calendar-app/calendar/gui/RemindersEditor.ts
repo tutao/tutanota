@@ -185,7 +185,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 			"button.items-center.flex-grow",
 			{
 				tabIndex: isDisplay ? TabIndex.Programmatic : undefined,
-				class: isDisplay ? `flex ${hasAlarms ? "text-fade" : ""}` : "state-bg button-content button-min-height dropdown-button pt-s pb-s",
+				class: isDisplay ? `flex ${hasAlarms ? "text-fade" : ""}` : "state-bg button-content button-min-height dropdown-button pt-8 pb-8",
 			},
 			option.text,
 		)
@@ -201,7 +201,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 			child: {
 				view: () => {
 					const unitItems = createCustomRepeatRuleUnitValues() ?? []
-					return m(".flex full-width pt-s", [
+					return m(".flex full-width pt-8", [
 						m(TextField, {
 							type: TextFieldType.Number,
 							min: 0,

@@ -266,7 +266,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderFilterBar(): Children {
-		return m(".flex.gap-vpad-s.pl-vpad-m.pr-vpad-m.pt-s.pb-s.scroll-x", this.renderFilterChips())
+		return m(".flex.gap-vpad-s.pl-vpad-m.pr-vpad-m.pt-8.pb-8.scroll-x", this.renderFilterChips())
 	}
 
 	private renderCategoryChip(label: TranslationKey, icon: AllIcons): Children {
@@ -912,7 +912,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private renderEventDetails(selectedEvent: CalendarEvent): Children {
 		return m(
-			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-l",
+			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
 			m(
 				".border-radius-big.flex.col.flex-grow.content-bg",
 				{

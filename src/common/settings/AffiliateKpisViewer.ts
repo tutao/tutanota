@@ -20,7 +20,7 @@ export class AffiliateKpisViewer implements UpdatableSettingsDetailsViewer {
 				".flex.flex-column.fill-absolute.plr-l",
 				m("h4.mt-32", "KPIs"),
 				m(
-					".overflow-auto.pt-s",
+					".overflow-auto.pt-8",
 					{ style: { height: "100%" } },
 					m(
 						"",

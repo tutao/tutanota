@@ -41,7 +41,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						maxWidth: px(160),
 					},
 				}),
-				m(".h3.text-center.pb-s.pt-s", lang.get("ratingSuggestionPage_title")),
+				m(".h3.text-center.pb-8.pt-8", lang.get("ratingSuggestionPage_title")),
 			]),
 			m(
 				Card,
@@ -58,7 +58,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 				}),
 			),
 			m(
-				".flex.flex-column.gap-vpad.pb",
+				".flex.flex-column.gap-vpad.pb-16",
 				{
 					style: {
 						marginTop: "auto",

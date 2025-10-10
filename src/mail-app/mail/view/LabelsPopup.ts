@@ -60,7 +60,7 @@ export class LabelsPopup implements ModalComponent {
 
 	view(): void | Children {
 		return m(
-			".flex.col.elevated-bg.abs.dropdown-shadow.pt-s.border-radius",
+			".flex.col.elevated-bg.abs.dropdown-shadow.pt-8.border-radius",
 			{
 				tabindex: TabIndex.Programmatic,
 				role: AriaRole.Menu,
@@ -68,7 +68,7 @@ export class LabelsPopup implements ModalComponent {
 			},
 			[
 				m(
-					".pb-s.scroll",
+					".pb-8.scroll",
 					this.labels
 						.sort((labelA, labelB) => labelA.label.name.localeCompare(labelB.label.name))
 						.map((labelState) => {
@@ -102,7 +102,7 @@ export class LabelsPopup implements ModalComponent {
 							)
 						}),
 				),
-				this.isMaxLabelsReached && m(".small.center.pb-s", lang.get("maximumLabelsPerMailReached_msg")),
+				this.isMaxLabelsReached && m(".small.center.pb-8", lang.get("maximumLabelsPerMailReached_msg")),
 				m(BaseButton, {
 					label: "apply_action",
 					text: lang.get("apply_action"),

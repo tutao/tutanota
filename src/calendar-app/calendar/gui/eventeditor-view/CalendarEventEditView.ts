@@ -334,7 +334,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private renderCalendarOptions(option: CalendarSelectItem, isSelected: boolean, isDisplay: boolean) {
 		return m(
 			".flex.items-center.gap-vpad-s.flex-grow.overflow-hidden",
-			{ class: `${isDisplay ? "" : "state-bg plr-button button-content dropdown-button pt-s pb-s button-min-height"}` },
+			{ class: `${isDisplay ? "" : "state-bg plr-button button-content dropdown-button pt-8 pb-8 button-min-height"}` },
 			[
 				m(".no-shrink", {
 					style: {
@@ -438,7 +438,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderMainPage(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
 		return m(
-			".pb.pt-16.flex.col.gap-vpad.fit-height.box-content",
+			".pb-16.pt-16.flex.col.gap-vpad.fit-height.box-content",
 			{
 				style: {
 					// The date picker dialogs have position: fixed, and they are fixed relative to the most recent ancestor with

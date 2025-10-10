@@ -55,7 +55,7 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 			},
 			[
 				m(
-					".flex-space-between.items-center.pb",
+					".flex-space-between.items-center.pb-16",
 					m(
 						".flex.items-center.column-gap",
 						m(

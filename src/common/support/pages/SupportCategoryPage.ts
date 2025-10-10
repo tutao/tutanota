@@ -24,7 +24,7 @@ export class SupportCategoryPage implements Component<Props> {
 		const languageTag = lang.languageTag
 		const currentlySelectedCategory = selectedCategory()
 
-		return m(".pt-16.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-vpad", [
 			m(Card, [
 				m(
 					"",

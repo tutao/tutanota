@@ -49,7 +49,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const { whoModel } = attrs.model.editModels
 		const organizer = whoModel.organizer
 		return [
-			m(".flex-grow.flex.flex-column.gap-vpad.pb.pt-16.fit-height", { style: { width: px(attrs.width) } }, [
+			m(".flex-grow.flex.flex-column.gap-vpad.pb-16.pt-16.fit-height", { style: { width: px(attrs.width) } }, [
 				this.renderOrganizer(attrs.model, organizer),
 				m(".flex.flex-column.gap-vpad-s", [
 					m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("guests_label")),
@@ -175,7 +175,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 				ariaLabel: lang.get("attending_label"),
 				renderOption: (option) =>
 					m(
-						"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s.button-min-height",
+						"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-8.pb-8.button-min-height",
 						{
 							class: option.selectable === false ? `no-hover` : "",
 							style: { color: option.value === status ? theme.primary : undefined },
@@ -216,7 +216,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const selected = options.find((option) => option.address === address) ?? options[0]
 
 		return m(".flex.col", [
-			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("organizer_label")),
+			m("small.uppercase.pb-8.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("organizer_label")),
 			m(Card, { style: { padding: `0` } }, [
 				m(".flex.flex-column", [
 					m(".flex.pl-vpad-s.pr-vpad-s", [
@@ -233,7 +233,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 							ariaLabel: lang.get("organizer_label"),
 							renderOption: (option) =>
 								m(
-									"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-s.pb-s.button-min-height",
+									"button.items-center.flex-grow.state-bg.button-content.dropdown-button.pt-8.pb-8.button-min-height",
 									{ style: { color: selected.address === option.address ? theme.primary : undefined } },
 									option.address,
 								),

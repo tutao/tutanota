@@ -27,7 +27,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		return [
 			m(
-				".fill-absolute.scroll.plr-l.pb-xl",
+				".fill-absolute.scroll.plr-l.pb-48",
 				m(".h4.mt-32", lang.get("mailExportSettings_label")),
 				isDesktop() ? this.renderMailExportSettings() : this.renderExportOnlyOnDesktopText(),
 			),

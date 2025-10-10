@@ -86,7 +86,7 @@ export function showEventsImportDialog(events: CalendarEvent[], okAction: (dialo
 				],
 			}),
 			/** variable-size child container that may be scrollable. */
-			m(".dialog-max-height.plr-s.pb.text-break.nav-bg", [
+			m(".dialog-max-height.plr-s.pb-16.text-break.nav-bg", [
 				m(
 					".flex.col.rel.mt-8",
 					{
@@ -179,7 +179,7 @@ export function calendarSelectionDialog(
 				],
 			}),
 
-			m(".dialog-max-height.plr-l.pt-16.pb.text-break.scroll", [
+			m(".dialog-max-height.plr-l.pt-16.pb-16.text-break.scroll", [
 				m(".text-break.selectable", lang.get("calendarImportSelection_label")),
 				m(DropDownSelector, {
 					label: "calendar_label",

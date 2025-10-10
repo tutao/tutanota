@@ -38,7 +38,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 				? m("", [
 						renderCheckResult(a.data.domainStatus),
 						m(
-							".flex-center.full-width.pt-l.mb-32",
+							".flex-center.full-width.pt-32.mb-32",
 							m(LoginButton, {
 								label: "finish_action",
 								class: "small-login-button",
@@ -50,7 +50,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 				: m("", [
 						lang.get("loadingDNSRecords_msg"),
 						m(
-							".flex-center.full-width.pt-l.mb-32",
+							".flex-center.full-width.pt-32.mb-32",
 							m(Button, {
 								type: ButtonType.Secondary,
 								label: "refresh_action",

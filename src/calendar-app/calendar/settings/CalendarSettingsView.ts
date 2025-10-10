@@ -202,7 +202,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		const safeArea = isIOSApp() ? getSafeAreaInsetBottom() : 0
 
 		return m(
-			".pb.pt-l.flex-no-shrink.flex.col.justify-end.items-center.gap-vpad",
+			".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.items-center.gap-vpad",
 			{
 				style: {
 					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.spacing_16),
@@ -211,7 +211,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			[
 				// Support button
 				m(BaseButton, {
-					class: "flash flex justify-center center-vertically pt-s pb-s plr border-radius",
+					class: "flash flex justify-center center-vertically pt-8 pb-8 plr border-radius",
 					style: {
 						marginInline: "auto",
 						border: `1px solid ${theme.outline}`,
@@ -377,12 +377,12 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		}
 
 		return m(
-			".flex.col.pl-vpad-m.pt-s.pb-s",
+			".flex.col.pl-vpad-m.pt-8.pb-8",
 			{
 				class: styles.isSingleColumnLayout() ? "pr-m" : "pr-vpad-s",
 			},
 			[
-				m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText(title)),
+				m("small.uppercase.pb-8.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText(title)),
 				m(
 					".flex.col.border-radius-m.list-bg",
 					folders

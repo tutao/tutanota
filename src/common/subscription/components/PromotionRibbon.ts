@@ -18,7 +18,7 @@ export class PromotionRibbon implements Component<PromotionRibbonAttrs> {
 		const borderRadiusTopRight = planBoxPosition === "right" || planBoxPosition === "center" ? px(size.radius_8) : "0"
 
 		return m(
-			".full-width.pt-xs.pb-xs.text-center.b.smaller",
+			".full-width.pt-4.pb-4.text-center.b.smaller",
 			{
 				style: {
 					backgroundColor,

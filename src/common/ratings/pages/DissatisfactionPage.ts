@@ -29,7 +29,7 @@ export class DissatisfactionPage implements Component<DissatisfactionPageAttrs> 
 					padding: "1em 0",
 				},
 			},
-			m("img.pb.block.center-h", {
+			m("img.pb-16.block.center-h", {
 				src: `${window.tutao.appState.prefixWithoutFile}/images/rating/ears-${client.isCalendarApp() ? "calendar" : "mail"}.png`,
 				alt: "",
 				rel: "noreferrer",

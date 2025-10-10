@@ -31,7 +31,7 @@ export class IconSegmentControl<T> implements Component<IconSegmentControlAttrs<
 				vnode.attrs.items.map((item) => {
 					const title = lang.getTranslationText(item.label)
 					return m(
-						"button.icon-segment-control-item.flex.center-horizontally.center-vertically.text-ellipsis.small.state-bg.pt-xs.pb-xs",
+						"button.icon-segment-control-item.flex.center-horizontally.center-vertically.text-ellipsis.small.state-bg.pt-4.pb-4",
 						{
 							active: item.value === vnode.attrs.selectedValue ? "true" : undefined,
 							title,

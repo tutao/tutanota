@@ -125,7 +125,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			{
 				...(isTarget ? { "data-target": "true" } : {}),
 				...(isSelected ? { "aria-selected": "true" } : {}),
-				class: "state-bg button-content dropdown-button pt-s pb-s button-min-height" + (isSelected ? "content-accent-fg row-selected icon-accent" : ""),
+				class: "state-bg button-content dropdown-button pt-8 pb-8 button-min-height" + (isSelected ? "content-accent-fg row-selected icon-accent" : ""),
 			},
 			option.name,
 		)

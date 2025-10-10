@@ -127,7 +127,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 				},
 
 				m(
-					".flex.items-center.pb",
+					".flex.items-center.pb-16",
 					{
 						style: {
 							gap: "8px",

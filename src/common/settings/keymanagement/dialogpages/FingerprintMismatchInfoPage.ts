@@ -35,7 +35,7 @@ export class FingerprintMismatchInfoPage implements Component<VerificationErrorI
 			throw new Error("unsupported source of trust")
 		}
 
-		return m(".pt-16.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title,
 				subTitle: m.trust(subTitle),

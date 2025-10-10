@@ -20,7 +20,7 @@ export class TemplateSearchBar implements ClassComponent<TemplateSearchBarAttrs>
 	view(vnode: Vnode<TemplateSearchBarAttrs>): Children {
 		const a = vnode.attrs
 		return m(
-			".inputWrapper.pt-xs.pb-xs",
+			".inputWrapper.pt-4.pb-4",
 			{
 				style: {
 					"border-bottom": `1px solid ${theme.outline}`,

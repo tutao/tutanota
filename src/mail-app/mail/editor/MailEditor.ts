@@ -675,13 +675,13 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				this.renderExternalContentBanner(this.attrs),
 				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(
-					".pt-s.text.scroll-x.break-word-links.flex.flex-column.flex-grow" + (forcedLightMode ? ".bg-white.content-black.bg-fix-quoted" : ""),
+					".pt-8.text.scroll-x.break-word-links.flex.flex-column.flex-grow" + (forcedLightMode ? ".bg-white.content-black.bg-fix-quoted" : ""),
 					{
 						onclick: () => this.editor.focus(),
 					},
 					m(this.editor),
 				),
-				m(".pb"),
+				m(".pb-16"),
 			],
 		)
 	}

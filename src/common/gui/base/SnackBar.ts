@@ -41,7 +41,7 @@ class SnackBar implements Component<SnackBarAttrs> {
 	view(vnode: Vnode<SnackBarAttrs>) {
 		// use same padding as MinimizedEditor
 		return m(
-			".snackbar-content.flex.flex-space-between.border-radius.pb-xs.pt-xs",
+			".snackbar-content.flex.flex-space-between.border-radius.pb-4.pt-4",
 			{
 				class: vnode.attrs.dismissButton ? "pl" : "plr",
 				onmouseenter: () => {

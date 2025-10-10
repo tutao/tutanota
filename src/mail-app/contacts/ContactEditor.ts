@@ -300,7 +300,7 @@ export class ContactEditor {
 				]),
 			]),
 			this.renderPresharedPasswordField(),
-			m(".pb"),
+			m(".pb-16"),
 		])
 	}
 

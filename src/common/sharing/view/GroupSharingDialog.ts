@@ -77,7 +77,7 @@ type GroupSharingDialogAttrs = {
 class GroupSharingDialogContent implements Component<GroupSharingDialogAttrs> {
 	view(vnode: Vnode<GroupSharingDialogAttrs>): Children {
 		const { model, texts, dialog } = vnode.attrs
-		return m(".flex.col.pt-s", [
+		return m(".flex.col.pt-8", [
 			m(Table, {
 				columnHeading: [
 					{

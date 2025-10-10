@@ -77,7 +77,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 					})
 		const secondRow = option.value.type === "recipient" ? option.value.value.address : option.value.value.name
 		return m(
-			"button.pt-s.pb-s.click.content-hover.state-bg.button-min-height.flex.col",
+			"button.pt-8.pb-8.click.content-hover.state-bg.button-min-height.flex.col",
 			{
 				style: {
 					"padding-left": px(size.spacing_24),

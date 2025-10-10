@@ -156,7 +156,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		if (locator.logins.isUserLoggedIn()) {
 			const user = locator.logins.getUserController()
 			return m("", [
-				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
+				m("#user-settings.fill-absolute.scroll.plr-l.pb-48", [
 					m(".h4.mt-32", lang.get("loginCredentials_label")),
 					this.renderName(user.userGroupInfo),
 					m(TextField, mailAddressAttrs),

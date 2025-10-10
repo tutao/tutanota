@@ -23,7 +23,7 @@ export class SupportLandingPage implements Component<Props> {
 	}: Vnode<Props>): Children {
 		const defaultHeight = 666
 		return m(
-			".pt-16.pb",
+			".pt-16.pb-16",
 			{
 				style: {
 					height: px(defaultHeight),
@@ -42,7 +42,7 @@ export class SupportLandingPage implements Component<Props> {
 							subTitle: lang.get("supportStartPage_msg"),
 						}),
 						m(
-							".pb.pt-16.flex.col.gap-vpad.fit-height.box-content",
+							".pb-16.pt-16.flex.col.gap-vpad.fit-height.box-content",
 							categories.map((category) =>
 								m(SectionButton, {
 									leftIcon: { icon: category.icon as AllIcons, title: "close_alt", fill: theme.primary },

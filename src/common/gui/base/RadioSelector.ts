@@ -66,7 +66,7 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 					// Handle changes in value from the attributes
 					checked: isSelected ? true : null,
 				}),
-				m("label.b.left.pt-xs.pb-xs", { for: optionId }, lang.getTranslationText(option.name)),
+				m("label.b.left.pt-4.pb-4", { for: optionId }, lang.getTranslationText(option.name)),
 			],
 		)
 	}

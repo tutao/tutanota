@@ -16,7 +16,7 @@ export class SenderKeyVerificationRecoverySuccessPage implements Component<Sende
 		const title = lang.get("keyVerificationErrorAccept_title")
 		let contactUpdatedText = lang.get("keyVerificationErrorContactUpdated_msg", { "{mailAddress}": vnode.attrs.model.getSenderAddress() })
 
-		return m(".pt-16.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title,
 				subTitle: "",
@@ -25,7 +25,7 @@ export class SenderKeyVerificationRecoverySuccessPage implements Component<Sende
 			}),
 			m(
 				Card,
-				m(".plr.flex.flex-column.gap-vpad.pt-s.pb-s", [
+				m(".plr.flex.flex-column.gap-vpad.pt-8.pb-8", [
 					m("", m.trust(contactUpdatedText)),
 					m(ExternalLink, {
 						isCompanySite: true,

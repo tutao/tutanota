@@ -126,7 +126,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 			},
 		}
-		return m(".fill-absolute.scroll.plr-l.pb-xl", [
+		return m(".fill-absolute.scroll.plr-l.pb-48", [
 			m(".h4.mt-32", lang.get("settingsForDevice_label")),
 			m(DropDownSelector, languageDropDownAttrs),
 			this._renderThemeSelector(),

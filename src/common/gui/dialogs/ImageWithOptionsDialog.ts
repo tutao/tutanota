@@ -19,12 +19,12 @@ interface ImageWithOptionsDialogAttrs {
 // Returns the layout for this dialog type
 export class ImageWithOptionsDialog implements Component<ImageWithOptionsDialogAttrs> {
 	view({ attrs }: Vnode<ImageWithOptionsDialogAttrs>) {
-		return m(".flex.flex-column.pb-ml.height-100p.text-break", [
+		return m(".flex.flex-column.pb-24.height-100p.text-break", [
 			m(
 				"section",
 				m(
 					".flex-center.mt-12",
-					m("img.pb.pt-16.block.height-100p", {
+					m("img.pb-16.pt-16.block.height-100p", {
 						src: attrs.image,
 						alt: "",
 						rel: "noreferrer",

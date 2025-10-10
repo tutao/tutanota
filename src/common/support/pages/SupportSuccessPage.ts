@@ -21,13 +21,13 @@ type SupportSuccessPageAttrs = {
 export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 	view(vnode: Vnode<SupportSuccessPageAttrs>): Children {
 		return m(
-			".pt-16.pb",
+			".pt-16.pb-16",
 			m(
 				Card,
 				{ shouldDivide: true },
 				m(
 					".plr",
-					m(".h4.center.pb-s.pt-s", lang.get("supportSuccess_msg")),
+					m(".h4.center.pb-8.pt-8", lang.get("supportSuccess_msg")),
 					m("p.center.m-0", lang.get("supportRatingRequest_msg")),
 					m(
 						".mt-32.mb-8",

@@ -256,7 +256,7 @@ export class MailRow implements VirtualRow<Mail> {
 			},
 			[
 				m(
-					".flex.col.items-center.flex-no-grow.no-shrink.pt-xs.abs",
+					".flex.col.items-center.flex-no-grow.no-shrink.pt-4.abs",
 					{
 						"aria-hidden": "true",
 					},

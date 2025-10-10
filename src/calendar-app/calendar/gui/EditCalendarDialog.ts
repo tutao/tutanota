@@ -48,7 +48,7 @@ function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stre
 	if (urlStream().trim() === "") helperMessage = "E.g: https://tuta.com/ics/example.ics"
 	else if (isNotNull(errorMessage) && errorMessage !== DEFAULT_ERROR) helperMessage = errorMessage
 	return m(TextField, {
-		class: `pt-16 pb ${helperMessage.length ? "" : "mb-small-line-height"}`,
+		class: `pt-16 pb-16 ${helperMessage.length ? "" : "mb-small-line-height"}`,
 		value: urlStream(),
 		oninput: (url: string, inputElement: HTMLInputElement) => {
 			const assertionResult = checkURLString(url)
