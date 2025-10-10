@@ -40,7 +40,7 @@ export class VerificationByQrCodeInputPage implements Component<VerificationByQr
 	}
 
 	view(vnode: Vnode<VerificationByQrCodePageAttrs>): Children {
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title: lang.get("keyManagement.qrVerification_label"),
 				subTitle: lang.get("keyManagement.verificationByQrCodeScan_label"),

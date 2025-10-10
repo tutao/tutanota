@@ -16,7 +16,7 @@ export interface ContentWithOptionsDialogAttrs {
 export class ContentWithOptionsDialog implements Component<ContentWithOptionsDialogAttrs> {
 	view({ attrs, children }: Vnode<ContentWithOptionsDialogAttrs>) {
 		return m(".flex.flex-column.pb-ml.height-100p.text-break", [
-			m("section.flex.flex-column.pt.pb.height-100p.gap-vpad", children),
+			m("section.flex.flex-column.pt-16.pb.height-100p.gap-vpad", children),
 			m(
 				"section.flex.flex-column",
 				{ style: { gap: "1em", "margin-top": "auto" } },

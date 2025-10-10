@@ -251,7 +251,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				m(".h4.mt-32", lang.get("currentBalance_label")),
 				m(".flex.center-horizontally.center-vertically.col", [
 					m(
-						"div.h4.pt.pb" + (this.isAmountOwed() ? ".content-accent-fg" : ""),
+						"div.h4.pt-16.pb" + (this.isAmountOwed() ? ".content-accent-fg" : ""),
 						formatPrice(balance, true) + (this.accountBalance() !== balance ? ` (${formatPrice(this.accountBalance(), true)})` : ""),
 					),
 					this.accountBalance() !== balance
@@ -537,7 +537,7 @@ function showPayConfirmDialog(price: number): Promise<boolean> {
 				m(
 					".plr-l.pb",
 					m("", [
-						m(".pt", lang.get("invoicePayConfirm_msg")),
+						m(".pt-16", lang.get("invoicePayConfirm_msg")),
 						m(TextField, {
 							label: "price_label",
 							value: formatPrice(-price, true),

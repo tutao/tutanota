@@ -15,7 +15,7 @@ export type TextDisplayAreaAttrs = {
  */
 export class TextDisplayArea implements Component<TextDisplayAreaAttrs> {
 	view(vnode: Vnode<TextDisplayAreaAttrs>): Children {
-		return m(".flex.flex-grow.flex-column.text.pt", [
+		return m(".flex.flex-grow.flex-column.text.pt-16", [
 			m(
 				"label.text-ellipsis.noselect.z1.i.pr-s",
 				{

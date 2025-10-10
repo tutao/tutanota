@@ -438,7 +438,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderMainPage(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
 		return m(
-			".pb.pt.flex.col.gap-vpad.fit-height.box-content",
+			".pb.pt-16.flex.col.gap-vpad.fit-height.box-content",
 			{
 				style: {
 					// The date picker dialogs have position: fixed, and they are fixed relative to the most recent ancestor with

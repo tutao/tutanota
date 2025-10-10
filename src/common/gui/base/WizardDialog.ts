@@ -137,7 +137,7 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 		const lastIndex = visiblePages.length - 1
 
 		return m(
-			"#wizardDialogContent.pt",
+			"#wizardDialogContent.pt-16",
 			{
 				oncreate: (vnode) => {
 					this.wizardContentDom = vnode.dom as HTMLElement

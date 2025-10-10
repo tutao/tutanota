@@ -129,7 +129,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 							)
 					: null,
 				m(
-					".pt",
+					".pt-16",
 					m(LoginButton, {
 						label: isApp() || isDesktop() ? "addAccount_action" : "login_action",
 						onclick: () => a.onSubmit(a.mailAddress(), a.password()),

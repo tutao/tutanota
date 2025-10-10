@@ -21,7 +21,7 @@ type SupportSuccessPageAttrs = {
 export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 	view(vnode: Vnode<SupportSuccessPageAttrs>): Children {
 		return m(
-			".pt.pb",
+			".pt-16.pb",
 			m(
 				Card,
 				{ shouldDivide: true },

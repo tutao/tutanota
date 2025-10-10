@@ -55,7 +55,7 @@ export class TemplateExpander implements Component<TemplateExpanderAttrs> {
 					},
 					template.title,
 				),
-				m(".text-break.flex-grow.pr.overflow-y-visible.pt", selectedContent ? m.trust(this.sanitizedText(selectedContent.text)) : null),
+				m(".text-break.flex-grow.pr.overflow-y-visible.pt-16", selectedContent ? m.trust(this.sanitizedText(selectedContent.text)) : null),
 			],
 		)
 	}

@@ -19,7 +19,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 		const { newAccountData } = attrs.data
 
 		return [
-			m(".center.h4.pt", lang.get("accountCreationCongratulation_msg")),
+			m(".center.h4.pt-16", lang.get("accountCreationCongratulation_msg")),
 			newAccountData
 				? m(".plr-l", [
 						m(RecoverCodeField, {

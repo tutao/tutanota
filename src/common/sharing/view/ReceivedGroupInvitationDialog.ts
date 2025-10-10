@@ -76,7 +76,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 			view: () =>
 				m(".flex.col", [
 					m(".mb-16", [
-						m(".pt.selectable", isMember ? lang.getTranslationText(texts.alreadyGroupMemberMessage) : texts.receivedGroupInvitationMessage),
+						m(".pt-16.selectable", isMember ? lang.getTranslationText(texts.alreadyGroupMemberMessage) : texts.receivedGroupInvitationMessage),
 						m(TextField, {
 							value: nameStream(),
 							oninput: nameStream,

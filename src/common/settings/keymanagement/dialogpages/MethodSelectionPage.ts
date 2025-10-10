@@ -25,7 +25,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 		})
 
 		return m(
-			".pt.pb.flex.col.gap-vpad",
+			".pt-16.pb.flex.col.gap-vpad",
 			{
 				style: {
 					height: px(DEFAULT_HEIGHT),

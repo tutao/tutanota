@@ -49,7 +49,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const { whoModel } = attrs.model.editModels
 		const organizer = whoModel.organizer
 		return [
-			m(".flex-grow.flex.flex-column.gap-vpad.pb.pt.fit-height", { style: { width: px(attrs.width) } }, [
+			m(".flex-grow.flex.flex-column.gap-vpad.pb.pt-16.fit-height", { style: { width: px(attrs.width) } }, [
 				this.renderOrganizer(attrs.model, organizer),
 				m(".flex.flex-column.gap-vpad-s", [
 					m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("guests_label")),

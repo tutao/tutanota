@@ -122,7 +122,7 @@ export class ContactSupportPage implements Component<Props> {
 
 	view({ attrs: { data, onSuccess, isRating } }: Vnode<Props>): Children {
 		return m(
-			".flex.flex-column.pt.height-100p.gap-vpad",
+			".flex.flex-column.pt-16.height-100p.gap-vpad",
 			m(Card, m("", m("p.h4.m-0", lang.get("supportForm_title")), m("p.m-0.mt-8", data.helpText()))),
 			m(
 				Card,

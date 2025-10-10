@@ -161,7 +161,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.renderMailHeader(vnode.attrs),
 				this.renderMailSubject(vnode.attrs),
 				m(
-					".flex-grow.scroll-x.pt.pb.border-radius-big" + (forceWhiteBackground ? ".bg-white.content-black" : ""),
+					".flex-grow.scroll-x.pt-16.pb.border-radius-big" + (forceWhiteBackground ? ".bg-white.content-black" : ""),
 					{
 						class: responsiveCardHPadding(),
 						oncreate: (vnode) => {

@@ -38,7 +38,7 @@ export class Checkbox implements Component<CheckboxAttrs> {
 			: []
 		const userClasses = a.class == null ? "" : " " + a.class
 		return m(
-			`.pt`,
+			`.pt-16`,
 			{
 				"aria-disabled": a.disabled != null ? String(a.disabled) : undefined,
 				class: getOperatingClasses(a.disabled, "click flash") + userClasses,

@@ -25,7 +25,7 @@ export class FingerprintMismatchKeepPage implements Component<FingerprintMismatc
 		const subtitle = lang.get("fingerprintMismatchKeepTofuSubtitle_msg")
 		const message = lang.get("fingerprintMismatchKeepTofu_msg", { "{mailAddress}": address })
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title,
 				subTitle: subtitle,

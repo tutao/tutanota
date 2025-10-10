@@ -135,7 +135,7 @@ export class SecondFactorEditDialog {
 			}),
 			isApp()
 				? m(
-						".pt",
+						".pt-16",
 						m(LoginButton, {
 							label: "addOpenOTPApp_action",
 							onclick: () => this.openOtpLink(),
@@ -159,7 +159,7 @@ export class SecondFactorEditDialog {
 		if (otpInfo) {
 			const qrCodeSvg = assertNotNull(otpInfo.qrCodeSvg)
 			// sanitized in the model
-			return m(".flex-center.pt", m.trust(qrCodeSvg))
+			return m(".flex-center.pt-16", m.trust(qrCodeSvg))
 		} else {
 			return null
 		}

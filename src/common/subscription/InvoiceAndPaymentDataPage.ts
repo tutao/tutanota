@@ -172,7 +172,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		}
 
 		return m(
-			".pt",
+			".pt-16",
 			this._availablePaymentMethods
 				? [
 						m(SegmentControl, {
@@ -180,7 +180,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 							selectedValue: this._selectedPaymentMethod(),
 							onValueSelected: this._selectedPaymentMethod,
 						}),
-						m(".flex-space-around.flex-wrap.pt", [
+						m(".flex-space-around.flex-wrap.pt-16", [
 							m(
 								".flex-grow-shrink-half.plr-l",
 								{

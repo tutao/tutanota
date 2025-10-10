@@ -16,7 +16,7 @@ export class SenderKeyVerificationRecoverySuccessPage implements Component<Sende
 		const title = lang.get("keyVerificationErrorAccept_title")
 		let contactUpdatedText = lang.get("keyVerificationErrorContactUpdated_msg", { "{mailAddress}": vnode.attrs.model.getSenderAddress() })
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title,
 				subTitle: "",

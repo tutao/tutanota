@@ -60,7 +60,7 @@ interface OverwriteRemoteDraftDialogAttrs {
 
 class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialogAttrs> {
 	view(vnode: Vnode<OverwriteRemoteDraftDialogAttrs>) {
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title: lang.get("conflictDetected_label"),
 				subTitle: [
@@ -142,7 +142,7 @@ interface OverwriteDraftDialogAttrs {
 
 class OverwriteDraftDialog implements Component<OverwriteDraftDialogAttrs> {
 	view(vnode: Vnode<OverwriteDraftDialogAttrs>) {
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title: lang.get("confirmCreateNewDraftOverAutosavedDraft_msg"),
 				subTitle: null,

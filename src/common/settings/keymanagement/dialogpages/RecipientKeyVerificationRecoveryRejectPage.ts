@@ -18,7 +18,7 @@ export class RecipientKeyVerificationRecoveryRejectPage implements Component<Ver
 		let contactNotUpdatedText = lang.get("keyVerificationErrorContactNotUpdated_msg", { "{mailAddress}": vnode.attrs.contactMailAddress })
 		const contactMailAddress = vnode.attrs.contactMailAddress
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title,
 				subTitle: "",

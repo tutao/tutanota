@@ -28,7 +28,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 
 	view(): Children {
 		return m(
-			".flex.flex-column.pt.height-100p.gap-vpad",
+			".flex.flex-column.pt-16.height-100p.gap-vpad",
 			m(Card, [
 				m("img.block.center-h", {
 					src: `${window.tutao.appState.prefixWithoutFile}/images/rating/suggestion-${client.isCalendarApp() ? "calendar" : "mail"}.png`,

@@ -33,7 +33,7 @@ export class CustomColorEditorPreview implements Component {
 			},
 			[
 				m(
-					".pt",
+					".pt-16",
 					{
 						style: {
 							width: px(BUTTON_WIDTH),
@@ -44,7 +44,7 @@ export class CustomColorEditorPreview implements Component {
 						onclick: noOp,
 					}),
 				),
-				m(".pt", [
+				m(".pt-16", [
 					m(Button, {
 						label: lang.makeTranslation("secondary", "Secondary"),
 						click: noOp,
@@ -56,7 +56,7 @@ export class CustomColorEditorPreview implements Component {
 						type: ButtonType.Primary,
 					}),
 				]),
-				m(".pt", [
+				m(".pt-16", [
 					m(IconButton, {
 						title: lang.makeTranslation("icon_button", "Icon button"),
 						icon: Icons.Folder,
@@ -69,7 +69,7 @@ export class CustomColorEditorPreview implements Component {
 						onToggled: () => (this.toggleSelected = !this.toggleSelected),
 					}),
 				]),
-				m(".pt", this.renderPreviewMailRow()),
+				m(".pt-16", this.renderPreviewMailRow()),
 			],
 		)
 	}

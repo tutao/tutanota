@@ -132,8 +132,8 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		const isAppStorePayment = attrs.data.paymentData.paymentMethod === PaymentMethodType.AppStore
 
 		return [
-			m(".center.h4.pt", lang.get("upgradeConfirm_msg")),
-			m(".pt.pb.plr-l", [
+			m(".center.h4.pt-16", lang.get("upgradeConfirm_msg")),
+			m(".pt-16.pb.plr-l", [
 				m(TextField, {
 					label: "subscription_label",
 					value: getDisplayNameOfPlanType(attrs.data.targetPlanType),

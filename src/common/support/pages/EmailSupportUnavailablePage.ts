@@ -17,7 +17,7 @@ type EmailSupportUnavailableAttrs = {
 export class EmailSupportUnavailablePage implements Component<EmailSupportUnavailableAttrs> {
 	view({ attrs: { data, goToContactSupportPage } }: Vnode<EmailSupportUnavailableAttrs>): Children {
 		return m(
-			".pt.pb",
+			".pt-16.pb",
 			m(
 				Card,
 				{ shouldDivide: true },

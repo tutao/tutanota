@@ -189,7 +189,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 			m(Card, {}, [
 				// QR code
 				m(
-					".pb.pt",
+					".pb.pt-16",
 					{ style: { display: "flex", "justify-content": "center" } },
 					// If the user is on a dark theme, we want to render a white border around the QR code to help the detection algorithm.
 					// We do not want any extra padding on light themes since it looks ugly.
