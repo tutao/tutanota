@@ -56,7 +56,7 @@ export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 				},
 			},
 			[
-				m("input[type=radio].m-0.mr-button.content-accent-accent", {
+				m("input[type=radio].m-0.mr-8.content-accent-accent", {
 					/* The `name` attribute defines the group the radio button belongs to. Not the name/label of the radio button itself.
 					 * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#defining_a_radio_group
 					 */

@@ -42,7 +42,7 @@ export class DialogHeaderBar implements Component<DialogHeaderBarAttrs> {
 			},
 			[
 				m(
-					columnClass + ".ml-negative-s",
+					columnClass + ".ml-negative-8",
 					resolveMaybeLazy(a.left).map((a) => m(Button, a)),
 				), // ellipsis is not working if the text is directly in the flex element, so create a child div for it
 				a.middle
@@ -55,7 +55,7 @@ export class DialogHeaderBar implements Component<DialogHeaderBarAttrs> {
 						)
 					: null,
 				m(
-					columnClass + ".mr-negative-s.flex.justify-end",
+					columnClass + ".mr-negative-8.flex.justify-end",
 					resolveMaybeLazy(a.right).map((a) => m(Button, a)),
 				),
 			],

@@ -129,7 +129,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 					} satisfies BaseSearchBarAttrs),
 					this.userCanEdit()
 						? m(
-								".mr-negative-s",
+								".mr-negative-8",
 								m(IconButton, {
 									title: "addEntry_label",
 									icon: Icons.Add,

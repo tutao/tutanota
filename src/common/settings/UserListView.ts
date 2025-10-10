@@ -107,7 +107,7 @@ export class UserListView implements UpdatableSettingsViewer {
 						placeholder: lang.get("searchUsers_placeholder"),
 					} satisfies BaseSearchBarAttrs),
 					m(
-						".mr-negative-s",
+						".mr-negative-8",
 						m(IconButton, {
 							title: "addUsers_action",
 							icon: Icons.Add,

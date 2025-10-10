@@ -430,7 +430,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			m(TextField, {
 				label: "emptyString_msg",
 				// Negative upper margin to make up for no label
-				class: "mt-negative-s",
+				class: "mt-negative-8",
 				value: textFieldValue,
 				isReadOnly: true,
 				helpLabel: () => lang.get("localDataSection_msg"),

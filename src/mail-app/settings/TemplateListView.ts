@@ -128,7 +128,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 					} satisfies BaseSearchBarAttrs),
 					this.userCanEdit()
 						? m(
-								".mr-negative-s",
+								".mr-negative-8",
 								m(IconButton, {
 									title: "addTemplate_label",
 									icon: Icons.Add,

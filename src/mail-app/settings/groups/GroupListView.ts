@@ -94,7 +94,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 						placeholder: lang.get("searchMailboxes_placeholder"),
 					} satisfies BaseSearchBarAttrs),
 					m(
-						".mr-negative-s",
+						".mr-negative-8",
 						m(IconButton, {
 							title: "createSharedMailbox_label",
 							icon: Icons.Add,
