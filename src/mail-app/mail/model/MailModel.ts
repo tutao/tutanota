@@ -195,20 +195,43 @@ export class MailModel {
 						const folder = this.getMailFolderForMail(mail)
 
 						if (folder && folder.folderType === MailSetKind.INBOX) {
+							// TODO: Is following comment true after mail set entries?
 							// If we don't find another delete operation on this email in the batch, then it should be a create operation,
 							// otherwise it's a move
 							await this.getMailboxDetailsForMail(mail)
 								.then((mailboxDetail) => {
+									if (mailboxDetail == null) {
+										return null
+									}
+
+									const isLeader = this.connectivityModel ? this.connectivityModel.isLeader() : false
+
 									// We only apply rules on server if we are the leader in case of incoming messages
-									return (
-										mailboxDetail &&
-										this.inboxRuleHandler()?.findAndApplyMatchingRule(
-											mailboxDetail,
-											mail,
-											this.connectivityModel ? this.connectivityModel.isLeader() : false,
-											false,
-										)
-									)
+									const handleInboxRule = this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, isLeader, false)
+									return handleInboxRule?.then((inboxRuleResult) => {
+										const shouldDoSpamPrediction = isLeader && inboxRuleResult == null && mail.clientTrainingDatum == null
+										if (shouldDoSpamPrediction) {
+											// TODO:
+											// Can we spam prediction here instead of CustomMailEventCacheHandler,
+											// If so,
+											// we can always wait for inbox rules to be applies and do the prediction afterwards
+											// And since we will only do prediction in leader client ( which is also the case for inbox rule handling )
+											// they will always be in sync, and we don't have to predict mails that is moved by inbox rule handler,
+											// we just have to upload the training datum to server with correct isSpam, confidence
+
+											const spamHandler: any = {}
+											const isSpam: boolean = spamHandler.predictSpam()
+
+											if (!isSpam) {
+												// TODO: also return a { folder, mail }?
+												// @ts-ignore
+												return {} as typeof inboxRuleResult
+											}
+											return null
+										} else {
+											return inboxRuleResult
+										}
+									})
 								})
 								.then((newFolderAndMail) => {
 									if (newFolderAndMail) {
@@ -236,7 +259,7 @@ export class MailModel {
 		if (inboxRuleHandler) {
 			const mailboxDetail = await this.getMailboxDetailsForMail(mail)
 			if (mailboxDetail) {
-				inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true, true)
+				return inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true, true)
 			}
 		}
 	}
