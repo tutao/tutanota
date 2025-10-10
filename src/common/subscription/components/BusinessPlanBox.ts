@@ -187,7 +187,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 								: m(`div.no-wrap${styles.isMobileLayout() ? ".right" : ".center"}`, [
 										m("div.lh-s", [
 											referencePrice
-												? m("span.strike.mr-s.smaller", { style: { color: localTheme.on_surface_variant } }, referencePrice)
+												? m("span.strike.mr-8.smaller", { style: { color: localTheme.on_surface_variant } }, referencePrice)
 												: null,
 											m("span.h1", price),
 										]),

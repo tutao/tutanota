@@ -99,7 +99,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 							icon: m(Icon, {
 								icon: Icons.XCheckmark,
 								size: IconSize.PX20,
-								class: "mr-s flex-center",
+								class: "mr-8 flex-center",
 							}),
 						}),
 						m(LoginButton, {
@@ -111,7 +111,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 							icon: m(Icon, {
 								icon: Icons.XCross,
 								size: IconSize.PX20,
-								class: "mr-s flex-center",
+								class: "mr-8 flex-center",
 								style: {
 									fill: theme.surface,
 								},

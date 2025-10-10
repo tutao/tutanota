@@ -115,7 +115,7 @@ export class SecondFactorEditDialog {
 	private renderU2FFields(): Children {
 		return this.model.verificationStatus === VerificationStatus.Initial
 			? null
-			: m("p.flex.items-center", [m(".mr-s", this.statusIcon()), m("", this.statusMessage())])
+			: m("p.flex.items-center", [m(".mr-8", this.statusIcon()), m("", this.statusMessage())])
 	}
 
 	private renderOtpFields(): Children {

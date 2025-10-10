@@ -52,7 +52,7 @@ export class RecipientKeyVerificationRecoveryInfoPage implements Component<Verif
 				icon: m(Icon, {
 					icon: Icons.XCheckmark,
 					size: IconSize.PX20,
-					class: "mr-s flex-center",
+					class: "mr-8 flex-center",
 				}),
 			}),
 			m(OutlineButton, {

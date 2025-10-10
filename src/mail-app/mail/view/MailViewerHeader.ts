@@ -164,7 +164,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				m(".flex", [
 					this.getRecipientEmailAddress(attrs),
 					m(".flex-grow"),
-					m(".flex.items-center.white-space-pre.ml-s.ml-between-s", {
+					m(".flex.items-center.white-space-pre.ml-8.ml-between-s", {
 						// Orca refuses to read ut unless it's not focusable
 						tabindex: TabIndex.Default,
 						"aria-label": lang.get(viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action") + ", " + dateTime,
@@ -235,7 +235,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					viewModel.isUnread() ? this.renderUnreadDot() : null,
 					viewModel.isDraftMail()
 						? m(
-								".mr-xs.align-self-center",
+								".mr-4.align-self-center",
 								m(Icon, {
 									icon: Icons.Edit,
 									container: "div",
@@ -284,7 +284,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private makeSubjectActionsLineClasses() {
 		let classes = ".flex.click"
 		if (styles.isSingleColumnLayout()) {
-			classes += ".ml"
+			classes += ".ml-12"
 		} else {
 			classes += ".pl-l"
 		}
@@ -632,7 +632,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			? m(
 					Badge,
 					{
-						classes: ".mr-s",
+						classes: ".mr-8",
 					},
 					companyTeamLabel,
 				)

@@ -42,10 +42,10 @@ export class BubbleButton implements Component<BubbleButtonAttrs> {
 					m(Icon, {
 						icon: attrs.icon,
 						container: "div",
-						class: "mr-xs mb-4",
+						class: "mr-4 mb-4",
 						style: { fill: theme.on_surface },
 					}),
-				iconWrapperSelector: ".icon.mr-hpad-small",
+				iconWrapperSelector: ".icon.mr-4",
 				style: { height: px(bubbleButtonHeight()), maxHeight: px(bubbleButtonHeight()) },
 				class: `smaller bubble flex center-vertically limit-width ${bubbleButtonPadding()} flash`,
 				onclick: attrs.onclick,

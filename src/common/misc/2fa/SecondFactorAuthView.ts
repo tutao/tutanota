@@ -59,7 +59,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 				value: otp.codeFieldValue,
 				autocompleteAs: Autocomplete.oneTimeCode,
 				oninput: (value) => otp.onValueChanged(value.trim()),
-				injectionsRight: () => (otp.inProgress ? m(".mr-s", progressIcon()) : null),
+				injectionsRight: () => (otp.inProgress ? m(".mr-8", progressIcon()) : null),
 				onReturnKeyPressed: () => otp.onConfirmOtp(),
 			}),
 		)
@@ -94,7 +94,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 				break
 
 			case "progress":
-				items = [m(".flex.justify-center", [m(".mr-s", progressIcon()), m("", lang.get("waitingForU2f_msg"))])]
+				items = [m(".flex.justify-center", [m(".mr-8", progressIcon()), m("", lang.get("waitingForU2f_msg"))])]
 				break
 
 			case "error":
@@ -102,7 +102,7 @@ export class SecondFactorAuthView implements Component<SecondFactorViewAttrs> {
 					m(".flex.col.items-center", [
 						m(".flex.items-center", [
 							m(
-								".mr-s",
+								".mr-8",
 								m(Icon, {
 									icon: Icons.Cancel,
 									size: IconSize.PX24,

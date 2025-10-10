@@ -381,64 +381,36 @@ styles.registerStyle("main", () => {
 			"margin-left": px(size.spacing_24),
 			"margin-right": px(size.spacing_24),
 		},
-		".ml-xsm": {
+		".ml-4": {
 			"margin-left": px(size.spacing_4),
 		},
-		".mr-xxs": {
+		".mr-4": {
 			"margin-right": px(size.spacing_4),
 		},
-		".mr-xsm": {
-			"margin-right": px(size.spacing_4),
-		},
-		".mt-xsm": {
-			"margin-top": px(size.spacing_4),
-		},
-		".mb-xsm": {
-			"margin-bottom": px(size.spacing_4),
-		},
-		".mr-s": {
+		".mr-8": {
 			"margin-right": px(size.spacing_8),
 		},
-		".mr-xs": {
-			"margin-right": px(size.spacing_4),
-		},
-		".ml-s": {
+		".ml-8": {
 			"margin-left": px(size.spacing_8),
 		},
-		".ml-m": {
+		".ml-24": {
 			"margin-left": px(size.spacing_24),
 		},
-		".ml-l": {
-			"margin-left": px(size.spacing_24),
-		},
-		".mr-m": {
+		".mr-24": {
 			"margin-right": px(size.spacing_24),
 		},
-		".mr-l": {
-			"margin-right": px(size.spacing_24),
-		},
-		".mlr-s": {
+		".mlr-4": {
 			"margin-left": px(size.spacing_4),
-			"margin-right": px(size.spacing_4),
-		},
-		".mlr-xs": {
-			"margin-left": px(size.spacing_4),
-			"margin-right": px(size.spacing_4),
-		},
-		".ml-hpad_small": {
-			"margin-left": px(size.spacing_4),
-		},
-		".mr-hpad-small": {
 			"margin-right": px(size.spacing_4),
 		},
 		".mtb-0": {
 			"margin-top": px(0),
 			"margin-bottom": px(0),
 		},
-		".mr": {
+		".mr-12": {
 			"margin-right": px(size.spacing_12),
 		},
-		".ml": {
+		".ml-12": {
 			"margin-left": px(size.spacing_12),
 		},
 		// paddings

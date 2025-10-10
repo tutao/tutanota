@@ -261,7 +261,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 
 	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
 		return m(
-			"button.b.mr-xs.hover.click.darkest-hover.mt-4",
+			"button.b.mr-4.hover.click.darkest-hover.mt-4",
 			{
 				style: { display: "inline-block", color: theme.primary },
 				onclick: async () => {

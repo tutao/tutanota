@@ -773,7 +773,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 										lang.formats.weekdayShort.format(day) + " ",
 									),
 									m(
-										".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
+										".rel.click.flex.items-center.justify-center.rel.ml-4",
 										{
 											"aria-label": day.toLocaleDateString(),
 											onclick,

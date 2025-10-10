@@ -325,7 +325,7 @@ export class TemplatePopup implements ModalComponent {
 
 		const canEdit = !!selectedGroup && hasCapabilityOnGroup(locator.logins.getUserController().user, selectedGroup.group, ShareCapability.Write)
 		return [
-			m(".flex.flex-column.justify-center.mr-m", selectedContent ? m("", lang.get(languageByCode[selectedContent.languageCode].textId)) : ""),
+			m(".flex.flex-column.justify-center.mr-24", selectedContent ? m("", lang.get(languageByCode[selectedContent.languageCode].textId)) : ""),
 			m(
 				IconButton,
 				attachDropdown({

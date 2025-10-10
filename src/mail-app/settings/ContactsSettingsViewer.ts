@@ -85,7 +85,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 			helpLabel: () =>
 				m("div", [
 					lang.get("contactsSynchronizationWarning_msg"),
-					m("span.mlr-s", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
+					m("span.mlr-4", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 				]),
 			items: [
 				{

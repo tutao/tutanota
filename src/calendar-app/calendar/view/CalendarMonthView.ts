@@ -354,7 +354,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	): Children {
 		const size = styles.isDesktopLayout() ? px(22) : px(20)
 		return m(
-			".rel.click.flex.items-center.justify-center.rel.ml-hpad_small",
+			".rel.click.flex.items-center.justify-center.rel.ml-4",
 			{
 				"aria-label": date.toLocaleDateString(),
 				onclick: (e: MouseEvent) => {

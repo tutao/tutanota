@@ -186,7 +186,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			),
 			right: rightActions,
 			center: m(
-				".flex-grow.flex.justify-center.mr",
+				".flex-grow.flex.justify-center.mr-12",
 				m(searchBar, {
 					placeholder: this.searchBarPlaceholder(),
 					returnListener: () => this.resultListColumn.focus(),

@@ -75,7 +75,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 					m(".flex-space-between.border-radius-big.mt-8.rel.nav-bg.full-width.center-vertically", [
 						m(Icon, {
 							icon: BootIcons.Progress,
-							class: "flex-center items-center icon-progress-tiny icon-progress ml-s",
+							class: "flex-center items-center icon-progress-tiny icon-progress ml-8",
 							size: IconSize.PX24,
 						}),
 						m(IconButton, {

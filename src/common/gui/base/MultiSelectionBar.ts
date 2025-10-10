@@ -23,7 +23,7 @@ export class MultiSelectionBar {
 					click: vnode.attrs.selectNoneHandler,
 					icon: Icons.Cancel,
 				}),
-				m(".ml-s.b", vnode.attrs.text),
+				m(".ml-8.b", vnode.attrs.text),
 				vnode.children,
 			],
 		)

@@ -59,10 +59,10 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 	}
 
 	private renderPickerHeader(date: Date): Children {
-		return m(".flex.flex-space-between.pb.items-center.mlr-xs", [
+		return m(".flex.flex-space-between.pb.items-center.mlr-4", [
 			renderSwitchMonthArrowIcon(false, 24, () => this.onMonthChange(false)),
 			m(
-				".b.mlr-s",
+				".b.mlr-4",
 				{
 					style: {
 						fontSize: "14px",

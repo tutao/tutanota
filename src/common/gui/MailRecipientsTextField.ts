@@ -157,7 +157,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 				// Placeholder element for the suggestion progress icon with a fixed width and height to avoid flickering.
 				// when reaching the end of the input line and when entering a text into the second line.
 				m(
-					".flex.align-right.mr-s.flex.items-end.pb-s",
+					".flex.align-right.mr-8.flex.items-end.pb-s",
 					{
 						style: {
 							width: px(20), // in case the progress icon is not shown we reserve the width of the progress icon

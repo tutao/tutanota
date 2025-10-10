@@ -241,7 +241,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 					? m(
 							Badge,
 							{
-								classes: ".small.mr-s",
+								classes: ".small.mr-8",
 							},
 							companyTeamLabel,
 						)
