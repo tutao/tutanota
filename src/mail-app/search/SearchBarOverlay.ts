@@ -93,7 +93,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	_renderProgress(state: SearchBarState): Children {
 		return m(".flex.col.rel", [
 			m(
-				".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-s",
+				".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-8",
 				{
 					style: {
 						height: px(52),
@@ -146,7 +146,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		return m(".flex.rel", [
 			m(
-				".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-s",
+				".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-8",
 				{
 					style: {
 						height: px(52),

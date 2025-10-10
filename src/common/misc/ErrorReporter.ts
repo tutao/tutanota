@@ -234,7 +234,7 @@ export async function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 			},
 			[
 				m(
-					"div.mr-negative-xs",
+					"div.mr-negative-4",
 					m(ExpanderButton, {
 						expanded: expanded(),
 						onExpandedChange: expanded,

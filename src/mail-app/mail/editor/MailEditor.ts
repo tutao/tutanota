@@ -401,7 +401,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		m.render(
 			quoteIndicator,
 			m(
-				".ml-button.fit-content",
+				".ml-8.fit-content",
 				{
 					style: {
 						borderRadius: "25%",
@@ -502,7 +502,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			value: model.getSubject(),
 			oninput: (val) => model.setSubject(val),
 			injectionsRight: () =>
-				m(".flex.end.ml-between-s.items-center", [
+				m(".flex.end.ml-between-4.items-center", [
 					isDarkTheme()
 						? m(IconButton, {
 								title: "viewInLightMode_action",

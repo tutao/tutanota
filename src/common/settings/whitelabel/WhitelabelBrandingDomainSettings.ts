@@ -36,7 +36,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 			helpLabel: this.renderWhitelabelInfo(certificateInfo),
 			isReadOnly: true,
 			injectionsRight: () =>
-				m(".ml-between-s", [
+				m(".ml-between-4", [
 					whitelabelDomain ? this.renderDeactivateButton(whitelabelDomain) : null,
 					customerInfo ? this._renderEditButton(customerInfo, certificateInfo, isWhitelabelFeatureEnabled) : null,
 				]),

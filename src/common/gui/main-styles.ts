@@ -591,54 +591,32 @@ styles.registerStyle("main", () => {
 		".pl-button": {
 			"padding-left": px(size.spacing_8),
 		},
-		".mr-button": {
-			"margin-right": px(size.spacing_8),
-		},
-		".ml-button": {
-			"margin-left": px(size.spacing_8),
-		},
-		".mt-negative-hpad-button": {
+		".mt-negative-8": {
 			"margin-top": px(-size.spacing_8),
 		},
-		".mt-negative-s": {
-			"margin-top": px(-size.spacing_8),
-		},
-		".mt-negative-m": {
-			"margin-top": px(-size.spacing_16),
-		},
-		".mt-negative-l": {
+		".mt-negative-24": {
 			"margin-top": px(-size.spacing_24),
 		},
-		".mr-negative-s": {
+		".mr-negative-8": {
 			"margin-right": px(-size.spacing_8),
 		},
-		".mr-negative-l": {
+		".mr-negative-24": {
 			"margin-right": px(-size.spacing_24),
 		},
-		".ml-negative-s": {
+		".ml-negative-8": {
 			"margin-left": px(-size.spacing_8),
 		},
 		// negative margin to handle the default padding of a button
-		".ml-negative-l": {
+		".ml-negative-24": {
 			"margin-left": px(-size.spacing_24),
 		},
-		".ml-negative-xs": {
-			"margin-left": px(-3),
-		},
-		".ml-negative-bubble": {
-			"margin-left": px(-7),
-		},
-		".mr-negative-m": {
-			"margin-right": px(-(size.spacing_8 + size.spacing_8)),
-		},
-		// negative margin to handle the padding of a nav button
 		".fixed-bottom-right": {
 			position: "fixed",
 			bottom: px(size.spacing_12),
 			right: px(size.spacing_24),
 		},
-		".mr-negative-xs": {
-			"margin-right": px(-3),
+		".mr-negative-4": {
+			"margin-right": px(-size.base_4),
 		},
 		// common setting
 		".text-ellipsis": {
@@ -1858,14 +1836,11 @@ styles.registerStyle("main", () => {
 			width: "initial",
 			"margin-left": "auto",
 		},
-		".ml-between-s > :not(:first-child)": {
+		".ml-between-4 > :not(:first-child)": {
 			"margin-left": px(size.spacing_4),
 		},
-		".mt-between-s > :not(:first-child)": {
+		".mt-between-4 > :not(:first-child)": {
 			"margin-top": px(size.spacing_4),
-		},
-		".mt-between-m > :not(:first-child)": {
-			"margin-top": px(size.spacing_12),
 		},
 		// dropdown
 		".dropdown-panel": {

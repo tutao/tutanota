@@ -45,7 +45,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				viewModel.isUnread() ? this.renderUnreadDot() : null,
 				viewModel.isDraftMail() ? m(".mr-4", this.renderIcon(Icons.Edit, lang.get("draft_label"))) : null,
 				this.renderSender(viewModel),
-				m(".flex.ml-between-s.items-center", [
+				m(".flex.ml-between-4.items-center", [
 					mail.attachments.length > 0 ? this.renderIcon(Icons.Attachment, lang.get("attachment_label")) : null,
 					viewModel.isConfidential() ? this.renderIcon(getConfidentialIcon(mail), lang.get("confidential_label")) : null,
 					this.renderIcon(getFolderIconByType(folderInfo.folderType), folderInfo.name),

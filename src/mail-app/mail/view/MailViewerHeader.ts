@@ -164,12 +164,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				m(".flex", [
 					this.getRecipientEmailAddress(attrs),
 					m(".flex-grow"),
-					m(".flex.items-center.white-space-pre.ml-8.ml-between-s", {
+					m(".flex.items-center.white-space-pre.ml-8.ml-between-4", {
 						// Orca refuses to read ut unless it's not focusable
 						tabindex: TabIndex.Default,
 						"aria-label": lang.get(viewModel.isConfidential() ? "confidential_action" : "nonConfidential_action") + ", " + dateTime,
 					}),
-					m(".flex.ml-between-s.items-center", [
+					m(".flex.ml-between-4.items-center", [
 						viewModel.isConfidential()
 							? m(Icon, {
 									icon: getConfidentialIcon(viewModel.mail),
@@ -254,7 +254,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				],
 			),
 			m(
-				".flex-end.items-start.ml-between-s",
+				".flex-end.items-start.ml-between-4",
 				{
 					class: styles.isSingleColumnLayout() ? "" : "mt-4",
 					style: {
@@ -425,7 +425,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					? [
 							m(".small.b", lang.get("to_label")),
 							m(
-								".flex.col.mt-between-s",
+								".flex.col.mt-between-4",
 								viewModel.getToRecipients().map((recipient) =>
 									m(
 										".flex",
@@ -880,7 +880,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		if (relevantRecipient) {
 			const numberOfAllRecipients = viewModel.getNumberOfRecipients()
 			return m(
-				".flex.click.small.ml-between-s.items-center",
+				".flex.click.small.ml-between-4.items-center",
 				{
 					style: {
 						// use this to allow the container to shrink, otherwise it doesn't want to cut the recipient address
