@@ -339,6 +339,15 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 		ContentResolver.setSyncAutomatically(tutaAccount, ContactsContract.AUTHORITY, false)
 	}
 
+	private fun hasDepartmentChanged(
+		storedContact: AndroidContact,
+		serverContact: StructuredContact
+	): Boolean {
+		// isNullOrEmpty check is required since department field is a nullableString, comparing the empty string with
+		// null value would fail.
+		return (storedContact.department != serverContact.department && !storedContact.department.isNullOrEmpty())
+	}
+
 	private fun checkContactDetails(
 		storedContact: AndroidContact,
 		serverContact: StructuredContact,
@@ -348,7 +357,11 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 			checkContactBirthday(storedContact, ops, serverContact)
 		}
 
-		if (storedContact.company != serverContact.company || storedContact.role != serverContact.role || storedContact.department != serverContact.department) {
+		if (storedContact.company != serverContact.company || storedContact.role != serverContact.role || hasDepartmentChanged(
+				storedContact,
+				serverContact
+			)
+		) {
 			checkContactCompany(storedContact, ops, serverContact)
 		}
 
@@ -867,21 +880,24 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 				).build()
 		)
 
-		ops.add(
-			ContentProviderOperation.newInsert(CONTACT_DATA_URI)
-				.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
-				.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
-				.withValue(ContactsContract.CommonDataKinds.Organization.COMPANY, contact.company)
-				.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
-				.withValue(ContactsContract.CommonDataKinds.Organization.DEPARTMENT, contact.department)
-				.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
-				.withValue(ContactsContract.CommonDataKinds.Organization.TITLE, contact.role)
-				.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
-				.withValue(
-					ContactsContract.CommonDataKinds.Organization.TYPE,
-					ContactsContract.CommonDataKinds.Organization.TYPE_WORK
-				).build()
-		)
+		// skip adding organization data if its empty to avoid duplicated organization field when linking contacts.
+		if (contact.role.isNotEmpty() || contact.company.isNotEmpty() || !contact.department.isNullOrEmpty()) {
+			ops.add(
+				ContentProviderOperation.newInsert(CONTACT_DATA_URI)
+					.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
+					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+					.withValue(ContactsContract.CommonDataKinds.Organization.COMPANY, contact.company)
+					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+					.withValue(ContactsContract.CommonDataKinds.Organization.DEPARTMENT, contact.department)
+					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+					.withValue(ContactsContract.CommonDataKinds.Organization.TITLE, contact.role)
+					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+					.withValue(
+						ContactsContract.CommonDataKinds.Organization.TYPE,
+						ContactsContract.CommonDataKinds.Organization.TYPE_WORK
+					).build()
+			)
+		}
 
 		ops.add(
 			ContentProviderOperation.newInsert(CONTACT_DATA_URI)
