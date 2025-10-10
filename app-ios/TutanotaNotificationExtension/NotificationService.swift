@@ -6,6 +6,8 @@ import tutasdk
 var suspensionEndTime: Date?
 
 class NotificationService: UNNotificationServiceExtension {
+	private let notificationStorage = NotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
+
 	private var contentHandler: ((UNNotificationContent) -> Void)?
 	private var bestAttemptContent: UNMutableNotificationContent?
 	private let urlSession: URLSession = makeUrlSession()
@@ -13,8 +15,13 @@ class NotificationService: UNNotificationServiceExtension {
 
 	override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
 		self.contentHandler = contentHandler
+
+		notificationStorage.incrementNotificationCount()
+
 		bestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)
 		if let bestAttemptContent {
+			bestAttemptContent.badge = notificationStorage.notificationCount as NSNumber
+
 			Task {
 				await notificationHandleTask(bestAttemptContent)
 				contentHandler(bestAttemptContent)
@@ -47,7 +54,6 @@ class NotificationService: UNNotificationServiceExtension {
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
 		let credentialsFacade = IosNativeCredentialsFacade(keychainEncryption: keychainEncryption, credentialsDb: credentialsDb, cryptoFns: CryptoFunctions())
-		let notificationStorage = NotificationStorage(userPreferencesProvider: UserPreferencesProviderImpl())
 
 		let mailId = content.userInfo["mailId"] as? [String]
 		let userId = content.userInfo["userId"] as? String

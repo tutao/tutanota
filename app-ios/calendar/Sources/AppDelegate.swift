@@ -13,6 +13,8 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 	private var viewController: ViewController!
 	private let urlSession: URLSession = makeUrlSession()
 
+	private var notificationStorage: NotificationStorage!
+
 	func registerForPushNotifications() async throws -> String {
 		#if targetEnvironment(simulator)
 			return ""
@@ -37,7 +39,7 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 		spawnTransactionFinisher()
 
 		let userPreferencesProvider = UserPreferencesProviderImpl()
-		let notificationStorage = NotificationStorage(userPreferencesProvider: userPreferencesProvider)
+		self.notificationStorage = NotificationStorage(userPreferencesProvider: userPreferencesProvider)
 		let keychainManager = KeychainManager(keyGenerator: KeyGenerator())
 		let keychainEncryption = KeychainEncryption(keychainManager: keychainManager)
 		let dateProvider = SystemDateProvider()
