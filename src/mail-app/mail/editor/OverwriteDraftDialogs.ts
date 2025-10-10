@@ -79,7 +79,7 @@ class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialog
 				},
 				icon: m(Icon, {
 					icon: Icons.XCheckmark,
-					size: IconSize.Large,
+					size: IconSize.PX20,
 					class: "mr-s flex-center",
 					style: {
 						fill: theme.on_primary,
@@ -94,7 +94,7 @@ class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialog
 				},
 				icon: m(Icon, {
 					icon: Icons.XCross,
-					size: IconSize.Large,
+					size: IconSize.PX20,
 					class: "mr-s flex-center",
 					style: {
 						fill: theme.on_primary,
