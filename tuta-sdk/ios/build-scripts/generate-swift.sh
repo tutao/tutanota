@@ -24,9 +24,14 @@ includeArch() {
     fi
 }
 
+ARCHS=( "$@" )
+
+RUST_TRIPLES=$(bash "$SRC_ROOT/tuta-sdk/ios/build-scripts/rust-triple.sh" $IS_SIMULATOR ${ARCHS[@]})
+COMBINED_DIR=$(tr '\n' '_' <<<"$RUST_TRIPLES")
+
 createFolderStructure() {
-    mkdir -p "${SRC_ROOT}/target/combined/"
-    mkdir -p "${SRC_ROOT}/target/combined/${RELFLAG}"
+    mkdir -p "${SRC_ROOT}/target/${COMBINED_DIR}/"
+    mkdir -p "${SRC_ROOT}/target/${COMBINED_DIR}/${RELFLAG}"
 
     if [ -d "${SRC_ROOT}/tuta-sdk/ios/tutasdk/generated-src" ]; then
         rm -r "${SRC_ROOT}/tuta-sdk/ios/tutasdk/generated-src"
@@ -39,16 +44,16 @@ createFolderStructure() {
 
 generateLibrary() {
     for arch in $ARCH_LIST; do
-      if [ $arch -nt "${SRC_ROOT}/target/combined/${RELFLAG}/libtutasdk.a" ]; then
+      if [ $arch -nt "${SRC_ROOT}/target/${COMBINED_DIR}/${RELFLAG}/libtutasdk.a" ]; then
         echo "$arch is newer!"
         echo $(date -r $arch)
-        echo $(date -r "${SRC_ROOT}/target/combined/${RELFLAG}/libtutasdk.a" || echo "output of lipo doesn't exist")
-        lipo -create $ARCH_LIST -output "${SRC_ROOT}/target/combined/${RELFLAG}/libtutasdk.a"
+        echo $(date -r "${SRC_ROOT}/target/${COMBINED_DIR}/${RELFLAG}/libtutasdk.a" || echo "output of lipo doesn't exist")
+        lipo -create $ARCH_LIST -output "${SRC_ROOT}/target/${COMBINED_DIR}/${RELFLAG}/libtutasdk.a"
         break
       fi
     done
 
-    cp -p "${SRC_ROOT}/target/combined/${RELFLAG}/libtutasdk.a" "${SRC_ROOT}/tuta-sdk/ios/tutasdk/generated-src/tutasdk.a"
+    cp -p "${SRC_ROOT}/target/${COMBINED_DIR}/${RELFLAG}/libtutasdk.a" "${SRC_ROOT}/tuta-sdk/ios/tutasdk/generated-src/tutasdk.a"
 
     cp -p $SRC_ROOT/bindings/*.h "${SRC_ROOT}/tuta-sdk/ios/tutasdk/generated-src/headers/"
     cp -p $SRC_ROOT/bindings/*.modulemap "${SRC_ROOT}/tuta-sdk/ios/tutasdk/generated-src/headers/"
@@ -64,8 +69,6 @@ genSwiftIfNeeded() {
 }
 
 cd $SRC_ROOT
-
-ARCHS=( "$@" )
 
 echo "ARCHS: $ARCHS"
 
