@@ -123,7 +123,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 						borderColor: isSelected ? localTheme.primary : localTheme.outline_variant,
 						backgroundColor: isSelected ? localTheme.surface_container_high : localTheme.surface,
 						borderRadius: hasCampaign ? `0 0 ${px(12)} ${px(12)}` : px(12),
-						padding: `${px(styles.isMobileLayout() ? 12 : size.vpad_ml)} ${px(styles.isMobileLayout() ? 12 : size.hpad_medium)}`,
+						padding: `${px(styles.isMobileLayout() ? 12 : size.spacing_24)} ${px(styles.isMobileLayout() ? 12 : size.spacing_24)}`,
 						opacity: isDisabled ? 0.6 : 1,
 						"box-shadow": isSelected ? boxShadowHigh : "initial",
 						height: "100%",
