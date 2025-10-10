@@ -123,7 +123,7 @@ export class Table implements Component<TableAttrs> {
 						"",
 						{ class: useHelpButton ? "flex items-center height-100p full-width" : "" },
 						m(
-							".text-ellipsis.pr.pt-s" +
+							".text-ellipsis.pr.pt-8" +
 								(bold ? ".b" : "") +
 								(cellTextData.click ? ".click" : "" + (cellTextData.mainStyle ? cellTextData.mainStyle : "")) +
 								(columnAlignments[index] ? ".right" : ""),
@@ -146,7 +146,7 @@ export class Table implements Component<TableAttrs> {
 		} else {
 			cells = lineAttrs.cells.map((text, index) =>
 				m(
-					"td.text-ellipsis.pr.pt-s.pb-s." + columnWidths[index] + (bold ? ".b" : "") + (columnAlignments[index] ? ".right" : ""),
+					"td.text-ellipsis.pr.pt-8.pb-8." + columnWidths[index] + (bold ? ".b" : "") + (columnAlignments[index] ? ".right" : ""),
 					{
 						title: text, // show the text as tooltip, so ellipsed lines can be shown
 					},

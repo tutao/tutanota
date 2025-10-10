@@ -137,7 +137,7 @@ export class ContactSupportPage implements Component<Props> {
 			),
 
 			m(
-				".flex.flex-column.gap-vpad.pb",
+				".flex.flex-column.gap-vpad.pb-16",
 				{
 					style: {
 						marginTop: "auto",
@@ -160,7 +160,7 @@ export class ContactSupportPage implements Component<Props> {
 						}),
 						(this.sendMailModel?.getAttachments() ?? []).map((attachment) =>
 							m(
-								".flex.center-vertically.flex-space-between.pb-s.pt-s",
+								".flex.center-vertically.flex-space-between.pb-8.pt-8",
 								{ style: { paddingInline: px(size.spacing_8) } },
 								m("span.smaller", attachment.name),
 								m(

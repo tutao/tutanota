@@ -165,7 +165,7 @@ function showReportDialog(
 					{
 						expanded: detailsExpanded,
 					},
-					m(".selectable", [m(".selectable", subject), message.split("\n").map((l) => (l.trim() === "" ? m(".pb", "") : m("", l)))]),
+					m(".selectable", [m(".selectable", subject), message.split("\n").map((l) => (l.trim() === "" ? m(".pb-16", "") : m("", l)))]),
 				),
 			]
 		},
@@ -207,7 +207,7 @@ async function showLogDialog(heading: string, text: string) {
 			middle: lang.makeTranslation("heading", heading),
 		},
 		{
-			view: () => m(".white-space-pre.pt-16.pb.selectable", text),
+			view: () => m(".white-space-pre.pt-16.pb-16.selectable", text),
 		},
 	)
 		.addShortcut({
@@ -258,7 +258,7 @@ export async function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 					}),
 				),
 				m(
-					".plr.selectable.pb.scroll.text-pre",
+					".plr.selectable.pb-16.scroll.text-pre",
 					{
 						style: {
 							height: px(200),

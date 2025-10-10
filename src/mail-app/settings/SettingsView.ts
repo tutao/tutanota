@@ -792,10 +792,10 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	_bottomSection(): Children {
 		const isFirstPartyDomain = locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 
-		return m(".pb.pt-l.flex-no-shrink.flex.col.justify-end.gap-vpad", [
+		return m(".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.gap-vpad", [
 			// Support button
 			m(BaseButton, {
-				class: "flash flex justify-center center-vertically pt-s pb-s plr border-radius",
+				class: "flash flex justify-center center-vertically pt-8 pb-8 plr border-radius",
 				style: {
 					marginInline: "auto",
 					border: `1px solid ${theme.on_surface_variant}`,

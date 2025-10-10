@@ -201,7 +201,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 							),
 						]),
 						m(
-							".flex-center.full-width.pt-l",
+							".flex-center.full-width.pt-32",
 							m(LoginButton, {
 								label: "next_action",
 								class: "small-login-button",

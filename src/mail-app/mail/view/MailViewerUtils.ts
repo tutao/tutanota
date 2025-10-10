@@ -76,7 +76,7 @@ export async function showHeaderDialog(headersPromise: Promise<string | null>) {
 		{
 			view: () =>
 				m(
-					".white-space-pre.pt-16.pb.selectable",
+					".white-space-pre.pt-16.pb-16.selectable",
 					state.state === "loading" ? m(".center", progressIcon()) : (state.headers ?? m(".center", lang.get("noEntries_msg"))),
 				),
 		},
@@ -232,7 +232,7 @@ function handleExportEmailsResult(mailList: Mail[]) {
 			title: "failedToExport_title",
 			child: () =>
 				m("", [
-					m(".pt-m", lang.get("failedToExport_msg")),
+					m(".pt-12", lang.get("failedToExport_msg")),
 					m(".flex-start.items-center", [
 						m(ExpanderButton, {
 							label: lang.makeTranslation(

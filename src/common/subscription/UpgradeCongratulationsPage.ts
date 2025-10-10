@@ -33,7 +33,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 					])
 				: null,
 			m(
-				".flex-center.full-width.pt-l",
+				".flex-center.full-width.pt-32",
 				m(LoginButton, {
 					label: "ok_action",
 					class: "small-login-button",

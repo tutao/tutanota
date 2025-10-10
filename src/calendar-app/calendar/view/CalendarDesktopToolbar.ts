@@ -28,7 +28,7 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 			[
 				m("h1", navConfig.title),
 				m(".flex.items-center.justify-center.flex-grow.height-100p", this.renderViewSelector(attrs)),
-				m(".flex.pt-xs.pb-xs", [
+				m(".flex.pt-4.pb-4", [
 					navConfig.back ?? m(".button-width-fixed"),
 					m(
 						".flex",

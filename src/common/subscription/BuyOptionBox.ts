@@ -222,7 +222,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							m("span", attrs.priceHint ? lang.getTranslationText(attrs.priceHint) : lang.get("emptyString_msg")),
 							vnode.attrs.hasPriceFootnote && m("sup", { style: { "font-size": px(8) } }, "1"),
 						),
-						m(".small.text-center.pb-ml", lang.getTranslationText(attrs.helpLabel)),
+						m(".small.text-center.pb-24", lang.getTranslationText(attrs.helpLabel)),
 						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, !!attrs.hasFirstYearDiscount),
 						attrs.actionButton
 							? m(
@@ -243,11 +243,11 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 
 	private renderPrice(price: string, isApplePrice?: boolean, strikethroughPrice?: string) {
 		return m(
-			".flex.flex-wrap.column-gap-s.justify-center.items-center.pt-l.text-center",
+			".flex.flex-wrap.column-gap-s.justify-center.items-center.pt-32.text-center",
 			{ style: { ...(!isApplePrice && { display: "grid", "grid-template-columns": "1fr auto 1fr" }) } },
 			strikethroughPrice != null && strikethroughPrice.trim() !== ""
 				? m(
-						".span.strike.pt-s",
+						".span.strike.pt-8",
 						{
 							style: {
 								color: theme.on_surface_variant,

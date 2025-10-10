@@ -87,7 +87,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 						a.onPasswordChanged(value)
 					},
 				}),
-				m(".list-border-bottom.pb-l", [
+				m(".list-border-bottom.pb-32", [
 					m(".h3.mt-32", lang.get("terminationDateRequest_title")),
 					m(".mt-8", lang.get("terminationDateRequest_msg")),
 					m(DropDownSelector, {

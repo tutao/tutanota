@@ -40,7 +40,7 @@ export class SupportTopicPage implements Component<Props> {
 		const buttonText = getContactSupportText(topic, languageTag)
 
 		return m(
-			".flex.flex-column.pt-16.pb",
+			".flex.flex-column.pt-16.pb-16",
 			{
 				style: {
 					"overflow-x": "auto",
@@ -54,7 +54,7 @@ export class SupportTopicPage implements Component<Props> {
 						rootElementType: "div",
 						classes: ["scroll", "mb-16"],
 					},
-					m(".h4.m-0.pb", issue),
+					m(".h4.m-0.pb-16", issue),
 					m.trust(sanitisedSolution),
 					buttonText &&
 						!locator.logins.getUserController().isFreeAccount() &&

@@ -82,7 +82,7 @@ export class CalendarSearchBarOverlay implements Component<CalendarSearchBarOver
 
 		return indexInfo
 			? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)]
-			: m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
+			: m("li.plr-l.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
 	}
 
 	private renderCalendarEventResult(event: CalendarEvent): Children {

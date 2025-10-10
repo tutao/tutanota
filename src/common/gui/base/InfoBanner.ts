@@ -57,7 +57,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 					"",
 					{ style: { "margin-left": px(size.icon_24 + 1) } }, // allow room for the icon
 					[
-						m(".mr-12.pt-s.pb-s", typeof message === "function" ? message() : m(".small.text-break", lang.get(message))),
+						m(".mr-12.pt-8.pb-8", typeof message === "function" ? message() : m(".small.text-break", lang.get(message))),
 						m(".flex.ml-negative-8", { style: buttonContainerStyle }, [this.renderButtons(buttons), this.renderHelpLink(helpLink)]),
 					],
 				),

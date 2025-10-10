@@ -183,7 +183,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	private renderDateSelector(attrs: MultiDayCalendarViewAttrs, isDayView: boolean): Children {
 		return m("", [
 			m(
-				".header-bg.pb-s.overflow-hidden",
+				".header-bg.pb-8.overflow-hidden",
 				{
 					style: {
 						"margin-left": px(layout_size.calendar_hour_width_mobile),
@@ -462,7 +462,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	private renderHeaderDesktop(attrs: MultiDayCalendarViewAttrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
 		const { daysInPeriod, onDateSelected, onEventClicked, onEventKeyDown, groupColors, temporaryEvents } = attrs
 		// `scrollbar-gutter-stable-or-fallback` is needed because the scroll bar brings the calendar body out of line with the header
-		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-s.scrollbar-gutter-stable-or-fallback", [
+		return m(".calendar-long-events-header.flex-fixed.content-bg.pt-8.scrollbar-gutter-stable-or-fallback", [
 			this.renderDayNamesRow(thisPageEvents.days, attrs.weekIndicator, onDateSelected, attrs.selectedDate, false, attrs.getEventsOnDays),
 			m(".content-bg", [
 				m(
@@ -496,7 +496,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 
 	private renderShortWeekHeader(attrs: MultiDayCalendarViewAttrs, thisPageEvents: EventsOnDays, mainPageEvents: EventsOnDays): Children {
 		const { daysInPeriod, onDateSelected, onEventClicked, onEventKeyDown, groupColors, temporaryEvents } = attrs
-		return m("flex-fixed.pt-s.scrollbar-gutter-stable-or-fallback", [
+		return m("flex-fixed.pt-8.scrollbar-gutter-stable-or-fallback", [
 			this.renderDayNamesRow(thisPageEvents.days, null, (day, _) => onDateSelected(day), attrs.selectedDate, true, attrs.getEventsOnDays),
 			m(".calendar-hour-margin.mb-8", [
 				this.renderLongEventsSection(thisPageEvents, mainPageEvents, groupColors, onEventClicked, onEventKeyDown, temporaryEvents, false),

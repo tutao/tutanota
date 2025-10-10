@@ -21,7 +21,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 
 	view({ attrs }: Vnode<EventDetailsViewAttrs>) {
 		this.model = attrs.eventPreviewModel
-		return m(".content-bg.border-radius-big.pl-l.pb-s.flex.pr", [
+		return m(".content-bg.border-radius-big.pl-l.pb-8.flex.pr", [
 			m(
 				".flex-grow.scroll.visible-scrollbar",
 				{

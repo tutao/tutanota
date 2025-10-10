@@ -17,7 +17,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 	view(vnode: Vnode<SetupLeavingUserSurveyPageAttrs>): Children {
 		return m("#leaving-user-survey-dialog.pt-16.flex-center", [
 			m(
-				".flex.flex-column.max-width-m.pt-16.pb.plr-l",
+				".flex.flex-column.max-width-m.pt-16.pb-16.plr-l",
 				{
 					style: {
 						minHeight: styles.isDesktopLayout() ? "850px" : "",
@@ -33,7 +33,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 								...vnode.attrs.imageStyle,
 							},
 						},
-						m("img.pb.block.full-width.height-100p", {
+						m("img.pb-16.block.full-width.height-100p", {
 							src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/${vnode.attrs.image}.png`,
 							alt: "",
 							rel: "noreferrer",

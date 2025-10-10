@@ -119,7 +119,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 			m(".mt-32", lang.get("outOfOfficeUnencrypted_msg")),
 			organizationEnabled ? this.renderOrganizations(model, organizationMessageEditor) : null,
 			defaultEnabled ? this.renderDefault(organizationEnabled, model, defaultMessageEditor) : null,
-			m(".pb", ""),
+			m(".pb-16", ""),
 		]
 	}
 

@@ -123,7 +123,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			: m(
 					"",
 					m(
-						".header-bg.pb-s.overflow-hidden",
+						".header-bg.pb-8.overflow-hidden",
 						{
 							style: {
 								"margin-left": px(layout_size.calendar_hour_width_mobile),
@@ -211,7 +211,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			})
 		} else {
 			return m(
-				".pt-s.flex.mb-8.col.overflow-y-scroll.height-100p",
+				".pt-8.flex.mb-8.col.overflow-y-scroll.height-100p",
 				{
 					style: { marginLeft: px(layout_size.calendar_hour_width_mobile) },
 					oncreate: (vnode: VnodeDOM) => {

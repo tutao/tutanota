@@ -26,7 +26,7 @@ export class SenderKeyVerificationRecoveryInfoPage implements Component<Verifica
 				? lang.get("keyVerificationErrorManual_msg")
 				: lang.get("keyVerificationErrorGeneric_msg")
 
-		return m(".pt-16.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-vpad", [
 			m(TitleSection, {
 				title,
 				subTitle,

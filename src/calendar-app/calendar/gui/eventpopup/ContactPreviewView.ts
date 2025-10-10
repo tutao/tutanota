@@ -48,7 +48,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 
 	private renderRow(headerIcon: AllIcons, children: Children, isAlignedLeft?: boolean): Children {
 		return m(
-			".flex.pb-s",
+			".flex.pb-8",
 			{
 				class: isAlignedLeft ? "items-start" : "items-center",
 			},
@@ -72,7 +72,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 	}
 
 	private renderActions(contact: Contact): Children {
-		return m(".flex.pb-s", m(ActionButtons, contact))
+		return m(".flex.pb-8", m(ActionButtons, contact))
 	}
 }
 

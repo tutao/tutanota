@@ -66,7 +66,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			]),
 			searchInOurAppsElement &&
 				m(
-					".bottom.small.pt-s.pb-s.plr.text-center",
+					".bottom.small.pt-8.pb-8.plr.text-center",
 					{
 						// avoid closing overlay before the click event can be received
 						onmousedown: (e: MouseEvent) => e.preventDefault(),
@@ -93,7 +93,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	_renderProgress(state: SearchBarState): Children {
 		return m(".flex.col.rel", [
 			m(
-				".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-8",
+				".plr-l.pt-8.pb-8.flex.items-center.flex-space-between.mr-negative-8",
 				{
 					style: {
 						height: px(52),
@@ -146,7 +146,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		return m(".flex.rel", [
 			m(
-				".plr-l.pt-s.pb-s.flex.items-center.flex-space-between.mr-negative-8",
+				".plr-l.pt-8.pb-8.flex.items-center.flex-space-between.mr-negative-8",
 				{
 					style: {
 						height: px(52),
@@ -214,7 +214,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		return indexInfo
 			? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)]
-			: m("li.plr-l.pt-s.pb-s.items-center.flex-center", m(".flex-center", infoText))
+			: m("li.plr-l.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
 	}
 
 	private renderContactResult(contact: Contact): Children {

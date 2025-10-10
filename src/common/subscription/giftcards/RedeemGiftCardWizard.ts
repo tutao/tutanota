@@ -198,9 +198,9 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 
 		return [
 			m(
-				".flex-center.full-width.pt-l",
+				".flex-center.full-width.pt-32",
 				m(
-					".pt-l", // Needed to center SVG
+					".pt-32", // Needed to center SVG
 					{
 						style: {
 							width: "480px",
@@ -210,7 +210,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 				),
 			),
 			m(
-				".flex-center.full-width.pt-l",
+				".flex-center.full-width.pt-32",
 				m(LoginButton, {
 					label: "existingAccount_label",
 					class: "small-login-button",
@@ -218,7 +218,7 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 				}),
 			),
 			m(
-				".flex-center.full-width.pt-l.pb",
+				".flex-center.full-width.pt-32.pb-16",
 				m(LoginButton, {
 					label: "register_label",
 					class: "small-login-button",
@@ -380,7 +380,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 		return m("", [
 			mapNullable(model.newAccountData?.recoverCode, (code) =>
 				m(
-					".pt-l.plr-l",
+					".pt-32.plr-l",
 					m(RecoverCodeField, {
 						showMessage: true,
 						recoverCode: code,
@@ -389,7 +389,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 			),
 			isFree ? this.renderInfoForFreeAccounts(model) : this.renderInfoForPaidAccounts(model),
 			m(
-				".flex-center.full-width.pt-l",
+				".flex-center.full-width.pt-32",
 				m(
 					"",
 					{
@@ -410,7 +410,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 				),
 			),
 			m(
-				".flex-center.full-width.pt-s.pb",
+				".flex-center.full-width.pt-8.pb-16",
 				m(LoginButton, {
 					label: "redeem_label",
 					class: "small-login-button",
@@ -450,7 +450,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 
 	private renderInfoForFreeAccounts(model: RedeemGiftCardModel): Children {
 		return [
-			m(".pt-l.plr-l", `${lang.get("giftCardUpgradeNotifyRevolutionary_msg")} ${this.getCreditOrDebitMessage(model)}`),
+			m(".pt-32.plr-l", `${lang.get("giftCardUpgradeNotifyRevolutionary_msg")} ${this.getCreditOrDebitMessage(model)}`),
 			m(".center.h4.pt-16", lang.get("upgradeConfirm_msg")),
 			m(".flex-space-around.flex-wrap", [
 				m(".flex-grow-shrink-half.plr-l", [
@@ -490,7 +490,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 	private renderInfoForPaidAccounts(model: RedeemGiftCardModel): Children {
 		return [
 			m(
-				".pt-l.plr-l.flex-center",
+				".pt-32.plr-l.flex-center",
 				`${lang.get("giftCardCreditNotify_msg", {
 					"{credit}": formatPrice(Number(model.giftCardInfo.value), true),
 				})} ${lang.get("creditUsageOptions_msg")}`,
