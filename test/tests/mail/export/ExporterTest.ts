@@ -34,7 +34,7 @@ Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanot
 \r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota\r\n\
 Content-Type: text/plain; charset=UTF-8\r\n\
-Content-transfer-encoding: base64\r\n\
+Content-Transfer-Encoding: base64\r\n\
 \r\n\
 \r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota--`
@@ -75,7 +75,7 @@ Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanot
 \r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota\r\n\
 Content-Type: text/plain; charset=UTF-8\r\n\
-Content-transfer-encoding: base64\r\n\
+Content-Transfer-Encoding: base64\r\n\
 \r\n\
 SSBhbSBhIHBsYWluIGJvZHkh\r\n\
 \r\n\
@@ -138,7 +138,7 @@ Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanot
 \r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota\r\n\
 Content-Type: text/html; charset=UTF-8\r\n\
-Content-transfer-encoding: base64\r\n\
+Content-Transfer-Encoding: base64\r\n\
 \r\n\
 SeKAmW0gdGhlIER1ZGUsIHNvIHRoYXTigJlzIHdoYXQgeW91IGNhbGwgbWUuIFRoYXQgb3IsIHVoLC\r\n\
 BIaXMgRHVkZW5lc3MsIG9yIHVoLCBEdWRlciwgb3IgRWwgRHVkZXJpbm8sIGlmIHlvdeKAmXJlIG5v\r\n\
@@ -159,7 +159,7 @@ Content-Type: image/png;\r\n\
 Content-Transfer-Encoding: base64\r\n\
 Content-Disposition: attachment;\r\n\
  filename==?UTF-8?B?aWNvbjEweDEwLnBuZw==?=\r\n\
-Content-Id: <123cid>\r\n\
+Content-ID: <123cid>\r\n\
 \r\n\
 iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAMAAAC67D+PAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAA\r\n\
 B6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAgVBMVEWgHiCgHh+gHiEAAACfHyGg\r\n\
@@ -233,7 +233,7 @@ Content-Type: multipart/related; boundary="------------79Bu5A16qPEYcVIZL@tutanot
 \r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota\r\n\
 Content-Type: text/plain; charset=UTF-8\r\n\
-Content-transfer-encoding: base64\r\n\
+Content-Transfer-Encoding: base64\r\n\
 \r\n\
 \r\n\
 --------------79Bu5A16qPEYcVIZL@tutanota--`
