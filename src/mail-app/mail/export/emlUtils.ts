@@ -74,7 +74,7 @@ export function mailToEml(mail: MailBundle): string {
 
 	const isHtml = /<\/?[a-z][\s\S]*>/i.test(mail.body.trim()) // very simple HTML detection
 
-	lines.push(`Content-Type: text/${isHtml ? "html" : "plain"}; charset=UTF-8`, "Content-transfer-encoding: base64", "")
+	lines.push(`Content-Type: text/${isHtml ? "html" : "plain"}; charset=UTF-8`, "Content-Transfer-Encoding: base64", "")
 
 	for (let bodyLine of breakIntoLines(stringToBase64(mail.body))) {
 		lines.push(bodyLine)
@@ -95,7 +95,7 @@ export function mailToEml(mail: MailBundle): string {
 		)
 
 		if (attachment.cid) {
-			lines.push("Content-Id: <" + attachment.cid + ">")
+			lines.push("Content-ID: <" + attachment.cid + ">")
 		}
 
 		lines.push("")
