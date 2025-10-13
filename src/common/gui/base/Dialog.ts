@@ -860,10 +860,11 @@ export class Dialog implements ModalComponent {
 		)
 
 		const doCancel = () => {
+			if (!allowCancel) return
+
 			if (cancelAction) {
 				cancelAction(dialog)
 			}
-
 			dialog.close()
 		}
 
