@@ -23,6 +23,8 @@ import { assertNotNull, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@
 import { DriveFileMetadataService, DriveService } from "../../entities/tutanota/Services"
 import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
 import { ExposedProgressTracker } from "../../main/ProgressTracker"
+import { ChunkedUploadInfo } from "../../common/drive/DriveTypes"
+import { UploadProgressListener } from "../../main/UploadProgressListener"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -37,6 +39,7 @@ export class DriveFacade {
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly progressTracker: ExposedProgressTracker,
+		private readonly uploadProgressListener: UploadProgressListener,
 	) {}
 
 	public async updateMetadata(file: File & { metadata: DriveFileMetadata }) {
@@ -146,13 +149,16 @@ export class DriveFacade {
 				(f as DataFile).data /*FileUri*/,
 				assertNotNull(ownerGroupId),
 				sessionKey,
-				async (totalChunks: number, doneChunks: number) => {
-					console.log("onChunkUploaded:", doneChunks, "/", totalChunks)
-					if (uploadMonitorId == null) {
-						uploadMonitorId = await this.progressTracker.registerMonitor(totalChunks + serverProcessingSteps)
-					}
-					await this.progressTracker.workDoneForMonitor(uploadMonitorId, 1)
+				async (info: ChunkedUploadInfo) => {
+					this.uploadProgressListener.onChunkUploaded({ ...info, fileNameId: f.name })
 				},
+				// async (totalChunks: number, doneChunks: number) => {
+				// 	console.log("onChunkUploaded:", doneChunks, "/", totalChunks)
+				// 	if (uploadMonitorId == null) {
+				// 		uploadMonitorId = await this.progressTracker.registerMonitor(totalChunks + serverProcessingSteps)
+				// 	}
+				// 	await this.progressTracker.workDoneForMonitor(uploadMonitorId, 1)
+				// },
 			)
 
 			const uploadedFile = createDriveUploadedFile({
@@ -167,7 +173,6 @@ export class DriveFacade {
 			console.log("data has been uploaded, posting to DriveService")
 			const response = await this.serviceExecutor.post(DriveService, data)
 			console.log("posted to drive service")
-			await this.progressTracker.workDoneForMonitor(assertNotNull<number>(uploadMonitorId), 1)
 			createdFilesResponse.push(response.createdFile)
 		}
 		//)

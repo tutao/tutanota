@@ -39,6 +39,7 @@ import { typeModels as storageTypeModels } from "../../../entities/storage/TypeM
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
 import { ExposedProgressTracker } from "../../../main/ProgressTracker"
+import { ChunkedUploadInfo } from "../../../common/drive/DriveTypes"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -87,7 +88,7 @@ export class BlobFacade {
 		blobData: Uint8Array,
 		ownerGroupId: Id,
 		sessionKey: AesKey,
-		onChunkUploaded?: (totalChunks: number, doneChunks: number) => Promise<void>,
+		onChunkUploaded?: (info: ChunkedUploadInfo) => Promise<void>,
 	): Promise<BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
 
@@ -98,7 +99,7 @@ export class BlobFacade {
 				//await timeout(500)
 
 				// TODO: Handle cancelled/failed upload -> stop progress tracker.
-				await onChunkUploaded?.(chunks.length, index)
+				await onChunkUploaded?.({ fileNameId: "", totalBytes: blobData.length, uploadedBytes: chunk.length })
 
 				return blobReferenceTokenWrapper
 			})

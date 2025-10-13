@@ -20,6 +20,8 @@ import { showFileChooserForAttachments } from "../../../mail-app/mail/editor/Mai
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { createDropdown } from "../../../common/gui/base/Dropdown"
 import { renderSidebarFolders } from "./Sidebar"
+import { DriveUploadStack } from "./DriveUploadStack"
+import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -64,6 +66,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	private driveViewModel: DriveViewModel
 
 	constructor(vnode: Vnode<DriveViewAttrs>) {
+		console.log("running constructor for DriveView")
 		super()
 		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs) // this is where we see the left bar
 		this.currentFolderColumn = this.createCurrentFolderColumn() // this where we see the files of the selected folder being listed
@@ -71,6 +74,12 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 		this.driveFacade = locator.driveFacade
 		this.driveViewModel = vnode.attrs.driveViewModel
+
+		this.driveViewModel.uploadProgressListener.addListener(async (info: ChunkedUploadInfo) => {
+			this.driveViewModel.driveUploadStackModel.onChunkUploaded(info.fileNameId, info.uploadedBytes)
+			m.redraw()
+			return Promise.resolve()
+		})
 
 		// this.driveViewModel.loadDriveRoot().then(() => m.redraw())
 	}
@@ -148,10 +157,13 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						{
 							backgroundColor: theme.navigation_bg,
 							desktopToolbar: () => [],
-							columnLayout: m(DriveFolderView, {
-								files: this.driveViewModel.currentFolder.files,
-								driveViewModel: this.driveViewModel,
-							}),
+							columnLayout: [
+								m(DriveFolderView, {
+									files: this.driveViewModel.currentFolder.files,
+									driveViewModel: this.driveViewModel,
+								}),
+								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),
+							],
 							mobileHeader: () => [],
 						},
 						//m(DriveNav),
@@ -169,6 +181,22 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	async onNewFile_Click(dom: HTMLElement): Promise<void> {
 		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
 			if (files) {
+				for (const file of files) {
+					this.driveViewModel.driveUploadStackModel.addUpload(
+						file.name,
+						file.size,
+						() => {
+							console.log("paused upload")
+						},
+						() => {
+							console.log("resumed upload")
+						},
+						() => {
+							console.log("cancelled upload")
+						},
+					)
+				}
+
 				this.driveViewModel.uploadFiles([...files]).then(() => {
 					console.log("uploaded completed; redrawing...")
 					m.redraw()

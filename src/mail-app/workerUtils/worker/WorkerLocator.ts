@@ -832,6 +832,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.cachingEntityClient,
 			locator.serviceExecutor,
 			mainInterface.progressTracker,
+			mainInterface.uploadProgressListener,
 		)
 	})
 }

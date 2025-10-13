@@ -10,6 +10,8 @@ import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
 import { arrayEquals, assertNotNull } from "@tutao/tutanota-utils"
+import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
+import { DriveUploadStackModel } from "./DriveUploadStackModel"
 
 export enum VirtualFolder {
 	None,
@@ -31,6 +33,8 @@ export interface DisplayFolder {
 }
 
 export class DriveViewModel {
+	driveUploadStackModel = new DriveUploadStackModel()
+
 	// normal folder view
 	currentFolder!: DisplayFolder
 	rootFolder!: IdTuple
@@ -39,6 +43,7 @@ export class DriveViewModel {
 		private readonly entityClient: EntityClient,
 		private readonly driveFacade: DriveFacade,
 		private readonly router: Router,
+		public readonly uploadProgressListener: UploadProgressListener,
 	) {}
 
 	async initialize() {

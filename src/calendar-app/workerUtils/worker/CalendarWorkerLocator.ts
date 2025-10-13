@@ -623,6 +623,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.cachingEntityClient,
 			locator.serviceExecutor,
 			mainInterface.progressTracker,
+			mainInterface.uploadProgressListener,
 		)
 	})
 }

@@ -117,6 +117,7 @@ import { SearchToken } from "../common/api/common/utils/QueryTokenUtils"
 import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
 import { DriveFacade } from "../common/api/worker/facades/DriveFacade"
+import { UploadProgressListener } from "../common/api/main/UploadProgressListener"
 
 assertMainOrNode()
 
@@ -175,6 +176,7 @@ class CalendarLocator implements CommonLocator {
 	syncTracker!: SyncTracker
 	identityKeyCreator!: IdentityKeyCreator
 	driveFacade!: DriveFacade
+	uploadProgressListener!: UploadProgressListener
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade

@@ -153,6 +153,7 @@ import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicId
 import { UndoModel } from "./UndoModel"
 import { DriveFacade } from "../common/api/worker/facades/DriveFacade"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
+import { UploadProgressListener } from "../common/api/main/UploadProgressListener"
 
 assertMainOrNode()
 
@@ -220,6 +221,7 @@ class MailLocator implements CommonLocator {
 	mailExportFacade!: MailExportFacade
 	syncTracker!: SyncTracker
 	driveFacade!: DriveFacade
+	uploadProgressListener!: UploadProgressListener
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private mailImporter: MailImporter | null = null
@@ -1011,6 +1013,8 @@ class MailLocator implements CommonLocator {
 		if (selectedThemeFacade instanceof WebThemeFacade) {
 			selectedThemeFacade.addDarkListener(() => mailLocator.themeController.reloadTheme())
 		}
+
+		this.uploadProgressListener = new UploadProgressListener()
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {
@@ -1270,7 +1274,7 @@ class MailLocator implements CommonLocator {
 		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
 		const router = new ScopedRouter(this.throttledRouter(), "/drive")
 
-		const model = new DriveViewModel(this.entityClient, this.driveFacade, router)
+		const model = new DriveViewModel(this.entityClient, this.driveFacade, router, this.uploadProgressListener)
 		await model.initialize()
 
 		return model
