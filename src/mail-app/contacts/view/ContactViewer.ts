@@ -289,7 +289,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 					m(".dates.mt-l", dates.length > 0 ? [m(".h4", lang.get("dates_label")), m(".aggregateEditors", dates)] : null),
 					m(
 						".relationships.mt-l",
-						relationships.length > 0 ? [m(".h4", lang.get("relationships_label")), m(".aggregateEditors", relationships)] : null,
+						relationships.length > 0 ? [m(".h4", lang.get("relatedPeople_label")), m(".aggregateEditors", relationships)] : null,
 					),
 				])
 			: null
