@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
-import { getDateFromMousePos, getTimeFromMousePos } from "../../../src/calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { formatEventTime, getDateFromMousePos, getTimeFromMousePos } from "../../../src/calendar-app/calendar/gui/CalendarGuiUtils.js"
+import { EventTextTimeOption } from "../../../src/common/api/common/TutanotaConstants.js"
 
 o.spec("CalendarGuiUtils", function () {
 	o("getDateFromMouseClick", function () {
@@ -68,5 +69,39 @@ o.spec("CalendarGuiUtils", function () {
 			hours: 23,
 			minutes: 45,
 		})
+	})
+
+	o("formatEventTime - all-day events", function () {
+		// All-day events have startTime at 00:00:00 and endTime exactly 24 hours later (or more for multi-day)
+		const allDayEvent = {
+			startTime: new Date("2024-01-15T00:00:00.000Z"),
+			endTime: new Date("2024-01-16T00:00:00.000Z"),
+		}
+
+		// All-day events should return empty string for all time options
+		o(formatEventTime(allDayEvent, EventTextTimeOption.START_TIME)).equals("")
+		o(formatEventTime(allDayEvent, EventTextTimeOption.END_TIME)).equals("")
+		o(formatEventTime(allDayEvent, EventTextTimeOption.START_END_TIME)).equals("")
+	})
+
+	o("formatEventTime - timed events", function () {
+		// Regular timed event
+		const timedEvent = {
+			startTime: new Date("2024-01-15T14:30:00.000Z"),
+			endTime: new Date("2024-01-15T15:45:00.000Z"),
+		}
+
+		// Timed events should format times normally (exact format depends on locale/settings)
+		const startTimeResult = formatEventTime(timedEvent, EventTextTimeOption.START_TIME)
+		const endTimeResult = formatEventTime(timedEvent, EventTextTimeOption.END_TIME)
+		const startEndTimeResult = formatEventTime(timedEvent, EventTextTimeOption.START_END_TIME)
+
+		// Should not be empty strings
+		o(startTimeResult).notEquals("")
+		o(endTimeResult).notEquals("")
+		o(startEndTimeResult).notEquals("")
+
+		// Should contain time formatting
+		o(startEndTimeResult.includes("-")).equals(true)
 	})
 })

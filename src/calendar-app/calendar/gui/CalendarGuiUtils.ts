@@ -645,7 +645,12 @@ export function timeStringInZone(date: Date, amPm: boolean, zone: string): strin
 	return timeStringFromParts(hour, minute, amPm)
 }
 
-export function formatEventTime({ endTime, startTime }: CalendarEventTimes, showTime: EventTextTimeOption): string {
+export function formatEventTime(event: CalendarEventTimes, showTime: EventTextTimeOption): string {
+	if (isAllDayEvent(event)) {
+		return ""
+	}
+
+	const { endTime, startTime } = event
 	switch (showTime) {
 		case EventTextTimeOption.START_TIME:
 			return formatTime(startTime)
