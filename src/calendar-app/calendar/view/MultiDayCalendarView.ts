@@ -87,6 +87,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	private scrollEndTime: TimeoutID | null = null
 	private lastScrollPosition: number | null = null
 	private viewType: CalendarViewType
+	private color = generateRandomColor()
 
 	constructor({ attrs }: Vnode<MultiDayCalendarViewAttrs>) {
 		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
@@ -168,7 +169,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				dates: previousEvents.days,
 				events: {
 					short: deduplicate(
-						previousEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType)),
+						previousEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType.bind(this))),
 						(a, b) => isSameEventInstance(a.event, b.event),
 					),
 					long: previousEvents.longEvents.map(this.fixType),
@@ -179,7 +180,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				dates: currentEvents.days,
 				events: {
 					short: deduplicate(
-						currentEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType)),
+						currentEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType.bind(this))),
 						(a, b) => isSameEventInstance(a.event, b.event),
 					),
 					long: currentEvents.longEvents.map(this.fixType),
@@ -190,7 +191,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				dates: nextEvents.days,
 				events: {
 					short: deduplicate(
-						nextEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType)),
+						nextEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType.bind(this))),
 						(a, b) => isSameEventInstance(a.event, b.event),
 					),
 					long: nextEvents.longEvents.map(this.fixType),
@@ -204,7 +205,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		return {
 			event,
 			conflictsWithMainEvent: false,
-			color: generateRandomColor(),
+			color: this.color,
 			featured: false,
 		}
 	}

@@ -81,7 +81,7 @@ export interface TimeViewAttributes {
 	hasAnyConflict?: boolean
 }
 
-type GridEventData = { start: number; end: number; size: number }
+type GridEventData = { start: number; end: number; size: number; gridColumnStart: number }
 
 interface GridData {
 	maxColumnCount: number
@@ -160,6 +160,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			baseDate: Date,
 			hasAnyConflict: boolean = false,
 		): Children => {
+			console.time("Timer")
 			const interval = TIME_SCALE_BASE_VALUE / timeScale
 			const timeRangeAsDate = {
 				start: timeRange.start.toDate(baseDate),
@@ -172,9 +173,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 			//const gridData = this.calculateGridData(agendaEntries, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
 			const gridData = this.processAgendaEntries(agendaEntries, timeRange, subRowAsMinutes)
-			console.log({ gridData })
 
-			return agendaEntries.flatMap((event) => {
+			const evs = agendaEntries.flatMap((event) => {
 				const passesThroughToday =
 					event.event.event.startTime.getTime() < timeRangeAsDate.start.getTime() &&
 					event.event.event.endTime.getTime() > timeRangeAsDate.end.getTime()
@@ -193,7 +193,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 				if (!evData) {
 					return []
 				}
-				const { start, end, size: spanSize }: GridEventData = evData
+				const { start, end, size: spanSize, gridColumnStart }: GridEventData = evData
 
 				return [
 					m(
@@ -203,7 +203,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 							style: {
 								"min-height": px(0),
 								"min-width": px(0),
-								"grid-column": `span ${spanSize}`,
+								"grid-column": `${gridColumnStart} / span ${spanSize}`,
 								background: event.color,
 								color: !event.featured ? colorForBg(event.color) : undefined,
 								"grid-row": `${start} / ${end}`,
@@ -243,6 +243,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 					),
 				]
 			}) as ChildArray
+			console.timeEnd("Timer")
+			return evs
 		},
 	)
 
@@ -271,171 +273,235 @@ export class TimeView implements Component<TimeViewAttributes> {
 		return { start, end }
 	}
 
+	// /**
+	//  * Processes agenda entries for CSS Grid layout.
+	//  * Returns grid-column span values for each event.
+	//  * Assumes input events are already sorted by start time.
+	//  *
+	//  * @param agendaEntries - Array of time view event wrappers (MUST be sorted by startTime)
+	//  * @param timeRange - The time range defining the grid boundaries
+	//  * @param subRowAsMinutes - Minutes per sub-row in the grid
+	//  * @returns Map of event IDs to their grid positioning data
+	//  */
+	// private processAgendaEntries(
+	//     agendaEntries: TimeViewEventWrapper[],
+	//     timeRange: TimeRange,
+	//     subRowAsMinutes: number
+	// ): Map<string, GridEventData> {
+	//     if (agendaEntries.length === 0) return new Map()
+	//
+	//     const baseMinutes = timeRange.start.asMinutes()
+	//     const subRowFactor = 1 / subRowAsMinutes
+	//
+	//     /**
+	//      * Converts a date to a grid row number based on time offset
+	//      */
+	//     const dateToRow = (date: Date): number => {
+	//         const minutesFromStart = date.getHours() * 60 + date.getMinutes() - baseMinutes
+	//         return Math.floor(minutesFromStart * subRowFactor) + 1
+	//     }
+	//
+	//     // Convert to row-based events (already sorted!)
+	//     const events = agendaEntries.map((e) => {
+	//         const evt = e.event.event
+	//         return {
+	//             id: elementIdPart(evt._id),
+	//             start: dateToRow(new Date(evt.startTime)),
+	//             end: dateToRow(new Date(evt.endTime)),
+	//             summary: evt.summary
+	//         }
+	//     })
+	//
+	//     // Build overlap groups
+	//     const groups: typeof events[] = []
+	//
+	//     for (const event of events) {
+	//         let targetGroup: typeof events | null = null
+	//
+	//         for (const group of groups) {
+	//             const overlaps = group.some(
+	//                 groupEvent =>
+	//                     groupEvent.start < event.end &&
+	//                     groupEvent.end > event.start
+	//             )
+	//
+	//             if (overlaps) {
+	//                 targetGroup = group
+	//                 break
+	//             }
+	//         }
+	//
+	//         if (targetGroup) {
+	//             targetGroup.push(event)
+	//         } else {
+	//             groups.push([event])
+	//         }
+	//     }
+	//
+	//     console.log("Groups => ", groups.map(g => g.map(e => e.summary)))
+	//
+	//     const result = new Map<string, GridEventData>()
+	//
+	//     for (const group of groups) {
+	//         // Assign columns
+	//         const assignments: Array<{ event: typeof events[0], column: number }> = []
+	//
+	//         for (const event of group) {
+	//             let column = 0
+	//
+	//             while (true) {
+	//                 const hasConflict = assignments.some(
+	//                     a => a.column === column &&
+	//                         a.event.start < event.end &&
+	//                         a.event.end > event.start
+	//                 )
+	//
+	//                 if (!hasConflict) {
+	//                     break
+	//                 }
+	//                 column++
+	//             }
+	//
+	//             assignments.push({event, column})
+	//         }
+	//
+	//         const totalColumns = Math.max(...assignments.map(a => a.column)) + 1
+	//
+	//         console.log("Assignments =>", assignments)
+	//         console.log("Total Columns =>", assignments)
+	//         // Calculate span for each event
+	//         for (const {event, column} of assignments) {
+	//             let span = 1
+	//
+	//             // Try to expand rightward
+	//             for (let checkCol = column + 1; checkCol < totalColumns; checkCol++) {
+	//                 const hasBlocker = assignments.some(
+	//                     a => a.column === checkCol &&
+	//                         a.event.start < event.end &&
+	//                         a.event.end > event.start
+	//                 )
+	//
+	//                 if (hasBlocker) break
+	//                 span++
+	//             }
+	//
+	//             result.set(event.id, {
+	//                 start: event.start,
+	//                 end: event.end,
+	//                 gridColumnStart: column + 1,  // CSS Grid is 1-indexed
+	//                 size: span,
+	//             })
+	//         }
+	//     }
+	//
+	//     return result
+	// }
+
+	/**
+	 * Processes agenda entries for CSS Grid layout.
+	 * Returns grid-column span values for each event.
+	 * Assumes input events are already sorted by start time.
+	 *
+	 * @param agendaEntries - Array of time view event wrappers (MUST be sorted by startTime)
+	 * @param timeRange - The time range defining the grid boundaries
+	 * @param subRowAsMinutes - Minutes per sub-row in the grid
+	 * @returns Map of event IDs to their grid positioning data
+	 */
 	private processAgendaEntries(agendaEntries: TimeViewEventWrapper[], timeRange: TimeRange, subRowAsMinutes: number): Map<string, GridEventData> {
-		interface EventData {
-			id: string
-			start: number
-			end: number
-			raw: EventRenderWrapper
-		}
+		if (agendaEntries.length === 0) return new Map()
 
 		const baseMinutes = timeRange.start.asMinutes()
+		const subRowFactor = 1 / subRowAsMinutes
+
+		/**
+		 * Converts a date to a grid row number based on time offset
+		 */
 		const dateToRow = (date: Date): number => {
 			const minutesFromStart = date.getHours() * 60 + date.getMinutes() - baseMinutes
-			return Math.floor(minutesFromStart / subRowAsMinutes) + 1
+			return Math.floor(minutesFromStart * subRowFactor) + 1
 		}
 
-		// 1. Convert to row-based range
-		const events: EventData[] = agendaEntries.map((e) => {
+		// Convert to row-based events (already sorted!)
+		const events = agendaEntries.map((e) => {
 			const evt = e.event.event
 			return {
 				id: elementIdPart(evt._id),
-				raw: e.event,
 				start: dateToRow(new Date(evt.startTime)),
 				end: dateToRow(new Date(evt.endTime)),
+				summary: evt.summary,
 			}
 		})
 
-		// 2. Sort by start row
-		events.sort((a, b) => a.start - b.start)
-
-		// 3. Group overlapping events
-		const groups: EventData[][] = []
-		let currentGroup: EventData[] = []
-		let currentGroupEnd = -1
-		let maxColumns = 0
+		// Build overlap groups
+		const groups: (typeof events)[] = []
 
 		for (const event of events) {
-			if (event.start >= currentGroupEnd && currentGroup.length > 0) {
-				groups.push(currentGroup)
-				maxColumns = Math.max(maxColumns, currentGroup.length)
-				currentGroup = []
+			let targetGroup: typeof events | null = null
+
+			for (const group of groups) {
+				const overlaps = group.some((groupEvent) => groupEvent.start < event.end && groupEvent.end > event.start)
+
+				if (overlaps) {
+					targetGroup = group
+					break
+				}
 			}
 
-			currentGroup.push(event)
-			currentGroupEnd = Math.max(currentGroupEnd, event.end)
+			if (targetGroup) {
+				targetGroup.push(event)
+			} else {
+				groups.push([event])
+			}
 		}
 
-		// Push last group
-		if (currentGroup.length > 0) {
-			groups.push(currentGroup)
-			maxColumns = Math.max(maxColumns, currentGroup.length)
-		}
-
-		// 4. Allocate space for each event
 		const result = new Map<string, GridEventData>()
-
+		const assignedGroups = []
+		let totalColumns = -1
 		for (const group of groups) {
-			const baseSize = Math.floor(maxColumns / group.length)
-			let remainder = maxColumns % group.length
+			// Assign columns
+			const assignments: Array<{ event: (typeof events)[0]; column: number }> = []
 
-			for (let i = 0; i < group.length; i++) {
-				const size = baseSize + (remainder > 0 ? 1 : 0)
-				result.set(group[i].id, {
-					start: group[i].start,
-					end: group[i].end,
-					size,
+			for (const event of group) {
+				let column = 0
+
+				while (true) {
+					const hasConflict = assignments.some((a) => a.column === column && a.event.start < event.end && a.event.end > event.start)
+
+					if (!hasConflict) {
+						break
+					}
+					column++
+				}
+
+				assignments.push({ event, column })
+			}
+
+			assignedGroups.push(assignments)
+
+			totalColumns = Math.max(Math.max(...assignments.map((a) => a.column)) + 1, totalColumns)
+		}
+
+		for (const assignments of assignedGroups) {
+			for (const { event, column } of assignments) {
+				let span = 1
+
+				// Try to expand rightward
+				for (let checkCol = column + 1; checkCol < totalColumns; checkCol++) {
+					const hasBlocker = assignments.some((a) => a.column === checkCol && a.event.start < event.end && a.event.end > event.start)
+
+					if (hasBlocker) break
+					span++
+				}
+
+				result.set(event.id, {
+					start: event.start,
+					end: event.end,
+					gridColumnStart: column + 1, // CSS Grid is 1-indexed
+					size: span,
 				})
-				if (remainder > 0) remainder--
 			}
 		}
 
 		return result
-	}
-
-	private calculateGridData(
-		agendaEntries: TimeViewEventWrapper[],
-		timeRange: TimeRange,
-		subRowAsMinutes: number,
-		subRowCount: number,
-		timeScale: TimeScale,
-		baseDate: Date,
-	): GridData {
-		const baseMinutes = timeRange.start.asMinutes()
-
-		const dateToRow = (date: Date): number => {
-			const minutesFromStart = date.getHours() * 60 + date.getMinutes() - baseMinutes
-			return Math.floor(minutesFromStart / subRowAsMinutes) + 1
-		}
-
-		interface EventData {
-			id: string
-			start: number
-			end: number
-			raw: EventRenderWrapper
-		}
-
-		// 1. Convert events to row-based range
-		const events: EventData[] = agendaEntries.map((e) => ({
-			id: elementIdPart(e.event.event._id),
-			raw: e.event,
-			start: dateToRow(new Date(e.event.event.startTime)),
-			end: dateToRow(new Date(e.event.event.endTime)),
-		}))
-
-		// 2. Sort events by start row
-		events.sort((a, b) => a.start - b.start)
-
-		let maxColumnCount = 0
-
-		// 3. Group overlapping events
-		let conflictingEventsGroups: Array<EventData[]> = []
-		let groupEnd = -1
-		let group = []
-		for (const eventData of events) {
-			if (eventData.start >= groupEnd) {
-				// Process last group
-				if (group.length > 0) {
-					maxColumnCount = Math.max(maxColumnCount, group.length)
-					conflictingEventsGroups.push(group)
-				}
-
-				group = []
-				groupEnd = eventData.end
-			}
-
-			group.push(eventData)
-			groupEnd = Math.max(groupEnd, eventData.end)
-		}
-		maxColumnCount = Math.max(maxColumnCount, group.length)
-		conflictingEventsGroups.push(group)
-
-		const result: Map<Id, GridEventData> = new Map()
-		for (const group of conflictingEventsGroups) {
-			let availableSpace = maxColumnCount
-
-			for (let i = 0; i < group.length; i++) {
-				const event = group[i]
-				let size = Math.floor(maxColumnCount / group.length)
-				availableSpace -= size
-				result.set(event.id, {
-					start: event.start,
-					end: event.end,
-					size,
-				})
-			}
-
-			let i = 0
-			while (availableSpace > 0) {
-				const ev = result.get(group[i].id)
-				if (!ev) continue
-
-				ev.size += 1
-				result.set(group[i].id, ev)
-
-				if (i === group.length - 1) {
-					i = 0
-				} else {
-					i += 1
-				}
-
-				availableSpace--
-			}
-		}
-
-		return {
-			maxColumnCount,
-			events: result,
-		}
 	}
 }
