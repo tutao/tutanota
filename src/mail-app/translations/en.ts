@@ -2132,6 +2132,7 @@ export default {
 		"confirmOverwriteDraft_msg": "This draft was opened for editing on {opened}, but a newer version was retrieved from the server on {updated}.\n\nWould you like to overwrite the newer draft with this one, discard this draft, or cancel saving this draft?",
 		"overwrite_action": "Overwrite",
 		"allDayEvents_label": "all day events",
-		"conflicts_label": "conflicts"
+		"conflicts_label": "conflicts",
+		"relatedPeople_label": "Related people"
 	}
 }
