@@ -105,6 +105,8 @@ targets:
           "-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT",
           "-DSQLITE_TEMP_STORE=3",
           "-DSQLITE_THREADSAFE=1",
+          "-DSQLITE_EXTRA_INIT=sqlcipher_extra_init",
+          "-DSQLITE_EXTRA_SHUTDOWN=sqlcipher_extra_shutdown"
         ]
       IPHONEOS_DEPLOYMENT_TARGET: "16.0"
     preBuildScripts:
