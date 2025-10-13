@@ -155,6 +155,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			dates,
 			conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
 			events,
+			timeIndicator: Time.fromDate(new Date()),
 		} satisfies TimeViewAttributes)
 	}
 }
