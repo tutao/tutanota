@@ -1242,7 +1242,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			okAction: (dialog, properties) => this.handleModifiedCalendar(dialog, properties, calendarInfo, existingGroupSettings, userSettingsGroupRoot),
 			okTextId: "save_action",
 			calendarProperties: {
-				nameData: await this.viewModel.getCalendarNameData(calendarInfo.groupInfo),
+				nameData: isClientOnlyCalendar(groupInfo.group)
+					? { kind: "single", name: deviceConfig.getClientOnlyCalendars().get(groupInfo.group)?.name ?? "" }
+					: await this.viewModel.getCalendarNameData(calendarInfo.groupInfo),
 				color: colorValue.substring(1),
 				alarms: existingGroupSettings?.defaultAlarmsList.map((alarm) => parseAlarmInterval(alarm.trigger)) ?? [],
 				sourceUrl: existingGroupSettings?.sourceUrl ?? null,
