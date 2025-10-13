@@ -17,6 +17,7 @@ import { PaymentIntervalSwitch } from "./components/PaymentIntervalSwitch.js"
 import { PersonalPlanContainer } from "./components/PersonalPlanContainer"
 import { BusinessPlanContainer } from "./components/BusinessPlanContainer"
 import { DiscountDetail, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
+import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -32,7 +33,9 @@ type PlanSelectorAttr = {
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
-	private readonly selectedPlan: Stream<PlanType> = stream(PlanType.Revolutionary)
+	private readonly selectedPlan: Stream<PlanType> = stream(
+		SignupFlowUsageTestController.getUsageTestVariant() === 1 ? PlanType.Revolutionary : PlanType.Legend,
+	)
 	private readonly shouldFixButtonPos: Stream<boolean> = stream(false)
 
 	oncreate({ attrs: { availablePlans, currentPlan } }: Vnode<PlanSelectorAttr>) {

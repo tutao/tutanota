@@ -8,7 +8,6 @@ import { PersonalFreePlanBox } from "./PersonalFreePlanBox"
 import { PlanConfig } from "./BusinessPlanContainer"
 import { Icons } from "../../gui/base/icons/Icons"
 import { filterPlanConfigsAndGetSelectedPlan, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
-import { SignupFlowUsageTestController } from "../usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
 export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 	private paidPlanConfigs: PlanConfig[] = [
@@ -76,8 +75,6 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 	]
 
 	oncreate({ attrs }: Vnode<PlanBoxContainerAttrs>) {
-		if (SignupFlowUsageTestController.getUsageTestVariant() === 2) this.paidPlanConfigs.reverse()
-
 		const { planConfigs, selectedPlan } = filterPlanConfigsAndGetSelectedPlan(
 			this.paidPlanConfigs,
 			attrs.availablePlans,
