@@ -58,7 +58,7 @@ import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory.js"
 import { EntropyFacade } from "../common/api/worker/facades/EntropyFacade.js"
 import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherFacade.js"
-import { assert, assertNotNull, defer, DeferredObject, isNotNull, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
@@ -302,10 +302,7 @@ class MailLocator implements CommonLocator {
 	})
 
 	readonly spamClassificationHandler = lazyMemoized(() => {
-		if (isNotNull(this.spamClassifier)) {
-			return new SpamClassificationHandler(this.mailFacade, this.spamClassifier, this.entityClient, this.bulkMailLoader)
-		}
-		return null
+		return new SpamClassificationHandler(this.mailFacade, this.spamClassifier, this.entityClient, this.bulkMailLoader)
 	})
 
 	async searchViewModelFactory(): Promise<() => SearchViewModel> {

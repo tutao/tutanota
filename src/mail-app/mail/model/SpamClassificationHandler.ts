@@ -15,7 +15,7 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 export class SpamClassificationHandler {
 	public constructor(
 		private readonly mailFacade: MailFacade,
-		private readonly spamClassifier: SpamClassifier,
+		private readonly spamClassifier: Nullable<SpamClassifier>,
 		private readonly entityClient: EntityClient,
 		private readonly bulkMailLoader: BulkMailLoader,
 	) {}
@@ -27,7 +27,7 @@ export class SpamClassificationHandler {
 		folderSystem: FolderSystem,
 	): Promise<MailFolder> {
 		const inboxRuleTargetFolder = await inboxRuleOutcome
-		if (isDraft(mail)) {
+		if (isDraft(mail) || this.spamClassifier == null) {
 			return inboxRuleTargetFolder ?? serverDeliveredMailFolder
 		}
 
@@ -76,9 +76,10 @@ export class SpamClassificationHandler {
 	public async updateSpamClassificationData(events: ReadonlyArray<EntityUpdateData>, mail: Mail, mailSetKind: MailSetKind) {
 		const changedMailSetEntry = events.find((el) => isUpdateForTypeRef(MailSetEntryTypeRef, el)) != null
 		const mailHasBeenRead = !mail.unread
-		if (!mailHasBeenRead && !changedMailSetEntry) {
+		if ((!mailHasBeenRead && !changedMailSetEntry) || this.spamClassifier == null) {
 			return
 		}
+
 		const storedClassification = await this.spamClassifier.getStoredClassification(mail)
 
 		let isSpamConfidence = this.getSpamConfidence(mail, mailSetKind)
@@ -126,7 +127,7 @@ export class SpamClassificationHandler {
 			isSpamConfidence: confidence,
 			ownerGroup: assertNotNull(mail._ownerGroup),
 		}
-		await this.spamClassifier.storeSpamClassification(spamTrainMailDatum)
+		await assertNotNull(this.spamClassifier).storeSpamClassification(spamTrainMailDatum)
 	}
 
 	public async downloadMail(mailId: IdTuple): Promise<Nullable<Mail>> {
