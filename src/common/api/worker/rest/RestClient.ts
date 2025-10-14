@@ -1,12 +1,11 @@
 import { assertWorkerOrNode, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "../../common/Env"
 import { ConnectionError, handleRestError, PayloadTooLargeError } from "../../common/error/RestError"
 import { HttpMethod, MediaType, ServerModelInfo } from "../../common/EntityFunctions"
-import { assertNotNull, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
+import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/tutanota-utils"
 import { isSuspensionResponse, SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
-
-import { newPromise } from "@tutao/tutanota-utils"
+import { client } from "../../../misc/ClientDetector"
 
 assertWorkerOrNode()
 
@@ -80,6 +79,7 @@ export class RestClient {
 
 				if (options.noCORS) {
 					queryParams["cv"] = env.versionNumber
+					queryParams["cp"] = client.getClientPlatform().valueOf().toString() // FIXME: should we keep this? We technically don't need it (I think)
 					if (env.networkDebugging) {
 						queryParams["network-debugging"] = "enable-network-debugging"
 					}
@@ -328,6 +328,7 @@ export class RestClient {
 		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 		if (!options.noCORS) {
 			headers["cv"] = env.versionNumber
+			headers["cp"] = String(client.getClientPlatform())
 			if (body instanceof Uint8Array) {
 				headers["Content-Type"] = MediaType.Binary
 			} else if (typeof body === "string") {
