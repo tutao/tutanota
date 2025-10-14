@@ -1814,7 +1814,13 @@ mod tests {
 				],
 			)]),
 		"1465"=> JsonElement::Array(vec![]),
-		"1677"=> JsonElement::Null
+		"1677"=> JsonElement::Null,
+		"1728"=> JsonElement::String(
+				"1".to_string(),
+			),
+		"1729"=> JsonElement::Array(
+				vec![],
+			),
 		}
 	}
 

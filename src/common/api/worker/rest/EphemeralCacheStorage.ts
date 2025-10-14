@@ -43,6 +43,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	private readonly blobEntities: Map<string, BlobElementTypeCache> = new Map()
 	private lastUpdateTime: number | null = null
 	private lastTrainedTime: number | null = null
+	private lastTrainedFromScratchTime: number | null = null
 	private userId: Id | null = null
 	private lastBatchIdPerGroup = new Map<Id, Id>()
 
@@ -424,6 +425,14 @@ export class EphemeralCacheStorage implements CacheStorage {
 
 	async setLastTrainedTime(value: number): Promise<void> {
 		this.lastTrainedTime = value
+	}
+
+	async getLastTrainedFromScratchTime(): Promise<number> {
+		return this.lastTrainedFromScratchTime ?? Date.now()
+	}
+
+	async setLastTrainedFromScratchTime(ms: number): Promise<void> {
+		this.lastTrainedFromScratchTime = ms
 	}
 
 	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {

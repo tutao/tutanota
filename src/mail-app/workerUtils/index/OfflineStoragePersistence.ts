@@ -70,7 +70,9 @@ export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> 
 	// Spam classification training data
 	spam_classification_training_data: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
+			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL," +
+			" ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, " +
+			"lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
 		purgedWithCache: true,
 	},
 
@@ -200,24 +202,43 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async updateSpamClassificationData(id: IdTuple, isSpam: boolean, isSpamConfidence: number): Promise<void> {
+	async deleteSpamClassification(mailId: IdTuple): Promise<void> {
+		const mailListId = listIdPart(mailId)
+		const mailElementId = elementIdPart(mailId)
+		const { query, params } = sql`
+            DELETE
+            FROM spam_classification_training_data
+            where listId = ${mailListId}
+              AND elementId = ${mailElementId}`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async deleteSpamClassificationTrainingDataBeforeCutoff(cutoffTimestamp: number, ownerGroupId: Id): Promise<void> {
+		const { query, params } = sql`DELETE
+                                    FROM spam_classification_training_data
+                                    WHERE lastModified < ${cutoffTimestamp}
+                                      AND ownerGroup = ${ownerGroupId}`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async updateSpamClassification(mailId: IdTuple, isSpam: boolean, isSpamConfidence: number): Promise<void> {
 		const { query, params } = sql`
             UPDATE spam_classification_training_data
             SET lastModified=${Date.now()},
                 isSpamConfidence=${isSpamConfidence},
                 isSpam=${isSpam ? 1 : 0}
-            WHERE listId = ${listIdPart(id)}
-              AND elementId = ${elementIdPart(id)}
+            WHERE listId = ${listIdPart(mailId)}
+              AND elementId = ${elementIdPart(mailId)}
         `
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async getStoredClassification(mail: Mail): Promise<Nullable<{ isSpam: boolean; isSpamConfidence: number }>> {
+	async getSpamClassification(mailId: IdTuple): Promise<Nullable<{ isSpam: boolean; isSpamConfidence: number }>> {
 		const { query, params } = sql`
             SELECT isSpam, isSpamConfidence
             FROM spam_classification_training_data
-            where listId = ${listIdPart(mail._id)}
-              AND elementId = ${elementIdPart(mail._id)} `
+            where listId = ${listIdPart(mailId)}
+              AND elementId = ${elementIdPart(mailId)} `
 		const result = await this.sqlCipherFacade.get(query, params)
 		if (!result) {
 			return null
@@ -368,10 +389,6 @@ export class OfflineStoragePersistence {
 			return null
 		}
 		return untagSqlObject(rowIdResult).rowid
-	}
-
-	public async tokenize(text: string): Promise<ReadonlyArray<string>> {
-		return this.sqlCipherFacade.tokenize(text)
 	}
 }
 

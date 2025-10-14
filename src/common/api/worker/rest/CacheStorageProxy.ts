@@ -1,11 +1,10 @@
 import { CacheStorage, LastUpdateTime, Range } from "./DefaultEntityRestCache.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
 import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity } from "../../common/EntityTypes"
-import { TypeRef } from "@tutao/tutanota-utils"
+import { Nullable, TypeRef } from "@tutao/tutanota-utils"
 import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"
 import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
-import { Nullable } from "@tutao/tutanota-utils"
 
 export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
 	type: "ephemeral"
@@ -192,6 +191,14 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	getLastTrainedTime(): Promise<number> {
 		return this.inner.getLastTrainedTime()
+	}
+
+	setLastTrainedFromScratchTime(ms: number): Promise<void> {
+		return this.inner.setLastTrainedFromScratchTime(ms)
+	}
+
+	getLastTrainedFromScratchTime(): Promise<number> {
+		return this.inner.getLastTrainedFromScratchTime() ?? Date.now()
 	}
 
 	setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {

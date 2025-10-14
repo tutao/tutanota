@@ -172,7 +172,7 @@ async function rollupTensorFlow(src, target, banner) {
 					},
 				],
 			}),
-			logResolvePlugin,
+			// logResolvePlugin,
 			nodeResolve(),
 			commonjs(),
 		],

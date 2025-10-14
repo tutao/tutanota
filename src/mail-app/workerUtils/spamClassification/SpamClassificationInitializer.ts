@@ -1,5 +1,4 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { assertNotNull, isNotNull, lazyAsync } from "@tutao/tutanota-utils"
 import { MailBag, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolder, MailFolderTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { getMailSetKind, MailSetKind } from "../../../common/api/common/TutanotaConstants"
@@ -9,6 +8,7 @@ import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
 import { SpamTrainMailDatum } from "./SpamClassifier"
+import { getSpamConfidence } from "./SpamClassificationHandler"
 
 const INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS = 28
 
@@ -22,7 +22,6 @@ export class SpamClassificationInitializer {
 
 	constructor(
 		private readonly entityClient: EntityClient,
-		private readonly userFacade: UserFacade,
 		private readonly offlineStorage: OfflineStoragePersistence,
 		private readonly bulkMailLoader: lazyAsync<BulkMailLoader>,
 	) {}
@@ -91,16 +90,14 @@ export class SpamClassificationInitializer {
 
 	private mailWithDetailsToMailDatum(spamFolder: MailFolder, inboxFolder: MailFolder, { mail, mailDetails }: MailWithMailDetails): SpamTrainMailDatum {
 		const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
-		const isCertain = !mail.unread || !mail.sets.some((folderId) => isSameId(folderId, inboxFolder._id))
 		return {
 			mailId: mail._id,
 			subject: mail.subject,
 			body: getMailBodyText(mailDetails.body),
 			isSpam: isSpam,
-			isSpamConfidence: isCertain ? 1 : 0,
+			isSpamConfidence: getSpamConfidence(mail),
 			listId: listIdPart(mail._id),
 			elementId: elementIdPart(mail._id),
-			// todo: when owner group is null?
 			ownerGroup: assertNotNull(mail._ownerGroup),
 		} as SpamTrainMailDatum
 	}
