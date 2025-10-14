@@ -455,11 +455,7 @@ async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: W
 			type: "error",
 			title: "Tuta Mail",
 			message: lang.getTranslation("secretStorageError_msg", { "{url}": InfoLink.SecretStorage }).text,
-			buttons: [
-				lang.getTranslation("continue_action").text,
-				lang.getTranslation("clearLocalData_action").text,
-				lang.getTranslation("restart_action").text,
-			],
+			buttons: [lang.getTranslation("continue_action").text, lang.getTranslation("clearLocalData_action").text, lang.getTranslation("quit_action").text],
 			defaultId: 2,
 			cancelId: 0,
 		})
@@ -467,7 +463,6 @@ async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: W
 			case 0:
 				break
 			case 1:
-				utils.relaunch()
 				for (const window of wm.getAll()) {
 					log.debug("Closing window ", window.id)
 					// ideally we would destroy the window but it leads to obscure segfaults
@@ -479,12 +474,11 @@ async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: W
 				log.debug("Invalidating keychain")
 				await keyStoreFacade.invalidateKeychain()
 				log.debug("Quitting app")
-				app.quit()
 				log.debug("App exited")
+				utils.exit()
 				break
 			case 2:
-				utils.relaunch()
-				app.quit()
+				utils.exit()
 				break
 			default:
 				throw new ProgrammingError("Invalid choice")
