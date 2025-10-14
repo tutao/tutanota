@@ -51,7 +51,7 @@ export class RowButton implements Component<RowButtonAttrs> {
 					: attrs.icon === "none"
 						? m(".icon-large.mr-button")
 						: null,
-			class: "flex items-center state-bg button-content plr-button " + attrs.class,
+			class: "flex items-center state-bg button-content plr-button" + attrs.class,
 			style: {
 				...attrs.style,
 				color,

@@ -216,12 +216,54 @@ export const themes = (): Themes => {
 		go_european: goEuropeanLightBlue,
 		on_go_european: "#111111",
 	})
+	const black = Object.freeze<Theme>({
+		...semanticColorsDark,
+		themeId: "black",
+		logo: getAppLogo("#8E9099AA"),
+		// Basic color tokens
+		primary: "#e5e5e5",
+		on_primary: "#171717",
+		primary_container: "#e5e5e5",
+		on_primary_container: "#171717",
+		secondary: "#d1d1d1",
+		on_secondary: "#353535",
+		secondary_container: "#4d4d4d",
+		on_secondary_container: "#eaeaea",
+		tertiary: "#ababab",
+		on_tertiary: "#1b1b1b",
+		tertiary_container: "#282828",
+		on_tertiary_container: "#c7c7c7",
+		surface: "#0a0a0a",
+		surface_container: "#141414",
+		surface_container_high: "#202020",
+		surface_container_highest: "#2b2b2b",
+		on_surface: "#e3e3e3",
+		on_surface_variant: "#cacaca",
+		outline: "#939393",
+		outline_variant: "#494949",
+		scrim: "#000000",
+		experimental_primary_container: "#C9C6C5",
+		experimental_on_primary_container: "#232323",
+		experimental_tertiary: "#0040FF",
+		// state colors; based on outline_variant, with alpha
+		state_bg_hover: "#44474E99",
+		state_bg_focus: "#44474EAA",
+		state_bg_active: "#44474EDD",
+		// Campaign colors
+		tuta_color_nota: "#D93951",
+		content_accent_tuta_bday: "#FCBFDE",
+		content_accent_secondary_tuta_bday: "#AC3E80",
+		content_bg_tuta_bday: "#FFFFFF",
+		go_european: goEuropeanLightBlue,
+		on_go_european: "#111111",
+	})
 
 	return {
 		light: isCalendarApp ? lightBlue : lightRed,
 		dark: isCalendarApp ? darkBlue : darkRed,
 		light_secondary: isCalendarApp ? lightRed : lightBlue,
 		dark_secondary: isCalendarApp ? darkRed : darkBlue,
+		black: black,
 	}
 }
 
