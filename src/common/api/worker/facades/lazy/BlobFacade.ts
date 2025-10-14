@@ -15,7 +15,7 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import { ArchiveDataType, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
+import { ArchiveDataType, CANCEL_UPLOAD_EVENT, MAX_BLOB_SIZE_BYTES } from "../../../common/TutanotaConstants.js"
 
 import { HttpMethod, MediaType } from "../../../common/EntityFunctions.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
@@ -89,23 +89,38 @@ export class BlobFacade {
 		ownerGroupId: Id,
 		sessionKey: AesKey,
 		onChunkUploaded?: (info: ChunkedUploadInfo) => Promise<void>,
+		onCancelListener?: EventTarget,
 	): Promise<BlobReferenceTokenWrapper[]> {
 		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
 
+		let uploadIsCanceledByUser = false
+		const doCancelUpload = () => {
+			uploadIsCanceledByUser = true
+		}
+
+		// Ensure that only one listener exists at any time.
+		onCancelListener?.removeEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
+		onCancelListener?.addEventListener(CANCEL_UPLOAD_EVENT, doCancelUpload)
+
 		const doBlobRequest = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return promiseMap(chunks, async (chunk, index) => {
+			const receivedTokens: BlobReferenceTokenWrapper[] = []
+
+			for (const chunk of chunks) {
+				if (uploadIsCanceledByUser) {
+					return []
+				}
 				const blobReferenceTokenWrapper = await this.encryptAndUploadChunk(chunk, blobServerAccessInfo, sessionKey)
-				//await timeout(500)
-
-				// TODO: Handle cancelled/failed upload -> stop progress tracker.
 				await onChunkUploaded?.({ fileNameId: "", totalBytes: blobData.length, uploadedBytes: chunk.length })
+				receivedTokens.push(blobReferenceTokenWrapper)
+			}
 
-				return blobReferenceTokenWrapper
-			})
+			return receivedTokens
 		}
+
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
 
+		/* TODO: Communicate retry case to UploadProgressListener so it can reset the model state / inform the user via the UI */
 		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
 	}
 

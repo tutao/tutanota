@@ -1,7 +1,7 @@
 import { KeyLoaderFacade } from "./KeyLoaderFacade"
 import { EntityClient } from "../../common/EntityClient"
 import { IServiceExecutor } from "../../common/ServiceRequest"
-import { ArchiveDataType, GroupType } from "../../common/TutanotaConstants"
+import { ArchiveDataType, CANCEL_UPLOAD_EVENT, GroupType } from "../../common/TutanotaConstants"
 import {
 	createDriveCreateData,
 	createDriveDeleteIn,
@@ -32,6 +32,8 @@ export interface BreadcrumbEntry {
 }
 
 export class DriveFacade {
+	private readonly onCancelListener: EventTarget
+
 	constructor(
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly blobFacade: BlobFacade,
@@ -40,7 +42,9 @@ export class DriveFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly progressTracker: ExposedProgressTracker,
 		private readonly uploadProgressListener: UploadProgressListener,
-	) {}
+	) {
+		this.onCancelListener = new EventTarget()
+	}
 
 	public async updateMetadata(file: File & { metadata: DriveFileMetadata }) {
 		const data = createDriveFileMetadataCreateData({ isFavorite: file.metadata.isFavorite, file: file._id })
@@ -109,21 +113,6 @@ export class DriveFacade {
 		return [files, decryptedNamesAndFiles]
 	}
 
-	// find a better way !
-	// public async uploadFilesToRoot(files: (FileReference | DataFile)[]) {
-	// 	let fileGroupId = this.userFacade.getGroupId(GroupType.File)
-	// 	console.log("fileGroupId:: for this user :: ", fileGroupId)
-	//
-	// 	const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
-	// 	console.log(`driveGroupRoot :: `, driveGroupRoot)
-	//
-	// 	const rootFileIdTuple = driveGroupRoot.root
-	// 	const rootFile = await this.entityClient.load(FileTypeRef, rootFileIdTuple)
-	// 	console.log(`rootFile :: `, rootFile)
-	//
-	// 	return this.uploadFiles(rootFile, files)
-	// }
-
 	/**
 	 *
 	 * @param files the files to upload
@@ -152,6 +141,7 @@ export class DriveFacade {
 				async (info: ChunkedUploadInfo) => {
 					this.uploadProgressListener.onChunkUploaded({ ...info, fileNameId: f.name })
 				},
+				this.onCancelListener,
 				// async (totalChunks: number, doneChunks: number) => {
 				// 	console.log("onChunkUploaded:", doneChunks, "/", totalChunks)
 				// 	if (uploadMonitorId == null) {
@@ -160,6 +150,11 @@ export class DriveFacade {
 				// 	await this.progressTracker.workDoneForMonitor(uploadMonitorId, 1)
 				// },
 			)
+
+			if (blobRefTokens.length === 0) {
+				console.log("No blob reference tokens, looks like this upload has been cancelled.")
+				continue
+			}
 
 			const uploadedFile = createDriveUploadedFile({
 				referenceTokens: blobRefTokens,
@@ -179,6 +174,10 @@ export class DriveFacade {
 
 		const createdFiles = await Promise.all(createdFilesResponse.map((idTuple) => this.entityClient.load(FileTypeRef, idTuple)))
 		return createdFiles
+	}
+
+	public async cancelCurrentUpload() {
+		this.onCancelListener.dispatchEvent(new CustomEvent(CANCEL_UPLOAD_EVENT))
 	}
 
 	/**

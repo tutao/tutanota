@@ -33,7 +33,7 @@ export interface DisplayFolder {
 }
 
 export class DriveViewModel {
-	driveUploadStackModel = new DriveUploadStackModel()
+	public readonly driveUploadStackModel: DriveUploadStackModel
 
 	// normal folder view
 	currentFolder!: DisplayFolder
@@ -44,7 +44,9 @@ export class DriveViewModel {
 		private readonly driveFacade: DriveFacade,
 		private readonly router: Router,
 		public readonly uploadProgressListener: UploadProgressListener,
-	) {}
+	) {
+		this.driveUploadStackModel = new DriveUploadStackModel(driveFacade)
+	}
 
 	async initialize() {
 		this.rootFolder = await this.driveFacade.loadDriveGroupRoot()

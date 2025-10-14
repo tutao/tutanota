@@ -182,19 +182,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
 			if (files) {
 				for (const file of files) {
-					this.driveViewModel.driveUploadStackModel.addUpload(
-						file.name,
-						file.size,
-						() => {
-							console.log("paused upload")
-						},
-						() => {
-							console.log("resumed upload")
-						},
-						() => {
-							console.log("cancelled upload")
-						},
-					)
+					this.driveViewModel.driveUploadStackModel.addUpload(file.name, file.size)
 				}
 
 				this.driveViewModel.uploadFiles([...files]).then(() => {

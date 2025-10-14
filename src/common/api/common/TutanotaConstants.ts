@@ -1378,3 +1378,5 @@ export function asPublicKeySignatureType(maybe: NumberString): PublicKeySignatur
 	}
 	throw new Error("bad public key signature type")
 }
+
+export const CANCEL_UPLOAD_EVENT = "CANCEL_UPLOAD_EVENT"
