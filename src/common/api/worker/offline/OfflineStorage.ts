@@ -104,6 +104,7 @@ export interface OfflineDbMeta {
 	// offline db schema version
 	"offline-version": number
 	lastTrainedTime: number
+	lastTrainedFromScratchTime: number
 }
 
 export const TableDefinitions = Object.freeze({
@@ -810,6 +811,14 @@ export class OfflineStorage implements CacheStorage {
 
 	async setLastTrainedTime(ms: number): Promise<void> {
 		await this.putMetadata("lastTrainedTime", ms)
+	}
+
+	async getLastTrainedFromScratchTime(): Promise<number> {
+		return (await this.getMetadata("lastTrainedFromScratchTime")) ?? Date.now()
+	}
+
+	async setLastTrainedFromScratchTime(ms: number): Promise<void> {
+		await this.putMetadata("lastTrainedFromScratchTime", ms)
 	}
 
 	async purgeStorage(): Promise<void> {

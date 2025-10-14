@@ -93,6 +93,7 @@ export const DEFAULT_PREPROCESS_CONFIGURATION: PreprocessConfiguration = {
 }
 
 const TRAINING_INTERVAL = 1000 * 60 * 10
+const FULL_RETRAINING_INTERVAL = 1000 * 60 * 60 * 24 * 7
 
 type TrainingPerformance = {
 	trainingTime: number
@@ -133,6 +134,14 @@ export class SpamClassifier {
 		const loadedModel = await this.loadModel(ownerGroup)
 
 		const storage = assertNotNull(this.offlineStorageCache)
+		setInterval(async () => {
+			const cutoffDate = Date.now() - FULL_RETRAINING_INTERVAL
+			const lastFullTrainingTime = await storage.getLastTrainedFromScratchTime()
+
+			if (cutoffDate > lastFullTrainingTime) {
+				await this.retrainModelFromScratch(storage, ownerGroup, cutoffDate)
+			}
+		}, FULL_RETRAINING_INTERVAL)
 		if (isNotNull(loadedModel)) {
 			console.log("Loaded existing spam classification model from database")
 
@@ -146,12 +155,17 @@ export class SpamClassifier {
 		}
 
 		console.log("No existing model found. Training from scratch...")
-		const data = await this.initializer.init(ownerGroup)
-		await this.initialTraining(data)
-		await this.saveModel(ownerGroup)
+		await this.trainFromScratch(storage, ownerGroup)
 		setInterval(async () => {
 			await this.updateAndSaveModel(storage, ownerGroup)
 		}, TRAINING_INTERVAL)
+	}
+
+	private async trainFromScratch(storage: CacheStorage, ownerGroup: string) {
+		const data = await this.initializer.init(ownerGroup)
+		await this.initialTraining(data)
+		await this.saveModel(ownerGroup)
+		await storage.setLastTrainedFromScratchTime(Date.now())
 	}
 
 	// VisibleForTesting
@@ -583,6 +597,18 @@ export class SpamClassifier {
 		const concatenated = `${subject} ${body}`.trim()
 		return concatenated.length > 0 ? concatenated : " "
 	}
+
+    private async retrainModelFromScratch(storage: CacheStorage, ownerGroup: Id, cutoffTimestamp: number) {
+        console.log("Model is being re-trained from scratch, deleting old data")
+        try {
+            await assertNotNull(this.offlineStorage).deleteSpamClassificationTrainingDataBeforeCutoff(cutoffTimestamp, ownerGroup)
+        } catch (e) {
+            console.error("Failed delete old training data: ", e)
+            return
+        }
+
+        await this.trainFromScratch(storage, ownerGroup)
+    }
 
 	// === Testing methods
 	public async cloneClassifier(): Promise<SpamClassifier> {

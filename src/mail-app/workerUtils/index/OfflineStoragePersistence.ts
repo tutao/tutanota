@@ -238,6 +238,14 @@ export class OfflineStoragePersistence {
 		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamTrainMailDatum)
 	}
 
+	async deleteSpamClassificationTrainingDataBeforeCutoff(cutoffTimestamp: number, ownerGroupId: Id): Promise<void> {
+		const { query, params } = sql`DELETE
+									  FROM spam_classification_training_data
+									  WHERE lastModified < ${cutoffTimestamp}
+										AND ownerGroup = ${ownerGroupId}`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
 	async putSpamClassificationModel(model: SpamClassificationModel) {
 		const { query, params } = sql`INSERT
 		OR REPLACE INTO
