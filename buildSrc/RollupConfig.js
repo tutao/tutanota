@@ -21,6 +21,7 @@ export const dependencyMap = {
 	jsqr: path.normalize("./libs/jsQR.js"),
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
+	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
 }
 
 /**
@@ -45,7 +46,8 @@ export const allowedImports = {
 	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor"],
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "contacts"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
-	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback"],
+	"spam-classifier": ["polyfill-helpers", "common", "common-min"],
+	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback", "spam-classifier"],
 	"pow-worker": [],
 	settings: [
 		"polyfill-helpers",
@@ -240,6 +242,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "wasm"
 	} else if (moduleId.includes("wasm-fallback")) {
 		return "wasm-fallback"
+	} else if (isIn("src/mail-app/workerUtils/spamClassification") || moduleId.includes("libs/tensorflow.js")) {
+		return "spam-classifier"
 	} else if (
 		isIn("src/common/native/worker") ||
 		isIn("src/mail-app/workerUtils/worker") ||
