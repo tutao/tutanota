@@ -6,6 +6,14 @@ export interface DriveUploadStackAttrs {
 	model: DriveUploadStackModel
 }
 
+const uploadStackStyles = {
+	position: "absolute",
+	width: "500px",
+	bottom: "0",
+	right: "10px",
+	"box-shadow": "0 0 7px -2px #0006",
+}
+
 export class DriveUploadStack implements Component<DriveUploadStackAttrs> {
 	view(vnode: Vnode<DriveUploadStackAttrs>): Children {
 		const model = vnode.attrs.model
@@ -15,6 +23,7 @@ export class DriveUploadStack implements Component<DriveUploadStackAttrs> {
 
 		return m(
 			".flex.col",
+			{ style: uploadStackStyles },
 			uploadFileNameIds.map((fileNameId) => {
 				return m(DriveUploadBox, { fileNameId, model })
 			}),
