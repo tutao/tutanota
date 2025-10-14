@@ -869,16 +869,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 				if (shouldUpdateDb) {
 					if (update.instance != null && !hasError(update.instance)) {
-						console.log(
-							"putting the entity on the create event for ",
-							getTypeString(typeRef),
-							update.instanceListId,
-							update.instanceId,
-							" to the storage",
-						)
 						await this.storage.put(update.typeRef, update.instance)
 					} else {
-						console.log("downloading create event for", getTypeString(typeRef), update.instanceListId, update.instanceId)
+						console.log("re-downloading create event for, due to error : ", getTypeString(typeRef), update.instanceListId, update.instanceId)
 						try {
 							return await this.loadAndStoreInstanceFromUpdate(update)
 						} catch (e) {
