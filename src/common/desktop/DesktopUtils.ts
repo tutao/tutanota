@@ -255,34 +255,9 @@ export class DesktopUtils {
 		}
 	}
 
-	relaunch() {
-		// we do not want to use
-		const appImage = this.getAppImagePath()
-
-		if (appImage) {
-			// TODO: We should verify the AppImage.
-
-			// electon.app.relaunch doesn't work inside AppImage, so we instead manually execute the appimage
-			this.executor.runDetached({
-				executable: appImage,
-
-				// argv[0] is the path to the executable, argv[1...] are the arguments
-				args: this.process.argv.slice(1),
-			})
-		} else {
-			this.electron.app.relaunch()
-		}
-
+	exit() {
 		this.electron.app.quit()
 		this.electron.app.exit(0)
-	}
-
-	private getAppImagePath(): string | null {
-		if (!this.isLinux() || !this.electron.app.isPackaged) {
-			return null
-		} else {
-			return this.process.env.APPIMAGE ?? null
-		}
 	}
 
 	isWindows(): boolean {
