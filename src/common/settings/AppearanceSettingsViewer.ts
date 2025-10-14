@@ -153,7 +153,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			label: "switchColorTheme_action",
 			items: [
 				...themeOptions(client.isCalendarApp()).map(({ name, value }) => ({
-					name: lang.get(name),
+					name: lang.getTranslationText(name), // FIXME: change back to get() after adding "Black" into translation term
 					value: value,
 				})),
 				...customOptions,
