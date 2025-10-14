@@ -35,7 +35,7 @@ export const allowedImports = {
 	boot: ["polyfill-helpers", "common-min"],
 	common: ["polyfill-helpers", "common-min"],
 	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
-	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date"],
+	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date", "spam-classifier"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	date: ["polyfill-helpers", "common-min", "common"],
 	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date", "contacts", "ui-extra"],
@@ -47,7 +47,7 @@ export const allowedImports = {
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "contacts"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
 	"spam-classifier": ["polyfill-helpers", "common", "common-min"],
-	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback", "spam-classifier"],
+	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback"],
 	"pow-worker": [],
 	settings: [
 		"polyfill-helpers",

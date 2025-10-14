@@ -151,10 +151,11 @@ import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKe
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
 import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
 import { UndoModel } from "./UndoModel"
-import { SpamClassifier } from "./workerUtils/spamClassification/SpamClassifier"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import { AutosaveFacade } from "../common/api/worker/facades/lazy/AutosaveFacade"
 import { lang } from "../common/misc/LanguageViewModel.js"
+import { SpamClassificationHandler } from "./workerUtils/spamClassification/SpamClassificationHandler"
+import { SpamClassifier } from "./workerUtils/spamClassification/SpamClassifier"
 
 assertMainOrNode()
 
@@ -298,6 +299,10 @@ class MailLocator implements CommonLocator {
 
 	readonly inboxRuleHandler = lazyMemoized(() => {
 		return new InboxRuleHandler(this.mailFacade, this.logins, this.mailModel)
+	})
+
+	readonly spamClassificationHandler = lazyMemoized(() => {
+		return new SpamClassificationHandler(this.mailFacade, this.spamClassifier)
 	})
 
 	async searchViewModelFactory(): Promise<() => SearchViewModel> {
@@ -836,6 +841,7 @@ class MailLocator implements CommonLocator {
 			this.logins,
 			this.mailFacade,
 			this.connectivityModel,
+			this.spamClassificationHandler,
 			this.inboxRuleHandler,
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
@@ -886,6 +892,7 @@ class MailLocator implements CommonLocator {
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
+			this.spamClassifier = spamClassifier
 
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
@@ -1032,7 +1039,6 @@ class MailLocator implements CommonLocator {
 		if (selectedThemeFacade instanceof WebThemeFacade) {
 			selectedThemeFacade.addDarkListener(() => mailLocator.themeController.reloadTheme())
 		}
-		this.spamClassifier = spamClassifier
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {

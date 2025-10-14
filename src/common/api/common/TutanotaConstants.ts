@@ -3,13 +3,13 @@
 import { DAY_IN_MILLIS, downcast } from "@tutao/tutanota-utils"
 import type { CertificateInfo, CreditCard, EmailSenderListElement, GroupMembership } from "../entities/sys/TypeRefs.js"
 import { AccountingInfo, Customer } from "../entities/sys/TypeRefs.js"
-import type { CalendarEventAttendee, ContactCustomDate, ContactRelationship, UserSettingsGroupRoot } from "../entities/tutanota/TypeRefs.js"
+import type { CalendarEventAttendee, ContactCustomDate, ContactRelationship, Mail, UserSettingsGroupRoot } from "../entities/tutanota/TypeRefs.js"
 import { ContactSocialId, MailFolder } from "../entities/tutanota/TypeRefs.js"
 import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
 
-export const MAX_NBR_MOVE_DELETE_MAIL_SERVICE = 50
+export const MAX_NBR_OF_MAILS_SYNC_OPERATION = 50
 export const MAX_NBR_OF_CONVERSATIONS = 50
 
 // visible for testing
@@ -1384,6 +1384,24 @@ export enum DeactivationReason {
 	PaymentDispute,
 	Custom,
 	MassSignup,
+}
+
+export enum SpamDecision {
+	NONE = "0",
+	WHITELIST = "1",
+	BLACKLIST = "2",
+	DISCARD = "3",
+}
+
+export enum ProcessingState {
+	INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_MADE = "0",
+	INBOX_RULE_NOT_PROCESSED = "1",
+	INBOX_RULE_APPLIED = "2",
+	INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING = "3",
+}
+
+export function getProcessingState(mail: Mail): ProcessingState {
+	return mail.processingState as ProcessingState
 }
 
 export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"

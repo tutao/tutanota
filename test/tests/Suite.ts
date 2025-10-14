@@ -68,7 +68,6 @@ import "./api/worker/rest/EntityRestClientTest.js"
 import "./api/worker/rest/EphemeralCacheStorageTest.js"
 import "./api/worker/rest/PatchGeneratorTest.js"
 import "./api/worker/rest/ServiceExecutorTest.js"
-import "./api/worker/rest/cacheHandler/CustomMailEventCacheHandlerTest.js"
 import "./api/worker/search/BulkMailLoaderTest.js"
 import "./api/worker/search/ContactIndexerTest.js"
 import "./api/worker/search/EventQueueTest.js"
@@ -85,7 +84,6 @@ import "./api/worker/facades/KeyVerificationFacadeTest.js"
 import "./api/worker/utils/SleepDetectorTest.js"
 import "./api/worker/utils/spamClassification/TfIdfVectorizerTest.js"
 import "./api/worker/utils/spamClassification/HashingVectorizerTest.js"
-import "./api/worker/utils/spamClassification/SpamClassifierTest.js"
 import "./api/worker/utils/spamClassification/PreprocessPatternsTest.js"
 import "./calendar/AlarmSchedulerTest.js"
 import "./calendar/CalendarAgendaViewTest.js"
@@ -182,6 +180,7 @@ import "./misc/parsing/ParserCombinatorTest.js"
 import "./sharing/GroupSettingsModelTest.js"
 import "./mail/editor/OpenLocallySavedDraftActionTest.js"
 import "./mail/search/MailIndexAndSpamClassificationPostLoginActionTest.js"
+import "./mail/SpamClassificationHandlerTest.js"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
@@ -213,6 +212,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	if (typeof process !== "undefined") {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
+		await import("./api/worker/utils/spamClassification/SpamClassifierTest.js")
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
 		await import("./api/worker/offline/OfflineStorageTest.js")
 		await import("./api/worker/rest/RestClientTest.js")

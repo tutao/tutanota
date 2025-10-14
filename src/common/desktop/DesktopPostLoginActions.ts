@@ -11,9 +11,10 @@ export class DesktopPostLoginActions implements PostLoginAction {
 		private readonly windowId: number,
 	) {}
 
-	async onPartialLoginSuccess({ userId }: LoggedInEvent): Promise<void> {
+	async onPartialLoginSuccess({ userId }: LoggedInEvent): Promise<{ asyncAction: Promise<void> }> {
 		this.wm.get(this.windowId)?.setUserId(userId)
 		await this.notifier.clearUserNotifications(userId)
+		return { asyncAction: Promise.resolve() }
 	}
 
 	async onFullLoginSuccess({ userId }: LoggedInEvent): Promise<void> {

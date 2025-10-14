@@ -8,7 +8,7 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isNotEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isNotEmpty, isSameTypeRef, lastThrow, Nullable, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -25,7 +25,7 @@ import {
 	UserGroupRootTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
-import { Body, CalendarEventUidIndexTypeRef, Mail, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
@@ -47,9 +47,7 @@ import { TypeModelResolver } from "../../common/EntityFunctions"
 import { AttributeModel } from "../../common/AttributeModel"
 import { collapseId, expandId } from "./RestClientIdUtils"
 import { PatchMerger } from "../offline/PatchMerger"
-import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { Nullable } from "@tutao/tutanota-utils"
-import { hasError } from "../../common/utils/ErrorUtils"
+import { hasError, isExpectedErrorForSynchronization } from "../../common/utils/ErrorUtils"
 
 assertWorkerOrNode()
 
@@ -258,6 +256,10 @@ export interface CacheStorage extends ExposedCacheStorage {
 	getLastTrainedTime(): Promise<number>
 
 	setLastTrainedTime(value: number): Promise<void>
+
+	getLastTrainedFromScratchTime(): Promise<number>
+
+	setLastTrainedFromScratchTime(value: number): Promise<void>
 
 	getUserId(): Id
 
@@ -952,14 +954,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// if a specific version is requested we have to load again and do not want to store it in the cache
 		return opts?.queryParams?.version == null
 	}
-}
-
-/**
- * Returns whether the error is expected for the cases where our local state might not be up-to-date with the server yet. E.g. we might be processing an update
- * for the instance that was already deleted. Normally this would be optimized away but it might still happen due to timing.
- */
-function isExpectedErrorForSynchronization(e: Error): boolean {
-	return e instanceof NotFoundError || e instanceof NotAuthorizedError
 }
 
 /**

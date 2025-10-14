@@ -642,7 +642,7 @@ export class IndexedDbIndexer implements Indexer {
 							await this.mailIndexer.afterMailUpdated(mailId)
 							break
 						case OperationType.CREATE:
-							await this.mailIndexer.afterMailCreated(mailId, await this.mailIndexer.downloadNewMailData(mailId))
+							await this.mailIndexer.afterMailCreated(mailId)
 							break
 					}
 				} catch (e) {

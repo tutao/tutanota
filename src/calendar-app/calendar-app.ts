@@ -112,6 +112,7 @@ import("../mail-app/translations/en.js")
 					if (isApp()) {
 						calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 					}
+					return { asyncAction: Promise.resolve() }
 				},
 				async onFullLoginSuccess() {},
 			}
@@ -333,7 +334,13 @@ import("../mail-app/translations/en.js")
 				},
 				calendarLocator.logins,
 			),
-			webauthnmobile: makeViewResolver<MobileWebauthnAttrs, MobileWebauthnView, { browserWebauthn: BrowserWebauthn }>(
+			webauthnmobile: makeViewResolver<
+				MobileWebauthnAttrs,
+				MobileWebauthnView,
+				{
+					browserWebauthn: BrowserWebauthn
+				}
+			>(
 				{
 					prepareRoute: async () => {
 						const { MobileWebauthnView } = await import("../common/login/MobileWebauthnView.js")

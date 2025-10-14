@@ -30,9 +30,10 @@ export class OpenLocallySavedDraftAction implements PostLoginAction {
 
 	async onFullLoginSuccess(_: LoggedInEvent): Promise<void> {}
 
-	async onPartialLoginSuccess(_: LoggedInEvent): Promise<void> {
+	async onPartialLoginSuccess(_: LoggedInEvent): Promise<{ asyncAction: Promise<void> }> {
 		// fire and forget; this might take some time
-		this._loadAutosavedDraft()
+		const asyncAction = this._loadAutosavedDraft()
+		return { asyncAction }
 	}
 
 	/**

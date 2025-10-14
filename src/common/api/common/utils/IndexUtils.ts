@@ -87,6 +87,8 @@ export function _createNewIndexUpdate(typeInfo: TypeInfo): IndexUpdate {
 	}
 }
 
+// Removes most html tags from a text.
+// NOTE: This function is not covering all edge-cases.
 export function htmlToText(html: string | null): string {
 	if (html == null) return ""
 	let text = html.replace(/<[^>]*>?/gm, " ")

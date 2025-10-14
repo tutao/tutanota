@@ -10,6 +10,7 @@ import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { isApp, isDesktop } from "../../api/common/Env.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { lang } from "../../misc/LanguageViewModel.js"
+import { ProcessingState } from "../../api/common/TutanotaConstants"
 
 export const BUTTON_WIDTH = 270
 
@@ -94,6 +95,8 @@ export class CustomColorEditorPreview implements Component {
 			phishingStatus: "0",
 			recipientCount: "0",
 			sets: [],
+			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
+			clientSpamClassifierResult: null,
 		} satisfies Partial<Mail>
 		const mail = createMail({
 			sender: createMailAddress({

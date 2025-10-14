@@ -446,21 +446,21 @@ o.spec("MailIndexer", () => {
 		o.spec("afterMailCreated", () => {
 			o.test("no-op if mailIndexing is disabled", async () => {
 				await initWithEnabled(false)
-				await indexer.afterMailCreated(mailIdTuple, null)
+				await indexer.afterMailCreated(mailIdTuple)
 				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
 			})
 			o.test("no-op if new email is out of index range", async () => {
 				addEntities()
 				setCurrentIndexTimestamp(now + 1)
 				await initWithEnabled(true)
-				await indexer.afterMailCreated(mailIdTuple, null)
+				await indexer.afterMailCreated(mailIdTuple)
 				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
 			})
 			o.test("creates if mailIndexing is enabled", async () => {
 				const entities = addEntities()
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				await indexer.afterMailCreated(mailIdTuple, entities)
+				await indexer.afterMailCreated(mailIdTuple)
 				verify(backend.onMailCreated(entities))
 			})
 			o.test("no-op if draft details fail to download", async () => {

@@ -41,9 +41,8 @@ o.spec("MailIndexAndSpamClassificationPostLoginAction", () => {
 		} as User)
 
 		when(customerFacadeMock.getUser()).thenResolve(user)
-		await postLoginAction.onPartialLoginSuccess(loggedInEvent)
-		// since the resizeMailIndex.then() is not awaited, we resolve all pending promises manually
-		await new Promise((resolve) => setImmediate(resolve))
+		const { asyncAction } = await postLoginAction.onPartialLoginSuccess(loggedInEvent)
+		await asyncAction
 
 		verify(spamClassifierMock.initialize("firstMailGroup"), { times: 1 })
 		verify(spamClassifierMock.initialize("secondMailGroup"), { times: 1 })

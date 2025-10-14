@@ -21,11 +21,11 @@ export class MailIndexAndSpamClassificationPostLoginAction implements PostLoginA
 		private readonly customerFacade: CustomerFacade,
 	) {}
 
-	async onPartialLoginSuccess(event: LoggedInEvent): Promise<void> {
+	async onPartialLoginSuccess(event: LoggedInEvent): Promise<{ asyncAction: Promise<void> }> {
 		if (event.sessionType === SessionType.Persistent) {
 			await this.offlineStorageSettings.init()
 			// noinspection ES6MissingAwait
-			this.indexer.resizeMailIndex(this.offlineStorageSettings.getTimeRange().getTime()).then(async () => {
+			const resizeMailIndex = this.indexer.resizeMailIndex(this.offlineStorageSettings.getTimeRange().getTime()).then(async () => {
 				// spamClassification
 				// Wait until indexing is done, as its populate offlineDb
 
@@ -40,7 +40,9 @@ export class MailIndexAndSpamClassificationPostLoginAction implements PostLoginA
 					}
 				}
 			})
+			return { asyncAction: resizeMailIndex }
 		}
+		return { asyncAction: Promise.resolve() }
 	}
 
 	async onFullLoginSuccess(_: LoggedInEvent): Promise<void> {}

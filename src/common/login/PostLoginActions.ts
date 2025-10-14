@@ -57,7 +57,7 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly updateClient: () => unknown,
 	) {}
 
-	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
+	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<{ asyncAction: Promise<void> }> {
 		// We establish websocket connection even for temporary sessions because we need to get updates e.g. during signup
 		windowFacade.addOnlineListener(() => {
 			console.log(new Date().toISOString(), "online - try reconnect")
@@ -80,7 +80,7 @@ export class PostLoginActions implements PostLoginAction {
 				document.title = "Tuta Mail"
 			}
 
-			return
+			return { asyncAction: Promise.resolve() }
 		} else {
 			let postLoginTitle = document.title === LOGIN_TITLE ? "Tuta Mail" : document.title
 			document.title = neverNull(this.logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
@@ -106,6 +106,7 @@ export class PostLoginActions implements PostLoginAction {
 		if (isApp() || isDesktop()) {
 			await this.storeNewCustomThemes()
 		}
+		return { asyncAction: Promise.resolve() }
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {

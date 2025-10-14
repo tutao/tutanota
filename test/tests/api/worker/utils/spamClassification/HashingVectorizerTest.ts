@@ -1,12 +1,7 @@
 import o from "@tutao/otest"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { arrayEquals } from "@tutao/tutanota-utils"
-
-export const tokenize = (text: string): string[] =>
-	text
-		.toLowerCase()
-		.split(/\s+/)
-		.filter((t) => t.length > 1)
+import { spamClassifierTokenizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 
 o.spec("HashingVectorizer", () => {
 	const rawDocuments = [
@@ -17,7 +12,7 @@ o.spec("HashingVectorizer", () => {
 		"Millions of people choose Tuta to protect their personal and professional communication.",
 	]
 
-	const tokenizedDocuments = rawDocuments.map(tokenize)
+	const tokenizedDocuments = rawDocuments.map(spamClassifierTokenizer)
 
 	o("vectorize creates same vector for same tokens", async () => {
 		const vectorizer = new HashingVectorizer()

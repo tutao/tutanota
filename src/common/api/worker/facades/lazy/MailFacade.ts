@@ -1,6 +1,7 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	ApplyLabelService,
+	ClientClassifierResultService,
 	DraftService,
 	ExternalUserService,
 	ListUnsubscribeService,
@@ -27,10 +28,11 @@ import {
 	MailMethod,
 	MailReportType,
 	MailSetKind,
-	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
 	MAX_NBR_OF_CONVERSATIONS,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	OperationType,
 	PhishingMarkerStatus,
+	ProcessingState,
 	PublicKeyIdentifierType,
 	ReportedMailFieldType,
 	SimpleMoveMailTarget,
@@ -40,6 +42,7 @@ import {
 	Contact,
 	createApplyLabelServicePostIn,
 	createAttachmentKeyData,
+	createClientClassifierResultPostIn,
 	createCreateExternalUserGroupData,
 	createCreateMailFolderData,
 	createDeleteMailData,
@@ -155,11 +158,8 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/Enti
 import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
-import { SpamClassifier, SpamPredMailDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
-import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { ClientClassifierType } from "../../../common/ClientClassifierType"
-import { getMailBodyText } from "../../../common/CommonMailUtils"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -208,7 +208,6 @@ export class MailFacade {
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
-		private readonly spamClassifier: SpamClassifier | null,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -392,7 +391,12 @@ export class MailFacade {
 	/**
 	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
 	 */
-	async moveMails(mails: readonly IdTuple[], targetFolder: IdTuple, excludeMailSet: IdTuple | null): Promise<MovedMails[]> {
+	async moveMails(
+		mails: readonly IdTuple[],
+		targetFolder: IdTuple,
+		excludeMailSet: IdTuple | null,
+		moveReason: ClientClassifierType | null = null,
+	): Promise<MovedMails[]> {
 		if (isEmpty(mails)) {
 			return []
 		}
@@ -401,7 +405,7 @@ export class MailFacade {
 		const mailsPerList = groupBy(mails, (mailId) => listIdPart(mailId))
 		const movedMails: MovedMails[] = []
 		for (const [_, mailsInList] of mailsPerList) {
-			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailsInList)
+			const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailsInList)
 			for (const mails of mailChunks) {
 				const moveMailPostOut = await this.serviceExecutor.post(
 					MoveMailService,
@@ -409,7 +413,7 @@ export class MailFacade {
 						mails,
 						excludeMailSet,
 						targetFolder,
-						moveReason: null,
+						moveReason,
 					}),
 				)
 				movedMails.push(...moveMailPostOut.movedMails)
@@ -421,13 +425,13 @@ export class MailFacade {
 	async simpleMoveMails(
 		mails: readonly IdTuple[],
 		targetFolderKind: SimpleMoveMailTarget,
-		clientSpamClassifier: Nullable<ClientClassifierType>,
+		moveReason: Nullable<ClientClassifierType>,
 	): Promise<MovedMails[]> {
 		if (isEmpty(mails)) {
 			return []
 		}
 
-		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails)
+		const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
 		const movedMails: MovedMails[] = []
 		for (const mails of mailChunks) {
 			const simpleMove = await this.serviceExecutor.post(
@@ -435,7 +439,7 @@ export class MailFacade {
 				createSimpleMoveMailPostIn({
 					mails,
 					destinationSetType: targetFolderKind,
-					moveReason: clientSpamClassifier,
+					moveReason,
 				}),
 			)
 			movedMails.push(...simpleMove.movedMails)
@@ -453,28 +457,6 @@ export class MailFacade {
 		await this.serviceExecutor.post(ReportMailService, postData)
 	}
 
-	public isSpamClassificationEnabled(ownerGroup: Id): boolean {
-		return this.spamClassifier != null && this.spamClassifier.getEnabledSpamClassifierForOwnerGroup(ownerGroup) != null
-	}
-
-	async predictSpamResult(mail: Mail): Promise<Nullable<boolean>> {
-		if (isDraft(mail)) {
-			return null
-		} else {
-			const spamClassifier = this.spamClassifier?.getEnabledSpamClassifierForOwnerGroup(assertNotNull(mail._ownerGroup)) ?? null
-			if (isNotNull(spamClassifier)) {
-				const mailDetails = await this.loadMailDetailsBlob(mail)
-				const spamPredMailDatum: SpamPredMailDatum = {
-					subject: mail.subject,
-					body: getMailBodyText(mailDetails.body),
-					ownerGroup: assertNotNull(mail._ownerGroup),
-				}
-				return await assertNotNull(this.spamClassifier).predict(spamPredMailDatum)
-			}
-			return null
-		}
-	}
-
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
 		if (isEmpty(mails)) {
 			return
@@ -483,7 +465,7 @@ export class MailFacade {
 		// Must be split by list (mailbag)
 		const mailsGrouped = groupBy(mails, listIdPart)
 		for (const [_, mails] of mailsGrouped) {
-			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails)
+			const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
 			for (const mailChunk of mailChunks) {
 				const deleteMailData = createDeleteMailData({
 					mails: mailChunk,
@@ -1197,13 +1179,34 @@ export class MailFacade {
 	 */
 	async markMails(mails: readonly IdTuple[], unread: boolean) {
 		await promiseMap(
-			splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails),
+			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
 			async (mails) =>
 				this.serviceExecutor.post(
 					UnreadMailStateService,
 					createUnreadMailStatePostIn({
 						unread,
 						mails,
+					}),
+				),
+			{ concurrency: 5 },
+		)
+	}
+
+	/**
+	 * Mark the given mails as read/unread
+	 * @param mails mail ids to mark as unread
+	 * @param processingState
+	 */
+	async updateMailPredictionState(mails: readonly IdTuple[], processingState: ProcessingState) {
+		const isPredictionMade = processingState === ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_MADE
+		await promiseMap(
+			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
+			async (mails) =>
+				this.serviceExecutor.post(
+					ClientClassifierResultService,
+					createClientClassifierResultPostIn({
+						mails,
+						isPredictionMade: isPredictionMade,
 					}),
 				),
 			{ concurrency: 5 },
