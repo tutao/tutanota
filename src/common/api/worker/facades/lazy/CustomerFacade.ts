@@ -28,9 +28,10 @@ import {
 	CustomerTypeRef,
 	EmailSenderListElement,
 	PaymentDataServicePutReturn,
+	User,
 } from "../../../entities/sys/TypeRefs.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import type { Hex, lazyAsync } from "@tutao/tutanota-utils"
+import type { Hex, lazyAsync, Nullable } from "@tutao/tutanota-utils"
 import { assertNotNull, neverNull, noOp, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
@@ -460,13 +461,21 @@ export class CustomerFacade {
 	}
 
 	async loadCustomizations(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<string[] | null> {
-		const user = this.userFacade.getLoggedInUser()
-		if (isInternalUser(user)) {
-			const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer), { cacheMode })
-			this.customizations = customer.customizations.map((f) => f.feature)
+		if (this.customizations) {
 			return this.customizations
 		} else {
-			return null
+			const user = this.userFacade.getLoggedInUser()
+			if (isInternalUser(user)) {
+				const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer), { cacheMode })
+				this.customizations = customer.customizations.map((f) => f.feature)
+				return this.customizations
+			} else {
+				return null
+			}
 		}
+	}
+
+	async getUser(): Promise<Nullable<User>> {
+		return this.userFacade.getUser()
 	}
 }

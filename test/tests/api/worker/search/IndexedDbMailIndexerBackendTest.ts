@@ -23,7 +23,7 @@ import { IndexedDbMailIndexerBackend } from "../../../../../src/mail-app/workerU
 import { matchers, object, verify, when } from "testdouble"
 import { AttributeHandler, SearchIndexEntry } from "../../../../../src/common/api/worker/search/SearchTypes"
 import { Metadata } from "../../../../../src/common/api/worker/search/IndexTables"
-import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/worker/search/IndexUtils"
+import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { AttributeModel } from "../../../../../src/common/api/common/AttributeModel"

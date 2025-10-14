@@ -6,10 +6,12 @@ import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { getTypeString, TypeRef } from "@tutao/tutanota-utils"
 import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
-import { htmlToText } from "../../../common/api/worker/search/IndexUtils"
+import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { ListElementEntity } from "../../../common/api/common/EntityTypes"
 import type { OfflineStorageTable } from "../../../common/api/worker/offline/OfflineStorage"
+import { SpamClassificationModel, SpamTrainMailDatum } from "../spamClassification/SpamClassifier"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -60,6 +62,22 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
                   lastName,
                   mailAddresses
               )`,
+		purgedWithCache: true,
+	},
+})
+
+export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
+	// Spam classification training data
+	spam_classification_training_data: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
+		purgedWithCache: true,
+	},
+
+	// TODO add test for new table
+	spam_classification_model: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS spam_classification_model (version NUMBER NOT NULL, ownerGroup TEXT NOT NULL, modelTopology TEXT NOT NULL, weightSpecs TEXT NOT NULL, weightData BLOB NOT NULL, PRIMARY KEY(version, ownerGroup))",
 		purgedWithCache: true,
 	},
 })
@@ -165,6 +183,92 @@ export class OfflineStoragePersistence {
 		}
 	}
 
+	async storeSpamClassification(spamTrainMailDatum: SpamTrainMailDatum): Promise<void> {
+		const { query, params } = sql`
+            INSERT
+            OR REPLACE INTO spam_classification_training_data(listId, elementId, ownerGroup, subject, body, isSpam, lastModified, isSpamConfidence)
+				VALUES (
+            ${listIdPart(spamTrainMailDatum.mailId)},
+            ${elementIdPart(spamTrainMailDatum.mailId)},
+            ${spamTrainMailDatum.ownerGroup},
+            ${spamTrainMailDatum.subject},
+            ${spamTrainMailDatum.body},
+            ${spamTrainMailDatum.isSpam ? 1 : 0},
+            ${Date.now()},
+            ${spamTrainMailDatum.isSpamConfidence}
+            )`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async updateSpamClassificationData(id: IdTuple, isSpam: boolean, isSpamConfidence: number): Promise<void> {
+		const { query, params } = sql`
+            UPDATE spam_classification_training_data
+            SET lastModified=${Date.now()},
+                isSpamConfidence=${isSpamConfidence},
+                isSpam=${isSpam ? 1 : 0}
+            WHERE listId = ${listIdPart(id)}
+              AND elementId = ${elementIdPart(id)}
+        `
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getStoredClassification(mail: Mail): Promise<Nullable<{ isSpam: boolean; isSpamConfidence: number }>> {
+		const { query, params } = sql`
+            SELECT isSpam, isSpamConfidence
+            FROM spam_classification_training_data
+            where listId = ${listIdPart(mail._id)}
+              AND elementId = ${elementIdPart(mail._id)} `
+		const result = await this.sqlCipherFacade.get(query, params)
+		if (!result) {
+			return null
+		} else {
+			const isSpam = untagSqlObject(result).isSpam === 1
+			const isSpamConfidence = untagSqlObject(result).isSpamConfidence as number
+			return { isSpam, isSpamConfidence }
+		}
+	}
+
+	async getCertainSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number, ownerGroupId: Id): Promise<SpamTrainMailDatum[]> {
+		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam, isSpamConfidence
+                                    FROM spam_classification_training_data
+                                    WHERE lastModified > ${cutoffTimestamp}
+                                      AND isSpamConfidence > 0
+                                      AND ownerGroup = ${ownerGroupId}`
+		const resultRows = await this.sqlCipherFacade.all(query, params)
+		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamTrainMailDatum)
+	}
+
+	async putSpamClassificationModel(model: SpamClassificationModel) {
+		const { query, params } = sql`INSERT
+        OR REPLACE INTO
+									spam_classification_model VALUES (
+      						 		${1},
+        ${model.ownerGroup},
+        ${model.modelTopology},
+        ${model.weightSpecs},
+        ${model.weightData}
+        )`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>> {
+		const { query, params } = sql`SELECT modelTopology, weightSpecs, weightData, ownerGroup
+                                    FROM spam_classification_model
+                                    WHERE version = ${1}
+                                      AND ownerGroup = ${ownerGroup}`
+		const resultRows = await this.sqlCipherFacade.get(query, params)
+		if (resultRows !== null) {
+			const untaggedValue = untagSqlObject(resultRows)
+			return {
+				modelTopology: untaggedValue.modelTopology,
+				weightSpecs: untaggedValue.weightSpecs,
+				weightData: untaggedValue.weightData,
+				ownerGroup: untaggedValue.ownerGroup,
+			} as SpamClassificationModel
+		}
+		return null
+	}
+
 	async updateMailLocation(mail: Mail) {
 		const rowid = await this.getRowid(MailTypeRef, mail._id)
 		if (rowid == null) {
@@ -264,6 +368,10 @@ export class OfflineStoragePersistence {
 			return null
 		}
 		return untagSqlObject(rowIdResult).rowid
+	}
+
+	public async tokenize(text: string): Promise<ReadonlyArray<string>> {
+		return this.sqlCipherFacade.tokenize(text)
 	}
 }
 

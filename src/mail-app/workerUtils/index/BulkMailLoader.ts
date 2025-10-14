@@ -140,7 +140,7 @@ export class BulkMailLoader {
 		return filesResults.flat()
 	}
 
-	private async loadInChunks<T extends SomeEntity>(
+	public async loadInChunks<T extends SomeEntity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Id[],
@@ -154,7 +154,7 @@ export class BulkMailLoader {
 				return chunk.length > 0
 					? this.mailDataEntityClient.loadMultiple(typeRef, listId, chunk, ownerEncSessionKeyProvider, {
 							...options,
-							cacheMode: CacheMode.ReadOnly,
+							cacheMode: CacheMode.ReadAndWrite,
 						})
 					: Promise.resolve([])
 			},

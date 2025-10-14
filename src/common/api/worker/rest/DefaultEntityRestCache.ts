@@ -25,7 +25,7 @@ import {
 	UserGroupRootTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
-import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { Body, CalendarEventUidIndexTypeRef, Mail, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
@@ -254,6 +254,10 @@ export interface CacheStorage extends ExposedCacheStorage {
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
 	putLastUpdateTime(value: number): Promise<void>
+
+	getLastTrainedTime(): Promise<number>
+
+	setLastTrainedTime(value: number): Promise<void>
 
 	getUserId(): Id
 
@@ -825,10 +829,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			try {
 				switch (operation) {
 					case OperationType.CREATE:
-						await handler.onEntityEventCreate?.(id)
+						await handler.onEntityEventCreate?.(id, filteredUpdateEvents)
 						break
 					case OperationType.UPDATE:
-						await handler.onEntityEventUpdate?.(id)
+						await handler.onEntityEventUpdate?.(id, filteredUpdateEvents)
 						break
 					case OperationType.DELETE:
 						await handler.onEntityEventDelete?.(id)
