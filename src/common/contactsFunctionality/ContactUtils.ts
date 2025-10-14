@@ -31,6 +31,7 @@ import { StructuredWebsite } from "../native/common/generatedipc/StructuredWebsi
 import { StructuredRelationship } from "../native/common/generatedipc/StructuredRelationship.js"
 import { StructuredMessengerHandle } from "../native/common/generatedipc/StructuredMessengerHandle.js"
 import { StructuredContact } from "../native/common/generatedipc/StructuredContact.js"
+import { parseUrl } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 
@@ -80,42 +81,35 @@ export function formatContactDate(isoDate: string | null): string {
 	return ""
 }
 
-export function getSocialUrl(contactId: ContactSocialId): string {
+export function getSocialUrl(contactId: ContactSocialId): string | null {
+	if (parseUrl(contactId.socialId) != null) {
+		// already a valid URL
+		return contactId.socialId
+	}
+
 	let socialUrlType = ""
-	let http = "https://"
-	let worldwidew = "www."
 
-	const isSchemePrefixed = contactId.socialId.indexOf("http") !== -1
-	const isWwwDotPrefixed = contactId.socialId.indexOf(worldwidew) !== -1
+	switch (contactId.type) {
+		case ContactSocialType.TWITTER:
+			socialUrlType = "twitter.com/"
+			break
 
-	if (!isSchemePrefixed && !isWwwDotPrefixed) {
-		switch (contactId.type) {
-			case ContactSocialType.TWITTER:
-				socialUrlType = "twitter.com/"
-				break
+		case ContactSocialType.FACEBOOK:
+			socialUrlType = "facebook.com/"
+			break
 
-			case ContactSocialType.FACEBOOK:
-				socialUrlType = "facebook.com/"
-				break
+		case ContactSocialType.XING:
+			socialUrlType = "xing.com/profile/"
+			break
 
-			case ContactSocialType.XING:
-				socialUrlType = "xing.com/profile/"
-				break
-
-			case ContactSocialType.LINKED_IN:
-				socialUrlType = "linkedin.com/in/"
-		}
+		case ContactSocialType.LINKED_IN:
+			socialUrlType = "linkedin.com/in/"
+			break
+		default:
+			return null
 	}
 
-	if (isSchemePrefixed) {
-		http = ""
-	}
-
-	if (isSchemePrefixed || isWwwDotPrefixed) {
-		worldwidew = ""
-	}
-
-	return `${http}${worldwidew}${socialUrlType}${contactId.socialId.trim()}`
+	return `https://${socialUrlType}${contactId.socialId.trim()}`
 }
 
 export function getWebsiteUrl(websiteUrl: string): string {

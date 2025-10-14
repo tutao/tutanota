@@ -123,6 +123,37 @@ export function getPropertyValue(property: string, tagValue: string) {
 	return (Array.from(tagValue.matchAll(exp), (m) => m[1])[0] ?? "").trim()
 }
 
+function parseImType(imRawType: string): { imType: ContactMessengerHandleType; customTypeName: string } {
+	let imType: ContactMessengerHandleType
+	let customTypeName = ""
+
+	switch (imRawType.toLowerCase()) {
+		case "telegram":
+			imType = ContactMessengerHandleType.TELEGRAM
+			break
+		case "whatsapp":
+			imType = ContactMessengerHandleType.WHATSAPP
+			break
+		case "signal":
+			imType = ContactMessengerHandleType.SIGNAL
+			break
+		case "discord":
+			imType = ContactMessengerHandleType.DISCORD
+			break
+		case "matrix":
+			imType = ContactMessengerHandleType.MATRIX
+			break
+		default:
+			if (imRawType.trim() !== "") {
+				imType = ContactMessengerHandleType.CUSTOM
+				customTypeName = imRawType.trim()
+			} else {
+				imType = ContactMessengerHandleType.OTHER
+			}
+	}
+	return { imType, customTypeName }
+}
+
 /**
  * @returns The list of created Contact instances (but not yet saved) or null if vCardFileData is not a valid vCard string.
  */
@@ -347,22 +378,7 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 
 				case "IMPP": {
 					const imRawType = getPropertyValue("TYPE", tagAndTypeString)
-					let imType = ContactMessengerHandleType.OTHER
-					let customTypeName = ""
-
-					if (imRawType.toLowerCase() === "telegram") {
-						imType = ContactMessengerHandleType.TELEGRAM
-					} else if (imRawType.toLowerCase() === "whatsapp") {
-						imType = ContactMessengerHandleType.WHATSAPP
-					} else if (imRawType.toLowerCase() === "signal") {
-						imType = ContactMessengerHandleType.SIGNAL
-					} else if (imRawType.toLowerCase() === "discord") {
-						imType = ContactMessengerHandleType.DISCORD
-					} else if (imRawType.trim() !== "") {
-						imType = ContactMessengerHandleType.CUSTOM
-						customTypeName = imRawType.trim()
-					}
-
+					const { imType, customTypeName } = parseImType(imRawType)
 					// Remove the im:/xmpp: added by the vcard standard
 					const handleData = tagValue.indexOf(":") > -1 ? tagValue.substring(tagValue.indexOf(":") + 1) : tagValue
 					addMessengerHandle(handleData, messengerHandles, imType, customTypeName)

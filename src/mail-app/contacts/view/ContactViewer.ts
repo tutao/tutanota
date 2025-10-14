@@ -319,11 +319,12 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			icon: Icons.ArrowForward,
 			size: ButtonSize.Compact,
 		})
+		const socialUrl = getSocialUrl(contactSocialId)
 		return m(TextField, {
 			label: getContactSocialTypeLabel(getContactSocialType(contactSocialId), contactSocialId.customTypeName),
 			value: contactSocialId.socialId,
 			isReadOnly: true,
-			injectionsRight: () => m(`a[href=${getSocialUrl(contactSocialId)}][target=_blank]`, showButton),
+			injectionsRight: () => (socialUrl != null ? m("a", { href: socialUrl, target: "_blank" }, showButton) : null),
 		})
 	}
 
@@ -338,7 +339,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			label: getContactCustomWebsiteTypeToLabel(downcast(website.type), website.customTypeName),
 			value: website.url,
 			isReadOnly: true,
-			injectionsRight: () => m(`a[href=${getWebsiteUrl(website.url)}][target=_blank]`, showButton),
+			injectionsRight: () => m("a", { href: getWebsiteUrl(website.url), target: "_blank" }, showButton),
 		})
 	}
 
@@ -349,11 +350,12 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			icon: Icons.ArrowForward,
 			size: ButtonSize.Compact,
 		})
+		const messengerUrl = getMessengerHandleUrl(messengerHandle)
 		return m(TextField, {
 			label: getContactMessengerHandleTypeToLabel(downcast(messengerHandle.type), messengerHandle.customTypeName),
 			value: messengerHandle.handle,
 			isReadOnly: true,
-			injectionsRight: () => m(`a[href=${getMessengerHandleUrl(messengerHandle)}][target=_blank]`, showButton),
+			injectionsRight: () => (messengerUrl !== "" ? m("a", { href: messengerUrl, target: "_blank" }, showButton) : null),
 		})
 	}
 
@@ -388,7 +390,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			label: getContactPhoneNumberTypeLabel(phone.type as ContactPhoneNumberType, phone.customTypeName),
 			value: phone.number,
 			isReadOnly: true,
-			injectionsRight: () => m(`a[href="tel:${phone.number}"][target=_blank]`, callButton),
+			injectionsRight: () => m("a", { href: `tel:${phone.number}`, target: "_blank" }, callButton),
 		})
 	}
 
@@ -412,7 +414,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 			value: address.address,
 			isReadOnly: true,
 			type: TextFieldType.Area,
-			injectionsRight: () => m(`a[href="https://www.openstreetmap.org/search?query=${prepAddress}"][target=_blank]`, showButton),
+			injectionsRight: () => m("a", { href: `https://www.openstreetmap.org/search?query=${prepAddress}`, target: "_blank" }, showButton),
 		})
 	}
 }

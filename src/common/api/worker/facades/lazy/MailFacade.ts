@@ -108,12 +108,15 @@ import {
 	contains,
 	defer,
 	freshVersioned,
+	getUrlDomain,
 	groupBy,
 	isEmpty,
 	isNotNull,
 	isSameTypeRef,
 	noOp,
+	Nullable,
 	ofClass,
+	parseUrl,
 	promiseFilter,
 	promiseMap,
 	splitInChunks,
@@ -158,7 +161,6 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/Enti
 import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
-import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { ClientClassifierType } from "../../../common/ClientClassifierType"
 
 assertWorkerOrNode()
@@ -1280,19 +1282,6 @@ export class MailFacade {
 
 export function phishingMarkerValue(type: ReportedMailFieldType, value: string): string {
 	return type + murmurHash(value.replace(/\s/g, ""))
-}
-
-function parseUrl(link: string): URL | null {
-	try {
-		return new URL(link)
-	} catch (e) {
-		return null
-	}
-}
-
-function getUrlDomain(link: string): string | null {
-	const url = parseUrl(link)
-	return url && url.hostname
 }
 
 function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient {
