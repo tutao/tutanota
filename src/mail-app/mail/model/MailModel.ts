@@ -209,6 +209,7 @@ export class MailModel {
 				}
 
 				// FIXME we should only do all of this when we are in the inbox folder
+				// TODO: why?
 
 				const initialMailFolder = this.getMailFolderForMail(mail)
 				const mailboxDetail = await this.getMailboxDetailsForMail(mail)
