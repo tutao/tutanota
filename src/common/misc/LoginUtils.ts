@@ -215,12 +215,13 @@ function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParamet
 	try {
 		const type = stringToSubscriptionType(params.type)
 		switch (type) {
+			// We don't want to display private plans as these are not permitted for business purposes
 			case SubscriptionType.Business:
 				return NewBusinessPlans
+			// But we can provide a business plan for private customers who want to use the larger plans
 			case SubscriptionType.Personal:
-				return NewPersonalPlans
 			case SubscriptionType.PaidPersonal:
-				return NewPaidPlans.filter((paidPlan) => NewPersonalPlans.includes(paidPlan))
+				return AvailablePlans
 		}
 	} catch (e) {
 		// If params.type is not a valid subscription type, return the default value
