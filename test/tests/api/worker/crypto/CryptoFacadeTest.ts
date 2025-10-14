@@ -1854,6 +1854,8 @@ o.spec("CryptoFacadeTest", function () {
 			mailDetailsDraft: null,
 			sets: [],
 			keyVerificationState: null,
+			isInboxRuleApplied: true,
+			clientSpamClassifierResult: null,
 		})
 
 		// casting here is fine, since we just want to mimic server response data

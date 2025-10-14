@@ -3,6 +3,7 @@ import { matchers, object, verify, when } from "testdouble"
 import {
 	Body,
 	BodyTypeRef,
+	ClientSpamClassifierResultTypeRef,
 	Mail,
 	MailDetails,
 	MailDetailsTypeRef,
@@ -94,6 +95,27 @@ o.spec("SpamClassificationHandlerTest", function () {
 		verify(spamClassifier.storeSpamClassification(expectedTrainingData), { times: 1 })
 		verify(mailFacade.simpleMoveMails([mail._id], MailSetKind.INBOX, ClientClassifierType.CLIENT_CLASSIFICATION))
 		o(finalResult).deepEquals(inboxFolder)
+	})
+
+	o("does not classify mail if the mail has non null client classification result", async function () {
+		mail.sets = [inboxFolder._id]
+		mail.isInboxRuleApplied = false
+		mail.clientSpamClassifierResult = createTestEntity(ClientSpamClassifierResultTypeRef)
+		inboxRuleOutcome.resolve(null)
+
+		const expectedTrainingData: SpamTrainMailDatum = {
+			mailId: mail._id,
+			subject: mail.subject,
+			body: getMailBodyText(body),
+			isSpam: false,
+			ownerGroup: "owner",
+			isSpamConfidence: 0,
+		}
+
+		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
+		o(finalResult).equals(null)
+		verify(spamClassifier.predict(anything()), { times: 0 })
+		verify(spamClassifier.storeSpamClassification(expectedTrainingData), { times: 1 })
 	})
 
 	o("getSpamConfidence is 0 for mail in trash folder ", async function () {

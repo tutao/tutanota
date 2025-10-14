@@ -22,27 +22,27 @@ export class SpamClassificationHandler {
 
 	public async predictSpamForNewMail(inboxRuleOutcome: Promise<Nullable<MailFolder>>, mail: Mail, folderSystem: FolderSystem): Promise<Nullable<MailFolder>> {
 		const inboxRuleTargetFolder = await inboxRuleOutcome
-		const serverDeliveredMailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get current folder for mail: ${mail._id}`)
 		if (isDraft(mail) || this.spamClassifier == null) {
-			return inboxRuleTargetFolder ?? serverDeliveredMailFolder
+			return inboxRuleTargetFolder
 		}
 
 		const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
+
+		const serverDeliveredMailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get current folder for mail: ${mail._id}`)
 		const serverDeliveredMailSetKind = getMailSetKind(serverDeliveredMailFolder)
 		const mailIsAffectedByInboxRule = isNotNull(inboxRuleTargetFolder)
 		const isStoredInSpamFolder = serverDeliveredMailSetKind === MailSetKind.SPAM
 		const isNotStoredInSpamOrInbox = !isStoredInSpamFolder && serverDeliveredMailSetKind !== MailSetKind.INBOX
-		// TODO: get this from mail. ( needs metamodel change )
-		const isClassifiedByOtherModel = false || isNotStoredInSpamOrInbox
+		const mailHasBeenInteracted = mail.isInboxRuleApplied || isNotNull(mail.clientSpamClassifierResult) || isNotStoredInSpamOrInbox
 
 		const mailDetails = await this.downloadMailDetails(mail)
 		if (mailDetails == null) {
 			// maybe mailDetails was deleted in meantime?
 			return serverDeliveredMailFolder
-		} else if (mailIsAffectedByInboxRule || isClassifiedByOtherModel) {
+		} else if (mailIsAffectedByInboxRule || mailHasBeenInteracted) {
 			const mailSetAfterInboxRule = inboxRuleTargetFolder ? getMailSetKind(inboxRuleTargetFolder) : serverDeliveredMailSetKind
 			await this.storeTrainingDatum({ mail, mailDetails }, mailSetAfterInboxRule)
-			return inboxRuleTargetFolder ?? serverDeliveredMailFolder
+			return inboxRuleTargetFolder
 		}
 
 		const spamPredMailDatum: SpamPredMailDatum = {
@@ -70,13 +70,21 @@ export class SpamClassificationHandler {
 	}
 
 	public async updateSpamClassificationData(events: ReadonlyArray<EntityUpdateData>, mail: Mail, folderSystem: FolderSystem) {
+		// TODO:
+		// would be nice to still update spam classification data even if spam classifier is not there yet,
+		// so next time when we initialize spam classifier we can just rely on what's in this table.
+		//
+		// currently we can not do so bcz .getStoredClassification() is not exposed in CacheStorage or so
+		if (this.spamClassifier == null) {
+			return
+		}
+
 		const mailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get folder for mail: ${mail._id}`)
 		const mailSetKind = getMailSetKind(mailFolder)
 
 		const changedMailSetEntry = events.find((el) => isUpdateForTypeRef(MailSetEntryTypeRef, el)) != null
-		// TODO: should not depend on unread flag
 		const mailHasBeenRead = !mail.unread
-		if ((!mailHasBeenRead && !changedMailSetEntry) || this.spamClassifier == null) {
+		if (!mailHasBeenRead && !changedMailSetEntry) {
 			return
 		}
 

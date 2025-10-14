@@ -218,7 +218,8 @@ export class MailModel {
 
 				let inboxRuleOutcome = Promise.resolve<Nullable<MailFolder>>(null)
 				const inboxRuleHandler = this.inboxRuleHandler()
-				const applyInboxRule = isNotNull(mailboxDetail) && isNotNull(inboxRuleHandler) && initialMailFolder.folderType === MailSetKind.INBOX
+				const applyInboxRule =
+					!mail.isInboxRuleApplied && isNotNull(mailboxDetail) && isNotNull(inboxRuleHandler) && initialMailFolder.folderType === MailSetKind.INBOX
 				if (applyInboxRule) {
 					// We only apply rules on server if we are the leader in case of incoming messages
 					const applyInboxRuleOnServer = this.connectivityModel ? this.connectivityModel.isLeader() : false
