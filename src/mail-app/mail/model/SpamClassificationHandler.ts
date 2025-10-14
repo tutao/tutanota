@@ -69,6 +69,10 @@ export class SpamClassificationHandler {
 		return assertNotNull(folderSystem.getSystemFolderByType(classifierMailSetTarget), `Could not get System folder for owner: ${mail._ownerGroup}`)
 	}
 
+	public async dropClassificationData(mailOwnerGroup: Id, mailId: IdTuple) {
+		await this.spamClassifier?.deleteSpamClassification(mailOwnerGroup, mailId)
+	}
+
 	public async updateSpamClassificationData(events: ReadonlyArray<EntityUpdateData>, mail: Mail, folderSystem: FolderSystem) {
 		// TODO:
 		// would be nice to still update spam classification data even if spam classifier is not there yet,

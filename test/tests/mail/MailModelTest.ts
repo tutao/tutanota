@@ -190,13 +190,29 @@ o.spec("MailModelTest", function () {
 			const inboxRuleTargetFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxRuleTarget"] })
 
 			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)
-			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(inboxRuleTargetFolder)
+			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), mail, anything())).thenResolve(inboxRuleTargetFolder)
 
 			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
 			await model.entityEventsReceived([mailCreateEvent])
 
 			verify(spamClassificationHandler.predictSpamForNewMail(anything(), mail, anything()), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 0 })
+		})
+
+		o("deletes a training datum for deleted mail event", async () => {
+			const mail = createTestEntity(MailTypeRef, {
+				_id: ["mailListId", "mailId"],
+				_ownerGroup: "owner",
+				mailDetailsDraft: ["draftListId", "draftId"],
+				mailDetails: null,
+			})
+			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)
+			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(null)
+
+			const mailDeleteEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.DELETE })
+			await model.entityEventsReceived([mailDeleteEvent])
+
+			verify(spamClassifier.deleteSpamClassification("owner", mail._id), { times: 0 })
 		})
 	})
 

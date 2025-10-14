@@ -200,6 +200,18 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
+	async deleteSpamClassificationData(owner: Id, mailId: IdTuple): Promise<void> {
+		const mailListId = listIdPart(mailId)
+		const mailElementId = elementIdPart(mailId)
+		const { query, params } = sql`
+			DELETE
+			FROM spam_classification_training_data
+			where ownerGroup = ${owner}
+			  AND listId = ${mailListId}
+			  AND elementId = ${mailElementId}`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
 	async updateSpamClassificationData(id: IdTuple, isSpam: boolean, isSpamConfidence: number): Promise<void> {
 		const { query, params } = sql`
 			UPDATE spam_classification_training_data

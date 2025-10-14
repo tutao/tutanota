@@ -242,6 +242,12 @@ export class MailModel {
 				mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => {
 					this._showNotification(targetFolder ?? initialMailFolder, mail)
 				})
+			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
+				const mailId: IdTuple = [update.instanceListId, update.instanceListId]
+
+				// todo: how can we get the group in case of delete events?
+				const mailOwnerGroup = this.logins.getUserController().getMailGroupMemberships().at(0)!.group
+				await this.spamHandler().dropClassificationData(mailOwnerGroup, mailId)
 			}
 		}
 	}

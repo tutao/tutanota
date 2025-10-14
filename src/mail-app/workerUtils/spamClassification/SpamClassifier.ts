@@ -399,6 +399,10 @@ export class SpamClassifier {
 		return this.offlineStorage.storeSpamClassification(spamTrainMailDatum)
 	}
 
+	public deleteSpamClassification(ownerGroup: Id, mailId: IdTuple) {
+		return this.offlineStorage.deleteSpamClassificationData(ownerGroup, mailId)
+	}
+
 	/*
 	 * TODO: Only for internal release
 	 *
@@ -598,17 +602,17 @@ export class SpamClassifier {
 		return concatenated.length > 0 ? concatenated : " "
 	}
 
-    private async retrainModelFromScratch(storage: CacheStorage, ownerGroup: Id, cutoffTimestamp: number) {
-        console.log("Model is being re-trained from scratch, deleting old data")
-        try {
-            await assertNotNull(this.offlineStorage).deleteSpamClassificationTrainingDataBeforeCutoff(cutoffTimestamp, ownerGroup)
-        } catch (e) {
-            console.error("Failed delete old training data: ", e)
-            return
-        }
+	private async retrainModelFromScratch(storage: CacheStorage, ownerGroup: Id, cutoffTimestamp: number) {
+		console.log("Model is being re-trained from scratch, deleting old data")
+		try {
+			await assertNotNull(this.offlineStorage).deleteSpamClassificationTrainingDataBeforeCutoff(cutoffTimestamp, ownerGroup)
+		} catch (e) {
+			console.error("Failed delete old training data: ", e)
+			return
+		}
 
-        await this.trainFromScratch(storage, ownerGroup)
-    }
+		await this.trainFromScratch(storage, ownerGroup)
+	}
 
 	// === Testing methods
 	public async cloneClassifier(): Promise<SpamClassifier> {
