@@ -11,17 +11,25 @@ import { nodeResolve } from "@rollup/plugin-node-resolve"
 import commonjs from "@rollup/plugin-commonjs"
 import child_process from "node:child_process"
 import { promisify } from "node:util"
+import alias from "@rollup/plugin-alias"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+async function stripCommentsFromTensorflow() {
+	let str = fs.readFileSync("libs/tensorflow.js").toString()
+	str = str.replace(/\/\*[\s\S]*?\*\/|(?<=[^:])\/\/.*|^\/\/.*/g, "")
+	fs.writeFileSync("libs/tensorflow-stripped.js", str)
+}
+
 export async function updateLibs() {
 	await copyToLibs(clientDependencies)
+	await stripCommentsFromTensorflow()
 }
 
 /**
  * Should correspond to {@link import("./RollupConfig").dependencyMap}
  *
- * @typedef {"rollupWeb" | "rollupDesktop" | "copy"} BundlingStrategy
+ * @typedef {"rollupWeb" | "rollupTF" | "rollupDesktop" | "copy"} BundlingStrategy
  * @typedef {{src: string, target: string, bundling: BundlingStrategy, banner?: string, patch?: string}} DependencyDescription
  * @type Array<DependencyDescription>
  *
@@ -44,6 +52,7 @@ const clientDependencies = [
 	{ src: "../node_modules/@signalapp/sqlcipher/dist/index.mjs", target: "node-sqlcipher.mjs", bundling: "copy" },
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb", patch: "./libs/botd.patch" },
+	{ src: "../src/mail-app/workerUtils/spamClassification/tensorflow-custom.js", target: "tensorflow.js", bundling: "rollupTF" },
 ]
 
 async function applyPatch() {
@@ -83,7 +92,7 @@ module.exports.install = install`,
  * 1. get the unpatched version of whatever library you want to add / change
  * 2. make a commit with the changes that you want to make
  * 3. format the patch by running:
- *    git format-patch -k --stdout HEAD~1..HEAD > /.libs/changes.patch
+ *    git format-patch -k --stdout HEAD~1..HEAD > ./libs/changes.patch
  * 4. revert the commit by running:
  *    git reset --hard HEAD~1
  * 5. commit the generated ./libs.changes file
@@ -91,7 +100,7 @@ module.exports.install = install`,
 async function applyGitPatch(patchFile) {
 	if (process.platform === "win32") return
 	const exec = promisify(child_process.exec)
-	console.log("applying a patch to botd.js")
+	console.log(`applying a patch to ${patchFile}`)
 	await exec(`git apply ${patchFile}`)
 }
 
@@ -109,6 +118,9 @@ async function copyToLibs(dependencies) {
 				break
 			case "rollupWeb":
 				await rollWebDep(src, target, banner)
+				break
+			case "rollupTF":
+				await rollupTensorFlow(src, target, banner)
 				break
 			case "rollupDesktop":
 				await rollDesktopDep(src, target, banner)
@@ -129,6 +141,45 @@ async function copyToLibs(dependencies) {
  */
 async function rollWebDep(src, target, banner) {
 	const bundle = await rollup({ input: path.join(__dirname, src), plugins: [nodeResolve()] })
+	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
+}
+
+const logResolvePlugin = {
+	name: "log-resolve",
+	resolveId(source, importer) {
+		console.log(`Resolving: source='${source}', importer='${importer}'`)
+		return null
+	},
+}
+
+async function rollupTensorFlow(src, target, banner) {
+	const bundle = await rollup({
+		input: path.join(__dirname, src),
+		treeshake: {
+			moduleSideEffects: false,
+			preset: "smallest",
+		},
+		plugins: [
+			alias({
+				entries: [
+					{
+						find: /\.\/http/,
+						replacement: path.resolve(__dirname, "../libs/tensorflow-http-stub.js"),
+					},
+					{
+						find: /\.\/platforms\/.*/,
+						replacement: path.resolve(__dirname, "../libs/tensorflow-platform-stub.js"),
+					},
+				],
+			}),
+			logResolvePlugin,
+			nodeResolve(),
+			commonjs(),
+		],
+		output: {
+			format: "esm",
+		},
+	})
 	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
 }
 
