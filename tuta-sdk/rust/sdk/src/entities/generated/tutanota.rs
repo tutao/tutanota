@@ -399,6 +399,8 @@ pub struct Mail {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1677")]
 	pub keyVerificationState: Option<i64>,
+	#[serde(rename = "1728")]
+	pub processingState: i64,
 	#[serde(rename = "111")]
 	pub sender: MailAddress,
 	#[serde(rename = "115")]
@@ -415,6 +417,8 @@ pub struct Mail {
 	pub bucketKey: Option<super::sys::BucketKey>,
 	#[serde(rename = "1465")]
 	pub sets: Vec<IdTupleGenerated>,
+	#[serde(rename = "1729")]
+	pub clientSpamClassifierResult: Option<ClientSpamClassifierResult>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4104,6 +4108,46 @@ impl Entity for MoveMailPostOut {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1721),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ClientSpamClassifierResult {
+	#[serde(rename = "1725")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1726")]
+	pub spamDecision: i64,
+	#[serde(rename = "1727")]
+	pub confidence: i64,
+}
+
+impl Entity for ClientSpamClassifierResult {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1724),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ClientClassifierResultPostIn {
+	#[serde(rename = "1731")]
+	pub _format: i64,
+	#[serde(rename = "1733")]
+	pub isPredictionMade: bool,
+	#[serde(rename = "1732")]
+	pub mails: Vec<IdTupleGenerated>,
+}
+
+impl Entity for ClientClassifierResultPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1730),
 		}
 	}
 }

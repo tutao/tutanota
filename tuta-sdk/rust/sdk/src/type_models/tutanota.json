@@ -1017,6 +1017,14 @@
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true
+			},
+			"1728": {
+				"final": false,
+				"name": "processingState",
+				"id": 1728,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
 			}
 		},
 		"associations": {
@@ -1090,6 +1098,15 @@
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 429,
+				"dependency": null
+			},
+			"1729": {
+				"final": false,
+				"name": "clientSpamClassifierResult",
+				"id": 1729,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1724,
 				"dependency": null
 			}
 		}
@@ -9196,6 +9213,86 @@
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1716,
+				"dependency": null
+			}
+		}
+	},
+	"1724": {
+		"name": "ClientSpamClassifierResult",
+		"app": "tutanota",
+		"version": 96,
+		"since": 96,
+		"type": "AGGREGATED_TYPE",
+		"id": 1724,
+		"rootId": "CHR1dGFub3RhAAa8",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1725": {
+				"final": true,
+				"name": "_id",
+				"id": 1725,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1726": {
+				"final": false,
+				"name": "spamDecision",
+				"id": 1726,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1727": {
+				"final": false,
+				"name": "confidence",
+				"id": 1727,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"1730": {
+		"name": "ClientClassifierResultPostIn",
+		"app": "tutanota",
+		"version": 96,
+		"since": 96,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1730,
+		"rootId": "CHR1dGFub3RhAAbC",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1731": {
+				"final": false,
+				"name": "_format",
+				"id": 1731,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1733": {
+				"final": false,
+				"name": "isPredictionMade",
+				"id": 1733,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"1732": {
+				"final": false,
+				"name": "mails",
+				"id": 1732,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 97,
 				"dependency": null
 			}
 		}

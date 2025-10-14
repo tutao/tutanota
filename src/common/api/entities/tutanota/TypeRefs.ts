@@ -243,6 +243,7 @@ export type Mail = {
 	encryptionAuthStatus: null | NumberString;
 	_ownerKeyVersion: null | NumberString;
 	keyVerificationState: null | NumberString;
+	processingState: NumberString;
 
 	sender: MailAddress;
 	attachments: IdTuple[];
@@ -252,6 +253,7 @@ export type Mail = {
 	mailDetailsDraft: null | IdTuple;
 	bucketKey: null | BucketKey;
 	sets: IdTuple[];
+	clientSpamClassifierResult: null | ClientSpamClassifierResult;
 }
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", 125)
 
@@ -2578,4 +2580,33 @@ export type MoveMailPostOut = {
 	_format: NumberString;
 
 	movedMails: MovedMails[];
+}
+export const ClientSpamClassifierResultTypeRef: TypeRef<ClientSpamClassifierResult> = new TypeRef("tutanota", 1724)
+
+export function createClientSpamClassifierResult(values: StrippedEntity<ClientSpamClassifierResult>): ClientSpamClassifierResult {
+    return Object.assign(create(typeModels[ClientSpamClassifierResultTypeRef.typeId], ClientSpamClassifierResultTypeRef), values)
+}
+
+export type ClientSpamClassifierResult = {
+	_type: TypeRef<ClientSpamClassifierResult>;
+	_original?: ClientSpamClassifierResult
+
+	_id: Id;
+	spamDecision: NumberString;
+	confidence: NumberString;
+}
+export const ClientClassifierResultPostInTypeRef: TypeRef<ClientClassifierResultPostIn> = new TypeRef("tutanota", 1730)
+
+export function createClientClassifierResultPostIn(values: StrippedEntity<ClientClassifierResultPostIn>): ClientClassifierResultPostIn {
+    return Object.assign(create(typeModels[ClientClassifierResultPostInTypeRef.typeId], ClientClassifierResultPostInTypeRef), values)
+}
+
+export type ClientClassifierResultPostIn = {
+	_type: TypeRef<ClientClassifierResultPostIn>;
+	_original?: ClientClassifierResultPostIn
+
+	_format: NumberString;
+	isPredictionMade: boolean;
+
+	mails: IdTuple[];
 }
