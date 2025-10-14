@@ -1,5 +1,5 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import { BreadcrumbEntry, DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
+import { BreadcrumbEntry, DriveFacade, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
 import { DataFile } from "../../../common/api/common/DataFile"
@@ -133,9 +133,21 @@ export class DriveViewModel {
 		}
 	}
 
+	public generateUploadGuid(): UploadGuid {
+		return crypto.randomUUID()
+	}
+
 	async uploadFiles(files: (DataFile | FileReference)[]): Promise<void> {
-		const uploadedFiles = await this.driveFacade.uploadFiles(files, assertNotNull(this.currentFolder.folder)._id)
-		this.currentFolder.files.push(...uploadedFiles)
+		for (const file of files) {
+			const fileId = this.generateUploadGuid()
+			this.driveUploadStackModel.addUpload(fileId, file.name, file.size)
+
+			this.driveFacade.uploadFile(file, fileId, assertNotNull(this.currentFolder.folder)._id).then((uploadedFile) => {
+				if (uploadedFile != null) {
+					this.currentFolder.files.push(uploadedFile)
+				}
+			})
+		}
 	}
 
 	async createNewFolder(folderName: string): Promise<void> {

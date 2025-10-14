@@ -23,13 +23,14 @@ import { assertNotNull, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@
 import { DriveFileMetadataService, DriveService } from "../../entities/tutanota/Services"
 import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
 import { ExposedProgressTracker } from "../../main/ProgressTracker"
-import { ChunkedUploadInfo } from "../../common/drive/DriveTypes"
 import { UploadProgressListener } from "../../main/UploadProgressListener"
 
 export interface BreadcrumbEntry {
 	folderName: string
 	folder: IdTuple
 }
+
+export type UploadGuid = string
 
 export class DriveFacade {
 	private readonly onCancelListener: EventTarget
@@ -118,7 +119,7 @@ export class DriveFacade {
 	 * @param files the files to upload
 	 * @param to this is the folder where the file will be uploaded, if itś null we assume uploading to the root folder
 	 */
-	public async uploadFiles(files: (FileReference | DataFile)[], to: IdTuple) {
+	public async uploadFile(file: FileReference | DataFile, fileId: UploadGuid, to: IdTuple) {
 		console.log(`adding to: `, to)
 		const ownerGroupId = this.userFacade.getGroupId(GroupType.File)
 		console.log(`fileGroupOwnerGroup :: ${ownerGroupId}`)
@@ -126,58 +127,52 @@ export class DriveFacade {
 		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = locator.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
-		const createdFilesResponse: Array<readonly [string, string]> = []
 		let uploadMonitorId: number | null = null
 
 		// amount of work (in relation to progress monitor) the server still has to do after uploading
 		const serverProcessingSteps = 1
 
-		for (const f of files) {
-			const blobRefTokens = await this.blobFacade.encryptAndUpload(
-				ArchiveDataType.DriveFile,
-				(f as DataFile).data /*FileUri*/,
-				assertNotNull(ownerGroupId),
-				sessionKey,
-				async (info: ChunkedUploadInfo) => {
-					this.uploadProgressListener.onChunkUploaded({ ...info, fileNameId: f.name })
-				},
-				this.onCancelListener,
-				// async (totalChunks: number, doneChunks: number) => {
-				// 	console.log("onChunkUploaded:", doneChunks, "/", totalChunks)
-				// 	if (uploadMonitorId == null) {
-				// 		uploadMonitorId = await this.progressTracker.registerMonitor(totalChunks + serverProcessingSteps)
-				// 	}
-				// 	await this.progressTracker.workDoneForMonitor(uploadMonitorId, 1)
-				// },
-			)
+		const blobRefTokens = await this.blobFacade.encryptAndUpload(
+			ArchiveDataType.DriveFile,
+			(file as DataFile).data /*FileUri*/,
+			assertNotNull(ownerGroupId),
+			sessionKey,
+			this.uploadProgressListener.onChunkUploaded,
+			fileId,
+			this.onCancelListener,
+			// async (totalChunks: number, doneChunks: number) => {
+			// 	console.log("onChunkUploaded:", doneChunks, "/", totalChunks)
+			// 	if (uploadMonitorId == null) {
+			// 		uploadMonitorId = await this.progressTracker.registerMonitor(totalChunks + serverProcessingSteps)
+			// 	}
+			// 	await this.progressTracker.workDoneForMonitor(uploadMonitorId, 1)
+			// },
+		)
 
-			if (blobRefTokens.length === 0) {
-				console.log("No blob reference tokens, looks like this upload has been cancelled.")
-				continue
-			}
-
-			const uploadedFile = createDriveUploadedFile({
-				referenceTokens: blobRefTokens,
-				encFileName: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.name)),
-				encCid: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.cid ?? "")),
-				encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array(f.mimeType)),
-				ownerEncSessionKey: ownerEncSessionKey,
-				_ownerGroup: assertNotNull(ownerGroupId),
-			})
-			const data = createDriveCreateData({ uploadedFile: uploadedFile, parent: to })
-			console.log("data has been uploaded, posting to DriveService")
-			const response = await this.serviceExecutor.post(DriveService, data)
-			console.log("posted to drive service")
-			createdFilesResponse.push(response.createdFile)
+		if (blobRefTokens.length === 0) {
+			console.log("No blob reference tokens, looks like this upload has been cancelled.")
+			return null
 		}
-		//)
 
-		const createdFiles = await Promise.all(createdFilesResponse.map((idTuple) => this.entityClient.load(FileTypeRef, idTuple)))
-		return createdFiles
+		const uploadedFile = createDriveUploadedFile({
+			referenceTokens: blobRefTokens,
+			encFileName: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.name)),
+			encCid: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.cid ?? "")),
+			encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.mimeType)),
+			ownerEncSessionKey: ownerEncSessionKey,
+			_ownerGroup: assertNotNull(ownerGroupId),
+		})
+		const data = createDriveCreateData({ uploadedFile: uploadedFile, parent: to })
+		console.log("data has been uploaded, posting to DriveService")
+		const response = await this.serviceExecutor.post(DriveService, data)
+		console.log("posted to drive service")
+
+		const createdFile = this.entityClient.load(FileTypeRef, response.createdFile)
+		return createdFile
 	}
 
-	public async cancelCurrentUpload() {
-		this.onCancelListener.dispatchEvent(new CustomEvent(CANCEL_UPLOAD_EVENT))
+	public async cancelCurrentUpload(fileId: UploadGuid) {
+		this.onCancelListener.dispatchEvent(new CustomEvent(CANCEL_UPLOAD_EVENT, { detail: fileId }))
 	}
 
 	/**

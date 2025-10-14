@@ -8,7 +8,7 @@ import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { stateBgHover } from "../../../common/gui/builtinThemes"
 
 export interface DriveUploadBoxAttrs {
-	fileNameId: string
+	fileId: string
 	// isPaused: boolean
 	// onPause: () => void
 	// onResume: () => void
@@ -53,20 +53,20 @@ class DriveUploadProgressBar implements Component<DriveUploadProgressBarAttrs> {
 }
 
 export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
-	view({ attrs: { fileNameId, model } }: Vnode<DriveUploadBoxAttrs>): Children {
-		const { isPaused, isFinished, uploadedSize, totalSize } = model.state[fileNameId]
+	view({ attrs: { fileId, model } }: Vnode<DriveUploadBoxAttrs>): Children {
+		const { filename, isPaused, isFinished, uploadedSize, totalSize } = model.state[fileId]
 		let percentage = Math.round((uploadedSize / totalSize) * 100)
 		if (percentage > 100) percentage = 100
 
 		return m(".flex.col", { style: { margin: "16px" } }, [
 			m(".flex.row", { style: { "justify-content": "space-between", "align-items": "center" } }, [
-				m("", fileNameId),
+				m("", filename),
 
 				isFinished
 					? m(Icon, { icon: Icons.CheckCircleFilled, size: IconSize.Medium })
 					: m(IconButton, {
 							click: async () => {
-								await model.cancelUpload(fileNameId)
+								await model.cancelUpload(fileId)
 								m.redraw()
 							},
 							icon: Icons.Cancel,

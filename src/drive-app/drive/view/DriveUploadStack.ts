@@ -19,13 +19,13 @@ export class DriveUploadStack implements Component<DriveUploadStackAttrs> {
 		const model = vnode.attrs.model
 
 		const uploads = model.state
-		const uploadFileNameIds = Object.keys(uploads).sort()
+		const uploadFileIds = Object.keys(uploads).sort()
 
 		return m(
 			".flex.col",
 			{ style: uploadStackStyles },
-			uploadFileNameIds.map((fileNameId) => {
-				return m(DriveUploadBox, { fileNameId, model })
+			uploadFileIds.map((fileId) => {
+				return m(DriveUploadBox, { fileId, model })
 			}),
 		)
 	}

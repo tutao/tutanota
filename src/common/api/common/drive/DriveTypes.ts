@@ -1,5 +1,5 @@
 export type ChunkedUploadInfo = {
-	fileNameId: string
+	fileId: string
 	uploadedBytes: number
 	totalBytes: number
 }

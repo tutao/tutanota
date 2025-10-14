@@ -76,7 +76,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		this.driveViewModel = vnode.attrs.driveViewModel
 
 		this.driveViewModel.uploadProgressListener.addListener(async (info: ChunkedUploadInfo) => {
-			this.driveViewModel.driveUploadStackModel.onChunkUploaded(info.fileNameId, info.uploadedBytes)
+			this.driveViewModel.driveUploadStackModel.onChunkUploaded(info.fileId, info.uploadedBytes)
 			m.redraw()
 			return Promise.resolve()
 		})
@@ -181,10 +181,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	async onNewFile_Click(dom: HTMLElement): Promise<void> {
 		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
 			if (files) {
-				for (const file of files) {
-					this.driveViewModel.driveUploadStackModel.addUpload(file.name, file.size)
-				}
-
 				this.driveViewModel.uploadFiles([...files]).then(() => {
 					console.log("uploaded completed; redrawing...")
 					m.redraw()
