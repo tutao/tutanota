@@ -85,6 +85,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
+		if (attrs.driveViewModel.currentFolder == null) {
+			return m("", "Drive is loading...")
+		}
 		return m("#drive.main-view", {}, [
 			m(this.viewSlider, {
 				header: m(Header, {
