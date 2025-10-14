@@ -27,6 +27,7 @@ import { BulkMailLoader } from "../../../src/mail-app/workerUtils/index/BulkMail
 import { EntityRestInterface } from "../../../src/common/api/worker/rest/EntityRestClient"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
 import { isSameId } from "../../../src/common/api/common/utils/EntityUtils"
+import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 
 const { anything } = matchers
 
@@ -41,6 +42,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 	const inboxRuleOutcome = defer<Nullable<MailFolder>>()
 	let folderSystem: FolderSystem
 	let mailDetails: MailDetails
+	let connectivityModel: WebsocketConnectivityModel
 
 	const inboxFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "inbox"], folderType: MailSetKind.INBOX })
 	const trashFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "trash"], folderType: MailSetKind.TRASH })
@@ -65,6 +67,9 @@ o.spec("SpamClassificationHandlerTest", function () {
 		bulkMailLoader = object<BulkMailLoader>()
 		folderSystem = object<FolderSystem>()
 
+		connectivityModel = object<WebsocketConnectivityModel>()
+		when(connectivityModel.isLeader()).thenReturn(true)
+
 		when(mailFacade.simpleMoveMails(anything(), anything(), ClientClassifierType.CLIENT_CLASSIFICATION)).thenResolve([])
 		when(folderSystem.getSystemFolderByType(MailSetKind.SPAM)).thenReturn(spamFolder)
 		when(folderSystem.getSystemFolderByType(MailSetKind.INBOX)).thenReturn(inboxFolder)
@@ -88,7 +93,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 		).thenResolve([{ mail, mailDetails }])
 
 		const entityClient = new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly())
-		spamHandler = new SpamClassificationHandler(mailFacade, spamClassifier, entityClient, bulkMailLoader)
+		spamHandler = new SpamClassificationHandler(mailFacade, spamClassifier, entityClient, bulkMailLoader, connectivityModel)
 	})
 
 	o("processSpam correctly verifies if email is stored in spam folder", async function () {

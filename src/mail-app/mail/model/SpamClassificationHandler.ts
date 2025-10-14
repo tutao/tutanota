@@ -11,6 +11,7 @@ import { isExpectedErrorForSynchronization } from "../../../common/api/worker/re
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
+import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 
 export class SpamClassificationHandler {
 	public constructor(
@@ -18,6 +19,7 @@ export class SpamClassificationHandler {
 		private readonly spamClassifier: Nullable<SpamClassifier>,
 		private readonly entityClient: EntityClient,
 		private readonly bulkMailLoader: BulkMailLoader,
+		private readonly connectivityModel: WebsocketConnectivityModel,
 	) {}
 
 	public async predictSpamForNewMail(inboxRuleOutcome: Promise<Nullable<MailFolder>>, mail: Mail, folderSystem: FolderSystem): Promise<Nullable<MailFolder>> {
@@ -30,16 +32,17 @@ export class SpamClassificationHandler {
 
 		const serverDeliveredMailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get current folder for mail: ${mail._id}`)
 		const serverDeliveredMailSetKind = getMailSetKind(serverDeliveredMailFolder)
-		const mailIsAffectedByInboxRule = isNotNull(inboxRuleTargetFolder)
+		const mailIsAffectedByInboxRule = isNotNull(inboxRuleTargetFolder) || mail.isInboxRuleApplied
 		const isStoredInSpamFolder = serverDeliveredMailSetKind === MailSetKind.SPAM
 		const isNotStoredInSpamOrInbox = !isStoredInSpamFolder && serverDeliveredMailSetKind !== MailSetKind.INBOX
-		const mailHasBeenInteracted = mail.isInboxRuleApplied || isNotNull(mail.clientSpamClassifierResult) || isNotStoredInSpamOrInbox
+		const isLeaderClient = this.connectivityModel?.isLeader() ?? false
+		const storeOnly = mailIsAffectedByInboxRule || isNotNull(mail.clientSpamClassifierResult) || !isLeaderClient || !isNotStoredInSpamOrInbox
 
 		const mailDetails = await this.downloadMailDetails(mail)
 		if (mailDetails == null) {
 			// maybe mailDetails was deleted in meantime?
 			return serverDeliveredMailFolder
-		} else if (mailIsAffectedByInboxRule || mailHasBeenInteracted) {
+		} else if (storeOnly) {
 			const mailSetAfterInboxRule = inboxRuleTargetFolder ? getMailSetKind(inboxRuleTargetFolder) : serverDeliveredMailSetKind
 			await this.storeTrainingDatum({ mail, mailDetails }, mailSetAfterInboxRule)
 			return inboxRuleTargetFolder

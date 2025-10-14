@@ -27,6 +27,7 @@ import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
 import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
 import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 
 const { anything } = matchers
 
@@ -40,6 +41,7 @@ o.spec("MailModelTest", function () {
 	anotherFolder.folderType = MailSetKind.ARCHIVE
 	let logins: LoginController
 	let mailFacade: MailFacade
+	let connectivityModel: WebsocketConnectivityModel
 	const restClient: EntityRestClientMock = new EntityRestClientMock()
 
 	o.beforeEach(function () {
@@ -53,6 +55,9 @@ o.spec("MailModelTest", function () {
 		when(userController.isUpdateForLoggedInUserInstance(matchers.anything(), matchers.anything())).thenReturn(false)
 		when(logins.getUserController()).thenReturn(userController)
 
+		connectivityModel = object<WebsocketConnectivityModel>()
+		when(connectivityModel.isLeader()).thenReturn(true)
+
 		model = new MailModel(
 			downcast({}),
 			mailboxModel,
@@ -60,7 +65,7 @@ o.spec("MailModelTest", function () {
 			new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly()),
 			logins,
 			mailFacade,
-			null,
+			connectivityModel,
 			() => object(),
 			() => null,
 		)
@@ -114,7 +119,7 @@ o.spec("MailModelTest", function () {
 			mailboxModel = instance(MailboxModel)
 			inboxRuleHandler = object<InboxRuleHandler>()
 			spamClassifier = object<SpamClassifier>()
-			spamClassificationHandler = new SpamClassificationHandler(object(), spamClassifier, entityClient, object())
+			spamClassificationHandler = new SpamClassificationHandler(object(), spamClassifier, entityClient, object(), connectivityModel)
 
 			model = new MailModel(
 				downcast({}),

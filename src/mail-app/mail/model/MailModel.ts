@@ -223,7 +223,7 @@ export class MailModel {
 					!mail.isInboxRuleApplied && isNotNull(mailboxDetail) && isNotNull(inboxRuleHandler) && initialMailFolder.folderType === MailSetKind.INBOX
 				if (applyInboxRule) {
 					// We only apply rules on server if we are the leader in case of incoming messages
-					const applyInboxRuleOnServer = this.connectivityModel ? this.connectivityModel.isLeader() : false
+					const applyInboxRuleOnServer = this.connectivityModel?.isLeader() ?? false
 					inboxRuleOutcome = inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, applyInboxRuleOnServer)
 				}
 
@@ -231,6 +231,7 @@ export class MailModel {
 				if (folderSystem == null) {
 					return
 				}
+
 				const mailFolderAfterInboxRuleAndSpamProcessing = this.spamHandler()
 					.predictSpamForNewMail(inboxRuleOutcome, mail, folderSystem)
 					.catch((e) => {
