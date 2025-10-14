@@ -3,6 +3,7 @@ import { UserAreaGroupPostDataTypeRef } from "./TypeRefs.js"
 import { CreateGroupPostReturnTypeRef } from "./TypeRefs.js"
 import { CalendarDeleteDataTypeRef } from "./TypeRefs.js"
 import { ChangePrimaryAddressServicePutInTypeRef } from "./TypeRefs.js"
+import { ClientClassifierResultPostInTypeRef } from "./TypeRefs.js"
 import { UserAreaGroupDeleteDataTypeRef } from "./TypeRefs.js"
 import { CustomerAccountCreateDataTypeRef } from "./TypeRefs.js"
 import { DraftCreateDataTypeRef } from "./TypeRefs.js"
@@ -74,6 +75,15 @@ export const ChangePrimaryAddressService = Object.freeze({
 	get: null,
 	post: null,
 	put: { data: ChangePrimaryAddressServicePutInTypeRef, return: null },
+	delete: null,
+} as const)
+
+export const ClientClassifierResultService = Object.freeze({
+	app: "tutanota",
+	name: "ClientClassifierResultService",
+	get: null,
+	post: { data: ClientClassifierResultPostInTypeRef, return: null },
+	put: null,
 	delete: null,
 } as const)
 
