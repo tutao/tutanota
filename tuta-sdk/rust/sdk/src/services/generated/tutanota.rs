@@ -10,6 +10,7 @@ use crate::entities::generated::tutanota::UserAreaGroupPostData;
 use crate::entities::generated::tutanota::CreateGroupPostReturn;
 use crate::entities::generated::tutanota::CalendarDeleteData;
 use crate::entities::generated::tutanota::ChangePrimaryAddressServicePutIn;
+use crate::entities::generated::tutanota::ClientClassifierResultPostIn;
 use crate::entities::generated::tutanota::UserAreaGroupDeleteData;
 use crate::entities::generated::tutanota::CustomerAccountCreateData;
 use crate::entities::generated::tutanota::DraftCreateData;
@@ -73,6 +74,12 @@ pub struct ChangePrimaryAddressService;
 
 crate::service_impl!(declare, ChangePrimaryAddressService, "tutanota/changeprimaryaddressservice", 96);
 crate::service_impl!(PUT, ChangePrimaryAddressService, ChangePrimaryAddressServicePutIn, ());
+
+
+pub struct ClientClassifierResultService;
+
+crate::service_impl!(declare, ClientClassifierResultService, "tutanota/clientclassifierresultservice", 96);
+crate::service_impl!(POST, ClientClassifierResultService, ClientClassifierResultPostIn, ());
 
 
 pub struct ContactListGroupService;
