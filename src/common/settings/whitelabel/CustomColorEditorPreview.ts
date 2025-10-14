@@ -94,6 +94,8 @@ export class CustomColorEditorPreview implements Component {
 			phishingStatus: "0",
 			recipientCount: "0",
 			sets: [],
+			isInboxRuleApplied: false,
+			clientSpamClassifierResult: null,
 		} satisfies Partial<Mail>
 		const mail = createMail({
 			sender: createMailAddress({

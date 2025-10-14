@@ -209,7 +209,7 @@ o.spec("ConversationListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true, false), {
+		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true), {
 			times: 0,
 		})
 	})
@@ -227,7 +227,7 @@ o.spec("ConversationListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true, false), {
+		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true), {
 			times: 0,
 		})
 	})
@@ -246,7 +246,7 @@ o.spec("ConversationListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true, false), {
+		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true), {
 			times: 0,
 		})
 		o.check(model.loadingStatus).equals(ListLoadingState.Idle)
@@ -266,7 +266,6 @@ o.spec("ConversationListModel", () => {
 				mailboxDetail,
 				matchers.argThat((mail: Mail) => isSameId(mail._id, makeMailId(25))),
 				true,
-				false,
 			),
 		).thenResolve({})
 
@@ -282,7 +281,7 @@ o.spec("ConversationListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 1,
 		})
-		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true, false), {
+		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true), {
 			times: 100,
 		})
 	})

@@ -32,7 +32,7 @@ import {
 	isLabel,
 	MailReportType,
 	MailSetKind,
-	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	OperationType,
 	ReportMovedMailsType,
 	SimpleMoveMailTarget,
@@ -218,7 +218,7 @@ export class MailModel {
 				if (applyInboxRule) {
 					// We only apply rules on server if we are the leader in case of incoming messages
 					const applyInboxRuleOnServer = this.connectivityModel ? this.connectivityModel.isLeader() : false
-					inboxRuleOutcome = inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, applyInboxRuleOnServer, false)
+					inboxRuleOutcome = inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, applyInboxRuleOnServer)
 				}
 
 				const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
@@ -245,7 +245,7 @@ export class MailModel {
 		if (inboxRuleHandler) {
 			const mailboxDetail = await this.getMailboxDetailsForMail(mail)
 			if (mailboxDetail) {
-				return inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true, true)
+				return inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true)
 			}
 		}
 	}
@@ -445,7 +445,7 @@ export class MailModel {
 	async applyLabels(mails: readonly IdTuple[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]): Promise<void> {
 		const groupedByListIds = groupBy(mails, (mailId) => listIdPart(mailId))
 		for (const [_, groupedMails] of groupedByListIds) {
-			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, groupedMails)
+			const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, groupedMails)
 			for (const mailChunk of mailChunks) {
 				await this.mailFacade.applyLabels(mailChunk, addedLabels, removedLabels)
 			}

@@ -290,7 +290,7 @@ export async function applyInboxRulesToEntries(
 		return entries
 	}
 	return await promiseFilter(entries, async (entry) => {
-		const ruleApplied = await inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, entry.mail, true, false)
+		const ruleApplied = await inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, entry.mail, true)
 		return ruleApplied == null
 	})
 }

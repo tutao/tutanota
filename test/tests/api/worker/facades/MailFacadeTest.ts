@@ -15,7 +15,7 @@ import {
 import {
 	CryptoProtocolVersion,
 	MailAuthenticationStatus,
-	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	ReportedMailFieldType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { matchers, object, when } from "testdouble"
@@ -600,7 +600,7 @@ o.spec("MailFacade test", function () {
 		o.test("batches large amounts of mails", async () => {
 			const expectedBatches = 4
 			const testIds: IdTuple[] = []
-			for (let i = 0; i < MAX_NBR_MOVE_DELETE_MAIL_SERVICE * expectedBatches; i++) {
+			for (let i = 0; i < MAX_NBR_OF_MAILS_SYNC_OPERATION * expectedBatches; i++) {
 				testIds.push([`${i}`, `${i}`])
 			}
 			await facade.markMails(testIds, true)
@@ -609,7 +609,7 @@ o.spec("MailFacade test", function () {
 					serviceExecutor.post(
 						UnreadMailStateService,
 						matchers.contains({
-							mails: testIds.slice(i * MAX_NBR_MOVE_DELETE_MAIL_SERVICE, (i + 1) * MAX_NBR_MOVE_DELETE_MAIL_SERVICE),
+							mails: testIds.slice(i * MAX_NBR_OF_MAILS_SYNC_OPERATION, (i + 1) * MAX_NBR_OF_MAILS_SYNC_OPERATION),
 							unread: true,
 						}),
 					),

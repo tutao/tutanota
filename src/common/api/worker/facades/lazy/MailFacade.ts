@@ -3,6 +3,7 @@ import {
 	ApplyLabelService,
 	DraftService,
 	ExternalUserService,
+	IsInboxRuleAppliedStateService,
 	ListUnsubscribeService,
 	MailFolderService,
 	MailService,
@@ -27,7 +28,7 @@ import {
 	MailMethod,
 	MailReportType,
 	MailSetKind,
-	MAX_NBR_MOVE_DELETE_MAIL_SERVICE,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	MAX_NBR_OF_CONVERSATIONS,
 	OperationType,
 	PhishingMarkerStatus,
@@ -51,6 +52,7 @@ import {
 	createDraftUpdateData,
 	createEncryptedMailAddress,
 	createExternalUserData,
+	createIsInboxRuleAppliedStatePostIn,
 	createListUnsubscribeData,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
@@ -392,7 +394,12 @@ export class MailFacade {
 	/**
 	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
 	 */
-	async moveMails(mails: readonly IdTuple[], targetFolder: IdTuple, excludeMailSet: IdTuple | null): Promise<MovedMails[]> {
+	async moveMails(
+		mails: readonly IdTuple[],
+		targetFolder: IdTuple,
+		excludeMailSet: IdTuple | null,
+		moveReason: ClientClassifierType | null = null,
+	): Promise<MovedMails[]> {
 		if (isEmpty(mails)) {
 			return []
 		}
@@ -401,7 +408,7 @@ export class MailFacade {
 		const mailsPerList = groupBy(mails, (mailId) => listIdPart(mailId))
 		const movedMails: MovedMails[] = []
 		for (const [_, mailsInList] of mailsPerList) {
-			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mailsInList)
+			const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailsInList)
 			for (const mails of mailChunks) {
 				const moveMailPostOut = await this.serviceExecutor.post(
 					MoveMailService,
@@ -409,7 +416,7 @@ export class MailFacade {
 						mails,
 						excludeMailSet,
 						targetFolder,
-						moveReason: null,
+						moveReason,
 					}),
 				)
 				movedMails.push(...moveMailPostOut.movedMails)
@@ -421,13 +428,13 @@ export class MailFacade {
 	async simpleMoveMails(
 		mails: readonly IdTuple[],
 		targetFolderKind: SimpleMoveMailTarget,
-		clientSpamClassifier: Nullable<ClientClassifierType>,
+		moveReason: Nullable<ClientClassifierType>,
 	): Promise<MovedMails[]> {
 		if (isEmpty(mails)) {
 			return []
 		}
 
-		const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails)
+		const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
 		const movedMails: MovedMails[] = []
 		for (const mails of mailChunks) {
 			const simpleMove = await this.serviceExecutor.post(
@@ -435,7 +442,7 @@ export class MailFacade {
 				createSimpleMoveMailPostIn({
 					mails,
 					destinationSetType: targetFolderKind,
-					moveReason: clientSpamClassifier,
+					moveReason,
 				}),
 			)
 			movedMails.push(...simpleMove.movedMails)
@@ -465,7 +472,7 @@ export class MailFacade {
 		// Must be split by list (mailbag)
 		const mailsGrouped = groupBy(mails, listIdPart)
 		for (const [_, mails] of mailsGrouped) {
-			const mailChunks = splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails)
+			const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
 			for (const mailChunk of mailChunks) {
 				const deleteMailData = createDeleteMailData({
 					mails: mailChunk,
@@ -1184,13 +1191,33 @@ export class MailFacade {
 	 */
 	async markMails(mails: readonly IdTuple[], unread: boolean) {
 		await promiseMap(
-			splitInChunks(MAX_NBR_MOVE_DELETE_MAIL_SERVICE, mails),
+			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
 			async (mails) =>
 				this.serviceExecutor.post(
 					UnreadMailStateService,
 					createUnreadMailStatePostIn({
 						unread,
 						mails,
+					}),
+				),
+			{ concurrency: 5 },
+		)
+	}
+
+	/**
+	 * Mark the given mails as read/unread
+	 * @param mails mail ids to mark as unread
+	 * @param isInboxRuleApplied new unread status (mails that are already this status will not be modified)
+	 */
+	async setIsInboxRuleApplied(mails: readonly IdTuple[], isInboxRuleApplied: boolean) {
+		await promiseMap(
+			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
+			async (mails) =>
+				this.serviceExecutor.post(
+					IsInboxRuleAppliedStateService,
+					createIsInboxRuleAppliedStatePostIn({
+						mails,
+						isInboxRuleApplied,
 					}),
 				),
 			{ concurrency: 5 },
