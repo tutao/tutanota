@@ -104,6 +104,15 @@ export function getSocialUrl(contactId: ContactSocialId): string {
 
 			case ContactSocialType.LINKED_IN:
 				socialUrlType = "linkedin.com/in/"
+				break
+
+			case ContactSocialType.MASTADON:
+				socialUrlType = "mastodon.social/@"
+				break
+
+			case ContactSocialType.BLUE_SKY:
+				socialUrlType = "bsky.app/profile/"
+				break
 		}
 	}
 
@@ -147,6 +156,8 @@ export function getMessengerHandleUrl(handle: ContactMessengerHandle): string {
 			return `tg://resolve?domain=${handle.handle}`
 		case ContactMessengerHandleType.DISCORD:
 			return `discord://-/users/${handle.handle}`
+		case ContactMessengerHandleType.ELEMENT:
+			return `element://vector/webapp/#/user/@${handle.handle}:matrix.org`
 		default:
 			return ""
 	}

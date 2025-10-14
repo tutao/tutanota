@@ -2133,6 +2133,9 @@ export default {
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"relatedPeople_label": "Related people"
+		"relatedPeople_label": "Related people",
+		"blueSky_label": "Bluesky",
+		"mastadon_label": "Mastadon",
+		"element_label": "Element"
 	}
 }

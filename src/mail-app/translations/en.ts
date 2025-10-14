@@ -2129,6 +2129,9 @@ export default {
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"relatedPeople_label": "Related people"
+		"relatedPeople_label": "Related people",
+		"blueSky_label": "Bluesky",
+		"mastadon_label": "Mastadon",
+		"element_label": "Element"
 	}
 }
