@@ -119,7 +119,7 @@ o.spec("SpamClassifier", () => {
 		}
 
 		const layersModel = object<Sequential>()
-		when(layersModel.predict(anything(), anything())).thenResolve([1])
+		when(layersModel.predict(anything(), anything())).thenReturn(tensor1d([0]))
 		spamClassifier.putSpamClassifierForOwner(spamTrainMailDatum.ownerGroup, layersModel, true)
 
 		const predictedSpam = await spamClassifier.predict(spamTrainMailDatum)

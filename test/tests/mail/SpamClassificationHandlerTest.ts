@@ -14,17 +14,16 @@ import {
 } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { SpamClassifier, SpamTrainMailDatum } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../src/common/api/common/CommonMailUtils"
-import { getMailSetKind, MailSetKind } from "../../../src/common/api/common/TutanotaConstants"
+import { MailSetKind } from "../../../src/common/api/common/TutanotaConstants"
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils"
-import { defer, lazyAsync, Nullable } from "@tutao/tutanota-utils"
-import { MailIndexer } from "../../../src/mail-app/workerUtils/index/MailIndexer"
+import { assert, assertNotNull, defer, Nullable } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../TestUtils"
 import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
 import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
-import { BulkMailLoader, MailWithMailDetails } from "../../../src/mail-app/workerUtils/index/BulkMailLoader"
+import { BulkMailLoader } from "../../../src/mail-app/workerUtils/index/BulkMailLoader"
 import { EntityRestInterface } from "../../../src/common/api/worker/rest/EntityRestClient"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
 import { isSameId } from "../../../src/common/api/common/utils/EntityUtils"
@@ -32,7 +31,6 @@ import { isSameId } from "../../../src/common/api/common/utils/EntityUtils"
 const { anything } = matchers
 
 o.spec("SpamClassificationHandlerTest", function () {
-	let indexerAndMailFacadeMock: lazyAsync<{ mailIndexer: MailIndexer; mailFacade: MailFacade }>
 	let mailFacade = object<MailFacade>()
 	let body: Body
 	let mail: Mail
@@ -47,7 +45,6 @@ o.spec("SpamClassificationHandlerTest", function () {
 	const inboxFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "inbox"], folderType: MailSetKind.INBOX })
 	const trashFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "trash"], folderType: MailSetKind.TRASH })
 	const spamFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "spam"], folderType: MailSetKind.SPAM })
-	const allFolders = [inboxFolder, trashFolder, spamFolder]
 
 	o.beforeEach(function () {
 		spamClassifier = object<SpamClassifier>()
@@ -62,16 +59,33 @@ o.spec("SpamClassificationHandlerTest", function () {
 			_ownerGroup: "owner",
 			mailDetails: ["detailsList", mailDetails._id],
 			unread: false,
+			isInboxRuleApplied: false,
+			clientSpamClassifierResult: null,
 		})
 		bulkMailLoader = object<BulkMailLoader>()
 		folderSystem = object<FolderSystem>()
 
+		when(mailFacade.simpleMoveMails(anything(), anything(), ClientClassifierType.CLIENT_CLASSIFICATION)).thenResolve([])
 		when(folderSystem.getSystemFolderByType(MailSetKind.SPAM)).thenReturn(spamFolder)
 		when(folderSystem.getSystemFolderByType(MailSetKind.INBOX)).thenReturn(inboxFolder)
 		when(folderSystem.getSystemFolderByType(MailSetKind.TRASH)).thenReturn(trashFolder)
-		when(bulkMailLoader.loadMailDetails(matchers.argThat((m: Mail) => isSameId(m._id, mail._id))), anything()).thenResolve([
-			{ mail, mailDetails } satisfies MailWithMailDetails,
-		])
+		when(folderSystem.getFolderByMail(anything())).thenDo((mail: Mail) => {
+			assert(mail.sets.length === 1, "Expected exactly one mail set")
+			const mailFolderId = assertNotNull(mail.sets[0])
+			if (isSameId(mailFolderId, trashFolder._id)) return trashFolder
+			else if (isSameId(mailFolderId, spamFolder._id)) return spamFolder
+			else if (isSameId(mailFolderId, inboxFolder._id)) return inboxFolder
+			else throw new Error("Unknown mail Folder")
+		})
+		when(
+			bulkMailLoader.loadMailDetails(
+				matchers.argThat((requestedMails: Array<Mail>) => {
+					assert(requestedMails.length === 1, "exactly one mail is requested at a time")
+					return isSameId(requestedMails[0]._id, mail._id)
+				}),
+			),
+			anything(),
+		).thenResolve([{ mail, mailDetails }])
 
 		const entityClient = new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly())
 		spamHandler = new SpamClassificationHandler(mailFacade, spamClassifier, entityClient, bulkMailLoader)
@@ -80,8 +94,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 	o("processSpam correctly verifies if email is stored in spam folder", async function () {
 		inboxRuleOutcome.resolve(null)
 
-		when(spamClassifier.predict(anything())).thenResolve(false)
 		mail.sets = [spamFolder._id]
+		when(spamClassifier.predict(anything())).thenResolve(false)
 		const expectedTrainingData: SpamTrainMailDatum = {
 			mailId: mail._id,
 			subject: mail.subject,
@@ -114,6 +128,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 
 		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
 		o(finalResult).equals(null)
+		verify(mailFacade.simpleMoveMails(anything(), anything(), anything()), { times: 0 })
 		verify(spamClassifier.predict(anything()), { times: 0 })
 		verify(spamClassifier.storeSpamClassification(expectedTrainingData), { times: 1 })
 	})
@@ -134,16 +149,51 @@ o.spec("SpamClassificationHandlerTest", function () {
 		}
 
 		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
+		verify(mailFacade.simpleMoveMails([mail._id], MailSetKind.INBOX, ClientClassifierType.CLIENT_CLASSIFICATION), { times: 1 })
 		verify(spamClassifier.storeSpamClassification(expectedTrainingData), { times: 1 })
 		o(finalResult).deepEquals(inboxFolder)
 	})
 
 	o("getSpamConfidence is 1 for mail in spam folder ", async function () {
-		o(spamHandler.getSpamConfidence(mail, getMailSetKind(spamFolder))).equals(1)
-	})
+		let locatedMailset: MailSetKind
 
-	// TODO: read status does not matter any more write test for new aggregated type
-	o("getSpamConfidence for inbox folder depends on read status", async function () {})
+		// when a mail is unread in spam or ham folder
+		{
+			mail.unread = true
+			mail.isInboxRuleApplied = false
+			mail.clientSpamClassifierResult = null
+
+			locatedMailset = MailSetKind.SPAM
+			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(1)
+			locatedMailset = MailSetKind.INBOX
+			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(0)
+		}
+
+		// when a spam or ham mail have isInboxRuleApplied true
+		{
+			mail.unread = true
+			mail.isInboxRuleApplied = true
+			mail.clientSpamClassifierResult = null
+
+			locatedMailset = MailSetKind.SPAM
+			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(1)
+
+			locatedMailset = MailSetKind.INBOX
+			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(1)
+		}
+
+		// when a spam or ham mail have clientSpamClassifierResult
+		{
+			mail.unread = true
+			mail.isInboxRuleApplied = false
+			mail.clientSpamClassifierResult = createTestEntity(ClientSpamClassifierResultTypeRef)
+
+			locatedMailset = MailSetKind.SPAM
+			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(1)
+			locatedMailset = MailSetKind.INBOX
+			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(1)
+		}
+	})
 
 	o("processSpam moves mail to spam when detected as such and its not already in spam", async function () {
 		inboxRuleOutcome.resolve(null)
@@ -161,7 +211,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 
 		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
 		verify(spamClassifier.storeSpamClassification(expectedDatum), { times: 1 })
-		verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.SPAM, ClientClassifierType.CLIENT_CLASSIFICATION))
+		verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.SPAM, ClientClassifierType.CLIENT_CLASSIFICATION), { times: 1 })
 		o(finalResult).deepEquals(spamFolder)
 	})
 
@@ -181,7 +231,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 
 		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
 		verify(spamClassifier.storeSpamClassification(expectedDatum), { times: 1 })
-		verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.SPAM, ClientClassifierType.CLIENT_CLASSIFICATION))
+		verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.SPAM, ClientClassifierType.CLIENT_CLASSIFICATION), { times: 1 })
 		o(finalResult).deepEquals(spamFolder)
 	})
 

@@ -2,7 +2,14 @@ import o from "@tutao/otest"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
 import { Spy, spy, verify } from "@tutao/tutanota-test-utils"
 import { MailSetKind, OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
-import { Mail, MailFolderTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
+import {
+	BodyTypeRef,
+	Mail,
+	MailDetailsTypeRef,
+	MailFolderTypeRef,
+	MailSetEntryTypeRef,
+	MailTypeRef,
+} from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
 import { downcast } from "@tutao/tutanota-utils"
@@ -140,11 +147,16 @@ o.spec("MailModelTest", function () {
 			verify(spamClassificationHandler.predictSpamForNewMail(anything(), anything(), anything()), { times: 0 })
 		})
 
-		o("does not do spam prediction if inbox rule is applied", async () => {
-			const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"] })
-			const inboxRuleTargetFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxRuleTarget"] })
+		o("no spam prediction if inbox rule is applied", async () => {
+			const mailDetails = createTestEntity(MailDetailsTypeRef, {
+				_id: "mailDetail",
+				body: createTestEntity(BodyTypeRef, { text: "some text" }),
+			})
+			const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"], mailDetails: ["detailsList", mailDetails._id] })
+			when(spamClassificationHandler.downloadMail(matchers.anything())).thenResolve(mail)
+			when(spamClassificationHandler.downloadMailDetails(mail)).thenResolve(mailDetails)
 
-			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)
+			const inboxRuleTargetFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxRuleTarget"] })
 			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(inboxRuleTargetFolder)
 
 			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
@@ -155,9 +167,14 @@ o.spec("MailModelTest", function () {
 		})
 
 		o("Do spam prediction if inbox rule is not applied", async () => {
-			const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"] })
+			const mailDetails = createTestEntity(MailDetailsTypeRef, {
+				_id: "mailDetail",
+				body: createTestEntity(BodyTypeRef, { text: "some text" }),
+			})
+			const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"], mailDetails: ["detailsList", mailDetails._id] })
+			when(spamClassificationHandler.downloadMail(matchers.anything())).thenResolve(mail)
+			when(spamClassificationHandler.downloadMailDetails(mail)).thenResolve(mailDetails)
 
-			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)
 			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(null)
 			when(spamClassifier.predict(anything())).thenResolve(null)
 
@@ -169,6 +186,7 @@ o.spec("MailModelTest", function () {
 
 		o("do not do spam prediction for draft mail", async () => {
 			const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"], mailDetailsDraft: ["draftListId", "draftId"], mailDetails: null })
+
 			const inboxRuleTargetFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxRuleTarget"] })
 
 			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)

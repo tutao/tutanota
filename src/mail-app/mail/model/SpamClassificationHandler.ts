@@ -147,6 +147,7 @@ export class SpamClassificationHandler {
 		})
 	}
 
+	// @visibleForTesting
 	public async downloadMailDetails(mail: Mail): Promise<Nullable<MailDetails>> {
 		return this.bulkMailLoader
 			.loadMailDetails([mail])
