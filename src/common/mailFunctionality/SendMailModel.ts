@@ -270,6 +270,10 @@ export class SendMailModel {
 		return this.mailRemotelyUpdatedAt
 	}
 
+	setMailChangedAt(time: number) {
+		this.mailChangedAt = time
+	}
+
 	setMailSavedAt(time: number) {
 		this.mailSavedAt = time
 	}
@@ -372,8 +376,12 @@ export class SendMailModel {
 			return false
 		}
 		if (this.draft == null) {
+			// no mail id -> false (same mail)
+			// mail id -> true (different mail)
 			return draftData.mailId != null
 		} else if (draftData.mailId == null) {
+			// is a new mail -> false (same mail)
+			// is not a new mail -> true (different mail)
 			return !this.isNewMail()
 		} else {
 			return !isSameId(this.draft._id, draftData.mailId)
@@ -386,11 +394,11 @@ export class SendMailModel {
 	 */
 	markAsChangedIfNecessary(hasChanged: boolean) {
 		if (!hasChanged) return
-		this.mailChangedAt = this.dateProvider.now()
+		this.setMailChangedAt(this.dateProvider.now())
 
 		// If it was changed really quickly, force the timestamps to be different.
 		if (this.mailChangedAt <= this.mailSavedAt) {
-			this.mailChangedAt = this.mailSavedAt + 1
+			this.setMailChangedAt(this.mailSavedAt + 1)
 		}
 
 		// if this method is called wherever state gets changed, onMailChanged should function properly
@@ -593,18 +601,18 @@ export class SendMailModel {
 		this.replyTos = recipientsFilter(replyTos ?? []).map((recipient) => this.recipientsModel.initialize(recipient))
 		this.previousMail = previousMail || null
 		this.previousMessageId = previousMessageId || null
-		this.mailChangedAt = this.dateProvider.now()
+		this.setMailChangedAt(this.dateProvider.now())
 
 		// Determine if we should have this mail already be detected as modified so it saves.
 		if (initialChangedState) {
 			this.onMailChanged(null)
-			this.mailSavedAt = this.mailChangedAt - 1
+			this.setMailSavedAt(this.mailChangedAt - 1)
 		} else {
-			this.mailSavedAt = this.mailChangedAt + 1
+			this.setMailSavedAt(this.mailChangedAt + 1)
 		}
 
 		this.mailRemotelyUpdatedAt = this.mailChangedAt
-		this.mailSavedAt = this.mailChangedAt
+		this.setMailSavedAt(this.mailChangedAt)
 		this._draftSavedRecently = false
 
 		assertNotNull(this.initialized, "somehow got to the end of init without startInit called").resolve()
@@ -1074,7 +1082,7 @@ export class SendMailModel {
 
 			// Allow any changes that might occur while the mail is being saved to be accounted for
 			// if saved is called before this has completed
-			this.mailSavedAt = this.dateProvider.now()
+			this.setMailSavedAt(this.dateProvider.now())
 			this.mailRemotelyUpdatedAt = this.mailSavedAt
 		} catch (e) {
 			if (e instanceof PayloadTooLargeError) {
@@ -1213,24 +1221,22 @@ export class SendMailModel {
 			await this.recipientsResolved.getAsync()
 
 			if (operation === OperationType.UPDATE) {
-				this.entity.load(ContactTypeRef, contactId).then((contact) => {
-					for (const fieldType of typedValues(RecipientField)) {
-						const matching = this.getRecipientList(fieldType).filter(
-							(recipient) => recipient.contact && isSameId(recipient.contact._id, contact._id),
-						)
-						for (const recipient of matching) {
-							// if the mail address no longer exists on the contact then delete the recipient
-							if (!contact.mailAddresses.some((ma) => cleanMatch(ma.address, recipient.address))) {
-								changed = changed || this.removeRecipient(recipient, fieldType, true)
-							} else {
-								// else just modify the recipient
-								recipient.setName(getContactDisplayName(contact))
-								recipient.setContact(contact)
-								changed = true
-							}
+				const contact = await this.entity.load(ContactTypeRef, contactId)
+
+				for (const fieldType of typedValues(RecipientField)) {
+					const matching = this.getRecipientList(fieldType).filter((recipient) => recipient.contact && isSameId(recipient.contact._id, contact._id))
+					for (const recipient of matching) {
+						// if the mail address no longer exists on the contact then delete the recipient
+						if (!contact.mailAddresses.some((ma) => cleanMatch(ma.address, recipient.address))) {
+							changed = changed || this.removeRecipient(recipient, fieldType, true)
+						} else {
+							// else just modify the recipient
+							recipient.setName(getContactDisplayName(contact))
+							recipient.setContact(contact)
+							changed = true
 						}
 					}
-				})
+				}
 			} else if (operation === OperationType.DELETE) {
 				for (const fieldType of typedValues(RecipientField)) {
 					const recipients = this.getRecipientList(fieldType)
@@ -1242,10 +1248,8 @@ export class SendMailModel {
 					}
 				}
 			}
-
-			this.markAsChangedIfNecessary(true)
 		} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
-			this.updateAvailableNotificationTemplateLanguages()
+			await this.updateAvailableNotificationTemplateLanguages()
 		} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
 			this.mailboxProperties = await this.entity.load(MailboxPropertiesTypeRef, update.instanceId)
 		} else if (isUpdateForTypeRef(MailDetailsDraftTypeRef, update) && operation === OperationType.UPDATE && this.draft != null) {

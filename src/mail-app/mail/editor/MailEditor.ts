@@ -1142,6 +1142,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			return
 		} else {
 			// If the mail is unchanged and there /is/ a preexisting draft, there was no change and the mail is already saved
+			model.clearLocalAutosave()
 			saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
 		}
 
