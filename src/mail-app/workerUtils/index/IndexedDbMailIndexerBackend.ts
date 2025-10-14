@@ -11,7 +11,7 @@ import {
 } from "../../../common/api/common/utils/EntityUtils"
 import { Metadata } from "../../../common/api/worker/search/IndexTables"
 import { IndexUpdate, SearchIndexEntry } from "../../../common/api/worker/search/SearchTypes"
-import { _createNewIndexUpdate, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "../../../common/api/worker/search/IndexUtils"
+import { _createNewIndexUpdate, getPerformanceTimestamp, htmlToText, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils"
 import { GroupTimestamps, MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { ClientTypeModelResolver } from "../../../common/api/common/EntityFunctions"
