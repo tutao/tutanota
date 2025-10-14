@@ -49,7 +49,6 @@ import {
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { mailLocator } from "../../mail-app/mailLocator"
 import { client } from "../misc/ClientDetector.js"
-import { getClientPlatform } from "./utils/LeavingUserSurveyUtils"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { PlanSelector } from "./PlanSelector.js"
 import { getPrivateBusinessSwitchButton } from "./SubscriptionPage.js"
@@ -213,7 +212,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 					details: reason.details,
 					version: SURVEY_VERSION_NUMBER,
 					clientVersion: env.versionNumber,
-					clientPlatform: getClientPlatform().valueOf().toString(),
+					clientPlatform: client.getClientPlatform().valueOf().toString(),
 				})
 			: null
 	const newPlanType = await cancelSubscription(dialog, currentPlanInfo, customer, data)

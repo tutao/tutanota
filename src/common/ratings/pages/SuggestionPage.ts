@@ -12,7 +12,6 @@ import { lang } from "../../misc/LanguageViewModel.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { client } from "../../misc/ClientDetector.js"
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
-import { getClientPlatform } from "../../subscription/utils/LeavingUserSurveyUtils"
 
 interface SuggestionPageAttrs {
 	dialog: Dialog
@@ -87,7 +86,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						details: this.textFieldInput,
 						reason: "33", // 33 == "Provide details"
 						clientVersion: env.versionNumber,
-						clientPlatform: getClientPlatform().valueOf().toString(),
+						clientPlatform: client.getClientPlatform().valueOf().toString(),
 					}),
 				}),
 			)

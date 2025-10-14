@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot, isApp, Mode } from "../api/common/Env"
+import { assertMainOrNodeBoot, isAndroidApp, isApp, isDesktop, isIOSApp, Mode } from "../api/common/Env"
 import { AppType, BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 
@@ -416,6 +416,42 @@ export class ClientDetector {
 	isMailApp() {
 		return isApp() && this.appType === AppType.Mail
 	}
+
+	getClientPlatform(): ClientPlatform {
+		if (isDesktop()) {
+			if (env.platformId === "darwin") return ClientPlatform.DESKTOP_MAC
+			if (env.platformId === "linux") return ClientPlatform.DESKTOP_LINUX
+			if (env.platformId === "win32") return ClientPlatform.DESKTOP_WINDOWS
+			return ClientPlatform.DESKTOP_UNKNOWN
+		}
+		if (!isApp()) return ClientPlatform.WEB
+
+		if (isAndroidApp()) {
+			return this.isCalendarApp() ? ClientPlatform.ANDROID_CALENDAR_APP : ClientPlatform.ANDROID_MAIL_APP
+		}
+
+		if (isIOSApp()) {
+			return this.isCalendarApp() ? ClientPlatform.IOS_CALENDAR_APP : ClientPlatform.IOS_MAIL_APP
+		}
+
+		// Fallback
+		return ClientPlatform.UNKNOWN
+	}
+}
+
+export enum ClientPlatform {
+	// this should be unused and exists so the clients that don't write the field get assigned
+	// UNKNOWN by default during migrations
+	UNKNOWN,
+	IOS_MAIL_APP,
+	ANDROID_MAIL_APP,
+	IOS_CALENDAR_APP,
+	ANDROID_CALENDAR_APP,
+	WEB,
+	DESKTOP_UNKNOWN,
+	DESKTOP_MAC,
+	DESKTOP_LINUX,
+	DESKTOP_WINDOWS,
 }
 
 export const client: ClientDetector = new ClientDetector()
