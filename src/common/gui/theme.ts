@@ -1,5 +1,6 @@
 import { assertMainOrNodeBoot } from "../api/common/Env"
 import { isColorLight } from "./base/Color"
+import { lang } from "../misc/LanguageViewModel"
 
 assertMainOrNodeBoot()
 
@@ -107,6 +108,10 @@ export const themeOptions = (isCalendarApp: boolean) =>
 		{
 			name: isCalendarApp ? "dark_red_label" : "dark_blue_label",
 			value: "dark_secondary",
+		},
+		{
+			name: lang.makeTranslation("black_label", "Black"), // FIXME: Add translation term
+			value: "black",
 		},
 	] as const
 
