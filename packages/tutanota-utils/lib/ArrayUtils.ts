@@ -534,6 +534,8 @@ export function symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T
  *
  * Please note that tsc cannot infer that a function is a type predicate/type guard. Declaring function as a type predicate is also unsafe.
  * see: https://github.com/microsoft/TypeScript/issues/16069
+ *
+ * @return a tuple of partitioned elements. The first array has all the matching elements and the second one has the rest.
  */
 export function partition<Generic, Specific extends Generic>(
 	array: ReadonlyArray<Generic>,

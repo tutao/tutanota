@@ -176,7 +176,9 @@ export function _socialIdsToVCardSocialUrls(socialIds: ContactSocialId[]): {
 		//IN VCARD 3.0 is no type for URLS
 		return {
 			KIND: "",
-			CONTENT: getSocialUrl(sId),
+			// this is probably not going to be a valid URl and it's also going to lose the label but it's the least
+			// worst option that we have with the current structure
+			CONTENT: getSocialUrl(sId) ?? `https://${sId.socialId}`,
 		}
 	})
 }

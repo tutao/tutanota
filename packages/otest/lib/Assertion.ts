@@ -53,7 +53,10 @@ export class Assertion<T> {
 	 */
 	equals(expected: T | null | undefined): AssertionDescriber {
 		if (this.actual !== expected) {
-			return this.addError(`expected "${asString(this.actual)}" to be equal to "${asString(expected)}"`)
+			const left = asString(this.actual)
+			const right = asString(expected)
+			const diffMsg = differ(this.actual, expected) ?? undefined
+			return this.addError(`expected "${left}" to be equal to "${right}"`, diffMsg)
 		}
 		return noop
 	}
