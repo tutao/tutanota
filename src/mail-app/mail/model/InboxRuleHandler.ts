@@ -103,13 +103,10 @@ export class InboxRuleHandler {
 	 */
 	async findAndApplyMatchingRule(
 		mailboxDetail: MailboxDetail,
-		mail: Mail,
+		mail: Readonly<Mail>,
 		applyRulesOnServer: boolean,
 		applyIfRead: boolean,
-	): Promise<{
-		folder: MailFolder
-		mail: Mail
-	} | null> {
+	): Promise<MailFolder | null> {
 		const shouldApply = applyIfRead || mail.unread
 
 		if (
@@ -146,7 +143,10 @@ export class InboxRuleHandler {
 					applyMatchingRules(this.mailFacade)
 				}
 
-				return { folder: targetFolder, mail }
+				// TODO:
+				// seems like it's already assuming it's being moved. What are the consequences in MailModel#entityEventsReceived@showNotification
+				// if for some reasone the move call failed? or client have not yet received the entity event for that move
+				return targetFolder
 			} else {
 				return null
 			}

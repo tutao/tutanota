@@ -58,7 +58,7 @@ import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { NativeInterfaces } from "../common/native/main/NativeInterfaceFactory.js"
 import { EntropyFacade } from "../common/api/worker/facades/EntropyFacade.js"
 import { SqlCipherFacade } from "../common/native/common/generatedipc/SqlCipherFacade.js"
-import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/tutanota-utils"
+import { assert, assertNotNull, defer, DeferredObject, isNotNull, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/tutanota-utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../common/api/common/utils/NoZoneDateProvider.js"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "../common/api/entities/tutanota/TypeRefs.js"
@@ -152,9 +152,10 @@ import { IdentityKeyCreator } from "../common/api/worker/facades/lazy/IdentityKe
 import { PublicIdentityKeyProvider } from "../common/api/worker/facades/PublicIdentityKeyProvider"
 import { WhitelabelThemeGenerator } from "../common/gui/WhitelabelThemeGenerator"
 import { UndoModel } from "./UndoModel"
-import { SpamClassifier } from "./workerUtils/spamClassification/SpamClassifier"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import { AutosaveFacade } from "../common/api/worker/facades/lazy/AutosaveFacade"
+import { SpamClassificationHandler } from "./mail/model/SpamClassificationHandler"
+import { SpamClassifier } from "./workerUtils/spamClassification/SpamClassifier"
 
 assertMainOrNode()
 
@@ -298,6 +299,13 @@ class MailLocator implements CommonLocator {
 
 	readonly inboxRuleHandler = lazyMemoized(() => {
 		return new InboxRuleHandler(this.mailFacade, this.logins, this.mailModel)
+	})
+
+	readonly spamClassificationHandler = lazyMemoized(() => {
+		if (isNotNull(this.spamClassifier)) {
+			return new SpamClassificationHandler(this.mailFacade, this.spamClassifier, this.entityClient, this.bulkMailLoader)
+		}
+		return null
 	})
 
 	async searchViewModelFactory(): Promise<() => SearchViewModel> {
@@ -827,6 +835,7 @@ class MailLocator implements CommonLocator {
 		this.mailExportFacade = mailExportFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailboxModel = new MailboxModel(this.eventController, this.entityClient, this.logins)
+		this.spamClassifier = spamClassifier
 		this.mailModel = new MailModel(
 			notifications,
 			this.mailboxModel,
@@ -835,6 +844,7 @@ class MailLocator implements CommonLocator {
 			this.logins,
 			this.mailFacade,
 			this.connectivityModel,
+			this.spamClassificationHandler,
 			this.inboxRuleHandler,
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
@@ -1031,7 +1041,6 @@ class MailLocator implements CommonLocator {
 		if (selectedThemeFacade instanceof WebThemeFacade) {
 			selectedThemeFacade.addDarkListener(() => mailLocator.themeController.reloadTheme())
 		}
-		this.spamClassifier = spamClassifier
 	}
 
 	readonly calendarModel: () => Promise<CalendarModel> = lazyMemoized(async () => {

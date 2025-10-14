@@ -269,7 +269,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		return new IndexerCore(await db(), browserData)
 	})
 
-	const mailIndexerAndMailFacade = lazyMemoized(async () => {
+	const mailIndexer = lazyMemoized(async () => {
 		const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend")
 		const { OfflineStorageMailIndexerBackend } = await import("../index/OfflineStorageMailIndexerBackend")
 		const { MailIndexer } = await import("../index/MailIndexer.js")
@@ -278,30 +278,24 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const mailFacade = await locator.mail()
 		if (isOfflineStorageAvailable()) {
 			const persistence = await offlineStorageIndexerPersistence()
-			return {
-				mailIndexer: new MailIndexer(
-					mainInterface.infoMessageHandler,
-					bulkLoaderFactory,
-					locator.cachingEntityClient,
-					dateProvider,
-					mailFacade,
-					() => new OfflineStorageMailIndexerBackend(persistence),
-				),
-				mailFacade: mailFacade,
-			}
+			return new MailIndexer(
+				mainInterface.infoMessageHandler,
+				bulkLoaderFactory,
+				locator.cachingEntityClient,
+				dateProvider,
+				mailFacade,
+				() => new OfflineStorageMailIndexerBackend(persistence),
+			)
 		} else {
 			const core = await indexerCore()
-			return {
-				mailIndexer: new MailIndexer(
-					mainInterface.infoMessageHandler,
-					bulkLoaderFactory,
-					locator.cachingEntityClient,
-					dateProvider,
-					mailFacade,
-					(userId) => new IndexedDbMailIndexerBackend(core, userId, typeModelResolver),
-				),
-				mailFacade: mailFacade,
-			}
+			return new MailIndexer(
+				mainInterface.infoMessageHandler,
+				bulkLoaderFactory,
+				locator.cachingEntityClient,
+				dateProvider,
+				mailFacade,
+				(userId) => new IndexedDbMailIndexerBackend(core, userId, typeModelResolver),
+			)
 		}
 	})
 
@@ -335,18 +329,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	if (isOfflineStorageAvailable() && !isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
-			if (isDesktop()) {
-				const { SpamClassifier } = await import("../spamClassification/SpamClassifier")
-				const { SpamClassificationInitializer } = await import("../spamClassification/SpamClassificationInitializer")
-				const offlineStorage = await offlineStorageIndexerPersistence()
-				const spamClassifierInitializer = new SpamClassificationInitializer(
-					locator.cachingEntityClient,
-					locator.user,
-					offlineStorage,
-					locator.bulkMailLoader,
-				)
-				locator.spamClassifier = new SpamClassifier(offlineStorage, locator.cacheStorage, spamClassifierInitializer)
-			}
+			const { SpamClassifier } = await import("../spamClassification/SpamClassifier")
+			const { SpamClassificationInitializer } = await import("../spamClassification/SpamClassificationInitializer")
+			const offlineStorage = await offlineStorageIndexerPersistence()
+			const spamClassifierInitializer = new SpamClassificationInitializer(locator.cachingEntityClient, offlineStorage, locator.bulkMailLoader)
+			locator.spamClassifier = new SpamClassifier(offlineStorage, locator.cacheStorage, spamClassifierInitializer)
+
 			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase.js")
 			const { SearchTableDefinitions, SpamClassificationDefinitions } = await import("../index/OfflineStoragePersistence.js")
 			const { AutosaveDraftsTableDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineStorageAutosaveFacade.js")
@@ -358,7 +346,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				},
 				{
 					ref: MailTypeRef,
-					handler: new CustomMailEventCacheHandler(mailIndexerAndMailFacade, offlineStorageIndexerPersistence, locator.cacheStorage),
+					handler: new CustomMailEventCacheHandler(mailIndexer),
 				},
 				{ ref: UserTypeRef, handler: new CustomUserCacheHandler(locator.cacheStorage) },
 			)
@@ -452,12 +440,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 
 	locator.indexer = lazyMemoized(async () => {
 		const contact = await contactIndexer()
-		const { mailIndexer, mailFacade } = await mailIndexerAndMailFacade()
 
 		if (isOfflineStorageAvailable()) {
 			const { OfflineStorageIndexer } = await import("../index/OfflineStorageIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
-			return new OfflineStorageIndexer(locator.user, persistence, mailIndexer, mainInterface.infoMessageHandler, contact)
+			return new OfflineStorageIndexer(locator.user, persistence, await mailIndexer(), mainInterface.infoMessageHandler, contact)
 		} else {
 			const { IndexedDbIndexer } = await import("../index/IndexedDbIndexer.js")
 			const core = await indexerCore()
@@ -467,7 +454,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				core,
 				mainInterface.infoMessageHandler,
 				locator.cachingEntityClient,
-				mailIndexer,
+				await mailIndexer(),
 				contact,
 				typeModelResolver,
 				locator.keyLoader,
@@ -670,16 +657,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	)
 
 	locator.search = lazyMemoized(async () => {
-		const { mailIndexer } = await mailIndexerAndMailFacade()
 		if (isOfflineStorageAvailable()) {
 			const { OfflineStorageSearchFacade } = await import("../index/OfflineStorageSearchFacade.js")
-			return new OfflineStorageSearchFacade(locator.sqlCipherFacade, mailIndexer, await contactIndexer())
+			return new OfflineStorageSearchFacade(locator.sqlCipherFacade, await mailIndexer(), await contactIndexer())
 		} else {
 			const { IndexedDbSearchFacade } = await import("../index/IndexedDbSearchFacade.js")
 			return new IndexedDbSearchFacade(
 				locator.user,
 				await db(),
-				mailIndexer,
+				await mailIndexer(),
 				await contactSuggestionFacade(),
 				browserData,
 				locator.cachingEntityClient,
@@ -744,6 +730,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 	locator.mail = lazyMemoized(async () => {
 		const { MailFacade } = await import("../../../common/api/worker/facades/lazy/MailFacade.js")
+
+		let spamClassifier
+		if (isDesktop()) {
+			const { SpamClassifier } = await import("../spamClassification/SpamClassifier")
+			const { SpamClassificationInitializer } = await import("../spamClassification/SpamClassificationInitializer")
+			const offlineStorage = await offlineStorageIndexerPersistence()
+			const spamClassifierInitializer = new SpamClassificationInitializer(locator.cachingEntityClient, offlineStorage, locator.bulkMailLoader)
+			spamClassifier = new SpamClassifier(offlineStorage, locator.cacheStorage, spamClassifierInitializer)
+		} else {
+			spamClassifier = null
+		}
+
 		return new MailFacade(
 			locator.user,
 			locator.cachingEntityClient,
@@ -754,7 +752,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.login,
 			locator.keyLoader,
 			locator.publicEncryptionKeyProvider,
-			locator.spamClassifier,
+			spamClassifier,
 		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)

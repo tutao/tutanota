@@ -22,7 +22,6 @@ import {
 } from "./PreprocessPatterns"
 import { SpamClassificationInitializer } from "./SpamClassificationInitializer"
 import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
-import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { filterMailMemberships, htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import {
 	dense,
@@ -39,6 +38,8 @@ import {
 import type { Tensor } from "@tensorflow/tfjs-core"
 import type { ModelArtifacts } from "@tensorflow/tfjs-core/dist/io/types"
 import type { ModelFitArgs } from "@tensorflow/tfjs-layers"
+import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
+import { Mail } from "../../../common/api/entities/tutanota/TypeRefs"
 
 assertWorkerOrNode()
 
@@ -99,11 +100,19 @@ type TrainingPerformance = {
 	vectorizationTime: number
 }
 
+// TODO:
+// can we re-use tokenize() function from `packages/tutanota-utils/lib/Tokenizer.ts`
+export const spamClassifierTokenizer = (text: string): string[] =>
+	text
+		.toLowerCase()
+		.split(/\s+/)
+		.filter((t) => t.length > 1)
+
 export class SpamClassifier {
 	private readonly classifier: Map<Id, { model: LayersModel; isEnabled: boolean }>
 
 	constructor(
-		private readonly offlineStorage: OfflineStoragePersistence | null,
+		private readonly offlineStorage: OfflineStoragePersistence,
 		private readonly offlineStorageCache: CacheStorage,
 		private readonly initializer: SpamClassificationInitializer,
 		private readonly deterministic: boolean = false,
@@ -218,7 +227,7 @@ export class SpamClassifier {
 	public async initialTraining(mails: SpamTrainMailDatum[]): Promise<TrainingPerformance> {
 		const vectorizationStart = performance.now()
 
-		const tokenizedMails = await promiseMap(mails, (mail) => assertNotNull(this.offlineStorage).tokenize(this.preprocessMail(mail)))
+		const tokenizedMails = await promiseMap(mails, (mail) => spamClassifierTokenizer(this.preprocessMail(mail)))
 		if (this.vectorizer instanceof DynamicTfVectorizer) {
 			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)
 		}
@@ -283,10 +292,9 @@ export class SpamClassifier {
 		const retrainingStart = performance.now()
 
 		const modelToUpdate = assertNotNull(this.classifier.get(ownerGroup))
-		const offlineStorage = assertNotNull(this.offlineStorage)
 		const tokenizedMailsArray = await promiseMap(newTrainingMails, async (mail) => {
 			const preprocessedMail = this.preprocessMail(mail)
-			const tokenizedMail = await offlineStorage.tokenize(preprocessedMail)
+			const tokenizedMail = spamClassifierTokenizer(preprocessedMail)
 			return { tokenizedMail, isSpamConfidence: mail.isSpamConfidence, isSpam: mail.isSpam ? 1 : 0 }
 		})
 
@@ -349,7 +357,7 @@ export class SpamClassifier {
 		}
 
 		const preprocessedMail = this.preprocessMail(spamPredMailDatum)
-		const tokenizedMail = await assertNotNull(this.offlineStorage).tokenize(preprocessedMail)
+		const tokenizedMail = spamClassifierTokenizer(preprocessedMail)
 		const vectors = await assertNotNull(this.vectorizer).transform([tokenizedMail])
 
 		const xs = tensor2d(vectors, [vectors.length, assertNotNull(this.vectorizer).dimension], undefined)
@@ -364,6 +372,18 @@ export class SpamClassifier {
 		predictionTensor.dispose()
 
 		return prediction > PREDICTION_THRESHOLD
+	}
+
+	public getStoredClassification(mail: Mail) {
+		return this.offlineStorage.getStoredClassification(mail)
+	}
+
+	public updateSpamClassificationData(id: IdTuple, isSpam: boolean, isSpamConfidence: number) {
+		return this.offlineStorage.updateSpamClassificationData(id, isSpam, isSpamConfidence)
+	}
+
+	public storeSpamClassification(spamTrainMailDatum: SpamTrainMailDatum) {
+		return this.offlineStorage.storeSpamClassification(spamTrainMailDatum)
 	}
 
 	/*

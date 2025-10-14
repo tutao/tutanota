@@ -958,7 +958,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
  * Returns whether the error is expected for the cases where our local state might not be up-to-date with the server yet. E.g. we might be processing an update
  * for the instance that was already deleted. Normally this would be optimized away but it might still happen due to timing.
  */
-function isExpectedErrorForSynchronization(e: Error): boolean {
+export function isExpectedErrorForSynchronization(e: Error): boolean {
 	return e instanceof NotFoundError || e instanceof NotAuthorizedError
 }
 

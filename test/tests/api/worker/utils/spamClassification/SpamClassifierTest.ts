@@ -4,9 +4,9 @@ import { parseCsv } from "../../../../../../src/common/misc/parsing/CsvParser"
 import {
 	DEFAULT_PREPROCESS_CONFIGURATION,
 	SpamClassifier,
+	spamClassifierTokenizer as testTokenize,
 	SpamTrainMailDatum,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
-import { tokenize as testTokenize } from "./HashingVectorizerTest"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { matchers, object, when } from "testdouble"
 import { assertNotNull, promiseMap } from "@tutao/tutanota-utils"
@@ -120,7 +120,7 @@ o.spec("SpamClassifier", () => {
 	})
 
 	o("preprocessMail outputs expected tokens for mail content", async () => {
-		const classifier = new SpamClassifier(null, object(), object())
+		const classifier = new SpamClassifier(object(), object(), object())
 		const mail = {
 			subject: `Sample Tokens and values`,
 			// prettier-ignore

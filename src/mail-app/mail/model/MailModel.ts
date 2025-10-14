@@ -10,7 +10,7 @@ import {
 	groupByAndMap,
 	isNotNull,
 	lazyMemoized,
-	noOp,
+	Nullable,
 	ofClass,
 	partition,
 	promiseMap,
@@ -28,6 +28,7 @@ import {
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	FeatureType,
+	getMailSetKind,
 	isLabel,
 	MailReportType,
 	MailSetKind,
@@ -54,6 +55,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { TutanotaError } from "@tutao/tutanota-error"
+import { SpamClassificationHandler } from "./SpamClassificationHandler"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -90,6 +92,7 @@ export class MailModel {
 		private readonly logins: LoginController,
 		private readonly mailFacade: MailFacade,
 		private readonly connectivityModel: WebsocketConnectivityModel | null,
+		private readonly spamHandler: () => SpamClassificationHandler,
 		private readonly inboxRuleHandler: () => InboxRuleHandler | null,
 	) {}
 
@@ -187,46 +190,50 @@ export class MailModel {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				await this.init()
 				m.redraw()
-			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
-				if (this.inboxRuleHandler && this.connectivityModel) {
-					const mailId: IdTuple = [update.instanceListId, update.instanceId]
-					try {
-						const mail = await this.entityClient.load(MailTypeRef, mailId)
-						const folder = this.getMailFolderForMail(mail)
-
-						if (folder && folder.folderType === MailSetKind.INBOX) {
-							// If we don't find another delete operation on this email in the batch, then it should be a create operation,
-							// otherwise it's a move
-							await this.getMailboxDetailsForMail(mail)
-								.then((mailboxDetail) => {
-									// We only apply rules on server if we are the leader in case of incoming messages
-									return (
-										mailboxDetail &&
-										this.inboxRuleHandler()?.findAndApplyMatchingRule(
-											mailboxDetail,
-											mail,
-											this.connectivityModel ? this.connectivityModel.isLeader() : false,
-											false,
-										)
-									)
-								})
-								.then((newFolderAndMail) => {
-									if (newFolderAndMail) {
-										this._showNotification(newFolderAndMail.folder, newFolderAndMail.mail)
-									} else {
-										this._showNotification(folder, mail)
-									}
-								})
-								.catch(noOp)
-						}
-					} catch (e) {
-						if (e instanceof NotFoundError) {
-							console.log(`Could not find updated mail ${JSON.stringify(mailId)}`)
-						} else {
-							throw e
-						}
-					}
+			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.UPDATE) {
+				const spamHandler = this.spamHandler()
+				const mailId: IdTuple = [update.instanceListId, update.instanceListId]
+				const mail = await spamHandler.downloadMail(mailId)
+				const mailFolder = mail ? this.getMailFolderForMail(mail) : null
+				if (isNotNull(mail) && isNotNull(mailFolder)) {
+					await spamHandler.updateSpamClassificationData(updates, mail, getMailSetKind(mailFolder))
 				}
+			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
+				const mailId: IdTuple = [update.instanceListId, update.instanceListId]
+				const spamHandler = this.spamHandler()
+				const mail = await spamHandler.downloadMail(mailId)
+				if (mail == null) {
+					return
+				}
+
+				const initialMailFolder = this.getMailFolderForMail(mail)
+				const mailboxDetail = await this.getMailboxDetailsForMail(mail)
+				if (initialMailFolder == null) {
+					return
+				}
+
+				let inboxRuleOutcome = Promise.resolve<Nullable<MailFolder>>(null)
+				const inboxRuleHandler = this.inboxRuleHandler()
+				const applyInboxRule = isNotNull(mailboxDetail) && isNotNull(inboxRuleHandler) && initialMailFolder.folderType === MailSetKind.INBOX
+				if (applyInboxRule) {
+					// We only apply rules on server if we are the leader in case of incoming messages
+					const applyInboxRuleOnServer = this.connectivityModel ? this.connectivityModel.isLeader() : false
+					inboxRuleOutcome = inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, applyInboxRuleOnServer, false)
+				}
+
+				const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
+				if (folderSystem == null) {
+					return
+				}
+				const mailFolderAfterInboxRuleAndSpamProcessing = this.spamHandler()
+					.predictSpamForNewMail(inboxRuleOutcome, initialMailFolder, mail, folderSystem)
+					.catch((e) => {
+						console.error(`Error while doing client side spamPrediction. Error: ${e}`)
+						return initialMailFolder
+					})
+
+				// show notification
+				mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => this._showNotification(targetFolder, mail))
 			}
 		}
 	}
@@ -236,7 +243,7 @@ export class MailModel {
 		if (inboxRuleHandler) {
 			const mailboxDetail = await this.getMailboxDetailsForMail(mail)
 			if (mailboxDetail) {
-				inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true, true)
+				return inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, true, true)
 			}
 		}
 	}

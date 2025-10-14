@@ -1,5 +1,4 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import { UserFacade } from "../../../common/api/worker/facades/UserFacade"
 import { assertNotNull, isNotNull, lazyAsync } from "@tutao/tutanota-utils"
 import { MailBag, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolder, MailFolderTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { getMailSetKind, MailSetKind } from "../../../common/api/common/TutanotaConstants"
@@ -22,7 +21,6 @@ export class SpamClassificationInitializer {
 
 	constructor(
 		private readonly entityClient: EntityClient,
-		private readonly userFacade: UserFacade,
 		private readonly offlineStorage: OfflineStoragePersistence,
 		private readonly bulkMailLoader: lazyAsync<BulkMailLoader>,
 	) {}

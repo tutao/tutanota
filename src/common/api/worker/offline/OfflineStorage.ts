@@ -47,6 +47,8 @@ import { TypeModelResolver } from "../../common/EntityFunctions"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
 import { hasError } from "../../common/utils/ErrorUtils"
+import { SpamClassificationModel, SpamTrainMailDatum } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
+import { Mail } from "../../entities/tutanota/TypeRefs"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -581,6 +583,92 @@ export class OfflineStorage implements CacheStorage {
 			query,
 			params,
 		}
+	}
+
+	async storeSpamClassification(spamTrainMailDatum: SpamTrainMailDatum): Promise<void> {
+		const { query, params } = sql`
+			INSERT
+			OR REPLACE INTO spam_classification_training_data(listId, elementId, ownerGroup, subject, body, isSpam, lastModified, isSpamConfidence)
+				VALUES (
+			${listIdPart(spamTrainMailDatum.mailId)},
+			${elementIdPart(spamTrainMailDatum.mailId)},
+			${spamTrainMailDatum.ownerGroup},
+			${spamTrainMailDatum.subject},
+			${spamTrainMailDatum.body},
+			${spamTrainMailDatum.isSpam ? 1 : 0},
+			${Date.now()},
+			${spamTrainMailDatum.isSpamConfidence}
+			)`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async updateSpamClassificationData(id: IdTuple, isSpam: boolean, isSpamConfidence: number): Promise<void> {
+		const { query, params } = sql`
+			UPDATE spam_classification_training_data
+			SET lastModified=${Date.now()},
+				isSpamConfidence=${isSpamConfidence},
+				isSpam=${isSpam ? 1 : 0}
+			WHERE listId = ${listIdPart(id)}
+			  AND elementId = ${elementIdPart(id)}
+		`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getStoredClassification(mail: Mail): Promise<Nullable<{ isSpam: boolean; isSpamConfidence: number }>> {
+		const { query, params } = sql`
+			SELECT isSpam, isSpamConfidence
+			FROM spam_classification_training_data
+			where listId = ${listIdPart(mail._id)}
+			  AND elementId = ${elementIdPart(mail._id)} `
+		const result = await this.sqlCipherFacade.get(query, params)
+		if (!result) {
+			return null
+		} else {
+			const isSpam = untagSqlObject(result).isSpam === 1
+			const isSpamConfidence = untagSqlObject(result).isSpamConfidence as number
+			return { isSpam, isSpamConfidence }
+		}
+	}
+
+	async getCertainSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number, ownerGroupId: Id): Promise<SpamTrainMailDatum[]> {
+		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam, isSpamConfidence
+									  FROM spam_classification_training_data
+									  WHERE lastModified > ${cutoffTimestamp}
+										AND isSpamConfidence > 0
+										AND ownerGroup = ${ownerGroupId}`
+		const resultRows = await this.sqlCipherFacade.all(query, params)
+		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamTrainMailDatum)
+	}
+
+	async putSpamClassificationModel(model: SpamClassificationModel) {
+		const { query, params } = sql`INSERT
+		OR REPLACE INTO
+									spam_classification_model VALUES (
+      						 		${1},
+		${model.ownerGroup},
+		${model.modelTopology},
+		${model.weightSpecs},
+		${model.weightData}
+		)`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>> {
+		const { query, params } = sql`SELECT modelTopology, weightSpecs, weightData, ownerGroup
+									  FROM spam_classification_model
+									  WHERE version = ${1}
+										AND ownerGroup = ${ownerGroup}`
+		const resultRows = await this.sqlCipherFacade.get(query, params)
+		if (resultRows !== null) {
+			const untaggedValue = untagSqlObject(resultRows)
+			return {
+				modelTopology: untaggedValue.modelTopology,
+				weightSpecs: untaggedValue.weightSpecs,
+				weightData: untaggedValue.weightData,
+				ownerGroup: untaggedValue.ownerGroup,
+			} as SpamClassificationModel
+		}
+		return null
 	}
 
 	private async toStorables(

@@ -606,14 +606,17 @@ export class MailIndexer {
 	 * @throws NotAuthorizedError if the mail cannot be accessed (and has not been cached)
 	 * @throws NotFoundError if the mail no longer exists (and has not been cached)
 	 */
-	async afterMailCreated(mailId: IdTuple, newMailData: MailWithDetailsAndAttachments | null) {
+	async afterMailCreated(mailId: IdTuple) {
 		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 
-		const mail = newMailData?.mail
-		if (mail == null || !this.canIndexMail(mail)) {
+		const newMail = await this.entityClient.load(MailTypeRef, mailId)
+		if (!this.canIndexMail(newMail)) {
 			return
 		}
+
+		// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
+		const newMailData = await this.downloadNewMailData(mailId)
 		if (newMailData) {
 			await this.backend.onMailCreated(newMailData)
 		}
