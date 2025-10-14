@@ -26,47 +26,9 @@ o.spec("DesktopUtils", function () {
 		desktopUtils = new DesktopUtils(process as NodeJS.Process, tempFs, electron, executor)
 	})
 
-	o.spec("relaunch", () => {
-		o.test("non-appimage calls relaunch", () => {
-			Object.assign(app, { isPackaged: false })
-			env.APPIMAGE = undefined
-			process.argv = ["this string does not matter", "some", "args", "here"]
-			process.platform = "linux"
-
-			desktopUtils.relaunch()
-			verify(executor.runDetached(matchers.anything()), { times: 0 })
-			verify(app.relaunch())
-			verify(app.exit(0))
-			verify(app.quit())
-		})
-		o.test("appimage on linux runs the appimage", () => {
-			Object.assign(app, { isPackaged: true })
-			env.APPIMAGE = "some_appimage.appimage"
-			process.argv = ["this string does not matter", "some", "args", "here"]
-			process.platform = "linux"
-
-			desktopUtils.relaunch()
-			verify(
-				executor.runDetached({
-					executable: "some_appimage.appimage",
-					args: ["some", "args", "here"],
-				}),
-			)
-			verify(app.relaunch(), { times: 0 })
-			verify(app.exit(0))
-			verify(app.quit())
-		})
-		o.test("appimage on non-linux restarts the program", () => {
-			Object.assign(app, { isPackaged: true })
-			env.APPIMAGE = "some_appimage.appimage"
-			process.argv = ["this string does not matter", "some", "args", "here"]
-			process.platform = "win32"
-
-			desktopUtils.relaunch()
-			verify(executor.runDetached(matchers.anything()), { times: 0 })
-			verify(app.relaunch())
-			verify(app.exit(0))
-			verify(app.quit())
-		})
+	o.test("exit", () => {
+		desktopUtils.exit()
+		verify(app.exit(0))
+		verify(app.quit())
 	})
 })

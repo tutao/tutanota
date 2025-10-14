@@ -89,7 +89,7 @@ export class DesktopErrorHandler {
 					if (checkboxChecked) {
 						log.debug("writing error log to", this._errorLogPath)
 						fs.writeFileSync(this._errorLogPath, this.lastErrorLog ? JSON.stringify(this.lastErrorLog) : "")
-						this.utils.relaunch()
+						this.utils.exit()
 					} else {
 						const loggedInWindow = this.wm.getAll().find((w) => w.getUserId() != null)
 
