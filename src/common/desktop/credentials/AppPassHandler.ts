@@ -34,19 +34,19 @@ export class AppPassHandler {
 	async removeAppPassWrapper(dataWithAppPassWrapper: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
 		// our mode is not app Pass, so there is no wrapper to remove
 		if (encryptionMode !== CredentialEncryptionMode.APP_PASSWORD) return dataWithAppPassWrapper
-		const appPassKey = await this.deriveKeyFromAppPass()
-		if (appPassKey == null) throw new KeyPermanentlyInvalidatedError("can't remove app pass wrapper without salt")
 
-		try {
-			return this.crypto.aesDecryptBytes(appPassKey, dataWithAppPassWrapper)
-		} catch (e) {
-			if (e instanceof CryptoError) {
+		while (true) {
+			const appPassKey = await this.deriveKeyFromAppPass()
+			if (appPassKey == null) throw new KeyPermanentlyInvalidatedError("can't remove app pass wrapper without salt")
+
+			try {
+				return this.crypto.aesDecryptBytes(appPassKey, dataWithAppPassWrapper)
+			} catch (e) {
+				if (!(e instanceof CryptoError)) {
+					throw e
+				}
 				const nativeFacade = await this.getCurrentCommonNativeFacade()
-				//noinspection ES6MissingAwait
-				nativeFacade.showAlertDialog("invalidPassword_msg")
-				throw new CancelledError("app Pass verification failed")
-			} else {
-				throw e
+				await nativeFacade.showAlertDialog("invalidPassword_msg")
 			}
 		}
 	}
