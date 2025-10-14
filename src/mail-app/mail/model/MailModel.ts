@@ -28,7 +28,6 @@ import {
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	FeatureType,
-	getMailSetKind,
 	isLabel,
 	MailReportType,
 	MailSetKind,
@@ -194,9 +193,12 @@ export class MailModel {
 				const spamHandler = this.spamHandler()
 				const mailId: IdTuple = [update.instanceListId, update.instanceListId]
 				const mail = await spamHandler.downloadMail(mailId)
-				const mailFolder = mail ? this.getMailFolderForMail(mail) : null
-				if (isNotNull(mail) && isNotNull(mailFolder)) {
-					await spamHandler.updateSpamClassificationData(updates, mail, getMailSetKind(mailFolder))
+				if (mail == null) {
+					return
+				}
+				const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
+				if (isNotNull(folderSystem)) {
+					await spamHandler.updateSpamClassificationData(updates, mail, folderSystem)
 				}
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
 				const mailId: IdTuple = [update.instanceListId, update.instanceListId]

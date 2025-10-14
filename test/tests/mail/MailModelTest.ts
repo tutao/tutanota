@@ -128,7 +128,7 @@ o.spec("MailModelTest", function () {
 			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
 			await model.entityEventsReceived([mailCreateEvent])
 
-			verify(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything(), anything()), { times: 0 })
+			verify(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything()), { times: 0 })
 		})
 
 		o("does not try to do spam classification when downloading of mail fails on create mail event", async function () {
@@ -145,7 +145,7 @@ o.spec("MailModelTest", function () {
 			const inboxRuleTargetFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxRuleTarget"] })
 
 			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)
-			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything(), anything())).thenResolve(inboxRuleTargetFolder)
+			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(inboxRuleTargetFolder)
 
 			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
 			await model.entityEventsReceived([mailCreateEvent])
@@ -158,7 +158,7 @@ o.spec("MailModelTest", function () {
 			const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"] })
 
 			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)
-			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything(), anything())).thenResolve(null)
+			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(null)
 			when(spamClassifier.predict(anything())).thenResolve(null)
 
 			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
@@ -172,7 +172,7 @@ o.spec("MailModelTest", function () {
 			const inboxRuleTargetFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxRuleTarget"] })
 
 			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)
-			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything(), anything())).thenResolve(inboxRuleTargetFolder)
+			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(inboxRuleTargetFolder)
 
 			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
 			await model.entityEventsReceived([mailCreateEvent])

@@ -69,7 +69,10 @@ export class SpamClassificationHandler {
 		return assertNotNull(folderSystem.getSystemFolderByType(classifierMailSetTarget), `Could not get System folder for owner: ${mail._ownerGroup}`)
 	}
 
-	public async updateSpamClassificationData(events: ReadonlyArray<EntityUpdateData>, mail: Mail, mailSetKind: MailSetKind) {
+	public async updateSpamClassificationData(events: ReadonlyArray<EntityUpdateData>, mail: Mail, folderSystem: FolderSystem) {
+		const mailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get folder for mail: ${mail._id}`)
+		const mailSetKind = getMailSetKind(mailFolder)
+
 		const changedMailSetEntry = events.find((el) => isUpdateForTypeRef(MailSetEntryTypeRef, el)) != null
 		// TODO: should not depend on unread flag
 		const mailHasBeenRead = !mail.unread
