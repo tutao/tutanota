@@ -17,6 +17,11 @@ import { MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
+import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
+import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
+import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+
+const { anything } = matchers
 
 o.spec("MailModelTest", function () {
 	let notifications: Partial<Notifications>
@@ -49,9 +54,11 @@ o.spec("MailModelTest", function () {
 			logins,
 			mailFacade,
 			null,
+			() => object(),
 			() => null,
 		)
 	})
+
 	o("doesn't send notification for another folder", async function () {
 		const mailSetEntry = createTestEntity(MailSetEntryTypeRef, { _id: [anotherFolder.entries, "mailSetEntryId"] })
 		restClient.addListInstances(mailSetEntry)
@@ -81,13 +88,98 @@ o.spec("MailModelTest", function () {
 		])
 		o(showSpy.invocations.length).equals(0)
 	})
-
 	o("markMails", async function () {
 		const mailId1: IdTuple = ["mailbag id1", "mail id1"]
 		const mailId2: IdTuple = ["mailbag id2", "mail id2"]
 		const mailId3: IdTuple = ["mailbag id3", "mail id3"]
 		await model.markMails([mailId1, mailId2, mailId3], true)
 		verify(mailFacade.markMails([mailId1, mailId2, mailId3], true))
+	})
+
+	o.spec("Inbox rule and spam prediction", () => {
+		let inboxRuleHandler: InboxRuleHandler
+		let spamClassificationHandler: SpamClassificationHandler
+		let spamClassifier: SpamClassifier
+		let mailboxModel: MailboxModel
+
+		o.beforeEach(async () => {
+			const entityClient = new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly())
+			mailboxModel = instance(MailboxModel)
+			inboxRuleHandler = object<InboxRuleHandler>()
+			spamClassifier = object<SpamClassifier>()
+			spamClassificationHandler = new SpamClassificationHandler(object(), spamClassifier, entityClient, object())
+
+			model = new MailModel(
+				downcast({}),
+				mailboxModel,
+				instance(EventController),
+				entityClient,
+				logins,
+				mailFacade,
+				null,
+				() => spamClassificationHandler,
+				() => inboxRuleHandler,
+			)
+		})
+
+		o("does not try to apply inbox rule when downloading of mail fails on create mail event", async function () {
+			when(spamClassificationHandler.downloadMail(matchers.anything())).thenResolve(null)
+
+			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
+			await model.entityEventsReceived([mailCreateEvent])
+
+			verify(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything(), anything()), { times: 0 })
+		})
+
+		o("does not try to do spam classification when downloading of mail fails on create mail event", async function () {
+			when(spamClassificationHandler.downloadMail(matchers.anything())).thenResolve(null)
+
+			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
+			await model.entityEventsReceived([mailCreateEvent])
+
+			verify(spamClassificationHandler.predictSpamForNewMail(anything(), anything(), anything()), { times: 0 })
+		})
+
+		o("does not do spam prediction if inbox rule is applied", async () => {
+			const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"] })
+			const inboxRuleTargetFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxRuleTarget"] })
+
+			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)
+			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything(), anything())).thenResolve(inboxRuleTargetFolder)
+
+			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
+			await model.entityEventsReceived([mailCreateEvent])
+
+			verify(spamClassificationHandler.predictSpamForNewMail(anything(), mail, anything()), { times: 1 })
+			verify(spamClassifier.predict(anything()), { times: 0 })
+		})
+
+		o("Do spam prediction if inbox rule is not applied", async () => {
+			const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"] })
+
+			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)
+			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything(), anything())).thenResolve(null)
+			when(spamClassifier.predict(anything())).thenResolve(null)
+
+			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
+			await model.entityEventsReceived([mailCreateEvent])
+
+			verify(spamClassifier.predict(anything()), { times: 1 })
+		})
+
+		o("do not do spam prediction for draft mail", async () => {
+			const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"], mailDetailsDraft: ["draftListId", "draftId"], mailDetails: null })
+			const inboxRuleTargetFolder = createTestEntity(MailFolderTypeRef, { _id: ["folderListId", "inboxRuleTarget"] })
+
+			when(spamClassificationHandler.downloadMail(anything())).thenResolve(mail)
+			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything(), anything())).thenResolve(inboxRuleTargetFolder)
+
+			const mailCreateEvent = makeUpdate({ instanceListId: "mailListId", instanceId: "mailId", operation: OperationType.CREATE })
+			await model.entityEventsReceived([mailCreateEvent])
+
+			verify(spamClassificationHandler.predictSpamForNewMail(anything(), mail, anything()), { times: 1 })
+			verify(spamClassifier.predict(anything()), { times: 0 })
+		})
 	})
 
 	function makeUpdate({

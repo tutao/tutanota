@@ -457,24 +457,6 @@ export class MailFacade {
 		return this.spamClassifier != null && this.spamClassifier.getEnabledSpamClassifierForOwnerGroup(ownerGroup) != null
 	}
 
-	async predictSpamResult(mail: Mail): Promise<Nullable<boolean>> {
-		if (isDraft(mail)) {
-			return null
-		} else {
-			const spamClassifier = this.spamClassifier?.getEnabledSpamClassifierForOwnerGroup(assertNotNull(mail._ownerGroup)) ?? null
-			if (isNotNull(spamClassifier)) {
-				const mailDetails = await this.loadMailDetailsBlob(mail)
-				const spamPredMailDatum: SpamPredMailDatum = {
-					subject: mail.subject,
-					body: getMailBodyText(mailDetails.body),
-					ownerGroup: assertNotNull(mail._ownerGroup),
-				}
-				return await assertNotNull(this.spamClassifier).predict(spamPredMailDatum)
-			}
-			return null
-		}
-	}
-
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
 		if (isEmpty(mails)) {
 			return

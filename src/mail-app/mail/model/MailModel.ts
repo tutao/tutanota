@@ -226,14 +226,16 @@ export class MailModel {
 					return
 				}
 				const mailFolderAfterInboxRuleAndSpamProcessing = this.spamHandler()
-					.predictSpamForNewMail(inboxRuleOutcome, initialMailFolder, mail, folderSystem)
+					.predictSpamForNewMail(inboxRuleOutcome, mail, folderSystem)
 					.catch((e) => {
 						console.error(`Error while doing client side spamPrediction. Error: ${e}`)
-						return initialMailFolder
+						return null
 					})
 
 				// show notification
-				mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => this._showNotification(targetFolder, mail))
+				mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => {
+					this._showNotification(targetFolder ?? initialMailFolder, mail)
+				})
 			}
 		}
 	}

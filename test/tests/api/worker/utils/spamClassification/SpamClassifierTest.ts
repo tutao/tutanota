@@ -16,7 +16,11 @@ import { mockAttribute } from "@tutao/tutanota-test-utils"
 import "@tensorflow/tfjs-backend-cpu"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
+import { createTestEntity } from "../../../../TestUtils"
+import { MailTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
+import { Sequential } from "@tensorflow/tfjs-layers"
 
+const { anything } = matchers
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
 
 export async function readMailDataFromCSV(filePath: string): Promise<{
@@ -86,6 +90,42 @@ o.spec("SpamClassifier", () => {
 		)
 	})
 
+	o("processSpam maintains server classification when client classification is not enabled", async function () {
+		const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"], sets: [["folderList", "serverFolder"]] })
+		const spamTrainMailDatum: SpamTrainMailDatum = {
+			mailId: mail._id,
+			subject: mail.subject,
+			body: "some body",
+			isSpam: true,
+			isSpamConfidence: 1,
+			ownerGroup: "owner",
+		}
+		const layersModel = object<Sequential>()
+		spamClassifier.putSpamClassifierForOwner(spamTrainMailDatum.ownerGroup, layersModel, false)
+
+		const predictedSpam = await spamClassifier.predict(spamTrainMailDatum)
+		o(predictedSpam).equals(null)
+	})
+
+	o("processSpam uses client classification when enabled", async function () {
+		const mail = createTestEntity(MailTypeRef, { _id: ["mailListId", "mailId"], sets: [["folderList", "serverFolder"]] })
+		const spamTrainMailDatum: SpamTrainMailDatum = {
+			mailId: mail._id,
+			subject: mail.subject,
+			body: "some body",
+			isSpam: false,
+			isSpamConfidence: 0,
+			ownerGroup: "owner",
+		}
+
+		const layersModel = object<Sequential>()
+		when(layersModel.predict(anything(), anything())).thenResolve([1])
+		spamClassifier.putSpamClassifierForOwner(spamTrainMailDatum.ownerGroup, layersModel, true)
+
+		const predictedSpam = await spamClassifier.predict(spamTrainMailDatum)
+		o(predictedSpam).equals(true)
+	})
+
 	o("Initial training only", async () => {
 		o.timeout(20_000)
 
@@ -100,7 +140,6 @@ o.spec("SpamClassifier", () => {
 	o("Initial training and refitting in multi step", async () => {
 		o.timeout(20_000)
 
-		const testStart = Date.now()
 		const trainTestSplit = dataSlice.length * 0.8
 		const trainSet = dataSlice.slice(0, trainTestSplit)
 		const testSet = dataSlice.slice(trainTestSplit)

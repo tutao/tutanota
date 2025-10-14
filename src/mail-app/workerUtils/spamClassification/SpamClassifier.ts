@@ -25,7 +25,6 @@ import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestC
 import { filterMailMemberships, htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import {
 	dense,
-	dropout,
 	fromMemory,
 	glorotUniform,
 	LayersModel,
@@ -606,5 +605,10 @@ export class SpamClassifier {
 		}
 
 		return newClassifier
+	}
+
+	// === Testing methods
+	public putSpamClassifierForOwner(ownerGroup: Id, model: LayersModel, isEnabled: boolean) {
+		this.classifier.set(ownerGroup, { model, isEnabled })
 	}
 }

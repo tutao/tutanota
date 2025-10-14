@@ -20,13 +20,9 @@ export class SpamClassificationHandler {
 		private readonly bulkMailLoader: BulkMailLoader,
 	) {}
 
-	public async predictSpamForNewMail(
-		inboxRuleOutcome: Promise<Nullable<MailFolder>>,
-		serverDeliveredMailFolder: MailFolder,
-		mail: Mail,
-		folderSystem: FolderSystem,
-	): Promise<MailFolder> {
+	public async predictSpamForNewMail(inboxRuleOutcome: Promise<Nullable<MailFolder>>, mail: Mail, folderSystem: FolderSystem): Promise<Nullable<MailFolder>> {
 		const inboxRuleTargetFolder = await inboxRuleOutcome
+		const serverDeliveredMailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get current folder for mail: ${mail._id}`)
 		if (isDraft(mail) || this.spamClassifier == null) {
 			return inboxRuleTargetFolder ?? serverDeliveredMailFolder
 		}
@@ -75,6 +71,7 @@ export class SpamClassificationHandler {
 
 	public async updateSpamClassificationData(events: ReadonlyArray<EntityUpdateData>, mail: Mail, mailSetKind: MailSetKind) {
 		const changedMailSetEntry = events.find((el) => isUpdateForTypeRef(MailSetEntryTypeRef, el)) != null
+		// TODO: should not depend on unread flag
 		const mailHasBeenRead = !mail.unread
 		if ((!mailHasBeenRead && !changedMailSetEntry) || this.spamClassifier == null) {
 			return
