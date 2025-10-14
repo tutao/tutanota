@@ -35,7 +35,7 @@
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
 	$Promisable,
-	arrayHash,
+	arrayHashSigned,
 	assertNotNull,
 	defer,
 	DeferredObject,
@@ -54,17 +54,7 @@ import {
 	uint8ArrayToBase64,
 } from "@tutao/tutanota-utils"
 import { elementIdPart, firstBiggerThanSecond, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import {
-	compareMetaEntriesOldest,
-	decryptIndexKey,
-	decryptMetaData,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptMetaData,
-	encryptSearchIndexEntry,
-	getIdFromEncSearchIndexEntry,
-	typeRefToTypeInfo,
-} from "../../../common/api/worker/search/IndexUtils.js"
+import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import type {
 	AttributeHandler,
 	B64EncIndexKey,
@@ -106,6 +96,14 @@ import {
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { ContactList } from "../../../common/api/entities/tutanota/TypeRefs"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
+import {
+	decryptIndexKey,
+	decryptMetaData,
+	encryptIndexKeyBase64,
+	encryptIndexKeyUint8Array,
+	encryptMetaData,
+	encryptSearchIndexEntry,
+} from "../../../common/api/worker/search/IndexEncryptionUtils"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
@@ -410,7 +408,7 @@ export class IndexerCore {
 	): Promise<any> {
 		this._cancelIfNeeded()
 		// Collect hashes of all instances we want to delete to check it faster later
-		const encInstanceIdSet = new Set(instanceInfos.map((e) => arrayHash(e.encInstanceId)))
+		const encInstanceIdSet = new Set(instanceInfos.map((e) => arrayHashSigned(e.encInstanceId)))
 		return transaction.get(SearchIndexMetaDataOS, metaRowKey).then((encMetaDataRow) => {
 			if (!encMetaDataRow) {
 				// already deleted
@@ -443,7 +441,7 @@ export class IndexerCore {
 					// Find all entries we need to remove by hash of the encrypted ID
 					const rangesToRemove: Array<[number, number]> = []
 					iterateBinaryBlocks(indexEntriesRow, (block, start, end) => {
-						if (encInstanceIdSet.has(arrayHash(getIdFromEncSearchIndexEntry(block)))) {
+						if (encInstanceIdSet.has(arrayHashSigned(getIdFromEncSearchIndexEntry(block)))) {
 							rangesToRemove.push([start, end])
 						}
 					})
@@ -688,11 +686,9 @@ export class IndexerCore {
 					}
 
 					const timestampToEntries: Map<number, Array<Uint8Array>> = new Map()
-					const existingIds = new Set()
 					// Iterate all entries in a block, decrypt id of each and put it into the map
 					iterateBinaryBlocks(binaryBlock, (encSearchIndexEntry) => {
 						const encId = getIdFromEncSearchIndexEntry(encSearchIndexEntry)
-						existingIds.add(arrayHash(encId))
 						const decId = decryptIndexKey(encryptionData.key, encId, encryptionData.iv)
 						const timeStamp = generatedIdToTimestamp(decId)
 						getFromMap(timestampToEntries, timeStamp, () => []).push(encSearchIndexEntry)

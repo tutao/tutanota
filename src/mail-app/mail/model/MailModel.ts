@@ -349,7 +349,7 @@ export class MailModel {
 	 * @param targetMailFolderKind
 	 */
 	async simpleMoveMails(mails: readonly IdTuple[], targetMailFolderKind: SimpleMoveMailTarget): Promise<MovedMails[]> {
-		return await this.mailFacade.simpleMoveMails(mails, targetMailFolderKind)
+		return await this.mailFacade.simpleMoveMails(mails, targetMailFolderKind, null)
 	}
 
 	getFolderExcludedFromMove(moveMode: MoveMode): SystemFolderType | null {
@@ -371,7 +371,7 @@ export class MailModel {
 	}
 
 	async trashMails(mails: readonly IdTuple[]): Promise<MovedMails[]> {
-		return await this.mailFacade.simpleMoveMails(mails, MailSetKind.TRASH)
+		return await this.mailFacade.simpleMoveMails(mails, MailSetKind.TRASH, null)
 	}
 
 	/**

@@ -120,7 +120,7 @@ import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships } from "../../../common/utils/GroupUtils.js"
 import { containsId, elementIdPart, getElementId, getLetId, isSameId, listIdPart, stringToCustomId } from "../../../common/utils/EntityUtils.js"
-import { htmlToText } from "../../search/IndexUtils.js"
+import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
 import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
 import {
@@ -155,6 +155,11 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/Enti
 import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
+import { SpamClassifier, SpamPredMailDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
+import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
+import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
+import { ClientClassifierType } from "../../../common/ClientClassifierType"
+import { getMailBodyText } from "../../../common/CommonMailUtils"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -203,6 +208,7 @@ export class MailFacade {
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
+		private readonly spamClassifier: SpamClassifier | null,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -222,6 +228,7 @@ export class MailFacade {
 
 	/**
 	 * Updates a mail folder's name, if needed
+	 * @param folder to be updated
 	 * @param newName - if this is the same as the folder's current name, nothing is done
 	 */
 	async updateMailFolderName(folder: MailFolder, newName: string): Promise<void> {
@@ -240,6 +247,7 @@ export class MailFacade {
 
 	/**
 	 * Updates a mail folder's parent, if needed
+	 * @param folder to be updated
 	 * @param newParent - if this is the same as the folder's current parent, nothing is done
 	 */
 	async updateMailFolderParent(folder: MailFolder, newParent: IdTuple | null): Promise<void> {
@@ -410,7 +418,11 @@ export class MailFacade {
 		return movedMails
 	}
 
-	async simpleMoveMails(mails: readonly IdTuple[], targetFolderKind: SimpleMoveMailTarget): Promise<MovedMails[]> {
+	async simpleMoveMails(
+		mails: readonly IdTuple[],
+		targetFolderKind: SimpleMoveMailTarget,
+		clientSpamClassifier: Nullable<ClientClassifierType>,
+	): Promise<MovedMails[]> {
 		if (isEmpty(mails)) {
 			return []
 		}
@@ -423,7 +435,7 @@ export class MailFacade {
 				createSimpleMoveMailPostIn({
 					mails,
 					destinationSetType: targetFolderKind,
-					moveReason: null,
+					moveReason: clientSpamClassifier,
 				}),
 			)
 			movedMails.push(...simpleMove.movedMails)
@@ -439,6 +451,28 @@ export class MailFacade {
 			reportType,
 		})
 		await this.serviceExecutor.post(ReportMailService, postData)
+	}
+
+	public isSpamClassificationEnabled(ownerGroup: Id): boolean {
+		return this.spamClassifier != null && this.spamClassifier.getEnabledSpamClassifierForOwnerGroup(ownerGroup) != null
+	}
+
+	async predictSpamResult(mail: Mail): Promise<Nullable<boolean>> {
+		if (isDraft(mail)) {
+			return null
+		} else {
+			const spamClassifier = this.spamClassifier?.getEnabledSpamClassifierForOwnerGroup(assertNotNull(mail._ownerGroup)) ?? null
+			if (isNotNull(spamClassifier)) {
+				const mailDetails = await this.loadMailDetailsBlob(mail)
+				const spamPredMailDatum: SpamPredMailDatum = {
+					subject: mail.subject,
+					body: getMailBodyText(mailDetails.body),
+					ownerGroup: assertNotNull(mail._ownerGroup),
+				}
+				return await assertNotNull(this.spamClassifier).predict(spamPredMailDatum)
+			}
+			return null
+		}
 	}
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {

@@ -38,7 +38,7 @@ import {
 	promiseMap,
 } from "@tutao/tutanota-utils"
 import { deconstructMailSetEntryId, elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
-import { filterMailMemberships } from "../../../common/api/worker/search/IndexUtils.js"
+import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
 import { CancelledError } from "../../../common/api/common/error/CancelledError.js"
 import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
@@ -606,17 +606,14 @@ export class MailIndexer {
 	 * @throws NotAuthorizedError if the mail cannot be accessed (and has not been cached)
 	 * @throws NotFoundError if the mail no longer exists (and has not been cached)
 	 */
-	async afterMailCreated(mailId: IdTuple) {
+	async afterMailCreated(mailId: IdTuple, newMailData: MailWithDetailsAndAttachments | null) {
 		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 
-		const newMail = await this.entityClient.load(MailTypeRef, mailId)
-		if (!this.canIndexMail(newMail)) {
+		const mail = newMailData?.mail
+		if (mail == null || !this.canIndexMail(mail)) {
 			return
 		}
-
-		// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
-		const newMailData = await this.downloadNewMailData(mailId)
 		if (newMailData) {
 			await this.backend.onMailCreated(newMailData)
 		}

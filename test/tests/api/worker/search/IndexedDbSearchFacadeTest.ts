@@ -1,14 +1,8 @@
 import o from "@tutao/otest"
 import { ContactTypeRef, MailTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import type { TypeInfo } from "../../../../../src/common/api/worker/search/IndexUtils.js"
-import {
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptMetaData,
-	encryptSearchIndexEntry,
-	typeRefToTypeInfo,
-} from "../../../../../src/common/api/worker/search/IndexUtils.js"
+import type { TypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
+import { typeRefToTypeInfo } from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { ElementDataDbRow, SearchIndexEntry, SearchIndexMetaDataRow, SearchRestriction } from "../../../../../src/common/api/worker/search/SearchTypes.js"
 import {
 	compareOldestFirst,
@@ -32,6 +26,12 @@ import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunc
 import { IndexedDbSearchFacade } from "../../../../../src/mail-app/workerUtils/index/IndexedDbSearchFacade"
 import { DbFacade } from "../../../../../src/common/api/worker/search/DbFacade"
 import { EncryptedDbWrapper } from "../../../../../src/common/api/worker/search/EncryptedDbWrapper"
+import {
+	encryptIndexKeyBase64,
+	encryptIndexKeyUint8Array,
+	encryptMetaData,
+	encryptSearchIndexEntry,
+} from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo

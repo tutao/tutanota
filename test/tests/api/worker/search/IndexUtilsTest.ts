@@ -1,18 +1,12 @@
 import o from "@tutao/otest"
 import {
 	_createNewIndexUpdate,
-	decryptMetaData,
-	decryptSearchIndexEntry,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptMetaData,
-	encryptSearchIndexEntry,
 	filterIndexMemberships,
 	filterMailMemberships,
 	htmlToText,
 	typeRefToTypeInfo,
 	userIsGlobalAdmin,
-} from "../../../../../src/common/api/worker/search/IndexUtils.js"
+} from "../../../../../src/common/api/common/utils/IndexUtils.js"
 import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/common/api/worker/search/SearchTypes.js"
 import { GroupMembershipTypeRef, UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
@@ -21,6 +15,14 @@ import { GroupType } from "../../../../../src/common/api/common/TutanotaConstant
 import { aes256RandomKey, fixedIv, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { ClientModelInfo } from "../../../../../src/common/api/common/EntityFunctions"
+import {
+	decryptMetaData,
+	decryptSearchIndexEntry,
+	encryptIndexKeyBase64,
+	encryptIndexKeyUint8Array,
+	encryptMetaData,
+	encryptSearchIndexEntry,
+} from "../../../../../src/common/api/worker/search/IndexEncryptionUtils"
 
 o.spec("Index Utils", () => {
 	o("encryptIndexKey", function () {
