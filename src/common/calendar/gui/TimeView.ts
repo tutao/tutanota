@@ -334,12 +334,11 @@ export class TimeView implements Component<TimeViewAttributes> {
 		return this.buildGridData(columns)
 	}
 
-	blockingGroups: Map<Id, Array<Set<Id>>> = new Map()
+	blockingGroups: Map<Id, Array<Map<Id, boolean>>> = new Map()
 
 	private buildGridData(allColumns: Array<ColumnData>): GridData["events"] {
 		const gridData = new Map()
 		const blockerShift = new Map<Id, number>()
-
 		for (const [columnIndex, columnData] of allColumns.entries()) {
 			console.log(`\n\n==================================================\nIterating over Column ${columnIndex}`)
 			console.table(columnData)
@@ -347,10 +346,11 @@ export class TimeView implements Component<TimeViewAttributes> {
 			for (let [eventId, eventRowData] of columnData.events.entries()) {
 				const hasBeenEvaluatedBefore = Array.from(this.blockingGroups.entries()).some(
 					([visitedEventId, blockingIds]) =>
-						visitedEventId === eventId || new Set(blockingIds.map((columnSet) => Array.from(columnSet.values())).flat()).has(eventId),
+						visitedEventId === eventId || new Set(blockingIds.map((columnSet) => Array.from(columnSet.keys())).flat()).has(eventId),
 				)
 
 				let currentEventCanExpand = false
+
 				if (!hasBeenEvaluatedBefore) {
 					const { canExpand, blockingEvents } = this.canExpandRight(eventId, eventRowData, columnIndex, allColumns, this.blockingGroups)
 					console.log("buildgridData / hasBeenEvaluatedBefore FALSE: ", {
@@ -370,11 +370,27 @@ export class TimeView implements Component<TimeViewAttributes> {
 					const maxSize = allColumns.length - eventShift
 					const numOfColumnsWithBlockers = this.blockingGroups.get(eventId)!.length > 0 ? this.blockingGroups.get(eventId)!.length : 0
 					console.log(`${eventId}: `, this.blockingGroups.get(eventId))
-					size = Math.floor(maxSize / (numOfColumnsWithBlockers + 1)) - gridColumnStart
 
+					if (numOfColumnsWithBlockers === 0) {
+						for (let i = columnIndex + 1; i < allColumns.length; i++) {
+							const columnData = allColumns[i]
+							if (
+								Array.from(columnData.events.values()).some(
+									(evData) => evData.rowStart < eventRowData.rowEnd && evData.rowEnd > eventRowData.rowStart,
+								)
+							) {
+								size = i
+							}
+						}
+						if (size === 0) {
+							size = maxSize - 1
+						}
+					} else {
+						size = Math.floor(maxSize / (numOfColumnsWithBlockers + 1)) - (columnIndex + 1)
+					}
 					//iterate over blockers
 					for (const blockerGroup of this.blockingGroups.get(eventId) ?? []) {
-						for (const blocker of blockerGroup.values()) {
+						for (const blocker of blockerGroup.keys()) {
 							const blockerShiftInfo = blockerShift.get(blocker)
 							if (blockerShiftInfo == null || blockerShiftInfo > size) {
 								blockerShift.set(blocker, size)
@@ -385,7 +401,15 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 				// const colSpan = this.expandEvent(columnIndex, eventRowData, allColumns)
 				const gridColumnEnd = size + 1
-
+				console.log("buildgridData / final: ", {
+					eventId,
+					eventRowData,
+					currentEventCanExpand,
+					eventShift,
+					size,
+					gridColumnStart,
+					gridColumnEnd,
+				})
 				const eventGridData: GridEventData = {
 					start: eventRowData.rowStart,
 					end: eventRowData.rowEnd,
@@ -400,21 +424,16 @@ export class TimeView implements Component<TimeViewAttributes> {
 		return gridData
 	}
 
-	/**
-	 * hasSpace:
-	 * Has blockers? ---> No ---> Has Space? ---> Return Yes
-	 */
-
 	private canExpandRight(
 		eventId: string,
 		eventRowData: EventRowData,
 		colIndex: number,
 		allColumns: ColumnData[],
-		blockingGroups: Map<Id, Array<Set<Id>>>,
+		blockingGroups: Map<Id, Array<Map<Id, boolean>>>,
 		visited: Set<Id> = new Set(),
-	): { canExpand: boolean; blockingEvents: Set<Id> } {
-		const blockingEvents = new Set<string>()
-		const nextColIndex = colIndex + 1
+	): { canExpand: boolean; blockingEvents: Map<Id, boolean> } {
+		const blockingEvents = new Map<string, boolean>()
+		let nextColIndex = colIndex + 1
 
 		if (!blockingGroups.get(eventId)) {
 			blockingGroups.set(eventId, [])
@@ -425,23 +444,19 @@ export class TimeView implements Component<TimeViewAttributes> {
 		}
 
 		const nextColEvents = allColumns[nextColIndex].events
-		const overlapping = this.findOverlappingEvents(eventRowData, nextColEvents)
-
-		if (overlapping.size === 0) {
-			return { canExpand: true, blockingEvents }
-		}
+		let overlapping = this.findOverlappingEvents(eventRowData, nextColEvents)
 
 		// If there are overlapping events, they must also be movable
 		for (const [nextEventId, nextEventRowData] of overlapping) {
 			if (visited.has(nextEventId)) {
-				continue
+				continue // FIXME consider when visited => can visited be expanded? true or false
 			}
 
-			blockingEvents.add(nextEventId)
 			visited.add(nextEventId)
-
 			const result = this.canExpandRight(nextEventId, nextEventRowData, nextColIndex, allColumns, blockingGroups)
-			for (const id of result.blockingEvents) blockingEvents.add(id)
+
+			blockingEvents.set(nextEventId, result.canExpand)
+			for (const [id, canExpand] of result.blockingEvents) blockingEvents.set(id, canExpand)
 
 			if (!result.canExpand) {
 				if (blockingEvents.size) {
@@ -455,9 +470,13 @@ export class TimeView implements Component<TimeViewAttributes> {
 			blockingGroups.get(eventId)?.push(blockingEvents)
 		}
 		return {
-			canExpand: Array.from(blockingEvents.values()).every((event) => {
+			canExpand: Array.from(blockingEvents.entries()).every(([event, canExpand]) => {
+				if (!canExpand) {
+					return false
+				}
 				const a = blockingGroups.get(event)
 				if (a === undefined || a.length === 0) return true
+				return Array.from(a.values()).every(Boolean)
 			}),
 			blockingEvents,
 		}
