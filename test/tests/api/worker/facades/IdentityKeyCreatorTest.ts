@@ -96,14 +96,20 @@ o.spec("IdentityKeyCreatorTest", function () {
 			object: object(),
 		}
 		const adminEncPrivateKey: VersionedEncryptedKey = { encryptingKeyVersion: adminKeyVersion, key: object() }
-
-		const userGroup: Group = object()
-		userGroup.currentKeys = object()
-		userGroup.groupKeyVersion = "1"
+		let userGroup: Group
 		const publicKeySignature: PublicKeySignature = object()
 
 		o.beforeEach(function () {
 			userGroupKeyPair = object()
+			userGroup = createTestEntity(GroupTypeRef, {
+				_id: userGroupId,
+				currentKeys: object(),
+				groupKeyVersion: currentUserGroupKeyVersion.toString(),
+				identityKeyPair: null,
+				adminGroupKeyVersion: adminKeyVersion.toString(),
+				adminGroupEncGKey: adminGroupEncGKey,
+				admin: adminGroupId,
+			})
 			when(cryptoWrapper.ed25519PublicKeyToBytes(identityKeyPair.public_key)).thenReturn(encodedPubIdentityKey)
 			when(ed25519Facade.generateKeypair()).thenResolve(identityKeyPair)
 
@@ -165,17 +171,14 @@ o.spec("IdentityKeyCreatorTest", function () {
 			await assertThrows(ProgrammingError, async () => identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, []))
 		})
 
+		o("no service invocation if the identity key pair exists", async function () {
+			userGroup.identityKeyPair = object()
+			await identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, [])
+			verify(serviceExecutor.post(IdentityKeyService, anything()), { times: 0 })
+		})
+
 		o("success admin creates new user", async function () {
 			when(cryptoWrapper.decryptKey(adminGroupKey.object, adminGroupEncGKey)).thenReturn(userGroupKey.object)
-			when(cacheManagementFacade.reloadGroup(userGroupId)).thenResolve(
-				createTestEntity(GroupTypeRef, {
-					_id: userGroupId,
-					groupKeyVersion: userGroupKey.version.toString(),
-					adminGroupKeyVersion: adminKeyVersion.toString(),
-					adminGroupEncGKey: adminGroupEncGKey,
-					admin: adminGroupId,
-				}),
-			)
 			await identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, [])
 
 			verify(
@@ -206,15 +209,6 @@ o.spec("IdentityKeyCreatorTest", function () {
 			when(cryptoWrapper.decryptKey(adminGroupKey.object, adminGroupEncGKey)).thenReturn(userGroupKey.object)
 			when(cryptoWrapper.encryptEd25519Key(userGroupKey, identityKeyPair.private_key)).thenThrow(new Error("should not happen"))
 			when(cryptoWrapper.encryptEd25519Key(adminGroupKey, identityKeyPair.private_key)).thenReturn(adminEncPrivateKey)
-			when(cacheManagementFacade.reloadGroup(userGroupId)).thenResolve(
-				createTestEntity(GroupTypeRef, {
-					_id: userGroupId,
-					groupKeyVersion: userGroupKey.version.toString(),
-					adminGroupKeyVersion: adminKeyVersion.toString(),
-					adminGroupEncGKey: adminGroupEncGKey,
-					admin: adminGroupId,
-				}),
-			)
 			await identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, [], adminGroupKey)
 
 			verify(

@@ -37,9 +37,9 @@ export class IdentityKeyCreator {
 	/**
 	 * Creates an identity key pair for the given group.
 	 * Encrypts the private key with the passed encryptingKey or the group key and tags the public key with the group key.
-	 * @param groupId
 	 * @param currentKeyPairToBeSigned MUST be an RSA+ECC or TutaCrypt key pair
 	 * @param formerKeyPairsToBeSigned the former key pairs may include RSA key pairs
+	 * @param groupId the caller is responsible to make sure the group is updated in the cache
 	 * @param encryptingKey the key to encrypt the private key. by default the current group key is used.
 	 *        this is useful in case group members must not have access to the private key.
 	 */
@@ -98,6 +98,13 @@ export class IdentityKeyCreator {
 					version: identityKeyVersion,
 				}),
 			)
+		}
+		// Do not try to re-create the key pair in case it already exists
+		// We check down here to make race conditions less likely.
+		const group = await this.entityClient.load(GroupTypeRef, groupId)
+		if (group.identityKeyPair != null) {
+			console.log(`Identity key pair already exists. Did not create it again for group: ${groupId}`)
+			return
 		}
 		await this.serviceExecutor.post(
 			IdentityKeyService,
