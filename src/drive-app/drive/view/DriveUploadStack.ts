@@ -12,6 +12,7 @@ const uploadStackStyles = {
 	bottom: "0",
 	right: "10px",
 	"box-shadow": "0 0 7px -2px #0006",
+	"border-radius": "10px 10px 0 0",
 }
 
 export class DriveUploadStack implements Component<DriveUploadStackAttrs> {
