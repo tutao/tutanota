@@ -5,6 +5,7 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 import {
 	assertNotNull,
 	collectToMap,
+	downcast,
 	getFirstOrThrow,
 	groupBy,
 	groupByAndMap,
@@ -184,7 +185,9 @@ export class MailModel {
 	}
 
 	// visibleForTesting
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<{
+		inboxRuleProcessed: Promise<void>
+	}> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				await this.init()
@@ -194,7 +197,7 @@ export class MailModel {
 				const mailId: IdTuple = [update.instanceListId, update.instanceListId]
 				const mail = await spamHandler.downloadMail(mailId)
 				if (mail == null) {
-					return
+					return { inboxRuleProcessed: Promise.resolve() }
 				}
 				const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 				if (isNotNull(folderSystem)) {
@@ -205,7 +208,7 @@ export class MailModel {
 				const spamHandler = this.spamHandler()
 				const mail = await spamHandler.downloadMail(mailId)
 				if (mail == null) {
-					return
+					return { inboxRuleProcessed: Promise.resolve() }
 				}
 
 				// FIXME we should only do all of this when we are in the inbox folder
@@ -214,7 +217,7 @@ export class MailModel {
 				const initialMailFolder = this.getMailFolderForMail(mail)
 				const mailboxDetail = await this.getMailboxDetailsForMail(mail)
 				if (initialMailFolder == null) {
-					return
+					return { inboxRuleProcessed: Promise.resolve() }
 				}
 
 				let inboxRuleOutcome = Promise.resolve<Nullable<MailFolder>>(null)
@@ -229,7 +232,7 @@ export class MailModel {
 
 				const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 				if (folderSystem == null) {
-					return
+					return { inboxRuleProcessed: Promise.resolve() }
 				}
 
 				const mailFolderAfterInboxRuleAndSpamProcessing = this.spamHandler()
@@ -243,12 +246,14 @@ export class MailModel {
 				mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => {
 					this._showNotification(targetFolder ?? initialMailFolder, mail)
 				})
+				return { inboxRuleProcessed: downcast<Promise<void>>(mailFolderAfterInboxRuleAndSpamProcessing) }
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
-				const mailId: IdTuple = [update.instanceListId, update.instanceListId]
+				const mailId: IdTuple = [update.instanceListId, update.instanceId]
 
 				await this.spamHandler().dropClassificationData(mailId)
 			}
 		}
+		return { inboxRuleProcessed: Promise.resolve() }
 	}
 
 	async applyInboxRuleToMail(mail: Mail) {

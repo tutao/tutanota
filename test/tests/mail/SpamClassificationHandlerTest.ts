@@ -105,7 +105,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			body: getMailBodyText(body),
 			isSpam: false,
 			ownerGroup: "owner",
-			isSpamConfidence: 0,
+			isSpamConfidence: 1,
 		}
 
 		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
@@ -146,54 +146,13 @@ o.spec("SpamClassificationHandlerTest", function () {
 			body: getMailBodyText(body),
 			isSpam: false,
 			ownerGroup: "owner",
-			isSpamConfidence: 0,
+			isSpamConfidence: 1,
 		}
 
 		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
 		o(finalResult).deepEquals(null)
 		verify(mailFacade.simpleMoveMails(anything(), anything(), anything()), { times: 0 })
 		verify(spamClassifier.storeSpamClassification(expectedTrainingData), { times: 1 })
-	})
-
-	o("getSpamConfidence is 1 for mail in spam folder ", async function () {
-		let locatedMailset: MailSetKind
-
-		// when a mail is unread in spam or ham folder
-		{
-			mail.unread = true
-			mail.isInboxRuleApplied = false
-			mail.clientSpamClassifierResult = null
-
-			locatedMailset = MailSetKind.SPAM
-			o(spamHandler.getSpamConfidence(mail)).equals(1)
-			locatedMailset = MailSetKind.INBOX
-			o(spamHandler.getSpamConfidence(mail)).equals(0)
-		}
-
-		// when a spam or ham mail have isInboxRuleApplied true
-		{
-			mail.unread = true
-			mail.isInboxRuleApplied = true
-			mail.clientSpamClassifierResult = null
-
-			locatedMailset = MailSetKind.SPAM
-			o(spamHandler.getSpamConfidence(mail)).equals(1)
-
-			locatedMailset = MailSetKind.INBOX
-			o(spamHandler.getSpamConfidence(mail)).equals(1)
-		}
-
-		// when a spam or ham mail have clientSpamClassifierResult
-		{
-			mail.unread = true
-			mail.isInboxRuleApplied = false
-			mail.clientSpamClassifierResult = createTestEntity(ClientSpamClassifierResultTypeRef, { confidence: "3" })
-
-			locatedMailset = MailSetKind.SPAM
-			o(spamHandler.getSpamConfidence(mail)).equals(3)
-			locatedMailset = MailSetKind.INBOX
-			o(spamHandler.getSpamConfidence(mail)).equals(3)
-		}
 	})
 
 	o("processSpam moves mail to inbox when detected as such and its not already in inbox", async function () {
@@ -249,7 +208,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 		mail.sets = [spamFolder._id]
 
 		await spamHandler.updateSpamClassificationData(mail, folderSystem)
-		verify(spamClassifier.updateSpamClassificationData(["listId", "elementId"], true, 1), { times: 1 })
+		verify(spamClassifier.updateSpamClassification(["listId", "elementId"], true, 1), { times: 1 })
 	})
 
 	o("does update spam classification data if mail was not previously included", async function () {
@@ -261,7 +220,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			subject: mail.subject,
 			body: getMailBodyText(body),
 			isSpam: false,
-			isSpamConfidence: 0,
+			isSpamConfidence: 1,
 			ownerGroup: "owner",
 		}
 
