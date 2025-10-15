@@ -346,7 +346,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				},
 				{
 					ref: MailTypeRef,
-					handler: new CustomMailEventCacheHandler(mailIndexer, offlineStorage),
+					handler: new CustomMailEventCacheHandler(mailIndexer),
 				},
 				{ ref: UserTypeRef, handler: new CustomUserCacheHandler(locator.cacheStorage) },
 			)

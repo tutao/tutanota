@@ -122,14 +122,6 @@ export class SpamClassifier {
 		this.classifier = new Map()
 	}
 
-	public getEnabledSpamClassifierForOwnerGroup(ownerGroup: Id): Nullable<LayersModel> {
-		const classifier = this.classifier.get(ownerGroup) ?? null
-		if (classifier && classifier.isEnabled) {
-			return classifier.model
-		}
-		return null
-	}
-
 	public async initialize(ownerGroup: Id): Promise<void> {
 		const loadedModel = await this.loadModel(ownerGroup)
 
@@ -387,20 +379,20 @@ export class SpamClassifier {
 		return prediction > PREDICTION_THRESHOLD
 	}
 
-	public getStoredClassification(mail: Mail) {
-		return this.offlineStorage.getStoredClassification(mail)
+	public getSpamClassification(mailId: IdTuple) {
+		return this.offlineStorage.getSpamClassification(mailId)
 	}
 
-	public updateSpamClassificationData(id: IdTuple, isSpam: boolean, isSpamConfidence: number) {
-		return this.offlineStorage.updateSpamClassificationData(id, isSpam, isSpamConfidence)
+	public updateSpamClassification(mailId: IdTuple, isSpam: boolean, isSpamConfidence: number) {
+		return this.offlineStorage.updateSpamClassification(mailId, isSpam, isSpamConfidence)
 	}
 
 	public storeSpamClassification(spamTrainMailDatum: SpamTrainMailDatum) {
 		return this.offlineStorage.storeSpamClassification(spamTrainMailDatum)
 	}
 
-	public deleteSpamClassification(ownerGroup: Id, mailId: IdTuple) {
-		return this.offlineStorage.deleteSpamClassificationData(ownerGroup, mailId)
+	public deleteSpamClassification(mailId: IdTuple) {
+		return this.offlineStorage.deleteSpamClassification(mailId)
 	}
 
 	/*

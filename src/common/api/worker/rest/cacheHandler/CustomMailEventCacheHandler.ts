@@ -3,17 +3,12 @@ import { assertNotNull, lazy, lazyAsync } from "@tutao/tutanota-utils"
 import { MailIndexer } from "../../../../../mail-app/workerUtils/index/MailIndexer"
 import { CustomCacheHandler } from "./CustomCacheHandler"
 import { OfflineStoragePersistence } from "../../../../../mail-app/workerUtils/index/OfflineStoragePersistence"
-import { EntityUpdateData } from "../../../common/utils/EntityUpdateUtils"
-import { elementIdPart, listIdPart } from "../../../common/utils/EntityUtils"
 
 /**
  * Handles telling the indexer to index or un-index mail data on updates.
  */
 export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
-	constructor(
-		private readonly indexer: lazyAsync<MailIndexer>,
-		private readonly offlineStoragePersistence: OfflineStoragePersistence,
-	) {}
+	constructor(private readonly indexer: lazyAsync<MailIndexer>) {}
 
 	shouldLoadOnCreateEvent(): boolean {
 		// New emails should be pre-cached.
@@ -37,11 +32,5 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 	async onEntityEventUpdate(id: IdTuple) {
 		const indexer = await this.indexer()
 		return indexer.afterMailUpdated(id)
-	}
-
-	async onEntityEventDelete(id: IdTuple, event: EntityUpdateData) {
-		const mail = event.instance as unknown as Mail // how can we do this better?
-		const ownerGroup = assertNotNull(mail._ownerGroup)
-		await this.offlineStoragePersistence.deleteSpamClassificationData(ownerGroup, mail._id)
 	}
 }

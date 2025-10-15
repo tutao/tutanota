@@ -793,7 +793,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 						// delete mailDetails if they are available (as we don't send an event for this type)
 						const mail = await this.storage.get(update.typeRef, update.instanceListId, update.instanceId)
 						if (mail) {
-							update.instance = mail as unknown as ServerModelParsedInstance // Can I even do this?
 							let mailDetailsId = mail.mailDetails
 							await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 							if (mailDetailsId != null) {
@@ -839,7 +838,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 						await handler.onEntityEventUpdate?.(id, filteredUpdateEvents)
 						break
 					case OperationType.DELETE:
-						await handler.onEntityEventDelete?.(id, update) // send mail here
+						await handler.onEntityEventDelete?.(id)
 						break
 				}
 			} catch (e) {

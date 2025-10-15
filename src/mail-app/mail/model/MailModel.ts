@@ -246,9 +246,7 @@ export class MailModel {
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
 				const mailId: IdTuple = [update.instanceListId, update.instanceListId]
 
-				// todo: how can we get the group in case of delete events?
-				const mailOwnerGroup = "TODO: groupId"
-				await this.spamHandler().dropClassificationData(mailOwnerGroup, mailId)
+				await this.spamHandler().dropClassificationData(mailId)
 			}
 		}
 	}

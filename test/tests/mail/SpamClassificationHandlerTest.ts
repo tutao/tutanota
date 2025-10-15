@@ -242,20 +242,20 @@ o.spec("SpamClassificationHandlerTest", function () {
 		mail.unread = true
 
 		await spamHandler.updateSpamClassificationData(mail, folderSystem)
-		verify(spamClassifier.updateSpamClassificationData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+		verify(spamClassifier.updateSpamClassification(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 	})
 
 	o("update spam classification data on every mail update", async function () {
-		when(spamClassifier.getStoredClassification(anything())).thenResolve({ isSpam: false, isSpamConfidence: 0 })
+		when(spamClassifier.getSpamClassification(anything())).thenResolve({ isSpam: false, isSpamConfidence: 0 })
 		mail.sets = [spamFolder._id]
 
 		await spamHandler.updateSpamClassificationData(mail, folderSystem)
-		verify(spamClassifier.updateSpamClassificationData(["listId", "elementId"], false, 1), { times: 1 })
+		verify(spamClassifier.updateSpamClassification(["listId", "elementId"], false, 1), { times: 1 })
 	})
 
 	o("does update spam classification data if mail was not previously included", async function () {
 		mail.sets = [inboxFolder._id]
-		when(spamClassifier.getStoredClassification(mail)).thenResolve(null)
+		when(spamClassifier.getSpamClassification(mail._id)).thenResolve(null)
 
 		const spamTrainMailDatum: SpamTrainMailDatum = {
 			mailId: mail._id,

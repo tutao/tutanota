@@ -75,8 +75,8 @@ export class SpamClassificationHandler {
 		return assertNotNull(folderSystem.getSystemFolderByType(classifierMailSetTarget), `Could not get System folder for owner: ${mail._ownerGroup}`)
 	}
 
-	public async dropClassificationData(mailOwnerGroup: Id, mailId: IdTuple) {
-		await this.spamClassifier?.deleteSpamClassification(mailOwnerGroup, mailId)
+	public async dropClassificationData(mailId: IdTuple) {
+		await this.spamClassifier?.deleteSpamClassification(mailId)
 	}
 
 	public async updateSpamClassificationData(mail: Mail, folderSystem: FolderSystem) {
@@ -92,7 +92,7 @@ export class SpamClassificationHandler {
 		const mailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get folder for mail: ${mail._id}`)
 		const mailSetKind = getMailSetKind(mailFolder)
 
-		const storedClassification = await this.spamClassifier.getStoredClassification(mail)
+		const storedClassification = await this.spamClassifier.getSpamClassification(mail._id)
 
 		let isSpamConfidence = this.getSpamConfidence(mail, mailSetKind)
 		const isSpam = mailSetKind === MailSetKind.SPAM
@@ -106,7 +106,7 @@ export class SpamClassificationHandler {
 				// This is the case if we delete from spam Folder, in that case we do not need any change in storedClassification
 			} else if (isSpam !== storedClassification.isSpam || isSpamConfidence !== storedClassification.isSpamConfidence) {
 				// the model has trained on the mail but the spamFlag was wrong so we refit with higher isSpamConfidence
-				await this.spamClassifier.updateSpamClassificationData(mail._id, isSpam, isSpamConfidence)
+				await this.spamClassifier.updateSpamClassification(mail._id, isSpam, isSpamConfidence)
 			}
 		} else {
 			// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
