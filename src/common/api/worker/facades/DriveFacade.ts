@@ -16,7 +16,7 @@ import {
 import { BlobFacade } from "./lazy/BlobFacade"
 import { UserFacade } from "./UserFacade"
 import { aes256RandomKey, aesEncrypt } from "@tutao/tutanota-crypto"
-import { _encryptKeyWithVersionedKey } from "../crypto/CryptoWrapper"
+import { _encryptKeyWithVersionedKey, VersionedKey } from "../crypto/CryptoWrapper"
 import { FileReference } from "../../common/utils/FileUtils"
 import { DataFile } from "../../common/DataFile"
 import { assertNotNull, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
@@ -31,6 +31,11 @@ export interface BreadcrumbEntry {
 }
 
 export type UploadGuid = string
+
+export type DriveCryptoInfo = {
+	fileGroupId: string
+	fileGroupKey: VersionedKey
+}
 
 export class DriveFacade {
 	private readonly onCancelListener: EventTarget
@@ -47,14 +52,19 @@ export class DriveFacade {
 		this.onCancelListener = new EventTarget()
 	}
 
+	private async getCryptoInfo(): Promise<DriveCryptoInfo> {
+		const fileGroupId = this.userFacade.getGroupId(GroupType.File)
+		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(fileGroupId)
+		return { fileGroupId, fileGroupKey }
+	}
+
 	public async updateMetadata(file: File & { metadata: DriveFileMetadata }) {
 		const data = createDriveFileMetadataCreateData({ isFavorite: file.metadata.isFavorite, file: file._id })
 		await this.serviceExecutor.post(DriveFileMetadataService, data)
 	}
 
 	public async loadFavourites() {
-		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
-		console.log("fileGroupId:: for this user :: ", fileGroupId)
+		const { fileGroupId } = await this.getCryptoInfo()
 		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
 
 		const favouriteFiles = Promise.all(driveGroupRoot.favourites.map((idTuple) => this.entityClient.load(FileTypeRef, idTuple)))
@@ -62,9 +72,7 @@ export class DriveFacade {
 	}
 
 	public async loadTrash() {
-		// TODO: refactor this load grouproot
-		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
-		console.log("fileGroupId:: for this user :: ", fileGroupId)
+		const { fileGroupId } = await this.getCryptoInfo()
 		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
 
 		const trashContents = await this.getFolderContents(driveGroupRoot.trash) // modify breadcrumb ?
@@ -77,29 +85,22 @@ export class DriveFacade {
 		await this.serviceExecutor.delete(DriveService, deleteData)
 	}
 
-	public async loadDriveGroupRoot() {
-		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
-		console.log("fileGroupId:: for this user :: ", fileGroupId)
+	public async loadRootFolderId() {
+		const { fileGroupId } = await this.getCryptoInfo()
 
 		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
-		console.log(`driveGroupRoot :: `, driveGroupRoot)
-
-		const rootFileIdTuple = driveGroupRoot.root
-		//const rootFile = await this.loadFileFromIdTuple(rootFileIdTuple)
-		return rootFileIdTuple
+		const rootFolderId = driveGroupRoot.root
+		return rootFolderId
 	}
 
 	public async getFolderContents(folderId: IdTuple): Promise<[File[], BreadcrumbEntry[]]> {
-		let fileGroupId = this.userFacade.getGroupId(GroupType.File)
-		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(fileGroupId)
+		const { fileGroupKey } = await this.getCryptoInfo()
 
 		const data = createDriveGetIn({ folder: folderId })
 		const driveGetOut = await this.serviceExecutor.get(DriveService, data)
-		console.log("DriveGetOut: ", driveGetOut)
 
 		const files = await Promise.all(driveGetOut.subFilesIds.map((idTupple) => this.entityClient.load(FileTypeRef, idTupple)))
 		const parents = driveGetOut.parents
-		console.log(files)
 
 		const decryptedNamesAndFiles = parents.map((entry, index) => {
 			if (index > 0) {
@@ -120,11 +121,8 @@ export class DriveFacade {
 	 * @param to this is the folder where the file will be uploaded, if itś null we assume uploading to the root folder
 	 */
 	public async uploadFile(file: FileReference | DataFile, fileId: UploadGuid, to: IdTuple) {
-		console.log(`adding to: `, to)
-		const ownerGroupId = this.userFacade.getGroupId(GroupType.File)
-		console.log(`fileGroupOwnerGroup :: ${ownerGroupId}`)
+		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
-		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = locator.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
 		let uploadMonitorId: number | null = null
@@ -135,22 +133,15 @@ export class DriveFacade {
 		const blobRefTokens = await this.blobFacade.encryptAndUpload(
 			ArchiveDataType.DriveFile,
 			(file as DataFile).data /*FileUri*/,
-			assertNotNull(ownerGroupId),
+			assertNotNull(fileGroupId),
 			sessionKey,
 			this.uploadProgressListener.onChunkUploaded,
 			fileId,
 			this.onCancelListener,
-			// async (totalChunks: number, doneChunks: number) => {
-			// 	console.log("onChunkUploaded:", doneChunks, "/", totalChunks)
-			// 	if (uploadMonitorId == null) {
-			// 		uploadMonitorId = await this.progressTracker.registerMonitor(totalChunks + serverProcessingSteps)
-			// 	}
-			// 	await this.progressTracker.workDoneForMonitor(uploadMonitorId, 1)
-			// },
 		)
 
 		if (blobRefTokens.length === 0) {
-			console.log("No blob reference tokens, looks like this upload has been cancelled.")
+			console.debug("No blob reference tokens, looks like this upload has been cancelled.")
 			return null
 		}
 
@@ -160,12 +151,10 @@ export class DriveFacade {
 			encCid: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.cid ?? "")),
 			encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.mimeType)),
 			ownerEncSessionKey: ownerEncSessionKey,
-			_ownerGroup: assertNotNull(ownerGroupId),
+			_ownerGroup: assertNotNull(fileGroupId),
 		})
 		const data = createDriveCreateData({ uploadedFile: uploadedFile, parent: to })
-		console.log("data has been uploaded, posting to DriveService")
 		const response = await this.serviceExecutor.post(DriveService, data)
-		console.log("posted to drive service")
 
 		const createdFile = this.entityClient.load(FileTypeRef, response.createdFile)
 		return createdFile
@@ -180,11 +169,8 @@ export class DriveFacade {
 	 * @param parentFolder not implemented yet, used for creating a folder inside a folder that is not the root drive
 	 */
 	public async createFolder(folderName: string, parentFolder: IdTuple) {
-		// TODO put the drive group root and file id load in the drive service for performance reason
-		const ownerGroupId = this.userFacade.getGroupId(GroupType.File)
-		console.log(`fileGroupOwnerGroup :: ${ownerGroupId}`)
+		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
-		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = _encryptKeyWithVersionedKey(fileGroupKey, sessionKey)
 		const uploadedFolder = createDriveUploadedFile({
@@ -193,7 +179,7 @@ export class DriveFacade {
 			encCid: aesEncrypt(sessionKey, stringToUtf8Uint8Array("")),
 			encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array("tuta/folder")), // TODO: make a constant !
 			ownerEncSessionKey: ownerEncSessionKey.key,
-			_ownerGroup: assertNotNull(ownerGroupId),
+			_ownerGroup: assertNotNull(fileGroupId),
 		})
 		const data = createDriveCreateData({ uploadedFile: uploadedFolder, parent: parentFolder }) // we use the File type for folder and we check the mimeTy
 		const response = await this.serviceExecutor.post(DriveService, data)

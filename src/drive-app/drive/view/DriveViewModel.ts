@@ -52,7 +52,7 @@ export class DriveViewModel {
 	}
 
 	async initialize() {
-		this.rootFolder = await this.driveFacade.loadDriveGroupRoot()
+		this.rootFolder = await this.driveFacade.loadRootFolderId()
 	}
 
 	/**

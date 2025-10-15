@@ -10,7 +10,6 @@ export interface DriveFolderContentAttrs {
 
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	view(vnode: Vnode<DriveFolderContentAttrs>): Children {
-		// TODO: render table with FolderContentHeader and FolderContentEntry
 		return m("table", { style: { "border-spacing": "32px 0px", "text-align": "left", "table-layout": "fixed" } }, [
 			m(
 				"thead",

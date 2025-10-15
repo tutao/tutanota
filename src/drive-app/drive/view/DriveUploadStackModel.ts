@@ -33,11 +33,10 @@ export class DriveUploadStackModel {
 			stateForThisFile.uploadedSize += uploadedSizeDelta
 
 			if (stateForThisFile.uploadedSize >= stateForThisFile.totalSize) {
-				console.log("finished uploading")
 				stateForThisFile.isFinished = true
 			}
 		} else {
-			console.log(`${fileId} is not part of the state. This can be due to an upload being canceled`)
+			console.debug(`${fileId} is not part of the state. This can be due to an upload being canceled`)
 		}
 	}
 
