@@ -270,6 +270,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	async getCalendarNameData(groupInfo: GroupInfo): Promise<GroupNameData> {
+		if (isClientOnlyCalendar(groupInfo.group)) {
+			const name = deviceConfig.getClientOnlyCalendars().get(groupInfo.group)?.name ?? ""
+			return { kind: "single", name }
+		}
 		const groupSettingModel = await this.groupSettingsModel()
 		return groupSettingModel.getGroupNameData(groupInfo)
 	}
