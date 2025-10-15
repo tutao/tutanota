@@ -420,13 +420,20 @@ export class LoginViewModel implements ILoginViewModel {
 			}
 
 			if (savePassword) {
+				const unencryptedCredentials = credentialsToUnencrypted(credentials, databaseKey)
 				try {
-					await this.credentialsProvider.store(credentialsToUnencrypted(credentials, databaseKey))
+					await this.credentialsProvider.store(unencryptedCredentials)
 				} catch (e) {
 					if (e instanceof KeyPermanentlyInvalidatedError) {
 						await this.credentialsProvider.clearCredentials(e)
 						await this.updateCachedCredentials()
-					} else if (e instanceof DeviceStorageUnavailableError || e instanceof CancelledError) {
+					} else if (e instanceof CancelledError) {
+						console.warn("login aborted:", e)
+						// delete the session we just made
+						await this.loginController.deleteOldSession(unencryptedCredentials)
+						this.helpText = "emptyString_msg"
+						this.state = LoginState.NotAuthenticated
+					} else if (e instanceof DeviceStorageUnavailableError) {
 						console.warn("will proceed with ephemeral credentials because device storage is unavailable:", e)
 					} else {
 						throw e
