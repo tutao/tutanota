@@ -136,12 +136,10 @@ o.spec("SpamClassificationHandlerTest", function () {
 		verify(spamClassifier.storeSpamClassification(expectedTrainingData), { times: 1 })
 	})
 
-	o("getSpamConfidence is 0 for mail in trash folder ", async function () {
+	o("mail in spam folder is not classified but stored with confidence 0", async function () {
 		inboxRuleOutcome.resolve(null)
 		mail.sets = [trashFolder._id]
 
-		when(spamClassifier.predict(anything())).thenResolve(true)
-		mail.sets = [spamFolder._id]
 		const expectedTrainingData: SpamTrainMailDatum = {
 			mailId: mail._id,
 			subject: mail.subject,
@@ -152,9 +150,9 @@ o.spec("SpamClassificationHandlerTest", function () {
 		}
 
 		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
-		verify(mailFacade.simpleMoveMails([mail._id], MailSetKind.INBOX, ClientClassifierType.CLIENT_CLASSIFICATION), { times: 1 })
+		o(finalResult).deepEquals(null)
+		verify(mailFacade.simpleMoveMails(anything(), anything(), anything()), { times: 0 })
 		verify(spamClassifier.storeSpamClassification(expectedTrainingData), { times: 1 })
-		o(finalResult).deepEquals(inboxFolder)
 	})
 
 	o("getSpamConfidence is 1 for mail in spam folder ", async function () {
@@ -198,11 +196,32 @@ o.spec("SpamClassificationHandlerTest", function () {
 		}
 	})
 
+	o("processSpam moves mail to inbox when detected as such and its not already in inbox", async function () {
+		inboxRuleOutcome.resolve(null)
+		when(spamClassifier.predict(anything())).thenResolve(false)
+
+		mail.sets = [spamFolder._id]
+		mail.unread = false
+		const expectedDatum: SpamTrainMailDatum = {
+			mailId: mail._id,
+			subject: mail.subject,
+			body: getMailBodyText(body),
+			isSpam: false,
+			isSpamConfidence: 1,
+			ownerGroup: "owner",
+		}
+
+		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
+		o(finalResult).deepEquals(inboxFolder)
+		verify(spamClassifier.storeSpamClassification(expectedDatum), { times: 1 })
+		verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.INBOX, ClientClassifierType.CLIENT_CLASSIFICATION), { times: 1 })
+	})
+
 	o("processSpam moves mail to spam when detected as such and its not already in spam", async function () {
 		inboxRuleOutcome.resolve(null)
+		when(spamClassifier.predict(anything())).thenResolve(true)
 
 		mail.sets = [inboxFolder._id]
-		when(spamClassifier.predict(anything())).thenResolve(true)
 		const expectedDatum: SpamTrainMailDatum = {
 			mailId: mail._id,
 			subject: mail.subject,
@@ -213,29 +232,9 @@ o.spec("SpamClassificationHandlerTest", function () {
 		}
 
 		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
+		o(finalResult).deepEquals(spamFolder)
 		verify(spamClassifier.storeSpamClassification(expectedDatum), { times: 1 })
 		verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.SPAM, ClientClassifierType.CLIENT_CLASSIFICATION), { times: 1 })
-		o(finalResult).deepEquals(spamFolder)
-	})
-
-	o("processSpam moves mail to inbox when detected as such and its not already in inbox", async function () {
-		inboxRuleOutcome.resolve(null)
-
-		mail.sets = [inboxFolder._id]
-		when(spamClassifier.predict(anything())).thenResolve(true)
-		const expectedDatum: SpamTrainMailDatum = {
-			mailId: mail._id,
-			subject: mail.subject,
-			body: getMailBodyText(body),
-			isSpam: false,
-			isSpamConfidence: 0,
-			ownerGroup: "owner",
-		}
-
-		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
-		verify(spamClassifier.storeSpamClassification(expectedDatum), { times: 1 })
-		verify(mailFacade.simpleMoveMails([["listId", "elementId"]], MailSetKind.SPAM, ClientClassifierType.CLIENT_CLASSIFICATION), { times: 1 })
-		o(finalResult).deepEquals(spamFolder)
 	})
 
 	o("does nothing if mail has not been read and not moved or had label applied", async function () {
@@ -250,7 +249,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 		mail.sets = [spamFolder._id]
 
 		await spamHandler.updateSpamClassificationData(mail, folderSystem)
-		verify(spamClassifier.updateSpamClassification(["listId", "elementId"], false, 1), { times: 1 })
+		verify(spamClassifier.updateSpamClassificationData(["listId", "elementId"], true, 1), { times: 1 })
 	})
 
 	o("does update spam classification data if mail was not previously included", async function () {

@@ -54,7 +54,7 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 }
 
 // Initial training (cutoff by day or amount)
-o.spec("SpamClassifier", () => {
+o.spec("SpamClassifierTest", () => {
 	const mockOfflineStorageCache = object<CacheStorage>()
 	const mockOfflineStorage = object<OfflineStoragePersistence>()
 	const mockSpamClassificationInitializer = object<SpamClassificationInitializer>()
@@ -119,7 +119,7 @@ o.spec("SpamClassifier", () => {
 		}
 
 		const layersModel = object<Sequential>()
-		when(layersModel.predict(anything(), anything())).thenReturn(tensor1d([0]))
+		when(layersModel.predict(anything())).thenReturn(tensor1d([1]))
 		spamClassifier.putSpamClassifierForOwner(spamTrainMailDatum.ownerGroup, layersModel, true)
 
 		const predictedSpam = await spamClassifier.predict(spamTrainMailDatum)
