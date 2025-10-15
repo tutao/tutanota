@@ -5,6 +5,7 @@ import { generatedIdToTimestamp, getElementId } from "../../../common/api/common
 import { DriveViewModel } from "./DriveViewModel"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
+import { columnSizes } from "./DriveFolderContent"
 
 export interface DriveFolderContentEntryAttrs {
 	file: File
@@ -17,6 +18,17 @@ export const isFolder = ({ mimeType }: File) => {
 	return mimeType === "tuta/folder"
 }
 
+const DriveFolderContentEntryRowStyle = {
+	height: "56px",
+	background: "white",
+	"border-radius": "10px",
+	"align-items": "center",
+	"margin-bottom": "4px",
+	"padding-left": "24px",
+	"padding-right": "24px",
+	"max-width": "fit-content",
+}
+
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
 	private globalIconFill = "transparent"
 
@@ -26,42 +38,52 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 
 		const thisFileIsAFolder = isFolder(file)
 
-		return m("tr", [
-			m("td", m("input[type=checkbox]")),
-			// m("td", m(Checkbox, { label: () => "selected", checked, onChecked: () => onSelect(file) })),
-			m(
-				"td",
-				thisFileIsAFolder
-					? m(Icon, {
-							icon: Icons.Folder,
-							size: IconSize.Normal,
-							style: { position: "relative", top: "2px" },
-						})
-					: null,
-			),
-			m(
-				"td",
+		return m("div.flex.row", { style: DriveFolderContentEntryRowStyle }, [
+			m("div", { style: { display: "flex", gap: "16px" } }, [
+				m("div", { style: { width: columnSizes.select } }, m("input[type=checkbox]")),
+				// m("td", m(Checkbox, { label: () => "selected", checked, onChecked: () => onSelect(file) })),
 				m(
-					"span",
-					{
-						onclick: () => {
-							if (thisFileIsAFolder) {
-								driveViewModel.navigateToFolder(file._id)
-							} else {
-								// download
-								driveViewModel.downloadFile(file)
-							}
-						},
-						class: "cursor-pointer",
-					},
-					file.name,
+					"div",
+					{ style: { width: columnSizes.icon } },
+					thisFileIsAFolder
+						? m(Icon, {
+								icon: Icons.Folder,
+								size: IconSize.Normal,
+								// style: { position: "relative", top: "2px" },
+							})
+						: null,
+					// choose right icon depending on type
+					// m(Icon, {
+					// 		icon: Icons.Draft,
+					// 		size: IconSize.Normal,
+					// 		// style: { position: "relative", top: "2px" },
+					// 	}),
 				),
-			),
-			m("td", file.mimeType?.split("/")[1]),
-			m("td", thisFileIsAFolder ? "🐱" : formatStorageSize(Number(file.size))),
-			m("td", uploadDate.toLocaleString()),
+				m(
+					"div",
+					{ style: { width: columnSizes.name } },
+					m(
+						"span",
+						{
+							onclick: () => {
+								if (thisFileIsAFolder) {
+									driveViewModel.navigateToFolder(file._id)
+								} else {
+									// download
+									driveViewModel.downloadFile(file)
+								}
+							},
+							class: "cursor-pointer",
+						},
+						file.name,
+					),
+				),
+			]),
+			m("div", { style: { width: columnSizes.type } }, file.mimeType?.split("/")[1]),
+			m("div", { style: { width: columnSizes.size } }, thisFileIsAFolder ? "🐱" : formatStorageSize(Number(file.size))),
+			m("div", { style: { width: columnSizes.date } }, uploadDate.toLocaleString()),
 			m(
-				"td",
+				"div",
 				m("div", [
 					m(
 						"span",
