@@ -251,6 +251,10 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 	)
 }
 
+export function showStandardsFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<File>> {
+	return runFileChooser<File>(allowMultiple, (e: Event, resolve) => {})
+}
+
 /**
  * takes a list of DataFiles and creates one DataFile from them that represents a zip
  * containing the the other files
