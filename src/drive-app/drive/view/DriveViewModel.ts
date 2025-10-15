@@ -12,6 +12,7 @@ import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
 import { arrayEquals, assertNotNull } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
+import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 
 export enum VirtualFolder {
 	None,
@@ -34,6 +35,7 @@ export interface DisplayFolder {
 
 export class DriveViewModel {
 	public readonly driveUploadStackModel: DriveUploadStackModel
+	public readonly userMailAddress: string
 
 	// normal folder view
 	currentFolder!: DisplayFolder
@@ -46,6 +48,7 @@ export class DriveViewModel {
 		public readonly uploadProgressListener: UploadProgressListener,
 	) {
 		this.driveUploadStackModel = new DriveUploadStackModel(driveFacade)
+		this.userMailAddress = getDefaultSenderFromUser(locator.logins.getUserController())
 	}
 
 	async initialize() {

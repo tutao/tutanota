@@ -6,11 +6,11 @@ import { NavButtonColor } from "../../../common/gui/base/NavButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { VirtualFolder } from "./DriveViewModel"
 
-export function renderSidebarFolders(virtualFolder: VirtualFolder) {
+export function renderSidebarFolders(virtualFolder: VirtualFolder, userMailAddress: string) {
 	return m(
 		SidebarSection,
 		{
-			name: lang.makeTranslation("driveFolders_title", () => "user@tutanota.de"), // TODO: use real user account address
+			name: lang.makeTranslation("driveFolders_title", () => userMailAddress),
 		},
 		[
 			m(SettingsFolderRow, {

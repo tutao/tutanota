@@ -80,8 +80,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			m.redraw()
 			return Promise.resolve()
 		})
-
-		// this.driveViewModel.loadDriveRoot().then(() => m.redraw())
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
@@ -130,13 +128,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									})(ev, ev.target as HTMLElement)
 								},
 							},
-							content: [
-								// m(LoginButton, {
-								// 	label: lang.makeTranslation("newFolder_action", () => "New folder"),
-								// 	onclick: (event, dom) => ,
-								// }),
-								renderSidebarFolders(this.driveViewModel.currentFolder.virtualFolder),
-							],
+							content: [renderSidebarFolders(this.driveViewModel.currentFolder.virtualFolder, this.driveViewModel.userMailAddress)],
 							ariaLabel: "folderTitle_label",
 						}),
 					]
