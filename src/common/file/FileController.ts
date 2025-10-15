@@ -252,7 +252,9 @@ export function showFileChooser(allowMultiple: boolean, allowedExtensions?: Arra
 }
 
 export function showStandardsFileChooser(allowMultiple: boolean, allowedExtensions?: Array<string>): Promise<Array<File>> {
-	return runFileChooser<File>(allowMultiple, (e: Event, resolve) => {})
+	return runFileChooser<File>(allowMultiple, (e: Event, resolve) => {
+		resolve((e.target as any).files as Array<File>)
+	})
 }
 
 /**

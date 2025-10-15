@@ -1,6 +1,6 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { BreadcrumbEntry, DriveFacade, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
-import { File } from "../../../common/api/entities/tutanota/TypeRefs"
+import { File as TutaFile } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { Router } from "../../../common/gui/ScopedRouter"
@@ -22,12 +22,12 @@ export enum VirtualFolder {
 
 export interface DisplayFolder {
 	// shared properties between virtual and real folders
-	files: File[]
+	files: TutaFile[]
 	parents: BreadcrumbEntry[]
 	isVirtual: boolean
 
 	// properties for real folders
-	folder: File | null // null is only set for virtual folders
+	folder: TutaFile | null // null is only set for virtual folders
 
 	// properties for virtual folders
 	virtualFolder: VirtualFolder
@@ -59,7 +59,7 @@ export class DriveViewModel {
 	 * Move to trash just like addToFavourites change the metadata of the file
 	 * a file is
 	 */
-	async moveToTrash(file: File) {
+	async moveToTrash(file: TutaFile) {
 		await this.driveFacade.moveToTrash(file)
 		this.currentFolder.files = this.currentFolder.files.filter((f) => {
 			return !arrayEquals(f._id as [string, string], file._id as [string, string])
@@ -72,7 +72,7 @@ export class DriveViewModel {
 	 * so we force our way here to calm Typescript which is throwing a tantrum.
 	 * @param file
 	 */
-	async changeFavoriteStatus(file: File) {
+	async changeFavoriteStatus(file: TutaFile) {
 		// @ts-ignore
 		file.metadata.isFavorite = !file.metadata.isFavorite
 		// @ts-ignore
@@ -111,7 +111,7 @@ export class DriveViewModel {
 		return this.currentFolder.folder?._id === this.rootFolder
 	}
 
-	async loadFileOrFolder(idTuple: IdTuple): Promise<File> {
+	async loadFileOrFolder(idTuple: IdTuple): Promise<TutaFile> {
 		return this.driveFacade.loadFileFromIdTuple(idTuple)
 	}
 
@@ -140,7 +140,7 @@ export class DriveViewModel {
 		return crypto.randomUUID()
 	}
 
-	async uploadFiles(files: (DataFile | FileReference)[]): Promise<void> {
+	async uploadFiles(files: File[]): Promise<void> {
 		for (const file of files) {
 			const fileId = this.generateUploadGuid()
 			this.driveUploadStackModel.addUpload(fileId, file.name, file.size)
@@ -172,7 +172,7 @@ export class DriveViewModel {
 		this.navigateToFolder(this.rootFolder)
 	}
 
-	async downloadFile(file: File): Promise<void> {
+	async downloadFile(file: TutaFile): Promise<void> {
 		// a bit ugly -- should we rename and move that one?
 		locator.fileController.open(file, ArchiveDataType.DriveFile)
 	}

@@ -16,12 +16,12 @@ import { DriveFolderView } from "./DriveFolderView"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
 import { theme } from "../../../common/gui/theme"
-import { showFileChooserForAttachments } from "../../../mail-app/mail/editor/MailEditorViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { createDropdown } from "../../../common/gui/base/Dropdown"
 import { renderSidebarFolders } from "./Sidebar"
 import { DriveUploadStack } from "./DriveUploadStack"
 import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
+import { showStandardsFileChooser } from "../../../common/file/FileController"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -174,14 +174,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	async onNewFile_Click(dom: HTMLElement): Promise<void> {
-		showFileChooserForAttachments(dom.getBoundingClientRect()).then((files) => {
-			if (files) {
-				this.driveViewModel.uploadFiles([...files]).then(() => {
-					console.log("uploaded completed; redrawing...")
-					m.redraw()
-				})
-			}
-		})
+		const files = await showStandardsFileChooser(true)
+
+		if (files) {
+			this.driveViewModel.uploadFiles(files)
+		}
 	}
 
 	async onNewFolder_Click(dom: HTMLElement): Promise<void> {

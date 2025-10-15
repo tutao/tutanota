@@ -10,15 +10,13 @@ import {
 	createDriveUploadedFile,
 	DriveFileMetadata,
 	DriveGroupRootTypeRef,
-	File,
+	File as TutaFile,
 	FileTypeRef,
 } from "../../entities/tutanota/TypeRefs"
 import { BlobFacade } from "./lazy/BlobFacade"
 import { UserFacade } from "./UserFacade"
 import { aes256RandomKey, aesEncrypt } from "@tutao/tutanota-crypto"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "../crypto/CryptoWrapper"
-import { FileReference } from "../../common/utils/FileUtils"
-import { DataFile } from "../../common/DataFile"
 import { assertNotNull, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { DriveFileMetadataService, DriveService } from "../../entities/tutanota/Services"
 import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
@@ -58,7 +56,7 @@ export class DriveFacade {
 		return { fileGroupId, fileGroupKey }
 	}
 
-	public async updateMetadata(file: File & { metadata: DriveFileMetadata }) {
+	public async updateMetadata(file: TutaFile & { metadata: DriveFileMetadata }) {
 		const data = createDriveFileMetadataCreateData({ isFavorite: file.metadata.isFavorite, file: file._id })
 		await this.serviceExecutor.post(DriveFileMetadataService, data)
 	}
@@ -79,7 +77,7 @@ export class DriveFacade {
 		return trashContents[0]
 	}
 
-	public async moveToTrash(file: File) {
+	public async moveToTrash(file: TutaFile) {
 		const deleteData = createDriveDeleteIn({ fileToDelete: file._id })
 
 		await this.serviceExecutor.delete(DriveService, deleteData)
@@ -93,7 +91,7 @@ export class DriveFacade {
 		return rootFolderId
 	}
 
-	public async getFolderContents(folderId: IdTuple): Promise<[File[], BreadcrumbEntry[]]> {
+	public async getFolderContents(folderId: IdTuple): Promise<[TutaFile[], BreadcrumbEntry[]]> {
 		const { fileGroupKey } = await this.getCryptoInfo()
 
 		const data = createDriveGetIn({ folder: folderId })
@@ -120,7 +118,7 @@ export class DriveFacade {
 	 * @param files the files to upload
 	 * @param to this is the folder where the file will be uploaded, if itś null we assume uploading to the root folder
 	 */
-	public async uploadFile(file: FileReference | DataFile, fileId: UploadGuid, to: IdTuple) {
+	public async uploadFile(file: File, fileId: UploadGuid, to: IdTuple) {
 		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
 		const sessionKey = aes256RandomKey()
@@ -130,9 +128,9 @@ export class DriveFacade {
 		// amount of work (in relation to progress monitor) the server still has to do after uploading
 		const serverProcessingSteps = 1
 
-		const blobRefTokens = await this.blobFacade.encryptAndUpload(
+		const blobRefTokens = await this.blobFacade.streamEncryptAndUpload(
 			ArchiveDataType.DriveFile,
-			(file as DataFile).data /*FileUri*/,
+			file,
 			assertNotNull(fileGroupId),
 			sessionKey,
 			this.uploadProgressListener.onChunkUploaded,
@@ -145,11 +143,12 @@ export class DriveFacade {
 			return null
 		}
 
+		/* TODO: call convertToDataFile() again maybe to detect the mime type */
 		const uploadedFile = createDriveUploadedFile({
 			referenceTokens: blobRefTokens,
 			encFileName: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.name)),
-			encCid: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.cid ?? "")),
-			encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.mimeType)),
+			encCid: aesEncrypt(sessionKey, stringToUtf8Uint8Array("")),
+			encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.type)),
 			ownerEncSessionKey: ownerEncSessionKey,
 			_ownerGroup: assertNotNull(fileGroupId),
 		})
