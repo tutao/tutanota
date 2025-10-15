@@ -1,7 +1,7 @@
 import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
 import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "../date/Time"
-import { deepMemoized, downcast, getStartOfNextDay } from "@tutao/tutanota-utils"
+import { deepMemoized, downcast, first, getStartOfNextDay } from "@tutao/tutanota-utils"
 import { px } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -212,7 +212,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 							style: {
 								"min-height": px(0),
 								"min-width": px(0),
-								"grid-column": `${gridColumnStart} / ${spanSize}`,
+								"grid-column": `${gridColumnStart} / span ${spanSize}`,
 								background: event.color,
 								color: !event.featured ? colorForBg(event.color) : undefined,
 								"grid-row": `${start} / ${end}`,
@@ -248,7 +248,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 										event.event.event.summary,
 									),
 								])
-							: event.event.event.summary, // FIXME for god sake, we need to get rid of those event.event.event
+							: m("", event.event.event._id), // FIXME for god sake, we need to get rid of those event.event.event
 					),
 				]
 			}) as ChildArray
@@ -279,130 +279,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 		return { start, end }
 	}
-
-	// /**
-	//  * Processes agenda entries for CSS Grid layout.
-	//  * Returns grid-column span values for each event.
-	//  * Assumes input events are already sorted by start time.
-	//  *
-	//  * @param agendaEntries - Array of time view event wrappers (MUST be sorted by startTime)
-	//  * @param timeRange - The time range defining the grid boundaries
-	//  * @param subRowAsMinutes - Minutes per sub-row in the grid
-	//  * @returns Map of event IDs to their grid positioning data
-	//  */
-	// private processAgendaEntries(
-	//     agendaEntries: TimeViewEventWrapper[],
-	//     timeRange: TimeRange,
-	//     subRowAsMinutes: number
-	// ): Map<string, GridEventData> {
-	//     if (agendaEntries.length === 0) return new Map()
-	//
-	//     const baseMinutes = timeRange.start.asMinutes()
-	//     const subRowFactor = 1 / subRowAsMinutes
-	//
-	//     /**
-	//      * Converts a date to a grid row number based on time offset
-	//      */
-	//     const dateToRow = (date: Date): number => {
-	//         const minutesFromStart = date.getHours() * 60 + date.getMinutes() - baseMinutes
-	//         return Math.floor(minutesFromStart * subRowFactor) + 1
-	//     }
-	//
-	//     // Convert to row-based events (already sorted!)
-	//     const events = agendaEntries.map((e) => {
-	//         const evt = e.event.event
-	//         return {
-	//             id: elementIdPart(evt._id),
-	//             start: dateToRow(new Date(evt.startTime)),
-	//             end: dateToRow(new Date(evt.endTime)),
-	//             summary: evt.summary
-	//         }
-	//     })
-	//
-	//     // Build overlap groups
-	//     const groups: typeof events[] = []
-	//
-	//     for (const event of events) {
-	//         let targetGroup: typeof events | null = null
-	//
-	//         for (const group of groups) {
-	//             const overlaps = group.some(
-	//                 groupEvent =>
-	//                     groupEvent.start < event.end &&
-	//                     groupEvent.end > event.start
-	//             )
-	//
-	//             if (overlaps) {
-	//                 targetGroup = group
-	//                 break
-	//             }
-	//         }
-	//
-	//         if (targetGroup) {
-	//             targetGroup.push(event)
-	//         } else {
-	//             groups.push([event])
-	//         }
-	//     }
-	//
-	//     console.log("Groups => ", groups.map(g => g.map(e => e.summary)))
-	//
-	//     const result = new Map<string, GridEventData>()
-	//
-	//     for (const group of groups) {
-	//         // Assign columns
-	//         const assignments: Array<{ event: typeof events[0], column: number }> = []
-	//
-	//         for (const event of group) {
-	//             let column = 0
-	//
-	//             while (true) {
-	//                 const hasConflict = assignments.some(
-	//                     a => a.column === column &&
-	//                         a.event.start < event.end &&
-	//                         a.event.end > event.start
-	//                 )
-	//
-	//                 if (!hasConflict) {
-	//                     break
-	//                 }
-	//                 column++
-	//             }
-	//
-	//             assignments.push({event, column})
-	//         }
-	//
-	//         const totalColumns = Math.max(...assignments.map(a => a.column)) + 1
-	//
-	//         console.log("Assignments =>", assignments)
-	//         console.log("Total Columns =>", assignments)
-	//         // Calculate span for each event
-	//         for (const {event, column} of assignments) {
-	//             let span = 1
-	//
-	//             // Try to expand rightward
-	//             for (let checkCol = column + 1; checkCol < totalColumns; checkCol++) {
-	//                 const hasBlocker = assignments.some(
-	//                     a => a.column === checkCol &&
-	//                         a.event.start < event.end &&
-	//                         a.event.end > event.start
-	//                 )
-	//
-	//                 if (hasBlocker) break
-	//                 span++
-	//             }
-	//
-	//             result.set(event.id, {
-	//                 start: event.start,
-	//                 end: event.end,
-	//                 gridColumnStart: column + 1,  // CSS Grid is 1-indexed
-	//                 size: span,
-	//             })
-	//         }
-	//     }
-	//
-	//     return result
-	// }
 
 	private layoutEvents(events: Array<TimeViewEventWrapper>, timeRange: TimeRange, subRowAsMinutes: number) {
 		const orderedEvents = events.toSorted((eventWrapperA, eventWrapperB) => {
@@ -458,31 +334,57 @@ export class TimeView implements Component<TimeViewAttributes> {
 		return this.buildGridData(columns)
 	}
 
+	blockingGroups: Map<Id, Array<Set<Id>>> = new Map()
+
 	private buildGridData(allColumns: Array<ColumnData>): GridData["events"] {
 		const gridData = new Map()
-		// for (const [columnIndex, columnData] of allColumns.entries()) {
-		// 	for (let [eventId, eventRowData] of columnData.events.entries()) {
-		// 		const colSpan = this.expandEvent(columnIndex, eventRowData, allColumns)
-		// 		const gridColumnStart = columnIndex + 1
-		// 		const gridColumnEnd = gridColumnStart + colSpan
-		//
-		// 		const eventGridData: GridEventData = {
-		// 			start: eventRowData.rowStart,
-		// 			end: eventRowData.rowEnd,
-		// 			gridColumnStart,
-		// 			gridColumnEnd,
-		// 		}
-		// 		gridData.set(eventId, eventGridData)
-		// 	}
-		// }
-		const visited = new Set()
-		for (const [columnIndex, columnData] of allColumns.entries()) {
-			for (let [eventId, eventRowData] of columnData.events.entries()) {
-				const canExpand = visited.has(eventId) ? false : this.checkExpansion(visited, columnIndex, eventId, eventRowData, allColumns)
+		const blockerShift = new Map<Id, number>()
 
-				const colSpan = this.expandEvent(columnIndex, eventRowData, allColumns)
-				const gridColumnStart = columnIndex + 1
-				const gridColumnEnd = gridColumnStart + colSpan
+		for (const [columnIndex, columnData] of allColumns.entries()) {
+			console.log(`\n\n==================================================\nIterating over Column ${columnIndex}`)
+			console.table(columnData)
+
+			for (let [eventId, eventRowData] of columnData.events.entries()) {
+				const hasBeenEvaluatedBefore = Array.from(this.blockingGroups.entries()).some(
+					([visitedEventId, blockingIds]) =>
+						visitedEventId === eventId || new Set(blockingIds.map((columnSet) => Array.from(columnSet.values())).flat()).has(eventId),
+				)
+
+				let currentEventCanExpand = false
+				if (!hasBeenEvaluatedBefore) {
+					const { canExpand, blockingEvents } = this.canExpandRight(eventId, eventRowData, columnIndex, allColumns, this.blockingGroups)
+					console.log("buildgridData / hasBeenEvaluatedBefore FALSE: ", {
+						eventId,
+						eventRowData,
+						canExpand,
+						blockingEvents,
+					})
+					currentEventCanExpand = canExpand
+				}
+
+				const eventShift = blockerShift.get(eventId) ?? 0
+				const gridColumnStart = columnIndex + 1 + eventShift
+				let size = 0
+
+				if (currentEventCanExpand) {
+					const maxSize = allColumns.length - eventShift
+					const numOfColumnsWithBlockers = this.blockingGroups.get(eventId)!.length > 0 ? this.blockingGroups.get(eventId)!.length : 0
+					console.log(`${eventId}: `, this.blockingGroups.get(eventId))
+					size = Math.floor(maxSize / (numOfColumnsWithBlockers + 1)) - gridColumnStart
+
+					//iterate over blockers
+					for (const blockerGroup of this.blockingGroups.get(eventId) ?? []) {
+						for (const blocker of blockerGroup.values()) {
+							const blockerShiftInfo = blockerShift.get(blocker)
+							if (blockerShiftInfo == null || blockerShiftInfo > size) {
+								blockerShift.set(blocker, size)
+							}
+						}
+					}
+				}
+
+				// const colSpan = this.expandEvent(columnIndex, eventRowData, allColumns)
+				const gridColumnEnd = size + 1
 
 				const eventGridData: GridEventData = {
 					start: eventRowData.rowStart,
@@ -498,117 +400,81 @@ export class TimeView implements Component<TimeViewAttributes> {
 		return gridData
 	}
 
-	private expandEvent(eventColumn: number, eventRowData: EventRowData, allColumns: Array<ColumnData>): number {
-		let colSpan = 1
-		for (let i = eventColumn + 1; i < allColumns.length; i++) {
-			let columnEvents = Array.from(allColumns[i].events.values())
-			const hasBlocker = columnEvents.some((ev) => ev.rowStart < eventRowData.rowEnd && ev.rowEnd > eventRowData.rowStart)
-			if (hasBlocker) {
-				break
+	/**
+	 * hasSpace:
+	 * Has blockers? ---> No ---> Has Space? ---> Return Yes
+	 */
+
+	private canExpandRight(
+		eventId: string,
+		eventRowData: EventRowData,
+		colIndex: number,
+		allColumns: ColumnData[],
+		blockingGroups: Map<Id, Array<Set<Id>>>,
+		visited: Set<Id> = new Set(),
+	): { canExpand: boolean; blockingEvents: Set<Id> } {
+		const blockingEvents = new Set<string>()
+		const nextColIndex = colIndex + 1
+
+		if (!blockingGroups.get(eventId)) {
+			blockingGroups.set(eventId, [])
+		}
+
+		if (nextColIndex >= allColumns.length) {
+			return { canExpand: false, blockingEvents }
+		}
+
+		const nextColEvents = allColumns[nextColIndex].events
+		const overlapping = this.findOverlappingEvents(eventRowData, nextColEvents)
+
+		if (overlapping.size === 0) {
+			return { canExpand: true, blockingEvents }
+		}
+
+		// If there are overlapping events, they must also be movable
+		for (const [nextEventId, nextEventRowData] of overlapping) {
+			if (visited.has(nextEventId)) {
+				continue
 			}
 
-			// We are at the last event of this "collision group" and it can expand
-			// Ideally we circle back and expand everybody
-			colSpan++
+			blockingEvents.add(nextEventId)
+			visited.add(nextEventId)
+
+			const result = this.canExpandRight(nextEventId, nextEventRowData, nextColIndex, allColumns, blockingGroups)
+			for (const id of result.blockingEvents) blockingEvents.add(id)
+
+			if (!result.canExpand) {
+				if (blockingEvents.size) {
+					blockingGroups.get(eventId)?.push(blockingEvents)
+				}
+				return { canExpand: false, blockingEvents }
+			}
 		}
-		return colSpan
+
+		if (blockingEvents.size) {
+			blockingGroups.get(eventId)?.push(blockingEvents)
+		}
+		return {
+			canExpand: Array.from(blockingEvents.values()).every((event) => {
+				const a = blockingGroups.get(event)
+				if (a === undefined || a.length === 0) return true
+			}),
+			blockingEvents,
+		}
 	}
 
-	/**
-	 * Optimized agenda processing with O(n·k) complexity where k is max concurrent events.
-	 * Uses column end-time tracking instead of searching through groups.
-	 * Assumes input events are already sorted by start time.
-	 */
-	// private
-	//     processAgendaEntries(agendaEntries
-	// :
-	//     TimeViewEventWrapper[], timeRange
-	// :
-	//     TimeRange, subRowAsMinutes
-	// :
-	//     number
-	// ):
-	//     Map < Id, GridEventData > {
-	//         if(agendaEntries.length === 0
-	// )
-	//     return new Map()
-	//
-	//     const baseMinutes = timeRange.start.asMinutes()
-	//     const subRowFactor = 1 / subRowAsMinutes
-	//
-	//     const dateToRow = (date: Date): number => {
-	//         const minutesFromStart = date.getHours() * 60 + date.getMinutes() - baseMinutes
-	//         return Math.floor(minutesFromStart * subRowFactor) + 1
-	//     }
-	//
-	//     // Convert to row-based events
-	//     const events = agendaEntries.map((e) => {
-	//         const evt = e.event.event
-	//         return {
-	//             id: elementIdPart(evt._id),
-	//             start: dateToRow(new Date(evt.startTime)),
-	//             end: dateToRow(new Date(evt.endTime)),
-	//         }
-	//     })
-	//
-	//     // Track column assignments with end times
-	//     interface ColumnData {
-	//         endTime: number
-	//         events: Array<{ id: string; start: number; end: number }>
-	//     }
-	//
-	//     const columns: ColumnData[] = []
-	//     const eventToColumn = new Map<string, number>()
-	//
-	//     // Single pass: assign columns using end-time tracking
-	//     for (const event of events) {
-	//         // Find first column where endTime <= event.start
-	//         let column = columns.findIndex((col) => col.endTime <= event.start)
-	//
-	//         if (column === -1) {
-	//             // No available column, create new one
-	//             column = columns.length
-	//             columns.push({
-	//                 endTime: event.end,
-	//                 events: [event],
-	//             })
-	//         } else {
-	//             // Reuse available column
-	//             columns[column].endTime = event.end
-	//             columns[column].events.push(event)
-	//         }
-	//
-	//         eventToColumn.set(event.id, column)
-	//     }
-	//
-	//     const totalColumns = columns.length
-	//     const result = new Map<string, GridEventData>()
-	//
-	//     // Calculate spans for all events
-	//     for (const event of events) {
-	//         const column = eventToColumn.get(event.id)!
-	//         let span = 1
-	//
-	//         // Check each column to the right for blocking events
-	//         for (let checkCol = column + 1; checkCol < totalColumns; checkCol++) {
-	//             // Check if this column has any event that overlaps with current event
-	//             const hasBlocker = columns[checkCol].events.some((e) => e.start < event.end && e.end > event.start)
-	//
-	//             if (hasBlocker) break
-	//             span++
-	//         }
-	//
-	//         result.set(event.id, {
-	//             start: event.start,
-	//             end: event.end,
-	//             gridColumnStart: column + 1,
-	//             size: span,
-	//         })
-	//     }
-	//
-	//     return result
-	// }
-	private checkExpansion(visited: Set<unknown>, columnIndex: number, eventId: string, eventRowData: EventRowData, allColumns: ColumnData[]) {
-		return false
+	private findOverlappingEvents(currentEventRowData: EventRowData, eventsInColumn: Map<Id, EventRowData>) {
+		let columnEntries = Array.from(eventsInColumn.entries())
+		const firstEv: EventRowData | undefined = first(columnEntries)?.[1]
+
+		if (!firstEv || firstEv.rowStart >= currentEventRowData.rowEnd) {
+			return new Map()
+		}
+
+		return new Map(
+			columnEntries.filter(
+				([eventId, eventRowData]) => eventRowData.rowStart < currentEventRowData.rowEnd && eventRowData.rowEnd > currentEventRowData.rowStart,
+			),
+		)
 	}
 }
