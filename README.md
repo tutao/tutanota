@@ -23,10 +23,15 @@ communicate securely with anyone on all your devices.
 
 </div>
 
+### Translating Tuta
+
+See [TRANSLATING.md](doc/TRANSLATING.md)
+
 ### Building
 
 See [BUILDING.md](doc/BUILDING.md).
 
-### Developing Tuta Mail
+### Developing Tuta
 
 See [HACKING.md](doc/HACKING.md).
+
