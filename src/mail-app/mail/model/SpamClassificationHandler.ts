@@ -69,6 +69,7 @@ export class SpamClassificationHandler {
 			return serverDeliveredMailFolder
 		}
 
+		// FIXME dont invoke this for ham mails
 		await this.mailFacade.simpleMoveMails([mail._id], classifierMailSetTarget, usedClientSpamClassifier)
 		await this.storeTrainingDatum({ mail, mailDetails }, classifierMailSetTarget)
 		return assertNotNull(folderSystem.getSystemFolderByType(classifierMailSetTarget), `Could not get System folder for owner: ${mail._ownerGroup}`)
