@@ -1,11 +1,10 @@
-import { Mail, MailDetails, MailFolder, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail, MailDetails, MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { getMailSetKind, MailSetKind, SimpleMoveMailTarget } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { assertNotNull, isNotNull, Nullable } from "@tutao/tutanota-utils"
 import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/BulkMailLoader"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { isDraft } from "./MailChecks"
 import { isExpectedErrorForSynchronization } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { EntityClient } from "../../../common/api/common/EntityClient"
@@ -23,12 +22,15 @@ export class SpamClassificationHandler {
 	) {}
 
 	public async predictSpamForNewMail(inboxRuleOutcome: Promise<Nullable<MailFolder>>, mail: Mail, folderSystem: FolderSystem): Promise<Nullable<MailFolder>> {
-		const inboxRuleTargetFolder = await inboxRuleOutcome
+		const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
 		if (isDraft(mail) || this.spamClassifier == null) {
-			return inboxRuleTargetFolder
+			return inboxRuleOutcome
 		}
 
-		const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
+		const inboxRuleTargetFolder = await inboxRuleOutcome.catch((err) => {
+			console.error(`Error while applying inbox rule: ${err}`)
+			return null
+		})
 
 		const serverDeliveredMailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get current folder for mail: ${mail._id}`)
 		const serverDeliveredMailSetKind = getMailSetKind(serverDeliveredMailFolder)
@@ -36,7 +38,7 @@ export class SpamClassificationHandler {
 		const isStoredInSpamFolder = serverDeliveredMailSetKind === MailSetKind.SPAM
 		const isNotStoredInSpamOrInbox = !isStoredInSpamFolder && serverDeliveredMailSetKind !== MailSetKind.INBOX
 		const isLeaderClient = this.connectivityModel?.isLeader() ?? false
-		const storeOnly = mailIsAffectedByInboxRule || isNotNull(mail.clientSpamClassifierResult) || !isLeaderClient || !isNotStoredInSpamOrInbox
+		const storeOnly = mailIsAffectedByInboxRule || isNotNull(mail.clientSpamClassifierResult) || !isLeaderClient || isNotStoredInSpamOrInbox
 
 		const mailDetails = await this.downloadMailDetails(mail)
 		if (mailDetails == null) {
@@ -76,7 +78,7 @@ export class SpamClassificationHandler {
 		await this.spamClassifier?.deleteSpamClassification(mailOwnerGroup, mailId)
 	}
 
-	public async updateSpamClassificationData(events: ReadonlyArray<EntityUpdateData>, mail: Mail, folderSystem: FolderSystem) {
+	public async updateSpamClassificationData(mail: Mail, folderSystem: FolderSystem) {
 		// TODO:
 		// would be nice to still update spam classification data even if spam classifier is not there yet,
 		// so next time when we initialize spam classifier we can just rely on what's in this table.
@@ -88,12 +90,6 @@ export class SpamClassificationHandler {
 
 		const mailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get folder for mail: ${mail._id}`)
 		const mailSetKind = getMailSetKind(mailFolder)
-
-		const changedMailSetEntry = events.find((el) => isUpdateForTypeRef(MailSetEntryTypeRef, el)) != null
-		const mailHasBeenRead = !mail.unread
-		if (!mailHasBeenRead && !changedMailSetEntry) {
-			return
-		}
 
 		const storedClassification = await this.spamClassifier.getStoredClassification(mail)
 
@@ -175,6 +171,12 @@ export class SpamClassificationHandler {
 
 	// visible for testing
 	public getSpamConfidence(mail: Mail, mailSetKind: MailSetKind): number {
+		if (mail.clientSpamClassifierResult?.confidence != null) {
+			return parseInt(mail.clientSpamClassifierResult.confidence)
+		} else if (mail.isInboxRuleApplied) {
+			return 1
+		}
+
 		const isStoredInSpamFolder = mailSetKind === MailSetKind.SPAM
 		const isStoredInTrashFolder = mailSetKind === MailSetKind.TRASH
 

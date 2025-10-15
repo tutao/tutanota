@@ -9,14 +9,12 @@ import {
 	MailDetailsTypeRef,
 	MailFolder,
 	MailFolderTypeRef,
-	MailSetEntryTypeRef,
 	MailTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { SpamClassifier, SpamTrainMailDatum } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../src/common/api/common/CommonMailUtils"
 import { MailSetKind } from "../../../src/common/api/common/TutanotaConstants"
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
-import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils"
 import { assert, assertNotNull, defer, Nullable } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../TestUtils"
@@ -60,7 +58,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			subject: "subject",
 			_ownerGroup: "owner",
 			mailDetails: ["detailsList", mailDetails._id],
-			unread: false,
+			unread: true,
 			isInboxRuleApplied: false,
 			clientSpamClassifierResult: null,
 		})
@@ -90,7 +88,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 				}),
 			),
 			anything(),
-		).thenResolve([{ mail, mailDetails }])
+		).thenDo(async () => [{ mail, mailDetails }])
 
 		const entityClient = new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly())
 		spamHandler = new SpamClassificationHandler(mailFacade, spamClassifier, entityClient, bulkMailLoader, connectivityModel)
@@ -191,12 +189,12 @@ o.spec("SpamClassificationHandlerTest", function () {
 		{
 			mail.unread = true
 			mail.isInboxRuleApplied = false
-			mail.clientSpamClassifierResult = createTestEntity(ClientSpamClassifierResultTypeRef)
+			mail.clientSpamClassifierResult = createTestEntity(ClientSpamClassifierResultTypeRef, { confidence: "3" })
 
 			locatedMailset = MailSetKind.SPAM
-			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(1)
+			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(3)
 			locatedMailset = MailSetKind.INBOX
-			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(1)
+			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(3)
 		}
 	})
 
@@ -243,33 +241,16 @@ o.spec("SpamClassificationHandlerTest", function () {
 	o("does nothing if mail has not been read and not moved or had label applied", async function () {
 		mail.unread = true
 
-		await spamHandler.updateSpamClassificationData([], mail, folderSystem)
+		await spamHandler.updateSpamClassificationData(mail, folderSystem)
 		verify(spamClassifier.updateSpamClassificationData(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 	})
 
-	// TODO:
-	// this should change as we want to keep training datum,
-	// we can still retain the model tho
-	o("does nothing if we delete a mail from spam folder", async function () {})
-
-	o("does update spam classification data if mail has been read in inbox and not moved", async function () {
-		mail.sets = [inboxFolder._id]
-		mail.unread = false
-
+	o("update spam classification data on every mail update", async function () {
 		when(spamClassifier.getStoredClassification(anything())).thenResolve({ isSpam: false, isSpamConfidence: 0 })
-
-		await spamHandler.updateSpamClassificationData([], mail, folderSystem)
-		verify(spamClassifier.updateSpamClassificationData(["listId", "elementId"], false, 1), { times: 1 })
-	})
-
-	o("does update spam classification data if mail has not been read but moved", async function () {
 		mail.sets = [spamFolder._id]
 
-		when(spamClassifier.getStoredClassification(anything())).thenResolve({ isSpam: false, isSpamConfidence: 0 })
-
-		const moveEvent = object({ typeRef: MailSetEntryTypeRef }) as unknown as EntityUpdateData
-		await spamHandler.updateSpamClassificationData([moveEvent], mail, folderSystem)
-		verify(spamClassifier.updateSpamClassificationData(["listId", "elementId"], true, 1), { times: 1 })
+		await spamHandler.updateSpamClassificationData(mail, folderSystem)
+		verify(spamClassifier.updateSpamClassificationData(["listId", "elementId"], false, 1), { times: 1 })
 	})
 
 	o("does update spam classification data if mail was not previously included", async function () {
@@ -285,7 +266,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			ownerGroup: "owner",
 		}
 
-		await spamHandler.updateSpamClassificationData([], mail, folderSystem)
+		await spamHandler.updateSpamClassificationData(mail, folderSystem)
 		verify(spamClassifier.storeSpamClassification(spamTrainMailDatum), { times: 1 })
 	})
 })

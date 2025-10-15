@@ -198,10 +198,10 @@ export class MailModel {
 				}
 				const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 				if (isNotNull(folderSystem)) {
-					await spamHandler.updateSpamClassificationData(updates, mail, folderSystem)
+					await spamHandler.updateSpamClassificationData(mail, folderSystem)
 				}
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
-				const mailId: IdTuple = [update.instanceListId, update.instanceListId]
+				const mailId: IdTuple = [update.instanceListId, update.instanceId]
 				const spamHandler = this.spamHandler()
 				const mail = await spamHandler.downloadMail(mailId)
 				if (mail == null) {
@@ -243,6 +243,12 @@ export class MailModel {
 				mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => {
 					this._showNotification(targetFolder ?? initialMailFolder, mail)
 				})
+			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
+				const mailId: IdTuple = [update.instanceListId, update.instanceListId]
+
+				// todo: how can we get the group in case of delete events?
+				const mailOwnerGroup = "TODO: groupId"
+				await this.spamHandler().dropClassificationData(mailOwnerGroup, mailId)
 			}
 		}
 	}
