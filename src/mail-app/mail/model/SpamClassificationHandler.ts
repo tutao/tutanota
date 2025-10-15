@@ -12,6 +12,8 @@ import { ClientClassifierType } from "../../../common/api/common/ClientClassifie
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 
+const DEFAULT_CONFIDENCE = "1"
+
 export class SpamClassificationHandler {
 	public constructor(
 		private readonly mailFacade: MailFacade,
@@ -63,13 +65,22 @@ export class SpamClassificationHandler {
 		let classifierMailSetTarget: SimpleMoveMailTarget
 		if (isSpam && !isStoredInSpamFolder) {
 			classifierMailSetTarget = MailSetKind.SPAM
+			return await this.moveMailToTarget(mail, classifierMailSetTarget, usedClientSpamClassifier, mailDetails, folderSystem)
 		} else if (!isSpam && isStoredInSpamFolder) {
 			classifierMailSetTarget = MailSetKind.INBOX
+			return await this.moveMailToTarget(mail, classifierMailSetTarget, usedClientSpamClassifier, mailDetails, folderSystem)
 		} else {
 			return serverDeliveredMailFolder
 		}
+	}
 
-		// FIXME dont invoke this for ham mails
+	private async moveMailToTarget(
+		mail: Mail,
+		classifierMailSetTarget: MailSetKind.SPAM | MailSetKind.INBOX,
+		usedClientSpamClassifier: ClientClassifierType.CLIENT_CLASSIFICATION,
+		mailDetails: MailDetails,
+		folderSystem: FolderSystem,
+	): Promise<MailFolder> {
 		await this.mailFacade.simpleMoveMails([mail._id], classifierMailSetTarget, usedClientSpamClassifier)
 		await this.storeTrainingDatum({ mail, mailDetails }, classifierMailSetTarget)
 		return assertNotNull(folderSystem.getSystemFolderByType(classifierMailSetTarget), `Could not get System folder for owner: ${mail._ownerGroup}`)
@@ -80,11 +91,6 @@ export class SpamClassificationHandler {
 	}
 
 	public async updateSpamClassificationData(mail: Mail, folderSystem: FolderSystem) {
-		// TODO:
-		// would be nice to still update spam classification data even if spam classifier is not there yet,
-		// so next time when we initialize spam classifier we can just rely on what's in this table.
-		//
-		// currently we can not do so bcz .getStoredClassification() is not exposed in CacheStorage or so
 		if (this.spamClassifier == null) {
 			return
 		}
@@ -94,12 +100,11 @@ export class SpamClassificationHandler {
 
 		const storedClassification = await this.spamClassifier.getSpamClassification(mail._id)
 
-		let isSpamConfidence = this.getSpamConfidence(mail, mailSetKind)
+		let isSpamConfidence = this.getSpamConfidence(mail)
 		const isSpam = mailSetKind === MailSetKind.SPAM
 
 		if (isNotNull(storedClassification)) {
 			// email is in classification data
-
 			const isStoredInTrashFolder = mailSetKind === MailSetKind.TRASH
 			const wasDeletedFromSpamFolder = isStoredInTrashFolder && storedClassification.isSpam
 			if (wasDeletedFromSpamFolder) {
@@ -130,7 +135,7 @@ export class SpamClassificationHandler {
 
 	public async storeTrainingDatum(mailWithMailDetails: MailWithMailDetails, mailFolder: MailSetKind) {
 		const { mailDetails, mail } = mailWithMailDetails
-		const confidence = this.getSpamConfidence(mail, mailFolder)
+		const confidence = this.getSpamConfidence(mail)
 		const spamTrainMailDatum: SpamTrainMailDatum = {
 			mailId: mail._id,
 			subject: mail.subject,
@@ -171,21 +176,7 @@ export class SpamClassificationHandler {
 	}
 
 	// visible for testing
-	public getSpamConfidence(mail: Mail, mailSetKind: MailSetKind): number {
-		if (mail.clientSpamClassifierResult?.confidence != null) {
-			return parseInt(mail.clientSpamClassifierResult.confidence)
-		} else if (mail.isInboxRuleApplied) {
-			return 1
-		}
-
-		const isStoredInSpamFolder = mailSetKind === MailSetKind.SPAM
-		const isStoredInTrashFolder = mailSetKind === MailSetKind.TRASH
-
-		const isReadAndNotInSpamAndNotInTrash = !mail.unread && !isStoredInSpamFolder && !isStoredInTrashFolder
-		if (isStoredInSpamFolder || isReadAndNotInSpamAndNotInTrash) {
-			return 1
-		} else {
-			return 0
-		}
+	public getSpamConfidence(mail: Mail): number {
+		return Number(mail.clientSpamClassifierResult?.confidence ?? DEFAULT_CONFIDENCE)
 	}
 }

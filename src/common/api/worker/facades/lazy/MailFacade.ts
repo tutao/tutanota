@@ -3,7 +3,7 @@ import {
 	ApplyLabelService,
 	DraftService,
 	ExternalUserService,
-	IsInboxRuleAppliedStateService,
+	ClientClassifierResultService,
 	ListUnsubscribeService,
 	MailFolderService,
 	MailService,
@@ -52,7 +52,7 @@ import {
 	createDraftUpdateData,
 	createEncryptedMailAddress,
 	createExternalUserData,
-	createIsInboxRuleAppliedStatePostIn,
+	createClientClassifierResultPostIn,
 	createListUnsubscribeData,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
@@ -118,7 +118,7 @@ import {
 	splitInChunks,
 } from "@tutao/tutanota-utils"
 import { BlobFacade } from "./BlobFacade.js"
-import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
+import { assertWorkerOrNode, isApp, isDesktop, isWebClient } from "../../../common/Env.js"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships } from "../../../common/utils/GroupUtils.js"
 import { containsId, elementIdPart, getElementId, getLetId, isSameId, listIdPart, stringToCustomId } from "../../../common/utils/EntityUtils.js"
@@ -1199,17 +1199,16 @@ export class MailFacade {
 	/**
 	 * Mark the given mails as read/unread
 	 * @param mails mail ids to mark as unread
-	 * @param isInboxRuleApplied new unread status (mails that are already this status will not be modified)
 	 */
-	async setIsInboxRuleApplied(mails: readonly IdTuple[], isInboxRuleApplied: boolean) {
+	async setIsInboxRuleApplied(mails: readonly IdTuple[]) {
 		await promiseMap(
 			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
 			async (mails) =>
 				this.serviceExecutor.post(
-					IsInboxRuleAppliedStateService,
-					createIsInboxRuleAppliedStatePostIn({
+					ClientClassifierResultService,
+					createClientClassifierResultPostIn({
 						mails,
-						isInboxRuleApplied,
+						isPredictionMade: !isWebClient(),
 					}),
 				),
 			{ concurrency: 5 },

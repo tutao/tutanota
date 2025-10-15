@@ -62,7 +62,7 @@ const processNotMatchingRules = debounce(DEBOUNCE_IS_INBOX_APPLIED_STATE_SERVICE
 	if (noRuleMatchMailIds.length) {
 		const mailIds = noRuleMatchMailIds
 		noRuleMatchMailIds = []
-		return mailFacade.setIsInboxRuleApplied(mailIds, true)
+		return mailFacade.setIsInboxRuleApplied(mailIds)
 	}
 })
 
@@ -111,11 +111,7 @@ export class InboxRuleHandler {
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
 	 * @returns true if a rule matches otherwise false
 	 */
-	async findAndApplyMatchingRule(
-		mailboxDetail: MailboxDetail,
-		mail: Readonly<Mail>,
-		applyRulesOnServer: boolean,
-	): Promise<MailFolder | null> {
+	async findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Readonly<Mail>, applyRulesOnServer: boolean): Promise<MailFolder | null> {
 		const shouldApply = !mail.isInboxRuleApplied
 
 		if (

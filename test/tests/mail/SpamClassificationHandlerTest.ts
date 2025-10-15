@@ -165,9 +165,9 @@ o.spec("SpamClassificationHandlerTest", function () {
 			mail.clientSpamClassifierResult = null
 
 			locatedMailset = MailSetKind.SPAM
-			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(1)
+			o(spamHandler.getSpamConfidence(mail)).equals(1)
 			locatedMailset = MailSetKind.INBOX
-			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(0)
+			o(spamHandler.getSpamConfidence(mail)).equals(0)
 		}
 
 		// when a spam or ham mail have isInboxRuleApplied true
@@ -177,10 +177,10 @@ o.spec("SpamClassificationHandlerTest", function () {
 			mail.clientSpamClassifierResult = null
 
 			locatedMailset = MailSetKind.SPAM
-			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(1)
+			o(spamHandler.getSpamConfidence(mail)).equals(1)
 
 			locatedMailset = MailSetKind.INBOX
-			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(1)
+			o(spamHandler.getSpamConfidence(mail)).equals(1)
 		}
 
 		// when a spam or ham mail have clientSpamClassifierResult
@@ -190,9 +190,9 @@ o.spec("SpamClassificationHandlerTest", function () {
 			mail.clientSpamClassifierResult = createTestEntity(ClientSpamClassifierResultTypeRef, { confidence: "3" })
 
 			locatedMailset = MailSetKind.SPAM
-			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(3)
+			o(spamHandler.getSpamConfidence(mail)).equals(3)
 			locatedMailset = MailSetKind.INBOX
-			o(spamHandler.getSpamConfidence(mail, locatedMailset)).equals(3)
+			o(spamHandler.getSpamConfidence(mail)).equals(3)
 		}
 	})
 
