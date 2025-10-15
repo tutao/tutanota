@@ -81,11 +81,21 @@ export interface TimeViewAttributes {
 	hasAnyConflict?: boolean
 }
 
-type GridEventData = { start: number; end: number; size: number; gridColumnStart: number }
+type GridEventData = { start: number; end: number; gridColumnEnd: number; gridColumnStart: number }
 
 interface GridData {
 	maxColumnCount: number
 	events: Map<Id, GridEventData>
+}
+
+interface ColumnData {
+	lastEventEndingRow: number
+	events: Map<Id, EventRowData>
+}
+
+interface EventRowData {
+	rowStart: number
+	rowEnd: number
 }
 
 export class TimeView implements Component<TimeViewAttributes> {
@@ -171,7 +181,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			}
 
 			//const gridData = this.calculateGridData(agendaEntries, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
-			const gridData = this.processAgendaEntries(agendaEntries, timeRange, subRowAsMinutes)
+			const gridData = this.layoutEvents(agendaEntries, timeRange, subRowAsMinutes)
 
 			return agendaEntries.flatMap((event) => {
 				const passesThroughToday =
@@ -192,7 +202,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 				if (!evData) {
 					return []
 				}
-				const { start, end, size: spanSize, gridColumnStart }: GridEventData = evData
+				const { start, end, gridColumnEnd: spanSize, gridColumnStart }: GridEventData = evData
 
 				return [
 					m(
@@ -202,7 +212,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 							style: {
 								"min-height": px(0),
 								"min-width": px(0),
-								"grid-column": `${gridColumnStart} / span ${spanSize}`,
+								"grid-column": `${gridColumnStart} / ${spanSize}`,
 								background: event.color,
 								color: !event.featured ? colorForBg(event.color) : undefined,
 								"grid-row": `${start} / ${end}`,
@@ -394,13 +404,15 @@ export class TimeView implements Component<TimeViewAttributes> {
 	//     return result
 	// }
 
-	/**
-	 * Optimized agenda processing with O(n·k) complexity where k is max concurrent events.
-	 * Uses column end-time tracking instead of searching through groups.
-	 * Assumes input events are already sorted by start time.
-	 */
-	private processAgendaEntries(agendaEntries: TimeViewEventWrapper[], timeRange: TimeRange, subRowAsMinutes: number): Map<string, GridEventData> {
-		if (agendaEntries.length === 0) return new Map()
+	private layoutEvents(events: Array<TimeViewEventWrapper>, timeRange: TimeRange, subRowAsMinutes: number) {
+		const orderedEvents = events.toSorted((eventWrapperA, eventWrapperB) => {
+			const startTimeComparison = eventWrapperA.event.event.startTime.getTime() - eventWrapperB.event.event.startTime.getTime()
+			if (startTimeComparison === 0) {
+				return eventWrapperB.event.event.endTime.getTime() - eventWrapperA.event.event.endTime.getTime()
+			}
+
+			return startTimeComparison
+		})
 
 		const baseMinutes = timeRange.start.asMinutes()
 		const subRowFactor = 1 / subRowAsMinutes
@@ -411,70 +423,192 @@ export class TimeView implements Component<TimeViewAttributes> {
 		}
 
 		// Convert to row-based events
-		const events = agendaEntries.map((e) => {
-			const evt = e.event.event
-			return {
-				id: elementIdPart(evt._id),
-				start: dateToRow(new Date(evt.startTime)),
-				end: dateToRow(new Date(evt.endTime)),
-			}
-		})
+		const eventsMap: Map<Id, EventRowData> = new Map(
+			orderedEvents.map((e) => {
+				const evt = e.event.event
+				return [
+					elementIdPart(evt._id),
+					{
+						rowStart: dateToRow(new Date(evt.startTime)),
+						rowEnd: dateToRow(new Date(evt.endTime)),
+					},
+				]
+			}),
+		)
 
-		// Track column assignments with end times
-		interface ColumnData {
-			endTime: number
-			events: Array<{ id: string; start: number; end: number }>
-		}
+		const columns: Array<ColumnData> = []
 
-		const columns: ColumnData[] = []
-		const eventToColumn = new Map<string, number>()
+		for (const [eventId, eventRowData] of eventsMap.entries()) {
+			let currentColumnIndex = columns.findIndex((col) => col.lastEventEndingRow <= eventRowData.rowStart)
 
-		// Single pass: assign columns using end-time tracking
-		for (const event of events) {
-			// Find first column where endTime <= event.start
-			let column = columns.findIndex((col) => col.endTime <= event.start)
-
-			if (column === -1) {
+			if (currentColumnIndex === -1) {
 				// No available column, create new one
-				column = columns.length
+				currentColumnIndex = columns.length
 				columns.push({
-					endTime: event.end,
-					events: [event],
+					lastEventEndingRow: eventRowData.rowEnd,
+					events: new Map([[eventId, eventRowData]]),
 				})
 			} else {
 				// Reuse available column
-				columns[column].endTime = event.end
-				columns[column].events.push(event)
+				columns[currentColumnIndex].lastEventEndingRow = eventRowData.rowEnd
+				columns[currentColumnIndex].events.set(eventId, eventRowData)
 			}
-
-			eventToColumn.set(event.id, column)
 		}
 
-		const totalColumns = columns.length
-		const result = new Map<string, GridEventData>()
+		return this.buildGridData(columns)
+	}
 
-		// Calculate spans for all events
-		for (const event of events) {
-			const column = eventToColumn.get(event.id)!
-			let span = 1
+	private buildGridData(allColumns: Array<ColumnData>): GridData["events"] {
+		const gridData = new Map()
+		// for (const [columnIndex, columnData] of allColumns.entries()) {
+		// 	for (let [eventId, eventRowData] of columnData.events.entries()) {
+		// 		const colSpan = this.expandEvent(columnIndex, eventRowData, allColumns)
+		// 		const gridColumnStart = columnIndex + 1
+		// 		const gridColumnEnd = gridColumnStart + colSpan
+		//
+		// 		const eventGridData: GridEventData = {
+		// 			start: eventRowData.rowStart,
+		// 			end: eventRowData.rowEnd,
+		// 			gridColumnStart,
+		// 			gridColumnEnd,
+		// 		}
+		// 		gridData.set(eventId, eventGridData)
+		// 	}
+		// }
+		const visited = new Set()
+		for (const [columnIndex, columnData] of allColumns.entries()) {
+			for (let [eventId, eventRowData] of columnData.events.entries()) {
+				const canExpand = visited.has(eventId) ? false : this.checkExpansion(visited, columnIndex, eventId, eventRowData, allColumns)
 
-			// Check each column to the right for blocking events
-			for (let checkCol = column + 1; checkCol < totalColumns; checkCol++) {
-				// Check if this column has any event that overlaps with current event
-				const hasBlocker = columns[checkCol].events.some((e) => e.start < event.end && e.end > event.start)
+				const colSpan = this.expandEvent(columnIndex, eventRowData, allColumns)
+				const gridColumnStart = columnIndex + 1
+				const gridColumnEnd = gridColumnStart + colSpan
 
-				if (hasBlocker) break
-				span++
+				const eventGridData: GridEventData = {
+					start: eventRowData.rowStart,
+					end: eventRowData.rowEnd,
+					gridColumnStart,
+					gridColumnEnd,
+				}
+
+				gridData.set(eventId, eventGridData)
 			}
-
-			result.set(event.id, {
-				start: event.start,
-				end: event.end,
-				gridColumnStart: column + 1,
-				size: span,
-			})
 		}
 
-		return result
+		return gridData
+	}
+
+	private expandEvent(eventColumn: number, eventRowData: EventRowData, allColumns: Array<ColumnData>): number {
+		let colSpan = 1
+		for (let i = eventColumn + 1; i < allColumns.length; i++) {
+			let columnEvents = Array.from(allColumns[i].events.values())
+			const hasBlocker = columnEvents.some((ev) => ev.rowStart < eventRowData.rowEnd && ev.rowEnd > eventRowData.rowStart)
+			if (hasBlocker) {
+				break
+			}
+
+			// We are at the last event of this "collision group" and it can expand
+			// Ideally we circle back and expand everybody
+			colSpan++
+		}
+		return colSpan
+	}
+
+	/**
+	 * Optimized agenda processing with O(n·k) complexity where k is max concurrent events.
+	 * Uses column end-time tracking instead of searching through groups.
+	 * Assumes input events are already sorted by start time.
+	 */
+	// private
+	//     processAgendaEntries(agendaEntries
+	// :
+	//     TimeViewEventWrapper[], timeRange
+	// :
+	//     TimeRange, subRowAsMinutes
+	// :
+	//     number
+	// ):
+	//     Map < Id, GridEventData > {
+	//         if(agendaEntries.length === 0
+	// )
+	//     return new Map()
+	//
+	//     const baseMinutes = timeRange.start.asMinutes()
+	//     const subRowFactor = 1 / subRowAsMinutes
+	//
+	//     const dateToRow = (date: Date): number => {
+	//         const minutesFromStart = date.getHours() * 60 + date.getMinutes() - baseMinutes
+	//         return Math.floor(minutesFromStart * subRowFactor) + 1
+	//     }
+	//
+	//     // Convert to row-based events
+	//     const events = agendaEntries.map((e) => {
+	//         const evt = e.event.event
+	//         return {
+	//             id: elementIdPart(evt._id),
+	//             start: dateToRow(new Date(evt.startTime)),
+	//             end: dateToRow(new Date(evt.endTime)),
+	//         }
+	//     })
+	//
+	//     // Track column assignments with end times
+	//     interface ColumnData {
+	//         endTime: number
+	//         events: Array<{ id: string; start: number; end: number }>
+	//     }
+	//
+	//     const columns: ColumnData[] = []
+	//     const eventToColumn = new Map<string, number>()
+	//
+	//     // Single pass: assign columns using end-time tracking
+	//     for (const event of events) {
+	//         // Find first column where endTime <= event.start
+	//         let column = columns.findIndex((col) => col.endTime <= event.start)
+	//
+	//         if (column === -1) {
+	//             // No available column, create new one
+	//             column = columns.length
+	//             columns.push({
+	//                 endTime: event.end,
+	//                 events: [event],
+	//             })
+	//         } else {
+	//             // Reuse available column
+	//             columns[column].endTime = event.end
+	//             columns[column].events.push(event)
+	//         }
+	//
+	//         eventToColumn.set(event.id, column)
+	//     }
+	//
+	//     const totalColumns = columns.length
+	//     const result = new Map<string, GridEventData>()
+	//
+	//     // Calculate spans for all events
+	//     for (const event of events) {
+	//         const column = eventToColumn.get(event.id)!
+	//         let span = 1
+	//
+	//         // Check each column to the right for blocking events
+	//         for (let checkCol = column + 1; checkCol < totalColumns; checkCol++) {
+	//             // Check if this column has any event that overlaps with current event
+	//             const hasBlocker = columns[checkCol].events.some((e) => e.start < event.end && e.end > event.start)
+	//
+	//             if (hasBlocker) break
+	//             span++
+	//         }
+	//
+	//         result.set(event.id, {
+	//             start: event.start,
+	//             end: event.end,
+	//             gridColumnStart: column + 1,
+	//             size: span,
+	//         })
+	//     }
+	//
+	//     return result
+	// }
+	private checkExpansion(visited: Set<unknown>, columnIndex: number, eventId: string, eventRowData: EventRowData, allColumns: ColumnData[]) {
+		return false
 	}
 }
