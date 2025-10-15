@@ -8,7 +8,7 @@ import {
 	OwnerEncSessionKeyProvider,
 } from "./EntityRestClient"
 import { OperationType } from "../../common/TutanotaConstants"
-import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isNotEmpty, isSameTypeRef, lastThrow, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getFirstOrThrow, getTypeString, isNotEmpty, isSameTypeRef, lastThrow, Nullable, TypeRef } from "@tutao/tutanota-utils"
 import {
 	AuditLogEntryTypeRef,
 	BucketPermissionTypeRef,
@@ -25,7 +25,7 @@ import {
 	UserGroupRootTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
-import { Body, CalendarEventUidIndexTypeRef, Mail, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
 import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
@@ -48,7 +48,6 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { collapseId, expandId } from "./RestClientIdUtils"
 import { PatchMerger } from "../offline/PatchMerger"
 import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { Nullable } from "@tutao/tutanota-utils"
 import { hasError } from "../../common/utils/ErrorUtils"
 
 assertWorkerOrNode()
@@ -794,6 +793,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 						// delete mailDetails if they are available (as we don't send an event for this type)
 						const mail = await this.storage.get(update.typeRef, update.instanceListId, update.instanceId)
 						if (mail) {
+							update.instance = mail as unknown as ServerModelParsedInstance // Can I even do this?
 							let mailDetailsId = mail.mailDetails
 							await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 							if (mailDetailsId != null) {
@@ -839,7 +839,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 						await handler.onEntityEventUpdate?.(id, filteredUpdateEvents)
 						break
 					case OperationType.DELETE:
-						await handler.onEntityEventDelete?.(id)
+						await handler.onEntityEventDelete?.(id, update) // send mail here
 						break
 				}
 			} catch (e) {

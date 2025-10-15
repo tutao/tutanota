@@ -212,6 +212,14 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
+	async deleteSpamClassificationTrainingDataBeforeCutoff(cutoffTimestamp: number, ownerGroupId: Id): Promise<void> {
+		const { query, params } = sql`DELETE
+									  FROM spam_classification_training_data
+									  WHERE lastModified < ${cutoffTimestamp}
+										AND ownerGroup = ${ownerGroupId}`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
 	async updateSpamClassificationData(id: IdTuple, isSpam: boolean, isSpamConfidence: number): Promise<void> {
 		const { query, params } = sql`
 			UPDATE spam_classification_training_data
@@ -248,14 +256,6 @@ export class OfflineStoragePersistence {
 										AND ownerGroup = ${ownerGroupId}`
 		const resultRows = await this.sqlCipherFacade.all(query, params)
 		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamTrainMailDatum)
-	}
-
-	async deleteSpamClassificationTrainingDataBeforeCutoff(cutoffTimestamp: number, ownerGroupId: Id): Promise<void> {
-		const { query, params } = sql`DELETE
-									  FROM spam_classification_training_data
-									  WHERE lastModified < ${cutoffTimestamp}
-										AND ownerGroup = ${ownerGroupId}`
-		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async putSpamClassificationModel(model: SpamClassificationModel) {

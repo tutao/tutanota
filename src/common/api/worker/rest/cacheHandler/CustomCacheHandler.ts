@@ -101,5 +101,5 @@ export interface CustomCacheHandler<T extends SomeEntity> {
 	 *
 	 * @param id ID of the entity
 	 */
-	onEntityEventDelete?: (id: T["_id"]) => Promise<void>
+	onEntityEventDelete?: (id: T["_id"], event: EntityUpdateData) => Promise<void>
 }

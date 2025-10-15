@@ -28,8 +28,8 @@ import {
 	MailMethod,
 	MailReportType,
 	MailSetKind,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	MAX_NBR_OF_CONVERSATIONS,
+	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	OperationType,
 	PhishingMarkerStatus,
 	PublicKeyIdentifierType,
@@ -157,11 +157,8 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/Enti
 import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
-import { SpamClassifier, SpamPredMailDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
-import { isDraft } from "../../../../../mail-app/mail/model/MailChecks"
 import { Nullable } from "@tutao/tutanota-utils/dist/Utils"
 import { ClientClassifierType } from "../../../common/ClientClassifierType"
-import { getMailBodyText } from "../../../common/CommonMailUtils"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -210,7 +207,6 @@ export class MailFacade {
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
-		private readonly spamClassifier: SpamClassifier | null,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<void> {
@@ -458,10 +454,6 @@ export class MailFacade {
 			reportType,
 		})
 		await this.serviceExecutor.post(ReportMailService, postData)
-	}
-
-	public isSpamClassificationEnabled(ownerGroup: Id): boolean {
-		return this.spamClassifier != null && this.spamClassifier.getEnabledSpamClassifierForOwnerGroup(ownerGroup) != null
 	}
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {

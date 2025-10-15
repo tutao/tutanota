@@ -346,7 +346,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				},
 				{
 					ref: MailTypeRef,
-					handler: new CustomMailEventCacheHandler(mailIndexer),
+					handler: new CustomMailEventCacheHandler(mailIndexer, offlineStorage),
 				},
 				{ ref: UserTypeRef, handler: new CustomUserCacheHandler(locator.cacheStorage) },
 			)
@@ -752,7 +752,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.login,
 			locator.keyLoader,
 			locator.publicEncryptionKeyProvider,
-			spamClassifier,
 		)
 	})
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)

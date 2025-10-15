@@ -69,7 +69,6 @@ o.spec("MailFacade test", function () {
 		loginFacade = object()
 		keyLoaderFacade = object()
 		publicEncryptionKeyProvider = object()
-		spamClassifier = object()
 		facade = new MailFacade(
 			userFacade,
 			entity,
@@ -80,7 +79,6 @@ o.spec("MailFacade test", function () {
 			loginFacade,
 			keyLoaderFacade,
 			publicEncryptionKeyProvider,
-			spamClassifier,
 		)
 	})
 
