@@ -6,7 +6,7 @@ import { checkKeyVersionConstraints, KeyLoaderFacade } from "../../../../../src/
 import { CacheManagementFacade } from "../../../../../src/common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { AsymmetricKeyPair, Ed25519KeyPair, MacTag } from "@tutao/tutanota-crypto"
+import { AsymmetricKeyPair, Ed25519KeyPair, KeyPairType, MacTag } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
 	Group,
@@ -27,6 +27,7 @@ import { PublicKeySignatureFacade } from "../../../../../src/common/api/worker/f
 import { IdentityKeyCreator } from "../../../../../src/common/api/worker/facades/lazy/IdentityKeyCreator"
 import { AdminKeyLoaderFacade } from "../../../../../src/common/api/worker/facades/AdminKeyLoaderFacade"
 import { Versioned } from "@tutao/tutanota-utils"
+import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError"
 
 const { anything, argThat, captor } = matchers
 
@@ -83,7 +84,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 			encryptingKeyVersion: userGroupKey.version,
 			key: object(),
 		}
-		const userGroupKeyPair: Versioned<AsymmetricKeyPair> = object()
+		let userGroupKeyPair: Versioned<AsymmetricKeyPair>
 		const identityKeyVersion = 0
 		const tag: MacTag = object()
 
@@ -102,6 +103,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 		const publicKeySignature: PublicKeySignature = object()
 
 		o.beforeEach(function () {
+			userGroupKeyPair = object()
 			when(cryptoWrapper.ed25519PublicKeyToBytes(identityKeyPair.public_key)).thenReturn(encodedPubIdentityKey)
 			when(ed25519Facade.generateKeypair()).thenResolve(identityKeyPair)
 
@@ -156,6 +158,11 @@ o.spec("IdentityKeyCreatorTest", function () {
 					}),
 				),
 			)
+		})
+
+		o("current group key RSA fails", async function () {
+			userGroupKeyPair.object.keyPairType = KeyPairType.RSA
+			await assertThrows(ProgrammingError, async () => identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, []))
 		})
 
 		o("success admin creates new user", async function () {

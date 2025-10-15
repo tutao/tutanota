@@ -10,11 +10,12 @@ import { KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./CacheManagementFacade.js"
 import { CryptoWrapper, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../../crypto/AsymmetricCryptoFacade.js"
-import { AsymmetricKeyPair } from "@tutao/tutanota-crypto"
+import { AsymmetricKeyPair, KeyPairType } from "@tutao/tutanota-crypto"
 import { KeyAuthenticationFacade } from "../KeyAuthenticationFacade.js"
 import { Ed25519Facade } from "../Ed25519Facade"
 import { PublicKeySignatureFacade } from "../PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "../AdminKeyLoaderFacade"
+import { ProgrammingError } from "../../../common/error/ProgrammingError"
 
 assertWorkerOrNode()
 
@@ -37,6 +38,8 @@ export class IdentityKeyCreator {
 	 * Creates an identity key pair for the given group.
 	 * Encrypts the private key with the passed encryptingKey or the group key and tags the public key with the group key.
 	 * @param groupId
+	 * @param currentKeyPairToBeSigned MUST be an RSA+ECC or TutaCrypt key pair
+	 * @param formerKeyPairsToBeSigned the former key pairs may include RSA key pairs
 	 * @param encryptingKey the key to encrypt the private key. by default the current group key is used.
 	 *        this is useful in case group members must not have access to the private key.
 	 */
@@ -46,6 +49,9 @@ export class IdentityKeyCreator {
 		formerKeyPairsToBeSigned: Versioned<AsymmetricKeyPair>[],
 		encryptingKey: VersionedKey | undefined = undefined,
 	): Promise<void> {
+		if (currentKeyPairToBeSigned.object.keyPairType === KeyPairType.RSA) {
+			throw new ProgrammingError("Must convert a current RSA key pair into an RSA_ECC key pair before signing")
+		}
 		const newEd25519IdentityKeyPair = await this.ed25519Facade.generateKeypair()
 		const currentGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(groupId)
 		if (encryptingKey == null) {
@@ -104,11 +110,10 @@ export class IdentityKeyCreator {
 
 	async createIdentityKeyPairForExistingUsers(): Promise<void> {
 		const userGroupId = this.userFacade.getUserGroupId()
-		let userGroup = await this.entityClient.load(GroupTypeRef, userGroupId)
 
 		let currentKeyPairs = await this.keyLoaderFacade.loadCurrentKeyPair(userGroupId)
 		await this.asymmetricCryptoFacade.getOrMakeSenderX25519KeyPair(currentKeyPairs.object, userGroupId)
-		userGroup = await this.cacheManagementFacade.reloadGroup(userGroupId)
+		const userGroup = await this.cacheManagementFacade.reloadGroup(userGroupId)
 		currentKeyPairs = await this.keyLoaderFacade.loadCurrentKeyPair(userGroupId)
 
 		//we do not need to pass a group key because the user is member of the group
