@@ -248,7 +248,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 										event.event.event.summary,
 									),
 								])
-							: m("", event.event.event._id), // FIXME for god sake, we need to get rid of those event.event.event
+							: m(".flex.col", m("", event.event.event.summary)), // FIXME for god sake, we need to get rid of those event.event.event
 					),
 				]
 			}) as ChildArray
@@ -342,6 +342,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 		for (const [columnIndex, columnData] of allColumns.entries()) {
 			console.log(`\n\n==================================================\nIterating over Column ${columnIndex}`)
 			console.table(columnData)
+			console.log(this.blockingGroups.entries())
 
 			for (let [eventId, eventRowData] of columnData.events.entries()) {
 				const hasBeenEvaluatedBefore = Array.from(this.blockingGroups.entries()).some(
@@ -363,30 +364,32 @@ export class TimeView implements Component<TimeViewAttributes> {
 				}
 
 				const eventShift = blockerShift.get(eventId) ?? 0
-				const gridColumnStart = columnIndex + 1 + eventShift
 				let size = 0
 
 				if (currentEventCanExpand) {
-					const maxSize = allColumns.length - eventShift
+					const maxSize = allColumns.length
 					const numOfColumnsWithBlockers = this.blockingGroups.get(eventId)!.length > 0 ? this.blockingGroups.get(eventId)!.length : 0
 					console.log(`${eventId}: `, this.blockingGroups.get(eventId))
 
 					if (numOfColumnsWithBlockers === 0) {
 						for (let i = columnIndex + 1; i < allColumns.length; i++) {
 							const columnData = allColumns[i]
-							if (
-								Array.from(columnData.events.values()).some(
-									(evData) => evData.rowStart < eventRowData.rowEnd && evData.rowEnd > eventRowData.rowStart,
-								)
-							) {
-								size = i
+							let conflict = Array.from(columnData.events.entries()).find(
+								([_, evData]) => evData.rowStart < eventRowData.rowEnd && evData.rowEnd > eventRowData.rowStart,
+							)
+							if (conflict) {
+								size = i + (blockerShift.get(conflict[0]) ?? 0)
 							}
 						}
 						if (size === 0) {
-							size = maxSize - 1
+							const arrayIndexToGridIndex = 1 + columnIndex
+							size = maxSize - eventShift - arrayIndexToGridIndex
 						}
+						size += 1
 					} else {
-						size = Math.floor(maxSize / (numOfColumnsWithBlockers + 1)) - (columnIndex + 1)
+						const myOriginalSize = 1
+						const arrayIndexToGridIndex = 1 + columnIndex
+						size = Math.max(Math.floor((maxSize - eventShift) / (numOfColumnsWithBlockers + myOriginalSize)) - arrayIndexToGridIndex, 1)
 					}
 
 					let i = columnIndex + 1
@@ -414,13 +417,16 @@ export class TimeView implements Component<TimeViewAttributes> {
 					for (const blockerGroup of this.blockingGroups.get(eventId) ?? []) {
 						for (const blocker of blockerGroup.keys()) {
 							const blockerShiftInfo = blockerShift.get(blocker) ?? 0
-							blockerShift.set(blocker, blockerShiftInfo + size)
+							blockerShift.set(blocker, blockerShiftInfo + size - 1)
+							blockerGroup.delete(blocker)
+							this.blockingGroups.delete(blocker)
 						}
 					}
 				}
 
 				// const colSpan = this.expandEvent(columnIndex, eventRowData, allColumns)
-				const gridColumnEnd = size + 1
+				const gridColumnStart = 1 + columnIndex + eventShift
+				const gridColumnEnd = size
 				console.log("buildgridData / final: ", {
 					eventId,
 					eventRowData,
