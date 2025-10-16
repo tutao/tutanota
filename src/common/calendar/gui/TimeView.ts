@@ -386,33 +386,46 @@ export class TimeView implements Component<TimeViewAttributes> {
 							size = maxSize - eventShift - arrayIndexToGridIndex
 						}
 						size += 1
+
+						let i = columnIndex + 1
+
+						while (i < columnIndex + size) {
+							if (i >= allColumns.length) {
+								break
+							}
+							const hasConflict = Array.from(allColumns[i].events.entries()).filter(([evId, eventData]) => {
+								const overlapRows = eventData.rowStart < eventRowData.rowEnd && eventData.rowEnd > eventRowData.rowStart
+								const blockers = this.blockingGroups.get(eventId) ?? []
+								const alreadyInBlockers = blockers.some((e) => e.has(evId))
+
+								return !alreadyInBlockers && overlapRows
+							})
+
+							console.log(hasConflict, eventShift, i - columnIndex)
+							if (hasConflict.length > 0) {
+								size -= allColumns.length - i - 1
+								break
+							}
+
+							i++
+						}
 					} else {
 						const myOriginalSize = 1
-						const arrayIndexToGridIndex = 1 + columnIndex
-						size = Math.max(Math.floor((maxSize - eventShift) / (numOfColumnsWithBlockers + myOriginalSize)) - arrayIndexToGridIndex, 1)
+						const columnsWithConflict = allColumns.slice(columnIndex + 1).reduce((prev, column) => {
+							if (
+								Array.from(column.events.entries()).some(([evId, eventData]) => {
+									return eventData.rowStart < eventRowData.rowEnd && eventData.rowEnd > eventRowData.rowStart
+								})
+							) {
+								return prev + 1
+							}
+
+							return prev
+						}, 0)
+
+						size = Math.max(Math.floor((maxSize - eventShift) / (columnsWithConflict + myOriginalSize)), 1)
 					}
 
-					let i = columnIndex + 1
-					while (i < columnIndex + size) {
-						if (i >= allColumns.length) {
-							break
-						}
-						const hasConflict = Array.from(allColumns[i].events.entries()).filter(([evId, eventData]) => {
-							const overlapRows = eventData.rowStart < eventRowData.rowEnd && eventData.rowEnd > eventRowData.rowStart
-							const blockers = this.blockingGroups.get(eventId) ?? []
-							const alreadyInBlockers = blockers.some((e) => e.has(evId))
-
-							return !alreadyInBlockers && overlapRows
-						})
-
-						if (hasConflict.length > 0) {
-							size -= Math.abs(i - columnIndex)
-							i = columnIndex + 1
-							continue
-						}
-
-						i++
-					}
 					//iterate over blockers
 					for (const blockerGroup of this.blockingGroups.get(eventId) ?? []) {
 						for (const blocker of blockerGroup.keys()) {
