@@ -388,13 +388,33 @@ export class TimeView implements Component<TimeViewAttributes> {
 					} else {
 						size = Math.floor(maxSize / (numOfColumnsWithBlockers + 1)) - (columnIndex + 1)
 					}
+
+					let i = columnIndex + 1
+					while (i < columnIndex + size) {
+						if (i >= allColumns.length) {
+							break
+						}
+						const hasConflict = Array.from(allColumns[i].events.entries()).filter(([evId, eventData]) => {
+							const overlapRows = eventData.rowStart < eventRowData.rowEnd && eventData.rowEnd > eventRowData.rowStart
+							const blockers = this.blockingGroups.get(eventId) ?? []
+							const alreadyInBlockers = blockers.some((e) => e.has(evId))
+
+							return !alreadyInBlockers && overlapRows
+						})
+
+						if (hasConflict.length > 0) {
+							size -= Math.abs(i - columnIndex)
+							i = columnIndex + 1
+							continue
+						}
+
+						i++
+					}
 					//iterate over blockers
 					for (const blockerGroup of this.blockingGroups.get(eventId) ?? []) {
 						for (const blocker of blockerGroup.keys()) {
-							const blockerShiftInfo = blockerShift.get(blocker)
-							if (blockerShiftInfo == null || blockerShiftInfo > size) {
-								blockerShift.set(blocker, size)
-							}
+							const blockerShiftInfo = blockerShift.get(blocker) ?? 0
+							blockerShift.set(blocker, blockerShiftInfo + size)
 						}
 					}
 				}
