@@ -70,7 +70,9 @@ export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> 
 	// Spam classification training data
 	spam_classification_training_data: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
+			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL," +
+			" ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, " +
+			"lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
 		purgedWithCache: true,
 	},
 

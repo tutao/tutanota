@@ -62,7 +62,7 @@ const processNotMatchingRules = debounce(DEBOUNCE_IS_INBOX_APPLIED_STATE_SERVICE
 	if (noRuleMatchMailIds.length) {
 		const mailIds = noRuleMatchMailIds
 		noRuleMatchMailIds = []
-		return mailFacade.setIsInboxRuleApplied(mailIds)
+		return mailFacade.updateMailProcessingState(mailIds, true)
 	}
 })
 

@@ -91,7 +91,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 		).thenDo(async () => [{ mail, mailDetails }])
 
 		const entityClient = new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly())
-		spamHandler = new SpamClassificationHandler(mailFacade, spamClassifier, entityClient, bulkMailLoader, connectivityModel)
+		spamHandler = new SpamClassificationHandler(mailFacade, spamClassifier, entityClient, connectivityModel)
 	})
 
 	o("processSpam correctly verifies if email is stored in spam folder", async function () {
@@ -108,7 +108,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			isSpamConfidence: 1,
 		}
 
-		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
+		const finalResult = await spamHandler.predictSpamForNewMail(mail, folderSystem)
 		verify(spamClassifier.storeSpamClassification(expectedTrainingData), { times: 1 })
 		verify(mailFacade.simpleMoveMails([mail._id], MailSetKind.INBOX, ClientClassifierType.CLIENT_CLASSIFICATION))
 		o(finalResult).deepEquals(inboxFolder)
@@ -129,7 +129,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			isSpamConfidence: 0,
 		}
 
-		const finalResult = await spamHandler.predictSpamForNewMail(inboxRuleOutcome.promise, mail, folderSystem)
+		const finalResult = await spamHandler.predictSpamForNewMail(mail, folderSystem)
 		o(finalResult).equals(null)
 		verify(mailFacade.simpleMoveMails(anything(), anything(), anything()), { times: 0 })
 		verify(spamClassifier.predict(anything()), { times: 0 })

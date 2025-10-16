@@ -136,7 +136,7 @@ o.spec("MailModelTest", function () {
 			mailboxModel = instance(MailboxModel)
 			inboxRuleHandler = object<InboxRuleHandler>()
 			spamClassifier = object<SpamClassifier>()
-			spamClassificationHandler = new SpamClassificationHandler(mailFacade, spamClassifier, entityClient, bulkMailLoader, connectivityModel)
+			spamClassificationHandler = new SpamClassificationHandler(mailFacade, spamClassifier, entityClient, connectivityModel)
 
 			mailDetails = createTestEntity(MailDetailsTypeRef, {
 				_id: "mailDetail",
@@ -269,6 +269,7 @@ o.spec("MailModelTest", function () {
 			const { inboxRuleProcessed } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
 			await inboxRuleProcessed
 
+			verify(spamClassificationHandler.predictSpamForNewMail(mail, anything()), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 0 })
 		})
 

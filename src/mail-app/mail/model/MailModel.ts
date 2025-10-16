@@ -56,6 +56,7 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.j
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
+import { isExpectedErrorForSynchronization } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -195,39 +196,59 @@ export class MailModel {
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.UPDATE) {
 				const spamHandler = this.spamHandler()
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
-				const mail = await spamHandler.downloadMail(mailId)
+                //TODO: Fix by fetching like with create
+                const mail: Nullable<Mail> = null
 				if (mail == null) {
 					return { inboxRuleProcessed: Promise.resolve() }
 				}
-				const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
-				if (isNotNull(folderSystem)) {
-					await spamHandler.updateSpamClassificationData(mail, folderSystem)
-				}
+				// const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
+				// if (isNotNull(folderSystem)) {
+				// 	await spamHandler.updateSpamClassificationData(mail, folderSystem)
+				// }
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
+				const isLeaderClient = this.connectivityModel?.isLeader() ?? false
+				if (!isLeaderClient) {
+					return { inboxRuleProcessed: Promise.resolve() }
+				}
+
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
-				const spamHandler = this.spamHandler()
-				const mail = await spamHandler.downloadMail(mailId)
+				const mail = await this.loadMail(mailId)
 				if (mail == null) {
 					return { inboxRuleProcessed: Promise.resolve() }
 				}
 
-				// FIXME we should only do all of this when we are in the inbox folder
-				// TODO: why?
-
-				const initialMailFolder = this.getMailFolderForMail(mail)
-				const mailboxDetail = await this.getMailboxDetailsForMail(mail)
-				if (initialMailFolder == null) {
+				// FIXME use enum
+				if (mail.isInboxRuleApplied) {
 					return { inboxRuleProcessed: Promise.resolve() }
 				}
 
-				let inboxRuleOutcome = Promise.resolve<Nullable<MailFolder>>(null)
-				const inboxRuleHandler = this.inboxRuleHandler()
-				const applyInboxRule =
-					!mail.isInboxRuleApplied && isNotNull(mailboxDetail) && isNotNull(inboxRuleHandler) && initialMailFolder.folderType === MailSetKind.INBOX
-				if (applyInboxRule) {
-					// We only apply rules on server if we are the leader in case of incoming messages
-					const applyInboxRuleOnServer = this.connectivityModel?.isLeader() ?? false
-					inboxRuleOutcome = inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, mail, applyInboxRuleOnServer)
+				const sourceMailFolder = this.getMailFolderForMail(mail)
+				if (!sourceMailFolder) {
+					return { inboxRuleProcessed: Promise.resolve() }
+				}
+
+				if (sourceMailFolder.folderType === MailSetKind.INBOX) {
+					const isInboxRuleApplied =
+						(await this.getMailboxDetailsForMail(mail).then((mailboxDetail) => {
+							return mailboxDetail && this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, true)
+						})) ?? null
+
+					if (isInboxRuleApplied) {
+						return { inboxRuleProcessed: Promise.resolve() }
+					} else if (mail.clientSpamClassifierResult == null) {
+						const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
+						if (isNotNull(folderSystem)) {
+							const targetMailFolder = this.spamHandler()
+								.predictSpamForNewMail(mail, sourceMailFolder, folderSystem)
+								.catch((e) => {
+									console.error(`Error while doing client side spamPrediction. Error: ${e}`)
+									return null
+								})
+						}
+					}
+				} else if (sourceMailFolder.folderType === MailSetKind.SPAM) {
+				}
+				if (sourceMailFolder.folderType === MailSetKind.INBOX) {
 				}
 
 				const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
@@ -235,18 +256,12 @@ export class MailModel {
 					return { inboxRuleProcessed: Promise.resolve() }
 				}
 
-				const mailFolderAfterInboxRuleAndSpamProcessing = this.spamHandler()
-					.predictSpamForNewMail(inboxRuleOutcome, mail, folderSystem)
-					.catch((e) => {
-						console.error(`Error while doing client side spamPrediction. Error: ${e}`)
-						return null
-					})
-
-				// show notification
-				mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => {
-					this._showNotification(targetFolder ?? initialMailFolder, mail)
-				})
-				return { inboxRuleProcessed: downcast<Promise<void>>(mailFolderAfterInboxRuleAndSpamProcessing) }
+				// show notification // Do we do this even if we're not the leader client? Yes right?
+				// TODO: refactor so that notification works
+                // mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => {
+                // this._showNotification(targetFolder ?? initialMailFolder, mail)
+                // })
+                return { inboxRuleProcessed: downcast<Promise<void>>(mailFolderAfterInboxRuleAndSpamProcessing) }
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
 
@@ -254,6 +269,16 @@ export class MailModel {
 			}
 		}
 		return { inboxRuleProcessed: Promise.resolve() }
+	}
+
+	public async loadMail(mailId: IdTuple): Promise<Nullable<Mail>> {
+		return await this.entityClient.load(MailTypeRef, mailId).catch((e) => {
+			if (isExpectedErrorForSynchronization(e)) {
+				console.log(`Could not find updated mail ${JSON.stringify(mailId)}`)
+				return null
+			}
+			throw e
+		})
 	}
 
 	async applyInboxRuleToMail(mail: Mail) {

@@ -1,9 +1,9 @@
 import type { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import {
 	ApplyLabelService,
+	ClientClassifierResultService,
 	DraftService,
 	ExternalUserService,
-	ClientClassifierResultService,
 	ListUnsubscribeService,
 	MailFolderService,
 	MailService,
@@ -1200,15 +1200,15 @@ export class MailFacade {
 	 * Mark the given mails as read/unread
 	 * @param mails mail ids to mark as unread
 	 */
-	async setIsInboxRuleApplied(mails: readonly IdTuple[]) {
+	async updateMailProcessingState(mails: readonly IdTuple[], isInboxRuleApplied: boolean) {
 		await promiseMap(
 			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
 			async (mails) =>
 				this.serviceExecutor.post(
 					ClientClassifierResultService,
 					createClientClassifierResultPostIn({
-						mails,
-						isPredictionMade: !isWebClient(),
+						mails, //TODO: Fix this
+                        isPredictionMade: !isWebClient(),
 					}),
 				),
 			{ concurrency: 5 },

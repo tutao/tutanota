@@ -1,16 +1,18 @@
-import { Mail, MailDetails, MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import { createMoveMailData, Mail, MailDetails, MailFolder, MoveMailData,MailTypeRef  } from "../../../common/api/entities/tutanota/TypeRefs"
 import { getMailSetKind, MailSetKind, SpamDecision } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
-import { assertNotNull, isNotNull, Nullable } from "@tutao/tutanota-utils"
-import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/BulkMailLoader"
+import { assertNotNull, debounce, isNotNull, Nullable, ofClass } from "@tutao/tutanota-utils"
+import { MailWithMailDetails } from "../../workerUtils/index/BulkMailLoader"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
-import { isDraft } from "./MailChecks"
-import { isExpectedErrorForSynchronization } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
+import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
+
+const DEBOUNCE_MOVE_MAIL_SERVICE_REQUESTS_MS = 200
+const DEBOUNCE_CLIENT_CLASSIFIER_RESULT_SERVICE_REQUESTS_MS = 1000
 
 const DEFAULT_CONFIDENCE = "1"
 
@@ -19,66 +21,104 @@ export class SpamClassificationHandler {
 		private readonly mailFacade: MailFacade,
 		private readonly spamClassifier: Nullable<SpamClassifier>,
 		private readonly entityClient: EntityClient,
-		private readonly bulkMailLoader: BulkMailLoader,
 		private readonly connectivityModel: WebsocketConnectivityModel,
 	) {}
 
-	public async predictSpamForNewMail(inboxRuleOutcome: Promise<Nullable<MailFolder>>, mail: Mail, folderSystem: FolderSystem): Promise<Nullable<MailFolder>> {
+	hamMoveMailData: MoveMailData | null = null
+	spamMoveMailData: MoveMailData | null = null
+	classifierResultServiceMailIds: IdTuple[] = []
+
+	sendClassifierResultServiceRequest = debounce(DEBOUNCE_CLIENT_CLASSIFIER_RESULT_SERVICE_REQUESTS_MS, async (mailFacade: MailFacade) => {
+		// Each update to ClientClassifierResultService (for mails that did not move) requires one request
+		// We debounce the requests to a rate of DEBOUNCE_CLIENT_CLASSIFIER_RESULT_SERVICE_REQUESTS_MS
+		if (this.classifierResultServiceMailIds.length) {
+			const mailIds = this.classifierResultServiceMailIds
+			this.classifierResultServiceMailIds = []
+			//FIXME: change the state to reflect the enum.
+			return mailFacade.updateMailProcessingState(mailIds, true)
+		}
+	})
+
+	sendMoveMailServiceRequest = debounce(DEBOUNCE_MOVE_MAIL_SERVICE_REQUESTS_MS, async (mailFacade: MailFacade) => {
+		return this.sendMoveMailRequest(mailFacade)
+	})
+
+	async sendMoveMailRequest(mailFacade: MailFacade): Promise<void> {
+		if (this.hamMoveMailData) {
+			const moveToTargetFolder = this.hamMoveMailData
+			mailFacade
+				.moveMails(this.hamMoveMailData.mails, moveToTargetFolder.targetFolder, null, ClientClassifierType.CLIENT_CLASSIFICATION)
+				.catch(
+					ofClass(LockedError, (e) => {
+						//LockedError should no longer be thrown!?!
+						console.log("moving mail failed", e, moveToTargetFolder)
+					}),
+				)
+				.catch(
+					ofClass(PreconditionFailedError, (e) => {
+						// move mail operation may have been locked by other process
+						console.log("moving mail failed", e, moveToTargetFolder)
+					}),
+				)
+		}
+	}
+
+	public async predictSpamForNewMail(mail: Mail, folder: MailFolder, folderSystem: FolderSystem): Promise<Nullable<MailFolder>> {
 		const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
-		const inboxRuleTargetFolder = await inboxRuleOutcome.catch((err) => {
-			console.error(`Error while applying inbox rule: ${err}`)
-			return null
-		})
-		if (isDraft(mail) || this.spamClassifier == null) {
-			return inboxRuleOutcome
-		}
 
-		const mailIsAffectedByInboxRule = isNotNull(inboxRuleTargetFolder) || mail.isInboxRuleApplied
-		const spamAlreadyPredicted = mail.clientSpamClassifierResult?.spamDecision !== SpamDecision.NONE
-		const isLeaderClient = this.connectivityModel?.isLeader() ?? false
-		const storeOnly = mailIsAffectedByInboxRule || spamAlreadyPredicted || !isLeaderClient
-		const serverIsSpam = mail.clientSpamClassifierResult?.spamDecision === SpamDecision.BLACKLIST
-
-		const mailDetails = await this.downloadMailDetails(mail)
-		if (mailDetails == null) {
-			// maybe mailDetails was deleted in meantime?
-			return null
-		} else if (storeOnly) {
-			await this.storeTrainingDatum({ mail, mailDetails }, serverIsSpam)
-			return inboxRuleTargetFolder
-		}
-
+		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 		const spamPredMailDatum: SpamPredMailDatum = {
 			subject: mail.subject,
 			body: getMailBodyText(mailDetails.body),
 			ownerGroup: assertNotNull(mail._ownerGroup),
 		}
+		const isSpam = (await this.spamClassifier?.predict(spamPredMailDatum)) ?? null
 
-		const predictedSpam = await this.spamClassifier.predict(spamPredMailDatum)
-		// use the server classification for initial training, mixed with data from when user moves mails in and out of spam
-		const isSpam = predictedSpam ?? serverIsSpam
-
-		if (isSpam && !serverIsSpam) {
-			return await this.moveMailToTarget(mail, MailSetKind.SPAM, usedClientSpamClassifier, mailDetails, folderSystem)
-		} else if (!isSpam && serverIsSpam) {
-			return await this.moveMailToTarget(mail, MailSetKind.INBOX, usedClientSpamClassifier, mailDetails, folderSystem)
+		if (isSpam && folder.folderType === MailSetKind.INBOX) {
+			const spamFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))
+			if (this.spamMoveMailData) {
+				this.spamMoveMailData.mails.push(mail._id)
+			} else {
+				this.spamMoveMailData = createMoveMailData({
+					targetFolder: spamFolder?._id,
+					mails: [mail._id],
+					excludeMailSet: null,
+					moveReason: ClientClassifierType.CLIENT_CLASSIFICATION,
+				})
+			}
+			this.sendMoveMailServiceRequest(this.mailFacade)
+		} else if (!isSpam && folder.folderType === MailSetKind.SPAM) {
+			const hamFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))
+			if (this.hamMoveMailData) {
+				this.hamMoveMailData.mails.push(mail._id)
+			} else {
+				this.hamMoveMailData = createMoveMailData({
+					targetFolder: hamFolder?._id,
+					mails: [mail._id],
+					excludeMailSet: null,
+					moveReason: ClientClassifierType.CLIENT_CLASSIFICATION,
+				})
+			}
+			this.sendMoveMailServiceRequest(this.mailFacade)
 		} else {
-			await this.storeTrainingDatum({ mail, mailDetails }, serverIsSpam)
-			return null
+			this.classifierResultServiceMailIds.push(mail._id)
+			this.sendClassifierResultServiceRequest(this.mailFacade)
 		}
+
+		return null
 	}
 
-	private async moveMailToTarget(
-		mail: Mail,
-		classifierMailSetTarget: MailSetKind.SPAM | MailSetKind.INBOX,
-		usedClientSpamClassifier: ClientClassifierType.CLIENT_CLASSIFICATION,
-		mailDetails: MailDetails,
-		folderSystem: FolderSystem,
-	): Promise<MailFolder> {
-		await this.mailFacade.simpleMoveMails([mail._id], classifierMailSetTarget, usedClientSpamClassifier)
-		await this.storeTrainingDatum({ mail, mailDetails }, classifierMailSetTarget === MailSetKind.SPAM)
-		return assertNotNull(folderSystem.getSystemFolderByType(classifierMailSetTarget), `Could not get System folder for owner: ${mail._ownerGroup}`)
-	}
+    private async moveMailToTarget(
+        mail: Mail,
+        classifierMailSetTarget: MailSetKind.SPAM | MailSetKind.INBOX,
+        usedClientSpamClassifier: ClientClassifierType.CLIENT_CLASSIFICATION,
+        mailDetails: MailDetails,
+        folderSystem: FolderSystem,
+    ): Promise<MailFolder> {
+        await this.mailFacade.simpleMoveMails([mail._id], classifierMailSetTarget, usedClientSpamClassifier)
+        await this.storeTrainingDatum({ mail, mailDetails }, classifierMailSetTarget === MailSetKind.SPAM)
+        return assertNotNull(folderSystem.getSystemFolderByType(classifierMailSetTarget), `Could not get System folder for owner: ${mail._ownerGroup}`)
+    }
 
 	public async dropClassificationData(mailId: IdTuple) {
 		await this.spamClassifier?.deleteSpamClassification(mailId)
@@ -109,7 +149,9 @@ export class SpamClassificationHandler {
 			}
 		} else {
 			// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
-			const mailDetail = await this.downloadMailDetails(mail)
+			///const mailDetail = await this.downloadMailDetails(mail)
+			// TODO: GET THE mail in the same way as the Create does
+			const mailDetail: Nullable<MailDetails> = null
 			if (isNotNull(mailDetail)) {
 				const spamTrainMailDatum: SpamTrainMailDatum = {
 					mailId: mail._id,
@@ -139,34 +181,6 @@ export class SpamClassificationHandler {
 			ownerGroup: assertNotNull(mail._ownerGroup),
 		}
 		await assertNotNull(this.spamClassifier).storeSpamClassification(spamTrainMailDatum)
-	}
-
-	public async downloadMail(mailId: IdTuple): Promise<Nullable<Mail>> {
-		return await this.entityClient.load(MailTypeRef, mailId).catch((e) => {
-			if (isExpectedErrorForSynchronization(e)) {
-				return null
-			}
-			throw e
-		})
-	}
-
-	// @visibleForTesting
-	public async downloadMailDetails(mail: Mail): Promise<Nullable<MailDetails>> {
-		return this.bulkMailLoader
-			.loadMailDetails([mail])
-			.then((mailDetails) => {
-				const mailDetail = mailDetails.at(0)
-				if (isNotNull(mailDetail)) {
-					return mailDetail.mailDetails
-				}
-				return null
-			})
-			.catch((e) => {
-				if (isExpectedErrorForSynchronization(e)) {
-					return null
-				}
-				throw e
-			})
 	}
 
 	// visible for testing
