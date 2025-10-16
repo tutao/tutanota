@@ -275,7 +275,7 @@ o.spec("CommonMailUtils", () => {
 				confidential: true,
 				state: MailState.RECEIVED,
 				sender: tutaoSender(),
-				authStatus: null,
+				encryptionAuthStatus: null,
 			})
 			o(isSystemNotification(mail)).equals(false)
 		})
@@ -285,7 +285,7 @@ o.spec("CommonMailUtils", () => {
 				confidential: true,
 				state: MailState.RECEIVED,
 				sender: tutaoSender(),
-				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+				encryptionAuthStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
 			})
 			o(isSystemNotification(mail)).equals(false)
 		})
