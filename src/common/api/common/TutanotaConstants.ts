@@ -853,6 +853,10 @@ export const Keys = Object.freeze({
 		code: "-",
 		name: "-",
 	},
+	PLUS: {
+		code: "Add",
+		name: "Plus",
+	},
 	"0": {
 		code: "0",
 		name: "0",
