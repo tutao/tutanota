@@ -5,6 +5,9 @@ import {
 	InternalRecipientKeyDataTypeRef,
 	Mail,
 	MailAddressTypeRef,
+	MailDetails,
+	MailDetailsBlobTypeRef,
+	MailDetailsTypeRef,
 	MailTypeRef,
 	ReportedMailFieldMarkerTypeRef,
 	SecureExternalRecipientKeyDataTypeRef,
@@ -48,7 +51,7 @@ o.spec("MailFacade test", function () {
 	let userFacade: UserFacade
 	let cryptoFacade: CryptoFacade
 	let serviceExecutor: IServiceExecutor
-	let entity: EntityClient
+	let entityClient: EntityClient
 	let blobFacade: BlobFacade
 	let fileApp: NativeFileApp
 	let loginFacade: LoginFacade
@@ -58,7 +61,7 @@ o.spec("MailFacade test", function () {
 	o.beforeEach(function () {
 		userFacade = object()
 		blobFacade = object()
-		entity = object()
+		entityClient = object()
 		cryptoFacade = object()
 		serviceExecutor = object()
 		fileApp = object()
@@ -67,7 +70,7 @@ o.spec("MailFacade test", function () {
 		publicEncryptionKeyProvider = object()
 		facade = new MailFacade(
 			userFacade,
-			entity,
+			entityClient,
 			cryptoFacade,
 			serviceExecutor,
 			blobFacade,
@@ -79,27 +82,30 @@ o.spec("MailFacade test", function () {
 	})
 
 	o.spec("checkMailForPhishing", function () {
-		o("not phishing if no markers", async function () {
-			const mail = createTestEntity(MailTypeRef, {
+		let mailDetails: MailDetails
+		let mail: Mail
+		o.beforeEach(function () {
+			const mailDetailsListId = "mailDetailsListId"
+			const mailDetailsElementId = "mailDetailsElementId"
+			mailDetails = createTestEntity(MailDetailsTypeRef, { authStatus: MailAuthenticationStatus.AUTHENTICATED })
+			mail = createTestEntity(MailTypeRef, {
+				mailDetails: [mailDetailsListId, mailDetailsElementId],
 				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
 				sender: createTestEntity(MailAddressTypeRef, {
 					name: "a",
 					address: "test@example.com",
 				}),
 			})
+			when(entityClient.loadMultiple(MailDetailsBlobTypeRef, mailDetailsListId, [mailDetailsElementId], matchers.anything())).thenResolve([
+				createTestEntity(MailDetailsBlobTypeRef, { details: mailDetails }),
+			])
+		})
+
+		o("not phishing if no markers", async function () {
 			o(await facade.checkMailForPhishing(mail, [{ href: "https://example.com", innerHTML: "link" }])).equals(false)
 		})
 
 		o("not phishing if no matching markers", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test 2"),
@@ -113,14 +119,6 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("not phishing if only from domain matches", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test 2"),
@@ -134,14 +132,6 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("not phishing if only subject matches", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -155,14 +145,6 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is phishing if subject and sender domain matches", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -176,14 +158,7 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is phishing if subject with whitespaces and sender domain matches", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "\tTest spaces \n",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
+			mail.subject = "\tTest spaces \n"
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Testspaces"),
@@ -197,14 +172,7 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is not phishing if subject and sender domain matches but not authenticated", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.SOFT_FAIL,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
+			mailDetails.authStatus = MailAuthenticationStatus.SOFT_FAIL
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -218,14 +186,6 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is phishing if subject and sender address matches", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -239,14 +199,7 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is not phishing if subject and sender address matches but not authenticated", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.SOFT_FAIL,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
+			mailDetails.authStatus = MailAuthenticationStatus.SOFT_FAIL
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -260,14 +213,7 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is phishing if subject and non auth sender domain matches", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.SOFT_FAIL,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
+			mailDetails.authStatus = MailAuthenticationStatus.SOFT_FAIL
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -281,14 +227,7 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is phishing if subject and non auth sender address matches", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.SOFT_FAIL,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
+			mailDetails.authStatus = MailAuthenticationStatus.SOFT_FAIL
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -302,14 +241,6 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is phishing if subject and link matches", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -323,14 +254,6 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is not phishing if just two links match", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.LINK, "https://example.com"),
@@ -349,14 +272,6 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is phishing if subject and link domain matches", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -370,14 +285,6 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("does not throw on invalid link", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -397,14 +304,6 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("is phishing if subject and suspicious link", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
@@ -422,14 +321,6 @@ o.spec("MailFacade test", function () {
 		})
 
 		o("link is not suspicious if on the same domain", async function () {
-			const mail = createTestEntity(MailTypeRef, {
-				subject: "Test",
-				authStatus: MailAuthenticationStatus.AUTHENTICATED,
-				sender: createTestEntity(MailAddressTypeRef, {
-					name: "a",
-					address: "test@example.com",
-				}),
-			})
 			facade.phishingMarkersUpdateReceived([
 				createTestEntity(ReportedMailFieldMarkerTypeRef, {
 					marker: phishingMarkerValue(ReportedMailFieldType.SUBJECT, "Test"),
