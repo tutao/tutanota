@@ -19,8 +19,8 @@ android {
 		applicationId = "de.tutao.calendar"
 		minSdk = 26
 		targetSdk = 35
-		versionCode = 186
-		versionName = "310.251016.0"
+		versionCode = 187
+		versionName = "310.251016.1"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
