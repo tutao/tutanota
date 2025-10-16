@@ -10,6 +10,7 @@
     <string name="markRead_action">Marquer comme lu</string>
     <string name="sendLogs_action">Envoyer les journaux</string>
     <string name="account_label">Utilisateur</string>
+    <string name="calendars_label">Calendriers</string>
     <string name="birthdayCalendar_label">Anniversaires</string>
     <string name="birthdayEvent_title">Anniversaire de {name}</string>
     <string name="birthdayEventAge_title">{age} an(s)</string>

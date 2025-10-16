@@ -16,6 +16,7 @@ TutaoDeleteAction = "Supprimer";
 TutaoMarkReadAction = "Marquer comme lu";
 TutaoWidgetSendLogsAction = "Envoyer les journaux";
 TutaoAccountLabel = "Utilisateur";
+TutaoCalendarsLabel = "Calendriers";
 TutaoNoTitleLabel = "<Pas de titre>";
 TutaoDefaultCalendarNameTitle = "Privé";
 TutaoBirthdayEventTitle = "Anniversaire de {name}";

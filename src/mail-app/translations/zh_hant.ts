@@ -16,7 +16,7 @@ export default {
 		"other"
 	],
 	"created_at": "2019-01-02T11:09:03Z",
-	"updated_at": "2025-10-07T08:35:35Z",
+	"updated_at": "2025-10-12T16:50:58Z",
 	"source_locale": null,
 	"fallback_locale": null,
 	"keys": {
@@ -1094,7 +1094,7 @@ export default {
 		"makeLink_action": "建立超連結",
 		"manager_label": "經理",
 		"manyRecipients_msg": "此電郵有很多收件人，他們能互相看到對方。仍然發送嗎？",
-		"markAsNotPhishing_action": "標記為非網絡釣魚",
+		"markAsNotPhishing_action": "標記為不是網絡釣魚",
 		"markRead_action": "標記為已讀",
 		"markUnread_action": "標記為未讀",
 		"matchCase_alt": "大小寫相符",

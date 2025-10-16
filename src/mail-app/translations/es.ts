@@ -18,7 +18,7 @@ export default {
 		"other"
 	],
 	"created_at": "2015-01-27T13:13:02Z",
-	"updated_at": "2025-09-30T11:57:31Z",
+	"updated_at": "2025-10-13T17:55:09Z",
 	"source_locale": {
 		"id": "fcd7471b347c8e517663e194dcddf237",
 		"name": "en",
@@ -533,6 +533,7 @@ export default {
 		"deviceEncryptionSaveCredentialsHelpText_msg": "Para activar el cifrado del dispositivo (pin o desbloqueo biométrico), debes almacenar tus credenciales en el dispositivo. Puedes hacerlo la próxima vez que inicies sesión.",
 		"differentSecurityKeyDomain_msg": "Tu clave de seguridad no está registrada para este campo. Accede por {domain}.",
 		"disallowExternalContent_action": "Bloquear contenido externo",
+		"discardDraft_action": "Descartar borrador",
 		"discord_label": "Discord",
 		"display_action": "Pantalla",
 		"dnsRecordHostOrName_label": "Servidor/Nombre",
@@ -1051,6 +1052,7 @@ export default {
 		"mailbox_label": "Buzón",
 		"mailExportHistory_label": "Historial de exportaciones",
 		"mailExportInfoText_label": "Puedes exportar archivos EML.",
+		"mailExportLimitReached_msg": "Se ha alcanzado el límite de exportación. La exportación se ha pausado y se reanudará automáticamente más tarde.",
 		"mailExportModeHelp_msg": "Formato de archivo de correo para usar al exportar o, arrastrar y soltar",
 		"mailExportMode_label": "Formato de archivo de exportación de correo",
 		"mailExportOnlyOnDesktop_label": "Actualmente, la exportación de correo electrónico sólo está disponible en nuestro cliente de escritorio.",
