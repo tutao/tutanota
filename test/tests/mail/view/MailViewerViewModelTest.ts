@@ -157,7 +157,6 @@ o.spec("MailViewerViewModel", function () {
 			viewModel = makeViewModelWithHeaders("")
 			viewModel.mail.phishingStatus = MailPhishingStatus.UNKNOWN
 			viewModel.setWarningDismissed(false)
-			viewModel.mail.authStatus = null
 			viewModel.mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
 			mailDetails = await mailFacade.loadMailDetailsBlob(viewModel.mail)
 			mailDetails.authStatus = MailAuthenticationStatus.AUTHENTICATED

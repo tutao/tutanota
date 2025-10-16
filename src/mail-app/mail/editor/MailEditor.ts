@@ -1313,13 +1313,8 @@ async function getExternalContentRulesForEditor(model: SendMailModel, currentSta
 			return ExternalImageRule.None
 		})
 
-		let isAuthenticatedMail
-		if (previousMail.authStatus !== null) {
-			isAuthenticatedMail = previousMail.authStatus === MailAuthenticationStatus.AUTHENTICATED
-		} else {
-			const mailDetails = await locator.mailFacade.loadMailDetailsBlob(previousMail)
-			isAuthenticatedMail = mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
-		}
+		const mailDetails = await locator.mailFacade.loadMailDetailsBlob(previousMail)
+		const isAuthenticatedMail = mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
 
 		if (externalImageRule === ExternalImageRule.Block || (externalImageRule === ExternalImageRule.None && model.isUserPreviousSender())) {
 			contentRules = {

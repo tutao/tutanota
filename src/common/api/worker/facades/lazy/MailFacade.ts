@@ -661,13 +661,8 @@ export class MailFacade {
 		let score = 0
 		const senderAddress = mail.sender.address
 
-		let senderAuthenticated
-		if (mail.authStatus !== null) {
-			senderAuthenticated = mail.authStatus === MailAuthenticationStatus.AUTHENTICATED
-		} else {
-			const mailDetails = await this.loadMailDetailsBlob(mail)
-			senderAuthenticated = mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
-		}
+		const mailDetails = await this.loadMailDetailsBlob(mail)
+		const senderAuthenticated = mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
 
 		if (senderAuthenticated) {
 			if (this._checkFieldForPhishing(ReportedMailFieldType.FROM_ADDRESS, senderAddress)) {

@@ -363,7 +363,7 @@ export class MailViewerViewModel {
 
 	private isHardMailAuthenticationFailure(): boolean {
 		return (
-			(this.isMailAuthenticationStatusLoaded() &&
+			(this.mailDetails != null &&
 				!this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED) &&
 				!this.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) ||
 			this.mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
@@ -467,14 +467,8 @@ export class MailViewerViewModel {
 		this.mail.phishingStatus = status
 	}
 
-	private isMailAuthenticationStatusLoaded(): boolean {
-		return this.mail.authStatus != null || this.mailDetails != null
-	}
-
 	checkMailAuthenticationStatus(status: MailAuthenticationStatus): boolean {
-		if (this.mail.authStatus != null) {
-			return this.mail.authStatus === status
-		} else if (this.mailDetails) {
+		if (this.mailDetails != null) {
 			return this.mailDetails.authStatus === status
 		} else {
 			// mailDetails not loaded yet
