@@ -9,19 +9,34 @@ import { GENERATED_MAX_ID } from "../api/common/utils/EntityUtils.js"
 import { AvailablePlanType, Const, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../api/common/TutanotaConstants.js"
 import { ProgrammingError } from "../api/common/error/ProgrammingError.js"
 
+let upgradeDialogShowing = false
+
 /**
  * Opens a dialog which states that the function is not available in the Free subscription and provides an option to upgrade.
  */
 export async function showNotAvailableForFreeDialog(acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans) {
-	const wizard = await import("../subscription/UpgradeSubscriptionWizard")
-	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+	// upgradeDialogShowing prevents the dialog from being opened multiple times, as could happen when waiting for the wizard to import
+	if (!upgradeDialogShowing) {
+		upgradeDialogShowing = true
+		try {
+			const wizard = await import("../subscription/UpgradeSubscriptionWizard")
+			const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 
-	const businessPlanRequired =
-		acceptedPlans.filter((plan) => NewBusinessPlans.includes(plan)).length === acceptedPlans.length &&
-		NewPersonalPlans.includes(downcast(customerInfo.plan))
-	const msg = lang.getTranslation(businessPlanRequired ? "pricing.notSupportedByPersonalPlan_msg" : "newPaidPlanRequired_msg")
+			const businessPlanRequired =
+				acceptedPlans.filter((plan) => NewBusinessPlans.includes(plan)).length === acceptedPlans.length &&
+				NewPersonalPlans.includes(downcast(customerInfo.plan))
+			const msg = lang.getTranslation(businessPlanRequired ? "pricing.notSupportedByPersonalPlan_msg" : "newPaidPlanRequired_msg")
 
-	await wizard.showUpgradeWizard({ logins: locator.logins, isCalledBySatisfactionDialog: false, acceptedPlans, msg })
+			await wizard.showUpgradeWizard({
+				logins: locator.logins,
+				isCalledBySatisfactionDialog: false,
+				acceptedPlans,
+				msg,
+			})
+		} finally {
+			upgradeDialogShowing = false
+		}
+	}
 }
 
 export function createNotAvailableForFreeClickHandler(
