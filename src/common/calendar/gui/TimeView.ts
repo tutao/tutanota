@@ -345,12 +345,26 @@ export class TimeView implements Component<TimeViewAttributes> {
 			console.log(this.blockingGroups.entries())
 
 			for (let [eventId, eventRowData] of columnData.events.entries()) {
-				const hasBeenEvaluatedBefore = Array.from(this.blockingGroups.entries()).some(
-					([visitedEventId, blockingIds]) =>
-						visitedEventId === eventId || new Set(blockingIds.map((columnSet) => Array.from(columnSet.keys())).flat()).has(eventId),
-				)
-
 				let currentEventCanExpand = false
+				let hasBeenEvaluatedBefore = this.blockingGroups.has(eventId)
+
+				for (const entry of Array.from(this.blockingGroups.values()).flat()) {
+					for (const [evId, canExpand] of entry.entries()) {
+						if (evId === eventId) {
+							currentEventCanExpand = canExpand
+							hasBeenEvaluatedBefore = true
+						}
+					}
+				}
+				// Array.from(this.blockingGroups.entries()).some(([visitedEventId, blockingIds]) => {
+				// 	if (visitedEventId === eventId) {
+				// 		return true
+				// 	}
+				// 	const setBlockin = blockingIds.map((columnSet) => Array.from(columnSet.entries())).flat()
+				// 	const currentEv = setBlockin.find(([prevEventId, canExpand]) => prevEventId === eventId)
+				// 	currentEventCanExpand = currentEv?.[1] ?? false
+				// 	return !!currentEv
+				// })
 
 				if (!hasBeenEvaluatedBefore) {
 					const { canExpand, blockingEvents } = this.canExpandRight(eventId, eventRowData, columnIndex, allColumns, this.blockingGroups)
@@ -368,7 +382,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 				if (currentEventCanExpand) {
 					const maxSize = allColumns.length
-					const numOfColumnsWithBlockers = this.blockingGroups.get(eventId)!.length > 0 ? this.blockingGroups.get(eventId)!.length : 0
+					const numOfColumnsWithBlockers = (this.blockingGroups.get(eventId)?.length ?? 0) > 0 ? this.blockingGroups.get(eventId)!.length : 0
 					console.log(`${eventId}: `, this.blockingGroups.get(eventId))
 
 					if (numOfColumnsWithBlockers === 0) {
