@@ -1388,4 +1388,11 @@ export enum DeactivationReason {
 	MassSignup,
 }
 
+export enum SpamDecision {
+	NONE = "0",
+	WHITELIST = "1",
+	BLACKLIST = "2",
+	DISCARD = "3",
+}
+
 export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"

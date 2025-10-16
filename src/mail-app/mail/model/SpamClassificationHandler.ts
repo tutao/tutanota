@@ -1,5 +1,5 @@
 import { Mail, MailDetails, MailFolder, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { getMailSetKind, MailSetKind, SimpleMoveMailTarget } from "../../../common/api/common/TutanotaConstants"
+import { getMailSetKind, MailSetKind, SpamDecision } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { assertNotNull, isNotNull, Nullable } from "@tutao/tutanota-utils"
@@ -25,30 +25,26 @@ export class SpamClassificationHandler {
 
 	public async predictSpamForNewMail(inboxRuleOutcome: Promise<Nullable<MailFolder>>, mail: Mail, folderSystem: FolderSystem): Promise<Nullable<MailFolder>> {
 		const usedClientSpamClassifier = ClientClassifierType.CLIENT_CLASSIFICATION
-		if (isDraft(mail) || this.spamClassifier == null) {
-			return inboxRuleOutcome
-		}
-
 		const inboxRuleTargetFolder = await inboxRuleOutcome.catch((err) => {
 			console.error(`Error while applying inbox rule: ${err}`)
 			return null
 		})
+		if (isDraft(mail) || this.spamClassifier == null) {
+			return inboxRuleOutcome
+		}
 
-		const serverDeliveredMailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get current folder for mail: ${mail._id}`)
-		const serverDeliveredMailSetKind = getMailSetKind(serverDeliveredMailFolder)
 		const mailIsAffectedByInboxRule = isNotNull(inboxRuleTargetFolder) || mail.isInboxRuleApplied
-		const isStoredInSpamFolder = serverDeliveredMailSetKind === MailSetKind.SPAM
-		const isNotStoredInSpamOrInbox = !isStoredInSpamFolder && serverDeliveredMailSetKind !== MailSetKind.INBOX
+		const spamAlreadyPredicted = mail.clientSpamClassifierResult?.spamDecision !== SpamDecision.NONE
 		const isLeaderClient = this.connectivityModel?.isLeader() ?? false
-		const storeOnly = mailIsAffectedByInboxRule || isNotNull(mail.clientSpamClassifierResult) || !isLeaderClient || isNotStoredInSpamOrInbox
+		const storeOnly = mailIsAffectedByInboxRule || spamAlreadyPredicted || !isLeaderClient
+		const serverIsSpam = mail.clientSpamClassifierResult?.spamDecision === SpamDecision.BLACKLIST
 
 		const mailDetails = await this.downloadMailDetails(mail)
 		if (mailDetails == null) {
 			// maybe mailDetails was deleted in meantime?
-			return serverDeliveredMailFolder
+			return null
 		} else if (storeOnly) {
-			const mailSetAfterInboxRule = inboxRuleTargetFolder ? getMailSetKind(inboxRuleTargetFolder) : serverDeliveredMailSetKind
-			await this.storeTrainingDatum({ mail, mailDetails }, mailSetAfterInboxRule)
+			await this.storeTrainingDatum({ mail, mailDetails }, serverIsSpam)
 			return inboxRuleTargetFolder
 		}
 
@@ -60,17 +56,15 @@ export class SpamClassificationHandler {
 
 		const predictedSpam = await this.spamClassifier.predict(spamPredMailDatum)
 		// use the server classification for initial training, mixed with data from when user moves mails in and out of spam
-		const isSpam = predictedSpam ?? isStoredInSpamFolder
+		const isSpam = predictedSpam ?? serverIsSpam
 
-		let classifierMailSetTarget: SimpleMoveMailTarget
-		if (isSpam && !isStoredInSpamFolder) {
-			classifierMailSetTarget = MailSetKind.SPAM
-			return await this.moveMailToTarget(mail, classifierMailSetTarget, usedClientSpamClassifier, mailDetails, folderSystem)
-		} else if (!isSpam && isStoredInSpamFolder) {
-			classifierMailSetTarget = MailSetKind.INBOX
-			return await this.moveMailToTarget(mail, classifierMailSetTarget, usedClientSpamClassifier, mailDetails, folderSystem)
+		if (isSpam && !serverIsSpam) {
+			return await this.moveMailToTarget(mail, MailSetKind.SPAM, usedClientSpamClassifier, mailDetails, folderSystem)
+		} else if (!isSpam && serverIsSpam) {
+			return await this.moveMailToTarget(mail, MailSetKind.INBOX, usedClientSpamClassifier, mailDetails, folderSystem)
 		} else {
-			return serverDeliveredMailFolder
+			await this.storeTrainingDatum({ mail, mailDetails }, serverIsSpam)
+			return null
 		}
 	}
 
@@ -82,7 +76,7 @@ export class SpamClassificationHandler {
 		folderSystem: FolderSystem,
 	): Promise<MailFolder> {
 		await this.mailFacade.simpleMoveMails([mail._id], classifierMailSetTarget, usedClientSpamClassifier)
-		await this.storeTrainingDatum({ mail, mailDetails }, classifierMailSetTarget)
+		await this.storeTrainingDatum({ mail, mailDetails }, classifierMailSetTarget === MailSetKind.SPAM)
 		return assertNotNull(folderSystem.getSystemFolderByType(classifierMailSetTarget), `Could not get System folder for owner: ${mail._ownerGroup}`)
 	}
 
@@ -133,14 +127,14 @@ export class SpamClassificationHandler {
 		}
 	}
 
-	public async storeTrainingDatum(mailWithMailDetails: MailWithMailDetails, mailFolder: MailSetKind) {
+	public async storeTrainingDatum(mailWithMailDetails: MailWithMailDetails, isSpam: boolean) {
 		const { mailDetails, mail } = mailWithMailDetails
 		const confidence = this.getSpamConfidence(mail)
 		const spamTrainMailDatum: SpamTrainMailDatum = {
 			mailId: mail._id,
 			subject: mail.subject,
 			body: getMailBodyText(mailDetails.body),
-			isSpam: mailFolder === MailSetKind.SPAM,
+			isSpam,
 			isSpamConfidence: confidence,
 			ownerGroup: assertNotNull(mail._ownerGroup),
 		}

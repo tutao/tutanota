@@ -194,7 +194,7 @@ export class MailModel {
 				m.redraw()
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.UPDATE) {
 				const spamHandler = this.spamHandler()
-				const mailId: IdTuple = [update.instanceListId, update.instanceListId]
+				const mailId: IdTuple = [update.instanceListId, update.instanceId]
 				const mail = await spamHandler.downloadMail(mailId)
 				if (mail == null) {
 					return { inboxRuleProcessed: Promise.resolve() }
