@@ -79,7 +79,6 @@ export class RestClient {
 
 				if (options.noCORS) {
 					queryParams["cv"] = env.versionNumber
-					queryParams["cp"] = client.getClientPlatform().valueOf().toString() // FIXME: should we keep this? We technically don't need it (I think)
 					if (env.networkDebugging) {
 						queryParams["network-debugging"] = "enable-network-debugging"
 					}

@@ -427,11 +427,11 @@ export class ClientDetector {
 		if (!isApp()) return ClientPlatform.WEB
 
 		if (isAndroidApp()) {
-			return this.isCalendarApp() ? ClientPlatform.ANDROID_CALENDAR_APP : ClientPlatform.ANDROID_MAIL_APP
+			return APP_TYPE === AppType.Calendar ? ClientPlatform.ANDROID_CALENDAR_APP : ClientPlatform.ANDROID_MAIL_APP
 		}
 
 		if (isIOSApp()) {
-			return this.isCalendarApp() ? ClientPlatform.IOS_CALENDAR_APP : ClientPlatform.IOS_MAIL_APP
+			return APP_TYPE === AppType.Calendar ? ClientPlatform.IOS_CALENDAR_APP : ClientPlatform.IOS_MAIL_APP
 		}
 
 		// Fallback
