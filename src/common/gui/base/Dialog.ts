@@ -380,7 +380,7 @@ export class Dialog implements ModalComponent {
 						{
 							"data-testid": testId,
 						},
-						[lines.map((line) => m(".text-break.selectable", line)), typeof infoToAppend === "function" ? infoToAppend() : null],
+						[m(".text-break.selectable", lines.join("\n")), typeof infoToAppend === "function" ? infoToAppend() : null],
 					),
 					m(".flex-center.dialog-buttons", m(Button, buttonAttrs)),
 				],

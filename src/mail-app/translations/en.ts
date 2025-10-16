@@ -2128,6 +2128,9 @@ export default {
 		"yourMessage_label": "Your message",
 		"you_label": "You",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"twoFactorRequired_message": "Your administrator has required two-factor authentication (2FA) to be enabled on your account.\n\nYou will need to re-enter your password.",
+		"enforceTwoFactor_title": "Require 2FA for all users",
+        "enforceTwoFactor_label": "Force users to enable two-factor authentication (2FA) upon logging in.",
 	}
 }
