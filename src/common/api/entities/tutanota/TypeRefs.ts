@@ -243,7 +243,7 @@ export type Mail = {
 	encryptionAuthStatus: null | NumberString;
 	_ownerKeyVersion: null | NumberString;
 	keyVerificationState: null | NumberString;
-	isInboxRuleApplied: boolean;
+	processingState: NumberString;
 
 	sender: MailAddress;
 	attachments: IdTuple[];

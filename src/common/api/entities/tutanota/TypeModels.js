@@ -1027,9 +1027,9 @@ export const typeModels = {
 			},
 			"1728": {
 				"final": false,
-				"name": "isInboxRuleApplied",
+				"name": "processingState",
 				"id": 1728,
-				"type": "Boolean",
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}

@@ -400,7 +400,7 @@ pub struct Mail {
 	#[serde(rename = "1677")]
 	pub keyVerificationState: Option<i64>,
 	#[serde(rename = "1728")]
-	pub isInboxRuleApplied: bool,
+	pub processingState: i64,
 	#[serde(rename = "111")]
 	pub sender: MailAddress,
 	#[serde(rename = "115")]
