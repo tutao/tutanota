@@ -10,6 +10,7 @@ import {
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
 	ConversationType,
+	EncryptionAuthStatus,
 	ExternalImageRule,
 	FeatureType,
 	MailAuthenticationStatus,
@@ -101,6 +102,14 @@ export const enum UnsubscribeType {
 	HTTP_POST_UNSUBSCRIBE = "HTTP_POST_UNSUBSCRIBE",
 	HTTP_GET_UNSUBSCRIBE = "HTTP_GET_UNSUBSCRIBE",
 	MAILTO_UNSUBSCRIBE = "MAILTO_UNSUBSCRIBE",
+}
+
+export const enum FailureBannerType {
+	None,
+	Phishing,
+	MailAuthenticationHardFail,
+	MailAuthenticationSoftFail,
+	DeprecatedPublicKey,
 }
 
 export const LIST_UNSUBSCRIBE_POST_PAYLOAD = "List-Unsubscribe=One-Click"
@@ -348,8 +357,34 @@ export class MailViewerViewModel {
 		return this.mail.confidential
 	}
 
-	isMailSuspicious(): boolean {
+	private isMailSuspicious(): boolean {
 		return this.mail.phishingStatus === MailPhishingStatus.SUSPICIOUS
+	}
+
+	private isHardMailAuthenticationFailure(): boolean {
+		return (
+			(this.isMailAuthenticationStatusLoaded() &&
+				!this.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED) &&
+				!this.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) ||
+			this.mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+		)
+	}
+
+	mustRenderFailureBanner(): FailureBannerType {
+		if (this.isMailSuspicious()) {
+			return FailureBannerType.Phishing
+		} else if (!this.isWarningDismissed()) {
+			if (this.isHardMailAuthenticationFailure()) {
+				return FailureBannerType.MailAuthenticationHardFail
+			} else {
+				if (this.mail.encryptionAuthStatus === EncryptionAuthStatus.RSA_DESPITE_TUTACRYPT) {
+					return FailureBannerType.DeprecatedPublicKey
+				} else if (this.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) {
+					return FailureBannerType.MailAuthenticationSoftFail
+				}
+			}
+		}
+		return FailureBannerType.None
 	}
 
 	getMailId(): IdTuple {
@@ -432,7 +467,7 @@ export class MailViewerViewModel {
 		this.mail.phishingStatus = status
 	}
 
-	isMailAuthenticationStatusLoaded(): boolean {
+	private isMailAuthenticationStatusLoaded(): boolean {
 		return this.mail.authStatus != null || this.mailDetails != null
 	}
 
@@ -483,7 +518,7 @@ export class MailViewerViewModel {
 		return this.contentBlockingStatus
 	}
 
-	isWarningDismissed() {
+	private isWarningDismissed() {
 		return this.warningDismissed
 	}
 

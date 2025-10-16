@@ -1,5 +1,10 @@
 import o from "@tutao/otest"
-import { LIST_UNSUBSCRIBE_POST_PAYLOAD, MailViewerViewModel, UnsubscribeType } from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
+import {
+	FailureBannerType,
+	LIST_UNSUBSCRIBE_POST_PAYLOAD,
+	MailViewerViewModel,
+	UnsubscribeType,
+} from "../../../../src/mail-app/mail/view/MailViewerViewModel.js"
 import {
 	ConversationEntryTypeRef,
 	HeaderTypeRef,
@@ -21,7 +26,13 @@ import { SearchModel } from "../../../../src/mail-app/search/model/SearchModel.j
 import { MailFacade } from "../../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { FileController } from "../../../../src/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { ExternalImageRule, MailState } from "../../../../src/common/api/common/TutanotaConstants.js"
+import {
+	EncryptionAuthStatus,
+	ExternalImageRule,
+	MailAuthenticationStatus,
+	MailPhishingStatus,
+	MailState,
+} from "../../../../src/common/api/common/TutanotaConstants.js"
 import { GroupInfoTypeRef } from "../../../../src/common/api/entities/sys/TypeRefs.js"
 import { CryptoFacade } from "../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { ContactImporter } from "../../../../src/mail-app/contacts/ContactImporter.js"
@@ -32,7 +43,6 @@ import { MailModel } from "../../../../src/mail-app/mail/model/MailModel.js"
 import { downcast } from "@tutao/tutanota-utils"
 import { CalendarEventsRepository } from "../../../../src/common/calendar/date/CalendarEventsRepository"
 import { UndoModel } from "../../../../src/mail-app/UndoModel"
-import { MailViewModel } from "../../../../src/mail-app/mail/view/MailViewModel"
 import { isBrowser } from "../../../../src/common/api/common/Env"
 import { CommonSystemFacade } from "../../../../src/common/native/common/generatedipc/CommonSystemFacade"
 import { unsubscribe } from "../../../../src/mail-app/mail/view/MailViewerUtils"
@@ -139,6 +149,86 @@ o.spec("MailViewerViewModel", function () {
 		when(workerFacade.urlify(matchers.anything())).thenResolve("")
 		when(commonSystemFacade.executePostRequest(matchers.anything(), matchers.anything())).thenResolve(true)
 	}
+
+	o.spec("renderFailureBanner", function () {
+		let viewModel: MailViewerViewModel
+		let mailDetails: MailDetails
+		o.beforeEach(async function () {
+			viewModel = makeViewModelWithHeaders("")
+			viewModel.mail.phishingStatus = MailPhishingStatus.UNKNOWN
+			viewModel.setWarningDismissed(false)
+			viewModel.mail.authStatus = null
+			viewModel.mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
+			mailDetails = await mailFacade.loadMailDetailsBlob(viewModel.mail)
+			mailDetails.authStatus = MailAuthenticationStatus.AUTHENTICATED
+		})
+
+		o.spec("mailDetails not loaded", function () {
+			o("no banner and no error when accessing authStatus from unloaded mailDetails", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.HARD_FAIL
+				o(FailureBannerType.None).equals(viewModel.mustRenderFailureBanner())
+			})
+		})
+
+		o.spec("mailDetails loaded", function () {
+			o.beforeEach(async function () {
+				await viewModel.loadAll(Promise.resolve(), { notify: false })
+			})
+
+			o("no banner", async function () {
+				o(FailureBannerType.None).equals(viewModel.mustRenderFailureBanner())
+			})
+
+			o("is phishing", async function () {
+				viewModel.mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
+				mailDetails.authStatus = MailAuthenticationStatus.HARD_FAIL
+				viewModel.setWarningDismissed(true)
+				o(FailureBannerType.Phishing).equals(viewModel.mustRenderFailureBanner())
+			})
+
+			o("no banner if warning is dismissed", async function () {
+				viewModel.setWarningDismissed(true)
+				mailDetails.authStatus = MailAuthenticationStatus.HARD_FAIL
+				o(FailureBannerType.None).equals(viewModel.mustRenderFailureBanner())
+
+				mailDetails.authStatus = MailAuthenticationStatus.SOFT_FAIL
+				o(FailureBannerType.None).equals(viewModel.mustRenderFailureBanner())
+
+				mailDetails.authStatus = MailAuthenticationStatus.AUTHENTICATED
+				viewModel.mail.encryptionAuthStatus = EncryptionAuthStatus.RSA_DESPITE_TUTACRYPT
+				o(FailureBannerType.None).equals(viewModel.mustRenderFailureBanner())
+
+				viewModel.mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+				o(FailureBannerType.None).equals(viewModel.mustRenderFailureBanner())
+			})
+
+			o("is hard fail", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.HARD_FAIL
+				o(FailureBannerType.MailAuthenticationHardFail).equals(viewModel.mustRenderFailureBanner())
+
+				mailDetails.authStatus = MailAuthenticationStatus.INVALID_MAIL_FROM
+				o(FailureBannerType.MailAuthenticationHardFail).equals(viewModel.mustRenderFailureBanner())
+
+				mailDetails.authStatus = MailAuthenticationStatus.MISSING_MAIL_FROM
+				o(FailureBannerType.MailAuthenticationHardFail).equals(viewModel.mustRenderFailureBanner())
+
+				mailDetails.authStatus = MailAuthenticationStatus.AUTHENTICATED
+				viewModel.mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
+				o(FailureBannerType.MailAuthenticationHardFail).equals(viewModel.mustRenderFailureBanner())
+			})
+
+			o("deprecated public key", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.SOFT_FAIL
+				viewModel.mail.encryptionAuthStatus = EncryptionAuthStatus.RSA_DESPITE_TUTACRYPT
+				o(FailureBannerType.DeprecatedPublicKey).equals(viewModel.mustRenderFailureBanner())
+			})
+
+			o("soft fail", async function () {
+				mailDetails.authStatus = MailAuthenticationStatus.SOFT_FAIL
+				o(FailureBannerType.MailAuthenticationSoftFail).equals(viewModel.mustRenderFailureBanner())
+			})
+		})
+	})
 
 	o.spec("unsubscribe", function () {
 		function initUnsubscribeHeaders(headers: string) {

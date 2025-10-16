@@ -8,13 +8,13 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../common/gui/b
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { EncryptionAuthStatus, InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
+import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../../common/gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../common/misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../../common/api/common/Env.js"
 import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
-import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel.js"
+import { ContentBlockingStatus, FailureBannerType, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
 import { isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
@@ -296,18 +296,13 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const { viewModel } = attrs
 		if (viewModel.isCollapsed()) return null
 
-		const phishingBanner = this.renderPhishingWarning(viewModel)
+		const failureBanner = this.renderFailureBanner(viewModel)
 		const externalContentBanner = this.renderExternalContentBanner(attrs)
 		const newsletterBanner = this.renderNewsletterBanner(viewModel)
 		const banners: ChildArray = []
 		// we don't wrap it in a single element because our container might depend on us being separate children for margins
-		if (phishingBanner) {
-			banners.push(m("." + responsiveCardHMargin(), phishingBanner))
-		}
-		if (!phishingBanner && !viewModel.isWarningDismissed()) {
-			banners.push(
-				m("." + responsiveCardHMargin(), this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel)),
-			)
+		if (failureBanner) {
+			banners.push(m("." + responsiveCardHMargin(), failureBanner))
 		}
 		if (externalContentBanner) {
 			banners.push(m("." + responsiveCardHMargin(), externalContentBanner))
@@ -318,6 +313,22 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 		const hasEventInvitation = viewModel.getCalendarEventAttachment()
 		return isEmpty(banners) && !hasEventInvitation ? [m("hr.hr.mt-xs." + responsiveCardHMargin())] : [...banners]
+	}
+
+	private renderFailureBanner(viewModel: MailViewerViewModel): Children | null {
+		switch (viewModel.mustRenderFailureBanner()) {
+			case FailureBannerType.Phishing:
+				return this.renderPhishingWarning(viewModel)
+			case FailureBannerType.MailAuthenticationHardFail:
+				return this.renderHardAuthenticationFailWarning(viewModel)
+			case FailureBannerType.MailAuthenticationSoftFail:
+				return this.renderSoftAuthenticationFailWarning(viewModel)
+			case FailureBannerType.DeprecatedPublicKey:
+				return this.renderDeprecatedPublicKeyBanner(viewModel)
+			case FailureBannerType.None:
+			default:
+				return null
+		}
 	}
 
 	private renderConnectionLostBanner(viewModel: MailViewerViewModel): Children {
@@ -639,21 +650,19 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			: null
 	}
 
-	private renderPhishingWarning(viewModel: MailViewerViewModel): Children | null {
-		if (viewModel.isMailSuspicious()) {
-			return m(InfoBanner, {
-				message: "phishingMessageBody_msg",
-				icon: Icons.Warning,
-				type: BannerType.Warning,
-				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
-				buttons: [
-					{
-						label: "markAsNotPhishing_action",
-						click: () => viewModel.markAsNotPhishing().then(() => m.redraw()),
-					},
-				],
-			})
-		}
+	private renderPhishingWarning(viewModel: MailViewerViewModel): Children {
+		return m(InfoBanner, {
+			message: "phishingMessageBody_msg",
+			icon: Icons.Warning,
+			type: BannerType.Warning,
+			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.Phishing : null,
+			buttons: [
+				{
+					label: "markAsNotPhishing_action",
+					click: () => viewModel.markAsNotPhishing().then(() => m.redraw()),
+				},
+			],
+		})
 	}
 
 	private renderNewsletterBanner(viewModel: MailViewerViewModel): Children | null {
@@ -674,59 +683,54 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 	}
 
-	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
-		const authFailedHard =
-			// the banner should not be shown if mailDetails are not yet loaded
-			(viewModel.isMailAuthenticationStatusLoaded() &&
-				!viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.AUTHENTICATED) &&
-				!viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) ||
-			viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED
-
-		if (authFailedHard) {
-			return m(InfoBanner, {
-				message: "mailAuthFailed_msg",
-				icon: Icons.Warning,
-				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
-				type: BannerType.Warning,
-				buttons: [
-					{
-						label: "close_alt",
-						click: () => viewModel.setWarningDismissed(true),
-					},
-				],
-			})
-		}
+	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children {
+		return m(InfoBanner, {
+			message: "mailAuthFailed_msg",
+			icon: Icons.Warning,
+			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
+			type: BannerType.Warning,
+			buttons: [
+				{
+					label: "close_alt",
+					click: () => viewModel.setWarningDismissed(true),
+				},
+			],
+		})
 	}
 
-	private renderSoftAuthenticationFailWarning(viewModel: MailViewerViewModel): Children | null {
+	private renderSoftAuthenticationFailWarning(viewModel: MailViewerViewModel): Children {
 		const buttons: ReadonlyArray<BannerButtonAttrs | null> = [
 			{
 				label: "close_alt",
 				click: () => viewModel.setWarningDismissed(true),
 			},
 		]
-		if (viewModel.mail.encryptionAuthStatus === EncryptionAuthStatus.RSA_DESPITE_TUTACRYPT) {
-			return m(InfoBanner, {
-				message: () => lang.get("deprecatedKeyWarning_msg"),
-				icon: Icons.Warning,
-				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.DeprecatedKey : null,
-				buttons: buttons,
-			})
-		} else if (viewModel.checkMailAuthenticationStatus(MailAuthenticationStatus.SOFT_FAIL)) {
-			return m(InfoBanner, {
-				message: () =>
-					viewModel.mail.differentEnvelopeSender
-						? lang.get("mailAuthMissingWithTechnicalSender_msg", {
-								"{sender}": viewModel.mail.differentEnvelopeSender,
-							})
-						: lang.get("mailAuthMissing_label"),
-				icon: Icons.Warning,
-				helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
-				buttons: buttons,
-			})
-		} else {
-			return null
-		}
+		return m(InfoBanner, {
+			message: () =>
+				viewModel.mail.differentEnvelopeSender
+					? lang.get("mailAuthMissingWithTechnicalSender_msg", {
+							"{sender}": viewModel.mail.differentEnvelopeSender,
+						})
+					: lang.get("mailAuthMissing_label"),
+			icon: Icons.Warning,
+			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
+			buttons: buttons,
+		})
+	}
+
+	private renderDeprecatedPublicKeyBanner(viewModel: MailViewerViewModel): Children {
+		const buttons: ReadonlyArray<BannerButtonAttrs | null> = [
+			{
+				label: "close_alt",
+				click: () => viewModel.setWarningDismissed(true),
+			},
+		]
+		return m(InfoBanner, {
+			message: () => lang.get("deprecatedKeyWarning_msg"),
+			icon: Icons.Warning,
+			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.DeprecatedKey : null,
+			buttons: buttons,
+		})
 	}
 
 	private renderExternalContentBanner(attrs: MailViewerHeaderAttrs): Children | null {
