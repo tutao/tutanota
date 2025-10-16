@@ -2132,6 +2132,10 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"you_label": "Sie",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"relatedPeople_label": "Related people",
+		"blueSky_label": "Bluesky",
+		"mastadon_label": "Mastadon",
+		"element_label": "Element"
 	}
 }

@@ -2108,3 +2108,7 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "relatedPeople_label"
+	| "blueSky_label"
+	| "mastadon_label"
+	| "element_label"

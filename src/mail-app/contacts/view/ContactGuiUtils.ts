@@ -51,6 +51,8 @@ export const ContactSocialTypeToLabel: Record<ContactSocialType, TranslationKey>
 	[ContactSocialType.FACEBOOK]: "facebook_label",
 	[ContactSocialType.XING]: "xing_label",
 	[ContactSocialType.LINKED_IN]: "linkedin_label",
+	[ContactSocialType.BLUE_SKY]: "blueSky_label",
+	[ContactSocialType.MASTADON]: "mastadon_label",
 	[ContactSocialType.OTHER]: "other_label",
 	[ContactSocialType.CUSTOM]: "custom_label",
 }
@@ -93,6 +95,7 @@ export const ContactMessengerHandleTypeToLabel: Record<ContactMessengerHandleTyp
 	[ContactMessengerHandleType.WHATSAPP]: "whatsapp_label",
 	[ContactMessengerHandleType.TELEGRAM]: "telegram_label",
 	[ContactMessengerHandleType.DISCORD]: "discord_label",
+	[ContactMessengerHandleType.ELEMENT]: "element_label",
 	[ContactMessengerHandleType.OTHER]: "other_label",
 	[ContactMessengerHandleType.CUSTOM]: "custom_label",
 }

@@ -243,7 +243,7 @@ export class ContactEditor {
 					]),
 				]),
 				m(".relationship.mt-xl", [
-					m(".h4", lang.get("relationships_label")),
+					m(".h4", lang.get("relatedPeople_label")),
 					m(".aggregateEditors", [
 						this.relationships.map(([relationship, id], index) => {
 							const lastEditor = index === lastIndex(this.relationships)
