@@ -1837,7 +1837,7 @@ o.spec("CryptoFacadeTest", function () {
 				contact: null,
 			}),
 			bucketKey: null,
-			authStatus: "0",
+			authStatus: null,
 			listUnsubscribe: false,
 			method: "",
 			phishingStatus: "0",
