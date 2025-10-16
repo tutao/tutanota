@@ -386,29 +386,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 							size = maxSize - eventShift - arrayIndexToGridIndex
 						}
 						size += 1
-
-						let i = columnIndex + 1
-
-						while (i < columnIndex + size) {
-							if (i >= allColumns.length) {
-								break
-							}
-							const hasConflict = Array.from(allColumns[i].events.entries()).filter(([evId, eventData]) => {
-								const overlapRows = eventData.rowStart < eventRowData.rowEnd && eventData.rowEnd > eventRowData.rowStart
-								const blockers = this.blockingGroups.get(eventId) ?? []
-								const alreadyInBlockers = blockers.some((e) => e.has(evId))
-
-								return !alreadyInBlockers && overlapRows
-							})
-
-							console.log(hasConflict, eventShift, i - columnIndex)
-							if (hasConflict.length > 0) {
-								size -= allColumns.length - i - 1
-								break
-							}
-
-							i++
-						}
 					} else {
 						const myOriginalSize = 1
 						const columnsWithConflict = allColumns.slice(columnIndex + 1).reduce((prev, column) => {
