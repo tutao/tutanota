@@ -36,7 +36,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 			// 		m("th", "Actions"),
 			// 	]),
 			// ), // DriveFolderContentHeader
-			m("div.flex.row", { style: { "text-align": "center", "padding-left": "16px" } }, [
+			m("div.flex.row.folder-row", { style: { padding: "8px 24px" } }, [
 				m("div", { style: { ...columnStyle, width: columnSizes.select } }, []),
 				// Icons...
 				m("div", { style: { ...columnStyle, width: columnSizes.icon } }, []),

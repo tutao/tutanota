@@ -38,47 +38,45 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 
 		const thisFileIsAFolder = isFolder(file)
 
-		return m("div.flex.row", { style: DriveFolderContentEntryRowStyle }, [
-			m("div", { style: { display: "flex", gap: "16px" } }, [
-				m("div", { style: { width: columnSizes.select } }, m("input[type=checkbox]")),
-				// m("td", m(Checkbox, { label: () => "selected", checked, onChecked: () => onSelect(file) })),
+		return m("div.flex.row.folder-row", { style: DriveFolderContentEntryRowStyle }, [
+			m("div", { style: { width: columnSizes.select } }, m("input[type=checkbox]")),
+			// m("td", m(Checkbox, { label: () => "selected", checked, onChecked: () => onSelect(file) })),
+			m(
+				"div",
+				{ style: { width: columnSizes.icon } },
+				thisFileIsAFolder
+					? m(Icon, {
+							icon: Icons.Folder,
+							size: IconSize.Normal,
+							// style: { position: "relative", top: "2px" },
+						})
+					: null,
+				// choose right icon depending on type
+				// m(Icon, {
+				// 		icon: Icons.Draft,
+				// 		size: IconSize.Normal,
+				// 		// style: { position: "relative", top: "2px" },
+				// 	}),
+			),
+			m(
+				"div",
+				{ style: { width: columnSizes.name } },
 				m(
-					"div",
-					{ style: { width: columnSizes.icon } },
-					thisFileIsAFolder
-						? m(Icon, {
-								icon: Icons.Folder,
-								size: IconSize.Normal,
-								// style: { position: "relative", top: "2px" },
-							})
-						: null,
-					// choose right icon depending on type
-					// m(Icon, {
-					// 		icon: Icons.Draft,
-					// 		size: IconSize.Normal,
-					// 		// style: { position: "relative", top: "2px" },
-					// 	}),
-				),
-				m(
-					"div",
-					{ style: { width: columnSizes.name } },
-					m(
-						"span",
-						{
-							onclick: () => {
-								if (thisFileIsAFolder) {
-									driveViewModel.navigateToFolder(file._id)
-								} else {
-									// download
-									driveViewModel.downloadFile(file)
-								}
-							},
-							class: "cursor-pointer",
+					"span",
+					{
+						onclick: () => {
+							if (thisFileIsAFolder) {
+								driveViewModel.navigateToFolder(file._id)
+							} else {
+								// download
+								driveViewModel.downloadFile(file)
+							}
 						},
-						file.name,
-					),
+						class: "cursor-pointer",
+					},
+					file.name,
 				),
-			]),
+			),
 			m("div", { style: { width: columnSizes.type } }, file.mimeType?.split("/")[1]),
 			m("div", { style: { width: columnSizes.size } }, thisFileIsAFolder ? "🐱" : formatStorageSize(Number(file.size))),
 			m("div", { style: { width: columnSizes.date } }, uploadDate.toLocaleString()),
