@@ -304,7 +304,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		if (phishingBanner) {
 			banners.push(m("." + responsiveCardHMargin(), phishingBanner))
 		}
-		if (!!phishingBanner && !viewModel.isWarningDismissed()) {
+		if (!phishingBanner && !viewModel.isWarningDismissed()) {
 			banners.push(
 				m("." + responsiveCardHMargin(), this.renderHardAuthenticationFailWarning(viewModel) ?? this.renderSoftAuthenticationFailWarning(viewModel)),
 			)
