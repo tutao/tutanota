@@ -1,1 +1,1 @@
-../../../app-android/app/src/main/cpp/helpers/rand.h
+../../../app-android/tutashared/src/main/cpp/helpers/rand.h
