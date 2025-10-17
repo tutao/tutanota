@@ -73,7 +73,6 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 
 export class KindaContactRow implements ViewHolder<Contact> {
 	readonly cr: ContactRow
-	domElement: HTMLElement
 	entity: Contact | null = null
 
 	constructor(
@@ -83,7 +82,6 @@ export class KindaContactRow implements ViewHolder<Contact> {
 		private readonly getHighlightedStrings?: () => readonly SearchToken[],
 	) {
 		this.cr = new ContactRow(onToggleSelection, shouldShowCheckbox, getHighlightedStrings)
-		this.domElement = dom
 		m.render(dom, this.cr.render())
 	}
 
