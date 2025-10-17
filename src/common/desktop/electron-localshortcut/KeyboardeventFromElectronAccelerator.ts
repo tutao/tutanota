@@ -306,7 +306,7 @@ export function reduceCode(
  * @param  {string} accelerator an Electron Accelerator string, e.g. `Ctrl+C` or `Shift+Space`.
  * @return {object} a DOM KeyboardEvent object derivate from the `accelerator` argument.
  */
-export function toKeyEvent(accelerator: string): object {
+export function toKeyEvent(accelerator: string): Event {
 	let state: ReducedEvent = {
 		accelerator,
 		event: {},
@@ -333,10 +333,22 @@ export function toKeyEvent(accelerator: string): object {
 				const code = codeMatch[0].toLowerCase()
 
 				if (code in domKeys) {
-					state = reduceCode(state, {
-						code: domKeys[code],
-						key: code,
-					})
+					if (code === "plus") {
+						// Plus is a special case since the delimiter for the accelerator is +
+						// but we need the key to be + since that is what is dispatched on the key event
+						state = {
+							event: {
+								...state.event,
+								...{ key: "+", code },
+							},
+							accelerator: state.accelerator.trim().slice(code.length),
+						}
+					} else {
+						state = reduceCode(state, {
+							code: domKeys[code],
+							key: code,
+						})
+					}
 				} else {
 					state = reduceKey(state, code)
 				}

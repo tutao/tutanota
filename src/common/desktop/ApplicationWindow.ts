@@ -164,6 +164,23 @@ export class ApplicationWindow {
 							help: "zoomIn_action",
 						},
 						{
+							key: Keys.PLUS,
+							ctrl: true,
+							exec: () => {
+								this._browserWindow.webContents.emit("zoom-changed", null, "in")
+							},
+							help: "zoomIn_action",
+						},
+						{
+							key: Keys.PLUS,
+							ctrl: true,
+							shift: true,
+							exec: () => {
+								this._browserWindow.webContents.emit("zoom-changed", null, "in")
+							},
+							help: "zoomIn_action",
+						},
+						{
 							key: Keys["="],
 							ctrl: true,
 							shift: true,
