@@ -102,9 +102,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 							oncreate(vnode): any {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 							},
-							// style: {
-							//     "grid-template-columns": "repeat(8, 1fr)",
-							// }
 						},
 						[this.renderEvents(events, timeRange, subRowAsMinutes, subRowCount, timeScale, date, hasAnyConflict)],
 					)
@@ -359,6 +356,15 @@ export class TimeView implements Component<TimeViewAttributes> {
 	 * This ensures events that were blocked by shifted events can now expand properly
 	 */
 	private applyRetroactiveShifts(gridData: Map<Id, GridEventData>, allColumns: Array<ColumnData>): void {
+		// Cache conflict info to avoid redundant calculations
+		const conflictCache = new Map<
+			Id,
+			{
+				conflict: { distance: number; id: Id; gridStart: number } | undefined
+				sumOfSizes: number
+			}
+		>()
+
 		for (const [eventId, gridInfo] of gridData.entries()) {
 			const eventIndex = this.eventIdToOriginalColumnArrayIndex.get(eventId)
 			if (eventIndex == null) {
@@ -367,64 +373,89 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 			const expectedGridEnd = gridInfo.gridColumnStart + gridInfo.gridColumnEnd
 
-			let conflict:
-				| {
-						distance: number
-						id: string
-						gridStart: number
-				  }
-				| undefined
+			// Check cache first to avoid redundant conflict finding
+			let cachedConflictInfo = conflictCache.get(eventId)
+			let conflict: { distance: number; id: Id; gridStart: number } | undefined
+			let sumOfSizes = 0
 
-			for (let i = eventIndex + 1; i < allColumns.length; i++) {
-				const columnData = allColumns[i]
+			if (!cachedConflictInfo) {
+				// Find conflict and accumulate sizes - preserve original loop logic
+				for (let i = eventIndex + 1; i < allColumns.length; i++) {
+					const columnData = allColumns[i]
 
-				const overlappingEvents = this.findOverlappingEvents(
-					{
-						rowStart: gridInfo.start,
-						rowEnd: gridInfo.end,
-					},
-					columnData.events,
-				)
+					const overlappingEvents = this.findOverlappingEvents(
+						{
+							rowStart: gridInfo.start,
+							rowEnd: gridInfo.end,
+						},
+						columnData.events,
+					)
 
-				if (overlappingEvents.size === 0) {
-					continue
-				}
-
-				for (const [conflictId, _] of overlappingEvents.entries()) {
-					const conflictInfo = gridData.get(conflictId)
-
-					if (!conflictInfo) {
+					if (overlappingEvents.size === 0) {
 						continue
 					}
-					const distance = conflictInfo.gridColumnStart - expectedGridEnd
-					if (conflict?.distance == null || distance < conflict?.distance) {
-						conflict = {
-							distance,
-							id: conflictId,
-							gridStart: conflictInfo.gridColumnStart,
+
+					// Optimization: Accumulate and find closest in single pass
+					for (const [conflictId] of overlappingEvents.entries()) {
+						const conflictInfo = gridData.get(conflictId)
+						if (!conflictInfo) {
+							continue
+						}
+
+						const distance = conflictInfo.gridColumnStart - expectedGridEnd
+						sumOfSizes += conflictInfo.gridColumnEnd
+
+						// Find closest conflict (minimum distance)
+						if (!conflict || distance < conflict.distance) {
+							conflict = {
+								distance,
+								id: conflictId,
+								gridStart: conflictInfo.gridColumnStart,
+							}
 						}
 					}
 				}
+
+				// Cache the result
+				cachedConflictInfo = { conflict, sumOfSizes }
+				conflictCache.set(eventId, cachedConflictInfo)
+			} else {
+				conflict = cachedConflictInfo.conflict
+				sumOfSizes = cachedConflictInfo.sumOfSizes
 			}
 
 			if (!conflict) {
-				// Maybe we should set to max here?
 				continue
 			}
 
-			if (expectedGridEnd < conflict.gridStart) {
-				const newSize = gridInfo.gridColumnEnd + conflict.distance
+			let newSize: number | null = null
+
+			// Case 1: Already exceeds grid bounds
+			if (gridInfo.gridColumnStart + gridInfo.gridColumnEnd > allColumns.length) {
+				newSize = Math.max(allColumns.length - gridInfo.gridColumnStart, BASE_EVENT_BUBBLE_SPAN_SIZE)
+			}
+			// Case 2: Can expand (no overlap)
+			else if (expectedGridEnd < conflict.gridStart) {
+				const expandedSize = gridInfo.gridColumnEnd + conflict.distance
+				newSize =
+					gridInfo.gridColumnStart + expandedSize > allColumns.length
+						? Math.max(allColumns.length - gridInfo.gridColumnStart, BASE_EVENT_BUBBLE_SPAN_SIZE)
+						: expandedSize
+			}
+			// Case 3: Must shrink (overlap detected)
+			else if (expectedGridEnd > conflict.gridStart) {
+				const shrinkSize = conflict.gridStart - 1
+				newSize =
+					gridInfo.gridColumnStart + shrinkSize + sumOfSizes > allColumns.length
+						? Math.max(allColumns.length - gridInfo.gridColumnStart, BASE_EVENT_BUBBLE_SPAN_SIZE)
+						: shrinkSize
+			}
+
+			// Only update if size changed
+			if (newSize !== null && newSize !== gridInfo.gridColumnEnd) {
 				gridData.set(eventId, {
 					...gridInfo,
-					gridColumnEnd:
-						gridInfo.gridColumnStart + newSize > allColumns.length + 1
-							? Math.max(allColumns.length - gridInfo.gridColumnStart, BASE_EVENT_BUBBLE_SPAN_SIZE)
-							: newSize,
-				})
-			} else if (expectedGridEnd > conflict.gridStart) {
-				gridData.set(eventId, {
-					...gridInfo,
-					gridColumnEnd: conflict.gridStart - 1,
+					gridColumnEnd: newSize,
 				})
 			}
 		}
