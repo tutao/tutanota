@@ -31,7 +31,7 @@ export class OutlineButton implements ClassComponent<OutlineButtonAttrs> {
 			disabled: attrs.disabled,
 			style: {
 				borderColor: theme.outline,
-				color: theme.on_surface_variant,
+				color: theme.on_surface,
 			},
 			class: this.resolveClasses(attrs.expanded, attrs.disabled),
 		} as BaseButtonAttrs)
