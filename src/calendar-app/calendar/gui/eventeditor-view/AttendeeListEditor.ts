@@ -52,7 +52,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			m(".flex-grow.flex.flex-column.gap-vpad.pb.pt.fit-height", { style: { width: px(attrs.width) } }, [
 				this.renderOrganizer(attrs.model, organizer),
 				m(".flex.flex-column.gap-vpad-s", [
-					m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("guests_label")),
+					m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface } }, lang.get("guests_label")),
 					whoModel.canModifyGuests ? this.renderGuestsInput(whoModel, attrs.logins, attrs.recipientsSearch) : null,
 					this.renderSendUpdateCheckbox(attrs.model.editModels.whoModel),
 					this.renderGuestList(attrs, organizer),
@@ -218,7 +218,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const selected = options.find((option) => option.address === address) ?? options[0]
 
 		return m(".flex.col", [
-			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("organizer_label")),
+			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface } }, lang.get("organizer_label")),
 			m(Card, { style: { padding: `0` } }, [
 				m(".flex.flex-column", [
 					m(".flex.pl-vpad-s.pr-vpad-s", [

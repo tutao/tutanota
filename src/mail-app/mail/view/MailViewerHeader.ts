@@ -189,7 +189,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							},
 							hoverText: folderInfo.name,
 						}),
-						m(".small.font-weight-600.selectable.no-wrap", { style: { color: theme.on_surface_variant } }, [
+						m(".small.font-weight-600.selectable.no-wrap", { style: { color: theme.on_surface } }, [
 							m(".noprint", dateTime), // show the short date when viewing
 							m(".noscreen", dateTimeFull), // show the date with year when printing
 						]),
