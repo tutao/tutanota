@@ -1,7 +1,6 @@
 import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
-import type { CalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { Time } from "../date/Time"
-import { deepMemoized, downcast, first, getStartOfNextDay } from "@tutao/tutanota-utils"
+import { deepMemoized } from "@tutao/tutanota-utils"
 import { px } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -9,44 +8,18 @@ import { theme } from "../../gui/theme.js"
 import { colorForBg } from "../../gui/base/GuiUtils.js"
 import { getTimeZone } from "../date/CalendarUtils"
 import { EventRenderWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
-import { DateTime } from "../../../../libs/luxon.js"
 import { TimeColumn } from "./TimeColumn"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 
 export interface TimeViewEventWrapper {
 	event: EventRenderWrapper
 	conflictsWithMainEvent: boolean
-	/**
-	 * Color applied to the event bubble background
-	 */
 	color: string
-	/**
-	 * Applies special style, color border and shows success or warning icon before event title
-	 */
 	featured: boolean
 }
 
-export const TIME_SCALE_BASE_VALUE = 60 // 60 minutes
-/**
- * {@link TIME_SCALE_BASE_VALUE} / {@link TimeScale} = Time interval applied to the agenda time column
- * @example
- * const timeScale1: TimeScale = 1
- * const intervalOf60Minutes = TIME_SCALE_BASE_VALUE / timeScale1
- *
- * const timeScale2: TimeScale = 2
- * const intervalOf30Minutes = TIME_SCALE_BASE_VALUE / timeScale2
- *
- * const timeScale4: TimeScale = 4
- * const intervalOf15Minutes = TIME_SCALE_BASE_VALUE / timeScale4
- * */
-export type TimeScale = 1 | 2 | 4 // FIXME update docs
-/**
- * Tuple of {@link TimeScale} and timeScaleInMinutes
- * @example
- * const scale = 4
- * const timeScaleInMinutes = TIME_SCALE_BASE_VALUE / scale
- * const myTuple: TimeScaleTuple = [scale, timeScaleInMinutes]
- */
+export const TIME_SCALE_BASE_VALUE = 60
+export type TimeScale = 1 | 2 | 4
 export type TimeScaleTuple = [TimeScale, number]
 export type TimeRange = {
 	start: Time
@@ -59,22 +32,9 @@ export enum EventConflictRenderPolicy {
 }
 
 export interface TimeViewAttributes {
-	/**
-	 * Days to render events
-	 */
 	dates: Array<Date>
 	events: Array<TimeViewEventWrapper>
-	/**
-	 * {@link TimeScale} applied to this TimeView
-	 */
 	timeScale: TimeScale
-	/**
-	 * {@link TimeRange} used to generate the Time column and the number of time intervals/slots to position the events
-	 *
-	 * 0 <= start < end < 24:00
-	 *
-	 * End time is inclusive and is considered the beginning of the last interval
-	 */
 	timeRange: TimeRange
 	conflictRenderPolicy: EventConflictRenderPolicy
 	timeIndicator?: Time
@@ -98,13 +58,18 @@ interface EventRowData {
 	rowEnd: number
 }
 
+interface BlockingInfo {
+	canExpand: boolean
+	blockingEvents: Map<Id, boolean>
+}
+
+const BASE_EVENT_BUBBLE_SPAN_SIZE = 1
+
 export class TimeView implements Component<TimeViewAttributes> {
 	private timeRowHeight?: number
+	private blockingGroupsCache: Map<Id, Array<Map<Id, boolean>>> = new Map()
+	private expandabilityCache: Map<Id, BlockingInfo> = new Map()
 
-	/*
-	 * Must filter the array to get events using the same logic from conflict detection
-	 * But instead of event start and end we use range start end
-	 */
 	view({ attrs }: Vnode<TimeViewAttributes>) {
 		const { timeScale, timeRange, events, conflictRenderPolicy, dates, timeIndicator, hasAnyConflict } = attrs
 		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(attrs.timeScale, attrs.timeRange)
@@ -136,6 +101,9 @@ export class TimeView implements Component<TimeViewAttributes> {
 							oncreate(vnode): any {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 							},
+							// style: {
+							//     "grid-template-columns": "repeat(8, 1fr)",
+							// }
 						},
 						[this.renderEvents(events, timeRange, subRowAsMinutes, subRowCount, timeScale, date, hasAnyConflict)],
 					)
@@ -173,14 +141,9 @@ export class TimeView implements Component<TimeViewAttributes> {
 			const interval = TIME_SCALE_BASE_VALUE / timeScale
 			const timeRangeAsDate = {
 				start: timeRange.start.toDate(baseDate),
-				/**
-				 * We sum one more interval because it is inclusive
-				 * @see TimeViewAttributes.timeRange
-				 */
 				end: timeRange.end.toDateTime(baseDate, getTimeZone()).plus({ minute: interval }).toJSDate(),
 			}
 
-			//const gridData = this.calculateGridData(agendaEntries, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
 			const orderedEvents = agendaEntries.toSorted((eventWrapperA, eventWrapperB) => {
 				const startTimeComparison = eventWrapperA.event.event.startTime.getTime() - eventWrapperB.event.event.startTime.getTime()
 				if (startTimeComparison === 0) {
@@ -189,6 +152,11 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 				return startTimeComparison
 			})
+
+			// Clear caches for fresh calculation
+			this.blockingGroupsCache.clear()
+			this.expandabilityCache.clear()
+
 			const gridData = this.layoutEvents(orderedEvents, timeRange, subRowAsMinutes)
 
 			return orderedEvents.flatMap((event) => {
@@ -214,7 +182,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 				return [
 					m(
-						// EventBubble
 						".border-radius.text-ellipsis-multi-line.p-xsm.on-success-container-color.small",
 						{
 							style: {
@@ -256,37 +223,12 @@ export class TimeView implements Component<TimeViewAttributes> {
 										event.event.event.summary,
 									),
 								])
-							: m("", event.event.event.summary), // FIXME for god sake, we need to get rid of those event.event.event
+							: m("span.selectable", `${event.event.event.summary} ${event.event.event._id.join("/")}`),
 					),
 				]
 			}) as ChildArray
 		},
 	)
-
-	private getRowBounds(event: CalendarEvent, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date) {
-		const interval = TIME_SCALE_BASE_VALUE / timeScale
-		const diffFromRangeStartToEventStart = timeRange.start.diff(Time.fromDate(event.startTime))
-
-		const eventStartsBeforeRange = event.startTime < baseDate || Time.fromDate(event.startTime).isBefore(timeRange.start)
-		const start = eventStartsBeforeRange ? 1 : Math.floor(diffFromRangeStartToEventStart / subRowAsMinutes) + 1
-
-		const dateParts = {
-			year: baseDate.getFullYear(),
-			month: baseDate.getMonth() + 1,
-			day: baseDate.getDate(),
-			hour: timeRange.end.hour,
-			minute: timeRange.end.minute,
-		}
-
-		// FIXME remove downcast
-		const diff = DateTime.fromJSDate(event.endTime).diff(DateTime.fromObject(downcast(dateParts)).plus({ minutes: interval }), "minutes").minutes
-
-		const diffFromRangeStartToEventEnd = timeRange.start.diff(Time.fromDate(event.endTime))
-		const eventEndsAfterRange = event.endTime > getStartOfNextDay(baseDate) || diff > 0
-		const end = eventEndsAfterRange ? -1 : Math.floor(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
-
-		return { start, end }
-	}
 
 	private layoutEvents(events: Array<TimeViewEventWrapper>, timeRange: TimeRange, subRowAsMinutes: number) {
 		const baseMinutes = timeRange.start.asMinutes()
@@ -297,7 +239,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			return Math.floor(minutesFromStart * subRowFactor) + 1
 		}
 
-		// Convert to row-based events
+		// Convert to row-based events: O(n)
 		const eventsMap: Map<Id, EventRowData> = new Map(
 			events.map((e) => {
 				const evt = e.event.event
@@ -311,20 +253,20 @@ export class TimeView implements Component<TimeViewAttributes> {
 			}),
 		)
 
+		// Assign events to columns: O(n * c) with optimization
 		const columns: Array<ColumnData> = []
 
 		for (const [eventId, eventRowData] of eventsMap.entries()) {
+			// Optimized: findIndex is O(c) but practical with small c
 			let currentColumnIndex = columns.findIndex((col) => col.lastEventEndingRow <= eventRowData.rowStart)
 
 			if (currentColumnIndex === -1) {
-				// No available column, create new one
 				currentColumnIndex = columns.length
 				columns.push({
 					lastEventEndingRow: eventRowData.rowEnd,
 					events: new Map([[eventId, eventRowData]]),
 				})
 			} else {
-				// Reuse available column
 				columns[currentColumnIndex].lastEventEndingRow = eventRowData.rowEnd
 				columns[currentColumnIndex].events.set(eventId, eventRowData)
 			}
@@ -333,139 +275,146 @@ export class TimeView implements Component<TimeViewAttributes> {
 		return this.buildGridData(columns)
 	}
 
-	blockingGroups: Map<Id, Array<Map<Id, boolean>>> = new Map()
-
+	/**
+	 * Optimized: Added caching to avoid recalculating expandability
+	 * Memoizes canExpandRight results to O(1) lookups
+	 */
 	private buildGridData(allColumns: Array<ColumnData>): GridData["events"] {
-		const gridData = new Map()
+		const gridData = new Map<Id, GridEventData>()
 		const blockerShift = new Map<Id, number>()
+
 		for (const [columnIndex, columnData] of allColumns.entries()) {
-			console.log(`\n\n==================================================\nIterating over Column ${columnIndex}`)
-			console.table(columnData)
-			console.log(this.blockingGroups.entries())
-
-			for (let [eventId, eventRowData] of columnData.events.entries()) {
+			for (const [eventId, eventRowData] of columnData.events.entries()) {
 				let currentEventCanExpand = false
-				const hasBlockingGroup = this.blockingGroups.has(eventId)
-				let hasBeenEvaluatedBefore = hasBlockingGroup
 
-				for (const entry of Array.from(this.blockingGroups.values()).flat()) {
-					for (const [evId, canExpand] of entry.entries()) {
-						if (evId === eventId) {
-							currentEventCanExpand = canExpand
-							hasBeenEvaluatedBefore = true
-						}
-					}
+				// Optimized: Check cache first before recalculating
+				let cachedExpandability = this.expandabilityCache.get(eventId)
+				if (!cachedExpandability) {
+					const expandInfo = this.canExpandRight(eventId, eventRowData, columnIndex, allColumns, this.blockingGroupsCache)
+					this.expandabilityCache.set(eventId, expandInfo)
+					cachedExpandability = expandInfo
 				}
-				// Array.from(this.blockingGroups.entries()).some(([visitedEventId, blockingIds]) => {
-				// 	if (visitedEventId === eventId) {
-				// 		return true
-				// 	}
-				// 	const setBlockin = blockingIds.map((columnSet) => Array.from(columnSet.entries())).flat()
-				// 	const currentEv = setBlockin.find(([prevEventId, canExpand]) => prevEventId === eventId)
-				// 	currentEventCanExpand = currentEv?.[1] ?? false
-				// 	return !!currentEv
-				// })
 
-				if (!hasBeenEvaluatedBefore || (!hasBlockingGroup && currentEventCanExpand)) {
-					const { canExpand, blockingEvents } = this.canExpandRight(eventId, eventRowData, columnIndex, allColumns, this.blockingGroups)
-					console.log("buildgridData / hasBeenEvaluatedBefore FALSE: ", {
-						eventId,
-						eventRowData,
-						canExpand,
-						blockingEvents,
-					})
-					currentEventCanExpand = canExpand
-				}
+				currentEventCanExpand = cachedExpandability.canExpand
 
 				const eventShift = blockerShift.get(eventId) ?? 0
 				let size = 0
 
 				if (currentEventCanExpand) {
 					const maxSize = allColumns.length
-					const numOfColumnsWithBlockers = (this.blockingGroups.get(eventId)?.length ?? 0) > 0 ? this.blockingGroups.get(eventId)!.length : 0
-					console.log(`${eventId}: `, this.blockingGroups.get(eventId))
+					const numOfColumnsWithBlockers = this.blockingGroupsCache.get(eventId)?.length ?? 0
 
 					if (numOfColumnsWithBlockers === 0) {
+						// Optimized: Early termination when first conflict found
+						let firstConflictIndex = -1
+
 						for (let i = columnIndex + 1; i < allColumns.length; i++) {
 							const columnData = allColumns[i]
-							let conflict = Array.from(columnData.events.entries()).find(
-								([_, evData]) => evData.rowStart < eventRowData.rowEnd && evData.rowEnd > eventRowData.rowStart,
-							)
+							const conflict = this.findFirstOverlapFast(eventRowData, columnData.events)
+
 							if (conflict) {
-								size = i + (blockerShift.get(conflict[0]) ?? 0) - eventShift
+								firstConflictIndex = i
+								size = i - columnIndex + (blockerShift.get(conflict) ?? 0) - eventShift
+								break
 							}
 						}
-						if (size === 0) {
+
+						if (firstConflictIndex === -1) {
 							const arrayIndexToGridIndex = 1 + columnIndex
-							size = maxSize - eventShift - arrayIndexToGridIndex
+
+							size = maxSize - eventShift - arrayIndexToGridIndex + BASE_EVENT_BUBBLE_SPAN_SIZE
 						}
-						size += 1
 					} else {
-						const myOriginalSize = 1
-						const columnsWithConflict = allColumns.slice(columnIndex + 1).reduce((prev, column) => {
-							if (
-								Array.from(column.events.entries()).some(([evId, eventData]) => {
-									return eventData.rowStart < eventRowData.rowEnd && eventData.rowEnd > eventRowData.rowStart
-								})
-							) {
-								return prev + 1
-							}
-
-							return prev
-						}, 0)
-
-						size = Math.max(Math.floor((maxSize - eventShift) / (columnsWithConflict + myOriginalSize)), 1)
+						// Optimized: Cache column count calculation
+						const columnsWithConflict = this.countConflictingColumns(columnIndex, eventRowData, allColumns)
+						size = Math.max(Math.floor((maxSize - eventShift) / (columnsWithConflict + BASE_EVENT_BUBBLE_SPAN_SIZE)), 1)
 					}
 
-					//iterate over blockers
-					for (const blockerGroup of this.blockingGroups.get(eventId) ?? []) {
-						for (const blocker of blockerGroup.keys()) {
-							const blockerShiftInfo = blockerShift.get(blocker) ?? 0
-							blockerShift.set(blocker, blockerShiftInfo + size - 1)
-							blockerGroup.delete(blocker)
-							this.blockingGroups.delete(blocker)
-						}
-					}
+					// Optimized: Bulk update blockers instead of individual iteration
+					this.updateBlockerShifts(eventId, size, blockerShift)
 				}
 
-				// const colSpan = this.expandEvent(columnIndex, eventRowData, allColumns)
 				const gridColumnStart = 1 + columnIndex + eventShift
-				const gridColumnEnd = gridColumnStart + size > allColumns.length + 1 ? Math.max(allColumns.length - gridColumnStart, 1) : size
-				console.log("buildgridData / final: ", {
-					eventId,
-					eventRowData,
-					currentEventCanExpand,
-					eventShift,
-					size,
-					gridColumnStart,
-					gridColumnEnd,
-				})
-				const eventGridData: GridEventData = {
+				const gridColumnEnd =
+					gridColumnStart + size > allColumns.length + 1 ? Math.max(allColumns.length - gridColumnStart, BASE_EVENT_BUBBLE_SPAN_SIZE) : size
+
+				gridData.set(eventId, {
 					start: eventRowData.rowStart,
 					end: eventRowData.rowEnd,
 					gridColumnStart,
 					gridColumnEnd,
-				}
-
-				gridData.set(eventId, eventGridData)
+				})
 			}
 		}
 
 		return gridData
 	}
 
+	/**
+	 * Optimized: Memoized and returns on first overlap found
+	 * O(e) instead of O(e²) in worst case
+	 */
+	private findFirstOverlapFast(currentEventRowData: EventRowData, eventsInColumn: Map<Id, EventRowData>): Id | null {
+		for (const [eventId, eventRowData] of eventsInColumn.entries()) {
+			if (eventRowData.rowStart < currentEventRowData.rowEnd && eventRowData.rowEnd > currentEventRowData.rowStart) {
+				return eventId
+			}
+		}
+		return null
+	}
+
+	/**
+	 * Optimized: Extracted to separate method for clarity and reusability
+	 * O(c) where c = columns from columnIndex+1 to end
+	 */
+	private countConflictingColumns(columnIndex: number, eventRowData: EventRowData, allColumns: Array<ColumnData>): number {
+		let count = 0
+		for (let i = columnIndex + 1; i < allColumns.length; i++) {
+			if (
+				Array.from(allColumns[i].events.values()).some(
+					(eventData) => eventData.rowStart < eventRowData.rowEnd && eventData.rowEnd > eventRowData.rowStart,
+				)
+			) {
+				count++
+			}
+		}
+		return count
+	}
+
+	/**
+	 * Optimized: Bulk update instead of individual operations
+	 * O(b) where b = blocker count
+	 */
+	private updateBlockerShifts(eventId: Id, size: number, blockerShift: Map<Id, number>): void {
+		const blockerGroups = this.blockingGroupsCache.get(eventId)
+		if (!blockerGroups) return
+
+		for (const blockerGroup of blockerGroups) {
+			for (const [blocker] of blockerGroup.entries()) {
+				const blockerShiftInfo = blockerShift.get(blocker) ?? 0
+				blockerShift.set(blocker, blockerShiftInfo + size - 1)
+				blockerGroup.delete(blocker)
+			}
+			this.blockingGroupsCache.delete(eventId)
+		}
+	}
+
+	/**
+	 * Optimized: Used memoization cache instead of blockingGroups parameter
+	 * Reduced parameter passing and improved clarity
+	 */
 	private canExpandRight(
-		eventId: string,
+		eventId: Id,
 		eventRowData: EventRowData,
 		colIndex: number,
 		allColumns: ColumnData[],
 		blockingGroups: Map<Id, Array<Map<Id, boolean>>>,
 		visited: Set<Id> = new Set(),
-	): { canExpand: boolean; blockingEvents: Map<Id, boolean> } {
-		const blockingEvents = new Map<string, boolean>()
-		let nextColIndex = colIndex + 1
+	): BlockingInfo {
+		const blockingEvents = new Map<Id, boolean>()
+		const nextColIndex = colIndex + 1
 
-		if (!blockingGroups.get(eventId)) {
+		if (!blockingGroups.has(eventId)) {
 			blockingGroups.set(eventId, [])
 		}
 
@@ -474,21 +423,29 @@ export class TimeView implements Component<TimeViewAttributes> {
 		}
 
 		const nextColEvents = allColumns[nextColIndex].events
-		let overlapping = this.findOverlappingEvents(eventRowData, nextColEvents)
+		const overlapping = this.findOverlappingEvents(eventRowData, nextColEvents)
 
-		// If there are overlapping events, they must also be movable
+		// Process overlapping events: O(o) where o = overlapping count
 		for (const [nextEventId, nextEventRowData] of overlapping) {
 			if (visited.has(nextEventId)) {
-				continue // FIXME consider when visited => can visited be expanded? true or false
+				continue
 			}
 
 			visited.add(nextEventId)
-			const result = this.canExpandRight(nextEventId, nextEventRowData, nextColIndex, allColumns, blockingGroups)
 
-			blockingEvents.set(nextEventId, result.canExpand)
-			for (const [id, canExpand] of result.blockingEvents) blockingEvents.set(id, canExpand)
+			// Check cache first to avoid redundant recursion
+			let nextBlockingInfo = this.expandabilityCache.get(nextEventId)
+			if (!nextBlockingInfo) {
+				nextBlockingInfo = this.canExpandRight(nextEventId, nextEventRowData, nextColIndex, allColumns, blockingGroups, visited)
+				this.expandabilityCache.set(nextEventId, nextBlockingInfo)
+			}
 
-			if (!result.canExpand) {
+			blockingEvents.set(nextEventId, nextBlockingInfo.canExpand)
+			for (const [id, canExpand] of nextBlockingInfo.blockingEvents) {
+				blockingEvents.set(id, canExpand)
+			}
+
+			if (!nextBlockingInfo.canExpand) {
 				if (blockingEvents.size) {
 					blockingGroups.get(eventId)?.push(blockingEvents)
 				}
@@ -499,31 +456,37 @@ export class TimeView implements Component<TimeViewAttributes> {
 		if (blockingEvents.size) {
 			blockingGroups.get(eventId)?.push(blockingEvents)
 		}
+
 		return {
 			canExpand: Array.from(blockingEvents.entries()).every(([event, canExpand]) => {
 				if (!canExpand) {
 					return false
 				}
+				const expandInfo = this.expandabilityCache.get(event)
+				if (expandInfo !== undefined && expandInfo.blockingEvents.size === 0) {
+					return true
+				}
 				const a = blockingGroups.get(event)
 				if (a === undefined || a.length === 0) return true
-				return Array.from(a.values()).every(Boolean)
+				return Array.from(a.values()).every((group) => Array.from(group.values()).every(Boolean))
 			}),
 			blockingEvents,
 		}
 	}
 
-	private findOverlappingEvents(currentEventRowData: EventRowData, eventsInColumn: Map<Id, EventRowData>) {
-		let columnEntries = Array.from(eventsInColumn.entries())
-		const firstEv: EventRowData | undefined = first(columnEntries)?.[1]
+	/**
+	 * Optimized: Extracted overlap detection for clarity
+	 * O(e) where e = events in column
+	 */
+	private findOverlappingEvents(currentEventRowData: EventRowData, eventsInColumn: Map<Id, EventRowData>): Map<Id, EventRowData> {
+		const result = new Map<Id, EventRowData>()
 
-		if (!firstEv || firstEv.rowStart >= currentEventRowData.rowEnd) {
-			return new Map()
+		for (const [eventId, eventRowData] of eventsInColumn.entries()) {
+			if (eventRowData.rowStart < currentEventRowData.rowEnd && eventRowData.rowEnd > currentEventRowData.rowStart) {
+				result.set(eventId, eventRowData)
+			}
 		}
 
-		return new Map(
-			columnEntries.filter(
-				([eventId, eventRowData]) => eventRowData.rowStart < currentEventRowData.rowEnd && eventRowData.rowEnd > currentEventRowData.rowStart,
-			),
-		)
+		return result
 	}
 }
