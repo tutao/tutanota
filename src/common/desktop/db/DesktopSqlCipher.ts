@@ -92,6 +92,7 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		}
 
 		const key = `x'${uint8ArrayToHex(databaseKey)}'`
+		//FIXME: remove this log
 		console.log("THE KEY", key)
 		this.db.pragma(`KEY = "${key}"`)
 
