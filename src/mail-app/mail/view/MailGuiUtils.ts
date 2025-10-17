@@ -339,7 +339,7 @@ export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 			return Icons.Archive
 
 		case MailSetKind.SPAM:
-			return Icons.Spam
+			return Icons.Stop
 
 		case MailSetKind.DRAFT:
 			return Icons.Draft

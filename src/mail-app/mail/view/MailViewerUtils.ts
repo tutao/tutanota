@@ -423,7 +423,7 @@ function mailViewerMoreActions({
 		moreButtons.push({
 			label: "spam_move_action",
 			click: reportSpamAction,
-			icon: Icons.Spam,
+			icon: Icons.Stop,
 		})
 	}
 

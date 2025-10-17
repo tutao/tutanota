@@ -94,7 +94,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			m(IconButton, {
 				title: "spam_move_action",
 				click: reportSpamAction,
-				icon: Icons.Spam,
+				icon: Icons.Stop,
 			})
 		)
 	}
