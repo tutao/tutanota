@@ -243,17 +243,17 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 				m(".h4.mt-l", lang.get("desktopSettings_label")),
 				// spell check is done via OS on mac
-				env.platformId === "darwin" ? null : m(TextField, spellcheckLanguageAttrs),
+				env.platformId === "darwin" ? null : m("#spelling", m(TextField, spellcheckLanguageAttrs)),
 				// setting protocol handler via Electron does not work on Linux
-				env.platformId === "linux" ? null : m(DropDownSelector, setDefaultMailtoHandlerAttrs),
+				env.platformId === "linux" ? null : m("#defaultmailto", m(DropDownSelector, setDefaultMailtoHandlerAttrs)),
 				// mac doesn't really have run in background, you can just close a window
-				env.platformId === "darwin" ? null : m(DropDownSelector, setRunInBackgroundAttrs),
-				m(DropDownSelector, setRunOnStartupAttrs),
-				m(TextField, defaultDownloadPathAttrs),
-				m(DropDownSelector, setMailExportModeAttrs),
+				env.platformId === "darwin" ? null : m("#background", m(DropDownSelector, setRunInBackgroundAttrs)),
+				m("#runonstartup", m(DropDownSelector, setRunOnStartupAttrs)),
+				m("#defaultdownloadpath", m(TextField, defaultDownloadPathAttrs)),
+				m("#mailexportmode", m(DropDownSelector, setMailExportModeAttrs)),
 				// AppImage is kind of a portable install so we optionally add desktop icons etc
-				env.platformId === "linux" ? m(DropDownSelector, setDesktopIntegrationAttrs) : null,
-				this.showAutoUpdateOption ? m(DropDownSelector, setAutoUpdateAttrs) : null,
+				env.platformId === "linux" ? m("#desktopintegration", m(DropDownSelector, setDesktopIntegrationAttrs)) : null,
+				this.showAutoUpdateOption ? m("#autoupdate", m(DropDownSelector, setAutoUpdateAttrs)) : null,
 			]),
 		]
 	}
