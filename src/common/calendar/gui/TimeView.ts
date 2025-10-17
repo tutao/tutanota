@@ -181,9 +181,17 @@ export class TimeView implements Component<TimeViewAttributes> {
 			}
 
 			//const gridData = this.calculateGridData(agendaEntries, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
-			const gridData = this.layoutEvents(agendaEntries, timeRange, subRowAsMinutes)
+			const orderedEvents = agendaEntries.toSorted((eventWrapperA, eventWrapperB) => {
+				const startTimeComparison = eventWrapperA.event.event.startTime.getTime() - eventWrapperB.event.event.startTime.getTime()
+				if (startTimeComparison === 0) {
+					return eventWrapperB.event.event.endTime.getTime() - eventWrapperA.event.event.endTime.getTime()
+				}
 
-			return agendaEntries.flatMap((event) => {
+				return startTimeComparison
+			})
+			const gridData = this.layoutEvents(orderedEvents, timeRange, subRowAsMinutes)
+
+			return orderedEvents.flatMap((event) => {
 				const passesThroughToday =
 					event.event.event.startTime.getTime() < timeRangeAsDate.start.getTime() &&
 					event.event.event.endTime.getTime() > timeRangeAsDate.end.getTime()
@@ -248,7 +256,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 										event.event.event.summary,
 									),
 								])
-							: m(".flex.col", m("", event.event.event.summary)), // FIXME for god sake, we need to get rid of those event.event.event
+							: m("", event.event.event.summary), // FIXME for god sake, we need to get rid of those event.event.event
 					),
 				]
 			}) as ChildArray
@@ -281,15 +289,6 @@ export class TimeView implements Component<TimeViewAttributes> {
 	}
 
 	private layoutEvents(events: Array<TimeViewEventWrapper>, timeRange: TimeRange, subRowAsMinutes: number) {
-		const orderedEvents = events.toSorted((eventWrapperA, eventWrapperB) => {
-			const startTimeComparison = eventWrapperA.event.event.startTime.getTime() - eventWrapperB.event.event.startTime.getTime()
-			if (startTimeComparison === 0) {
-				return eventWrapperB.event.event.endTime.getTime() - eventWrapperA.event.event.endTime.getTime()
-			}
-
-			return startTimeComparison
-		})
-
 		const baseMinutes = timeRange.start.asMinutes()
 		const subRowFactor = 1 / subRowAsMinutes
 
@@ -300,7 +299,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 		// Convert to row-based events
 		const eventsMap: Map<Id, EventRowData> = new Map(
-			orderedEvents.map((e) => {
+			events.map((e) => {
 				const evt = e.event.event
 				return [
 					elementIdPart(evt._id),
@@ -346,7 +345,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 			for (let [eventId, eventRowData] of columnData.events.entries()) {
 				let currentEventCanExpand = false
-				let hasBeenEvaluatedBefore = this.blockingGroups.has(eventId)
+				const hasBlockingGroup = this.blockingGroups.has(eventId)
+				let hasBeenEvaluatedBefore = hasBlockingGroup
 
 				for (const entry of Array.from(this.blockingGroups.values()).flat()) {
 					for (const [evId, canExpand] of entry.entries()) {
@@ -366,7 +366,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 				// 	return !!currentEv
 				// })
 
-				if (!hasBeenEvaluatedBefore) {
+				if (!hasBeenEvaluatedBefore || (!hasBlockingGroup && currentEventCanExpand)) {
 					const { canExpand, blockingEvents } = this.canExpandRight(eventId, eventRowData, columnIndex, allColumns, this.blockingGroups)
 					console.log("buildgridData / hasBeenEvaluatedBefore FALSE: ", {
 						eventId,
@@ -392,7 +392,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 								([_, evData]) => evData.rowStart < eventRowData.rowEnd && evData.rowEnd > eventRowData.rowStart,
 							)
 							if (conflict) {
-								size = i + (blockerShift.get(conflict[0]) ?? 0)
+								size = i + (blockerShift.get(conflict[0]) ?? 0) - eventShift
 							}
 						}
 						if (size === 0) {
@@ -430,7 +430,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 				// const colSpan = this.expandEvent(columnIndex, eventRowData, allColumns)
 				const gridColumnStart = 1 + columnIndex + eventShift
-				const gridColumnEnd = size
+				const gridColumnEnd = gridColumnStart + size > allColumns.length + 1 ? Math.max(allColumns.length - gridColumnStart, 1) : size
 				console.log("buildgridData / final: ", {
 					eventId,
 					eventRowData,
