@@ -1082,7 +1082,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					},
 				}),
 				m(
-					".pl-m.b.flex-grow.text-ellipsis",
+					".pl-12.b.flex-grow.text-ellipsis",
 					{
 						style: {
 							width: 0,

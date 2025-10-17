@@ -73,7 +73,7 @@ export class SearchInPageOverlay {
 
 	private inputField: () => Children = () => {
 		return m(
-			"input#search-overlay-input.dropdown-bar.elevated-bg.pl-l.button-height.inputWrapper",
+			"input#search-overlay-input.dropdown-bar.elevated-bg.pl-24.button-height.inputWrapper",
 			{
 				placeholder: lang.get("searchPage_action"),
 				oncreate: (vnode) => {
@@ -178,7 +178,7 @@ export class SearchInPageOverlay {
 										this.find(true, false)
 									},
 								}),
-								m("div.pl-m", this.numberOfMatches > 0 ? `${this.currentMatch}/${this.numberOfMatches}` : lang.get("searchNoResults_msg")),
+								m("div.pl-12", this.numberOfMatches > 0 ? `${this.currentMatch}/${this.numberOfMatches}` : lang.get("searchNoResults_msg")),
 							],
 						),
 						m(IconButton, {

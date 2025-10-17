@@ -43,9 +43,9 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 						},
 					},
 					[
-						m(".h4.mb-0.pl-vpad-s", lang.get("keyManagement.selectMethodShort_label")),
+						m(".h4.mb-0.pl-8", lang.get("keyManagement.selectMethodShort_label")),
 						m(
-							"p.mt-4.mb-8.pl-vpad-s",
+							"p.mt-4.mb-8.pl-8",
 							m.trust(
 								lang.get("keyManagement.selectMethodLong_label", {
 									"{compareVerificationCode}": lang.get("keyManagement.text_label"),
@@ -71,7 +71,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 	private renderTextMethodButton(onclick: () => void): Children {
 		return m(SectionButton, {
 			text: "keyManagement.text_label",
-			classes: "pl-vpad-s",
+			classes: "pl-8",
 			onclick,
 		})
 	}
@@ -79,7 +79,7 @@ export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> 
 	private renderQRMethodButton(onclick: () => void): Children {
 		return m(SectionButton, {
 			text: "keyManagement.qrCode_label",
-			classes: "pl-vpad-s",
+			classes: "pl-8",
 			onclick,
 		})
 	}

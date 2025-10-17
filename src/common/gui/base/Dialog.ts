@@ -620,7 +620,7 @@ export class Dialog implements ModalComponent {
 
 			const dialog = new Dialog(DialogType.Alert, {
 				view: () =>
-					m(".flex.flex-column.pl-l.pr-l.pb-8", [
+					m(".flex.flex-column.pl-24.pr-l.pb-8", [
 						m("#dialog-message.dialog-max-height.text-break.text-prewrap.selectable.scroll", getContent()),
 						buttonAttrs.length === 0
 							? null

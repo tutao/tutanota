@@ -163,7 +163,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const attendingOptions = createAttendingItems().filter((option) => option.selectable !== false)
 		const attendingStatus = attendingOptions.find((option) => option.value === status)
 
-		return m(".flex.flex-column.pl-vpad-s.pr-vpad-s", [
+		return m(".flex.flex-column.pl-8.pr-vpad-s", [
 			m(Select<AttendingItem, CalendarAttendeeStatus>, {
 				onchange: (option) => {
 					if (option.selectable === false) return
@@ -219,7 +219,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			m("small.uppercase.pb-8.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("organizer_label")),
 			m(Card, { style: { padding: `0` } }, [
 				m(".flex.flex-column", [
-					m(".flex.pl-vpad-s.pr-vpad-s", [
+					m(".flex.pl-8.pr-vpad-s", [
 						m(Select<OrganizerSelectItem, string>, {
 							classes: ["flex-grow", "button-min-height"],
 							onchange: (option) => {

@@ -93,7 +93,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 		textFieldAttrs[0].label = vnode.attrs.label
 
 		return m(
-			".flex.col.flex-half.pl-s",
+			".flex.col.flex-half.pl-4",
 			textFieldAttrs.map((a) => m(TextField, a)),
 		)
 	}
@@ -218,7 +218,7 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 							label: "emptyString_msg",
 							selectedValue: timeReminderUnit,
 							items: unitItems,
-							class: "flex-half pl-s",
+							class: "flex-half pl-4",
 							selectionChangedHandler: (selectedValue: AlarmIntervalUnit) => (timeReminderUnit = selectedValue as AlarmIntervalUnit),
 							disabled: false,
 						}),

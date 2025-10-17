@@ -302,13 +302,13 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 				child: {
 					view: () =>
 						m("table.pt-16", [
-							m("tr", [m("td", lang.get("action_label")), m("td.pl", entry.action)]),
-							m("tr", [m("td", lang.get("actor_label")), m("td.pl", entry.actorMailAddress)]),
-							m("tr", [m("td", lang.get("IpAddress_label")), m("td.pl", entry.actorIpAddress ? entry.actorIpAddress : "")]),
+							m("tr", [m("td", lang.get("action_label")), m("td.pl-12", entry.action)]),
+							m("tr", [m("td", lang.get("actor_label")), m("td.pl-12", entry.actorMailAddress)]),
+							m("tr", [m("td", lang.get("IpAddress_label")), m("td.pl-12", entry.actorIpAddress ? entry.actorIpAddress : "")]),
 							m("tr", [
 								m("td", lang.get("modified_label")),
 								m(
-									"td.pl",
+									"td.pl-12",
 									modifiedGroupInfo() && this.getGroupInfoDisplayText(modifiedGroupInfo())
 										? this.getGroupInfoDisplayText(modifiedGroupInfo())
 										: entry.modifiedEntity,
@@ -318,14 +318,14 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 								? m("tr", [
 										m("td", lang.get("group_label")),
 										m(
-											"td.pl",
+											"td.pl-12",
 											customer.adminGroup === groupInfoValue.group
 												? lang.get("globalAdmin_label")
 												: this.getGroupInfoDisplayText(groupInfoValue),
 										),
 									])
 								: null,
-							m("tr", [m("td", lang.get("time_label")), m("td.pl", formatDateTime(entry.date))]),
+							m("tr", [m("td", lang.get("time_label")), m("td.pl-12", formatDateTime(entry.date))]),
 						]),
 				},
 				allowOkWithReturn: true,

@@ -47,7 +47,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					ariaLabel: lang.get("mailAddress_label"),
 					placeholder: lang.get("mailAddress_label"),
 					disabled: false,
-					classes: ["flex", "gap-vpad-s", "items-center", "pl-vpad-s"],
+					classes: ["flex", "gap-vpad-s", "items-center", "pl-8"],
 					leadingIcon: {
 						icon: BootIcons.User,
 						color: getColors(ButtonColor.Content).button,
@@ -76,7 +76,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 							Card,
 							{ classes: ["flex", "flex-column", "gap-vpad"] },
 							m(
-								".pl-vpad-s",
+								".pl-8",
 								lang.get("keyManagement.verificationByText_label", {
 									"{settings}": lang.get("settings_label"),
 									"{keyManagement}": lang.get("keyManagement_label"),

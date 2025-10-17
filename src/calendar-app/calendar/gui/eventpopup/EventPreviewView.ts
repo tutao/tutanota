@@ -248,7 +248,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				? getAttendeeStatus(participation.ownAttendee)
 				: getAttendeeStatus(attendee)
 
-		return m(".flex.items-center", [m(".span.line-break-anywhere.selectable", attendeeField), m(".span.pl-s", calendarAttendeeStatusSymbol(status))])
+		return m(".flex.items-center", [m(".span.line-break-anywhere.selectable", attendeeField), m(".span.pl-4", calendarAttendeeStatusSymbol(status))])
 	}
 
 	private renderDescription(sanitizedDescription: string | null, highlightedStrings?: readonly SearchToken[]) {

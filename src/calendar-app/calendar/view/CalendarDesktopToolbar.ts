@@ -18,7 +18,7 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 	view({ attrs }: Vnode<CalendarDesktopToolbarAttrs>): Children {
 		const { navConfig } = attrs
 		return m(
-			".flex.row.items-center.content-bg.border-radius-big.mlr-24.rel.pr.pl-vpad-m",
+			".flex.row.items-center.content-bg.border-radius-big.mlr-24.rel.pr.pl-16",
 			{
 				style: {
 					marginLeft: `5px`,

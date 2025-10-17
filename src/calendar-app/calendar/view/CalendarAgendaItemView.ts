@@ -49,7 +49,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 						backgroundColor: `#${attrs.color}`,
 					},
 				}),
-				m(".flex.col.min-width-0.pl-vpad-l", [m("p.b.m-0.text-ellipsis", eventTitle), m("", attrs.timeText)]),
+				m(".flex.col.min-width-0.pl-32", [m("p.b.m-0.text-ellipsis", eventTitle), m("", attrs.timeText)]),
 			],
 		)
 	}

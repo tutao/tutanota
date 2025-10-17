@@ -66,7 +66,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 						},
 					})
 				: null,
-			!a.hideLabel ? m("span.label.click.text-ellipsis" + (!a.vertical && icon ? ".pl-m" : ""), lang.getTranslationText(a.label)) : null,
+			!a.hideLabel ? m("span.label.click.text-ellipsis" + (!a.vertical && icon ? ".pl-12" : ""), lang.getTranslationText(a.label)) : null,
 		]
 
 		// allow nav button without label for registration button on mobile devices

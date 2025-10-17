@@ -19,11 +19,11 @@ export class FilterChip implements Component<FilterChipAttrs> {
 	private localdom: HTMLElement | null = null
 
 	view({ attrs: { label, icon, selected, chevron, onClick } }: Vnode<FilterChipAttrs>): Children {
-		let selectors = "button.flex.items-center.border-radius-m.pt-8.pb-hpad-button.gap-vpad-xs.font-weight-500.state-bg-2.border.smaller"
+		let selectors = "button.flex.items-center.border-radius-m.pt-8.pb-8.gap-vpad-xs.font-weight-500.state-bg-2.border.smaller"
 		if (icon) {
-			selectors += ".pl-vpad-s"
+			selectors += ".pl-8"
 		} else {
-			selectors += ".pl-vpad-m"
+			selectors += ".pl-16"
 		}
 		if (chevron) {
 			selectors += ".pr-vpad-s"

@@ -802,7 +802,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					color: theme.on_surface_variant,
 				},
 				label: "supportMenu_label",
-				text: m(".pl-s", lang.getTranslation("supportMenu_label").text),
+				text: m(".pl-4", lang.getTranslation("supportMenu_label").text),
 				icon: m(Icon, {
 					icon: Icons.SpeechBubbleFill,
 					size: IconSize.PX24,

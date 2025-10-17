@@ -210,7 +210,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 				return m(
 					// EventBubble
-					".border-radius.text-ellipsis-multi-line.p-xsm.on-success-container-color.small",
+					".border-radius.text-ellipsis-multi-line.p-4.on-success-container-color.small",
 					{
 						style: {
 							"min-height": px(0),

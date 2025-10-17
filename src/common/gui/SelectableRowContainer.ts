@@ -20,7 +20,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 
 	view({ attrs, children }: Vnode<SelectableRowContainerAttrs>) {
 		return m(
-			".flex.mb-4.border-radius.pt-12.pb-12.pl.pr.ml-8",
+			".flex.mb-4.border-radius.pt-12.pb-12.pl-12.pr.ml-8",
 			{
 				style: {
 					paddingTop: "12px",

@@ -103,7 +103,7 @@ export class BuyOptionDetails implements Component<BuyOptionDetailsAttr> {
 		this.featuresExpanded = attrs.featuresExpanded || false
 
 		return m(
-			".mt-16.pl",
+			".mt-16.pl-12",
 			attrs.categories.map((fc) => {
 				return [
 					this.renderCategoryTitle(fc, attrs.renderCategoryTitle),
@@ -120,7 +120,7 @@ export class BuyOptionDetails implements Component<BuyOptionDetailsAttr> {
 											icon: f.antiFeature ? Icons.Cancel : Icons.Checkmark,
 											style: attrs.iconStyle,
 										}),
-								m(".small.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", [m("span", f.text)]),
+								m(".small.text-left.align-self-center.pl-4.button-height.flex-grow.min-width-0.break-word", [m("span", f.text)]),
 								f.toolTip ? m(InfoIcon, { text: f.toolTip }) : null,
 							]),
 						),
@@ -133,8 +133,8 @@ export class BuyOptionDetails implements Component<BuyOptionDetailsAttr> {
 	private renderCategoryTitle(fc: BuyOptionDetailsAttr["categories"][0], renderCategoryTitle: boolean): Children {
 		if (fc.title && this.featuresExpanded) {
 			return [
-				m(".b.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", ""),
-				m(".b.text-left.align-self-center.pl-s.button-height.flex-grow.min-width-0.break-word", renderCategoryTitle ? fc.title : ""),
+				m(".b.text-left.align-self-center.pl-4.button-height.flex-grow.min-width-0.break-word", ""),
+				m(".b.text-left.align-self-center.pl-4.button-height.flex-grow.min-width-0.break-word", renderCategoryTitle ? fc.title : ""),
 			]
 		} else {
 			return []

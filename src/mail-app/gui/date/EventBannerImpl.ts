@@ -145,7 +145,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				m(
 					".flex.flex-column.center.items-center.pb-16.pt-16.justify-center.fill-grid-column",
 					{
-						class: styles.isSingleColumnLayout() ? "plr-vpad" : "pr-vpad-l pl-vpad-l",
+						class: styles.isSingleColumnLayout() ? "plr-vpad" : "pr-vpad-l pl-32",
 						style: {
 							"background-color": theme.surface_container_high,
 							color: theme.on_surface_variant,

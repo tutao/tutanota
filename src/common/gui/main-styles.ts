@@ -417,7 +417,7 @@ styles.registerStyle("main", () => {
 		".p0": {
 			padding: "0",
 		},
-		".p-xsm": {
+		".p-4": {
 			padding: px(size.spacing_4),
 		},
 		".pt-16": {
@@ -425,9 +425,6 @@ styles.registerStyle("main", () => {
 		},
 		".pt-0": {
 			"padding-top": 0,
-		},
-		".pt-8": {
-			"padding-top": px(size.spacing_8),
 		},
 		".pt-32": {
 			"padding-top": px(size.spacing_32),
@@ -457,9 +454,6 @@ styles.registerStyle("main", () => {
 		".pb-8": {
 			"padding-bottom": px(size.spacing_8),
 		},
-		".drag": {
-			"touch-action": "auto",
-		},
 		".pb-4": {
 			"padding-bottom": px(size.spacing_4),
 		},
@@ -478,44 +472,23 @@ styles.registerStyle("main", () => {
 		".pb-floating": {
 			"padding-bottom": px(component_size.button_floating_size + size.spacing_24),
 		},
-		".pb-hpad-button": {
-			"padding-bottom": px(size.spacing_8),
-		},
-		// allow scrolling across the floating button
-		".plr": {
-			"padding-left": px(size.spacing_12),
-			"padding-right": px(size.spacing_12),
-		},
-		".plr-8": {
-			"padding-left": px(size.spacing_8),
-			"padding-right": px(size.spacing_8),
-		},
-		".pl": {
-			"padding-left": px(size.spacing_12),
-		},
-		".pl-s": {
+		".pl-4": {
 			"padding-left": px(size.spacing_4),
 		},
-		".pl-m": {
+		".pl-12": {
 			"padding-left": px(size.spacing_12),
 		},
-		".pl-xs": {
-			"padding-left": px(size.spacing_4),
-		},
-		".pl-vpad-m": {
+		".pl-16": {
 			"padding-left": px(size.spacing_16),
 		},
-		".pl-vpad-s": {
+		".pl-8": {
 			"padding-left": px(size.spacing_8),
 		},
-		".pl-vpad-l": {
+		".pl-32": {
 			"padding-left": px(size.spacing_32),
 		},
 		".pr": {
 			"padding-right": px(size.spacing_12),
-		},
-		".pr-xs": {
-			"padding-right": px(size.spacing_4),
 		},
 		".pr-s": {
 			"padding-right": px(size.spacing_4),
@@ -529,11 +502,19 @@ styles.registerStyle("main", () => {
 		".pr-vpad-l": {
 			"padding-right": px(size.spacing_32),
 		},
-		".plr-vpad": {
-			"padding-left": px(size.spacing_16),
+		".pr-m": {
 			"padding-right": px(size.spacing_16),
 		},
-		".pr-m": {
+		".plr": {
+			"padding-left": px(size.spacing_12),
+			"padding-right": px(size.spacing_12),
+		},
+		".plr-8": {
+			"padding-left": px(size.spacing_8),
+			"padding-right": px(size.spacing_8),
+		},
+		".plr-vpad": {
+			"padding-left": px(size.spacing_16),
 			"padding-right": px(size.spacing_16),
 		},
 		".plr-s": {
@@ -561,7 +542,7 @@ styles.registerStyle("main", () => {
 			"padding-top": px(size.spacing_8 * 2),
 			"padding-bottom": px(size.spacing_8 * 2),
 		},
-		".pl-l": {
+		".pl-24": {
 			"padding-left": px(size.spacing_24),
 		},
 		".pr-l": {
@@ -600,6 +581,9 @@ styles.registerStyle("main", () => {
 		// negative margin to handle the default padding of a button
 		".ml-negative-24": {
 			"margin-left": px(-size.spacing_24),
+		},
+		".drag": {
+			"touch-action": "auto",
 		},
 		".fixed-bottom-right": {
 			position: "fixed",

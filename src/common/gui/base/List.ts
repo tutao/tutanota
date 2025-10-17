@@ -560,7 +560,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				attrs.renderConfig.swipe.renderLeftSpacer(),
 			),
 			m(
-				".swipe-spacer.flex.items-center.pl-l.red",
+				".swipe-spacer.flex.items-center.pl-24.red",
 				{
 					oncreate: (vnode) => (this.domSwipeSpacerRight = vnode.dom as HTMLElement),
 					tabindex: TabIndex.Programmatic,

@@ -98,7 +98,7 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 
 		return m(".rel.flex.flex-grow", [
 			m(
-				".abs.pl-vpad-s.flex.items-center",
+				".abs.pl-8.flex.items-center",
 				{ style: { top: 0, bottom: 0 } },
 				m(Icon, {
 					size: iconSize,

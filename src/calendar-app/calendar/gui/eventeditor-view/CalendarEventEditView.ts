@@ -322,7 +322,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				options: stream(options),
 				expanded: true,
 				selected,
-				classes: ["button-min-height", "pl-vpad-s", "pr-vpad-s"],
+				classes: ["button-min-height", "pl-8", "pr-vpad-s"],
 				renderOption: (option) => this.renderCalendarOptions(option, deepEqual(option.value, selected.value), false),
 				renderDisplay: (option) => this.renderCalendarOptions(option, false, true),
 				ariaLabel: lang.get("calendar_label"),

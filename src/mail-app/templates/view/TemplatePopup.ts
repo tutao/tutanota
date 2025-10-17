@@ -218,7 +218,7 @@ export class TemplatePopup implements ModalComponent {
 	_renderHeader(): Children {
 		const selectedTemplate = this._templateModel.getSelectedTemplate()
 
-		return m(".flex-space-between.center-vertically.pl.pr-s", [
+		return m(".flex-space-between.center-vertically.pl-12.pr-s", [
 			m(".flex-start", [m(".flex.center-vertically", this._renderSearchBar()), this._renderAddButton()]),
 			m(".flex-end", [
 				selectedTemplate

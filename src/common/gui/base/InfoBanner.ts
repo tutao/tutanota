@@ -43,7 +43,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 					}
 				: undefined
 		return m(
-			".center-vertically.border-bottom.pr-s.pl.border-radius.mt-4",
+			".center-vertically.border-bottom.pr-s.pl-12.border-radius.mt-4",
 			{
 				style: {
 					border: `solid 2px ${type === BannerType.Warning ? theme.warning : theme.outline}`,

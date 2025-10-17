@@ -460,14 +460,14 @@ export class MailListView implements Component<MailListViewAttrs> {
 					m(Icon, {
 						icon: Icons.Cancel,
 					}),
-					m(".pl-s", lang.get("cancel_action")), // if this is the drafts folder, we can only cancel the selection as we have nowhere else to put the mail
+					m(".pl-4", lang.get("cancel_action")), // if this is the drafts folder, we can only cancel the selection as we have nowhere else to put the mail
 				]
 			: [
 					m(Icon, {
 						icon: Icons.Folder,
 					}),
 					m(
-						".pl-s",
+						".pl-4",
 						this.showingSpamOrTrash
 							? lang.get("recover_label") // show "recover" if this is the trash/spam folder
 							: this.showingArchive // otherwise show "inbox" or "archive" depending on the folder
@@ -482,7 +482,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			m(Icon, {
 				icon: Icons.Trash,
 			}),
-			m(".pl-s", lang.get("delete_action")),
+			m(".pl-4", lang.get("delete_action")),
 		]
 	}
 }

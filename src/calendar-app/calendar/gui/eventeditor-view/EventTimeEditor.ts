@@ -59,7 +59,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 					m(".time-selection-grid.pr-vpad-s", [
 						m("", lang.get("dateFrom_label")),
 						m(
-							`${isApp() ? "" : ".pl-vpad-l"}`,
+							`${isApp() ? "" : ".pl-32"}`,
 							m(DatePicker, {
 								classes: appClasses,
 								date: attrs.editModel.startDate,
@@ -88,7 +88,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 						),
 						m("", lang.get("dateTo_label")),
 						m(
-							`${isApp() ? "" : ".pl-vpad-l"}`,
+							`${isApp() ? "" : ".pl-32"}`,
 							m(DatePicker, {
 								classes: appClasses,
 								date: attrs.editModel.endDate,

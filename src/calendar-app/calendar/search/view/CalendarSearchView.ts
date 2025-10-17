@@ -359,7 +359,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		return m(
 			".flex.col",
 			m(
-				".pl-s.flex-grow.flex-space-between.flex-column",
+				".pl-4.flex-grow.flex-space-between.flex-column",
 				m(DatePicker, {
 					date: this.searchViewModel.startDate ?? undefined,
 					onDateSelected: (date) => {
@@ -374,7 +374,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				} satisfies DatePickerAttrs),
 			),
 			m(
-				".pl-s.flex-grow.flex-space-between.flex-column",
+				".pl-4.flex-grow.flex-space-between.flex-column",
 				m(DatePicker, {
 					date: this.searchViewModel.endDate,
 					onDateSelected: (date) => {
@@ -484,7 +484,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderFilterBar(): Children {
-		return m(".flex.gap-vpad-s.pl-vpad-m.pr-vpad-m.pt-8.pb-8.scroll-x", this.renderCalendarFilterChips())
+		return m(".flex.gap-vpad-s.pl-16.pr-vpad-m.pt-8.pb-8.scroll-x", this.renderCalendarFilterChips())
 	}
 
 	private async onCalendarDateRangeSelect() {

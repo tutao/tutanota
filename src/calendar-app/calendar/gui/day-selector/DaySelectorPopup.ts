@@ -42,7 +42,7 @@ export class DaySelectorPopup implements ModalComponent {
 
 	view(): Children {
 		return m(
-			".abs.elevated-bg.plr.pt-8.pb-12.border-radius.dropdown-shadow.flex.flex-column",
+			".abs.elevated-bg.plr-12.pt-8.pb-12.border-radius.dropdown-shadow.flex.flex-column",
 			{
 				style: {
 					opacity: "0",

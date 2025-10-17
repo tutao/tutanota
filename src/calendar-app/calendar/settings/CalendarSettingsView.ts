@@ -157,7 +157,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 				view: () =>
 					m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
-						classes: this.isTabletView() ? "pr-m pl-vpad-s" : "",
+						classes: this.isTabletView() ? "pr-m pl-8" : "",
 						columnLayout: m(
 							".mlr-safe-inset.fill-absolute.content-bg.border-radius-top-left-m.border-radius-top-right-m",
 							{
@@ -218,7 +218,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 						color: theme.on_surface_variant,
 					},
 					label: "supportMenu_label",
-					text: m(".pl-s", lang.getTranslation("supportMenu_label").text),
+					text: m(".pl-4", lang.getTranslation("supportMenu_label").text),
 					icon: m(Icon, {
 						icon: Icons.SpeechBubbleFill,
 						size: IconSize.PX24,
@@ -377,7 +377,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		}
 
 		return m(
-			".flex.col.pl-vpad-m.pt-8.pb-8",
+			".flex.col.pl-16.pt-8.pb-8",
 			{
 				class: styles.isSingleColumnLayout() ? "pr-m" : "pr-vpad-s",
 			},

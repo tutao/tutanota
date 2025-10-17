@@ -332,7 +332,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 										},
 									},
 									m(
-										".pl-s.pr-s.center.small.flex.flex-column.justify-center",
+										".pl-4.pr-s.center.small.flex.flex-column.justify-center",
 										{
 											style: {
 												"line-height": isDesktopLayout ? px(layout_size.calendar_hour_height) : "unset",

@@ -286,7 +286,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		if (styles.isSingleColumnLayout()) {
 			classes += ".ml-12"
 		} else {
-			classes += ".pl-l"
+			classes += ".pl-24"
 		}
 
 		return classes

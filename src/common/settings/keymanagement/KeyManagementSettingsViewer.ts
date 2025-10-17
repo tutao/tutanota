@@ -134,7 +134,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 					m(
 						Card,
 						this.isIdentityKeyTrustDatabaseSupported
-							? m(".full-width.flex-space-between.items-center.pl-vpad-s", [
+							? m(".full-width.flex-space-between.items-center.pl-8", [
 									lang.get("keyManagement.verifyMailAddress_action"),
 									m(IconButton, {
 										title: "keyManagement.verifyMailAddress_action",
