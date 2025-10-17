@@ -37,27 +37,33 @@ export class SpamClassificationHandler {
 	sendMoveMailServiceRequest = debounce(DEBOUNCE_MOVE_MAIL_SERVICE_REQUESTS_MS, async (mailFacade: MailFacade) => {
 		// Each update to MoveMailService (for ham or spam mails that did move) requires one request
 		// We debounce the requests to a rate of DEBOUNCE_MOVE_MAIL_SERVICE_REQUESTS_MS
-		await this.sendMoveMailRequest(mailFacade, this.hamMoveMailData)
-		await this.sendMoveMailRequest(mailFacade, this.spamMoveMailData)
+		if (this.hamMoveMailData) {
+			const moveMailData = this.hamMoveMailData
+			this.hamMoveMailData = null
+			await this.sendMoveMailRequest(mailFacade, moveMailData)
+		}
+		if (this.spamMoveMailData) {
+			const moveMailData = this.spamMoveMailData
+			this.spamMoveMailData = null
+			await this.sendMoveMailRequest(mailFacade, moveMailData)
+		}
 	})
 
-	async sendMoveMailRequest(mailFacade: MailFacade, moveMailData: MoveMailData | null): Promise<void> {
-		if (moveMailData) {
-			mailFacade
-				.moveMails(moveMailData.mails, moveMailData.targetFolder, null, ClientClassifierType.CLIENT_CLASSIFICATION)
-				.catch(
-					ofClass(LockedError, (e) => {
-						// LockedError should no longer be thrown!?!
-						console.log("moving mails failed", e, moveMailData.targetFolder)
-					}),
-				)
-				.catch(
-					ofClass(PreconditionFailedError, (e) => {
-						// move mail operation may have been locked by other process
-						console.log("moving mails failed", e, moveMailData.targetFolder)
-					}),
-				)
-		}
+	async sendMoveMailRequest(mailFacade: MailFacade, moveMailData: MoveMailData): Promise<void> {
+		mailFacade
+			.moveMails(moveMailData.mails, moveMailData.targetFolder, null, ClientClassifierType.CLIENT_CLASSIFICATION)
+			.catch(
+				ofClass(LockedError, (e) => {
+					// LockedError should no longer be thrown!?!
+					console.log("moving mails failed", e, moveMailData.targetFolder)
+				}),
+			)
+			.catch(
+				ofClass(PreconditionFailedError, (e) => {
+					// move mail operation may have been locked by other process
+					console.log("moving mails failed", e, moveMailData.targetFolder)
+				}),
+			)
 	}
 
 	public async predictSpamForNewMail(mail: Mail, mailDetails: MailDetails, sourceFolder: MailFolder, folderSystem: FolderSystem): Promise<MailFolder> {

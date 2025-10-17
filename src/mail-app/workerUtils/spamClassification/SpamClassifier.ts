@@ -38,7 +38,6 @@ import type { Tensor } from "@tensorflow/tfjs-core"
 import type { ModelArtifacts } from "@tensorflow/tfjs-core/dist/io/types"
 import type { ModelFitArgs } from "@tensorflow/tfjs-layers"
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
-import { Mail } from "../../../common/api/entities/tutanota/TypeRefs"
 
 assertWorkerOrNode()
 
@@ -64,7 +63,7 @@ export type SpamPredMailDatum = {
 	ownerGroup: Id
 }
 
-const PREDICTION_THRESHOLD = 0.5
+const PREDICTION_THRESHOLD = 0.55
 
 export type PreprocessConfiguration = {
 	isPreprocessMails: boolean
