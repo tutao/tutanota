@@ -1,5 +1,5 @@
 import { createMoveMailData, Mail, MailDetails, MailFolder, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs"
-import { MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { MailSetKind, ProcessingState, SpamDecision } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { assertNotNull, debounce, isNotNull, Nullable, ofClass } from "@tutao/tutanota-utils"
@@ -34,8 +34,7 @@ export class SpamClassificationHandler {
 		if (this.classifierResultServiceMailIds.length) {
 			const mailIds = this.classifierResultServiceMailIds
 			this.classifierResultServiceMailIds = []
-			//FIXME: change the state to reflect the enum.
-			return mailFacade.updateMailProcessingState(mailIds, true)
+			return mailFacade.updateMailProcessingState(mailIds, ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_MADE)
 		}
 	})
 
@@ -138,7 +137,7 @@ export class SpamClassificationHandler {
 		await this.spamClassifier?.storeSpamClassification(spamTrainMailDatum)
 	}
 
-	// visible for testing
+	// visibleForTesting
 	public getSpamConfidence(mail: Mail): number {
 		return Number(mail.clientSpamClassifierResult?.confidence ?? DEFAULT_IS_SPAM_CONFIDENCE)
 	}

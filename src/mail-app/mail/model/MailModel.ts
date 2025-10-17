@@ -5,7 +5,6 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 import {
 	assertNotNull,
 	collectToMap,
-	downcast,
 	getFirstOrThrow,
 	groupBy,
 	groupByAndMap,
@@ -34,6 +33,7 @@ import {
 	MailSetKind,
 	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	OperationType,
+	ProcessingState,
 	ReportMovedMailsType,
 	SimpleMoveMailTarget,
 	SystemFolderType,
@@ -58,7 +58,6 @@ import { TutanotaError } from "@tutao/tutanota-error"
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { isExpectedErrorForSynchronization } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { isWebClient } from "../../../common/api/common/Env"
-import { emitWizardEvent } from "../../../common/gui/base/WizardDialog"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -188,78 +187,85 @@ export class MailModel {
 	}
 
 	// visibleForTesting
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<{ processingDone: Promise<void> }> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				await this.init()
 				m.redraw()
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.UPDATE) {
-				const spamHandler = this.spamHandler()
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
-				//TODO: Fix by fetching like with create
 				const mail = await this.loadMail(mailId)
 				if (mail == null) {
-					return { inboxRuleProcessed: Promise.resolve() }
+					return { processingDone: Promise.resolve() }
 				}
+				const spamHandler = this.spamHandler()
 				await spamHandler.updateSpamClassificationData(mail)
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
-
 				const mail = await this.loadMail(mailId)
 				if (mail == null) {
-					return
+					return { processingDone: Promise.resolve() }
 				}
 
-				// FIXME
-				if (mail?.processingState) {
-					return
+				// If an inbox rule has been applied or a spam prediction has been made
+				// we can return, because those are the two final processing states
+				if (
+					mail.processingState === ProcessingState.INBOX_RULE_APPLIED ||
+					mail.processingState === ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_MADE
+				) {
+					return { processingDone: Promise.resolve() }
+				}
+
+				// The webapp currently does not support spam prediction, and the inbox rule has been processed
+				if (isWebClient() && mail.processingState === ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING) {
+					return { processingDone: Promise.resolve() }
+				}
+
+				const sourceMailFolder = this.getMailFolderForMail(mail)
+				if (sourceMailFolder == null) {
+					return { processingDone: Promise.resolve() }
 				}
 
 				if (sourceMailFolder.folderType === MailSetKind.INBOX || sourceMailFolder.folderType === MailSetKind.SPAM) {
+					const isLeaderClient = this.connectivityModel?.isLeader() ?? false
+					const isRuleTargetFolder = await this.getMailboxDetailsForMail(mail).then((mailboxDetail) => {
+						// We only apply rules on server if we are the leader in case of incoming messages
+						return mailboxDetail && this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, isLeaderClient)
+					})
+
 					if (!isWebClient()) {
 						const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 						this.spamHandler().storeTrainingDatum(mail, mailDetails)
+					} else {
+						// we only need to show notifications explicitly on the webapp
+						this._showNotification(isRuleTargetFolder ?? sourceMailFolder, mail)
 					}
-					const isLeaderClient = this.connectivityModel?.isLeader() ?? false
 
-					if (!isLeaderClient) {
-						return { inboxRuleProcessed: Promise.resolve() }
-					}
-					const isInboxRuleApplied =
-						(await this.getMailboxDetailsForMail(mail).then((mailboxDetail) => {
-							return mailboxDetail && this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, true)
-						})) ?? null
-
-					if (isInboxRuleApplied) {
-						return { inboxRuleProcessed: Promise.resolve() }
-					} else if (mail.clientSpamClassifierResult == null) {
-						const sourceMailFolder = this.getMailFolderForMail(mail)
+					if (isRuleTargetFolder) {
+						return { processingDone: Promise.resolve() }
+					} else if (
+						mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
+						mail.processingState === ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING
+					) {
 						const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 						if (sourceMailFolder && folderSystem) {
-							this.spamHandler().predictSpamForNewMail(mail, sourceMailFolder, folderSystem)
+							const predictPromise = this.spamHandler().predictSpamForNewMail(mail, sourceMailFolder, folderSystem)
+							return { processingDone: predictPromise }
 						}
 					}
 				}
-
-				// show notification // Do we do this even if we're not the leader client? Yes right?
-				// TODO: refactor so that notification works
-				// mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => {
-				this._showNotification(targetFolder ?? initialMailFolder, mail)
-				// })
-				return { inboxRuleProcessed: downcast<Promise<void>>(mailFolderAfterInboxRuleAndSpamProcessing) }
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
-
 				await this.spamHandler().dropClassificationData(mailId)
 			}
 		}
-		return { inboxRuleProcessed: Promise.resolve() }
+		return { processingDone: Promise.resolve() }
 	}
 
 	public async loadMail(mailId: IdTuple): Promise<Nullable<Mail>> {
 		return await this.entityClient.load(MailTypeRef, mailId).catch((e) => {
 			if (isExpectedErrorForSynchronization(e)) {
-				console.log(`Could not find updated mail ${JSON.stringify(mailId)}`)
+				console.log(`Could not find mail ${JSON.stringify(mailId)}`)
 				return null
 			}
 			throw e
@@ -404,11 +410,6 @@ export class MailModel {
 		const excludeFolder = excludedFolderType != null ? assertNotNull(folderSystem.getSystemFolderByType(excludedFolderType))._id : null
 		return await this.mailFacade.moveMails(mails, targetFolder._id, excludeFolder)
 	}
-
-	async trashMails(mails: readonly IdTuple[]): Promise<MovedMails[]> {
-		return await this.mailFacade.simpleMoveMails(mails, MailSetKind.TRASH, null)
-	}
-
 	/**
 	 * Finally deletes all given mails. Caller must ensure that all mails are in folders that allows final delete operation.
 	 * @param mailIds mails to delete

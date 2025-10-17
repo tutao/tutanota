@@ -32,6 +32,7 @@ import {
 	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	OperationType,
 	PhishingMarkerStatus,
+	ProcessingState,
 	PublicKeyIdentifierType,
 	ReportedMailFieldType,
 	SimpleMoveMailTarget,
@@ -1200,7 +1201,7 @@ export class MailFacade {
 	 * Mark the given mails as read/unread
 	 * @param mails mail ids to mark as unread
 	 */
-	async updateMailProcessingState(mails: readonly IdTuple[], isInboxRuleApplied: boolean) {
+	async updateMailProcessingState(mails: readonly IdTuple[], processingState: ProcessingState) {
 		await promiseMap(
 			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
 			async (mails) =>
@@ -1208,7 +1209,7 @@ export class MailFacade {
 					ClientClassifierResultService,
 					createClientClassifierResultPostIn({
 						mails, //TODO: Fix this
-                        isPredictionMade: !isWebClient(),
+						isPredictionMade: !isWebClient(),
 					}),
 				),
 			{ concurrency: 5 },

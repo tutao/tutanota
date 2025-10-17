@@ -1,13 +1,13 @@
 import { createMoveMailData, InboxRule, Mail, MailFolder, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { InboxRuleType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../common/api/common/TutanotaConstants"
+import { InboxRuleType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ProcessingState } from "../../../common/api/common/TutanotaConstants"
 import { isDomainName, isRegularExpression } from "../../../common/misc/FormatValidator"
-import { assertNotNull, asyncFind, debounce, debounceStart, ofClass, promiseMap, splitInChunks, throttleStart } from "@tutao/tutanota-utils"
+import { assertNotNull, asyncFind, debounce, ofClass, promiseMap, splitInChunks, throttleStart } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { elementIdPart, isSameId } from "../../../common/api/common/utils/EntityUtils"
-import { assertMainOrNode } from "../../../common/api/common/Env"
+import { assertMainOrNode, isWebClient } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { getMailHeaders } from "./MailUtils.js"
@@ -20,7 +20,7 @@ const moveMailDataPerFolder: MoveMailData[] = []
 let noRuleMatchMailIds: IdTuple[] = []
 
 const DEBOUNCE_MOVE_MAIL_SERVICE_REQUESTS_MS = 200
-const DEBOUNCE_IS_INBOX_APPLIED_STATE_SERVICE_REQUESTS_MS = 1000
+const DEBOUNCE_CLIENT_CLASSIFIER_RESULT_SERVICE_REQUESTS_MS = 1000
 
 async function sendMoveMailRequest(mailFacade: MailFacade): Promise<void> {
 	if (moveMailDataPerFolder.length) {
@@ -54,15 +54,13 @@ const processMatchingRules = throttleStart(DEBOUNCE_MOVE_MAIL_SERVICE_REQUESTS_M
 	return sendMoveMailRequest(mailFacade)
 })
 
-const processNotMatchingRules = debounce(DEBOUNCE_IS_INBOX_APPLIED_STATE_SERVICE_REQUESTS_MS, async (mailFacade: MailFacade) => {
-	// Each update to IsInboxRuleAppliedStateService (for mails that did not move) requires one request
-	// We debounce the requests to a rate of DEBOUNCE_MOVE_MAIL_SERVICE_REQUESTS_MS
-	// Mails that have been processed, but did NOT have a matching rule
-	// have their isInboxRuleApplied flag set to true
+const processNotMatchingRules = debounce(DEBOUNCE_CLIENT_CLASSIFIER_RESULT_SERVICE_REQUESTS_MS, async (mailFacade: MailFacade) => {
+	// Each update to ClientClassifierResultService (for mails that did not move) requires one request
+	// We debounce the requests to a rate of DEBOUNCE_CLIENT_CLASSIFIER_RESULT_SERVICE_REQUESTS_MS
 	if (noRuleMatchMailIds.length) {
 		const mailIds = noRuleMatchMailIds
 		noRuleMatchMailIds = []
-		return mailFacade.updateMailProcessingState(mailIds, true)
+		return mailFacade.updateMailProcessingState(mailIds, ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING)
 	}
 })
 
@@ -112,7 +110,7 @@ export class InboxRuleHandler {
 	 * @returns true if a rule matches otherwise false
 	 */
 	async findAndApplyMatchingRule(mailboxDetail: MailboxDetail, mail: Readonly<Mail>, applyRulesOnServer: boolean): Promise<MailFolder | null> {
-		const shouldApply = !mail.isInboxRuleApplied
+		const shouldApply = mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED
 
 		if (
 			mail._errors ||
@@ -148,17 +146,16 @@ export class InboxRuleHandler {
 
 				processMatchingRules(this.mailFacade)
 
-				// TODO:
-				// seems like it's already assuming it's being moved. What are the consequences in MailModel#entityEventsReceived@showNotification
-				// if for some reasone the move call failed? or client have not yet received the entity event for that move
 				return targetFolder
 			} else {
 				return null
 			}
 		} else {
-			noRuleMatchMailIds.push(mail._id)
-
-			processNotMatchingRules(this.mailFacade)
+			// if we are not on the webapp this is handled in SpamClassificationHandler
+			if (isWebClient()) {
+				noRuleMatchMailIds.push(mail._id)
+				processNotMatchingRules(this.mailFacade)
+			}
 
 			return null
 		}
