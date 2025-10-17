@@ -19,11 +19,11 @@ export async function quickMailActions(
 		const mailboxName = getMailboxName(loginController, mailboxDetail)
 
 		const newEmailAction: QuickAction = {
-			description: `${mailboxName} ${lang.get("newMail_action")}`,
+			description: `${mailboxName} ${lang.getTranslationText("newMail_action")}`,
 			exec: async () => {
 				const { newMailEditor } = await import("../editor/MailEditor")
 				const dialog = await newMailEditor(mailboxDetail)
-				dialog.show()
+				dialog?.show()
 			},
 		}
 
@@ -33,9 +33,12 @@ export async function quickMailActions(
 		if (fs == null) {
 			folderActions = []
 		} else {
+			const needsMailboxDisambiguation = mailboxDetails.length > 1
 			folderActions = fs.getIndentedList().map(({ folder }) => {
 				return {
-					description: `${mailboxName} ${getFolderName(folder)}`,
+					description: needsMailboxDisambiguation
+						? `${lang.getTranslationText("mailbox_label")} ${mailboxName} ${getFolderName(folder)}`
+						: `${lang.getTranslationText("mailbox_label")} ${getFolderName(folder)}`,
 					// TODO: this is not ideal as this will forget the selected mail in that folder. We could pull it
 					//   up from somewhere.
 					exec: () => router.routeTo("/mail/:folder", { folder: getElementId(folder) }),
