@@ -132,8 +132,8 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 				[
 					// header
 					m(`div.flex.items-center.justify-between.gap-vpad${styles.isMobileLayout() ? ".flex" : ".flex-column"}`, [
-						m(`${styles.isMobileLayout() ? ".flex.gap-hpad.items-center" : ".flex.flex-column.gap-vpad-s"}`, [
-							m(`div.items-center.justify-center.flex.gap-hpad`, [
+						m(`${styles.isMobileLayout() ? ".flex.gap-12.items-center" : ".flex.flex-column.gap-8"}`, [
+							m(`div.items-center.justify-center.flex.gap-12`, [
 								m(Icon, {
 									icon: planConfig.icon,
 									size: IconSize.PX24,
@@ -244,7 +244,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 							},
 						},
 						m(
-							".flex.flex-column.gap-vpad-s",
+							".flex.flex-column.gap-8",
 							planConfig.features.map((feature) => renderFeature(feature.label, feature.icon, feature.replacementKey)),
 						),
 					),

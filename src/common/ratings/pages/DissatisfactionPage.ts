@@ -23,7 +23,7 @@ export class DissatisfactionPage implements Component<DissatisfactionPageAttrs> 
 
 	view({ attrs: { dialog, navigate } }: Vnode<DissatisfactionPageAttrs>): Children {
 		return m(
-			"div.flex.flex-column.height-100p.gap-vpad",
+			"div.flex.flex-column.height-100p.gap-16",
 			{
 				style: {
 					padding: "1em 0",

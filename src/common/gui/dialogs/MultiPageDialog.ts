@@ -363,7 +363,7 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 
 	view(vnode: Vnode<Props>): Children {
 		return m(
-			".flex.gap-vpad-xxl.fit-content",
+			".flex.gap-64.fit-content",
 			{
 				id: "multi-page-dialog",
 				class: this.transitionClass,

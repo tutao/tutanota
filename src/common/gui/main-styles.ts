@@ -1126,29 +1126,29 @@ styles.registerStyle("main", () => {
 		".fill-grid-column": {
 			"grid-row": "1 / -1",
 		},
-		".gap-vpad": {
-			gap: px(size.spacing_16),
-		},
-		".gap-vpad-xs": {
+		".gap-4": {
 			gap: px(size.spacing_4),
 		},
-		".gap-vpad-s": {
+		".gap-8": {
 			gap: px(size.spacing_8),
 		},
-		".gap-vpad-xs-15": {
-			gap: px(size.spacing_4 * 1.5),
-		},
-		".gap-vpad-s-15": {
-			gap: px(size.spacing_8 * 1.5),
-		},
-		".gap-hpad": {
+		".gap-12": {
 			gap: px(size.spacing_12),
 		},
-		".gap-vpad-xxl": {
-			gap: px(size.spacing_64),
+		".gap-16": {
+			gap: px(size.spacing_16),
 		},
-		".gap-vpad-l": {
+		".gap-24": {
+			gap: px(size.spacing_24),
+		},
+		".gap-32": {
 			gap: px(size.spacing_32),
+		},
+		".gap-48": {
+			gap: px(size.spacing_48),
+		},
+		".gap-64": {
+			gap: px(size.spacing_64),
 		},
 		".flex": {
 			display: "flex",

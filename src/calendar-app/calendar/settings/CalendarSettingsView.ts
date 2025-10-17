@@ -202,7 +202,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 		const safeArea = isIOSApp() ? getSafeAreaInsetBottom() : 0
 
 		return m(
-			".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.items-center.gap-vpad",
+			".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.items-center.gap-16",
 			{
 				style: {
 					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.spacing_16),

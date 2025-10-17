@@ -137,7 +137,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 	}
 
 	private renderCustomColorContainer(attrs: ColorPickerViewAttrs) {
-		return m(".custom-color-container.flex.items-start.gap-hpad", [
+		return m(".custom-color-container.flex.items-start.gap-12", [
 			m("", [
 				m(TextField, {
 					value: this.customColorHex.replace("#", ""),

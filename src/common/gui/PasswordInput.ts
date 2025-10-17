@@ -21,7 +21,7 @@ export class PasswordInput implements ClassComponent<PasswordInputAttributes> {
 	private showPassword: boolean = false
 
 	view(vnode: Vnode<PasswordInputAttributes, this>): Children {
-		return m(".flex.flex-grow.full-width.justify-between.items-center.gap-vpad-s", [
+		return m(".flex.flex-grow.full-width.justify-between.items-center.gap-8", [
 			vnode.attrs.showStrength
 				? m("div", {
 						style: {

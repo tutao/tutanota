@@ -162,7 +162,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	view(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
 		return m(
-			".flex.gap-vpad-xxl.fit-content.transition-transform",
+			".flex.gap-64.fit-content.transition-transform",
 			{
 				style: {
 					transform: `translateX(${this.translate}px)`,
@@ -333,7 +333,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderCalendarOptions(option: CalendarSelectItem, isSelected: boolean, isDisplay: boolean) {
 		return m(
-			".flex.items-center.gap-vpad-s.flex-grow.overflow-hidden",
+			".flex.items-center.gap-8.flex-grow.overflow-hidden",
 			{ class: `${isDisplay ? "" : "state-bg plr-8 button-content dropdown-button pt-8 pb-8 button-min-height"}` },
 			[
 				m(".no-shrink", {
@@ -364,7 +364,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		return m(
 			Card,
 			{ classes: ["button-min-height", "flex", "items-center"] },
-			m(".flex.gap-vpad-s.items-start.flex-grow", [
+			m(".flex.gap-8.items-start.flex-grow", [
 				m(
 					".flex",
 					{
@@ -398,7 +398,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				style: { padding: "0" },
 			},
 			m(
-				".flex.gap-vpad-s.items-center",
+				".flex.gap-8.items-center",
 				m(SingleLineTextField, {
 					value: model.editModels.location.content,
 					oninput: (newValue: string) => {
@@ -438,7 +438,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderMainPage(vnode: Vnode<CalendarEventEditViewAttrs>): Children {
 		return m(
-			".pb-16.pt-16.flex.col.gap-vpad.fit-height.box-content",
+			".pb-16.pt-16.flex.col.gap-16.fit-height.box-content",
 			{
 				style: {
 					// The date picker dialogs have position: fixed, and they are fixed relative to the most recent ancestor with

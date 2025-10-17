@@ -117,7 +117,7 @@ export interface SelectState {
  *     expanded: true,
  *     selected: this.selected,
  *     renderOption: (option) => {
- *       return m(".flex.items-center.gap-vpad-xs", [
+ *       return m(".flex.items-center.gap-4", [
  *         m("div", { style: { width: "24px", height: "24px", borderRadius: "50%", backgroundColor: option.color } }),
  *       m("span", option.name),
  *       ])

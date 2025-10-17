@@ -33,7 +33,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 		const isCalendarApp = client.isCalendarApp()
 
 		return m(
-			".pt-16.pb-16.flex.gap-vpad.col",
+			".pt-16.pb-16.flex.gap-16.col",
 			m(
 				Card,
 				m(

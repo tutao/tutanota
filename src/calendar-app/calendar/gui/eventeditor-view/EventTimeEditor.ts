@@ -32,8 +32,8 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 		const appClasses = isApp() ? ["smaller"] : []
 
 		return m(".flex", [
-			m(".flex.col.flex-grow.gap-vpad-s", [
-				m(".flex.gap-vpad-s.items-center.pr-8", [
+			m(".flex.col.flex-grow.gap-8", [
+				m(".flex.gap-8.items-center.pr-8", [
 					m(Icon, {
 						icon: Icons.Time,
 						style: {
@@ -54,7 +54,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 						lang.get("allDay_label"),
 					),
 				]),
-				m(".flex.col.full-width.flex-grow.gap-vpad-s", { style: { paddingLeft: px(size.icon_24 + size.spacing_8) } }, [
+				m(".flex.col.full-width.flex-grow.gap-8", { style: { paddingLeft: px(size.icon_24 + size.spacing_8) } }, [
 					m(Divider, { color: theme.outline_variant }),
 					m(".time-selection-grid.pr-8", [
 						m("", lang.get("dateFrom_label")),

@@ -159,7 +159,7 @@ function renderVisualCaptcha(viewModel: CaptchaDialogViewModel) {
 }
 
 function renderAudioCaptcha(viewModel: CaptchaDialogViewModel) {
-	return m(".flex.col.flex-grow.gap-vpad-s", [
+	return m(".flex.col.flex-grow.gap-8", [
 		m("", viewModel.audioCaptchaDescription),
 		m(
 			"div.full-width.flex.col.justify-center",

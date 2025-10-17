@@ -122,7 +122,7 @@ export class ContactSupportPage implements Component<Props> {
 
 	view({ attrs: { data, onSuccess, isRating } }: Vnode<Props>): Children {
 		return m(
-			".flex.flex-column.pt-16.height-100p.gap-vpad",
+			".flex.flex-column.pt-16.height-100p.gap-16",
 			m(Card, m("", m("p.h4.m-0", lang.get("supportForm_title")), m("p.m-0.mt-8", data.helpText()))),
 			m(
 				Card,
@@ -137,7 +137,7 @@ export class ContactSupportPage implements Component<Props> {
 			),
 
 			m(
-				".flex.flex-column.gap-vpad.pb-16",
+				".flex.flex-column.gap-16.pb-16",
 				{
 					style: {
 						marginTop: "auto",
@@ -188,7 +188,7 @@ export class ContactSupportPage implements Component<Props> {
 				),
 				m(
 					Card,
-					m(".flex.gap-vpad-s.items-center", [
+					m(".flex.gap-8.items-center", [
 						m(
 							Switch,
 							{

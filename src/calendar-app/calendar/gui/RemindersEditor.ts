@@ -125,9 +125,9 @@ export class RemindersEditor implements Component<RemindersEditorAttrs> {
 			ariaValue: lang.get("addReminder_label"),
 		}
 
-		return m("ul.unstyled-list.flex.col.flex-grow.gap-vpad-s", [
+		return m("ul.unstyled-list.flex.col.flex-grow.gap-8", [
 			alarms.map((alarm) =>
-				m("li.flex.justify-between.flew-grow.items-center.gap-vpad-s", [
+				m("li.flex.justify-between.flew-grow.items-center.gap-8", [
 					m("span.flex.justify-between", humanDescriptionForAlarmInterval(alarm, lang.languageTag)),
 					m(
 						BaseButton,

@@ -82,7 +82,7 @@ interface WasThisHelpfulAttrs {
 class WasThisHelpful implements Component<WasThisHelpfulAttrs> {
 	view({ attrs: { goToContactSupportPage, goToSolutionWasHelpfulPage, topicName } }: Vnode<WasThisHelpfulAttrs>): Children {
 		return m(
-			".flex.flex-column.gap-vpad-s",
+			".flex.flex-column.gap-8",
 			m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("wasThisHelpful_msg")),
 			m(Card, { shouldDivide: true }, [
 				m(SectionButton, {

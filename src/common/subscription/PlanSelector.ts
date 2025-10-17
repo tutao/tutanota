@@ -129,7 +129,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 		const renderPaymentIntervalSwitch = () => {
 			return m(
-				".flex.gap-hpad.items-center",
+				".flex.gap-12.items-center",
 				m(`div.right.full-width${isYearly ? ".font-weight-600" : ""}`, lang.getTranslationText("pricing.yearly_label")),
 				m(PaymentIntervalSwitch, {
 					state: isYearly ? "left" : "right",
@@ -148,7 +148,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		}
 
 		return m(
-			"#plan-selector.flex.flex-column.gap-vpad-l",
+			"#plan-selector.flex.flex-column.gap-32",
 			{
 				style: this.shouldFixButtonPos() && {
 					"padding-bottom": px(component_size.button_floating_size + size.spacing_16),
@@ -157,7 +157,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			},
 			[
 				m(
-					".flex.flex-column.gap-vpad-l",
+					".flex.flex-column.gap-32",
 					!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) && allowSwitchingPaymentInterval && renderPaymentIntervalSwitch(),
 				),
 
@@ -174,7 +174,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					discountDetail,
 				}),
 				m(
-					".flex.flex-column.gap-vpad",
+					".flex.flex-column.gap-16",
 					m(
 						"#continue-wrapper.flex-v-center.plr-12",
 						{

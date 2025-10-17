@@ -166,7 +166,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 		showMailDropdown(event, dom)
 	}
 
-	return m(".full-width.flex.items-center.flex-end.mt-8.gap-vpad-s.mr-8", [
+	return m(".full-width.flex.items-center.flex-end.mt-8.gap-8.mr-8", [
 		contact.mailAddresses.length
 			? m(
 					singleEmailAdress && client.isCalendarApp() ? `a[href="mailto:${contact.mailAddresses[0].address}"][target=_blank].no-text-decoration` : "",

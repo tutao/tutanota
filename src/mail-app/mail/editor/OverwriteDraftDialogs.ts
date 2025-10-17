@@ -60,7 +60,7 @@ interface OverwriteRemoteDraftDialogAttrs {
 
 class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialogAttrs> {
 	view(vnode: Vnode<OverwriteRemoteDraftDialogAttrs>) {
-		return m(".pt-16.pb-16.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-16", [
 			m(TitleSection, {
 				title: lang.get("conflictDetected_label"),
 				subTitle: [
@@ -70,7 +70,7 @@ class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialog
 				icon: Icons.AlertCircleOutline,
 				iconOptions: { color: theme.error },
 			}),
-			m(Card, m(".plr-12.flex.flex-column.gap-vpad.center", lang.get("confirmOverwriteServerDraft_msg"))),
+			m(Card, m(".plr-12.flex.flex-column.gap-16.center", lang.get("confirmOverwriteServerDraft_msg"))),
 			m(LoginButton, {
 				class: "flex-center row center-vertically",
 				label: "yes_label",
@@ -142,7 +142,7 @@ interface OverwriteDraftDialogAttrs {
 
 class OverwriteDraftDialog implements Component<OverwriteDraftDialogAttrs> {
 	view(vnode: Vnode<OverwriteDraftDialogAttrs>) {
-		return m(".pt-16.pb-16.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-16", [
 			m(TitleSection, {
 				title: lang.get("confirmCreateNewDraftOverAutosavedDraft_msg"),
 				subTitle: null,

@@ -484,7 +484,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderFilterBar(): Children {
-		return m(".flex.gap-vpad-s.pl-16.pr-16.pt-8.pb-8.scroll-x", this.renderCalendarFilterChips())
+		return m(".flex.gap-8.pl-16.pr-16.pt-8.pb-8.scroll-x", this.renderCalendarFilterChips())
 	}
 
 	private async onCalendarDateRangeSelect() {

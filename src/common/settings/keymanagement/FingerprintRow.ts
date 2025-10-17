@@ -42,7 +42,7 @@ export class FingerprintRow implements Component<FingerprintRowAttrs> {
 		const { mailAddress, publicKeyFingerprint, action, publicKeyVersion, publicKeyType } = vnode.attrs
 
 		return m(Card, [
-			m(".flex.items-center.selectable.pl-8.mb-8.gap-vpad-xs", [
+			m(".flex.items-center.selectable.pl-8.mb-8.gap-4", [
 				m(Icon, {
 					icon: Icons.Shield,
 					size: IconSize.PX20,

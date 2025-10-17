@@ -86,7 +86,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 
 	view({ attrs }: Vnode<RepeatRuleEditorAttrs>): Children {
 		return m(
-			".pb-16.pt-16.flex.col.gap-vpad.fit-height",
+			".pb-16.pt-16.flex.col.gap-16.fit-height",
 			{
 				class: this.repeatRuleType !== null ? "box-content" : "",
 				style: {
@@ -144,7 +144,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					style: {
 						padding: `${size.spacing_16}px`,
 					},
-					classes: ["flex", "col", "gap-vpad-s", "rel"],
+					classes: ["flex", "col", "gap-8", "rel"],
 				},
 				[
 					m(RadioGroup, {
@@ -286,7 +286,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 						noIcon: false,
 						expanded: false,
 						classes: ["no-appearance"],
-						renderDisplay: (option) => m(".flex.items-center.gap-vpad-s", [m("span", this.getNameAndAppendTimeFormat(option))]),
+						renderDisplay: (option) => m(".flex.items-center.gap-8", [m("span", this.getNameAndAppendTimeFormat(option))]),
 						renderOption: (option) =>
 							m(
 								"button.items-center.flex-grow",

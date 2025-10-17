@@ -190,7 +190,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 							},
 							[
 								m(".flex.flex-column.mb-8", [
-									m(".flex.items-center.gap-vpad-xs", [
+									m(".flex.items-center.gap-4", [
 										m(Icon, {
 											icon: Icons.Time,
 											container: "div",
@@ -235,7 +235,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	private renderConflictInfoText(conflictCount: number, allDayEvents: Array<TimeViewEventWrapper>) {
 		const hasOnlyAllDayConflicts = conflictCount > 0 && conflictCount === allDayEvents.length
 		return m(
-			".small.flex.gap-vpad-xs-15.items-center",
+			".small.flex.gap-8.items-center",
 			{
 				style: {
 					"line-height": px(19.5),

@@ -80,7 +80,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 			participation.ownAttendee.status === status ? highlightColors : colors,
 		)
 
-	return m(".flex.items-center.mt-8.gap-vpad-s.fit-content", [
+	return m(".flex.items-center.mt-8.gap-8.fit-content", [
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.ACCEPTED, "yes_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.TENTATIVE, "maybe_label")),
 		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.DECLINED, "no_label")),
@@ -125,7 +125,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	private renderRow(headerIcon: AllIcons, children: Children, isAlignedLeft: boolean = false, isEventTitle: boolean = false): Children {
-		return m(".flex.gap-hpad.mb-8", [
+		return m(".flex.gap-12.mb-8", [
 			this.renderSectionIndicator(headerIcon, isAlignedLeft ? { marginTop: isEventTitle ? "6px" : "2px" } : undefined),
 			m(".selectable.full-width.align-self-center.text-break", children),
 		])
@@ -257,7 +257,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	private renderCalendar(calendarName: string, calendarColor: string, calendarRenderType: TranslationKey) {
-		return m(".flex.gap-hpad.mb-8", [
+		return m(".flex.gap-12.mb-8", [
 			m(
 				".flex.items-center.justify-center",
 				{

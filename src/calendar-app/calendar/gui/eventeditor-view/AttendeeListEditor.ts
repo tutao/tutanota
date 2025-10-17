@@ -49,9 +49,9 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const { whoModel } = attrs.model.editModels
 		const organizer = whoModel.organizer
 		return [
-			m(".flex-grow.flex.flex-column.gap-vpad.pb-16.pt-16.fit-height", { style: { width: px(attrs.width) } }, [
+			m(".flex-grow.flex.flex-column.gap-16.pb-16.pt-16.fit-height", { style: { width: px(attrs.width) } }, [
 				this.renderOrganizer(attrs.model, organizer),
-				m(".flex.flex-column.gap-vpad-s", [
+				m(".flex.flex-column.gap-8", [
 					m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("guests_label")),
 					whoModel.canModifyGuests ? this.renderGuestsInput(whoModel, attrs.logins, attrs.recipientsSearch) : null,
 					this.renderSendUpdateCheckbox(attrs.model.editModels.whoModel),
@@ -90,7 +90,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			? m(
 					Card,
 					{
-						classes: ["min-h-s flex flex-column gap-vpad-s"],
+						classes: ["min-h-s flex flex-column gap-8"],
 						style: {
 							padding: `${px(verticalPadding)} ${px(guestItems.length === 0 ? size.spacing_8 : 0)} ${px(size.spacing_8)} ${px(verticalPadding)}`,
 						},
@@ -110,7 +110,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 		const guests = whoModel.guests
 		const hasExternalGuests = guests.some((a) => a.type === RecipientType.EXTERNAL)
 
-		return m(".flex.items-center.flex-grow.gap-vpad-s", [
+		return m(".flex.items-center.flex-grow.gap-8", [
 			m(Card, { style: { padding: "0" }, classes: ["flex-grow"] }, [
 				m(".flex.flex-grow.rel.button-height", [
 					m(GuestPicker, {

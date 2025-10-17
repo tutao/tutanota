@@ -592,7 +592,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								expanded: this.filesExpanded,
 							},
 							m(".flex.col." + responsiveCardHMargin(), [
-								m(".flex.flex-wrap.gap-hpad", this.renderAttachmentContainer(viewModel, attachments, importFile)),
+								m(".flex.flex-wrap.gap-12", this.renderAttachmentContainer(viewModel, attachments, importFile)),
 								isIOSApp()
 									? null
 									: m(
