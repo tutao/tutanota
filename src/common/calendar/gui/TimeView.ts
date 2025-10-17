@@ -174,7 +174,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			},
 			times.map((time, index) =>
 				m(
-					".flex.ptb-16.small.pr-8.border-right.rel.items-center",
+					".flex.pt-16.pb-16.small.pr-8.border-right.rel.items-center",
 					{
 						class: index !== times.length - 1 ? "after-as-border-bottom" : "",
 					},
