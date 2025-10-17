@@ -119,7 +119,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			href: this._getUrl(a.href),
 			style: {
 				"font-size": a.fontSize ? px(a.fontSize) : "",
-				color: this._draggedOver || isNavButtonSelected(a) ? theme.primary : theme.on_surface_variant,
+				color: this._draggedOver || isNavButtonSelected(a) ? theme.primary : theme.on_surface,
 				...(isCurrent && { background: theme.state_bg_active }),
 			},
 			title: lang.getTranslationText(a.label),

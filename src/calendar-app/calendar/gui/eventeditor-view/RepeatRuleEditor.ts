@@ -96,7 +96,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 			[
 				this.hasUnsupportedRules ? this.renderUnsupportedAdvancedRulesWarning() : null,
 				m(".flex.col", [
-					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText("frequency_title")),
+					m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface } }, lang.getTranslationText("frequency_title")),
 					m(
 						Card,
 						{
@@ -137,7 +137,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		}
 
 		return m(".flex.col", [
-			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("calendarRepeatStopCondition_label")),
+			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface } }, lang.get("calendarRepeatStopCondition_label")),
 			m(
 				Card,
 				{
@@ -169,7 +169,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 		}
 
 		return m(".flex.col", [
-			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("interval_title")),
+			m("small.uppercase.pb-s.b.text-ellipsis", { style: { color: theme.on_surface } }, lang.get("interval_title")),
 			m(
 				Card,
 				{

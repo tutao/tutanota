@@ -799,7 +799,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				style: {
 					marginInline: "auto",
 					border: `1px solid ${theme.on_surface_variant}`,
-					color: theme.on_surface_variant,
+					color: theme.on_surface,
 				},
 				label: "supportMenu_label",
 				text: m(".pl-s", lang.getTranslation("supportMenu_label").text),

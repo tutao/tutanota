@@ -250,7 +250,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						".span.strike.pt-s",
 						{
 							style: {
-								color: theme.on_surface_variant,
+								color: theme.on_surface,
 								fontSize: px(size.font_size_base),
 								...(!isApplePrice && { "justify-self": "end" }),
 							},

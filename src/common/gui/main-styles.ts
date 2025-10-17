@@ -2662,7 +2662,7 @@ styles.registerStyle("main", () => {
 		".custom-color-container .inputWrapper:before": {
 			// slash in content is content alt. so that it's ignored by screen readers
 			content: '"#" / ""',
-			color: theme.on_surface_variant,
+			color: theme.on_surface,
 		},
 		".success-container": {
 			"background-color": theme.success_container,
