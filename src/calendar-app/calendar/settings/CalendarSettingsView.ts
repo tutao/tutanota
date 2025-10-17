@@ -418,9 +418,9 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
 		if (args.folder || !m.route.get().startsWith(SETTINGS_PREFIX)) {
 			// ensure that current viewer will be reinitialized
-			const folder = this._allSettingsFolders().find((folder) => folder.url === requestedPath)
+			const folder = this._allSettingsFolders().find((folder) => folder.matches(args.folder, args.id))
 
-			if (folder && this.selectedFolder.path === folder.path) {
+			if (folder && this.selectedFolder.isSameFolder(folder)) {
 				// folder path has not changed
 				this.selectedFolder = folder // instance of SettingsFolder might have been changed in membership update, so replace this instance
 
