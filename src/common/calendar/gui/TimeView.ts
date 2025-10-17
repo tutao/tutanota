@@ -67,6 +67,8 @@ const BASE_EVENT_BUBBLE_SPAN_SIZE = 1
 
 export class TimeView implements Component<TimeViewAttributes> {
 	private timeRowHeight?: number
+	private parentHeight?: number
+
 	private blockingGroupsCache: Map<Id, Array<Map<Id, boolean>>> = new Map()
 	private expandabilityCache: Map<Id, BlockingInfo> = new Map()
 	private eventIdToOriginalColumnArrayIndex: Map<Id, number> = new Map()
@@ -87,7 +89,9 @@ export class TimeView implements Component<TimeViewAttributes> {
 				oninit: (vnode: VnodeDOM) => {
 					if (this.timeRowHeight == null) {
 						window.requestAnimationFrame(() => {
-							this.timeRowHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replaceAll("px", "")) / subRowCount
+							const domHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replace("px", ""))
+							this.timeRowHeight = domHeight / subRowCount
+							this.parentHeight = domHeight
 							m.redraw()
 						})
 					}
@@ -99,6 +103,9 @@ export class TimeView implements Component<TimeViewAttributes> {
 					return m(
 						".grid.plr-unit.gap.z1.grid-auto-columns.rel.border-right",
 						{
+							style: {
+								height: this.parentHeight ? px(this.parentHeight) : undefined,
+							},
 							oncreate(vnode): any {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 							},
