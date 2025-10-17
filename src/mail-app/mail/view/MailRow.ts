@@ -54,7 +54,7 @@ const MAX_DISPLAYED_LABELS = 6
 
 export class MailRow implements VirtualRow<Mail> {
 	top: number
-	domElement: HTMLElement | null = null
+	private domElement: HTMLElement | null = null
 
 	entity: Mail | null = null
 	private subjectDom!: HTMLElement

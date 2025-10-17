@@ -135,7 +135,6 @@ export class CustomColorEditorPreview implements Component {
 					".list-row.pl.pr-l.odd-row",
 					{
 						oncreate: (vnode) => {
-							this._mailRow.domElement = vnode.dom as HTMLElement
 							requestAnimationFrame(() => this._mailRow.update(mail, false, false))
 						},
 					},
@@ -145,7 +144,6 @@ export class CustomColorEditorPreview implements Component {
 					".list-row.pl.pr-l",
 					{
 						oncreate: (vnode) => {
-							this._mailRow2.domElement = vnode.dom as HTMLElement
 							requestAnimationFrame(() => this._mailRow2.update(mail2, true, false))
 						},
 						style: {

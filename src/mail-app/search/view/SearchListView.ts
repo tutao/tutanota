@@ -169,8 +169,6 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 
 export class SearchResultListRow implements VirtualRow<SearchResultListEntry> {
 	top: number
-	// set from List
-	domElement: HTMLElement | null = null
 
 	// this is our own entry which we need for some reason (probably easier to deal with than a lot of sum type entries)
 	private _entity: SearchResultListEntry | null = null
@@ -186,7 +184,6 @@ export class SearchResultListRow implements VirtualRow<SearchResultListEntry> {
 	}
 
 	update(entry: SearchResultListEntry, selected: boolean, isInMultiSelect: boolean): void {
-		this._delegate.domElement = this.domElement
 		this._entity = entry
 
 		this._delegate.update(downcast(entry.entry), selected, isInMultiSelect)
