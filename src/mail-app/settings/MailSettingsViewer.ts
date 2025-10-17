@@ -357,7 +357,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				[
 					this.customerInfo != null && Number(this.customerInfo.perUserStorageCapacity) > 0
 						? [
-								m(".h4.mt-l", lang.get("storageCapacity_label")),
+								m(".h4.mt-l#storagecapacity", lang.get("storageCapacity_label")),
 								m(TextField, {
 									label: "storageCapacity_label",
 									value: this._storageFieldValue(),
@@ -366,31 +366,34 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								}),
 							]
 						: null,
-					m(".h4.mt-l", lang.get("general_label")),
-					m(DropDownSelector, conversationViewDropdownAttrs),
-					m(DropDownSelector, mailListDisplayMode),
-					isBrowser() ? m(DropDownSelector, enableMailIndexingAttrs) : null,
-					m(DropDownSelector, behaviorAfterMoveEmailAction),
-					m(".h4.mt-l", lang.get("emailSending_label")),
-					m(DropDownSelector, defaultSenderAttrs),
-					m(TextField, signatureAttrs),
+					m(".h4.mt-l#general", lang.get("general_label")),
+					m("#conversationthread", m(DropDownSelector, conversationViewDropdownAttrs)),
+					m("#maillistgrouping", m(DropDownSelector, mailListDisplayMode)),
+					isBrowser() ? m("#mailindexing", m(DropDownSelector, enableMailIndexingAttrs)) : null,
+					m("#maillistgrouping", m(DropDownSelector, behaviorAfterMoveEmailAction)),
+					m(".h4.mt-l#emailsending", lang.get("emailSending_label")),
+					m("#defaultsender", m(DropDownSelector, defaultSenderAttrs)),
+					m("#signature", m(TextField, signatureAttrs)),
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, sendPlaintextAttrs),
-					m(DropDownSelector, reportMovedMailsAttrs),
-					m(TextField, outOfOfficeAttrs),
+					m("#spamreports", m(DropDownSelector, reportMovedMailsAttrs)),
+					m("#outofoffice", m(TextField, outOfOfficeAttrs)),
 					this.renderLocalDataSection(),
 					this.mailAddressTableModel
-						? m(MailAddressTable, {
-								model: this.mailAddressTableModel,
-								expanded: this.mailAddressTableExpanded,
-								onExpanded: (newExpanded) => (this.mailAddressTableExpanded = newExpanded),
-							})
+						? m(
+								"#mailaddresses",
+								m(MailAddressTable, {
+									model: this.mailAddressTableModel,
+									expanded: this.mailAddressTableExpanded,
+									onExpanded: (newExpanded) => (this.mailAddressTableExpanded = newExpanded),
+								}),
+							)
 						: null,
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [
 								m(".flex-space-between.items-center.mt-l.mb-s", [
-									m(".h4", lang.get("inboxRulesSettings_action")),
+									m(".h4#inboxrules", lang.get("inboxRulesSettings_action")),
 									m(ExpanderButton, {
 										label: "showInboxRules_action",
 										expanded: this._inboxRulesExpanded(),
@@ -426,7 +429,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			? lang.get("storedDataTimeRange_label", { "{numDays}": OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS })
 			: lang.get("storedDataDate_label", { "{date}": formatDate(this.offlineStorageSettings.getTimeRange()) })
 		return [
-			m(".h4.mt-l", lang.get("localDataSection_label")),
+			m(".h4.mt-l#localdata", lang.get("localDataSection_label")),
 			m(TextField, {
 				label: "emptyString_msg",
 				// Negative upper margin to make up for no label
