@@ -171,7 +171,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 					},
 				}),
 				m(
-					".flex.mt-s",
+					".flex.mt-8",
 					{
 						style: {
 							"justify-content": position === "right" ? "start" : "end",
@@ -183,7 +183,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						? m(PlanBadge, { langKey: isCurrentPlan ? "pricing.currentPlan_label" : "unavailable_label" })
 						: m(".smaller", lang.get(planConfig.tagLine)),
 				),
-				m(".flex-space-between.gap-hpad.mt.mb", { style: { "flex-direction": position === "right" ? "row-reverse" : "row" } }, [
+				m(".flex-space-between.gap-hpad.mt-16.mb-16", { style: { "flex-direction": position === "right" ? "row-reverse" : "row" } }, [
 					m(
 						"",
 						{
