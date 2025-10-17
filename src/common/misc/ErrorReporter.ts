@@ -226,7 +226,7 @@ export async function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 
 	const info = () => [
 		m(
-			".flex.col.items-end.plr",
+			".flex.col.items-end.plr-12",
 			{
 				style: {
 					marginTop: "-16px",
@@ -250,7 +250,7 @@ export async function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 			},
 			[
 				m(
-					".flex-end.plr",
+					".flex-end.plr-12",
 					m(Button, {
 						label: "copy_action",
 						click: () => copyToClipboard(message),
@@ -258,7 +258,7 @@ export async function showErrorDialogNotLoggedIn(e: ErrorInfo): Promise<void> {
 					}),
 				),
 				m(
-					".plr.selectable.pb-16.scroll.text-pre",
+					".plr-12.selectable.pb-16.scroll.text-pre",
 					{
 						style: {
 							height: px(200),

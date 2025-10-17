@@ -176,7 +176,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				m(
 					".flex.flex-column.gap-vpad",
 					m(
-						"#continue-wrapper.flex-v-center.plr",
+						"#continue-wrapper.flex-v-center.plr-12",
 						{
 							style: this.shouldFixButtonPos() && {
 								position: "fixed",

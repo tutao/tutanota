@@ -43,7 +43,7 @@ class SnackBar implements Component<SnackBarAttrs> {
 		return m(
 			".snackbar-content.flex.flex-space-between.border-radius.pb-4.pt-4",
 			{
-				class: vnode.attrs.dismissButton ? "pl-12" : "plr",
+				class: vnode.attrs.dismissButton ? "pl-12" : "plr-12",
 				onmouseenter: () => {
 					vnode.attrs.onHoverChange(true)
 				},

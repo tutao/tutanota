@@ -211,7 +211,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			[
 				// Support button
 				m(BaseButton, {
-					class: "flash flex justify-center center-vertically pt-8 pb-8 plr border-radius",
+					class: "flash flex justify-center center-vertically pt-8 pb-8 plr-12 border-radius",
 					style: {
 						marginInline: "auto",
 						border: `1px solid ${theme.outline}`,

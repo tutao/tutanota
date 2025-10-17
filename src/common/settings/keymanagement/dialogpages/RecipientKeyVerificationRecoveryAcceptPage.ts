@@ -27,7 +27,7 @@ export class RecipientKeyVerificationRecoveryAcceptPage implements Component<Ver
 			}),
 			m(
 				Card,
-				m(".plr.flex.flex-column.gap-vpad.pt-8.pb-8", [
+				m(".plr-12.flex.flex-column.gap-vpad.pt-8.pb-8", [
 					m("", m.trust(contactUpdatedText)),
 					m(ExternalLink, {
 						isCompanySite: true,

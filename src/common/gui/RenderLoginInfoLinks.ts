@@ -21,7 +21,7 @@ export function renderInfoLinks(): Children {
 				? m(ExternalLink, {
 						href: privacyPolicyLink,
 						text: lang.get("privacyLink_label"),
-						class: "plr",
+						class: "plr-12",
 						isCompanySite: true,
 						specialType: "privacy-policy",
 					})
@@ -30,7 +30,7 @@ export function renderInfoLinks(): Children {
 				? m(ExternalLink, {
 						href: imprintLink,
 						text: lang.get("imprint_label"),
-						class: "plr",
+						class: "plr-12",
 						isCompanySite: true,
 						specialType: "license",
 					})

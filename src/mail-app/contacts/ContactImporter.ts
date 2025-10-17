@@ -298,7 +298,7 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 				],
 			} satisfies DialogHeaderBarAttrs),
 			/** variable-size child container that may be scrollable. */
-			m(".dialog-max-height.plr-s.pb-16.text-break.nav-bg", [
+			m(".dialog-max-height.plr-4.pb-16.text-break.nav-bg", [
 				m(
 					".list-bg.border-radius.mt-8.ml-8.mr-8",
 					m(SelectAllCheckbox, {

@@ -597,10 +597,6 @@ styles.registerStyle("main", () => {
 			"padding-left": px(size.spacing_64),
 			"padding-right": px(size.spacing_64),
 		},
-		".plr": {
-			"padding-left": px(size.spacing_12),
-			"padding-right": px(size.spacing_12),
-		},
 		".pl-4": {
 			"padding-left": px(size.spacing_4),
 		},

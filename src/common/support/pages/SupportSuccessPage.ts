@@ -26,7 +26,7 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 				Card,
 				{ shouldDivide: true },
 				m(
-					".plr",
+					".plr-12",
 					m(".h4.center.pb-8.pt-8", lang.get("supportSuccess_msg")),
 					m("p.center.m-0", lang.get("supportRatingRequest_msg")),
 					m(

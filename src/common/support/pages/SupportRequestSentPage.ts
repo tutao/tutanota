@@ -54,7 +54,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 				),
 			),
 			isCalendarApp
-				? m(Card, { shouldDivide: true }, m(".plr.pt-16.pb-16", "You can access the response in Tuta Mail using your Tuta Calendar credentials."), [
+				? m(Card, { shouldDivide: true }, m(".plr-12.pt-16.pb-16", "You can access the response in Tuta Mail using your Tuta Calendar credentials."), [
 						m(SectionButton, {
 							text: "getTutaMail_action",
 							onclick: () => {

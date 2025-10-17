@@ -78,7 +78,7 @@ export class LabelsPopup implements ModalComponent {
 							const opacity = !canToggleLabel ? 0.5 : undefined
 
 							return m(
-								"label-item.flex.items-center.plr.state-bg.cursor-pointer",
+								"label-item.flex.items-center.plr-12.state-bg.cursor-pointer",
 
 								{
 									"data-labelid": getElementId(label),

@@ -40,7 +40,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 			}),
 			m(
 				Card,
-				m(".plr.flex.flex-column.gap-vpad.pt-8.pb-8", [
+				m(".plr-12.flex.flex-column.gap-vpad.pt-8.pb-8", [
 					lang.get("keyManagement.mailRecipientsVerificationMismatchError_msg"),
 					m(
 						"",
@@ -80,7 +80,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 				icon: Icons.CheckCircleOutline,
 				iconOptions: { color: theme.success },
 			}),
-			m(Card, m(".plr.flex.flex-column.gap-vpad.pt-8.pb-8", [message])),
+			m(Card, m(".plr-12.flex.flex-column.gap-vpad.pt-8.pb-8", [message])),
 		])
 	}
 

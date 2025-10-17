@@ -21,7 +21,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 			m(
 				Card,
 				{ shouldDivide: true },
-				m("div.pt-8.pb-8.plr", [
+				m("div.pt-8.pb-8.plr-12", [
 					m(".h4.mt-4", lang.get("supportNoDirectSupport_title")),
 					m("p", lang.get("supportNoDirectSupport_msg")),
 					m("img.block", {

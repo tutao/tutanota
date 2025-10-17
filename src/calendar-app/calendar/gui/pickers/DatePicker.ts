@@ -213,7 +213,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		// We would like to show the date being typed in the dropdown
 		const dropdownDate = this.parseDate(this.inputText) ?? date ?? new Date()
 		return m(
-			".content-bg.z3.menu-shadow.plr.pb-8",
+			".content-bg.z3.menu-shadow.plr-12.pb-8",
 			{
 				"aria-modal": "true",
 				"aria-label": lang.get(label),

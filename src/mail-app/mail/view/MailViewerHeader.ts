@@ -539,7 +539,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		if (viewModel.isLoadingAttachments() && !viewModel.isConnectionLost()) {
 			return m(".flex." + responsiveCardHMargin(), [
 				m(".flex-v-center.pl-8", progressIcon()),
-				m(".small.flex-v-center.plr.button-height", lang.get("loading_msg")),
+				m(".small.flex-v-center.plr-12.button-height", lang.get("loading_msg")),
 			])
 		} else {
 			const attachments = viewModel.getNonInlineAttachments()

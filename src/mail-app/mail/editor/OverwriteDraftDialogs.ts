@@ -70,7 +70,7 @@ class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialog
 				icon: Icons.AlertCircleOutline,
 				iconOptions: { color: theme.error },
 			}),
-			m(Card, m(".plr.flex.flex-column.gap-vpad.center", lang.get("confirmOverwriteServerDraft_msg"))),
+			m(Card, m(".plr-12.flex.flex-column.gap-vpad.center", lang.get("confirmOverwriteServerDraft_msg"))),
 			m(LoginButton, {
 				class: "flex-center row center-vertically",
 				label: "yes_label",
