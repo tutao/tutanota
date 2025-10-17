@@ -4,10 +4,8 @@ import { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../wor
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { assertNotNull, debounce, isNotNull, Nullable, ofClass } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
-import { EntityClient } from "../../../common/api/common/EntityClient"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 
 const DEBOUNCE_MOVE_MAIL_SERVICE_REQUESTS_MS = 500
@@ -20,8 +18,6 @@ export class SpamClassificationHandler {
 	public constructor(
 		private readonly mailFacade: MailFacade,
 		private readonly spamClassifier: Nullable<SpamClassifier>,
-		private readonly entityClient: EntityClient,
-		private readonly connectivityModel: WebsocketConnectivityModel,
 	) {}
 
 	hamMoveMailData: MoveMailData | null = null
@@ -125,7 +121,6 @@ export class SpamClassificationHandler {
 	}
 
 	public async storeTrainingDatum(mail: Mail, mailDetails: MailDetails) {
-		const confidence = this.getSpamConfidence(mail)
 		const spamTrainMailDatum: SpamTrainMailDatum = {
 			mailId: mail._id,
 			subject: mail.subject,

@@ -30,7 +30,6 @@ import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHand
 import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
 import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
-import { BulkMailLoader } from "../../../src/mail-app/workerUtils/index/BulkMailLoader"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
 import { NotAuthorizedError, NotFoundError } from "../../../src/common/api/common/error/RestError"
 
@@ -132,11 +131,10 @@ o.spec("MailModelTest", function () {
 
 		o.beforeEach(async () => {
 			const entityClient = new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly())
-			const bulkMailLoader = new BulkMailLoader(entityClient, entityClient, mailFacade)
 			mailboxModel = instance(MailboxModel)
 			inboxRuleHandler = object<InboxRuleHandler>()
 			spamClassifier = object<SpamClassifier>()
-			spamClassificationHandler = new SpamClassificationHandler(mailFacade, spamClassifier, entityClient, connectivityModel)
+			spamClassificationHandler = new SpamClassificationHandler(mailFacade, spamClassifier)
 
 			mailDetails = createTestEntity(MailDetailsTypeRef, {
 				_id: "mailDetail",
@@ -202,8 +200,8 @@ o.spec("MailModelTest", function () {
 
 			// when inbox rule is applied
 			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(inboxFolder)
-			const { inboxRuleProcessed } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
-			await inboxRuleProcessed
+			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
+			await processingDone
 			verify(spamClassifier.predict(anything()), { times: 0 })
 		})
 		o("spam prediction happens when inbox rule is not applied", async () => {
@@ -215,8 +213,8 @@ o.spec("MailModelTest", function () {
 				operation: OperationType.CREATE,
 			})
 			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(null)
-			const { inboxRuleProcessed } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
-			await inboxRuleProcessed
+			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
+			await processingDone
 			verify(spamClassifier.predict(anything()), { times: 1 })
 		})
 		o("spam prediction happens when inbox rule throws", async () => {
@@ -228,8 +226,8 @@ o.spec("MailModelTest", function () {
 				operation: OperationType.CREATE,
 			})
 			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenReject(new Error("Some error for inbox rule"))
-			const { inboxRuleProcessed } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
-			await inboxRuleProcessed
+			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
+			await processingDone
 			verify(spamClassifier.predict(anything()), { times: 1 })
 		})
 
@@ -243,13 +241,13 @@ o.spec("MailModelTest", function () {
 
 			// mail not being there
 			restClient.setListElementException(mail._id, new NotAuthorizedError("blah"))
-			const { inboxRuleProcessed: inboxRuleProcessedMailNotThere } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
+			const { processingDone: inboxRuleProcessedMailNotThere } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
 			await inboxRuleProcessedMailNotThere
 			verify(spamClassifier.predict(anything()), { times: 0 })
 
 			// mail being there
 			restClient.addListInstances(mail)
-			const { inboxRuleProcessed: inboxRuleProcessedMailIsThere } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
+			const { processingDone: inboxRuleProcessedMailIsThere } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
 			await inboxRuleProcessedMailIsThere
 			verify(spamClassifier.predict(anything()), { times: 1 })
 		})
@@ -266,10 +264,10 @@ o.spec("MailModelTest", function () {
 				instanceId: "mailId",
 				operation: OperationType.CREATE,
 			})
-			const { inboxRuleProcessed } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
-			await inboxRuleProcessed
+			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
+			await processingDone
 
-			verify(spamClassificationHandler.predictSpamForNewMail(mail, anything()), { times: 1 })
+			verify(spamClassificationHandler.predictSpamForNewMail(mail, anything(), anything()), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 0 })
 		})
 
@@ -279,8 +277,8 @@ o.spec("MailModelTest", function () {
 				instanceId: "mailId",
 				operation: OperationType.DELETE,
 			})
-			const { inboxRuleProcessed } = await modelWithSpamAndInboxRule.entityEventsReceived([mailDeleteEvent])
-			await inboxRuleProcessed
+			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([mailDeleteEvent])
+			await processingDone
 
 			verify(spamClassifier.deleteSpamClassification(mail._id), { times: 1 })
 		})

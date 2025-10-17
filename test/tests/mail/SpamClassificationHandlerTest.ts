@@ -91,7 +91,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 		).thenDo(async () => [{ mail, mailDetails }])
 
 		const entityClient = new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly())
-		spamHandler = new SpamClassificationHandler(mailFacade, spamClassifier, entityClient, connectivityModel)
+		spamHandler = new SpamClassificationHandler(mailFacade, spamClassifier)
 	})
 
 	o("processSpam correctly verifies if email is stored in spam folder", async function () {
