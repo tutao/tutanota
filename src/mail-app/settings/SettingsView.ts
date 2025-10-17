@@ -530,7 +530,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		this.populateAdminFolders().then(() => {
 			// We have to wait for the folders to be initialized before setting the URL,
 			// otherwise we won't find the requested folder and will just pick the default folder
-			const stillAtDefaultUrl = m.route.get() === this._userFolders[0].url
+			const routeWithoutHash = m.route.get().split("#", 2)[0]
+			const stillAtDefaultUrl = routeWithoutHash === this._userFolders[0].url
 			if (stillAtDefaultUrl && this.navTarget) {
 				this.onNewUrl({ folder: this.navTarget.folder }, this.navTarget.route)
 			}
@@ -677,6 +678,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				this._selectedFolder = folder // instance of SettingsFolder might have been changed in membership update, so replace this instance
 
 				m.redraw()
+				this.scrollSectionIntoView(requestedPath)
 			} else {
 				// folder path has changed
 				// to avoid misleading information, set the url to the folder's url, so the browser url
@@ -690,7 +692,36 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				this._getCurrentViewer()
 
 				m.redraw()
+				this.scrollSectionIntoView(requestedPath)
 			}
+		}
+	}
+
+	/** If the URL specifies `#section=mysection` try to find the mentioned view and highlight it*/
+	private scrollSectionIntoView(requestedPath: string) {
+		const hashParams = requestedPath.split("#", 2)[1]
+		const section = hashParams ? m.parseQueryString(hashParams).section : null
+		if (typeof section === "string") {
+			// we don't know when the render will happen so we just delay it slightly
+			setTimeout(() => {
+				console.log(`scrolling ${section} into view`)
+				const sectionElement = document.getElementById(section)
+				if (sectionElement) {
+					sectionElement?.scrollIntoView({ behavior: "smooth", block: "start" })
+					// do a quick flash of the target element
+					sectionElement.animate(
+						[
+							{ background: "orange", easing: "ease-in-out " },
+							{ background: "initial", easing: "ease-out" },
+							{ background: "orange", easing: "ease-out" },
+							{ background: "initial", easing: "ease-out" },
+						],
+						900,
+					)
+				} else {
+					console.warn(`Could not find view for section "${section}"`)
+				}
+			}, 250)
 		}
 	}
 

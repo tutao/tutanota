@@ -7,6 +7,7 @@ import { lastIndex, remove } from "@tutao/tutanota-utils"
 import { Keys } from "../api/common/TutanotaConstants"
 import { highlightTextInQueryAsChildren } from "../gui/TextHighlightViewUtils"
 import { theme } from "../gui/theme"
+import { boxShadowHigh } from "../gui/main-styles"
 
 export interface QuickAction {
 	readonly description: string
@@ -80,6 +81,7 @@ class QuickActionBar implements Component<Attrs> {
 					borderRadius: px(size.border_radius_large),
 					margin: "10vh auto",
 					padding: px(size.hpad),
+					"box-shadow": boxShadowHigh,
 				},
 			},
 			[
@@ -160,7 +162,12 @@ class QuickActionBar implements Component<Attrs> {
 	}
 }
 
+let showingQuickActionBar = false
+
 export function showQuickActionBar(model: QuickActionsModel) {
+	if (showingQuickActionBar) {
+		return
+	}
 	const activeElement = document.activeElement
 	const modalComponent = {
 		view: () => {
@@ -171,19 +178,22 @@ export function showQuickActionBar(model: QuickActionsModel) {
 				},
 				getMatchingActions: (query) => model.getMatchingActions(query),
 				runAction: (action) => model.runAction(action),
-				close: () => modal.remove(modalComponent),
+				close: () => modalComponent.onClose(),
 			} satisfies Attrs)
 		},
 		async hideAnimation(): Promise<void> {},
 
-		onClose(): void {},
+		onClose(): void {
+			showingQuickActionBar = false
+			modal.remove(modalComponent)
+		},
 
 		shortcuts(): Shortcut[] {
 			return []
 		},
 
 		backgroundClick(e: MouseEvent): void {
-			modal.remove(modalComponent)
+			modalComponent.onClose()
 		},
 
 		/**
@@ -200,5 +210,6 @@ export function showQuickActionBar(model: QuickActionsModel) {
 			return activeElement as HTMLElement | null
 		},
 	}
-	modal.display(modalComponent)
+	showingQuickActionBar = true
+	modal.display(modalComponent, false)
 }
