@@ -199,7 +199,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 	o("does nothing if mail has not been read and not moved or had label applied", async function () {
 		mail.unread = true
 
-		await spamHandler.updateSpamClassificationData(mail, folderSystem)
+		await spamHandler.updateSpamClassificationData(mail)
 		verify(spamClassifier.updateSpamClassification(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 	})
 
@@ -207,7 +207,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 		when(spamClassifier.getSpamClassification(anything())).thenResolve({ isSpam: false, isSpamConfidence: 0 })
 		mail.sets = [spamFolder._id]
 
-		await spamHandler.updateSpamClassificationData(mail, folderSystem)
+		await spamHandler.updateSpamClassificationData(mail)
 		verify(spamClassifier.updateSpamClassification(["listId", "elementId"], true, 1), { times: 1 })
 	})
 
@@ -224,7 +224,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			ownerGroup: "owner",
 		}
 
-		await spamHandler.updateSpamClassificationData(mail, folderSystem)
+		await spamHandler.updateSpamClassificationData(mail)
 		verify(spamClassifier.storeSpamClassification(spamTrainMailDatum), { times: 1 })
 	})
 })

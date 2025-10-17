@@ -196,15 +196,12 @@ export class MailModel {
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.UPDATE) {
 				const spamHandler = this.spamHandler()
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
-                //TODO: Fix by fetching like with create
-                const mail: Nullable<Mail> = null
+				//TODO: Fix by fetching like with create
+				const mail = await this.loadMail(mailId)
 				if (mail == null) {
 					return { inboxRuleProcessed: Promise.resolve() }
 				}
-				// const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
-				// if (isNotNull(folderSystem)) {
-				// 	await spamHandler.updateSpamClassificationData(mail, folderSystem)
-				// }
+				await spamHandler.updateSpamClassificationData(mail)
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
 				const isLeaderClient = this.connectivityModel?.isLeader() ?? false
 				if (!isLeaderClient) {
@@ -258,10 +255,10 @@ export class MailModel {
 
 				// show notification // Do we do this even if we're not the leader client? Yes right?
 				// TODO: refactor so that notification works
-                // mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => {
-                // this._showNotification(targetFolder ?? initialMailFolder, mail)
-                // })
-                return { inboxRuleProcessed: downcast<Promise<void>>(mailFolderAfterInboxRuleAndSpamProcessing) }
+				// mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => {
+				// this._showNotification(targetFolder ?? initialMailFolder, mail)
+				// })
+				return { inboxRuleProcessed: downcast<Promise<void>>(mailFolderAfterInboxRuleAndSpamProcessing) }
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
 

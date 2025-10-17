@@ -1,5 +1,5 @@
-import { createMoveMailData, Mail, MailDetails, MailFolder, MoveMailData,MailTypeRef  } from "../../../common/api/entities/tutanota/TypeRefs"
-import { getMailSetKind, MailSetKind, SpamDecision } from "../../../common/api/common/TutanotaConstants"
+import { createMoveMailData, Mail, MailDetails, MailFolder, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs"
+import { MailSetKind, SpamDecision } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { assertNotNull, debounce, isNotNull, Nullable, ofClass } from "@tutao/tutanota-utils"
@@ -108,64 +108,33 @@ export class SpamClassificationHandler {
 		return null
 	}
 
-    private async moveMailToTarget(
-        mail: Mail,
-        classifierMailSetTarget: MailSetKind.SPAM | MailSetKind.INBOX,
-        usedClientSpamClassifier: ClientClassifierType.CLIENT_CLASSIFICATION,
-        mailDetails: MailDetails,
-        folderSystem: FolderSystem,
-    ): Promise<MailFolder> {
-        await this.mailFacade.simpleMoveMails([mail._id], classifierMailSetTarget, usedClientSpamClassifier)
-        await this.storeTrainingDatum({ mail, mailDetails }, classifierMailSetTarget === MailSetKind.SPAM)
-        return assertNotNull(folderSystem.getSystemFolderByType(classifierMailSetTarget), `Could not get System folder for owner: ${mail._ownerGroup}`)
-    }
+	private async moveMailToTarget(
+		mail: Mail,
+		classifierMailSetTarget: MailSetKind.SPAM | MailSetKind.INBOX,
+		usedClientSpamClassifier: ClientClassifierType.CLIENT_CLASSIFICATION,
+		mailDetails: MailDetails,
+		folderSystem: FolderSystem,
+	): Promise<MailFolder> {
+		await this.mailFacade.simpleMoveMails([mail._id], classifierMailSetTarget, usedClientSpamClassifier)
+		await this.storeTrainingDatum({ mail, mailDetails }, classifierMailSetTarget === MailSetKind.SPAM)
+		return assertNotNull(folderSystem.getSystemFolderByType(classifierMailSetTarget), `Could not get System folder for owner: ${mail._ownerGroup}`)
+	}
 
 	public async dropClassificationData(mailId: IdTuple) {
 		await this.spamClassifier?.deleteSpamClassification(mailId)
 	}
 
-	public async updateSpamClassificationData(mail: Mail, folderSystem: FolderSystem) {
+	public async updateSpamClassificationData(mail: Mail) {
 		if (this.spamClassifier == null) {
 			return
 		}
-
-		const mailFolder = assertNotNull(folderSystem.getFolderByMail(mail), `Could not get folder for mail: ${mail._id}`)
-		const mailSetKind = getMailSetKind(mailFolder)
-
 		const storedClassification = await this.spamClassifier.getSpamClassification(mail._id)
+		const isSpam = mail.clientSpamClassifierResult?.spamDecision === SpamDecision.BLACKLIST
+		const isSpamConfidence = this.getSpamConfidence(mail)
 
-		let isSpamConfidence = this.getSpamConfidence(mail)
-		const isSpam = mailSetKind === MailSetKind.SPAM
-
-		if (isNotNull(storedClassification)) {
-			// email is in classification data
-			const isStoredInTrashFolder = mailSetKind === MailSetKind.TRASH
-			const wasDeletedFromSpamFolder = isStoredInTrashFolder && storedClassification.isSpam
-			if (wasDeletedFromSpamFolder) {
-				// This is the case if we delete from spam Folder, in that case we do not need any change in storedClassification
-			} else if (isSpam !== storedClassification.isSpam || isSpamConfidence !== storedClassification.isSpamConfidence) {
-				// the model has trained on the mail but the spamFlag was wrong so we refit with higher isSpamConfidence
-				await this.spamClassifier.updateSpamClassification(mail._id, isSpam, isSpamConfidence)
-			}
-		} else {
-			// At this point, the mail entity, itself, is cached, so when we go to download it again, it will come from cache
-			///const mailDetail = await this.downloadMailDetails(mail)
-			// TODO: GET THE mail in the same way as the Create does
-			const mailDetail: Nullable<MailDetails> = null
-			if (isNotNull(mailDetail)) {
-				const spamTrainMailDatum: SpamTrainMailDatum = {
-					mailId: mail._id,
-					subject: mail.subject,
-					body: getMailBodyText(mailDetail.body),
-					isSpam,
-					isSpamConfidence,
-					ownerGroup: assertNotNull(mail._ownerGroup),
-				}
-
-				await this.spamClassifier.storeSpamClassification(spamTrainMailDatum)
-			} else {
-				// race: mail deleted in meantime
-			}
+		if (isNotNull(storedClassification) && (isSpam !== storedClassification.isSpam || isSpamConfidence !== storedClassification.isSpamConfidence)) {
+			// the model has trained on the mail but the spamFlag was wrong so we refit with higher isSpamConfidence
+			await this.spamClassifier.updateSpamClassification(mail._id, isSpam, isSpamConfidence)
 		}
 	}
 
