@@ -10,6 +10,7 @@ import {
 	GroupType,
 	PermissionType,
 	PresentableKeyVerificationState,
+	ProcessingState,
 	PublicKeyIdentifierType,
 } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import {
@@ -1854,7 +1855,7 @@ o.spec("CryptoFacadeTest", function () {
 			mailDetailsDraft: null,
 			sets: [],
 			keyVerificationState: null,
-			isInboxRuleApplied: true,
+			processingState: ProcessingState.INBOX_RULE_APPLIED,
 			clientSpamClassifierResult: null,
 		})
 

@@ -60,9 +60,7 @@ export class SpamClassificationHandler {
 		}
 	}
 
-	public async predictSpamForNewMail(mail: Mail, folder: MailFolder, folderSystem: FolderSystem): Promise<void> {
-		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
-
+	public async predictSpamForNewMail(mail: Mail, mailDetails: MailDetails, sourceFolder: MailFolder, folderSystem: FolderSystem): Promise<MailFolder> {
 		const spamPredMailDatum: SpamPredMailDatum = {
 			subject: mail.subject,
 			body: getMailBodyText(mailDetails.body),
@@ -70,7 +68,7 @@ export class SpamClassificationHandler {
 		}
 		const isSpam = (await this.spamClassifier?.predict(spamPredMailDatum)) ?? null
 
-		if (isSpam && folder.folderType === MailSetKind.INBOX) {
+		if (isSpam && sourceFolder.folderType === MailSetKind.INBOX) {
 			const spamFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))
 			if (this.spamMoveMailData) {
 				this.spamMoveMailData.mails.push(mail._id)
@@ -83,7 +81,8 @@ export class SpamClassificationHandler {
 				})
 			}
 			this.sendMoveMailServiceRequest(this.mailFacade)
-		} else if (!isSpam && folder.folderType === MailSetKind.SPAM) {
+			return spamFolder
+		} else if (!isSpam && sourceFolder.folderType === MailSetKind.SPAM) {
 			const hamFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))
 			if (this.hamMoveMailData) {
 				this.hamMoveMailData.mails.push(mail._id)
@@ -96,9 +95,11 @@ export class SpamClassificationHandler {
 				})
 			}
 			this.sendMoveMailServiceRequest(this.mailFacade)
+			return hamFolder
 		} else {
 			this.classifierResultServiceMailIds.push(mail._id)
 			this.sendClassifierResultServiceRequest(this.mailFacade)
+			return sourceFolder
 		}
 	}
 

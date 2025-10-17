@@ -5,6 +5,7 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 import {
 	assertNotNull,
 	collectToMap,
+	downcast,
 	getFirstOrThrow,
 	groupBy,
 	groupByAndMap,
@@ -233,24 +234,24 @@ export class MailModel {
 						return mailboxDetail && this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, isLeaderClient)
 					})
 
-					if (!isWebClient()) {
-						const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
-						this.spamHandler().storeTrainingDatum(mail, mailDetails)
-					} else {
+					if (isWebClient()) {
 						// we only need to show notifications explicitly on the webapp
 						this._showNotification(isRuleTargetFolder ?? sourceMailFolder, mail)
-					}
+					} else {
+						const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
+						this.spamHandler().storeTrainingDatum(mail, mailDetails)
 
-					if (isRuleTargetFolder) {
-						return { processingDone: Promise.resolve() }
-					} else if (
-						mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
-						mail.processingState === ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING
-					) {
-						const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
-						if (sourceMailFolder && folderSystem) {
-							const predictPromise = this.spamHandler().predictSpamForNewMail(mail, sourceMailFolder, folderSystem)
-							return { processingDone: predictPromise }
+						if (isRuleTargetFolder) {
+							return { processingDone: Promise.resolve() }
+						} else if (
+							mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
+							mail.processingState === ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING
+						) {
+							const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
+							if (sourceMailFolder && folderSystem) {
+								const predictPromise = this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceMailFolder, folderSystem)
+								return { processingDone: downcast(predictPromise) }
+							}
 						}
 					}
 				}
