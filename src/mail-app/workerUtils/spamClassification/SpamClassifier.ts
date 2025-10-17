@@ -230,9 +230,11 @@ export class SpamClassifier {
 	}
 
 	public async initialTraining(mails: SpamTrainMailDatum[]): Promise<TrainingPerformance> {
-		const vectorizationStart = performance.now()
-
+		const preprocessingStart = performance.now()
 		const tokenizedMails = await promiseMap(mails, (mail) => spamClassifierTokenizer(this.preprocessMail(mail)))
+		const preprocessingTime = performance.now() - preprocessingStart
+
+		const vectorizationStart = performance.now()
 		if (this.vectorizer instanceof DynamicTfVectorizer) {
 			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)
 		}
@@ -253,7 +255,9 @@ export class SpamClassifier {
 			shuffle: !this.deterministic,
 			callbacks: {
 				onEpochEnd: async (epoch, logs) => {
-					console.log(`Epoch ${epoch + 1} - Loss: ${logs!.loss.toFixed(4)}`)
+					if (logs) {
+						console.log(`Epoch ${epoch + 1} - Loss: ${logs.loss.toFixed(4)}`)
+					}
 				},
 			},
 		})
@@ -265,7 +269,9 @@ export class SpamClassifier {
 
 		this.classifier.set(mails[0].ownerGroup, { model: classifier, isEnabled: true })
 
-		console.log(`### Finished Initial Training ### (total trained mails: ${mails.length})`)
+		console.log(
+			`### Finished Initial Training ### (total trained mails: ${mails.length}, preprocessing time: ${preprocessingTime}, vectorization time: ${vectorizationTime}ms, training time: ${trainingTime})`,
+		)
 
 		return { vectorizationTime, trainingTime }
 	}
