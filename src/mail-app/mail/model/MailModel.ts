@@ -57,6 +57,8 @@ import { assertSystemFolderOfType } from "./MailUtils.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { isExpectedErrorForSynchronization } from "../../../common/api/worker/rest/DefaultEntityRestCache"
+import { isWebClient } from "../../../common/api/common/Env"
+import { emitWizardEvent } from "../../../common/gui/base/WizardDialog"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -186,9 +188,7 @@ export class MailModel {
 	}
 
 	// visibleForTesting
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<{
-		inboxRuleProcessed: Promise<void>
-	}> {
+	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
 				await this.init()
@@ -203,28 +203,28 @@ export class MailModel {
 				}
 				await spamHandler.updateSpamClassificationData(mail)
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
-				const isLeaderClient = this.connectivityModel?.isLeader() ?? false
-				if (!isLeaderClient) {
-					return { inboxRuleProcessed: Promise.resolve() }
-				}
-
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
+
 				const mail = await this.loadMail(mailId)
 				if (mail == null) {
-					return { inboxRuleProcessed: Promise.resolve() }
+					return
 				}
 
-				// FIXME use enum
-				if (mail.isInboxRuleApplied) {
-					return { inboxRuleProcessed: Promise.resolve() }
+				// FIXME
+				if (mail?.processingState) {
+					return
 				}
 
-				const sourceMailFolder = this.getMailFolderForMail(mail)
-				if (!sourceMailFolder) {
-					return { inboxRuleProcessed: Promise.resolve() }
-				}
+				if (sourceMailFolder.folderType === MailSetKind.INBOX || sourceMailFolder.folderType === MailSetKind.SPAM) {
+					if (!isWebClient()) {
+						const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
+						this.spamHandler().storeTrainingDatum(mail, mailDetails)
+					}
+					const isLeaderClient = this.connectivityModel?.isLeader() ?? false
 
-				if (sourceMailFolder.folderType === MailSetKind.INBOX) {
+					if (!isLeaderClient) {
+						return { inboxRuleProcessed: Promise.resolve() }
+					}
 					const isInboxRuleApplied =
 						(await this.getMailboxDetailsForMail(mail).then((mailboxDetail) => {
 							return mailboxDetail && this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, true)
@@ -233,30 +233,18 @@ export class MailModel {
 					if (isInboxRuleApplied) {
 						return { inboxRuleProcessed: Promise.resolve() }
 					} else if (mail.clientSpamClassifierResult == null) {
+						const sourceMailFolder = this.getMailFolderForMail(mail)
 						const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
-						if (isNotNull(folderSystem)) {
-							const targetMailFolder = this.spamHandler()
-								.predictSpamForNewMail(mail, sourceMailFolder, folderSystem)
-								.catch((e) => {
-									console.error(`Error while doing client side spamPrediction. Error: ${e}`)
-									return null
-								})
+						if (sourceMailFolder && folderSystem) {
+							this.spamHandler().predictSpamForNewMail(mail, sourceMailFolder, folderSystem)
 						}
 					}
-				} else if (sourceMailFolder.folderType === MailSetKind.SPAM) {
-				}
-				if (sourceMailFolder.folderType === MailSetKind.INBOX) {
-				}
-
-				const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
-				if (folderSystem == null) {
-					return { inboxRuleProcessed: Promise.resolve() }
 				}
 
 				// show notification // Do we do this even if we're not the leader client? Yes right?
 				// TODO: refactor so that notification works
 				// mailFolderAfterInboxRuleAndSpamProcessing.then((targetFolder) => {
-				// this._showNotification(targetFolder ?? initialMailFolder, mail)
+				this._showNotification(targetFolder ?? initialMailFolder, mail)
 				// })
 				return { inboxRuleProcessed: downcast<Promise<void>>(mailFolderAfterInboxRuleAndSpamProcessing) }
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
