@@ -6,6 +6,7 @@ import type { GroupMembership, User } from "../../entities/sys/TypeRefs.js"
 import type { TypeModel } from "../EntityTypes"
 import { isTest } from "../Env"
 import { ContactTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs"
+import { convert } from "./html-to-text-custom"
 
 export type TypeInfo = {
 	appId: number
@@ -89,22 +90,14 @@ export function _createNewIndexUpdate(typeInfo: TypeInfo): IndexUpdate {
 
 export function htmlToText(html: string | null): string {
 	if (html == null) return ""
-	let text = html.replace(/<[^>]*>?/gm, " ")
-	return text.replace(/&[#0-9a-zA-Z]+;/g, (match) => {
-		let replacement
-
-		if (match.startsWith("&#")) {
-			let charCode = Number(match.substring(2, match.length - 1)) // remove &# and ;
-
-			if (!isNaN(charCode)) {
-				replacement = String.fromCharCode(charCode)
-			}
-		} else {
-			// @ts-ignore
-			replacement = HTML_ENTITIES[match]
-		}
-
-		return replacement ? replacement : match
+	return convert(html, {
+		preserveNewlines: false,
+		selectors: [
+			{
+				selector: "a",
+				options: { ignoreHref: true },
+			},
+		],
 	})
 }
 

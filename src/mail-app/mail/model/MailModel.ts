@@ -57,8 +57,8 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.j
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { TutanotaError } from "@tutao/tutanota-error"
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
-import { isExpectedErrorForSynchronization } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { isWebClient } from "../../../common/api/common/Env"
+import { isExpectedErrorForSynchronization } from "../../../common/api/common/utils/ErrorUtils"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -411,6 +411,7 @@ export class MailModel {
 		const excludeFolder = excludedFolderType != null ? assertNotNull(folderSystem.getSystemFolderByType(excludedFolderType))._id : null
 		return await this.mailFacade.moveMails(mails, targetFolder._id, excludeFolder)
 	}
+
 	/**
 	 * Finally deletes all given mails. Caller must ensure that all mails are in folders that allows final delete operation.
 	 * @param mailIds mails to delete

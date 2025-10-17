@@ -47,8 +47,7 @@ import { TypeModelResolver } from "../../common/EntityFunctions"
 import { AttributeModel } from "../../common/AttributeModel"
 import { collapseId, expandId } from "./RestClientIdUtils"
 import { PatchMerger } from "../offline/PatchMerger"
-import { NotAuthorizedError, NotFoundError } from "../../common/error/RestError"
-import { hasError } from "../../common/utils/ErrorUtils"
+import { hasError, isExpectedErrorForSynchronization } from "../../common/utils/ErrorUtils"
 
 assertWorkerOrNode()
 
@@ -948,14 +947,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// if a specific version is requested we have to load again and do not want to store it in the cache
 		return opts?.queryParams?.version == null
 	}
-}
-
-/**
- * Returns whether the error is expected for the cases where our local state might not be up-to-date with the server yet. E.g. we might be processing an update
- * for the instance that was already deleted. Normally this would be optimized away but it might still happen due to timing.
- */
-export function isExpectedErrorForSynchronization(e: Error): boolean {
-	return e instanceof NotFoundError || e instanceof NotAuthorizedError
 }
 
 /**

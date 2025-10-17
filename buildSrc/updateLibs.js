@@ -53,6 +53,7 @@ const clientDependencies = [
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb", patch: "./libs/botd.patch" },
 	{ src: "../src/mail-app/workerUtils/spamClassification/tensorflow-custom.js", target: "tensorflow.js", bundling: "rollupTF" },
+	{ src: "../src/common/api/common/utils/html-to-text-custom.js", target: "html-to-text.js", bundling: "rollupTF" },
 ]
 
 async function applyPatch() {
@@ -172,7 +173,7 @@ async function rollupTensorFlow(src, target, banner) {
 					},
 				],
 			}),
-			logResolvePlugin,
+			// logResolvePlugin,
 			nodeResolve(),
 			commonjs(),
 		],

@@ -15,13 +15,14 @@ export const dependencyMap = {
 	linkifyjs: path.normalize("./libs/linkify.js"),
 	"linkify-html": path.normalize("./libs/linkify-html.js"),
 	cborg: path.normalize("./libs/cborg.js"),
+	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
+	"./html-to-text-custom": path.normalize("./libs/html-to-text.js"),
 	// below this, the modules are only running in the desktop main thread.
 	"electron-updater": path.normalize("./libs/electron-updater.mjs"),
 	undici: path.normalize("./libs/undici.mjs"),
 	jsqr: path.normalize("./libs/jsQR.js"),
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
-	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
 }
 
 /**
@@ -273,6 +274,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/common/api/entities") ||
 		isIn("src/desktop/config/ConfigKeys") ||
 		moduleId.includes("cborg") ||
+		isIn("libs/html-to-text.js") ||
 		// CryptoError is needed on the main thread in order to check errors
 		// We have to define both the entry point and the files referenced from it which is annoying
 		isIn("packages/tutanota-crypto/dist/error") ||
