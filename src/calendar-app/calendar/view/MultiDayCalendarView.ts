@@ -205,7 +205,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		return {
 			event,
 			conflictsWithMainEvent: false,
-			color: this.color,
+			color: "#EE00B5",
 			featured: false,
 		}
 	}

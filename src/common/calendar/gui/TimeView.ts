@@ -1,6 +1,6 @@
 import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized } from "@tutao/tutanota-utils"
+import { deepMemoized, getStartOfDay, getStartOfNextDay } from "@tutao/tutanota-utils"
 import { px } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -10,6 +10,8 @@ import { getTimeZone } from "../date/CalendarUtils"
 import { EventRenderWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { TimeColumn } from "./TimeColumn"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
+import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs"
+import { DateTime } from "luxon"
 
 export interface TimeViewEventWrapper {
 	event: EventRenderWrapper
@@ -100,6 +102,13 @@ export class TimeView implements Component<TimeViewAttributes> {
 			[
 				this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
 				dates.map((date) => {
+					const startOfTomorrow = getStartOfNextDay(date)
+					const startOfDay = getStartOfDay(date)
+					const eventsForThisDate = events.filter(
+						(event) =>
+							event.event.event.startTime.getTime() < startOfTomorrow.getTime() && event.event.event.endTime.getTime() > startOfDay.getTime(),
+					)
+
 					return m(
 						".grid.plr-unit.gap.z1.grid-auto-columns.rel.border-right",
 						{
@@ -110,7 +119,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 							},
 						},
-						[this.renderEvents(events, timeRange, subRowAsMinutes, subRowCount, timeScale, date, hasAnyConflict)],
+						[this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, subRowCount, timeScale, date, hasAnyConflict)],
 					)
 				}),
 			],
@@ -133,9 +142,9 @@ export class TimeView implements Component<TimeViewAttributes> {
 		})
 	}
 
-	private renderEvents = deepMemoized(
+	private renderEventsAtDate = deepMemoized(
 		(
-			agendaEntries: Array<TimeViewEventWrapper>,
+			eventsForThisDate: Array<TimeViewEventWrapper>,
 			timeRange: TimeRange,
 			subRowAsMinutes: number,
 			subRowCount: number,
@@ -149,7 +158,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 				end: timeRange.end.toDateTime(baseDate, getTimeZone()).plus({ minute: interval }).toJSDate(),
 			}
 
-			const orderedEvents = agendaEntries.toSorted((eventWrapperA, eventWrapperB) => {
+			const orderedEvents = eventsForThisDate.toSorted((eventWrapperA, eventWrapperB) => {
 				const startTimeComparison = eventWrapperA.event.event.startTime.getTime() - eventWrapperB.event.event.startTime.getTime()
 				if (startTimeComparison === 0) {
 					return eventWrapperB.event.event.endTime.getTime() - eventWrapperA.event.event.endTime.getTime()
@@ -162,7 +171,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			this.blockingGroupsCache.clear()
 			this.expandabilityCache.clear()
 
-			const gridData = this.layoutEvents(orderedEvents, timeRange, subRowAsMinutes)
+			const gridData = this.layoutEvents(orderedEvents, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)
 
 			return orderedEvents.flatMap((event) => {
 				const passesThroughToday =
@@ -235,26 +244,19 @@ export class TimeView implements Component<TimeViewAttributes> {
 		},
 	)
 
-	private layoutEvents(events: Array<TimeViewEventWrapper>, timeRange: TimeRange, subRowAsMinutes: number) {
-		const baseMinutes = timeRange.start.asMinutes()
-		const subRowFactor = 1 / subRowAsMinutes
-
-		const dateToRow = (date: Date): number => {
-			const minutesFromStart = date.getHours() * 60 + date.getMinutes() - baseMinutes
-			return Math.floor(minutesFromStart * subRowFactor) + 1
-		}
-
+	private layoutEvents(
+		events: Array<TimeViewEventWrapper>,
+		timeRange: TimeRange,
+		subRowAsMinutes: number,
+		subRowCount: number,
+		timeScale: TimeScale,
+		baseDate: Date,
+	) {
 		// Convert to row-based events: O(n)
 		const eventsMap: Map<Id, EventRowData> = new Map(
 			events.map((e) => {
 				const evt = e.event.event
-				return [
-					elementIdPart(evt._id),
-					{
-						rowStart: dateToRow(new Date(evt.startTime)),
-						rowEnd: dateToRow(new Date(evt.endTime)),
-					},
-				]
+				return [elementIdPart(evt._id), this.getRowBounds(evt, timeRange, subRowAsMinutes, subRowCount, timeScale, baseDate)]
 			}),
 		)
 
@@ -590,6 +592,30 @@ export class TimeView implements Component<TimeViewAttributes> {
 			}),
 			blockingEvents,
 		}
+	}
+
+	private getRowBounds(event: CalendarEvent, timeRange: TimeRange, subRowAsMinutes: number, subRowCount: number, timeScale: TimeScale, baseDate: Date) {
+		const interval = TIME_SCALE_BASE_VALUE / timeScale
+		const diffFromRangeStartToEventStart = timeRange.start.diff(Time.fromDate(event.startTime))
+
+		const eventStartsBeforeRange = event.startTime < baseDate || Time.fromDate(event.startTime).isBefore(timeRange.start)
+		const start = eventStartsBeforeRange ? 1 : Math.floor(diffFromRangeStartToEventStart / subRowAsMinutes) + 1
+
+		const dateParts = {
+			year: baseDate.getFullYear(),
+			month: baseDate.getMonth() + 1,
+			day: baseDate.getDate(),
+			hour: timeRange.end.hour,
+			minute: timeRange.end.minute,
+		}
+
+		const diff = DateTime.fromJSDate(event.endTime).diff(DateTime.fromObject(dateParts).plus({ minutes: interval }), "minutes").minutes
+
+		const diffFromRangeStartToEventEnd = timeRange.start.diff(Time.fromDate(event.endTime))
+		const eventEndsAfterRange = event.endTime > getStartOfNextDay(baseDate) || diff > 0
+		const end = eventEndsAfterRange ? -1 : Math.floor(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
+
+		return { rowStart: start, rowEnd: end }
 	}
 
 	/**
