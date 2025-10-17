@@ -348,7 +348,7 @@ export class MailRow implements VirtualRow<Mail> {
 				style: {
 					// in dark theme override saturation to aid readability. This is not relative but absolute saturation. We preserve the hue.
 					border: `2px solid ${getLabelColor(theme.on_surface_variant)}`,
-					color: getLabelColor(theme.on_surface_variant),
+					color: getLabelColor(theme.on_surface),
 					padding: `0px ${size.vpad_xsm}px 1px`,
 					marginRight: px(size.vpad_xsm),
 					minWidth: px(16),
