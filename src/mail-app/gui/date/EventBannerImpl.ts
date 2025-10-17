@@ -154,7 +154,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 						class: styles.isSingleColumnLayout() ? "plr-vpad" : "pr-vpad-l pl-vpad-l",
 						style: {
 							"background-color": theme.surface_container_high,
-							color: theme.on_surface_variant,
+							color: theme.on_surface,
 						},
 					},
 					[
