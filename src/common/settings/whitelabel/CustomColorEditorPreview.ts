@@ -129,7 +129,7 @@ export class CustomColorEditorPreview implements Component {
 			},
 			[
 				m(
-					".list-row.pl-12.pr-l.odd-row",
+					".list-row.pl-12.pr-24.odd-row",
 					{
 						oncreate: (vnode) => {
 							this._mailRow.domElement = vnode.dom as HTMLElement
@@ -139,7 +139,7 @@ export class CustomColorEditorPreview implements Component {
 					this._mailRow.render(),
 				),
 				m(
-					".list-row.pl-12.pr-l",
+					".list-row.pl-12.pr-24",
 					{
 						oncreate: (vnode) => {
 							this._mailRow2.domElement = vnode.dom as HTMLElement

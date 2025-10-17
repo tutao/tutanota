@@ -40,7 +40,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 	}
 
 	view(): Children {
-		return m(".fill-absolute.scroll.plr-l.pb-48", [
+		return m(".fill-absolute.scroll.plr-24.pb-48", [
 			m(".h4.mt-32", lang.get("mailImportSettings_label")),
 			this.renderTargetFolderControls(),
 			!this.mailImporter().shouldRenderImportStatus() ? this.renderStartNewImportControls() : null,

@@ -113,7 +113,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 
 		return m("", [
 			m(
-				".fill-absolute.scroll.plr-l.pb-48",
+				".fill-absolute.scroll.plr-24.pb-48",
 				{
 					style: {
 						backgroundColor: theme.surface_container,

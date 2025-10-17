@@ -79,7 +79,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 
 		const phoneticName = this.contactPhoneticName(attrs.contact)
 
-		return m(".plr-l.pb-floating.mlr-safe-inset", [
+		return m(".plr-24.pb-floating.mlr-safe-inset", [
 			m("", [
 				m(
 					".flex-space-between.flex-wrap.mt-12",
@@ -199,7 +199,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 	private renderJobInformation(contact: Contact): Children {
 		const spacerFunction = () =>
 			m(
-				"span.plr-s",
+				"span.plr-4",
 				{
 					style: {
 						fontWeight: "900",
@@ -221,7 +221,7 @@ export class ContactViewer implements ClassComponent<ContactViewerAttrs> {
 	private renderPronounsInfo(contact: Contact): Children {
 		const spacerFunction = () =>
 			m(
-				"span.plr-s",
+				"span.plr-4",
 				{
 					style: {
 						fontWeight: "900",

@@ -264,7 +264,7 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 		return [
 			m(
 				".flex-grow.flex-center.scroll",
-				m(".flex-grow-shrink-auto.max-width-s.pt-16.plr-l", [this.renderLoginForm(model), this.renderCredentialsSelector(model)]),
+				m(".flex-grow-shrink-auto.max-width-s.pt-16.plr-24", [this.renderLoginForm(model), this.renderCredentialsSelector(model)]),
 			),
 		]
 	}
@@ -380,7 +380,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 		return m("", [
 			mapNullable(model.newAccountData?.recoverCode, (code) =>
 				m(
-					".pt-32.plr-l",
+					".pt-32.plr-24",
 					m(RecoverCodeField, {
 						showMessage: true,
 						recoverCode: code,
@@ -450,10 +450,10 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 
 	private renderInfoForFreeAccounts(model: RedeemGiftCardModel): Children {
 		return [
-			m(".pt-32.plr-l", `${lang.get("giftCardUpgradeNotifyRevolutionary_msg")} ${this.getCreditOrDebitMessage(model)}`),
+			m(".pt-32.plr-24", `${lang.get("giftCardUpgradeNotifyRevolutionary_msg")} ${this.getCreditOrDebitMessage(model)}`),
 			m(".center.h4.pt-16", lang.get("upgradeConfirm_msg")),
 			m(".flex-space-around.flex-wrap", [
-				m(".flex-grow-shrink-half.plr-l", [
+				m(".flex-grow-shrink-half.plr-24", [
 					m(TextField, {
 						label: "subscription_label",
 						value: "Revolutionary",
@@ -476,7 +476,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 					}),
 				]),
 				m(
-					".flex-grow-shrink-half.plr-l.flex-center.items-end",
+					".flex-grow-shrink-half.plr-24.flex-center.items-end",
 					m("img[src=" + HabReminderImage + "].pt-16.bg-white.border-radius", {
 						style: {
 							width: "200px",
@@ -490,13 +490,13 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 	private renderInfoForPaidAccounts(model: RedeemGiftCardModel): Children {
 		return [
 			m(
-				".pt-32.plr-l.flex-center",
+				".pt-32.plr-24.flex-center",
 				`${lang.get("giftCardCreditNotify_msg", {
 					"{credit}": formatPrice(Number(model.giftCardInfo.value), true),
 				})} ${lang.get("creditUsageOptions_msg")}`,
 			),
 			m(
-				".flex-grow-shrink-half.plr-l.flex-center.items-end",
+				".flex-grow-shrink-half.plr-24.flex-center.items-end",
 				m("img[src=" + HabReminderImage + "].pt-16.bg-white.border-radius", {
 					style: {
 						width: "200px",

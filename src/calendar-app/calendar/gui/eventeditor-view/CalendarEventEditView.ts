@@ -322,7 +322,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				options: stream(options),
 				expanded: true,
 				selected,
-				classes: ["button-min-height", "pl-8", "pr-vpad-s"],
+				classes: ["button-min-height", "pl-8", "pr-8"],
 				renderOption: (option) => this.renderCalendarOptions(option, deepEqual(option.value, selected.value), false),
 				renderDisplay: (option) => this.renderCalendarOptions(option, false, true),
 				ariaLabel: lang.get("calendar_label"),
@@ -334,7 +334,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private renderCalendarOptions(option: CalendarSelectItem, isSelected: boolean, isDisplay: boolean) {
 		return m(
 			".flex.items-center.gap-vpad-s.flex-grow.overflow-hidden",
-			{ class: `${isDisplay ? "" : "state-bg plr-button button-content dropdown-button pt-8 pb-8 button-min-height"}` },
+			{ class: `${isDisplay ? "" : "state-bg plr-8 button-content dropdown-button pt-8 pb-8 button-min-height"}` },
 			[
 				m(".no-shrink", {
 					style: {

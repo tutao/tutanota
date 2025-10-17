@@ -59,7 +59,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 				m(BaseButton, {
 					label: "upgrade_action",
 					text: lang.get("upgrade_action"),
-					class: `button-content border-radius accent-bg center plr-button flash full-width`,
+					class: `button-content border-radius accent-bg center plr-8 flash full-width`,
 					onclick: async () => {
 						await showUpgradeDialog()
 

@@ -73,7 +73,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 		return m(".color-picker", [
 			this.renderHuePicker(attrs.onselect),
 			m(
-				".flex.wrap.full-width.items-center.justify-between.p0.plr-s",
+				".flex.wrap.full-width.items-center.justify-between.p0.plr-4",
 				{
 					style: {
 						rowGap: px(size.spacing_4),
@@ -87,7 +87,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 						selectedColor: attrs.value,
 						onselect: attrs.onselect,
 						// add right divider to first color option
-						className: i === 0 ? ".pr-vpad-s.mr-4" : undefined,
+						className: i === 0 ? ".pr-8.mr-4" : undefined,
 						style:
 							i === 0
 								? {

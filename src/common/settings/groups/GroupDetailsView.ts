@@ -33,7 +33,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	renderView(): Children {
-		return m("#user-viewer.fill-absolute.scroll.plr-l", [this.renderHeader(), this.renderCommonInfo(), this.renderMailGroupInfo()])
+		return m("#user-viewer.fill-absolute.scroll.plr-24", [this.renderHeader(), this.renderCommonInfo(), this.renderMailGroupInfo()])
 	}
 
 	/**

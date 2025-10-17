@@ -21,7 +21,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 		return [
 			m(".center.h4.pt-16", lang.get("accountCreationCongratulation_msg")),
 			newAccountData
-				? m(".plr-l", [
+				? m(".plr-24", [
 						m(RecoverCodeField, {
 							showMessage: true,
 							recoverCode: newAccountData.recoverCode,

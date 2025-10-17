@@ -18,7 +18,7 @@ export class GroupInvitationFolderRow implements Component<GroupInvitationFolder
 	view(vnode: Vnode<GroupInvitationFolderRowAttrs>): Children {
 		const { invitation, icon } = vnode.attrs
 		return [
-			m(".folder-row.flex-start.plr-l", [
+			m(".folder-row.flex-start.plr-24", [
 				m(
 					".flex-v-center.flex-grow.button-height",
 					{

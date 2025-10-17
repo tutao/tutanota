@@ -111,7 +111,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			injectionsRight: () => [m(IconButton, changePasswordButtonAttrs)],
 			isReadOnly: true,
 		} as const
-		return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [
+		return m("#user-viewer.fill-absolute.scroll.plr-24.pb-floating", [
 			m(".h4.mt-32", lang.get("userSettings_label")),
 			m("", [
 				m(TextField, {

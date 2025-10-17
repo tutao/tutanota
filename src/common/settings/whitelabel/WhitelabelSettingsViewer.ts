@@ -89,7 +89,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		const brandingDomainConfig = this._renderBrandingDomainConfig()
 
 		return m(
-			"#global-settings.fill-absolute.scroll.plr-l",
+			"#global-settings.fill-absolute.scroll.plr-24",
 			brandingDomainConfig
 				? [
 						m(".h4.mt-32", lang.get("whitelabel_label")),

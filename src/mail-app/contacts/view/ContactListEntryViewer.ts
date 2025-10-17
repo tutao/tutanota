@@ -29,7 +29,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 						backgroundColor: theme.surface,
 					},
 				},
-				m(".plr-l.pt-16.pb-16.mlr-safe-inset", m(".h2.selectable.text-break", attrs.entry.emailAddress)),
+				m(".plr-24.pt-16.pb-16.mlr-safe-inset", m(".h2.selectable.text-break", attrs.entry.emailAddress)),
 			),
 			m(".mt-32"),
 			attrs.contacts.length >= 1
@@ -50,7 +50,7 @@ export class ContactListEntryViewer implements Component<ContactListEntryViewerA
 							},
 						},
 						m(
-							".plr-l.pt-16.pb-16.mlr-safe-inset",
+							".plr-24.pt-16.pb-16.mlr-safe-inset",
 							lang.get("noContactFound_msg"),
 							m(Button, {
 								label: "createContact_action",

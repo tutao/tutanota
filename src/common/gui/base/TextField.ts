@@ -125,7 +125,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			},
 			[
 				m(
-					"label.abs.text-ellipsis.noselect.z1.i.pr-s",
+					"label.abs.text-ellipsis.noselect.z1.i.pr-4",
 					{
 						"aria-hidden": "true",
 						class: this.active ? "content-accent-fg" : "" + " " + getOperatingClasses(a.disabled),

@@ -48,7 +48,7 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 			return m(
 				ListColumnWrapper,
 				m(
-					"section.fill-absolute.scroll.plr-l",
+					"section.fill-absolute.scroll.plr-24",
 					m("h4.mt-32", lang.get("affiliateSettings_label")),
 					m(TextField, {
 						isReadOnly: true,

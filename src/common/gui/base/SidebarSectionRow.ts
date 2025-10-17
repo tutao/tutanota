@@ -68,7 +68,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 			[
 				// we render icon on our own to be able to override the color and to control the padding
 				m(
-					".button-height.flex.items-center.plr-button",
+					".button-height.flex.items-center.plr-8",
 					m(Icon, {
 						icon: attrs.icon,
 						size: IconSize.PX24,

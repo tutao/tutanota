@@ -135,7 +135,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._giftCardsExpanded = stream<boolean>(false)
 
 		this.view = (): Children => {
-			return m("#subscription-settings.fill-absolute.scroll.plr-l", [
+			return m("#subscription-settings.fill-absolute.scroll.plr-24", [
 				m(".h4.mt-32", lang.get("currentlyBooked_label")),
 				m(TextField, {
 					label: "subscription_label",

@@ -37,7 +37,7 @@ export const DesktopViewerToolbar = pureComponent((__, children) => {
 			},
 		},
 		m(
-			".flex.list-bg.pt-4.pb-4.plr-m",
+			".flex.list-bg.pt-4.pb-4.plr-12",
 			{
 				style: {
 					"border-radius": `0 ${size.radius_8}px ${size.radius_8}px 0`,

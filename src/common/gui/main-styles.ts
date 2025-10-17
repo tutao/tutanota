@@ -487,23 +487,20 @@ styles.registerStyle("main", () => {
 		".pl-32": {
 			"padding-left": px(size.spacing_32),
 		},
-		".pr": {
+		".pr-12": {
 			"padding-right": px(size.spacing_12),
 		},
-		".pr-s": {
+		".pr-4": {
 			"padding-right": px(size.spacing_4),
 		},
-		".pr-vpad-s": {
+		".pr-8": {
 			"padding-right": px(size.spacing_8),
 		},
-		".pr-vpad-m": {
+		".pr-16": {
 			"padding-right": px(size.spacing_16),
 		},
-		".pr-vpad-l": {
+		".pr-32": {
 			"padding-right": px(size.spacing_32),
-		},
-		".pr-m": {
-			"padding-right": px(size.spacing_16),
 		},
 		".plr": {
 			"padding-left": px(size.spacing_12),
@@ -513,54 +510,37 @@ styles.registerStyle("main", () => {
 			"padding-left": px(size.spacing_8),
 			"padding-right": px(size.spacing_8),
 		},
-		".plr-vpad": {
+		".plr-16": {
 			"padding-left": px(size.spacing_16),
 			"padding-right": px(size.spacing_16),
 		},
-		".plr-s": {
+		".plr-4": {
 			"padding-left": px(size.spacing_4),
 			"padding-right": px(size.spacing_4),
 		},
-		".plr-sm": {
-			"padding-left": px(6),
-			"padding-right": px(6),
-		},
-		".plr-m": {
+		".plr-12": {
 			"padding-left": px(size.spacing_12),
 			"padding-right": px(size.spacing_12),
 		},
-		// p-l will be overwritten in media query mobile
-		".plr-l": {
+		".plr-24": {
 			"padding-left": px(size.spacing_24),
 			"padding-right": px(size.spacing_24),
 		},
-		".plr-2l": {
-			"padding-left": px(size.spacing_24 * 2),
-			"padding-right": px(size.spacing_24 * 2),
+		".plr-48": {
+			"padding-left": px(size.spacing_48),
+			"padding-right": px(size.spacing_48),
 		},
-		".ptb-button-double": {
-			"padding-top": px(size.spacing_8 * 2),
-			"padding-bottom": px(size.spacing_8 * 2),
+		".ptb-16": {
+			"padding-top": px(size.spacing_16),
+			"padding-bottom": px(size.spacing_16),
 		},
 		".pl-24": {
 			"padding-left": px(size.spacing_24),
 		},
-		".pr-l": {
+		".pr-24": {
 			"padding-right": px(size.spacing_24),
 		},
-		".plr-button": {
-			"padding-left": px(size.spacing_8),
-			"padding-right": px(size.spacing_8),
-		},
-		".plr-button-double": {
-			"padding-left": px(size.spacing_8 * 2),
-			"padding-right": px(size.spacing_8 * 2),
-		},
-		".plr-nav-button": {
-			"padding-left": px(size.spacing_8),
-			"padding-right": px(size.spacing_8),
-		},
-		".pl-button": {
+		".pl-8": {
 			"padding-left": px(size.spacing_8),
 		},
 		".mt-negative-8": {

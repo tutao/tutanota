@@ -177,7 +177,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							m(SidebarSection, {
 								name: "searchFilters_label",
 							}),
-							m(".flex.wrap.plr-button-double.gap-vpad-s.flex-shrink-children", this.renderFilterChips()),
+							m(".flex.wrap.plr-16.gap-vpad-s.flex-shrink-children", this.renderFilterChips()),
 							m(".flex-grow"),
 							this.renderAppPromo(),
 						],
@@ -266,7 +266,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderFilterBar(): Children {
-		return m(".flex.gap-vpad-s.pl-16.pr-vpad-m.pt-8.pb-8.scroll-x", this.renderFilterChips())
+		return m(".flex.gap-vpad-s.pl-16.pr-16.pt-8.pb-8.scroll-x", this.renderFilterChips())
 	}
 
 	private renderCategoryChip(label: TranslationKey, icon: AllIcons): Children {
@@ -480,7 +480,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		if (searchText == null) {
 			return null
 		}
-		return m("div.ml-8.mt-12.small.plr-button.content-fg.mb-16", m(Card, searchText))
+		return m("div.ml-8.mt-12.small.plr-8.content-fg.mb-16", m(Card, searchText))
 	}
 
 	oncreate(): void {

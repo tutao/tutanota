@@ -39,7 +39,7 @@ class AppLockMethodDialog {
 				return m("", [
 					null,
 					m(SelectAppLockMethodView, {
-						class: "scroll pt-16 plr-l height-100p",
+						class: "scroll pt-16 plr-24 height-100p",
 						error: this.error,
 						onConfirm: (mode) => this.onMethodSelected(mode),
 						supportedModes: this.supportedModes,

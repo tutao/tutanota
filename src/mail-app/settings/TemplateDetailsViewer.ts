@@ -38,7 +38,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	readonly renderView: UpdatableSettingsDetailsViewer["renderView"] = () => {
-		return m("#user-viewer.fill-absolute.scroll.plr-l.pb-floating", [this.renderTitleLine(), this.renderContent()])
+		return m("#user-viewer.fill-absolute.scroll.plr-24.pb-floating", [this.renderTitleLine(), this.renderContent()])
 	}
 
 	private renderTitleLine(): Children {

@@ -27,7 +27,7 @@ export class CalendarSearchBarOverlay implements Component<CalendarSearchBarOver
 		return m("ul.list.click.mail-list", [
 			state.entities.map((result) => {
 				return m(
-					"li.plr-l.flex-v-center.",
+					"li.plr-24.flex-v-center.",
 					{
 						style: {
 							height: px(52),
@@ -82,7 +82,7 @@ export class CalendarSearchBarOverlay implements Component<CalendarSearchBarOver
 
 		return indexInfo
 			? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)]
-			: m("li.plr-l.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
+			: m("li.plr-24.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
 	}
 
 	private renderCalendarEventResult(event: CalendarEvent): Children {

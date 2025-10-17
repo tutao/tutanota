@@ -114,7 +114,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".flex.flex-space-between.center-vertically.plr-l",
+					".flex.flex-space-between.center-vertically.plr-24",
 					m(BaseSearchBar, {
 						text: this.searchQuery,
 						onInput: (text) => this.updateQuery(text),
@@ -239,7 +239,7 @@ export class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDeta
 
 	renderView(): Children {
 		return m(
-			".plr-l",
+			".plr-24",
 			m(KnowledgeBaseEntryView, {
 				entry: this.entry,
 				onTemplateSelected: (templateId) => m.route.set(`/settings/templates/${listIdPart(templateId)}}`),

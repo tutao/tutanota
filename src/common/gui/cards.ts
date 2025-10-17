@@ -5,5 +5,5 @@ export function responsiveCardHMargin() {
 }
 
 export function responsiveCardHPadding() {
-	return styles.isSingleColumnLayout() ? "plr-8" : "plr-l"
+	return styles.isSingleColumnLayout() ? "plr-8" : "plr-24"
 }

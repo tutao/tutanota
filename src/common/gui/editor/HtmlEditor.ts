@@ -65,7 +65,7 @@ export class HtmlEditor implements Component {
 		const getPlaceholder = () =>
 			!this.active && this.isEmpty()
 				? m(
-						".abs.text-ellipsis.noselect.z1.i.pr-s",
+						".abs.text-ellipsis.noselect.z1.i.pr-4",
 						{
 							oncreate: (vnode) => (this.placeholderDomElement = vnode.dom as HTMLElement),
 							onclick: () =>

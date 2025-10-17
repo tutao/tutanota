@@ -61,7 +61,7 @@ export class TerminationView extends BaseTopLevelView implements TopLevelView<Te
 								;(vnode.dom as HTMLElement).focus()
 							},
 						},
-						m(".flex.col.pt-16.plr-l.content-bg.border-radius-big", [
+						m(".flex.col.pt-16.plr-24.content-bg.border-radius-big", [
 							this.model.acceptedTerminationRequest
 								? this.renderTerminationInfo(this.model.mailAddress, this.model.acceptedTerminationRequest)
 								: this.renderTerminationForm(),

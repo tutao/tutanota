@@ -393,7 +393,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		return m(".flex.col", [
 			this.showingSpamOrTrash
 				? [
-						m(".flex.flex-column.plr-l", [
+						m(".flex.flex-column.plr-24", [
 							m(".small.flex-grow.pt-16", lang.get("storageDeletion_msg")),
 							m(".mr-negative-8.align-self-end", m(Button, purgeButtonAttrs)),
 						]),

@@ -101,9 +101,9 @@ export class RecoverCodeField {
 			showMessage
 				? image
 					? m(".flex-space-around.flex-wrap", [
-							m(".flex-grow-shrink-half.plr-l.flex-center.align-self-center", this.renderRecoveryText()),
+							m(".flex-grow-shrink-half.plr-24.flex-center.align-self-center", this.renderRecoveryText()),
 							m(
-								".flex-grow-shrink-half.plr-l.flex-center.align-self-center",
+								".flex-grow-shrink-half.plr-24.flex-center.align-self-center",
 								m("img.pt-16.bg-white.pt-16.pb-16", {
 									src: image.src,
 									alt: lang.getTranslationText(image.alt),

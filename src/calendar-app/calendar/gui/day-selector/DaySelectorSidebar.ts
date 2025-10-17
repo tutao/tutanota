@@ -33,7 +33,7 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 		const disableHighlight = !isSameDay(vnode.attrs.selectedDate, this.currentDate)
 
 		return m(
-			isDesktop() ? ".plr-m.mt-24" : ".plr-m.mt-8",
+			isDesktop() ? ".plr-12.mt-24" : ".plr-12.mt-8",
 			m(".elevated-bg.pt-8.pb-12.border-radius.flex.flex-column", [
 				this.renderPickerHeader(this.currentDate),
 				m(".flex-grow.overflow-hidden", [

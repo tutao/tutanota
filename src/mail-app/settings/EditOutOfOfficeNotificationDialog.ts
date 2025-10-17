@@ -145,7 +145,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 				oninput: model.defaultSubject,
 				injectionsLeft: () =>
 					m(
-						".flex-no-grow-no-shrink-auto.pr-s",
+						".flex-no-grow-no-shrink-auto.pr-4",
 						{
 							style: {
 								"line-height": px(24),
@@ -168,7 +168,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 				oninput: model.organizationSubject,
 				injectionsLeft: () =>
 					m(
-						".flex-no-grow-no-shrink-auto.pr-s",
+						".flex-no-grow-no-shrink-auto.pr-4",
 						{
 							style: {
 								"line-height": px(24),

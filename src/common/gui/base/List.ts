@@ -492,7 +492,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 
 	private renderConnectionLostIndicator(): Children {
 		return m(
-			".plr-l.flex-center.items-center",
+			".plr-24.flex-center.items-center",
 			{
 				style: {
 					height: px(component_size.list_row_height),
@@ -544,7 +544,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		}
 		return [
 			m(
-				".swipe-spacer.flex.items-center.justify-end.pr-l.blue",
+				".swipe-spacer.flex.items-center.justify-end.pr-24.blue",
 				{
 					oncreate: (vnode) => (this.domSwipeSpacerLeft = vnode.dom as HTMLElement),
 					tabindex: TabIndex.Programmatic,

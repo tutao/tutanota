@@ -113,7 +113,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".flex.flex-space-between.center-vertically.plr-l",
+					".flex.flex-space-between.center-vertically.plr-24",
 					m(BaseSearchBar, {
 						text: this.searchQuery,
 						onInput: (text) => this.updateQuery(text),

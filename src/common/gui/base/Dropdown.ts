@@ -137,7 +137,7 @@ export class Dropdown implements ModalComponent {
 		const inputField = () => {
 			return this.isFilterable
 				? m(
-						"input.input.dropdown-bar.elevated-bg.doNotClose.button-height.button-min-height.pr-s",
+						"input.input.dropdown-bar.elevated-bg.doNotClose.button-height.button-min-height.pr-4",
 						{
 							placeholder: lang.get("typeToFilter_label"),
 							oncreate: (vnode) => {

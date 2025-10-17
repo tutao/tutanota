@@ -98,7 +98,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
-						".flex.col.flex-grow-shrink-auto.max-width-m.plr-l." + (styles.isSingleColumnLayout() ? "pt-16" : "pt-32"),
+						".flex.col.flex-grow-shrink-auto.max-width-m.plr-24." + (styles.isSingleColumnLayout() ? "pt-16" : "pt-32"),
 						{
 							...landmarkAttrs(AriaLandmarks.Main, isApp() || isDesktop() ? lang.get("addAccount_action") : lang.get("login_label")),
 							oncreate: (vnode) => {
@@ -109,7 +109,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 							m(
 								".content-bg.border-radius-big.pb-16",
 								{
-									class: styles.isSingleColumnLayout() ? "plr-l" : "plr-2l",
+									class: styles.isSingleColumnLayout() ? "plr-24" : "plr-48",
 								},
 								this._renderFormForDisplayMode(),
 								this.renderMoreOptions(),

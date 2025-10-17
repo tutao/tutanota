@@ -133,7 +133,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 		return [
 			m(".center.h4.pt-16", lang.get("upgradeConfirm_msg")),
-			m(".pt-16.pb-16.plr-l", [
+			m(".pt-16.pb-16.plr-24", [
 				m(TextField, {
 					label: "subscription_label",
 					value: getDisplayNameOfPlanType(attrs.data.targetPlanType),

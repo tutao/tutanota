@@ -26,7 +26,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		return [
 			m(
-				".fill-absolute.scroll.plr-l.pb-48",
+				".fill-absolute.scroll.plr-24.pb-48",
 				{
 					role: "group",
 				},

@@ -30,7 +30,7 @@ export class DialogHeaderBar implements Component<DialogHeaderBarAttrs> {
 		)
 		let columnClass = a.middle ? ".flex-third.overflow-hidden" : ".flex-half.overflow-hidden"
 		return m(
-			".dialog-header.plr-l.flex-space-between.dialog-header-line-height",
+			".dialog-header.plr-24.flex-space-between.dialog-header-line-height",
 			{
 				oncreate: ({ dom }) => {
 					if (a.create) a.create(dom as HTMLElement)

@@ -49,7 +49,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			m("ul.list.click.mail-list", [
 				state.entities.map((result) => {
 					return m(
-						"li.plr-l.flex-v-center.",
+						"li.plr-24.flex-v-center.",
 						{
 							style: {
 								height: px(52),
@@ -93,7 +93,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	_renderProgress(state: SearchBarState): Children {
 		return m(".flex.col.rel", [
 			m(
-				".plr-l.pt-8.pb-8.flex.items-center.flex-space-between.mr-negative-8",
+				".plr-24.pt-8.pb-8.flex.items-center.flex-space-between.mr-negative-8",
 				{
 					style: {
 						height: px(52),
@@ -146,7 +146,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		return m(".flex.rel", [
 			m(
-				".plr-l.pt-8.pb-8.flex.items-center.flex-space-between.mr-negative-8",
+				".plr-24.pt-8.pb-8.flex.items-center.flex-space-between.mr-negative-8",
 				{
 					style: {
 						height: px(52),
@@ -214,7 +214,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		return indexInfo
 			? [m(".top.flex-center", infoText), m(".bottom.flex-center.small", indexInfo)]
-			: m("li.plr-l.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
+			: m("li.plr-24.pt-8.pb-8.items-center.flex-center", m(".flex-center", infoText))
 	}
 
 	private renderContactResult(contact: Contact): Children {

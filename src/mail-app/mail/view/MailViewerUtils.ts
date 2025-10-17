@@ -494,7 +494,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 				[
 					dialogHeaderBarAttrs.noHeader ? null : m(DialogHeaderBar, dialogHeaderBarAttrs),
 					m(
-						".scroll.hide-outline.plr-l.flex-grow",
+						".scroll.hide-outline.plr-24.flex-grow",
 						{ style: { "overflow-x": "hidden" } },
 						m(
 							ContentWithOptionsDialog,

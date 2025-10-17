@@ -620,7 +620,7 @@ export class Dialog implements ModalComponent {
 
 			const dialog = new Dialog(DialogType.Alert, {
 				view: () =>
-					m(".flex.flex-column.pl-24.pr-l.pb-8", [
+					m(".flex.flex-column.pl-24.pr-24.pb-8", [
 						m("#dialog-message.dialog-max-height.text-break.text-prewrap.selectable.scroll", getContent()),
 						buttonAttrs.length === 0
 							? null
@@ -688,7 +688,7 @@ export class Dialog implements ModalComponent {
 				middle: lang.makeTranslation("title", title()),
 			}
 			saveDialog = new Dialog(DialogType.EditMedium, {
-				view: () => m("", [m(DialogHeaderBar, actionBarAttrs), m(".plr-l.pb-16.text-break", m(child))]),
+				view: () => m("", [m(DialogHeaderBar, actionBarAttrs), m(".plr-24.pb-16.text-break", m(child))]),
 			})
 				.setCloseHandler(closeAction)
 				.show()
@@ -709,7 +709,7 @@ export class Dialog implements ModalComponent {
 			dialog = new Dialog(DialogType.EditMedium, {
 				view: () =>
 					m(
-						".plr-l",
+						".plr-24",
 						m(ImageWithOptionsDialog, {
 							image: `${window.tutao.appState.prefixWithoutFile}/images/update/update_needed_illu_${
 								client.isCalendarApp() ? "calendar" : "mail"
@@ -813,7 +813,7 @@ export class Dialog implements ModalComponent {
 			dialog = new Dialog(DialogType.EditMedium, {
 				view: () =>
 					m(
-						".plr-2l",
+						".plr-48",
 						m(ImageWithOptionsDialog, {
 							image: `${window.tutao.appState.prefixWithoutFile}/images/newsletter-unsubscribe/unsubscribe_${success ? "success" : "failure"}_${getUnsubscribeImageSuffix(theme.themeId)}.svg`,
 							titleText: success ? "unsubscribeSuccessful_title" : "unsubscribeFailed_title",
@@ -918,7 +918,7 @@ export class Dialog implements ModalComponent {
 		dialog = new Dialog(type, {
 			view: () => [
 				m(DialogHeaderBar, actionBarAttrs),
-				m(".dialog-max-height.plr-l.pb-16.text-break.scroll", ["function" === typeof child ? child() : m(child)]),
+				m(".dialog-max-height.plr-24.pb-16.text-break.scroll", ["function" === typeof child ? child() : m(child)]),
 			],
 		}).setCloseHandler(doCancel)
 		dialog.addShortcut({
@@ -1066,7 +1066,7 @@ export class Dialog implements ModalComponent {
 	static largeDialog(headerBarAttrs: DialogHeaderBarAttrs, child: Component): Dialog {
 		return new Dialog(DialogType.EditLarge, {
 			view: () => {
-				return m("", [m(DialogHeaderBar, headerBarAttrs), m(".dialog-container.scroll", m(".fill-absolute.plr-l", m(child)))])
+				return m("", [m(DialogHeaderBar, headerBarAttrs), m(".dialog-container.scroll", m(".fill-absolute.plr-24", m(child)))])
 			},
 		})
 	}
@@ -1078,7 +1078,7 @@ export class Dialog implements ModalComponent {
 					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 					/** variable-size child container that may be scrollable. */
-					m(".dialog-container.scroll.hide-outline", m(".fill-absolute.plr-l", m(child, childAttrs))),
+					m(".dialog-container.scroll.hide-outline", m(".fill-absolute.plr-24", m(child, childAttrs))),
 				]),
 		})
 	}
@@ -1095,7 +1095,7 @@ export class Dialog implements ModalComponent {
 					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 					/** variable-size child container that may be scrollable. */
-					m(".scroll.hide-outline.plr-l.flex-grow", { style: { "overflow-x": "hidden" } }, m(child, childAttrs)),
+					m(".scroll.hide-outline.plr-24.flex-grow", { style: { "overflow-x": "hidden" } }, m(child, childAttrs)),
 				]),
 		})
 	}
@@ -1106,7 +1106,7 @@ export class Dialog implements ModalComponent {
 				/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 				headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 				/** variable-size child container that may be scrollable. */
-				m(".scroll.hide-outline.plr-l", child()),
+				m(".scroll.hide-outline.plr-24", child()),
 			],
 		})
 	}

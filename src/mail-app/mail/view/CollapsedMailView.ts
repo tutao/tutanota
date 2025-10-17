@@ -70,7 +70,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 
 	private renderUnreadDot(): Children {
 		return m(
-			".flex.flex-no-grow.no-shrink.pr-s",
+			".flex.flex-no-grow.no-shrink.pr-4",
 			{
 				"data-testid": "unread-indicator",
 			},

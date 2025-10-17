@@ -1058,7 +1058,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			else showPlanUpgradeRequiredDialog(NewPaidPlans)
 		}
 
-		return m(".folder-row.flex-start.plr-button", [
+		return m(".folder-row.flex-start.plr-8", [
 			m(".flex.flex-grow.center-vertically.button-height", [
 				m(".calendar-checkbox", {
 					role: "checkbox",
@@ -1096,7 +1096,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 						title: lastSyncStr,
 						icon: Icons.SyncProblem,
 						size: IconSize.PX24,
-						class: "pr-s",
+						class: "pr-4",
 						style: {
 							fill: theme.on_surface_variant,
 						},

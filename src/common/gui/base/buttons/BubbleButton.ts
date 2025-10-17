@@ -22,7 +22,7 @@ export function usingMobileBubbleButton() {
 }
 
 export function bubbleButtonPadding(): string {
-	return usingMobileBubbleButton() ? "plr-button-double" : "plr-button"
+	return usingMobileBubbleButton() ? "plr-16" : "plr-8"
 }
 
 /**

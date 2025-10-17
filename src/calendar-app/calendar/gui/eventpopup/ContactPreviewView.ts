@@ -59,7 +59,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
 		return m(Icon, {
 			icon,
-			class: "pr",
+			class: "pr-12",
 			size: IconSize.PX24,
 			style: Object.assign(
 				{

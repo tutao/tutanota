@@ -145,7 +145,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				m(
 					".flex.flex-column.center.items-center.pb-16.pt-16.justify-center.fill-grid-column",
 					{
-						class: styles.isSingleColumnLayout() ? "plr-vpad" : "pr-vpad-l pl-32",
+						class: styles.isSingleColumnLayout() ? "plr-16" : "pr-32 pl-32",
 						style: {
 							"background-color": theme.surface_container_high,
 							color: theme.on_surface_variant,
@@ -158,7 +158,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					],
 				),
 				/* Invite Column */
-				m(".flex.flex-column.plr-vpad.pb-16.pt-16.justify-start", [
+				m(".flex.flex-column.plr-16.pb-16.pt-16.justify-start", [
 					m(".flex", [
 						m(Icon, {
 							icon: BootIcons.Calendar,
@@ -180,7 +180,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				/* Time Overview */
 				!recipientIsOrganizer
 					? m(
-							".flex.flex-column.plr-vpad.pb-16.pt-16.justify-start",
+							".flex.flex-column.plr-16.pb-16.pt-16.justify-start",
 							{
 								class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 								style: {
@@ -250,7 +250,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					: null,
 				isNotEmpty(allDayEvents)
 					? m(
-							"span.border-radius.pt-4.pb-4.plr-sm.text-break",
+							"span.border-radius.pt-4.pb-4.plr-8.text-break",
 							{ style: { color: theme.on_warning_container, "background-color": theme.warning_container } },
 							[
 								m("strong", allDayEvents.length === 1 ? `1 ${lang.get("allDay_label").toLowerCase()}: ` : `${allDayEvents.length} `),

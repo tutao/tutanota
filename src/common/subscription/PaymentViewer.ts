@@ -86,7 +86,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		return m(
-			"#invoicing-settings.fill-absolute.scroll.plr-l",
+			"#invoicing-settings.fill-absolute.scroll.plr-24",
 			{
 				role: "group",
 			},
@@ -535,7 +535,7 @@ function showPayConfirmDialog(price: number): Promise<boolean> {
 			view: (): Children => [
 				m(DialogHeaderBar, actionBarAttrs),
 				m(
-					".plr-l.pb-16",
+					".plr-24.pb-16",
 					m("", [
 						m(".pt-16", lang.get("invoicePayConfirm_msg")),
 						m(TextField, {

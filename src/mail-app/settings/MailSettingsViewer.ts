@@ -337,7 +337,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 		return [
 			m(
-				"#user-settings.fill-absolute.scroll.plr-l.pb-48",
+				"#user-settings.fill-absolute.scroll.plr-24.pb-48",
 				{
 					role: "group",
 					oncreate: () => {

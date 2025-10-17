@@ -81,7 +81,7 @@ export class KnowledgeBaseDialogContent implements Component<KnowledgebaseDialog
 		return m(".flex.mt-8.wrap", [
 			matchedKeywords.length > 0 ? m(".small.full-width", lang.get("matchingKeywords_label")) : null,
 			matchedKeywords.map((keyword) => {
-				return m(".keyword-bubble-no-padding.plr-button.pl-4.pr-s.border-radius.no-wrap.mr-8.min-content", keyword)
+				return m(".keyword-bubble-no-padding.plr-8.pl-4.pr-4.border-radius.no-wrap.mr-8.min-content", keyword)
 			}),
 		])
 	}

@@ -83,7 +83,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 
 	_getNavButtonClass(a: NavButtonAttrs): string {
 		return (
-			"a.nav-button.noselect.items-center.click.plr-button.no-text-decoration.button-height.border-radius" +
+			"a.nav-button.noselect.items-center.click.plr-8.no-text-decoration.button-height.border-radius" +
 			(a.vertical ? ".col" : "") +
 			(!a.centred ? ".flex-start" : ".flex-center") +
 			(a.disableHoverBackground ? "" : ".state-bg") +

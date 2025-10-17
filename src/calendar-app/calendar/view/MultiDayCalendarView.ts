@@ -332,7 +332,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 										},
 									},
 									m(
-										".pl-4.pr-s.center.small.flex.flex-column.justify-center",
+										".pl-4.pr-4.center.small.flex.flex-column.justify-center",
 										{
 											style: {
 												"line-height": isDesktopLayout ? px(layout_size.calendar_hour_height) : "unset",
@@ -445,7 +445,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		// Set bottom padding in height, because it will be ignored in the style
 		const height = mainPageEventsCount * CALENDAR_EVENT_HEIGHT + padding
 		return m(
-			".calendar-long-events-header.flex-fixed.calendar-hour-margin.pr-l.rel",
+			".calendar-long-events-header.flex-fixed.calendar-hour-margin.pr-24.rel",
 			{
 				style: {
 					marginLeft: layout_size.calendar_hour_width_mobile,

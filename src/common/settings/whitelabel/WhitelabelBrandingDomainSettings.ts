@@ -124,7 +124,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 		return () =>
 			m(
 				".flex",
-				components.map((c) => m(".pr-s", c)),
+				components.map((c) => m(".pr-4", c)),
 			)
 	}
 

@@ -31,7 +31,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		const { attrs } = vnode
 
 		return m(
-			".bottom-nav.bottom-action-bar.flex.items-center.plr-l.justify-between",
+			".bottom-nav.bottom-action-bar.flex.items-center.plr-24.justify-between",
 			{
 				oncreate: (vnode) => {
 					this.dom = vnode.dom as HTMLElement

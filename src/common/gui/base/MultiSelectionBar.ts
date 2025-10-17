@@ -10,7 +10,7 @@ interface MultiSelectionBarAttrs {
 export class MultiSelectionBar {
 	view(vnode: Vnode<MultiSelectionBarAttrs>): Children {
 		return m(
-			".flex.items-center.justify-between.pl-4.pr-s",
+			".flex.items-center.justify-between.pl-4.pr-4",
 			{
 				style: {
 					height: "100%",

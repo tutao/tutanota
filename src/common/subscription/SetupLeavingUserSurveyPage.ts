@@ -17,7 +17,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 	view(vnode: Vnode<SetupLeavingUserSurveyPageAttrs>): Children {
 		return m("#leaving-user-survey-dialog.pt-16.flex-center", [
 			m(
-				".flex.flex-column.max-width-m.pt-16.pb-16.plr-l",
+				".flex.flex-column.max-width-m.pt-16.pb-16.plr-24",
 				{
 					style: {
 						minHeight: styles.isDesktopLayout() ? "850px" : "",

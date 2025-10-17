@@ -270,7 +270,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderUnreadDot(): Children {
 		return m(
-			".flex.flex-no-grow.no-shrink.pr-s",
+			".flex.flex-no-grow.no-shrink.pr-4",
 			{
 				"data-testid": "unread-indicator",
 				style: {
@@ -538,7 +538,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		// Show a loading symbol if we are loading attachments
 		if (viewModel.isLoadingAttachments() && !viewModel.isConnectionLost()) {
 			return m(".flex." + responsiveCardHMargin(), [
-				m(".flex-v-center.pl-button", progressIcon()),
+				m(".flex-v-center.pl-8", progressIcon()),
 				m(".small.flex-v-center.plr.button-height", lang.get("loading_msg")),
 			])
 		} else {

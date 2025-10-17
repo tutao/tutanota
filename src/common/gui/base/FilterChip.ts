@@ -26,9 +26,9 @@ export class FilterChip implements Component<FilterChipAttrs> {
 			selectors += ".pl-16"
 		}
 		if (chevron) {
-			selectors += ".pr-vpad-s"
+			selectors += ".pr-8"
 		} else {
-			selectors += ".pr-vpad-m"
+			selectors += ".pr-16"
 		}
 
 		const contentColor = selected ? theme.on_secondary_container : theme.on_surface

@@ -33,7 +33,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 
 		return m(".flex", [
 			m(".flex.col.flex-grow.gap-vpad-s", [
-				m(".flex.gap-vpad-s.items-center.pr-vpad-s", [
+				m(".flex.gap-vpad-s.items-center.pr-8", [
 					m(Icon, {
 						icon: Icons.Time,
 						style: {
@@ -56,7 +56,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 				]),
 				m(".flex.col.full-width.flex-grow.gap-vpad-s", { style: { paddingLeft: px(size.icon_24 + size.spacing_8) } }, [
 					m(Divider, { color: theme.outline_variant }),
-					m(".time-selection-grid.pr-vpad-s", [
+					m(".time-selection-grid.pr-8", [
 						m("", lang.get("dateFrom_label")),
 						m(
 							`${isApp() ? "" : ".pl-32"}`,

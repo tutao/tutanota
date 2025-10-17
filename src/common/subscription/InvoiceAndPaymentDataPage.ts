@@ -182,7 +182,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 						}),
 						m(".flex-space-around.flex-wrap.pt-16", [
 							m(
-								".flex-grow-shrink-half.plr-l",
+								".flex-grow-shrink-half.plr-24",
 								{
 									style: {
 										minWidth: "260px",
@@ -191,7 +191,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 								m(neverNull(this._invoiceDataInput)),
 							),
 							m(
-								".flex-grow-shrink-half.plr-l",
+								".flex-grow-shrink-half.plr-24",
 								{
 									style: {
 										minWidth: "260px",

@@ -51,7 +51,7 @@ export class IdentifierRow implements Component<IdentifierRowAttrs> {
 
 	private renderIdentifier({ identifier, formatIdentifier }: IdentifierRowAttrs): Children {
 		const identifierText = formatIdentifier
-			? neverNull(identifier.match(/.{2}/g)).map((el, i) => m("span.pr-s" + (i % 2 === 0 ? ".b" : ""), el))
+			? neverNull(identifier.match(/.{2}/g)).map((el, i) => m("span.pr-4" + (i % 2 === 0 ? ".b" : ""), el))
 			: identifier
 		return m(".text-break.small.monospace.mt-negative-8.selectable", identifierText)
 	}

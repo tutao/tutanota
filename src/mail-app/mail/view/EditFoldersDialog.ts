@@ -104,7 +104,7 @@ export class EditFoldersDialog implements ModalComponent {
 			},
 			[
 				m(
-					".plr-button.mt-16.mb-16",
+					".plr-8.mt-16.mb-16",
 					m(LoginButton, {
 						label: "done_action",
 						onclick: () => this.close(),
