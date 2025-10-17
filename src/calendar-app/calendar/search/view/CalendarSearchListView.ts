@@ -91,8 +91,6 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 
 export class SearchResultListRow implements VirtualRow<CalendarSearchResultListEntry> {
 	top: number
-	// set from List
-	domElement: HTMLElement | null = null
 
 	// this is our own entry which we need for some reason (probably easier to deal with than a lot of sum type entries)
 	private _entity: CalendarSearchResultListEntry | null = null
@@ -108,7 +106,6 @@ export class SearchResultListRow implements VirtualRow<CalendarSearchResultListE
 	}
 
 	update(entry: CalendarSearchResultListEntry, selected: boolean, isInMultiSelect: boolean): void {
-		this._delegate.domElement = this.domElement!
 		this._entity = entry
 
 		this._delegate.update(downcast(entry.entry), selected, isInMultiSelect)

@@ -21,7 +21,6 @@ export interface VirtualRow<ElementType> {
 
 	entity: ElementType | null
 	top: number
-	domElement: HTMLElement | null
 }
 
 export interface ListFetchResult<ElementType> {
