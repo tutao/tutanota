@@ -33,7 +33,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 				[
 					m(".h4.mt-l", lang.get("contactsManagement_label")),
 					this.renderImportContactsButton(),
-					locator.logins.isEnabled(FeatureType.DisableContacts) ? null : this.renderAutoCreateContactsPreference(),
+					locator.logins.isEnabled(FeatureType.DisableContacts) ? null : m("#createcontacts", this.renderAutoCreateContactsPreference()),
 					this.renderContactsSyncDropdown(),
 				],
 			),
@@ -67,7 +67,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 		if (!isApp()) {
 			return null
 		}
-		return m(".flex.flex-space-between.items-center", [
+		return m("#importcontacts.flex.flex-space-between.items-center", [
 			lang.get("importFromContactBook_label"),
 			m(Button, {
 				label: "import_action",
@@ -80,29 +80,32 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	private renderContactsSyncDropdown(): Child {
 		if (!isApp()) return null
 
-		return m(DropDownSelector, {
-			label: "contactsSynchronization_label",
-			helpLabel: () =>
-				m("div", [
-					lang.get("contactsSynchronizationWarning_msg"),
-					m("span.mlr-s", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
-				]),
-			items: [
-				{
-					name: lang.get("activated_label"),
-					value: true,
+		return m(
+			"#contactsync",
+			m(DropDownSelector, {
+				label: "contactsSynchronization_label",
+				helpLabel: () =>
+					m("div", [
+						lang.get("contactsSynchronizationWarning_msg"),
+						m("span.mlr-s", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
+					]),
+				items: [
+					{
+						name: lang.get("activated_label"),
+						value: true,
+					},
+					{
+						name: lang.get("deactivated_label"),
+						value: false,
+					},
+				],
+				selectedValue: mailLocator.nativeContactsSyncManager().isEnabled(),
+				selectionChangedHandler: async (contactSyncEnabled: boolean) => {
+					await this.onContactSyncSelectionChanged(contactSyncEnabled)
 				},
-				{
-					name: lang.get("deactivated_label"),
-					value: false,
-				},
-			],
-			selectedValue: mailLocator.nativeContactsSyncManager().isEnabled(),
-			selectionChangedHandler: async (contactSyncEnabled: boolean) => {
-				await this.onContactSyncSelectionChanged(contactSyncEnabled)
-			},
-			dropdownWidth: 250,
-		})
+				dropdownWidth: 250,
+			}),
+		)
 	}
 
 	private async onContactSyncSelectionChanged(contactSyncEnabled: boolean) {

@@ -105,18 +105,21 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 			m(".flex.col", [
 				m(".flex-space-between.items-center.mt-l.mb-s", [m(".h4", lang.get("notificationSettings_action"))]),
 				this.extendedNotificationMode
-					? m(NotificationContentSelector, {
-							extendedNotificationMode: this.extendedNotificationMode,
-							onChange: (value: ExtendedNotificationMode) => {
-								locator.pushService.setExtendedNotificationMode(value)
-								this.extendedNotificationMode = value
-								// We can assume "true" because onChange is only triggered if permission was granted
-								this.hasNotificationPermission = true
-							},
-						})
+					? m(
+							"#content",
+							m(NotificationContentSelector, {
+								extendedNotificationMode: this.extendedNotificationMode,
+								onChange: (value: ExtendedNotificationMode) => {
+									locator.pushService.setExtendedNotificationMode(value)
+									this.extendedNotificationMode = value
+									// We can assume "true" because onChange is only triggered if permission was granted
+									this.hasNotificationPermission = true
+								},
+							}),
+						)
 					: null,
 				isApp() ? this.renderCalendarNotificationsDropdown() : null,
-				m(NotificationTargetsList, { rows, rowAdd, onExpandedChange: this.expanded } satisfies NotificationTargetsListAttrs),
+				m("#targets", m(NotificationTargetsList, { rows, rowAdd, onExpandedChange: this.expanded } satisfies NotificationTargetsListAttrs)),
 			]),
 		])
 	}

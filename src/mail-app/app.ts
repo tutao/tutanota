@@ -129,7 +129,7 @@ import("./translations/en.js")
 			})
 			model.register(async () => {
 				const { quickSettingsActions } = await import("../common/settings/SettingsQuickActions.js")
-				return quickSettingsActions(mailLocator.throttledRouter())
+				return quickSettingsActions(mailLocator.throttledRouter(), mailLocator.logins)
 			})
 		})
 
