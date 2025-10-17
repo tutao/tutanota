@@ -165,11 +165,11 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
 					this.renderAppLockField(),
 					m(this._secondFactorsForm),
-					m(".h4.mt-l", lang.get("activeSessions_label")),
+					m("#activesessions.h4.mt-l", lang.get("activeSessions_label")),
 					this._renderActiveSessions(),
 					m(".small", lang.get("sessionsInfo_msg")),
 					m(".flex-space-between.items-center.mt-l.mb-s", [
-						m(".h4", lang.get("closedSessions_label")),
+						m("#closedsessions.h4", lang.get("closedSessions_label")),
 						m(ExpanderButton, {
 							label: "show_action",
 							expanded: this._closedSessionsExpanded(),
@@ -188,7 +188,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m(".small", lang.get("sessionsInfo_msg")),
 					this._usageTestModel.isCustomerOptedOut()
 						? null
-						: m("", [m(".h4.mt-l", lang.get("usageData_label")), m(DropDownSelector, usageDataOptInAttrs)]),
+						: m("#usagedata", [m(".h4.mt-l", lang.get("usageData_label")), m(DropDownSelector, usageDataOptInAttrs)]),
 				]),
 			])
 		} else {

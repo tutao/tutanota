@@ -7,6 +7,7 @@ import { lastIndex, remove } from "@tutao/tutanota-utils"
 import { Keys } from "../api/common/TutanotaConstants"
 import { highlightTextInQueryAsChildren } from "../gui/TextHighlightViewUtils"
 import { theme } from "../gui/theme"
+import { boxShadowHigh } from "../gui/main-styles"
 
 export interface QuickAction {
 	readonly description: string
@@ -76,10 +77,12 @@ class QuickActionBar implements Component<Attrs> {
 				style: {
 					maxWidth: "50vw",
 					maxHeight: "80vh",
-					background: "white",
+					background: theme.surface_container_high,
+					color: theme.on_surface,
 					borderRadius: px(size.border_radius_large),
 					margin: "10vh auto",
 					padding: px(size.hpad),
+					"box-shadow": boxShadowHigh,
 				},
 			},
 			[
@@ -128,13 +131,15 @@ class QuickActionBar implements Component<Attrs> {
 							this.listDom = vnode.dom as HTMLElement
 						},
 					},
-					this.results.map((result, index) =>
-						m(
+					this.results.map((result, index) => {
+						const isSelected = index === this.selectedIndex
+						return m(
 							"li.border-radius-small.plr-s.click",
 							{
 								style: {
 									padding: "4px",
-									backgroundColor: index === this.selectedIndex ? theme.state_bg_hover : undefined,
+									backgroundColor: isSelected ? theme.secondary : undefined,
+									color: isSelected ? theme.on_secondary : undefined,
 								},
 								onclick: () => {
 									const action = this.results.at(index)
@@ -145,22 +150,33 @@ class QuickActionBar implements Component<Attrs> {
 								},
 							},
 							highlightTextInQueryAsChildren(result.description, [{ token: this.query, exact: false }]),
-						),
-					),
+						)
+					}),
 				),
 			],
 		)
 	}
 
 	private scrollToIndex() {
-		if (this.listDom) {
-			const child = this.listDom.children.item(this.selectedIndex)
-			child?.scrollIntoView()
+		const child = this.listDom?.children.item(this.selectedIndex)
+		if (this.listDom && child) {
+			const containerRect = this.listDom.getBoundingClientRect()
+			const childRect = child.getBoundingClientRect()
+			if (childRect.bottom > containerRect.bottom) {
+				child.scrollIntoView({ block: "end" })
+			} else if (childRect.top < containerRect.top) {
+				child.scrollIntoView({ block: "start" })
+			}
 		}
 	}
 }
 
+let showingQuickActionBar = false
+
 export function showQuickActionBar(model: QuickActionsModel) {
+	if (showingQuickActionBar) {
+		return
+	}
 	const activeElement = document.activeElement
 	const modalComponent = {
 		view: () => {
@@ -171,19 +187,22 @@ export function showQuickActionBar(model: QuickActionsModel) {
 				},
 				getMatchingActions: (query) => model.getMatchingActions(query),
 				runAction: (action) => model.runAction(action),
-				close: () => modal.remove(modalComponent),
+				close: () => modalComponent.onClose(),
 			} satisfies Attrs)
 		},
 		async hideAnimation(): Promise<void> {},
 
-		onClose(): void {},
+		onClose(): void {
+			showingQuickActionBar = false
+			modal.remove(modalComponent)
+		},
 
 		shortcuts(): Shortcut[] {
 			return []
 		},
 
 		backgroundClick(e: MouseEvent): void {
-			modal.remove(modalComponent)
+			modalComponent.onClose()
 		},
 
 		/**
@@ -200,5 +219,6 @@ export function showQuickActionBar(model: QuickActionsModel) {
 			return activeElement as HTMLElement | null
 		},
 	}
-	modal.display(modalComponent)
+	showingQuickActionBar = true
+	modal.display(modalComponent, false)
 }

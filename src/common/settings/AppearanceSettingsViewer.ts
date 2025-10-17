@@ -127,13 +127,13 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			},
 		}
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
-			m(".h4.mt-l", lang.get("settingsForDevice_label")),
-			m(DropDownSelector, languageDropDownAttrs),
+			m("#devicesettings.h4.mt-l", lang.get("settingsForDevice_label")),
+			m("#language", m(DropDownSelector, languageDropDownAttrs)),
 			this._renderThemeSelector(),
 			this.renderScrollTimeSelector(),
-			m(".h4.mt-l", lang.get("userSettings_label")),
-			m(DropDownSelector, hourFormatDropDownAttrs),
-			m(DropDownSelector, weekStartDropDownAttrs),
+			m("#usersettings.h4.mt-l", lang.get("userSettings_label")),
+			m("#hourformat", m(DropDownSelector, hourFormatDropDownAttrs)),
+			m("#weekstart", m(DropDownSelector, weekStartDropDownAttrs)),
 		])
 	}
 
@@ -162,7 +162,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectionChangedHandler: (value) => locator.themeController.setThemePreference(value),
 			dropdownWidth: 300,
 		}
-		return m(DropDownSelector, themeDropDownAttrs)
+		return m("#colortheme", m(DropDownSelector, themeDropDownAttrs))
 	}
 
 	renderScrollTimeSelector(): Children {
@@ -174,7 +174,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			selectionChangedHandler: (value) => deviceConfig.setScrollTime(value),
 			dropdownWidth: 300,
 		}
-		return m(DropDownSelector, themeDropDownAttrs)
+		return m("#weekscrolltime", m(DropDownSelector, themeDropDownAttrs))
 	}
 
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
