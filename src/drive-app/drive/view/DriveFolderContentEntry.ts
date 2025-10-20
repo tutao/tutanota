@@ -55,7 +55,7 @@ const mimeTypeRepresentations: Record<string, string> = {
 	"text/plain": "Text",
 }
 const mimeTypeAsText = (mimeType: string) => {
-	return mimeTypeRepresentations[mimeType] || "unknown"
+	return mimeTypeRepresentations[mimeType] || "File"
 }
 
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {

@@ -1,10 +1,8 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { BreadcrumbEntry, DriveFacade, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
 import { File as TutaFile } from "../../../common/api/entities/tutanota/TypeRefs"
-import { FileReference } from "../../../common/api/common/utils/FileUtils"
-import { DataFile } from "../../../common/api/common/DataFile"
 import { Router } from "../../../common/gui/ScopedRouter"
-import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -13,6 +11,7 @@ import { arrayEquals, assertNotNull } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
+import { isFolder } from "./DriveFolderContentEntry"
 
 export enum VirtualFolder {
 	None,
@@ -33,9 +32,54 @@ export interface DisplayFolder {
 	virtualFolder: VirtualFolder
 }
 
+const buildSortFunction = (order: "asc" | "desc", sort: (f1: TutaFile, f2: TutaFile) => number) => {
+	if (order === "desc") {
+		return (f1: TutaFile, f2: TutaFile) => {
+			const compare = sort(f1, f2)
+			return compare * -1 // reverse the order
+		}
+	}
+	return sort
+}
+
+const compareString = (s1: string, s2: string) => {
+	s1 = s1.toLowerCase()
+	s2 = s2.toLowerCase()
+
+	if (s1 > s2) {
+		return 1
+	} else if (s2 > s1) {
+		return -1
+	}
+	return 0
+}
+
+const compareNumber = (n1: number | BigInt, n2: number | BigInt) => {
+	if (n1 > n2) {
+		return 1
+	} else if (n1 < n2) {
+		return -1
+	} else {
+		return 0
+	}
+}
+
+const sortFoldersFirst = (f1: TutaFile, f2: TutaFile): number => {
+	if (isFolder(f1) && !isFolder(f2)) {
+		return -1
+	} else if (!isFolder(f1) && isFolder(f2)) {
+		return 1
+	} else {
+		return 0
+	}
+}
+
 export class DriveViewModel {
 	public readonly driveUploadStackModel: DriveUploadStackModel
 	public readonly userMailAddress: string
+
+	// column sorting
+	private columnToSortOrder: [string, SortOrder] | null = null
 
 	// normal folder view
 	currentFolder!: DisplayFolder
@@ -176,4 +220,38 @@ export class DriveViewModel {
 		// a bit ugly -- should we rename and move that one?
 		locator.fileController.open(file, ArchiveDataType.DriveFile)
 	}
+
+	getCurrentColumnSortOrder() {
+		return this.columnToSortOrder
+	}
+
+	sort(columnName: string, folderFirst: boolean = false) {
+		if (this.columnToSortOrder === null) {
+			this.columnToSortOrder = [columnName, "asc"]
+		} else {
+			// flip order
+			this.columnToSortOrder = [columnName, this.columnToSortOrder[1] === "asc" ? "desc" : "asc"]
+		}
+
+		const sortOrder = this.columnToSortOrder[1]
+
+		// TODO: Use the type system to catch errors here during compile time.
+		const attrToComparisonFunction: Record<string, (f1: TutaFile, f2: TutaFile) => number> = {
+			name: (f1: TutaFile, f2: TutaFile) => compareString(f1.name, f2.name),
+			mimeType: (f1: TutaFile, f2: TutaFile) => compareString(f1.mimeType || "", f2.mimeType || ""),
+			size: (f1: TutaFile, f2: TutaFile) => compareNumber(BigInt(f1.size), BigInt(f2.size)),
+			date: (f1: TutaFile, f2: TutaFile) => compareNumber(generatedIdToTimestamp(elementIdPart(f1._id)), generatedIdToTimestamp(elementIdPart(f2._id))),
+		}
+
+		const comparisonFn = attrToComparisonFunction[columnName]
+		const sortFunction = buildSortFunction(sortOrder, comparisonFn)
+
+		this.currentFolder.files.sort(sortFunction)
+
+		if (folderFirst) {
+			this.currentFolder.files.sort(sortFoldersFirst)
+		}
+	}
 }
+
+type SortOrder = "asc" | "desc"
