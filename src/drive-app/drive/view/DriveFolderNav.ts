@@ -1,16 +1,23 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { DriveBreadcrumb } from "./DriveBreadcrumb"
 import { DriveViewModel } from "./DriveViewModel"
+import { IconButton } from "../../../common/gui/base/IconButton"
+import { Icons } from "../../../common/gui/base/icons/Icons"
+import { lang } from "../../../common/misc/LanguageViewModel"
 
 export interface DriveFolderNavAttrs {
+	onUploadClick: (dom: HTMLElement) => void
 	driveViewModel: DriveViewModel
 }
 
 const driveFolderNavStyle = {
 	background: "white",
-	padding: "16px 24px",
+	display: "flex",
+	padding: "4px 24px",
 	"border-radius": "10px",
 	width: "955px",
+	"align-items": "center",
+	"justify-content": "space-between",
 }
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
@@ -22,7 +29,13 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 			{ style: driveFolderNavStyle },
 			// TODO: FilterBox
 			m(DriveBreadcrumb, { driveViewModel, path: [["root", ["SomeListID", "SomeElementID"]]] }), // FIXME: hardcoded path
-			// TODO: ActionButtons
+			m("", [
+				m(IconButton, {
+					title: lang.makeTranslation("Upload file", () => "Upload file"),
+					click: (ev, dom) => vnode.attrs.onUploadClick(dom),
+					icon: Icons.Upload,
+				}),
+			]),
 		)
 	}
 }
