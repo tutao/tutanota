@@ -18,7 +18,7 @@ import { ImportError } from "../../api/common/error/ImportError.js"
 import { TranslationKeyType } from "../../misc/TranslationKey.js"
 import { isApp } from "../../api/common/Env.js"
 
-import { EventImportRejectionReason, EventWrapper, sortOutParsedEvents } from "./ImportExportUtils.js"
+import { EventImportRejectionReason, EventAlarmsTuple, sortOutParsedEvents } from "./ImportExportUtils.js"
 import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 
 /**
@@ -96,7 +96,7 @@ async function selectAndParseIcalFile(): Promise<ParsedEvent[]> {
 	}
 }
 
-async function importEvents(eventsForCreation: Array<EventWrapper>): Promise<void> {
+async function importEvents(eventsForCreation: Array<EventAlarmsTuple>): Promise<void> {
 	const operation = locator.operationProgressTracker.startNewOperation()
 	return showProgressDialog("importCalendar_label", locator.calendarFacade.saveImportedCalendarEvents(eventsForCreation, operation.id), operation.progress)
 		.catch(

@@ -27,7 +27,7 @@ import {
 	GroupSettings,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
-	defaultCalendarColor,
+	DEFAULT_CALENDAR_COLOR,
 	GroupType,
 	Keys,
 	NewPaidPlans,
@@ -974,7 +974,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				calendarInfo = {
 					id: calendarGroup._id,
 					name: "",
-					color: defaultCalendarColor,
+					color: DEFAULT_CALENDAR_COLOR,
 					type: CalendarType.External,
 				}
 			}

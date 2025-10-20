@@ -1,24 +1,20 @@
 import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized, getStartOfDay, getStartOfNextDay } from "@tutao/tutanota-utils"
-import { px } from "../../gui/size.js"
+import { deepMemoized, getStartOfDay, getStartOfNextDay, mapNullable } from "@tutao/tutanota-utils"
+import { layout_size, px, size } from "../../gui/size.js"
 import { Icon } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { theme } from "../../gui/theme.js"
 import { colorForBg } from "../../gui/base/GuiUtils.js"
-import { getTimeZone } from "../date/CalendarUtils"
-import { EventRenderWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
+import { getTimeTextFormatForLongEvent, getTimeZone, hasAlarmsForTheUser, isBirthdayCalendar } from "../date/CalendarUtils"
 import { TimeColumn } from "./TimeColumn"
-import { elementIdPart } from "../../api/common/utils/EntityUtils"
+import { elementIdPart, listIdPart } from "../../api/common/utils/EntityUtils"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs"
 import { DateTime } from "luxon"
-
-export interface TimeViewEventWrapper {
-	event: EventRenderWrapper
-	conflictsWithMainEvent: boolean
-	color: string
-	featured: boolean
-}
+import { CalendarEventBubble } from "../../../calendar-app/calendar/view/CalendarEventBubble"
+import { formatEventTime } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { locator } from "../../api/main/CommonLocator"
+import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 
 export const TIME_SCALE_BASE_VALUE = 60
 export type TimeScale = 1 | 2 | 4
@@ -35,7 +31,7 @@ export enum EventConflictRenderPolicy {
 
 export interface TimeViewAttributes {
 	dates: Array<Date>
-	events: Array<TimeViewEventWrapper>
+	events: Array<EventWrapper>
 	timeScale: TimeScale
 	timeRange: TimeRange
 	conflictRenderPolicy: EventConflictRenderPolicy
@@ -108,8 +104,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 					const startOfTomorrow = getStartOfNextDay(date)
 					const startOfDay = getStartOfDay(date)
 					const eventsForThisDate = events.filter(
-						(event) =>
-							event.event.event.startTime.getTime() < startOfTomorrow.getTime() && event.event.event.endTime.getTime() > startOfDay.getTime(),
+						(eventWrapper) =>
+							eventWrapper.event.startTime.getTime() < startOfTomorrow.getTime() && eventWrapper.event.endTime.getTime() > startOfDay.getTime(),
 					)
 
 					return m(
@@ -165,7 +161,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 	 * @private
 	 */
 	private renderEventsAtDate = deepMemoized(
-		(eventsForThisDate: Array<TimeViewEventWrapper>, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date): Children => {
+		(eventsForThisDate: Array<EventWrapper>, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date): Children => {
 			const interval = TIME_SCALE_BASE_VALUE / timeScale
 			const timeRangeAsDate = {
 				start: timeRange.start.toDate(baseDate),
@@ -173,9 +169,9 @@ export class TimeView implements Component<TimeViewAttributes> {
 			}
 
 			const orderedEvents = eventsForThisDate.toSorted((eventWrapperA, eventWrapperB) => {
-				const startTimeComparison = eventWrapperA.event.event.startTime.getTime() - eventWrapperB.event.event.startTime.getTime()
+				const startTimeComparison = eventWrapperA.event.startTime.getTime() - eventWrapperB.event.startTime.getTime()
 				if (startTimeComparison === 0) {
-					return eventWrapperB.event.event.endTime.getTime() - eventWrapperA.event.event.endTime.getTime()
+					return eventWrapperB.event.endTime.getTime() - eventWrapperA.event.endTime.getTime()
 				}
 
 				return startTimeComparison
@@ -187,22 +183,22 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 			const gridData = this.layoutEvents(orderedEvents, timeRange, subRowAsMinutes, timeScale, baseDate)
 
-			return orderedEvents.flatMap((event) => {
+			return orderedEvents.flatMap((eventWrapper) => {
 				const passesThroughToday =
-					event.event.event.startTime.getTime() < timeRangeAsDate.start.getTime() &&
-					event.event.event.endTime.getTime() > timeRangeAsDate.end.getTime()
+					eventWrapper.event.startTime.getTime() < timeRangeAsDate.start.getTime() &&
+					eventWrapper.event.endTime.getTime() > timeRangeAsDate.end.getTime()
 				const startsToday =
-					event.event.event.startTime.getTime() >= timeRangeAsDate.start.getTime() &&
-					event.event.event.startTime.getTime() <= timeRangeAsDate.end.getTime()
+					eventWrapper.event.startTime.getTime() >= timeRangeAsDate.start.getTime() &&
+					eventWrapper.event.startTime.getTime() <= timeRangeAsDate.end.getTime()
 				const endsToday =
-					event.event.event.endTime.getTime() >= timeRangeAsDate.start.getTime() &&
-					event.event.event.endTime.getTime() <= timeRangeAsDate.end.getTime()
+					eventWrapper.event.endTime.getTime() >= timeRangeAsDate.start.getTime() &&
+					eventWrapper.event.endTime.getTime() <= timeRangeAsDate.end.getTime()
 
 				if (!(passesThroughToday || startsToday || endsToday)) {
 					return []
 				}
 
-				const evData = gridData.get(elementIdPart(event.event.event._id))
+				const evData = gridData.get(elementIdPart(eventWrapper.event._id))
 				if (!evData) {
 					return []
 				}
@@ -219,29 +215,29 @@ export class TimeView implements Component<TimeViewAttributes> {
 								"min-height": px(0),
 								"min-width": px(0),
 								"grid-column": `${columnStart} / span ${spanSize}`,
-								background: event.color,
-								color: !event.featured ? colorForBg(event.color) : undefined,
+								background: `#${eventWrapper.color}`,
+								color: !eventWrapper.isFeatured ? colorForBg(`#${eventWrapper.color}`) : undefined,
 								"grid-row": `${start} / ${end}`,
-								"border-top-left-radius": event.event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
-								"border-top-right-radius": event.event.event.startTime < timeRangeAsDate.start ? "0" : undefined,
-								"border-bottom-left-radius": event.event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
-								"border-bottom-right-radius": event.event.event.endTime > timeRangeAsDate.end ? "0" : undefined,
-								border: event.featured
-									? `1.5px dashed ${event.conflictsWithMainEvent ? theme.on_warning_container : theme.on_success_container}`
+								"border-top-left-radius": eventWrapper.event.startTime < timeRangeAsDate.start ? "0" : undefined,
+								"border-top-right-radius": eventWrapper.event.startTime < timeRangeAsDate.start ? "0" : undefined,
+								"border-bottom-left-radius": eventWrapper.event.endTime > timeRangeAsDate.end ? "0" : undefined,
+								"border-bottom-right-radius": eventWrapper.event.endTime > timeRangeAsDate.end ? "0" : undefined,
+								border: eventWrapper.isFeatured
+									? `1.5px dashed ${eventWrapper.isConflict ? theme.on_warning_container : theme.on_success_container}`
 									: "none",
-								"border-top": event.event.event.startTime < timeRangeAsDate.start ? "none" : undefined,
-								"border-bottom": event.event.event.endTime > timeRangeAsDate.end ? "none" : undefined,
+								"border-top": eventWrapper.event.startTime < timeRangeAsDate.start ? "none" : undefined,
+								"border-bottom": eventWrapper.event.endTime > timeRangeAsDate.end ? "none" : undefined,
 								"-webkit-line-clamp": 2,
 							} satisfies Partial<CSSStyleDeclaration> & Record<string, any>,
 						},
-						event.featured
+						eventWrapper.isFeatured
 							? m(".flex.items-start", [
 									m(Icon, {
-										icon: event.conflictsWithMainEvent ? Icons.AlertCircle : Icons.Checkmark,
+										icon: eventWrapper.isConflict ? Icons.AlertCircle : Icons.Checkmark,
 										container: "div",
 										class: "mr-4",
 										style: {
-											fill: event.conflictsWithMainEvent ? theme.on_warning_container : theme.on_success_container,
+											fill: eventWrapper.isConflict ? theme.on_warning_container : theme.on_success_container,
 										},
 									}),
 									m(
@@ -249,13 +245,32 @@ export class TimeView implements Component<TimeViewAttributes> {
 										{
 											style: {
 												"-webkit-line-clamp": 2,
-												color: event.conflictsWithMainEvent ? theme.on_warning_container : theme.on_success_container,
+												color: eventWrapper.isConflict ? theme.on_warning_container : theme.on_success_container,
 											},
 										},
-										event.event.event.summary,
+										eventWrapper.event.summary,
 									),
 								])
-							: m("span.selectable", `${event.event.event.summary} ${event.event.event._id.join("/")}`),
+							: // : m("span.selectable", `${eventWrapper.event.summary} ${eventWrapper.event._id.join("/")}`),
+								m(CalendarEventBubble, {
+									text: eventWrapper.event.summary,
+									secondLineText: mapNullable(
+										getTimeTextFormatForLongEvent(eventWrapper.event, baseDate, getStartOfNextDay(baseDate), getTimeZone()),
+										(option) => formatEventTime(eventWrapper.event, option),
+									),
+									color: eventWrapper.color.replaceAll("#", ""),
+									border: `2px dashed #${eventWrapper.color}`,
+									click: (domEvent) => console.log("click"),
+									keyDown: (domEvent) => console.log("keyDown", domEvent),
+									height: (end - start) * (this.timeRowHeight ?? 1),
+									hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, eventWrapper.event),
+									isAltered: eventWrapper.event.recurrenceId != null,
+									verticalPadding: layout_size.calendar_day_event_padding,
+									fadeIn: true,
+									opacity: 1,
+									enablePointerEvents: true,
+									isBirthday: isBirthdayCalendar(listIdPart(eventWrapper.event._id)),
+								}),
 					),
 				]
 			}) as ChildArray
@@ -273,12 +288,11 @@ export class TimeView implements Component<TimeViewAttributes> {
 	 *
 	 * @return Map<string, GridEventData>
 	 */
-	private layoutEvents(events: Array<TimeViewEventWrapper>, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date) {
+	private layoutEvents(events: Array<EventWrapper>, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date) {
 		// Convert to row-based events
 		const eventsMap: Map<Id, RowBounds> = new Map(
-			events.map((e) => {
-				const evt = e.event.event
-				return [elementIdPart(evt._id), this.getRowBounds(evt, timeRange, subRowAsMinutes, timeScale, baseDate)]
+			events.map((eventWrapper) => {
+				return [elementIdPart(eventWrapper.event._id), this.getRowBounds(eventWrapper.event, timeRange, subRowAsMinutes, timeScale, baseDate)]
 			}),
 		)
 

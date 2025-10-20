@@ -55,7 +55,7 @@ import {
 import {
 	AccountType,
 	CalendarAttendeeStatus,
-	defaultCalendarColor,
+	DEFAULT_CALENDAR_COLOR,
 	EndType,
 	EventTextTimeOption,
 	Keys,
@@ -70,13 +70,13 @@ import { DateTime, Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { AdvancedRepeatRule, CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { layout_size, size } from "../../../common/gui/size.js"
+import { layout_size } from "../../../common/gui/size.js"
 import { hslToHex, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
-import { EventRenderWrapper, EventsOnDays } from "../view/CalendarViewModel.js"
+import { EventsOnDays, EventWrapper } from "../view/CalendarViewModel.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { UserController } from "../../../common/api/main/UserController.js"
@@ -711,9 +711,9 @@ export const enum EventLayoutMode {
  * in one column on a single day (it will "stretch" events from the day start until the next day).
  */
 export function layOutEvents(
-	events: Array<EventRenderWrapper>,
+	events: Array<EventWrapper>,
 	zone: string,
-	renderer: (columns: Array<Array<EventRenderWrapper>>) => ChildArray,
+	renderer: (columns: Array<Array<EventWrapper>>) => ChildArray,
 	layoutMode: EventLayoutMode,
 ): ChildArray {
 	events.sort((e1, e2) => {
@@ -729,7 +729,7 @@ export function layOutEvents(
 	})
 	let lastEventEnding: Date | null = null
 	let lastEventStart: Date | null = null
-	let columns: Array<Array<EventRenderWrapper>> = []
+	let columns: Array<Array<EventWrapper>> = []
 	const children: Array<Children> = []
 	// Cache for calculation events
 	const calcEvents = new Map()
@@ -850,7 +850,7 @@ function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEven
 	return firstEventEnd.getTime() === secondEventStart.getTime() && height < layout_size.calendar_line_height
 }
 
-export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Array<Array<EventRenderWrapper>>): number {
+export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Array<Array<EventWrapper>>): number {
 	let colSpan = 1
 
 	for (let i = columnIndex + 1; i < columns.length; i++) {
@@ -871,7 +871,7 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 }
 
 export function getEventColor(event: CalendarEvent, groupColors: GroupColors, isGhost: boolean = false): string {
-	const color = (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? defaultCalendarColor
+	const color = (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? DEFAULT_CALENDAR_COLOR
 	const alpha = isGhost ? (isLightTheme() ? "AA" : "7F") : "FF"
 	return `${color}${alpha}`
 }
@@ -1070,7 +1070,7 @@ export function generateRandomColor(): ColorString {
 }
 
 export function renderCalendarColor(selectedCalendar: CalendarInfo | null, groupColors: Map<Id, string>) {
-	const color = selectedCalendar ? (groupColors.get(selectedCalendar.groupInfo.group) ?? defaultCalendarColor) : null
+	const color = selectedCalendar ? (groupColors.get(selectedCalendar.groupInfo.group) ?? DEFAULT_CALENDAR_COLOR) : null
 	return m(".mt-4", {
 		style: {
 			width: "100px",

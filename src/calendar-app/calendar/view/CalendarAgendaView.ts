@@ -4,7 +4,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { getTimeZone, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils"
 import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, EventRenderWrapper } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, EventWrapper } from "./CalendarViewModel"
 import { styles } from "../../../common/gui/styles.js"
 import { DateTime } from "luxon"
 import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
@@ -226,7 +226,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		}
 	}
 
-	private getEventsToRender(day: Date, attrs: CalendarAgendaViewAttrs): readonly EventRenderWrapper[] {
+	private getEventsToRender(day: Date, attrs: CalendarAgendaViewAttrs): readonly EventWrapper[] {
 		return (attrs.eventsForDays.get(day.getTime()) ?? []).filter((e) => {
 			return shouldDisplayEvent(e.event, attrs.hiddenCalendars)
 		})
@@ -316,7 +316,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		this.lastScrollPosition = attrs.scrollPosition
 	}
 
-	private renderEventsForDay(events: readonly EventRenderWrapper[], zone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
+	private renderEventsForDay(events: readonly EventWrapper[], zone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
 		const { groupColors: colors, onEventClicked: click, onEventKeyDown: keyDown, eventPreviewModel: modelPromise } = attrs
 		const agendaItemHeight = 62
 		const agendaGap = 3
@@ -430,7 +430,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
  * @param date date to use
  * @return the index, or null if there is no next event
  */
-export function earliestEventToShowTimeIndicator(events: readonly EventRenderWrapper[], date: Date): number | null {
+export function earliestEventToShowTimeIndicator(events: readonly EventWrapper[], date: Date): number | null {
 	// We do not want to show the time indicator above any all day events
 	const firstNonAllDayEvent = events.findIndex((event) => !isAllDayEvent(event.event))
 	if (firstNonAllDayEvent < 0) {

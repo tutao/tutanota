@@ -148,7 +148,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				const daysToEvents = calendarEventsRepositoryMock.getEventsForMonths()()
 				o(daysToEvents.size).equals(1)
 				o.check(daysToEvents.get(startOfDay)?.length).equals(1)
-				o.check(daysToEvents.get(startOfDay)?.[0]).equals(event)
+				o.check(daysToEvents.get(startOfDay)?.[0].event).equals(event)
 			})
 
 			o.test("new event of a new calendar happens on a loaded month", async function () {
@@ -199,7 +199,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				const daysToEvents = calendarEventsRepositoryMock.getEventsForMonths()()
 				o(daysToEvents.size).equals(1)
 				o.check(daysToEvents.get(startOfDay)?.length).equals(1)
-				o.check(daysToEvents.get(startOfDay)?.[0]).equals(event)
+				o.check(daysToEvents.get(startOfDay)?.[0].event).equals(event)
 			})
 		})
 	})

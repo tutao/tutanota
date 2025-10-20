@@ -18,6 +18,7 @@ import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SearchToken } from "../../../../common/api/common/utils/QueryTokenUtils"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
+import { EventWrapper } from "../../view/CalendarViewModel"
 
 /**
  * makes decisions about which operations are available from the popup and knows how to implement them depending on the event's type.
@@ -228,7 +229,18 @@ export class CalendarEventPreviewViewModel {
 					end: getStartOfDayWithZone(this.calendarEvent.startTime, this.calendarEvent.repeatRule!.timeZone).getTime(),
 				}
 				const occurrencesPerDay = new Map()
-				addDaysForRecurringEvent(occurrencesPerDay, { isGhost: false, event: progenitor }, generationRange, newEventModel.editModels.whenModel.zone)
+				const calendar = await this.calendar.getAsync()
+				if (!calendar) {
+					throw new Error(`Missing calendar for eventId ${progenitor._id}`)
+				}
+				const progenitorWrapper: EventWrapper = {
+					event: progenitor,
+					isGhost: false,
+					isFeatured: false,
+					isConflict: false,
+					color: calendar.color,
+				}
+				addDaysForRecurringEvent(occurrencesPerDay, progenitorWrapper, generationRange, newEventModel.editModels.whenModel.zone)
 
 				const occurrencesLeft =
 					newEventModel.editModels.whenModel.repeatEndOccurrences -
