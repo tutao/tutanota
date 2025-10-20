@@ -8,6 +8,7 @@ export interface Router {
 	getFullPath(): string
 
 	/** will do parameter substitution like mithril route */
+
 	routeTo(path: string, params: Record<string, any>): void
 }
 

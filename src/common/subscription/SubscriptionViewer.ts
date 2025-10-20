@@ -177,6 +177,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				m(
 					SettingsExpander,
 					{
+						id: "giftcards",
 						title: "giftCards_label",
 						infoMsg: "giftCardSection_label",
 						expanded: this._giftCardsExpanded,

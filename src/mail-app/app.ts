@@ -120,7 +120,26 @@ import("./translations/en.js")
 		initCommonLocator(mailLocator)
 
 		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
-		setupNavShortcuts()
+		setupNavShortcuts({ quickActionsModel: () => mailLocator.quickActionsModel(), logins: mailLocator.logins })
+
+		mailLocator.quickActionsModel().then((model) => {
+			model.register(async () => {
+				const { quickMailActions } = await import("./mail/model/MailQuickActions.js")
+				return quickMailActions(mailLocator.mailboxModel, mailLocator.mailModel, mailLocator.logins, mailLocator.throttledRouter())
+			})
+			model.register(async () => {
+				const { quickCalendarActions } = await import("../calendar-app/calendar/view/CalendarQuickActions.js")
+				return quickCalendarActions(mailLocator.throttledRouter(), mailLocator.mailboxModel, await mailLocator.calendarModel(), mailLocator.logins)
+			})
+			model.register(async () => {
+				const { quickContactsActions } = await import("./contacts/ContactsQuickActions.js")
+				return quickContactsActions(mailLocator.contactModel, mailLocator.throttledRouter(), mailLocator.entityClient)
+			})
+			model.register(async () => {
+				const { quickSettingsActions } = await import("../common/settings/SettingsQuickActions.js")
+				return quickSettingsActions(mailLocator.throttledRouter(), mailLocator.logins)
+			})
+		})
 
 		const { BottomNav } = await import("./gui/BottomNav.js")
 
