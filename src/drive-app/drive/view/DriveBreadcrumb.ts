@@ -19,7 +19,7 @@ export class DriveBreadcrumb implements Component<DriveBreadcrumbAttrs> {
 			"div",
 			parents
 				.map((entry, index) => [
-					m("span.plr", "/"),
+					index === 0 ? null : m("span.plr", "/"),
 					m(
 						"span",
 						{

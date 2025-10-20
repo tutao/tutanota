@@ -19,13 +19,11 @@ export const isFolder = ({ mimeType }: File) => {
 }
 
 const DriveFolderContentEntryRowStyle = {
-	height: "56px",
 	background: "white",
 	"border-radius": "10px",
 	"align-items": "center",
 	"margin-bottom": "4px",
-	"padding-left": "24px",
-	"padding-right": "24px",
+	padding: "16px 24px",
 	"max-width": "fit-content",
 }
 
