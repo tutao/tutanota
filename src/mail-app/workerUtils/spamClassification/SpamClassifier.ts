@@ -1,6 +1,5 @@
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import { assertNotNull, defer, groupByAndMap, isNotNull, Nullable, promiseMap, tokenize } from "@tutao/tutanota-utils"
-import { DynamicTfVectorizer } from "./DynamicTfVectorizer"
 import { HashingVectorizer } from "./HashingVectorizer"
 import {
 	ML_BITCOIN_REGEX,
@@ -110,7 +109,7 @@ export class SpamClassifier {
 		private readonly initializer: SpamClassificationInitializer,
 		private readonly deterministic: boolean = false,
 		private readonly preprocessConfiguration: PreprocessConfiguration = DEFAULT_PREPROCESS_CONFIGURATION,
-		private readonly vectorizer: DynamicTfVectorizer | HashingVectorizer = new HashingVectorizer(),
+		private readonly vectorizer: HashingVectorizer = new HashingVectorizer(),
 	) {
 		this.classifier = new Map()
 	}
@@ -228,9 +227,6 @@ export class SpamClassifier {
 		const preprocessingTime = performance.now() - preprocessingStart
 
 		const vectorizationStart = performance.now()
-		if (this.vectorizer instanceof DynamicTfVectorizer) {
-			this.vectorizer.buildInitialTokenVocabulary(tokenizedMails)
-		}
 
 		const vectors = await this.vectorizer.transform(tokenizedMails)
 		const labels = mails.map((mail) => (mail.isSpam ? 1 : 0))
