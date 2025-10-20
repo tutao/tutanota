@@ -46,7 +46,6 @@ export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsM
 			exec: () => {
 				quickActionsModel().then(showQuickActionBar)
 			},
-			// FIXME
 			help: "search_label",
 		},
 	])

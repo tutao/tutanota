@@ -80,10 +80,6 @@ import("../mail-app/translations/en.js")
 
 		initCommonLocator(calendarLocator)
 
-		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
-		// FIXME
-		// setupNavShortcuts()
-
 		// this needs to stay after client.init
 		windowFacade.init(calendarLocator.logins, calendarLocator.connectivityModel, null)
 		if (isDesktop()) {

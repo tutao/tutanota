@@ -3,7 +3,7 @@ import { px, size } from "../gui/size"
 import { TextField } from "../gui/base/TextField"
 import { modal } from "../gui/base/Modal"
 import { isKeyPressed, Shortcut } from "./KeyManager"
-import { lastIndex, remove } from "@tutao/tutanota-utils"
+import { lastIndex } from "@tutao/tutanota-utils"
 import { Keys } from "../api/common/TutanotaConstants"
 import { highlightTextInQueryAsChildren } from "../gui/TextHighlightViewUtils"
 import { theme } from "../gui/theme"
@@ -35,8 +35,10 @@ export class QuickActionsModel {
 	}
 
 	runAction(action: QuickAction) {
-		remove(this._lastRunActions, action)
-		this._lastRunActions.unshift(action)
+		// the action would get duplicated, need to figure out a good solution
+		// and we did not de-duplicate the whole list, so options would show up multiple times
+		// remove(this._lastRunActions, action)
+		// this._lastRunActions.unshift(action)
 		action.exec()
 	}
 
