@@ -1,25 +1,11 @@
 import { CalendarEvent, CalendarEventAttendee, Mail } from "../../../common/api/entities/tutanota/TypeRefs"
 import { DateTime } from "../../../../libs/luxon"
-import {
-	findAttendeeInAddresses,
-	formatJSDate,
-	isAllDayEvent,
-	isSameExternalEvent
-} from "../../../common/api/common/utils/CommonCalendarUtils"
+import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import {
-	base64ToBase64Url,
-	clone,
-	filterNull,
-	getStartOfDay,
-	isNotNull,
-	isSameDay,
-	partition,
-	stringToBase64,
-} from "@tutao/tutanota-utils"
+import { base64ToBase64Url, clone, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/tutanota-utils"
 import {
 	EventConflictRenderPolicy,
 	TIME_SCALE_BASE_VALUE,
