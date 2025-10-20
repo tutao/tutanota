@@ -39,6 +39,7 @@ import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
+import { CommonLocator } from "../common/api/main/CommonLocator"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -126,6 +127,21 @@ import("./translations/en.js")
 			model.register(async () => {
 				const { quickMailActions } = await import("./mail/model/MailQuickActions.js")
 				return quickMailActions(mailLocator.mailboxModel, mailLocator.mailModel, mailLocator.logins, mailLocator.throttledRouter())
+			})
+			model.register(async () => {
+				const { quickCalendarActions } = await import("../calendar-app/calendar/view/CalendarQuickActions.js")
+				const factory: CommonLocator["calendarEventModel"] = mailLocator.calendarEventModel.bind(mailLocator)
+				return quickCalendarActions(
+					mailLocator.throttledRouter(),
+					mailLocator.mailboxModel,
+					await mailLocator.calendarModel(),
+					mailLocator.logins,
+					factory,
+				)
+			})
+			model.register(async () => {
+				const { quickContactsActions } = await import("./contacts/ContactsQuickActions.js")
+				return quickContactsActions(mailLocator.contactModel, mailLocator.throttledRouter(), mailLocator.entityClient)
 			})
 			model.register(async () => {
 				const { quickSettingsActions } = await import("../common/settings/SettingsQuickActions.js")

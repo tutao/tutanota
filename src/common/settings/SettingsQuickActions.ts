@@ -4,6 +4,7 @@ import { Router } from "../gui/ScopedRouter"
 import { isApp, isBrowser, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
 import { isNotNull } from "@tutao/tutanota-utils"
 import { LoginController } from "../api/main/LoginController"
+import { SETTINGS_PREFIX } from "../misc/RouteChange"
 
 export async function quickSettingsActions(router: Router, logins: LoginController): Promise<readonly QuickAction[]> {
 	return [
@@ -310,9 +311,9 @@ function adminSettings(router: Router) {
 
 function routeToFolder(router: Router, folder: string, id?: string) {
 	if (id == null) {
-		return router.routeTo("/settings/:folder", { folder })
+		return router.routeTo(`${SETTINGS_PREFIX}/:folder`, { folder })
 	} else {
-		return router.routeTo("/settings/:folder/:id", { folder, id })
+		return router.routeTo(`${SETTINGS_PREFIX}/:folder/:id`, { folder, id })
 	}
 }
 
@@ -321,5 +322,5 @@ function routeToFolderSection(router: Router, folder: string, section: string): 
 }
 
 function sectioned(folder: string, section: string): string {
-	return `/settings/${folder}#section=${section}`
+	return `${SETTINGS_PREFIX}/${folder}#section=${section}`
 }
