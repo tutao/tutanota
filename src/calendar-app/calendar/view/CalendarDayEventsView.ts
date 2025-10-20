@@ -23,7 +23,7 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventRenderWrapper } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "./CalendarViewModel"
 import type { GroupColors } from "./CalendarView"
 import { styles } from "../../../common/gui/styles"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -34,14 +34,14 @@ export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler
 	onEventKeyDown: CalendarEventBubbleKeyDownHandler
 	groupColors: GroupColors
-	events: Array<EventRenderWrapper>
+	events: Array<EventWrapper>
 	displayTimeIndicator: boolean
 	onTimePressed: (hours: number, minutes: number) => unknown
 	onTimeContextPressed: (hours: number, minutes: number) => unknown
 	day: Date
-	setCurrentDraggedEvent: (ev: CalendarEvent) => unknown
+	setCurrentDraggedEvent: (eventWrapper: EventWrapper) => unknown
 	setTimeUnderMouse: (time: Time) => unknown
-	isTemporaryEvent: (event: EventRenderWrapper) => boolean
+	isTemporaryEvent: (event: EventWrapper) => boolean
 	isDragging: boolean
 	fullViewWidth?: number
 	disabled?: boolean
@@ -98,21 +98,21 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		return m(".abs", { style: { top: px(top), left: 0, right: 0 } }, m(CalendarTimeIndicator))
 	}
 
-	private renderEvents(attrs: Attrs, events: Array<EventRenderWrapper>): Children {
+	private renderEvents(attrs: Attrs, events: Array<EventWrapper>): Children {
 		return layOutEvents(events, getTimeZone(), (columns) => this.renderColumns(attrs, columns), EventLayoutMode.TimeBasedColumn)
 	}
 
-	private renderEvent(attrs: Attrs, ev: EventRenderWrapper, columnIndex: number, columns: Array<Array<EventRenderWrapper>>, columnWidth: number): Children {
+	private renderEvent(attrs: Attrs, eventWrapper: EventWrapper, columnIndex: number, columns: Array<Array<EventWrapper>>, columnWidth: number): Children {
 		// If an event starts in the previous day or ends in the next, we want to clamp top/height to fit within just this day
 		const zone = getTimeZone()
-		const startOfEvent = eventStartsBefore(attrs.day, zone, ev.event) ? getStartOfDay(attrs.day) : ev.event.startTime
-		const endOfEvent = eventEndsAfterDay(attrs.day, zone, ev.event) ? getEndOfDay(attrs.day) : ev.event.endTime
+		const startOfEvent = eventStartsBefore(attrs.day, zone, eventWrapper.event) ? getStartOfDay(attrs.day) : eventWrapper.event.startTime
+		const endOfEvent = eventEndsAfterDay(attrs.day, zone, eventWrapper.event) ? getEndOfDay(attrs.day) : eventWrapper.event.endTime
 		const startTime = (startOfEvent.getHours() * 60 + startOfEvent.getMinutes()) * 60 * 1000
 		const height = ((endOfEvent.getTime() - startOfEvent.getTime()) / (1000 * 60 * 60)) * size.calendar_hour_height - size.calendar_event_border
 		const fullViewWidth = attrs.fullViewWidth
 		const maxWidth = fullViewWidth != null ? px(styles.isDesktopLayout() ? fullViewWidth / 2 : fullViewWidth) : "none"
-		const colSpan = expandEvent(ev.event, columnIndex, columns)
-		const eventTitle = getDisplayEventTitle(ev.event.summary)
+		const colSpan = expandEvent(eventWrapper.event, columnIndex, columns)
+		const eventTitle = getDisplayEventTitle(eventWrapper.event.summary)
 		return m(
 			".abs.darker-hover",
 			{
@@ -124,31 +124,31 @@ export class CalendarDayEventsView implements Component<Attrs> {
 					height: px(height),
 				},
 				onmousedown: () => {
-					if (!attrs.isTemporaryEvent(ev)) {
-						attrs.setCurrentDraggedEvent(ev.event)
+					if (!attrs.isTemporaryEvent(eventWrapper)) {
+						attrs.setCurrentDraggedEvent(eventWrapper)
 					}
 				},
 			},
 			m(CalendarEventBubble, {
 				text: eventTitle,
-				secondLineText: mapNullable(getTimeTextFormatForLongEvent(ev.event, attrs.day, attrs.day, zone), (option) => formatEventTime(ev.event, option)),
-				color: getEventColor(ev.event, attrs.groupColors, ev.isGhost),
-				border: ev.isGhost ? `2px dashed #${getEventColor(ev.event, attrs.groupColors)}` : undefined,
-				click: (domEvent) => attrs.onEventClicked(ev.event, domEvent),
-				keyDown: (domEvent) => attrs.onEventKeyDown(ev.event, domEvent),
+				secondLineText: mapNullable(getTimeTextFormatForLongEvent(eventWrapper.event, attrs.day, attrs.day, zone), (option) => formatEventTime(eventWrapper.event, option)),
+				color: getEventColor(eventWrapper.event, attrs.groupColors, eventWrapper.isGhost),
+				border: eventWrapper.isGhost ? `2px dashed #${getEventColor(eventWrapper.event, attrs.groupColors)}` : undefined,
+				click: (domEvent) => attrs.onEventClicked(eventWrapper.event, domEvent),
+				keyDown: (domEvent) => attrs.onEventKeyDown(eventWrapper.event, domEvent),
 				height: height - size.calendar_day_event_padding,
-				hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, ev.event),
-				isAltered: ev.event.recurrenceId != null,
+				hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, eventWrapper.event),
+				isAltered: eventWrapper.event.recurrenceId != null,
 				verticalPadding: size.calendar_day_event_padding,
-				fadeIn: !attrs.isTemporaryEvent(ev),
-				opacity: attrs.isTemporaryEvent(ev) ? TEMPORARY_EVENT_OPACITY : 1,
-				enablePointerEvents: !attrs.isTemporaryEvent(ev) && !attrs.isDragging && !attrs.disabled,
-				isBirthday: isBirthdayCalendar(listIdPart(ev.event._id)),
+				fadeIn: !attrs.isTemporaryEvent(eventWrapper),
+				opacity: attrs.isTemporaryEvent(eventWrapper) ? TEMPORARY_EVENT_OPACITY : 1,
+				enablePointerEvents: !attrs.isTemporaryEvent(eventWrapper) && !attrs.isDragging && !attrs.disabled,
+				isBirthday: isBirthdayCalendar(listIdPart(eventWrapper.event._id)),
 			}),
 		)
 	}
 
-	private renderColumns(attrs: Attrs, columns: Array<Array<EventRenderWrapper>>): ChildArray {
+	private renderColumns(attrs: Attrs, columns: Array<Array<EventWrapper>>): ChildArray {
 		const columnWidth = neverNull(this.dayDom).clientWidth / columns.length
 		return columns.map((column, index) => {
 			return column.map((event) => {

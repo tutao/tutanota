@@ -5,12 +5,12 @@ import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.j
 import { px } from "../../../common/gui/size.js"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
-import { EventRenderWrapper } from "./CalendarViewModel.js"
+import { EventWrapper } from "./CalendarViewModel.js"
 
 export interface CalendarAgendaItemViewAttrs {
 	day: Date
 	zone: string
-	event: EventRenderWrapper
+	event: EventWrapper
 	color: string
 	click: (domEvent: MouseEvent) => unknown
 	keyDown: (event: KeyboardEvent) => unknown
