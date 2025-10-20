@@ -27,6 +27,37 @@ const DriveFolderContentEntryRowStyle = {
 	"max-width": "fit-content",
 }
 
+const isImageMimeType = (mimeType: string) => ["image/png", "image/jpeg"].includes(mimeType)
+
+const isMusicMimeType = (mimeType: string) => ["audio/mpeg", "audio/wav", "audio/wave", "audio/x-wav", "audio/mp4"].includes(mimeType)
+
+const isDocumentMimeType = (mimeType: string) => ["text/plain", "application/pdf"].includes(mimeType)
+
+const iconPerMimeType = (mimeType: string) => {
+	if (isImageMimeType(mimeType)) {
+		return Icons.PictureFile
+	} else if (isMusicMimeType(mimeType)) {
+		return Icons.MusicFile
+	} else if (isDocumentMimeType(mimeType)) {
+		return Icons.TextFile
+	}
+
+	return Icons.GenericFile
+}
+
+const mimeTypeRepresentations: Record<string, string> = {
+	"tuta/folder": "Folder",
+	"image/jpeg": "JPEG",
+	"image/png": "PNG",
+	"audio/mpeg": "MPEG",
+	"audio/mp4": "AAC/ALAC",
+	"application/pdf": "PDF",
+	"text/plain": "Text",
+}
+const mimeTypeAsText = (mimeType: string) => {
+	return mimeTypeRepresentations[mimeType] || "unknown"
+}
+
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
 	private globalIconFill = "transparent"
 
@@ -36,25 +67,25 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 
 		const thisFileIsAFolder = isFolder(file)
 
+		const thisFileMimeType = file.mimeType || "unknown"
+
 		return m("div.flex.row.folder-row", { style: DriveFolderContentEntryRowStyle }, [
 			m("div", { style: { width: columnSizes.select } }, m("input[type=checkbox]")),
 			// m("td", m(Checkbox, { label: () => "selected", checked, onChecked: () => onSelect(file) })),
 			m(
 				"div",
-				{ style: { width: columnSizes.icon } },
+				{ style: { width: columnSizes.icon, "text-align": "center" } },
 				thisFileIsAFolder
 					? m(Icon, {
 							icon: Icons.Folder,
 							size: IconSize.Normal,
-							// style: { position: "relative", top: "2px" },
+							style: { position: "relative", top: "2px" },
 						})
-					: null,
-				// choose right icon depending on type
-				// m(Icon, {
-				// 		icon: Icons.Draft,
-				// 		size: IconSize.Normal,
-				// 		// style: { position: "relative", top: "2px" },
-				// 	}),
+					: m(Icon, {
+							icon: iconPerMimeType(thisFileMimeType),
+							size: IconSize.Normal,
+							style: { position: "relative", top: "2px" },
+						}),
 			),
 			m(
 				"div",
@@ -75,7 +106,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					file.name,
 				),
 			),
-			m("div", { style: { width: columnSizes.type } }, file.mimeType?.split("/")[1]),
+			m("div", { style: { width: columnSizes.type } }, mimeTypeAsText(thisFileMimeType)),
 			m("div", { style: { width: columnSizes.size } }, thisFileIsAFolder ? "🐱" : formatStorageSize(Number(file.size))),
 			m("div", { style: { width: columnSizes.date } }, uploadDate.toLocaleString()),
 			m(
