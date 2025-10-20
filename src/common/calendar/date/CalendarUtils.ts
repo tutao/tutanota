@@ -46,7 +46,7 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { BirthdayEventRegistry } from "./CalendarEventsRepository.js"
 import type { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
-import { EventRenderWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
+import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 
 export type CalendarTimeRange = {
 	start: number
@@ -884,13 +884,7 @@ export function assignEventId(event: CalendarEvent, zone: string, groupRoot: Cal
 }
 
 /** predicate that tells us if two CalendarEvent objects refer to the same instance or different ones.*/
-export function isSameEventInstance(
-	left: { event: Pick<CalendarEvent, "_id" | "startTime">; isGhost: boolean },
-	right: {
-		event: Pick<CalendarEvent, "_id" | "startTime">
-		isGhost: boolean
-	},
-): boolean {
+export function isSameEventInstance(left: EventWrapper, right: EventWrapper): boolean {
 	// in addition to the id we compare the start time equality to be able to distinguish repeating events. They have the same id but different start time.
 	// altered events with recurrenceId never have the same Id as another event instance, but might start at the same time.
 	return isSameId(left.event._id, right.event._id) && left.event.startTime.getTime() === right.event.startTime.getTime()
@@ -901,7 +895,7 @@ export function hasAlarmsForTheUser(user: User, event: CalendarEvent): boolean {
 	return event.alarmInfos.some(([listId]) => isSameId(listId, useAlarmList))
 }
 
-export function eventComparator(l: EventRenderWrapper, r: EventRenderWrapper): number {
+export function eventComparator(l: EventWrapper, r: EventWrapper): number {
 	return l.event.startTime.getTime() - r.event.startTime.getTime()
 }
 
@@ -947,18 +941,13 @@ const MAX_EVENT_ITERATIONS = 10000
  *
  * ignores repeat rules.
  * @param daysToEvents
- * @param event
+ * @param eventWrapper
  * @param range
  * @param zone
  */
-export function addDaysForEventInstance(
-	daysToEvents: Map<number, Array<EventRenderWrapper>>,
-	event: EventRenderWrapper,
-	range: CalendarTimeRange,
-	zone: string,
-) {
+export function addDaysForEventInstance(daysToEvents: Map<number, Array<EventWrapper>>, eventWrapper: EventWrapper, range: CalendarTimeRange, zone: string) {
 	const { start: rangeStart, end: rangeEnd } = range
-	const clippedRange = clipRanges(getEventStart(event.event, zone).getTime(), getEventEnd(event.event, zone).getTime(), rangeStart, rangeEnd)
+	const clippedRange = clipRanges(getEventStart(eventWrapper.event, zone).getTime(), getEventEnd(eventWrapper.event, zone).getTime(), rangeStart, rangeEnd)
 	// the event and range do not intersect
 	if (clippedRange == null) return
 	const { start: eventStartInRange, end: eventEndInRange } = clippedRange
@@ -971,10 +960,10 @@ export function addDaysForEventInstance(
 		assert(iterations <= MAX_EVENT_ITERATIONS, "Run into the infinite loop, addDaysForEvent")
 		if (calculationTime < eventEndInRange) {
 			const eventsForCalculationDate = getFromMap(daysToEvents, calculationTime, () => [])
-			insertIntoSortedArray(event, eventsForCalculationDate, eventComparator, isSameEventInstance)
+			insertIntoSortedArray(eventWrapper, eventsForCalculationDate, eventComparator, isSameEventInstance)
 		} else {
 			// If the duration of the original event instance was reduced, we also have to delete the remaining days of the previous event instance.
-			const removed = findAllAndRemove(daysToEvents.get(calculationTime) ?? [], (e) => isSameEventInstance(e, event))
+			const removed = findAllAndRemove(daysToEvents.get(calculationTime) ?? [], (e) => isSameEventInstance(e, eventWrapper))
 			if (!removed) {
 				// no further days this event instance occurred on
 				break
@@ -1052,21 +1041,21 @@ function filterEventOccurancesBySetPos(posRulesValues: string[], frequency: Repe
  * @param timeZone
  */
 export function addDaysForRecurringEvent(
-	daysToEvents: Map<number, Array<EventRenderWrapper>>,
-	event: EventRenderWrapper,
+	daysToEvents: Map<number, Array<EventWrapper>>,
+	baseEvent: EventWrapper,
 	range: CalendarTimeRange,
 	timeZone: string = getTimeZone(),
 ) {
-	const repeatRule = event.event.repeatRule
+	const repeatRule = baseEvent.event.repeatRule
 
 	if (repeatRule == null) {
-		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(event))
+		throw new Error("Invalid argument: event doesn't have a repeatRule" + JSON.stringify(baseEvent))
 	}
-	const allDay = isAllDayEvent(event.event)
+	const allDay = isAllDayEvent(baseEvent.event)
 	const exclusions = allDay
 		? repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateForTimezone(date, timeZone) }))
 		: repeatRule.excludedDates
-	const generatedEvents = eventOccurencesGenerator(event.event, timeZone, new Date(range.end))
+	const generatedEvents = eventOccurencesGenerator(baseEvent.event, timeZone, new Date(range.end))
 
 	for (const { startTime, endTime } of generatedEvents) {
 		if (startTime.getTime() > range.end) break
@@ -1075,16 +1064,16 @@ export function addDaysForRecurringEvent(
 			const eventsOnExcludedDay = daysToEvents.get(getStartOfDayWithZone(startTime, timeZone).getTime())
 			if (!eventsOnExcludedDay) continue
 		} else {
-			const eventClone = clone(event)
+			const eventCloneWrapper = clone(baseEvent)
 			if (allDay) {
-				eventClone.event.startTime = getAllDayDateUTCFromZone(startTime, timeZone)
-				eventClone.event.endTime = getAllDayDateUTCFromZone(endTime, timeZone)
+				eventCloneWrapper.event.startTime = getAllDayDateUTCFromZone(startTime, timeZone)
+				eventCloneWrapper.event.endTime = getAllDayDateUTCFromZone(endTime, timeZone)
 			} else {
-				eventClone.event.startTime = new Date(startTime)
-				eventClone.event.endTime = new Date(endTime)
+				eventCloneWrapper.event.startTime = new Date(startTime)
+				eventCloneWrapper.event.endTime = new Date(endTime)
 			}
 
-			addDaysForEventInstance(daysToEvents, eventClone, range, timeZone)
+			addDaysForEventInstance(daysToEvents, eventCloneWrapper, range, timeZone)
 		}
 	}
 }

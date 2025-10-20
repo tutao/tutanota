@@ -18,6 +18,8 @@ import { ModelMapper } from "../../src/common/api/worker/crypto/ModelMapper"
 import { dummyResolver } from "./api/worker/crypto/InstancePipelineTestUtils"
 import { EncryptedDbWrapper } from "../../src/common/api/worker/search/EncryptedDbWrapper"
 import { ClientPlatform } from "../../src/common/misc/ClientDetector"
+import { CalendarEvent } from "../../src/common/api/entities/tutanota/TypeRefs"
+import { EventWrapper } from "../../src/calendar-app/calendar/view/CalendarViewModel"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -382,5 +384,16 @@ export class IdGenerator {
 	getNext(incrementByMs: number = 60000): Id {
 		this.currentId = incrementId(this.currentId, incrementByMs)
 		return this.currentId
+	}
+}
+
+export function makeEventWrapper(event: CalendarEvent, props?: Partial<EventWrapper>): EventWrapper {
+	return {
+		color: "#FAFAFA",
+		isConflict: false,
+		isFeatured: false,
+		isGhost: false,
+		event,
+		...(props != null ? props : {}),
 	}
 }

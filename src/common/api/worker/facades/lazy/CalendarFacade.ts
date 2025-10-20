@@ -66,11 +66,11 @@ import { CalendarInfo } from "../../../../../calendar-app/calendar/model/Calenda
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
 import { DaysToEvents } from "../../../../calendar/date/CalendarEventsRepository.js"
 import { isOfflineError } from "../../../common/utils/ErrorUtils.js"
-import type { EventWrapper } from "../../../../calendar/gui/ImportExportUtils.js"
+import type { EventAlarmsTuple } from "../../../../calendar/gui/ImportExportUtils.js"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
 import { ClientModelUntypedInstance } from "../../../common/EntityTypes"
-import { EventRenderWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel"
+import { EventWrapper } from "../../../../../calendar-app/calendar/view/CalendarViewModel"
 
 assertWorkerOrNode()
 
@@ -109,7 +109,7 @@ export class CalendarFacade {
 		public readonly cachingEntityClient: EntityClient,
 	) {}
 
-	async saveImportedCalendarEvents(eventWrappers: Array<EventWrapper>, operationId: OperationId): Promise<void> {
+	async saveImportedCalendarEvents(eventWrappers: Array<EventAlarmsTuple>, operationId: OperationId): Promise<void> {
 		// it is safe to assume that all event uids are set at this time
 		return this.saveCalendarEvents(eventWrappers, (percent) => this.operationProgressTracker.onProgress(operationId, percent))
 	}
@@ -142,21 +142,33 @@ export class CalendarFacade {
 		// Note: there may be issues if we get entity update before other calendars finish loading but the chance is low and we do not
 		// take care of this now.
 
-		const calendars: Array<{ long: EventRenderWrapper[]; short: EventRenderWrapper[] }> = []
+		const calendars: Array<{ long: EventWrapper[]; short: EventWrapper[] }> = []
 
-		for (const { groupRoot } of calendarInfos.values()) {
+		for (const { groupRoot, color } of calendarInfos.values()) {
 			const shortEventsResult = await this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200)
 			const longEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents)
 
-			const shortEvents: Array<EventRenderWrapper> = shortEventsResult.elements.map((e) => ({ event: e, isGhost: false }))
-			const longEvents: Array<EventRenderWrapper> = longEventsResult.map((e) => ({ event: e, isGhost: false }))
+			const shortEvents: Array<EventWrapper> = shortEventsResult.elements.map((e) => ({
+				event: e,
+				isGhost: false,
+				isFeatured: false,
+				isConflict: false,
+				color,
+			}))
+			const longEvents: Array<EventWrapper> = longEventsResult.map((e) => ({
+				event: e,
+				isGhost: false,
+				isFeatured: false,
+				isConflict: false,
+				color,
+			}))
 
 			calendars.push({
 				short: shortEvents,
 				long: longEvents,
 			})
 		}
-		const newEvents = new Map<number, Array<EventRenderWrapper>>(Array.from(daysToEvents.entries()).map(([day, events]) => [day, events.slice()]))
+		const newEvents = new Map<number, Array<EventWrapper>>(Array.from(daysToEvents.entries()).map(([day, events]) => [day, events.slice()]))
 
 		// Generate events occurrences per calendar to avoid calendars flashing in the screen
 		for (const calendar of calendars) {
@@ -168,8 +180,8 @@ export class CalendarFacade {
 	}
 
 	private generateEventOccurrences(
-		eventMap: Map<number, EventRenderWrapper[]>,
-		events: EventRenderWrapper[],
+		eventMap: Map<number, EventWrapper[]>,
+		events: EventWrapper[],
 		range: CalendarTimeRange,
 		zone: string,
 		overwriteRange: boolean,
@@ -196,7 +208,7 @@ export class CalendarFacade {
 	 * @param eventsWrapper the events and alarmNotifications to be created.
 	 * @param onProgress
 	 */
-	private async saveCalendarEvents(eventsWrapper: Array<EventWrapper>, onProgress: (percent: number) => Promise<void>): Promise<void> {
+	private async saveCalendarEvents(eventsWrapper: Array<EventAlarmsTuple>, onProgress: (percent: number) => Promise<void>): Promise<void> {
 		let currentProgress = 10
 		await onProgress(currentProgress)
 
@@ -257,7 +269,7 @@ export class CalendarFacade {
 		}
 	}
 
-	private async setupEventAlarms(eventsWrapper: Array<EventWrapper>) {
+	private async setupEventAlarms(eventsWrapper: Array<EventAlarmsTuple>) {
 		const numEvents = eventsWrapper.length
 		let eventsWithAlarms: Array<AlarmNotificationsPerEvent> = []
 		try {

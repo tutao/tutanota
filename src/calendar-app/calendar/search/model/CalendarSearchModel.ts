@@ -8,7 +8,7 @@ import { IProgressMonitor } from "../../../../common/api/common/utils/ProgressMo
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository.js"
 import { CalendarEvent } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { EventRenderWrapper } from "../../view/CalendarViewModel.js"
+import { EventWrapper } from "../../view/CalendarViewModel.js"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -109,7 +109,7 @@ export class CalendarSearchModel {
 			await calendarModel.loadMonthsIfNeeded(daysInMonths, this.cancelSignal, monitor)
 			monitor.completed()
 
-			const eventsForDays: ReadonlyMap<number, ReadonlyArray<EventRenderWrapper>> = calendarModel.getEventsForMonths()()
+			const eventsForDays: ReadonlyMap<number, ReadonlyArray<EventWrapper>> = calendarModel.getEventsForMonths()()
 
 			assertNonNull(restriction.start)
 			assertNonNull(restriction.end)

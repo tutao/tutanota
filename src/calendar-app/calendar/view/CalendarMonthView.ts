@@ -35,7 +35,7 @@ import {
 	SELECTED_DATE_INDICATOR_THICKNESS,
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventRenderWrapper, EventsOnDays } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper, EventsOnDays } from "./CalendarViewModel"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { client } from "../../../common/misc/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -60,7 +60,7 @@ type CalendarMonthAttrs = {
 	startOfTheWeek: WeekStart
 	groupColors: GroupColors
 	hiddenCalendars: ReadonlySet<Id>
-	temporaryEvents: Array<EventRenderWrapper>
+	temporaryEvents: Array<EventWrapper>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
 }
 type SimplePosRect = {
@@ -291,7 +291,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 	private endDrag(pos: MousePos, key?: Key) {
 		const dayUnderMouse = this.dayUnderMouse
-		const originalDate = this.eventDragHandler.originalEvent?.startTime
+		const originalDate = this.eventDragHandler.originalCalendarEvent?.startTime
 
 		if (dayUnderMouse && originalDate) {
 			//make sure the date we move to also gets a time
@@ -410,7 +410,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		return layOutEvents(
 			Array.from(events),
 			zone,
-			(columns: Array<Array<EventRenderWrapper>>) => {
+			(columns: Array<Array<EventWrapper>>) => {
 				return columns
 					.map((eventsInColumn, columnIndex) => {
 						return eventsInColumn.map((wrapper) => {
@@ -479,7 +479,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 	}
 
 	private renderEvent(
-		event: EventRenderWrapper,
+		eventWrapper: EventWrapper,
 		position: SimplePosRect,
 		eventStart: Date,
 		firstDayOfWeek: Date,
@@ -488,11 +488,11 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		attrs: CalendarMonthAttrs,
 		isDisabled: boolean,
 	): Children {
-		const isTemporary = attrs.temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, event.event))
+		const isTemporary = attrs.temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, eventWrapper.event))
 		return m(
 			".abs.overflow-hidden",
 			{
-				key: event.event._id[0] + event.event._id[1] + event.event.startTime.getTime(),
+				key: eventWrapper.event._id[0] + eventWrapper.event._id[1] + eventWrapper.event.startTime.getTime(),
 				style: {
 					top: px(position.top),
 					height: px(CALENDAR_EVENT_HEIGHT),
@@ -505,23 +505,23 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					let lastMousePos = this.lastMousePos
 
 					if (dayUnderMouse && lastMousePos && !isTemporary) {
-						this.eventDragHandler.prepareDrag(event.event, dayUnderMouse, lastMousePos, true)
+						this.eventDragHandler.prepareDrag(eventWrapper, dayUnderMouse, lastMousePos, true)
 					}
 				},
 			},
 			m(ContinuingCalendarEventBubble, {
-				event: event,
+				event: eventWrapper,
 				startsBefore: eventStart < firstDayOfWeek,
 				endsAfter: firstDayOfNextWeek <= eventEnd,
-				color: getEventColor(event.event, attrs.groupColors, event.isGhost),
-				border: event.isGhost ? `2px dashed #${getEventColor(event.event, attrs.groupColors)}` : undefined,
-				showTime: styles.isDesktopLayout() && !isAllDayEvent(event.event) ? EventTextTimeOption.START_TIME : null,
+				color: getEventColor(eventWrapper.event, attrs.groupColors, eventWrapper.isGhost),
+				border: eventWrapper.isGhost ? `2px dashed #${getEventColor(eventWrapper.event, attrs.groupColors)}` : undefined,
+				showTime: styles.isDesktopLayout() && !isAllDayEvent(eventWrapper.event) ? EventTextTimeOption.START_TIME : null,
 				user: locator.logins.getUserController().user,
 				onEventClicked: (e, domEvent) => {
-					attrs.onEventClicked(event.event, domEvent)
+					attrs.onEventClicked(eventWrapper.event, domEvent)
 				},
 				onEventKeyDown: (e, domEvent) => {
-					attrs.onEventKeyDown(event.event, domEvent)
+					attrs.onEventKeyDown(eventWrapper.event, domEvent)
 				},
 				fadeIn: !this.eventDragHandler.isDragging,
 				opacity: isTemporary ? TEMPORARY_EVENT_OPACITY : 1,

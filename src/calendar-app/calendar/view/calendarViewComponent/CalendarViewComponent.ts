@@ -1,4 +1,4 @@
-import m, { ClassComponent, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode } from "mithril"
 import { styles } from "../../../../common/gui/styles"
 import { WeekStart } from "../../../../common/api/common/TutanotaConstants"
 import { calendarWeek } from "../../gui/CalendarGuiUtils"
@@ -7,7 +7,8 @@ import { TimeColumn, TimeColumnAttrs } from "../../../../common/calendar/gui/Tim
 import { Time } from "../../../../common/calendar/date/Time"
 import { layout_size } from "../../../../common/gui/size"
 import { PageView } from "../../../../common/gui/base/PageView"
-import { EventConflictRenderPolicy, TimeView, TimeViewAttributes, TimeViewEventWrapper } from "../../../../common/calendar/gui/TimeView"
+import { EventConflictRenderPolicy, TimeView, TimeViewAttributes } from "../../../../common/calendar/gui/TimeView"
+import { EventWrapper } from "../CalendarViewModel"
 
 interface PageAttrs {
 	/**
@@ -16,8 +17,8 @@ interface PageAttrs {
 	key: number
 	dates: Array<Date>
 	events: {
-		short: Array<TimeViewEventWrapper>
-		long: Array<TimeViewEventWrapper>
+		short: Array<EventWrapper>
+		long: Array<EventWrapper>
 	}
 }
 
@@ -45,7 +46,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		})
 		const classes = [styles.isDesktopLayout() ? "content-bg" : "nav-bg", styles.isDesktopLayout() ? "border-bottom" : ""].join(" ")
 		const renderHeader = () => {
-			const children = []
+			const children: Children = []
 
 			if (attrs.headerComponentAttrs) {
 				children.push(
@@ -145,7 +146,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		)
 	}
 
-	private renderEventGrid(dates: Array<Date>, events: Array<TimeViewEventWrapper>) {
+	private renderEventGrid(dates: Array<Date>, events: Array<EventWrapper>) {
 		return m(TimeView, {
 			timeRange: {
 				start: new Time(0, 0),

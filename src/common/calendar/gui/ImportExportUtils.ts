@@ -23,7 +23,7 @@ export enum EventImportRejectionReason {
 	Duplicate,
 }
 
-export type EventWrapper = {
+export type EventAlarmsTuple = {
 	event: CalendarEvent
 	alarms: ReadonlyArray<AlarmInfoTemplate>
 }
@@ -70,7 +70,7 @@ export function sortOutParsedEvents(
 	zone: string,
 ): {
 	rejectedEvents: RejectedEvents
-	eventsForCreation: Array<EventWrapper>
+	eventsForCreation: Array<EventAlarmsTuple>
 } {
 	const instanceIdentifierToEventMap = new Map()
 

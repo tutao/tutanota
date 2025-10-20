@@ -1,5 +1,5 @@
 import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { deduplicate, getStartOfDay, incrementDate, lastThrow, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
+import { deduplicate, getStartOfDay, identity, incrementDate, lastThrow, neverNull, ofClass, remove } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../../common/misc/Formatter"
 import {
 	combineDateWithTime,
@@ -19,7 +19,6 @@ import { theme } from "../../../common/gui/theme"
 import { layout_size, px, size } from "../../../common/gui/size"
 import { EventTextTimeOption, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
 import { EventDragHandler } from "./EventDragHandler"
@@ -38,14 +37,14 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventRenderWrapper, EventsOnDays } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, EventWrapper } from "./CalendarViewModel"
 import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { CalendarViewType, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
-import { EventConflictRenderPolicy, TimeView, TimeViewAttributes, TimeViewEventWrapper } from "../../../common/calendar/gui/TimeView.js"
+import { EventConflictRenderPolicy, TimeView, TimeViewAttributes } from "../../../common/calendar/gui/TimeView.js"
 import { CalendarViewComponent, CalendarViewComponentAttrs } from "./calendarViewComponent/CalendarViewComponent"
 import { HeaderVariant } from "./calendarViewComponent/HeaderComponent"
 
@@ -60,7 +59,7 @@ export type MultiDayCalendarViewAttrs = {
 	groupColors: GroupColors
 	startOfTheWeek: WeekStart
 	onChangeViewPeriod: (next: boolean) => unknown
-	temporaryEvents: Array<EventRenderWrapper>
+	temporaryEvents: Array<EventWrapper>
 	dragHandlerCallbacks: EventDragHandlerCallbacks
 	isDaySelectorExpanded: boolean
 	weekIndicator: string | null
@@ -166,45 +165,26 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				start: periods.previous,
 				dates: previousEvents.days,
 				events: {
-					short: deduplicate(
-						previousEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType.bind(this))),
-						(a, b) => isSameEventInstance(a.event, b.event),
-					),
-					long: previousEvents.longEvents.map(this.fixType),
+					short: deduplicate(previousEvents.shortEventsPerDay.flatMap(identity), isSameEventInstance),
+					long: previousEvents.longEvents,
 				},
 			},
 			current: {
 				start: periods.current,
 				dates: currentEvents.days,
 				events: {
-					short: deduplicate(
-						currentEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType.bind(this))),
-						(a, b) => isSameEventInstance(a.event, b.event),
-					),
-					long: currentEvents.longEvents.map(this.fixType),
+					short: deduplicate(currentEvents.shortEventsPerDay.flatMap(identity), isSameEventInstance),
+					long: currentEvents.longEvents,
 				},
 			},
 			next: {
 				start: periods.next,
 				dates: nextEvents.days,
 				events: {
-					short: deduplicate(
-						nextEvents.shortEventsPerDay.flatMap((events) => events.map(this.fixType.bind(this))),
-						(a, b) => isSameEventInstance(a.event, b.event),
-					),
-					long: nextEvents.longEvents.map(this.fixType),
+					short: deduplicate(nextEvents.shortEventsPerDay.flatMap(identity), isSameEventInstance),
+					long: nextEvents.longEvents,
 				},
 			},
-		}
-	}
-
-	// FIXME remove :=)
-	private fixType(event: EventRenderWrapper): TimeViewEventWrapper {
-		return {
-			event,
-			conflictsWithMainEvent: false,
-			color: "#EE00B5",
-			featured: false,
 		}
 	}
 
@@ -243,17 +223,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				timeScale: 1,
 				dates: thisPeriod.days,
 				conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-				events: deduplicate(
-					thisPeriod.shortEventsPerDay.flatMap((e) => {
-						return e.map((ev) => ({
-							event: ev,
-							conflictsWithMainEvent: false,
-							featured: false,
-							color: "#FF0000",
-						}))
-					}),
-					(a, b) => isSameEventInstance(a.event, b.event),
-				),
+				events: deduplicate(thisPeriod.shortEventsPerDay.flatMap(identity), isSameEventInstance),
 			} satisfies TimeViewAttributes),
 		)
 
@@ -405,7 +375,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 										onTimePressed: newEventHandler,
 										onTimeContextPressed: newEventHandler,
 										day: weekday,
-										setCurrentDraggedEvent: (event) => this.startEventDrag(event),
+										setCurrentDraggedEvent: (eventWrapper) => this.startEventDrag(eventWrapper),
 										setTimeUnderMouse: (time) => (this.dateUnderMouse = combineDateWithTime(weekday, time)),
 										isTemporaryEvent: (event) =>
 											attrs.temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, event.event)),
@@ -445,11 +415,11 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		}
 	}
 
-	private startEventDrag(event: CalendarEvent) {
+	private startEventDrag(eventWrapper: EventWrapper) {
 		const lastMousePos = this.lastMousePos
 
 		if (this.dateUnderMouse && lastMousePos) {
-			this.eventDragHandler.prepareDrag(event, this.dateUnderMouse, lastMousePos, this.isHeaderEventBeingDragged)
+			this.eventDragHandler.prepareDrag(eventWrapper, this.dateUnderMouse, lastMousePos, this.isHeaderEventBeingDragged)
 		}
 	}
 
@@ -458,7 +428,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
-		temporaryEvents: Array<EventRenderWrapper>,
+		temporaryEvents: Array<EventWrapper>,
 	): Children {
 		const longEventsResult = this.renderLongEvents(
 			thisPageEvents.days,
@@ -541,7 +511,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
-		temporaryEvents: Array<EventRenderWrapper>,
+		temporaryEvents: Array<EventWrapper>,
 		isDesktopLayout: boolean,
 	): Children {
 		const thisPageLongEvents = this.renderLongEvents(
@@ -593,11 +563,11 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	 */
 	private renderLongEvents(
 		dayRange: Array<Date>,
-		events: Array<EventRenderWrapper>,
+		events: Array<EventWrapper>,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
-		temporaryEvents: Array<EventRenderWrapper>,
+		temporaryEvents: Array<EventWrapper>,
 		isDesktopLayout: boolean,
 	): {
 		children: Children
@@ -620,11 +590,11 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	 */
 	private renderLongEventsForSingleDay(
 		day: Date,
-		events: Array<EventRenderWrapper>,
+		events: Array<EventWrapper>,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
-		temporaryEvents: Array<EventRenderWrapper>,
+		temporaryEvents: Array<EventWrapper>,
 	): Children {
 		const zone = getTimeZone()
 		return m(
@@ -646,11 +616,11 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 
 	private renderLongEventsForMultipleDays(
 		dayRange: Array<Date>,
-		events: Array<EventRenderWrapper>,
+		events: Array<EventWrapper>,
 		groupColors: GroupColors,
 		onEventClicked: CalendarEventBubbleClickHandler,
 		onEventKeyDown: CalendarEventBubbleKeyDownHandler,
-		temporaryEvents: Array<EventRenderWrapper>,
+		temporaryEvents: Array<EventWrapper>,
 	): {
 		children: Children
 		rows: number
@@ -673,13 +643,13 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			(columns) => {
 				maxEventsInColumn = Math.max(maxEventsInColumn, columns.length)
 				return columns.map((rows, c) =>
-					rows.map((wrapper) => {
-						const isAllDay = isAllDayEvent(wrapper.event)
-						const eventEnd = isAllDay ? incrementDate(getEventEnd(wrapper.event, zone), -1) : wrapper.event.endTime
-						const dayOfStartDate = getDiffIn24hIntervals(firstDay, getEventStart(wrapper.event, zone))
+					rows.map((eventWrapper) => {
+						const isAllDay = isAllDayEvent(eventWrapper.event)
+						const eventEnd = isAllDay ? incrementDate(getEventEnd(eventWrapper.event, zone), -1) : eventWrapper.event.endTime
+						const dayOfStartDate = getDiffIn24hIntervals(firstDay, getEventStart(eventWrapper.event, zone))
 						const dayOfEndDate = getDiffIn24hIntervals(firstDay, eventEnd)
-						const startsBefore = eventStartsBefore(firstDay, zone, wrapper.event)
-						const endsAfter = eventEndsAfterDay(lastDay, zone, wrapper.event)
+						const startsBefore = eventStartsBefore(firstDay, zone, eventWrapper.event)
+						const endsAfter = eventEndsAfterDay(lastDay, zone, eventWrapper.event)
 						const left = startsBefore ? 0 : dayOfStartDate * dayWidth
 						const right = endsAfter ? 0 : (dayRange.length - 1 - dayOfEndDate) * dayWidth
 						return m(
@@ -689,26 +659,26 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 									top: px(c * CALENDAR_EVENT_HEIGHT),
 									left: px(left),
 									right: px(right),
-									opacity: wrapper.isGhost ? 0.5 : 1,
+									opacity: eventWrapper.isGhost ? 0.5 : 1,
 								},
-								key: wrapper.event._id[0] + wrapper.event._id[1] + wrapper.event.startTime.getTime(),
+								key: eventWrapper.event._id[0] + eventWrapper.event._id[1] + eventWrapper.event.startTime.getTime(),
 								onmousedown: () => {
 									// Only allow dragging all-day events on the desktop layout, since the header supports it
 									if (styles.isDesktopLayout()) {
 										this.isHeaderEventBeingDragged = true
-										this.startEventDrag(wrapper.event)
+										this.startEventDrag(eventWrapper)
 									}
 								},
 							},
 							this.renderLongEventBubble(
-								wrapper,
+								eventWrapper,
 								isAllDay ? null : EventTextTimeOption.START_END_TIME,
 								startsBefore,
 								endsAfter,
 								groupColors,
 								onEventClicked,
 								onEventKeyDown,
-								temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, wrapper.event)),
+								temporaryEvents.some((temporaryEvent) => shallowIsSameEvent(temporaryEvent.event, eventWrapper.event)),
 							),
 						)
 					}),
@@ -723,7 +693,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	}
 
 	private renderLongEventBubble(
-		event: EventRenderWrapper,
+		event: EventWrapper,
 		showTime: EventTextTimeOption | null,
 		startsBefore: boolean,
 		endsAfter: boolean,

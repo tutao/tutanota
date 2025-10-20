@@ -51,6 +51,8 @@ import { eventHasSameFields } from "../../../src/common/calendar/gui/ImportExpor
 import { LanguageViewModel } from "../../../src/common/misc/LanguageViewModel.js"
 
 o.spec("CalendarModel", function () {
+	const { anything } = matchers
+
 	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
 		instance: null,
 		patches: null,
@@ -295,6 +297,7 @@ o.spec("CalendarModel", function () {
 		let restClientMock: EntityRestClientMock
 		let groupRoot: CalendarGroupRoot
 		const loginController = makeLoginController()
+
 		const alarmsListId = neverNull(loginController.getUserController().user.alarmInfoList).alarms
 		o.beforeEach(function () {
 			groupRoot = createTestEntity(CalendarGroupRootTypeRef, {
