@@ -510,6 +510,7 @@ o.spec("CalendarImporter", function () {
 				contents: [
 					{
 						event: createCalendarEvent({
+							sender: null,
 							attendees: [],
 							description: "",
 							alarmInfos: [],
@@ -584,6 +585,7 @@ o.spec("CalendarImporter", function () {
 				contents: [
 					{
 						event: createCalendarEvent({
+							sender: null,
 							description: "",
 							alarmInfos: [],
 							invitedConfidentially: null,
@@ -662,6 +664,7 @@ o.spec("CalendarImporter", function () {
 				contents: [
 					{
 						event: createCalendarEvent({
+							sender: null,
 							description: "",
 							alarmInfos: [],
 							invitedConfidentially: null,
@@ -742,6 +745,7 @@ o.spec("CalendarImporter", function () {
 				contents: [
 					{
 						event: createCalendarEvent({
+							sender: null,
 							description: "",
 							alarmInfos: [],
 							invitedConfidentially: null,
@@ -819,6 +823,7 @@ o.spec("CalendarImporter", function () {
 				).contents[0],
 				{
 					event: createCalendarEvent({
+						sender: null,
 						attendees: [],
 						alarmInfos: [],
 						invitedConfidentially: null,
@@ -861,6 +866,7 @@ o.spec("CalendarImporter", function () {
 		o("recurrence id on event without UID will be deleted", async function () {
 			const expected = {
 				event: createCalendarEvent({
+					sender: null,
 					attendees: [],
 					description: "",
 					alarmInfos: [],
@@ -929,6 +935,7 @@ o.spec("CalendarImporter", function () {
 				).contents[0],
 				{
 					event: createCalendarEvent({
+						sender: null,
 						attendees: [],
 						alarmInfos: [],
 						invitedConfidentially: null,
@@ -997,6 +1004,7 @@ o.spec("CalendarImporter", function () {
 					contents: [
 						{
 							event: createCalendarEvent({
+								sender: null,
 								attendees: [],
 								description: "",
 								alarmInfos: [],
@@ -1072,6 +1080,7 @@ o.spec("CalendarImporter", function () {
 					contents: [
 						{
 							event: createCalendarEvent({
+								sender: null,
 								recurrenceId: null,
 								attendees: [],
 								organizer: null,
@@ -1145,6 +1154,7 @@ o.spec("CalendarImporter", function () {
 					contents: [
 						{
 							event: createCalendarEvent({
+								sender: null,
 								recurrenceId: null,
 								description: "",
 								sequence: "0",
@@ -1231,6 +1241,7 @@ END:VCALENDAR`
 			const events = [
 				{
 					event: createCalendarEvent({
+						sender: null,
 						attendees: [],
 						organizer: null,
 						repeatRule: null,
@@ -1269,6 +1280,7 @@ END:VCALENDAR`
 				},
 				{
 					event: createCalendarEvent({
+						sender: null,
 						attendees: [],
 						organizer: null,
 						repeatRule: null,
@@ -1308,6 +1320,7 @@ END:VCALENDAR`
 				},
 				{
 					event: createCalendarEvent({
+						sender: null,
 						attendees: [],
 						organizer: null,
 						recurrenceId: null,
@@ -1364,6 +1377,7 @@ END:VCALENDAR`
 				},
 				{
 					event: createCalendarEvent({
+						sender: null,
 						attendees: [],
 						organizer: null,
 						recurrenceId: null,

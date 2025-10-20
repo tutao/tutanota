@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { AttendeeListEditor } from "./AttendeeListEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
-import { defaultCalendarColor, RepeatPeriod, TabIndex, TimeFormat, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
+import { DEFAULT_CALENDAR_COLOR, RepeatPeriod, TabIndex, TimeFormat, Weekday } from "../../../../common/api/common/TutanotaConstants.js"
 import { lang, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
@@ -296,7 +296,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			const name = getSharedGroupName(calendarInfo.groupInfo, model.userController.userSettingsGroupRoot, calendarInfo.hasMultipleMembers)
 			return {
 				name,
-				color: "#" + (groupColors.get(calendarInfo.group._id) ?? defaultCalendarColor),
+				color: "#" + (groupColors.get(calendarInfo.group._id) ?? DEFAULT_CALENDAR_COLOR),
 				value: calendarInfo,
 				ariaValue: name,
 			}
@@ -310,7 +310,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		)
 		let selected: CalendarSelectItem = {
 			name: selectedCalendarName,
-			color: "#" + (groupColors.get(selectedCalendarInfo.group._id) ?? defaultCalendarColor),
+			color: "#" + (groupColors.get(selectedCalendarInfo.group._id) ?? DEFAULT_CALENDAR_COLOR),
 			value: model.editModels.whoModel.selectedCalendar,
 			ariaValue: selectedCalendarName,
 		}

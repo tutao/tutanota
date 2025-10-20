@@ -3,12 +3,12 @@ import { hasAlarmsForTheUser, isBirthdayCalendar } from "../../../common/calenda
 import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { User } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { EventTextTimeOption } from "../../../common/api/common/TutanotaConstants"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventRenderWrapper } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "./CalendarViewModel"
 import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 
 type ContinuingCalendarEventBubbleAttrs = {
-	event: EventRenderWrapper
+	event: EventWrapper
 	startsBefore: boolean
 	endsAfter: boolean
 	color: string
