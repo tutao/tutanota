@@ -5,7 +5,7 @@ import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../gui/base/Button.js"
-import { getCurrentPaymentInterval, hasAppleIntroOffer, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils"
+import { getCurrentPaymentInterval, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
@@ -13,7 +13,7 @@ import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { AvailablePlanType, Keys, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { Checkbox } from "../gui/base/Checkbox.js"
 import { UpgradePriceType } from "./FeatureListProvider"
-import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils.js"
+import { PaymentInterval } from "./utils/PriceUtils.js"
 import { lazy } from "@tutao/tutanota-utils"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
@@ -22,10 +22,9 @@ import { styles } from "../gui/styles.js"
 import { Icon, IconSize } from "../gui/base/Icon.js"
 import { Icons } from "../gui/base/icons/Icons.js"
 import { theme } from "../gui/theme.js"
-import { isIOSApp } from "../api/common/Env.js"
 import { BootIcons } from "../gui/base/icons/BootIcons.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
-import { DiscountDetail, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
+import { anyHasGlobalFirstYearCampaign, getDiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { TranslationKeyType } from "../misc/TranslationKey"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 
@@ -57,7 +56,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 		const { planPrices, acceptedPlans, newAccountData, targetPlanType, accountingInfo } = data
 		let availablePlans = acceptedPlans
 		const isApplePrice = shouldShowApplePrices(accountingInfo)
-		const discountDetail = this.getDiscountDetail(isApplePrice, planPrices)
+		const discountDetails = getDiscountDetails(isApplePrice, planPrices)
 		const promotionMessage = planPrices.getRawPricingData().messageTextId as TranslationKeyType
 
 		// newAccountData is filled in when signing up and then going back in the signup process
@@ -92,13 +91,12 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 		}
 
 		// Under *ALL* circumstances, there *MUST* be this empty wrapper element around it.
-		return m(".", [
+		return m("div", [
 			// Headline for a global campaign
-			discountDetail?.discountType === "GlobalFirstYear" &&
+			!data.options.businessUse() &&
+				anyHasGlobalFirstYearCampaign(discountDetails) &&
 				m(PlanSelectorHeadline, {
-					translation: isIOSApp()
-						? lang.getTranslation("pricing.goEuropeanHeadlineIos_msg")
-						: lang.getTranslation("pricing.goEuropeanHeadline_msg", { "{amount}": "50%" }),
+					translation: lang.getTranslation("pricing.cyber_monday_msg"),
 					icon: BootIcons.Heart,
 				}),
 			// Headline for general messages
@@ -116,59 +114,9 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 				currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
 				allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
 				showMultiUser: false,
-				discountDetail,
+				discountDetails,
 			}),
 		])
-	}
-
-	private getDiscountDetail(isApplePrice: boolean, planPrices: PriceAndConfigProvider): DiscountDetail | undefined {
-		const pricingData = planPrices.getRawPricingData()
-
-		const firstYearDiscount = getFirstYearDiscount()
-		const bonusMonth = Number(pricingData.bonusMonthsForYearlyPlan)
-		const legendMonthlyRefPrice = Number(pricingData.legendaryPrices.monthlyReferencePrice)
-		const legendYearlyRefPrice = legendMonthlyRefPrice * 10
-		const legendMonthlyPrice = Number(pricingData.legendaryPrices.monthlyPrice)
-		const permanentDiscountPercentage = Math.floor((1 - legendMonthlyPrice / legendMonthlyRefPrice) * 100)
-		const firstYearDiscountPercentage = Math.floor((firstYearDiscount / legendYearlyRefPrice) * 100)
-		const hasGlobalCampaign = isApplePrice
-			? planPrices.getIosIntroOfferEligibility() && hasAppleIntroOffer(planPrices)
-			: planPrices.getRawPricingData().hasGlobalFirstYearDiscount
-
-		function getFirstYearDiscount(): number {
-			if (isApplePrice) {
-				if (planPrices.getIosIntroOfferEligibility() && hasAppleIntroOffer(planPrices)) {
-					const rawYearlyPrice = planPrices.getMobilePrices().get("legend")?.rawYearlyPerYear
-					const rawOfferYearlyPrice = planPrices.getMobilePrices().get("legend")?.rawOfferYearlyPerYear
-					if (rawYearlyPrice && rawOfferYearlyPrice) return rawYearlyPrice - rawOfferYearlyPrice
-				}
-				return 0
-			} else {
-				return Number(pricingData.legendaryPrices.firstYearDiscount)
-			}
-		}
-
-		if (bonusMonth > 0) {
-			return {
-				ribbonTranslation: lang.getTranslation("pricing.bonusMonth_label", { "{months}": bonusMonth }),
-				discountType: "BonusMonths",
-			}
-		} else if (permanentDiscountPercentage > 0) {
-			return {
-				ribbonTranslation: lang.getTranslation("pricing.saveAmount_label", { "{amount}": `${permanentDiscountPercentage}%` }),
-				discountType: "Permanent",
-			}
-		} else if (hasGlobalCampaign) {
-			return {
-				ribbonTranslation: lang.getTranslation("pricing.saveAmountFirstYear_label", { "{amount}": `${firstYearDiscountPercentage}%` }),
-				discountType: "GlobalFirstYear",
-			}
-		} else if (firstYearDiscount > 0) {
-			return {
-				ribbonTranslation: lang.getTranslation("pricing.saveAmountFirstYear_label", { "{amount}": `${firstYearDiscountPercentage}%` }),
-				discountType: "IndividualFirstYear",
-			}
-		}
 	}
 
 	private selectFree(data: UpgradeSubscriptionData) {

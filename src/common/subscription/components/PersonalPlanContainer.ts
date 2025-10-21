@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { styles } from "../../gui/styles"
 import { px, size } from "../../gui/size"
-import { PlanType } from "../../api/common/TutanotaConstants"
+import { PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
 import { PersonalPaidPlanBox } from "./PersonalPaidPlanBox"
 import { getApplePriceStr, getPriceStr } from "../utils/SubscriptionUtils"
 import { PersonalFreePlanBox } from "./PersonalFreePlanBox"
 import { PlanConfig } from "./BusinessPlanContainer"
 import { Icons } from "../../gui/base/icons/Icons"
-import { filterPlanConfigsAndGetSelectedPlan, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
+import { anyHasGlobalFirstYearCampaign, filterPlanConfigsAndGetSelectedPlan, PlanBoxContainerAttrs } from "../utils/PlanSelectorUtils"
 
 export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 	private paidPlanConfigs: PlanConfig[] = [
@@ -97,11 +97,11 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 			selectedPlan,
 			selectedSubscriptionOptions,
 			showMultiUser,
-			discountDetail,
+			discountDetails,
 		},
 	}: Vnode<PlanBoxContainerAttrs>): Children {
 		return m(
-			`.flex-column${allowSwitchingPaymentInterval ? "" : ".mt"}`,
+			`.flex-column${allowSwitchingPaymentInterval ? "" : ".mt"}${anyHasGlobalFirstYearCampaign(discountDetails) ? ".mt-l" : ""}`,
 			{
 				"data-testid": "dialog:select-subscription",
 				style: {
@@ -150,7 +150,7 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 						isApplePrice,
 						showMultiUser,
 						position: idx % 2 === 0 ? "left" : "right",
-						discountDetail,
+						discountDetail: discountDetails?.[planConfig.type],
 					})
 				}),
 			),

@@ -2116,6 +2116,9 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"confirmOverwriteDraft_msg": "This draft was opened for editing on {opened}, but a newer version was retrieved from the server on {updated}.\n\nWould you like to overwrite the newer draft with this one, discard this draft, or cancel saving this draft?",
+		"pricing.firstYearDiscount_msg": "Discount only applies for the first year. Following yearly price per month will be  {price}.",
+		"pricing.firstYearDiscountIos_msg":"Discount only applies for the first year. Following yearly price per year will be {price}."
 	}
 }

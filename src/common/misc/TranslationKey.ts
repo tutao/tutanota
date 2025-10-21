@@ -2115,3 +2115,8 @@ export type TranslationKeyType =
 	| "enforceTwoFactor_title"
 	| "enforceTwoFactor_label"
 	| "emptyString_msg"
+	| "confirmOverwriteDraft_msg"
+	| "overwrite_action"
+	| "conflicts_label"
+	| "pricing.firstYearDiscount_msg"
+	| "pricing.firstYearDiscountIos_msg"

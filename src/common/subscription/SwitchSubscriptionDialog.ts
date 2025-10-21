@@ -27,7 +27,6 @@ import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
 import { SwitchAccountTypeService } from "../api/entities/sys/Services.js"
 import { BadRequestError, InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError.js"
-import { FeatureListProvider } from "./FeatureListProvider"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, delay, downcast, lazy } from "@tutao/tutanota-utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
@@ -53,11 +52,12 @@ import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { PlanSelector } from "./PlanSelector.js"
 import { getPrivateBusinessSwitchButton } from "./SubscriptionPage.js"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
+import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "./utils/PlanSelectorUtils"
+import { BootIcons } from "../gui/base/icons/BootIcons"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
  * Note: Only shown if the user is already a Premium user.
- * TODO: Apply DiscountDetails for global first year discount
  */
 export async function showSwitchDialog({
 	customer,
@@ -77,12 +77,9 @@ export async function showSwitchDialog({
 		return
 	}
 
-	const [featureListProvider, priceAndConfigProvider] = await showProgressDialog(
+	const priceAndConfigProvider = await showProgressDialog(
 		"pleaseWait_msg",
-		Promise.all([
-			FeatureListProvider.getInitializedInstance(locator.domainConfigProvider().getCurrentDomainConfig()),
-			PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null),
-		]),
+		PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null),
 	)
 	const model = new SwitchSubscriptionDialogModel(customer, accountingInfo, await locator.logins.getUserController().getPlanType(), lastBooking)
 	const cancelAction = () => {
@@ -95,6 +92,7 @@ export async function showSwitchDialog({
 	const options = { businessUse, paymentInterval }
 	const multipleUsersAllowed = model.multipleUsersStillSupportedLegacy()
 	const isApplePrice = shouldShowApplePrices(accountingInfo)
+	const discountDetails = getDiscountDetails(isApplePrice, priceAndConfigProvider)
 
 	if (currentPlanInfo.planType != null && LegacyPlans.includes(currentPlanInfo.planType)) {
 		reason = "currentPlanDiscontinued_msg"
@@ -120,8 +118,14 @@ export async function showSwitchDialog({
 
 		return m(
 			".pt",
+			// Headline for a global campaign
+			!businessUse() &&
+				anyHasGlobalFirstYearCampaign(discountDetails) &&
+				m(PlanSelectorHeadline, {
+					translation: lang.getTranslation("pricing.cyber_monday_msg"),
+					icon: BootIcons.Heart,
+				}),
 			// Headline for general messages
-			// reason && m(".flex-center.items-center.gap-hpad.mb", m(".b.center.smaller", lang.getTranslationText(reason))),
 			reason && m(PlanSelectorHeadline, { translation: lang.getTranslation(reason) }),
 			m(PlanSelector, {
 				options,
@@ -134,6 +138,7 @@ export async function showSwitchDialog({
 				// We hide the payment interval switch in the setting and let the plan selector handles the interval changing for iOS
 				allowSwitchingPaymentInterval: isApplePrice || currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
 				showMultiUser: multipleUsersAllowed,
+				discountDetails,
 			}),
 		)
 	}
