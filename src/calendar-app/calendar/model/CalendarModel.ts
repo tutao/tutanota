@@ -110,9 +110,9 @@ import { ExternalCalendarFacade } from "../../../common/native/common/generatedi
 import { DeviceConfig } from "../../../common/misc/DeviceConfig.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import {
+	EventAlarmsTuple,
 	eventHasSameFields,
 	EventImportRejectionReason,
-	EventAlarmsTuple,
 	normalizeCalendarUrl,
 	parseCalendarStringData,
 	shallowIsSameEvent,

@@ -28,16 +28,16 @@ import {
     UserTypeRef,
 } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import {EntityRestClientMock} from "../api/worker/rest/EntityRestClientMock.js"
-import type {UserController} from "../../../src/common/api/main/UserController.js"
+import {UserController} from "../../../src/common/api/main/UserController.js"
 import {NotFoundError} from "../../../src/common/api/common/error/RestError.js"
-import type {LoginController} from "../../../src/common/api/main/LoginController.js"
+import {LoginController} from "../../../src/common/api/main/LoginController.js"
 import {ProgressTracker} from "../../../src/common/api/main/ProgressTracker.js"
 import {EntityClient} from "../../../src/common/api/common/EntityClient.js"
 import {CalendarEventProgenitor, CalendarFacade} from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import {verify} from "@tutao/tutanota-test-utils"
 import type {WorkerClient} from "../../../src/common/api/main/WorkerClient.js"
 import {FileController} from "../../../src/common/file/FileController.js"
-import {func, matchers, object, when} from "testdouble"
+import {func, instance, matchers, object, when} from "testdouble"
 import {elementIdPart, getElementId, listIdPart} from "../../../src/common/api/common/utils/EntityUtils.js"
 import {createDataFile} from "../../../src/common/api/common/DataFile.js"
 import {SessionKeyNotFoundError} from "../../../src/common/api/common/error/SessionKeyNotFoundError.js"
@@ -68,7 +68,6 @@ o.spec("CalendarModel", function () {
         let calendarFacadeMock: CalendarFacade
         let workerClientMock: WorkerClient
         let calendarModel: CalendarModel
-
         let eventA: CalendarEvent
         let eventB: CalendarEvent
         o.beforeEach(() => {
@@ -460,6 +459,9 @@ o.spec("CalendarModel", function () {
                 },
                 restClientMock,
             )
+
+            restClientMock.addElementInstances(groupRoot)
+
             const model = init({
                 workerClient,
                 restClientMock,
@@ -862,19 +864,30 @@ function makeWorkerClient(): WorkerClient {
 }
 
 function makeLoginController(): LoginController {
-    const loginController: LoginController = object()
     const alarmInfoList = createTestEntity(UserAlarmInfoListTypeTypeRef, {
         alarms: "alarms",
     })
-    const userController: UserController = object()
+
+    const userController = object<UserController>()
     userController.user = createTestEntity(UserTypeRef, {
         _id: "user-id",
         alarmInfoList,
     })
-    when(loginController.getUserController()).thenReturn(userController)
+
+    // As any because we can't modify userSettingsGroupRoot as it is read-ony
+    // and "when" is not working correctly
+    ;(userController as any).userSettingsGroupRoot = object({
+        defaultCalendar: "groupRootId"
+    })
+
     when(userController.getCalendarMemberships()).thenReturn([])
+
     const contactGroupMembership = createTestEntity(GroupMembershipTypeRef, {group: "contactGroup"})
     when(userController.getContactGroupMemberships()).thenReturn([contactGroupMembership])
+
+    const loginController = instance(LoginController)
+    loginController.getUserController = () => userController
+
     return loginController
 }
 
