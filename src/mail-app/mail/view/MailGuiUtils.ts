@@ -740,8 +740,14 @@ export function applyDarkThemeFix<T extends NonElementParentNode & ParentNode>(n
 
 		if (backgroundColorSet) {
 			const backgroundColor = computeColor(style.backgroundColor)
-			backgroundColorIsWhiteOrTransparent =
-				backgroundColor.a === 0 || (backgroundColor.r === 255 && backgroundColor.g === 255 && backgroundColor.b === 255)
+			if (backgroundColor) {
+				backgroundColorIsWhiteOrTransparent =
+					backgroundColor.a === 0 || (backgroundColor.r === 255 && backgroundColor.g === 255 && backgroundColor.b === 255)
+			} else {
+				// We have no idea what the color is supposed to be, and it probably won't render as anything, so treat
+				// it as transparent and hope for the best (the user can turn on light mode if this fails)
+				backgroundColorIsWhiteOrTransparent = true
+			}
 		}
 
 		// We want to hold onto the 'original' color for the check below.
@@ -763,7 +769,7 @@ export function applyDarkThemeFix<T extends NonElementParentNode & ParentNode>(n
 
 		// If this, in particular, has a font color set, we want it to look good on a dark background
 		if (fontColorSet) {
-			const color = computeColor(style.color)
+			const color = computeColor(style.color) ?? { r: 0.0, g: 0.0, b: 0.0, a: 1.0 }
 			const hsl = rgbToHSL(color)
 
 			// 100 lightness = white
