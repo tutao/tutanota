@@ -12,6 +12,7 @@ export interface DriveFolderNavAttrs {
 
 const driveFolderNavStyle = {
 	background: "white",
+	height: "52px",
 	display: "flex",
 	padding: "4px 24px",
 	"border-radius": "10px",
@@ -29,13 +30,15 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 			{ style: driveFolderNavStyle },
 			// TODO: FilterBox
 			m(DriveBreadcrumb, { driveViewModel, path: [["root", ["SomeListID", "SomeElementID"]]] }), // FIXME: hardcoded path
-			m("", [
-				m(IconButton, {
-					title: lang.makeTranslation("Upload file", () => "Upload file"),
-					click: (ev, dom) => vnode.attrs.onUploadClick(dom),
-					icon: Icons.Upload,
-				}),
-			]),
+			driveViewModel.currentFolder.isVirtual
+				? null
+				: m("", [
+						m(IconButton, {
+							title: lang.makeTranslation("Upload file", () => "Upload file"),
+							click: (ev, dom) => vnode.attrs.onUploadClick(dom),
+							icon: Icons.Upload,
+						}),
+					]),
 		)
 	}
 }

@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveViewModel } from "./DriveViewModel"
+import { DriveViewModel, VirtualFolder } from "./DriveViewModel"
 
 export type BreadcrumbPath = Array<[string, IdTuple]>
 
@@ -8,13 +8,18 @@ export interface DriveBreadcrumbAttrs {
 	path: BreadcrumbPath
 }
 
-export class DriveBreadcrumb implements Component<DriveBreadcrumbAttrs> {
-	view(vnode: Vnode<DriveBreadcrumbAttrs>): Children {
-		// const isRoot = vnode.attrs.driveViewModel.currentFolderIsRoot()
-		//
-		// return m("div", isRoot ? "/" : `/${vnode.attrs.driveViewModel.getCurrentFolder().name}`)
+export function getVirtualFolderName(virtualFolder: VirtualFolder) {
+	return virtualFolder.toString()
+}
 
-		const parents = vnode.attrs.driveViewModel.getCurrentParents()
+export class DriveBreadcrumb implements Component<DriveBreadcrumbAttrs> {
+	view({ attrs: { driveViewModel } }: Vnode<DriveBreadcrumbAttrs>): Children {
+		if (driveViewModel.currentFolder.isVirtual) {
+			return m("div", getVirtualFolderName(driveViewModel.currentFolder.virtualFolder))
+		}
+
+		let parents = driveViewModel.getCurrentParents()
+
 		return m(
 			"div",
 			parents
@@ -24,7 +29,7 @@ export class DriveBreadcrumb implements Component<DriveBreadcrumbAttrs> {
 						"span",
 						{
 							onclick: () => {
-								vnode.attrs.driveViewModel.navigateToFolder(entry.folder)
+								driveViewModel.navigateToFolder(entry.folder)
 							},
 							class: "cursor-pointer",
 						},

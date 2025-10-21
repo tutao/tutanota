@@ -14,9 +14,9 @@ import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/Shar
 import { isFolder } from "./DriveFolderContentEntry"
 
 export enum VirtualFolder {
-	None,
-	Favourites,
-	Trash,
+	None = "None",
+	Favourites = "Favourites",
+	Trash = "Trash",
 }
 
 export interface DisplayFolder {

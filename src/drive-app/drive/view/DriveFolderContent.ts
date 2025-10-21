@@ -13,6 +13,7 @@ const columnStyle = {
 	display: "flex",
 	gap: "10px",
 	"align-items": "center",
+	cursor: "pointer",
 }
 
 export const columnSizes = {

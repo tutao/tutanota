@@ -13,6 +13,11 @@ export interface DriveFolderViewAttrs {
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	view(vnode: Vnode<DriveFolderViewAttrs>): Children {
 		const { driveViewModel, onUploadClick } = vnode.attrs
-		return [m(DriveFolderNav, { driveViewModel, onUploadClick }), m(DriveFolderContent, { files: vnode.attrs.files, driveViewModel })]
+		return m(
+			"div.col.flex",
+			{ style: { gap: "15px" } },
+			m(DriveFolderNav, { driveViewModel, onUploadClick }),
+			m(DriveFolderContent, { files: vnode.attrs.files, driveViewModel }),
+		)
 	}
 }
