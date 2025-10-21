@@ -5,7 +5,7 @@ import { type Callback } from "@tutao/tutanota-utils"
 import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
 import { PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import Stream from "mithril/stream"
-import { theme } from "../../gui/theme.js"
+import { Theme, theme } from "../../gui/theme.js"
 import { ReplacementKey } from "../FeatureListProvider.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
@@ -15,7 +15,7 @@ import { getFeaturePlaceholderReplacement } from "../utils/SubscriptionUtils.js"
 import { PlanBadge } from "./PlanBadge.js"
 import { PlanConfig } from "./BusinessPlanContainer"
 import { boxShadowHigh } from "../../gui/main-styles"
-import { DiscountDetail, getBorderRadius, getBorderWidth, getHasCampaign, PlanBoxPosition } from "../utils/PlanSelectorUtils"
+import { blackFridayTheme, DiscountDetail, getBorderColor, getBorderRadius, getBorderWidth, getHasCampaign, PlanBoxPosition } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
 
 type PersonalPlanBoxAttrs = {
@@ -50,7 +50,6 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 		} else {
 			this.preventRescaling = false
 		}
-
 		m.redraw()
 	}
 
@@ -73,11 +72,11 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 	}: Vnode<PersonalPlanBoxAttrs>) {
 		this.scale = isSelected && !this.preventRescaling ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
-
 		const hasCampaign = getHasCampaign(discountDetail, isYearly)
+		const localTheme = hasCampaign ? blackFridayTheme() : theme
 		const strikethroughPrice = hasCampaign || isYearly ? referencePrice : undefined
 
-		const renderFeature = this.generateRenderFeature(planConfig.type, priceAndConfigProvider)
+		const renderFeature = this.generateRenderFeature(planConfig.type, priceAndConfigProvider, localTheme)
 		const getPriceHintStr = (): string => {
 			if (showMultiUser) {
 				return lang.get("pricing.perUserMonth_label")
@@ -89,6 +88,14 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 			}
 		}
 
+		const transformOrigin = () => {
+			if (position === "right") {
+				return styles.isMobileLayout() ? "center right" : "center left"
+			} else {
+				return styles.isMobileLayout() ? "center left" : "center right"
+			}
+		}
+
 		return m(
 			`.buyOptionBox-v2${isSelected ? ".selected" : ""}${isDisabled ? "" : ".cursor-pointer"}`,
 			{
@@ -96,7 +103,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 					opacity: isDisabled ? 0.6 : 1,
 					scale: this.scale,
 					"z-index": isSelected ? "1" : "initial",
-					"transform-origin": position === "right" ? "center right" : "center left",
+					"transform-origin": transformOrigin(),
 					"pointer-event": isDisabled ? "none" : "initial",
 				},
 
@@ -106,19 +113,20 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 				m(PromotionRibbon, {
 					planBoxPosition: position,
 					translation: discountDetail!.ribbonTranslation,
+					localTheme,
 				}),
 			m(
 				"",
 				{
 					style: {
 						cursor: isDisabled ? "not-allowed" : "pointer",
-						"background-color": isSelected ? theme.surface_container_high : theme.surface,
-						color: theme.on_surface,
+						"background-color": isSelected ? localTheme.surface_container_high : localTheme.surface,
+						color: localTheme.on_surface,
 						"min-height": px(270),
 						height: "100%",
 						"border-style": "solid",
-						"border-color": isSelected ? theme.primary : theme.outline_variant,
-						"border-width": getBorderWidth(isSelected, hasCampaign, position),
+						"border-color": getBorderColor(isSelected, hasCampaign, localTheme),
+						"border-width": getBorderWidth(isSelected, position),
 						"border-radius": getBorderRadius(hasCampaign, position),
 						"box-shadow": isSelected ? boxShadowHigh : "none",
 						overflow: "hidden",
@@ -145,7 +153,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						name: "BuyOptionBox",
 						checked: isSelected,
 						style: {
-							"accent-color": theme.on_primary_container,
+							"accent-color": localTheme.primary,
 							opacity: isDisabled ? "0" : "1",
 						},
 						disabled: isDisabled,
@@ -155,7 +163,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						{
 							style: {
 								"font-size": px(styles.isMobileLayout() ? 18 : 20),
-								color: isSelected ? theme.primary : theme.on_surface,
+								color: isSelected ? localTheme.primary : localTheme.on_surface,
 							},
 						},
 						PlanTypeToName[planConfig.type],
@@ -167,7 +175,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						height: px(1),
 						display: "block",
 						border: "none",
-						backgroundColor: theme.outline_variant,
+						backgroundColor: localTheme.outline_variant,
 					},
 				}),
 				m(
@@ -189,7 +197,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						{
 							style: {
 								height: px(35),
-								fill: theme.on_surface_variant,
+								fill: localTheme.on_surface_variant,
 							},
 						},
 						styles.bodyWidth <= 420
@@ -198,7 +206,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 									icon: planConfig.icon,
 									size: IconSize.XL,
 									style: {
-										fill: theme.on_surface_variant,
+										fill: localTheme.on_surface_variant,
 									},
 								}),
 					),
@@ -223,7 +231,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 									".strike",
 									{
 										style: {
-											color: theme.on_surface_variant,
+											color: localTheme.on_surface_variant,
 											fontSize: px(size.font_size_smaller),
 											justifySelf: "end",
 										},
@@ -258,7 +266,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 		)
 	}
 
-	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider) {
+	private generateRenderFeature(planType: PlanType, provider: PriceAndConfigProvider, localTheme: Theme) {
 		return (langKey: TranslationKeyType, icon: Icons, replacement?: ReplacementKey) => {
 			return m(
 				".flex",
@@ -271,7 +279,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 					icon,
 					size: IconSize.Normal,
 					style: {
-						fill: theme.secondary,
+						fill: localTheme.secondary,
 					},
 				}),
 				m(".smaller", lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider))),

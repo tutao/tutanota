@@ -16,7 +16,7 @@ import { getApplePriceStr, getPriceStr } from "./utils/SubscriptionUtils.js"
 import { PaymentIntervalSwitch } from "./components/PaymentIntervalSwitch.js"
 import { PersonalPlanContainer } from "./components/PersonalPlanContainer"
 import { BusinessPlanContainer } from "./components/BusinessPlanContainer"
-import { DiscountDetail, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
+import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
 type PlanSelectorAttr = {
@@ -29,7 +29,7 @@ type PlanSelectorAttr = {
 	currentPaymentInterval?: PaymentInterval
 	allowSwitchingPaymentInterval: boolean
 	showMultiUser: boolean
-	discountDetail?: DiscountDetail
+	discountDetails?: DiscountDetails
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
@@ -38,7 +38,11 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	)
 	private readonly shouldFixButtonPos: Stream<boolean> = stream(false)
 
-	oncreate({ attrs: { availablePlans, currentPlan } }: Vnode<PlanSelectorAttr>) {
+	oncreate({ attrs: { availablePlans, currentPlan, discountDetails } }: Vnode<PlanSelectorAttr>) {
+		if (anyHasGlobalFirstYearCampaign(discountDetails)) {
+			this.selectedPlan(PlanType.Legend)
+		}
+
 		if (availablePlans.includes(PlanType.Free) && availablePlans.length === 1) {
 			// Only Free plan is available. This would be the case if the user already has a paid Apple account.
 			this.selectedPlan(PlanType.Free)
@@ -66,7 +70,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			currentPaymentInterval,
 			allowSwitchingPaymentInterval,
 			showMultiUser,
-			discountDetail,
+			discountDetails,
 		},
 	}: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
@@ -74,13 +78,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		options.businessUse(!isPersonalPlanAvailable(availablePlans) ? true : options.businessUse())
 
 		const renderFootnoteElement = (): Children => {
-			const getRevoPriceStrProps = {
-				priceAndConfigProvider,
-				paymentInterval: PaymentInterval.Yearly,
-				targetPlan: PlanType.Revolutionary,
-			}
-			const { referencePriceStr: revoRefPriceStr } = isApplePrice ? getApplePriceStr(getRevoPriceStrProps) : getPriceStr(getRevoPriceStrProps)
-
 			const getLegendPriceStrProps = {
 				priceAndConfigProvider,
 				paymentInterval: PaymentInterval.Yearly,
@@ -88,15 +85,14 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			}
 			const { referencePriceStr: legendRefPriceStr } = isApplePrice ? getApplePriceStr(getLegendPriceStrProps) : getPriceStr(getLegendPriceStrProps)
 
-			if (discountDetail?.discountType === "GlobalFirstYear" && isYearly) {
+			if (!options.businessUse() && anyHasGlobalFirstYearCampaign(discountDetails)) {
 				return m(
 					".flex.column-gap-s",
 					m("span", m("sup", "1")),
 					m(
 						"span",
-						lang.get(isApplePrice ? "pricing.firstYearDiscountIos_revo_legend_msg" : "pricing.firstYearDiscount_revo_legend_msg", {
-							"{revo-price}": revoRefPriceStr ?? "",
-							"{legend-price}": legendRefPriceStr ?? "",
+						lang.get(isApplePrice ? "pricing.firstYearDiscountIos_msg" : "pricing.firstYearDiscount_msg", {
+							"{price}": legendRefPriceStr ?? "",
 						}),
 					),
 				)
@@ -111,22 +107,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				label: "continue_action",
 				type: LoginButtonType.FullWidth,
 				onclick: (event, dom) => actionButtons[this.selectedPlan() as AvailablePlans]().onclick(event, dom),
-				// Used for changing button design during global campaigns.
-				// ...(discountDetail?.discountType === "GlobalFirstYear" && {
-				// 	// As we modify the size of the Login button for the campaign, the normal "Continue" button should have the same size to avoid layout shifting
-				// 	class: "go-european-button",
-				// 	icon: m("img.block", {
-				// 		src: `${window.tutao.appState.prefixWithoutFile}/images/go-european/eu-quantum.svg`,
-				// 		alt: "",
-				// 		rel: "noreferrer",
-				// 		loading: "lazy",
-				// 		decoding: "async",
-				// 		style: {
-				// 			height: px(36),
-				// 			width: px(36),
-				// 		},
-				// 	}),
-				// }),
 			})
 		}
 
@@ -174,7 +154,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					selectedPlan: this.selectedPlan,
 					selectedSubscriptionOptions: options,
 					showMultiUser,
-					discountDetail,
+					discountDetails,
 				}),
 				m(
 					".flex.flex-column.gap-vpad",
@@ -206,10 +186,16 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					),
 				),
 				!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) &&
-					m(".flex.flex-column", [
-						m(".small.mb.center", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")),
-						m(".small.mb", renderFootnoteElement()),
-					]),
+					m(
+						".flex.flex-column",
+						{
+							style: {
+								"max-width": px(500),
+								"margin-inline": "auto",
+							},
+						},
+						[m(".small.mb", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")), m(".small.mb", renderFootnoteElement())],
+					),
 			],
 		)
 	}

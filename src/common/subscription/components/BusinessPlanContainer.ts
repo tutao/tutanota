@@ -135,7 +135,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 	}
 
 	view({ attrs }: Vnode<PlanBoxContainerAttrs>): Children {
-		const { currentPlan, priceAndConfigProvider, selectedPlan, selectedSubscriptionOptions, discountDetail } = attrs
+		const { currentPlan, priceAndConfigProvider, selectedPlan, selectedSubscriptionOptions, discountDetails } = attrs
 
 		const container = styles.isMobileLayout()
 			? {
@@ -170,7 +170,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 					isCurrentPlan: currentPlan === planConfig.type,
 					onclick: (p) => selectedPlan(p as AvailablePlans),
 					priceAndConfigProvider: priceAndConfigProvider,
-					discountDetail,
+					discountDetail: discountDetails?.[planConfig.type],
 					selectedPaymentInterval: selectedSubscriptionOptions.paymentInterval,
 				})
 			}),

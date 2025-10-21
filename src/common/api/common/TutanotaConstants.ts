@@ -284,6 +284,7 @@ export const NewPaidPlans: readonly AvailablePlanType[] = Object.freeze([
 ])
 export const NewBusinessPlans: readonly AvailablePlanType[] = Object.freeze([PlanType.Essential, PlanType.Advanced, PlanType.Unlimited])
 export const NewPersonalPlans: readonly AvailablePlanType[] = Object.freeze([PlanType.Free, PlanType.Revolutionary, PlanType.Legend])
+export const NewPersonalPaidPlans: readonly AvailablePlanType[] = Object.freeze([PlanType.Revolutionary, PlanType.Legend])
 
 export const LegacyPlans: readonly PlanType[] = Object.freeze([
 	PlanType.Premium,

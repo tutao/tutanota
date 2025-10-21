@@ -351,12 +351,50 @@ export function getApplePriceStr({ priceAndConfigProvider, targetPlan, paymentIn
 	let priceStr: string
 	let referencePriceStr: string | undefined = undefined
 	if (paymentInterval === PaymentInterval.Yearly) {
-		priceStr = displayOfferYearlyPerYear ?? displayYearlyPerYear
-		referencePriceStr = displayOfferYearlyPerYear ? displayYearlyPerYear : undefined
+		if (priceAndConfigProvider.getIosIntroOfferEligibility()) {
+			priceStr = displayOfferYearlyPerYear ?? displayYearlyPerYear
+			referencePriceStr = displayOfferYearlyPerYear ? displayYearlyPerYear : undefined
+		} else {
+			priceStr = displayYearlyPerYear
+			referencePriceStr = undefined
+		}
 	} else {
 		priceStr = displayMonthlyPerMonth
 	}
 	return { priceStr, referencePriceStr }
+}
+
+/**
+ * Get the raw price and reference price from the Apple's server.
+ * Before calling this function, it has to be checked if it is OK to display the Apple prices. Use `shouldShowApplePrices` for that matter.
+ */
+export function getRawApplePrice({ priceAndConfigProvider, targetPlan, paymentInterval }: GetPriceStrProps): {
+	price: number
+	referencePrice: number
+} {
+	const planKey = PlanTypeToName[targetPlan].toLowerCase()
+	const applePrices = priceAndConfigProvider.getMobilePrices().get(planKey)
+	if (!applePrices) {
+		throw new Error("Cannot get the apple prices of plan: " + planKey)
+	}
+
+	const { rawYearlyPerYear, rawMonthlyPerMonth, rawOfferYearlyPerYear } = applePrices
+	let price: number
+	let referencePrice: number
+	if (paymentInterval === PaymentInterval.Yearly) {
+		referencePrice = rawYearlyPerYear
+		if (priceAndConfigProvider.getIosIntroOfferEligibility()) {
+			price = rawOfferYearlyPerYear ?? rawYearlyPerYear
+		} else {
+			price = rawYearlyPerYear
+		}
+	} else {
+		// Currently (2025-10), we have not offered campaign for monthly plans on iOS yet,
+		// so we don't have `rawOfferMonthlyPerMonth` in `MobilePlanPrice` interface
+		referencePrice = rawMonthlyPerMonth
+		price = rawMonthlyPerMonth
+	}
+	return { price, referencePrice }
 }
 
 /**
