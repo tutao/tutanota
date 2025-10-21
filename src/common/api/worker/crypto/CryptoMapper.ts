@@ -118,8 +118,10 @@ export class CryptoMapper {
 				}
 				decrypted[valueId] = valueToDefault(valueInfo.type)
 				if (e instanceof SessionKeyNotFoundError) {
-					const skAttrId = assertNotNull(AttributeModel.getAttributeId(serverTypeModel, "_ownerEncSessionKey"))
-					decrypted._errors[skAttrId] = "Probably temporary SessionKeyNotFound"
+					const skAttrId = AttributeModel.getAttributeId(serverTypeModel, "_ownerEncSessionKey")
+					if (skAttrId) {
+						decrypted._errors[skAttrId] = "Probably temporary SessionKeyNotFound"
+					}
 				} else {
 					decrypted._errors[valueId] = JSON.stringify(e)
 					console.log("error when decrypting value on type:", `[${serverTypeModel.app},${serverTypeModel.name}]`, "valueName:", valueName, e)
