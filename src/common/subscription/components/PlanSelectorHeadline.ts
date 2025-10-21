@@ -12,12 +12,11 @@ interface PlanSelectorHeadlineAttrs {
 export class PlanSelectorHeadline implements Component<PlanSelectorHeadlineAttrs> {
 	view({ attrs: { translation, icon } }: Vnode<PlanSelectorHeadlineAttrs>) {
 		return m(
-			".flex-center.items-center.gap-vpad-xs.mb",
+			".flex-center.items-start.gap-vpad-xs.mb",
 			{
 				style: {
 					background: theme.surface_container,
-					color: theme.on_surface_variant,
-					border: `1px solid ${theme.outline}`,
+					color: theme.on_surface,
 					borderRadius: px(8),
 					padding: `${px(8)} ${px(12)}`,
 					marginInline: "auto",

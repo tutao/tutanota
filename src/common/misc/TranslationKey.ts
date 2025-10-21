@@ -2108,3 +2108,8 @@ export type TranslationKeyType =
 	| "zoomIn_action"
 	| "zoomOut_action"
 	| "emptyString_msg"
+	| "confirmOverwriteDraft_msg"
+	| "overwrite_action"
+	| "conflicts_label"
+	| "pricing.firstYearDiscount_msg"
+	| "pricing.firstYearDiscountIos_msg"
