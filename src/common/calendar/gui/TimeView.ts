@@ -9,7 +9,6 @@ import { colorForBg } from "../../gui/base/GuiUtils.js"
 import { getTimeTextFormatForLongEvent, getTimeZone, hasAlarmsForTheUser, isBirthdayCalendar } from "../date/CalendarUtils"
 import { TimeColumn } from "./TimeColumn"
 import { elementIdPart, listIdPart } from "../../api/common/utils/EntityUtils"
-import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs"
 import { DateTime } from "luxon"
 import { CalendarEventBubble } from "../../../calendar-app/calendar/view/CalendarEventBubble"
 import { formatEventTime } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
@@ -37,48 +36,71 @@ export interface TimeViewAttributes {
 	conflictRenderPolicy: EventConflictRenderPolicy
 	timeIndicator?: Time
 	hasAnyConflict?: boolean
+	hoverEffect?: boolean
 }
 
+/**
+ * Represents the vertical position of an event in the CSS grid.
+ * Uses 1-based indexing for CSS Grid compatibility.
+ */
 export interface RowBounds {
+	/** Starting row (1-based index) */
 	start: number
+	/** Ending row (1-based index, -1 indicates extends beyond grid) */
 	end: number
 }
 
+/**
+ * Represents the horizontal position and width of an event in the CSS grid.
+ * Uses 1-based indexing for CSS Grid compatibility.
+ */
 export interface ColumnBounds {
+	/** Starting column (1-based index for CSS Grid) */
 	start: number
+	/** Number of columns the event spans */
 	span: number
 }
 
+/**
+ * Grid positioning data for a single event.
+ */
 export interface GridEventData {
+	/** Vertical position (row range) */
 	row: RowBounds
+	/** Horizontal position and width */
 	column: ColumnBounds
 }
 
-interface ColumnData {
+/**
+ * Internal data structure tracking events within a single column.
+ * Used during the column-packing phase of the layout algorithm.
+ */
+export interface ColumnData {
+	/**
+	 * The row index where the last event in this column ends.
+	 * Used for quick availability checks when placing new events.
+	 */
 	lastEventEndingRow: number
+
+	/**
+	 * Map of event IDs to their row bounds within this column.
+	 * Maintains insertion order for deterministic layout.
+	 */
 	events: Map<Id, RowBounds>
 }
 
-interface BlockingInfo {
-	canExpand: boolean
-	blockingEvents: Map<Id, boolean>
-}
-
-const BASE_EVENT_BUBBLE_SPAN_SIZE = 1
+const SUBROWS_PER_INTERVAL = 12
 
 export class TimeView implements Component<TimeViewAttributes> {
 	private timeRowHeight?: number
 	private parentHeight?: number
-
-	private blockingGroupsCache: Map<Id, Array<Map<Id, boolean>>> = new Map()
-	private expandabilityCache: Map<Id, BlockingInfo> = new Map()
-	private eventIdToOriginalColumnArrayIndex: Map<Id, number> = new Map()
+	private columnCount: number = 0
 
 	view({ attrs }: Vnode<TimeViewAttributes>) {
 		const { timeScale, timeRange, events, conflictRenderPolicy, dates, timeIndicator, hasAnyConflict } = attrs
 		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(attrs.timeScale, attrs.timeRange)
-		const subRowCount = 12 * timeColumnIntervals.length
-		const subRowAsMinutes = TIME_SCALE_BASE_VALUE / timeScale / 12
+		const subRowCount = SUBROWS_PER_INTERVAL * timeColumnIntervals.length
+		const subRowAsMinutes = TIME_SCALE_BASE_VALUE / timeScale / SUBROWS_PER_INTERVAL
 
 		return m(
 			".grid.overflow-hidden.height-100p",
@@ -121,7 +143,10 @@ export class TimeView implements Component<TimeViewAttributes> {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 							},
 						},
-						[this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date)],
+						[
+							// this.renderCells(timeScale, timeRange),
+							this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date),
+						],
 					)
 				}),
 			],
@@ -168,20 +193,19 @@ export class TimeView implements Component<TimeViewAttributes> {
 				end: timeRange.end.toDateTime(baseDate, getTimeZone()).plus({ minute: interval }).toJSDate(),
 			}
 
-			const orderedEvents = eventsForThisDate.toSorted((eventWrapperA, eventWrapperB) => {
-				const startTimeComparison = eventWrapperA.event.startTime.getTime() - eventWrapperB.event.startTime.getTime()
-				if (startTimeComparison === 0) {
-					return eventWrapperB.event.endTime.getTime() - eventWrapperA.event.endTime.getTime()
+			// Sort events for optimal lay outing
+			// Primary: earlier start times first
+			// Secondary: longer duration first (helps minimize columns)
+			const orderedEvents = eventsForThisDate.toSorted((a, b) => {
+				const startTimeDiff = a.event.startTime.getTime() - b.event.startTime.getTime()
+				if (startTimeDiff !== 0) {
+					return startTimeDiff
 				}
-
-				return startTimeComparison
+				// Longer events first (end time descending)
+				return b.event.endTime.getTime() - a.event.endTime.getTime()
 			})
 
-			// Clear caches for fresh calculation
-			this.blockingGroupsCache.clear()
-			this.expandabilityCache.clear()
-
-			const gridData = this.layoutEvents(orderedEvents, timeRange, subRowAsMinutes, timeScale, baseDate)
+			const gridData = TimeView.layoutEvents(orderedEvents, timeRange, subRowAsMinutes, timeScale, baseDate)
 
 			return orderedEvents.flatMap((eventWrapper) => {
 				const passesThroughToday =
@@ -278,400 +302,143 @@ export class TimeView implements Component<TimeViewAttributes> {
 	)
 
 	/**
-	 * Maps an array of events to a CSS Grid Position map
-	 * @param events
-	 * @param timeRange
-	 * @param subRowAsMinutes
-	 * @param timeScale
-	 * @param baseDate
-	 * @private
+	 * Layout Strategy:
+	 * 1. Sort events by start time (earlier first), then by duration (longer first)
+	 * 2. Pack events into columns using a greedy first-fit strategy
+	 * 3. Expand events horizontally to fill available space
 	 *
-	 * @return Map<string, GridEventData>
+	 * @param events - Array of event wrappers to layout
+	 * @param timeRange - Visible time range for the calendar view
+	 * @param subRowAsMinutes - Granularity of grid rows in minutes
+	 * @param timeScale - Time scale divisor for hour subdivision
+	 * @param baseDate - Reference date for the calendar view
+	 * @returns Map of event IDs to their grid positioning data
 	 */
-	private layoutEvents(events: Array<EventWrapper>, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date) {
-		// Convert to row-based events
-		const eventsMap: Map<Id, RowBounds> = new Map(
-			events.map((eventWrapper) => {
-				return [elementIdPart(eventWrapper.event._id), this.getRowBounds(eventWrapper.event, timeRange, subRowAsMinutes, timeScale, baseDate)]
+	static layoutEvents(events: Array<EventWrapper>, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date) {
+		// Step 1: Convert events to row-based coordinates
+		const eventsMap = new Map<Id, RowBounds>(
+			events.map((wrapper) => {
+				const rowBounds = TimeView.getRowBounds(wrapper.event, timeRange, subRowAsMinutes, timeScale, baseDate)
+				return [elementIdPart(wrapper.event._id), rowBounds]
 			}),
 		)
 
+		// Step 2: Pack events into columns using first-fit strategy
+		const columns = TimeView.packEventsIntoColumns(eventsMap)
+
+		// Step 3: Expand events to fill available horizontal space
+		return TimeView.buildGridDataWithExpansion(columns)
+	}
+
+	/**
+	 * Packs events into columns using a greedy first-fit algorithm.
+	 * Each event is placed in the first available column where it doesn't overlap.
+	 *
+	 * @param eventsMap - Map of event IDs to their row bounds
+	 * @returns Array of columns with their contained events
+	 */
+	static packEventsIntoColumns(eventsMap: Map<Id, RowBounds>): Array<ColumnData> {
 		const columns: Array<ColumnData> = []
 
 		for (const [eventId, rowBounds] of eventsMap.entries()) {
-			let currentColumnIndex = columns.findIndex((col) => col.lastEventEndingRow <= rowBounds.start)
+			const availableColumnIndex = columns.findIndex((col) => col.lastEventEndingRow <= rowBounds.start)
 
-			if (currentColumnIndex === -1) {
-				currentColumnIndex = columns.length
+			if (availableColumnIndex === -1) {
 				columns.push({
 					lastEventEndingRow: rowBounds.end,
 					events: new Map([[eventId, rowBounds]]),
 				})
 			} else {
-				columns[currentColumnIndex].lastEventEndingRow = rowBounds.end
-				columns[currentColumnIndex].events.set(eventId, rowBounds)
+				const column = columns[availableColumnIndex]
+				column.lastEventEndingRow = rowBounds.end
+				column.events.set(eventId, rowBounds)
 			}
 		}
 
-		return this.buildGridData(columns)
+		return columns
 	}
 
 	/**
-	 * Organize an array of columns in a Grid, setting rows, size and column start/end
-	 * for each event inside the input columns.
-	 * @param allColumns Events grouped by columns
-	 * @private
+	 * Builds the final grid data with column span calculations.
+	 * Events are expanded horizontally to fill space until blocked by another event or reach the last column.
 	 *
-	 * @return The calculated Grid for the events
+	 * @param columns - Array of columns with packed events
+	 * @returns Map of event IDs to complete grid positioning data
 	 */
-	private buildGridData(allColumns: Array<ColumnData>): Map<Id, GridEventData> {
+	static buildGridDataWithExpansion(columns: Array<ColumnData>): Map<Id, GridEventData> {
 		const gridData = new Map<Id, GridEventData>()
-		const blockerShift = new Map<Id, number>()
 
-		for (const [columnIndex, columnData] of allColumns.entries()) {
-			for (const [eventId, eventRowData] of columnData.events.entries()) {
-				this.eventIdToOriginalColumnArrayIndex.set(eventId, columnIndex)
-				let currentEventCanExpand = false
+		for (const [columnIndex, columnData] of columns.entries()) {
+			for (const [eventId, rowBounds] of columnData.events.entries()) {
+				const columnSpan = TimeView.calculateColumnSpan(columnIndex, rowBounds, columns)
 
-				// Check cache first before recalculating
-				let cachedExpandability = this.expandabilityCache.get(eventId)
-				if (!cachedExpandability) {
-					const expandInfo = this.canExpandRight(eventId, eventRowData, columnIndex, allColumns, this.blockingGroupsCache)
-					this.expandabilityCache.set(eventId, expandInfo)
-					cachedExpandability = expandInfo
-				}
-
-				currentEventCanExpand = cachedExpandability.canExpand
-
-				const eventShift = blockerShift.get(eventId) ?? 0
-				let size = 0
-
-				if (currentEventCanExpand) {
-					const maxSize = allColumns.length
-					const numOfColumnsWithBlockers = this.blockingGroupsCache.get(eventId)?.length ?? 0
-
-					if (numOfColumnsWithBlockers === 0) {
-						// Early termination when first conflict found
-						let firstConflictIndex = -1
-
-						for (let i = columnIndex + 1; i < allColumns.length; i++) {
-							const columnData = allColumns[i]
-							const conflict = this.findFirstOverlapFast(eventRowData, columnData.events)
-
-							if (conflict) {
-								firstConflictIndex = i
-								size = i - columnIndex + (blockerShift.get(conflict) ?? 0) - eventShift
-								break
-							}
-						}
-
-						if (firstConflictIndex === -1) {
-							const arrayIndexToGridIndex = 1 + columnIndex
-
-							size = maxSize - eventShift - arrayIndexToGridIndex + BASE_EVENT_BUBBLE_SPAN_SIZE
-						}
-					} else {
-						const columnsWithConflict = this.countConflictingColumns(columnIndex, eventRowData, allColumns)
-						size = Math.max(Math.floor((maxSize - eventShift) / (columnsWithConflict + BASE_EVENT_BUBBLE_SPAN_SIZE)), 1)
-					}
-
-					this.updateBlockerShifts(eventId, size, blockerShift)
-				}
-
-				const gridColumnStart = 1 + columnIndex + eventShift
-				const spanSize =
-					gridColumnStart + size > allColumns.length + 1 ? Math.max(allColumns.length - gridColumnStart, BASE_EVENT_BUBBLE_SPAN_SIZE) : size
-
-				gridData.set(eventId, {
-					row: {
-						start: eventRowData.start,
-						end: eventRowData.end,
-					},
+				const eventGridData: GridEventData = {
+					row: rowBounds,
 					column: {
-						start: gridColumnStart,
-						span: spanSize,
+						start: columnIndex + 1, // 1-based for CSS Grid
+						span: columnSpan,
 					},
-				})
+				}
+
+				gridData.set(eventId, eventGridData)
 			}
 		}
-
-		this.applyRetroactiveShifts(gridData, allColumns)
 
 		return gridData
 	}
 
 	/**
-	 * Apply retroactive shifts and expansion to earlier events when later events have shifted
-	 * This ensures events that were blocked by shifted events can now expand properly
+	 * Calculates how many columns an event can span without overlapping other events.
 	 *
-	 * @param gridData The current state of the grid
-	 * @param allColumns Original events grouped by column
-	 * @private
+	 * An event can expand into adjacent columns if no events in those columns
+	 * overlap with the current event's time range.
+	 *
+	 * Overlap Check: Two events overlap if:
+	 *   event1.start < event2.end AND event1.end > event2.start
+	 *
+	 * @param eventColumnIndex - The column index where the event is placed
+	 * @param eventRowBounds - The row bounds of the event
+	 * @param allColumns - All columns in the layout
+	 * @returns Number of columns the event can span (minimum 1)
 	 */
-	private applyRetroactiveShifts(gridData: Map<Id, GridEventData>, allColumns: Array<ColumnData>): void {
-		// Cache conflict info to avoid redundant calculations
-		const conflictCache = new Map<
-			Id,
-			{
-				conflict: { distance: number; id: Id; gridStart: number } | undefined
-				sumOfSizes: number
+	static calculateColumnSpan(eventColumnIndex: number, eventRowBounds: RowBounds, allColumns: Array<ColumnData>): number {
+		let span = 1
+
+		// Check each subsequent column for blocking events
+		for (let colIndex = eventColumnIndex + 1; colIndex < allColumns.length; colIndex++) {
+			const columnEvents = Array.from(allColumns[colIndex].events.values())
+			const hasOverlap = columnEvents.some((otherEvent) => otherEvent.start < eventRowBounds.end && otherEvent.end > eventRowBounds.start)
+			if (hasOverlap) {
+				break
 			}
-		>()
-
-		for (const [eventId, gridInfo] of gridData.entries()) {
-			const eventIndex = this.eventIdToOriginalColumnArrayIndex.get(eventId)
-			if (eventIndex == null) {
-				continue
-			}
-
-			const expectedGridEnd = gridInfo.column.start + gridInfo.column.span
-
-			// Check cache first to avoid redundant conflict finding
-			let cachedConflictInfo = conflictCache.get(eventId)
-			let conflict: { distance: number; id: Id; gridStart: number } | undefined
-			let sumOfSizes = 0
-
-			if (!cachedConflictInfo) {
-				// Find conflict and accumulate sizes - preserve original loop logic
-				for (let i = eventIndex + 1; i < allColumns.length; i++) {
-					const columnData = allColumns[i]
-
-					const overlappingEvents = this.findOverlappingEvents(
-						{
-							start: gridInfo.row.start,
-							end: gridInfo.row.end,
-						},
-						columnData.events,
-					)
-
-					if (overlappingEvents.size === 0) {
-						continue
-					}
-
-					// Accumulate and find closest in single pass
-					for (const [conflictId] of overlappingEvents.entries()) {
-						const conflictInfo = gridData.get(conflictId)
-						if (!conflictInfo) {
-							continue
-						}
-
-						const distance = conflictInfo.column.start - expectedGridEnd
-						sumOfSizes += conflictInfo.column.span
-
-						// Find closest conflict (minimum distance)
-						if (!conflict || distance < conflict.distance) {
-							conflict = {
-								distance,
-								id: conflictId,
-								gridStart: conflictInfo.column.start,
-							}
-						}
-					}
-				}
-
-				// Cache the result
-				cachedConflictInfo = { conflict, sumOfSizes }
-				conflictCache.set(eventId, cachedConflictInfo)
-			} else {
-				conflict = cachedConflictInfo.conflict
-				sumOfSizes = cachedConflictInfo.sumOfSizes
-			}
-
-			if (!conflict) {
-				continue
-			}
-
-			let newSize: number | null = null
-
-			if (gridInfo.column.start + gridInfo.column.span > allColumns.length) {
-				newSize = Math.max(allColumns.length - gridInfo.column.start, BASE_EVENT_BUBBLE_SPAN_SIZE)
-			} else if (expectedGridEnd < conflict.gridStart) {
-				const expandedSize = gridInfo.column.span + conflict.distance
-				newSize =
-					gridInfo.column.start + expandedSize > allColumns.length
-						? Math.max(allColumns.length - gridInfo.column.start, BASE_EVENT_BUBBLE_SPAN_SIZE)
-						: expandedSize
-			} else if (expectedGridEnd > conflict.gridStart) {
-				const shrinkSize = conflict.gridStart - 1
-				newSize =
-					gridInfo.column.start + shrinkSize + sumOfSizes > allColumns.length
-						? Math.max(allColumns.length - gridInfo.column.start, BASE_EVENT_BUBBLE_SPAN_SIZE)
-						: shrinkSize
-			}
-
-			// Only update if size changed
-			if (newSize !== null && newSize !== gridInfo.column.span) {
-				gridData.set(eventId, {
-					...gridInfo,
-					column: {
-						...gridInfo.column,
-						span: newSize,
-					},
-				})
-			}
+			span++
 		}
+
+		return span
 	}
 
 	/**
-	 * Finds the first conflicting event; It differentiates from findOverlappingEvents by
-	 * returning the first conflicting event instead of collecting them and returning everything
-	 * @param currentEventRowData Main event row bounds
-	 * @param eventsInColumn Map of event Id to row bounds
-	 * @private
-	 *
-	 * @return Id if there is a conflict, null otherwise
-	 */
-	private findFirstOverlapFast(currentEventRowData: RowBounds, eventsInColumn: Map<Id, RowBounds>): Id | null {
-		for (const [eventId, eventRowData] of eventsInColumn.entries()) {
-			if (eventRowData.start < currentEventRowData.end && eventRowData.end > currentEventRowData.start) {
-				return eventId
-			}
-		}
-		return null
-	}
-
-	/**
-	 * Counts how many columns conflicts with a given event bound
-	 * @param columnIndex Which column the event was originally positioned
-	 * @param eventRowData Event row bounds containing start and end rows
-	 * @param allColumns All original positioned events grouped by column
-	 * @private
-	 */
-	private countConflictingColumns(columnIndex: number, eventRowData: RowBounds, allColumns: Array<ColumnData>): number {
-		let count = 0
-		for (let i = columnIndex + 1; i < allColumns.length; i++) {
-			if (Array.from(allColumns[i].events.values()).some((eventData) => eventData.start < eventRowData.end && eventData.end > eventRowData.start)) {
-				count++
-			}
-		}
-		return count
-	}
-
-	/**
-	 * Updates the cache of events shifting, allowing shifted events to be re-visited
-	 * @param eventId Event id who is expanding
-	 * @param size How much this event grew and how much its blockers will have to move
-	 * @param blockerShift Map of positions to shift per event
-	 * @private
-	 */
-	private updateBlockerShifts(eventId: Id, size: number, blockerShift: Map<Id, number>): void {
-		const blockerGroups = this.blockingGroupsCache.get(eventId)
-		if (!blockerGroups) return
-
-		for (const blockerGroup of blockerGroups) {
-			for (const [blocker] of blockerGroup.entries()) {
-				const blockerShiftInfo = blockerShift.get(blocker) ?? 0
-				blockerShift.set(blocker, blockerShiftInfo + size - 1)
-				blockerGroup.delete(blocker)
-			}
-			this.blockingGroupsCache.delete(eventId)
-		}
-	}
-
-	/**
-	 * Determinate if an event can expand to its right or if there is any
-	 * event who blocks it.
-	 *
-	 * @param eventId Event element id who is being checked
-	 * @param eventRowData Event row bounds
-	 * @param colIndex Index from {allColumns} indicating where this event was initially positioned
-	 * @param allColumns All event columns
-	 * @param blockingGroups Cache of blocking events grouped by the blocked event id
-	 * @param visited Set of already visited nodes
-	 *
-	 * @private
-	 *
-	 * @return A BlockingInfo object with info if the event can expand and its blockers
-	 */
-	private canExpandRight(
-		eventId: Id,
-		eventRowData: RowBounds,
-		colIndex: number,
-		allColumns: ColumnData[],
-		blockingGroups: Map<Id, Array<Map<Id, boolean>>>,
-		visited: Set<Id> = new Set(),
-	): BlockingInfo {
-		const blockingEvents = new Map<Id, boolean>()
-		const nextColIndex = colIndex + 1
-
-		if (!blockingGroups.has(eventId)) {
-			blockingGroups.set(eventId, [])
-		}
-
-		if (nextColIndex >= allColumns.length) {
-			return { canExpand: false, blockingEvents }
-		}
-
-		const nextColEvents = allColumns[nextColIndex].events
-		const overlapping = this.findOverlappingEvents(eventRowData, nextColEvents)
-
-		// Process overlapping events
-		for (const [nextEventId, nextEventRowData] of overlapping) {
-			if (visited.has(nextEventId)) {
-				continue
-			}
-
-			visited.add(nextEventId)
-
-			// Check cache first to avoid redundant recursion
-			let nextBlockingInfo = this.expandabilityCache.get(nextEventId)
-			if (!nextBlockingInfo) {
-				nextBlockingInfo = this.canExpandRight(nextEventId, nextEventRowData, nextColIndex, allColumns, blockingGroups, visited)
-				this.expandabilityCache.set(nextEventId, nextBlockingInfo)
-			}
-
-			blockingEvents.set(nextEventId, nextBlockingInfo.canExpand)
-			for (const [id, canExpand] of nextBlockingInfo.blockingEvents) {
-				blockingEvents.set(id, canExpand)
-			}
-
-			if (!nextBlockingInfo.canExpand) {
-				if (blockingEvents.size) {
-					blockingGroups.get(eventId)?.push(blockingEvents)
-				}
-				return { canExpand: false, blockingEvents }
-			}
-		}
-
-		if (blockingEvents.size) {
-			blockingGroups.get(eventId)?.push(blockingEvents)
-		}
-
-		return {
-			canExpand: Array.from(blockingEvents.entries()).every(([event, canExpand]) => {
-				if (!canExpand) {
-					return false
-				}
-				const expandInfo = this.expandabilityCache.get(event)
-				if (expandInfo !== undefined && expandInfo.blockingEvents.size === 0) {
-					return true
-				}
-				const a = blockingGroups.get(event)
-				if (a === undefined || a.length === 0) return true
-				return Array.from(a.values()).every((group) => Array.from(group.values()).every(Boolean))
-			}),
-			blockingEvents,
-		}
-	}
-
-	/**
-	 * Calculates the row start and row end inside the grid for a given event
-	 * @param event Event to have its bounds calculated
+	 * Calculates the row start and row end inside the grid for a given eventTimeRange
+	 * @param eventTimeRange Event to have its bounds calculated
 	 * @param timeRange Time range for the day, usually from 00:00 till 23:00
 	 * @param subRowAsMinutes How many minutes a Grid row represents
 	 * @param timeScale {TimeScale} How subdivided an hour should be
-	 * @param baseDate Date when the event will be rendered, it can be different from the event start/end depending on
+	 * @param baseDate Date when the eventTimeRange will be rendered, it can be different from the eventTimeRange start/end depending on
 	 * how many hours it expands
 	 * @private
 	 *
 	 * @returns RowBounds
 	 */
-
-	private getRowBounds(event: CalendarEvent, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date): RowBounds {
+	static getRowBounds(
+		eventTimeRange: { startTime: Date; endTime: Date },
+		timeRange: TimeRange,
+		subRowAsMinutes: number,
+		timeScale: TimeScale,
+		baseDate: Date,
+	): RowBounds {
 		const interval = TIME_SCALE_BASE_VALUE / timeScale
-		const diffFromRangeStartToEventStart = timeRange.start.diff(Time.fromDate(event.startTime))
-
-		const eventStartsBeforeRange = event.startTime < baseDate || Time.fromDate(event.startTime).isBefore(timeRange.start)
+		const diffFromRangeStartToEventStart = Math.abs(timeRange.start.asMinutes() - Time.fromDate(eventTimeRange.startTime).asMinutes())
+		const eventStartsBeforeRange = eventTimeRange.startTime < baseDate || Time.fromDate(eventTimeRange.startTime).isBefore(timeRange.start)
 		const start = eventStartsBeforeRange ? 1 : Math.floor(diffFromRangeStartToEventStart / subRowAsMinutes) + 1
 
 		const dateParts = {
@@ -682,32 +449,35 @@ export class TimeView implements Component<TimeViewAttributes> {
 			minute: timeRange.end.minute,
 		}
 
-		const diff = DateTime.fromJSDate(event.endTime).diff(DateTime.fromObject(dateParts).plus({ minutes: interval }), "minutes").minutes
+		const diff = DateTime.fromJSDate(eventTimeRange.endTime).diff(DateTime.fromObject(dateParts).plus({ minutes: interval }), "minutes").minutes
 
-		const diffFromRangeStartToEventEnd = timeRange.start.diff(Time.fromDate(event.endTime))
-		const eventEndsAfterRange = event.endTime > getStartOfNextDay(baseDate) || diff > 0
-		const end = eventEndsAfterRange ? -1 : Math.floor(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
+		const diffFromRangeStartToEventEnd = timeRange.start.diff(Time.fromDate(eventTimeRange.endTime))
+		const eventEndsAfterRange = eventTimeRange.endTime > getStartOfNextDay(baseDate) || diff > 0
+		const end = eventEndsAfterRange ? -1 : Math.ceil(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
 
 		return { start, end }
 	}
 
-	/**
-	 * Finds and returns all conflicting events for a given event inside a column
-	 * @param currentEventRowData Base event grid row bounds info
-	 * @param eventsInColumn Map of events inside the column
-	 * @private
-	 *
-	 * @return A map containing all conflicting events and its row bounds
-	 */
-	private findOverlappingEvents(currentEventRowData: RowBounds, eventsInColumn: Map<Id, RowBounds>): Map<Id, RowBounds> {
-		const result = new Map<Id, RowBounds>()
+	private renderCells(timeScale: TimeScale, timeRange: TimeRange): Children {
+		let timeIntervalInMinutes = TIME_SCALE_BASE_VALUE / timeScale
+		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeIntervalInMinutes) / timeIntervalInMinutes
 
-		for (const [eventId, rowBounds] of eventsInColumn.entries()) {
-			if (rowBounds.start < currentEventRowData.end && rowBounds.end > currentEventRowData.start) {
-				result.set(eventId, rowBounds)
-			}
+		const children: Children = []
+		for (let hourIndex = 0; hourIndex < numberOfIntervals; hourIndex++) {
+			const rowBoundStart = hourIndex * SUBROWS_PER_INTERVAL + 1
+			const rowBoundEnd = rowBoundStart + SUBROWS_PER_INTERVAL
+			children.push(
+				m(".z1.w-full", {
+					style: {
+						gridRow: `${rowBoundStart} / span ${SUBROWS_PER_INTERVAL}`,
+						gridColumn: `1 / span ${this.columnCount}`,
+						background: "red",
+					},
+					click: () => console.log("Cell click"),
+				}),
+			)
 		}
 
-		return result
+		return children
 	}
 }
