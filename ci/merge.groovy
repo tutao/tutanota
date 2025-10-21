@@ -223,7 +223,7 @@ pipeline {
 								}
 							}
 							steps {
-								sh 'npm run test:app -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
+								sh 'DBUS_SESSION_BUS_ADDRESS=/run/user/$(echo "$UID")/bus npm run test:app -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
 							}
 						}
 						stage("android tests") {
