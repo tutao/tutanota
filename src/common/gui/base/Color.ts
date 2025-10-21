@@ -17,7 +17,7 @@ export interface RGB {
  * RGB but with Alpha channel.
  */
 export interface RGBA extends RGB {
-	/** the alpha is a number in 0-255 range */
+	/** the alpha is a number in 0-1 range */
 	a: number
 }
 
@@ -249,36 +249,38 @@ export function hexToRGBAString(color: string, alpha: number) {
  * The color string can be a hex string, a color name, argb()/rgb() syntax, or anything else recognizable by the web
  * view's CSS engine.
  *
- * @param color color string to compute
+ * @param color color string to compute, or null if it failed (e.g. invalid format)
  */
-export function computeColor(color: string): RGBA {
+export function computeColor(color: string): RGBA | null {
 	// We have to create an element in the DOM because colors of elements not in the DOM can't be computed, including
 	// DocumentFragment. Shouldn't affect anything if it's just an empty span element.
 	//
 	// We can then just use getComputedStyle to quickly see what was computed.
 	const element = document.createElement("span")
-	element.style.color = color
+
+	// Use color() to transmute the color into srgb (with optional alpha) in case the color is in a different color
+	// space (e.g. oklab), since getComputedStyle passes through the color space
+	element.style.color = `color(from ${color} srgb r g b / alpha)`
 	document.body.appendChild(element)
-	const computed = getComputedStyle(element).color.replace(" ", "")
+	const computed = getComputedStyle(element).color
 	document.body.removeChild(element)
 
-	// All computed colors are rgb() or rgba().
-	//
-	// MDN:
-	//
-	// "For compatibility reasons, serialized color values are expressed as rgb() colors if
-	// the alpha channel value is exactly 1, and rgba() colors otherwise. In both cases,
-	// legacy syntax is used, with commas as separators (for example rgb(255, 0, 0))."
-	//
-	// https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle
-	if (computed.startsWith("rgb(")) {
-		const [r, g, b] = computed.slice(4, computed.length - 1).split(",")
-		return { r: Number(r), g: Number(g), b: Number(b), a: 1.0 }
-	} else if (computed.startsWith("rgba(")) {
-		const [r, g, b, a] = computed.slice(5, computed.length - 1).split(",")
-		return { r: Number(r), g: Number(g), b: Number(b), a: Number(a) }
-	} else {
-		throw new Error(`color ${color} did not result in rgb/rgba somehow`)
+	// Extract the color components
+	const matched = computed.match(/^color\(srgb ([0-9]+(\.[0-9]+)?) ([0-9]+(\.[0-9]+)?) ([0-9]+(\.[0-9]+)?)( \/ ([0-9]+(\.[0-9]+)?))?\)$/)
+	if (matched == null) {
+		return null
+	}
+
+	const red = matched[1]
+	const green = matched[3]
+	const blue = matched[5]
+	const alpha = matched[8] ?? "1.0"
+
+	return {
+		r: Number(red) * 255,
+		g: Number(green) * 255,
+		b: Number(blue) * 255,
+		a: Number(alpha),
 	}
 }
 
