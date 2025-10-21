@@ -38,11 +38,11 @@ import {
 import type { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel"
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { DateTime } from "luxon"
-import {createTestEntity, makeEventWrapper} from "../TestUtils.js"
+import { createTestEntity, makeEventWrapper } from "../TestUtils.js"
 import { matchers, object, when } from "testdouble"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
 import { CalendarType } from "../../../src/common/calendar/date/CalendarUtils"
-import {EventWrapper} from "../../../src/calendar-app/calendar/view/CalendarViewModel";
+import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
 
 export const ownerMailAddress = "calendarowner@tutanota.de" as const
 export const ownerId = "ownerId" as const
@@ -322,13 +322,15 @@ function id(element: string): IdTuple {
 }
 
 export function makeEvent(_id: string, startTime: Date, endTime: Date, uid: string = ""): EventWrapper {
-	return makeEventWrapper(createTestEntity(CalendarEventTypeRef, {
-		_ownerGroup: "ownerGroup",
-		_id: id(_id),
-		startTime,
-		endTime,
-		uid,
-	}))
+	return makeEventWrapper(
+		createTestEntity(CalendarEventTypeRef, {
+			_ownerGroup: "ownerGroup",
+			_id: id(_id),
+			startTime,
+			endTime,
+			uid,
+		}),
+	)
 }
 
 export function addCapability(user: User, groupId: Id, capability: ShareCapability) {

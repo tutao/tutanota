@@ -180,6 +180,7 @@ import "./sharing/GroupSettingsModelTest.js"
 import "./mail/editor/OpenLocallySavedDraftActionTest.js"
 import "./mail/SpamClassificationHandlerTest.js"
 import "./misc/quickactions/QuickActionsModelTest.js"
+import "./calendar/TimeViewTest"
 
 import * as td from "testdouble"
 import { random } from "@tutao/tutanota-crypto"
