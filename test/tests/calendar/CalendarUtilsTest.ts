@@ -56,7 +56,7 @@ import { replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone, makeUserController } from "./CalendarTestUtils.js"
 import { ParserError } from "../../../src/common/misc/parsing/ParserCombinator.js"
-import {createTestEntity, makeEventWrapper} from "../TestUtils.js"
+import { createTestEntity, makeEventWrapper } from "../TestUtils.js"
 
 import { getCalendarMonth, getEventType } from "../../../src/calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { EventType } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
@@ -64,7 +64,7 @@ import { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarM
 import { Time } from "../../../src/common/calendar/date/Time.js"
 import type { UserController } from "../../../src/common/api/main/UserController.js"
 import { StrippedEntity } from "../../../src/common/api/common/utils/EntityUtils.js"
-import {EventWrapper} from "../../../src/calendar-app/calendar/view/CalendarViewModel";
+import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
 
 const zone = "Europe/Berlin"
 
