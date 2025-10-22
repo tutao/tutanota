@@ -147,6 +147,10 @@ export class SpamClassifier {
 
 	private async trainFromScratch(storage: CacheStorage, ownerGroup: string) {
 		const data = await this.initializer.init(ownerGroup)
+		if (data.length === 0) {
+			console.log("No training data found. Training from scratch aborted.")
+			return
+		}
 		await this.initialTraining(data)
 		await this.saveModel(ownerGroup)
 		await storage.setLastTrainedFromScratchTime(Date.now())
@@ -365,7 +369,7 @@ export class SpamClassifier {
 		const predictionData = await predictionTensor.data()
 		const prediction = predictionData[0]
 
-		// console.log(`predicted new mail to be with probability ${prediction.toFixed(2)} spam. Owner Group: ${spamPredMailDatum.ownerGroup}`)
+		console.log(`predicted new mail to be with probability ${prediction.toFixed(2)} spam. Owner Group: ${spamPredMailDatum.ownerGroup}`)
 
 		// When using the webgl backend we need to manually dispose @tensorflow tensors
 		xs.dispose()
