@@ -4,7 +4,7 @@ import { parseCsv } from "../../../../../../src/common/misc/parsing/CsvParser"
 import {
 	DEFAULT_PREPROCESS_CONFIGURATION,
 	SpamClassifier,
-	spamClassifierTokenizer as testTokenize,
+	spamClassifierTokenizer,
 	SpamTrainMailDatum,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
@@ -14,11 +14,17 @@ import { SpamClassificationInitializer } from "../../../../../../src/mail-app/wo
 import { CacheStorage } from "../../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { mockAttribute } from "@tutao/tutanota-test-utils"
 import "@tensorflow/tfjs-backend-cpu"
-import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
+import {
+	HashingVectorizer,
+	numberArrayToUint8ArrayFixed,
+	SparseVectorCompressor,
+	uint8ArrayToNumberArrayFixed,
+} from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
 import { createTestEntity } from "../../../../TestUtils"
 import { MailTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { Sequential } from "@tensorflow/tfjs-layers"
+import { compress, uncompress } from "../../../../../../src/common/api/worker/Compression"
 
 const { anything } = matchers
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
@@ -138,6 +144,59 @@ o.spec("SpamClassifierTest", () => {
 
 		await spamClassifier.initialTraining(trainSet)
 		await testClassifier(spamClassifier, testSet)
+	})
+
+	o("compress vectors", async () => {
+		o.timeout(20_000)
+		const tokenizedMails = await promiseMap(dataSlice, (mail) => spamClassifierTokenizer(spamClassifier.preprocessMail(mail)))
+		const vectorizer = new HashingVectorizer()
+		const vectors = await vectorizer.transform(tokenizedMails)
+
+		const compressor = new SparseVectorCompressor()
+		const BYTES_PER_NUMBER = 2
+		console.log("Byte size of a number: ", BYTES_PER_NUMBER)
+		const compressedVectors = vectors.map((v) => compressor.compressVector(v))
+		const decompressedVectors = compressedVectors.map((v) => compressor.decompressVector(v))
+		const decompressedVectorByteSizes: number[] = []
+		const compressedVectorByteSizes: number[] = []
+		for (let i = 0; i < compressedVectors.length; i++) {
+			compressedVectorByteSizes.push((compressedVectors[i].rleValues.length + compressedVectors[i].indices.length) * BYTES_PER_NUMBER)
+			decompressedVectorByteSizes.push(decompressedVectors[i].length * BYTES_PER_NUMBER)
+		}
+		const averageCompressedVectorByteSize = compressedVectorByteSizes.reduce((a, b) => a + b, 0) / compressedVectorByteSizes.length
+		const averageDecompressedVectorByteSize = decompressedVectorByteSizes.reduce((a, b) => a + b, 0) / decompressedVectorByteSizes.length
+		console.log(`Average compressed vector byte size (Custom): ${averageCompressedVectorByteSize.toFixed(2)}B`)
+		console.log(`Average decompressed vector byte size (Custom): ${averageDecompressedVectorByteSize.toFixed(2)}B`)
+
+		o.check(decompressedVectors).deepEquals(vectors)
+		const rleCompressedVectors = vectors.map((v) => compressor.rleEncode(v))
+		const rleDecompressedVectors = rleCompressedVectors.map((v) => compressor.rleDecode(v))
+		const rleDecompressedVectorByteSizes: number[] = []
+		const rleCompressedVectorByteSizes: number[] = []
+		for (let i = 0; i < rleCompressedVectors.length; i++) {
+			// todo get byte size
+			rleCompressedVectorByteSizes.push(rleCompressedVectors[i].length * BYTES_PER_NUMBER)
+			rleDecompressedVectorByteSizes.push(rleDecompressedVectors[i].length * BYTES_PER_NUMBER)
+		}
+		const averageRleCompressedVectorByteSize = rleCompressedVectorByteSizes.reduce((a, b) => a + b, 0) / rleCompressedVectorByteSizes.length
+		const averageRleDecompressedVectorByteSize = rleDecompressedVectorByteSizes.reduce((a, b) => a + b, 0) / rleDecompressedVectorByteSizes.length
+		console.log(`Average compressed vector byte size (RLE): ${averageRleCompressedVectorByteSize.toFixed(2)}B`)
+		console.log(`Average decompressed vector byte size (RLE): ${averageRleDecompressedVectorByteSize.toFixed(2)}B`)
+
+		o.check(rleDecompressedVectors).deepEquals(vectors)
+		const lz4CompressedVectors = vectors.map((v) => compress(numberArrayToUint8ArrayFixed(v)))
+		const lz4DecompressedVectors = lz4CompressedVectors.map((v) => uint8ArrayToNumberArrayFixed(uncompress(v)))
+		const lz4DecompressedVectorByteSizes: number[] = []
+		const lz4compressedVectorByteSizes: number[] = []
+		for (let i = 0; i < rleCompressedVectors.length; i++) {
+			lz4compressedVectorByteSizes.push(lz4CompressedVectors[i].byteLength)
+			lz4DecompressedVectorByteSizes.push(decompressedVectors[i].length * BYTES_PER_NUMBER)
+		}
+		const averageLz4CompressedVectorByteSize = lz4compressedVectorByteSizes.reduce((a, b) => a + b, 0) / lz4compressedVectorByteSizes.length
+		const averageLz4DecompressedVectorByteSize = lz4DecompressedVectorByteSizes.reduce((a, b) => a + b, 0) / lz4DecompressedVectorByteSizes.length
+		console.log(`Average compressed vector byte size (LZ4): ${averageLz4CompressedVectorByteSize.toFixed(2)}B`)
+		console.log(`Average decompressed vector byte size (LZ4): ${averageLz4DecompressedVectorByteSize.toFixed(2)}B`)
+		o.check(lz4DecompressedVectors).deepEquals(vectors)
 	})
 
 	o("Initial training and refitting in multi step", async () => {
