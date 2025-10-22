@@ -142,7 +142,7 @@ node make -d prod
 
 Prerequisites:
 
-You need to have Android SDK and NDK (26.1.10909125). The simplest way it to use Android studio but anything that can
+You need to have Android SDK and NDK (28.2.13676358). The simplest way it to use Android studio but anything that can
 run Gradle will do.
 
 To build Android app against production server you first need to build webapp (like `node make prod`) and then build

@@ -51,7 +51,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@07976c6290703d34c16d382cb36445f98bb43b1f #3.2.0
       - name: Setup Android NDK
-        run: sdkmanager "ndk;26.1.10909125"
+        run: sdkmanager "ndk;28.2.13676358"
       - uses: ./.github/shared/setup-rust
       - name: Lint
         working-directory: ./app-android

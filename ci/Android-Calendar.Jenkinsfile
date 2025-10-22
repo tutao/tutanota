@@ -3,8 +3,8 @@ pipeline {
 		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
 		APK_SIGN_STORE = '/opt/android-keystore/android.jks'
 		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
-		ANDROID_SDK_ROOT = "/opt/android-sdk-linux"
-		ANDROID_HOME = "/opt/android-sdk-linux"
+		ANDROID_SDK_ROOT = "/opt/android-sdk"
+		ANDROID_HOME = "/opt/android-sdk"
 	}
 
 	agent {
