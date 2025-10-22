@@ -54,12 +54,22 @@ export type SpamTrainMailDatum = {
 	isSpam: boolean
 	isSpamConfidence: number
 	ownerGroup: Id
+	sender: string
+	toRecipients: string
+	ccRecipients: string
+	bccRecipients: string
+	authStatus: string
 }
 
 export type SpamPredMailDatum = {
 	subject: string
 	body: string
 	ownerGroup: Id
+	sender: string
+	toRecipients: string
+	ccRecipients: string
+	bccRecipients: string
+	authStatus: string
 }
 
 const PREDICTION_THRESHOLD = 0.55
@@ -223,7 +233,14 @@ export class SpamClassifier {
 			preprocessedMail = preprocessedMail.replaceAll(ML_SPACE_BEFORE_NEW_LINE_REGEX, ML_SPACE_BEFORE_NEW_LINE_TOKEN)
 		}
 
+		preprocessedMail += this.getHeaderFeatures(mail)
+
 		return preprocessedMail
+	}
+
+	private getHeaderFeatures(mail: SpamTrainMailDatum | SpamPredMailDatum): string {
+		const { sender, toRecipients, ccRecipients, bccRecipients, authStatus } = mail
+		return `\n${sender}\n${toRecipients}\n${ccRecipients}\n${bccRecipients}\n${authStatus}`
 	}
 
 	public async initialTraining(mails: SpamTrainMailDatum[]): Promise<TrainingPerformance> {
@@ -497,7 +514,8 @@ export class SpamClassifier {
 	private concatSubjectAndBody(mail: SpamTrainMailDatum | SpamPredMailDatum) {
 		const subject = mail.subject || ""
 		const body = mail.body || ""
-		const concatenated = `${subject} ${body}`.trim()
+		const concatenated = `${subject}\n${body}`.trim()
+
 		return concatenated.length > 0 ? concatenated : " "
 	}
 

@@ -1,13 +1,14 @@
-import { createMoveMailData, Mail, MailDetails, MailFolder, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs"
+import { createMoveMailData, Mail, MailAddress, MailDetails, MailFolder, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs"
 import {
 	DEFAULT_IS_SPAM,
 	DEFAULT_IS_SPAM_CONFIDENCE,
 	getSpamConfidence,
+	MailAuthenticationStatus,
 	MailSetKind,
 	ProcessingState,
 	SpamDecision,
 } from "../../../common/api/common/TutanotaConstants"
-import type { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
+import { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { assertNotNull, debounce, isNotNull, Nullable, ofClass } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
@@ -75,6 +76,7 @@ export class SpamClassificationHandler {
 			subject: mail.subject,
 			body: getMailBodyText(mailDetails.body),
 			ownerGroup: assertNotNull(mail._ownerGroup),
+			...extractSpamHeaderFeatures(mail, mailDetails),
 		}
 		const isSpam = (await this.spamClassifier?.predict(spamPredMailDatum)) ?? null
 
@@ -141,7 +143,44 @@ export class SpamClassificationHandler {
 			isSpam: DEFAULT_IS_SPAM,
 			isSpamConfidence: DEFAULT_IS_SPAM_CONFIDENCE,
 			ownerGroup: assertNotNull(mail._ownerGroup),
+			...extractSpamHeaderFeatures(mail, mailDetails),
 		}
 		await this.spamClassifier?.storeSpamClassification(spamTrainMailDatum)
 	}
+}
+
+export function extractSpamHeaderFeatures(mail: Mail, mailDetails: MailDetails) {
+	const sender = joinNamesAndMailAddresses([mail?.sender])
+	const { toRecipients, ccRecipients, bccRecipients } = extractRecipients(mailDetails)
+	const authStatus = convertAuthStatusToSpamCategorizationToken(mail.authStatus)
+
+	return { sender, toRecipients, ccRecipients, bccRecipients, authStatus }
+}
+
+function extractRecipients({ recipients }: MailDetails) {
+	const toRecipients = joinNamesAndMailAddresses(recipients?.toRecipients)
+	const ccRecipients = joinNamesAndMailAddresses(recipients?.ccRecipients)
+	const bccRecipients = joinNamesAndMailAddresses(recipients?.bccRecipients)
+
+	return { toRecipients, ccRecipients, bccRecipients }
+}
+
+function joinNamesAndMailAddresses(recipients: MailAddress[] | null) {
+	return recipients?.map((recipient) => `${recipient?.name} ${recipient?.address}`).join(" ") || ""
+}
+
+function convertAuthStatusToSpamCategorizationToken(authStatus: string | null): string {
+	if (authStatus === MailAuthenticationStatus.AUTHENTICATED) {
+		return "TAUTHENTICATED"
+	} else if (authStatus === MailAuthenticationStatus.HARD_FAIL) {
+		return "THARDFAIL"
+	} else if (authStatus === MailAuthenticationStatus.SOFT_FAIL) {
+		return "TSOFTFAIL"
+	} else if (authStatus === MailAuthenticationStatus.INVALID_MAIL_FROM) {
+		return "TINVALIDMAILFROM"
+	} else if (authStatus === MailAuthenticationStatus.MISSING_MAIL_FROM) {
+		return "TMISSINGMAILFROM"
+	}
+
+	return ""
 }
