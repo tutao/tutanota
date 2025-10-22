@@ -23,8 +23,8 @@ rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-and
 
 
 # add ANDROID_NDK to your shell profile (.bashrc). the version depends on your NDK version.
-export ANDROID_NDK_ROOT=/opt/android-sdk-linux/ndk/26.1.10909125
-export ANDROID_NDK_HOME=/opt/android-sdk-linux/ndk/26.1.10909125
+export ANDROID_NDK_ROOT=/opt/android-sdk/ndk/26.1.10909125
+export ANDROID_NDK_HOME=/opt/android-sdk/ndk/26.1.10909125
 
 # add NDK toolchain to path
 export PATH=${PATH}:${ANDROID_NDK_ROOT}/toolchains/llvm/prebuilt/linux-x86_64/bin/
