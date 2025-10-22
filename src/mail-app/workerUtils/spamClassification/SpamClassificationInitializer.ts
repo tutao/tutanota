@@ -1,6 +1,16 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { assertNotNull, isNotNull, lazyAsync } from "@tutao/tutanota-utils"
-import { MailBag, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolder, MailFolderTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
+import {
+	MailAddress,
+	MailBag,
+	MailboxGroupRootTypeRef,
+	MailBoxTypeRef,
+	MailDetails,
+	MailFolder,
+	MailFolderTypeRef,
+	MailTypeRef,
+	Recipients,
+} from "../../../common/api/entities/tutanota/TypeRefs"
 import { getMailSetKind, getSpamConfidence, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
@@ -8,6 +18,7 @@ import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
 import { SpamTrainMailDatum } from "./SpamClassifier"
+import { extractSpamHeaderFeatures } from "../../mail/model/SpamClassificationHandler"
 
 const INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS = 28
 
@@ -30,7 +41,6 @@ export class SpamClassificationInitializer {
 		// available in the current mail bag
 		const data = await this.downloadMailAndMailDetailsByGroupMembership(ownerGroup)
 		data.filter((datum) => datum.isSpamConfidence > 0)
-		data.map((datum) => this.offlineStorage.storeSpamClassification(datum))
 
 		let spamMailsCount = 0
 		let hamMailsCount = 0
@@ -53,7 +63,6 @@ export class SpamClassificationInitializer {
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
 		const mailSets = await this.entityClient.loadAll(MailFolderTypeRef, assertNotNull(mailbox.folders).folders)
 		const spamFolder = mailSets.find((s) => getMailSetKind(s) === MailSetKind.SPAM)!
-		const inboxFolder = mailSets.find((s) => getMailSetKind(s) === MailSetKind.INBOX)!
 
 		const downloadedMailClassificationDatas = new Array<SpamTrainMailDatum>()
 		const allMailbags = [assertNotNull(mailbox.currentMailBag), ...mailbox.archivedMailBags].reverse() // sorted from latest to oldest
@@ -63,14 +72,14 @@ export class SpamClassificationInitializer {
 			isNotNull(currentMailbag) && downloadedMailClassificationDatas.length < this.MIN_MAILS_COUNT;
 			currentMailbag = allMailbags.pop()
 		) {
-			const mailsOfThisMailbag = await this.downloadMailAndMailDetailsByMailbag(currentMailbag, spamFolder, inboxFolder)
+			const mailsOfThisMailbag = await this.downloadMailAndMailDetailsByMailbag(currentMailbag, spamFolder)
 			downloadedMailClassificationDatas.push(...mailsOfThisMailbag)
 		}
 
 		return downloadedMailClassificationDatas
 	}
 
-	private async downloadMailAndMailDetailsByMailbag(mailbag: MailBag, spamFolder: MailFolder, inboxFolder: MailFolder): Promise<Array<SpamTrainMailDatum>> {
+	private async downloadMailAndMailDetailsByMailbag(mailbag: MailBag, spamFolder: MailFolder): Promise<Array<SpamTrainMailDatum>> {
 		const { LocalTimeDateProvider } = await import("../../../common/api/worker/DateProvider.js")
 		const dateProvider = new LocalTimeDateProvider()
 		const startTime = dateProvider.getStartOfDayShiftedBy(this.TIME_LIMIT).getTime()
@@ -84,11 +93,12 @@ export class SpamClassificationInitializer {
 			// Download mail details
 			.then((mails) => bulkMailLoader.loadMailDetails(mails))
 			// Map to spam mail datum
-			.then((mails) => mails.map((m) => this.mailWithDetailsToMailDatum(spamFolder, inboxFolder, m)))
+			.then((mails) => mails.map((m) => this.mailWithDetailsToMailDatum(spamFolder, m)))
 	}
 
-	private mailWithDetailsToMailDatum(spamFolder: MailFolder, inboxFolder: MailFolder, { mail, mailDetails }: MailWithMailDetails): SpamTrainMailDatum {
+	private mailWithDetailsToMailDatum(spamFolder: MailFolder, { mail, mailDetails }: MailWithMailDetails): SpamTrainMailDatum {
 		const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
+
 		return {
 			mailId: mail._id,
 			subject: mail.subject,
@@ -98,6 +108,7 @@ export class SpamClassificationInitializer {
 			listId: listIdPart(mail._id),
 			elementId: elementIdPart(mail._id),
 			ownerGroup: assertNotNull(mail._ownerGroup),
+			...extractSpamHeaderFeatures(mail, mailDetails),
 		} as SpamTrainMailDatum
 	}
 }

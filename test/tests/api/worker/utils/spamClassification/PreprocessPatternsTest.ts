@@ -130,11 +130,11 @@ o.spec("PreprocessPatterns", () => {
 	o.spec("Url patterns", () => {
 		o.test("All recognized url patterns", async () => {
 			const urlsMap = new Map([
-				["https://tuta.com", "<URL-tuta.com>"],
-				["https://microsoft.com/outlook/test", "<URL-microsoft.com>"],
-				["https://subdomain.microsoft.com/outlook/test", "<URL-subdomain.microsoft.com>"],
-				["https://subdomain.spam.com/this/is/not/cool/dsfalkfjd2309jlk234oi2k", "<URL-subdomain.spam.com>"],
-				["https://subdomain.test.de/spam!", "<URL-subdomain.test.de>"],
+				["https://tuta.com", "TURLtuta.com"],
+				["https://microsoft.com/outlook/test", "TURLmicrosoft.com"],
+				["https://subdomain.microsoft.com/outlook/test", "TURLsubdomain.microsoft.com"],
+				["https://subdomain.spam.com/this/is/not/cool/dsfalkfjd2309jlk234oi2k", "TURLsubdomain.spam.com"],
+				["https://subdomain.test.de/spam!", "TURLsubdomain.test.de"],
 			])
 
 			for (const [domain, expectedToken] of urlsMap.entries()) {
@@ -297,6 +297,8 @@ o.spec("PreprocessPatterns", () => {
 				["*", ML_SPECIAL_CHARACTER_TOKEN],
 				["(", ML_SPECIAL_CHARACTER_TOKEN],
 				[")", ML_SPECIAL_CHARACTER_TOKEN],
+				["<", ML_SPECIAL_CHARACTER_TOKEN],
+				[">", ML_SPECIAL_CHARACTER_TOKEN],
 				["+", ML_SPECIAL_CHARACTER_TOKEN],
 				["`", ML_SPECIAL_CHARACTER_TOKEN],
 				["_", ML_SPECIAL_CHARACTER_TOKEN],
@@ -318,6 +320,7 @@ o.spec("PreprocessPatterns", () => {
 				["--", ML_SPECIAL_CHARACTER_TOKEN],
 				["---", ML_SPECIAL_CHARACTER_TOKEN],
 				["--- ---", `${ML_SPECIAL_CHARACTER_TOKEN} ${ML_SPECIAL_CHARACTER_TOKEN}`],
+				["[ ]", `${ML_SPECIAL_CHARACTER_TOKEN} ${ML_SPECIAL_CHARACTER_TOKEN}`],
 			])
 
 			for (const [specialCharSequence, expectedResult] of specialCharsMap) {
@@ -327,7 +330,7 @@ o.spec("PreprocessPatterns", () => {
 		})
 
 		o.test("Not recognized special-character-like patterns", async () => {
-			const notSpecialChars = ["[", "]", "<", ">", "test-test"]
+			const notSpecialChars = ["§", "€"]
 
 			const notSpecialCharsText = notSpecialChars.join("\n")
 			let resultNotSpecialCharsText = notSpecialCharsText

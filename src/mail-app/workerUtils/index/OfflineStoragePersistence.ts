@@ -67,12 +67,14 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 })
 
 export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
-	// Spam classification training data
 	spam_classification_training_data: {
 		definition:
 			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL," +
-			" ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, " +
-			"lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
+			"ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER," +
+			"lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, sender TEXT NOT NULL," +
+			"toRecipients TEXT NOT NULL, ccRecipients TEXT NOT NULL, bccRecipients TEXT NOT NULL," +
+			"authStatus TEXT NOT NULL, PRIMARY KEY (listId, elementId))",
+
 		purgedWithCache: true,
 	},
 
@@ -187,18 +189,24 @@ export class OfflineStoragePersistence {
 
 	async storeSpamClassification(spamTrainMailDatum: SpamTrainMailDatum): Promise<void> {
 		const { query, params } = sql`
-            INSERT
-            OR REPLACE INTO spam_classification_training_data(listId, elementId, ownerGroup, subject, body, isSpam, lastModified, isSpamConfidence)
+			INSERT
+			OR REPLACE INTO spam_classification_training_data(listId, elementId, ownerGroup, subject, body, isSpam, 
+            lastModified, isSpamConfidence, sender, toRecipients, ccRecipients, bccRecipients, authStatus)
 				VALUES (
-            ${listIdPart(spamTrainMailDatum.mailId)},
-            ${elementIdPart(spamTrainMailDatum.mailId)},
-            ${spamTrainMailDatum.ownerGroup},
-            ${spamTrainMailDatum.subject},
-            ${spamTrainMailDatum.body},
-            ${spamTrainMailDatum.isSpam ? 1 : 0},
-            ${Date.now()},
-            ${spamTrainMailDatum.isSpamConfidence}
-            )`
+			${listIdPart(spamTrainMailDatum.mailId)},
+			${elementIdPart(spamTrainMailDatum.mailId)},
+			${spamTrainMailDatum.ownerGroup},
+			${spamTrainMailDatum.subject},
+			${spamTrainMailDatum.body},
+			${spamTrainMailDatum.isSpam ? 1 : 0},
+			${Date.now()},
+			${spamTrainMailDatum.isSpamConfidence},
+			${spamTrainMailDatum.sender},
+			${spamTrainMailDatum.toRecipients},
+			${spamTrainMailDatum.ccRecipients},
+			${spamTrainMailDatum.bccRecipients},
+			${spamTrainMailDatum.authStatus}
+			)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -250,11 +258,21 @@ export class OfflineStoragePersistence {
 	}
 
 	async getCertainSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number, ownerGroupId: Id): Promise<SpamTrainMailDatum[]> {
-		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam, isSpamConfidence
-                                    FROM spam_classification_training_data
-                                    WHERE lastModified > ${cutoffTimestamp}
-                                      AND isSpamConfidence > 0
-                                      AND ownerGroup = ${ownerGroupId}`
+		const { query, params } = sql`SELECT listId,
+											 elementId,
+											 subject,
+											 body,
+											 isSpam,
+											 isSpamConfidence,
+											 sender,
+											 toRecipients,
+											 ccRecipients,
+											 bccRecipients,
+											 authStatus
+									  FROM spam_classification_training_data
+									  WHERE lastModified > ${cutoffTimestamp}
+										AND isSpamConfidence > 0
+										AND ownerGroup = ${ownerGroupId}`
 		const resultRows = await this.sqlCipherFacade.all(query, params)
 		return resultRows.map(untagSqlObject).map((row) => row as unknown as SpamTrainMailDatum)
 	}
