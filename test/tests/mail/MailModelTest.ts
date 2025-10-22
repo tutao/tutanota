@@ -6,12 +6,14 @@ import {
 	BodyTypeRef,
 	ClientSpamClassifierResultTypeRef,
 	Mail,
+	MailAddressTypeRef,
 	MailDetails,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailFolderTypeRef,
 	MailTypeRef,
+	RecipientsTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { EntityClient } from "../../../src/common/api/common/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
@@ -140,6 +142,14 @@ o.spec("MailModelTest", function () {
 			mailDetails = createTestEntity(MailDetailsTypeRef, {
 				_id: "mailDetail",
 				body: createTestEntity(BodyTypeRef, { text: "some text" }),
+				recipients: createTestEntity(RecipientsTypeRef, {
+					toRecipients: [
+						createTestEntity(MailAddressTypeRef, {
+							name: "Recipient",
+							address: "recipient@tuta.com",
+						}),
+					],
+				}),
 			})
 			mail = createTestEntity(MailTypeRef, {
 				_id: ["mailListId", "mailId"],
@@ -147,7 +157,9 @@ o.spec("MailModelTest", function () {
 				mailDetails: ["detailsList", mailDetails._id],
 				subject: "subject",
 				sets: [inboxFolder._id],
+				sender: createTestEntity(MailAddressTypeRef, { name: "Sender", address: "sender@tuta.com" }),
 				processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
+				authStatus: "0",
 			})
 			const mailDetailsBlob: MailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 				_id: mail.mailDetails!,
@@ -296,6 +308,11 @@ o.spec("MailModelTest", function () {
 				subject: "subject",
 				isSpam: false,
 				isSpamConfidence: 1,
+				sender: "Sender sender@tuta.com",
+				toRecipients: "Recipient recipient@tuta.com",
+				ccRecipients: "",
+				bccRecipients: "",
+				authStatus: "TAUTHENTICATED",
 			}
 			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 0 })
@@ -321,6 +338,11 @@ o.spec("MailModelTest", function () {
 				subject: "subject",
 				isSpam: false,
 				isSpamConfidence: 1,
+				sender: "Sender sender@tuta.com",
+				toRecipients: "Recipient recipient@tuta.com",
+				ccRecipients: "",
+				bccRecipients: "",
+				authStatus: "TAUTHENTICATED",
 			}
 			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 1 })
@@ -352,6 +374,11 @@ o.spec("MailModelTest", function () {
 				subject: "subject",
 				isSpam: false,
 				isSpamConfidence: 1,
+				sender: "Sender sender@tuta.com",
+				toRecipients: "Recipient recipient@tuta.com",
+				ccRecipients: "",
+				bccRecipients: "",
+				authStatus: "TAUTHENTICATED",
 			}
 			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 1 })

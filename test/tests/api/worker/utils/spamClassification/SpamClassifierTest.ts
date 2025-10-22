@@ -4,7 +4,6 @@ import { parseCsv } from "../../../../../../src/common/misc/parsing/CsvParser"
 import {
 	DEFAULT_PREPROCESS_CONFIGURATION,
 	SpamClassifier,
-	spamClassifierTokenizer as testTokenize,
 	SpamTrainMailDatum,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
@@ -36,6 +35,11 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 		const subject = row[8]
 		const body = row[10]
 		const label = row[11]
+		const from = row[0]
+		const to = row[1]
+		const cc = row[2]
+		const bcc = row[3]
+		const authStatus = row[4]
 
 		let isSpam = label === "spam" ? true : label === "ham" ? false : null
 		isSpam = assertNotNull(isSpam, "Unknown label detected: " + label)
@@ -47,6 +51,11 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 			isSpam,
 			isSpamConfidence: 1,
 			ownerGroup: "owner",
+			sender: from,
+			toRecipients: to,
+			ccRecipients: cc,
+			bccRecipients: bcc,
+			authStatus: authStatus,
 		} as SpamTrainMailDatum)
 	}
 
@@ -99,6 +108,11 @@ o.spec("SpamClassifierTest", () => {
 			isSpam: true,
 			isSpamConfidence: 1,
 			ownerGroup: "owner",
+			sender: "",
+			toRecipients: "",
+			ccRecipients: "",
+			bccRecipients: "",
+			authStatus: "",
 		}
 		const layersModel = object<Sequential>()
 		spamClassifier.addSpamClassifierForOwner(spamTrainMailDatum.ownerGroup, layersModel, false)
@@ -119,6 +133,11 @@ o.spec("SpamClassifierTest", () => {
 			isSpam: false,
 			isSpamConfidence: 0,
 			ownerGroup: "owner",
+			sender: "",
+			toRecipients: "",
+			ccRecipients: "",
+			bccRecipients: "",
+			authStatus: "",
 		}
 
 		const layersModel = object<Sequential>()
@@ -165,6 +184,11 @@ o.spec("SpamClassifierTest", () => {
 		const classifier = new SpamClassifier(object(), object(), object())
 		const mail = {
 			subject: `Sample Tokens and values`,
+			sender: "sender",
+			toRecipients: "toRecipients",
+			ccRecipients: "ccRecipients",
+			bccRecipients: "bccRecipients",
+			authStatus: "authStatus",
 			// prettier-ignore
 			body: `Hello, these are my MAC Address
 				FB-94-77-45-96-74
@@ -228,8 +252,8 @@ o.spec("SpamClassifierTest", () => {
 				Special Characters
 				!
 				@
-				Not Special Characters
-				]
+				Not Special Character
+				§
 				Number Sequences:
 				26098375
 				IBAN: DE91 1002 0370 0320 2239 82
@@ -252,84 +276,90 @@ this text is shown
 		} as SpamTrainMailDatum
 		const preprocessedMail = classifier.preprocessMail(mail)
 		// prettier-ignore
-		const expectedOutput = `Sample Tokens and values Hello <SPECIAL-CHAR>  these are my MAC Address
-\t\t\t\tFB <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> -D5 <SPECIAL-CHAR>  <NUMBER> -7C
-\t\t\t\tB4 <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> -2A-DE-D4
+		const expectedOutput = `Sample Tokens and values
+Hello TSPECIALCHAR  these are my MAC Address
+\t\t\t\tFB TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR D5 TSPECIALCHAR  TNUMBER  TSPECIALCHAR 7C
+\t\t\t\tB4 TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR 2A TSPECIALCHAR DE TSPECIALCHAR D4
 \t\t\t\talong with my ISBNs
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER> -X
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR X
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER
 \t\t\t\tSSN
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
 \t\t\t\tSHAs
 \t\t\t\t585eab9b3a5e4430e08f5096d636d0d475a8c69dae21a61c6f1b26c4bd8dd8c1
 \t\t\t\t7233d153f2e0725d3d212d1f27f30258fafd72b286d07b3b1d94e7e3c35dce67
 \t\t\t\t769f65bf44557df44fc5f99c014cbe98894107c9d7be0801f37c55b3776c3990
 \t\t\t\tPhone Numbers
-\t\t\t\t <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>
-\t\t\t\t <SPECIAL-CHAR>  <NUMBER>   <NUMBER>   <NUMBER>   <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\tVIN  <SPECIAL-CHAR> Vehicle identification number <SPECIAL-CHAR>
+\t\t\t\t TSPECIALCHAR  TNUMBER  TSPECIALCHAR   TNUMBER
+\t\t\t\t TSPECIALCHAR  TNUMBER   TNUMBER   TNUMBER   TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\tVIN  TSPECIALCHAR Vehicle identification number TSPECIALCHAR
 \t\t\t\t3FADP4AJ3BM438397
 \t\t\t\tWAULT64B82N564937
 \t\t\t\tGUIDs
-\t\t\t\t781a9631 <SPECIAL-CHAR>  <NUMBER> -4f9c-bb36-25c3364b754b
-\t\t\t\t325783d4-a64e-453b-85e6-ed4b2cd4c9bf
+\t\t\t\t781a9631 TSPECIALCHAR  TNUMBER  TSPECIALCHAR 4f9c TSPECIALCHAR bb36 TSPECIALCHAR 25c3364b754b
+\t\t\t\t325783d4 TSPECIALCHAR a64e TSPECIALCHAR 453b TSPECIALCHAR 85e6 TSPECIALCHAR ed4b2cd4c9bf
 \t\t\t\tHex Colors
-\t\t\t\t <SPECIAL-CHAR> 2016c1
-\t\t\t\t <SPECIAL-CHAR> c090a4
-\t\t\t\t <SPECIAL-CHAR> c855f5
-\t\t\t\t <SPECIAL-CHAR>  <NUMBER>
+\t\t\t\t TSPECIALCHAR 2016c1
+\t\t\t\t TSPECIALCHAR c090a4
+\t\t\t\t TSPECIALCHAR c855f5
+\t\t\t\t TSPECIALCHAR  TNUMBER
 \t\t\t\tIPV4
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\tOn Date <SPECIAL-CHAR>
-\t\t\t\t <DATE>
-\t\t\t\t <DATE>
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\tOn Date TSPECIALCHAR
+\t\t\t\t TDATE
+\t\t\t\t TDATE
 \t\t\t\tNot Date
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
 \t\t\t\tURL
-\t\t\t\t <URL-tuta.com>
-\t\t\t\t <URL-subdomain.microsoft.com>
+\t\t\t\t TURLtuta TSPECIALCHAR com
+\t\t\t\t TURLsubdomain TSPECIALCHAR microsoft TSPECIALCHAR com
 \t\t\t\tNOT URL
-\t\t\t\t <URL-tuta>
+\t\t\t\t TURLtuta
 \t\t\t\tMAIL
-\t\t\t\t <EMAIL>
-\t\t\t\t <EMAIL>
+\t\t\t\t TEMAIL
+\t\t\t\t TEMAIL
 \t\t\t\tCredit Card
-\t\t\t\t <CREDIT-CARD>
-\t\t\t\t <CREDIT-CARD>
+\t\t\t\t TCREDITCARD
+\t\t\t\t TCREDITCARD
 \t\t\t\tNot Credit Card
-\t\t\t\t <NUMBER>   <NUMBER>
+\t\t\t\t TNUMBER   TNUMBER
 \t\t\t\tBit Coin Address
-\t\t\t\t <BITCOIN>
-\t\t\t\t <BITCOIN>
+\t\t\t\t TBITCOIN
+\t\t\t\t TBITCOIN
 \t\t\t\tNot BTC
 \t\t\t\t5213nYwhhGw2qpNijzfnKcbCG4z3hnrVA
 \t\t\t\t1OUm2eZK2ETeAo8v95WhZioQDy32YSerkD
 \t\t\t\tSpecial Characters
-\t\t\t\t <SPECIAL-CHAR>
-\t\t\t\t <SPECIAL-CHAR>
-\t\t\t\tNot Special Characters
-\t\t\t\t]
-\t\t\t\tNumber Sequences <SPECIAL-CHAR>
-\t\t\t\t <NUMBER>
-\t\t\t\tIBAN <SPECIAL-CHAR>  DE91  <CREDIT-CARD>  <NUMBER>
+\t\t\t\t TSPECIALCHAR
+\t\t\t\t TSPECIALCHAR
+\t\t\t\tNot Special Character
+\t\t\t\t§
+\t\t\t\tNumber Sequences TSPECIALCHAR
+\t\t\t\t TNUMBER
+\t\t\t\tIBAN TSPECIALCHAR  DE91  TCREDITCARD  TNUMBER
 \t\t\t\tNot Number Sequences
 \t\t\t\tSHLT116
-\t\t\t\tgb <SPECIAL-CHAR> 67ca4b
+\t\t\t\tgb TSPECIALCHAR 67ca4b
 \t\t\t\tOther values found in mails
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  €  <NUMBER>  m  <NUMBER>  Zi  <NUMBER>  <SPECIAL-CHAR>
-\t\t\t\tFax  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>   <NUMBER>   <NUMBER>   <NUMBER>
-\t\t\t\tAugust  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  PM  <SPECIAL-CHAR>   <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  PM
-\t\t\t\tand all text on other lines it seems <SPECIAL-CHAR>
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  €  TNUMBER  m  TNUMBER  Zi  TNUMBER  TSPECIALCHAR
+\t\t\t\tFax  TSPECIALCHAR  TNUMBER  TSPECIALCHAR   TNUMBER   TNUMBER   TNUMBER   TNUMBER
+\t\t\t\tAugust  TNUMBER  TSPECIALCHAR   TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  PM  TSPECIALCHAR   TNUMBER  TSPECIALCHAR  TNUMBER  PM
+\t\t\t\tand all text on other lines it seems TSPECIALCHAR
  Button Text
-this text is shown`
+this text is shown
+sender
+toRecipients
+ccRecipients
+bccRecipients
+authStatus`
 		o.check(preprocessedMail).equals(expectedOutput)
 	})
 
@@ -357,8 +387,24 @@ this text is shown`
 		await spamClassifier.initialize("firstGroup")
 		await spamClassifier.initialize("secondGroup")
 
-		const isSpamFirstMail = await spamClassifier.predict({ subject: "", body: "", ownerGroup: "firstGroup" })
-		const isSpamSecondMail = await spamClassifier.predict({ subject: "", body: "", ownerGroup: "secondGroup" })
+		const commonSpamFields = {
+			subject: "",
+			body: "",
+			sender: "string",
+			toRecipients: "string",
+			ccRecipients: "string",
+			bccRecipients: "string",
+			authStatus: "",
+		}
+
+		const isSpamFirstMail = await spamClassifier.predict({
+			ownerGroup: "firstGroup",
+			...commonSpamFields,
+		})
+		const isSpamSecondMail = await spamClassifier.predict({
+			ownerGroup: "secondGroup",
+			...commonSpamFields,
+		})
 
 		o(isSpamFirstMail).equals(true)
 		o(isSpamSecondMail).equals(false)
@@ -434,48 +480,6 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 				let retrainCount = 0
 				let predictedSpam = false
 				while (!predictedSpam && retrainCount++ <= 3) {
-					// await copiedClassifier.updateModel([{ ...sample, isSpam: false }])
-
-					/*
-    isSpamConfidence: 2
-                    [
-      3, 2, 1, 3, 1,
-      1, 3, 2, 1, 5
-    ] = 22
-    isSpamConfidence: 3
-    [
-      2, 5, 1, 2, 1,
-      1, 1, 2, 1, 2
-    ] = 18
-
-    isSpamConfidence: 4
-    [
-      1, 1, 1, 2, 5,
-      1, 1, 1, 1, 5
-    ] = 19
-    Retraining finished. Took: 477ms
-    Retraining finished. Took: 1259ms
-    predicted new mail to be with probability 0.46 spam
-    Retraining finished. Took: 560ms
-    Retraining finished. Took: 1273ms
-
-    isSpamConfidence: 8
-    Retraining finished. Took: 486ms
-    Retraining finished. Took: 2289ms
-    predicted new mail to be with probability 0.82 spam
-    Retraining finished. Took: 580ms
-    Retraining finished. Took: 2356ms
-    predicted new mail to be with probability 1.00 spam
-    Retraining finished. Took: 556ms
-    Retraining finished. Took: 2357ms
-    predicted new mail to be with probability 0.52 spam
-    [
-      1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1
-    ]
-
-
-                     */
 					await copiedClassifier.updateModel("owner", [{ ...sample, isSpam: true, isSpamConfidence: 1 }])
 					predictedSpam = assertNotNull(await copiedClassifier.predict(sample))
 				}
