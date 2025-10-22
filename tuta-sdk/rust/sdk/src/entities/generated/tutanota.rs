@@ -4096,11 +4096,6 @@ pub struct MoveMailPostOut {
 	pub _format: i64,
 	#[serde(rename = "1723")]
 	pub movedMails: Vec<MovedMails>,
-
-	#[serde(default)]
-	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for MoveMailPostOut {
