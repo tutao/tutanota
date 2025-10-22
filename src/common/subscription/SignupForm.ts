@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import { Dialog } from "../gui/base/Dialog"
 import { Autocomplete, TextField } from "../gui/base/TextField.js"
 import { getWhitelabelRegistrationDomains } from "../login/LoginView.js"
-import type { NewAccountData } from "./UpgradeSubscriptionWizard"
+import { NewAccountData, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
 import {
 	DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN,
@@ -29,7 +29,6 @@ import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
 import { client } from "../misc/ClientDetector"
 import { SubscriptionApp } from "./utils/SubscriptionUtils"
 import { deviceConfig } from "../misc/DeviceConfig"
-import { SessionType } from "../api/common/SessionType"
 import { PowSolution } from "../api/common/pow-worker"
 
 export type SignupFormAttrs = {
@@ -42,6 +41,7 @@ export type SignupFormAttrs = {
 	// only used if readonly is true
 	prefilledMailAddress?: string | undefined
 	readonly: boolean
+	data?: UpgradeSubscriptionData
 }
 
 export class SignupForm implements Component<SignupFormAttrs> {
@@ -159,8 +159,19 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			}
 
 			const ageConfirmPromise = this._confirmAge() ? Promise.resolve(true) : Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
-			ageConfirmPromise.then((checkedBoxes) => {
+			ageConfirmPromise.then(async (checkedBoxes) => {
 				if (checkedBoxes) {
+					const regDataId = await runCaptchaFlow({
+						mailAddress: this._mailAddress,
+						isBusinessUse: a.isBusinessUse(),
+						isPaidSubscription: a.isPaidSubscription(),
+						campaignToken: a.campaignToken(),
+						powChallengeSolution: this.powChallengeSolution.promise,
+					})
+					if (!regDataId) throw new Error("This does not work!")
+
+					if (a.data) a.data.registrationDataId = regDataId
+
 					return signup(
 						this._mailAddress,
 						this.passwordModel.getNewPassword(),
@@ -169,6 +180,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 						a.isPaidSubscription(),
 						a.campaignToken(),
 						this.powChallengeSolution.promise,
+						regDataId,
 					).then((newAccountData) => {
 						if (newAccountData != null) {
 							a.onComplete({ type: "success", newAccountData })
@@ -240,18 +252,12 @@ async function signup(
 	isPaidSubscription: boolean,
 	campaignToken: string | null,
 	powChallengeSolution: Promise<PowSolution>,
+	regDataId: string,
 ): Promise<NewAccountData | void> {
 	const { customerFacade, logins, identityKeyCreator } = locator
 
 	const operation = locator.operationProgressTracker.startNewOperation()
 	const signupActionPromise = customerFacade.generateSignupKeys(operation.id).then(async (keyPairs) => {
-		const regDataId = await runCaptchaFlow({
-			mailAddress,
-			isBusinessUse,
-			isPaidSubscription,
-			campaignToken,
-			powChallengeSolution,
-		})
 		if (regDataId) {
 			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 			const recoverCode = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)

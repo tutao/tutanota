@@ -18,7 +18,7 @@ import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
  * @returns {boolean} true if the payment data update was successful
  */
 export async function show(customer: Customer, accountingInfo: AccountingInfo, price: number, defaultPaymentMethod: PaymentMethodType): Promise<boolean> {
-	const payPalRequestUrl = getLazyLoadedPayPalUrl()
+	const payPalRequestUrl = getLazyLoadedPayPalUrl(null)
 	const invoiceData = {
 		invoiceAddress: formatNameAndAddress(accountingInfo.invoiceName, accountingInfo.invoiceAddress),
 		country: accountingInfo.invoiceCountry ? getByAbbreviation(accountingInfo.invoiceCountry) : null,

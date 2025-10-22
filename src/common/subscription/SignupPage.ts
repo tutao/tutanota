@@ -37,6 +37,7 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 			campaignToken: () => data.registrationDataId,
 			prefilledMailAddress: mailAddress,
 			readonly: !!newAccountData,
+			data,
 		})
 	}
 }

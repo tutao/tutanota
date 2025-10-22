@@ -18,7 +18,7 @@ import {
 } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { AccountingInfo, Braintree3ds2Request } from "../api/entities/sys/TypeRefs.js"
-import { AccountingInfoTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { assertNotNull, neverNull, newPromise, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { getLazyLoadedPayPalUrl, getPreconditionFailedPaymentMsg, PaymentErrorCode, UpgradeType } from "./utils/SubscriptionUtils"
 import { Button, ButtonType } from "../gui/base/Button.js"
@@ -29,8 +29,6 @@ import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
 import type { Country } from "../api/common/CountryList"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { locator } from "../api/main/CommonLocator"
-import { Credentials } from "../misc/credentials/Credentials"
-import { SessionType } from "../api/common/SessionType.js"
 import { PaymentInterval } from "./utils/PriceUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener } from "../api/main/EventController.js"
@@ -77,39 +75,13 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 			data.paymentData = this._paymentMethodInput.getPaymentData()
 		}
 
-		let loginPromise: Promise<Credentials | null> = Promise.resolve(null)
-		const loginController = locator.logins
-		if (!loginController.isUserLoggedIn()) {
-			loginPromise = loginController
-				.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
-				.then((newSessionData) => newSessionData.credentials)
-		}
-
-		loginPromise
-			.then(() => {
-				if (!data.accountingInfo || !data.customer) {
-					return loginController
-						.getUserController()
-						.loadCustomer()
-						.then((customer) => {
-							data.customer = customer
-							return loginController.getUserController().loadCustomerInfo()
-						})
-						.then((customerInfo) =>
-							locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {
-								data.accountingInfo = accountingInfo
-							}),
-						)
-				}
-			})
+		Promise.resolve()
 			.then(() => getDefaultPaymentMethod())
 			.then((defaultPaymentMethod: PaymentMethodType) => {
 				this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData, InvoiceDataInputLocation.InWizard)
-				let payPalRequestUrl = getLazyLoadedPayPalUrl()
+				let payPalRequestUrl = getLazyLoadedPayPalUrl(data.registrationDataId)
 
-				if (loginController.isUserLoggedIn()) {
-					loginController.waitForFullLogin().then(() => payPalRequestUrl.getAsync())
-				}
+				payPalRequestUrl.getAsync()
 
 				this._paymentMethodInput = new PaymentMethodInput(
 					data.options,
@@ -120,6 +92,16 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					!data.firstMonthForFreeOfferActive,
 				)
 				this._availablePaymentMethods = this._paymentMethodInput.getVisiblePaymentMethods()
+				this._availablePaymentMethods = [
+					{
+						name: lang.get("paymentMethodCreditCard_label"),
+						value: PaymentMethodType.CreditCard,
+					},
+					{
+						name: "PayPal",
+						value: PaymentMethodType.Paypal,
+					},
+				]
 
 				this._selectedPaymentMethod(data.paymentData.paymentMethod)
 

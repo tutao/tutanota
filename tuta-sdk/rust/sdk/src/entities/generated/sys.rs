@@ -4515,6 +4515,8 @@ pub struct PaymentDataServiceGetData {
 	pub clientType: Option<i64>,
 	#[serde(rename = "2638")]
 	pub subscriptionApp: i64,
+	#[serde(rename = "2662")]
+	pub registrationDataId: Option<CustomId>,
 }
 
 impl Entity for PaymentDataServiceGetData {

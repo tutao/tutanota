@@ -161,7 +161,7 @@ export enum SubscriptionApp {
 	Calendar = "1",
 }
 
-export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
+export function getLazyLoadedPayPalUrl(registrationDataId: string | null): LazyLoaded<string> {
 	return new LazyLoaded(async () => {
 		const clientType = getClientType()
 		const subscriptionApp = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
@@ -170,6 +170,7 @@ export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 			createPaymentDataServiceGetData({
 				clientType,
 				subscriptionApp,
+				registrationDataId: registrationDataId,
 			}),
 		)
 		return result.loginUrl
