@@ -2574,7 +2574,6 @@ export function createMoveMailPostOut(values: StrippedEntity<MoveMailPostOut>): 
 
 export type MoveMailPostOut = {
 	_type: TypeRef<MoveMailPostOut>;
-	_errors: Object;
 	_original?: MoveMailPostOut
 
 	_format: NumberString;
