@@ -4949,10 +4949,10 @@ export const typeModels = {
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"1724": {
+			"1735": {
 				"final": false,
 				"name": "birthdayCalendarColor",
-				"id": 1724,
+				"id": 1735,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true
