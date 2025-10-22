@@ -26,7 +26,7 @@ struct CalendarEntity: AppEntity {
 
 	static func fetchCalendars(_ userId: String) async throws -> [CalendarEntity] {
 		let sdk = try await SdkFactory.createSdk(userId: userId)
-		let calendars = await sdk.calendarFacade().getCalendarsRenderData()
+		let calendars = try await sdk.calendarFacade().getCalendarsRenderData()
 		return calendars.map { calendarId, renderData in
 			var calendarName = renderData.name.isEmpty ? DEFAULT_CALENDAR_NAME : renderData.name
 
