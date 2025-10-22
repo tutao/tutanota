@@ -75,6 +75,8 @@ export class SpamClassificationHandler {
 			subject: mail.subject,
 			body: getMailBodyText(mailDetails.body),
 			ownerGroup: assertNotNull(mail._ownerGroup),
+			sender: mail.sender?.address || "",
+			recipient: mail.firstRecipient?.address || "",
 		}
 		const isSpam = (await this.spamClassifier?.predict(spamPredMailDatum)) ?? null
 
@@ -141,6 +143,8 @@ export class SpamClassificationHandler {
 			isSpam: DEFAULT_IS_SPAM,
 			isSpamConfidence: DEFAULT_IS_SPAM_CONFIDENCE,
 			ownerGroup: assertNotNull(mail._ownerGroup),
+			sender: mail.sender?.address || "",
+			recipient: mail.firstRecipient?.address || "",
 		}
 		await this.spamClassifier?.storeSpamClassification(spamTrainMailDatum)
 	}

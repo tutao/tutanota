@@ -4,7 +4,6 @@ import { parseCsv } from "../../../../../../src/common/misc/parsing/CsvParser"
 import {
 	DEFAULT_PREPROCESS_CONFIGURATION,
 	SpamClassifier,
-	spamClassifierTokenizer as testTokenize,
 	SpamTrainMailDatum,
 } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { OfflineStoragePersistence } from "../../../../../../src/mail-app/workerUtils/index/OfflineStoragePersistence"
@@ -36,6 +35,8 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 		const subject = row[8]
 		const body = row[10]
 		const label = row[11]
+		const from = row[0]
+		const to = row[1]
 
 		let isSpam = label === "spam" ? true : label === "ham" ? false : null
 		isSpam = assertNotNull(isSpam, "Unknown label detected: " + label)
@@ -47,6 +48,8 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 			isSpam,
 			isSpamConfidence: 1,
 			ownerGroup: "owner",
+			sender: from,
+			recipient: to,
 		} as SpamTrainMailDatum)
 	}
 
@@ -99,6 +102,8 @@ o.spec("SpamClassifierTest", () => {
 			isSpam: true,
 			isSpamConfidence: 1,
 			ownerGroup: "owner",
+			sender: "",
+			recipient: "to",
 		}
 		const layersModel = object<Sequential>()
 		spamClassifier.addSpamClassifierForOwner(spamTrainMailDatum.ownerGroup, layersModel, false)
@@ -119,6 +124,8 @@ o.spec("SpamClassifierTest", () => {
 			isSpam: false,
 			isSpamConfidence: 0,
 			ownerGroup: "owner",
+			sender: "string",
+			recipient: "string",
 		}
 
 		const layersModel = object<Sequential>()
@@ -160,6 +167,30 @@ o.spec("SpamClassifierTest", () => {
 		console.log(`==> Result when testing with mails in two steps (second step).`)
 		await testClassifier(spamClassifier, testSet)
 	})
+	// Reference normal
+	// --- Evaluation Metrics ---
+	// Accuracy:       96.21%
+	// Precision:      100.00%
+	// Recall:         81.13%
+	// F1 Score:       89.58%
+	//
+	// Confusion Matrix:
+	// {
+	//   Predicted_Spam: { True_Positive: 43, False_Positive: 0 },
+	//   Predicted_Ham: { False_Negative: 10, True_Negative: 211 }
+	// }
+
+	// By adding sender and recipient as they are ---
+	// Accuracy:       97.35%
+	// Precision:      97.92%
+	// Recall:         88.68%
+	// F1 Score:       93.07%
+	//
+	// Confusion Matrix:
+	// {
+	//   Predicted_Spam: { True_Positive: 47, False_Positive: 1 },
+	//   Predicted_Ham: { False_Negative: 6, True_Negative: 210 }
+	// }
 
 	o("preprocessMail outputs expected tokens for mail content", async () => {
 		const classifier = new SpamClassifier(object(), object(), object())
@@ -357,8 +388,20 @@ this text is shown`
 		await spamClassifier.initialize("firstGroup")
 		await spamClassifier.initialize("secondGroup")
 
-		const isSpamFirstMail = await spamClassifier.predict({ subject: "", body: "", ownerGroup: "firstGroup" })
-		const isSpamSecondMail = await spamClassifier.predict({ subject: "", body: "", ownerGroup: "secondGroup" })
+		const isSpamFirstMail = await spamClassifier.predict({
+			subject: "",
+			body: "",
+			ownerGroup: "firstGroup",
+			sender: "string",
+			recipient: "string",
+		})
+		const isSpamSecondMail = await spamClassifier.predict({
+			subject: "",
+			body: "",
+			ownerGroup: "secondGroup",
+			sender: "string",
+			recipient: "string",
+		})
 
 		o(isSpamFirstMail).equals(true)
 		o(isSpamSecondMail).equals(false)

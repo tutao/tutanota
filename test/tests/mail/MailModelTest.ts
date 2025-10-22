@@ -296,6 +296,8 @@ o.spec("MailModelTest", function () {
 				subject: "subject",
 				isSpam: false,
 				isSpamConfidence: 1,
+				sender: "",
+				recipient: "",
 			}
 			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 0 })
@@ -321,6 +323,8 @@ o.spec("MailModelTest", function () {
 				subject: "subject",
 				isSpam: false,
 				isSpamConfidence: 1,
+				sender: "",
+				recipient: "",
 			}
 			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 1 })
@@ -352,6 +356,8 @@ o.spec("MailModelTest", function () {
 				subject: "subject",
 				isSpam: false,
 				isSpamConfidence: 1,
+				sender: "",
+				recipient: "",
 			}
 			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 1 })

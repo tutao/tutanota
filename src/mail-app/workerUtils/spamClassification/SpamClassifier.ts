@@ -54,12 +54,16 @@ export type SpamTrainMailDatum = {
 	isSpam: boolean
 	isSpamConfidence: number
 	ownerGroup: Id
+	sender: string
+	recipient: string
 }
 
 export type SpamPredMailDatum = {
 	subject: string
 	body: string
 	ownerGroup: Id
+	sender: string
+	recipient: string
 }
 
 const PREDICTION_THRESHOLD = 0.55
@@ -497,7 +501,10 @@ export class SpamClassifier {
 	private concatSubjectAndBody(mail: SpamTrainMailDatum | SpamPredMailDatum) {
 		const subject = mail.subject || ""
 		const body = mail.body || ""
-		const concatenated = `${subject} ${body}`.trim()
+		const from = mail.sender || ""
+		const to = mail.recipient || ""
+		const concatenated = `${subject} ${body} ${from.split("@").join(" @")} ${to.split("@").join(" @")}`.trim()
+
 		return concatenated.length > 0 ? concatenated : " "
 	}
 
