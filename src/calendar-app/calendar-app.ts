@@ -112,7 +112,6 @@ import("../mail-app/translations/en.js")
 					if (isApp()) {
 						calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 					}
-					return { asyncAction: Promise.resolve() }
 				},
 				async onFullLoginSuccess() {},
 			}

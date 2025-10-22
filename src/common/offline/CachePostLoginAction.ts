@@ -41,13 +41,12 @@ export class CachePostLoginAction implements PostLoginAction {
 		progressMonitor.completed()
 	}
 
-	async onPartialLoginSuccess(event: LoggedInEvent): Promise<{ asyncAction: Promise<void> }> {
+	async onPartialLoginSuccess(event: LoggedInEvent): Promise<void> {
 		if (event.sessionType === SessionType.Persistent && this.offlineStorageSettings != null) {
 			await this.offlineStorageSettings.init()
 
 			// Clear the excluded data (i.e. trash and spam lists, old data) in the offline storage.
 			await this.cacheStorage.clearExcludedData(this.offlineStorageSettings.getTimeRange())
 		}
-		return { asyncAction: Promise.resolve() }
 	}
 }

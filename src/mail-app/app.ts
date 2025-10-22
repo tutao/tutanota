@@ -155,14 +155,12 @@ import("./translations/en.js")
 							const canSync = await syncManager.canSync()
 							if (!canSync) {
 								await syncManager.disableSync()
-								return { asyncAction: Promise.resolve() }
 							}
 						}
 						syncManager.syncContacts()
 					}
 					await mailLocator.mailboxModel.init()
 					await mailLocator.mailModel.init()
-					return { asyncAction: Promise.resolve() }
 				},
 				async onFullLoginSuccess() {
 					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
@@ -236,9 +234,7 @@ import("./translations/en.js")
 		if (isDesktop()) {
 			mailLocator.logins.addPostLoginAction(async () => {
 				return {
-					onPartialLoginSuccess: async () => {
-						return { asyncAction: Promise.resolve() }
-					},
+					onPartialLoginSuccess: async () => {},
 					onFullLoginSuccess: async (event) => {
 						// not a temporary aka signup login
 						if (event.sessionType === SessionType.Persistent) {

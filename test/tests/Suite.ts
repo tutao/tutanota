@@ -178,7 +178,6 @@ import "./api/worker/EventInstancePrefetcherTest.js"
 import "./misc/parsing/ParserCombinatorTest.js"
 import "./sharing/GroupSettingsModelTest.js"
 import "./mail/editor/OpenLocallySavedDraftActionTest.js"
-import "./mail/search/MailIndexAndSpamClassificationPostLoginActionTest.js"
 import "./mail/SpamClassificationHandlerTest.js"
 
 import * as td from "testdouble"
