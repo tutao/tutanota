@@ -72,7 +72,7 @@ export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> 
 		definition:
 			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL," +
 			" ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, " +
-			"lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, PRIMARY KEY (listId, elementId))",
+			"lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, sender: TEXT NOT NULL, recipient: TEXT NOT NULL, PRIMARY KEY (listId, elementId))",
 		purgedWithCache: true,
 	},
 
@@ -188,7 +188,7 @@ export class OfflineStoragePersistence {
 	async storeSpamClassification(spamTrainMailDatum: SpamTrainMailDatum): Promise<void> {
 		const { query, params } = sql`
             INSERT
-            OR REPLACE INTO spam_classification_training_data(listId, elementId, ownerGroup, subject, body, isSpam, lastModified, isSpamConfidence)
+            OR REPLACE INTO spam_classification_training_data(listId, elementId, ownerGroup, subject, body, isSpam, lastModified, isSpamConfidence, sender, recipient)
 				VALUES (
             ${listIdPart(spamTrainMailDatum.mailId)},
             ${elementIdPart(spamTrainMailDatum.mailId)},
@@ -198,6 +198,8 @@ export class OfflineStoragePersistence {
             ${spamTrainMailDatum.isSpam ? 1 : 0},
             ${Date.now()},
             ${spamTrainMailDatum.isSpamConfidence}
+			${spamTrainMailDatum.sender}
+			${spamTrainMailDatum.recipient}
             )`
 		await this.sqlCipherFacade.run(query, params)
 	}
@@ -250,7 +252,7 @@ export class OfflineStoragePersistence {
 	}
 
 	async getCertainSpamClassificationTrainingDataAfterCutoff(cutoffTimestamp: number, ownerGroupId: Id): Promise<SpamTrainMailDatum[]> {
-		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam, isSpamConfidence
+		const { query, params } = sql`SELECT listId, elementId, subject, body, isSpam, isSpamConfidence, sender, recipient
                                     FROM spam_classification_training_data
                                     WHERE lastModified > ${cutoffTimestamp}
                                       AND isSpamConfidence > 0
