@@ -10,6 +10,7 @@ import bodyParser from "body-parser"
 import type { AddressInfo } from "node:net"
 import { domainConfigStub } from "../../../TestUtils.js"
 import { matchers, object, reset, verify } from "testdouble"
+import { ClientPlatform } from "../../../../../src/common/misc/ClientDetector"
 
 // only runs in node, it spins up a local server and connects to it
 
@@ -24,7 +25,7 @@ o.spec("RestClient", function () {
 		deferRequest: (request) => request(),
 	}
 	const serverModelInfoMock: ServerModelInfo = object()
-	const restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, serverModelInfoMock)
+	const restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, serverModelInfoMock, String(ClientPlatform.UNKNOWN))
 	o.spec("integration tests", function () {
 		let app = express()
 		let server: http.Server

@@ -402,6 +402,7 @@ export class ClientDetector {
 			needsMicrotaskHack: this.needsMicrotaskHack(),
 			needsExplicitIDBIds: this.needsExplicitIDBIds(),
 			indexedDbSupported: this.indexedDb(),
+			clientPlatform: this.getClientPlatform(),
 		}
 	}
 

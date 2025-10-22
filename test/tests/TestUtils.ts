@@ -17,11 +17,13 @@ import { InstancePipeline } from "../../src/common/api/worker/crypto/InstancePip
 import { ModelMapper } from "../../src/common/api/worker/crypto/ModelMapper"
 import { dummyResolver } from "./api/worker/crypto/InstancePipelineTestUtils"
 import { EncryptedDbWrapper } from "../../src/common/api/worker/search/EncryptedDbWrapper"
+import { ClientPlatform } from "../../src/common/misc/ClientDetector"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
 	needsExplicitIDBIds: false,
 	indexedDbSupported: true,
+	clientPlatform: ClientPlatform.UNKNOWN,
 }
 
 export function makeCore(

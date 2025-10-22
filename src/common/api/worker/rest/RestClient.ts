@@ -5,7 +5,6 @@ import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from
 import { isSuspensionResponse, SuspensionHandler } from "../SuspensionHandler"
 import { REQUEST_SIZE_LIMIT_DEFAULT, REQUEST_SIZE_LIMIT_MAP } from "../../common/TutanotaConstants"
 import { SuspensionError } from "../../common/error/SuspensionError.js"
-import { client } from "../../../misc/ClientDetector"
 
 assertWorkerOrNode()
 
@@ -54,6 +53,7 @@ export class RestClient {
 		private readonly suspensionHandler: SuspensionHandler,
 		private readonly domainConfig: DomainConfig,
 		private readonly serverModelInfo: ServerModelInfo,
+		private readonly clientPlatform: string,
 	) {
 		this.id = 0
 	}
@@ -327,7 +327,7 @@ export class RestClient {
 		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 		if (!options.noCORS) {
 			headers["cv"] = env.versionNumber
-			headers["cp"] = String(client.getClientPlatform())
+			headers["cp"] = this.clientPlatform
 			if (body instanceof Uint8Array) {
 				headers["Content-Type"] = MediaType.Binary
 			} else if (typeof body === "string") {

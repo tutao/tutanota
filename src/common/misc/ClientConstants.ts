@@ -1,4 +1,5 @@
 import { assertMainOrNodeBoot } from "../api/common/Env"
+import { ClientPlatform } from "./ClientDetector"
 
 assertMainOrNodeBoot()
 
@@ -44,6 +45,7 @@ export type BrowserData = {
 	 */
 	needsExplicitIDBIds: boolean
 	indexedDbSupported: boolean
+	clientPlatform: ClientPlatform
 }
 
 export const companyTeamLabel = "Tuta Team"

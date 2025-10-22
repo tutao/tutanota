@@ -230,7 +230,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const serverModelInfo = ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, (expectedHash: string | null) =>
 		locator.applicationTypesFacade.getServerApplicationTypesJson(expectedHash),
 	)
-	locator.restClient = new RestClient(suspensionHandler, domainConfig, serverModelInfo)
+	locator.restClient = new RestClient(suspensionHandler, domainConfig, serverModelInfo, String(browserData.clientPlatform))
 	const typeModelResolver = new TypeModelResolver(clientModelInfo, serverModelInfo)
 	locator.instancePipeline = new InstancePipeline(
 		typeModelResolver.resolveClientTypeReference.bind(typeModelResolver),
