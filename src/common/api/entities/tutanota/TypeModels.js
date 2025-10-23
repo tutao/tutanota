@@ -160,13 +160,13 @@ export const typeModels = {
 				"refTypeId": 1882,
 				"dependency": "sys"
 			},
-			"1758": {
+			"1759": {
 				"final": false,
 				"name": "metadata",
-				"id": 1758,
+				"id": 1759,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 1754,
+				"refTypeId": 1755,
 				"dependency": null
 			}
 		}
@@ -9494,25 +9494,34 @@ export const typeModels = {
 				"cardinality": "One",
 				"refTypeId": 13,
 				"dependency": null
+			},
+			"1751": {
+				"final": false,
+				"name": "parents",
+				"id": 1751,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1728,
+				"dependency": null
 			}
 		}
 	},
-	"1751": {
+	"1752": {
 		"name": "DriveDeleteOut",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1751,
-		"rootId": "CHR1dGFub3RhAAbX",
+		"id": 1752,
+		"rootId": "CHR1dGFub3RhAAbY",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1752": {
+			"1753": {
 				"final": false,
 				"name": "_format",
-				"id": 1752,
+				"id": 1753,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
@@ -9520,38 +9529,38 @@ export const typeModels = {
 		},
 		"associations": {}
 	},
-	"1754": {
+	"1755": {
 		"name": "DriveFileMetadata",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "AGGREGATED_TYPE",
-		"id": 1754,
-		"rootId": "CHR1dGFub3RhAAba",
+		"id": 1755,
+		"rootId": "CHR1dGFub3RhAAbb",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1755": {
+			"1756": {
 				"final": true,
 				"name": "_id",
-				"id": 1755,
-				"type": "CustomId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"1756": {
-				"final": false,
-				"name": "isFavorite",
 				"id": 1756,
-				"type": "Boolean",
+				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"1757": {
 				"final": false,
-				"name": "isInTrash",
+				"name": "isFavorite",
 				"id": 1757,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1758": {
+				"final": false,
+				"name": "isInTrash",
+				"id": 1758,
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
@@ -9559,40 +9568,40 @@ export const typeModels = {
 		},
 		"associations": {}
 	},
-	"1759": {
+	"1760": {
 		"name": "DriveFileMetadataCreateData",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1759,
-		"rootId": "CHR1dGFub3RhAAbf",
+		"id": 1760,
+		"rootId": "CHR1dGFub3RhAAbg",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1760": {
+			"1761": {
 				"final": false,
 				"name": "_format",
-				"id": 1760,
+				"id": 1761,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"1761": {
+			"1762": {
 				"final": false,
 				"name": "isFavorite",
-				"id": 1761,
+				"id": 1762,
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"1762": {
+			"1763": {
 				"final": true,
 				"name": "file",
-				"id": 1762,
+				"id": 1763,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 13,
@@ -9600,22 +9609,22 @@ export const typeModels = {
 			}
 		}
 	},
-	"1763": {
+	"1764": {
 		"name": "DriveFileMetadataCreateReturn",
 		"app": "tutanota",
 		"version": 94,
 		"since": 94,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 1763,
-		"rootId": "CHR1dGFub3RhAAbj",
+		"id": 1764,
+		"rootId": "CHR1dGFub3RhAAbk",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"1764": {
+			"1765": {
 				"final": false,
 				"name": "_format",
-				"id": 1764,
+				"id": 1765,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false

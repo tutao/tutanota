@@ -102,9 +102,11 @@ export class DriveViewModel {
 	/**
 	 * Move to trash just like addToFavourites change the metadata of the file
 	 * a file is
+	 *
+	 * Also must store parents for later restoration from the Trash virtual folder
 	 */
 	async moveToTrash(file: TutaFile) {
-		await this.driveFacade.moveToTrash(file)
+		await this.driveFacade.moveToTrash(file, this.currentFolder.parents)
 		this.currentFolder.files = this.currentFolder.files.filter((f) => {
 			return !arrayEquals(f._id as [string, string], file._id as [string, string])
 		}) // performance issue here
@@ -251,6 +253,14 @@ export class DriveViewModel {
 		if (folderFirst) {
 			this.currentFolder.files.sort(sortFoldersFirst)
 		}
+	}
+
+	currentFolderIsTrashVirtualFolder(): boolean {
+		return this.currentFolder.isVirtual && this.currentFolder.virtualFolder === VirtualFolder.Trash
+	}
+
+	currentFolderIsFavouritesVirtualFolder(): boolean {
+		return this.currentFolder.isVirtual && this.currentFolder.virtualFolder === VirtualFolder.Favourites
 	}
 }
 

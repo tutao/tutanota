@@ -77,8 +77,32 @@ export class DriveFacade {
 		return trashContents[0]
 	}
 
-	public async moveToTrash(file: TutaFile) {
-		const deleteData = createDriveDeleteIn({ fileToDelete: file._id })
+	/**
+	 * This should also take care of saving previous parents so that we can restore files where they where
+	 * previously located in the user drive
+	 *
+	 * when rebuilding in case of deletion there can be a name collusion when folder are named the same but were not initially the same
+	 * so the id is super important, foldername is important only if Id is not found anymore and we have to create the folder again
+	 * @param file
+	 */
+	public async moveToTrash(file: TutaFile, parents: BreadcrumbEntry[]) {
+		const { fileGroupKey } = await this.getCryptoInfo()
+		// reencrypt with the session key for later decryption
+		const parentsToSave = await Promise.all(
+			parents.map(async ({ folder, folderName }) => {
+				// shit...
+				const folderFile = await this.entityClient.load(FileTypeRef, folder)
+				const key = locator.cryptoWrapper.decryptKey(fileGroupKey.object, assertNotNull(folderFile._ownerEncSessionKey))
+
+				return {
+					folder,
+					encName: locator.cryptoWrapper.aesEncrypt(key, stringToUtf8Uint8Array(folderFile.name)),
+					ownerEncSessionKey: folderFile._ownerEncSessionKey,
+				}
+			}),
+		)
+
+		const deleteData = createDriveDeleteIn({ fileToDelete: file._id, parents: parentsToSave })
 
 		await this.serviceExecutor.delete(DriveService, deleteData)
 	}

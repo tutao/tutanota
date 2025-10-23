@@ -2672,8 +2672,9 @@ export type DriveDeleteIn = {
 	_format: NumberString;
 
 	fileToDelete: IdTuple;
+	parents: DriveBreadcrumbEntry[];
 }
-export const DriveDeleteOutTypeRef: TypeRef<DriveDeleteOut> = new TypeRef("tutanota", 1751)
+export const DriveDeleteOutTypeRef: TypeRef<DriveDeleteOut> = new TypeRef("tutanota", 1752)
 
 export function createDriveDeleteOut(values: StrippedEntity<DriveDeleteOut>): DriveDeleteOut {
     return Object.assign(create(typeModels[DriveDeleteOutTypeRef.typeId], DriveDeleteOutTypeRef), values)
@@ -2685,7 +2686,7 @@ export type DriveDeleteOut = {
 
 	_format: NumberString;
 }
-export const DriveFileMetadataTypeRef: TypeRef<DriveFileMetadata> = new TypeRef("tutanota", 1754)
+export const DriveFileMetadataTypeRef: TypeRef<DriveFileMetadata> = new TypeRef("tutanota", 1755)
 
 export function createDriveFileMetadata(values: StrippedEntity<DriveFileMetadata>): DriveFileMetadata {
     return Object.assign(create(typeModels[DriveFileMetadataTypeRef.typeId], DriveFileMetadataTypeRef), values)
@@ -2699,7 +2700,7 @@ export type DriveFileMetadata = {
 	isFavorite: boolean;
 	isInTrash: boolean;
 }
-export const DriveFileMetadataCreateDataTypeRef: TypeRef<DriveFileMetadataCreateData> = new TypeRef("tutanota", 1759)
+export const DriveFileMetadataCreateDataTypeRef: TypeRef<DriveFileMetadataCreateData> = new TypeRef("tutanota", 1760)
 
 export function createDriveFileMetadataCreateData(values: StrippedEntity<DriveFileMetadataCreateData>): DriveFileMetadataCreateData {
     return Object.assign(create(typeModels[DriveFileMetadataCreateDataTypeRef.typeId], DriveFileMetadataCreateDataTypeRef), values)
@@ -2714,7 +2715,7 @@ export type DriveFileMetadataCreateData = {
 
 	file: IdTuple;
 }
-export const DriveFileMetadataCreateReturnTypeRef: TypeRef<DriveFileMetadataCreateReturn> = new TypeRef("tutanota", 1763)
+export const DriveFileMetadataCreateReturnTypeRef: TypeRef<DriveFileMetadataCreateReturn> = new TypeRef("tutanota", 1764)
 
 export function createDriveFileMetadataCreateReturn(values: StrippedEntity<DriveFileMetadataCreateReturn>): DriveFileMetadataCreateReturn {
     return Object.assign(create(typeModels[DriveFileMetadataCreateReturnTypeRef.typeId], DriveFileMetadataCreateReturnTypeRef), values)

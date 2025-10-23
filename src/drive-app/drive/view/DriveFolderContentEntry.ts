@@ -130,11 +130,36 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 							class: "cursor-pointer",
 						}),
 					),
+					driveViewModel.currentFolderIsTrashVirtualFolder()
+						? m(
+								"span",
+								{
+									onclick: () => {
+										console.log("restore file to its previous location")
+										driveViewModel.restoreFile(file)
+									},
+								},
+								m(Icon, {
+									icon: Icons.Reply,
+									size: IconSize.Normal,
+									style: {
+										fill: "#707070",
+										position: "relative",
+										top: "2px",
+									},
+									class: "cursor-pointer",
+								}),
+							)
+						: null,
 					m(
 						"span",
 						{
 							onclick: () => {
-								driveViewModel.moveToTrash(file).then(() => m.redraw())
+								if (driveViewModel.currentFolderIsTrashVirtualFolder()) {
+									console.log("delete for real")
+								} else {
+									driveViewModel.moveToTrash(file).then(() => m.redraw())
+								}
 							},
 						},
 						m(Icon, {

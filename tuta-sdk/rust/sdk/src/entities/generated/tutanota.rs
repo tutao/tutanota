@@ -52,7 +52,7 @@ pub struct TutanotaFile {
 	pub subFiles: Option<Subfiles>,
 	#[serde(rename = "1225")]
 	pub blobs: Vec<super::sys::Blob>,
-	#[serde(rename = "1758")]
+	#[serde(rename = "1759")]
 	pub metadata: Option<DriveFileMetadata>,
 
 	#[serde(default)]
@@ -4228,6 +4228,8 @@ pub struct DriveDeleteIn {
 	pub _format: i64,
 	#[serde(rename = "1750")]
 	pub fileToDelete: IdTupleGenerated,
+	#[serde(rename = "1751")]
+	pub parents: Vec<DriveBreadcrumbEntry>,
 }
 
 impl Entity for DriveDeleteIn {
@@ -4242,7 +4244,7 @@ impl Entity for DriveDeleteIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveDeleteOut {
-	#[serde(rename = "1752")]
+	#[serde(rename = "1753")]
 	pub _format: i64,
 }
 
@@ -4250,7 +4252,7 @@ impl Entity for DriveDeleteOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(1751),
+			type_id: TypeId::from(1752),
 		}
 	}
 }
@@ -4258,11 +4260,11 @@ impl Entity for DriveDeleteOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveFileMetadata {
-	#[serde(rename = "1755")]
-	pub _id: Option<CustomId>,
 	#[serde(rename = "1756")]
-	pub isFavorite: bool,
+	pub _id: Option<CustomId>,
 	#[serde(rename = "1757")]
+	pub isFavorite: bool,
+	#[serde(rename = "1758")]
 	pub isInTrash: bool,
 }
 
@@ -4270,7 +4272,7 @@ impl Entity for DriveFileMetadata {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(1754),
+			type_id: TypeId::from(1755),
 		}
 	}
 }
@@ -4278,11 +4280,11 @@ impl Entity for DriveFileMetadata {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveFileMetadataCreateData {
-	#[serde(rename = "1760")]
-	pub _format: i64,
 	#[serde(rename = "1761")]
-	pub isFavorite: bool,
+	pub _format: i64,
 	#[serde(rename = "1762")]
+	pub isFavorite: bool,
+	#[serde(rename = "1763")]
 	pub file: IdTupleGenerated,
 }
 
@@ -4290,7 +4292,7 @@ impl Entity for DriveFileMetadataCreateData {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(1759),
+			type_id: TypeId::from(1760),
 		}
 	}
 }
@@ -4298,7 +4300,7 @@ impl Entity for DriveFileMetadataCreateData {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveFileMetadataCreateReturn {
-	#[serde(rename = "1764")]
+	#[serde(rename = "1765")]
 	pub _format: i64,
 }
 
@@ -4306,7 +4308,7 @@ impl Entity for DriveFileMetadataCreateReturn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(1763),
+			type_id: TypeId::from(1764),
 		}
 	}
 }
