@@ -1409,10 +1409,7 @@ export enum ProcessingState {
 	INBOX_RULE_NOT_PROCESSED = "1",
 	INBOX_RULE_APPLIED = "2",
 	INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING = "3",
-}
-
-export function getProcessingState(mail: Mail): ProcessingState {
-	return mail.processingState as ProcessingState
+	INBOX_RULE_NOT_PROCESSED_AND_DO_NOT_RUN_SPAM_PREDICTION = "4",
 }
 
 export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"
