@@ -69,32 +69,14 @@ export class PatchMerger {
 	}
 
 	public async patchAndStoreInstance(entityUpdate: EntityUpdateData): Promise<Nullable<ServerModelParsedInstance>> {
-		const { typeRef, instanceListId, instanceId, patches, instance } = entityUpdate
+		const { typeRef, instanceListId, instanceId, patches } = entityUpdate
 
 		try {
 			const patchAppliedInstance = await this.getPatchedInstanceParsed(typeRef, instanceListId, instanceId, assertNotNull(patches))
-			if (patchAppliedInstance == null) {
+			if (patchAppliedInstance == null || hasError(patchAppliedInstance)) {
 				return null
 			}
-			if (entityUpdate !== null && instance !== null) {
-				const isPatchAndAppliedInstanceMatch = await this.isInstanceOnUpdateIsSameAsPatched(entityUpdate, patchAppliedInstance)
-				if (!isPatchAndAppliedInstanceMatch) {
-					if (!hasError(instance)) {
-						// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
-						await this.cacheStorage.put(typeRef, instance)
-					}
-					// There are concurrency issues with the File and Mail types due to bucketKey and UpdateSessionKeyService
-					if (!isSameTypeRef(FileTypeRef, entityUpdate.typeRef) && !isSameTypeRef(MailTypeRef, entityUpdate.typeRef)) {
-						throw new ProgrammingError(
-							"instance with id [" + instanceListId + ", " + instanceId + `] has not been successfully patched. Type: ${getTypeString(typeRef)}`,
-						)
-					}
-				} else {
-					await this.cacheStorage.put(typeRef, patchAppliedInstance)
-				}
-			} else {
-				await this.cacheStorage.put(typeRef, patchAppliedInstance)
-			}
+			await this.cacheStorage.put(typeRef, patchAppliedInstance)
 			return patchAppliedInstance
 		} catch (e) {
 			if (e instanceof PatchOperationError) {
@@ -356,53 +338,6 @@ export class PatchMerger {
 		} catch (e) {
 			throw new PatchOperationError("An error occurred while traversing path " + path + e.message)
 		}
-	}
-
-	private async isInstanceOnUpdateIsSameAsPatched(entityUpdate: EntityUpdateData, patchAppliedInstance: Nullable<ServerModelParsedInstance>) {
-		if (!deepEqual(entityUpdate.instance, patchAppliedInstance)) {
-			const instancePipeline = this.instancePipeline
-			const typeModel = await this.typeModelResolver.resolveServerTypeReference(entityUpdate.typeRef)
-			const typeReferenceResolver = this.typeModelResolver.resolveClientTypeReference.bind(this.typeModelResolver)
-			let sk: Nullable<BitArray> = null
-			if (typeModel.encrypted) {
-				const instance = await this.instancePipeline.modelMapper.mapToInstance(
-					new TypeRef(typeModel.app, typeModel.id),
-					assertNotNull(patchAppliedInstance),
-				)
-				sk = await this.cryptoFacade().resolveSessionKey(instance)
-			}
-			const patchedEncryptedParsedInstance = await instancePipeline.cryptoMapper.encryptParsedInstance(
-				typeModel as unknown as ClientTypeModel,
-				assertNotNull(patchAppliedInstance) as unknown as ClientModelParsedInstance,
-				sk,
-			)
-			const patchedUntypedInstance = await instancePipeline.typeMapper.applyDbTypes(
-				typeModel as unknown as ClientTypeModel,
-				patchedEncryptedParsedInstance,
-			)
-			const patchDiff = await computePatches(
-				entityUpdate.instance as unknown as ClientModelParsedInstance,
-				assertNotNull(patchAppliedInstance) as unknown as ClientModelParsedInstance,
-				patchedUntypedInstance,
-				typeModel,
-				typeReferenceResolver,
-				true,
-			)
-			const isPatchAndFullInstanceMatch = isEmpty(patchDiff)
-			if (!isPatchAndFullInstanceMatch) {
-				console.log("patches on the entityUpdate: ", getLogStringForPatches(assertNotNull(entityUpdate.patches)))
-				console.error(
-					"instance with id [" +
-						entityUpdate.instanceListId +
-						", " +
-						entityUpdate.instanceId +
-						"]" +
-						`has not been successfully patched. Type: ${getTypeString(entityUpdate.typeRef)}, computePatches: ${getLogStringForPatches(patchDiff)}`,
-				)
-			}
-			return isPatchAndFullInstanceMatch
-		}
-		return true
 	}
 }
 
