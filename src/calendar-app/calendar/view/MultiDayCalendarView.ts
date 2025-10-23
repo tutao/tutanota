@@ -44,9 +44,9 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
-import { EventConflictRenderPolicy, TimeView, TimeViewAttributes } from "../../../common/calendar/gui/TimeView.js"
 import { CalendarViewComponent, CalendarViewComponentAttrs } from "./calendarViewComponent/CalendarViewComponent"
 import { HeaderVariant } from "./calendarViewComponent/HeaderComponent"
+import { CellActionHandler } from "../../../common/calendar/gui/TimeView"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date
@@ -123,6 +123,13 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 	view({ attrs }: Vnode<MultiDayCalendarViewAttrs>): Children {
 		const { previous, current, next } = this.getPeriods(attrs.selectedDate, attrs.daysInPeriod, attrs.startOfTheWeek, attrs.getEventsOnDays)
 
+		const newEventHandler: CellActionHandler = (baseDate: Date, time: Time) => {
+			const newDate = new Date(baseDate)
+			newDate.setHours(time.hour, time.minute)
+			attrs.onNewEvent(newDate)
+			attrs.onDateSelected(new Date(baseDate))
+		}
+
 		return m(CalendarViewComponent, {
 			headerComponentAttrs: {
 				dates: getRangeOfDays(current.start, attrs.daysInPeriod),
@@ -150,6 +157,10 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 					events: next.events,
 				},
 				onChangePage: attrs.onChangeViewPeriod,
+			},
+			cellActionHandlers: {
+				onCellPressed: newEventHandler,
+				onCellContextMenuPressed: newEventHandler,
 			},
 		} satisfies CalendarViewComponentAttrs)
 	}
@@ -212,21 +223,6 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		isDayView: boolean,
 		isDesktopLayout: boolean,
 	): Children {
-		return m(
-			".height-100p.rel",
-			{ "overflow-y": "auto" },
-			m(TimeView, {
-				timeRange: {
-					start: new Time(0, 0),
-					end: new Time(23, 0),
-				},
-				timeScale: 1,
-				dates: thisPeriod.days,
-				conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
-				events: deduplicate(thisPeriod.shortEventsPerDay.flatMap(identity), isSameEventInstance),
-			} satisfies TimeViewAttributes),
-		)
-
 		let containerStyle
 
 		if (isDesktopLayout) {
