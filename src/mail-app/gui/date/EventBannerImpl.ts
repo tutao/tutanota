@@ -6,15 +6,7 @@ import { CalendarEventsRepository } from "../../../common/calendar/date/Calendar
 import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { base64ToBase64Url, clone, filterNull, getStartOfDay,  isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/tutanota-utils"
-import {
-	EventConflictRenderPolicy,
-	TIME_SCALE_BASE_VALUE,
-	TimeRange,
-	TimeScale,
-	TimeScaleTuple,
-	TimeView,
-	TimeViewAttributes,
-} from "../../../common/calendar/gui/TimeView"
+import { TIME_SCALE_BASE_VALUE, TimeRange, TimeScale, TimeScaleTuple, TimeView, TimeViewAttributes } from "../../../common/calendar/gui/TimeView"
 import { Time } from "../../../common/calendar/date/Time"
 import { theme } from "../../../common/gui/theme"
 import { styles } from "../../../common/gui/styles"
@@ -56,6 +48,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	private agenda: Map<string, InviteAgenda> | null = null
 	private comment: string = ""
 	private displayConflictingAgenda: boolean = false
+	private timeRowHeight = 0
 
 	oncreate({ attrs }: VnodeDOM<EventBannerImplAttrs>) {
 		Promise.resolve().then(async () => {
@@ -260,10 +253,10 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 											events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
 											timeScale,
 											timeRange,
-											conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
 											dates: [getStartOfDay(agenda.main.event.startTime)],
-											timeIndicator: Time.fromDate(agenda.main.event.startTime),
 											hasAnyConflict: hasConflict,
+											timeRowHeight: this.timeRowHeight,
+											setTimeRowHeight: (timeRowHeight: number) => (this.timeRowHeight = timeRowHeight),
 										} satisfies TimeViewAttributes)
 									: m("", "ERROR: Could not load the agenda for this day."),
 							],
