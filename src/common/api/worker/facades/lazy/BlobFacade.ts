@@ -403,30 +403,46 @@ export class BlobFacade {
 		if (blobs.some((blob) => blob.archiveId !== archiveId)) {
 			throw new ProgrammingError("Must only request blobs of the same archive together")
 		}
-		const getData = createBlobGetIn({
-			archiveId,
-			blobId: null,
-			blobIds: blobs.map(({ blobId }) => createBlobId({ blobId: blobId })),
-		})
-		const untypedInstance = await this.instancePipeline.mapAndEncrypt(BlobGetInTypeRef, getData, null)
-		const body = JSON.stringify(untypedInstance)
-		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, BlobGetInTypeRef)
-		const concatBinaryData = await tryServers(
-			blobServerAccessInfo.servers,
-			async (serverUrl) => {
-				return await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
-					queryParams: queryParams,
-					body,
-					responseType: MediaType.Binary,
-					baseUrl: serverUrl,
-					noCORS: true,
-					headers: blobLoadOptions.extraHeaders,
-					suspensionBehavior: blobLoadOptions.suspensionBehavior,
-				})
-			},
-			`can't download from server `,
-		)
-		return parseMultipleBlobsResponse(concatBinaryData)
+
+		let blobResponse: Map<Id, Uint8Array> = new Map()
+		// All the blob ids are included in the server query, so if more than 100 blobs are requested at
+		// the same time a 414 Request-URI Too Long Error will be received
+		const BLOB_PROCESS_NUM = 100
+		let blobsProcessed = 0
+
+		while (blobs.length > blobsProcessed) {
+			const processBlobs = blobs.slice(blobsProcessed, blobsProcessed + BLOB_PROCESS_NUM)
+
+			const getData = createBlobGetIn({
+				archiveId,
+				blobId: null,
+				blobIds: processBlobs.map(({ blobId }) => createBlobId({ blobId: blobId })),
+			})
+			const untypedInstance = await this.instancePipeline.mapAndEncrypt(BlobGetInTypeRef, getData, null)
+			const body = JSON.stringify(untypedInstance)
+			const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, BlobGetInTypeRef)
+			const concatBinaryData = await tryServers(
+				blobServerAccessInfo.servers,
+				async (serverUrl) => {
+					return await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
+						queryParams: queryParams,
+						body,
+						responseType: MediaType.Binary,
+						baseUrl: serverUrl,
+						noCORS: true,
+						headers: blobLoadOptions.extraHeaders,
+						suspensionBehavior: blobLoadOptions.suspensionBehavior,
+					})
+				},
+				`can't download from server `,
+			)
+
+			blobResponse = new Map([...blobResponse, ...parseMultipleBlobsResponse(concatBinaryData)])
+
+			blobsProcessed += BLOB_PROCESS_NUM
+		}
+
+		return blobResponse
 	}
 
 	private async downloadAndDecryptChunkNative(blob: Blob, blobServerAccessInfo: BlobServerAccessInfo, sessionKey: AesKey): Promise<FileUri> {
