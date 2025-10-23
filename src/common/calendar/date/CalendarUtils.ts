@@ -36,7 +36,7 @@ import {
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
 import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
 import { isSameId, StrippedEntity } from "../../api/common/utils/EntityUtils"
-import type { Time } from "./Time.js"
+import { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 import { DateProvider } from "../../api/common/DateProvider"
 import { EntityClient } from "../../api/common/EntityClient.js"
@@ -1873,3 +1873,10 @@ export const BYRULE_MAP = freezeMap(
 		["WKST", ByRule.WKST],
 	]),
 )
+
+export function getTimeFromClickInteraction(e: MouseEvent, time: Time): Time {
+	const rect = (e.target as HTMLElement).getBoundingClientRect()
+	const mousePositionRelativeToRectHeight = Math.abs(rect.top - e.clientY)
+	if (mousePositionRelativeToRectHeight > rect.height / 2) return new Time(time.hour, time.minute + 30)
+	return time
+}

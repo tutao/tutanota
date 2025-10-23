@@ -763,8 +763,7 @@ styles.registerStyle("main", () => {
 			height: "1px",
 			background: theme.outline_variant,
 			position: "absolute",
-			bottom: "-1px",
-			left: 0,
+			"z-index": 1,
 		},
 		// borders
 		".border-bottom": {
@@ -2416,28 +2415,11 @@ styles.registerStyle("main", () => {
 		".calendar-day-header-button": {
 			opacity: 0,
 		},
-		".calendar-hour": {
-			"border-bottom": `1px solid ${theme.outline_variant}`,
-			height: px(layout_size.calendar_hour_height),
-			flex: "1 0 auto",
-		},
-		".calendar-hour:hover": {
-			background: theme.surface_container,
-		},
 		".calendar-column-border": {
 			"border-right": `1px solid ${theme.outline_variant}`,
 		},
 		".calendar-column-border:nth-child(7)": {
 			"border-right": "none",
-		},
-		".calendar-hour-margin": {
-			"margin-left": px(layout_size.calendar_hour_width),
-		},
-		".calendar-hour-column": {
-			width: px(layout_size.calendar_hour_width),
-		},
-		".calendar-days-header-row": {
-			height: px(layout_size.calendar_days_header_height),
 		},
 		".calendar-day": {
 			"border-top": `1px solid ${theme.outline_variant}`,
@@ -3192,7 +3174,6 @@ styles.registerStyle("main", () => {
 			background: theme.primary,
 			height: px(2),
 			width: "100%",
-			"z-index": 1,
 		},
 		".time-indicator:before": {
 			content: "''",
@@ -3203,6 +3184,9 @@ styles.registerStyle("main", () => {
 			position: "absolute",
 			transform: "translate(-50%, calc(-50% + 1px))",
 			"border-radius": "50%",
+		},
+		".interactable-cell:hover": {
+			background: theme.surface_container,
 		},
 	}
 })

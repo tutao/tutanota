@@ -32,8 +32,8 @@ o.spec("TimeView", function () {
 		}
 	}
 
-	const assertLayoutPosition = (gridData: Map<Id, GridEventData>, eventId: string, expected: GridEventData) => {
-		const actual = gridData.get(eventId)
+	const assertLayoutPosition = (grid: Map<Id, GridEventData>, eventId: string, expected: GridEventData) => {
+		const actual = grid.get(eventId)
 		o.check(actual?.row).deepEquals(expected.row)(`${eventId} row mismatch`)
 		o.check(actual?.column).deepEquals(expected.column)(`${eventId} column mismatch`)
 	}
@@ -87,19 +87,19 @@ o.spec("TimeView", function () {
 
 	o.spec("buildGridDataWithExpansion", function () {
 		o.test("Transforms columns into grid event data", function () {
-			const gridData = TimeView.buildGridDataWithExpansion(columns)
+			const grid = TimeView.buildGridDataWithExpansion(columns)
 
-			o.check(gridData.get("ev1")?.column.start).equals(1)
-			o.check(gridData.get("ev1")?.column.span).equals(1)
+			o.check(grid.get("ev1")?.column.start).equals(1)
+			o.check(grid.get("ev1")?.column.span).equals(1)
 
-			o.check(gridData.get("ev2")?.column.start).equals(2)
-			o.check(gridData.get("ev2")?.column.span).equals(1)
+			o.check(grid.get("ev2")?.column.start).equals(2)
+			o.check(grid.get("ev2")?.column.span).equals(1)
 
-			o.check(gridData.get("ev3")?.column.start).equals(3)
-			o.check(gridData.get("ev3")?.column.span).equals(1)
+			o.check(grid.get("ev3")?.column.start).equals(3)
+			o.check(grid.get("ev3")?.column.span).equals(1)
 
-			o.check(gridData.get("ev4")?.column.start).equals(4)
-			o.check(gridData.get("ev4")?.column.span).equals(1)
+			o.check(grid.get("ev4")?.column.start).equals(4)
+			o.check(grid.get("ev4")?.column.span).equals(1)
 		})
 	})
 
@@ -290,7 +290,6 @@ o.spec("TimeView", function () {
 			 *  EVB EVC EVD EVD
 			 *  EVE EVF EVG EVH
 			 */
-
 			const events = [
 				createEventStub("EVA", 0, 0, 0, 30),
 				createEventStub("EVB", 0, 30, 1, 0),
@@ -302,56 +301,58 @@ o.spec("TimeView", function () {
 				createEventStub("EVH", 1, 0, 1, 30),
 			]
 
-			const gridData = TimeView.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const { grid } = TimeView.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
 
-			assertLayoutPosition(gridData, "EVA", {
+			assertLayoutPosition(grid, "EVA", {
 				row: { start: 1, end: 7 },
 				column: { start: 1, span: 4 },
 			})
 
-			assertLayoutPosition(gridData, "EVB", {
+			assertLayoutPosition(grid, "EVB", {
 				row: { start: 7, end: 13 },
 				column: { start: 1, span: 1 },
 			})
 
-			assertLayoutPosition(gridData, "EVC", {
+			assertLayoutPosition(grid, "EVC", {
 				row: { start: 7, end: 13 },
 				column: { start: 2, span: 1 },
 			})
 
-			assertLayoutPosition(gridData, "EVD", {
+			assertLayoutPosition(grid, "EVD", {
 				row: { start: 7, end: 13 },
 				column: { start: 3, span: 2 },
 			})
 
-			assertLayoutPosition(gridData, "EVE", {
+			assertLayoutPosition(grid, "EVE", {
 				row: { start: 13, end: 19 },
 				column: { start: 1, span: 1 },
 			})
 
-			assertLayoutPosition(gridData, "EVF", {
+			assertLayoutPosition(grid, "EVF", {
 				row: { start: 13, end: 19 },
 				column: { start: 2, span: 1 },
 			})
 
-			assertLayoutPosition(gridData, "EVG", {
+			assertLayoutPosition(grid, "EVG", {
 				row: { start: 13, end: 19 },
 				column: { start: 3, span: 1 },
 			})
 
-			assertLayoutPosition(gridData, "EVH", {
+			assertLayoutPosition(grid, "EVH", {
 				row: { start: 13, end: 19 },
 				column: { start: 4, span: 1 },
 			})
 		})
 
+		/**
+		 * Integration test
+		 */
 		o.test("Transforms a list of events into a structure grid with partial events", function () {
 			/**
 			 *  EVI EVJ EVJ
 			 *  EVI EVK EVM(Partial)
 			 *  EVI EVL EVM(Partial)
 			 */
-
 			const events = [
 				createEventStub("EVI", 0, 0, 1, 30),
 				createEventStub("EVJ", 0, 0, 0, 30),
@@ -360,29 +361,29 @@ o.spec("TimeView", function () {
 				createEventStub("EVM", 0, 45, 1, 15),
 			]
 
-			const gridData = TimeView.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const { grid } = TimeView.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
 
-			assertLayoutPosition(gridData, "EVI", {
+			assertLayoutPosition(grid, "EVI", {
 				row: { start: 1, end: 19 },
 				column: { start: 1, span: 1 },
 			})
 
-			assertLayoutPosition(gridData, "EVJ", {
+			assertLayoutPosition(grid, "EVJ", {
 				row: { start: 1, end: 7 },
 				column: { start: 2, span: 2 },
 			})
 
-			assertLayoutPosition(gridData, "EVK", {
+			assertLayoutPosition(grid, "EVK", {
 				row: { start: 7, end: 13 },
 				column: { start: 2, span: 1 },
 			})
 
-			assertLayoutPosition(gridData, "EVL", {
+			assertLayoutPosition(grid, "EVL", {
 				row: { start: 13, end: 19 },
 				column: { start: 2, span: 1 },
 			})
 
-			assertLayoutPosition(gridData, "EVM", {
+			assertLayoutPosition(grid, "EVM", {
 				row: { start: 10, end: 16 },
 				column: { start: 3, span: 1 },
 			})

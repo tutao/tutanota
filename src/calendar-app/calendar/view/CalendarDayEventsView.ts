@@ -4,13 +4,13 @@ import { DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, mapNullable, never
 import {
 	eventEndsAfterDay,
 	eventStartsBefore,
+	getTimeFromClickInteraction,
 	getTimeTextFormatForLongEvent,
 	getTimeZone,
 	hasAlarmsForTheUser,
 	isBirthdayCalendar,
 } from "../../../common/calendar/date/CalendarUtils"
 import { CalendarEventBubble } from "./CalendarEventBubble"
-import type { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { getPosAndBoundsFromMouseEvent } from "../../../common/gui/base/GuiUtils"
 import {
@@ -164,11 +164,4 @@ export class CalendarDayEventsView implements Component<Attrs> {
 function getTimeIndicatorPosition(now: Date): number {
 	const passedMillisInDay = (now.getHours() * 60 + now.getMinutes()) * 60 * 1000
 	return (passedMillisInDay / DAY_IN_MILLIS) * allHoursHeight
-}
-
-function getTimeFromClickInteraction(e: MouseEvent, time: Time): Time {
-	const rect = (e.target as HTMLElement).getBoundingClientRect()
-	const mousePositionRelativeToRectHeight = Math.abs(rect.top - e.clientY)
-	if (mousePositionRelativeToRectHeight > rect.height / 2) return new Time(time.hour, time.minute + 30)
-	return time
 }
