@@ -5,9 +5,9 @@ import { calendarWeek } from "../../gui/CalendarGuiUtils"
 import { HeaderComponent, HeaderComponentAttrs } from "./HeaderComponent"
 import { TimeColumn, TimeColumnAttrs } from "../../../../common/calendar/gui/TimeColumn"
 import { Time } from "../../../../common/calendar/date/Time"
-import { size } from "../../../../common/gui/size"
+import { px, size } from "../../../../common/gui/size"
 import { PageView } from "../../../../common/gui/base/PageView"
-import { EventConflictRenderPolicy, TimeView, TimeViewAttributes } from "../../../../common/calendar/gui/TimeView"
+import { getSubRowAsMinutes, TimeRange, TimeScale, TimeView, TimeViewAttributes } from "../../../../common/calendar/gui/TimeView"
 import { EventWrapper } from "../CalendarViewModel"
 
 interface PageAttrs {
@@ -30,20 +30,15 @@ interface BodyComponentAttrs {
 }
 
 export interface CalendarViewComponentAttrs {
-	/**
-	 * Define header attrs
-	 */
 	headerComponentAttrs?: HeaderComponentAttrs
 	bodyComponentAttrs: BodyComponentAttrs
+	cellActionHandlers: TimeViewAttributes["cellActionHandlers"]
 }
 
 export class CalendarViewComponent implements ClassComponent<CalendarViewComponentAttrs> {
+	private timeRowHeight = 0
+
 	view({ attrs }: Vnode<CalendarViewComponentAttrs>) {
-		console.log("Evs", {
-			current: attrs.bodyComponentAttrs.current,
-			previous: attrs.bodyComponentAttrs.previous,
-			next: attrs.bodyComponentAttrs.next,
-		})
 		const classes = [styles.isDesktopLayout() ? "content-bg" : "nav-bg", styles.isDesktopLayout() ? "border-bottom" : ""].join(" ")
 		const renderHeader = () => {
 			const children: Children = []
@@ -80,8 +75,15 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		}
 
 		const renderBody = () => {
+			const timeScale: TimeScale = 1 // FIXME add support to smooth/continuous zoom,
+			const timeRange = {
+				start: new Time(0, 0),
+				end: new Time(23, 0),
+			}
+			const subRowAsMinutes = getSubRowAsMinutes(timeScale)
+
 			return m(
-				".grid.overflow-x-hidden",
+				".grid.overflow-x-hidden.rel",
 				{
 					style: {
 						gridColumn: "1/-1",
@@ -93,14 +95,14 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						".content-bg.border-radius-top-left-big",
 						{ style: { gridArea: "timeColumn" } },
 						m(TimeColumn, {
-							timeRange: {
-								start: new Time(0, 0),
-								end: new Time(23, 0),
-							},
-							timeScale: 1, // FIXME add support to smooth/continuous zoom,
+							baseDate: attrs.headerComponentAttrs?.selectedDate,
+							timeRange,
+							timeScale,
 							width: styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile,
+							onCellPressed: attrs.cellActionHandlers?.onCellPressed,
 						} satisfies TimeColumnAttrs),
 					),
+					this.renderCurrentTimeIndicator(Time.fromDate(new Date()), timeRange, subRowAsMinutes, this.timeRowHeight),
 					m(
 						".content-bg.border-radius-top-right-big",
 						{ style: { gridArea: "calendarGrid" } },
@@ -108,15 +110,30 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 							classes: "height-100p",
 							previousPage: {
 								key: attrs.bodyComponentAttrs.previous.key,
-								nodes: this.renderEventGrid(attrs.bodyComponentAttrs.previous.dates, attrs.bodyComponentAttrs.previous.events.short),
+								nodes: this.renderEventGrid(
+									timeRange,
+									attrs.bodyComponentAttrs.previous.dates,
+									attrs.bodyComponentAttrs.previous.events.short,
+									attrs.cellActionHandlers,
+								),
 							},
 							currentPage: {
 								key: attrs.bodyComponentAttrs.current.key,
-								nodes: this.renderEventGrid(attrs.bodyComponentAttrs.current.dates, attrs.bodyComponentAttrs.current.events.short),
+								nodes: this.renderEventGrid(
+									timeRange,
+									attrs.bodyComponentAttrs.current.dates,
+									attrs.bodyComponentAttrs.current.events.short,
+									attrs.cellActionHandlers,
+								),
 							},
 							nextPage: {
 								key: attrs.bodyComponentAttrs.next.key,
-								nodes: this.renderEventGrid(attrs.bodyComponentAttrs.next.dates, attrs.bodyComponentAttrs.next.events.short),
+								nodes: this.renderEventGrid(
+									timeRange,
+									attrs.bodyComponentAttrs.next.dates,
+									attrs.bodyComponentAttrs.next.events.short,
+									attrs.cellActionHandlers,
+								),
 							},
 							onChangePage: (next) => attrs.bodyComponentAttrs.onChangePage(next),
 						}),
@@ -146,17 +163,41 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		)
 	}
 
-	private renderEventGrid(dates: Array<Date>, events: Array<EventWrapper>) {
+	/**
+	 * Renders a TimeIndicator line in the screen over the event grid
+	 * @param timeRange Time range for the day, usually from 00:00 till 23:00
+	 * @param subRowAsMinutes How many minutes a Grid row represents
+	 * @param time Time where to position the indicator
+	 * @param timeRowHeight
+	 * @private
+	 */
+	private renderCurrentTimeIndicator(time: Time, timeRange: TimeRange, subRowAsMinutes: number, timeRowHeight?: number): Children {
+		const startTimeSpan = timeRange.start.diff(time)
+		const start = Math.floor(startTimeSpan / subRowAsMinutes)
+
+		return m(".time-indicator.z3", {
+			style: {
+				top: px((timeRowHeight ?? 0) * start),
+				display: timeRowHeight == null ? "none" : "initial",
+				gridArea: "calendarGrid",
+			} satisfies Partial<CSSStyleDeclaration>,
+		})
+	}
+
+	private renderEventGrid(
+		timeRange: TimeRange,
+		dates: Array<Date>,
+		events: Array<EventWrapper>,
+		cellActionHandlers: TimeViewAttributes["cellActionHandlers"],
+	) {
 		return m(TimeView, {
-			timeRange: {
-				start: new Time(0, 0),
-				end: new Time(23, 0),
-			},
+			timeRange,
 			timeScale: 1,
 			dates,
-			conflictRenderPolicy: EventConflictRenderPolicy.PARALLEL,
 			events,
-			timeIndicator: Time.fromDate(new Date()),
+			cellActionHandlers,
+			timeRowHeight: this.timeRowHeight,
+			setTimeRowHeight: (timeViewHeight: number) => (this.timeRowHeight = timeViewHeight),
 		} satisfies TimeViewAttributes)
 	}
 }

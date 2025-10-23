@@ -75,11 +75,38 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 
+/**
+ * Wraps a CalendarEvent with display metadata for UI rendering.
+ * Separates event data from presentation concerns.
+ */
 export interface EventWrapper {
+	/** The core calendar event instance */
 	event: CalendarEvent
+
+	/**
+	 * Pending invitation event.
+	 * Rendered with reduced opacity, borders, and limited interactions.
+	 */
 	isGhost: boolean
+
+	/**
+	 * Emphasized event to draw attention.
+	 * Styled with icon, borders, and a success semantic color (ignores calendar color).
+	 */
 	isFeatured: boolean
+
+	/**
+	 * Event overlaps with other events.
+	 * Styled with icon, border, and a warning semantic color (ignores calendar color).
+	 */
 	isConflict: boolean
+
+	/**
+	 * Event background color without '#' prefix.
+	 * 'Usually' sourced from the calendar this event belongs to.
+	 *
+	 * @example '4285F4'
+	 */
 	color: string
 }
 

@@ -1,12 +1,12 @@
-import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Child, ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized, getStartOfDay, getStartOfNextDay, mapNullable } from "@tutao/tutanota-utils"
+import { deepMemoized, getStartOfDay, getStartOfNextDay, mapNullable, noOp } from "@tutao/tutanota-utils"
 import { px, size } from "../../gui/size.js"
 import { Icon, IconSize } from "../../gui/base/Icon.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { theme } from "../../gui/theme.js"
 import { colorForBg } from "../../gui/base/GuiUtils.js"
-import { getTimeTextFormatForLongEvent, getTimeZone, hasAlarmsForTheUser, isBirthdayCalendar } from "../date/CalendarUtils"
+import { getTimeFromClickInteraction, getTimeTextFormatForLongEvent, getTimeZone, hasAlarmsForTheUser, isBirthdayCalendar } from "../date/CalendarUtils"
 import { TimeColumn } from "./TimeColumn"
 import { elementIdPart, listIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "luxon"
@@ -14,6 +14,7 @@ import { CalendarEventBubble } from "../../../calendar-app/calendar/view/Calenda
 import { formatEventTime } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { locator } from "../../api/main/CommonLocator"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
+import { DefaultAnimationTime } from "../../gui/animation/Animations"
 
 export const TIME_SCALE_BASE_VALUE = 60
 export type TimeScale = 1 | 2 | 4
@@ -22,21 +23,17 @@ export type TimeRange = {
 	start: Time
 	end: Time
 }
-
-export enum EventConflictRenderPolicy {
-	OVERLAP,
-	PARALLEL,
-}
+export const SUBROWS_PER_INTERVAL = 12
 
 export interface TimeViewAttributes {
 	dates: Array<Date>
 	events: Array<EventWrapper>
 	timeScale: TimeScale
 	timeRange: TimeRange
-	conflictRenderPolicy: EventConflictRenderPolicy
-	timeIndicator?: Time
+	timeRowHeight: number
+	setTimeRowHeight: (timeRowHeight: number) => void
 	hasAnyConflict?: boolean
-	hoverEffect?: boolean
+	cellActionHandlers?: Pick<CellAttrs, "onCellPressed" | "onCellContextMenuPressed">
 }
 
 /**
@@ -89,18 +86,29 @@ export interface ColumnData {
 	events: Map<Id, RowBounds>
 }
 
-const SUBROWS_PER_INTERVAL = 12
+export type CellActionHandler = (baseDate: Date, time: Time) => unknown
+
+interface CellAttrs {
+	baseDate: Date
+	time: Time
+	rowBounds: RowBounds
+	onCellPressed?: CellActionHandler
+	onCellContextMenuPressed?: CellActionHandler
+}
+
+export const getSubRowAsMinutes = deepMemoized((timeScale: TimeScale) => {
+	return TIME_SCALE_BASE_VALUE / timeScale / SUBROWS_PER_INTERVAL
+})
 
 export class TimeView implements Component<TimeViewAttributes> {
-	private timeRowHeight?: number
 	private parentHeight?: number
-	private columnCount: number = 0
+	private columnCount: Map<number, number> = new Map()
 
 	view({ attrs }: Vnode<TimeViewAttributes>) {
-		const { timeScale, timeRange, events, conflictRenderPolicy, dates, timeIndicator, hasAnyConflict } = attrs
+		const { timeScale, timeRange, events, dates, hasAnyConflict } = attrs
 		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(attrs.timeScale, attrs.timeRange)
 		const subRowCount = SUBROWS_PER_INTERVAL * timeColumnIntervals.length
-		const subRowAsMinutes = TIME_SCALE_BASE_VALUE / timeScale / SUBROWS_PER_INTERVAL
+		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
 
 		return m(
 			".grid.overflow-hidden.height-100p",
@@ -108,20 +116,21 @@ export class TimeView implements Component<TimeViewAttributes> {
 				style: {
 					"overflow-x": "hidden",
 					"grid-template-columns": `repeat(${dates.length}, 1fr)`,
+					transition: `opacity ${DefaultAnimationTime}ms linear`,
+					opacity: this.parentHeight == null ? 0 : 1,
 				},
 				oninit: (vnode: VnodeDOM) => {
-					if (this.timeRowHeight == null) {
+					if (this.parentHeight == null) {
 						window.requestAnimationFrame(() => {
 							const domHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replace("px", ""))
-							this.timeRowHeight = domHeight / subRowCount
 							this.parentHeight = domHeight
+							attrs.setTimeRowHeight(domHeight / subRowCount)
 							m.redraw()
 						})
 					}
 				},
 			},
 			[
-				this.buildTimeIndicator(timeRange, subRowAsMinutes, timeIndicator),
 				dates.map((date) => {
 					const startOfTomorrow = getStartOfNextDay(date)
 					const startOfDay = getStartOfDay(date)
@@ -131,7 +140,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 					)
 
 					return m(
-						".grid.plr-unit.gap.z1.grid-auto-columns.rel.border-right",
+						".grid.plr-unit.gap.z1.grid-auto-columns.rel.border-right.min-width-0",
 						{
 							style: {
 								height: this.parentHeight ? px(this.parentHeight) : undefined,
@@ -141,36 +150,19 @@ export class TimeView implements Component<TimeViewAttributes> {
 							},
 						},
 						[
-							// this.renderCells(timeScale, timeRange),
-							this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date),
+							this.renderInteractableCells(
+								date,
+								timeScale,
+								timeRange,
+								attrs.cellActionHandlers?.onCellPressed,
+								attrs.cellActionHandlers?.onCellContextMenuPressed,
+							),
+							this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date, attrs.timeRowHeight),
 						],
 					)
 				}),
 			],
 		)
-	}
-
-	/**
-	 * Renders a TimeIndicator line in the screen over the event grid
-	 * @param timeRange Time range for the day, usually from 00:00 till 23:00
-	 * @param subRowAsMinutes How many minutes a Grid row represents
-	 * @param time Time where to position the indicator
-	 * @private
-	 */
-	private buildTimeIndicator(timeRange: TimeRange, subRowAsMinutes: number, time?: Time): Children {
-		if (!time) {
-			return null
-		}
-
-		const startTimeSpan = timeRange.start.diff(time)
-		const start = Math.floor(startTimeSpan / subRowAsMinutes)
-
-		return m(".time-indicator.z3", {
-			style: {
-				top: px((this.timeRowHeight ?? 0) * start),
-				display: this.timeRowHeight == null ? "none" : "initial",
-			},
-		})
 	}
 
 	/**
@@ -183,7 +175,14 @@ export class TimeView implements Component<TimeViewAttributes> {
 	 * @private
 	 */
 	private renderEventsAtDate = deepMemoized(
-		(eventsForThisDate: Array<EventWrapper>, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date): Children => {
+		(
+			eventsForThisDate: Array<EventWrapper>,
+			timeRange: TimeRange,
+			subRowAsMinutes: number,
+			timeScale: TimeScale,
+			baseDate: Date,
+			timeRowHeight: number,
+		): Children => {
 			const interval = TIME_SCALE_BASE_VALUE / timeScale
 			const timeRangeAsDate = {
 				start: timeRange.start.toDate(baseDate),
@@ -202,7 +201,8 @@ export class TimeView implements Component<TimeViewAttributes> {
 				return b.event.endTime.getTime() - a.event.endTime.getTime()
 			})
 
-			const gridData = TimeView.layoutEvents(orderedEvents, timeRange, subRowAsMinutes, timeScale, baseDate)
+			const { grid, gridColumnSize } = TimeView.layoutEvents(orderedEvents, timeRange, subRowAsMinutes, timeScale, baseDate)
+			this.columnCount.set(baseDate.getTime(), gridColumnSize)
 
 			return orderedEvents.flatMap((eventWrapper) => {
 				const passesThroughToday =
@@ -219,7 +219,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 					return []
 				}
 
-				const evData = gridData.get(elementIdPart(eventWrapper.event._id))
+				const evData = grid.get(elementIdPart(eventWrapper.event._id))
 				if (!evData) {
 					return []
 				}
@@ -284,7 +284,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 									border: `2px dashed #${eventWrapper.color}`,
 									click: (domEvent) => console.log("click"),
 									keyDown: (domEvent) => console.log("keyDown", domEvent),
-									height: (end - start) * (this.timeRowHeight ?? 1),
+									height: (end - start) * (timeRowHeight ?? 1),
 									hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, eventWrapper.event),
 									isAltered: eventWrapper.event.recurrenceId != null,
 									verticalPadding: size.calendar_day_event_padding,
@@ -325,7 +325,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 		const columns = TimeView.packEventsIntoColumns(eventsMap)
 
 		// Step 3: Expand events to fill available horizontal space
-		return TimeView.buildGridDataWithExpansion(columns)
+		return { grid: TimeView.buildGridDataWithExpansion(columns), gridColumnSize: columns.length }
 	}
 
 	/**
@@ -456,26 +456,63 @@ export class TimeView implements Component<TimeViewAttributes> {
 		return { start, end }
 	}
 
-	private renderCells(timeScale: TimeScale, timeRange: TimeRange): Children {
+	private renderInteractableCells(
+		baseDate: Date,
+		timeScale: TimeScale,
+		timeRange: TimeRange,
+		onCellPressed?: CellActionHandler,
+		onCellContextMenuPressed?: CellActionHandler,
+	): Children {
 		let timeIntervalInMinutes = TIME_SCALE_BASE_VALUE / timeScale
 		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeIntervalInMinutes) / timeIntervalInMinutes
 
 		const children: Children = []
 		for (let hourIndex = 0; hourIndex < numberOfIntervals; hourIndex++) {
-			const rowBoundStart = hourIndex * SUBROWS_PER_INTERVAL + 1
-			const rowBoundEnd = rowBoundStart + SUBROWS_PER_INTERVAL
+			const startTime: Time = Time.fromMinutes(hourIndex * timeIntervalInMinutes)
+			const rowStart = hourIndex * SUBROWS_PER_INTERVAL + 1
+			const rowEnd = rowStart + SUBROWS_PER_INTERVAL
+
 			children.push(
-				m(".z1.w-full", {
-					style: {
-						gridRow: `${rowBoundStart} / span ${SUBROWS_PER_INTERVAL}`,
-						gridColumn: `1 / span ${this.columnCount}`,
-						background: "red",
+				this.renderCell({
+					baseDate,
+					time: startTime,
+					rowBounds: {
+						start: rowStart,
+						end: rowEnd,
 					},
-					click: () => console.log("Cell click"),
+					onCellPressed,
+					onCellContextMenuPressed,
 				}),
 			)
 		}
 
 		return children
+	}
+
+	private renderCell(cellAttrs: CellAttrs): Child {
+		const showHoverEffect = cellAttrs.onCellPressed || cellAttrs.onCellContextMenuPressed
+		const classes = showHoverEffect ? "interactable-cell cursor-pointer" : ""
+
+		return m(".z1", {
+			class: classes,
+			style: {
+				gridRow: `${cellAttrs.rowBounds.start} / ${cellAttrs.rowBounds.end}`,
+				gridColumn: `1 / span ${this.columnCount.get(cellAttrs.baseDate.getTime()) ?? 1}`,
+			} satisfies Partial<CSSStyleDeclaration>,
+			onclick: cellAttrs.onCellPressed
+				? (e: MouseEvent) => {
+						e.stopImmediatePropagation()
+						const eventBaseTime = getTimeFromClickInteraction(e, cellAttrs.time)
+						cellAttrs.onCellPressed?.(cellAttrs.baseDate, eventBaseTime)
+					}
+				: noOp,
+			oncontextmenu: cellAttrs.onCellContextMenuPressed
+				? (e: MouseEvent) => {
+						e.preventDefault()
+						const eventBaseTime = getTimeFromClickInteraction(e, cellAttrs.time)
+						cellAttrs.onCellContextMenuPressed?.(cellAttrs.baseDate, eventBaseTime)
+					}
+				: null,
+		})
 	}
 }
