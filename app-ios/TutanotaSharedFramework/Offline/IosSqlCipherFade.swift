@@ -23,19 +23,27 @@ public actor IosSqlCipherFacade: SqlCipherFacade {
 	}
 
 	public func run(_ query: String, _ params: [TaggedSqlValue]) async throws {
+		let activity = ProcessInfo.processInfo.beginActivity(reason: "SqlCipherFacadeRun")
 		let prepped = try self.getDb().prepare(query: query)
 		try! prepped.bindParams(params).run()
+		ProcessInfo.processInfo.endActivity(activity)
 		return
 	}
 
 	public func get(_ query: String, _ params: [TaggedSqlValue]) async throws -> [String: TaggedSqlValue]? {
+		let backgroundTaskID = ProcessInfo.processInfo.beginActivity(reason: "SqlCipherFacadeGet")
 		let prepped = try self.getDb().prepare(query: query)
-		return try! prepped.bindParams(params).get()?.tag()
+		let resp = try! prepped.bindParams(params).get()?.tag()
+		ProcessInfo.processInfo.endActivity(backgroundTaskID)
+		return resp
 	}
 
 	public func all(_ query: String, _ params: [TaggedSqlValue]) async throws -> [[String: TaggedSqlValue]] {
+		let backgroundTaskID = ProcessInfo.processInfo.beginActivity(reason: "SqlCipherFacadeAll")
 		let prepped = try self.getDb().prepare(query: query)
-		return try! prepped.bindParams(params).all().map { $0.tag() }
+		let resp = try! prepped.bindParams(params).all().map { $0.tag() }
+		ProcessInfo.processInfo.endActivity(backgroundTaskID)
+		return resp
 	}
 
 	public func openDb(_ userId: String, _ dbKey: DataWrapper) async throws { self.db = try TutanotaSharedFramework.openDb(userId: userId, dbkey: dbKey.data) }
