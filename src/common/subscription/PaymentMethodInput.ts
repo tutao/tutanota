@@ -25,6 +25,10 @@ import { BaseButton } from "../gui/base/buttons/BaseButton.js"
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
  */
 export class PaymentMethodInput {
+	public set onConnectPaypal(value: () => any) {
+		this._onConnectPaypal = value
+	}
+
 	private readonly ccViewModel: CCViewModel
 	_payPalAttrs: PaypalAttrs
 	_selectedCountry: Stream<Country | null>
@@ -34,6 +38,7 @@ export class PaymentMethodInput {
 	_entityEventListener: EntityEventsListener
 	private __paymentPaypalTest?: UsageTest
 	private isBankTransferAllowed: boolean
+	private _onConnectPaypal: (() => any) | undefined
 
 	constructor(
 		subscriptionOptions: SelectedSubscriptionOptions,
@@ -60,6 +65,10 @@ export class PaymentMethodInput {
 						this.__paymentPaypalTest?.getStage(2).complete()
 						this._accountingInfo = accountingInfo
 						this._payPalAttrs.accountingInfo = accountingInfo
+						console.count("trigger paypal connect")
+						if (this._onConnectPaypal) {
+							this._onConnectPaypal()
+						}
 						m.redraw()
 					})
 				}
