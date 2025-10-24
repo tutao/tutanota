@@ -10,12 +10,12 @@ import { UserSettingsGroupRootTypeRef } from "../../common/api/entities/tutanota
 import { getHourCycle } from "../../common/misc/Formatter"
 import { ThemeId, themeOptions, ThemePreference } from "../../common/gui/theme"
 import type { UpdatableSettingsViewer } from "./Interfaces.js"
-import { isDesktop } from "../../common/api/common/Env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "../../../libs/luxon.js"
 import { LockedError } from "../api/common/error/RestError"
+import { LanguageDropdown } from "../gui/LanguageDropdown"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null
@@ -39,42 +39,6 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		const actualLanguageItems: SelectorItemList<LanguageCode | null> = languageNative
-			.map((language) => {
-				return {
-					name: language.textName,
-					value: language.code,
-				}
-			})
-			.sort((l1, l2) => l1.name.localeCompare(l2.name))
-		const languageItems: SelectorItemList<LanguageCode | null> = actualLanguageItems.concat({
-			name: lang.get("automatic_label"),
-			value: null,
-		})
-
-		const languageDropDownAttrs: DropDownSelectorAttrs<LanguageCode | null> = {
-			label: "language_label",
-			items: languageItems,
-			// DropdownSelectorN uses `===` to compare items so if the language is not set then `undefined` will not match `null`
-			selectedValue: deviceConfig.getLanguage() || null,
-			selectionChangedHandler: async (value) => {
-				deviceConfig.setLanguage(value)
-				const newLanguage = value
-					? {
-							code: value,
-							languageTag: languageCodeToTag(value),
-						}
-					: getLanguage()
-				await lang.setLanguage(newLanguage)
-
-				if (isDesktop()) {
-					await locator.desktopSettingsFacade.changeLanguage(newLanguage.code, newLanguage.languageTag)
-				}
-
-				styles.updateStyle("main")
-				m.redraw()
-			},
-		}
 		const userSettingsGroupRoot = locator.logins.getUserController().userSettingsGroupRoot
 		const hourFormatDropDownAttrs: DropDownSelectorAttrs<TimeFormat> = {
 			label: "timeFormat_label",
@@ -128,7 +92,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		}
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
 			m("#devicesettings.h4.mt-l", lang.get("settingsForDevice_label")),
-			m("#language", m(DropDownSelector, languageDropDownAttrs)),
+			m("#language", m(LanguageDropdown, { variant: "TextField" })),
 			this._renderThemeSelector(),
 			this.renderScrollTimeSelector(),
 			m("#usersettings.h4.mt-l", lang.get("userSettings_label")),

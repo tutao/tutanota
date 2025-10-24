@@ -132,6 +132,7 @@ export interface ILoginViewModel {
 export class LoginViewModel implements ILoginViewModel {
 	readonly mailAddress: Stream<string>
 	readonly password: Stream<string>
+	skipPostLoginActions: boolean = false
 	displayMode: DisplayMode
 	state: LoginState
 	helpText: MaybeTranslation
@@ -399,7 +400,9 @@ export class LoginViewModel implements ILoginViewModel {
 		try {
 			const sessionType = savePassword ? SessionType.Persistent : SessionType.Login
 
-			const { credentials, databaseKey } = await this.loginController.createSession(mailAddress, password, sessionType)
+			const { credentials, databaseKey } = this.skipPostLoginActions
+				? await this.loginController.createPostSignupSession(mailAddress, password)
+				: await this.loginController.createSession(mailAddress, password, sessionType)
 			await this.onLogin()
 			// enforce app lock always, even if we don't access stored credentials
 			await this.appLock.enforce()
@@ -452,6 +455,10 @@ export class LoginViewModel implements ILoginViewModel {
 
 	private async onLogin(): Promise<void> {
 		this.helpText = "emptyString_msg"
+		// The viewmodel is memoized in the locator, so it can be reused. Under normal circumstances this won't happen
+		// after a successful login, but the model is still kept around. clearing the password is a bit of extra safety
+		// in case there's ever an issue where something gets access to app state after login.
+		this.password("")
 		this.state = LoginState.LoggedIn
 	}
 

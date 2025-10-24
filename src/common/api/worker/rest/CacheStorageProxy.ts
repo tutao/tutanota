@@ -93,7 +93,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 	}
 
 	async deInitialize(): Promise<void> {
-		this._inner?.deinit()
+		await this._inner?.deinit()
+		this._inner = null
 	}
 
 	private async getStorage(

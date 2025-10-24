@@ -7,21 +7,21 @@ import { mapNullable } from "@tutao/tutanota-utils"
 import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
-
 import { showLogsDialog } from "./LogDialogUtils.js"
+import { LanguageDropdown } from "./LanguageDropdown"
 
 export function renderInfoLinks(): Children {
 	const privacyPolicyLink = getPrivacyStatementLink()
 	const imprintLink = getImprintLink()
+
 	return m(
 		".flex.col.mt-l",
 		m(
-			".flex.wrap.justify-center",
+			".flex.wrap.justify-center.gap-vpad",
 			!isApp() && privacyPolicyLink
 				? m(ExternalLink, {
 						href: privacyPolicyLink,
 						text: lang.get("privacyLink_label"),
-						class: "plr",
 						isCompanySite: true,
 						specialType: "privacy-policy",
 					})
@@ -30,11 +30,12 @@ export function renderInfoLinks(): Children {
 				? m(ExternalLink, {
 						href: imprintLink,
 						text: lang.get("imprint_label"),
-						class: "plr",
 						isCompanySite: true,
 						specialType: "license",
 					})
 				: null,
+
+			m(LanguageDropdown, { variant: "Link" }),
 		),
 		m(
 			".mt.mb.center.small.full-width",

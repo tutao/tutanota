@@ -1,4 +1,4 @@
-import m, { Children } from "mithril"
+import m, { Children, VnodeDOM } from "mithril"
 import { modal, ModalComponent } from "./Modal"
 import { animations, opacity, transform, TransformEnum } from "../animation/Animations"
 import { ease } from "../animation/Easing"
@@ -8,9 +8,7 @@ import type { ButtonAttrs } from "./Button.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
-import type { $Promisable, lazy, lazyAsync } from "@tutao/tutanota-utils"
-import { assertNotNull, delay, downcast, filterNull, makeSingleUse, neverNull, noOp, Thunk } from "@tutao/tutanota-utils"
-import { client } from "../../misc/ClientDetector"
+import { $Promisable, assertNotNull, delay, downcast, filterNull, lazy, lazyAsync, makeSingleUse, noOp, Thunk } from "@tutao/tutanota-utils"
 import { pureComponent } from "./PureComponent"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
@@ -19,6 +17,9 @@ import { AllIcons } from "./Icon.js"
 import { RowButton, RowButtonAttrs } from "./buttons/RowButton.js"
 import { AriaRole } from "../AriaUtils.js"
 import { BaseButton } from "./buttons/BaseButton"
+import { client } from "../../misc/ClientDetector"
+import { InputAttrs, SingleLineTextField } from "./SingleLineTextField"
+import { TextFieldType } from "./TextField"
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {
@@ -41,7 +42,7 @@ export interface DropdownButtonAttrs {
  * Renders small info message inside the dropdown.
  */
 const DropdownInfo = pureComponent<DropdownInfoAttrs>(({ center, bold, info }) => {
-	return m(".dropdown-info.text-break.selectable" + (center ? ".center" : "") + (bold ? ".b" : ""), info)
+	return m(".text-break.selectable.flex.button-height" + (center ? ".center.flex-center.items-center" : "") + (bold ? ".b" : ""), info)
 })
 export type DropdownChildAttrs = DropdownInfoAttrs | DropdownButtonAttrs
 
@@ -103,10 +104,12 @@ export class Dropdown implements ModalComponent {
 	private domInput: HTMLInputElement | null = null
 	private domContents: HTMLElement | null = null
 	private isFilterable: boolean = false
-	private maxHeight: number | null = null
-	private windowHeight: number = 0
+	private viewportHeight: number = 0
 	private closeHandler: Thunk | null = null
 	private focusedBeforeShown: HTMLElement | null = document.activeElement as HTMLElement
+	private _lastAppliedHeight?: number
+	private _renderDirection: "up" | "down" = "down"
+	private _initialInnerHeight = 0
 
 	constructor(lazyChildren: lazy<ReadonlyArray<DropdownChildAttrs | null>>, width: number) {
 		this.children = []
@@ -136,23 +139,19 @@ export class Dropdown implements ModalComponent {
 
 		const inputField = () => {
 			return this.isFilterable
-				? m(
-						"input.input.dropdown-bar.elevated-bg.doNotClose.button-height.button-min-height.pr-s",
-						{
-							placeholder: lang.get("typeToFilter_label"),
-							oncreate: (vnode) => {
-								this.domInput = downcast<HTMLInputElement>(vnode.dom)
-								this.domInput.value = this.filterString
-							},
-							oninput: () => {
-								this.filterString = neverNull(this.domInput).value
-							},
-							style: {
-								paddingLeft: px(size.hpad_large * 2),
-							},
+				? m(SingleLineTextField, {
+						placeholder: lang.get("typeToFilter_label"),
+						oncreate: (vnode: VnodeDOM<InputAttrs<TextFieldType.Text>>) => {
+							this.domInput = downcast<HTMLInputElement>(vnode.dom)
+							this.domInput.value = this.filterString
 						},
-						this.filterString,
-					)
+						oninput: (newValue) => {
+							this.filterString = newValue
+						},
+						value: this.filterString,
+						ariaLabel: "filter",
+						type: TextFieldType.Text,
+					} satisfies InputAttrs<TextFieldType.Text>)
 				: null
 		}
 
@@ -160,6 +159,17 @@ export class Dropdown implements ModalComponent {
 			const showingIcons = this.children.some((c) => "icon" in c && typeof c.icon !== "undefined")
 			// We need to set the height to the height of the parent which already has the calculated and measured height, otherwise this element might
 			// overflow the parent (the overall dropdown container) when there's not enough vertical space to display all items
+
+			const visibleChildren = this.visibleChildren().map((child) => {
+				if (isDropDownInfo(child)) {
+					return m(DropdownInfo, child)
+				} else {
+					return Dropdown.renderDropDownButton(child, showingIcons)
+				}
+			})
+
+			if (this._renderDirection === "up") visibleChildren.reverse()
+
 			return m(
 				".dropdown-content.scroll",
 				{
@@ -167,35 +177,55 @@ export class Dropdown implements ModalComponent {
 					tabindex: TabIndex.Programmatic,
 					oncreate: (vnode) => {
 						this.domContents = vnode.dom as HTMLElement
+						if (this.origin != null) {
+							const upperSpace = this.origin.top - getSafeAreaInsetTop()
+							const lowerSpace = window.innerHeight - this.origin.bottom - getSafeAreaInsetBottom()
+							this._renderDirection = lowerSpace > upperSpace ? "down" : "up"
+						}
+						this._initialInnerHeight = window.innerHeight
 					},
 					onupdate: (vnode) => {
-						const firstRender = this.maxHeight == null
-						if (firstRender || this.windowHeight !== window.innerHeight) {
-							const children = Array.from(vnode.dom.children) as Array<HTMLElement>
-							// In case we have filtered but we need to resize the dropdown we keep the original height before the filter, otherwise we will show the dropdown with
-							// incorrect height.
-							this.maxHeight = this.maxHeight ?? children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
-							this.windowHeight = window.innerHeight
+						const children = Array.from(vnode.dom.children) as Array<HTMLElement>
 
-							if (this.origin) {
-								// The dropdown-content element is added to the dom has a hidden element first.
-								// The maxHeight is available after the first onupdate call. Then this promise will resolve and we can safely
-								// show the dropdown.
-								// Modal always schedules redraw in oncreate() of a component so we are guaranteed to have onupdate() call.
-								if (firstRender) {
-									showDropdown(this.origin, assertNotNull(this.domDropdown), this.maxHeight, this.width).then(() => {
-										const firstButton = vnode.dom.getElementsByTagName("button").item(0)
-										if (this.domInput && !client.isMobileDevice()) {
-											this.domInput.focus()
-										} else if (firstButton !== null) {
-											firstButton.focus()
-										} else {
-											this.domContents?.focus()
-										}
-									})
-								} else {
-									showDropdown(this.origin, assertNotNull(this.domDropdown), this.maxHeight, this.width, undefined, false)
-								}
+						const rawBodyHeight = children.reduce((acc, el) => acc + el.offsetHeight, 0)
+
+						const filterH = this.getFilterHeight()
+						const MIN_BODY_HEIGHT = size.button_height
+						const panelHeight = filterH + Math.max(rawBodyHeight, MIN_BODY_HEIGHT)
+
+						const firstRender = this._lastAppliedHeight == null
+						const heightChanged = this._lastAppliedHeight !== panelHeight
+						const newViewportHeight = Math.round(visualViewport?.height ?? 0)
+						const viewportChanged = this.viewportHeight !== newViewportHeight
+						this.viewportHeight = newViewportHeight
+
+						if (this._renderDirection === "up") {
+							const buttons = (vnode.dom as HTMLElement).getElementsByTagName("button")
+							const firstButton = buttons.item(buttons.length - 1)
+							firstButton?.scrollIntoView(false)
+						}
+
+						if (this.origin && (firstRender || heightChanged || viewportChanged)) {
+							const keyboardHeight = this._initialInnerHeight - newViewportHeight
+							const animate = firstRender ? undefined : false
+							const isOriginHiddenByKb = keyboardHeight > this._initialInnerHeight - this.origin.bottom
+							const translateY = isOriginHiddenByKb ? -keyboardHeight : 0
+							const p = showDropdown(this.origin, assertNotNull(this.domDropdown), panelHeight, this.width, undefined, animate, translateY)
+							this._lastAppliedHeight = panelHeight
+
+							if (firstRender) {
+								p.then((renderDirection) => {
+									this._renderDirection = renderDirection
+									const buttons = (vnode.dom as HTMLElement).getElementsByTagName("button")
+									const firstButton = buttons.item(renderDirection === "down" ? 0 : buttons.length - 1)
+									if (this.domInput && !client.isMobileDevice()) {
+										this.domInput.focus()
+									} else if (firstButton !== null) {
+										firstButton.focus()
+									} else {
+										this.domContents?.focus()
+									}
+								})
 							}
 						}
 					},
@@ -205,17 +235,11 @@ export class Dropdown implements ModalComponent {
 						ev.redraw = this.domContents != null && target.scrollTop < 0 && target.scrollTop + this.domContents.offsetHeight > target.scrollHeight
 					},
 					style: {
-						top: px(this.getFilterHeight()),
-						bottom: 0,
+						top: this._renderDirection === "down" ? px(this.getFilterHeight()) : 0,
+						bottom: this._renderDirection === "down" ? 0 : px(this.getFilterHeight()),
 					},
 				},
-				this.visibleChildren().map((child) => {
-					if (isDropDownInfo(child)) {
-						return m(DropdownInfo, child)
-					} else {
-						return Dropdown.renderDropDownButton(child, showingIcons)
-					}
-				}),
+				visibleChildren,
 			)
 		}
 		const closeBtn = () => {
@@ -231,7 +255,7 @@ export class Dropdown implements ModalComponent {
 
 		this.view = (): Children => {
 			return m(
-				".dropdown-panel.elevated-bg.border-radius.dropdown-shadow.fit-content.flex-column.flex-start",
+				".dropdown-panel.elevated-bg.dropdown-shadow.fit-content.flex-column.flex-center",
 				{
 					oncreate: (vnode) => {
 						this.domDropdown = vnode.dom as HTMLElement
@@ -245,7 +269,7 @@ export class Dropdown implements ModalComponent {
 					},
 					"data-testid": "dropdown:menu",
 				},
-				[inputField(), contents(), closeBtn()],
+				this._renderDirection === "down" ? [inputField(), contents(), closeBtn()] : [closeBtn(), contents(), inputField()],
 			)
 		}
 	}
@@ -371,7 +395,7 @@ export class Dropdown implements ModalComponent {
 	}
 
 	private visibleChildren(): Array<DropdownChildAttrs> {
-		return this.children.filter((b) => {
+		const results = this.children.filter((b) => {
 			if (isDropDownInfo(b)) {
 				return b.info.includes(this.filterString.toLowerCase())
 			} else if (this.isFilterable) {
@@ -381,10 +405,20 @@ export class Dropdown implements ModalComponent {
 				return true
 			}
 		})
+
+		if (results.length === 0) {
+			results.push({
+				info: lang.getTranslationText("searchNoResults_msg"),
+				center: true,
+				bold: true,
+			} satisfies DropdownChildAttrs)
+		}
+
+		return results
 	}
 
 	private getFilterHeight(): number {
-		return this.isFilterable ? size.button_height + size.vpad_xs : 0
+		return this.domInput?.offsetHeight ?? 0
 	}
 }
 
@@ -525,7 +559,8 @@ export function showDropdown(
 	contentWidth: number,
 	position?: "top" | "bottom",
 	animation?: boolean,
-): Promise<unknown> {
+	translateY: number = 0,
+): Promise<"up" | "down"> {
 	// |------------------|    |------------------|    |------------------|    |------------------|
 	// |                  |    |                  |    |                  |    |                  |
 	// |      |-------|   |    |  |-------|       |    |  |-----------^   |    |  ^-----------|   |
@@ -544,10 +579,10 @@ export function showDropdown(
 	// If the dropdown width does not fit from its calculated starting position we open it from the edge of the screen.
 	const leftEdgeOfElement = origin.left
 	const rightEdgeOfElement = origin.right
-	const bottomEdgeOfElement = origin.bottom
-	const topEdgeOfElement = origin.top
-	const upperSpace = origin.top - getSafeAreaInsetTop()
-	const lowerSpace = window.innerHeight - origin.bottom - getSafeAreaInsetBottom()
+	const bottomEdgeOfElement = origin.bottom + translateY
+	const topEdgeOfElement = origin.top + translateY
+	const upperSpace = topEdgeOfElement - getSafeAreaInsetTop()
+	const lowerSpace = window.innerHeight - bottomEdgeOfElement - getSafeAreaInsetBottom()
 	const leftSpace = origin.left
 	const rightSpace = window.innerWidth - origin.right
 	let transformOrigin = ""
@@ -566,7 +601,9 @@ export function showDropdown(
 		domDropdown.style.top = ""
 		// position bottom is defined from the bottom edge of the screen
 		// and not like the viewport origin which starts at top/left
-		domDropdown.style.bottom = px(window.innerHeight - topEdgeOfElement)
+		const bottom = window.innerHeight - topEdgeOfElement
+
+		domDropdown.style.bottom = px(bottom)
 		maxHeight = Math.min(contentHeight, upperSpace)
 	}
 
@@ -616,10 +653,14 @@ export function showDropdown(
 	domDropdown.style.height = px(maxHeight)
 	domDropdown.style.transformOrigin = transformOrigin
 	if (animation === false) {
-		return Promise.resolve()
+		return Promise.resolve(showBelow ? "down" : "up")
 	} else {
-		return animations.add(domDropdown, [opacity(0, 1, true), transform(TransformEnum.Scale, 0.5, 1)], {
-			easing: ease.out,
-		})
+		return animations
+			.add(domDropdown, [opacity(0, 1, true), transform(TransformEnum.Scale, 0.5, 1)], {
+				easing: ease.out,
+			})
+			.then(() => {
+				return showBelow ? "down" : "up"
+			})
 	}
 }

@@ -1,7 +1,7 @@
 import type { LoginController } from "../api/main/LoginController"
 import { Dialog } from "../gui/base/Dialog"
 import { generatedIdToTimestamp } from "../api/common/utils/EntityUtils"
-import type { MaybeTranslation } from "./LanguageViewModel"
+import { LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "./LanguageViewModel"
 import { lang } from "./LanguageViewModel"
 import {
 	AccessBlockedError,
@@ -191,6 +191,10 @@ export async function showSignupDialog(urlParams: Params) {
 	const registrationDataId = getRegistrationDataIdFromParams(urlParams)
 	const referralData = getReferralCodeFromParams(urlParams)
 	const availablePlans = getAvailablePlansFromSubscriptionParameters(subscriptionParams).filter(canSubscribeToPlan)
+	// We assume that if a user comes from our website for signup, the language selected on the website should take precedence over the browser language.
+	// As we initialize the language with the browser's one in the app.ts already, we try to overwrite it by the website language here.
+	const websiteLang = getWebsiteLangFromParams(urlParams)
+	if (websiteLang) lang.setLanguage(websiteLang)
 
 	await showProgressDialog(
 		"loading_msg",
@@ -206,6 +210,13 @@ export async function showSignupDialog(urlParams: Params) {
 			m.route.set("/signup")
 		}),
 	)
+}
+
+function getWebsiteLangFromParams(urlParams: Params): { code: LanguageCode; languageTag: string } | null {
+	if (typeof urlParams.websiteLang !== "string") return null
+	const code = urlParams.websiteLang
+	if (!Object.keys(LanguageNames).includes(code)) return null
+	return { code, languageTag: languageCodeToTag(code) }
 }
 
 function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): readonly AvailablePlanType[] {

@@ -30,6 +30,7 @@ export interface SelectMailAddressFormAttrs {
 	onDomainChanged: (domain: EmailDomainData) => unknown
 	mailAddressNAError?: TranslationKey
 	signupToken?: string
+	username?: string
 }
 
 export interface ValidationResult {
@@ -48,7 +49,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		this.lastAttrs = attrs
 		this.isVerificationBusy = false
 		this.checkAddressTimeout = null
-		this.username = ""
+		this.username = attrs.username ?? ""
 		this.messageId = "mailAddressNeutral_msg"
 	}
 
@@ -57,6 +58,10 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			this.verifyMailAddress(vnode.attrs)
 		}
 		this.lastAttrs = vnode.attrs
+	}
+
+	oncreate({ attrs }: Vnode<SelectMailAddressFormAttrs>) {
+		this.verifyMailAddress(attrs)
 	}
 
 	view({ attrs }: Vnode<SelectMailAddressFormAttrs>): Children {

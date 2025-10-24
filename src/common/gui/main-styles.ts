@@ -868,6 +868,7 @@ styles.registerStyle("main", () => {
 		".disabled-button": {
 			background: `${hexToRGBAString(theme.on_surface, 0.1)}`,
 			color: `${hexToRGBAString(theme.on_surface, 0.38)}`,
+			"pointer-events": "none",
 		},
 		".accent-bg": {
 			"background-color": theme.primary,
@@ -1920,6 +1921,7 @@ styles.registerStyle("main", () => {
 			width: 0,
 			height: 0,
 			overflow: "hidden", // while the dropdown is slided open we do not want to show the scrollbars. overflow-y is later overwritten to show scrollbars if necessary
+			"border-radius": px(size.border_radius_medium),
 		},
 		".dropdown-panel-scrollable": {
 			position: "absolute",
@@ -1929,12 +1931,6 @@ styles.registerStyle("main", () => {
 		},
 		".dropdown-panel.fit-content, .dropdown-panel.fit-content .dropdown-content": {
 			"min-width": "fit-content",
-		},
-		".dropdown-content:first-child": {
-			"padding-top": px(size.vpad_small),
-		},
-		".dropdown-content:last-child": {
-			"padding-bottom": px(size.vpad_small),
 		},
 		".dropdown-content, .dropdown-content > *": {
 			width: "100%",
