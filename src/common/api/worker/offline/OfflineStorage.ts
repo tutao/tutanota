@@ -46,9 +46,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { TypeModelResolver } from "../../common/EntityFunctions"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
-import { hasError } from "../../common/utils/ErrorUtils"
-import { SpamClassificationModel, SpamTrainMailDatum } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
-import { Mail } from "../../entities/tutanota/TypeRefs"
+import { ProgrammingError } from "../../common/error/ProgrammingError"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -490,6 +488,47 @@ export class OfflineStorage implements CacheStorage {
 		return await this.modelMapper.mapToInstances(typeRef, parsed)
 	}
 
+	/**
+	 * Should only be used for migrations
+	 * @param typeRef typeref of the element
+	 * @param field field to modify
+	 * @param callback function that takes the mapped value and returns the new value to be set on the field
+	 */
+	async setAllOnType<T extends ElementEntity, K extends keyof T>(typeRef: TypeRef<T>, field: K, callback: (element: T) => T[K]) {
+		const allElements = await this.getUnmappedElementsOfType(typeRef)
+		for (const e of allElements) {
+			const mapped = (await this.modelMapper.mapToInstance(typeRef, e)) as T
+			const newValue = callback(mapped)
+			const resolved = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+
+			let wasSet = false
+
+			for (const v of Object.values(resolved.values)) {
+				if (v.name === field) {
+					Object.assign(e, { [v.id]: newValue })
+					wasSet = true
+					break
+				}
+			}
+
+			if (!wasSet) {
+				for (const a of Object.values(resolved.associations)) {
+					if (a.name === field) {
+						Object.assign(e, { [a.id]: newValue })
+						wasSet = true
+						break
+					}
+				}
+			}
+
+			if (!wasSet) {
+				throw new ProgrammingError(`${field.toString()} not on type ${resolved.app}/${resolved.name}`)
+			}
+
+			await this.put(typeRef, e)
+		}
+	}
+
 	async put(typeRef: TypeRef<SomeEntity>, instance: ServerModelParsedInstance): Promise<void> {
 		const tm = syncMetrics?.beginMeasurement(Category.PutDb)
 		await this.putMultiple(typeRef, [instance])
@@ -755,14 +794,18 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
+		const parsedInstances = await this.getUnmappedElementsOfType(typeRef)
+		return await this.modelMapper.mapToInstances(typeRef, parsedInstances)
+	}
+
+	private async getUnmappedElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<ServerModelParsedInstance>> {
 		const { query, params } = sql`SELECT entity
                                     from element_entities
                                     WHERE type = ${getTypeString(typeRef)}`
 		const items = (await this.sqlCipherFacade.all(query, params)) ?? []
 
 		const instanceBytes = items.map((row) => row.entity.value as Uint8Array)
-		const parsedInstances = await this.deserializeList(instanceBytes)
-		return await this.modelMapper.mapToInstances(typeRef, parsedInstances)
+		return await this.deserializeList(instanceBytes)
 	}
 
 	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
