@@ -245,7 +245,7 @@ export class MailModel {
 							return { processingDone: Promise.resolve() }
 						} else if (
 							(isLeaderClient && mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED) ||
-							mail.processingState === ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING
+							(mail.processingState === ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING && mail.unread)
 						) {
 							const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 							if (sourceMailFolder && folderSystem) {
