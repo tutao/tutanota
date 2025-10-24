@@ -30,6 +30,11 @@ interface FileFacade {
 	 */
 	suspend fun openFolderChooser(
 	): String?
+	/**
+	 * Opens OS file picker for selecting either a file or folder for Email Import. Works only on macOS
+	 */
+	suspend fun openMacImportFileChooser(
+	): List<String>
 	suspend fun deleteFile(
 		file: String,
 	): Unit

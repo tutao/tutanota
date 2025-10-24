@@ -37,6 +37,11 @@
 			"arg": [],
 			"ret": "string?"
 		},
+		"openMacImportFileChooser": {
+			"doc": "Opens OS file picker for selecting either a file or folder for Email Import. Works only on macOS",
+			"arg": [],
+			"ret": "List<string>"
+		},
 		"deleteFile": {
 			"arg": [
 				{

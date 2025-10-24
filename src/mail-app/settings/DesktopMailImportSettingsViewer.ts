@@ -20,6 +20,7 @@ import { ColumnWidth, Table, TableLineAttrs } from "../../common/gui/base/Table.
 import { mailLocator } from "../mailLocator.js"
 import { formatDate } from "../../common/misc/Formatter.js"
 import { LoginButton, LoginButtonType } from "../../common/gui/base/buttons/LoginButton"
+import { client } from "../../common/misc/ClientDetector"
 
 /**
  * Settings viewer for mail import rendered only in the Desktop client.
@@ -59,7 +60,9 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		}
 
 		const allowedExtensions = ["eml", "mbox"]
-		const filePaths = await mailLocator.fileApp.openFileChooser(dom.getBoundingClientRect(), allowedExtensions, true)
+		const filePaths = client.isMacOS
+			? await mailLocator.fileApp.openMacImportFileChooser()
+			: await mailLocator.fileApp.openFileChooser(dom.getBoundingClientRect(), allowedExtensions, true)
 		await this.mailImporter().onStartBtnClick(filePaths.map((fp) => fp.location))
 	}
 

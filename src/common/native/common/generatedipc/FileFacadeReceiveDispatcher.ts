@@ -22,6 +22,9 @@ export class FileFacadeReceiveDispatcher {
 			case "openFolderChooser": {
 				return this.facade.openFolderChooser()
 			}
+			case "openMacImportFileChooser": {
+				return this.facade.openMacImportFileChooser()
+			}
 			case "deleteFile": {
 				const file: string = arg[0]
 				return this.facade.deleteFile(file)

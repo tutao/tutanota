@@ -32,6 +32,10 @@ public class FileFacadeReceiveDispatcher {
 			let result = try await self.facade.openFolderChooser(
 			)
 			return toJson(result)
+		case "openMacImportFileChooser":
+			let result = try await self.facade.openMacImportFileChooser(
+			)
+			return toJson(result)
 		case "deleteFile":
 			let file = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			try await self.facade.deleteFile(

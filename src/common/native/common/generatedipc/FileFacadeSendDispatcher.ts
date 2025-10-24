@@ -16,6 +16,9 @@ export class FileFacadeSendDispatcher implements FileFacade {
 	async openFolderChooser(...args: Parameters<FileFacade["openFolderChooser"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "openFolderChooser", ...args])
 	}
+	async openMacImportFileChooser(...args: Parameters<FileFacade["openMacImportFileChooser"]>) {
+		return this.transport.invokeNative("ipc", ["FileFacade", "openMacImportFileChooser", ...args])
+	}
 	async deleteFile(...args: Parameters<FileFacade["deleteFile"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "deleteFile", ...args])
 	}

@@ -23,6 +23,11 @@ export interface FileFacade {
 	 */
 	openFolderChooser(): Promise<string | null>
 
+	/**
+	 * Opens OS file picker for selecting either a file or folder for Email Import. Works only on macOS
+	 */
+	openMacImportFileChooser(): Promise<ReadonlyArray<string>>
+
 	deleteFile(file: string): Promise<void>
 
 	getName(file: string): Promise<string>
