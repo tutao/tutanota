@@ -646,6 +646,91 @@ o.spec("ModelMapperTransformations", function () {
 				_finalIvs: {},
 			} as any as ClientModelParsedInstance)
 		})
+		o("add One Value with default supplier on server should also supply default on client", async function () {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				const serverModel: Record<string, ServerTypeModel> = {
+					"42": {
+						app: "tutanota",
+						encrypted: true,
+						id: 42,
+						name: "TestType",
+						rootId: "SoMeId",
+						since: 0,
+						type: Type.ListElement,
+						isPublic: true,
+						values: {
+							"1": {
+								id: 1,
+								name: "testValue",
+								type: ValueType.String,
+								cardinality: Cardinality.One,
+								final: true,
+								encrypted: true,
+							},
+						},
+						associations: {},
+						version: 0,
+						versioned: false,
+					} as unknown as ServerTypeModel,
+				}
+				return serverModel[typeRef.typeId]
+			}
+
+			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+				const clientModel: Record<string, ClientTypeModel> = {
+					"42": {
+						app: "tutanota",
+						encrypted: true,
+						id: 42,
+						name: "TestType",
+						rootId: "SoMeId",
+						since: 0,
+						type: Type.ListElement,
+						isPublic: true,
+						values: {
+							"1": {
+								id: 1,
+								name: "testValue",
+								type: ValueType.String,
+								cardinality: Cardinality.One,
+								final: true,
+								encrypted: true,
+							},
+						},
+						associations: {},
+						version: 0,
+						versioned: false,
+					} as unknown as ClientTypeModel,
+				}
+				return clientModel[typeRef.typeId]
+			}
+			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
+
+			const modelMapper: ModelMapper = new ModelMapper(
+				clientModelResolver as ClientTypeReferenceResolver,
+				serverModelResolver as ServerTypeReferenceResolver,
+			)
+			// The instance in the offline storage (written when the value was not there for the server & client models)
+			const parsedInstance: ServerModelParsedInstance = {
+				_finalIvs: {},
+			} as any as ServerModelParsedInstance
+
+			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
+			removeOriginals(mappedInstance)
+			o(mappedInstance).deepEquals({
+				_type: TestTypeRef,
+				testValue: "",
+				_finalIvs: {},
+			} as any)
+			o(typeof mappedInstance._errors).equals("undefined")
+
+			// request is prepared with the client model and does not add One value
+			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
+			o(newParsedInstance).deepEquals({
+				1: "",
+				_finalIvs: {},
+			} as any as ClientModelParsedInstance)
+		})
 		o("add ZeroOrOne Value", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
 				const serverModel: Record<string, ServerTypeModel> = {

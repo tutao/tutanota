@@ -3,6 +3,7 @@ import {
 	base64ToBase64Url,
 	base64ToUint8Array,
 	downcast,
+	Nullable,
 	promiseMap,
 	stringToUtf8Uint8Array,
 	TypeRef,
@@ -13,7 +14,6 @@ import { AssociationType, Cardinality, Type, ValueType } from "../../common/Enti
 import { compress, uncompress } from "../Compression"
 import { ClientModelParsedInstance, Entity, ModelAssociation, ParsedAssociation, ParsedValue, ServerModelParsedInstance } from "../../common/EntityTypes"
 import { assertWorkerOrNode, isWebClient } from "../../common/Env"
-import { Nullable } from "@tutao/tutanota-utils"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { random } from "@tutao/tutanota-crypto"
 
@@ -191,6 +191,8 @@ export class ModelMapper {
 							throw new ProgrammingError("string sent by the server cannot be converted to a number")
 						}
 					}
+				} else if (parsedValue == null && serverType.cardinality === Cardinality.One) {
+					parsedValue = valueToDefault(serverType.type)
 				}
 				clientInstance[clientType.name] = assertCorrectValueCardinality(typeRef, attrIdStr, clientType.cardinality, parsedValue)
 			}
