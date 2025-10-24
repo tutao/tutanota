@@ -47,6 +47,11 @@ export class NativeFileApp {
 		return this.fileFacade.openFolderChooser()
 	}
 
+	async openMacImportFileChooser(): Promise<Array<FileReference>> {
+		const files = await this.fileFacade.openMacImportFileChooser()
+		return promiseMap(files, this.uriToFileRef.bind(this))
+	}
+
 	/**
 	 * Deletes the file.
 	 * @param  file The uri of the file to delete.
