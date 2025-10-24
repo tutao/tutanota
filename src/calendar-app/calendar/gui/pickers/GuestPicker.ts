@@ -110,7 +110,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 		return m(SingleLineTextField, {
 			classes: ["height-100p"],
 			value: this.value,
-			placeholder: lang.get("addGuest_label"),
+			placeholder: lang.getTranslationText(attrs.ariaLabel),
 			onclick: (e: MouseEvent) => {
 				e.stopImmediatePropagation()
 				if (!this.isExpanded && this.value.length > 0 && this.selectDOM) {

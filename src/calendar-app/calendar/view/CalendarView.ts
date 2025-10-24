@@ -116,8 +116,9 @@ import { calendarLocator } from "../../calendarLocator.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
 import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
-import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
+import { buildBulkCalendarSharingDialog, showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { UserController } from "../../../common/api/main/UserController"
+import { BulkCalendarSharing } from "../dialog/BulkCalendarSharing"
 
 export type GroupColors = Map<Id, string>
 
@@ -161,7 +162,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							!isApp() && styles.isDesktopLayout()
 								? {
 										label: "newEvent_action",
-										click: () => this.createNewEventDialog(),
+										click: () => this.showBulkShareDialog(),
 									}
 								: null,
 						content: [
@@ -1024,6 +1025,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				toggleHiddenCalendar: this.viewModel.toggleHiddenCalendar,
 				rightIcon: rightIconData,
 				actions: this.buildActions(calendarInfo, userController, existingGroupSettings),
+				classes: "plr-button ml-button",
 			} satisfies CalendarSidebarRowAttrs)
 		})
 	}
@@ -1044,6 +1046,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					click: () => this.onPressedEditBirthdayCalendar(calendarInfo),
 				},
 			],
+			classes: "plr-button ml-button",
 		} satisfies CalendarSidebarRowAttrs)
 	}
 
@@ -1509,5 +1512,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				getTimeZone(),
 			)
 		}
+	}
+
+	private async showBulkShareDialog() {
+		const dialog = await buildBulkCalendarSharingDialog()
+
+		dialog.show()
 	}
 }

@@ -718,6 +718,7 @@ export const enum ShareCapability {
 }
 
 export const SECOND_MS = 1000
+export const HALF_SECOND_MS = 500
 
 export const enum PostingType {
 	Generic = "0",

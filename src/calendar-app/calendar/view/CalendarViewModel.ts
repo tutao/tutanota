@@ -70,6 +70,10 @@ import { formatDate, formatTime } from "../../../common/misc/Formatter"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
+import { RecipientsSearchModel } from "../../../common/misc/RecipientsSearchModel"
+import { RecipientsModel } from "../../../common/api/main/RecipientsModel"
+import { GroupSharingModel } from "../../../common/sharing/model/GroupSharingModel"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 export type EventsOnDays = {
 	days: Array<Date>

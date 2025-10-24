@@ -29,6 +29,36 @@ import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js
 import { getMailAddressDisplayText } from "../../mailFunctionality/SharedMailUtils.js"
 import { IconButtonAttrs } from "../../gui/base/IconButton.js"
 import { KeyVerificationMismatchError } from "../../api/common/error/KeyVerificationMismatchError"
+import { BulkCalendarSharing } from "../../../calendar-app/calendar/dialog/BulkCalendarSharing"
+
+export async function buildBulkCalendarSharingDialog() {
+	const calendarMemberships = await locator.logins.getUserController().getCalendarMemberships()
+	const availableCalendars = (await locator.calendarModel()).getAvailableCalendars()
+	const recipientsModel = await locator.recipientsModel()
+	const recipientsSearchModel = await locator.recipientsSearchModel()
+
+	const groupSharingModelFactory = (groupInfo: GroupInfo) => {
+		return GroupSharingModel.newAsync(
+			groupInfo,
+			locator.eventController,
+			locator.entityClient,
+			locator.logins,
+			locator.mailFacade,
+			locator.shareFacade,
+			locator.groupManagementFacade,
+			recipientsModel,
+			locator.groupSettingsModel,
+		)
+	}
+
+	return BulkCalendarSharing.prepareBulkSharingDialog(
+		groupSharingModelFactory,
+		calendarMemberships,
+		availableCalendars,
+		recipientsSearchModel,
+		recipientsModel,
+	)
+}
 
 export async function showGroupSharingDialog(groupInfo: GroupInfo, allowGroupNameOverride: boolean) {
 	const groupType = downcast(assertNotNull(groupInfo.groupType))

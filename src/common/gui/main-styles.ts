@@ -587,6 +587,10 @@ styles.registerStyle("main", () => {
 			"padding-left": px(size.vpad),
 			"padding-right": px(size.vpad),
 		},
+		".plr-vpad-s": {
+			"padding-top": px(size.vpad_small),
+			"padding-bottom": px(size.vpad_small),
+		},
 		".pr-m": {
 			"padding-right": px(size.vpad),
 		},
@@ -1068,6 +1072,9 @@ styles.registerStyle("main", () => {
 		// Stretch editor a little bit more than parent so that the content is visible
 		".full-height": {
 			"min-height": client.isIos() ? "101%" : "100%",
+		},
+		".min-height-0": {
+			"min-height": 0,
 		},
 		".full-width": {
 			width: "100%",

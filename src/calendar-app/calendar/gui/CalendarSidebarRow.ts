@@ -17,12 +17,13 @@ export type CalendarSidebarRowAttrs = Omit<CalendarInfoBase, "type"> & {
 	toggleHiddenCalendar: (calendarId: string) => void
 	rightIcon?: CalendarSidebarRowIconData
 	actions: ReadonlyArray<DropdownChildAttrs>
+	classes: string
 }
 
 export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
 	view(vnode: Vnode<CalendarSidebarRowAttrs>) {
-		const { id, name, color, isHidden, toggleHiddenCalendar, rightIcon, actions } = vnode.attrs
-		return m(".folder-row.flex-start.plr-button", [
+		const { id, name, color, isHidden, toggleHiddenCalendar, rightIcon, actions, classes } = vnode.attrs
+		return m(".folder-row.flex-start", { class: classes }, [
 			m(".flex.flex-grow.center-vertically.button-height", [
 				m(".calendar-checkbox", {
 					role: "checkbox",
@@ -42,7 +43,6 @@ export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
 						background: isHidden ? "" : `#${color}`,
 						transition: "all 0.3s",
 						cursor: "pointer",
-						marginLeft: px(size.hpad_button),
 					},
 				}),
 				m(
@@ -66,15 +66,17 @@ export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
 						},
 					})
 				: null,
-			m(IconButton, {
-				title: "more_label",
-				colors: ButtonColor.Nav,
-				icon: Icons.More,
-				size: ButtonSize.Compact,
-				click: createDropdown({
-					lazyButtons: () => actions,
-				}),
-			}),
+			actions.length > 0
+				? m(IconButton, {
+						title: "more_label",
+						colors: ButtonColor.Nav,
+						icon: Icons.More,
+						size: ButtonSize.Compact,
+						click: createDropdown({
+							lazyButtons: () => actions,
+						}),
+					})
+				: null,
 		])
 	}
 }
