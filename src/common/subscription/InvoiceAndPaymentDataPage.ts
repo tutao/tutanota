@@ -24,8 +24,7 @@ import { getLazyLoadedPayPalUrl, getPreconditionFailedPaymentMsg, PaymentErrorCo
 import { Button, ButtonType } from "../gui/base/Button.js"
 import type { SegmentControlItem } from "../gui/base/SegmentControl"
 import { SegmentControl } from "../gui/base/SegmentControl"
-import type { WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
-import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog.js"
+import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../gui/base/WizardDialog.js"
 import type { Country } from "../api/common/CountryList"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { locator } from "../api/main/CommonLocator"
@@ -131,6 +130,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		const a = vnode.attrs
 
 		const onNextClick = () => {
+			console.count("onNextClick")
 			const invoiceDataInput = assertNotNull(this._invoiceDataInput)
 			const paymentMethodInput = assertNotNull(this._paymentMethodInput)
 			let error = invoiceDataInput.validateInvoiceData() || paymentMethodInput.validatePaymentData()
@@ -169,6 +169,10 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 						),
 				)
 			}
+		}
+
+		if (this._paymentMethodInput) {
+			this._paymentMethodInput.onConnectPaypal = onNextClick
 		}
 
 		return m(
