@@ -298,7 +298,7 @@ function renderMessage(x: number, y: number, width: number, height: number, colo
  * @return the SVG element of the generated QR code as a `string`
  */
 function renderQRCode(x: number, y: number, width: number, height: number, link: string): string {
-	const svg = new QRCode({
+	const svgFragment = new QRCode({
 		height,
 		width,
 		content: link,
@@ -310,9 +310,8 @@ function renderQRCode(x: number, y: number, width: number, height: number, link:
 		join: true,
 		pretty: false,
 	}).svg()
-	const qrCode = getHtmlSanitizer().sanitizeSVG(svg).html
 
-	return `<svg x="${x}" y="${y}" width="${width}" height="${height}">${qrCode}</svg>`
+	return getHtmlSanitizer().sanitizeSVG(`<svg x="${x}" y="${y}" width="${width}" height="${height}">${svgFragment}</svg>`).html
 }
 
 export function renderAcceptGiftCardTermsCheckbox(checked: boolean, onChecked: (checked: boolean) => void, classes?: string): Children {
