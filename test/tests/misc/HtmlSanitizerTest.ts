@@ -827,31 +827,27 @@ o.spec("HtmlSanitizer", function () {
 				o.check(result).equals(`<img src="https://tutanota.com/images/favicon/favicon.ico" style="max-width: 100%;">`)
 			})
 			o.test("svg tag not removed", function () {
-				const result = htmlSanitizer.sanitizeSVG(`<svg> <rect x="10" y="10" width="10" height="10"> </rect> </svg>`).html.trim()
+				const result = htmlSanitizer
+					.sanitizeSVG(`<svg> <rect x="10" y="10" width="10" height="10">  <rect x="15" y="15" width="5" height="5"> </rect></rect> </svg>`)
+					.html.trim()
 				const element = document.createElement("div")
 				element.innerHTML = result
 				o.check(element.children[0]?.nodeName).equals("svg")
 				o.check(element.children[0]?.children[0]?.nodeName.toLowerCase()).equals("rect")
+				o.check(element.children[0]?.children[0]?.children[0]?.nodeName.toLowerCase()).equals("rect")
 				o.check(element.children[0]?.children[0]?.getAttribute("x")).equals("10")
 				o.check(element.children[0]?.children[0]?.getAttribute("y")).equals("10")
 				o.check(element.children[0]?.children[0]?.getAttribute("width")).equals("10")
 				o.check(element.children[0]?.children[0]?.getAttribute("height")).equals("10")
 			})
-			o.test("svg fragment should not be removed", function () {
+			o.test("svg fragment should be removed in sanitizeSVG", function () {
 				const result = htmlSanitizer.sanitizeSVG(`<rect x="10" y="10" width="10" height="10"> </rect>`).html.trim()
-				const element = document.createElement("svg")
-				element.innerHTML = result
-				o.check(element.children[0]?.nodeName.toLowerCase()).equals("rect")
-				o.check(element.children[0]?.getAttribute("x")).equals("10")
-				o.check(element.children[0]?.getAttribute("y")).equals("10")
-				o.check(element.children[0]?.getAttribute("width")).equals("10")
-				o.check(element.children[0]?.getAttribute("height")).equals("10")
+				o.check(result).equals(``)
 			})
-			o.test("svg fragment should be removed", function () {
+			o.test("svg fragment should be removed in sanitizeHTML", function () {
 				const result = htmlSanitizer.sanitizeHTML(`<rect x="10" y="10" width="10" height="10"> </rect>`).html.trim()
 				o.check(result).equals(``)
 			})
-
 			o.spec("inline attachment sanitization", function () {
 				// note: this might fail in FF because it serializes svg tag differently
 				o.test("svg with xss gets sanitized", function () {

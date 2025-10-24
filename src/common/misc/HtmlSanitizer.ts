@@ -117,7 +117,6 @@ const SVG_CONFIG: Config & { RETURN_DOM_FRAGMENT?: undefined; RETURN_DOM?: undef
 	ADD_ATTR: ADD_ATTR.slice(),
 	ADD_URI_SAFE_ATTR: ADD_URI_SAFE_ATTR.slice(),
 	FORBID_TAGS: FORBID_TAGS.slice(),
-	NAMESPACE: "http://www.w3.org/2000/svg",
 } as const)
 const FRAGMENT_CONFIG: Config & { RETURN_DOM_FRAGMENT: true } = Object.freeze({
 	ADD_ATTR: ADD_ATTR.slice(),
