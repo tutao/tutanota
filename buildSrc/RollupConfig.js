@@ -35,7 +35,7 @@ export const allowedImports = {
 	boot: ["polyfill-helpers", "common-min"],
 	common: ["polyfill-helpers", "common-min"],
 	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
-	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date", "spam-classifier"],
+	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	date: ["polyfill-helpers", "common-min", "common"],
 	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date", "contacts", "ui-extra"],

@@ -28,7 +28,7 @@ import { EventController } from "../../../src/common/api/main/EventController.js
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
-import { SpamClassificationHandler } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassificationHandler"
+import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
 import { SpamClassifier, SpamTrainMailDatum } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"

@@ -154,7 +154,7 @@ import { UndoModel } from "./UndoModel"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import { AutosaveFacade } from "../common/api/worker/facades/lazy/AutosaveFacade"
 import { lang } from "../common/misc/LanguageViewModel.js"
-import { SpamClassificationHandler } from "./workerUtils/spamClassification/SpamClassificationHandler"
+import { SpamClassificationHandler } from "./mail/model/SpamClassificationHandler"
 import { SpamClassifier } from "./workerUtils/spamClassification/SpamClassifier"
 
 assertMainOrNode()

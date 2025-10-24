@@ -1,6 +1,13 @@
 import { createMoveMailData, Mail, MailDetails, MailFolder, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs"
-import { MailSetKind, ProcessingState, SpamDecision } from "../../../common/api/common/TutanotaConstants"
-import { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "./SpamClassifier"
+import {
+	DEFAULT_IS_SPAM,
+	DEFAULT_IS_SPAM_CONFIDENCE,
+	getSpamConfidence,
+	MailSetKind,
+	ProcessingState,
+	SpamDecision,
+} from "../../../common/api/common/TutanotaConstants"
+import type { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { assertNotNull, debounce, isNotNull, Nullable, ofClass } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
@@ -10,9 +17,6 @@ import { LockedError, PreconditionFailedError } from "../../../common/api/common
 
 const DEBOUNCE_MOVE_MAIL_SERVICE_REQUESTS_MS = 500
 const DEBOUNCE_CLIENT_CLASSIFIER_RESULT_SERVICE_REQUESTS_MS = 1000
-
-const DEFAULT_IS_SPAM_CONFIDENCE = 1
-const DEFAULT_IS_SPAM = false
 
 export class SpamClassificationHandler {
 	public constructor(
@@ -140,8 +144,4 @@ export class SpamClassificationHandler {
 		}
 		await this.spamClassifier?.storeSpamClassification(spamTrainMailDatum)
 	}
-}
-
-export function getSpamConfidence(mail: Mail): number {
-	return Number(mail.clientSpamClassifierResult?.confidence ?? DEFAULT_IS_SPAM_CONFIDENCE)
 }

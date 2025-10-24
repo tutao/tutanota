@@ -56,7 +56,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { TutanotaError } from "@tutao/tutanota-error"
-import { SpamClassificationHandler } from "../../workerUtils/spamClassification/SpamClassificationHandler"
+import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { isWebClient } from "../../../common/api/common/Env"
 import { isExpectedErrorForSynchronization } from "../../../common/api/common/utils/ErrorUtils"
 

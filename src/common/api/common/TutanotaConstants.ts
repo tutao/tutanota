@@ -3,8 +3,15 @@
 import { DAY_IN_MILLIS, downcast } from "@tutao/tutanota-utils"
 import type { CertificateInfo, CreditCard, EmailSenderListElement, GroupMembership } from "../entities/sys/TypeRefs.js"
 import { AccountingInfo, Customer } from "../entities/sys/TypeRefs.js"
-import type { CalendarEventAttendee, ContactCustomDate, ContactRelationship, Mail, UserSettingsGroupRoot } from "../entities/tutanota/TypeRefs.js"
-import { ContactSocialId, MailFolder } from "../entities/tutanota/TypeRefs.js"
+import {
+	CalendarEventAttendee,
+	ContactCustomDate,
+	ContactRelationship,
+	ContactSocialId,
+	Mail,
+	MailFolder,
+	UserSettingsGroupRoot,
+} from "../entities/tutanota/TypeRefs.js"
 import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
@@ -1409,3 +1416,9 @@ export function getProcessingState(mail: Mail): ProcessingState {
 }
 
 export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"
+export const DEFAULT_IS_SPAM_CONFIDENCE = 1
+export const DEFAULT_IS_SPAM = false
+
+export function getSpamConfidence(mail: Mail): number {
+	return Number(mail.clientSpamClassifierResult?.confidence ?? DEFAULT_IS_SPAM_CONFIDENCE)
+}

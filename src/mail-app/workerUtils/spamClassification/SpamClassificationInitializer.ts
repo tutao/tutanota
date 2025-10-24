@@ -1,14 +1,13 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { assertNotNull, isNotNull, lazyAsync } from "@tutao/tutanota-utils"
 import { MailBag, MailboxGroupRootTypeRef, MailBoxTypeRef, MailFolder, MailFolderTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
-import { getMailSetKind, MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { getMailSetKind, getSpamConfidence, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
 import { SpamTrainMailDatum } from "./SpamClassifier"
-import { getSpamConfidence } from "./SpamClassificationHandler"
 
 const INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS = 28
 
