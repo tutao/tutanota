@@ -384,8 +384,8 @@ impl EntityFacadeImpl {
 		if let AssociationType::Aggregation = association_model.association_type {
 			let aggregate_type_model = self
 				.type_model_provider
-				.resolve_client_type_ref(&dependency_typeref)
-				.unwrap_or_else(|| panic!("Undefined type_model {}", dependency_typeref));
+				.resolve_server_type_ref(&dependency_typeref)
+				.unwrap_or_else(|| panic!("Undefined aggregate type_model {}", dependency_typeref));
 
 			let mut aggregate_vec = Vec::with_capacity(association_data.assert_array_ref().len());
 			let ElementValue::Array(association_data) = association_data else {
@@ -400,7 +400,7 @@ impl EntityFacadeImpl {
 				match aggregate {
 					ElementValue::Dict(entity) => {
 						let mut decrypted_aggregate =
-							self.decrypt_and_map_inner(aggregate_type_model, entity, session_key)?;
+							self.decrypt_and_map_inner(&aggregate_type_model, entity, session_key)?;
 
 						// Errors should be grouped inside the top-most object, so they should be
 						// extracted and removed from aggregates
