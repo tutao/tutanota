@@ -149,7 +149,10 @@ import("./translations/en.js")
 		mailLocator.logins.addPostLoginAction(() => mailLocator.postLoginActions())
 		mailLocator.logins.addPostLoginAction(async () => {
 			return {
-				async onPartialLoginSuccess() {
+				async onPartialLoginSuccess({ sessionType }) {
+					if (sessionType === SessionType.Temporary) {
+						return
+					}
 					if (isApp()) {
 						mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 						const syncManager = mailLocator.nativeContactsSyncManager()
@@ -164,7 +167,10 @@ import("./translations/en.js")
 					await mailLocator.mailboxModel.init()
 					await mailLocator.mailModel.init()
 				},
-				async onFullLoginSuccess() {
+				async onFullLoginSuccess({ sessionType }) {
+					if (sessionType === SessionType.Temporary) {
+						return
+					}
 					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
 					if (isOfflineStorageAvailable()) {
 						await mailLocator.logins.loadCustomizations(CacheMode.WriteOnly)
@@ -567,11 +573,11 @@ import("./translations/en.js")
 					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
 					// duplicating the history entry allows us to keep the arguments for a single back button press and run our own code to handle it
 					m.route.set("/login", {
-						noAutoLogin: true,
+						noAutoLogin: false,
 						keepSession: true,
 					})
 					m.route.set("/login", {
-						noAutoLogin: true,
+						noAutoLogin: false,
 						keepSession: true,
 					})
 					return null

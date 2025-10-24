@@ -17,7 +17,6 @@ import { PaymentIntervalSwitch } from "./components/PaymentIntervalSwitch.js"
 import { PersonalPlanContainer } from "./components/PersonalPlanContainer"
 import { BusinessPlanContainer } from "./components/BusinessPlanContainer"
 import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
-import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -30,27 +29,18 @@ type PlanSelectorAttr = {
 	allowSwitchingPaymentInterval: boolean
 	showMultiUser: boolean
 	discountDetails?: DiscountDetails
+	targetPlan: PlanType
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
-	private readonly selectedPlan: Stream<PlanType> = stream(
-		SignupFlowUsageTestController.getUsageTestVariant() === 1 ? PlanType.Revolutionary : PlanType.Legend,
-	)
+	private readonly selectedPlan: Stream<PlanType>
 	private readonly shouldFixButtonPos: Stream<boolean> = stream(false)
 
-	oncreate({ attrs: { availablePlans, currentPlan, discountDetails } }: Vnode<PlanSelectorAttr>) {
-		if (anyHasGlobalFirstYearCampaign(discountDetails)) {
-			this.selectedPlan(PlanType.Legend)
-		}
+	constructor({ attrs }: Vnode<PlanSelectorAttr>) {
+		this.selectedPlan = stream(attrs.targetPlan)
+	}
 
-		if (availablePlans.includes(PlanType.Free) && availablePlans.length === 1) {
-			// Only Free plan is available. This would be the case if the user already has a paid Apple account.
-			this.selectedPlan(PlanType.Free)
-		} else if ((!availablePlans.includes(PlanType.Revolutionary) && availablePlans.includes(PlanType.Legend)) || currentPlan === PlanType.Revolutionary) {
-			// Only Legend plan is available or the current plan is Revolutionary.
-			this.selectedPlan(PlanType.Legend)
-		}
-
+	oncreate({ attrs: { availablePlans, currentPlan } }: Vnode<PlanSelectorAttr>) {
 		this.handleResize()
 		windowFacade.addResizeListener(this.handleResize)
 	}

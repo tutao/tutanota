@@ -76,6 +76,7 @@ import { PublicEncryptionKeyProvider } from "../worker/facades/PublicEncryptionK
 import { IdentityKeyCreator } from "../worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../worker/facades/PublicIdentityKeyProvider"
 import type { WhitelabelThemeGenerator } from "../../gui/WhitelabelThemeGenerator"
+import { LoginViewModel } from "../../login/LoginViewModel"
 
 export interface CommonLocator {
 	worker: WorkerClient
@@ -141,6 +142,8 @@ export interface CommonLocator {
 	Const: Record<string, any>
 
 	domainConfigProvider(): DomainConfigProvider
+
+	loginViewModelFactory(): Promise<lazy<LoginViewModel>>
 
 	showSetupWizard(): void
 

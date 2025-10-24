@@ -7,9 +7,13 @@ import { locator } from "../api/main/CommonLocator"
 import { RecoverCodeField } from "../settings/login/RecoverCodeDialog.js"
 import { VisSignupImage } from "../gui/base/icons/Icons.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { assertNotNull, lazy } from "@tutao/tutanota-utils"
+import { DisplayMode, LoginViewModel } from "../login/LoginViewModel"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 
 export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
+	private disabled: boolean = false
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
 		this.dom = vnode.dom as HTMLElement
@@ -24,7 +28,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 				? m(".plr-l", [
 						m(RecoverCodeField, {
 							showMessage: true,
-							recoverCode: newAccountData.recoverCode,
+							recoverCode: assertNotNull(newAccountData.recoverCode),
 							image: {
 								src: VisSignupImage,
 								alt: "vitor_alt",
@@ -37,7 +41,9 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 				m(LoginButton, {
 					label: "ok_action",
 					class: "small-login-button",
+					disabled: this.disabled,
 					onclick: () => {
+						this.disabled = true
 						this.close(attrs.data, this.dom)
 					},
 				}),
@@ -52,7 +58,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 			promise = locator.logins.logout(false)
 		}
 
-		promise.then(() => {
+		promise.then(async () => {
 			emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 		})
 	}
@@ -63,7 +69,10 @@ export class UpgradeCongratulationsPageAttrs implements WizardPageAttrs<UpgradeS
 	preventGoBack = true
 	hidePagingButtonForPage = true
 
-	constructor(upgradeData: UpgradeSubscriptionData) {
+	constructor(
+		upgradeData: UpgradeSubscriptionData,
+		private readonly loginViewModelFactory: lazy<LoginViewModel>,
+	) {
 		this.data = upgradeData
 	}
 
@@ -71,9 +80,16 @@ export class UpgradeCongratulationsPageAttrs implements WizardPageAttrs<UpgradeS
 		return "accountCongratulations_msg"
 	}
 
-	nextAction(showDialogs: boolean): Promise<boolean> {
-		// next action not available for this page
-		return Promise.resolve(true)
+	async nextAction(_showDialogs: boolean): Promise<boolean> {
+		await locator.logins.logout(true)
+		const loginViewModel = this.loginViewModelFactory()
+		loginViewModel.displayMode = DisplayMode.Form
+		loginViewModel.password(this.data.newAccountData!.password)
+		loginViewModel.mailAddress(this.data.newAccountData!.mailAddress)
+		loginViewModel.savePassword(true)
+		loginViewModel.skipPostLoginActions = true
+		await showProgressDialog("pleaseWait_msg", loginViewModel.login())
+		return true
 	}
 
 	isSkipAvailable(): boolean {

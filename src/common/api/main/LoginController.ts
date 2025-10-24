@@ -65,6 +65,16 @@ export class LoginController {
 	}
 
 	/**
+	 * a login that is persisted like a normal form login, but does not run any of the postLoginActions.
+	 * It's recommended to reload / close the tab right after login finishes.
+	 * @param username
+	 * @param password
+	 */
+	async createPostSignupSession(username: string, password: string) {
+		return await this.loginFacade.createSession(username, password, client.getIdentifier(), SessionType.Persistent, null, true)
+	}
+
+	/**
 	 * create a new session and set up stored credentials and offline database, if applicable.
 	 * @param username the mail address being used to log in
 	 * @param password the password given to log in

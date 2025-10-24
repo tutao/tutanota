@@ -8,6 +8,7 @@ import { MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import type { CreateMailViewerOptions } from "../view/MailViewer"
 import m from "mithril"
+import { SessionType } from "../../../common/api/common/SessionType"
 
 export interface OpenDraftFunctions {
 	newMailEditorFromLocalDraftData(mailboxModel: MailboxModel, draft: LocalAutosavedDraftData): Promise<Dialog | null>
@@ -30,9 +31,11 @@ export class OpenLocallySavedDraftAction implements PostLoginAction {
 
 	async onFullLoginSuccess(_: LoggedInEvent): Promise<void> {}
 
-	async onPartialLoginSuccess(_: LoggedInEvent): Promise<void> {
-		// fire and forget; this might take some time
-		this._loadAutosavedDraft()
+	async onPartialLoginSuccess({ sessionType }: LoggedInEvent): Promise<void> {
+		if (sessionType === SessionType.Persistent) {
+			// fire and forget; this might take some time
+			this._loadAutosavedDraft()
+		}
 	}
 
 	/**

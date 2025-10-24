@@ -138,6 +138,7 @@ export async function showSwitchDialog({
 				// We hide the payment interval switch in the setting and let the plan selector handles the interval changing for iOS
 				allowSwitchingPaymentInterval: isApplePrice || currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
 				showMultiUser: multipleUsersAllowed,
+				targetPlan: currentPlanInfo.planType, // dummy property; only relevant for signup, but required to exist
 				discountDetails,
 			}),
 		)
