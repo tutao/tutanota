@@ -390,9 +390,6 @@ export class IdGenerator {
 export function makeEventWrapper(event: CalendarEvent, props?: Partial<EventWrapper>): EventWrapper {
 	return {
 		color: "#FAFAFA",
-		isConflict: false,
-		isFeatured: false,
-		isGhost: false,
 		event,
 		...(props != null ? props : {}),
 	}

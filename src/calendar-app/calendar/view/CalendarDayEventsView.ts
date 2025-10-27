@@ -129,24 +129,24 @@ export class CalendarDayEventsView implements Component<Attrs> {
 					}
 				},
 			},
-			m(CalendarEventBubble, {
-				text: eventTitle,
-				secondLineText: mapNullable(getTimeTextFormatForLongEvent(eventWrapper.event, attrs.day, attrs.day, zone), (option) =>
-					formatEventTime(eventWrapper.event, option),
-				),
-				color: getEventColor(eventWrapper.event, attrs.groupColors, eventWrapper.isGhost),
-				border: eventWrapper.isGhost ? `2px dashed #${getEventColor(eventWrapper.event, attrs.groupColors)}` : undefined,
-				click: (domEvent) => attrs.onEventClicked(eventWrapper.event, domEvent),
-				keyDown: (domEvent) => attrs.onEventKeyDown(eventWrapper.event, domEvent),
-				height: height - size.calendar_day_event_padding,
-				hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, eventWrapper.event),
-				isAltered: eventWrapper.event.recurrenceId != null,
-				verticalPadding: size.calendar_day_event_padding,
-				fadeIn: !attrs.isTemporaryEvent(eventWrapper),
-				opacity: attrs.isTemporaryEvent(eventWrapper) ? TEMPORARY_EVENT_OPACITY : 1,
-				enablePointerEvents: !attrs.isTemporaryEvent(eventWrapper) && !attrs.isDragging && !attrs.disabled,
-				isBirthday: isBirthdayCalendar(listIdPart(eventWrapper.event._id)),
-			}),
+			// m(CalendarEventBubble, {
+			// 	text: eventTitle,
+			// 	secondLineText: mapNullable(getTimeTextFormatForLongEvent(eventWrapper.event, attrs.day, attrs.day, zone), (option) =>
+			// 		formatEventTime(eventWrapper.event, option),
+			// 	),
+			// 	color: getEventColor(eventWrapper.event, attrs.groupColors, eventWrapper.isGhost),
+			// 	border: eventWrapper.isGhost ? `2px dashed #${getEventColor(eventWrapper.event, attrs.groupColors)}` : undefined,
+			// 	click: (domEvent) => attrs.onEventClicked(eventWrapper.event, domEvent),
+			// 	keyDown: (domEvent) => attrs.onEventKeyDown(eventWrapper.event, domEvent),
+			// 	height: height - size.calendar_day_event_padding,
+			// 	hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, eventWrapper.event),
+			// 	isAltered: eventWrapper.event.recurrenceId != null,
+			// 	verticalPadding: size.calendar_day_event_padding,
+			// 	fadeIn: !attrs.isTemporaryEvent(eventWrapper),
+			// 	opacity: attrs.isTemporaryEvent(eventWrapper) ? TEMPORARY_EVENT_OPACITY : 1,
+			// 	enablePointerEvents: !attrs.isTemporaryEvent(eventWrapper) && !attrs.isDragging && !attrs.disabled,
+			// 	isBirthday: isBirthdayCalendar(listIdPart(eventWrapper.event._id)),
+			// }),
 		)
 	}
 
