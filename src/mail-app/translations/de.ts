@@ -1418,7 +1418,9 @@ export default {
 		"pricing.family_label": "Familienoption",
 		"pricing.familyLegend_tooltip": "Nachdem du Legend gebucht hast, kontaktiere unseren Support über das Fragezeichen links neben deiner Mailbox, damit wir den Multi-User-Support aktivieren können. Jede*r erhält ein eigenes Postfach mit 500 GB & 30 Alias-E-Mail-Adressen (8 € pro Nutzer/Monat). Eine geteilte Mailbox (8 € pro Monat) erhält ebenfalls 500 GB.",
 		"pricing.familyRevolutionary_tooltip": "Nachdem du Revolutionary gebucht hast, kontaktiere unseren Support über das Fragezeichen links neben deiner Mailbox, damit wir den Multi-User-Support aktivieren können. Jede*r erhält ein eigenes Postfach mit 20 GB & 15 Alias-E-Mail-Adressen (3 € pro Nutzer/Monat). Eine geteilte Mailbox (3 € pro Monat) erhält ebenfalls 20 GB.",
+		"pricing.firstYearDiscount_msg": "Der Rabatt gilt nur für das erste Jahr. Der monatliche Preis für die folgenden Jahre beträgt  {price}.",
 		"pricing.firstYearDiscount_revo_legend_msg": "Der Rabatt gilt nur für das erste Jahr. Danach beträgt der jährliche Preis {revo-price} für Revolutionary und {legend-price} für Legend.",
+		"pricing.firstYearDiscountIos_msg": "Der Rabatt gilt nur für das erste Jahr. Der Preis für jedes weitere Jahr beträgt {price}.",
 		"pricing.firstYearDiscountIos_revo_legend_msg": "Der Rabatt gilt nur für das erste Jahr. Der Preis im Folgejahr ist {revo-price} für Revolutionary und {legend-price} für Legend.",
 		"pricing.folders_label": "Unbegrenzte Ordner",
 		"pricing.gdpr_label": "DSGVO-konform",
@@ -1963,7 +1965,7 @@ export default {
 		"tutanotaAddressDoesNotExist_msg": "Die folgenden Tuta E-Mail-Adressen existieren nicht.",
 		"tutaoInfo_msg": "Tutao GmbH ist die Firma, die Tuta entwickelt und bereitstellt.",
 		"twitter_label": "Twitter",
-		"twoFactorRequired_message": "Dein Administrator hat für deinen Account verpflichtende Zwei-Faktor-Authentifizierung (2FA) konfiguriert.\\n\\nDu wirst dein Passwort noch einmal eingeben müssen.",
+		"twoFactorRequired_message": "Dein Administrator hat für deinen Account verpflichtende Zwei-Faktor-Authentifizierung (2FA) konfiguriert.\n\nDu wirst dein Passwort noch einmal eingeben müssen.",
 		"type_label": "Typ",
 		"typeToFilter_label": "Filtern ...",
 		"u2fSecurityKey_label": "Sicherheitsschlüssel (U2F)",
@@ -2116,9 +2118,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"confirmOverwriteDraft_msg": "This draft was opened for editing on {opened}, but a newer version was retrieved from the server on {updated}.\n\nWould you like to overwrite the newer draft with this one, discard this draft, or cancel saving this draft?",
-		"pricing.firstYearDiscount_msg": "Discount only applies for the first year. Following yearly price per month will be  {price}.",
-		"pricing.firstYearDiscountIos_msg":"Discount only applies for the first year. Following yearly price per year will be {price}."
+		"zoomOut_action": "Herauszoomen"
 	}
 }
