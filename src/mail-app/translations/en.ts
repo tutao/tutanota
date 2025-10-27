@@ -1963,7 +1963,7 @@ export default {
 		"tutanotaAddressDoesNotExist_msg": "The following Tuta email addresses do not exist.",
 		"tutaoInfo_msg": "Tutao GmbH is the company providing Tuta to you.",
 		"twitter_label": "Twitter",
-		"twoFactorRequired_message": "Your administrator has required two-factor authentication (2FA) to be enabled on your account.\\n\\nYou will need to re-enter your password.",
+		"twoFactorRequired_message": "Your administrator has required two-factor authentication (2FA) to be enabled on your account.\n\nYou will need to re-enter your password.",
 		"type_label": "Type",
 		"typeToFilter_label": "Type to filter ...",
 		"u2fSecurityKey_label": "Security Key (U2F)",
@@ -2116,9 +2116,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"confirmOverwriteDraft_msg": "This draft was opened for editing on {opened}, but a newer version was retrieved from the server on {updated}.\n\nWould you like to overwrite the newer draft with this one, discard this draft, or cancel saving this draft?",
-		"pricing.firstYearDiscount_msg": "Discount only applies for the first year. Following yearly price per month will be  {price}.",
-		"pricing.firstYearDiscountIos_msg":"Discount only applies for the first year. Following yearly price per year will be {price}."
+		"zoomOut_action": "Zoom Out"
 	}
 }
