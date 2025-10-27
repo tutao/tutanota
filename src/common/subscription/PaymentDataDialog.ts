@@ -36,6 +36,7 @@ export async function show(customer: Customer, accountingInfo: AccountingInfo, p
 		defaultPaymentMethod,
 		true, // We accept that for free of charge offers users might change to bank transfer
 	)
+
 	const availablePaymentMethods = paymentMethodInput.getVisiblePaymentMethods()
 
 	let selectedPaymentMethod = accountingInfo.paymentMethod as PaymentMethodType

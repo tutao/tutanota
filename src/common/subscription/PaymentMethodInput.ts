@@ -20,6 +20,9 @@ import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.
 import { isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener } from "../api/main/EventController.js"
 import { BaseButton } from "../gui/base/buttons/BaseButton.js"
+import { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
+
+// TODO: Remove this component when redesigning signup flow.
 
 /**
  * Component to display the input fields for a payment method. The selector to switch between payment methods is not included.
@@ -35,6 +38,7 @@ export class PaymentMethodInput {
 	_selectedPaymentMethod: PaymentMethodType
 	_subscriptionOptions: SelectedSubscriptionOptions
 	_accountingInfo: AccountingInfo
+	_data: UpgradeSubscriptionData | undefined
 	_entityEventListener: EntityEventsListener
 	private __paymentPaypalTest?: UsageTest
 	private isBankTransferAllowed: boolean
@@ -47,12 +51,14 @@ export class PaymentMethodInput {
 		payPalRequestUrl: LazyLoaded<string>,
 		defaultPaymentMethod: PaymentMethodType,
 		isBankTransferAllowed: boolean,
+		data?: UpgradeSubscriptionData,
 	) {
 		this._selectedCountry = selectedCountry
 		this._subscriptionOptions = subscriptionOptions
 		this.ccViewModel = new SimplifiedCreditCardViewModel(lang)
 		this._accountingInfo = accountingInfo
 		this.isBankTransferAllowed = isBankTransferAllowed
+		this._data = data
 		this._payPalAttrs = {
 			payPalRequestUrl,
 			accountingInfo: this._accountingInfo,
@@ -65,7 +71,9 @@ export class PaymentMethodInput {
 						this.__paymentPaypalTest?.getStage(2).complete()
 						this._accountingInfo = accountingInfo
 						this._payPalAttrs.accountingInfo = accountingInfo
-						console.count("trigger paypal connect")
+						if (this._data) {
+							this._data.accountingInfo = accountingInfo
+						}
 						if (this._onConnectPaypal) {
 							this._onConnectPaypal()
 						}

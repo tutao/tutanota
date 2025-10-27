@@ -46,6 +46,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	private _availablePaymentMethods: Array<SegmentControlItem<PaymentMethodType>> | null = null
 	private _selectedPaymentMethod: Stream<PaymentMethodType>
 	private dom!: HTMLElement
+	private _hasClickedNext: boolean = false
 
 	constructor() {
 		this._selectedPaymentMethod = stream()
@@ -117,6 +118,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 					payPalRequestUrl,
 					defaultPaymentMethod,
 					!data.firstMonthForFreeOfferActive,
+					data,
 				)
 				this._availablePaymentMethods = this._paymentMethodInput.getVisiblePaymentMethods()
 
@@ -127,10 +129,10 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
+		console.count("View Method called")
 		const a = vnode.attrs
 
 		const onNextClick = () => {
-			console.count("onNextClick")
 			const invoiceDataInput = assertNotNull(this._invoiceDataInput)
 			const paymentMethodInput = assertNotNull(this._paymentMethodInput)
 			let error = invoiceDataInput.validateInvoiceData() || paymentMethodInput.validatePaymentData()
@@ -161,8 +163,9 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 								neverNull(a.data.price?.rawPrice),
 								neverNull(a.data.accountingInfo),
 							).then((success) => {
-								if (success) {
+								if (success && !this._hasClickedNext) {
 									// Payment method confirmation (click on next), send selected payment method as an enum
+									this._hasClickedNext = true
 									emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 								}
 							}),
