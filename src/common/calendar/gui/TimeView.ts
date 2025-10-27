@@ -1,4 +1,4 @@
-import m, { Child, ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Child, ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Time } from "../date/Time"
 import { deepMemoized, getStartOfDay, getStartOfNextDay, mapNullable, noOp } from "@tutao/tutanota-utils"
 import { px, size } from "../../gui/size.js"
@@ -24,6 +24,7 @@ export type TimeRange = {
 	end: Time
 }
 export const SUBROWS_PER_INTERVAL = 12
+export const DEFAULT_EVENT_COLUMN_SPAN_SIZE = 1
 
 export interface TimeViewAttributes {
 	dates: Array<Date>
@@ -100,22 +101,49 @@ export const getSubRowAsMinutes = deepMemoized((timeScale: TimeScale) => {
 	return TIME_SCALE_BASE_VALUE / timeScale / SUBROWS_PER_INTERVAL
 })
 
-export class TimeView implements Component<TimeViewAttributes> {
+/**
+ * TimeView Component
+ *
+ * Renders a calendar day/week view with events positioned
+ * on a time-based CSS Grid. Handles event layout, overlap resolution, and time-based
+ * positioning.
+ *
+ * **Grid System:**
+ * - Rows: Time is subdivided into subrows (12 per interval {@link SUBROWS_PER_INTERVAL}) for precise positioning
+ * - Columns: one top-level column per date. Inside each date column events are arranged into logical "inner" columns
+ * to display overlapping events; These inner columns are used only for horizontal packing/expansion and do not create
+ * extra top-level date columns.
+ *
+ * **Layout Algorithm (3 steps):**
+ * 1. Convert event times to grid row coordinates
+ * 2. Pack overlapping events into separate columns (greedy first-fit)
+ * 3. Expand events horizontally to fill available space
+ *
+ * @example
+ * ```typescript
+ * m(TimeView, {
+ *   dates: [new Date(), tomorrowDate],
+ *   events: eventWrappers,
+ *   timeScale: 2,  // 30-minute intervals
+ *   timeRange: { start: Time.fromString("00:00"), end: Time.fromString("23:00") },
+ *   timeIndicator: Time.now()
+ * })
+ * ```
+ */
+export class TimeView implements ClassComponent<TimeViewAttributes> {
 	private parentHeight?: number
 	private columnCount: Map<number, number> = new Map()
 
 	view({ attrs }: Vnode<TimeViewAttributes>) {
-		const { timeScale, timeRange, events, dates, hasAnyConflict } = attrs
 		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(attrs.timeScale, attrs.timeRange)
 		const subRowCount = SUBROWS_PER_INTERVAL * timeColumnIntervals.length
-		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
 
 		return m(
 			".grid.overflow-hidden.height-100p",
 			{
 				style: {
 					"overflow-x": "hidden",
-					"grid-template-columns": `repeat(${dates.length}, 1fr)`,
+					"grid-template-columns": `repeat(${attrs.dates.length}, 1fr)`,
 					transition: `opacity ${DefaultAnimationTime}ms linear`,
 					opacity: this.parentHeight == null ? 0 : 1,
 				},
@@ -130,37 +158,32 @@ export class TimeView implements Component<TimeViewAttributes> {
 					}
 				},
 			},
-			[
-				dates.map((date) => {
-					const startOfTomorrow = getStartOfNextDay(date)
-					const startOfDay = getStartOfDay(date)
-					const eventsForThisDate = events.filter(
-						(eventWrapper) =>
-							eventWrapper.event.startTime.getTime() < startOfTomorrow.getTime() && eventWrapper.event.endTime.getTime() > startOfDay.getTime(),
-					)
+			attrs.dates.map((date) => this.renderDay(date, subRowCount, attrs)),
+		)
+	}
 
-					return m(
-						".grid.plr-unit.gap.z1.grid-auto-columns.rel.border-right.min-width-0",
-						{
-							style: {
-								height: this.parentHeight ? px(this.parentHeight) : undefined,
-							},
-							oncreate(vnode): any {
-								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
-							},
-						},
-						[
-							this.renderInteractableCells(
-								date,
-								timeScale,
-								timeRange,
-								attrs.cellActionHandlers?.onCellPressed,
-								attrs.cellActionHandlers?.onCellContextMenuPressed,
-							),
-							this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date, attrs.timeRowHeight),
-						],
-					)
-				}),
+	private renderDay(date: Date, subRowCount: number, timeViewAttrs: TimeViewAttributes): Child {
+		const { events: eventWrappers, timeScale, timeRange, timeRowHeight, cellActionHandlers } = timeViewAttrs
+		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
+		const startOfTomorrow = getStartOfNextDay(date)
+		const startOfDay = getStartOfDay(date)
+		const eventsForThisDate = eventWrappers.filter(
+			(eventWrapper) => eventWrapper.event.startTime.getTime() < startOfTomorrow.getTime() && eventWrapper.event.endTime.getTime() > startOfDay.getTime(),
+		)
+
+		return m(
+			".grid.plr-unit.gap.z1.grid-auto-columns.rel.border-right.min-width-0",
+			{
+				style: {
+					height: this.parentHeight ? px(this.parentHeight) : undefined,
+				},
+				oncreate(vnode): any {
+					;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
+				},
+			},
+			[
+				this.renderInteractableCells(date, timeScale, timeRange, cellActionHandlers?.onCellPressed, cellActionHandlers?.onCellContextMenuPressed),
+				this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date, timeRowHeight),
 			],
 		)
 	}
@@ -168,10 +191,15 @@ export class TimeView implements Component<TimeViewAttributes> {
 	/**
 	 * Renders a column of events using grids for a given base date.
 	 * This function is deepMemoized to prevent unnecessary layout calculation
-	 * @param eventsForThisDate Array of events to be rendered
-	 * @param timeRange Time range for the day, usually from 00:00 till 23:00
-	 * @param subRowAsMinutes How many minutes a Grid row represents
-	 * @param baseDate Date where the events are being rendered
+	 *
+	 * @param eventsForThisDate - Array of events to render in this column
+	 * @param timeRange - Visible time range for the day (e.g., 00:00 AM to 23:00 PM)
+	 * @param subRowAsMinutes - Minutes represented by each grid subrow
+	 * @param timeScale - Time scale factor for interval subdivision (1, 2, or 4)
+	 * @param baseDate - The date for this column
+	 * @param timeRowHeight - Pixel height of a single grid subrow (affects bubble heights). Include this in the memoization key so layouts update when the DOM size changes.
+	 * @returns Child nodes representing the rendered events
+	 *
 	 * @private
 	 */
 	private renderEventsAtDate = deepMemoized(
@@ -400,7 +428,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 	 * @returns Number of columns the event can span (minimum 1)
 	 */
 	static calculateColumnSpan(eventColumnIndex: number, eventRowBounds: RowBounds, allColumns: Array<ColumnData>): number {
-		let span = 1
+		let span = DEFAULT_EVENT_COLUMN_SPAN_SIZE
 
 		// Check each subsequent column for blocking events
 		for (let colIndex = eventColumnIndex + 1; colIndex < allColumns.length; colIndex++) {
