@@ -14,6 +14,7 @@ import { IconButton } from "../../gui/base/IconButton.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { showRequestPasswordDialog } from "../../misc/passwords/PasswordRequestDialog.js"
 import { MonospaceTextDisplay } from "../../gui/base/MonospaceTextDisplay"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 
 type Action = "get" | "create"
 assertMainOrNode()
@@ -127,12 +128,19 @@ export class RecoverCodeField {
 							? null
 							: m(IconButton, {
 									title: "print_action",
-									icon: Icons.Print,
-									click: () => window.print(),
+									icon: Icons.Download,
+									click: () => this.saveRecoveryCodeAsPdf(splitRecoverCode),
 								}),
 					])
 				: null,
 		]
+	}
+
+	private saveRecoveryCodeAsPdf(recoveryCode: string) {
+		showProgressDialog(
+			"pleaseWait_msg",
+			locator.customerFacade.generatePdfRecoveryDocument(recoveryCode).then((pdfInvoice) => locator.fileController.saveDataFile(pdfInvoice)),
+		)
 	}
 
 	private renderRecoveryText(): Child {

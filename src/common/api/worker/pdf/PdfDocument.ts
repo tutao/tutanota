@@ -2,6 +2,7 @@ import { boldFontWidths, PdfDictValue, PdfObjectRef, PdfStreamEncoding, regularF
 import { PdfWriter } from "./PdfWriter.js"
 import { Deflater } from "./Deflater.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { parseQrSvg } from "./qrSvg.js"
 
 export enum PDF_FONTS {
 	REGULAR = 1,
@@ -62,6 +63,33 @@ export class PdfDocument {
 		this.pdfWriter = pdfWriter
 		this.pdfWriter.setupDefaultObjects()
 		this.deflater = new Deflater()
+	}
+
+	/**
+	 * Draw a QR-code SVG (rect-only) at a given top-left position using millimeters.
+	 *
+	 * @param svgString    Raw SVG string (QR-style: <rect> elements only)
+	 * @param topLeftMm    xMm, yMm top-left position in millimeters
+	 */
+	addQrSvg(svgString: string, topLeftMm: [number, number]): PdfDocument {
+		const parsed = parseQrSvg(svgString)
+		const ops: string[] = []
+
+		if (parsed.rects.length > 0) {
+			ops.push(`0 g`) // set fill color to black once
+
+			for (const rect of parsed.rects) {
+				const rectXmm = topLeftMm[0] + rect.x
+				const rectYmm = topLeftMm[1] + rect.y
+				const rectWidthMm = rect.width
+				const rectHeightMm = rect.height
+
+				ops.push(`${mmToPSPoint(rectXmm)} ${mmToPSPoint(rectYmm)} ${mmToPSPoint(rectWidthMm)} ${mmToPSPoint(rectHeightMm)} re`)
+			}
+			ops.push(`f`) // fill all accumulated rectangles
+		}
+		this.graphicsStream += ops.join(" ") + " "
+		return this
 	}
 
 	/**
