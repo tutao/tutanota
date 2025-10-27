@@ -204,6 +204,17 @@ export class DesktopFileFacade implements FileFacade {
 			.then(({ filePaths }) => filePaths[0] ?? null)
 	}
 
+	/**
+	 * Opens OS file picker for selecting either a file or a folder. The options "openDirectory", "openFile" simultaneously are only supported on macOS
+	 * This is needed because Apple Mail uses a custom MBOX when format when exporting, which is a directory and not a file.
+	 */
+	async openMacImportFileChooser(): Promise<Array<string>> {
+		const opts: OpenDialogOptions = { properties: ["openDirectory", "openFile", "multiSelections"] }
+		opts.filters = [{ name: "Filter", extensions: ["eml", "mbox"].slice() }]
+		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, opts)
+		return filePaths
+	}
+
 	async putFileIntoDownloadsFolder(localFileUri: string, fileNameToUse: string): Promise<string> {
 		const savePath = await this.pickSavePath(fileNameToUse)
 		await this.fs.promises.mkdir(path.dirname(savePath), {

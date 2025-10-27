@@ -4,6 +4,7 @@ import TutanotaSharedFramework
 import UniformTypeIdentifiers
 
 class IosFileFacade: FileFacade {
+	func openMacImportFileChooser() async throws -> [String] { fatalError("not implemented for this platform") }
 
 	let chooser: TUTFileChooser
 	let viewer: FileViewer

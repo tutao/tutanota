@@ -27,6 +27,11 @@ public protocol FileFacade {
 	 */
 	func openFolderChooser(
 	) async throws -> String?
+	/**
+	 * Opens OS file picker for selecting either a file or folder for Email Import. Works only on macOS
+	 */
+	func openMacImportFileChooser(
+	) async throws -> [String]
 	func deleteFile(
 		_ file: String
 	) async throws -> Void
