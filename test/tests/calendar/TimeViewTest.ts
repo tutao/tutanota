@@ -4,6 +4,8 @@ import { Time } from "../../../src/common/calendar/date/Time"
 import { createTestEntity } from "../TestUtils"
 import { CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
+import { CalendarEventTimes } from "../../../src/common/api/common/utils/CommonCalendarUtils"
+import { MIN_ROW_SPAN } from "../../../src/calendar-app/calendar/view/CalendarEventBubble"
 
 o.spec("TimeView", function () {
 	let eventsMap: Map<Id, RowBounds> = new Map()
@@ -25,9 +27,6 @@ o.spec("TimeView", function () {
 				endTime: new Date(2025, 9, 22, endHour, endMinute),
 				summary: id,
 			}),
-			isGhost: false,
-			isFeatured: false,
-			isConflict: false,
 			color: "#FFF",
 		}
 	}
@@ -175,6 +174,22 @@ o.spec("TimeView", function () {
 	})
 
 	o.spec("getRowBounds", function () {
+		o.test("Small event has minimun size", function () {
+			// Arrange
+			const eventBounds: CalendarEventTimes = {
+				startTime: new Date(2025, 9, 22, 0, 1),
+				endTime: new Date(2025, 9, 22, 0, 2),
+			}
+
+			// Act
+			const bounds = TimeView.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
+
+			// Assert
+			o.check(bounds).deepEquals({
+				start: 1,
+				end: 1 + MIN_ROW_SPAN,
+			})
+		})
 		o.test("Event starts and ends today", function () {
 			const eventBounds = {
 				startTime: new Date(2025, 9, 22, 0, 0),
@@ -225,12 +240,12 @@ o.spec("TimeView", function () {
 		o.test("Event starting between grid intervals gets rounded to previous grid boundary", function () {
 			const eventOneTimes = {
 				startTime: new Date(2025, 9, 22, 0, 1),
-				endTime: new Date(2025, 9, 22, 0, 5),
+				endTime: new Date(2025, 9, 22, 0, 30),
 			}
 
 			const eventTwoTimes = {
 				startTime: new Date(2025, 9, 22, 0, 3),
-				endTime: new Date(2025, 9, 22, 0, 5),
+				endTime: new Date(2025, 9, 22, 0, 30),
 			}
 
 			const eventOneBounds = TimeView.getRowBounds(eventOneTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
@@ -238,47 +253,61 @@ o.spec("TimeView", function () {
 
 			o.check(eventOneBounds).deepEquals({
 				start: 1,
-				end: 2,
+				end: 7,
 			})
 
 			o.check(eventTwoBounds).deepEquals({
 				start: 1,
-				end: 2,
+				end: 7,
 			})
 		})
-		o.test("Event ending between grid intervals gets rounded to next grid boundary", function () {
-			const eventOneTimes = {
-				startTime: new Date(2025, 9, 22, 0, 0),
-				endTime: new Date(2025, 9, 22, 0, 1),
-			}
+		o.spec("Event ending between grid intervals gets rounded to next grid boundary", function () {
+			o.test("Event smaller than minimum row span (MIN_ROW_SPAN = 3)", function () {
+				// On these test we have a sub row interval of 5 minutes, that means the minimum duration would be 20 minutes => Row end = 1 (default event size) + 3 (MIN_ROW_SPAN)
+				const eventOneTimes = {
+					startTime: new Date(2025, 9, 22, 0, 0),
+					endTime: new Date(2025, 9, 22, 0, 11),
+				}
 
-			const eventTwoTimes = {
-				startTime: new Date(2025, 9, 22, 0, 0),
-				endTime: new Date(2025, 9, 22, 0, 12),
-			}
+				const eventOneBounds = TimeView.getRowBounds(eventOneTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
 
-			const eventThreeTimes = {
-				startTime: new Date(2025, 9, 22, 0, 0),
-				endTime: new Date(2025, 9, 22, 0, 8),
-			}
-
-			const eventOneBounds = TimeView.getRowBounds(eventOneTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
-			const eventTwoBounds = TimeView.getRowBounds(eventTwoTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
-			const eventThreeBounds = TimeView.getRowBounds(eventThreeTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
-
-			o.check(eventOneBounds).deepEquals({
-				start: 1,
-				end: 2,
+				o.check(eventOneBounds).deepEquals({
+					start: 1,
+					end: 1 + MIN_ROW_SPAN,
+				})
 			})
+			o.test("Normal sized events", function () {
+				/**
+				 * 00 | X
+				 * 05 | X
+				 * 10 | X
+				 * 15 | X
+				 * 20 | X (22 is between 20 and 25 so it gets rounded up)
+				 * 25 | X
+				 * 30 |
+				 */
+				const eventOneTimes = {
+					startTime: new Date(2025, 9, 22, 0, 0),
+					endTime: new Date(2025, 9, 22, 0, 22),
+				}
 
-			o.check(eventTwoBounds).deepEquals({
-				start: 1,
-				end: 4,
-			})
+				const eventTwoTimes = {
+					startTime: new Date(2025, 9, 22, 0, 0),
+					endTime: new Date(2025, 9, 22, 0, 38),
+				}
 
-			o.check(eventThreeBounds).deepEquals({
-				start: 1,
-				end: 3,
+				const eventTwoBounds = TimeView.getRowBounds(eventOneTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
+				const eventThreeBounds = TimeView.getRowBounds(eventTwoTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
+
+				o.check(eventTwoBounds).deepEquals({
+					start: 1,
+					end: 6,
+				})
+
+				o.check(eventThreeBounds).deepEquals({
+					start: 1,
+					end: 9,
+				})
 			})
 		})
 	})

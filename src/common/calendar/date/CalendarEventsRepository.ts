@@ -315,9 +315,9 @@ export class CalendarEventsRepository {
 						const event = await this.entityClient.load(CalendarEventTypeRef, [update.instanceListId, update.instanceId])
 						const wrapper: EventWrapper = {
 							event,
-							isGhost: false,
-							isConflict: false,
-							isFeatured: false,
+							flags: {
+								isGhost: false,
+							},
 							color: calendarInfos.get(eventOwnerGroupId)?.color ?? DEFAULT_CALENDAR_COLOR,
 						}
 						await this.addOrUpdateEvent(calendarInfos.get(eventOwnerGroupId) ?? null, wrapper)
@@ -502,9 +502,6 @@ export class CalendarEventsRepository {
 							...calendarEvent.event,
 							summary: `${calendarEvent.event.summary} ${ageString}`,
 						},
-						isGhost: false,
-						isFeatured: false,
-						isConflict: false,
 						color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 					},
 					monthRangeForRecurrence,

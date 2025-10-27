@@ -35,7 +35,7 @@ import {
 	SELECTED_DATE_INDICATOR_THICKNESS,
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper, EventsOnDays } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, EventWrapper } from "./CalendarViewModel"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { client } from "../../../common/misc/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -513,8 +513,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				event: eventWrapper,
 				startsBefore: eventStart < firstDayOfWeek,
 				endsAfter: firstDayOfNextWeek <= eventEnd,
-				color: getEventColor(eventWrapper.event, attrs.groupColors, eventWrapper.isGhost),
-				border: eventWrapper.isGhost ? `2px dashed #${getEventColor(eventWrapper.event, attrs.groupColors)}` : undefined,
+				color: getEventColor(eventWrapper.event, attrs.groupColors, eventWrapper.flags?.isGhost),
+				border: eventWrapper.flags?.isGhost ? `2px dashed #${getEventColor(eventWrapper.event, attrs.groupColors)}` : undefined,
 				showTime: styles.isDesktopLayout() && !isAllDayEvent(eventWrapper.event) ? EventTextTimeOption.START_TIME : null,
 				user: locator.logins.getUserController().user,
 				onEventClicked: (e, domEvent) => {

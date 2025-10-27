@@ -235,9 +235,6 @@ export class CalendarEventPreviewViewModel {
 				}
 				const progenitorWrapper: EventWrapper = {
 					event: progenitor,
-					isGhost: false,
-					isFeatured: false,
-					isConflict: false,
 					color: calendar.color,
 				}
 				addDaysForRecurringEvent(occurrencesPerDay, progenitorWrapper, generationRange, newEventModel.editModels.whenModel.zone)

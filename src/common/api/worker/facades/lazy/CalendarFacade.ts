@@ -60,6 +60,7 @@ import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
 	generateCalendarInstancesInRange,
+	hasAlarmsForTheUser,
 	isBirthdayCalendar,
 } from "../../../../calendar/date/CalendarUtils.js"
 import { CalendarInfo } from "../../../../../calendar-app/calendar/model/CalendarModel.js"
@@ -150,16 +151,18 @@ export class CalendarFacade {
 
 			const shortEvents: Array<EventWrapper> = shortEventsResult.elements.map((e) => ({
 				event: e,
-				isGhost: false,
-				isFeatured: false,
-				isConflict: false,
+				flags: {
+					hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
+					isAlteredInstance: e.recurrenceId != null,
+				},
 				color,
 			}))
 			const longEvents: Array<EventWrapper> = longEventsResult.map((e) => ({
 				event: e,
-				isGhost: false,
-				isFeatured: false,
-				isConflict: false,
+				flags: {
+					hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
+					isAlteredInstance: e.recurrenceId != null,
+				},
 				color,
 			}))
 
