@@ -39,7 +39,7 @@ import {
 	createContactWebsite,
 } from "../../common/api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, clone, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "@tutao/tutanota-utils"
-import { assertMainOrNode } from "../../common/api/common/Env"
+import { assertMainOrNode, isAndroidApp } from "../../common/api/common/Env"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { LockedError, NotFoundError, PayloadTooLargeError } from "../../common/api/common/error/RestError"
 import type { ButtonAttrs } from "../../common/gui/base/Button.js"
@@ -199,109 +199,117 @@ export class ContactEditor {
 	}
 
 	view(): Children {
-		return m("#contact-editor", [
-			m(".wrapping-row", [this.renderFirstNameField(), this.renderLastNameField()]),
-			m(".wrapping-row", [this.renderField("middleName", "middleName_placeholder"), this.renderTitleField()]),
-			m(".wrapping-row", [this.renderField("nameSuffix", "nameSuffix_placeholder"), this.renderField("phoneticFirst", "phoneticFirst_placeholder")]),
-			m(".wrapping-row", [
-				this.renderField("phoneticMiddle", "phoneticMiddle_placeholder"),
-				this.renderField("phoneticLast", "phoneticLast_placeholder"),
-			]),
-			m(".wrapping-row", [this.renderField("nickname", "nickname_placeholder"), this.renderBirthdayField()]),
-			m(".wrapping-row", [
-				this.renderRoleField(),
-				this.renderField("department", "department_placeholder"),
-				this.renderCompanyField(),
-				this.renderCommentField(),
-			]),
-			m(".wrapping-row", [
-				m(".custom-dates.mt-48", [
-					m(".h4", lang.get("dates_label")),
-					m(".aggregateEditors", [
-						this.customDates.map(([date, id], index) => {
-							const lastEditor = index === lastIndex(this.customDates)
-							return this.renderCustomDatesEditor(id, !lastEditor, date)
-						}),
+		return m(
+			"#contact-editor",
+			{
+				style: {
+					"padding-bottom": isAndroidApp() && windowFacade.keyboardSize() === 0 ? "var(--safe-area-inset-bottom)" : "",
+				},
+			},
+			[
+				m(".wrapping-row", [this.renderFirstNameField(), this.renderLastNameField()]),
+				m(".wrapping-row", [this.renderField("middleName", "middleName_placeholder"), this.renderTitleField()]),
+				m(".wrapping-row", [this.renderField("nameSuffix", "nameSuffix_placeholder"), this.renderField("phoneticFirst", "phoneticFirst_placeholder")]),
+				m(".wrapping-row", [
+					this.renderField("phoneticMiddle", "phoneticMiddle_placeholder"),
+					this.renderField("phoneticLast", "phoneticLast_placeholder"),
+				]),
+				m(".wrapping-row", [this.renderField("nickname", "nickname_placeholder"), this.renderBirthdayField()]),
+				m(".wrapping-row", [
+					this.renderRoleField(),
+					this.renderField("department", "department_placeholder"),
+					this.renderCompanyField(),
+					this.renderCommentField(),
+				]),
+				m(".wrapping-row", [
+					m(".custom-dates.mt-48", [
+						m(".h4", lang.get("dates_label")),
+						m(".aggregateEditors", [
+							this.customDates.map(([date, id], index) => {
+								const lastEditor = index === lastIndex(this.customDates)
+								return this.renderCustomDatesEditor(id, !lastEditor, date)
+							}),
+						]),
+					]),
+					m(".mail.mt-48", [
+						m(".h4", lang.get("email_label")),
+						m(".aggregateEditors", [
+							this.mailAddresses.map(([address, id], index) => {
+								const lastEditor = index === lastIndex(this.mailAddresses)
+								return this.renderMailAddressesEditor(id, !lastEditor, address)
+							}),
+						]),
+					]),
+					m(".phone.mt-48", [
+						m(".h4", lang.get("phone_label")),
+						m(".aggregateEditors", [
+							this.phoneNumbers.map(([phoneNumber, id], index) => {
+								const lastEditor = index === lastIndex(this.phoneNumbers)
+								return this.renderPhonesEditor(id, !lastEditor, phoneNumber)
+							}),
+						]),
+					]),
+					m(".relationship.mt-48", [
+						m(".h4", lang.get("relatedPeople_label")),
+						m(".aggregateEditors", [
+							this.relationships.map(([relationship, id], index) => {
+								const lastEditor = index === lastIndex(this.relationships)
+								return this.renderRelationshipsEditor(id, !lastEditor, relationship)
+							}),
+						]),
+					]),
+					m(".address.mt-48", [
+						m(".h4", lang.get("address_label")),
+						m(".aggregateEditors", [
+							this.addresses.map(([address, id], index) => {
+								const lastEditor = index === lastIndex(this.addresses)
+								return this.renderAddressesEditor(id, !lastEditor, address)
+							}),
+						]),
 					]),
 				]),
-				m(".mail.mt-48", [
-					m(".h4", lang.get("email_label")),
-					m(".aggregateEditors", [
-						this.mailAddresses.map(([address, id], index) => {
-							const lastEditor = index === lastIndex(this.mailAddresses)
-							return this.renderMailAddressesEditor(id, !lastEditor, address)
-						}),
+				m(".wrapping-row", [
+					m(".pronouns.mt-48", [
+						m(".h4", lang.get("pronouns_label")),
+						m(".aggregateEditors", [
+							this.pronouns.map(([pronouns, id], index) => {
+								const lastEditor = index === lastIndex(this.pronouns)
+								return this.renderPronounsEditor(id, !lastEditor, pronouns)
+							}),
+						]),
+					]),
+					m(".social.mt-48", [
+						m(".h4", lang.get("social_label")),
+						m(".aggregateEditors", [
+							this.socialIds.map(([socialId, id], index) => {
+								const lastEditor = index === lastIndex(this.socialIds)
+								return this.renderSocialsEditor(id, !lastEditor, socialId)
+							}),
+						]),
+					]),
+					m(".website.mt-48", [
+						m(".h4", lang.get("websites_label")),
+						m(".aggregateEditors", [
+							this.websites.map(([website, id], index) => {
+								const lastEditor = index === lastIndex(this.websites)
+								return this.renderWebsitesEditor(id, !lastEditor, website)
+							}),
+						]),
+					]),
+					m(".instant-message.mt-48", [
+						m(".h4", lang.get("messenger_handles_label")),
+						m(".aggregateEditors", [
+							this.messengerHandles.map(([handle, id], index) => {
+								const lastEditor = index === lastIndex(this.messengerHandles)
+								return this.renderMessengerHandleEditor(id, !lastEditor, handle)
+							}),
+						]),
 					]),
 				]),
-				m(".phone.mt-48", [
-					m(".h4", lang.get("phone_label")),
-					m(".aggregateEditors", [
-						this.phoneNumbers.map(([phoneNumber, id], index) => {
-							const lastEditor = index === lastIndex(this.phoneNumbers)
-							return this.renderPhonesEditor(id, !lastEditor, phoneNumber)
-						}),
-					]),
-				]),
-				m(".relationship.mt-48", [
-					m(".h4", lang.get("relatedPeople_label")),
-					m(".aggregateEditors", [
-						this.relationships.map(([relationship, id], index) => {
-							const lastEditor = index === lastIndex(this.relationships)
-							return this.renderRelationshipsEditor(id, !lastEditor, relationship)
-						}),
-					]),
-				]),
-				m(".address.mt-48", [
-					m(".h4", lang.get("address_label")),
-					m(".aggregateEditors", [
-						this.addresses.map(([address, id], index) => {
-							const lastEditor = index === lastIndex(this.addresses)
-							return this.renderAddressesEditor(id, !lastEditor, address)
-						}),
-					]),
-				]),
-			]),
-			m(".wrapping-row", [
-				m(".pronouns.mt-48", [
-					m(".h4", lang.get("pronouns_label")),
-					m(".aggregateEditors", [
-						this.pronouns.map(([pronouns, id], index) => {
-							const lastEditor = index === lastIndex(this.pronouns)
-							return this.renderPronounsEditor(id, !lastEditor, pronouns)
-						}),
-					]),
-				]),
-				m(".social.mt-48", [
-					m(".h4", lang.get("social_label")),
-					m(".aggregateEditors", [
-						this.socialIds.map(([socialId, id], index) => {
-							const lastEditor = index === lastIndex(this.socialIds)
-							return this.renderSocialsEditor(id, !lastEditor, socialId)
-						}),
-					]),
-				]),
-				m(".website.mt-48", [
-					m(".h4", lang.get("websites_label")),
-					m(".aggregateEditors", [
-						this.websites.map(([website, id], index) => {
-							const lastEditor = index === lastIndex(this.websites)
-							return this.renderWebsitesEditor(id, !lastEditor, website)
-						}),
-					]),
-				]),
-				m(".instant-message.mt-48", [
-					m(".h4", lang.get("messenger_handles_label")),
-					m(".aggregateEditors", [
-						this.messengerHandles.map(([handle, id], index) => {
-							const lastEditor = index === lastIndex(this.messengerHandles)
-							return this.renderMessengerHandleEditor(id, !lastEditor, handle)
-						}),
-					]),
-				]),
-			]),
-			this.renderPresharedPasswordField(),
-			m(".pb-16"),
-		])
+				this.renderPresharedPasswordField(),
+				m(".pb-16"),
+			],
+		)
 	}
 
 	show() {

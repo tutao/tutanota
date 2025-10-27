@@ -205,7 +205,7 @@ export class CalendarSettingsView extends BaseTopLevelView implements TopLevelVi
 			".pb-16.pt-32.flex-no-shrink.flex.col.justify-end.items-center.gap-16",
 			{
 				style: {
-					paddingBottom: safeArea > 0 ? px(safeArea) : px(size.spacing_16),
+					paddingBottom: safeArea > 0 ? px(safeArea) : "var(--safe-area-inset-bottom)",
 				},
 			},
 			[

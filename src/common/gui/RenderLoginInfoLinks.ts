@@ -15,7 +15,7 @@ export function renderInfoLinks(): Children {
 	const imprintLink = getImprintLink()
 
 	return m(
-		".flex.col.mt-32",
+		".flex.col.mt-32.pb-safe-inset",
 		m(
 			".flex.wrap.justify-center.gap-16",
 			!isApp() && privacyPolicyLink
