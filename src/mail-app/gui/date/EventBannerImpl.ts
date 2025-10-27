@@ -107,7 +107,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.before.event)
 		}
 		if (!agenda?.before && agenda?.after) {
-			if (agenda?.after?.isConflict) {
+			if (agenda?.after?.flags?.isConflict) {
 				eventFocusBound = agenda.after.event.startTime
 			}
 			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
@@ -569,10 +569,10 @@ export async function loadEventsAroundInvite(
 			after: null,
 			main: {
 				event: iCalEvent,
-				isGhost: false,
-				isConflict: false,
 				color: theme.success_container,
-				isFeatured: true,
+				flags: {
+					isFeatured: true,
+				},
 			},
 			allDayEvents: allDayAndLongEvents.map((wrapper) => ({
 				...wrapper,
@@ -603,7 +603,9 @@ export async function loadEventsAroundInvite(
 		} else {
 			eventList.before = {
 				...closestConflictingEventBeforeStartTime,
-				isConflict: true,
+				flags: {
+					isConflict: true,
+				},
 			}
 		}
 
@@ -623,7 +625,9 @@ export async function loadEventsAroundInvite(
 		} else {
 			eventList.after = {
 				...closestConflictingEventAfterStartTime,
-				isConflict: true,
+				flags: {
+					isConflict: true,
+				},
 			}
 		}
 

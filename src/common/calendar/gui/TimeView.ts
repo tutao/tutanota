@@ -1,20 +1,14 @@
 import m, { Child, ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized, getStartOfDay, getStartOfNextDay, mapNullable, noOp } from "@tutao/tutanota-utils"
-import { px, size } from "../../gui/size.js"
-import { Icon, IconSize } from "../../gui/base/Icon.js"
-import { Icons } from "../../gui/base/icons/Icons.js"
-import { theme } from "../../gui/theme.js"
-import { colorForBg } from "../../gui/base/GuiUtils.js"
-import { getTimeFromClickInteraction, getTimeTextFormatForLongEvent, getTimeZone, hasAlarmsForTheUser, isBirthdayCalendar } from "../date/CalendarUtils"
+import { deepMemoized, getStartOfDay, getStartOfNextDay, noOp } from "@tutao/tutanota-utils"
+import { px } from "../../gui/size.js"
+import { getTimeFromClickInteraction, getTimeZone } from "../date/CalendarUtils"
 import { TimeColumn } from "./TimeColumn"
-import { elementIdPart, listIdPart } from "../../api/common/utils/EntityUtils"
+import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "luxon"
-import { CalendarEventBubble } from "../../../calendar-app/calendar/view/CalendarEventBubble"
-import { formatEventTime } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
-import { locator } from "../../api/main/CommonLocator"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
+import { CalendarEventBubble, CalendarEventBubbleAttrs, EventBubbleInteractions, MIN_ROW_SPAN } from "../../../calendar-app/calendar/view/CalendarEventBubble"
 
 export const TIME_SCALE_BASE_VALUE = 60
 export type TimeScale = 1 | 2 | 4
@@ -35,6 +29,7 @@ export interface TimeViewAttributes {
 	setTimeRowHeight: (timeRowHeight: number) => void
 	hasAnyConflict?: boolean
 	cellActionHandlers?: Pick<CellAttrs, "onCellPressed" | "onCellContextMenuPressed">
+	eventBubbleHandlers?: EventBubbleInteractions
 }
 
 /**
@@ -163,7 +158,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 	}
 
 	private renderDay(date: Date, subRowCount: number, timeViewAttrs: TimeViewAttributes): Child {
-		const { events: eventWrappers, timeScale, timeRange, timeRowHeight, cellActionHandlers } = timeViewAttrs
+		const { events: eventWrappers, timeScale, timeRange, cellActionHandlers, eventBubbleHandlers } = timeViewAttrs
 		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
 		const startOfTomorrow = getStartOfNextDay(date)
 		const startOfDay = getStartOfDay(date)
@@ -183,7 +178,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 			},
 			[
 				this.renderInteractableCells(date, timeScale, timeRange, cellActionHandlers?.onCellPressed, cellActionHandlers?.onCellContextMenuPressed),
-				this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date, timeRowHeight),
+				this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date, eventBubbleHandlers),
 			],
 		)
 	}
@@ -197,7 +192,6 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 	 * @param subRowAsMinutes - Minutes represented by each grid subrow
 	 * @param timeScale - Time scale factor for interval subdivision (1, 2, or 4)
 	 * @param baseDate - The date for this column
-	 * @param timeRowHeight - Pixel height of a single grid subrow (affects bubble heights). Include this in the memoization key so layouts update when the DOM size changes.
 	 * @returns Child nodes representing the rendered events
 	 *
 	 * @private
@@ -209,7 +203,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 			subRowAsMinutes: number,
 			timeScale: TimeScale,
 			baseDate: Date,
-			timeRowHeight: number,
+			eventInteractions?: EventBubbleInteractions,
 		): Children => {
 			const interval = TIME_SCALE_BASE_VALUE / timeScale
 			const timeRangeAsDate = {
@@ -251,77 +245,19 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 				if (!evData) {
 					return []
 				}
-				const {
-					row: { start, end },
-					column: { span: spanSize, start: columnStart },
-				}: GridEventData = evData
 
 				return [
-					m(
-						".border-radius.text-ellipsis-multi-line.p-xsm.on-success-container-color.small",
-						{
-							style: {
-								"min-height": px(0),
-								"min-width": px(0),
-								"grid-column": `${columnStart} / span ${spanSize}`,
-								background: `#${eventWrapper.color}`,
-								color: !eventWrapper.isFeatured ? colorForBg(`#${eventWrapper.color}`) : undefined,
-								"grid-row": `${start} / ${end}`,
-								"border-top-left-radius": eventWrapper.event.startTime < timeRangeAsDate.start ? "0" : undefined,
-								"border-top-right-radius": eventWrapper.event.startTime < timeRangeAsDate.start ? "0" : undefined,
-								"border-bottom-left-radius": eventWrapper.event.endTime > timeRangeAsDate.end ? "0" : undefined,
-								"border-bottom-right-radius": eventWrapper.event.endTime > timeRangeAsDate.end ? "0" : undefined,
-								border: eventWrapper.isFeatured
-									? `1.5px dashed ${eventWrapper.isConflict ? theme.on_warning_container : theme.on_success_container}`
-									: "none",
-								"border-top": eventWrapper.event.startTime < timeRangeAsDate.start ? "none" : undefined,
-								"border-bottom": eventWrapper.event.endTime > timeRangeAsDate.end ? "none" : undefined,
-								"-webkit-line-clamp": 2,
-							} satisfies Partial<CSSStyleDeclaration> & Record<string, any>,
+					m(CalendarEventBubble, {
+						interactions: eventInteractions,
+						gridInfo: evData,
+						eventWrapper,
+						rangeInfo: {
+							start: eventWrapper.event.startTime > timeRangeAsDate.start,
+							end: eventWrapper.event.endTime > timeRangeAsDate.end,
 						},
-						eventWrapper.isFeatured
-							? m(".flex.items-start", [
-									m(Icon, {
-										icon: eventWrapper.isConflict ? Icons.AlertCircle : Icons.Checkmark,
-										container: "div",
-										class: "mr-xxs",
-										size: IconSize.Normal,
-										style: {
-											fill: eventWrapper.isConflict ? theme.on_warning_container : theme.on_success_container,
-										},
-									}),
-									m(
-										".break-word.b.text-ellipsis-multi-line.lh",
-										{
-											style: {
-												"-webkit-line-clamp": 2,
-												color: eventWrapper.isConflict ? theme.on_warning_container : theme.on_success_container,
-											},
-										},
-										eventWrapper.event.summary,
-									),
-								])
-							: // : m("span.selectable", `${eventWrapper.event.summary} ${eventWrapper.event._id.join("/")}`),
-								m(CalendarEventBubble, {
-									text: eventWrapper.event.summary,
-									secondLineText: mapNullable(
-										getTimeTextFormatForLongEvent(eventWrapper.event, baseDate, getStartOfNextDay(baseDate), getTimeZone()),
-										(option) => formatEventTime(eventWrapper.event, option),
-									),
-									color: eventWrapper.color.replaceAll("#", ""),
-									border: `2px dashed #${eventWrapper.color}`,
-									click: (domEvent) => console.log("click"),
-									keyDown: (domEvent) => console.log("keyDown", domEvent),
-									height: (end - start) * (timeRowHeight ?? 1),
-									hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, eventWrapper.event),
-									isAltered: eventWrapper.event.recurrenceId != null,
-									verticalPadding: size.calendar_day_event_padding,
-									fadeIn: true,
-									opacity: 1,
-									enablePointerEvents: true,
-									isBirthday: isBirthdayCalendar(listIdPart(eventWrapper.event._id)),
-								}),
-					),
+						baseDate,
+						isFocusable: true, // FIXME
+					} satisfies CalendarEventBubbleAttrs),
 				]
 			}) as ChildArray
 		},
@@ -479,8 +415,10 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 
 		const diffFromRangeStartToEventEnd = timeRange.start.diff(Time.fromDate(eventTimeRange.endTime))
 		const eventEndsAfterRange = eventTimeRange.endTime > getStartOfNextDay(baseDate) || diff > 0
-		const end = eventEndsAfterRange ? -1 : Math.ceil(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
-
+		let end = eventEndsAfterRange ? -1 : Math.ceil(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
+		if (!eventEndsAfterRange) {
+			end = Math.max(end, start + MIN_ROW_SPAN) // Assert events has at least row span of MIN_ROW_SPAN
+		}
 		return { start, end }
 	}
 
@@ -519,7 +457,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 
 	private renderCell(cellAttrs: CellAttrs): Child {
 		const showHoverEffect = cellAttrs.onCellPressed || cellAttrs.onCellContextMenuPressed
-		const classes = showHoverEffect ? "interactable-cell cursor-pointer" : ""
+		const classes = showHoverEffect ? "interactable-cell cursor-pointer after-as-border-bottom" : ""
 
 		return m(".z1", {
 			class: classes,

@@ -366,7 +366,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					id: base64ToBase64Url(stringToBase64(event.event._id.join("/"))),
 					event: event,
 					color: eventColor,
-					border: event.isGhost ? `2px dashed #${eventColor}` : undefined,
+					border: event.flags?.isGhost ? `2px dashed #${eventColor}` : undefined,
 					selected: event.event === (modelPromise as CalendarEventPreviewViewModel)?.calendarEvent,
 					click: (domEvent) => click(event.event, domEvent),
 					keyDown: (domEvent) => {

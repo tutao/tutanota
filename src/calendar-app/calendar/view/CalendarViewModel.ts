@@ -41,6 +41,7 @@ import {
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
+	hasAlarmsForTheUser,
 	isBirthdayCalendar,
 	isEventBetweenDays,
 	isSameEventInstance,
@@ -76,6 +77,49 @@ import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 
 /**
+ * FIXME doc
+ */
+export interface EventWrapperFlags {
+	/**
+	 * Pending invitation event.
+	 * Rendered with reduced opacity, borders, and limited interactions.
+	 */
+	isGhost?: boolean
+
+	/**
+	 * Emphasized event to draw attention.
+	 * Styled with icon, borders, and a success semantic color (ignores calendar color).
+	 */
+	isFeatured?: boolean
+
+	/**
+	 * Event overlaps with other events.
+	 * Styled with icon, border, and a warning semantic color (ignores calendar color).
+	 */
+	isConflict?: boolean
+
+	/**
+	 * FIXME Doc
+	 */
+	isAlteredInstance?: boolean
+
+	/**
+	 * FIXME Doc
+	 */
+	isBirthdayEvent?: boolean
+
+	/**
+	 * FIXME Doc
+	 */
+	isTransientEvent?: boolean
+
+	/**
+	 * FIXME Doc
+	 */
+	hasAlarms?: boolean
+}
+
+/**
  * Wraps a CalendarEvent with display metadata for UI rendering.
  * Separates event data from presentation concerns.
  */
@@ -84,22 +128,9 @@ export interface EventWrapper {
 	event: CalendarEvent
 
 	/**
-	 * Pending invitation event.
-	 * Rendered with reduced opacity, borders, and limited interactions.
+	 * FIXME doc
 	 */
-	isGhost: boolean
-
-	/**
-	 * Emphasized event to draw attention.
-	 * Styled with icon, borders, and a success semantic color (ignores calendar color).
-	 */
-	isFeatured: boolean
-
-	/**
-	 * Event overlaps with other events.
-	 * Styled with icon, border, and a warning semantic color (ignores calendar color).
-	 */
-	isConflict: boolean
+	flags?: EventWrapperFlags
 
 	/**
 	 * Event background color without '#' prefix.
@@ -367,7 +398,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	// visibleForTesting
 	allowDrag(eventWrapper: EventWrapper): boolean {
-		return !eventWrapper.isGhost || this.canFullyEditEvent(eventWrapper.event)
+		return !eventWrapper.flags?.isGhost || this.canFullyEditEvent(eventWrapper.event)
 	}
 
 	/**
@@ -638,11 +669,13 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			const occurrencesPerDay = new Map()
 
 			const color = this.calendarColors.get(progenitor._ownerGroup!) ?? DEFAULT_CALENDAR_COLOR
+			const hasAlarms = hasAlarmsForTheUser(this.logins.getUserController().user, progenitor)
 			const progenitorWrapper: EventWrapper = {
 				event: progenitor,
-				isGhost: false,
-				isFeatured: false,
-				isConflict: false,
+				flags: {
+					isAlteredInstance: progenitor.recurrenceId != null,
+					hasAlarms,
+				},
 				color,
 			}
 			addDaysForRecurringEvent(occurrencesPerDay, progenitorWrapper, generationRange, newEventModel.editModels.whenModel.zone)

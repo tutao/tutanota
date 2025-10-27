@@ -1,11 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { hasAlarmsForTheUser, isBirthdayCalendar } from "../../../common/calendar/date/CalendarUtils"
-import { CalendarEventBubble } from "./CalendarEventBubble"
 import type { User } from "../../../common/api/entities/sys/TypeRefs.js"
 import type { EventTextTimeOption } from "../../../common/api/common/TutanotaConstants"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "./CalendarViewModel"
-import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
-import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
+import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 
 type ContinuingCalendarEventBubbleAttrs = {
 	event: EventWrapper
@@ -39,21 +36,21 @@ export class ContinuingCalendarEventBubble implements Component<ContinuingCalend
 				: null,
 			m(
 				".flex-grow.overflow-hidden",
-				m(CalendarEventBubble, {
-					text: (attrs.showTime != null ? formatEventTime(attrs.event.event, attrs.showTime) + " " : "") + eventTitle,
-					color: attrs.color,
-					border: attrs.border,
-					click: (e) => attrs.onEventClicked(attrs.event.event, e),
-					keyDown: (e) => attrs.onEventKeyDown(attrs.event.event, e),
-					noBorderLeft: attrs.startsBefore,
-					noBorderRight: attrs.endsAfter,
-					hasAlarm: hasAlarmsForTheUser(attrs.user, attrs.event.event),
-					isAltered: attrs.event.event.recurrenceId != null,
-					fadeIn: attrs.fadeIn,
-					opacity: attrs.opacity,
-					enablePointerEvents: attrs.enablePointerEvents,
-					isBirthday: isBirthdayCalendar(listIdPart(attrs.event.event._id)),
-				}),
+				// m(CalendarEventBubble, {
+				// 	text: (attrs.showTime != null ? formatEventTime(attrs.event.event, attrs.showTime) + " " : "") + eventTitle,
+				// 	color: attrs.color,
+				// 	border: attrs.border,
+				// 	click: (e) => attrs.onEventClicked(attrs.event.event, e),
+				// 	keyDown: (e) => attrs.onEventKeyDown(attrs.event.event, e),
+				// 	noBorderLeft: attrs.startsBefore,
+				// 	noBorderRight: attrs.endsAfter,
+				// 	hasAlarm: hasAlarmsForTheUser(attrs.user, attrs.event.event),
+				// 	isAltered: attrs.event.event.recurrenceId != null,
+				// 	fadeIn: attrs.fadeIn,
+				// 	opacity: attrs.opacity,
+				// 	enablePointerEvents: attrs.enablePointerEvents,
+				// 	isBirthday: isBirthdayCalendar(listIdPart(attrs.event.event._id)),
+				// }),
 			),
 			attrs.endsAfter
 				? m(".event-continues-right-arrow", {
