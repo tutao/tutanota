@@ -2116,4 +2116,5 @@ export type TranslationKeyType =
 	| "enforceTwoFactor_label"
 	| "pricing.firstYearDiscount_msg"
 	| "pricing.firstYearDiscountIos_msg"
+	| "conflict_label"
 	| "emptyString_msg"

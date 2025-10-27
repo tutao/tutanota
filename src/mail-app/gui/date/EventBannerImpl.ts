@@ -281,44 +281,16 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		])
 	}
 
-	private populateMultipleConflictsTexts(stringParts: Array<string>, normalConflictsCount: number, allDayConflictsCount: number) {
-		if (normalConflictsCount && !this.displayConflictingAgenda) {
-			stringParts.push(normalConflictsCount.toString(), lang.getTranslationText("simultaneousEvents_msg"))
-		}
-
-		if (allDayConflictsCount > 0 && !this.displayConflictingAgenda) {
-			if (normalConflictsCount) {
-				stringParts.push(`+${allDayConflictsCount}`)
-			} else {
-				stringParts.push(`${allDayConflictsCount}`)
-			}
-
-			stringParts.push(`${lang.getTranslationText("allDay_label").toLowerCase()}`)
-		}
-	}
-
-	private populateSingleConflictText(stringParts: Array<string>, normalEventsConflictCount: number) {
-		if (normalEventsConflictCount === 0) {
-			return stringParts.push(`1 ${lang.getTranslationText("allDayEvents_label").toLowerCase()}`)
-		}
-
-		return stringParts.push(normalEventsConflictCount.toString(), lang.getTranslationText("simultaneousEvents_msg"))
-	}
-
 	private renderConflictInfoText(normalEventsConflictCount: number, allDayEventsConflictCount: number) {
 		const totalConflicts = allDayEventsConflictCount + normalEventsConflictCount
 		const stringParts: Array<string> = []
 
 		if (totalConflicts === 0) {
-			stringParts.push(lang.getTranslationText("noSimultaneousEvents_msg"))
+			stringParts.push(lang.getTranslation("noSimultaneousEvents_msg").text)
 		} else if (totalConflicts === 1) {
-			this.populateSingleConflictText(stringParts, normalEventsConflictCount)
+			stringParts.push(lang.getTranslation("conflict_label").text)
 		} else {
-			this.populateMultipleConflictsTexts(stringParts, normalEventsConflictCount, allDayEventsConflictCount)
-		}
-
-		if (totalConflicts > 1 && this.displayConflictingAgenda) {
-			stringParts.push((normalEventsConflictCount + allDayEventsConflictCount).toString(), lang.getTranslationText("conflicts_label"))
+			stringParts.push(lang.getTranslation("conflicts_label", { "{count}": totalConflicts }).text)
 		}
 
 		return m(
@@ -348,14 +320,14 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 	private renderAllDayConflictingEvents(referenceDate: Date, conflictingAllDayEvents: Array<TimeViewEventWrapper>, showLabel: boolean) {
 		return m("", [
-			showLabel ? m("strong.small.content-fg", `${conflictingAllDayEvents.length} ${lang.getTranslationText("allDayEvents_label")}`) : null,
+			showLabel ? m("strong.small.content-fg", lang.getTranslationText("allDayEvents_label")) : null,
 			conflictingAllDayEvents?.map((l) => this.buildConflictingEventInfoText(referenceDate, l, true)),
 		])
 	}
 
 	private renderNormalConflictingEvents(referenceDate: Date, conflictingRegularEvents: Array<TimeViewEventWrapper>, showLabel: boolean) {
 		return m("", [
-			showLabel ? m("strong.small.content-fg", `${conflictingRegularEvents.length} ${lang.getTranslationText("simultaneousEvents_msg")}`) : null,
+			showLabel ? m("strong.small.content-fg", lang.getTranslationText("simultaneousEvents_msg")) : null,
 			conflictingRegularEvents?.map((l) => this.buildConflictingEventInfoText(referenceDate, l, false)),
 		])
 	}
