@@ -51,42 +51,39 @@ export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
 		const dayCircleClasses = getDayCircleClass(day, selectedDate)
 
 		return m(
-			"",
-			m(
-				".flex.justify-center.b.items-center.gap-vpad-s",
-				{
-					onclick: () => onClick(day),
-				},
-				[
-					m(".calendar-day-indicator.click", lang.formats.weekdayShort.format(day) + " "),
-					m(
-						".rel.flex.items-center.justify-center.click",
-						{
-							"aria-label": day.toLocaleDateString(),
-						},
-						[
-							m(".abs.z1.circle", {
-								class: dayCircleClasses.circle,
+			".flex.justify-center.b.items-center.gap-vpad-s",
+			{
+				onclick: () => onClick(day),
+			},
+			[
+				m(".calendar-day-indicator.click", lang.formats.weekdayShort.format(day) + " "),
+				m(
+					".rel.flex.items-center.justify-center.click",
+					{
+						"aria-label": day.toLocaleDateString(),
+					},
+					[
+						m(".abs.z1.circle", {
+							class: dayCircleClasses.circle,
+							style: {
+								width: px(size.calendar_days_header_height),
+								height: px(size.calendar_days_header_height),
+							},
+						}),
+						m(
+							".z2",
+							{
+								class: dayCircleClasses.text,
 								style: {
-									width: px(size.calendar_days_header_height),
-									height: px(size.calendar_days_header_height),
+									fontSize: px(14),
+									lineHeight: px(size.calendar_days_header_height),
 								},
-							}),
-							m(
-								".z2",
-								{
-									class: dayCircleClasses.text,
-									style: {
-										fontSize: px(14),
-										lineHeight: px(size.calendar_days_header_height),
-									},
-								},
-								day.getDate(),
-							),
-						],
-					),
-				],
-			),
+							},
+							day.getDate(),
+						),
+					],
+				),
+			],
 		)
 	}
 

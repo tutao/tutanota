@@ -9,6 +9,7 @@ import { px, size } from "../../../../common/gui/size"
 import { PageView } from "../../../../common/gui/base/PageView"
 import { getSubRowAsMinutes, TimeRange, TimeScale, TimeView, TimeViewAttributes } from "../../../../common/calendar/gui/TimeView"
 import { EventWrapper } from "../CalendarViewModel"
+import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/gui/AllDaySection"
 
 interface PageAttrs {
 	/**
@@ -39,7 +40,6 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 	private timeRowHeight = 0
 
 	view({ attrs }: Vnode<CalendarViewComponentAttrs>) {
-		const classes = [styles.isDesktopLayout() ? "content-bg" : "nav-bg", styles.isDesktopLayout() ? "border-bottom" : ""].join(" ")
 		const renderHeader = () => {
 			const children: Children = []
 
@@ -64,7 +64,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			return m(
 				".grid.py-core-8",
 				{
-					class: classes,
+					class: styles.isDesktopLayout() ? "content-bg" : "nav-bg",
 					style: {
 						gridColumn: "1/-1",
 						gridTemplateColumns: "subgrid",
@@ -85,6 +85,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			return m(
 				".grid.overflow-x-hidden.rel",
 				{
+					class: styles.isDesktopLayout() ? "border-top" : "",
 					style: {
 						gridColumn: "1/-1",
 						gridTemplateColumns: "subgrid",
@@ -142,6 +143,32 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			)
 		}
 
+		const renderAllDaySection = () => {
+			return m(
+				".grid.overflow-x-hidden.rel",
+				{
+					style: {
+						gridColumn: "1/-1",
+						gridTemplateColumns: "subgrid",
+					} satisfies Partial<CSSStyleDeclaration>,
+				},
+				[
+					m(
+						"",
+						{
+							style: {
+								gridArea: "allDayGrid",
+							} satisfies Partial<CSSStyleDeclaration>,
+						},
+						m(AllDaySection, {
+							dates: attrs.bodyComponentAttrs.current.dates,
+							allDayEventWrappers: attrs.bodyComponentAttrs.current.events.long,
+						} satisfies AllDaySectionAttrs),
+					),
+				],
+			)
+		}
+
 		const resolveClasses = (): string => {
 			const classes = styles.isDesktopLayout() ? ["content-bg", "mr-l", "border-radius-big"] : ["mlr-safe-inset"]
 			return classes.join(" ")
@@ -153,13 +180,13 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 				class: resolveClasses(),
 				style: {
 					gridTemplateAreas: `'weekNumber 	header'
-										'empty 			calendarGrid'
+										'empty 			allDayGrid'
 										'timeColumn 	calendarGrid'`,
 					gridTemplateRows: "auto auto 1fr",
 					gridTemplateColumns: "auto 1fr",
 				} satisfies Partial<CSSStyleDeclaration>,
 			},
-			[renderHeader(), renderBody()],
+			[renderHeader(), renderAllDaySection(), renderBody()],
 		)
 	}
 
