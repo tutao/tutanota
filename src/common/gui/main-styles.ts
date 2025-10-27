@@ -756,10 +756,13 @@ styles.registerStyle("main", () => {
 		".will-change-alpha": {
 			"will-change": "alpha",
 		},
+		".after-as-border-bottom": {
+			position: "relative",
+		},
 		".after-as-border-bottom:after": {
 			// Hacky solution to create a border that extends the whole parent
 			content: "''",
-			width: "100vw",
+			width: "100%",
 			height: "1px",
 			background: theme.outline_variant,
 			position: "absolute",
@@ -2617,17 +2620,6 @@ styles.registerStyle("main", () => {
 			// slash in content is content alt. so that it's ignored by screen readers
 			content: '"#" / ""',
 			color: theme.on_surface,
-		},
-		".success-container": {
-			"background-color": theme.success_container,
-			color: theme.on_success_container,
-		},
-		".error-container": {
-			"background-color": theme.error_container,
-			color: theme.on_error_container,
-		},
-		".on-success-container-color": {
-			color: theme.on_success_container,
 		},
 		".calendar-invite-field": {
 			"min-width": "80px",

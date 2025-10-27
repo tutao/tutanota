@@ -46,7 +46,9 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { BirthdayEventRegistry } from "./CalendarEventsRepository.js"
 import type { TranslationKey } from "../../misc/LanguageViewModel.js"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
-import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
+import { EventWrapper, type EventWrapperFlags } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
+import { AllIcons } from "../../gui/base/Icon"
+import { Icons } from "../../gui/base/icons/Icons"
 
 export type CalendarTimeRange = {
 	start: number
@@ -1887,4 +1889,11 @@ export function getTimeFromClickInteraction(e: MouseEvent, time: Time): Time {
 	const mousePositionRelativeToRectHeight = Math.abs(rect.top - e.clientY)
 	if (mousePositionRelativeToRectHeight > rect.height / 2) return new Time(time.hour, time.minute + 30)
 	return time
+}
+
+export type EventWrapperFlagKeys = keyof Pick<EventWrapperFlags, "hasAlarms" | "isAlteredInstance" | "isBirthdayEvent">
+export const FlagKeyToIcon: Record<EventWrapperFlagKeys, AllIcons> = {
+	hasAlarms: Icons.Notifications,
+	isAlteredInstance: Icons.Edit,
+	isBirthdayEvent: Icons.Gift,
 }

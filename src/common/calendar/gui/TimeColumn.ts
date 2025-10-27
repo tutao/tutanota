@@ -52,7 +52,7 @@ export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
 						".flex.small.border-right.rel.justify-center.items-center.interactable-cell.cursor-pointer",
 						{
 							style: {
-							height: px(layout_size.calendar_hour_height), // FIXME apply dynamic height according to zoom
+								height: px(layout_size.calendar_hour_height), // FIXME apply dynamic height according to zoom
 							},
 							onclick: (e: MouseEvent) => {
 								e.stopImmediatePropagation()
