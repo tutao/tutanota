@@ -154,6 +154,7 @@ export class SpamClassifier {
 		await this.initialTraining(data)
 		await this.saveModel(ownerGroup)
 		await storage.setLastTrainedFromScratchTime(Date.now())
+		await storage.setLastTrainedTime(Date.now())
 	}
 
 	// VisibleForTesting
