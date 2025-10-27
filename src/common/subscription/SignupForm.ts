@@ -31,6 +31,7 @@ import { SubscriptionApp } from "./utils/SubscriptionUtils"
 import { deviceConfig } from "../misc/DeviceConfig"
 import { SessionType } from "../api/common/SessionType"
 import { PowSolution } from "../api/common/pow-worker"
+import { credentialsToUnencrypted } from "../misc/credentials/Credentials"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
@@ -259,7 +260,14 @@ async function signup(
 			if (!logins.isUserLoggedIn()) {
 				// we do not know the userGroupId at group creation time,
 				// so we log in and create the identity key pair now
-				userGroupId = (await logins.createSession(mailAddress, password, SessionType.Temporary)).userGroupInfo.group
+
+				const sessionData = await logins.createSession(mailAddress, password, SessionType.Persistent)
+
+				const unencryptedCredentials = credentialsToUnencrypted(sessionData.credentials, sessionData.databaseKey)
+				try {
+					await locator.credentialsProvider.store(unencryptedCredentials)
+				} catch (e) {}
+				userGroupId = sessionData.userGroupInfo.group
 			} else {
 				userGroupId = logins.getUserController().userGroupInfo.group
 			}
