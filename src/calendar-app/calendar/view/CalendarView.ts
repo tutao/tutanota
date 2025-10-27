@@ -71,7 +71,7 @@ import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultTo
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
-import { BirthdayCalendarInfo, CalendarInfo, CalendarModel } from "../model/CalendarModel"
+import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../model/CalendarModel"
 import type Stream from "mithril/stream"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { createDropdown, DropdownChildAttrs, PosRect } from "../../../common/gui/base/Dropdown.js"
@@ -1089,7 +1089,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		})
 	}
 
-	private async onPressedEditBirthdayCalendar(calendarInfo: BirthdayCalendarInfo) {
+	private async onPressedEditBirthdayCalendar(calendarInfo: CalendarInfoBase) {
 		if (!this.viewModel.isNewPaidPlan) {
 			showPlanUpgradeRequiredDialog(NewPaidPlans)
 			return

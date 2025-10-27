@@ -8,7 +8,6 @@ import {
 	delay,
 	downcast,
 	filterInt,
-	getFirstOrThrow,
 	getFromMap,
 	isNotEmpty,
 	isSameDay,
@@ -144,11 +143,7 @@ export type CalendarInfo = CalendarInfoBase & {
 	isExternal: boolean
 }
 
-export type BirthdayCalendarInfo = CalendarInfoBase & {
-	contactGroupId: Id
-}
-
-export function isBirthdayCalendarInfo(calendarInfoBase: CalendarInfoBase): calendarInfoBase is BirthdayCalendarInfo {
+export function isBirthdayCalendarInfo(calendarInfoBase: CalendarInfoBase): boolean {
 	return calendarInfoBase.type === CalendarType.Birthday
 }
 
@@ -216,7 +211,7 @@ export class CalendarModel {
 	private externalCalendarSyncQueue: ExternalCalendarQueueItem[] = []
 	private externalCalendarRetryCount: Map<Id, number> = new Map()
 
-	private birthdayCalendarInfo: BirthdayCalendarInfo
+	private birthdayCalendarInfo: CalendarInfoBase
 
 	constructor(
 		private readonly notifications: Notifications,
@@ -248,20 +243,21 @@ export class CalendarModel {
 			}
 		})
 		this.birthdayCalendarInfo = this.createBirthdayCalendarInfo()
-		this.userHasNewPaidPlan.getAsync().then(m.redraw)
+		if (logins.isInternalUserLoggedIn()) {
+			this.userHasNewPaidPlan.getAsync().then(m.redraw)
+		}
 	}
 
-	private createBirthdayCalendarInfo(): BirthdayCalendarInfo {
+	private createBirthdayCalendarInfo(): CalendarInfoBase {
 		return {
 			id: `${this.logins.getUserController().userId}#${BIRTHDAY_CALENDAR_BASE_ID}`,
 			name: this.lang.get("birthdayCalendar_label"),
 			color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 			type: CalendarType.Birthday,
-			contactGroupId: getFirstOrThrow(this.logins.getUserController().getContactGroupMemberships()).group,
 		}
 	}
 
-	getBirthdayCalendarInfo(): BirthdayCalendarInfo {
+	getBirthdayCalendarInfo(): CalendarInfoBase {
 		return this.birthdayCalendarInfo
 	}
 
