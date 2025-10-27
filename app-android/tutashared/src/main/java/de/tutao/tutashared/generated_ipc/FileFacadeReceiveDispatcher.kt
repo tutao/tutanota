@@ -39,6 +39,11 @@ class FileFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"openMacImportFileChooser" -> {
+				val result: List<String> = this.facade.openMacImportFileChooser(
+				)
+				return json.encodeToString(result)
+			}
 			"deleteFile" -> {
 				val file: String = json.decodeFromString(arg[0])
 				val result: Unit = this.facade.deleteFile(

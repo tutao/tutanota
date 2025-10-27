@@ -126,6 +126,10 @@ class AndroidFileFacade(
 		error("not implemented for this platform")
 	}
 
+	override suspend fun openMacImportFileChooser(): List<String> {
+		error("not implemented for this platform")
+	}
+
 	@Throws(IOException::class)
 	override suspend fun writeTempDataFile(file: DataFile): String = withContext(Dispatchers.IO) {
 		val fileHandle = File(tempDir.decrypt, file.name)
