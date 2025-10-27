@@ -258,8 +258,7 @@ export async function loadSignupWizard(
 			// ensure that we reload the client in order to reset any state of the client that has been set when creating a session during signup.
 			if (signupData.newAccountData) {
 				await windowFacade.reload({
-					noAutoLogin: true,
-					loginWith: signupData.newAccountData.mailAddress,
+					noAutoLogin: false,
 				})
 			}
 		},
