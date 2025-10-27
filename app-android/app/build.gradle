@@ -12,7 +12,7 @@ android {
 		compileSdk 36
 		applicationId "de.tutao.tutanota"
 		minSdkVersion 26
-		targetSdkVersion 35
+		targetSdkVersion 36
 		versionCode 396566
 		versionName "315.251128.1"
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
