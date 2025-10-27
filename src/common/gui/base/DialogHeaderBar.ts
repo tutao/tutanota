@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { ButtonAttrs } from "./Button.js"
 import { Button } from "./Button.js"
-import type { lazy, MaybeLazy } from "@tutao/tutanota-utils"
+import type { MaybeLazy } from "@tutao/tutanota-utils"
 import { resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 
