@@ -4,14 +4,14 @@ import { lang } from "../misc/LanguageViewModel"
 import type { Country } from "../api/common/CountryList"
 import { Countries, CountryType } from "../api/common/CountryList"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
-import type { LocationServiceGetReturn } from "../api/entities/sys/TypeRefs.js"
 import { renderCountryDropdown } from "../gui/base/GuiUtils"
 import { TextField } from "../gui/base/TextField.js"
 import type { InvoiceData } from "../api/common/TutanotaConstants"
-import { LocationService } from "../api/entities/sys/Services"
-import { locator } from "../api/main/CommonLocator"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
+import { locator } from "../api/main/CommonLocator"
+import { LocationService } from "../api/entities/sys/Services"
+import { LocationServiceGetReturn } from "../api/entities/sys/TypeRefs"
 
 export enum InvoiceDataInputLocation {
 	InWizard = 0,
@@ -115,7 +115,7 @@ export class InvoiceDataInput implements Component {
 		return this.businessUse && selectedCountry != null && selectedCountry.t === CountryType.EU
 	}
 
-	private getAddress(): string {
+	public getAddress(): string {
 		return this.invoiceAddressComponent
 			.getValue()
 			.split("\n")

@@ -2,7 +2,6 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Autocomplete, TextField } from "../gui/base/TextField.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { Stage } from "@tutao/tutanota-usagetests"
 import { CreditCard } from "../api/entities/sys/TypeRefs.js"
 
 export type SimplifiedCreditCardAttrs = {
@@ -69,7 +68,9 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 				label: lang.makeTranslation("cvv", viewModel.getCvvLabel()),
 				value: viewModel.cvv,
 				helpLabel: () => this.renderCvvNumberHelpLabel(viewModel),
-				oninput: (newValue) => (viewModel.cvv = newValue),
+				oninput: (newValue) => {
+					viewModel.cvv = newValue
+				},
 				onblur: () => (this.cvvFieldLeft = true),
 				autocompleteAs: Autocomplete.ccCsc,
 			}),
@@ -96,7 +97,12 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 		const cvvError = model.getCvvErrorHint()
 		if (this.cvvFieldLeft) {
 			if (cvvHint) {
-				return cvvError ? lang.get("creditCardHintWithError_msg", { "{hint}": cvvHint, "{errorText}": cvvError }) : cvvHint
+				return cvvError
+					? lang.get("creditCardHintWithError_msg", {
+							"{hint}": cvvHint,
+							"{errorText}": cvvError,
+						})
+					: cvvHint
 			} else {
 				return cvvError ? cvvError : lang.get("emptyString_msg")
 			}

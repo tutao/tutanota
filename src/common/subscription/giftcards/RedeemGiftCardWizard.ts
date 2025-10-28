@@ -345,7 +345,6 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 			onChangePlan: () => {
 				emitWizardEvent(this.domElement, WizardEventType.SHOW_PREVIOUS_PAGE)
 			},
-			readonly: model.newAccountData != null,
 			prefilledMailAddress: model.newAccountData ? model.newAccountData.mailAddress : "",
 			isBusinessUse: () => false,
 			isPaidSubscription: () => true,
