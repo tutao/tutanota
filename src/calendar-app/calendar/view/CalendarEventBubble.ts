@@ -9,12 +9,21 @@ import { type CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler
 import { formatEventTime, TEMPORARY_EVENT_OPACITY } from "../gui/CalendarGuiUtils"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants"
 import { EventWrapperFlagKeys, FlagKeyToIcon, getTimeTextFormatForLongEvent, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
+import { Time } from "../../../common/calendar/date/Time"
 
 export const MIN_ROW_SPAN = 3
 
 export interface RangeOverflowData {
 	start: boolean
 	end: boolean
+}
+
+export interface CalendarEventBubbleDragProperties {
+	drag: {
+		prepareCurrentDraggedEvent: (eventWrapper: EventWrapper) => unknown
+		setTimeUnderMouse: (time: Time, date: Date) => unknown
+		isDragging: boolean
+	}
 }
 
 export interface EventBubbleInteractions {
@@ -32,10 +41,9 @@ export type CalendarEventBubbleAttrs = {
 	// opacity: number
 	// enablePointerEvents: boolean
 	// keyDown: (event: KeyboardEvent, dom: HTMLElement) => unknown
-
 	// secondLineText?: string | null
 
-	interactions?: EventBubbleInteractions
+	interactions?: EventBubbleInteractions & CalendarEventBubbleDragProperties
 	gridInfo: GridEventData
 	eventWrapper: EventWrapper
 	rangeOverflowInfo: RangeOverflowData
@@ -67,12 +75,27 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			".border-radius.small.z2.plr-core-4.b",
 			{
 				onclick: (e: MouseEvent) => {
-					e.stopImmediatePropagation()
-					interactions?.click(attrs.eventWrapper.event, e)
+					e.stopPropagation()
+					if (!eventWrapper.flags?.isTransientEvent) {
+						interactions?.click(attrs.eventWrapper.event, e)
+					}
 				},
 				onkeydown: (e: KeyboardEvent) => {
 					interactions?.keyDown(attrs.eventWrapper.event, e)
 				},
+				onmousedown: () => {
+					if (!eventWrapper.flags?.isTransientEvent) {
+						interactions?.drag.prepareCurrentDraggedEvent(eventWrapper)
+					}
+				},
+				// ontouchstart: (e: TouchEvent) => {
+				// 	e.preventDefault()
+				// 	const mouseEvent = transformTouchEvent(e)
+				// 	if (mouseEvent) {
+				// 		console.log({ e, mouseEvent })
+				// 		e.target?.dispatchEvent(mouseEvent)
+				// 	}
+				// },
 				tabIndex: canReceiveFocus ? TabIndex.Default : TabIndex.Programmatic,
 				class: interactions?.click ? "cursor-pointer" : "",
 				style: {
@@ -204,7 +227,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		return m(".flex", [
 			Object.entries(flags ?? {}).map(([key, value]: [EventWrapperFlagKeys, boolean]) => {
 				console.log({ key, value })
-				return value
+				return value && FlagKeyToIcon[key]
 					? m(Icon, {
 							icon: FlagKeyToIcon[key],
 							style: {
@@ -217,7 +240,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					: null
 			}),
 			m(
-				".flex.overflow-auto",
+				".flex.overflow-hidden",
 				{
 					class: showSecondLine ? "col" : "",
 				},

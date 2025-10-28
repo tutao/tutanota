@@ -1,6 +1,6 @@
 import type { Country } from "../../api/common/CountryList"
 import { Countries } from "../../api/common/CountryList"
-import type { InfoLink, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
+import type { InfoLink, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonColor } from "./Button.js"
 import { Icons } from "./icons/Icons"
@@ -263,4 +263,51 @@ export function getContactTitle(contact: Contact) {
 
 export function colorForBg(color: string): string {
 	return isColorLight(color) ? "black" : "white"
+}
+
+export function transformTouchEvent(event: TouchEvent): MouseEvent | undefined {
+	if (event.touches.length > 1 || (event.type === "touchend" && event.touches.length > 0)) {
+		return
+	}
+
+	let type: "mousedown" | "mousemove" | "mouseup" | "mouseleave"
+	let touch: Touch
+
+	switch (event.type) {
+		case "touchstart":
+			type = "mousedown"
+			touch = event.touches[0]
+			break
+		case "touchmove":
+			type = "mousemove"
+			touch = event.touches[0]
+			break
+		case "touchend":
+			type = "mouseup"
+			touch = event.changedTouches[0]
+			break
+		case "touchcancel":
+			type = "mouseleave"
+			touch = event.changedTouches[0]
+			break
+		default:
+			return undefined
+	}
+
+	return new MouseEvent(type, {
+		bubbles: true,
+		cancelable: true,
+		view: (event.target as HTMLElement).ownerDocument.defaultView,
+		clientX: touch.clientX,
+		clientY: touch.clientY,
+		detail: 0,
+		screenX: touch.screenX,
+		screenY: touch.screenY,
+		altKey: event.altKey,
+		ctrlKey: event.ctrlKey,
+		shiftKey: event.shiftKey,
+		metaKey: event.metaKey,
+		button: 0,
+		relatedTarget: null,
+	})
 }
