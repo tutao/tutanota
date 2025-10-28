@@ -18,7 +18,7 @@ export type Country = {
 	a: string
 	/** type */
 	t: number
-	/** ??? */
+	/** DecimalSeparator */
 	d: number
 }
 // taken from https://en.wikipedia.org/wiki/ISO_3166-1

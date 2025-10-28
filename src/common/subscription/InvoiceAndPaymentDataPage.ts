@@ -2,25 +2,16 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog, DialogType } from "../gui/base/Dialog"
 import { lang, type TranslationKey } from "../misc/LanguageViewModel"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
+import { InvoiceDataInput } from "./InvoiceDataInput"
 import { PaymentMethodInput } from "./PaymentMethodInput"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import {
-	AvailablePlanType,
-	getClientType,
-	getDefaultPaymentMethod,
-	InvoiceData,
-	Keys,
-	PaymentData,
-	PaymentDataResultType,
-	PaymentMethodType,
-} from "../api/common/TutanotaConstants"
+import { AvailablePlanType, getClientType, InvoiceData, Keys, PaymentData, PaymentDataResultType, PaymentMethodType } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { AccountingInfo, Braintree3ds2Request } from "../api/entities/sys/TypeRefs.js"
-import { AccountingInfoTypeRef, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { assertNotNull, neverNull, newPromise, noOp, promiseMap } from "@tutao/tutanota-utils"
-import { getLazyLoadedPayPalUrl, getPreconditionFailedPaymentMsg, PaymentErrorCode, UpgradeType } from "./utils/SubscriptionUtils"
+import { getPreconditionFailedPaymentMsg, PaymentErrorCode, UpgradeType } from "./utils/SubscriptionUtils"
 import { Button, ButtonType } from "../gui/base/Button.js"
 import type { SegmentControlItem } from "../gui/base/SegmentControl"
 import { SegmentControl } from "../gui/base/SegmentControl"
@@ -28,14 +19,16 @@ import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "
 import type { Country } from "../api/common/CountryList"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { locator } from "../api/main/CommonLocator"
-import { Credentials } from "../misc/credentials/Credentials"
-import { SessionType } from "../api/common/SessionType.js"
 import { PaymentInterval } from "./utils/PriceUtils.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils.js"
 import { EntityEventsListener } from "../api/main/EventController.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { client } from "../misc/ClientDetector.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { getVisiblePaymentMethods, validateInvoiceData, validatePaymentData } from "./utils/PaymentUtils"
+import { PaypalButton } from "./PaypalButton"
+import { SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput"
+import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -44,23 +37,29 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	private _paymentMethodInput: PaymentMethodInput | null = null
 	private _invoiceDataInput: InvoiceDataInput | null = null
 	private _availablePaymentMethods: Array<SegmentControlItem<PaymentMethodType>> | null = null
-	private _selectedPaymentMethod: Stream<PaymentMethodType>
+	private _selectedPaymentMethod: Stream<PaymentMethodType> = stream()
+	private _address: Stream<string> = stream("")
+	private _country: Stream<Country | null>
 	private dom!: HTMLElement
 	private _hasClickedNext: boolean = false
+	private ccViewModel: SimplifiedCreditCardViewModel
 
-	constructor() {
-		this._selectedPaymentMethod = stream()
-		this._selectedPaymentMethod.map((method) => neverNull(this._paymentMethodInput).updatePaymentMethod(method))
+	constructor({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
+		// FIXME ???????????
+		// this._selectedPaymentMethod = stream()
+		// this._selectedPaymentMethod.map((method) => neverNull(this._paymentMethodInput).updatePaymentMethod(method))
+		this.ccViewModel = new SimplifiedCreditCardViewModel(lang)
+		this._country = stream(data.invoiceData.country)
 	}
 
 	onremove(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
 		const data = vnode.attrs.data
 
 		// TODO check if correct place to update these
-		if (this._invoiceDataInput && this._paymentMethodInput) {
-			data.invoiceData = this._invoiceDataInput.getInvoiceData()
-			data.paymentData = this._paymentMethodInput.getPaymentData()
-		}
+		// if (this._invoiceDataInput && this._paymentMethodInput) {
+		// 	data.invoiceData = this._invoiceDataInput.getInvoiceData()
+		// 	data.paymentData = this._paymentMethodInput.getPaymentData()
+		// }
 	}
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
@@ -72,70 +71,59 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		}
 
 		// TODO check if correct place to update these
-		if (this._invoiceDataInput && this._paymentMethodInput) {
-			data.invoiceData = this._invoiceDataInput.getInvoiceData()
-			data.paymentData = this._paymentMethodInput.getPaymentData()
-		}
+		// if (this._invoiceDataInput && this._paymentMethodInput) {
+		// 	data.invoiceData = this._invoiceDataInput.getInvoiceData()
+		// 	data.paymentData = this._paymentMethodInput.getPaymentData()
+		// }
 
-		let loginPromise: Promise<Credentials | null> = Promise.resolve(null)
-		const loginController = locator.logins
-		if (!loginController.isUserLoggedIn()) {
-			loginPromise = loginController
-				.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
-				.then((newSessionData) => newSessionData.credentials)
-		}
+		// let loginPromise: Promise<Credentials | null> = Promise.resolve(null)
+		// const loginController = locator.logins
+		// if (!loginController.isUserLoggedIn()) {
+		// 	loginPromise = loginController
+		// 		.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
+		// 		.then((newSessionData) => newSessionData.credentials)
+		// }
 
-		loginPromise
-			.then(() => {
-				if (!data.accountingInfo || !data.customer) {
-					return loginController
-						.getUserController()
-						.loadCustomer()
-						.then((customer) => {
-							data.customer = customer
-							return loginController.getUserController().loadCustomerInfo()
-						})
-						.then((customerInfo) =>
-							locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {
-								data.accountingInfo = accountingInfo
-							}),
-						)
-				}
-			})
-			.then(() => getDefaultPaymentMethod())
-			.then((defaultPaymentMethod: PaymentMethodType) => {
-				this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData, InvoiceDataInputLocation.InWizard)
-				let payPalRequestUrl = getLazyLoadedPayPalUrl()
+		// loginPromise.then((defaultPaymentMethod: PaymentMethodType) => {
+		// 	this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData, InvoiceDataInputLocation.InWizard)
+		// 	let payPalRequestUrl = getLazyLoadedPayPalUrl()
+		//
+		// 	if (loginController.isUserLoggedIn()) {
+		// 		loginController.waitForFullLogin().then(() => payPalRequestUrl.getAsync())
+		// 	}
+		//
+		// 	this._paymentMethodInput = new PaymentMethodInput(
+		// 		data.options,
+		// 		this._invoiceDataInput.selectedCountry,
+		// 		data.accountingInfo,
+		// 		payPalRequestUrl,
+		// 		defaultPaymentMethod,
+		// 		!data.firstMonthForFreeOfferActive,
+		// 		data,
+		// 	)
+		//
+		// 	this._paymentMethodInput.updatePaymentMethod(data.paymentData.paymentMethod, data.paymentData)
+		// })
 
-				if (loginController.isUserLoggedIn()) {
-					loginController.waitForFullLogin().then(() => payPalRequestUrl.getAsync())
-				}
-
-				this._paymentMethodInput = new PaymentMethodInput(
-					data.options,
-					this._invoiceDataInput.selectedCountry,
-					neverNull(data.accountingInfo),
-					payPalRequestUrl,
-					defaultPaymentMethod,
-					!data.firstMonthForFreeOfferActive,
-					data,
-				)
-				this._availablePaymentMethods = this._paymentMethodInput.getVisiblePaymentMethods()
-
-				this._selectedPaymentMethod(data.paymentData.paymentMethod)
-
-				this._paymentMethodInput.updatePaymentMethod(data.paymentData.paymentMethod, data.paymentData)
-			})
+		this._selectedPaymentMethod(data.paymentData.paymentMethod)
+		this._availablePaymentMethods = getVisiblePaymentMethods({
+			isBusiness: data.options.businessUse(),
+			isBankTransferAllowed: !data.firstMonthForFreeOfferActive,
+			accountingInfo: data.accountingInfo,
+		})
 	}
 
-	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
-		console.count("View Method called")
-		const a = vnode.attrs
-
+	view({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const onNextClick = () => {
-			const invoiceDataInput = assertNotNull(this._invoiceDataInput)
-			const paymentMethodInput = assertNotNull(this._paymentMethodInput)
-			let error = invoiceDataInput.validateInvoiceData() || paymentMethodInput.validatePaymentData()
+			let error =
+				validateInvoiceData({ address: this._address(), isBusiness: data.options.businessUse() }) ||
+				validatePaymentData({
+					country: this._country(),
+					isBusiness: data.options.businessUse(),
+					paymentMethod: this._selectedPaymentMethod(),
+					accountingInfo: assertNotNull(data.accountingInfo),
+					ccViewModel: this.ccViewModel,
+				})
 
 			if (error) {
 				return Dialog.message(error).then(() => null)
@@ -195,7 +183,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 										minWidth: "260px",
 									},
 								},
-								m(neverNull(this._invoiceDataInput)),
+								m(InvoiceDataInput),
 							),
 							m(
 								".flex-grow-shrink-half.plr-l",
@@ -204,7 +192,8 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 										minWidth: "260px",
 									},
 								},
-								m(neverNull(this._paymentMethodInput)),
+								this._selectedPaymentMethod() === PaymentMethodType.Paypal && m(PaypalButton),
+								this._selectedPaymentMethod() === PaymentMethodType.CreditCard && m(SimplifiedCreditCardInput),
 							),
 						]),
 						m(
