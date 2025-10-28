@@ -27,6 +27,7 @@ import {
 	assertNotNull,
 	cleanMatch,
 	contains,
+	daysToMillis,
 	deduplicate,
 	defer,
 	DeferredObject,
@@ -34,6 +35,7 @@ import {
 	findAndRemove,
 	getFromMap,
 	LazyLoaded,
+	minutesToMillis,
 	neverNull,
 	noOp,
 	ofClass,
@@ -86,10 +88,23 @@ import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificatio
 import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarNotificationSender"
 import { SyncTracker } from "../api/main/SyncTracker"
 import { AutosaveFacade } from "../api/worker/facades/lazy/AutosaveFacade"
+import { Time } from "../calendar/date/Time"
 
 assertMainOrNode()
 
 export const TOO_MANY_VISIBLE_RECIPIENTS = 10
+
+// Lower limit for when mails can be scheduled (in minutes)
+export const SEND_LATER_MIN_MINUTES_IN_FUTURE = 2
+// Upper limit for when mails can be scheduled (in days)
+export const SEND_LATER_MAX_DAYS_IN_FUTURE = 30
+
+export const enum SendLaterDateStatus {
+	NotSet,
+	WithinRange,
+	InThePast,
+	TooFarInTheFuture,
+}
 
 export type Attachment = TutanotaFile | DataFile | FileReference
 
@@ -137,6 +152,7 @@ export class SendMailModel {
 	private recipients: Map<RecipientField, Array<ResolvableRecipient>> = new Map()
 	private senderAddress: string
 	private confidential: boolean
+	private sendLater: Date | null = null
 
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
@@ -190,7 +206,6 @@ export class SendMailModel {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
 		this.confidential = !userProps.defaultUnconfidential
-
 		this.selectedNotificationLanguage = getAvailableLanguageCode(userProps.notificationMailLanguage || lang.code)
 		this.updateAvailableNotificationTemplateLanguages()
 
@@ -856,12 +871,79 @@ export class SendMailModel {
 		this.confidential = confidential
 	}
 
+	getSendLaterDate(): Date | null {
+		return this.sendLater
+	}
+
+	getSendLaterTime(): Time | null {
+		if (this.sendLater) {
+			return Time.fromDate(this.sendLater)
+		}
+		return null
+	}
+
+	setDefaultSendLaterDate(): void {
+		let nextDay = new Date()
+		nextDay.setDate(nextDay.getDate() + 1)
+		nextDay.setHours(8)
+		nextDay.setMinutes(0)
+		nextDay.setSeconds(0, 0)
+		this.setSendLaterDate(nextDay)
+	}
+
+	setSendLaterDate(newDate: Date | null): void {
+		if (!this.sendLater) {
+			// if there is no send later on the model, we need to set it
+			this.sendLater = newDate
+		} else if (newDate) {
+			// if there is a send later on the model, we only change the date and make sure to not overwrite the time
+			newDate.setHours(this.sendLater.getHours())
+			newDate.setMinutes(this.sendLater.getMinutes())
+			newDate.setSeconds(0, 0)
+			// we reassign sendLater instead of just mutating the date so the DatePicker's inputText is updated
+			this.sendLater = newDate
+		} else {
+			// if there is not a send later to update, we want to set the send later on the model to null
+			this.sendLater = null
+		}
+	}
+
+	setSendLaterTime(sendLater: Time): void {
+		this.sendLater?.setHours(sendLater.hour)
+		this.sendLater?.setMinutes(sendLater.minute)
+	}
+
+	getSendLaterDateStatus(): SendLaterDateStatus {
+		if (this.sendLater == null) {
+			return SendLaterDateStatus.NotSet
+		}
+
+		const nowMillis = new Date().getTime()
+		if (this.sendLater.getTime() < nowMillis + minutesToMillis(SEND_LATER_MIN_MINUTES_IN_FUTURE)) {
+			return SendLaterDateStatus.InThePast
+		} else if (this.sendLater.getTime() > nowMillis + daysToMillis(SEND_LATER_MAX_DAYS_IN_FUTURE)) {
+			return SendLaterDateStatus.TooFarInTheFuture
+		} else {
+			return SendLaterDateStatus.WithinRange
+		}
+	}
+
 	containsExternalRecipients(): boolean {
 		return this.allRecipients().some((r) => r.type === RecipientType.EXTERNAL)
 	}
 
 	getExternalRecipients(): Array<Recipient> {
 		return this.allRecipients().filter((r) => r.type === RecipientType.EXTERNAL)
+	}
+
+	getWaitMessage(): TranslationKey {
+		if (this.sendLater != null) {
+			return "scheduling_msg"
+		} else if (this.isConfidential()) {
+			return "sending_msg"
+		} else {
+			return "sendingUnencrypted_msg"
+		}
 	}
 
 	/**
@@ -873,15 +955,15 @@ export class SendMailModel {
 	 * @reject {LockedError}
 	 * @reject {UserError}
 	 * @param mailMethod
-	 * @param getConfirmation: A callback to get user confirmation
-	 * @param waitHandler: A callback to allow UI blocking while the mail is being sent. it seems like wrapping the send call in showProgressDialog causes the confirmation dialogs not to be shown. We should fix this, but this works for now
 	 * @param tooManyRequestsError
-	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false
+	 * @param sendAt Schedule send at a specific date and time
+	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false)
 	 */
 	async send(
 		mailMethod: MailMethod,
 		getConfirmation: (arg0: MaybeTranslation) => Promise<boolean> = (_) => Promise.resolve(true),
 		waitHandler: (arg0: MaybeTranslation, arg1: Promise<any>) => Promise<any> = (_, p) => p,
+		sendAt: Date | null = null,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
 		// To avoid parallel invocations do not do anything async here that would later execute the sending.
@@ -934,14 +1016,14 @@ export class SendMailModel {
 			}
 
 			await this.updateContacts(recipients)
-			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage)
+			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage, sendAt)
 			await this.clearLocalAutosave() // no need to keep a local copy of a draft of an email that was sent
 			await this.updatePreviousMail()
 			await this.updateExternalLanguage()
 			return true
 		}
 
-		return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", asyncSend())
+		return waitHandler(this.getWaitMessage(), asyncSend())
 			.catch(
 				ofClass(LockedError, () => {
 					throw new UserError("operationStillActive_msg")
@@ -1071,10 +1153,12 @@ export class SendMailModel {
 			this._draftSavedRecently = true
 			this.waitUntilSync = false
 
+			//load the updated mail to check if the draft is already scheduled in another client
+			const upToDateDraft = this.draft && (await this.entity.load(MailTypeRef, this.draft._id))
 			this.draft =
-				this.draft == null || (await this.needNewDraft(this.draft))
+				upToDateDraft == null || (await this.needNewDraft(upToDateDraft))
 					? await this.createDraft(body, attachments, mailMethod)
-					: await this.updateDraft(body, attachments, this.draft)
+					: await this.updateDraft(body, attachments, upToDateDraft)
 
 			const attachmentIds = await this.mailFacade.getAttachmentIds(this.draft)
 			const newAttachments = await promiseMap(attachmentIds, (fileId) => this.entity.load<TutanotaFile>(FileTypeRef, fileId), {
