@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component } from "mithril"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { lang } from "../misc/LanguageViewModel"
 import type { Country } from "../api/common/CountryList"
@@ -18,18 +18,16 @@ export enum InvoiceDataInputLocation {
 	Other = 1,
 }
 
-interface InvoiceDataInputAttrs {
-	isBusiness: boolean
-	invoiceData: InvoiceData
-	location: InvoiceDataInputLocation
-}
-
-export class InvoiceDataInput implements Component<InvoiceDataInputAttrs> {
+export class InvoiceDataInput implements Component {
 	private readonly invoiceAddressComponent: HtmlEditor
 	public readonly selectedCountry: Stream<Country | null>
 	private vatNumber: string = ""
 
-	constructor({ attrs: { invoiceData } }: Vnode<InvoiceDataInputAttrs>) {
+	constructor(
+		private businessUse: boolean,
+		invoiceData: InvoiceData,
+		private readonly location = InvoiceDataInputLocation.Other,
+	) {
 		this.invoiceAddressComponent = new HtmlEditor()
 			.setStaticNumberOfLines(5)
 			.showBorders()
@@ -44,12 +42,12 @@ export class InvoiceDataInput implements Component<InvoiceDataInputAttrs> {
 		this.oncreate = this.oncreate.bind(this)
 	}
 
-	view({ attrs: { isBusiness, location = InvoiceDataInputLocation.Other } }: Vnode<InvoiceDataInputAttrs>): Children {
+	view(): Children {
 		return [
-			isBusiness || location !== InvoiceDataInputLocation.InWizard
+			this.businessUse || this.location !== InvoiceDataInputLocation.InWizard
 				? m("", [
 						m(".pt", m(this.invoiceAddressComponent)),
-						m(".small", lang.get(isBusiness ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
+						m(".small", lang.get(this.businessUse ? "invoiceAddressInfoBusiness_msg" : "invoiceAddressInfoPrivate_msg")),
 					])
 				: null,
 			renderCountryDropdown({
@@ -57,7 +55,7 @@ export class InvoiceDataInput implements Component<InvoiceDataInputAttrs> {
 				onSelectionChanged: this.selectedCountry,
 				helpLabel: () => lang.get("invoiceCountryInfoConsumer_msg"),
 			}),
-			this.isVatIdFieldVisible(isBusiness)
+			this.isVatIdFieldVisible()
 				? m(TextField, {
 						label: "invoiceVatIdNo_label",
 						value: this.vatNumber,
@@ -81,9 +79,40 @@ export class InvoiceDataInput implements Component<InvoiceDataInputAttrs> {
 		})
 	}
 
-	private isVatIdFieldVisible(isBusiness: boolean): boolean {
+	validateInvoiceData(): TranslationKey | null {
+		const address = this.getAddress()
+		const countrySelected = this.selectedCountry() != null
+
+		if (this.businessUse) {
+			if (address.trim() === "" || address.split("\n").length > 5) {
+				return "invoiceAddressInfoBusiness_msg"
+			} else if (!countrySelected) {
+				return "invoiceCountryInfoBusiness_msg"
+			}
+		} else {
+			if (!countrySelected) {
+				return "invoiceCountryInfoBusiness_msg" // use business text here because it fits better
+			} else if (address.split("\n").length > 4) {
+				return "invoiceAddressInfoBusiness_msg"
+			}
+		}
+		// no error
+		return null
+	}
+
+	getInvoiceData(): InvoiceData {
+		const address = this.getAddress()
 		const selectedCountry = this.selectedCountry()
-		return isBusiness && selectedCountry != null && selectedCountry.t === CountryType.EU
+		return {
+			invoiceAddress: address,
+			country: selectedCountry,
+			vatNumber: selectedCountry?.t === CountryType.EU && this.businessUse ? this.vatNumber : "",
+		}
+	}
+
+	private isVatIdFieldVisible(): boolean {
+		const selectedCountry = this.selectedCountry()
+		return this.businessUse && selectedCountry != null && selectedCountry.t === CountryType.EU
 	}
 
 	private getAddress(): string {

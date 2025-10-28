@@ -10,7 +10,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { AccountingInfo } from "../api/entities/sys/TypeRefs.js"
 import { AccountingInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { locator } from "../api/main/CommonLocator"
-import { MessageBox } from "../gui/base/MessageBox.js`"
+import { MessageBox } from "../gui/base/MessageBox.js"
 import { px } from "../gui/size"
 import Stream from "mithril/stream"
 import { UsageTest } from "@tutao/tutanota-usagetests"
@@ -37,7 +37,7 @@ export class PaymentMethodInput {
 	_selectedCountry: Stream<Country | null>
 	_selectedPaymentMethod: PaymentMethodType
 	_subscriptionOptions: SelectedSubscriptionOptions
-	_accountingInfo: AccountingInfo | null
+	_accountingInfo: AccountingInfo
 	_data: UpgradeSubscriptionData | undefined
 	_entityEventListener: EntityEventsListener
 	private __paymentPaypalTest?: UsageTest
@@ -47,7 +47,7 @@ export class PaymentMethodInput {
 	constructor(
 		subscriptionOptions: SelectedSubscriptionOptions,
 		selectedCountry: Stream<Country | null>,
-		accountingInfo: AccountingInfo | null,
+		accountingInfo: AccountingInfo,
 		payPalRequestUrl: LazyLoaded<string>,
 		defaultPaymentMethod: PaymentMethodType,
 		isBankTransferAllowed: boolean,
@@ -59,11 +59,10 @@ export class PaymentMethodInput {
 		this._accountingInfo = accountingInfo
 		this.isBankTransferAllowed = isBankTransferAllowed
 		this._data = data
-
-		// this._payPalAttrs = {
-		// 	payPalRequestUrl,
-		// 	accountingInfo: this._accountingInfo,
-		// }
+		this._payPalAttrs = {
+			payPalRequestUrl,
+			accountingInfo: this._accountingInfo,
+		}
 
 		this._entityEventListener = (updates) => {
 			return promiseMap(updates, (update) => {
@@ -132,7 +131,7 @@ export class PaymentMethodInput {
 		}
 	}
 
-	private isOnAccountAllowed(): boolean {
+	isOnAccountAllowed(): boolean {
 		const country = this._selectedCountry()
 
 		if (!country) {
@@ -146,13 +145,11 @@ export class PaymentMethodInput {
 		}
 	}
 
-	// to utils
-	// public isPaypalAssigned(): boolean {
-	// 	return isPaypalAssigned(this._accountingInfo)
-	// }
+	isPaypalAssigned(): boolean {
+		return isPaypalAssigned(this._accountingInfo)
+	}
 
-	// to utils
-	public validatePaymentData(): TranslationKey | null {
+	validatePaymentData(): TranslationKey | null {
 		if (!this._selectedPaymentMethod) {
 			return "invoicePaymentMethodInfo_msg"
 		} else if (this._selectedPaymentMethod === PaymentMethodType.Invoice) {
@@ -170,7 +167,7 @@ export class PaymentMethodInput {
 		}
 	}
 
-	public updatePaymentMethod(value: PaymentMethodType, paymentData?: PaymentData) {
+	updatePaymentMethod(value: PaymentMethodType, paymentData?: PaymentData) {
 		this._selectedPaymentMethod = value
 
 		if (value === PaymentMethodType.CreditCard) {
@@ -194,14 +191,14 @@ export class PaymentMethodInput {
 		m.redraw()
 	}
 
-	public getPaymentData(): PaymentData {
+	getPaymentData(): PaymentData {
 		return {
 			paymentMethod: this._selectedPaymentMethod,
 			creditCardData: this._selectedPaymentMethod === PaymentMethodType.CreditCard ? this.ccViewModel.getCreditCardData() : null,
 		}
 	}
 
-	public getVisiblePaymentMethods(): Array<{
+	getVisiblePaymentMethods(): Array<{
 		name: string
 		value: PaymentMethodType
 	}> {

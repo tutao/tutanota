@@ -339,10 +339,6 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 		return this._cardHolderName
 	}
 
-	set cardHolderName(value: string) {
-		// no-op for now.
-	}
-
 	validateCreditCardPaymentData(): TranslationKey | null {
 		const cc = this.getCreditCardData()
 		const invalidNumber = this.validateCreditCardNumber(cc.number)
@@ -412,7 +408,10 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 			return null
 		} else {
 			const spec = CardSpecs[this.creditCardType]
-			return this.lang.get("creditCardCvvHint_msg", { "{currentDigits}": this.cvv.length, "{totalDigits}": spec.cvvLength })
+			return this.lang.get("creditCardCvvHint_msg", {
+				"{currentDigits}": this.cvv.length,
+				"{totalDigits}": spec.cvvLength,
+			})
 		}
 	}
 
