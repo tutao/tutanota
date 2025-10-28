@@ -3,7 +3,7 @@ import { px, size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
-import { assertMainOrNode, isAdminClient, isApp, isElectronClient } from "../api/common/Env"
+import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isElectronClient } from "../api/common/Env"
 import { getElevatedBackground, getNavigationMenuBg, theme } from "./theme"
 import { goEuropeanBlue } from "./builtinThemes.js"
 import { FontIcons } from "./base/icons/FontIcons.js"
@@ -138,10 +138,10 @@ styles.registerStyle("main", () => {
 		},
 		":root": {
 			// We need it because we can't get env() value from JS directly
-			"--safe-area-inset-bottom": "env(safe-area-inset-bottom)",
-			"--safe-area-inset-top": "env(safe-area-inset-top)",
-			"--safe-area-inset-right": "env(safe-area-inset-right)",
-			"--safe-area-inset-left": "env(safe-area-inset-left)",
+			"--safe-area-inset-bottom": isAndroidApp() ? "var(--safe-area-inset-bottom)" : "env(safe-area-inset-bottom)",
+			"--safe-area-inset-top": isAndroidApp() ? "var(--safe-area-inset-top)" : "env(safe-area-inset-top)",
+			"--safe-area-inset-right": isAndroidApp() ? "var(--safe-area-inset-right)" : "env(safe-area-inset-right)",
+			"--safe-area-inset-left": isAndroidApp() ? "var(--safe-area-inset-left)" : "env(safe-area-inset-left)",
 		},
 		"html, body": {
 			height: "100%",
@@ -1646,15 +1646,15 @@ styles.registerStyle("main", () => {
 			"overflow-x": "hidden",
 		},
 		".mlr-safe-inset": {
-			"margin-right": "env(safe-area-inset-right)",
-			"margin-left": "env(safe-area-inset-left)",
+			"margin-right": "var(--safe-area-inset-right)",
+			"margin-left": "var(--safe-area-inset-left)",
 		},
 		".plr-safe-inset": {
-			"padding-right": "env(safe-area-inset-right)",
-			"padding-left": "env(safe-area-inset-left)",
+			"padding-right": "var(--safe-area-inset-right)",
+			"padding-left": "var(--safe-area-inset-left)",
 		},
 		".mt-safe-inset": {
-			"margin-top": "env(safe-area-inset-top)",
+			"margin-top": "var(--safe-area-inset-top)",
 		},
 		// header
 		".header-nav": {
@@ -1669,9 +1669,9 @@ styles.registerStyle("main", () => {
             */
 			"box-sizing": "border-box",
 			"border-top": `1px solid ${theme.outline_variant}`,
-			height: `calc(${size.bottom_nav_bar}px + env(safe-area-inset-bottom))`,
+			height: `calc(${size.bottom_nav_bar}px + var(--safe-area-inset-bottom))`,
 			background: theme.surface,
-			"padding-bottom": "env(safe-area-inset-bottom)",
+			"padding-bottom": "var(--safe-area-inset-bottom)",
 			"z-index": 2,
 		},
 		".notification-overlay-content": {
@@ -1777,7 +1777,7 @@ styles.registerStyle("main", () => {
 		// mail folder view column
 		" .folder-column": {
 			height: "100%",
-			"padding-top": "env(safe-area-inset-top)",
+			"padding-top": "var(--safe-area-inset-top)",
 		},
 		".list-border-right": {
 			"border-right": `1px solid ${theme.outline_variant}`,
