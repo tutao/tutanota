@@ -162,6 +162,10 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				onCellPressed: newEventHandler,
 				onCellContextMenuPressed: newEventHandler,
 			},
+			eventBubbleHandlers: {
+				click: attrs.onEventClicked,
+				keyDown: attrs.onEventKeyDown,
+			},
 		} satisfies CalendarViewComponentAttrs)
 	}
 
