@@ -86,6 +86,7 @@ import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificatio
 import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarNotificationSender"
 import { SyncTracker } from "../api/main/SyncTracker"
 import { AutosaveFacade } from "../api/worker/facades/lazy/AutosaveFacade"
+import { Time } from "../calendar/date/Time"
 
 assertMainOrNode()
 
@@ -137,6 +138,7 @@ export class SendMailModel {
 	private recipients: Map<RecipientField, Array<ResolvableRecipient>> = new Map()
 	private senderAddress: string
 	private confidential: boolean
+	private sendLater: Date | null = null
 
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
@@ -853,6 +855,37 @@ export class SendMailModel {
 		this.confidential = confidential
 	}
 
+	getSendLaterDate(): Date | null {
+		return this.sendLater
+	}
+
+	getSendLaterTime(): Time | null {
+		if (this.sendLater) {
+			return Time.fromDate(this.sendLater)
+		}
+		return null
+	}
+
+	setSendLaterDate(sendLater: Date | null): void {
+		if (!this.sendLater) {
+			// if there is no send later on the model, we need to set it
+			this.sendLater = sendLater
+		} else if (sendLater) {
+			// if there is a send later on the model, we just want the date as to not overwrite the time
+			this.sendLater?.setDate(sendLater.getDate())
+			this.sendLater?.setMonth(sendLater.getMonth())
+			this.sendLater?.setFullYear(sendLater.getFullYear())
+		} else {
+			// if there is not a send later to update, we want to set the send later on the model to null
+			this.sendLater = null
+		}
+	}
+
+	setSendLaterTime(sendLater: Time): void {
+		this.sendLater?.setHours(sendLater.hour)
+		this.sendLater?.setMinutes(sendLater.minute)
+	}
+
 	containsExternalRecipients(): boolean {
 		return this.allRecipients().some((r) => r.type === RecipientType.EXTERNAL)
 	}
@@ -881,6 +914,8 @@ export class SendMailModel {
 		waitHandler: (arg0: MaybeTranslation, arg1: Promise<any>) => Promise<any> = (_, p) => p,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
+		// FIXME: need to hook up send later here at some point
+
 		// To avoid parallel invocations do not do anything async here that would later execute the sending.
 		// It is fine to wait for getConfirmation() because it is modal and will prevent the user from triggering multiple sends.
 		// If you need to do something async here put it into `asyncSend`

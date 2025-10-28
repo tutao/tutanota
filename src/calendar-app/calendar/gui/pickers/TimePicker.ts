@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { TextFieldType as TextFieldType } from "../../../../common/gui/base/TextField.js"
+import { TextField, TextFieldType as TextFieldType } from "../../../../common/gui/base/TextField.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { Keys, TabIndex, TimeFormat } from "../../../../common/api/common/TutanotaConstants.js"
 import { timeStringFromParts } from "../../../../common/misc/Formatter.js"
@@ -12,14 +12,16 @@ import stream from "mithril/stream"
 import { isKeyPressed } from "../../../../common/misc/KeyManager.js"
 import { getNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
+import { lang, Translation, TranslationKey } from "../../../../common/misc/LanguageViewModel"
 
 export type TimePickerAttrs = {
 	time: Time | null
 	onTimeSelected: (arg0: Time | null) => unknown
 	timeFormat: TimeFormat
 	disabled?: boolean
-	ariaLabel: string
+	ariaLabel: TranslationKey | Translation
 	classes?: Array<string>
+	renderAsTextField: boolean
 }
 
 interface TimeOption {
@@ -79,6 +81,10 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 		const displayTime = attrs.time?.toString(this.amPm)
 
+		if (attrs.renderAsTextField) {
+			return this.renderTextFieldNativeTimePicker(displayTime, attrs)
+		}
+
 		return m(".rel", [
 			m("input.fill-absolute.invisible.tutaui-button-outline", {
 				disabled: attrs.disabled,
@@ -119,6 +125,27 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		])
 	}
 
+	private renderTextFieldNativeTimePicker(displayTime: string | undefined, attrs: TimePickerAttrs) {
+		return [
+			m(TextField, {
+				class: "time-picker pt",
+				label: attrs.ariaLabel,
+				value: this.value,
+				type: TextFieldType.Time,
+				oninput: (value) => {
+					if (this.value === value) {
+						return
+					}
+					this.value = value
+					attrs.onTimeSelected(Time.parseFromString(value))
+				},
+				disabled: attrs.disabled,
+			}),
+			// A 'fake' display that overlays over the real time input that allows us to show 12 or 24 time format regardless of browser locale
+			m(".time-picker-fake-display.rel.no-hover", displayTime),
+		]
+	}
+
 	private renderTimeOptions(option: TimeOption, isTarget: boolean, isSelected: boolean) {
 		return m(
 			"button.items-center.flex-grow",
@@ -152,13 +179,13 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				this.isExpanded = false
 			},
 			selected: { value: this.value, name: this.value, ariaValue: this.value },
-			ariaLabel: attrs.ariaLabel,
+			ariaLabel: lang.getTranslationText(attrs.ariaLabel),
 			disabled: attrs.disabled,
 			options: stream(options),
 			noIcon: true,
 			expanded: true,
 			tabIndex: Number(TabIndex.Programmatic),
-			renderDisplay: () => this.renderTimeSelectInput(attrs),
+			renderDisplay: () => (attrs.renderAsTextField ? this.renderTextFieldCustomTextPicker(attrs) : this.renderTimeSelectInput(attrs)),
 			renderOption: (option) => this.renderTimeOptions(option, option.value === this.getTargetHour(this.value), option.value === this.value),
 		} satisfies SelectAttributes<TimeOption, string>)
 	}
@@ -176,6 +203,19 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		return m(SingleLineTextField, {
 			classes: [...(attrs.classes ?? []), "tutaui-button-outline", "text-center", "border-content-message-bg"],
 			value: this.value,
+			disabled: attrs.disabled,
+			ariaLabel: lang.getTranslationText(attrs.ariaLabel),
+			type: TextFieldType.Text,
+			style: {
+				textAlign: "center",
+			},
+		})
+	}
+
+	private renderTextFieldCustomTextPicker(attrs: TimePickerAttrs): Children {
+		return m(TextField, {
+			label: attrs.ariaLabel,
+			value: this.value,
 			oninput: (val: string) => {
 				if (this.value === val) {
 					return
@@ -183,37 +223,34 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 				this.value = val
 			},
-			disabled: attrs.disabled,
-			ariaLabel: attrs.ariaLabel,
-			style: {
-				textAlign: "center",
-			},
 			onclick: (e: MouseEvent) => {
 				e.stopImmediatePropagation()
 				if (!this.isExpanded) {
 					;(e.target as HTMLElement).parentElement?.click()
 					this.isExpanded = true
 				}
+				m.redraw.sync()
 			},
+			disabled: attrs.disabled,
 			onfocus: () => {
 				this.focused = true
 			},
-			onkeydown: (e: KeyboardEvent) => {
-				if (isKeyPressed(e.key, Keys.RETURN) && !this.isExpanded) {
-					this.focused = true
-					;(e.target as HTMLElement).parentElement?.click()
-					this.isExpanded = true
-					m.redraw.sync()
-				}
-			},
-			onblur: (e: any) => {
+			onblur: (e) => {
 				if (this.focused) {
 					this.onSelected(attrs)
 				}
 
 				e.redraw = false
 			},
-			type: TextFieldType.Text,
+			keyHandler: (key) => {
+				if (isKeyPressed(key.key, Keys.RETURN)) {
+					this.onSelected(attrs)
+					const active = document.activeElement as HTMLElement | null
+					active?.blur()
+				}
+
+				return true
+			},
 		})
 	}
 
