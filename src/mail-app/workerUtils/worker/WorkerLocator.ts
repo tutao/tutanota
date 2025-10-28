@@ -769,6 +769,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.adminKeyLoader,
 			locator.serviceExecutor,
 			nonCachingEntityClient, // without cache
+			dateProvider,
 		)
 	})
 	const scheduler = new SchedulerImpl(dateProvider, self, self)

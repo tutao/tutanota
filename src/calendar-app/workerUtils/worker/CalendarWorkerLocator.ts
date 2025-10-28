@@ -547,7 +547,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.user,
 			locator.adminKeyLoader,
 			locator.serviceExecutor,
-			nonCachingEntityClient, // without cache
+			nonCachingEntityClient, // without cache,
+			dateProvider,
 		)
 	})
 	const scheduler = new SchedulerImpl(dateProvider, self, self)

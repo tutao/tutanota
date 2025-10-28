@@ -19,6 +19,7 @@ import { isTutaMailAddress } from "../mailFunctionality/SharedMailUtils.js"
 assertMainOrNode()
 
 const VALID_MESSAGE_ID = "mailAddressAvailable_msg"
+const CHECK_ADDRESS_DEBOUNCE_MS = 500
 
 export interface SelectMailAddressFormAttrs {
 	selectedDomain: EmailDomainData
@@ -222,6 +223,6 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			if (this.getCleanMailAddress(attrs) === cleanMailAddress) {
 				this.onValidationFinished(cleanMailAddress, result, onValidationResult)
 			}
-		}, 500)
+		}, CHECK_ADDRESS_DEBOUNCE_MS)
 	}
 }
