@@ -12,7 +12,6 @@ import {
 	lazyMemoized,
 	Nullable,
 	ofClass,
-	partition,
 	promiseMap,
 	splitInChunks,
 } from "@tutao/tutanota-utils"
@@ -21,8 +20,8 @@ import {
 	MailboxGroupRoot,
 	MailboxProperties,
 	MailSet,
-	MailSetTypeRef,
 	MailSetEntryTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 	MovedMails,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -61,6 +60,7 @@ interface MailboxSets {
 	folders: FolderSystem
 	/** a map from element id to the mail set */
 	labels: ReadonlyMap<Id, MailSet>
+	scheduledFolder: MailSet | null
 }
 
 export const enum LabelState {
@@ -147,10 +147,12 @@ export class MailModel {
 						throw e
 					}
 				}
-				const [labels, folders] = partition(mailSets, isLabel)
+				const labels = mailSets.filter(isLabel)
 				const labelsMap = collectToMap(labels, getElementId)
-				const folderSystem = new FolderSystem(folders)
-				tempFolders.set(foldersRef._id, { folders: folderSystem, labels: labelsMap })
+
+				const scheduledFolder = mailSets.find((set) => set.folderType === MailSetKind.SCHEDULED) ?? null
+				const folderSystem = new FolderSystem(mailSets)
+				tempFolders.set(foldersRef._id, { folders: folderSystem, labels: labelsMap, scheduledFolder })
 			}
 		}
 
@@ -536,7 +538,7 @@ export class MailModel {
 	}
 
 	public async finallyDeleteCustomMailFolder(folder: MailSet): Promise<void> {
-		if (folder.folderType !== MailSetKind.CUSTOM && folder.folderType !== MailSetKind.Imported) {
+		if (folder.folderType !== MailSetKind.CUSTOM && folder.folderType !== MailSetKind.IMPORTED) {
 			throw new ProgrammingError("Cannot delete non-custom folder: " + String(folder._id))
 		}
 
@@ -617,5 +619,9 @@ export class MailModel {
 		return (
 			await promiseMap(mailIdsPerList, ([listId, elementIds]) => this.entityClient.loadMultiple(MailTypeRef, listId, elementIds), { concurrency: 2 })
 		).flat()
+	}
+
+	async unscheduleMail(mail: Mail): Promise<void> {
+		return await this.mailFacade.unscheduleMail(mail._id)
 	}
 }

@@ -5,8 +5,17 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, clamp, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
-import { EncryptionAuthStatus, getMailFolderType, MailReportType, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
+import { $Promisable, assertNotNull, clamp, endsWith, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import {
+	EncryptionAuthStatus,
+	getMailFolderType,
+	MailReportType,
+	MailSetKind,
+	MailState,
+	SimpleMoveMailTarget,
+	SYSTEM_GROUP_MAIL_ADDRESS,
+	SystemFolderType,
+} from "../../../common/api/common/TutanotaConstants"
 import { getReportConfirmation } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
@@ -304,7 +313,7 @@ export async function simpleMoveToSystemFolder(
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
 	undoModel: UndoModel,
-	targetFolder: SystemFolderType,
+	targetFolder: SimpleMoveMailTarget,
 	mails: readonly Mail[],
 ): Promise<boolean> {
 	let movedMails: MovedMails[]
@@ -339,6 +348,9 @@ export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 
 		case MailSetKind.DRAFT:
 			return Icons.Draft
+
+		case MailSetKind.SCHEDULED:
+			return Icons.ScheduleMail
 
 		default:
 			return Icons.Folder
@@ -543,7 +555,7 @@ export async function showMoveMailsDropdown(
 	if (moveTargets.moveService === MoveService.SimpleMove) {
 		moveParams = {
 			...moveTargets,
-			onClick: (f: SystemFolderType) => {
+			onClick: (f: SimpleMoveMailTarget) => {
 				simpleMoveToSystemFolder(mailboxModel, mailModel, undoModel, f, mails)
 			},
 		}

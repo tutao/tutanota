@@ -468,6 +468,9 @@ styles.registerStyle("main", () => {
 		".mt-negative-24": {
 			"margin-top": px(-size.spacing_24),
 		},
+		".mb-negative-12": {
+			"margin-bottom": px(-size.spacing_12),
+		},
 		".mr-negative-8": {
 			"margin-right": px(-size.spacing_8),
 		},

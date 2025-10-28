@@ -124,7 +124,7 @@ import { MailModel } from "./mail/model/MailModel.js"
 import type { CommonLocator } from "../common/api/main/CommonLocator.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
-import { isMailInSpamOrTrash } from "./mail/model/MailChecks.js"
+import { isEditableDraft, isMailInSpamOrTrash } from "./mail/model/MailChecks.js"
 import type { ContactImporter } from "./contacts/ContactImporter.js"
 import { ExternalCalendarFacade } from "../common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { AppType } from "../common/misc/ClientConstants.js"
@@ -460,7 +460,7 @@ class MailLocator implements CommonLocator {
 				mailboxProperties,
 				this.autosaveFacade,
 				async (mail: Mail) => {
-					return await isMailInSpamOrTrash(mail, mailLocator.mailModel)
+					return !isEditableDraft(mail) || (await isMailInSpamOrTrash(mail, mailLocator.mailModel))
 				},
 				this.syncTracker,
 			)

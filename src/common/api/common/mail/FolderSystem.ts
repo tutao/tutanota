@@ -1,6 +1,6 @@
-import { groupBy, partition } from "@tutao/tutanota-utils"
+import { groupBy } from "@tutao/tutanota-utils"
 import { Mail, MailSet } from "../../entities/tutanota/TypeRefs.js"
-import { isFolder, MailSetKind, SystemFolderType } from "../TutanotaConstants.js"
+import { isTopLevelMailSet, isVisibleSystemMailSet, MailSetKind, SystemFolderType } from "../TutanotaConstants.js"
 import { elementIdPart, getElementId, isSameId } from "../utils/EntityUtils.js"
 
 export interface IndentedFolder {
@@ -15,15 +15,21 @@ export class FolderSystem {
 	readonly importedMailSet: Readonly<MailSet | null>
 
 	constructor(mailSets: readonly MailSet[]) {
-		const [folders, nonFolders] = partition(mailSets, (f) => isFolder(f))
-		const folderByParent = groupBy(folders, (folder) => (folder.parentFolder ? elementIdPart(folder.parentFolder) : null))
-		const topLevelFolders = folders.filter((f) => f.parentFolder == null)
+		const mailsetByParent = groupBy(mailSets, (mailSet) => (mailSet.parentFolder ? elementIdPart(mailSet.parentFolder) : null))
+		const systemMailSets: MailSet[] = []
+		const topLevelCustomFolders: MailSet[] = []
 
-		const [systemFolders, customFolders] = partition(topLevelFolders, (f) => f.folderType !== MailSetKind.CUSTOM)
+		for (const mailSet of mailSets) {
+			if (isVisibleSystemMailSet(mailSet)) {
+				systemMailSets.push(mailSet)
+			} else if (mailSet.folderType === MailSetKind.CUSTOM && isTopLevelMailSet(mailSet)) {
+				topLevelCustomFolders.push(mailSet)
+			}
+		}
 
-		this.importedMailSet = nonFolders.find((f) => f.folderType === MailSetKind.Imported) || null
-		this.systemSubtrees = systemFolders.sort(compareSystem).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
-		this.customSubtrees = customFolders.sort(compareCustom).map((f) => this.makeSubtree(folderByParent, f, compareCustom))
+		this.importedMailSet = mailSets.find((f) => f.folderType === MailSetKind.IMPORTED) || null
+		this.systemSubtrees = systemMailSets.sort(compareSystem).map((f) => this.makeSubtree(mailsetByParent, f, compareCustom))
+		this.customSubtrees = topLevelCustomFolders.sort(compareCustom).map((f) => this.makeSubtree(mailsetByParent, f, compareCustom))
 	}
 
 	getIndentedList(excludeFolder: MailSet | null = null): IndentedFolder[] {
@@ -159,21 +165,29 @@ function compareCustom(folder1: MailSet, folder2: MailSet): number {
 	return folder1.name.localeCompare(folder2.name)
 }
 
-type SystemMailFolderTypes = Exclude<MailSetKind, MailSetKind.CUSTOM | MailSetKind.LABEL | MailSetKind.Imported>
+type SystemMailFolderTypes =
+	| MailSetKind.INBOX
+	| MailSetKind.SENT
+	| MailSetKind.TRASH
+	| MailSetKind.ARCHIVE
+	| MailSetKind.SPAM
+	| MailSetKind.DRAFT
+	| MailSetKind.SCHEDULED
+type VisibleSystemMailSetTypes = SystemMailFolderTypes
 
-const folderTypeToOrder: Record<SystemMailFolderTypes, number> = {
+const folderTypeToOrder: Record<VisibleSystemMailSetTypes, number> = {
 	[MailSetKind.INBOX]: 0,
 	[MailSetKind.DRAFT]: 1,
-	[MailSetKind.SENT]: 2,
+	[MailSetKind.SCHEDULED]: 2,
+	[MailSetKind.SENT]: 3,
 	[MailSetKind.TRASH]: 4,
 	[MailSetKind.ARCHIVE]: 5,
 	[MailSetKind.SPAM]: 6,
-	[MailSetKind.ALL]: 7,
 }
 
 function compareSystem(folder1: MailSet, folder2: MailSet): number {
-	const order1 = folderTypeToOrder[folder1.folderType as SystemMailFolderTypes] ?? 7
-	const order2 = folderTypeToOrder[folder2.folderType as SystemMailFolderTypes] ?? 7
+	const order1 = folderTypeToOrder[folder1.folderType as VisibleSystemMailSetTypes] ?? 7
+	const order2 = folderTypeToOrder[folder2.folderType as VisibleSystemMailSetTypes] ?? 7
 	return order1 - order2
 }
 

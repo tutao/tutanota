@@ -51,7 +51,7 @@ const TAG = "MailVM"
  * These mailSets will always use the mail list model instead of the conversation list model regardless of the user's
  * settings.
  */
-const MAIL_LIST_FOLDERS: ReadonlyArray<MailSetKind> = Object.freeze([MailSetKind.DRAFT, MailSetKind.SENT])
+const MAIL_LIST_FOLDERS: ReadonlyArray<MailSetKind> = Object.freeze([MailSetKind.DRAFT, MailSetKind.SENT, MailSetKind.SCHEDULED])
 
 export interface UndoAction {
 	exec: () => $Promisable<unknown>

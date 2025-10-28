@@ -1885,6 +1885,7 @@ o.spec("CryptoFacadeTest", function () {
 			processingState: ProcessingState.INBOX_RULE_APPLIED,
 			clientSpamClassifierResult: null,
 			processNeeded: false,
+			sendAt: null,
 		})
 
 		// casting here is fine, since we just want to mimic server response data
