@@ -137,6 +137,7 @@ export class SendMailModel {
 	private recipients: Map<RecipientField, Array<ResolvableRecipient>> = new Map()
 	private senderAddress: string
 	private confidential: boolean
+	private sendLater: boolean
 
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
@@ -190,6 +191,7 @@ export class SendMailModel {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
 		this.confidential = !userProps.defaultUnconfidential
+		this.sendLater = false
 
 		this.selectedNotificationLanguage = getAvailableLanguageCode(userProps.notificationMailLanguage || lang.code)
 		this.updateAvailableNotificationTemplateLanguages()
@@ -592,6 +594,8 @@ export class SendMailModel {
 		// .toLowerCase because all our aliases and accounts are lowercased on creation
 		this.senderAddress = senderMailAddress?.toLowerCase() || this.getDefaultSender()
 		this.confidential = confidential ?? !this.user().props.defaultUnconfidential
+		//FIXME do we need to set sendLater here or is it fine just in the constructor?
+		//this.sendLater = false
 		this.attachments = []
 
 		if (attachments) {
@@ -853,6 +857,14 @@ export class SendMailModel {
 		this.confidential = confidential
 	}
 
+	getSendLater(): boolean {
+		return this.sendLater
+	}
+
+	setSendLater(sendLater: boolean): void {
+		this.sendLater = sendLater
+	}
+
 	containsExternalRecipients(): boolean {
 		return this.allRecipients().some((r) => r.type === RecipientType.EXTERNAL)
 	}
@@ -881,6 +893,8 @@ export class SendMailModel {
 		waitHandler: (arg0: MaybeTranslation, arg1: Promise<any>) => Promise<any> = (_, p) => p,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
+		//FIXME: need to hook up send later here at some point
+
 		// To avoid parallel invocations do not do anything async here that would later execute the sending.
 		// It is fine to wait for getConfirmation() because it is modal and will prevent the user from triggering multiple sends.
 		// If you need to do something async here put it into `asyncSend`
