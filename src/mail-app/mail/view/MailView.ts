@@ -314,7 +314,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				reportSpam: null,
 				reportPhishing: this.getSingleMailPhishingAction(viewModel.primaryViewModel()),
 			}),
-			reportSpamAction: this.getReportMailsAsSpamAction(),
+			reportSpamAction: this.getReportMailsAsSpamAction(viewModel.primaryViewModel()),
 		})
 	}
 
@@ -336,8 +336,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			.finally(m.redraw)
 	}
 
-	private getSingleMailSpamAction(viewModel: MailViewerViewModel): () => void {
-		return () => this.reportSingleMail(viewModel, MailReportType.SPAM)
+	private getSingleMailSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
+		return viewModel.isExternalUser() ? null : () => this.reportSingleMail(viewModel, MailReportType.SPAM)
 	}
 
 	private getSingleMailPhishingAction(viewModel: MailViewerViewModel): (() => void) | null {
@@ -348,9 +348,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			: null
 	}
 
-	private getReportMailsAsSpamAction(): (() => unknown) | null {
+	private getReportMailsAsSpamAction(viewModel: MailViewerViewModel | null): (() => unknown) | null {
+		const isExternalUser = viewModel?.isExternalUser() ?? false
 		const isSpamFolder = this.mailViewModel.getFolder()?.folderType === MailSetKind.SPAM
-		return isSpamFolder
+		return isSpamFolder || isExternalUser
 			? null
 			: async () => {
 					await this.moveMailsToSystemFolder(MailSetKind.SPAM)
@@ -433,7 +434,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			replyAllAction: null,
 			forwardAction: null,
 			mailViewerMoreActions: null,
-			reportSpamAction: this.getReportMailsAsSpamAction(),
+			reportSpamAction: this.getReportMailsAsSpamAction(null),
 		})
 	}
 
@@ -519,7 +520,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								mailViewerMoreActions: getMailViewerMoreActions({
 									viewModel: this.conversationViewModel.primaryViewModel(),
 									print: this.getPrintAction(),
-									reportSpam: this.getReportMailsAsSpamAction(),
+									reportSpam: this.getReportMailsAsSpamAction(this.conversationViewModel.primaryViewModel()),
 									reportPhishing: this.getSingleMailPhishingAction(this.conversationViewModel.primaryViewModel()),
 								}),
 							})

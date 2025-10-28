@@ -1287,4 +1287,8 @@ export class MailViewerViewModel {
 
 		this.loadAll(Promise.resolve(), { notify: true })
 	}
+
+	isExternalUser() {
+		return !this.logins.isInternalUserLoggedIn()
+	}
 }
