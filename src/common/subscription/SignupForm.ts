@@ -219,6 +219,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					m(LoginButton, {
 						label: "next_action",
 						onclick: submit,
+						disabled: !this._confirmAge() || !this._confirmTerms(),
 					}),
 				),
 			]),

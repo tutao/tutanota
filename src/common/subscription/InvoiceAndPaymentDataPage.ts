@@ -238,6 +238,8 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 								label: "next_action",
 								class: "small-login-button",
 								onclick: onNextClick,
+								// FIXME: disable when cc data is not filled in
+								disabled: true,
 							}),
 						),
 					]

@@ -868,6 +868,7 @@ styles.registerStyle("main", () => {
 		".disabled-button": {
 			background: `${hexToRGBAString(theme.on_surface, 0.1)}`,
 			color: `${hexToRGBAString(theme.on_surface, 0.38)}`,
+			"pointer-events": "none",
 		},
 		".accent-bg": {
 			"background-color": theme.primary,
