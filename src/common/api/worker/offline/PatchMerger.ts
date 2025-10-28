@@ -37,7 +37,6 @@ import { EntityUpdateData, getLogStringForPatches } from "../../common/utils/Ent
 import { hasError } from "../../common/utils/ErrorUtils"
 import { computePatches } from "../../common/utils/PatchGenerator"
 import { FileTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs"
-import { EntityAdapter } from "../crypto/EntityAdapter"
 
 export class PatchMerger {
 	constructor(
@@ -90,7 +89,7 @@ export class PatchMerger {
 
 	private async applySinglePatch(parsedInstance: ServerModelParsedInstance, typeModel: ServerTypeModel, patch: Patch) {
 		try {
-			const pathList: Array<string> = patch.attributePath.split("/")
+			const pathList: Array<string> = patch.attributePath.split("/") //== /$mailId/$attrIdRecipient/${aggregateIdRecipient}/${attrIdName}
 			const pathResult: PathResult | null = await this.traversePath(parsedInstance, typeModel, pathList)
 			if (pathResult == null) {
 				return false
@@ -106,8 +105,9 @@ export class PatchMerger {
 				const isEncryptedValue = pathResultTypeModel.values[attributeId]?.encrypted
 				let value: Nullable<ParsedValue | ParsedAssociation>
 				if ((isAggregation && typeModel.encrypted) || isEncryptedValue) {
-					const entityAdapter = await EntityAdapter.from(typeModel, parsedInstance, this.instancePipeline)
-					const sk = await this.cryptoFacade().resolveSessionKey(entityAdapter)
+					const typeRef = new TypeRef(typeModel.app, typeModel.id)
+					const instance = await this.instancePipeline.modelMapper.mapToInstance(typeRef, parsedInstance)
+					const sk = await this.cryptoFacade().resolveSessionKey(instance)
 					value = await this.decryptValueOnPatchIfNeeded(pathResult, encryptedParsedValue, sk)
 				} else {
 					value = await this.decryptValueOnPatchIfNeeded(pathResult, encryptedParsedValue, null)
