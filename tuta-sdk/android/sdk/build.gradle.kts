@@ -29,7 +29,6 @@ cargo {
 	pythonCommand = "python3"
 	targets = getABITargets()
 	profile = getActiveBuildType()
-	targetDirectory = tutanota3Root.dir("target").toString()
 	exec = { spec, toolchain ->
 		spec.environment("RUSTFLAGS", "-C link-arg=-Wl,-z,max-page-size=16384")
 	}
@@ -162,6 +161,26 @@ tasks.register("generateBinding") {
 	}
 }
 
+tasks.register<Sync>("copyRustLibs") {
+	dependsOn("cargoBuild")
+
+	val targets = getABITargets()
+	val buildType = getActiveBuildType()
+
+	targets.forEach { abiTargetName ->
+		val jniTargetName = abiTargetToJniTarget(abiTargetName)
+		val rustTargetName = jniTargetToRustTargetName(jniTargetName)
+
+		val sourceFile = file("${tutanota3Root.asFile}/target/${rustTargetName}/${buildType}/libtutasdk.so")
+
+		from(sourceFile) {
+			into(jniTargetName)
+		}
+	}
+
+	into("src/main/jniLibs")
+}
+
 tasks.whenTaskAdded {
 	when (name) {
 		"preDebugBuild", "preReleaseBuild", "preReleaseTestBuild" -> {
@@ -175,8 +194,12 @@ tasks.whenTaskAdded {
 		}
 
 		"mergeDebugJniLibFolders", "mergeReleaseJniLibFolders", "mergeReleaseTestJniLibFolders" -> {
-			dependsOn("cargoBuild")
-			mustRunAfter("cargoBuild")
+			dependsOn("cargoBuild", "copyRustLibs")
+			mustRunAfter("cargoBuild", "copyRustLibs")
+		}
+
+		"preBuild" -> {
+			dependsOn("copyRustLibs")
 		}
 	}
 }
