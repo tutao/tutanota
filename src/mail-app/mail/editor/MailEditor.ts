@@ -113,6 +113,7 @@ import { px, size } from "../../../common/gui/size"
 
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
+import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
 
 // Interval where we save drafts locally.
 //
@@ -464,6 +465,20 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			toggled: model.isConfidential(),
 			size: ButtonSize.Compact,
 		}
+
+		let sendLater: boolean = model.getSendLater()
+		const sendLaterButtonAttrs: ToggleButtonAttrs = {
+			// FIXME translation
+			title: lang.makeTranslation("sendlaterbutton_id", "Send Later"),
+			onToggled: (_, e) => {
+				e.stopPropagation()
+				model.setSendLater(!sendLater)
+			},
+			icon: Icons.Clock,
+			toggled: sendLater,
+			size: ButtonSize.Compact,
+		}
+
 		const attachFilesButtonAttrs: IconButtonAttrs = {
 			title: "attachFiles_action",
 			click: (ev, dom) => chooseAndAttachFile(model, dom.getBoundingClientRect()).then(() => m.redraw()),
@@ -518,6 +533,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 								size: ButtonSize.Compact,
 							})
 						: null,
+					m(ToggleButton, sendLaterButtonAttrs),
 					toolbarButton(),
 					showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
 					this.knowledgeBaseInjection ? this.renderToggleKnowledgeBase(this.knowledgeBaseInjection) : null,
@@ -666,6 +682,37 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						: null,
 				]),
 				isConfidential ? this.renderPasswordFields() : null,
+				sendLater
+					? m(
+							".flex.overflow-hidden",
+							{
+								oncreate: (vnode) => this.animateHeight(vnode.dom as HTMLElement, true),
+								onbeforeremove: (vnode) => this.animateHeight(vnode.dom as HTMLElement, false),
+							},
+							[
+								m(
+									".flex-grow",
+									m(TextField, {
+										//FIXME translation, also this just needs to be static text, not an editable text field
+										label: lang.makeTranslation("sendLater_id", "Send at"),
+										value: "",
+									}),
+								),
+								m(DatePicker, {
+									date: new Date(),
+									onDateSelected: () => noOp(),
+									startOfTheWeekOffset: 1,
+									label: "date_label",
+								}),
+								m(TextField, {
+									//FIXME this needs to be an actual time picker
+									label: lang.makeTranslation("test", "Time"),
+									value: "11:30",
+								}),
+							],
+						)
+					: null,
+				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(".row", m(TextField, subjectFieldAttrs)),
 				m(
 					".flex-start.flex-wrap.mt-s.mb-s.gap-hpad",
@@ -673,7 +720,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
 				this.renderExternalContentBanner(this.attrs),
-				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(
 					".pt-s.text.scroll-x.break-word-links.flex.flex-column.flex-grow" + (forcedLightMode ? ".bg-white.content-black.bg-fix-quoted" : ""),
 					{
@@ -952,6 +998,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 
 	private animateHeight(domElement: HTMLElement, fadein: boolean): AnimationPromise {
 		let childHeight = domElement.offsetHeight
+		if (fadein) {
+			// if this height is not set to 0, there is sometimes a jitter as it will display at full height for a second before the animation
+			domElement.style.height = "0"
+		}
 		return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).then(() => {
 			domElement.style.height = ""
 		})
