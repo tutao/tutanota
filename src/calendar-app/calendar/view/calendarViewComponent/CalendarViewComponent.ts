@@ -1,7 +1,7 @@
-import m, { Children, ClassComponent, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { styles } from "../../../../common/gui/styles"
 import { WeekStart } from "../../../../common/api/common/TutanotaConstants"
-import { calendarWeek } from "../../gui/CalendarGuiUtils"
+import { calendarWeek, extractCalendarEventModifierKey } from "../../gui/CalendarGuiUtils"
 import { HeaderComponent, HeaderComponentAttrs } from "./HeaderComponent"
 import { TimeColumn, TimeColumnAttrs } from "../../../../common/calendar/gui/TimeColumn"
 import { Time } from "../../../../common/calendar/date/Time"
@@ -11,6 +11,12 @@ import { getSubRowAsMinutes, TimeRange, TimeScale, TimeView, TimeViewAttributes 
 import { EventWrapper } from "../CalendarViewModel"
 import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/gui/AllDaySection"
 import { EventBubbleInteractions } from "../CalendarEventBubble"
+import { getPosAndBoundsFromMouseEvent } from "../../../../common/gui/base/GuiUtils"
+import { EventDragHandler, type EventDragHandlerCallbacks, type MousePos } from "../EventDragHandler"
+import { neverNull, ofClass } from "@tutao/tutanota-utils"
+import { UserError } from "../../../../common/api/main/UserError"
+import { showUserError } from "../../../../common/misc/ErrorHandlerImpl"
+import { combineDateWithTime } from "../../../../common/calendar/date/CalendarUtils"
 
 interface PageAttrs {
 	/**
@@ -36,10 +42,39 @@ export interface CalendarViewComponentAttrs {
 	bodyComponentAttrs: BodyComponentAttrs
 	cellActionHandlers: TimeViewAttributes["cellActionHandlers"]
 	eventBubbleHandlers: EventBubbleInteractions
+	dragHandlerCallbacks: EventDragHandlerCallbacks
 }
 
 export class CalendarViewComponent implements ClassComponent<CalendarViewComponentAttrs> {
 	private timeRowHeight = 0
+
+	private eventDragHandler: EventDragHandler
+	private dateUnderMouse: Date | null = null
+	private lastMousePos: MousePos | null = null
+
+	constructor({ attrs }: Vnode<CalendarViewComponentAttrs>) {
+		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
+	}
+
+	oncreate(vnode: VnodeDOM<CalendarViewComponentAttrs>) {
+		document.addEventListener("keydown", this.handleKeyDown)
+		document.addEventListener("keyup", this.handleKeyUp)
+	}
+
+	onremove(): any {
+		document.removeEventListener("keydown", this.handleKeyDown)
+		document.removeEventListener("keyup", this.handleKeyUp)
+	}
+
+	handleKeyDown = (e: KeyboardEvent) => {
+		this.eventDragHandler.pressedDragKey = extractCalendarEventModifierKey(e)
+		m.redraw()
+	}
+
+	handleKeyUp = () => {
+		this.eventDragHandler.pressedDragKey = undefined
+		m.redraw()
+	}
 
 	view({ attrs }: Vnode<CalendarViewComponentAttrs>) {
 		const renderHeader = () => {
@@ -92,6 +127,49 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						gridColumn: "1/-1",
 						gridTemplateColumns: "subgrid",
 					} satisfies Partial<CSSStyleDeclaration>,
+					onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
+						mouseEvent.redraw = false
+						this.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
+
+						if (this.dateUnderMouse) {
+							return this.eventDragHandler.handleDrag(this.dateUnderMouse, this.lastMousePos)
+						}
+					},
+					onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
+						if (this.eventDragHandler.isDragging) {
+							mouseEvent.preventDefault()
+						}
+						mouseEvent.redraw = false
+						this.endDrag(mouseEvent)
+					},
+					onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
+						mouseEvent.redraw = false
+						if (this.eventDragHandler.isDragging) {
+							this.cancelDrag()
+						}
+					},
+
+					// ontouchmove: (e: TouchEvent) => {
+					// 	e.preventDefault()
+					// 	const mouseEvent = transformTouchEvent(e)
+					// 	if (mouseEvent) {
+					// 		e.target?.dispatchEvent(mouseEvent)
+					// 	}
+					// },
+					// ontouchend: (e: TouchEvent) => {
+					// 	e.preventDefault()
+					// 	const mouseEvent = transformTouchEvent(e)
+					// 	if (mouseEvent) {
+					// 		e.target?.dispatchEvent(mouseEvent)
+					// 	}
+					// },
+					// ontouchcancel: (e: TouchEvent) => {
+					// 	e.preventDefault()
+					// 	const mouseEvent = transformTouchEvent(e)
+					// 	if (mouseEvent) {
+					// 		e.target?.dispatchEvent(mouseEvent)
+					// 	}
+					// },
 				},
 				[
 					m(
@@ -235,8 +313,41 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			cellActionHandlers,
 			timeRowHeight: this.timeRowHeight,
 			setTimeRowHeight: (timeViewHeight: number) => (this.timeRowHeight = timeViewHeight),
-			eventBubbleHandlers,
+			eventBubbleHandlers: {
+				...eventBubbleHandlers,
+				drag: {
+					isDragging: this.eventDragHandler.isDragging,
+					prepareCurrentDraggedEvent: (eventWrapper) => this.prepareEventDrag(eventWrapper),
+					setTimeUnderMouse: (time, date: Date) => (this.dateUnderMouse = combineDateWithTime(date, time)),
+				},
+			},
 			canReceiveFocus,
 		} satisfies TimeViewAttributes)
+	}
+
+	private prepareEventDrag(eventWrapper: EventWrapper) {
+		const lastMousePos = this.lastMousePos
+
+		if (this.dateUnderMouse && lastMousePos) {
+			this.eventDragHandler.prepareDrag(eventWrapper, this.dateUnderMouse, lastMousePos, false)
+		}
+	}
+
+	private endDrag(pos: MousePos) {
+		if (this.dateUnderMouse) {
+			this.eventDragHandler.endDrag(this.dateUnderMouse, pos, this.eventDragHandler.pressedDragKey).catch(ofClass(UserError, showUserError))
+			const eventWrapper = this.eventDragHandler.originalCalendarEventWrapper
+			if (eventWrapper) {
+				delete eventWrapper.flags?.isTransientEvent
+			}
+		}
+	}
+
+	private cancelDrag() {
+		this.eventDragHandler.cancelDrag()
+		const eventWrapper = this.eventDragHandler.originalCalendarEventWrapper
+		if (eventWrapper) {
+			delete eventWrapper.flags?.isTransientEvent
+		}
 	}
 }

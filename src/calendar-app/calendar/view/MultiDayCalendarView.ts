@@ -31,7 +31,6 @@ import {
 	daysHaveAllDayEvents,
 	daysHaveEvents,
 	EventLayoutMode,
-	extractCalendarEventModifierKey,
 	getDayCircleClass,
 	getEventColor,
 	layOutEvents,
@@ -91,27 +90,6 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		this.viewType = attrs.currentViewType
 	}
 
-	oncreate(vnode: VnodeDOM<MultiDayCalendarViewAttrs>) {
-		this.viewDom = vnode.dom as HTMLElement
-		document.addEventListener("keydown", this.handleKeyDown)
-		document.addEventListener("keyup", this.handleKeyUp)
-	}
-
-	onremove(): any {
-		document.removeEventListener("keydown", this.handleKeyDown)
-		document.removeEventListener("keyup", this.handleKeyUp)
-	}
-
-	handleKeyDown = (e: KeyboardEvent) => {
-		this.eventDragHandler.pressedDragKey = extractCalendarEventModifierKey(e)
-		m.redraw()
-	}
-
-	handleKeyUp = () => {
-		this.eventDragHandler.pressedDragKey = undefined
-		m.redraw()
-	}
-
 	onupdate(vnode: VnodeDOM<MultiDayCalendarViewAttrs>) {
 		this.viewDom = vnode.dom as HTMLElement
 		if (vnode.attrs.currentViewType !== this.viewType) {
@@ -166,6 +144,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				click: attrs.onEventClicked,
 				keyDown: attrs.onEventKeyDown,
 			},
+			dragHandlerCallbacks: attrs.dragHandlerCallbacks,
 		} satisfies CalendarViewComponentAttrs)
 	}
 
