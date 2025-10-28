@@ -257,6 +257,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 											hasAnyConflict: hasConflict,
 											timeRowHeight: this.timeRowHeight,
 											setTimeRowHeight: (timeRowHeight: number) => (this.timeRowHeight = timeRowHeight),
+											canReceiveFocus: true,
 										} satisfies TimeViewAttributes)
 									: m("", "ERROR: Could not load the agenda for this day."),
 							],
