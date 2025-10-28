@@ -5,7 +5,7 @@ import { Time } from "../../../common/calendar/date/Time.js"
 import { showDropdownAtPosition } from "../../../common/gui/base/Dropdown.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { newPromise } from "@tutao/tutanota-utils"
-import { isKeyPressed, Key } from "../../../common/misc/KeyManager.js"
+import { isKeyPressed, isModifierKeyPressed, Key } from "../../../common/misc/KeyManager.js"
 import { Keys } from "../../../common/api/common/TutanotaConstants.js"
 import { isAppleDevice } from "../../../common/api/common/Env.js"
 import { EventWrapper } from "./CalendarViewModel"
@@ -38,12 +38,27 @@ export class EventDragHandler {
 	private dragging: boolean = false
 	private lastDiffBetweenDates: number | null = null
 	private hasChanged: boolean = false
-	pressedDragKey?: Key
+	private _pressedDragKey?: Key
 
 	constructor(
 		private readonly draggingArea: HTMLBodyElement,
 		private readonly eventDragCallbacks: EventDragHandlerCallbacks,
 	) {}
+
+	set pressedDragKey(key: Key | undefined) {
+		if (this._pressedDragKey?.code === key?.code) {
+			return
+		}
+
+		this._pressedDragKey = key
+		if (this.isDragging) {
+			this.handleMouseCursorClass()
+		}
+	}
+
+	get pressedDragKey(): Key | undefined {
+		return this._pressedDragKey
+	}
 
 	get changed(): boolean {
 		return this.hasChanged
@@ -55,6 +70,10 @@ export class EventDragHandler {
 
 	get originalCalendarEvent(): CalendarEvent | null {
 		return this.data?.originalEventWrapper.event ?? null
+	}
+
+	get originalCalendarEventWrapper(): EventWrapper | null {
+		return this.data?.originalEventWrapper ?? null
 	}
 
 	/**
@@ -100,7 +119,14 @@ export class EventDragHandler {
 	 */
 	handleDrag(dateUnderMouse: Date, mousePos: MousePos) {
 		if (this.data) {
+			this.handleMouseCursorClass()
+
 			const dragData = this.data
+			dragData.originalEventWrapper.flags = {
+				...dragData.originalEventWrapper.flags,
+				isTransientEvent: true,
+			}
+
 			const adjustedDateUnderMouse = this.adjustDateUnderMouse(dragData.originalEventWrapper.event.startTime, dateUnderMouse, dragData.keepTime)
 			// Calculate the distance from the original mouse location to the current mouse location
 			// We don't want to actually start the drag until the mouse has moved by some distance
@@ -133,6 +159,16 @@ export class EventDragHandler {
 		}
 	}
 
+	private handleMouseCursorClass() {
+		if (isModifierKeyPressed(this._pressedDragKey)) {
+			this.draggingArea.classList.remove("cursor-grabbing")
+			this.draggingArea.classList.add("drag-mod-key")
+		} else {
+			this.draggingArea.classList.add("cursor-grabbing")
+			this.draggingArea.classList.remove("drag-mod-key")
+		}
+	}
+
 	/**
 	 * Call on mouseup or mouseleave. Ends a drag event if one has been started, and hasn't been cancelled.
 	 *
@@ -140,8 +176,13 @@ export class EventDragHandler {
 	 */
 	async endDrag(dateUnderMouse: Date, pos: MousePos, pressedKey?: Key): Promise<void> {
 		this.draggingArea.classList.remove("cursor-grabbing")
+		this.draggingArea.classList.remove("drag-mod-key")
+
 		if (this.dragging && this.data) {
 			const dragData = this.data
+
+			delete dragData.originalEventWrapper.flags?.isTransientEvent
+
 			const adjustedDateUnderMouse = this.adjustDateUnderMouse(dragData.originalEventWrapper.event.startTime, dateUnderMouse, dragData.keepTime)
 			// We update our state first because the updateCallback might take some time, and
 			// we want the UI to be able to react to the drop having happened before we get the result
@@ -193,6 +234,8 @@ export class EventDragHandler {
 
 	cancelDrag() {
 		this.draggingArea.classList.remove("cursor-grabbing")
+		this.draggingArea.classList.remove("drag-mod-key")
+
 		this.eventDragCallbacks.onDragCancel()
 
 		this.data = null
