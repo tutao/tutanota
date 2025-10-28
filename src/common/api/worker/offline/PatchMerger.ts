@@ -79,11 +79,8 @@ export class PatchMerger {
 			await this.cacheStorage.put(typeRef, patchAppliedInstance)
 			return patchAppliedInstance
 		} catch (e) {
-			if (e instanceof PatchOperationError) {
-				// returning null leads to reloading from the server, this fixes the broken entity in the offline storage with _errors
-				return null
-			}
-			throw e
+			// returning null leads to reloading from the server, this fixes the broken entity in the offline storage
+			return null
 		}
 	}
 
