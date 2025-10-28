@@ -1,34 +1,14 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { px, size } from "../../../common/gui/size"
-import { DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, mapNullable, neverNull, numberRange } from "@tutao/tutanota-utils"
-import {
-	eventEndsAfterDay,
-	eventStartsBefore,
-	getTimeFromClickInteraction,
-	getTimeTextFormatForLongEvent,
-	getTimeZone,
-	hasAlarmsForTheUser,
-	isBirthdayCalendar,
-} from "../../../common/calendar/date/CalendarUtils"
-import { CalendarEventBubble } from "./CalendarEventBubble"
+import { DAY_IN_MILLIS, downcast, getEndOfDay, getStartOfDay, neverNull, numberRange } from "@tutao/tutanota-utils"
+import { eventEndsAfterDay, eventStartsBefore, getTimeFromClickInteraction, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { getPosAndBoundsFromMouseEvent } from "../../../common/gui/base/GuiUtils"
-import {
-	EventLayoutMode,
-	expandEvent,
-	formatEventTime,
-	getDisplayEventTitle,
-	getEventColor,
-	getTimeFromMousePos,
-	layOutEvents,
-	TEMPORARY_EVENT_OPACITY,
-} from "../gui/CalendarGuiUtils.js"
+import { EventLayoutMode, expandEvent, getDisplayEventTitle, getTimeFromMousePos, layOutEvents } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "./CalendarViewModel"
 import type { GroupColors } from "./CalendarView"
 import { styles } from "../../../common/gui/styles"
-import { locator } from "../../../common/api/main/CommonLocator.js"
 import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
-import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 
 export type Attrs = {
 	onEventClicked: CalendarEventBubbleClickHandler
@@ -113,41 +93,20 @@ export class CalendarDayEventsView implements Component<Attrs> {
 		const maxWidth = fullViewWidth != null ? px(styles.isDesktopLayout() ? fullViewWidth / 2 : fullViewWidth) : "none"
 		const colSpan = expandEvent(eventWrapper.event, columnIndex, columns)
 		const eventTitle = getDisplayEventTitle(eventWrapper.event.summary)
-		return m(
-			".abs.darker-hover",
-			{
-				style: {
-					maxWidth,
-					left: px(columnWidth * columnIndex),
-					width: px(columnWidth * colSpan),
-					top: px((startTime / DAY_IN_MILLIS) * allHoursHeight),
-					height: px(height),
-				},
-				onmousedown: () => {
-					if (!attrs.isTemporaryEvent(eventWrapper)) {
-						attrs.setCurrentDraggedEvent(eventWrapper)
-					}
-				},
+		return m(".abs.darker-hover", {
+			style: {
+				maxWidth,
+				left: px(columnWidth * columnIndex),
+				width: px(columnWidth * colSpan),
+				top: px((startTime / DAY_IN_MILLIS) * allHoursHeight),
+				height: px(height),
 			},
-			// m(CalendarEventBubble, {
-			// 	text: eventTitle,
-			// 	secondLineText: mapNullable(getTimeTextFormatForLongEvent(eventWrapper.event, attrs.day, attrs.day, zone), (option) =>
-			// 		formatEventTime(eventWrapper.event, option),
-			// 	),
-			// 	color: getEventColor(eventWrapper.event, attrs.groupColors, eventWrapper.isGhost),
-			// 	border: eventWrapper.isGhost ? `2px dashed #${getEventColor(eventWrapper.event, attrs.groupColors)}` : undefined,
-			// 	click: (domEvent) => attrs.onEventClicked(eventWrapper.event, domEvent),
-			// 	keyDown: (domEvent) => attrs.onEventKeyDown(eventWrapper.event, domEvent),
-			// 	height: height - size.calendar_day_event_padding,
-			// 	hasAlarm: hasAlarmsForTheUser(locator.logins.getUserController().user, eventWrapper.event),
-			// 	isAltered: eventWrapper.event.recurrenceId != null,
-			// 	verticalPadding: size.calendar_day_event_padding,
-			// 	fadeIn: !attrs.isTemporaryEvent(eventWrapper),
-			// 	opacity: attrs.isTemporaryEvent(eventWrapper) ? TEMPORARY_EVENT_OPACITY : 1,
-			// 	enablePointerEvents: !attrs.isTemporaryEvent(eventWrapper) && !attrs.isDragging && !attrs.disabled,
-			// 	isBirthday: isBirthdayCalendar(listIdPart(eventWrapper.event._id)),
-			// }),
-		)
+			onmousedown: () => {
+				if (!attrs.isTemporaryEvent(eventWrapper)) {
+					attrs.setCurrentDraggedEvent(eventWrapper)
+				}
+			},
+		})
 	}
 
 	private renderColumns(attrs: Attrs, columns: Array<Array<EventWrapper>>): ChildArray {

@@ -1,6 +1,6 @@
 import m, { Child, ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized, getStartOfDay, getStartOfNextDay, noOp } from "@tutao/tutanota-utils"
+import { deepMemoized, downcast, getStartOfDay, getStartOfNextDay, noOp } from "@tutao/tutanota-utils"
 import { px } from "../../gui/size.js"
 import { getTimeFromClickInteraction, getTimeZone } from "../date/CalendarUtils"
 import { TimeColumn } from "./TimeColumn"
@@ -8,7 +8,15 @@ import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "luxon"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
-import { CalendarEventBubble, CalendarEventBubbleAttrs, EventBubbleInteractions, MIN_ROW_SPAN } from "../../../calendar-app/calendar/view/CalendarEventBubble"
+import {
+	CalendarEventBubble,
+	CalendarEventBubbleAttrs,
+	CalendarEventBubbleDragProperties,
+	EventBubbleInteractions,
+	MIN_ROW_SPAN,
+} from "../../../calendar-app/calendar/view/CalendarEventBubble"
+import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 
 export const TIME_SCALE_BASE_VALUE = 60
 export type TimeScale = 1 | 2 | 4
@@ -29,7 +37,7 @@ export interface TimeViewAttributes {
 	setTimeRowHeight: (timeRowHeight: number) => void
 	hasAnyConflict?: boolean
 	cellActionHandlers?: Pick<CellAttrs, "onCellPressed" | "onCellContextMenuPressed">
-	eventBubbleHandlers?: EventBubbleInteractions
+	eventBubbleHandlers?: EventBubbleInteractions & CalendarEventBubbleDragProperties
 	canReceiveFocus: boolean
 }
 
@@ -176,6 +184,18 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 				oncreate(vnode): any {
 					;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 				},
+				onmousemove: (mouseEvent: MouseEvent) => {
+					downcast(mouseEvent).redraw = false
+					const time = getTimeFromMousePos(getPosAndBoundsFromMouseEvent(mouseEvent), 4)
+					eventBubbleHandlers?.drag?.setTimeUnderMouse(time, date)
+				},
+				// ontouchmove: (e: TouchEvent) => {
+				// 	e.preventDefault()
+				// 	const mouseEvent = transformTouchEvent(e)
+				// 	if (mouseEvent) {
+				// 		e.target?.dispatchEvent(mouseEvent)
+				// 	}
+				// },
 			},
 			[
 				this.renderInteractableCells(date, timeScale, timeRange, cellActionHandlers?.onCellPressed, cellActionHandlers?.onCellContextMenuPressed),
@@ -205,7 +225,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 			timeScale: TimeScale,
 			baseDate: Date,
 			canReceiveFocus: boolean,
-			eventInteractions?: EventBubbleInteractions,
+			eventInteractions?: EventBubbleInteractions & CalendarEventBubbleDragProperties,
 		): Children => {
 			const interval = TIME_SCALE_BASE_VALUE / timeScale
 			const timeRangeAsDate = {
