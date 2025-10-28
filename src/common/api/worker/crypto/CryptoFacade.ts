@@ -480,7 +480,7 @@ export class CryptoFacade {
 			const entityAdapter = downcast<EntityAdapter>(instance)
 			const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 				await this.typeModelResolver.resolveServerTypeReference(instance._type),
-				entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
+				entityAdapter.parsedInstance as ServerModelEncryptedParsedInstance,
 				resolvedSessionKeyForInstance,
 			)
 			decryptedInstance = await this.instancePipeline.modelMapper.mapToInstance(instance._type, parsedInstance)

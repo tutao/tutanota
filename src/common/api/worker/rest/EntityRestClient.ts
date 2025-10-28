@@ -254,7 +254,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const sessionKey = await this.resolveSessionKey(opts.ownerKeyProvider, migratedEntity)
 		const decrypted = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			serverTypeModel,
-			migratedEntity.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
+			migratedEntity.parsedInstance as ServerModelEncryptedParsedInstance,
 			sessionKey,
 		)
 		tm?.endMeasurement()
@@ -489,7 +489,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 		return await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			serverTypeModel,
-			entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
+			entityAdapter.parsedInstance as ServerModelEncryptedParsedInstance,
 			sessionKey,
 		)
 	}
