@@ -20,7 +20,7 @@ import { InfoLink, lang } from "../misc/LanguageViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError"
 import { locator } from "../api/main/CommonLocator"
-import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
+import { CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { runCaptchaFlow, runPowChallenge } from "./captcha/Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
@@ -211,7 +211,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 								: null,
 							m(Checkbox, confirmTermsCheckBoxAttrs),
 							m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
-							m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 							m(Checkbox, confirmAgeCheckBoxAttrs),
 						],
 				m(
