@@ -10,6 +10,7 @@ import { PageView } from "../../../../common/gui/base/PageView"
 import { getSubRowAsMinutes, TimeRange, TimeScale, TimeView, TimeViewAttributes } from "../../../../common/calendar/gui/TimeView"
 import { EventWrapper } from "../CalendarViewModel"
 import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/gui/AllDaySection"
+import { EventBubbleInteractions } from "../CalendarEventBubble"
 
 interface PageAttrs {
 	/**
@@ -34,6 +35,7 @@ export interface CalendarViewComponentAttrs {
 	headerComponentAttrs?: HeaderComponentAttrs
 	bodyComponentAttrs: BodyComponentAttrs
 	cellActionHandlers: TimeViewAttributes["cellActionHandlers"]
+	eventBubbleHandlers: EventBubbleInteractions
 }
 
 export class CalendarViewComponent implements ClassComponent<CalendarViewComponentAttrs> {
@@ -116,6 +118,8 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 									attrs.bodyComponentAttrs.previous.dates,
 									attrs.bodyComponentAttrs.previous.events.short,
 									attrs.cellActionHandlers,
+									attrs.eventBubbleHandlers,
+									false,
 								),
 							},
 							currentPage: {
@@ -125,6 +129,8 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 									attrs.bodyComponentAttrs.current.dates,
 									attrs.bodyComponentAttrs.current.events.short,
 									attrs.cellActionHandlers,
+									attrs.eventBubbleHandlers,
+									true,
 								),
 							},
 							nextPage: {
@@ -134,6 +140,8 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 									attrs.bodyComponentAttrs.next.dates,
 									attrs.bodyComponentAttrs.next.events.short,
 									attrs.cellActionHandlers,
+									attrs.eventBubbleHandlers,
+									false,
 								),
 							},
 							onChangePage: (next) => attrs.bodyComponentAttrs.onChangePage(next),
@@ -216,6 +224,8 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		dates: Array<Date>,
 		events: Array<EventWrapper>,
 		cellActionHandlers: TimeViewAttributes["cellActionHandlers"],
+		eventBubbleHandlers: EventBubbleInteractions,
+		canReceiveFocus: boolean,
 	) {
 		return m(TimeView, {
 			timeRange,
@@ -225,6 +235,8 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			cellActionHandlers,
 			timeRowHeight: this.timeRowHeight,
 			setTimeRowHeight: (timeViewHeight: number) => (this.timeRowHeight = timeViewHeight),
+			eventBubbleHandlers,
+			canReceiveFocus,
 		} satisfies TimeViewAttributes)
 	}
 }
