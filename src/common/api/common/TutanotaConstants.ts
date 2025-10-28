@@ -14,6 +14,8 @@ import {
 import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
+import { MailModel } from "../../../mail-app/mail/model/MailModel"
+import { FolderInfo } from "../../../mail-app/mail/model/MailUtils"
 
 export const MAX_NBR_OF_MAILS_SYNC_OPERATION = 50
 export const MAX_NBR_OF_CONVERSATIONS = 50
@@ -32,11 +34,94 @@ export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
 export const getMailFolderType = (folder: MailSet): MailSetKind => downcast(folder.folderType)
 
 export function isFolder(folder: MailSet): boolean {
-	return folder.folderType !== MailSetKind.ALL && folder.folderType !== MailSetKind.LABEL && folder.folderType !== MailSetKind.Imported
+	switch (folder.folderType) {
+		case MailSetKind.CUSTOM:
+		case MailSetKind.INBOX:
+		case MailSetKind.SENT:
+		case MailSetKind.TRASH:
+		case MailSetKind.ARCHIVE:
+		case MailSetKind.SPAM:
+		case MailSetKind.DRAFT:
+		case MailSetKind.SEND_LATER:
+			return true
+		case MailSetKind.ALL:
+		case MailSetKind.LABEL:
+		case MailSetKind.IMPORTED:
+		default:
+			return false
+	}
+}
+
+/**
+ * @return true if {@link mailSet} is a read-only folder (see {@link READ_ONLY_SYSTEM_FOLDERS} for more info)
+ */
+export function isFolderReadOnly(mailSet: MailSet) {
+	return READ_ONLY_SYSTEM_FOLDERS.includes(mailSet.folderType as MailSetKind)
 }
 
 export function isNestableMailSet(mailSet: MailSet): boolean {
 	return mailSet.folderType === MailSetKind.CUSTOM
+}
+
+export function isVisibleSystemMailSet(mailSet: MailSet): boolean {
+	switch (mailSet.folderType) {
+		case MailSetKind.INBOX:
+		case MailSetKind.SENT:
+		case MailSetKind.TRASH:
+		case MailSetKind.ARCHIVE:
+		case MailSetKind.SPAM:
+		case MailSetKind.DRAFT:
+		case MailSetKind.SEND_LATER:
+			return true
+		case MailSetKind.CUSTOM:
+		case MailSetKind.ALL:
+		case MailSetKind.LABEL:
+		case MailSetKind.IMPORTED:
+		default:
+			return false
+	}
+}
+
+export function canHaveDescendents(mailSet: MailSet): boolean {
+	switch (mailSet.folderType) {
+		case MailSetKind.CUSTOM:
+		case MailSetKind.INBOX:
+		case MailSetKind.DRAFT:
+		case MailSetKind.SENT:
+		case MailSetKind.ARCHIVE:
+			return true
+		case MailSetKind.TRASH:
+		case MailSetKind.SPAM:
+		case MailSetKind.ALL:
+		case MailSetKind.LABEL:
+		case MailSetKind.IMPORTED:
+		case MailSetKind.SEND_LATER:
+		default:
+			return false
+	}
+}
+
+export function isEditableMailSet(mailSet: MailSet): boolean {
+	switch (mailSet.folderType) {
+		case MailSetKind.CUSTOM:
+		case MailSetKind.LABEL:
+			return true
+		case MailSetKind.INBOX:
+		case MailSetKind.DRAFT:
+		case MailSetKind.SENT:
+		case MailSetKind.TRASH:
+		case MailSetKind.ARCHIVE:
+		case MailSetKind.SPAM:
+		case MailSetKind.ALL:
+		case MailSetKind.IMPORTED:
+		case MailSetKind.SEND_LATER:
+		default:
+			return false
+	}
+}
+
+export function isTopLevelMailSet(mailSet: MailSet): boolean {
+	return mailSet.parentFolder == null
 }
 
 export function isLabel(folder: MailSet): boolean {
@@ -115,17 +200,45 @@ export enum MailSetKind {
 	DRAFT = "6",
 	ALL = "7",
 	LABEL = "8",
-	Imported = "9",
+	IMPORTED = "9",
+	SEND_LATER = "10",
 }
 
-export const SYSTEM_FOLDERS = [MailSetKind.INBOX, MailSetKind.SENT, MailSetKind.TRASH, MailSetKind.ARCHIVE, MailSetKind.SPAM, MailSetKind.DRAFT] as const
+export const SYSTEM_FOLDERS = [
+	MailSetKind.INBOX,
+	MailSetKind.SENT,
+	MailSetKind.TRASH,
+	MailSetKind.ARCHIVE,
+	MailSetKind.SPAM,
+	MailSetKind.DRAFT,
+	MailSetKind.SEND_LATER,
+] as const
 export type SystemFolderType = (typeof SYSTEM_FOLDERS)[number]
 
 export function getMailSetKind(folder: MailSet): MailSetKind {
 	return folder.folderType as MailSetKind
 }
 
-export type SimpleMoveMailTarget = MailSetKind.INBOX | MailSetKind.SENT | MailSetKind.TRASH | MailSetKind.ARCHIVE | MailSetKind.SPAM | MailSetKind.DRAFT
+export const MOVE_SYSTEM_FOLDERS = Object.freeze([
+	MailSetKind.INBOX,
+	MailSetKind.SENT,
+	MailSetKind.TRASH,
+	MailSetKind.ARCHIVE,
+	MailSetKind.SPAM,
+	MailSetKind.DRAFT,
+] as const)
+
+/**
+ * These are mail sets that are managed by the server and cannot be mutated by the client
+ *
+ * They have the following restrictions:
+ *
+ * - Mails cannot be moved in or out of these folders by the client (most other actions are still possible, such as labels and marking read/unread)
+ * - Subfolders cannot be created or moved in this folder by the client
+ */
+export const READ_ONLY_SYSTEM_FOLDERS = Object.freeze([MailSetKind.SEND_LATER])
+
+export type SimpleMoveMailTarget = (typeof SYSTEM_FOLDERS)[number]
 
 export const enum ReplyType {
 	NONE = "0",
@@ -769,6 +882,7 @@ export const enum UnsubscribeFailureReason {
 	HAS_CONTACT_LIST_GROUP = "unsubscribe.has_contact_list_group",
 	ACTIVE_APPSTORE_SUBSCRIPTION = "unsubscribe.active_appstore_subscription",
 	LABEL_LIMIT_EXCEEDED = "unsubscribe.label_limit_exceeded",
+	HAS_SCHEDULED_MAILS = "unsubscribe.has_scheduled_mails",
 }
 
 // legacy, should be deleted after clients older than 3.114 have been disabled.
