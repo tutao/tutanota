@@ -1048,6 +1048,9 @@ styles.registerStyle("main", () => {
 		".dropdown-info + .dropdown-info": {
 			"padding-top": "0",
 		},
+		".text-no-wrap": {
+			"text-wrap": "nowrap",
+		},
 		".text-wrap": {
 			"text-wrap": "auto",
 		},

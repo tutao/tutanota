@@ -30,6 +30,7 @@ export interface TimeViewAttributes {
 	hasAnyConflict?: boolean
 	cellActionHandlers?: Pick<CellAttrs, "onCellPressed" | "onCellContextMenuPressed">
 	eventBubbleHandlers?: EventBubbleInteractions
+	canReceiveFocus: boolean
 }
 
 /**
@@ -158,7 +159,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 	}
 
 	private renderDay(date: Date, subRowCount: number, timeViewAttrs: TimeViewAttributes): Child {
-		const { events: eventWrappers, timeScale, timeRange, cellActionHandlers, eventBubbleHandlers } = timeViewAttrs
+		const { events: eventWrappers, timeScale, timeRange, cellActionHandlers, eventBubbleHandlers, canReceiveFocus } = timeViewAttrs
 		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
 		const startOfTomorrow = getStartOfNextDay(date)
 		const startOfDay = getStartOfDay(date)
@@ -178,7 +179,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 			},
 			[
 				this.renderInteractableCells(date, timeScale, timeRange, cellActionHandlers?.onCellPressed, cellActionHandlers?.onCellContextMenuPressed),
-				this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date, eventBubbleHandlers),
+				this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date, canReceiveFocus, eventBubbleHandlers),
 			],
 		)
 	}
@@ -203,6 +204,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 			subRowAsMinutes: number,
 			timeScale: TimeScale,
 			baseDate: Date,
+			canReceiveFocus: boolean,
 			eventInteractions?: EventBubbleInteractions,
 		): Children => {
 			const interval = TIME_SCALE_BASE_VALUE / timeScale
@@ -251,12 +253,12 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 						interactions: eventInteractions,
 						gridInfo: evData,
 						eventWrapper,
-						rangeInfo: {
+						rangeOverflowInfo: {
 							start: eventWrapper.event.startTime > timeRangeAsDate.start,
 							end: eventWrapper.event.endTime > timeRangeAsDate.end,
 						},
 						baseDate,
-						isFocusable: true, // FIXME
+						canReceiveFocus,
 					} satisfies CalendarEventBubbleAttrs),
 				]
 			}) as ChildArray

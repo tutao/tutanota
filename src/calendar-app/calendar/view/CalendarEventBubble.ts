@@ -2,10 +2,10 @@ import m, { Children, Component, Vnode } from "mithril"
 import { px, size } from "../../../common/gui/size"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { ClickHandler, colorForBg, KeyboardHandler } from "../../../common/gui/base/GuiUtils"
+import { colorForBg } from "../../../common/gui/base/GuiUtils"
 import { theme } from "../../../common/gui/theme"
 import { GridEventData, RowBounds } from "../../../common/calendar/gui/TimeView"
-import { EventWrapper, EventWrapperFlags } from "./CalendarViewModel"
+import { type CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper, EventWrapperFlags } from "./CalendarViewModel"
 import { formatEventTime, TEMPORARY_EVENT_OPACITY } from "../gui/CalendarGuiUtils"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants"
 import { EventWrapperFlagKeys, FlagKeyToIcon, getTimeTextFormatForLongEvent, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
@@ -18,8 +18,8 @@ export interface RangeOverflowData {
 }
 
 export interface EventBubbleInteractions {
-	click: ClickHandler
-	keyDown: KeyboardHandler
+	click: CalendarEventBubbleClickHandler
+	keyDown: CalendarEventBubbleKeyDownHandler
 }
 
 export type CalendarEventBubbleAttrs = {
@@ -38,8 +38,8 @@ export type CalendarEventBubbleAttrs = {
 	interactions?: EventBubbleInteractions
 	gridInfo: GridEventData
 	eventWrapper: EventWrapper
-	rangeInfo: RangeOverflowData
-	isFocusable: boolean
+	rangeOverflowInfo: RangeOverflowData
+	canReceiveFocus: boolean
 	baseDate: Date
 }
 const lineHeight = size.calendar_line_height
@@ -57,38 +57,41 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		// Reapplying the animation to the element will cause it to trigger instantly, so we don't want to do that
 		// const doFadeIn = !this.hasFinishedInitialRender && attrs.fadeIn
 		// const enablePointerEvents = attrs.enablePointerEvents
-		const { gridInfo, eventWrapper, rangeInfo, interactions, isFocusable, baseDate } = attrs
+		const { gridInfo, eventWrapper, rangeOverflowInfo, interactions, canReceiveFocus, baseDate } = attrs
 		const zone = getTimeZone()
 		const timeFormat = getTimeTextFormatForLongEvent(eventWrapper.event, baseDate, baseDate, zone)
 		const formatedEventTime = timeFormat ? formatEventTime(eventWrapper.event, timeFormat) : ""
 
 		return m(
 			// EventBubble
-			".border-radius.text-ellipsis-multi-line.p-xsm.small.z2.py.plr-core-4.b",
+			".border-radius.small.z2.plr-core-4.b",
 			{
-				onclick: interactions?.click,
-				tabIndex: isFocusable ? TabIndex.Default : TabIndex.Programmatic,
+				onclick: (e: MouseEvent) => {
+					e.stopImmediatePropagation()
+					interactions?.click(attrs.eventWrapper.event, e)
+				},
+				onkeydown: (e: KeyboardEvent) => {
+					interactions?.keyDown(attrs.eventWrapper.event, e)
+				},
+				tabIndex: canReceiveFocus ? TabIndex.Default : TabIndex.Programmatic,
+				class: interactions?.click ? "cursor-pointer" : "",
 				style: {
-					"pointer-events": isFocusable ? "auto" : "none",
+					"pointer-events": canReceiveFocus ? "auto" : "none",
 					"min-height": px(0),
 					"min-width": px(0),
 					"grid-column": `${gridInfo.column.start} / span ${gridInfo.column.span}`,
 					background: `#${eventWrapper.color}`,
 					color: !eventWrapper.flags?.isFeatured ? colorForBg(`#${eventWrapper.color}`) : undefined,
 					"grid-row": `${gridInfo.row.start} / ${gridInfo.row.end}`,
-					// "border-top-left-radius": eventWrapper.event.startTime < timeRangeAsDate.start ? "0" : undefined,
-					// "border-top-right-radius": eventWrapper.event.startTime < timeRangeAsDate.start ? "0" : undefined,
-					// "border-bottom-left-radius": eventWrapper.event.endTime > timeRangeAsDate.end ? "0" : undefined,
-					// "border-bottom-right-radius": eventWrapper.event.endTime > timeRangeAsDate.end ? "0" : undefined,
-					"border-top-left-radius": !rangeInfo.start ? "0" : undefined,
-					"border-top-right-radius": !rangeInfo.start ? "0" : undefined,
-					"border-bottom-left-radius": rangeInfo.end ? "0" : undefined,
-					"border-bottom-right-radius": rangeInfo.end ? "0" : undefined,
+					"border-top-left-radius": !rangeOverflowInfo.start ? "0" : undefined,
+					"border-top-right-radius": !rangeOverflowInfo.start ? "0" : undefined,
+					"border-bottom-left-radius": rangeOverflowInfo.end ? "0" : undefined,
+					"border-bottom-right-radius": rangeOverflowInfo.end ? "0" : undefined,
 					border: eventWrapper.flags?.isFeatured
 						? `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`
 						: "none",
-					"border-top": !rangeInfo.start ? "none" : undefined,
-					"border-bottom": rangeInfo.end ? "none" : undefined,
+					"border-top": !rangeOverflowInfo.start ? "none" : undefined,
+					"border-bottom": rangeOverflowInfo.end ? "none" : undefined,
 					"-webkit-line-clamp": 2,
 					opacity: `${eventWrapper.flags?.isTransientEvent ? TEMPORARY_EVENT_OPACITY : 1}`,
 					paddingTop: "2px",
@@ -214,21 +217,22 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					: null
 			}),
 			m(
-				".flex.full-width",
+				".flex.overflow-auto",
 				{
 					class: showSecondLine ? "col" : "",
 				},
 				[
 					m(
-						".text-ellipsis-multi-line",
+						"span",
 						{
+							class: showSecondLine ? "text-ellipsis-multi-line" : "",
 							style: {
 								"-webkit-line-clamp": maxLines, // This helps resizing the text to show as much as possible of its contents
 							},
 						},
 						summary,
 					),
-					m(".flex.items-center", [
+					m(".flex.items-center.text-ellipsis", [
 						!showSecondLine
 							? m(Icon, {
 									class: "icon-small mlr-core-4",
