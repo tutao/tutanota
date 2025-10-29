@@ -55,7 +55,9 @@ export function filterPlanConfigsAndGetSelectedPlan(
 	// If the selectedPlan is not part of the current view
 	// (e.g. because we switched between private and business plans)
 	// then we need to change the selectedPlan to one that can be shown.
-	const availablePlansForCurrentView = planConfigs.filter((planConfig) => !planConfig.isDisabled).map((config) => config.type)
+	const availablePlansForCurrentView = planConfigs
+		.filter((planConfig) => !planConfig.isDisabled && planConfig.type !== currentPlan)
+		.map((config) => config.type)
 	if (!availablePlansForCurrentView.includes(selectedPlan)) {
 		selectedPlan = planConfigs.filter((planConfig) => planConfig.type !== currentPlan && !planConfig.isDisabled)[0].type
 
