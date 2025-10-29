@@ -206,6 +206,7 @@ import("./translations/en.js")
 						mailLocator.cacheStorage,
 						mailLocator.logins,
 						assertNotNull(await mailLocator.offlineStorageSettingsModel()),
+						mailLocator.syncTracker,
 					),
 			)
 			mailLocator.logins.addPostLoginAction(async () => {

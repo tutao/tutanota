@@ -9,6 +9,7 @@ import { NoopProgressMonitor } from "../api/common/utils/ProgressMonitor.js"
 import { SessionType } from "../api/common/SessionType.js"
 import { ExposedCacheStorage } from "../api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorageSettingsModel } from "./OfflineStorageSettingsModel"
+import { SyncTracker } from "../api/main/SyncTracker"
 
 export class CachePostLoginAction implements PostLoginAction {
 	constructor(
@@ -18,6 +19,7 @@ export class CachePostLoginAction implements PostLoginAction {
 		private readonly cacheStorage: ExposedCacheStorage,
 		private readonly logins: LoginController,
 		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null, // null if no cleaning e.g in calendar
+		private readonly syncTracker: SyncTracker,
 	) {}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
@@ -42,11 +44,17 @@ export class CachePostLoginAction implements PostLoginAction {
 	}
 
 	async onPartialLoginSuccess(event: LoggedInEvent): Promise<void> {
-		if (event.sessionType === SessionType.Persistent && this.offlineStorageSettings != null) {
-			await this.offlineStorageSettings.init()
-
-			// Clear the excluded data (i.e. trash and spam lists, old data) in the offline storage.
-			await this.cacheStorage.clearExcludedData(this.offlineStorageSettings.getTimeRange())
+		if (event.sessionType === SessionType.Persistent) {
+			if (!this.syncTracker.isSyncDone()) {
+				this.syncTracker.isSyncDone.map(async (isDone) => {
+					if (isDone && this.offlineStorageSettings !== null) {
+						await this.offlineStorageSettings.init()
+						// Clear the excluded data (i.e. trash and spam lists, old data) in the offline storage.
+						await this.cacheStorage.clearExcludedData(this.offlineStorageSettings.getTimeRange())
+					}
+					this.syncTracker.isSyncDone.end(true)
+				})
+			}
 		}
 	}
 }

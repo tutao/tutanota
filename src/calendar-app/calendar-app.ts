@@ -128,6 +128,7 @@ import("../mail-app/translations/en.js")
 						calendarLocator.cacheStorage,
 						calendarLocator.logins,
 						null,
+						calendarLocator.syncTracker,
 					),
 			)
 		}
