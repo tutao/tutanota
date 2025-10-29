@@ -59,6 +59,10 @@ export function eventStartsBefore(currentDate: Date, zone: string, event: Calend
 	return getEventStart(event, zone).getTime() < currentDate.getTime()
 }
 
+export function eventStartsBeforeDay(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+	return getEventStart(event, zone).getTime() < getStartOfDayWithZone(currentDate, zone).getTime()
+}
+
 export function eventEndsBefore(date: Date, zone: string, event: CalendarEvent): boolean {
 	return getEventEnd(event, zone).getTime() < date.getTime()
 }
@@ -150,6 +154,21 @@ export function getStartOfNextDayWithZone(date: Date, zone: string): Date {
 			millisecond: 0,
 		})
 		.plus({ day: 1 })
+		.toJSDate()
+}
+
+/** @param date a date object representing some time on some calendar date (like 1st of May 2023) in {@param zone}
+ * @param zone the time zone for which to calculate the calendar date that {@param date} represents
+ * @returns a date object representing the start of the previous calendar date (30nd of April 2023 00:00) in {@param zone} */
+export function getStartOfPreviousDayWithZone(date: Date, zone: string): Date {
+	return DateTime.fromJSDate(date, { zone })
+		.set({
+			hour: 0,
+			minute: 0,
+			second: 0,
+			millisecond: 0,
+		})
+		.minus({ day: 1 })
 		.toJSDate()
 }
 

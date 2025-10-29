@@ -106,6 +106,12 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						gridColumn: "1/-1",
 						gridTemplateColumns: "subgrid",
 					} satisfies Partial<CSSStyleDeclaration>,
+					onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
+						mouseEvent.redraw = false
+						if (this.eventDragHandler.isDragging) {
+							this.cancelDrag()
+						}
+					},
 				},
 				children,
 			)
@@ -141,12 +147,6 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						}
 						mouseEvent.redraw = false
 						this.endDrag(mouseEvent)
-					},
-					onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
-						mouseEvent.redraw = false
-						if (this.eventDragHandler.isDragging) {
-							this.cancelDrag()
-						}
 					},
 
 					// ontouchmove: (e: TouchEvent) => {
@@ -231,12 +231,27 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 
 		const renderAllDaySection = () => {
 			return m(
-				".grid.overflow-x-hidden.rel",
+				".grid.overflow-hidden.rel.scrollbar-gutter-stable-or-fallback",
 				{
 					style: {
 						gridColumn: "1/-1",
 						gridTemplateColumns: "subgrid",
 					} satisfies Partial<CSSStyleDeclaration>,
+					onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
+						mouseEvent.redraw = false
+						this.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
+
+						if (this.dateUnderMouse) {
+							return this.eventDragHandler.handleDrag(this.dateUnderMouse, this.lastMousePos)
+						}
+					},
+					onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
+						if (this.eventDragHandler.isDragging) {
+							mouseEvent.preventDefault()
+						}
+						mouseEvent.redraw = false
+						this.endDrag(mouseEvent)
+					},
 				},
 				[
 					m(
@@ -249,6 +264,16 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						m(AllDaySection, {
 							dates: attrs.bodyComponentAttrs.current.dates,
 							allDayEventWrappers: attrs.bodyComponentAttrs.current.events.long,
+							eventBubbleHandlers: {
+								...attrs.eventBubbleHandlers,
+								drag: {
+									prepareCurrentDraggedEvent: (eventWrapper) => this.prepareEventDrag(eventWrapper, true),
+									setTimeUnderMouse: (time, date: Date) => {
+										const timeToCombine = this.dateUnderMouse ? Time.fromDate(this.dateUnderMouse) : time
+										return (this.dateUnderMouse = combineDateWithTime(date, timeToCombine))
+									},
+								},
+							},
 						} satisfies AllDaySectionAttrs),
 					),
 				],
@@ -316,8 +341,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			eventBubbleHandlers: {
 				...eventBubbleHandlers,
 				drag: {
-					isDragging: this.eventDragHandler.isDragging,
-					prepareCurrentDraggedEvent: (eventWrapper) => this.prepareEventDrag(eventWrapper),
+					prepareCurrentDraggedEvent: (eventWrapper) => this.prepareEventDrag(eventWrapper, false),
 					setTimeUnderMouse: (time, date: Date) => (this.dateUnderMouse = combineDateWithTime(date, time)),
 				},
 			},
@@ -325,11 +349,11 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		} satisfies TimeViewAttributes)
 	}
 
-	private prepareEventDrag(eventWrapper: EventWrapper) {
+	private prepareEventDrag(eventWrapper: EventWrapper, keepTime: boolean) {
 		const lastMousePos = this.lastMousePos
 
 		if (this.dateUnderMouse && lastMousePos) {
-			this.eventDragHandler.prepareDrag(eventWrapper, this.dateUnderMouse, lastMousePos, false)
+			this.eventDragHandler.prepareDrag(eventWrapper, this.dateUnderMouse, lastMousePos, keepTime)
 		}
 	}
 
@@ -344,8 +368,8 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 	}
 
 	private cancelDrag() {
-		this.eventDragHandler.cancelDrag()
 		const eventWrapper = this.eventDragHandler.originalCalendarEventWrapper
+		this.eventDragHandler.cancelDrag()
 		if (eventWrapper) {
 			delete eventWrapper.flags?.isTransientEvent
 		}
