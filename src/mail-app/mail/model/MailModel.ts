@@ -95,7 +95,7 @@ export class MailModel {
 		private readonly logins: LoginController,
 		private readonly mailFacade: MailFacade,
 		private readonly connectivityModel: WebsocketConnectivityModel | null,
-		private readonly spamHandler: () => SpamClassificationHandler,
+		private spamHandler: () => SpamClassificationHandler | null,
 		private readonly inboxRuleHandler: () => InboxRuleHandler | null,
 	) {}
 
@@ -116,6 +116,12 @@ export class MailModel {
 	async init(): Promise<void> {
 		this.initListeners()
 		this.mailSets = await this.loadMailSets()
+
+		await this.logins.loadCustomizations()
+		const isSpamClassificationFeatureEnabled = this.logins.isEnabled(FeatureType.SpamClientClassification)
+		if (!isSpamClassificationFeatureEnabled) {
+			this.spamHandler = () => null
+		}
 	}
 
 	private async loadMailSets(): Promise<Map<Id, MailboxSets>> {
@@ -200,7 +206,7 @@ export class MailModel {
 					return { processingDone: Promise.resolve() }
 				}
 				const spamHandler = this.spamHandler()
-				await spamHandler.updateSpamClassificationData(mail)
+				await spamHandler?.updateSpamClassificationData(mail)
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
 				const mail = await this.loadMail(mailId)
@@ -237,9 +243,9 @@ export class MailModel {
 					if (isWebClient()) {
 						// we only need to show notifications explicitly on the webapp
 						this._showNotification(isInboxRuleTargetFolder ?? sourceMailFolder, mail)
-					} else {
+					} else if (this.spamHandler() != null) {
 						const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
-						this.spamHandler().storeTrainingDatum(mail, mailDetails)
+						this.spamHandler()?.storeTrainingDatum(mail, mailDetails)
 
 						if (isInboxRuleTargetFolder) {
 							return { processingDone: Promise.resolve() }
@@ -249,14 +255,14 @@ export class MailModel {
 						) {
 							const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 							if (sourceMailFolder && folderSystem) {
-								const predictPromise = this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceMailFolder, folderSystem)
+								const predictPromise = this.spamHandler()?.predictSpamForNewMail(mail, mailDetails, sourceMailFolder, folderSystem)
 								return { processingDone: downcast(predictPromise) }
 							}
 						}
 					}
 				} else if (sourceMailFolder.folderType === MailSetKind.SPAM) {
 					const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
-					this.spamHandler().storeTrainingDatum(mail, mailDetails)
+					this.spamHandler()?.storeTrainingDatum(mail, mailDetails)
 
 					if (
 						(isLeaderClient && mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED) ||
@@ -264,14 +270,14 @@ export class MailModel {
 					) {
 						const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 						if (sourceMailFolder && folderSystem) {
-							const predictPromise = this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceMailFolder, folderSystem)
+							const predictPromise = this.spamHandler()?.predictSpamForNewMail(mail, mailDetails, sourceMailFolder, folderSystem)
 							return { processingDone: downcast(predictPromise) }
 						}
 					}
 				}
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
 				const mailId: IdTuple = [update.instanceListId, update.instanceId]
-				await this.spamHandler().dropClassificationData(mailId)
+				await this.spamHandler()?.dropClassificationData(mailId)
 			}
 		}
 		return { processingDone: Promise.resolve() }
