@@ -37,7 +37,6 @@ import {
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, EventWrapper } from "./CalendarViewModel"
-import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { CalendarViewType, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { Time } from "../../../common/calendar/date/Time.js"
@@ -46,6 +45,7 @@ import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUti
 import { CalendarViewComponent, CalendarViewComponentAttrs } from "./calendarViewComponent/CalendarViewComponent"
 import { HeaderVariant } from "./calendarViewComponent/HeaderComponent"
 import { CellActionHandler } from "../../../common/calendar/gui/TimeView"
+import { LegacyContinuingCalendarEventBubble } from "./LegacyContinuingEventBubble"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date
@@ -160,7 +160,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				dates: previousEvents.days,
 				events: {
 					short: deduplicate(previousEvents.shortEventsPerDay.flatMap(identity), isSameEventInstance),
-					long: previousEvents.longEvents,
+					long: deduplicate(previousEvents.longEvents, isSameEventInstance),
 				},
 			},
 			current: {
@@ -168,7 +168,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				dates: currentEvents.days,
 				events: {
 					short: deduplicate(currentEvents.shortEventsPerDay.flatMap(identity), isSameEventInstance),
-					long: currentEvents.longEvents,
+					long: deduplicate(currentEvents.longEvents, isSameEventInstance),
 				},
 			},
 			next: {
@@ -176,7 +176,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				dates: nextEvents.days,
 				events: {
 					short: deduplicate(nextEvents.shortEventsPerDay.flatMap(identity), isSameEventInstance),
-					long: nextEvents.longEvents,
+					long: deduplicate(nextEvents.longEvents, isSameEventInstance),
 				},
 			},
 		}
@@ -686,12 +686,11 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		const fadeIn = !isTemporary
 		const opacity = isTemporary ? TEMPORARY_EVENT_OPACITY : 1
 		const enablePointerEvents = !this.eventDragHandler.isDragging && !isTemporary
-		return m(ContinuingCalendarEventBubble, {
-			event,
+		return m(LegacyContinuingCalendarEventBubble, {
+			eventWrapper: event,
 			startsBefore,
 			endsAfter,
 			color: getEventColor(event.event, groupColors, event.flags?.isGhost),
-			border: event.flags?.isGhost ? `2px dashed #${getEventColor(event.event, groupColors)}` : undefined,
 			onEventClicked,
 			onEventKeyDown: onEventKeyDown,
 			showTime,

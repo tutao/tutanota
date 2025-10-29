@@ -2592,6 +2592,12 @@ styles.registerStyle("main", () => {
 		".darkest-hover:hover": {
 			filter: "brightness(70%)",
 		},
+		".event-continues-left-indicator": {
+			"clip-path": "polygon(100% 0, 100% 100%, 0% 100%, 100% 50%, 0% 0%)",
+		},
+		".event-continues-right-indicator": {
+			"clip-path": "polygon(0 0%, 100% 50%, 0 100%)",
+		},
 		".event-continues-left": {
 			"border-top-left-radius": 0,
 			"border-bottom-left-radius": 0,

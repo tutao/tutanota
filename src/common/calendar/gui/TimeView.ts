@@ -186,7 +186,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 				},
 				onmousemove: (mouseEvent: MouseEvent) => {
 					downcast(mouseEvent).redraw = false
-					const time = getTimeFromMousePos(getPosAndBoundsFromMouseEvent(mouseEvent), 4)
+					const time = getTimeFromMousePos(getPosAndBoundsFromMouseEvent(mouseEvent), SUBROWS_PER_INTERVAL)
 					eventBubbleHandlers?.drag?.setTimeUnderMouse(time, date)
 				},
 				// ontouchmove: (e: TouchEvent) => {
@@ -273,12 +273,16 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 						interactions: eventInteractions,
 						gridInfo: evData,
 						eventWrapper,
-						rangeOverflowInfo: {
-							start: eventWrapper.event.startTime > timeRangeAsDate.start,
+						rowOverflowInfo: {
+							start: eventWrapper.event.startTime < timeRangeAsDate.start,
 							end: eventWrapper.event.endTime > timeRangeAsDate.end,
 						},
 						baseDate,
 						canReceiveFocus,
+						columnOverflowInfo: {
+							start: false,
+							end: false,
+						},
 					} satisfies CalendarEventBubbleAttrs),
 				]
 			}) as ChildArray
