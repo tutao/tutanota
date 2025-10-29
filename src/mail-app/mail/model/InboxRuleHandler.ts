@@ -156,19 +156,17 @@ export class InboxRuleHandler {
 				return null
 			}
 		} else {
-			// if we are not on the webapp but the spam classification feature is enabled,
-			// the request is sent in the SpamClassificationHandler
 			await this.logins.loadCustomizations()
 			const isSpamClassificationFeatureEnabled = this.logins.isEnabled(FeatureType.SpamClientClassification)
-			if (isWebClient() || !isSpamClassificationFeatureEnabled) {
-				// we set the processing state to a final state in case the feature is not enabled,
-				// to not re-classify when the feature gets enabled for the user
-				const processingState = !isSpamClassificationFeatureEnabled
-					? ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_MADE
-					: ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING
-				noRuleMatchMailIds.push(mail._id)
-				processNotMatchingRules(this.mailFacade, processingState)
-			}
+
+			// we set the processing state to a final state in case the feature is not enabled,
+			// to not re-classify when the feature gets enabled for the user
+			let processingState = isSpamClassificationFeatureEnabled
+				? ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING
+				: ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_MADE
+
+			noRuleMatchMailIds.push(mail._id)
+			processNotMatchingRules(this.mailFacade, processingState)
 
 			return null
 		}
