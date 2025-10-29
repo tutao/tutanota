@@ -13,6 +13,7 @@ import {
 	last,
 	lazy,
 	memoized,
+	millisToDays,
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -622,7 +623,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		if (editModel == null) {
 			return EventSaveResult.Failed
 		}
-		editModel.editModels.whenModel.rescheduleEvent({ millisecond: diff })
+
+		// Passing only the milliseconds doesn't handle daylight saving times
+		// but by passing the object with days, hours and minutes forces luxon to handle it for us
+		const days = millisToDays(diff)
+		editModel.editModels.whenModel.rescheduleEvent({ days })
 
 		if (getNonOrganizerAttendees(event).length > 0) {
 			const response = await askIfShouldSendCalendarUpdatesToAttendees()

@@ -13,7 +13,6 @@ import {
 	getWeekNumber,
 } from "../../../common/calendar/date/CalendarUtils"
 import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "@tutao/tutanota-utils"
-import { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 import { styles } from "../../../common/gui/styles"
 import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
@@ -46,6 +45,7 @@ import { getSafeAreaInsetBottom } from "../../../common/gui/HtmlUtils"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { isModifierKeyPressed, Key } from "../../../common/misc/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/gui/ImportExportUtils"
+import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date
@@ -509,12 +509,11 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					}
 				},
 			},
-			m(ContinuingCalendarEventBubble, {
-				event: eventWrapper,
+			m(LegacyContinuingCalendarEventBubble, {
+				eventWrapper: eventWrapper,
 				startsBefore: eventStart < firstDayOfWeek,
 				endsAfter: firstDayOfNextWeek <= eventEnd,
 				color: getEventColor(eventWrapper.event, attrs.groupColors, eventWrapper.flags?.isGhost),
-				border: eventWrapper.flags?.isGhost ? `2px dashed #${getEventColor(eventWrapper.event, attrs.groupColors)}` : undefined,
 				showTime: styles.isDesktopLayout() && !isAllDayEvent(eventWrapper.event) ? EventTextTimeOption.START_TIME : null,
 				user: locator.logins.getUserController().user,
 				onEventClicked: (e, domEvent) => {
@@ -526,7 +525,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				fadeIn: !this.eventDragHandler.isDragging,
 				opacity: isTemporary ? TEMPORARY_EVENT_OPACITY : 1,
 				enablePointerEvents: !this.eventDragHandler.isDragging && !isTemporary && client.isDesktopDevice() && !isDisabled,
-			}),
+			} satisfies LegacyContinuingCalendarEventBubbleAttrs),
 		)
 	}
 

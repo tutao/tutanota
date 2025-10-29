@@ -11,6 +11,7 @@ import {
 	assertNotNull,
 	clamp,
 	clone,
+	DAY_IN_MILLIS,
 	getFromMap,
 	getStartOfDay,
 	incrementDate,
@@ -273,6 +274,22 @@ export function getTimeFromMousePos({ y, targetHeight }: MousePosAndBounds, hour
 	const minutesInc = 60 / hourDivision
 	const minute = Math.floor((hour - hourRounded) * hourDivision) * minutesInc
 	return new Time(hourRounded, minute)
+}
+
+/**
+ * Map the horizontal position of a mouse click on an element to a day
+ * @param mouseEvent A mouse event
+ * @param dayCount How many days are being rendered
+ * @param startOfPeriod First day of the displayed period
+ */
+export function getRowDateFromMousePos(mouseEvent: MouseEvent, dayCount: number, startOfPeriod: Date): Date {
+	const targetElement = mouseEvent.currentTarget as HTMLElement
+	const daysDivisionsWidth = targetElement.clientWidth / dayCount
+	const diffFromOrigin = targetElement.getBoundingClientRect().x
+	const xPosition = mouseEvent.pageX - diffFromOrigin
+	const daysToAdd = Math.floor(xPosition / daysDivisionsWidth)
+
+	return new Date(startOfPeriod.getTime() + DAY_IN_MILLIS * daysToAdd)
 }
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
