@@ -4,7 +4,6 @@ import {
 	assertNonNull,
 	assertNotNull,
 	base64ToBase64Ext,
-	clear,
 	concat,
 	getFirstOrThrow,
 	groupBy,
@@ -298,6 +297,7 @@ export class BlobFacade {
 			async (serverUrl) => {
 				const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, {
 					queryParams: queryParams,
+					noCORS: true,
 					body: encryptedData,
 					responseType: MediaType.Json,
 					baseUrl: serverUrl,
