@@ -261,8 +261,12 @@ async function signup(
 				// we do not know the userGroupId at group creation time,
 				// so we log in and create the identity key pair now
 
-				const sessionData = await logins.createSession(mailAddress, password, SessionType.Persistent)
+				// Create a throwaway temporary session
+				// This will prevent postloginutils from showing the `shouldShowUpgrade` Dialog on the payment page
+				await logins.createSession(mailAddress, password, SessionType.Temporary)
+				await logins.getUserController().deleteSession(true)
 
+				const sessionData = await logins.createSession(mailAddress, password, SessionType.Persistent)
 				const unencryptedCredentials = credentialsToUnencrypted(sessionData.credentials, sessionData.databaseKey)
 				try {
 					await locator.credentialsProvider.store(unencryptedCredentials)
@@ -279,6 +283,7 @@ async function signup(
 				},
 				[],
 			)
+
 			return {
 				mailAddress,
 				password,
