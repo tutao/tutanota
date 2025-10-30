@@ -697,8 +697,27 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					? m(
 							".flex",
 							{
-								oncreate: (vnode) => this.animateHeight(vnode.dom as HTMLElement, true),
-								onbeforeremove: (vnode) => this.animateHeight(vnode.dom as HTMLElement, false),
+								oncreate: (vnode) => {
+									// this is the same as animateHeight, but we need to change the overflow state
+									// overflow needs to be hidden when the animation is running for it to look smooth
+									// but if that style stays the time picker drop-down is hidden
+
+									const dom = vnode.dom as HTMLElement
+									const childHeight = dom.offsetHeight
+									dom.style.height = "0"
+									dom.style.overflow = "hidden"
+
+									return animations.add(dom, height(0, childHeight)).then(() => {
+										dom.style.height = ""
+										dom.style.overflow = "visible"
+									})
+								},
+								onbeforeremove: (vnode) => {
+									const dom = vnode.dom as HTMLElement
+									// overflow needs to be hidden for a smooth animation
+									//dom.style.overflow = "hidden"
+									this.animateHeight(dom, false)
+								},
 							},
 							[
 								// display nothing on mobile because there is not so much space
@@ -1024,7 +1043,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private animateHeight(domElement: HTMLElement, fadein: boolean): AnimationPromise {
-		let childHeight = domElement.offsetHeight
+		const childHeight = domElement.offsetHeight
 		if (fadein) {
 			// if this height is not set to 0, there is sometimes a jitter as it will display at full height for a second before the animation
 			domElement.style.height = "0"
