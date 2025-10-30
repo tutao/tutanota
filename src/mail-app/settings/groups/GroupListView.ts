@@ -14,7 +14,7 @@ import { GroupDetailsModel } from "./GroupDetailsModel.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../../../common/gui/SelectableRowContainer.js"
 import Stream from "mithril/stream"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../common/gui/base/List.js"
-import { size } from "../../../common/gui/size.js"
+import { component_size, size } from "../../../common/gui/size.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { compareGroupInfos } from "../../../common/api/common/utils/GroupUtils.js"
 import { NotFoundError } from "../../../common/api/common/error/RestError.js"
@@ -36,7 +36,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
 	private listModel: ListElementListModel<GroupInfo>
 	private readonly renderConfig: RenderConfig<GroupInfo, GroupRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {
@@ -81,7 +81,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".flex.flex-space-between.center-vertically.plr-l",
+					".flex.flex-space-between.center-vertically.plr-24",
 					m(BaseSearchBar, {
 						text: this.searchQuery,
 						onInput: (text) => this.updateQuery(text),
@@ -94,7 +94,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 						placeholder: lang.get("searchMailboxes_placeholder"),
 					} satisfies BaseSearchBarAttrs),
 					m(
-						".mr-negative-s",
+						".mr-negative-8",
 						m(IconButton, {
 							title: "createSharedMailbox_label",
 							icon: Icons.Add,
@@ -260,7 +260,7 @@ export class GroupRow implements VirtualRow<GroupInfo> {
 						oncreate: (vnode) => (this.nameDom = vnode.dom as HTMLElement),
 					}),
 				]),
-				m(".flex-space-between.mt-xxs", [
+				m(".flex-space-between.mt-4", [
 					m(".smaller", {
 						oncreate: (vnode) => (this.addressDom = vnode.dom as HTMLElement),
 					}),

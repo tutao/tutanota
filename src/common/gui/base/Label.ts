@@ -24,14 +24,14 @@ function limitedSaturationColor(color: string): string {
 export const Label = pureComponent(function Label({ text, color }: { text: string; color: string | null }) {
 	const labelColor = getLabelColor(color)
 	return m(
-		"span.small.text-center.text-ellipsis.border-radius-m",
+		"span.small.text-center.text-ellipsis.border-radius-8",
 		{
 			"data-testid": "label",
 			style: {
 				// in dark theme override saturation to aid readability. This is not relative but absolute saturation. We preserve the hue.
 				backgroundColor: labelColor,
 				color: colorForBg(color ?? theme.primary),
-				padding: `1px ${size.vpad_xsm}px`,
+				padding: `1px ${size.spacing_4}px`,
 			},
 		},
 		text,

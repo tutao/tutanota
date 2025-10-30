@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils.js"
-import { inputLineHeight, px, size } from "../size.js"
+import { font_size, px, size } from "../size.js"
 import { styles } from "../styles.js"
 import { TabIndex } from "../../api/common/TutanotaConstants.js"
 import { BootIcons } from "./icons/BootIcons.js"
@@ -33,13 +33,13 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 
 	view({ attrs }: Vnode<BaseSearchBarAttrs>) {
 		return m(
-			".flex-end.items-center.border-radius.plr-s.pt-xs.pb-xs.search-bar.flex-grow.click",
+			".flex-end.items-center.border-radius.plr-4.pt-4.pb-4.search-bar.flex-grow.click",
 			{
 				focused: String(this.isFocused),
 				...landmarkAttrs(AriaLandmarks.Search),
 				class: getOperatingClasses(attrs.disabled),
 				style: {
-					"min-height": px(inputLineHeight + 2),
+					"min-height": px(font_size.line_height_input + 2),
 					"margin-top": px(6),
 					"margin-bottom": px(6),
 				},
@@ -57,7 +57,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				styles.isDesktopLayout()
 					? m(Icon, {
 							icon: BootIcons.Search,
-							size: IconSize.Medium,
+							size: IconSize.PX24,
 							style: {
 								fill: theme.on_surface_variant,
 							},
@@ -82,7 +82,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							label: attrs.busy ? "loading_msg" : "close_alt",
 							icon: m(Icon, {
 								container: "div",
-								size: IconSize.Medium,
+								size: IconSize.PX24,
 								icon: attrs.busy ? BootIcons.Progress : Icons.Close,
 								class: "center-h  " + (attrs.busy ? "icon-progress-search icon-progress" : ""),
 								style: {
@@ -94,7 +94,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 							},
 							disabled: attrs.busy,
 							style: {
-								width: size.icon_size_large,
+								width: size.icon_24,
 							},
 						} satisfies BaseButtonAttrs)
 					: null,
@@ -135,7 +135,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				attrs.onKeyDown?.(e)
 			},
 			style: {
-				"line-height": px(inputLineHeight),
+				"line-height": px(font_size.line_height_input),
 			},
 		})
 	}

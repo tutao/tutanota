@@ -18,18 +18,18 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 		const isContactSyncEnabled = attrs.syncManager.isEnabled()
 
 		return [
-			m("p.mb-s", lang.get("importContacts_msg")),
+			m("p.mb-8", lang.get("importContacts_msg")),
 			renderSettingsBannerButton("import_action", () => {
 				attrs.contactImporter.importContactsFromDeviceSafely()
 			}),
-			m("p.mb-s", lang.get("allowContactSynchronization")),
+			m("p.mb-8", lang.get("allowContactSynchronization")),
 			renderSettingsBannerButton(
 				isContactSyncEnabled ? "activated_label" : "activate_action",
 				() => {
 					this.enableSync(attrs)
 				},
 				isContactSyncEnabled,
-				"mb-l",
+				"mb-32",
 			),
 			m("div", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 		]

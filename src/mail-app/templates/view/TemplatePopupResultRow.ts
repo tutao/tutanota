@@ -15,7 +15,7 @@ export class TemplatePopupResultRow implements Component<TemplateResultRowAttrs>
 	view(vnode: Vnode<TemplateResultRowAttrs>): Children {
 		const { title, tag } = vnode.attrs.template
 		return m(
-			".flex.flex-column.overflow-hidden.full-width.ml-s",
+			".flex.flex-column.overflow-hidden.full-width.ml-8",
 			{
 				style: {
 					height: px(TEMPLATE_LIST_ENTRY_HEIGHT),
@@ -36,7 +36,7 @@ export class TemplatePopupResultRow implements Component<TemplateResultRowAttrs>
 				),
 				m(".flex.badge-line-height.text-ellipsis", [
 					tag
-						? m(".small.keyword-bubble-no-padding.pl-s.pr-s.border-radius.no-wrap.small.min-content", TEMPLATE_SHORTCUT_PREFIX + tag.toLowerCase())
+						? m(".small.keyword-bubble-no-padding.pl-4.pr-4.border-radius.no-wrap.small.min-content", TEMPLATE_SHORTCUT_PREFIX + tag.toLowerCase())
 						: null,
 				]),
 			],

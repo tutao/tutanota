@@ -221,7 +221,7 @@ export function renderTwoColumnsIfFits(left: Children, right: Children): Childre
 	if (client.isMobileDevice()) {
 		return m(".flex.col", [m(".flex", left), m(".flex", right)])
 	} else {
-		return m(".flex", [m(".flex.flex-half.pr-s", left), m(".flex.flex-half.pl-s", right)])
+		return m(".flex", [m(".flex.flex-half.pr-4", left), m(".flex.flex-half.pl-4", right)])
 	}
 }
 

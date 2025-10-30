@@ -29,8 +29,8 @@ export class SidebarSection implements Component<SidebarSectionAttrs> {
 				},
 			},
 			[
-				m(".folder-row.flex-space-between.plr-button.pt-s.button-height", [
-					m("small.b.align-self-center.text-ellipsis.plr-button", lang.getTranslationText(name).toLocaleUpperCase()),
+				m(".folder-row.flex-space-between.plr-8.pt-8.button-height", [
+					m("small.b.align-self-center.text-ellipsis.plr-8", lang.getTranslationText(name).toLocaleUpperCase()),
 					button ?? null,
 				]),
 				content,

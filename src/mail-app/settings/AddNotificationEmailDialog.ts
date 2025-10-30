@@ -34,7 +34,7 @@ export class AddNotificationEmailDialog {
 							type: TextFieldType.Email,
 							oninput: (newValue) => (mailAddress = newValue),
 						}),
-						m(".small.mt-s", lang.get("emailPushNotification_msg")),
+						m(".small.mt-8", lang.get("emailPushNotification_msg")),
 					],
 				},
 				validator: () => this.validateAddNotificationEmailAddressInput(mailAddress),

@@ -14,7 +14,7 @@ import {
 	setVisibility,
 	shouldAlwaysShowMultiselectCheckbox,
 } from "../../../common/gui/SelectableRowContainer.js"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
@@ -256,7 +256,7 @@ export class MailRow implements VirtualRow<Mail> {
 			},
 			[
 				m(
-					".flex.col.items-center.flex-no-grow.no-shrink.pt-xs.abs",
+					".flex.col.items-center.flex-no-grow.no-shrink.pt-4.abs",
 					{
 						"aria-hidden": "true",
 					},
@@ -295,7 +295,7 @@ export class MailRow implements VirtualRow<Mail> {
 					{
 						"aria-hidden": "true",
 						style: {
-							marginLeft: px(size.checkbox_size + size.vpad_xs),
+							marginLeft: px(component_size.checkbox_size + size.spacing_4),
 						},
 					},
 					[
@@ -303,7 +303,7 @@ export class MailRow implements VirtualRow<Mail> {
 							m(
 								Badge,
 								{
-									classes: ".small.mr-s",
+									classes: ".small.mr-8",
 									oncreate: (vnode) => (this.teamLabelDom = vnode.dom as HTMLElement),
 								},
 								companyTeamLabel,
@@ -325,13 +325,13 @@ export class MailRow implements VirtualRow<Mail> {
 								oncreate: (vnode) => (this.dateDom = vnode.dom as HTMLElement),
 							}),
 						]),
-						m(".flex.mt-xxs", [
+						m(".flex.mt-4", [
 							m(".smaller.text-ellipsis", {
 								"data-testid": "list-row:mail:subject",
 								oncreate: (vnode) => (this.subjectDom = vnode.dom as HTMLElement),
 							}),
 							m(".flex-grow"),
-							m("span.ion.ml-s.list-font-icons", {
+							m("span.ion.ml-8.list-font-icons", {
 								oncreate: (vnode) => (this.iconsDom = vnode.dom as HTMLElement),
 							}),
 						]),
@@ -343,14 +343,14 @@ export class MailRow implements VirtualRow<Mail> {
 
 	private renderLabelsMoreIndicator(): Children {
 		return m(
-			"span.smaller.text-center.text-ellipsis.border-radius-m",
+			"span.smaller.text-center.text-ellipsis.border-radius-8",
 			{
 				style: {
 					// in dark theme override saturation to aid readability. This is not relative but absolute saturation. We preserve the hue.
 					border: `2px solid ${getLabelColor(theme.on_surface_variant)}`,
 					color: getLabelColor(theme.on_surface_variant),
-					padding: `0px ${size.vpad_xsm}px 1px`,
-					marginRight: px(size.vpad_xsm),
+					padding: `0px ${size.spacing_4}px 1px`,
+					marginRight: px(size.spacing_4),
 					minWidth: px(16),
 					lineHeight: px(8),
 				},
@@ -367,8 +367,8 @@ export class MailRow implements VirtualRow<Mail> {
 			".flex.overflow-hidden",
 			{
 				style: {
-					margin: `0 ${size.vpad_xsm}px`,
-					columnGap: px(size.vpad_xsm),
+					margin: `0 ${size.spacing_4}px`,
+					columnGap: px(size.spacing_4),
 					maxWidth: "fit-content",
 				},
 			},
@@ -377,10 +377,10 @@ export class MailRow implements VirtualRow<Mail> {
 				.map((_, i) =>
 					// Not using the regular Label component as we have too
 					// many differences and list is a special case anyway.
-					m("span.small.text-center.text-ellipsis.border-radius-m", {
+					m("span.small.text-center.text-ellipsis.border-radius-8", {
 						"data-testid": "label",
 						style: {
-							padding: `2px ${size.vpad_xsm}px`,
+							padding: `2px ${size.spacing_4}px`,
 							minWidth: "4ch",
 							maxWidth: px(48),
 							lineHeight: "100%",

@@ -73,7 +73,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		const rowAdd = m(".full-width.flex-space-between.items-center.mb-s", [
+		const rowAdd = m(".full-width.flex-space-between.items-center.mb-8", [
 			lang.get("emailPushNotification_action"),
 			m(IconButton, {
 				title: "emailPushNotification_action",
@@ -101,9 +101,9 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 			})
 			.sort((l, r) => +r.attrs.current - +l.attrs.current)
 
-		return m(".fill-absolute.scroll.plr-l.pb-xl", [
+		return m(".fill-absolute.scroll.plr-24.pb-48", [
 			m(".flex.col", [
-				m(".flex-space-between.items-center.mt-l.mb-s", [m(".h4", lang.get("notificationSettings_action"))]),
+				m(".flex-space-between.items-center.mt-32.mb-8", [m(".h4", lang.get("notificationSettings_action"))]),
 				this.extendedNotificationMode
 					? m(NotificationContentSelector, {
 							extendedNotificationMode: this.extendedNotificationMode,

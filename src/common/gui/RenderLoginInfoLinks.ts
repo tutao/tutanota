@@ -14,14 +14,14 @@ export function renderInfoLinks(): Children {
 	const privacyPolicyLink = getPrivacyStatementLink()
 	const imprintLink = getImprintLink()
 	return m(
-		".flex.col.mt-l",
+		".flex.col.mt-32",
 		m(
 			".flex.wrap.justify-center",
 			!isApp() && privacyPolicyLink
 				? m(ExternalLink, {
 						href: privacyPolicyLink,
 						text: lang.get("privacyLink_label"),
-						class: "plr",
+						class: "plr-12",
 						isCompanySite: true,
 						specialType: "privacy-policy",
 					})
@@ -30,14 +30,14 @@ export function renderInfoLinks(): Children {
 				? m(ExternalLink, {
 						href: imprintLink,
 						text: lang.get("imprint_label"),
-						class: "plr",
+						class: "plr-12",
 						isCompanySite: true,
 						specialType: "license",
 					})
 				: null,
 		),
 		m(
-			".mt.mb.center.small.full-width",
+			".mt-16.mb-16.center.small.full-width",
 			{
 				onclick: (e: MouseEvent) => showVersionDropdown(e),
 			},

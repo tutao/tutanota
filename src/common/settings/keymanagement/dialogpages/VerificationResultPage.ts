@@ -13,14 +13,14 @@ export class VerificationResultPage implements Component<VerificationResultPageA
 		const publicIdentity = model.getPublicIdentity()
 
 		return m(
-			"section.flex.flex-column.mt",
+			"section.flex.flex-column.mt-16",
 			m(TitleSection, {
 				title: lang.get("keyManagement.contactVerificationConfirmationTitle_label"),
 				subTitle: lang.get("keyManagement.contactVerificationConfirmation_label"),
 				icon: Icons.CheckCircleOutline,
 				iconOptions: { color: theme.success },
 			}),
-			m(".mb"),
+			m(".mb-16"),
 			publicIdentity === null
 				? null
 				: m(FingerprintRow, {

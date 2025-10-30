@@ -1,6 +1,6 @@
 import { pureComponent } from "./base/PureComponent.js"
 import m, { Children } from "mithril"
-import { px, size } from "./size.js"
+import { component_size, px, size } from "./size.js"
 
 export interface BaseMobileHeaderAttrs {
 	left?: Children
@@ -17,7 +17,7 @@ export const BaseMobileHeader = pureComponent(({ left, center, right, injections
 		".flex.items-center.rel.button-height.mt-safe-inset.plr-safe-inset.noprint",
 		{
 			style: {
-				height: px(size.navbar_height_mobile),
+				height: px(component_size.navbar_height_mobile),
 			},
 		},
 		[
@@ -26,7 +26,7 @@ export const BaseMobileHeader = pureComponent(({ left, center, right, injections
 			m(
 				".flex-grow.flex.items-center.min-width-0",
 				{
-					class: !left ? "ml-hpad_small" : "",
+					class: !left ? "ml-4" : "",
 				},
 				center ?? null,
 			),
