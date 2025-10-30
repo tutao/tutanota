@@ -1,4 +1,4 @@
-import { createMoveMailData, Mail, MailDetails, MailFolder, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs"
+import { createMoveMailData, Mail, MailAddress, MailDetails, MailFolder, MoveMailData } from "../../../common/api/entities/tutanota/TypeRefs"
 import {
 	DEFAULT_IS_SPAM,
 	DEFAULT_IS_SPAM_CONFIDENCE,
@@ -75,8 +75,7 @@ export class SpamClassificationHandler {
 			subject: mail.subject,
 			body: getMailBodyText(mailDetails.body),
 			ownerGroup: assertNotNull(mail._ownerGroup),
-			sender: mail.sender?.address || "",
-			recipient: mail.firstRecipient?.address || "",
+			...this.extractMailContactInformation(mail, mailDetails),
 		}
 		const isSpam = (await this.spamClassifier?.predict(spamPredMailDatum)) ?? null
 
@@ -143,9 +142,19 @@ export class SpamClassificationHandler {
 			isSpam: DEFAULT_IS_SPAM,
 			isSpamConfidence: DEFAULT_IS_SPAM_CONFIDENCE,
 			ownerGroup: assertNotNull(mail._ownerGroup),
-			sender: mail.sender?.address || "",
-			recipient: mail.firstRecipient?.address || "",
+			...this.extractMailContactInformation(mail, mailDetails),
 		}
 		await this.spamClassifier?.storeSpamClassification(spamTrainMailDatum)
+	}
+
+	private extractMailContactInformation(mail: Mail, mailDetails: MailDetails) {
+		const { recipients } = mailDetails
+		const concatenateNameAddress = (recipient: MailAddress) => `${recipient?.name} ${recipient?.address}`
+		const sender = `${mail.sender.name} ${mail.sender.address}`
+		const toRecipients = recipients?.toRecipients?.map(concatenateNameAddress).join(" ") || ""
+		const ccRecipients = recipients?.ccRecipients?.map(concatenateNameAddress).join(" ") || ""
+		const bccRecipients = recipients?.bccRecipients?.map(concatenateNameAddress).join(" ") || ""
+
+		return { sender, toRecipients, ccRecipients, bccRecipients }
 	}
 }

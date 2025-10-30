@@ -55,7 +55,9 @@ export type SpamTrainMailDatum = {
 	isSpamConfidence: number
 	ownerGroup: Id
 	sender: string
-	recipient: string
+	toRecipients: string
+	ccRecipients: string
+	bccRecipients: string
 }
 
 export type SpamPredMailDatum = {
@@ -63,7 +65,9 @@ export type SpamPredMailDatum = {
 	body: string
 	ownerGroup: Id
 	sender: string
-	recipient: string
+	toRecipients: string
+	ccRecipients: string
+	bccRecipients: string
 }
 
 const PREDICTION_THRESHOLD = 0.55
@@ -227,9 +231,8 @@ export class SpamClassifier {
 			preprocessedMail = preprocessedMail.replaceAll(ML_SPACE_BEFORE_NEW_LINE_REGEX, ML_SPACE_BEFORE_NEW_LINE_TOKEN)
 		}
 
-		const from = mail.sender || ""
-		const to = mail.recipient || ""
-		preprocessedMail = `${preprocessedMail}\n${from}\n${to}`.trim()
+		const { sender = "", toRecipients = "", ccRecipients = "", bccRecipients = "" } = mail
+		preprocessedMail = `${preprocessedMail}\n${sender}\n${toRecipients}\n${ccRecipients}\n${bccRecipients}`.trim()
 
 		return preprocessedMail
 	}

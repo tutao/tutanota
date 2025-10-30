@@ -67,12 +67,12 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 })
 
 export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
-	// Spam classification training data
 	spam_classification_training_data: {
 		definition:
 			"CREATE TABLE IF NOT EXISTS spam_classification_training_data (listId TEXT NOT NULL, elementId TEXT NOT NULL," +
 			" ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, " +
-			"lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, sender: TEXT NOT NULL, recipient: TEXT NOT NULL, PRIMARY KEY (listId, elementId))",
+			"lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, sender: TEXT NOT NULL," +
+			"toRecipients: TEXT NOT NULL, ccRecipients: TEXT NOT NULL, bccRecipients: TEXT NOT NULL, PRIMARY KEY (listId, elementId))",
 		purgedWithCache: true,
 	},
 
@@ -188,7 +188,8 @@ export class OfflineStoragePersistence {
 	async storeSpamClassification(spamTrainMailDatum: SpamTrainMailDatum): Promise<void> {
 		const { query, params } = sql`
             INSERT
-            OR REPLACE INTO spam_classification_training_data(listId, elementId, ownerGroup, subject, body, isSpam, lastModified, isSpamConfidence, sender, recipient)
+            OR REPLACE INTO spam_classification_training_data(listId, elementId, ownerGroup, subject, body, isSpam, 
+            lastModified, isSpamConfidence, sender, toRecipients, ccRecipients, bccRecipients)
 				VALUES (
             ${listIdPart(spamTrainMailDatum.mailId)},
             ${elementIdPart(spamTrainMailDatum.mailId)},
@@ -199,7 +200,9 @@ export class OfflineStoragePersistence {
             ${Date.now()},
             ${spamTrainMailDatum.isSpamConfidence}
 			${spamTrainMailDatum.sender}
-			${spamTrainMailDatum.recipient}
+			${spamTrainMailDatum.toRecipients}
+			${spamTrainMailDatum.ccRecipients}
+			${spamTrainMailDatum.bccRecipients}
             )`
 		await this.sqlCipherFacade.run(query, params)
 	}
