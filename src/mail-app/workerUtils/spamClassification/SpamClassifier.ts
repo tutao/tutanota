@@ -227,6 +227,10 @@ export class SpamClassifier {
 			preprocessedMail = preprocessedMail.replaceAll(ML_SPACE_BEFORE_NEW_LINE_REGEX, ML_SPACE_BEFORE_NEW_LINE_TOKEN)
 		}
 
+		const from = mail.sender || ""
+		const to = mail.recipient || ""
+		preprocessedMail = `${preprocessedMail}\n${from}\n${to}`.trim()
+
 		return preprocessedMail
 	}
 
@@ -501,9 +505,7 @@ export class SpamClassifier {
 	private concatSubjectAndBody(mail: SpamTrainMailDatum | SpamPredMailDatum) {
 		const subject = mail.subject || ""
 		const body = mail.body || ""
-		const from = mail.sender || ""
-		const to = mail.recipient || ""
-		const concatenated = `${subject} ${body} ${from.split("@").join(" @")} ${to.split("@").join(" @")}`.trim()
+		const concatenated = `${subject}\n${body}`
 
 		return concatenated.length > 0 ? concatenated : " "
 	}

@@ -98,8 +98,8 @@ export class SpamClassificationInitializer {
 			listId: listIdPart(mail._id),
 			elementId: elementIdPart(mail._id),
 			ownerGroup: assertNotNull(mail._ownerGroup),
-			sender: "",
-			recipient: "string",
+			sender: mail.sender.address,
+			recipient: mail.firstRecipient?.address,
 		} as SpamTrainMailDatum
 	}
 }
