@@ -38,7 +38,6 @@ import de.tutao.tutashared.ipc.StructuredRelationship
 import de.tutao.tutashared.ipc.StructuredWebsite
 import de.tutao.tutashared.mapTo
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -343,9 +342,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 		storedContact: AndroidContact,
 		serverContact: StructuredContact
 	): Boolean {
-		// isNullOrEmpty check is required since department field is a nullableString, comparing the empty string with
-		// null value would fail.
-		return (storedContact.department != serverContact.department && !storedContact.department.isNullOrEmpty())
+		return ((storedContact.department ?: "") != (serverContact.department ?: ""))
 	}
 
 	private fun checkContactDetails(
@@ -507,15 +504,21 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 		}
 	}
 
+	private val AndroidContact.isOrganizationEmpty: Boolean
+		get() = company == "" && role == "" && department.isNullOrEmpty()
+
+	private val StructuredContact.isOrganizationEmpty: Boolean
+		get() = company == "" && role == "" && department.isNullOrEmpty()
+
 	private fun checkContactCompany(
 		storedContact: AndroidContact,
 		ops: ArrayList<ContentProviderOperation>,
 		serverContact: StructuredContact
 	) {
-		// If the company wasn't added during contact creation, it's
+		// If the Organization(company, role, dept) wasn't added during contact creation, it's
 		// necessary to add and not just update it
 
-		if (storedContact.company == "") {
+		if (storedContact.isOrganizationEmpty) {
 			ops.add(
 				ContentProviderOperation.newInsert(CONTACT_DATA_URI)
 					.withValue(ContactsContract.Data.RAW_CONTACT_ID, storedContact.rawId).withValue(
@@ -537,8 +540,19 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 						ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
 					).withValue(ContactsContract.CommonDataKinds.Organization.TITLE, serverContact.role).build()
 			)
+		} else if (serverContact.isOrganizationEmpty) {
+			ops += ContentProviderOperation.newDelete(CONTACT_DATA_URI).withSelection(
+				"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE}\" " +
+						"AND ${ContactsContract.Data.RAW_CONTACT_ID} = ? " +
+						"AND ${ContactsContract.CommonDataKinds.Organization.COMPANY} = ? " +
+						"AND ${ContactsContract.CommonDataKinds.Organization.DEPARTMENT} = ? " +
+						"AND ${ContactsContract.CommonDataKinds.Organization.TITLE} = ?",
+				arrayOf(
+					storedContact.rawId.toString(), storedContact.company, storedContact.department, storedContact.role
+				)
+			).build()
 		} else {
-			ops.add(
+			ops +=
 				ContentProviderOperation.newUpdate(CONTACT_DATA_URI).withSelection(
 					"${ContactsContract.Data.MIMETYPE} = \"${ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE}\" AND ${ContactsContract.Data.RAW_CONTACT_ID} = ?",
 					arrayOf(storedContact.rawId.toString())
@@ -547,7 +561,6 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 					ContactsContract.CommonDataKinds.Organization.TYPE_WORK
 				).withValue(ContactsContract.CommonDataKinds.Organization.DEPARTMENT, serverContact.department)
 					.withValue(ContactsContract.CommonDataKinds.Organization.TITLE, serverContact.role).build()
-			)
 		}
 	}
 
@@ -885,13 +898,25 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 			ops.add(
 				ContentProviderOperation.newInsert(CONTACT_DATA_URI)
 					.withValueBackReference(RawContacts.Data.RAW_CONTACT_ID, index)
-					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+					.withValue(
+						RawContacts.Data.MIMETYPE,
+						ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+					)
 					.withValue(ContactsContract.CommonDataKinds.Organization.COMPANY, contact.company)
-					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+					.withValue(
+						RawContacts.Data.MIMETYPE,
+						ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+					)
 					.withValue(ContactsContract.CommonDataKinds.Organization.DEPARTMENT, contact.department)
-					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+					.withValue(
+						RawContacts.Data.MIMETYPE,
+						ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+					)
 					.withValue(ContactsContract.CommonDataKinds.Organization.TITLE, contact.role)
-					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+					.withValue(
+						RawContacts.Data.MIMETYPE,
+						ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+					)
 					.withValue(
 						ContactsContract.CommonDataKinds.Organization.TYPE,
 						ContactsContract.CommonDataKinds.Organization.TYPE_WORK
