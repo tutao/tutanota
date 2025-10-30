@@ -4,8 +4,6 @@
 // update the instance in the offline db
 
 import {
-	type ClientModelParsedInstance,
-	type ClientTypeModel,
 	EncryptedParsedAssociation,
 	EncryptedParsedValue,
 	Entity,
@@ -19,10 +17,9 @@ import {
 	ServerTypeModel,
 } from "../../common/EntityTypes"
 import { Patch } from "../../entities/sys/TypeRefs"
-import { assertNotNull, Base64, deepEqual, getTypeString, isEmpty, isSameTypeRef, lazy, promiseMap, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, Base64, deepEqual, isEmpty, lazy, Nullable, promiseMap, TypeRef } from "@tutao/tutanota-utils"
 import { AttributeModel } from "../../common/AttributeModel"
 import { CacheStorage } from "../rest/DefaultEntityRestCache"
-import { Nullable } from "@tutao/tutanota-utils"
 import { PatchOperationError } from "../../common/error/PatchOperationError"
 import { AssociationType } from "../../common/EntityConstants"
 import { PatchOperationType, TypeModelResolver } from "../../common/EntityFunctions"
@@ -30,13 +27,10 @@ import { InstancePipeline } from "../crypto/InstancePipeline"
 import { isSameId, removeTechnicalFields } from "../../common/utils/EntityUtils"
 import { convertDbToJsType } from "../crypto/ModelMapper"
 import { decryptValue } from "../crypto/CryptoMapper"
-import { AesKey, BitArray, extractIvFromCipherText } from "@tutao/tutanota-crypto"
+import { AesKey, extractIvFromCipherText } from "@tutao/tutanota-crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
-import { ProgrammingError } from "../../common/error/ProgrammingError"
-import { EntityUpdateData, getLogStringForPatches } from "../../common/utils/EntityUpdateUtils"
+import { EntityUpdateData } from "../../common/utils/EntityUpdateUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
-import { computePatches } from "../../common/utils/PatchGenerator"
-import { FileTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs"
 
 export class PatchMerger {
 	constructor(
@@ -56,9 +50,12 @@ export class PatchMerger {
 		const parsedInstance = await this.cacheStorage.getParsed(instanceType, listId, elementId)
 		if (parsedInstance != null) {
 			const typeModel = await this.typeModelResolver.resolveServerTypeReference(instanceType)
+
+			const instance = await this.instancePipeline.modelMapper.mapToInstance(instanceType, parsedInstance)
+			const sk = await this.cryptoFacade().resolveSessionKey(instance)
 			// We need to preserve the order of patches, so no promiseMap here
 			for (const patch of patches) {
-				const appliedSuccessfully = await this.applySinglePatch(parsedInstance, typeModel, patch)
+				const appliedSuccessfully = await this.applySinglePatch(parsedInstance, typeModel, patch, sk)
 				if (!appliedSuccessfully) {
 					return null
 				}
@@ -84,9 +81,14 @@ export class PatchMerger {
 		}
 	}
 
-	private async applySinglePatch(parsedInstance: ServerModelParsedInstance, typeModel: ServerTypeModel, patch: Patch) {
+	private async applySinglePatch(
+		parsedInstance: ServerModelParsedInstance,
+		typeModel: ServerTypeModel,
+		patch: Patch,
+		sk: Nullable<AesKey>,
+	): Promise<boolean> {
 		try {
-			const pathList: Array<string> = patch.attributePath.split("/") //== /$mailId/$attrIdRecipient/${aggregateIdRecipient}/${attrIdName}
+			const pathList: Array<string> = patch.attributePath.split("/")
 			const pathResult: PathResult | null = await this.traversePath(parsedInstance, typeModel, pathList)
 			if (pathResult == null) {
 				return false
@@ -97,18 +99,11 @@ export class PatchMerger {
 			// We need to map and decrypt for REPLACE and ADDITEM as the payloads are encrypted, REMOVEITEM only has either aggregate ids, generated ids, or id tuples
 			if (patch.patchOperation !== PatchOperationType.REMOVE_ITEM) {
 				const encryptedParsedValue: Nullable<EncryptedParsedValue | EncryptedParsedAssociation> = await this.parseValueOnPatch(pathResult, patch.value)
-				const isAggregation = pathResultTypeModel.associations[attributeId]?.type === AssociationType.Aggregation
 
+				const isAggregation = pathResultTypeModel.associations[attributeId]?.type === AssociationType.Aggregation
 				const isEncryptedValue = pathResultTypeModel.values[attributeId]?.encrypted
-				let value: Nullable<ParsedValue | ParsedAssociation>
-				if ((isAggregation && typeModel.encrypted) || isEncryptedValue) {
-					const typeRef = new TypeRef(typeModel.app, typeModel.id)
-					const instance = await this.instancePipeline.modelMapper.mapToInstance(typeRef, parsedInstance)
-					const sk = await this.cryptoFacade().resolveSessionKey(instance)
-					value = await this.decryptValueOnPatchIfNeeded(pathResult, encryptedParsedValue, sk)
-				} else {
-					value = await this.decryptValueOnPatchIfNeeded(pathResult, encryptedParsedValue, null)
-				}
+				const needsDecryption = ((isAggregation && typeModel.encrypted) || isEncryptedValue) && sk != null
+				const value = needsDecryption ? await this.decryptValueOnPatch(pathResult, encryptedParsedValue, sk) : encryptedParsedValue
 				await this.applyPatchOperation(patch.patchOperation, pathResult, value)
 			} else {
 				let idArray = JSON.parse(patch.value!) as Array<any>
@@ -250,44 +245,41 @@ export class PatchMerger {
 		return null
 	}
 
-	private async decryptValueOnPatchIfNeeded(
+	private async decryptValueOnPatch(
 		pathResult: PathResult,
 		value: Nullable<EncryptedParsedValue | EncryptedParsedAssociation>,
-		sk: Nullable<AesKey>,
+		sk: AesKey,
 	): Promise<Nullable<ParsedValue> | Nullable<ParsedAssociation>> {
 		const { typeModel, attributeId } = pathResult
 		const isValue = typeModel.values[attributeId] !== undefined
 		const isAggregation = typeModel.associations[attributeId] !== undefined && typeModel.associations[attributeId].type === AssociationType.Aggregation
 		if (isValue) {
-			if (sk !== null) {
-				const encryptedValueInfo = typeModel.values[attributeId] as ModelValue & { encrypted: true }
-				const encryptedValue = value
-				if (encryptedValue == null) {
-					delete pathResult.instanceToChange._finalIvs[attributeId]
-				} else if (encryptedValue === "") {
-					// the encrypted value is "" if the decrypted value is the default value
-					// storing this marker lets us restore that empty string when we re-encrypt the instance.
-					// check out encrypt in CryptoMapper to see the other side of this.
-					pathResult.instanceToChange._finalIvs[attributeId] = null
-				} else if (encryptedValueInfo.final && encryptedValue) {
-					// the server needs to be able to check if an encrypted final field changed.
-					// that's only possible if we re-encrypt using a deterministic IV, because the ciphertext changes if
-					// the IV or the value changes.
-					// storing the IV we used for the initial encryption lets us reuse it later.
-					pathResult.instanceToChange._finalIvs[attributeId] = extractIvFromCipherText(encryptedValue as Base64)
-				}
-				return decryptValue(encryptedValueInfo, encryptedValue as Base64, sk)
+			const encryptedValueInfo = typeModel.values[attributeId] as ModelValue & { encrypted: true }
+			const encryptedValue = value
+			if (encryptedValue == null) {
+				delete pathResult.instanceToChange._finalIvs[attributeId]
+			} else if (encryptedValue === "") {
+				// the encrypted value is "" if the decrypted value is the default value
+				// storing this marker lets us restore that empty string when we re-encrypt the instance.
+				// check out encrypt in CryptoMapper to see the other side of this.
+				pathResult.instanceToChange._finalIvs[attributeId] = null
+			} else if (encryptedValueInfo.final && encryptedValue) {
+				// the server needs to be able to check if an encrypted final field changed.
+				// that's only possible if we re-encrypt using a deterministic IV, because the ciphertext changes if
+				// the IV or the value changes.
+				// storing the IV we used for the initial encryption lets us reuse it later.
+				pathResult.instanceToChange._finalIvs[attributeId] = extractIvFromCipherText(encryptedValue as Base64)
 			}
-			return value
+			return decryptValue(encryptedValueInfo, encryptedValue as Base64, sk)
 		} else if (isAggregation) {
 			const encryptedAggregatedEntities = value as Array<ServerModelEncryptedParsedInstance>
 			const modelAssociation = typeModel.associations[attributeId]
 			const appName = modelAssociation.dependency ?? typeModel.app
 			const aggregationTypeModel = await this.typeModelResolver.resolveServerTypeReference(new TypeRef(appName, modelAssociation.refTypeId))
 			return await this.instancePipeline.cryptoMapper.decryptAggregateAssociation(aggregationTypeModel, encryptedAggregatedEntities, sk)
+		} else {
+			return value
 		}
-
-		return value // id and idTuple associations are never encrypted
 	}
 
 	private async traversePath(parsedInstance: ServerModelParsedInstance, serverTypeModel: ServerTypeModel, path: Array<string>): Promise<PathResult | null> {
@@ -297,12 +289,15 @@ export class PatchMerger {
 		const pathItem = path.shift()!
 		try {
 			let attributeId: number
+			const attributeIdsInServerTypeModel = Object.keys(serverTypeModel.values).concat(Object.keys(serverTypeModel.associations))
 			if (env.networkDebugging) {
 				attributeId = parseInt(pathItem.split(":")[0])
 			} else {
 				attributeId = parseInt(pathItem)
 			}
-			if (!Object.keys(parsedInstance).some((attribute) => attribute === attributeId.toString())) {
+			if (!attributeIdsInServerTypeModel.some((attribute) => attribute === attributeId.toString())) {
+				// this would mean server sent an attribute id not in the current activated server schema
+				// this should not happen, and returning null would trigger a reload from the server
 				return null
 			}
 
