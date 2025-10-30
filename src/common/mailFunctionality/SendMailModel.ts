@@ -86,6 +86,7 @@ import { KeyVerificationMismatchError } from "../api/common/error/KeyVerificatio
 import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarNotificationSender"
 import { SyncTracker } from "../api/main/SyncTracker"
 import { AutosaveFacade } from "../api/worker/facades/lazy/AutosaveFacade"
+import { Time } from "../calendar/date/Time"
 
 assertMainOrNode()
 
@@ -137,7 +138,7 @@ export class SendMailModel {
 	private recipients: Map<RecipientField, Array<ResolvableRecipient>> = new Map()
 	private senderAddress: string
 	private confidential: boolean
-	private sendLater: boolean
+	private sendLater: Date | null = null
 
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
@@ -191,7 +192,6 @@ export class SendMailModel {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
 		this.confidential = !userProps.defaultUnconfidential
-		this.sendLater = false
 
 		this.selectedNotificationLanguage = getAvailableLanguageCode(userProps.notificationMailLanguage || lang.code)
 		this.updateAvailableNotificationTemplateLanguages()
@@ -594,8 +594,6 @@ export class SendMailModel {
 		// .toLowerCase because all our aliases and accounts are lowercased on creation
 		this.senderAddress = senderMailAddress?.toLowerCase() || this.getDefaultSender()
 		this.confidential = confidential ?? !this.user().props.defaultUnconfidential
-		//FIXME do we need to set sendLater here or is it fine just in the constructor?
-		//this.sendLater = false
 		this.attachments = []
 
 		if (attachments) {
@@ -857,12 +855,35 @@ export class SendMailModel {
 		this.confidential = confidential
 	}
 
-	getSendLater(): boolean {
+	getSendLaterDate(): Date | null {
 		return this.sendLater
 	}
 
-	setSendLater(sendLater: boolean): void {
-		this.sendLater = sendLater
+	getSendLaterTime(): Time | null {
+		if (this.sendLater) {
+			return Time.fromDate(this.sendLater)
+		}
+		return null
+	}
+
+	setSendLaterDate(sendLater: Date | null): void {
+		if (!this.sendLater) {
+			// if there is no send later on the model, we need to set it
+			this.sendLater = sendLater
+		} else if (sendLater) {
+			// if there is a send later on the model, we just want the date as to not overwrite the time
+			this.sendLater?.setDate(sendLater.getDate())
+			this.sendLater?.setMonth(sendLater.getMonth())
+			this.sendLater?.setFullYear(sendLater.getFullYear())
+		} else {
+			// if there is not a send later to update, we want to set the send later on the model to null
+			this.sendLater = null
+		}
+	}
+
+	setSendLaterTime(sendLater: Time): void {
+		this.sendLater?.setHours(sendLater.hour)
+		this.sendLater?.setMinutes(sendLater.minute)
 	}
 
 	containsExternalRecipients(): boolean {
