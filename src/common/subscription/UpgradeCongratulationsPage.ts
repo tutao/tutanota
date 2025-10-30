@@ -7,6 +7,7 @@ import { locator } from "../api/main/CommonLocator"
 import { RecoverCodeField } from "../settings/login/RecoverCodeDialog.js"
 import { VisSignupImage } from "../gui/base/icons/Icons.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
+import { assertNotNull } from "@tutao/tutanota-utils"
 
 export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -24,7 +25,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 				? m(".plr-l", [
 						m(RecoverCodeField, {
 							showMessage: true,
-							recoverCode: newAccountData.recoverCode,
+							recoverCode: assertNotNull(newAccountData.recoverCode),
 							image: {
 								src: VisSignupImage,
 								alt: "vitor_alt",

@@ -4,7 +4,6 @@ import Stream from "mithril/stream"
 import { Dialog } from "../gui/base/Dialog"
 import { Autocomplete, TextField } from "../gui/base/TextField.js"
 import { getWhitelabelRegistrationDomains } from "../login/LoginView.js"
-import type { NewAccountData } from "./UpgradeSubscriptionWizard"
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
 import {
 	DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN,
@@ -14,35 +13,38 @@ import {
 
 import type { CheckboxAttrs } from "../gui/base/Checkbox.js"
 import { Checkbox } from "../gui/base/Checkbox.js"
-import { defer, DeferredObject, getFirstOrThrow, lazy, ofClass } from "@tutao/tutanota-utils"
+import { defer, DeferredObject, getFirstOrThrow, lazy } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../misc/LanguageViewModel"
 import { InfoLink, lang } from "../misc/LanguageViewModel"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { InvalidDataError, PreconditionFailedError } from "../api/common/error/RestError"
 import { locator } from "../api/main/CommonLocator"
 import { CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
-import { runCaptchaFlow, runPowChallenge } from "./captcha/Captcha.js"
+import { runPowChallenge } from "./captcha/Captcha.js"
 import { EmailDomainData, isPaidPlanDomain } from "../settings/mailaddress/MailAddressesUtils.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { ExternalLink } from "../gui/base/ExternalLink.js"
 import { PasswordForm, PasswordModel } from "../settings/PasswordForm.js"
-import { client } from "../misc/ClientDetector"
-import { SubscriptionApp } from "./utils/SubscriptionUtils"
 import { deviceConfig } from "../misc/DeviceConfig"
-import { SessionType } from "../api/common/SessionType"
 import { PowSolution } from "../api/common/pow-worker"
-import { credentialsToUnencrypted } from "../misc/credentials/Credentials"
+import { NewAccountData } from "./UpgradeSubscriptionWizard"
 
 export type SignupFormAttrs = {
 	/** Handle a new account signup. if readonly then the argument will always be null */
-	onComplete: (signupResult: { type: "success"; newAccountData: NewAccountData | null } | { type: "failure" }) => void
+	onComplete: (
+		signupResult:
+			| {
+					type: "success"
+					newAccountData: NewAccountData | null
+					registrationCode: string
+					powChallengeSolutionPromise: Promise<PowSolution>
+			  }
+			| { type: "failure" },
+	) => void
 	onChangePlan: () => void
 	isBusinessUse: lazy<boolean>
 	isPaidSubscription: lazy<boolean>
 	campaignToken: lazy<string | null>
 	// only used if readonly is true
 	prefilledMailAddress?: string | undefined
-	readonly: boolean
 }
 
 export class SignupForm implements Component<SignupFormAttrs> {
@@ -56,6 +58,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private _isMailVerificationBusy: boolean
 	private readonly __mailValid: Stream<boolean>
 	private powChallengeSolution: DeferredObject<PowSolution> = defer()
+	private readonly: boolean = false
 
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 		? TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS
@@ -95,6 +98,17 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			.then((solution) => this.powChallengeSolution.resolve(solution))
 			.catch((e) => this.powChallengeSolution.reject(e))
 		return this.powChallengeSolution.promise
+	}
+
+	async oncreate(vnode: Vnode<SignupFormAttrs>) {
+		try {
+			const userController = locator.logins.getUserController()
+			this.readonly = (await userController.loadCustomer()) !== null
+		} catch (e) {
+			this.readonly = false
+		}
+		console.log("readonly: ", this.readonly)
+		m.redraw()
 	}
 
 	view(vnode: Vnode<SignupFormAttrs>): Children {
@@ -146,9 +160,9 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		const submit = () => {
 			if (this._isMailVerificationBusy) return
 
-			if (a.readonly) {
+			if (this.readonly) {
 				// Email field is read-only, account has already been created but user switched from different subscription.
-				return a.onComplete({ type: "success", newAccountData: null })
+				// return a.onComplete({ type: "success", newAccountData: null })
 			}
 
 			const errorMessage =
@@ -159,32 +173,21 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				return
 			}
 
-			const ageConfirmPromise = this._confirmAge() ? Promise.resolve(true) : Dialog.confirm("parentConfirmation_msg", "paymentDataValidation_action")
-			ageConfirmPromise.then((checkedBoxes) => {
-				if (checkedBoxes) {
-					return signup(
-						this._mailAddress,
-						this.passwordModel.getNewPassword(),
-						this._code(),
-						a.isBusinessUse(),
-						a.isPaidSubscription(),
-						a.campaignToken(),
-						this.powChallengeSolution.promise,
-					).then((newAccountData) => {
-						if (newAccountData != null) {
-							a.onComplete({ type: "success", newAccountData })
-						} else {
-							a.onComplete({ type: "failure" })
-						}
-					})
-				}
+			a.onComplete({
+				type: "success",
+				newAccountData: {
+					mailAddress: this._mailAddress,
+					password: this.passwordModel.getNewPassword(),
+				},
+				registrationCode: this._code(),
+				powChallengeSolutionPromise: this.powChallengeSolution.promise,
 			})
 		}
 
 		return m(
 			"#signup-account-dialog.flex-center",
 			m(".flex-grow-shrink-auto.max-width-m.pt.pb.plr-l", [
-				a.readonly
+				this.readonly
 					? m(TextField, {
 							label: "mailAddress_label",
 							value: a.prefilledMailAddress ?? "",
@@ -228,79 +231,4 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 function renderTermsLabel(): Children {
 	return lang.get("termsAndConditions_label")
-}
-
-/**
- * @return Signs the user up, if no captcha is needed or it has been solved correctly
- */
-async function signup(
-	mailAddress: string,
-	password: string,
-	registrationCode: string,
-	isBusinessUse: boolean,
-	isPaidSubscription: boolean,
-	campaignToken: string | null,
-	powChallengeSolution: Promise<PowSolution>,
-): Promise<NewAccountData | void> {
-	const { customerFacade, logins, identityKeyCreator } = locator
-
-	const operation = locator.operationProgressTracker.startNewOperation()
-	const signupActionPromise = customerFacade.generateSignupKeys(operation.id).then(async (keyPairs) => {
-		const regDataId = await runCaptchaFlow({
-			mailAddress,
-			isBusinessUse,
-			isPaidSubscription,
-			campaignToken,
-			powChallengeSolution,
-		})
-		if (regDataId) {
-			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
-			const recoverCode = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)
-			let userGroupId
-			if (!logins.isUserLoggedIn()) {
-				// we do not know the userGroupId at group creation time,
-				// so we log in and create the identity key pair now
-
-				// Create a throwaway temporary session
-				// This will prevent postloginutils from showing the `shouldShowUpgrade` Dialog on the payment page
-				await logins.createSession(mailAddress, password, SessionType.Temporary)
-				await logins.getUserController().deleteSession(true)
-
-				const sessionData = await logins.createSession(mailAddress, password, SessionType.Persistent)
-				const unencryptedCredentials = credentialsToUnencrypted(sessionData.credentials, sessionData.databaseKey)
-				try {
-					await locator.credentialsProvider.store(unencryptedCredentials)
-				} catch (e) {}
-				userGroupId = sessionData.userGroupInfo.group
-			} else {
-				userGroupId = logins.getUserController().userGroupInfo.group
-			}
-			await identityKeyCreator.createIdentityKeyPair(
-				userGroupId,
-				{
-					object: keyPairs[0], // user group key pair
-					version: 0, //new group
-				},
-				[],
-			)
-
-			return {
-				mailAddress,
-				password,
-				recoverCode,
-			}
-		}
-	})
-	return showProgressDialog("createAccountRunning_msg", signupActionPromise, operation.progress)
-		.catch(
-			ofClass(InvalidDataError, () => {
-				Dialog.message("invalidRegistrationCode_msg")
-			}),
-		)
-		.catch(
-			ofClass(PreconditionFailedError, (e) => {
-				Dialog.message("invalidSignup_msg")
-			}),
-		)
-		.finally(() => operation.done())
 }

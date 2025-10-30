@@ -3,6 +3,18 @@ import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { type InvoiceData, PaymentMethodType } from "../../api/common/TutanotaConstants"
 import { Country, CountryType } from "../../api/common/CountryList"
 import { CCViewModel } from "../SimplifiedCreditCardInput"
+import { PowSolution } from "../../api/common/pow-worker"
+import { NewAccountData } from "../UpgradeSubscriptionWizard"
+import { locator } from "../../api/main/CommonLocator"
+import { runCaptchaFlow } from "../captcha/Captcha"
+import { client } from "../../misc/ClientDetector"
+import { SubscriptionApp } from "./SubscriptionUtils"
+import { SessionType } from "../../api/common/SessionType"
+import { credentialsToUnencrypted } from "../../misc/credentials/Credentials"
+import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
+import { InvalidDataError, PreconditionFailedError } from "../../api/common/error/RestError"
+import { ofClass } from "@tutao/tutanota-utils"
+import { Dialog } from "../../gui/base/Dialog"
 
 function isOnAccountAllowed(country: Country, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {
@@ -112,4 +124,79 @@ export function getInvoiceData({
 		country: country,
 		vatNumber: country?.t === CountryType.EU && isBusiness ? vatNumber : "",
 	}
+}
+
+/**
+ * @return Signs the user up, if no captcha is needed or it has been solved correctly
+ */
+export async function signup(
+	mailAddress: string,
+	password: string,
+	registrationCode: string,
+	isBusinessUse: boolean,
+	isPaidSubscription: boolean,
+	campaignToken: string | null,
+	powChallengeSolution: Promise<PowSolution>,
+): Promise<NewAccountData | void> {
+	const { customerFacade, logins, identityKeyCreator } = locator
+
+	const operation = locator.operationProgressTracker.startNewOperation()
+	const signupActionPromise = customerFacade.generateSignupKeys(operation.id).then(async (keyPairs) => {
+		const regDataId = await runCaptchaFlow({
+			mailAddress,
+			isBusinessUse,
+			isPaidSubscription,
+			campaignToken,
+			powChallengeSolution,
+		})
+		if (regDataId) {
+			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
+			const recoverCode = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)
+			let userGroupId
+			if (!logins.isUserLoggedIn()) {
+				// we do not know the userGroupId at group creation time,
+				// so we log in and create the identity key pair now
+
+				// Create a throwaway temporary session
+				// This will prevent postloginutils from showing the `shouldShowUpgrade` Dialog on the payment page
+				await logins.createSession(mailAddress, password, SessionType.Temporary)
+				await logins.getUserController().deleteSession(true)
+
+				const sessionData = await logins.createSession(mailAddress, password, SessionType.Persistent)
+				const unencryptedCredentials = credentialsToUnencrypted(sessionData.credentials, sessionData.databaseKey)
+				try {
+					await locator.credentialsProvider.store(unencryptedCredentials)
+				} catch (e) {}
+				userGroupId = sessionData.userGroupInfo.group
+			} else {
+				userGroupId = logins.getUserController().userGroupInfo.group
+			}
+			await identityKeyCreator.createIdentityKeyPair(
+				userGroupId,
+				{
+					object: keyPairs[0], // user group key pair
+					version: 0, //new group
+				},
+				[],
+			)
+
+			return {
+				mailAddress,
+				password,
+				recoverCode,
+			}
+		}
+	})
+	return showProgressDialog("createAccountRunning_msg", signupActionPromise, operation.progress)
+		.catch(
+			ofClass(InvalidDataError, () => {
+				Dialog.message("invalidRegistrationCode_msg")
+			}),
+		)
+		.catch(
+			ofClass(PreconditionFailedError, (e) => {
+				Dialog.message("invalidSignup_msg")
+			}),
+		)
+		.finally(() => operation.done())
 }

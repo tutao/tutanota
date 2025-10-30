@@ -4,12 +4,9 @@ import { lang } from "../misc/LanguageViewModel"
 import type { Country } from "../api/common/CountryList"
 import { Countries, CountryType } from "../api/common/CountryList"
 import { HtmlEditor, HtmlEditorMode } from "../gui/editor/HtmlEditor"
-import type { LocationServiceGetReturn } from "../api/entities/sys/TypeRefs.js"
 import { renderCountryDropdown } from "../gui/base/GuiUtils"
 import { TextField } from "../gui/base/TextField.js"
 import type { InvoiceData } from "../api/common/TutanotaConstants"
-import { LocationService } from "../api/entities/sys/Services"
-import { locator } from "../api/main/CommonLocator"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 
@@ -67,16 +64,18 @@ export class InvoiceDataInput implements Component {
 	}
 
 	oncreate() {
-		locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
-			if (!this.selectedCountry()) {
-				const country = Countries.find((c) => c.a === location.country)
-
-				if (country) {
-					this.selectedCountry(country)
-					m.redraw()
-				}
-			}
-		})
+		// FIXME: Reenable this call
+		// locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
+		// 	if (!this.selectedCountry()) {
+		// 		const country = Countries.find((c) => c.a === location.country)
+		//
+		// 		if (country) {
+		// 			this.selectedCountry(country)
+		// 			m.redraw()
+		// 		}
+		// 	}
+		// })
+		this.selectedCountry(Countries.at(0)!)
 	}
 
 	validateInvoiceData(): TranslationKey | null {

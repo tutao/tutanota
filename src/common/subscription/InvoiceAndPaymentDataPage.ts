@@ -8,12 +8,12 @@ import Stream from "mithril/stream"
 import {
 	AvailablePlanType,
 	getClientType,
-	getDefaultPaymentMethod,
 	InvoiceData,
 	Keys,
 	PaymentData,
 	PaymentDataResultType,
 	PaymentMethodType,
+	PlanType,
 } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
@@ -32,11 +32,9 @@ import { EntityEventsListener } from "../api/main/EventController.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { client } from "../misc/ClientDetector.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
-import { getVisiblePaymentMethods, validateInvoiceData, validatePaymentData } from "./utils/PaymentUtils"
+import { getVisiblePaymentMethods, signup, validateInvoiceData, validatePaymentData } from "./utils/PaymentUtils"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel"
 import { SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput"
-import { SessionType } from "../api/common/SessionType"
-import { Credentials } from "../misc/credentials/Credentials"
 import { PaypalButton } from "./PaypalButton"
 
 /**
@@ -84,30 +82,6 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 			throw new Error("Invalid plan is selected")
 		}
 
-		let loginPromise: Promise<Credentials | null> = Promise.resolve(null)
-		const loginController = locator.logins
-		if (!loginController.isUserLoggedIn()) {
-			loginPromise = loginController
-				.createSession(neverNull(data.newAccountData).mailAddress, neverNull(data.newAccountData).password, SessionType.Temporary)
-				.then((newSessionData) => newSessionData.credentials)
-		}
-
-		loginPromise.then(() => {
-			if (!data.accountingInfo || !data.customer) {
-				return loginController
-					.getUserController()
-					.loadCustomer()
-					.then((customer) => {
-						data.customer = customer
-						return loginController.getUserController().loadCustomerInfo()
-					})
-					.then((customerInfo) =>
-						locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo).then((accountingInfo) => {
-							data.accountingInfo = accountingInfo
-						}),
-					)
-			}
-		})
 		this._invoiceDataInput = new InvoiceDataInput(data.options.businessUse(), data.invoiceData, InvoiceDataInputLocation.InWizard)
 		this._availablePaymentMethods = getVisiblePaymentMethods({
 			isBusiness: data.options.businessUse(),
@@ -152,7 +126,10 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 									},
 								},
 								this._selectedPaymentMethod() === PaymentMethodType.Paypal &&
-									m(PaypalButton, { accountingInfo: data.accountingInfo, onclick: this.onPaypalButtonClick }),
+									m(PaypalButton, {
+										accountingInfo: data.accountingInfo,
+										onclick: () => this.onPaypalButtonClick(data),
+									}),
 								this._selectedPaymentMethod() === PaymentMethodType.CreditCard &&
 									m(SimplifiedCreditCardInput, {
 										viewModel: this.ccViewModel,
@@ -167,8 +144,10 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 							m(LoginButton, {
 								label: "next_action",
 								class: "small-login-button",
-								onclick: () => this.onAddPaymentData(data),
-								// FIXME: disable when cc data is not filled in
+								onclick: async () => {
+									await this.createAccount(data)
+									this.onAddPaymentData(data)
+								},
 								disabled:
 									(this._selectedPaymentMethod() === PaymentMethodType.CreditCard && !this.isCreditCardValid()) ||
 									(this._selectedPaymentMethod() === PaymentMethodType.Paypal && !this.isPaypalLinked()),
@@ -179,10 +158,44 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		)
 	}
 
-	private onAddPaymentData = (data: UpgradeSubscriptionData) => {
+	private createAccount = async (data: UpgradeSubscriptionData) => {
+		if (data.customer) return
+		data.newAccountData = assertNotNull(data.newAccountData)
+		data.powChallengeSolutionPromise = assertNotNull(data.powChallengeSolutionPromise)
+		data.registrationCode = assertNotNull(data.registrationCode)
+		const newAccountData = await signup(
+			data.newAccountData.mailAddress,
+			data.newAccountData.password,
+			data.registrationCode,
+			data.options.businessUse(),
+			data.targetPlanType !== PlanType.Free,
+			data.registrationDataId,
+			data.powChallengeSolutionPromise,
+		)
+
+		if (newAccountData == null) {
+			emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
+			return
+		}
+
+		data.newAccountData = newAccountData
+
+		if (!data.customer || !data.accountingInfo) {
+			const userController = locator.logins.getUserController()
+			data.customer = await userController.loadCustomer()
+			const customerInfo = await userController.loadCustomerInfo()
+			data.accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		}
+	}
+
+	private onAddPaymentData = async (data: UpgradeSubscriptionData) => {
 		const invoiceDataInput = assertNotNull(this._invoiceDataInput)
-		let error =
-			validateInvoiceData({ address: invoiceDataInput.getAddress(), isBusiness: data.options.businessUse() }) ||
+
+		const error =
+			validateInvoiceData({
+				address: invoiceDataInput.getAddress(),
+				isBusiness: data.options.businessUse(),
+			}) ||
 			validatePaymentData({
 				country: invoiceDataInput.selectedCountry()!,
 				isBusiness: data.options.businessUse(),
@@ -191,46 +204,47 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 				ccViewModel: this.ccViewModel,
 			})
 
-		if (error) return Dialog.message(error).then(() => null)
+		if (error) {
+			await Dialog.message(error)
+			return
+		}
 
-		data.invoiceData = assertNotNull(this._invoiceDataInput).getInvoiceData()
+		data.invoiceData = invoiceDataInput.getInvoiceData()
 		data.paymentData = {
 			paymentMethod: this._selectedPaymentMethod(),
 			creditCardData: this._selectedPaymentMethod() === PaymentMethodType.CreditCard ? this.ccViewModel.getCreditCardData() : null,
 		}
 
-		void showProgressDialog(
-			"updatePaymentDataBusy_msg",
-			Promise.resolve()
-				.then(() => {
-					let customer = neverNull(data.customer)
+		const progress = (async () => {
+			const customer = neverNull(data.customer)
+			const businessUse = data.options.businessUse()
 
-					if (customer.businessUse !== data.options.businessUse()) {
-						customer.businessUse = data.options.businessUse()
-						return locator.entityClient.update(customer)
-					}
-				})
-				.then(() =>
-					updatePaymentData(
-						data.options.paymentInterval(),
-						data.invoiceData,
-						data.paymentData,
-						null,
-						data.upgradeType === UpgradeType.Signup,
-						neverNull(data.price?.rawPrice),
-						neverNull(data.accountingInfo),
-					).then((success) => {
-						if (success && !this._hasClickedNext) {
-							// Payment method confirmation (click on next), send selected payment method as an enum
-							this._hasClickedNext = true
-							emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
-						}
-					}),
-				),
-		)
+			if (customer.businessUse !== businessUse) {
+				customer.businessUse = businessUse
+				await locator.entityClient.update(customer)
+			}
+
+			const success = await updatePaymentData(
+				data.options.paymentInterval(),
+				data.invoiceData,
+				data.paymentData,
+				null,
+				data.upgradeType === UpgradeType.Signup,
+				neverNull(data.price?.rawPrice),
+				neverNull(data.accountingInfo),
+			)
+
+			if (success && !this._hasClickedNext) {
+				this._hasClickedNext = true
+				emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
+			}
+		})()
+
+		void showProgressDialog("updatePaymentDataBusy_msg", progress)
 	}
 
-	private onPaypalButtonClick = () => {
+	private onPaypalButtonClick = async (data: UpgradeSubscriptionData) => {
+		await this.createAccount(data)
 		if (this.paypalRequestUrl.isLoaded()) {
 			window.open(this.paypalRequestUrl.getLoaded())
 		} else {

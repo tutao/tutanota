@@ -23,7 +23,9 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 		return m(SignupForm, {
 			onComplete: (signupResult) => {
 				if (signupResult.type === "success") {
-					if (signupResult.newAccountData) data.newAccountData = signupResult.newAccountData
+					data.newAccountData = signupResult.newAccountData
+					data.registrationCode = signupResult.registrationCode
+					data.powChallengeSolutionPromise = signupResult.powChallengeSolutionPromise
 					emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 				} else {
 					emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
@@ -36,7 +38,6 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 			isPaidSubscription: () => data.targetPlanType !== PlanType.Free,
 			campaignToken: () => data.registrationDataId,
 			prefilledMailAddress: mailAddress,
-			readonly: !!newAccountData,
 		})
 	}
 }

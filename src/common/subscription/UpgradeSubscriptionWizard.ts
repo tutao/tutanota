@@ -36,6 +36,7 @@ import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { ReferralType, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { windowFacade } from "../misc/WindowFacade"
 import { isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
+import { PowSolution } from "../api/common/pow-worker"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -46,7 +47,7 @@ export type SubscriptionParameters = {
 
 export type NewAccountData = {
 	mailAddress: string
-	recoverCode: Hex
+	recoverCode?: Hex
 	password: string
 }
 export type ReferralData = { code: string; isCalledBySatisfactionDialog: boolean }
@@ -76,6 +77,8 @@ export type UpgradeSubscriptionData = {
 	msg: Translation | null
 	firstMonthForFreeOfferActive: boolean
 	isCalledBySatisfactionDialog: boolean
+	registrationCode?: string
+	powChallengeSolutionPromise?: Promise<PowSolution>
 }
 
 export async function showUpgradeWizard({
