@@ -30,7 +30,6 @@ export function validatePaymentData({
 	ccViewModel: CCViewModel
 }): TranslationKey | null {
 	if (!paymentMethod) {
-		// FIXME
 		return "invoicePaymentMethodInfo_msg"
 	} else if (paymentMethod === PaymentMethodType.Invoice) {
 		if (!isOnAccountAllowed(country, accountingInfo, isBusiness)) {
@@ -40,8 +39,6 @@ export function validatePaymentData({
 		}
 	} else if (paymentMethod === PaymentMethodType.Paypal) {
 		return accountingInfo.paypalBillingAgreement != null ? null : "paymentDataPayPalLogin_msg"
-	} else if (paymentMethod === PaymentMethodType.CreditCard) {
-		return ccViewModel.validateCreditCardPaymentData()
 	} else {
 		return null
 	}
@@ -64,10 +61,10 @@ export function getVisiblePaymentMethods({
 			name: lang.get("paymentMethodCreditCard_label"),
 			value: PaymentMethodType.CreditCard,
 		},
-		// {
-		// 	name: "PayPal",
-		// 	value: PaymentMethodType.Paypal,
-		// },
+		{
+			name: "PayPal",
+			value: PaymentMethodType.Paypal,
+		},
 	]
 
 	// show bank transfer in case of business use, even if it is not available for the selected country

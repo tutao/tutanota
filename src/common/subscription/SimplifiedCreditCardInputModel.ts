@@ -339,6 +339,7 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 		return this._cardHolderName
 	}
 
+	// TODO: Make this method to return boolean
 	validateCreditCardPaymentData(): TranslationKey | null {
 		const cc = this.getCreditCardData()
 		const invalidNumber = this.validateCreditCardNumber(cc.number)

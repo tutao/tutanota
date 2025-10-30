@@ -115,7 +115,7 @@ export class InvoiceDataInput implements Component {
 		return this.businessUse && selectedCountry != null && selectedCountry.t === CountryType.EU
 	}
 
-	private getAddress(): string {
+	public getAddress(): string {
 		return this.invoiceAddressComponent
 			.getValue()
 			.split("\n")

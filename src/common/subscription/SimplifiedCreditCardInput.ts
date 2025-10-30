@@ -2,18 +2,16 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Autocomplete, TextField } from "../gui/base/TextField.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { Stage } from "@tutao/tutanota-usagetests"
 import { CreditCard } from "../api/entities/sys/TypeRefs.js"
 
 export type SimplifiedCreditCardAttrs = {
 	viewModel: SimplifiedCreditCardViewModel
+	oninput?: () => unknown
 }
 
 export interface CCViewModel {
 	validateCreditCardPaymentData(): TranslationKey | null
-
 	setCreditCardData(data: CreditCard | null): void
-
 	getCreditCardData(): CreditCard
 }
 
@@ -37,7 +35,7 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 	expDateDom: HTMLInputElement | null = null
 
 	view(vnode: Vnode<SimplifiedCreditCardAttrs>): Children {
-		let { viewModel } = vnode.attrs
+		let { viewModel, oninput } = vnode.attrs
 
 		return [
 			m(TextField, {
@@ -47,6 +45,7 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 				oninput: (newValue) => {
 					viewModel.creditCardNumber = newValue
 					restoreSelection(this.ccNumberDom!)
+					oninput?.()
 				},
 				onblur: () => (this.numberFieldLeft = true),
 				autocompleteAs: Autocomplete.ccNumber,
@@ -61,6 +60,7 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 				oninput: (newValue) => {
 					viewModel.expirationDate = newValue
 					restoreSelection(this.expDateDom!)
+					oninput?.()
 				},
 				onDomInputCreated: (dom) => (this.expDateDom = dom),
 				autocompleteAs: Autocomplete.ccExp,
@@ -69,7 +69,10 @@ export class SimplifiedCreditCardInput implements Component<SimplifiedCreditCard
 				label: lang.makeTranslation("cvv", viewModel.getCvvLabel()),
 				value: viewModel.cvv,
 				helpLabel: () => this.renderCvvNumberHelpLabel(viewModel),
-				oninput: (newValue) => (viewModel.cvv = newValue),
+				oninput: (newValue) => {
+					viewModel.cvv = newValue
+					oninput?.()
+				},
 				onblur: () => (this.cvvFieldLeft = true),
 				autocompleteAs: Autocomplete.ccCsc,
 			}),

@@ -13,7 +13,6 @@ import { locator } from "../api/main/CommonLocator"
 import { MessageBox } from "../gui/base/MessageBox.js"
 import { px } from "../gui/size"
 import Stream from "mithril/stream"
-import { UsageTest } from "@tutao/tutanota-usagetests"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { CCViewModel, SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput.js"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel.js"
@@ -40,7 +39,6 @@ export class PaymentMethodInput {
 	_accountingInfo: AccountingInfo
 	_data: UpgradeSubscriptionData | undefined
 	_entityEventListener: EntityEventsListener
-	private __paymentPaypalTest?: UsageTest
 	private isBankTransferAllowed: boolean
 	private _onConnectPaypal: (() => any) | undefined
 
@@ -68,7 +66,6 @@ export class PaymentMethodInput {
 			return promiseMap(updates, (update) => {
 				if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
 					return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((accountingInfo) => {
-						this.__paymentPaypalTest?.getStage(2).complete()
 						this._accountingInfo = accountingInfo
 						this._payPalAttrs.accountingInfo = accountingInfo
 						if (this._data) {
@@ -174,18 +171,8 @@ export class PaymentMethodInput {
 			if (paymentData) {
 				this.ccViewModel.setCreditCardData(paymentData.creditCardData)
 			}
-
-			if (this.__paymentPaypalTest) {
-				this.__paymentPaypalTest.active = false
-			}
 		} else if (value === PaymentMethodType.Paypal) {
 			this._payPalAttrs.payPalRequestUrl.getAsync().then(() => m.redraw())
-
-			if (this.__paymentPaypalTest) {
-				this.__paymentPaypalTest.active = true
-			}
-
-			this.__paymentPaypalTest?.getStage(0).complete()
 		}
 
 		m.redraw()
