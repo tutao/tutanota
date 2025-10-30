@@ -37,6 +37,8 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 		const label = row[11]
 		const from = row[0]
 		const to = row[1]
+		const cc = row[2]
+		const bcc = row[3]
 
 		let isSpam = label === "spam" ? true : label === "ham" ? false : null
 		isSpam = assertNotNull(isSpam, "Unknown label detected: " + label)
@@ -49,7 +51,9 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 			isSpamConfidence: 1,
 			ownerGroup: "owner",
 			sender: from,
-			recipient: to,
+			toRecipients: to,
+			ccRecipients: cc,
+			bccRecipients: bcc,
 		} as SpamTrainMailDatum)
 	}
 
@@ -103,7 +107,9 @@ o.spec("SpamClassifierTest", () => {
 			isSpamConfidence: 1,
 			ownerGroup: "owner",
 			sender: "",
-			recipient: "to",
+			toRecipients: "",
+			ccRecipients: "",
+			bccRecipients: "",
 		}
 		const layersModel = object<Sequential>()
 		spamClassifier.addSpamClassifierForOwner(spamTrainMailDatum.ownerGroup, layersModel, false)
@@ -125,7 +131,9 @@ o.spec("SpamClassifierTest", () => {
 			isSpamConfidence: 0,
 			ownerGroup: "owner",
 			sender: "string",
-			recipient: "string",
+			toRecipients: "string",
+			ccRecipients: "",
+			bccRecipients: "",
 		}
 
 		const layersModel = object<Sequential>()
@@ -388,19 +396,22 @@ this text is shown`
 		await spamClassifier.initialize("firstGroup")
 		await spamClassifier.initialize("secondGroup")
 
-		const isSpamFirstMail = await spamClassifier.predict({
+		const commonSpamFields = {
 			subject: "",
 			body: "",
-			ownerGroup: "firstGroup",
 			sender: "string",
-			recipient: "string",
+			toRecipients: "string",
+			ccRecipients: "string",
+			bccRecipients: "string",
+		}
+
+		const isSpamFirstMail = await spamClassifier.predict({
+			ownerGroup: "firstGroup",
+			...commonSpamFields,
 		})
 		const isSpamSecondMail = await spamClassifier.predict({
-			subject: "",
-			body: "",
 			ownerGroup: "secondGroup",
-			sender: "string",
-			recipient: "string",
+			...commonSpamFields,
 		})
 
 		o(isSpamFirstMail).equals(true)

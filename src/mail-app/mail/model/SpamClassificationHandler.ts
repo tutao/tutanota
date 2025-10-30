@@ -150,7 +150,7 @@ export class SpamClassificationHandler {
 	private extractMailContactInformation(mail: Mail, mailDetails: MailDetails) {
 		const { recipients } = mailDetails
 		const concatenateNameAddress = (recipient: MailAddress) => `${recipient?.name} ${recipient?.address}`
-		const sender = `${mail.sender.name} ${mail.sender.address}`
+		const sender = `${mail?.sender?.name} ${mail?.sender?.address}`
 		const toRecipients = recipients?.toRecipients?.map(concatenateNameAddress).join(" ") || ""
 		const ccRecipients = recipients?.ccRecipients?.map(concatenateNameAddress).join(" ") || ""
 		const bccRecipients = recipients?.bccRecipients?.map(concatenateNameAddress).join(" ") || ""
