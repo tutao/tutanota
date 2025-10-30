@@ -122,6 +122,32 @@ o.spec("PatchMergerTest", () => {
 
 			o(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches)).equals(null)
 		})
+
+		o.test("when_attribute_not_existing_in_parsed_instance_but_in_server_model_is_supplied_path_patch_applies", async () => {
+			const testMail: any = createSystemMail({
+				_id: ["listId", "elementId"],
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+				_ownerGroup: ownerGroupId,
+			}) as unknown
+
+			// remove unread to make it a partial mail, leading to addition of the unread flag with the patch
+			delete testMail.unread
+			const partialMail = testMail as Mail
+
+			await storage.put(MailTypeRef, await toStorableInstance(partialMail))
+			const unreadAttributeId = 109
+			const patches: Array<Patch> = [
+				createPatch({
+					attributePath: unreadAttributeId.toString(),
+					value: "0",
+					patchOperation: PatchOperationType.REPLACE,
+				}),
+			]
+
+			const parsedInstance = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
+			o(Object.keys(parsedInstance).find((attribute) => attribute === unreadAttributeId.toString())).equals("109")
+		})
 	})
 
 	o.spec("replace on values", () => {
