@@ -114,6 +114,9 @@ import { px, size } from "../../../common/gui/size"
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
 import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
+import { TimePicker, TimePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/TimePicker"
+import { getTimeFormatForUser } from "../../../common/calendar/date/CalendarUtils"
+import { Time } from "../../../common/calendar/date/Time"
 
 // Interval where we save drafts locally.
 //
@@ -466,16 +469,24 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			size: ButtonSize.Compact,
 		}
 
-		let sendLater: boolean = model.getSendLater()
+		let sendLater: Date | null = model.getSendLaterDate()
 		const sendLaterButtonAttrs: ToggleButtonAttrs = {
 			// FIXME translation
 			title: lang.makeTranslation("sendlaterbutton_id", "Send Later"),
 			onToggled: (_, e) => {
 				e.stopPropagation()
-				model.setSendLater(!sendLater)
+				if (sendLater) {
+					model.setSendLaterDate(null)
+				} else {
+					let nextDay = new Date()
+					nextDay.setDate(nextDay.getDate() + 1)
+					nextDay.setHours(8)
+					nextDay.setMinutes(0)
+					model.setSendLaterDate(nextDay)
+				}
 			},
 			icon: Icons.Clock,
-			toggled: sendLater,
+			toggled: sendLater !== null,
 			size: ButtonSize.Compact,
 		}
 
@@ -684,31 +695,47 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				isConfidential ? this.renderPasswordFields() : null,
 				sendLater
 					? m(
-							".flex.overflow-hidden",
+							".flex",
 							{
 								oncreate: (vnode) => this.animateHeight(vnode.dom as HTMLElement, true),
 								onbeforeremove: (vnode) => this.animateHeight(vnode.dom as HTMLElement, false),
 							},
 							[
-								m(
-									".flex-grow",
-									m(TextField, {
-										//FIXME translation, also this just needs to be static text, not an editable text field
-										label: lang.makeTranslation("sendLater_id", "Send at"),
-										value: "",
-									}),
-								),
+								// display nothing on mobile because there is not so much space
+								isApp()
+									? null
+									: m(
+											".flex-grow",
+											m(TextField, {
+												//FIXME translation, also this just needs to be static text, not an editable text field
+												label: "emptyString_msg",
+												value: "Send at",
+												isReadOnly: true,
+											}),
+										),
 								m(DatePicker, {
-									date: new Date(),
-									onDateSelected: () => noOp(),
+									date: model.getSendLaterDate() ?? new Date(),
+									onDateSelected: (date) => {
+										model.setSendLaterDate(date)
+									},
 									startOfTheWeekOffset: 1,
-									label: "date_label",
+									label: lang.makeTranslation("sendDate_label", "Send date"),
 								}),
-								m(TextField, {
-									//FIXME this needs to be an actual time picker
-									label: lang.makeTranslation("test", "Time"),
-									value: "11:30",
-								}),
+								m(
+									".rel",
+									m(TimePicker, {
+										time: model.getSendLaterTime(),
+										onTimeSelected: (time: Time | null) => {
+											if (time) {
+												model.setSendLaterTime(time)
+											}
+										},
+										timeFormat: getTimeFormatForUser(locator.logins.getUserController().userSettingsGroupRoot),
+										// FIXME: add translation
+										ariaLabel: lang.makeTranslation("sendTime_label", "Send time"),
+										renderAsTextField: true,
+									} satisfies TimePickerAttrs),
+								),
 							],
 						)
 					: null,

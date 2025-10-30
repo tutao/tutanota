@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { client } from "../../../../common/misc/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../common/misc/Formatter.js"
-import type { MaybeTranslation, TranslationKey } from "../../../../common/misc/LanguageViewModel.js"
+import type { MaybeTranslation } from "../../../../common/misc/LanguageViewModel.js"
 import { lang } from "../../../../common/misc/LanguageViewModel.js"
 import { px } from "../../../../common/gui/size.js"
 import { theme } from "../../../../common/gui/theme.js"
@@ -29,7 +29,7 @@ export interface DatePickerAttrs {
 	date?: Date
 	onDateSelected: (date: Date) => unknown
 	startOfTheWeekOffset: number
-	label: TranslationKey
+	label: MaybeTranslation
 	nullSelectionText?: MaybeTranslation
 	disabled?: boolean
 	rightAlignDropdown?: boolean
@@ -200,9 +200,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	}
 
 	private renderHelpLabel(date: Date | null | undefined, nullSelectionText: MaybeTranslation | null): Children {
-		if (this.showingDropdown) {
-			return null
-		} else if (date != null) {
+		if (date != null) {
 			return [m("", formatDateWithWeekdayAndYear(date)), nullSelectionText ? m("", lang.getTranslationText(nullSelectionText)) : null]
 		} else {
 			return lang.getTranslationText(nullSelectionText ?? "emptyString_msg")
@@ -216,7 +214,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			".content-bg.z3.menu-shadow.plr.pb-s",
 			{
 				"aria-modal": "true",
-				"aria-label": lang.get(label),
+				"aria-label": lang.getTranslationText(label),
 				style: {
 					width: "240px",
 					right: rightAlignDropdown ? "0" : null,
