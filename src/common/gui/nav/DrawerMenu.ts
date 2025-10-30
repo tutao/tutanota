@@ -35,7 +35,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 		const userController = logins.getUserController()
 
 		return m(
-			"drawer-menu.flex.col.items-center.pt.pb.noprint",
+			"drawer-menu.flex.col.items-center.pt.pb.noprint.pb-safe-inset",
 			{
 				...landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
 				style: {

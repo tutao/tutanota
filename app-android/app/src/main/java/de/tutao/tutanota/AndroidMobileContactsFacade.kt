@@ -38,7 +38,6 @@ import de.tutao.tutashared.ipc.StructuredRelationship
 import de.tutao.tutashared.ipc.StructuredWebsite
 import de.tutao.tutashared.mapTo
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -345,7 +344,9 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 	): Boolean {
 		// isNullOrEmpty check is required since department field is a nullableString, comparing the empty string with
 		// null value would fail.
-		return (storedContact.department != serverContact.department && !storedContact.department.isNullOrEmpty())
+		val result =
+			(storedContact.department != serverContact.department && (!storedContact.department.isNullOrEmpty() && !serverContact.department.isNullOrEmpty()))
+		return result
 	}
 
 	private fun checkContactDetails(
@@ -515,6 +516,7 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 		// If the company wasn't added during contact creation, it's
 		// necessary to add and not just update it
 
+		//FIXME org is adding evrytime when we update one of the values.
 		if (storedContact.company == "") {
 			ops.add(
 				ContentProviderOperation.newInsert(CONTACT_DATA_URI)
@@ -891,7 +893,10 @@ class AndroidMobileContactsFacade(private val activity: MainActivity) : MobileCo
 					.withValue(ContactsContract.CommonDataKinds.Organization.DEPARTMENT, contact.department)
 					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
 					.withValue(ContactsContract.CommonDataKinds.Organization.TITLE, contact.role)
-					.withValue(RawContacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+					.withValue(
+						RawContacts.Data.MIMETYPE,
+						ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+					)
 					.withValue(
 						ContactsContract.CommonDataKinds.Organization.TYPE,
 						ContactsContract.CommonDataKinds.Organization.TYPE_WORK

@@ -18,16 +18,26 @@ export class FolderColumnView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		return m(".flex.height-100p.nav-bg", [
 			m(DrawerMenu, attrs.drawer),
-			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getTranslationText(attrs.ariaLabel)), [
-				this.renderMainButton(attrs),
-				m(".scroll.scrollbar-gutter-stable-or-fallback.visible-scrollbar.overflow-x-hidden.flex.col.flex-grow", attrs.content),
-			]),
+			m(
+				".folder-column.flex-grow.overflow-x-hidden.flex.col.pb-safe-inset",
+				landmarkAttrs(AriaLandmarks.Navigation, lang.getTranslationText(attrs.ariaLabel)),
+				[
+					this.renderMainButton(attrs),
+					m(".scroll.scrollbar-gutter-stable-or-fallback.visible-scrollbar.overflow-x-hidden.flex.col.flex-grow", attrs.content),
+				],
+			),
 		])
 	}
 
 	private renderMainButton(attrs: Attrs): Children {
 		if (attrs.button) {
-			return m(".plr-button-double.scrollbar-gutter-stable-or-fallback", m(MainCreateButton, { label: attrs.button.label, click: attrs.button.click }))
+			return m(
+				".plr-button-double.scrollbar-gutter-stable-or-fallback",
+				m(MainCreateButton, {
+					label: attrs.button.label,
+					click: attrs.button.click,
+				}),
+			)
 		} else {
 			return null
 		}
