@@ -16,9 +16,8 @@ import "@tensorflow/tfjs-backend-cpu"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
 import { createTestEntity } from "../../../../TestUtils"
-import { Header, MailDetails, MailTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
+import { MailTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { Sequential } from "@tensorflow/tfjs-layers"
-import { SpamClassificationHandler } from "../../../../../../src/mail-app/mail/model/SpamClassificationHandler"
 
 const { anything } = matchers
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
@@ -41,11 +40,6 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 		const cc = row[2]
 		const bcc = row[3]
 		const authStatus = row[4]
-		const fakeMailDetails = object() as MailDetails
-		const fakeHeaders = object() as Header
-		fakeHeaders.compressedHeaders = authStatus
-		fakeMailDetails.headers = fakeHeaders
-		const { dkim, dmarc, spf } = SpamClassificationHandler.extractAuthStatusFromHeader(fakeMailDetails)
 
 		let isSpam = label === "spam" ? true : label === "ham" ? false : null
 		isSpam = assertNotNull(isSpam, "Unknown label detected: " + label)
@@ -61,9 +55,7 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 			toRecipients: to,
 			ccRecipients: cc,
 			bccRecipients: bcc,
-			dkim,
-			dmarc,
-			spf,
+			authStatus: authStatus,
 		} as SpamTrainMailDatum)
 	}
 
@@ -120,9 +112,7 @@ o.spec("SpamClassifierTest", () => {
 			toRecipients: "",
 			ccRecipients: "",
 			bccRecipients: "",
-			spf: "",
-			dkim: "",
-			dmarc: "",
+			authStatus: "",
 		}
 		const layersModel = object<Sequential>()
 		spamClassifier.addSpamClassifierForOwner(spamTrainMailDatum.ownerGroup, layersModel, false)
@@ -147,9 +137,7 @@ o.spec("SpamClassifierTest", () => {
 			toRecipients: "string",
 			ccRecipients: "",
 			bccRecipients: "",
-			spf: "",
-			dkim: "",
-			dmarc: "",
+			authStatus: "",
 		}
 
 		const layersModel = object<Sequential>()
@@ -220,6 +208,11 @@ o.spec("SpamClassifierTest", () => {
 		const classifier = new SpamClassifier(object(), object(), object())
 		const mail = {
 			subject: `Sample Tokens and values`,
+			sender: "sender",
+			toRecipients: "toRecipients",
+			ccRecipients: "ccRecipients",
+			bccRecipients: "bccRecipients",
+			authStatus: "authStatus",
 			// prettier-ignore
 			body: `Hello, these are my MAC Address
 				FB-94-77-45-96-74
@@ -283,8 +276,8 @@ o.spec("SpamClassifierTest", () => {
 				Special Characters
 				!
 				@
-				Not Special Characters
-				]
+				Not Special Character
+				§
 				Number Sequences:
 				26098375
 				IBAN: DE91 1002 0370 0320 2239 82
@@ -307,84 +300,90 @@ this text is shown
 		} as SpamTrainMailDatum
 		const preprocessedMail = classifier.preprocessMail(mail)
 		// prettier-ignore
-		const expectedOutput = `Sample Tokens and values Hello <SPECIAL-CHAR>  these are my MAC Address
-\t\t\t\tFB <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> -D5 <SPECIAL-CHAR>  <NUMBER> -7C
-\t\t\t\tB4 <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER> -2A-DE-D4
+		const expectedOutput = `Sample Tokens and values
+Hello TSPECIALCHAR  these are my MAC Address
+\t\t\t\tFB TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR D5 TSPECIALCHAR  TNUMBER  TSPECIALCHAR 7C
+\t\t\t\tB4 TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR 2A TSPECIALCHAR DE TSPECIALCHAR D4
 \t\t\t\talong with my ISBNs
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER> -X
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR X
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER
 \t\t\t\tSSN
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
 \t\t\t\tSHAs
 \t\t\t\t585eab9b3a5e4430e08f5096d636d0d475a8c69dae21a61c6f1b26c4bd8dd8c1
 \t\t\t\t7233d153f2e0725d3d212d1f27f30258fafd72b286d07b3b1d94e7e3c35dce67
 \t\t\t\t769f65bf44557df44fc5f99c014cbe98894107c9d7be0801f37c55b3776c3990
 \t\t\t\tPhone Numbers
-\t\t\t\t <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>
-\t\t\t\t <SPECIAL-CHAR>  <NUMBER>   <NUMBER>   <NUMBER>   <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\tVIN  <SPECIAL-CHAR> Vehicle identification number <SPECIAL-CHAR>
+\t\t\t\t TSPECIALCHAR  TNUMBER  TSPECIALCHAR   TNUMBER
+\t\t\t\t TSPECIALCHAR  TNUMBER   TNUMBER   TNUMBER   TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\tVIN  TSPECIALCHAR Vehicle identification number TSPECIALCHAR
 \t\t\t\t3FADP4AJ3BM438397
 \t\t\t\tWAULT64B82N564937
 \t\t\t\tGUIDs
-\t\t\t\t781a9631 <SPECIAL-CHAR>  <NUMBER> -4f9c-bb36-25c3364b754b
-\t\t\t\t325783d4-a64e-453b-85e6-ed4b2cd4c9bf
+\t\t\t\t781a9631 TSPECIALCHAR  TNUMBER  TSPECIALCHAR 4f9c TSPECIALCHAR bb36 TSPECIALCHAR 25c3364b754b
+\t\t\t\t325783d4 TSPECIALCHAR a64e TSPECIALCHAR 453b TSPECIALCHAR 85e6 TSPECIALCHAR ed4b2cd4c9bf
 \t\t\t\tHex Colors
-\t\t\t\t <SPECIAL-CHAR> 2016c1
-\t\t\t\t <SPECIAL-CHAR> c090a4
-\t\t\t\t <SPECIAL-CHAR> c855f5
-\t\t\t\t <SPECIAL-CHAR>  <NUMBER>
+\t\t\t\t TSPECIALCHAR 2016c1
+\t\t\t\t TSPECIALCHAR c090a4
+\t\t\t\t TSPECIALCHAR c855f5
+\t\t\t\t TSPECIALCHAR  TNUMBER
 \t\t\t\tIPV4
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
-\t\t\t\tOn Date <SPECIAL-CHAR>
-\t\t\t\t <DATE>
-\t\t\t\t <DATE>
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
+\t\t\t\tOn Date TSPECIALCHAR
+\t\t\t\t TDATE
+\t\t\t\t TDATE
 \t\t\t\tNot Date
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>  <NUMBER>
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  TSPECIALCHAR  TNUMBER
 \t\t\t\tURL
-\t\t\t\t <URL-tuta.com>
-\t\t\t\t <URL-subdomain.microsoft.com>
+\t\t\t\t TURL tuta TSPECIALCHAR com
+\t\t\t\t TURL subdomain TSPECIALCHAR microsoft TSPECIALCHAR com
 \t\t\t\tNOT URL
-\t\t\t\t <URL-tuta>
+\t\t\t\t TURL tuta
 \t\t\t\tMAIL
-\t\t\t\t <EMAIL>
-\t\t\t\t <EMAIL>
+\t\t\t\t TEMAIL
+\t\t\t\t TEMAIL
 \t\t\t\tCredit Card
-\t\t\t\t <CREDIT-CARD>
-\t\t\t\t <CREDIT-CARD>
+\t\t\t\t TCREDITCARD
+\t\t\t\t TCREDITCARD
 \t\t\t\tNot Credit Card
-\t\t\t\t <NUMBER>   <NUMBER>
+\t\t\t\t TNUMBER   TNUMBER
 \t\t\t\tBit Coin Address
-\t\t\t\t <BITCOIN>
-\t\t\t\t <BITCOIN>
+\t\t\t\t TBITCOIN
+\t\t\t\t TBITCOIN
 \t\t\t\tNot BTC
 \t\t\t\t5213nYwhhGw2qpNijzfnKcbCG4z3hnrVA
 \t\t\t\t1OUm2eZK2ETeAo8v95WhZioQDy32YSerkD
 \t\t\t\tSpecial Characters
-\t\t\t\t <SPECIAL-CHAR>
-\t\t\t\t <SPECIAL-CHAR>
-\t\t\t\tNot Special Characters
-\t\t\t\t]
-\t\t\t\tNumber Sequences <SPECIAL-CHAR>
-\t\t\t\t <NUMBER>
-\t\t\t\tIBAN <SPECIAL-CHAR>  DE91  <CREDIT-CARD>  <NUMBER>
+\t\t\t\t TSPECIALCHAR
+\t\t\t\t TSPECIALCHAR
+\t\t\t\tNot Special Character
+\t\t\t\t§
+\t\t\t\tNumber Sequences TSPECIALCHAR
+\t\t\t\t TNUMBER
+\t\t\t\tIBAN TSPECIALCHAR  DE91  TCREDITCARD  TNUMBER
 \t\t\t\tNot Number Sequences
 \t\t\t\tSHLT116
-\t\t\t\tgb <SPECIAL-CHAR> 67ca4b
+\t\t\t\tgb TSPECIALCHAR 67ca4b
 \t\t\t\tOther values found in mails
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  €  <NUMBER>  m  <NUMBER>  Zi  <NUMBER>  <SPECIAL-CHAR>
-\t\t\t\tFax  <SPECIAL-CHAR>  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>   <NUMBER>   <NUMBER>   <NUMBER>
-\t\t\t\tAugust  <NUMBER>  <SPECIAL-CHAR>   <NUMBER>
-\t\t\t\t <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  PM  <SPECIAL-CHAR>   <NUMBER>  <SPECIAL-CHAR>  <NUMBER>  PM
-\t\t\t\tand all text on other lines it seems <SPECIAL-CHAR>
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  €  TNUMBER  m  TNUMBER  Zi  TNUMBER  TSPECIALCHAR
+\t\t\t\tFax  TSPECIALCHAR  TNUMBER  TSPECIALCHAR   TNUMBER   TNUMBER   TNUMBER   TNUMBER
+\t\t\t\tAugust  TNUMBER  TSPECIALCHAR   TNUMBER
+\t\t\t\t TNUMBER  TSPECIALCHAR  TNUMBER  PM  TSPECIALCHAR   TNUMBER  TSPECIALCHAR  TNUMBER  PM
+\t\t\t\tand all text on other lines it seems TSPECIALCHAR
  Button Text
-this text is shown`
+this text is shown
+sender
+toRecipients
+ccRecipients
+bccRecipients
+authStatus`
 		o.check(preprocessedMail).equals(expectedOutput)
 	})
 
@@ -419,9 +418,7 @@ this text is shown`
 			toRecipients: "string",
 			ccRecipients: "string",
 			bccRecipients: "string",
-			spf: "",
-			dkim: "",
-			dmarc: "",
+			authStatus: "",
 		}
 
 		const isSpamFirstMail = await spamClassifier.predict({

@@ -130,11 +130,11 @@ o.spec("PreprocessPatterns", () => {
 	o.spec("Url patterns", () => {
 		o.test("All recognized url patterns", async () => {
 			const urlsMap = new Map([
-				["https://tuta.com", "TURL-tuta.com"],
-				["https://microsoft.com/outlook/test", "TURL-microsoft.com"],
-				["https://subdomain.microsoft.com/outlook/test", "TURL-subdomain.microsoft.com"],
-				["https://subdomain.spam.com/this/is/not/cool/dsfalkfjd2309jlk234oi2k", "TURL-subdomain.spam.com"],
-				["https://subdomain.test.de/spam!", "TURL-subdomain.test.de"],
+				["https://tuta.com", "TURL tuta.com"],
+				["https://microsoft.com/outlook/test", "TURL microsoft.com"],
+				["https://subdomain.microsoft.com/outlook/test", "TURL subdomain.microsoft.com"],
+				["https://subdomain.spam.com/this/is/not/cool/dsfalkfjd2309jlk234oi2k", "TURL subdomain.spam.com"],
+				["https://subdomain.test.de/spam!", "TURL subdomain.test.de"],
 			])
 
 			for (const [domain, expectedToken] of urlsMap.entries()) {
@@ -330,7 +330,7 @@ o.spec("PreprocessPatterns", () => {
 		})
 
 		o.test("Not recognized special-character-like patterns", async () => {
-			const notSpecialChars = ["", "]"]
+			const notSpecialChars = ["§", "€"]
 
 			const notSpecialCharsText = notSpecialChars.join("\n")
 			let resultNotSpecialCharsText = notSpecialCharsText

@@ -58,9 +58,7 @@ export type SpamTrainMailDatum = {
 	toRecipients: string
 	ccRecipients: string
 	bccRecipients: string
-	spf: string
-	dkim: string
-	dmarc: string
+	authStatus: string
 }
 
 export type SpamPredMailDatum = {
@@ -71,9 +69,7 @@ export type SpamPredMailDatum = {
 	toRecipients: string
 	ccRecipients: string
 	bccRecipients: string
-	spf: string
-	dkim: string
-	dmarc: string
+	authStatus: string
 }
 
 const PREDICTION_THRESHOLD = 0.55
@@ -249,8 +245,8 @@ export class SpamClassifier {
 	}
 
 	private getHeaderFeatures(mail: SpamTrainMailDatum | SpamPredMailDatum): string {
-		const { sender, toRecipients, ccRecipients, bccRecipients, spf, dkim, dmarc } = mail
-		return `\n${sender}\n${toRecipients}\n${ccRecipients}\n${bccRecipients}\n${spf}\n${dkim}\n${dmarc}`.trim()
+		const { sender, toRecipients, ccRecipients, bccRecipients, authStatus } = mail
+		return `\n${sender}\n${toRecipients}\n${ccRecipients}\n${bccRecipients}\n${authStatus}`.trim()
 	}
 
 	public async initialTraining(mails: SpamTrainMailDatum[]): Promise<TrainingPerformance> {

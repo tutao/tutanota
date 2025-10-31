@@ -3,11 +3,12 @@ import {
 	DEFAULT_IS_SPAM,
 	DEFAULT_IS_SPAM_CONFIDENCE,
 	getSpamConfidence,
+	MailAuthenticationStatus,
 	MailSetKind,
 	ProcessingState,
 	SpamDecision,
 } from "../../../common/api/common/TutanotaConstants"
-import { mailAuthResults, SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
+import { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { assertNotNull, debounce, isNotNull, Nullable, ofClass } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
@@ -148,27 +149,11 @@ export class SpamClassificationHandler {
 	}
 
 	static extractSpamHeaderFeatures(mail: Mail, mailDetails: MailDetails) {
-		const sender = `${mail?.sender?.name} ${mail?.sender?.address}`
+		const sender = `${mail?.sender?.name || ""} ${mail?.sender?.address || ""}`
 		const { toRecipients, ccRecipients, bccRecipients } = this.extractRecipients(mailDetails)
-		const { spf, dkim, dmarc } = this.extractAuthStatusFromHeader(mailDetails)
+		const authStatus = this.convertAuthStatusToSpamCategorizationToken(mail.authStatus)
 
-		return { sender, toRecipients, ccRecipients, bccRecipients, spf, dkim, dmarc }
-	}
-
-	static extractAuthStatusFromHeader({ headers }: MailDetails) {
-		const result: mailAuthResults = { dkim: "", dmarc: "", spf: "" }
-		if (headers == null || headers.compressedHeaders == null) {
-			return result
-		} else {
-			const re = /(spf|dmarc|dkim)=(\w+)/g
-			let match
-			while ((match = re.exec(headers.compressedHeaders)) !== null) {
-				const authProperty = match[1] as "spf" | "dmarc" | "dkim"
-				const authStatusToken = `${authProperty}${match[2]}`
-				result[authProperty] = authStatusToken
-			}
-			return result
-		}
+		return { sender, toRecipients, ccRecipients, bccRecipients, authStatus }
 	}
 
 	static extractRecipients({ recipients }: MailDetails) {
@@ -181,5 +166,21 @@ export class SpamClassificationHandler {
 
 	static concatenateNameAddress(recipient: MailAddress) {
 		return `${recipient?.name} ${recipient?.address}`
+	}
+
+	static convertAuthStatusToSpamCategorizationToken(authStatus: string | null): string {
+		if (authStatus === MailAuthenticationStatus.AUTHENTICATED) {
+			return "TAUTHENTICATED"
+		} else if (authStatus === MailAuthenticationStatus.HARD_FAIL) {
+			return "THARDFAIL"
+		} else if (authStatus === MailAuthenticationStatus.SOFT_FAIL) {
+			return "TSOFTFAIL"
+		} else if (authStatus === MailAuthenticationStatus.INVALID_MAIL_FROM) {
+			return "TINVALIDMAILFROM"
+		} else if (authStatus === MailAuthenticationStatus.MISSING_MAIL_FROM) {
+			return "TMISSINGMAILFROM"
+		}
+
+		return ""
 	}
 }

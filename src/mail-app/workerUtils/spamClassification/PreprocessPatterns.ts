@@ -13,7 +13,7 @@ export const ML_DATE_TOKEN = " TDATE "
 
 export const ML_URL_REGEX = /(?:http|https|ftp|sftp):\/\/([\w.-]+)(?:\/[^\s]*)?/g
 
-export const ML_URL_TOKEN = " TURL-$1 "
+export const ML_URL_TOKEN = " TURL $1 "
 
 export const ML_EMAIL_ADDR_REGEX = /(?:mailto:)?[A-Za-z0-9_+\-.]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
 export const ML_EMAIL_ADDR_TOKEN = " TEMAIL "

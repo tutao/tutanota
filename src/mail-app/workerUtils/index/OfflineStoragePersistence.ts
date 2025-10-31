@@ -73,7 +73,7 @@ export const SpamClassificationDefinitions: Record<string, OfflineStorageTable> 
 			" ownerGroup TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, isSpam NUMBER, " +
 			"lastModified NUMBER NOT NULL, isSpamConfidence NUMBER NOT NULL, sender TEXT NOT NULL," +
 			"toRecipients TEXT NOT NULL, ccRecipients TEXT NOT NULL, bccRecipients TEXT NOT NULL," +
-			"spf TEXT NOT NULL, dkim TEXT NOT NULL, dmarc TEXT NOT NULL, PRIMARY KEY (listId, elementId))",
+			"authStatus TEXT NOT NULL, PRIMARY KEY (listId, elementId))",
 
 		purgedWithCache: true,
 	},
@@ -191,7 +191,7 @@ export class OfflineStoragePersistence {
 		const { query, params } = sql`
 			INSERT
 			OR REPLACE INTO spam_classification_training_data(listId, elementId, ownerGroup, subject, body, isSpam, 
-            lastModified, isSpamConfidence, sender, toRecipients, ccRecipients, bccRecipients, spf, dkim, dmarc)
+            lastModified, isSpamConfidence, sender, toRecipients, ccRecipients, bccRecipients, authStatus)
 				VALUES (
 			${listIdPart(spamTrainMailDatum.mailId)},
 			${elementIdPart(spamTrainMailDatum.mailId)},
@@ -205,9 +205,7 @@ export class OfflineStoragePersistence {
 			${spamTrainMailDatum.toRecipients},
 			${spamTrainMailDatum.ccRecipients},
 			${spamTrainMailDatum.bccRecipients},
-			${spamTrainMailDatum.spf},
-			${spamTrainMailDatum.dkim},
-			${spamTrainMailDatum.dmarc}
+			${spamTrainMailDatum.authStatus}
 			)`
 		await this.sqlCipherFacade.run(query, params)
 	}
@@ -270,9 +268,7 @@ export class OfflineStoragePersistence {
 											 toRecipients,
 											 ccRecipients,
 											 bccRecipients,
-											 spf,
-											 dkim,
-											 dmarc
+											 authStatus
 									  FROM spam_classification_training_data
 									  WHERE lastModified > ${cutoffTimestamp}
 										AND isSpamConfidence > 0
