@@ -179,30 +179,6 @@ o.spec("SpamClassifierTest", () => {
 		console.log(`==> Result when testing with mails in two steps (second step).`)
 		await testClassifier(spamClassifier, testSet)
 	})
-	// Reference normal
-	// --- Evaluation Metrics ---
-	// Accuracy:       96.21%
-	// Precision:      100.00%
-	// Recall:         81.13%
-	// F1 Score:       89.58%
-	//
-	// Confusion Matrix:
-	// {
-	//   Predicted_Spam: { True_Positive: 43, False_Positive: 0 },
-	//   Predicted_Ham: { False_Negative: 10, True_Negative: 211 }
-	// }
-
-	// By adding sender and recipient as they are ---
-	// Accuracy:       97.35%
-	// Precision:      97.92%
-	// Recall:         88.68%
-	// F1 Score:       93.07%
-	//
-	// Confusion Matrix:
-	// {
-	//   Predicted_Spam: { True_Positive: 47, False_Positive: 1 },
-	//   Predicted_Ham: { False_Negative: 6, True_Negative: 210 }
-	// }
 
 	o("preprocessMail outputs expected tokens for mail content", async () => {
 		const classifier = new SpamClassifier(object(), object(), object())
@@ -504,48 +480,6 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 				let retrainCount = 0
 				let predictedSpam = false
 				while (!predictedSpam && retrainCount++ <= 3) {
-					// await copiedClassifier.updateModel([{ ...sample, isSpam: false }])
-
-					/*
-    isSpamConfidence: 2
-                    [
-      3, 2, 1, 3, 1,
-      1, 3, 2, 1, 5
-    ] = 22
-    isSpamConfidence: 3
-    [
-      2, 5, 1, 2, 1,
-      1, 1, 2, 1, 2
-    ] = 18
-
-    isSpamConfidence: 4
-    [
-      1, 1, 1, 2, 5,
-      1, 1, 1, 1, 5
-    ] = 19
-    Retraining finished. Took: 477ms
-    Retraining finished. Took: 1259ms
-    predicted new mail to be with probability 0.46 spam
-    Retraining finished. Took: 560ms
-    Retraining finished. Took: 1273ms
-
-    isSpamConfidence: 8
-    Retraining finished. Took: 486ms
-    Retraining finished. Took: 2289ms
-    predicted new mail to be with probability 0.82 spam
-    Retraining finished. Took: 580ms
-    Retraining finished. Took: 2356ms
-    predicted new mail to be with probability 1.00 spam
-    Retraining finished. Took: 556ms
-    Retraining finished. Took: 2357ms
-    predicted new mail to be with probability 0.52 spam
-    [
-      1, 1, 1, 1, 1,
-      1, 1, 1, 1, 1
-    ]
-
-
-                     */
 					await copiedClassifier.updateModel("owner", [{ ...sample, isSpam: true, isSpamConfidence: 1 }])
 					predictedSpam = assertNotNull(await copiedClassifier.predict(sample))
 				}
