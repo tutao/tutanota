@@ -58,6 +58,9 @@ export type SpamTrainMailDatum = {
 	toRecipients: string
 	ccRecipients: string
 	bccRecipients: string
+	spf: string
+	dkim: string
+	dmarc: string
 }
 
 export type SpamPredMailDatum = {
@@ -68,6 +71,9 @@ export type SpamPredMailDatum = {
 	toRecipients: string
 	ccRecipients: string
 	bccRecipients: string
+	spf: string
+	dkim: string
+	dmarc: string
 }
 
 const PREDICTION_THRESHOLD = 0.55
@@ -96,6 +102,12 @@ export const DEFAULT_PREPROCESS_CONFIGURATION: PreprocessConfiguration = {
 	isReplaceNumbers: true,
 	isReplaceSpecialCharacters: true,
 	isRemoveSpaceBeforeNewLine: true,
+}
+
+export type mailAuthResults = {
+	dkim: string
+	spf: string
+	dmarc: string
 }
 
 const TRAINING_INTERVAL = 1000 * 60 * 10 // 10 minutes
@@ -231,10 +243,14 @@ export class SpamClassifier {
 			preprocessedMail = preprocessedMail.replaceAll(ML_SPACE_BEFORE_NEW_LINE_REGEX, ML_SPACE_BEFORE_NEW_LINE_TOKEN)
 		}
 
-		const { sender = "", toRecipients = "", ccRecipients = "", bccRecipients = "" } = mail
-		preprocessedMail = `${preprocessedMail}\n${sender}\n${toRecipients}\n${ccRecipients}\n${bccRecipients}`.trim()
+		preprocessedMail += this.getHeaderFeatures(mail)
 
 		return preprocessedMail
+	}
+
+	private getHeaderFeatures(mail: SpamTrainMailDatum | SpamPredMailDatum): string {
+		const { sender, toRecipients, ccRecipients, bccRecipients, spf, dkim, dmarc } = mail
+		return `\n${sender}\n${toRecipients}\n${ccRecipients}\n${bccRecipients}\n${spf}\n${dkim}\n${dmarc}`.trim()
 	}
 
 	public async initialTraining(mails: SpamTrainMailDatum[]): Promise<TrainingPerformance> {

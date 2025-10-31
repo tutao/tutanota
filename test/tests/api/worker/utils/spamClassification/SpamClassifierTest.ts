@@ -16,8 +16,9 @@ import "@tensorflow/tfjs-backend-cpu"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
 import { createTestEntity } from "../../../../TestUtils"
-import { MailTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
+import { Header, MailDetails, MailTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { Sequential } from "@tensorflow/tfjs-layers"
+import { SpamClassificationHandler } from "../../../../../../src/mail-app/mail/model/SpamClassificationHandler"
 
 const { anything } = matchers
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
@@ -39,6 +40,12 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 		const to = row[1]
 		const cc = row[2]
 		const bcc = row[3]
+		const authStatus = row[4]
+		const fakeMailDetails = object() as MailDetails
+		const fakeHeaders = object() as Header
+		fakeHeaders.compressedHeaders = authStatus
+		fakeMailDetails.headers = fakeHeaders
+		const { dkim, dmarc, spf } = SpamClassificationHandler.extractAuthStatusFromHeader(fakeMailDetails)
 
 		let isSpam = label === "spam" ? true : label === "ham" ? false : null
 		isSpam = assertNotNull(isSpam, "Unknown label detected: " + label)
@@ -54,6 +61,9 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 			toRecipients: to,
 			ccRecipients: cc,
 			bccRecipients: bcc,
+			dkim,
+			dmarc,
+			spf,
 		} as SpamTrainMailDatum)
 	}
 
@@ -110,6 +120,9 @@ o.spec("SpamClassifierTest", () => {
 			toRecipients: "",
 			ccRecipients: "",
 			bccRecipients: "",
+			spf: "",
+			dkim: "",
+			dmarc: "",
 		}
 		const layersModel = object<Sequential>()
 		spamClassifier.addSpamClassifierForOwner(spamTrainMailDatum.ownerGroup, layersModel, false)
@@ -134,6 +147,9 @@ o.spec("SpamClassifierTest", () => {
 			toRecipients: "string",
 			ccRecipients: "",
 			bccRecipients: "",
+			spf: "",
+			dkim: "",
+			dmarc: "",
 		}
 
 		const layersModel = object<Sequential>()
@@ -403,6 +419,9 @@ this text is shown`
 			toRecipients: "string",
 			ccRecipients: "string",
 			bccRecipients: "string",
+			spf: "",
+			dkim: "",
+			dmarc: "",
 		}
 
 		const isSpamFirstMail = await spamClassifier.predict({

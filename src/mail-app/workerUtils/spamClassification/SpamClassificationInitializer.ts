@@ -5,9 +5,11 @@ import {
 	MailBag,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
+	MailDetails,
 	MailFolder,
 	MailFolderTypeRef,
 	MailTypeRef,
+	Recipients,
 } from "../../../common/api/entities/tutanota/TypeRefs"
 import { getMailSetKind, getSpamConfidence, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { elementIdPart, isSameId, listIdPart, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
@@ -15,7 +17,8 @@ import { OfflineStoragePersistence } from "../index/OfflineStoragePersistence"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
-import { SpamTrainMailDatum } from "./SpamClassifier"
+import { mailAuthResults, SpamTrainMailDatum } from "./SpamClassifier"
+import { SpamClassificationHandler } from "../../mail/model/SpamClassificationHandler"
 
 const INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS = 28
 
@@ -96,13 +99,6 @@ export class SpamClassificationInitializer {
 	private mailWithDetailsToMailDatum(spamFolder: MailFolder, { mail, mailDetails }: MailWithMailDetails): SpamTrainMailDatum {
 		const isSpam = mail.sets.some((folderId) => isSameId(folderId, spamFolder._id))
 
-		const { recipients } = mailDetails
-		const concatenateNameAddress = (recipient: MailAddress) => `${recipient?.name} ${recipient?.address}`
-		const sender = `${mail.sender.name} ${mail.sender.address}`
-		const toRecipients = recipients?.toRecipients?.map(concatenateNameAddress).join(" ") || ""
-		const ccRecipients = recipients?.ccRecipients?.map(concatenateNameAddress).join(" ") || ""
-		const bccRecipients = recipients?.bccRecipients?.map(concatenateNameAddress).join(" ") || ""
-
 		return {
 			mailId: mail._id,
 			subject: mail.subject,
@@ -112,10 +108,7 @@ export class SpamClassificationInitializer {
 			listId: listIdPart(mail._id),
 			elementId: elementIdPart(mail._id),
 			ownerGroup: assertNotNull(mail._ownerGroup),
-			sender,
-			toRecipients,
-			ccRecipients,
-			bccRecipients,
+			...SpamClassificationHandler.extractSpamHeaderFeatures(mail, mailDetails),
 		} as SpamTrainMailDatum
 	}
 }

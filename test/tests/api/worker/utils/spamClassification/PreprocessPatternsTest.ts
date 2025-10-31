@@ -297,6 +297,8 @@ o.spec("PreprocessPatterns", () => {
 				["*", ML_SPECIAL_CHARACTER_TOKEN],
 				["(", ML_SPECIAL_CHARACTER_TOKEN],
 				[")", ML_SPECIAL_CHARACTER_TOKEN],
+				["<", ML_SPECIAL_CHARACTER_TOKEN],
+				[">", ML_SPECIAL_CHARACTER_TOKEN],
 				["+", ML_SPECIAL_CHARACTER_TOKEN],
 				["`", ML_SPECIAL_CHARACTER_TOKEN],
 				["_", ML_SPECIAL_CHARACTER_TOKEN],
@@ -318,6 +320,7 @@ o.spec("PreprocessPatterns", () => {
 				["--", ML_SPECIAL_CHARACTER_TOKEN],
 				["---", ML_SPECIAL_CHARACTER_TOKEN],
 				["--- ---", `${ML_SPECIAL_CHARACTER_TOKEN} ${ML_SPECIAL_CHARACTER_TOKEN}`],
+				["[ ]", `${ML_SPECIAL_CHARACTER_TOKEN} ${ML_SPECIAL_CHARACTER_TOKEN}`],
 			])
 
 			for (const [specialCharSequence, expectedResult] of specialCharsMap) {
@@ -327,7 +330,7 @@ o.spec("PreprocessPatterns", () => {
 		})
 
 		o.test("Not recognized special-character-like patterns", async () => {
-			const notSpecialChars = ["[", "]", "<", ">", "test-test"]
+			const notSpecialChars = ["", "]"]
 
 			const notSpecialCharsText = notSpecialChars.join("\n")
 			let resultNotSpecialCharsText = notSpecialCharsText

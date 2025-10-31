@@ -289,6 +289,7 @@ o.spec("MailModelTest", function () {
 			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(inboxFolder)
 			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
 			await processingDone
+			//TODO: Take a look at these and verify that the store calls are correct or if tests will be needed.
 			const expectedSpamTrainMailDatum: SpamTrainMailDatum = {
 				mailId: ["mailListId", "mailId"],
 				ownerGroup: "mailGroup",
@@ -300,6 +301,9 @@ o.spec("MailModelTest", function () {
 				toRecipients: "",
 				ccRecipients: "",
 				bccRecipients: "",
+				spf: "",
+				dkim: "",
+				dmarc: "",
 			}
 			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 0 })
@@ -329,6 +333,9 @@ o.spec("MailModelTest", function () {
 				toRecipients: "",
 				ccRecipients: "",
 				bccRecipients: "",
+				spf: "",
+				dkim: "",
+				dmarc: "",
 			}
 			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 1 })
@@ -364,6 +371,9 @@ o.spec("MailModelTest", function () {
 				toRecipients: "",
 				ccRecipients: "",
 				bccRecipients: "",
+				spf: "",
+				dkim: "",
+				dmarc: "",
 			}
 			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
 			verify(spamClassifier.predict(anything()), { times: 1 })

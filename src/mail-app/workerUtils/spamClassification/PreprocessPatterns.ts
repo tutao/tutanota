@@ -30,7 +30,7 @@ export const ML_NUMBER_SEQUENCE_REGEX = /\b\d+\b/g
 
 export const ML_NUMBER_SEQUENCE_TOKEN = " TNUMBER "
 
-export const ML_SPECIAL_CHARACTER_REGEX = /([!@#$%^&*()+`_=\\{}"':;?/,-<>.~]+)/g
+export const ML_SPECIAL_CHARACTER_REGEX = /([!@#$%^&*()[\]<>+`_=\\{}"':;?/,-.~]+)/g
 
 export const ML_SPECIAL_CHARACTER_TOKEN = " TSPECIALCHAR "
 

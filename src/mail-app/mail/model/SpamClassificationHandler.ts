@@ -7,7 +7,7 @@ import {
 	ProcessingState,
 	SpamDecision,
 } from "../../../common/api/common/TutanotaConstants"
-import type { SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
+import { mailAuthResults, SpamClassifier, SpamPredMailDatum, SpamTrainMailDatum } from "../../workerUtils/spamClassification/SpamClassifier"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { assertNotNull, debounce, isNotNull, Nullable, ofClass } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
@@ -75,7 +75,7 @@ export class SpamClassificationHandler {
 			subject: mail.subject,
 			body: getMailBodyText(mailDetails.body),
 			ownerGroup: assertNotNull(mail._ownerGroup),
-			...this.extractMailContactInformation(mail, mailDetails),
+			...SpamClassificationHandler.extractSpamHeaderFeatures(mail, mailDetails),
 		}
 		const isSpam = (await this.spamClassifier?.predict(spamPredMailDatum)) ?? null
 
@@ -142,19 +142,44 @@ export class SpamClassificationHandler {
 			isSpam: DEFAULT_IS_SPAM,
 			isSpamConfidence: DEFAULT_IS_SPAM_CONFIDENCE,
 			ownerGroup: assertNotNull(mail._ownerGroup),
-			...this.extractMailContactInformation(mail, mailDetails),
+			...SpamClassificationHandler.extractSpamHeaderFeatures(mail, mailDetails),
 		}
 		await this.spamClassifier?.storeSpamClassification(spamTrainMailDatum)
 	}
 
-	private extractMailContactInformation(mail: Mail, mailDetails: MailDetails) {
-		const { recipients } = mailDetails
-		const concatenateNameAddress = (recipient: MailAddress) => `${recipient?.name} ${recipient?.address}`
+	static extractSpamHeaderFeatures(mail: Mail, mailDetails: MailDetails) {
 		const sender = `${mail?.sender?.name} ${mail?.sender?.address}`
-		const toRecipients = recipients?.toRecipients?.map(concatenateNameAddress).join(" ") || ""
-		const ccRecipients = recipients?.ccRecipients?.map(concatenateNameAddress).join(" ") || ""
-		const bccRecipients = recipients?.bccRecipients?.map(concatenateNameAddress).join(" ") || ""
+		const { toRecipients, ccRecipients, bccRecipients } = this.extractRecipients(mailDetails)
+		const { spf, dkim, dmarc } = this.extractAuthStatusFromHeader(mailDetails)
 
-		return { sender, toRecipients, ccRecipients, bccRecipients }
+		return { sender, toRecipients, ccRecipients, bccRecipients, spf, dkim, dmarc }
+	}
+
+	static extractAuthStatusFromHeader({ headers }: MailDetails) {
+		const result: mailAuthResults = { dkim: "", dmarc: "", spf: "" }
+		if (headers == null || headers.compressedHeaders == null) {
+			return result
+		} else {
+			const re = /(spf|dmarc|dkim)=(\w+)/g
+			let match
+			while ((match = re.exec(headers.compressedHeaders)) !== null) {
+				const authProperty = match[1] as "spf" | "dmarc" | "dkim"
+				const authStatusToken = `${authProperty}${match[2]}`
+				result[authProperty] = authStatusToken
+			}
+			return result
+		}
+	}
+
+	static extractRecipients({ recipients }: MailDetails) {
+		const toRecipients = recipients?.toRecipients?.map(this.concatenateNameAddress).join(" ") || ""
+		const ccRecipients = recipients?.ccRecipients?.map(this.concatenateNameAddress).join(" ") || ""
+		const bccRecipients = recipients?.bccRecipients?.map(this.concatenateNameAddress).join(" ") || ""
+
+		return { toRecipients, ccRecipients, bccRecipients }
+	}
+
+	static concatenateNameAddress(recipient: MailAddress) {
+		return `${recipient?.name} ${recipient?.address}`
 	}
 }
