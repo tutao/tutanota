@@ -4,7 +4,6 @@ import { mock, Spy, spy, verify } from "@tutao/tutanota-test-utils"
 import { MailSetKind, OperationType, ProcessingState } from "../../../src/common/api/common/TutanotaConstants.js"
 import {
 	BodyTypeRef,
-	ClientSpamClassifierResultTypeRef,
 	Mail,
 	MailAddressTypeRef,
 	MailDetails,
@@ -24,17 +23,17 @@ import { UserController } from "../../../src/common/api/main/UserController.js"
 import { createTestEntity } from "../TestUtils.js"
 import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxDetail, MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
-import { getElementId, getListId } from "../../../src/common/api/common/utils/EntityUtils.js"
 import { MailModel } from "../../../src/mail-app/mail/model/MailModel.js"
 import { EventController } from "../../../src/common/api/main/EventController.js"
 import { MailFacade } from "../../../src/common/api/worker/facades/lazy/MailFacade.js"
 import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
 import { InboxRuleHandler } from "../../../src/mail-app/mail/model/InboxRuleHandler"
 import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
-import { SpamClassifier, SpamTrainMailDatum } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { WebsocketConnectivityModel } from "../../../src/common/misc/WebsocketConnectivityModel"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
-import { NotAuthorizedError, NotFoundError } from "../../../src/common/api/common/error/RestError"
+import { NotAuthorizedError } from "../../../src/common/api/common/error/RestError"
+import { ProcessInboxHandler } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
 
 const { anything } = matchers
 
@@ -82,39 +81,9 @@ o.spec("MailModelTest", function () {
 			mailFacade,
 			connectivityModel,
 			() => object(),
-			() => null,
 		)
 	})
 
-	o("doesn't send notification for another folder", async function () {
-		const mail = createTestEntity(MailTypeRef, { _id: ["mailBagListId", "mailId"], sets: [] })
-		restClient.addListInstances(mail)
-		await model.entityEventsReceived([
-			makeUpdate({
-				instanceListId: getListId(mail) as NonEmptyString,
-				instanceId: getElementId(mail),
-				operation: OperationType.CREATE,
-			}),
-		])
-		o(showSpy.invocations.length).equals(0)
-	})
-	o("doesn't send notification for move operation", async function () {
-		const mail = createTestEntity(MailTypeRef, { _id: ["mailBagListId", "mailId"], sets: [] })
-		restClient.addListInstances(mail)
-		await model.entityEventsReceived([
-			makeUpdate({
-				instanceListId: getListId(mail) as NonEmptyString,
-				instanceId: getElementId(mail),
-				operation: OperationType.DELETE,
-			}),
-			makeUpdate({
-				instanceListId: getListId(mail) as NonEmptyString,
-				instanceId: getElementId(mail),
-				operation: OperationType.CREATE,
-			}),
-		])
-		o(showSpy.invocations.length).equals(0)
-	})
 	o("markMails", async function () {
 		const mailId1: IdTuple = ["mailbag id1", "mail id1"]
 		const mailId2: IdTuple = ["mailbag id2", "mail id2"]
@@ -131,13 +100,13 @@ o.spec("MailModelTest", function () {
 		let modelWithSpamAndInboxRule: MailModel
 		let mail: Mail
 		let mailDetails: MailDetails
-
+		let processInboxHandler: ProcessInboxHandler = object<ProcessInboxHandler>()
 		o.beforeEach(async () => {
 			const entityClient = new EntityClient(restClient, ClientModelInfo.getNewInstanceForTestsOnly())
 			mailboxModel = instance(MailboxModel)
 			inboxRuleHandler = object<InboxRuleHandler>()
 			spamClassifier = object<SpamClassifier>()
-			spamClassificationHandler = new SpamClassificationHandler(mailFacade, spamClassifier)
+			spamClassificationHandler = new SpamClassificationHandler(spamClassifier)
 
 			mailDetails = createTestEntity(MailDetailsTypeRef, {
 				_id: "mailDetail",
@@ -159,6 +128,7 @@ o.spec("MailModelTest", function () {
 				sets: [inboxFolder._id],
 				sender: createTestEntity(MailAddressTypeRef, { name: "Sender", address: "sender@tuta.com" }),
 				processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
+				processNeeded: true,
 				authStatus: "0",
 			})
 			const mailDetailsBlob: MailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
@@ -180,8 +150,7 @@ o.spec("MailModelTest", function () {
 					logins,
 					mailFacade,
 					connectivityModel,
-					() => spamClassificationHandler,
-					() => inboxRuleHandler,
+					() => processInboxHandler,
 				),
 				(m: MailModel) => {
 					m.getFolderSystemByGroupId = (groupId) => {
@@ -193,162 +162,51 @@ o.spec("MailModelTest", function () {
 			)
 		})
 
-		o("does not re-apply inbox rules or re-classify mail if the mail is in a final processingState", async function () {
-			const alreadyClassifiedMail = createTestEntity(MailTypeRef, {
-				_id: ["mailListId", "maildIdWithFinalProcessingState"],
+		o("invokes ProcessInboxHandler if the mail is not processed", async function () {
+			const notProcessedMail = createTestEntity(MailTypeRef, {
+				_id: ["mailListId", "notProcessedMailId"],
 				_ownerGroup: "mailGroup",
 				mailDetails: ["detailsList", mailDetails._id],
 				sets: [inboxFolder._id],
-				processingState: ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_MADE,
-				clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef),
+				processNeeded: true,
 			})
-			restClient.addListInstances(alreadyClassifiedMail)
-			when(mailFacade.loadMailDetailsBlob(alreadyClassifiedMail)).thenResolve(mailDetails)
+			restClient.addListInstances(notProcessedMail)
+			when(mailFacade.loadMailDetailsBlob(notProcessedMail)).thenResolve(mailDetails)
 
 			const alreadyClassifiedMailCreateEvent = makeUpdate({
 				instanceListId: "mailListId",
-				instanceId: "maildIdWithFinalProcessingState",
+				instanceId: "notProcessedMailId",
 				operation: OperationType.CREATE,
 			})
 
-			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
-			await processingDone
+			await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
 
-			verify(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything()), { times: 0 })
-			verify(spamClassificationHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
-			verify(spamClassifier.storeSpamClassification(anything()), { times: 0 })
-			verify(spamClassifier.predict(anything()), { times: 0 })
+			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything()), { times: 1 })
 		})
 
-		o("don't classify mail if the mail is read and in INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING state", async function () {
-			const alreadyClassifiedMail = createTestEntity(MailTypeRef, {
-				_id: ["mailListId", "maildIdWithFinalProcessingState"],
+		o("does not invoke ProcessInboxHandler if the mail is already processed", async function () {
+			const alreadyProcessedMail = createTestEntity(MailTypeRef, {
+				_id: ["mailListId", "processedMailId"],
 				_ownerGroup: "mailGroup",
 				mailDetails: ["detailsList", mailDetails._id],
 				sets: [inboxFolder._id],
-				processingState: ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_PENDING,
-				clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef),
-				unread: false,
+				processNeeded: false,
 			})
-			restClient.addListInstances(alreadyClassifiedMail)
-			when(mailFacade.loadMailDetailsBlob(alreadyClassifiedMail)).thenResolve(mailDetails)
+			restClient.addListInstances(alreadyProcessedMail)
+			when(mailFacade.loadMailDetailsBlob(alreadyProcessedMail)).thenResolve(mailDetails)
 
 			const alreadyClassifiedMailCreateEvent = makeUpdate({
 				instanceListId: "mailListId",
-				instanceId: "mailIdDoNotRunPredictionState",
+				instanceId: "processedMailId",
 				operation: OperationType.CREATE,
 			})
 
-			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
-			await processingDone
+			await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
 
-			verify(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything()), { times: 0 })
-			verify(spamClassificationHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
-			verify(spamClassifier.storeSpamClassification(anything()), { times: 0 })
-			verify(spamClassifier.predict(anything()), { times: 0 })
+			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything()), { times: 0 })
 		})
 
-		o("don't classify mail if the mail is in INBOX_RULE_NOT_PROCESSED_AND_DO_NOT_RUN_SPAM_PREDICTION state", async function () {
-			const alreadyClassifiedMail = createTestEntity(MailTypeRef, {
-				_id: ["mailListId", "maildIdWithFinalProcessingState"],
-				_ownerGroup: "mailGroup",
-				mailDetails: ["detailsList", mailDetails._id],
-				sets: [inboxFolder._id],
-				processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED_AND_DO_NOT_RUN_SPAM_PREDICTION,
-				clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef),
-			})
-			restClient.addListInstances(alreadyClassifiedMail)
-			when(mailFacade.loadMailDetailsBlob(alreadyClassifiedMail)).thenResolve(mailDetails)
-
-			const alreadyClassifiedMailCreateEvent = makeUpdate({
-				instanceListId: "mailListId",
-				instanceId: "mailIdDoNotRunPredictionState",
-				operation: OperationType.CREATE,
-			})
-
-			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
-			await processingDone
-
-			verify(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything()), { times: 0 })
-			verify(spamClassificationHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
-			verify(spamClassifier.storeSpamClassification(anything()), { times: 0 })
-			verify(spamClassifier.predict(anything()), { times: 0 })
-		})
-
-		o("does not try to apply inbox rule when downloading of mail fails on create mail event", async function () {
-			restClient.setListElementException(mail._id, new NotFoundError("Mail not found"))
-
-			const mailCreateEvent = makeUpdate({
-				instanceListId: getListId(mail) as NonEmptyString,
-				instanceId: getElementId(mail),
-				operation: OperationType.CREATE,
-			})
-			await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
-
-			verify(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything()), { times: 0 })
-		})
-
-		o("spam prediction does not happen when inbox rule is applied", async () => {
-			when(spamClassifier.predict(anything())).thenResolve(false)
-
-			const mailCreateEvent = makeUpdate({
-				instanceListId: "mailListId",
-				instanceId: "mailId",
-				operation: OperationType.CREATE,
-			})
-
-			// when inbox rule is applied
-			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(inboxFolder)
-			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
-			await processingDone
-			const expectedSpamTrainMailDatum: SpamTrainMailDatum = {
-				mailId: ["mailListId", "mailId"],
-				ownerGroup: "mailGroup",
-				body: "some text",
-				subject: "subject",
-				isSpam: false,
-				isSpamConfidence: 1,
-				sender: "Sender sender@tuta.com",
-				toRecipients: "Recipient recipient@tuta.com",
-				ccRecipients: "",
-				bccRecipients: "",
-				authStatus: "TAUTHENTICATED",
-			}
-			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
-			verify(spamClassifier.predict(anything()), { times: 0 })
-		})
-
-		o("spam prediction happens when inbox rule is not applied", async () => {
-			when(spamClassifier.predict(anything())).thenResolve(false)
-
-			const mailCreateEvent = makeUpdate({
-				instanceListId: "mailListId",
-				instanceId: "mailId",
-				operation: OperationType.CREATE,
-			})
-
-			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(null)
-			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
-			await processingDone
-
-			const expectedSpamTrainMailDatum: SpamTrainMailDatum = {
-				mailId: ["mailListId", "mailId"],
-				ownerGroup: "mailGroup",
-				body: "some text",
-				subject: "subject",
-				isSpam: false,
-				isSpamConfidence: 1,
-				sender: "Sender sender@tuta.com",
-				toRecipients: "Recipient recipient@tuta.com",
-				ccRecipients: "",
-				bccRecipients: "",
-				authStatus: "TAUTHENTICATED",
-			}
-			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
-			verify(spamClassifier.predict(anything()), { times: 1 })
-		})
-
-		o("does not try to do spam classification when downloading of mail fails on create mail event", async function () {
+		o("does not invoke ProcessInboxHandler when downloading of mail fails on create mail event", async function () {
 			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(null)
 			const mailCreateEvent = makeUpdate({
 				instanceListId: "mailListId",
@@ -358,42 +216,8 @@ o.spec("MailModelTest", function () {
 
 			// mail not being there
 			restClient.setListElementException(mail._id, new NotAuthorizedError("blah"))
-			const { processingDone: inboxRuleProcessedMailNotThere } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
-			await inboxRuleProcessedMailNotThere
-			verify(spamClassifier.storeSpamClassification(anything()), { times: 0 })
-			verify(spamClassifier.predict(anything()), { times: 0 })
-
-			// mail being there
-			restClient.addListInstances(mail)
-			const { processingDone: inboxRuleProcessedMailIsThere } = await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
-			await inboxRuleProcessedMailIsThere
-			const expectedSpamTrainMailDatum: SpamTrainMailDatum = {
-				mailId: ["mailListId", "mailId"],
-				ownerGroup: "mailGroup",
-				body: "some text",
-				subject: "subject",
-				isSpam: false,
-				isSpamConfidence: 1,
-				sender: "Sender sender@tuta.com",
-				toRecipients: "Recipient recipient@tuta.com",
-				ccRecipients: "",
-				bccRecipients: "",
-				authStatus: "TAUTHENTICATED",
-			}
-			verify(spamClassifier.storeSpamClassification(expectedSpamTrainMailDatum), { times: 1 })
-			verify(spamClassifier.predict(anything()), { times: 1 })
-		})
-
-		o("deletes a training datum for deleted mail event", async () => {
-			const mailDeleteEvent = makeUpdate({
-				instanceListId: "mailListId",
-				instanceId: "mailId",
-				operation: OperationType.DELETE,
-			})
-			const { processingDone } = await modelWithSpamAndInboxRule.entityEventsReceived([mailDeleteEvent])
-			await processingDone
-
-			verify(spamClassifier.deleteSpamClassification(mail._id), { times: 1 })
+			await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
+			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything()), { times: 0 })
 		})
 	})
 

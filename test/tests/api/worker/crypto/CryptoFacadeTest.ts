@@ -575,7 +575,10 @@ o.spec("CryptoFacadeTest", function () {
 				senderIdentityKeyPair.publicKey,
 				senderKeyVersion,
 			),
-		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
+		).thenResolve({
+			authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+			verificationState: PresentableKeyVerificationState.SECURE,
+		})
 
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mail))
 
@@ -611,7 +614,10 @@ o.spec("CryptoFacadeTest", function () {
 				testData.senderIdentityKeyPair.publicKey,
 				anything(),
 			),
-		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
+		).thenResolve({
+			authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+			verificationState: PresentableKeyVerificationState.SECURE,
+		})
 
 		await crypto.enforceSessionKeyUpdateIfNeeded(testData.mail, files)
 		verify(ownerEncSessionKeysUpdateQueue.postUpdateSessionKeysService(anything()), { times: 1 })
@@ -959,7 +965,10 @@ o.spec("CryptoFacadeTest", function () {
 				testData.senderIdentityKeyPair.publicKey,
 				parseKeyVersion(senderKeyVersion),
 			),
-		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
+		).thenResolve({
+			authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+			verificationState: PresentableKeyVerificationState.SECURE,
+		})
 
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
@@ -992,7 +1001,10 @@ o.spec("CryptoFacadeTest", function () {
 				testData.senderIdentityKeyPair.publicKey,
 				parseKeyVersion(senderKeyVersion),
 			),
-		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
+		).thenResolve({
+			authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+			verificationState: PresentableKeyVerificationState.SECURE,
+		})
 
 		const sessionKey: AesKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
@@ -1026,7 +1038,10 @@ o.spec("CryptoFacadeTest", function () {
 				testData.senderIdentityKeyPair.publicKey,
 				parseKeyVersion(senderKeyVersion),
 			),
-		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED, verificationState: PresentableKeyVerificationState.ALERT })
+		).thenResolve({
+			authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
+			verificationState: PresentableKeyVerificationState.ALERT,
+		})
 
 		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
@@ -1255,7 +1270,10 @@ o.spec("CryptoFacadeTest", function () {
 				anything(),
 				anything(),
 			),
-		).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
+		).thenResolve({
+			authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+			verificationState: PresentableKeyVerificationState.SECURE,
+		})
 
 		const sessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 
@@ -1278,7 +1296,10 @@ o.spec("CryptoFacadeTest", function () {
 					anything(),
 					anything(),
 				),
-			).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
+			).thenResolve({
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+				verificationState: PresentableKeyVerificationState.SECURE,
+			})
 
 			// do not use testdouble here because it's hard to not break the function itself and then verify invocations
 			const decryptAndMapToInstance = (instancePipeline.cryptoMapper.decryptParsedInstance = spy(instancePipeline.cryptoMapper.decryptParsedInstance))
@@ -1307,7 +1328,10 @@ o.spec("CryptoFacadeTest", function () {
 					anything(),
 					anything(),
 				),
-			).thenResolve({ authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED, verificationState: PresentableKeyVerificationState.SECURE })
+			).thenResolve({
+				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED,
+				verificationState: PresentableKeyVerificationState.SECURE,
+			})
 
 			const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.mail))
 			const bucketKey = assertNotNull(testData.mail.bucketKey)
@@ -1857,6 +1881,7 @@ o.spec("CryptoFacadeTest", function () {
 			keyVerificationState: null,
 			processingState: ProcessingState.INBOX_RULE_APPLIED,
 			clientSpamClassifierResult: null,
+			processNeeded: false,
 		})
 
 		// casting here is fine, since we just want to mimic server response data

@@ -1,6 +1,13 @@
 import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { stringToHashBucketFast, tensor1d } from "./tensorflow-custom"
 
+/**
+ * We pick a max word frequency of 2^5 so that we can compress it together
+ * with the index (which is 2^11 =2048) into two bytes
+ */
+export const MAX_WORD_FREQUENCY = 31
+export const DEFAULT_VECTOR_MAX_LENGTH = 2048
+
 export class HashingVectorizer {
 	private readonly hasher: (tokens: Array<string>) => Promise<Array<number>> = this.tensorHash
 
@@ -11,7 +18,9 @@ export class HashingVectorizer {
 
 		const indexes = await this.hasher(downcast<Array<string>>(tokens))
 		for (const index of indexes) {
-			vector[index] += 1
+			if (vector[index] < MAX_WORD_FREQUENCY) {
+				vector[index] += 1
+			}
 		}
 
 		return vector

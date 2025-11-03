@@ -93,7 +93,7 @@ export interface WorkerInterface {
 	readonly bulkMailLoader: BulkMailLoader
 	readonly applicationTypesFacade: ApplicationTypesFacade
 	readonly identityKeyCreator: IdentityKeyCreator
-	readonly spamClassifier: SpamClassifier | null
+	readonly spamClassifier: SpamClassifier
 	readonly autosaveFacade: AutosaveFacade
 }
 

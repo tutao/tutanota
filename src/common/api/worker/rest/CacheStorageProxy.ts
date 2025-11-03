@@ -5,6 +5,7 @@ import { Nullable, TypeRef } from "@tutao/tutanota-utils"
 import { OfflineStorage, OfflineStorageInitArgs } from "../offline/OfflineStorage.js"
 import { EphemeralCacheStorage, EphemeralStorageInitArgs } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
+import { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
 export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
 	type: "ephemeral"
@@ -185,12 +186,12 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.putLastUpdateTime(value)
 	}
 
-	setLastTrainedTime(value: number): Promise<void> {
-		return this.inner.setLastTrainedTime(value)
+	setLastTrainingDataIndexId(id: Id): Promise<void> {
+		return this.inner.setLastTrainingDataIndexId(id)
 	}
 
-	getLastTrainedTime(): Promise<number> {
-		return this.inner.getLastTrainedTime()
+	getLastTrainingDataIndexId(): Promise<Id> {
+		return this.inner.getLastTrainingDataIndexId()
 	}
 
 	setLastTrainedFromScratchTime(ms: number): Promise<void> {
@@ -199,6 +200,14 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	getLastTrainedFromScratchTime(): Promise<number> {
 		return this.inner.getLastTrainedFromScratchTime() ?? Date.now()
+	}
+
+	setSpamClassificationModel(model: SpamClassificationModel): Promise<void> {
+		return this.inner.setSpamClassificationModel(model)
+	}
+
+	getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>> {
+		return this.inner.getSpamClassificationModel(ownerGroup)
 	}
 
 	setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {

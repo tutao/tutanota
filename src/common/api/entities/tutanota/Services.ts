@@ -37,6 +37,7 @@ import { MoveMailDataTypeRef } from "./TypeRefs.js"
 import { MoveMailPostOutTypeRef } from "./TypeRefs.js"
 import { NewsOutTypeRef } from "./TypeRefs.js"
 import { NewsInTypeRef } from "./TypeRefs.js"
+import { ProcessInboxPostInTypeRef } from "./TypeRefs.js"
 import { ReceiveInfoServiceDataTypeRef } from "./TypeRefs.js"
 import { ReceiveInfoServicePostOutTypeRef } from "./TypeRefs.js"
 import { ReportMailPostDataTypeRef } from "./TypeRefs.js"
@@ -227,6 +228,15 @@ export const NewsService = Object.freeze({
 	name: "NewsService",
 	get: { data: null, return: NewsOutTypeRef },
 	post: { data: NewsInTypeRef, return: null },
+	put: null,
+	delete: null,
+} as const)
+
+export const ProcessInboxService = Object.freeze({
+	app: "tutanota",
+	name: "ProcessInboxService",
+	get: null,
+	post: { data: ProcessInboxPostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)

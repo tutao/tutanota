@@ -9,6 +9,7 @@ import {
 	MailService,
 	ManageLabelService,
 	MoveMailService,
+	ProcessInboxService,
 	ReportMailService,
 	ResolveConversationsService,
 	SendDraftService,
@@ -60,6 +61,8 @@ import {
 	createManageLabelServicePostIn,
 	createMoveMailData,
 	createNewDraftAttachment,
+	createProcessInboxDatum,
+	createProcessInboxPostIn,
 	createReportMailPostData,
 	createResolveConversationsServiceGetIn,
 	createSecureExternalRecipientKeyData,
@@ -81,6 +84,7 @@ import {
 	MailFolder,
 	MailTypeRef,
 	MovedMails,
+	ProcessInboxDatum,
 	ReportedMailFieldMarker,
 	SendDraftData,
 	SymEncInternalRecipientKeyData,
@@ -132,6 +136,7 @@ import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
 import {
 	Aes128Key,
 	aes256RandomKey,
+	aesEncrypt,
 	AesKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
@@ -162,6 +167,7 @@ import { Entity } from "../../../common/EntityTypes"
 import { KeyVerificationMismatchError } from "../../../common/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "./KeyVerificationFacade"
 import { ClientClassifierType } from "../../../common/ClientClassifierType"
+import { UnencryptedProcessInboxDatum } from "../../../../../mail-app/mail/model/ProcessInboxHandler"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<TutanotaFile | DataFile | FileReference>
@@ -1209,6 +1215,43 @@ export class MailFacade {
 					createClientClassifierResultPostIn({
 						mails,
 						isPredictionMade: isPredictionMade,
+					}),
+				),
+			{ concurrency: 5 },
+		)
+	}
+
+	private async encryptUnencryptedProcessInboxData(mailGroupId: Id, mails: readonly UnencryptedProcessInboxDatum[]): Promise<ProcessInboxDatum[]> {
+		const processInboxData: ProcessInboxDatum[] = []
+		for (const mail of mails) {
+			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
+			const sk = aes256RandomKey()
+			const ownerEncSessionKey = _encryptKeyWithVersionedKey(mailGroupKey, sk)
+			const { targetMoveFolder, byInboxRule, mailId } = mail
+			processInboxData.push(
+				createProcessInboxDatum({
+					ownerEncSessionKey: ownerEncSessionKey.key,
+					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+					sessionKeyEncVector: aesEncrypt(sk, mail.vector),
+					byInboxRule,
+					mailId,
+					targetMoveFolder,
+				}),
+			)
+		}
+		return processInboxData
+	}
+
+	async processNewMails(mailGroupId: Id, mails: readonly UnencryptedProcessInboxDatum[]) {
+		const processInboxData = await this.encryptUnencryptedProcessInboxData(mailGroupId, mails)
+		await promiseMap(
+			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, processInboxData),
+			async (inboxData) =>
+				this.serviceExecutor.post(
+					ProcessInboxService,
+					createProcessInboxPostIn({
+						mailOwnerGroup: mailGroupId,
+						processInboxDatum: inboxData,
 					}),
 				),
 			{ concurrency: 5 },

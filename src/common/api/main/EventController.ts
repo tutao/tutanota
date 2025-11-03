@@ -45,9 +45,13 @@ export class EventController {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
 			await this.logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
 		}
-		// sequentially to prevent parallel loading of instances
 		for (const listener of this.entityListeners) {
-			await listener(entityUpdates, eventOwnerGroupId)
+			// run listeners async to speed up processing
+			// we ran it sequentially before to prevent parallel loading of instances
+			// this should not be a problem anymore as we prefetch now
+
+			// noinspection ES6MissingAwait
+			listener(entityUpdates, eventOwnerGroupId)
 		}
 	}
 

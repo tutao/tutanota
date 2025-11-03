@@ -1,7 +1,7 @@
 import { BlobElementEntity, Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeModel } from "../../common/EntityTypes.js"
-import { customIdToBase64Url, ensureBase64Ext, firstBiggerThanSecond } from "../../common/utils/EntityUtils.js"
+import { customIdToBase64Url, ensureBase64Ext, firstBiggerThanSecond, GENERATED_MIN_ID } from "../../common/utils/EntityUtils.js"
 import { CacheStorage, LastUpdateTime } from "./DefaultEntityRestCache.js"
-import { assertNotNull, clone, filterNull, getFromMap, getTypeString, Nullable, parseTypeString, remove, TypeRef } from "@tutao/tutanota-utils"
+import { assertNotNull, clone, filterNull, getFromMap, getTypeString, newPromise, Nullable, parseTypeString, remove, TypeRef } from "@tutao/tutanota-utils"
 import { CustomCacheHandlerMap } from "./cacheHandler/CustomCacheHandler.js"
 import { Type as TypeId } from "../../common/EntityConstants.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
@@ -10,6 +10,7 @@ import { ModelMapper } from "../crypto/ModelMapper"
 import { ServerTypeModelResolver } from "../../common/EntityFunctions"
 import { expandId } from "./RestClientIdUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
+import { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
 /** Cache for a single list. */
 type ListCache = {
@@ -41,8 +42,9 @@ export class EphemeralCacheStorage implements CacheStorage {
 	private readonly entities: Map<string, Map<Id, ServerModelParsedInstance>> = new Map()
 	private readonly lists: Map<string, ListTypeCache> = new Map()
 	private readonly blobEntities: Map<string, BlobElementTypeCache> = new Map()
+	private readonly spamClassificationModelCache: Map<Id, SpamClassificationModel> = new Map()
 	private lastUpdateTime: number | null = null
-	private lastTrainedTime: number | null = null
+	private lastTrainingDataId: Id = GENERATED_MIN_ID
 	private lastTrainedFromScratchTime: number | null = null
 	private userId: Id | null = null
 	private lastBatchIdPerGroup = new Map<Id, Id>()
@@ -419,12 +421,12 @@ export class EphemeralCacheStorage implements CacheStorage {
 		this.lastUpdateTime = value
 	}
 
-	async getLastTrainedTime(): Promise<number> {
-		return this.lastTrainedTime ?? 0
+	async getLastTrainingDataIndexId(): Promise<Id> {
+		return this.lastTrainingDataId
 	}
 
-	async setLastTrainedTime(value: number): Promise<void> {
-		this.lastTrainedTime = value
+	async setLastTrainingDataIndexId(id: Id): Promise<void> {
+		this.lastTrainingDataId = id
 	}
 
 	async getLastTrainedFromScratchTime(): Promise<number> {
@@ -433,6 +435,14 @@ export class EphemeralCacheStorage implements CacheStorage {
 
 	async setLastTrainedFromScratchTime(ms: number): Promise<void> {
 		this.lastTrainedFromScratchTime = ms
+	}
+
+	async setSpamClassificationModel(model: SpamClassificationModel): Promise<void> {
+		this.spamClassificationModelCache.set(model.ownerGroup, model)
+	}
+
+	async getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>> {
+		return this.spamClassificationModelCache.get(ownerGroup) ?? null
 	}
 
 	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {

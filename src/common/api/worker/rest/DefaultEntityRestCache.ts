@@ -25,7 +25,14 @@ import {
 	UserGroupRootTypeRef,
 } from "../../entities/sys/TypeRefs.js"
 import { ValueType } from "../../common/EntityConstants.js"
-import { CalendarEventUidIndexTypeRef, MailDetailsBlobTypeRef, MailSetEntryTypeRef, MailTypeRef } from "../../entities/tutanota/TypeRefs.js"
+import {
+	CalendarEventUidIndexTypeRef,
+	ClientSpamTrainingDatumIndexEntryTypeRef,
+	ClientSpamTrainingDatumTypeRef,
+	MailDetailsBlobTypeRef,
+	MailSetEntryTypeRef,
+	MailTypeRef,
+} from "../../entities/tutanota/TypeRefs.js"
 import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
@@ -48,6 +55,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { collapseId, expandId } from "./RestClientIdUtils"
 import { PatchMerger } from "../offline/PatchMerger"
 import { hasError, isExpectedErrorForSynchronization } from "../../common/utils/ErrorUtils"
+import { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
 assertWorkerOrNode()
 
@@ -74,6 +82,8 @@ const IGNORED_TYPES = [
 	UserGroupRootTypeRef,
 	UserGroupKeyDistributionTypeRef,
 	AuditLogEntryTypeRef, // Should not be part of cached data because there are errors inside entity event processing after rotating the admin group key
+	ClientSpamTrainingDatumTypeRef,
+	ClientSpamTrainingDatumIndexEntryTypeRef,
 ] as const
 
 /**
@@ -253,13 +263,17 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	putLastUpdateTime(value: number): Promise<void>
 
-	getLastTrainedTime(): Promise<number>
+	getLastTrainingDataIndexId(): Promise<Id>
 
-	setLastTrainedTime(value: number): Promise<void>
+	setLastTrainingDataIndexId(id: Id): Promise<void>
 
 	getLastTrainedFromScratchTime(): Promise<number>
 
 	setLastTrainedFromScratchTime(value: number): Promise<void>
+
+	getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>>
+
+	setSpamClassificationModel(model: SpamClassificationModel): Promise<void>
 
 	getUserId(): Id
 
