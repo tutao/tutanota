@@ -1,56 +1,14 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { px, size } from "../gui/size"
-import { TextField } from "../gui/base/TextField"
-import { modal } from "../gui/base/Modal"
-import { isKeyPressed, Shortcut } from "./KeyManager"
+import { px, size } from "../../gui/size"
+import { TextField } from "../../gui/base/TextField"
+import { modal } from "../../gui/base/Modal"
+import { isKeyPressed, Shortcut } from "../KeyManager"
 import { lastIndex } from "@tutao/tutanota-utils"
-import { Keys } from "../api/common/TutanotaConstants"
-import { highlightTextInQueryAsChildren } from "../gui/TextHighlightViewUtils"
-import { theme } from "../gui/theme"
-import { boxShadowHigh } from "../gui/main-styles"
-
-export interface QuickAction {
-	readonly description: string
-	readonly exec: () => unknown
-}
-
-type LazyActionProvider = () => Promise<readonly QuickAction[]>
-
-export class QuickActionsModel {
-	private readonly _lastRunActions: QuickAction[] = []
-	private actions: readonly QuickAction[] = []
-	private readonly providers: LazyActionProvider[] = []
-
-	register(actionProvider: LazyActionProvider) {
-		this.providers.push(actionProvider)
-	}
-
-	async updateActions(): Promise<void> {
-		const result: QuickAction[] = []
-		for (const actionProvider of this.providers) {
-			const actions = await actionProvider()
-			result.push(...actions)
-		}
-		this.actions = result
-	}
-
-	runAction(action: QuickAction) {
-		// the action would get duplicated, need to figure out a good solution
-		// and we did not de-duplicate the whole list, so options would show up multiple times
-		// remove(this._lastRunActions, action)
-		// this._lastRunActions.unshift(action)
-		action.exec()
-	}
-
-	lastActions(): readonly QuickAction[] {
-		return this._lastRunActions
-	}
-
-	getMatchingActions(query: string): readonly QuickAction[] {
-		const lowerQuery = query.toLowerCase()
-		return this.actions.filter((pr) => pr.description.toLowerCase().includes(lowerQuery))
-	}
-}
+import { Keys } from "../../api/common/TutanotaConstants"
+import { highlightTextInQueryAsChildren } from "../../gui/TextHighlightViewUtils"
+import { theme } from "../../gui/theme"
+import { boxShadowHigh } from "../../gui/main-styles"
+import { QuickAction, QuickActionsModel } from "./QuickActionsModel"
 
 interface Attrs {
 	runAction: (action: QuickAction) => unknown
@@ -185,7 +143,7 @@ export function showQuickActionBar(model: QuickActionsModel) {
 			return m(QuickActionBar, {
 				getInitialActions: async () => {
 					await model.updateActions()
-					return model.lastActions().concat(model.getMatchingActions(""))
+					return model.initialActions()
 				},
 				getMatchingActions: (query) => model.getMatchingActions(query),
 				runAction: (action) => model.runAction(action),

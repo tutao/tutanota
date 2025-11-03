@@ -1,10 +1,10 @@
 import { EntityClient } from "../../common/api/common/EntityClient"
 import { ContactModel } from "../../common/contactsFunctionality/ContactModel"
-import { QuickAction } from "../../common/misc/QuickActionBar"
 import { lang } from "../../common/misc/LanguageViewModel"
 import { Router } from "../../common/gui/ScopedRouter"
 import { ContactEditor } from "./ContactEditor"
 import { CONTACTS_PREFIX } from "../../common/misc/RouteChange"
+import { QuickAction } from "../../common/misc/quickactions/QuickActionsModel"
 
 export async function quickContactsActions(contactModel: ContactModel, router: Router, entityClient: EntityClient): Promise<readonly QuickAction[]> {
 	const newContactAction: QuickAction = {

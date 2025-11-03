@@ -2,8 +2,9 @@ import { keyManager } from "./KeyManager.js"
 import { FeatureType, Keys } from "../api/common/TutanotaConstants.js"
 import m from "mithril"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, LogoutUrl, MAIL_PREFIX, SETTINGS_PREFIX } from "./RouteChange.js"
-import { QuickActionsModel, showQuickActionBar } from "./QuickActionBar"
+import { showQuickActionBar } from "./quickactions/QuickActionBar"
 import { LoginController } from "../api/main/LoginController"
+import { QuickActionsModel } from "./quickactions/QuickActionsModel"
 
 export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsModel: () => Promise<QuickActionsModel>; logins: LoginController }) {
 	keyManager.registerShortcuts([

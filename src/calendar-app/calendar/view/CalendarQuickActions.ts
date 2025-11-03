@@ -1,6 +1,5 @@
 import { Router } from "../../../common/gui/ScopedRouter"
 import { type MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
-import { QuickAction } from "../../../common/misc/QuickActionBar"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { CalendarEventModel, CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel"
 import { CALENDAR_PREFIX } from "../../../common/misc/RouteChange"
@@ -13,6 +12,7 @@ import { type CalendarProperties, showCreateEditCalendarDialog } from "../gui/Ed
 import { CalendarType } from "../../../common/calendar/date/CalendarUtils"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { CalendarEvent, Mail, MailboxProperties } from "../../../common/api/entities/tutanota/TypeRefs"
+import { QuickAction } from "../../../common/misc/quickactions/QuickActionsModel"
 
 export async function quickCalendarActions(
 	router: Router,
