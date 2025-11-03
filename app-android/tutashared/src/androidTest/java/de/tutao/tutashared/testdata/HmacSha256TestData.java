@@ -1,4 +1,4 @@
-package de.tutao.calendar.testdata;
+package de.tutao.tutashared.testdata;
 
 public class HmacSha256TestData {
 	String keyHex;
@@ -37,4 +37,5 @@ public class HmacSha256TestData {
 	public void setHmacSha256TagHex(String hmacSha256TagHex) {
 		this.hmacSha256TagHex = hmacSha256TagHex;
 	}
+
 }

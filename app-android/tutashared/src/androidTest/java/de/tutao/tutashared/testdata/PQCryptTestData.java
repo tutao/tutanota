@@ -1,4 +1,4 @@
-package de.tutao.calendar.testdata;
+package de.tutao.tutashared.testdata;
 
 public class PQCryptTestData {
 

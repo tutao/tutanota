@@ -1,4 +1,4 @@
-package de.tutao.tutanota.testdata;
+package de.tutao.tutashared.testdata;
 
 public class Ed25519TestData {
 	String alicePrivateKeyHex;

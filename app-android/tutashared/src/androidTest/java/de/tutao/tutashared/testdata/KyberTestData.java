@@ -1,4 +1,4 @@
-package de.tutao.tutanota.testdata;
+package de.tutao.tutashared.testdata;
 
 /**
  * Only convert to records after upgrading android to target API level 34 as this is copied to app-android!

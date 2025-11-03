@@ -1,4 +1,4 @@
-package de.tutao.tutanota.testdata;
+package de.tutao.tutashared.testdata;
 
 import java.util.List;
 
