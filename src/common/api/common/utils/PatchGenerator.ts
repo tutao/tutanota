@@ -2,8 +2,7 @@ import { ClientModelEncryptedParsedInstance, ClientModelParsedInstance, ClientMo
 import { ClientTypeReferenceResolver, PatchOperationType } from "../EntityFunctions"
 import { createPatch, createPatchList, Patch, PatchList } from "../../entities/sys/TypeRefs"
 import { AssociationType, Cardinality, ValueType } from "../EntityConstants"
-import { assertNotNull, deepEqual, Nullable } from "@tutao/tutanota-utils"
-import { arrayEquals, arrayEqualsWithPredicate, isEmpty, TypeRef } from "@tutao/tutanota-utils"
+import { arrayEquals, arrayEqualsWithPredicate, assertNotNull, deepEqual, isEmpty, Nullable, TypeRef } from "@tutao/tutanota-utils"
 import { AttributeModel } from "../AttributeModel"
 import { ProgrammingError } from "../error/ProgrammingError"
 import { IDENTITY_FIELDS, isSameId } from "./EntityUtils"
@@ -150,6 +149,20 @@ export async function computePatches(
 						return isSameId(item[aggregateIdAttributeId] as Id, element[aggregateIdAttributeId] as Id)
 					}),
 			)
+
+			if (
+				(modelAssociation.cardinality !== Cardinality.Any && isEmpty(originalAggregatedEntities) !== isEmpty(modifiedAggregatedEntities)) ||
+				(!isEmpty(originalAggregatedEntities) && !isEmpty(modifiedAggregatedEntities) && isEmpty(commonItems))
+			) {
+				patches.push(
+					createPatch({
+						attributePath: attributeIdStr,
+						value: JSON.stringify(modifiedAggregatedUntypedEntities),
+						patchOperation: PatchOperationType.REPLACE,
+					}),
+				)
+				continue
+			}
 
 			const commonAggregateIds = commonItems.map((instance) => instance[assertNotNull(AttributeModel.getAttributeId(aggregateTypeModel, "_id"))] as Id)
 			for (let commonAggregateId of commonAggregateIds) {
