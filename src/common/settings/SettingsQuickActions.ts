@@ -1,10 +1,10 @@
-import { QuickAction } from "../misc/QuickActionBar"
 import { lang } from "../misc/LanguageViewModel"
 import { Router } from "../gui/ScopedRouter"
 import { isApp, isBrowser, isDesktop, isOfflineStorageAvailable } from "../api/common/Env"
 import { isNotNull } from "@tutao/tutanota-utils"
 import { LoginController } from "../api/main/LoginController"
 import { SETTINGS_PREFIX } from "../misc/RouteChange"
+import { QuickAction } from "../misc/quickactions/QuickActionsModel"
 
 export async function quickSettingsActions(router: Router, logins: LoginController): Promise<readonly QuickAction[]> {
 	return [
@@ -27,7 +27,7 @@ export async function quickSettingsActions(router: Router, logins: LoginControll
 			exec: () => routeToFolder(router, "mailImport"),
 		},
 		// Templates don't work yet, we don't know the ID of the template group in advance and there
-		// isn't a "generic" tempaltes URL
+		// isn't a "generic" templtes URL
 		// {
 		// 	description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("templateGroupDefaultName_label")}`,
 		// 	exec: () => routeToFolder(router, "templates", "init"),

@@ -1,5 +1,4 @@
 import { MailModel } from "./MailModel"
-import { QuickAction } from "../../../common/misc/QuickActionBar"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
@@ -9,6 +8,7 @@ import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
+import { QuickAction } from "../../../common/misc/quickactions/QuickActionsModel"
 
 export async function quickMailActions(
 	mailboxModel: MailboxModel,
