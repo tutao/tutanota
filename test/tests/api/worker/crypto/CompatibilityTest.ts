@@ -23,6 +23,7 @@ import {
 	hexToRsaPublicKey,
 	hkdf,
 	hmacSha256,
+	IV_BYTE_LENGTH,
 	KeyLength,
 	KeyPairType,
 	kyberPrivateKeyToBytes,
@@ -138,21 +139,22 @@ o.spec("CompatibilityTest", function () {
 	})
 	o("aes 256", function () {
 		for (const td of testData.aes256Tests) {
+			const iv = hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH) // randomness injected
 			let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
 			// encrypt data
-			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true)
+			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64), iv, true)
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)
 			let decryptedBytes = uint8ArrayToBase64(aesDecrypt(key, encryptedBytes, true))
 			o(decryptedBytes).equals(td.plainTextBase64)
 			// encrypt 128 key
 			const keyToEncrypt128 = uint8ArrayToBitArray(hexToUint8Array(td.keyToEncrypt128))
-			const encryptedKey128 = aesEncrypt(key, bitArrayToUint8Array(keyToEncrypt128), base64ToUint8Array(td.ivBase64), false)
+			const encryptedKey128 = aesEncrypt(key, bitArrayToUint8Array(keyToEncrypt128), iv, false)
 			o(uint8ArrayToBase64(encryptedKey128)).equals(td.encryptedKey128)
 			const decryptedKey128 = decryptKey(key, encryptedKey128)
 			o(uint8ArrayToHex(bitArrayToUint8Array(decryptedKey128))).equals(td.keyToEncrypt128)
 			// encrypt 256 key
 			const keyToEncrypt256 = uint8ArrayToBitArray(hexToUint8Array(td.keyToEncrypt256))
-			const encryptedKey256 = aesEncrypt(key, bitArrayToUint8Array(keyToEncrypt256), base64ToUint8Array(td.ivBase64), false)
+			const encryptedKey256 = aesEncrypt(key, bitArrayToUint8Array(keyToEncrypt256), iv, false)
 			o(uint8ArrayToBase64(encryptedKey256)).equals(td.encryptedKey256)
 			const decryptedKey256 = decryptKey(key, encryptedKey256)
 			o(uint8ArrayToHex(bitArrayToUint8Array(decryptedKey256))).equals(td.keyToEncrypt256)
@@ -201,8 +203,9 @@ o.spec("CompatibilityTest", function () {
 
 	o("aes 128", function () {
 		for (const td of testData.aes128Tests) {
+			const iv = hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH) // randomness injected
 			let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
-			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true, false)
+			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64), iv, true, false)
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)
 			let decryptedBytes = uint8ArrayToBase64(aesDecrypt(key, encryptedBytes))
 			o(decryptedBytes).equals(td.plainTextBase64)
@@ -210,8 +213,9 @@ o.spec("CompatibilityTest", function () {
 	})
 	o("aes 128 mac", function () {
 		for (const td of testData.aes128MacTests) {
+			const iv = hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH) // randomness injected
 			let key = uint8ArrayToBitArray(hexToUint8Array(td.hexKey))
-			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64), base64ToUint8Array(td.ivBase64), true, true)
+			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64), iv, true, true)
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)
 			let decryptedBytes = uint8ArrayToBase64(aesDecrypt(key, encryptedBytes))
 			o(decryptedBytes).equals(td.plainTextBase64)

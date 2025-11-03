@@ -8,13 +8,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class AesTestData {
 	private String plainTextBase64;
-	private String ivBase64;
 	private String cipherTextBase64;
 	private String hexKey;
 	private String keyToEncrypt256;
 	private String keyToEncrypt128;
 	private String encryptedKey256;
 	private String encryptedKey128;
+	private String seed;
 
 
 	/**
@@ -25,16 +25,16 @@ public class AesTestData {
 	}
 
 	@JsonIgnore
-	public AesTestData(String plainTextBase64, String ivBase64, String cipherTextBase64, String hexKey,
-					   String keyToEncrypt256, String keyToEncrypt128, String encryptedKey256, String encryptedKey128) {
+	public AesTestData(String plainTextBase64, String cipherTextBase64, String hexKey,
+					   String keyToEncrypt256, String keyToEncrypt128, String encryptedKey256, String encryptedKey128, String seed) {
 		this.plainTextBase64 = plainTextBase64;
-		this.ivBase64 = ivBase64;
 		this.cipherTextBase64 = cipherTextBase64;
 		this.hexKey = hexKey;
 		this.keyToEncrypt256 = keyToEncrypt256;
 		this.keyToEncrypt128 = keyToEncrypt128;
 		this.encryptedKey256 = encryptedKey256;
 		this.encryptedKey128 = encryptedKey128;
+		this.seed = seed;
 	}
 
 	public String getPlainTextBase64() {
@@ -43,14 +43,6 @@ public class AesTestData {
 
 	public void setPlainTextBase64(String plainTextBase64) {
 		this.plainTextBase64 = plainTextBase64;
-	}
-
-	public String getIvBase64() {
-		return ivBase64;
-	}
-
-	public void setIvBase64(String ivBase64) {
-		this.ivBase64 = ivBase64;
 	}
 
 	public String getCipherTextBase64() {
@@ -99,5 +91,13 @@ public class AesTestData {
 
 	public void setEncryptedKey128(String encryptedKey128) {
 		this.encryptedKey128 = encryptedKey128;
+	}
+
+	public String getSeed() {
+		return seed;
+	}
+
+	public void setSeed(String seed) {
+		this.seed = seed;
 	}
 }

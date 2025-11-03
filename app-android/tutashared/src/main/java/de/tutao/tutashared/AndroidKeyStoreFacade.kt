@@ -261,10 +261,10 @@ class AndroidKeyStoreFacade(
 		}
 	}
 
-	private fun getIV(dataAndIV: ByteArray) = dataAndIV.copyOfRange(0, AndroidNativeCryptoFacade.AES_BLOCK_SIZE_BYTES)
+	private fun getIV(dataAndIV: ByteArray) = dataAndIV.copyOfRange(0, AndroidNativeCryptoFacade.IV_LENGTH_BYTES)
 
 	private fun getData(dataAndIV: ByteArray) =
-		dataAndIV.copyOfRange(AndroidNativeCryptoFacade.AES_BLOCK_SIZE_BYTES, dataAndIV.lastIndex + 1)
+		dataAndIV.copyOfRange(AndroidNativeCryptoFacade.IV_LENGTH_BYTES, dataAndIV.lastIndex + 1)
 
 	companion object {
 		const val TAG = "AndroidKeyStoreFacade"

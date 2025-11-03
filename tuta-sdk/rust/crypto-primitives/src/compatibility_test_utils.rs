@@ -11,8 +11,8 @@ use serde::{Deserialize, Deserializer, Serializer};
 pub struct AesTest {
 	#[serde(with = "Base64")]
 	pub plain_text_base64: Vec<u8>,
-	#[serde(with = "Base64")]
-	pub iv_base64: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub seed: Vec<u8>,
 	#[serde(with = "Base64")]
 	pub cipher_text_base64: Vec<u8>,
 	#[serde(with = "const_hex")]
@@ -32,8 +32,8 @@ pub struct AesTest {
 pub struct Aes128MacTest {
 	#[serde(with = "Base64")]
 	pub plain_text_base64: Vec<u8>,
-	#[serde(with = "Base64")]
-	pub iv_base64: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub seed: Vec<u8>,
 	#[serde(with = "Base64")]
 	pub cipher_text_base64: Vec<u8>,
 	#[serde(with = "const_hex")]

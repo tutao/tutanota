@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import de.tutao.calendar.testdata.TestData
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade.Companion.AES256_KEY_LENGTH_BYTES
+import de.tutao.tutashared.AndroidNativeCryptoFacade.Companion.IV_LENGTH_BYTES
 import de.tutao.tutashared.AndroidNativeCryptoFacade.Companion.bytesToKey
 import de.tutao.tutashared.CryptoError
 import de.tutao.tutashared.TempDir
@@ -52,11 +53,12 @@ class CompatibilityTest {
 		for (td in testData.aes128Tests) {
 			val key = hexToBytes(td.hexKey)
 			val encryptedBytes = ByteArrayOutputStream()
+			val iv = getIvFromInjectedRandomness(td.seed)
 			crypto.aesEncrypt(
 				key,
 				ByteArrayInputStream(td.plainTextBase64.base64ToBytes()),
 				encryptedBytes,
-				td.ivBase64.base64ToBytes(),
+				iv,
 				false
 			)
 			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
@@ -84,18 +86,18 @@ class CompatibilityTest {
 		}
 	}
 
-
 	@Test
 	@Throws(CryptoError::class, IOException::class)
 	fun aes256() {
 		for (td in testData.aes256Tests) {
 			val key = hexToBytes(td.hexKey)
+			val iv = getIvFromInjectedRandomness(td.seed)
 			val encryptedBytes = ByteArrayOutputStream()
 			crypto.aesEncrypt(
 				key,
 				ByteArrayInputStream(td.plainTextBase64.base64ToBytes()),
 				encryptedBytes,
-				td.ivBase64.base64ToBytes(),
+				iv,
 				true
 			)
 			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
@@ -115,7 +117,7 @@ class CompatibilityTest {
 				key,
 				ByteArrayInputStream(hexToBytes(td.keyToEncrypt128)),
 				encryptedKey128,
-				td.ivBase64.base64ToBytes(),
+				iv,
 				true,
 				false
 			)
@@ -129,7 +131,7 @@ class CompatibilityTest {
 				key,
 				ByteArrayInputStream(hexToBytes(td.keyToEncrypt256)),
 				encryptedKey256,
-				td.ivBase64.base64ToBytes(),
+				iv,
 				true,
 				false
 			)
@@ -171,12 +173,13 @@ class CompatibilityTest {
 	fun aes128Mac() {
 		for (td in testData.aes128MacTests) {
 			val key = hexToBytes(td.hexKey)
+			val iv = getIvFromInjectedRandomness(td.seed)
 			val encryptedBytes = ByteArrayOutputStream()
 			crypto.aesEncrypt(
 				key,
 				ByteArrayInputStream(td.plainTextBase64.base64ToBytes()),
 				encryptedBytes,
-				td.ivBase64.base64ToBytes(),
+				iv,
 				true
 			)
 			assertEquals(td.cipherTextBase64, encryptedBytes.toByteArray().toBase64())
@@ -232,7 +235,6 @@ class CompatibilityTest {
 			assertEquals(encapsulation.sharedSecret, sharedSecret)
 		}
 	}
-
 
 	@Test
 	fun ed25519() = runBlocking {
@@ -387,6 +389,9 @@ class CompatibilityTest {
 				throw RuntimeException(e)
 			}
 		}
+
+		private fun getIvFromInjectedRandomness(seed: String) =
+			hexToBytes(seed).slice(0..<IV_LENGTH_BYTES).toByteArray()
 
 		private fun stubRandom(seed: String): SecureRandom {
 			return object : SecureRandom() {

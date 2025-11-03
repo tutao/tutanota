@@ -29,8 +29,9 @@ class AndroidNativeCryptoFacade(
 ) : NativeCryptoFacade {
 
 	companion object {
-		const val AES_BLOCK_SIZE_BYTES = 16
-		val FIXED_IV = ByteArray(AES_BLOCK_SIZE_BYTES).apply { fill(0x88.toByte()) }
+		private const val AES_BLOCK_SIZE_BYTES = 16
+		const val IV_LENGTH_BYTES = AES_BLOCK_SIZE_BYTES
+		val FIXED_IV = ByteArray(IV_LENGTH_BYTES).apply { fill(0x88.toByte()) }
 		const val RSA_KEY_LENGTH_IN_BITS = 2048
 		const val RSA_PUBLIC_EXPONENT = 65537
 
@@ -322,7 +323,7 @@ class AndroidNativeCryptoFacade(
 
 	@VisibleForTesting
 	fun generateIv(): ByteArray {
-		val iv = ByteArray(AES_BLOCK_SIZE_BYTES)
+		val iv = ByteArray(IV_LENGTH_BYTES)
 		randomizer.nextBytes(iv)
 		return iv
 	}
@@ -435,7 +436,7 @@ class AndroidNativeCryptoFacade(
 				}
 				inputWithoutMac = ByteArrayInputStream(cipherTextWithoutMac)
 			}
-			val iv = ByteArray(AES_BLOCK_SIZE_BYTES)
+			val iv = ByteArray(IV_LENGTH_BYTES)
 			IOUtils.read(inputWithoutMac, iv)
 			val aesMode = if (padding) {
 				AES_MODE_PADDING
