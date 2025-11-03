@@ -914,7 +914,7 @@ export class SendMailModel {
 		waitHandler: (arg0: MaybeTranslation, arg1: Promise<any>) => Promise<any> = (_, p) => p,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
-		//FIXME: need to hook up send later here at some point
+		// FIXME: need to hook up send later here at some point
 
 		// To avoid parallel invocations do not do anything async here that would later execute the sending.
 		// It is fine to wait for getConfirmation() because it is modal and will prevent the user from triggering multiple sends.

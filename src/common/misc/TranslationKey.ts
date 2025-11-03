@@ -2122,3 +2122,5 @@ export type TranslationKeyType =
 	| "fediverse_label"
 	| "matrix_label"
 	| "emptyString_msg"
+	| "schedule_action"
+	| "sendOrSchedule_label"
