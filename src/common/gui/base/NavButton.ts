@@ -223,6 +223,8 @@ export function isNavButtonSelected(a: NavButtonAttrs): boolean {
 
 export function isSelectedPrefix(href: string): boolean {
 	const current = m.route.get()
-	// don't just check current.indexOf(buttonHref) because other buttons may also start with this href
-	return href !== "" && (current === href || current.indexOf(href + "/") === 0 || current.indexOf(href + "?") === 0)
+	// don't just check current.startsWith(href) because other buttons may also start with this href
+	// e.g. /path/to should match /path/to/button but not /path/topology
+	// this check is a bit ad-hoc and should probably be replaced with something more structural (URLPattern?)
+	return href !== "" && (current === href || current.startsWith(href + "/") || current.startsWith(href + "?") || current.startsWith(href + "#"))
 }
