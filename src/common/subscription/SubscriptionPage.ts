@@ -108,6 +108,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 				allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
 				showMultiUser: false,
 				discountDetails,
+				targetPlan: data.targetPlanType,
 			}),
 		])
 	}

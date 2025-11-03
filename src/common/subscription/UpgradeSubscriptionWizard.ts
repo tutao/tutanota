@@ -115,7 +115,7 @@ export async function showUpgradeWizard({
 			creditCardData: null,
 		},
 		price: null,
-		targetPlanType: PlanType.Revolutionary,
+		targetPlanType: SignupFlowUsageTestController.getUsageTestVariant() === 1 ? PlanType.Revolutionary : PlanType.Legend,
 		nextYearPrice: null,
 		accountingInfo: accountingInfo,
 		customer: customer,
