@@ -4,6 +4,7 @@ import {
 	TestAggregate,
 	testAggregateModel,
 	TestAggregateOnAggregate,
+	testAggregateOnAggregateModel,
 	TestAggregateOnAggregateRef,
 	TestAggregateRef,
 	TestEntity,
@@ -441,7 +442,7 @@ o.spec("computePatches", function () {
 		])
 	})
 
-	o("computePatches works on aggregations of cardinality zeroorone", async function () {
+	o("computePatches works on aggregations of cardinality zeroorone entity -> null", async function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testAssociation[0].testZeroOrOneAggregation = null
 
@@ -460,8 +461,95 @@ o.spec("computePatches", function () {
 		o(objectDiff).deepEquals([
 			createPatch({
 				attributePath: "3/aggId/10",
-				value: '["aggOnAggId"]',
-				patchOperation: PatchOperationType.REMOVE_ITEM,
+				value: "[]",
+				patchOperation: PatchOperationType.REPLACE,
+			}),
+		])
+	})
+
+	o("computePatches works on aggregations of cardinality zeroorone null -> entity", async function () {
+		const testEntity = await createFilledTestEntity()
+		const testZeroOrOneAggregation = testEntity.testAssociation[0].testZeroOrOneAggregation
+		testEntity.testAssociation[0].testZeroOrOneAggregation = null
+		testEntity._original = structuredClone(testEntity)
+		testEntity.testAssociation[0].testZeroOrOneAggregation = testZeroOrOneAggregation
+
+		let sk = aes256RandomKey()
+		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
+		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
+			testTypeModel as ClientTypeModel,
+			currentParsedInstance,
+			sk,
+		)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const testAssociationEncrypted = AttributeModel.getAttribute(
+			currentEncryptedParsedInstance,
+			"testAssociation",
+			testTypeModel,
+		) as Array<ClientModelEncryptedParsedInstance>
+		const addedTestAggregateOnAggregateEncrypted = (
+			AttributeModel.getAttribute(
+				testAssociationEncrypted[0],
+				"testZeroOrOneAggregation",
+				testAggregateModel,
+			) as Array<ClientModelEncryptedParsedInstance>
+		)[0]
+		let objectDiff = await computePatches(
+			originalParsedInstance,
+			currentParsedInstance,
+			currentUntypedInstance,
+			testTypeModel,
+			dummyTypeReferenceResolver,
+			false,
+		)
+		o(objectDiff).deepEquals([
+			createPatch({
+				attributePath: "3/aggId/10",
+				value: JSON.stringify([addedTestAggregateOnAggregateEncrypted]),
+				patchOperation: PatchOperationType.REPLACE,
+			}),
+		])
+	})
+
+	o("computePatches works on aggregations of cardinality zeroorone entity -> entity but the ids don't match", async function () {
+		const testEntity = await createFilledTestEntity()
+		assertNotNull(testEntity.testAssociation[0].testZeroOrOneAggregation)._id = "newAggOnAggId"
+
+		let sk = aes256RandomKey()
+		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, assertNotNull(testEntity._original))
+		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(TestTypeRef, testEntity)
+		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(
+			testTypeModel as ClientTypeModel,
+			currentParsedInstance,
+			sk,
+		)
+		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncrypt(TestTypeRef, testEntity, sk)
+		const testAssociationEncrypted = AttributeModel.getAttribute(
+			currentEncryptedParsedInstance,
+			"testAssociation",
+			testTypeModel,
+		) as Array<ClientModelEncryptedParsedInstance>
+		const addedTestAggregateOnAggregateEncrypted = (
+			AttributeModel.getAttribute(
+				testAssociationEncrypted[0],
+				"testZeroOrOneAggregation",
+				testAggregateModel,
+			) as Array<ClientModelEncryptedParsedInstance>
+		)[0]
+		let objectDiff = await computePatches(
+			originalParsedInstance,
+			currentParsedInstance,
+			currentUntypedInstance,
+			testTypeModel,
+			dummyTypeReferenceResolver,
+			false,
+		)
+		o(objectDiff).deepEquals([
+			createPatch({
+				attributePath: "3/aggId/10",
+				value: JSON.stringify([addedTestAggregateOnAggregateEncrypted]),
+				patchOperation: PatchOperationType.REPLACE,
 			}),
 		])
 	})
