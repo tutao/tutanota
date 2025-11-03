@@ -34,6 +34,7 @@ import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { AppLockMethod } from "../../native/common/generatedipc/AppLockMethod.js"
 import { MobileSystemFacade } from "../../native/common/generatedipc/MobileSystemFacade.js"
 import { UpdatableSettingsViewer } from "../Interfaces.js"
+import { UserController } from "../../api/main/UserController"
 
 assertMainOrNode()
 
@@ -158,7 +159,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			return m("", [
 				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
 					m(".h4.mt-l", lang.get("loginCredentials_label")),
-					this.renderName(user.userGroupInfo),
+					this.renderName(user),
 					m(TextField, mailAddressAttrs),
 					m(TextField, passwordAttrs),
 					user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
@@ -195,18 +196,25 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private renderName(groupInfo: GroupInfo): Children {
+	private renderName(user: UserController): Children {
+		const groupInfo = user.userGroupInfo
+		const isAdmin = user.isGlobalAdmin()
+
 		return m(TextField, {
 			label: "name_label",
 			value: groupInfo.name,
 			isReadOnly: true,
+
+			// Users cannot mutate their own GroupInfo unless they're an admin; hide the edit button in case they can't
 			injectionsRight: () =>
-				m(IconButton, {
-					title: "edit_action",
-					click: () => this.onChangeName(groupInfo),
-					icon: Icons.Edit,
-					size: ButtonSize.Compact,
-				}),
+				isAdmin
+					? m(IconButton, {
+							title: "edit_action",
+							click: () => this.onChangeName(groupInfo),
+							icon: Icons.Edit,
+							size: ButtonSize.Compact,
+						})
+					: undefined,
 		})
 	}
 
