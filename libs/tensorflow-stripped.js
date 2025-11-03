@@ -4089,6 +4089,10 @@ setOpHandler(opHandler);
 
 
 
+function enableProdMode() {
+    env().set('PROD', true);
+}
+
 function engine() {
     return ENGINE;
 }
@@ -39156,4 +39160,4 @@ function dropout(args) {
     return new Dropout(args);
 }
 
-export { LayersModel, dense, dropout, fromMemory, glorotUniform, loadLayersModelFromIOHandler, sequential, stringToHashBucketFast$1 as stringToHashBucketFast, tensor1d, tensor2d, withSaveHandler };
+export { LayersModel, dense, dropout, enableProdMode, fromMemory, glorotUniform, loadLayersModelFromIOHandler, sequential, stringToHashBucketFast$1 as stringToHashBucketFast, tensor1d, tensor2d, withSaveHandler };

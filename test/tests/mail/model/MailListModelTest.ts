@@ -15,7 +15,6 @@ import { matchers, object, verify, when } from "testdouble"
 import { ConversationPrefProvider } from "../../../../src/mail-app/mail/view/ConversationViewModel"
 import { EntityClient } from "../../../../src/common/api/common/EntityClient"
 import { MailModel } from "../../../../src/mail-app/mail/model/MailModel"
-import { InboxRuleHandler } from "../../../../src/mail-app/mail/model/InboxRuleHandler"
 import { ExposedCacheStorage } from "../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { MailSetKind, OperationType } from "../../../../src/common/api/common/TutanotaConstants"
 import {
@@ -39,6 +38,8 @@ import { clamp, pad } from "@tutao/tutanota-utils"
 import { LoadedMail } from "../../../../src/mail-app/mail/model/MailSetListModel"
 import { getMailFilterForType, MailFilterType } from "../../../../src/mail-app/mail/view/MailViewerUtils"
 import { theme } from "../../../../src/common/gui/theme.js"
+import { ProcessInboxHandler } from "../../../../src/mail-app/mail/model/ProcessInboxHandler"
+import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem"
 
 o.spec("MailListModel", () => {
 	let model: MailListModel
@@ -78,7 +79,7 @@ o.spec("MailListModel", () => {
 	let conversationPrefProvider: ConversationPrefProvider
 	let entityClient: EntityClient
 	let mailModel: MailModel
-	let inboxRuleHandler: InboxRuleHandler
+	let processInboxHandler: ProcessInboxHandler
 	let cacheStorage: ExposedCacheStorage
 
 	o.beforeEach(() => {
@@ -93,10 +94,12 @@ o.spec("MailListModel", () => {
 		conversationPrefProvider = object()
 		entityClient = object()
 		mailModel = object()
-		inboxRuleHandler = object()
+		processInboxHandler = object()
 		cacheStorage = object()
-		model = new MailListModel(mailSet, conversationPrefProvider, entityClient, mailModel, inboxRuleHandler, cacheStorage)
+		model = new MailListModel(mailSet, conversationPrefProvider, entityClient, mailModel, processInboxHandler, cacheStorage)
 		when(mailModel.getMailboxDetailsForMailFolder(mailSet)).thenResolve(mailboxDetail)
+		const folderSystem: FolderSystem = object()
+		when(mailModel.getFolderSystemByGroupId(matchers.anything())).thenReturn(folderSystem)
 	})
 
 	// Care has to be ensured for generating mail set entry IDs as we depend on real mail set ID decoding, thus we have
@@ -204,7 +207,8 @@ o.spec("MailListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true), {
+
+		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), {
 			times: 0,
 		})
 	})
@@ -222,7 +226,7 @@ o.spec("MailListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true), {
+		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), {
 			times: 0,
 		})
 	})
@@ -230,14 +234,23 @@ o.spec("MailListModel", () => {
 	o.test("applies inbox rules if inbox", async () => {
 		mailSet.folderType = MailSetKind.INBOX
 
-		// make one item have a rule
 		when(
-			inboxRuleHandler.findAndApplyMatchingRule(
-				mailboxDetail,
+			processInboxHandler.handleIncomingMail(
 				matchers.argThat((mail: Mail) => isSameId(mail._id, makeMailId(25))),
-				true,
+				matchers.anything(),
+				matchers.anything(),
+				matchers.anything(),
 			),
-		).thenResolve({})
+		).thenResolve({ folderType: MailSetKind.SPAM })
+
+		when(
+			processInboxHandler.handleIncomingMail(
+				matchers.argThat((mail: Mail) => !isSameId(mail._id, makeMailId(25))),
+				matchers.anything(),
+				matchers.anything(),
+				matchers.anything(),
+			),
+		).thenResolve({ folderType: MailSetKind.INBOX })
 
 		await setUpTestData(PageSize, labels, false)
 		await model.loadInitial()
@@ -251,7 +264,8 @@ o.spec("MailListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 1,
 		})
-		verify(inboxRuleHandler.findAndApplyMatchingRule(mailboxDetail, matchers.anything(), true), {
+
+		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), {
 			times: 100,
 		})
 	})

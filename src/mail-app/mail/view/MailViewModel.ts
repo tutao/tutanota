@@ -26,7 +26,6 @@ import { NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../.
 import { UserError } from "../../../common/api/main/UserError.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import Stream from "mithril/stream"
-import { InboxRuleHandler } from "../model/InboxRuleHandler.js"
 import { Router } from "../../../common/gui/ScopedRouter.js"
 import { EntityUpdateData, isUpdateForTypeRef, PrefetchStatus } from "../../../common/api/common/utils/EntityUpdateUtils.js"
 import { EventController } from "../../../common/api/main/EventController.js"
@@ -40,6 +39,7 @@ import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
 import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
 import { client } from "../../../common/misc/ClientDetector"
+import { ProcessInboxHandler } from "../model/ProcessInboxHandler"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -98,7 +98,7 @@ export class MailViewModel {
 		private readonly conversationViewModelFactory: ConversationViewModelFactory,
 		private readonly mailOpenedListener: MailOpenedListener,
 		private readonly conversationPrefProvider: ConversationPrefProvider,
-		private readonly inboxRuleHandler: InboxRuleHandler,
+		private readonly processInboxHandler: ProcessInboxHandler,
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
 	) {}
@@ -258,8 +258,6 @@ export class MailViewModel {
 			return
 		}
 		if (cached) {
-			// Mails opened through the notification were not getting the inbox rule applied to them, so we apply it here
-			this.mailModel.applyInboxRuleToMail(cached)
 			console.log(TAG, "displaying cached mail", mailId)
 			await this.displayExplicitMailTarget(cached)
 		}
@@ -526,7 +524,7 @@ export class MailViewModel {
 					this.conversationPrefProvider,
 					this.entityClient,
 					this.mailModel,
-					this.inboxRuleHandler,
+					this.processInboxHandler,
 					this.cacheStorage,
 				)
 			} else {
@@ -535,7 +533,7 @@ export class MailViewModel {
 					this.conversationPrefProvider,
 					this.entityClient,
 					this.mailModel,
-					this.inboxRuleHandler,
+					this.processInboxHandler,
 					this.cacheStorage,
 				)
 			}

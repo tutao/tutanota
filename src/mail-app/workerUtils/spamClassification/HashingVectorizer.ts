@@ -1,5 +1,6 @@
 import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { stringToHashBucketFast, tensor1d } from "./tensorflow-custom"
+import { MAX_WORD_FREQUENCY } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 export class HashingVectorizer {
 	private readonly hasher: (tokens: Array<string>) => Promise<Array<number>> = this.tensorHash
@@ -11,7 +12,9 @@ export class HashingVectorizer {
 
 		const indexes = await this.hasher(downcast<Array<string>>(tokens))
 		for (const index of indexes) {
-			vector[index] += 1
+			if (vector[index] < MAX_WORD_FREQUENCY) {
+				vector[index] += 1
+			}
 		}
 
 		return vector

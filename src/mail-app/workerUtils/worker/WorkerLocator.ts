@@ -112,9 +112,10 @@ import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/Pub
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
-import type { SpamClassifier } from "../spamClassification/SpamClassifier"
+import { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
+import { SpamClassificationDataDealer } from "../spamClassification/SpamClassificationDataDealer"
 
 assertWorkerOrNode()
 
@@ -197,7 +198,7 @@ export type WorkerLocatorType = {
 	contactFacade: lazyAsync<ContactFacade>
 
 	//spam classification
-	spamClassifier: SpamClassifier | null
+	spamClassifier: SpamClassifier
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -328,14 +329,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	if (isOfflineStorageAvailable() && !isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 		offlineStorageProvider = async () => {
-			const { SpamClassifier } = await import("../spamClassification/SpamClassifier")
-			const { SpamClassificationInitializer } = await import("../spamClassification/SpamClassificationInitializer")
-			const offlineStorage = await offlineStorageIndexerPersistence()
-			const spamClassifierInitializer = new SpamClassificationInitializer(locator.cachingEntityClient, offlineStorage, locator.bulkMailLoader)
-			locator.spamClassifier = new SpamClassifier(offlineStorage, locator.cacheStorage, spamClassifierInitializer)
-
 			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase.js")
-			const { SearchTableDefinitions, SpamClassificationDefinitions } = await import("../index/OfflineStoragePersistence.js")
+			const { SearchTableDefinitions } = await import("../index/OfflineStoragePersistence.js")
 			const { AutosaveDraftsTableDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineStorageAutosaveFacade.js")
 
 			const customCacheHandler = new CustomCacheHandlerMap(
@@ -358,12 +353,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
 				customCacheHandler,
-				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions, AutosaveDraftsTableDefinitions, SpamClassificationDefinitions),
+				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions, AutosaveDraftsTableDefinitions),
 			)
 		}
 	} else {
 		offlineStorageProvider = async () => null
-		locator.spamClassifier = null
 	}
 	const ephemeralStorageProvider = async () => {
 		const customCacheHandler = new CustomCacheHandlerMap({
@@ -385,19 +379,18 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
-
 	locator.patchMerger = new PatchMerger(locator.cacheStorage, locator.instancePipeline, typeModelResolver, () => locator.crypto)
 
 	// We don't want to cache within the admin client
+
 	let cache: DefaultEntityRestCache | null = null
 	if (!isAdminClient()) {
 		cache = new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, locator.patchMerger)
 	}
-
 	locator.cache = cache ?? entityRestClient
+
 	locator.cachingEntityClient = new EntityClient(locator.cache, typeModelResolver)
 	const nonCachingEntityClient = new EntityClient(entityRestClient, typeModelResolver)
-
 	locator.cacheManagement = lazyMemoized(async () => {
 		const { CacheManagementFacade } = await import("../../../common/api/worker/facades/lazy/CacheManagementFacade.js")
 		return new CacheManagementFacade(locator.user, locator.cachingEntityClient, assertNotNull(cache))
@@ -607,7 +600,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
 				// index new items in background
 				console.log("initIndexer and SpamClassifier after log in")
-				const indexingDone = fullLoginIndexerInit(worker)
+				fullLoginIndexerInit(worker)
 			}
 
 			return mainInterface.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
@@ -737,6 +730,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.user,
 			locator.cachingEntityClient,
 			locator.crypto,
+			locator.cryptoWrapper,
 			locator.serviceExecutor,
 			await locator.blob(),
 			fileApp,
@@ -745,6 +739,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			locator.publicEncryptionKeyProvider,
 		)
 	})
+
+	const spamClassificationDataDealer = new SpamClassificationDataDealer(locator.cachingEntityClient, locator.bulkMailLoader, locator.mail)
+	locator.spamClassifier = new SpamClassifier(locator.cacheStorage, spamClassificationDataDealer)
+
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
 	locator.calendar = lazyMemoized(async () => {
 		const { CalendarFacade } = await import("../../../common/api/worker/facades/lazy/CalendarFacade.js")

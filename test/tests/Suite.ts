@@ -83,6 +83,7 @@ import "./serviceworker/SwTest.js"
 import "./api/worker/facades/KeyVerificationFacadeTest.js"
 import "./api/worker/utils/SleepDetectorTest.js"
 import "./api/worker/utils/spamClassification/HashingVectorizerTest.js"
+import "./api/worker/utils/spamClassification/SpamClassificationDataDealerTest.js"
 import "./api/worker/utils/spamClassification/PreprocessPatternsTest.js"
 import "./calendar/AlarmSchedulerTest.js"
 import "./calendar/CalendarAgendaViewTest.js"
@@ -115,6 +116,7 @@ import "./gui/base/WizardDialogNTest.js"
 import "./login/LoginViewModelTest.js"
 import "./login/PostLoginUtilsTest.js"
 import "./mail/InboxRuleHandlerTest.js"
+import "./mail/ProcessInboxHandlerTest.js"
 import "./mail/KnowledgeBaseSearchFilterTest.js"
 import "./mail/MailModelTest.js"
 import "./mail/MailUtilsSignatureTest.js"
@@ -211,6 +213,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	if (typeof process !== "undefined") {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: "key" }])
+		await import("./api/worker/utils/spamClassification/SparseVectorCompressorTest.js")
 		await import("./api/worker/utils/spamClassification/SpamClassifierTest.js")
 		await import("./api/worker/offline/OfflineStorageMigratorTest.js")
 		await import("./api/worker/offline/OfflineStorageTest.js")

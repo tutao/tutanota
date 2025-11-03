@@ -97,6 +97,7 @@ export class CustomColorEditorPreview implements Component {
 			sets: [],
 			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
 			clientSpamClassifierResult: null,
+			processNeeded: true,
 		} satisfies Partial<Mail>
 		const mail = createMail({
 			sender: createMailAddress({

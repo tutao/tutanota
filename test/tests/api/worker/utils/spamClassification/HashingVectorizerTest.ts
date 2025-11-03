@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { arrayEquals } from "@tutao/tutanota-utils"
-import { spamClassifierTokenizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
+import { spamClassifierTokenizer } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 o.spec("HashingVectorizer", () => {
 	const rawDocuments = [

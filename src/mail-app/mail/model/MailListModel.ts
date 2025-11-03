@@ -17,12 +17,12 @@ import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import Stream from "mithril/stream"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
-import { InboxRuleHandler } from "./InboxRuleHandler"
 import { MailModel } from "./MailModel"
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
-import { applyInboxRulesToEntries, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
+import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
+import { ProcessInboxHandler } from "./ProcessInboxHandler"
 
 assertMainOrNode()
 
@@ -41,7 +41,7 @@ export class MailListModel implements MailSetListModel {
 		private readonly conversationPrefProvider: ConversationPrefProvider,
 		private readonly entityClient: EntityClient,
 		private readonly mailModel: MailModel,
-		private readonly inboxRuleHandler: InboxRuleHandler,
+		private readonly processInboxHandler: ProcessInboxHandler,
 		private readonly cacheStorage: ExposedCacheStorage,
 	) {
 		this.listModel = new ListModel({
@@ -304,7 +304,7 @@ export class MailListModel implements MailSetListModel {
 			complete = mailSetEntries.length < count
 			if (mailSetEntries.length > 0) {
 				items = await this.resolveMailSetEntries(mailSetEntries, this.defaultMailProvider)
-				items = await this.applyInboxRulesToEntries(items)
+				items = await this.applyInboxRulesAndSpamPrediction(items)
 			}
 		} catch (e) {
 			if (isOfflineError(e)) {
@@ -345,11 +345,8 @@ export class MailListModel implements MailSetListModel {
 		return await this.resolveMailSetEntries(mailSetEntries, (list, elements) => this.cacheStorage.provideMultiple(MailTypeRef, list, elements))
 	}
 
-	/**
-	 * Apply inbox rules to an array of mails, returning all mails that were not moved
-	 */
-	private async applyInboxRulesToEntries(entries: LoadedMail[]): Promise<LoadedMail[]> {
-		return applyInboxRulesToEntries(entries, this.mailSet, this.mailModel, this.inboxRuleHandler)
+	private async applyInboxRulesAndSpamPrediction(entries: LoadedMail[]): Promise<LoadedMail[]> {
+		return applyInboxRulesAndSpamPrediction(entries, this.mailSet, this.mailModel, this.processInboxHandler)
 	}
 
 	private async loadSingleMail(id: IdTuple): Promise<LoadedMail> {

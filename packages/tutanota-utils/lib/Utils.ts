@@ -244,7 +244,6 @@ export function debounce<F extends (...args: any) => void>(timeout: number, toTh
 		if (timeoutId) {
 			clearTimeout(timeoutId)
 		}
-
 		toInvoke = toThrottle.bind(null, ...args)
 		timeoutId = setTimeout(toInvoke, timeout)
 	})

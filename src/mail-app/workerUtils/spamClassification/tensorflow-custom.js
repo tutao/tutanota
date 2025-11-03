@@ -11,6 +11,7 @@ import { glorotUniform } from "@tensorflow/tfjs-layers/dist/exports_initializers
 // Core tensor ops
 import { tensor2d } from "@tensorflow/tfjs-core"
 import { tensor1d } from "@tensorflow/tfjs-core"
+import { enableProdMode } from "@tensorflow/tfjs-core"
 import { stringToHashBucketFast } from "@tensorflow/tfjs-core/dist/ops/string/string_to_hash_bucket_fast"
 
 // IO handlers
@@ -30,4 +31,5 @@ export {
 	withSaveHandler,
 	fromMemory,
 	stringToHashBucketFast,
+	enableProdMode,
 }

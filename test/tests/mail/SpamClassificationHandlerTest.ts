@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { matchers, object, verify, when } from "testdouble"
+import { matchers, object, when } from "testdouble"
 import {
 	Body,
 	BodyTypeRef,
@@ -10,8 +10,7 @@ import {
 	MailFolderTypeRef,
 	MailTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs"
-import { SpamClassifier, SpamTrainMailDatum } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
-import { getMailBodyText } from "../../../src/common/api/common/CommonMailUtils"
+import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/common/api/common/TutanotaConstants"
 import { ClientClassifierType } from "../../../src/common/api/common/ClientClassifierType"
 import { assert, assertNotNull } from "@tutao/tutanota-utils"
@@ -20,7 +19,8 @@ import { createTestEntity } from "../TestUtils"
 import { SpamClassificationHandler } from "../../../src/mail-app/mail/model/SpamClassificationHandler"
 import { FolderSystem } from "../../../src/common/api/common/mail/FolderSystem"
 import { isSameId } from "../../../src/common/api/common/utils/EntityUtils"
-import { any } from "@tensorflow/tfjs-core"
+import { UnencryptedProcessInboxDatum } from "../../../src/mail-app/mail/model/ProcessInboxHandler"
+import { createSpamMailDatum, SpamMailProcessor } from "../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 const { anything } = matchers
 
@@ -30,6 +30,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 	let mail: Mail
 	let spamClassifier: SpamClassifier
 	let spamHandler: SpamClassificationHandler
+	let spamMailProcessor: SpamMailProcessor = new SpamMailProcessor()
 	let folderSystem: FolderSystem
 	let mailDetails: MailDetails
 
@@ -37,7 +38,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 	const trashFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "trash"], folderType: MailSetKind.TRASH })
 	const spamFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "spam"], folderType: MailSetKind.SPAM })
 
-	o.beforeEach(function () {
+	o.beforeEach(async function () {
 		spamClassifier = object<SpamClassifier>()
 
 		body = createTestEntity(BodyTypeRef, { text: "Body Text" })
@@ -54,7 +55,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 		})
 		folderSystem = object<FolderSystem>()
 
-		when(mailFacade.moveMails(anything(), anything(), anything(), ClientClassifierType.CLIENT_CLASSIFICATION)).thenResolve([])
+		when(mailFacade.moveMails(anything(), anything(), anything())).thenResolve([])
 		when(folderSystem.getSystemFolderByType(MailSetKind.SPAM)).thenReturn(spamFolder)
 		when(folderSystem.getSystemFolderByType(MailSetKind.INBOX)).thenReturn(inboxFolder)
 		when(folderSystem.getSystemFolderByType(MailSetKind.TRASH)).thenReturn(trashFolder)
@@ -75,87 +76,77 @@ o.spec("SpamClassificationHandlerTest", function () {
 			),
 			anything(),
 		).thenDo(async () => [{ mail, mailDetails }])
-		spamHandler = new SpamClassificationHandler(mailFacade, spamClassifier)
+		when(spamClassifier.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails))).thenResolve(
+			await spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails)),
+		)
+		spamHandler = new SpamClassificationHandler(spamClassifier)
 	})
 
 	o("predictSpamForNewMail does move mail from inbox to spam folder if mail is spam", async function () {
 		mail.sets = [inboxFolder._id]
-		when(spamClassifier.predict(anything())).thenResolve(true)
+		when(spamClassifier.predict(anything(), anything())).thenResolve(true)
 
 		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
-		o(spamHandler.hamMoveMailData).deepEquals(null)
-		o(spamHandler.spamMoveMailData?.mails).deepEquals([mail._id])
-		o(spamHandler.classifierResultServiceMailIds).deepEquals([])
-		o(finalResult).deepEquals(spamFolder)
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			mailId: mail._id,
+			targetMoveFolder: spamFolder._id,
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
+			vector: await spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails)),
+		}
+
+		o(finalResult.targetFolder).deepEquals(spamFolder)
+		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
 	})
 
 	o("predictSpamForNewMail does NOT move mail from inbox to spam folder if mail is ham", async function () {
 		mail.sets = [inboxFolder._id]
-		when(spamClassifier.predict(anything())).thenResolve(false)
+		when(spamClassifier.predict(anything(), anything())).thenResolve(false)
 
 		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
-		o(spamHandler.hamMoveMailData).deepEquals(null)
-		o(spamHandler.spamMoveMailData).deepEquals(null)
-		o(spamHandler.classifierResultServiceMailIds).deepEquals([mail._id])
-		o(finalResult).deepEquals(inboxFolder)
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			mailId: mail._id,
+			targetMoveFolder: inboxFolder._id,
+			classifierType: null,
+			vector: await spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails)),
+		}
+
+		o(finalResult.targetFolder).deepEquals(inboxFolder)
+		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
 	})
 
 	o("predictSpamForNewMail does NOT move mail from spam to inbox folder if mail is spam", async function () {
 		mail.sets = [spamFolder._id]
-		when(spamClassifier.predict(anything())).thenResolve(true)
+		when(spamClassifier.predict(anything(), anything())).thenResolve(true)
 
 		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, spamFolder, folderSystem)
-		o(spamHandler.hamMoveMailData).deepEquals(null)
-		o(spamHandler.spamMoveMailData).deepEquals(null)
-		o(spamHandler.classifierResultServiceMailIds).deepEquals([mail._id])
-		o(finalResult).deepEquals(spamFolder)
+
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			mailId: mail._id,
+			targetMoveFolder: spamFolder._id,
+			classifierType: null,
+			vector: await spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails)),
+		}
+
+		o(finalResult.targetFolder).deepEquals(spamFolder)
+		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
 	})
 
 	o("predictSpamForNewMail moves mail from spam to inbox folder if mail is ham", async function () {
 		mail.sets = [spamFolder._id]
-		when(spamClassifier.predict(anything())).thenResolve(false)
+		when(spamClassifier.predict(anything(), anything())).thenResolve(false)
 
 		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, spamFolder, folderSystem)
-		o(spamHandler.hamMoveMailData?.mails).deepEquals([mail._id])
-		o(spamHandler.spamMoveMailData).deepEquals(null)
-		o(spamHandler.classifierResultServiceMailIds).deepEquals([])
-		o(finalResult).deepEquals(inboxFolder)
-	})
 
-	o("predictSpamForNewMail does NOT move mail from spam to spam folder if mail is spam", async function () {
-		mail.sets = [spamFolder._id]
-		when(spamClassifier.predict(anything())).thenResolve(true)
+		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
+			mailId: mail._id,
+			targetMoveFolder: inboxFolder._id,
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
+			vector: await spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails)),
+		}
 
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, spamFolder, folderSystem)
-		o(spamHandler.hamMoveMailData).deepEquals(null)
-		o(spamHandler.spamMoveMailData).deepEquals(null)
-		o(spamHandler.classifierResultServiceMailIds).deepEquals([mail._id])
-		o(finalResult).deepEquals(spamFolder)
-	})
-
-	o(
-		"predictSpamForNewMail does NOT send classifierResultService request if processingState is INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_MADE",
-		async function () {
-			mail.sets = [inboxFolder._id]
-			mail.processingState = ProcessingState.INBOX_RULE_PROCESSED_AND_SPAM_PREDICTION_MADE
-			when(spamClassifier.predict(anything())).thenResolve(false)
-
-			const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
-			o(spamHandler.hamMoveMailData).deepEquals(null)
-			o(spamHandler.spamMoveMailData).deepEquals(null)
-			o(spamHandler.classifierResultServiceMailIds).deepEquals([])
-			o(finalResult).deepEquals(inboxFolder)
-		},
-	)
-
-	o("update spam classification data on every mail update", async function () {
-		when(spamClassifier.getSpamClassification(anything())).thenResolve({ isSpam: false, isSpamConfidence: 0 })
-		mail.clientSpamClassifierResult = createTestEntity(ClientSpamClassifierResultTypeRef, {
-			spamDecision: SpamDecision.BLACKLIST,
-			confidence: "1",
-		})
-
-		await spamHandler.updateSpamClassificationData(mail)
-		verify(spamClassifier.updateSpamClassification(["listId", "elementId"], true, 1), { times: 1 })
+		o(finalResult.targetFolder).deepEquals(inboxFolder)
+		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
 	})
 })

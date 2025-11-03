@@ -246,16 +246,16 @@ import("./translations/en.js")
 					),
 			)
 			mailLocator.logins.addPostLoginAction(async () => {
-				const { MailIndexAndSpamClassificationPostLoginAction } = await import("./search/model/MailIndexAndSpamClassificationPostLoginAction")
+				const { MailIndexerPostLoginAction } = await import("./search/model/MailIndexerPostLoginAction")
 				const offlineStorageSettings = await mailLocator.offlineStorageSettingsModel()
-				return new MailIndexAndSpamClassificationPostLoginAction(
-					assertNotNull(offlineStorageSettings),
-					mailLocator.indexerFacade,
-					mailLocator.spamClassifier,
-					mailLocator.customerFacade,
-				)
+				return new MailIndexerPostLoginAction(assertNotNull(offlineStorageSettings), mailLocator.indexerFacade)
 			})
 		}
+
+		mailLocator.logins.addPostLoginAction(async () => {
+			const { SpamClassificationPostLoginAction } = await import("./mail/model/SpamClassificationPostLoginAction")
+			return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade)
+		})
 
 		mailLocator.logins.addPostLoginAction(async () => {
 			const { OpenLocallySavedDraftAction } = await import("./mail/editor/OpenLocallySavedDraftAction.js")

@@ -156,6 +156,7 @@ import { AutosaveFacade } from "../common/api/worker/facades/lazy/AutosaveFacade
 import { lang } from "../common/misc/LanguageViewModel.js"
 import { SpamClassificationHandler } from "./mail/model/SpamClassificationHandler"
 import { SpamClassifier } from "./workerUtils/spamClassification/SpamClassifier"
+import { ProcessInboxHandler } from "./mail/model/ProcessInboxHandler"
 import type { QuickActionsModel } from "../common/misc/quickactions/QuickActionsModel"
 
 assertMainOrNode()
@@ -223,7 +224,7 @@ class MailLocator implements CommonLocator {
 	bulkMailLoader!: BulkMailLoader
 	mailExportFacade!: MailExportFacade
 	syncTracker!: SyncTracker
-	spamClassifier: SpamClassifier | null = null
+	spamClassifier!: SpamClassifier
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	autosaveFacade!: AutosaveFacade
 
@@ -287,7 +288,7 @@ class MailLocator implements CommonLocator {
 			conversationViewModelFactory,
 			this.mailOpenedListener,
 			deviceConfig,
-			this.inboxRuleHandler(),
+			this.processInboxHandler(),
 			router,
 			await this.redraw(),
 		)
@@ -303,7 +304,11 @@ class MailLocator implements CommonLocator {
 	})
 
 	readonly spamClassificationHandler = lazyMemoized(() => {
-		return new SpamClassificationHandler(this.mailFacade, this.spamClassifier)
+		return new SpamClassificationHandler(this.spamClassifier)
+	})
+
+	readonly processInboxHandler = lazyMemoized(() => {
+		return new ProcessInboxHandler(this.logins, this.mailFacade, this.spamClassificationHandler, this.inboxRuleHandler)
 	})
 
 	async searchViewModelFactory(): Promise<() => SearchViewModel> {
@@ -847,8 +852,7 @@ class MailLocator implements CommonLocator {
 			this.logins,
 			this.mailFacade,
 			this.connectivityModel,
-			this.spamClassificationHandler,
-			this.inboxRuleHandler,
+			this.processInboxHandler,
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
@@ -879,6 +883,7 @@ class MailLocator implements CommonLocator {
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 		this.Const = Const
 		this.whitelabelThemeGenerator = new WhitelabelThemeGenerator()
+		this.spamClassifier = spamClassifier
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/main/WebDesktopFacade")
 			const { WebMobileFacade } = await import("../common/native/main/WebMobileFacade.js")
@@ -895,10 +900,9 @@ class MailLocator implements CommonLocator {
 				return await this.calendarEventModel(mode, getEventWithDefaultTimes(setNextHalfHour(new Date(date))), mailboxDetail, mailboxProperties, null)
 			})
 			const { OpenSettingsHandler } = await import("../common/native/main/OpenSettingsHandler.js")
-			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
+			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
-			this.spamClassifier = spamClassifier
 
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,

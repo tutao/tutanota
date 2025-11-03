@@ -401,6 +401,8 @@ pub struct Mail {
 	pub keyVerificationState: Option<i64>,
 	#[serde(rename = "1728")]
 	pub processingState: i64,
+	#[serde(rename = "1769")]
+	pub processNeeded: bool,
 	#[serde(rename = "111")]
 	pub sender: MailAddress,
 	#[serde(rename = "115")]
@@ -473,6 +475,10 @@ pub struct MailBox {
 	pub mailImportStates: GeneratedId,
 	#[serde(rename = "1710")]
 	pub extractedFeatures: Option<GeneratedId>,
+	#[serde(rename = "1754")]
+	pub clientSpamTrainingData: Option<GeneratedId>,
+	#[serde(rename = "1755")]
+	pub modifiedClientSpamTrainingDataIndex: Option<GeneratedId>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4143,6 +4149,169 @@ impl Entity for ClientClassifierResultPostIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1730),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ClientSpamTrainingDatum {
+	#[serde(rename = "1738")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "1739")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "1740")]
+	pub _format: i64,
+	#[serde(rename = "1741")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "1742")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "1743")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "1744")]
+	pub confidence: i64,
+	#[serde(rename = "1745")]
+	pub spamDecision: i64,
+	#[serde(rename = "1746")]
+	#[serde(with = "serde_bytes")]
+	pub vector: Vec<u8>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
+}
+
+impl Entity for ClientSpamTrainingDatum {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1736),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ClientSpamTrainingDatumIndexEntry {
+	#[serde(rename = "1749")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "1750")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "1751")]
+	pub _format: i64,
+	#[serde(rename = "1752")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "1753")]
+	pub clientSpamTrainingDatumElementId: GeneratedId,
+}
+
+impl Entity for ClientSpamTrainingDatumIndexEntry {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1747),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ProcessInboxDatum {
+	#[serde(rename = "1757")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1758")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncVectorSessionKey: Vec<u8>,
+	#[serde(rename = "1759")]
+	pub ownerKeyVersion: i64,
+	#[serde(rename = "1762")]
+	pub classifierType: Option<i64>,
+	#[serde(rename = "1763")]
+	#[serde(with = "serde_bytes")]
+	pub encVector: Vec<u8>,
+	#[serde(rename = "1760")]
+	pub mailId: IdTupleGenerated,
+	#[serde(rename = "1761")]
+	pub targetMoveFolder: IdTupleGenerated,
+}
+
+impl Entity for ProcessInboxDatum {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1756),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ProcessInboxPostIn {
+	#[serde(rename = "1765")]
+	pub _format: i64,
+	#[serde(rename = "1766")]
+	pub mailOwnerGroup: GeneratedId,
+	#[serde(rename = "1767")]
+	pub processInboxDatum: Vec<ProcessInboxDatum>,
+}
+
+impl Entity for ProcessInboxPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1764),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PopulateClientSpamTrainingDatum {
+	#[serde(rename = "1771")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1772")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncVectorSessionKey: Vec<u8>,
+	#[serde(rename = "1773")]
+	pub ownerKeyVersion: i64,
+	#[serde(rename = "1775")]
+	pub isSpam: bool,
+	#[serde(rename = "1776")]
+	pub confidence: i64,
+	#[serde(rename = "1777")]
+	#[serde(with = "serde_bytes")]
+	pub encVector: Vec<u8>,
+	#[serde(rename = "1774")]
+	pub mailId: IdTupleGenerated,
+}
+
+impl Entity for PopulateClientSpamTrainingDatum {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1770),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PopulateClientSpamTrainingDataPostIn {
+	#[serde(rename = "1779")]
+	pub _format: i64,
+	#[serde(rename = "1780")]
+	pub mailOwnerGroup: GeneratedId,
+	#[serde(rename = "1781")]
+	pub populateClientSpamTrainingDatum: Vec<PopulateClientSpamTrainingDatum>,
+}
+
+impl Entity for PopulateClientSpamTrainingDataPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1778),
 		}
 	}
 }

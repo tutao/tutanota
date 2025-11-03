@@ -1821,6 +1821,9 @@ mod tests {
 		"1729"=> JsonElement::Array(
 				vec![],
 			),
+		"1769"=> JsonElement::String(
+				"0".to_string()
+			)
 		}
 	}
 

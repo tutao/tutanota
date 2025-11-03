@@ -40,7 +40,7 @@ import { UnreadMailStateService } from "../../../../../src/common/api/entities/t
 import { BucketKeyTypeRef, InstanceSessionKey, InstanceSessionKeyTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { OwnerEncSessionKeyProvider } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 import { elementIdPart, getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
-import { VersionedEncryptedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
+import { CryptoWrapper, VersionedEncryptedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
 import { Recipient } from "../../../../../src/common/api/common/recipients/Recipient"
 import { AesKey } from "@tutao/tutanota-crypto"
 import { RecipientsNotFoundError } from "../../../../../src/common/api/common/error/RecipientsNotFoundError"
@@ -52,6 +52,7 @@ o.spec("MailFacade test", function () {
 	let facade: MailFacade
 	let userFacade: UserFacade
 	let cryptoFacade: CryptoFacade
+	let cryptoWrapper: CryptoWrapper
 	let serviceExecutor: IServiceExecutor
 	let entityClient: EntityClient
 	let blobFacade: BlobFacade
@@ -67,6 +68,7 @@ o.spec("MailFacade test", function () {
 		blobFacade = object()
 		entityClient = object()
 		cryptoFacade = object()
+		cryptoWrapper = object()
 		serviceExecutor = object()
 		fileApp = object()
 		loginFacade = object()
@@ -76,6 +78,7 @@ o.spec("MailFacade test", function () {
 			userFacade,
 			entityClient,
 			cryptoFacade,
+			cryptoWrapper,
 			serviceExecutor,
 			blobFacade,
 			fileApp,

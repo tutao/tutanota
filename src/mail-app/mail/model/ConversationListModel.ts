@@ -1,4 +1,4 @@
-import { applyInboxRulesToEntries, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
+import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import { Mail, MailFolder, MailFolderTypeRef, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
@@ -7,7 +7,6 @@ import Stream from "mithril/stream"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { MailModel } from "./MailModel"
-import { InboxRuleHandler } from "./InboxRuleHandler"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import {
 	CUSTOM_MAX_ID,
@@ -34,6 +33,7 @@ import {
 import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
+import { ProcessInboxHandler } from "./ProcessInboxHandler"
 
 /**
  * Organizes mails into conversations and handles state upkeep.
@@ -67,7 +67,7 @@ export class ConversationListModel implements MailSetListModel {
 		private readonly conversationPrefProvider: ConversationPrefProvider,
 		private readonly entityClient: EntityClient,
 		private readonly mailModel: MailModel,
-		private readonly inboxRuleHandler: InboxRuleHandler,
+		private readonly processInboxHandler: ProcessInboxHandler,
 		private readonly cacheStorage: ExposedCacheStorage,
 	) {
 		this.listModel = new ListModel({
@@ -467,7 +467,7 @@ export class ConversationListModel implements MailSetListModel {
 			if (mailSetEntries.length > 0) {
 				this.lastFetchedMailSetEntryId = getElementId(lastThrow(mailSetEntries))
 				items = await this.resolveMailSetEntries(mailSetEntries, this.defaultMailProvider)
-				items = await this.applyInboxRulesToEntries(items)
+				items = await this.applyInboxRulesAndSpamPrediction(items)
 			}
 		} catch (e) {
 			if (isOfflineError(e)) {
@@ -496,8 +496,8 @@ export class ConversationListModel implements MailSetListModel {
 		}
 	}
 
-	private async applyInboxRulesToEntries(entries: LoadedMail[]): Promise<LoadedMail[]> {
-		return applyInboxRulesToEntries(entries, this.mailSet, this.mailModel, this.inboxRuleHandler)
+	private async applyInboxRulesAndSpamPrediction(entries: LoadedMail[]): Promise<LoadedMail[]> {
+		return applyInboxRulesAndSpamPrediction(entries, this.mailSet, this.mailModel, this.processInboxHandler)
 	}
 
 	// @VisibleForTesting

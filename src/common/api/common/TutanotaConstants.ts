@@ -8,7 +8,6 @@ import {
 	ContactCustomDate,
 	ContactRelationship,
 	ContactSocialId,
-	Mail,
 	MailFolder,
 	UserSettingsGroupRoot,
 } from "../entities/tutanota/TypeRefs.js"
@@ -1418,9 +1417,3 @@ export enum ProcessingState {
 }
 
 export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"
-export const DEFAULT_IS_SPAM_CONFIDENCE = 1
-export const DEFAULT_IS_SPAM = false
-
-export function getSpamConfidence(mail: Mail): number {
-	return Number(mail.clientSpamClassifierResult?.confidence ?? DEFAULT_IS_SPAM_CONFIDENCE)
-}

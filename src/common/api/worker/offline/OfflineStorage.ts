@@ -46,6 +46,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { TypeModelResolver } from "../../common/EntityFunctions"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
+import { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -102,6 +103,7 @@ export interface OfflineDbMeta {
 	"offline-version": number
 	lastTrainedTime: number
 	lastTrainedFromScratchTime: number
+	lastTrainingDataId: Id
 }
 
 export const TableDefinitions = Object.freeze({
@@ -138,6 +140,11 @@ export const TableDefinitions = Object.freeze({
 	blob_element_entities: {
 		definition:
 			"CREATE TABLE IF NOT EXISTS blob_element_entities (type TEXT NOT NULL, listId TEXT NOT NULL, elementId TEXT NOT NULL, ownerGroup TEXT, entity BLOB NOT NULL, PRIMARY KEY (type, listId, elementId))",
+		purgedWithCache: true,
+	},
+	spam_classification_model: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS spam_classification_model (version NUMBER NOT NULL, ownerGroup TEXT NOT NULL, modelTopology TEXT NOT NULL, weightSpecs TEXT NOT NULL, weightData BLOB NOT NULL, hamCount NUMBER NOT NULL, spamCount NUMBER NOT NULL, PRIMARY KEY(version, ownerGroup))",
 		purgedWithCache: true,
 	},
 } as const) satisfies Record<string, OfflineStorageTable>
@@ -711,12 +718,12 @@ export class OfflineStorage implements CacheStorage {
 		await this.putMetadata("lastUpdateTime", ms)
 	}
 
-	async getLastTrainedTime(): Promise<number> {
-		return (await this.getMetadata("lastTrainedTime")) ?? 0
+	async getLastTrainingDataIndexId(): Promise<Id> {
+		return (await this.getMetadata("lastTrainingDataId")) ?? GENERATED_MIN_ID
 	}
 
-	async setLastTrainedTime(ms: number): Promise<void> {
-		await this.putMetadata("lastTrainedTime", ms)
+	async setLastTrainingDataIndexId(id: Id): Promise<void> {
+		await this.putMetadata("lastTrainingDataId", id)
 	}
 
 	async getLastTrainedFromScratchTime(): Promise<number> {
@@ -725,6 +732,41 @@ export class OfflineStorage implements CacheStorage {
 
 	async setLastTrainedFromScratchTime(ms: number): Promise<void> {
 		await this.putMetadata("lastTrainedFromScratchTime", ms)
+	}
+
+	async setSpamClassificationModel(model: SpamClassificationModel) {
+		const { query, params } = sql`INSERT
+		OR REPLACE INTO
+									spam_classification_model VALUES (
+      						 		${1},
+		${model.ownerGroup},
+		${model.modelTopology},
+		${model.weightSpecs},
+		${model.weightData},
+		${model.hamCount},
+		${model.spamCount}
+		)`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>> {
+		const { query, params } = sql`SELECT modelTopology, weightSpecs, weightData, ownerGroup, hamCount, spamCount
+                                    FROM spam_classification_model
+                                    WHERE version = ${1}
+                                      AND ownerGroup = ${ownerGroup}`
+		const resultRows = await this.sqlCipherFacade.get(query, params)
+		if (resultRows !== null) {
+			const untaggedValue = untagSqlObject(resultRows)
+			return {
+				modelTopology: untaggedValue.modelTopology,
+				weightSpecs: untaggedValue.weightSpecs,
+				weightData: untaggedValue.weightData,
+				ownerGroup: untaggedValue.ownerGroup,
+				hamCount: untaggedValue.hamCount,
+				spamCount: untaggedValue.spamCount,
+			} as SpamClassificationModel
+		}
+		return null
 	}
 
 	async purgeStorage(): Promise<void> {

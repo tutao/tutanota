@@ -14,7 +14,7 @@ import {
 	ML_SPECIAL_CHARACTER_TOKEN,
 	ML_URL_REGEX,
 	ML_URL_TOKEN,
-} from "../../../../../../src/mail-app/workerUtils/spamClassification/PreprocessPatterns"
+} from "../../../../../../src/common/api/common/utils/spamClassificationUtils/PreprocessPatterns"
 import { isMailAddress } from "../../../../../../src/common/misc/FormatValidator"
 
 o.spec("PreprocessPatterns", () => {

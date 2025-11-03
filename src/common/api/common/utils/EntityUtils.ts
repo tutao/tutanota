@@ -61,7 +61,20 @@ export const DELETE_MULTIPLE_LIMIT = 100
  */
 export type Stripped<T extends Partial<SomeEntity>> = Omit<
 	T,
-	"_id" | "_area" | "_owner" | "_ownerGroup" | "_ownerEncSessionKey" | "_ownerKeyVersion" | "_permissions" | "_errors" | "_format" | "_type" | "_original"
+	| "_id"
+	| "_area"
+	| "_owner"
+	| "_ownerGroup"
+	| "_ownerEncSessionKey"
+	| "_ownerKeyVersion"
+	| "ownerGroup"
+	| "ownerEncSessionKey"
+	| "ownerKeyVersion"
+	| "_permissions"
+	| "_errors"
+	| "_format"
+	| "_type"
+	| "_original"
 >
 
 type OptionalEntity<T extends Entity> = T & {
@@ -76,6 +89,9 @@ export type StrippedEntity<T extends Entity> =
 			| "_ownerGroup"
 			| "_ownerEncSessionKey"
 			| "_ownerKeyVersion"
+			| "ownerGroup"
+			| "ownerEncSessionKey"
+			| "ownerKeyVersion"
 			| "_permissions"
 			| "_errors"
 			| "_format"
