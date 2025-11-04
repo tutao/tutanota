@@ -245,6 +245,7 @@ export type Mail = {
 	keyVerificationState: null | NumberString;
 	processingState: NumberString;
 	processNeeded: boolean;
+	sendAt: null | Date;
 
 	sender: MailAddress;
 	attachments: IdTuple[];
@@ -815,12 +816,14 @@ export type SendDraftData = {
 	plaintext: boolean;
 	calendarMethod: boolean;
 	sessionEncEncryptionAuthStatus: null | Uint8Array;
+	sendAt: null | Date;
 
 	internalRecipientKeyData: InternalRecipientKeyData[];
 	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
 	attachmentKeyData: AttachmentKeyData[];
 	mail: IdTuple;
 	symEncInternalRecipientKeyData: SymEncInternalRecipientKeyData[];
+	parameters: null | SendDraftParameters;
 }
 export const SendDraftReturnTypeRef: TypeRef<SendDraftReturn> = new TypeRef("tutanota", 557)
 
@@ -2716,4 +2719,43 @@ export type PopulateClientSpamTrainingDataPostIn = {
 	mailOwnerGroup: Id;
 
 	populateClientSpamTrainingDatum: PopulateClientSpamTrainingDatum[];
+}
+export const SendDraftDeleteInTypeRef: TypeRef<SendDraftDeleteIn> = new TypeRef("tutanota", 1785)
+
+export function createSendDraftDeleteIn(values: StrippedEntity<SendDraftDeleteIn>): SendDraftDeleteIn {
+    return Object.assign(create(typeModels[SendDraftDeleteInTypeRef.typeId], SendDraftDeleteInTypeRef), values)
+}
+
+export type SendDraftDeleteIn = {
+	_type: TypeRef<SendDraftDeleteIn>;
+	_original?: SendDraftDeleteIn
+
+	_format: NumberString;
+
+	mail: IdTuple;
+}
+export const SendDraftParametersTypeRef: TypeRef<SendDraftParameters> = new TypeRef("tutanota", 1788)
+
+export function createSendDraftParameters(values: StrippedEntity<SendDraftParameters>): SendDraftParameters {
+    return Object.assign(create(typeModels[SendDraftParametersTypeRef.typeId], SendDraftParametersTypeRef), values)
+}
+
+export type SendDraftParameters = {
+	_type: TypeRef<SendDraftParameters>;
+	_original?: SendDraftParameters
+
+	_id: Id;
+	language: string;
+	mailSessionKey: null | Uint8Array;
+	bucketEncMailSessionKey: null | Uint8Array;
+	senderNameUnencrypted: null | string;
+	plaintext: boolean;
+	calendarMethod: boolean;
+	sessionEncEncryptionAuthStatus: null | Uint8Array;
+
+	mail: IdTuple;
+	internalRecipientKeyData: InternalRecipientKeyData[];
+	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
+	symEncInternalRecipientKeyData: SymEncInternalRecipientKeyData[];
+	attachmentKeyData: AttachmentKeyData[];
 }

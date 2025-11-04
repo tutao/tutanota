@@ -1823,7 +1823,8 @@ mod tests {
 			),
 		"1769"=> JsonElement::String(
 				"0".to_string()
-			)
+			),
+		"1784"=> JsonElement::Null
 		}
 	}
 
