@@ -4933,6 +4933,8 @@ pub struct PlanConfiguration {
 	pub contactList: bool,
 	#[serde(rename = "2526")]
 	pub maxLabels: i64,
+	#[serde(rename = "2662")]
+	pub scheduledMails: bool,
 }
 
 impl Entity for PlanConfiguration {

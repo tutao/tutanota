@@ -3267,6 +3267,7 @@ export type PlanConfiguration = {
 	autoResponder: boolean;
 	contactList: boolean;
 	maxLabels: NumberString;
+	scheduledMails: boolean;
 }
 export const PlanServiceGetOutTypeRef: TypeRef<PlanServiceGetOut> = new TypeRef("sys", 2115)
 
