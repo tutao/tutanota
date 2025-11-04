@@ -1,15 +1,14 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { TextField } from "./TextField.js"
 import { createDropdown } from "./Dropdown.js"
 import type { AllIcons } from "./Icon"
 import type { lazy } from "@tutao/tutanota-utils"
-import { lazyStringValue, noOp } from "@tutao/tutanota-utils"
-import { lang, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
-import { BootIcons } from "./icons/BootIcons"
+import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { assertMainOrNode } from "../../api/common/Env"
-import { IconButton } from "./IconButton.js"
-import { ButtonSize } from "./ButtonSize.js"
+import { IconButton } from "./IconButton"
+import { TextField } from "./TextField"
+import { BootIcons } from "./icons/BootIcons"
+import { ButtonSize } from "./ButtonSize"
 
 assertMainOrNode()
 export type SelectorItem<T> = {
@@ -44,9 +43,12 @@ export interface DropDownSelectorAttrs<T> {
 export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs<T>> {
 	view(vnode: Vnode<DropDownSelectorAttrs<T>>): Children {
 		const a = vnode.attrs
+		const text = this.valueToText(a, a.selectedValue) || ""
+		const labelText = lang.getTranslationText(a.label)
+
 		return m(TextField, {
 			label: a.label,
-			value: this.valueToText(a, a.selectedValue) || "",
+			value: text,
 			helpLabel: a.helpLabel,
 			isReadOnly: true,
 			onclick: a.disabled ? noOp : this.createDropdown(a),
@@ -55,19 +57,9 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 			injectionsRight: () =>
 				a.disabled
 					? null
-					: // This whole thing with the button is not ideal. We shouldn't have a proper button with its own state layer, we should have the whole
-						// selector be interactive. Just putting an icon here doesn't work either because the selector disappears from tabindex even if you set it
-						// explicitly (at least in FF).
-						// Ideally we should also set correct role ("option") and highlight only parts of what is not text field (without help text in the bottom.
-						// We could hack some of this in here, but we should probably redo it from scratch with the right HTML structure.
-						m(
+					: m(
 							".flex.items-center.justify-center",
-							{
-								style: {
-									width: "30px",
-									height: "30px",
-								},
-							},
+							{ style: { width: "30px", height: "30px" } },
 							m(IconButton, {
 								icon: a.icon ? a.icon : BootIcons.Expand,
 								title: "show_action",
