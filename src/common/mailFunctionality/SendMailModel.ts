@@ -192,7 +192,6 @@ export class SendMailModel {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
 		this.confidential = !userProps.defaultUnconfidential
-
 		this.selectedNotificationLanguage = getAvailableLanguageCode(userProps.notificationMailLanguage || lang.code)
 		this.updateAvailableNotificationTemplateLanguages()
 
@@ -894,6 +893,16 @@ export class SendMailModel {
 		return this.allRecipients().filter((r) => r.type === RecipientType.EXTERNAL)
 	}
 
+	getWaitMessage(): TranslationKey {
+		if (this.sendLater != null) {
+			return "scheduling_msg"
+		} else if (this.isConfidential()) {
+			return "sending_msg"
+		} else {
+			return "sendingUnencrypted_msg"
+		}
+	}
+
 	/**
 	 * @reject {RecipientsNotFoundError}
 	 * @reject {TooManyRequestsError}
@@ -970,7 +979,7 @@ export class SendMailModel {
 			return true
 		}
 
-		return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", asyncSend())
+		return waitHandler(this.getWaitMessage(), asyncSend())
 			.catch(
 				ofClass(LockedError, () => {
 					throw new UserError("operationStillActive_msg")

@@ -22,6 +22,7 @@ export interface MobileMailActionBarAttrs {
 	replyAllAction: (() => void) | null
 	forwardAction: (() => void) | null
 	mailViewerMoreActions: MailViewerMoreActions | null
+	unscheduleMailAction: (() => void) | null
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
@@ -38,7 +39,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 				},
 			},
 			[
-				this.editButton(attrs) ?? this.replyButton(attrs) ?? this.placeholder(),
+				this.unscheduleButton(attrs) ?? this.editButton(attrs) ?? this.replyButton(attrs) ?? this.placeholder(),
 				this.forwardButton(attrs),
 				this.deleteButton(attrs) ?? this.trashButton(attrs),
 				this.moveButton(attrs) ?? this.placeholder(),
@@ -198,6 +199,17 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 				title: "edit_action",
 				icon: Icons.Edit,
 				click: editDraftAction,
+			})
+		)
+	}
+
+	private unscheduleButton({ unscheduleMailAction }: MobileMailActionBarAttrs) {
+		return (
+			unscheduleMailAction &&
+			m(IconButton, {
+				title: "cancelSend_action",
+				icon: Icons.XCross,
+				click: unscheduleMailAction,
 			})
 		)
 	}

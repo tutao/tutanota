@@ -322,8 +322,20 @@ export class MailViewerViewModel {
 		return this.forceLightMode
 	}
 
-	isDraftMail() {
+	isDraftMail(): boolean {
 		return this.mail.state === MailState.DRAFT
+	}
+
+	isScheduled(): boolean {
+		return this.mail.sendAt != null
+	}
+
+	unscheduleMail() {
+		this.mailModel.unscheduleMail(this.mail)
+	}
+
+	isEditableDraft() {
+		return this.isDraftMail() && !this.isScheduled()
 	}
 
 	isDeletableMail() {

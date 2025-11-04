@@ -43,7 +43,8 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 			},
 			[
 				viewModel.isUnread() ? this.renderUnreadDot() : null,
-				viewModel.isDraftMail() ? m(".mr-xs", this.renderIcon(Icons.Edit, lang.get("draft_label"))) : null,
+				viewModel.isScheduled() ? m(".mr-xs", this.renderIcon(Icons.Clock, lang.getTranslationText("scheduled_label"))) : null,
+				viewModel.isEditableDraft() ? m(".mr-xs", this.renderIcon(Icons.Edit, lang.getTranslationText("draft_label"))) : null,
 				this.renderSender(viewModel),
 				m(".flex.ml-between-s.items-center", [
 					mail.attachments.length > 0 ? this.renderIcon(Icons.Attachment, lang.get("attachment_label")) : null,

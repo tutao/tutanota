@@ -28,6 +28,7 @@ import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getFolderName } from "../model/MailUtils"
 import { client } from "../../../common/misc/ClientDetector"
+import { isMailScheduled } from "../model/MailChecks"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.Folder,
@@ -412,7 +413,7 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 
 		if (mail.state === MailState.DRAFT) {
-			iconText += FontIcons.Edit
+			iconText += isMailScheduled(mail) ? FontIcons.Clock : FontIcons.Edit
 			description += lang.get("draft_label") + " "
 		}
 

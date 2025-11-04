@@ -2124,7 +2124,11 @@ export default {
         "yourMessage_label": "Deine Nachricht",
         "zoomIn_action": "Hereinzoomen",
         "zoomOut_action": "Herauszoomen",
-        "schedule_action": "Schedule",
-        "sendOrSchedule_label": "Send/Schedule"
+        "sendLater_action": "Send later",
+        "cancelSend_action": "Cancel send",
+        "scheduled_label": "Scheduled",
+        "sendOrSendLater_label": "Send/Send later",
+        "sendScheduledForDate_msg": "Send scheduled for {dateTime}",
+        "scheduling_msg": "Your message is being scheduled.",
     }
 }

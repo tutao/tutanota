@@ -70,7 +70,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "./MailViewerUtils.js"
-import { isDraft, isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { isDraft, isEditableDraft, isMailScheduled, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
 import { attachDropdown, PosRect } from "../../../common/gui/base/Dropdown"
@@ -304,6 +304,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			setUnreadStateAction: this.getSetUnreadStateAction(),
 			isUnread: this.getUnreadState(),
 			editDraftAction: this.getEditDraftAction(viewModel),
+			unscheduleMailAction: this.getUnscheduleMailAction(viewModel),
 			exportAction: this.getExportAction(),
 			replyAction: this.getReplyAction(viewModel, false),
 			replyAllAction: this.getReplyAction(viewModel, true),
@@ -429,6 +430,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			setUnreadStateAction: this.getSetUnreadStateAction(),
 			isUnread: null,
 			editDraftAction: null,
+			unscheduleMailAction: null,
 			exportAction: this.getExportAction(),
 			replyAction: null,
 			replyAllAction: null,
@@ -513,6 +515,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								setUnreadStateAction: this.getSetUnreadStateAction(),
 								isUnread: this.getUnreadState(),
 								editDraftAction: this.getEditDraftAction(this.conversationViewModel),
+								unscheduleMailAction: this.getUnscheduleMailAction(this.conversationViewModel),
 								exportAction: this.getExportAction(),
 								replyAction: this.getReplyAction(this.conversationViewModel, false),
 								replyAllAction: this.getReplyAction(this.conversationViewModel, true),
@@ -625,12 +628,23 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getEditDraftAction(viewModel: ConversationViewModel): (() => void) | null {
-		const mails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
-		if (mails.length !== 1 || !isDraft(getFirstOrThrow(mails))) {
+		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+
+		if (selectedMails.length === 1 && isEditableDraft(viewModel.primaryMail)) {
+			return () => editDraft(viewModel.primaryViewModel())
+		} else {
 			return null
 		}
+	}
 
-		return () => editDraft(viewModel.primaryViewModel())
+	private getUnscheduleMailAction(viewModel: ConversationViewModel): (() => void) | null {
+		const selectedMails = this.mailViewModel.listModel?.getSelectedAsArray() ?? []
+
+		if (selectedMails.length === 1 && isMailScheduled(viewModel.primaryMail)) {
+			return () => mailLocator.mailModel.unscheduleMail(viewModel.primaryMail)
+		} else {
+			return null
+		}
 	}
 
 	private renderHeaderRightView(): Children {

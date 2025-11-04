@@ -16,7 +16,7 @@ import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
 import { ContentBlockingStatus, FailureBannerType, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import { isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
@@ -80,6 +80,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				this.renderDetails(attrs, { bubbleMenuWidth: 300 }),
 			),
 			this.renderAttachments(viewModel, attrs.importFile),
+			this.renderScheduledSendBanner(viewModel),
 			this.renderConnectionLostBanner(viewModel),
 			this.renderEventBanner(viewModel),
 			this.renderBanners(attrs),
@@ -233,16 +234,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				},
 				[
 					viewModel.isUnread() ? this.renderUnreadDot() : null,
-					viewModel.isDraftMail()
+					viewModel.isEditableDraft()
 						? m(
-								".mr-xs.align-self-center",
+								".flex.row.mr-xs.align-self-center",
 								m(Icon, {
 									icon: Icons.Edit,
 									container: "div",
 									style: {
 										fill: theme.on_surface_variant,
 									},
-									hoverText: lang.get("draft_label"),
+									hoverText: lang.getTranslationText("draft_label"),
 								}),
 							)
 						: null,
@@ -346,6 +347,24 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							click: () => viewModel.loadAll(Promise.resolve()),
 						},
 					],
+				}),
+			)
+		} else {
+			return null
+		}
+	}
+
+	private renderScheduledSendBanner(viewModel: MailViewerViewModel): Children {
+		if (viewModel.isScheduled()) {
+			const sendAt = assertNotNull(viewModel.mail.sendAt)
+
+			return m(
+				".mb-s.mt-s." + responsiveCardHMargin(),
+				m(InfoBanner, {
+					message: () =>
+						lang.getTranslation("sendScheduledForDate_msg", { "{dateTime}": formatDateWithWeekday(sendAt) + " • " + formatTime(sendAt) }).text,
+					icon: Icons.Clock,
+					buttons: [],
 				}),
 			)
 		} else {
@@ -807,11 +826,19 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						}
 
 				if (viewModel.isDraftMail()) {
-					actionButtons.push({
-						label: "edit_action",
-						click: () => editDraft(viewModel),
-						icon: Icons.Edit,
-					})
+					if (viewModel.isScheduled()) {
+						actionButtons.push({
+							label: "cancelSend_action",
+							click: () => viewModel.unscheduleMail(),
+							icon: Icons.XCross,
+						})
+					} else {
+						actionButtons.push({
+							label: "edit_action",
+							click: () => editDraft(viewModel),
+							icon: Icons.Edit,
+						})
+					}
 					actionButtons.push({
 						label: "move_action",
 						click: (_: MouseEvent, dom: HTMLElement) => actions.move(dom),

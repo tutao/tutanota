@@ -1257,7 +1257,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		],
 		right: () => [
 			{
-				label: model.getSendLaterDate() != null ? "schedule_action" : "send_action",
+				label: model.getSendLaterDate() != null ? "sendLater_action" : "send_action",
 				click: () => {
 					send()
 				},
@@ -1346,7 +1346,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			exec: () => {
 				send()
 			},
-			help: "sendOrSchedule_label",
+			help: "sendOrSendLater_label",
 		},
 		{
 			key: Keys.RETURN,
@@ -1354,7 +1354,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			exec: () => {
 				send()
 			},
-			help: "sendOrSchedule_label",
+			help: "sendOrSendLater_label",
 		},
 	]
 
