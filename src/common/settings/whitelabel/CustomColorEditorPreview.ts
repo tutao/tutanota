@@ -109,6 +109,7 @@ export class CustomColorEditorPreview implements Component {
 			unread: false,
 			replyType: "0",
 			confidential: true,
+			sendAt: null,
 			...mailTemplate,
 		})
 		const mail2 = createMail({
@@ -121,6 +122,7 @@ export class CustomColorEditorPreview implements Component {
 			unread: true,
 			replyType: "1",
 			confidential: false,
+			sendAt: null,
 			...mailTemplate,
 		})
 		return m(
