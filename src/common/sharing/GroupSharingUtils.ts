@@ -99,7 +99,7 @@ function _sendNotificationEmail(recipients: Recipients, subject: string, body: s
 			const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 			const model = await locator.sendMailModel(mailboxDetails, mailboxProperties)
 			await model.initWithTemplate(recipients, subject, sanitizedBody, [], true, sender)
-			await model.send(MailMethod.NONE, confirm, wait, "tooManyMailsAuto_msg")
+			await model.send(MailMethod.NONE, confirm, wait, null, "tooManyMailsAuto_msg")
 		})
 	})
 }

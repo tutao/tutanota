@@ -18,4 +18,5 @@ export const FontIcons = Object.freeze({
 	Checkbox: `\uea10`,
 	Shield: `\uea11`,
 	BrokenShield: `\uea12`,
+	Clock: `\uea13`,
 } as const)
