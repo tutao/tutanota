@@ -46,7 +46,27 @@ function loginSettings(router: Router): readonly QuickAction[] {
 		},
 		{
 			description: `${loginSettingsLabel} ${lang.getTranslationText("loginCredentials_label")}`,
-			exec: () => routeToFolderSection(router, folder, "user-settings"),
+			exec: () => routeToFolderSection(router, folder, "logincredentials"),
+		},
+		{
+			description: `${loginSettingsLabel} ${lang.getTranslationText("name_label")}`,
+			exec: () => routeToFolderSection(router, folder, "name"),
+		},
+		{
+			description: `${loginSettingsLabel} ${lang.getTranslationText("password_label")}`,
+			exec: () => routeToFolderSection(router, folder, "password"),
+		},
+		{
+			description: `${loginSettingsLabel} ${lang.getTranslationText("recoveryCode_label")}`,
+			exec: () => routeToFolderSection(router, folder, "recoverycode"),
+		},
+		{
+			description: `${loginSettingsLabel} ${lang.getTranslationText("credentialsEncryptionMode_label")}`,
+			exec: () => routeToFolderSection(router, folder, "unlockmethod"),
+		},
+		{
+			description: `${loginSettingsLabel} ${lang.getTranslationText("secondFactorAuthentication_label")}`,
+			exec: () => routeToFolderSection(router, folder, "2fa"),
 		},
 		{
 			description: `${loginSettingsLabel} ${lang.getTranslationText("activeSessions_label")}`,
@@ -73,7 +93,7 @@ function emailSettings(router: Router): readonly QuickAction[] {
 		},
 		{
 			description: `${emailSettingsLabel} ${lang.getTranslationText("storageCapacity_label")}`,
-			exec: () => routeToFolderSection(router, folder, "storage"),
+			exec: () => routeToFolderSection(router, folder, "storagecapacity"),
 		},
 		{
 			description: `${emailSettingsLabel} ${lang.getTranslationText("general_label")}`,

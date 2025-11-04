@@ -87,6 +87,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			size: ButtonSize.Compact,
 		}
 		const passwordAttrs: TextFieldAttrs = {
+			id: "password",
 			label: "password_label",
 			value: this._stars(),
 			oninput: this._stars,
@@ -114,6 +115,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			showDropdown: () => true,
 		})
 		const recoveryCodeFieldAttrs: TextFieldAttrs = {
+			id: "recoverycode",
 			label: "recoveryCode_label",
 			helpLabel: () => {
 				return ifAllowedTutaLinks(locator.logins, InfoLink.RecoverCode, (link) => [m(MoreInfoLink, { link: link })])
@@ -158,13 +160,13 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			const user = locator.logins.getUserController()
 			return m("", [
 				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
-					m(".h4.mt-l", lang.get("loginCredentials_label")),
+					m("#logincredentials.h4.mt-l", lang.get("loginCredentials_label")),
 					this.renderName(user),
 					m(TextField, mailAddressAttrs),
 					m(TextField, passwordAttrs),
 					user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
 					this.renderAppLockField(),
-					m(this._secondFactorsForm),
+					m("#2fa", m(this._secondFactorsForm)),
 					m("#activesessions.h4.mt-l", lang.get("activeSessions_label")),
 					this._renderActiveSessions(),
 					m(".small", lang.get("sessionsInfo_msg")),
@@ -201,6 +203,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		const isAdmin = user.isGlobalAdmin()
 
 		return m(TextField, {
+			id: "name",
 			label: "name_label",
 			value: groupInfo.name,
 			isReadOnly: true,
@@ -243,6 +246,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				await this.updateAppLockData()
 			}
 			return m(TextField, {
+				id: "unlockmethod",
 				label: "credentialsEncryptionMode_label",
 				value: this.appLockMethodName(this.appLockMethod ?? AppLockMethod.None),
 				isReadOnly: true,
@@ -257,6 +261,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			const usedMode = this.credentialEncryptionMode ?? CredentialEncryptionMode.DEVICE_LOCK
 
 			return m(TextField, {
+				id: "unlockmethod",
 				label: "credentialsEncryptionMode_label",
 				value: this.credentialsEncryptionModeName(usedMode),
 				isReadOnly: true,

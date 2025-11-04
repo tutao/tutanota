@@ -357,7 +357,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				[
 					this.customerInfo != null && Number(this.customerInfo.perUserStorageCapacity) > 0
 						? [
-								m(".h4.mt-l#storagecapacity", lang.get("storageCapacity_label")),
+								m("#storagecapacity.h4.mt-l", lang.get("storageCapacity_label")),
 								m(TextField, {
 									label: "storageCapacity_label",
 									value: this._storageFieldValue(),
@@ -370,7 +370,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m("#conversationthread", m(DropDownSelector, conversationViewDropdownAttrs)),
 					m("#maillistgrouping", m(DropDownSelector, mailListDisplayMode)),
 					isBrowser() ? m("#mailindexing", m(DropDownSelector, enableMailIndexingAttrs)) : null,
-					m("#maillistgrouping", m(DropDownSelector, behaviorAfterMoveEmailAction)),
+					m("#behavioraftermovingemail", m(DropDownSelector, behaviorAfterMoveEmailAction)),
 					m(".h4.mt-l#emailsending", lang.get("emailSending_label")),
 					m("#defaultsender", m(DropDownSelector, defaultSenderAttrs)),
 					m("#signature", m(TextField, signatureAttrs)),
