@@ -2,9 +2,16 @@ import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Editor, ImagePasteEvent } from "../../../common/gui/editor/Editor"
-import type { Attachment, InitAsResponseArgs, SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
+import {
+	Attachment,
+	InitAsResponseArgs,
+	SEND_LATER_MAX_DAYS_IN_FUTURE,
+	SEND_LATER_MIN_MINUTES_IN_FUTURE,
+	SendLaterDateStatus,
+	SendMailModel,
+} from "../../../common/mailFunctionality/SendMailModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
+import { InfoLink, lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -117,6 +124,7 @@ import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicke
 import { TimePicker, TimePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/TimePicker"
 import { getTimeFormatForUser } from "../../../common/calendar/date/CalendarUtils"
 import { Time } from "../../../common/calendar/date/Time"
+import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 
 // Interval where we save drafts locally.
 //
@@ -307,6 +315,11 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			if (invalidText !== "") {
 				throw new UserError(lang.makeTranslation("invalidRecipients_msg", lang.get("invalidRecipients_msg") + invalidText))
 			}
+
+			if (model.getSendLaterDate() != null && model.getSendLaterDateStatus() !== SendLaterDateStatus.WithinRange) {
+				// FIXME add translation
+				throw new UserError(lang.makeTranslation("invalidSendLaterDate_msg", "Invalid send later date."))
+			}
 		})
 		const dialog = a.dialog()
 
@@ -482,6 +495,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					nextDay.setDate(nextDay.getDate() + 1)
 					nextDay.setHours(8)
 					nextDay.setMinutes(0)
+					nextDay.setSeconds(0, 0)
 					model.setSendLaterDate(nextDay)
 				}
 			},
@@ -695,7 +709,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				isConfidential ? this.renderPasswordFields() : null,
 				sendLater
 					? m(
-							".flex",
+							"",
 							{
 								oncreate: (vnode) => {
 									// overflow needs to be hidden when the animation is running for it to look smooth
@@ -716,41 +730,49 @@ export class MailEditor implements Component<MailEditorAttrs> {
 								},
 							},
 							[
-								// display nothing on mobile because there is not so much space
-								isApp()
-									? null
-									: m(
-											".flex-grow",
-											m(TextField, {
-												//FIXME translation, also this just needs to be static text, not an editable text field
-												label: "emptyString_msg",
-												value: "Send at",
-												isReadOnly: true,
+								m(
+									".wrapping-row",
+
+									[
+										m(
+											"",
+											{
+												style: {
+													minWidth: "250px",
+												},
+											},
+											m(DatePicker, {
+												date: model.getSendLaterDate() ?? new Date(),
+												onDateSelected: (date) => {
+													model.setSendLaterDate(date)
+												},
+												startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(model.logins.getUserController().userSettingsGroupRoot),
+												label: lang.makeTranslation("sendDate_label", "Send date"),
 											}),
 										),
-								m(DatePicker, {
-									date: model.getSendLaterDate() ?? new Date(),
-									onDateSelected: (date) => {
-										model.setSendLaterDate(date)
-									},
-									startOfTheWeekOffset: 1,
-									label: lang.makeTranslation("sendDate_label", "Send date"),
-								}),
-								m(
-									".rel",
-									m(TimePicker, {
-										time: model.getSendLaterTime(),
-										onTimeSelected: (time: Time | null) => {
-											if (time) {
-												model.setSendLaterTime(time)
-											}
-										},
-										timeFormat: getTimeFormatForUser(locator.logins.getUserController().userSettingsGroupRoot),
-										// FIXME: add translation
-										ariaLabel: lang.makeTranslation("sendTime_label", "Send time"),
-										renderAsTextField: true,
-									} satisfies TimePickerAttrs),
+										m(
+											"",
+											{
+												style: {
+													minWidth: "250px",
+												},
+											},
+											m(TimePicker, {
+												time: model.getSendLaterTime(),
+												onTimeSelected: (time: Time | null) => {
+													if (time) {
+														model.setSendLaterTime(time)
+													}
+												},
+												timeFormat: getTimeFormatForUser(model.logins.getUserController().userSettingsGroupRoot),
+												// FIXME: add translation
+												ariaLabel: lang.makeTranslation("sendTime_label", "Send time"),
+												renderAsTextField: true,
+											} satisfies TimePickerAttrs),
+										),
+									],
 								),
+								this.renderInvalidSendLaterDateMessage(),
 							],
 						)
 					: null,
@@ -772,6 +794,34 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(".pb-16"),
 			],
 		)
+	}
+
+	private renderInvalidSendLaterDateMessage(): Children | null {
+		let message: Translation
+		switch (this.sendMailModel.getSendLaterDateStatus()) {
+			case SendLaterDateStatus.WithinRange:
+				return null
+			case SendLaterDateStatus.NotSet:
+				// FIXME add translation
+				message = lang.makeTranslation("sendLaterDateNotSet_msg", "Send later date is not set")
+				break
+			case SendLaterDateStatus.InThePast:
+				// FIXME add translation
+				message = lang.makeTranslation(
+					"sendLaterDateInThePast_msg",
+					`Send must be scheduled at least ${SEND_LATER_MIN_MINUTES_IN_FUTURE} minutes from now`,
+				)
+				break
+			case SendLaterDateStatus.TooFarInTheFuture:
+				// FIXME add translation
+				message = lang.makeTranslation(
+					"sendLaterDateTooFarInTheFuture_msg",
+					`Send can only be scheduled up to ${SEND_LATER_MAX_DAYS_IN_FUTURE} days from now at the latest`,
+				)
+				break
+		}
+
+		return m("small.noselect", { "data-testid": message.testId }, message.text)
 	}
 
 	private renderExternalContentBanner(attrs: MailEditorAttrs): Children | null {
@@ -1176,7 +1226,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		try {
 			// Note: model.send() will save without checking for conflicts, but unlike saving, send() will only ever be
 			// triggered by the user, so this is acceptable.
-			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog)
+			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog, model.getSendLaterDate(), undefined)
 			if (success) {
 				dispose()
 				dialog.close()
@@ -1257,7 +1307,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		],
 		right: () => [
 			{
-				label: model.getSendLaterDate() != null ? "schedule_action" : "send_action",
+				label: model.getSendLaterDate() != null ? "sendLater_action" : "send_action",
 				click: () => {
 					send()
 				},
@@ -1346,7 +1396,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			exec: () => {
 				send()
 			},
-			help: "sendOrSchedule_label",
+			help: "sendOrSendLater_label",
 		},
 		{
 			key: Keys.RETURN,
@@ -1354,7 +1404,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			exec: () => {
 				send()
 			},
-			help: "sendOrSchedule_label",
+			help: "sendOrSendLater_label",
 		},
 	]
 

@@ -27,6 +27,7 @@ import {
 	assertNotNull,
 	cleanMatch,
 	contains,
+	daysToMillis,
 	deduplicate,
 	defer,
 	DeferredObject,
@@ -34,6 +35,7 @@ import {
 	findAndRemove,
 	getFromMap,
 	LazyLoaded,
+	minutesToMillis,
 	neverNull,
 	noOp,
 	ofClass,
@@ -91,6 +93,18 @@ import { Time } from "../calendar/date/Time"
 assertMainOrNode()
 
 export const TOO_MANY_VISIBLE_RECIPIENTS = 10
+
+// Lower limit for when mails can be scheduled (in minutes)
+export const SEND_LATER_MIN_MINUTES_IN_FUTURE = 2
+// Upper limit for when mails can be scheduled (in days)
+export const SEND_LATER_MAX_DAYS_IN_FUTURE = 30
+
+export const enum SendLaterDateStatus {
+	NotSet,
+	WithinRange,
+	InThePast,
+	TooFarInTheFuture,
+}
 
 export type Attachment = TutanotaFile | DataFile | FileReference
 
@@ -192,7 +206,6 @@ export class SendMailModel {
 		const userProps = logins.getUserController().props
 		this.senderAddress = this.getDefaultSender()
 		this.confidential = !userProps.defaultUnconfidential
-
 		this.selectedNotificationLanguage = getAvailableLanguageCode(userProps.notificationMailLanguage || lang.code)
 		this.updateAvailableNotificationTemplateLanguages()
 
@@ -869,15 +882,17 @@ export class SendMailModel {
 		return null
 	}
 
-	setSendLaterDate(sendLater: Date | null): void {
+	setSendLaterDate(newDate: Date | null): void {
 		if (!this.sendLater) {
 			// if there is no send later on the model, we need to set it
-			this.sendLater = sendLater
-		} else if (sendLater) {
-			// if there is a send later on the model, we just want the date as to not overwrite the time
-			this.sendLater?.setDate(sendLater.getDate())
-			this.sendLater?.setMonth(sendLater.getMonth())
-			this.sendLater?.setFullYear(sendLater.getFullYear())
+			this.sendLater = newDate
+		} else if (newDate) {
+			// if there is a send later on the model, we only change the date and make sure to not overwrite the time
+			newDate.setHours(this.sendLater.getHours())
+			newDate.setMinutes(this.sendLater.getMinutes())
+			newDate.setSeconds(0, 0)
+			// we reassign sendLater instead of just mutating the date so the DatePicker's inputText is updated
+			this.sendLater = newDate
 		} else {
 			// if there is not a send later to update, we want to set the send later on the model to null
 			this.sendLater = null
@@ -889,12 +904,37 @@ export class SendMailModel {
 		this.sendLater?.setMinutes(sendLater.minute)
 	}
 
+	getSendLaterDateStatus(): SendLaterDateStatus {
+		if (this.sendLater == null) {
+			return SendLaterDateStatus.NotSet
+		}
+
+		const nowMillis = new Date().getTime()
+		if (this.sendLater.getTime() < nowMillis + minutesToMillis(SEND_LATER_MIN_MINUTES_IN_FUTURE)) {
+			return SendLaterDateStatus.InThePast
+		} else if (this.sendLater.getTime() > nowMillis + daysToMillis(SEND_LATER_MAX_DAYS_IN_FUTURE)) {
+			return SendLaterDateStatus.TooFarInTheFuture
+		} else {
+			return SendLaterDateStatus.WithinRange
+		}
+	}
+
 	containsExternalRecipients(): boolean {
 		return this.allRecipients().some((r) => r.type === RecipientType.EXTERNAL)
 	}
 
 	getExternalRecipients(): Array<Recipient> {
 		return this.allRecipients().filter((r) => r.type === RecipientType.EXTERNAL)
+	}
+
+	getWaitMessage(): TranslationKey {
+		if (this.sendLater != null) {
+			return "scheduling_msg"
+		} else if (this.isConfidential()) {
+			return "sending_msg"
+		} else {
+			return "sendingUnencrypted_msg"
+		}
 	}
 
 	/**
@@ -906,19 +946,17 @@ export class SendMailModel {
 	 * @reject {LockedError}
 	 * @reject {UserError}
 	 * @param mailMethod
-	 * @param getConfirmation: A callback to get user confirmation
-	 * @param waitHandler: A callback to allow UI blocking while the mail is being sent. it seems like wrapping the send call in showProgressDialog causes the confirmation dialogs not to be shown. We should fix this, but this works for now
 	 * @param tooManyRequestsError
-	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false
+	 * @param sendAt Schedule send at a specific date and time
+	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false)
 	 */
 	async send(
 		mailMethod: MailMethod,
 		getConfirmation: (arg0: MaybeTranslation) => Promise<boolean> = (_) => Promise.resolve(true),
 		waitHandler: (arg0: MaybeTranslation, arg1: Promise<any>) => Promise<any> = (_, p) => p,
+		sendAt: Date | null = null,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
-		// FIXME: need to hook up send later here at some point
-
 		// To avoid parallel invocations do not do anything async here that would later execute the sending.
 		// It is fine to wait for getConfirmation() because it is modal and will prevent the user from triggering multiple sends.
 		// If you need to do something async here put it into `asyncSend`
@@ -969,14 +1007,14 @@ export class SendMailModel {
 			}
 
 			await this.updateContacts(recipients)
-			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage)
+			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage, sendAt)
 			await this.clearLocalAutosave() // no need to keep a local copy of a draft of an email that was sent
 			await this.updatePreviousMail()
 			await this.updateExternalLanguage()
 			return true
 		}
 
-		return waitHandler(this.isConfidential() ? "sending_msg" : "sendingUnencrypted_msg", asyncSend())
+		return waitHandler(this.getWaitMessage(), asyncSend())
 			.catch(
 				ofClass(LockedError, () => {
 					throw new UserError("operationStillActive_msg")

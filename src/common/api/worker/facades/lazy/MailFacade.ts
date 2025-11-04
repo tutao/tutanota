@@ -70,6 +70,7 @@ import {
 	createResolveConversationsServiceGetIn,
 	createSecureExternalRecipientKeyData,
 	createSendDraftData,
+	createSendDraftDeleteIn,
 	createSendDraftParameters,
 	createSimpleMoveMailPostIn,
 	createUnreadMailStatePostIn,
@@ -91,7 +92,7 @@ import {
 	PopulateClientSpamTrainingDatum,
 	ProcessInboxDatum,
 	ReportedMailFieldMarker,
-	SendDraftData,
+	SendDraftParameters,
 	SymEncInternalRecipientKeyData,
 	SymEncInternalRecipientKeyDataTypeRef,
 	TutanotaPropertiesTypeRef,
@@ -131,8 +132,8 @@ import {
 import { BlobFacade } from "./BlobFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import { EntityClient } from "../../../common/EntityClient.js"
-import { getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../common/utils/GroupUtils.js"
-import { containsId, elementIdPart, getElementId, getLetId, isSameId, listIdPart, stringToCustomId } from "../../../common/utils/EntityUtils.js"
+import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../common/utils/GroupUtils.js"
+import { containsId, elementIdPart, getElementId, getLetId, isSameId, listIdPart, stringToCustomId, StrippedEntity } from "../../../common/utils/EntityUtils.js"
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
 import { UNCOMPRESSED_MAX_SIZE } from "../../Compression.js"
@@ -590,10 +591,10 @@ export class MailFacade {
 		})
 	}
 
-	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string): Promise<void> {
+	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, sendAt: Date | null): Promise<void> {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), draft.sender.address)
 		const bucketKey = aes256RandomKey()
-		const parameters = createSendDraftParameters({
+		const parameters: StrippedEntity<SendDraftParameters> = {
 			language: language,
 			mail: draft._id,
 			mailSessionKey: null,
@@ -606,12 +607,7 @@ export class MailFacade {
 			secureExternalRecipientKeyData: [],
 			symEncInternalRecipientKeyData: [],
 			sessionEncEncryptionAuthStatus: null,
-		})
-		const sendDraftData = createSendDraftData({
-			...parameters,
-			parameters,
-			sendAt: null,
-		})
+		}
 
 		const attachments = await this.getAttachmentIds(draft)
 		for (const fileId of attachments) {
@@ -629,35 +625,45 @@ export class MailFacade {
 				data.fileSessionKey = keyToUint8Array(fileSessionKey)
 			}
 
-			sendDraftData.attachmentKeyData.push(data)
+			parameters.attachmentKeyData.push(data)
 		}
 
 		await Promise.all([
 			this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
-				sendDraftData.plaintext = tutanotaProperties.sendPlaintextOnly
+				parameters.plaintext = tutanotaProperties.sendPlaintextOnly
 			}),
 			this.crypto.resolveSessionKey(draft).then(async (mailSessionkey) => {
 				const sk = assertNotNull(mailSessionkey, "mailSessionKey was null")
-				sendDraftData.calendarMethod = draft.method !== MailMethod.NONE
+				parameters.calendarMethod = draft.method !== MailMethod.NONE
 
 				if (draft.confidential) {
-					sendDraftData.bucketEncMailSessionKey = encryptKey(bucketKey, sk)
+					parameters.bucketEncMailSessionKey = encryptKey(bucketKey, sk)
 					const hasExternalSecureRecipient = recipients.some((r) => r.type === RecipientType.EXTERNAL && !!this.getContactPassword(r.contact)?.trim())
 
 					if (hasExternalSecureRecipient) {
-						sendDraftData.senderNameUnencrypted = draft.sender.name // needed for notification mail
+						parameters.senderNameUnencrypted = draft.sender.name // needed for notification mail
 					}
 
-					await this.addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
-					if (this.isTutaCryptMail(sendDraftData)) {
-						sendDraftData.sessionEncEncryptionAuthStatus = this.cryptoWrapper.encryptString(sk, EncryptionAuthStatus.TUTACRYPT_SENDER)
+					await this.addRecipientKeyData(bucketKey, parameters, recipients, senderMailGroupId)
+					if (this.isTutaCryptMail(parameters)) {
+						parameters.sessionEncEncryptionAuthStatus = this.cryptoWrapper.encryptString(sk, EncryptionAuthStatus.TUTACRYPT_SENDER)
 					}
 				} else {
-					sendDraftData.mailSessionKey = bitArrayToUint8Array(sk)
+					parameters.mailSessionKey = bitArrayToUint8Array(sk)
 				}
 			}),
 		])
+
+		const sendDraftData = createSendDraftData({
+			...parameters,
+			parameters: createSendDraftParameters(parameters),
+			sendAt,
+		})
 		await this.serviceExecutor.post(SendDraftService, sendDraftData)
+	}
+
+	async unscheduleMail(mail: IdTuple) {
+		await this.serviceExecutor.delete(SendDraftService, createSendDraftDeleteIn({ mail }))
 	}
 
 	async getAttachmentIds(draft: Mail): Promise<IdTuple[]> {
@@ -771,7 +777,12 @@ export class MailFacade {
 		return this.phishingMarkers.has(hash)
 	}
 
-	private async addRecipientKeyData(bucketKey: AesKey, sendDraftData: SendDraftData, recipients: Array<Recipient>, senderMailGroupId: Id): Promise<void> {
+	private async addRecipientKeyData(
+		bucketKey: AesKey,
+		sendDraftParameters: StrippedEntity<SendDraftParameters>,
+		recipients: Array<Recipient>,
+		senderMailGroupId: Id,
+	): Promise<void> {
 		const notFoundRecipients: string[] = []
 		const keyVerificationMismatchRecipients: string[] = []
 
@@ -810,7 +821,7 @@ export class MailFacade {
 					pwEncCommunicationKey: encryptKey(passwordKey, externalGroupKeys.currentExternalUserGroupKey.object),
 					userGroupKeyVersion: String(externalGroupKeys.currentExternalUserGroupKey.version),
 				})
-				sendDraftData.secureExternalRecipientKeyData.push(data)
+				sendDraftParameters.secureExternalRecipientKeyData.push(data)
 			} else {
 				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(
 					isSharedMailboxSender ? senderMailGroupId : this.userFacade.getLoggedInUser().userGroup.group,
@@ -823,9 +834,9 @@ export class MailFacade {
 					// cannot add recipient because of notFoundError
 					// we do not throw here because we want to collect all not found recipients first
 				} else if (isSameTypeRef(keyData._type, SymEncInternalRecipientKeyDataTypeRef)) {
-					sendDraftData.symEncInternalRecipientKeyData.push(keyData as SymEncInternalRecipientKeyData)
+					sendDraftParameters.symEncInternalRecipientKeyData.push(keyData as SymEncInternalRecipientKeyData)
 				} else if (isSameTypeRef(keyData._type, InternalRecipientKeyDataTypeRef)) {
-					sendDraftData.internalRecipientKeyData.push(keyData as InternalRecipientKeyData)
+					sendDraftParameters.internalRecipientKeyData.push(keyData as InternalRecipientKeyData)
 				}
 			}
 		}
@@ -841,17 +852,17 @@ export class MailFacade {
 	/**
 	 * Checks if the given send draft data contains only encrypt keys that have been encrypted with TutaCrypt protocol.
 	 * @VisibleForTesting
-	 * @param sendDraftData The send drafta for the mail that should be sent
+	 * @param sendDraftParameters The send draft parameters for the mail that should be sent
 	 */
-	isTutaCryptMail(sendDraftData: SendDraftData) {
+	isTutaCryptMail(sendDraftParameters: StrippedEntity<SendDraftParameters>) {
 		// if an secure external recipient is involved in the conversation we do not use asymmetric encryption
-		if (sendDraftData.symEncInternalRecipientKeyData.length > 0 || sendDraftData.secureExternalRecipientKeyData.length) {
+		if (sendDraftParameters.symEncInternalRecipientKeyData.length > 0 || sendDraftParameters.secureExternalRecipientKeyData.length) {
 			return false
 		}
-		if (isEmpty(sendDraftData.internalRecipientKeyData)) {
+		if (isEmpty(sendDraftParameters.internalRecipientKeyData)) {
 			return false
 		}
-		return sendDraftData.internalRecipientKeyData.every((recipientData) => recipientData.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT)
+		return sendDraftParameters.internalRecipientKeyData.every((recipientData) => recipientData.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT)
 	}
 
 	private getContactPassword(contact: Contact | null): string | null {

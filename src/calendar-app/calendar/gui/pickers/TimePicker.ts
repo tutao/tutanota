@@ -214,6 +214,9 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 	private renderTextFieldCustomTextPicker(attrs: TimePickerAttrs): Children {
 		return m(TextField, {
+			style: {
+				width: "100%",
+			},
 			label: attrs.ariaLabel,
 			value: this.value,
 			oninput: (val: string) => {

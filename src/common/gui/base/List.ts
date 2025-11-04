@@ -37,6 +37,7 @@ export type SwipeConfiguration<T> = {
 	renderRightSpacer(): Children
 	swipeLeft(element: T): Promise<ListSwipeDecision>
 	swipeRight(element: T): Promise<ListSwipeDecision>
+	isDisabledForEntity(element: T): boolean
 }
 
 export interface ViewHolder<T> {
@@ -190,6 +191,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			getRowForPosition: (coord) => this.getRowForPosition(coord),
 			onSwipeLeft: async (el) => this.lastAttrs.renderConfig.swipe?.swipeLeft(el) ?? ListSwipeDecision.Cancel,
 			onSwipeRight: async (el) => this.lastAttrs.renderConfig.swipe?.swipeRight(el) ?? ListSwipeDecision.Cancel,
+			isSwipeDisabledForEntity: (el) => this.lastAttrs.renderConfig.swipe?.isDisabledForEntity(el) ?? false,
 		})
 	}
 

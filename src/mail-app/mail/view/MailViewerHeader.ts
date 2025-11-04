@@ -16,7 +16,7 @@ import { Button, ButtonType } from "../../../common/gui/base/Button.js"
 import Badge from "../../../common/gui/base/Badge.js"
 import { ContentBlockingStatus, FailureBannerType, MailViewerViewModel } from "./MailViewerViewModel.js"
 import { canSeeTutaLinks } from "../../../common/gui/base/GuiUtils.js"
-import { isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, isNotNull, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType, isTutanotaTeamMail } from "./MailGuiUtils.js"
 import { BootIcons } from "../../../common/gui/base/icons/BootIcons.js"
@@ -44,9 +44,9 @@ export type MailAddressDropdownCreator = (args: {
 }) => Promise<Array<DropdownButtonAttrs>>
 
 export interface MailHeaderActions {
-	trash: () => unknown
+	trash: (() => unknown) | null
 	delete: (() => unknown) | null
-	move: (dom: HTMLElement) => unknown
+	move: ((dom: HTMLElement) => unknown) | null
 }
 
 export interface MailViewerHeaderAttrs {
@@ -82,6 +82,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				this.renderDetails(attrs, { bubbleMenuWidth: 300 }),
 			),
 			this.renderAttachments(viewModel, attrs.importFile),
+			this.renderScheduledSendBanner(viewModel),
 			this.renderConnectionLostBanner(viewModel),
 			this.renderEventBanner(viewModel),
 			this.renderBanners(attrs),
@@ -235,16 +236,16 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				},
 				[
 					viewModel.isUnread() ? this.renderUnreadDot() : null,
-					viewModel.isDraftMail()
+					viewModel.isEditableDraft()
 						? m(
-								".mr-4.align-self-center",
+								".flex.row.mr-4.align-self-center",
 								m(Icon, {
 									icon: Icons.Edit,
 									container: "div",
 									style: {
 										fill: theme.on_surface_variant,
 									},
-									hoverText: lang.get("draft_label"),
+									hoverText: lang.getTranslationText("draft_label"),
 								}),
 							)
 						: null,
@@ -348,6 +349,24 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							click: () => viewModel.loadAll(Promise.resolve()),
 						},
 					],
+				}),
+			)
+		} else {
+			return null
+		}
+	}
+
+	private renderScheduledSendBanner(viewModel: MailViewerViewModel): Children {
+		if (viewModel.isScheduled()) {
+			const sendAt = assertNotNull(viewModel.mail.sendAt)
+
+			return m(
+				".mb-s.mt-s." + responsiveCardHMargin(),
+				m(InfoBanner, {
+					message: () =>
+						lang.getTranslation("sendScheduledForDate_msg", { "{dateTime}": formatDateWithWeekday(sendAt) + " • " + formatTime(sendAt) }).text,
+					icon: Icons.Clock,
+					buttons: [],
 				}),
 			)
 		} else {
@@ -796,64 +815,37 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return createDropdown({
 			lazyButtons: () => {
 				let actionButtons: DropdownButtonAttrs[] = []
-				const deleteAction = actions.delete
-				const deleteOrTrashAction: DropdownButtonAttrs = deleteAction
+				const { delete: deleteAction, trash: trashAction, move: moveAction } = actions
+
+				const deleteButton: DropdownButtonAttrs | null =
+					deleteAction != null
+						? {
+								label: "delete_action",
+								click: () => deleteAction(),
+								icon: Icons.DeleteForever,
+							}
+						: null
+				const trashButton: DropdownButtonAttrs | null =
+					trashAction != null
+						? {
+								label: "trash_action",
+								click: () => trashAction(),
+								icon: Icons.Trash,
+							}
+						: null
+				const deleteOrTrashButton = deleteButton ?? trashButton
+
+				const moveButton: DropdownButtonAttrs | null =
+					moveAction != null
+						? {
+								label: "move_action",
+								click: (_: MouseEvent, dom: HTMLElement) => moveAction(dom),
+								icon: Icons.Folder,
+							}
+						: null
+
+				const labelButton: DropdownButtonAttrs | null = viewModel.mailModel.canAssignLabels()
 					? {
-							label: "delete_action",
-							click: () => deleteAction(),
-							icon: Icons.DeleteForever,
-						}
-					: {
-							label: "trash_action",
-							click: () => actions.trash(),
-							icon: Icons.Trash,
-						}
-
-				if (viewModel.isDraftMail()) {
-					actionButtons.push({
-						label: "edit_action",
-						click: () => editDraft(viewModel),
-						icon: Icons.Edit,
-					})
-					actionButtons.push({
-						label: "move_action",
-						click: (_: MouseEvent, dom: HTMLElement) => actions.move(dom),
-						icon: Icons.Folder,
-					})
-					actionButtons.push(deleteOrTrashAction)
-					addToggleLightModeButtonAttrs(viewModel, actionButtons)
-				} else {
-					if (viewModel.canReply()) {
-						actionButtons.push({
-							label: "reply_action",
-							click: () => viewModel.reply(false),
-							icon: Icons.Reply,
-						})
-					}
-					if (viewModel.canReplyAll()) {
-						actionButtons.push({
-							label: "replyAll_action",
-							click: () => viewModel.reply(true),
-							icon: Icons.ReplyAll,
-						})
-					}
-
-					if (viewModel.canForward()) {
-						actionButtons.push({
-							label: "forward_action",
-							click: () => viewModel.forward(),
-							icon: Icons.Forward,
-						})
-					}
-
-					actionButtons.push({
-						label: "move_action",
-						click: (_: MouseEvent, dom: HTMLElement) => actions.move(dom),
-						icon: Icons.Folder,
-					})
-
-					if (viewModel.mailModel.canAssignLabels()) {
-						actionButtons.push({
 							label: "assignLabel_action",
 							click: (_, dom) => {
 								const popup = new LabelsPopup(
@@ -870,11 +862,72 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								}, 16)
 							},
 							icon: Icons.Label,
+						}
+					: null
+
+				if (viewModel.isScheduled()) {
+					actionButtons.push({
+						label: "cancelSend_action",
+						click: () => viewModel.unscheduleMail(),
+						icon: Icons.XCross,
+					})
+				} else if (viewModel.isDraftMail()) {
+					actionButtons.push({
+						label: "edit_action",
+						click: () => editDraft(viewModel),
+						icon: Icons.Edit,
+					})
+				} else {
+					if (viewModel.canReply()) {
+						actionButtons.push({
+							label: "reply_action",
+							click: () => viewModel.reply(false),
+							icon: Icons.Reply,
 						})
 					}
+					if (viewModel.canReplyAll()) {
+						actionButtons.push({
+							label: "replyAll_action",
+							click: () => viewModel.reply(true),
+							icon: Icons.ReplyAll,
+						})
+					}
+					if (viewModel.canForward()) {
+						actionButtons.push({
+							label: "forward_action",
+							click: () => viewModel.forward(),
+							icon: Icons.Forward,
+						})
+					}
+				}
 
-					actionButtons.push(deleteOrTrashAction)
+				if (moveButton != null) {
+					actionButtons.push(moveButton)
+				}
+				if (labelButton != null) {
+					actionButtons.push(labelButton)
+				}
+				if (deleteOrTrashButton != null) {
+					actionButtons.push(deleteOrTrashButton)
+				}
 
+				if (viewModel.isUnread()) {
+					actionButtons.push({
+						label: "markRead_action",
+						click: () => viewModel.setUnread(false),
+						icon: Icons.Eye,
+					})
+				} else {
+					actionButtons.push({
+						label: "markUnread_action",
+						click: () => viewModel.setUnread(true),
+						icon: Icons.NoEye,
+					})
+				}
+
+				if (viewModel.isDraftMail()) {
+					addToggleLightModeButtonAttrs(viewModel, actionButtons)
+				} else {
 					actionButtons.push(...singleMailViewerMoreActions(viewModel, moreActions))
 				}
 
