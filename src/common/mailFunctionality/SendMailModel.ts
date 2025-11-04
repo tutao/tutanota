@@ -903,19 +903,17 @@ export class SendMailModel {
 	 * @reject {LockedError}
 	 * @reject {UserError}
 	 * @param mailMethod
-	 * @param getConfirmation: A callback to get user confirmation
-	 * @param waitHandler: A callback to allow UI blocking while the mail is being sent. it seems like wrapping the send call in showProgressDialog causes the confirmation dialogs not to be shown. We should fix this, but this works for now
 	 * @param tooManyRequestsError
-	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false
+	 * @param sendAt Schedule send at a specific date and time
+	 * @return true if the send was completed, false if it was aborted (by getConfirmation returning false)
 	 */
 	async send(
 		mailMethod: MailMethod,
 		getConfirmation: (arg0: MaybeTranslation) => Promise<boolean> = (_) => Promise.resolve(true),
 		waitHandler: (arg0: MaybeTranslation, arg1: Promise<any>) => Promise<any> = (_, p) => p,
+		sendAt: Date | null = null,
 		tooManyRequestsError: TranslationKey = "tooManyMails_msg",
 	): Promise<boolean> {
-		// FIXME: need to hook up send later here at some point
-
 		// To avoid parallel invocations do not do anything async here that would later execute the sending.
 		// It is fine to wait for getConfirmation() because it is modal and will prevent the user from triggering multiple sends.
 		// If you need to do something async here put it into `asyncSend`
@@ -965,7 +963,7 @@ export class SendMailModel {
 			}
 
 			await this.updateContacts(recipients)
-			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage)
+			await this.mailFacade.sendDraft(assertNotNull(this.draft, "draft was null?"), recipients, this.selectedNotificationLanguage, sendAt)
 			await this.clearLocalAutosave() // no need to keep a local copy of a draft of an email that was sent
 			await this.updatePreviousMail()
 			await this.updateExternalLanguage()

@@ -1176,7 +1176,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		try {
 			// Note: model.send() will save without checking for conflicts, but unlike saving, send() will only ever be
 			// triggered by the user, so this is acceptable.
-			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog)
+			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog, model.getSendLaterDate(), undefined)
 			if (success) {
 				dispose()
 				dialog.close()
