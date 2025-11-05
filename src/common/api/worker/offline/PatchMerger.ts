@@ -350,7 +350,9 @@ export function distinctAssociations(associationArray: ParsedAssociation) {
 				return deepEqual(item, current)
 			})
 		) {
-			acc.push(current)
+			if (current != null) {
+				acc.push(current)
+			}
 		}
 		return acc
 	}, [])

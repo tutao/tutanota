@@ -75,9 +75,9 @@ export class OfflineStorageMigrator {
 			if (currentOfflineVersion < version) {
 				console.log(`running offline db migration from ${currentOfflineVersion} to ${version}`)
 				await migrate(storage, sqlCipherFacade)
-				console.log(`migration finished to ${currentOfflineVersion}`)
 				await storage.setCurrentOfflineSchemaVersion(version)
 				currentOfflineVersion = version
+				console.log(`migration finished to ${currentOfflineVersion}`)
 			}
 		}
 	}
