@@ -36,6 +36,7 @@ import { UpgradePriceType } from "../FeatureListProvider"
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
 import { LoginButton } from "../../gui/base/buttons/LoginButton.js"
 import { CredentialsInfo } from "../../native/common/generatedipc/CredentialsInfo.js"
+import { signup } from "../utils/PaymentUtils"
 
 const enum GetCredentialsMethod {
 	Login,
@@ -320,12 +321,27 @@ class GiftCardCredentialsPage implements WizardPageN<RedeemGiftCardModel> {
 	private renderSignupPage(model: RedeemGiftCardModel): Children {
 		return m(SignupForm, {
 			// After having an account created we log them in to be in the same state as if they had selected an existing account
-			onComplete: (signupResult) => {
-				if (signupResult.type === "success") {
+			onComplete: async (result) => {
+				console.log(result)
+				if (result.type === "success") {
+					const newAccountData = await signup(
+						result.emailInputStore,
+						result.passwordInputStore,
+						result.registrationCode,
+						false,
+						true,
+						result.registrationDataId,
+						result.powChallengeSolutionPromise,
+					)
+					if (!newAccountData) {
+						emitWizardEvent(this.domElement, WizardEventType.CLOSE_DIALOG)
+						return
+					}
+
 					showProgressDialog(
 						"pleaseWait_msg",
 						model
-							.handleNewSignup(signupResult.newAccountData)
+							.handleNewSignup(newAccountData)
 							.then(() => {
 								emitWizardEvent(this.domElement, WizardEventType.SHOW_NEXT_PAGE)
 								m.redraw()

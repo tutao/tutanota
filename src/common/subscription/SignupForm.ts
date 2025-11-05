@@ -29,14 +29,15 @@ import { NewAccountData } from "./UpgradeSubscriptionWizard"
 import { emitWizardEvent, WizardEventType } from "../gui/base/WizardDialog"
 
 export type SignupFormAttrs = {
-	/** Handle a new account signup. if readonly then the argument will always be null */
 	onComplete: (
-		signupResult:
+		result:
 			| {
 					type: "success"
-					newAccountData: NewAccountData | null
 					registrationCode: string
 					powChallengeSolutionPromise: Promise<PowSolution>
+					emailInputStore: string
+					passwordInputStore: string
+					registrationDataId: string
 			  }
 			| { type: "failure" },
 	) => void
@@ -47,6 +48,8 @@ export type SignupFormAttrs = {
 	// only used if readonly is true
 	prefilledMailAddress?: string | undefined
 	newAccountData?: NewAccountData | null
+	emailInputStore?: string
+	passwordInputStore?: string
 }
 
 export class SignupForm implements Component<SignupFormAttrs> {
@@ -79,12 +82,12 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 		// tuta.com gets preference user is signing up for a paid account and it is available
 		const defaultDomain = vnode.attrs.isPaidSubscription() ? DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN : DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN
-		const desiredDomain = this.domainFrom(vnode.attrs.newAccountData?.mailAddress) ?? defaultDomain
+		const desiredDomain = this.domainFrom(vnode.attrs.emailInputStore) ?? defaultDomain
 		const match = this.availableDomains.find((d) => d.domain === desiredDomain)
 		if (match) this.selectedDomain = match
 
-		if (vnode.attrs.newAccountData?.mailAddress) {
-			const domainString = vnode.attrs.newAccountData.mailAddress.split("@")[1]
+		if (vnode.attrs.emailInputStore) {
+			const domainString = vnode.attrs.emailInputStore.split("@")[1]
 			const domain = this.availableDomains.find((emailDomainData) => emailDomainData.domain === domainString)
 			if (domain) {
 				this.selectedDomain = domain
@@ -126,9 +129,9 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			this.readonly = false
 		}
 
-		if (vnode.attrs.newAccountData) {
-			this.passwordModel.setNewPassword(vnode.attrs.newAccountData.password)
-			this.passwordModel.setRepeatedPassword(vnode.attrs.newAccountData.password)
+		if (vnode.attrs.passwordInputStore) {
+			this.passwordModel.setNewPassword(vnode.attrs.passwordInputStore)
+			this.passwordModel.setRepeatedPassword(vnode.attrs.passwordInputStore)
 			this._confirmAge(true)
 			this._confirmTerms(true)
 		}
@@ -169,7 +172,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				this._isMailVerificationBusy = isBusy
 			},
 			signupToken: deviceConfig.getSignupToken(),
-			username: vnode.attrs.newAccountData?.mailAddress.split("@")[0] ?? "",
+			username: vnode.attrs.emailInputStore?.split("@")[0] ?? "",
 		}
 		const confirmTermsCheckBoxAttrs: CheckboxAttrs = {
 			label: renderTermsLabel,
@@ -201,12 +204,11 @@ export class SignupForm implements Component<SignupFormAttrs> {
 
 			a.onComplete({
 				type: "success",
-				newAccountData: {
-					mailAddress: this._mailAddress,
-					password: this.passwordModel.getNewPassword(),
-				},
 				registrationCode: this._code(),
 				powChallengeSolutionPromise: this.powChallengeSolution.promise,
+				emailInputStore: this._mailAddress,
+				passwordInputStore: this.passwordModel.getNewPassword(),
+				registrationDataId: deviceConfig.getSignupToken(),
 			})
 		}
 

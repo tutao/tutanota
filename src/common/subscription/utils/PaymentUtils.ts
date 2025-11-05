@@ -201,14 +201,15 @@ export async function signup(
 		.finally(() => operation.done())
 }
 
-export async function createAccount(data: UpgradeSubscriptionData, onFailure: () => void) {
+export async function createAccount(data: UpgradeSubscriptionData, onFailure?: () => void) {
 	if (data.customer) return
-	data.newAccountData = assertNotNull(data.newAccountData)
+	data.emailInputStore = assertNotNull(data.emailInputStore)
+	data.passwordInputStore = assertNotNull(data.passwordInputStore)
 	data.powChallengeSolutionPromise = assertNotNull(data.powChallengeSolutionPromise)
 	data.registrationCode = assertNotNull(data.registrationCode)
 	const newAccountData = await signup(
-		data.newAccountData.mailAddress,
-		data.newAccountData.password,
+		data.emailInputStore,
+		data.passwordInputStore,
 		data.registrationCode,
 		data.options.businessUse(),
 		data.targetPlanType !== PlanType.Free,
@@ -217,7 +218,7 @@ export async function createAccount(data: UpgradeSubscriptionData, onFailure: ()
 	)
 
 	if (newAccountData == null) {
-		onFailure()
+		if (onFailure) onFailure()
 		return
 	}
 

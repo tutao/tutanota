@@ -47,7 +47,7 @@ export type SubscriptionParameters = {
 
 export type NewAccountData = {
 	mailAddress: string
-	recoverCode?: Hex
+	recoverCode: Hex
 	password: string
 }
 export type ReferralData = { code: string; isCalledBySatisfactionDialog: boolean }
@@ -79,6 +79,8 @@ export type UpgradeSubscriptionData = {
 	isCalledBySatisfactionDialog: boolean
 	registrationCode?: string
 	powChallengeSolutionPromise?: Promise<PowSolution>
+	emailInputStore?: string
+	passwordInputStore?: string
 }
 
 export async function showUpgradeWizard({

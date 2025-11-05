@@ -22,11 +22,12 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 		let mailAddress: undefined | string = undefined
 		if (newAccountData) mailAddress = newAccountData.mailAddress
 		return m(SignupForm, {
-			onComplete: async (signupResult) => {
-				if (signupResult.type === "success") {
-					data.newAccountData = signupResult.newAccountData
-					data.registrationCode = signupResult.registrationCode
-					data.powChallengeSolutionPromise = signupResult.powChallengeSolutionPromise
+			onComplete: async (result) => {
+				if (result.type === "success") {
+					data.registrationCode = result.registrationCode
+					data.powChallengeSolutionPromise = result.powChallengeSolutionPromise
+					data.emailInputStore = result.emailInputStore
+					data.passwordInputStore = result.passwordInputStore
 
 					if (data.targetPlanType === PlanType.Free) {
 						await createAccount(data, () => {
@@ -46,6 +47,8 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 			campaignToken: () => data.registrationDataId,
 			prefilledMailAddress: mailAddress,
 			newAccountData: data.newAccountData,
+			emailInputStore: data.emailInputStore,
+			passwordInputStore: data.passwordInputStore,
 		})
 	}
 }
