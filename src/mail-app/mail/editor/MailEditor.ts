@@ -117,6 +117,7 @@ import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicke
 import { TimePicker, TimePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/TimePicker"
 import { getTimeFormatForUser } from "../../../common/calendar/date/CalendarUtils"
 import { Time } from "../../../common/calendar/date/Time"
+import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 
 // Interval where we save drafts locally.
 //
@@ -733,7 +734,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 									onDateSelected: (date) => {
 										model.setSendLaterDate(date)
 									},
-									startOfTheWeekOffset: 1,
+									startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(model.logins.getUserController().userSettingsGroupRoot),
 									label: lang.makeTranslation("sendDate_label", "Send date"),
 								}),
 								m(
@@ -745,7 +746,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 												model.setSendLaterTime(time)
 											}
 										},
-										timeFormat: getTimeFormatForUser(locator.logins.getUserController().userSettingsGroupRoot),
+										timeFormat: getTimeFormatForUser(model.logins.getUserController().userSettingsGroupRoot),
 										// FIXME: add translation
 										ariaLabel: lang.makeTranslation("sendTime_label", "Send time"),
 										renderAsTextField: true,
