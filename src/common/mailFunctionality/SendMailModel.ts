@@ -865,15 +865,17 @@ export class SendMailModel {
 		return null
 	}
 
-	setSendLaterDate(sendLater: Date | null): void {
+	setSendLaterDate(newDate: Date | null): void {
 		if (!this.sendLater) {
 			// if there is no send later on the model, we need to set it
-			this.sendLater = sendLater
-		} else if (sendLater) {
-			// if there is a send later on the model, we just want the date as to not overwrite the time
-			this.sendLater?.setDate(sendLater.getDate())
-			this.sendLater?.setMonth(sendLater.getMonth())
-			this.sendLater?.setFullYear(sendLater.getFullYear())
+			this.sendLater = newDate
+		} else if (newDate) {
+			// if there is a send later on the model, we only change the date and make sure to not overwrite the time
+			newDate.setHours(this.sendLater.getHours())
+			newDate.setMinutes(this.sendLater.getMinutes())
+			newDate.setSeconds(0, 0)
+			// we reassign sendLater instead of just mutating the date so the DatePicker's inputText is updated
+			this.sendLater = newDate
 		} else {
 			// if there is not a send later to update, we want to set the send later on the model to null
 			this.sendLater = null

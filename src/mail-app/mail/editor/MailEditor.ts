@@ -483,6 +483,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					nextDay.setDate(nextDay.getDate() + 1)
 					nextDay.setHours(8)
 					nextDay.setMinutes(0)
+					nextDay.setSeconds(0, 0)
 					model.setSendLaterDate(nextDay)
 				}
 			},
