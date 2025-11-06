@@ -45,6 +45,26 @@ struct AesTestData: Decodable {
 	}
 }
 
+struct AeadTestData: Decodable {
+	@HexData var seed: Data
+	@Base64Data var plainText: Data
+	@Base64Data var cipherText: Data
+	@HexData var plaintextKey: Data
+	@HexData var encryptionKey: Data
+	@Base64Data var encryptedKey: Data
+	@Base64Data var associatedData: Data
+
+	enum CodingKeys: String, CodingKey {
+		case seed
+		case plainText = "plainTextBase64"
+		case cipherText = "cipherTextBase64"
+		case plaintextKey
+		case encryptionKey
+		case encryptedKey
+		case associatedData
+	}
+}
+
 struct AesMacTestData: Decodable {
 	@HexData var seed: Data
 	@Base64Data var plainText: Data
@@ -165,6 +185,7 @@ struct EncryptedTestData: Decodable {
 	let rsaEncryptionTests: [RsaTestData]
 	let kyberEncryptionTests: [KyberTestData]
 	let ed25519Tests: [Ed25519TestData]
+	let aeadTests: [AeadTestData]
 }
 
 // used for testing Swift code

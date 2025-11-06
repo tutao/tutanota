@@ -191,6 +191,25 @@ pub struct CompressionTestData {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct AeadTest {
+	#[serde(with = "Base64")]
+	pub plain_text_base64: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub seed: Vec<u8>,
+	#[serde(with = "Base64")]
+	pub cipher_text_base64: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub plaintext_key: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub encryption_key: Vec<u8>,
+	#[serde(with = "Base64")]
+	pub encrypted_key: Vec<u8>,
+	#[serde(with = "Base64")]
+	pub associated_data: Vec<u8>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CompatibilityTestData {
 	pub aes128_tests: Vec<AesTest>,
 	pub aes128_mac_tests: Vec<Aes128MacTest>,
@@ -204,6 +223,7 @@ pub struct CompatibilityTestData {
 	pub rsa_encryption_tests: Vec<RSAEncryptionTest>,
 	pub pqcrypt_encryption_tests: Vec<PQCryptEncryptionTest>,
 	pub compression_tests: Vec<CompressionTestData>,
+	pub aead_tests: Vec<AeadTest>,
 }
 
 struct Base64;

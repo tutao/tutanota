@@ -19,12 +19,12 @@ public class TestData {
 	List<KdfTestData> argon2idTests = new LinkedList<>();
 	List<CompressionTestData> compressionTests = new LinkedList<>();
 	List<X25519TestData> x25519tests = new LinkedList<>();
+	List<Ed25519TestData> ed25519tests = new LinkedList<>();
 	List<PQCryptTestData> pqCryptEncryptionTests = new LinkedList<>();
 	List<ByteArrayEncodingTestData> byteArrayEncodingTests = new LinkedList<>();
 	List<HkdfTestData> hkdfTests = new LinkedList<>();
 	List<HmacSha256TestData> hmacSha256Tests = new LinkedList<>();
-	List<Ed25519TestData> ed25519Tests = new LinkedList<>();
-
+	List<AeadTestData> aeadTests = new LinkedList<>();
 
 	public TestData addRsaEncryptionTest(EncryptionTestData test) {
 		this.rsaEncryptionTests.add(test);
@@ -87,6 +87,11 @@ public class TestData {
 		return this;
 	}
 
+	public TestData addEd25519Test(Ed25519TestData test) {
+		this.ed25519tests.add(test);
+		return this;
+	}
+
 	public TestData addPQCryptTest(PQCryptTestData test) {
 		this.pqCryptEncryptionTests.add(test);
 		return this;
@@ -99,6 +104,16 @@ public class TestData {
 
 	public TestData addHkdfTest(HkdfTestData test) {
 		this.hkdfTests.add(test);
+		return this;
+	}
+
+	public TestData addHmacSha256Test(HmacSha256TestData test) {
+		this.hmacSha256Tests.add(test);
+		return this;
+	}
+
+	public TestData addAeadTest(AeadTestData aeadTestData) {
+		this.aeadTests.add(aeadTestData);
 		return this;
 	}
 
@@ -142,12 +157,20 @@ public class TestData {
 		return argon2idTests;
 	}
 
+	public void setCompressionTests(List<CompressionTestData> compressionTests) {
+		this.compressionTests = compressionTests;
+	}
+
 	public List<CompressionTestData> getCompressionTests() {
 		return compressionTests;
 	}
 
 	public List<X25519TestData> getX25519Tests() {
 		return x25519tests;
+	}
+
+	public List<Ed25519TestData> getEd25519Tests() {
+		return ed25519tests;
 	}
 
 
@@ -162,12 +185,17 @@ public class TestData {
 	public List<HkdfTestData> getHkdfTests() {
 		return hkdfTests;
 	}
+
 	public List<HmacSha256TestData> getHmacSha256Tests() {
 		return hmacSha256Tests;
 	}
 
-	public List<Ed25519TestData> getEd25519Tests() {
-		return ed25519Tests;
+	public List<AeadTestData> getAeadTests() {
+		return aeadTests;
+	}
+
+	public void setAeadTests(List<AeadTestData> aeadTests) {
+		this.aeadTests = aeadTests;
 	}
 }
 
