@@ -14,6 +14,17 @@ export function isDraft(mail: Mail): boolean {
 	return mail.mailDetailsDraft != null
 }
 
+export function isMailScheduled(mail: Mail): boolean {
+	return mail.sendAt != null
+}
+
+/**
+ * Draft mails that are scheduled to be sent are not editable
+ */
+export function isEditableDraft(mail: Mail): boolean {
+	return isDraft(mail) && !isMailScheduled(mail)
+}
+
 export async function isMailInSpamOrTrash(mail: Mail, mailModel: MailModel): Promise<boolean> {
 	const folders = await mailModel.getMailboxFoldersForMail(mail)
 	const mailFolder = folders?.getFolderByMail(mail)

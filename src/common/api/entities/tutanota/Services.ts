@@ -44,6 +44,7 @@ import { ResolveConversationsServiceGetInTypeRef } from "./TypeRefs.js"
 import { ResolveConversationsServiceGetOutTypeRef } from "./TypeRefs.js"
 import { SendDraftDataTypeRef } from "./TypeRefs.js"
 import { SendDraftReturnTypeRef } from "./TypeRefs.js"
+import { SendDraftDeleteInTypeRef } from "./TypeRefs.js"
 import { SimpleMoveMailPostInTypeRef } from "./TypeRefs.js"
 import { TranslationGetInTypeRef } from "./TypeRefs.js"
 import { TranslationGetOutTypeRef } from "./TypeRefs.js"
@@ -264,7 +265,7 @@ export const SendDraftService = Object.freeze({
 	get: null,
 	post: { data: SendDraftDataTypeRef, return: SendDraftReturnTypeRef },
 	put: null,
-	delete: null,
+	delete: { data: SendDraftDeleteInTypeRef, return: null },
 } as const)
 
 export const SimpleMoveMailService = Object.freeze({

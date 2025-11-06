@@ -686,4 +686,8 @@ export class MailModel {
 			await promiseMap(mailIdsPerList, ([listId, elementIds]) => this.entityClient.loadMultiple(MailTypeRef, listId, elementIds), { concurrency: 2 })
 		).flat()
 	}
+
+	async unscheduleMail(mail: Mail): Promise<void> {
+		return await this.mailFacade.unscheduleMail(mail._id)
+	}
 }

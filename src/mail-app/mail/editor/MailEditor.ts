@@ -113,6 +113,11 @@ import { px, size } from "../../../common/gui/size"
 
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
+import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
+import { TimePicker, TimePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/TimePicker"
+import { getTimeFormatForUser } from "../../../common/calendar/date/CalendarUtils"
+import { Time } from "../../../common/calendar/date/Time"
+import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 
 // Interval where we save drafts locally.
 //
@@ -464,6 +469,29 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			toggled: model.isConfidential(),
 			size: ButtonSize.Compact,
 		}
+
+		let sendLater: Date | null = model.getSendLaterDate()
+		const sendLaterButtonAttrs: ToggleButtonAttrs = {
+			// FIXME translation
+			title: lang.makeTranslation("sendlaterbutton_id", "Send Later"),
+			onToggled: (_, e) => {
+				e.stopPropagation()
+				if (sendLater) {
+					model.setSendLaterDate(null)
+				} else {
+					let nextDay = new Date()
+					nextDay.setDate(nextDay.getDate() + 1)
+					nextDay.setHours(8)
+					nextDay.setMinutes(0)
+					nextDay.setSeconds(0, 0)
+					model.setSendLaterDate(nextDay)
+				}
+			},
+			icon: Icons.Clock,
+			toggled: sendLater !== null,
+			size: ButtonSize.Compact,
+		}
+
 		const attachFilesButtonAttrs: IconButtonAttrs = {
 			title: "attachFiles_action",
 			click: (ev, dom) => chooseAndAttachFile(model, dom.getBoundingClientRect()).then(() => m.redraw()),
@@ -518,6 +546,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 								size: ButtonSize.Compact,
 							})
 						: null,
+					m(ToggleButton, sendLaterButtonAttrs),
 					toolbarButton(),
 					showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
 					this.knowledgeBaseInjection ? this.renderToggleKnowledgeBase(this.knowledgeBaseInjection) : null,
@@ -666,6 +695,68 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						: null,
 				]),
 				isConfidential ? this.renderPasswordFields() : null,
+				sendLater
+					? m(
+							".flex",
+							{
+								oncreate: (vnode) => {
+									// overflow needs to be hidden when the animation is running for it to look smooth
+									// but if that style stays the time picker drop-down is hidden
+									const dom = vnode.dom as HTMLElement
+									dom.style.overflow = "hidden"
+
+									return this.animateHeight(dom, true).then(() => {
+										dom.style.overflow = "visible"
+									})
+								},
+								onbeforeremove: (vnode) => {
+									const dom = vnode.dom as HTMLElement
+									// overflow needs to be hidden for animateHeight to work as expected
+									dom.style.overflow = "hidden"
+
+									return this.animateHeight(dom, false)
+								},
+							},
+							[
+								// display nothing on mobile because there is not so much space
+								isApp()
+									? null
+									: m(
+											".flex-grow",
+											m(TextField, {
+												//FIXME translation, also this just needs to be static text, not an editable text field
+												label: "emptyString_msg",
+												value: "Send at",
+												isReadOnly: true,
+											}),
+										),
+								m(DatePicker, {
+									date: model.getSendLaterDate() ?? new Date(),
+									onDateSelected: (date) => {
+										model.setSendLaterDate(date)
+									},
+									startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(model.logins.getUserController().userSettingsGroupRoot),
+									label: lang.makeTranslation("sendDate_label", "Send date"),
+								}),
+								m(
+									".rel",
+									m(TimePicker, {
+										time: model.getSendLaterTime(),
+										onTimeSelected: (time: Time | null) => {
+											if (time) {
+												model.setSendLaterTime(time)
+											}
+										},
+										timeFormat: getTimeFormatForUser(model.logins.getUserController().userSettingsGroupRoot),
+										// FIXME: add translation
+										ariaLabel: lang.makeTranslation("sendTime_label", "Send time"),
+										renderAsTextField: true,
+									} satisfies TimePickerAttrs),
+								),
+							],
+						)
+					: null,
+				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(".row", m(TextField, subjectFieldAttrs)),
 				m(
 					".flex-start.flex-wrap.mt-s.mb-s.gap-hpad",
@@ -673,7 +764,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
 				this.renderExternalContentBanner(this.attrs),
-				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(
 					".pt-s.text.scroll-x.break-word-links.flex.flex-column.flex-grow" + (forcedLightMode ? ".bg-white.content-black.bg-fix-quoted" : ""),
 					{
@@ -951,7 +1041,11 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private animateHeight(domElement: HTMLElement, fadein: boolean): AnimationPromise {
-		let childHeight = domElement.offsetHeight
+		const childHeight = domElement.offsetHeight
+		if (fadein) {
+			// if this height is not set to 0, there is sometimes a jitter as it will display at full height for a second before the animation
+			domElement.style.height = "0"
+		}
 		return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).then(() => {
 			domElement.style.height = ""
 		})
@@ -1084,7 +1178,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		try {
 			// Note: model.send() will save without checking for conflicts, but unlike saving, send() will only ever be
 			// triggered by the user, so this is acceptable.
-			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog)
+			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog, model.getSendLaterDate(), undefined)
 			if (success) {
 				dispose()
 				dialog.close()
@@ -1163,9 +1257,9 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				type: ButtonType.Secondary,
 			},
 		],
-		right: [
+		right: () => [
 			{
-				label: "send_action",
+				label: model.getSendLaterDate() != null ? "sendLater_action" : "send_action",
 				click: () => {
 					send()
 				},
@@ -1254,7 +1348,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			exec: () => {
 				send()
 			},
-			help: "send_action",
+			help: "sendOrSendLater_label",
 		},
 		{
 			key: Keys.RETURN,
@@ -1262,7 +1356,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			exec: () => {
 				send()
 			},
-			help: "send_action",
+			help: "sendOrSendLater_label",
 		},
 	]
 

@@ -546,7 +546,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		return [
 			{
 				key: Keys.E,
-				enabled: () => this.viewModel.isDraftMail(),
+				enabled: () => this.viewModel.isEditableDraft(),
 				exec: () => {
 					editDraft(this.viewModel)
 				},

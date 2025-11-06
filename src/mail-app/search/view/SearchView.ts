@@ -104,7 +104,7 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 import { createDropdown, PosRect } from "../../../common/gui/base/Dropdown"
 import { editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "../../mail/view/MailViewerUtils"
-import { isDraft } from "../../mail/model/MailChecks"
+import { isEditableDraft, isMailScheduled } from "../../mail/model/MailChecks"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
@@ -626,6 +626,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
 					isUnread: null,
 					editDraftAction: this.getEditDraftAction(),
+					unscheduleMailAction: this.getUnscheduleAction(),
 					exportAction: this.getExportAction(),
 					replyAction: null,
 					replyAllAction: null,
@@ -671,6 +672,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					setUnreadStateAction: (unread) => this.setUnreadState(unread),
 					isUnread: this.getUnreadState(),
 					editDraftAction: this.getEditDraftAction(),
+					unscheduleMailAction: this.getUnscheduleAction(),
 					exportAction: this.getExportAction(),
 					replyAction: this.getReplyAction(conversationViewModel, false),
 					replyAllAction: this.getReplyAction(conversationViewModel, true),
@@ -837,15 +839,21 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private getEditDraftAction(): (() => void) | null {
 		// conversationViewModel is not there if we are in multiselect or if nothing is selected
 		const conversationViewModel = this.searchViewModel.conversationViewModel
-		if (conversationViewModel == null) {
+		if (conversationViewModel != null && isEditableDraft(conversationViewModel.primaryMail)) {
+			return () => editDraft(conversationViewModel.primaryViewModel())
+		} else {
 			return null
 		}
+	}
 
-		if (!isDraft(conversationViewModel.primaryMail)) {
+	private getUnscheduleAction(): (() => void) | null {
+		// conversationViewModel is not there if we are in multiselect or if nothing is selected
+		const conversationViewModel = this.searchViewModel.conversationViewModel
+		if (conversationViewModel != null && isMailScheduled(conversationViewModel.primaryMail)) {
+			return () => mailLocator.mailModel.unscheduleMail(conversationViewModel.primaryMail)
+		} else {
 			return null
 		}
-
-		return () => editDraft(conversationViewModel.primaryViewModel())
 	}
 
 	private getMoveMailsAction(): ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null {
@@ -963,6 +971,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				setUnreadStateAction: (unread) => this.setUnreadState(unread),
 				isUnread: this.getUnreadState(),
 				editDraftAction: this.getEditDraftAction(),
+				unscheduleMailAction: this.getUnscheduleAction(),
 				exportAction: this.getExportAction(),
 				replyAction: this.getReplyAction(conversationViewModel, false),
 				replyAllAction: this.getReplyAction(conversationViewModel, true),
