@@ -2,10 +2,12 @@ import typescriptEslint from "typescript-eslint"
 import unicorn from "eslint-plugin-unicorn"
 import globals from "globals"
 import { defineConfig, globalIgnores } from "eslint/config"
+import noFancyMithrilSelectors from "./buildSrc/linter/no-fancy-mithril-selectors.js"
 
 export default defineConfig([
 	{
 		rules: {
+			"tutao/no-fancy-mithril-selectors": "error",
 			"for-direction": "error",
 			"no-async-promise-executor": "error",
 			"no-compare-neg-zero": "warn",
@@ -81,6 +83,11 @@ export default defineConfig([
 		},
 		plugins: {
 			unicorn,
+			tutao: {
+				rules: {
+					"no-fancy-mithril-selectors": noFancyMithrilSelectors,
+				},
+			},
 		},
 		languageOptions: {
 			globals: {
