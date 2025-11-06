@@ -4,6 +4,7 @@ import globals from "globals"
 import { defineConfig, globalIgnores } from "eslint/config"
 import noFancyMithrilSelectors from "./buildSrc/linter/no-fancy-mithril-selectors.js"
 import noWeirdMithrilImport from "./buildSrc/linter/no-weird-mithril-import.js"
+import noShadowingMithril from "./buildSrc/linter/no-shadowing-mithril.js"
 
 export default defineConfig([
 	{
@@ -82,6 +83,7 @@ export default defineConfig([
 			"unicorn/prefer-array-some": 2,
 			"tutao/no-fancy-mithril-selectors": "error",
 			"tutao/no-weird-mithril-import": "error",
+			"tutao/no-shadowing-mithril": "error",
 		},
 		plugins: {
 			unicorn,
@@ -89,6 +91,7 @@ export default defineConfig([
 				rules: {
 					"no-fancy-mithril-selectors": noFancyMithrilSelectors,
 					"no-weird-mithril-import": noWeirdMithrilImport,
+					"no-shadowing-mithril": noShadowingMithril,
 				},
 			},
 		},

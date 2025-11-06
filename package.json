@@ -34,15 +34,15 @@
 		"review-import-trace": "node ./buildSrc/review/review.js import-trace.json"
 	},
 	"dependencies": {
-		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#536bc9bd736986828d5125e0278ba271ebc6006c",
 		"@fingerprintjs/botd": "1.9.1",
+		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#536bc9bd736986828d5125e0278ba271ebc6006c",
 		"@material/material-color-utilities": "git+https://github.com/tutao/material-color-utilities#064dcc2768cb0c8106c150a819eedb6233bb1d0a",
 		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#8d7eaa36321d7147faa3583231635855d8a991e7",
-		"@tutao/node-mimimi": "314.251030.0",
+		"@tensorflow/tfjs-backend-cpu": "4.22.0",
+		"@tensorflow/tfjs-backend-webgl": "4.22.0",
 		"@tensorflow/tfjs-core": "4.22.0",
 		"@tensorflow/tfjs-layers": "4.22.0",
-		"@tensorflow/tfjs-backend-webgl": "4.22.0",
-		"@tensorflow/tfjs-backend-cpu": "4.22.0",
+		"@tutao/node-mimimi": "314.251030.0",
 		"@tutao/oxmsg": "0.0.9-beta.0",
 		"@tutao/tuta-wasm-loader": "314.251030.0",
 		"@tutao/tutanota-crypto": "314.251030.0",
@@ -88,6 +88,7 @@
 		"@tutao/tutanota-test-utils": "314.251030.0",
 		"@types/express": "5.0.3",
 		"@types/pako": "^2.0.3",
+		"@typescript-eslint/typescript-estree": "^8.46.3",
 		"body-parser": "2.2.0",
 		"commander": "14.0.0",
 		"electron-builder": "26.0.17",
@@ -107,9 +108,9 @@
 		"testdouble": "3.20.2",
 		"typescript": "5.8.3",
 		"typescript-eslint": "8.34.0",
+		"wasm-pack": "git+https://github.com/tutao/wasm-pack.git#69f8269704aaccd8294edbb33e819687dfc227bf",
 		"xhr2": "0.2.1",
-		"zx": "8.5.5",
-		"wasm-pack": "git+https://github.com/tutao/wasm-pack.git#69f8269704aaccd8294edbb33e819687dfc227bf"
+		"zx": "8.5.5"
 	},
 	"workspaces": [
 		"./packages/*"

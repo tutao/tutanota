@@ -1,15 +1,16 @@
 export default {
 	meta: {
-		type: "suggestion",
+		type: "problem",
 		docs: {
-			description: "RULE THE WORLD",
+			description: "ensures valid mithril selectors",
 		},
 		fixable: "code",
 		schema: [], // no options
 	},
 	create: function (context) {
 		return {
-			ReturnStatement: function (node) {
+			CallExpression: function (node) {
+				if (!isMithrilCall(node)) return
 				// context.report({
 				// 	node,
 				// 	message: "never return plx",
@@ -18,4 +19,16 @@ export default {
 			// callback functions
 		}
 	},
+}
+
+function isMithrilCall(node) {
+	const callee = node.callee
+	const firstArg = node.arguments[0]
+	// this _will_ have false positives unless we implement some resolution to figure out where "m" is defined.
+	return callee.type === "Identifier" && callee.name === "m" && firstArg != null
+}
+
+function checkMithrilCall(context, node) {
+	const callee = node.callee
+	const firstArg = node.arguments[0]
 }
