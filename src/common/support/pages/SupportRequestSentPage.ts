@@ -1,5 +1,6 @@
 import m from "mithril"
-import Mithril, { Children, Component } from "mithril"
+import type Mithril from "mithril"
+import type { Children, Component } from "mithril"
 import { Card } from "../../gui/base/Card.js"
 import { lang } from "../../misc/LanguageViewModel.js"
 import { client } from "../../misc/ClientDetector.js"

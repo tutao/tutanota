@@ -1,6 +1,6 @@
 import { NewsListItem } from "../NewsListItem.js"
 import { NewsId } from "../../../api/entities/tutanota/TypeRefs.js"
-import Mithril from "mithril"
+import type Mithril from "mithril"
 import m from "mithril"
 import { isAndroidApp, isIOSApp } from "../../../api/common/Env.js"
 import { lang } from "../../LanguageViewModel.js"

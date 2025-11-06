@@ -3,7 +3,7 @@
  */
 
 import { Logger } from "./api/common/Logger"
-import Mithril from "mithril"
+import type Mithril from "mithril"
 import { LanguageViewModel } from "./misc/LanguageViewModel"
 import { ClientDetector } from "./misc/ClientDetector"
 import { RootView } from "./RootView"

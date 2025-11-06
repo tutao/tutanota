@@ -10,10 +10,10 @@ export default {
 	create: function (context) {
 		return {
 			ReturnStatement: function (node) {
-				context.report({
-					node,
-					message: "never return plx",
-				})
+				// context.report({
+				// 	node,
+				// 	message: "never return plx",
+				// })
 			},
 			// callback functions
 		}

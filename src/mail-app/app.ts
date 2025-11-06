@@ -1,6 +1,7 @@
 import { client } from "../common/misc/ClientDetector.js"
+import type { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
+import type Mithril from "mithril"
 import m from "mithril"
-import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../common/misc/LanguageViewModel.js"
 import { root } from "../RootView.js"
 import { assertNotNull, isSessionStorageAvailable, neverNull } from "@tutao/tutanota-utils"

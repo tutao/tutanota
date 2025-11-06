@@ -3,11 +3,11 @@ import unicorn from "eslint-plugin-unicorn"
 import globals from "globals"
 import { defineConfig, globalIgnores } from "eslint/config"
 import noFancyMithrilSelectors from "./buildSrc/linter/no-fancy-mithril-selectors.js"
+import noWeirdMithrilImport from "./buildSrc/linter/no-weird-mithril-import.js"
 
 export default defineConfig([
 	{
 		rules: {
-			"tutao/no-fancy-mithril-selectors": "error",
 			"for-direction": "error",
 			"no-async-promise-executor": "error",
 			"no-compare-neg-zero": "warn",
@@ -80,12 +80,15 @@ export default defineConfig([
 			"unicorn/prefer-node-protocol": 2,
 			"unicorn/no-array-for-each": 2,
 			"unicorn/prefer-array-some": 2,
+			"tutao/no-fancy-mithril-selectors": "error",
+			"tutao/no-weird-mithril-import": "error",
 		},
 		plugins: {
 			unicorn,
 			tutao: {
 				rules: {
 					"no-fancy-mithril-selectors": noFancyMithrilSelectors,
+					"no-weird-mithril-import": noWeirdMithrilImport,
 				},
 			},
 		},
