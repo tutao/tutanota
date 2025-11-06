@@ -1,6 +1,7 @@
 pipeline {
     environment {
         PATH="${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten"
+        WASM_TOOLS_FILE_PATH="tuta-wasm-tools.deb"
     }
 	options {
 		preserveStashes()
@@ -16,6 +17,11 @@ pipeline {
             defaultValue: "*/master",
             description: "the branch to build the release from."
         )
+        string(
+            name: 'wasmToolsVersion',
+            defaultValue: "0.0.4",
+            description: "the version of tuta-wasm-tools to use for building the app (see Nexus)"
+        )
     }
     agent {
         label 'master'
@@ -29,6 +35,18 @@ pipeline {
                 }
             }
         }
+        stage('download tuta wasm tools') {
+            steps {
+                script {
+                    def util = load "ci/jenkins-lib/util.groovy"
+                    util.downloadFromNexus(groupId: "lib",
+                                           artifactId: "tuta-wasm-tools",
+                                           version: params.wasmToolsVersion,
+                                           fileExtension: 'deb',
+                                           outFile: "${env.WORKSPACE}/ci/containers/${env.WASM_TOOLS_FILE_PATH}")
+                }
+            }
+        }
         stage('Build') {
 			agent {
 				dockerfile {
@@ -37,6 +55,7 @@ pipeline {
 					dir 'ci/containers'
 					additionalBuildArgs '--format docker'
 					args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z"
+					reuseNode true
 				} // docker
 		    }
 

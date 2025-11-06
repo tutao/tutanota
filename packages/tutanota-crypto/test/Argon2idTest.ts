@@ -48,7 +48,6 @@ o.spec("Argon2id", function () {
 	})
 
 	o("argon2 fallback unavailable", async function () {
-		// throw new Error("lol " + process.cwd())
 		await assertThrows(Error, async () => await loadWasmModuleFallback("../argon2.js"))
 	})
 })

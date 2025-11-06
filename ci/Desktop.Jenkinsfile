@@ -3,6 +3,7 @@ pipeline {
     	// on m1 macs, this is a symlink that must be updated. see wiki.
         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
         TMPDIR='/tmp'
+        WASM_TOOLS_FILE_PATH="tuta-wasm-tools.deb"
     }
     options {
 		preserveStashes()
@@ -34,6 +35,11 @@ pipeline {
             defaultValue: "*/master",
             description: "the branch to build the release from"
         )
+        string(
+            name: 'wasmToolsVersion',
+            defaultValue: "0.0.4",
+            description: "the version of tuta-wasm-tools to use for building the app (see Nexus)"
+        )
 	}
 
 	agent {
@@ -60,14 +66,27 @@ pipeline {
 				}
 			}
 		} // stage check github
+		stage('download tuta wasm tools') {
+			steps {
+				script {
+					def util = load "ci/jenkins-lib/util.groovy"
+					util.downloadFromNexus(groupId: "lib",
+										   artifactId: "tuta-wasm-tools",
+										   version: params.wasmToolsVersion,
+										   fileExtension: 'deb',
+										   outFile: "${env.WORKSPACE}/ci/containers/${env.WASM_TOOLS_FILE_PATH}")
+				}
+			}
+		} // stage download tuta wasm tools
 		stage('Build webapp') {
 			agent {
 				dockerfile {
 					filename 'linux-build.dockerfile'
 					label 'master'
 					dir 'ci/containers'
-							additionalBuildArgs "--format docker --squash"
+					additionalBuildArgs "--format docker --squash"
 					args '--network host'
+					reuseNode true
 				} // docker
 			} // agent
 			steps {
@@ -178,6 +197,7 @@ pipeline {
 							dir 'ci/containers'
 							additionalBuildArgs "--format docker"
 							args '--network host'
+							reuseNode true
 						} // docker
 					}
 					steps {
@@ -193,7 +213,6 @@ pipeline {
 				} // stage linux
 			} // stages
 		} // stage build desktop clients
-
 		stage('Preparation for sign clients and upload to Nexus') {
 			agent {
 				label 'master'
@@ -214,6 +233,7 @@ pipeline {
 					dir 'ci/containers'
 					additionalBuildArgs '--format docker'
 					args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z --device=${env.DEVICE_PATH}"
+					reuseNode true
 				} // docker
 		    }
 		    environment {
