@@ -9,7 +9,6 @@ import { runCaptchaFlow } from "../captcha/Captcha"
 import { client } from "../../misc/ClientDetector"
 import { SubscriptionApp } from "./SubscriptionUtils"
 import { SessionType } from "../../api/common/SessionType"
-import { credentialsToUnencrypted } from "../../misc/credentials/Credentials"
 import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { InvalidDataError, PreconditionFailedError } from "../../api/common/error/RestError"
 import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
@@ -154,14 +153,8 @@ export async function signup(
 
 				// Create a throwaway temporary session
 				// This will prevent postloginutils from showing the `shouldShowUpgrade` Dialog on the payment page
-				await logins.createSession(mailAddress, password, SessionType.Temporary)
-				await logins.getUserController().deleteSession(true)
+				const sessionData = await logins.createSession(mailAddress, password, SessionType.Temporary)
 
-				const sessionData = await logins.createSession(mailAddress, password, SessionType.Persistent)
-				const unencryptedCredentials = credentialsToUnencrypted(sessionData.credentials, sessionData.databaseKey)
-				try {
-					await locator.credentialsProvider.store(unencryptedCredentials)
-				} catch (e) {}
 				userGroupId = sessionData.userGroupInfo.group
 			} else {
 				userGroupId = logins.getUserController().userGroupInfo.group

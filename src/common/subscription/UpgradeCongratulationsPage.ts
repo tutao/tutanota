@@ -8,6 +8,8 @@ import { RecoverCodeField } from "../settings/login/RecoverCodeDialog.js"
 import { VisSignupImage } from "../gui/base/icons/Icons.js"
 import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { assertNotNull } from "@tutao/tutanota-utils"
+import { SessionType } from "../api/common/SessionType"
+import { credentialsToUnencrypted } from "../misc/credentials/Credentials"
 
 export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -53,7 +55,14 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 			promise = locator.logins.logout(false)
 		}
 
-		promise.then(() => {
+		promise.then(async () => {
+			const { mailAddress, password } = data.newAccountData!
+
+			const sessionData = await locator.logins.createSession(mailAddress, password, SessionType.Persistent)
+			const unencryptedCredentials = credentialsToUnencrypted(sessionData.credentials, sessionData.databaseKey)
+			try {
+				await locator.credentialsProvider.store(unencryptedCredentials)
+			} catch (e) {}
 			emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 		})
 	}
@@ -72,7 +81,7 @@ export class UpgradeCongratulationsPageAttrs implements WizardPageAttrs<UpgradeS
 		return "accountCongratulations_msg"
 	}
 
-	nextAction(showDialogs: boolean): Promise<boolean> {
+	async nextAction(showDialogs: boolean): Promise<boolean> {
 		// next action not available for this page
 		return Promise.resolve(true)
 	}
