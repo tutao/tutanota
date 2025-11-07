@@ -858,8 +858,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
 		// if entityUpdate has been Prefetched or is NotAvailable, we do not need to do anything
 		if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
-			// do not return undefined to avoid implicit returns
-
 			// we put new instances into cache only when it's a new instance in the cached range which is only for the list instances
 			if (update.instanceListId != null) {
 				// if there is a custom handler we follow its decision
@@ -868,18 +866,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				shouldUpdateDb = shouldUpdateDb ?? (await this.storage.isElementIdInCacheRange(typeRef, update.instanceListId, update.instanceId))
 
 				if (shouldUpdateDb) {
-					if (update.instance != null && !hasError(update.instance)) {
-						await this.storage.put(update.typeRef, update.instance)
-					} else {
-						console.log("re-downloading create event for, due to error : ", getTypeString(typeRef), update.instanceListId, update.instanceId)
-						try {
-							return await this.loadAndStoreInstanceFromUpdate(update)
-						} catch (e) {
-							if (isExpectedErrorForSynchronization(e)) {
-								return null
-							} else {
-								throw e
-							}
+					try {
+						return await this.loadAndStoreInstanceFromUpdate(update)
+					} catch (e) {
+						if (isExpectedErrorForSynchronization(e)) {
+							return null
+						} else {
+							throw e
 						}
 					}
 				}
@@ -890,6 +883,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	/** Returns {null} when the update should be skipped. */
 	private async processUpdateEvent(update: EntityUpdateData): Promise<EntityUpdateData | null> {
+		if (isSameTypeRef(update.typeRef, GroupTypeRef)) {
+			console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
+		}
+
 		try {
 			if (update.prefetchStatus === PrefetchStatus.NotPrefetched) {
 				if (update.patches) {
@@ -900,19 +897,16 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				} else {
 					const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
 					if (cached != null) {
-						if (isSameTypeRef(update.typeRef, GroupTypeRef)) {
-							console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
-						}
 						return await this.loadAndStoreInstanceFromUpdate(update)
 					}
 				}
 			}
 			return update
 		} catch (e) {
-			// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexisting instance around.
-			// Even for list elements this should be safe as the instance is not there anymore and is definitely not in this version
+			// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexistent instance around.
+			// Even for list elements this should be safe as the instance is not there anymore.
 			if (isExpectedErrorForSynchronization(e)) {
-				console.log(`Instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache.`)
+				console.log(`instance not found when processing update for ${JSON.stringify(update)}, deleting from the cache`)
 				await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 				return null
 			} else {
@@ -921,14 +915,26 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 	}
 
+	/**
+	 * Loads and stores an instance from an entityUpdate. If no instance is available on the entityUpdate
+	 * or the instance has _errors, the instance is re-loaded from the server.
+	 */
 	private async loadAndStoreInstanceFromUpdate(update: EntityUpdateData) {
-		const parsedInstance = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
-		if (!hasError(parsedInstance)) {
+		const instanceOnUpdate = update.instance
+		if (instanceOnUpdate != null && !hasError(instanceOnUpdate)) {
 			// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
-			await this.storage.put(update.typeRef, parsedInstance)
+			await this.storage.put(update.typeRef, instanceOnUpdate)
 			return update
 		} else {
-			return null
+			console.log("re-downloading instance from entity event, due to error : ", getTypeString(update.typeRef), update.instanceListId, update.instanceId)
+			const instanceFromServer = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
+			if (!hasError(instanceFromServer)) {
+				// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
+				await this.storage.put(update.typeRef, instanceFromServer)
+				return update
+			} else {
+				return null
+			}
 		}
 	}
 

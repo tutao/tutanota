@@ -341,6 +341,69 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 0 })
 				})
 
+				o("create events are loaded from network if instance is not available on entity update", async function () {
+					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
+
+					const ownerGroupId = "someOwnerGroupId"
+					const dummyContact = await toStorableInstance(
+						createTestEntity(ContactTypeRef, {
+							_id: ["dummyListId", "dummyId"],
+							_ownerGroup: ownerGroupId,
+						}),
+					)
+					when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
+
+					// CREATE entity update without instance
+					const entityUpdateContact1 = createEntityUpdate({
+						type: undefined as any, // no need for type since we have passed typeId
+						instanceListId: firstContactListId,
+						instanceId: id1,
+						operation: "0",
+						typeId: ContactTypeRef.typeId.toString(),
+						application: ContactTypeRef.app,
+						patch: null,
+						instance: null, // will be added by entityUpdateToUpdateData
+					})
+					const contact1EntityUpdate = await entityUpdateToUpdateData(
+						downcast(undefined),
+						entityUpdateContact1,
+						null, // instance is null, trigger re-load
+						PrefetchStatus.NotPrefetched,
+					)
+
+					const contact2 = createTestEntity(ContactTypeRef, {
+						_id: [firstContactListId, id2],
+						_ownerGroup: ownerGroupId,
+					})
+
+					// CREATE entity update without instance
+					const entityUpdateContact3 = createEntityUpdate({
+						type: undefined as any, // no need for type since we have passed typeId
+						instanceListId: firstContactListId,
+						instanceId: id3,
+						operation: "0",
+						typeId: ContactTypeRef.typeId.toString(),
+						application: ContactTypeRef.app,
+						patch: null,
+						instance: null, // will be added by entityUpdateToUpdateData
+					})
+					const contact3EntityUpdate = await entityUpdateToUpdateData(
+						downcast(undefined),
+						entityUpdateContact3,
+						null, // instance is null, trigger re-load
+						PrefetchStatus.NotPrefetched,
+					)
+
+					const batch: readonly EntityUpdateData[] = [
+						contact1EntityUpdate,
+						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, contact2, PrefetchStatus.NotPrefetched),
+						contact3EntityUpdate,
+					]
+
+					await cache.entityEventsReceived(batch, "batchId", groupId)
+					verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 2 })
+				})
+
 				o("create events are loaded from network if instance has _errors after decryption", async function () {
 					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
 
@@ -501,7 +564,92 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				verify(entityRestClient.loadParsedInstance(anything(), anything(), anything()), { times: 0 })
 			})
 
-			o("update events are loaded from network if instance has _errors after decryption", async function () {
+			o("update events are loaded from network if patches are null and no instance is on the update", async function () {
+				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
+
+				const ownerGroupId = "someOwnerGroupId"
+				const contact1 = createTestEntity(ContactTypeRef, {
+					_id: [firstContactListId, id1],
+					_ownerGroup: ownerGroupId,
+				})
+				const contact2 = createTestEntity(ContactTypeRef, {
+					_id: [firstContactListId, id2],
+					_ownerGroup: ownerGroupId,
+				})
+
+				const contact3 = createTestEntity(ContactTypeRef, {
+					_id: [firstContactListId, id3],
+					_ownerGroup: ownerGroupId,
+				})
+				const parsedInstance1 = await toStorableInstance(contact1)
+				const parsedInstance2 = await toStorableInstance(contact2)
+				const parsedInstance3 = await toStorableInstance(contact3)
+				await storage.putMultiple(ContactTypeRef, [parsedInstance1, parsedInstance2, parsedInstance3])
+
+				const dummyContact = await toStorableInstance(
+					createTestEntity(ContactTypeRef, {
+						_id: ["dummyListId", "dummyId"],
+						_ownerGroup: ownerGroupId,
+					}),
+				)
+				when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
+
+				// patch data is null, BUT instance not null does NOT trigger re-load
+				const updateContact1 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched)
+				updateContact1.instance = parsedInstance1
+				const updateContact2 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched)
+				updateContact2.instance = parsedInstance2
+				const updateContact3 = await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.NotPrefetched)
+				updateContact3.instance = parsedInstance3
+				const batch: readonly EntityUpdateData[] = [updateContact1, updateContact2, updateContact3]
+
+				await cache.entityEventsReceived(batch, "batchId", groupId)
+				verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 0 })
+			})
+
+			o("update events are not loaded from network if patches are null, but instance is on the update", async function () {
+				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
+
+				const ownerGroupId = "someOwnerGroupId"
+				const contact1 = createTestEntity(ContactTypeRef, {
+					_id: [firstContactListId, id1],
+					_ownerGroup: ownerGroupId,
+				})
+				const contact2 = createTestEntity(ContactTypeRef, {
+					_id: [firstContactListId, id2],
+					_ownerGroup: ownerGroupId,
+				})
+
+				const contact3 = createTestEntity(ContactTypeRef, {
+					_id: [firstContactListId, id3],
+					_ownerGroup: ownerGroupId,
+				})
+				await storage.putMultiple(ContactTypeRef, [
+					await toStorableInstance(contact1),
+					await toStorableInstance(contact2),
+					await toStorableInstance(contact3),
+				])
+
+				const dummyContact = await toStorableInstance(
+					createTestEntity(ContactTypeRef, {
+						_id: ["dummyListId", "dummyId"],
+						_ownerGroup: ownerGroupId,
+					}),
+				)
+				when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
+
+				// patch data is null trigger re-load
+				const batch: readonly EntityUpdateData[] = [
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null, PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null, PrefetchStatus.NotPrefetched),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null, PrefetchStatus.NotPrefetched),
+				]
+
+				await cache.entityEventsReceived(batch, "batchId", groupId)
+				verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 3 })
+			})
+
+			o("update events do not store instance when instance has _errors after decryption", async function () {
 				await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
 
 				const ownerGroupId = "someOwnerGroupId"
@@ -541,6 +689,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				await cache.entityEventsReceived(batch, "batchId", groupId)
 				verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 3 })
+
+				// contacts where not put / updated in storage with _errors
+				const contact1InStorage = await storage.get(ContactTypeRef, firstContactListId, id1)
+				const contact2InStorage = await storage.get(ContactTypeRef, firstContactListId, id2)
+				const contact3InStorage = await storage.get(ContactTypeRef, firstContactListId, id3)
+				o(contact1InStorage?._errors).equals(undefined)
+				o(contact2InStorage?._errors).equals(undefined)
+				o(contact3InStorage?._errors).equals(undefined)
 			})
 
 			o("update events with patches do not optimize for ranges", async function () {
