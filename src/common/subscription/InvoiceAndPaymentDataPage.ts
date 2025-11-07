@@ -45,24 +45,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 
 	constructor({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
 		this.ccViewModel = new SimplifiedCreditCardViewModel(lang)
-
-		// this._entityEventListener = (updates) => {
-		// 	return promiseMap(updates, (update) => {
-		// 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-		// 			return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((accountingInfo) => {
-		// 				data.accountingInfo = accountingInfo
-		// 				this.isPaypalLinked(accountingInfo.paypalBillingAgreement !== null)
-		// 				if (this.isPaypalLinked()) void this.onAddPaymentData()
-		// 				m.redraw()
-		// 			})
-		// 		}
-		// 	}).then(noOp)
-		// }
 		this.paypalRequestUrl = getLazyLoadedPayPalUrl()
-	}
-
-	onremove() {
-		// locator.eventController.removeEntityListener(this._entityEventListener)
 	}
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
@@ -86,7 +69,6 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		this.isPaypalLinked(data.accountingInfo?.paypalBillingAgreement != null)
 		this.isCreditCardValid(!this.ccViewModel.validateCreditCardPaymentData())
 		m.redraw()
-		// locator.eventController.addEntityListener(this._entityEventListener)
 	}
 
 	view({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
@@ -203,11 +185,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 
 		void showProgressDialog("updatePaymentDataBusy_msg", progress)
 	}
-
 	private onPaypalButtonClick = async (data: UpgradeSubscriptionData) => {
-		await createAccount(data, () => {
-			emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
-		})
 		if (this.paypalRequestUrl.isLoaded()) {
 			window.open(this.paypalRequestUrl.getLoaded())
 		} else {

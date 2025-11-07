@@ -29,11 +29,10 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 					data.emailInputStore = result.emailInputStore
 					data.passwordInputStore = result.passwordInputStore
 
-					if (data.targetPlanType === PlanType.Free) {
-						await createAccount(data, () => {
-							emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
-						})
-					}
+					await createAccount(data, () => {
+						emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
+					})
+
 					emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 				} else {
 					emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
