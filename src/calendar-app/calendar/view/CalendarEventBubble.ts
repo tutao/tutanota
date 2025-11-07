@@ -236,10 +236,9 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		const totalRowSpan = rowBounds.end - rowBounds.start
 		const showSecondLine = totalRowSpan >= MIN_ROW_SPAN * 2
 		const maxLines = (totalRowSpan - MIN_ROW_SPAN) / MIN_ROW_SPAN
-		console.log({ flags })
+
 		return m(".flex", [
 			Object.entries(flags ?? {}).map(([key, value]: [EventWrapperFlagKeys, boolean]) => {
-				console.log({ key, value })
 				return value && FlagKeyToIcon[key]
 					? m(Icon, {
 							icon: FlagKeyToIcon[key],
