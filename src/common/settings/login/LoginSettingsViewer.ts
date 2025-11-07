@@ -143,8 +143,11 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				},
 			],
 			selectedValue: locator.logins.getUserController().userSettingsGroupRoot.usageDataOptedIn,
-			selectionChangedHandler: (v) => {
-				this._usageTestModel.setOptInDecision(assertNotNull(v))
+			selectionChangedHandler: async (hasOptedIn) => {
+				if (hasOptedIn === true && !(await Dialog.confirm("ageConfirmationLong_msg", "paymentDataValidation_action"))) {
+					return
+				}
+				await this._usageTestModel.setOptInDecision(assertNotNull(hasOptedIn))
 			},
 			helpLabel: () => {
 				return ifAllowedTutaLinks(locator.logins, InfoLink.Usage, (link) => [
