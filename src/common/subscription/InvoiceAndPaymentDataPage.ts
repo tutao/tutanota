@@ -7,7 +7,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { AvailablePlanType, getClientType, InvoiceData, Keys, PaymentData, PaymentDataResultType, PaymentMethodType } from "../api/common/TutanotaConstants"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
+import { AccountingInfo, Braintree3ds2Request, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { assertNotNull, LazyLoaded, neverNull, newPromise, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { getLazyLoadedPayPalUrl, getPreconditionFailedPaymentMsg, PaymentErrorCode, UpgradeType } from "./utils/SubscriptionUtils"
 import { Button, ButtonType } from "../gui/base/Button.js"
@@ -38,7 +38,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	private dom!: HTMLElement
 	private _hasClickedNext: boolean = false
 	private ccViewModel: SimplifiedCreditCardViewModel
-	private _entityEventListener: EntityEventsListener
+	// private _entityEventListener: EntityEventsListener
 	private paypalRequestUrl: LazyLoaded<string>
 	private isCreditCardValid: stream<boolean> = stream(false)
 	private isPaypalLinked: stream<boolean> = stream(false)
@@ -46,23 +46,23 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	constructor({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>) {
 		this.ccViewModel = new SimplifiedCreditCardViewModel(lang)
 
-		this._entityEventListener = (updates) => {
-			return promiseMap(updates, (update) => {
-				if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-					return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((accountingInfo) => {
-						data.accountingInfo = accountingInfo
-						this.isPaypalLinked(accountingInfo.paypalBillingAgreement !== null)
-						if (this.isPaypalLinked()) void this.onAddPaymentData(data)
-						m.redraw()
-					})
-				}
-			}).then(noOp)
-		}
+		// this._entityEventListener = (updates) => {
+		// 	return promiseMap(updates, (update) => {
+		// 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
+		// 			return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((accountingInfo) => {
+		// 				data.accountingInfo = accountingInfo
+		// 				this.isPaypalLinked(accountingInfo.paypalBillingAgreement !== null)
+		// 				if (this.isPaypalLinked()) void this.onAddPaymentData()
+		// 				m.redraw()
+		// 			})
+		// 		}
+		// 	}).then(noOp)
+		// }
 		this.paypalRequestUrl = getLazyLoadedPayPalUrl()
 	}
 
 	onremove() {
-		locator.eventController.removeEntityListener(this._entityEventListener)
+		// locator.eventController.removeEntityListener(this._entityEventListener)
 	}
 
 	oncreate(vnode: VnodeDOM<WizardPageAttrs<UpgradeSubscriptionData>>) {
@@ -86,7 +86,7 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 		this.isPaypalLinked(data.accountingInfo?.paypalBillingAgreement != null)
 		this.isCreditCardValid(!this.ccViewModel.validateCreditCardPaymentData())
 		m.redraw()
-		locator.eventController.addEntityListener(this._entityEventListener)
+		// locator.eventController.addEntityListener(this._entityEventListener)
 	}
 
 	view({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
@@ -118,8 +118,9 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 								},
 								this._selectedPaymentMethod() === PaymentMethodType.Paypal &&
 									m(PaypalButton, {
-										accountingInfo: data.accountingInfo,
+										data,
 										onclick: () => this.onPaypalButtonClick(data),
+										oncomplete: () => this.onAddPaymentData(data),
 									}),
 								this._selectedPaymentMethod() === PaymentMethodType.CreditCard &&
 									m(SimplifiedCreditCardInput, {
@@ -162,7 +163,6 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 				isBusiness: data.options.businessUse(),
 				paymentMethod: this._selectedPaymentMethod(),
 				accountingInfo: assertNotNull(data.accountingInfo),
-				ccViewModel: this.ccViewModel,
 			})
 
 		if (error) {

@@ -2,7 +2,6 @@ import { AccountingInfo, AccountingInfoTypeRef } from "../../api/entities/sys/Ty
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { type InvoiceData, PaymentMethodType, PlanType } from "../../api/common/TutanotaConstants"
 import { Country, CountryType } from "../../api/common/CountryList"
-import { CCViewModel } from "../SimplifiedCreditCardInput"
 import { PowSolution } from "../../api/common/pow-worker"
 import { NewAccountData, type UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard"
 import { locator } from "../../api/main/CommonLocator"
@@ -16,15 +15,13 @@ import { InvalidDataError, PreconditionFailedError } from "../../api/common/erro
 import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
 import { Dialog } from "../../gui/base/Dialog"
 
-function isOnAccountAllowed(country: Country, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
+export function isOnAccountAllowed(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {
 		return false
 	} else if (accountingInfo.paymentMethod === PaymentMethodType.Invoice) {
 		return true
-	} else if (isBusiness && country.t !== CountryType.OTHER) {
-		return true
 	} else {
-		return false
+		return isBusiness && country.t !== CountryType.OTHER
 	}
 }
 
@@ -33,13 +30,11 @@ export function validatePaymentData({
 	country,
 	accountingInfo,
 	isBusiness,
-	ccViewModel,
 }: {
 	paymentMethod: PaymentMethodType
-	country: Country
+	country: Country | null
 	accountingInfo: AccountingInfo
 	isBusiness: boolean
-	ccViewModel: CCViewModel
 }): TranslationKey | null {
 	if (!paymentMethod) {
 		return "invoicePaymentMethodInfo_msg"
