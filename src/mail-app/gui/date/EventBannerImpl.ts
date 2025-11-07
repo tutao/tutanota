@@ -255,7 +255,6 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 											timeRange,
 											dates: [getStartOfDay(agenda.main.event.startTime)],
 											hasAnyConflict: hasConflict,
-											timeRowHeight: this.timeRowHeight,
 											setTimeRowHeight: (timeRowHeight: number) => (this.timeRowHeight = timeRowHeight),
 											canReceiveFocus: true,
 										} satisfies TimeViewAttributes)

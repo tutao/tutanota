@@ -1,6 +1,6 @@
 import m, { Child, ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized, downcast, getStartOfDay, getStartOfNextDay, noOp } from "@tutao/tutanota-utils"
+import { deepMemoized, downcast, getStartOfDay, getStartOfNextDay, isToday, noOp } from "@tutao/tutanota-utils"
 import { px } from "../../gui/size.js"
 import { getTimeFromClickInteraction, getTimeZone } from "../date/CalendarUtils"
 import { TimeColumn } from "./TimeColumn"
@@ -33,7 +33,6 @@ export interface TimeViewAttributes {
 	events: Array<EventWrapper>
 	timeScale: TimeScale
 	timeRange: TimeRange
-	timeRowHeight: number
 	setTimeRowHeight: (timeRowHeight: number) => void
 	hasAnyConflict?: boolean
 	cellActionHandlers?: Pick<CellAttrs, "onCellPressed" | "onCellContextMenuPressed">
@@ -105,6 +104,10 @@ export const getSubRowAsMinutes = deepMemoized((timeScale: TimeScale) => {
 	return TIME_SCALE_BASE_VALUE / timeScale / SUBROWS_PER_INTERVAL
 })
 
+export const getIntervalAsMinutes = (timeScale: TimeScale) => {
+	return TIME_SCALE_BASE_VALUE / timeScale
+}
+
 /**
  * TimeView Component
  *
@@ -135,34 +138,32 @@ export const getSubRowAsMinutes = deepMemoized((timeScale: TimeScale) => {
  * ```
  */
 export class TimeView implements ClassComponent<TimeViewAttributes> {
-	private parentHeight?: number
 	private columnCount: Map<number, number> = new Map()
+	private subRowCount?: number
+	private dayHeight: number | null = null
+
+	oninit(vnode: Vnode<TimeViewAttributes>): any {
+		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(vnode.attrs.timeScale, vnode.attrs.timeRange)
+		this.subRowCount = SUBROWS_PER_INTERVAL * timeColumnIntervals.length
+	}
+
+	oncreate(vnode: VnodeDOM<TimeViewAttributes>) {
+		const domHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replace("px", ""))
+		vnode.attrs.setTimeRowHeight(domHeight / this.subRowCount!)
+		m.redraw()
+	}
 
 	view({ attrs }: Vnode<TimeViewAttributes>) {
-		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(attrs.timeScale, attrs.timeRange)
-		const subRowCount = SUBROWS_PER_INTERVAL * timeColumnIntervals.length
-
 		return m(
 			".grid.overflow-hidden.height-100p",
 			{
 				style: {
-					"overflow-x": "hidden",
+					// "overflow-x": "hidden",
 					"grid-template-columns": `repeat(${attrs.dates.length}, 1fr)`,
 					transition: `opacity ${DefaultAnimationTime}ms linear`,
-					opacity: this.parentHeight == null ? 0 : 1,
-				},
-				oninit: (vnode: VnodeDOM) => {
-					if (this.parentHeight == null) {
-						window.requestAnimationFrame(() => {
-							const domHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replace("px", ""))
-							this.parentHeight = domHeight
-							attrs.setTimeRowHeight(domHeight / subRowCount)
-							m.redraw()
-						})
-					}
 				},
 			},
-			attrs.dates.map((date) => this.renderDay(date, subRowCount, attrs)),
+			attrs.dates.map((date) => this.renderDay(date, this.subRowCount!, attrs)),
 		)
 	}
 
@@ -178,11 +179,12 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 		return m(
 			".grid.plr-unit.gap.z1.grid-auto-columns.rel.border-right.min-width-0",
 			{
-				style: {
-					height: this.parentHeight ? px(this.parentHeight) : undefined,
-				},
-				oncreate(vnode): any {
+				// style: {
+				// 	height: this.parentHeight ? px(this.parentHeight) : undefined,
+				// },
+				oncreate: (vnode) => {
 					;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
+					this.dayHeight = vnode.dom.clientHeight
 				},
 				onmousemove: (mouseEvent: MouseEvent) => {
 					downcast(mouseEvent).redraw = false
