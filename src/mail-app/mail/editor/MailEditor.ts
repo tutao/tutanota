@@ -697,7 +697,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				isConfidential ? this.renderPasswordFields() : null,
 				sendLater
 					? m(
-							".flex",
+							".wrapping-row",
 							{
 								oncreate: (vnode) => {
 									// overflow needs to be hidden when the animation is running for it to look smooth
@@ -718,28 +718,29 @@ export class MailEditor implements Component<MailEditorAttrs> {
 								},
 							},
 							[
-								// display nothing on mobile because there is not so much space
-								isApp()
-									? null
-									: m(
-											".flex-grow",
-											m(TextField, {
-												//FIXME translation, also this just needs to be static text, not an editable text field
-												label: "emptyString_msg",
-												value: "Send at",
-												isReadOnly: true,
-											}),
-										),
-								m(DatePicker, {
-									date: model.getSendLaterDate() ?? new Date(),
-									onDateSelected: (date) => {
-										model.setSendLaterDate(date)
-									},
-									startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(model.logins.getUserController().userSettingsGroupRoot),
-									label: lang.makeTranslation("sendDate_label", "Send date"),
-								}),
 								m(
-									".rel",
+									"",
+									{
+										style: {
+											minWidth: "250px",
+										},
+									},
+									m(DatePicker, {
+										date: model.getSendLaterDate() ?? new Date(),
+										onDateSelected: (date) => {
+											model.setSendLaterDate(date)
+										},
+										startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(model.logins.getUserController().userSettingsGroupRoot),
+										label: lang.makeTranslation("sendDate_label", "Send date"),
+									}),
+								),
+								m(
+									"",
+									{
+										style: {
+											minWidth: "250px",
+										},
+									},
 									m(TimePicker, {
 										time: model.getSendLaterTime(),
 										onTimeSelected: (time: Time | null) => {
