@@ -1,10 +1,12 @@
-import m, { Child, ClassComponent, Vnode } from "mithril"
+import m, { Child, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { clone, deepMemoized, noOp } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
 import { CellActionHandler, TIME_SCALE_BASE_VALUE, TimeRange, TimeScale } from "./TimeView"
 import { px, size } from "../../gui/size"
 import { Time } from "../date/Time"
 import { styles } from "../../gui/styles"
+import { State } from "linkifyjs"
+import { deviceConfig } from "../../misc/DeviceConfig"
 
 export interface TimeColumnAttrs {
 	timeScale: TimeScale
@@ -15,6 +17,10 @@ export interface TimeColumnAttrs {
 }
 
 export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
+	oncreate(vnode: VnodeDOM<TimeColumnAttrs>): any {
+		console.log("oncreate: TimeColumn")
+	}
+
 	view({ attrs }: Vnode<TimeColumnAttrs>) {
 		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(attrs.timeScale, attrs.timeRange)
 		return this.buildTimeColumn(attrs.baseDate ?? new Date(), timeColumnIntervals, attrs.width, attrs.onCellPressed ?? noOp)
@@ -48,6 +54,9 @@ export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
 				const timeStr = styles.isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
 				return m(
 					".rel.after-as-border-bottom",
+					{
+						id: `time-cell-${parsedTime.getHours()}`,
+					},
 					m(
 						".flex.small.border-right.rel.justify-center.items-center.interactable-cell.cursor-pointer",
 						{

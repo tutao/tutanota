@@ -13,10 +13,11 @@ import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/g
 import { EventBubbleInteractions } from "../CalendarEventBubble"
 import { getPosAndBoundsFromMouseEvent } from "../../../../common/gui/base/GuiUtils"
 import { EventDragHandler, type EventDragHandlerCallbacks, type MousePos } from "../EventDragHandler"
-import { neverNull, ofClass } from "@tutao/tutanota-utils"
+import { isToday, neverNull, ofClass } from "@tutao/tutanota-utils"
 import { UserError } from "../../../../common/api/main/UserError"
 import { showUserError } from "../../../../common/misc/ErrorHandlerImpl"
 import { combineDateWithTime } from "../../../../common/calendar/date/CalendarUtils"
+import { deviceConfig } from "../../../../common/misc/DeviceConfig"
 
 interface PageAttrs {
 	/**
@@ -46,11 +47,17 @@ export interface CalendarViewComponentAttrs {
 }
 
 export class CalendarViewComponent implements ClassComponent<CalendarViewComponentAttrs> {
-	private timeRowHeight = 0
-
 	private eventDragHandler: EventDragHandler
 	private dateUnderMouse: Date | null = null
 	private lastMousePos: MousePos | null = null
+
+	private timeScale: TimeScale = 1 // FIXME add support to smooth/continuous zoom,
+	private timeRange = {
+		start: new Time(0, 0),
+		end: new Time(23, 0),
+	}
+	private subRowAsMinutes = getSubRowAsMinutes(this.timeScale)
+	private timeRowHeight = 0
 
 	constructor({ attrs }: Vnode<CalendarViewComponentAttrs>) {
 		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
@@ -77,218 +84,17 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 	}
 
 	view({ attrs }: Vnode<CalendarViewComponentAttrs>) {
-		const renderHeader = () => {
-			const children: Children = []
-
-			if (attrs.headerComponentAttrs) {
-				children.push(
-					m(
-						".b.text-center.calendar-day-indicator",
-						{ style: { gridArea: "weekNumber" } },
-						styles.isDesktopLayout()
-							? calendarWeek(attrs.headerComponentAttrs.selectedDate, attrs.headerComponentAttrs.startOfWeek ?? WeekStart.MONDAY)
-							: null,
-					),
-				)
-
-				if (attrs.headerComponentAttrs.showWeekDays) {
-					children.push(
-						m("", { style: { gridArea: "header" } }, m(HeaderComponent, { ...attrs.headerComponentAttrs } satisfies HeaderComponentAttrs)),
-					)
-				}
-			}
-
-			return m(
-				".grid.py-core-8",
-				{
-					class: styles.isDesktopLayout() ? "content-bg" : "nav-bg",
-					style: {
-						gridColumn: "1/-1",
-						gridTemplateColumns: "subgrid",
-					} satisfies Partial<CSSStyleDeclaration>,
-					onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
-						mouseEvent.redraw = false
-						if (this.eventDragHandler.isDragging) {
-							this.cancelDrag()
-						}
-					},
-				},
-				children,
-			)
-		}
-
-		const renderBody = () => {
-			const timeScale: TimeScale = 1 // FIXME add support to smooth/continuous zoom,
-			const timeRange = {
-				start: new Time(0, 0),
-				end: new Time(23, 0),
-			}
-			const subRowAsMinutes = getSubRowAsMinutes(timeScale)
-
-			return m(
-				".grid.overflow-x-hidden.rel",
-				{
-					class: styles.isDesktopLayout() ? "border-top" : "",
-					style: {
-						gridColumn: "1/-1",
-						gridTemplateColumns: "subgrid",
-					} satisfies Partial<CSSStyleDeclaration>,
-					onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
-						mouseEvent.redraw = false
-						this.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
-
-						if (this.dateUnderMouse) {
-							return this.eventDragHandler.handleDrag(this.dateUnderMouse, this.lastMousePos)
-						}
-					},
-					onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
-						if (this.eventDragHandler.isDragging) {
-							mouseEvent.preventDefault()
-						}
-						mouseEvent.redraw = false
-						this.endDrag(mouseEvent)
-					},
-
-					// ontouchmove: (e: TouchEvent) => {
-					// 	e.preventDefault()
-					// 	const mouseEvent = transformTouchEvent(e)
-					// 	if (mouseEvent) {
-					// 		e.target?.dispatchEvent(mouseEvent)
-					// 	}
-					// },
-					// ontouchend: (e: TouchEvent) => {
-					// 	e.preventDefault()
-					// 	const mouseEvent = transformTouchEvent(e)
-					// 	if (mouseEvent) {
-					// 		e.target?.dispatchEvent(mouseEvent)
-					// 	}
-					// },
-					// ontouchcancel: (e: TouchEvent) => {
-					// 	e.preventDefault()
-					// 	const mouseEvent = transformTouchEvent(e)
-					// 	if (mouseEvent) {
-					// 		e.target?.dispatchEvent(mouseEvent)
-					// 	}
-					// },
-				},
-				[
-					m(
-						".content-bg.border-radius-top-left-big",
-						{ style: { gridArea: "timeColumn" } },
-						m(TimeColumn, {
-							baseDate: attrs.headerComponentAttrs?.selectedDate,
-							timeRange,
-							timeScale,
-							width: styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile,
-							onCellPressed: attrs.cellActionHandlers?.onCellPressed,
-						} satisfies TimeColumnAttrs),
-					),
-					this.renderCurrentTimeIndicator(Time.fromDate(new Date()), timeRange, subRowAsMinutes, this.timeRowHeight),
-					m(
-						".content-bg.border-radius-top-right-big",
-						{ style: { gridArea: "calendarGrid" } },
-						m(PageView, {
-							classes: "height-100p",
-							previousPage: {
-								key: attrs.bodyComponentAttrs.previous.key,
-								nodes: this.renderEventGrid(
-									timeRange,
-									attrs.bodyComponentAttrs.previous.dates,
-									attrs.bodyComponentAttrs.previous.events.short,
-									attrs.cellActionHandlers,
-									attrs.eventBubbleHandlers,
-									false,
-								),
-							},
-							currentPage: {
-								key: attrs.bodyComponentAttrs.current.key,
-								nodes: this.renderEventGrid(
-									timeRange,
-									attrs.bodyComponentAttrs.current.dates,
-									attrs.bodyComponentAttrs.current.events.short,
-									attrs.cellActionHandlers,
-									attrs.eventBubbleHandlers,
-									true,
-								),
-							},
-							nextPage: {
-								key: attrs.bodyComponentAttrs.next.key,
-								nodes: this.renderEventGrid(
-									timeRange,
-									attrs.bodyComponentAttrs.next.dates,
-									attrs.bodyComponentAttrs.next.events.short,
-									attrs.cellActionHandlers,
-									attrs.eventBubbleHandlers,
-									false,
-								),
-							},
-							onChangePage: (next) => attrs.bodyComponentAttrs.onChangePage(next),
-						}),
-					),
-				],
-			)
-		}
-
-		const renderAllDaySection = () => {
-			return m(
-				".grid.overflow-hidden.rel.scrollbar-gutter-stable-or-fallback",
-				{
-					style: {
-						gridColumn: "1/-1",
-						gridTemplateColumns: "subgrid",
-					} satisfies Partial<CSSStyleDeclaration>,
-					onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
-						mouseEvent.redraw = false
-						this.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
-
-						if (this.dateUnderMouse) {
-							return this.eventDragHandler.handleDrag(this.dateUnderMouse, this.lastMousePos)
-						}
-					},
-					onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
-						if (this.eventDragHandler.isDragging) {
-							mouseEvent.preventDefault()
-						}
-						mouseEvent.redraw = false
-						this.endDrag(mouseEvent)
-					},
-				},
-				[
-					m(
-						"",
-						{
-							style: {
-								gridArea: "allDayGrid",
-							} satisfies Partial<CSSStyleDeclaration>,
-						},
-						m(AllDaySection, {
-							dates: attrs.bodyComponentAttrs.current.dates,
-							allDayEventWrappers: attrs.bodyComponentAttrs.current.events.long,
-							eventBubbleHandlers: {
-								...attrs.eventBubbleHandlers,
-								drag: {
-									prepareCurrentDraggedEvent: (eventWrapper) => this.prepareEventDrag(eventWrapper, true),
-									setTimeUnderMouse: (time, date: Date) => {
-										const timeToCombine = this.dateUnderMouse ? Time.fromDate(this.dateUnderMouse) : time
-										return (this.dateUnderMouse = combineDateWithTime(date, timeToCombine))
-									},
-								},
-							},
-						} satisfies AllDaySectionAttrs),
-					),
-				],
-			)
-		}
-
 		const resolveClasses = (): string => {
 			const classes = styles.isDesktopLayout() ? ["content-bg", "mr-l", "border-radius-big"] : ["mlr-safe-inset"]
 			return classes.join(" ")
 		}
-
 		return m(
 			".grid.height-100p.overflow-hidden",
 			{
 				class: resolveClasses(),
+				oncreate: (vnode) => {
+					console.log("oncreate: CalendarView - on element")
+				},
 				style: {
 					gridTemplateAreas: `'weekNumber 	header'
 										'empty 			allDayGrid'
@@ -297,7 +103,205 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 					gridTemplateColumns: "auto 1fr",
 				} satisfies Partial<CSSStyleDeclaration>,
 			},
-			[renderHeader(), renderAllDaySection(), renderBody()],
+			[this.renderHeader(attrs.headerComponentAttrs), this.renderAllDaySection(attrs), this.renderBody(attrs)],
+		)
+	}
+
+	renderHeader(headerComponentAttrs: HeaderComponentAttrs | undefined): Children {
+		const children: Children = []
+
+		if (headerComponentAttrs) {
+			children.push(
+				m(
+					".b.text-center.calendar-day-indicator",
+					{ style: { gridArea: "weekNumber" } },
+					styles.isDesktopLayout() ? calendarWeek(headerComponentAttrs.selectedDate, headerComponentAttrs.startOfWeek ?? WeekStart.MONDAY) : null,
+				),
+			)
+
+			if (headerComponentAttrs.showWeekDays) {
+				children.push(m("", { style: { gridArea: "header" } }, m(HeaderComponent, { ...headerComponentAttrs } satisfies HeaderComponentAttrs)))
+			}
+		}
+
+		return m(
+			".grid.py-core-8",
+			{
+				class: styles.isDesktopLayout() ? "content-bg" : "nav-bg",
+				style: {
+					gridColumn: "1/-1",
+					gridTemplateColumns: "subgrid",
+				} satisfies Partial<CSSStyleDeclaration>,
+				onmouseleave: (mouseEvent: EventRedraw<MouseEvent>) => {
+					mouseEvent.redraw = false
+					if (this.eventDragHandler.isDragging) {
+						this.cancelDrag()
+					}
+				},
+			},
+			children,
+		)
+	}
+
+	renderBody(attrs: CalendarViewComponentAttrs) {
+		return m(
+			".grid.scroll.rel",
+			{
+				class: styles.isDesktopLayout() ? "border-top" : "",
+				style: {
+					gridColumn: "1/-1",
+					gridTemplateColumns: "subgrid",
+				} satisfies Partial<CSSStyleDeclaration>,
+				oncreate: (vnode: VnodeDOM<BodyComponentAttrs>) => {
+					const scrollToCurrentTime = attrs.headerComponentAttrs?.dates?.length === 1 && attrs.headerComponentAttrs?.dates?.some(isToday)
+					const time = scrollToCurrentTime ? new Date().getHours() : deviceConfig.getScrollTime()
+					const timeCell = document.getElementById(`time-cell-${time}`)
+					timeCell?.scrollIntoView({ block: scrollToCurrentTime ? "center" : "start", behavior: "instant" })
+				},
+				onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
+					mouseEvent.redraw = false
+					this.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
+
+					if (this.dateUnderMouse) {
+						return this.eventDragHandler.handleDrag(this.dateUnderMouse, this.lastMousePos)
+					}
+				},
+				onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
+					if (this.eventDragHandler.isDragging) {
+						mouseEvent.preventDefault()
+					}
+					mouseEvent.redraw = false
+					this.endDrag(mouseEvent)
+				},
+
+				// ontouchmove: (e: TouchEvent) => {
+				// 	e.preventDefault()
+				// 	const mouseEvent = transformTouchEvent(e)
+				// 	if (mouseEvent) {
+				// 		e.target?.dispatchEvent(mouseEvent)
+				// 	}
+				// },
+				// ontouchend: (e: TouchEvent) => {
+				// 	e.preventDefault()
+				// 	const mouseEvent = transformTouchEvent(e)
+				// 	if (mouseEvent) {
+				// 		e.target?.dispatchEvent(mouseEvent)
+				// 	}
+				// },
+				// ontouchcancel: (e: TouchEvent) => {
+				// 	e.preventDefault()
+				// 	const mouseEvent = transformTouchEvent(e)
+				// 	if (mouseEvent) {
+				// 		e.target?.dispatchEvent(mouseEvent)
+				// 	}
+				// },
+			},
+			[
+				m(
+					".content-bg.border-radius-top-left-big",
+					{ style: { gridArea: "timeColumn" } },
+					m(TimeColumn, {
+						baseDate: attrs.headerComponentAttrs?.selectedDate,
+						timeRange: this.timeRange,
+						timeScale: this.timeScale,
+						width: styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile,
+						onCellPressed: attrs.cellActionHandlers?.onCellPressed,
+					} satisfies TimeColumnAttrs),
+				),
+				this.renderCurrentTimeIndicator(Time.fromDate(new Date()), this.timeRange, this.subRowAsMinutes, this.timeRowHeight),
+				m(
+					".content-bg.border-radius-top-right-big",
+					{ style: { gridArea: "calendarGrid" } },
+					m(PageView, {
+						classes: "height-100p",
+						previousPage: {
+							key: attrs.bodyComponentAttrs.previous.key,
+							nodes: this.renderEventGrid(
+								this.timeRange,
+								attrs.bodyComponentAttrs.previous.dates,
+								attrs.bodyComponentAttrs.previous.events.short,
+								attrs.cellActionHandlers,
+								attrs.eventBubbleHandlers,
+								false,
+							),
+						},
+						currentPage: {
+							key: attrs.bodyComponentAttrs.current.key,
+							nodes: this.renderEventGrid(
+								this.timeRange,
+								attrs.bodyComponentAttrs.current.dates,
+								attrs.bodyComponentAttrs.current.events.short,
+								attrs.cellActionHandlers,
+								attrs.eventBubbleHandlers,
+								true,
+							),
+						},
+						nextPage: {
+							key: attrs.bodyComponentAttrs.next.key,
+							nodes: this.renderEventGrid(
+								this.timeRange,
+								attrs.bodyComponentAttrs.next.dates,
+								attrs.bodyComponentAttrs.next.events.short,
+								attrs.cellActionHandlers,
+								attrs.eventBubbleHandlers,
+								false,
+							),
+						},
+						onChangePage: (next) => attrs.bodyComponentAttrs.onChangePage(next),
+					}),
+				),
+			],
+		)
+	}
+
+	renderAllDaySection(attrs: CalendarViewComponentAttrs) {
+		return m(
+			".grid.overflow-hidden.rel.scrollbar-gutter-stable-or-fallback",
+			{
+				style: {
+					gridColumn: "1/-1",
+					gridTemplateColumns: "subgrid",
+				} satisfies Partial<CSSStyleDeclaration>,
+				onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
+					mouseEvent.redraw = false
+					this.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
+
+					if (this.dateUnderMouse) {
+						return this.eventDragHandler.handleDrag(this.dateUnderMouse, this.lastMousePos)
+					}
+				},
+				onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
+					if (this.eventDragHandler.isDragging) {
+						mouseEvent.preventDefault()
+					}
+					mouseEvent.redraw = false
+					this.endDrag(mouseEvent)
+				},
+			},
+			[
+				m(
+					"",
+					{
+						style: {
+							gridArea: "allDayGrid",
+						} satisfies Partial<CSSStyleDeclaration>,
+					},
+					m(AllDaySection, {
+						dates: attrs.bodyComponentAttrs.current.dates,
+						allDayEventWrappers: attrs.bodyComponentAttrs.current.events.long,
+						eventBubbleHandlers: {
+							...attrs.eventBubbleHandlers,
+							drag: {
+								prepareCurrentDraggedEvent: (eventWrapper) => this.prepareEventDrag(eventWrapper, true),
+								setTimeUnderMouse: (time, date: Date) => {
+									const timeToCombine = this.dateUnderMouse ? Time.fromDate(this.dateUnderMouse) : time
+									return (this.dateUnderMouse = combineDateWithTime(date, timeToCombine))
+								},
+							},
+						},
+					} satisfies AllDaySectionAttrs),
+				),
+			],
 		)
 	}
 
@@ -310,13 +314,11 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 	 * @private
 	 */
 	private renderCurrentTimeIndicator(time: Time, timeRange: TimeRange, subRowAsMinutes: number, timeRowHeight?: number): Children {
-		const startTimeSpan = timeRange.start.diff(time)
-		const start = Math.floor(startTimeSpan / subRowAsMinutes)
-
+		const yPosition = this.getTimePosition(timeRange, time, subRowAsMinutes, timeRowHeight)
 		return m(".time-indicator.z3", {
 			style: {
-				top: px((timeRowHeight ?? 0) * start),
-				display: timeRowHeight == null ? "none" : "initial",
+				top: px(yPosition),
+				visibility: timeRowHeight == null ? "hidden" : "initial",
 				gridArea: "calendarGrid",
 			} satisfies Partial<CSSStyleDeclaration>,
 		})
@@ -347,6 +349,12 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			},
 			canReceiveFocus,
 		} satisfies TimeViewAttributes)
+	}
+
+	private getTimePosition(timeRange: TimeRange, time: Time, subRowAsMinutes: number, timeRowHeight: number | undefined) {
+		const startTimeSpan = timeRange.start.diff(time)
+		const start = Math.floor(startTimeSpan / subRowAsMinutes)
+		return (timeRowHeight ?? 0) * start
 	}
 
 	private prepareEventDrag(eventWrapper: EventWrapper, keepTime: boolean) {

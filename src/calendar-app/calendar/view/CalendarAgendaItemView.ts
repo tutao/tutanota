@@ -26,7 +26,6 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 
 	view({ attrs }: Vnode<CalendarAgendaItemViewAttrs>): Children {
 		const eventTitle = getDisplayEventTitle(attrs.event.event.summary)
-		console.log({ attrs })
 		return m(
 			".flex.items-center.click.plr.border-radius.pt-s.pb-s.rel.limit-width.full-width",
 			{
