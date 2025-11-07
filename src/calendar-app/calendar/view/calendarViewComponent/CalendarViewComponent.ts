@@ -5,9 +5,9 @@ import { calendarWeek, extractCalendarEventModifierKey } from "../../gui/Calenda
 import { HeaderComponent, HeaderComponentAttrs } from "./HeaderComponent"
 import { TimeColumn, TimeColumnAttrs } from "../../../../common/calendar/gui/TimeColumn"
 import { Time } from "../../../../common/calendar/date/Time"
-import { px, size } from "../../../../common/gui/size"
+import { size } from "../../../../common/gui/size"
 import { PageView } from "../../../../common/gui/base/PageView"
-import { getSubRowAsMinutes, TimeRange, TimeScale, TimeView, TimeViewAttributes } from "../../../../common/calendar/gui/TimeView"
+import { getIntervalAsMinutes, getSubRowAsMinutes, TimeRange, TimeScale, TimeView, TimeViewAttributes } from "../../../../common/calendar/gui/TimeView"
 import { EventWrapper } from "../CalendarViewModel"
 import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/gui/AllDaySection"
 import { EventBubbleInteractions } from "../CalendarEventBubble"
@@ -18,6 +18,7 @@ import { UserError } from "../../../../common/api/main/UserError"
 import { showUserError } from "../../../../common/misc/ErrorHandlerImpl"
 import { combineDateWithTime } from "../../../../common/calendar/date/CalendarUtils"
 import { deviceConfig } from "../../../../common/misc/DeviceConfig"
+import { TimeIndicator, TimeIndicatorAttrs } from "../../../../common/calendar/gui/TimeIndicator"
 
 interface PageAttrs {
 	/**
@@ -61,6 +62,9 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 	private dateUnderMouse: Date | null = null
 	private lastMousePos: MousePos | null = null
 
+	private dayHeight: number | null = null
+	private pageViewWidth: number | null = null
+
 	private timeScale: TimeScale = 1 // FIXME add support to smooth/continuous zoom,
 	private timeRange = {
 		start: new Time(0, 0),
@@ -102,9 +106,6 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			".grid.height-100p.overflow-hidden",
 			{
 				class: resolveClasses(),
-				oncreate: (vnode) => {
-					console.log("oncreate: CalendarView - on element")
-				},
 				style: {
 					gridTemplateAreas: `'weekNumber 	header'
 										'empty 			allDayGrid'
@@ -154,6 +155,10 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 	}
 
 	renderBody(attrs: CalendarViewComponentAttrs) {
+		const timeColumnWidth = styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile
+		const datePosition = attrs.headerComponentAttrs?.dates?.findIndex((date) => isToday(date)) ?? -1
+		const shouldRenderTimeIndicator = Boolean(datePosition !== -1 && this.dayHeight && this.pageViewWidth)
+
 		return m(
 			".grid.scroll.rel",
 			{
@@ -213,19 +218,38 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			[
 				m(
 					".content-bg.border-radius-top-left-big",
-					{ style: { gridArea: "timeColumn" } },
+					{
+						style: { gridArea: "timeColumn" },
+					},
 					m(TimeColumn, {
 						baseDate: attrs.headerComponentAttrs?.selectedDate,
 						timeRange: this.timeRange,
 						timeScale: this.timeScale,
-						width: styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile,
+						width: timeColumnWidth,
 						onCellPressed: attrs.cellActionHandlers?.onCellPressed,
 					} satisfies TimeColumnAttrs),
 				),
-				this.renderCurrentTimeIndicator(Time.fromDate(new Date()), this.timeRange, this.subRowAsMinutes, this.timeRowHeight),
+				shouldRenderTimeIndicator
+					? m(TimeIndicator, {
+							timeRange: this.timeRange,
+							dayHeight: this.dayHeight!,
+							interval: getIntervalAsMinutes(this.timeScale),
+							areaWidth: this.pageViewWidth!,
+							numberOfDatesInRange: attrs.headerComponentAttrs?.dates?.length ?? 1,
+							datePosition,
+							leftOffset: timeColumnWidth,
+						} satisfies TimeIndicatorAttrs)
+					: null,
 				m(
 					".content-bg.border-radius-top-right-big",
-					{ style: { gridArea: "calendarGrid" } },
+
+					{
+						style: { gridArea: "calendarGrid" },
+						oncreate: (vnode) => {
+							this.dayHeight = vnode.dom.clientHeight
+							this.pageViewWidth = vnode.dom.clientWidth
+						},
+					},
 					m(PageView, {
 						classes: "height-100p",
 						previousPage: {
@@ -328,25 +352,6 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		)
 	}
 
-	/**
-	 * Renders a TimeIndicator line in the screen over the event grid
-	 * @param timeRange Time range for the day, usually from 00:00 till 23:00
-	 * @param subRowAsMinutes How many minutes a Grid row represents
-	 * @param time Time where to position the indicator
-	 * @param timeRowHeight
-	 * @private
-	 */
-	private renderCurrentTimeIndicator(time: Time, timeRange: TimeRange, subRowAsMinutes: number, timeRowHeight?: number): Children {
-		const yPosition = this.getTimePosition(timeRange, time, subRowAsMinutes, timeRowHeight)
-		return m(".time-indicator.z3", {
-			style: {
-				top: px(yPosition),
-				visibility: timeRowHeight == null ? "hidden" : "initial",
-				gridArea: "calendarGrid",
-			} satisfies Partial<CSSStyleDeclaration>,
-		})
-	}
-
 	private renderEventGrid(
 		timeRange: TimeRange,
 		dates: Array<Date>,
@@ -361,7 +366,6 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			dates,
 			events,
 			cellActionHandlers,
-			timeRowHeight: this.timeRowHeight,
 			setTimeRowHeight: (timeViewHeight: number) => (this.timeRowHeight = timeViewHeight),
 			eventBubbleHandlers: {
 				...eventBubbleHandlers,
@@ -372,12 +376,6 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			},
 			canReceiveFocus,
 		} satisfies TimeViewAttributes)
-	}
-
-	private getTimePosition(timeRange: TimeRange, time: Time, subRowAsMinutes: number, timeRowHeight: number | undefined) {
-		const startTimeSpan = timeRange.start.diff(time)
-		const start = Math.floor(startTimeSpan / subRowAsMinutes)
-		return (timeRowHeight ?? 0) * start
 	}
 
 	private prepareEventDrag(eventWrapper: EventWrapper, keepTime: boolean) {
