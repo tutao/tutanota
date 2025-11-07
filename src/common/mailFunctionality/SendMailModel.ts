@@ -27,6 +27,7 @@ import {
 	assertNotNull,
 	cleanMatch,
 	contains,
+	daysToMillis,
 	deduplicate,
 	defer,
 	DeferredObject,
@@ -34,6 +35,7 @@ import {
 	findAndRemove,
 	getFromMap,
 	LazyLoaded,
+	minutesToMillis,
 	neverNull,
 	noOp,
 	ofClass,
@@ -91,6 +93,18 @@ import { Time } from "../calendar/date/Time"
 assertMainOrNode()
 
 export const TOO_MANY_VISIBLE_RECIPIENTS = 10
+
+// Lower limit for when mails can be scheduled (in minutes)
+export const SEND_LATER_MIN_MINUTES_IN_FUTURE = 2
+// Upper limit for when mails can be scheduled (in days)
+export const SEND_LATER_MAX_DAYS_IN_FUTURE = 30
+
+export const enum SendLaterDateStatus {
+	NotSet,
+	WithinRange,
+	InThePast,
+	TooFarInTheFuture,
+}
 
 export type Attachment = TutanotaFile | DataFile | FileReference
 
@@ -885,6 +899,21 @@ export class SendMailModel {
 	setSendLaterTime(sendLater: Time): void {
 		this.sendLater?.setHours(sendLater.hour)
 		this.sendLater?.setMinutes(sendLater.minute)
+	}
+
+	getSendLaterDateStatus(): SendLaterDateStatus {
+		if (this.sendLater == null) {
+			return SendLaterDateStatus.NotSet
+		}
+
+		const nowMillis = new Date().getTime()
+		if (this.sendLater.getTime() < nowMillis + minutesToMillis(SEND_LATER_MIN_MINUTES_IN_FUTURE)) {
+			return SendLaterDateStatus.InThePast
+		} else if (this.sendLater.getTime() > nowMillis + daysToMillis(SEND_LATER_MAX_DAYS_IN_FUTURE)) {
+			return SendLaterDateStatus.TooFarInTheFuture
+		} else {
+			return SendLaterDateStatus.WithinRange
+		}
 	}
 
 	containsExternalRecipients(): boolean {

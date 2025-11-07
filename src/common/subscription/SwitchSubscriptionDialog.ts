@@ -370,6 +370,8 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 
 			case UnsubscribeFailureReason.LABEL_LIMIT_EXCEEDED:
 				return Dialog.message("labelLimitExceeded_msg")
+
+			//FIXME handle scheduled mails case
 			default:
 				throw e
 		}
