@@ -109,7 +109,7 @@
 		"typescript-eslint": "8.34.0",
 		"xhr2": "0.2.1",
 		"zx": "8.5.5",
-		"wasm-pack": "git+https://github.com/tutao/wasm-pack.git#69f8269704aaccd8294edbb33e819687dfc227bf"
+		"wasm-pack": "git+https://github.com/tutao/wasm-pack.git#b1e0e982fee26803ba6b8a8c29197d2a8cdd93f3"
 	},
 	"workspaces": [
 		"./packages/*"
