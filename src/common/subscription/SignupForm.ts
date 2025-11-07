@@ -55,7 +55,6 @@ export type SignupFormAttrs = {
 export class SignupForm implements Component<SignupFormAttrs> {
 	private readonly passwordModel: PasswordModel
 	private readonly _confirmTerms: Stream<boolean>
-	private readonly _confirmAge: Stream<boolean>
 	private readonly _code: Stream<string>
 	private selectedDomain: EmailDomainData
 	private _mailAddressFormErrorId: TranslationKey | null = null
@@ -107,7 +106,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		)
 
 		this._confirmTerms = stream<boolean>(false)
-		this._confirmAge = stream<boolean>(false)
 		this._code = stream("")
 		this._isMailVerificationBusy = false
 		this._mailAddressFormErrorId = "mailAddressNeutral_msg"
@@ -132,7 +130,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		if (vnode.attrs.passwordInputStore) {
 			this.passwordModel.setNewPassword(vnode.attrs.passwordInputStore)
 			this.passwordModel.setRepeatedPassword(vnode.attrs.passwordInputStore)
-			this._confirmAge(true)
 			this._confirmTerms(true)
 		}
 		m.redraw()
@@ -179,12 +176,6 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			checked: this._confirmTerms(),
 			onChecked: this._confirmTerms,
 		}
-		const confirmAgeCheckBoxAttrs: CheckboxAttrs = {
-			label: () => lang.get("ageConfirmation_msg"),
-			checked: this._confirmAge(),
-			onChecked: this._confirmAge,
-		}
-
 		const submit = () => {
 			if (this.readonly) {
 				// Email field is read-only, account has already been created but user switched from different subscription.
@@ -242,14 +233,13 @@ export class SignupForm implements Component<SignupFormAttrs> {
 								: null,
 							m(Checkbox, confirmTermsCheckBoxAttrs),
 							m("div", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
-							m(Checkbox, confirmAgeCheckBoxAttrs),
 						],
 				m(
 					".mt-32.mb-32",
 					m(LoginButton, {
 						label: "next_action",
 						onclick: submit,
-						disabled: !this._confirmAge() || !this._confirmTerms(),
+						disabled: !this._confirmTerms(),
 					}),
 				),
 			]),
