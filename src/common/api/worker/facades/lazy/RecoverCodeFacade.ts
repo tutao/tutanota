@@ -7,11 +7,11 @@ import {
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
-	bitArrayToUint8Array,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
 	decryptKey,
 	encryptKey,
+	keyToUint8Array,
 } from "@tutao/tutanota-crypto"
 import { EntityClient } from "../../../common/EntityClient.js"
 import { UserFacade } from "../UserFacade.js"
@@ -52,7 +52,7 @@ export class RecoverCodeFacade {
 			userEncRecoverCode,
 			userKeyVersion: currentUserGroupKey.version,
 			recoverCodeEncUserGroupKey,
-			hexCode: uint8ArrayToHex(bitArrayToUint8Array(recoveryCode)),
+			hexCode: uint8ArrayToHex(keyToUint8Array(recoveryCode)),
 			recoveryCodeVerifier,
 		}
 	}
@@ -61,7 +61,7 @@ export class RecoverCodeFacade {
 		const user = this.userFacade.getLoggedInUser()
 		const passphraseKey = await this.getPassphraseKey(user, passphrase)
 		const rawRecoverCode = await this.getRawRecoverCode(passphraseKey)
-		return uint8ArrayToHex(bitArrayToUint8Array(rawRecoverCode))
+		return uint8ArrayToHex(keyToUint8Array(rawRecoverCode))
 	}
 
 	async getRawRecoverCode(passphraseKey: AesKey): Promise<AesKey> {

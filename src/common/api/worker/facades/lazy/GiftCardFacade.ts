@@ -5,6 +5,7 @@ import {
 	base64ExtToBase64,
 	base64ToBase64Ext,
 	base64ToBase64Url,
+	base64ToUint8Array,
 	base64UrlToBase64,
 	getFirstOrThrow,
 	isEmpty,
@@ -12,7 +13,7 @@ import {
 } from "@tutao/tutanota-utils"
 import type { GiftCardRedeemGetReturn } from "../../../entities/sys/TypeRefs.js"
 import { createGiftCardCreateData, createGiftCardRedeemData, GiftCard } from "../../../entities/sys/TypeRefs.js"
-import { aes256RandomKey, base64ToKey, bitArrayToUint8Array, sha256Hash } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GiftCardRedeemService, GiftCardService } from "../../../entities/sys/Services.js"
 import { elementIdPart, GENERATED_MAX_ID } from "../../../common/utils/EntityUtils.js"
@@ -52,7 +53,7 @@ export class GiftCardFacade {
 			GiftCardService,
 			createGiftCardCreateData({
 				message: message,
-				keyHash: sha256Hash(bitArrayToUint8Array(sessionKey)),
+				keyHash: sha256Hash(keyToUint8Array(sessionKey)),
 				value,
 				ownerEncSessionKey: ownerEncSessionKey.key,
 				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
@@ -68,7 +69,7 @@ export class GiftCardFacade {
 			GiftCardRedeemService,
 			createGiftCardRedeemData({
 				giftCardInfo: id,
-				keyHash: sha256Hash(bitArrayToUint8Array(base64ToKey(key))),
+				keyHash: sha256Hash(base64ToUint8Array(key)),
 				countryCode: "",
 			}),
 			{
@@ -91,7 +92,7 @@ export class GiftCardFacade {
 			GiftCardRedeemService,
 			createGiftCardRedeemData({
 				giftCardInfo: giftCardInfoId,
-				keyHash: sha256Hash(bitArrayToUint8Array(base64ToKey(key))),
+				keyHash: sha256Hash(base64ToUint8Array(key)),
 				countryCode,
 			}),
 		)
@@ -99,7 +100,7 @@ export class GiftCardFacade {
 
 	async encodeGiftCardToken(giftCard: GiftCard): Promise<string> {
 		const key = assertNotNull(await this.cryptoFacade.resolveSessionKey(giftCard))
-		return this.encodeToken(elementIdPart(giftCard._id), bitArrayToUint8Array(key))
+		return this.encodeToken(elementIdPart(giftCard._id), keyToUint8Array(key))
 	}
 
 	async decodeGiftCardToken(token: string): Promise<{ id: Id; key: Base64 }> {
