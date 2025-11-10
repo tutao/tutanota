@@ -44,6 +44,7 @@ export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsM
 			key: Keys.K,
 			shift: true,
 			ctrlOrCmd: true,
+			enabled: () => logins.isInternalUserLoggedIn() && logins.isEnabled(FeatureType.QuickActions),
 			exec: () => {
 				quickActionsModel().then(showQuickActionBar)
 			},

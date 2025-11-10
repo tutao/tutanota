@@ -40,6 +40,7 @@ import { CacheMode } from "../common/api/worker/rest/EntityRestClient"
 import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
 import { CommonLocator } from "../common/api/main/CommonLocator"
+import { FeatureType } from "../common/api/common/TutanotaConstants"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -123,32 +124,6 @@ import("./translations/en.js")
 		const { setupNavShortcuts } = await import("../common/misc/NavShortcuts.js")
 		setupNavShortcuts({ quickActionsModel: () => mailLocator.quickActionsModel(), logins: mailLocator.logins })
 
-		mailLocator.quickActionsModel().then((model) => {
-			model.register(async () => {
-				const { quickMailActions } = await import("./mail/model/MailQuickActions.js")
-				return quickMailActions(mailLocator.mailboxModel, mailLocator.mailModel, mailLocator.logins, mailLocator.throttledRouter())
-			})
-			model.register(async () => {
-				const { quickCalendarActions } = await import("../calendar-app/calendar/view/CalendarQuickActions.js")
-				const factory: CommonLocator["calendarEventModel"] = mailLocator.calendarEventModel.bind(mailLocator)
-				return quickCalendarActions(
-					mailLocator.throttledRouter(),
-					mailLocator.mailboxModel,
-					await mailLocator.calendarModel(),
-					mailLocator.logins,
-					factory,
-				)
-			})
-			model.register(async () => {
-				const { quickContactsActions } = await import("./contacts/ContactsQuickActions.js")
-				return quickContactsActions(mailLocator.contactModel, mailLocator.throttledRouter(), mailLocator.entityClient)
-			})
-			model.register(async () => {
-				const { quickSettingsActions } = await import("../common/settings/SettingsQuickActions.js")
-				return quickSettingsActions(mailLocator.throttledRouter(), mailLocator.logins)
-			})
-		})
-
 		const { BottomNav } = await import("./gui/BottomNav.js")
 
 		if (isDesktop()) {
@@ -217,6 +192,40 @@ import("./translations/en.js")
 									mailLocator.entityClient.update(mailLocator.logins.getUserController().props)
 								})
 						}
+					}
+				},
+			}
+		})
+		mailLocator.logins.addPostLoginAction(async () => {
+			return {
+				async onFullLoginSuccess() {},
+				async onPartialLoginSuccess() {
+					if (mailLocator.logins.isInternalUserLoggedIn() && mailLocator.logins.isEnabled(FeatureType.QuickActions)) {
+						mailLocator.quickActionsModel().then((model) => {
+							model.register(async () => {
+								const { quickMailActions } = await import("./mail/model/MailQuickActions.js")
+								return quickMailActions(mailLocator.mailboxModel, mailLocator.mailModel, mailLocator.logins, mailLocator.throttledRouter())
+							})
+							model.register(async () => {
+								const { quickCalendarActions } = await import("../calendar-app/calendar/view/CalendarQuickActions.js")
+								const factory: CommonLocator["calendarEventModel"] = mailLocator.calendarEventModel.bind(mailLocator)
+								return quickCalendarActions(
+									mailLocator.throttledRouter(),
+									mailLocator.mailboxModel,
+									await mailLocator.calendarModel(),
+									mailLocator.logins,
+									factory,
+								)
+							})
+							model.register(async () => {
+								const { quickContactsActions } = await import("./contacts/ContactsQuickActions.js")
+								return quickContactsActions(mailLocator.contactModel, mailLocator.throttledRouter(), mailLocator.entityClient)
+							})
+							model.register(async () => {
+								const { quickSettingsActions } = await import("../common/settings/SettingsQuickActions.js")
+								return quickSettingsActions(mailLocator.throttledRouter(), mailLocator.logins)
+							})
+						})
 					}
 				},
 			}
