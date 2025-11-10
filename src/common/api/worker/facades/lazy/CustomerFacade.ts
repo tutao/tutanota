@@ -71,7 +71,7 @@ import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
 import { SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
-import { bitArrayToUint8Array, hexToRsaPublicKey, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { hexToRsaPublicKey, keyToUint8Array, PQKeyPairs } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 
@@ -294,7 +294,7 @@ export class CustomerFacade {
 
 		if (pubRsaKey) {
 			const rsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(pubRsaKey))
-			const systemAdminPubEncAccountingInfoSessionKeyBytes = await this.rsa.encrypt(rsaPublicKey, bitArrayToUint8Array(accountingInfoSessionKey))
+			const systemAdminPubEncAccountingInfoSessionKeyBytes = await this.rsa.encrypt(rsaPublicKey, keyToUint8Array(accountingInfoSessionKey))
 			systemAdminPubEncAccountingInfoSessionKey = {
 				key: systemAdminPubEncAccountingInfoSessionKeyBytes,
 				encryptingKeyVersion: parseKeyVersion(keyData.systemAdminPubKeyVersion),

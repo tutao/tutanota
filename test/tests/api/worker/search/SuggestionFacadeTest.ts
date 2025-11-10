@@ -5,7 +5,7 @@ import o from "@tutao/otest"
 import { Contact, ContactTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { SuggestionFacade } from "../../../../../src/mail-app/workerUtils/index/SuggestionFacade.js"
 import { downcast } from "@tutao/tutanota-utils"
-import { aes256RandomKey, fixedIv } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, FIXED_IV } from "@tutao/tutanota-crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/common/api/worker/search/IndexTables.js"
 import { spy } from "@tutao/tutanota-test-utils"
 import { DbEncryptionData } from "../../../../../src/common/api/worker/search/SearchTypes"
@@ -23,7 +23,7 @@ o.spec("SuggestionFacade test", () => {
 	o.beforeEach(async function () {
 		db = new EncryptedDbWrapper(object())
 
-		encryptionData = { key: aes256RandomKey(), iv: fixedIv }
+		encryptionData = { key: aes256RandomKey(), iv: FIXED_IV }
 		db.init(encryptionData)
 		clientModelResolver = ClientModelInfo.getNewInstanceForTestsOnly()
 		contactTypeModel = await clientModelResolver.resolveClientTypeReference(ContactTypeRef)
