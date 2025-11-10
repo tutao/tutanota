@@ -65,7 +65,7 @@ export class SecondFactorsEditForm {
 			},
 		}
 		return [
-			m(".h4.mt-l", lang.get("secondFactorAuthentication_label")),
+			m(".h4.mt-32", lang.get("secondFactorAuthentication_label")),
 			m(Table, secondFactorTableAttrs),
 			this.domainConfigProvider.getCurrentDomainConfig().firstPartyDomain
 				? [

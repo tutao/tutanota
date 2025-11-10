@@ -130,7 +130,7 @@ export class SecondFactorHandler {
 		this.otherLoginDialog = Dialog.showActionDialog({
 			title: "secondFactorConfirmLogin_label",
 			child: {
-				view: () => m(".text-break.pt", text),
+				view: () => m(".text-break.pt-16", text),
 			},
 			okAction: async () => {
 				await this.loginFacade.authenticateWithSecondFactor(

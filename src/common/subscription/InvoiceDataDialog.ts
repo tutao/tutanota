@@ -42,7 +42,7 @@ export function show(
 	const dialog = Dialog.showActionDialog({
 		title: headingId ? headingId : "invoiceData_msg",
 		child: {
-			view: () => m("#changeInvoiceDataDialog", [infoMessageId ? m(".pt", lang.get(infoMessageId)) : null, m(invoiceDataInput)]),
+			view: () => m("#changeInvoiceDataDialog", [infoMessageId ? m(".pt-16", lang.get(infoMessageId)) : null, m(invoiceDataInput)]),
 		},
 		okAction: confirmAction,
 		allowCancel: true,

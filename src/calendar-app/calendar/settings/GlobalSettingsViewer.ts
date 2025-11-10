@@ -33,7 +33,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		return m("#global-settings.fill-absolute.scroll.plr-l", [
+		return m("#global-settings.fill-absolute.scroll.plr-24", [
 			m(AccountMaintenanceSettings, {
 				customerServerProperties: this.props,
 				setOnUpdateHandler: (fn: AccountMaintenanceUpdateNotifier) => {

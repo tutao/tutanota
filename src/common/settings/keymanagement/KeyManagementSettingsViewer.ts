@@ -113,7 +113,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 
 		return m("", [
 			m(
-				".fill-absolute.scroll.plr-l.pb-xl",
+				".fill-absolute.scroll.plr-24.pb-48",
 				{
 					style: {
 						backgroundColor: theme.surface_container,
@@ -129,12 +129,12 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 						subTitle: lang.get("keyManagement.keyVerification_subtitle_label"),
 					}),
 					this.ownIdentity != null ? this.renderOwnIdentity(this.ownIdentity) : null,
-					m(".small.text-center.mb-l", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
+					m(".small.text-center.mb-32", lang.get("keyManagement.publicKeyFingerprintQrInfo_msg")),
 					m(MenuTitle, { content: lang.get("keyManagement.verificationPool_label") }),
 					m(
 						Card,
 						this.isIdentityKeyTrustDatabaseSupported
-							? m(".full-width.flex-space-between.items-center.pl-vpad-s", [
+							? m(".full-width.flex-space-between.items-center.pl-8", [
 									lang.get("keyManagement.verifyMailAddress_action"),
 									m(IconButton, {
 										title: "keyManagement.verifyMailAddress_action",
@@ -189,14 +189,14 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 			m(Card, {}, [
 				// QR code
 				m(
-					".pb.pt",
+					".pb-16.pt-16",
 					{ style: { display: "flex", "justify-content": "center" } },
 					// If the user is on a dark theme, we want to render a white border around the QR code to help the detection algorithm.
 					// We do not want any extra padding on light themes since it looks ugly.
 					isLightTheme
 						? m("", qrCodeGraphic)
 						: m(
-								".bg-white.border-radius-big",
+								".bg-white.border-radius-12",
 								{
 									style: {
 										"line-height": "0",

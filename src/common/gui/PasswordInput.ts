@@ -21,12 +21,12 @@ export class PasswordInput implements ClassComponent<PasswordInputAttributes> {
 	private showPassword: boolean = false
 
 	view(vnode: Vnode<PasswordInputAttributes, this>): Children {
-		return m(".flex.flex-grow.full-width.justify-between.items-center.gap-vpad-s", [
+		return m(".flex.flex-grow.full-width.justify-between.items-center.gap-8", [
 			vnode.attrs.showStrength
 				? m("div", {
 						style: {
-							width: px(size.icon_size_medium),
-							height: px(size.icon_size_medium),
+							width: px(size.icon_16),
+							height: px(size.icon_16),
 							border: `1px solid ${theme.outline}`,
 							borderRadius: "50%",
 							background: `conic-gradient(from .25turn, ${theme.on_surface} ${scaleToVisualPasswordStrength(
@@ -42,7 +42,7 @@ export class PasswordInput implements ClassComponent<PasswordInputAttributes> {
 				value: vnode.attrs.password,
 				oninput: vnode.attrs.oninput,
 				style: {
-					padding: `${px(size.vpad_xsm)} ${px(size.vpad_small)}`,
+					padding: `${px(size.spacing_4)} ${px(size.spacing_8)}`,
 				},
 				placeholder: lang.get("password_label"),
 			}),

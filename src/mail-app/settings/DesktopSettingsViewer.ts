@@ -240,8 +240,8 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		return [
-			m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
-				m(".h4.mt-l", lang.get("desktopSettings_label")),
+			m("#user-settings.fill-absolute.scroll.plr-24.pb-48", [
+				m(".h4.mt-32", lang.get("desktopSettings_label")),
 				// spell check is done via OS on mac
 				env.platformId === "darwin" ? null : m(TextField, spellcheckLanguageAttrs),
 				// setting protocol handler via Electron does not work on Linux

@@ -62,7 +62,7 @@ export type InputAttrs<T extends TextFieldType> = T extends TextFieldType.Number
  *     disabled: model.isReadonly,
  *     classes: ["custom-text-color"], // Adding new styles
  *     style: {
- *         "font-size": px(size.font_size_base * 1.25) // Overriding the component style
+ *         "font-size": px(font_size.base * 1.25) // Overriding the component style
  *     }
  * }),
  */
@@ -85,19 +85,19 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 		let padding
 
 		if (fontSize > 16 && fontSize < 32) {
-			iconSize = IconSize.Large
-			padding = size.icon_size_large
+			iconSize = IconSize.PX20
+			padding = size.icon_24
 		} else if (fontSize > 32) {
-			iconSize = IconSize.XL
-			padding = size.icon_size_xl
+			iconSize = IconSize.PX32
+			padding = size.icon_32
 		} else {
-			iconSize = IconSize.Medium
-			padding = size.icon_size_medium_large
+			iconSize = IconSize.PX24
+			padding = 20
 		}
 
 		return m(".rel.flex.flex-grow", [
 			m(
-				".abs.pl-vpad-s.flex.items-center",
+				".abs.pl-8.flex.items-center",
 				{ style: { top: 0, bottom: 0 } },
 				m(Icon, {
 					size: iconSize,
@@ -105,7 +105,7 @@ export class SingleLineTextField<T extends TextFieldType> implements ClassCompon
 					style: { fill: attrs.leadingIcon.color },
 				}),
 			),
-			this.renderInput(attrs, px(padding + size.vpad)),
+			this.renderInput(attrs, px(padding + size.spacing_16)),
 		])
 	}
 

@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, CVnode } from "mithril"
-import { px, size } from "../size"
+import { font_size, px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { theme } from "../theme"
 import type { MaybeTranslation } from "../../misc/LanguageViewModel"
@@ -77,8 +77,7 @@ export const enum Autocapitalize {
 	none = "none",
 }
 
-export const inputLineHeight: number = size.font_size_base + 8
-const inputMarginTop = size.font_size_small + size.hpad_small + 3
+const inputMarginTop = font_size.small + size.spacing_4 + 3
 
 // this is not always correct because font size can be bigger/smaller, and we ideally should take that into account
 const baseLabelPosition = 21
@@ -116,7 +115,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
 				"aria-haspopup": a.hasPopup,
 				"data-testid": `tf:${lang.getTestId(a.label)}`,
-				class: a.class != null ? a.class : "pt" + " " + getOperatingClasses(a.disabled),
+				class: a.class != null ? a.class : "pt-16" + " " + getOperatingClasses(a.disabled),
 				style: maxWidth
 					? {
 							maxWidth: px(maxWidth),
@@ -126,7 +125,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 			},
 			[
 				m(
-					"label.abs.text-ellipsis.noselect.z1.i.pr-s",
+					"label.abs.text-ellipsis.noselect.z1.i.pr-4",
 					{
 						"aria-hidden": "true",
 						class: this.active ? "content-accent-fg" : "" + " " + getOperatingClasses(a.disabled),
@@ -134,7 +133,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							this._domLabel = vnode.dom as HTMLElement
 						},
 						style: {
-							fontSize: `${labelBase ? size.font_size_base : size.font_size_small}px`,
+							fontSize: `${labelBase ? font_size.base : font_size.small}px`,
 							transform: `translateY(${labelBase ? baseLabelPosition : 0}px)`,
 							transition: `transform ${labelTransitionSpeed}ms ease-out, font-size ${labelTransitionSpeed}ms  ease-out`,
 						},
@@ -202,7 +201,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				{
 					style: {
 						marginTop: px(inputMarginTop),
-						lineHeight: px(inputLineHeight),
+						lineHeight: px(font_size.line_height_input),
 					},
 					"data-testid": `tfi:${lang.getTestId(a.label)}`,
 				},
@@ -306,7 +305,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							maxWidth: a.maxWidth,
 							minWidth: px(20),
 							// fix for edge browser. buttons are cut off in small windows otherwise
-							lineHeight: px(inputLineHeight),
+							lineHeight: px(font_size.line_height_input),
 							fontSize: a.fontSize,
 						},
 						"data-testid": `tfi:${lang.getTestId(a.label)}`,
@@ -323,7 +322,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				{
 					style: {
 						marginTop: px(inputMarginTop),
-						lineHeight: px(inputLineHeight),
+						lineHeight: px(font_size.line_height_input),
 					},
 				},
 				a.value,
@@ -337,7 +336,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				oncreate: (vnode) => {
 					this.domInput = vnode.dom as HTMLInputElement
 					this.domInput.value = a.value
-					this.domInput.style.height = px(Math.max(a.value.split("\n").length, 1) * inputLineHeight) // display all lines on creation of text area
+					this.domInput.style.height = px(Math.max(a.value.split("\n").length, 1) * font_size.line_height_input) // display all lines on creation of text area
 				},
 				onfocus: (e: FocusEvent) => this.focus(e, a),
 				onblur: (e: FocusEvent) => this.blur(e, a),
@@ -355,7 +354,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				},
 				style: {
 					marginTop: px(inputMarginTop),
-					lineHeight: px(inputLineHeight),
+					lineHeight: px(font_size.line_height_input),
 					minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
 					fontSize: a.fontSize,
 				},

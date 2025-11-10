@@ -1,5 +1,5 @@
 import m, { Children, Component } from "mithril"
-import { px, size } from "../../gui/size"
+import { component_size, layout_size, px, size } from "../../gui/size"
 import { Button, ButtonType } from "../../gui/base/Button.js"
 import { createMail, createMailAddress, Mail } from "../../api/entities/tutanota/TypeRefs.js"
 import { MailRow } from "../../../mail-app/mail/view/MailRow"
@@ -26,7 +26,7 @@ export class CustomColorEditorPreview implements Component {
 
 	view(): Children {
 		return m(
-			".editor-border.mt-l.flex.col",
+			".editor-border.mt-32.flex.col",
 			{
 				style: {
 					alignItems: "center",
@@ -34,7 +34,7 @@ export class CustomColorEditorPreview implements Component {
 			},
 			[
 				m(
-					".pt",
+					".pt-16",
 					{
 						style: {
 							width: px(BUTTON_WIDTH),
@@ -45,7 +45,7 @@ export class CustomColorEditorPreview implements Component {
 						onclick: noOp,
 					}),
 				),
-				m(".pt", [
+				m(".pt-16", [
 					m(Button, {
 						label: lang.makeTranslation("secondary", "Secondary"),
 						click: noOp,
@@ -57,7 +57,7 @@ export class CustomColorEditorPreview implements Component {
 						type: ButtonType.Primary,
 					}),
 				]),
-				m(".pt", [
+				m(".pt-16", [
 					m(IconButton, {
 						title: lang.makeTranslation("icon_button", "Icon button"),
 						icon: Icons.Folder,
@@ -70,7 +70,7 @@ export class CustomColorEditorPreview implements Component {
 						onToggled: () => (this.toggleSelected = !this.toggleSelected),
 					}),
 				]),
-				m(".pt", this.renderPreviewMailRow()),
+				m(".pt-16", this.renderPreviewMailRow()),
 			],
 		)
 	}
@@ -126,13 +126,13 @@ export class CustomColorEditorPreview implements Component {
 			".rel",
 			{
 				style: {
-					width: px(size.second_col_max_width),
-					height: px(size.list_row_height * 2),
+					width: px(layout_size.second_col_max_width),
+					height: px(component_size.list_row_height * 2),
 				},
 			},
 			[
 				m(
-					".list-row.pl.pr-l.odd-row",
+					".list-row.pl-12.pr-24.odd-row",
 					{
 						oncreate: (vnode) => {
 							requestAnimationFrame(() => this._mailRow.update(mail, false, false))
@@ -141,13 +141,13 @@ export class CustomColorEditorPreview implements Component {
 					this._mailRow.render(),
 				),
 				m(
-					".list-row.pl.pr-l",
+					".list-row.pl-12.pr-24",
 					{
 						oncreate: (vnode) => {
 							requestAnimationFrame(() => this._mailRow2.update(mail2, true, false))
 						},
 						style: {
-							top: px(size.list_row_height),
+							top: px(component_size.list_row_height),
 						},
 					},
 					this._mailRow2.render(),

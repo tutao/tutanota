@@ -337,7 +337,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 		return [
 			m(
-				"#user-settings.fill-absolute.scroll.plr-l.pb-xl",
+				"#user-settings.fill-absolute.scroll.plr-24.pb-48",
 				{
 					role: "group",
 					oncreate: () => {
@@ -357,7 +357,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				[
 					this.customerInfo != null && Number(this.customerInfo.perUserStorageCapacity) > 0
 						? [
-								m(".h4.mt-l", lang.get("storageCapacity_label")),
+								m(".h4.mt-32", lang.get("storageCapacity_label")),
 								m(TextField, {
 									label: "storageCapacity_label",
 									value: this._storageFieldValue(),
@@ -366,12 +366,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								}),
 							]
 						: null,
-					m(".h4.mt-l", lang.get("general_label")),
+					m(".h4.mt-32", lang.get("general_label")),
 					m(DropDownSelector, conversationViewDropdownAttrs),
 					m(DropDownSelector, mailListDisplayMode),
 					isBrowser() ? m(DropDownSelector, enableMailIndexingAttrs) : null,
 					m(DropDownSelector, behaviorAfterMoveEmailAction),
-					m(".h4.mt-l", lang.get("emailSending_label")),
+					m(".h4.mt-32", lang.get("emailSending_label")),
 					m(DropDownSelector, defaultSenderAttrs),
 					m(TextField, signatureAttrs),
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
@@ -389,7 +389,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [
-								m(".flex-space-between.items-center.mt-l.mb-s", [
+								m(".flex-space-between.items-center.mt-32.mb-8", [
 									m(".h4", lang.get("inboxRulesSettings_action")),
 									m(ExpanderButton, {
 										label: "showInboxRules_action",
@@ -426,11 +426,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			? lang.get("storedDataTimeRange_label", { "{numDays}": OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS })
 			: lang.get("storedDataDate_label", { "{date}": formatDate(this.offlineStorageSettings.getTimeRange()) })
 		return [
-			m(".h4.mt-l", lang.get("localDataSection_label")),
+			m(".h4.mt-32", lang.get("localDataSection_label")),
 			m(TextField, {
 				label: "emptyString_msg",
 				// Negative upper margin to make up for no label
-				class: "mt-negative-s",
+				class: "mt-negative-8",
 				value: textFieldValue,
 				isReadOnly: true,
 				helpLabel: () => lang.get("localDataSection_msg"),
@@ -591,7 +591,7 @@ async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSetting
 					nullSelectionText: helpText,
 					rightAlignDropdown: false,
 				} satisfies DatePickerAttrs),
-				m(".mt", lang.get("storedDataTimeRangeHelpText_msg")),
+				m(".mt-16", lang.get("storedDataTimeRangeHelpText_msg")),
 			])
 		},
 		okAction: async () => {

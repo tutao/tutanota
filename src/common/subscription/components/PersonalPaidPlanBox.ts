@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../../gui/size"
+import { component_size, font_size, px, size } from "../../gui/size"
 import { lang } from "../../misc/LanguageViewModel"
 import { type Callback } from "@tutao/tutanota-utils"
 import { PLAN_SELECTOR_SELECTED_BOX_SCALE, PlanType, PlanTypeToName } from "../../api/common/TutanotaConstants"
@@ -135,7 +135,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 				},
 
 				m(
-					".flex.items-center.pb",
+					".flex.items-center.pb-16",
 					{
 						style: {
 							gap: "8px",
@@ -179,19 +179,19 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 					},
 				}),
 				m(
-					".flex.mt-s",
+					".flex.mt-8",
 					{
 						style: {
 							"justify-content": position === "right" ? "start" : "end",
 							"flex-direction": position === "right" ? "row-reverse" : "row",
-							height: px(size.button_height_compact),
+							height: px(component_size.button_height_compact),
 						},
 					},
 					isCurrentPlan || isDisabled
 						? m(PlanBadge, { langKey: isCurrentPlan ? "pricing.currentPlan_label" : "unavailable_label" })
 						: m(".smaller", lang.get(planConfig.tagLine)),
 				),
-				m(".flex-space-between.gap-hpad.mt.mb", { style: { "flex-direction": position === "right" ? "row-reverse" : "row" } }, [
+				m(".flex-space-between.gap-12.mt-16.mb-16", { style: { "flex-direction": position === "right" ? "row-reverse" : "row" } }, [
 					m(
 						"",
 						{
@@ -204,7 +204,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 							? null
 							: m(Icon, {
 									icon: planConfig.icon,
-									size: IconSize.XL,
+									size: IconSize.PX32,
 									style: {
 										fill: localTheme.on_surface_variant,
 									},
@@ -232,7 +232,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 									{
 										style: {
 											color: localTheme.on_surface_variant,
-											fontSize: px(size.font_size_smaller),
+											fontSize: px(font_size.smaller),
 											justifySelf: "end",
 										},
 									},
@@ -259,7 +259,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 				]),
 
 				m(
-					".flex.flex-column.gap-vpad-s",
+					".flex.flex-column.gap-8",
 					planConfig.features.map((feature) => renderFeature(feature.label, feature.icon, feature.replacementKey)),
 				),
 			),
@@ -272,12 +272,11 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 				".flex",
 				{
 					style: {
-						gap: px(size.hpad_small),
+						gap: px(size.spacing_4),
 					},
 				},
 				m(Icon, {
 					icon,
-					size: IconSize.Normal,
 					style: {
 						fill: localTheme.secondary,
 					},

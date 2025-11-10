@@ -5,7 +5,7 @@ import { lazy, MaybeLazy, resolveMaybeLazy } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../api/common/Env"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel.js"
 import { TabIndex } from "../../api/common/TutanotaConstants"
-import { px, size } from "../size"
+import { layout_size, px, size } from "../size"
 import { styles } from "../styles"
 
 assertMainOrNode()
@@ -125,7 +125,7 @@ export class ViewColumn implements Component<Attrs> {
 				top: 0,
 				bottom: 0,
 				right: 0,
-				width: px(size.column_resize_element_width),
+				width: px(layout_size.column_resize_element_width),
 				cursor: "col-resize",
 			},
 			onmousedown: (e: MouseEvent) => {

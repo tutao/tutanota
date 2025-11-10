@@ -24,7 +24,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 		if (!folderInfo) return null
 
 		return m(
-			".flex.items-center.pt.pb.click.no-wrap",
+			".flex.items-center.pt-16.pb-16.click.no-wrap",
 			{
 				class: responsiveCardHPadding(),
 				role: "button",
@@ -43,9 +43,9 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 			},
 			[
 				viewModel.isUnread() ? this.renderUnreadDot() : null,
-				viewModel.isDraftMail() ? m(".mr-xs", this.renderIcon(Icons.Edit, lang.get("draft_label"))) : null,
+				viewModel.isDraftMail() ? m(".mr-4", this.renderIcon(Icons.Edit, lang.get("draft_label"))) : null,
 				this.renderSender(viewModel),
-				m(".flex.ml-between-s.items-center", [
+				m(".flex.ml-between-4.items-center", [
 					mail.attachments.length > 0 ? this.renderIcon(Icons.Attachment, lang.get("attachment_label")) : null,
 					viewModel.isConfidential() ? this.renderIcon(getConfidentialIcon(mail), lang.get("confidential_label")) : null,
 					this.renderIcon(getFolderIconByType(folderInfo.folderType), folderInfo.name),
@@ -70,7 +70,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 
 	private renderUnreadDot(): Children {
 		return m(
-			".flex.flex-no-grow.no-shrink.pr-s",
+			".flex.flex-no-grow.no-shrink.pr-4",
 			{
 				"data-testid": "unread-indicator",
 			},

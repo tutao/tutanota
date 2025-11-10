@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import type { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { size } from "../../../common/gui/size"
+import { component_size, size } from "../../../common/gui/size"
 import { ListColumnWrapper } from "../../../common/gui/ListColumnWrapper"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { List, ListAttrs, MultiselectMode, RenderConfig, ViewHolder } from "../../../common/gui/base/List.js"
@@ -62,7 +62,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 	}
 
 	private readonly renderConfig: RenderConfig<Contact, KindaContactRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {
