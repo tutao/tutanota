@@ -4,6 +4,7 @@ import {
 	aesDecrypt,
 	aesEncrypt,
 	AesKey,
+	AesKeyLength,
 	AsymmetricKeyPair,
 	bytesToEd25519PrivateKey,
 	decryptKey,
@@ -13,7 +14,6 @@ import {
 	ed25519PrivateKeyToBytes,
 	Ed25519PublicKey,
 	ed25519PublicKeyToBytes,
-	ENABLE_MAC,
 	EncryptedKeyPairs,
 	EncryptedPqKeyPairs,
 	EncryptedRsaKeyPairs,
@@ -24,11 +24,10 @@ import {
 	extractKyberPublicKeyFromKyberPrivateKey,
 	extractRawPublicRsaKeyFromPrivateRsaKey,
 	generateX25519KeyPair,
+	getKeyLengthInBytes,
 	hkdf,
 	HkdfKeyDerivationDomains,
 	hmacSha256,
-	IV_BYTE_LENGTH,
-	KEY_LENGTH_BYTES_AES_256,
 	keyToUint8Array,
 	KyberKeyPair,
 	KyberPrivateKey,
@@ -36,7 +35,6 @@ import {
 	kyberPublicKeyToBytes,
 	MacTag,
 	type PQKeyPairs,
-	random,
 	RawRsaPublicKey,
 	type RsaKeyPair,
 	type RsaX25519KeyPair,
@@ -47,8 +45,7 @@ import {
 	X25519PrivateKey,
 	X25519PublicKey,
 } from "@tutao/tutanota-crypto"
-import { arrayEquals, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
-import { KeyVersion } from "@tutao/tutanota-utils"
+import { arrayEquals, KeyVersion, stringToUtf8Uint8Array, Versioned } from "@tutao/tutanota-utils"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { IdentityKeyPair } from "../../entities/sys/TypeRefs"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"
@@ -73,12 +70,12 @@ export class CryptoWrapper {
 		return aes256RandomKey()
 	}
 
-	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
-		return aesDecrypt(key, encryptedBytes, usePadding)
+	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array): Uint8Array {
+		return aesDecrypt(key, encryptedBytes)
 	}
 
-	aesEncrypt(key: AesKey, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array {
-		return aesEncrypt(key, bytes, iv, usePadding, useMac)
+	aesEncrypt(key: AesKey, bytes: Uint8Array): Uint8Array {
+		return aesEncrypt(key, bytes)
 	}
 
 	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey {
@@ -92,7 +89,7 @@ export class CryptoWrapper {
 	encryptEd25519Key(encryptionKey: VersionedKey, privateKey: Ed25519PrivateKey): VersionedEncryptedKey {
 		return {
 			encryptingKeyVersion: encryptionKey.version,
-			key: aesEncrypt(encryptionKey.object, ed25519PrivateKeyToBytes(privateKey), undefined, true, true),
+			key: aesEncrypt(encryptionKey.object, ed25519PrivateKeyToBytes(privateKey)),
 		}
 	}
 
@@ -152,7 +149,7 @@ export class CryptoWrapper {
 			salt,
 			key,
 			info: context,
-			length: KEY_LENGTH_BYTES_AES_256,
+			length: getKeyLengthInBytes(AesKeyLength.Aes256),
 		})
 	}
 
@@ -203,14 +200,14 @@ function deriveKey({ salt, key, info, length }: { salt: string; key: number[]; i
  @deprecated use the CryptoWrapper instance instead. This function will be hidden in the future
  */
 export function _encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {
-	return aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
+	return aesEncrypt(sk, value)
 }
 
 /**
  @deprecated use the CryptoWrapper instance instead. This function will be hidden in the future
  */
 export function _encryptString(sk: AesKey, value: string): Uint8Array {
-	return aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, ENABLE_MAC)
+	return aesEncrypt(sk, stringToUtf8Uint8Array(value))
 }
 
 /**

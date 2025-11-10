@@ -1,17 +1,17 @@
 import n from "../nodemocker.js"
 import o from "@tutao/otest"
 import { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
-import { downcast, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import type { CryptoFunctions } from "../../../src/common/desktop/CryptoFns.js"
-import { Argon2IDExports, keyToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, AesKeyLength, Argon2IDExports, getKeyLengthInBytes, random, uint8ArrayToBitArray, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { matchers, object, verify, when } from "testdouble"
 import { TempFs } from "../../../src/common/desktop/files/TempFs.js"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = Buffer.from([42])
-	const aes128Key = [1, 2, 8]
-	const aes256Key = [2, 5, 6]
-	const aes256DecryptedKey = new Uint8Array([2, 5, 6, 2])
+	const aes128Key = uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes128)))
+	const aes256Key = aes256RandomKey()
+	const aes256DecryptedKey = aes256RandomKey()
 	const aes256EncryptedKey = new Uint8Array([2, 5, 6, 1])
 	const encryptedUint8 = stringToUtf8Uint8Array("encrypted")
 	const decryptedUint8 = stringToUtf8Uint8Array("decrypted")
@@ -38,20 +38,18 @@ o.spec("DesktopCryptoFacadeTest", () => {
 
 	const setupSubject = () => {
 		const cryptoFnsMock: CryptoFunctions = object()
-		when(cryptoFnsMock.aesEncrypt(aes128Key, matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(decryptedUint8)
-		when(cryptoFnsMock.aesEncrypt(aes256Key, aes256DecryptedKey, matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(
-			aes256EncryptedKey,
-		)
+		when(cryptoFnsMock.aesEncrypt(aes128Key, matchers.anything())).thenReturn(decryptedUint8)
+		when(cryptoFnsMock.encryptKey(aes256Key, aes256DecryptedKey)).thenReturn(aes256EncryptedKey)
 
-		when(cryptoFnsMock.aesDecrypt(aes128Key, matchers.anything(), matchers.anything())).thenReturn(decryptedUint8)
-		when(cryptoFnsMock.aesDecrypt(aes256Key, aes256EncryptedKey, matchers.anything())).thenReturn(aes256DecryptedKey)
+		when(cryptoFnsMock.aesDecrypt(aes128Key, matchers.anything())).thenReturn(decryptedUint8)
+		when(cryptoFnsMock.decryptKey(aes256Key, aes256EncryptedKey)).thenReturn(aes256DecryptedKey)
 
-		when(cryptoFnsMock.unauthenticatedAesDecrypt(aes256Key, aes256EncryptedKey, false)).thenReturn(aes256DecryptedKey)
+		when(cryptoFnsMock.decryptKeyUnauthenticatedWithDeviceKeyChain(aes256Key, aes256EncryptedKey)).thenReturn(aes256DecryptedKey)
 
-		when(cryptoFnsMock.decryptKey(aes128Key, aes256EncryptedKey)).thenReturn(uint8ArrayToBitArray(aes256DecryptedKey))
+		when(cryptoFnsMock.decryptKey(aes128Key, aes256EncryptedKey)).thenReturn(aes256DecryptedKey)
 		when(cryptoFnsMock.bytesToKey(someKey)).thenReturn(aes128Key)
 		when(cryptoFnsMock.randomBytes(matchers.anything())).thenReturn(Buffer.alloc(10, 4))
-		when(cryptoFnsMock.aes256RandomKey()).thenReturn(uint8ArrayToBitArray(Buffer.alloc(32, 1)))
+		when(cryptoFnsMock.aes256RandomKey()).thenReturn(uint8ArrayToKey(Buffer.alloc(32, 1)))
 
 		const fsPromises: typeof import("fs").promises = object()
 		when(fsPromises.readFile(matchers.anything())).thenResolve(data)
@@ -89,12 +87,12 @@ o.spec("DesktopCryptoFacadeTest", () => {
 	})
 	o("unauthenticatedAes256DecryptKey", function () {
 		const { desktopCrypto } = setupSubject()
-		const key = desktopCrypto.unauthenticatedAes256DecryptKey(aes256Key, aes256EncryptedKey)
+		const key = desktopCrypto.decryptKeyUnauthenticatedWithDeviceKeyChain(aes256Key, aes256EncryptedKey)
 		o(Array.from(key)).deepEquals(Array.from(aes256DecryptedKey))
 	})
 	o("aes256EncryptKey", function () {
 		const { desktopCrypto, cryptoFnsMock } = setupSubject()
 		desktopCrypto.aes256EncryptKey(aes256Key, aes256DecryptedKey)
-		verify(cryptoFnsMock.aesEncrypt(aes256Key, aes256DecryptedKey, undefined, false), { times: 1 })
+		verify(cryptoFnsMock.encryptKey(aes256Key, aes256DecryptedKey), { times: 1 })
 	})
 })

@@ -66,6 +66,7 @@ import {
 	encryptRsaKey,
 	generateX25519KeyPair,
 	KeyPairType,
+	keyToUint8Array,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	pqKeyPairsToPublicKeys,
@@ -388,7 +389,7 @@ o.spec("CryptoFacadeTest", function () {
 			senderIdentityKeyPair,
 			generateX25519KeyPair(),
 			pqKeyPairsToPublicKeys(pqKeyPairs),
-			bitArrayToUint8Array(bk),
+			keyToUint8Array(bk),
 		)
 		const protocolVersion = CryptoProtocolVersion.RSA
 		const bucketPermission = createBucketPermission({
@@ -471,7 +472,7 @@ o.spec("CryptoFacadeTest", function () {
 			senderIdentityKeyPair,
 			generateX25519KeyPair(),
 			pqKeyPairsToPublicKeys(pqKeyPairs_v1),
-			bitArrayToUint8Array(bk),
+			keyToUint8Array(bk),
 		)
 		const protocolVersion = CryptoProtocolVersion.RSA
 		const bucketPermission = createBucketPermission({
@@ -542,7 +543,7 @@ o.spec("CryptoFacadeTest", function () {
 			senderIdentityKeyPair,
 			generateX25519KeyPair(),
 			pqKeyPairsToPublicKeys(pqKeyPairs_v1),
-			bitArrayToUint8Array(bk),
+			keyToUint8Array(bk),
 		)
 
 		const senderKeyVersion = 1

@@ -81,6 +81,7 @@ import {
 	TotpSecret,
 	TotpVerifier,
 	uint8ArrayToBitArray,
+	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { IServiceExecutor } from "../../common/ServiceRequest"
@@ -1059,7 +1060,7 @@ export class LoginFacade {
 
 	/** Changes user password to another one using recoverCode instead of the old password. */
 	async recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void> {
-		const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
+		const recoverCodeKey = uint8ArrayToKey(hexToUint8Array(recoverCode))
 		const recoverCodeVerifier = createAuthVerifier(recoverCodeKey)
 		const recoverCodeVerifierBase64 = base64ToBase64Url(uint8ArrayToBase64(recoverCodeVerifier))
 		const sessionData = createCreateSessionData({
@@ -1144,7 +1145,7 @@ export class LoginFacade {
 	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void> {
 		return this.loadUserPassphraseKey(mailAddress, password).then((passphraseReturn) => {
 			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn.userPassphraseKey)
-			const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
+			const recoverCodeKey = uint8ArrayToKey(hexToUint8Array(recoverCode))
 			const recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
 			const deleteData = createResetFactorsDeleteData({
 				mailAddress,
@@ -1161,7 +1162,7 @@ export class LoginFacade {
 			let recoverCodeVerifier: Base64 | null = null
 
 			if (recoverCode) {
-				const recoverCodeKey = uint8ArrayToBitArray(hexToUint8Array(recoverCode))
+				const recoverCodeKey = uint8ArrayToKey(hexToUint8Array(recoverCode))
 				recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
 			}
 

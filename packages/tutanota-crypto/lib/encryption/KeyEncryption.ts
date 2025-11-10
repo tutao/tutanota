@@ -1,13 +1,14 @@
-import type { Aes256Key, AesKey } from "./Aes.js"
-import { aesDecrypt, aesEncrypt, getKeyLengthBytes, KEY_LENGTH_BYTES_AES_128, KEY_LENGTH_BYTES_AES_256, unauthenticatedAesDecrypt } from "./Aes.js"
-import { bitArrayToUint8Array, fixedIv, uint8ArrayToBitArray } from "../misc/Utils.js"
-import { assertNotNull, concat, hexToUint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { aesDecrypt, aesEncrypt } from "./Aes.js"
+import { assertNotNull, hexToUint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { hexToRsaPrivateKey, hexToRsaPublicKey, rsaPrivateKeyToHex } from "./Rsa.js"
 import type { RsaKeyPair, RsaPrivateKey, RsaX25519KeyPair } from "./RsaKeyPair.js"
 import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPrivateKeyToBytes } from "./Liboqs/KyberKeyPair.js"
 import { X25519PrivateKey } from "./X25519.js"
 import { AsymmetricKeyPair, KeyPairType } from "./AsymmetricKeyPair.js"
 import type { PQKeyPairs } from "./PQKeyPairs.js"
+import { Aes256Key, AesKey } from "./symmetric/SymmetricCipherUtils.js"
+import { AesKeyLength, getKeyLengthInBytes } from "./symmetric/AesKeyLength.js"
+import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade.js"
 
 export type EncryptedKeyPairs = EncryptedPqKeyPairs | EncryptedRsaKeyPairs | EncryptedRsaX25519KeyPairs
 
@@ -63,42 +64,35 @@ export function isEncryptedPqKeyPairs(keyPair: AbstractEncryptedKeyPair): keyPai
 }
 
 export function encryptKey(encryptionKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {
-	const keyLength = getKeyLengthBytes(encryptionKey)
-	if (keyLength === KEY_LENGTH_BYTES_AES_128) {
-		return aesEncrypt(encryptionKey, bitArrayToUint8Array(keyToBeEncrypted), fixedIv, false, false).slice(fixedIv.length)
-	} else if (keyLength === KEY_LENGTH_BYTES_AES_256) {
-		return aesEncrypt(encryptionKey, bitArrayToUint8Array(keyToBeEncrypted), undefined, false, true)
-	} else {
-		throw new Error(`invalid AES key length (must be 128-bit or 256-bit, got ${keyLength} bytes instead)`)
-	}
+	return SYMMETRIC_CIPHER_FACADE.encryptKey(encryptionKey, keyToBeEncrypted)
 }
 
 export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array): AesKey {
-	const keyLength = getKeyLengthBytes(encryptionKey)
-	if (keyLength === KEY_LENGTH_BYTES_AES_128) {
-		return uint8ArrayToBitArray(aesDecrypt(encryptionKey, concat(fixedIv, keyToBeDecrypted), false))
-	} else if (keyLength === KEY_LENGTH_BYTES_AES_256) {
-		return uint8ArrayToBitArray(aesDecrypt(encryptionKey, keyToBeDecrypted, false))
-	} else {
-		throw new Error(`invalid AES key length (must be 128-bit or 256-bit, got ${keyLength} bytes instead)`)
-	}
+	return SYMMETRIC_CIPHER_FACADE.decryptKey(encryptionKey, keyToBeDecrypted)
+}
+
+/**
+ * @deprecated
+ */
+export function decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encryptedBytes: Uint8Array): AesKey {
+	return SYMMETRIC_CIPHER_FACADE.decryptKeyDeprecatedUnauthenticated(key, encryptedBytes)
 }
 
 export function aes256DecryptWithRecoveryKey(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array): Aes256Key {
-	// legacy case: recovery code without IV/mac
-	if (keyToBeDecrypted.length === KEY_LENGTH_BYTES_AES_128) {
-		return uint8ArrayToBitArray(unauthenticatedAesDecrypt(encryptionKey, concat(fixedIv, keyToBeDecrypted), false))
+	// legacy case: recovery code with fixed IV and without mac
+	if (keyToBeDecrypted.length === getKeyLengthInBytes(AesKeyLength.Aes128)) {
+		return SYMMETRIC_CIPHER_FACADE.decryptKeyDeprecatedUnauthenticatedFixedIv(encryptionKey, keyToBeDecrypted)
 	} else {
 		return decryptKey(encryptionKey, keyToBeDecrypted)
 	}
 }
 
-export function encryptRsaKey(encryptionKey: AesKey, privateKey: RsaPrivateKey, iv?: Uint8Array): Uint8Array {
-	return aesEncrypt(encryptionKey, hexToUint8Array(rsaPrivateKeyToHex(privateKey)), iv, true, true)
+export function encryptRsaKey(encryptionKey: AesKey, privateKey: RsaPrivateKey): Uint8Array {
+	return aesEncrypt(encryptionKey, hexToUint8Array(rsaPrivateKeyToHex(privateKey)))
 }
 
 export function encryptX25519Key(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array {
-	return aesEncrypt(encryptionKey, privateKey, undefined, true, true) // passing IV as undefined here is fine, as it will generate a new one for each encryption
+	return aesEncrypt(encryptionKey, privateKey) // passing IV as undefined here is fine, as it will generate a new one for each encryption
 }
 
 export function encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array {
@@ -106,7 +100,7 @@ export function encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateK
 }
 
 export function decryptRsaKey(encryptionKey: AesKey, encryptedPrivateKey: Uint8Array): RsaPrivateKey {
-	return hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, encryptedPrivateKey, true)))
+	return hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, encryptedPrivateKey)))
 }
 
 export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedPqKeyPairs): PQKeyPairs
@@ -123,7 +117,7 @@ export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs
 
 function decryptRsaOrRsaX25519KeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): RsaKeyPair | RsaX25519KeyPair {
 	const publicKey = hexToRsaPublicKey(uint8ArrayToHex(assertNotNull(keyPair.pubRsaKey)))
-	const privateKey = hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, keyPair.symEncPrivRsaKey!, true)))
+	const privateKey = hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, keyPair.symEncPrivRsaKey!)))
 	if (keyPair.symEncPrivEccKey) {
 		const publicEccKey = assertNotNull(keyPair.pubEccKey)
 		const privateEccKey = aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivEccKey))

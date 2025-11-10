@@ -1,4 +1,4 @@
-import { Aes256Key, Argon2IDExports, generateKeyFromPassphraseArgon2id, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { Aes256Key, Argon2IDExports, generateKeyFromPassphraseArgon2id, uint8ArrayToBitArray, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { LazyLoaded, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { NativeCryptoFacade } from "../../../native/common/generatedipc/NativeCryptoFacade.js"
 import { assertWorkerOrNode } from "../../common/Env.js"
@@ -40,7 +40,7 @@ export class NativeArgon2idFacade implements Argon2idFacade {
 	constructor(private readonly nativeCryptoFacade: NativeCryptoFacade) {}
 
 	async generateKeyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<Aes256Key> {
-		const hash = await this.nativeCryptoFacade.argon2idGeneratePassphraseKey(passphrase, salt)
-		return uint8ArrayToBitArray(hash)
+		const passphraseKeyBytes = await this.nativeCryptoFacade.argon2idGeneratePassphraseKey(passphrase, salt)
+		return uint8ArrayToKey(passphraseKeyBytes)
 	}
 }

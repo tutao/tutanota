@@ -47,18 +47,19 @@ import {
 	AbstractEncryptedKeyPair,
 	Aes256Key,
 	AesKey,
+	AesKeyLength,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	Ed25519PrivateKey,
 	EncryptedPqKeyPairs,
-	KEY_LENGTH_BYTES_AES_256,
+	getKeyLengthInBytes,
 	KeyPairType,
 	KyberPrivateKey,
 	MacTag,
 	PQKeyPairs,
 	PQPublicKeys,
 	RsaPublicKey,
-	uint8ArrayToBitArray,
+	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
 import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import type { PQFacade } from "../../../../../src/common/api/worker/facades/PQFacade.js"
@@ -104,7 +105,7 @@ import { KeyVerificationMismatchError } from "../../../../../src/common/api/comm
 import { SessionType } from "../../../../../src/common/api/common/SessionType"
 
 const { anything } = matchers
-const PQ_SAFE_BITARRAY_KEY_LENGTH = KEY_LENGTH_BYTES_AES_256 / 4
+const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4
 
 const PW_KEY: AesKey = [0]
 PW_KEY.length = PQ_SAFE_BITARRAY_KEY_LENGTH
@@ -421,7 +422,7 @@ function prepareMultiAdminUserKeyRotation(
 
 	when(mocks.cryptoWrapper.deriveKeyWithHkdf(matchers.anything())).thenReturn(adminGroupDistributionKeyPairKey, targetUserGroupKeyAuthKey)
 
-	when(mocks.cryptoWrapper.aesDecrypt(targetUserGroupKeyAuthKey, userEncAdminSymKeyHash.tag, true)).thenReturn(newAdminGroupSymKeyHash)
+	when(mocks.cryptoWrapper.aesDecrypt(targetUserGroupKeyAuthKey, userEncAdminSymKeyHash.tag)).thenReturn(newAdminGroupSymKeyHash)
 
 	when(mocks.cryptoWrapper.encryptKeyWithVersionedKey(NEW_ADMIN_GROUP_KEY, NEW_USER_GROUP_KEY.object)).thenReturn(NEW_ADMIN_GROUP_ENC_NEW_USER_GROUP_KEY)
 	when(mocks.cryptoWrapper.encryptKeyWithVersionedKey(NEW_USER_GROUP_KEY, NEW_ADMIN_GROUP_KEY.object)).thenReturn(NEW_USER_GROUP_ENC_NEW_ADMIN_GROUP_KEY)
@@ -447,7 +448,7 @@ o.spec("KeyRotationFacade", function () {
 	let adminKeyLoader: AdminKeyLoaderFacade
 
 	let user: User
-	const pwKey = uint8ArrayToBitArray(new Uint8Array(Array(KEY_LENGTH_BYTES_AES_256).keys()))
+	const pwKey = uint8ArrayToKey(new Uint8Array(Array(getKeyLengthInBytes(AesKeyLength.Aes256)).keys()))
 	let cryptoWrapperMock: CryptoWrapper
 	let userEncAdminKey: Uint8Array
 	const groupId = someGroupId
@@ -1400,7 +1401,7 @@ o.spec("KeyRotationFacade", function () {
 					when(publicEncryptionKeyProvider.convertFromEncryptedPqKeyPairs(anything(), anything())).thenReturn(generatedAdminKeyPairs.decodedPublicKey)
 
 					when(keyLoaderFacadeMock.getCurrentSymGroupKey(anything())).thenResolve(currentAdminGroupKey)
-					when(cryptoWrapperMock.aesDecrypt(anything(), anything(), anything())).thenThrow(new CryptoError("unable to decrypt"))
+					when(cryptoWrapperMock.aesDecrypt(anything(), anything())).thenThrow(new CryptoError("unable to decrypt"))
 					await assertThrows(CryptoError, async () => await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, PW_KEY))
 				})
 

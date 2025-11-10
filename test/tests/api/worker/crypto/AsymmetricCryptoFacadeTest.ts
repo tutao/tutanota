@@ -14,9 +14,10 @@ import {
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import {
+	aes256RandomKey,
 	AesKey,
-	bitArrayToUint8Array,
 	KeyPairType,
+	keyToUint8Array,
 	KyberPublicKey,
 	PQKeyPairs,
 	PQPublicKeys,
@@ -252,7 +253,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			const senderIdentifier = object<string>()
 			const senderIdentifierType = PublicKeyIdentifierType.GROUP_ID
 
-			const symKey = new Uint8Array([1, 2, 3, 4])
+			const symKey = keyToUint8Array(aes256RandomKey())
 			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(symKey)
 
 			const result = await asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(RSA_TEST_KEYPAIR, pubEncKeyData, {
@@ -275,7 +276,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		o("should call RSA decryption when the protocol version is set to RSA", async function () {
 			const pubEncSymKey: Uint8Array = object()
 
-			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(new Uint8Array([1, 2, 3, 4]))
+			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(keyToUint8Array(aes256RandomKey()))
 
 			await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(RSA_TEST_KEYPAIR, CryptoProtocolVersion.RSA, pubEncSymKey)
 
@@ -297,7 +298,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			keyPair.keyPairType = KeyPairType.TUTA_CRYPT
 
 			when(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair)).thenResolve({
-				decryptedSymKeyBytes: new Uint8Array([1, 2, 3, 4]),
+				decryptedSymKeyBytes: keyToUint8Array(aes256RandomKey()),
 				senderIdentityPubKey: object(),
 			})
 
@@ -418,7 +419,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			when(
 				rsa.encrypt(
 					matchers.argThat((arg) => arg.keyPairType === KeyPairType.RSA),
-					bitArrayToUint8Array(symKey),
+					keyToUint8Array(symKey),
 				),
 			).thenResolve(pubEncSymKeyBytes)
 

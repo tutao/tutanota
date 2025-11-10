@@ -140,7 +140,6 @@ import {
 	aes256RandomKey,
 	aesEncrypt,
 	AesKey,
-	bitArrayToUint8Array,
 	createAuthVerifier,
 	decryptKey,
 	encryptKey,
@@ -457,7 +456,7 @@ export class MailFacade {
 		const mailSessionKey: Aes128Key = assertNotNull(await this.crypto.resolveSessionKey(mail))
 		const postData = createReportMailPostData({
 			mailId: mail._id,
-			mailSessionKey: bitArrayToUint8Array(mailSessionKey),
+			mailSessionKey: keyToUint8Array(mailSessionKey),
 			reportType,
 		})
 		await this.serviceExecutor.post(ReportMailService, postData)
@@ -647,7 +646,7 @@ export class MailFacade {
 						parameters.sessionEncEncryptionAuthStatus = this.cryptoWrapper.encryptString(sk, EncryptionAuthStatus.TUTACRYPT_SENDER)
 					}
 				} else {
-					parameters.mailSessionKey = bitArrayToUint8Array(sk)
+					parameters.mailSessionKey = keyToUint8Array(sk)
 				}
 			}),
 		])

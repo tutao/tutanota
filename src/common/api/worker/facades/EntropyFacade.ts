@@ -1,4 +1,4 @@
-import { authenticatedAesDecrypt, EntropySource, random, Randomizer } from "@tutao/tutanota-crypto"
+import { aesDecrypt, EntropySource, random, Randomizer } from "@tutao/tutanota-crypto"
 import { UserFacade } from "./UserFacade.js"
 import { createEntropyData, TutanotaProperties } from "../../entities/tutanota/TypeRefs.js"
 import { EntropyService } from "../../entities/tutanota/Services.js"
@@ -75,7 +75,7 @@ export class EntropyFacade {
 			try {
 				const keyLoaderFacade = this.lazyKeyLoaderFacade()
 				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(parseKeyVersion(tutanotaProperties.userKeyVersion ?? "0"))
-				const entropy = authenticatedAesDecrypt(userGroupKey, tutanotaProperties.userEncEntropy)
+				const entropy = aesDecrypt(userGroupKey, tutanotaProperties.userEncEntropy)
 				random.addStaticEntropy(entropy)
 			} catch (error) {
 				console.log("could not decrypt entropy", error)

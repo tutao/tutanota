@@ -1,7 +1,7 @@
 import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import type { CryptoFunctions } from "./CryptoFns.js"
 import type * as FsModule from "node:fs"
-import { Aes256Key, AesKey, Argon2IDExports, bitArrayToUint8Array, generateKeyFromPassphraseArgon2id } from "@tutao/tutanota-crypto"
+import { Aes256Key, AesKey, Argon2IDExports, generateKeyFromPassphraseArgon2id, keyToUint8Array } from "@tutao/tutanota-crypto"
 import { FileUri } from "../native/common/FileApp.js"
 import path from "node:path"
 import { NativeCryptoFacade } from "../native/common/generatedipc/NativeCryptoFacade.js"
@@ -47,7 +47,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 
 	aesDecryptObject(encryptionKey: Aes256Key, serializedObject: string): number | string | boolean | ReadonlyArray<unknown> | object {
 		const encryptedBytes = base64ToUint8Array(serializedObject)
-		const decryptedBytes = this.cryptoFns.aesDecrypt(encryptionKey, encryptedBytes, true)
+		const decryptedBytes = this.cryptoFns.aesDecrypt(encryptionKey, encryptedBytes)
 		const stringObject = utf8Uint8ArrayToString(decryptedBytes)
 		return JSON.parse(stringObject)
 	}
@@ -78,7 +78,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		const targetDir = await this.tfs.ensureUnencrytpedDir()
 		const encData = await this.fs.promises.readFile(encryptedFileUri)
 		const bitKey = this.cryptoFns.bytesToKey(key)
-		const decData = this.cryptoFns.aesDecrypt(bitKey, encData, true)
+		const decData = this.cryptoFns.aesDecrypt(bitKey, encData)
 
 		const filesInDirectory = await this.fs.promises.readdir(targetDir)
 		// since we're working purely in scratch space until putFileIntoDownloadsFolder
@@ -92,20 +92,23 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return decryptedFileUri
 	}
 
-	unauthenticatedAes256DecryptKey(encryptionKey: Aes256Key, keyToDecrypt: Uint8Array): Uint8Array {
-		return this.cryptoFns.unauthenticatedAesDecrypt(encryptionKey, keyToDecrypt, false)
+	/**
+	 * @deprecated
+	 */
+	decryptKeyUnauthenticatedWithDeviceKeyChain(encryptionKey: Aes256Key, keyToDecrypt: Uint8Array): AesKey {
+		return this.cryptoFns.decryptKeyUnauthenticatedWithDeviceKeyChain(encryptionKey, keyToDecrypt)
 	}
 
-	aes256EncryptKey(encryptionKey: Aes256Key, keyToEncrypt: Uint8Array): Uint8Array {
-		return this.cryptoFns.aesEncrypt(encryptionKey, keyToEncrypt, undefined, false)
+	aes256EncryptKey(encryptionKey: Aes256Key, keyToEncrypt: AesKey): Uint8Array {
+		return this.cryptoFns.encryptKey(encryptionKey, keyToEncrypt)
 	}
 
 	aesDecryptBytes(encryptionKey: Aes256Key, data: Uint8Array): Uint8Array {
-		return this.cryptoFns.aesDecrypt(encryptionKey, data, true)
+		return this.cryptoFns.aesDecrypt(encryptionKey, data)
 	}
 
 	aesEncryptBytes(encryptionKey: Aes256Key, data: Uint8Array): Uint8Array {
-		return this.cryptoFns.aesEncrypt(encryptionKey, data, undefined, true, true)
+		return this.cryptoFns.aesEncrypt(encryptionKey, data)
 	}
 
 	generateId(byteLength: number): string {
@@ -133,8 +136,8 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	}
 
 	async argon2idGeneratePassphraseKey(passphrase: string, salt: Uint8Array): Promise<Uint8Array> {
-		const hash = await generateKeyFromPassphraseArgon2id(await this.argon2, passphrase, salt)
-		return bitArrayToUint8Array(hash)
+		const passphraseKey = await generateKeyFromPassphraseArgon2id(await this.argon2, passphrase, salt)
+		return keyToUint8Array(passphraseKey)
 	}
 
 	generateKyberKeypair(seed: Uint8Array): Promise<KyberKeyPair> {

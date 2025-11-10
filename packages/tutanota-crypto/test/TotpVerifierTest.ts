@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { bitArrayToUint8Array } from "../lib/misc/Utils.js"
 import { TotpVerifier } from "../lib/misc/TotpVerifier.js"
 import sjcl from "../lib/internal/sjcl.js"
+import { keyToUint8Array } from "../lib/index.js"
 
 o.spec("TotpVerifier", function () {
 	const totp = new TotpVerifier(8)
@@ -11,7 +11,7 @@ o.spec("TotpVerifier", function () {
 		let secret = new Uint8Array([99, 98, 3, 5, 7, 89, 4, 7, 9, 5, 22, 55, 1, 4, 88, 127])
 		let key = TotpVerifier.readableKey(secret)
 		o("mnra gbih leca ocif cy3q cbcy p4").equals(key)
-		o(Array.from(secret)).deepEquals(Array.from(bitArrayToUint8Array(base32.toBits(key.replace(/ /g, "")))))
+		o(Array.from(secret)).deepEquals(Array.from(keyToUint8Array(base32.toBits(key.replace(/ /g, "")))))
 	})
 	o("rfcTests", function () {
 		let key = stringToUtf8Uint8Array("12345678901234567890")

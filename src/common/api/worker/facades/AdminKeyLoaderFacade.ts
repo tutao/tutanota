@@ -1,6 +1,6 @@
 import { PublicKeyIdentifierType } from "../../common/TutanotaConstants.js"
-import { assertNotNull, lazyAsync, Versioned } from "@tutao/tutanota-utils"
-import { Group, IdentityKeyPair, PubEncKeyData, UserTypeRef } from "../../entities/sys/TypeRefs.js"
+import { assertNotNull, KeyVersion, lazyAsync } from "@tutao/tutanota-utils"
+import { Group, PubEncKeyData, UserTypeRef } from "../../entities/sys/TypeRefs.js"
 import { EntityClient } from "../../common/EntityClient.js"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { UserFacade } from "./UserFacade.js"
@@ -9,10 +9,9 @@ import { KeyLoaderFacade, parseKeyVersion } from "./KeyLoaderFacade.js"
 import { CacheManagementFacade } from "./lazy/CacheManagementFacade.js"
 import { CryptoWrapper, VersionedEncryptedKey, VersionedKey } from "../crypto/CryptoWrapper.js"
 import { AsymmetricCryptoFacade } from "../crypto/AsymmetricCryptoFacade.js"
-import { AesKey, Ed25519PrivateKey } from "@tutao/tutanota-crypto"
+import { AesKey } from "@tutao/tutanota-crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "./KeyAuthenticationFacade.js"
 import { TutanotaError } from "@tutao/tutanota-error"
-import { KeyVersion } from "@tutao/tutanota-utils"
 
 assertWorkerOrNode()
 

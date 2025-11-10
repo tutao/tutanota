@@ -8,11 +8,12 @@ import {
 	aes256RandomKey,
 	aesDecrypt,
 	aesEncrypt,
+	aesEncryptConfigurationDatabaseItem,
 	AesKey,
 	decryptKey,
 	IV_BYTE_LENGTH,
 	random,
-	unauthenticatedAesDecrypt,
+	aesDecryptUnauthenticated,
 } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
 import {
@@ -48,11 +49,11 @@ type ConfigDb = {
 
 /** @PublicForTesting */
 export async function encryptItem(item: string, key: Aes256Key, iv: Uint8Array): Promise<Uint8Array> {
-	return aesEncrypt(key, stringToUtf8Uint8Array(item), iv, true)
+	return aesEncryptConfigurationDatabaseItem(key, stringToUtf8Uint8Array(item), iv)
 }
 
 export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes256Key, iv: Uint8Array): Promise<string> {
-	return utf8Uint8ArrayToString(unauthenticatedAesDecrypt(key, concat(iv, encryptedAddress)))
+	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(iv, encryptedAddress)))
 }
 
 /**
@@ -90,7 +91,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 		try {
 			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
 			const encoded = encodeLocalAutosavedDraftData(draftData)
-			const encryptedData = aesEncrypt(metaData.key, encoded, metaData.iv)
+			const encryptedData = aesEncrypt(metaData.key, encoded)
 			await transaction.put(LocalDraftDataOS, LOCAL_DRAFT_KEY, encryptedData)
 		} catch (e) {
 			if (e instanceof DbError) {
@@ -158,7 +159,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 		try {
 			const transaction = await db.createTransaction(false, [SpamClassificationModelOS])
 			const encoded = encodeSpamClassificationModel(model)
-			const encryptedModel = aesEncrypt(metaData.key, encoded, metaData.iv)
+			const encryptedModel = aesEncrypt(metaData.key, encoded)
 			await transaction.put(SpamClassificationModelOS, model.ownerGroup, encryptedModel)
 		} catch (e) {
 			if (e instanceof DbError) {
@@ -348,7 +349,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 async function decryptMetaData(keyLoaderFacade: KeyLoaderFacade, metaData: EncryptedDbKeyBaseMetaData): Promise<EncryptionMetadata> {
 	const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(metaData.userGroupKeyVersion)
 	const key = decryptKey(userGroupKey, metaData.userEncDbKey)
-	const iv = unauthenticatedAesDecrypt(key, metaData.encDbIv)
+	const iv = aesDecryptUnauthenticated(key, metaData.encDbIv)
 	return {
 		key,
 		iv,

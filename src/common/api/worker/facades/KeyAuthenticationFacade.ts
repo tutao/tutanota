@@ -1,6 +1,6 @@
 import { CryptoWrapper } from "../crypto/CryptoWrapper.js"
 import { concat, KeyVersion } from "@tutao/tutanota-utils"
-import { Aes256Key, AesKey, bitArrayToUint8Array, Ed25519PublicKey, ed25519PublicKeyToBytes, MacTag, PQPublicKeys } from "@tutao/tutanota-crypto"
+import { Aes256Key, AesKey, Ed25519PublicKey, ed25519PublicKeyToBytes, keyToUint8Array, MacTag, PQPublicKeys } from "@tutao/tutanota-crypto"
 import { assertWorkerOrNode } from "../../common/Env.js"
 import { KeyMac } from "../../entities/sys/TypeRefs.js"
 
@@ -64,7 +64,7 @@ const userGroupKeyAuthenticationSystem: KeyAuthenticationSystem<UserGroupKeyAuth
 		})
 	},
 	generateAuthenticationData({ untrustedKey: { newUserGroupKey } }) {
-		return bitArrayToUint8Array(newUserGroupKey)
+		return keyToUint8Array(newUserGroupKey)
 	},
 }
 
@@ -156,7 +156,7 @@ const adminSymKeyAuthenticationSystem: KeyAuthenticationSystem<AdminSymKeyAuthen
 		})
 	},
 	generateAuthenticationData({ untrustedKey: { newAdminGroupKey } }) {
-		return bitArrayToUint8Array(newAdminGroupKey)
+		return keyToUint8Array(newAdminGroupKey)
 	},
 }
 

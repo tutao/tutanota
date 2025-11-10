@@ -19,7 +19,7 @@ import { EventQueue, QueuedBatch } from "../../../../../src/common/api/worker/Ev
 import { MembershipRemovedError } from "../../../../../src/common/api/common/error/MembershipRemovedError.js"
 import { GENERATED_MAX_ID, getElementId, timestampToGeneratedId } from "../../../../../src/common/api/common/utils/EntityUtils.js"
 import { daysToMillis, defer, freshVersioned, promiseMap, TypeRef } from "@tutao/tutanota-utils"
-import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, fixedIv, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, aesEncrypt, decryptKey, encryptKey, FIXED_IV, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import o from "@tutao/otest"
 import { func, matchers, object, verify, when } from "testdouble"
 import { CacheInfo } from "../../../../../src/common/api/worker/facades/LoginFacade.js"
@@ -77,7 +77,7 @@ o.spec("IndexedDbIndexer", () => {
 	o.beforeEach(function () {
 		clientTypeModelResolver = ClientModelInfo.getNewInstanceForTestsOnly()
 		key = aes256RandomKey()
-		iv = fixedIv
+		iv = FIXED_IV
 		mailIndexer = object()
 		;(mailIndexer as Writeable<MailIndexer>).mailIndexingEnabled = false
 
@@ -192,7 +192,7 @@ o.spec("IndexedDbIndexer", () => {
 		o.test("init existing db no errors", async function () {
 			let userGroupKey = freshVersioned(aes256RandomKey())
 			let dbKey = aes256RandomKey()
-			let encDbIv = aesEncrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true)
+			let encDbIv = aesEncrypt(dbKey, FIXED_IV)
 			let userEncDbKey = encryptKey(userGroupKey.object, dbKey)
 			const userGroupKeyVersion = 0
 
@@ -236,7 +236,7 @@ o.spec("IndexedDbIndexer", () => {
 			let dbKey = aes256RandomKey()
 			let userEncDbKey = encryptKey(userGroupKey.object, dbKey)
 			const userGroupKeyVersion = 0
-			let encDbIv = aesEncrypt(dbKey, fixedIv, random.generateRandomData(IV_BYTE_LENGTH), true)
+			let encDbIv = aesEncrypt(dbKey, FIXED_IV)
 			const t = await idbStub.createTransaction()
 			t.put(MetaDataOS, Metadata.userEncDbKey, userEncDbKey)
 			t.put(MetaDataOS, Metadata.userGroupKeyVersion, userGroupKeyVersion)

@@ -83,7 +83,7 @@ import {
 	iterateBinaryBlocks,
 	removeBinaryBlockRanges,
 } from "../../../common/api/worker/search/SearchIndexEncoding.js"
-import { aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt } from "@tutao/tutanota-crypto"
+import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "@tutao/tutanota-crypto"
 import {
 	ElementDataOS,
 	GroupDataOS,
@@ -236,7 +236,7 @@ export class IndexerCore {
 
 		// We need to find SearchIndex rows which we want to update. In the ElementData we have references to the metadata and we can find
 		// corresponding SearchIndex row in it.
-		const metaDataRowKeysBinary = unauthenticatedAesDecrypt(key, elementData[1], true)
+		const metaDataRowKeysBinary = aesDecryptUnauthenticated(key, elementData[1])
 		// For every word we have a metadata reference and we want to update them all.
 		const metaDataRowKeys = decodeNumbers(metaDataRowKeysBinary)
 		for (const metaDataRowKey of metaDataRowKeys) {

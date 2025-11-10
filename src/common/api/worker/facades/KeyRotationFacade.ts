@@ -69,13 +69,13 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./
 import {
 	Aes256Key,
 	AesKey,
-	bitArrayToUint8Array,
+	AesKeyLength,
 	createAuthVerifier,
 	EncryptedPqKeyPairs,
-	getKeyLengthBytes,
+	getAndVerifyAesKeyLength,
 	isEncryptedPqKeyPairs,
 	isVersionedPqPublicKey,
-	KEY_LENGTH_BYTES_AES_256,
+	keyToUint8Array,
 	PQKeyPairs,
 	PQPublicKeys,
 	PublicKey,
@@ -746,7 +746,7 @@ export class KeyRotationFacade {
 						symKeyMac: null,
 					})
 					const groupKeyUpdateData = createGroupKeyUpdateData({
-						sessionKeyEncGroupKey: this.cryptoWrapper.encryptBytes(sessionKey, bitArrayToUint8Array(newGroupKey.object)),
+						sessionKeyEncGroupKey: this.cryptoWrapper.encryptBytes(sessionKey, keyToUint8Array(newGroupKey.object)),
 						sessionKeyEncGroupKeyVersion: String(newGroupKey.version),
 						bucketKeyEncSessionKey: this.cryptoWrapper.encryptKey(bucketKey, sessionKey),
 						pubEncBucketKeyData: pubEncKeyData,
@@ -1226,7 +1226,7 @@ export class KeyRotationFacade {
 		const newSymAdminGroupKey = newAdminGroupKeys.symGroupKey
 
 		const { symGroupKey: symUserGroupKey, encryptedKeyPair: encryptedUserKeyPair } = newUserGroupKeys
-		const generatedPrivateEccKey = this.cryptoWrapper.aesDecrypt(symUserGroupKey.object, assertNotNull(encryptedUserKeyPair?.symEncPrivEccKey), true)
+		const generatedPrivateEccKey = this.cryptoWrapper.aesDecrypt(symUserGroupKey.object, assertNotNull(encryptedUserKeyPair?.symEncPrivEccKey))
 		const generatedPublicEccKey = assertNotNull(encryptedUserKeyPair?.pubEccKey)
 		const generatedEccKeyPair: Versioned<X25519KeyPair> = {
 			version: symUserGroupKey.version,
@@ -1363,7 +1363,7 @@ export class KeyRotationFacade {
  * We require AES keys to be 256-bit long to be quantum-safe because of Grover's algorithm.
  */
 function isQuantumSafe(key: AesKey) {
-	return getKeyLengthBytes(key) === KEY_LENGTH_BYTES_AES_256
+	return getAndVerifyAesKeyLength(key) === AesKeyLength.Aes256
 }
 
 function hasNonQuantumSafeKeys(...keys: AesKey[]) {

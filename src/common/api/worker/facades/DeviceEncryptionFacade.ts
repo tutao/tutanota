@@ -1,11 +1,11 @@
-import { aes256RandomKey, aesDecrypt, aesEncrypt, bitArrayToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesDecrypt, aesEncrypt, keyToUint8Array, uint8ArrayToBitArray, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 
 export class DeviceEncryptionFacade {
 	/**
 	 * Generates an encryption key.
 	 */
 	async generateKey(): Promise<Uint8Array> {
-		return bitArrayToUint8Array(aes256RandomKey())
+		return keyToUint8Array(aes256RandomKey())
 	}
 
 	/**
@@ -14,7 +14,7 @@ export class DeviceEncryptionFacade {
 	 * @param data Data to encrypt.
 	 */
 	async encrypt(deviceKey: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
-		return aesEncrypt(uint8ArrayToBitArray(deviceKey), data)
+		return aesEncrypt(uint8ArrayToKey(deviceKey), data)
 	}
 
 	/**
@@ -23,6 +23,6 @@ export class DeviceEncryptionFacade {
 	 * @param encryptedData Data to be decrypted.
 	 */
 	async decrypt(deviceKey: Uint8Array, encryptedData: Uint8Array): Promise<Uint8Array> {
-		return aesDecrypt(uint8ArrayToBitArray(deviceKey), encryptedData)
+		return aesDecrypt(uint8ArrayToKey(deviceKey), encryptedData)
 	}
 }

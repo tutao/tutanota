@@ -2,7 +2,6 @@
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
 import crypto from "node:crypto"
-import type { TypeModel, UntypedInstance } from "../api/common/EntityTypes"
 import type { Base64 } from "@tutao/tutanota-utils"
 import {
 	Aes256Key,
@@ -11,11 +10,12 @@ import {
 	aesEncrypt,
 	AesKey,
 	base64ToKey,
-	BitArray,
 	decryptKey,
+	encryptKey,
 	random,
 	uint8ArrayToKey,
-	unauthenticatedAesDecrypt,
+	aesDecryptUnauthenticated,
+	decryptKeyUnauthenticatedWithDeviceKeyChain,
 } from "@tutao/tutanota-crypto"
 
 // the prng throws if it doesn't have enough entropy
@@ -38,17 +38,26 @@ const seed = () => {
 seed()
 
 export interface CryptoFunctions {
-	aesEncrypt(key: AesKey, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array
+	aesEncrypt(key: AesKey, bytes: Uint8Array): Uint8Array
 
-	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array
+	encryptKey(key: AesKey, bytes: AesKey): Uint8Array
 
-	unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array
+	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array): Uint8Array
+
+	/**
+	 * @deprecated
+	 */
+	unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array): Uint8Array
+	/**
+	 * @deprecated
+	 */
+	decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encryptedBytes: Uint8Array): AesKey
 
 	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey
 
-	bytesToKey(bytes: Uint8Array): BitArray
+	bytesToKey(bytes: Uint8Array): AesKey
 
-	base64ToKey(base64: Base64): BitArray
+	base64ToKey(base64: Base64): AesKey
 
 	verifySignature(pubKeyPem: string, data: Uint8Array, signature: Uint8Array): boolean
 
@@ -58,27 +67,40 @@ export interface CryptoFunctions {
 }
 
 export const cryptoFns: CryptoFunctions = {
-	aesEncrypt(key: AesKey, bytes: Uint8Array, iv?: Uint8Array, usePadding?: boolean, useMac?: boolean): Uint8Array {
-		return aesEncrypt(key, bytes, iv, usePadding, useMac)
+	aesEncrypt(key: AesKey, bytes: Uint8Array): Uint8Array {
+		return aesEncrypt(key, bytes)
+	},
+	encryptKey(key: AesKey, bytes: AesKey): Uint8Array {
+		return encryptKey(key, bytes)
 	},
 
-	aesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
-		return aesDecrypt(key, encryptedBytes, usePadding)
+	aesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array): Uint8Array {
+		return aesDecrypt(key, encryptedBytes)
 	},
 
-	unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array, usePadding: boolean): Uint8Array {
-		return unauthenticatedAesDecrypt(key, encryptedBytes, usePadding)
+	/**
+	 * @deprecated
+	 */
+	unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array): Uint8Array {
+		return aesDecryptUnauthenticated(key, encryptedBytes)
+	},
+
+	/**
+	 * @deprecated
+	 */
+	decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encryptedBytes: Uint8Array): AesKey {
+		return decryptKeyUnauthenticatedWithDeviceKeyChain(key, encryptedBytes)
 	},
 
 	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey {
 		return decryptKey(encryptionKey, key)
 	},
 
-	bytesToKey(bytes: Uint8Array): BitArray {
+	bytesToKey(bytes: Uint8Array): AesKey {
 		return uint8ArrayToKey(bytes)
 	},
 
-	base64ToKey(base64: Base64): BitArray {
+	base64ToKey(base64: Base64): AesKey {
 		return base64ToKey(base64)
 	},
 

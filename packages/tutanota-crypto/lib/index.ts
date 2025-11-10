@@ -1,19 +1,10 @@
 export {
-	aes256RandomKey,
-	generateIV,
 	aesEncrypt,
+	aesEncryptConfigurationDatabaseItem,
 	aesDecrypt,
-	ENABLE_MAC,
-	IV_BYTE_LENGTH,
-	Aes128Key,
-	Aes256Key,
-	AesKey,
 	aes256EncryptSearchIndexEntry,
-	authenticatedAesDecrypt,
-	unauthenticatedAesDecrypt,
-	KEY_LENGTH_BYTES_AES_256,
-	getKeyLengthBytes,
-	extractIvFromCipherText,
+	aesDecryptUnauthenticated,
+	aes256EncryptSearchIndexEntryWithIV,
 } from "./encryption/Aes.js"
 export {
 	X25519PrivateKey,
@@ -86,6 +77,7 @@ export {
 	encryptX25519Key,
 	encryptKyberKey,
 	aes256DecryptWithRecoveryKey,
+	decryptKeyUnauthenticatedWithDeviceKeyChain,
 } from "./encryption/KeyEncryption.js"
 export { Randomizer, random } from "./random/Randomizer.js"
 export {
@@ -121,21 +113,24 @@ export { sha256Hash } from "./hashes/Sha256.js"
 export { sha512Hash } from "./hashes/Sha512.js"
 export { TotpVerifier } from "./misc/TotpVerifier.js"
 export { TotpSecret } from "./misc/TotpVerifier.js"
-export {
-	BitArray,
-	createAuthVerifier,
-	fixedIv,
-	keyToBase64,
-	base64ToKey,
-	createAuthVerifierAsBase64Url,
-	uint8ArrayToBitArray,
-	padAes,
-	bitArrayToUint8Array,
-	unpadAes,
-	checkIs128BitKey,
-	keyToUint8Array,
-	uint8ArrayToKey,
-} from "./misc/Utils.js"
 export { murmurHash } from "./hashes/MurmurHash.js"
 export { hkdf } from "./hashes/HKDF.js"
 export { hmacSha256, verifyHmacSha256, MacTag } from "./encryption/Hmac.js"
+export {
+	aes256RandomKey,
+	keyToUint8Array,
+	uint8ArrayToKey,
+	base64ToKey,
+	keyToBase64,
+	uint8ArrayToBitArray,
+	bitArrayToUint8Array,
+	createAuthVerifierAsBase64Url,
+	createAuthVerifier,
+	BitArray,
+	AesKey,
+	Aes128Key,
+	Aes256Key,
+	IV_BYTE_LENGTH,
+	FIXED_IV,
+} from "./encryption/symmetric/SymmetricCipherUtils.js"
+export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthInBytes } from "./encryption/symmetric/AesKeyLength.js"

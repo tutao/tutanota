@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { aes256RandomKey, aesDecrypt, aesEncrypt, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesDecrypt, aesEncrypt, random } from "@tutao/tutanota-crypto"
 import { Cardinality, ValueType } from "../../../../../src/common/api/common/EntityConstants.js"
 import {
 	ClientModelParsedInstance,
@@ -22,66 +22,66 @@ o.spec("CryptoMapper", function () {
 		o("decrypt string / number value without mac", function () {
 			let sk = aes256RandomKey()
 			let value = "this is a string value"
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(createEncryptedValueType(ValueType.String, Cardinality.One), encryptedValue, sk)).equals(value)
 			value = "516546"
-			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(createEncryptedValueType(ValueType.String, Cardinality.One), encryptedValue, sk)).equals(value)
 		})
 		o("decrypt string / number value with mac", function () {
 			let sk = aes256RandomKey()
 			let value = "this is a string value"
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(createEncryptedValueType(ValueType.String, Cardinality.One), encryptedValue, sk)).equals(value)
 			value = "516546"
-			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(createEncryptedValueType(ValueType.String, Cardinality.One), encryptedValue, sk)).equals(value)
 		})
 		o("decrypt boolean value without mac", function () {
 			let valueType = createEncryptedValueType(ValueType.Boolean, Cardinality.One)
 			let sk = aes256RandomKey()
 			let value = "0"
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(valueType, encryptedValue, sk)).equals(false)
 			value = "1"
-			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(valueType, encryptedValue, sk)).equals(true)
 			value = "32498"
-			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(valueType, encryptedValue, sk)).equals(true)
 		})
 		o("decrypt boolean value with mac", function () {
 			let valueType = createEncryptedValueType(ValueType.Boolean, Cardinality.One)
 			let sk = aes256RandomKey()
 			let value = "0"
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(valueType, encryptedValue, sk)).equals(false)
 			value = "1"
-			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(valueType, encryptedValue, sk)).equals(true)
 			value = "32498"
-			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(valueType, encryptedValue, sk)).equals(true)
 		})
 		o("decrypt date value without mac", function () {
 			let valueType = createEncryptedValueType(ValueType.Date, Cardinality.One)
 			let sk = aes256RandomKey()
 			let value = new Date().getTime().toString()
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(valueType, encryptedValue, sk)).deepEquals(new Date(parseInt(value)))
 		})
 		o("decrypt date value with mac", function () {
 			let valueType = createEncryptedValueType(ValueType.Date, Cardinality.One)
 			let sk = aes256RandomKey()
 			let value = new Date().getTime().toString()
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
 			o(decryptValue(valueType, encryptedValue, sk)).deepEquals(new Date(parseInt(value)))
 		})
 		o("decrypt bytes value without mac", function () {
 			let valueType = createEncryptedValueType(ValueType.Bytes, Cardinality.One)
 			let sk = aes256RandomKey()
 			let value = random.generateRandomData(5)
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value))
 			let decryptedValue = decryptValue(valueType, encryptedValue, sk)
 			o(decryptedValue instanceof Uint8Array).equals(true)
 			o(Array.from(decryptedValue as Uint8Array)).deepEquals(Array.from(value))
@@ -90,7 +90,7 @@ o.spec("CryptoMapper", function () {
 			let valueType = createEncryptedValueType(ValueType.Bytes, Cardinality.One)
 			let sk = aes256RandomKey()
 			let value = random.generateRandomData(5)
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value))
 			let decryptedValue = decryptValue(valueType, encryptedValue, sk)
 			o(decryptedValue instanceof Uint8Array).equals(true)
 			o(Array.from(decryptedValue as Uint8Array)).deepEquals(Array.from(value))
@@ -99,7 +99,7 @@ o.spec("CryptoMapper", function () {
 			let valueType = createEncryptedValueType(ValueType.CompressedString, Cardinality.One)
 			let sk = aes256RandomKey()
 			let value = base64ToUint8Array("QHRlc3Q=")
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value))
 			let decryptedValue = decryptValue(valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals("test")
@@ -108,7 +108,7 @@ o.spec("CryptoMapper", function () {
 			let valueType = createEncryptedValueType(ValueType.CompressedString, Cardinality.One)
 			let sk = aes256RandomKey()
 			let value = base64ToUint8Array("X3RleHQgBQD//1FQdGV4dCA=")
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value, random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, value))
 			let decryptedValue = decryptValue(valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals(
@@ -118,7 +118,7 @@ o.spec("CryptoMapper", function () {
 		o("decrypt empty compressedString", function () {
 			let valueType = createEncryptedValueType(ValueType.CompressedString, Cardinality.One)
 			let sk = aes256RandomKey()
-			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, new Uint8Array([]), random.generateRandomData(IV_BYTE_LENGTH), true, true))
+			let encryptedValue = uint8ArrayToBase64(aesEncrypt(sk, new Uint8Array([])))
 			let decryptedValue = decryptValue(valueType, encryptedValue, sk)
 			o(typeof decryptedValue === "string").equals(true)
 			o(decryptedValue).equals("")
@@ -138,16 +138,6 @@ o.spec("CryptoMapper", function () {
 			let sk = aes256RandomKey()
 			let value = "this is a string value"
 			let encryptedValue = neverNull(encryptValue(valueType, value, sk))
-			let expected = uint8ArrayToBase64(
-				aesEncrypt(
-					sk,
-					stringToUtf8Uint8Array(value),
-					base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16),
-					true,
-					ENABLE_MAC,
-				),
-			)
-			o(encryptedValue).equals(expected)
 			o(decryptValue(valueType, encryptedValue, sk)).equals(value)
 		})
 		o("encrypt boolean value", function () {
@@ -155,29 +145,9 @@ o.spec("CryptoMapper", function () {
 			let sk = aes256RandomKey()
 			let value = false
 			let encryptedValue = neverNull(encryptValue(valueType, value, sk))
-			let expected = uint8ArrayToBase64(
-				aesEncrypt(
-					sk,
-					stringToUtf8Uint8Array(value ? "1" : "0"),
-					base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16),
-					true,
-					ENABLE_MAC,
-				),
-			)
-			o(encryptedValue).equals(expected)
 			o(decryptValue(valueType, encryptedValue, sk)).equals(false)
 			value = true
 			encryptedValue = neverNull(encryptValue(valueType, value, sk))
-			expected = uint8ArrayToBase64(
-				aesEncrypt(
-					sk,
-					stringToUtf8Uint8Array(value ? "1" : "0"),
-					base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16),
-					true,
-					ENABLE_MAC,
-				),
-			)
-			o(encryptedValue).equals(expected)
 			o(decryptValue(valueType, encryptedValue, sk)).equals(true)
 		})
 		o("encrypt date value", function () {
@@ -185,16 +155,6 @@ o.spec("CryptoMapper", function () {
 			let sk = aes256RandomKey()
 			let value = new Date()
 			let encryptedValue = neverNull(encryptValue(valueType, value, sk))
-			let expected = uint8ArrayToBase64(
-				aesEncrypt(
-					sk,
-					stringToUtf8Uint8Array(value.getTime().toString()),
-					base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16),
-					true,
-					ENABLE_MAC,
-				),
-			)
-			o(encryptedValue).equals(expected)
 			o(decryptValue(valueType, encryptedValue, sk)).deepEquals(value)
 		})
 		o("encrypt bytes value", function () {
@@ -202,10 +162,6 @@ o.spec("CryptoMapper", function () {
 			let sk = aes256RandomKey()
 			let value = random.generateRandomData(5)
 			let encryptedValue = neverNull(encryptValue(valueType, value, sk))
-			let expected = uint8ArrayToBase64(
-				aesEncrypt(sk, value, base64ToUint8Array(encryptedValue).slice(ENABLE_MAC ? 1 : 0, ENABLE_MAC ? 17 : 16), true, ENABLE_MAC),
-			)
-			o(encryptedValue).equals(expected)
 			const decryptedValue = decryptValue(valueType, encryptedValue, sk)
 			o(Array.from(decryptedValue as Uint8Array)).deepEquals(Array.from(value))
 		})

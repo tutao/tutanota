@@ -9,8 +9,8 @@ import { BlobTypeRef, createBlobReferenceTokenWrapper } from "../../../../../src
 import { File as TutanotaFile, FileTypeRef } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { instance, matchers, object, verify, when } from "testdouble"
 import { HttpMethod } from "../../../../../src/common/api/common/EntityFunctions.js"
-import { aes256RandomKey, aesDecrypt, aesEncrypt, generateIV } from "@tutao/tutanota-crypto"
-import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, noOp, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { aes256RandomKey, aesDecrypt, aesEncrypt } from "@tutao/tutanota-crypto"
+import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { Mode } from "../../../../../src/common/api/common/Env.js"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import { FileReference } from "../../../../../src/common/api/common/utils/FileUtils.js"
@@ -193,7 +193,7 @@ o.spec("BlobFacade", function () {
 			const blobData = new Uint8Array([1, 2, 3])
 			const blobId = "--------0s--"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId, size: String(65), archiveId: archiveId }))
-			const encryptedBlobData = aesEncrypt(sessionKey, blobData, generateIV(), true, true)
+			const encryptedBlobData = aesEncrypt(sessionKey, blobData)
 
 			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -239,12 +239,12 @@ o.spec("BlobFacade", function () {
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65), archiveId }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -293,12 +293,12 @@ o.spec("BlobFacade", function () {
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65), archiveId: archive2Id }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -548,17 +548,17 @@ o.spec("BlobFacade", function () {
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
 			const blobId3 = "--------0s-3"
 			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
-			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3, generateIV(), true, true)
+			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -627,12 +627,12 @@ o.spec("BlobFacade", function () {
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId: "archiveId1" }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65), archiveId: "archiveId1" }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
 			const blobId3 = "--------0s-3"
@@ -643,7 +643,7 @@ o.spec("BlobFacade", function () {
 					archiveId: "archiveId2",
 				}),
 			)
-			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3, generateIV(), true, true)
+			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -743,12 +743,12 @@ o.spec("BlobFacade", function () {
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 
 			const blobId3 = "--------0s-3"
 			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
@@ -812,18 +812,18 @@ o.spec("BlobFacade", function () {
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1, generateIV(), true, true)
+			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2, generateIV(), true, true)
+			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
 			encryptedBlobData2[16] = ~encryptedBlobData2[16]
 
 			const blobId3 = "--------0s-3"
 			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
-			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3, generateIV(), true, true)
+			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",

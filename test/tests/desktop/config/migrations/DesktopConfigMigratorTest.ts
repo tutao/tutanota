@@ -4,13 +4,14 @@ import { DesktopNativeCryptoFacade } from "../../../../../src/common/desktop/Des
 import { downcast } from "@tutao/tutanota-utils"
 import { makeKeyStoreFacade } from "../../../TestUtils.js"
 import { DesktopKeyStoreFacade } from "../../../../../src/common/desktop/DesktopKeyStoreFacade.js"
-import { DesktopConfigEncKey, DesktopConfigKey } from "../../../../../src/common/desktop/config/ConfigKeys.js"
+import { DesktopConfigKey } from "../../../../../src/common/desktop/config/ConfigKeys.js"
+import { aes256RandomKey } from "@tutao/tutanota-crypto"
 
 o.spec("DesktopConfigMigrator", function () {
 	let migrator
 	let crypto: DesktopNativeCryptoFacade
 	let keyStoreFacade: DesktopKeyStoreFacade
-	const key = new Uint8Array([1, 2, 3])
+	const key = aes256RandomKey()
 
 	o.before(function () {
 		crypto = downcast({

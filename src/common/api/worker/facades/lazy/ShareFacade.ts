@@ -13,7 +13,7 @@ import {
 import { isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import { aes256RandomKey, bitArrayToUint8Array, encryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GroupInvitationService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
@@ -62,7 +62,7 @@ export class ShareFacade {
 		const sharedGroupEncSharedGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey))
 		const sharedGroupData = createSharedGroupData({
 			sessionEncInviterName: _encryptString(invitationSessionKey, userGroupInfo.name),
-			sessionEncSharedGroupKey: _encryptBytes(invitationSessionKey, bitArrayToUint8Array(sharedGroupKey.object)),
+			sessionEncSharedGroupKey: _encryptBytes(invitationSessionKey, keyToUint8Array(sharedGroupKey.object)),
 			sessionEncSharedGroupName: _encryptString(invitationSessionKey, sharedGroupInfo.name),
 			bucketEncInvitationSessionKey: encryptKey(bucketKey, invitationSessionKey),
 			capability: shareCapability,
@@ -105,7 +105,7 @@ export class ShareFacade {
 	async acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
-		const sharedGroupKey = { object: uint8ArrayToBitArray(invitation.sharedGroupKey), version: parseKeyVersion(invitation.sharedGroupKeyVersion) }
+		const sharedGroupKey = { object: uint8ArrayToKey(invitation.sharedGroupKey), version: parseKeyVersion(invitation.sharedGroupKeyVersion) }
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const userGroupEncGroupKey = _encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)
 		const sharedGroupEncInviteeGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))

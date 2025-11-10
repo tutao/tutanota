@@ -7,7 +7,7 @@ import { KeychainEncryption } from "../../../../src/common/desktop/credentials/K
 import { CredentialEncryptionMode } from "../../../../src/common/misc/credentials/CredentialEncryptionMode.js"
 import { PersistedCredentials } from "../../../../src/common/native/common/generatedipc/PersistedCredentials.js"
 import { CredentialType } from "../../../../src/common/misc/credentials/CredentialType.js"
-import { uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { UnencryptedCredentials } from "../../../../src/common/native/common/generatedipc/UnencryptedCredentials.js"
 
@@ -66,7 +66,7 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 	}
 
 	const encCredentialsKey = new Uint8Array([0x0e])
-	const decCredentialsKey = new Uint8Array([0x0d])
+	const decCredentialsKey = aes256RandomKey()
 
 	o.beforeEach(() => {
 		facade = new DesktopNativeCredentialsFacade(crypto, credentialsDb, keychainEncryption)
@@ -100,10 +100,8 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 			when(credentialsDb.getCredentialEncryptionMode()).thenReturn(CredentialEncryptionMode.DEVICE_LOCK)
 			when(credentialsDb.getCredentialsByUserId("user1")).thenReturn(encryptedCredentials1)
 			when(keychainEncryption.decryptUsingKeychain(encCredentialsKey, CredentialEncryptionMode.DEVICE_LOCK)).thenResolve(decCredentialsKey)
-			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials1.databaseKey!)).thenReturn(
-				decryptedCredentials1.databaseKey!,
-			)
-			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials1.accessToken)).thenReturn(
+			when(crypto.aesDecryptBytes(decCredentialsKey, encryptedCredentials1.databaseKey!)).thenReturn(decryptedCredentials1.databaseKey!)
+			when(crypto.aesDecryptBytes(decCredentialsKey, encryptedCredentials1.accessToken)).thenReturn(
 				stringToUtf8Uint8Array(decryptedCredentials1.accessToken),
 			)
 
@@ -116,10 +114,8 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 			when(credentialsDb.getCredentialEncryptionMode()).thenReturn(CredentialEncryptionMode.DEVICE_LOCK)
 			when(credentialsDb.getCredentialsByUserId("user2")).thenReturn(encryptedCredentials2)
 			when(keychainEncryption.decryptUsingKeychain(encCredentialsKey, CredentialEncryptionMode.DEVICE_LOCK)).thenResolve(decCredentialsKey)
-			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials2.databaseKey!)).thenReturn(
-				decryptedCredentials2.databaseKey!,
-			)
-			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials2.accessToken)).thenReturn(
+			when(crypto.aesDecryptBytes(decCredentialsKey, encryptedCredentials2.databaseKey!)).thenReturn(decryptedCredentials2.databaseKey!)
+			when(crypto.aesDecryptBytes(decCredentialsKey, encryptedCredentials2.accessToken)).thenReturn(
 				stringToUtf8Uint8Array(decryptedCredentials2.accessToken),
 			)
 
@@ -132,10 +128,8 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 			when(credentialsDb.getCredentialEncryptionMode()).thenReturn(CredentialEncryptionMode.APP_PASSWORD)
 			when(credentialsDb.getCredentialsByUserId("user1")).thenReturn(encryptedCredentials1)
 			when(keychainEncryption.decryptUsingKeychain(encCredentialsKey, CredentialEncryptionMode.APP_PASSWORD)).thenResolve(decCredentialsKey)
-			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials1.databaseKey!)).thenReturn(
-				decryptedCredentials1.databaseKey!,
-			)
-			when(crypto.aesDecryptBytes(uint8ArrayToBitArray(decCredentialsKey), encryptedCredentials1.accessToken)).thenReturn(
+			when(crypto.aesDecryptBytes(decCredentialsKey, encryptedCredentials1.databaseKey!)).thenReturn(decryptedCredentials1.databaseKey!)
+			when(crypto.aesDecryptBytes(decCredentialsKey, encryptedCredentials1.accessToken)).thenReturn(
 				stringToUtf8Uint8Array(decryptedCredentials1.accessToken),
 			)
 
@@ -149,10 +143,8 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 				when(credentialsDb.getCredentialEncryptionMode()).thenReturn(CredentialEncryptionMode.DEVICE_LOCK)
 				when(credentialsDb.getCredentialsByUserId("user1")).thenReturn(encryptedCredentials1)
 				when(keychainEncryption.decryptUsingKeychain(encCredentialsKey, CredentialEncryptionMode.DEVICE_LOCK)).thenResolve(decCredentialsKey)
-				when(crypto.aesEncryptBytes(uint8ArrayToBitArray(decCredentialsKey), decryptedCredentials1.databaseKey!)).thenReturn(
-					encryptedCredentials1.databaseKey!,
-				)
-				when(crypto.aesEncryptBytes(uint8ArrayToBitArray(decCredentialsKey), stringToUtf8Uint8Array(decryptedCredentials1.accessToken))).thenReturn(
+				when(crypto.aesEncryptBytes(decCredentialsKey, decryptedCredentials1.databaseKey!)).thenReturn(encryptedCredentials1.databaseKey!)
+				when(crypto.aesEncryptBytes(decCredentialsKey, stringToUtf8Uint8Array(decryptedCredentials1.accessToken))).thenReturn(
 					encryptedCredentials1.accessToken,
 				)
 
@@ -162,16 +154,14 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 
 			o.test("when there is no key, it generates and stores one", async () => {
 				when(credentialsDb.getCredentialEncryptionKey()).thenReturn(null)
-				when(crypto.generateDeviceKey()).thenReturn(uint8ArrayToBitArray(decCredentialsKey))
+				when(crypto.generateDeviceKey()).thenReturn(decCredentialsKey)
 				when(credentialsDb.getCredentialEncryptionMode()).thenReturn(CredentialEncryptionMode.DEVICE_LOCK)
 				when(credentialsDb.getCredentialsByUserId("user1")).thenReturn(encryptedCredentials1)
-				when(crypto.aesEncryptBytes(uint8ArrayToBitArray(decCredentialsKey), decryptedCredentials1.databaseKey!)).thenReturn(
-					encryptedCredentials1.databaseKey!,
-				)
-				when(crypto.aesEncryptBytes(uint8ArrayToBitArray(decCredentialsKey), stringToUtf8Uint8Array(decryptedCredentials1.accessToken))).thenReturn(
+				when(crypto.aesEncryptBytes(decCredentialsKey, decryptedCredentials1.databaseKey!)).thenReturn(encryptedCredentials1.databaseKey!)
+				when(crypto.aesEncryptBytes(decCredentialsKey, stringToUtf8Uint8Array(decryptedCredentials1.accessToken))).thenReturn(
 					encryptedCredentials1.accessToken,
 				)
-				when(keychainEncryption.encryptUsingKeychain(decCredentialsKey, CredentialEncryptionMode.DEVICE_LOCK)).thenResolve(encCredentialsKey)
+				when(keychainEncryption.encrypKeyUsingKeychain(decCredentialsKey, CredentialEncryptionMode.DEVICE_LOCK)).thenResolve(encCredentialsKey)
 
 				await facade.store(decryptedCredentials1)
 				verify(credentialsDb.store(encryptedCredentials1))
