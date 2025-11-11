@@ -7,12 +7,12 @@ import { isNotNull } from "@tutao/tutanota-utils"
 export class CalendarContactPreviewViewModel {
 	/**
 	 *
-	 * @param event the event that was interacted with
+	 * @param calendarEvent the event that was interacted with
 	 * @param contact the contact to display in the popup
 	 * @param _canEdit allow editing the contact if available
 	 */
 	constructor(
-		readonly event: Readonly<CalendarEvent>,
+		readonly calendarEvent: Readonly<CalendarEvent>,
 		readonly contact: Readonly<Contact>,
 		private readonly _canEdit: boolean = false,
 	) {}

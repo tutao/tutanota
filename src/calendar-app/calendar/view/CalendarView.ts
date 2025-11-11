@@ -5,18 +5,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from "../../../common/misc/KeyManager"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import {
-	base64ToBase64Url,
-	base64UrlToBase64,
-	decodeBase64,
-	downcast,
-	getStartOfDay,
-	isToday,
-	last,
-	noOp,
-	ofClass,
-	stringToBase64,
-} from "@tutao/tutanota-utils"
+import { base64ToBase64Url, base64UrlToBase64, decodeBase64, downcast, getStartOfDay, last, noOp, ofClass, stringToBase64 } from "@tutao/tutanota-utils"
 import {
 	CalendarEvent,
 	CalendarGroupRoot,
@@ -117,7 +106,6 @@ import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
 import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { UserController } from "../../../common/api/main/UserController"
-import { Time } from "../../../common/calendar/date/Time"
 
 export type GroupColors = Map<Id, string>
 
@@ -561,7 +549,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 		const children: Array<Children> = []
 		if (this.viewModel.eventPreviewModel instanceof CalendarContactPreviewViewModel) {
-			const id = this.viewModel.eventPreviewModel.event._id
+			const id = this.viewModel.eventPreviewModel.calendarEvent._id
 			const idParts = id[1].split("#")
 
 			const contactId = extractContactIdFromEvent(last(idParts))
@@ -1179,11 +1167,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 				if (luxonDate.isValid) {
 					date = luxonDate.toJSDate()
-				}
-
-				if (this.currentViewType === CalendarViewType.AGENDA && isToday(date)) {
-					// FIXME prevent scroll when navigating around
-					this.viewModel.agendaViewSelectedTime = Time.fromDate(new Date())
 				}
 
 				if (this.viewModel.selectedDate().getTime() !== date.getTime()) {
