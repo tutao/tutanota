@@ -12,7 +12,7 @@ runs:
     - name: Setup Xcode
       uses: maxim-lobanov/setup-xcode@7f352e61cbe8130c957c3bc898c4fb025784ea1e
       with:
-        xcode-version: latest-stable
+        xcode-version: '26.0.1'
     - name: List simulators
       shell: bash
       run: |
