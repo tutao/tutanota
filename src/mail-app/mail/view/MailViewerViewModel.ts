@@ -675,6 +675,20 @@ export class MailViewerViewModel {
 		return !isEmpty(listUnsubscribeHeaders)
 	}
 
+	private decodeMimeHeader(value: string): string {
+		return value.replace(/=\?([^?]+)\?([QB])\?([^?]+)\?=/gi, (_, _charset, encoding, encodedText) => {
+			if (encoding.toUpperCase() === "Q") {
+				return encodedText.replace(/_/g, " ").replace(/=([A-Fa-f0-9]{2})/g, (_: string, hex: string) => String.fromCharCode(parseInt(hex, 16)))
+			} else if (encoding.toUpperCase() === "B") {
+				try {
+					return Buffer.from(encodedText, "base64").toString("utf-8")
+				} catch {
+					return encodedText
+				}
+			}
+			return encodedText
+		})
+	}
 	async determineUnsubscribeOrder(): Promise<Array<UnsubscribeAction>> {
 		const mailHeaders = await this.getHeaders()
 		const unsubscribeActions: Array<UnsubscribeAction> = []
@@ -682,23 +696,19 @@ export class MailViewerViewModel {
 			return unsubscribeActions
 		}
 
-		const listUnsubscribeHeaders = mailHeaders
-			.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
-			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
-			.split("\n") // split headers
-			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
+		const normalizedHeaders = mailHeaders
+			.replaceAll(/\r\n/g, "\n")
+			.replaceAll(/\n[ \t]/g, "")
+			.split("\n")
+			.map((h) => this.decodeMimeHeader(h.trim()))
+
+		const listUnsubscribeHeaders = normalizedHeaders.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
 
 		if (isEmpty(listUnsubscribeHeaders)) {
 			return unsubscribeActions
 		}
 
-		const unsubPostHeader = first(
-			mailHeaders
-				.replaceAll(/\r\n/g, "\n") // replace all CR LF with LF
-				.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
-				.split("\n") // split headers
-				.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe-post")),
-		)
+		const unsubPostHeader = normalizedHeaders.find((h) => h.toLowerCase().startsWith("list-unsubscribe-post"))
 
 		const [_, ...value] = listUnsubscribeHeaders[0].split(":")
 		const headerValue = value.join(":")
