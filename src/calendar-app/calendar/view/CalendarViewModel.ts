@@ -58,7 +58,6 @@ import { ProgressTracker } from "../../../common/api/main/ProgressTracker"
 import { deviceConfig, DeviceConfig } from "../../../common/misc/DeviceConfig"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
-import { Time } from "../../../common/calendar/date/Time.js"
 import { CalendarEventsRepository, DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils.js"
@@ -76,6 +75,7 @@ import { formatDate, formatTime } from "../../../common/misc/Formatter"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
+import { Time } from "../../../common/calendar/date/Time"
 
 /**
  * FIXME doc
@@ -189,9 +189,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// visible for tests
 	_draggedEvent: DraggedEventContainer | null = null
 	private readonly _redrawStream: Stream<void> = stream()
-	selectedTime: Time | undefined
-	// When set to true, ignores the next setting of selectedTime
-	ignoreNextValidTimeSelection: boolean
 
 	private scrollPosition: number = 0 // size.calendar_hour_height * DEFAULT_HOUR_OF_DAY
 	// The maximum scroll value of the list in the view
@@ -205,6 +202,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private cancelSignal: Stream<boolean> = stream(false)
 
 	private calendarColorsMap: (availableCalendars: ReadonlyArray<CalendarInfoBase>) => Map<Id, string>
+
+	/**
+	 * Consumable flag that triggers a forced smooth scroll animation.
+	 * - Reading the public getter will reset it to `false`.
+	 * @private
+	 * @see {@link forceAnimateScroll}
+	 */
+	private _forceAnimateScroll = false
+	agendaViewSelectedTime?: Time
 
 	constructor(
 		private readonly logins: LoginController,
@@ -234,7 +240,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._transientEvents = []
 
 		const userId = logins.getUserController().user._id
-		const today = new Date()
 
 		this._hiddenCalendars = new Set(this.deviceConfig.getHiddenCalendars(userId))
 
@@ -243,8 +248,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.updatePreviewedEvent(null)
 			this.preloadMonthsAroundSelectedDate()
 		})
-		this.selectedTime = Time.fromDate(today)
-		this.ignoreNextValidTimeSelection = false
 		this.calendarModel.getCalendarInfosStream().map((newInfos) => {
 			this._sendCancelSignal()
 			const event = this.previewedEvent()?.event ?? null
@@ -280,6 +283,23 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					this.setHiddenCalendars(hidden)
 				}
 			})
+	}
+
+	/**
+	 * Sets the flag to be consumed once by the getter.
+	 */
+	triggerForceAnimateScroll() {
+		this._forceAnimateScroll = true
+	}
+
+	/**
+	 * Returns whether a forced smooth scroll should happen.
+	 * - This is a one-time consumable flag: reading it resets it to `false`.
+	 */
+	get forceAnimateScroll() {
+		const force = this._forceAnimateScroll
+		this._forceAnimateScroll = false
+		return force
 	}
 
 	private _sendCancelSignal() {
@@ -514,15 +534,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this._hiddenCalendars = newHiddenCalendars
 
 		this.deviceConfig.setHiddenCalendars(this.logins.getUserController().user._id, [...newHiddenCalendars])
-	}
-
-	setSelectedTime(time: Time | undefined) {
-		// only ignore an actual time, setting to undefined is fine
-		if (time != null && this.ignoreNextValidTimeSelection) {
-			this.ignoreNextValidTimeSelection = false
-		} else {
-			this.selectedTime = time
-		}
 	}
 
 	/**

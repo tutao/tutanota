@@ -1,5 +1,5 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, incrementDate, isSameDay, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, incrementDate, isToday, stringToBase64 } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getTimeZone, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils"
 import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
@@ -328,7 +328,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		// Flat list structure so that we don't have problems with keys
 		let eventsNodes: Child[] = []
 		for (const [eventIndex, event] of events.entries()) {
-			if (eventToShowTimeIndicator === eventIndex && isSameDay(new Date(), event.event.startTime)) {
+			if (eventToShowTimeIndicator === eventIndex && isToday(event.event.startTime)) {
 				eventsNodes.push(
 					m(
 						".mt-xs.mb-xs",
