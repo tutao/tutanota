@@ -271,7 +271,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	}
 
 	private getBirthdayEventModel(eventPreviewModel: CalendarPreviewModels | null): CalendarContactPreviewViewModel | null {
-		if (isBirthdayEvent((eventPreviewModel as CalendarContactPreviewViewModel).event?.uid)) {
+		if (isBirthdayEvent((eventPreviewModel as CalendarContactPreviewViewModel).calendarEvent?.uid)) {
 			return eventPreviewModel as CalendarContactPreviewViewModel
 		}
 		return null
