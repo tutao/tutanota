@@ -77,7 +77,7 @@ export class ContactEventPopup implements ModalComponent {
 				m(".flex.flex-end", [this.renderEditButton(), this.renderCloseButton()]),
 				m(".flex-grow", [
 					m(ContactPreviewView, {
-						event: this.model.event,
+						event: this.model.calendarEvent,
 						contact: this.model.contact,
 					}),
 				]),
