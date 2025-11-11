@@ -306,6 +306,18 @@ o.spec("MailViewerViewModel", function () {
 				const expectedPostUrl = "http://unsub.me?id=2134"
 				await testHeaderUnsubscribePost(headers.join("\r\n"), expectedPostUrl, true)
 			})
+			o("with Q encoded header", async function () {
+				const headers = [
+					"List-Unsubscribe: ",
+					" =?us-ascii?Q?=3Chttps=3A=2F=2Fnewsletter=2Eexample=2Ecom=2Funsubscribe=2Fabcd1234efgh?=",
+					" =?us-ascii?Q?5678ijkl91011mnopqr=3E?=",
+					"List-Unsubscribe-Post: List-Unsubscribe=One-Click",
+				]
+
+				const expectedPostUrl = "https://newsletter.example.com/unsubscribe/abcd1234efgh5678ijkl91011mnopqr"
+
+				await testHeaderUnsubscribePost(headers.join("\r\n"), expectedPostUrl, true)
+			})
 			o("no list unsubscribe header", async function () {
 				const headers = "To: InvalidHeader"
 				const viewModel = initUnsubscribeHeaders(headers)
