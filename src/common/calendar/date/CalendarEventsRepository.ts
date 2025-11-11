@@ -96,7 +96,7 @@ export class CalendarEventsRepository {
 	}
 
 	async canLoadBirthdaysCalendar(): Promise<boolean> {
-		return await this.logins.getUserController().isNewPaidPlan()
+		return this.logins.getUserController().isInternalUser() && (await this.logins.getUserController().isNewPaidPlan())
 	}
 
 	async forceLoadEventsAt(daysInMonths: Array<Date>): Promise<void> {
