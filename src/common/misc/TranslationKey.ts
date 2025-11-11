@@ -2118,6 +2118,3 @@ export type TranslationKeyType =
 	| "pricing.firstYearDiscountIos_msg"
 	| "conflict_label"
 	| "emptyString_msg"
-	| "bluesky_label"
-	| "fediverse_label"
-	| "matrix_label"

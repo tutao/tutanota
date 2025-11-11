@@ -307,7 +307,7 @@ export default {
 		"confirmFreeAccount_label": "Free account confirmation",
 		"confirmLeaveSharedGroup_msg": "Are you sure you want to stop using \"{groupName}\"? The owner of the contact list would then have to re-invite you, if necessary.",
 		"confirmNoOtherFreeAccount_msg": "I do not own any other Free account.",
-		"confirmOverwriteServerDraft_msg": "Would you like to override this remote draft?",
+		"confirmOverwriteServerDraft_msg": "Would you like to overwrite this remote draft?",
 		"confirmPrivateUse_msg": "I will not use this account for business.",
 		"confirmSpamCustomFolder_msg": "Do you really want to move the folder '{1}' with all of its content (e.g. emails, subfolders) to spam?\n\nAll contained emails will be reported as spam.\n\nFolders containing no emails will be permanently deleted.",
 		"conflict_label": "One conflict",
@@ -2119,9 +2119,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"bluesky_label": "Bluesky",
-		"fediverse_label": "Fediverse",
-		"matrix_label": "Matrix"
+		"zoomOut_action": "Zoom Out"
 	}
 }
