@@ -68,7 +68,7 @@ import { SidebarSection } from "../../../common/gui/SidebarSection"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
-import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent } from "./CalendarViewModel"
+import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent, ScrollByListener } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../model/CalendarModel"
@@ -318,6 +318,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									currentViewType: this.currentViewType,
 									showWeekDays: !styles.isDesktopLayout(),
 									smoothScroll: this.viewModel.forceAnimateScroll,
+									registerListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
 								}),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
@@ -354,6 +355,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									currentViewType: this.currentViewType,
 									showWeekDays: true,
 									smoothScroll: this.viewModel.forceAnimateScroll,
+									registerListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
 								}),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
@@ -390,6 +392,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									currentViewType: this.currentViewType,
 									showWeekDays: true,
 									smoothScroll: this.viewModel.forceAnimateScroll,
+									registerListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
 								}),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
@@ -834,7 +837,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				key: Keys.HOME,
 				enabled: getIfNotView(CalendarViewType.MONTH),
 				exec: () => {
-					this.viewModel.setScrollPosition(0)
+					this.viewModel.scroll(-Number.MAX_SAFE_INTEGER)
 				},
 				help: "scrollToTop_action",
 			},
@@ -842,8 +845,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				key: Keys.END,
 				enabled: getIfNotView(CalendarViewType.MONTH),
 				exec: () => {
-					// Sorry for the dated meme (it's over nine-thousand!)
-					this.viewModel.setScrollPosition(this.viewModel.getScrollMaximum() ?? 9001)
+					this.viewModel.scroll(Number.MAX_SAFE_INTEGER)
 				},
 				help: "scrollToBottom_action",
 			},

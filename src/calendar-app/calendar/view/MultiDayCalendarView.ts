@@ -36,7 +36,7 @@ import {
 	layOutEvents,
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, EventWrapper } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, EventWrapper, ScrollByListener } from "./CalendarViewModel"
 import { CalendarViewType, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { Time } from "../../../common/calendar/date/Time.js"
@@ -64,11 +64,13 @@ export type MultiDayCalendarViewAttrs = {
 	weekIndicator: string | null
 	scrollPosition: number
 	onScrollPositionChange: (newPosition: number) => unknown
-	onViewChanged: (vnode: VnodeDOM) => unknown
 	currentViewType: CalendarViewType // FIXME is it necessary?
+
+	onViewChanged: (vnode: VnodeDOM) => unknown
 
 	showWeekDays: boolean
 	smoothScroll: boolean
+	registerListener: (listener: ScrollByListener) => void
 }
 
 export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs> {
@@ -136,6 +138,8 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				},
 				onChangePage: attrs.onChangeViewPeriod,
 				smoothScroll: attrs.smoothScroll,
+				registerListener: attrs.registerListener,
+				onViewChanged: attrs.onViewChanged,
 			},
 			cellActionHandlers: {
 				onCellPressed: newEventHandler,
