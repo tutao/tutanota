@@ -35,7 +35,17 @@ interface BodyComponentAttrs {
 	previous: PageAttrs
 	current: PageAttrs
 	next: PageAttrs
-	onChangePage: (moveForward: boolean) => unknown
+	/**
+	 * Callback triggered when the page changes.
+	 * @param moveForward - true if moving to the next page, false if moving back
+	 */
+	onChangePage: (moveForward: boolean) => void
+
+	/**
+	 * Scroll behavior.
+	 * - Should be smooth (`true`) when clicking the "Today" button.
+	 */
+	smoothScroll: boolean
 }
 
 export interface CalendarViewComponentAttrs {
@@ -155,8 +165,12 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 				oncreate: (vnode: VnodeDOM<BodyComponentAttrs>) => {
 					const scrollToCurrentTime = attrs.headerComponentAttrs?.dates?.length === 1 && attrs.headerComponentAttrs?.dates?.some(isToday)
 					const time = scrollToCurrentTime ? new Date().getHours() : deviceConfig.getScrollTime()
-					const timeCell = document.getElementById(`time-cell-${time}`)
-					timeCell?.scrollIntoView({ block: scrollToCurrentTime ? "center" : "start", behavior: "instant" })
+					this.scrollToTime(time, scrollToCurrentTime ? "center" : "start", "instant")
+				},
+				onupdate: () => {
+					if (attrs.bodyComponentAttrs.smoothScroll) {
+						this.scrollToTime(new Date().getHours(), "center", "smooth")
+					}
 				},
 				onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
 					mouseEvent.redraw = false
@@ -252,6 +266,15 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 				),
 			],
 		)
+	}
+
+	private scrollToTime(
+		time: number,
+		positionOnScreen: Extract<ScrollLogicalPosition, "center" | "start">,
+		behavior: Extract<ScrollBehavior, "instant" | "smooth">,
+	) {
+		const timeCell = document.getElementById(`time-cell-${time}`)
+		timeCell?.scrollIntoView({ block: positionOnScreen, behavior })
 	}
 
 	renderAllDaySection(attrs: CalendarViewComponentAttrs) {

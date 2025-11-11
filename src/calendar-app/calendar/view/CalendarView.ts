@@ -11,7 +11,7 @@ import {
 	decodeBase64,
 	downcast,
 	getStartOfDay,
-	isSameDayOfDate,
+	isToday,
 	last,
 	noOp,
 	ofClass,
@@ -84,7 +84,6 @@ import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayo
 import { theme } from "../../../common/gui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
 import { CalendarDesktopToolbar } from "./CalendarDesktopToolbar.js"
-import { Time } from "../../../common/calendar/date/Time.js"
 import { DaySelectorSidebar } from "../gui/day-selector/DaySelectorSidebar.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { DaySelectorPopup } from "../gui/day-selector/DaySelectorPopup.js"
@@ -118,6 +117,7 @@ import { simulateMailToClick } from "../gui/eventpopup/ContactPreviewView.js"
 import { CalendarSidebarRow, CalendarSidebarRowAttrs } from "../gui/CalendarSidebarRow"
 import { showGroupSharingDialog } from "../../../common/sharing/view/GroupSharingDialog"
 import { UserController } from "../../../common/api/main/UserController"
+import { Time } from "../../../common/calendar/date/Time"
 
 export type GroupColors = Map<Id, string>
 
@@ -312,12 +312,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
-									selectedTime: this.viewModel.selectedTime,
 									scrollPosition: this.viewModel.getScrollPosition(),
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									currentViewType: this.currentViewType,
 									showWeekDays: !styles.isDesktopLayout(),
+									smoothScroll: this.viewModel.forceAnimateScroll,
 								}),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
@@ -348,12 +348,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
-									selectedTime: this.viewModel.selectedTime,
 									scrollPosition: this.viewModel.getScrollPosition(),
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									currentViewType: this.currentViewType,
 									showWeekDays: true,
+									smoothScroll: this.viewModel.forceAnimateScroll,
 								}),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
@@ -384,12 +384,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
-									selectedTime: this.viewModel.selectedTime,
 									scrollPosition: this.viewModel.getScrollPosition(),
 									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									currentViewType: this.currentViewType,
 									showWeekDays: true,
+									smoothScroll: this.viewModel.forceAnimateScroll,
 								}),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
@@ -402,7 +402,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								mobileHeader: () => this.renderMobileHeader(attrs.header),
 								columnLayout: m(CalendarAgendaView, {
 									selectedDate: this.viewModel.selectedDate(),
-									selectedTime: this.viewModel.selectedTime,
+									selectedTime: this.viewModel.agendaViewSelectedTime,
 									eventsForDays: this.viewModel.eventsForDays,
 									amPmFormat: shouldDefaultToAmPmTimeFormat(),
 									onEventClicked: (event, domEvent) => {
@@ -693,9 +693,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			),
 			viewType: this.currentViewType,
 			onToday: () => {
-				// in case it has been set, when onToday is called we definitely do not want the time to be ignored
-				this.viewModel.ignoreNextValidTimeSelection = false
 				this.setUrl(m.route.param("view"), new Date())
+				this.viewModel.triggerForceAnimateScroll()
 			},
 			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate(), false, true),
 		})
@@ -718,9 +717,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			),
 			onCreateEvent: () => this.createNewEventDialog(),
 			onToday: () => {
-				// in case it has been set, when onToday is called we definitely do not want the time to be ignored
-				this.viewModel.ignoreNextValidTimeSelection = false
 				this.setUrl(m.route.param("view"), new Date())
+				this.viewModel.triggerForceAnimateScroll()
 			},
 			onViewTypeSelected: (viewType) => this.setUrl(viewType, this.viewModel.selectedDate(), false, true),
 			onTap: (_event, dom) => {
@@ -919,9 +917,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const newDate = next ? dateTime.plus(duration).startOf(unit).toJSDate() : dateTime.minus(duration).startOf(unit).toJSDate()
 
 		this.viewModel.selectedDate(newDate)
-		// ignoreNextTimeSelection is set to true here, as viewPeriod is only called when changing the view by swiping (or using previous/next buttons)
-		// and we don't want jarring time jumps when doing that
-		this.viewModel.ignoreNextValidTimeSelection = true
 		this.setUrl(viewType, newDate, false)
 
 		m.redraw()
@@ -1169,16 +1164,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	onNewUrl(args: Record<string, any>) {
 		if (!args.view) {
 			this.setUrl(this.currentViewType, this.viewModel.selectedDate(), true)
-			if (this.currentViewType === CalendarViewType.WEEK || this.currentViewType === CalendarViewType.THREE_DAY) {
-				this.viewModel.setSelectedTime(
-					Time.fromDateTime(
-						DateTime.fromObject({
-							hour: deviceConfig.getScrollTime(),
-							minute: 0,
-						}),
-					),
-				)
-			}
 		} else {
 			this.currentViewType = CalendarViewTypeByValue[args.view as CalendarViewType] ? args.view : CalendarViewType.MONTH
 			const eventIdParam = args.eventId
@@ -1194,26 +1179,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					date = luxonDate.toJSDate()
 				}
 
+				if (this.currentViewType === CalendarViewType.AGENDA && isToday(date)) {
+					// FIXME prevent scroll when navigating around
+					this.viewModel.agendaViewSelectedTime = Time.fromDate(new Date())
+				}
+
 				if (this.viewModel.selectedDate().getTime() !== date.getTime()) {
 					this.viewModel.selectedDate(date)
 					m.redraw()
-				}
-
-				const today = new Date()
-				if (args.view === "week" || args.view === "three") {
-					this.viewModel.setSelectedTime(
-						Time.fromDateTime(
-							DateTime.fromObject({
-								hour: deviceConfig.getScrollTime(),
-								minute: 0,
-							}),
-						),
-					)
-				} else if (isSameDayOfDate(today, date)) {
-					const time = Time.fromDate(today)
-					this.viewModel.setSelectedTime(time)
-				} else {
-					this.viewModel.setSelectedTime(undefined)
 				}
 
 				if (eventIdParam && (!isApp() || this.eventDetails)) {

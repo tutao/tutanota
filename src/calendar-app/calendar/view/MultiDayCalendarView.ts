@@ -62,13 +62,13 @@ export type MultiDayCalendarViewAttrs = {
 	dragHandlerCallbacks: EventDragHandlerCallbacks
 	isDaySelectorExpanded: boolean
 	weekIndicator: string | null
-	selectedTime?: Time
 	scrollPosition: number
 	onScrollPositionChange: (newPosition: number) => unknown
 	onViewChanged: (vnode: VnodeDOM) => unknown
 	currentViewType: CalendarViewType // FIXME is it necessary?
 
 	showWeekDays: boolean
+	smoothScroll: boolean
 }
 
 export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs> {
@@ -135,6 +135,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 					events: next.events,
 				},
 				onChangePage: attrs.onChangeViewPeriod,
+				smoothScroll: attrs.smoothScroll,
 			},
 			cellActionHandlers: {
 				onCellPressed: newEventHandler,
@@ -263,9 +264,6 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 						oncreate: (vnode) => {
 							this.isProgrammaticScrollInProgress = false
 							if (isMainView) {
-								if (attrs.selectedTime) {
-									attrs.onScrollPositionChange(size.calendar_hour_height * attrs.selectedTime.hour)
-								}
 								this.scrollDOMs(vnode, attrs, false)
 								attrs.onViewChanged(vnode)
 								this.lastScrollPosition = attrs.scrollPosition
