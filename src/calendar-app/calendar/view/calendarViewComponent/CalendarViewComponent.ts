@@ -8,7 +8,7 @@ import { Time } from "../../../../common/calendar/date/Time"
 import { size } from "../../../../common/gui/size"
 import { PageView } from "../../../../common/gui/base/PageView"
 import { getIntervalAsMinutes, getSubRowAsMinutes, TimeRange, TimeScale, TimeView, TimeViewAttributes } from "../../../../common/calendar/gui/TimeView"
-import { EventWrapper } from "../CalendarViewModel"
+import { EventWrapper, ScrollByListener } from "../CalendarViewModel"
 import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/gui/AllDaySection"
 import { EventBubbleInteractions } from "../CalendarEventBubble"
 import { getPosAndBoundsFromMouseEvent } from "../../../../common/gui/base/GuiUtils"
@@ -47,6 +47,8 @@ interface BodyComponentAttrs {
 	 * - Should be smooth (`true`) when clicking the "Today" button.
 	 */
 	smoothScroll: boolean
+	registerListener: (listener: ScrollByListener) => void
+	onViewChanged: (vnode: VnodeDOM) => unknown
 }
 
 export interface CalendarViewComponentAttrs {
@@ -167,10 +169,14 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 					gridColumn: "1/-1",
 					gridTemplateColumns: "subgrid",
 				} satisfies Partial<CSSStyleDeclaration>,
-				oncreate: (vnode: VnodeDOM<BodyComponentAttrs>) => {
+				oncreate: (vnode: VnodeDOM) => {
 					const scrollToCurrentTime = attrs.headerComponentAttrs?.dates?.length === 1 && attrs.headerComponentAttrs?.dates?.some(isToday)
 					const time = scrollToCurrentTime ? new Date().getHours() : deviceConfig.getScrollTime()
 					this.scrollToTime(time, scrollToCurrentTime ? "center" : "start", "instant")
+					attrs.bodyComponentAttrs.registerListener((amount: number) => {
+						vnode.dom.scrollBy({ top: amount })
+					})
+					attrs.bodyComponentAttrs.onViewChanged(vnode)
 				},
 				onupdate: () => {
 					if (attrs.bodyComponentAttrs.smoothScroll) {

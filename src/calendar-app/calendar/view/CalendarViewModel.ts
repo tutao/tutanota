@@ -14,6 +14,7 @@ import {
 	lazy,
 	memoized,
 	millisToDays,
+	noOp,
 } from "@tutao/tutanota-utils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, GroupSettings } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import {
@@ -169,6 +170,8 @@ export type CalendarEventPreviewModelFactory = (
 export type CalendarContactPreviewModelFactory = (event: CalendarEvent, contact: Contact, canEdit: boolean) => Promise<CalendarContactPreviewViewModel>
 export type CalendarPreviewModels = CalendarEventPreviewViewModel | CalendarContactPreviewViewModel
 
+export type ScrollByListener = (amount: number) => void
+
 export class CalendarViewModel implements EventDragHandlerCallbacks {
 	// Should not be changed directly but only through the URL
 	readonly selectedDate: Stream<Date> = stream(getStartOfDay(new Date()))
@@ -211,6 +214,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 */
 	private _forceAnimateScroll = false
 	agendaViewSelectedTime?: Time
+
+	private scrollByListener: ScrollByListener = noOp
 
 	constructor(
 		private readonly logins: LoginController,
@@ -844,13 +849,17 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.viewSize
 	}
 
+	setScrollByListener(listener: ScrollByListener): void {
+		this.scrollByListener = listener
+	}
+
 	setViewParameters(dom: HTMLElement): void {
 		this.scrollMax = dom.scrollHeight - dom.clientHeight
 		this.viewSize = dom.clientHeight
 	}
 
 	scroll(by: number): void {
-		this.setScrollPosition(this.scrollPosition + by)
+		this.scrollByListener(by)
 	}
 
 	forceSyncExternal(groupSettings: GroupSettings | null, longErrorMessage: boolean = false) {
