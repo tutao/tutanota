@@ -1,7 +1,6 @@
-import m, { Child, ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
+import m, { Child, ChildArray, Children, ClassComponent, Vnode } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized, downcast, getStartOfDay, getStartOfNextDay, isToday, noOp } from "@tutao/tutanota-utils"
-import { px } from "../../gui/size.js"
+import { deepMemoized, downcast, getStartOfDay, getStartOfNextDay, noOp } from "@tutao/tutanota-utils"
 import { getTimeFromClickInteraction, getTimeZone } from "../date/CalendarUtils"
 import { TimeColumn } from "./TimeColumn"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
@@ -22,12 +21,11 @@ export type TimeRange = {
 export const SUBROWS_PER_INTERVAL = 12
 export const DEFAULT_EVENT_COLUMN_SPAN_SIZE = 1
 
-export interface TimeViewAttributes {
+export interface CalendarTimeGridAttributes {
 	dates: Array<Date>
 	events: Array<EventWrapper>
 	timeScale: TimeScale
 	timeRange: TimeRange
-	setTimeRowHeight: (timeRowHeight: number) => void
 	hasAnyConflict?: boolean
 	cellActionHandlers?: Pick<CellAttrs, "onCellPressed" | "onCellContextMenuPressed">
 	eventBubbleHandlers?: EventBubbleInteractions & CalendarEventBubbleDragProperties
@@ -59,7 +57,7 @@ export interface ColumnBounds {
 /**
  * Grid positioning data for a single event.
  */
-export interface GridEventData {
+export interface EventGridData {
 	/** Vertical position (row range) */
 	row: RowBounds
 	/** Horizontal position and width */
@@ -70,12 +68,12 @@ export interface GridEventData {
  * Internal data structure tracking events within a single column.
  * Used during the column-packing phase of the layout algorithm.
  */
-export interface ColumnData {
+export interface ColumnLayoutData {
 	/**
 	 * The row index where the last event in this column ends.
-	 * Used for quick availability checks when placing new events.
+	 * Used to determine if the next event can fit.
 	 */
-	lastEventEndingRow: number
+	lastOccupiedRow: number
 
 	/**
 	 * Map of event IDs to their row bounds within this column.
@@ -103,7 +101,7 @@ export const getIntervalAsMinutes = (timeScale: TimeScale) => {
 }
 
 /**
- * TimeView Component
+ * CalendarTimeGrid Component
  *
  * Renders a calendar day/week view with events positioned
  * on a time-based CSS Grid. Handles event layout, overlap resolution, and time-based
@@ -122,7 +120,7 @@ export const getIntervalAsMinutes = (timeScale: TimeScale) => {
  *
  * @example
  * ```typescript
- * m(TimeView, {
+ * m(CalendarTimeGrid, {
  *   dates: [new Date(), tomorrowDate],
  *   events: eventWrappers,
  *   timeScale: 2,  // 30-minute intervals
@@ -131,23 +129,16 @@ export const getIntervalAsMinutes = (timeScale: TimeScale) => {
  * })
  * ```
  */
-export class TimeView implements ClassComponent<TimeViewAttributes> {
+export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttributes> {
 	private columnCount: Map<number, number> = new Map()
 	private subRowCount?: number
-	private dayHeight: number | null = null
 
-	oninit(vnode: Vnode<TimeViewAttributes>): any {
+	oninit(vnode: Vnode<CalendarTimeGridAttributes>): any {
 		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(vnode.attrs.timeScale, vnode.attrs.timeRange)
 		this.subRowCount = SUBROWS_PER_INTERVAL * timeColumnIntervals.length
 	}
 
-	oncreate(vnode: VnodeDOM<TimeViewAttributes>) {
-		const domHeight = Number.parseFloat(window.getComputedStyle(vnode.dom).height.replace("px", ""))
-		vnode.attrs.setTimeRowHeight(domHeight / this.subRowCount!)
-		m.redraw()
-	}
-
-	view({ attrs }: Vnode<TimeViewAttributes>) {
+	view({ attrs }: Vnode<CalendarTimeGridAttributes>) {
 		return m(
 			".grid.overflow-hidden.height-100p",
 			{
@@ -161,7 +152,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 		)
 	}
 
-	private renderDay(date: Date, subRowCount: number, timeViewAttrs: TimeViewAttributes): Child {
+	private renderDay(date: Date, subRowCount: number, timeViewAttrs: CalendarTimeGridAttributes): Child {
 		const { events: eventWrappers, timeScale, timeRange, cellActionHandlers, eventBubbleHandlers, canReceiveFocus } = timeViewAttrs
 		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
 		const startOfTomorrow = getStartOfNextDay(date)
@@ -173,25 +164,14 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 		return m(
 			".grid.plr-unit.gap.z1.grid-auto-columns.rel.border-right.min-width-0",
 			{
-				// style: {
-				// 	height: this.parentHeight ? px(this.parentHeight) : undefined,
-				// },
 				oncreate: (vnode) => {
 					;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
-					this.dayHeight = vnode.dom.clientHeight
 				},
 				onmousemove: (mouseEvent: MouseEvent) => {
 					downcast(mouseEvent).redraw = false
 					const time = getTimeFromMousePos(getPosAndBoundsFromMouseEvent(mouseEvent), SUBROWS_PER_INTERVAL)
 					eventBubbleHandlers?.drag?.setTimeUnderMouse(time, date)
 				},
-				// ontouchmove: (e: TouchEvent) => {
-				// 	e.preventDefault()
-				// 	const mouseEvent = transformTouchEvent(e)
-				// 	if (mouseEvent) {
-				// 		e.target?.dispatchEvent(mouseEvent)
-				// 	}
-				// },
 			},
 			[
 				this.renderInteractableCells(date, timeScale, timeRange, cellActionHandlers?.onCellPressed, cellActionHandlers?.onCellContextMenuPressed),
@@ -223,7 +203,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 			canReceiveFocus: boolean,
 			eventInteractions?: EventBubbleInteractions & CalendarEventBubbleDragProperties,
 		): Children => {
-			const interval = TIME_SCALE_BASE_VALUE / timeScale
+			const interval = getIntervalAsMinutes(timeScale)
 			const timeRangeAsDate = {
 				start: timeRange.start.toDate(baseDate),
 				end: timeRange.end.toDateTime(baseDate, getTimeZone()).plus({ minute: interval }).toJSDate(),
@@ -241,7 +221,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 				return b.event.endTime.getTime() - a.event.endTime.getTime()
 			})
 
-			const { grid, gridColumnSize } = TimeView.layoutEvents(orderedEvents, timeRange, subRowAsMinutes, timeScale, baseDate)
+			const { grid, gridColumnSize } = CalendarTimeGrid.layoutEvents(orderedEvents, timeRange, subRowAsMinutes, timeScale, baseDate)
 			this.columnCount.set(baseDate.getTime(), gridColumnSize)
 
 			return orderedEvents.flatMap((eventWrapper) => {
@@ -297,21 +277,23 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 	 * @param timeScale - Time scale divisor for hour subdivision
 	 * @param baseDate - Reference date for the calendar view
 	 * @returns Map of event IDs to their grid positioning data
+	 *
+	 * @VisibleForTesting
 	 */
 	static layoutEvents(events: Array<EventWrapper>, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date) {
 		// Step 1: Convert events to row-based coordinates
 		const eventsMap = new Map<Id, RowBounds>(
 			events.map((wrapper) => {
-				const rowBounds = TimeView.getRowBounds(wrapper.event, timeRange, subRowAsMinutes, timeScale, baseDate)
+				const rowBounds = CalendarTimeGrid.getRowBounds(wrapper.event, timeRange, subRowAsMinutes, timeScale, baseDate)
 				return [elementIdPart(wrapper.event._id), rowBounds]
 			}),
 		)
 
 		// Step 2: Pack events into columns using first-fit strategy
-		const columns = TimeView.packEventsIntoColumns(eventsMap)
+		const columns = CalendarTimeGrid.packEventsIntoColumns(eventsMap)
 
 		// Step 3: Expand events to fill available horizontal space
-		return { grid: TimeView.buildGridDataWithExpansion(columns), gridColumnSize: columns.length }
+		return { grid: CalendarTimeGrid.buildGridDataWithExpansion(columns), gridColumnSize: columns.length }
 	}
 
 	/**
@@ -320,21 +302,23 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 	 *
 	 * @param eventsMap - Map of event IDs to their row bounds
 	 * @returns Array of columns with their contained events
+	 *
+	 * @VisibleForTesting
 	 */
-	static packEventsIntoColumns(eventsMap: Map<Id, RowBounds>): Array<ColumnData> {
-		const columns: Array<ColumnData> = []
+	static packEventsIntoColumns(eventsMap: Map<Id, RowBounds>): Array<ColumnLayoutData> {
+		const columns: Array<ColumnLayoutData> = []
 
 		for (const [eventId, rowBounds] of eventsMap.entries()) {
-			const availableColumnIndex = columns.findIndex((col) => col.lastEventEndingRow <= rowBounds.start)
+			const availableColumnIndex = columns.findIndex((col) => col.lastOccupiedRow !== -1 && col.lastOccupiedRow <= rowBounds.start)
 
 			if (availableColumnIndex === -1) {
 				columns.push({
-					lastEventEndingRow: rowBounds.end,
+					lastOccupiedRow: rowBounds.end,
 					events: new Map([[eventId, rowBounds]]),
 				})
 			} else {
 				const column = columns[availableColumnIndex]
-				column.lastEventEndingRow = rowBounds.end
+				column.lastOccupiedRow = rowBounds.end
 				column.events.set(eventId, rowBounds)
 			}
 		}
@@ -348,15 +332,17 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 	 *
 	 * @param columns - Array of columns with packed events
 	 * @returns Map of event IDs to complete grid positioning data
+	 *
+	 * @VisibleForTesting
 	 */
-	static buildGridDataWithExpansion(columns: Array<ColumnData>): Map<Id, GridEventData> {
-		const gridData = new Map<Id, GridEventData>()
+	static buildGridDataWithExpansion(columns: Array<ColumnLayoutData>): Map<Id, EventGridData> {
+		const gridData = new Map<Id, EventGridData>()
 
 		for (const [columnIndex, columnData] of columns.entries()) {
 			for (const [eventId, rowBounds] of columnData.events.entries()) {
-				const columnSpan = TimeView.calculateColumnSpan(columnIndex, rowBounds, columns)
+				const columnSpan = CalendarTimeGrid.calculateColumnSpan(columnIndex, rowBounds, columns)
 
-				const eventGridData: GridEventData = {
+				const eventGridData: EventGridData = {
 					row: rowBounds,
 					column: {
 						start: columnIndex + 1, // 1-based for CSS Grid
@@ -384,14 +370,19 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 	 * @param eventRowBounds - The row bounds of the event
 	 * @param allColumns - All columns in the layout
 	 * @returns Number of columns the event can span (minimum 1)
+	 *
+	 * @VisibleForTesting
 	 */
-	static calculateColumnSpan(eventColumnIndex: number, eventRowBounds: RowBounds, allColumns: Array<ColumnData>): number {
+	static calculateColumnSpan(eventColumnIndex: number, eventRowBounds: RowBounds, allColumns: Array<ColumnLayoutData>): number {
 		let span = DEFAULT_EVENT_COLUMN_SPAN_SIZE
 
 		// Check each subsequent column for blocking events
 		for (let colIndex = eventColumnIndex + 1; colIndex < allColumns.length; colIndex++) {
 			const columnEvents = Array.from(allColumns[colIndex].events.values())
-			const hasOverlap = columnEvents.some((otherEvent) => otherEvent.start < eventRowBounds.end && otherEvent.end > eventRowBounds.start)
+			const eventOverflowsRange = eventRowBounds.end === -1
+			const hasOverlap =
+				(columnEvents.length && eventOverflowsRange) ||
+				columnEvents.some((otherEvent) => otherEvent.start < eventRowBounds.end && otherEvent.end > eventRowBounds.start)
 			if (hasOverlap) {
 				break
 			}
@@ -412,6 +403,8 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 	 * @private
 	 *
 	 * @returns RowBounds
+	 *
+	 * @VisibleForTesting
 	 */
 	static getRowBounds(
 		eventTimeRange: { startTime: Date; endTime: Date },
@@ -420,7 +413,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 		timeScale: TimeScale,
 		baseDate: Date,
 	): RowBounds {
-		const interval = TIME_SCALE_BASE_VALUE / timeScale
+		const interval = getIntervalAsMinutes(timeScale)
 		const diffFromRangeStartToEventStart = Math.abs(timeRange.start.asMinutes() - Time.fromDate(eventTimeRange.startTime).asMinutes())
 		const eventStartsBeforeRange = eventTimeRange.startTime < baseDate || Time.fromDate(eventTimeRange.startTime).isBefore(timeRange.start)
 		const start = eventStartsBeforeRange ? 1 : Math.floor(diffFromRangeStartToEventStart / subRowAsMinutes) + 1
@@ -451,7 +444,7 @@ export class TimeView implements ClassComponent<TimeViewAttributes> {
 		onCellPressed?: CellActionHandler,
 		onCellContextMenuPressed?: CellActionHandler,
 	): Children {
-		let timeIntervalInMinutes = TIME_SCALE_BASE_VALUE / timeScale
+		let timeIntervalInMinutes = getIntervalAsMinutes(timeScale)
 		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeIntervalInMinutes) / timeIntervalInMinutes
 
 		const children: Children = []

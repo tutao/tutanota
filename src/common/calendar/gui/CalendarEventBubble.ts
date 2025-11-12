@@ -4,7 +4,7 @@ import { Icon, IconSize } from "../../gui/base/Icon"
 import { Icons } from "../../gui/base/icons/Icons"
 import { colorForBg } from "../../gui/base/GuiUtils"
 import { theme } from "../../gui/theme"
-import { GridEventData, RowBounds } from "./TimeView"
+import { EventGridData, RowBounds } from "./CalendarTimeGrid"
 import {
 	type CalendarEventBubbleClickHandler,
 	CalendarEventBubbleKeyDownHandler,
@@ -37,7 +37,7 @@ export interface EventBubbleInteractions {
 
 export type CalendarEventBubbleAttrs = {
 	interactions?: EventBubbleInteractions & CalendarEventBubbleDragProperties
-	gridInfo: GridEventData
+	gridInfo: EventGridData
 	eventWrapper: EventWrapper
 	rowOverflowInfo: RangeOverflowData
 	columnOverflowInfo: RangeOverflowData

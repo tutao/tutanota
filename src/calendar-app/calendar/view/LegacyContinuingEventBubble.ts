@@ -6,7 +6,6 @@ import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler
 import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { LegacyCalendarEventBubble } from "./LegacyCalendarEventBubble"
-import type { ContinuingCalendarEventBubble } from "./ContinuingCalendarEventBubble"
 
 export type LegacyContinuingCalendarEventBubbleAttrs = {
 	eventWrapper: EventWrapper

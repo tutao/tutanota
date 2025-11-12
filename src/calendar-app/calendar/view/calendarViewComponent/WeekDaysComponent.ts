@@ -1,5 +1,5 @@
 import { CalendarViewType } from "../../../../common/api/common/utils/CommonCalendarUtils"
-import { WeekStart } from "../../../../common/api/common/TutanotaConstants"
+import { TabIndex, WeekStart } from "../../../../common/api/common/TutanotaConstants"
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { styles } from "../../../../common/gui/styles"
 import { getDayCircleClass } from "../../gui/CalendarGuiUtils"
@@ -12,10 +12,13 @@ import { DateTime } from "../../../../../libs/luxon"
 
 export enum HeaderVariant {
 	NORMAL,
+	/**
+	 * Mobile header style where users can swipe to previous or next period
+	 */
 	SWIPEABLE,
 }
 
-export interface HeaderComponentAttrs {
+export interface WeekDaysComponentAttrs {
 	/**
 	 * Days for the current period
 	 */
@@ -28,8 +31,8 @@ export interface HeaderComponentAttrs {
 	showWeekDays?: boolean
 }
 
-export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
-	view({ attrs }: Vnode<HeaderComponentAttrs>) {
+export class WeekDaysComponent implements ClassComponent<WeekDaysComponentAttrs> {
+	view({ attrs }: Vnode<WeekDaysComponentAttrs>) {
 		if (attrs.variant === HeaderVariant.NORMAL) {
 			return m(
 				".grid.calendar-day-indicator",
@@ -38,7 +41,7 @@ export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
 						"grid-template-columns": `repeat(${attrs.dates.length}, 1fr)`,
 					},
 				},
-				attrs.dates.map((date, index) => {
+				attrs.dates.map((date) => {
 					return this.renderDay(attrs.onDateClick, date, attrs.selectedDate)
 				}),
 			)
@@ -49,45 +52,50 @@ export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
 
 	private renderDay(onClick: (arg0: Date) => unknown, day: Date, selectedDate: Date) {
 		const dayCircleClasses = getDayCircleClass(day, selectedDate)
+		const isSelected = day.toDateString() === selectedDate.toDateString()
 
 		return m(
 			".flex.justify-center.b.items-center.gap-vpad-s",
 			{
 				onclick: () => onClick(day),
+				role: "button",
+				tabindex: TabIndex.Default,
+				"aria-pressed": isSelected,
+				"aria-label": day.toLocaleDateString(),
+				onkeydown: (e: KeyboardEvent) => {
+					if (e.key === "Enter" || e.key === " ") {
+						e.preventDefault()
+						onClick(day)
+					}
+				},
 			},
 			[
 				m(".calendar-day-indicator.click", lang.formats.weekdayShort.format(day) + " "),
-				m(
-					".rel.flex.items-center.justify-center.click",
-					{
-						"aria-label": day.toLocaleDateString(),
-					},
-					[
-						m(".abs.z1.circle", {
-							class: dayCircleClasses.circle,
+				m(".rel.flex.items-center.justify-center.click", [
+					m(".abs.z1.circle", {
+						class: dayCircleClasses.circle,
+						style: {
+							width: px(size.calendar_days_header_height),
+							height: px(size.calendar_days_header_height),
+						},
+					}),
+					m(
+						".z2",
+						{
+							class: dayCircleClasses.text,
 							style: {
-								width: px(size.calendar_days_header_height),
-								height: px(size.calendar_days_header_height),
+								fontSize: px(14),
+								lineHeight: px(size.calendar_days_header_height),
 							},
-						}),
-						m(
-							".z2",
-							{
-								class: dayCircleClasses.text,
-								style: {
-									fontSize: px(14),
-									lineHeight: px(size.calendar_days_header_height),
-								},
-							},
-							day.getDate(),
-						),
-					],
-				),
+						},
+						day.getDate(),
+					),
+				]),
 			],
 		)
 	}
 
-	private renderMobileHeader(attrs: HeaderComponentAttrs): Children {
+	private renderMobileHeader(attrs: WeekDaysComponentAttrs): Children {
 		const { dates, selectedDate, onDateClick, isDaySelectorExpanded, startOfWeek } = attrs
 		return m(
 			".header-bg.overflow-hidden",
@@ -103,8 +111,7 @@ export class HeaderComponent implements ClassComponent<HeaderComponentAttrs> {
 						month: sign * (isDaySelectorExpanded ? 1 : 0),
 						days: sign * (isDaySelectorExpanded ? 0 : 7),
 					}
-
-					onDateClick(DateTime.fromJSDate(dates[0]).plus(duration).toJSDate()) // FIXME Swipe day by day depending on the speed
+					onDateClick(DateTime.fromJSDate(dates[0]).plus(duration).toJSDate())
 				},
 				showDaySelection: true,
 				highlightToday: true,

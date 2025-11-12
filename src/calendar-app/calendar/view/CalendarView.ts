@@ -43,7 +43,7 @@ import { LockedError, NotFoundError } from "../../../common/api/common/error/Res
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
 import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarDialog, showEditBirthdayCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../../common/gui/styles"
-import { MultiDayCalendarView } from "./MultiDayCalendarView"
+import { MultiDayCalendarView, MultiDayCalendarViewAttrs } from "./MultiDayCalendarView"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { size } from "../../../common/gui/size"
@@ -56,7 +56,7 @@ import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvi
 import { SidebarSection } from "../../../common/gui/SidebarSection"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
-import { calendarNavConfiguration, calendarWeek, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
+import { calendarNavConfiguration, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent, ScrollByListener } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../common/gui/dialogs/ProgressDialog"
@@ -282,7 +282,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								desktopToolbar: () => this.renderDesktopToolbar(),
 								mobileHeader: () => this.renderMobileHeader(attrs.header),
 								columnLayout: m(MultiDayCalendarView, {
-									temporaryEvents: this.viewModel.temporaryEvents,
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 1,
 									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
@@ -294,20 +293,17 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onDateSelected: (date) => {
 										this.setUrl(CalendarViewType.DAY, date)
 									},
-									groupColors: this.viewModel.calendarColors,
 									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.DAY, next),
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
-									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
-									scrollPosition: this.viewModel.getScrollPosition(),
-									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									currentViewType: this.currentViewType,
-									showWeekDays: !styles.isDesktopLayout(),
+									showWeekDaysSection: !styles.isDesktopLayout(),
 									smoothScroll: this.viewModel.forceAnimateScroll,
-									registerListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
-								}),
+									registerScrollByListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
+									removeScrollByListener: this.viewModel.removeScrollByListener,
+								} satisfies MultiDayCalendarViewAttrs),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
 							})
@@ -318,7 +314,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								desktopToolbar: () => this.renderDesktopToolbar(),
 								mobileHeader: () => this.renderMobileHeader(attrs.header),
 								columnLayout: m(MultiDayCalendarView, {
-									temporaryEvents: this.viewModel.temporaryEvents,
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 7,
 									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
@@ -332,19 +327,16 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										this.setUrl(viewType ?? CalendarViewType.WEEK, date)
 									},
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-									groupColors: this.viewModel.calendarColors,
 									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.WEEK, next),
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
-									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
-									scrollPosition: this.viewModel.getScrollPosition(),
-									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									currentViewType: this.currentViewType,
-									showWeekDays: true,
+									showWeekDaysSection: true,
 									smoothScroll: this.viewModel.forceAnimateScroll,
-									registerListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
-								}),
+									registerScrollByListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
+									removeScrollByListener: this.viewModel.removeScrollByListener,
+								} satisfies MultiDayCalendarViewAttrs),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
 							})
@@ -355,7 +347,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								desktopToolbar: () => this.renderDesktopToolbar(),
 								mobileHeader: () => this.renderMobileHeader(attrs.header),
 								columnLayout: m(MultiDayCalendarView, {
-									temporaryEvents: this.viewModel.temporaryEvents,
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 3,
 									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
@@ -369,19 +360,16 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										this.setUrl(viewType ?? CalendarViewType.THREE_DAY, date)
 									},
 									startOfTheWeek: downcast(locator.logins.getUserController().userSettingsGroupRoot.startOfTheWeek),
-									groupColors: this.viewModel.calendarColors,
 									onChangeViewPeriod: (next) => this.viewPeriod(CalendarViewType.THREE_DAY, next),
 									dragHandlerCallbacks: this.viewModel,
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
-									weekIndicator: calendarWeek(this.viewModel.selectedDate(), this.viewModel.weekStart),
-									scrollPosition: this.viewModel.getScrollPosition(),
-									onScrollPositionChange: (newPosition: number) => this.viewModel.setScrollPosition(newPosition),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									currentViewType: this.currentViewType,
-									showWeekDays: true,
+									showWeekDaysSection: true,
 									smoothScroll: this.viewModel.forceAnimateScroll,
-									registerListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
-								}),
+									registerScrollByListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
+									removeScrollByListener: this.viewModel.removeScrollByListener,
+								} satisfies MultiDayCalendarViewAttrs),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
 							})

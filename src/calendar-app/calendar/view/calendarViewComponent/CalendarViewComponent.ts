@@ -2,12 +2,11 @@ import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { styles } from "../../../../common/gui/styles"
 import { WeekStart } from "../../../../common/api/common/TutanotaConstants"
 import { calendarWeek, extractCalendarEventModifierKey } from "../../gui/CalendarGuiUtils"
-import { HeaderComponent, HeaderComponentAttrs } from "./HeaderComponent"
+import { WeekDaysComponent, WeekDaysComponentAttrs } from "./WeekDaysComponent"
 import { TimeColumn, TimeColumnAttrs } from "../../../../common/calendar/gui/TimeColumn"
 import { Time } from "../../../../common/calendar/date/Time"
 import { size } from "../../../../common/gui/size"
-import { PageView } from "../../../../common/gui/base/PageView"
-import { getIntervalAsMinutes, getSubRowAsMinutes, TimeRange, TimeScale, TimeView, TimeViewAttributes } from "../../../../common/calendar/gui/TimeView"
+import { CalendarTimeGrid, CalendarTimeGridAttributes, getIntervalAsMinutes, TimeRange, TimeScale } from "../../../../common/calendar/gui/CalendarTimeGrid"
 import { EventWrapper, ScrollByListener } from "../CalendarViewModel"
 import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/gui/AllDaySection"
 import { EventBubbleInteractions } from "../../../../common/calendar/gui/CalendarEventBubble"
@@ -19,13 +18,17 @@ import { showUserError } from "../../../../common/misc/ErrorHandlerImpl"
 import { combineDateWithTime } from "../../../../common/calendar/date/CalendarUtils"
 import { deviceConfig } from "../../../../common/misc/DeviceConfig"
 import { TimeIndicator, TimeIndicatorAttrs } from "../../../../common/calendar/gui/TimeIndicator"
+import { PageView } from "../../../../common/gui/base/PageView"
 
-interface PageAttrs {
-	/**
-	 * Period start timestamp
-	 */
+/**
+ * Represents a single page (previous/current/next) in the calendar sliding view.
+ */
+export interface CalendarViewPageAttrs {
+	/** Period start timestamp */
 	key: number
+	/** Dates displayed in this period */
 	dates: Array<Date>
+	/** Events by list type */
 	events: {
 		short: Array<EventWrapper>
 		long: Array<EventWrapper>
@@ -33,9 +36,9 @@ interface PageAttrs {
 }
 
 interface BodyComponentAttrs {
-	previous: PageAttrs
-	current: PageAttrs
-	next: PageAttrs
+	previous: CalendarViewPageAttrs
+	current: CalendarViewPageAttrs
+	next: CalendarViewPageAttrs
 	/**
 	 * Callback triggered when the page changes.
 	 * @param moveForward - true if moving to the next page, false if moving back
@@ -52,34 +55,81 @@ interface BodyComponentAttrs {
 }
 
 export interface CalendarViewComponentAttrs {
-	headerComponentAttrs?: HeaderComponentAttrs
+	headerComponentAttrs: WeekDaysComponentAttrs
 	bodyComponentAttrs: BodyComponentAttrs
-	cellActionHandlers: TimeViewAttributes["cellActionHandlers"]
+	cellActionHandlers: CalendarTimeGridAttributes["cellActionHandlers"]
 	eventBubbleHandlers: EventBubbleInteractions
 	dragHandlerCallbacks: EventDragHandlerCallbacks
 }
 
+/**
+ * Main calendar view component that orchestrates the weekly/daily calendar display.
+ *
+ * **Responsibilities:**
+ * - Renders week header with day indicators and week number
+ * - Displays all-day events section
+ * - Renders time-based event grid with hourly intervals
+ * - Manages drag-and-drop interactions for events
+ * - Handles keyboard shortcuts for event manipulation
+ *
+ * Layout Structure:
+ * ```
+ * +-------------+-------------------+
+ * | Week Number | Week Days Section |
+ * +-------------+-------------------+
+ * | (empty)     | All Day Section   |
+ * +-------------+-------------------+
+ * | Time Column | Calendar Grid     |
+ * +-------------+-------------------+
+ * ```
+ * @see CalendarViewComponent.GRID_TEMPLATE_AREAS
+ * @see CalendarViewComponent.GRID_AREA
+ */
 export class CalendarViewComponent implements ClassComponent<CalendarViewComponentAttrs> {
-	private eventDragHandler: EventDragHandler
-	private dateUnderMouse: Date | null = null
-	private lastMousePos: MousePos | null = null
-
-	private dayHeight: number | null = null
-	private pageViewWidth: number | null = null
-
-	private timeScale: TimeScale = 1 // FIXME add support to smooth/continuous zoom,
-	private timeRange = {
-		start: new Time(0, 0),
-		end: new Time(23, 0),
+	private layoutState: {
+		dayHeight: number | null
+		pageViewWidth: number | null
+	} = {
+		dayHeight: null,
+		pageViewWidth: null,
 	}
-	private subRowAsMinutes = getSubRowAsMinutes(this.timeScale)
-	private timeRowHeight = 0
+
+	private dragState: {
+		dateUnderMouse: Date | null
+		lastMousePos: MousePos | null
+	} = {
+		dateUnderMouse: null,
+		lastMousePos: null,
+	}
+
+	private viewConfig: {
+		timeScale: TimeScale
+		timeRange: TimeRange
+	} = {
+		timeScale: 1,
+		timeRange: { start: new Time(0, 0), end: new Time(23, 0) },
+	}
+
+	private eventDragHandler: EventDragHandler
+
+	private static readonly GRID_AREA = {
+		WEEK_NUMBER: "weekNumber",
+		WEEK_DAYS_SECTION: "weekDaysSection",
+		ALL_DAY_SECTION: "allDaySection",
+		TIME_COLUMN: "timeColumn",
+		CALENDAR_GRID: "calendarGrid",
+	} as const
+
+	private readonly GRID_TEMPLATE_AREAS =
+		`"${CalendarViewComponent.GRID_AREA.WEEK_NUMBER} 	${CalendarViewComponent.GRID_AREA.WEEK_DAYS_SECTION}"` +
+		` "empty											${CalendarViewComponent.GRID_AREA.ALL_DAY_SECTION}"` +
+		` "${CalendarViewComponent.GRID_AREA.TIME_COLUMN} 	${CalendarViewComponent.GRID_AREA.CALENDAR_GRID}"`
 
 	constructor({ attrs }: Vnode<CalendarViewComponentAttrs>) {
 		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
 	}
 
-	oncreate(vnode: VnodeDOM<CalendarViewComponentAttrs>) {
+	oncreate() {
 		document.addEventListener("keydown", this.handleKeyDown)
 		document.addEventListener("keyup", this.handleKeyUp)
 	}
@@ -104,37 +154,38 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			const classes = styles.isDesktopLayout() ? ["content-bg", "mr-l", "border-radius-big"] : ["mlr-safe-inset"]
 			return classes.join(" ")
 		}
+
 		return m(
 			".grid.height-100p.overflow-hidden",
 			{
 				class: resolveClasses(),
 				style: {
-					gridTemplateAreas: `'weekNumber 	header'
-										'empty 			allDayGrid'
-										'timeColumn 	calendarGrid'`,
+					gridTemplateAreas: this.GRID_TEMPLATE_AREAS,
 					gridTemplateRows: "auto auto 1fr",
 					gridTemplateColumns: "auto 1fr",
 				} satisfies Partial<CSSStyleDeclaration>,
 			},
-			[this.renderHeader(attrs.headerComponentAttrs), this.renderAllDaySection(attrs), this.renderBody(attrs)],
+			[this.renderWeekDaysSection(attrs.headerComponentAttrs), this.renderAllDaySection(attrs), this.renderCalendarGridSection(attrs)],
 		)
 	}
 
-	renderHeader(headerComponentAttrs: HeaderComponentAttrs | undefined): Children {
-		const children: Children = []
+	private renderWeekDaysSection(weekDaysComponentAttrs: WeekDaysComponentAttrs): Children {
+		const children: Children = [
+			m(
+				".b.text-center.calendar-day-indicator",
+				{ style: { gridArea: CalendarViewComponent.GRID_AREA.WEEK_NUMBER } },
+				styles.isDesktopLayout() ? calendarWeek(weekDaysComponentAttrs.selectedDate, weekDaysComponentAttrs.startOfWeek ?? WeekStart.MONDAY) : null,
+			),
+		]
 
-		if (headerComponentAttrs) {
+		if (weekDaysComponentAttrs.showWeekDays) {
 			children.push(
 				m(
-					".b.text-center.calendar-day-indicator",
-					{ style: { gridArea: "weekNumber" } },
-					styles.isDesktopLayout() ? calendarWeek(headerComponentAttrs.selectedDate, headerComponentAttrs.startOfWeek ?? WeekStart.MONDAY) : null,
+					"",
+					{ style: { gridArea: CalendarViewComponent.GRID_AREA.WEEK_DAYS_SECTION } },
+					m(WeekDaysComponent, { ...weekDaysComponentAttrs } satisfies WeekDaysComponentAttrs),
 				),
 			)
-
-			if (headerComponentAttrs.showWeekDays) {
-				children.push(m("", { style: { gridArea: "header" } }, m(HeaderComponent, { ...headerComponentAttrs } satisfies HeaderComponentAttrs)))
-			}
 		}
 
 		return m(
@@ -156,10 +207,15 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		)
 	}
 
-	renderBody(attrs: CalendarViewComponentAttrs) {
+	private renderCalendarGridSection(attrs: CalendarViewComponentAttrs) {
+		if (!attrs.headerComponentAttrs?.dates?.length) {
+			console.warn("CalendarViewComponent: No dates provided")
+			return null
+		}
+
 		const timeColumnWidth = styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile
-		const datePosition = attrs.headerComponentAttrs?.dates?.findIndex((date) => isToday(date)) ?? -1
-		const shouldRenderTimeIndicator = Boolean(datePosition !== -1 && this.dayHeight && this.pageViewWidth)
+		const datePosition = attrs.headerComponentAttrs.dates.findIndex((date) => isToday(date)) ?? -1
+		const shouldRenderTimeIndicator = Boolean(datePosition !== -1 && this.layoutState.dayHeight && this.layoutState.pageViewWidth)
 
 		return m(
 			".grid.scroll.rel",
@@ -170,7 +226,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 					gridTemplateColumns: "subgrid",
 				} satisfies Partial<CSSStyleDeclaration>,
 				oncreate: (vnode: VnodeDOM) => {
-					const scrollToCurrentTime = attrs.headerComponentAttrs?.dates?.length === 1 && attrs.headerComponentAttrs?.dates?.some(isToday)
+					const scrollToCurrentTime = attrs.headerComponentAttrs.dates.length === 1 && attrs.headerComponentAttrs.dates.some(isToday)
 					const time = scrollToCurrentTime ? new Date().getHours() : deviceConfig.getScrollTime()
 					this.scrollToTime(time, scrollToCurrentTime ? "center" : "start", "instant")
 					attrs.bodyComponentAttrs.registerListener((amount: number) => {
@@ -183,77 +239,50 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						this.scrollToTime(new Date().getHours(), "center", "smooth")
 					}
 				},
-				onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
-					mouseEvent.redraw = false
-					this.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
-
-					if (this.dateUnderMouse) {
-						return this.eventDragHandler.handleDrag(this.dateUnderMouse, this.lastMousePos)
-					}
-				},
-				onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
-					if (this.eventDragHandler.isDragging) {
-						mouseEvent.preventDefault()
-					}
-					mouseEvent.redraw = false
-					this.endDrag(mouseEvent)
-				},
-
-				// ontouchmove: (e: TouchEvent) => {
-				// 	e.preventDefault()
-				// 	const mouseEvent = transformTouchEvent(e)
-				// 	if (mouseEvent) {
-				// 		e.target?.dispatchEvent(mouseEvent)
-				// 	}
-				// },
-				// ontouchend: (e: TouchEvent) => {
-				// 	e.preventDefault()
-				// 	const mouseEvent = transformTouchEvent(e)
-				// 	if (mouseEvent) {
-				// 		e.target?.dispatchEvent(mouseEvent)
-				// 	}
-				// },
-				// ontouchcancel: (e: TouchEvent) => {
-				// 	e.preventDefault()
-				// 	const mouseEvent = transformTouchEvent(e)
-				// 	if (mouseEvent) {
-				// 		e.target?.dispatchEvent(mouseEvent)
-				// 	}
-				// },
+				onmousemove: this.handleMouseMove,
+				onmouseup: this.handleMouseUp,
 			},
 			[
 				m(
 					".content-bg.border-radius-top-left-big",
 					{
-						style: { gridArea: "timeColumn" },
+						style: { gridArea: CalendarViewComponent.GRID_AREA.TIME_COLUMN },
 					},
 					m(TimeColumn, {
 						baseDate: attrs.headerComponentAttrs?.selectedDate,
-						timeRange: this.timeRange,
-						timeScale: this.timeScale,
+						timeRange: this.viewConfig.timeRange,
+						timeScale: this.viewConfig.timeScale,
 						width: timeColumnWidth,
 						onCellPressed: attrs.cellActionHandlers?.onCellPressed,
 					} satisfies TimeColumnAttrs),
 				),
 				shouldRenderTimeIndicator
 					? m(TimeIndicator, {
-							timeRange: this.timeRange,
-							dayHeight: this.dayHeight!,
-							interval: getIntervalAsMinutes(this.timeScale),
-							areaWidth: this.pageViewWidth!,
-							numberOfDatesInRange: attrs.headerComponentAttrs?.dates?.length ?? 1,
-							datePosition,
-							leftOffset: timeColumnWidth,
+							position: {
+								timeRange: this.viewConfig.timeRange,
+								dayHeight: this.layoutState.dayHeight!,
+								interval: getIntervalAsMinutes(this.viewConfig.timeScale),
+								areaWidth: this.layoutState.pageViewWidth!,
+								numberOfDatesInRange: attrs.headerComponentAttrs?.dates?.length ?? 1,
+								datePosition,
+								leftOffset: timeColumnWidth,
+							},
 						} satisfies TimeIndicatorAttrs)
 					: null,
 				m(
 					".content-bg.border-radius-top-right-big",
 
 					{
-						style: { gridArea: "calendarGrid" },
-						oncreate: (vnode) => {
-							this.dayHeight = vnode.dom.clientHeight
-							this.pageViewWidth = vnode.dom.clientWidth
+						style: { gridArea: CalendarViewComponent.GRID_AREA.CALENDAR_GRID },
+						onupdate: (vnode) => {
+							const newHeight = vnode.dom.clientHeight
+							const newWidth = vnode.dom.clientWidth
+
+							if (newHeight !== this.layoutState.dayHeight || newWidth !== this.layoutState.pageViewWidth) {
+								this.layoutState.dayHeight = newHeight
+								this.layoutState.pageViewWidth = newWidth
+								m.redraw() // Force redraw to show time indicator
+							}
 						},
 					},
 					m(PageView, {
@@ -261,7 +290,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						previousPage: {
 							key: attrs.bodyComponentAttrs.previous.key,
 							nodes: this.renderEventGrid(
-								this.timeRange,
+								this.viewConfig.timeRange,
 								attrs.bodyComponentAttrs.previous.dates,
 								attrs.bodyComponentAttrs.previous.events.short,
 								attrs.cellActionHandlers,
@@ -272,7 +301,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						currentPage: {
 							key: attrs.bodyComponentAttrs.current.key,
 							nodes: this.renderEventGrid(
-								this.timeRange,
+								this.viewConfig.timeRange,
 								attrs.bodyComponentAttrs.current.dates,
 								attrs.bodyComponentAttrs.current.events.short,
 								attrs.cellActionHandlers,
@@ -283,7 +312,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						nextPage: {
 							key: attrs.bodyComponentAttrs.next.key,
 							nodes: this.renderEventGrid(
-								this.timeRange,
+								this.viewConfig.timeRange,
 								attrs.bodyComponentAttrs.next.dates,
 								attrs.bodyComponentAttrs.next.events.short,
 								attrs.cellActionHandlers,
@@ -303,11 +332,11 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		positionOnScreen: Extract<ScrollLogicalPosition, "center" | "start">,
 		behavior: Extract<ScrollBehavior, "instant" | "smooth">,
 	) {
-		const timeCell = document.getElementById(`time-cell-${time}`)
+		const timeCell = document.getElementById(TimeColumn.getTimeCellId(time))
 		timeCell?.scrollIntoView({ block: positionOnScreen, behavior })
 	}
 
-	renderAllDaySection(attrs: CalendarViewComponentAttrs) {
+	private renderAllDaySection(attrs: CalendarViewComponentAttrs) {
 		return m(
 			".grid.overflow-hidden.rel.scrollbar-gutter-stable-or-fallback",
 			{
@@ -315,28 +344,15 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 					gridColumn: "1/-1",
 					gridTemplateColumns: "subgrid",
 				} satisfies Partial<CSSStyleDeclaration>,
-				onmousemove: (mouseEvent: EventRedraw<MouseEvent>) => {
-					mouseEvent.redraw = false
-					this.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
-
-					if (this.dateUnderMouse) {
-						return this.eventDragHandler.handleDrag(this.dateUnderMouse, this.lastMousePos)
-					}
-				},
-				onmouseup: (mouseEvent: EventRedraw<MouseEvent>) => {
-					if (this.eventDragHandler.isDragging) {
-						mouseEvent.preventDefault()
-					}
-					mouseEvent.redraw = false
-					this.endDrag(mouseEvent)
-				},
+				onmousemove: this.handleMouseMove,
+				onmouseup: this.handleMouseUp,
 			},
 			[
 				m(
 					"",
 					{
 						style: {
-							gridArea: "allDayGrid",
+							gridArea: CalendarViewComponent.GRID_AREA.ALL_DAY_SECTION,
 						} satisfies Partial<CSSStyleDeclaration>,
 					},
 					m(AllDaySection, {
@@ -344,13 +360,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						allDayEventWrappers: attrs.bodyComponentAttrs.current.events.long,
 						eventBubbleHandlers: {
 							...attrs.eventBubbleHandlers,
-							drag: {
-								prepareCurrentDraggedEvent: (eventWrapper) => this.prepareEventDrag(eventWrapper, true),
-								setTimeUnderMouse: (time, date: Date) => {
-									const timeToCombine = this.dateUnderMouse ? Time.fromDate(this.dateUnderMouse) : time
-									return (this.dateUnderMouse = combineDateWithTime(date, timeToCombine))
-								},
-							},
+							drag: this.createDragHandlers(true),
 						},
 					} satisfies AllDaySectionAttrs),
 				),
@@ -358,43 +368,65 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		)
 	}
 
+	private createDragHandlers(keepTime: boolean) {
+		return {
+			prepareCurrentDraggedEvent: (eventWrapper: EventWrapper) => this.prepareEventDrag(eventWrapper, keepTime),
+			setTimeUnderMouse: (time: Time, date: Date) => {
+				const timeToCombine = keepTime && this.dragState.dateUnderMouse ? Time.fromDate(this.dragState.dateUnderMouse) : time
+				return (this.dragState.dateUnderMouse = combineDateWithTime(date, timeToCombine))
+			},
+		}
+	}
+
 	private renderEventGrid(
 		timeRange: TimeRange,
 		dates: Array<Date>,
 		events: Array<EventWrapper>,
-		cellActionHandlers: TimeViewAttributes["cellActionHandlers"],
+		cellActionHandlers: CalendarTimeGridAttributes["cellActionHandlers"],
 		eventBubbleHandlers: EventBubbleInteractions,
 		canReceiveFocus: boolean,
 	) {
-		return m(TimeView, {
+		return m(CalendarTimeGrid, {
 			timeRange,
 			timeScale: 1,
 			dates,
 			events,
 			cellActionHandlers,
-			setTimeRowHeight: (timeViewHeight: number) => (this.timeRowHeight = timeViewHeight),
 			eventBubbleHandlers: {
 				...eventBubbleHandlers,
-				drag: {
-					prepareCurrentDraggedEvent: (eventWrapper) => this.prepareEventDrag(eventWrapper, false),
-					setTimeUnderMouse: (time, date: Date) => (this.dateUnderMouse = combineDateWithTime(date, time)),
-				},
+				drag: this.createDragHandlers(false),
 			},
 			canReceiveFocus,
-		} satisfies TimeViewAttributes)
+		} satisfies CalendarTimeGridAttributes)
+	}
+
+	private handleMouseMove = (mouseEvent: EventRedraw<MouseEvent>) => {
+		mouseEvent.redraw = false
+		this.dragState.lastMousePos = getPosAndBoundsFromMouseEvent(mouseEvent)
+		if (this.dragState.dateUnderMouse) {
+			return this.eventDragHandler.handleDrag(this.dragState.dateUnderMouse, this.dragState.lastMousePos)
+		}
+	}
+
+	private handleMouseUp = (mouseEvent: EventRedraw<MouseEvent>) => {
+		if (this.eventDragHandler.isDragging) {
+			mouseEvent.preventDefault()
+		}
+		mouseEvent.redraw = false
+		this.endDrag(mouseEvent)
 	}
 
 	private prepareEventDrag(eventWrapper: EventWrapper, keepTime: boolean) {
-		const lastMousePos = this.lastMousePos
+		const lastMousePos = this.dragState.lastMousePos
 
-		if (this.dateUnderMouse && lastMousePos) {
-			this.eventDragHandler.prepareDrag(eventWrapper, this.dateUnderMouse, lastMousePos, keepTime)
+		if (this.dragState.dateUnderMouse && lastMousePos) {
+			this.eventDragHandler.prepareDrag(eventWrapper, this.dragState.dateUnderMouse, lastMousePos, keepTime)
 		}
 	}
 
 	private endDrag(pos: MousePos) {
-		if (this.dateUnderMouse) {
-			this.eventDragHandler.endDrag(this.dateUnderMouse, pos, this.eventDragHandler.pressedDragKey).catch(ofClass(UserError, showUserError))
+		if (this.dragState.dateUnderMouse) {
+			this.eventDragHandler.endDrag(this.dragState.dateUnderMouse, pos, this.eventDragHandler.pressedDragKey).catch(ofClass(UserError, showUserError))
 			const eventWrapper = this.eventDragHandler.originalCalendarEventWrapper
 			if (eventWrapper) {
 				delete eventWrapper.flags?.isTransientEvent

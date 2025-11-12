@@ -6,7 +6,15 @@ import { CalendarEventsRepository } from "../../../common/calendar/date/Calendar
 import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { base64ToBase64Url, clone, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/tutanota-utils"
-import { TIME_SCALE_BASE_VALUE, TimeRange, TimeScale, TimeScaleTuple, TimeView, TimeViewAttributes } from "../../../common/calendar/gui/TimeView"
+import {
+	CalendarTimeGrid,
+	CalendarTimeGridAttributes,
+	getIntervalAsMinutes,
+	TIME_SCALE_BASE_VALUE,
+	TimeRange,
+	TimeScale,
+	TimeScaleTuple,
+} from "../../../common/calendar/gui/CalendarTimeGrid"
 import { Time } from "../../../common/calendar/date/Time"
 import { theme } from "../../../common/gui/theme"
 import { styles } from "../../../common/gui/styles"
@@ -115,7 +123,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestTimeFrame)
 
-		const timeInterval = TIME_SCALE_BASE_VALUE / timeScale
+		const timeInterval = getIntervalAsMinutes(timeScale)
 		const timeRangeStart = Time.fromDate(eventFocusBound).sub({ minutes: timeInterval })
 		const timeRangeStartEnd = Time.fromDate(eventFocusBound).add({ minutes: timeInterval })
 		const timeRange: TimeRange = {
@@ -249,15 +257,14 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 										: null,
 								]),
 								agenda
-									? m(TimeView, {
+									? m(CalendarTimeGrid, {
 											events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
 											timeScale,
 											timeRange,
 											dates: [getStartOfDay(agenda.main.event.startTime)],
 											hasAnyConflict: hasConflict,
-											setTimeRowHeight: (timeRowHeight: number) => (this.timeRowHeight = timeRowHeight),
 											canReceiveFocus: true,
-										} satisfies TimeViewAttributes)
+										} satisfies CalendarTimeGridAttributes)
 									: m("", "ERROR: Could not load the agenda for this day."),
 							],
 						)
@@ -327,7 +334,6 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	}
 
 	private getTimeParts(referenceDate: Date, eventWrapper: EventWrapper): Array<string> {
-		// FIXME Again, wrapper from wrapper + event from event hahahahah
 		if (isAllDayEvent(eventWrapper.event)) {
 			return [lang.getTranslationText("allDay_label")]
 		}

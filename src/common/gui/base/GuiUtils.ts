@@ -265,6 +265,94 @@ export function colorForBg(color: string): string {
 	return isColorLight(color) ? "black" : "white"
 }
 
+/**
+ * Converts touch events into equivalent mouse events for unified event handling.
+ *
+ * This utility enables components designed for mouse interactions to work seamlessly
+ * with touch input by translating TouchEvent objects into MouseEvent objects with
+ * equivalent properties and behavior.
+ *
+ * **Filtering Behavior:**
+ * - Only processes single-touch interactions (multi-touch gestures are ignored)
+ * - Returns `undefined` for multi-touch scenarios or invalid states
+ *
+ * **Event Mapping:**
+ * - `touchstart` → `mousedown`
+ * - `touchmove` → `mousemove`
+ * - `touchend` → `mouseup`
+ * - `touchcancel` → `mouseleave`
+ *
+ * **Coordinate Preservation:**
+ * - Copies touch coordinates (clientX/Y, screenX/Y) to mouse event
+ * - Preserves modifier keys (Alt, Ctrl, Shift, Meta)
+ * - Maintains event bubbling and cancelability
+ *
+ * @param event - The touch event to transform
+ * @returns A synthetic MouseEvent with equivalent properties, or `undefined` if:
+ *          - Multiple touches are detected
+ *          - `touchend` still has active touches
+ *          - Event type is not recognized
+ *
+ * @example
+ * // Basic usage in a touch handler
+ * element.addEventListener('touchstart', (e) => {
+ *   const mouseEvent = transformTouchEvent(e)
+ *   if (mouseEvent) {
+ *     // Handle as mouse event
+ *     handleMouseDown(mouseEvent)
+ *   }
+ * })
+ *
+ * @example
+ * // Unified drag handling for mouse and touch
+ * const handleDragStart = (e: MouseEvent) => {
+ *   console.log('Drag started at:', e.clientX, e.clientY)
+ * }
+ *
+ * element.addEventListener('mousedown', handleDragStart)
+ * element.addEventListener('touchstart', (e) => {
+ *   const mouseEvent = transformTouchEvent(e)
+ *   if (mouseEvent) {
+ *     handleDragStart(mouseEvent)
+ *   }
+ * })
+ *
+ * @example
+ * // Re-dispatching transformed events
+ * element.addEventListener('touchmove', (e) => {
+ *   e.preventDefault() // Prevent default touch scrolling
+ *   const mouseEvent = transformTouchEvent(e)
+ *   if (mouseEvent) {
+ *     e.target?.dispatchEvent(mouseEvent)
+ *   }
+ * })
+ *
+ * @example
+ * // Handling multi-touch rejection
+ * element.addEventListener('touchstart', (e) => {
+ *   const mouseEvent = transformTouchEvent(e)
+ *   if (!mouseEvent) {
+ *     console.log('Multi-touch or invalid state - ignoring')
+ *     return
+ *   }
+ *   // Process single touch as mouse event
+ * })
+ *
+ * @example
+ * // Integration with calendar drag functionality
+ * onmousemove: (mouseEvent: MouseEvent) => {
+ *   const pos = getPosAndBoundsFromMouseEvent(mouseEvent)
+ *   updateDragPosition(pos)
+ * },
+ * ontouchmove: (touchEvent: TouchEvent) => {
+ *   touchEvent.preventDefault()
+ *   const mouseEvent = transformTouchEvent(touchEvent)
+ *   if (mouseEvent) {
+ *     // Reuse mouse handler logic
+ *     touchEvent.target?.dispatchEvent(mouseEvent)
+ *   }
+ * }
+ */
 export function transformTouchEvent(event: TouchEvent): MouseEvent | undefined {
 	if (event.touches.length > 1 || (event.type === "touchend" && event.touches.length > 0)) {
 		return

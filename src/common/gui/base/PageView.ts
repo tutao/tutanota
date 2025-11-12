@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { SwipeHandler } from "./SwipeHandler"
 import { animations, transform, TransformEnum } from "../animation/Animations"
 
@@ -17,10 +17,6 @@ type Attrs = {
 export class PageView implements Component<Attrs> {
 	private viewDom: HTMLElement | null = null
 	private onChangePage!: (_: boolean) => unknown
-
-	oncreate(vnode: VnodeDOM<Attrs>): any {
-		console.log("oncreate: PageView")
-	}
 
 	view({ attrs }: Vnode<Attrs>): Children {
 		this.onChangePage = (next) => attrs.onChangePage(next)
