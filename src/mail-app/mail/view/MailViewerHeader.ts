@@ -813,6 +813,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			lazyButtons: () => {
 				let actionButtons: DropdownButtonAttrs[] = []
 				const { delete: deleteAction, trash: trashAction, move: moveAction } = actions
+
 				const deleteButton: DropdownButtonAttrs | null =
 					deleteAction != null
 						? {
@@ -840,59 +841,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							}
 						: null
 
-				if (viewModel.isDraftMail()) {
-					if (viewModel.isScheduled()) {
-						actionButtons.push({
-							label: "cancelSend_action",
-							click: () => viewModel.unscheduleMail(),
-							icon: Icons.XCross,
-						})
-					} else {
-						actionButtons.push({
-							label: "edit_action",
-							click: () => editDraft(viewModel),
-							icon: Icons.Edit,
-						})
-					}
-
-					if (moveButton != null) {
-						actionButtons.push(moveButton)
-					}
-					if (deleteOrTrashButton != null) {
-						actionButtons.push(deleteOrTrashButton)
-					}
-
-					addToggleLightModeButtonAttrs(viewModel, actionButtons)
-				} else {
-					if (viewModel.canReply()) {
-						actionButtons.push({
-							label: "reply_action",
-							click: () => viewModel.reply(false),
-							icon: Icons.Reply,
-						})
-					}
-					if (viewModel.canReplyAll()) {
-						actionButtons.push({
-							label: "replyAll_action",
-							click: () => viewModel.reply(true),
-							icon: Icons.ReplyAll,
-						})
-					}
-
-					if (viewModel.canForward()) {
-						actionButtons.push({
-							label: "forward_action",
-							click: () => viewModel.forward(),
-							icon: Icons.Forward,
-						})
-					}
-
-					if (moveButton != null) {
-						actionButtons.push(moveButton)
-					}
-
-					if (viewModel.mailModel.canAssignLabels()) {
-						actionButtons.push({
+				const labelButton: DropdownButtonAttrs | null = viewModel.mailModel.canAssignLabels()
+					? {
 							label: "assignLabel_action",
 							click: (_, dom) => {
 								const popup = new LabelsPopup(
@@ -909,13 +859,58 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								}, 16)
 							},
 							icon: Icons.Label,
+						}
+					: null
+
+				if (viewModel.isScheduled()) {
+					actionButtons.push({
+						label: "cancelSend_action",
+						click: () => viewModel.unscheduleMail(),
+						icon: Icons.XCross,
+					})
+				} else if (viewModel.isDraftMail()) {
+					actionButtons.push({
+						label: "edit_action",
+						click: () => editDraft(viewModel),
+						icon: Icons.Edit,
+					})
+				} else {
+					if (viewModel.canReply()) {
+						actionButtons.push({
+							label: "reply_action",
+							click: () => viewModel.reply(false),
+							icon: Icons.Reply,
 						})
 					}
-
-					if (deleteOrTrashButton != null) {
-						actionButtons.push(deleteOrTrashButton)
+					if (viewModel.canReplyAll()) {
+						actionButtons.push({
+							label: "replyAll_action",
+							click: () => viewModel.reply(true),
+							icon: Icons.ReplyAll,
+						})
 					}
+					if (viewModel.canForward()) {
+						actionButtons.push({
+							label: "forward_action",
+							click: () => viewModel.forward(),
+							icon: Icons.Forward,
+						})
+					}
+				}
 
+				if (moveButton != null) {
+					actionButtons.push(moveButton)
+				}
+				if (labelButton != null) {
+					actionButtons.push(labelButton)
+				}
+				if (deleteOrTrashButton != null) {
+					actionButtons.push(deleteOrTrashButton)
+				}
+
+				if (viewModel.isDraftMail()) {
+					addToggleLightModeButtonAttrs(viewModel, actionButtons)
+				} else {
 					actionButtons.push(...singleMailViewerMoreActions(viewModel, moreActions))
 				}
 
