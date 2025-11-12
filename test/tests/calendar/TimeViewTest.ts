@@ -5,7 +5,7 @@ import { createTestEntity } from "../TestUtils"
 import { CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarViewModel"
 import { CalendarEventTimes } from "../../../src/common/api/common/utils/CommonCalendarUtils"
-import { MIN_ROW_SPAN } from "../../../src/calendar-app/calendar/view/CalendarEventBubble"
+import { MIN_ROW_SPAN } from "../../../src/common/calendar/gui/CalendarEventBubble"
 
 o.spec("TimeView", function () {
 	let eventsMap: Map<Id, RowBounds> = new Map()
