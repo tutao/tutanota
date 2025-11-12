@@ -147,15 +147,14 @@ export class CalendarFacade {
 		const calendars: Array<{ long: EventWrapper[]; short: EventWrapper[] }> = []
 
 		for (const { groupRoot, color } of calendarInfos.values()) {
-            const shortEventsResult = await
-                this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200)
-                const longEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents)
+			const shortEventsResult = await this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200)
+			const longEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents)
 
 			const pendingEventListId = groupRoot.pendingEvents?.list
 			let pendingEventsResult: Array<CalendarEvent> = []
 			if (pendingEventListId) {
 				pendingEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, pendingEventListId)
-            }
+			}
 
 			const shortEvents: Array<EventWrapper> = shortEventsResult.elements.map((e) => ({
 				event: e,

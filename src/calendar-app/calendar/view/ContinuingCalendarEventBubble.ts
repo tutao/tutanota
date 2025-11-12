@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { TEMPORARY_EVENT_OPACITY } from "../gui/CalendarGuiUtils.js"
-import { CalendarEventBubble, CalendarEventBubbleAttrs, RangeOverflowData } from "./CalendarEventBubble"
+import { CalendarEventBubble, CalendarEventBubbleAttrs, RangeOverflowData } from "../../../common/calendar/gui/CalendarEventBubble"
 
 export type ContinuingCalendarEventBubbleAttrs = {
 	columnOverflowInfo: RangeOverflowData
