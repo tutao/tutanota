@@ -168,7 +168,7 @@ export class SpamClassifier {
 		this.classifiers.set(ownerGroup, classifier)
 
 		console.log(
-			`### Finished Initial Spam Classification Model Training ### (total trained mails: ${clientSpamTrainingData.length} (ham:spam ${hamCount}:${spamCount}/threshold:${threshold}), training time: ${-1})`,
+			`### Finished Initial Spam Classification Model Training ### (total trained mails: ${clientSpamTrainingData.length} (ham:spam ${hamCount}:${spamCount}/threshold:${threshold}))`,
 		)
 	}
 

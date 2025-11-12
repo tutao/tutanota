@@ -99,6 +99,7 @@ export async function trainModel({ vectors, labels }: SpamTrainingParameters): P
 		layersModel.save(saveInfo, undefined)
 	})
 	const trainingTime = performance.now() - trainingStart
+	console.log("The training time " + trainingTime)
 
 	// when using the webgl backend we need to manually dispose @tensorflow tensors
 	xs.dispose()
