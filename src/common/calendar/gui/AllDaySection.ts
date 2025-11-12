@@ -10,7 +10,7 @@ import {
 	CalendarEventBubbleDragProperties,
 	EventBubbleInteractions,
 	RangeOverflowData,
-} from "../../../calendar-app/calendar/view/CalendarEventBubble"
+} from "./CalendarEventBubble"
 import { eventEndsAfterDay, eventStartsBeforeDay, getTimeZone } from "../date/CalendarUtils"
 import { getRowDateFromMousePos, getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
