@@ -1,5 +1,5 @@
 import { assertWorkerOrNode } from "../../../common/api/common/Env"
-import { assertNotNull, groupByAndMap, isEmpty, Nullable, promiseMap, tokenize } from "@tutao/tutanota-utils"
+import { assertNotNull, defer, groupByAndMap, isEmpty, Nullable, promiseMap, tokenize } from "@tutao/tutanota-utils"
 import { SpamClassificationDataDealer, TrainingDataset } from "./SpamClassificationDataDealer"
 import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import {
@@ -19,6 +19,7 @@ import { ModelFitArgs } from "@tensorflow/tfjs-layers"
 import { PreprocessedMailContent } from "./SpamMailProcessor"
 import { SparseVectorCompressor } from "./SparseVectorCompressor"
 import { SpamDecision } from "../../../common/api/common/TutanotaConstants"
+import { SpamTrainingModelArtifacts } from "./spam-training-worker-test"
 
 assertWorkerOrNode()
 
@@ -72,6 +73,7 @@ export class SpamClassifier {
 	}
 
 	public async initialize(ownerGroup: Id): Promise<void> {
+		console.log("Trying to initialize the Spam classifier!!!!!!!")
 		const classifier = await this.loadClassifier(ownerGroup)
 
 		setInterval(async () => {
@@ -137,33 +139,27 @@ export class SpamClassifier {
 		const vectors = trainingInput.map((input) => input.vector)
 		const labels = trainingInput.map((input) => input.label)
 
-		const xs = tensor2d(vectors, [trainingInput.length, this.sparseVectorCompressor.dimension], undefined)
-		const ys = tensor1d(labels, undefined)
+		console.log("Going to load the worker?!")
+		const trainingWorker = loadSpamTrainingWorker()
+		console.log("loaded the training worker!" + JSON.stringify(trainingWorker))
+		const model = await trainingWorker.trainModel({ vectors, labels } as SpamTrainingParameters)
+		console.log("foo?")
 
-		const layersModel = this.buildModel(this.sparseVectorCompressor.dimension)
+		console.log("I have a model from the worker?" + JSON.stringify(model))
 
-		const trainingStart = performance.now()
-		await layersModel.fit(xs, ys, {
-			epochs: 16,
-			batchSize: 32,
-			shuffle: !this.deterministic,
-			// callbacks: {
-			// 	onEpochEnd: async (epoch, logs) => {
-			// 		if (logs) {
-			// 			console.log(`Epoch ${epoch + 1} - Loss: ${logs.loss.toFixed(4)}`)
-			// 		}
-			// 	},
-			// },
+		const modelTopology = JSON.parse(model.modelTopology)
+		const weightSpecs = JSON.parse(model.weightSpec)
+		const weightData = model.weightData.buffer.slice(model.weightData.byteOffset, model.weightData.byteOffset + model.weightData.byteLength)
+		const layersModel = await loadLayersModelFromIOHandler(fromMemory(modelTopology, weightSpecs, weightData, undefined), undefined)
+		layersModel.compile({
+			optimizer: "adam",
+			loss: "binaryCrossentropy",
+			metrics: ["accuracy"],
 		})
-		const trainingTime = performance.now() - trainingStart
-
-		// when using the webgl backend we need to manually dispose @tensorflow tensors
-		xs.dispose()
-		ys.dispose()
 
 		const threshold = this.calculateThreshold(trainingDataset.hamCount, trainingDataset.spamCount)
 		const classifier = {
-			layersModel: layersModel,
+			layersModel,
 			isEnabled: true,
 			hamCount,
 			spamCount,
@@ -172,7 +168,7 @@ export class SpamClassifier {
 		this.classifiers.set(ownerGroup, classifier)
 
 		console.log(
-			`### Finished Initial Spam Classification Model Training ### (total trained mails: ${clientSpamTrainingData.length} (ham:spam ${hamCount}:${spamCount}/threshold:${threshold}), training time: ${trainingTime})`,
+			`### Finished Initial Spam Classification Model Training ### (total trained mails: ${clientSpamTrainingData.length} (ham:spam ${hamCount}:${spamCount}/threshold:${threshold}), training time: ${-1})`,
 		)
 	}
 
@@ -440,5 +436,41 @@ export class SpamClassifier {
 	// visibleForTesting
 	public addSpamClassifierForOwner(ownerGroup: Id, classifier: Classifier) {
 		this.classifiers.set(ownerGroup, classifier)
+	}
+}
+
+export type SpamTrainingParameters = {
+	vectors: number[][]
+	labels: number[]
+	ownerGroup: string
+}
+
+export function loadSpamTrainingWorker(): SpamTrainingWorker {
+	//const { prefixWithoutFile } = window.tutao.appState FIXME: Get this somehow
+	// Resolve the sub-worker URL relative to this script
+	const workerUrl = new URL("./spam-training-worker.js", import.meta.url)
+
+	// Now spawn the nested worker
+	const worker = new Worker(workerUrl, { type: "module" })
+	console.log("created the worker")
+	return new SpamTrainingWorker(worker)
+}
+
+export class SpamTrainingWorker {
+	constructor(private readonly worker: Worker) {}
+
+	trainModel(trainingData: SpamTrainingParameters): Promise<SpamTrainingModelArtifacts> {
+		console.log("At train model")
+		const { promise, resolve, reject } = defer<SpamTrainingModelArtifacts>()
+		this.worker.onerror = (err: ErrorEvent) => {
+			reject(new Error(err.message))
+		}
+		this.worker.onmessage = (msg) => {
+			console.log("am I resolving something?" + JSON.stringify(msg.data))
+			resolve(msg.data)
+		}
+		console.log("Posting the work message" + JSON.stringify(trainingData))
+		this.worker.postMessage(trainingData)
+		return promise
 	}
 }

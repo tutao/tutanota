@@ -39,7 +39,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	const entryFile = isCalendarApp ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
 	const workerFile = isCalendarApp ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 	const powWorkerFile = "src/common/api/common/pow-worker.ts"
-	const spamTrainingWorkerFile = "src/mail-app/mail/model/spam-training-worker.js"
+	const spamTrainingWorkerFile = "src/mail-app/mail/model/spam-training-worker.ts"
 	const builtWorkerFile = isCalendarApp ? "calendar-worker.js" : "mail-worker.js"
 
 	console.log("Building app", app)

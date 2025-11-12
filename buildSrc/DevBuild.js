@@ -129,7 +129,7 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 				app: entryFile,
 				worker: workerFile,
 				"pow-worker": "src/common/api/common/pow-worker.ts",
-				"spam-training-worker": "src/mail-app/mail/model/spam-training-worker.js",
+				"spam-training-worker": "src/common/api/common/spam-training-worker.ts",
 			},
 			define: {
 				// Need it at least until inlining enums is supported

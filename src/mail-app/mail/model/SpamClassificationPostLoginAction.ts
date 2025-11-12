@@ -20,10 +20,13 @@ export class SpamClassificationPostLoginAction implements PostLoginAction {
 		if (isSpamClassificationEnabled && this.spamClassifier) {
 			const ownerGroups = filterMailMemberships(assertNotNull(await this.customerFacade.getUser()))
 			for (const ownerGroup of ownerGroups) {
-				const { prefixWithoutFile } = window.tutao.appState
-				const worker = new Worker(prefixWithoutFile + "/spam-training-worker.js", { type: "module" })
-				worker.onmessage = (e) => console.log("💬 Main got:", e.data)
-				worker.postMessage({ type: "initialize", group: "test" })
+				this.spamClassifier.initialize(ownerGroup.group).catch((e) => {
+					console.log(`failed to initialize spam classification model for group: ${ownerGroup.group}`, e)
+				})
+				// const { prefixWithoutFile } = window.tutao.appState
+				// const worker = new Worker(prefixWithoutFile + "/spam-training-worker.js", { type: "module" })
+				// worker.onmessage = (e) => console.log("💬 Main got:", e.data)
+				// worker.postMessage({ type: "initialize", group: "test" })
 			}
 		}
 	}
