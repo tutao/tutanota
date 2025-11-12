@@ -172,6 +172,7 @@ class MailLocator implements CommonLocator {
 	progressTracker!: ProgressTracker
 	credentialsProvider!: CredentialsProvider
 	worker!: WorkerClient
+	spamTrainingWorker!: WorkerClient
 	fileController!: FileController
 	secondFactorHandler!: SecondFactorHandler
 	webAuthn!: WebauthnClient
@@ -753,6 +754,7 @@ class MailLocator implements CommonLocator {
 		// We would like to do both on normal init but on HMR we just want to replace modules without a new worker. If we create a new
 		// worker we end up losing state on the worker side (including our session).
 		this.worker = bootstrapWorker(this)
+		this.spamTrainingWorker = bootstrapWorker(this)
 		await this._createInstances()
 		this._entropyCollector = new EntropyCollector(this.entropyFacade, await this.scheduler(), window)
 
@@ -883,7 +885,7 @@ class MailLocator implements CommonLocator {
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 		this.Const = Const
 		this.whitelabelThemeGenerator = new WhitelabelThemeGenerator()
-		this.spamClassifier = spamClassifier
+		this.spamClassifier = (this.spamTrainingWorker.getWorkerInterface() as WorkerInterface).spamClassifier
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/main/WebDesktopFacade")
 			const { WebMobileFacade } = await import("../common/native/main/WebMobileFacade.js")

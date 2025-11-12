@@ -39,6 +39,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	const entryFile = isCalendarApp ? "src/calendar-app/calendar-app.ts" : "src/mail-app/app.ts"
 	const workerFile = isCalendarApp ? "src/calendar-app/workerUtils/worker/calendar-worker.ts" : "src/mail-app/workerUtils/worker/mail-worker.ts"
 	const powWorkerFile = "src/common/api/common/pow-worker.ts"
+	const spamTrainingWorkerFile = "src/mail-app/mail/model/spam-training-worker.js"
 	const builtWorkerFile = isCalendarApp ? "calendar-worker.js" : "mail-worker.js"
 
 	console.log("Building app", app)
@@ -84,7 +85,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 
 	console.log("started bundling", measure())
 	const bundle = await rollup({
-		input: [entryFile, workerFile, powWorkerFile],
+		input: [entryFile, workerFile, powWorkerFile, spamTrainingWorkerFile],
 		preserveEntrySignatures: false,
 		perf: true,
 		plugins: [
@@ -161,6 +162,22 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 		`${buildDir}/worker-bootstrap.js`,
 		`import "./polyfill.js"
 import "./${builtWorkerFile}"`,
+	)
+
+	await fs.promises.writeFile(
+		`${buildDir}/spam-training-worker.js`,
+		`import { locator } from "../../workerUtils/worker/WorkerLocator"
+console.log("Locator loaded", locator)
+const spamClassifier = locator.spamClassifier
+console.log("Spam classifier instance", spamClassifier)
+console.log("Worker loaded")
+console.log("🚀 spam-training-worker started")
+self.onmessage = async (e) => {
+\tconsole.log("Worker received message", e.data)
+\tconsole.log("📩 Worker received:", e.data)
+\tself.postMessage({ reply: "pong" })
+}
+`,
 	)
 
 	let restUrl

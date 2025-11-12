@@ -125,7 +125,12 @@ async function buildWebPart({ stage, host, version, domainConfigs, networkDebugg
 	await runStep("Web: Rolldown", async () => {
 		const { rollupWasmLoader } = await import("@tutao/tuta-wasm-loader")
 		const bundle = await rolldown({
-			input: { app: entryFile, worker: workerFile, "pow-worker": "src/common/api/common/pow-worker.ts" },
+			input: {
+				app: entryFile,
+				worker: workerFile,
+				"pow-worker": "src/common/api/common/pow-worker.ts",
+				"spam-training-worker": "src/mail-app/mail/model/spam-training-worker.js",
+			},
 			define: {
 				// Need it at least until inlining enums is supported
 				LOAD_ASSERTIONS: "false",
