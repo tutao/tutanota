@@ -143,8 +143,6 @@ export class SpamClassifier {
 		const trainingWorker = loadSpamTrainingWorker()
 		console.log("loaded the training worker!" + JSON.stringify(trainingWorker))
 		const model = await trainingWorker.trainModel({ vectors, labels } as SpamTrainingParameters)
-		console.log("foo?")
-
 		console.log("I have a model from the worker?" + JSON.stringify(model))
 
 		const modelTopology = JSON.parse(model.modelTopology)
