@@ -8,13 +8,7 @@ import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "luxon"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
-import {
-	CalendarEventBubble,
-	CalendarEventBubbleAttrs,
-	CalendarEventBubbleDragProperties,
-	EventBubbleInteractions,
-	MIN_ROW_SPAN,
-} from "../../../calendar-app/calendar/view/CalendarEventBubble"
+import { CalendarEventBubble, CalendarEventBubbleAttrs, CalendarEventBubbleDragProperties, EventBubbleInteractions, MIN_ROW_SPAN } from "./CalendarEventBubble"
 import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 

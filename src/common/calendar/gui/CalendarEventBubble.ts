@@ -1,15 +1,20 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { px, size } from "../../../common/gui/size"
-import { Icon, IconSize } from "../../../common/gui/base/Icon"
-import { Icons } from "../../../common/gui/base/icons/Icons"
-import { colorForBg } from "../../../common/gui/base/GuiUtils"
-import { theme } from "../../../common/gui/theme"
-import { GridEventData, RowBounds } from "../../../common/calendar/gui/TimeView"
-import { type CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper, EventWrapperFlags } from "./CalendarViewModel"
-import { formatEventTime, getDisplayEventTitle, TEMPORARY_EVENT_OPACITY } from "../gui/CalendarGuiUtils"
-import { TabIndex } from "../../../common/api/common/TutanotaConstants"
-import { EventWrapperFlagKeys, FlagKeyToIcon, getTimeTextFormatForLongEvent, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
-import { Time } from "../../../common/calendar/date/Time"
+import { px, size } from "../../gui/size"
+import { Icon, IconSize } from "../../gui/base/Icon"
+import { Icons } from "../../gui/base/icons/Icons"
+import { colorForBg } from "../../gui/base/GuiUtils"
+import { theme } from "../../gui/theme"
+import { GridEventData, RowBounds } from "./TimeView"
+import {
+	type CalendarEventBubbleClickHandler,
+	CalendarEventBubbleKeyDownHandler,
+	EventWrapper,
+	EventWrapperFlags,
+} from "../../../calendar-app/calendar/view/CalendarViewModel"
+import { formatEventTime, getDisplayEventTitle, TEMPORARY_EVENT_OPACITY } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { TabIndex } from "../../api/common/TutanotaConstants"
+import { EventWrapperFlagKeys, FlagKeyToIcon, getTimeTextFormatForLongEvent, getTimeZone } from "../date/CalendarUtils"
+import { Time } from "../date/Time"
 
 export const MIN_ROW_SPAN = 3
 

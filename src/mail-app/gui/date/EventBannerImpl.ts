@@ -5,7 +5,7 @@ import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/C
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import { CalendarAttendeeStatus, CalendarMethod, SECOND_MS } from "../../../common/api/common/TutanotaConstants"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, clone, filterNull, getStartOfDay,  isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, clone, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/tutanota-utils"
 import { TIME_SCALE_BASE_VALUE, TimeRange, TimeScale, TimeScaleTuple, TimeView, TimeViewAttributes } from "../../../common/calendar/gui/TimeView"
 import { Time } from "../../../common/calendar/date/Time"
 import { theme } from "../../../common/gui/theme"
