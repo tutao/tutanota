@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { ColumnData, GridEventData, RowBounds, TimeRange, TimeScale, TimeView } from "../../../src/common/calendar/gui/TimeView"
+import { CalendarTimeGrid, ColumnLayoutData, EventGridData, RowBounds, TimeRange, TimeScale } from "../../../src/common/calendar/gui/CalendarTimeGrid"
 import { Time } from "../../../src/common/calendar/date/Time"
 import { createTestEntity } from "../TestUtils"
 import { CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
@@ -7,9 +7,9 @@ import { EventWrapper } from "../../../src/calendar-app/calendar/view/CalendarVi
 import { CalendarEventTimes } from "../../../src/common/api/common/utils/CommonCalendarUtils"
 import { MIN_ROW_SPAN } from "../../../src/common/calendar/gui/CalendarEventBubble"
 
-o.spec("TimeView", function () {
+o.spec("CalendarTimeGrid", function () {
 	let eventsMap: Map<Id, RowBounds> = new Map()
-	let columns: Array<ColumnData> = []
+	let columns: Array<ColumnLayoutData> = []
 
 	const timeRange: TimeRange = {
 		start: new Time(0, 0),
@@ -31,7 +31,7 @@ o.spec("TimeView", function () {
 		}
 	}
 
-	const assertLayoutPosition = (grid: Map<Id, GridEventData>, eventId: string, expected: GridEventData) => {
+	const assertLayoutPosition = (grid: Map<Id, EventGridData>, eventId: string, expected: EventGridData) => {
 		const actual = grid.get(eventId)
 		o.check(actual?.row).deepEquals(expected.row)(`${eventId} row mismatch`)
 		o.check(actual?.column).deepEquals(expected.column)(`${eventId} column mismatch`)
@@ -48,7 +48,7 @@ o.spec("TimeView", function () {
 		columns = []
 		for (const [evId, rowBounds] of eventsMap.entries()) {
 			columns.push({
-				lastEventEndingRow: rowBounds.end,
+				lastOccupiedRow: rowBounds.end,
 				events: new Map([[evId, rowBounds]]),
 			})
 		}
@@ -64,7 +64,7 @@ o.spec("TimeView", function () {
 			}
 			columns[eventColumnIndex].events.set(eventId, eventRowBounds)
 
-			const columnSpan = TimeView.calculateColumnSpan(eventColumnIndex, eventRowBounds, columns)
+			const columnSpan = CalendarTimeGrid.calculateColumnSpan(eventColumnIndex, eventRowBounds, columns)
 
 			o.check(columnSpan).equals(2)
 		})
@@ -78,7 +78,7 @@ o.spec("TimeView", function () {
 			}
 			columns[eventColumnIndex].events.set(eventId, eventRowBounds)
 
-			const columnSpan = TimeView.calculateColumnSpan(eventColumnIndex, eventRowBounds, columns)
+			const columnSpan = CalendarTimeGrid.calculateColumnSpan(eventColumnIndex, eventRowBounds, columns)
 
 			o.check(columnSpan).equals(3)
 		})
@@ -86,7 +86,7 @@ o.spec("TimeView", function () {
 
 	o.spec("buildGridDataWithExpansion", function () {
 		o.test("Transforms columns into grid event data", function () {
-			const grid = TimeView.buildGridDataWithExpansion(columns)
+			const grid = CalendarTimeGrid.buildGridDataWithExpansion(columns)
 
 			o.check(grid.get("ev1")?.column.start).equals(1)
 			o.check(grid.get("ev1")?.column.span).equals(1)
@@ -104,7 +104,7 @@ o.spec("TimeView", function () {
 
 	o.spec("packEventsIntoColumns", function () {
 		o.test("No events", function () {
-			const resultColumns = TimeView.packEventsIntoColumns(new Map())
+			const resultColumns = CalendarTimeGrid.packEventsIntoColumns(new Map())
 
 			o.check(resultColumns.length).equals(0)
 		})
@@ -112,10 +112,10 @@ o.spec("TimeView", function () {
 			const newEvId = "newEvent"
 			eventsMap.set(newEvId, { start: 2, end: 3 })
 
-			const resultColumns = TimeView.packEventsIntoColumns(eventsMap)
+			const resultColumns = CalendarTimeGrid.packEventsIntoColumns(eventsMap)
 
 			o.check(resultColumns[1].events.get(newEvId)).notEquals(undefined)
-			o.check(resultColumns[1].lastEventEndingRow).equals(3)
+			o.check(resultColumns[1].lastOccupiedRow).equals(3)
 			o.check(resultColumns[1].events.size).equals(2) // Original ev + newEv
 		})
 		/**
@@ -127,11 +127,11 @@ o.spec("TimeView", function () {
 				eventsMap.set("eventB", { start: 5, end: 7 })
 				eventsMap.set(newEvId, { start: 4, end: 6 })
 
-				const resultColumns = TimeView.packEventsIntoColumns(eventsMap)
+				const resultColumns = CalendarTimeGrid.packEventsIntoColumns(eventsMap)
 
 				o.check(resultColumns[0].events.get("eventB")).notEquals(undefined)
 				o.check(resultColumns[1].events.get(newEvId)).notEquals(undefined)
-				o.check(resultColumns[1].lastEventEndingRow).equals(6)
+				o.check(resultColumns[1].lastOccupiedRow).equals(6)
 				o.check(resultColumns[1].events.size).equals(2) // Original ev + newEv
 			})
 			o.test("Event A starts during Event B", function () {
@@ -139,11 +139,11 @@ o.spec("TimeView", function () {
 				eventsMap.set("eventB", { start: 5, end: 7 })
 				eventsMap.set(newEvId, { start: 6, end: 8 })
 
-				const resultColumns = TimeView.packEventsIntoColumns(eventsMap)
+				const resultColumns = CalendarTimeGrid.packEventsIntoColumns(eventsMap)
 
 				o.check(resultColumns[0].events.get("eventB")).notEquals(undefined)
 				o.check(resultColumns[1].events.get(newEvId)).notEquals(undefined)
-				o.check(resultColumns[1].lastEventEndingRow).equals(8)
+				o.check(resultColumns[1].lastOccupiedRow).equals(8)
 				o.check(resultColumns[1].events.size).equals(2) // Original ev + newEv
 			})
 			o.test("Event A starts before and ends after Event B", function () {
@@ -151,11 +151,11 @@ o.spec("TimeView", function () {
 				eventsMap.set("eventB", { start: 5, end: 7 })
 				eventsMap.set(newEvId, { start: 4, end: 8 })
 
-				const resultColumns = TimeView.packEventsIntoColumns(eventsMap)
+				const resultColumns = CalendarTimeGrid.packEventsIntoColumns(eventsMap)
 
 				o.check(resultColumns[0].events.get("eventB")).notEquals(undefined)
 				o.check(resultColumns[1].events.get(newEvId)).notEquals(undefined)
-				o.check(resultColumns[1].lastEventEndingRow).equals(8)
+				o.check(resultColumns[1].lastOccupiedRow).equals(8)
 				o.check(resultColumns[1].events.size).equals(2) // Original ev + newEv
 			})
 			o.test("Event A starts and ends as Event B", function () {
@@ -163,11 +163,11 @@ o.spec("TimeView", function () {
 				eventsMap.set("eventB", { start: 5, end: 7 })
 				eventsMap.set(newEvId, { start: 5, end: 7 })
 
-				const resultColumns = TimeView.packEventsIntoColumns(eventsMap)
+				const resultColumns = CalendarTimeGrid.packEventsIntoColumns(eventsMap)
 
 				o.check(resultColumns[0].events.get("eventB")).notEquals(undefined)
 				o.check(resultColumns[1].events.get(newEvId)).notEquals(undefined)
-				o.check(resultColumns[1].lastEventEndingRow).equals(7)
+				o.check(resultColumns[1].lastOccupiedRow).equals(7)
 				o.check(resultColumns[1].events.size).equals(2) // Original ev + newEv
 			})
 		})
@@ -182,7 +182,7 @@ o.spec("TimeView", function () {
 			}
 
 			// Act
-			const bounds = TimeView.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
 
 			// Assert
 			o.check(bounds).deepEquals({
@@ -195,7 +195,7 @@ o.spec("TimeView", function () {
 				startTime: new Date(2025, 9, 22, 0, 0),
 				endTime: new Date(2025, 9, 22, 0, 30),
 			}
-			const bounds = TimeView.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
 			o.check(bounds).deepEquals({
 				start: 1,
 				end: 7,
@@ -207,7 +207,7 @@ o.spec("TimeView", function () {
 				endTime: new Date(2025, 9, 22, 0, 30),
 			}
 
-			const bounds = TimeView.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
 			o.check(bounds).deepEquals({
 				start: 1,
 				end: 7,
@@ -219,7 +219,7 @@ o.spec("TimeView", function () {
 				endTime: new Date(2025, 9, 23, 0, 30),
 			}
 
-			const bounds = TimeView.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
 			o.check(bounds).deepEquals({
 				start: 283, // 23 hours * 12 rows/hour + 30 minutes / 5 minutes/row + 1
 				end: -1,
@@ -231,7 +231,7 @@ o.spec("TimeView", function () {
 				endTime: new Date(2025, 9, 23, 0, 30),
 			}
 
-			const bounds = TimeView.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
 			o.check(bounds).deepEquals({
 				start: 1,
 				end: -1,
@@ -248,8 +248,8 @@ o.spec("TimeView", function () {
 				endTime: new Date(2025, 9, 22, 0, 30),
 			}
 
-			const eventOneBounds = TimeView.getRowBounds(eventOneTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
-			const eventTwoBounds = TimeView.getRowBounds(eventTwoTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const eventOneBounds = CalendarTimeGrid.getRowBounds(eventOneTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const eventTwoBounds = CalendarTimeGrid.getRowBounds(eventTwoTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
 
 			o.check(eventOneBounds).deepEquals({
 				start: 1,
@@ -269,7 +269,7 @@ o.spec("TimeView", function () {
 					endTime: new Date(2025, 9, 22, 0, 11),
 				}
 
-				const eventOneBounds = TimeView.getRowBounds(eventOneTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
+				const eventOneBounds = CalendarTimeGrid.getRowBounds(eventOneTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
 
 				o.check(eventOneBounds).deepEquals({
 					start: 1,
@@ -296,8 +296,8 @@ o.spec("TimeView", function () {
 					endTime: new Date(2025, 9, 22, 0, 38),
 				}
 
-				const eventTwoBounds = TimeView.getRowBounds(eventOneTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
-				const eventThreeBounds = TimeView.getRowBounds(eventTwoTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
+				const eventTwoBounds = CalendarTimeGrid.getRowBounds(eventOneTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
+				const eventThreeBounds = CalendarTimeGrid.getRowBounds(eventTwoTimes, timeRange, subRowAsMinutes, timeScale, currentDate)
 
 				o.check(eventTwoBounds).deepEquals({
 					start: 1,
@@ -330,7 +330,7 @@ o.spec("TimeView", function () {
 				createEventStub("EVH", 1, 0, 1, 30),
 			]
 
-			const { grid } = TimeView.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const { grid } = CalendarTimeGrid.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
 
 			assertLayoutPosition(grid, "EVA", {
 				row: { start: 1, end: 7 },
@@ -390,7 +390,7 @@ o.spec("TimeView", function () {
 				createEventStub("EVM", 0, 45, 1, 15),
 			]
 
-			const { grid } = TimeView.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const { grid } = CalendarTimeGrid.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
 
 			assertLayoutPosition(grid, "EVI", {
 				row: { start: 1, end: 19 },

@@ -3171,7 +3171,6 @@ styles.registerStyle("main", () => {
 			},
 		},
 		".time-indicator": {
-			position: "absolute",
 			background: theme.primary,
 			height: px(2),
 			width: "100%",
@@ -3179,8 +3178,8 @@ styles.registerStyle("main", () => {
 		".time-indicator:before": {
 			content: "''",
 			display: "block",
-			width: "12px",
-			height: "12px",
+			width: px(size.icon_12),
+			height: px(size.icon_12),
 			background: theme.primary,
 			position: "absolute",
 			transform: "translate(-50%, calc(-50% + 1px))",
