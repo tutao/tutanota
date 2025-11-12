@@ -1,7 +1,7 @@
 import m, { ClassComponent, Vnode } from "mithril"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
-import { ColumnBounds, DEFAULT_EVENT_COLUMN_SPAN_SIZE, SUBROWS_PER_INTERVAL } from "./TimeView"
+import { ColumnBounds, DEFAULT_EVENT_COLUMN_SPAN_SIZE, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs"
 import { downcast, getStartOfDay } from "@tutao/tutanota-utils"
 import {
@@ -15,17 +15,18 @@ import { eventEndsAfterDay, eventStartsBeforeDay, getTimeZone } from "../date/Ca
 import { getRowDateFromMousePos, getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { Time } from "../date/Time"
 
 /**
  * Internal data structure tracking events within a single row.
  * Used during the row-packing phase of the layout algorithm.
  */
-export interface RowData {
+export interface RowLayoutData {
 	/**
-	 * The column index where the last event in this row ends.
-	 * Used for quick availability checks when placing new events.
+	 * The last occupied column index in this row.
+	 * Used to determine if the next event can fit.
 	 */
-	lastEventEndingColumn: number
+	lastOccupiedColumn: number
 
 	/**
 	 * Map of event IDs to their column bounds.
@@ -51,13 +52,13 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 					gridTemplateColumns: `repeat(${attrs.dates.length}, 1fr)`,
 					gridTemplateRows: `repeat(${this.rowCount}, 1fr)`,
 					transition: `height ${DefaultAnimationTime}ms linear`,
-					height: attrs.allDayEventWrappers.length === 0 ? "0" : "auto", // FIXME After working with bubble make it expand beautifully
+					height: this.rowCount === 0 ? "0" : "auto", // FIXME After working with bubble make it expand beautifully
 				} satisfies Partial<CSSStyleDeclaration>,
 				onmousemove: (mouseEvent: MouseEvent) => {
 					downcast(mouseEvent).redraw = false
 					const time = getTimeFromMousePos(getPosAndBoundsFromMouseEvent(mouseEvent), SUBROWS_PER_INTERVAL)
 					const date = getRowDateFromMousePos(mouseEvent, attrs.dates.length, attrs.dates[0])
-					attrs.eventBubbleHandlers?.drag?.setTimeUnderMouse(time, date)
+					attrs.eventBubbleHandlers?.drag?.setTimeUnderMouse(new Time(0, 0), date)
 				},
 			},
 			this.renderEvents(attrs.dates, attrs.allDayEventWrappers, attrs.eventBubbleHandlers),
@@ -88,8 +89,8 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 						eventWrapper: eventWrapper,
 						gridInfo: {
 							row: {
-								start: rowIndex + 1, // CSS Grid noramlization
-								end: rowIndex + 2, // CSS Grid noramlization + event own default size
+								start: rowIndex + 1, // CSS Grid normalization
+								end: rowIndex + 2, // CSS Grid normalization + event own default size
 							},
 							column: columnBounds,
 						},
@@ -117,7 +118,13 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 		}
 	}
 
-	static layoutEvents(orderedEvents: EventWrapper[], dates: Date[]): Array<RowData> {
+	/**
+	 * @param orderedEvents
+	 * @param dates
+	 *
+	 * @VisibleForTesting
+	 */
+	static layoutEvents(orderedEvents: EventWrapper[], dates: Date[]): Array<RowLayoutData> {
 		// Step 1: Convert events to column-based coordinates
 		const eventsMap = new Map<EventWrapper, ColumnBounds>(
 			orderedEvents.map((wrapper) => {
@@ -135,21 +142,23 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 	 *
 	 * @param eventsMap - Map of events to their row bounds
 	 * @returns Array of columns with their contained events
+	 *
+	 * @VisibleForTesting
 	 */
-	static packEventsIntoRows(eventsMap: Map<EventWrapper, ColumnBounds>): Array<RowData> {
-		const rows: Array<RowData> = []
+	static packEventsIntoRows(eventsMap: Map<EventWrapper, ColumnBounds>): Array<RowLayoutData> {
+		const rows: Array<RowLayoutData> = []
 
 		for (const [eventWrapper, columnBounds] of eventsMap.entries()) {
-			const availableColumnIndex = rows.findIndex((rowData) => rowData.lastEventEndingColumn <= columnBounds.start)
+			const availableColumnIndex = rows.findIndex((rowData) => rowData.lastOccupiedColumn <= columnBounds.start)
 
 			if (availableColumnIndex === -1) {
 				rows.push({
-					lastEventEndingColumn: columnBounds.start + columnBounds.span,
+					lastOccupiedColumn: columnBounds.start + columnBounds.span,
 					events: new Map([[eventWrapper, columnBounds]]),
 				})
 			} else {
 				const column = rows[availableColumnIndex]
-				column.lastEventEndingColumn = columnBounds.start + columnBounds.span
+				column.lastOccupiedColumn = columnBounds.start + columnBounds.span
 				column.events.set(eventWrapper, columnBounds)
 			}
 		}
@@ -157,13 +166,28 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 		return rows
 	}
 
+	/**
+	 * Calculates the CSS Grid column bounds for an all-day/multi-day event.
+	 *
+	 * Grid columns are 1-indexed in CSS Grid, with column 1 being the first day.
+	 * Events are positioned based on which days they overlap.
+	 *
+	 * @param event - The calendar event to position
+	 * @param dates - Array of visible dates in the calendar view
+	 * @returns Column start position and span length for CSS Grid
+	 *
+	 * @example
+	 * // Event from Jan 2-4, viewing Jan 1-7
+	 * // Returns { start: 2, span: 3 } (columns 2, 3, 4)
+	 *
+	 * @VisibleForTesting
+	 */
 	static getColumnBounds(event: CalendarEvent, dates: Date[]) {
 		const eventStartTimeStartOfDay = getStartOfDay(event.startTime).getTime()
 		const eventEndTimeStartOfDay = getStartOfDay(event.endTime).getTime()
 
 		const startDayIndex = dates.findIndex((date) => eventStartTimeStartOfDay <= date.getTime())
-		const endDayIndexReversed = dates.toReversed().findIndex((date) => eventEndTimeStartOfDay > date.getTime())
-		const endDayIndex = endDayIndexReversed === -1 ? 0 : dates.length - endDayIndexReversed
+		const endDayIndex = dates.findLastIndex((date) => eventEndTimeStartOfDay > date.getTime()) + 1
 
 		const eventTypeCorrection = isAllDayEvent(event) ? 0 : 1
 		const gridStart = startDayIndex + DEFAULT_EVENT_COLUMN_SPAN_SIZE

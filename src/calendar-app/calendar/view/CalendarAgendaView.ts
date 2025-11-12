@@ -17,7 +17,6 @@ import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPr
 import { EventDetailsView } from "./EventDetailsView.js"
 import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils.js"
 import { isAllDayEvent, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
@@ -31,6 +30,7 @@ import { client } from "../../../common/misc/ClientDetector.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
+import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -336,7 +336,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							id: "timeIndicator",
 							key: "timeIndicator",
 						},
-						m(CalendarTimeIndicator, { circleLeftTangent: true }),
+						m(TimeIndicator, { circleLeftTangent: true }),
 					),
 				)
 			}

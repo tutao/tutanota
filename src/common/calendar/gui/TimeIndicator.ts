@@ -1,46 +1,58 @@
-/**
- * Renders a TimeIndicator line in the screen over the event grid
- * @param timeRange Time range for the day, usually from 00:00 till 23:00
- * @param subRowAsMinutes How many minutes a Grid row represents
- * @param time Time where to position the indicator
- * @param timeRowHeight
- * @private
- */
 import { Time } from "../date/Time"
-import m, { ClassComponent, Vnode } from "mithril"
-import { px } from "../../gui/size"
-import { TimeRange } from "./TimeView"
+import m, { Children, ClassComponent, Vnode } from "mithril"
+import { px, size } from "../../gui/size"
+import { TimeRange } from "./CalendarTimeGrid"
 import { deepMemoized } from "@tutao/tutanota-utils"
 
 export interface TimeIndicatorAttrs {
-	dayHeight: number
-	timeRange: TimeRange
-	interval: number
-
-	areaWidth: number
-	numberOfDatesInRange: number
-	datePosition: number
-	leftOffset?: number
+	/** Absolute positioning configuration for grid placement */
+	position?: {
+		dayHeight: number
+		timeRange: TimeRange
+		interval: number
+		areaWidth: number
+		numberOfDatesInRange: number
+		datePosition: number
+		leftOffset?: number
+	}
+	/** Make the ::before circle tangent to the left side rather than intersecting */
+	circleLeftTangent?: boolean
 }
 
+/**
+ * Renders a time indicator line with a ::before circle.
+ * Can be used as a simple div(AgendaView) or absolutely positioned in a calendar grid.
+ */
 export class TimeIndicator implements ClassComponent<TimeIndicatorAttrs> {
-	private getPositions = deepMemoized((time: Time, compAttrs: TimeIndicatorAttrs) => {
-		const yPosition = (time.asMinutes() * compAttrs.dayHeight) / (compAttrs.timeRange.end.asMinutes() + compAttrs.interval)
-		const xPosition = (compAttrs.leftOffset ?? 0) + (compAttrs.areaWidth / compAttrs.numberOfDatesInRange) * compAttrs.datePosition
+	private getPositions = deepMemoized((time: Time, positionConfig: NonNullable<TimeIndicatorAttrs["position"]>) => {
+		const yPosition = (time.asMinutes() * positionConfig.dayHeight) / (positionConfig.timeRange.end.asMinutes() + positionConfig.interval)
+		const xPosition = (positionConfig.leftOffset ?? 0) + (positionConfig.areaWidth / positionConfig.numberOfDatesInRange) * positionConfig.datePosition
 		return { xPosition, yPosition }
 	})
 
-	view({ attrs }: Vnode<TimeIndicatorAttrs>) {
-		const time = Time.fromDate(new Date())
-		const { xPosition, yPosition } = this.getPositions(time, attrs)
+	view({ attrs }: Vnode<TimeIndicatorAttrs>): Children {
+		const style: Partial<CSSStyleDeclaration> = {
+			height: px(size.calendar_day_event_padding),
+		}
 
-		return m(".time-indicator.z3", {
-			ariaHidden: "true",
-			style: {
+		if (attrs.position) {
+			const time = Time.fromDate(new Date())
+			const { xPosition, yPosition } = this.getPositions(time, attrs.position)
+			Object.assign(style, {
+				position: "absolute",
 				top: px(yPosition),
 				left: px(xPosition),
-				width: px(attrs.areaWidth / attrs.numberOfDatesInRange),
-			} satisfies Partial<CSSStyleDeclaration>,
+				width: px(attrs.position.areaWidth / attrs.position.numberOfDatesInRange),
+			} satisfies Partial<CSSStyleDeclaration>)
+		}
+
+		if (attrs.circleLeftTangent) {
+			style.paddingLeft = px(size.icon_size_small / 2)
+		}
+
+		return m(".time-indicator.z3", {
+			"aria-hidden": "true",
+			style,
 		})
 	}
 }

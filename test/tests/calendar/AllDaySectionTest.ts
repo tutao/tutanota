@@ -3,7 +3,7 @@ import { AllDaySection } from "../../../src/common/calendar/gui/AllDaySection"
 import { createTestEntity, makeEventWrapper } from "../TestUtils"
 import { CalendarEvent, CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { getAllDayDateUTCFromZone, getTimeZone } from "../../../src/common/calendar/date/CalendarUtils"
-import { ColumnBounds } from "../../../src/common/calendar/gui/TimeView"
+import { ColumnBounds } from "../../../src/common/calendar/gui/CalendarTimeGrid"
 
 o.spec("AllDaySection", function () {
 	const BASE_YEAR = 2025
@@ -158,11 +158,11 @@ o.spec("AllDaySection", function () {
 			o(rows.length).equals(2)
 			o(rows).deepEquals([
 				{
-					lastEventEndingColumn: 2,
+					lastOccupiedColumn: 2,
 					events: new Map([[evA, eventsMap.get(evA)!]]),
 				},
 				{
-					lastEventEndingColumn: 2,
+					lastOccupiedColumn: 2,
 					events: new Map([[evB, eventsMap.get(evB)!]]),
 				},
 			])
@@ -184,7 +184,7 @@ o.spec("AllDaySection", function () {
 			o(rows.length).equals(1)
 			o(rows).deepEquals([
 				{
-					lastEventEndingColumn: 3,
+					lastOccupiedColumn: 3,
 					events: eventsMap,
 				},
 			])
@@ -259,11 +259,11 @@ o.spec("AllDaySection", function () {
 			o(rows.length).equals(2)
 			o(rows).deepEquals([
 				{
-					lastEventEndingColumn: 3,
+					lastOccupiedColumn: 3,
 					events: new Map([[ev1, ev1Bounds]]),
 				},
 				{
-					lastEventEndingColumn: 4,
+					lastOccupiedColumn: 4,
 					events: new Map([[ev2, ev2Bounds]]),
 				},
 			])

@@ -7,7 +7,6 @@ export type ContinuingCalendarEventBubbleAttrs = {
 } & CalendarEventBubbleAttrs
 
 export class ContinuingCalendarEventBubble implements Component<ContinuingCalendarEventBubbleAttrs> {
-	// FIXME finish
 	view({ attrs }: Vnode<ContinuingCalendarEventBubbleAttrs>): Children {
 		return m(".flex.calendar-event-container.darker-hover", [
 			attrs.columnOverflowInfo.start

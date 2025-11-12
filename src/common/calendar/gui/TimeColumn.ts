@@ -1,33 +1,33 @@
-import m, { Child, ClassComponent, Vnode, VnodeDOM } from "mithril"
+import m, { Child, ClassComponent, Vnode } from "mithril"
 import { clone, deepMemoized, noOp } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
-import { CellActionHandler, TIME_SCALE_BASE_VALUE, TimeRange, TimeScale } from "./TimeView"
+import { CellActionHandler, getIntervalAsMinutes, TimeRange, TimeScale } from "./CalendarTimeGrid"
 import { px, size } from "../../gui/size"
 import { Time } from "../date/Time"
 import { styles } from "../../gui/styles"
-import { State } from "linkifyjs"
-import { deviceConfig } from "../../misc/DeviceConfig"
 
 export interface TimeColumnAttrs {
 	timeScale: TimeScale
 	timeRange: TimeRange
-	width: number // FIXME should it receive a width or variant?
+	width: number
 	baseDate?: Date
 	onCellPressed?: CellActionHandler
 }
 
-export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
-	oncreate(vnode: VnodeDOM<TimeColumnAttrs>): any {
-		console.log("oncreate: TimeColumn")
-	}
+const TIME_CELL_ID_PREFIX = "time-cell-"
 
+export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
 	view({ attrs }: Vnode<TimeColumnAttrs>) {
 		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(attrs.timeScale, attrs.timeRange)
 		return this.buildTimeColumn(attrs.baseDate ?? new Date(), timeColumnIntervals, attrs.width, attrs.onCellPressed ?? noOp)
 	}
 
+	static getTimeCellId(hour: number): string {
+		return `${TIME_CELL_ID_PREFIX}${hour}`
+	}
+
 	static createTimeColumnIntervals(timeScale: TimeScale, timeRange: TimeRange): Array<string> {
-		let timeInterval = TIME_SCALE_BASE_VALUE / timeScale
+		let timeInterval = getIntervalAsMinutes(timeScale)
 		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeInterval) / timeInterval
 		const timeKeys: Array<string> = []
 
@@ -55,13 +55,13 @@ export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
 				return m(
 					".rel.after-as-border-bottom",
 					{
-						id: `time-cell-${parsedTime.getHours()}`,
+						id: TimeColumn.getTimeCellId(parsedTime.getHours()),
 					},
 					m(
 						".flex.small.border-right.rel.justify-center.items-center.interactable-cell.cursor-pointer",
 						{
 							style: {
-								height: px(size.calendar_hour_height), // FIXME apply dynamic height according to zoom
+								height: px(size.calendar_hour_height),
 							},
 							onclick: (e: MouseEvent) => {
 								e.stopImmediatePropagation()
