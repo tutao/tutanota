@@ -78,9 +78,6 @@ import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 import { Time } from "../../../common/calendar/date/Time"
 
-/**
- * FIXME doc
- */
 export interface EventWrapperFlags {
 	/**
 	 * Pending invitation event.
@@ -101,22 +98,26 @@ export interface EventWrapperFlags {
 	isConflict?: boolean
 
 	/**
-	 * FIXME Doc
+	 * Recurring event instance that has been modified from the original series.
+	 * Should display an indicator icon.
 	 */
 	isAlteredInstance?: boolean
 
 	/**
-	 * FIXME Doc
+	 * Special event type built from a Tuta contact.
+	 * Should display an indicator icon.
 	 */
 	isBirthdayEvent?: boolean
 
 	/**
-	 * FIXME Doc
+	 * Temporary event not yet persisted to the backend.
+	 * Used during event dragging.
 	 */
 	isTransientEvent?: boolean
 
 	/**
-	 * FIXME Doc
+	 * Event has one or more alarms/reminders configured.
+	 * Should display an indicator icon to show notifications are enabled.
 	 */
 	hasAlarms?: boolean
 }
@@ -130,7 +131,8 @@ export interface EventWrapper {
 	event: CalendarEvent
 
 	/**
-	 * FIXME doc
+	 * Visual and behavioral flags that modify how the event is rendered.
+	 * Controls styling (opacity, borders, colors) and interaction behavior.
 	 */
 	flags?: EventWrapperFlags
 
@@ -321,10 +323,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 
 		const date = this.selectedDate().getTime()
-		const event = this.eventsForDays.get(date)?.find((ev) => isSameId(ev.event._id, id))
+		const eventWrapper = this.eventsForDays.get(date)?.find((ev) => isSameId(ev.event._id, id))
 
-		if (event) {
-			return this.updatePreviewedEvent(event.event) // FIXME ...
+		if (eventWrapper) {
+			return this.updatePreviewedEvent(eventWrapper.event)
 		}
 
 		return Promise.resolve()
@@ -389,10 +391,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 			if (this.previewedEventId != null) {
 				const date = this.selectedDate().getTime()
-				const event = this.eventsForDays.get(date)?.find((ev) => isSameId(ev.event._id, this.previewedEventId))
+				const eventWrapper = this.eventsForDays.get(date)?.find((ev) => isSameId(ev.event._id, this.previewedEventId))
 
-				if (event) {
-					this.updatePreviewedEvent(event.event) // FIXME do i have to say?
+				if (eventWrapper) {
+					this.updatePreviewedEvent(eventWrapper.event)
 				}
 			}
 		}
@@ -579,7 +581,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 			for (const eventWrapper of eventsForDay) {
 				if (transientEventUidsByCalendar.get(getListId(eventWrapper.event))?.has(eventWrapper.event.uid)) {
-					// FIXME get rid of event.event
 					continue
 				}
 
@@ -851,6 +852,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	setScrollByListener(listener: ScrollByListener): void {
 		this.scrollByListener = listener
+	}
+
+	removeScrollByListener() {
+		this.scrollByListener = noOp
 	}
 
 	setViewParameters(dom: HTMLElement): void {
