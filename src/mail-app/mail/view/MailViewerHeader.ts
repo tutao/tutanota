@@ -42,9 +42,9 @@ export type MailAddressDropdownCreator = (args: {
 }) => Promise<Array<DropdownButtonAttrs>>
 
 export interface MailHeaderActions {
-	trash: () => unknown
+	trash: (() => unknown) | null
 	delete: (() => unknown) | null
-	move: (dom: HTMLElement) => unknown
+	move: ((dom: HTMLElement) => unknown) | null
 }
 
 export interface MailViewerHeaderAttrs {
@@ -812,18 +812,33 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return createDropdown({
 			lazyButtons: () => {
 				let actionButtons: DropdownButtonAttrs[] = []
-				const deleteAction = actions.delete
-				const deleteOrTrashAction: DropdownButtonAttrs = deleteAction
-					? {
-							label: "delete_action",
-							click: () => deleteAction(),
-							icon: Icons.DeleteForever,
-						}
-					: {
-							label: "trash_action",
-							click: () => actions.trash(),
-							icon: Icons.Trash,
-						}
+				const { delete: deleteAction, trash: trashAction, move: moveAction } = actions
+				const deleteButton: DropdownButtonAttrs | null =
+					deleteAction != null
+						? {
+								label: "delete_action",
+								click: () => deleteAction(),
+								icon: Icons.DeleteForever,
+							}
+						: null
+				const trashButton: DropdownButtonAttrs | null =
+					trashAction != null
+						? {
+								label: "trash_action",
+								click: () => trashAction(),
+								icon: Icons.Trash,
+							}
+						: null
+				const deleteOrTrashButton = deleteButton ?? trashButton
+
+				const moveButton: DropdownButtonAttrs | null =
+					moveAction != null
+						? {
+								label: "move_action",
+								click: (_: MouseEvent, dom: HTMLElement) => moveAction(dom),
+								icon: Icons.Folder,
+							}
+						: null
 
 				if (viewModel.isDraftMail()) {
 					if (viewModel.isScheduled()) {
@@ -839,12 +854,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							icon: Icons.Edit,
 						})
 					}
-					actionButtons.push({
-						label: "move_action",
-						click: (_: MouseEvent, dom: HTMLElement) => actions.move(dom),
-						icon: Icons.Folder,
-					})
-					actionButtons.push(deleteOrTrashAction)
+
+					if (moveButton != null) {
+						actionButtons.push(moveButton)
+					}
+					if (deleteOrTrashButton != null) {
+						actionButtons.push(deleteOrTrashButton)
+					}
+
 					addToggleLightModeButtonAttrs(viewModel, actionButtons)
 				} else {
 					if (viewModel.canReply()) {
@@ -870,11 +887,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						})
 					}
 
-					actionButtons.push({
-						label: "move_action",
-						click: (_: MouseEvent, dom: HTMLElement) => actions.move(dom),
-						icon: Icons.Folder,
-					})
+					if (moveButton != null) {
+						actionButtons.push(moveButton)
+					}
 
 					if (viewModel.mailModel.canAssignLabels()) {
 						actionButtons.push({
@@ -897,7 +912,9 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						})
 					}
 
-					actionButtons.push(deleteOrTrashAction)
+					if (deleteOrTrashButton != null) {
+						actionButtons.push(deleteOrTrashButton)
+					}
 
 					actionButtons.push(...singleMailViewerMoreActions(viewModel, moreActions))
 				}
