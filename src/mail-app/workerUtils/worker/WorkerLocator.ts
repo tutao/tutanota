@@ -16,11 +16,9 @@ import {
 	isAdminClient,
 	isAndroidApp,
 	isBrowser,
-	isDesktop,
 	isIOSApp,
 	isOfflineStorageAvailable,
 	isTest,
-	isWebClient,
 } from "../../../common/api/common/Env.js"
 import { Const } from "../../../common/api/common/TutanotaConstants.js"
 import type { BrowserData } from "../../../common/misc/ClientConstants.js"
@@ -527,6 +525,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		locator.publicEncryptionKeyProvider,
 		lazyMemoized(() => locator.keyRotation),
 		typeModelResolver,
+		async (error: Error) => {
+			await worker.sendError(error)
+		},
 	)
 
 	locator.recoverCode = lazyMemoized(async () => {

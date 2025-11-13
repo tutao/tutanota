@@ -116,6 +116,7 @@ export class CryptoFacade {
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
 		private readonly typeModelResolver: TypeModelResolver,
+		private readonly sendError: (error: Error) => Promise<void>,
 	) {}
 
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
@@ -503,9 +504,11 @@ export class CryptoFacade {
 				pqMessageSenderKeyVersion,
 			)
 		} catch (e) {
-			// we do not want to fail mail decryption here, e.g. in case an alias was removed we would get a permanent NotFoundError.
-			// in those cases we will just show a warning banner but still want to display the mail
 			console.error("Could not authenticate sender", e)
+
+			// we want an error that users can report
+			await this.sendError(e)
+
 			return {
 				authStatus: EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_FAILED,
 				verificationState: PresentableKeyVerificationState.ALERT,

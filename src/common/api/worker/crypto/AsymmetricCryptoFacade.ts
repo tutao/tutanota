@@ -26,7 +26,7 @@ import {
 	EncryptionKeyVerificationState,
 	PresentableKeyVerificationState,
 } from "../../common/TutanotaConstants.js"
-import { arrayEquals, assertNotNull, lazy, Versioned } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, KeyVersion, lazy, Versioned } from "@tutao/tutanota-utils"
 import { KeyLoaderFacade, parseKeyVersion } from "../facades/KeyLoaderFacade.js"
 import { ProgrammingError } from "../../common/error/ProgrammingError.js"
 import { createPublicKeyPutIn, PubEncKeyData } from "../../entities/sys/TypeRefs.js"
@@ -34,7 +34,6 @@ import { CryptoWrapper } from "./CryptoWrapper.js"
 import { PublicKeyService } from "../../entities/sys/Services.js"
 import { IServiceExecutor } from "../../common/ServiceRequest.js"
 import { PublicEncryptionKeyProvider, PublicKeyIdentifier } from "../facades/PublicEncryptionKeyProvider.js"
-import { KeyVersion } from "@tutao/tutanota-utils"
 import { TypeId } from "../../common/EntityTypes"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
 import { KeyVerificationMismatchError } from "../../common/error/KeyVerificationMismatchError"
@@ -114,8 +113,10 @@ export class AsymmetricCryptoFacade {
 			}
 		} catch (e) {
 			if (e instanceof KeyVerificationMismatchError) {
+				console.log(`KeyVerificationMismatchError. identifier: ${identifier}, senderKeyVersion: ${senderKeyVersion}`)
 				authenticated = false
 			} else {
+				console.log(`Error while authenticating sender. identifier: ${identifier}, senderKeyVersion: ${senderKeyVersion}, error: ${e}`)
 				throw e
 			}
 		}

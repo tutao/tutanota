@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { arrayEquals, assertNotNull, hexToUint8Array, KeyVersion, neverNull, utf8Uint8ArrayToString, Versioned } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNotNull, hexToUint8Array, KeyVersion, neverNull, noOp, utf8Uint8ArrayToString, Versioned } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../../../../src/common/api/worker/crypto/CryptoFacade.js"
 import {
 	asCryptoProtoocolVersion,
@@ -227,6 +227,9 @@ o.spec("CryptoFacadeTest", function () {
 			publicEncryptionKeyProvider,
 			() => keyRotationFacade,
 			typeModelResolver,
+			async () => {
+				noOp()
+			},
 		)
 	})
 

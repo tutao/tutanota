@@ -32,6 +32,7 @@ import {
 	deepEqual,
 	KeyVersion,
 	Mapper,
+	noOp,
 	Nullable,
 	ofClass,
 	promiseMap,
@@ -145,6 +146,9 @@ o.spec("EntityRestClient", function () {
 			instance(PublicEncryptionKeyProvider),
 			() => instance(KeyRotationFacade),
 			typeModelResolver,
+			async () => {
+				noOp()
+			},
 		)
 		cryptoFacadePartialStub.resolveSessionKey = async (instance: Entity): Promise<Nullable<AesKey>> => {
 			return sk

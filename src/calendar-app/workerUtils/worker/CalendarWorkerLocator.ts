@@ -345,6 +345,9 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.publicEncryptionKeyProvider,
 		lazyMemoized(() => locator.keyRotation),
 		typeModelResolver,
+		async (error: Error) => {
+			await worker.sendError(error)
+		},
 	)
 
 	locator.recoverCode = lazyMemoized(async () => {
