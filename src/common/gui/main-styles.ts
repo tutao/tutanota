@@ -3233,7 +3233,7 @@ styles.registerStyle("main", () => {
 			transform: "translate(-50%, calc(-50% + 1px))",
 			"border-radius": "50%",
 		},
-		".svg-illust-wrapper > svg": {
+		".dynamic-color-svg-wrapper > svg": {
 			width: "100%",
 			height: "100%",
 		},

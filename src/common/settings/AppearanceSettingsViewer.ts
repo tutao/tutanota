@@ -16,13 +16,11 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../common/api/common/ut
 import { client } from "../misc/ClientDetector.js"
 import { DateTime } from "../../../libs/luxon.js"
 import { LockedError } from "../api/common/error/RestError"
-import stream from "mithril/stream"
+import { DynamicColorSvg } from "../gui/base/DynamicColorSvg"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null
 	private timeOptions: Array<{ name: string; value: number }> = []
-
-	private illust: stream<string | undefined> = stream()
 
 	async oncreate() {
 		locator.themeController.getCustomThemes().then((themes) => {
@@ -39,10 +37,6 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 				value: hour,
 			})
 		}
-
-		const res = await fetch(`${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-test.svg`)
-		this.illust(await res.text())
-		m.redraw()
 	}
 
 	view(): Children {
@@ -134,7 +128,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 			},
 		}
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
-			m(".svg-illust-wrapper", this.illust() && m.trust(this.illust()!)),
+			m(DynamicColorSvg, { path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-test.svg` }),
 			m("#devicesettings.h4.mt-l", lang.get("settingsForDevice_label")),
 			m("#language", m(DropDownSelector, languageDropDownAttrs)),
 			this._renderThemeSelector(),
