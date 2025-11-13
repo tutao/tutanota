@@ -10,7 +10,7 @@ buildscript {
 	dependencies {
 		// This is what usually referred by as AGP.
 		// Make sure your Android Studio version supports it.
-		classpath 'com.android.tools.build:gradle:8.9.3'
+		classpath libs.android.tools.build.gradle.plugin
 		classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
 		// NOTE: Do not place your application dependencies here; they belong
@@ -24,13 +24,14 @@ plugins {
 	id 'org.mozilla.rust-android-gradle.rust-android' version '0.9.6' apply false
 }
 
-allprojects {
-	repositories {
-		google()
-		mavenCentral()
-	}
-}
-
 tasks.register('clean', Delete) {
 	delete rootProject.layout.buildDirectory
+}
+
+
+// For the device description see build-common/src/main/kotlin/AndroidTestConventionPlugin.kt
+// This task is necessary because it is ambiguous which app flavor to run tests with.
+tasks.register("itest") {
+	description = "Runs Android tests of all modules on a preconfigured virtual device"
+	subprojects { dependsOn("${it.name}:itest") }
 }
