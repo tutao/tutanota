@@ -93,7 +93,7 @@ interface CellAttrs {
 }
 
 export const getSubRowAsMinutes = deepMemoized((timeScale: TimeScale) => {
-	return TIME_SCALE_BASE_VALUE / timeScale / SUBROWS_PER_INTERVAL
+	return getIntervalAsMinutes(timeScale) / SUBROWS_PER_INTERVAL
 })
 
 export const getIntervalAsMinutes = (timeScale: TimeScale) => {
@@ -130,6 +130,10 @@ export const getIntervalAsMinutes = (timeScale: TimeScale) => {
  * ```
  */
 export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttributes> {
+	/**
+	 * We keep track of internal columnCount to be able to position interactable cells behind events
+	 * @private
+	 */
 	private columnCount: Map<number, number> = new Map()
 	private subRowCount?: number
 
@@ -267,9 +271,11 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 
 	/**
 	 * Layout Strategy:
-	 * 1. Sort events by start time (earlier first), then by duration (longer first)
+	 * 1. Convert events to row-based coordinates
 	 * 2. Pack events into columns using a greedy first-fit strategy
 	 * 3. Expand events horizontally to fill available space
+	 *
+	 * **Important:** Relies on events being previously ordered for better results
 	 *
 	 * @param events - Array of event wrappers to layout
 	 * @param timeRange - Visible time range for the calendar view
@@ -299,6 +305,8 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 	/**
 	 * Packs events into columns using a greedy first-fit algorithm.
 	 * Each event is placed in the first available column where it doesn't overlap.
+	 *
+	 * **Important:** Relies on events being previously ordered for better results
 	 *
 	 * @param eventsMap - Map of event IDs to their row bounds
 	 * @returns Array of columns with their contained events

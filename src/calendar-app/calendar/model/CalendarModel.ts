@@ -951,7 +951,9 @@ export class CalendarModel {
 
 	/** process a calendar update retrieved from the server automatically. will not apply updates to event series that do not
 	 *  exist on the server yet (that's being done by calling processCalendarEventMessage manually)
-	 * public for testing */
+	 *
+	 * @VisibleForTesting
+	 */
 	async processCalendarData(sender: string, calendarData: ParsedCalendarData): Promise<void> {
 		if (calendarData.contents.length === 0) {
 			console.log(TAG, `Calendar update with no events, ignoring`)

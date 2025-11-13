@@ -38,7 +38,7 @@ import {
 import type { CalendarInfo } from "../../../src/calendar-app/calendar/model/CalendarModel"
 import { Recipient, RecipientType } from "../../../src/common/api/common/recipients/Recipient.js"
 import { DateTime } from "luxon"
-import { createTestEntity, makeEventWrapper } from "../TestUtils.js"
+import { createTestEntity } from "../TestUtils.js"
 import { matchers, object, when } from "testdouble"
 import { AlarmScheduler } from "../../../src/common/calendar/date/AlarmScheduler.js"
 import { CalendarType } from "../../../src/common/calendar/date/CalendarUtils"
@@ -319,6 +319,14 @@ export function makeCalendarInfo(id: string, isOwner: boolean, calendarType: Cal
 
 function id(element: string): IdTuple {
 	return ["list", element]
+}
+
+export function makeEventWrapper(event: CalendarEvent, props?: Partial<EventWrapper>): EventWrapper {
+	return {
+		color: "#FAFAFA",
+		event,
+		...(props != null ? props : {}),
+	}
 }
 
 export function makeEvent(_id: string, startTime: Date, endTime: Date, uid: string = ""): EventWrapper {

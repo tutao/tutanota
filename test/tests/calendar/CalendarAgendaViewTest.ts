@@ -1,8 +1,10 @@
 import o from "@tutao/otest"
 import { CalendarEvent, CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
-import { createTestEntity, makeEventWrapper } from "../TestUtils.js"
+import { createTestEntity } from "../TestUtils.js"
 import { incrementDate } from "@tutao/tutanota-utils"
 import { earliestEventToShowTimeIndicator } from "../../../src/calendar-app/calendar/view/CalendarAgendaView.js"
+
+import { makeEventWrapper } from "./CalendarTestUtils"
 
 o.spec("CalendarAgendaViewTest", function () {
 	o("earliestEventToShowTimeIndicator", () => {

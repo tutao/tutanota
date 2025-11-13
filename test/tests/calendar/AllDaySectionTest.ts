@@ -1,9 +1,11 @@
 import o from "@tutao/otest"
 import { AllDaySection } from "../../../src/common/calendar/gui/AllDaySection"
-import { createTestEntity, makeEventWrapper } from "../TestUtils"
+import { createTestEntity } from "../TestUtils"
 import { CalendarEvent, CalendarEventTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { getAllDayDateUTCFromZone, getTimeZone } from "../../../src/common/calendar/date/CalendarUtils"
 import { ColumnBounds } from "../../../src/common/calendar/gui/CalendarTimeGrid"
+
+import { makeEventWrapper } from "./CalendarTestUtils"
 
 o.spec("AllDaySection", function () {
 	const BASE_YEAR = 2025
@@ -26,7 +28,7 @@ o.spec("AllDaySection", function () {
 		})
 	}
 
-	const createEventStub = (id: string, startDate: Date, endDate: Date): CalendarEvent => {
+	const createMultidayEventStub = (id: string, startDate: Date, endDate: Date): CalendarEvent => {
 		return createTestEntity(CalendarEventTypeRef, {
 			_id: ["short-events-list", id],
 			startTime: startDate,
@@ -36,14 +38,23 @@ o.spec("AllDaySection", function () {
 	}
 
 	// Helper to create dates more easily using day offsets
-	const makeDate = (year: number, month: number, day: number, hour = 0, minute = 0): Date => {
-		return new Date(year, month, day, hour, minute)
+	const makeDate = (day: number, hour = 0, minute = 0): Date => {
+		return new Date(BASE_YEAR, BASE_MONTH, day, hour, minute)
+	}
+
+	const createEventsMapWithBounds = (eventWrappers: Array<any>) => {
+		return new Map(
+			eventWrappers.map((wrapper) => {
+				const bounds = AllDaySection.getColumnBounds(wrapper.event, dates)
+				return [wrapper, bounds]
+			}),
+		)
 	}
 
 	o.spec("getColumnBounds", function () {
 		o.spec("All day events", function () {
 			o.test("Single day event", function () {
-				const event = createAllDayEventStub("single-day", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 7))
+				const event = createAllDayEventStub("single-day", makeDate(6), makeDate(7))
 
 				const bounds = AllDaySection.getColumnBounds(event, dates)
 
@@ -52,7 +63,7 @@ o.spec("AllDaySection", function () {
 
 			o.spec("Multi day events", function () {
 				o.test("Spans two consecutive days", function () {
-					const event = createAllDayEventStub("two-days", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 8))
+					const event = createAllDayEventStub("two-days", makeDate(6), makeDate(8))
 
 					const bounds = AllDaySection.getColumnBounds(event, dates)
 
@@ -60,7 +71,7 @@ o.spec("AllDaySection", function () {
 				})
 
 				o.test("Spans entire date range", function () {
-					const event = createAllDayEventStub("full-range", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 11))
+					const event = createAllDayEventStub("full-range", makeDate(6), makeDate(11))
 
 					const bounds = AllDaySection.getColumnBounds(event, dates)
 
@@ -68,41 +79,38 @@ o.spec("AllDaySection", function () {
 				})
 
 				o.test("Event starts before visible range", function () {
-					const event = createAllDayEventStub("starts-before", makeDate(BASE_YEAR, BASE_MONTH, 5), makeDate(BASE_YEAR, BASE_MONTH, 8))
+					const event = createAllDayEventStub("starts-before", makeDate(5), makeDate(8))
 
 					const bounds = AllDaySection.getColumnBounds(event, dates)
 
-					// Should be clamped to start of range, showing only visible portion
-					o(bounds).deepEquals({ start: 1, span: 2 })
+					o(bounds).deepEquals({ start: 1, span: 2 })("Should be clamped to start of range, showing only visible portion")
 				})
 
 				o.test("Event ends after visible range", function () {
 					const event = createAllDayEventStub(
 						"ends-after",
-						makeDate(BASE_YEAR, BASE_MONTH, 7), // Second day in range
-						makeDate(BASE_YEAR, BASE_MONTH, 15),
+						makeDate(7), // Second day in range
+						makeDate(15),
 					)
 
 					const bounds = AllDaySection.getColumnBounds(event, dates)
 
-					// Should span from day 2 to end of range
-					o(bounds).deepEquals({ start: 2, span: dates.length - 1 })
+					o(bounds).deepEquals({ start: 2, span: dates.length - 1 })("Should span from day 2 to end of range")
 				})
 
 				o.test("Event spans beyond both ends of range", function () {
-					const event = createAllDayEventStub("spans-through", makeDate(BASE_YEAR, BASE_MONTH, 5), makeDate(BASE_YEAR, BASE_MONTH, 15))
+					const event = createAllDayEventStub("spans-through", makeDate(5), makeDate(15))
 
 					const bounds = AllDaySection.getColumnBounds(event, dates)
 
-					// Should fill entire visible range
-					o(bounds).deepEquals({ start: 1, span: dates.length })
+					o(bounds).deepEquals({ start: 1, span: dates.length })("Should fill entire visible range")
 				})
 			})
 		})
 
 		o.spec("Timed multi-day events", function () {
 			o.test("Event exactly 24 hours long", function () {
-				const event = createEventStub("24hrs", makeDate(BASE_YEAR, BASE_MONTH, 6, 11, 0), makeDate(BASE_YEAR, BASE_MONTH, 7, 11, 0))
+				const event = createMultidayEventStub("24hrs", makeDate(6, 11, 0), makeDate(7, 11, 0))
 
 				const bounds = AllDaySection.getColumnBounds(event, dates)
 
@@ -110,7 +118,7 @@ o.spec("AllDaySection", function () {
 			})
 
 			o.test("Event longer than 24 hours spanning two days", function () {
-				const event = createEventStub("28hrs", makeDate(BASE_YEAR, BASE_MONTH, 6, 11, 0), makeDate(BASE_YEAR, BASE_MONTH, 7, 15, 0))
+				const event = createMultidayEventStub("28hrs", makeDate(6, 11, 0), makeDate(7, 15, 0))
 
 				const bounds = AllDaySection.getColumnBounds(event, dates)
 
@@ -118,7 +126,7 @@ o.spec("AllDaySection", function () {
 			})
 
 			o.test("Event spanning three calendar days", function () {
-				const event = createEventStub("48hrs", makeDate(BASE_YEAR, BASE_MONTH, 6, 11, 0), makeDate(BASE_YEAR, BASE_MONTH, 8, 11, 0))
+				const event = createMultidayEventStub("48hrs", makeDate(6, 11, 0), makeDate(8, 11, 0))
 
 				const bounds = AllDaySection.getColumnBounds(event, dates)
 
@@ -126,7 +134,7 @@ o.spec("AllDaySection", function () {
 			})
 
 			o.test("Event starts before range, ends on first day", function () {
-				const event = createEventStub("starts-before-timed", makeDate(BASE_YEAR, BASE_MONTH, 4, 11, 0), makeDate(BASE_YEAR, BASE_MONTH, 6, 11, 0))
+				const event = createMultidayEventStub("starts-before-range", makeDate(4, 11, 0), makeDate(6, 11, 0))
 
 				const bounds = AllDaySection.getColumnBounds(event, dates)
 
@@ -143,15 +151,10 @@ o.spec("AllDaySection", function () {
 		})
 
 		o.test("Overlapping events on same day occupy separate rows", function () {
-			const evA = makeEventWrapper(createAllDayEventStub("evA", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 7)))
-			const evB = makeEventWrapper(createAllDayEventStub("evB", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 7)))
+			const evA = makeEventWrapper(createAllDayEventStub("evA", makeDate(6), makeDate(7)))
+			const evB = makeEventWrapper(createAllDayEventStub("evB", makeDate(6), makeDate(7)))
 			const events = [evA, evB]
-			const eventsMap = new Map(
-				events.map((wrapper) => {
-					const bounds = AllDaySection.getColumnBounds(wrapper.event, dates)
-					return [wrapper, bounds]
-				}),
-			)
+			const eventsMap = createEventsMapWithBounds(events)
 
 			const rows = AllDaySection.packEventsIntoRows(eventsMap)
 
@@ -168,16 +171,37 @@ o.spec("AllDaySection", function () {
 			])
 		})
 
+		o.test("Three events all overlapping should create three rows", function () {
+			const evA = makeEventWrapper(createAllDayEventStub("evA", makeDate(6), makeDate(7)))
+			const evB = makeEventWrapper(createAllDayEventStub("evB", makeDate(6), makeDate(7)))
+			const evC = makeEventWrapper(createAllDayEventStub("evC", makeDate(6), makeDate(7)))
+			const events = [evA, evB, evC]
+			const eventsMap = createEventsMapWithBounds(events)
+
+			const rows = AllDaySection.packEventsIntoRows(eventsMap)
+
+			o(rows.length).equals(3)
+			o(rows).deepEquals([
+				{
+					lastOccupiedColumn: 2,
+					events: new Map([[evA, eventsMap.get(evA)!]]),
+				},
+				{
+					lastOccupiedColumn: 2,
+					events: new Map([[evB, eventsMap.get(evB)!]]),
+				},
+				{
+					lastOccupiedColumn: 2,
+					events: new Map([[evC, eventsMap.get(evC)!]]),
+				},
+			])
+		})
+
 		o.test("Non-overlapping events share the same row", function () {
-			const evA = makeEventWrapper(createAllDayEventStub("evA", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 7)))
-			const evB = makeEventWrapper(createAllDayEventStub("evB", makeDate(BASE_YEAR, BASE_MONTH, 7), makeDate(BASE_YEAR, BASE_MONTH, 8)))
+			const evA = makeEventWrapper(createAllDayEventStub("evA", makeDate(6), makeDate(7)))
+			const evB = makeEventWrapper(createAllDayEventStub("evB", makeDate(7), makeDate(8)))
 			const events = [evA, evB]
-			const eventsMap = new Map(
-				events.map((wrapper) => {
-					const bounds = AllDaySection.getColumnBounds(wrapper.event, dates)
-					return [wrapper, bounds]
-				}),
-			)
+			const eventsMap = createEventsMapWithBounds(events)
 
 			const rows = AllDaySection.packEventsIntoRows(eventsMap)
 
@@ -192,19 +216,14 @@ o.spec("AllDaySection", function () {
 
 		o.test("Complex scenario: multiple overlaps and gaps", function () {
 			// Event A: spans days 1-2
-			const evA = makeEventWrapper(createAllDayEventStub("evA", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 8)))
+			const evA = makeEventWrapper(createAllDayEventStub("evA", makeDate(6), makeDate(8)))
 			// Event B: overlaps with A on day 1
-			const evB = makeEventWrapper(createAllDayEventStub("evB", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 7)))
+			const evB = makeEventWrapper(createAllDayEventStub("evB", makeDate(6), makeDate(7)))
 			// Event C: starts on day 3 (no overlap with A or B)
-			const evC = makeEventWrapper(createAllDayEventStub("evC", makeDate(BASE_YEAR, BASE_MONTH, 8), makeDate(BASE_YEAR, BASE_MONTH, 9)))
+			const evC = makeEventWrapper(createAllDayEventStub("evC", makeDate(8), makeDate(9)))
 
 			const events = [evA, evB, evC]
-			const eventsMap = new Map(
-				events.map((wrapper) => {
-					const bounds = AllDaySection.getColumnBounds(wrapper.event, dates)
-					return [wrapper, bounds]
-				}),
-			)
+			const eventsMap = createEventsMapWithBounds(events)
 
 			const rows = AllDaySection.packEventsIntoRows(eventsMap)
 
@@ -221,7 +240,7 @@ o.spec("AllDaySection", function () {
 		})
 
 		o.test("Layout single event", function () {
-			const event = createAllDayEventStub("single", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 7))
+			const event = createAllDayEventStub("single", makeDate(6), makeDate(7))
 			const wrapper = makeEventWrapper(event)
 
 			const rows = AllDaySection.layoutEvents([wrapper], dates)
@@ -232,8 +251,8 @@ o.spec("AllDaySection", function () {
 		})
 
 		o.test("Layout multiple non-overlapping events", function () {
-			const ev1 = makeEventWrapper(createAllDayEventStub("ev1", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 7)))
-			const ev2 = makeEventWrapper(createAllDayEventStub("ev2", makeDate(BASE_YEAR, BASE_MONTH, 8), makeDate(BASE_YEAR, BASE_MONTH, 9)))
+			const ev1 = makeEventWrapper(createAllDayEventStub("ev1", makeDate(6), makeDate(7)))
+			const ev2 = makeEventWrapper(createAllDayEventStub("ev2", makeDate(8), makeDate(9)))
 
 			const rows = AllDaySection.layoutEvents([ev1, ev2], dates)
 
@@ -243,12 +262,12 @@ o.spec("AllDaySection", function () {
 		})
 
 		o.test("Layout overlapping events requiring multiple rows", function () {
-			const ev1 = makeEventWrapper(createAllDayEventStub("ev1", makeDate(BASE_YEAR, BASE_MONTH, 6), makeDate(BASE_YEAR, BASE_MONTH, 8)))
+			const ev1 = makeEventWrapper(createAllDayEventStub("ev1", makeDate(6), makeDate(8)))
 			const ev1Bounds: ColumnBounds = {
 				start: 1,
 				span: 2,
 			}
-			const ev2 = makeEventWrapper(createAllDayEventStub("ev2", makeDate(BASE_YEAR, BASE_MONTH, 7), makeDate(BASE_YEAR, BASE_MONTH, 9)))
+			const ev2 = makeEventWrapper(createAllDayEventStub("ev2", makeDate(7), makeDate(9)))
 			const ev2Bounds: ColumnBounds = {
 				start: 2,
 				span: 2,
