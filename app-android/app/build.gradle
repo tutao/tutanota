@@ -3,6 +3,7 @@ plugins {
 	id 'kotlin-android'
 	id 'org.jetbrains.kotlin.plugin.serialization' version '2.2.20'
 	id 'com.google.devtools.ksp'
+	alias(libs.plugins.tutao.testconvention)
 }
 
 group = "de.tutao"
@@ -119,6 +120,9 @@ tasks.withType(Test).configureEach {
 	}
 }
 
+tasks.register("itest") {
+	dependsOn("testDeviceFdroidDebugAndroidTest")
+}
 
 dependencies {
 	def room_version = '2.6.1'

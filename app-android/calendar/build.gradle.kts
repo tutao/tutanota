@@ -7,6 +7,7 @@ plugins {
 	id("kotlin-kapt")
 	id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
 	id("org.jetbrains.kotlin.plugin.compose") version "2.2.20" // this version matches the Kotlin version
+	alias(libs.plugins.tutao.testconvention)
 }
 
 group = "de.tutao"
@@ -155,7 +156,12 @@ android {
 			assets.srcDirs(files("$projectDir/schemas"))
 		}
 	}
+
 	ndkVersion = "28.2.13676358"
+}
+
+tasks.register("itest") {
+	dependsOn("testDeviceFdroidDebugAndroidTest")
 }
 
 dependencies {
