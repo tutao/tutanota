@@ -212,11 +212,13 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 
 		return m(
 			".mlr-safe-inset",
+			{
+				key: elementIdPart(mailViewerViewModel.mail.conversationEntry),
+			},
 			m(
 				".border-radius-big.rel",
 				{
 					class: responsiveCardHMargin(),
-					key: elementIdPart(mailViewerViewModel.mail.conversationEntry),
 					style: {
 						backgroundColor: theme.surface,
 						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
