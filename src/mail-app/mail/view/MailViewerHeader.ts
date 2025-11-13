@@ -908,6 +908,20 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					actionButtons.push(deleteOrTrashButton)
 				}
 
+				if (viewModel.isUnread()) {
+					actionButtons.push({
+						label: "markRead_action",
+						click: () => viewModel.setUnread(false),
+						icon: Icons.Eye,
+					})
+				} else {
+					actionButtons.push({
+						label: "markUnread_action",
+						click: () => viewModel.setUnread(true),
+						icon: Icons.NoEye,
+					})
+				}
+
 				if (viewModel.isDraftMail()) {
 					addToggleLightModeButtonAttrs(viewModel, actionButtons)
 				} else {

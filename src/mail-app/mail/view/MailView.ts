@@ -70,7 +70,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../common/gui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "./MailViewerUtils.js"
-import { isDraft, isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
+import { isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { SidebarSectionRow } from "../../../common/gui/base/SidebarSectionRow"
 import { attachDropdown, PosRect } from "../../../common/gui/base/Dropdown"
@@ -627,7 +627,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		//  mark the drafts. So maybe we either ignore draft when marking a conversation or just allow it everywhere.
 		// ↓ Old check ↓
 		// if (isEmpty(actionableMails) || (actionableMails.length === 1 && isDraft(getFirstOrThrow(actionableMails)))) {
-		if (actionableMails.every(isDraft)) {
+		if (isEmpty(actionableMails)) {
 			return null
 		} else {
 			return async (unread: boolean) => {
