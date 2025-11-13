@@ -144,7 +144,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 	}
 	const phoneButtonColors = {
 		borderColor: theme.on_surface_variant,
-		color: theme.on_surface_variant,
+		color: theme.on_surface,
 	}
 
 	const singleEmailAdress = contact.mailAddresses.length === 1

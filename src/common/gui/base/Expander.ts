@@ -62,7 +62,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 						`${a.isBig ? "span" : "small"}`,
 						{
 							style: {
-								color: a.color || theme.on_surface_variant,
+								color: a.color || theme.on_surface,
 							},
 						},
 						a.isUnformattedLabel ? label : label.toUpperCase(),
