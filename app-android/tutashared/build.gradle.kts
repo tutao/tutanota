@@ -7,6 +7,7 @@ plugins {
 	id("com.google.devtools.ksp")
 	id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
 	id("kotlin-android")
+	alias(libs.plugins.tutao.testconvention)
 }
 
 group = "de.tutao"
@@ -126,6 +127,10 @@ tasks.whenTaskAdded {
 			mustRunAfter("cargoBuild")
 		}
 	}
+}
+
+tasks.register("itest") {
+	dependsOn("testDeviceDebugAndroidTest")
 }
 
 dependencies {

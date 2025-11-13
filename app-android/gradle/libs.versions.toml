@@ -1,0 +1,10 @@
+[versions]
+androidGradlePlugin = "8.12.3"
+kotlin = "1.8.10"
+
+[libraries]
+android-tools-build-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+
+[plugins]
+tutao-testconvention = { id = "de.tutao.testconvention", version = "unspecified"}
