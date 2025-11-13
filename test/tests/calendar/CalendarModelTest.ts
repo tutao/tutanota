@@ -1,9 +1,11 @@
 import o from "@tutao/otest"
-import type { CalendarEvent, CalendarGroupRoot } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
+	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
+	CalendarEventsRefTypeRef,
 	CalendarEventTypeRef,
 	CalendarEventUpdateTypeRef,
+	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
 	EncryptedMailAddressTypeRef,
 	FileTypeRef,
@@ -303,6 +305,7 @@ o.spec("CalendarModel", function () {
 				_id: "groupRootId",
 				longEvents: "longEvents",
 				shortEvents: "shortEvents",
+				pendingEvents: createTestEntity(CalendarEventsRefTypeRef, { list: "pendingEvents" }),
 			})
 			restClientMock = new EntityRestClientMock()
 			restClientMock.addElementInstances(groupRoot)

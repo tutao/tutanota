@@ -112,10 +112,7 @@ export class Time {
 	 */
 	toDate(baseDate?: Date): Date {
 		const date = baseDate ? new Date(baseDate) : new Date()
-		date.setHours(this._hour)
-		date.setMinutes(this._minute)
-		date.setSeconds(0)
-		date.setMilliseconds(0)
+		date.setHours(this._hour, this._minute)
 		return date
 	}
 

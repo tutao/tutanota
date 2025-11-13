@@ -119,6 +119,8 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 	}
 
 	/**
+	 * **Important:** Relies on events being previously ordered for better results
+	 *
 	 * @param orderedEvents
 	 * @param dates
 	 *
@@ -139,6 +141,8 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 	/**
 	 * Packs events into columns using a greedy first-fit algorithm.
 	 * Each event is placed in the first available column where it doesn't overlap.
+	 *
+	 * **Important:** Relies on events being previously ordered for better results
 	 *
 	 * @param eventsMap - Map of events to their row bounds
 	 * @returns Array of columns with their contained events
