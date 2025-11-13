@@ -54,9 +54,9 @@ import {
 import { clone, getStartOfDay, identity, lastThrow, neverNull } from "@tutao/tutanota-utils"
 import { replace } from "testdouble"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/common/api/worker/facades/lazy/CalendarFacade.js"
-import { getDateInUTC, getDateInZone, makeUserController } from "./CalendarTestUtils.js"
+import { getDateInUTC, getDateInZone, makeEventWrapper, makeUserController } from "./CalendarTestUtils.js"
 import { ParserError } from "../../../src/common/misc/parsing/ParserCombinator.js"
-import { createTestEntity, makeEventWrapper } from "../TestUtils.js"
+import { createTestEntity } from "../TestUtils.js"
 
 import { getCalendarMonth, getEventType } from "../../../src/calendar-app/calendar/gui/CalendarGuiUtils.js"
 import { EventType } from "../../../src/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
