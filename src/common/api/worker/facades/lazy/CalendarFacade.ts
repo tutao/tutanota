@@ -62,7 +62,6 @@ import {
 	generateCalendarInstancesInRange,
 	hasAlarmsForTheUser,
 	isBirthdayCalendar,
-	isLongEvent,
 } from "../../../../calendar/date/CalendarUtils.js"
 import { CalendarInfo } from "../../../../../calendar-app/calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
@@ -172,22 +171,23 @@ export class CalendarFacade {
 				},
 				color,
 			}))
-			const pendingEvents: Array<EventWrapper> = pendingEventsResult.map((e) => ({
-				event: e,
-				flags: {
-					isGhost: true,
-				},
-				color,
-			}))
+			// TODO [PendingEvents and GhostBubbles] Temporarily deactivated until further development
+			// const pendingEvents: Array<EventWrapper> = pendingEventsResult.map((e) => ({
+			// 	event: e,
+			// 	flags: {
+			// 		isGhost: true,
+			// 	},
+			// 	color,
+			// }))
 
-			for (const ev of pendingEvents) {
-				const isLongEvents = isLongEvent(ev.event, zone)
-				if (isLongEvents) {
-					longEvents.push(ev)
-				} else {
-					shortEvents.push(ev)
-				}
-			}
+			// for (const ev of pendingEvents) {
+			// 	const isLongEvents = isLongEvent(ev.event, zone)
+			// 	if (isLongEvents) {
+			// 		longEvents.push(ev)
+			// 	} else {
+			// 		shortEvents.push(ev)
+			// 	}
+			// }
 
 			calendars.push({
 				short: shortEvents,

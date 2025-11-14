@@ -5,6 +5,7 @@ import { TimeRange } from "./CalendarTimeGrid"
 import { deepMemoized } from "@tutao/tutanota-utils"
 
 export interface TimeIndicatorAttrs {
+	time?: Time
 	/** Absolute positioning configuration for grid placement */
 	position?: {
 		dayHeight: number
@@ -25,8 +26,20 @@ export interface TimeIndicatorAttrs {
  */
 export class TimeIndicator implements ClassComponent<TimeIndicatorAttrs> {
 	private getPositions = deepMemoized((time: Time, positionConfig: NonNullable<TimeIndicatorAttrs["position"]>) => {
-		const yPosition = (time.asMinutes() * positionConfig.dayHeight) / (positionConfig.timeRange.end.asMinutes() + positionConfig.interval)
-		const xPosition = (positionConfig.leftOffset ?? 0) + (positionConfig.areaWidth / positionConfig.numberOfDatesInRange) * positionConfig.datePosition
+		const startMinutes = positionConfig.timeRange.start.asMinutes()
+		const endPlusInterval = positionConfig.timeRange.end.asMinutes() + Math.max(0, positionConfig.interval)
+
+		const totalMinutes = Math.max(1, endPlusInterval - startMinutes)
+		const minutesSinceStart = time.asMinutes() - startMinutes
+
+		const rawY = (minutesSinceStart * positionConfig.dayHeight) / totalMinutes
+		const yPosition = Math.min(Math.max(rawY, 0), positionConfig.dayHeight) // clamp to [0, dayHeight]
+
+		const leftOffset = positionConfig.leftOffset ?? 0
+		const slots = Math.max(1, positionConfig.numberOfDatesInRange)
+		const slotWidth = positionConfig.areaWidth / slots
+		const xPosition = leftOffset + slotWidth * positionConfig.datePosition
+
 		return { xPosition, yPosition }
 	})
 
@@ -36,7 +49,7 @@ export class TimeIndicator implements ClassComponent<TimeIndicatorAttrs> {
 		}
 
 		if (attrs.position) {
-			const time = Time.fromDate(new Date())
+			const time = attrs.time ?? Time.fromDate(new Date())
 			const { xPosition, yPosition } = this.getPositions(time, attrs.position)
 			Object.assign(style, {
 				position: "absolute",

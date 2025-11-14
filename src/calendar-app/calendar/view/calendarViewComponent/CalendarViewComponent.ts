@@ -253,6 +253,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						timeRange: this.viewConfig.timeRange,
 						timeScale: this.viewConfig.timeScale,
 						width: timeColumnWidth,
+						height: size.calendar_hour_height,
 						onCellPressed: attrs.cellActionHandlers?.onCellPressed,
 					} satisfies TimeColumnAttrs),
 				),
