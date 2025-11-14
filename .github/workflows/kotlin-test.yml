@@ -72,5 +72,6 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
+          arch: x86_64
           working-directory: ./app-android
-          script: ./gradlew :app:connectedFdroidDebugAndroidTest
+          script: ./gradlew :app:connectedFdroidDebugAndroidTest -PtargetABI=x86_64
