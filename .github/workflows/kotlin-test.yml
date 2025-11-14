@@ -72,4 +72,5 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
+          working-directory: ./app-android
           script: ./gradlew :app:connectedFdroidDebugAndroidTest
