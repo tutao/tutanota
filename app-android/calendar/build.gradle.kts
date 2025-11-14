@@ -1,5 +1,5 @@
 import com.android.build.gradle.internal.tasks.FinalizeBundleTask
-import org.gradle.configurationcache.extensions.capitalized
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
 	id("com.android.application")
@@ -138,13 +138,9 @@ android {
 		targetCompatibility = JavaVersion.VERSION_17
 	}
 
-	kotlinOptions {
-		jvmTarget = "17"
-	}
-
-	packagingOptions {
+	packaging {
 		resources {
-			this.excludes.addAll(listOf("META-INF/LICENSE", "META-INF/ASL2.0"))
+			this.excludes += listOf("META-INF/LICENSE", "META-INF/ASL2.0")
 		}
 	}
 
@@ -161,16 +157,19 @@ android {
 	ndkVersion = "28.2.13676358"
 }
 
+kotlin {
+	compilerOptions {
+		jvmTarget = JvmTarget.JVM_17
+	}
+}
+
+
 tasks.register("itest") {
 	dependsOn("testDeviceFdroidDebugAndroidTest")
 }
 
 dependencies {
 	implementation(libs.androidx.appcompat)
-	val room_version = "2.8.0"
-	val lifecycle_version = "2.9.4"
-	val activity_version = "1.11.0"
-	val coroutines_version = "1.10.2"
 
 	implementation(libs.tutasdk)
 	implementation(project(":tutashared"))
@@ -263,3 +262,5 @@ dependencies {
 	implementation(libs.androidx.glance.appwidget.preview)
 	implementation(libs.androidx.glance.preview)
 }
+
+private fun String.capitalized() = replaceFirstChar { it.uppercaseChar() }
