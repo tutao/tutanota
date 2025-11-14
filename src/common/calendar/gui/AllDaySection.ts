@@ -1,6 +1,5 @@
 import m, { ClassComponent, Vnode } from "mithril"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
-import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { ColumnBounds, DEFAULT_EVENT_COLUMN_SPAN_SIZE, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
 import { CalendarEvent } from "../../api/entities/tutanota/TypeRefs"
 import { downcast, getStartOfDay } from "@tutao/tutanota-utils"
@@ -16,6 +15,8 @@ import { getRowDateFromMousePos, getTimeFromMousePos } from "../../../calendar-a
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { Time } from "../date/Time"
+import { DefaultAnimationTime } from "../../gui/animation/Animations"
+import { layout_size, px, size } from "../../gui/size"
 
 /**
  * Internal data structure tracking events within a single row.
@@ -43,16 +44,21 @@ export interface AllDaySectionAttrs {
 
 export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 	private rowCount = 0
+	private bubbleSize = layout_size.calendar_line_height + 4 // 4 = innerPadding
 
 	view({ attrs }: Vnode<AllDaySectionAttrs>) {
+		const sectionGaps = this.rowCount - 1
+		const bottomPadding = size.spacing_4
+
 		return m(
-			".grid.gap.pb-xs",
+			".grid.pb-xs",
 			{
 				style: {
 					gridTemplateColumns: `repeat(${attrs.dates.length}, 1fr)`,
-					gridTemplateRows: `repeat(${this.rowCount}, 1fr)`,
-					transition: `height ${DefaultAnimationTime}ms linear`,
-					height: this.rowCount === 0 ? "0" : "auto", // FIXME After working with bubble make it expand beautifully
+					gridTemplateRows: `repeat(${this.rowCount}, ${px(this.bubbleSize)})`,
+					transition: `${DefaultAnimationTime}ms linear`,
+					height: this.rowCount > 0 ? px(this.rowCount * this.bubbleSize + bottomPadding + sectionGaps) : "0px",
+					gap: "1px",
 				} satisfies Partial<CSSStyleDeclaration>,
 				onmousemove: (mouseEvent: MouseEvent) => {
 					downcast(mouseEvent).redraw = false
@@ -101,6 +107,7 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 						columnOverflowInfo: this.findColumnOverflowInfo(dates, eventWrapper),
 						canReceiveFocus: true,
 						interactions: eventBubbleHandlers,
+						height: this.bubbleSize,
 					} satisfies CalendarEventBubbleAttrs,
 					eventWrapper.event.summary,
 				)

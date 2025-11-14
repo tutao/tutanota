@@ -1,5 +1,5 @@
 import m, { Child, ClassComponent, Vnode } from "mithril"
-import { clone, deepMemoized, noOp } from "@tutao/tutanota-utils"
+import { clone, deepMemoized } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
 import { CellActionHandler, getIntervalAsMinutes, TimeRange, TimeScale } from "./CalendarTimeGrid"
 import { layout_size, px } from "../../gui/size"
@@ -10,6 +10,8 @@ export interface TimeColumnAttrs {
 	timeScale: TimeScale
 	timeRange: TimeRange
 	width: number
+	height: number
+	hideLastBorder?: true
 	baseDate?: Date
 	onCellPressed?: CellActionHandler
 }
@@ -19,7 +21,7 @@ const TIME_CELL_ID_PREFIX = "time-cell-"
 export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
 	view({ attrs }: Vnode<TimeColumnAttrs>) {
 		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(attrs.timeScale, attrs.timeRange)
-		return this.buildTimeColumn(attrs.baseDate ?? new Date(), timeColumnIntervals, attrs.width, attrs.onCellPressed ?? noOp)
+		return this.buildTimeColumn(attrs.baseDate ?? new Date(), timeColumnIntervals, attrs.width, attrs.height, attrs.onCellPressed, attrs.hideLastBorder)
 	}
 
 	static getTimeCellId(hour: number): string {
@@ -40,38 +42,44 @@ export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
 		return timeKeys
 	}
 
-	private buildTimeColumn = deepMemoized((baseDate: Date, times: Array<string>, width: number, onCellPressed: CellActionHandler): Child => {
-		return m(
-			".grid",
-			{
-				style: {
-					"grid-template-rows": `repeat(${times.length}, 1fr)`,
-					width: px(width),
-				},
-			},
-			times.map((time, index) => {
-				const parsedTime = Time.parseFromString(time)?.toDate() ?? new Time(0, 0).toDate()
-				const timeStr = styles.isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
-				return m(
-					".rel.after-as-border-bottom",
-					{
-						id: TimeColumn.getTimeCellId(parsedTime.getHours()),
+	private buildTimeColumn = deepMemoized(
+		(baseDate: Date, times: Array<string>, width: number, height: number, onCellPressed?: CellActionHandler, hideLastBorder?: true): Child => {
+			return m(
+				".grid",
+				{
+					style: {
+						gridTemplateRows: `repeat(${times.length}, 1fr)`,
+						gridTemplateColumns: px(width),
 					},
-					m(
-						".flex.small.border-right.rel.justify-center.items-center.interactable-cell.cursor-pointer",
+				},
+				times.map((time, index) => {
+					const parsedTime = Time.parseFromString(time)?.toDate() ?? new Time(0, 0).toDate()
+					const timeStr = styles.isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
+					return m(
+						".rel.width-full",
 						{
-							style: {
-								height: px(layout_size.calendar_hour_height),
-							},
-							onclick: (e: MouseEvent) => {
-								e.stopImmediatePropagation()
-								onCellPressed(baseDate, Time.parseFromString(time) ?? new Time(0, 0))
-							},
+							class: index === times.length - 1 && hideLastBorder ? "" : "after-as-border-bottom",
+							id: TimeColumn.getTimeCellId(parsedTime.getHours()),
 						},
-						timeStr,
-					),
-				)
-			}),
-		)
-	})
+						m(
+							".flex.small.border-right.rel.justify-center.items-center",
+							{
+								class: onCellPressed ? "interactable-cell" : "",
+								style: {
+								height: px(layout_size.calendar_hour_height),
+								},
+								onclick: onCellPressed
+									? (e: MouseEvent) => {
+											e.stopImmediatePropagation()
+											onCellPressed(baseDate, Time.parseFromString(time) ?? new Time(0, 0))
+										}
+									: undefined,
+							},
+							timeStr,
+						),
+					)
+				}),
+			)
+		},
+	)
 }

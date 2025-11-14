@@ -30,6 +30,7 @@ export interface CalendarTimeGridAttributes {
 	cellActionHandlers?: Pick<CellAttrs, "onCellPressed" | "onCellContextMenuPressed">
 	eventBubbleHandlers?: EventBubbleInteractions & CalendarEventBubbleDragProperties
 	canReceiveFocus: boolean
+	hideRightBorder?: true
 }
 
 /**
@@ -157,7 +158,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 	}
 
 	private renderDay(date: Date, subRowCount: number, timeViewAttrs: CalendarTimeGridAttributes): Child {
-		const { events: eventWrappers, timeScale, timeRange, cellActionHandlers, eventBubbleHandlers, canReceiveFocus } = timeViewAttrs
+		const { events: eventWrappers, timeScale, timeRange, cellActionHandlers, eventBubbleHandlers, canReceiveFocus, hideRightBorder } = timeViewAttrs
 		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
 		const startOfTomorrow = getStartOfNextDay(date)
 		const startOfDay = getStartOfDay(date)
@@ -166,8 +167,9 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 		)
 
 		return m(
-			".grid.z1.grid-auto-columns.rel.border-right.min-width-0",
+			".grid.z1.grid-auto-columns.rel.min-width-0",
 			{
+				class: hideRightBorder ? "" : "border-right",
 				oncreate: (vnode) => {
 					;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 				},
@@ -480,7 +482,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 
 	private renderCell(cellAttrs: CellAttrs): Child {
 		const showHoverEffect = cellAttrs.onCellPressed || cellAttrs.onCellContextMenuPressed
-		const classes = showHoverEffect ? "interactable-cell cursor-pointer after-as-border-bottom" : ""
+		const classes = showHoverEffect ? "interactable-cell after-as-border-bottom" : ""
 
 		return m(".z1", {
 			class: classes,
