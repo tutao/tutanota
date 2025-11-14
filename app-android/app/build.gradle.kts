@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
 	id("com.android.application")
@@ -31,7 +32,7 @@ android {
 	}
 	signingConfigs {
 		create("release") {
-			// Provide non-empty placeholders because otherwise configuration will braek even in debug.
+			// Provide non-empty placeholders because otherwise configuration will break even in debug.
 			// for local dev builds, you can use the keystore that's deployed automatically to dev systems.
 			storeFile = file(System.getenv("APK_SIGN_STORE") ?: "EMPTY")
 			storePassword = System.getenv("APK_SIGN_STORE_PASS") ?: "EMPTY"
@@ -110,10 +111,6 @@ android {
 		targetCompatibility = JavaVersion.VERSION_17
 	}
 
-	kotlinOptions {
-		jvmTarget = "17"
-	}
-
 	packaging {
 		resources {
 			excludes += listOf("META-INF/LICENSE", "META-INF/ASL2.0")
@@ -124,6 +121,12 @@ android {
 		this.disable.add("MissingTranslation")
 	}
 	ndkVersion = "28.2.13676358"
+}
+
+kotlin {
+	compilerOptions {
+		jvmTarget = JvmTarget.JVM_17
+	}
 }
 
 tasks.withType<Test>().configureEach {
@@ -139,11 +142,6 @@ tasks.register("itest") {
 }
 
 dependencies {
-	val room_version = "2.6.1"
-	val lifecycle_version = "2.8.3"
-	val activity_version = "1.9.0"
-	val coroutines_version = "1.8.1"
-
 	implementation(libs.tutasdk)
 	implementation(project(":tutashared"))
 
