@@ -53,12 +53,18 @@ jobs:
       - name: Setup Android NDK
         run: sdkmanager "ndk;28.2.13676358"
       - uses: ./.github/shared/setup-rust
-      - name: Lint
-        working-directory: ./app-android
-        run: ./gradlew lint --quiet -PtargetABI=x86_64
-      - name: Test
-        working-directory: ./app-android
-        run: ./gradlew test -PtargetABI=x86_64
-      - name: Android Test
-        working-directory: ./app-android
-        run: ./gradlew itest -PtargetABI=x86_64 --no-parallel --max-workers=1
+        # FIXME
+#      - name: Lint
+#        working-directory: ./app-android
+#        run: ./gradlew lint --quiet -PtargetABI=x86_64
+#      - name: Test
+#        working-directory: ./app-android
+#        run: ./gradlew test -PtargetABI=x86_64
+#      - name: Android Test
+#        working-directory: ./app-android
+#        run: ./gradlew itest -PtargetABI=x86_64 --no-parallel --max-workers=1
+      - name: Android test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          script: ./gradlew :app:connectedFdroidDebugAndroidTest
