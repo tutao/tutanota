@@ -1,0 +1,64 @@
+name: Bug Report (webapp)
+description: File a bug report for the issue in browser.
+labels: ["bug"]
+type: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: checkboxes
+    id: notafeature
+    attributes:
+      label: Pre-checks
+      options:
+        - label: This is not a feature request. Existing functionality does not work as intended, **not** missing
+            functionality. I will request features via [discussions](https://github.com/tutao/tutanota/discussions/),
+            [reddit](https://www.reddit.com/r/tutanota/) or [support](https://tuta.com/support)
+          required: true
+        - label: I've searched and did not find a similar issue.
+          required: true
+        - label: My report does not have personal or private information like email address or recovery code
+          required: true
+  - type: input
+    attributes:
+      label: App version
+      description: Can be found on the bottom of the login screen or in the bottom left corner of Settings -> About
+      placeholder: "123.456789.10"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Browser
+      placeholder: "Chromium, Firefox, Safari etc"
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Browser version
+      placeholder: "123.456789.10"
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Operating System
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - other
+      default: 0
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: What steps you took and what you expected to happen?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Other context
+      description: Any other useful information e.g. your OS version
+    validations:
+      required: false
