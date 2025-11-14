@@ -41,6 +41,8 @@ import { SessionType } from "../common/api/common/SessionType.js"
 import { UndoModel } from "./UndoModel"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { FeatureType } from "../common/api/common/TutanotaConstants"
+import { SignupFlowUsageTestController } from "../common/subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
+import { SignupView, SignupViewAttrs } from "../common/login/SignupView"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -552,37 +554,60 @@ import("./translations/en.js")
 			 * to the login page without having to deal with a ton of conditional logic in the LoginViewModel and to avoid some of the default
 			 * behaviour of resolvers created with createViewResolver(), e.g. caching.
 			 */
-			signup: {
-				async onmatch() {
-					const { showSignupDialog } = await import("../common/misc/LoginUtils.js")
+			// FIXME: Add usage test for new / old signup flow
+			signup:
+				SignupFlowUsageTestController.getUsageTestVariant() === 1
+					? {
+							async onmatch() {
+								const { showSignupDialog } = await import("../common/misc/LoginUtils.js")
 
-					// We have to manually parse it because mithril does not put hash into args of onmatch
-					const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
-					showSignupDialog(urlParams)
+								// We have to manually parse it because mithril does not put hash into args of onmatch
+								const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
+								showSignupDialog(urlParams)
 
-					// Change the href of the canonical link element to make the /signup path indexed.
-					// Since this is just for search crawlers, we do not have to change it again later.
-					// We know at least Google crawler executes js to render the application.
-					const canonicalEl: HTMLLinkElement | null = document.querySelector("link[rel=canonical]")
-					if (canonicalEl) {
-						canonicalEl.href = "https://app.tuta.com/signup"
-					}
+								// Change the href of the canonical link element to make the /signup path indexed.
+								// Since this is just for search crawlers, we do not have to change it again later.
+								// We know at least Google crawler executes js to render the application.
+								const canonicalEl: HTMLLinkElement | null = document.querySelector("link[rel=canonical]")
+								if (canonicalEl) {
+									canonicalEl.href = "https://app.tuta.com/signup"
+								}
 
-					// when the user presses the browser back button, we would get a /login route without arguments
-					// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
-					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
-					// duplicating the history entry allows us to keep the arguments for a single back button press and run our own code to handle it
-					m.route.set("/login", {
-						noAutoLogin: false,
-						keepSession: true,
-					})
-					m.route.set("/login", {
-						noAutoLogin: false,
-						keepSession: true,
-					})
-					return null
-				},
-			},
+								// when the user presses the browser back button, we would get a /login route without arguments
+								// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
+								// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
+								// duplicating the history entry allows us to keep the arguments for a single back button press and run our own code to handle it
+								m.route.set("/login", {
+									noAutoLogin: false,
+									keepSession: true,
+								})
+								m.route.set("/login", {
+									noAutoLogin: false,
+									keepSession: true,
+								})
+								return null
+							},
+						}
+					: makeViewResolver<SignupViewAttrs, SignupView, { makeViewModel: () => LoginViewModel }>(
+							{
+								prepareRoute: async () => {
+									const migrator = await mailLocator.credentialFormatMigrator()
+									await migrator.migrate()
+
+									const { SignupView } = await import("../common/login/SignupView.js")
+									const makeViewModel = await mailLocator.loginViewModelFactory()
+									return {
+										component: SignupView,
+										cache: {
+											makeViewModel,
+										},
+									}
+								},
+								prepareAttrs: ({ makeViewModel }) => ({ targetPath: "/mail", makeViewModel }),
+								requireLogin: false,
+							},
+							mailLocator.logins,
+						),
 			giftcard: {
 				async onmatch() {
 					const { showGiftCardDialog } = await import("../common/misc/LoginUtils.js")
