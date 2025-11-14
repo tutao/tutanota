@@ -19,20 +19,31 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 
+/**
+ * Plugin that configures test devices.
+ */
 class AndroidTestConventionPlugin : Plugin<Project> {
 	override fun apply(target: Project) {
 		with(target) {
+			// We want to configure test options for each module. They all extend BaseExtension so we can get away with
+			// this for now but in the future we might need to split the plugin or have some other checks here.
 			extensions.configure<BaseExtension> {
+				// inside here we are like in a `android` block
 				testOptions {
+					// create Gradle Managed Device to run tests on
+					// https://developer.android.com/studio/test/gradle-managed-devices
 					managedDevices {
 						localDevices.create("testDevice") {
-							// Use device profiles you typically see in Android Studio.
 							device = "Pixel 2"
-							// Use only API levels 27 and higher.
+							// Use only API levels 27 and higher (why? who knows)
 							apiLevel = 30
-							// To include Google services, use "google".
+							// atd is a special kind of image with minimal nonsense
 							systemImageSource = "aosp-atd"
+							// Currently all Android runners are x86_64
 							testedAbi = "x86_64"
+							// It defaults to x86 otherwise which means there is some translation from x86_64 which
+							// means it's slower. Let's not do that.
+							require64Bit = true
 						}
 					}
 				}

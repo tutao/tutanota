@@ -1,3 +1,4 @@
+// adopted from https://github.com/android/architecture-samples/blob/multimodule/build-logic/settings.gradle.kts
 dependencyResolutionManagement {
 	repositories {
 		google()
