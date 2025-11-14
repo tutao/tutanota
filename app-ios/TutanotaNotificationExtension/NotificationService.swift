@@ -11,7 +11,7 @@ class NotificationService: UNNotificationServiceExtension {
 	private var contentHandler: ((UNNotificationContent) -> Void)?
 	private var bestAttemptContent: UNMutableNotificationContent?
 	private let urlSession: URLSession = makeUrlSession()
-	private let logger = Logger(subsystem: "Notifications", category: "Notifications")
+	private let logger = Logger(subsystem: "TutaNotifications", category: "Notifications")
 
 	override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
 		self.contentHandler = contentHandler

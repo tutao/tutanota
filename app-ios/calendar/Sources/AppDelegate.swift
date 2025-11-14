@@ -88,12 +88,16 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 	}
 
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+		// if running unit tests, skip all setup and return
+		#if DEBUG
+			if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return true }
+		#endif
 		TUTSLog("Start Tuta Calendar with launch options: \(String(describing: launchOptions))")
 		self.start()
 		return true
 	}
 
-	func applicationWillEnterForeground(_ application: UIApplication) { UIApplication.shared.applicationIconBadgeNumber = 0 }
+	func applicationDidBecomeActive(_ application: UIApplication) { UIApplication.shared.applicationIconBadgeNumber = 0 }
 
 	func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
 		if let callback = self.pushTokenCallback {

@@ -83,9 +83,11 @@ public let MAILTO_SCHEME = "mailto"
 	}
 
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+		// if running unit tests, skip all setup and return
 		#if DEBUG
 			if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return true }
 		#endif
+
 		TUTSLog("Start Tutanota with launch options: \(String(describing: launchOptions))")
 		try! migrateToSharedstorage()
 		self.registerNotificationCategories()
@@ -94,7 +96,11 @@ public let MAILTO_SCHEME = "mailto"
 		return true
 	}
 
-	func applicationWillEnterForeground(_ application: UIApplication) {
+	func applicationDidBecomeActive(_ application: UIApplication) {
+		// if running unit tests do not try to use components that might not be there
+		#if DEBUG
+			if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return }
+		#endif
 		UIApplication.shared.applicationIconBadgeNumber = 0
 		self.notificationStorage.resetNotificaitonCount()
 	}
