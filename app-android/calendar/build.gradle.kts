@@ -103,10 +103,10 @@ android {
 			val taskName = StringBuilder("sign").run {
 				//Add a task to rename the output file
 				productFlavors.forEach {
-					append(it.name.capitalizeFirst())
+					append(it.name.capitalized())
 				}
 
-				append(buildType.name.capitalizeFirst())
+				append(buildType.name.capitalized())
 				append("Bundle")
 
 				toString()
@@ -136,13 +136,6 @@ android {
 		targetCompatibility = JavaVersion.VERSION_17
 	}
 
-	kotlin {
-		// Extension level
-		compilerOptions {
-			jvmTarget = JvmTarget.fromTarget("17")
-		}
-	}
-
 	packaging {
 		resources {
 			this.excludes.addAll(listOf("META-INF/LICENSE", "META-INF/ASL2.0"))
@@ -162,16 +155,19 @@ android {
 	ndkVersion = "28.2.13676358"
 }
 
+kotlin {
+	compilerOptions {
+		jvmTarget = JvmTarget.JVM_17
+	}
+}
+
+
 tasks.register("itest") {
 	dependsOn("testDeviceFdroidDebugAndroidTest")
 }
 
 dependencies {
 	implementation(libs.androidx.appcompat)
-	val room_version = "2.8.0"
-	val lifecycle_version = "2.9.4"
-	val activity_version = "1.11.0"
-	val coroutines_version = "1.10.2"
 
 	implementation(libs.tutasdk)
 	implementation(project(":tutashared"))
@@ -265,8 +261,4 @@ dependencies {
 	implementation(libs.androidx.glance.preview)
 }
 
-// Extension function to capitalize the first letter
-fun String.capitalizeFirst(): String {
-	if (this.isEmpty()) return this
-	return this.replaceFirstChar { it.titlecaseChar() }
-}
+private fun String.capitalized() = replaceFirstChar { it.uppercaseChar() }
