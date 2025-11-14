@@ -5,7 +5,8 @@ plugins {
 	id("com.android.application")
 	id("org.jetbrains.kotlin.android")
 	id("kotlin-kapt")
-	id("org.jetbrains.kotlin.plugin.serialization") version "2.2.20"
+	alias(libs.plugins.kotlin.serialization)
+	// FIXME
 	id("org.jetbrains.kotlin.plugin.compose") version "2.2.20" // this version matches the Kotlin version
 	alias(libs.plugins.tutao.testconvention)
 }
@@ -165,100 +166,100 @@ tasks.register("itest") {
 }
 
 dependencies {
-	implementation("androidx.appcompat:appcompat:1.7.1")
+	implementation(libs.androidx.appcompat)
 	val room_version = "2.8.0"
 	val lifecycle_version = "2.9.4"
 	val activity_version = "1.11.0"
 	val coroutines_version = "1.10.2"
 
-	implementation("de.tutao:tutasdk")
+	implementation(libs.tutasdk)
 	implementation(project(":tutashared"))
 
 	// Important: cannot be updated without additional measures as Android 6 and 7 do not have Java 9
 	//noinspection GradleDependency
-	implementation("commons-io:commons-io:2.20.0")
+	implementation(libs.commons.io)
 
-	implementation("androidx.core:core-ktx:1.17.0")
-	implementation("androidx.activity:activity-ktx:$activity_version")
-	implementation("androidx.browser:browser:1.9.0")
-	implementation("androidx.biometric:biometric:1.1.0")
-	implementation("androidx.core:core-splashscreen:1.0.1")
-	implementation("androidx.datastore:datastore-preferences:1.1.7")
+	implementation(libs.androidx.core.ktx)
+	implementation(libs.androidx.activity.ktx)
+	implementation(libs.androidx.browser)
+	implementation(libs.androidx.biometric)
+	implementation(libs.androidx.splashscreen)
+	implementation(libs.androidx.datastore.preferences)
 
-	implementation("androidx.room:room-runtime:$room_version")
-	// For Kotlin use kapt instead of annotationProcessor
-	kapt("androidx.room:room-compiler:$room_version")
+	implementation(libs.androidx.room.runtime)
+	// For Kotlin use kapt instead of annotationProcessor. we should migrate to ksp
+	kapt(libs.androidx.room.compiler)
 
 
 	implementation(files("../libs/sqlcipher-android.aar"))
 
-	implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
-	implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
+	implementation(libs.androidx.lifecycle.runtime.ktx)
 
-	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-	implementation("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version")
+	implementation(libs.kotlin.stdlib)
+	implementation(libs.kotlinx.serlization.json)
+	implementation(libs.kotlinx.coroutines.android)
 
 	// TLS1.3 backwards compatibility for Android < 10
-	implementation("org.conscrypt:conscrypt-android:2.5.3")
-	implementation("com.squareup.okhttp3:okhttp:5.1.0")
+	implementation(libs.conscrypt.android)
+	implementation(libs.okhttp)
 
-	implementation("net.java.dev.jna:jna:5.18.0@aar")
+	implementation(libs.jna) {
+		artifact { type = "aar" }
+	}
 
-	testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.20")
-	testImplementation("androidx.test.ext:junit-ktx:1.3.0")
-	testImplementation("junit:junit:4.13.2")
-	testImplementation("org.robolectric:robolectric:4.16")
-	testImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
-	// JVM-based unit tests (that don't need a real device or emulator)
-	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
+	testImplementation(libs.kotlin.stdlib.jdk8)
+	testImplementation(libs.androidx.test.junit.ktx)
+	testImplementation(libs.junit)
+	testImplementation(libs.robolectric)
+	testImplementation(libs.mockito.kotlin)
+	testImplementation(libs.kotlinx.coroutines.test)
 
-	androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito-inline-extended:2.28.1") {
+	androidTestImplementation(libs.mockito.inline) {
 		exclude(group = "org.mockito", module = "mockito-core")
 	}
-	androidTestImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
-	androidTestImplementation("org.mockito:mockito-core:5.20.0")
-	androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
-	androidTestImplementation("androidx.test:runner:1.7.0")
-	androidTestImplementation("androidx.test.ext:junit-ktx:1.3.0")
-	androidTestImplementation("androidx.test:rules:1.7.0")
-	androidTestImplementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
-	androidTestImplementation("androidx.room:room-testing:2.8.0")
+	androidTestImplementation(libs.mockito.kotlin)
+	androidTestImplementation(libs.mockito.core)
+	androidTestImplementation(libs.androidx.test.espresso.core)
+	androidTestImplementation(libs.androidx.test.runner)
+	androidTestImplementation(libs.androidx.test.junit.ktx)
+	androidTestImplementation(libs.androidx.test.rules)
+	androidTestImplementation(libs.jackson.databind)
+	androidTestImplementation(libs.androidx.room.testing)
 
 	// Setup for Jetpack Compose
-	val composeBom = platform("androidx.compose:compose-bom:2025.01.01")
+	val composeBom = platform(libs.androidx.compose.bom)
 	implementation(composeBom)
 	androidTestImplementation(composeBom)
-	implementation("androidx.compose.material3:material3")
+	implementation(libs.androidx.compose.m3)
 
 	// Android Studio Preview support
-	implementation("androidx.compose.ui:ui-tooling-preview")
-	debugImplementation("androidx.compose.ui:ui-tooling")
+	implementation(libs.androidx.compose.ui.preview)
+	debugImplementation(libs.androidx.compose.ui.tooling)
 
 	// UI Tests
-	androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-	debugImplementation("androidx.compose.ui:ui-test-manifest")
+	androidTestImplementation(libs.androidx.compose.ui.junit)
+	debugImplementation(libs.androidx.compose.ui.test.manifest)
 
 	// Optional - Icons
-	implementation("androidx.compose.material:material-icons-core")
+	implementation(libs.androidx.compose.material.icons.core)
 	// Optional - Add full set of material icons
-	implementation("androidx.compose.material:material-icons-extended")
+	implementation(libs.androidx.compose.material.icons.ext)
 
 	// Optional - Integration with activities
-	implementation("androidx.activity:activity-compose:1.11.0")
+	implementation(libs.androidx.compose.activity)
 	// Optional - Integration with ViewModels
-	implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
+	implementation(libs.androidx.lifecycle.viewmodel.compose)
 
 	// Jetpack WorkManager for background sync
-	implementation("androidx.work:work-runtime-ktx:2.10.4")
+	implementation(libs.androidx.work.runtime.ktx)
 
 
 	// For interop APIs with Material 3
-	implementation("androidx.glance:glance-material3:1.1.1")
+	implementation(libs.androidx.glance.m3)
 
 	// For AppWidgets support and preview
-	implementation("androidx.glance:glance:1.1.1")
-	implementation("androidx.glance:glance-appwidget:1.1.1")
-	implementation("androidx.glance:glance-appwidget-preview:1.1.1")
-	implementation("androidx.glance:glance-preview:1.1.1")
+	implementation(libs.androidx.glance)
+	implementation(libs.androidx.glance.appwidget)
+	implementation(libs.androidx.glance.appwidget.preview)
+	implementation(libs.androidx.glance.preview)
 }

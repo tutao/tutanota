@@ -174,7 +174,6 @@ dependencies {
 	implementation(libs.conscrypt.android)
 	implementation(libs.okhttp)
 
-	// FIXME https://stackoverflow.com/questions/69046247/gradle-version-catalog-specify-library-build-type
 	implementation(libs.jna) {
 		artifact { type = "aar" }
 	}
