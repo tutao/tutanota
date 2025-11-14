@@ -43,6 +43,7 @@ export type CalendarEventBubbleAttrs = {
 	columnOverflowInfo: RangeOverflowData
 	canReceiveFocus: boolean
 	baseDate?: Date
+	height?: number
 }
 const lineHeight = layout_size.calendar_line_height
 const lineHeightPx = px(lineHeight)
@@ -53,7 +54,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		// Reapplying the animation to the element will cause it to trigger instantly, so we don't want to do that
 		// const doFadeIn = !this.hasFinishedInitialRender && attrs.fadeIn
 		// const enablePointerEvents = attrs.enablePointerEvents
-		const { gridInfo, eventWrapper, rowOverflowInfo, interactions, canReceiveFocus, baseDate, columnOverflowInfo } = attrs
+		const { gridInfo, eventWrapper, rowOverflowInfo, interactions, canReceiveFocus, baseDate, columnOverflowInfo, height } = attrs
 		const zone = getTimeZone()
 		const timeFormat = baseDate ? getTimeTextFormatForLongEvent(eventWrapper.event, baseDate, baseDate, zone) : null
 		const formatedEventTime = timeFormat ? formatEventTime(eventWrapper.event, timeFormat) : ""
@@ -83,7 +84,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					: null,
 				m(
 					// EventBubble
-					".border-radius.plr-core-4.height-100p.full-width",
+					".plr-core-4.height-100p.full-width.border-radius-core-4",
 					{
 						onclick: (e: MouseEvent) => {
 							e.stopPropagation()
@@ -99,17 +100,10 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 								interactions?.drag.prepareCurrentDraggedEvent(eventWrapper)
 							}
 						},
-						// ontouchstart: (e: TouchEvent) => {
-						// 	e.preventDefault()
-						// 	const mouseEvent = transformTouchEvent(e)
-						// 	if (mouseEvent) {
-						// 		console.log({ e, mouseEvent })
-						// 		e.target?.dispatchEvent(mouseEvent)
-						// 	}
-						// },
 						tabIndex: canReceiveFocus ? TabIndex.Default : TabIndex.Programmatic,
 						class: interactions?.click ? "cursor-pointer" : "",
 						style: {
+							height: height ? px(height) : undefined,
 							borderTop: rowOverflowInfo.start ? "none" : undefined,
 							borderBottom: rowOverflowInfo.end ? "none" : undefined,
 
@@ -118,11 +112,12 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 							"border-bottom-left-radius": rowOverflowInfo.end || columnOverflowInfo.start ? "0" : undefined,
 							"border-bottom-right-radius": rowOverflowInfo.end || columnOverflowInfo.end ? "0" : undefined,
 
-							backgroundColor: `#${eventWrapper.color}`,
+							backgroundColor: eventWrapper.color.includes("#") ? eventWrapper.color : `#${eventWrapper.color}`,
 
 							border: eventWrapper.flags?.isFeatured
 								? `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`
 								: "none",
+
 							"-webkit-line-clamp": 2,
 							paddingTop: "2px",
 							paddingBottom: "2px",
@@ -162,78 +157,6 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					: null,
 			],
 		)
-
-		// return m(
-		// 	".calendar-event.small.overflow-hidden.flex.cursor-pointer" +
-		// 		(doFadeIn ? ".fade-in" : "") +
-		// 		(attrs.noBorderLeft ? ".event-continues-left" : "") +
-		// 		(attrs.noBorderRight ? ".event-continues-right" : ""),
-		// 	{
-		// 		style: {
-		// 			background: "#" + attrs.color,
-		// 			color: colorForBg("#" + attrs.color),
-		// 			minHeight: lineHeightPx,
-		// 			height: px(attrs.height ? Math.max(attrs.height, 0) : lineHeight),
-		// 			"padding-top": px(attrs.verticalPadding || 0),
-		// 			opacity: attrs.opacity,
-		// 			pointerEvents: enablePointerEvents ? "auto" : "none",
-		// 			border: attrs.border,
-		// 		},
-		// 		tabIndex: enablePointerEvents ? TabIndex.Default : TabIndex.Programmatic,
-		// 		onclick: (e: MouseEvent) => {
-		// 			e.stopPropagation()
-		// 			attrs.click(e, e.target as HTMLElement)
-		// 		},
-		// 		onkeydown: (e: KeyboardEvent) => {
-		// 			attrs.keyDown(e, e.target as HTMLElement)
-		// 		},
-		// 	},
-		// 	[
-		// 		attrs.hasAlarm
-		// 			? m(Icon, {
-		// 					icon: Icons.Notifications,
-		// 					style: {
-		// 						fill: colorForBg("#" + attrs.color),
-		// 						"padding-top": "2px",
-		// 						"padding-right": "2px",
-		// 					},
-		// 					class: "icon-small",
-		// 				})
-		// 			: null,
-		// 		attrs.isAltered
-		// 			? m(Icon, {
-		// 					icon: Icons.Edit,
-		// 					style: {
-		// 						fill: colorForBg("#" + attrs.color),
-		// 						"padding-top": "2px",
-		// 						"padding-right": "2px",
-		// 					},
-		// 					class: "icon-small",
-		// 				})
-		// 			: null,
-		// 		attrs.isBirthday
-		// 			? m(Icon, {
-		// 					icon: Icons.Gift,
-		// 					style: {
-		// 						fill: colorForBg("#" + attrs.color),
-		// 						"padding-top": "2px",
-		// 						"padding-right": "2px",
-		// 					},
-		// 					class: "icon-small",
-		// 				})
-		// 			: null,
-		// 		m(
-		// 			".flex.col",
-		// 			{
-		// 				style: {
-		// 					// Limit the width to trigger ellipsis
-		// 					width: "95%",
-		// 				},
-		// 			},
-		// 			CalendarEventBubble.renderContent(attrs),
-		// 		),
-		// 	],
-		// )
 	}
 
 	private renderNonFeaturedTexts(summary: string, color: string, rowBounds: RowBounds, eventTime: string, flags?: EventWrapperFlags) {
@@ -287,71 +210,4 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			),
 		])
 	}
-
-	// private static renderContent({ height: maybeHeight, text, secondLineText, color }: CalendarEventBubbleAttrs): Children {
-	// 	// If the bubble has 2 or more lines worth of vertical space, then we will render the text + the secondLineText on separate lines
-	// 	// Otherwise we will combine them onto a single line
-	// 	const height = maybeHeight ?? lineHeight
-	// 	const isMultiline = height >= lineHeight * 2
-	//
-	// 	if (isMultiline) {
-	// 		// How many lines of text that will fit in the bubble
-	// 		// we dont want any cut in half lines in case the bubble cannot fit a whole number of lines
-	// 		const linesInBubble = Math.floor(height / lineHeight)
-	// 		// leave space for the second text line. it will be restricted to a maximum of one line in height
-	// 		const topSectionMaxLines = secondLineText != null ? linesInBubble - 1 : linesInBubble
-	// 		const topSectionClass = topSectionMaxLines === 1 ? ".text-clip" : ".text-ellipsis-multi-line"
-	// 		return [
-	// 			// The wrapper around `text` is needed to stop `-webkit-box` from changing the height
-	// 			CalendarEventBubble.renderTextSection(
-	// 				"",
-	// 				m(
-	// 					topSectionClass,
-	// 					{
-	// 						style: {
-	// 							"-webkit-line-clamp": topSectionMaxLines, // This helps resizing the text to show as much as possible of its contents
-	// 						},
-	// 					},
-	// 					text,
-	// 				),
-	// 				topSectionMaxLines * lineHeight,
-	// 			),
-	// 			secondLineText ? CalendarEventBubble.renderTextSection(".text-ellipsis", secondLineText, lineHeight) : null,
-	// 		]
-	// 	} else {
-	// 		return CalendarEventBubble.renderTextSection(
-	// 			".text-clip",
-	// 			secondLineText
-	// 				? [
-	// 						`${text} `,
-	// 						m(Icon, {
-	// 							icon: Icons.Time,
-	// 							style: {
-	// 								fill: colorForBg("#" + color),
-	// 								"padding-top": "2px",
-	// 								"padding-right": "2px",
-	// 								"vertical-align": "text-top",
-	// 							},
-	// 							class: "icon-small",
-	// 						}),
-	// 						`${secondLineText}`,
-	// 					]
-	// 				: text,
-	// 			lineHeight,
-	// 		)
-	// 	}
-	// }
-	//
-	// private static renderTextSection(classes: string, text: Children, maxHeight: number): Child {
-	// 	return m(
-	// 		classes,
-	// 		{
-	// 			style: {
-	// 				lineHeight: lineHeightPx,
-	// 				maxHeight: px(maxHeight),
-	// 			},
-	// 		},
-	// 		text,
-	// 	)
-	// }
 }

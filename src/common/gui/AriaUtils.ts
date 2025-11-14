@@ -9,7 +9,6 @@ import { assertMainOrNodeBoot } from "../api/common/Env"
  *
  */
 import { TabIndex } from "../api/common/TutanotaConstants"
-import { lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
 
 assertMainOrNodeBoot()
 
@@ -71,6 +70,7 @@ export const enum AriaRole {
 	Switch = "switch",
 	MenuItemCheckbox = "menuitemcheckbox",
 	RadioGroup = "radiogroup",
+	Button = "button",
 }
 
 /**

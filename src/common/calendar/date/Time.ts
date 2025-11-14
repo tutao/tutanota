@@ -163,13 +163,17 @@ export class Time {
 	}
 
 	/**
-	 * Finds the difference in minutes between this and the param.
-	 * @param timeB
+	 * Finds the forward difference in minutes from this time to timeB,
+	 * in the range [0, 24*60-1]. Same times => 0.
+	 * Examples:
+	 *  - 23:30.diff(00:15) => 45
+	 *  - 10:00.diff(09:00) => 1380
 	 */
-	diff(timeB: Time) {
-		const timeBAsMinutes = timeB.asMinutes() === 0 ? 24 * 60 : timeB.asMinutes()
-		const timeAAsMinutes = this.asMinutes()
-		return timeAAsMinutes > timeBAsMinutes ? 24 * 60 - timeAAsMinutes + timeBAsMinutes : timeBAsMinutes - timeAAsMinutes
+	diff(timeB: Time): number {
+		const minutesA = this.asMinutes()
+		const minutesB = timeB.asMinutes()
+		const day = 24 * 60
+		return (minutesB - minutesA + day) % day
 	}
 
 	/**
