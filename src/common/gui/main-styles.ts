@@ -1340,6 +1340,9 @@ styles.registerStyle("main", () => {
 		".flex-transition": {
 			transition: "flex 200ms linear",
 		},
+		".border-radius-core-4": {
+			"border-radius": px(size.spacing.core_4),
+		},
 		".border-radius": {
 			"border-radius": px(size.border_radius),
 		},
@@ -3237,6 +3240,7 @@ styles.registerStyle("main", () => {
 		},
 		".interactable-cell:hover": {
 			background: theme.surface_container,
+			cursor: "pointer",
 		},
 	}
 })
