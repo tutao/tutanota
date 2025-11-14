@@ -58,4 +58,7 @@ jobs:
         run: ./gradlew lint --quiet
       - name: Test
         working-directory: ./app-android
-        run: ./gradlew test
+        run: ./gradlew test -PtargetABI=x86_64
+      - name: Android Test
+        working-directory: ./app-android
+        run: ./gradlew itest -PtargetABI=x86_64
