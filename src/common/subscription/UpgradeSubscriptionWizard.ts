@@ -34,9 +34,9 @@ import { SubscriptionPage, SubscriptionPageAttrs } from "./SubscriptionPage.js"
 import { styles } from "../gui/styles.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { ReferralType, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
-import { windowFacade } from "../misc/WindowFacade"
 import { isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { PowSolution } from "../api/common/pow-worker"
+import { windowFacade } from "../misc/WindowFacade"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -238,12 +238,13 @@ export async function loadSignupWizard(
 	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
 	const confirmSubscriptionAttrs = new UpgradeConfirmSubscriptionPageAttrs(signupData)
 	const plansPage = initPlansPages(signupData)
+	const loginViewModelFactory = await locator.loginViewModelFactory()
 	const wizardPages = [
 		wizardPageWrapper(plansPage.pageClass, plansPage.attrs),
 		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
 		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs), // this page will login the user after signing up with newaccount data
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, confirmSubscriptionAttrs), // this page will login the user if they are not login for iOS payment through AppStore
-		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData)),
+		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData, loginViewModelFactory)),
 	]
 
 	if (isIOSApp()) {
@@ -257,13 +258,14 @@ export async function loadSignupWizard(
 			if (locator.logins.isUserLoggedIn()) {
 				// this ensures that all created sessions during signup process are closed
 				// either by clicking on `cancel`, closing the window, or confirm on the UpgradeCongratulationsPage
-				await locator.logins.logout(false)
+				await locator.logins.logout(true)
 			}
 
 			// ensure that we reload the client in order to reset any state of the client that has been set when creating a session during signup.
 			if (signupData.newAccountData) {
 				await windowFacade.reload({
-					noAutoLogin: false,
+					noAutoLogin: true,
+					loginWith: signupData.newAccountData.mailAddress,
 				})
 			}
 		},

@@ -162,8 +162,10 @@ export class WindowFacade {
 			let m = lang.get("closeWindowConfirmation_msg")
 			e.returnValue = m
 			return m
-		} else {
+		} else if (this.logins?.isUserLoggedIn()) {
 			this.logins?.logout(true)
+			return null
+		} else {
 			return null
 		}
 	}
@@ -216,8 +218,8 @@ export class WindowFacade {
 	}
 
 	_onUnload() {
-		if (this.windowCloseConfirmation && this.logins) {
-			this.logins.logout(true)
+		if (this.windowCloseConfirmation && this.logins && this.logins.isUserLoggedIn()) {
+			const _ = this.logins.logout(true)
 		}
 	}
 

@@ -149,7 +149,10 @@ import("./translations/en.js")
 		mailLocator.logins.addPostLoginAction(() => mailLocator.postLoginActions())
 		mailLocator.logins.addPostLoginAction(async () => {
 			return {
-				async onPartialLoginSuccess() {
+				async onPartialLoginSuccess({ sessionType }) {
+					if (sessionType === SessionType.Temporary) {
+						return
+					}
 					if (isApp()) {
 						mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 						const syncManager = mailLocator.nativeContactsSyncManager()
@@ -164,7 +167,10 @@ import("./translations/en.js")
 					await mailLocator.mailboxModel.init()
 					await mailLocator.mailModel.init()
 				},
-				async onFullLoginSuccess() {
+				async onFullLoginSuccess({ sessionType }) {
+					if (sessionType === SessionType.Temporary) {
+						return
+					}
 					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
 					if (isOfflineStorageAvailable()) {
 						await mailLocator.logins.loadCustomizations(CacheMode.WriteOnly)
