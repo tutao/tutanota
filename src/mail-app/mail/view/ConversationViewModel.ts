@@ -11,6 +11,7 @@ import {
 	makeSingleUse,
 	memoizedWithHiddenArgument,
 	ofClass,
+	settledThen,
 	TypeRef,
 } from "@tutao/tutanota-utils"
 import { EntityClient } from "../../../common/api/common/EntityClient.js"
@@ -358,11 +359,15 @@ export class ConversationViewModel {
 		// hack: init has been called if loadingPromise is set
 		if (this.loadingPromise != null) {
 			this.eventController.removeEntityListener(this.onEntityEvent)
-			for (const item of this.conversationItems()) {
-				if (isSameTypeRef(item.type_ref, MailTypeRef)) {
-					item.viewModel.dispose()
+
+			// we may still be in the middle of loading, though, such as if the user is changing views quickly
+			settledThen(this.loadingPromise, () => {
+				for (const item of this.conversationItems()) {
+					if (isSameTypeRef(item.type_ref, MailTypeRef)) {
+						item.viewModel.dispose()
+					}
 				}
-			}
+			})
 		}
 	}
 

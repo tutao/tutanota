@@ -112,6 +112,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	onremove({ attrs }: Vnode<MailViewerAttrs>) {
+		this.loadAllListener.end(true)
 		windowFacade.removeResizeListener(this.resizeListener)
 		if (this.resizeObserverZoomable) {
 			this.resizeObserverZoomable.disconnect()

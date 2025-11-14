@@ -122,7 +122,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 	private lastThemeId: ThemeId = theme.themeId
 
 	view({ attrs }: Vnode<ListAttrs<T, VH>>) {
-		const oldAttrs = this.lastAttrs
+		const oldRenderConfig = this.lastAttrs?.renderConfig
 		this.lastAttrs = attrs
 		return m(
 			".list-container.overflow-y-scroll.nofocus.overflow-x-hidden.fill-absolute",
@@ -158,7 +158,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 					if (styles.isSingleColumnLayout()) this.innerDom.focus()
 				},
 				onupdate: ({ dom }) => {
-					if (oldAttrs.renderConfig !== attrs.renderConfig) {
+					if (oldRenderConfig !== attrs.renderConfig) {
 						// reset everything
 						console.log("list renderConfig has changed, reset")
 						// m.render actually does diffing if you call it on the same dom element again which is not something that we want, we want completely
