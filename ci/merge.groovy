@@ -528,8 +528,9 @@ void testAndroid() {
 		mkdir -p build
 		mkdir -p build-calendar-app
 		cd app-android
-		./gradlew lint -PtargetABI=arm64 --quiet
-		./gradlew test -PtargetABI=arm64
+		./gradlew lint -PtargetABI=x86_64 --quiet
+		./gradlew test -PtargetABI=x86_64
+		./gradlew itest -PtargetABI=x86_64
 	'''
 }
 
