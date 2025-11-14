@@ -191,11 +191,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											}
 										},
 										onTrashSwipe: async (ownerGroup, mails) => {
-											// FIXME handle swipe action for scheduled mail
 											await this.moveMailsToTrash(ownerGroup, mails)
 										},
 										onMoveSwipe: async (targetFolderType, mails) => {
-											// FIXME handle swipe action for scheduled mail
 											return await moveMailsToSystemFolder({
 												mailboxModel: locator.mailboxModel,
 												mailModel: mailLocator.mailModel,
