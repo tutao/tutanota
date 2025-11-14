@@ -381,6 +381,10 @@ styles.registerStyle("main", () => {
 		".mb-xxl": {
 			"margin-bottom": px(size.vpad_xxl),
 		},
+		".mlr-core-4": {
+			"margin-left": px(size.spacing.core_4),
+			"margin-right": px(size.spacing.core_4),
+		},
 		".mlr": {
 			"margin-left": px(size.hpad),
 			"margin-right": px(size.hpad),
@@ -472,6 +476,14 @@ styles.registerStyle("main", () => {
 		".pt-l": {
 			"padding-top": px(size.vpad_large),
 		},
+		".py-core-4": {
+			"padding-top": px(size.spacing.core_4),
+			"padding-bottom": px(size.spacing.core_4),
+		},
+		".py-core-8": {
+			"padding-top": px(size.spacing.core_8),
+			"padding-bottom": px(size.spacing.core_8),
+		},
 		// New design system
 		".nds-ptb-l": {
 			"padding-top": px(size.new_design.vpad_large),
@@ -536,6 +548,10 @@ styles.registerStyle("main", () => {
 			"padding-bottom": px(size.hpad_button),
 		},
 		// allow scrolling across the floating button
+		".plr-core-4": {
+			"padding-left": px(size.spacing.core_4),
+			"padding-right": px(size.spacing.core_4),
+		},
 		".plr": {
 			"padding-left": px(size.hpad),
 			"padding-right": px(size.hpad),
@@ -676,6 +692,9 @@ styles.registerStyle("main", () => {
 		".mr-negative-m": {
 			"margin-right": px(-(size.hpad_button + size.hpad_nav_button)),
 		},
+		".top-0": {
+			top: 0,
+		},
 		// negative margin to handle the padding of a nav button
 		".fixed-bottom-right": {
 			position: "fixed",
@@ -785,21 +804,24 @@ styles.registerStyle("main", () => {
 		".will-change-alpha": {
 			"will-change": "alpha",
 		},
+		".after-as-border-bottom": {
+			position: "relative",
+		},
 		".after-as-border-bottom:after": {
 			// Hacky solution to create a border that extends the whole parent
 			content: "''",
-			width: "100vw",
+			width: "100%",
 			height: "1px",
 			background: theme.outline_variant,
 			position: "absolute",
-			bottom: "-1px",
+			"z-index": 1,
 		},
 		// borders
 		".border-bottom": {
 			"border-bottom": `1px solid ${theme.outline_variant}`,
 		},
 		".border-right": {
-			"border-right": `1px solid ${theme.outline}`,
+			"border-right": `1px solid ${theme.outline_variant}`,
 		},
 		".border-left": {
 			"border-left": `1px solid ${theme.outline_variant}`,
@@ -1026,6 +1048,9 @@ styles.registerStyle("main", () => {
 		".dropdown-info + .dropdown-info": {
 			"padding-top": "0",
 		},
+		".text-no-wrap": {
+			"text-wrap": "nowrap",
+		},
 		".text-wrap": {
 			"text-wrap": "auto",
 		},
@@ -1046,6 +1071,9 @@ styles.registerStyle("main", () => {
 		},
 		".button-height": {
 			height: px(size.button_height),
+		},
+		".min-height-0": {
+			"min-height": px(0),
 		},
 		".button-min-height": {
 			"min-height": px(size.button_height),
@@ -2443,28 +2471,11 @@ styles.registerStyle("main", () => {
 		".calendar-day-header-button": {
 			opacity: 0,
 		},
-		".calendar-hour": {
-			"border-bottom": `1px solid ${theme.outline_variant}`,
-			height: px(size.calendar_hour_height),
-			flex: "1 0 auto",
-		},
-		".calendar-hour:hover": {
-			background: theme.surface_container,
-		},
 		".calendar-column-border": {
 			"border-right": `1px solid ${theme.outline_variant}`,
 		},
 		".calendar-column-border:nth-child(7)": {
 			"border-right": "none",
-		},
-		".calendar-hour-margin": {
-			"margin-left": px(size.calendar_hour_width),
-		},
-		".calendar-hour-column": {
-			width: px(size.calendar_hour_width),
-		},
-		".calendar-days-header-row": {
-			height: px(size.calendar_days_header_height),
 		},
 		".calendar-day": {
 			"border-top": `1px solid ${theme.outline_variant}`,
@@ -2476,7 +2487,6 @@ styles.registerStyle("main", () => {
 		},
 		".calendar-day-indicator": {
 			// overridden for mobile
-			height: px(size.calendar_days_header_height),
 			"line-height": px(size.calendar_days_header_height),
 			"text-align": "center",
 			"font-size": "14px",
@@ -2582,6 +2592,12 @@ styles.registerStyle("main", () => {
 		".darkest-hover:hover": {
 			filter: "brightness(70%)",
 		},
+		".event-continues-left-indicator": {
+			"clip-path": "polygon(100% 0, 100% 100%, 0% 100%, 100% 50%, 0% 0%)",
+		},
+		".event-continues-right-indicator": {
+			"clip-path": "polygon(0 0%, 100% 50%, 0 100%)",
+		},
 		".event-continues-left": {
 			"border-top-left-radius": 0,
 			"border-bottom-left-radius": 0,
@@ -2663,17 +2679,6 @@ styles.registerStyle("main", () => {
 			// slash in content is content alt. so that it's ignored by screen readers
 			content: '"#" / ""',
 			color: theme.on_surface_variant,
-		},
-		".success-container": {
-			"background-color": theme.success_container,
-			color: theme.on_success_container,
-		},
-		".error-container": {
-			"background-color": theme.error_container,
-			color: theme.on_error_container,
-		},
-		".on-success-container-color": {
-			color: theme.on_success_container,
 		},
 		".calendar-invite-field": {
 			"min-width": "80px",
@@ -2764,7 +2769,6 @@ styles.registerStyle("main", () => {
 				"padding-top": px(size.vpad_small),
 			},
 			".calendar-day-indicator": {
-				height: "20px",
 				"line-height": "20px",
 				"text-align": "center",
 				"font-size": "14px",
@@ -3217,21 +3221,23 @@ styles.registerStyle("main", () => {
 			},
 		},
 		".time-indicator": {
-			position: "absolute",
 			background: theme.primary,
 			height: px(2),
 			width: "100%",
-			"z-index": 1,
 		},
 		".time-indicator:before": {
 			content: "''",
 			display: "block",
-			width: "12px",
-			height: "12px",
+			width: px(size.icon_size_small),
+			height: px(size.icon_size_small),
 			background: theme.primary,
 			position: "absolute",
 			transform: "translate(-50%, calc(-50% + 1px))",
 			"border-radius": "50%",
+		},
+		".interactable-cell:hover": {
+			background: theme.surface_container,
+			cursor: "pointer",
 		},
 	}
 })

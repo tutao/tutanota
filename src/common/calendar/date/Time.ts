@@ -13,7 +13,8 @@ export class Time {
 	}
 
 	private set hour(h: number) {
-		this._hour = Math.abs(Math.floor(h) % 24)
+		const hour = Math.abs(h)
+		this._hour = Math.floor(hour) % 24
 	}
 
 	get minute() {
@@ -21,7 +22,8 @@ export class Time {
 	}
 
 	private set minute(m: number) {
-		this._minute = Math.abs(Math.floor(m) % 60)
+		const minutes = Math.abs(m)
+		this._minute = Math.floor(minutes) % 60
 	}
 
 	constructor(hour: number, minute: number) {
@@ -110,10 +112,7 @@ export class Time {
 	 */
 	toDate(baseDate?: Date): Date {
 		const date = baseDate ? new Date(baseDate) : new Date()
-		date.setHours(this._hour)
-		date.setMinutes(this._minute)
-		date.setSeconds(0)
-		date.setMilliseconds(0)
+		date.setHours(this._hour, this._minute)
 		return date
 	}
 
@@ -234,5 +233,11 @@ export class Time {
 	 */
 	isBefore(timeB: Time) {
 		return this.asMinutes() < timeB.asMinutes()
+	}
+
+	static fromMinutes(minutes: number) {
+		const hour = minutes / 60
+		const restMinutes = minutes % 60
+		return new Time(hour, restMinutes)
 	}
 }

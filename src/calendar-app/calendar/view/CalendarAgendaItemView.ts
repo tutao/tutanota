@@ -1,16 +1,16 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { theme } from "../../../common/gui/theme.js"
 import { styles } from "../../../common/gui/styles.js"
 import { DefaultAnimationTime } from "../../../common/gui/animation/Animations.js"
 import { px } from "../../../common/gui/size.js"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
+import { EventWrapper } from "./CalendarViewModel.js"
 
 export interface CalendarAgendaItemViewAttrs {
 	day: Date
 	zone: string
-	event: CalendarEvent
+	event: EventWrapper
 	color: string
 	click: (domEvent: MouseEvent) => unknown
 	keyDown: (event: KeyboardEvent) => unknown
@@ -18,14 +18,14 @@ export interface CalendarAgendaItemViewAttrs {
 	selected?: boolean
 	height?: number
 	id: string
+	border?: string
 }
 
 export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewAttrs> {
 	private isFocused: boolean = false
 
 	view({ attrs }: Vnode<CalendarAgendaItemViewAttrs>): Children {
-		const eventTitle = getDisplayEventTitle(attrs.event.summary)
-
+		const eventTitle = getDisplayEventTitle(attrs.event.event.summary)
 		return m(
 			".flex.items-center.click.plr.border-radius.pt-s.pb-s.rel.limit-width.full-width",
 			{
@@ -41,6 +41,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 					transition: `background ${DefaultAnimationTime}ms`,
 					background: CalendarAgendaItemView.getBackground(attrs.selected ?? false, this.isFocused),
 					height: attrs.height ? px(attrs.height) : undefined,
+					border: attrs.border,
 				},
 			},
 			[

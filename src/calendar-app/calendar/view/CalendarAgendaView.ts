@@ -1,10 +1,10 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, incrementDate, isSameDay, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, incrementDate, isToday, stringToBase64 } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getTimeZone, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils"
-import { CalendarEvent, Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { Contact } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import type { GroupColors } from "./CalendarView"
-import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, CalendarPreviewModels } from "./CalendarViewModel"
+import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, EventWrapper } from "./CalendarViewModel"
 import { styles } from "../../../common/gui/styles.js"
 import { DateTime } from "luxon"
 import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
@@ -17,7 +17,6 @@ import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPr
 import { EventDetailsView } from "./EventDetailsView.js"
 import { getElementId, getListId } from "../../../common/api/common/utils/EntityUtils.js"
 import { isAllDayEvent, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { CalendarTimeIndicator } from "./CalendarTimeIndicator.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
@@ -31,6 +30,7 @@ import { client } from "../../../common/misc/ClientDetector.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
+import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -149,7 +149,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							highlightSelectedWeek: false,
 							useNarrowWeekName: styles.isSingleColumnLayout(),
 							hasEventOn: (date) =>
-								attrs.eventsForDays.get(date.getTime())?.some((event) => shouldDisplayEvent(event, attrs.hiddenCalendars)) ?? false,
+								attrs.eventsForDays.get(date.getTime())?.some((event) => shouldDisplayEvent(event.event, attrs.hiddenCalendars)) ?? false,
 						}),
 					),
 				)
@@ -226,9 +226,9 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		}
 	}
 
-	private getEventsToRender(day: Date, attrs: CalendarAgendaViewAttrs): readonly CalendarEvent[] {
+	private getEventsToRender(day: Date, attrs: CalendarAgendaViewAttrs): readonly EventWrapper[] {
 		return (attrs.eventsForDays.get(day.getTime()) ?? []).filter((e) => {
-			return shouldDisplayEvent(e, attrs.hiddenCalendars)
+			return shouldDisplayEvent(e.event, attrs.hiddenCalendars)
 		})
 	}
 
@@ -271,7 +271,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	}
 
 	private getBirthdayEventModel(eventPreviewModel: CalendarPreviewModels | null): CalendarContactPreviewViewModel | null {
-		if (isBirthdayEvent((eventPreviewModel as CalendarContactPreviewViewModel).event?.uid)) {
+		if (isBirthdayEvent((eventPreviewModel as CalendarContactPreviewViewModel).calendarEvent?.uid)) {
 			return eventPreviewModel as CalendarContactPreviewViewModel
 		}
 		return null
@@ -316,7 +316,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		this.lastScrollPosition = attrs.scrollPosition
 	}
 
-	private renderEventsForDay(events: readonly CalendarEvent[], zone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
+	private renderEventsForDay(events: readonly EventWrapper[], zone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
 		const { groupColors: colors, onEventClicked: click, onEventKeyDown: keyDown, eventPreviewModel: modelPromise } = attrs
 		const agendaItemHeight = 62
 		const agendaGap = 3
@@ -328,7 +328,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		// Flat list structure so that we don't have problems with keys
 		let eventsNodes: Child[] = []
 		for (const [eventIndex, event] of events.entries()) {
-			if (eventToShowTimeIndicator === eventIndex && isSameDay(new Date(), event.startTime)) {
+			if (eventToShowTimeIndicator === eventIndex && isToday(event.event.startTime)) {
 				eventsNodes.push(
 					m(
 						".mt-xs.mb-xs",
@@ -336,11 +336,11 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							id: "timeIndicator",
 							key: "timeIndicator",
 						},
-						m(CalendarTimeIndicator, { circleLeftTangent: true }),
+						m(TimeIndicator, { circleLeftTangent: true }),
 					),
 				)
 			}
-			if (currentTime && event.startTime < currentTime) {
+			if (currentTime && event.event.startTime < currentTime) {
 				newScrollPosition += agendaItemHeight + agendaGap
 			}
 
@@ -359,14 +359,16 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				return sibling
 			}
 
+			const eventColor = getEventColor(event.event, colors)
 			eventsNodes.push(
 				m(CalendarAgendaItemView, {
-					key: getListId(event) + getElementId(event) + event.startTime.toISOString(),
-					id: base64ToBase64Url(stringToBase64(event._id.join("/"))),
+					key: getListId(event.event) + getElementId(event.event) + event.event.startTime.toISOString(),
+					id: base64ToBase64Url(stringToBase64(event.event._id.join("/"))),
 					event: event,
-					color: getEventColor(event, colors),
-					selected: event === (modelPromise as CalendarEventPreviewViewModel)?.calendarEvent,
-					click: (domEvent) => click(event, domEvent),
+					color: eventColor,
+					border: event.flags?.isGhost ? `2px dashed #${eventColor}` : undefined,
+					selected: event.event === (modelPromise as CalendarEventPreviewViewModel)?.calendarEvent,
+					click: (domEvent) => click(event.event, domEvent),
 					keyDown: (domEvent) => {
 						const target = domEvent.target as HTMLElement
 						if (isKeyPressed(domEvent.key, Keys.UP, Keys.K) && !domEvent.repeat) {
@@ -375,7 +377,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							if (previousItem) {
 								previousItem.focus()
 								if (previousIndex >= 0 && !styles.isSingleColumnLayout()) {
-									keyDown(events[previousIndex], new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
+									keyDown(events[previousIndex].event, new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
 									return
 								}
 							} else {
@@ -389,19 +391,19 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							if (nextItem) {
 								nextItem.focus()
 								if (nextIndex < events.length && !styles.isSingleColumnLayout()) {
-									keyDown(events[nextIndex], new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
+									keyDown(events[nextIndex].event, new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
 									return
 								}
 							} else {
 								attrs.onScrollPositionChange(target.offsetTop)
 							}
 						}
-						keyDown(event, domEvent)
+						keyDown(event.event, domEvent)
 					},
 					zone,
 					day: day,
 					height: agendaItemHeight,
-					timeText: formatEventTimes(day, event, zone),
+					timeText: formatEventTimes(day, event.event, zone),
 				}),
 			)
 		}
@@ -428,16 +430,16 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
  * @param date date to use
  * @return the index, or null if there is no next event
  */
-export function earliestEventToShowTimeIndicator(events: readonly CalendarEvent[], date: Date): number | null {
+export function earliestEventToShowTimeIndicator(events: readonly EventWrapper[], date: Date): number | null {
 	// We do not want to show the time indicator above any all day events
-	const firstNonAllDayEvent = events.findIndex((event) => !isAllDayEvent(event))
+	const firstNonAllDayEvent = events.findIndex((event) => !isAllDayEvent(event.event))
 	if (firstNonAllDayEvent < 0) {
 		return null
 	}
 
 	// Next, we want to locate the first event where the start time has yet to be reached
 	const nonAllDayEvents = events.slice(firstNonAllDayEvent)
-	const nextEvent = nonAllDayEvents.findIndex((event) => event.startTime > date)
+	const nextEvent = nonAllDayEvents.findIndex((event) => event.event.startTime > date)
 	if (nextEvent < 0) {
 		return null
 	}

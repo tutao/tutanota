@@ -692,7 +692,7 @@ export const enum EndType {
 	UntilDate = "2",
 }
 
-export const defaultCalendarColor = "2196f3"
+export const DEFAULT_CALENDAR_COLOR = "2196f3"
 
 export const enum EventTextTimeOption {
 	START_TIME = "startTime",
