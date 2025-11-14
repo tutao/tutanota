@@ -25,7 +25,7 @@ android {
 
 		// https://issuetracker.google.com/issues/181593646
 		ksp {
-			arg("room.schemaLocation", "$projectDir/schemas".toString())
+			arg("room.schemaLocation", "$projectDir/schemas")
 			arg("room.generateKotlin", "true")
 		}
 	}
@@ -144,54 +144,55 @@ dependencies {
 	val activity_version = "1.9.0"
 	val coroutines_version = "1.8.1"
 
-	implementation("de.tutao:tutasdk")
+	implementation(libs.tutasdk)
 	implementation(project(":tutashared"))
 
-	implementation("commons-io:commons-io:2.20.0")
+	implementation(libs.commons.io)
 
-	implementation("androidx.core:core-ktx:1.17.0")
-	implementation("androidx.activity:activity-ktx:$activity_version")
-	implementation("androidx.browser:browser:1.9.0")
-	implementation("androidx.biometric:biometric:1.1.0")
-	implementation("androidx.core:core-splashscreen:1.0.1")
-	implementation("androidx.datastore:datastore-preferences:1.1.7")
+	implementation(libs.androidx.core.ktx)
+	implementation(libs.androidx.activity.ktx)
+	implementation(libs.androidx.browser)
+	implementation(libs.androidx.biometric)
+	implementation(libs.androidx.splashscreen)
+	implementation(libs.androidx.datastore.preferences)
 
-	implementation("androidx.room:room-ktx:$room_version")
-	ksp("androidx.room:room-compiler:$room_version")
+	implementation(libs.androidx.room.ktx)
+	ksp(libs.androidx.room.compiler)
 
 
 	implementation(files("../libs/sqlcipher-android.aar"))
 
 
-	implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
+	implementation(libs.androidx.lifecycle.runtime.ktx)
 
-	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-	implementation("org.jetbrains.kotlin:kotlin-stdlib:$libs.versions.kotlin")
-	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version")
+	implementation(libs.kotlin.stdlib)
+	implementation(libs.kotlinx.serlization.json)
+	implementation(libs.kotlinx.coroutines.android)
 
 	// TLS1.3 backwards compatibility for Android < 10
-	implementation("org.conscrypt:conscrypt-android:2.5.3")
-	implementation("com.squareup.okhttp3:okhttp:5.1.0")
+	implementation(libs.conscrypt.android)
+	implementation(libs.okhttp)
 
-	implementation("net.java.dev.jna:jna:5.18.0@aar")
+	implementation(libs.jna) {
+		artifact { type = "aar" }
+	}
 
-	testImplementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${libs.versions.kotlin}")
-	testImplementation("androidx.test.ext:junit-ktx:1.3.0")
-	testImplementation("junit:junit:4.13.2")
-	testImplementation("org.robolectric:robolectric:4.16")
-	testImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
-	// JVM-based unit tests (that don't need a real device or emulator)
-	testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutines_version")
+	testImplementation(libs.kotlin.stdlib.jdk8)
+	testImplementation(libs.androidx.test.junit.ktx)
+	testImplementation(libs.junit)
+	testImplementation(libs.robolectric)
+	testImplementation(libs.mockito.kotlin)
+	testImplementation(libs.kotlinx.coroutines.test)
 
-	androidTestImplementation("com.linkedin.dexmaker:dexmaker-mockito-inline-extended:2.28.6") {
+	androidTestImplementation(libs.mockito.inline) {
 		exclude(group = "org.mockito'", module = "mockito-core")
 	}
-	androidTestImplementation("org.mockito:mockito-core:5.20.0")
-	androidTestImplementation("org.mockito.kotlin:mockito-kotlin:6.0.0")
-	androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
-	androidTestImplementation("androidx.test:runner:1.7.0")
-	androidTestImplementation("androidx.test.ext:junit-ktx:1.3.0")
-	androidTestImplementation("androidx.test:rules:1.7.0")
-	androidTestImplementation("com.fasterxml.jackson.core:jackson-databind:2.20.0")
-	androidTestImplementation("androidx.room:room-testing:2.8.0")
+	androidTestImplementation(libs.mockito.core)
+	androidTestImplementation(libs.mockito.kotlin)
+	androidTestImplementation(libs.androidx.test.espresso.core)
+	androidTestImplementation(libs.androidx.test.runner)
+	androidTestImplementation(libs.androidx.test.junit.ktx)
+	androidTestImplementation(libs.androidx.test.rules)
+	androidTestImplementation(libs.jackson.databind)
+	androidTestImplementation(libs.androidx.room.testing)
 }
