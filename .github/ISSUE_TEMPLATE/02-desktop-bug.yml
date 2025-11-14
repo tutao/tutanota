@@ -1,12 +1,14 @@
-name: Bug Report (browser)
-description: File a bug report for the issue in browser.
-labels: ["bug"]
+name: Bug Report (desktop app)
+description: File a bug report for the issue with the desktop app
+labels: ["bug", "desktop"]
 type: bug
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
+        
+        For the issues with Flatpak distribution please file a bug under [Flathub repo](https://github.com/flathub/com.tutanota.Tutanota/).
   - type: checkboxes
     id: notafeature
     attributes:
@@ -27,18 +29,6 @@ body:
       placeholder: "123.456789.10"
     validations:
       required: true
-  - type: input
-    attributes:
-      label: Browser
-      placeholder: "Chromium, Firefox, Safari"
-    validations:
-      required: true
-  - type: input
-    attributes:
-      label: Browser version
-      placeholder: "123.456789.10"
-    validations:
-      required: true
   - type: dropdown
     attributes:
       label: Operating System
@@ -46,7 +36,13 @@ body:
         - Linux
         - macOS
         - Windows
-        - other
+      default: 0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: OS version
+      placeholder: "123.456789.10"
     validations:
       required: false
   - type: textarea
@@ -58,6 +54,6 @@ body:
   - type: textarea
     attributes:
       label: Other context
-      description: Any other useful information e.g. your OS version, browser extensions, special settings.
+      description: Any other useful information e.g. special settings, anti-virus
     validations:
       required: false

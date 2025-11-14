@@ -1,12 +1,14 @@
-name: Bug Report (browser)
-description: File a bug report for the issue in browser.
-labels: ["bug"]
+name: Bug Report (Android app)
+description: File a bug report for the issue with the desktop app
+labels: ["bug", "android"]
 type: bug
 body:
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report!
+        
+        For issues with F-Droid build please contact F-Droid maintainers or create a [discussion](https://github.com/tutao/tutanota/discussions/).
   - type: checkboxes
     id: notafeature
     attributes:
@@ -29,24 +31,8 @@ body:
       required: true
   - type: input
     attributes:
-      label: Browser
-      placeholder: "Chromium, Firefox, Safari"
-    validations:
-      required: true
-  - type: input
-    attributes:
-      label: Browser version
+      label: OS version
       placeholder: "123.456789.10"
-    validations:
-      required: true
-  - type: dropdown
-    attributes:
-      label: Operating System
-      options:
-        - Linux
-        - macOS
-        - Windows
-        - other
     validations:
       required: false
   - type: textarea
@@ -58,6 +44,6 @@ body:
   - type: textarea
     attributes:
       label: Other context
-      description: Any other useful information e.g. your OS version, browser extensions, special settings.
+      description: Any other useful information e.g. special settings, anti-virus
     validations:
       required: false
