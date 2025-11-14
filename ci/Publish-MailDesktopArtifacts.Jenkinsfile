@@ -3,6 +3,7 @@ pipeline {
     	// on m1 macs, this is a symlink that must be updated. see wiki.
         VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
         TMPDIR ='/tmp'
+        WASM_TOOLS_FILE_PATH="tuta-wasm-tools.deb"
     }
 
 	parameters {
@@ -63,6 +64,18 @@ pipeline {
                 }
             }
         }
+		stage('download tuta wasm tools') {
+			steps {
+				script {
+					def util = load "ci/jenkins-lib/util.groovy"
+					util.downloadFromNexus(groupId: "lib",
+										   artifactId: "tuta-wasm-tools",
+										   version: params.wasmToolsVersion,
+										   fileExtension: 'deb',
+										   outFile: "${env.WORKSPACE}/ci/containers/${env.WASM_TOOLS_FILE_PATH}")
+				}
+			}
+		} // stage download tuta wasm tools
 		stage ('Build and publish') {
             agent {
                 dockerfile {
@@ -71,6 +84,7 @@ pipeline {
                     dir 'ci/containers'
                     additionalBuildArgs '--format docker'
                     args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z --device=${env.DEVICE_PATH}"
+					reuseNode true
                 } // docker
             } // agent
 	        stages {
