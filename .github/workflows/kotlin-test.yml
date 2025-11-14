@@ -63,6 +63,11 @@ jobs:
 #      - name: Android Test
 #        working-directory: ./app-android
 #        run: ./gradlew itest -PtargetABI=x86_64 --no-parallel --max-workers=1
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
       - name: Android test
         uses: reactivecircus/android-emulator-runner@v2
         with:
