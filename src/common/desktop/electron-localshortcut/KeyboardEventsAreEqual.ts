@@ -1,3 +1,5 @@
+import { isLatinChar } from "@tutao/tutanota-utils"
+
 function _lower(key: any) {
 	if (typeof key !== "string") {
 		return key
@@ -13,6 +15,8 @@ export default function areEqual(ev1: any, ev2: any): boolean {
 		return true
 	}
 
+	const keyIsLatin = isLatinChar(ev2.key)
+
 	for (const prop of ["altKey", "ctrlKey", "shiftKey", "metaKey"]) {
 		const [value1, value2] = [ev1[prop], ev2[prop]]
 
@@ -23,8 +27,10 @@ export default function areEqual(ev1: any, ev2: any): boolean {
 		}
 	}
 
-	if ((_lower(ev1.key) === _lower(ev2.key) && ev1.key !== undefined) || (ev1.code === ev2.code && ev1.code !== undefined)) {
+	if (keyIsLatin && _lower(ev1.key) === _lower(ev2.key) && ev1.key !== undefined) {
 		// Events are equals
+		return true
+	} else if (!keyIsLatin && _lower(ev1.code) === _lower(ev2.code) && ev1.code !== undefined) {
 		return true
 	}
 

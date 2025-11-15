@@ -693,3 +693,7 @@ export function isSessionStorageAvailable(): boolean {
 		return false
 	}
 }
+
+export function isLatinChar(char: string): boolean {
+	return char.charCodeAt(0) <= 0x7f
+}

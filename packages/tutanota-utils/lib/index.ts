@@ -185,6 +185,7 @@ export {
 	assertValidURL,
 	createResizeObserver,
 	singleAsync,
+	isLatinChar,
 } from "./Utils.js"
 export type {
 	Callback,
