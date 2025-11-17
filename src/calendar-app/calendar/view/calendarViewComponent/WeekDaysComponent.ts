@@ -97,6 +97,7 @@ export class WeekDaysComponent implements ClassComponent<WeekDaysComponentAttrs>
 
 	private renderMobileHeader(attrs: WeekDaysComponentAttrs): Children {
 		const { dates, selectedDate, onDateClick, isDaySelectorExpanded, startOfWeek } = attrs
+
 		return m(
 			".header-bg.overflow-hidden",
 			m(DaySelector, {

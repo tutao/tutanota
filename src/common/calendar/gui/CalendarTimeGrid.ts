@@ -1,15 +1,13 @@
-import m, { Child, ChildArray, Children, ClassComponent, Vnode } from "mithril"
+import m, { Child, ClassComponent, Vnode } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized, downcast, getStartOfDay, getStartOfNextDay, noOp } from "@tutao/tutanota-utils"
-import { getTimeFromClickInteraction, getTimeZone } from "../date/CalendarUtils"
-import { TimeColumn } from "./TimeColumn"
+import { deepMemoized, getStartOfDay, getStartOfNextDay, lastIndex } from "@tutao/tutanota-utils"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "luxon"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { DefaultAnimationTime } from "../../gui/animation/Animations"
-import { CalendarEventBubble, CalendarEventBubbleAttrs, CalendarEventBubbleDragProperties, EventBubbleInteractions, MIN_ROW_SPAN } from "./CalendarEventBubble"
-import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
-import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
+import { CalendarEventBubbleDragProperties, EventBubbleInteractions, MIN_ROW_SPAN } from "./CalendarEventBubble"
+import { CellActionHandler } from "./CalendarTimeCell"
+import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "./CalendarTimeColumn"
 
 export const TIME_SCALE_BASE_VALUE = 60
 export type TimeScale = 1 | 2 | 4
@@ -26,11 +24,16 @@ export interface CalendarTimeGridAttributes {
 	events: Array<EventWrapper>
 	timeScale: TimeScale
 	timeRange: TimeRange
-	hasAnyConflict?: boolean
-	cellActionHandlers?: Pick<CellAttrs, "onCellPressed" | "onCellContextMenuPressed">
+	intervals: Array<Time>
+	cellActionHandlers?: {
+		onCellPressed: CellActionHandler
+		onCellContextMenuPressed?: CellActionHandler
+	}
 	eventBubbleHandlers?: EventBubbleInteractions & CalendarEventBubbleDragProperties
-	canReceiveFocus: boolean
-	hideRightBorder?: true
+	layout: {
+		rowCountForRange: number
+		gridRowHeight: number
+	}
 }
 
 /**
@@ -83,14 +86,10 @@ export interface ColumnLayoutData {
 	events: Map<Id, RowBounds>
 }
 
-export type CellActionHandler = (baseDate: Date, time: Time) => unknown
-
-interface CellAttrs {
-	baseDate: Date
-	time: Time
-	rowBounds: RowBounds
-	onCellPressed?: CellActionHandler
-	onCellContextMenuPressed?: CellActionHandler
+export type CalendarTimeColumnData = {
+	grid: Map<Id, EventGridData>
+	subColumnCount: number
+	orderedEvents: Array<EventWrapper>
 }
 
 export const getSubRowAsMinutes = deepMemoized((timeScale: TimeScale) => {
@@ -131,58 +130,16 @@ export const getIntervalAsMinutes = (timeScale: TimeScale) => {
  * ```
  */
 export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttributes> {
-	/**
-	 * We keep track of internal columnCount to be able to position interactable cells behind events
-	 * @private
-	 */
-	private columnCount: Map<number, number> = new Map()
-	private subRowCount?: number
-
-	oninit(vnode: Vnode<CalendarTimeGridAttributes>): any {
-		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(vnode.attrs.timeScale, vnode.attrs.timeRange)
-		this.subRowCount = SUBROWS_PER_INTERVAL * timeColumnIntervals.length
-	}
-
 	view({ attrs }: Vnode<CalendarTimeGridAttributes>) {
 		return m(
 			".grid.overflow-hidden.height-100p",
 			{
 				style: {
-					// "overflow-x": "hidden",
 					"grid-template-columns": `repeat(${attrs.dates.length}, 1fr)`,
 					transition: `opacity ${DefaultAnimationTime}ms linear`,
 				},
 			},
-			attrs.dates.map((date) => this.renderDay(date, this.subRowCount!, attrs)),
-		)
-	}
-
-	private renderDay(date: Date, subRowCount: number, timeViewAttrs: CalendarTimeGridAttributes): Child {
-		const { events: eventWrappers, timeScale, timeRange, cellActionHandlers, eventBubbleHandlers, canReceiveFocus, hideRightBorder } = timeViewAttrs
-		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
-		const startOfTomorrow = getStartOfNextDay(date)
-		const startOfDay = getStartOfDay(date)
-		const eventsForThisDate = eventWrappers.filter(
-			(eventWrapper) => eventWrapper.event.startTime.getTime() < startOfTomorrow.getTime() && eventWrapper.event.endTime.getTime() > startOfDay.getTime(),
-		)
-
-		return m(
-			".grid.plr-unit.gap.z1.grid-auto-columns.rel.min-width-0",
-			{
-				class: hideRightBorder ? "" : "border-right",
-				oncreate: (vnode) => {
-					;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
-				},
-				onmousemove: (mouseEvent: MouseEvent) => {
-					downcast(mouseEvent).redraw = false
-					const time = getTimeFromMousePos(getPosAndBoundsFromMouseEvent(mouseEvent), SUBROWS_PER_INTERVAL)
-					eventBubbleHandlers?.drag?.setTimeUnderMouse(time, date)
-				},
-			},
-			[
-				this.renderInteractableCells(date, timeScale, timeRange, cellActionHandlers?.onCellPressed, cellActionHandlers?.onCellContextMenuPressed),
-				this.renderEventsAtDate(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, date, canReceiveFocus, eventBubbleHandlers),
-			],
+			attrs.dates.map((date, index) => this.renderDayColumn(date, attrs, index === lastIndex(attrs.dates))),
 		)
 	}
 
@@ -190,86 +147,46 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 	 * Renders a column of events using grids for a given base date.
 	 * This function is deepMemoized to prevent unnecessary layout calculation
 	 *
-	 * @param eventsForThisDate - Array of events to render in this column
-	 * @param timeRange - Visible time range for the day (e.g., 00:00 AM to 23:00 PM)
-	 * @param subRowAsMinutes - Minutes represented by each grid subrow
-	 * @param timeScale - Time scale factor for interval subdivision (1, 2, or 4)
 	 * @param baseDate - The date for this column
+	 * @param timeViewAttrs
+	 * @param hideRightBorder
+	 * @param gridRowHeight
 	 * @returns Child nodes representing the rendered events
 	 *
 	 * @private
 	 */
-	private renderEventsAtDate = deepMemoized(
-		(
-			eventsForThisDate: Array<EventWrapper>,
-			timeRange: TimeRange,
-			subRowAsMinutes: number,
-			timeScale: TimeScale,
-			baseDate: Date,
-			canReceiveFocus: boolean,
-			eventInteractions?: EventBubbleInteractions & CalendarEventBubbleDragProperties,
-		): Children => {
-			const interval = getIntervalAsMinutes(timeScale)
-			const timeRangeAsDate = {
-				start: timeRange.start.toDate(baseDate),
-				end: timeRange.end.toDateTime(baseDate, getTimeZone()).plus({ minute: interval }).toJSDate(),
-			}
+	private renderDayColumn(baseDate: Date, timeViewAttrs: CalendarTimeGridAttributes, hideRightBorder: boolean): Child {
+		const {
+			events: eventWrappers,
+			timeScale,
+			timeRange,
+			cellActionHandlers,
+			eventBubbleHandlers,
+			layout: { rowCountForRange, gridRowHeight },
+		} = timeViewAttrs
+		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
+		const startOfTomorrow = getStartOfNextDay(baseDate)
+		const startOfDay = getStartOfDay(baseDate)
+		const eventsForThisDate = eventWrappers.filter(
+			(eventWrapper) => eventWrapper.event.startTime.getTime() < startOfTomorrow.getTime() && eventWrapper.event.endTime.getTime() > startOfDay.getTime(),
+		)
 
-			// Sort events for optimal lay outing
-			// Primary: earlier start times first
-			// Secondary: longer duration first (helps minimize columns)
-			const orderedEvents = eventsForThisDate.toSorted((a, b) => {
-				const startTimeDiff = a.event.startTime.getTime() - b.event.startTime.getTime()
-				if (startTimeDiff !== 0) {
-					return startTimeDiff
-				}
-				// Longer events first (end time descending)
-				return b.event.endTime.getTime() - a.event.endTime.getTime()
-			})
+		return m(CalendarTimeColumn, {
+			intervals: timeViewAttrs.intervals, // containing the start time of each interval
+			baseDate: baseDate,
+			onCellPressed: cellActionHandlers?.onCellPressed,
+			onCellContextMenuPressed: cellActionHandlers?.onCellContextMenuPressed,
+			eventInteractions: eventBubbleHandlers,
+			timeColumnGrid: this.memoizedLayoutEvents(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, baseDate),
+			layout: {
+				rowCount: rowCountForRange,
+				hideRightBorder,
+				gridRowHeight,
+			},
+		} as CalendarTimeColumnAttrs)
+	}
 
-			const { grid, gridColumnSize } = CalendarTimeGrid.layoutEvents(orderedEvents, timeRange, subRowAsMinutes, timeScale, baseDate)
-			this.columnCount.set(baseDate.getTime(), gridColumnSize)
-
-			return orderedEvents.flatMap((eventWrapper) => {
-				const passesThroughToday =
-					eventWrapper.event.startTime.getTime() < timeRangeAsDate.start.getTime() &&
-					eventWrapper.event.endTime.getTime() > timeRangeAsDate.end.getTime()
-				const startsToday =
-					eventWrapper.event.startTime.getTime() >= timeRangeAsDate.start.getTime() &&
-					eventWrapper.event.startTime.getTime() <= timeRangeAsDate.end.getTime()
-				const endsToday =
-					eventWrapper.event.endTime.getTime() >= timeRangeAsDate.start.getTime() &&
-					eventWrapper.event.endTime.getTime() <= timeRangeAsDate.end.getTime()
-
-				if (!(passesThroughToday || startsToday || endsToday)) {
-					return []
-				}
-
-				const evData = grid.get(elementIdPart(eventWrapper.event._id))
-				if (!evData) {
-					return []
-				}
-
-				return [
-					m(CalendarEventBubble, {
-						interactions: eventInteractions,
-						gridInfo: evData,
-						eventWrapper,
-						rowOverflowInfo: {
-							start: eventWrapper.event.startTime < timeRangeAsDate.start,
-							end: eventWrapper.event.endTime > timeRangeAsDate.end,
-						},
-						baseDate,
-						canReceiveFocus,
-						columnOverflowInfo: {
-							start: false,
-							end: false,
-						},
-					} satisfies CalendarEventBubbleAttrs),
-				]
-			}) as ChildArray
-		},
-	)
+	private memoizedLayoutEvents = deepMemoized(CalendarTimeGrid.layoutEvents)
 
 	/**
 	 * Layout Strategy:
@@ -288,10 +205,28 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 	 *
 	 * @VisibleForTesting
 	 */
-	static layoutEvents(events: Array<EventWrapper>, timeRange: TimeRange, subRowAsMinutes: number, timeScale: TimeScale, baseDate: Date) {
+	static layoutEvents(
+		events: Array<EventWrapper>,
+		timeRange: TimeRange,
+		subRowAsMinutes: number,
+		timeScale: TimeScale,
+		baseDate: Date,
+	): CalendarTimeColumnData {
+		// Sort events for optimal lay outing
+		// Primary: earlier start times first
+		// Secondary: longer duration first (helps minimize columns)
+		const orderedEvents = events.toSorted((a, b) => {
+			const startTimeDiff = a.event.startTime.getTime() - b.event.startTime.getTime()
+			if (startTimeDiff !== 0) {
+				return startTimeDiff
+			}
+			// Longer events first (end time descending)
+			return b.event.endTime.getTime() - a.event.endTime.getTime()
+		})
+
 		// Step 1: Convert events to row-based coordinates
 		const eventsMap = new Map<Id, RowBounds>(
-			events.map((wrapper) => {
+			orderedEvents.map((wrapper) => {
 				const rowBounds = CalendarTimeGrid.getRowBounds(wrapper.event, timeRange, subRowAsMinutes, timeScale, baseDate)
 				return [elementIdPart(wrapper.event._id), rowBounds]
 			}),
@@ -301,7 +236,11 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 		const columns = CalendarTimeGrid.packEventsIntoColumns(eventsMap)
 
 		// Step 3: Expand events to fill available horizontal space
-		return { grid: CalendarTimeGrid.buildGridDataWithExpansion(columns), gridColumnSize: columns.length }
+		return {
+			grid: CalendarTimeGrid.buildGridDataWithExpansion(columns),
+			subColumnCount: columns.length,
+			orderedEvents,
+		}
 	}
 
 	/**
@@ -359,7 +298,6 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 						span: columnSpan,
 					},
 				}
-
 				gridData.set(eventId, eventGridData)
 			}
 		}
@@ -440,70 +378,11 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 
 		const diffFromRangeStartToEventEnd = timeRange.start.diff(Time.fromDate(eventTimeRange.endTime))
 		const eventEndsAfterRange = eventTimeRange.endTime > getStartOfNextDay(baseDate) || diff > 0
-		let end = eventEndsAfterRange ? -1 : Math.ceil(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
+		const maxRows = (timeRange.end.asMinutes() + interval - timeRange.start.asMinutes()) / subRowAsMinutes + 1
+		let end = eventEndsAfterRange ? maxRows : Math.ceil(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
 		if (!eventEndsAfterRange) {
 			end = Math.max(end, start + MIN_ROW_SPAN) // Assert events has at least row span of MIN_ROW_SPAN
 		}
 		return { start, end }
-	}
-
-	private renderInteractableCells(
-		baseDate: Date,
-		timeScale: TimeScale,
-		timeRange: TimeRange,
-		onCellPressed?: CellActionHandler,
-		onCellContextMenuPressed?: CellActionHandler,
-	): Children {
-		let timeIntervalInMinutes = getIntervalAsMinutes(timeScale)
-		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeIntervalInMinutes) / timeIntervalInMinutes
-
-		const children: Children = []
-		for (let hourIndex = 0; hourIndex < numberOfIntervals; hourIndex++) {
-			const startTime: Time = Time.fromMinutes(hourIndex * timeIntervalInMinutes)
-			const rowStart = hourIndex * SUBROWS_PER_INTERVAL + 1
-			const rowEnd = rowStart + SUBROWS_PER_INTERVAL
-
-			children.push(
-				this.renderCell({
-					baseDate,
-					time: startTime,
-					rowBounds: {
-						start: rowStart,
-						end: rowEnd,
-					},
-					onCellPressed,
-					onCellContextMenuPressed,
-				}),
-			)
-		}
-
-		return children
-	}
-
-	private renderCell(cellAttrs: CellAttrs): Child {
-		const showHoverEffect = cellAttrs.onCellPressed || cellAttrs.onCellContextMenuPressed
-		const classes = showHoverEffect ? "interactable-cell after-as-border-bottom" : ""
-
-		return m(".z1", {
-			class: classes,
-			style: {
-				gridRow: `${cellAttrs.rowBounds.start} / ${cellAttrs.rowBounds.end}`,
-				gridColumn: `1 / span ${this.columnCount.get(cellAttrs.baseDate.getTime()) ?? 1}`,
-			} satisfies Partial<CSSStyleDeclaration>,
-			onclick: cellAttrs.onCellPressed
-				? (e: MouseEvent) => {
-						e.stopImmediatePropagation()
-						const eventBaseTime = getTimeFromClickInteraction(e, cellAttrs.time)
-						cellAttrs.onCellPressed?.(cellAttrs.baseDate, eventBaseTime)
-					}
-				: noOp,
-			oncontextmenu: cellAttrs.onCellContextMenuPressed
-				? (e: MouseEvent) => {
-						e.preventDefault()
-						const eventBaseTime = getTimeFromClickInteraction(e, cellAttrs.time)
-						cellAttrs.onCellContextMenuPressed?.(cellAttrs.baseDate, eventBaseTime)
-					}
-				: null,
-		})
 	}
 }

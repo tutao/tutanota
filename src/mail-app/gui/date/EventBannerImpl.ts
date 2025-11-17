@@ -10,6 +10,7 @@ import {
 	CalendarTimeGrid,
 	CalendarTimeGridAttributes,
 	getIntervalAsMinutes,
+	SUBROWS_PER_INTERVAL,
 	TIME_SCALE_BASE_VALUE,
 	TimeRange,
 	TimeScale,
@@ -60,11 +61,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	private agenda: Map<string, InviteAgenda> | null = null
 	private comment: string = ""
 	private displayConflictingAgenda: boolean = false
-	private timeRowHeight = 0
 	private layoutState = {
 		gridHeight: 0,
 		gridWidth: 0,
 	}
+	private readonly gridRowHeight = 4
 
 	oncreate({ attrs }: VnodeDOM<EventBannerImplAttrs>) {
 		Promise.resolve().then(async () => {
@@ -136,8 +137,10 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			end: Time.fromDate(eventFocusBound).add({ minutes: timeInterval }),
 		}
 
+		const intervals = TimeColumn.createTimeColumnIntervals(timeScale, timeRange)
+		const rowCountForRange = SUBROWS_PER_INTERVAL * intervals.length
+
 		const timeColumnWidth = size.calendar_hour_width_mobile + size.spacing.core_16
-		const timeColumnHeight = size.font_size_base + size.spacing.core_16 * 2
 
 		/* Event Banner */
 		return m(
@@ -275,11 +278,13 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 								agenda
 									? m(".flex.rel", [
 											m(TimeColumn, {
-												timeScale,
-												timeRange,
-												width: timeColumnWidth,
-												height: timeColumnHeight,
-												hideLastBorder: true,
+												intervals,
+												layout: {
+													width: timeColumnWidth,
+													subColumnCount: 1,
+													rowCount: rowCountForRange,
+													gridRowHeight: this.gridRowHeight,
+												},
 											} satisfies TimeColumnAttrs),
 											m(TimeIndicator, {
 												time: Time.fromDate(agenda.main.event.startTime),
@@ -312,9 +317,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 													timeScale,
 													timeRange,
 													dates: [getStartOfDay(agenda.main.event.startTime)],
-													hasAnyConflict: hasConflict,
-													canReceiveFocus: false,
-													hideRightBorder: true,
+													intervals,
+													layout: {
+														gridRowHeight: this.gridRowHeight,
+														rowCountForRange,
+													},
 												} satisfies CalendarTimeGridAttributes),
 											),
 										])
@@ -634,6 +641,8 @@ export async function loadEventsAroundInvite(
 				flags: {
 					isFeatured: true,
 					isConflict: conflictingNormalEvents.length + allDayAndLongEvents.length > 0,
+					hasAlarms: false,
+					isAlteredInstance: false,
 				},
 			},
 			allDayEvents: allDayAndLongEvents.map((wrapper) => ({
