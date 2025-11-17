@@ -1,7 +1,7 @@
 import m, { Vnode } from "mithril"
-import { assertMainOrNode } from "../api/common/Env"
-import { TranslationKey } from "../misc/LanguageViewModel.js"
-import { defer, DeferredObject } from "@tutao/tutanota-utils"
+import { assertMainOrNode, isIOSApp } from "../api/common/Env"
+import { InfoLink, lang, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
+import { defer, DeferredObject, lazy } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { LoginViewModel } from "./LoginViewModel.js"
 import { LoginForm } from "./LoginForm.js"
@@ -9,12 +9,30 @@ import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { Wizard, WizardAttrs } from "../gui/base/wizard/Wizard"
-import { LoginButton } from "../gui/base/buttons/LoginButton"
+import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton"
 import { px } from "../gui/size"
 import { WizardController } from "../gui/base/wizard/WizardController"
 import { WizardStepAttrs } from "../gui/base/wizard/WizardStep"
 import { SingleLineTextField, SingleLineTextFieldAttrs } from "../gui/base/SingleLineTextField"
 import { TextFieldType } from "../gui/base/TextField"
+import { UpgradeSubscriptionData } from "../subscription/UpgradeSubscriptionWizard"
+import stream from "mithril/stream"
+import { anyHasGlobalFirstYearCampaign, getDiscountDetails, isPersonalPlanAvailable } from "../subscription/utils/PlanSelectorUtils"
+import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "../subscription/utils/PriceUtils"
+import { formatNameAndAddress } from "../api/common/utils/CommonFormatter"
+import { getByAbbreviation } from "../api/common/CountryList"
+import { getDefaultPaymentMethod, getPaymentMethodType, NewPaidPlans, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
+import { SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
+import { getCurrentPaymentInterval, queryAppStoreSubscriptionOwnership, shouldShowApplePrices, UpgradeType } from "../subscription/utils/SubscriptionUtils"
+import { locator } from "../api/main/CommonLocator"
+import { stringToSubscriptionType } from "../misc/LoginUtils"
+import { FeatureListProvider } from "../subscription/FeatureListProvider"
+import { MobilePaymentSubscriptionOwnership } from "../native/common/generatedipc/MobilePaymentSubscriptionOwnership"
+import { TranslationKeyType } from "../misc/TranslationKey"
+import { SubscriptionActionButtons } from "../subscription/SubscriptionSelector"
+import { PlanSelectorHeadline } from "../subscription/components/PlanSelectorHeadline"
+import { BootIcons } from "../gui/base/icons/BootIcons"
+import { PlanSelector } from "../subscription/PlanSelector"
 
 assertMainOrNode()
 
@@ -22,29 +40,6 @@ export interface SignupViewAttrs extends TopLevelAttrs {
 	/** Default path to redirect to after the login. Can be overridden with query param `requestedPath`. */
 	targetPath: string
 	makeViewModel: () => LoginViewModel
-}
-
-/** create a string provider that changes periodically until promise is resolved */
-function makeDynamicLoggingInMessage(promise: Promise<unknown>): () => TranslationKey {
-	const messageArray: Array<TranslationKey> = [
-		"dynamicLoginDecryptingMails_msg",
-		"dynamicLoginOrganizingCalendarEvents_msg",
-		"dynamicLoginSortingContacts_msg",
-		"dynamicLoginUpdatingOfflineDatabase_msg",
-		"dynamicLoginCyclingToWork_msg",
-		"dynamicLoginRestockingTutaFridge_msg",
-		"dynamicLoginPreparingRocketLaunch_msg",
-		"dynamicLoginSwitchingOnPrivacy_msg",
-	]
-	let currentMessage: TranslationKey = "login_msg"
-	let messageIndex: number = 0
-	const messageIntervalId = setInterval(() => {
-		currentMessage = messageArray[messageIndex]
-		messageIndex = ++messageIndex % 8
-		m.redraw()
-	}, 4000 /** spinner spins every 2s */)
-	promise.finally(() => clearInterval(messageIntervalId))
-	return () => currentMessage
 }
 
 export class SignupView extends BaseTopLevelView implements TopLevelView<SignupViewAttrs> {
@@ -60,7 +55,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 	private bottomMargin = 0
 
 	private readonly wizardController: WizardController
-	private readonly wizardViewModel: DummyClass
+	private wizardViewModel: UpgradeSubscriptionData | undefined
 
 	constructor({ attrs }: Vnode<SignupViewAttrs>) {
 		super()
@@ -73,7 +68,74 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		this.initPromise = this.viewModel.init().then(m.redraw)
 
 		this.wizardController = new WizardController(["Step 1", "Step 2", "Step 3", "Step 4", "Step 5", "Step 6"])
-		this.wizardViewModel = new DummyClass()
+	}
+
+	async oncreate() {
+		let acceptedPlans = NewPaidPlans // FIXME: Do we have a case that we need hide some plans?
+		const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, null)
+		const prices = priceDataProvider.getRawPricingData()
+		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
+		const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
+		let message: MaybeTranslation | null
+		if (isIOSApp()) {
+			const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
+			// if we are on iOS app we only show other plans if AppStore payments are enabled and there's no subscription for this Apple ID.
+			if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
+				acceptedPlans = acceptedPlans.filter((plan) => plan === PlanType.Free)
+			}
+			message =
+				appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription
+					? lang.getTranslation("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
+					: null
+		} else {
+			message = null
+		}
+
+		// FIXME: Need to add parameter handling ///////////////////////////////////////////////////////////////////////
+		// const subscriptionType = stringToSubscriptionType(subscriptionParameters?.type ?? "private")
+		// const paymentInterval = asPaymentInterval(subscriptionParameters?.interval ?? PaymentInterval.Yearly)
+		const subscriptionType = stringToSubscriptionType("private")
+		const paymentInterval = asPaymentInterval(PaymentInterval.Yearly)
+		const registrationDataId = null
+		const subscriptionParameters = null
+		const referralData = null
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		this.wizardViewModel = {
+			options: {
+				businessUse: stream(subscriptionType === SubscriptionType.Business),
+				paymentInterval: stream(paymentInterval),
+			},
+			invoiceData: {
+				invoiceAddress: "",
+				country: null,
+				vatNumber: "", // only for EU countries otherwise empty
+			},
+			paymentData: {
+				paymentMethod: await getDefaultPaymentMethod(),
+				creditCardData: null,
+			},
+			price: null,
+			nextYearPrice: null,
+			targetPlanType: PlanType.Free,
+			accountingInfo: null,
+			customer: null,
+			newAccountData: null,
+			registrationDataId,
+			priceInfoTextId: priceDataProvider.getPriceInfoMessage(),
+			upgradeType: UpgradeType.Signup,
+			planPrices: priceDataProvider,
+			currentPlan: null,
+			subscriptionParameters,
+			featureListProvider,
+			referralData,
+			multipleUsersAllowed: false,
+			acceptedPlans,
+			msg: message,
+			firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
+			isCalledBySatisfactionDialog: false,
+		}
+		m.redraw()
 	}
 
 	keyboardListener = (keyboardSize: number) => {
@@ -83,7 +145,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {}
 
-	private makeMainStep(color: string, defaultLabel: string): WizardStepAttrs<DummyClass>["main"] {
+	private makeMainStep(color: string, defaultLabel: string): WizardStepAttrs<UpgradeSubscriptionData>["main"] {
 		return (ctx) =>
 			m(
 				".flex.col",
@@ -123,7 +185,72 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 			)
 	}
 
-	private makeSubStep(color: string, text: string): WizardStepAttrs<DummyClass>["sub"] {
+	private planSelectionStep(): WizardStepAttrs<UpgradeSubscriptionData>["main"] {
+		return (ctx) => {
+			const data = ctx.viewModel
+			const { planPrices, acceptedPlans, newAccountData, targetPlanType, accountingInfo } = data
+			let availablePlans = acceptedPlans
+			const isApplePrice = shouldShowApplePrices(accountingInfo)
+			const discountDetails = getDiscountDetails(isApplePrice, planPrices)
+			const promotionMessage = planPrices.getRawPricingData().messageTextId as TranslationKeyType
+
+			const createPaidPlanActionButtons = (planType: PlanType): lazy<LoginButtonAttrs> => {
+				const isFirstMonthForFree = data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
+				const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
+
+				return () => ({
+					label: isFirstMonthForFree && isYearly ? "pricing.selectTryForFree_label" : "pricing.select_action",
+					// onclick: () => this.setNonFreeDataAndGoToNextPage(data, planType),
+					onclick: () => console.log("not implemented yet"),
+				})
+			}
+
+			const actionButtons: SubscriptionActionButtons = {
+				[PlanType.Free]: () => {
+					return {
+						label: "pricing.select_action",
+						// onclick: () => this.selectFree(data),
+						onclick: () => console.log("not implemented yet"),
+					} as LoginButtonAttrs
+				},
+				[PlanType.Revolutionary]: createPaidPlanActionButtons(PlanType.Revolutionary),
+				[PlanType.Legend]: createPaidPlanActionButtons(PlanType.Legend),
+				[PlanType.Essential]: createPaidPlanActionButtons(PlanType.Essential),
+				[PlanType.Advanced]: createPaidPlanActionButtons(PlanType.Advanced),
+				[PlanType.Unlimited]: createPaidPlanActionButtons(PlanType.Unlimited),
+			}
+
+			return m("div", [
+				// Headline for a global campaign
+				!data.options.businessUse() &&
+					anyHasGlobalFirstYearCampaign(discountDetails) &&
+					m(PlanSelectorHeadline, {
+						translation: lang.getTranslation("pricing.cyber_monday_msg"),
+						icon: BootIcons.Heart,
+					}),
+				// Headline for general messages
+				data.msg && m(PlanSelectorHeadline, { translation: data.msg }),
+				// Headline for promotional messages
+				promotionMessage && m(PlanSelectorHeadline, { translation: lang.getTranslation(promotionMessage) }),
+
+				m(PlanSelector, {
+					options: data.options,
+					actionButtons,
+					priceAndConfigProvider: planPrices,
+					availablePlans,
+					isApplePrice,
+					currentPlan: data.currentPlan ?? undefined,
+					currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
+					allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
+					showMultiUser: false,
+					discountDetails,
+					targetPlan: data.targetPlanType,
+				}),
+			])
+		}
+	}
+
+	private makeSubStep(color: string, text: string): WizardStepAttrs<UpgradeSubscriptionData>["sub"] {
 		return () =>
 			m(
 				"",
@@ -151,51 +278,49 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 				},
 			},
 			[
-				m(Wizard, {
-					steps: [
-						{
-							title: "Step 1",
-							main: this.makeMainStep("red", "Step 1"),
-							sub: this.makeSubStep("pink", "Sub content for step 1"),
-						},
-						{
-							title: "Step 2",
-							main: this.makeMainStep("yellow", "Step 2"),
-							sub: this.makeSubStep("green", "Sub content for step 2"),
-						},
-						{
-							title: "Step 3",
-							main: this.makeMainStep("green", "Step 3"),
-							sub: this.makeSubStep("blue", "Sub content for step 3"),
-						},
+				!this.wizardViewModel
+					? m("", "Loading spinner!")
+					: m(Wizard, {
+							steps: [
+								{
+									title: "Step 1",
+									main: this.planSelectionStep(),
+									sub: this.makeSubStep("pink", "Sub content for step 1"),
+								},
+								{
+									title: "Step 2",
+									main: this.makeMainStep("yellow", "Step 2"),
+									sub: this.makeSubStep("green", "Sub content for step 2"),
+								},
+								{
+									title: "Step 3",
+									main: this.makeMainStep("green", "Step 3"),
+									sub: this.makeSubStep("blue", "Sub content for step 3"),
+								},
 
-						{
-							title: "Step 4",
-							main: this.makeMainStep("green", "Step 3"),
-							sub: this.makeSubStep("blue", "Sub content for step 3"),
-						},
+								{
+									title: "Step 4",
+									main: this.makeMainStep("green", "Step 3"),
+									sub: this.makeSubStep("blue", "Sub content for step 3"),
+								},
 
-						{
-							title: "Step 5",
-							main: this.makeMainStep("green", "Step 3"),
-							sub: this.makeSubStep("blue", "Sub content for step 3"),
-						},
+								{
+									title: "Step 5",
+									main: this.makeMainStep("green", "Step 3"),
+									sub: this.makeSubStep("blue", "Sub content for step 3"),
+								},
 
-						{
-							title: "Step 6",
-							main: this.makeMainStep("green", "Step 3"),
-							sub: this.makeSubStep("blue", "Sub content for step 3"),
-						},
-					],
-					controller: this.wizardController,
-					viewModel: this.wizardViewModel,
-				} satisfies WizardAttrs<DummyClass>),
+								{
+									title: "Step 6",
+									main: this.makeMainStep("green", "Step 3"),
+									sub: this.makeSubStep("blue", "Sub content for step 3"),
+								},
+							],
+							controller: this.wizardController,
+							viewModel: this.wizardViewModel,
+						} satisfies WizardAttrs<UpgradeSubscriptionData>),
 				renderInfoLinks(),
 			],
 		)
 	}
-}
-
-class DummyClass {
-	constructor() {}
 }
