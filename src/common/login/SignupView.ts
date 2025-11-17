@@ -1,33 +1,20 @@
-import m, { Children, Vnode } from "mithril"
-import { client } from "../misc/ClientDetector.js"
-import { assertMainOrNode, isApp, isDesktop } from "../api/common/Env"
-import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
-import { defer, DeferredObject, mapNullable } from "@tutao/tutanota-utils"
-import { BootIcons } from "../gui/base/icons/BootIcons"
-import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import m, { Vnode } from "mithril"
+import { assertMainOrNode } from "../api/common/Env"
+import { TranslationKey } from "../misc/LanguageViewModel.js"
+import { defer, DeferredObject } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade.js"
-import { DeviceType } from "../misc/ClientConstants.js"
-import { Button, ButtonType } from "../gui/base/Button.js"
-import { AriaLandmarks, landmarkAttrs, liveDataAttrs } from "../gui/AriaUtils"
-import { DisplayMode, LoginState, LoginViewModel } from "./LoginViewModel.js"
+import { LoginViewModel } from "./LoginViewModel.js"
 import { LoginForm } from "./LoginForm.js"
-import { CredentialsSelector } from "./CredentialsSelector.js"
-import { getWhitelabelCustomizations } from "../misc/WhitelabelCustomizations.js"
-import { createAsyncDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
-import type { ClickHandler } from "../gui/base/GuiUtils"
-import { IconButton } from "../gui/base/IconButton.js"
 import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
-import { LoginScreenHeader } from "../gui/LoginScreenHeader.js"
-import { styles } from "../gui/styles.js"
-import { locator } from "../api/main/CommonLocator.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
-import { showSnackBar } from "../gui/base/SnackBar.js"
 import { Wizard, WizardAttrs } from "../gui/base/wizard/Wizard"
-import { WizardStep, WizardStepAttrs } from "../gui/base/wizard/WizardStep"
 import { LoginButton } from "../gui/base/buttons/LoginButton"
 import { px } from "../gui/size"
 import { WizardController } from "../gui/base/wizard/WizardController"
+import { WizardStepAttrs } from "../gui/base/wizard/WizardStep"
+import { SingleLineTextField, SingleLineTextFieldAttrs } from "../gui/base/SingleLineTextField"
+import { TextFieldType } from "../gui/base/TextField"
 
 assertMainOrNode()
 
@@ -71,7 +58,9 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 	private loginForm: DeferredObject<LoginForm>
 	private selectedRedirect: string
 	private bottomMargin = 0
-	private wizardViewModel: WizardController
+
+	private readonly wizardController: WizardController
+	private readonly wizardViewModel: DummyClass
 
 	constructor({ attrs }: Vnode<SignupViewAttrs>) {
 		super()
@@ -82,7 +71,9 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		this.moreExpanded = false
 		this.viewModel = attrs.makeViewModel()
 		this.initPromise = this.viewModel.init().then(m.redraw)
-		this.wizardViewModel = new WizardController()
+
+		this.wizardController = new WizardController(["Step 1", "Step 2", "Step 3", "Step 4", "Step 5", "Step 6"])
+		this.wizardViewModel = new DummyClass()
 	}
 
 	keyboardListener = (keyboardSize: number) => {
@@ -92,18 +83,61 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {}
 
-	dummyComponent = (color: string, wizardController: WizardController) => {
-		return m(
-			"",
-			{
-				style: {
-					"background-color": color,
-					width: px(300),
-					height: px(300),
+	private makeMainStep(color: string, defaultLabel: string): WizardStepAttrs<DummyClass>["main"] {
+		return (ctx) =>
+			m(
+				".flex.col",
+				{
+					style: {
+						backgroundColor: color,
+						width: px(300),
+						height: px(300),
+						padding: px(8),
+					},
 				},
-			},
-			m(LoginButton, { label: "login_action", onclick: () => wizardController.next() }),
-		)
+				[
+					m("div", `Main content for ${defaultLabel} (step ${ctx.index + 1})`),
+					m(SingleLineTextField, {
+						oninput: (newValue) => {
+							ctx.setLabel(newValue || defaultLabel)
+						},
+						value: ctx.getLabel(),
+						ariaLabel: "",
+						type: TextFieldType.Text,
+					} satisfies SingleLineTextFieldAttrs<any>),
+					m(
+						".mt-m",
+						m(LoginButton, {
+							label: ctx.controller.stepCount === ctx.index + 1 ? "previous_action" : "next_action",
+							onclick: () => {
+								if (ctx.controller.stepCount === ctx.index + 1) {
+									ctx.controller.prev()
+								} else {
+									ctx.markComplete(true)
+									ctx.controller.next()
+								}
+							},
+						}),
+					),
+				],
+			)
+	}
+
+	private makeSubStep(color: string, text: string): WizardStepAttrs<DummyClass>["sub"] {
+		return () =>
+			m(
+				"",
+				{
+					style: {
+						backgroundColor: color,
+						width: px(300),
+						height: px(300),
+						marginLeft: px(16),
+						padding: px(8),
+					},
+				},
+				text,
+			)
 	}
 
 	view({ attrs }: Vnode<SignupViewAttrs>) {
@@ -120,18 +154,41 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 				m(Wizard, {
 					steps: [
 						{
-							title: "hoge",
-							main: this.dummyComponent("red", this.wizardViewModel),
-							sub: this.dummyComponent("pink", this.wizardViewModel),
+							title: "Step 1",
+							main: this.makeMainStep("red", "Step 1"),
+							sub: this.makeSubStep("pink", "Sub content for step 1"),
 						},
 						{
-							title: "fuga",
-							main: this.dummyComponent("yellow", this.wizardViewModel),
-							sub: this.dummyComponent("green", this.wizardViewModel),
+							title: "Step 2",
+							main: this.makeMainStep("yellow", "Step 2"),
+							sub: this.makeSubStep("green", "Sub content for step 2"),
+						},
+						{
+							title: "Step 3",
+							main: this.makeMainStep("green", "Step 3"),
+							sub: this.makeSubStep("blue", "Sub content for step 3"),
+						},
+
+						{
+							title: "Step 4",
+							main: this.makeMainStep("green", "Step 3"),
+							sub: this.makeSubStep("blue", "Sub content for step 3"),
+						},
+
+						{
+							title: "Step 5",
+							main: this.makeMainStep("green", "Step 3"),
+							sub: this.makeSubStep("blue", "Sub content for step 3"),
+						},
+
+						{
+							title: "Step 6",
+							main: this.makeMainStep("green", "Step 3"),
+							sub: this.makeSubStep("blue", "Sub content for step 3"),
 						},
 					],
-					controller: this.wizardViewModel,
-					viewModel: new DummyClass(),
+					controller: this.wizardController,
+					viewModel: this.wizardViewModel,
 				} satisfies WizardAttrs<DummyClass>),
 				renderInfoLinks(),
 			],
