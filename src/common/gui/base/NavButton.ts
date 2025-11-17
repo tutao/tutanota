@@ -112,10 +112,11 @@ export class NavButton implements Component<NavButtonAttrs> {
 	}
 
 	createButtonAttributes(a: NavButtonAttrs): RouteLinkAttrs {
-		const isCurrent = this._draggedOver || (isNavButtonSelected(a) && !a.disableSelectedBackground)
+		const hasCurrentStyle = this._draggedOver || (isNavButtonSelected(a) && !a.disableSelectedBackground)
 		let attr: RouteLinkAttrs = {
 			role: "button",
-			"aria-current": isCurrent || undefined,
+			// aria-current should not depend on drag/background
+			"aria-current": isNavButtonSelected(a) || undefined,
 			// role button for screen readers
 			href: this._getUrl(a.href),
 			draggable: a.dragStartHandler ? "true" : undefined,
@@ -123,7 +124,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 			style: {
 				"font-size": a.fontSize ? px(a.fontSize) : "",
 				color: this._draggedOver || isNavButtonSelected(a) ? theme.primary : theme.on_surface,
-				...(isCurrent && { background: theme.state_bg_active }),
+				...(hasCurrentStyle && { background: theme.state_bg_active }),
 			},
 			title: lang.getTranslationText(a.label),
 			target: this._isExternalUrl(a.href) ? "_blank" : undefined,
