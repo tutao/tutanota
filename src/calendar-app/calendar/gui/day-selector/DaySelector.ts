@@ -5,10 +5,10 @@ import { Carousel } from "../../../../common/gui/base/Carousel.js"
 import { changePeriodOnWheel, getCalendarMonth, getDayCircleClass } from "../CalendarGuiUtils.js"
 import { CalendarDay, CalendarMonth } from "../../../../common/calendar/date/CalendarUtils.js"
 import { DefaultAnimationTime } from "../../../../common/gui/animation/Animations.js"
-import { ExpanderPanel } from "../../../../common/gui/base/Expander.js"
 import { theme } from "../../../../common/gui/theme.js"
 import { px, size } from "../../../../common/gui/size.js"
 import { styles } from "../../../../common/gui/styles.js"
+import { ExpanderPanel } from "../../../../common/gui/base/Expander"
 
 export interface DaySelectorAttrs {
 	selectedDate: Date | null
@@ -105,7 +105,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 	private renderCarouselPage(isExpanded: boolean, attrs: DaySelectorAttrs, week: readonly CalendarDay[], month: CalendarMonth, hidden: boolean) {
 		return [
 			m(
-				"",
+				".carouselPage",
 				{
 					"aria-hidden": `${isExpanded}`,
 					style: {

@@ -11,7 +11,7 @@ import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
 import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
 import { CalendarAttendeeStatus, EndType } from "../../../../common/api/common/TutanotaConstants.js"
 import m from "mithril"
-import { clone, deepEqual, incrementDate, LazyLoaded, Thunk } from "@tutao/tutanota-utils"
+import { clone, deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "@tutao/tutanota-utils"
 import { CalendarEventUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { convertTextToHtml } from "../../../../common/misc/Formatter.js"
@@ -236,6 +236,10 @@ export class CalendarEventPreviewViewModel {
 				const progenitorWrapper: EventWrapper = {
 					event: progenitor,
 					color: calendar.color,
+					flags: {
+						hasAlarms: isNotEmpty(newEventModel.editModels.alarmModel.alarms),
+						isAlteredInstance: false,
+					},
 				}
 				addDaysForRecurringEvent(occurrencesPerDay, progenitorWrapper, generationRange, newEventModel.editModels.whenModel.zone)
 

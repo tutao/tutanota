@@ -23,7 +23,7 @@ export type LegacyContinuingCalendarEventBubbleAttrs = {
 
 /**
  * @deprecated since version 314.251018.1. Use the new ContinuingCalendarEventBubble instead
- * @see ContinuingCalendarEventBubble
+ * @see CalendarEventBubble
  */
 export class LegacyContinuingCalendarEventBubble implements Component<LegacyContinuingCalendarEventBubbleAttrs> {
 	view({ attrs }: Vnode<LegacyContinuingCalendarEventBubbleAttrs>): Children {

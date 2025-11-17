@@ -21,7 +21,7 @@ import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "..
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../api/common/EntityClient.js"
-import { deepEqual, findAllAndRemove, mapAndFilterNull, stringToBase64 } from "@tutao/tutanota-utils"
+import { deepEqual, findAllAndRemove, isNotEmpty, mapAndFilterNull, stringToBase64 } from "@tutao/tutanota-utils"
 import {
 	BIRTHDAY_CALENDAR_BASE_ID,
 	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
@@ -317,6 +317,8 @@ export class CalendarEventsRepository {
 							event,
 							flags: {
 								isGhost: false,
+								hasAlarms: isNotEmpty(event.alarmInfos),
+								isAlteredInstance: Boolean(event.recurrenceId),
 							},
 							color: calendarInfos.get(eventOwnerGroupId)?.color ?? DEFAULT_CALENDAR_COLOR,
 						}
@@ -503,6 +505,11 @@ export class CalendarEventsRepository {
 							summary: `${calendarEvent.event.summary} ${ageString}`,
 						},
 						color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
+						flags: {
+							isBirthdayEvent: true,
+							isAlteredInstance: false,
+							hasAlarms: false,
+						},
 					},
 					monthRangeForRecurrence,
 				)
