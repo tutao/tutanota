@@ -6,10 +6,3 @@ SHELL ["/bin/bash", "-c"]
 
 # Install FPM to package desktop clients and deb packages. FPM needs ruby
 RUN apt-get update && apt-get install -y ruby && gem install fpm:1.15.1
-
-# Install pkcs11-tool from OpenSC to sign desktop clients and deb packages
-# Note: `osslsigncode` is used on Windows as well
-RUN apt-get install -y opensc usbutils pcsc-tools osslsigncode libengine-pkcs11-openssl
-
-# Install graphiz to make the bundles graph
-RUN apt-get install -y graphviz
