@@ -3,6 +3,7 @@
 export default {
 	"code": "de-sie",
 	"keys": {
+		"\"ageConfirmationLong_msg\"": "Vielen Dank. Bitte bestätigen Sie noch, dass Sie mindestens 16 Jahre alt sind.",
 		"about_label": "Über",
 		"accentColor_label": "Akzentfarbe",
 		"accept_action": "Annehmen",
@@ -158,6 +159,7 @@ export default {
 		"birthdayEventAge_title": "{age} Jahre alt",
 		"blockExternalContentSender_action": "Bilder immer blockieren",
 		"blue_label": "Blau",
+		"bluesky_label": "Bluesky",
 		"bonus_label": "Bonus",
 		"bonusMonth_msg": "Sie haben {months} Bonus-Monate erhalten.",
 		"bookingItemUsers_label": "Benutzer",
@@ -652,6 +654,7 @@ export default {
 		"faqEntry_label": "FAQ Artikel",
 		"fax_label": "Fax",
 		"featureTutanotaOnly_msg": "Sie können diese Funktion nur mit anderen Tuta-Benutzer verwenden.",
+		"fediverse_label": "Fediverse",
 		"feedbackOnErrorInfo_msg": "Bitte beschreiben Sie, welche Schritte zu diesem Fehler geführt haben, so dass wir ihn beheben können. Ihre Nachricht, Fehlerdetails und Ihre Browser-Kennung werden verschlüsselt an das Tuta-Team gesendet. Danke!",
 		"fetchingExternalCalendar_error": "Beim Abrufen eines externen Kalenders ist ein Fehler aufgetreten. Bitte überprüfen Sie, dass der Anbieter ihn öffentlich gemacht hat und versuchen Sie es später noch ein mal.",
 		"field_label": "Feld",
@@ -1087,6 +1090,7 @@ export default {
 		"markUnread_action": "Ungelesen",
 		"matchCase_alt": "Groß/Kleinschreibung beachten",
 		"matchingKeywords_label": "Übereinstimmende Schlüsselwörter",
+		"matrix_label": "Matrix",
 		"maximumLabelsPerMailReached_msg": "Maximum der erlaubten Labels pro E-Mail erreicht.",
 		"maybe_label": "Vielleicht",
 		"maybeAttending_label": "Vielleicht teilnehmen",
@@ -2119,9 +2123,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"bluesky_label": "Bluesky",
-		"fediverse_label": "Fediverse",
-		"matrix_label": "Matrix"
+		"zoomOut_action": "Herauszoomen"
 	}
 }
