@@ -15,7 +15,7 @@ export default {
 		"account_label": "User",
 		"accountCongratulations_msg": "Congratulations",
 		"accountCreationCongratulation_msg": "Your account has been created! Welcome to the encrypted side. 🔒",
-		"accountSwitchAliases_msg": "Please delete all email addresses of your user.",
+		"accountSwitchAliases_msg": "Please deactivate all extra email addresses of your user.",
 		"accountSwitchCustomMailAddress_msg": "Please disable all custom domain email addresses.",
 		"accountSwitchMultipleCalendars_msg": "Please delete all additional calendars.",
 		"accountSwitchNotPossible_msg": "Downgrading is currently not possible. {detailMsg}",
@@ -97,6 +97,7 @@ export default {
 		"affiliateSettingsTotalPaid_label": "Total paid",
 		"affiliateSettingsTotalPaid_msg": "The overall amount of referred paid plan customers up until this month. Canceled plans are already deducted here.",
 		"ageConfirmation_msg": "I am at least 16 years old.",
+		"ageConfirmationLong_msg": "Thank you. Please also confirm that you are at least 16 years old.",
 		"agenda_label": "Agenda",
 		"all_contacts_label": "All contacts",
 		"all_label": "All",
@@ -158,6 +159,7 @@ export default {
 		"birthdayEventAge_title": "{age} years old",
 		"blockExternalContentSender_action": "Always block images",
 		"blue_label": "Blue",
+		"bluesky_label": "Bluesky",
 		"bonus_label": "Bonus",
 		"bonusMonth_msg": "You have been granted {months} bonus months.",
 		"bookingItemUsers_label": "Users",
@@ -652,6 +654,7 @@ export default {
 		"faqEntry_label": "FAQ entry",
 		"fax_label": "Fax",
 		"featureTutanotaOnly_msg": "You may only use this feature with other Tuta users.",
+		"fediverse_label": "Fediverse",
 		"feedbackOnErrorInfo_msg": "Please tell us which steps have led to this error in English or German so we can fix it. Your message, error details and your browser identifier are sent encrypted to the Tuta team. Thank you!",
 		"fetchingExternalCalendar_error": "Something went wrong. Error while fetching external calendar. Please check that the calendar is publicly accessible and try again later.",
 		"field_label": "Field",
@@ -1087,6 +1090,7 @@ export default {
 		"markUnread_action": "Mark unread",
 		"matchCase_alt": "Match case",
 		"matchingKeywords_label": "Matching keywords:",
+		"matrix_label": "Matrix",
 		"maximumLabelsPerMailReached_msg": "Maximum allowed labels per email reached.",
 		"maybe_label": "Maybe",
 		"maybeAttending_label": "Maybe attending",
@@ -2119,9 +2123,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"bluesky_label": "Bluesky",
-		"fediverse_label": "Fediverse",
-		"matrix_label": "Matrix"
+		"zoomOut_action": "Zoom Out"
 	}
 }
