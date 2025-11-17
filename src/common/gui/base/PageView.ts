@@ -44,6 +44,7 @@ export class PageView implements Component<Attrs> {
 						{
 							"aria-hidden": "true",
 							key: attrs.previousPage.key,
+							inert: true,
 							style: this.viewDom &&
 								this.viewDom.offsetWidth > 0 && {
 									width: this.viewDom.offsetWidth + "px",
@@ -65,6 +66,7 @@ export class PageView implements Component<Attrs> {
 						{
 							"aria-hidden": "true",
 							key: attrs.nextPage.key,
+							inert: true,
 							style: this.viewDom &&
 								this.viewDom.offsetWidth > 0 && {
 									width: this.viewDom.offsetWidth + "px",

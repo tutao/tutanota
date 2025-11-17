@@ -123,7 +123,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 							paddingBottom: "2px",
 						} satisfies Partial<CSSStyleDeclaration> & Record<string, any>,
 					},
-					eventWrapper.flags?.isFeatured
+					eventWrapper.flags.isFeatured
 						? m(".flex.items-start", [
 								m(Icon, {
 									icon: eventWrapper.flags?.isConflict ? Icons.AlertCircle : Icons.Checkmark,
@@ -160,13 +160,13 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		)
 	}
 
-	private renderNonFeaturedTexts(summary: string, color: string, rowBounds: RowBounds, eventTime: string, flags?: EventWrapperFlags) {
+	private renderNonFeaturedTexts(summary: string, color: string, rowBounds: RowBounds, eventTime: string, flags: EventWrapperFlags) {
 		const totalRowSpan = rowBounds.end - rowBounds.start
 		const showSecondLine = totalRowSpan >= MIN_ROW_SPAN * 2
 		const maxLines = (totalRowSpan - MIN_ROW_SPAN) / MIN_ROW_SPAN
 
 		return m(".flex", [
-			Object.entries(flags ?? {}).map(([key, value]: [EventWrapperFlagKeys, boolean]) => {
+			Object.entries(flags).map(([key, value]: [EventWrapperFlagKeys, boolean]) => {
 				return value && FlagKeyToIcon[key]
 					? m(Icon, {
 							icon: FlagKeyToIcon[key],
@@ -188,7 +188,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					m(
 						"span",
 						{
-							class: showSecondLine ? "text-ellipsis-multi-line" : "",
+							class: showSecondLine ? "text-ellipsis-multi-line" : "text-no-wrap",
 							style: {
 								"-webkit-line-clamp": maxLines, // This helps resizing the text to show as much as possible of its contents
 							},
@@ -202,6 +202,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 									icon: Icons.Time,
 									style: {
 										fill: colorForBg("#" + color),
+										marginTop: "-2px",
 									},
 								})
 							: null,

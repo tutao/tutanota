@@ -325,6 +325,10 @@ export function makeEventWrapper(event: CalendarEvent, props?: Partial<EventWrap
 	return {
 		color: "#FAFAFA",
 		event,
+		flags: {
+			isAlteredInstance: false,
+			hasAlarms: false,
+		},
 		...(props != null ? props : {}),
 	}
 }
