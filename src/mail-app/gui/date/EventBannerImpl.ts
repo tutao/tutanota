@@ -315,6 +315,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 													hasAnyConflict: hasConflict,
 													canReceiveFocus: false,
 													hideRightBorder: true,
+													cellHeight: timeColumnHeight,
 												} satisfies CalendarTimeGridAttributes),
 											),
 										])

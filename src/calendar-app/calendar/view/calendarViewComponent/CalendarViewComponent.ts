@@ -253,7 +253,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						timeRange: this.viewConfig.timeRange,
 						timeScale: this.viewConfig.timeScale,
 						width: timeColumnWidth,
-						height: size.calendar_hour_height,
+						height: size.calendar_hour_height, // FIXME unused
 						onCellPressed: attrs.cellActionHandlers?.onCellPressed,
 					} satisfies TimeColumnAttrs),
 				),
@@ -398,6 +398,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 				drag: this.createDragHandlers(false),
 			},
 			canReceiveFocus,
+			cellHeight: size.calendar_hour_height,
 		} satisfies CalendarTimeGridAttributes)
 	}
 

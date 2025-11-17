@@ -31,6 +31,7 @@ export interface CalendarTimeGridAttributes {
 	eventBubbleHandlers?: EventBubbleInteractions & CalendarEventBubbleDragProperties
 	canReceiveFocus: boolean
 	hideRightBorder?: true
+	cellHeight: number
 }
 
 /**
@@ -136,11 +137,11 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 	 * @private
 	 */
 	private columnCount: Map<number, number> = new Map()
-	private subRowCount?: number
+	private rowCountPerDay?: number
 
 	oninit(vnode: Vnode<CalendarTimeGridAttributes>): any {
 		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(vnode.attrs.timeScale, vnode.attrs.timeRange)
-		this.subRowCount = SUBROWS_PER_INTERVAL * timeColumnIntervals.length
+		this.rowCountPerDay = SUBROWS_PER_INTERVAL * timeColumnIntervals.length
 	}
 
 	view({ attrs }: Vnode<CalendarTimeGridAttributes>) {
@@ -148,16 +149,15 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 			".grid.overflow-hidden.height-100p",
 			{
 				style: {
-					// "overflow-x": "hidden",
 					"grid-template-columns": `repeat(${attrs.dates.length}, 1fr)`,
 					transition: `opacity ${DefaultAnimationTime}ms linear`,
 				},
 			},
-			attrs.dates.map((date) => this.renderDay(date, this.subRowCount!, attrs)),
+			attrs.dates.map((date) => this.renderDay(date, this.rowCountPerDay!, attrs)),
 		)
 	}
 
-	private renderDay(date: Date, subRowCount: number, timeViewAttrs: CalendarTimeGridAttributes): Child {
+	private renderDay(date: Date, rowCountForDay: number, timeViewAttrs: CalendarTimeGridAttributes): Child {
 		const { events: eventWrappers, timeScale, timeRange, cellActionHandlers, eventBubbleHandlers, canReceiveFocus, hideRightBorder } = timeViewAttrs
 		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
 		const startOfTomorrow = getStartOfNextDay(date)
@@ -167,11 +167,14 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 		)
 
 		return m(
-			".grid.plr-unit.gap.z1.grid-auto-columns.rel.min-width-0",
+			".renderDay.grid.plr-unit.z1.grid-auto-columns.rel.min-width-0.box-content",
 			{
+				style: {
+					gridTemplateRows: `repeat(${rowCountForDay}, 6px)`,
+				},
 				class: hideRightBorder ? "" : "border-right",
 				oncreate: (vnode) => {
-					;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
+					//;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 7px)`
 				},
 				onmousemove: (mouseEvent: MouseEvent) => {
 					downcast(mouseEvent).redraw = false
@@ -482,9 +485,9 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 
 	private renderCell(cellAttrs: CellAttrs): Child {
 		const showHoverEffect = cellAttrs.onCellPressed || cellAttrs.onCellContextMenuPressed
-		const classes = showHoverEffect ? "interactable-cell after-as-border-bottom" : ""
+		const classes = showHoverEffect ? "interactable-cell" : ""
 
-		return m(".z1", {
+		return m(".z1.after-as-border-bottom", {
 			class: classes,
 			style: {
 				gridRow: `${cellAttrs.rowBounds.start} / ${cellAttrs.rowBounds.end}`,

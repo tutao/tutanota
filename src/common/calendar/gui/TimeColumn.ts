@@ -1,7 +1,7 @@
 import m, { Child, ClassComponent, Vnode } from "mithril"
 import { clone, deepMemoized } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
-import { CellActionHandler, getIntervalAsMinutes, TimeRange, TimeScale } from "./CalendarTimeGrid"
+import { CellActionHandler, getIntervalAsMinutes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "./CalendarTimeGrid"
 import { px } from "../../gui/size"
 import { Time } from "../date/Time"
 import { styles } from "../../gui/styles"
@@ -66,7 +66,7 @@ export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
 							{
 								class: onCellPressed ? "interactable-cell" : "",
 								style: {
-									height: px(height),
+									height: px(SUBROWS_PER_INTERVAL * 6),
 								},
 								onclick: onCellPressed
 									? (e: MouseEvent) => {
