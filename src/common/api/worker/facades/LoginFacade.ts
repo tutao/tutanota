@@ -81,6 +81,7 @@ import {
 	TotpSecret,
 	TotpVerifier,
 	uint8ArrayToBitArray,
+	uint8ArrayToKey,
 } from "@tutao/tutanota-crypto"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { IServiceExecutor } from "../../common/ServiceRequest"

@@ -12,7 +12,7 @@ import {
 	PQPublicKeys,
 	PublicKey,
 	RsaPrivateKey,
-	uint8ArrayToBitArray,
+	uint8ArrayToKey,
 	X25519KeyPair,
 	X25519PublicKey,
 } from "@tutao/tutanota-crypto"

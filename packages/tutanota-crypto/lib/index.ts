@@ -127,7 +127,7 @@ export { bitArrayToUint8Array } from "./encryption/symmetric/SymmetricCipherUtil
 export { createAuthVerifierAsBase64Url } from "./encryption/symmetric/SymmetricCipherUtils"
 export { createAuthVerifier } from "./encryption/symmetric/SymmetricCipherUtils"
 export { BitArray } from "./encryption/symmetric/SymmetricCipherUtils"
-export { AesKeyLength, getAndVerifyAesKeyLength } from "./encryption/symmetric/AesKeyLength"
+export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "./encryption/symmetric/AesKeyLength"
 export { AesKey } from "./encryption/symmetric/SymmetricCipherUtils"
 export { Aes128Key } from "./encryption/symmetric/SymmetricCipherUtils"
 export { Aes256Key } from "./encryption/symmetric/SymmetricCipherUtils"

@@ -72,7 +72,7 @@ import { PublicEncryptionKeyProvider } from "../PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { CacheMode } from "../../rest/EntityRestClient"
 import { SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
-import { hexToRsaPublicKey, PQKeyPairs } from "@tutao/tutanota-crypto"
+import { hexToRsaPublicKey, keyToUint8Array, PQKeyPairs } from "@tutao/tutanota-crypto"
 
 assertWorkerOrNode()
 

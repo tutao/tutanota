@@ -69,12 +69,13 @@ import { checkKeyVersionConstraints, KeyLoaderFacade, parseKeyVersion } from "./
 import {
 	Aes256Key,
 	AesKey,
+	AesKeyLength,
 	createAuthVerifier,
 	EncryptedPqKeyPairs,
-	getKeyLengthBytes,
+	getAndVerifyAesKeyLength,
 	isEncryptedPqKeyPairs,
 	isVersionedPqPublicKey,
-	KEY_LENGTH_BYTES_AES_256,
+	keyToUint8Array,
 	PQKeyPairs,
 	PQPublicKeys,
 	PublicKey,
@@ -1362,7 +1363,7 @@ export class KeyRotationFacade {
  * We require AES keys to be 256-bit long to be quantum-safe because of Grover's algorithm.
  */
 function isQuantumSafe(key: AesKey) {
-	return getKeyLengthBytes(key) === KEY_LENGTH_BYTES_AES_256
+	return getAndVerifyAesKeyLength(key) === AesKeyLength.Aes256
 }
 
 function hasNonQuantumSafeKeys(...keys: AesKey[]) {

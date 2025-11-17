@@ -13,7 +13,7 @@ import {
 import { isSameTypeRef, neverNull } from "@tutao/tutanota-utils"
 import { RecipientsNotFoundError } from "../../../common/error/RecipientsNotFoundError.js"
 import { assertWorkerOrNode } from "../../../common/Env.js"
-import { aes256RandomKey, encryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { IServiceExecutor } from "../../../common/ServiceRequest.js"
 import { GroupInvitationService } from "../../../entities/tutanota/Services.js"
 import { UserFacade } from "../UserFacade.js"
