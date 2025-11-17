@@ -1,27 +1,36 @@
 import m, { Component, Vnode } from "mithril"
 import { WizardStep, WizardStepAttrs } from "./WizardStep"
-import { WizardController } from "./WizardController"
+import { WizardController, WizardStepContext } from "./WizardController"
 import { WizardProgress } from "./WizardProgress"
 
-export interface WizardAttrs<T> {
-	steps: WizardStepAttrs[]
+export interface WizardAttrs<TViewModel> {
+	steps: WizardStepAttrs<TViewModel>[]
 	controller: WizardController
-	viewModel: T
+	viewModel: TViewModel
 }
-export class Wizard<T> implements Component<WizardAttrs<T>> {
-	view({ attrs: { steps, controller } }: Vnode<WizardAttrs<T>>) {
-		const progressState = steps.map((step, i) => ({
-			label: step.title,
-			isCompleted: false,
-			isReachable: true,
-			isCurrent: controller.currentStep === i,
-		}))
 
-		return m(".flex", m(WizardProgress, { progressState }), m("", m(WizardStep, steps[controller.currentStep])))
+export class Wizard<TViewModel> implements Component<WizardAttrs<TViewModel>> {
+	view({ attrs: { steps, controller, viewModel } }: Vnode<WizardAttrs<TViewModel>>) {
+		const currentIndex = controller.currentStep
+		const currentStep = steps[currentIndex]
+
+		const ctx: WizardStepContext<TViewModel> = {
+			index: currentIndex,
+			viewModel,
+			controller,
+			setLabel: (label: string) => controller.setStepLabel(currentIndex, label),
+			getLabel: (): string => controller.getStepLabel(currentIndex),
+			markComplete: (isCompleted: boolean = true) => controller.markStepComplete(currentIndex, isCompleted),
+		}
+
+		const progressState = controller.progress
+
+		return m(".flex.height-100p.full-width", [
+			m(WizardProgress, {
+				progressState,
+				onClick: (index) => controller.setStep(index),
+			}),
+			m(WizardStep<TViewModel>, { ...currentStep, ctx }),
+		])
 	}
 }
-
-// WizardProgress: main, sub
-// WizardProgressBar: labels of the steps, current page, (isCompleted, isReachable), click handler
-
-// WizardViewModel

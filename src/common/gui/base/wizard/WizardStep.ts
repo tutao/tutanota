@@ -1,12 +1,18 @@
 import m, { Component, Vnode } from "mithril"
+import type { WizardStepContext } from "./WizardController"
 
-export interface WizardStepAttrs {
+export interface WizardStepAttrs<TViewModel> {
 	title: string
-	main: m.Children
-	sub: m.Children
+	main: (ctx: WizardStepContext<TViewModel>) => m.Children
+	sub: (ctx: WizardStepContext<TViewModel>) => m.Children
 }
-export class WizardStep implements Component<WizardStepAttrs> {
-	view({ attrs: { main, sub } }: Vnode<WizardStepAttrs>) {
-		return m(".flex", [main, sub])
+
+export interface WizardStepComponentAttrs<TViewModel> extends WizardStepAttrs<TViewModel> {
+	ctx: WizardStepContext<TViewModel>
+}
+
+export class WizardStep<TViewModel> implements Component<WizardStepComponentAttrs<TViewModel>> {
+	view({ attrs: { main, sub, ctx } }: Vnode<WizardStepComponentAttrs<TViewModel>>) {
+		return m(".flex", [main(ctx), sub(ctx)])
 	}
 }

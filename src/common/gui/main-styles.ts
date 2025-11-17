@@ -1514,6 +1514,46 @@ styles.registerStyle("main", () => {
 			height: 0,
 			transition: `border-top-color ${DefaultAnimationTime}ms ease-out`,
 		},
+		".wizard-progress": {
+			border: `1px solid ${theme.outline}`,
+			color: "inherit",
+			width: px(size.button_icon_bg_size),
+			height: px(size.button_icon_bg_size),
+			"border-radius": px(size.button_icon_bg_size),
+			"min-width": px(size.button_icon_bg_size),
+			display: "flex",
+			"justify-content": "center",
+			"align-items": "center",
+		},
+		".wizard-progress-active": {
+			border: `2px solid ${theme.primary}`,
+			color: theme.primary,
+		},
+		".wizard-progress-previous": {
+			border: `1px solid ${theme.primary}`,
+			"background-color": theme.primary,
+		},
+		".wizard-progress-wrap:not(:last-child)": {
+			height: "100%",
+			position: "relative",
+		},
+		".wizard-progress:after": {
+			content: '""',
+			"border-left": `3px dotted ${theme.outline_variant}`,
+			width: 0,
+			position: "absolute",
+			height: `calc(100% - ${px(size.button_icon_bg_size)} - ${px(16)})`,
+			bottom: px(8),
+		},
+		".wizard-progress-previous:after": {
+			"border-left": `3px solid ${theme.primary}`,
+		},
+		".wizard-progress-active:after": {
+			"border-left": `3px dotted ${theme.primary}`,
+		},
+		".wizard-progress-wrap:last-child > .wizard-progress:after": {
+			display: "none",
+		},
 		".compact": {
 			width: `${component_size.button_height_compact}px !important`,
 			height: `${component_size.button_height_compact}px !important`,
