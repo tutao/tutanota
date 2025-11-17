@@ -1,17 +1,20 @@
-import m, { Child, ClassComponent, Vnode } from "mithril"
-import { clone, deepMemoized } from "@tutao/tutanota-utils"
+import m, { ClassComponent, Vnode } from "mithril"
+import { clone, lastIndex } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
-import { CellActionHandler, getIntervalAsMinutes, TimeRange, TimeScale } from "./CalendarTimeGrid"
+import { getIntervalAsMinutes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "./CalendarTimeGrid"
 import { layout_size, px } from "../../gui/size"
 import { Time } from "../date/Time"
 import { styles } from "../../gui/styles"
+import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
 
 export interface TimeColumnAttrs {
-	timeScale: TimeScale
-	timeRange: TimeRange
-	width: number
-	height: number
-	hideLastBorder?: true
+	intervals: Array<Time>
+	layout: {
+		width: number
+		subColumnCount: number
+		rowCount: number
+		gridRowHeight: number
+	}
 	baseDate?: Date
 	onCellPressed?: CellActionHandler
 }
@@ -20,66 +23,55 @@ const TIME_CELL_ID_PREFIX = "time-cell-"
 
 export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
 	view({ attrs }: Vnode<TimeColumnAttrs>) {
-		const timeColumnIntervals = TimeColumn.createTimeColumnIntervals(attrs.timeScale, attrs.timeRange)
-		return this.buildTimeColumn(attrs.baseDate ?? new Date(), timeColumnIntervals, attrs.width, attrs.height, attrs.onCellPressed, attrs.hideLastBorder)
+		return m(
+			".grid.gap.border-right",
+			{
+				style: {
+					gridTemplateRows: `repeat(${attrs.layout.rowCount}, ${px(attrs.layout.gridRowHeight)})`,
+					gridTemplateColumns: px(attrs.layout.width),
+				},
+			},
+			attrs.intervals.map((interval, intervalIndex) => {
+				const parsedTime = interval.toDate()
+				const formatedTime = styles.isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
+				const rowStart = intervalIndex * SUBROWS_PER_INTERVAL + 1
+				const rowEnd = rowStart + SUBROWS_PER_INTERVAL
+				const showBorderBottom = intervalIndex !== lastIndex(attrs.intervals)
+
+				return m(CalendarTimeCell, {
+					dateTime: {
+						baseDate: attrs.baseDate,
+						time: interval,
+					},
+					layout: {
+						rowBounds: {
+							start: rowStart,
+							end: rowEnd,
+						},
+						subColumnCount: attrs.layout.subColumnCount,
+					},
+					interactions: { onCellPressed: attrs.onCellPressed },
+					text: formatedTime,
+					showBorderBottom,
+				} as CalendarTimeCellAttrs)
+			}),
+		)
 	}
 
 	static getTimeCellId(hour: number): string {
 		return `${TIME_CELL_ID_PREFIX}${hour}`
 	}
 
-	static createTimeColumnIntervals(timeScale: TimeScale, timeRange: TimeRange): Array<string> {
+	static createTimeColumnIntervals(timeScale: TimeScale, timeRange: TimeRange): Array<Time> {
 		let timeInterval = getIntervalAsMinutes(timeScale)
 		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeInterval) / timeInterval
-		const timeKeys: Array<string> = []
+		const timeKeys: Array<Time> = []
 
 		for (let i = 0; i < numberOfIntervals; i++) {
 			const agendaRowTime = clone(timeRange.start).add({ minutes: timeInterval * i })
-
-			timeKeys.push(formatTime(agendaRowTime.toDate()))
+			timeKeys.push(agendaRowTime)
 		}
 
 		return timeKeys
 	}
-
-	private buildTimeColumn = deepMemoized(
-		(baseDate: Date, times: Array<string>, width: number, height: number, onCellPressed?: CellActionHandler, hideLastBorder?: true): Child => {
-			return m(
-				".grid",
-				{
-					style: {
-						gridTemplateRows: `repeat(${times.length}, 1fr)`,
-						gridTemplateColumns: px(width),
-					},
-				},
-				times.map((time, index) => {
-					const parsedTime = Time.parseFromString(time)?.toDate() ?? new Time(0, 0).toDate()
-					const timeStr = styles.isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
-					return m(
-						".rel.width-full",
-						{
-							class: index === times.length - 1 && hideLastBorder ? "" : "after-as-border-bottom",
-							id: TimeColumn.getTimeCellId(parsedTime.getHours()),
-						},
-						m(
-							".flex.small.border-right.rel.justify-center.items-center",
-							{
-								class: onCellPressed ? "interactable-cell" : "",
-								style: {
-								height: px(layout_size.calendar_hour_height),
-								},
-								onclick: onCellPressed
-									? (e: MouseEvent) => {
-											e.stopImmediatePropagation()
-											onCellPressed(baseDate, Time.parseFromString(time) ?? new Time(0, 0))
-										}
-									: undefined,
-							},
-							timeStr,
-						),
-					)
-				}),
-			)
-		},
-	)
 }

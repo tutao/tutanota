@@ -101,7 +101,7 @@ export interface EventWrapperFlags {
 	 * Recurring event instance that has been modified from the original series.
 	 * Should display an indicator icon.
 	 */
-	isAlteredInstance?: boolean
+	isAlteredInstance: boolean
 
 	/**
 	 * Special event type built from a Tuta contact.
@@ -119,7 +119,7 @@ export interface EventWrapperFlags {
 	 * Event has one or more alarms/reminders configured.
 	 * Should display an indicator icon to show notifications are enabled.
 	 */
-	hasAlarms?: boolean
+	hasAlarms: boolean
 }
 
 /**
@@ -134,7 +134,7 @@ export interface EventWrapper {
 	 * Visual and behavioral flags that modify how the event is rendered.
 	 * Controls styling (opacity, borders, colors) and interaction behavior.
 	 */
-	flags?: EventWrapperFlags
+	flags: EventWrapperFlags
 
 	/**
 	 * Event background color without '#' prefix.

@@ -12,6 +12,7 @@ o.spec("CalendarTimeGrid", function () {
 		end: new Time(23, 0),
 	}
 	const subRowAsMinutes = 5
+	const LAST_ROW_BOUND = 289
 	const timeScale: TimeScale = 1
 	const currentDate = new Date(2025, 9, 22, 0, 0)
 
@@ -103,7 +104,7 @@ o.spec("CalendarTimeGrid", function () {
 			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
 
 			o.check(bounds.start).equals(283)
-			o.check(bounds.end).equals(-1)
+			o.check(bounds.end).equals(LAST_ROW_BOUND)
 		})
 
 		o.test("Event passes through entire current day (starts before, ends after)", function () {
@@ -117,7 +118,7 @@ o.spec("CalendarTimeGrid", function () {
 			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, timeRange, subRowAsMinutes, timeScale, currentDate)
 
 			o.check(bounds.start).equals(1)
-			o.check(bounds.end).equals(-1)
+			o.check(bounds.end).equals(LAST_ROW_BOUND)
 		})
 
 		o.test("Event spanning multiple hours", function () {
@@ -554,18 +555,18 @@ o.spec("CalendarTimeGrid", function () {
 
 	o.spec("layoutEvents", function () {
 		o.test("Empty events array returns empty grid", function () {
-			const { grid, gridColumnSize } = CalendarTimeGrid.layoutEvents([], timeRange, subRowAsMinutes, timeScale, currentDate)
+			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents([], timeRange, subRowAsMinutes, timeScale, currentDate)
 
-			o.check(gridColumnSize).equals(0)
+			o.check(subColumnCount).equals(0)
 			o.check(grid.size).equals(0)
 		})
 
 		o.test("Single event layout", function () {
 			const events = [createEventStub("SOLO", 10, 0, 11, 0)]
 
-			const { grid, gridColumnSize } = CalendarTimeGrid.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
 
-			o.check(gridColumnSize).equals(1)("Single event should create 1 column")
+			o.check(subColumnCount).equals(1)("Single event should create 1 column")
 			assertLayoutPosition(grid, "SOLO", {
 				row: { start: 121, end: 133 },
 				column: { start: 1, span: 1 },
@@ -689,18 +690,18 @@ o.spec("CalendarTimeGrid", function () {
 
 			const regularEvent = createEventStub("normal", 10, 0, 11, 0)
 
-			const { grid, gridColumnSize } = CalendarTimeGrid.layoutEvents([overflowEvent, regularEvent], timeRange, subRowAsMinutes, timeScale, currentDate)
+			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents([overflowEvent, regularEvent], timeRange, subRowAsMinutes, timeScale, currentDate)
 
-			o.check(gridColumnSize).equals(2)("Overflow event should block its column")
+			o.check(subColumnCount).equals(1)("Overflow event should block its column")
 
 			assertLayoutPosition(grid, "overflow", {
-				row: { start: 283, end: -1 },
+				row: { start: 283, end: LAST_ROW_BOUND },
 				column: { start: 1, span: 1 },
 			})
 
 			assertLayoutPosition(grid, "normal", {
 				row: { start: 121, end: 133 },
-				column: { start: 2, span: 1 },
+				column: { start: 1, span: 1 },
 			})
 		})
 
@@ -711,9 +712,9 @@ o.spec("CalendarTimeGrid", function () {
 				createEventStub("long", 10, 30, 14, 0), // 3.5 hours
 			]
 
-			const { grid, gridColumnSize } = CalendarTimeGrid.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
 
-			o.check(gridColumnSize).equals(1)("Non-overlapping events should share column")
+			o.check(subColumnCount).equals(1)("Non-overlapping events should share column")
 			o.check(grid.size).equals(3)("All events should be in grid")
 		})
 
@@ -736,10 +737,10 @@ o.spec("CalendarTimeGrid", function () {
 				createEventStub("deepwork", 14, 0, 17, 0),
 			]
 
-			const { grid, gridColumnSize } = CalendarTimeGrid.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
+			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
 
 			// Should efficiently pack into 2 columns
-			o.check(gridColumnSize === 2).equals(true)("Should use efficient column layout")
+			o.check(subColumnCount === 2).equals(true)("Should use efficient column layout")
 			o.check(grid.size).equals(6)("All events should be laid out")
 
 			// Verify no overlaps in same column
@@ -764,6 +765,35 @@ o.spec("CalendarTimeGrid", function () {
 					}
 				}
 			}
+		})
+
+		o.spec("Custom range", function () {
+			const timeRange: TimeRange = {
+				start: new Time(15, 0),
+				end: new Time(16, 0),
+			}
+
+			o.test("Simple event", function () {
+				const events = [createEventStub("SOLO", 15, 30, 16, 0)]
+
+				const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(events, timeRange, subRowAsMinutes, timeScale, currentDate)
+
+				assertLayoutPosition(grid, "SOLO", {
+					row: { start: 7, end: 13 },
+					column: { start: 1, span: 1 },
+				})
+			})
+
+			o.test("Overflow event", function () {
+				const overflowEvent = createEventStub("overflow", 15, 0, 23, 0)
+
+				const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents([overflowEvent], timeRange, subRowAsMinutes, timeScale, currentDate)
+
+				assertLayoutPosition(grid, "overflow", {
+					row: { start: 1, end: 25 },
+					column: { start: 1, span: 1 },
+				})
+			})
 		})
 	})
 })
