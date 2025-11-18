@@ -673,6 +673,22 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				help: "deleteEmails_action",
 			},
 			{
+				key: Keys.DELETE,
+				shift: true,
+				exec: () => {
+					this.moveMailsToSystemFolder(MailSetKind.SPAM)
+				},
+				help: "spam_move_action",
+			},
+			{
+				key: Keys.BACKSPACE,
+				shift: true,
+				exec: () => {
+					this.moveMailsToSystemFolder(MailSetKind.SPAM)
+				},
+				help: "spam_move_action",
+			},
+			{
 				key: Keys.A,
 				exec: () => {
 					this.moveMailsToSystemFolder(MailSetKind.ARCHIVE)
