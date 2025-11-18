@@ -8,7 +8,6 @@ import { SpamClassificationDataDealer, TrainingDataset } from "../../../../../..
 import { CacheStorage } from "../../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
 import { mockAttribute } from "@tutao/tutanota-test-utils"
 import "@tensorflow/tfjs-backend-cpu"
-import { HashingVectorizer } from "../../../../../../src/mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
 import { createTestEntity } from "../../../../TestUtils"
 import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef, MailTypeRef } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
@@ -111,7 +110,7 @@ o.spec("SpamClassifierTest", () => {
 		const vectorLength = 512
 
 		compressor = new SparseVectorCompressor(vectorLength)
-		spamProcessor = new SpamMailProcessor(DEFAULT_PREPROCESS_CONFIGURATION, new HashingVectorizer(vectorLength), compressor)
+		spamProcessor = new SpamMailProcessor(DEFAULT_PREPROCESS_CONFIGURATION, compressor)
 		spamClassifier = new SpamClassifier(mockCacheStorage, mockSpamClassificationDataDealer, true)
 		spamClassifier.spamMailProcessor = spamProcessor
 		spamClassifier.sparseVectorCompressor = compressor
@@ -529,7 +528,7 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 			mockSpamClassificationDataDealer.fetchAllTrainingData = async () => {
 				return getTrainingDataset(dataSlice)
 			}
-			spamProcessor = new SpamMailProcessor(DEFAULT_PREPROCESS_CONFIGURATION, new HashingVectorizer(), compressor)
+			spamProcessor = new SpamMailProcessor(DEFAULT_PREPROCESS_CONFIGURATION, compressor)
 			spamClassifier = new SpamClassifier(mockOfflineStorageCache, mockSpamClassificationDataDealer, false)
 			spamClassifier.spamMailProcessor = spamProcessor
 		})

@@ -308,7 +308,7 @@ export class WorkerImpl implements NativeInterface {
 				return locator.autosaveFacade()
 			},
 			async spamClassifier() {
-				return locator.spamClassifier
+				return locator.spamClassifier()
 			},
 		}
 	}

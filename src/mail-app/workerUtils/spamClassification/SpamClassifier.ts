@@ -20,9 +20,6 @@ import type { Tensor } from "@tensorflow/tfjs-core"
 import { DEFAULT_PREPROCESS_CONFIGURATION, SpamMailDatum, SpamMailProcessor } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SparseVectorCompressor } from "../../../common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import { SpamDecision } from "../../../common/api/common/TutanotaConstants"
-import { HashingVectorizer } from "./HashingVectorizer"
-
-assertWorkerOrNode()
 
 export type SpamClassificationModel = {
 	modelTopology: string
@@ -61,7 +58,7 @@ export class SpamClassifier {
 		enableProdMode()
 		this.classifiers = new Map()
 		this.sparseVectorCompressor = new SparseVectorCompressor()
-		this.spamMailProcessor = new SpamMailProcessor(DEFAULT_PREPROCESS_CONFIGURATION, new HashingVectorizer(), this.sparseVectorCompressor)
+		this.spamMailProcessor = new SpamMailProcessor(DEFAULT_PREPROCESS_CONFIGURATION, this.sparseVectorCompressor)
 	}
 
 	calculateThreshold(hamCount: number, spamCount: number) {

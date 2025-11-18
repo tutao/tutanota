@@ -1,4 +1,4 @@
-import { HashingVectorizer } from "../../../../../mail-app/workerUtils/spamClassification/HashingVectorizer"
+import type { HashingVectorizer } from "../../../../../mail-app/workerUtils/spamClassification/HashingVectorizer"
 import { htmlToText } from "../IndexUtils"
 import {
 	ML_BITCOIN_REGEX,
@@ -19,11 +19,11 @@ import {
 	ML_URL_TOKEN,
 } from "./PreprocessPatterns"
 import { SparseVectorCompressor } from "./SparseVectorCompressor"
-import { ProgrammingError } from "../../error/ProgrammingError"
-import { assertNotNull, tokenize } from "@tutao/tutanota-utils"
+import { assertNotNull, lazyAsync, lazyMemoized, tokenize } from "@tutao/tutanota-utils"
 import { Mail, MailAddress, MailDetails } from "../../../entities/tutanota/TypeRefs"
 import { getMailBodyText } from "../../CommonMailUtils"
 import { MailAuthenticationStatus } from "../../TutanotaConstants"
+import { ProgrammingError } from "../../error/ProgrammingError"
 
 export type PreprocessConfiguration = {
 	isPreprocessMails: boolean
@@ -69,15 +69,12 @@ export type PreprocessedMailContent = string
 export class SpamMailProcessor {
 	constructor(
 		private readonly preprocessConfiguration: PreprocessConfiguration = DEFAULT_PREPROCESS_CONFIGURATION,
-		readonly vectorizer: HashingVectorizer = new HashingVectorizer(),
 		private readonly sparseVectorCompressor: SparseVectorCompressor = new SparseVectorCompressor(),
-	) {
-		if (vectorizer.dimension !== sparseVectorCompressor.dimension) {
-			throw new ProgrammingError(
-				`a spam preprocessor was created with different dimensions. Vectorizer:${vectorizer.dimension} compressor: ${sparseVectorCompressor.dimension}`,
-			)
-		}
-	}
+		private readonly vectorizer: lazyAsync<HashingVectorizer> = lazyMemoized(async () => {
+			const { HashingVectorizer } = await import("../../../../../mail-app/workerUtils/spamClassification/HashingVectorizer")
+			return new HashingVectorizer(this.sparseVectorCompressor.dimension)
+		}),
+	) {}
 
 	public async vectorizeAndCompress(spamMailDatum: SpamMailDatum): Promise<Uint8Array> {
 		const vector = await this.vectorize(spamMailDatum)
@@ -85,13 +82,13 @@ export class SpamMailProcessor {
 	}
 
 	public async vectorize(spamMailDatum: SpamMailDatum): Promise<number[]> {
+		const vectorizer = await this.vectorizer()
 		const preprocessedMail = this.preprocessMail(spamMailDatum)
 		const tokenizedMail = spamClassifierTokenizer(preprocessedMail)
-		const vector = await this.vectorizer.vectorize(tokenizedMail)
-		return vector
+		return await vectorizer.vectorize(tokenizedMail)
 	}
 
-	public async compress(uncompressedVector: number[]): Promise<Uint8Array> {
+	private async compress(uncompressedVector: number[]): Promise<Uint8Array> {
 		return this.sparseVectorCompressor.vectorToBinary(uncompressedVector)
 	}
 

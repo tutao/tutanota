@@ -33,7 +33,7 @@ export const allowedImports = {
 	wasm: ["wasm-fallback"],
 	"common-min": ["polyfill-helpers"],
 	boot: ["polyfill-helpers", "common-min"],
-	common: ["polyfill-helpers", "common-min", "spam-classifier"],
+	common: ["polyfill-helpers", "common-min"],
 	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
 	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
@@ -47,7 +47,7 @@ export const allowedImports = {
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "contacts"],
 	login: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main"],
 	"spam-classifier": ["polyfill-helpers", "common", "common-min"],
-	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback", "spam-classifier"],
+	worker: ["polyfill-helpers", "common-min", "common", "native-common", "native-worker", "wasm", "wasm-fallback"],
 	"pow-worker": [],
 	settings: [
 		"polyfill-helpers",

@@ -112,10 +112,9 @@ import { PublicKeySignatureFacade } from "../../../common/api/worker/facades/Pub
 import { AdminKeyLoaderFacade } from "../../../common/api/worker/facades/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../common/api/worker/facades/lazy/IdentityKeyCreator"
 import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/PublicIdentityKeyProvider"
-import { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
-import { SpamClassificationDataDealer } from "../spamClassification/SpamClassificationDataDealer"
+import type { SpamClassifier } from "../spamClassification/SpamClassifier"
 
 assertWorkerOrNode()
 
@@ -198,7 +197,7 @@ export type WorkerLocatorType = {
 	contactFacade: lazyAsync<ContactFacade>
 
 	//spam classification
-	spamClassifier: SpamClassifier
+	spamClassifier: lazyAsync<SpamClassifier>
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -740,8 +739,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		)
 	})
 
-	const spamClassificationDataDealer = new SpamClassificationDataDealer(locator.cachingEntityClient, locator.bulkMailLoader, locator.mail)
-	locator.spamClassifier = new SpamClassifier(locator.cacheStorage, spamClassificationDataDealer)
+	locator.spamClassifier = lazyMemoized(async () => {
+		const { SpamClassificationDataDealer } = await import("../spamClassification/SpamClassificationDataDealer")
+		const { SpamClassifier } = await import("../spamClassification/SpamClassifier")
+		const spamClassificationDataDealer = new SpamClassificationDataDealer(locator.cachingEntityClient, locator.bulkMailLoader, locator.mail)
+		return new SpamClassifier(locator.cacheStorage, spamClassificationDataDealer)
+	})
 
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
 	locator.calendar = lazyMemoized(async () => {

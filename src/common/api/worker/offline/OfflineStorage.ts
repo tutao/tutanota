@@ -46,7 +46,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { TypeModelResolver } from "../../common/EntityFunctions"
 import { collapseId, expandId } from "../rest/RestClientIdUtils"
 import { Category, syncMetrics } from "../utils/SyncMetrics"
-import { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
+import type { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c

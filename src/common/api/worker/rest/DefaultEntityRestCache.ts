@@ -55,7 +55,7 @@ import { AttributeModel } from "../../common/AttributeModel"
 import { collapseId, expandId } from "./RestClientIdUtils"
 import { PatchMerger } from "../offline/PatchMerger"
 import { hasError, isExpectedErrorForSynchronization } from "../../common/utils/ErrorUtils"
-import { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
+import type { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
 assertWorkerOrNode()
 

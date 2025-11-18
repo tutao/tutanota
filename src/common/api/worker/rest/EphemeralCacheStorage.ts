@@ -10,7 +10,7 @@ import { ModelMapper } from "../crypto/ModelMapper"
 import { ServerTypeModelResolver } from "../../common/EntityFunctions"
 import { expandId } from "./RestClientIdUtils"
 import { hasError } from "../../common/utils/ErrorUtils"
-import { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
+import type { SpamClassificationModel } from "../../../../mail-app/workerUtils/spamClassification/SpamClassifier"
 
 /** Cache for a single list. */
 type ListCache = {
