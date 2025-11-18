@@ -20,7 +20,6 @@ pipeline {
 		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten:/usr/lib/bin:/opt/homebrew/bin"
 		ANDROID_SDK_ROOT = "/opt/android-sdk"
 		ANDROID_HOME = "/opt/android-sdk"
-		DBUS_SESSION_BUS_ADDRESS = "/run/user/${env.UID}/bus"
 	}
 
 	agent {
