@@ -84,6 +84,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			// this problem can still happen on other folders,
 			// but at least we won't block inbox ( incoming new mails )
 			// FIXME: may need to exclude mailsetkind SEND_LATER, depends on folder system handles the send later folder
+			// hrb: should be covered. getIndentedList only returns folders and SendLater is not technically a folder
 			const selectableFolders = folders.getIndentedList().filter((folderInfo) => folderInfo.folder.folderType !== MailSetKind.INBOX)
 
 			let targetFolders: SelectorItemList<MailFolder | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
