@@ -10,6 +10,7 @@ import {
 	CalendarTimeGrid,
 	CalendarTimeGridAttributes,
 	getIntervalAsMinutes,
+	SUBROWS_PER_INTERVAL,
 	TIME_SCALE_BASE_VALUE,
 	TimeRange,
 	TimeScale,
@@ -135,6 +136,9 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			start: Time.fromDate(eventFocusBound).sub({ minutes: timeInterval }),
 			end: Time.fromDate(eventFocusBound).add({ minutes: timeInterval }),
 		}
+
+		const intervals = TimeColumn.createTimeColumnIntervals(timeScale, timeRange)
+		const rowCountPerRange = SUBROWS_PER_INTERVAL * intervals.length
 
 		const timeColumnWidth = size.calendar_hour_width_mobile + size.spacing.core_16
 		const timeColumnHeight = size.font_size_base + size.spacing.core_16 * 2
@@ -275,11 +279,12 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 								agenda
 									? m(".flex.rel", [
 											m(TimeColumn, {
-												timeScale,
-												timeRange,
-												width: timeColumnWidth,
-												height: timeColumnHeight,
-												hideLastBorder: true,
+												intervals,
+												layout: {
+													width: timeColumnWidth,
+													subColumnCount: 1,
+													rowCount: rowCountPerRange,
+												},
 											} satisfies TimeColumnAttrs),
 											m(TimeIndicator, {
 												time: Time.fromDate(agenda.main.event.startTime),
@@ -314,8 +319,10 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 													dates: [getStartOfDay(agenda.main.event.startTime)],
 													hasAnyConflict: hasConflict,
 													canReceiveFocus: false,
-													hideRightBorder: true,
+													hideLastRightBorder: true,
 													cellHeight: timeColumnHeight,
+													intervals,
+													rowCountForRange: rowCountPerRange,
 												} satisfies CalendarTimeGridAttributes),
 											),
 										])

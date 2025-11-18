@@ -10,7 +10,7 @@ import { Time } from "../../../common/calendar/date/Time.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { CalendarViewComponent, CalendarViewComponentAttrs, CalendarViewPageAttrs } from "./calendarViewComponent/CalendarViewComponent"
 import { HeaderVariant } from "./calendarViewComponent/WeekDaysComponent"
-import { CellActionHandler } from "../../../common/calendar/gui/CalendarTimeGrid"
+import { CellActionHandler } from "../../../common/calendar/gui/CalendarTimeCell"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date

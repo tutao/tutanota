@@ -6,7 +6,14 @@ import { WeekDaysComponent, WeekDaysComponentAttrs } from "./WeekDaysComponent"
 import { TimeColumn, TimeColumnAttrs } from "../../../../common/calendar/gui/TimeColumn"
 import { Time } from "../../../../common/calendar/date/Time"
 import { size } from "../../../../common/gui/size"
-import { CalendarTimeGrid, CalendarTimeGridAttributes, getIntervalAsMinutes, TimeRange, TimeScale } from "../../../../common/calendar/gui/CalendarTimeGrid"
+import {
+	CalendarTimeGrid,
+	CalendarTimeGridAttributes,
+	getIntervalAsMinutes,
+	SUBROWS_PER_INTERVAL,
+	TimeRange,
+	TimeScale,
+} from "../../../../common/calendar/gui/CalendarTimeGrid"
 import { EventWrapper, ScrollByListener } from "../CalendarViewModel"
 import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/gui/AllDaySection"
 import { EventBubbleInteractions } from "../../../../common/calendar/gui/CalendarEventBubble"
@@ -125,8 +132,14 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		` "empty											${CalendarViewComponent.GRID_AREA.ALL_DAY_SECTION}"` +
 		` "${CalendarViewComponent.GRID_AREA.TIME_COLUMN} 	${CalendarViewComponent.GRID_AREA.CALENDAR_GRID}"`
 
+	private rowCountPerDay: number
+
+	private intervals: Array<Time>
+
 	constructor({ attrs }: Vnode<CalendarViewComponentAttrs>) {
 		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
+		this.intervals = TimeColumn.createTimeColumnIntervals(this.viewConfig.timeScale, this.viewConfig.timeRange)
+		this.rowCountPerDay = SUBROWS_PER_INTERVAL * this.intervals.length
 	}
 
 	oncreate() {
@@ -249,12 +262,10 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						style: { gridArea: CalendarViewComponent.GRID_AREA.TIME_COLUMN },
 					},
 					m(TimeColumn, {
+						intervals: this.intervals,
 						baseDate: attrs.headerComponentAttrs?.selectedDate,
-						timeRange: this.viewConfig.timeRange,
-						timeScale: this.viewConfig.timeScale,
-						width: timeColumnWidth,
-						height: size.calendar_hour_height, // FIXME unused
 						onCellPressed: attrs.cellActionHandlers?.onCellPressed,
+						layout: { width: timeColumnWidth, subColumnCount: 1, rowCount: this.rowCountPerDay },
 					} satisfies TimeColumnAttrs),
 				),
 				shouldRenderTimeIndicator
@@ -388,7 +399,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		canReceiveFocus: boolean,
 	) {
 		return m(CalendarTimeGrid, {
-			timeRange,
+			intervals: this.intervals,
 			timeScale: 1,
 			dates,
 			events,
@@ -399,6 +410,9 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			},
 			canReceiveFocus,
 			cellHeight: size.calendar_hour_height,
+			rowCountForRange: this.rowCountPerDay,
+			timeRange,
+			hideLastRightBorder: false,
 		} satisfies CalendarTimeGridAttributes)
 	}
 
