@@ -6,7 +6,7 @@ SHELL ["/bin/bash", "-c"]
 
 # Install pkcs11-tool from OpenSC to sign desktop clients and deb packages
 # Note: `osslsigncode` is used on Windows as well
-RUN apt-get install -y opensc usbutils pcsc-tools osslsigncode libengine-pkcs11-openssl
+RUN apt-get update && apt-get install -y opensc usbutils pcsc-tools osslsigncode libengine-pkcs11-openssl
 
 # Install graphiz to make the bundles graph
 RUN apt-get install -y graphviz
