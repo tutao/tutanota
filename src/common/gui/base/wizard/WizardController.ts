@@ -12,13 +12,17 @@ export interface WizardProgressViewItem extends WizardProgressItem {
 
 export class WizardController {
 	private _currentStep = 0
-	private readonly _steps: WizardProgressItem[]
+	private _steps: WizardProgressItem[] = []
 
-	constructor(initialLabels: string[]) {
+	constructor(initialLabels?: string[]) {
+		if (initialLabels) this.initSteps(initialLabels)
+	}
+
+	public initSteps(initialLabels: string[]) {
 		this._steps = initialLabels.map((label, index) => ({
 			label,
 			isCompleted: false,
-			isReachable: index === 0, // only first step reachable initially
+			isReachable: index === 0,
 		}))
 	}
 

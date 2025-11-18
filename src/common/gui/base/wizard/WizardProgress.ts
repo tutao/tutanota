@@ -15,7 +15,7 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 		return m(
 			".flex.col.justify-center",
 			m(
-				".flex.col.flex-space-around.items-center",
+				".flex.col.flex-space-around.items-start",
 				{
 					style: {
 						height: "75%",

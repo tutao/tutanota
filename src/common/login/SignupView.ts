@@ -1,6 +1,6 @@
 import m, { Vnode } from "mithril"
 import { assertMainOrNode, isIOSApp } from "../api/common/Env"
-import { InfoLink, lang, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
+import { InfoLink, lang, MaybeTranslation } from "../misc/LanguageViewModel.js"
 import { defer, DeferredObject, lazy } from "@tutao/tutanota-utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { LoginViewModel } from "./LoginViewModel.js"
@@ -17,12 +17,9 @@ import { SingleLineTextField, SingleLineTextFieldAttrs } from "../gui/base/Singl
 import { TextFieldType } from "../gui/base/TextField"
 import { UpgradeSubscriptionData } from "../subscription/UpgradeSubscriptionWizard"
 import stream from "mithril/stream"
-import { anyHasGlobalFirstYearCampaign, getDiscountDetails, isPersonalPlanAvailable } from "../subscription/utils/PlanSelectorUtils"
+import { anyHasGlobalFirstYearCampaign, getDiscountDetails } from "../subscription/utils/PlanSelectorUtils"
 import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider } from "../subscription/utils/PriceUtils"
-import { formatNameAndAddress } from "../api/common/utils/CommonFormatter"
-import { getByAbbreviation } from "../api/common/CountryList"
-import { getDefaultPaymentMethod, getPaymentMethodType, NewPaidPlans, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
-import { SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
+import { getDefaultPaymentMethod, NewPaidPlans, PlanType, SubscriptionType } from "../api/common/TutanotaConstants"
 import { getCurrentPaymentInterval, queryAppStoreSubscriptionOwnership, shouldShowApplePrices, UpgradeType } from "../subscription/utils/SubscriptionUtils"
 import { locator } from "../api/main/CommonLocator"
 import { stringToSubscriptionType } from "../misc/LoginUtils"
@@ -67,7 +64,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		this.viewModel = attrs.makeViewModel()
 		this.initPromise = this.viewModel.init().then(m.redraw)
 
-		this.wizardController = new WizardController(["Step 1", "Step 2", "Step 3", "Step 4", "Step 5", "Step 6"])
+		this.wizardController = new WizardController()
 	}
 
 	async oncreate() {
@@ -145,7 +142,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {}
 
-	private makeMainStep(color: string, defaultLabel: string): WizardStepAttrs<UpgradeSubscriptionData>["main"] {
+	private makeMainStep(color: string, defaultLabel: string): WizardStepAttrs<UpgradeSubscriptionData>["content"] {
 		return (ctx) =>
 			m(
 				".flex.col",
@@ -185,7 +182,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 			)
 	}
 
-	private planSelectionStep(): WizardStepAttrs<UpgradeSubscriptionData>["main"] {
+	private planSelectionStep(): WizardStepAttrs<UpgradeSubscriptionData>["content"] {
 		return (ctx) => {
 			const data = ctx.viewModel
 			const { planPrices, acceptedPlans, newAccountData, targetPlanType, accountingInfo } = data
@@ -250,23 +247,6 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		}
 	}
 
-	private makeSubStep(color: string, text: string): WizardStepAttrs<UpgradeSubscriptionData>["sub"] {
-		return () =>
-			m(
-				"",
-				{
-					style: {
-						backgroundColor: color,
-						width: px(300),
-						height: px(300),
-						marginLeft: px(16),
-						padding: px(8),
-					},
-				},
-				text,
-			)
-	}
-
 	view({ attrs }: Vnode<SignupViewAttrs>) {
 		return m(
 			"#login-view.main-view.flex.col.nav-bg",
@@ -283,37 +263,30 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 					: m(Wizard, {
 							steps: [
 								{
-									title: "Step 1",
-									main: this.planSelectionStep(),
-									sub: this.makeSubStep("pink", "Sub content for step 1"),
+									title: "!Step 1",
+									content: this.planSelectionStep(),
 								},
 								{
-									title: "Step 2",
-									main: this.makeMainStep("yellow", "Step 2"),
-									sub: this.makeSubStep("green", "Sub content for step 2"),
+									content: this.makeMainStep("yellow", "Step 2"),
 								},
 								{
 									title: "Step 3",
-									main: this.makeMainStep("green", "Step 3"),
-									sub: this.makeSubStep("blue", "Sub content for step 3"),
+									content: this.makeMainStep("green", "Step 3"),
 								},
 
 								{
 									title: "Step 4",
-									main: this.makeMainStep("green", "Step 3"),
-									sub: this.makeSubStep("blue", "Sub content for step 3"),
+									content: this.makeMainStep("green", "Step 3"),
 								},
 
 								{
 									title: "Step 5",
-									main: this.makeMainStep("green", "Step 3"),
-									sub: this.makeSubStep("blue", "Sub content for step 3"),
+									content: this.makeMainStep("green", "Step 3"),
 								},
 
 								{
 									title: "Step 6",
-									main: this.makeMainStep("green", "Step 3"),
-									sub: this.makeSubStep("blue", "Sub content for step 3"),
+									content: this.makeMainStep("green", "Step 3"),
 								},
 							],
 							controller: this.wizardController,
