@@ -343,7 +343,7 @@ export enum PaymentMethodType {
 	AppStore = "5",
 }
 
-export async function getDefaultPaymentMethod(): Promise<PaymentMethodType> {
+export function getDefaultPaymentMethod(): PaymentMethodType {
 	if (isIOSApp()) {
 		return PaymentMethodType.AppStore
 	}

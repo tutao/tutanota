@@ -20,35 +20,38 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 					style: {
 						height: "75%",
 						"padding-inline": `${px(64)}`,
+						"min-width": `${px(300)}`,
 					},
 				},
-				progressState.map((step) => {
-					return [
-						m(".wizard-progress-wrap.flex.gap-vpad.items-start", [
-							m(
-								`button.wizard-progress${step.isCurrent ? ".wizard-progress-active" : ""}${step.currentIndex > step.index ? ".wizard-progress-previous" : ""}`,
-								{
-									type: "button",
-									disabled: !step.isReachable || !onClick,
-									onclick: onClick ? () => onClick(step.index) : noOp,
-								},
-								[
-									step.currentIndex > step.index
-										? m(Icon, {
-												icon: Icons.Checkmark,
-												size: IconSize.Medium,
-												style: {
-													fill: theme.on_primary,
-												},
-											})
-										: m("", step.index + 1),
-								],
-							),
+				progressState
+					.filter((step) => step.isEnabled)
+					.map((step, idx) => {
+						return [
+							m(".wizard-progress-wrap.flex.gap-vpad.items-start", [
+								m(
+									`button.wizard-progress${step.isCurrent ? ".wizard-progress-active" : ""}${step.currentIndex > step.index ? ".wizard-progress-previous" : ""}`,
+									{
+										type: "button",
+										disabled: !step.isReachable || !onClick,
+										onclick: onClick ? () => onClick(step.index) : noOp,
+									},
+									[
+										step.currentIndex > step.index
+											? m(Icon, {
+													icon: step.isReachable ? Icons.Checkmark : Icons.Lock,
+													size: IconSize.Medium,
+													style: {
+														fill: theme.on_primary,
+													},
+												})
+											: m("", idx + 1),
+									],
+								),
 
-							m(".flex.items-center", { style: { height: px(32) } }, step.label),
-						]),
-					]
-				}),
+								m(".flex.items-center", { style: { height: px(32) } }, step.label),
+							]),
+						]
+					}),
 			),
 		)
 	}

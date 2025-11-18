@@ -8,6 +8,7 @@ export interface WizardProgressViewItem extends WizardProgressItem {
 	index: number
 	isCurrent: boolean
 	currentIndex: number
+	isEnabled: boolean
 }
 
 export class WizardController {
@@ -34,18 +35,12 @@ export class WizardController {
 		return this._steps.length
 	}
 
-	get progress(): WizardProgressViewItem[] {
-		return this._steps.map((step, index) => ({
-			...step,
-			index,
-			isCurrent: index === this._currentStep,
-			currentIndex: this._currentStep,
-		}))
+	get progressItems(): WizardProgressItem[] {
+		return this._steps
 	}
-
 	public setStep(target: number): void {
 		if (target < 0 || target >= this._steps.length) return
-		if (!this._steps[target].isReachable) return
+		// if (!this._steps[target].isReachable) return
 		this._currentStep = target
 	}
 
@@ -85,4 +80,6 @@ export interface WizardStepContext<TViewModel> {
 	setLabel(label: string): void
 	getLabel(): string
 	markComplete(isCompleted?: boolean): void
+	goNext(): void
+	goPrev(): void
 }

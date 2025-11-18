@@ -13,6 +13,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { InvalidDataError, PreconditionFailedError } from "../../api/common/error/RestError"
 import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
 import { Dialog } from "../../gui/base/Dialog"
+import { SignupViewModel } from "../../login/SignupView"
 
 export function isOnAccountAllowed(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {
@@ -189,7 +190,7 @@ export async function signup(
 		.finally(() => operation.done())
 }
 
-export async function createAccount(data: UpgradeSubscriptionData, onFailure?: () => void) {
+export async function createAccount(data: UpgradeSubscriptionData | SignupViewModel, onFailure?: () => void) {
 	if (data.customer) return
 	data.emailInputStore = assertNotNull(data.emailInputStore)
 	data.passwordInputStore = assertNotNull(data.passwordInputStore)
