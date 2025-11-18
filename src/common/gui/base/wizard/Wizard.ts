@@ -11,6 +11,10 @@ export interface WizardAttrs<TViewModel> {
 
 export class Wizard<TViewModel> implements Component<WizardAttrs<TViewModel>> {
 	view({ attrs: { steps, controller, viewModel } }: Vnode<WizardAttrs<TViewModel>>) {
+		if (controller.stepCount === 0) {
+			controller.initSteps(steps.map((step) => step.title ?? ""))
+		}
+
 		const currentIndex = controller.currentStep
 		const currentStep = steps[currentIndex]
 
