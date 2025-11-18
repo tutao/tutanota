@@ -32,7 +32,22 @@ export const SYSTEM_GROUP_MAIL_ADDRESS = "system@tutanota.de"
 export const getMailFolderType = (folder: MailFolder): MailSetKind => downcast(folder.folderType)
 
 export function isFolder(folder: MailFolder): boolean {
-	return folder.folderType !== MailSetKind.ALL && folder.folderType !== MailSetKind.LABEL && folder.folderType !== MailSetKind.Imported
+	switch (folder.folderType) {
+		case MailSetKind.CUSTOM:
+		case MailSetKind.INBOX:
+		case MailSetKind.SENT:
+		case MailSetKind.TRASH:
+		case MailSetKind.ARCHIVE:
+		case MailSetKind.SPAM:
+		case MailSetKind.DRAFT:
+			return true
+		case MailSetKind.ALL:
+		case MailSetKind.LABEL:
+		case MailSetKind.IMPORTED:
+		case MailSetKind.SEND_LATER:
+		default:
+			return false
+	}
 }
 
 export function isNestableMailSet(mailSet: MailFolder): boolean {
@@ -115,7 +130,8 @@ export enum MailSetKind {
 	DRAFT = "6",
 	ALL = "7",
 	LABEL = "8",
-	Imported = "9",
+	IMPORTED = "9",
+	SEND_LATER = "10",
 }
 
 export const SYSTEM_FOLDERS = [MailSetKind.INBOX, MailSetKind.SENT, MailSetKind.TRASH, MailSetKind.ARCHIVE, MailSetKind.SPAM, MailSetKind.DRAFT] as const

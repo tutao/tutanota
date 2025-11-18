@@ -61,6 +61,8 @@ interface MailboxSets {
 	folders: FolderSystem
 	/** a map from element id to the mail set */
 	labels: ReadonlyMap<Id, MailFolder>
+	imported: MailFolder | null
+	sendLater: MailFolder | null
 }
 
 export const enum LabelState {
@@ -147,10 +149,13 @@ export class MailModel {
 						throw e
 					}
 				}
-				const [labels, folders] = partition(mailSets, isLabel)
+				const labels = mailSets.filter(isLabel)
 				const labelsMap = collectToMap(labels, getElementId)
-				const folderSystem = new FolderSystem(folders)
-				tempFolders.set(foldersRef._id, { folders: folderSystem, labels: labelsMap })
+
+				const imported = mailSets.find((set) => set.folderType === MailSetKind.IMPORTED) ?? null
+				const sendLater = mailSets.find((set) => set.folderType === MailSetKind.SEND_LATER) ?? null
+				const folderSystem = new FolderSystem(mailSets)
+				tempFolders.set(foldersRef._id, { folders: folderSystem, labels: labelsMap, imported, sendLater })
 			}
 		}
 
@@ -279,6 +284,14 @@ export class MailModel {
 
 	getLabelsByGroupId(groupId: Id): ReadonlyMap<Id, MailFolder> {
 		return this.getMailSetsForGroup(groupId)?.labels ?? new Map()
+	}
+
+	getImportedMailSetByGroupId(groupId: Id): MailFolder | null {
+		return this.getMailSetsForGroup(groupId)?.imported ?? null
+	}
+
+	getSendLaterByGroupId(groupId: Id): MailFolder | null {
+		return this.getMailSetsForGroup(groupId)?.sendLater ?? null
 	}
 
 	/**
@@ -536,7 +549,7 @@ export class MailModel {
 	}
 
 	public async finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
-		if (folder.folderType !== MailSetKind.CUSTOM && folder.folderType !== MailSetKind.Imported) {
+		if (folder.folderType !== MailSetKind.CUSTOM && folder.folderType !== MailSetKind.IMPORTED) {
 			throw new ProgrammingError("Cannot delete non-custom folder: " + String(folder._id))
 		}
 
@@ -604,7 +617,7 @@ export class MailModel {
 	}
 
 	getImportedMailSets(): Array<MailFolder> {
-		return [...this.mailSets.values()].filter((f) => f.folders.importedMailSet).map((f) => f.folders.importedMailSet!)
+		return [...this.mailSets.values()].map((f) => f.imported).filter(isNotNull)
 	}
 
 	/** Resolve conversation list ids to the IDs of mails in those conversations. */
