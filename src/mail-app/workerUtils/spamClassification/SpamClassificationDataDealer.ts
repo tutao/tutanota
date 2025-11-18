@@ -227,8 +227,11 @@ export class SpamClassificationDataDealer {
 				concurrency: 5,
 			},
 		)
-		// we are uploading the initial spam training data using the PopulateClientSpamTrainingDataService
-		return (await this.mailFacade()).populateClientSpamTrainingData(assertNotNull(mailBox._ownerGroup), unencryptedPopulateClientSpamTrainingData)
+
+		if (!isEmpty(unencryptedPopulateClientSpamTrainingData)) {
+			// we are uploading the initial spam training data using the PopulateClientSpamTrainingDataService
+			return (await this.mailFacade()).populateClientSpamTrainingData(assertNotNull(mailBox._ownerGroup), unencryptedPopulateClientSpamTrainingData)
+		}
 	}
 
 	private sampleEntriesFromArray<T>(arr: T[], numberOfEntries: number): T[] {

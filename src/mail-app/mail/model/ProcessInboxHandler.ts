@@ -2,7 +2,7 @@ import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler } from "./InboxRuleHandler"
 import { Mail, MailFolder, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FeatureType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
-import { assertNotNull, debounce, Nullable } from "@tutao/tutanota-utils"
+import { assertNotNull, debounce, isEmpty, Nullable } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -37,7 +37,9 @@ export class ProcessInboxHandler {
 				this.processedMailsByMailGroup = new Map()
 				for (const [mailGroup, processedMails] of map) {
 					// send request to server
-					await mailFacade.processNewMails(mailGroup, processedMails)
+					if (!isEmpty(processedMails)) {
+						await mailFacade.processNewMails(mailGroup, processedMails)
+					}
 				}
 			}
 		})
