@@ -214,14 +214,14 @@ export async function showSignupDialog(urlParams: Params) {
 	)
 }
 
-function getWebsiteLangFromParams(urlParams: Params): { code: LanguageCode; languageTag: string } | null {
+export function getWebsiteLangFromParams(urlParams: Params): { code: LanguageCode; languageTag: string } | null {
 	if (typeof urlParams.websiteLang !== "string") return null
 	const code = urlParams.websiteLang
 	if (!Object.keys(LanguageNames).includes(code)) return null
 	return { code, languageTag: languageCodeToTag(code) }
 }
 
-function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): readonly AvailablePlanType[] {
+export function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): readonly AvailablePlanType[] {
 	// Default to all available plans if the params do not have the needed information
 	if (params == null || params.type == null) return AvailablePlans
 
@@ -255,7 +255,7 @@ export function stringToSubscriptionType(string: string): SubscriptionType {
 	}
 }
 
-function getSubscriptionParameters(hashParams: Params): SubscriptionParameters | null {
+export function getSubscriptionParameters(hashParams: Params): SubscriptionParameters | null {
 	const { subscription, type, interval } = hashParams
 	const isSubscriptionString = typeof subscription === "string"
 	const isTypeString = typeof type === "string"
