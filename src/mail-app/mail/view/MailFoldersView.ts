@@ -53,7 +53,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
 		// So instead we push or not push into array
 		const customSystems = folders?.customSubtrees ?? []
-		const systemSystems = folders?.systemSubtrees.filter((f) => f.folder.folderType !== MailSetKind.Imported) ?? []
+		const systemSystems = folders?.systemSubtrees ?? []
 		const children: Children = []
 		const selectedFolder = folders
 			?.getIndentedList()
