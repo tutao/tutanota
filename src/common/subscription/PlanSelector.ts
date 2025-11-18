@@ -18,7 +18,7 @@ import { PersonalPlanContainer } from "./components/PersonalPlanContainer"
 import { BusinessPlanContainer } from "./components/BusinessPlanContainer"
 import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 
-type PlanSelectorAttr = {
+export type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
 	actionButtons: SubscriptionActionButtons
 	priceAndConfigProvider: PriceAndConfigProvider
@@ -30,6 +30,7 @@ type PlanSelectorAttr = {
 	showMultiUser: boolean
 	discountDetails?: DiscountDetails
 	targetPlan: PlanType
+	onContinue?: any
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
@@ -61,6 +62,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			allowSwitchingPaymentInterval,
 			showMultiUser,
 			discountDetails,
+			onContinue,
 		},
 	}: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
@@ -91,12 +93,16 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			return undefined
 		}
 
-		const renderActionButton = (): Children => {
+		const renderActionButton = (onContinue: any): Children => {
+			let temp = (event: any, dom: any) => actionButtons[this.selectedPlan() as AvailablePlans]().onclick(event, dom)
+			if (onContinue) {
+				temp = () => onContinue(this.selectedPlan())
+			}
 			return m(LoginButton, {
 				// The label text for go european campaign shall not be translated.
 				label: "continue_action",
 				type: LoginButtonType.FullWidth,
-				onclick: (event, dom) => actionButtons[this.selectedPlan() as AvailablePlans]().onclick(event, dom),
+				onclick: temp,
 			})
 		}
 
@@ -171,7 +177,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 									"margin-inline": "auto",
 								},
 							},
-							renderActionButton(),
+							renderActionButton(onContinue),
 						),
 					),
 				),
