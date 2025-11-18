@@ -352,7 +352,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		// We don't show report action in label view, because mails can be in Spam or Drafts.
 		// We could check each mail's folder when in label view, but reporting mails from label view is unlikely.
 		// Mails can still be reported as spam from label view by moving them to Spam folder.
-		const isExcludedMailSet = currentMailSet && [MailSetKind.SPAM, MailSetKind.DRAFT, MailSetKind.LABEL].includes(currentMailSet)
+		const isExcludedMailSet = currentMailSet && [MailSetKind.SPAM, MailSetKind.DRAFT, MailSetKind.LABEL, MailSetKind.SEND_LATER].includes(currentMailSet)
 		if (isExternalUser || isExcludedMailSet) {
 			return null
 		} else {
@@ -826,6 +826,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.InternalCommunication),
 				help: "switchSpam_action",
 			},
+			// FIXME: need to add Send Later
 			{
 				key: Keys.CTRL,
 				exec: () => false,

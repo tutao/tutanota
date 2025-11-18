@@ -56,6 +56,8 @@ export function getSystemFolderName(folderType: MailSetKind): string {
 		case MailSetKind.DRAFT:
 			return lang.get("draft_action")
 
+		// FIXME: will need to add mailsetkind send_later here
+
 		default:
 			// do not throw an error - new system folders may cause problems
 			//throw new Error("illegal folder type: " + this.folder.getFolderType())
