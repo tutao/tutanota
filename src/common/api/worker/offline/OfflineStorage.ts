@@ -837,6 +837,11 @@ export class OfflineStorage implements CacheStorage {
                                         WHERE groupId = ${owner}`
 			await this.sqlCipherFacade.run(query, params)
 		}
+		{
+			const { query, params } = sql`DELETE FROM spam_classification_model
+										WHERE ownerGroup = ${owner}`
+			await this.sqlCipherFacade.run(query, params)
+		}
 	}
 
 	private async deleteAllBlobElementTypesOwnedBy(owner: Id) {
