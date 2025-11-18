@@ -1167,6 +1167,18 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				help: "delete_action",
 			},
 			{
+				key: Keys.DELETE,
+				shift: true,
+				exec: () => this.moveSelectedToSystemFolder(MailSetKind.SPAM),
+				help: "spam_move_action",
+			},
+			{
+				key: Keys.BACKSPACE,
+				shift: true,
+				exec: () => this.moveSelectedToSystemFolder(MailSetKind.SPAM),
+				help: "spam_move_action",
+			},
+			{
 				key: Keys.A,
 				exec: () => this.moveSelectedToSystemFolder(MailSetKind.ARCHIVE),
 				help: "archive_action",
