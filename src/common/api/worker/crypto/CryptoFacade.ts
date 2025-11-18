@@ -521,7 +521,9 @@ export class CryptoFacade {
 
 		if (pubOrExtPermission == null) {
 			const typeName = `${instance._type.app}/${instance._type.typeId}`
-			throw new SessionKeyNotFoundError(`could not find permission for instance of type ${typeName} with id ${this.getElementIdFromInstance(instance)}`)
+			throw new SessionKeyNotFoundError(
+				`could not find permission for instance of type ${typeName} with id ${this.getIdAsStringFromInstance(instance as SomeEntity)}`,
+			)
 		}
 
 		const bucketPermissions = await this.entityClient.loadAll(BucketPermissionTypeRef, assertNotNull(pubOrExtPermission.bucket).bucketPermissions)
@@ -835,12 +837,12 @@ export class CryptoFacade {
 			)
 	}
 
-	private getElementIdFromInstance(instance: Record<string, any>): Id {
+	private getIdAsStringFromInstance(instance: SomeEntity): string {
 		if (typeof instance._id === "string") {
 			return instance._id
 		} else {
-			const idTuple = instance._id as IdTuple
-			return elementIdPart(idTuple)
+			const idTuple: IdTuple = instance._id
+			return idTuple.join("/")
 		}
 	}
 
