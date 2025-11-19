@@ -54,6 +54,67 @@ export function isNestableMailSet(mailSet: MailFolder): boolean {
 	return mailSet.folderType === MailSetKind.CUSTOM
 }
 
+export function isVisibleSystemMailSet(mailSet: MailFolder): boolean {
+	switch (mailSet.folderType) {
+		case MailSetKind.INBOX:
+		case MailSetKind.SENT:
+		case MailSetKind.TRASH:
+		case MailSetKind.ARCHIVE:
+		case MailSetKind.SPAM:
+		case MailSetKind.DRAFT:
+		case MailSetKind.SEND_LATER:
+			return true
+		case MailSetKind.CUSTOM:
+		case MailSetKind.ALL:
+		case MailSetKind.LABEL:
+		case MailSetKind.IMPORTED:
+		default:
+			return false
+	}
+}
+
+export function canHaveDescendents(mailSet: MailFolder): boolean {
+	switch (mailSet.folderType) {
+		case MailSetKind.CUSTOM:
+		case MailSetKind.INBOX:
+		case MailSetKind.DRAFT:
+		case MailSetKind.SENT:
+		case MailSetKind.ARCHIVE:
+			return true
+		case MailSetKind.TRASH:
+		case MailSetKind.SPAM:
+		case MailSetKind.ALL:
+		case MailSetKind.LABEL:
+		case MailSetKind.IMPORTED:
+		case MailSetKind.SEND_LATER:
+		default:
+			return false
+	}
+}
+
+export function isEditableMailSet(mailSet: MailFolder): boolean {
+	switch (mailSet.folderType) {
+		case MailSetKind.CUSTOM:
+		case MailSetKind.LABEL:
+			return true
+		case MailSetKind.INBOX:
+		case MailSetKind.DRAFT:
+		case MailSetKind.SENT:
+		case MailSetKind.TRASH:
+		case MailSetKind.ARCHIVE:
+		case MailSetKind.SPAM:
+		case MailSetKind.ALL:
+		case MailSetKind.IMPORTED:
+		case MailSetKind.SEND_LATER:
+		default:
+			return false
+	}
+}
+
+export function isTopLevelMailSet(mailSet: MailFolder): boolean {
+	return mailSet.parentFolder == null
+}
+
 export function isLabel(folder: MailFolder): boolean {
 	return folder.folderType === MailSetKind.LABEL
 }
