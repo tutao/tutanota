@@ -39,24 +39,26 @@ export function getFolderName(folder: MailFolder): string {
 export function getSystemFolderName(folderType: MailSetKind): string {
 	switch (folderType) {
 		case MailSetKind.INBOX:
-			return lang.get("received_action")
+			return lang.getTranslationText("received_action")
 
 		case MailSetKind.SENT:
-			return lang.get("sent_action")
+			return lang.getTranslationText("sent_action")
 
 		case MailSetKind.TRASH:
-			return lang.get("trash_action")
+			return lang.getTranslationText("trash_action")
 
 		case MailSetKind.ARCHIVE:
-			return lang.get("archive_label")
+			return lang.getTranslationText("archive_label")
 
 		case MailSetKind.SPAM:
-			return lang.get("spam_action")
+			return lang.getTranslationText("spam_action")
 
 		case MailSetKind.DRAFT:
-			return lang.get("draft_action")
+			return lang.getTranslationText("draft_action")
 
-		// FIXME: will need to add mailsetkind send_later here
+		case MailSetKind.SEND_LATER:
+			// FIXME add translation
+			return "Scheduled"
 
 		default:
 			// do not throw an error - new system folders may cause problems
