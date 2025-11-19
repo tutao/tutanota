@@ -7,7 +7,7 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { assertMainOrNode } from "../../../common/api/common/Env"
-import { StrippedEntity } from "../../../common/api/common/utils/EntityUtils"
+import { isSameId, StrippedEntity } from "../../../common/api/common/utils/EntityUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
 
 assertMainOrNode()
@@ -83,7 +83,11 @@ export class ProcessInboxHandler {
 
 		const mailGroupId = assertNotNull(mail._ownerGroup)
 		if (this.processedMailsByMailGroup.has(mailGroupId)) {
-			this.processedMailsByMailGroup.get(mailGroupId)?.push(finalProcessInboxDatum)
+			const existingData = assertNotNull(this.processedMailsByMailGroup.get(mailGroupId))
+			const datumIsAlreadyAdded = existingData.some((existingDatum) => isSameId(existingDatum.mailId, finalProcessInboxDatum.mailId))
+			if (!datumIsAlreadyAdded) {
+				this.processedMailsByMailGroup.get(mailGroupId)?.push(finalProcessInboxDatum)
+			}
 		} else {
 			this.processedMailsByMailGroup.set(mailGroupId, [finalProcessInboxDatum])
 		}
