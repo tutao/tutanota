@@ -28,8 +28,10 @@ export function aesEncryptWithIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array)
  * @param key The key to use for the encryption.
  * @param bytes The plain text.
  * @return The encrypted text as words (sjcl internal structure)..
+ * @deprecated
  */
 export function aes256EncryptSearchIndexEntry(key: Aes256Key, bytes: Uint8Array): Uint8Array {
+	// TODO make decision about deprecation in calling code?
 	return SYMMETRIC_CIPHER_FACADE.encryptBytesDeprecatedUnauthenticated(key, bytes)
 }
 

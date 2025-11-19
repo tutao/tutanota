@@ -31,6 +31,7 @@ export function encryptValue(
 	} else {
 		const dbValue = convertJsToDbType(valueType.type, value)!
 		const bytes = typeof dbValue === "string" ? stringToUtf8Uint8Array(dbValue) : dbValue
+		// TODO try to avoid passing the iv here
 		const encryptedBytes = aesEncryptWithIv(sk, bytes, iv)
 		return uint8ArrayToBase64(encryptedBytes)
 	}

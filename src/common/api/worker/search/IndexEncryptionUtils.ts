@@ -16,7 +16,7 @@ export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbIv: Ui
 }
 
 export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIv: Uint8Array): Uint8Array {
-	//TODO
+	//TODO we should also get rid of this. but dropping the index does not seem an option and migrating it sucks too
 	return aes256EncryptSearchIndexEntryWithIV(key, stringToUtf8Uint8Array(indexKey), dbIv).slice(dbIv.length)
 }
 

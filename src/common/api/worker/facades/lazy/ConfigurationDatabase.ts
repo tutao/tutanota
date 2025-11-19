@@ -39,6 +39,10 @@ type ConfigDb = {
 
 /** @PublicForTesting */
 export async function encryptItem(item: string, key: Aes256Key, iv: Uint8Array): Promise<Uint8Array> {
+	// TODO let's try and get rid of this. options are:
+	// 1. migration or
+	// 2. drop the table
+	// in both cases use a secure keyed hash (hmac) as the key
 	return aesEncryptWithIv(key, stringToUtf8Uint8Array(item), iv)
 }
 
@@ -81,7 +85,7 @@ export class ConfigurationDatabase implements AutosaveFacade {
 		try {
 			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
 			const encoded = encodeLocalAutosavedDraftData(draftData)
-			const encryptedData = aesEncryptWithIv(metaData.key, encoded, metaData.iv)
+			const encryptedData = aesEncrypt(metaData.key, encoded)
 			await transaction.put(LocalDraftDataOS, LOCAL_DRAFT_KEY, encryptedData)
 		} catch (e) {
 			if (e instanceof DbError) {
@@ -185,6 +189,7 @@ export class ConfigurationDatabase implements AutosaveFacade {
 			const metaData = await loadEncryptionMetadata(dbFacade, id, keyLoaderFacade, ConfigurationMetaDataOS)
 
 			if (event.oldVersion === 1 && metaData) {
+				// TODO this migration can probably be dropped now and we can just assume strong encryption or delete the data?!
 				// migrate from plain, mac-and-static-iv aes256 to aes256 with mac
 				const transaction = await dbFacade.createTransaction(true, [ExternalImageListOS])
 				const entries = await transaction.getAll(ExternalImageListOS)
