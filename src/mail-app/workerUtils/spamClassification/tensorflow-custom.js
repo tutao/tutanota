@@ -4,22 +4,22 @@ import "@tensorflow/tfjs-backend-webgl"
 import "@tensorflow/tfjs-core/dist/register_all_gradients"
 
 // Layers API
-import { sequential, LayersModel } from "@tensorflow/tfjs-layers"
+import { LayersModel, sequential } from "@tensorflow/tfjs-layers"
 import { dense, dropout } from "@tensorflow/tfjs-layers/dist/exports_layers"
 import { glorotUniform } from "@tensorflow/tfjs-layers/dist/exports_initializers"
 
 // Core tensor ops
-import { tensor2d } from "@tensorflow/tfjs-core"
-import { tensor1d } from "@tensorflow/tfjs-core"
-import { enableProdMode } from "@tensorflow/tfjs-core"
+import { enableProdMode, env, tensor1d, tensor2d } from "@tensorflow/tfjs-core"
 import { stringToHashBucketFast } from "@tensorflow/tfjs-core/dist/ops/string/string_to_hash_bucket_fast"
+import { PlatformStub } from "../../../../libs/tensorflow-platform-stub.js"
 
 // IO handlers
-import { withSaveHandler, fromMemory } from "@tensorflow/tfjs-core/dist/io/passthrough"
+import { fromMemory, withSaveHandler } from "@tensorflow/tfjs-core/dist/io/passthrough"
 import { loadLayersModelFromIOHandler } from "@tensorflow/tfjs-layers/dist/models"
 
 // Re-export from this file
 export {
+	env,
 	sequential,
 	LayersModel,
 	dense,
@@ -32,4 +32,5 @@ export {
 	fromMemory,
 	stringToHashBucketFast,
 	enableProdMode,
+	PlatformStub,
 }

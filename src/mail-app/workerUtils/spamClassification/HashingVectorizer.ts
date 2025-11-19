@@ -1,5 +1,5 @@
 import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
-import { stringToHashBucketFast, tensor1d } from "./tensorflow-custom"
+import { env, PlatformStub, stringToHashBucketFast, tensor1d } from "./tensorflow-custom"
 import { MAX_WORD_FREQUENCY } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 export class HashingVectorizer {
@@ -33,6 +33,12 @@ export class HashingVectorizer {
 	 * }
 	 */
 	private async tensorHash(array: Array<string>): Promise<Array<number>> {
+		if (env().platform === undefined) {
+			// We're okay with ignoring here because this type is a stub that should replace the actual platform type
+			// inside tensorflow.js
+			// @ts-ignore
+			env().setPlatform("browser", new PlatformStub())
+		}
 		const inputTensor = tensor1d(array, "string")
 		const rankTensor = stringToHashBucketFast(inputTensor, this.dimension)
 		const resultArray = (await rankTensor.array()) as Array<number>
