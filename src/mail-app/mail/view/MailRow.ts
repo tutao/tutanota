@@ -1,4 +1,4 @@
-import { getMailFolderType, MailSetKind, MailState, ReplyType, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
+import { getMailFolderType, MailSetKind, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
 import type { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
@@ -39,7 +39,7 @@ const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.SPAM]: FontIcons.Spam,
 	[MailSetKind.DRAFT]: FontIcons.Draft,
 	// FIXME: we will need to create icon for this
-	[MailSetKind.SEND_LATER]: FontIcons.Folder,
+	[MailSetKind.SEND_LATER]: FontIcons.Clock,
 	// The ones below will never show a folder icon, but we need them to complete the set
 	[MailSetKind.ALL]: FontIcons.Folder,
 	[MailSetKind.LABEL]: FontIcons.Folder,
