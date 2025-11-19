@@ -1,5 +1,5 @@
 import m, { ClassComponent, Vnode } from "mithril"
-import { clone } from "@tutao/tutanota-utils"
+import { clone, lastIndex } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
 import { getIntervalAsMinutes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "./CalendarTimeGrid"
 import { px } from "../../gui/size"
@@ -35,6 +35,7 @@ export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
 				const formatedTime = styles.isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
 				const rowStart = intervalIndex * SUBROWS_PER_INTERVAL + 1
 				const rowEnd = rowStart + SUBROWS_PER_INTERVAL
+				const showBorderBottom = intervalIndex !== lastIndex(attrs.intervals)
 
 				return m(CalendarTimeCell, {
 					dateTime: {
@@ -50,6 +51,7 @@ export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
 					},
 					interactions: { onCellPressed: attrs.onCellPressed },
 					text: formatedTime,
+					showBorderBottom,
 				} as CalendarTimeCellAttrs)
 			}),
 		)

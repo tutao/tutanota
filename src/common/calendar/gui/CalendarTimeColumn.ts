@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { assertNotNull, downcast, getFirstOrThrow, lastThrow } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, getFirstOrThrow, lastIndex, lastThrow } from "@tutao/tutanota-utils"
 import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { CalendarTimeColumnData, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
@@ -43,6 +43,7 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 	private renderInteractableCells(attrs: CalendarTimeColumnAttrs): Children {
 		const { intervals, baseDate, onCellPressed, onCellContextMenuPressed } = attrs
 		return intervals.map((interval, intervalIndex) => {
+			const showBorderBottom = intervalIndex !== lastIndex(intervals)
 			const rowStart = intervalIndex * SUBROWS_PER_INTERVAL + 1
 			const rowEnd = rowStart + SUBROWS_PER_INTERVAL
 			return m(CalendarTimeCell, {
@@ -55,6 +56,7 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 					subColumnCount: attrs.timeColumnGrid.subColumnCount,
 				},
 				interactions: { onCellPressed, onCellContextMenuPressed },
+				showBorderBottom,
 			} satisfies CalendarTimeCellAttrs)
 		})
 	}
@@ -82,8 +84,6 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 
 		const timeRangeStartAsDate = firstInterval.toDate(baseDate)
 		const timeRangeEndAsDate = DateTime.fromJSDate(lastInterval.toDate(baseDate)).plus({ minutes: intervalIncrement }).toJSDate()
-
-		console.log({ timeRangeStartAsDate, timeRangeEndAsDate })
 
 		return timeColumnGrid.orderedEvents.map((eventWrapper) => {
 			const evData = timeColumnGrid.grid.get(elementIdPart(eventWrapper.event._id))

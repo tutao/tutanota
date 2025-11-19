@@ -1,6 +1,6 @@
 import m, { Child, ClassComponent, Vnode } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized, getStartOfDay, getStartOfNextDay } from "@tutao/tutanota-utils"
+import { deepMemoized, getStartOfDay, getStartOfNextDay, lastIndex } from "@tutao/tutanota-utils"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "luxon"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
@@ -141,7 +141,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 					transition: `opacity ${DefaultAnimationTime}ms linear`,
 				},
 			},
-			attrs.dates.map((date, index) => this.renderDayColumn(date, attrs, index === attrs.dates.length - 1 && !!attrs?.hideLastRightBorder)),
+			attrs.dates.map((date, index) => this.renderDayColumn(date, attrs, index === lastIndex(attrs.dates))),
 		)
 	}
 

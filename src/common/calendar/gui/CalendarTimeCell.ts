@@ -32,6 +32,7 @@ export interface CalendarTimeCellAttrs {
 		onCellPressed?: CellActionHandler
 		onCellContextMenuPressed?: CellActionHandler
 	}
+	showBorderBottom: boolean
 }
 
 /**
@@ -43,13 +44,15 @@ export interface CalendarTimeCellAttrs {
 export class CalendarTimeCell implements ClassComponent<CalendarTimeCellAttrs> {
 	view({ attrs }: Vnode<CalendarTimeCellAttrs>) {
 		const showHoverEffect = attrs.interactions?.onCellPressed || attrs.interactions?.onCellContextMenuPressed
-		const classes = showHoverEffect ? "interactable-cell" : ""
+		const conditionalClasses: Array<string> = []
+		if (showHoverEffect) conditionalClasses.push("interactable-cell")
+		if (attrs.showBorderBottom) conditionalClasses.push("border-bottom")
 
 		return m(
-			".rel.z1.flex.small.justify-center.items-center.border-bottom",
+			".rel.z1.flex.small.justify-center.items-center",
 			{
 				id: attrs.text ? TimeColumn.getTimeCellId(attrs.dateTime.time.hour) : undefined,
-				class: classes,
+				class: conditionalClasses.join(" "),
 				style: {
 					gridRow: `${attrs.layout.rowBounds.start} / ${attrs.layout.rowBounds.end}`,
 					gridColumn: `1 / span ${attrs.layout.subColumnCount}`,
