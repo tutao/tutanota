@@ -603,6 +603,7 @@ function getContents(eventObjects: ICalObject[], zone: string) {
 		}
 
 		const event = createCalendarEvent({
+			sender: null,
 			description,
 			startTime,
 			endTime,

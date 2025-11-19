@@ -1,7 +1,35 @@
 import { assertMainOrNodeBoot } from "../api/common/Env"
 
 assertMainOrNodeBoot()
+
+/**
+ * Design System Spacing Scale
+ *
+ * Provides a consistent set of spacing values (in pixels) used throughout the design system.
+ * Starts at 4 and increases in increments of 8 up to 64, following an 8-point grid.
+ *
+ * This spacing scale should be used for **padding, margins, and layout gaps** to maintain
+ * visual rhythm and consistency across all UI components.
+ *
+ * @see {@link https://www.figma.com/design/AGqWHYG9dYRMCFcW5sKWhp/Switch---Tuta-Design-System?node-id=203-285&p=f&t=glDgWA34Bv6K4mZN-0 Tuta Design System (Figma)}
+ */
+const _spacing = Object.fromEntries(
+	Array.from({ length: 9 }, (_, i) => {
+		const value = i === 0 ? 4 : 8 * i
+		return [`core_${value}`, value]
+	}),
+)
+
 export const size = {
+	/**
+	 * @example
+	 * ".mlr-core-4": {
+	 *   "margin-left": px(size.spacing.core_4),
+	 *   "margin-right": px(size.spacing.core_4),
+	 * },
+	 */
+	spacing: _spacing,
+
 	new_design: {
 		vpad_large: 20,
 	},

@@ -53,7 +53,7 @@ export function isValidCSSHexColor(colorCode: string): boolean {
 }
 
 export function getColorLuminance(c: string): number {
-	const { r, g, b } = hexToRgb(c)
+	const { r, g, b } = hexToRGBA(c)
 	// Counting the perceptive luminance
 	// human eye favors green color...
 	return (0.299 * r + 0.587 * g + 0.114 * b) / 255
@@ -236,6 +236,23 @@ export function rgbToHex(color: RGB): string {
  */
 export function rgbaToHex(color: RGBA): string {
 	return rgbToHex(color) + color.a.toString(16).padStart(2, "0")
+}
+
+export function hexToRGBA(color: string) {
+	let hexWithoutHash = color.slice(1)
+	if (hexWithoutHash.length !== 3 && hexWithoutHash.length !== 6 && hexWithoutHash.length !== 8) {
+		throw Error("Invalid HEX-ALPHA color code: " + color)
+	}
+
+	if (hexWithoutHash.length === 3) {
+		hexWithoutHash = `${expandHexTriplet(hexWithoutHash)}FF`
+	} else if (hexWithoutHash.length === 6) {
+		hexWithoutHash = `${hexWithoutHash}FF`
+	}
+
+	const { r, g, b } = hexToRgb(`#${hexWithoutHash.substring(0, 6)}`)
+	const alpha = Number.parseInt(hexWithoutHash.substring(6), 16)
+	return { r, g, b, a: alpha / 255 }
 }
 
 export function hexToRGBAString(color: string, alpha: number) {

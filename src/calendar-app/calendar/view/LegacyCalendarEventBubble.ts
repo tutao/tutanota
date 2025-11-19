@@ -5,7 +5,7 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { ClickHandler, colorForBg } from "../../../common/gui/base/GuiUtils"
 import { TabIndex } from "../../../common/api/common/TutanotaConstants.js"
 
-export type CalendarEventBubbleAttrs = {
+export type LegacyCalendarEventBubbleAttrs = {
 	text: string
 	secondLineText?: string | null
 	color: string
@@ -25,14 +25,18 @@ export type CalendarEventBubbleAttrs = {
 const lineHeight = size.calendar_line_height
 const lineHeightPx = px(lineHeight)
 
-export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> {
+/**
+ * @deprecated since version 314.251018.1. Use the new CalendarEventBubble instead
+ * @see CalendarEventBubble
+ */
+export class LegacyCalendarEventBubble implements Component<LegacyCalendarEventBubbleAttrs> {
 	private hasFinishedInitialRender: boolean = false
 
-	oncreate(vnode: Vnode<CalendarEventBubbleAttrs>) {
+	oncreate(vnode: Vnode<LegacyCalendarEventBubbleAttrs>) {
 		this.hasFinishedInitialRender = true
 	}
 
-	view({ attrs }: Vnode<CalendarEventBubbleAttrs>): Children {
+	view({ attrs }: Vnode<LegacyCalendarEventBubbleAttrs>): Children {
 		// This helps us stop flickering in certain cases where we want to disable and re-enable fade in (ie. when dragging events)
 		// Reapplying the animation to the element will cause it to trigger instantly, so we don't want to do that
 		const doFadeIn = !this.hasFinishedInitialRender && attrs.fadeIn
@@ -103,13 +107,13 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 							width: "95%",
 						},
 					},
-					CalendarEventBubble.renderContent(attrs),
+					LegacyCalendarEventBubble.renderContent(attrs),
 				),
 			],
 		)
 	}
 
-	private static renderContent({ height: maybeHeight, text, secondLineText, color }: CalendarEventBubbleAttrs): Children {
+	private static renderContent({ height: maybeHeight, text, secondLineText, color }: LegacyCalendarEventBubbleAttrs): Children {
 		// If the bubble has 2 or more lines worth of vertical space, then we will render the text + the secondLineText on separate lines
 		// Otherwise we will combine them onto a single line
 		const height = maybeHeight ?? lineHeight
@@ -124,7 +128,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			const topSectionClass = topSectionMaxLines === 1 ? ".text-clip" : ".text-ellipsis-multi-line"
 			return [
 				// The wrapper around `text` is needed to stop `-webkit-box` from changing the height
-				CalendarEventBubble.renderTextSection(
+				LegacyCalendarEventBubble.renderTextSection(
 					"",
 					m(
 						topSectionClass,
@@ -137,10 +141,10 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					),
 					topSectionMaxLines * lineHeight,
 				),
-				secondLineText ? CalendarEventBubble.renderTextSection(".text-ellipsis", secondLineText, lineHeight) : null,
+				secondLineText ? LegacyCalendarEventBubble.renderTextSection(".text-ellipsis", secondLineText, lineHeight) : null,
 			]
 		} else {
-			return CalendarEventBubble.renderTextSection(
+			return LegacyCalendarEventBubble.renderTextSection(
 				".text-clip",
 				secondLineText
 					? [

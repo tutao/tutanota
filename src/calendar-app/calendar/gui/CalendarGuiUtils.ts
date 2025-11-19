@@ -11,12 +11,15 @@ import {
 	assertNotNull,
 	clamp,
 	clone,
+	DAY_IN_MILLIS,
 	getFromMap,
 	getStartOfDay,
 	incrementDate,
 	isNotEmpty,
 	isSameDay,
 	isSameDayOfDate,
+	isToday,
+	newPromise,
 	numberRange,
 	typedValues,
 } from "@tutao/tutanota-utils"
@@ -53,7 +56,7 @@ import {
 import {
 	AccountType,
 	CalendarAttendeeStatus,
-	defaultCalendarColor,
+	DEFAULT_CALENDAR_COLOR,
 	EndType,
 	EventTextTimeOption,
 	Keys,
@@ -74,18 +77,17 @@ import { GroupColors } from "../view/CalendarView.js"
 import { CalendarInfo } from "../model/CalendarModel.js"
 import { EventType } from "./eventeditor-model/CalendarEventModel.js"
 import { hasCapabilityOnGroup } from "../../../common/sharing/GroupUtils.js"
-import { EventsOnDays } from "../view/CalendarViewModel.js"
+import { EventsOnDays, EventWrapper } from "../view/CalendarViewModel.js"
 import { CalendarEventPreviewViewModel } from "./eventpopup/CalendarEventPreviewViewModel.js"
 import { createAsyncDropdown } from "../../../common/gui/base/Dropdown.js"
 import { UserController } from "../../../common/api/main/UserController.js"
 import { SelectOption } from "../../../common/gui/base/Select.js"
 import { RadioGroupOption } from "../../../common/gui/base/RadioGroup.js"
 import { ColorPickerModel } from "../../../common/gui/base/colorPicker/ColorPickerModel.js"
-import { isDarkTheme } from "../../../common/gui/theme.js"
+import { isDarkTheme, isLightTheme } from "../../../common/gui/theme.js"
 import { WeekdayToTranslation } from "./eventeditor-view/WeekdaySelector.js"
 import { ByDayRule } from "./eventeditor-view/RepeatRuleEditor.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
-import { newPromise } from "@tutao/tutanota-utils"
 import { EventInviteEmailType } from "../view/CalendarNotificationSender.js"
 import { Key } from "../../../common/misc/KeyManager.js"
 import { isAppleDevice } from "../../../common/api/common/Env.js"
@@ -272,6 +274,22 @@ export function getTimeFromMousePos({ y, targetHeight }: MousePosAndBounds, hour
 	const minutesInc = 60 / hourDivision
 	const minute = Math.floor((hour - hourRounded) * hourDivision) * minutesInc
 	return new Time(hourRounded, minute)
+}
+
+/**
+ * Map the horizontal position of a mouse click on an element to a day
+ * @param mouseEvent A mouse event
+ * @param dayCount How many days are being rendered
+ * @param startOfPeriod First day of the displayed period
+ */
+export function getRowDateFromMousePos(mouseEvent: MouseEvent, dayCount: number, startOfPeriod: Date): Date {
+	const targetElement = mouseEvent.currentTarget as HTMLElement
+	const daysDivisionsWidth = targetElement.clientWidth / dayCount
+	const diffFromOrigin = targetElement.getBoundingClientRect().x
+	const xPosition = mouseEvent.pageX - diffFromOrigin
+	const daysToAdd = Math.floor(xPosition / daysDivisionsWidth)
+
+	return new Date(startOfPeriod.getTime() + DAY_IN_MILLIS * daysToAdd)
 }
 
 export const SELECTED_DATE_INDICATOR_THICKNESS = 4
@@ -710,30 +728,30 @@ export const enum EventLayoutMode {
  * in one column on a single day (it will "stretch" events from the day start until the next day).
  */
 export function layOutEvents(
-	events: Array<CalendarEvent>,
+	events: Array<EventWrapper>,
 	zone: string,
-	renderer: (columns: Array<Array<CalendarEvent>>) => ChildArray,
+	renderer: (columns: Array<Array<EventWrapper>>) => ChildArray,
 	layoutMode: EventLayoutMode,
 ): ChildArray {
 	events.sort((e1, e2) => {
-		const e1Start = getEventStart(e1, zone)
-		const e2Start = getEventStart(e2, zone)
+		const e1Start = getEventStart(e1.event, zone)
+		const e2Start = getEventStart(e2.event, zone)
 		if (e1Start < e2Start) return -1
 		if (e1Start > e2Start) return 1
-		const e1End = getEventEnd(e1, zone)
-		const e2End = getEventEnd(e2, zone)
+		const e1End = getEventEnd(e1.event, zone)
+		const e2End = getEventEnd(e2.event, zone)
 		if (e1End < e2End) return -1
 		if (e1End > e2End) return 1
 		return 0
 	})
 	let lastEventEnding: Date | null = null
 	let lastEventStart: Date | null = null
-	let columns: Array<Array<CalendarEvent>> = []
+	let columns: Array<Array<EventWrapper>> = []
 	const children: Array<Children> = []
 	// Cache for calculation events
 	const calcEvents = new Map()
 	for (const e of events) {
-		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e, zone, layoutMode))
+		const calcEvent = getFromMap(calcEvents, e, () => getCalculationEvent(e.event, zone, layoutMode))
 		// Check if a new event group needs to be started
 		if (
 			lastEventEnding != null &&
@@ -757,7 +775,7 @@ export function layOutEvents(
 		for (let i = 0; i < columns.length; i++) {
 			const col = columns[i]
 			const lastEvent = col[col.length - 1]
-			const lastCalcEvent = getFromMap(calcEvents, lastEvent, () => getCalculationEvent(lastEvent, zone, layoutMode))
+			const lastCalcEvent = getFromMap(calcEvents, lastEvent, () => getCalculationEvent(lastEvent.event, zone, layoutMode))
 
 			if (
 				!collidesWith(lastCalcEvent, calcEvent) &&
@@ -849,7 +867,7 @@ function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEven
 	return firstEventEnd.getTime() === secondEventStart.getTime() && height < size.calendar_line_height
 }
 
-export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Array<Array<CalendarEvent>>): number {
+export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Array<Array<EventWrapper>>): number {
 	let colSpan = 1
 
 	for (let i = columnIndex + 1; i < columns.length; i++) {
@@ -858,7 +876,7 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 		for (let j = 0; j < col.length; j++) {
 			let ev1 = col[j]
 
-			if (collidesWith(ev, ev1) || visuallyOverlaps(ev.startTime, ev.endTime, ev1.startTime)) {
+			if (collidesWith(ev, ev1.event) || visuallyOverlaps(ev.startTime, ev.endTime, ev1.event.startTime)) {
 				return colSpan
 			}
 		}
@@ -869,8 +887,10 @@ export function expandEvent(ev: CalendarEvent, columnIndex: number, columns: Arr
 	return colSpan
 }
 
-export function getEventColor(event: CalendarEvent, groupColors: GroupColors): string {
-	return (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? defaultCalendarColor
+export function getEventColor(event: CalendarEvent, groupColors: GroupColors, isGhost: boolean = false): string {
+	const color = (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? DEFAULT_CALENDAR_COLOR
+	const alpha = isGhost ? (isLightTheme() ? "AA" : "7F") : "FF"
+	return `${color}${alpha}`
 }
 
 export function calendarAttendeeStatusSymbol(status: CalendarAttendeeStatus): string {
@@ -1067,7 +1087,7 @@ export function generateRandomColor(): ColorString {
 }
 
 export function renderCalendarColor(selectedCalendar: CalendarInfo | null, groupColors: Map<Id, string>) {
-	const color = selectedCalendar ? (groupColors.get(selectedCalendar.groupInfo.group) ?? defaultCalendarColor) : null
+	const color = selectedCalendar ? (groupColors.get(selectedCalendar.groupInfo.group) ?? DEFAULT_CALENDAR_COLOR) : null
 	return m(".mt-xs", {
 		style: {
 			width: "100px",
@@ -1102,4 +1122,16 @@ export function extractCalendarEventModifierKey<T extends MouseEvent | KeyboardE
 		key = Keys.CTRL
 	}
 	return key
+}
+
+export function getDayCircleClass(date: Date, selectedDate: Date | null) {
+	if (selectedDate == null) {
+		return { circle: "", text: "" }
+	} else if (isSameDay(date, selectedDate)) {
+		return { circle: "calendar-selected-day-circle", text: "calendar-selected-day-text" }
+	} else if (isToday(date)) {
+		return { circle: "calendar-current-day-circle", text: "calendar-current-day-text" }
+	}
+
+	return { circle: "", text: "" }
 }

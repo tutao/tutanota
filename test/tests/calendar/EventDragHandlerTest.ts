@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { EventDragHandler, EventDragHandlerCallbacks } from "../../../src/calendar-app/calendar/view/EventDragHandler.js"
 import { DAY_IN_MILLIS, defer, downcast } from "@tutao/tutanota-utils"
-import type { DraggedEvent } from "../../../src/calendar-app/calendar/view/CalendarViewModel.js"
+import type { DraggedEventContainer } from "../../../src/calendar-app/calendar/view/CalendarViewModel.js"
 import { makeEvent } from "./CalendarTestUtils.js"
 import { isAllDayEvent } from "../../../src/common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
@@ -33,7 +33,7 @@ o.spec("Event Drag Handler", function () {
 		let handler: EventDragHandler
 		o.beforeEach(() => {
 			callbackMock = downcast({
-				onDragStart: spy((draggedEvent: DraggedEvent, diff: number) => {}),
+				onDragStart: spy((draggedEvent: DraggedEventContainer, diff: number) => {}),
 				onDragUpdate: spy((diff: number) => {}),
 				onDragEnd: spy((diff: number) => Promise.resolve()),
 				onDragCancel: spy(() => {}),
@@ -165,14 +165,14 @@ o.spec("Event Drag Handler", function () {
 			).toJSDate()
 			originalStartDate = getStartOfDayWithZone(originalStartDate, zone)
 			newStartDate = getStartOfDayWithZone(newStartDate, zone)
-			const alldayEvent = makeEvent(
+			const eventWrapper = makeEvent(
 				"alldayEvent",
 				getAllDayDateUTCFromZone(originalStartDate, zone),
 				getAllDayDateUTCFromZone(getStartOfNextDayWithZone(originalStartDate, zone), zone),
 			)
-			o(isAllDayEvent(alldayEvent)).equals(true)("is all day event")
+			o(isAllDayEvent(eventWrapper.event)).equals(true)("is all day event")
 			//short event
-			handler.prepareDrag(alldayEvent, originalStartDate, INIT_MOUSE_POS, true)
+			handler.prepareDrag(eventWrapper, originalStartDate, INIT_MOUSE_POS, true)
 			handler.handleDrag(newStartDate, DRAG_MOUSE_POS)
 			o(callbackMock.onDragStart.callCount).equals(1)
 			await handler.endDrag(newStartDate, DRAG_MOUSE_POS)

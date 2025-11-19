@@ -4,6 +4,8 @@ import { createTestEntity } from "../TestUtils.js"
 import { incrementDate } from "@tutao/tutanota-utils"
 import { earliestEventToShowTimeIndicator } from "../../../src/calendar-app/calendar/view/CalendarAgendaView.js"
 
+import { makeEventWrapper } from "./CalendarTestUtils"
+
 o.spec("CalendarAgendaViewTest", function () {
 	o("earliestEventToShowTimeIndicator", () => {
 		let allDayStartDate = new Date()
@@ -47,9 +49,24 @@ o.spec("CalendarAgendaViewTest", function () {
 			}),
 		]
 
-		o(earliestEventToShowTimeIndicator(events, allDayStartDate)).equals(1)("lower index preferred")
-		o(earliestEventToShowTimeIndicator(events, actualEventStart)).equals(3)("if the date is equal, skip the event")
-		o(earliestEventToShowTimeIndicator(events, nextEventStart)).equals(null)("no dates left")
-		// o(earliestEventToShowTimeIndicator(events, new Date(0))).equals(1)("even before the day, all-day events are skipped")
+		o(
+			earliestEventToShowTimeIndicator(
+				events.map((e) => makeEventWrapper(e)),
+				allDayStartDate,
+			),
+		).equals(1)("lower index preferred")
+		o(
+			earliestEventToShowTimeIndicator(
+				events.map((e) => makeEventWrapper(e)),
+				actualEventStart,
+			),
+		).equals(3)("if the date is equal, skip the event")
+		o(
+			earliestEventToShowTimeIndicator(
+				events.map((e) => makeEventWrapper(e)),
+				nextEventStart,
+			),
+		).equals(null)("no dates left")
+		// o(earliestEventToShowTimeIndicator(events.map((e) => makeEventWrapper(e)), new Date(0))).equals(1)("even before the day, all-day events are skipped")
 	})
 })
