@@ -5,16 +5,24 @@ import { WizardProgress } from "./WizardProgress"
 
 export interface WizardAttrs<TViewModel> {
 	steps: WizardStepAttrs<TViewModel>[]
-	controller: WizardController
+	controller?: WizardController
 	viewModel: TViewModel
 	onComplete?: (viewModel: TViewModel) => void
 }
 
 export class Wizard<TViewModel> implements Component<WizardAttrs<TViewModel>> {
-	view({ attrs: { steps, controller, viewModel, onComplete } }: Vnode<WizardAttrs<TViewModel>>) {
-		if (controller.stepCount === 0) {
-			controller.initSteps(steps.map((step) => step.title ?? ""))
+	private internalController?: WizardController
+
+	oninit({ attrs }: Vnode<WizardAttrs<TViewModel>>) {
+		if (!attrs.controller) {
+			this.internalController = new WizardController(attrs.steps.map((s) => s.title ?? ""))
+		} else if (attrs.controller.stepCount === 0) {
+			attrs.controller.initSteps(attrs.steps.map((step) => step.title ?? ""))
 		}
+	}
+	view({ attrs }: Vnode<WizardAttrs<TViewModel>>) {
+		const { steps, viewModel, onComplete } = attrs
+		const controller = attrs.controller || this.internalController!
 		const currentIndex = controller.currentStep
 		const currentStep = steps[currentIndex]
 
