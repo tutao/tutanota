@@ -14,9 +14,10 @@ import { boxShadowHigh } from "../gui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getApplePriceStr, getPriceStr } from "./utils/SubscriptionUtils.js"
 import { PaymentIntervalSwitch } from "./components/PaymentIntervalSwitch.js"
-import { PersonalPlanContainer } from "./components/PersonalPlanContainer"
-import { BusinessPlanContainer } from "./components/BusinessPlanContainer"
-import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
+import { PersonalPlanContainer } from "./components/PersonalPlanContainer.js"
+import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
+import { getSafeAreaInsetBottom } from "../gui/HtmlUtils.js"
+import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils.js"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -120,11 +121,12 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			)
 		}
 
+		const bottomPad = Math.max(size.vpad, getSafeAreaInsetBottom())
 		return m(
 			"#plan-selector.flex.flex-column.gap-vpad-l",
 			{
 				style: this.shouldFixButtonPos() && {
-					"padding-bottom": px(size.button_floating_size + size.vpad),
+					"padding-bottom": px(size.button_height + size.vpad + getSafeAreaInsetBottom()),
 				},
 				lang: lang.code,
 			},
@@ -147,34 +149,33 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					discountDetails,
 				}),
 				m(
-					".flex.flex-column.gap-vpad",
+					"#continue-wrapper.flex-v-start.items-center.plr.pt",
+					{
+						style: this.shouldFixButtonPos() && {
+							position: "fixed",
+							height: px(size.button_height + size.vpad + bottomPad),
+							bottom: 0,
+							left: 0,
+							right: 0,
+							"padding-bottom": px(bottomPad),
+							"background-color": theme.surface,
+							"z-index": 1,
+							"box-shadow": boxShadowHigh,
+						},
+					},
 					m(
-						"#continue-wrapper.flex-v-center.plr",
+						"",
 						{
-							style: this.shouldFixButtonPos() && {
-								position: "fixed",
-								height: px(size.button_floating_size + size.vpad_xsm * 2),
-								bottom: 0,
-								left: 0,
-								right: 0,
-								"background-color": theme.surface,
-								"z-index": 1,
-								"box-shadow": boxShadowHigh,
+							style: {
+								"min-width": styles.isMobileLayout() ? "100%" : px(265),
+								"max-width": styles.isMobileLayout() ? "100%" : px(265),
+								"margin-inline": "auto",
 							},
 						},
-						m(
-							"",
-							{
-								style: {
-									"min-width": styles.isMobileLayout() ? "100%" : px(265),
-									"max-width": styles.isMobileLayout() ? "100%" : px(265),
-									"margin-inline": "auto",
-								},
-							},
-							renderActionButton(),
-						),
+						renderActionButton(),
 					),
 				),
+
 				!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) &&
 					m(
 						".flex.flex-column",
