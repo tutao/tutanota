@@ -1,6 +1,5 @@
 import { assertNotNull, groupByAndMap, isEmpty, Nullable, promiseMap } from "@tutao/tutanota-utils"
-import { SpamClassificationDataDealer, TrainingDataset } from "./SpamClassificationDataDealer"
-import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
+import { SpamClassifierDataDealer, TrainingDataset } from "./SpamClassifierDataDealer"
 import {
 	dense,
 	enableProdMode,
@@ -19,14 +18,21 @@ import type { Tensor } from "@tensorflow/tfjs-core"
 import { DEFAULT_PREPROCESS_CONFIGURATION, SpamMailDatum, SpamMailProcessor } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SparseVectorCompressor } from "../../../common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import { SpamDecision } from "../../../common/api/common/TutanotaConstants"
+import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
+
+export type SpamClassificationModelMetaData = {
+	hamCount: number
+	spamCount: number
+	lastTrainedFromScratchTime: number
+	lastTrainingDataIndexId: Id
+}
 
 export type SpamClassificationModel = {
+	ownerGroup: Id
 	modelTopology: string
 	weightSpecs: string
 	weightData: Uint8Array
-	ownerGroup: Id
-	hamCount: number
-	spamCount: number
+	metaData: SpamClassificationModelMetaData
 }
 
 export const DEFAULT_PREDICTION_THRESHOLD = 0.55
@@ -37,8 +43,7 @@ const FULL_RETRAINING_INTERVAL = 1000 * 60 * 60 * 24 * 7 // 1 week
 export type Classifier = {
 	layersModel: LayersModel
 	threshold: number
-	hamCount: number
-	spamCount: number
+	metaData: SpamClassificationModelMetaData
 }
 
 export class SpamClassifier {
@@ -48,8 +53,8 @@ export class SpamClassifier {
 	spamMailProcessor: SpamMailProcessor
 
 	constructor(
-		private readonly cacheStorage: CacheStorage,
-		private readonly initializer: SpamClassificationDataDealer,
+		private readonly spamClassifierStorageFacade: SpamClassifierStorageFacade,
+		private readonly spamClassifierDataDealer: SpamClassifierDataDealer,
 		private readonly deterministic: boolean = false,
 	) {
 		// enable tensorflow production mode
@@ -71,50 +76,47 @@ export class SpamClassifier {
 	}
 
 	public async initializeFromStorage(ownerGroup: Id): Promise<void> {
+		await this.loadAndActivateClassifierFromStorage(ownerGroup)
+	}
+
+	public async initializeWithTraining(ownerGroup: Id): Promise<void> {
+		const classifier = await this.loadAndActivateClassifierFromStorage(ownerGroup)
+
+		if (classifier) {
+			const timeSinceLastFullTraining = Date.now() - FULL_RETRAINING_INTERVAL
+			const lastFullTrainingTime = classifier.metaData.lastTrainedFromScratchTime
+			if (timeSinceLastFullTraining > lastFullTrainingTime) {
+				console.log(
+					`retraining spam classification model for mailbox ${ownerGroup} from scratch as last train (${new Date(lastFullTrainingTime)}) was more than a week ago`,
+				)
+				await this.trainFromScratch(ownerGroup)
+			} else {
+				console.log(`checking if spam classification model retraining is needed for mailbox ${ownerGroup} ...`)
+				await this.updateModelFromIndexStartId(classifier.metaData.lastTrainingDataIndexId, ownerGroup)
+			}
+		} else {
+			console.log(`no existing spam classification model found for mailbox ${ownerGroup}. training from scratch ... `)
+			await this.trainFromScratch(ownerGroup)
+		}
+
+		setInterval(async () => {
+			const classifier = this.classifierByMailGroup.get(ownerGroup)
+			if (classifier) {
+				await this.updateModelFromIndexStartId(classifier.metaData.lastTrainingDataIndexId, ownerGroup)
+			}
+		}, TRAINING_INTERVAL)
+	}
+
+	private async loadAndActivateClassifierFromStorage(ownerGroup: string) {
 		const classifier = await this.loadClassifier(ownerGroup)
 		if (classifier) {
 			console.log(`loaded existing spam classification model for mailbox ${ownerGroup} from storage`)
 			this.classifierByMailGroup.set(ownerGroup, classifier)
 		}
-	}
-
-	public async initializeWithTraining(ownerGroup: Id): Promise<void> {
-		const classifier = await this.loadClassifier(ownerGroup)
-
-		if (classifier) {
-			const timeSinceLastFullTraining = Date.now() - FULL_RETRAINING_INTERVAL
-			const lastFullTrainingTime = await this.cacheStorage.getLastTrainedFromScratchTime()
-			if (timeSinceLastFullTraining > lastFullTrainingTime) {
-				console.log(
-					`retraining spam classification model for mailbox ${ownerGroup} from scratch as last train (${new Date(lastFullTrainingTime)}) was more than a week ago`,
-				)
-				await this.trainFromScratch(this.cacheStorage, ownerGroup)
-			} else {
-				console.log(`loaded existing spam classification model for mailbox ${ownerGroup} from storage, now checking for retraining ...`)
-				this.classifierByMailGroup.set(ownerGroup, classifier)
-				await this.updateAndSaveModel(this.cacheStorage, ownerGroup)
-			}
-
-			setInterval(async () => {
-				await this.updateAndSaveModel(this.cacheStorage, ownerGroup)
-			}, TRAINING_INTERVAL)
-		} else {
-			console.log(`no existing spam classification model found for mailbox ${ownerGroup}. training from scratch ... `)
-			await this.trainFromScratch(this.cacheStorage, ownerGroup)
-			setInterval(async () => {
-				await this.updateAndSaveModel(this.cacheStorage, ownerGroup)
-			}, TRAINING_INTERVAL)
-		}
+		return classifier
 	}
 
 	// visibleForTesting
-	public async updateAndSaveModel(storage: CacheStorage, ownerGroup: Id) {
-		const isModelUpdated = await this.updateModelFromIndexStartId(await storage.getLastTrainingDataIndexId(), ownerGroup)
-		if (isModelUpdated) {
-			console.log(`Model updated successfully at ${Date.now()}`)
-		}
-	}
-
 	public async initialTraining(ownerGroup: Id, trainingDataset: TrainingDataset): Promise<void> {
 		const { trainingData: clientSpamTrainingData, hamCount, spamCount } = trainingDataset
 		const trainingInput = await promiseMap(
@@ -157,50 +159,63 @@ export class SpamClassifier {
 		ys.dispose()
 
 		const threshold = this.calculateThreshold(trainingDataset.hamCount, trainingDataset.spamCount)
+		const metaData: SpamClassificationModelMetaData = {
+			hamCount,
+			spamCount,
+			lastTrainedFromScratchTime: Date.now(),
+			lastTrainingDataIndexId: trainingDataset.lastTrainingDataIndexId,
+		}
 		const classifier = {
 			layersModel: layersModel,
 			isEnabled: true,
-			hamCount,
-			spamCount,
+			metaData,
 			threshold,
 		}
-		this.classifierByMailGroup.set(ownerGroup, classifier)
+
+		await this.activateAndSaveClassifier(ownerGroup, classifier)
 
 		console.log(
 			`### Finished Initial Spam Classification Model Training ### (total trained mails: ${clientSpamTrainingData.length} (ham:spam ${hamCount}:${spamCount} => threshold:${threshold}), training time: ${trainingTime})`,
 		)
 	}
 
-	public async updateModelFromIndexStartId(indexStartId: Id, ownerGroup: Id): Promise<boolean> {
+	async activateAndSaveClassifier(ownerGroup: Id, classifier: Classifier) {
+		this.classifierByMailGroup.set(ownerGroup, classifier)
+		const spamClassificationModel = await this.getSpamClassificationModel(ownerGroup, classifier)
+		if (spamClassificationModel == null) {
+			throw new Error("spam classification model is not available, and therefore can not be saved")
+		}
+		await this.spamClassifierStorageFacade.setSpamClassificationModel(spamClassificationModel)
+	}
+
+	public async updateModelFromIndexStartId(indexStartId: Id, ownerGroup: Id): Promise<void> {
 		try {
 			const modelNotAvailable = this.classifierByMailGroup.get(ownerGroup) === undefined
 			if (modelNotAvailable) {
 				console.warn(`client spam classification is not found for mailbox ${ownerGroup} or there were errors during training`)
-				return false
+				return
 			}
 
-			const trainingDataset = await this.initializer.fetchPartialTrainingDataFromIndexStartId(indexStartId, ownerGroup)
+			const trainingDataset = await this.spamClassifierDataDealer.fetchPartialTrainingDataFromIndexStartId(indexStartId, ownerGroup)
 			if (isEmpty(trainingDataset.trainingData)) {
 				console.log("no new spam classification training data since last update")
-				return false
+				return
 			}
 
 			console.log(
 				`retraining spam classification model with ${trainingDataset.trainingData.length} new mails (ham:spam ${trainingDataset.hamCount}:${trainingDataset.spamCount}) (lastTrainingDataIndexId > ${indexStartId})`,
 			)
-
-			return await this.updateModel(ownerGroup, trainingDataset)
+			await this.updateModel(ownerGroup, trainingDataset)
 		} catch (e) {
 			console.error("failed to update the model", e)
-			return false
 		}
 	}
 
 	// visibleForTesting
-	async updateModel(ownerGroup: Id, trainingDataset: TrainingDataset): Promise<boolean> {
+	async updateModel(ownerGroup: Id, trainingDataset: TrainingDataset): Promise<void> {
 		if (isEmpty(trainingDataset.trainingData)) {
 			console.log("no new spam classification training data since last update")
-			return false
+			return
 		}
 
 		const trainingInput = await promiseMap(
@@ -224,10 +239,10 @@ export class SpamClassifier {
 			},
 		)
 
-		const modelToUpdate = assertNotNull(this.classifierByMailGroup.get(ownerGroup))
+		const classifierToUpdate = assertNotNull(this.classifierByMailGroup.get(ownerGroup))
 
 		// we clone the layersModel to allow predictions while retraining is in progress
-		const layersModelToUpdate = await this.cloneLayersModel(ownerGroup)
+		const layersModelToUpdate = await this.cloneLayersModel(classifierToUpdate)
 
 		const retrainingStart = performance.now()
 		try {
@@ -263,17 +278,18 @@ export class SpamClassifier {
 				ys.dispose()
 			}
 		} finally {
-			modelToUpdate.hamCount += trainingDataset.hamCount
-			modelToUpdate.spamCount += trainingDataset.spamCount
-			modelToUpdate.threshold = this.calculateThreshold(modelToUpdate.hamCount, modelToUpdate.spamCount)
-			modelToUpdate.layersModel = layersModelToUpdate
+			classifierToUpdate.metaData.hamCount += trainingDataset.hamCount
+			classifierToUpdate.metaData.spamCount += trainingDataset.spamCount
+			classifierToUpdate.threshold = this.calculateThreshold(classifierToUpdate.metaData.hamCount, classifierToUpdate.metaData.spamCount)
+			classifierToUpdate.layersModel = layersModelToUpdate
 		}
 
-		const trainingMetadata = `Total Ham: ${modelToUpdate.hamCount} Spam: ${modelToUpdate.spamCount} threshold: ${modelToUpdate.threshold}`
+		//This does not set the classifier, so it probably would have failed.
+		const trainingMetadata = `Total Ham: ${classifierToUpdate.metaData.hamCount} Spam: ${classifierToUpdate.metaData.spamCount} threshold: ${classifierToUpdate.threshold}`
+
+		await this.activateAndSaveClassifier(ownerGroup, classifierToUpdate)
+
 		console.log(`retraining spam classification model finished, took: ${performance.now() - retrainingStart}ms ${trainingMetadata}`)
-		await this.saveModelToStorage(ownerGroup)
-		await this.cacheStorage.setLastTrainingDataIndexId(trainingDataset.lastTrainingDataIndexId)
-		return true
 	}
 
 	// visibleForTesting
@@ -337,25 +353,17 @@ export class SpamClassifier {
 		return model
 	}
 
-	public async saveModelToStorage(ownerGroup: Id): Promise<void> {
-		const spamClassificationModel = await this.getSpamClassificationModel(ownerGroup)
-		if (spamClassificationModel == null) {
-			throw new Error("spam classification model is not available, and therefore can not be saved")
-		}
-		await this.cacheStorage.setSpamClassificationModel(spamClassificationModel)
-	}
-
-	async vectorizeAndCompress(mailDatum: SpamMailDatum) {
+	public async vectorizeAndCompress(mailDatum: SpamMailDatum) {
 		return await this.spamMailProcessor.vectorizeAndCompress(mailDatum)
 	}
 
-	async vectorize(mailDatum: SpamMailDatum) {
+	public async vectorize(mailDatum: SpamMailDatum) {
 		return await this.spamMailProcessor.vectorize(mailDatum)
 	}
 
 	// visibleForTesting
 	public async loadClassifier(ownerGroup: Id): Promise<Nullable<Classifier>> {
-		const spamClassificationModel = await assertNotNull(this.cacheStorage).getSpamClassificationModel(ownerGroup)
+		const spamClassificationModel = await assertNotNull(this.spamClassifierStorageFacade).getSpamClassificationModel(ownerGroup)
 		if (spamClassificationModel) {
 			const modelTopology = JSON.parse(spamClassificationModel.modelTopology)
 			const weightSpecs = JSON.parse(spamClassificationModel.weightSpecs)
@@ -370,12 +378,12 @@ export class SpamClassifier {
 				loss: "binaryCrossentropy",
 				metrics: ["accuracy"],
 			})
-			const threshold = this.calculateThreshold(spamClassificationModel.hamCount, spamClassificationModel.spamCount)
+			const metadata = spamClassificationModel.metaData
+			const threshold = this.calculateThreshold(metadata.hamCount, metadata.spamCount)
 			return {
 				layersModel: layersModel,
 				threshold,
-				hamCount: spamClassificationModel.hamCount,
-				spamCount: spamClassificationModel.spamCount,
+				metaData: spamClassificationModel.metaData,
 			}
 		} else {
 			console.log(`loading the spam classification spamClassificationModel from storage failed for mailbox ${ownerGroup} ... `)
@@ -383,8 +391,8 @@ export class SpamClassifier {
 		}
 	}
 
-	private async cloneLayersModel(ownerGroup: Id): Promise<LayersModel> {
-		const modelArtifacts = assertNotNull(await this.getModelArtifacts(ownerGroup))
+	private async cloneLayersModel(classifier: Classifier): Promise<LayersModel> {
+		const modelArtifacts = await this.getModelArtifacts(classifier)
 		const newLayersModel = await loadLayersModelFromIOHandler(fromMemory(modelArtifacts), undefined, undefined)
 		newLayersModel.compile({
 			optimizer: "adam",
@@ -396,41 +404,32 @@ export class SpamClassifier {
 
 	// visibleForTesting
 	public async cloneSpamClassifier(): Promise<SpamClassifier> {
-		const newSpamClassifier = new SpamClassifier(this.cacheStorage, this.initializer, this.deterministic)
+		const newSpamClassifier = new SpamClassifier(this.spamClassifierStorageFacade, this.spamClassifierDataDealer, this.deterministic)
 		newSpamClassifier.spamMailProcessor = this.spamMailProcessor
 		newSpamClassifier.sparseVectorCompressor = this.sparseVectorCompressor
-		for (const [ownerGroup, { threshold, hamCount, spamCount }] of this.classifierByMailGroup) {
-			const newLayersModel = await this.cloneLayersModel(ownerGroup)
+		for (const [ownerGroup, classifier] of this.classifierByMailGroup) {
+			const newLayersModel = await this.cloneLayersModel(classifier)
 			newSpamClassifier.classifierByMailGroup.set(ownerGroup, {
 				layersModel: newLayersModel,
-				threshold,
-				hamCount,
-				spamCount,
+				threshold: classifier.threshold,
+				metaData: classifier.metaData,
 			})
 		}
 
 		return newSpamClassifier
 	}
 
-	private async trainFromScratch(storage: CacheStorage, ownerGroup: string) {
-		const trainingDataset = await this.initializer.fetchAllTrainingData(ownerGroup)
-		const { trainingData, lastTrainingDataIndexId } = trainingDataset
-		if (isEmpty(trainingData)) {
+	private async trainFromScratch(ownerGroup: string) {
+		const trainingDataset = await this.spamClassifierDataDealer.fetchAllTrainingData(ownerGroup)
+		if (isEmpty(trainingDataset.trainingData)) {
 			console.log("no training trainingData found. training from scratch aborted.")
 			return
 		}
 		await this.initialTraining(ownerGroup, trainingDataset)
-		await this.saveModelToStorage(ownerGroup)
-		await storage.setLastTrainedFromScratchTime(Date.now())
-		await storage.setLastTrainingDataIndexId(lastTrainingDataIndexId)
 	}
 
-	private async getSpamClassificationModel(ownerGroup: Id): Promise<SpamClassificationModel | null> {
-		const classifier = this.classifierByMailGroup.get(ownerGroup)
-		if (!classifier) {
-			return null
-		}
-		const modelArtifacts = await this.getModelArtifacts(ownerGroup)
+	private async getSpamClassificationModel(ownerGroup: Id, classifier: Classifier): Promise<SpamClassificationModel | null> {
+		const modelArtifacts = await this.getModelArtifacts(classifier)
 		if (!modelArtifacts) {
 			return null
 		}
@@ -441,18 +440,12 @@ export class SpamClassifier {
 			modelTopology,
 			weightSpecs,
 			weightData,
-			ownerGroup,
-			hamCount: classifier.hamCount,
-			spamCount: classifier.spamCount,
+			ownerGroup: ownerGroup,
+			metaData: classifier.metaData,
 		}
 	}
 
-	private async getModelArtifacts(ownerGroup: Id) {
-		const classifier = this.classifierByMailGroup.get(ownerGroup)
-		if (!classifier) {
-			return null
-		}
-
+	private async getModelArtifacts(classifier: Classifier) {
 		return await new Promise<ModelArtifacts>((resolve) => {
 			const saveInfo = withSaveHandler(async (artifacts: any) => {
 				resolve(artifacts)
