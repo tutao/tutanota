@@ -10,7 +10,6 @@ import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { Wizard, WizardAttrs } from "../gui/base/wizard/Wizard"
 import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton"
 import { px } from "../gui/size"
-import { WizardController } from "../gui/base/wizard/WizardController"
 import { WizardStepAttrs } from "../gui/base/wizard/WizardStep"
 import { NewAccountData, ReferralData, SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
 import stream from "mithril/stream"
@@ -196,12 +195,10 @@ export class SignupViewModel {
 export class SignupView extends BaseTopLevelView implements TopLevelView<SignupViewAttrs> {
 	private bottomMargin = 0
 
-	private readonly wizardController: WizardController
 	private wizardViewModel: SignupViewModel
 
 	constructor({ attrs }: Vnode<SignupViewAttrs>) {
 		super()
-		this.wizardController = new WizardController()
 		this.wizardViewModel = new SignupViewModel()
 	}
 
@@ -392,7 +389,6 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 									content: this.renderRecoveryCode(),
 								},
 							],
-							controller: this.wizardController,
 							viewModel: this.wizardViewModel,
 						} satisfies WizardAttrs<SignupViewModel>),
 				renderInfoLinks(),
