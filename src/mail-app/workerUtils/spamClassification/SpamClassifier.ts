@@ -20,6 +20,8 @@ import type { Tensor } from "@tensorflow/tfjs-core"
 import { DEFAULT_PREPROCESS_CONFIGURATION, SpamMailDatum, SpamMailProcessor } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SparseVectorCompressor } from "../../../common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import { SpamDecision } from "../../../common/api/common/TutanotaConstants"
+import { DbFacade } from "../../../common/api/worker/search/DbFacade"
+import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 
 export type SpamClassificationModel = {
 	modelTopology: string
@@ -52,6 +54,7 @@ export class SpamClassifier {
 	constructor(
 		private readonly cacheStorage: CacheStorage,
 		private readonly initializer: SpamClassificationDataDealer,
+		private readonly dbFacade: EncryptedDbWrapper,
 		private readonly deterministic: boolean = false,
 	) {
 		// enable tensorflow production mode
@@ -377,7 +380,7 @@ export class SpamClassifier {
 
 	// visibleForTesting
 	public async cloneClassifier(): Promise<SpamClassifier> {
-		const newClassifier = new SpamClassifier(this.cacheStorage, this.initializer, this.deterministic)
+		const newClassifier = new SpamClassifier(this.cacheStorage, this.initializer, this.dbFacade, this.deterministic)
 		newClassifier.spamMailProcessor = this.spamMailProcessor
 		newClassifier.sparseVectorCompressor = this.sparseVectorCompressor
 		for (const [ownerGroup, { layersModel: _, isEnabled, threshold, hamCount, spamCount }] of this.classifiers) {

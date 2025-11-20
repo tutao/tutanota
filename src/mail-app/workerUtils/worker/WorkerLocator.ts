@@ -742,8 +742,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	locator.spamClassifier = lazyMemoized(async () => {
 		const { SpamClassificationDataDealer } = await import("../spamClassification/SpamClassificationDataDealer")
 		const { SpamClassifier } = await import("../spamClassification/SpamClassifier")
+		const { newSpamIndexDB } = await import("../spamClassification/SpamIndexedDB")
+		const { EncryptedDbWrapper } = await import("../../../common/api/worker/search/EncryptedDbWrapper")
+
 		const spamClassificationDataDealer = new SpamClassificationDataDealer(locator.cachingEntityClient, locator.bulkMailLoader, locator.mail)
-		return new SpamClassifier(locator.cacheStorage, spamClassificationDataDealer)
+		return new SpamClassifier(locator.cacheStorage, spamClassificationDataDealer, new EncryptedDbWrapper(newSpamIndexDB()))
 	})
 
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
