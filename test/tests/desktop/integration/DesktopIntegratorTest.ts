@@ -75,7 +75,7 @@ o.spec("DesktopIntegrator", () => {
 			setApplicationMenu: () => {},
 		},
 	}
-	let writtenFiles, copiedFiles, deletedFiles, createdDirectories
+	let writtenFiles, copiedFiles, deletedFiles, createdDirectories, readFiles
 
 	const fsExtra = {
 		writeFileSync(file, content, opts) {
@@ -125,6 +125,10 @@ o.spec("DesktopIntegrator", () => {
 				writtenFiles.push({ file, content, opts })
 				return Promise.resolve()
 			},
+			readFile(file) {
+				readFiles.push(file)
+				return Promise.resolve(new Uint8Array())
+			},
 			unlink(path, cb) {
 				deletedFiles.push(path)
 				if (cb) {
@@ -136,8 +140,6 @@ o.spec("DesktopIntegrator", () => {
 		},
 	}
 
-	let itemToReturn: string | undefined = undefined
-
 	const wm = {}
 
 	const standardMocks = () => {
@@ -145,6 +147,7 @@ o.spec("DesktopIntegrator", () => {
 		copiedFiles = []
 		deletedFiles = []
 		createdDirectories = []
+		readFiles = []
 
 		// node modules
 		const electronMock = n.mock<typeof import("electron")>("electron", electron).set()
@@ -328,21 +331,22 @@ o.spec("DesktopIntegrator", () => {
 			o(fsExtraMock.promises.mkdir.args[0]).equals("/app/path/file/.local/share/applications")
 			o(writtenFiles).deepEquals([
 				{
+					file: "/app/path/file/.local/share/icons/hicolor/64x64/apps/appName.png",
+					content: new Uint8Array(),
+					opts: undefined,
+				},
+				{
+					file: "/app/path/file/.local/share/icons/hicolor/512x512/apps/appName.png",
+					content: new Uint8Array(),
+					opts: undefined,
+				},
+				{
 					file: "/app/path/file/.local/share/applications/appName.desktop",
 					content: desktopEntry,
 					opts: { encoding: "utf-8" },
 				},
 			])
-			o(copiedFiles).deepEquals([
-				{
-					from: "/exec/path/resources/icons/logo-solo-red-small.png",
-					to: "/app/path/file/.local/share/icons/hicolor/64x64/apps/appName.png",
-				},
-				{
-					from: "/exec/path/resources/icons/logo-solo-red.png",
-					to: "/app/path/file/.local/share/icons/hicolor/512x512/apps/appName.png",
-				},
-			])
+			o(readFiles).deepEquals(["/exec/path/resources/icons/logo-solo-red-small.png", "/exec/path/resources/icons/logo-solo-red.png"])
 		})
 
 		o("runIntegration without integration, clicked yes, no no_integration, checked", async function () {
@@ -365,21 +369,22 @@ o.spec("DesktopIntegrator", () => {
 					opts: { encoding: "utf-8", flag: "a" },
 				},
 				{
+					file: "/app/path/file/.local/share/icons/hicolor/64x64/apps/appName.png",
+					content: new Uint8Array(),
+					opts: undefined,
+				},
+				{
+					file: "/app/path/file/.local/share/icons/hicolor/512x512/apps/appName.png",
+					content: new Uint8Array(),
+					opts: undefined,
+				},
+				{
 					file: "/app/path/file/.local/share/applications/appName.desktop",
 					content: desktopEntry,
 					opts: { encoding: "utf-8" },
 				},
 			])
-			o(copiedFiles).deepEquals([
-				{
-					from: "/exec/path/resources/icons/logo-solo-red-small.png",
-					to: "/app/path/file/.local/share/icons/hicolor/64x64/apps/appName.png",
-				},
-				{
-					from: "/exec/path/resources/icons/logo-solo-red.png",
-					to: "/app/path/file/.local/share/icons/hicolor/512x512/apps/appName.png",
-				},
-			])
+			o(readFiles).deepEquals(["/exec/path/resources/icons/logo-solo-red-small.png", "/exec/path/resources/icons/logo-solo-red.png"])
 		})
 
 		o("runIntegration without integration, clicked no, not checked", async function () {
@@ -445,21 +450,22 @@ o.spec("DesktopIntegrator", () => {
 			)
 			o(writtenFiles).deepEquals([
 				{
+					file: "/app/path/file/.local/share/icons/hicolor/64x64/apps/appName.png",
+					content: new Uint8Array(),
+					opts: undefined,
+				},
+				{
+					file: "/app/path/file/.local/share/icons/hicolor/512x512/apps/appName.png",
+					content: new Uint8Array(),
+					opts: undefined,
+				},
+				{
 					file: "/app/path/file/.local/share/applications/appName.desktop",
 					content: desktopEntry,
 					opts: { encoding: "utf-8" },
 				},
 			])
-			o(copiedFiles).deepEquals([
-				{
-					from: "/exec/path/resources/icons/logo-solo-red-small.png",
-					to: "/app/path/file/.local/share/icons/hicolor/64x64/apps/appName.png",
-				},
-				{
-					from: "/exec/path/resources/icons/logo-solo-red.png",
-					to: "/app/path/file/.local/share/icons/hicolor/512x512/apps/appName.png",
-				},
-			])
+			o(readFiles).deepEquals(["/exec/path/resources/icons/logo-solo-red-small.png", "/exec/path/resources/icons/logo-solo-red.png"])
 		})
 
 		o("runIntegration with integration, matching version", async function () {
