@@ -10,6 +10,8 @@ import { LoginButton } from "../gui/base/buttons/LoginButton.js"
 import { assertNotNull, lazy } from "@tutao/tutanota-utils"
 import { DisplayMode, LoginViewModel } from "../login/LoginViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { getSafeAreaInsetBottom } from "../gui/HtmlUtils"
+import { px, size } from "../gui/size"
 
 export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -21,6 +23,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 
 	view({ attrs }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const { newAccountData } = attrs.data
+		const bottomPad = Math.max(size.vpad, getSafeAreaInsetBottom())
 
 		return [
 			m(".center.h4.pt", lang.get("accountCreationCongratulation_msg")),
@@ -38,6 +41,7 @@ export class UpgradeCongratulationsPage implements WizardPageN<UpgradeSubscripti
 				: null,
 			m(
 				".flex-center.full-width.pt-l",
+				{ style: { "padding-bottom": px(bottomPad) } },
 				m(LoginButton, {
 					label: "ok_action",
 					class: "small-login-button",
