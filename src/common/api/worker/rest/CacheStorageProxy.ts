@@ -187,30 +187,6 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.putLastUpdateTime(value)
 	}
 
-	setLastTrainingDataIndexId(id: Id): Promise<void> {
-		return this.inner.setLastTrainingDataIndexId(id)
-	}
-
-	getLastTrainingDataIndexId(): Promise<Id> {
-		return this.inner.getLastTrainingDataIndexId()
-	}
-
-	setLastTrainedFromScratchTime(ms: number): Promise<void> {
-		return this.inner.setLastTrainedFromScratchTime(ms)
-	}
-
-	getLastTrainedFromScratchTime(): Promise<number> {
-		return this.inner.getLastTrainedFromScratchTime() ?? Date.now()
-	}
-
-	setSpamClassificationModel(model: SpamClassificationModel): Promise<void> {
-		return this.inner.setSpamClassificationModel(model)
-	}
-
-	getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>> {
-		return this.inner.getSpamClassificationModel(ownerGroup)
-	}
-
 	setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
 		return this.inner.setLowerRangeForList(typeRef, listId, id)
 	}

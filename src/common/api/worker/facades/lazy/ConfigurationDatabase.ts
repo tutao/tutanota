@@ -1,5 +1,5 @@
 import { b64UserIdHash, DbFacade } from "../../search/DbFacade.js"
-import { assertNotNull, concat, downcast, LazyLoaded, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { User, UserTypeRef } from "../../../entities/sys/TypeRefs.js"
 import { ExternalImageRule, OperationType } from "../../../common/TutanotaConstants.js"
 import {
@@ -15,14 +15,23 @@ import {
 	unauthenticatedAesDecrypt,
 } from "@tutao/tutanota-crypto"
 import { UserFacade } from "../UserFacade.js"
-import { EncryptedDbKeyBaseMetaData, EncryptedIndexerMetaData, LocalDraftDataOS, Metadata, ObjectStoreName } from "../../search/IndexTables.js"
+import {
+	EncryptedDbKeyBaseMetaData,
+	EncryptedIndexerMetaData,
+	LocalDraftDataOS,
+	Metadata,
+	ObjectStoreName,
+	SpamClassificationModelOS,
+} from "../../search/IndexTables.js"
 import { DbError } from "../../../common/error/DbError.js"
 import { checkKeyVersionConstraints, KeyLoaderFacade } from "../KeyLoaderFacade.js"
 import { _encryptKeyWithVersionedKey, VersionedKey } from "../../crypto/CryptoWrapper.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/utils/EntityUpdateUtils"
 import { AutosaveFacade, decodeLocalAutosavedDraftData, encodeLocalAutosavedDraftData, LOCAL_DRAFT_KEY, LocalAutosavedDraftData } from "./AutosaveFacade"
+import { decodeSpamClassificationModel, encodeSpamClassificationModel, SpamClassifierStorageFacade } from "./SpamClassifierStorageFacade"
+import { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifier.js"
 
-const VERSION: number = 3
+const VERSION: number = 4
 const DB_KEY_PREFIX: string = "ConfigStorage"
 const ExternalImageListOS: ObjectStoreName = "ExternalAllowListOS"
 
@@ -51,9 +60,9 @@ export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes25
  * Or when the configuration is a growing list or object, which would be unsuitable for localStorage
  * Or when the configuration is only required in the Worker
  *
- * Also handles maintaining and encrypting autosaved draft data
+ * Also handles maintaining and encrypting autosaved draft data as well as the SpamClassificationModel
  */
-export class ConfigurationDatabase implements AutosaveFacade {
+export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStorageFacade {
 	// visible for testing
 	readonly db: LazyLoaded<ConfigDb>
 
@@ -130,7 +139,75 @@ export class ConfigurationDatabase implements AutosaveFacade {
 			await transaction.delete(LocalDraftDataOS, LOCAL_DRAFT_KEY)
 		} catch (e) {
 			if (e instanceof DbError) {
-				console.error("failed to load draft:", e.message)
+				console.error("failed to clear draft:", e.message)
+				return
+			}
+			throw e
+		}
+	}
+
+	/**
+	 * Save the SpamClassificationModel for an ownerGroup to the database, overwriting one if there is one there.
+	 * @param model to write
+	 */
+	async setSpamClassificationModel(model: SpamClassificationModel): Promise<void> {
+		const { db, metaData } = await this.db.getAsync()
+		if (!db.indexingSupported) return
+
+		try {
+			const transaction = await db.createTransaction(false, [SpamClassificationModelOS])
+			const encoded = encodeSpamClassificationModel(model)
+			const encryptedModel = aesEncrypt(metaData.key, encoded, metaData.iv)
+			await transaction.put(SpamClassificationModelOS, model.ownerGroup, encryptedModel)
+		} catch (e) {
+			if (e instanceof DbError) {
+				console.error(`failed to save spamClassificationModel for mailbox ${model.ownerGroup}:`, e.message)
+				return
+			}
+			throw e
+		}
+	}
+
+	/**
+	 * @return the locally stored SpamClassificationModel for an ownerGroup, if any, or null
+	 */
+	async getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>> {
+		const { db, metaData } = await this.db.getAsync()
+		if (!db.indexingSupported) {
+			return null
+		}
+
+		try {
+			const transaction = await db.createTransaction(false, [SpamClassificationModelOS])
+			const encryptedModel = await transaction.get<Uint8Array>(SpamClassificationModelOS, ownerGroup)
+			if (encryptedModel == null) {
+				return null
+			}
+
+			const decryptedModel = aesDecrypt(metaData.key, encryptedModel)
+			return decodeSpamClassificationModel(decryptedModel)
+		} catch (e) {
+			if (e instanceof DbError) {
+				console.error(`failed to load SpamClassificationModel for mailbox ${ownerGroup}:`, e.message)
+				return null
+			}
+			throw e
+		}
+	}
+
+	/**
+	 * Deletes a SpamClassificationModel for an ownerGroup, if any
+	 */
+	async deleteSpamClassificationModel(ownerGroup: Id): Promise<void> {
+		const { db } = await this.db.getAsync()
+		if (!db.indexingSupported) return
+
+		try {
+			const transaction = await db.createTransaction(false, [SpamClassificationModelOS])
+			await transaction.delete(SpamClassificationModelOS, ownerGroup)
+		} catch (e) {
+			if (e instanceof DbError) {
+				console.error(`failed to delete SpamClassificationModel for mailbox ${ownerGroup}:`, e.message)
 				return
 			}
 			throw e
@@ -177,6 +254,10 @@ export class ConfigurationDatabase implements AutosaveFacade {
 
 			if (event.oldVersion < 3) {
 				db.createObjectStore(LocalDraftDataOS)
+			}
+
+			if (event.oldVersion < 4) {
+				db.createObjectStore(SpamClassificationModelOS)
 			}
 
 			// put all createObjectStore calls above this line because the version change transaction is not async

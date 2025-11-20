@@ -263,18 +263,6 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	putLastUpdateTime(value: number): Promise<void>
 
-	getLastTrainingDataIndexId(): Promise<Id>
-
-	setLastTrainingDataIndexId(id: Id): Promise<void>
-
-	getLastTrainedFromScratchTime(): Promise<number>
-
-	setLastTrainedFromScratchTime(value: number): Promise<void>
-
-	getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>>
-
-	setSpamClassificationModel(model: SpamClassificationModel): Promise<void>
-
 	getUserId(): Id
 
 	deleteAllOwnedBy(owner: Id): Promise<void>
