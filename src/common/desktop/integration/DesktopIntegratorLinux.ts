@@ -208,8 +208,8 @@ TryExec=${this.packagePath}`
 		])
 			.then(() => {
 				return Promise.all([
-					this._fs.promises.copyFile(this.iconSourcePath64, this.iconTargetPath64),
-					this._fs.promises.copyFile(this.iconSourcePath512, this.iconTargetPath512),
+					this._fs.promises.readFile(this.iconSourcePath64).then((file) => this._fs.promises.writeFile(this.iconTargetPath64, file)),
+					this._fs.promises.readFile(this.iconSourcePath512).then((file) => this._fs.promises.writeFile(this.iconTargetPath512, file)),
 				])
 			})
 			.then(() => {
