@@ -890,6 +890,7 @@ export class SendMailModel {
 
 		if (this.allRecipients().length === 1 && this.allRecipients()[0].address.toLowerCase().trim() === "approval@tutao.de") {
 			await this.sendApprovalMail(this.getBody())
+			await this.clearLocalAutosave() // because this approval mail is "sent" in an odd way, it will not clear the local autosave
 			return true
 		}
 
