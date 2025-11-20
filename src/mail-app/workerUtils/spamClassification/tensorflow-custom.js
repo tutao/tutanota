@@ -1,5 +1,6 @@
-// Use side-effect import to initialize WebGL backend
+// Use side effect import to initialize WebGL backend
 import "@tensorflow/tfjs-backend-webgl"
+import "@tensorflow/tfjs-backend-cpu"
 
 import "@tensorflow/tfjs-core/dist/register_all_gradients"
 

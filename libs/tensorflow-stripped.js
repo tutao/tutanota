@@ -131,7 +131,7 @@ function swap(object, left, right) {
     object[left] = object[right];
     object[right] = temp;
 }
-function sum$2(arr) {
+function sum$3(arr) {
     let sum = 0;
     for (let i = 0; i < arr.length; i++) {
         sum += arr[i];
@@ -462,6 +462,24 @@ function toNestedArray(shape, a, isComplex = false) {
     }
     return createNestedArray(0, shape, a, isComplex);
 }
+function convertBackendValuesAndArrayBuffer(data, dtype) {
+    
+    if (Array.isArray(data)) {
+        return data;
+    }
+    if (dtype === 'float32') {
+        return data instanceof Float32Array ? data : new Float32Array(data);
+    }
+    else if (dtype === 'int32') {
+        return data instanceof Int32Array ? data : new Int32Array(data);
+    }
+    else if (dtype === 'bool' || dtype === 'string') {
+        return Uint8Array.from(new Int32Array(data));
+    }
+    else {
+        throw new Error(`Unknown dtype ${dtype}`);
+    }
+}
 function makeOnesTypedArray(size, dtype) {
     const array = makeZerosTypedArray(size, dtype);
     for (let i = 0; i < array.length; i++) {
@@ -478,6 +496,22 @@ function makeZerosTypedArray(size, dtype) {
     }
     else if (dtype === 'bool') {
         return new Uint8Array(size);
+    }
+    else {
+        throw new Error(`Unknown data type ${dtype}`);
+    }
+}
+
+function makeZerosNestedTypedArray(shape, dtype) {
+    const size = shape.reduce((prev, curr) => prev * curr, 1);
+    if (dtype == null || dtype === 'float32') {
+        return toNestedArray(shape, new Float32Array(size));
+    }
+    else if (dtype === 'int32') {
+        return toNestedArray(shape, new Int32Array(size));
+    }
+    else if (dtype === 'bool') {
+        return toNestedArray(shape, new Uint8Array(size));
     }
     else {
         throw new Error(`Unknown data type ${dtype}`);
@@ -775,6 +809,7 @@ const Diag = 'Diag';
 const Dilation2D = 'Dilation2D';
 const Dilation2DBackpropInput = 'Dilation2DBackpropInput';
 const Dilation2DBackpropFilter = 'Dilation2DBackpropFilter';
+const Draw = 'Draw';
 const RealDiv = 'RealDiv';
 const Einsum = 'Einsum';
 const Elu$1 = 'Elu';
@@ -907,7 +942,7 @@ function warn(...msg) {
         console.warn(...msg);
     }
 }
-function log$2(...msg) {
+function log$3(...msg) {
     if (!(env().getBool('IS_TEST') || env().getBool('PROD'))) {
         console.log(...msg);
     }
@@ -3688,7 +3723,7 @@ class Engine {
             
             f => this.tidy(f), 
             
-            add$1);
+            add$2);
             const grads = xs.map(x => accumulatedGradientMap[x.id]);
             if (this.state.gradientDepth === 0) {
                 
@@ -3812,7 +3847,7 @@ function getOrMakeEngine() {
 }
 const ENGINE = getOrMakeEngine();
 
-function add$1(a, b) {
+function add$2(a, b) {
     
     const inputs = { a, b };
     return ENGINE.runKernel(Add, inputs);
@@ -4056,7 +4091,7 @@ function cast_(x, dtype) {
     const attrs = { dtype };
     return ENGINE.runKernel(Cast, inputs, attrs);
 }
-const cast$2 =  op({ cast_ });
+const cast$3 =  op({ cast_ });
 
 
 
@@ -4081,7 +4116,7 @@ function print(x, verbose = false) {
 getOrMakeEngine();
 const opHandler = {
     buffer,
-    cast: cast$2,
+    cast: cast$3,
     clone,
     print
 };
@@ -4131,7 +4166,7 @@ function add_(a, b) {
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(Add, inputs);
 }
-const add =  op({ add_ });
+const add$1 =  op({ add_ });
 
 
 
@@ -4142,7 +4177,7 @@ function floorDiv_(a, b) {
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(FloorDiv, inputs);
 }
-const floorDiv$1 =  op({ floorDiv_ });
+const floorDiv$2 =  op({ floorDiv_ });
 
 
 
@@ -4151,14 +4186,14 @@ function div_(a, b) {
     let $b = convertToTensor(b, 'b', 'div');
     [$a, $b] = makeTypesMatch($a, $b);
     if ($a.dtype === 'int32' && $b.dtype === 'int32') {
-        return floorDiv$1($a, $b);
+        return floorDiv$2($a, $b);
     }
     const inputs = { a: $a, b: $b };
     const attrs = {};
     
     return ENGINE.runKernel(RealDiv, inputs, attrs);
 }
-const div =  op({ div_ });
+const div$1 =  op({ div_ });
 
 
 
@@ -4184,7 +4219,7 @@ function abs_(x) {
         return ENGINE.runKernel(Abs, inputs);
     }
 }
-const abs$1 =  op({ abs_ });
+const abs$2 =  op({ abs_ });
 
 
 
@@ -4195,7 +4230,7 @@ function any_(x, axis = null, keepDims = false) {
     return ENGINE.runKernel(Any, inputs, attrs);
 }
 
-const any$1 =  op({ any_ });
+const any$2 =  op({ any_ });
 
 
 
@@ -4205,7 +4240,7 @@ function argMax_(x, axis = 0) {
     const attrs = { axis };
     return ENGINE.runKernel(ArgMax, inputs, attrs);
 }
-const argMax$1 =  op({ argMax_ });
+const argMax$2 =  op({ argMax_ });
 
 
 
@@ -4364,8 +4399,8 @@ function computeOutputShape2D(inShape, fieldSize, stride, zeroPad, roundingMode)
     }
     const inputRows = inShape[0];
     const inputCols = inShape[1];
-    const outputRows = round$1((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
-    const outputCols = round$1((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+    const outputRows = round$2((inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
+    const outputCols = round$2((inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
     return [outputRows, outputCols];
 }
 function computeOutputShape4D(inShape, filterShape, outChannels, strides, zeroPad, roundingMode) {
@@ -4375,7 +4410,7 @@ function computeOutputShape4D(inShape, filterShape, outChannels, strides, zeroPa
     const outShape = [0, 0, 0, outChannels];
     for (let index = 0; index < 3; index++) {
         if (inShape[index] + 2 * zeroPad >= filterShape[index]) {
-            outShape[index] = round$1((inShape[index] - filterShape[index] + 2 * zeroPad) / strides[index] +
+            outShape[index] = round$2((inShape[index] - filterShape[index] + 2 * zeroPad) / strides[index] +
                 1, roundingMode);
         }
     }
@@ -4440,8 +4475,8 @@ function getPadAndOutInfo(pad, inHeight, inWidth, strideHeight, strideWidth, fil
             'VALID' :
             'EXPLICIT';
         padInfo = { top, bottom, left, right, type: padType };
-        outHeight = round$1((inHeight - filterHeight + top + bottom) / strideHeight + 1, roundingMode);
-        outWidth = round$1((inWidth - filterWidth + left + right) / strideWidth + 1, roundingMode);
+        outHeight = round$2((inHeight - filterHeight + top + bottom) / strideHeight + 1, roundingMode);
+        outWidth = round$2((inWidth - filterWidth + left + right) / strideWidth + 1, roundingMode);
     }
     else {
         throw Error(`Unknown padding parameter: ${pad}`);
@@ -4493,7 +4528,7 @@ function get3DPadAndOutInfo(pad, inDepth, inHeight, inWidth, strideDepth, stride
     return { padInfo, outDepth, outHeight, outWidth };
 }
 
-function round$1(value, roundingMode) {
+function round$2(value, roundingMode) {
     if (!roundingMode) {
         return Math.trunc(value);
     }
@@ -4565,7 +4600,7 @@ function reshape_(x, shape) {
     const attrs = { shape };
     return ENGINE.runKernel(Reshape$1, inputs, attrs);
 }
-const reshape$1 =  op({ reshape_ });
+const reshape$2 =  op({ reshape_ });
 
 
 
@@ -4587,7 +4622,7 @@ function concat_(tensors, axis = 0) {
     const attr = { axis };
     return ENGINE.runKernel(Concat, inputs, attr);
 }
-const concat$1 =  op({ concat_ });
+const concat$2 =  op({ concat_ });
 
 
 
@@ -4608,7 +4643,7 @@ function sigmoid_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Sigmoid$1, inputs);
 }
-const sigmoid$1 =  op({ sigmoid_ });
+const sigmoid$2 =  op({ sigmoid_ });
 
 
 
@@ -4621,7 +4656,7 @@ function slice_(x, begin, size) {
     const attrs = { begin, size };
     return ENGINE.runKernel(Slice, inputs, attrs);
 }
-const slice$1 =  op({ slice_ });
+const slice$2 =  op({ slice_ });
 
 
 
@@ -4630,7 +4665,7 @@ function tanh_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Tanh$1, inputs);
 }
-const tanh$1 =  op({ tanh_ });
+const tanh$2 =  op({ tanh_ });
 
 
 
@@ -4645,7 +4680,7 @@ function batchToSpaceND_(x, blockShape, crops) {
     const attrs = { blockShape, crops };
     return ENGINE.runKernel(BatchToSpaceND, inputs, attrs);
 }
-const batchToSpaceND$1 =  op({ batchToSpaceND_ });
+const batchToSpaceND$2 =  op({ batchToSpaceND_ });
 
 
 
@@ -4661,7 +4696,7 @@ function broadcastTo_(x, shape) {
         while (newShape.length < shape.length) {
             newShape.unshift(1);
         }
-        input = reshape$1(input, newShape);
+        input = reshape$2(input, newShape);
     }
     const inputShape = input.shape;
     const reps = Array.from(shape);
@@ -4686,7 +4721,7 @@ const broadcastTo =  op({ broadcastTo_ });
 
 
 
-function fill$1(shape, value, dtype) {
+function fill$2(shape, value, dtype) {
     assertNonNegativeIntegerDimensions(shape);
     dtype = dtype || inferDtype(value);
     const attrs = { shape, value, dtype };
@@ -4700,13 +4735,13 @@ function clipByValue_(x, clipValueMin, clipValueMax) {
     assert$1((clipValueMin <= clipValueMax), () => `Error in clip: min (${clipValueMin}) must be ` +
         `less than or equal to max (${clipValueMax}).`);
     if (clipValueMin === clipValueMax) {
-        return fill$1($x.shape, clipValueMin, $x.dtype);
+        return fill$2($x.shape, clipValueMin, $x.dtype);
     }
     const inputs = { x: $x };
     const attrs = { clipValueMin, clipValueMax };
     return ENGINE.runKernel(ClipByValue, inputs, attrs);
 }
-const clipByValue$1 =  op({ clipByValue_ });
+const clipByValue$2 =  op({ clipByValue_ });
 
 
 
@@ -4718,7 +4753,7 @@ function complex_(real, imag) {
     const inputs = { real: $real, imag: $imag };
     return ENGINE.runKernel(Complex, inputs);
 }
-const complex$1 =  op({ complex_ });
+const complex$2 =  op({ complex_ });
 
 
 
@@ -4729,7 +4764,7 @@ function conv2d_(x, filter, strides, pad, dataFormat = 'NHWC', dilations = [1, 1
     let reshapedTo4D = false;
     if ($x.rank === 3) {
         reshapedTo4D = true;
-        x4D = reshape$1($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
+        x4D = reshape$2($x, [1, $x.shape[0], $x.shape[1], $x.shape[2]]);
     }
     assert$1(x4D.rank === 4, () => `Error in conv2d: input must be rank 4, but got rank ${x4D.rank}.`);
     assert$1($filter.rank === 4, () => `Error in conv2d: filter must be rank 4, but got rank ` +
@@ -4747,7 +4782,7 @@ function conv2d_(x, filter, strides, pad, dataFormat = 'NHWC', dilations = [1, 1
     
     const res = ENGINE.runKernel(Conv2D, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$1(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
@@ -4763,7 +4798,7 @@ function conv2DBackpropInput_(xShape, dy, filter, strides, pad, dataFormat = 'NH
     let reshapedTo4D = false;
     if (dy.rank === 3) {
         reshapedTo4D = true;
-        dy4D = reshape$1(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
+        dy4D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
         xShape4D = [1, xShape[0], xShape[1], xShape[2]];
     }
     assert$1(xShape4D.length === 4, () => `Error in conv2dDerInput: inShape must be length 4, but got length ` +
@@ -4784,11 +4819,11 @@ function conv2DBackpropInput_(xShape, dy, filter, strides, pad, dataFormat = 'NH
     
     const res = ENGINE.runKernel(Conv2DBackpropInput, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$1(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
-const conv2DBackpropInput$1 =  op({ conv2DBackpropInput_ });
+const conv2DBackpropInput$2 =  op({ conv2DBackpropInput_ });
 
 
 
@@ -4800,7 +4835,7 @@ function conv3DBackpropInput_(xShape, dy, filter, strides, pad) {
     let reshapedTo5D = false;
     if (dy.rank === 4) {
         reshapedTo5D = true;
-        dy5D = reshape$1(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2], dy.shape[3]]);
+        dy5D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2], dy.shape[3]]);
         xShape5D = [1, xShape[0], xShape[1], xShape[2], xShape[3]];
     }
     const inDepth = xShape5D[4];
@@ -4820,7 +4855,7 @@ function conv3DBackpropInput_(xShape, dy, filter, strides, pad) {
     
     const res = ENGINE.runKernel(Conv3DBackpropInputV2, inputs, attrs);
     if (reshapedTo5D) {
-        return reshape$1(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
+        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
     }
     return res;
 }
@@ -4833,7 +4868,7 @@ function cos_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Cos, inputs);
 }
-const cos$1 =  op({ cos_ });
+const cos$2 =  op({ cos_ });
 
 
 
@@ -4842,7 +4877,7 @@ function cosh_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Cosh, inputs);
 }
-const cosh$1 =  op({ cosh_ });
+const cosh$2 =  op({ cosh_ });
 
 
 
@@ -4852,7 +4887,7 @@ function cumprod_(x, axis = 0, exclusive = false, reverse = false) {
     const attrs = { axis, exclusive, reverse };
     return ENGINE.runKernel(Cumprod, inputs, attrs);
 }
-const cumprod$1 =  op({ cumprod_ });
+const cumprod$2 =  op({ cumprod_ });
 
 
 
@@ -4862,7 +4897,7 @@ function cumsum_(x, axis = 0, exclusive = false, reverse = false) {
     const attrs = { axis, exclusive, reverse };
     return ENGINE.runKernel(Cumsum, inputs, attrs);
 }
-const cumsum$1 =  op({ cumsum_ });
+const cumsum$2 =  op({ cumsum_ });
 
 
 
@@ -4932,7 +4967,7 @@ function equal_(a, b) {
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(Equal, inputs);
 }
-const equal$1 =  op({ equal_ });
+const equal$2 =  op({ equal_ });
 
 
 
@@ -4963,7 +4998,7 @@ function zerosLike_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(ZerosLike, inputs);
 }
-const zerosLike$1 =  op({ zerosLike_ });
+const zerosLike$2 =  op({ zerosLike_ });
 
 
 
@@ -4972,7 +5007,7 @@ function elu_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Elu$1, inputs);
 }
-const elu$2 =  op({ elu_ });
+const elu$3 =  op({ elu_ });
 
 
 
@@ -4980,12 +5015,12 @@ function erf_(x) {
     let $x = convertToTensor(x, 'x', 'erf');
     assert$1($x.dtype === 'int32' || $x.dtype === 'float32', () => 'Input dtype must be `int32` or `float32`.');
     if ($x.dtype === 'int32') {
-        $x = cast$2($x, 'float32');
+        $x = cast$3($x, 'float32');
     }
     const inputs = { x: $x };
     return ENGINE.runKernel(Erf, inputs);
 }
-const erf$1 =  op({ erf_ });
+const erf$2 =  op({ erf_ });
 
 
 
@@ -5067,7 +5102,7 @@ function max_(x, axis = null, keepDims = false) {
     const attrs = { reductionIndices: axis, keepDims };
     return ENGINE.runKernel(Max, inputs, attrs);
 }
-const max$1 =  op({ max_ });
+const max$2 =  op({ max_ });
 
 
 
@@ -5078,7 +5113,7 @@ function min_(x, axis = null, keepDims = false) {
     
     return ENGINE.runKernel(Min, inputs, attrs);
 }
-const min$1 =  op({ min_ });
+const min$2 =  op({ min_ });
 
 
 
@@ -5089,7 +5124,7 @@ function pow_(base, exp) {
     const inputs = { a: $base, b: $exp };
     return ENGINE.runKernel(Pow, inputs);
 }
-const pow$1 =  op({ pow_ });
+const pow$2 =  op({ pow_ });
 
 
 
@@ -5166,7 +5201,7 @@ function sqrt_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Sqrt, inputs);
 }
-const sqrt$1 =  op({ sqrt_ });
+const sqrt$2 =  op({ sqrt_ });
 
 
 
@@ -5182,13 +5217,13 @@ const square$2 =  op({ square_ });
 function sum_(x, axis = null, keepDims = false) {
     let $x = convertToTensor(x, 'x', 'sum');
     if ($x.dtype === 'bool') {
-        $x = cast$2($x, 'int32');
+        $x = cast$3($x, 'int32');
     }
     const inputs = { x: $x };
     const attrs = { axis, keepDims };
     return ENGINE.runKernel(Sum, inputs, attrs);
 }
-const sum$1 =  op({ sum_ });
+const sum$2 =  op({ sum_ });
 
 
 
@@ -5200,48 +5235,48 @@ function norm_(x, ord = 'euclidean', axis = null, keepDims = false) {
         const axes = parseAxisParam(axis, x.shape);
         keepDimsShape = expandShapeToKeepDim(norm.shape, axes);
     }
-    return reshape$1(norm, keepDimsShape);
+    return reshape$2(norm, keepDimsShape);
 }
 function normImpl(x, p, axis = null) {
     if (x.rank === 0) {
-        return abs$1(x);
+        return abs$2(x);
     }
     
     if (x.rank !== 1 && axis === null) {
-        return normImpl(reshape$1(x, [-1]), p, axis);
+        return normImpl(reshape$2(x, [-1]), p, axis);
     }
     
     if (x.rank === 1 || typeof axis === 'number' ||
         Array.isArray(axis) && axis.length === 1) {
         if (p === 1) {
-            return sum$1(abs$1(x), axis);
+            return sum$2(abs$2(x), axis);
         }
         if (p === Infinity) {
-            return max$1(abs$1(x), axis);
+            return max$2(abs$2(x), axis);
         }
         if (p === -Infinity) {
-            return min$1(abs$1(x), axis);
+            return min$2(abs$2(x), axis);
         }
         if (p === 'euclidean' || p === 2) {
             
-            return sqrt$1(sum$1(pow$1(abs$1(x), scalar(2, 'int32')), axis));
+            return sqrt$2(sum$2(pow$2(abs$2(x), scalar(2, 'int32')), axis));
         }
         throw new Error(`Error in norm: invalid ord value: ${p}`);
     }
     
     if (Array.isArray(axis) && axis.length === 2) {
         if (p === 1) {
-            return max$1(sum$1(abs$1(x), axis[0]), axis[1] - 1);
+            return max$2(sum$2(abs$2(x), axis[0]), axis[1] - 1);
         }
         if (p === Infinity) {
-            return max$1(sum$1(abs$1(x), axis[1]), axis[0]);
+            return max$2(sum$2(abs$2(x), axis[1]), axis[0]);
         }
         if (p === -Infinity) {
-            return min$1(sum$1(abs$1(x), axis[1]), axis[0]);
+            return min$2(sum$2(abs$2(x), axis[1]), axis[0]);
         }
         if (p === 'fro' || p === 'euclidean') {
             
-            return sqrt$1(sum$1(square$2(x), axis));
+            return sqrt$2(sum$2(square$2(x), axis));
         }
         throw new Error(`Error in norm: invalid ord value: ${p}`);
     }
@@ -5256,7 +5291,7 @@ function exp_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Exp, inputs);
 }
-const exp$1 =  op({ exp_ });
+const exp$2 =  op({ exp_ });
 
 
 
@@ -5267,7 +5302,7 @@ function expandDims_(x, axis = 0) {
     const attrs = { dim: axis };
     return ENGINE.runKernel(ExpandDims, inputs, attrs);
 }
-const expandDims$2 =  op({ expandDims_ });
+const expandDims$3 =  op({ expandDims_ });
 
 
 
@@ -5279,7 +5314,7 @@ function tile_(x, reps) {
     const attrs = { reps };
     return ENGINE.runKernel(Tile, inputs, attrs);
 }
-const tile$2 =  op({ tile_ });
+const tile$3 =  op({ tile_ });
 
 
 
@@ -5292,21 +5327,21 @@ function eye_(numRows, numColumns, batchShape, dtype = 'float32') {
     for (let i = 0; i < n; ++i) {
         buff.set(1, i, i);
     }
-    const out = reshape$1(buff.toTensor(), [numRows, numColumns]);
+    const out = reshape$2(buff.toTensor(), [numRows, numColumns]);
     if (batchShape == null) {
         return out;
     }
     else {
         if (batchShape.length === 1) {
-            return tile$2(expandDims$2(out, 0), [batchShape[0], 1, 1]);
+            return tile$3(expandDims$3(out, 0), [batchShape[0], 1, 1]);
         }
         else if (batchShape.length === 2) {
             
-            return tile$2(expandDims$2(expandDims$2(out, 0), 0), [batchShape[0], batchShape[1], 1, 1]);
+            return tile$3(expandDims$3(expandDims$3(out, 0), 0), [batchShape[0], batchShape[1], 1, 1]);
         }
         else if (batchShape.length === 3) {
             
-            return tile$2(expandDims$2(expandDims$2(expandDims$2(out, 0), 0), 0), [
+            return tile$3(expandDims$3(expandDims$3(expandDims$3(out, 0), 0), 0), [
                 batchShape[0], batchShape[1], batchShape[2], 1, 1
             ]);
         }
@@ -5326,7 +5361,7 @@ function floor_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Floor, inputs);
 }
-const floor$1 =  op({ floor_ });
+const floor$2 =  op({ floor_ });
 
 
 
@@ -5349,7 +5384,7 @@ function greater_(a, b) {
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(Greater, inputs);
 }
-const greater$1 =  op({ greater_ });
+const greater$2 =  op({ greater_ });
 
 
 
@@ -5361,7 +5396,7 @@ function greaterEqual_(a, b) {
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(GreaterEqual, inputs);
 }
-const greaterEqual$1 =  op({ greaterEqual_ });
+const greaterEqual$2 =  op({ greaterEqual_ });
 
 
 
@@ -5370,7 +5405,7 @@ function imag_(input) {
     const inputs = { input: $input };
     return ENGINE.runKernel(Imag, inputs);
 }
-const imag$1 =  op({ imag_ });
+const imag$2 =  op({ imag_ });
 
 
 
@@ -5380,7 +5415,7 @@ function leakyRelu_(x, alpha = 0.2) {
     const attrs = { alpha };
     return ENGINE.runKernel(LeakyRelu, inputs, attrs);
 }
-const leakyRelu$1 =  op({ leakyRelu_ });
+const leakyRelu$2 =  op({ leakyRelu_ });
 
 
 
@@ -5392,7 +5427,7 @@ function less_(a, b) {
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(Less, inputs);
 }
-const less$1 =  op({ less_ });
+const less$2 =  op({ less_ });
 
 
 
@@ -5404,7 +5439,7 @@ function lessEqual_(a, b) {
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(LessEqual, inputs);
 }
-const lessEqual$1 =  op({ lessEqual_ });
+const lessEqual$2 =  op({ lessEqual_ });
 
 
 
@@ -5413,7 +5448,7 @@ function log_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Log, inputs);
 }
-const log$1 =  op({ log_ });
+const log$2 =  op({ log_ });
 
 
 
@@ -5422,7 +5457,7 @@ function log1p_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Log1p, inputs);
 }
-const log1p$1 =  op({ log1p_ });
+const log1p$2 =  op({ log1p_ });
 
 
 
@@ -5478,7 +5513,7 @@ function neg_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Neg, inputs);
 }
-const neg$1 =  op({ neg_ });
+const neg$2 =  op({ neg_ });
 
 
 
@@ -5487,7 +5522,7 @@ function softplus_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Softplus$1, inputs);
 }
-const softplus$1 =  op({ softplus_ });
+const softplus$2 =  op({ softplus_ });
 
 
 
@@ -5498,7 +5533,7 @@ function sub_(a, b) {
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(Sub, inputs);
 }
-const sub$1 =  op({ sub_ });
+const sub$2 =  op({ sub_ });
 
 
 
@@ -5524,15 +5559,15 @@ function logSoftmax_(logits, axis = -1) {
     
     const customOp = customGrad((logits, save) => {
         const keepDims = true;
-        const xMax = max$1(logits, axis, true);
-        const shifted = sub$1(logits, xMax);
-        const value = sub$1(cast$2(shifted, 'float32'), log$1(sum$1(exp$1(shifted), axis, keepDims)));
+        const xMax = max$2(logits, axis, true);
+        const shifted = sub$2(logits, xMax);
+        const value = sub$2(cast$3(shifted, 'float32'), log$2(sum$2(exp$2(shifted), axis, keepDims)));
         save([value]);
         const gradFunc = (dy, saved) => {
             const [value] = saved;
             const keepDims = true;
-            const softmax = exp$1(value);
-            return sub$1(dy, mul(sum$1(dy, axis, keepDims), softmax));
+            const softmax = exp$2(value);
+            return sub$2(dy, mul(sum$2(dy, axis, keepDims), softmax));
         };
         return { value, gradFunc };
     });
@@ -5555,7 +5590,7 @@ function logicalAnd_(a, b) {
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(LogicalAnd, inputs);
 }
-const logicalAnd$1 =  op({ logicalAnd_ });
+const logicalAnd$2 =  op({ logicalAnd_ });
 
 
 
@@ -5564,7 +5599,7 @@ function logicalNot_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(LogicalNot, inputs);
 }
-const logicalNot$1 =  op({ logicalNot_ });
+const logicalNot$2 =  op({ logicalNot_ });
 
 
 
@@ -5573,14 +5608,14 @@ function maximum_(a, b) {
     let $b = convertToTensor(b, 'b', 'maximum');
     [$a, $b] = makeTypesMatch($a, $b);
     if ($a.dtype === 'bool') {
-        $a = cast$2($a, 'int32');
-        $b = cast$2($b, 'int32');
+        $a = cast$3($a, 'int32');
+        $b = cast$3($b, 'int32');
     }
     assertAndGetBroadcastShape($a.shape, $b.shape);
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(Maximum, inputs);
 }
-const maximum$1 =  op({ maximum_ });
+const maximum$2 =  op({ maximum_ });
 
 
 
@@ -5590,16 +5625,16 @@ function mean_(x, axis = null, keepDims = false) {
     const attrs = { axis, keepDims };
     return ENGINE.runKernel(Mean, inputs, attrs);
 }
-const mean =  op({ mean_ });
+const mean$1 =  op({ mean_ });
 
 
 
-function zeros(shape, dtype = 'float32') {
+function zeros$1(shape, dtype = 'float32') {
     assertNonNegativeIntegerDimensions(shape);
     if (dtype === 'complex64') {
-        const real = zeros(shape, 'float32');
-        const imag = zeros(shape, 'float32');
-        return complex$1(real, imag);
+        const real = zeros$1(shape, 'float32');
+        const imag = zeros$1(shape, 'float32');
+        return complex$2(real, imag);
     }
     const values = makeZerosTypedArray(sizeFromShape(shape), dtype);
     return ENGINE.makeTensor(values, shape, dtype);
@@ -5611,8 +5646,8 @@ function ones(shape, dtype = 'float32') {
     assertNonNegativeIntegerDimensions(shape);
     if (dtype === 'complex64') {
         const real = ones(shape, 'float32');
-        const imag = zeros(shape, 'float32');
-        return complex$1(real, imag);
+        const imag = zeros$1(shape, 'float32');
+        return complex$2(real, imag);
     }
     const values = makeOnesTypedArray(sizeFromShape(shape), dtype);
     return ENGINE.makeTensor(values, shape, dtype);
@@ -5625,14 +5660,14 @@ function minimum_(a, b) {
     let $b = convertToTensor(b, 'b', 'minimum');
     [$a, $b] = makeTypesMatch($a, $b);
     if ($a.dtype === 'bool') {
-        $a = cast$2($a, 'int32');
-        $b = cast$2($b, 'int32');
+        $a = cast$3($a, 'int32');
+        $b = cast$3($b, 'int32');
     }
     assertAndGetBroadcastShape($a.shape, $b.shape);
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(Minimum, inputs);
 }
-const minimum$1 =  op({ minimum_ });
+const minimum$2 =  op({ minimum_ });
 
 
 
@@ -5644,7 +5679,7 @@ function notEqual_(a, b) {
     const inputs = { a: $a, b: $b };
     return ENGINE.runKernel(NotEqual, inputs);
 }
-const notEqual$1 =  op({ notEqual_ });
+const notEqual$2 =  op({ notEqual_ });
 
 
 
@@ -5657,7 +5692,7 @@ function oneHot_(indices, depth, onValue = 1, offValue = 0, dtype = 'int32') {
     const attrs = { dtype, depth, onValue, offValue };
     return ENGINE.runKernel(OneHot, inputs, attrs);
 }
-const oneHot$1 =  op({ oneHot_ });
+const oneHot$2 =  op({ oneHot_ });
 
 
 
@@ -5666,7 +5701,7 @@ function onesLike_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(OnesLike, inputs);
 }
-const onesLike$1 =  op({ onesLike_ });
+const onesLike$2 =  op({ onesLike_ });
 
 
 
@@ -5700,7 +5735,7 @@ function spaceToBatchND_(x, blockShape, paddings) {
     const attrs = { blockShape, paddings };
     return ENGINE.runKernel(SpaceToBatchND, inputs, attrs);
 }
-const spaceToBatchND$1 =  op({ spaceToBatchND_ });
+const spaceToBatchND$2 =  op({ spaceToBatchND_ });
 
 
 
@@ -5710,7 +5745,7 @@ function prelu_(x, alpha) {
     const inputs = { x: $x, alpha: $alpha };
     return ENGINE.runKernel(Prelu, inputs);
 }
-const prelu$1 =  op({ prelu_ });
+const prelu$2 =  op({ prelu_ });
 
 var alea$1 = {exports: {}};
 
@@ -6744,7 +6779,7 @@ const randomUniform =  op({ randomUniform_ });
 
 
 
-function range$2(start, stop, step = 1, dtype = 'float32') {
+function range$3(start, stop, step = 1, dtype = 'float32') {
     if (step === 0) {
         throw new Error('Cannot have a step of zero');
     }
@@ -6759,7 +6794,7 @@ function real_(input) {
     const inputs = { input: $input };
     return ENGINE.runKernel(Real, inputs);
 }
-const real$1 =  op({ real_ });
+const real$2 =  op({ real_ });
 
 
 
@@ -6768,7 +6803,7 @@ function relu_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Relu$1, inputs);
 }
-const relu$1 =  op({ relu_ });
+const relu$2 =  op({ relu_ });
 
 
 
@@ -6777,7 +6812,7 @@ function relu6_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Relu6$1, inputs);
 }
-const relu6$1 =  op({ relu6_ });
+const relu6$2 =  op({ relu6_ });
 
 
 
@@ -6787,7 +6822,7 @@ function reverse_(x, axis) {
     const attrs = { dims: axis };
     return ENGINE.runKernel(Reverse, inputs, attrs);
 }
-const reverse$1 =  op({ reverse_ });
+const reverse$2 =  op({ reverse_ });
 
 
 
@@ -6796,7 +6831,7 @@ function rsqrt_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Rsqrt, inputs);
 }
-const rsqrt$1 =  op({ rsqrt_ });
+const rsqrt$2 =  op({ rsqrt_ });
 
 
 
@@ -6805,7 +6840,7 @@ function selu_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Selu$1, inputs);
 }
-const selu$1 =  op({ selu_ });
+const selu$2 =  op({ selu_ });
 
 
 
@@ -6814,7 +6849,7 @@ function sin_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Sin, inputs);
 }
-const sin$1 =  op({ sin_ });
+const sin$2 =  op({ sin_ });
 
 
 
@@ -6823,14 +6858,14 @@ function sinh_(x) {
     const inputs = { x: $x };
     return ENGINE.runKernel(Sinh, inputs);
 }
-const sinh$1 =  op({ sinh_ });
+const sinh$2 =  op({ sinh_ });
 
 
 
 function slice1d_(x, begin, size) {
     const $x = convertToTensor(x, 'x', 'slice1d');
     assert$1($x.rank === 1, () => `slice1d expects a rank-1 tensor, but got a rank-${$x.rank} tensor`);
-    return slice$1($x, [begin], [size]);
+    return slice$2($x, [begin], [size]);
 }
 const slice1d =  op({ slice1d_ });
 
@@ -6839,7 +6874,7 @@ const slice1d =  op({ slice1d_ });
 function slice2d_(x, begin, size) {
     const $x = convertToTensor(x, 'x', 'slice2d');
     assert$1($x.rank === 2, () => `slice2d expects a rank-2 tensor, but got a rank-${$x.rank} tensor`);
-    return slice$1($x, begin, size);
+    return slice$2($x, begin, size);
 }
 const slice2d =  op({ slice2d_ });
 
@@ -6848,7 +6883,7 @@ const slice2d =  op({ slice2d_ });
 function slice3d_(x, begin, size) {
     const $x = convertToTensor(x, 'x', 'slice3d');
     assert$1($x.rank === 3, () => `slice3d expects a rank-3 tensor, but got a rank-${$x.rank} tensor`);
-    return slice$1($x, begin, size);
+    return slice$2($x, begin, size);
 }
 const slice3d =  op({ slice3d_ });
 
@@ -6857,7 +6892,7 @@ const slice3d =  op({ slice3d_ });
 function slice4d_(x, begin, size) {
     const $x = convertToTensor(x, 'x', 'slice4d');
     assert$1($x.rank === 4, () => `slice4d expects a rank-4 tensor, but got a rank-${$x.rank} tensor`);
-    return slice$1($x, begin, size);
+    return slice$2($x, begin, size);
 }
 const slice4d =  op({ slice4d_ });
 
@@ -6876,7 +6911,7 @@ function softmax_(logits, dim = -1) {
     const attrs = { dim };
     return ENGINE.runKernel(Softmax$1, inputs, attrs);
 }
-const softmax$1 =  op({ softmax_ });
+const softmax$2 =  op({ softmax_ });
 
 
 
@@ -6892,7 +6927,7 @@ const split$1 =  op({ split_ });
 
 function squeeze_(x, axis) {
     const $x = convertToTensor(x, 'x', 'squeeze', 'string_or_numeric');
-    return reshape$1($x, squeezeShape($x.shape, axis).newShape);
+    return reshape$2($x, squeezeShape($x.shape, axis).newShape);
 }
 const squeeze =  op({ squeeze_ });
 
@@ -6918,7 +6953,7 @@ function step_(x, alpha = 0.0) {
     const attrs = { alpha };
     return ENGINE.runKernel(Step, inputs, attrs);
 }
-const step$1 =  op({ step_ });
+const step$2 =  op({ step_ });
 
 
 
@@ -7060,7 +7095,7 @@ function unsortedSegmentSum_(x, segmentIds, numSegments) {
     const attrs = { numSegments };
     return ENGINE.runKernel(UnsortedSegmentSum, inputs, attrs);
 }
-const unsortedSegmentSum$1 =  op({ unsortedSegmentSum_ });
+const unsortedSegmentSum$2 =  op({ unsortedSegmentSum_ });
 
 
 
@@ -7081,7 +7116,7 @@ function variable(initialValue, trainable = true, name, dtype) {
 
 
 
-function whereImpl$1(condShape, condVals) {
+function whereImpl$2(condShape, condVals) {
     const indices = [];
     for (let i = 0; i < condVals.length; i++) {
         if (condVals[i]) {
@@ -7118,19 +7153,19 @@ function transpose_(x, perm, conjugate) {
     const attrs = { perm };
     if ($x.dtype === 'complex64') {
         return tidy(() => {
-            let $real = real$1($x);
-            let $imag = imag$1($x);
+            let $real = real$2($x);
+            let $imag = imag$2($x);
             $real = ENGINE.runKernel(Transpose, { x: $real }, attrs);
             $imag = ENGINE.runKernel(Transpose, { x: $imag }, attrs);
             if (conjugate) {
-                $imag = neg$1($imag);
+                $imag = neg$2($imag);
             }
-            return complex$1($real, $imag);
+            return complex$2($real, $imag);
         });
     }
     return ENGINE.runKernel(Transpose, inputs, attrs);
 }
-const transpose$1 =  op({ transpose_ });
+const transpose$2 =  op({ transpose_ });
 
 
 
@@ -7168,7 +7203,7 @@ function dropout_(x, rate, noiseShape, seed) {
     }
     const $noiseShape = getNoiseShape($x, noiseShape);
     const keepProb = 1 - rate;
-    const multiplier = div(floor$1(add(randomUniform($noiseShape, 0, 1, 'float32', seed), keepProb)), keepProb);
+    const multiplier = div$1(floor$2(add$1(randomUniform($noiseShape, 0, 1, 'float32', seed), keepProb)), keepProb);
     return mul($x, multiplier);
 }
 const dropout$2 =  op({ dropout_ });
@@ -7178,11 +7213,11 @@ const dropout$2 =  op({ dropout_ });
 function conv2DBackpropFilter_(x, dy, filterShape, strides, pad, dataFormat = 'NHWC', dimRoundingMode) {
     let x4D = x;
     if (x.rank === 3) {
-        x4D = reshape$1(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
+        x4D = reshape$2(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
     }
     let dy4D = dy;
     if (dy4D.rank === 3) {
-        dy4D = reshape$1(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
+        dy4D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
     }
     assert$1(x4D.rank === 4, () => `Error in conv2dDerFilter: input must be rank 4, but got shape ` +
         `${x4D.shape}.`);
@@ -7202,7 +7237,7 @@ function conv2DBackpropFilter_(x, dy, filterShape, strides, pad, dataFormat = 'N
     
     return ENGINE.runKernel(Conv2DBackpropFilter, inputs, attrs);
 }
-const conv2DBackpropFilter$1 =  op({ conv2DBackpropFilter_ });
+const conv2DBackpropFilter$2 =  op({ conv2DBackpropFilter_ });
 
 
 
@@ -7211,7 +7246,7 @@ function getFusedDyActivation(dy, y, activation) {
         return dy;
     }
     if (activation === 'relu') {
-        return mul(dy, step$1(y));
+        return mul(dy, step$2(y));
     }
     throw new Error(`Cannot compute gradient for fused activation ${activation}.`);
 }
@@ -7220,31 +7255,31 @@ function getFusedBiasGradient(bias, dyActivation) {
     let res = dyActivation;
     const reduceAxes = getReductionAxes(bias.shape, dyActivation.shape);
     if (reduceAxes.length > 0) {
-        res = sum$1(res, reduceAxes);
+        res = sum$2(res, reduceAxes);
     }
-    return reshape$1(res, bias.shape);
+    return reshape$2(res, bias.shape);
 }
-function applyActivation(x, activation, preluActivationWeights, leakyreluAlpha) {
+function applyActivation$1(x, activation, preluActivationWeights, leakyreluAlpha) {
     if (activation === 'linear') {
         return x;
     }
     else if (activation === 'relu') {
-        return relu$1(x);
+        return relu$2(x);
     }
     else if (activation === 'elu') {
-        return elu$2(x);
+        return elu$3(x);
     }
     else if (activation === 'relu6') {
-        return relu6$1(x);
+        return relu6$2(x);
     }
     else if (activation === 'prelu') {
-        return prelu$1(x, preluActivationWeights);
+        return prelu$2(x, preluActivationWeights);
     }
     else if (activation === 'leakyrelu') {
-        return leakyRelu$1(x, leakyreluAlpha);
+        return leakyRelu$2(x, leakyreluAlpha);
     }
     else if (activation === 'sigmoid') {
-        return sigmoid$1(x);
+        return sigmoid$2(x);
     }
     throw new Error(`Unknown fused activation ${activation}.`);
 }
@@ -7258,18 +7293,18 @@ const shouldFuse = (gradientDepth, activation) => {
 function depthwiseConv2dNativeBackpropFilter_(x, dy, filterShape, strides, pad, dilations = [1, 1], dimRoundingMode) {
     let x4D = x;
     if (x.rank === 3) {
-        x4D = reshape$1(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
+        x4D = reshape$2(x, [1, x.shape[0], x.shape[1], x.shape[2]]);
     }
     let dy4D = dy;
     if (dy4D.rank === 3) {
-        dy4D = reshape$1(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
+        dy4D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
     }
     const inputs = { x: x4D, dy: dy4D };
     const attrs = { strides, pad, dimRoundingMode, dilations, filterShape };
     
     return ENGINE.runKernel(DepthwiseConv2dNativeBackpropFilter, inputs, attrs);
 }
-const depthwiseConv2dNativeBackpropFilter$1 = op({ depthwiseConv2dNativeBackpropFilter_ });
+const depthwiseConv2dNativeBackpropFilter$2 = op({ depthwiseConv2dNativeBackpropFilter_ });
 
 
 function depthwiseConv2dNativeBackpropInput_(xShape, dy, filter, strides, pad, dilations = [1, 1], dimRoundingMode) {
@@ -7277,7 +7312,7 @@ function depthwiseConv2dNativeBackpropInput_(xShape, dy, filter, strides, pad, d
     let reshapedTo4D = false;
     if (dy.rank === 3) {
         reshapedTo4D = true;
-        dy4D = reshape$1(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
+        dy4D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2]]);
     }
     const inputs = { dy: dy4D, filter };
     const attrs = { strides, pad, dimRoundingMode, dilations, inputShape: xShape };
@@ -7285,11 +7320,11 @@ function depthwiseConv2dNativeBackpropInput_(xShape, dy, filter, strides, pad, d
     
     ENGINE.runKernel(DepthwiseConv2dNativeBackpropInput, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$1(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
-const depthwiseConv2dNativeBackpropInput$1 = op({ depthwiseConv2dNativeBackpropInput_ });
+const depthwiseConv2dNativeBackpropInput$2 = op({ depthwiseConv2dNativeBackpropInput_ });
 
 
 
@@ -7297,9 +7332,9 @@ function fusedMatMul_({ a, b, transposeA = false, transposeB = false, bias, acti
     if (shouldFuse(ENGINE.state.gradientDepth, activation) === false) {
         let result = matMul$1(a, b, transposeA, transposeB);
         if (bias != null) {
-            result = add(result, bias);
+            result = add$1(result, bias);
         }
-        return applyActivation(result, activation, preluActivationWeights, leakyreluAlpha);
+        return applyActivation$1(result, activation, preluActivationWeights, leakyreluAlpha);
     }
     let $a = convertToTensor(a, 'a', 'fused matMul');
     let $b = convertToTensor(b, 'b', 'fused matMul');
@@ -7319,11 +7354,11 @@ function fusedMatMul_({ a, b, transposeA = false, transposeB = false, bias, acti
     const outShapeOuterDims = assertAndGetBroadcastShape($a.shape.slice(0, -2), $b.shape.slice(0, -2));
     const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
     const a3D = transposeA ?
-        reshape$1($a, [batchDimA, innerShapeA, outerShapeA]) :
-        reshape$1($a, [batchDimA, outerShapeA, innerShapeA]);
+        reshape$2($a, [batchDimA, innerShapeA, outerShapeA]) :
+        reshape$2($a, [batchDimA, outerShapeA, innerShapeA]);
     const b3D = transposeB ?
-        reshape$1($b, [batchDimB, outerShapeB, innerShapeB]) :
-        reshape$1($b, [batchDimB, innerShapeB, outerShapeB]);
+        reshape$2($b, [batchDimB, outerShapeB, innerShapeB]) :
+        reshape$2($b, [batchDimB, innerShapeB, outerShapeB]);
     let $bias;
     if (bias != null) {
         $bias = convertToTensor(bias, 'bias', 'fused matMul');
@@ -7339,7 +7374,7 @@ function fusedMatMul_({ a, b, transposeA = false, transposeB = false, bias, acti
         
         
         
-        const dyActivation = getFusedDyActivation(reshape$1(dy, y.shape), y, activation);
+        const dyActivation = getFusedDyActivation(reshape$2(dy, y.shape), y, activation);
         let aDer;
         let bDer;
         if (!transposeA && !transposeB) {
@@ -7381,7 +7416,7 @@ function fusedMatMul_({ a, b, transposeA = false, transposeB = false, bias, acti
             
             ENGINE.runKernel(_FusedMatMul, inputs, attrs);
             save([a3D, b3D, res]);
-            return { value: reshape$1(res, outShape), gradFunc: grad };
+            return { value: reshape$2(res, outShape), gradFunc: grad };
         });
         return customOp(a3D, b3D);
     }
@@ -7391,7 +7426,7 @@ function fusedMatMul_({ a, b, transposeA = false, transposeB = false, bias, acti
             
             ENGINE.runKernel(_FusedMatMul, inputs, attrs);
             save([a3D, b3D, res, $bias]);
-            return { value: reshape$1(res, outShape), gradFunc: grad };
+            return { value: reshape$2(res, outShape), gradFunc: grad };
         });
         return customOpWithBias(a3D, b3D, $bias);
     }
@@ -7435,14 +7470,14 @@ function binarySearch_(arr, target, comparator) {
 }
 
 
-function nonMaxSuppressionV3Impl$1(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold) {
+function nonMaxSuppressionV3Impl$2(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold) {
     return nonMaxSuppressionImpl_(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, 0 );
 }
-function nonMaxSuppressionV4Impl$1(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize) {
+function nonMaxSuppressionV4Impl$2(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize) {
     return nonMaxSuppressionImpl_(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, 0 , false , padToMaxOutputSize , true
      );
 }
-function nonMaxSuppressionV5Impl$1(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma) {
+function nonMaxSuppressionV5Impl$2(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma) {
     return nonMaxSuppressionImpl_(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma, true );
 }
 function nonMaxSuppressionImpl_(boxes, scores, maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma, returnScoresTensor = false, padToMaxOutputSize = false, returnValidOutputs = false) {
@@ -7584,7 +7619,7 @@ function bandPart_(a, numLower, numUpper) {
         assert$1(numLower.dtype === 'int32', () => `bandPart(): numLower's dtype must be an int32.`);
         
         
-        $numLower = where(less$1(numLower, 0), M, minimum$1(numLower, M));
+        $numLower = where(less$2(numLower, 0), M, minimum$2(numLower, M));
     }
     if (typeof numUpper === 'number') {
         assert$1(numUpper % 1 === 0, () => `bandPart(): numUpper must be an integer, got ${numUpper}.`);
@@ -7595,14 +7630,14 @@ function bandPart_(a, numLower, numUpper) {
     }
     else {
         assert$1(numUpper.dtype === 'int32', () => `bandPart(): numUpper's dtype must be an int32.`);
-        $numUpper = where(less$1(numUpper, 0), N, minimum$1(numUpper, N));
+        $numUpper = where(less$2(numUpper, 0), N, minimum$2(numUpper, N));
     }
-    const i = reshape$1(range$2(0, M, 1, 'int32'), [-1, 1]);
-    const j = range$2(0, N, 1, 'int32');
-    const ij = sub$1(i, j);
-    const inBand = logicalAnd$1(lessEqual$1(ij, $numLower), greaterEqual$1(ij, neg$1($numUpper)));
-    const zero = zeros([M, N], $a.dtype);
-    return reshape$1(stack(unstack(reshape$1($a, [-1, M, N]))
+    const i = reshape$2(range$3(0, M, 1, 'int32'), [-1, 1]);
+    const j = range$3(0, N, 1, 'int32');
+    const ij = sub$2(i, j);
+    const inBand = logicalAnd$2(lessEqual$2(ij, $numLower), greaterEqual$2(ij, neg$2($numUpper)));
+    const zero = zeros$1([M, N], $a.dtype);
+    return reshape$2(stack(unstack(reshape$2($a, [-1, M, N]))
         .map(mat => where(inBand, mat, zero))), shape);
 }
 const bandPart =  op({ bandPart_ });
@@ -7634,11 +7669,11 @@ function gramSchmidt_(xs) {
             let x = xs1d[i];
             if (i > 0) {
                 for (let j = 0; j < i; ++j) {
-                    const proj = mul(sum$1(mul(ys[j], x)), ys[j]);
-                    x = sub$1(x, proj);
+                    const proj = mul(sum$2(mul(ys[j], x)), ys[j]);
+                    x = sub$2(x, proj);
                 }
             }
-            return div(x, norm(x, 'euclidean'));
+            return div$1(x, norm(x, 'euclidean'));
         }));
     }
     if (inputIsTensor2D) {
@@ -7664,7 +7699,7 @@ function qr_(x, fullMatrices = false) {
         
         const outerDimsProd = x.shape.slice(0, x.shape.length - 2)
             .reduce((value, prev) => value * prev);
-        const x2ds = unstack(reshape$1(x, [
+        const x2ds = unstack(reshape$2(x, [
             outerDimsProd, x.shape[x.shape.length - 2],
             x.shape[x.shape.length - 1]
         ]), 0);
@@ -7675,8 +7710,8 @@ function qr_(x, fullMatrices = false) {
             q2ds.push(q2d);
             r2ds.push(r2d);
         });
-        const q = reshape$1(stack(q2ds, 0), x.shape);
-        const r = reshape$1(stack(r2ds, 0), x.shape);
+        const q = reshape$2(stack(q2ds, 0), x.shape);
+        const r = reshape$2(stack(r2ds, 0), x.shape);
         return [q, r];
     }
 }
@@ -7698,50 +7733,50 @@ function qr2d(x, fullMatrices = false) {
             const qTemp = q;
             [w, r, q] = ENGINE.tidy(() => {
                 
-                const rjEnd1 = slice$1(r, [j, j], [m - j, 1]);
+                const rjEnd1 = slice$2(r, [j, j], [m - j, 1]);
                 const normX = norm(rjEnd1);
-                const rjj = slice$1(r, [j, j], [1, 1]);
+                const rjj = slice$2(r, [j, j], [1, 1]);
                 
-                const s = where(greater$1(rjj, 0), tensor2d([[-1]]), tensor2d([[1]]));
-                const u1 = sub$1(rjj, mul(s, normX));
-                const wPre = div(rjEnd1, u1);
+                const s = where(greater$2(rjj, 0), tensor2d([[-1]]), tensor2d([[1]]));
+                const u1 = sub$2(rjj, mul(s, normX));
+                const wPre = div$1(rjEnd1, u1);
                 if (wPre.shape[0] === 1) {
                     w = clone(one2D);
                 }
                 else {
-                    w = concat$1([
+                    w = concat$2([
                         one2D,
-                        slice$1(wPre, [1, 0], [wPre.shape[0] - 1, wPre.shape[1]])
+                        slice$2(wPre, [1, 0], [wPre.shape[0] - 1, wPre.shape[1]])
                     ], 0);
                 }
-                const tau = neg$1(div(matMul$1(s, u1), normX));
+                const tau = neg$2(div$1(matMul$1(s, u1), normX));
                 
-                const rjEndAll = slice$1(r, [j, 0], [m - j, n]);
+                const rjEndAll = slice$2(r, [j, 0], [m - j, n]);
                 const tauTimesW = mul(tau, w);
-                const wT = transpose$1(w);
+                const wT = transpose$2(w);
                 if (j === 0) {
-                    r = sub$1(rjEndAll, matMul$1(tauTimesW, matMul$1(wT, rjEndAll)));
+                    r = sub$2(rjEndAll, matMul$1(tauTimesW, matMul$1(wT, rjEndAll)));
                 }
                 else {
-                    const rTimesTau = sub$1(rjEndAll, matMul$1(tauTimesW, matMul$1(wT, rjEndAll)));
-                    r = concat$1([slice$1(r, [0, 0], [j, n]), rTimesTau], 0);
+                    const rTimesTau = sub$2(rjEndAll, matMul$1(tauTimesW, matMul$1(wT, rjEndAll)));
+                    r = concat$2([slice$2(r, [0, 0], [j, n]), rTimesTau], 0);
                 }
-                const tawTimesWT = transpose$1(tauTimesW);
-                const qAllJEnd = slice$1(q, [0, j], [m, q.shape[1] - j]);
+                const tawTimesWT = transpose$2(tauTimesW);
+                const qAllJEnd = slice$2(q, [0, j], [m, q.shape[1] - j]);
                 if (j === 0) {
-                    q = sub$1(qAllJEnd, matMul$1(matMul$1(qAllJEnd, w), tawTimesWT));
+                    q = sub$2(qAllJEnd, matMul$1(matMul$1(qAllJEnd, w), tawTimesWT));
                 }
                 else {
-                    const qTimesTau = sub$1(qAllJEnd, matMul$1(matMul$1(qAllJEnd, w), tawTimesWT));
-                    q = concat$1([slice$1(q, [0, 0], [m, j]), qTimesTau], 1);
+                    const qTimesTau = sub$2(qAllJEnd, matMul$1(matMul$1(qAllJEnd, w), tawTimesWT));
+                    q = concat$2([slice$2(q, [0, 0], [m, j]), qTimesTau], 1);
                 }
                 return [w, r, q];
             });
             dispose([rTemp, wTemp, qTemp]);
         }
         if (!fullMatrices && m > n) {
-            q = slice$1(q, [0, 0], [m, n]);
-            r = slice$1(r, [0, 0], [n, n]);
+            q = slice$2(q, [0, 0], [m, n]);
+            r = slice$2(r, [0, 0], [n, n]);
         }
         return [q, r];
     });
@@ -7759,7 +7794,7 @@ function stringToHashBucketFast_(input, numBuckets) {
     const inputs = { input: $input };
     return ENGINE.runKernel(StringToHashBucketFast, inputs, attrs);
 }
-const stringToHashBucketFast$1 =  op({ stringToHashBucketFast_ });
+const stringToHashBucketFast$2 =  op({ stringToHashBucketFast_ });
 
 
 
@@ -7930,13 +7965,13 @@ class AdadeltaOptimizer extends Optimizer {
             if (this.accumulatedGrads[i] == null) {
                 this.accumulatedGrads[i] = {
                     originalName: `${name}/accum_grad`,
-                    variable: tidy(() => zerosLike$1(value).variable(trainable))
+                    variable: tidy(() => zerosLike$2(value).variable(trainable))
                 };
             }
             if (this.accumulatedUpdates[i] == null) {
                 this.accumulatedUpdates[i] = {
                     originalName: `${name}/accum_var`,
-                    variable: tidy(() => zerosLike$1(value).variable(trainable))
+                    variable: tidy(() => zerosLike$2(value).variable(trainable))
                 };
             }
             const gradient = Array.isArray(variableGradients) ?
@@ -7948,12 +7983,12 @@ class AdadeltaOptimizer extends Optimizer {
             const accumulatedGrad = this.accumulatedGrads[i].variable;
             const accumulatedUpdate = this.accumulatedUpdates[i].variable;
             tidy(() => {
-                const newAccumulatedGrad = add(mul(accumulatedGrad, this.rho), mul(square$2(gradient), 1 - this.rho));
-                const updates = mul(div(sqrt$1(add(accumulatedUpdate, this.epsilon)), sqrt$1(add(accumulatedGrad, this.epsilon))), gradient);
-                const newAccumulatedUpdate = add(mul(accumulatedUpdate, this.rho), mul(square$2(updates), 1 - this.rho));
+                const newAccumulatedGrad = add$1(mul(accumulatedGrad, this.rho), mul(square$2(gradient), 1 - this.rho));
+                const updates = mul(div$1(sqrt$2(add$1(accumulatedUpdate, this.epsilon)), sqrt$2(add$1(accumulatedGrad, this.epsilon))), gradient);
+                const newAccumulatedUpdate = add$1(mul(accumulatedUpdate, this.rho), mul(square$2(updates), 1 - this.rho));
                 accumulatedGrad.assign(newAccumulatedGrad);
                 accumulatedUpdate.assign(newAccumulatedUpdate);
-                const newValue = add(mul(updates, -this.learningRate), value);
+                const newValue = add$1(mul(updates, -this.learningRate), value);
                 value.assign(newValue);
             });
         });
@@ -8025,7 +8060,7 @@ class AdagradOptimizer extends Optimizer {
                 const trainable = false;
                 this.accumulatedGrads[i] = {
                     originalName: `${name}/accumulator`,
-                    variable: tidy(() => fill$1(value.shape, this.initialAccumulatorValue)
+                    variable: tidy(() => fill$2(value.shape, this.initialAccumulatorValue)
                         .variable(trainable))
                 };
             }
@@ -8037,9 +8072,9 @@ class AdagradOptimizer extends Optimizer {
             }
             const accumulatedGrad = this.accumulatedGrads[i].variable;
             tidy(() => {
-                const newAccumulatedGrad = add(accumulatedGrad, square$2(gradient));
+                const newAccumulatedGrad = add$1(accumulatedGrad, square$2(gradient));
                 accumulatedGrad.assign(newAccumulatedGrad);
-                const newValue = add(mul(div(gradient, sqrt$1(add(newAccumulatedGrad, ENGINE.backend.epsilon()))), -this.learningRate), value);
+                const newValue = add$1(mul(div$1(gradient, sqrt$2(add$1(newAccumulatedGrad, ENGINE.backend.epsilon()))), -this.learningRate), value);
                 value.assign(newValue);
             });
         });
@@ -8102,21 +8137,21 @@ class AdamOptimizer extends Optimizer {
             variableGradients.map(v => v.name) :
             Object.keys(variableGradients);
         tidy(() => {
-            const oneMinusAccBeta1 = sub$1(1, this.accBeta1);
-            const oneMinusAccBeta2 = sub$1(1, this.accBeta2);
+            const oneMinusAccBeta1 = sub$2(1, this.accBeta1);
+            const oneMinusAccBeta2 = sub$2(1, this.accBeta2);
             varNames.forEach((name, i) => {
                 const value = ENGINE.registeredVariables[name];
                 const trainable = false;
                 if (this.accumulatedFirstMoment[i] == null) {
                     this.accumulatedFirstMoment[i] = {
                         originalName: `${name}/m`,
-                        variable: tidy(() => zerosLike$1(value).variable(trainable))
+                        variable: tidy(() => zerosLike$2(value).variable(trainable))
                     };
                 }
                 if (this.accumulatedSecondMoment[i] == null) {
                     this.accumulatedSecondMoment[i] = {
                         originalName: `${name}/v`,
-                        variable: tidy(() => zerosLike$1(value).variable(trainable))
+                        variable: tidy(() => zerosLike$2(value).variable(trainable))
                     };
                 }
                 const gradient = Array.isArray(variableGradients) ?
@@ -8127,13 +8162,13 @@ class AdamOptimizer extends Optimizer {
                 }
                 const firstMoment = this.accumulatedFirstMoment[i].variable;
                 const secondMoment = this.accumulatedSecondMoment[i].variable;
-                const newFirstMoment = add(mul(firstMoment, this.beta1), mul(gradient, 1 - this.beta1));
-                const newSecondMoment = add(mul(secondMoment, this.beta2), mul(square$2(gradient), 1 - this.beta2));
-                const biasCorrectedFirstMoment = div(newFirstMoment, oneMinusAccBeta1);
-                const biasCorrectedSecondMoment = div(newSecondMoment, oneMinusAccBeta2);
+                const newFirstMoment = add$1(mul(firstMoment, this.beta1), mul(gradient, 1 - this.beta1));
+                const newSecondMoment = add$1(mul(secondMoment, this.beta2), mul(square$2(gradient), 1 - this.beta2));
+                const biasCorrectedFirstMoment = div$1(newFirstMoment, oneMinusAccBeta1);
+                const biasCorrectedSecondMoment = div$1(newSecondMoment, oneMinusAccBeta2);
                 firstMoment.assign(newFirstMoment);
                 secondMoment.assign(newSecondMoment);
-                const newValue = add(mul(div(biasCorrectedFirstMoment, add(sqrt$1(biasCorrectedSecondMoment), this.epsilon)), -this.learningRate), value);
+                const newValue = add$1(mul(div$1(biasCorrectedFirstMoment, add$1(sqrt$2(biasCorrectedSecondMoment), this.epsilon)), -this.learningRate), value);
                 value.assign(newValue);
             });
             this.accBeta1.assign(mul(this.accBeta1, this.beta1));
@@ -8159,8 +8194,8 @@ class AdamOptimizer extends Optimizer {
     async setWeights(weightValues) {
         weightValues = await this.extractIterations(weightValues);
         tidy(() => {
-            this.accBeta1.assign(pow$1(this.beta1, this.iterations_ + 1));
-            this.accBeta2.assign(pow$1(this.beta2, this.iterations_ + 1));
+            this.accBeta1.assign(pow$2(this.beta1, this.iterations_ + 1));
+            this.accBeta2.assign(pow$2(this.beta2, this.iterations_ + 1));
         });
         const variableCount = weightValues.length / 2;
         const trainable = false;
@@ -8221,21 +8256,21 @@ class AdamaxOptimizer extends Optimizer {
             variableGradients.map(item => item.name) :
             Object.keys(variableGradients);
         tidy(() => {
-            const oneMinusAccBeta1 = sub$1(1, this.accBeta1);
-            const lr = div(-this.learningRate, add(mul(this.iteration, this.decay), 1));
+            const oneMinusAccBeta1 = sub$2(1, this.accBeta1);
+            const lr = div$1(-this.learningRate, add$1(mul(this.iteration, this.decay), 1));
             variableNames.forEach((name, i) => {
                 const value = ENGINE.registeredVariables[name];
                 const trainable = false;
                 if (this.accumulatedFirstMoment[i] == null) {
                     this.accumulatedFirstMoment[i] = {
                         originalName: `${name}/m`,
-                        variable: zerosLike$1(value).variable(trainable)
+                        variable: zerosLike$2(value).variable(trainable)
                     };
                 }
                 if (this.accumulatedWeightedInfNorm[i] == null) {
                     this.accumulatedWeightedInfNorm[i] = {
                         originalName: `${name}/v`,
-                        variable: zerosLike$1(value).variable(trainable)
+                        variable: zerosLike$2(value).variable(trainable)
                     };
                 }
                 const gradient = Array.isArray(variableGradients) ?
@@ -8246,16 +8281,16 @@ class AdamaxOptimizer extends Optimizer {
                 }
                 const firstMoment = this.accumulatedFirstMoment[i].variable;
                 const weightedInfNorm = this.accumulatedWeightedInfNorm[i].variable;
-                const newFirstMoment = add(mul(firstMoment, this.beta1), mul(gradient, 1 - this.beta1));
+                const newFirstMoment = add$1(mul(firstMoment, this.beta1), mul(gradient, 1 - this.beta1));
                 const ut0 = mul(weightedInfNorm, this.beta2);
-                const ut1 = abs$1(gradient);
-                const newWeightedInfNorm = maximum$1(ut0, ut1);
+                const ut1 = abs$2(gradient);
+                const newWeightedInfNorm = maximum$2(ut0, ut1);
                 firstMoment.assign(newFirstMoment);
                 weightedInfNorm.assign(newWeightedInfNorm);
-                const newValue = add(mul(div(lr, oneMinusAccBeta1), div(newFirstMoment, add(newWeightedInfNorm, this.epsilon))), value);
+                const newValue = add$1(mul(div$1(lr, oneMinusAccBeta1), div$1(newFirstMoment, add$1(newWeightedInfNorm, this.epsilon))), value);
                 value.assign(newValue);
             });
-            this.iteration.assign(add(this.iteration, 1));
+            this.iteration.assign(add$1(this.iteration, 1));
             this.accBeta1.assign(mul(this.accBeta1, this.beta1));
         });
         this.incrementIterations();
@@ -8319,7 +8354,7 @@ class SGDOptimizer extends Optimizer {
             }
             const value = ENGINE.registeredVariables[name];
             tidy(() => {
-                const newValue = add(mul(this.c, gradient), value);
+                const newValue = add$1(mul(this.c, gradient), value);
                 value.assign(newValue);
             });
         });
@@ -8383,7 +8418,7 @@ class MomentumOptimizer extends SGDOptimizer {
                 const trainable = false;
                 this.accumulations[i] = {
                     originalName: `${name}/momentum`,
-                    variable: tidy(() => zerosLike$1(value).variable(trainable))
+                    variable: tidy(() => zerosLike$2(value).variable(trainable))
                 };
             }
             const accumulation = this.accumulations[i].variable;
@@ -8395,12 +8430,12 @@ class MomentumOptimizer extends SGDOptimizer {
             }
             tidy(() => {
                 let newValue;
-                const newAccumulation = add(mul(this.m, accumulation), gradient);
+                const newAccumulation = add$1(mul(this.m, accumulation), gradient);
                 if (this.useNesterov) {
-                    newValue = add(mul(this.c, add(gradient, mul(newAccumulation, this.m))), value);
+                    newValue = add$1(mul(this.c, add$1(gradient, mul(newAccumulation, this.m))), value);
                 }
                 else {
-                    newValue = add(mul(this.c, newAccumulation), value);
+                    newValue = add$1(mul(this.c, newAccumulation), value);
                 }
                 accumulation.assign(newAccumulation);
                 value.assign(newValue);
@@ -8477,19 +8512,19 @@ class RMSPropOptimizer extends Optimizer {
             if (this.accumulatedMeanSquares[i] == null) {
                 this.accumulatedMeanSquares[i] = {
                     originalName: `${name}/rms`,
-                    variable: tidy(() => zerosLike$1(value).variable(trainable))
+                    variable: tidy(() => zerosLike$2(value).variable(trainable))
                 };
             }
             if (this.accumulatedMoments[i] == null) {
                 this.accumulatedMoments[i] = {
                     originalName: `${name}/momentum`,
-                    variable: tidy(() => zerosLike$1(value).variable(trainable))
+                    variable: tidy(() => zerosLike$2(value).variable(trainable))
                 };
             }
             if (this.accumulatedMeanGrads[i] == null && this.centered) {
                 this.accumulatedMeanGrads[i] = {
                     originalName: `${name}/mg`,
-                    variable: tidy(() => zerosLike$1(value).variable(trainable))
+                    variable: tidy(() => zerosLike$2(value).variable(trainable))
                 };
             }
             const gradient = Array.isArray(variableGradients) ?
@@ -8501,26 +8536,26 @@ class RMSPropOptimizer extends Optimizer {
             const accumulatedMeanSquare = this.accumulatedMeanSquares[i].variable;
             const accumulatedMoments = this.accumulatedMoments[i].variable;
             tidy(() => {
-                const newAccumulatedMeanSquare = add(mul(accumulatedMeanSquare, this.decay), mul(square$2(gradient), 1 - this.decay));
+                const newAccumulatedMeanSquare = add$1(mul(accumulatedMeanSquare, this.decay), mul(square$2(gradient), 1 - this.decay));
                 if (this.centered) {
                     const accumulatedMeanGrad = this.accumulatedMeanGrads[i].variable;
                     
-                    const newAccumulatedMeanGrad = add(mul(accumulatedMeanGrad, this.decay), mul(gradient, 1 - this.decay));
-                    const gradContribution = div(mul(gradient, this.learningRate), sqrt$1(sub$1(newAccumulatedMeanSquare, add(square$2(newAccumulatedMeanGrad), this.epsilon))));
-                    const newAccumulatedMoments = add(mul(accumulatedMoments, this.momentum), gradContribution);
+                    const newAccumulatedMeanGrad = add$1(mul(accumulatedMeanGrad, this.decay), mul(gradient, 1 - this.decay));
+                    const gradContribution = div$1(mul(gradient, this.learningRate), sqrt$2(sub$2(newAccumulatedMeanSquare, add$1(square$2(newAccumulatedMeanGrad), this.epsilon))));
+                    const newAccumulatedMoments = add$1(mul(accumulatedMoments, this.momentum), gradContribution);
                     accumulatedMeanSquare.assign(newAccumulatedMeanSquare);
                     accumulatedMeanGrad.assign(newAccumulatedMeanGrad);
                     accumulatedMoments.assign(newAccumulatedMoments);
-                    const newValue = sub$1(value, newAccumulatedMoments);
+                    const newValue = sub$2(value, newAccumulatedMoments);
                     value.assign(newValue);
                 }
                 else {
                     
-                    const newAccumulatedMeanSquare = add(mul(accumulatedMeanSquare, this.decay), mul(square$2(gradient), 1 - this.decay));
-                    const newAccumulatedMoments = add(mul(accumulatedMoments, this.momentum), div(mul(gradient, this.learningRate), sqrt$1(add(newAccumulatedMeanSquare, this.epsilon))));
+                    const newAccumulatedMeanSquare = add$1(mul(accumulatedMeanSquare, this.decay), mul(square$2(gradient), 1 - this.decay));
+                    const newAccumulatedMoments = add$1(mul(accumulatedMoments, this.momentum), div$1(mul(gradient, this.learningRate), sqrt$2(add$1(newAccumulatedMeanSquare, this.epsilon))));
                     accumulatedMeanSquare.assign(newAccumulatedMeanSquare);
                     accumulatedMoments.assign(newAccumulatedMoments);
-                    const newValue = sub$1(value, newAccumulatedMoments);
+                    const newValue = sub$2(value, newAccumulatedMoments);
                     value.assign(newValue);
                 }
             });
@@ -8944,7 +8979,7 @@ function decodeWeight(spec, byteBuffer) {
             }
             const realTensor = tensor(real, shape, 'float32');
             const imageTensor = tensor(image, shape, 'float32');
-            const complexTensor = complex$1(realTensor, imageTensor);
+            const complexTensor = complex$2(realTensor, imageTensor);
             realTensor.dispose();
             imageTensor.dispose();
             return complexTensor;
@@ -11021,7 +11056,7 @@ var backend_util = Object.freeze({
     get RowPartitionType () { return RowPartitionType$1; },
     SELU_SCALE: SELU_SCALE,
     SELU_SCALEALPHA: SELU_SCALEALPHA,
-    applyActivation: applyActivation,
+    applyActivation: applyActivation$1,
     assertAndGetBroadcastShape: assertAndGetBroadcastShape,
     assertAxesAreInnerMostDims: assertAxesAreInnerMostDims,
     assertParamsConsistent: assertParamsConsistent,
@@ -11082,7 +11117,7 @@ var backend_util = Object.freeze({
     getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage: getSparseSegmentReductionSegmentIdOutOfRangeErrorMessage,
     getUndoAxesPermutation: getUndoAxesPermutation,
     isIdentityPermutation: isIdentityPermutation,
-    log: log$2,
+    log: log$3,
     mergeRealAndImagArrays: mergeRealAndImagArrays,
     prepareAndValidate: prepareAndValidate,
     prepareSplitSize: prepareSplitSize,
@@ -11778,7 +11813,7 @@ function isWebGLFenceEnabled(webGLVersion) {
     const isEnabled = gl.fenceSync != null;
     return isEnabled;
 }
-function assertNotComplex(tensor, opName) {
+function assertNotComplex$1(tensor, opName) {
     if (!Array.isArray(tensor)) {
         tensor = [tensor];
     }
@@ -15021,6 +15056,18 @@ function linearSearchLastTrue(arr) {
 }
 
 
+function assertNotComplex(tensor, opName) {
+    if (!Array.isArray(tensor)) {
+        tensor = [tensor];
+    }
+    tensor.forEach(t => {
+        if (t != null) {
+            assert$1(t.dtype !== 'complex64', () => `${opName} does not support complex64 tensors in the CPU backend.`);
+        }
+    });
+}
+
+
 function simpleAbsImpl(vals) {
     const resultValues = new Float32Array(vals.length);
     for (let i = 0; i < vals.length; ++i) {
@@ -15028,6 +15075,20 @@ function simpleAbsImpl(vals) {
     }
     return resultValues;
 }
+const abs$1 = (args) => {
+    const { x } = args.inputs;
+    const cpuBackend = args.backend;
+    assertNotComplex(x, 'abs');
+    let resultValues = new Float32Array(sizeFromShape(x.shape));
+    const values = cpuBackend.data.get(x.dataId).values;
+    resultValues = simpleAbsImpl(values);
+    return cpuBackend.makeOutput(resultValues, x.shape, x.dtype);
+};
+const absConfig$1 = {
+    kernelName: Abs,
+    backendName: 'cpu',
+    kernelFunc: abs$1,
+};
 
 
 
@@ -15066,6 +15127,71 @@ function createSimpleBinaryKernelImpl(op) {
 }
 
 
+function complex$1(args) {
+    const { inputs, backend } = args;
+    const { real, imag } = inputs;
+    const realVals = backend.data.get(real.dataId).values;
+    const imagVals = backend.data.get(imag.dataId).values;
+    const complexInfo = backend.makeTensorInfo(real.shape, 'complex64');
+    const complex = backend.data.get(complexInfo.dataId);
+    
+    
+    
+    complex.complexTensorInfos = {
+        real: backend.makeTensorInfo(real.shape, 'float32', realVals),
+        imag: backend.makeTensorInfo(imag.shape, 'float32', imagVals)
+    };
+    return complexInfo;
+}
+const complexConfig$1 = {
+    kernelName: Complex,
+    backendName: 'cpu',
+    kernelFunc: complex$1
+};
+
+
+
+function zeros(backend, shape, dtype = 'float32') {
+    if (dtype === 'complex64') {
+        const real = zeros(backend, shape, 'float32');
+        const imag = zeros(backend, shape, 'float32');
+        return complex$1({ inputs: { real, imag }, backend });
+    }
+    const values = makeZerosTypedArray(sizeFromShape(shape), dtype);
+    return backend.makeTensorInfo(shape, dtype, values);
+}
+
+
+function identity$1(args) {
+    const { inputs, backend } = args;
+    const { x } = inputs;
+    backend.incRef(x.dataId);
+    return { dataId: x.dataId, shape: x.shape, dtype: x.dtype };
+}
+const identityConfig$1 = {
+    kernelName: Identity$1,
+    backendName: 'cpu',
+    kernelFunc: identity$1
+};
+
+
+function real$1(args) {
+    const { inputs, backend } = args;
+    const { input } = inputs;
+    const real = backend.data.get(input.dataId).complexTensorInfos.real;
+    const realVal = backend.data.get(real.dataId).values;
+    
+    
+    
+    return backend.makeTensorInfo(real.shape, real.dtype, realVal);
+}
+const realConfig$1 = {
+    kernelName: Real,
+    backendName: 'cpu',
+    kernelFunc: real$1
+};
+
+
 function castImpl(values, shape, inputType, dtype) {
     if (dtype === 'int32') {
         const resultValues = Int32Array.from(values);
@@ -15081,9 +15207,158 @@ function castImpl(values, shape, inputType, dtype) {
     }
     throw new Error(`Error in Cast: failed to cast ${inputType} to ${dtype}`);
 }
+function cast$2(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { dtype } = attrs;
+    
+    if (dtype === 'complex64') {
+        if (x.dtype === 'complex64') {
+            return identity$1({ inputs: { x }, backend });
+        }
+        const zerosTensorInfo = zeros(backend, x.shape, x.dtype);
+        const floatX = cast$2({ inputs: { x }, backend, attrs: { dtype: 'float32' } });
+        const result = complex$1({ inputs: { real: floatX, imag: zerosTensorInfo }, backend });
+        backend.disposeIntermediateTensorInfo(zerosTensorInfo);
+        backend.disposeIntermediateTensorInfo(floatX);
+        return result;
+    }
+    
+    if (x.dtype === 'complex64') {
+        const realPart = real$1({ inputs: { input: x }, backend });
+        const result = cast$2({ inputs: { x: realPart }, backend, attrs: { dtype } });
+        backend.disposeIntermediateTensorInfo(realPart);
+        return result;
+    }
+    if (!hasEncodingLoss(x.dtype, dtype)) {
+        
+        
+        const result = identity$1({ inputs: { x }, backend });
+        return { dataId: result.dataId, shape: result.shape, dtype };
+    }
+    const values = backend.data.get(x.dataId).values;
+    const [resultShape, resultType, resultData] = castImpl(values, x.shape, x.dtype, dtype);
+    return backend.makeTensorInfo(resultShape, resultType, resultData);
+}
+const castConfig$1 = {
+    kernelName: Cast,
+    backendName: 'cpu',
+    kernelFunc: cast$2
+};
+
+
+
+function binaryKernelFunc$1(name, simpleImpl, complexImpl, dtype) {
+    if (complexImpl == null) {
+        return ({ inputs, backend }) => {
+            const { a, b } = inputs;
+            const cpuBackend = backend;
+            assertNotComplex([a, b], name);
+            const aVals = cpuBackend.data.get(a.dataId).values;
+            const bVals = cpuBackend.data.get(b.dataId).values;
+            const decodedAVals = a.dtype === 'string' ?
+                
+                fromUint8ToStringArray(aVals) :
+                aVals;
+            const decodedBVals = a.dtype === 'string' ?
+                
+                fromUint8ToStringArray(bVals) :
+                bVals;
+            const $dtype = dtype || a.dtype;
+            const [resultData, resultShape] = simpleImpl(a.shape, b.shape, decodedAVals, decodedBVals, $dtype);
+            return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
+        };
+    }
+    return ({ inputs, backend }) => {
+        const { a, b } = inputs;
+        const cpuBackend = backend;
+        if (a.dtype === 'complex64' || b.dtype === 'complex64') {
+            const $aComplex = cast$2({ inputs: { x: a }, backend: cpuBackend, attrs: { dtype: 'complex64' } });
+            const $aComplexVals = cpuBackend.data.get($aComplex.dataId);
+            const aReal = $aComplexVals.complexTensorInfos.real;
+            const aImag = $aComplexVals.complexTensorInfos.imag;
+            const aRealVals = cpuBackend.data.get(aReal.dataId).values;
+            const aImagVals = cpuBackend.data.get(aImag.dataId).values;
+            const $bComplex = cast$2({ inputs: { x: b }, backend: cpuBackend, attrs: { dtype: 'complex64' } });
+            const $bComplexVals = cpuBackend.data.get($bComplex.dataId);
+            const bReal = $bComplexVals.complexTensorInfos.real;
+            const bImag = $bComplexVals.complexTensorInfos.imag;
+            const bRealVals = cpuBackend.data.get(bReal.dataId).values;
+            const bImagVals = cpuBackend.data.get(bImag.dataId).values;
+            const [resultRealData, resultImagData, resultShape] = complexImpl(a.shape, b.shape, aRealVals, aImagVals, bRealVals, bImagVals);
+            const resultReal = cpuBackend.makeTensorInfo(resultShape, 'float32', resultRealData);
+            const resultImag = cpuBackend.makeTensorInfo(resultShape, 'float32', resultImagData);
+            const result = complex$1({ inputs: { real: resultReal, imag: resultImag }, backend: cpuBackend });
+            cpuBackend.disposeIntermediateTensorInfo($aComplex);
+            cpuBackend.disposeIntermediateTensorInfo($bComplex);
+            cpuBackend.disposeIntermediateTensorInfo(resultReal);
+            cpuBackend.disposeIntermediateTensorInfo(resultImag);
+            return result;
+        }
+        else {
+            const aVals = cpuBackend.data.get(a.dataId).values;
+            const bVals = cpuBackend.data.get(b.dataId).values;
+            const $dtype = dtype || a.dtype;
+            const [resultData, resultShape] = simpleImpl(a.shape, b.shape, aVals, bVals, $dtype);
+            return cpuBackend.makeTensorInfo(resultShape, $dtype, resultData);
+        }
+    };
+}
+
+function createComplexBinaryKernelImpl(op) {
+    return (aShape, bShape, aRealVals, aImagVals, bRealVals, bImagVals) => {
+        const resultShape = assertAndGetBroadcastShape(aShape, bShape);
+        const resultSize = sizeFromShape(resultShape);
+        const resultRank = resultShape.length;
+        const resultStrides = computeStrides(resultShape);
+        const resultRealVals = getTypedArrayFromDType('float32', resultSize);
+        const resultImagVals = getTypedArrayFromDType('float32', resultSize);
+        const aBroadcastDims = getBroadcastDims$1(aShape, resultShape);
+        const bBroadcastDims = getBroadcastDims$1(bShape, resultShape);
+        const aVals = mergeRealAndImagArrays(aRealVals, aImagVals);
+        const bVals = mergeRealAndImagArrays(bRealVals, bImagVals);
+        const aRank = aShape.length;
+        const aStrides = computeStrides(aShape);
+        const bRank = bShape.length;
+        const bStrides = computeStrides(bShape);
+        if (aBroadcastDims.length + bBroadcastDims.length === 0) {
+            for (let i = 0; i < resultRealVals.length; i++) {
+                const aIdx = i % aVals.length;
+                const bIdx = i % bVals.length;
+                const result = op(aVals[aIdx * 2], aVals[aIdx * 2 + 1], bVals[bIdx * 2], bVals[bIdx * 2 + 1]);
+                resultRealVals[i] = result.real;
+                resultImagVals[i] = result.imag;
+            }
+        }
+        else {
+            for (let i = 0; i < resultRealVals.length; i++) {
+                const loc = indexToLoc(i, resultRank, resultStrides);
+                const aLoc = loc.slice(-aRank);
+                aBroadcastDims.forEach(d => aLoc[d] = 0);
+                const aIndex = locToIndex(aLoc, aRank, aStrides);
+                const bLoc = loc.slice(-bRank);
+                bBroadcastDims.forEach(d => bLoc[d] = 0);
+                const bIndex = locToIndex(bLoc, bRank, bStrides);
+                const opResult = op(aVals[aIndex * 2], aVals[aIndex * 2 + 1], bVals[bIndex * 2], bVals[bIndex * 2 + 1]);
+                resultRealVals[i] = opResult.real;
+                resultImagVals[i] = opResult.imag;
+            }
+        }
+        return [resultRealVals, resultImagVals, resultShape];
+    };
+}
 
 
 const addImpl = createSimpleBinaryKernelImpl(((a, b) => a + b));
+const addComplexImpl = createComplexBinaryKernelImpl(((aReal, aImag, bReal, bImag) => {
+    return { real: aReal + bReal, imag: aImag + bImag };
+}));
+const add = binaryKernelFunc$1(Add, addImpl, addComplexImpl);
+const addConfig$1 = {
+    kernelName: Add,
+    backendName: 'cpu',
+    kernelFunc: add
+};
 
 
 function bincountImpl(xVals, weightsVals, weightsDtype, weightsShape, size) {
@@ -15137,6 +15412,12 @@ function bincountReduceImpl(xBuf, weightsBuf, size, binaryOutput = false) {
 
 
 const bitwiseAndImpl = createSimpleBinaryKernelImpl(((a, b) => a & b));
+const bitwiseAnd$1 = binaryKernelFunc$1(BitwiseAnd, bitwiseAndImpl);
+const bitwiseAndConfig$1 = {
+    kernelName: BitwiseAnd,
+    backendName: 'cpu',
+    kernelFunc: bitwiseAnd$1
+};
 
 
 
@@ -15151,7 +15432,42 @@ function createSimpleUnaryImpl(op) {
 }
 
 
+
+function unaryKernelFunc$1(name, op, dtype) {
+    const impl = createSimpleUnaryImpl(op);
+    return unaryKernelFuncFromImpl(name, impl, dtype);
+}
+
+function unaryKernelFuncFromImpl(name, unaryImpl, dtype) {
+    return ({ inputs, attrs, backend }) => {
+        const { x } = inputs;
+        assertNotComplex(x, name);
+        const cpuBackend = backend;
+        const values = cpuBackend.data.get(x.dataId).values;
+        let decoded;
+        if (x.dtype === 'string') {
+            if (!Array.isArray(values)) {
+                throw new Error('String tensor\'s value was not an instance of Array');
+            }
+            decoded = fromUint8ToStringArray(values);
+        }
+        else {
+            decoded = values;
+        }
+        const $dtype = dtype || x.dtype;
+        const newValues = unaryImpl(decoded, $dtype, attrs);
+        return cpuBackend.makeTensorInfo(x.shape, $dtype, newValues);
+    };
+}
+
+
 const ceilImpl = createSimpleUnaryImpl((xi) => Math.ceil(xi));
+const ceil$1 = unaryKernelFuncFromImpl(Ceil, ceilImpl);
+const ceilConfig$1 = {
+    kernelName: Ceil,
+    backendName: 'cpu',
+    kernelFunc: ceil$1,
+};
 
 
 function concatImpl$1(inputs, outShape, dtype, simplyConcat) {
@@ -15186,18 +15502,48 @@ function concatImpl$1(inputs, outShape, dtype, simplyConcat) {
 
 
 const equalImpl = createSimpleBinaryKernelImpl((a, b) => (a === b) ? 1 : 0);
+const equal$1 = binaryKernelFunc$1(Equal, equalImpl, null , 'bool');
+const equalConfig$1 = {
+    kernelName: Equal,
+    backendName: 'cpu',
+    kernelFunc: equal$1
+};
 
 
 const expImpl = createSimpleUnaryImpl((xi) => Math.exp(xi));
+const exp$1 = unaryKernelFuncFromImpl(Exp, expImpl, 'float32');
+const expConfig$1 = {
+    kernelName: Exp,
+    backendName: 'cpu',
+    kernelFunc: exp$1,
+};
 
 
 const expm1Impl = createSimpleUnaryImpl((xi) => Math.expm1(xi));
+const expm1$1 = unaryKernelFuncFromImpl(Expm1, expm1Impl);
+const expm1Config$1 = {
+    kernelName: Expm1,
+    backendName: 'cpu',
+    kernelFunc: expm1$1,
+};
 
 
 const floorImpl = createSimpleUnaryImpl((xi) => Math.floor(xi));
+const floor$1 = unaryKernelFuncFromImpl(Floor, floorImpl);
+const floorConfig$1 = {
+    kernelName: Floor,
+    backendName: 'cpu',
+    kernelFunc: floor$1,
+};
 
 
 const floorDivImpl = createSimpleBinaryKernelImpl((a, b) => Math.floor(a / b));
+const floorDiv$1 = binaryKernelFunc$1(FloorDiv, floorDivImpl, null , 'int32');
+const floorDivConfig$1 = {
+    kernelName: FloorDiv,
+    backendName: 'cpu',
+    kernelFunc: floorDiv$1
+};
 
 
 function gatherNdImpl(indicesData, paramsBuf, dtype, numSlices, sliceRank, sliceSize, strides, paramsShape, paramsSize) {
@@ -15241,15 +15587,39 @@ function gatherV2Impl(xBuf, indicesBuf, flattenOutputShape) {
 
 
 const greaterImpl = createSimpleBinaryKernelImpl((a, b) => (a > b) ? 1 : 0);
+const greater$1 = binaryKernelFunc$1(Greater, greaterImpl, null , 'bool');
+const greaterConfig$1 = {
+    kernelName: Greater,
+    backendName: 'cpu',
+    kernelFunc: greater$1
+};
 
 
 const greaterEqualImpl = createSimpleBinaryKernelImpl((a, b) => (a >= b) ? 1 : 0);
+const greaterEqual$1 = binaryKernelFunc$1(GreaterEqual, greaterEqualImpl, null , 'bool');
+const greaterEqualConfig$1 = {
+    kernelName: GreaterEqual,
+    backendName: 'cpu',
+    kernelFunc: greaterEqual$1
+};
 
 
 const lessImpl = createSimpleBinaryKernelImpl((a, b) => (a < b) ? 1 : 0);
+const less$1 = binaryKernelFunc$1(Less, lessImpl, null , 'bool');
+const lessConfig$1 = {
+    kernelName: Less,
+    backendName: 'cpu',
+    kernelFunc: less$1
+};
 
 
 const lessEqualImpl = createSimpleBinaryKernelImpl((a, b) => (a <= b) ? 1 : 0);
+const lessEqual$1 = binaryKernelFunc$1(LessEqual, lessEqualImpl, null , 'bool');
+const lessEqualConfig$1 = {
+    kernelName: LessEqual,
+    backendName: 'cpu',
+    kernelFunc: lessEqual$1
+};
 
 
 function linSpaceImpl(start, stop, num) {
@@ -15264,6 +15634,12 @@ function linSpaceImpl(start, stop, num) {
 
 
 const logImpl = createSimpleUnaryImpl((xi) => Math.log(xi));
+const log$1 = unaryKernelFuncFromImpl(Log, logImpl);
+const logConfig$1 = {
+    kernelName: Log,
+    backendName: 'cpu',
+    kernelFunc: log$1,
+};
 
 
 function maxImpl$1(aVals, reduceSize, outShape, dtype) {
@@ -15285,21 +15661,64 @@ function maxImpl$1(aVals, reduceSize, outShape, dtype) {
 
 
 const maximumImpl = createSimpleBinaryKernelImpl(((aValue, bValue) => Math.max(aValue, bValue)));
+const maximum$1 = binaryKernelFunc$1(Maximum, maximumImpl);
+const maximumConfig$1 = {
+    kernelName: Maximum,
+    backendName: 'cpu',
+    kernelFunc: maximum$1
+};
 
 
 const minimumImpl = createSimpleBinaryKernelImpl(((aValue, bValue) => Math.min(aValue, bValue)));
+const minimum$1 = binaryKernelFunc$1(Minimum, minimumImpl);
+const minimumConfig$1 = {
+    kernelName: Minimum,
+    backendName: 'cpu',
+    kernelFunc: minimum$1
+};
 
 
 const multiplyImpl = createSimpleBinaryKernelImpl(((aValue, bValue) => aValue * bValue));
+const multiplyComplexImpl = createComplexBinaryKernelImpl(((aReal, aImag, bReal, bImag) => {
+    return {
+        real: aReal * bReal - aImag * bImag,
+        imag: aReal * bImag + aImag * bReal
+    };
+}));
+const multiply$1 = binaryKernelFunc$1(Multiply, multiplyImpl, multiplyComplexImpl);
+const multiplyConfig$1 = {
+    kernelName: Multiply,
+    backendName: 'cpu',
+    kernelFunc: multiply$1
+};
 
 
 function negImpl(xVals, xShape, xDtype) {
     const minusOne = createScalarValue(-1, xDtype);
     return multiplyImpl([], xShape, minusOne, xVals, xDtype);
 }
+function neg$1(args) {
+    const { inputs, backend } = args;
+    const { x } = inputs;
+    assertNotComplex(x, 'neg');
+    const xVals = backend.data.get(x.dataId).values;
+    const [res, newShape] = negImpl(xVals, x.shape, x.dtype);
+    return backend.makeTensorInfo(newShape, x.dtype, res);
+}
+const negConfig$1 = {
+    kernelName: Neg,
+    backendName: 'cpu',
+    kernelFunc: neg$1
+};
 
 
 const notEqualImpl = createSimpleBinaryKernelImpl(((a, b) => (a !== b) ? 1 : 0));
+const notEqual$1 = binaryKernelFunc$1(NotEqual, notEqualImpl, null , 'bool');
+const notEqualConfig$1 = {
+    kernelName: NotEqual,
+    backendName: 'cpu',
+    kernelFunc: notEqual$1
+};
 
 
 function transposeImpl$1(xVals, xShape, dtype, perm, newShape) {
@@ -15322,6 +15741,28 @@ function transposeImpl$1(xVals, xShape, dtype, perm, newShape) {
 }
 
 
+function transpose$1(args) {
+    const { inputs, attrs, backend } = args;
+    const { x } = inputs;
+    const { perm } = attrs;
+    assertNotComplex(x, 'transpose');
+    const xRank = x.shape.length;
+    const newShape = new Array(xRank);
+    for (let i = 0; i < newShape.length; i++) {
+        newShape[i] = x.shape[perm[i]];
+    }
+    const values = backend.data.get(x.dataId).values;
+    const result = transposeImpl$1(values, x.shape, x.dtype, perm, newShape);
+    const dataId = backend.write(result, newShape, x.dtype);
+    return { dataId, shape: newShape, dtype: x.dtype };
+}
+const transposeConfig$1 = {
+    kernelName: Transpose,
+    backendName: 'cpu',
+    kernelFunc: transpose$1
+};
+
+
 function prodImpl(xShape, xDtype, xVals, reductionAxes) {
     const [outShape, reduceShape] = computeOutAndReduceShapes(xShape, reductionAxes);
     const outDtype = upcastType(xDtype, 'int32');
@@ -15337,6 +15778,36 @@ function prodImpl(xShape, xDtype, xVals, reductionAxes) {
     }
     return { outVals, outShape, outDtype };
 }
+function prod$1(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis, keepDims } = attrs;
+    assertNotComplex(x, 'prod');
+    const xRank = x.shape.length;
+    const axes = parseAxisParam(axis, x.shape);
+    const permutation = getAxesPermutation(axes, xRank);
+    let reductionAxes = axes;
+    let permutedX = x;
+    const intermediateTensorInfos = [];
+    if (permutation != null) {
+        permutedX = transpose$1({ inputs: { x }, backend, attrs: { perm: permutation } });
+        intermediateTensorInfos.push(permutedX);
+        reductionAxes = getInnerMostAxes(reductionAxes.length, xRank);
+    }
+    const xVals = backend.data.get(permutedX.dataId).values;
+    const { outVals, outShape, outDtype } = prodImpl(permutedX.shape, permutedX.dtype, xVals, reductionAxes);
+    let resultShape = outShape;
+    if (keepDims) {
+        resultShape = expandShapeToKeepDim(outShape, axes);
+    }
+    intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
+    return backend.makeTensorInfo(resultShape, outDtype, outVals);
+}
+const prodConfig$1 = {
+    kernelName: Prod,
+    backendName: 'cpu',
+    kernelFunc: prod$1
+};
 
 
 function validateIndices(indices, indicesShape, numParams) {
@@ -15849,7 +16320,7 @@ class RaggedTensorToTensorOp {
         if (defaultValue.length !== valueElementSize && defaultValue.length !== 1) {
             const srcShape = this.defaultValueShape;
             tidy(() => {
-                const defaultValueTensor = reshape$1(defaultValue, srcShape);
+                const defaultValueTensor = reshape$2(defaultValue, srcShape);
                 const bCastDefault = broadcastTo(defaultValueTensor, elementShape);
                 defaultValue = bCastDefault.dataSync();
             });
@@ -15967,6 +16438,12 @@ function rangeImpl(start, stop, step, dtype) {
 
 
 const rsqrtImpl = createSimpleUnaryImpl((xi) => 1 / Math.sqrt(xi));
+const rsqrt$1 = unaryKernelFuncFromImpl(Rsqrt, rsqrtImpl);
+const rsqrtConfig$1 = {
+    kernelName: Rsqrt,
+    backendName: 'cpu',
+    kernelFunc: rsqrt$1,
+};
 
 
 function scatterImpl(indices, updates, shape, outputSize, sliceSize, numUpdates, sliceRank, strides, defaultValue, sumDupeIndices) {
@@ -16016,6 +16493,12 @@ function scatterImpl(indices, updates, shape, outputSize, sliceSize, numUpdates,
 
 
 const sigmoidImpl = createSimpleUnaryImpl((xi) => 1 / (1 + Math.exp(-xi)));
+const sigmoid$1 = unaryKernelFunc$1(Sigmoid$1, (xi) => 1 / (1 + Math.exp(-xi)));
+const sigmoidConfig$1 = {
+    kernelName: Sigmoid$1,
+    backendName: 'cpu',
+    kernelFunc: sigmoid$1,
+};
 
 
 function sliceImpl(vals, begin, size, shape, dtype) {
@@ -16044,6 +16527,22 @@ function sliceImpl(vals, begin, size, shape, dtype) {
     }
     return outBuf.values;
 }
+function slice$1(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { begin, size } = attrs;
+    assertNotComplex(x, 'slice');
+    const [$begin, $size] = parseSliceParams(x, begin, size);
+    assertParamsValid(x, $begin, $size);
+    const vals = backend.data.get(x.dataId).values;
+    const outVals = sliceImpl(vals, $begin, $size, x.shape, x.dtype);
+    return backend.makeTensorInfo($size, x.dtype, outVals);
+}
+const sliceConfig$1 = {
+    kernelName: Slice,
+    backendName: 'cpu',
+    kernelFunc: slice$1
+};
 
 
 function sparseFillEmptyRowsImpl(indices, indicesShape, indicesDType, values, valuesDType, denseShape, defaultValue) {
@@ -16307,12 +16806,24 @@ function sparseSegmentReductionImpl(input, inputShape, inputDType, indices, segm
 
 
 const sqrtImpl = createSimpleUnaryImpl((xi) => Math.sqrt(xi));
+const sqrt$1 = unaryKernelFunc$1(Sqrt, (xi) => Math.sqrt(xi));
+const sqrtConfig$1 = {
+    kernelName: Sqrt,
+    backendName: 'cpu',
+    kernelFunc: sqrt$1,
+};
 
 
 const squaredDifferenceImpl = createSimpleBinaryKernelImpl(((a, b) => {
     const diff = a - b;
     return diff * diff;
 }));
+const squaredDifference$1 = binaryKernelFunc$1(SquaredDifference, squaredDifferenceImpl);
+const squaredDifferenceConfig$1 = {
+    kernelName: SquaredDifference,
+    backendName: 'cpu',
+    kernelFunc: squaredDifference$1
+};
 
 
 const staticRegexReplaceImpl = createSimpleUnaryImpl((x, attrs) => {
@@ -16320,6 +16831,12 @@ const staticRegexReplaceImpl = createSimpleUnaryImpl((x, attrs) => {
     
     return x.replace(new RegExp(pattern, replaceGlobal ? 'g' : ''), rewrite);
 });
+const staticRegexReplace$1 = unaryKernelFuncFromImpl(StaticRegexReplace, staticRegexReplaceImpl);
+const staticRegexReplaceConfig$1 = {
+    kernelName: StaticRegexReplace,
+    backendName: 'cpu',
+    kernelFunc: staticRegexReplace$1,
+};
 
 
 function stridedSliceImpl(outShape, xBuf, strides, begin) {
@@ -16586,6 +17103,15 @@ function stringToHashBucketFastImpl(input, numBuckets) {
 
 
 const subImpl = createSimpleBinaryKernelImpl(((aValue, bValue) => aValue - bValue));
+const subComplexImpl = createComplexBinaryKernelImpl(((aReal, aImag, bReal, bImag) => {
+    return { real: aReal - bReal, imag: aImag - bImag };
+}));
+const sub$1 = binaryKernelFunc$1(Sub, subImpl, subComplexImpl);
+const subConfig$1 = {
+    kernelName: Sub,
+    backendName: 'cpu',
+    kernelFunc: sub$1
+};
 
 
 
@@ -16614,7 +17140,7 @@ const comparePair = (a, b) => {
     return valueDiff === 0 ? a.index - b.index : valueDiff;
 };
 
-function select$1(array, k, left = 0, right = array.length - 1) {
+function select$2(array, k, left = 0, right = array.length - 1) {
     while (right > left) {
         
         
@@ -16627,7 +17153,7 @@ function select$1(array, k, left = 0, right = array.length - 1) {
             const sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * Math.sign(i - n / 2);
             const newLeft = Math.max(left, Math.floor(k - i * s / n + sd));
             const newRight = Math.min(right, Math.floor(k + (n - i) * s / n + sd));
-            select$1(array, k, newLeft, newRight);
+            select$2(array, k, newLeft, newRight);
         }
         
         const t = array[k];
@@ -16677,7 +17203,7 @@ function topKImpl(x, xShape, xDtype, k, sorted) {
         let valAndInd = new Array(vals.length);
         vals.forEach((value, index) => valAndInd[index] = { value, index });
         if (k < valAndInd.length) {
-            select$1(valAndInd, k);
+            select$2(valAndInd, k);
             valAndInd = valAndInd.slice(0, k);
         }
         if (sorted) {
@@ -17422,7 +17948,7 @@ class UnpackProgram {
 
 
 
-const whereImpl = whereImpl$1;
+const whereImpl$1 = whereImpl$2;
 const EPSILON_FLOAT32 = 1e-7;
 const EPSILON_FLOAT16 = 1e-4;
 const binaryCaches = {};
@@ -17831,7 +18357,7 @@ class MathBackendWebGL extends KernelBackend {
             if (env().getNumber('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') >
                 0) {
                 const kernelMs = await Promise.all(flattenedActiveTimerQueries);
-                res['kernelMs'] = sum$2(kernelMs);
+                res['kernelMs'] = sum$3(kernelMs);
                 res['getExtraProfileInfo'] = () => kernelMs
                     .map((d, i) => ({ name: flattenedActiveTimerNames[i], ms: d }))
                     .map(d => `${d.name}: ${d.ms}`)
@@ -17952,7 +18478,7 @@ class MathBackendWebGL extends KernelBackend {
         warn('tf.where() in webgl locks the UI thread. ' +
             'Call tf.whereAsync() instead');
         const condVals = condition.dataSync();
-        return whereImpl(condition.shape, condVals);
+        return whereImpl$1(condition.shape, condVals);
     }
     packedUnaryOp(x, op, dtype) {
         const program = new UnaryOpPackedProgram(x.shape, op);
@@ -18586,7 +19112,7 @@ const LEAKYRELU_PACKED = `
   vec4 aLessThanZero = vec4(lessThan(a, vec4(0.)));
   return (aLessThanZero * (b * a)) + ((vec4(1.0) - aLessThanZero) * a);
 `;
-function leakyRelu(args) {
+function leakyRelu$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { alpha } = attrs;
@@ -18598,10 +19124,10 @@ function leakyRelu(args) {
     backend.disposeIntermediateTensorInfo($alpha);
     return result;
 }
-const leakyReluConfig = {
+const leakyReluConfig$1 = {
     kernelName: LeakyRelu,
     backendName: 'webgl',
-    kernelFunc: leakyRelu
+    kernelFunc: leakyRelu$1
 };
 
 
@@ -18610,7 +19136,7 @@ const PRELU_PACKED = `
   vec4 aLessThanZero = vec4(lessThan(a, vec4(0.)));
   return (aLessThanZero * (b * a)) + ((vec4(1.0) - aLessThanZero) * a);
 `;
-function prelu(args) {
+function prelu$1(args) {
     const { inputs, backend } = args;
     const { x, alpha } = inputs;
     const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
@@ -18618,10 +19144,10 @@ function prelu(args) {
         new BinaryOpProgram(PRELU, x.shape, alpha.shape);
     return backend.runWebGLProgram(program, [x, alpha], 'float32');
 }
-const preluConfig = {
+const preluConfig$1 = {
     kernelName: Prelu,
     backendName: 'webgl',
-    kernelFunc: prelu
+    kernelFunc: prelu$1
 };
 
 
@@ -18960,7 +19486,7 @@ function packedReshape(input, afterShape, backend) {
 }
 
 
-function reshape(args) {
+function reshape$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { shape } = attrs;
@@ -18979,10 +19505,10 @@ function reshape(args) {
     webglBackend.incRef(x.dataId);
     return { dataId: x.dataId, shape: $shape, dtype: x.dtype };
 }
-const reshapeConfig = {
+const reshapeConfig$1 = {
     kernelName: Reshape$1,
     backendName: 'webgl',
-    kernelFunc: reshape
+    kernelFunc: reshape$1
 };
 
 
@@ -19358,10 +19884,10 @@ function sumImpl(x, axis, keepDims, backend) {
     const inSize = sizeFromShape(reduceShape);
     const xSize = sizeFromShape(x.shape);
     const batchSize = xSize / inSize;
-    const reshapedInput = reshape({ inputs: { x: sumInput }, attrs: { shape: [batchSize, inSize] }, backend });
+    const reshapedInput = reshape$1({ inputs: { x: sumInput }, attrs: { shape: [batchSize, inSize] }, backend });
     const outType = sumOutType(x.dtype);
     const reduced = reduce(reshapedInput, outType, 'sum', backend);
-    const out = reshape({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
+    const out = reshape$1({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
     backend.disposeIntermediateTensorInfo(reshapedInput);
     backend.disposeIntermediateTensorInfo(reduced);
     if (sumInputIsTransposed) {
@@ -19371,16 +19897,16 @@ function sumImpl(x, axis, keepDims, backend) {
 }
 
 
-function sum(args) {
+function sum$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
     return sumImpl(x, axis, keepDims, backend);
 }
-const sumConfig = {
+const sumConfig$1 = {
     kernelName: Sum,
     backendName: 'webgl',
-    kernelFunc: sum
+    kernelFunc: sum$1
 };
 
 
@@ -19443,8 +19969,8 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
         [batchDimB, outerShapeB, innerShapeB] :
         [batchDimB, innerShapeB, outerShapeB];
     
-    const a3d = reshape({ inputs: { x: a }, backend, attrs: { shape: a3dShape } });
-    const b3d = reshape({ inputs: { x: b }, backend, attrs: { shape: b3dShape } });
+    const a3d = reshape$1({ inputs: { x: a }, backend, attrs: { shape: a3dShape } });
+    const b3d = reshape$1({ inputs: { x: b }, backend, attrs: { shape: b3dShape } });
     const intermediates = [a3d, b3d];
     const batchDim = Math.max(batchDimA, batchDimB);
     const sharedDim = transposeA ? a3d.shape[1] : a3d.shape[2];
@@ -19475,7 +20001,7 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
         const shouldReshapeB = outerShapeB === 1;
         let aVec3d = aVec;
         if (shouldReshapeA) {
-            aVec3d = reshape({
+            aVec3d = reshape$1({
                 inputs: { x: aVec },
                 backend,
                 attrs: { shape: [batchDim, sharedDim, 1] }
@@ -19485,7 +20011,7 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
         const axis = outerShapeB === 1 ? 2 : 1;
         let bVec3d = bVec;
         if (shouldReshapeB) {
-            bVec3d = reshape({
+            bVec3d = reshape$1({
                 inputs: { x: bVec },
                 backend,
                 attrs: { shape: [batchDim, 1, sharedDim] }
@@ -19493,7 +20019,7 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
             intermediates.push(bVec3d);
         }
         const product = multiply({ inputs: { a: aVec3d, b: bVec3d }, backend });
-        out = sum({ inputs: { x: product }, backend, attrs: { axis, keepDims: true } });
+        out = sum$1({ inputs: { x: product }, backend, attrs: { axis, keepDims: true } });
         intermediates.push(product);
     }
     else {
@@ -19513,7 +20039,7 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
         }
         out = backend.runWebGLProgram(program, inputs, dtype);
     }
-    const outReshaped = reshape({ inputs: { x: out }, backend, attrs: { shape: outShape } });
+    const outReshaped = reshape$1({ inputs: { x: out }, backend, attrs: { shape: outShape } });
     intermediates.push(out);
     for (const i of intermediates) {
         backend.disposeIntermediateTensorInfo(i);
@@ -19522,7 +20048,7 @@ function batchMatMulImpl({ a, b, transposeA, transposeB, backend, bias = null, p
 }
 
 
-function _fusedMatMul(args) {
+function _fusedMatMul$1(args) {
     const { inputs, backend, attrs } = args;
     const { a, b, bias, preluActivationWeights } = inputs;
     const { transposeA, transposeB, activation, leakyreluAlpha } = attrs;
@@ -19538,10 +20064,10 @@ function _fusedMatMul(args) {
         activation
     });
 }
-const _fusedMatMulConfig = {
+const _fusedMatMulConfig$1 = {
     kernelName: _FusedMatMul,
     backendName: 'webgl',
-    kernelFunc: _fusedMatMul,
+    kernelFunc: _fusedMatMul$1,
 };
 
 
@@ -19578,22 +20104,22 @@ const ACOS = CHECK_NAN_SNIPPET$1 + `
   }
   return acos(x);
 `;
-const acos = unaryKernelFunc({ opSnippet: ACOS });
-const acosConfig = {
+const acos$1 = unaryKernelFunc({ opSnippet: ACOS });
+const acosConfig$1 = {
     kernelName: Acos,
     backendName: 'webgl',
-    kernelFunc: acos,
+    kernelFunc: acos$1,
 };
 
 
 const ACOSH = CHECK_NAN_SNIPPET$1 + `
   if (x < 1.0) return NAN;
 return log(x + sqrt(x * x - 1.0));`;
-const acosh = unaryKernelFunc({ opSnippet: ACOSH });
-const acoshConfig = {
+const acosh$1 = unaryKernelFunc({ opSnippet: ACOSH });
+const acoshConfig$1 = {
     kernelName: Acosh,
     backendName: 'webgl',
-    kernelFunc: acosh,
+    kernelFunc: acosh$1,
 };
 
 
@@ -19669,7 +20195,7 @@ class AddNPackedProgram {
 }
 
 
-function addN(args) {
+function addN$1(args) {
     const { inputs, backend } = args;
     const tensors = inputs;
     if (tensors.length === 1) {
@@ -19678,9 +20204,9 @@ function addN(args) {
     
     if (tensors.length > env().getNumber('WEBGL_MAX_TEXTURES_IN_SHADER')) {
         const midIndex = Math.floor(tensors.length / 2);
-        const leftSide = addN({ inputs: tensors.slice(0, midIndex), backend });
-        const rightSide = addN({ inputs: tensors.slice(midIndex), backend });
-        return addN({ inputs: [leftSide, rightSide], backend });
+        const leftSide = addN$1({ inputs: tensors.slice(0, midIndex), backend });
+        const rightSide = addN$1({ inputs: tensors.slice(midIndex), backend });
+        return addN$1({ inputs: [leftSide, rightSide], backend });
     }
     const dtype = tensors.map(t => t.dtype).reduce((d1, d2) => upcastType(d1, d2));
     const shapes = tensors.map(t => t.shape);
@@ -19691,14 +20217,14 @@ function addN(args) {
         new AddNProgram(tensors[0].shape, shapes);
     return backend.runWebGLProgram(program, tensors, dtype);
 }
-const addNConfig = {
+const addNConfig$1 = {
     kernelName: AddN,
     backendName: 'webgl',
-    kernelFunc: addN
+    kernelFunc: addN$1
 };
 
 
-function all(args) {
+function all$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
@@ -19714,15 +20240,15 @@ function all(args) {
     assertAxesAreInnerMostDims('all', axes, xRank);
     const [outShape, reduceShape] = computeOutAndReduceShapes(permutedX.shape, axes);
     const inSize = sizeFromShape(reduceShape);
-    const a2D = reshape({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+    const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
     const reduced = reduce(a2D, a2D.dtype, 'all', backend);
     let res;
     if (keepDims) {
         const newShape = expandShapeToKeepDim(outShape, origAxes);
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
     }
     else {
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
     }
     backend.disposeIntermediateTensorInfo(a2D);
     backend.disposeIntermediateTensorInfo(reduced);
@@ -19731,14 +20257,14 @@ function all(args) {
     }
     return res;
 }
-const allConfig = {
+const allConfig$1 = {
     kernelName: All,
     backendName: 'webgl',
-    kernelFunc: all
+    kernelFunc: all$1
 };
 
 
-function any(args) {
+function any$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
@@ -19754,15 +20280,15 @@ function any(args) {
     assertAxesAreInnerMostDims('any', axes, xRank);
     const [outShape, reduceShape] = computeOutAndReduceShapes(permutedX.shape, axes);
     const inSize = sizeFromShape(reduceShape);
-    const a2D = reshape({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+    const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
     const reduced = reduce(a2D, a2D.dtype, 'any', backend);
     let res;
     if (keepDims) {
         const newShape = expandShapeToKeepDim(outShape, origAxes);
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
     }
     else {
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
     }
     backend.disposeIntermediateTensorInfo(a2D);
     backend.disposeIntermediateTensorInfo(reduced);
@@ -19771,10 +20297,10 @@ function any(args) {
     }
     return res;
 }
-const anyConfig = {
+const anyConfig$1 = {
     kernelName: Any,
     backendName: 'webgl',
-    kernelFunc: any
+    kernelFunc: any$1
 };
 
 
@@ -19977,11 +20503,11 @@ function argMinMaxReduce(backend, x, axis, reduceType) {
         }
         const [outShape, reduceShape] = computeOutAndReduceShapes(xUnPacked.shape, axes);
         const inSize = sizeFromShape(reduceShape);
-        const a2D = reshape({ inputs: { x: xUnPacked }, backend, attrs: { shape: [-1, inSize] } });
+        const a2D = reshape$1({ inputs: { x: xUnPacked }, backend, attrs: { shape: [-1, inSize] } });
         intermediateTensorInfos.push(a2D);
         const reduced = argReduce(backend, a2D, reduceType);
         intermediateTensorInfos.push(reduced);
-        const reshaped = reshape({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
+        const reshaped = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
         intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
         return reshaped;
     }
@@ -19989,7 +20515,7 @@ function argMinMaxReduce(backend, x, axis, reduceType) {
 }
 
 
-function argMax(args) {
+function argMax$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis } = attrs;
@@ -20007,14 +20533,14 @@ function argMax(args) {
     intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return out;
 }
-const argMaxConfig = {
+const argMaxConfig$1 = {
     kernelName: ArgMax,
     backendName: 'webgl',
-    kernelFunc: argMax
+    kernelFunc: argMax$1
 };
 
 
-function argMin(args) {
+function argMin$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis } = attrs;
@@ -20032,10 +20558,10 @@ function argMin(args) {
     intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return out;
 }
-const argMinConfig = {
+const argMinConfig$1 = {
     kernelName: ArgMin,
     backendName: 'webgl',
-    kernelFunc: argMin
+    kernelFunc: argMin$1
 };
 
 
@@ -20045,31 +20571,31 @@ const ASIN = CHECK_NAN_SNIPPET$1 + `
   }
   return asin(x);
 `;
-const asin = unaryKernelFunc({ opSnippet: ASIN });
-const asinConfig = {
+const asin$1 = unaryKernelFunc({ opSnippet: ASIN });
+const asinConfig$1 = {
     kernelName: Asin,
     backendName: 'webgl',
-    kernelFunc: asin,
+    kernelFunc: asin$1,
 };
 
 
 const ASINH = CHECK_NAN_SNIPPET$1 + `return log(x + sqrt(x * x + 1.0));`;
-const asinh = unaryKernelFunc({ opSnippet: ASINH });
-const asinhConfig = {
+const asinh$1 = unaryKernelFunc({ opSnippet: ASINH });
+const asinhConfig$1 = {
     kernelName: Asinh,
     backendName: 'webgl',
-    kernelFunc: asinh,
+    kernelFunc: asinh$1,
 };
 
 
 const ATAN = CHECK_NAN_SNIPPET$1 + `
   return atan(x);
 `;
-const atan = unaryKernelFunc({ opSnippet: ATAN });
-const atanConfig = {
+const atan$1 = unaryKernelFunc({ opSnippet: ATAN });
+const atanConfig$1 = {
     kernelName: Atan,
     backendName: 'webgl',
-    kernelFunc: atan,
+    kernelFunc: atan$1,
 };
 
 
@@ -20085,22 +20611,22 @@ const ATAN2_PACKED = `
     CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
-const atan2 = binaryKernelFunc({ opSnippet: ATAN2, packedOpSnippet: ATAN2_PACKED });
-const atan2Config = {
+const atan2$1 = binaryKernelFunc({ opSnippet: ATAN2, packedOpSnippet: ATAN2_PACKED });
+const atan2Config$1 = {
     kernelName: Atan2,
     backendName: 'webgl',
-    kernelFunc: atan2,
+    kernelFunc: atan2$1,
 };
 
 
 const ATANH = CHECK_NAN_SNIPPET$1 + `
   if ((x < -1.0) || (x > 1.0)) return NAN;
 return (log(1.0 + x) - log(1.0 - x)) / 2.0;`;
-const atanh = unaryKernelFunc({ opSnippet: ATANH });
-const atanhConfig = {
+const atanh$1 = unaryKernelFunc({ opSnippet: ATANH });
+const atanhConfig$1 = {
     kernelName: Atanh,
     backendName: 'webgl',
-    kernelFunc: atanh,
+    kernelFunc: atanh$1,
 };
 
 
@@ -20503,10 +21029,10 @@ class Pool3DProgram {
 }
 
 
-function avgPool(args) {
+function avgPool$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
-    assertNotComplex(x, 'avgPool');
+    assertNotComplex$1(x, 'avgPool');
     const { filterSize, strides, pad, dimRoundingMode } = attrs;
     const dilations = 1;
     assert$1(eitherStridesOrDilationsAreOne(strides, dilations), () => 'Error in avgPool: Either strides or dilations must be 1. ' +
@@ -20519,14 +21045,14 @@ function avgPool(args) {
     const avgPoolProgram = new Pool2DProgram(convInfo, 'avg', false);
     return backend.runWebGLProgram(avgPoolProgram, [x], 'float32');
 }
-const avgPoolConfig = {
+const avgPoolConfig$1 = {
     kernelName: AvgPool,
     backendName: 'webgl',
-    kernelFunc: avgPool
+    kernelFunc: avgPool$1
 };
 
 
-function avgPool3D(args) {
+function avgPool3D$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { filterSize, strides, pad, dimRoundingMode, dataFormat } = attrs;
@@ -20535,10 +21061,10 @@ function avgPool3D(args) {
     const avgPoolProgram = new Pool3DProgram(convInfo, 'avg', false);
     return backend.runWebGLProgram(avgPoolProgram, [x], 'float32');
 }
-const avgPool3DConfig = {
+const avgPool3DConfig$1 = {
     kernelName: AvgPool3D,
     backendName: 'webgl',
-    kernelFunc: avgPool3D
+    kernelFunc: avgPool3D$1
 };
 
 
@@ -20683,7 +21209,7 @@ class AvgPool3DBackpropProgram {
 }
 
 
-function avgPool3DGrad(args) {
+function avgPool3DGrad$1(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input } = inputs;
     const x = input;
@@ -20693,40 +21219,40 @@ function avgPool3DGrad(args) {
     const avgPoolBackpropProgram = new AvgPool3DBackpropProgram(convInfo);
     return backend.runWebGLProgram(avgPoolBackpropProgram, [dy], x.dtype);
 }
-const avgPool3DGradConfig$1 = {
+const avgPool3DGradConfig$2 = {
     kernelName: AvgPool3DGrad,
     backendName: 'webgl',
-    kernelFunc: avgPool3DGrad
+    kernelFunc: avgPool3DGrad$1
 };
 
 
-function avgPoolGrad$1(args) {
+function avgPoolGrad$2(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input } = inputs;
     const x = input;
-    assertNotComplex([dy, input], 'avgPoolGrad');
+    assertNotComplex$1([dy, input], 'avgPoolGrad');
     const { filterSize, strides, pad } = attrs;
     const convInfo = computePool2DInfo(x.shape, filterSize, strides, 1 , pad);
     const avgPoolBackpropProgram = new AvgPool2DBackpropProgram(convInfo);
     return backend.runWebGLProgram(avgPoolBackpropProgram, [dy], x.dtype);
 }
-const avgPoolGradConfig$1 = {
+const avgPoolGradConfig$2 = {
     kernelName: AvgPoolGrad,
     backendName: 'webgl',
-    kernelFunc: avgPoolGrad$1
+    kernelFunc: avgPoolGrad$2
 };
 
 
-function batchMatMul(args) {
+function batchMatMul$1(args) {
     const { inputs, backend, attrs } = args;
     const { a, b } = inputs;
     const { transposeA, transposeB } = attrs;
     return batchMatMulImpl({ a, b, transposeA, transposeB, backend });
 }
-const batchMatMulConfig = {
+const batchMatMulConfig$1 = {
     kernelName: BatchMatMul,
     backendName: 'webgl',
-    kernelFunc: batchMatMul,
+    kernelFunc: batchMatMul$1,
 };
 
 
@@ -20802,7 +21328,7 @@ class BatchNormPackedProgram {
 }
 
 
-const batchNorm = ({ inputs, backend, attrs }) => {
+const batchNorm$1 = ({ inputs, backend, attrs }) => {
     const { x, mean, variance, offset, scale } = inputs;
     assert$1(mean.shape.length === variance.shape.length, () => 'Batch normalization gradient requires mean and variance to have ' +
         'equal ranks.');
@@ -20831,10 +21357,10 @@ const batchNorm = ({ inputs, backend, attrs }) => {
     const output = backend.runWebGLProgram(program, finalInputs, finalInputs[0].dtype);
     return output;
 };
-const batchNormConfig = {
+const batchNormConfig$1 = {
     kernelName: FusedBatchNorm,
     backendName: 'webgl',
-    kernelFunc: batchNorm,
+    kernelFunc: batchNorm$1,
 };
 
 
@@ -20993,7 +21519,7 @@ const sliceConfig = {
 };
 
 
-const batchToSpaceND = (args) => {
+const batchToSpaceND$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { blockShape, crops } = attrs;
@@ -21006,9 +21532,9 @@ const batchToSpaceND = (args) => {
     const sliceBeginCoords = getSliceBeginCoords(crops, blockShape.length);
     const sliceSize = getSliceSize(reshapedPermuted, crops, blockShape.length);
     const toDispose = [];
-    const reshapedIntermediate = reshape({ inputs: { x }, backend, attrs: { shape: reshaped } });
+    const reshapedIntermediate = reshape$1({ inputs: { x }, backend, attrs: { shape: reshaped } });
     const transposedIntermediate = transpose({ inputs: { x: reshapedIntermediate }, backend, attrs: { perm: permuted } });
-    const reshapedIntermediate2 = reshape({
+    const reshapedIntermediate2 = reshape$1({
         inputs: { x: transposedIntermediate },
         backend,
         attrs: { shape: reshapedPermuted }
@@ -21024,14 +21550,14 @@ const batchToSpaceND = (args) => {
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return sliced;
 };
-const batchToSpaceNDConfig = {
+const batchToSpaceNDConfig$1 = {
     kernelName: BatchToSpaceND,
     backendName: 'webgl',
-    kernelFunc: batchToSpaceND
+    kernelFunc: batchToSpaceND$1
 };
 
 
-function bincount(args) {
+function bincount$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, weights } = inputs;
     const { size } = attrs;
@@ -21040,10 +21566,10 @@ function bincount(args) {
     const outVals = bincountImplCPU(xVals, weightsVals, weights.dtype, weights.shape, size);
     return backend.makeTensorInfo([size], weights.dtype, outVals);
 }
-const bincountConfig = {
+const bincountConfig$1 = {
     kernelName: Bincount,
     backendName: 'webgl',
-    kernelFunc: bincount
+    kernelFunc: bincount$1
 };
 
 
@@ -21089,7 +21615,7 @@ const bitwiseAndConfig = {
 };
 
 
-function broadcastArgs(args) {
+function broadcastArgs$1(args) {
     const { inputs, backend } = args;
     const { s0, s1 } = inputs;
     const s0Vals = backend.readSync(s0.dataId);
@@ -21097,10 +21623,10 @@ function broadcastArgs(args) {
     const broadcastShape = assertAndGetBroadcastShape(Array.from(s0Vals), Array.from(s1Vals));
     return backend.makeTensorInfo([broadcastShape.length], 'int32', Int32Array.from(broadcastShape));
 }
-const broadcastArgsConfig = {
+const broadcastArgsConfig$1 = {
     kernelName: BroadcastArgs,
     backendName: 'webgl',
-    kernelFunc: broadcastArgs
+    kernelFunc: broadcastArgs$1
 };
 
 
@@ -21144,7 +21670,7 @@ function cast$1(args) {
             return identity({ inputs: { x }, backend });
         }
         
-        const zerosTensor = zeros(x.shape);
+        const zerosTensor = zeros$1(x.shape);
         const floatX = cast$1({ inputs: { x }, backend, attrs: { dtype: 'float32' } });
         const result = complex({ inputs: { real: floatX, imag: zerosTensor }, backend });
         zerosTensor.dispose();
@@ -21247,7 +21773,7 @@ class ClipPackedProgram {
 }
 
 
-function clipByValue(args) {
+function clipByValue$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { clipValueMin, clipValueMax } = attrs;
@@ -21261,10 +21787,10 @@ function clipByValue(args) {
     const customValues = [[clipValueMin], [clipValueMax]];
     return backend.runWebGLProgram(program, [x], x.dtype, customValues);
 }
-const clipByValueConfig = {
+const clipByValueConfig$1 = {
     kernelName: ClipByValue,
     backendName: 'webgl',
-    kernelFunc: clipByValue
+    kernelFunc: clipByValue$1
 };
 
 
@@ -21300,7 +21826,7 @@ function makeComplexComponentTensorInfo(complexTensor, complexPart) {
         shape: complexTensor.shape
     };
 }
-function complexAbs(args) {
+function complexAbs$1(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     const xData = backend.texData.get(x.dataId);
@@ -21311,10 +21837,10 @@ function complexAbs(args) {
     ];
     return backend.runWebGLProgram(program, programInputs, programInputs[0].dtype);
 }
-const complexAbsConfig = {
+const complexAbsConfig$1 = {
     kernelName: ComplexAbs,
     backendName: 'webgl',
-    kernelFunc: complexAbs
+    kernelFunc: complexAbs$1
 };
 
 
@@ -21438,16 +21964,16 @@ function shiftedChannels(channels, channel, shift) {
 }
 
 
-function imag(args) {
+function imag$1(args) {
     const { inputs, backend } = args;
     const { input } = inputs;
     const inputData = backend.texData.get(input.dataId);
     return identity({ inputs: { x: inputData.complexTensorInfos.imag }, backend });
 }
-const imagConfig = {
+const imagConfig$1 = {
     kernelName: Imag,
     backendName: 'webgl',
-    kernelFunc: imag
+    kernelFunc: imag$1
 };
 
 
@@ -21455,7 +21981,7 @@ function concatImpl(inputs, axis, backend) {
     const dtype = inputs[0].dtype;
     if (dtype === 'complex64') {
         const reals = inputs.map((t) => real({ inputs: { input: t }, backend }));
-        const imags = inputs.map((t) => imag({ inputs: { input: t }, backend }));
+        const imags = inputs.map((t) => imag$1({ inputs: { input: t }, backend }));
         const realConcated = concatImpl(reals, axis, backend);
         const imagConcated = concatImpl(imags, axis, backend);
         const result = complex({ inputs: { real: realConcated, imag: imagConcated }, backend });
@@ -21486,7 +22012,7 @@ function concatImpl(inputs, axis, backend) {
         const tensors2D = inputs.map(t => {
             const innerSize = sizeFromShape(t.shape.slice(axis));
             const shape = [-1, innerSize];
-            return reshape({ inputs: { x: t }, backend, attrs: { shape } });
+            return reshape$1({ inputs: { x: t }, backend, attrs: { shape } });
         });
         const inputsValShapes = tensors2D.map(t => {
             return { vals: backend.readSync(t.dataId), shape: t.shape };
@@ -21532,7 +22058,7 @@ function concatImpl(inputs, axis, backend) {
     const program = new ConcatProgram(tensors2D.map(t => t.shape));
     const result = backend.runWebGLProgram(program, tensors2D, dtype);
     tensors2D.forEach(r => backend.disposeIntermediateTensorInfo(r));
-    const reshapedResult = reshape({ inputs: { x: result }, attrs: { shape: outShape }, backend });
+    const reshapedResult = reshape$1({ inputs: { x: result }, attrs: { shape: outShape }, backend });
     backend.disposeIntermediateTensorInfo(result);
     return reshapedResult;
 }
@@ -21545,7 +22071,7 @@ function computeTensors2D(inputs, axis, backend) {
     
     
     const outShape = computeOutShape$1(inputs.map(t => t.shape), axis);
-    const tensors2D = inputs.map(x => reshape({
+    const tensors2D = inputs.map(x => reshape$1({
         inputs: { x },
         attrs: { shape: [-1, sizeFromShape(x.shape.slice(axis))] },
         backend
@@ -21554,7 +22080,7 @@ function computeTensors2D(inputs, axis, backend) {
 }
 
 
-function concat(args) {
+function concat$1(args) {
     const { inputs, backend, attrs } = args;
     const { axis } = attrs;
     const $axis = parseAxisParam(axis, inputs[0].shape)[0];
@@ -21571,10 +22097,10 @@ function concat(args) {
     }
     return concatImpl($inputs, $axis, backend);
 }
-const concatConfig = {
+const concatConfig$1 = {
     kernelName: Concat,
     backendName: 'webgl',
-    kernelFunc: concat
+    kernelFunc: concat$1
 };
 
 
@@ -22354,7 +22880,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
     if (preluActivationWeights != null) {
         const targetShape = getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
         if (targetShape != null) {
-            preluActivationWeights = reshape({
+            preluActivationWeights = reshape$1({
                 inputs: { x: preluActivationWeights },
                 backend,
                 attrs: { shape: targetShape }
@@ -22365,7 +22891,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
     if (bias != null) {
         const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
         if (targetShape != null) {
-            bias = reshape({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
+            bias = reshape$1({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
             intermediates.push(bias);
         }
     }
@@ -22405,7 +22931,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
         xTexData.shape = xTexData.shape.slice();
         xTexData.shape[xTexData.shape.length - 2]++;
         assert$1(isReshapeFree(xTexData.shape, xReshaped.shape), () => `packed reshape ${xTexData.shape} to ${xReshaped.shape} isn't free`);
-        const filterReshaped = reshape({
+        const filterReshaped = reshape$1({
             inputs: { x: filter },
             backend,
             attrs: { shape: [1, convInfo.inChannels, convInfo.outChannels] }
@@ -22435,7 +22961,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
     }
     else {
         const numCols = convInfo.outHeight * convInfo.outWidth;
-        const xReshaped = reshape({
+        const xReshaped = reshape$1({
             inputs: { x },
             backend,
             attrs: {
@@ -22444,7 +22970,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
                     [convInfo.batchSize, convInfo.inChannels, numCols]
             }
         });
-        const filterReshaped = reshape({
+        const filterReshaped = reshape$1({
             inputs: { x: filter },
             backend,
             attrs: { shape: [1, convInfo.inChannels, convInfo.outChannels] }
@@ -22460,7 +22986,7 @@ function conv2dByMatMul({ x, filter, convInfo, backend, bias = null, preluActiva
             preluActivationWeights,
             leakyreluAlpha
         });
-        out = reshape({ inputs: { x: result }, backend, attrs: { shape: convInfo.outShape } });
+        out = reshape$1({ inputs: { x: result }, backend, attrs: { shape: convInfo.outShape } });
         intermediates.push(xReshaped);
         intermediates.push(filterReshaped);
         intermediates.push(result);
@@ -22490,7 +23016,7 @@ function conv2dWithIm2Row({ x, filter, convInfo, backend, bias = null, preluActi
     if (preluActivationWeights != null) {
         const targetShape = getShapeForBatchMatMul(preluActivationWeights.shape, isChannelsLast);
         if (targetShape != null) {
-            preluActivationWeights = reshape({
+            preluActivationWeights = reshape$1({
                 inputs: { x: preluActivationWeights },
                 backend,
                 attrs: { shape: targetShape }
@@ -22501,11 +23027,11 @@ function conv2dWithIm2Row({ x, filter, convInfo, backend, bias = null, preluActi
     if (bias != null) {
         const targetShape = getShapeForBatchMatMul(bias.shape, isChannelsLast);
         if (targetShape != null) {
-            bias = reshape({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
+            bias = reshape$1({ inputs: { x: bias }, backend, attrs: { shape: targetShape } });
             intermediates.push(bias);
         }
     }
-    const w2Row = reshape({
+    const w2Row = reshape$1({
         inputs: { x: filter },
         backend,
         attrs: { shape: [1, sharedDim, sizeFromShape(filter.shape) / sharedDim] }
@@ -22519,7 +23045,7 @@ function conv2dWithIm2Row({ x, filter, convInfo, backend, bias = null, preluActi
         [convInfo.filterWidth * convInfo.inChannels], [convInfo.outWidth]
     ];
     const im2Col = backend.runWebGLProgram(im2ColProgram, [x], 'float32', customValues);
-    const im2ColReshaped = reshape({ inputs: { x: im2Col }, backend, attrs: { shape: x2ColShape } });
+    const im2ColReshaped = reshape$1({ inputs: { x: im2Col }, backend, attrs: { shape: x2ColShape } });
     intermediates.push(im2Col);
     intermediates.push(im2ColReshaped);
     const hasBias = bias != null;
@@ -22543,7 +23069,7 @@ function conv2dWithIm2Row({ x, filter, convInfo, backend, bias = null, preluActi
         intermediates.push($leakyreluAlpha);
     }
     const product = backend.runWebGLProgram(matmulProgram, inputs, 'float32');
-    const out = reshape({ inputs: { x: product }, backend, attrs: { shape: convInfo.outShape } });
+    const out = reshape$1({ inputs: { x: product }, backend, attrs: { shape: convInfo.outShape } });
     intermediates.push(product);
     for (const i of intermediates) {
         backend.disposeIntermediateTensorInfo(i);
@@ -22584,11 +23110,11 @@ function conv2d(args) {
         const program = new Conv2DProgram(convInfo);
         out = backend.runWebGLProgram(program, [x, filter], 'float32');
     }
-    const outReshaped = reshape({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
+    const outReshaped = reshape$1({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
     backend.disposeIntermediateTensorInfo(out);
     return outReshaped;
 }
-const conv2DConfig = {
+const conv2DConfig$1 = {
     kernelName: Conv2D,
     backendName: 'webgl',
     kernelFunc: conv2d,
@@ -22846,7 +23372,7 @@ class Conv3DDerInputProgram {
 }
 
 
-function conv2DBackpropFilter(args) {
+function conv2DBackpropFilter$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, dy } = inputs;
     const { strides, pad, dataFormat, dimRoundingMode, filterShape } = attrs;
@@ -22855,10 +23381,10 @@ function conv2DBackpropFilter(args) {
     const program = new Conv2DDerFilterProgram(convInfo);
     return backend.runWebGLProgram(program, [x, dy], 'float32');
 }
-const conv2DBackpropFilterConfig = {
+const conv2DBackpropFilterConfig$1 = {
     kernelName: Conv2DBackpropFilter,
     backendName: 'webgl',
-    kernelFunc: conv2DBackpropFilter,
+    kernelFunc: conv2DBackpropFilter$1,
 };
 
 
@@ -22955,7 +23481,7 @@ class Conv2DDerInputPackedProgram {
 }
 
 
-function conv2DBackpropInput(args) {
+function conv2DBackpropInput$1(args) {
     const { inputs, backend, attrs } = args;
     const { dy, filter } = inputs;
     const { inputShape, strides, pad, dataFormat, dimRoundingMode } = attrs;
@@ -22974,14 +23500,14 @@ function conv2DBackpropInput(args) {
         return backend.runWebGLProgram(program, [dy, filter], 'float32');
     }
 }
-const conv2DBackpropInputConfig = {
+const conv2DBackpropInputConfig$1 = {
     kernelName: Conv2DBackpropInput,
     backendName: 'webgl',
-    kernelFunc: conv2DBackpropInput,
+    kernelFunc: conv2DBackpropInput$1,
 };
 
 
-function conv3D(args) {
+function conv3D$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter } = inputs;
     const { strides, pad, dilations } = attrs;
@@ -22989,14 +23515,14 @@ function conv3D(args) {
     const program = new Conv3DProgram(convInfo);
     return backend.runWebGLProgram(program, [x, filter], 'float32');
 }
-const conv3DConfig = {
+const conv3DConfig$1 = {
     kernelName: Conv3D,
     backendName: 'webgl',
-    kernelFunc: conv3D,
+    kernelFunc: conv3D$1,
 };
 
 
-function conv3DBackpropFilterV2(args) {
+function conv3DBackpropFilterV2$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, dy } = inputs;
     const { strides, pad, filterShape } = attrs;
@@ -23004,10 +23530,10 @@ function conv3DBackpropFilterV2(args) {
     const program = new Conv3DDerFilterProgram(convInfo);
     return backend.runWebGLProgram(program, [x, dy], 'float32');
 }
-const conv3DBackpropFilterV2Config = {
+const conv3DBackpropFilterV2Config$1 = {
     kernelName: Conv3DBackpropFilterV2,
     backendName: 'webgl',
-    kernelFunc: conv3DBackpropFilterV2
+    kernelFunc: conv3DBackpropFilterV2$1
 };
 
 
@@ -23035,11 +23561,11 @@ const COS_PACKED = `
   ${CHECK_NAN_SNIPPET_PACKED}
   return result;
 `;
-const cos = unaryKernelFunc({ opSnippet: COS, packedOpSnippet: COS_PACKED });
-const cosConfig = {
+const cos$1 = unaryKernelFunc({ opSnippet: COS, packedOpSnippet: COS_PACKED });
+const cosConfig$1 = {
     kernelName: Cos,
     backendName: 'webgl',
-    kernelFunc: cos,
+    kernelFunc: cos$1,
 };
 
 
@@ -23047,11 +23573,11 @@ const COSH = `
   float e2x = exp(-x);
   return (e2x + 1.0 / e2x) / 2.0;
 `;
-const cosh = unaryKernelFunc({ opSnippet: COSH });
-const coshConfig = {
+const cosh$1 = unaryKernelFunc({ opSnippet: COSH });
+const coshConfig$1 = {
     kernelName: Cosh,
     backendName: 'webgl',
-    kernelFunc: cosh,
+    kernelFunc: cosh$1,
 };
 
 
@@ -23156,17 +23682,17 @@ class CropAndResizeProgram {
 }
 
 
-const cropAndResize = (args) => {
+const cropAndResize$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { image, boxes, boxInd } = inputs;
     const { cropSize, method, extrapolationValue } = attrs;
     const program = new CropAndResizeProgram(image.shape, boxes.shape, cropSize, method, extrapolationValue);
     return backend.runWebGLProgram(program, [image, boxes, boxInd], 'float32');
 };
-const cropAndResizeConfig = {
+const cropAndResizeConfig$1 = {
     kernelName: CropAndResize,
     backendName: 'webgl',
-    kernelFunc: cropAndResize
+    kernelFunc: cropAndResize$1
 };
 
 var CumOpType;
@@ -23294,33 +23820,33 @@ function cumImpl(op, x, backend, axis, exclusive, reverse) {
 }
 
 
-function cumprod(args) {
+function cumprod$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, exclusive, reverse } = attrs;
     return cumImpl(CumOpType.Prod, x, backend, axis, exclusive, reverse);
 }
-const cumprodConfig = {
+const cumprodConfig$1 = {
     kernelName: Cumprod,
     backendName: 'webgl',
-    kernelFunc: cumprod
+    kernelFunc: cumprod$1
 };
 
 
-function cumsum(args) {
+function cumsum$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, exclusive, reverse } = attrs;
     return cumImpl(CumOpType.Sum, x, backend, axis, exclusive, reverse);
 }
-const cumsumConfig = {
+const cumsumConfig$1 = {
     kernelName: Cumsum,
     backendName: 'webgl',
-    kernelFunc: cumsum
+    kernelFunc: cumsum$1
 };
 
 
-function denseBincount(args) {
+function denseBincount$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, weights } = inputs;
     const { size, binaryOutput } = attrs;
@@ -23339,10 +23865,10 @@ function denseBincount(args) {
     throw new Error(`Error in denseBincount: input must be at most rank 2, but got rank` +
         `${x.shape.length}.`);
 }
-const denseBincountConfig = {
+const denseBincountConfig$1 = {
     kernelName: DenseBincount,
     backendName: 'webgl',
-    kernelFunc: denseBincount
+    kernelFunc: denseBincount$1
 };
 
 
@@ -23417,7 +23943,7 @@ class DepthToSpaceProgram {
 }
 
 
-function depthToSpace(args) {
+function depthToSpace$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { blockSize, dataFormat } = attrs;
@@ -23434,10 +23960,10 @@ function depthToSpace(args) {
     const program = new DepthToSpaceProgram(outputShape, blockSize, dataFormat);
     return backend.runWebGLProgram(program, [x], x.dtype);
 }
-const depthToSpaceConfig = {
+const depthToSpaceConfig$1 = {
     kernelName: DepthToSpace,
     backendName: 'webgl',
-    kernelFunc: depthToSpace
+    kernelFunc: depthToSpace$1
 };
 
 
@@ -23882,7 +24408,7 @@ class DepthwiseConvPacked2DProgram {
 }
 
 
-function depthwiseConv2dNative(args) {
+function depthwiseConv2dNative$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter } = inputs;
     const { strides, pad, dilations, dimRoundingMode } = attrs;
@@ -23909,10 +24435,10 @@ function depthwiseConv2dNative(args) {
     ];
     return backend.runWebGLProgram(program, [x, filter], 'float32', customValues);
 }
-const depthwiseConv2dNativeConfig = {
+const depthwiseConv2dNativeConfig$1 = {
     kernelName: DepthwiseConv2dNative,
     backendName: 'webgl',
-    kernelFunc: depthwiseConv2dNative,
+    kernelFunc: depthwiseConv2dNative$1,
 };
 
 
@@ -24024,7 +24550,7 @@ class DepthwiseConv2DDerInputProgram {
 }
 
 
-function depthwiseConv2dNativeBackpropFilter(args) {
+function depthwiseConv2dNativeBackpropFilter$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, dy } = inputs;
     const { strides, dilations, pad, dimRoundingMode, filterShape } = attrs;
@@ -24032,14 +24558,14 @@ function depthwiseConv2dNativeBackpropFilter(args) {
     const program = new DepthwiseConv2DDerFilterProgram(convInfo);
     return backend.runWebGLProgram(program, [x, dy], 'float32');
 }
-const depthwiseConv2dNativeBackpropFilterConfig = {
+const depthwiseConv2dNativeBackpropFilterConfig$1 = {
     kernelName: DepthwiseConv2dNativeBackpropFilter,
     backendName: 'webgl',
-    kernelFunc: depthwiseConv2dNativeBackpropFilter
+    kernelFunc: depthwiseConv2dNativeBackpropFilter$1
 };
 
 
-function depthwiseConv2dNativeBackpropInput(args) {
+function depthwiseConv2dNativeBackpropInput$1(args) {
     const { inputs, backend, attrs } = args;
     const { dy, filter } = inputs;
     const { strides, dilations, pad, dimRoundingMode, inputShape } = attrs;
@@ -24047,10 +24573,10 @@ function depthwiseConv2dNativeBackpropInput(args) {
     const program = new DepthwiseConv2DDerInputProgram(convInfo);
     return backend.runWebGLProgram(program, [dy, filter], 'float32');
 }
-const depthwiseConv2dNativeBackpropInputConfig = {
+const depthwiseConv2dNativeBackpropInputConfig$1 = {
     kernelName: DepthwiseConv2dNativeBackpropInput,
     backendName: 'webgl',
-    kernelFunc: depthwiseConv2dNativeBackpropInput
+    kernelFunc: depthwiseConv2dNativeBackpropInput$1
 };
 
 
@@ -24069,23 +24595,23 @@ class DiagProgram {
 }
 
 
-function diag(args) {
+function diag$1(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     const outShape = [...x.shape, ...x.shape];
     const xSize = sizeFromShape(x.shape);
-    const flat = reshape({ inputs: { x }, backend, attrs: { shape: [xSize] } });
+    const flat = reshape$1({ inputs: { x }, backend, attrs: { shape: [xSize] } });
     const program = new DiagProgram(xSize);
     const res = backend.runWebGLProgram(program, [flat], flat.dtype);
-    const out = reshape({ inputs: { x: res }, backend, attrs: { shape: outShape } });
+    const out = reshape$1({ inputs: { x: res }, backend, attrs: { shape: outShape } });
     backend.disposeIntermediateTensorInfo(flat);
     backend.disposeIntermediateTensorInfo(res);
     return out;
 }
-const diagConfig = {
+const diagConfig$1 = {
     kernelName: Diag,
     backendName: 'webgl',
-    kernelFunc: diag
+    kernelFunc: diag$1
 };
 
 
@@ -24146,18 +24672,18 @@ function dilation2D(args) {
     let out;
     const program = new Dilation2DProgram(convInfo);
     out = backend.runWebGLProgram(program, [x, filter], 'float32');
-    const outReshaped = reshape({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
+    const outReshaped = reshape$1({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
     backend.disposeIntermediateTensorInfo(out);
     return outReshaped;
 }
-const dilation2DConfig = {
+const dilation2DConfig$1 = {
     kernelName: Dilation2D,
     backendName: 'webgl',
     kernelFunc: dilation2D,
 };
 
 
-function einsum(args) {
+function einsum$1(args) {
     const { inputs, backend, attrs } = args;
     const { equation } = attrs;
     const tensors = inputs;
@@ -24184,7 +24710,7 @@ function einsum(args) {
                 targetShape.splice(dimsToExpand[k], 0, 1);
             }
             if (!arraysEqual(x.shape, targetShape)) {
-                x = reshape({ inputs: { x }, backend, attrs: { shape: targetShape } });
+                x = reshape$1({ inputs: { x }, backend, attrs: { shape: targetShape } });
                 tensorsToDispose.push(x);
             }
             if (out === null) {
@@ -24198,7 +24724,7 @@ function einsum(args) {
         }
         if (i < nSteps - 1) {
             if (path[i] >= 0) {
-                out = sum({
+                out = sum$1({
                     inputs: { x: out },
                     backend,
                     attrs: {
@@ -24220,10 +24746,10 @@ function einsum(args) {
     }
     return out;
 }
-const einsumConfig = {
+const einsumConfig$1 = {
     kernelName: Einsum,
     backendName: 'webgl',
-    kernelFunc: einsum
+    kernelFunc: einsum$1
 };
 
 
@@ -24238,11 +24764,11 @@ const ELU_PACKED = `
 
   return result;
 `;
-const elu$1 = unaryKernelFunc({ opSnippet: ELU, packedOpSnippet: ELU_PACKED });
-const eluConfig = {
+const elu$2 = unaryKernelFunc({ opSnippet: ELU, packedOpSnippet: ELU_PACKED });
+const eluConfig$1 = {
     kernelName: Elu$1,
     backendName: 'webgl',
-    kernelFunc: elu$1
+    kernelFunc: elu$2
 };
 
 
@@ -24251,7 +24777,7 @@ const ELU_DER_PACKED = `
   vec4 bGTEZero = vec4(greaterThanEqual(b, vec4(0.)));
   return (bGTEZero * a) + ((vec4(1.0) - bGTEZero) * (a * (b + vec4(1.0))));
 `;
-const eluGrad = (args) => {
+const eluGrad$1 = (args) => {
     const { inputs, backend } = args;
     const { dy, y } = inputs;
     const program = env().getBool('WEBGL_PACK_BINARY_OPERATIONS') ?
@@ -24259,10 +24785,10 @@ const eluGrad = (args) => {
         new BinaryOpProgram(ELU_DER, dy.shape, y.shape);
     return backend.runWebGLProgram(program, [dy, y], dy.dtype);
 };
-const eluGradConfig$1 = {
+const eluGradConfig$2 = {
     kernelName: EluGrad,
     backendName: 'webgl',
-    kernelFunc: eluGrad
+    kernelFunc: eluGrad$1
 };
 
 
@@ -24299,11 +24825,11 @@ const ERF = `
   float t = 1.0 / (1.0 + p * x);
   return sign * (1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x));
 `;
-const erf = unaryKernelFunc({ opSnippet: ERF });
-const erfConfig = {
+const erf$1 = unaryKernelFunc({ opSnippet: ERF });
+const erfConfig$1 = {
     kernelName: Erf,
     backendName: 'webgl',
-    kernelFunc: erf,
+    kernelFunc: erf$1,
 };
 
 
@@ -24333,7 +24859,7 @@ const expConfig = {
 };
 
 
-function expandDims$1(args) {
+function expandDims$2(args) {
     const { inputs, attrs, backend } = args;
     const { dim } = attrs;
     const { input } = inputs;
@@ -24346,12 +24872,12 @@ function expandDims$1(args) {
         $dim = inputRank + dim + 1;
     }
     newShape.splice($dim, 0, 1);
-    return reshape({ inputs: { x: input }, backend, attrs: { shape: newShape } });
+    return reshape$1({ inputs: { x: input }, backend, attrs: { shape: newShape } });
 }
-const expandDimsConfig = {
+const expandDimsConfig$1 = {
     kernelName: ExpandDims,
     backendName: 'webgl',
-    kernelFunc: expandDims$1,
+    kernelFunc: expandDims$2,
 };
 
 
@@ -24419,13 +24945,13 @@ class FFTProgram {
 }
 
 
-function fftImpl(x, inverse, backend) {
+function fftImpl$1(x, inverse, backend) {
     const xData = backend.texData.get(x.dataId);
     const inputSize = sizeFromShape(x.shape);
     
     const innerDimensionSize = x.shape[x.shape.length - 1];
     const batch = inputSize / innerDimensionSize;
-    const input2D = reshape({ inputs: { x }, backend, attrs: { shape: [batch, innerDimensionSize] } });
+    const input2D = reshape$1({ inputs: { x }, backend, attrs: { shape: [batch, innerDimensionSize] } });
     const xShape = input2D.shape;
     const realProgram = new FFTProgram('real', xShape, inverse);
     const imagProgram = new FFTProgram('imag', xShape, inverse);
@@ -24446,22 +24972,22 @@ function fftImpl(x, inverse, backend) {
     const complexOutput = complex({ inputs: { real: realPart, imag: imagPart }, backend });
     backend.disposeIntermediateTensorInfo(realPart);
     backend.disposeIntermediateTensorInfo(imagPart);
-    const complexOutputReshaped = reshape({ inputs: { x: complexOutput }, backend, attrs: { shape: x.shape } });
+    const complexOutputReshaped = reshape$1({ inputs: { x: complexOutput }, backend, attrs: { shape: x.shape } });
     backend.disposeIntermediateTensorInfo(input2D);
     backend.disposeIntermediateTensorInfo(complexOutput);
     return complexOutputReshaped;
 }
 
 
-function fft(args) {
+function fft$1(args) {
     const { inputs, backend } = args;
     const { input } = inputs;
-    return fftImpl(input, false , backend);
+    return fftImpl$1(input, false , backend);
 }
-const fftConfig = {
+const fftConfig$1 = {
     kernelName: FFT,
     backendName: 'webgl',
-    kernelFunc: fft
+    kernelFunc: fft$1
 };
 
 
@@ -24481,7 +25007,7 @@ class FillProgram {
 }
 
 
-function fill(args) {
+function fill$1(args) {
     const { backend, attrs } = args;
     const { shape, value } = attrs;
     let { dtype } = attrs;
@@ -24498,10 +25024,10 @@ function fill(args) {
         return backend.runWebGLProgram(program, [], dtype, customValues);
     }
 }
-const fillConfig = {
+const fillConfig$1 = {
     kernelName: Fill,
     backendName: 'webgl',
-    kernelFunc: fill
+    kernelFunc: fill$1
 };
 
 
@@ -24530,7 +25056,7 @@ class FlipLeftRightProgram {
 }
 
 
-const flipLeftRightConfig = {
+const flipLeftRightConfig$1 = {
     kernelName: FlipLeftRight,
     backendName: 'webgl',
     kernelFunc: ({ inputs, backend }) => {
@@ -24749,7 +25275,7 @@ function fusedConv2d(args) {
         const alignInputWithDataFormat = (input, dataFormat) => {
             if (dataFormat === 'NCHW' && input.shape.length === 1 &&
                 input.shape[0] !== 1) {
-                const alignedInput = reshape({
+                const alignedInput = reshape$1({
                     inputs: { x: input },
                     backend,
                     attrs: { shape: [input.shape[0], 1, 1] }
@@ -24818,19 +25344,19 @@ function fusedConv2d(args) {
         const inputs = prepareInputs();
         out = backend.runWebGLProgram(program, inputs, 'float32');
     }
-    const outReshaped = reshape({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
+    const outReshaped = reshape$1({ inputs: { x: out }, backend, attrs: { shape: convInfo.outShape } });
     intermediates.push(out);
     intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return outReshaped;
 }
-const fusedConv2DConfig = {
+const fusedConv2DConfig$1 = {
     kernelName: FusedConv2D,
     backendName: 'webgl',
     kernelFunc: fusedConv2d,
 };
 
 
-function fusedDepthwiseConv2D(args) {
+function fusedDepthwiseConv2D$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, filter, bias, preluActivationWeights } = inputs;
     const { strides, pad, dilations, dimRoundingMode, activation, leakyreluAlpha } = attrs;
@@ -24880,10 +25406,10 @@ function fusedDepthwiseConv2D(args) {
     intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return result;
 }
-const fusedDepthwiseConv2DConfig = {
+const fusedDepthwiseConv2DConfig$1 = {
     kernelName: FusedDepthwiseConv2D,
     backendName: 'webgl',
-    kernelFunc: fusedDepthwiseConv2D,
+    kernelFunc: fusedDepthwiseConv2D$1,
 };
 
 class GatherNDProgram {
@@ -24918,15 +25444,15 @@ class GatherNDProgram {
 }
 
 
-function gatherNd(args) {
+function gatherNd$1(args) {
     const { inputs, backend } = args;
     const { params, indices } = inputs;
     const indicesShape = indices.shape;
     const sliceRank = indicesShape[indicesShape.length - 1];
     const paramsSize = sizeFromShape(params.shape);
     const [resultShape, numSlices, sliceSize, strides] = prepareAndValidate(params, indices);
-    const flattenIndices = reshape({ inputs: { x: indices }, backend, attrs: { shape: [numSlices, sliceRank] } });
-    const flattenX = reshape({
+    const flattenIndices = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [numSlices, sliceRank] } });
+    const flattenX = reshape$1({
         inputs: { x: params },
         backend,
         attrs: { shape: [(sizeFromShape(params.shape) / sliceSize), sliceSize] }
@@ -24940,16 +25466,16 @@ function gatherNd(args) {
     }
     const program = new GatherNDProgram(sliceRank, strides, [numSlices, sliceSize], params.shape);
     const res = backend.runWebGLProgram(program, [flattenX, flattenIndices], flattenX.dtype);
-    const reshaped = reshape({ inputs: { x: res }, backend, attrs: { shape: resultShape } });
+    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: resultShape } });
     backend.disposeIntermediateTensorInfo(flattenIndices);
     backend.disposeIntermediateTensorInfo(flattenX);
     backend.disposeIntermediateTensorInfo(res);
     return reshaped;
 }
-const gatherNdConfig = {
+const gatherNdConfig$1 = {
     kernelName: GatherNd,
     backendName: 'webgl',
-    kernelFunc: gatherNd
+    kernelFunc: gatherNd$1
 };
 
 
@@ -24986,7 +25512,7 @@ function getSourceCoords$1(aShape, axis) {
 }
 
 
-function gatherV2(args) {
+function gatherV2$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, indices } = inputs;
     const { axis, batchDims } = attrs;
@@ -25004,7 +25530,7 @@ function gatherV2(args) {
     const shapeInfo = collectGatherOpShapeInfo(x, indices, parsedAxis, batchDims);
     const indicesSize = sizeFromShape(indices.shape);
     const toDispose = [];
-    const flattenX = reshape({
+    const flattenX = reshape$1({
         inputs: { x },
         backend,
         attrs: {
@@ -25014,7 +25540,7 @@ function gatherV2(args) {
             ]
         }
     });
-    const flattenIndex = reshape({
+    const flattenIndex = reshape$1({
         inputs: { x: indices },
         backend,
         attrs: { shape: [shapeInfo.batchSize, indicesSize / shapeInfo.batchSize] }
@@ -25035,14 +25561,14 @@ function gatherV2(args) {
     const program = new GatherProgram(flattenX.shape, flattenOutputShape);
     const res = backend.runWebGLProgram(program, [flattenX, flattenIndex], flattenX.dtype);
     toDispose.push(res);
-    const reshaped = reshape({ inputs: { x: res }, backend, attrs: { shape: shapeInfo.outputShape } });
+    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: shapeInfo.outputShape } });
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return reshaped;
 }
-const gatherV2Config = {
+const gatherV2Config$1 = {
     kernelName: GatherV2,
     backendName: 'webgl',
-    kernelFunc: gatherV2
+    kernelFunc: gatherV2$1
 };
 
 
@@ -25080,42 +25606,42 @@ const greaterEqualConfig = {
 };
 
 
-function ifft(args) {
+function ifft$1(args) {
     const { inputs, backend } = args;
     const { input } = inputs;
-    return fftImpl(input, true , backend);
+    return fftImpl$1(input, true , backend);
 }
-const ifftConfig = {
+const ifftConfig$1 = {
     kernelName: IFFT,
     backendName: 'webgl',
-    kernelFunc: ifft
+    kernelFunc: ifft$1
 };
 
 
 const IS_FINITE = `return float(!isnan(x) && !isinf(x));`;
-const isFinite$1 = unaryKernelFunc({ opSnippet: IS_FINITE, dtype: 'bool' });
-const isFiniteConfig = {
+const isFinite$2 = unaryKernelFunc({ opSnippet: IS_FINITE, dtype: 'bool' });
+const isFiniteConfig$1 = {
     kernelName: IsFinite,
     backendName: 'webgl',
-    kernelFunc: isFinite$1,
+    kernelFunc: isFinite$2,
 };
 
 
 const IS_INF = `return float(isinf(x));`;
-const isInf = unaryKernelFunc({ opSnippet: IS_INF, dtype: 'bool' });
-const isInfConfig = {
+const isInf$1 = unaryKernelFunc({ opSnippet: IS_INF, dtype: 'bool' });
+const isInfConfig$1 = {
     kernelName: IsInf,
     backendName: 'webgl',
-    kernelFunc: isInf,
+    kernelFunc: isInf$1,
 };
 
 
 const IS_NAN = `return float(isnan(x));`;
-const isNaN$1 = unaryKernelFunc({ opSnippet: IS_NAN, dtype: 'bool' });
-const isNaNConfig = {
+const isNaN$2 = unaryKernelFunc({ opSnippet: IS_NAN, dtype: 'bool' });
+const isNaNConfig$1 = {
     kernelName: IsNan,
     backendName: 'webgl',
-    kernelFunc: isNaN$1,
+    kernelFunc: isNaN$2,
 };
 
 
@@ -25153,17 +25679,17 @@ const lessEqualConfig = {
 };
 
 
-function linSpace(args) {
+function linSpace$1(args) {
     const { backend, attrs } = args;
     const { start, stop, num } = attrs;
     
     const outVals = linSpaceImplCPU(start, stop, num);
     return backend.makeTensorInfo([outVals.length], 'float32', outVals);
 }
-const linSpaceConfig = {
+const linSpaceConfig$1 = {
     kernelName: LinSpace,
     backendName: 'webgl',
-    kernelFunc: linSpace
+    kernelFunc: linSpace$1
 };
 
 
@@ -25192,11 +25718,11 @@ const logConfig = {
 const LOG1P = CHECK_NAN_SNIPPET_UNARY + `
   return log(1.0 + x);
 `;
-const log1p = unaryKernelFunc({ opSnippet: LOG1P });
-const log1pConfig = {
+const log1p$1 = unaryKernelFunc({ opSnippet: LOG1P });
+const log1pConfig$1 = {
     kernelName: Log1p,
     backendName: 'webgl',
-    kernelFunc: log1p,
+    kernelFunc: log1p$1,
 };
 
 
@@ -25206,24 +25732,24 @@ const LOGICAL_AND_PACKED = `
     vec4(greaterThanEqual(a, vec4(1.0))) *
     vec4(greaterThanEqual(b, vec4(1.0))));
 `;
-const logicalAnd = binaryKernelFunc({
+const logicalAnd$1 = binaryKernelFunc({
     opSnippet: LOGICAL_AND,
     packedOpSnippet: LOGICAL_AND_PACKED,
     dtype: 'bool'
 });
-const logicalAndConfig = {
+const logicalAndConfig$1 = {
     kernelName: LogicalAnd,
     backendName: 'webgl',
-    kernelFunc: logicalAnd
+    kernelFunc: logicalAnd$1
 };
 
 
 const LOGICAL_NOT = `return float(!(x >= 1.0));`;
-const logicalNot = unaryKernelFunc({ opSnippet: LOGICAL_NOT });
-const logicalNotConfig = {
+const logicalNot$1 = unaryKernelFunc({ opSnippet: LOGICAL_NOT });
+const logicalNotConfig$1 = {
     kernelName: LogicalNot,
     backendName: 'webgl',
-    kernelFunc: logicalNot,
+    kernelFunc: logicalNot$1,
 };
 
 
@@ -25234,11 +25760,11 @@ const LOGICAL_OR_PACKED = `
     vec4(greaterThanEqual(b, vec4(1.0))),
     vec4(1.0));
 `;
-const logicalOr = binaryKernelFunc({ opSnippet: LOGICAL_OR, packedOpSnippet: LOGICAL_OR_PACKED, dtype: 'bool' });
-const logicalOrConfig = {
+const logicalOr$1 = binaryKernelFunc({ opSnippet: LOGICAL_OR, packedOpSnippet: LOGICAL_OR_PACKED, dtype: 'bool' });
+const logicalOrConfig$1 = {
     kernelName: LogicalOr,
     backendName: 'webgl',
-    kernelFunc: logicalOr
+    kernelFunc: logicalOr$1
 };
 
 
@@ -25389,7 +25915,7 @@ const lrn = (args) => {
     return backend.runWebGLProgram(program, [x], x.dtype);
 };
 
-const LRNConfig = {
+const LRNConfig$1 = {
     kernelName: LRN,
     backendName: 'webgl',
     kernelFunc: lrn
@@ -25474,7 +26000,7 @@ const lrnGrad = (args) => {
     return backend.runWebGLProgram(program, [x, y, dy], x.dtype);
 };
 
-const LRNGradConfig = {
+const LRNGradConfig$1 = {
     kernelName: LRNGrad,
     backendName: 'webgl',
     kernelFunc: lrnGrad
@@ -25485,16 +26011,16 @@ function maxImpl(x, reduceShape, outShape, backend) {
     const inSize = sizeFromShape(reduceShape);
     const xSize = sizeFromShape(x.shape);
     const batchSize = xSize / inSize;
-    const reshapedInput = reshape({ inputs: { x }, attrs: { shape: [batchSize, inSize] }, backend });
+    const reshapedInput = reshape$1({ inputs: { x }, attrs: { shape: [batchSize, inSize] }, backend });
     const reduced = reduce(reshapedInput, x.dtype, 'max', backend);
-    const reshapedOutput = reshape({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
+    const reshapedOutput = reshape$1({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
     backend.disposeIntermediateTensorInfo(reshapedInput);
     backend.disposeIntermediateTensorInfo(reduced);
     return reshapedOutput;
 }
 
 
-function max(args) {
+function max$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { reductionIndices, keepDims } = attrs;
@@ -25547,10 +26073,10 @@ function max(args) {
     }
     return out;
 }
-const maxConfig = {
+const maxConfig$1 = {
     kernelName: Max,
     backendName: 'webgl',
-    kernelFunc: max
+    kernelFunc: max$1
 };
 
 
@@ -25578,10 +26104,10 @@ const maximumConfig = {
 };
 
 
-function maxPool(args) {
+function maxPool$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
-    assertNotComplex(x, 'maxPool');
+    assertNotComplex$1(x, 'maxPool');
     const { filterSize, strides, pad, dimRoundingMode } = attrs;
     const dilations = 1;
     assert$1(eitherStridesOrDilationsAreOne(strides, dilations), () => 'Error in maxPool: Either strides or dilations must be 1. ' +
@@ -25594,10 +26120,10 @@ function maxPool(args) {
     const maxPoolProgram = new Pool2DProgram(convInfo, 'max', false);
     return backend.runWebGLProgram(maxPoolProgram, [x], x.dtype);
 }
-const maxPoolConfig = {
+const maxPoolConfig$1 = {
     kernelName: MaxPool,
     backendName: 'webgl',
-    kernelFunc: maxPool
+    kernelFunc: maxPool$1
 };
 
 
@@ -25610,7 +26136,7 @@ function maxPool3d(args) {
     const maxPoolProgram = new Pool3DProgram(convInfo, 'max', false);
     return backend.runWebGLProgram(maxPoolProgram, [x], x.dtype);
 }
-const maxPool3DConfig = {
+const maxPool3DConfig$1 = {
     kernelName: MaxPool3D,
     backendName: 'webgl',
     kernelFunc: maxPool3d
@@ -25764,7 +26290,7 @@ class MaxPool3DBackpropProgram {
 }
 
 
-function maxPool3DGrad(args) {
+function maxPool3DGrad$1(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input } = inputs;
     const x = input;
@@ -25778,18 +26304,18 @@ function maxPool3DGrad(args) {
     backend.disposeIntermediateTensorInfo(maxPool3dPositions);
     return result;
 }
-const maxPool3DGradConfig$1 = {
+const maxPool3DGradConfig$2 = {
     kernelName: MaxPool3DGrad,
     backendName: 'webgl',
-    kernelFunc: maxPool3DGrad
+    kernelFunc: maxPool3DGrad$1
 };
 
 
-function maxPoolGrad$1(args) {
+function maxPoolGrad$2(args) {
     const { inputs, backend, attrs } = args;
     const { dy, input, output } = inputs;
     const x = input;
-    assertNotComplex([input, output], 'maxPoolGrad');
+    assertNotComplex$1([input, output], 'maxPoolGrad');
     const { filterSize, strides, pad, dimRoundingMode } = attrs;
     const convInfo = computePool2DInfo(x.shape, filterSize, strides, 1 , pad, dimRoundingMode);
     const getPositions = true;
@@ -25800,14 +26326,14 @@ function maxPoolGrad$1(args) {
     backend.disposeIntermediateTensorInfo(maxPoolPositions);
     return result;
 }
-const maxPoolGradConfig$1 = {
+const maxPoolGradConfig$2 = {
     kernelName: MaxPoolGrad,
     backendName: 'webgl',
-    kernelFunc: maxPoolGrad$1
+    kernelFunc: maxPoolGrad$2
 };
 
 
-function maxPoolWithArgmaxImpl(x, includeBatchInIndex, convInfo, backend) {
+function maxPoolWithArgmaxImpl$1(x, includeBatchInIndex, convInfo, backend) {
     let program = new Pool2DProgram(convInfo, 'max', false);
     const poolOutput = backend.runWebGLProgram(program, [x], 'float32');
     program = new Pool2DProgram(convInfo, 'max', true, true, includeBatchInIndex);
@@ -25816,7 +26342,7 @@ function maxPoolWithArgmaxImpl(x, includeBatchInIndex, convInfo, backend) {
 }
 
 
-const maxPoolWithArgmaxConfig = {
+const maxPoolWithArgmaxConfig$1 = {
     kernelName: MaxPoolWithArgmax,
     backendName: 'webgl',
     kernelFunc: ({ inputs, attrs, backend }) => {
@@ -25828,7 +26354,7 @@ const maxPoolWithArgmaxConfig = {
         assert$1(eitherStridesOrDilationsAreOne(strides, dilations), () => 'Error in maxPool: Either strides or dilations must be 1. ' +
             `Got strides ${strides} and dilations '${dilations}'`);
         const convInfo = computePool2DInfo(x.shape, filterSize, strides, dilations, pad);
-        const [result, indexes] = maxPoolWithArgmaxImpl(x, includeBatchInIndex, convInfo, webglBackend);
+        const [result, indexes] = maxPoolWithArgmaxImpl$1(x, includeBatchInIndex, convInfo, webglBackend);
         return [result, indexes];
     }
 };
@@ -25838,16 +26364,16 @@ function meanImpl(x, reduceShape, outShape, backend) {
     const inSize = sizeFromShape(reduceShape);
     const xSize = sizeFromShape(x.shape);
     const batchSize = xSize / inSize;
-    const reshapedInput = reshape({ inputs: { x }, attrs: { shape: [batchSize, inSize] }, backend });
+    const reshapedInput = reshape$1({ inputs: { x }, attrs: { shape: [batchSize, inSize] }, backend });
     const reduced = reduce(reshapedInput, 'float32', 'mean', backend);
-    const reshapedOutput = reshape({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
+    const reshapedOutput = reshape$1({ inputs: { x: reduced }, attrs: { shape: outShape }, backend });
     backend.disposeIntermediateTensorInfo(reshapedInput);
     backend.disposeIntermediateTensorInfo(reduced);
     return reshapedOutput;
 }
 
 
-const meanConfig = {
+const meanConfig$1 = {
     kernelName: Mean,
     backendName: 'webgl',
     kernelFunc: ({ inputs, attrs, backend }) => {
@@ -25897,7 +26423,7 @@ const meanConfig = {
 };
 
 
-function min(args) {
+function min$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { axis, keepDims } = attrs;
@@ -25913,15 +26439,15 @@ function min(args) {
     assertAxesAreInnerMostDims('min', axes, xRank);
     const [outShape, reduceShape] = computeOutAndReduceShapes(permutedX.shape, axes);
     const inSize = sizeFromShape(reduceShape);
-    const a2D = reshape({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+    const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
     const reduced = reduce(a2D, a2D.dtype, 'min', backend);
     let res;
     if (keepDims) {
         const newShape = expandShapeToKeepDim(outShape, origAxes);
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: newShape } });
     }
     else {
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
     }
     backend.disposeIntermediateTensorInfo(a2D);
     backend.disposeIntermediateTensorInfo(reduced);
@@ -25930,10 +26456,10 @@ function min(args) {
     }
     return res;
 }
-const minConfig = {
+const minConfig$1 = {
     kernelName: Min,
     backendName: 'webgl',
-    kernelFunc: min
+    kernelFunc: min$1
 };
 
 
@@ -26104,7 +26630,7 @@ const mirrorPadKernelFunc = ({ inputs, backend, attrs }) => {
     const output = backend.runWebGLProgram(program, [x], x.dtype);
     return output;
 };
-const mirrorPadConfig = {
+const mirrorPadConfig$1 = {
     kernelName: MirrorPad,
     backendName: 'webgl',
     kernelFunc: mirrorPadKernelFunc,
@@ -26120,14 +26646,14 @@ const MOD_PACKED = `
     CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
-const mod = binaryKernelFunc({
+const mod$1 = binaryKernelFunc({
     opSnippet: MOD,
     packedOpSnippet: MOD_PACKED,
 });
-const modConfig = {
+const modConfig$1 = {
     kernelName: Mod,
     backendName: 'webgl',
-    kernelFunc: mod
+    kernelFunc: mod$1
 };
 
 
@@ -26190,7 +26716,7 @@ const DIV_PACKED = `
   return result;
 `;
 const realDiv = binaryKernelFunc({ opSnippet: DIV, packedOpSnippet: DIV_PACKED, checkOutOfBounds: true });
-const realDivConfig = {
+const realDivConfig$1 = {
     kernelName: RealDiv,
     backendName: 'webgl',
     kernelFunc: realDiv,
@@ -26211,22 +26737,22 @@ const subConfig = {
 };
 
 
-function softmax(args) {
+function softmax$1(args) {
     const { inputs, backend, attrs } = args;
     const { logits } = inputs;
     const { dim } = attrs;
     const axes = parseAxisParam([dim], logits.shape);
-    const maxLogit = max({
+    const maxLogit = max$1({
         inputs: { x: logits },
         backend,
         attrs: { reductionIndices: axes, keepDims: false }
     });
     const expandedShape = expandShapeToKeepDim(maxLogit.shape, axes);
-    const maxLogitsReshaped = reshape({ inputs: { x: maxLogit }, backend, attrs: { shape: expandedShape } });
+    const maxLogitsReshaped = reshape$1({ inputs: { x: maxLogit }, backend, attrs: { shape: expandedShape } });
     const a = sub({ inputs: { a: logits, b: maxLogitsReshaped }, backend });
     const b = exp({ inputs: { x: a }, backend });
-    const sumExp = sum({ inputs: { x: b }, backend, attrs: { axis: axes, keepDims: false } });
-    const sumExpReshaped = reshape({ inputs: { x: sumExp }, backend, attrs: { shape: expandedShape } });
+    const sumExp = sum$1({ inputs: { x: b }, backend, attrs: { axis: axes, keepDims: false } });
+    const sumExpReshaped = reshape$1({ inputs: { x: sumExp }, backend, attrs: { shape: expandedShape } });
     const res = realDiv({ inputs: { a: b, b: sumExpReshaped }, backend });
     backend.disposeIntermediateTensorInfo(maxLogit);
     backend.disposeIntermediateTensorInfo(maxLogitsReshaped);
@@ -26236,20 +26762,20 @@ function softmax(args) {
     backend.disposeIntermediateTensorInfo(sumExpReshaped);
     return res;
 }
-const softmaxConfig = {
+const softmaxConfig$1 = {
     kernelName: Softmax$1,
     backendName: 'webgl',
-    kernelFunc: softmax
+    kernelFunc: softmax$1
 };
 
 
-function multinomial(args) {
+function multinomial$1(args) {
     const { inputs, backend, attrs } = args;
     const { logits } = inputs;
     const { numSamples, seed, normalized } = attrs;
     const probs = normalized ?
         logits :
-        softmax({ inputs: { logits }, backend, attrs: { dim: logits.shape.length - 1 } });
+        softmax$1({ inputs: { logits }, backend, attrs: { dim: logits.shape.length - 1 } });
     const batchSize = probs.shape[0];
     const numOutcomes = probs.shape[1];
     const program = new MultinomialProgram(batchSize, numOutcomes, numSamples);
@@ -26260,10 +26786,10 @@ function multinomial(args) {
     }
     return res;
 }
-const multinomialConfig = {
+const multinomialConfig$1 = {
     kernelName: Multinomial,
     backendName: 'webgl',
-    kernelFunc: multinomial
+    kernelFunc: multinomial$1
 };
 
 
@@ -26307,8 +26833,8 @@ const negConfig = {
 };
 
 
-const nonMaxSuppressionV3Impl = nonMaxSuppressionV3Impl$1;
-function nonMaxSuppressionV3(args) {
+const nonMaxSuppressionV3Impl$1 = nonMaxSuppressionV3Impl$2;
+function nonMaxSuppressionV3$1(args) {
     warn('tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
     const { inputs, backend, attrs } = args;
@@ -26316,18 +26842,18 @@ function nonMaxSuppressionV3(args) {
     const { maxOutputSize, iouThreshold, scoreThreshold } = attrs;
     const boxesVals = backend.readSync(boxes.dataId);
     const scoresVals = backend.readSync(scores.dataId);
-    const { selectedIndices } = nonMaxSuppressionV3Impl(boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+    const { selectedIndices } = nonMaxSuppressionV3Impl$1(boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
     return backend.makeTensorInfo([selectedIndices.length], 'int32', new Int32Array(selectedIndices));
 }
-const nonMaxSuppressionV3Config = {
+const nonMaxSuppressionV3Config$1 = {
     kernelName: NonMaxSuppressionV3,
     backendName: 'webgl',
-    kernelFunc: nonMaxSuppressionV3
+    kernelFunc: nonMaxSuppressionV3$1
 };
 
 
-const nonMaxSuppressionV4Impl = nonMaxSuppressionV4Impl$1;
-function nonMaxSuppressionV4(args) {
+const nonMaxSuppressionV4Impl$1 = nonMaxSuppressionV4Impl$2;
+function nonMaxSuppressionV4$1(args) {
     warn('tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
     const { inputs, backend, attrs } = args;
@@ -26335,21 +26861,21 @@ function nonMaxSuppressionV4(args) {
     const { maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize } = attrs;
     const boxesVals = backend.readSync(boxes.dataId);
     const scoresVals = backend.readSync(scores.dataId);
-    const { selectedIndices, validOutputs } = nonMaxSuppressionV4Impl(boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize);
+    const { selectedIndices, validOutputs } = nonMaxSuppressionV4Impl$1(boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize);
     return [
         backend.makeTensorInfo([selectedIndices.length], 'int32', new Int32Array(selectedIndices)),
         backend.makeTensorInfo([], 'int32', new Int32Array([validOutputs]))
     ];
 }
-const nonMaxSuppressionV4Config = {
+const nonMaxSuppressionV4Config$1 = {
     kernelName: NonMaxSuppressionV4,
     backendName: 'webgl',
-    kernelFunc: nonMaxSuppressionV4
+    kernelFunc: nonMaxSuppressionV4$1
 };
 
 
-const nonMaxSuppressionV5Impl = nonMaxSuppressionV5Impl$1;
-function nonMaxSuppressionV5(args) {
+const nonMaxSuppressionV5Impl$1 = nonMaxSuppressionV5Impl$2;
+function nonMaxSuppressionV5$1(args) {
     warn('tf.nonMaxSuppression() in webgl locks the UI thread. ' +
         'Call tf.nonMaxSuppressionAsync() instead');
     const { inputs, backend, attrs } = args;
@@ -26361,16 +26887,16 @@ function nonMaxSuppressionV5(args) {
     const iouThresholdVal = iouThreshold;
     const scoreThresholdVal = scoreThreshold;
     const softNmsSigmaVal = softNmsSigma;
-    const { selectedIndices, selectedScores } = nonMaxSuppressionV5Impl(boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal, scoreThresholdVal, softNmsSigmaVal);
+    const { selectedIndices, selectedScores } = nonMaxSuppressionV5Impl$1(boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal, scoreThresholdVal, softNmsSigmaVal);
     return [
         backend.makeTensorInfo([selectedIndices.length], 'int32', new Int32Array(selectedIndices)),
         backend.makeTensorInfo([selectedScores.length], 'float32', new Float32Array(selectedScores))
     ];
 }
-const nonMaxSuppressionV5Config = {
+const nonMaxSuppressionV5Config$1 = {
     kernelName: NonMaxSuppressionV5,
     backendName: 'webgl',
-    kernelFunc: nonMaxSuppressionV5
+    kernelFunc: nonMaxSuppressionV5$1
 };
 
 
@@ -26390,35 +26916,35 @@ class OneHotProgram {
 }
 
 
-const oneHot = (args) => {
+const oneHot$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { indices } = inputs;
     const { dtype, depth, onValue, offValue } = attrs;
     const indicesSize = sizeFromShape(indices.shape);
     const program = new OneHotProgram(indicesSize, depth, onValue, offValue);
-    const reshaped = reshape({ inputs: { x: indices }, backend, attrs: { shape: [indicesSize] } });
+    const reshaped = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [indicesSize] } });
     const result = backend.runWebGLProgram(program, [reshaped], dtype);
     backend.disposeIntermediateTensorInfo(reshaped);
     const outShape = [...indices.shape, depth];
-    const out = reshape({ inputs: { x: result }, backend, attrs: { shape: outShape } });
+    const out = reshape$1({ inputs: { x: result }, backend, attrs: { shape: outShape } });
     backend.disposeIntermediateTensorInfo(result);
     return out;
 };
-const oneHotConfig = {
+const oneHotConfig$1 = {
     kernelName: OneHot,
     backendName: 'webgl',
-    kernelFunc: oneHot
+    kernelFunc: oneHot$1
 };
 
 
-function zerosLike(args) {
+function zerosLike$1(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     if (x.dtype === 'complex64') {
         const realPart = real({ inputs: { input: x }, backend });
-        const r = zerosLike({ inputs: { x: realPart }, backend });
-        const imagPart = imag({ inputs: { input: x }, backend });
-        const i = zerosLike({ inputs: { x: imagPart }, backend });
+        const r = zerosLike$1({ inputs: { x: realPart }, backend });
+        const imagPart = imag$1({ inputs: { input: x }, backend });
+        const i = zerosLike$1({ inputs: { x: imagPart }, backend });
         const result = complex({ inputs: { real: r, imag: i }, backend });
         backend.disposeIntermediateTensorInfo(realPart);
         backend.disposeIntermediateTensorInfo(r);
@@ -26427,7 +26953,7 @@ function zerosLike(args) {
         return result;
     }
     else {
-        return fill({
+        return fill$1({
             attrs: {
                 shape: x.shape,
                 dtype: x.dtype,
@@ -26437,14 +26963,14 @@ function zerosLike(args) {
         });
     }
 }
-const zerosLikeConfig = {
+const zerosLikeConfig$1 = {
     kernelName: ZerosLike,
     backendName: 'webgl',
-    kernelFunc: zerosLike
+    kernelFunc: zerosLike$1
 };
 
 
-function onesLike(args) {
+function onesLike$1(args) {
     const { inputs, backend } = args;
     const { x } = inputs;
     if (x.dtype === 'string') {
@@ -26452,9 +26978,9 @@ function onesLike(args) {
     }
     else if (x.dtype === 'complex64') {
         const realPart = real({ inputs: { input: x }, backend });
-        const r = onesLike({ inputs: { x: realPart }, backend });
-        const imagPart = imag({ inputs: { input: x }, backend });
-        const i = zerosLike({ inputs: { x: imagPart }, backend });
+        const r = onesLike$1({ inputs: { x: realPart }, backend });
+        const imagPart = imag$1({ inputs: { input: x }, backend });
+        const i = zerosLike$1({ inputs: { x: imagPart }, backend });
         const result = complex({ inputs: { real: r, imag: i }, backend });
         backend.disposeIntermediateTensorInfo(realPart);
         backend.disposeIntermediateTensorInfo(r);
@@ -26465,21 +26991,21 @@ function onesLike(args) {
     else {
         
         
-        return fill({ attrs: { shape: x.shape, dtype: x.dtype, value: 1 }, backend });
+        return fill$1({ attrs: { shape: x.shape, dtype: x.dtype, value: 1 }, backend });
     }
 }
-const onesLikeConfig = {
+const onesLikeConfig$1 = {
     kernelName: OnesLike,
     backendName: 'webgl',
-    kernelFunc: onesLike
+    kernelFunc: onesLike$1
 };
 
 
-function pack(args) {
+function pack$1(args) {
     const { inputs, backend, attrs } = args;
     const { axis } = attrs;
     if (inputs.length === 1) {
-        return expandDims$1({ inputs: { input: inputs[0] }, backend, attrs: { dim: axis } });
+        return expandDims$2({ inputs: { input: inputs[0] }, backend, attrs: { dim: axis } });
     }
     const shape = inputs[0].shape;
     const dtype = inputs[0].dtype;
@@ -26489,18 +27015,18 @@ function pack(args) {
     });
     const intermediateTensorInfos = [];
     const expandedTensors = inputs.map(t => {
-        const expandedT = expandDims$1({ inputs: { input: t }, backend, attrs: { dim: axis } });
+        const expandedT = expandDims$2({ inputs: { input: t }, backend, attrs: { dim: axis } });
         intermediateTensorInfos.push(expandedT);
         return expandedT;
     });
-    const result = concat({ inputs: expandedTensors, backend, attrs: { axis } });
+    const result = concat$1({ inputs: expandedTensors, backend, attrs: { axis } });
     intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return result;
 }
-const packConfig = {
+const packConfig$1 = {
     kernelName: Pack,
     backendName: 'webgl',
-    kernelFunc: pack
+    kernelFunc: pack$1
 };
 
 
@@ -26605,7 +27131,7 @@ class PadPackedProgram {
 }
 
 
-const padV2 = (args) => {
+const padV2$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { paddings, constantValue } = attrs;
@@ -26613,7 +27139,7 @@ const padV2 = (args) => {
         
         
         const outputShape = paddings.map((p, i) => p[0]  + x.shape[i] + p[1] );
-        return fill({
+        return fill$1({
             backend,
             attrs: { shape: outputShape, value: constantValue, dtype: x.dtype }
         });
@@ -26624,10 +27150,10 @@ const padV2 = (args) => {
     const customValues = [[constantValue]];
     return backend.runWebGLProgram(program, [x], x.dtype, customValues);
 };
-const padV2Config = {
+const padV2Config$1 = {
     kernelName: PadV2,
     backendName: 'webgl',
-    kernelFunc: padV2
+    kernelFunc: padV2$1
 };
 
 
@@ -26661,11 +27187,11 @@ const POW_PACKED = `
     CHECK_NAN_SNIPPET_PACKED + `
   return result;
 `;
-const pow = binaryKernelFunc({ opSnippet: POW, packedOpSnippet: POW_PACKED });
-const powConfig = {
+const pow$1 = binaryKernelFunc({ opSnippet: POW, packedOpSnippet: POW_PACKED });
+const powConfig$1 = {
     kernelName: Pow,
     backendName: 'webgl',
-    kernelFunc: pow
+    kernelFunc: pow$1
 };
 
 
@@ -26694,17 +27220,17 @@ function prod(args) {
     else {
         const [outShape, reduceShape] = computeOutAndReduceShapes(permutedX.shape, axes);
         const inSize = sizeFromShape(reduceShape);
-        const a2D = reshape({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+        const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
         const outputDType = sumOutType(x.dtype);
         const reduced = reduce(a2D, outputDType, 'prod', backend);
-        res = reshape({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
+        res = reshape$1({ inputs: { x: reduced }, backend, attrs: { shape: outShape } });
         toDispose.push(a2D);
         toDispose.push(reduced);
     }
     if (keepDims) {
         toDispose.push(res);
         const newShape = expandShapeToKeepDim(res.shape, origAxes);
-        res = reshape({ inputs: { x: res }, backend, attrs: { shape: newShape } });
+        res = reshape$1({ inputs: { x: res }, backend, attrs: { shape: newShape } });
     }
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return res;
@@ -26716,7 +27242,7 @@ const prodConfig = {
 };
 
 
-function raggedGather(args) {
+function raggedGather$1(args) {
     const { inputs, backend, attrs } = args;
     const { paramsNestedSplits, paramsDenseValues, indices } = inputs;
     const { outputRaggedRank } = attrs;
@@ -26729,14 +27255,14 @@ function raggedGather(args) {
     const outputDenseValuesTensor = backend.makeTensorInfo(outputDenseValuesShape, paramsDenseValues.dtype, outputDenseValues);
     return outputNestedSplitsTensors.concat([outputDenseValuesTensor]);
 }
-const raggedGatherConfig = {
+const raggedGatherConfig$1 = {
     kernelName: RaggedGather,
     backendName: 'webgl',
-    kernelFunc: raggedGather,
+    kernelFunc: raggedGather$1,
 };
 
 
-function raggedRange(args) {
+function raggedRange$1(args) {
     const { inputs, backend } = args;
     const { starts, limits, deltas } = inputs;
     const $starts = backend.readSync(starts.dataId);
@@ -26747,14 +27273,14 @@ function raggedRange(args) {
     const rtDenseValues = backend.makeTensorInfo([rtDenseValuesData.length], starts.dtype, rtDenseValuesData);
     return [rtNestedSplits, rtDenseValues];
 }
-const raggedRangeConfig = {
+const raggedRangeConfig$1 = {
     kernelName: RaggedRange,
     backendName: 'webgl',
-    kernelFunc: raggedRange,
+    kernelFunc: raggedRange$1,
 };
 
 
-function raggedTensorToTensor(args) {
+function raggedTensorToTensor$1(args) {
     const { inputs, backend, attrs } = args;
     const { shape, values, defaultValue, rowPartitionTensors } = inputs;
     const { rowPartitionTypes } = attrs;
@@ -26766,32 +27292,32 @@ function raggedTensorToTensor(args) {
     const [outputShape, output] = raggedTensorToTensorImplCPU($shape, shape.shape, $values, values.shape, values.dtype, $defaultValue, defaultValue.shape, $rowPartitionValues, rowPartitionValuesShapes, rowPartitionTypes);
     return backend.makeTensorInfo(outputShape, values.dtype, output);
 }
-const raggedTensorToTensorConfig = {
+const raggedTensorToTensorConfig$1 = {
     kernelName: RaggedTensorToTensor,
     backendName: 'webgl',
-    kernelFunc: raggedTensorToTensor,
+    kernelFunc: raggedTensorToTensor$1,
 };
 
 
-const range$1 = (args) => {
+const range$2 = (args) => {
     const { backend, attrs } = args;
     const { start, stop, step, dtype } = attrs;
     const values = rangeImplCPU(start, stop, step, dtype);
     return backend.makeTensorInfo([values.length], dtype, values);
 };
-const rangeConfig = {
+const rangeConfig$1 = {
     kernelName: Range,
     backendName: 'webgl',
-    kernelFunc: range$1
+    kernelFunc: range$2
 };
 
 
 const RECIPROCAL = `return 1.0 / x;`;
-const reciprocal = unaryKernelFunc({ opSnippet: RECIPROCAL });
-const reciprocalConfig = {
+const reciprocal$1 = unaryKernelFunc({ opSnippet: RECIPROCAL });
+const reciprocalConfig$1 = {
     kernelName: Reciprocal,
     backendName: 'webgl',
-    kernelFunc: reciprocal,
+    kernelFunc: reciprocal$1,
 };
 
 
@@ -26809,11 +27335,11 @@ const RELU_PACKED = `
 
   return result;
 `;
-const relu = unaryKernelFunc({ opSnippet: RELU, packedOpSnippet: RELU_PACKED });
-const reluConfig = {
+const relu$1 = unaryKernelFunc({ opSnippet: RELU, packedOpSnippet: RELU_PACKED });
+const reluConfig$1 = {
     kernelName: Relu$1,
     backendName: 'webgl',
-    kernelFunc: relu
+    kernelFunc: relu$1
 };
 
 
@@ -26831,11 +27357,11 @@ const RELU6_PACKED = `
 
   return result;
 `;
-const relu6 = unaryKernelFunc({ opSnippet: RELU6, packedOpSnippet: RELU6_PACKED });
-const relu6Config = {
+const relu6$1 = unaryKernelFunc({ opSnippet: RELU6, packedOpSnippet: RELU6_PACKED });
+const relu6Config$1 = {
     kernelName: Relu6$1,
     backendName: 'webgl',
-    kernelFunc: relu6
+    kernelFunc: relu6$1
 };
 
 
@@ -27006,7 +27532,7 @@ class ResizeBilinearPackedProgram {
 }
 
 
-function resizeBilinear(args) {
+function resizeBilinear$1(args) {
     const { inputs, backend, attrs } = args;
     const { images } = inputs;
     const { alignCorners, halfPixelCenters, size } = attrs;
@@ -27016,10 +27542,10 @@ function resizeBilinear(args) {
         new ResizeBilinearProgram(images.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
     return backend.runWebGLProgram(program, [images], 'float32');
 }
-const resizeBilinearConfig = {
+const resizeBilinearConfig$1 = {
     kernelName: ResizeBilinear,
     backendName: 'webgl',
-    kernelFunc: resizeBilinear
+    kernelFunc: resizeBilinear$1
 };
 
 
@@ -27135,17 +27661,17 @@ class ResizeBilinearBackpropProgram {
 }
 
 
-function resizeBilinearGrad(args) {
+function resizeBilinearGrad$1(args) {
     const { inputs, backend, attrs } = args;
     const { images, dy } = inputs;
     const { alignCorners } = attrs;
     const program = new ResizeBilinearBackpropProgram(dy.shape, images.shape, alignCorners);
     return backend.runWebGLProgram(program, [dy], dy.dtype);
 }
-const resizeBilinearGradConfig$1 = {
+const resizeBilinearGradConfig$2 = {
     kernelName: ResizeBilinearGrad,
     backendName: 'webgl',
-    kernelFunc: resizeBilinearGrad
+    kernelFunc: resizeBilinearGrad$1
 };
 
 
@@ -27273,7 +27799,7 @@ class ResizeNearestNeighborPackedProgram {
 }
 
 
-function resizeNearestNeighbor(args) {
+function resizeNearestNeighbor$1(args) {
     const { inputs, backend, attrs } = args;
     const { images } = inputs;
     const { alignCorners, halfPixelCenters, size } = attrs;
@@ -27283,10 +27809,10 @@ function resizeNearestNeighbor(args) {
         new ResizeNearestNeighborProgram(images.shape, newHeight, newWidth, alignCorners, halfPixelCenters);
     return backend.runWebGLProgram(program, [images], images.dtype);
 }
-const resizeNearestNeighborConfig = {
+const resizeNearestNeighborConfig$1 = {
     kernelName: ResizeNearestNeighbor,
     backendName: 'webgl',
-    kernelFunc: resizeNearestNeighbor
+    kernelFunc: resizeNearestNeighbor$1
 };
 
 
@@ -27391,17 +27917,17 @@ class ResizeNearestNeigborBackpropProgram {
 }
 
 
-function resizeNearestNeighborGrad(args) {
+function resizeNearestNeighborGrad$1(args) {
     const { inputs, backend, attrs } = args;
     const { images, dy } = inputs;
     const { alignCorners } = attrs;
     const program = new ResizeNearestNeigborBackpropProgram(dy.shape, images.shape, alignCorners);
     return backend.runWebGLProgram(program, [dy], dy.dtype);
 }
-const resizeNearestNeighborGradConfig$1 = {
+const resizeNearestNeighborGradConfig$2 = {
     kernelName: ResizeNearestNeighborGrad,
     backendName: 'webgl',
-    kernelFunc: resizeNearestNeighborGrad
+    kernelFunc: resizeNearestNeighborGrad$1
 };
 
 
@@ -27522,7 +28048,7 @@ class ReversePackedProgram {
 }
 
 
-function reverse(args) {
+function reverse$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { dims } = attrs;
@@ -27536,10 +28062,10 @@ function reverse(args) {
         new ReverseProgram(x.shape, $dims);
     return backend.runWebGLProgram(program, [x], x.dtype);
 }
-const reverseConfig = {
+const reverseConfig$1 = {
     kernelName: Reverse,
     backendName: 'webgl',
-    kernelFunc: reverse
+    kernelFunc: reverse$1
 };
 
 
@@ -27582,7 +28108,7 @@ class RotateProgram {
 }
 
 
-const rotateWithOffsetConfig = {
+const rotateWithOffsetConfig$1 = {
     kernelName: RotateWithOffset,
     backendName: 'webgl',
     kernelFunc: ({ inputs, attrs, backend }) => {
@@ -27614,11 +28140,11 @@ const ROUND = `
     }
   }
 `;
-const round = unaryKernelFunc({ opSnippet: ROUND });
-const roundConfig = {
+const round$1 = unaryKernelFunc({ opSnippet: ROUND });
+const roundConfig$1 = {
     kernelName: Round,
     backendName: 'webgl',
-    kernelFunc: round,
+    kernelFunc: round$1,
 };
 
 
@@ -27757,7 +28283,7 @@ class ScatterPackedProgram {
 }
 
 
-function scatterNd(args) {
+function scatterNd$1(args) {
     const { inputs, backend, attrs } = args;
     const { indices, updates } = inputs;
     const { shape } = attrs;
@@ -27766,8 +28292,8 @@ function scatterNd(args) {
     if (outputSize === 0) {
         return backend.makeTensorInfo(shape, indices.dtype);
     }
-    const flattenIndices = reshape({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
-    const flattenX = reshape({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
+    const flattenIndices = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
+    const flattenX = reshape$1({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
     const defaultValue = backend.makeTensorInfo([], 'float32', new Float32Array([0])); 
     let program;
     if (env().getBool('WEBGL_PACK')) {
@@ -27777,17 +28303,17 @@ function scatterNd(args) {
         program = new ScatterProgram(numUpdates, sliceRank, flattenIndices.shape.length, flattenX.shape.length, strides, flattenShape);
     }
     const res = backend.runWebGLProgram(program, [flattenX, flattenIndices, defaultValue], flattenX.dtype);
-    const reshaped = reshape({ inputs: { x: res }, backend, attrs: { shape } });
+    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape } });
     backend.disposeIntermediateTensorInfo(flattenIndices);
     backend.disposeIntermediateTensorInfo(flattenX);
     backend.disposeIntermediateTensorInfo(res);
     backend.disposeIntermediateTensorInfo(defaultValue);
     return reshaped;
 }
-const scatterNdConfig = {
+const scatterNdConfig$1 = {
     kernelName: ScatterNd,
     backendName: 'webgl',
-    kernelFunc: scatterNd
+    kernelFunc: scatterNd$1
 };
 
 
@@ -27834,7 +28360,7 @@ class SearchSortedProgram {
 }
 
 
-function searchSorted(args) {
+function searchSorted$1(args) {
     const { inputs, backend, attrs } = args;
     const { sortedSequence, values } = inputs;
     const { side } = attrs;
@@ -27842,10 +28368,10 @@ function searchSorted(args) {
     const customValues = [[sortedSequence.shape[1]]];
     return backend.runWebGLProgram(program, [sortedSequence, values], 'int32', customValues);
 }
-const searchSortedConfig = {
+const searchSortedConfig$1 = {
     kernelName: SearchSorted,
     backendName: 'webgl',
-    kernelFunc: searchSorted,
+    kernelFunc: searchSorted$1,
 };
 
 
@@ -27891,16 +28417,16 @@ class SelectProgram {
 }
 
 
-function select(args) {
+function select$1(args) {
     const { inputs, backend } = args;
     const { condition, t, e } = inputs;
     const program = new SelectProgram(condition.shape.length, t.shape, t.shape.length);
     return backend.runWebGLProgram(program, [condition, t, e], upcastType(t.dtype, e.dtype));
 }
-const selectConfig = {
+const selectConfig$1 = {
     kernelName: Select,
     backendName: 'webgl',
-    kernelFunc: select
+    kernelFunc: select$1
 };
 
 
@@ -27911,11 +28437,11 @@ const SELU = `
   float scale = ${SELU_SCALE};
   return (x >= 0.0) ? scale * x : scaleAlpha * (exp(x) - 1.0);
 `;
-const selu = unaryKernelFunc({ opSnippet: SELU });
-const seluConfig = {
+const selu$1 = unaryKernelFunc({ opSnippet: SELU });
+const seluConfig$1 = {
     kernelName: Selu$1,
     backendName: 'webgl',
-    kernelFunc: selu,
+    kernelFunc: selu$1,
 };
 
 
@@ -27950,11 +28476,11 @@ const SIGN = `
   if (isnan(x)) { return 0.0; }
   return sign(x);
 `;
-const sign = unaryKernelFunc({ opSnippet: SIGN });
-const signConfig = {
+const sign$1 = unaryKernelFunc({ opSnippet: SIGN });
+const signConfig$1 = {
     kernelName: Sign,
     backendName: 'webgl',
-    kernelFunc: sign,
+    kernelFunc: sign$1,
 };
 
 
@@ -27967,11 +28493,11 @@ const SIN_PACKED = `
   ${CHECK_NAN_SNIPPET_PACKED}
   return result;
 `;
-const sin = unaryKernelFunc({ opSnippet: SIN, packedOpSnippet: SIN_PACKED });
-const sinConfig = {
+const sin$1 = unaryKernelFunc({ opSnippet: SIN, packedOpSnippet: SIN_PACKED });
+const sinConfig$1 = {
     kernelName: Sin,
     backendName: 'webgl',
-    kernelFunc: sin,
+    kernelFunc: sin$1,
 };
 
 
@@ -27979,11 +28505,11 @@ const SINH = `
   float e2x = exp(x);
   return (e2x - 1.0 / e2x) / 2.0;
 `;
-const sinh = unaryKernelFunc({ opSnippet: SINH });
-const sinhConfig = {
+const sinh$1 = unaryKernelFunc({ opSnippet: SINH });
+const sinhConfig$1 = {
     kernelName: Sinh,
     backendName: 'webgl',
-    kernelFunc: sinh,
+    kernelFunc: sinh$1,
 };
 
 
@@ -28008,15 +28534,15 @@ const SOFTPLUS = `
   }
   return result;
 `;
-const softplus = unaryKernelFunc({ opSnippet: SOFTPLUS });
-const softplusConfig = {
+const softplus$1 = unaryKernelFunc({ opSnippet: SOFTPLUS });
+const softplusConfig$1 = {
     kernelName: Softplus$1,
     backendName: 'webgl',
-    kernelFunc: softplus,
+    kernelFunc: softplus$1,
 };
 
 
-const spaceToBatchND = (args) => {
+const spaceToBatchND$1 = (args) => {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { blockShape, paddings } = attrs;
@@ -28029,7 +28555,7 @@ const spaceToBatchND = (args) => {
         completePaddings.push([0, 0]);
     }
     const toDispose = [];
-    const paddedX = padV2({
+    const paddedX = padV2$1({
         inputs: { x },
         backend,
         attrs: { paddings: completePaddings, constantValue: 0 }
@@ -28037,27 +28563,27 @@ const spaceToBatchND = (args) => {
     const reshapedPaddedShape = getReshaped(paddedX.shape, blockShape, prod, false);
     const permutedReshapedPaddedPermutation = getPermuted(reshapedPaddedShape.length, blockShape.length, false);
     const flattenShape = getReshapedPermuted(paddedX.shape, blockShape, prod, false);
-    const reshapedPaddedX = reshape({ inputs: { x: paddedX }, backend, attrs: { shape: reshapedPaddedShape } });
+    const reshapedPaddedX = reshape$1({ inputs: { x: paddedX }, backend, attrs: { shape: reshapedPaddedShape } });
     const paddedXT = transpose({
         inputs: { x: reshapedPaddedX },
         backend,
         attrs: { perm: permutedReshapedPaddedPermutation }
     });
-    const result = reshape({ inputs: { x: paddedXT }, backend, attrs: { shape: flattenShape } });
+    const result = reshape$1({ inputs: { x: paddedXT }, backend, attrs: { shape: flattenShape } });
     toDispose.push(paddedX);
     toDispose.push(reshapedPaddedX);
     toDispose.push(paddedXT);
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return result;
 };
-const spaceToBatchNDConfig = {
+const spaceToBatchNDConfig$1 = {
     kernelName: SpaceToBatchND,
     backendName: 'webgl',
-    kernelFunc: spaceToBatchND
+    kernelFunc: spaceToBatchND$1
 };
 
 
-function sparseFillEmptyRows(args) {
+function sparseFillEmptyRows$1(args) {
     const { inputs, backend } = args;
     const { indices, values, denseShape, defaultValue } = inputs;
     if (denseShape.shape.length !== 1) {
@@ -28088,14 +28614,14 @@ function sparseFillEmptyRows(args) {
         backend.makeTensorInfo([reverseIndexMap.length], indices.dtype, new Int32Array(reverseIndexMap)),
     ];
 }
-const sparseFillEmptyRowsConfig = {
+const sparseFillEmptyRowsConfig$1 = {
     kernelName: SparseFillEmptyRows,
     backendName: 'webgl',
-    kernelFunc: sparseFillEmptyRows,
+    kernelFunc: sparseFillEmptyRows$1,
 };
 
 
-function sparseReshape(args) {
+function sparseReshape$1(args) {
     const { inputs, backend } = args;
     const { inputIndices, inputShape, newShape } = inputs;
     if (inputIndices.shape.length !== 2) {
@@ -28116,14 +28642,14 @@ function sparseReshape(args) {
         backend.makeTensorInfo([outputShape.length], newShape.dtype, new Int32Array(outputShape)),
     ];
 }
-const sparseReshapeConfig = {
+const sparseReshapeConfig$1 = {
     kernelName: SparseReshape,
     backendName: 'webgl',
-    kernelFunc: sparseReshape,
+    kernelFunc: sparseReshape$1,
 };
 
 
-function sparseSegmentMean(args) {
+function sparseSegmentMean$1(args) {
     const { inputs, backend } = args;
     const { data, indices, segmentIds } = inputs;
     if (data.shape.length < 1) {
@@ -28143,14 +28669,14 @@ function sparseSegmentMean(args) {
     const [outputData, outputDataShape] = sparseSegmentReductionImplCPU($data, data.shape, data.dtype, $indices, $segmentIds, true);
     return backend.makeTensorInfo(outputDataShape, data.dtype, outputData);
 }
-const sparseSegmentMeanConfig = {
+const sparseSegmentMeanConfig$1 = {
     kernelName: SparseSegmentMean,
     backendName: 'webgl',
-    kernelFunc: sparseSegmentMean,
+    kernelFunc: sparseSegmentMean$1,
 };
 
 
-function sparseSegmentSum(args) {
+function sparseSegmentSum$1(args) {
     const { inputs, backend } = args;
     const { data, indices, segmentIds } = inputs;
     if (data.shape.length < 1) {
@@ -28170,14 +28696,14 @@ function sparseSegmentSum(args) {
     const [outputData, outputDataShape] = sparseSegmentReductionImplCPU($data, data.shape, data.dtype, $indices, $segmentIds);
     return backend.makeTensorInfo(outputDataShape, data.dtype, outputData);
 }
-const sparseSegmentSumConfig = {
+const sparseSegmentSumConfig$1 = {
     kernelName: SparseSegmentSum,
     backendName: 'webgl',
-    kernelFunc: sparseSegmentSum,
+    kernelFunc: sparseSegmentSum$1,
 };
 
 
-function sparseToDense(args) {
+function sparseToDense$1(args) {
     const { inputs, backend, attrs } = args;
     const { sparseIndices, sparseValues, defaultValue } = inputs;
     const { outputShape } = attrs;
@@ -28192,18 +28718,18 @@ function sparseToDense(args) {
     }
     const program = new ScatterProgram(numUpdates, sliceRank, sparseIndices.shape.length, sparseValues.shape.length, strides, [outputSize, 1], sumDupeIndices);
     const res = backend.runWebGLProgram(program, [sparseValues, sparseIndices, defaultValue], sparseValues.dtype);
-    const reshaped = reshape({ inputs: { x: res }, backend, attrs: { shape: outputShape } });
+    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: outputShape } });
     backend.disposeIntermediateTensorInfo(res);
     return reshaped;
 }
-const sparseToDenseConfig = {
+const sparseToDenseConfig$1 = {
     kernelName: SparseToDense,
     backendName: 'webgl',
-    kernelFunc: sparseToDense
+    kernelFunc: sparseToDense$1
 };
 
 
-function splitV(args) {
+function splitV$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { numOrSizeSplits, axis } = attrs;
@@ -28220,10 +28746,10 @@ function splitV(args) {
         return sliceT;
     });
 }
-const splitVConfig = {
+const splitVConfig$1 = {
     kernelName: SplitV,
     backendName: 'webgl',
-    kernelFunc: splitV
+    kernelFunc: splitV$1
 };
 
 
@@ -28238,7 +28764,7 @@ const sqrtConfig = {
 
 const SQUARE = `return x * x;`;
 const square$1 = unaryKernelFunc({ opSnippet: SQUARE });
-const squareConfig = {
+const squareConfig$1 = {
     kernelName: Square,
     backendName: 'webgl',
     kernelFunc: square$1,
@@ -28272,7 +28798,7 @@ const staticRegexReplaceConfig = {
 };
 
 
-function step({ inputs, attrs, backend }) {
+function step$1({ inputs, attrs, backend }) {
     const { x } = inputs;
     const opSnippet = CHECK_NAN_SNIPPET$1 + `
     return x > 0.0 ? 1.0 : float(${attrs.alpha});
@@ -28280,10 +28806,10 @@ function step({ inputs, attrs, backend }) {
     const program = new UnaryOpProgram(x.shape, opSnippet);
     return backend.runWebGLProgram(program, [x], x.dtype);
 }
-const stepConfig = {
+const stepConfig$1 = {
     kernelName: Step,
     backendName: 'webgl',
-    kernelFunc: step,
+    kernelFunc: step$1,
 };
 
 
@@ -28322,7 +28848,7 @@ class StridedSliceProgram {
 }
 
 
-function stridedSlice(args) {
+function stridedSlice$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask } = attrs;
@@ -28330,7 +28856,7 @@ function stridedSlice(args) {
     let result;
     if (isIdentity) {
         
-        result = reshape({ inputs: { x }, backend, attrs: { shape: finalShape } });
+        result = reshape$1({ inputs: { x }, backend, attrs: { shape: finalShape } });
     }
     else if (sliceDim0 || isSimpleSlice) {
         
@@ -28339,7 +28865,7 @@ function stridedSlice(args) {
         
         const sliced = slice({ inputs: { x }, backend, attrs: { begin: $begin, size } });
         result =
-            reshape({ inputs: { x: sliced }, backend, attrs: { shape: finalShape } });
+            reshape$1({ inputs: { x: sliced }, backend, attrs: { shape: finalShape } });
         backend.disposeIntermediateTensorInfo(sliced);
     }
     else {
@@ -28357,18 +28883,18 @@ function stridedSlice(args) {
             result = backend.runWebGLProgram(program, [x], x.dtype);
         }
     }
-    const resultReshaped = reshape({ inputs: { x: result }, backend, attrs: { shape: finalShape } });
+    const resultReshaped = reshape$1({ inputs: { x: result }, backend, attrs: { shape: finalShape } });
     backend.disposeIntermediateTensorInfo(result);
     return resultReshaped;
 }
-const stridedSliceConfig = {
+const stridedSliceConfig$1 = {
     kernelName: StridedSlice,
     backendName: 'webgl',
-    kernelFunc: stridedSlice
+    kernelFunc: stridedSlice$1
 };
 
 
-function stringNGrams(args) {
+function stringNGrams$1(args) {
     const { inputs, backend, attrs } = args;
     const { separator, nGramWidths, leftPad, rightPad, padWidth, preserveShortSequences } = attrs;
     const { data, dataSplits } = inputs;
@@ -28380,14 +28906,14 @@ function stringNGrams(args) {
         backend.makeTensorInfo(dataSplits.shape, 'int32', nGramsSplits),
     ];
 }
-const stringNGramsConfig = {
+const stringNGramsConfig$1 = {
     kernelName: StringNGrams,
     backendName: 'webgl',
-    kernelFunc: stringNGrams,
+    kernelFunc: stringNGrams$1,
 };
 
 
-function stringSplit(args) {
+function stringSplit$1(args) {
     const { inputs, backend, attrs } = args;
     const { skipEmpty } = attrs;
     const { input, delimiter } = inputs;
@@ -28410,14 +28936,14 @@ function stringSplit(args) {
         backend.makeTensorInfo([2], 'int32', new Int32Array(shape))
     ];
 }
-const stringSplitConfig = {
+const stringSplitConfig$1 = {
     kernelName: StringSplit,
     backendName: 'webgl',
-    kernelFunc: stringSplit,
+    kernelFunc: stringSplit$1,
 };
 
 
-function stringToHashBucketFast(args) {
+function stringToHashBucketFast$1(args) {
     const { inputs, backend, attrs } = args;
     const { numBuckets } = attrs;
     const { input } = inputs;
@@ -28431,19 +28957,19 @@ function stringToHashBucketFast(args) {
     const output = stringToHashBucketFastImplCPU($input, numBuckets);
     return backend.makeTensorInfo(input.shape, 'int32', output);
 }
-const stringToHashBucketFastConfig = {
+const stringToHashBucketFastConfig$1 = {
     kernelName: StringToHashBucketFast,
     backendName: 'webgl',
-    kernelFunc: stringToHashBucketFast,
+    kernelFunc: stringToHashBucketFast$1,
 };
 
 
 const TAN = `return tan(x);`;
-const tan = unaryKernelFunc({ opSnippet: TAN });
-const tanConfig = {
+const tan$1 = unaryKernelFunc({ opSnippet: TAN });
+const tanConfig$1 = {
     kernelName: Tan,
     backendName: 'webgl',
-    kernelFunc: tan,
+    kernelFunc: tan$1,
 };
 
 
@@ -28451,15 +28977,15 @@ const TANH = `
   float e2x = exp(-2.0 * abs(x));
   return sign(x) * (1.0 - e2x) / (1.0 + e2x);
 `;
-const tanh = unaryKernelFunc({ opSnippet: TANH });
-const tanhConfig = {
+const tanh$1 = unaryKernelFunc({ opSnippet: TANH });
+const tanhConfig$1 = {
     kernelName: Tanh$1,
     backendName: 'webgl',
-    kernelFunc: tanh,
+    kernelFunc: tanh$1,
 };
 
 
-function tensorScatterUpdate(args) {
+function tensorScatterUpdate$1(args) {
     const { inputs, backend} = args;
     const { tensor, indices, updates } = inputs;
     const { sliceRank, numUpdates, sliceSize, strides, outputSize } = calculateShapes(updates, indices, tensor.shape);
@@ -28467,22 +28993,22 @@ function tensorScatterUpdate(args) {
     if (outputSize === 0) {
         return backend.makeTensorInfo(tensor.shape, indices.dtype);
     }
-    const flattenIndices = reshape({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
-    const flattenX = reshape({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
-    const flattenTensor = reshape({ inputs: { x: tensor }, backend, attrs: { shape: flattenShape } });
+    const flattenIndices = reshape$1({ inputs: { x: indices }, backend, attrs: { shape: [numUpdates, sliceRank] } });
+    const flattenX = reshape$1({ inputs: { x: updates }, backend, attrs: { shape: [numUpdates, sliceSize] } });
+    const flattenTensor = reshape$1({ inputs: { x: tensor }, backend, attrs: { shape: flattenShape } });
     const program = new ScatterProgram(numUpdates, sliceRank, flattenIndices.shape.length, flattenX.shape.length, strides, flattenShape, false, true);
     const res = backend.runWebGLProgram(program, [flattenX, flattenIndices, flattenTensor], flattenTensor.dtype);
-    const reshaped = reshape({ inputs: { x: res }, backend, attrs: { shape: tensor.shape } });
+    const reshaped = reshape$1({ inputs: { x: res }, backend, attrs: { shape: tensor.shape } });
     backend.disposeIntermediateTensorInfo(flattenIndices);
     backend.disposeIntermediateTensorInfo(flattenX);
     backend.disposeIntermediateTensorInfo(flattenTensor);
     backend.disposeIntermediateTensorInfo(res);
     return reshaped;
 }
-const tensorScatterUpdateConfig = {
+const tensorScatterUpdateConfig$1 = {
     kernelName: TensorScatterUpdate,
     backendName: 'webgl',
-    kernelFunc: tensorScatterUpdate
+    kernelFunc: tensorScatterUpdate$1
 };
 
 
@@ -28522,7 +29048,7 @@ function getSourceCoords(aShape) {
 }
 
 
-function tile$1(params) {
+function tile$2(params) {
     const { inputs, backend, attrs } = params;
     const { x } = inputs;
     const { reps } = attrs;
@@ -28542,10 +29068,10 @@ function tile$1(params) {
     const output = backend.runWebGLProgram(program, [x], x.dtype);
     return output;
 }
-const tileConfig = {
+const tileConfig$1 = {
     kernelName: Tile,
     backendName: 'webgl',
-    kernelFunc: tile$1,
+    kernelFunc: tile$2,
 };
 
 
@@ -28683,7 +29209,7 @@ function roundUpToPow2(num) {
 }
 
 
-function topK(args) {
+function topK$1(args) {
     const { inputs, backend, attrs } = args;
     const { x } = inputs;
     const { k, sorted } = attrs;
@@ -28714,7 +29240,7 @@ function topK(args) {
     }
     if (lastDim === 1 ) {
         return [
-            x, fill({ attrs: { shape: xShape, dtype: 'int32', value: 0 }, backend })
+            x, fill$1({ attrs: { shape: xShape, dtype: 'int32', value: 0 }, backend })
         ];
     }
     
@@ -28725,7 +29251,7 @@ function topK(args) {
     
     const xSize = sizeFromShape(xShape);
     const batch = xSize / lastDim;
-    const x2D = reshape({ inputs: { x: xUnPacked }, attrs: { shape: [batch, lastDim] }, backend });
+    const x2D = reshape$1({ inputs: { x: xUnPacked }, attrs: { shape: [batch, lastDim] }, backend });
     if (xIsPacked) {
         disposeIntermediateTensorInfoOrNull(backend, xUnPacked);
     }
@@ -28778,24 +29304,24 @@ function topK(args) {
     indices = slice({ inputs: { x: indices }, backend, attrs: { begin: 0, size: [batch, k] } });
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
     
-    let values = gatherV2({ inputs: { x: x2D, indices }, backend, attrs: { axis: 1, batchDims: 1 } });
+    let values = gatherV2$1({ inputs: { x: x2D, indices }, backend, attrs: { axis: 1, batchDims: 1 } });
     disposeIntermediateTensorInfoOrNull(backend, x2D);
     
     
     const newShape = xShape.slice(0, -1);
     newShape.push(k);
     prevIndices = indices;
-    indices = reshape({ inputs: { x: indices }, attrs: { shape: newShape }, backend });
+    indices = reshape$1({ inputs: { x: indices }, attrs: { shape: newShape }, backend });
     disposeIntermediateTensorInfoOrNull(backend, prevIndices);
     const prevValues = values;
-    values = reshape({ inputs: { x: values }, attrs: { shape: newShape }, backend });
+    values = reshape$1({ inputs: { x: values }, attrs: { shape: newShape }, backend });
     disposeIntermediateTensorInfoOrNull(backend, prevValues);
     return [values, indices];
 }
-const topKConfig = {
+const topKConfig$1 = {
     kernelName: TopK,
     backendName: 'webgl',
-    kernelFunc: topK
+    kernelFunc: topK$1
 };
 
 
@@ -28939,7 +29465,7 @@ class TransformProgram {
 }
 
 
-function transform(args) {
+function transform$1(args) {
     const { inputs, backend, attrs } = args;
     const { image, transforms } = inputs;
     const { interpolation, fillMode, fillValue, outputShape } = attrs;
@@ -28950,18 +29476,18 @@ function transform(args) {
     const program = new TransformProgram(imageHeight, imageWidth, interpolation, fillMode, fillValue, outShape);
     return backend.runWebGLProgram(program, [image, transforms], 'float32');
 }
-const transformConfig = {
+const transformConfig$1 = {
     kernelName: Transform,
     backendName: 'webgl',
-    kernelFunc: transform
+    kernelFunc: transform$1
 };
 
 
-function unique$1(args) {
+function unique$2(args) {
     const { inputs, attrs, backend } = args;
     const { axis } = attrs;
     const { x } = inputs;
-    assertNotComplex(x, 'unique');
+    assertNotComplex$1(x, 'unique');
     
     console.warn('WARNING: ', 'UI might be locked temporarily as data is being downloaded');
     const values = backend.readSync(x.dataId);
@@ -28971,14 +29497,14 @@ function unique$1(args) {
         backend.makeTensorInfo([indices.length], 'int32', indices),
     ];
 }
-const uniqueConfig = {
+const uniqueConfig$1 = {
     kernelName: Unique,
     backendName: 'webgl',
-    kernelFunc: unique$1,
+    kernelFunc: unique$2,
 };
 
 
-function unpack(args) {
+function unpack$1(args) {
     const { inputs, backend, attrs } = args;
     const { value } = inputs;
     let { axis } = attrs;
@@ -29003,17 +29529,17 @@ function unpack(args) {
     for (let i = 0; i < res.length; i++) {
         begin[axis] = i;
         const sliced = slice({ inputs: { x }, backend, attrs: { begin, size } });
-        const reshaped = reshape({ inputs: { x: sliced }, backend, attrs: { shape: outShape } });
+        const reshaped = reshape$1({ inputs: { x: sliced }, backend, attrs: { shape: outShape } });
         res[i] = reshaped;
         toDispose.push(sliced);
     }
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return res;
 }
-const unpackConfig = {
+const unpackConfig$1 = {
     kernelName: Unpack,
     backendName: 'webgl',
-    kernelFunc: unpack
+    kernelFunc: unpack$1
 };
 
 
@@ -29150,7 +29676,7 @@ class SegmentOpProgram {
 }
 
 
-function unsortedSegmentSum(args) {
+function unsortedSegmentSum$1(args) {
     const { inputs, backend, attrs } = args;
     const { x, segmentIds } = inputs;
     const { numSegments } = attrs;
@@ -29166,7 +29692,7 @@ function unsortedSegmentSum(args) {
     }
     const outShape = computeOutShape(permutedX.shape, axis, numSegments);
     const inSize = sizeFromShape([permutedX.shape[axis]]);
-    const a2D = reshape({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
+    const a2D = reshape$1({ inputs: { x: permutedX }, backend, attrs: { shape: [-1, inSize] } });
     toDispose.push(a2D);
     const outputDType = sumOutType(x.dtype);
     const segOpCompute = (x, segOpType, segmentIds, dtype, numSegments) => {
@@ -29181,11 +29707,11 @@ function unsortedSegmentSum(args) {
         if (output.shape[1] === numSegments) {
             return output;
         }
-        const rangeInfo = range$1({
+        const rangeInfo = range$2({
             backend,
             attrs: { start: 0, stop: numSegments, step: 1, dtype: 'float32' }
         });
-        const tileInfo = tile$1({
+        const tileInfo = tile$2({
             inputs: { x: rangeInfo },
             backend,
             attrs: { reps: [inSize / windowSize] }
@@ -29196,7 +29722,7 @@ function unsortedSegmentSum(args) {
         return result;
     };
     const segOpResult = segOpCompute(a2D, 'unsortedSegmentSum', segmentIds, outputDType, numSegments);
-    const reshaped = reshape({ inputs: { x: segOpResult }, backend, attrs: { shape: outShape } });
+    const reshaped = reshape$1({ inputs: { x: segOpResult }, backend, attrs: { shape: outShape } });
     let result = reshaped;
     if (permutation != null) {
         toDispose.push(reshaped);
@@ -29206,20 +29732,5591 @@ function unsortedSegmentSum(args) {
     toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
     return result;
 }
-const unsortedSegmentSumConfig = {
+const unsortedSegmentSumConfig$1 = {
     kernelName: UnsortedSegmentSum,
     backendName: 'webgl',
+    kernelFunc: unsortedSegmentSum$1
+};
+
+
+
+const kernelConfigs$1 = [
+    _fusedMatMulConfig$1,
+    absConfig,
+    acosConfig$1,
+    acoshConfig$1,
+    addConfig,
+    addNConfig$1,
+    allConfig$1,
+    anyConfig$1,
+    argMaxConfig$1,
+    argMinConfig$1,
+    asinConfig$1,
+    asinhConfig$1,
+    atanConfig$1,
+    atan2Config$1,
+    atanhConfig$1,
+    avgPoolConfig$1,
+    avgPool3DConfig$1,
+    avgPool3DGradConfig$2,
+    avgPoolGradConfig$2,
+    batchMatMulConfig$1,
+    batchNormConfig$1,
+    batchToSpaceNDConfig$1,
+    bincountConfig$1,
+    bitwiseAndConfig,
+    broadcastArgsConfig$1,
+    castConfig,
+    ceilConfig,
+    clipByValueConfig$1,
+    complexConfig,
+    complexAbsConfig$1,
+    concatConfig$1,
+    conv2DConfig$1,
+    conv2DBackpropFilterConfig$1,
+    conv2DBackpropInputConfig$1,
+    conv3DConfig$1,
+    conv3DBackpropFilterV2Config$1,
+    conv3DBackpropInputConfig,
+    cosConfig$1,
+    coshConfig$1,
+    cropAndResizeConfig$1,
+    cumprodConfig$1,
+    cumsumConfig$1,
+    denseBincountConfig$1,
+    depthToSpaceConfig$1,
+    depthwiseConv2dNativeConfig$1,
+    depthwiseConv2dNativeBackpropFilterConfig$1,
+    depthwiseConv2dNativeBackpropInputConfig$1,
+    diagConfig$1,
+    dilation2DConfig$1,
+    einsumConfig$1,
+    eluConfig$1,
+    eluGradConfig$2,
+    equalConfig,
+    erfConfig$1,
+    expConfig,
+    expandDimsConfig$1,
+    expm1Config,
+    fftConfig$1,
+    fillConfig$1,
+    flipLeftRightConfig$1,
+    floorConfig,
+    floorDivConfig,
+    fromPixelsConfig,
+    fusedConv2DConfig$1,
+    fusedDepthwiseConv2DConfig$1,
+    gatherNdConfig$1,
+    gatherV2Config$1,
+    greaterConfig,
+    greaterEqualConfig,
+    identityConfig,
+    ifftConfig$1,
+    imagConfig$1,
+    isFiniteConfig$1,
+    isInfConfig$1,
+    isNaNConfig$1,
+    leakyReluConfig$1,
+    lessConfig,
+    lessEqualConfig,
+    linSpaceConfig$1,
+    logConfig,
+    log1pConfig$1,
+    logicalAndConfig$1,
+    logicalNotConfig$1,
+    logicalOrConfig$1,
+    LRNConfig$1,
+    LRNGradConfig$1,
+    maxConfig$1,
+    maximumConfig,
+    maxPoolConfig$1,
+    maxPool3DConfig$1,
+    maxPool3DGradConfig$2,
+    maxPoolGradConfig$2,
+    maxPoolWithArgmaxConfig$1,
+    meanConfig$1,
+    minConfig$1,
+    minimumConfig,
+    mirrorPadConfig$1,
+    modConfig$1,
+    multinomialConfig$1,
+    multiplyConfig,
+    negConfig,
+    nonMaxSuppressionV3Config$1,
+    nonMaxSuppressionV4Config$1,
+    nonMaxSuppressionV5Config$1,
+    notEqualConfig,
+    oneHotConfig$1,
+    onesLikeConfig$1,
+    packConfig$1,
+    padV2Config$1,
+    powConfig$1,
+    preluConfig$1,
+    prodConfig,
+    raggedGatherConfig$1,
+    raggedRangeConfig$1,
+    raggedTensorToTensorConfig$1,
+    rangeConfig$1,
+    realConfig,
+    realDivConfig$1,
+    reciprocalConfig$1,
+    reluConfig$1,
+    relu6Config$1,
+    reshapeConfig$1,
+    resizeBilinearConfig$1,
+    resizeBilinearGradConfig$2,
+    resizeNearestNeighborConfig$1,
+    resizeNearestNeighborGradConfig$2,
+    reverseConfig$1,
+    rotateWithOffsetConfig$1,
+    roundConfig$1,
+    rsqrtConfig,
+    scatterNdConfig$1,
+    searchSortedConfig$1,
+    selectConfig$1,
+    seluConfig$1,
+    sigmoidConfig,
+    signConfig$1,
+    sinConfig$1,
+    sinhConfig$1,
+    sliceConfig,
+    softmaxConfig$1,
+    softplusConfig$1,
+    spaceToBatchNDConfig$1,
+    sparseFillEmptyRowsConfig$1,
+    sparseReshapeConfig$1,
+    sparseSegmentMeanConfig$1,
+    sparseSegmentSumConfig$1,
+    sparseToDenseConfig$1,
+    splitVConfig$1,
+    sqrtConfig,
+    squareConfig$1,
+    squaredDifferenceConfig,
+    staticRegexReplaceConfig,
+    stepConfig$1,
+    stridedSliceConfig$1,
+    stringNGramsConfig$1,
+    stringSplitConfig$1,
+    stringToHashBucketFastConfig$1,
+    subConfig,
+    sumConfig$1,
+    tanConfig$1,
+    tanhConfig$1,
+    tensorScatterUpdateConfig$1,
+    tileConfig$1,
+    topKConfig$1,
+    transformConfig$1,
+    transposeConfig,
+    uniqueConfig$1,
+    unpackConfig$1,
+    unsortedSegmentSumConfig$1,
+    zerosLikeConfig$1
+];
+for (const kernelConfig of kernelConfigs$1) {
+    registerKernel(kernelConfig);
+}
+
+
+const whereImpl = whereImpl$2;
+class MathBackendCPU extends KernelBackend {
+    nextDataId() {
+        return MathBackendCPU.nextDataId++;
+    }
+    constructor() {
+        super();
+        this.blockSize = 48;
+        this.firstUse = true;
+        this.data = new DataStorage(this, engine());
+    }
+    write(values, shape, dtype) {
+        if (this.firstUse) {
+            this.firstUse = false;
+            if (env().get('IS_NODE')) {
+                warn('\n============================\n' +
+                    'Hi, looks like you are running TensorFlow.js in ' +
+                    'Node.js. To speed things up dramatically, install our node ' +
+                    'backend, visit https://github.com/tensorflow/tfjs-node for more details. ' +
+                    '\n============================');
+            }
+        }
+        const dataId = { id: this.nextDataId() };
+        this.data.set(dataId, { values, dtype, refCount: 1 });
+        return dataId;
+    }
+    
+    makeTensorInfo(shape, dtype, values) {
+        let outId;
+        if (dtype === 'string' && values != null && values.length > 0 &&
+            isString(values[0])) {
+            const encodedValues = values.map(d => encodeString(d));
+            outId = this.write(encodedValues, shape, dtype);
+        }
+        else {
+            outId = this.write(values, shape, dtype);
+        }
+        return { dataId: outId, shape, dtype };
+    }
+    
+    refCount(dataId) {
+        if (this.data.has(dataId)) {
+            const tensorData = this.data.get(dataId);
+            return tensorData.refCount;
+        }
+        return 0;
+    }
+    
+    incRef(dataId) {
+        const tensorData = this.data.get(dataId);
+        tensorData.refCount++;
+    }
+    
+    decRef(dataId) {
+        if (this.data.has(dataId)) {
+            const tensorData = this.data.get(dataId);
+            tensorData.refCount--;
+        }
+    }
+    move(dataId, values, shape, dtype, refCount) {
+        this.data.set(dataId, { values, dtype, refCount });
+    }
+    numDataIds() {
+        return this.data.numDataIds();
+    }
+    async read(dataId) {
+        return this.readSync(dataId);
+    }
+    readSync(dataId) {
+        const { dtype, complexTensorInfos } = this.data.get(dataId);
+        if (dtype === 'complex64') {
+            const realValues = this.readSync(complexTensorInfos.real.dataId);
+            const imagValues = this.readSync(complexTensorInfos.imag.dataId);
+            return mergeRealAndImagArrays(realValues, imagValues);
+        }
+        return convertBackendValuesAndArrayBuffer(this.data.get(dataId).values, dtype);
+    }
+    bufferSync(t) {
+        const data = this.readSync(t.dataId);
+        if (t.dtype === 'string') {
+            try {
+                
+                const strings = data.map(d => decodeString(d));
+                return buffer(t.shape, t.dtype, strings);
+            }
+            catch (_a) {
+                throw new Error('Failed to decode encoded string bytes into utf-8');
+            }
+        }
+        return buffer(t.shape, t.dtype, data);
+    }
+    makeOutput(values, shape, dtype) {
+        return engine().makeTensorFromTensorInfo(this.makeTensorInfo(shape, dtype, values), this);
+    }
+    
+    disposeData(dataId, force = false) {
+        if (this.data.has(dataId)) {
+            this.data.get(dataId).refCount--;
+            if (!force && this.data.get(dataId).refCount > 0) {
+                return false;
+            }
+            const { complexTensorInfos } = this.data.get(dataId);
+            if (complexTensorInfos != null) {
+                this.disposeData(complexTensorInfos.real.dataId, true);
+                this.disposeData(complexTensorInfos.imag.dataId, true);
+            }
+            this.data.delete(dataId);
+        }
+        return true;
+    }
+    disposeIntermediateTensorInfo(tensorInfo) {
+        this.disposeData(tensorInfo.dataId);
+    }
+    async time(f) {
+        const start = now();
+        f();
+        const kernelMs = now() - start;
+        return { kernelMs };
+    }
+    memory() {
+        return {
+            
+            unreliable: true,
+            reasons: ['The reported memory is an upper bound. Due to automatic garbage ' +
+                    'collection, the true allocated memory may be less.']
+        };
+    }
+    where(condition) {
+        assertNotComplex([condition], 'where');
+        const condVals = this.readSync(condition.dataId);
+        return whereImpl(condition.shape, condVals);
+    }
+    dispose() { }
+    floatPrecision() {
+        return 32;
+    }
+    
+    epsilon() {
+        return super.epsilon();
+    }
+}
+MathBackendCPU.nextDataId = 0;
+
+
+
+
+registerBackend('cpu', () => new MathBackendCPU(), 1 );
+
+
+const elu$1 = unaryKernelFunc$1(Elu$1, (xi) => xi >= 0 ? xi : (Math.exp(xi) - 1));
+const eluConfig = {
+    kernelName: Elu$1,
+    backendName: 'cpu',
+    kernelFunc: elu$1,
+};
+
+
+function leakyRelu(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { alpha } = attrs;
+    assertNotComplex([x], 'leakyRelu');
+    const xSize = sizeFromShape(x.shape);
+    const xVals = backend.data.get(x.dataId).values;
+    const outVals = getTypedArrayFromDType('float32', xSize);
+    for (let i = 0; i < xVals.length; i++) {
+        outVals[i] = xVals[i] < 0 ? alpha * xVals[i] : xVals[i];
+    }
+    return backend.makeTensorInfo(x.shape, 'float32', outVals);
+}
+const leakyReluConfig = {
+    kernelName: LeakyRelu,
+    backendName: 'cpu',
+    kernelFunc: leakyRelu
+};
+
+
+const preluImpl = createSimpleBinaryKernelImpl((xValue, aValue) => xValue < 0 ? aValue * xValue : xValue);
+function prelu(args) {
+    const { inputs, backend } = args;
+    const { x, alpha } = inputs;
+    assertNotComplex([x, alpha], 'prelu');
+    const aVals = backend.data.get(x.dataId).values;
+    const bVals = backend.data.get(alpha.dataId).values;
+    const [resultData, resultShape] = preluImpl(x.shape, alpha.shape, aVals, bVals, 'float32');
+    return backend.makeTensorInfo(resultShape, 'float32', resultData);
+}
+const preluConfig = {
+    kernelName: Prelu,
+    backendName: 'cpu',
+    kernelFunc: prelu,
+};
+
+
+const relu = unaryKernelFunc$1(Relu$1, (xi) => Math.max(0, xi));
+const reluConfig = {
+    kernelName: Relu$1,
+    backendName: 'cpu',
+    kernelFunc: relu,
+};
+
+
+const relu6 = unaryKernelFunc$1(Relu6$1, (xi) => Math.min(Math.max(0, xi), 6));
+const relu6Config = {
+    kernelName: Relu6$1,
+    backendName: 'cpu',
+    kernelFunc: relu6,
+};
+
+
+function applyActivation(backend, x, activation, preluActivationWeights, leakyreluAlpha) {
+    if (activation === 'linear') {
+        return identity$1({ inputs: { x }, backend });
+    }
+    else if (activation === 'relu') {
+        return relu({ inputs: { x }, backend });
+    }
+    else if (activation === 'elu') {
+        return elu$1({ inputs: { x }, backend });
+    }
+    else if (activation === 'relu6') {
+        return relu6({ inputs: { x }, backend });
+    }
+    else if (activation === 'prelu') {
+        return prelu({ inputs: { x, alpha: preluActivationWeights }, backend });
+    }
+    else if (activation === 'leakyrelu') {
+        return leakyRelu({ inputs: { x }, backend, attrs: { alpha: leakyreluAlpha } });
+    }
+    else if (activation === 'sigmoid') {
+        return sigmoid$1({ inputs: { x }, backend });
+    }
+    throw new Error(`Activation ${activation} has not been implemented for the CPU backend.`);
+}
+
+
+function reshape(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { shape } = attrs;
+    const xSize = sizeFromShape(x.shape);
+    const $shape = inferFromImplicitShape(shape, xSize);
+    const $xSize = sizeFromShape($shape);
+    assert$1(xSize === $xSize, () => `The new shape (${$shape}) has ${$xSize} elements and the old ` +
+        `shape (${x.shape}) has ${xSize} elements. The new shape and old ` +
+        `shape must have the same number of elements.`);
+    backend.incRef(x.dataId);
+    const xData = backend.data.get(x.dataId);
+    if (xData.complexTensorInfos != null) {
+        const real = xData.complexTensorInfos.real;
+        const imag = xData.complexTensorInfos.imag;
+        real.shape = $shape;
+        imag.shape = $shape;
+    }
+    return { dataId: x.dataId, shape: $shape, dtype: x.dtype };
+}
+const reshapeConfig = {
+    kernelName: Reshape$1,
+    backendName: 'cpu',
+    kernelFunc: reshape
+};
+
+
+function batchMatMul(args) {
+    const { inputs, backend, attrs } = args;
+    const { a, b } = inputs;
+    const { transposeA, transposeB } = attrs;
+    assertNotComplex([a, b], 'matMul');
+    const aRank = a.shape.length;
+    const bRank = b.shape.length;
+    const innerShapeA = transposeA ? a.shape[aRank - 2] : a.shape[aRank - 1];
+    const innerShapeB = transposeB ? b.shape[bRank - 1] : b.shape[bRank - 2];
+    const outerShapeA = transposeA ? a.shape[aRank - 1] : a.shape[aRank - 2];
+    const outerShapeB = transposeB ? b.shape[bRank - 2] : b.shape[bRank - 1];
+    const outerDimsA = a.shape.slice(0, -2);
+    const outerDimsB = b.shape.slice(0, -2);
+    const batchDimA = sizeFromShape(outerDimsA);
+    const batchDimB = sizeFromShape(outerDimsB);
+    const outShapeOuterDims = assertAndGetBroadcastShape(a.shape.slice(0, -2), b.shape.slice(0, -2));
+    const outShape = outShapeOuterDims.concat([outerShapeA, outerShapeB]);
+    assert$1(innerShapeA === innerShapeB, () => `Error in matMul: inner shapes (${innerShapeA}) and (` +
+        `${innerShapeB}) of Tensors with shapes ${a.shape} and ` +
+        `${b.shape} and transposeA=${transposeA}` +
+        ` and transposeB=${transposeB} must match.`);
+    const a3dShape = transposeA ? [batchDimA, innerShapeA, outerShapeA] :
+        [batchDimA, outerShapeA, innerShapeA];
+    const b3dShape = transposeB ? [batchDimB, outerShapeB, innerShapeB] :
+        [batchDimB, innerShapeB, outerShapeB];
+    
+    const a3d = reshape({ inputs: { x: a }, backend, attrs: { shape: a3dShape } });
+    const b3d = reshape({ inputs: { x: b }, backend, attrs: { shape: b3dShape } });
+    const sharedDim = transposeA ? a3d.shape[1] : a3d.shape[2];
+    const leftDim = transposeA ? a3d.shape[2] : a3d.shape[1];
+    const rightDim = transposeB ? b3d.shape[1] : b3d.shape[2];
+    const batchDim = Math.max(batchDimA, batchDimB);
+    const a3dValues = backend.data.get(a3d.dataId).values;
+    const b3dValues = backend.data.get(b3d.dataId).values;
+    const a3dStrides = computeStrides(a3d.shape);
+    const b3dStrides = computeStrides(b3d.shape);
+    const [aBatch, aOuterStep, aInnerStep] = transposeA ?
+        [a3dStrides[0], 1, a3dStrides[1]] :
+        [a3dStrides[0], a3dStrides[1], 1];
+    const [bInnerStep, bOuterStep, bBatch] = transposeB ?
+        [1, b3dStrides[1], b3dStrides[0]] :
+        [b3dStrides[1], 1, b3dStrides[0]];
+    const size = leftDim * rightDim;
+    const result = buffer([batchDim, leftDim, rightDim], a3d.dtype);
+    const resVals = result.values;
+    const blockSize = backend.blockSize;
+    for (let bi = 0; bi < batchDim; bi++) {
+        const batchIndexA = bi % batchDimA;
+        const batchIndexB = bi % batchDimB;
+        for (let i0 = 0; i0 < leftDim; i0 += blockSize) {
+            
+            const iBlock = Math.min(i0 + blockSize, leftDim);
+            for (let j0 = 0; j0 < rightDim; j0 += blockSize) {
+                const jBlock = Math.min(j0 + blockSize, rightDim);
+                for (let k0 = 0; k0 < sharedDim; k0 += blockSize) {
+                    const kBlock = Math.min(k0 + blockSize, sharedDim);
+                    for (let i = i0; i < iBlock; i++) {
+                        for (let j = j0; j < jBlock; j++) {
+                            let sum = 0.0;
+                            for (let k = k0; k < kBlock; k++) {
+                                const aVal = 
+                                
+                                a3dValues[batchIndexA * aBatch + i * aOuterStep + k * aInnerStep];
+                                const bVal = 
+                                
+                                b3dValues[k * bInnerStep + j * bOuterStep + batchIndexB * bBatch];
+                                sum += aVal * bVal;
+                            }
+                            resVals[bi * size + (i * rightDim + j)] += sum;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    backend.disposeIntermediateTensorInfo(a3d);
+    backend.disposeIntermediateTensorInfo(b3d);
+    
+    return backend.makeTensorInfo(outShape, result.dtype, result.values);
+}
+const batchMatMulConfig = {
+    kernelName: BatchMatMul,
+    backendName: 'cpu',
+    kernelFunc: batchMatMul,
+};
+
+
+function _fusedMatMul(args) {
+    const { inputs, backend, attrs } = args;
+    const { a, b, bias, preluActivationWeights } = inputs;
+    const { transposeA, transposeB, activation, leakyreluAlpha } = attrs;
+    let current;
+    let addRes;
+    let activationRes;
+    const intermediates = [];
+    const matMulRes = batchMatMul({ inputs: { a, b }, attrs: { transposeA, transposeB }, backend });
+    current = matMulRes;
+    if (bias) {
+        addRes = add({ inputs: { a: current, b: bias }, backend });
+        intermediates.push(current);
+        current = addRes;
+    }
+    if (activation) {
+        activationRes = applyActivation(backend, current, activation, preluActivationWeights, leakyreluAlpha);
+        intermediates.push(current);
+        current = activationRes;
+    }
+    for (const i of intermediates) {
+        backend.disposeIntermediateTensorInfo(i);
+    }
+    return current;
+}
+const _fusedMatMulConfig = {
+    kernelName: _FusedMatMul,
+    backendName: 'cpu',
+    kernelFunc: _fusedMatMul,
+};
+
+
+const acos = unaryKernelFunc$1(Acos, (xi) => Math.acos(xi));
+const acosConfig = {
+    kernelName: Acos,
+    backendName: 'cpu',
+    kernelFunc: acos,
+};
+
+
+const acosh = unaryKernelFunc$1(Acosh, (xi) => Math.acosh(xi));
+const acoshConfig = {
+    kernelName: Acosh,
+    backendName: 'cpu',
+    kernelFunc: acosh,
+};
+
+
+function addN(args) {
+    const { inputs, backend } = args;
+    const tensors = inputs;
+    assertNotComplex(inputs, 'addN');
+    const vals = tensors.map(t => backend.data.get(t.dataId).values);
+    const outBuf = buffer(tensors[0].shape, tensors[0].dtype);
+    const outVals = outBuf.values;
+    for (let i = 0; i < tensors.length; i++) {
+        const currVals = vals[i];
+        for (let j = 0; j < outVals.length; j++) {
+            outVals[j] += currVals[j];
+        }
+    }
+    return backend.makeTensorInfo(outBuf.shape, outBuf.dtype, outBuf.values);
+}
+const addNConfig = {
+    kernelName: AddN,
+    backendName: 'cpu',
+    kernelFunc: addN
+};
+
+
+function all(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis, keepDims } = attrs;
+    assertNotComplex(x, 'all');
+    const origAxes = parseAxisParam(axis, x.shape);
+    let axes = origAxes;
+    const permutedAxes = getAxesPermutation(axes, x.shape.length);
+    let $x = x;
+    if (permutedAxes != null) {
+        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        axes = getInnerMostAxes(axes.length, x.shape.length);
+    }
+    assertAxesAreInnerMostDims('all', axes, $x.shape.length);
+    const [outShape, reduceShape] = computeOutAndReduceShapes($x.shape, axes);
+    const reduceSize = sizeFromShape(reduceShape);
+    const vals = makeZerosTypedArray(sizeFromShape(outShape), $x.dtype);
+    const aVals = backend.data.get($x.dataId).values;
+    for (let i = 0; i < vals.length; ++i) {
+        const offset = i * reduceSize;
+        let all = aVals[offset];
+        for (let j = 0; j < reduceSize; ++j) {
+            const value = aVals[offset + j];
+            all = all && value;
+        }
+        vals[i] = all;
+    }
+    if (permutedAxes != null) {
+        backend.disposeIntermediateTensorInfo($x);
+    }
+    const result = backend.makeTensorInfo(outShape, $x.dtype, vals);
+    if (keepDims) {
+        const expandedShape = expandShapeToKeepDim(outShape, origAxes);
+        const reshapedResult = reshape({ inputs: { x: result }, backend, attrs: { shape: expandedShape } });
+        backend.disposeIntermediateTensorInfo(result);
+        return reshapedResult;
+    }
+    return result;
+}
+const allConfig = {
+    kernelName: All,
+    backendName: 'cpu',
+    kernelFunc: all
+};
+
+
+function any(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis, keepDims } = attrs;
+    assertNotComplex(x, 'any');
+    const origAxes = parseAxisParam(axis, x.shape);
+    let axes = origAxes;
+    const permutedAxes = getAxesPermutation(axes, x.shape.length);
+    let $x = x;
+    if (permutedAxes != null) {
+        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        axes = getInnerMostAxes(axes.length, x.shape.length);
+    }
+    assertAxesAreInnerMostDims('any', axes, $x.shape.length);
+    const [outShape, reduceShape] = computeOutAndReduceShapes($x.shape, axes);
+    const reduceSize = sizeFromShape(reduceShape);
+    const vals = makeZerosTypedArray(sizeFromShape(outShape), $x.dtype);
+    const aVals = backend.data.get($x.dataId).values;
+    for (let i = 0; i < vals.length; ++i) {
+        const offset = i * reduceSize;
+        let anyVal = aVals[offset];
+        for (let j = 0; j < reduceSize; ++j) {
+            const value = aVals[offset + j];
+            anyVal = anyVal || value;
+        }
+        vals[i] = anyVal;
+    }
+    if (permutedAxes != null) {
+        backend.disposeIntermediateTensorInfo($x);
+    }
+    const result = backend.makeTensorInfo(outShape, $x.dtype, vals);
+    if (keepDims) {
+        const expandedShape = expandShapeToKeepDim(outShape, origAxes);
+        const reshapedResult = reshape({ inputs: { x: result }, backend, attrs: { shape: expandedShape } });
+        backend.disposeIntermediateTensorInfo(result);
+        return reshapedResult;
+    }
+    return result;
+}
+const anyConfig = {
+    kernelName: Any,
+    backendName: 'cpu',
+    kernelFunc: any
+};
+
+
+function argMax(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis } = attrs;
+    assertNotComplex(x, 'argMax');
+    let axes = parseAxisParam(axis, x.shape);
+    const permutedAxes = getAxesPermutation(axes, x.shape.length);
+    let $x = x;
+    const intermediateTensorInfos = [];
+    if (permutedAxes != null) {
+        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        intermediateTensorInfos.push($x);
+        axes = getInnerMostAxes(axes.length, $x.shape.length);
+    }
+    axes = [axes[0]];
+    assertAxesAreInnerMostDims('argMax', axes, $x.shape.length);
+    const [outShape, reduceShape] = computeOutAndReduceShapes($x.shape, axes);
+    const outSize = sizeFromShape(outShape);
+    const vals = makeZerosTypedArray(outSize, 'int32');
+    const reduceSize = sizeFromShape(reduceShape);
+    const aVals = backend.data.get($x.dataId).values;
+    for (let i = 0; i < vals.length; ++i) {
+        const offset = i * reduceSize;
+        let max = aVals[offset];
+        let maxIndex = 0;
+        for (let j = 0; j < reduceSize; ++j) {
+            const value = aVals[offset + j];
+            if (value > max) {
+                max = value;
+                maxIndex = j;
+            }
+        }
+        vals[i] = maxIndex;
+    }
+    intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
+    return backend.makeTensorInfo(outShape, 'int32', vals);
+}
+const argMaxConfig = {
+    kernelName: ArgMax,
+    backendName: 'cpu',
+    kernelFunc: argMax
+};
+
+
+function argMin(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis } = attrs;
+    assertNotComplex(x, 'argMin');
+    let axes = parseAxisParam(axis, x.shape);
+    const permutedAxes = getAxesPermutation(axes, x.shape.length);
+    let $x = x;
+    const intermediateTensorInfos = [];
+    if (permutedAxes != null) {
+        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        intermediateTensorInfos.push($x);
+        axes = getInnerMostAxes(axes.length, $x.shape.length);
+    }
+    axes = [axes[0]];
+    assertAxesAreInnerMostDims('argMin', axes, $x.shape.length);
+    const [outShape, reduceShape] = computeOutAndReduceShapes($x.shape, axes);
+    const outSize = sizeFromShape(outShape);
+    const vals = makeZerosTypedArray(outSize, 'int32');
+    const reduceSize = sizeFromShape(reduceShape);
+    const aVals = backend.data.get($x.dataId).values;
+    for (let i = 0; i < vals.length; ++i) {
+        const offset = i * reduceSize;
+        let min = aVals[offset];
+        let minIndex = 0;
+        for (let j = 0; j < reduceSize; ++j) {
+            const value = aVals[offset + j];
+            if (value < min) {
+                min = value;
+                minIndex = j;
+            }
+        }
+        vals[i] = minIndex;
+    }
+    intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
+    return backend.makeTensorInfo(outShape, 'int32', vals);
+}
+const argMinConfig = {
+    kernelName: ArgMin,
+    backendName: 'cpu',
+    kernelFunc: argMin
+};
+
+
+const asin = unaryKernelFunc$1(Asin, (xi) => Math.asin(xi));
+const asinConfig = {
+    kernelName: Asin,
+    backendName: 'cpu',
+    kernelFunc: asin,
+};
+
+
+const asinh = unaryKernelFunc$1(Asinh, (xi) => Math.asinh(xi));
+const asinhConfig = {
+    kernelName: Asinh,
+    backendName: 'cpu',
+    kernelFunc: asinh,
+};
+
+
+const atan = unaryKernelFunc$1(Atan, (xi) => Math.atan(xi));
+const atanConfig = {
+    kernelName: Atan,
+    backendName: 'cpu',
+    kernelFunc: atan,
+};
+
+
+const atan2Impl = createSimpleBinaryKernelImpl((aValue, bValue) => Math.atan2(aValue, bValue));
+const atan2 = binaryKernelFunc$1(Atan2, atan2Impl);
+const atan2Config = {
+    kernelName: Atan2,
+    backendName: 'cpu',
+    kernelFunc: atan2,
+};
+
+
+const atanh = unaryKernelFunc$1(Atanh, (xi) => Math.atanh(xi));
+const atanhConfig = {
+    kernelName: Atanh,
+    backendName: 'cpu',
+    kernelFunc: atanh,
+};
+
+
+function pool(xValues, xShape, dtype, strides, convInfo, poolType) {
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+    const padTop = convInfo.padInfo.top;
+    const padLeft = convInfo.padInfo.left;
+    const initialValue = (poolType === 'max' ? Number.NEGATIVE_INFINITY :
+        Number.POSITIVE_INFINITY);
+    const output = buffer(convInfo.outShape, dtype);
+    const outputVals = output.values;
+    const outputBatchStrides = convInfo.outShape[1] * convInfo.outShape[2] * convInfo.outShape[3];
+    const outputRowStrides = convInfo.outShape[2] * convInfo.outShape[3];
+    const outputColStrides = convInfo.outShape[3];
+    for (let b = 0; b < convInfo.batchSize; ++b) {
+        const outputBatchOffset = b * outputBatchStrides;
+        const inputBatchOffset = b * strides[0];
+        for (let d = 0; d < convInfo.inChannels; ++d) {
+            for (let yR = 0; yR < convInfo.outHeight; ++yR) {
+                const xRCorner = yR * strideHeight - padTop;
+                const xRMin = Math.max(0, xRCorner);
+                const xRMax = Math.min(convInfo.inHeight, effectiveFilterHeight + xRCorner);
+                const outputRowOffset = outputBatchOffset + yR * outputRowStrides;
+                for (let yC = 0; yC < convInfo.outWidth; ++yC) {
+                    const xCCorner = yC * strideWidth - padLeft;
+                    const xCMin = Math.max(0, xCCorner);
+                    const xCMax = Math.min(convInfo.inWidth, effectiveFilterWidth + xCCorner);
+                    let minMaxValue = initialValue;
+                    let avgValue = 0;
+                    let count = 0;
+                    for (let xR = xRMin; xR < xRMax; xR += dilationHeight) {
+                        const xROffset = inputBatchOffset + xR * strides[1];
+                        for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
+                            const xCOffset = xROffset + xC * strides[2];
+                            const pixel = xValues[xCOffset + d];
+                            if ((poolType === 'max' && pixel > minMaxValue)) {
+                                minMaxValue = pixel;
+                            }
+                            else if (poolType === 'avg') {
+                                avgValue += pixel;
+                                count++;
+                            }
+                        }
+                        if (isNaN(minMaxValue)) {
+                            break;
+                        }
+                    }
+                    const outputOffset = outputRowOffset + yC * outputColStrides + d;
+                    outputVals[outputOffset] =
+                        poolType === 'avg' ? avgValue / count : minMaxValue;
+                }
+            }
+        }
+    }
+    return output;
+}
+function maxPoolPositions(xValues, xShape, dtype, convInfo, flattenPositions = false, includeBatchInIndex = false) {
+    const maxPositions = buffer(convInfo.outShape, 'int32');
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+    const padTop = convInfo.padInfo.top;
+    const padLeft = convInfo.padInfo.left;
+    const xBuf = buffer(xShape, dtype, xValues);
+    for (let b = 0; b < convInfo.batchSize; ++b) {
+        for (let d = 0; d < convInfo.inChannels; ++d) {
+            for (let yR = 0; yR < convInfo.outHeight; ++yR) {
+                const xRCorner = yR * strideHeight - padTop;
+                let xRMin = xRCorner;
+                while (xRMin < 0) {
+                    xRMin += dilationHeight;
+                }
+                
+                const xRMax = Math.min(convInfo.inHeight, effectiveFilterHeight + xRCorner);
+                for (let yC = 0; yC < convInfo.outWidth; ++yC) {
+                    const xCCorner = yC * strideWidth - padLeft;
+                    let xCMin = xCCorner;
+                    while (xCMin < 0) {
+                        xCMin += dilationWidth;
+                    }
+                    const xCMax = Math.min(convInfo.inWidth, effectiveFilterWidth + xCCorner);
+                    let maxValue = Number.NEGATIVE_INFINITY;
+                    let maxPosition = -1;
+                    for (let xR = xRMin; xR < xRMax; xR += dilationHeight) {
+                        const wR = xR - xRCorner;
+                        for (let xC = xCMin; xC < xCMax; xC += dilationWidth) {
+                            const wC = xC - xCCorner;
+                            
+                            
+                            
+                            const pixel = xBuf.get(b, xR, xC, d);
+                            if (pixel > maxValue) {
+                                maxValue = pixel;
+                                if (flattenPositions) {
+                                    maxPosition = includeBatchInIndex ?
+                                        ((b * convInfo.inHeight + xR) * convInfo.inWidth + xC) *
+                                            convInfo.inChannels +
+                                            d :
+                                        (xR * convInfo.inWidth + xC) * convInfo.inChannels + d;
+                                }
+                                else {
+                                    maxPosition = wR * effectiveFilterWidth + wC;
+                                }
+                            }
+                        }
+                    }
+                    maxPositions.set(maxPosition, b, yR, yC, d);
+                }
+            }
+        }
+    }
+    return maxPositions;
+}
+function pool3d(xValues, xShape, dtype, strides, convInfo, poolType) {
+    const strideDepth = convInfo.strideDepth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const dilationDepth = convInfo.dilationDepth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterDepth = convInfo.effectiveFilterDepth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+    const padFront = convInfo.padInfo.front;
+    const padTop = convInfo.padInfo.top;
+    const padLeft = convInfo.padInfo.left;
+    const initialValue = (poolType === 'max' ? Number.NEGATIVE_INFINITY :
+        Number.POSITIVE_INFINITY);
+    const output = buffer(convInfo.outShape, dtype);
+    const outputVals = output.values;
+    const outputBatchStrides = convInfo.outShape[1] * convInfo.outShape[2] *
+        convInfo.outShape[3] * convInfo.outShape[4];
+    const outputDepthStrides = convInfo.outShape[2] * convInfo.outShape[3] * convInfo.outShape[4];
+    const outputRowStrides = convInfo.outShape[3] * convInfo.outShape[4];
+    const outputColStrides = convInfo.outShape[4];
+    for (let batch = 0; batch < convInfo.batchSize; ++batch) {
+        const outputBatchOffset = batch * outputBatchStrides;
+        const inputBatchOffset = batch * strides[0];
+        for (let channel = 0; channel < convInfo.inChannels; ++channel) {
+            for (let yDepth = 0; yDepth < convInfo.outDepth; ++yDepth) {
+                const xDepthCorner = yDepth * strideDepth - padFront;
+                let xDepthMin = xDepthCorner;
+                while (xDepthMin < 0) {
+                    xDepthMin += dilationDepth;
+                }
+                const xDepthMax = Math.min(convInfo.inDepth, effectiveFilterDepth + xDepthCorner);
+                const outputDepthOffset = outputBatchOffset + yDepth * outputDepthStrides;
+                for (let yRow = 0; yRow < convInfo.outHeight; ++yRow) {
+                    const xRowCorner = yRow * strideHeight - padTop;
+                    let xRowMin = xRowCorner;
+                    while (xRowMin < 0) {
+                        xRowMin += dilationHeight;
+                    }
+                    const xRowMax = Math.min(convInfo.inHeight, effectiveFilterHeight + xRowCorner);
+                    const outputRowOffset = outputDepthOffset + yRow * outputRowStrides;
+                    for (let yCol = 0; yCol < convInfo.outWidth; ++yCol) {
+                        const xColCorner = yCol * strideWidth - padLeft;
+                        let xColMin = xColCorner;
+                        while (xColMin < 0) {
+                            xColMin += dilationWidth;
+                        }
+                        const xColMax = Math.min(convInfo.inWidth, effectiveFilterWidth + xColCorner);
+                        
+                        const outputColOffset = outputRowOffset + yCol * outputColStrides;
+                        let minMaxValue = initialValue;
+                        let avgValue = 0;
+                        let count = 0;
+                        for (let xDepth = xDepthMin; xDepth < xDepthMax; xDepth += dilationDepth) {
+                            const xDepthOffset = inputBatchOffset + xDepth * strides[1];
+                            for (let xRow = xRowMin; xRow < xRowMax; xRow += dilationHeight) {
+                                const xRowOffset = xDepthOffset + xRow * strides[2];
+                                for (let xCol = xColMin; xCol < xColMax; xCol += dilationWidth) {
+                                    const xColOffset = xRowOffset + xCol * strides[3];
+                                    const pixel = xValues[xColOffset + channel];
+                                    if ((poolType === 'max' && pixel > minMaxValue)) {
+                                        minMaxValue = pixel;
+                                    }
+                                    else if (poolType === 'avg') {
+                                        avgValue += pixel;
+                                        count++;
+                                    }
+                                    if (isNaN(minMaxValue)) {
+                                        break;
+                                    }
+                                }
+                                if (isNaN(minMaxValue)) {
+                                    break;
+                                }
+                            }
+                            if (isNaN(minMaxValue)) {
+                                break;
+                            }
+                        }
+                        const outputOffset = outputColOffset + channel;
+                        outputVals[outputOffset] = poolType === 'avg' ?
+                            avgValue / Math.max(count, 1) :
+                            minMaxValue;
+                    }
+                }
+            }
+        }
+    }
+    return output;
+}
+function maxPool3dPositions(xBuf, convInfo) {
+    const maxPositions = buffer(convInfo.outShape, 'int32');
+    const strideDepth = convInfo.strideDepth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const dilationDepth = convInfo.dilationDepth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterDepth = convInfo.effectiveFilterDepth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+    const padFront = convInfo.padInfo.front;
+    const padTop = convInfo.padInfo.top;
+    const padLeft = convInfo.padInfo.left;
+    for (let batch = 0; batch < convInfo.batchSize; ++batch) {
+        for (let channel = 0; channel < convInfo.inChannels; ++channel) {
+            for (let yDepth = 0; yDepth < convInfo.outDepth; ++yDepth) {
+                const xDepthCorner = yDepth * strideDepth - padFront;
+                let xDepthMin = xDepthCorner;
+                while (xDepthMin < 0) {
+                    xDepthMin += dilationDepth;
+                }
+                const xDepthMax = Math.min(convInfo.inDepth, effectiveFilterDepth + xDepthCorner);
+                for (let yRow = 0; yRow < convInfo.outHeight; ++yRow) {
+                    const xRowCorner = yRow * strideHeight - padTop;
+                    let xRowMin = xRowCorner;
+                    while (xRowMin < 0) {
+                        xRowMin += dilationHeight;
+                    }
+                    const xRowMax = Math.min(convInfo.inHeight, effectiveFilterHeight + xRowCorner);
+                    for (let yCol = 0; yCol < convInfo.outWidth; ++yCol) {
+                        const xColCorner = yCol * strideWidth - padLeft;
+                        let xColMin = xColCorner;
+                        while (xColMin < 0) {
+                            xColMin += dilationWidth;
+                        }
+                        const xColMax = Math.min(convInfo.inWidth, effectiveFilterWidth + xColCorner);
+                        
+                        let maxValue = Number.NEGATIVE_INFINITY;
+                        let maxPosition = -1;
+                        for (let xDepth = xDepthMin; xDepth < xDepthMax; xDepth += dilationDepth) {
+                            const wDepth = xDepth - xDepthCorner;
+                            for (let xRow = xRowMin; xRow < xRowMax; xRow += dilationHeight) {
+                                const wRow = xRow - xRowCorner;
+                                for (let xCol = xColMin; xCol < xColMax; xCol += dilationWidth) {
+                                    const wCol = xCol - xColCorner;
+                                    const pixel = xBuf.get(batch, xDepth, xRow, xCol, channel);
+                                    if (pixel >= maxValue) {
+                                        maxValue = pixel;
+                                        maxPosition =
+                                            wDepth * effectiveFilterHeight * effectiveFilterWidth +
+                                                wRow * effectiveFilterHeight + wCol;
+                                    }
+                                }
+                            }
+                        }
+                        maxPositions.set(maxPosition, batch, yDepth, yRow, yCol, channel);
+                    }
+                }
+            }
+        }
+    }
+    return maxPositions;
+}
+
+
+function avgPool(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    assertNotComplex(x, 'avgPool');
+    const { filterSize, strides, pad, dimRoundingMode } = attrs;
+    const dilations = 1;
+    assert$1(eitherStridesOrDilationsAreOne(strides, dilations), () => 'Error in avgPool: Either strides or dilations must be 1. ' +
+        `Got strides ${strides} and dilations '${dilations}'`);
+    const convInfo = computePool2DInfo(x.shape, filterSize, strides, dilations, pad, dimRoundingMode);
+    let res;
+    if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
+        arraysEqual(convInfo.inShape, convInfo.outShape)) {
+        res = identity$1({ inputs: { x }, backend });
+    }
+    else {
+        const xValues = backend.data.get(x.dataId).values;
+        const strides = computeStrides(x.shape);
+        const buffer = pool(xValues, x.shape, x.dtype, strides, convInfo, 'avg');
+        res = backend.makeTensorInfo(convInfo.outShape, x.dtype, buffer.values);
+    }
+    return res;
+}
+const avgPoolConfig = {
+    kernelName: AvgPool,
+    backendName: 'cpu',
+    kernelFunc: avgPool
+};
+
+
+function avgPool3D(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { filterSize, strides, pad, dimRoundingMode, dataFormat } = attrs;
+    assertNotComplex(x, 'avgPool3d');
+    const convInfo = computePool3DInfo(x.shape, filterSize, strides, 1 , pad, dimRoundingMode, dataFormat);
+    const xValues = backend.data.get(x.dataId).values;
+    const outBuf = pool3d(xValues, x.shape, x.dtype, computeStrides(x.shape), convInfo, 'avg');
+    return backend.makeTensorInfo(outBuf.shape, 'float32', outBuf.values);
+}
+const avgPool3DConfig = {
+    kernelName: AvgPool3D,
+    backendName: 'cpu',
+    kernelFunc: avgPool3D
+};
+
+
+function avgPool3DGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, input } = inputs;
+    const { filterSize, strides, pad, dimRoundingMode } = attrs;
+    assertNotComplex([dy, input], 'avgPool3DGrad');
+    const convInfo = computePool3DInfo(input.shape, filterSize, strides, 1 , pad, dimRoundingMode);
+    const strideDepth = convInfo.strideDepth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const filterDepth = convInfo.filterDepth;
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const dilationDepth = convInfo.dilationDepth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterDepth = convInfo.effectiveFilterDepth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+    const padFront = effectiveFilterDepth - 1 - convInfo.padInfo.front;
+    const padLeft = effectiveFilterWidth - 1 - convInfo.padInfo.left;
+    const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
+    const dx = buffer(input.shape, 'float32');
+    const avgMultiplier = 1 / (filterDepth * filterHeight * filterWidth);
+    const dyBuf = backend.bufferSync(dy);
+    for (let batch = 0; batch < convInfo.batchSize; ++batch) {
+        for (let channel = 0; channel < convInfo.inChannels; ++channel) {
+            for (let dxDepth = 0; dxDepth < convInfo.inDepth; ++dxDepth) {
+                for (let dxRow = 0; dxRow < convInfo.inHeight; ++dxRow) {
+                    for (let dxCol = 0; dxCol < convInfo.inWidth; ++dxCol) {
+                        
+                        const dyDepthCorner = dxDepth - padFront;
+                        const dyRowCorner = dxRow - padTop;
+                        const dyColCorner = dxCol - padLeft;
+                        let dotProd = 0;
+                        for (let wDepth = 0; wDepth < effectiveFilterDepth; wDepth += dilationDepth) {
+                            const dyDepth = (dyDepthCorner + wDepth) / strideDepth;
+                            if (dyDepth < 0 || dyDepth >= convInfo.outDepth ||
+                                Math.floor(dyDepth) !== dyDepth) {
+                                continue;
+                            }
+                            for (let wRow = 0; wRow < effectiveFilterHeight; wRow += dilationHeight) {
+                                const dyRow = (dyRowCorner + wRow) / strideHeight;
+                                if (dyRow < 0 || dyRow >= convInfo.outHeight ||
+                                    Math.floor(dyRow) !== dyRow) {
+                                    continue;
+                                }
+                                for (let wCol = 0; wCol < effectiveFilterWidth; wCol += dilationWidth) {
+                                    const dyCol = (dyColCorner + wCol) / strideWidth;
+                                    if (dyCol < 0 || dyCol >= convInfo.outWidth ||
+                                        Math.floor(dyCol) !== dyCol) {
+                                        continue;
+                                    }
+                                    const pixel = dyBuf.get(batch, dyDepth, dyRow, dyCol, channel);
+                                    dotProd += pixel;
+                                }
+                            }
+                        }
+                        dx.set(dotProd * avgMultiplier, batch, dxDepth, dxRow, dxCol, channel);
+                    }
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(dx.shape, dx.dtype, dx.values);
+}
+const avgPool3DGradConfig$1 = {
+    kernelName: AvgPool3DGrad,
+    backendName: 'cpu',
+    kernelFunc: avgPool3DGrad
+};
+
+
+function avgPoolGrad$1(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, input } = inputs;
+    const x = input;
+    assertNotComplex([dy, input], 'avgPoolGrad');
+    const { filterSize, strides, pad } = attrs;
+    const convInfo = computePool2DInfo(x.shape, filterSize, strides, 1 , pad);
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+    const padLeft = effectiveFilterWidth - 1 - convInfo.padInfo.left;
+    const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
+    const dx = buffer(x.shape, 'float32');
+    const avgMultiplier = 1 / (filterHeight * filterWidth);
+    const dyData = backend.data.get(dy.dataId).values;
+    const dyBuf = buffer(dy.shape, 'float32', dyData);
+    for (let b = 0; b < convInfo.batchSize; ++b) {
+        for (let d = 0; d < convInfo.inChannels; ++d) {
+            for (let dxR = 0; dxR < convInfo.inHeight; ++dxR) {
+                for (let dxC = 0; dxC < convInfo.inWidth; ++dxC) {
+                    
+                    const dyRCorner = dxR - padTop;
+                    const dyCCorner = dxC - padLeft;
+                    let dotProd = 0;
+                    for (let wR = 0; wR < effectiveFilterHeight; wR += dilationHeight) {
+                        const dyR = (dyRCorner + wR) / strideHeight;
+                        if (dyR < 0 || dyR >= convInfo.outHeight ||
+                            Math.floor(dyR) !== dyR) {
+                            continue;
+                        }
+                        for (let wC = 0; wC < effectiveFilterWidth; wC += dilationWidth) {
+                            const dyC = (dyCCorner + wC) / strideWidth;
+                            if (dyC < 0 || dyC >= convInfo.outWidth ||
+                                Math.floor(dyC) !== dyC) {
+                                continue;
+                            }
+                            const pixel = dyBuf.get(b, dyR, dyC, d);
+                            dotProd += pixel;
+                        }
+                    }
+                    dx.set(dotProd * avgMultiplier, b, dxR, dxC, d);
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(dx.shape, dx.dtype, dx.values);
+}
+const avgPoolGradConfig$1 = {
+    kernelName: AvgPoolGrad,
+    backendName: 'cpu',
+    kernelFunc: avgPoolGrad$1
+};
+
+
+function batchNorm(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, scale, offset, mean, variance } = inputs;
+    assert$1(mean.shape.length === variance.shape.length, () => 'Batch normalization gradient requires mean and variance to have ' +
+        'equal ranks.');
+    assert$1(offset == null || mean.shape.length === offset.shape.length, () => 'Batch normalization gradient requires mean and offset to have ' +
+        'equal ranks.');
+    assert$1(scale == null || mean.shape.length === scale.shape.length, () => 'Batch normalization gradient requires mean and scale to have ' +
+        'equal ranks.');
+    assertNotComplex([x, mean, variance, scale, offset], 'batchNorm');
+    let { varianceEpsilon } = attrs;
+    if (varianceEpsilon == null) {
+        varianceEpsilon = 0.001;
+    }
+    const xVals = backend.data.get(x.dataId).values;
+    const mVals = backend.data.get(mean.dataId).values;
+    const varVals = backend.data.get(variance.dataId).values;
+    const sVals = scale ? backend.data.get(scale.dataId).values :
+        new Float32Array([1]);
+    const offVals = offset ?
+        backend.data.get(offset.dataId).values :
+        new Float32Array([0]);
+    const outVals = new Float32Array(xVals.length);
+    const offValsLength = offVals.length;
+    const sValsLength = sVals.length;
+    const varValsLength = varVals.length;
+    const mValsLength = mVals.length;
+    let offi = 0;
+    let mi = 0;
+    let si = 0;
+    let vi = 0;
+    for (let i = 0; i < xVals.length; ++i) {
+        outVals[i] = offVals[offi++] +
+            (xVals[i] - mVals[mi++]) * sVals[si++] /
+                Math.sqrt(varVals[vi++] + varianceEpsilon);
+        if (offi >= offValsLength) {
+            offi = 0;
+        }
+        if (mi >= mValsLength) {
+            mi = 0;
+        }
+        if (si >= sValsLength) {
+            si = 0;
+        }
+        if (vi >= varValsLength) {
+            vi = 0;
+        }
+    }
+    return backend.makeTensorInfo(x.shape, x.dtype, outVals);
+}
+const batchNormConfig = {
+    kernelName: FusedBatchNorm,
+    backendName: 'cpu',
+    kernelFunc: batchNorm,
+};
+
+
+function batchToSpaceND(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { blockShape, crops } = attrs;
+    assertNotComplex([x], 'batchToSpaceND');
+    const prod = blockShape.reduce((a, b) => a * b);
+    const reshaped = getReshaped(x.shape, blockShape, prod);
+    const permuted = getPermuted(reshaped.length, blockShape.length);
+    const reshapedPermuted = getReshapedPermuted(x.shape, blockShape, prod);
+    const sliceBeginCoords = getSliceBeginCoords(crops, blockShape.length);
+    const sliceSize = getSliceSize(reshapedPermuted, crops, blockShape.length);
+    const xReshaped = reshape({ inputs: { x }, backend, attrs: { shape: reshaped } });
+    const xTransposed = transpose$1({ inputs: { x: xReshaped }, backend, attrs: { perm: permuted } });
+    const xTransposedReshaped = reshape({ inputs: { x: xTransposed }, backend, attrs: { shape: reshapedPermuted } });
+    const result = slice$1({
+        inputs: { x: xTransposedReshaped },
+        backend,
+        attrs: { begin: sliceBeginCoords, size: sliceSize }
+    });
+    backend.disposeIntermediateTensorInfo(xReshaped);
+    backend.disposeIntermediateTensorInfo(xTransposed);
+    backend.disposeIntermediateTensorInfo(xTransposedReshaped);
+    return result;
+}
+const batchToSpaceNDConfig = {
+    kernelName: BatchToSpaceND,
+    backendName: 'cpu',
+    kernelFunc: batchToSpaceND
+};
+
+
+function bincount(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, weights } = inputs;
+    const { size } = attrs;
+    const xVals = backend.data.get(x.dataId).values;
+    const weightsVals = backend.data.get(weights.dataId).values;
+    const outVals = bincountImpl(xVals, weightsVals, weights.dtype, weights.shape, size);
+    return backend.makeTensorInfo([size], weights.dtype, outVals);
+}
+const bincountConfig = {
+    kernelName: Bincount,
+    backendName: 'cpu',
+    kernelFunc: bincount
+};
+
+
+function broadcastArgs(args) {
+    const { inputs, backend } = args;
+    const { s0, s1 } = inputs;
+    const s0Vals = backend.data.get(s0.dataId).values;
+    const s1Vals = backend.data.get(s1.dataId).values;
+    const broadcastShape = assertAndGetBroadcastShape(Array.from(s0Vals), Array.from(s1Vals));
+    return backend.makeTensorInfo([broadcastShape.length], 'int32', Int32Array.from(broadcastShape));
+}
+const broadcastArgsConfig = {
+    kernelName: BroadcastArgs,
+    backendName: 'cpu',
+    kernelFunc: broadcastArgs
+};
+
+
+const clipByValue = unaryKernelFunc$1(ClipByValue, (xi, attrs) => {
+    const clipAttrs = attrs;
+    if (xi > clipAttrs.clipValueMax) {
+        return clipAttrs.clipValueMax;
+    }
+    return xi < clipAttrs.clipValueMin ? clipAttrs.clipValueMin : xi;
+});
+const clipByValueConfig = {
+    kernelName: ClipByValue,
+    backendName: 'cpu',
+    kernelFunc: clipByValue,
+};
+
+
+const complexAbs = (args) => {
+    const { x } = args.inputs;
+    const cpuBackend = args.backend;
+    const resultValues = new Float32Array(sizeFromShape(x.shape));
+    const complexVals = cpuBackend.data.get(x.dataId);
+    const real = complexVals.complexTensorInfos.real;
+    const imag = complexVals.complexTensorInfos.imag;
+    const realVals = cpuBackend.data.get(real.dataId).values;
+    const imagVals = cpuBackend.data.get(imag.dataId).values;
+    for (let i = 0; i < realVals.length; i++) {
+        const real = realVals[i];
+        const imag = imagVals[i];
+        resultValues[i] = Math.hypot(real, imag);
+    }
+    return cpuBackend.makeOutput(resultValues, x.shape, 'float32');
+};
+const complexAbsConfig = {
+    kernelName: ComplexAbs,
+    backendName: 'cpu',
+    kernelFunc: complexAbs,
+};
+
+
+function imag(args) {
+    const { inputs, backend } = args;
+    const { input } = inputs;
+    const imag = backend.data.get(input.dataId).complexTensorInfos.imag;
+    const imagVal = backend.data.get(imag.dataId).values;
+    
+    
+    
+    return backend.makeTensorInfo(imag.shape, imag.dtype, imagVal);
+}
+const imagConfig = {
+    kernelName: Imag,
+    backendName: 'cpu',
+    kernelFunc: imag
+};
+
+
+function concat(args) {
+    const { inputs, backend, attrs } = args;
+    const { axis } = attrs;
+    const $axis = parseAxisParam(axis, inputs[0].shape)[0];
+    const shapes = inputs.map(t => t.shape);
+    assertParamsConsistent(shapes, $axis);
+    let outShape = computeOutShape$1(inputs.map(t => t.shape), $axis);
+    if (sizeFromShape(outShape) === 0) {
+        return backend.makeTensorInfo(outShape, inputs[0].dtype, []);
+    }
+    
+    const $inputs = inputs.filter(t => sizeFromShape(t.shape) > 0);
+    if ($inputs.length === 1) {
+        return identity$1({ inputs: { x: $inputs[0] }, backend });
+    }
+    if ($inputs[0].dtype === 'complex64') {
+        const reals = $inputs.map((t) => real$1({ inputs: { input: t }, backend }));
+        const imags = $inputs.map((t) => imag({ inputs: { input: t }, backend }));
+        const realConcated = concat({ inputs: reals, backend, attrs: { axis: $axis } });
+        const imagConcated = concat({ inputs: imags, backend, attrs: { axis: $axis } });
+        const result = complex$1({ inputs: { real: realConcated, imag: imagConcated }, backend });
+        reals.forEach(r => backend.disposeIntermediateTensorInfo(r));
+        imags.forEach(i => backend.disposeIntermediateTensorInfo(i));
+        backend.disposeIntermediateTensorInfo(realConcated);
+        backend.disposeIntermediateTensorInfo(imagConcated);
+        return result;
+    }
+    
+    
+    
+    
+    
+    
+    
+    const inputs2D = $inputs.map(t => {
+        const innerSize = sizeFromShape(t.shape.slice($axis));
+        const shape = [-1, innerSize];
+        return reshape({ inputs: { x: t }, backend, attrs: { shape } });
+    });
+    const inputsValShapes = inputs2D.map(t => {
+        return { vals: backend.data.get(t.dataId).values, shape: t.shape };
+    });
+    
+    outShape =
+        computeOutShape$1(inputs2D.map(t => t.shape), 1 );
+    const simplyConcat = inputs2D[0].shape[0] === 1;
+    const outVals = concatImpl$1(inputsValShapes, outShape, inputs[0].dtype, simplyConcat);
+    const finalOutShape = computeOutShape$1($inputs.map(t => t.shape), $axis);
+    const outInfo = backend.makeTensorInfo(finalOutShape, inputs[0].dtype, outVals);
+    inputs2D.forEach(t => backend.disposeIntermediateTensorInfo(t));
+    return outInfo;
+}
+const concatConfig = {
+    kernelName: Concat,
+    backendName: 'cpu',
+    kernelFunc: concat
+};
+
+
+function conv2D(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, filter } = inputs;
+    const { strides, pad, dataFormat, dilations, dimRoundingMode } = attrs;
+    assertNotComplex([x, filter], 'conv2d');
+    const $dataFormat = convertConv2DDataFormat(dataFormat);
+    const convInfo = computeConv2DInfo(x.shape, filter.shape, strides, dilations, pad, dimRoundingMode, false , $dataFormat);
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const padLeft = convInfo.padInfo.left;
+    const padTop = convInfo.padInfo.top;
+    const isChannelsLast = convInfo.dataFormat === 'channelsLast';
+    const y = new TensorBuffer(convInfo.outShape, x.dtype);
+    const xStrides = computeStrides(x.shape);
+    const filterStrides = computeStrides(filter.shape);
+    const xBatchStride = xStrides[0];
+    const xRowStride = isChannelsLast ? xStrides[1] : xStrides[2];
+    const xColStride = isChannelsLast ? xStrides[2] : 1;
+    const xChannelStride = isChannelsLast ? 1 : xStrides[1];
+    const yBatchStride = y.strides[0];
+    const yRowStride = isChannelsLast ? y.strides[1] : y.strides[2];
+    const yColStride = isChannelsLast ? y.strides[2] : 1;
+    const yChannelStride = isChannelsLast ? 1 : y.strides[1];
+    const xVals = backend.data.get(x.dataId).values;
+    const wVals = backend.data.get(filter.dataId).values;
+    const yVals = y.values;
+    for (let b = 0; b < convInfo.batchSize; ++b) {
+        const xOffset1 = b * xBatchStride;
+        const yOffset1 = b * yBatchStride;
+        for (let yR = 0; yR < convInfo.outHeight; ++yR) {
+            const yOffset2 = yOffset1 + yR * yRowStride;
+            const xRCorner = yR * convInfo.strideHeight - padTop;
+            for (let wR = 0; wR < filterHeight; ++wR) {
+                const xR = xRCorner + wR * dilationHeight;
+                if (xR < 0 || xR >= convInfo.inHeight) {
+                    continue;
+                }
+                const wOffset1 = wR * filterStrides[0];
+                const xOffset2 = xOffset1 + xR * xRowStride;
+                for (let yC = 0; yC < convInfo.outWidth; ++yC) {
+                    const yOffset3 = yOffset2 + yC * yColStride;
+                    const xCCorner = yC * convInfo.strideWidth - padLeft;
+                    for (let wC = 0; wC < filterWidth; ++wC) {
+                        const xC = xCCorner + wC * dilationWidth;
+                        if (xC < 0 || xC >= convInfo.inWidth) {
+                            continue;
+                        }
+                        const wOffset2 = wOffset1 + wC * filterStrides[1];
+                        const xOffset3 = xOffset2 + xC * xColStride;
+                        let wOffset3 = wOffset2;
+                        for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
+                            const xVal = xVals[xOffset3 + d1 * xChannelStride];
+                            for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
+                                yVals[yOffset3 + d2 * yChannelStride] +=
+                                    xVal * wVals[wOffset3 + d2];
+                            }
+                            wOffset3 += convInfo.outChannels;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(y.shape, y.dtype, yVals);
+}
+const conv2DConfig = {
+    kernelName: Conv2D,
+    backendName: 'cpu',
+    kernelFunc: conv2D
+};
+
+
+function conv2DBackpropFilter(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, dy } = inputs;
+    const { strides, pad, dataFormat, dimRoundingMode, filterShape } = attrs;
+    assertNotComplex([x, dy], 'conv2dBackpropFilter');
+    const $dataFormat = convertConv2DDataFormat(dataFormat);
+    const convInfo = computeConv2DInfo(x.shape, filterShape, strides, 1 , pad, dimRoundingMode, false , $dataFormat);
+    const { strideHeight, strideWidth, filterHeight, filterWidth } = convInfo;
+    const isChannelsLast = convInfo.dataFormat === 'channelsLast';
+    const dW = new TensorBuffer(convInfo.filterShape, 'float32');
+    const leftPad = convInfo.padInfo.left;
+    const topPad = convInfo.padInfo.top;
+    const xVals = backend.data.get(x.dataId).values;
+    const dyVals = backend.data.get(dy.dataId).values;
+    const xBuf = new TensorBuffer(x.shape, x.dtype, xVals);
+    const dyBuf = new TensorBuffer(dy.shape, dy.dtype, dyVals);
+    for (let wR = 0; wR < filterHeight; ++wR) {
+        const yRMin = Math.max(0, Math.ceil((topPad - wR) / strideHeight));
+        const yRMax = Math.min(convInfo.outHeight, (convInfo.inHeight + topPad - wR) / strideHeight);
+        for (let wC = 0; wC < filterWidth; ++wC) {
+            const yCMin = Math.max(0, Math.ceil((leftPad - wC) / strideWidth));
+            const yCMax = Math.min(convInfo.outWidth, (convInfo.inWidth + leftPad - wC) / strideWidth);
+            for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
+                for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
+                    let dotProd = 0;
+                    for (let b = 0; b < convInfo.batchSize; ++b) {
+                        for (let yR = yRMin; yR < yRMax; ++yR) {
+                            const xR = wR + yR * strideHeight - topPad;
+                            for (let yC = yCMin; yC < yCMax; ++yC) {
+                                const xC = wC + yC * strideWidth - leftPad;
+                                if (isChannelsLast) {
+                                    dotProd += xBuf.get(b, xR, xC, d1) *
+                                        dyBuf.get(b, yR, yC, d2);
+                                }
+                                else {
+                                    dotProd += xBuf.get(b, d1, xR, xC) *
+                                        dyBuf.get(b, d2, yR, yC);
+                                }
+                            }
+                        }
+                    }
+                    dW.set(dotProd, wR, wC, d1, d2);
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(dW.shape, dW.dtype, dW.values);
+}
+const conv2DBackpropFilterConfig = {
+    kernelName: Conv2DBackpropFilter,
+    backendName: 'cpu',
+    kernelFunc: conv2DBackpropFilter
+};
+
+
+function conv2DBackpropInput(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, filter } = inputs;
+    const { inputShape, strides, pad, dataFormat, dimRoundingMode } = attrs;
+    assertNotComplex([dy, filter], 'conv2dBackpropInput');
+    const filterStrides = computeStrides(filter.shape);
+    const dyStrides = computeStrides(dy.shape);
+    let $dataFormat = convertConv2DDataFormat(dataFormat);
+    const convInfo = computeConv2DInfo(inputShape, filter.shape, strides, 1 , pad, dimRoundingMode, false, $dataFormat);
+    const dx = new TensorBuffer(convInfo.inShape, 'float32');
+    const dxValues = dx.values;
+    const dyValues = backend.data.get(dy.dataId).values;
+    const fltValues = backend.data.get(filter.dataId).values;
+    const [fltS0, fltS1, fltS2] = filterStrides;
+    const { batchSize, filterHeight, filterWidth, inChannels, inHeight, inWidth, outChannels, outHeight, outWidth, strideHeight, strideWidth } = convInfo;
+    $dataFormat = convInfo.dataFormat;
+    const topPad = filterHeight - 1 - convInfo.padInfo.top;
+    const leftPad = filterWidth - 1 - convInfo.padInfo.left;
+    const isChannelsLast = $dataFormat === 'channelsLast';
+    const xBatchStride = dx.strides[0];
+    const xRowStride = isChannelsLast ? dx.strides[1] : dx.strides[2];
+    const xColStride = isChannelsLast ? dx.strides[2] : 1;
+    const xChannelStride = isChannelsLast ? 1 : dx.strides[1];
+    const yBatchStride = dyStrides[0];
+    const yRowStride = isChannelsLast ? dyStrides[1] : dyStrides[2];
+    const yColStride = isChannelsLast ? dyStrides[2] : 1;
+    const yChannelStride = isChannelsLast ? 1 : dyStrides[1];
+    for (let b = 0; b < batchSize; ++b) {
+        for (let d1 = 0; d1 < inChannels; ++d1) {
+            for (let xR = 0; xR < inHeight; ++xR) {
+                const xRCorner = xR - topPad;
+                const xRMin = Math.max(0, Math.ceil(xRCorner / strideHeight));
+                const yRMax = Math.min(outHeight, (filterHeight + xRCorner) / strideHeight);
+                for (let xC = 0; xC < inWidth; ++xC) {
+                    const xCCorner = xC - leftPad;
+                    const xCMin = Math.max(0, Math.ceil(xCCorner / strideWidth));
+                    const yCMax = Math.min(outWidth, (filterWidth + xCCorner) / strideWidth);
+                    let dotProd = 0;
+                    for (let yR = xRMin; yR < yRMax; ++yR) {
+                        const wR = yR * strideHeight - xRCorner;
+                        for (let yC = xCMin; yC < yCMax; ++yC) {
+                            const wC = yC * strideWidth - xCCorner;
+                            const dyOffset = yBatchStride * b + yRowStride * yR + yColStride * yC;
+                            const fltOffset = fltS0 * (filterHeight - 1 - wR) +
+                                fltS1 * (filterWidth - 1 - wC) + fltS2 * d1;
+                            for (let d2 = 0; d2 < outChannels; ++d2) {
+                                const pixel = dyValues[dyOffset + yChannelStride * d2];
+                                const weight = fltValues[fltOffset + d2];
+                                dotProd += pixel * weight;
+                            }
+                        }
+                    }
+                    const dxOffset = xBatchStride * b + xRowStride * xR +
+                        xColStride * xC + xChannelStride * d1;
+                    dxValues[dxOffset] = dotProd;
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(dx.shape, dx.dtype, dx.values);
+}
+const conv2DBackpropInputConfig = {
+    kernelName: Conv2DBackpropInput,
+    backendName: 'cpu',
+    kernelFunc: conv2DBackpropInput
+};
+
+
+function conv3D(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, filter } = inputs;
+    const { strides, pad, dilations } = attrs;
+    assertNotComplex([x, filter], 'conv3d');
+    const convInfo = computeConv3DInfo(x.shape, filter.shape, strides, dilations, pad);
+    const { filterDepth, filterHeight, filterWidth, dilationDepth, dilationHeight, dilationWidth, padInfo } = convInfo;
+    const padFront = padInfo.front;
+    const padLeft = padInfo.left;
+    const padTop = padInfo.top;
+    const y = new TensorBuffer(convInfo.outShape, x.dtype);
+    const xVals = backend.data.get(x.dataId).values;
+    const wVals = backend.data.get(filter.dataId).values;
+    const yVals = y.values;
+    const xStrides = computeStrides(x.shape);
+    const filterStrides = computeStrides(filter.shape);
+    for (let b = 0; b < convInfo.batchSize; ++b) {
+        const xOffset1 = b * xStrides[0];
+        const yOffset1 = b * y.strides[0];
+        for (let yF = 0; yF < convInfo.outDepth; ++yF) {
+            const yOffset2 = yOffset1 + yF * y.strides[1];
+            const xFCorner = yF * convInfo.strideDepth - padFront;
+            for (let wF = 0; wF < filterDepth; ++wF) {
+                const xF = xFCorner + wF * dilationDepth;
+                if (xF < 0 || xF >= convInfo.inDepth) {
+                    continue;
+                }
+                const wOffset1 = wF * filterStrides[0];
+                const xOffset2 = xOffset1 + xF * xStrides[1];
+                for (let yR = 0; yR < convInfo.outHeight; ++yR) {
+                    const yOffset3 = yOffset2 + yR * y.strides[2];
+                    const xRCorner = yR * convInfo.strideHeight - padTop;
+                    for (let wR = 0; wR < filterHeight; ++wR) {
+                        const xR = xRCorner + wR * dilationHeight;
+                        if (xR < 0 || xR >= convInfo.inHeight) {
+                            continue;
+                        }
+                        const wOffset2 = wOffset1 + wR * filterStrides[1];
+                        const xOffset3 = xOffset2 + xR * xStrides[2];
+                        for (let yC = 0; yC < convInfo.outWidth; ++yC) {
+                            const yOffset4 = yOffset3 + yC * convInfo.outChannels;
+                            const xCCorner = yC * convInfo.strideWidth - padLeft;
+                            for (let wC = 0; wC < filterWidth; ++wC) {
+                                const xC = xCCorner + wC * dilationWidth;
+                                if (xC < 0 || xC >= convInfo.inWidth) {
+                                    continue;
+                                }
+                                const wOffset3 = wOffset2 + wC * filterStrides[2];
+                                const xOffset4 = xOffset3 + xC * convInfo.inChannels;
+                                let wOffset4 = wOffset3;
+                                for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
+                                    const xVal = xVals[xOffset4 + d1];
+                                    for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
+                                        yVals[yOffset4 + d2] += xVal * wVals[wOffset4 + d2];
+                                    }
+                                    wOffset4 += convInfo.outChannels;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(y.shape, y.dtype, y.values);
+}
+const conv3DConfig = {
+    kernelName: Conv3D,
+    backendName: 'cpu',
+    kernelFunc: conv3D
+};
+
+
+function conv3DBackpropFilterV2(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, dy } = inputs;
+    const { strides, pad, filterShape } = attrs;
+    assertNotComplex([x, dy], 'conv3dBackpropFilterV2');
+    const xStrides = computeStrides(x.shape);
+    const dyStrides = computeStrides(dy.shape);
+    const convInfo = computeConv3DInfo(x.shape, filterShape, strides, 1 , pad);
+    const strideDepth = convInfo.strideDepth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const filterDepth = convInfo.filterDepth;
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const dw = new TensorBuffer(convInfo.filterShape, 'float32');
+    const dwValues = dw.values;
+    const [dwS0, dwS1, dwS2, dwS3] = dw.strides;
+    const dyValues = backend.data.get(dy.dataId).values;
+    const [dyS0, dyS1, dyS2, dyS3] = dyStrides;
+    const xValues = backend.data.get(x.dataId).values;
+    const [xS0, xS1, xS2, xS3] = xStrides;
+    const frontPad = convInfo.padInfo.front;
+    const leftPad = convInfo.padInfo.left;
+    const topPad = convInfo.padInfo.top;
+    for (let wF = 0; wF < filterDepth; ++wF) {
+        const yFMin = Math.max(0, Math.ceil((frontPad - wF) / strideDepth));
+        const yFMax = Math.min(convInfo.outDepth, (convInfo.inDepth + frontPad - wF) / strideDepth);
+        const wOffset1 = wF * dwS0;
+        for (let wR = 0; wR < filterHeight; ++wR) {
+            const yRMin = Math.max(0, Math.ceil((topPad - wR) / strideHeight));
+            const yRMax = Math.min(convInfo.outHeight, (convInfo.inHeight + topPad - wR) / strideHeight);
+            const wOffset2 = wR * dwS1 + wOffset1;
+            for (let wC = 0; wC < filterWidth; ++wC) {
+                const yCMin = Math.max(0, Math.ceil((leftPad - wC) / strideWidth));
+                const yCMax = Math.min(convInfo.outWidth, (convInfo.inWidth + leftPad - wC) / strideWidth);
+                const wOffset3 = wC * dwS2 + wOffset2;
+                for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
+                    const wOffset4 = d1 * dwS3 + wOffset3;
+                    for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
+                        let dotProd = 0;
+                        for (let b = 0; b < convInfo.batchSize; ++b) {
+                            const xOffset1 = b * xS0;
+                            const yOffset1 = b * dyS0;
+                            for (let yF = yFMin; yF < yFMax; ++yF) {
+                                const xF = wF + yF * strideDepth - frontPad;
+                                const xOffset2 = xF * xS1 + xOffset1;
+                                const yOffset2 = yF * dyS1 + yOffset1;
+                                for (let yR = yRMin; yR < yRMax; ++yR) {
+                                    const xR = wR + yR * strideHeight - topPad;
+                                    const xOffset3 = xR * xS2 + xOffset2;
+                                    const yOffset3 = yR * dyS2 + yOffset2;
+                                    for (let yC = yCMin; yC < yCMax; ++yC) {
+                                        const xC = wC + yC * strideWidth - leftPad;
+                                        const xOffset4 = xC * xS3 + xOffset3;
+                                        const yOffset4 = yC * dyS3 + yOffset3;
+                                        dotProd += xValues[xOffset4 + d1] * dyValues[yOffset4 + d2];
+                                    }
+                                }
+                            }
+                        }
+                        dwValues[wOffset4 + d2] = dotProd;
+                    }
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(dw.shape, dw.dtype, dw.values);
+}
+const conv3DBackpropFilterV2Config = {
+    kernelName: Conv3DBackpropFilterV2,
+    backendName: 'cpu',
+    kernelFunc: conv3DBackpropFilterV2
+};
+
+
+function conv3DBackpropInputV2(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, filter } = inputs;
+    const { pad, strides, inputShape } = attrs;
+    assertNotComplex([dy], 'conv3dBackpropInputV2');
+    const dyStrides = computeStrides(dy.shape);
+    const filterStrides = computeStrides(filter.shape);
+    const convInfo = computeConv3DInfo(inputShape, filter.shape, strides, 1 , pad);
+    const dx = new TensorBuffer(convInfo.inShape, 'float32');
+    const dxValues = dx.values;
+    const [dxS0, dxS1, dxS2, dxS3] = dx.strides;
+    const dyValues = backend.data.get(dy.dataId).values;
+    const [dyS0, dyS1, dyS2, dyS3] = dyStrides;
+    const fltValues = backend.data.get(filter.dataId).values;
+    const [fltS0, fltS1, fltS2, fltS3] = filterStrides;
+    const { batchSize, filterDepth, filterHeight, filterWidth, inChannels, inDepth, inHeight, inWidth, outChannels, outDepth, outHeight, outWidth, strideDepth, strideHeight, strideWidth } = convInfo;
+    const frontPad = filterDepth - 1 - convInfo.padInfo.front;
+    const topPad = filterHeight - 1 - convInfo.padInfo.top;
+    const leftPad = filterWidth - 1 - convInfo.padInfo.left;
+    for (let b = 0; b < batchSize; ++b) {
+        for (let d1 = 0; d1 < inChannels; ++d1) {
+            
+            for (let xF = 0; xF < inDepth; ++xF) {
+                const xFCorner = xF - frontPad;
+                const xFMin = Math.max(0, Math.ceil(xFCorner / strideDepth));
+                const yFMax = Math.min(outDepth, (filterDepth + xFCorner) / strideDepth);
+                
+                for (let xR = 0; xR < inHeight; ++xR) {
+                    const xRCorner = xR - topPad;
+                    const xRMin = Math.max(0, Math.ceil(xRCorner / strideHeight));
+                    const yRMax = Math.min(outHeight, (filterHeight + xRCorner) / strideHeight);
+                    
+                    for (let xC = 0; xC < inWidth; ++xC) {
+                        const xCCorner = xC - leftPad;
+                        const xCMin = Math.max(0, Math.ceil(xCCorner / strideWidth));
+                        const yCMax = Math.min(outWidth, (filterWidth + xCCorner) / strideWidth);
+                        let dotProd = 0;
+                        for (let yF = xFMin; yF < yFMax; ++yF) {
+                            const wF = yF * strideDepth - xFCorner;
+                            for (let yR = xRMin; yR < yRMax; ++yR) {
+                                const wR = yR * strideHeight - xRCorner;
+                                for (let yC = xCMin; yC < yCMax; ++yC) {
+                                    const wC = yC * strideWidth - xCCorner;
+                                    const dyOffset = dyS0 * b + dyS1 * yF + dyS2 * yR + dyS3 * yC;
+                                    const fltOffset = fltS0 * (filterDepth - 1 - wF) +
+                                        fltS1 * (filterHeight - 1 - wR) +
+                                        fltS2 * (filterWidth - 1 - wC) + fltS3 * d1;
+                                    for (let d2 = 0; d2 < outChannels; ++d2) {
+                                        const pixel = dyValues[dyOffset + d2];
+                                        const weight = fltValues[fltOffset + d2];
+                                        dotProd += pixel * weight;
+                                    }
+                                }
+                            }
+                        }
+                        dxValues[dxS0 * b + dxS1 * xF + dxS2 * xR + dxS3 * xC + d1] =
+                            dotProd;
+                    }
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(dx.shape, dx.dtype, dx.values);
+}
+const conv3DBackpropInputV2Config = {
+    kernelName: Conv3DBackpropInputV2,
+    backendName: 'cpu',
+    kernelFunc: conv3DBackpropInputV2
+};
+
+
+const cos = unaryKernelFunc$1(Cos, (xi) => Math.cos(xi));
+const cosConfig = {
+    kernelName: Cos,
+    backendName: 'cpu',
+    kernelFunc: cos,
+};
+
+
+const cosh = unaryKernelFunc$1(Cosh, (xi) => Math.cosh(xi));
+const coshConfig = {
+    kernelName: Cosh,
+    backendName: 'cpu',
+    kernelFunc: cosh,
+};
+
+
+function cropAndResize(args) {
+    const { inputs, backend, attrs } = args;
+    const { image, boxes, boxInd } = inputs;
+    const { cropSize, method, extrapolationValue } = attrs;
+    const [batch, imageHeight, imageWidth, numChannels] = image.shape;
+    const numBoxes = boxes.shape[0];
+    const [cropHeight, cropWidth] = cropSize;
+    const output = buffer([numBoxes, cropHeight, cropWidth, numChannels], 'float32');
+    const boxVals = backend.data.get(boxes.dataId).values;
+    const boxIndVals = backend.data.get(boxInd.dataId).values;
+    const imageVals = backend.data.get(image.dataId).values;
+    const inStride = computeStrides(image.shape); 
+    const outStride = computeStrides(output.shape); 
+    
+    
+    
+    for (let b = 0; b < numBoxes; b++) {
+        const startInd = b * 4;
+        const y1 = boxVals[startInd];
+        const x1 = boxVals[startInd + 1];
+        const y2 = boxVals[startInd + 2];
+        const x2 = boxVals[startInd + 3];
+        const bInd = boxIndVals[b];
+        if (bInd >= batch) {
+            continue;
+        }
+        const heightScale = (cropHeight > 1) ? (y2 - y1) * (imageHeight - 1) / (cropHeight - 1) : 0;
+        const widthScale = (cropWidth > 1) ? (x2 - x1) * (imageWidth - 1) / (cropWidth - 1) : 0;
+        for (let y = 0; y < cropHeight; y++) {
+            const yInd = (cropHeight > 1) ?
+                y1 * (imageHeight - 1) + y * (heightScale) :
+                0.5 * (y1 + y2) * (imageHeight - 1);
+            if (yInd < 0 || yInd > imageHeight - 1) {
+                for (let x = 0; x < cropWidth; x++) {
+                    for (let c = 0; c < numChannels; c++) {
+                        const ind = c + x * outStride[2] + y * outStride[1] + b * outStride[0];
+                        output.values[ind] = extrapolationValue;
+                    }
+                }
+                continue;
+            }
+            if (method === 'bilinear') {
+                const topInd = Math.floor(yInd);
+                const bottomInd = Math.ceil(yInd);
+                const yLerp = yInd - topInd;
+                for (let x = 0; x < cropWidth; x++) {
+                    const xInd = (cropWidth > 1) ?
+                        x1 * (imageWidth - 1) + x * widthScale :
+                        0.5 * (x1 + x2) * (imageWidth - 1);
+                    if (xInd < 0 || xInd > imageWidth - 1) {
+                        for (let c = 0; c < numChannels; c++) {
+                            const ind = c + x * outStride[2] + y * outStride[1] + b * outStride[0];
+                            output.values[ind] = extrapolationValue;
+                        }
+                        continue;
+                    }
+                    const leftInd = Math.floor(xInd);
+                    const rightInd = Math.ceil(xInd);
+                    const xLerp = xInd - leftInd;
+                    for (let c = 0; c < numChannels; c++) {
+                        let ind = c + leftInd * inStride[2] + topInd * inStride[1] +
+                            bInd * inStride[0];
+                        const topLeft = imageVals[ind];
+                        ind = c + rightInd * inStride[2] + topInd * inStride[1] +
+                            bInd * inStride[0];
+                        const topRight = imageVals[ind];
+                        ind = c + leftInd * inStride[2] + bottomInd * inStride[1] +
+                            bInd * inStride[0];
+                        const bottomLeft = imageVals[ind];
+                        ind = c + rightInd * inStride[2] + bottomInd * inStride[1] +
+                            bInd * inStride[0];
+                        const bottomRight = imageVals[ind];
+                        const top = topLeft + (topRight - topLeft) * xLerp;
+                        const bottom = bottomLeft + (bottomRight - bottomLeft) * xLerp;
+                        ind = c + x * outStride[2] + y * outStride[1] + b * outStride[0];
+                        output.values[ind] = top + ((bottom - top) * yLerp);
+                    }
+                }
+            }
+            else { 
+                for (let x = 0; x < cropWidth; ++x) {
+                    const xInd = (cropWidth > 1) ?
+                        x1 * (imageWidth - 1) + x * widthScale :
+                        0.5 * (x1 + x2) * (imageWidth - 1);
+                    if (xInd < 0 || xInd > imageWidth - 1) {
+                        for (let c = 0; c < numChannels; c++) {
+                            const ind = c + x * outStride[2] + y * outStride[1] + b * outStride[0];
+                            output.values[ind] = extrapolationValue;
+                        }
+                        continue;
+                    }
+                    const closestX = Math.round(xInd);
+                    const closestY = Math.round(yInd);
+                    for (let c = 0; c < numChannels; c++) {
+                        const inInd = c + closestX * inStride[2] + closestY * inStride[1] +
+                            bInd * inStride[0];
+                        const outInd = c + x * outStride[2] + y * outStride[1] + b * outStride[0];
+                        output.values[outInd] = imageVals[inInd];
+                    }
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(output.shape, output.dtype, output.values);
+}
+const cropAndResizeConfig = {
+    kernelName: CropAndResize,
+    backendName: 'cpu',
+    kernelFunc: cropAndResize
+};
+
+
+function cumprod(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis, exclusive, reverse } = attrs;
+    assertNotComplex(x, 'cumprod');
+    const permutation = getAxesPermutation([axis], x.shape.length);
+    let $x = x;
+    if (permutation != null) {
+        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutation } });
+    }
+    const permutedAxis = getInnerMostAxes(1, x.shape.length)[0];
+    if (permutedAxis !== $x.shape.length - 1) {
+        throw new Error(`backend.cumprod in CPU expects an inner-most ` +
+            `axis=${$x.shape.length - 1} but got axis=${permutedAxis}`);
+    }
+    const resultDtype = upcastType($x.dtype, 'int32');
+    const vals = makeOnesTypedArray(sizeFromShape($x.shape), resultDtype);
+    const aVals = backend.data.get($x.dataId).values;
+    const finalDim = $x.shape[$x.shape.length - 1];
+    const indexAdjuster = reverse ?
+        (i, j) => i + finalDim - j - 1 :
+        (i, j) => i + j;
+    for (let i = 0; i < aVals.length; i += finalDim) {
+        for (let j = 0; j < finalDim; j++) {
+            const idx = indexAdjuster(i, j);
+            if (j === 0) {
+                vals[idx] = exclusive ? 1 : aVals[idx];
+            }
+            else {
+                const prevIdx = indexAdjuster(i, j - 1);
+                vals[idx] = exclusive ? aVals[prevIdx] * vals[prevIdx] :
+                    aVals[idx] * vals[prevIdx];
+            }
+        }
+    }
+    const result = backend.makeTensorInfo($x.shape, resultDtype, vals);
+    if (permutation != null) {
+        const reversePermutation = getUndoAxesPermutation(permutation);
+        const reverseTransposedResult = transpose$1({ inputs: { x: result }, backend, attrs: { perm: reversePermutation } });
+        backend.disposeIntermediateTensorInfo(result);
+        backend.disposeIntermediateTensorInfo($x);
+        return reverseTransposedResult;
+    }
+    return result;
+}
+const cumprodConfig = {
+    kernelName: Cumprod,
+    backendName: 'cpu',
+    kernelFunc: cumprod
+};
+
+
+function cumsum(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis, exclusive, reverse } = attrs;
+    assertNotComplex(x, 'cumsum');
+    const permutation = getAxesPermutation([axis], x.shape.length);
+    let $x = x;
+    if (permutation != null) {
+        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutation } });
+    }
+    const permutedAxis = getInnerMostAxes(1, x.shape.length)[0];
+    if (permutedAxis !== $x.shape.length - 1) {
+        throw new Error(`backend.cumsum in CPU expects an inner-most ` +
+            `axis=${$x.shape.length - 1} but got axis=${permutedAxis}`);
+    }
+    const resultDtype = upcastType($x.dtype, 'int32');
+    const vals = makeZerosTypedArray(sizeFromShape($x.shape), resultDtype);
+    const aVals = backend.data.get($x.dataId).values;
+    const finalDim = $x.shape[$x.shape.length - 1];
+    const indexAdjuster = reverse ?
+        (i, j) => i + finalDim - j - 1 :
+        (i, j) => i + j;
+    for (let i = 0; i < aVals.length; i += finalDim) {
+        for (let j = 0; j < finalDim; j++) {
+            const idx = indexAdjuster(i, j);
+            if (j === 0) {
+                vals[idx] = exclusive ? 0 : aVals[idx];
+            }
+            else {
+                const prevIdx = indexAdjuster(i, j - 1);
+                vals[idx] = exclusive ? aVals[prevIdx] + vals[prevIdx] :
+                    aVals[idx] + vals[prevIdx];
+            }
+        }
+    }
+    const result = backend.makeTensorInfo($x.shape, resultDtype, vals);
+    if (permutation != null) {
+        const reversePermutation = getUndoAxesPermutation(permutation);
+        const reverseTransposedResult = transpose$1({ inputs: { x: result }, backend, attrs: { perm: reversePermutation } });
+        backend.disposeIntermediateTensorInfo(result);
+        backend.disposeIntermediateTensorInfo($x);
+        return reverseTransposedResult;
+    }
+    return result;
+}
+const cumsumConfig = {
+    kernelName: Cumsum,
+    backendName: 'cpu',
+    kernelFunc: cumsum
+};
+
+
+function denseBincount(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, weights } = inputs;
+    const { size, binaryOutput } = attrs;
+    if (x.shape.length === 1) {
+        const xVals = backend.data.get(x.dataId).values;
+        const weightsVals = backend.data.get(weights.dataId).values;
+        const outVals = bincountImpl(xVals, weightsVals, weights.dtype, weights.shape, size);
+        return backend.makeTensorInfo([size], weights.dtype, outVals);
+    }
+    else if (x.shape.length === 2) {
+        const xBuf = backend.bufferSync(x);
+        const weightsBuf = backend.bufferSync(weights);
+        const outBuf = bincountReduceImpl(xBuf, weightsBuf, size, binaryOutput);
+        return backend.makeTensorInfo(outBuf.shape, weights.dtype, outBuf.values);
+    }
+    throw new Error(`Error in denseBincount: input must be at most rank 2, but got rank` +
+        `${x.shape.length}.`);
+}
+const denseBincountConfig = {
+    kernelName: DenseBincount,
+    backendName: 'cpu',
+    kernelFunc: denseBincount
+};
+
+
+function depthToSpace(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { blockSize, dataFormat } = attrs;
+    assert$1(dataFormat === 'NHWC', () => `Only NHWC dataFormat supported on CPU for depthToSpace. Got ${dataFormat}`);
+    const batchSize = x.shape[0];
+    const inputHeight = x.shape[1];
+    const inputWidth = x.shape[2];
+    const inputDepth = x.shape[3];
+    const outputHeight = inputHeight * blockSize;
+    const outputWidth = inputWidth * blockSize;
+    const outputDepth = inputDepth / (blockSize * blockSize);
+    const xValues = backend.data.get(x.dataId).values;
+    const result = new Float32Array(batchSize * outputHeight * outputWidth * outputDepth);
+    let outputIdx = 0;
+    for (let b = 0; b < batchSize; ++b) {
+        for (let h = 0; h < outputHeight; ++h) {
+            const inH = Math.floor(h / blockSize);
+            const offsetH = (h % blockSize);
+            for (let w = 0; w < outputWidth; ++w) {
+                const inW = Math.floor(w / blockSize);
+                const offsetW = (w % blockSize);
+                const offsetD = (offsetH * blockSize + offsetW) * outputDepth;
+                for (let d = 0; d < outputDepth; ++d) {
+                    const inD = d + offsetD;
+                    const inputIdx = inD + inputDepth * (inW + inputWidth * (inH + inputHeight * b));
+                    result[outputIdx++] = xValues[inputIdx];
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo([batchSize, outputHeight, outputWidth, outputDepth], x.dtype, result);
+}
+const depthToSpaceConfig = {
+    kernelName: DepthToSpace,
+    backendName: 'cpu',
+    kernelFunc: depthToSpace
+};
+
+
+function depthwiseConv2dNative(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, filter } = inputs;
+    const { strides, pad, dilations, dimRoundingMode } = attrs;
+    assertNotComplex([x, filter], 'depthwiseConv2DNative');
+    const xStrides = computeStrides(x.shape);
+    const filterStrides = computeStrides(filter.shape);
+    let $dilations = dilations;
+    if ($dilations == null) {
+        $dilations = [1, 1];
+    }
+    assert$1(eitherStridesOrDilationsAreOne(strides, $dilations), () => 'Error in depthwiseConv2d: Either strides or dilations must be ' +
+        `1. Got strides ${strides} and dilations '${$dilations}'`);
+    const convInfo = computeConv2DInfo(x.shape, filter.shape, strides, $dilations, pad, dimRoundingMode, true );
+    const { filterHeight, filterWidth, dilationHeight, dilationWidth, padInfo } = convInfo;
+    const padLeft = padInfo.left;
+    const padTop = padInfo.top;
+    const chMul = convInfo.outChannels / convInfo.inChannels;
+    const y = new TensorBuffer(convInfo.outShape, x.dtype);
+    const xVals = backend.data.get(x.dataId).values;
+    const wVals = backend.data.get(filter.dataId).values;
+    const yVals = y.values;
+    for (let b = 0; b < convInfo.batchSize; ++b) {
+        const xOffset1 = b * xStrides[0];
+        const yOffset1 = b * y.strides[0];
+        for (let yR = 0; yR < convInfo.outHeight; ++yR) {
+            const yOffset2 = yOffset1 + yR * y.strides[1];
+            const xRCorner = yR * convInfo.strideHeight - padTop;
+            for (let wR = 0; wR < filterHeight; ++wR) {
+                const xR = xRCorner + wR * dilationHeight;
+                if (xR < 0 || xR >= convInfo.inHeight) {
+                    continue;
+                }
+                const wOffset1 = wR * filterStrides[0];
+                const xOffset2 = xOffset1 + xR * xStrides[1];
+                for (let yC = 0; yC < convInfo.outWidth; ++yC) {
+                    const yOffset3 = yOffset2 + yC * y.strides[2];
+                    const xCCorner = yC * convInfo.strideWidth - padLeft;
+                    for (let wC = 0; wC < filterWidth; ++wC) {
+                        const xC = xCCorner + wC * dilationWidth;
+                        if (xC < 0 || xC >= convInfo.inWidth) {
+                            continue;
+                        }
+                        const wOffset2 = wOffset1 + wC * filterStrides[1];
+                        const xOffset3 = xOffset2 + xC * convInfo.inChannels;
+                        let yOffset4 = yOffset3;
+                        let wOffset3 = wOffset2;
+                        for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
+                            const xVal = xVals[xOffset3 + d1];
+                            for (let q = 0; q < chMul; ++q) {
+                                yVals[yOffset4 + q] += xVal * wVals[wOffset3 + q];
+                            }
+                            yOffset4 += chMul;
+                            wOffset3 += chMul;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(y.shape, y.dtype, y.values);
+}
+const depthwiseConv2dNativeConfig = {
+    kernelName: DepthwiseConv2dNative,
+    backendName: 'cpu',
+    kernelFunc: depthwiseConv2dNative
+};
+
+
+function depthwiseConv2dNativeBackpropFilter(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, dy } = inputs;
+    const { strides, dilations, pad, dimRoundingMode, filterShape } = attrs;
+    assertNotComplex([x, dy], 'depthwiseConv2dNativeBackpropFilter');
+    const convInfo = computeConv2DInfo(x.shape, filterShape, strides, dilations, pad, dimRoundingMode, true );
+    const { strideHeight, strideWidth, filterHeight, filterWidth } = convInfo;
+    const dW = new TensorBuffer(convInfo.filterShape, 'float32');
+    const leftPad = convInfo.padInfo.left;
+    const topPad = convInfo.padInfo.top;
+    const chMul = convInfo.outChannels / convInfo.inChannels;
+    const xVals = backend.data.get(x.dataId).values;
+    const xBuf = new TensorBuffer(x.shape, x.dtype, xVals);
+    const dyVals = backend.data.get(dy.dataId).values;
+    const dyBuf = new TensorBuffer(dy.shape, dy.dtype, dyVals);
+    for (let wR = 0; wR < filterHeight; ++wR) {
+        const yRMin = Math.max(0, Math.ceil((topPad - wR) / strideHeight));
+        const yRMax = Math.min(convInfo.outHeight, (convInfo.inHeight + topPad - wR) / strideHeight);
+        for (let wC = 0; wC < filterWidth; ++wC) {
+            const yCMin = Math.max(0, Math.ceil((leftPad - wC) / strideWidth));
+            const yCMax = Math.min(convInfo.outWidth, (convInfo.inWidth + leftPad - wC) / strideWidth);
+            for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
+                const d1 = Math.trunc(d2 / chMul);
+                const dm = d2 % chMul;
+                let dotProd = 0;
+                for (let b = 0; b < convInfo.batchSize; ++b) {
+                    for (let yR = yRMin; yR < yRMax; ++yR) {
+                        const xR = wR + yR * strideHeight - topPad;
+                        for (let yC = yCMin; yC < yCMax; ++yC) {
+                            const xC = wC + yC * strideWidth - leftPad;
+                            dotProd += xBuf.get(b, xR, xC, d1) *
+                                dyBuf.get(b, yR, yC, d2);
+                        }
+                    }
+                }
+                dW.set(dotProd, wR, wC, d1, dm);
+            }
+        }
+    }
+    return backend.makeTensorInfo(dW.shape, dW.dtype, dW.values);
+}
+const depthwiseConv2dNativeBackpropFilterConfig = {
+    kernelName: DepthwiseConv2dNativeBackpropFilter,
+    backendName: 'cpu',
+    kernelFunc: depthwiseConv2dNativeBackpropFilter
+};
+
+
+function depthwiseConv2dNativeBackpropInput(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, filter } = inputs;
+    const { strides, dilations, pad, dimRoundingMode, inputShape } = attrs;
+    assertNotComplex([dy, filter], 'depthwiseConv2DNativeBackpropInput');
+    const dyStrides = computeStrides(dy.shape);
+    const filterStrides = computeStrides(filter.shape);
+    const convInfo = computeConv2DInfo(inputShape, filter.shape, strides, dilations, pad, dimRoundingMode, true );
+    const dx = new TensorBuffer(convInfo.inShape, 'float32');
+    const dxValues = dx.values;
+    const [dxS0, dxS1, dxS2] = dx.strides;
+    const dyValues = backend.data.get(dy.dataId).values;
+    const [dyS0, dyS1, dyS2] = dyStrides;
+    const fltValues = backend.data.get(filter.dataId).values;
+    const [fltS0, fltS1, fltS2] = filterStrides;
+    const { batchSize, filterHeight, filterWidth, inChannels, inHeight, inWidth, outChannels, outHeight, outWidth, strideHeight, strideWidth } = convInfo;
+    const topPad = filterHeight - 1 - convInfo.padInfo.top;
+    const leftPad = filterWidth - 1 - convInfo.padInfo.left;
+    const chMul = outChannels / inChannels;
+    for (let b = 0; b < batchSize; ++b) {
+        for (let d1 = 0; d1 < inChannels; ++d1) {
+            for (let xR = 0; xR < inHeight; ++xR) {
+                const xRCorner = xR - topPad;
+                const xRMin = Math.max(0, Math.ceil(xRCorner / strideHeight));
+                const yRMax = Math.min(outHeight, (filterHeight + xRCorner) / strideHeight);
+                for (let xC = 0; xC < inWidth; ++xC) {
+                    const xCCorner = xC - leftPad;
+                    const xCMin = Math.max(0, Math.ceil(xCCorner / strideWidth));
+                    const yCMax = Math.min(outWidth, (filterWidth + xCCorner) / strideWidth);
+                    let dotProd = 0;
+                    for (let yR = xRMin; yR < yRMax; ++yR) {
+                        const wR = yR * strideHeight - xRCorner;
+                        for (let yC = xCMin; yC < yCMax; ++yC) {
+                            const wC = yC * strideWidth - xCCorner;
+                            const dyOffset = dyS0 * b + dyS1 * yR + dyS2 * yC;
+                            const fltOffset = fltS0 * (filterHeight - 1 - wR) +
+                                fltS1 * (filterWidth - 1 - wC) + fltS2 * d1;
+                            for (let dm = 0; dm < chMul; ++dm) {
+                                const d2 = d1 * chMul + dm;
+                                const pixel = dyValues[dyOffset + d2];
+                                const weight = fltValues[fltOffset + dm];
+                                dotProd += pixel * weight;
+                            }
+                        }
+                    }
+                    dxValues[dxS0 * b + dxS1 * xR + dxS2 * xC + d1] = dotProd;
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(dx.shape, dx.dtype, dx.values);
+}
+const depthwiseConv2dNativeBackpropInputConfig = {
+    kernelName: DepthwiseConv2dNativeBackpropInput,
+    backendName: 'cpu',
+    kernelFunc: depthwiseConv2dNativeBackpropInput
+};
+
+
+function diag(args) {
+    const { inputs, backend } = args;
+    const { x } = inputs;
+    const xSize = sizeFromShape(x.shape);
+    const xVals = backend.data.get(x.dataId).values;
+    const outBuf = buffer([xSize, xSize], x.dtype);
+    const vals = outBuf.values;
+    for (let i = 0; i < xVals.length; i++) {
+        vals[i * xSize + i] = xVals[i];
+    }
+    const outShape = [...x.shape, ...x.shape];
+    return backend.makeTensorInfo(outShape, outBuf.dtype, outBuf.values);
+}
+const diagConfig = {
+    kernelName: Diag,
+    backendName: 'cpu',
+    kernelFunc: diag
+};
+
+
+const dilation2DConfig = {
+    kernelName: Dilation2D,
+    backendName: 'cpu',
+    kernelFunc: ({ inputs, backend, attrs }) => {
+        const { x, filter } = inputs;
+        const { strides, pad, dilations } = attrs;
+        const cpuBackend = backend;
+        const xVals = cpuBackend.data.get(x.dataId).values;
+        const xRank = x.shape.length;
+        const filterVals = cpuBackend.data.get(filter.dataId).values;
+        const filterRank = filter.shape.length;
+        const { batchSize, inHeight, inWidth, inChannels, outHeight, outWidth, padInfo, strideHeight, strideWidth, filterHeight, filterWidth, dilationHeight, dilationWidth, outShape } = computeDilation2DInfo(x.shape, filter.shape, strides, pad, 'NHWC' , dilations);
+        const outSize = sizeFromShape(outShape);
+        const outRank = outShape.length;
+        const outputVals = getArrayFromDType(x.dtype, outSize);
+        
+        
+        
+        
+        for (let b = 0; b < batchSize; ++b) {
+            for (let hOut = 0; hOut < outHeight; ++hOut) {
+                const hBeg = hOut * strideHeight - padInfo.top;
+                for (let wOut = 0; wOut < outWidth; ++wOut) {
+                    const wBeg = wOut * strideWidth - padInfo.left;
+                    for (let d = 0; d < inChannels; ++d) {
+                        let curVal = Number.MIN_SAFE_INTEGER;
+                        for (let h = 0; h < filterHeight; ++h) {
+                            const hIn = hBeg + h * dilationHeight;
+                            if (hIn >= 0 && hIn < inHeight) {
+                                for (let w = 0; w < filterWidth; ++w) {
+                                    const wIn = wBeg + w * dilationWidth;
+                                    if (wIn >= 0 && wIn < inWidth) {
+                                        const xIndex = locToIndex([b, hIn, wIn, d], xRank, computeStrides(x.shape));
+                                        const filterIndex = locToIndex([h, w, d], filterRank, computeStrides(filter.shape));
+                                        const val = xVals[xIndex] + filterVals[filterIndex];
+                                        if (val > curVal) {
+                                            curVal = val;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        const outputIndex = locToIndex([b, hOut, wOut, d], outRank, computeStrides(outShape));
+                        outputVals[outputIndex] = curVal;
+                    }
+                }
+            }
+        }
+        const dataId = cpuBackend.write(toTypedArray(outputVals, x.dtype), outShape, x.dtype);
+        return { dataId, shape: outShape, dtype: x.dtype };
+    }
+};
+
+
+const dilation2DBackpropFilterConfig = {
+    kernelName: Dilation2DBackpropFilter,
+    backendName: 'cpu',
+    kernelFunc: ({ inputs, backend, attrs }) => {
+        const { x, filter, dy } = inputs;
+        const { strides, pad, dilations } = attrs;
+        const cpuBackend = backend;
+        const $x = toNestedArray(x.shape, cpuBackend.data.get(x.dataId).values);
+        const $filter = toNestedArray(filter.shape, cpuBackend.data.get(filter.dataId).values);
+        const { batchSize, inHeight, inWidth, inChannels, outHeight, outWidth, padInfo, strideHeight, strideWidth, filterHeight, filterWidth, dilationHeight, dilationWidth, outShape } = computeDilation2DInfo(x.shape, filter.shape, strides, pad, 'NHWC' , dilations);
+        assert$1(dy.rank === outShape.length, () => `Error in ${Dilation2DBackpropFilter}, dy ` +
+            `must have the same rank as output ${outShape.length}, but got ` +
+            `${dy.rank}`);
+        const $dy = toNestedArray(outShape, cpuBackend.data.get(dy.dataId).values);
+        
+        
+        const gradients = makeZerosNestedTypedArray(filter.shape, filter.dtype);
+        
+        
+        
+        
+        
+        for (let b = 0; b < batchSize; ++b) {
+            for (let hOut = 0; hOut < outHeight; ++hOut) {
+                const hBeg = hOut * strideHeight - padInfo.top;
+                for (let wOut = 0; wOut < outWidth; ++wOut) {
+                    const wBeg = wOut * strideWidth - padInfo.left;
+                    for (let d = 0; d < inChannels; ++d) {
+                        let curVal = Number.MIN_SAFE_INTEGER;
+                        let hMax = 0;
+                        let wMax = 0;
+                        for (let h = 0; h < filterHeight; ++h) {
+                            const hIn = hBeg + h * dilationHeight;
+                            if (hIn >= 0 && hIn < inHeight) {
+                                for (let w = 0; w < filterWidth; ++w) {
+                                    const wIn = wBeg + w * dilationWidth;
+                                    if (wIn >= 0 && wIn < inWidth) {
+                                        const val = $x[b][hIn][wIn][d] + $filter[h][w][d];
+                                        if (val > curVal) {
+                                            curVal = val;
+                                            hMax = h;
+                                            wMax = w;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        gradients[hMax][wMax][d] += $dy[b][hOut][wOut][d];
+                    }
+                }
+            }
+        }
+        const dataId = cpuBackend.write(toTypedArray(gradients, x.dtype), filter.shape, filter.dtype);
+        return { dataId, shape: filter.shape, dtype: filter.dtype };
+    }
+};
+
+
+const dilation2DBackpropInputConfig = {
+    kernelName: Dilation2DBackpropInput,
+    backendName: 'cpu',
+    kernelFunc: ({ inputs, backend, attrs }) => {
+        const { x, filter, dy } = inputs;
+        const { strides, pad, dilations } = attrs;
+        const cpuBackend = backend;
+        const $x = toNestedArray(x.shape, cpuBackend.data.get(x.dataId).values);
+        const $filter = toNestedArray(filter.shape, cpuBackend.data.get(filter.dataId).values);
+        const { batchSize, inHeight, inWidth, inChannels, outHeight, outWidth, padInfo, strideHeight, strideWidth, filterHeight, filterWidth, dilationHeight, dilationWidth, outShape } = computeDilation2DInfo(x.shape, filter.shape, strides, pad, 'NHWC' , dilations);
+        assert$1(dy.rank === outShape.length, () => `Error in ${Dilation2DBackpropInput}, dy ` +
+            `must have the same rank as output ${outShape.length}, but got ` +
+            `${dy.rank}`);
+        const $dy = toNestedArray(outShape, cpuBackend.data.get(dy.dataId).values);
+        
+        
+        const gradients = makeZerosNestedTypedArray(x.shape, x.dtype);
+        
+        
+        
+        
+        
+        for (let b = 0; b < batchSize; ++b) {
+            for (let hOut = 0; hOut < outHeight; ++hOut) {
+                const hBeg = hOut * strideHeight - padInfo.top;
+                for (let wOut = 0; wOut < outWidth; ++wOut) {
+                    const wBeg = wOut * strideWidth - padInfo.left;
+                    for (let d = 0; d < inChannels; ++d) {
+                        let curVal = Number.MIN_SAFE_INTEGER;
+                        let hInMax = (hBeg < 0) ? 0 : hBeg;
+                        let wInMax = (wBeg < 0) ? 0 : wBeg;
+                        for (let h = 0; h < filterHeight; ++h) {
+                            const hIn = hBeg + h * dilationHeight;
+                            if (hIn >= 0 && hIn < inHeight) {
+                                for (let w = 0; w < filterWidth; ++w) {
+                                    const wIn = wBeg + w * dilationWidth;
+                                    if (wIn >= 0 && wIn < inWidth) {
+                                        const val = $x[b][hIn][wIn][d] + $filter[h][w][d];
+                                        if (val > curVal) {
+                                            curVal = val;
+                                            hInMax = hIn;
+                                            wInMax = wIn;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        gradients[b][hInMax][wInMax][d] += $dy[b][hOut][wOut][d];
+                    }
+                }
+            }
+        }
+        const dataId = cpuBackend.write(toTypedArray(gradients, x.dtype), x.shape, x.dtype);
+        return { dataId, shape: x.shape, dtype: x.dtype };
+    }
+};
+
+
+function draw(args) {
+    const { inputs, backend, attrs } = args;
+    const { image } = inputs;
+    const { canvas, options } = attrs;
+    const { contextOptions, imageOptions } = options || {};
+    const alpha = (imageOptions === null || imageOptions === void 0 ? void 0 : imageOptions.alpha) || 1;
+    const contextType = (contextOptions === null || contextOptions === void 0 ? void 0 : contextOptions.contextType) || '2d';
+    if (contextType !== '2d') {
+        throw new Error(`Context type ${contextOptions.contextType} is not supported by the CPU backend.`);
+    }
+    const ctx = canvas.getContext(contextType, (contextOptions === null || contextOptions === void 0 ? void 0 : contextOptions.contextAttributes) || {});
+    if (ctx == null) {
+        throw new Error(`Could not get the context with ${contextType} type.`);
+    }
+    const [height, width] = image.shape.slice(0, 2);
+    const depth = image.shape.length === 2 ? 1 : image.shape[2];
+    const data = backend.data.get(image.dataId).values;
+    const multiplier = image.dtype === 'float32' ? 255 : 1;
+    const bytes = new Uint8ClampedArray(width * height * 4);
+    for (let i = 0; i < height * width; ++i) {
+        const rgba = [0, 0, 0, 255 * alpha];
+        for (let d = 0; d < depth; d++) {
+            const value = data[i * depth + d];
+            if (image.dtype === 'float32') {
+                if (value < 0 || value > 1) {
+                    throw new Error(`Tensor values for a float32 Tensor must be in the ` +
+                        `range [0 - 1] but encountered ${value}.`);
+                }
+            }
+            else if (image.dtype === 'int32') {
+                if (value < 0 || value > 255) {
+                    throw new Error(`Tensor values for a int32 Tensor must be in the ` +
+                        `range [0 - 255] but encountered ${value}.`);
+                }
+            }
+            if (depth === 1) {
+                rgba[0] = value * multiplier;
+                rgba[1] = value * multiplier;
+                rgba[2] = value * multiplier;
+            }
+            else {
+                rgba[d] = value * multiplier;
+            }
+        }
+        const j = i * 4;
+        bytes[j + 0] = Math.round(rgba[0]);
+        bytes[j + 1] = Math.round(rgba[1]);
+        bytes[j + 2] = Math.round(rgba[2]);
+        bytes[j + 3] = Math.round(rgba[3]);
+    }
+    canvas.width = width;
+    canvas.height = height;
+    const imageData = new ImageData(bytes, width, height);
+    ctx.putImageData(imageData, 0, 0);
+    return image;
+}
+const drawConfig = {
+    kernelName: Draw,
+    backendName: 'cpu',
+    kernelFunc: draw
+};
+
+
+function sum(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis, keepDims } = attrs;
+    assertNotComplex(x, 'sum');
+    let $x;
+    if (x.dtype === 'bool') {
+        $x = cast$2({ inputs: { x }, backend, attrs: { dtype: 'int32' } });
+    }
+    else {
+        $x = identity$1({ inputs: { x }, backend });
+    }
+    const xRank = $x.shape.length;
+    const axes = parseAxisParam(axis, $x.shape);
+    const permutation = getAxesPermutation(axes, xRank);
+    let reductionAxes = axes;
+    let permutedX = $x;
+    if (permutation != null) {
+        permutedX =
+            transpose$1({ inputs: { x: $x }, backend, attrs: { perm: permutation } });
+        reductionAxes = getInnerMostAxes(reductionAxes.length, xRank);
+    }
+    assertAxesAreInnerMostDims('sum', reductionAxes, permutedX.shape.length);
+    const [outShape, reduceShape] = computeOutAndReduceShapes(permutedX.shape, reductionAxes);
+    const resultDtype = upcastType(permutedX.dtype, 'int32');
+    let result = zeros(backend, outShape, resultDtype);
+    const reduceSize = sizeFromShape(reduceShape);
+    const vals = backend.data.get(result.dataId).values;
+    const aVals = backend.data.get(permutedX.dataId).values;
+    for (let i = 0; i < vals.length; ++i) {
+        const offset = i * reduceSize;
+        let sum = 0;
+        for (let j = 0; j < reduceSize; ++j) {
+            sum += aVals[offset + j];
+        }
+        vals[i] = sum;
+    }
+    if (keepDims) {
+        const newShape = expandShapeToKeepDim(result.shape, axes);
+        const oldResult = result;
+        result = reshape({ inputs: { x: result }, backend, attrs: { shape: newShape } });
+        backend.disposeIntermediateTensorInfo(oldResult);
+    }
+    backend.disposeIntermediateTensorInfo($x);
+    if (permutation != null) {
+        backend.disposeIntermediateTensorInfo(permutedX);
+    }
+    return result;
+}
+const sumConfig = {
+    kernelName: Sum,
+    backendName: 'cpu',
+    kernelFunc: sum
+};
+
+
+function einsum(args) {
+    const { inputs, backend, attrs } = args;
+    const { equation } = attrs;
+    const tensors = inputs;
+    const { allDims, summedDims, idDims } = decodeEinsumEquation(equation, tensors.length);
+    checkEinsumDimSizes(allDims.length, idDims, tensors);
+    const { path, steps } = getEinsumComputePath(summedDims, idDims);
+    const nSteps = steps.length;
+    let out = null;
+    let numDimsRemaining = allDims.length;
+    const tensorsToDispose = [];
+    for (let i = 0; i < nSteps; ++i) {
+        for (const idTerm of steps[i]) {
+            const { permutationIndices: perm, expandDims: dimsToExpand } = getEinsumPermutation(numDimsRemaining, idDims[idTerm]);
+            let x;
+            if (isIdentityPermutation(perm)) {
+                x = tensors[idTerm];
+            }
+            else {
+                x = transpose$1({ inputs: { x: tensors[idTerm] }, backend, attrs: { perm } });
+                tensorsToDispose.push(x);
+            }
+            const targetShape = x.shape.slice();
+            for (let k = 0; k < dimsToExpand.length; ++k) {
+                targetShape.splice(dimsToExpand[k], 0, 1);
+            }
+            if (!arraysEqual(x.shape, targetShape)) {
+                x = reshape({ inputs: { x }, backend, attrs: { shape: targetShape } });
+                tensorsToDispose.push(x);
+            }
+            if (out === null) {
+                out = x;
+            }
+            else {
+                
+                out = multiply$1({ inputs: { a: x, b: out }, backend });
+                tensorsToDispose.push(out);
+            }
+        }
+        if (i < nSteps - 1) {
+            if (path[i] >= 0) {
+                out = sum({
+                    inputs: { x: out },
+                    backend,
+                    attrs: {
+                        axis: path[i] - (allDims.length - numDimsRemaining),
+                        keepDims: false
+                    }
+                });
+                tensorsToDispose.push(out);
+            }
+            numDimsRemaining--;
+        }
+    }
+    
+    for (const tensorInfo of tensorsToDispose) {
+        if (tensorInfo === out) {
+            continue;
+        }
+        backend.disposeIntermediateTensorInfo(tensorInfo);
+    }
+    return out;
+}
+const einsumConfig = {
+    kernelName: Einsum,
+    backendName: 'cpu',
+    kernelFunc: einsum
+};
+
+
+function eluGrad(args) {
+    const { inputs, backend } = args;
+    const { dy, y } = inputs;
+    assertNotComplex([dy, y], 'eluGrad');
+    const resultValues = new Float32Array(sizeFromShape(y.shape));
+    const values = backend.data.get(y.dataId).values;
+    const dyValues = backend.data.get(dy.dataId).values;
+    for (let i = 0; i < values.length; ++i) {
+        const v = values[i];
+        if (v >= 0) {
+            resultValues[i] = dyValues[i];
+        }
+        else {
+            resultValues[i] = dyValues[i] * (v + 1);
+        }
+    }
+    return backend.makeTensorInfo(y.shape, 'float32', resultValues);
+}
+const eluGradConfig$1 = {
+    kernelName: EluGrad,
+    backendName: 'cpu',
+    kernelFunc: eluGrad
+};
+
+
+const p = ERF_P;
+const a1 = ERF_A1;
+const a2 = ERF_A2;
+const a3 = ERF_A3;
+const a4 = ERF_A4;
+const a5 = ERF_A5;
+const erf = unaryKernelFunc$1(Erf, (xi) => {
+    const sign = Math.sign(xi);
+    const v = Math.abs(xi);
+    const t = 1.0 / (1.0 + p * v);
+    return sign *
+        (1.0 -
+            (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
+                Math.exp(-v * v));
+});
+const erfConfig = {
+    kernelName: Erf,
+    backendName: 'cpu',
+    kernelFunc: erf,
+};
+
+
+function expandDims$1(args) {
+    const { inputs, backend, attrs } = args;
+    const { input } = inputs;
+    const { dim } = attrs;
+    const inputRank = input.shape.length;
+    const newShape = input.shape.slice();
+    let $dim = dim;
+    if (dim < 0) {
+        
+        assert$1(-(inputRank + 1) <= dim, () => `Axis must be in the interval [${-(inputRank + 1)}, ${inputRank}]`);
+        $dim = inputRank + dim + 1;
+    }
+    newShape.splice($dim, 0, 1);
+    return reshape({ inputs: { x: input }, backend, attrs: { shape: newShape } });
+}
+const expandDimsConfig = {
+    kernelName: ExpandDims,
+    backendName: 'cpu',
+    kernelFunc: expandDims$1
+};
+
+
+const realDivImpl = createSimpleBinaryKernelImpl((a, b) => a / b);
+const div = binaryKernelFunc$1(RealDiv, realDivImpl);
+const realDivConfig = {
+    kernelName: RealDiv,
+    backendName: 'cpu',
+    kernelFunc: div
+};
+
+
+
+function fftBatch(input, inverse, cpuBackend) {
+    const inputShape = input.shape;
+    const batch = inputShape[0];
+    const innerDim = inputShape[1];
+    const inputVals = cpuBackend.data.get(input.dataId);
+    const real2D = inputVals.complexTensorInfos.real;
+    const imag2D = inputVals.complexTensorInfos.imag;
+    
+    const resultShape = [batch, innerDim];
+    const resultSize = sizeFromShape(resultShape);
+    const resultReal = getTypedArrayFromDType('float32', resultSize);
+    const resultImag = getTypedArrayFromDType('float32', resultSize);
+    for (let b = 0; b < batch; b++) {
+        
+        const r = slice$1({
+            inputs: { x: real2D },
+            backend: cpuBackend,
+            attrs: { begin: [b, 0], size: [1, innerDim] }
+        });
+        const i = slice$1({
+            inputs: { x: imag2D },
+            backend: cpuBackend,
+            attrs: { begin: [b, 0], size: [1, innerDim] }
+        });
+        const input = complex$1({ inputs: { real: r, imag: i }, backend: cpuBackend });
+        
+        const { real, imag } = fftImpl(input, inverse, cpuBackend);
+        const res = mergeRealAndImagArrays(real, imag);
+        for (let d = 0; d < innerDim; d++) {
+            const c = getComplexWithIndex(res, d);
+            resultReal[b * innerDim + d] = c.real;
+            resultImag[b * innerDim + d] = c.imag;
+        }
+        cpuBackend.disposeIntermediateTensorInfo(r);
+        cpuBackend.disposeIntermediateTensorInfo(i);
+        cpuBackend.disposeIntermediateTensorInfo(input);
+    }
+    const $realInfo = cpuBackend.makeTensorInfo(resultShape, 'float32', resultReal);
+    const $imagInfo = cpuBackend.makeTensorInfo(resultShape, 'float32', resultImag);
+    const result = complex$1({ inputs: { real: $realInfo, imag: $imagInfo }, backend: cpuBackend });
+    cpuBackend.disposeIntermediateTensorInfo($realInfo);
+    cpuBackend.disposeIntermediateTensorInfo($imagInfo);
+    return result;
+}
+function fftImpl(input, inverse, cpuBackend) {
+    const inputSize = sizeFromShape(input.shape);
+    const inputVals = cpuBackend.data.get(input.dataId);
+    const realVals = cpuBackend.data.get(inputVals.complexTensorInfos.real.dataId).values;
+    const imagVals = cpuBackend.data.get(inputVals.complexTensorInfos.imag.dataId).values;
+    if (isExponentOf2(inputSize)) {
+        const result = fftRadix2(realVals, imagVals, inputSize, inverse, cpuBackend);
+        const resultShape = [input.shape[0], input.shape[1]];
+        if (inverse) {
+            const realInfo = cpuBackend.makeTensorInfo(resultShape, 'float32', result.real);
+            const imagInfo = cpuBackend.makeTensorInfo(resultShape, 'float32', result.imag);
+            const sizeInfo = cpuBackend.makeTensorInfo([], 'float32', createScalarValue(inputSize, 'float32'));
+            const sizeInfoCopy = identity$1({ inputs: { x: sizeInfo }, backend: cpuBackend });
+            const divRealInfo = realDivConfig.kernelFunc({ inputs: { a: realInfo, b: sizeInfo }, backend: cpuBackend });
+            const divImagInfo = realDivConfig.kernelFunc({ inputs: { a: imagInfo, b: sizeInfoCopy }, backend: cpuBackend });
+            const divRealVals = cpuBackend.data.get(divRealInfo.dataId).values;
+            const divImagVals = cpuBackend.data.get(divImagInfo.dataId).values;
+            cpuBackend.disposeIntermediateTensorInfo(realInfo);
+            cpuBackend.disposeIntermediateTensorInfo(imagInfo);
+            cpuBackend.disposeIntermediateTensorInfo(sizeInfo);
+            cpuBackend.disposeIntermediateTensorInfo(sizeInfoCopy);
+            cpuBackend.disposeIntermediateTensorInfo(divRealInfo);
+            cpuBackend.disposeIntermediateTensorInfo(divImagInfo);
+            return { real: divRealVals, imag: divImagVals };
+        }
+        return result;
+    }
+    else {
+        const data = mergeRealAndImagArrays(realVals, imagVals);
+        const rawOutput = fourierTransformByMatmul(data, inputSize, inverse);
+        return splitRealAndImagArrays(rawOutput);
+    }
+}
+function isExponentOf2(size) {
+    return (size & size - 1) === 0;
+}
+
+function fftRadix2(realVals, imagVals, size, inverse, cpuBackend) {
+    if (size === 1) {
+        return { real: realVals, imag: imagVals };
+    }
+    const data = mergeRealAndImagArrays(realVals, imagVals);
+    const half = size / 2;
+    const evenComplex = complexWithEvenIndex(data);
+    const evenRealVals = evenComplex.real;
+    const evenImagVals = evenComplex.imag;
+    const evenShape = [evenRealVals.length];
+    const evenRealInfo = cpuBackend.makeTensorInfo(evenShape, 'float32', evenRealVals);
+    const evenImagInfo = cpuBackend.makeTensorInfo(evenShape, 'float32', evenImagVals);
+    const evenTensorInfo = complex$1({ inputs: { real: evenRealInfo, imag: evenImagInfo }, backend: cpuBackend });
+    const oddComplex = complexWithOddIndex(data);
+    const oddRealVals = oddComplex.real;
+    const oddImagVals = oddComplex.imag;
+    const oddShape = [oddRealVals.length];
+    const oddRealInfo = cpuBackend.makeTensorInfo(oddShape, 'float32', oddRealVals);
+    const oddImagInfo = cpuBackend.makeTensorInfo(oddShape, 'float32', oddImagVals);
+    const oddTensorInfo = complex$1({ inputs: { real: oddRealInfo, imag: oddImagInfo }, backend: cpuBackend });
+    
+    const $evenComplex = fftRadix2(evenRealVals, evenImagVals, half, inverse, cpuBackend);
+    const $evenRealVals = $evenComplex.real;
+    const $evenImagVals = $evenComplex.imag;
+    const $evenShape = [$evenRealVals.length];
+    const $evenRealInfo = cpuBackend.makeTensorInfo($evenShape, 'float32', $evenRealVals);
+    const $evenImagInfo = cpuBackend.makeTensorInfo($evenShape, 'float32', $evenImagVals);
+    const $evenTensorInfo = complex$1({
+        inputs: { real: $evenRealInfo, imag: $evenImagInfo },
+        backend: cpuBackend
+    });
+    const $oddComplex = fftRadix2(oddRealVals, oddImagVals, half, inverse, cpuBackend);
+    const $oddRealVals = $oddComplex.real;
+    const $oddImagVals = $oddComplex.imag;
+    const $oddShape = [$oddRealVals.length];
+    const $oddRealInfo = cpuBackend.makeTensorInfo($oddShape, 'float32', $oddRealVals);
+    const $oddImagInfo = cpuBackend.makeTensorInfo($oddShape, 'float32', $oddImagVals);
+    const $oddTensorInfo = complex$1({ inputs: { real: $oddRealInfo, imag: $oddImagInfo }, backend: cpuBackend });
+    const e = exponents(size, inverse);
+    const eShape = [e.real.length];
+    const eRealInfo = cpuBackend.makeTensorInfo(eShape, 'float32', e.real);
+    const eImagInfo = cpuBackend.makeTensorInfo(eShape, 'float32', e.imag);
+    const complexInfo = complex$1({ inputs: { real: eRealInfo, imag: eImagInfo }, backend: cpuBackend });
+    const exponentInfo = multiply$1({ inputs: { a: complexInfo, b: $oddTensorInfo }, backend: cpuBackend });
+    const addPart = add({
+        inputs: { a: $evenTensorInfo, b: exponentInfo },
+        backend: cpuBackend
+    });
+    const subPart = sub$1({
+        inputs: { a: $evenTensorInfo, b: exponentInfo },
+        backend: cpuBackend
+    });
+    const addPartReal = real$1({ inputs: { input: addPart }, backend: cpuBackend });
+    const subPartReal = real$1({ inputs: { input: subPart }, backend: cpuBackend });
+    const addPartImag = imag({ inputs: { input: addPart }, backend: cpuBackend });
+    const subPartImag = imag({ inputs: { input: subPart }, backend: cpuBackend });
+    const $real = concat({
+        inputs: [addPartReal, subPartReal],
+        backend: cpuBackend,
+        attrs: { axis: 0 }
+    });
+    const $imag = concat({
+        inputs: [addPartImag, subPartImag],
+        backend: cpuBackend,
+        attrs: { axis: 0 }
+    });
+    const $realVals = cpuBackend.data.get($real.dataId).values;
+    const $imagVals = cpuBackend.data.get($imag.dataId).values;
+    cpuBackend.disposeIntermediateTensorInfo(evenRealInfo);
+    cpuBackend.disposeIntermediateTensorInfo(evenImagInfo);
+    cpuBackend.disposeIntermediateTensorInfo(evenTensorInfo);
+    cpuBackend.disposeIntermediateTensorInfo(oddRealInfo);
+    cpuBackend.disposeIntermediateTensorInfo(oddImagInfo);
+    cpuBackend.disposeIntermediateTensorInfo(oddTensorInfo);
+    cpuBackend.disposeIntermediateTensorInfo($evenRealInfo);
+    cpuBackend.disposeIntermediateTensorInfo($evenImagInfo);
+    cpuBackend.disposeIntermediateTensorInfo($evenTensorInfo);
+    cpuBackend.disposeIntermediateTensorInfo($oddRealInfo);
+    cpuBackend.disposeIntermediateTensorInfo($oddImagInfo);
+    cpuBackend.disposeIntermediateTensorInfo($oddTensorInfo);
+    cpuBackend.disposeIntermediateTensorInfo(eRealInfo);
+    cpuBackend.disposeIntermediateTensorInfo(eImagInfo);
+    cpuBackend.disposeIntermediateTensorInfo(complexInfo);
+    cpuBackend.disposeIntermediateTensorInfo(exponentInfo);
+    cpuBackend.disposeIntermediateTensorInfo(addPart);
+    cpuBackend.disposeIntermediateTensorInfo(subPart);
+    cpuBackend.disposeIntermediateTensorInfo(addPartReal);
+    cpuBackend.disposeIntermediateTensorInfo(addPartImag);
+    cpuBackend.disposeIntermediateTensorInfo(subPartReal);
+    cpuBackend.disposeIntermediateTensorInfo(subPartImag);
+    cpuBackend.disposeIntermediateTensorInfo($real);
+    cpuBackend.disposeIntermediateTensorInfo($imag);
+    return { real: $realVals, imag: $imagVals };
+}
+
+function fourierTransformByMatmul(data, size, inverse) {
+    const ret = new Float32Array(size * 2);
+    
+    for (let r = 0; r < size; r++) {
+        let real = 0.0;
+        let imag = 0.0;
+        for (let c = 0; c < size; c++) {
+            const e = exponent(r * c, size, inverse);
+            const term = getComplexWithIndex(data, c);
+            real += term.real * e.real - term.imag * e.imag;
+            imag += term.real * e.imag + term.imag * e.real;
+        }
+        if (inverse) {
+            real /= size;
+            imag /= size;
+        }
+        assignToTypedArray(ret, real, imag, r);
+    }
+    return ret;
+}
+
+
+function fft(args) {
+    const { inputs, backend } = args;
+    const { input } = inputs;
+    const inputSize = sizeFromShape(input.shape);
+    
+    const innerDimensionSize = input.shape[input.shape.length - 1];
+    const batch = inputSize / innerDimensionSize;
+    const input2D = reshape({
+        inputs: { x: input },
+        backend,
+        attrs: { shape: [batch, innerDimensionSize] }
+    });
+    const result = fftBatch(input2D, false, backend);
+    const resultReshaped = reshape({ inputs: { x: result }, backend, attrs: { shape: input.shape } });
+    backend.disposeIntermediateTensorInfo(input2D);
+    backend.disposeIntermediateTensorInfo(result);
+    return resultReshaped;
+}
+const fftConfig = {
+    kernelName: FFT,
+    backendName: 'cpu',
+    kernelFunc: fft
+};
+
+
+function fill(args) {
+    const { backend, attrs } = args;
+    const { shape, value, dtype } = attrs;
+    const $dtype = dtype || inferDtype(value);
+    const values = getArrayFromDType($dtype, sizeFromShape(shape));
+    fillValues(values, value, $dtype);
+    return backend.makeTensorInfo(shape, $dtype, values);
+}
+const fillConfig = {
+    kernelName: Fill,
+    backendName: 'cpu',
+    kernelFunc: fill
+};
+function fillValues(values, value, dtype) {
+    if (dtype === 'string') {
+        values.fill(value);
+    }
+    else {
+        values.fill(value);
+    }
+}
+
+
+const flipLeftRightConfig = {
+    kernelName: FlipLeftRight,
+    backendName: 'cpu',
+    kernelFunc: ({ inputs, attrs, backend }) => {
+        const { image } = inputs;
+        const cpuBackend = backend;
+        const output = getTypedArrayFromDType(image.dtype, sizeFromShape(image.shape));
+        const [batch, imageHeight, imageWidth, numChannels] = image.shape;
+        const imageVals = cpuBackend.data.get(image.dataId).values;
+        for (let batchIdx = 0; batchIdx < batch; batchIdx++) {
+            const batchOffset = batchIdx * imageWidth * imageHeight * numChannels;
+            for (let row = 0; row < imageHeight; row++) {
+                const rowOffset = row * (imageWidth * numChannels);
+                for (let col = 0; col < imageWidth; col++) {
+                    const colOffset = col * numChannels;
+                    for (let channel = 0; channel < numChannels; channel++) {
+                        const coordX = Math.round(imageWidth - col - 1);
+                        const outIdx = batchOffset + rowOffset + colOffset + channel;
+                        let outputValue = imageVals[outIdx];
+                        
+                        if (coordX >= 0 && coordX < imageWidth) {
+                            
+                            const rotatedColOffset = coordX * numChannels;
+                            const imageIdx = batchOffset + rowOffset + rotatedColOffset + channel;
+                            outputValue = imageVals[imageIdx];
+                        }
+                        output[outIdx] = outputValue;
+                    }
+                }
+            }
+        }
+        const dataId = cpuBackend.write(output, image.shape, image.dtype);
+        return { dataId, shape: image.shape, dtype: image.dtype };
+    }
+};
+
+
+function fusedConv2D(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, filter, bias, preluActivationWeights } = inputs;
+    const { strides, pad, dataFormat, dilations, dimRoundingMode, activation, leakyreluAlpha } = attrs;
+    let result = conv2D({
+        inputs: { x, filter },
+        backend,
+        attrs: { strides, pad, dataFormat, dilations, dimRoundingMode }
+    });
+    if (bias) {
+        const resultOld = result;
+        
+        
+        
+        
+        if (dataFormat === 'NCHW' && bias.shape.length === 1 &&
+            bias.shape[0] !== 1) {
+            const reshapedBias = reshape({ inputs: { x: bias }, backend, attrs: { shape: [bias.shape[0], 1, 1] } });
+            result =
+                add({ inputs: { a: result, b: reshapedBias }, backend });
+            backend.disposeIntermediateTensorInfo(reshapedBias);
+        }
+        else {
+            
+            
+            result = add({ inputs: { a: result, b: bias }, backend });
+        }
+        backend.disposeIntermediateTensorInfo(resultOld);
+    }
+    if (activation) {
+        const resultOld = result;
+        
+        
+        
+        
+        if (dataFormat === 'NCHW' && activation === 'prelu' &&
+            preluActivationWeights.shape.length === 1 &&
+            preluActivationWeights.shape[0] !== 1) {
+            const reshapedAlpha = reshape({
+                inputs: { x: preluActivationWeights },
+                backend,
+                attrs: { shape: [preluActivationWeights.shape[0], 1, 1] }
+            });
+            result = applyActivation(backend, result, activation, reshapedAlpha, leakyreluAlpha);
+            backend.disposeIntermediateTensorInfo(reshapedAlpha);
+        }
+        else {
+            result = applyActivation(backend, result, activation, preluActivationWeights, leakyreluAlpha);
+        }
+        backend.disposeIntermediateTensorInfo(resultOld);
+    }
+    return result;
+}
+const fusedConv2DConfig = {
+    kernelName: FusedConv2D,
+    backendName: 'cpu',
+    kernelFunc: fusedConv2D
+};
+
+
+function fusedDepthwiseConv2D(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, filter, bias, preluActivationWeights } = inputs;
+    const { strides, pad, dataFormat, dilations, dimRoundingMode, activation, leakyreluAlpha } = attrs;
+    let result = depthwiseConv2dNative({
+        inputs: { x, filter },
+        backend,
+        attrs: { strides, pad, dataFormat, dilations, dimRoundingMode }
+    });
+    if (bias) {
+        const oldResult = result;
+        result = add({ inputs: { a: result, b: bias }, backend });
+        backend.disposeIntermediateTensorInfo(oldResult);
+    }
+    if (activation) {
+        const oldResult = result;
+        result = applyActivation(backend, result, activation, preluActivationWeights, leakyreluAlpha);
+        backend.disposeIntermediateTensorInfo(oldResult);
+    }
+    return result;
+}
+const fusedDepthwiseConv2DConfig = {
+    kernelName: FusedDepthwiseConv2D,
+    backendName: 'cpu',
+    kernelFunc: fusedDepthwiseConv2D
+};
+
+
+function gatherNd(args) {
+    const { inputs, backend } = args;
+    const { params, indices } = inputs;
+    const paramsSize = sizeFromShape(params.shape);
+    const indicesShape = indices.shape;
+    const sliceRank = indicesShape[indicesShape.length - 1];
+    const [resultShape, numSlices, sliceSize, strides] = prepareAndValidate(params, indices);
+    if (numSlices === 0) {
+        return backend.makeTensorInfo(resultShape, params.dtype, []);
+    }
+    const indicesData = backend.data.get(indices.dataId).values;
+    const paramsBuf = backend.bufferSync(params);
+    const outBuf = gatherNdImpl(indicesData, paramsBuf, params.dtype, numSlices, sliceRank, sliceSize, strides, params.shape, paramsSize);
+    return backend.makeTensorInfo(resultShape, params.dtype, outBuf.values);
+}
+const gatherNdConfig = {
+    kernelName: GatherNd,
+    backendName: 'cpu',
+    kernelFunc: gatherNd
+};
+
+
+function gatherV2(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, indices } = inputs;
+    const { axis, batchDims } = attrs;
+    assertNotComplex([x, indices], 'gatherV2');
+    
+    const parsedAxis = parseAxisParam(axis, x.shape)[0];
+    const indicesVals = backend.data.get(indices.dataId).values;
+    const axisDim = x.shape[parsedAxis];
+    for (let i = 0; i < indicesVals.length; ++i) {
+        const index = indicesVals[i];
+        assert$1(index <= axisDim - 1 && index >= 0, () => `GatherV2: the index value ${index} is not in [0, ${axisDim - 1}]`);
+    }
+    let $batchDims = batchDims;
+    if (batchDims == null) {
+        $batchDims = 0;
+    }
+    const indicesSize = sizeFromShape(indices.shape);
+    const shapeInfo = collectGatherOpShapeInfo(x, indices, parsedAxis, $batchDims);
+    const flattenX = reshape({
+        inputs: { x },
+        backend,
+        attrs: {
+            shape: [
+                shapeInfo.batchSize, shapeInfo.outerSize, shapeInfo.dimSize,
+                shapeInfo.sliceSize
+            ]
+        }
+    });
+    const flattenIndex = reshape({
+        inputs: { x: indices },
+        backend,
+        attrs: { shape: [shapeInfo.batchSize, indicesSize / shapeInfo.batchSize] }
+    });
+    const flattenOutputShape = [
+        shapeInfo.batchSize, shapeInfo.outerSize, indicesSize / shapeInfo.batchSize,
+        shapeInfo.sliceSize
+    ];
+    const indicesBuf = backend.bufferSync(flattenIndex);
+    const xBuf = backend.bufferSync(flattenX);
+    const outBuf = gatherV2Impl(xBuf, indicesBuf, flattenOutputShape);
+    backend.disposeIntermediateTensorInfo(flattenX);
+    backend.disposeIntermediateTensorInfo(flattenIndex);
+    return backend.makeTensorInfo(shapeInfo.outputShape, outBuf.dtype, outBuf.values);
+}
+const gatherV2Config = {
+    kernelName: GatherV2,
+    backendName: 'cpu',
+    kernelFunc: gatherV2
+};
+
+
+function ifft(args) {
+    const { inputs, backend } = args;
+    const { input } = inputs;
+    const inputSize = sizeFromShape(input.shape);
+    
+    const innerDimensionSize = input.shape[input.shape.length - 1];
+    const batch = inputSize / innerDimensionSize;
+    const input2D = reshape({
+        inputs: { x: input },
+        backend,
+        attrs: { shape: [batch, innerDimensionSize] }
+    });
+    const result = fftBatch(input2D, true, backend);
+    const resultReshaped = reshape({ inputs: { x: result }, backend, attrs: { shape: input.shape } });
+    backend.disposeIntermediateTensorInfo(input2D);
+    backend.disposeIntermediateTensorInfo(result);
+    return resultReshaped;
+}
+const ifftConfig = {
+    kernelName: IFFT,
+    backendName: 'cpu',
+    kernelFunc: ifft
+};
+
+
+const isFinite$1 = unaryKernelFunc$1(IsFinite, (xi) => Number.isFinite(xi) ? 1 : 0, 'bool');
+const isFiniteConfig = {
+    kernelName: IsFinite,
+    backendName: 'cpu',
+    kernelFunc: isFinite$1,
+};
+
+
+const isInf = unaryKernelFunc$1(IsInf, (xi) => Math.abs(xi) === Infinity ? 1 : 0, 'bool');
+const isInfConfig = {
+    kernelName: IsInf,
+    backendName: 'cpu',
+    kernelFunc: isInf,
+};
+
+
+const isNaN$1 = unaryKernelFunc$1(IsNan, (xi) => Number.isNaN(xi) ? 1 : 0, 'bool');
+const isNaNConfig = {
+    kernelName: IsNan,
+    backendName: 'cpu',
+    kernelFunc: isNaN$1,
+};
+
+
+function linSpace(args) {
+    const { backend, attrs } = args;
+    const { start, stop, num } = attrs;
+    const outVals = linSpaceImpl(start, stop, num);
+    return backend.makeTensorInfo([outVals.length], 'float32', outVals);
+}
+const linSpaceConfig = {
+    kernelName: LinSpace,
+    backendName: 'cpu',
+    kernelFunc: linSpace
+};
+
+
+const log1p = unaryKernelFunc$1(Log1p, (xi) => Math.log1p(xi));
+const log1pConfig = {
+    kernelName: Log1p,
+    backendName: 'cpu',
+    kernelFunc: log1p,
+};
+
+
+const logicalAndImpl = createSimpleBinaryKernelImpl((a, b) => a && b);
+const logicalAnd = binaryKernelFunc$1(LogicalAnd, logicalAndImpl, null , 'bool');
+const logicalAndConfig = {
+    kernelName: LogicalAnd,
+    backendName: 'cpu',
+    kernelFunc: logicalAnd
+};
+
+
+const logicalNot = unaryKernelFunc$1(LogicalNot, (xi) => xi ? 0 : 1, 'bool');
+const logicalNotConfig = {
+    kernelName: LogicalNot,
+    backendName: 'cpu',
+    kernelFunc: logicalNot,
+};
+
+
+const logicalOrImpl = createSimpleBinaryKernelImpl((a, b) => a || b);
+const logicalOr = binaryKernelFunc$1(LogicalOr, logicalOrImpl, null , 'bool');
+const logicalOrConfig = {
+    kernelName: LogicalOr,
+    backendName: 'cpu',
+    kernelFunc: logicalOr
+};
+
+
+function lRN(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { depthRadius, bias, alpha, beta } = attrs;
+    assertNotComplex(x, 'LRN');
+    const channels = x.shape[3];
+    const maxD = channels - 1;
+    const xValues = backend.data.get(x.dataId).values;
+    const size = sizeFromShape(x.shape);
+    const result = new Float32Array(size);
+    function sumAcrossChannels(offset) {
+        const currentChannel = offset % channels;
+        let beginSumOffset = offset - currentChannel + Math.max(0, currentChannel - depthRadius);
+        const endSumOffset = offset - currentChannel + Math.min(currentChannel + depthRadius, maxD);
+        let sum = 0.0;
+        for (; beginSumOffset <= endSumOffset; beginSumOffset++) {
+            const z = xValues[beginSumOffset];
+            sum += z * z;
+        }
+        return sum;
+    }
+    for (let offset = 0; offset < size; offset++) {
+        const sum = sumAcrossChannels(offset);
+        const val = xValues[offset] * Math.pow(bias + alpha * sum, -beta);
+        result[offset] = val;
+    }
+    return backend.makeTensorInfo(x.shape, x.dtype, result);
+}
+
+const LRNConfig = {
+    kernelName: LRN,
+    backendName: 'cpu',
+    kernelFunc: lRN
+};
+
+
+function lRNGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, y, dy } = inputs;
+    const { depthRadius, bias, alpha, beta } = attrs;
+    assertNotComplex(dy, 'LRNGrad');
+    const dySize = sizeFromShape(dy.shape);
+    const channels = dy.shape[3];
+    const dyValues = backend.data.get(dy.dataId).values;
+    const xValues = backend.data.get(x.dataId).values;
+    const yValues = backend.data.get(y.dataId).values;
+    const result = new Float32Array(dySize);
+    const size = dySize;
+    for (let offset = 0; offset < size; offset++) {
+        const currentChannel = offset % channels;
+        const depthBegin = (offset - currentChannel) + Math.max(0, currentChannel - depthRadius);
+        const depthEnd = (offset - currentChannel) +
+            Math.min(channels, currentChannel + depthRadius + 1);
+        let norm = 0;
+        for (let k = depthBegin; k < depthEnd; k++) {
+            norm += Math.pow(xValues[k], 2);
+        }
+        norm = alpha * norm + bias;
+        for (let k = depthBegin; k < depthEnd; k++) {
+            let dyi = -2 * alpha * beta * xValues[k] * yValues[offset] / norm;
+            if (offset === k) {
+                dyi += Math.pow(norm, -beta);
+            }
+            dyi *= dyValues[offset];
+            result[k] += dyi;
+        }
+    }
+    return backend.makeTensorInfo(dy.shape, x.dtype, result);
+}
+
+const LRNGradConfig = {
+    kernelName: LRNGrad,
+    backendName: 'cpu',
+    kernelFunc: lRNGrad
+};
+
+
+function max(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { reductionIndices, keepDims } = attrs;
+    const cpuBackend = backend;
+    let xShape = x.shape;
+    const xRank = xShape.length;
+    const origAxes = parseAxisParam(reductionIndices, xShape);
+    let axes = origAxes;
+    const permutedAxes = getAxesPermutation(axes, xRank);
+    let xVals = cpuBackend.data.get(x.dataId).values;
+    if (permutedAxes != null) {
+        const newShape = new Array(xRank);
+        for (let i = 0; i < newShape.length; i++) {
+            newShape[i] = xShape[permutedAxes[i]];
+        }
+        xVals = transposeImpl$1(xVals, xShape, x.dtype, permutedAxes, newShape);
+        axes = getInnerMostAxes(axes.length, xRank);
+        xShape = newShape;
+    }
+    assertNotComplex(x, 'max');
+    assertAxesAreInnerMostDims('max', axes, xRank);
+    const [maxOutShape, reduceShape] = computeOutAndReduceShapes(xShape, axes);
+    const reduceSize = sizeFromShape(reduceShape);
+    const result = maxImpl$1(xVals, reduceSize, maxOutShape, x.dtype);
+    const dataId = cpuBackend.write(result, maxOutShape, x.dtype);
+    let outShape = maxOutShape;
+    if (keepDims) {
+        
+        const newShape = expandShapeToKeepDim(maxOutShape, origAxes);
+        outShape = newShape;
+    }
+    return { dataId, shape: outShape, dtype: x.dtype };
+}
+const maxConfig = {
+    kernelName: Max,
+    backendName: 'cpu',
+    kernelFunc: max
+};
+
+
+function maxPool(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    assertNotComplex(x, 'maxPool');
+    const { filterSize, strides, pad, dimRoundingMode } = attrs;
+    const dilations = 1;
+    assert$1(eitherStridesOrDilationsAreOne(strides, dilations), () => 'Error in maxPool: Either strides or dilations must be 1. ' +
+        `Got strides ${strides} and dilations '${dilations}'`);
+    const convInfo = computePool2DInfo(x.shape, filterSize, strides, dilations, pad, dimRoundingMode);
+    let res;
+    if (convInfo.filterWidth === 1 && convInfo.filterHeight === 1 &&
+        arraysEqual(convInfo.inShape, convInfo.outShape)) {
+        res = identity$1({ inputs: { x }, backend });
+    }
+    else {
+        const xValues = backend.data.get(x.dataId).values;
+        const strides = computeStrides(x.shape);
+        const buffer = pool(xValues, x.shape, x.dtype, strides, convInfo, 'max');
+        res = backend.makeTensorInfo(convInfo.outShape, x.dtype, buffer.values);
+    }
+    return res;
+}
+const maxPoolConfig = {
+    kernelName: MaxPool,
+    backendName: 'cpu',
+    kernelFunc: maxPool
+};
+
+
+function maxPool3D(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { filterSize, strides, pad, dimRoundingMode, dataFormat } = attrs;
+    assertNotComplex(x, 'maxPool3d');
+    const convInfo = computePool3DInfo(x.shape, filterSize, strides, 1 , pad, dimRoundingMode, dataFormat);
+    const xValues = backend.data.get(x.dataId).values;
+    const outBuf = pool3d(xValues, x.shape, x.dtype, computeStrides(x.shape), convInfo, 'max');
+    return backend.makeTensorInfo(outBuf.shape, 'float32', outBuf.values);
+}
+const maxPool3DConfig = {
+    kernelName: MaxPool3D,
+    backendName: 'cpu',
+    kernelFunc: maxPool3D
+};
+
+
+function maxPool3DGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, input } = inputs;
+    const { filterSize, strides, pad, dimRoundingMode } = attrs;
+    assertNotComplex([dy, input], 'maxPool3DGrad');
+    const convInfo = computePool3DInfo(input.shape, filterSize, strides, 1 , pad, dimRoundingMode);
+    const inputBuf = backend.bufferSync(input);
+    const maxPosBuf = maxPool3dPositions(inputBuf, convInfo);
+    const strideDepth = convInfo.strideDepth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const dilationDepth = convInfo.dilationDepth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterDepth = convInfo.effectiveFilterDepth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+    const padFront = effectiveFilterDepth - 1 - convInfo.padInfo.front;
+    const padLeft = effectiveFilterWidth - 1 - convInfo.padInfo.left;
+    const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
+    const dx = buffer(input.shape, 'float32');
+    const dyBuf = backend.bufferSync(dy);
+    for (let batch = 0; batch < convInfo.batchSize; ++batch) {
+        for (let channel = 0; channel < convInfo.inChannels; ++channel) {
+            for (let dxDepth = 0; dxDepth < convInfo.inDepth; ++dxDepth) {
+                for (let dxRow = 0; dxRow < convInfo.inHeight; ++dxRow) {
+                    for (let dxCol = 0; dxCol < convInfo.inWidth; ++dxCol) {
+                        
+                        const dyDepthCorner = dxDepth - padFront;
+                        const dyRowCorner = dxRow - padTop;
+                        const dyColCorner = dxCol - padLeft;
+                        let dotProd = 0;
+                        for (let wDepth = 0; wDepth < effectiveFilterDepth; wDepth += dilationDepth) {
+                            const dyDepth = (dyDepthCorner + wDepth) / strideDepth;
+                            if (dyDepth < 0 || dyDepth >= convInfo.outDepth ||
+                                Math.floor(dyDepth) !== dyDepth) {
+                                continue;
+                            }
+                            for (let wRow = 0; wRow < effectiveFilterHeight; wRow += dilationHeight) {
+                                const dyRow = (dyRowCorner + wRow) / strideHeight;
+                                if (dyRow < 0 || dyRow >= convInfo.outHeight ||
+                                    Math.floor(dyRow) !== dyRow) {
+                                    continue;
+                                }
+                                for (let wCol = 0; wCol < effectiveFilterWidth; wCol += dilationWidth) {
+                                    const dyCol = (dyColCorner + wCol) / strideWidth;
+                                    if (dyCol < 0 || dyCol >= convInfo.outWidth ||
+                                        Math.floor(dyCol) !== dyCol) {
+                                        continue;
+                                    }
+                                    const maxPos = effectiveFilterDepth * effectiveFilterHeight *
+                                        effectiveFilterWidth -
+                                        1 -
+                                        maxPosBuf.get(batch, dyDepth, dyRow, dyCol, channel);
+                                    const curPos = wDepth * effectiveFilterHeight * effectiveFilterWidth +
+                                        wRow * effectiveFilterWidth + wCol;
+                                    const mask = maxPos === curPos ? 1 : 0;
+                                    if (mask === 0) {
+                                        continue;
+                                    }
+                                    const pixel = dyBuf.get(batch, dyDepth, dyRow, dyCol, channel);
+                                    dotProd += pixel * mask;
+                                }
+                            }
+                        }
+                        dx.set(dotProd, batch, dxDepth, dxRow, dxCol, channel);
+                    }
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(dx.shape, dx.dtype, dx.values);
+}
+const maxPool3DGradConfig$1 = {
+    kernelName: MaxPool3DGrad,
+    backendName: 'cpu',
+    kernelFunc: maxPool3DGrad
+};
+
+
+function maxPoolGrad$1(args) {
+    const { inputs, backend, attrs } = args;
+    const { dy, input, output } = inputs;
+    const x = input;
+    assertNotComplex([input, output], 'maxPoolGrad');
+    const { filterSize, strides, pad, dimRoundingMode } = attrs;
+    const convInfo = computePool2DInfo(x.shape, filterSize, strides, 1 , pad, dimRoundingMode);
+    const xValues = backend.data.get(x.dataId).values;
+    const maxPosBuf = buffer(convInfo.outShape, x.dtype, maxPoolPositions(xValues, x.shape, x.dtype, convInfo).values);
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
+    const effectiveFilterHeight = convInfo.effectiveFilterHeight;
+    const effectiveFilterWidth = convInfo.effectiveFilterWidth;
+    const padLeft = effectiveFilterWidth - 1 - convInfo.padInfo.left;
+    const padTop = effectiveFilterHeight - 1 - convInfo.padInfo.top;
+    const dx = buffer(x.shape, 'float32');
+    const dyData = backend.data.get(dy.dataId).values;
+    const dyBuf = buffer(dy.shape, 'float32', dyData);
+    for (let b = 0; b < convInfo.batchSize; ++b) {
+        for (let d = 0; d < convInfo.inChannels; ++d) {
+            for (let dxR = 0; dxR < convInfo.inHeight; ++dxR) {
+                for (let dxC = 0; dxC < convInfo.inWidth; ++dxC) {
+                    
+                    const dyRCorner = dxR - padTop;
+                    const dyCCorner = dxC - padLeft;
+                    let dotProd = 0;
+                    for (let wR = 0; wR < effectiveFilterHeight; wR += dilationHeight) {
+                        const dyR = (dyRCorner + wR) / strideHeight;
+                        if (dyR < 0 || dyR >= convInfo.outHeight ||
+                            Math.floor(dyR) !== dyR) {
+                            continue;
+                        }
+                        for (let wC = 0; wC < effectiveFilterWidth; wC += dilationWidth) {
+                            const dyC = (dyCCorner + wC) / strideWidth;
+                            if (dyC < 0 || dyC >= convInfo.outWidth ||
+                                Math.floor(dyC) !== dyC) {
+                                continue;
+                            }
+                            const maxPos = effectiveFilterHeight * effectiveFilterWidth - 1 -
+                                maxPosBuf.get(b, dyR, dyC, d);
+                            const curPos = wR * effectiveFilterWidth + wC;
+                            const mask = maxPos === curPos ? 1 : 0;
+                            if (mask === 0) {
+                                continue;
+                            }
+                            const pixel = dyBuf.get(b, dyR, dyC, d);
+                            dotProd += pixel * mask;
+                        }
+                    }
+                    dx.set(dotProd, b, dxR, dxC, d);
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(dx.shape, dx.dtype, dx.values);
+}
+const maxPoolGradConfig$1 = {
+    kernelName: MaxPoolGrad,
+    backendName: 'cpu',
+    kernelFunc: maxPoolGrad$1
+};
+
+
+function maxPoolWithArgmaxImpl(xValues, xShape, dtype, includeBatchInIndex, convInfo) {
+    const strides = computeStrides(xShape);
+    const maxPools = pool(xValues, xShape, dtype, strides, convInfo, 'max');
+    const maxPositions = maxPoolPositions(xValues, xShape, dtype, convInfo, true, includeBatchInIndex);
+    return [maxPools.values, maxPositions.values];
+}
+
+
+const maxPoolWithArgmaxConfig = {
+    kernelName: MaxPoolWithArgmax,
+    backendName: 'cpu',
+    kernelFunc: ({ inputs, attrs, backend }) => {
+        const { x } = inputs;
+        const { filterSize, strides, pad, includeBatchInIndex } = attrs;
+        const cpuBackend = backend;
+        assertNotComplex(x, 'MaxPoolWithArgmax');
+        const values = cpuBackend.data.get(x.dataId).values;
+        const convInfo = computePool2DInfo(x.shape, filterSize, strides, [1, 1], pad);
+        const [pooled, indexes] = maxPoolWithArgmaxImpl(values, x.shape, x.dtype, includeBatchInIndex, convInfo);
+        const pooledDataId = cpuBackend.write(pooled, convInfo.outShape, x.dtype);
+        const indexesDataId = cpuBackend.write(indexes, convInfo.outShape, x.dtype);
+        return [
+            { dataId: pooledDataId, shape: convInfo.outShape, dtype: x.dtype },
+            { dataId: indexesDataId, shape: convInfo.outShape, dtype: 'int32' }
+        ];
+    }
+};
+
+
+function mean(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis, keepDims } = attrs;
+    const axes = parseAxisParam(axis, x.shape);
+    const shapes = computeOutAndReduceShapes(x.shape, axes);
+    const reduceShape = shapes[1];
+    const reduceSize = sizeFromShape(reduceShape);
+    const toDispose = [];
+    const reduceSizeScalar = backend.makeTensorInfo([], 'float32', new Float32Array([reduceSize]));
+    toDispose.push(reduceSizeScalar);
+    const $x = cast$2({ inputs: { x }, backend, attrs: { dtype: 'float32' } });
+    toDispose.push($x);
+    const res = div({ inputs: { a: $x, b: reduceSizeScalar }, backend });
+    toDispose.push(res);
+    const result = sum({ inputs: { x: res }, backend, attrs: { axis, keepDims } });
+    toDispose.forEach(t => backend.disposeIntermediateTensorInfo(t));
+    return result;
+}
+const meanConfig = {
+    kernelName: Mean,
+    backendName: 'cpu',
+    kernelFunc: mean
+};
+
+
+function min(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { axis, keepDims } = attrs;
+    assertNotComplex(x, 'min');
+    const origAxes = parseAxisParam(axis, x.shape);
+    let axes = origAxes;
+    const permutedAxes = getAxesPermutation(axes, x.shape.length);
+    let $x = x;
+    if (permutedAxes != null) {
+        $x = transpose$1({ inputs: { x }, backend, attrs: { perm: permutedAxes } });
+        axes = getInnerMostAxes(axes.length, x.shape.length);
+    }
+    assertAxesAreInnerMostDims('min', axes, $x.shape.length);
+    const [outShape, reduceShape] = computeOutAndReduceShapes($x.shape, axes);
+    const reduceSize = sizeFromShape(reduceShape);
+    const vals = makeZerosTypedArray(sizeFromShape(outShape), $x.dtype);
+    const aVals = backend.data.get($x.dataId).values;
+    for (let i = 0; i < vals.length; ++i) {
+        const offset = i * reduceSize;
+        let min = aVals[offset];
+        for (let j = 0; j < reduceSize; ++j) {
+            const value = aVals[offset + j];
+            if (Number.isNaN(value) ||
+                value < min) { 
+                min = value;
+            }
+        }
+        vals[i] = min;
+    }
+    if (permutedAxes != null) {
+        backend.disposeIntermediateTensorInfo($x);
+    }
+    const result = backend.makeTensorInfo(outShape, $x.dtype, vals);
+    if (keepDims) {
+        const expandedShape = expandShapeToKeepDim(outShape, origAxes);
+        const reshapedResult = reshape({ inputs: { x: result }, backend, attrs: { shape: expandedShape } });
+        backend.disposeIntermediateTensorInfo(result);
+        return reshapedResult;
+    }
+    return result;
+}
+const minConfig = {
+    kernelName: Min,
+    backendName: 'cpu',
+    kernelFunc: min
+};
+
+
+function mirrorPad(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { paddings, mode } = attrs;
+    assertNotComplex(x, 'mirrorPad');
+    const outShape = paddings.map((p, i) => p[0]  + x.shape[i] + p[1] );
+    const start = paddings.map(p => p[0]);
+    const end = paddings.map((p, i) => p[0] + x.shape[i]);
+    const offset = mode === 'reflect' ? 0 : 1;
+    const xVals = backend.data.get(x.dataId).values;
+    const xRank = x.shape.length;
+    const xStrides = computeStrides(x.shape);
+    const resultSize = sizeFromShape(outShape);
+    const resultRank = outShape.length;
+    const resultStrides = computeStrides(outShape);
+    const resVals = getTypedArrayFromDType(x.dtype, resultSize);
+    for (let i = 0; i < resultSize; i++) {
+        let coords = indexToLoc(i, resultRank, resultStrides);
+        for (let i = 0; i < resultRank; i++) {
+            if (coords[i] < start[i]) {
+                coords[i] = start[i] * 2 - coords[i] - offset;
+            }
+            else if (coords[i] >= end[i]) {
+                coords[i] = (end[i] - 1) * 2 - coords[i] + offset;
+            }
+        }
+        coords = coords.map((c, i) => c - start[i]);
+        const inIndex = locToIndex(coords, xRank, xStrides);
+        resVals[i] = xVals[inIndex];
+    }
+    const outId = backend.write(resVals, outShape, x.dtype);
+    return { dataId: outId, shape: outShape, dtype: x.dtype };
+}
+const mirrorPadConfig = {
+    kernelName: MirrorPad,
+    backendName: 'cpu',
+    kernelFunc: mirrorPad
+};
+
+
+const modImpl = createSimpleBinaryKernelImpl(((aValue, bValue) => {
+    const rem = aValue % bValue;
+    if ((aValue < 0 && bValue < 0) || (aValue >= 0 && bValue >= 0)) {
+        return rem;
+    }
+    else {
+        return (rem + bValue) % bValue;
+    }
+}));
+const mod = binaryKernelFunc$1(Mod, modImpl);
+const modConfig = {
+    kernelName: Mod,
+    backendName: 'cpu',
+    kernelFunc: mod
+};
+
+
+function softmax(args) {
+    const { inputs, backend, attrs } = args;
+    const { logits } = inputs;
+    const { dim } = attrs;
+    const logitsRank = logits.shape.length;
+    let $dim = dim;
+    if ($dim === -1) {
+        $dim = logitsRank - 1;
+    }
+    if ($dim !== logitsRank - 1) {
+        throw Error('Softmax along a non-last dimension is not yet supported. ' +
+            `Logits was rank ${logitsRank} and dim was ${$dim}`);
+    }
+    const axes = parseAxisParam([$dim], logits.shape);
+    const maxLogit = max({
+        inputs: { x: logits },
+        backend,
+        attrs: { reductionIndices: axes, keepDims: false }
+    });
+    const expandedShape = expandShapeToKeepDim(maxLogit.shape, axes);
+    const maxLogitReshaped = reshape({ inputs: { x: maxLogit }, backend, attrs: { shape: expandedShape } });
+    const a = sub$1({ inputs: { a: logits, b: maxLogitReshaped }, backend });
+    const b = exp$1({ inputs: { x: a }, backend });
+    const sumExp = sum({ inputs: { x: b }, backend, attrs: { axis: axes, keepDims: false } });
+    const sumReshaped = reshape({ inputs: { x: sumExp }, backend, attrs: { shape: expandedShape } });
+    const result = div({ inputs: { a: b, b: sumReshaped }, backend });
+    backend.disposeIntermediateTensorInfo(maxLogit);
+    backend.disposeIntermediateTensorInfo(maxLogitReshaped);
+    backend.disposeIntermediateTensorInfo(a);
+    backend.disposeIntermediateTensorInfo(b);
+    backend.disposeIntermediateTensorInfo(sumExp);
+    backend.disposeIntermediateTensorInfo(sumReshaped);
+    return result;
+}
+const softmaxConfig = {
+    kernelName: Softmax$1,
+    backendName: 'cpu',
+    kernelFunc: softmax
+};
+
+
+function multinomial(args) {
+    const { inputs, backend, attrs } = args;
+    const { logits } = inputs;
+    const { numSamples, seed, normalized } = attrs;
+    assertNotComplex(logits, 'multinomial');
+    const probabilities = normalized ?
+        logits :
+        softmax({ inputs: { logits }, backend, attrs: { dim: -1 } });
+    const batchSize = probabilities.shape[0];
+    const numEvents = probabilities.shape[1];
+    const probVals = backend.data.get(probabilities.dataId).values;
+    const resShape = [batchSize, numSamples];
+    const resVals = makeZerosTypedArray(sizeFromShape(resShape), 'int32');
+    for (let b = 0; b < batchSize; ++b) {
+        const offset = b * numEvents;
+        
+        
+        const cdf = new Float32Array(numEvents - 1);
+        cdf[0] = probVals[offset];
+        for (let event = 1; event < cdf.length; ++event) {
+            cdf[event] = cdf[event - 1] + probVals[offset + event];
+        }
+        const random = seedrandom.alea(seed.toString());
+        const outOffset = b * numSamples;
+        for (let sampleId = 0; sampleId < numSamples; ++sampleId) {
+            const r = random();
+            
+            resVals[outOffset + sampleId] = cdf.length;
+            for (let event = 0; event < cdf.length; event++) {
+                if (r < cdf[event]) {
+                    resVals[outOffset + sampleId] = event;
+                    break;
+                }
+            }
+        }
+    }
+    if (!normalized) {
+        backend.disposeIntermediateTensorInfo(probabilities);
+    }
+    return backend.makeTensorInfo(resShape, 'int32', resVals);
+}
+const multinomialConfig = {
+    kernelName: Multinomial,
+    backendName: 'cpu',
+    kernelFunc: multinomial
+};
+
+
+const nonMaxSuppressionV3Impl = nonMaxSuppressionV3Impl$2;
+function nonMaxSuppressionV3(args) {
+    const { inputs, backend, attrs } = args;
+    const { boxes, scores } = inputs;
+    const { maxOutputSize, iouThreshold, scoreThreshold } = attrs;
+    assertNotComplex(boxes, 'NonMaxSuppression');
+    const boxesVals = backend.data.get(boxes.dataId).values;
+    const scoresVals = backend.data.get(scores.dataId).values;
+    const { selectedIndices } = nonMaxSuppressionV3Impl(boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+    return backend.makeTensorInfo([selectedIndices.length], 'int32', new Int32Array(selectedIndices));
+}
+const nonMaxSuppressionV3Config = {
+    kernelName: NonMaxSuppressionV3,
+    backendName: 'cpu',
+    kernelFunc: nonMaxSuppressionV3
+};
+
+
+const nonMaxSuppressionV4Impl = nonMaxSuppressionV4Impl$2;
+function nonMaxSuppressionV4(args) {
+    const { inputs, backend, attrs } = args;
+    const { boxes, scores } = inputs;
+    const { maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize } = attrs;
+    assertNotComplex(boxes, 'NonMaxSuppressionPadded');
+    const boxesVals = backend.data.get(boxes.dataId).values;
+    const scoresVals = backend.data.get(scores.dataId).values;
+    const { selectedIndices, validOutputs } = nonMaxSuppressionV4Impl(boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold, padToMaxOutputSize);
+    return [
+        backend.makeTensorInfo([selectedIndices.length], 'int32', new Int32Array(selectedIndices)),
+        backend.makeTensorInfo([], 'int32', new Int32Array([validOutputs]))
+    ];
+}
+const nonMaxSuppressionV4Config = {
+    kernelName: NonMaxSuppressionV4,
+    backendName: 'cpu',
+    kernelFunc: nonMaxSuppressionV4
+};
+
+
+const nonMaxSuppressionV5Impl = nonMaxSuppressionV5Impl$2;
+function nonMaxSuppressionV5(args) {
+    const { inputs, backend, attrs } = args;
+    const { boxes, scores } = inputs;
+    const { maxOutputSize, iouThreshold, scoreThreshold, softNmsSigma } = attrs;
+    assertNotComplex(boxes, 'NonMaxSuppressionWithScore');
+    const boxesVals = backend.data.get(boxes.dataId).values;
+    const scoresVals = backend.data.get(scores.dataId).values;
+    const maxOutputSizeVal = maxOutputSize;
+    const iouThresholdVal = iouThreshold;
+    const scoreThresholdVal = scoreThreshold;
+    const softNmsSigmaVal = softNmsSigma;
+    const { selectedIndices, selectedScores } = nonMaxSuppressionV5Impl(boxesVals, scoresVals, maxOutputSizeVal, iouThresholdVal, scoreThresholdVal, softNmsSigmaVal);
+    return [
+        backend.makeTensorInfo([selectedIndices.length], 'int32', new Int32Array(selectedIndices)),
+        backend.makeTensorInfo([selectedScores.length], 'float32', new Float32Array(selectedScores))
+    ];
+}
+const nonMaxSuppressionV5Config = {
+    kernelName: NonMaxSuppressionV5,
+    backendName: 'cpu',
+    kernelFunc: nonMaxSuppressionV5
+};
+
+
+function oneHot(args) {
+    const { inputs, backend, attrs } = args;
+    const { indices } = inputs;
+    const { dtype, depth, onValue, offValue } = attrs;
+    assertNotComplex(indices, 'oneHot');
+    const indicesSize = sizeFromShape(indices.shape);
+    const res = new Float32Array(indicesSize * depth);
+    res.fill(offValue);
+    const indicesVal = backend.data.get(indices.dataId).values;
+    for (let event = 0; event < indicesSize; ++event) {
+        if (indicesVal[event] >= 0 && indicesVal[event] < depth) {
+            res[event * depth + indicesVal[event]] = onValue;
+        }
+    }
+    return backend.makeTensorInfo([...indices.shape, depth], dtype, res);
+}
+const oneHotConfig = {
+    kernelName: OneHot,
+    backendName: 'cpu',
+    kernelFunc: oneHot
+};
+
+
+function zerosLike(args) {
+    const { inputs, backend } = args;
+    const { x } = inputs;
+    if (x.dtype === 'string') {
+        throw new Error('zerosLike is not supported for string tensors');
+    }
+    else if (x.dtype === 'complex64') {
+        const realPart = real$1({ inputs: { input: x }, backend });
+        const r = zerosLike({ inputs: { x: realPart }, backend });
+        const imagPart = imag({ inputs: { input: x }, backend });
+        const i = zerosLike({ inputs: { x: imagPart }, backend });
+        const result = complex$1({ inputs: { real: r, imag: i }, backend });
+        backend.disposeIntermediateTensorInfo(realPart);
+        backend.disposeIntermediateTensorInfo(r);
+        backend.disposeIntermediateTensorInfo(imagPart);
+        backend.disposeIntermediateTensorInfo(i);
+        return result;
+    }
+    else {
+        return fill({ backend, attrs: { shape: x.shape, value: 0, dtype: x.dtype } });
+    }
+}
+const zerosLikeConfig = {
+    kernelName: ZerosLike,
+    backendName: 'cpu',
+    kernelFunc: zerosLike
+};
+
+
+function onesLike(args) {
+    const { inputs, backend } = args;
+    const { x } = inputs;
+    if (x.dtype === 'string') {
+        throw new Error('onesLike is not supported for string tensors');
+    }
+    else if (x.dtype === 'complex64') {
+        const realPart = real$1({ inputs: { input: x }, backend });
+        const r = onesLike({ inputs: { x: realPart }, backend });
+        const imagPart = imag({ inputs: { input: x }, backend });
+        const i = zerosLike({ inputs: { x: imagPart }, backend });
+        const result = complex$1({ inputs: { real: r, imag: i }, backend });
+        backend.disposeIntermediateTensorInfo(realPart);
+        backend.disposeIntermediateTensorInfo(r);
+        backend.disposeIntermediateTensorInfo(imagPart);
+        backend.disposeIntermediateTensorInfo(i);
+        return result;
+    }
+    else {
+        return fill({ backend, attrs: { shape: x.shape, value: 1, dtype: x.dtype } });
+    }
+}
+const onesLikeConfig = {
+    kernelName: OnesLike,
+    backendName: 'cpu',
+    kernelFunc: onesLike
+};
+
+
+function pack(args) {
+    const { inputs, backend, attrs } = args;
+    const { axis } = attrs;
+    if (inputs.length === 1) {
+        return expandDims$1({ inputs: { input: inputs[0] }, backend, attrs: { dim: axis } });
+    }
+    const shape = inputs[0].shape;
+    const dtype = inputs[0].dtype;
+    inputs.forEach(t => {
+        assertShapesMatch(shape, t.shape, 'All tensors passed to stack must have matching shapes');
+        assert$1(dtype === t.dtype, () => 'All tensors passed to stack must have matching dtypes');
+    });
+    const intermediateTensorInfos = [];
+    const expandedTensors = inputs.map(t => {
+        const expandedT = expandDims$1({ inputs: { input: t }, backend, attrs: { dim: axis } });
+        intermediateTensorInfos.push(expandedT);
+        return expandedT;
+    });
+    const result = concat({ inputs: expandedTensors, backend, attrs: { axis } });
+    intermediateTensorInfos.forEach(t => backend.disposeIntermediateTensorInfo(t));
+    return result;
+}
+const packConfig = {
+    kernelName: Pack,
+    backendName: 'cpu',
+    kernelFunc: pack
+};
+
+
+function padV2(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { paddings, constantValue } = attrs;
+    assertNotComplex(x, 'pad');
+    const outShape = paddings.map((p, i) => p[0]  + x.shape[i] + p[1] );
+    const start = paddings.map(p => p[0]);
+    const xVals = backend.data.get(x.dataId).values;
+    const xSize = sizeFromShape(x.shape);
+    const xRank = x.shape.length;
+    const xStrides = computeStrides(x.shape);
+    const resultSize = sizeFromShape(outShape);
+    const resultRank = outShape.length;
+    const resultStrides = computeStrides(outShape);
+    const resVals = getTypedArrayFromDType(x.dtype, resultSize);
+    if (constantValue !== 0) {
+        resVals.fill(constantValue);
+    }
+    for (let i = 0; i < xSize; i++) {
+        const coords = indexToLoc(i, xRank, xStrides);
+        const outCoords = coords.map((c, i) => c + start[i]);
+        const outIndex = locToIndex(outCoords, resultRank, resultStrides);
+        resVals[outIndex] = xVals[i];
+    }
+    const outId = backend.write(resVals, outShape, x.dtype);
+    return { dataId: outId, shape: outShape, dtype: x.dtype };
+}
+const padV2Config = {
+    kernelName: PadV2,
+    backendName: 'cpu',
+    kernelFunc: padV2
+};
+
+
+const powImpl = createSimpleBinaryKernelImpl((a, b) => Math.pow(a, b));
+const pow = binaryKernelFunc$1(Pow, powImpl);
+const powConfig = {
+    kernelName: Pow,
+    backendName: 'cpu',
+    kernelFunc: pow
+};
+
+
+function raggedGather(args) {
+    const { inputs, backend} = args;
+    const { paramsNestedSplits, paramsDenseValues, indices } = inputs;
+    const $paramsNestedSplits = paramsNestedSplits.map(t => backend.data.get(t.dataId).values);
+    const $paramsNestedSplitsShapes = paramsNestedSplits.map(t => t.shape);
+    const $paramsDenseValues = backend.data.get(paramsDenseValues.dataId).values;
+    const $indices = backend.data.get(indices.dataId).values;
+    const [outputNestedSplits, outputDenseValues, outputDenseValuesShape] = raggedGatherImpl($paramsNestedSplits, $paramsNestedSplitsShapes, $paramsDenseValues, paramsDenseValues.shape, paramsDenseValues.dtype, $indices, indices.shape);
+    const outputNestedSplitsTensors = outputNestedSplits.map((splits) => backend.makeTensorInfo([splits.length], 'int32', splits));
+    const outputDenseValuesTensor = backend.makeTensorInfo(outputDenseValuesShape, paramsDenseValues.dtype, outputDenseValues);
+    return outputNestedSplitsTensors.concat([outputDenseValuesTensor]);
+}
+const raggedGatherConfig = {
+    kernelName: RaggedGather,
+    backendName: 'cpu',
+    kernelFunc: raggedGather,
+};
+
+
+function raggedRange(args) {
+    const { inputs, backend } = args;
+    const { starts, limits, deltas } = inputs;
+    const $starts = backend.data.get(starts.dataId).values;
+    const $limits = backend.data.get(limits.dataId).values;
+    const $deltas = backend.data.get(deltas.dataId).values;
+    const [rtNestedSplitsData, rtDenseValuesData] = raggedRangeImpl($starts, starts.shape, starts.dtype, $limits, limits.shape, $deltas, deltas.shape);
+    const rtNestedSplits = backend.makeTensorInfo([rtNestedSplitsData.length], 'int32', rtNestedSplitsData);
+    const rtDenseValues = backend.makeTensorInfo([rtDenseValuesData.length], starts.dtype, rtDenseValuesData);
+    return [rtNestedSplits, rtDenseValues];
+}
+const raggedRangeConfig = {
+    kernelName: RaggedRange,
+    backendName: 'cpu',
+    kernelFunc: raggedRange,
+};
+
+
+function raggedTensorToTensor(args) {
+    const { inputs, backend, attrs } = args;
+    const { shape, values, defaultValue, rowPartitionTensors } = inputs;
+    const { rowPartitionTypes } = attrs;
+    const $shape = backend.data.get(shape.dataId).values;
+    const $values = backend.data.get(values.dataId).values;
+    const $defaultValue = backend.data.get(defaultValue.dataId).values;
+    const $rowPartitionValues = rowPartitionTensors.map(t => backend.data.get(t.dataId).values);
+    const rowPartitionValuesShapes = rowPartitionTensors.map(t => t.shape);
+    const [outputShape, output] = raggedTensorToTensorImpl($shape, shape.shape, $values, values.shape, values.dtype, $defaultValue, defaultValue.shape, $rowPartitionValues, rowPartitionValuesShapes, rowPartitionTypes);
+    return backend.makeTensorInfo(outputShape, values.dtype, output);
+}
+const raggedTensorToTensorConfig = {
+    kernelName: RaggedTensorToTensor,
+    backendName: 'cpu',
+    kernelFunc: raggedTensorToTensor,
+};
+
+
+function range$1(args) {
+    const { backend, attrs } = args;
+    const { start, stop, dtype, step } = attrs;
+    const values = rangeImpl(start, stop, step, dtype);
+    return backend.makeTensorInfo([values.length], dtype, values);
+}
+const rangeConfig = {
+    kernelName: Range,
+    backendName: 'cpu',
+    kernelFunc: range$1
+};
+
+
+const reciprocal = unaryKernelFunc$1(Reciprocal, (xi) => 1 / xi);
+const reciprocalConfig = {
+    kernelName: Reciprocal,
+    backendName: 'cpu',
+    kernelFunc: reciprocal,
+};
+
+
+function resizeBilinear(args) {
+    const { inputs, backend, attrs } = args;
+    const { images } = inputs;
+    const { alignCorners, halfPixelCenters, size } = attrs;
+    assertNotComplex(images, 'resizeBilinear');
+    const imagesStrides = computeStrides(images.shape);
+    const [newHeight, newWidth] = size;
+    const [batch, oldHeight, oldWidth, numChannels] = images.shape;
+    const xValues = backend.data.get(images.dataId).values;
+    const result = new Float32Array(sizeFromShape([batch, newHeight, newWidth, numChannels]));
+    const effectiveInputSize = [
+        (alignCorners && newHeight > 1) ? oldHeight - 1 : oldHeight,
+        (alignCorners && newWidth > 1) ? oldWidth - 1 : oldWidth
+    ];
+    const effectiveOutputSize = [
+        (alignCorners && newHeight > 1) ? newHeight - 1 : newHeight,
+        (alignCorners && newWidth > 1) ? newWidth - 1 : newWidth
+    ];
+    let outputIdx = 0;
+    const effectiveRowSizeRatio = effectiveInputSize[0] / effectiveOutputSize[0];
+    const effectiveColSizeRatio = effectiveInputSize[1] / effectiveOutputSize[1];
+    for (let b = 0; b < batch; b++) {
+        for (let r = 0; r < newHeight; r++) {
+            let sourceFracRow;
+            if (halfPixelCenters) {
+                sourceFracRow = effectiveRowSizeRatio * (r + 0.5) - 0.5;
+            }
+            else {
+                sourceFracRow = effectiveRowSizeRatio * r;
+            }
+            const sourceRowFloor = Math.max(0, Math.floor(sourceFracRow));
+            const rowFrac = sourceFracRow - sourceRowFloor;
+            const sourceRowCeil = Math.min(oldHeight - 1, Math.ceil(sourceFracRow));
+            const topRowOffset = b * imagesStrides[0] + sourceRowFloor * imagesStrides[1];
+            const botRowOffset = b * imagesStrides[0] + sourceRowCeil * imagesStrides[1];
+            for (let c = 0; c < newWidth; c++) {
+                let sourceFracCol;
+                if (halfPixelCenters) {
+                    sourceFracCol = effectiveColSizeRatio * (c + 0.5) - 0.5;
+                }
+                else {
+                    sourceFracCol = effectiveColSizeRatio * c;
+                }
+                const sourceColFloor = Math.max(0, Math.floor(sourceFracCol));
+                const colFrac = sourceFracCol - sourceColFloor;
+                const sourceColCeil = Math.min(oldWidth - 1, Math.ceil(sourceFracCol));
+                const topLeftOffest = topRowOffset + sourceColFloor * imagesStrides[2];
+                const botLeftOffset = botRowOffset + sourceColFloor * imagesStrides[2];
+                const topRightOffset = topRowOffset + sourceColCeil * imagesStrides[2];
+                const botRightOffest = botRowOffset + sourceColCeil * imagesStrides[2];
+                for (let d = 0; d < numChannels; d++) {
+                    
+                    
+                    const topLeft = xValues[topLeftOffest + d];
+                    const bottomLeft = xValues[botLeftOffset + d];
+                    const topRight = xValues[topRightOffset + d];
+                    const bottomRight = xValues[botRightOffest + d];
+                    const top = topLeft + (topRight - topLeft) * colFrac;
+                    const bottom = bottomLeft + (bottomRight - bottomLeft) * colFrac;
+                    const newValue = top + (bottom - top) * rowFrac;
+                    result[outputIdx++] = newValue;
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo([batch, newHeight, newWidth, numChannels], 'float32', result);
+}
+const resizeBilinearConfig = {
+    kernelName: ResizeBilinear,
+    backendName: 'cpu',
+    kernelFunc: resizeBilinear
+};
+
+
+function resizeBilinearGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { images, dy } = inputs;
+    const { alignCorners } = attrs;
+    assertNotComplex([dy, images], 'resizeBilinearGrad');
+    const imagesStrides = computeStrides(images.shape);
+    const [batch, xHeight, xWidth, depth] = images.shape;
+    const [, yHeight, yWidth] = dy.shape;
+    const output = new Float32Array(batch * xHeight * xWidth * depth);
+    
+    
+    
+    
+    const effectiveXSize = [
+        (alignCorners && yHeight > 1) ? xHeight - 1 : xHeight,
+        (alignCorners && yWidth > 1) ? xWidth - 1 : xWidth
+    ];
+    const effectiveYSize = [
+        (alignCorners && yHeight > 1) ? yHeight - 1 : yHeight,
+        (alignCorners && yWidth > 1) ? yWidth - 1 : yWidth
+    ];
+    const heightScale = effectiveXSize[0] / effectiveYSize[0];
+    const widthScale = effectiveXSize[1] / effectiveYSize[1];
+    
+    
+    
+    const dyValues = backend.data.get(dy.dataId).values;
+    let offset = 0;
+    for (let b = 0; b < batch; b++) {
+        const bOffset = b * imagesStrides[0];
+        for (let r = 0; r < yHeight; r++) {
+            const dxR = r * heightScale;
+            const topDxRIndex = Math.floor(dxR);
+            const bottomDxRIndex = Math.min(Math.ceil(dxR), xHeight - 1);
+            const topDxROffset = bOffset + topDxRIndex * imagesStrides[1];
+            const bottomDxROffset = bOffset + bottomDxRIndex * imagesStrides[1];
+            const dxRLerp = dxR - topDxRIndex;
+            const inverseDxRLerp = 1.0 - dxRLerp;
+            for (let c = 0; c < yWidth; c++) {
+                const dxC = c * widthScale;
+                const leftDxCIndex = Math.floor(dxC);
+                const rightDxCIndex = Math.min(Math.ceil(dxC), xWidth - 1);
+                const dxCLerp = dxC - leftDxCIndex;
+                const inverseDxCLerp = 1.0 - dxCLerp;
+                const topLeftRCOffset = topDxROffset + leftDxCIndex * imagesStrides[2];
+                const topRightRCOffset = topDxROffset + rightDxCIndex * imagesStrides[2];
+                const bottomLeftRCOffset = bottomDxROffset + leftDxCIndex * imagesStrides[2];
+                const bottomRightRCOffset = bottomDxROffset + rightDxCIndex * imagesStrides[2];
+                const inverseDxRLerpTimesInverseDxCLerp = inverseDxRLerp * inverseDxCLerp;
+                const inverseDxRLerpTimesDxCLerp = inverseDxRLerp * dxCLerp;
+                const dxRLerpTimesInverseDxCLerp = dxRLerp * inverseDxCLerp;
+                const dxRLerpTimesDxCLerp = dxRLerp * dxCLerp;
+                for (let d = 0; d < depth; d++) {
+                    const dyVal = dyValues[offset++];
+                    output[topLeftRCOffset + d] +=
+                        dyVal * inverseDxRLerpTimesInverseDxCLerp;
+                    output[topRightRCOffset + d] += dyVal * inverseDxRLerpTimesDxCLerp;
+                    output[bottomLeftRCOffset + d] += dyVal * dxRLerpTimesInverseDxCLerp;
+                    output[bottomRightRCOffset + d] += dyVal * dxRLerpTimesDxCLerp;
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo([batch, xWidth, xHeight, depth], 'float32', output);
+}
+const resizeBilinearGradConfig$1 = {
+    kernelName: ResizeBilinearGrad,
+    backendName: 'cpu',
+    kernelFunc: resizeBilinearGrad
+};
+
+
+function resizeNearestNeighbor(args) {
+    const { inputs, backend, attrs } = args;
+    const { images } = inputs;
+    const { alignCorners, halfPixelCenters, size } = attrs;
+    assertNotComplex(images, 'resizeNearestNeighbor');
+    const imagesStrides = computeStrides(images.shape);
+    const [newHeight, newWidth] = size;
+    const [batch, oldHeight, oldWidth, numChannels] = images.shape;
+    const xValues = backend.data.get(images.dataId).values;
+    const output = new Float32Array(batch * newHeight * newWidth * numChannels);
+    const effectiveInputSize = [
+        (alignCorners && newHeight > 1) ? oldHeight - 1 : oldHeight,
+        (alignCorners && newWidth > 1) ? oldWidth - 1 : oldWidth
+    ];
+    const effectiveOutputSize = [
+        (alignCorners && newHeight > 1) ? newHeight - 1 : newHeight,
+        (alignCorners && newWidth > 1) ? newWidth - 1 : newWidth
+    ];
+    const effectiveRowSizeRatio = effectiveInputSize[0] / effectiveOutputSize[0];
+    const effectiveColSizeRatio = effectiveInputSize[1] / effectiveOutputSize[1];
+    let outputOffset = 0;
+    for (let b = 0; b < batch; b++) {
+        const batchOffset = b * imagesStrides[0];
+        for (let r = 0; r < newHeight; r++) {
+            const sourceFracRow = halfPixelCenters ?
+                effectiveRowSizeRatio * (r + 0.5) :
+                effectiveRowSizeRatio * r;
+            let sourceNearestRow = Math.min(oldHeight - 1, alignCorners ? Math.round(sourceFracRow) : Math.floor(sourceFracRow));
+            if (halfPixelCenters) {
+                sourceNearestRow = Math.max(0, sourceNearestRow);
+            }
+            const rowOffset = batchOffset + sourceNearestRow * imagesStrides[1];
+            for (let c = 0; c < newWidth; c++) {
+                const sourceFracCol = halfPixelCenters ?
+                    effectiveColSizeRatio * (c + 0.5) :
+                    effectiveColSizeRatio * c;
+                let sourceNearestCol = Math.min(oldWidth - 1, alignCorners ? Math.round(sourceFracCol) :
+                    Math.floor(sourceFracCol));
+                if (halfPixelCenters) {
+                    sourceNearestCol = Math.max(0, sourceNearestCol);
+                }
+                const colOffset = rowOffset + sourceNearestCol * imagesStrides[2];
+                for (let d = 0; d < numChannels; d++) {
+                    
+                    
+                    const newVal = xValues[colOffset + d];
+                    output[outputOffset++] = newVal;
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo([batch, newHeight, newWidth, numChannels], images.dtype, output);
+}
+const resizeNearestNeighborConfig = {
+    kernelName: ResizeNearestNeighbor,
+    backendName: 'cpu',
+    kernelFunc: resizeNearestNeighbor
+};
+
+
+function resizeNearestNeighborGrad(args) {
+    const { inputs, backend, attrs } = args;
+    const { images, dy } = inputs;
+    const { alignCorners } = attrs;
+    assertNotComplex([dy, images], 'resizeNearestNeighborGrad');
+    const imagesStrides = computeStrides(images.shape);
+    const dyStrides = computeStrides(dy.shape);
+    const [batch, xHeight, xWidth, depth] = images.shape;
+    const [, yHeight, yWidth] = dy.shape;
+    const output = new Float32Array(batch * xHeight * xWidth * depth);
+    const dyValues = backend.data.get(dy.dataId).values;
+    
+    
+    const effectiveXSize = [
+        (alignCorners && yHeight > 1) ? xHeight - 1 : xHeight,
+        (alignCorners && yWidth > 1) ? xWidth - 1 : xWidth
+    ];
+    const effectiveYSize = [
+        (alignCorners && yHeight > 1) ? yHeight - 1 : yHeight,
+        (alignCorners && yWidth > 1) ? yWidth - 1 : yWidth
+    ];
+    const heightScale = effectiveXSize[0] / effectiveYSize[0];
+    const widthScale = effectiveXSize[1] / effectiveYSize[1];
+    const invHeightScale = 1 / heightScale;
+    const invWidthScale = 1 / widthScale;
+    
+    
+    const winHeight = (Math.ceil(invHeightScale) * 2) + 2;
+    const winWidth = (Math.ceil(invWidthScale) * 2) + 2;
+    
+    for (let b = 0; b < batch; b++) {
+        const batchOffset = b * imagesStrides[0];
+        for (let r = 0; r < xHeight; r++) {
+            const rowOffset = batchOffset + r * imagesStrides[1];
+            
+            const startRLerp = Math.floor(r * invHeightScale);
+            const startDyR = Math.floor(startRLerp - (winHeight / 2));
+            for (let c = 0; c < xWidth; c++) {
+                const colOffset = rowOffset + c * imagesStrides[2];
+                
+                const startCLerp = Math.floor(c * invWidthScale);
+                const startDyC = Math.floor(startCLerp - (winWidth / 2));
+                for (let d = 0; d < depth; d++) {
+                    let accum = 0;
+                    
+                    for (let dyRIndex = 0; dyRIndex < winHeight; dyRIndex++) {
+                        const dyR = dyRIndex + startDyR;
+                        
+                        if (dyR < 0 || dyR >= yHeight) {
+                            continue;
+                        }
+                        const dyROffset = batchOffset + dyR * dyStrides[1];
+                        const sourceFracRow = dyR * heightScale;
+                        const sourceNearestRow = Math.min(xHeight - 1, alignCorners ? Math.round(sourceFracRow) :
+                            Math.floor(sourceFracRow));
+                        if (r !== sourceNearestRow) {
+                            continue;
+                        }
+                        for (let dyCIndex = 0; dyCIndex < winWidth; dyCIndex++) {
+                            const dyC = dyCIndex + startDyC;
+                            
+                            if (dyC < 0 || dyC >= yWidth) {
+                                continue;
+                            }
+                            const dyCOffset = dyROffset + dyC * dyStrides[2];
+                            const sourceFracCol = dyC * widthScale;
+                            const sourceNearestCol = Math.min(xWidth - 1, alignCorners ? Math.round(sourceFracCol) :
+                                Math.floor(sourceFracCol));
+                            if (c === sourceNearestCol) {
+                                accum += dyValues[dyCOffset + d];
+                            }
+                        }
+                    }
+                    output[colOffset + d] = accum;
+                }
+            }
+        }
+    }
+    return backend.makeTensorInfo(images.shape, images.dtype, output);
+}
+const resizeNearestNeighborGradConfig$1 = {
+    kernelName: ResizeNearestNeighborGrad,
+    backendName: 'cpu',
+    kernelFunc: resizeNearestNeighborGrad
+};
+
+
+function reverse(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { dims } = attrs;
+    assertNotComplex(x, 'reverse');
+    const xRank = x.shape.length;
+    const $dims = parseAxisParam(dims, x.shape);
+    if (xRank === 0) {
+        return identity$1({ inputs: { x }, backend });
+    }
+    const outBuf = new TensorBuffer(x.shape, x.dtype);
+    const xBuf = backend.bufferSync(x);
+    for (let i = 0; i < outBuf.size; i++) {
+        const outLoc = outBuf.indexToLoc(i);
+        const inLoc = outLoc.slice();
+        $dims.forEach(d => inLoc[d] = x.shape[d] - 1 - inLoc[d]);
+        outBuf.set(xBuf.get(...inLoc), ...outLoc);
+    }
+    return backend.makeTensorInfo(outBuf.shape, outBuf.dtype, outBuf.values);
+}
+const reverseConfig = {
+    kernelName: Reverse,
+    backendName: 'cpu',
+    kernelFunc: reverse
+};
+
+
+const rotateWithOffsetConfig = {
+    kernelName: RotateWithOffset,
+    backendName: 'cpu',
+    kernelFunc: ({ inputs, attrs, backend }) => {
+        const { image } = inputs;
+        const { radians, fillValue, center } = attrs;
+        const cpuBackend = backend;
+        const output = getTypedArrayFromDType(image.dtype, sizeFromShape(image.shape));
+        const [batch, imageHeight, imageWidth, numChannels] = image.shape;
+        const [centerX, centerY] = getImageCenter(center, imageHeight, imageWidth);
+        const fullOpacityValue = 255;
+        const sinFactor = Math.sin(radians);
+        const cosFactor = Math.cos(radians);
+        const imageVals = cpuBackend.data.get(image.dataId).values;
+        for (let batchIdx = 0; batchIdx < batch; batchIdx++) {
+            const batchOffset = batchIdx * imageWidth * imageHeight * numChannels;
+            for (let row = 0; row < imageHeight; row++) {
+                const rowOffset = row * (imageWidth * numChannels);
+                for (let col = 0; col < imageWidth; col++) {
+                    const colOffset = col * numChannels;
+                    for (let channel = 0; channel < numChannels; channel++) {
+                        const coords = [batch, row, col, channel];
+                        const x = coords[2];
+                        const y = coords[1];
+                        
+                        let coordX = (x - centerX) * cosFactor - (y - centerY) * sinFactor;
+                        let coordY = (x - centerX) * sinFactor + (y - centerY) * cosFactor;
+                        coordX = Math.round(coordX + centerX);
+                        coordY = Math.round(coordY + centerY);
+                        let outputValue = fillValue;
+                        if (typeof fillValue !== 'number') {
+                            if (channel === 3) {
+                                outputValue = fullOpacityValue;
+                            }
+                            else {
+                                outputValue = fillValue[channel];
+                            }
+                        }
+                        
+                        if (coordX >= 0 && coordX < imageWidth && coordY >= 0 &&
+                            coordY < imageHeight) {
+                            
+                            const rotatedRowOffset = coordY * (imageWidth * numChannels);
+                            const rotatedColOffset = coordX * numChannels;
+                            const imageIdx = batchOffset + rotatedRowOffset + rotatedColOffset + channel;
+                            outputValue = imageVals[imageIdx];
+                        }
+                        const outIdx = batchOffset + rowOffset + colOffset + channel;
+                        output[outIdx] = outputValue;
+                    }
+                }
+            }
+        }
+        const dataId = cpuBackend.write(output, image.shape, image.dtype);
+        return { dataId, shape: image.shape, dtype: image.dtype };
+    }
+};
+
+
+const round = unaryKernelFunc$1(Round, (xi) => {
+    
+    const base = Math.floor(xi);
+    if (xi - base < 0.5) {
+        return Math.floor(xi);
+    }
+    else if (xi - base > 0.5) {
+        return Math.ceil(xi);
+    }
+    else {
+        if (base % 2.0 === 0.0) {
+            return base;
+        }
+        else {
+            return base + 1.0;
+        }
+    }
+});
+const roundConfig = {
+    kernelName: Round,
+    backendName: 'cpu',
+    kernelFunc: round,
+};
+
+
+function scatterNd(args) {
+    const { inputs, backend, attrs } = args;
+    const { indices, updates } = inputs;
+    const { shape } = attrs;
+    const { sliceRank, numUpdates, sliceSize, strides, outputSize } = calculateShapes(updates, indices, shape);
+    const sumDupeIndices = true;
+    const indicesBuf = backend.bufferSync(indices);
+    const updatesBuf = backend.bufferSync(updates);
+    const outBuf = scatterImpl(indicesBuf, updatesBuf, shape, outputSize, sliceSize, numUpdates, sliceRank, strides, 0 , sumDupeIndices);
+    return backend.makeTensorInfo(shape, outBuf.dtype, outBuf.values);
+}
+const scatterNdConfig = {
+    kernelName: ScatterNd,
+    backendName: 'cpu',
+    kernelFunc: scatterNd
+};
+
+
+function lowerBound(array, value) {
+    let left = 0;
+    let right = array.length;
+    let mid = 0;
+    while (left < right) {
+        mid = Math.floor((left + right) / 2);
+        if (array[mid] < value) {
+            left = mid + 1;
+        }
+        else {
+            right = mid;
+        }
+    }
+    return right;
+}
+function upperBound(array, value) {
+    let left = 0;
+    let right = array.length;
+    let mid = 0;
+    while (left < right) {
+        mid = Math.floor((left + right) / 2);
+        if (array[mid] <= value) {
+            left = mid + 1;
+        }
+        else {
+            right = mid;
+        }
+    }
+    return right;
+}
+function searchSortedImpl(sortedInputs, values, batchSize, numInputs, numValues, side) {
+    const output = getArrayFromDType('int32', batchSize * numValues);
+    for (let b = 0; b < batchSize; ++b) {
+        const sortedInputsSlice = sortedInputs.slice(b * numInputs, (b + 1) * numInputs);
+        const outputOffset = b * numValues;
+        for (let i = 0; i < numValues; ++i) {
+            output[outputOffset + i] = side === 'left' ?
+                lowerBound(sortedInputsSlice, values[i + outputOffset]) :
+                upperBound(sortedInputsSlice, values[i + outputOffset]);
+        }
+    }
+    return output;
+}
+
+
+function searchSorted(args) {
+    const { inputs, backend, attrs } = args;
+    const { sortedSequence, values } = inputs;
+    const { side } = attrs;
+    const $sortedSequence = backend.data.get(sortedSequence.dataId).values;
+    const $values = backend.data.get(values.dataId).values;
+    const output = searchSortedImpl($sortedSequence, $values, sortedSequence.shape[0], sortedSequence.shape[1], values.shape[1], side);
+    return backend.makeTensorInfo(values.shape, 'int32', output);
+}
+const searchSortedConfig = {
+    kernelName: SearchSorted,
+    backendName: 'cpu',
+    kernelFunc: searchSorted,
+};
+
+
+function select(args) {
+    const { inputs, backend } = args;
+    const { condition, t, e } = inputs;
+    assertNotComplex([condition, t, e], 'select');
+    const conditionRank = condition.shape.length;
+    const values = backend.data.get(condition.dataId).values;
+    const tValues = backend.data.get(t.dataId).values;
+    const eValues = backend.data.get(e.dataId).values;
+    const resultDtype = upcastType(t.dtype, e.dtype);
+    const newValues = makeZerosTypedArray(sizeFromShape(t.shape), resultDtype);
+    let index = 0;
+    const offset = conditionRank === 0 || conditionRank > 1 || t.shape.length === 1 ?
+        1 :
+        sizeFromShape(t.shape.slice(1));
+    for (let i = 0; i < values.length; i++) {
+        for (let j = 0; j < offset; j++) {
+            if (values[i] === 1) {
+                newValues[index++] = tValues[i];
+            }
+            else {
+                newValues[index++] = eValues[i];
+            }
+        }
+    }
+    return backend.makeTensorInfo(t.shape, resultDtype, newValues);
+}
+const selectConfig = {
+    kernelName: Select,
+    backendName: 'cpu',
+    kernelFunc: select
+};
+
+
+const scaleAlpha = SELU_SCALEALPHA;
+const scale = SELU_SCALE;
+const selu = unaryKernelFunc$1(Selu$1, (xi) => {
+    if (xi >= 0) {
+        return scale * xi;
+    }
+    else {
+        return scaleAlpha * (Math.exp(xi) - 1);
+    }
+});
+const seluConfig = {
+    kernelName: Selu$1,
+    backendName: 'cpu',
+    kernelFunc: selu,
+};
+
+
+const sign = unaryKernelFunc$1(Sign, (xi) => {
+    if (xi < 0) {
+        return -1;
+    }
+    else if (xi > 0) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+});
+const signConfig = {
+    kernelName: Sign,
+    backendName: 'cpu',
+    kernelFunc: sign,
+};
+
+
+const sin = unaryKernelFunc$1(Sin, (xi) => Math.sin(xi));
+const sinConfig = {
+    kernelName: Sin,
+    backendName: 'cpu',
+    kernelFunc: sin,
+};
+
+
+const sinh = unaryKernelFunc$1(Sinh, (xi) => Math.sinh(xi));
+const sinhConfig = {
+    kernelName: Sinh,
+    backendName: 'cpu',
+    kernelFunc: sinh,
+};
+
+
+
+
+
+
+const epsilon$1 = 1.1920928955078125e-7;
+const threshold = Math.log(epsilon$1) + 2.0;
+const softplus = unaryKernelFunc$1(Softplus$1, (xi) => {
+    
+    
+    const tooLarge = xi > -threshold;
+    
+    
+    const tooSmall = xi < threshold;
+    const expX = Math.exp(xi);
+    let result;
+    if (tooSmall) {
+        result = expX;
+    }
+    else if (tooLarge) {
+        result = xi;
+    }
+    else {
+        result = Math.log(1.0 + expX);
+    }
+    return result;
+});
+const softplusConfig = {
+    kernelName: Softplus$1,
+    backendName: 'cpu',
+    kernelFunc: softplus,
+};
+
+
+function spaceToBatchND(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { blockShape, paddings } = attrs;
+    assertNotComplex([x], 'spaceToBatchND');
+    const prod = sizeFromShape(blockShape);
+    const completePaddings = [[0, 0]];
+    completePaddings.push(...paddings);
+    for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
+        completePaddings.push([0, 0]);
+    }
+    const paddedX = padV2Config.kernelFunc({
+        inputs: { x },
+        backend,
+        attrs: { paddings: completePaddings, constantValue: 0 }
+    });
+    const reshapedPaddedShape = getReshaped(paddedX.shape, blockShape, prod, false);
+    const permutedReshapedPaddedPermutation = getPermuted(reshapedPaddedShape.length, blockShape.length, false);
+    const flattenShape = getReshapedPermuted(paddedX.shape, blockShape, prod, false);
+    const reshapeInputs = { x: paddedX };
+    const reshapeAttrs = { shape: reshapedPaddedShape };
+    const paddedXReshaped = reshape({ inputs: reshapeInputs, backend, attrs: reshapeAttrs });
+    const transposeInputs = { x: paddedXReshaped };
+    const transposeAttrs = { perm: permutedReshapedPaddedPermutation };
+    const paddedXT = transpose$1({ inputs: transposeInputs, backend, attrs: transposeAttrs });
+    const resultReshapeInputs = { x: paddedXT };
+    const resultReshapeAttrs = { shape: flattenShape };
+    const result = reshape({ inputs: resultReshapeInputs, backend, attrs: resultReshapeAttrs });
+    backend.disposeIntermediateTensorInfo(paddedX);
+    backend.disposeIntermediateTensorInfo(paddedXReshaped);
+    backend.disposeIntermediateTensorInfo(paddedXT);
+    return result;
+}
+const spaceToBatchNDConfig = {
+    kernelName: SpaceToBatchND,
+    backendName: 'cpu',
+    kernelFunc: spaceToBatchND
+};
+
+
+function sparseFillEmptyRows(args) {
+    const { inputs, backend } = args;
+    const { indices, values, denseShape, defaultValue } = inputs;
+    if (denseShape.shape.length !== 1) {
+        throw new Error(`Dense shape must be a vector, saw:
+        ${denseShape.shape}`);
+    }
+    if (indices.shape.length !== 2) {
+        throw new Error(`Indices must be a matrix, saw:
+        ${indices.shape}`);
+    }
+    if (values.shape.length !== 1) {
+        throw new Error(`Values must be a vector, saw:
+        ${values.shape}`);
+    }
+    if (defaultValue.shape.length !== 0) {
+        throw new Error(`Default value must be a scalar, saw:
+        ${defaultValue.shape}`);
+    }
+    const $indices = backend.data.get(indices.dataId).values;
+    const $values = backend.data.get(values.dataId).values;
+    const $denseShape = backend.data.get(denseShape.dataId).values;
+    const $defaultValue = backend.data.get(defaultValue.dataId).values[0];
+    const [outputIndices, outputIndicesShape, outputValues, emptyRowIndicator, reverseIndexMap] = sparseFillEmptyRowsImpl($indices, indices.shape, indices.dtype, $values, values.dtype, $denseShape, $defaultValue);
+    return [
+        backend.makeTensorInfo(outputIndicesShape, indices.dtype, outputIndices),
+        backend.makeTensorInfo([outputIndicesShape[0]], values.dtype, outputValues),
+        backend.makeTensorInfo([emptyRowIndicator.length], 'bool', new Uint8Array(emptyRowIndicator.map((value) => Number(value)))),
+        backend.makeTensorInfo([reverseIndexMap.length], indices.dtype, new Int32Array(reverseIndexMap)),
+    ];
+}
+const sparseFillEmptyRowsConfig = {
+    kernelName: SparseFillEmptyRows,
+    backendName: 'cpu',
+    kernelFunc: sparseFillEmptyRows,
+};
+
+
+function sparseReshape(args) {
+    const { inputs, backend } = args;
+    const { inputIndices, inputShape, newShape } = inputs;
+    if (inputIndices.shape.length !== 2) {
+        throw new Error(`Input indices should be a matrix but received shape
+        ${inputIndices.shape}`);
+    }
+    if (inputShape.shape.length !== 1) {
+        throw new Error(`Input shape should be a vector but received shape
+        ${inputShape.shape}`);
+    }
+    if (newShape.shape.length !== 1) {
+        throw new Error(`Target shape should be a vector but received shape ${newShape.shape}`);
+    }
+    const $inputShape = Array.from(backend.data.get(inputShape.dataId).values);
+    const $inputIndices = backend.data.get(inputIndices.dataId).values;
+    const targetShape = Array.from(backend.data.get(newShape.dataId).values);
+    const [newIndices, indicesShape, outputShape] = sparseReshapeImpl($inputIndices, inputIndices.shape, inputIndices.dtype, $inputShape, targetShape);
+    return [
+        backend.makeTensorInfo(indicesShape, inputIndices.dtype, newIndices),
+        backend.makeTensorInfo([outputShape.length], newShape.dtype, new Int32Array(outputShape)),
+    ];
+}
+const sparseReshapeConfig = {
+    kernelName: SparseReshape,
+    backendName: 'cpu',
+    kernelFunc: sparseReshape,
+};
+
+
+function sparseSegmentMean(args) {
+    const { inputs, backend } = args;
+    const { data, indices, segmentIds } = inputs;
+    if (data.shape.length < 1) {
+        throw new Error(`Data should be at least 1 dimensional but received scalar`);
+    }
+    if (indices.shape.length !== 1) {
+        throw new Error(`Indices should be a vector but received shape
+          ${indices.shape}`);
+    }
+    if (segmentIds.shape.length !== 1) {
+        throw new Error(`Segment ids should be a vector but received shape
+          ${segmentIds.shape}`);
+    }
+    if (indices.shape[0] !== segmentIds.shape[0]) {
+        throw new Error(`segmentIds and indices should have same size.`);
+    }
+    const $data = backend.data.get(data.dataId).values;
+    const $indices = backend.data.get(indices.dataId).values;
+    const $segmentIds = backend.data.get(segmentIds.dataId).values;
+    const [outputData, outputDataShape] = sparseSegmentReductionImpl($data, data.shape, data.dtype, $indices, $segmentIds, true);
+    return backend.makeTensorInfo(outputDataShape, data.dtype, outputData);
+}
+const sparseSegmentMeanConfig = {
+    kernelName: SparseSegmentMean,
+    backendName: 'cpu',
+    kernelFunc: sparseSegmentMean,
+};
+
+
+function sparseSegmentSum(args) {
+    const { inputs, backend } = args;
+    const { data, indices, segmentIds } = inputs;
+    if (data.shape.length < 1) {
+        throw new Error(`Data should be at least 1 dimensional but received scalar`);
+    }
+    if (indices.shape.length !== 1) {
+        throw new Error(`Indices should be a vector but received shape
+         ${indices.shape}`);
+    }
+    if (segmentIds.shape.length !== 1) {
+        throw new Error(`Segment ids should be a vector but received shape
+         ${segmentIds.shape}`);
+    }
+    if (indices.shape[0] !== segmentIds.shape[0]) {
+        throw new Error(`segmentIds and indices should have same size.`);
+    }
+    const $data = backend.data.get(data.dataId).values;
+    const $indices = backend.data.get(indices.dataId).values;
+    const $segmentIds = backend.data.get(segmentIds.dataId).values;
+    const [outputData, outputDataShape] = sparseSegmentReductionImpl($data, data.shape, data.dtype, $indices, $segmentIds);
+    return backend.makeTensorInfo(outputDataShape, data.dtype, outputData);
+}
+const sparseSegmentSumConfig = {
+    kernelName: SparseSegmentSum,
+    backendName: 'cpu',
+    kernelFunc: sparseSegmentSum,
+};
+
+
+function sparseToDense(args) {
+    const { inputs, backend, attrs } = args;
+    const { sparseIndices, sparseValues, defaultValue } = inputs;
+    const { outputShape } = attrs;
+    const { sliceRank, numUpdates, sliceSize, strides, outputSize } = calculateShapes(sparseValues, sparseIndices, outputShape);
+    const sumDupeIndices = false;
+    const indicesBuf = backend.bufferSync(sparseIndices);
+    let outBuf;
+    switch (sparseValues.dtype) {
+        case 'bool': {
+            const updatesBuf = backend.bufferSync(sparseValues);
+            const $defaultValue = Boolean(backend.data.get(defaultValue.dataId).values[0]);
+            outBuf = scatterImpl(indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
+            break;
+        }
+        case 'float32': {
+            const updatesBuf = backend.bufferSync(sparseValues);
+            const $defaultValue = backend.data.get(defaultValue.dataId).values[0];
+            outBuf = scatterImpl(indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
+            break;
+        }
+        case 'int32': {
+            const updatesBuf = backend.bufferSync(sparseValues);
+            const $defaultValue = backend.data.get(defaultValue.dataId).values[0];
+            outBuf = scatterImpl(indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
+            break;
+        }
+        case 'string': {
+            const updatesBuf = backend.bufferSync(sparseValues);
+            const $defaultValue = decodeString(backend.data.get(defaultValue.dataId).values[0]);
+            outBuf = scatterImpl(indicesBuf, updatesBuf, outputShape, outputSize, sliceSize, numUpdates, sliceRank, strides, $defaultValue, sumDupeIndices);
+            break;
+        }
+        default:
+            throw new Error(`Unsupported type ${sparseValues.dtype}`);
+    }
+    return backend.makeTensorInfo(outputShape, outBuf.dtype, outBuf.values);
+}
+const sparseToDenseConfig = {
+    kernelName: SparseToDense,
+    backendName: 'cpu',
+    kernelFunc: sparseToDense
+};
+
+
+function splitV(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { numOrSizeSplits, axis } = attrs;
+    const $axis = parseAxisParam(axis, x.shape)[0];
+    const splitSizes = prepareSplitSize(x, numOrSizeSplits, $axis);
+    const begin = new Array(x.shape.length).fill(0);
+    const size = x.shape.slice();
+    return splitSizes.map(s => {
+        const sliceSize = [...size];
+        sliceSize[$axis] = s;
+        const sliceT = slice$1({ inputs: { x }, backend, attrs: { begin, size: sliceSize } });
+        begin[$axis] += s;
+        return sliceT;
+    });
+}
+const splitVConfig = {
+    kernelName: SplitV,
+    backendName: 'cpu',
+    kernelFunc: splitV
+};
+
+
+const squareConfig = {
+    kernelName: Square,
+    backendName: 'cpu',
+    kernelFunc: ({ inputs, backend }) => {
+        const { x } = inputs;
+        const cpuBackend = backend;
+        assertNotComplex(x, 'square');
+        const values = cpuBackend.data.get(x.dataId).values;
+        const newValues = new Float32Array(values.length);
+        for (let i = 0; i < values.length; ++i) {
+            const value = values[i];
+            newValues[i] = value * value;
+        }
+        const dataId = cpuBackend.write(newValues, x.shape, x.dtype);
+        return { dataId, shape: x.shape, dtype: x.dtype };
+    }
+};
+
+
+const step = unaryKernelFunc$1(Step, (xi, attrs) => {
+    const stepAttrs = attrs;
+    if (isNaN(xi)) {
+        return NaN;
+    }
+    else {
+        return xi > 0 ? 1 : stepAttrs.alpha;
+    }
+});
+const stepConfig = {
+    kernelName: Step,
+    backendName: 'cpu',
+    kernelFunc: step,
+};
+
+
+function stridedSlice(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask } = attrs;
+    assertNotComplex(x, 'stridedSlice');
+    const { finalShapeSparse, finalShape, isIdentity, sliceDim0, isSimpleSlice, begin: $begin, end: $end, strides: $strides } = sliceInfo(x.shape, begin, end, strides, beginMask, endMask, ellipsisMask, newAxisMask, shrinkAxisMask);
+    let result;
+    
+    
+    if (isIdentity) {
+        
+        result = reshape({ inputs: { x }, backend, attrs: { shape: finalShape } });
+    }
+    else if (sliceDim0 || isSimpleSlice) {
+        
+        assert$1(x.shape.length >= 1, () => `Input must have rank at least 1, got: ${x.shape.length}`);
+        const size = computeOutShape$2($begin, $end, $strides);
+        
+        const sliced = slice$1({ inputs: { x }, backend, attrs: { begin: $begin, size } });
+        result =
+            reshape({ inputs: { x: sliced }, backend, attrs: { shape: finalShape } });
+        backend.disposeIntermediateTensorInfo(sliced);
+    }
+    else {
+        const xBuf = backend.bufferSync(x);
+        const outBuf = stridedSliceImpl(finalShapeSparse, xBuf, $strides, $begin);
+        result = backend.makeTensorInfo(finalShape, outBuf.dtype, outBuf.values);
+    }
+    return result;
+}
+const stridedSliceConfig = {
+    kernelName: StridedSlice,
+    backendName: 'cpu',
+    kernelFunc: stridedSlice
+};
+
+
+function stringNGrams(args) {
+    const { inputs, backend, attrs } = args;
+    const { separator, nGramWidths, leftPad, rightPad, padWidth, preserveShortSequences } = attrs;
+    const { data, dataSplits } = inputs;
+    const $data = backend.data.get(data.dataId).values;
+    const $dataSplits = backend.data.get(dataSplits.dataId).values;
+    const [nGrams, nGramsSplits] = stringNGramsImpl($data, $dataSplits, separator, nGramWidths, leftPad, rightPad, padWidth, preserveShortSequences);
+    return [
+        backend.makeTensorInfo([nGrams.length], 'string', nGrams),
+        backend.makeTensorInfo(dataSplits.shape, 'int32', nGramsSplits),
+    ];
+}
+const stringNGramsConfig = {
+    kernelName: StringNGrams,
+    backendName: 'cpu',
+    kernelFunc: stringNGrams,
+};
+
+
+function stringSplit(args) {
+    const { inputs, backend, attrs } = args;
+    const { skipEmpty } = attrs;
+    const { input, delimiter } = inputs;
+    if (input.dtype !== 'string') {
+        throw new Error('Input must be of datatype string');
+    }
+    if (input.shape.length !== 1) {
+        throw new Error(`Input must be a vector, got shape: ${input.shape}`);
+    }
+    if (delimiter.shape.length !== 0) {
+        throw new Error(`Delimiter must be a scalar, got shape: ${delimiter.shape}`);
+    }
+    const $input = backend.data.get(input.dataId).values;
+    const $delimiter = backend.data.get(delimiter.dataId).values[0];
+    const [indices, values, shape] = stringSplitImpl($input, $delimiter, skipEmpty);
+    const outputSize = values.length;
+    return [
+        backend.makeTensorInfo([outputSize, 2], 'int32', indices),
+        backend.makeTensorInfo([outputSize], 'string', values),
+        backend.makeTensorInfo([2], 'int32', new Int32Array(shape))
+    ];
+}
+const stringSplitConfig = {
+    kernelName: StringSplit,
+    backendName: 'cpu',
+    kernelFunc: stringSplit,
+};
+
+
+function stringToHashBucketFast(args) {
+    const { inputs, backend, attrs } = args;
+    const { numBuckets } = attrs;
+    const { input } = inputs;
+    if (input.dtype !== 'string') {
+        throw new Error('Input must be of datatype string');
+    }
+    if (numBuckets <= 0) {
+        throw new Error(`Number of buckets must be at least 1`);
+    }
+    const $input = backend.data.get(input.dataId).values;
+    const output = stringToHashBucketFastImpl($input, numBuckets);
+    return backend.makeTensorInfo(input.shape, 'int32', output);
+}
+const stringToHashBucketFastConfig = {
+    kernelName: StringToHashBucketFast,
+    backendName: 'cpu',
+    kernelFunc: stringToHashBucketFast,
+};
+
+
+const tan = unaryKernelFunc$1(Tan, (xi) => Math.tan(xi));
+const tanConfig = {
+    kernelName: Tan,
+    backendName: 'cpu',
+    kernelFunc: tan,
+};
+
+
+const tanh = unaryKernelFunc$1(Tanh$1, (xi) => Math.tanh(xi));
+const tanhConfig = {
+    kernelName: Tanh$1,
+    backendName: 'cpu',
+    kernelFunc: tanh,
+};
+
+
+function tensorScatterUpdate(args) {
+    const { inputs, backend } = args;
+    const { tensor, indices, updates } = inputs;
+    const { sliceRank, numUpdates, sliceSize, strides, outputSize } = calculateShapes(updates, indices, tensor.shape);
+    const sumDupeIndices = false;
+    const indicesBuf = backend.bufferSync(indices);
+    const updatesBuf = backend.bufferSync(updates);
+    const tensorBuf = backend.bufferSync(tensor);
+    const outBuf = scatterImpl(indicesBuf, updatesBuf, tensor.shape, outputSize, sliceSize, numUpdates, sliceRank, strides, tensorBuf, sumDupeIndices);
+    return backend.makeTensorInfo(tensor.shape, outBuf.dtype, outBuf.values);
+}
+const tensorScatterUpdateConfig = {
+    kernelName: TensorScatterUpdate,
+    backendName: 'cpu',
+    kernelFunc: tensorScatterUpdate
+};
+
+
+function tile$1(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { reps } = attrs;
+    assertNotComplex(x, 'tile');
+    const outBuf = tileImpl(backend.bufferSync(x), reps);
+    return backend.makeTensorInfo(outBuf.shape, outBuf.dtype, outBuf.values);
+}
+const tileConfig = {
+    kernelName: Tile,
+    backendName: 'cpu',
+    kernelFunc: tile$1
+};
+
+
+function topK(args) {
+    const { inputs, backend, attrs } = args;
+    const { x } = inputs;
+    const { k, sorted } = attrs;
+    assertNotComplex(x, 'topk');
+    const xVals = backend.data.get(x.dataId).values;
+    const [allTopKVals, allTopKIndices] = topKImpl(xVals, x.shape, x.dtype, k, sorted);
+    return [
+        backend.makeTensorInfo(allTopKVals.shape, allTopKVals.dtype, allTopKVals.values),
+        backend.makeTensorInfo(allTopKIndices.shape, allTopKIndices.dtype, allTopKIndices.values)
+    ];
+}
+const topKConfig = {
+    kernelName: TopK,
+    backendName: 'cpu',
+    kernelFunc: topK
+};
+
+
+function transform(args) {
+    const { inputs, attrs, backend } = args;
+    const { image, transforms } = inputs;
+    const { interpolation, fillMode, fillValue, outputShape } = attrs;
+    const [batch, imageHeight, imageWidth, numChannels] = image.shape;
+    const [outHeight, outWidth] = outputShape != null ? outputShape : [imageHeight, imageWidth];
+    const outShape = [batch, outHeight, outWidth, numChannels];
+    const inStrides = computeStrides(image.shape);
+    const batchInStride = inStrides[0];
+    const rowInStride = inStrides[1];
+    const colInStride = inStrides[2];
+    const outStrides = computeStrides(outShape);
+    const batchOutStride = outStrides[0];
+    const rowOutStride = outStrides[1];
+    const colOutStride = outStrides[2];
+    const outVals = getTypedArrayFromDType(image.dtype, sizeFromShape(outShape));
+    outVals.fill(fillValue);
+    const imageVals = backend.data.get(image.dataId).values;
+    const transformVals = backend.data.get(transforms.dataId).values;
+    
+    
+    for (let b = 0; b < batch; ++b) {
+        const transform = transforms.shape[0] === 1 ?
+            transformVals :
+            transformVals.subarray(b * 8, b * 8 + 8);
+        for (let outY = 0; outY < outHeight; ++outY) {
+            for (let outX = 0; outX < outWidth; ++outX) {
+                for (let channel = 0; channel < numChannels; ++channel) {
+                    let val;
+                    const projection = transform[6] * outX + transform[7] * outY + 1;
+                    if (projection === 0) {
+                        
+                        
+                        continue;
+                    }
+                    const inX = (transform[0] * outX + transform[1] * outY + transform[2]) /
+                        projection;
+                    const inY = (transform[3] * outX + transform[4] * outY + transform[5]) /
+                        projection;
+                    const x = mapCoord(inX, imageWidth, fillMode);
+                    const y = mapCoord(inY, imageHeight, fillMode);
+                    switch (interpolation) {
+                        case 'nearest':
+                            val = nearestInterpolation(imageVals, imageHeight, imageWidth, batchInStride, rowInStride, colInStride, b, y, x, channel, fillValue);
+                            break;
+                        case 'bilinear':
+                            val = bilinearInterpolation(imageVals, imageHeight, imageWidth, batchInStride, rowInStride, colInStride, b, y, x, channel, fillValue);
+                            break;
+                        default:
+                            throw new Error(`Error in Transform: Expect 'nearest' or ` +
+                                `'bilinear', but got ${interpolation}`);
+                    }
+                    const ind = b * batchOutStride + outY * rowOutStride +
+                        outX * colOutStride + channel;
+                    outVals[ind] = val;
+                }
+            }
+        }
+        return backend.makeTensorInfo(outShape, image.dtype, outVals);
+    }
+    const dataId = backend.write(outVals, outShape, image.dtype);
+    return { dataId, shape: image.shape, dtype: image.dtype };
+}
+const transformConfig = {
+    kernelName: Transform,
+    backendName: 'cpu',
+    kernelFunc: transform
+};
+function mapCoord(outCoord, len, mode) {
+    switch (mode) {
+        case 'reflect':
+            return mapCoordReflect(outCoord, len);
+        case 'wrap':
+            return mapCoordWrap(outCoord, len);
+        case 'nearest':
+            return mapCoordNearest(outCoord, len);
+        case 'constant':
+        default:
+            return mapCoordConstant(outCoord);
+    }
+}
+function mapCoordReflect(outCoord, len) {
+    
+    let inCoord = outCoord;
+    if (inCoord < 0) {
+        if (len <= 1) {
+            inCoord = 0;
+        }
+        else {
+            const sz2 = 2 * len;
+            if (inCoord < sz2) {
+                inCoord = sz2 * Math.trunc(-inCoord / sz2) + inCoord;
+            }
+            inCoord = inCoord < -len ? inCoord + sz2 : -inCoord - 1;
+        }
+    }
+    else if (inCoord > len - 1) {
+        if (len <= 1) {
+            inCoord = 0;
+        }
+        else {
+            const sz2 = 2 * len;
+            inCoord -= sz2 * Math.trunc(inCoord / sz2);
+            if (inCoord >= len) {
+                inCoord = sz2 - inCoord - 1;
+            }
+        }
+    }
+    
+    
+    return clamp(0, inCoord, len - 1);
+}
+function mapCoordWrap(outCoord, len) {
+    
+    let inCoord = outCoord;
+    if (inCoord < 0) {
+        if (len <= 1) {
+            inCoord = 0;
+        }
+        else {
+            const sz = len - 1;
+            inCoord += len * (Math.trunc(-inCoord / sz) + 1);
+        }
+    }
+    else if (inCoord > len - 1) {
+        if (len <= 1) {
+            inCoord = 0;
+        }
+        else {
+            const sz = len - 1;
+            inCoord -= len * Math.trunc(inCoord / sz);
+        }
+    }
+    
+    
+    return clamp(0, inCoord, len - 1);
+}
+function mapCoordConstant(outCoord, len) {
+    return outCoord;
+}
+function mapCoordNearest(outCoord, len) {
+    return clamp(0, outCoord, len - 1);
+}
+function readWithFillValue(imageVals, imageHeight, imageWidth, batchStride, rowStride, colStride, batch, y, x, channel, fillValue) {
+    const ind = batch * batchStride + y * rowStride + x * colStride + channel;
+    if (0 <= y && y < imageHeight && 0 <= x && x < imageWidth) {
+        return imageVals[ind];
+    }
+    else {
+        return fillValue;
+    }
+}
+function nearestInterpolation(imageVals, imageHeight, imageWidth, batchStride, rowStride, colStride, batch, y, x, channel, fillValue) {
+    const $y = Math.round(y);
+    const $x = Math.round(x);
+    return readWithFillValue(imageVals, imageHeight, imageWidth, batchStride, rowStride, colStride, batch, $y, $x, channel, fillValue);
+}
+function bilinearInterpolation(imageVals, imageHeight, imageWidth, batchStride, rowStride, colStride, batch, y, x, channel, fillValue) {
+    const yFloor = Math.floor(y);
+    const xFloor = Math.floor(x);
+    const yCeil = yFloor + 1;
+    const xCeil = xFloor + 1;
+    
+    
+    const valueYFloor = (xCeil - x) *
+        readWithFillValue(imageVals, imageHeight, imageWidth, batchStride, rowStride, colStride, batch, yFloor, xFloor, channel, fillValue) +
+        (x - xFloor) *
+            readWithFillValue(imageVals, imageHeight, imageWidth, batchStride, rowStride, colStride, batch, yFloor, xCeil, channel, fillValue);
+    
+    
+    const valueYCeil = (xCeil - x) *
+        readWithFillValue(imageVals, imageHeight, imageWidth, batchStride, rowStride, colStride, batch, yCeil, xFloor, channel, fillValue) +
+        (x - xFloor) *
+            readWithFillValue(imageVals, imageHeight, imageWidth, batchStride, rowStride, colStride, batch, yCeil, xCeil, channel, fillValue);
+    
+    
+    return (yCeil - y) * valueYFloor + (y - yFloor) * valueYCeil;
+}
+
+
+function unique$1(args) {
+    const { inputs, attrs, backend } = args;
+    const { axis } = attrs;
+    const { x } = inputs;
+    assertNotComplex(x, 'unique');
+    const values = backend.data.get(x.dataId).values;
+    const { outputValues, outputShape, indices } = uniqueImpl(values, axis, x.shape, x.dtype);
+    return [
+        backend.makeTensorInfo(outputShape, x.dtype, outputValues),
+        backend.makeTensorInfo([indices.length], 'int32', indices),
+    ];
+}
+const uniqueConfig = {
+    kernelName: Unique,
+    backendName: 'cpu',
+    kernelFunc: unique$1,
+};
+
+
+function unpack(args) {
+    const { inputs, backend, attrs } = args;
+    const { value } = inputs;
+    let { axis } = attrs;
+    if (axis < 0) {
+        axis += value.shape.length;
+    }
+    const valueRank = value.shape.length;
+    const num = value.shape[axis];
+    const outShape = new Array(valueRank - 1);
+    let outIndex = 0;
+    for (let i = 0; i < valueRank; i++) {
+        if (i !== axis) {
+            outShape[outIndex++] = value.shape[i];
+        }
+    }
+    const begin = new Array(valueRank).fill(0);
+    const size = value.shape.slice();
+    size[axis] = 1;
+    const res = new Array(num);
+    for (let i = 0; i < res.length; i++) {
+        begin[axis] = i;
+        const tempRes = slice$1({ inputs: { x: value }, backend, attrs: { begin, size } });
+        res[i] = reshape({ inputs: { x: tempRes }, backend, attrs: { shape: outShape } });
+        backend.disposeIntermediateTensorInfo(tempRes);
+    }
+    return res;
+}
+const unpackConfig = {
+    kernelName: Unpack,
+    backendName: 'cpu',
+    kernelFunc: unpack
+};
+
+
+function unsortedSegmentSum(args) {
+    const { inputs, backend, attrs } = args;
+    const { x, segmentIds } = inputs;
+    const { numSegments } = attrs;
+    assertNotComplex(x, 'unsortedSegmentSum');
+    const xRank = x.shape.length;
+    const segmentIdsRank = segmentIds.shape.length;
+    const res = [];
+    const intermediates = [];
+    
+    
+    const numIters = xRank - segmentIdsRank;
+    let $segmentIds = segmentIds;
+    for (let i = 0; i < numIters; ++i) {
+        const expanded = expandDims$1({ inputs: { input: $segmentIds }, backend, attrs: { dim: i + 1 } });
+        $segmentIds = expanded;
+        intermediates.push(expanded);
+    }
+    for (let i = 0; i < numSegments; ++i) {
+        const scalarValue = createScalarValue(i, 'int32');
+        const segmentId = backend.makeTensorInfo([], 'int32', scalarValue);
+        const mask = equal$1({ inputs: { a: segmentId, b: $segmentIds }, backend });
+        const maskCasted = cast$2({ inputs: { x: mask }, backend, attrs: { dtype: 'float32' } });
+        const mul = multiply$1({ inputs: { a: maskCasted, b: x }, backend });
+        const sumTensorInfo = sum({ inputs: { x: mul }, backend, attrs: { axis: 0, keepDims: false } });
+        res.push(sumTensorInfo);
+        intermediates.push(segmentId);
+        intermediates.push(mask);
+        intermediates.push(maskCasted);
+        intermediates.push(mul);
+        intermediates.push(sumTensorInfo);
+    }
+    const result = pack({ inputs: res, backend, attrs: { axis: 0 } });
+    intermediates.forEach(t => backend.disposeIntermediateTensorInfo(t));
+    return result;
+}
+const unsortedSegmentSumConfig = {
+    kernelName: UnsortedSegmentSum,
+    backendName: 'cpu',
     kernelFunc: unsortedSegmentSum
 };
 
 
 
+
+
+
 const kernelConfigs = [
     _fusedMatMulConfig,
-    absConfig,
+    absConfig$1,
     acosConfig,
     acoshConfig,
-    addConfig,
+    addConfig$1,
     addNConfig,
     allConfig,
     anyConfig,
@@ -29238,12 +35335,12 @@ const kernelConfigs = [
     batchNormConfig,
     batchToSpaceNDConfig,
     bincountConfig,
-    bitwiseAndConfig,
+    bitwiseAndConfig$1,
     broadcastArgsConfig,
-    castConfig,
-    ceilConfig,
+    castConfig$1,
+    ceilConfig$1,
     clipByValueConfig,
-    complexConfig,
+    complexConfig$1,
     complexAbsConfig,
     concatConfig,
     conv2DConfig,
@@ -29251,7 +35348,7 @@ const kernelConfigs = [
     conv2DBackpropInputConfig,
     conv3DConfig,
     conv3DBackpropFilterV2Config,
-    conv3DBackpropInputConfig,
+    conv3DBackpropInputV2Config,
     cosConfig,
     coshConfig,
     cropAndResizeConfig,
@@ -29264,37 +35361,39 @@ const kernelConfigs = [
     depthwiseConv2dNativeBackpropInputConfig,
     diagConfig,
     dilation2DConfig,
+    dilation2DBackpropFilterConfig,
+    dilation2DBackpropInputConfig,
+    drawConfig,
     einsumConfig,
     eluConfig,
     eluGradConfig$1,
-    equalConfig,
+    equalConfig$1,
     erfConfig,
-    expConfig,
+    expConfig$1,
     expandDimsConfig,
-    expm1Config,
+    expm1Config$1,
     fftConfig,
     fillConfig,
     flipLeftRightConfig,
-    floorConfig,
-    floorDivConfig,
-    fromPixelsConfig,
+    floorConfig$1,
+    floorDivConfig$1,
     fusedConv2DConfig,
     fusedDepthwiseConv2DConfig,
     gatherNdConfig,
     gatherV2Config,
-    greaterConfig,
-    greaterEqualConfig,
-    identityConfig,
+    greaterConfig$1,
+    greaterEqualConfig$1,
+    identityConfig$1,
     ifftConfig,
     imagConfig,
     isFiniteConfig,
     isInfConfig,
     isNaNConfig,
     leakyReluConfig,
-    lessConfig,
-    lessEqualConfig,
+    lessConfig$1,
+    lessEqualConfig$1,
     linSpaceConfig,
-    logConfig,
+    logConfig$1,
     log1pConfig,
     logicalAndConfig,
     logicalNotConfig,
@@ -29302,7 +35401,7 @@ const kernelConfigs = [
     LRNConfig,
     LRNGradConfig,
     maxConfig,
-    maximumConfig,
+    maximumConfig$1,
     maxPoolConfig,
     maxPool3DConfig,
     maxPool3DGradConfig$1,
@@ -29310,28 +35409,28 @@ const kernelConfigs = [
     maxPoolWithArgmaxConfig,
     meanConfig,
     minConfig,
-    minimumConfig,
+    minimumConfig$1,
     mirrorPadConfig,
     modConfig,
     multinomialConfig,
-    multiplyConfig,
-    negConfig,
+    multiplyConfig$1,
+    negConfig$1,
     nonMaxSuppressionV3Config,
     nonMaxSuppressionV4Config,
     nonMaxSuppressionV5Config,
-    notEqualConfig,
+    notEqualConfig$1,
     oneHotConfig,
     onesLikeConfig,
     packConfig,
     padV2Config,
     powConfig,
     preluConfig,
-    prodConfig,
+    prodConfig$1,
     raggedGatherConfig,
     raggedRangeConfig,
     raggedTensorToTensorConfig,
     rangeConfig,
-    realConfig,
+    realConfig$1,
     realDivConfig,
     reciprocalConfig,
     reluConfig,
@@ -29344,16 +35443,16 @@ const kernelConfigs = [
     reverseConfig,
     rotateWithOffsetConfig,
     roundConfig,
-    rsqrtConfig,
+    rsqrtConfig$1,
     scatterNdConfig,
     searchSortedConfig,
     selectConfig,
     seluConfig,
-    sigmoidConfig,
+    sigmoidConfig$1,
     signConfig,
     sinConfig,
     sinhConfig,
-    sliceConfig,
+    sliceConfig$1,
     softmaxConfig,
     softplusConfig,
     spaceToBatchNDConfig,
@@ -29363,16 +35462,16 @@ const kernelConfigs = [
     sparseSegmentSumConfig,
     sparseToDenseConfig,
     splitVConfig,
-    sqrtConfig,
+    sqrtConfig$1,
     squareConfig,
-    squaredDifferenceConfig,
-    staticRegexReplaceConfig,
+    squaredDifferenceConfig$1,
+    staticRegexReplaceConfig$1,
     stepConfig,
     stridedSliceConfig,
     stringNGramsConfig,
     stringSplitConfig,
     stringToHashBucketFastConfig,
-    subConfig,
+    subConfig$1,
     sumConfig,
     tanConfig,
     tanhConfig,
@@ -29380,7 +35479,7 @@ const kernelConfigs = [
     tileConfig,
     topKConfig,
     transformConfig,
-    transposeConfig,
+    transposeConfig$1,
     uniqueConfig,
     unpackConfig,
     unsortedSegmentSumConfig,
@@ -29396,7 +35495,7 @@ const absGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => mul(dy, step$1(cast$2(x, 'float32'), -1)) };
+        return { x: () => mul(dy, step$2(cast$3(x, 'float32'), -1)) };
     }
 };
 
@@ -29408,9 +35507,9 @@ const acosGradConfig = {
         const [x] = saved;
         return {
             x: () => {
-                const a = square$2(cast$2(x, 'float32'));
-                const b = sqrt$1(sub$1(scalar(1), a));
-                return neg$1(div(dy, b));
+                const a = square$2(cast$3(x, 'float32'));
+                const b = sqrt$2(sub$2(scalar(1), a));
+                return neg$2(div$1(dy, b));
             }
         };
     }
@@ -29424,8 +35523,8 @@ const acoshGradConfig = {
         const [x] = saved;
         return {
             x: () => {
-                const a = sqrt$1(sub$1(square$2(cast$2(x, 'float32')), 1));
-                return div(dy, a);
+                const a = sqrt$2(sub$2(square$2(cast$3(x, 'float32')), 1));
+                return div$1(dy, a);
             }
         };
     }
@@ -29442,17 +35541,17 @@ const addGradConfig = {
             let res = dy;
             const reduceAxes = getReductionAxes(a.shape, outShape);
             if (reduceAxes.length > 0) {
-                res = sum$1(res, reduceAxes);
+                res = sum$2(res, reduceAxes);
             }
-            return reshape$1(res, a.shape);
+            return reshape$2(res, a.shape);
         };
         const derB = () => {
             let res = dy;
             const reduceAxes = getReductionAxes(b.shape, outShape);
             if (reduceAxes.length > 0) {
-                res = sum$1(res, reduceAxes);
+                res = sum$2(res, reduceAxes);
             }
-            return reshape$1(res, b.shape);
+            return reshape$2(res, b.shape);
         };
         return { a: derA, b: derB };
     }
@@ -29477,7 +35576,7 @@ const argMaxGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => zerosLike$1(x) };
+        return { x: () => zerosLike$2(x) };
     }
 };
 
@@ -29487,7 +35586,7 @@ const argMinGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => zerosLike$1(x) };
+        return { x: () => zerosLike$2(x) };
     }
 };
 
@@ -29497,7 +35596,7 @@ const asinGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => div(dy, sqrt$1(sub$1(scalar(1), square$2(cast$2(x, 'float32'))))) };
+        return { x: () => div$1(dy, sqrt$2(sub$2(scalar(1), square$2(cast$3(x, 'float32'))))) };
     }
 };
 
@@ -29509,8 +35608,8 @@ const asinhGradConfig = {
         const [x] = saved;
         return {
             x: () => {
-                const a = sqrt$1(add(scalar(1), square$2(cast$2(x, 'float32'))));
-                return div(dy, a);
+                const a = sqrt$2(add$1(scalar(1), square$2(cast$3(x, 'float32'))));
+                return div$1(dy, a);
             }
         };
     }
@@ -29524,22 +35623,22 @@ const atan2GradConfig = {
         const [a, b] = saved;
         const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
         const derA = () => {
-            const d = add(square$2(a), square$2(b));
-            let res = mul(dy, div(b, d));
+            const d = add$1(square$2(a), square$2(b));
+            let res = mul(dy, div$1(b, d));
             const reduceAxes = getReductionAxes(a.shape, outShape);
             if (reduceAxes.length > 0) {
-                res = sum$1(res, reduceAxes);
+                res = sum$2(res, reduceAxes);
             }
-            return reshape$1(res, a.shape);
+            return reshape$2(res, a.shape);
         };
         const derB = () => {
-            const d = add(square$2(a), square$2(b));
-            let res = neg$1(mul(dy, div(a, d)));
+            const d = add$1(square$2(a), square$2(b));
+            let res = neg$2(mul(dy, div$1(a, d)));
             const reduceAxes = getReductionAxes(b.shape, outShape);
             if (reduceAxes.length > 0) {
-                res = sum$1(res, reduceAxes);
+                res = sum$2(res, reduceAxes);
             }
-            return reshape$1(res, b.shape);
+            return reshape$2(res, b.shape);
         };
         return { a: derA, b: derB };
     }
@@ -29551,7 +35650,7 @@ const atanGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => div(dy, add(square$2(cast$2(x, 'float32')), 1)) };
+        return { x: () => div$1(dy, add$1(square$2(cast$3(x, 'float32')), 1)) };
     }
 };
 
@@ -29561,7 +35660,7 @@ const atanhGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => div(dy, sub$1(scalar(1), square$2(cast$2(x, 'float32')))) };
+        return { x: () => div$1(dy, sub$2(scalar(1), square$2(cast$3(x, 'float32')))) };
     }
 };
 
@@ -29575,8 +35674,8 @@ function avgPool3dGrad_(dy, input, filterSize, strides, pad, dimRoundingMode) {
     let reshapedTo5D = false;
     if ($input.rank === 4) {
         reshapedTo5D = true;
-        dy5D = reshape$1($dy, [1, $dy.shape[0], $dy.shape[1], $dy.shape[2], $dy.shape[3]]);
-        input5D = reshape$1($input, [
+        dy5D = reshape$2($dy, [1, $dy.shape[0], $dy.shape[1], $dy.shape[2], $dy.shape[3]]);
+        input5D = reshape$2($input, [
             1, $input.shape[0], $input.shape[1], $input.shape[2], $input.shape[3]
         ]);
     }
@@ -29590,7 +35689,7 @@ function avgPool3dGrad_(dy, input, filterSize, strides, pad, dimRoundingMode) {
     
     const res = ENGINE.runKernel(AvgPool3DGrad, inputs, attrs);
     if (reshapedTo5D) {
-        return reshape$1(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
+        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
     }
     return res;
 }
@@ -29621,8 +35720,8 @@ function avgPoolGrad_(dy, input, filterSize, strides, pad) {
     if ($input.rank === 3) {
         reshapedTo4D = true;
         input4D =
-            reshape$1($input, [1, $input.shape[0], $input.shape[1], $input.shape[2]]);
-        dy4D = reshape$1($dy, [1, $dy.shape[0], $dy.shape[1], $dy.shape[2]]);
+            reshape$2($input, [1, $input.shape[0], $input.shape[1], $input.shape[2]]);
+        dy4D = reshape$2($dy, [1, $dy.shape[0], $dy.shape[1], $dy.shape[2]]);
     }
     assert$1(dy4D.rank === 4, () => `Error in avgPoolGrad: dy must be rank 4 but got rank ` +
         `${dy4D.rank}.`);
@@ -29633,7 +35732,7 @@ function avgPoolGrad_(dy, input, filterSize, strides, pad) {
     
     const res = ENGINE.runKernel(AvgPoolGrad, inputs, attrs);
     if (reshapedTo4D) {
-        return reshape$1(res, [res.shape[1], res.shape[2], res.shape[3]]);
+        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3]]);
     }
     return res;
 }
@@ -29689,7 +35788,7 @@ const batchToSpaceNDGradConfig = {
     kernelName: BatchToSpaceND,
     gradFunc: (dy, saved, attrs) => {
         const { blockShape, crops } = attrs;
-        return { x: () => spaceToBatchND$1(dy, blockShape, crops) };
+        return { x: () => spaceToBatchND$2(dy, blockShape, crops) };
     }
 };
 
@@ -29715,7 +35814,7 @@ const broadcastToGradConfig = {
                 axes.push(i);
             }
         }
-        return { x: () => sum$1(dy, axes, true ) };
+        return { x: () => sum$2(dy, axes, true ) };
     }
 };
 
@@ -29732,7 +35831,7 @@ const ceilGradConfig = {
     kernelName: Ceil,
     gradFunc: (dy) => {
         
-        return { x: () => zerosLike$1(dy) };
+        return { x: () => zerosLike$2(dy) };
     }
 };
 
@@ -29744,7 +35843,7 @@ const clipByValueGradConfig = {
         const [x] = saved;
         const { clipValueMin, clipValueMax } = attrs;
         return {
-            x: () => where(logicalAnd$1(greaterEqual$1(x, clipValueMin), lessEqual$1(x, clipValueMax)), dy, zerosLike$1(dy)),
+            x: () => where(logicalAnd$2(greaterEqual$2(x, clipValueMin), lessEqual$2(x, clipValueMax)), dy, zerosLike$2(dy)),
         };
     }
 };
@@ -29780,8 +35879,8 @@ const conv2DGradConfig = {
         assert$1(tupleValuesAreOne(dilations), () => 'Error in gradient of conv2D: dilation rates greater than 1 ' +
             `are not yet supported in gradients. Got dilations '${dilations}'`);
         return {
-            x: () => conv2DBackpropInput$1(x4D.shape, dy, $filter, strides, pad, dataFormat),
-            filter: () => conv2DBackpropFilter$1(x4D, dy, $filter.shape, strides, pad, dataFormat)
+            x: () => conv2DBackpropInput$2(x4D.shape, dy, $filter, strides, pad, dataFormat),
+            filter: () => conv2DBackpropFilter$2(x4D, dy, $filter.shape, strides, pad, dataFormat)
         };
     }
 };
@@ -29795,7 +35894,7 @@ const conv2DBackpropInputGradConfig = {
         const { strides, pad, dataFormat, dimRoundingMode } = attrs;
         return {
             dy: () => conv2d$1(ddx, filter, strides, pad, dataFormat, 1 , dimRoundingMode),
-            filter: () => conv2DBackpropFilter$1(ddx, dy, filter.shape, strides, pad, dataFormat, dimRoundingMode)
+            filter: () => conv2DBackpropFilter$2(ddx, dy, filter.shape, strides, pad, dataFormat, dimRoundingMode)
         };
     }
 };
@@ -29805,11 +35904,11 @@ const conv2DBackpropInputGradConfig = {
 function conv3DBackpropFilter_(x, dy, filterShape, strides, pad) {
     let x5D = x;
     if (x.rank === 4) {
-        x5D = reshape$1(x, [1, x.shape[0], x.shape[1], x.shape[2], x.shape[3]]);
+        x5D = reshape$2(x, [1, x.shape[0], x.shape[1], x.shape[2], x.shape[3]]);
     }
     let dy5D = dy;
     if (dy5D.rank === 4) {
-        dy5D = reshape$1(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2], dy.shape[3]]);
+        dy5D = reshape$2(dy, [1, dy.shape[0], dy.shape[1], dy.shape[2], dy.shape[3]]);
     }
     assert$1(x5D.rank === 5, () => `Error in conv3dDerFilter: input must be rank 5, but got shape ` +
         `${x5D.shape}.`);
@@ -29850,7 +35949,7 @@ const cosGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => mul(neg$1(sin$1(cast$2(x, 'float32'))), dy) };
+        return { x: () => mul(neg$2(sin$2(cast$3(x, 'float32'))), dy) };
     }
 };
 
@@ -29860,7 +35959,7 @@ const coshGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => mul(sinh$1(cast$2(x, 'float32')), dy) };
+        return { x: () => mul(sinh$2(cast$3(x, 'float32')), dy) };
     }
 };
 
@@ -29874,9 +35973,9 @@ const cumsumGradConfig = {
         return {
             x: () => {
                 const permutation = getAxesPermutation([axis], x.rank);
-                let out = cumsum$1(dy, axis, exclusive, !reverse);
+                let out = cumsum$2(dy, axis, exclusive, !reverse);
                 if (permutation != null) {
-                    out = transpose$1(out, permutation);
+                    out = transpose$2(out, permutation);
                 }
                 return out;
             }
@@ -29907,8 +36006,8 @@ const depthwiseConv2dNativeGradConfig = {
             `'${$dilations}'.`);
         checkPadOnDimRoundingMode('depthwiseConv2d', pad, dimRoundingMode);
         return {
-            x: () => depthwiseConv2dNativeBackpropInput$1(x.shape, dy, filter, strides, pad, $dilations, dimRoundingMode),
-            filter: () => depthwiseConv2dNativeBackpropFilter$1(x, dy, filter.shape, strides, pad, $dilations, dimRoundingMode),
+            x: () => depthwiseConv2dNativeBackpropInput$2(x.shape, dy, filter, strides, pad, $dilations, dimRoundingMode),
+            filter: () => depthwiseConv2dNativeBackpropFilter$2(x, dy, filter.shape, strides, pad, $dilations, dimRoundingMode),
         };
     }
 };
@@ -29945,7 +36044,7 @@ const erfGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        const a = mul(exp$1(neg$1(square$2(x))), 2 / Math.sqrt(Math.PI));
+        const a = mul(exp$2(neg$2(square$2(x))), 2 / Math.sqrt(Math.PI));
         return { x: () => mul(dy, a) };
     }
 };
@@ -29966,7 +36065,7 @@ const expandDimsGradConfig = {
     inputsToSave: ['input'],
     gradFunc: (dy, saved) => {
         const [input] = saved;
-        return { input: () => reshape$1(dy, input.shape) };
+        return { input: () => reshape$2(dy, input.shape) };
     }
 };
 
@@ -29976,7 +36075,7 @@ const expm1GradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => mul(dy, exp$1(x)) };
+        return { x: () => mul(dy, exp$2(x)) };
     }
 };
 
@@ -29984,7 +36083,7 @@ const expm1GradConfig = {
 const floorGradConfig = {
     kernelName: Floor,
     gradFunc: (dy) => {
-        return { x: () => zerosLike$1(dy) };
+        return { x: () => zerosLike$2(dy) };
     }
 };
 
@@ -29996,21 +36095,21 @@ const floorDivGradConfig = {
         const [a, b] = saved;
         const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
         const derA = () => {
-            const res = div(dy, cast$2(b, 'float32'));
+            const res = div$1(dy, cast$3(b, 'float32'));
             const reduceAxes = getReductionAxes(a.shape, outShape);
             if (reduceAxes.length > 0) {
-                return reshape$1(sum$1(res, reduceAxes), a.shape);
+                return reshape$2(sum$2(res, reduceAxes), a.shape);
             }
             return res;
         };
         const derB = () => {
-            let res = mul(dy, cast$2(a, 'float32'));
+            let res = mul(dy, cast$3(a, 'float32'));
             const reduceAxes = getReductionAxes(b.shape, outShape);
             if (reduceAxes.length > 0) {
-                res = reshape$1(sum$1(res, reduceAxes), b.shape);
+                res = reshape$2(sum$2(res, reduceAxes), b.shape);
             }
             const tmp = square$2(b);
-            return neg$1(div(res, cast$2(tmp, 'float32')));
+            return neg$2(div$1(res, cast$3(tmp, 'float32')));
         };
         return { a: derA, b: derB };
     }
@@ -30032,46 +36131,46 @@ const fusedBatchNormGradConfig = {
             }
             tileShape.push(1);
         }
-        const xMinusMean = sub$1(x, mean);
+        const xMinusMean = sub$2(x, mean);
         const dyTimesScaleValue = mul(dy, scaleValue);
-        const oneOverSqrtVariance = rsqrt$1(add(variance, scalar(varianceEpsilon)));
+        const oneOverSqrtVariance = rsqrt$2(add$1(variance, scalar(varianceEpsilon)));
         const minusHalfRCube = mul(mul(mul(oneOverSqrtVariance, oneOverSqrtVariance), oneOverSqrtVariance), scalar(-0.5));
         const derX = () => {
             if (mean.rank === 1) {
-                return reshape$1(mul(mul(dy, tile$2(reshape$1(oneOverSqrtVariance, [1, 1, 1, mean.shape[0]]), tileShape)), scaleValue), x.shape);
+                return reshape$2(mul(mul(dy, tile$3(reshape$2(oneOverSqrtVariance, [1, 1, 1, mean.shape[0]]), tileShape)), scaleValue), x.shape);
             }
             else {
-                return reshape$1(mul(mul(dy, oneOverSqrtVariance), scaleValue), x.shape);
+                return reshape$2(mul(mul(dy, oneOverSqrtVariance), scaleValue), x.shape);
             }
         };
         const derMean = () => {
             let meanDer = mul(mul(oneOverSqrtVariance, scalar(-1)), dyTimesScaleValue);
             if (mean.rank === 1) {
-                meanDer = sum$1(meanDer, reductionAxes);
+                meanDer = sum$2(meanDer, reductionAxes);
             }
-            return reshape$1(meanDer, mean.shape);
+            return reshape$2(meanDer, mean.shape);
         };
         const derVariance = () => {
             let varianceDer = mul(mul(minusHalfRCube, xMinusMean), dyTimesScaleValue);
             if (mean.rank === 1) {
-                varianceDer = sum$1(varianceDer, reductionAxes);
+                varianceDer = sum$2(varianceDer, reductionAxes);
             }
-            return reshape$1(varianceDer, mean.shape);
+            return reshape$2(varianceDer, mean.shape);
         };
         const derScale = () => {
             const xMinusMean2TimesRsqrt = mul(xMinusMean, oneOverSqrtVariance);
             let scaleDer = mul(dy, xMinusMean2TimesRsqrt);
             if (mean.rank === 1) {
-                scaleDer = sum$1(scaleDer, reductionAxes);
+                scaleDer = sum$2(scaleDer, reductionAxes);
             }
-            return reshape$1(scaleDer, mean.shape);
+            return reshape$2(scaleDer, mean.shape);
         };
         const derOffset = () => {
             let offsetDer = dy;
             if (mean.rank === 1) {
-                offsetDer = sum$1(offsetDer, reductionAxes);
+                offsetDer = sum$2(offsetDer, reductionAxes);
             }
-            return reshape$1(offsetDer, mean.shape);
+            return reshape$2(offsetDer, mean.shape);
         };
         return {
             x: derX,
@@ -30103,13 +36202,13 @@ const gatherGradConfig = {
                 const innerAxesIndices = arrayRange(outerDims + 1, outerDims + 1 + innerDims);
                 const valuesShape = arrayConcat([outerShape, [indicesSize],
                     innerShape]);
-                const values = reshape$1(dy, valuesShape);
-                const reshapedIndices = reshape$1(indices, [indicesSize]);
+                const values = reshape$2(dy, valuesShape);
+                const reshapedIndices = reshape$2(indices, [indicesSize]);
                 const transposeDims = arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
-                const valuesTranspose = transpose$1(values, transposeDims);
-                let paramsGrad = unsortedSegmentSum$1(valuesTranspose, reshapedIndices, x.shape[parsedAxis]);
+                const valuesTranspose = transpose$2(values, transposeDims);
+                let paramsGrad = unsortedSegmentSum$2(valuesTranspose, reshapedIndices, x.shape[parsedAxis]);
                 const invertTransposeDims = getUndoAxesPermutation(transposeDims);
-                paramsGrad = transpose$1(paramsGrad, invertTransposeDims);
+                paramsGrad = transpose$2(paramsGrad, invertTransposeDims);
                 return paramsGrad;
             };
         };
@@ -30152,7 +36251,7 @@ const greaterEqualGradConfig = {
     inputsToSave: ['a', 'b'],
     gradFunc: (dy, saved) => {
         const [a, b] = saved;
-        return { a: () => zerosLike$1(a), b: () => zerosLike$1(b) };
+        return { a: () => zerosLike$2(a), b: () => zerosLike$2(b) };
     }
 };
 
@@ -30160,7 +36259,7 @@ const greaterEqualGradConfig = {
 const identityGradConfig = {
     kernelName: Identity$1,
     gradFunc: (dy) => {
-        return { x: () => cast$2(dy, 'float32') };
+        return { x: () => cast$3(dy, 'float32') };
     }
 };
 
@@ -30170,7 +36269,7 @@ const isFiniteGradConfig = {
     gradFunc: (dy) => {
         
         
-        return { x: () => zerosLike$1(dy) };
+        return { x: () => zerosLike$2(dy) };
     }
 };
 
@@ -30180,7 +36279,7 @@ const isInfGradConfig = {
     gradFunc: (dy) => {
         
         
-        return { x: () => zerosLike$1(dy) };
+        return { x: () => zerosLike$2(dy) };
     }
 };
 
@@ -30190,7 +36289,7 @@ const isNanGradConfig = {
     gradFunc: (dy) => {
         
         
-        return { x: () => zerosLike$1(dy) };
+        return { x: () => zerosLike$2(dy) };
     }
 };
 
@@ -30201,7 +36300,7 @@ const leakyReluGradConfig = {
     gradFunc: (dy, saved, attrs) => {
         const [x] = saved;
         const { alpha } = attrs;
-        const mask = greater$1(x, 0);
+        const mask = greater$2(x, 0);
         
         
         return { x: () => where(mask, dy, mul(dy, alpha)) };
@@ -30214,7 +36313,7 @@ const log1pGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => div(dy, add(x, 1)) };
+        return { x: () => div$1(dy, add$1(x, 1)) };
     }
 };
 
@@ -30224,7 +36323,7 @@ const logGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => div(dy, cast$2(x, 'float32')) };
+        return { x: () => div$1(dy, cast$3(x, 'float32')) };
     }
 };
 
@@ -30239,8 +36338,8 @@ const logSoftmaxGradConfig = {
         return {
             logits: () => {
                 const keepDims = true;
-                const softmax = exp$1(value);
-                return sub$1(dy, mul(sum$1(dy, axis, keepDims), softmax));
+                const softmax = exp$2(value);
+                return sub$2(dy, mul(sum$2(dy, axis, keepDims), softmax));
             }
         };
     }
@@ -30272,14 +36371,14 @@ const lrnGradConfig = {
 
 function gradForMinAndMax(dy, y, xOrig, origAxes) {
     if (y.rank < xOrig.rank) {
-        y = reshape$1(y, expandShapeToKeepDim(y.shape, origAxes));
+        y = reshape$2(y, expandShapeToKeepDim(y.shape, origAxes));
     }
     if (dy.rank < xOrig.rank) {
-        dy = reshape$1(dy, expandShapeToKeepDim(dy.shape, origAxes));
+        dy = reshape$2(dy, expandShapeToKeepDim(dy.shape, origAxes));
     }
     return {
         x: () => {
-            const dx = mul(dy, cast$2(equal$1(xOrig, y), dy.dtype));
+            const dx = mul(dy, cast$3(equal$2(xOrig, y), dy.dtype));
             return dx;
         }
     };
@@ -30311,8 +36410,8 @@ const maximumGradConfig = {
     inputsToSave: ['a', 'b'],
     gradFunc: (dy, saved) => {
         const [a, b] = saved;
-        const derA = () => mul(dy, cast$2(greaterEqual$1(a, b), 'float32'));
-        const derB = () => mul(dy, cast$2(less$1(a, b), 'float32'));
+        const derA = () => mul(dy, cast$3(greaterEqual$2(a, b), 'float32'));
+        const derB = () => mul(dy, cast$3(less$2(a, b), 'float32'));
         return { a: derA, b: derB };
     }
 };
@@ -30329,11 +36428,11 @@ function maxPool3dGrad_(dy, input, output, filterSize, strides, pad, dimRounding
     let reshapedTo5D = false;
     if ($input.rank === 4) {
         reshapedTo5D = true;
-        dy5D = reshape$1($dy, [1, $dy.shape[0], $dy.shape[1], $dy.shape[2], $dy.shape[3]]);
-        input5D = reshape$1($input, [
+        dy5D = reshape$2($dy, [1, $dy.shape[0], $dy.shape[1], $dy.shape[2], $dy.shape[3]]);
+        input5D = reshape$2($input, [
             1, $input.shape[0], $input.shape[1], $input.shape[2], $input.shape[3]
         ]);
-        output5D = reshape$1($output, [
+        output5D = reshape$2($output, [
             1, $output.shape[0], $output.shape[1], $output.shape[2], $output.shape[3]
         ]);
     }
@@ -30349,7 +36448,7 @@ function maxPool3dGrad_(dy, input, output, filterSize, strides, pad, dimRounding
     
     const res = ENGINE.runKernel(MaxPool3DGrad, inputs, attrs);
     if (reshapedTo5D) {
-        return reshape$1(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
+        return reshape$2(res, [res.shape[1], res.shape[2], res.shape[3], res.shape[4]]);
     }
     return res;
 }
@@ -30419,8 +36518,8 @@ const meanGradConfig = {
             axes.forEach(axis => {
                 expandedDyShape[axis] = 1;
             });
-            const expandedDy = reshape$1(dy, expandedDyShape);
-            const res = div(mul(expandedDy, ones(x.shape, 'float32')), reduceSize);
+            const expandedDy = reshape$2(dy, expandedDyShape);
+            const res = div$1(mul(expandedDy, ones(x.shape, 'float32')), reduceSize);
             return res;
         };
         return { x: derX };
@@ -30452,8 +36551,8 @@ const minimumGradConfig = {
     inputsToSave: ['a', 'b'],
     gradFunc: (dy, saved) => {
         const [a, b] = saved;
-        const derA = () => mul(dy, cast$2(lessEqual$1(a, b), 'float32'));
-        const derB = () => mul(dy, cast$2(greater$1(a, b), 'float32'));
+        const derA = () => mul(dy, cast$3(lessEqual$2(a, b), 'float32'));
+        const derB = () => mul(dy, cast$3(greater$2(a, b), 'float32'));
         return { a: derA, b: derB };
     }
 };
@@ -30468,7 +36567,7 @@ const mirrorPadGradConfig = {
         const x = saved[0];
         const { paddings } = attrs;
         const begin = paddings.map(p => p[0]);
-        return { x: () => slice$1(dy, begin, x.shape) };
+        return { x: () => slice$2(dy, begin, x.shape) };
     }
 };
 
@@ -30482,15 +36581,15 @@ const modGradConfig = {
         const derA = () => {
             const reduceAxes = getReductionAxes(a.shape, outShape);
             if (reduceAxes.length > 0) {
-                return reshape$1(sum$1(dy, reduceAxes), a.shape);
+                return reshape$2(sum$2(dy, reduceAxes), a.shape);
             }
             return dy;
         };
         const derB = () => {
-            const res = mul(dy, neg$1(floor$1(div(a, b))));
+            const res = mul(dy, neg$2(floor$2(div$1(a, b))));
             const reduceAxes = getReductionAxes(b.shape, outShape);
             if (reduceAxes.length > 0) {
-                return reshape$1(sum$1(res, reduceAxes), b.shape);
+                return reshape$2(sum$2(res, reduceAxes), b.shape);
             }
             return res;
         };
@@ -30506,18 +36605,18 @@ const multiplyGradConfig = {
         const [a, b] = saved;
         const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
         const derA = () => {
-            const res = mul(dy, cast$2(b, 'float32'));
+            const res = mul(dy, cast$3(b, 'float32'));
             const reduceAxes = getReductionAxes(a.shape, outShape);
             if (reduceAxes.length > 0) {
-                return reshape$1(sum$1(res, reduceAxes), a.shape);
+                return reshape$2(sum$2(res, reduceAxes), a.shape);
             }
             return res;
         };
         const derB = () => {
-            const res = mul(dy, cast$2(a, 'float32'));
+            const res = mul(dy, cast$3(a, 'float32'));
             const reduceAxes = getReductionAxes(b.shape, outShape);
             if (reduceAxes.length > 0) {
-                return reshape$1(sum$1(res, reduceAxes), b.shape);
+                return reshape$2(sum$2(res, reduceAxes), b.shape);
             }
             return res;
         };
@@ -30529,7 +36628,7 @@ const multiplyGradConfig = {
 const negGradConfig = {
     kernelName: Neg,
     gradFunc: (dy) => {
-        return { x: () => neg$1(dy) };
+        return { x: () => neg$2(dy) };
     }
 };
 
@@ -30539,7 +36638,7 @@ const oneHotGradConfig = {
     inputsToSave: ['indices'],
     gradFunc: (dy, saved) => {
         const indices = saved[0];
-        return { indices: () => zeros(indices.shape, 'float32') };
+        return { indices: () => zeros$1(indices.shape, 'float32') };
     }
 };
 
@@ -30547,7 +36646,7 @@ const oneHotGradConfig = {
 const onesLikeGradConfig = {
     kernelName: OnesLike,
     gradFunc: (dy) => {
-        return { x: () => zerosLike$1(dy) };
+        return { x: () => zerosLike$2(dy) };
     }
 };
 
@@ -30572,7 +36671,7 @@ const padV2GradConfig = {
         const x = saved[0];
         const { paddings } = attrs;
         const begin = paddings.map(p => p[0]);
-        return { x: () => slice$1(dy, begin, x.shape) };
+        return { x: () => slice$2(dy, begin, x.shape) };
     }
 };
 
@@ -30587,23 +36686,23 @@ const powGradConfig = {
         const exp = b;
         const outShape = assertAndGetBroadcastShape(base.shape, exp.shape);
         const derBase = () => {
-            const expFloat = cast$2(exp, 'float32');
-            let res = mul(dy, mul(expFloat, pow$1(base, sub$1(expFloat, scalar(1)))));
+            const expFloat = cast$3(exp, 'float32');
+            let res = mul(dy, mul(expFloat, pow$2(base, sub$2(expFloat, scalar(1)))));
             const reduceAxes = getReductionAxes(base.shape, outShape);
             if (reduceAxes.length > 0) {
-                res = sum$1(res, reduceAxes);
+                res = sum$2(res, reduceAxes);
             }
-            return reshape$1(res, base.shape);
+            return reshape$2(res, base.shape);
         };
         const derExp = () => {
-            const condition = greater$1(base, 0);
-            const logBase = where(condition, log$1(base), zerosLike$1(base));
+            const condition = greater$2(base, 0);
+            const logBase = where(condition, log$2(base), zerosLike$2(base));
             let res = mul(dy, mul(y, logBase));
             const reduceAxes = getReductionAxes(exp.shape, outShape);
             if (reduceAxes.length > 0) {
-                res = sum$1(res, reduceAxes);
+                res = sum$2(res, reduceAxes);
             }
-            return reshape$1(res, exp.shape);
+            return reshape$2(res, exp.shape);
         };
         return { a: derBase, b: derExp };
     }
@@ -30615,16 +36714,16 @@ const preluGradConfig = {
     inputsToSave: ['x', 'alpha'],
     gradFunc: (dy, saved) => {
         const [x, alpha] = saved;
-        const mask = greater$1(x, 0);
+        const mask = greater$2(x, 0);
         return {
             x: () => where(mask, dy, mul(dy, alpha)),
             alpha: () => {
-                let res = where(mask, zerosLike$1(dy), mul(dy, x));
+                let res = where(mask, zerosLike$2(dy), mul(dy, x));
                 const reduceAxes = getReductionAxes(alpha.shape, dy.shape);
                 if (reduceAxes.length > 0) {
-                    res = sum$1(res, reduceAxes);
+                    res = sum$2(res, reduceAxes);
                 }
-                return reshape$1(res, alpha.shape);
+                return reshape$2(res, alpha.shape);
             }
         };
     }
@@ -30639,9 +36738,9 @@ function prodGradFn_(x, dy, axis) {
     const expandedYShape = x.shape.slice();
     expandedYShape[axis] = 1;
     
-    const expandedDy = reshape$1(dy, expandedYShape);
-    const xCumProd = cumprod$1(x, axis, true, false);
-    const xCumRevProd = cumprod$1(x, axis, true, true);
+    const expandedDy = reshape$2(dy, expandedYShape);
+    const xCumProd = cumprod$2(x, axis, true, false);
+    const xCumRevProd = cumprod$2(x, axis, true, true);
     const dx = mul(xCumProd, xCumRevProd);
     return mul(expandedDy, dx);
 }
@@ -30655,7 +36754,7 @@ function prodsGradFn_(x, dy, axis) {
     const xPermutation = getAxesPermutation(axis, xRank);
     let permutedX = x;
     if (xPermutation != null) {
-        permutedX = transpose$1(x, xPermutation);
+        permutedX = transpose$2(x, xPermutation);
     }
     
     
@@ -30670,7 +36769,7 @@ function prodsGradFn_(x, dy, axis) {
     prodGrad = prodGrad.reshape(permutedX.shape);
     if (xPermutation != null) {
         const undoPermutation = getUndoAxesPermutation(xPermutation);
-        prodGrad = transpose$1(prodGrad, undoPermutation);
+        prodGrad = transpose$2(prodGrad, undoPermutation);
     }
     return prodGrad;
 }
@@ -30716,21 +36815,21 @@ const divGradConfig = {
         const [a, b] = saved;
         const outShape = assertAndGetBroadcastShape(a.shape, b.shape);
         const derA = () => {
-            const res = div(dy, cast$2(b, 'float32'));
+            const res = div$1(dy, cast$3(b, 'float32'));
             const reduceAxes = getReductionAxes(a.shape, outShape);
             if (reduceAxes.length > 0) {
-                return reshape$1(sum$1(res, reduceAxes), a.shape);
+                return reshape$2(sum$2(res, reduceAxes), a.shape);
             }
             return res;
         };
         const derB = () => {
-            let res = mul(dy, cast$2(a, 'float32'));
+            let res = mul(dy, cast$3(a, 'float32'));
             const reduceAxes = getReductionAxes(b.shape, outShape);
             if (reduceAxes.length > 0) {
-                res = reshape$1(sum$1(res, reduceAxes), b.shape);
+                res = reshape$2(sum$2(res, reduceAxes), b.shape);
             }
             const tmp = square$2(b);
-            return neg$1(div(res, cast$2(tmp, 'float32')));
+            return neg$2(div$1(res, cast$3(tmp, 'float32')));
         };
         return { a: derA, b: derB };
     }
@@ -30742,7 +36841,7 @@ const reciprocalGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => div(dy, neg$1(square$2(x))) };
+        return { x: () => div$1(dy, neg$2(square$2(x))) };
     }
 };
 
@@ -30752,8 +36851,8 @@ const relu6GradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        const mask = mul(lessEqual$1(x, 6), step$1(x));
-        return { x: () => mul(dy, cast$2(mask, 'float32')) };
+        const mask = mul(lessEqual$2(x, 6), step$2(x));
+        return { x: () => mul(dy, cast$3(mask, 'float32')) };
     }
 };
 
@@ -30763,7 +36862,7 @@ const reluGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => mul(dy, cast$2(step$1(x), 'float32')) };
+        return { x: () => mul(dy, cast$3(step$2(x), 'float32')) };
     }
 };
 
@@ -30773,7 +36872,7 @@ const reshapeGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => reshape$1(dy, x.shape) };
+        return { x: () => reshape$2(dy, x.shape) };
     }
 };
 
@@ -30811,7 +36910,7 @@ const reverseGradConfig = {
     gradFunc: (dy, saved, attrs) => {
         const { dims } = attrs;
         const axes = parseAxisParam(dims, dy.shape);
-        return { x: () => reverse$1(dy, axes) };
+        return { x: () => reverse$2(dy, axes) };
     }
 };
 
@@ -30821,7 +36920,7 @@ const roundGradConfig = {
     gradFunc: (dy) => {
         
         
-        return { x: () => zerosLike$1(dy) };
+        return { x: () => zerosLike$2(dy) };
     }
 };
 
@@ -30831,7 +36930,7 @@ const rsqrtGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => neg$1(div(dy, mul(pow$1(x, 1.5), 2))) };
+        return { x: () => neg$2(div$1(dy, mul(pow$2(x, 1.5), 2))) };
     }
 };
 
@@ -30844,9 +36943,9 @@ const selectGradConfig = {
         return {
             
             
-            condition: () => cast$2(zerosLike$1(condition), 'float32'),
-            t: () => mul(dy, cast$2(condition, dy.dtype)),
-            e: () => mul(dy, cast$2(logicalNot$1(condition), dy.dtype))
+            condition: () => cast$3(zerosLike$2(condition), 'float32'),
+            t: () => mul(dy, cast$3(condition, dy.dtype)),
+            e: () => mul(dy, cast$3(logicalNot$2(condition), dy.dtype))
         };
     }
 };
@@ -30859,11 +36958,11 @@ const seluGradConfig = {
         const [x] = saved;
         return {
             x: () => {
-                const mask = greater$1(x, scalar(0));
+                const mask = greater$2(x, scalar(0));
                 const scaleAlpha = scalar(SELU_SCALEALPHA);
                 const scale = scalar(SELU_SCALE);
                 const greaterThanZeroDer = mul(dy, scale);
-                const lessEqualZeroDer = mul(mul(dy, scaleAlpha), exp$1(cast$2(x, 'float32')));
+                const lessEqualZeroDer = mul(mul(dy, scaleAlpha), exp$2(cast$3(x, 'float32')));
                 return where(mask, greaterThanZeroDer, lessEqualZeroDer);
             }
         };
@@ -30876,7 +36975,7 @@ const sigmoidGradConfig = {
     outputsToSave: [true],
     gradFunc: (dy, saved) => {
         const [y] = saved;
-        return { x: () => mul(dy, mul(y, sub$1(scalar(1), y))) };
+        return { x: () => mul(dy, mul(y, sub$2(scalar(1), y))) };
     }
 };
 
@@ -30884,7 +36983,7 @@ const sigmoidGradConfig = {
 const signGradConfig = {
     kernelName: Sign,
     gradFunc: (dy) => {
-        return { x: () => zerosLike$1(dy) };
+        return { x: () => zerosLike$2(dy) };
     }
 };
 
@@ -30894,7 +36993,7 @@ const sinGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => mul(cos$1(cast$2(x, 'float32')), dy) };
+        return { x: () => mul(cos$2(cast$3(x, 'float32')), dy) };
     }
 };
 
@@ -30904,7 +37003,7 @@ const sinhGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => mul(cosh$1(cast$2(x, 'float32')), dy) };
+        return { x: () => mul(cosh$2(cast$3(x, 'float32')), dy) };
     }
 };
 
@@ -30940,7 +37039,7 @@ const softmaxGradConfig = {
         const keepDims = true;
         const dyTimesY = mul(dy, y);
         return {
-            logits: () => sub$1(dyTimesY, mul(sum$1(dyTimesY, [dim], keepDims), y))
+            logits: () => sub$2(dyTimesY, mul(sum$2(dyTimesY, [dim], keepDims), y))
         };
     }
 };
@@ -30951,7 +37050,7 @@ const softplusGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => mul(dy, sigmoid$1(x)) };
+        return { x: () => mul(dy, sigmoid$2(x)) };
     }
 };
 
@@ -30960,7 +37059,7 @@ const spaceToBatchNDGradConfig = {
     kernelName: SpaceToBatchND,
     gradFunc: (dy, saved, attrs) => {
         const { blockShape, paddings } = attrs;
-        return { x: () => batchToSpaceND$1(dy, blockShape, paddings) };
+        return { x: () => batchToSpaceND$2(dy, blockShape, paddings) };
     }
 };
 
@@ -30969,7 +37068,7 @@ const splitVGradConfig = {
     kernelName: SplitV,
     gradFunc: (dy, saved, attrs) => {
         const { axis } = attrs;
-        return { x: () => concat$1(dy, axis) };
+        return { x: () => concat$2(dy, axis) };
     }
 };
 
@@ -30979,7 +37078,7 @@ const sqrtGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => div(dy, mul(sqrt$1(cast$2(x, 'float32')), 2)) };
+        return { x: () => div$1(dy, mul(sqrt$2(cast$3(x, 'float32')), 2)) };
     }
 };
 
@@ -30989,7 +37088,7 @@ const squareGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => mul(dy, mul(cast$2(x, 'float32'), 2)) };
+        return { x: () => mul(dy, mul(cast$3(x, 'float32'), 2)) };
     }
 };
 
@@ -31000,8 +37099,8 @@ const squaredDifferenceGradConfig = {
     gradFunc: (dy, saved) => {
         const [a, b] = saved;
         const two = scalar(2);
-        const derA = () => mul(dy, mul(two, sub$1(a, b)));
-        const derB = () => mul(dy, mul(two, sub$1(b, a)));
+        const derA = () => mul(dy, mul(two, sub$2(a, b)));
+        const derB = () => mul(dy, mul(two, sub$2(b, a)));
         return { a: derA, b: derB };
     }
 };
@@ -31012,7 +37111,7 @@ const stepGradConfig = {
     gradFunc: (dy) => {
         
         
-        return { x: () => zerosLike$1(dy) };
+        return { x: () => zerosLike$2(dy) };
     }
 };
 
@@ -31027,17 +37126,17 @@ const subGradConfig = {
             let res = dy;
             const reduceAxes = getReductionAxes(a.shape, outShape);
             if (reduceAxes.length > 0) {
-                res = sum$1(res, reduceAxes);
+                res = sum$2(res, reduceAxes);
             }
-            return reshape$1(res, a.shape);
+            return reshape$2(res, a.shape);
         };
         const derB = () => {
             let res = dy;
             const reduceAxes = getReductionAxes(b.shape, outShape);
             if (reduceAxes.length > 0) {
-                res = sum$1(res, reduceAxes);
+                res = sum$2(res, reduceAxes);
             }
-            return reshape$1(neg$1(res), b.shape);
+            return reshape$2(neg$2(res), b.shape);
         };
         return { a: derA, b: derB };
     }
@@ -31055,7 +37154,7 @@ const sumGradConfig = {
         axes.forEach(axis => {
             expandedDyShape[axis] = 1;
         });
-        const expandedDy = reshape$1(dy, expandedDyShape);
+        const expandedDy = reshape$2(dy, expandedDyShape);
         const derX = mul(expandedDy, ones(x.shape, 'float32'));
         return { x: () => derX };
     }
@@ -31067,7 +37166,7 @@ const tanGradConfig = {
     inputsToSave: ['x'],
     gradFunc: (dy, saved) => {
         const [x] = saved;
-        return { x: () => div(dy, square$2(cos$1(x))) };
+        return { x: () => div$1(dy, square$2(cos$2(x))) };
     }
 };
 
@@ -31077,7 +37176,7 @@ const tanhGradConfig = {
     outputsToSave: [true],
     gradFunc: (dy, saved) => {
         const [y] = saved;
-        return { x: () => mul(sub$1(scalar(1), square$2(y)), dy) };
+        return { x: () => mul(sub$2(scalar(1), square$2(y)), dy) };
     }
 };
 
@@ -31089,18 +37188,18 @@ const tileGradConfig = {
         const [x] = saved;
         const { reps } = attrs;
         const derX = () => {
-            let xGrad = zerosLike$1(x);
+            let xGrad = zerosLike$2(x);
             
             
             if (x.rank === 1) {
                 for (let i = 0; i < reps[0]; ++i) {
-                    xGrad = add(xGrad, slice$1(dy, [i * x.shape[0]], [x.shape[0]]));
+                    xGrad = add$1(xGrad, slice$2(dy, [i * x.shape[0]], [x.shape[0]]));
                 }
             }
             else if (x.rank === 2) {
                 for (let i = 0; i < reps[0]; ++i) {
                     for (let j = 0; j < reps[1]; ++j) {
-                        xGrad = add(xGrad, slice$1(dy, [i * x.shape[0], j * x.shape[1]], [
+                        xGrad = add$1(xGrad, slice$2(dy, [i * x.shape[0], j * x.shape[1]], [
                             x.shape[0], x.shape[1]
                         ]));
                     }
@@ -31111,7 +37210,7 @@ const tileGradConfig = {
                     for (let j = 0; j < reps[1]; ++j) {
                         for (let k = 0; k < reps[2]; ++k) {
                             xGrad =
-                                add(xGrad, slice$1(dy, [i * x.shape[0], j * x.shape[1], k * x.shape[2]], [x.shape[0], x.shape[1], x.shape[2]]));
+                                add$1(xGrad, slice$2(dy, [i * x.shape[0], j * x.shape[1], k * x.shape[2]], [x.shape[0], x.shape[1], x.shape[2]]));
                         }
                     }
                 }
@@ -31122,7 +37221,7 @@ const tileGradConfig = {
                         for (let k = 0; k < reps[2]; ++k) {
                             for (let l = 0; l < reps[3]; ++l) {
                                 xGrad =
-                                    add(xGrad, slice$1(dy, [
+                                    add$1(xGrad, slice$2(dy, [
                                         i * x.shape[0], j * x.shape[1], k * x.shape[2],
                                         l * x.shape[3]
                                     ], [x.shape[0], x.shape[1], x.shape[2], x.shape[3]]));
@@ -31148,7 +37247,7 @@ const transposeGradConfig = {
         const transposeAttrs = attrs;
         const { perm } = transposeAttrs;
         const undoPerm = getUndoAxesPermutation(perm);
-        return { x: () => transpose$1(dy, undoPerm) };
+        return { x: () => transpose$2(dy, undoPerm) };
     }
 };
 
@@ -31178,15 +37277,15 @@ function gatherDropNegatives(x, indices) {
     
     
     
-    const zeroClippedIndices = maximum$1(indices, zerosLike$1(indices));
+    const zeroClippedIndices = maximum$2(indices, zerosLike$2(indices));
     const gathered = gather$1(x, zeroClippedIndices);
-    let isPositive = greaterEqual$1(indices, scalar(0, 'int32'));
+    let isPositive = greaterEqual$2(indices, scalar(0, 'int32'));
     const numIters = gathered.rank - isPositive.rank;
     for (let i = 0; i < numIters; ++i) {
-        isPositive = expandDims$2(isPositive, i + 1);
+        isPositive = expandDims$3(isPositive, i + 1);
     }
-    isPositive = logicalAnd$1(isPositive, ones(gathered.shape, 'bool'));
-    const zeroSlice = zerosLike$1(gathered);
+    isPositive = logicalAnd$2(isPositive, ones(gathered.shape, 'bool'));
+    const zeroSlice = zerosLike$2(gathered);
     return where(isPositive, gathered, zeroSlice);
 }
 
@@ -31194,7 +37293,7 @@ function gatherDropNegatives(x, indices) {
 const zerosLikeGradConfig = {
     kernelName: ZerosLike,
     gradFunc: (dy) => {
-        return { x: () => zerosLike$1(dy) };
+        return { x: () => zerosLike$2(dy) };
     }
 };
 
@@ -31842,7 +37941,7 @@ function imageDataFormat() {
 
 
 function cast(x, dtype) {
-    return cast$2(x, dtype);
+    return cast$3(x, dtype);
 }
 
 function expandDims(x, axis = -1) {
@@ -31851,7 +37950,7 @@ function expandDims(x, axis = -1) {
         axis = outShape.length + axis + 1;
     }
     outShape.splice(axis, 0, 1);
-    return reshape$1(x, outShape);
+    return reshape$2(x, outShape);
 }
 
 function repeat(x, n) {
@@ -31867,7 +37966,7 @@ function repeat(x, n) {
 
 function flatten(x) {
     const newShape = [arrayProd(x.shape)];
-    return reshape$1(x, newShape);
+    return reshape$2(x, newShape);
 }
 
 function batchFlatten(x) {
@@ -31875,7 +37974,7 @@ function batchFlatten(x) {
         throw new ValueError(`batchFlatten requires a minimum rank of 2. Got rank: ${x.rank}.`);
     }
     const newShape = [x.shape[0], arrayProd(x.shape, 1)];
-    return reshape$1(x, newShape);
+    return reshape$2(x, newShape);
 }
 
 function sliceAlongFirstAxis(array, start, size) {
@@ -31890,11 +37989,11 @@ function sliceAlongFirstAxis(array, start, size) {
             case 4:
                 return slice4d(array, [start, 0, 0, 0], [size, array.shape[1], array.shape[2], array.shape[3]]);
             case 5:
-                return slice$1(array, [start, 0, 0, 0, 0], [
+                return slice$2(array, [start, 0, 0, 0, 0], [
                     size, array.shape[1], array.shape[2], array.shape[3], array.shape[4]
                 ]);
             case 6:
-                return slice$1(array, [start, 0, 0, 0, 0, 0], [
+                return slice$2(array, [start, 0, 0, 0, 0, 0], [
                     size, array.shape[1], array.shape[2], array.shape[3], array.shape[4],
                     array.shape[5]
                 ]);
@@ -31913,7 +38012,7 @@ function tile(x, n) {
         throw new ValueError(`The length of input n (${n.length}) does not match ` +
             `the number of dimensions in input x (${x.rank})`);
     }
-    return tile$2(x, n);
+    return tile$3(x, n);
 }
 
 
@@ -31956,7 +38055,7 @@ function dot(a, b, activation, bias) {
         
         const aFirstDims = a.shape.slice(); 
         const aLastDim = aFirstDims.pop();
-        a = reshape$1(a, [-1, aLastDim]);
+        a = reshape$2(a, [-1, aLastDim]);
         
         
         const bShape = b.shape.slice();
@@ -31974,12 +38073,12 @@ function dot(a, b, activation, bias) {
             }
             return i;
         });
-        b = reshape$1(transpose$1(b, perm), [ySecondLastDim, -1]);
+        b = reshape$2(transpose$2(b, perm), [ySecondLastDim, -1]);
         
         const outputShape = [...aFirstDims, ...yOtherDims];
         const transposeA = false;
         const transposeB = false;
-        return reshape$1(matMul({
+        return reshape$2(matMul({
             a,
             b,
             transposeA,
@@ -31997,7 +38096,7 @@ function gather(reference, indices, axis) {
             indices = tensor1d(indices, 'int32');
         }
         else {
-            indices = cast$2(indices, 'int32');
+            indices = cast$3(indices, 'int32');
         }
         return gather$1(reference, indices, axis);
     });
@@ -32016,54 +38115,54 @@ function reshapeBias(xRank, bias, dataFormat) {
     if (xRank === 5) {
         if (dataFormat === 'channelsFirst') {
             if (biasShape.length === 1) {
-                return reshape$1(bias, [1, biasShape[0], 1, 1, 1]);
+                return reshape$2(bias, [1, biasShape[0], 1, 1, 1]);
             }
             else {
-                return reshape$1(bias, [1, biasShape[3], biasShape[0], biasShape[1], biasShape[2]]);
+                return reshape$2(bias, [1, biasShape[3], biasShape[0], biasShape[1], biasShape[2]]);
             }
         }
         else if (dataFormat === 'channelsLast') {
             if (biasShape.length === 1) {
-                return reshape$1(bias, [1, 1, 1, 1, biasShape[0]]);
+                return reshape$2(bias, [1, 1, 1, 1, biasShape[0]]);
             }
             else {
-                return reshape$1(bias, [1].concat(biasShape));
+                return reshape$2(bias, [1].concat(biasShape));
             }
         }
     }
     else if (xRank === 4) {
         if (dataFormat === 'channelsFirst') {
             if (biasShape.length === 1) {
-                return reshape$1(bias, [1, biasShape[0], 1, 1]);
+                return reshape$2(bias, [1, biasShape[0], 1, 1]);
             }
             else {
-                return reshape$1(bias, [1, biasShape[2], biasShape[0], biasShape[1]]);
+                return reshape$2(bias, [1, biasShape[2], biasShape[0], biasShape[1]]);
             }
         }
         else if (dataFormat === 'channelsLast') {
             if (biasShape.length === 1) {
-                return reshape$1(bias, [1, 1, 1, biasShape[0]]);
+                return reshape$2(bias, [1, 1, 1, biasShape[0]]);
             }
             else {
-                return reshape$1(bias, [1].concat(biasShape));
+                return reshape$2(bias, [1].concat(biasShape));
             }
         }
     }
     else if (xRank === 3) {
         if (dataFormat === 'channelsFirst') {
             if (biasShape.length === 1) {
-                return reshape$1(bias, [1, biasShape[0], 1]);
+                return reshape$2(bias, [1, biasShape[0], 1]);
             }
             else {
-                return reshape$1(bias, [1, biasShape[1], biasShape[0]]);
+                return reshape$2(bias, [1, biasShape[1], biasShape[0]]);
             }
         }
         else if (dataFormat === 'channelsLast') {
             if (biasShape.length === 1) {
-                return reshape$1(bias, [1, 1, biasShape[0]]);
+                return reshape$2(bias, [1, 1, biasShape[0]]);
             }
             else {
-                return reshape$1(bias, [1].concat(biasShape));
+                return reshape$2(bias, [1].concat(biasShape));
             }
         }
     }
@@ -32080,7 +38179,7 @@ function biasAdd(x, bias, dataFormat) {
             dataFormat = imageDataFormat();
         }
         checkDataFormat(dataFormat);
-        return add(x, reshapeBias(x.rank, bias, dataFormat));
+        return add$1(x, reshapeBias(x.rank, bias, dataFormat));
     });
 }
 
@@ -32090,11 +38189,11 @@ function elu(x, alpha = 1) {
         throw new NotImplementedError(`Support for alpha values other than 1 (${alpha}) is not implemented ` +
             `yet.`);
     }
-    return elu$2(x);
+    return elu$3(x);
 }
 
 function softsign(x) {
-    return tidy(() => div(x, add(abs$1(x), 1)));
+    return tidy(() => div$1(x, add$1(abs$2(x), 1)));
 }
 
 function dropout$1(x, level, noiseShape, seed) {
@@ -32103,8 +38202,8 @@ function dropout$1(x, level, noiseShape, seed) {
 
 function hardSigmoid(x) {
     return tidy(() => {
-        const y = add(.5, mul(.2, x));
-        return clipByValue$1(y, 0, 1);
+        const y = add$1(.5, mul(.2, x));
+        return clipByValue$2(y, 0, 1);
     });
 }
 
@@ -32134,7 +38233,7 @@ class Initializer extends Serializable {
 }
 class Zeros extends Initializer {
     apply(shape, dtype) {
-        return zeros(shape, dtype);
+        return zeros$1(shape, dtype);
     }
 }
 
@@ -33638,7 +39737,7 @@ function assertFeedCompatibility(key, val) {
     }
     try {
         
-        return cast$2(val, key.dtype);
+        return cast$3(val, key.dtype);
     }
     catch (err) {
         
@@ -33960,7 +40059,7 @@ function getNodeOutputs(fetch) {
 
 
 function calcL2Norms(w, axis) {
-    return tidy(() => sqrt$1(sum$1(mul(w, w), axis, true)));
+    return tidy(() => sqrt$2(sum$2(mul(w, w), axis, true)));
 }
 
 class Constraint extends Serializable {
@@ -33980,8 +40079,8 @@ class MaxNorm extends Constraint {
     apply(w) {
         return tidy(() => {
             const norms = calcL2Norms(w, this.axis);
-            const desired = clipByValue$1(norms, 0, this.maxValue);
-            return mul(w, div(desired, add(epsilon(), norms)));
+            const desired = clipByValue$2(norms, 0, this.maxValue);
+            return mul(w, div$1(desired, add$1(epsilon(), norms)));
         });
     }
     getConfig() {
@@ -33998,7 +40097,7 @@ class UnitNorm extends Constraint {
         this.axis = args.axis != null ? args.axis : this.defaultAxis;
     }
     apply(w) {
-        return tidy(() => div(w, add(epsilon(), calcL2Norms(w, this.axis))));
+        return tidy(() => div$1(w, add$1(epsilon(), calcL2Norms(w, this.axis))));
     }
     getConfig() {
         return { axis: this.axis };
@@ -34009,7 +40108,7 @@ UnitNorm.className = 'UnitNorm';
 registerClass(UnitNorm);
 class NonNeg extends Constraint {
     apply(w) {
-        return relu$1(w);
+        return relu$2(w);
     }
 }
 
@@ -34032,8 +40131,8 @@ class MinMaxNorm extends Constraint {
     apply(w) {
         return tidy(() => {
             const norms = calcL2Norms(w, this.axis);
-            const desired = add(mul(this.rate, clipByValue$1(norms, this.minValue, this.maxValue)), mul(1.0 - this.rate, norms));
-            return mul(w, div(desired, add(epsilon(), norms)));
+            const desired = add$1(mul(this.rate, clipByValue$2(norms, this.minValue, this.maxValue)), mul(1.0 - this.rate, norms));
+            return mul(w, div$1(desired, add$1(epsilon(), norms)));
         });
     }
     getConfig() {
@@ -34280,7 +40379,7 @@ class BaseLogger extends BaseCallback {
                 else {
                     this.totals[key] = 0;
                 }
-                const total = tidy(() => add((this.totals[key]), mul(value, batchSize)));
+                const total = tidy(() => add$1((this.totals[key]), mul(value, batchSize)));
                 this.totals[key] = total;
                 if (oldTotalsToDispose != null) {
                     oldTotalsToDispose.dispose();
@@ -34299,7 +40398,7 @@ class BaseLogger extends BaseCallback {
                 }
                 else {
                     tidy(() => {
-                        const log = mul(div(1, this.seen), this.totals[key]);
+                        const log = mul(div$1(1, this.seen), this.totals[key]);
                         logs[key] = log;
                         this.totals[key].dispose();
                         keep(logs[key]);
@@ -34534,86 +40633,86 @@ function deserialize(config, customObjects = {}, fastWeightInit = false) {
 function l2Normalize(x, axis) {
     return tidy(() => {
         if (x.dtype !== 'float32') {
-            x = cast$2(x, 'float32');
+            x = cast$3(x, 'float32');
         }
-        const squareSum = sum$1(square(x), axis, true);
-        const epsilonTensor = fill$1(squareSum.shape, epsilon());
-        const norm = sqrt$1(maximum$1(squareSum, epsilonTensor));
-        return div(x, norm);
+        const squareSum = sum$2(square(x), axis, true);
+        const epsilonTensor = fill$2(squareSum.shape, epsilon());
+        const norm = sqrt$2(maximum$2(squareSum, epsilonTensor));
+        return div$1(x, norm);
     });
 }
 function meanSquaredError(yTrue, yPred) {
-    return tidy(() => mean(square(sub$1(yPred, yTrue)), -1));
+    return tidy(() => mean$1(square(sub$2(yPred, yTrue)), -1));
 }
 function meanAbsoluteError(yTrue, yPred) {
-    return tidy(() => mean(abs$1(sub$1(yPred, yTrue)), -1));
+    return tidy(() => mean$1(abs$2(sub$2(yPred, yTrue)), -1));
 }
 function meanAbsolutePercentageError(yTrue, yPred) {
     return tidy(() => {
-        const diff = sub$1(yTrue, yPred);
-        const clippedTrue = clipByValue$1(abs$1(yTrue), epsilon(), Number.MAX_VALUE);
-        const absResult = abs$1(div(diff, clippedTrue));
-        return mul(100, mean(absResult, -1));
+        const diff = sub$2(yTrue, yPred);
+        const clippedTrue = clipByValue$2(abs$2(yTrue), epsilon(), Number.MAX_VALUE);
+        const absResult = abs$2(div$1(diff, clippedTrue));
+        return mul(100, mean$1(absResult, -1));
     });
 }
 function meanSquaredLogarithmicError(yTrue, yPred) {
     return tidy(() => {
-        const clippedPred = clipByValue$1(yPred, epsilon(), Number.MAX_VALUE);
-        const firstLog = log$1(add(1, clippedPred));
-        const clippedTrue = clipByValue$1(yTrue, epsilon(), Number.MAX_VALUE);
-        const secondLog = log$1(add(1, clippedTrue));
-        return mean(square(sub$1(firstLog, secondLog)), -1);
+        const clippedPred = clipByValue$2(yPred, epsilon(), Number.MAX_VALUE);
+        const firstLog = log$2(add$1(1, clippedPred));
+        const clippedTrue = clipByValue$2(yTrue, epsilon(), Number.MAX_VALUE);
+        const secondLog = log$2(add$1(1, clippedTrue));
+        return mean$1(square(sub$2(firstLog, secondLog)), -1);
     });
 }
 function squaredHinge(yTrue, yPred) {
     return tidy(() => {
-        const maxResult = maximum$1(0, sub$1(1, mul(yTrue, yPred)));
-        return mean(square(maxResult), -1);
+        const maxResult = maximum$2(0, sub$2(1, mul(yTrue, yPred)));
+        return mean$1(square(maxResult), -1);
     });
 }
 function hinge(yTrue, yPred) {
     return tidy(() => {
-        const maxResult = maximum$1(0, sub$1(1, mul(yTrue, yPred)));
-        return mean(maxResult, -1);
+        const maxResult = maximum$2(0, sub$2(1, mul(yTrue, yPred)));
+        return mean$1(maxResult, -1);
     });
 }
 function categoricalHinge(yTrue, yPred) {
     return tidy(() => {
-        const pos = sum$1(mul(yTrue, yPred), -1);
-        const neg = max$1(mul(sub$1(1, yTrue), yPred), -1);
-        return maximum$1(0, add(1, sub$1(neg, pos)));
+        const pos = sum$2(mul(yTrue, yPred), -1);
+        const neg = max$2(mul(sub$2(1, yTrue), yPred), -1);
+        return maximum$2(0, add$1(1, sub$2(neg, pos)));
     });
 }
 
 function logcosh(yTrue, yPred) {
     return tidy(() => {
         const log2 = Math.log(2);
-        const predictionDiff = sub$1(yPred, yTrue);
-        const logcoshResult = sub$1(add(predictionDiff, softplus$1(mul(-2, predictionDiff))), log2);
-        return mean(logcoshResult, -1);
+        const predictionDiff = sub$2(yPred, yTrue);
+        const logcoshResult = sub$2(add$1(predictionDiff, softplus$2(mul(-2, predictionDiff))), log2);
+        return mean$1(logcoshResult, -1);
     });
 }
 function categoricalCrossentropy$1(target, output, fromLogits = false) {
     return tidy(() => {
         if (fromLogits) {
-            output = softmax$1(output);
+            output = softmax$2(output);
         }
         else {
             
-            const outputSum = sum$1(output, output.shape.length - 1, true);
-            output = div(output, outputSum);
+            const outputSum = sum$2(output, output.shape.length - 1, true);
+            output = div$1(output, outputSum);
         }
-        output = clipByValue$1(output, epsilon(), 1 - epsilon());
-        return neg$1(sum$1(mul(cast$2(target, 'float32'), log$1(output)), output.shape.length - 1));
+        output = clipByValue$2(output, epsilon(), 1 - epsilon());
+        return neg$2(sum$2(mul(cast$3(target, 'float32'), log$2(output)), output.shape.length - 1));
     });
 }
 
 function sparseCategoricalCrossentropy$1(target, output, fromLogits = false) {
     return tidy(() => {
-        const flatTarget = cast$2(floor$1(flatten(target)), 'int32');
-        output = clipByValue$1(output, epsilon(), 1 - epsilon());
+        const flatTarget = cast$3(floor$2(flatten(target)), 'int32');
+        output = clipByValue$2(output, epsilon(), 1 - epsilon());
         const outputShape = output.shape;
-        const oneHotTarget = reshape$1(oneHot$1(flatTarget, outputShape[outputShape.length - 1]), outputShape);
+        const oneHotTarget = reshape$2(oneHot$2(flatTarget, outputShape[outputShape.length - 1]), outputShape);
         return categoricalCrossentropy$1(oneHotTarget, output, fromLogits);
     });
 }
@@ -34630,30 +40729,30 @@ function sigmoidCrossEntropyWithLogits(labels, logits) {
         
         
         
-        const reluLogits = relu$1(logits);
-        const negAbsLogits = neg$1(abs$1(logits));
-        return add(sub$1(reluLogits, mul(logits, labels)), log1p$1(exp$1(negAbsLogits)));
+        const reluLogits = relu$2(logits);
+        const negAbsLogits = neg$2(abs$2(logits));
+        return add$1(sub$2(reluLogits, mul(logits, labels)), log1p$2(exp$2(negAbsLogits)));
     });
 }
 function binaryCrossentropy$1(yTrue, yPred) {
     return tidy(() => {
         let y;
-        y = clipByValue$1(yPred, epsilon(), 1 - epsilon());
-        y = log$1(div(y, sub$1(1, y)));
-        return mean(sigmoidCrossEntropyWithLogits(yTrue, y), -1);
+        y = clipByValue$2(yPred, epsilon(), 1 - epsilon());
+        y = log$2(div$1(y, sub$2(1, y)));
+        return mean$1(sigmoidCrossEntropyWithLogits(yTrue, y), -1);
     });
 }
 function kullbackLeiblerDivergence(yTrue, yPred) {
     return tidy(() => {
-        const clippedTrue = clipByValue$1(yTrue, epsilon(), 1);
-        const clippedPred = clipByValue$1(yPred, epsilon(), 1);
-        return sum$1(mul(yTrue, log$1(div(clippedTrue, clippedPred))), -1);
+        const clippedTrue = clipByValue$2(yTrue, epsilon(), 1);
+        const clippedPred = clipByValue$2(yPred, epsilon(), 1);
+        return sum$2(mul(yTrue, log$2(div$1(clippedTrue, clippedPred))), -1);
     });
 }
 function poisson(yTrue, yPred) {
     return tidy(() => {
-        const logPred = log$1(add(epsilon(), yPred));
-        return mean(sub$1(yPred, mul(yTrue, logPred)), -1);
+        const logPred = log$2(add$1(epsilon(), yPred));
+        return mean$1(sub$2(yPred, mul(yTrue, logPred)), -1);
     });
 }
 function cosineProximity(yTrue, yPred) {
@@ -34661,7 +40760,7 @@ function cosineProximity(yTrue, yPred) {
         const trueNormalized = l2Normalize(yTrue, -1);
         const predNormalized = l2Normalize(yPred, -1);
         const trueXPred = mul(trueNormalized, predNormalized);
-        return neg$1(sum$1(trueXPred, -1));
+        return neg$2(sum$2(trueXPred, -1));
     });
 }
 
@@ -34705,30 +40804,30 @@ function get$1(identifierOrFn) {
 
 function binaryAccuracy(yTrue, yPred) {
     return tidy(() => {
-        const threshold = mul(.5, onesLike$1(yPred));
-        const yPredThresholded = cast(greater$1(yPred, threshold), yTrue.dtype);
-        return mean(equal$1(yTrue, yPredThresholded), -1);
+        const threshold = mul(.5, onesLike$2(yPred));
+        const yPredThresholded = cast(greater$2(yPred, threshold), yTrue.dtype);
+        return mean$1(equal$2(yTrue, yPredThresholded), -1);
     });
 }
 function categoricalAccuracy(yTrue, yPred) {
-    return tidy(() => cast(equal$1(argMax$1(yTrue, -1), argMax$1(yPred, -1)), 'float32'));
+    return tidy(() => cast(equal$2(argMax$2(yTrue, -1), argMax$2(yPred, -1)), 'float32'));
 }
 function truePositives(yTrue, yPred) {
     return tidy(() => {
-        return cast$2(sum$1(logicalAnd$1(equal$1(yTrue, 1), equal$1(yPred, 1))), 'float32');
+        return cast$3(sum$2(logicalAnd$2(equal$2(yTrue, 1), equal$2(yPred, 1))), 'float32');
     });
 }
 function falsePositives(yTrue, yPred) {
     return tidy(() => {
-        return cast$2(sum$1(logicalAnd$1(equal$1(yTrue, 0), equal$1(yPred, 1))), 'float32');
+        return cast$3(sum$2(logicalAnd$2(equal$2(yTrue, 0), equal$2(yPred, 1))), 'float32');
     });
 }
 function precision(yTrue, yPred) {
     return tidy(() => {
         const tp = truePositives(yTrue, yPred);
         const fp = falsePositives(yTrue, yPred);
-        const denominator = add(tp, fp);
-        return cast$2(where(greater$1(denominator, 0), div(tp, denominator), 0), 'float32');
+        const denominator = add$1(tp, fp);
+        return cast$3(where(greater$2(denominator, 0), div$1(tp, denominator), 0), 'float32');
     });
 }
 function binaryCrossentropy(yTrue, yPred) {
@@ -34738,11 +40837,11 @@ function sparseCategoricalAccuracy(yTrue, yPred) {
     if (yTrue.rank === yPred.rank) {
         yTrue = squeeze(yTrue, [yTrue.rank - 1]);
     }
-    yPred = argMax$1(yPred, -1);
+    yPred = argMax$2(yPred, -1);
     if (yPred.dtype !== yTrue.dtype) {
-        yPred = cast$2(yPred, yTrue.dtype);
+        yPred = cast$3(yPred, yTrue.dtype);
     }
-    return cast$2(equal$1(yTrue, yPred), 'float32');
+    return cast$3(equal$2(yTrue, yPred), 'float32');
 }
 
 const mse = meanSquaredError;
@@ -36233,11 +42332,11 @@ async function standardizeWeights(y, sampleWeight, classWeight, sampleWeightMode
                 if (y.shape[1] > 1) {
                     
                     const axis = 1;
-                    return argMax$1(y, axis);
+                    return argMax$2(y, axis);
                 }
                 else if (y.shape[1] === 1) {
                     
-                    return reshape$1(y, [y.shape[0]]);
+                    return reshape$2(y, [y.shape[0]]);
                 }
                 else {
                     throw new Error(`Encountered unexpected last-dimension size (${y.shape[1]}) ` +
@@ -36564,7 +42663,7 @@ model, dataset, args) {
                     const batchOut = batchOuts[i];
                     const oldScalar = outs[i];
                     outs[i] =
-                        tidy(() => add(outs[i], mul(batchSize, batchOut)));
+                        tidy(() => add$1(outs[i], mul(batchSize, batchOut)));
                     if (batch > 0) {
                         dispose(oldScalar);
                     }
@@ -36589,7 +42688,7 @@ model, dataset, args) {
     }
     for (let i = 0; i < outs.length; ++i) {
         const oldScalar = outs[i];
-        outs[i] = div(outs[i], numExamples);
+        outs[i] = div$1(outs[i], numExamples);
         dispose(oldScalar);
     }
     return singletonOrArray(outs);
@@ -36624,7 +42723,7 @@ function sliceArraysByIndices(arrays, indices) {
         else {
             
             
-            return gather(arrays, indices.dtype === 'int32' ? indices : cast$2(indices, 'int32'));
+            return gather(arrays, indices.dtype === 'int32' ? indices : cast$3(indices, 'int32'));
         }
     });
 }
@@ -37338,7 +43437,7 @@ class LayersModel extends Container {
                 });
                 batchOuts.forEach((batchOut, i) => outsBatches[i].push(batchOut));
             }
-            return singletonOrArray(outsBatches.map(batches => concat$1(batches, 0)));
+            return singletonOrArray(outsBatches.map(batches => concat$2(batches, 0)));
         });
     }
     
@@ -37447,11 +43546,11 @@ class LayersModel extends Container {
                     for (let i = 0; i < batchOuts.length; ++i) {
                         const batchOut = batchOuts[i];
                         outs[i] =
-                            add(outs[i], mul(batchEnd - batchStart, batchOut));
+                            add$1(outs[i], mul(batchEnd - batchStart, batchOut));
                     }
                 }
                 for (let i = 0; i < outs.length; ++i) {
-                    outs[i] = div(outs[i], numSamples);
+                    outs[i] = div$1(outs[i], numSamples);
                 }
             }
             return outs;
@@ -37501,14 +43600,14 @@ class LayersModel extends Container {
                         loss = computeWeightedLoss(loss, sampleWeights[i]);
                     }
                     
-                    const meanLoss = mean(loss);
+                    const meanLoss = mean$1(loss);
                     
                     lossValues.push(meanLoss);
                     if (i === 0) {
                         totalLoss = loss;
                     }
                     else {
-                        totalLoss = add(totalLoss, loss);
+                        totalLoss = add$1(totalLoss, loss);
                     }
                 }
                 
@@ -37523,16 +43622,16 @@ class LayersModel extends Container {
                         const metric = this.metricsTensors[i][0];
                         const outputIndex = this.metricsTensors[i][1];
                         weightedMetric =
-                            mean(metric(targets[outputIndex], outputs[outputIndex]));
+                            mean$1(metric(targets[outputIndex], outputs[outputIndex]));
                     }
                     keep(weightedMetric);
                     
                     metricsValues.push(weightedMetric);
                 }
-                totalLoss = mean(totalLoss);
+                totalLoss = mean$1(totalLoss);
                 
                 this.calculateLosses().forEach(regularizerLoss => {
-                    totalLoss = add(totalLoss, regularizerLoss);
+                    totalLoss = add$1(totalLoss, regularizerLoss);
                 });
                 return totalLoss;
             };
@@ -37561,12 +43660,12 @@ class LayersModel extends Container {
                     const lossFunction = this.lossFunctions[i];
                     
                     
-                    const loss = mean(lossFunction(targets[i], outputs[i]));
+                    const loss = mean$1(lossFunction(targets[i], outputs[i]));
                     if (i === 0) {
                         totalLoss = loss;
                     }
                     else {
-                        totalLoss = add(totalLoss, loss);
+                        totalLoss = add$1(totalLoss, loss);
                     }
                     valOutputs.push(totalLoss);
                 }
@@ -37575,7 +43674,7 @@ class LayersModel extends Container {
                     const metric = this.metricsTensors[i][0];
                     const outputIndex = this.metricsTensors[i][1];
                     
-                    const meanMetric = mean(metric(targets[outputIndex], outputs[outputIndex]));
+                    const meanMetric = mean$1(metric(targets[outputIndex], outputs[outputIndex]));
                     valOutputs.push(meanMetric);
                 }
                 return valOutputs;
@@ -38474,7 +44573,7 @@ registerClass(Elu);
 
 class Selu extends Activation$1 {
     apply(x) {
-        return selu$1(x);
+        return selu$2(x);
     }
 }
 
@@ -38483,7 +44582,7 @@ registerClass(Selu);
 
 class Relu extends Activation$1 {
     apply(x) {
-        return relu$1(x);
+        return relu$2(x);
     }
 }
 
@@ -38492,7 +44591,7 @@ registerClass(Relu);
 
 class Relu6 extends Activation$1 {
     apply(x) {
-        return tidy(() => minimum$1(6.0, relu$1(x)));
+        return tidy(() => minimum$2(6.0, relu$2(x)));
     }
 }
 
@@ -38510,7 +44609,7 @@ registerClass(Linear);
 
 class Sigmoid extends Activation$1 {
     apply(x) {
-        return sigmoid$1(x);
+        return sigmoid$2(x);
     }
 }
 
@@ -38528,7 +44627,7 @@ registerClass(HardSigmoid);
 
 class Softplus extends Activation$1 {
     apply(x) {
-        return softplus$1(x);
+        return softplus$2(x);
     }
 }
 
@@ -38546,7 +44645,7 @@ registerClass(Softsign);
 
 class Tanh extends Activation$1 {
     apply(x) {
-        return tanh$1(x);
+        return tanh$2(x);
     }
 }
 
@@ -38556,7 +44655,7 @@ registerClass(Tanh);
 class Softmax extends Activation$1 {
     
     apply(x, axis = (-1)) {
-        return softmax$1(x, axis);
+        return softmax$2(x, axis);
     }
 }
 
@@ -38580,7 +44679,7 @@ class Gelu extends Activation$1 {
             return tidy(() => {
                 const sqrtTwo = Math.sqrt(2);
                 
-                const cdf = mul(0.5, add(1, erf$1(div(x, sqrtTwo))));
+                const cdf = mul(0.5, add$1(1, erf$2(div$1(x, sqrtTwo))));
                 
                 return mul(x, cdf);
             });
@@ -38595,7 +44694,7 @@ class GeluNew extends Activation$1 {
     
     apply(x) {
         return tidy(() => {
-            return mul(0.5, mul(x, add(1, tanh$1(mul(sqrt$1(div(2, Math.PI)), add(x, mul(0.044715, pow$1(x, 3))))))));
+            return mul(0.5, mul(x, add$1(1, tanh$2(mul(sqrt$2(div$1(2, Math.PI)), add$1(x, mul(0.044715, pow$2(x, 3))))))));
         });
     }
 }
@@ -38606,7 +44705,7 @@ registerClass(GeluNew);
 class Mish extends Activation$1 {
     
     apply(x) {
-        return tidy(() => mul(x, tanh$1(softplus$1(x))));
+        return tidy(() => mul(x, tanh$2(softplus$2(x))));
     }
 }
 
@@ -38616,7 +44715,7 @@ registerClass(Mish);
 class Swish extends Activation$1 {
     
     apply(x, alpha = 1) {
-        return tidy(() => mul(sigmoid$1(mul(x, alpha)), x));
+        return tidy(() => mul(sigmoid$2(mul(x, alpha)), x));
     }
 }
 
@@ -38672,15 +44771,15 @@ class L1L2 extends Regularizer {
     
     apply(x) {
         return tidy(() => {
-            let regularization = zeros([1]);
+            let regularization = zeros$1([1]);
             if (this.hasL1) {
-                regularization = add(regularization, sum$1(mul(this.l1, abs$1(x))));
+                regularization = add$1(regularization, sum$2(mul(this.l1, abs$2(x))));
             }
             if (this.hasL2) {
                 regularization =
-                    add(regularization, sum$1(mul(this.l2, square(x))));
+                    add$1(regularization, sum$2(mul(this.l2, square(x))));
             }
-            return reshape$1(regularization, []);
+            return reshape$2(regularization, []);
         });
     }
     getConfig() {
@@ -38915,7 +45014,7 @@ class Flatten extends Layer {
                     permutation.push(i);
                 }
                 permutation.push(1);
-                input = transpose$1(input, permutation);
+                input = transpose$2(input, permutation);
             }
             return batchFlatten(input);
         });
@@ -39050,7 +45149,7 @@ class Reshape extends Layer {
             const input = getExactlyOneTensor(inputs);
             const inputShape = input.shape;
             const outputShape = inputShape.slice(0, 1).concat(this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
-            return reshape$1(input, outputShape);
+            return reshape$2(input, outputShape);
         });
     }
     getConfig() {
@@ -39095,7 +45194,7 @@ class Permute extends Layer {
         return outputShape;
     }
     call(inputs, kwargs) {
-        return transpose$1(getExactlyOneTensor(inputs), this.dimsIncludingBatch);
+        return transpose$2(getExactlyOneTensor(inputs), this.dimsIncludingBatch);
     }
     getConfig() {
         const config = {
@@ -39132,7 +45231,7 @@ class Masking extends Layer {
     computeMask(inputs, mask) {
         const input = getExactlyOneTensor(inputs);
         const axis = -1;
-        return any$1(notEqual$1(input, this.maskValue), axis);
+        return any$2(notEqual$2(input, this.maskValue), axis);
     }
     call(inputs, kwargs) {
         return tidy(() => {
@@ -39140,8 +45239,8 @@ class Masking extends Layer {
             const input = getExactlyOneTensor(inputs);
             const axis = -1;
             const keepDims = true;
-            const booleanMask = any$1(notEqual$1(input, this.maskValue), axis, keepDims);
-            const output = mul(input, cast$2(booleanMask, input.dtype));
+            const booleanMask = any$2(notEqual$2(input, this.maskValue), axis, keepDims);
+            const output = mul(input, cast$3(booleanMask, input.dtype));
             return output;
         });
     }
@@ -39160,4 +45259,4 @@ function dropout(args) {
     return new Dropout(args);
 }
 
-export { LayersModel, PlatformStub, dense, dropout, enableProdMode, env, fromMemory, glorotUniform, loadLayersModelFromIOHandler, sequential, stringToHashBucketFast$1 as stringToHashBucketFast, tensor1d, tensor2d, withSaveHandler };
+export { LayersModel, PlatformStub, dense, dropout, enableProdMode, env, fromMemory, glorotUniform, loadLayersModelFromIOHandler, sequential, stringToHashBucketFast$2 as stringToHashBucketFast, tensor1d, tensor2d, withSaveHandler };
