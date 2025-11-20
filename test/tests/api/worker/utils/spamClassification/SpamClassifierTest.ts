@@ -4,8 +4,7 @@ import { parseCsv } from "../../../../../../src/common/misc/parsing/CsvParser"
 import { Classifier, DEFAULT_PREDICTION_THRESHOLD, SpamClassifier } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { matchers, object, when } from "testdouble"
 import { assertNotNull } from "@tutao/tutanota-utils"
-import { SpamClassificationDataDealer, TrainingDataset } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassificationDataDealer"
-import { CacheStorage } from "../../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
+import { SpamClassifierDataDealer, TrainingDataset } from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
 import { mockAttribute } from "@tutao/tutanota-test-utils"
 import "@tensorflow/tfjs-backend-cpu"
 import { LayersModel, tensor1d } from "../../../../../../src/mail-app/workerUtils/spamClassification/tensorflow-custom"
@@ -21,6 +20,7 @@ import {
 } from "../../../../../../src/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { SpamDecision } from "../../../../../../src/common/api/common/TutanotaConstants"
 import { GENERATED_MIN_ID } from "../../../../../../src/common/api/common/utils/EntityUtils"
+import { SpamClassifierStorageFacade } from "../../../../../../src/common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 
 const { anything } = matchers
 export const DATASET_FILE_PATH: string = "./tests/api/worker/utils/spamClassification/spam_classification_test_mails.csv"
@@ -91,8 +91,8 @@ function getTrainingDataset(trainSet: ClientSpamTrainingDatum[]) {
 
 // Initial training (cutoff by day or amount)
 o.spec("SpamClassifierTest", () => {
-	const mockCacheStorage = object<CacheStorage>()
-	const mockSpamClassificationDataDealer = object<SpamClassificationDataDealer>()
+	const mockSpamClassificationDataDealer = object<SpamClassifierDataDealer>()
+	const mockSpamClassifierStorageFacade = object<SpamClassifierStorageFacade>()
 	let spamClassifier: SpamClassifier
 	let spamProcessor: SpamMailProcessor
 	let compressor: SparseVectorCompressor
@@ -111,7 +111,7 @@ o.spec("SpamClassifierTest", () => {
 
 		compressor = new SparseVectorCompressor(vectorLength)
 		spamProcessor = new SpamMailProcessor(DEFAULT_PREPROCESS_CONFIGURATION, compressor)
-		spamClassifier = new SpamClassifier(mockCacheStorage, mockSpamClassificationDataDealer, true)
+		spamClassifier = new SpamClassifier(mockSpamClassifierStorageFacade, mockSpamClassificationDataDealer, true)
 		spamClassifier.spamMailProcessor = spamProcessor
 		spamClassifier.sparseVectorCompressor = compressor
 		spamData = await convertToClientTrainingDatum(spamHamData.spamData, spamProcessor, true)
@@ -159,8 +159,8 @@ o.spec("SpamClassifierTest", () => {
 		await testClassifier(spamClassifier, testSet, compressor)
 
 		const classifier = spamClassifier.classifierByMailGroup.get(TEST_OWNER_GROUP)
-		o(classifier?.hamCount).equals(trainingDataset.hamCount)
-		o(classifier?.spamCount).equals(trainingDataset.spamCount)
+		o(classifier?.metaData.hamCount).equals(trainingDataset.hamCount)
+		o(classifier?.metaData.spamCount).equals(trainingDataset.spamCount)
 		o(classifier?.threshold).equals(spamClassifier.calculateThreshold(trainingDataset.hamCount, trainingDataset.spamCount))
 	})
 
@@ -189,8 +189,8 @@ o.spec("SpamClassifierTest", () => {
 		const classifier = spamClassifier.classifierByMailGroup.get(TEST_OWNER_GROUP)
 		const finalHamCount = initialTrainingDataset.hamCount + trainingDatasetSecondHalf.hamCount
 		const finalSpamCount = initialTrainingDataset.spamCount + trainingDatasetSecondHalf.spamCount
-		o(classifier?.hamCount).equals(finalHamCount)
-		o(classifier?.spamCount).equals(finalSpamCount)
+		o(classifier?.metaData.hamCount).equals(finalHamCount)
+		o(classifier?.metaData.spamCount).equals(finalSpamCount)
 		o(classifier?.threshold).equals(spamClassifier.calculateThreshold(finalHamCount, finalSpamCount))
 	})
 
@@ -392,7 +392,7 @@ authStatus`
 			return null
 		})
 
-		mockAttribute(spamClassifier, spamClassifier.updateAndSaveModel, () => {
+		mockAttribute(spamClassifier, spamClassifier.updateModelFromIndexStartId, () => {
 			return Promise.resolve()
 		})
 
@@ -458,19 +458,19 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 	}
 
 	o.spec("SpamClassifier - Performance Analysis", () => {
-		const mockOfflineStorageCache = object<CacheStorage>()
 		const compressor = new SparseVectorCompressor()
 		let spamClassifier = object<SpamClassifier>()
 		let dataSlice: ClientSpamTrainingDatum[]
 		let spamProcessor: SpamMailProcessor
 
 		o.beforeEach(async () => {
-			const mockSpamClassificationDataDealer = object<SpamClassificationDataDealer>()
+			const mockSpamClassificationDataDealer = object<SpamClassifierDataDealer>()
+			const mockSpamClassifierStorageFacade = object<SpamClassifierStorageFacade>()
 			mockSpamClassificationDataDealer.fetchAllTrainingData = async () => {
 				return getTrainingDataset(dataSlice)
 			}
 			spamProcessor = new SpamMailProcessor(DEFAULT_PREPROCESS_CONFIGURATION, compressor)
-			spamClassifier = new SpamClassifier(mockOfflineStorageCache, mockSpamClassificationDataDealer, false)
+			spamClassifier = new SpamClassifier(mockSpamClassifierStorageFacade, mockSpamClassificationDataDealer, false)
 			spamClassifier.spamMailProcessor = spamProcessor
 		})
 

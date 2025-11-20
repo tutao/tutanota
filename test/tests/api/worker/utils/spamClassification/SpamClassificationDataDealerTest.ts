@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
 import {
 	SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT,
-	SpamClassificationDataDealer,
+	SpamClassifierDataDealer,
 	UnencryptedPopulateClientSpamTrainingDatum,
-} from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassificationDataDealer"
+} from "../../../../../../src/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
 import {
 	ClientSpamTrainingDatum,
 	ClientSpamTrainingDatumIndexEntryTypeRef,
@@ -63,7 +63,7 @@ o.spec("SpamClassificationDataDealer", () => {
 	const bulkMailLoaderMock = object<BulkMailLoader>()
 	const mailFacadeMock = object<MailFacade>()
 	let mailDetails: MailDetails
-	let spamClassificationDataDealer: SpamClassificationDataDealer
+	let spamClassificationDataDealer: SpamClassifierDataDealer
 	let mailboxGroupRoot: MailboxGroupRoot
 	let mailBox: MailBox
 
@@ -99,7 +99,7 @@ o.spec("SpamClassificationDataDealer", () => {
 		})
 		mailDetails = createTestEntity(MailDetailsTypeRef, { _id: "mailDetail" })
 		when(mailFacadeMock.vectorizeAndCompressMails(anything())).thenResolve(new Uint8Array(1))
-		spamClassificationDataDealer = new SpamClassificationDataDealer(
+		spamClassificationDataDealer = new SpamClassifierDataDealer(
 			entityClientMock,
 			() => Promise.resolve(bulkMailLoaderMock),
 			() => Promise.resolve(mailFacadeMock),

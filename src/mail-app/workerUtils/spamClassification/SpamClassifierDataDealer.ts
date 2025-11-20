@@ -37,7 +37,7 @@ export type UnencryptedPopulateClientSpamTrainingDatum = Omit<StrippedEntity<Pop
 	vector: Uint8Array
 }
 
-export class SpamClassificationDataDealer {
+export class SpamClassifierDataDealer {
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly bulkMailLoader: lazyAsync<BulkMailLoader>,

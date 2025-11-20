@@ -115,6 +115,7 @@ import { PublicIdentityKeyProvider } from "../../../common/api/worker/facades/Pu
 import { IdentityKeyTrustDatabase } from "../../../common/api/worker/facades/IdentityKeyTrustDatabase"
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import type { SpamClassifier } from "../spamClassification/SpamClassifier"
+import { SpamClassifierStorageFacade } from "../../../common/api/worker/facades/lazy/SpamClassifierStorageFacade"
 
 assertWorkerOrNode()
 
@@ -198,6 +199,7 @@ export type WorkerLocatorType = {
 
 	//spam classification
 	spamClassifier: lazyAsync<SpamClassifier>
+	spamClassifierStorageFacade: lazyAsync<SpamClassifierStorageFacade>
 }
 export const locator: WorkerLocatorType = {} as any
 
@@ -331,6 +333,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 			const { KeyVerificationTableDefinitions } = await import("../../../common/api/worker/facades/IdentityKeyTrustDatabase.js")
 			const { SearchTableDefinitions } = await import("../index/OfflineStoragePersistence.js")
 			const { AutosaveDraftsTableDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineStorageAutosaveFacade.js")
+			const { SpamClassificationTableDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade.js")
 
 			const customCacheHandler = new CustomCacheHandlerMap(
 				{
@@ -341,7 +344,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 					ref: MailTypeRef,
 					handler: new CustomMailEventCacheHandler(mailIndexer),
 				},
-				{ ref: UserTypeRef, handler: new CustomUserCacheHandler(locator.cacheStorage) },
+				{ ref: UserTypeRef, handler: new CustomUserCacheHandler(locator.cacheStorage, await locator.spamClassifierStorageFacade()) },
 			)
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
@@ -352,7 +355,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 				locator.instancePipeline.modelMapper,
 				typeModelResolver,
 				customCacheHandler,
-				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions, AutosaveDraftsTableDefinitions),
+				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions, AutosaveDraftsTableDefinitions, SpamClassificationTableDefinitions),
 			)
 		}
 	} else {
@@ -361,7 +364,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	const ephemeralStorageProvider = async () => {
 		const customCacheHandler = new CustomCacheHandlerMap({
 			ref: UserTypeRef,
-			handler: new CustomUserCacheHandler(locator.cacheStorage),
+			handler: new CustomUserCacheHandler(locator.cacheStorage, await locator.spamClassifierStorageFacade()),
 		})
 		return new EphemeralCacheStorage(locator.instancePipeline.modelMapper, typeModelResolver, customCacheHandler)
 	}
@@ -740,10 +743,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 	})
 
 	locator.spamClassifier = lazyMemoized(async () => {
-		const { SpamClassificationDataDealer } = await import("../spamClassification/SpamClassificationDataDealer")
+		const { SpamClassifierDataDealer } = await import("../spamClassification/SpamClassifierDataDealer")
 		const { SpamClassifier } = await import("../spamClassification/SpamClassifier")
-		const spamClassificationDataDealer = new SpamClassificationDataDealer(locator.cachingEntityClient, locator.bulkMailLoader, locator.mail)
-		return new SpamClassifier(locator.cacheStorage, spamClassificationDataDealer)
+		const spamClassificationDataDealer = new SpamClassifierDataDealer(locator.cachingEntityClient, locator.bulkMailLoader, locator.mail)
+		return new SpamClassifier(await locator.spamClassifierStorageFacade(), spamClassificationDataDealer)
 	})
 
 	const nativePushFacade = new NativePushFacadeSendDispatcher(worker)
@@ -788,6 +791,17 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData) 
 		})
 	} else {
 		locator.autosaveFacade = locator.configFacade
+	}
+
+	if (isOfflineStorageAvailable()) {
+		locator.spamClassifierStorageFacade = lazyMemoized(async () => {
+			const { OfflineStorageSpamClassifierStorageFacade } = await import(
+				"../../../common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade.js"
+			)
+			return new OfflineStorageSpamClassifierStorageFacade(locator.sqlCipherFacade)
+		})
+	} else {
+		locator.spamClassifierStorageFacade = locator.configFacade
 	}
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
