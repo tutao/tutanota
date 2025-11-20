@@ -55,16 +55,21 @@ export class SpamClassificationDataDealer {
 		// clientSpamTrainingData is NOT cached
 		let clientSpamTrainingData = await this.entityClient.loadAll(ClientSpamTrainingDatumTypeRef, mailbox.clientSpamTrainingData)
 
-		// if the training data is empty for this mailbox, we are aggregating
-		// the last INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS of mails and uploading the training data
-		if (isEmpty(clientSpamTrainingData)) {
-			console.log("building and uploading initial training data for mailbox: " + mailbox._id)
-			const mailsWithMailDetails = await this.fetchMailAndMailDetailsForMailbox(mailbox, mailSets)
-			console.log(`mailbox has ${mailsWithMailDetails.length} mails suitable for encrypted training vector data upload`)
-			console.log(`vectorizing, compressing and encrypting those ${mailsWithMailDetails.length} mails...`)
-			await this.uploadTrainingDataForMails(mailsWithMailDetails, mailbox, mailSets)
+		// if the clientSpamTrainingData is empty or does not include all relevant clientSpamTrainingData
+		// for this mailbox, we are aggregating the last INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS of mails
+		// and upload the missing clientSpamTrainingDatum entries
+		const allRelevantMailsInTrainingInterval = await this.fetchMailAndMailDetailsForMailbox(mailbox, mailSets)
+		console.log(`mailbox ${mailbox._id} has total ${allRelevantMailsInTrainingInterval.length} relevant mails in training interval for spam classification`)
+		if (clientSpamTrainingData.length < allRelevantMailsInTrainingInterval.length) {
+			const mailsToUpload = allRelevantMailsInTrainingInterval.filter((mail) => {
+				return !clientSpamTrainingData.some((datum) => isSameId(getElementId(mail.mail), getElementId(datum)))
+			})
+			console.log("building and uploading initial / new training data for mailbox: " + mailbox._id)
+			console.log(`mailbox ${mailbox._id} has ${mailsToUpload.length} new mails suitable for encrypted training vector data upload`)
+			console.log(`vectorizing, compressing and encrypting those ${mailsToUpload.length} mails... for mailbox ${mailbox._id}`)
+			await this.uploadTrainingDataForMails(mailsToUpload, mailbox, mailSets)
 			clientSpamTrainingData = await this.entityClient.loadAll(ClientSpamTrainingDatumTypeRef, mailbox.clientSpamTrainingData)
-			console.log(`clientSpamTrainingData list on the mailbox has ${clientSpamTrainingData.length} members.`)
+			console.log(`clientSpamTrainingData list on the mailbox ${mailbox._id} has ${clientSpamTrainingData.length} members.`)
 		}
 
 		const { subsampledTrainingData, hamCount, spamCount } = this.subsampleHamAndSpamMails(clientSpamTrainingData)
@@ -172,8 +177,8 @@ export class SpamClassificationDataDealer {
 	async fetchMailsByMailbagAfterDate(mailbag: MailBag, mailSets: MailFolder[], startDate: Date): Promise<Array<MailWithMailDetails>> {
 		const bulkMailLoader = await this.bulkMailLoader()
 		const mails = await this.entityClient.loadAll(MailTypeRef, mailbag.mails, timestampToGeneratedId(startDate.getTime()))
+		const trashFolder = assertNotNull(mailSets.find((set) => getMailSetKind(set) === MailSetKind.TRASH))
 		const filteredMails = mails.filter((mail) => {
-			const trashFolder = assertNotNull(mailSets.find((set) => getMailSetKind(set) === MailSetKind.TRASH))
 			const isMailTrashed = mail.sets.some((setId) => isSameId(setId, trashFolder._id))
 			return isNotNull(mail.mailDetails) && !hasError(mail) && mail.receivedDate > startDate && !isMailTrashed
 		})

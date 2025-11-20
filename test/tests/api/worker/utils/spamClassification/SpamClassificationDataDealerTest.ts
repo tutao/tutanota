@@ -40,8 +40,13 @@ function createMailByFolderAndReceivedDate(mailId: IdTuple, mailSet: IdTuple, re
 	})
 }
 
-function createSpamTrainingDatumByConfidenceAndDecision(confidence: string, spamDecision: SpamDecision): ClientSpamTrainingDatum {
+function createSpamTrainingDatumByConfidenceAndDecision(
+	confidence: string,
+	spamDecision: SpamDecision,
+	id: IdTuple = ["listId", "elementId"],
+): ClientSpamTrainingDatum {
 	return createTestEntity(ClientSpamTrainingDatumTypeRef, {
+		_id: id,
 		_ownerGroup: "group",
 		confidence,
 		spamDecision,
@@ -153,14 +158,24 @@ o.spec("SpamClassificationDataDealer", () => {
 		o("uploads training data when clientSpamTrainingData is empty", async () => {
 			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
 			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
-			const spamTrainingData = Array.from({ length: 10 }, () =>
-				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST),
-			).concat(Array.from({ length: 10 }, () => createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST)))
-			const mails = Array.from({ length: 10 }, () =>
-				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId"], inboxFolder._id, new Date(), mailDetails._id),
+			const mails = Array.from({ length: 10 }, (_, index) =>
+				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId" + index], inboxFolder._id, new Date(), mailDetails._id),
 			).concat(
-				Array.from({ length: 10 }, () =>
-					createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "spamMailId"], spamFolder._id, new Date(), mailDetails._id),
+				Array.from({ length: 10 }, (_, index) =>
+					createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "spamMailId" + index], spamFolder._id, new Date(), mailDetails._id),
+				),
+			)
+			const spamTrainingData = Array.from({ length: 10 }, (_, index) =>
+				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST, [
+					mailBox.clientSpamTrainingData!,
+					getElementId(mails[index]),
+				]),
+			).concat(
+				Array.from({ length: 10 }, (_, index) =>
+					createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST, [
+						mailBox.clientSpamTrainingData!,
+						getElementId(mails[10 + index]),
+					]),
 				),
 			)
 			const modifiedIndicesSinceStart = spamTrainingData.map((data) =>
@@ -203,18 +218,106 @@ o.spec("SpamClassificationDataDealer", () => {
 			})
 		})
 
+		o("uploads training data when clientSpamTrainingData does not include all relevant mails", async () => {
+			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+
+			const relevantMails = Array.from({ length: 40 }, (_, index) =>
+				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId" + index], inboxFolder._id, new Date(), mailDetails._id),
+			).concat(
+				Array.from({ length: 40 }, (_, index) =>
+					createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "spamMailId" + index], spamFolder._id, new Date(), mailDetails._id),
+				),
+			)
+
+			const existingSpamTrainingData = Array.from({ length: 20 }, (_, index) =>
+				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST, [
+					mailBox.clientSpamTrainingData!,
+					getElementId(relevantMails[index]),
+				]),
+			).concat(
+				Array.from({ length: 20 }, (_, index) =>
+					createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST, [
+						mailBox.clientSpamTrainingData!,
+						getElementId(relevantMails[40 + index]),
+					]),
+				),
+			)
+
+			const updatedSpamTrainingData = Array.from({ length: 40 }, (_, index) =>
+				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST, [
+					mailBox.clientSpamTrainingData!,
+					getElementId(relevantMails[index]),
+				]),
+			).concat(
+				Array.from({ length: 40 }, (_, index) =>
+					createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST, [
+						mailBox.clientSpamTrainingData!,
+						getElementId(relevantMails[40 + index]),
+					]),
+				),
+			)
+
+			const modifiedIndicesSinceStart = updatedSpamTrainingData.map((data) =>
+				createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElementId(getElementId(data)),
+			)
+
+			when(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData!)).thenResolve(
+				existingSpamTrainingData,
+				updatedSpamTrainingData,
+			)
+			when(entityClientMock.loadAll(MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(relevantMails)
+			when(entityClientMock.loadAll(MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
+			when(entityClientMock.loadAll(MailFolderTypeRef, mailBox.folders!.folders)).thenResolve([inboxFolder, spamFolder, trashFolder])
+			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex!)).thenResolve(
+				modifiedIndicesSinceStart,
+			)
+
+			when(bulkMailLoaderMock.loadMailDetails(relevantMails)).thenResolve(
+				relevantMails.map((mail) => {
+					return { mail, mailDetails }
+				}),
+			)
+
+			const trainingDataset = await spamClassificationDataDealer.fetchAllTrainingData("owner")
+
+			// first load: empty, second load: fetch uploaded data
+			verify(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData!), { times: 2 })
+			verify(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex!), { times: 1 })
+
+			const expectedUploadMailsHam = relevantMails.slice(20, 40)
+			const expectedUploadMailsSpam = relevantMails.slice(60, 80)
+
+			const unencryptedPayload = expectedUploadMailsHam.concat(expectedUploadMailsSpam).map((mail) => {
+				return {
+					mailId: mail._id,
+					isSpam: isSameId(mail.sets[0], spamFolder._id),
+					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
+					vector: new Uint8Array(1),
+				} as UnencryptedPopulateClientSpamTrainingDatum
+			})
+			verify(mailFacadeMock.populateClientSpamTrainingData("owner", unencryptedPayload), { times: 1 })
+
+			o(trainingDataset).deepEquals({
+				trainingData: updatedSpamTrainingData,
+				lastTrainingDataIndexId: getElementId(last(modifiedIndicesSinceStart)!),
+				hamCount: 40,
+				spamCount: 40,
+			})
+		})
+
 		o("successfully returns training data with mixed ham/spam data", async () => {
 			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
 			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.loadAll(MailTypeRef, anything(), anything())).thenResolve([])
+
 			const spamTrainingData = Array.from({ length: 10 }, () =>
 				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST),
 			).concat(Array.from({ length: 10 }, () => createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST)))
-
 			const modifiedIndicesSinceStart = spamTrainingData.map((data) =>
 				createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElementId(getElementId(data)),
 			)
 			when(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData!)).thenResolve(spamTrainingData)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
 			when(entityClientMock.loadAll(MailFolderTypeRef, mailBox.folders!.folders)).thenResolve([inboxFolder, spamFolder, trashFolder])
 			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex!)).thenResolve(
 				modifiedIndicesSinceStart,
@@ -241,6 +344,7 @@ o.spec("SpamClassificationDataDealer", () => {
 			const validSpamData = createSpamTrainingDatumByConfidenceAndDecision("4", SpamDecision.BLACKLIST)
 			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
 			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.loadAll(MailTypeRef, anything(), anything())).thenResolve([])
 
 			const spamTrainingData = [noneDecisionData, zeroConfData, validSpamData, validHamData]
 			const modifiedIndicesSinceStart = spamTrainingData.map((data) =>
