@@ -11,7 +11,6 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import type { EventBannerImpl, EventBannerImplAttrs } from "../../gui/date/EventBannerImpl"
 import { EventBannerSkeleton } from "../../gui/EventBannerSkeleton"
-import type { ThemeController } from "../../../common/gui/ThemeController.js"
 
 export type EventBannerAttrs = {
 	iCalContents: ParsedIcalFileContent
@@ -19,6 +18,7 @@ export type EventBannerAttrs = {
 	recipient: string
 	eventsRepository: CalendarEventsRepository
 	groupColors: Map<Id, string>
+	usesAmPmTimeFormat: boolean
 }
 
 /**

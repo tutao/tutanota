@@ -912,6 +912,11 @@ styles.registerStyle("main", () => {
 		".abs": {
 			position: "absolute",
 		},
+		".abs-center-horizontally": {
+			left: 0,
+			right: 0,
+			margin: "0 auto",
+		},
 		".fixed": {
 			position: "fixed",
 		},
@@ -3179,7 +3184,7 @@ styles.registerStyle("main", () => {
 			height: px(2),
 			width: "100%",
 		},
-		".time-indicator:before": {
+		".time-indicator-circle-left:before": {
 			content: "''",
 			display: "block",
 			width: px(size.icon_12),
@@ -3188,6 +3193,12 @@ styles.registerStyle("main", () => {
 			position: "absolute",
 			transform: "translate(-50%, calc(-50% + 1px))",
 			"border-radius": "50%",
+		},
+		".time-badge": {
+			background: theme.primary,
+			"border-radius": px(size.radius_12),
+			color: theme.on_primary,
+			"line-height": px(16),
 		},
 		".interactable-cell:hover": {
 			background: theme.surface_container,

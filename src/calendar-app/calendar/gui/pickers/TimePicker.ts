@@ -47,13 +47,13 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				times.push(timeStringFromParts(hour, minute, this.amPm))
 			}
 		}
-		this.oldValue = attrs.time?.toString(false) ?? "--"
+		this.oldValue = attrs.time?.toString() ?? "--"
 		this.values = times
 	}
 
 	view({ attrs }: Vnode<TimePickerAttrs>): Children {
 		if (attrs.time) {
-			const timeAsString = attrs.time?.toString(this.amPm) ?? ""
+			const timeAsString = attrs.time?.toString(this.amPm ? { withAmPmSuffix: true } : undefined) ?? ""
 
 			if (!this.focused) {
 				this.value = timeAsString
@@ -68,16 +68,16 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	private renderNativeTimePicker(attrs: TimePickerAttrs): Children {
-		if (this.oldValue !== attrs.time?.toString(false)) {
+		if (this.oldValue !== attrs.time?.toString()) {
 			this.onSelected(attrs)
 		}
 
 		// input[type=time] wants time in 24h format, no matter what is actually displayed. Otherwise it will be empty.
-		const timeAsString = attrs.time?.toString(false) ?? ""
+		const timeAsString = attrs.time?.toString() ?? ""
 		this.oldValue = timeAsString
 		this.value = timeAsString
 
-		const displayTime = attrs.time?.toString(this.amPm)
+		const displayTime = attrs.time?.toString(this.amPm ? { withAmPmSuffix: true } : undefined)
 
 		return m(".rel", [
 			m("input.fill-absolute.invisible.tutaui-button-outline", {
@@ -167,9 +167,9 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		const time = Time.parseFromString(currentTime)?.toObject()
 
 		if (!time) {
-			return Time.fromDate(getNextHalfHour()).toString(false)
+			return Time.fromDate(getNextHalfHour()).toString()
 		}
-		return Time.fromDateTime({ hour: time.hours, minute: time.minutes === 30 ? 30 : 0 } as DateTime).toString(false)
+		return Time.fromDateTime({ hour: time.hours, minute: time.minutes === 30 ? 30 : 0 } as DateTime).toString()
 	}
 
 	private renderTimeSelectInput(attrs: TimePickerAttrs) {

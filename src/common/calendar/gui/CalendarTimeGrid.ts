@@ -4,7 +4,6 @@ import { deepMemoized, getStartOfDay, getStartOfNextDay, lastIndex } from "@tuta
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "luxon"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
-import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { CalendarEventBubbleDragProperties, EventBubbleInteractions, MIN_ROW_SPAN } from "./CalendarEventBubble"
 import { CellActionHandler } from "./CalendarTimeCell"
 import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "./CalendarTimeColumn"
@@ -33,7 +32,16 @@ export interface CalendarTimeGridAttributes {
 	layout: {
 		rowCountForRange: number
 		gridRowHeight: number
+		hideRightBorder: boolean
+		/**
+		 * Useful for rendering a border at the first columns and not 'visually' break the grid when swiping on mobile
+		 */
+		showLeftBorderAtFirstColumn: boolean
 	}
+	/**
+	 * When defined, renders a time indicator at the provided time for the current date
+	 */
+	time?: Time
 }
 
 /**
@@ -135,11 +143,17 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 			".grid.overflow-hidden.height-100p",
 			{
 				style: {
-					"grid-template-columns": `repeat(${attrs.dates.length}, 1fr)`,
-					transition: `opacity ${DefaultAnimationTime}ms linear`,
-				},
+					gridTemplateColumns: `repeat(${attrs.dates.length}, 1fr)`,
+				} satisfies Partial<CSSStyleDeclaration>,
 			},
-			attrs.dates.map((date, index) => this.renderDayColumn(date, attrs, index === lastIndex(attrs.dates))),
+			attrs.dates.map((date, index) =>
+				this.renderDayColumn(
+					date,
+					attrs,
+					index === lastIndex(attrs.dates) && attrs.layout.hideRightBorder,
+					index === 0 && attrs.layout.showLeftBorderAtFirstColumn,
+				),
+			),
 		)
 	}
 
@@ -150,11 +164,12 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 	 * @param baseDate - The date for this column
 	 * @param timeViewAttrs
 	 * @param hideRightBorder
+	 * @param showLeftBorder
 	 * @returns Child nodes representing the rendered events
 	 *
 	 * @private
 	 */
-	private renderDayColumn(baseDate: Date, timeViewAttrs: CalendarTimeGridAttributes, hideRightBorder: boolean): Child {
+	private renderDayColumn(baseDate: Date, timeViewAttrs: CalendarTimeGridAttributes, hideRightBorder: boolean, showLeftBorder: boolean): Child {
 		const {
 			events: eventWrappers,
 			timeScale,
@@ -180,8 +195,10 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 			layout: {
 				rowCount: rowCountForRange,
 				hideRightBorder,
+				showLeftBorder,
 				gridRowHeight,
 			},
+			time: timeViewAttrs.time,
 		} as CalendarTimeColumnAttrs)
 	}
 

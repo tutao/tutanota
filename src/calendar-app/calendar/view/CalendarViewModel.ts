@@ -25,6 +25,7 @@ import {
 	GroupType,
 	NewPaidPlans,
 	OperationType,
+	TimeFormat,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants"
 import { NotAuthorizedError, NotFoundError } from "../../../common/api/common/error/RestError"
@@ -43,6 +44,7 @@ import {
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
+	getTimeFormatForUser,
 	hasAlarmsForTheUser,
 	isBirthdayCalendar,
 	isEventBetweenDays,
@@ -922,6 +924,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				}
 			}
 		}
+	}
+
+	get isAmPm() {
+		return getTimeFormatForUser(this.logins.getUserController().userSettingsGroupRoot) === TimeFormat.TWELVE_HOURS
 	}
 }
 

@@ -43,16 +43,11 @@ export interface CalendarTimeCellAttrs {
  */
 export class CalendarTimeCell implements ClassComponent<CalendarTimeCellAttrs> {
 	view({ attrs }: Vnode<CalendarTimeCellAttrs>) {
-		const showHoverEffect = attrs.interactions?.onCellPressed || attrs.interactions?.onCellContextMenuPressed
-		const conditionalClasses: Array<string> = []
-		if (showHoverEffect) conditionalClasses.push("interactable-cell")
-		if (attrs.showBorderBottom) conditionalClasses.push("border-bottom")
-
 		return m(
-			".rel.z1.flex.small.justify-center.items-center",
+			".rel.z1.flex.small.justify-center.items-center.text-center",
 			{
 				id: attrs.text ? TimeColumn.getTimeCellId(attrs.dateTime.time.hour) : undefined,
-				class: conditionalClasses.join(" "),
+				class: this.resolveClasses(attrs),
 				style: {
 					gridRow: `${attrs.layout.rowBounds.start} / ${attrs.layout.rowBounds.end}`,
 					gridColumn: `1 / span ${attrs.layout.subColumnCount}`,
@@ -74,5 +69,21 @@ export class CalendarTimeCell implements ClassComponent<CalendarTimeCellAttrs> {
 			},
 			attrs?.text,
 		)
+	}
+
+	private resolveClasses(attrs: CalendarTimeCellAttrs) {
+		const classes: Array<string> = []
+
+		const showHoverEffect = Boolean(attrs.interactions?.onCellPressed || attrs.interactions?.onCellContextMenuPressed)
+		if (showHoverEffect) {
+			classes.push("interactable-cell")
+		}
+		if (attrs.showBorderBottom) {
+			classes.push("border-bottom")
+		}
+		if (attrs.text) {
+			classes.push("plr-core-8")
+		}
+		return classes.join(" ")
 	}
 }
