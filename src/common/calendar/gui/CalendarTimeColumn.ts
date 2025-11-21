@@ -22,6 +22,7 @@ export type CalendarTimeColumnAttrs = {
 		rowCount: number
 		gridRowHeight: number
 		hideRightBorder: boolean
+		borderLeftInset: boolean
 	}
 }
 
@@ -42,6 +43,8 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 		const firstInterval = getFirstOrThrow(attrs.intervals)
 		const secondInterval = assertNotNull(attrs.intervals.at(1))
 		const intervalIncrement = firstInterval.diff(secondInterval)
+
+		// FIXME Apply a left border as inset, probably will have to modify interactableCells
 
 		return m(
 			".grid.plr-unit.z1.grid-auto-columns.rel.min-width-0.gap",

@@ -316,6 +316,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 								attrs.bodyComponentAttrs.current.events.short,
 								attrs.cellActionHandlers,
 								attrs.eventBubbleHandlers,
+								true,
 							),
 						},
 						nextPage: {
@@ -382,6 +383,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		events: Array<EventWrapper>,
 		cellActionHandlers: CalendarTimeGridAttributes["cellActionHandlers"],
 		eventBubbleHandlers: EventBubbleInteractions,
+		borderLeft: boolean = false,
 	) {
 		return m(CalendarTimeGrid, {
 			intervals: this.viewConfig.intervals,
@@ -397,6 +399,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			layout: {
 				rowCountForRange: this.layoutState.rowCountPerDay,
 				gridRowHeight: this.layoutState.gridRowHeight,
+				borderLeftInset: borderLeft,
 			},
 			time: Time.fromDate(new Date()),
 		} satisfies CalendarTimeGridAttributes)

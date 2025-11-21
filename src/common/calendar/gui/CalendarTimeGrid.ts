@@ -34,6 +34,7 @@ export interface CalendarTimeGridAttributes {
 	layout: {
 		rowCountForRange: number
 		gridRowHeight: number
+		borderLeftInset: boolean
 	}
 	time: Time
 }
@@ -153,7 +154,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 				},
 			},
 			[
-				attrs.dates.map((date, index) => this.renderDayColumn(date, attrs, index === lastIndex(attrs.dates))),
+				attrs.dates.map((date, index) => this.renderDayColumn(date, attrs, index === lastIndex(attrs.dates), attrs.layout.borderLeftInset)),
 				todayIndex !== -1
 					? m(TimeIndicator, {
 							position: {
@@ -182,7 +183,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 	 *
 	 * @private
 	 */
-	private renderDayColumn(baseDate: Date, timeViewAttrs: CalendarTimeGridAttributes, hideRightBorder: boolean): Child {
+	private renderDayColumn(baseDate: Date, timeViewAttrs: CalendarTimeGridAttributes, hideRightBorder: boolean, borderLeftInset: boolean): Child {
 		const {
 			events: eventWrappers,
 			timeScale,
@@ -209,6 +210,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 				rowCount: rowCountForRange,
 				hideRightBorder,
 				gridRowHeight,
+				borderLeftInset,
 			},
 			time: timeViewAttrs.time,
 		} as CalendarTimeColumnAttrs)
