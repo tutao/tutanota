@@ -4,6 +4,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../theme"
 import { lazy } from "@tutao/tutanota-utils"
 import { px, size } from "../size"
+import { ExpanderPanel } from "./Expander"
 
 export type RadioSelectorOption<T> = {
 	readonly name: MaybeTranslation
@@ -29,26 +30,29 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
-			".border.pl-l.pr.pt.pb",
+			".border.plr-l",
 			{
+				// Make the option the same size as a button if a description is not given
+				class: "button-min-width button-min-height" + attrClasses,
 				style: {
 					"border-radius": px(size.border_radius_large),
+					"padding-block": px(12),
+					"background-color": isSelected ? theme.surface_container_high : theme.surface_container,
+					"border-color": isSelected ? theme.surface_container_high : theme.outline_variant,
+					"border-width": px(size.checkbox_border_size),
+					width: px(400),
+				},
+				onclick: () => {
+					if (!isSelected) onOptionSelected(option.value)
 				},
 			},
 			m(
-				".flex.items-center",
+				".flex.items-center.gap-hpad",
 				{
-					// Make the option the same size as a button if a description is not given
-					class: "button-min-width button-min-height" + attrClasses,
 					style: {
 						color: isSelected ? theme.primary : theme.on_surface_variant,
 						"font-weight": isSelected ? "bold" : undefined,
-						borderWidth: "2px",
 						height: "fit-content",
-						"padding-bottom": isSelected ? px(size.vpad) : 0,
-					},
-					onclick: () => {
-						onOptionSelected(option.value)
 					},
 				},
 				[
@@ -56,64 +60,19 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 					m("label.left.pt-xs.pb-xs", { for: optionId }, lang.getTranslationText(option.name)),
 				],
 			),
-			isSelected && option.renderChild?.(),
+			m(ExpanderPanel, { expanded: isSelected }, option.renderChild?.()),
 		)
 	}
 }
 
 function renderKnob(value: string, id: string, groupName: MaybeTranslation, isSelected: boolean): Children {
-	return m(
-		".rel.m-0.mr",
-		{
-			style: {
-				width: "20px",
-				height: "20px",
-				appearance: "none",
-			},
+	return m("input[type=radio].m-0.big-radio", {
+		name: groupName,
+		checked: isSelected,
+		value,
+		id,
+		style: {
+			"accent-color": theme.on_primary_container,
 		},
-		[
-			m("input", {
-				type: "radio",
-				style: {
-					margin: "0px",
-					width: "20px",
-					height: "20px",
-					appearance: "none",
-				},
-				/* The `name` attribute defines the group the radio button belongs to. Not the name/label of the radio button itself.
-				 * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#defining_a_radio_group
-				 */
-				name: lang.getTranslationText(groupName),
-				value,
-				id,
-				// Handle changes in value from the attributes
-				checked: isSelected ? true : null,
-			}),
-			m("div", {
-				style: {
-					"border-color": isSelected ? theme.primary : theme.outline_variant,
-					"border-style": "solid",
-					"border-width": px(size.checkbox_border_size),
-					"border-radius": "50%",
-					position: "absolute",
-					top: "0px",
-					left: "0px",
-					height: "20px",
-					width: "20px",
-				},
-			}),
-			m("div", {
-				style: {
-					display: isSelected ? "initial" : "none",
-					"background-color": theme.primary,
-					"border-radius": "50%",
-					position: "absolute",
-					top: "4px",
-					left: "4px",
-					height: "12px",
-					width: "12px",
-				},
-			}),
-		],
-	)
+	})
 }
