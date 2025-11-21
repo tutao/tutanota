@@ -1,5 +1,5 @@
-import m, { Children, ClassComponent, Vnode } from "mithril"
-import { assertNotNull, downcast, getFirstOrThrow, lastIndex, lastThrow } from "@tutao/tutanota-utils"
+import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
+import { assertNotNull, downcast, getFirstOrThrow, isToday, lastIndex, lastThrow } from "@tutao/tutanota-utils"
 import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { CalendarTimeColumnData, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
@@ -9,10 +9,12 @@ import { CalendarEventBubble, CalendarEventBubbleAttrs, CalendarEventBubbleDragP
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "../../../../libs/luxon"
 import { px } from "../../gui/size"
+import { TimeIndicator, TimeIndicatorAttrs, TimeIndicatorVariant } from "./TimeIndicator"
 
 export type CalendarTimeColumnAttrs = {
 	intervals: Array<Time> // containing the start time of each interval
 	baseDate: Date
+	time: Time
 	onCellPressed?: CellActionHandler
 	onCellContextMenuPressed?: CellActionHandler
 	eventInteractions?: EventBubbleInteractions & CalendarEventBubbleDragProperties
@@ -25,12 +27,23 @@ export type CalendarTimeColumnAttrs = {
 }
 
 export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttrs> {
+	columnHeight: number = 0
+
+	oncreate(vnode: VnodeDOM<CalendarTimeColumnAttrs>) {
+		this.columnHeight = vnode.dom.clientHeight
+	}
+
 	view({ attrs }: Vnode<CalendarTimeColumnAttrs>) {
 		const {
 			layout: { rowCount, hideRightBorder, gridRowHeight },
 			eventInteractions,
 			baseDate,
 		} = attrs
+
+		const firstInterval = getFirstOrThrow(attrs.intervals)
+		const secondInterval = assertNotNull(attrs.intervals.at(1))
+		const intervalIncrement = firstInterval.diff(secondInterval)
+
 		return m(
 			".grid.plr-unit.z1.grid-auto-columns.rel.min-width-0.gap",
 			{
@@ -44,7 +57,20 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 					eventInteractions?.drag?.setTimeUnderMouse(time, baseDate)
 				},
 			},
-			[this.renderInteractableCells(attrs), this.renderEvents(attrs)],
+			[
+				this.renderInteractableCells(attrs),
+				this.renderEvents(attrs),
+				m(TimeIndicator, {
+					position: {
+						timeRange: { start: firstInterval, end: lastThrow(attrs.intervals) },
+						dayHeight: this.columnHeight,
+						interval: intervalIncrement,
+					},
+					fullOpacity: isToday(attrs.baseDate),
+					time: attrs.time,
+					variant: TimeIndicatorVariant.LINE_WITH_CIRCLE,
+				} satisfies TimeIndicatorAttrs),
+			],
 		)
 	}
 

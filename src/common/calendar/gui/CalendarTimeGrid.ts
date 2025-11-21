@@ -34,6 +34,7 @@ export interface CalendarTimeGridAttributes {
 		rowCountForRange: number
 		gridRowHeight: number
 	}
+	time: Time
 }
 
 /**
@@ -183,6 +184,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 				hideRightBorder,
 				gridRowHeight,
 			},
+			time: timeViewAttrs.time,
 		} as CalendarTimeColumnAttrs)
 	}
 

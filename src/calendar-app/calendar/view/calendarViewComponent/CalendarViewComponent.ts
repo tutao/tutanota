@@ -6,14 +6,7 @@ import { WeekDaysComponent, WeekDaysComponentAttrs } from "./WeekDaysComponent"
 import { TimeColumn, TimeColumnAttrs } from "../../../../common/calendar/gui/TimeColumn"
 import { Time } from "../../../../common/calendar/date/Time"
 import { size } from "../../../../common/gui/size"
-import {
-	CalendarTimeGrid,
-	CalendarTimeGridAttributes,
-	getIntervalAsMinutes,
-	SUBROWS_PER_INTERVAL,
-	TimeRange,
-	TimeScale,
-} from "../../../../common/calendar/gui/CalendarTimeGrid"
+import { CalendarTimeGrid, CalendarTimeGridAttributes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "../../../../common/calendar/gui/CalendarTimeGrid"
 import { EventWrapper, ScrollByListener } from "../CalendarViewModel"
 import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/gui/AllDaySection"
 import { EventBubbleInteractions } from "../../../../common/calendar/gui/CalendarEventBubble"
@@ -24,7 +17,6 @@ import { UserError } from "../../../../common/api/main/UserError"
 import { showUserError } from "../../../../common/misc/ErrorHandlerImpl"
 import { combineDateWithTime } from "../../../../common/calendar/date/CalendarUtils"
 import { deviceConfig } from "../../../../common/misc/DeviceConfig"
-import { TimeIndicator, TimeIndicatorAttrs } from "../../../../common/calendar/gui/TimeIndicator"
 import { PageView } from "../../../../common/gui/base/PageView"
 
 /**
@@ -275,19 +267,19 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						},
 					} satisfies TimeColumnAttrs),
 				),
-				shouldRenderTimeIndicator
-					? m(TimeIndicator, {
-							position: {
-								timeRange: this.viewConfig.timeRange,
-								dayHeight: this.layoutState.dayHeight!,
-								interval: getIntervalAsMinutes(this.viewConfig.timeScale),
-								areaWidth: this.layoutState.pageViewWidth!,
-								numberOfDatesInRange: attrs.headerComponentAttrs?.dates?.length ?? 1,
-								datePosition,
-								leftOffset: timeColumnWidth,
-							},
-						} satisfies TimeIndicatorAttrs)
-					: null,
+				// shouldRenderTimeIndicator
+				// 	? m(TimeIndicator, {
+				// 			position: {
+				// 				timeRange: this.viewConfig.timeRange,
+				// 				dayHeight: this.layoutState.dayHeight!,
+				// 				interval: getIntervalAsMinutes(this.viewConfig.timeScale),
+				// 				areaWidth: this.layoutState.pageViewWidth!,
+				// 				numberOfDatesInRange: attrs.headerComponentAttrs?.dates?.length ?? 1,
+				// 				datePosition,
+				// 				leftOffset: timeColumnWidth,
+				// 			},
+				// 		} satisfies TimeIndicatorAttrs)
+				// 	: null,
 				m(
 					".content-bg.border-radius-top-right-big.min-width-0",
 
@@ -406,6 +398,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 				rowCountForRange: this.layoutState.rowCountPerDay,
 				gridRowHeight: this.layoutState.gridRowHeight,
 			},
+			time: Time.fromDate(new Date()),
 		} satisfies CalendarTimeGridAttributes)
 	}
 

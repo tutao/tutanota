@@ -40,7 +40,6 @@ import { GENERATED_MIN_ID } from "../../../common/api/common/utils/EntityUtils"
 import { TimeColumn, TimeColumnAttrs } from "../../../common/calendar/gui/TimeColumn"
 import { AriaRole } from "../../../common/gui/AriaUtils"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
-import { TimeIndicator, TimeIndicatorAttrs } from "../../../common/calendar/gui/TimeIndicator"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
@@ -286,18 +285,14 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 													gridRowHeight: this.gridRowHeight,
 												},
 											} satisfies TimeColumnAttrs),
-											m(TimeIndicator, {
-												time: Time.fromDate(agenda.main.event.startTime),
-												position: {
-													timeRange,
-													dayHeight: this.layoutState.gridHeight!,
-													interval: getIntervalAsMinutes(timeScale),
-													areaWidth: this.layoutState.gridWidth!,
-													numberOfDatesInRange: 1,
-													datePosition: 0,
-													leftOffset: timeColumnWidth,
-												},
-											} satisfies TimeIndicatorAttrs),
+											// m(TimeIndicator, {
+											// 	time: Time.fromDate(agenda.main.event.startTime),
+											// 	position: {
+											// 		timeRange,
+											// 		dayHeight: this.layoutState.gridHeight!,
+											// 		interval: getIntervalAsMinutes(timeScale),
+											// 	},
+											// } satisfies TimeIndicatorAttrs),
 											m(
 												".full-width",
 												{
@@ -322,6 +317,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 														gridRowHeight: this.gridRowHeight,
 														rowCountForRange,
 													},
+													time: Time.fromDate(event.startTime),
 												} satisfies CalendarTimeGridAttributes),
 											),
 										])
