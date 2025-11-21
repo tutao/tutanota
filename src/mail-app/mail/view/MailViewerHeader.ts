@@ -362,8 +362,11 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				".mb-s.mt-s." + responsiveCardHMargin(),
 				m(InfoBanner, {
 					message: () =>
-						lang.getTranslation("sendScheduledForDate_msg", { "{dateTime}": formatDateWithWeekday(sendAt) + " • " + formatTime(sendAt) }).text,
-					icon: Icons.Clock,
+						m(
+							".small.text-break",
+							lang.getTranslation("sendScheduledForDate_msg", { "{dateTime}": formatDateWithWeekday(sendAt) + " • " + formatTime(sendAt) }).text,
+						),
+					icon: Icons.ClockFilled,
 					buttons: [],
 				}),
 			)
