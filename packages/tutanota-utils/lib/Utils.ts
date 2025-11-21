@@ -692,3 +692,7 @@ export function isSessionStorageAvailable(): boolean {
 		return false
 	}
 }
+
+export function isAsciiChar(char: string): boolean {
+	return char.charCodeAt(0) <= 0x7f
+}
