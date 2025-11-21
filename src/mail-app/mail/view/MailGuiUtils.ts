@@ -345,8 +345,7 @@ export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 			return Icons.Draft
 
 		case MailSetKind.SEND_LATER:
-			// FIXME use the send later icon
-			return Icons.Clock
+			return Icons.ClockFilled
 
 		default:
 			return Icons.Folder

@@ -499,7 +499,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					model.setSendLaterDate(nextDay)
 				}
 			},
-			icon: Icons.Clock,
+			icon: Icons.ClockFilled,
 			toggled: sendLater !== null,
 			size: ButtonSize.Compact,
 		}
