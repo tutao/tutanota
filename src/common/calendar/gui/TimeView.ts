@@ -113,8 +113,13 @@ export class TimeView implements Component<TimeViewAttributes> {
 				dates.map((date) => {
 					// Events Columns
 					return m(
-						".grid.plr-unit.gap.z1.grid-auto-columns.rel",
+						".grid.z1.grid-auto-columns.rel",
 						{
+							style: {
+								"padding-right": px(1),
+								"padding-left": px(1),
+								gap: px(1),
+							},
 							oncreate(vnode): any {
 								;(vnode.dom as HTMLElement).style.gridTemplateRows = `repeat(${subRowCount}, 1fr)`
 							},
@@ -169,7 +174,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 			},
 			times.map((time, index) =>
 				m(
-					".flex.ptb-button-double.small.pr-vpad-s.border-right.rel.items-center",
+					".flex.pt-16.pb-16.small.pr-8.border-right.rel.items-center",
 					{
 						class: index !== times.length - 1 ? "after-as-border-bottom" : "",
 					},
@@ -205,7 +210,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 
 				return m(
 					// EventBubble
-					".border-radius.text-ellipsis-multi-line.p-xsm.on-success-container-color.small",
+					".border-radius.text-ellipsis-multi-line.p-4.on-success-container-color.small",
 					{
 						style: {
 							"min-height": px(0),
@@ -229,8 +234,7 @@ export class TimeView implements Component<TimeViewAttributes> {
 								m(Icon, {
 									icon: hasAnyConflict ? Icons.AlertCircle : Icons.Checkmark,
 									container: "div",
-									class: "mr-xxs",
-									size: IconSize.Normal,
+									class: "mr-4",
 									style: {
 										fill: hasAnyConflict ? theme.on_warning_container : theme.on_success_container,
 									},

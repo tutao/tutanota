@@ -19,7 +19,7 @@ import {
 } from "../../common/api/entities/tutanota/TypeRefs.js"
 import m from "mithril"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../common/gui/base/List.js"
-import { size } from "../../common/gui/size.js"
+import { component_size, size } from "../../common/gui/size.js"
 import { UserError } from "../../common/api/main/UserError.js"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../common/gui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../common/gui/base/Button.js"
@@ -256,7 +256,7 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 	const viewModel: ContactImportDialogViewModel = new ContactImportDialogViewModel()
 	viewModel.selectContacts(contacts)
 	const renderConfig: RenderConfig<Contact, KindaContactRow> = {
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {
@@ -298,9 +298,9 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 				],
 			} satisfies DialogHeaderBarAttrs),
 			/** variable-size child container that may be scrollable. */
-			m(".dialog-max-height.plr-s.pb.text-break.nav-bg", [
+			m(".dialog-max-height.plr-4.pb-16.text-break.nav-bg", [
 				m(
-					".list-bg.border-radius.mt-s.ml-s.mr-s",
+					".list-bg.border-radius.mt-8.ml-8.mr-8",
 					m(SelectAllCheckbox, {
 						style: {
 							"padding-left": "0",
@@ -311,7 +311,7 @@ export function showContactImportDialog(contacts: Contact[], okAction: (dialog: 
 					}),
 				),
 				m(
-					".flex.col.rel.mt-s",
+					".flex.col.rel.mt-8",
 					{
 						style: {
 							height: "80vh",

@@ -26,17 +26,17 @@ export class SettingsNavButton implements Component<SettingsNavButtonAttrs> {
 							icon: attrs.icon?.(),
 							container: "div",
 							class: "center-h",
-							size: IconSize.Large,
+							size: IconSize.PX20,
 						})
 					: null,
 				onclick: attrs.click,
-				class: `flex justify-start full-width gap-vpad pl-vpad-m pr-m items-center`,
+				class: `flex justify-start full-width gap-16 pl-16 pr-16 items-center`,
 			},
 			m(Icon, {
 				icon: Icons.ArrowForward,
 				container: "div",
 				class: "center-h items-ends",
-				size: IconSize.Large,
+				size: IconSize.PX20,
 			}),
 		)
 

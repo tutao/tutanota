@@ -17,12 +17,12 @@ type EmailSupportUnavailableAttrs = {
 export class EmailSupportUnavailablePage implements Component<EmailSupportUnavailableAttrs> {
 	view({ attrs: { data, goToContactSupportPage } }: Vnode<EmailSupportUnavailableAttrs>): Children {
 		return m(
-			".pt.pb",
+			".pt-16.pb-16",
 			m(
 				Card,
 				{ shouldDivide: true },
-				m("div.pt-s.pb-s.plr", [
-					m(".h4.mt-xs", lang.get("supportNoDirectSupport_title")),
+				m("div.pt-8.pb-8.plr-12", [
+					m(".h4.mt-4", lang.get("supportNoDirectSupport_title")),
 					m("p", lang.get("supportNoDirectSupport_msg")),
 					m("img.block", {
 						src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/account.png`,
@@ -55,11 +55,11 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 				}),
 			),
 			m(
-				".mt-l.center",
+				".mt-32.center",
 				m(BaseButton, {
 					label: "upgrade_action",
 					text: lang.get("upgrade_action"),
-					class: `button-content border-radius accent-bg center plr-button flash full-width`,
+					class: `button-content border-radius accent-bg center plr-8 flash full-width`,
 					onclick: async () => {
 						await showUpgradeDialog()
 

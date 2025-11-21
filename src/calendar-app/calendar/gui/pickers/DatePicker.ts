@@ -213,7 +213,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		// We would like to show the date being typed in the dropdown
 		const dropdownDate = this.parseDate(this.inputText) ?? date ?? new Date()
 		return m(
-			".content-bg.z3.menu-shadow.plr.pb-s",
+			".content-bg.z3.menu-shadow.plr-12.pb-8",
 			{
 				"aria-modal": "true",
 				"aria-label": lang.get(label),
@@ -417,7 +417,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 
 	private renderPickerHeader(vnode: Vnode<VisualDatePickerAttrs>, date: Date): Children {
 		const size = this.getElementWidth(vnode.attrs)
-		return m(".flex.flex-space-between.pt-s.pb-s.items-center", [
+		return m(".flex.flex-space-between.pt-8.pb-8.items-center", [
 			renderSwitchMonthArrowIcon(false, size, () => this.onPrevMonthSelected()),
 			m(
 				".b",

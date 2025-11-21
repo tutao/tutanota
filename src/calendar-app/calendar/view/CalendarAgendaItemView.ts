@@ -27,7 +27,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 		const eventTitle = getDisplayEventTitle(attrs.event.summary)
 
 		return m(
-			".flex.items-center.click.plr.border-radius.pt-s.pb-s.rel.limit-width.full-width",
+			".flex.items-center.click.plr-12.border-radius.pt-8.pb-8.rel.limit-width.full-width",
 			{
 				// Implement the background color via JavaScript on Desktop, so we can react to `attrs.selected`
 				class: styles.isDesktopLayout() ? "hide-outline" : "state-bg",
@@ -49,7 +49,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 						backgroundColor: `#${attrs.color}`,
 					},
 				}),
-				m(".flex.col.min-width-0.pl-vpad-l", [m("p.b.m-0.text-ellipsis", eventTitle), m("", attrs.timeText)]),
+				m(".flex.col.min-width-0.pl-32", [m("p.b.m-0.text-ellipsis", eventTitle), m("", attrs.timeText)]),
 			],
 		)
 	}

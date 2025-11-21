@@ -114,7 +114,7 @@ export class Button implements ClassComponent<ButtonAttrs> {
 			classes.push("b")
 		} else {
 			if (!inline) {
-				classes.push("plr-button")
+				classes.push("plr-8")
 				classes.push("button-content")
 			}
 		}

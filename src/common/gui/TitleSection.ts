@@ -23,11 +23,11 @@ export class TitleSection implements Component<SettingsTitleSectionAttrsType> {
 					},
 				},
 				m(
-					".center.pb-s.pt-m",
+					".center.pb-8.pt-12",
 					attrs.icon
 						? m(Icon, {
 								icon: attrs.icon,
-								size: IconSize.XXL,
+								size: IconSize.PX64,
 								style: {
 									fill: attrs.iconOptions?.color,
 								},
@@ -35,7 +35,7 @@ export class TitleSection implements Component<SettingsTitleSectionAttrsType> {
 						: null,
 				),
 				m(
-					".center.mb",
+					".center.mb-16",
 					{
 						style: {
 							fontSize: "20px",

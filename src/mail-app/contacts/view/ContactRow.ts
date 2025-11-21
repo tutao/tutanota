@@ -10,11 +10,11 @@ import {
 import { getContactListName } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { NBSP, noOp } from "@tutao/tutanota-utils"
 import m, { Children } from "mithril"
-import { px, size } from "../../../common/gui/size.js"
+import { component_size, px, size } from "../../../common/gui/size.js"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { splitTextForHighlighting, SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
-export const shiftByForCheckbox = px(size.checkbox_size + size.hpad)
+export const shiftByForCheckbox = px(component_size.checkbox_size + size.spacing_12)
 export const translateXShow = `translateX(${shiftByForCheckbox})`
 export const translateXHide = "translateX(0)"
 
@@ -70,7 +70,7 @@ export class ContactRow implements VirtualRow<Contact> {
 				},
 				onSelectedChangeRef: (updater) => (this.selectionUpdater = updater),
 			},
-			m(".mt-xs.abs", [
+			m(".mt-4.abs", [
 				m("input.checkbox.list-checkbox", {
 					type: "checkbox",
 					style: {
@@ -97,7 +97,7 @@ export class ContactRow implements VirtualRow<Contact> {
 				m(".text-ellipsis.badge-line-height", {
 					oncreate: (vnode) => (this.domName = vnode.dom as HTMLElement),
 				}),
-				m(".text-ellipsis.smaller.mt-xxs", {
+				m(".text-ellipsis.smaller.mt-4", {
 					oncreate: (vnode) => (this.domAddress = vnode.dom as HTMLElement),
 				}),
 			]),

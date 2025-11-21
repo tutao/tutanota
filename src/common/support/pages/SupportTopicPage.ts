@@ -40,7 +40,7 @@ export class SupportTopicPage implements Component<Props> {
 		const buttonText = getContactSupportText(topic, languageTag)
 
 		return m(
-			".flex.flex-column.pt.pb",
+			".flex.flex-column.pt-16.pb-16",
 			{
 				style: {
 					"overflow-x": "auto",
@@ -52,14 +52,14 @@ export class SupportTopicPage implements Component<Props> {
 					Card,
 					{
 						rootElementType: "div",
-						classes: ["scroll", "mb"],
+						classes: ["scroll", "mb-16"],
 					},
-					m(".h4.m-0.pb", issue),
+					m(".h4.m-0.pb-16", issue),
 					m.trust(sanitisedSolution),
 					buttonText &&
 						!locator.logins.getUserController().isFreeAccount() &&
 						m(
-							".flex.center-horizontally.mt",
+							".flex.center-horizontally.mt-16",
 							m(Button, {
 								label: lang.makeTranslation("", buttonText),
 								type: ButtonType.Primary,
@@ -82,7 +82,7 @@ interface WasThisHelpfulAttrs {
 class WasThisHelpful implements Component<WasThisHelpfulAttrs> {
 	view({ attrs: { goToContactSupportPage, goToSolutionWasHelpfulPage, topicName } }: Vnode<WasThisHelpfulAttrs>): Children {
 		return m(
-			".flex.flex-column.gap-vpad-s",
+			".flex.flex-column.gap-8",
 			m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.get("wasThisHelpful_msg")),
 			m(Card, { shouldDivide: true }, [
 				m(SectionButton, {

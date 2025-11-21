@@ -40,14 +40,14 @@ export function showDateRangeSelectionDialog({
 	const form: Component = {
 		view: () =>
 			m(
-				".flex.col.pt",
+				".flex.col.pt-16",
 				m(
 					"",
 					{
 						style: {
 							display: "grid",
 							"grid-template-columns": "2fr 6fr 1fr",
-							"grid-gap": px(size.vpad_small),
+							"grid-gap": px(size.spacing_8),
 							"align-items": "center",
 						},
 					},
@@ -86,7 +86,7 @@ export function showDateRangeSelectionDialog({
 						),
 					],
 				),
-				warning ? m(".mt.center", warning) : null,
+				warning ? m(".mt-16.center", warning) : null,
 			),
 	}
 	return newPromise((resolve) => {

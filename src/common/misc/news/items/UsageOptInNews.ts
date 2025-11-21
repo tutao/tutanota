@@ -62,7 +62,7 @@ export class UsageOptInNews implements NewsListItem {
 
 		return m(".full-width", [
 			m(".h4", lang.get("userUsageDataOptIn_title")),
-			m(".pb", lang.get("userUsageDataOptInExplanation_msg")),
+			m(".pb-16", lang.get("userUsageDataOptInExplanation_msg")),
 			m("ul.usage-test-opt-in-bullets", [
 				m("li", lang.get("userUsageDataOptInStatement1_msg")),
 				m("li", lang.get("userUsageDataOptInStatement2_msg")),

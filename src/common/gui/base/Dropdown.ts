@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { modal, ModalComponent } from "./Modal"
 import { animations, opacity, transform, TransformEnum } from "../animation/Animations"
 import { ease } from "../animation/Easing"
-import { px, size } from "../size"
+import { component_size, px, size } from "../size"
 import { focusNext, focusPrevious, Shortcut } from "../../misc/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
 import { lang, MaybeTranslation } from "../../misc/LanguageViewModel"
@@ -137,7 +137,7 @@ export class Dropdown implements ModalComponent {
 		const inputField = () => {
 			return this.isFilterable
 				? m(
-						"input.input.dropdown-bar.elevated-bg.doNotClose.button-height.button-min-height.pr-s",
+						"input.input.dropdown-bar.elevated-bg.doNotClose.button-height.button-min-height.pr-4",
 						{
 							placeholder: lang.get("typeToFilter_label"),
 							oncreate: (vnode) => {
@@ -148,7 +148,7 @@ export class Dropdown implements ModalComponent {
 								this.filterString = neverNull(this.domInput).value
 							},
 							style: {
-								paddingLeft: px(size.hpad_large * 2),
+								paddingLeft: px(size.spacing_24 * 2),
 							},
 						},
 						this.filterString,
@@ -174,7 +174,8 @@ export class Dropdown implements ModalComponent {
 							const children = Array.from(vnode.dom.children) as Array<HTMLElement>
 							// In case we have filtered but we need to resize the dropdown we keep the original height before the filter, otherwise we will show the dropdown with
 							// incorrect height.
-							this.maxHeight = this.maxHeight ?? children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.vpad
+							this.maxHeight =
+								this.maxHeight ?? children.reduce((accumulator, children) => accumulator + children.offsetHeight, 0) + size.spacing_16
 							this.windowHeight = window.innerHeight
 
 							if (this.origin) {
@@ -384,7 +385,7 @@ export class Dropdown implements ModalComponent {
 	}
 
 	private getFilterHeight(): number {
-		return this.isFilterable ? size.button_height + size.vpad_xs : 0
+		return this.isFilterable ? component_size.button_height + size.spacing_4 : 0
 	}
 }
 

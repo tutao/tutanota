@@ -26,7 +26,7 @@ export function showTakeOverDialog(mailAddress: string, password: string): Dialo
 		child: {
 			view: () => {
 				return [
-					m(".mt", lang.get("takeOverUnusedAddress_msg")),
+					m(".mt-16", lang.get("takeOverUnusedAddress_msg")),
 					m(MoreInfoLink, { link: InfoLink.InactiveAccounts }),
 					m(TextField, {
 						label: "targetAddress_label",

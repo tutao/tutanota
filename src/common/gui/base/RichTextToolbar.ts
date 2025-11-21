@@ -3,7 +3,7 @@ import { Icons } from "./icons/Icons"
 import type { Editor, Listing, Style } from "../editor/Editor"
 import { Alignment } from "../editor/Editor"
 import { numberRange } from "@tutao/tutanota-utils"
-import { size } from "../size"
+import { font_size, size } from "../size"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
 import { lang, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
 import { animations, height, opacity } from "../animation/Animations"
@@ -22,13 +22,13 @@ export interface RichTextToolbarAttrs {
 }
 
 export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
-	selectedSize = size.font_size_base
+	selectedSize = font_size.base
 
 	constructor({ attrs }: Vnode<RichTextToolbarAttrs>) {
 		try {
 			this.selectedSize = parseInt(attrs.editor.squire.getFontInfo().size.slice(0, -2))
 		} catch (e) {
-			this.selectedSize = size.font_size_base
+			this.selectedSize = font_size.base
 		}
 	}
 
@@ -58,7 +58,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			},
 			[
 				m(
-					".flex-end.wrap.items-center.mb-xs.mt-xs.ml-between-s",
+					".flex-end.wrap.items-center.mb-4.mt-4.ml-between-4",
 					this.renderStyleButtons(attrs),
 					this.renderCustomButtons(attrs),
 					this.renderAlignDropDown(attrs),

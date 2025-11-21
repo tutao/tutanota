@@ -33,7 +33,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 
 		const publicIdentity = model.getPublicIdentity()
 
-		return m(".pt.pb.flex.col.gap-vpad", [
+		return m(".pt-16.pb-16.flex.col.gap-16", [
 			m(TitleSection, {
 				title: lang.get("keyManagement.textVerification_label"),
 				subTitle: lang.get("keyManagement.verificationByTextMailAdress_label"),
@@ -47,7 +47,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					ariaLabel: lang.get("mailAddress_label"),
 					placeholder: lang.get("mailAddress_label"),
 					disabled: false,
-					classes: ["flex", "gap-vpad-s", "items-center", "pl-vpad-s"],
+					classes: ["flex", "gap-8", "items-center", "pl-8"],
 					leadingIcon: {
 						icon: BootIcons.User,
 						color: getColors(ButtonColor.Content).button,
@@ -74,9 +74,9 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 				? [
 						m(
 							Card,
-							{ classes: ["flex", "flex-column", "gap-vpad"] },
+							{ classes: ["flex", "flex-column", "gap-16"] },
 							m(
-								".pl-vpad-s",
+								".pl-8",
 								lang.get("keyManagement.verificationByText_label", {
 									"{settings}": lang.get("settings_label"),
 									"{keyManagement}": lang.get("keyManagement_label"),
@@ -98,8 +98,8 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 							},
 							icon: m(Icon, {
 								icon: Icons.XCheckmark,
-								size: IconSize.Large,
-								class: "mr-s flex-center",
+								size: IconSize.PX20,
+								class: "mr-8 flex-center",
 							}),
 						}),
 						m(LoginButton, {
@@ -110,8 +110,8 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 							},
 							icon: m(Icon, {
 								icon: Icons.XCross,
-								size: IconSize.Large,
-								class: "mr-s flex-center",
+								size: IconSize.PX20,
+								class: "mr-8 flex-center",
 								style: {
 									fill: theme.surface,
 								},
