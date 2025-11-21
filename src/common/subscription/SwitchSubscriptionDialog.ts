@@ -372,6 +372,10 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 			case UnsubscribeFailureReason.LABEL_LIMIT_EXCEEDED:
 				return Dialog.message("labelLimitExceeded_msg")
 
+			case UnsubscribeFailureReason.HAS_SCHEDULED_MAILS:
+				detailMsg = lang.getTranslationText("removeScheduledMails_msg")
+				break
+
 			default:
 				throw e
 		}
