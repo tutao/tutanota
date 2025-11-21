@@ -854,6 +854,7 @@ export const enum UnsubscribeFailureReason {
 	HAS_CONTACT_LIST_GROUP = "unsubscribe.has_contact_list_group",
 	ACTIVE_APPSTORE_SUBSCRIPTION = "unsubscribe.active_appstore_subscription",
 	LABEL_LIMIT_EXCEEDED = "unsubscribe.label_limit_exceeded",
+	HAS_SCHEDULED_MAILS = "unsubscribe.has_scheduled_mails",
 }
 
 // legacy, should be deleted after clients older than 3.114 have been disabled.

@@ -2134,3 +2134,4 @@ export type TranslationKeyType =
 	| "switchScheduledFolder_action"
 	| "invalidSendLaterDate_msg"
 	| "sendTime_label"
+	| "removeScheduledMails_msg"
