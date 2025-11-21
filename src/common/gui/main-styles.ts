@@ -3224,7 +3224,14 @@ styles.registerStyle("main", () => {
 				transform: "translateX(100%)",
 			},
 		},
-		".time-indicator-circle": {
+		".time-indicator": {
+			background: theme.primary,
+			height: px(2),
+			width: "100%",
+		},
+		".time-indicator:before": {
+			content: "''",
+			display: "block",
 			width: px(size.icon_size_small),
 			height: px(size.icon_size_small),
 			background: theme.primary,

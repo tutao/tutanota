@@ -1,6 +1,6 @@
-import m, { Child, ClassComponent, Vnode } from "mithril"
+import m, { Child, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized, getStartOfDay, getStartOfNextDay, lastIndex } from "@tutao/tutanota-utils"
+import { deepMemoized, getStartOfDay, getStartOfNextDay, isToday, lastIndex } from "@tutao/tutanota-utils"
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "luxon"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
@@ -8,6 +8,7 @@ import { DefaultAnimationTime } from "../../gui/animation/Animations"
 import { CalendarEventBubbleDragProperties, EventBubbleInteractions, MIN_ROW_SPAN } from "./CalendarEventBubble"
 import { CellActionHandler } from "./CalendarTimeCell"
 import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "./CalendarTimeColumn"
+import { TimeIndicator, TimeIndicatorAttrs } from "./TimeIndicator"
 
 export const TIME_SCALE_BASE_VALUE = 60
 export type TimeScale = 1 | 2 | 4
@@ -131,7 +132,18 @@ export const getIntervalAsMinutes = (timeScale: TimeScale) => {
  * ```
  */
 export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttributes> {
+	columnHeight: number = 0
+	gridWidth: number = 0
+
+	oncreate(vnode: VnodeDOM<CalendarTimeGridAttributes>) {
+		this.columnHeight = vnode.dom.clientHeight
+		this.gridWidth = vnode.dom.clientWidth
+		m.redraw()
+	}
+
 	view({ attrs }: Vnode<CalendarTimeGridAttributes>) {
+		const todayIndex = attrs.dates.findIndex(isToday)
+
 		return m(
 			".grid.overflow-hidden.height-100p",
 			{
@@ -140,7 +152,21 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 					transition: `opacity ${DefaultAnimationTime}ms linear`,
 				},
 			},
-			attrs.dates.map((date, index) => this.renderDayColumn(date, attrs, index === lastIndex(attrs.dates))),
+			[
+				attrs.dates.map((date, index) => this.renderDayColumn(date, attrs, index === lastIndex(attrs.dates))),
+				todayIndex !== -1
+					? m(TimeIndicator, {
+							position: {
+								timeRange: attrs.timeRange,
+								dayHeight: this.columnHeight,
+								interval: getIntervalAsMinutes(attrs.timeScale),
+								areaWidth: this.gridWidth,
+								numberOfDatesInRange: attrs.dates.length,
+								datePosition: todayIndex,
+							},
+						} satisfies TimeIndicatorAttrs)
+					: null,
+			],
 		)
 	}
 

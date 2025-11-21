@@ -30,7 +30,7 @@ import { client } from "../../../common/misc/ClientDetector.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
-import { TimeIndicator, TimeIndicatorAttrs, TimeIndicatorVariant } from "../../../common/calendar/gui/TimeIndicator"
+import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -336,10 +336,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							id: "timeIndicator",
 							key: "timeIndicator",
 						},
-						m(TimeIndicator, {
-							fullOpacity: true,
-							variant: TimeIndicatorVariant.LINE_WITH_CIRCLE,
-						} satisfies TimeIndicatorAttrs),
+						m(TimeIndicator, { circleLeftTangent: true }),
 					),
 				)
 			}

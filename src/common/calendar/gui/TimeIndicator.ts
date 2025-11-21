@@ -3,7 +3,6 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { px, size } from "../../gui/size"
 import { TimeRange } from "./CalendarTimeGrid"
 import { deepMemoized } from "@tutao/tutanota-utils"
-import { theme } from "../../gui/theme"
 
 export interface TimeIndicatorAttrs {
 	time?: Time
@@ -12,14 +11,13 @@ export interface TimeIndicatorAttrs {
 		dayHeight: number
 		timeRange: TimeRange
 		interval: number
+		areaWidth: number
+		numberOfDatesInRange: number
+		datePosition: number
+		leftOffset?: number
 	}
-	fullOpacity: boolean
-	variant: TimeIndicatorVariant
-}
-
-export enum TimeIndicatorVariant {
-	LINE,
-	LINE_WITH_CIRCLE,
+	/** Make the ::before circle tangent to the left side rather than intersecting */
+	circleLeftTangent?: boolean
 }
 
 /**
@@ -27,7 +25,7 @@ export enum TimeIndicatorVariant {
  * Can be used as a simple div(AgendaView) or absolutely positioned in a calendar grid.
  */
 export class TimeIndicator implements ClassComponent<TimeIndicatorAttrs> {
-	private getYPosition = deepMemoized((time: Time, positionConfig: NonNullable<TimeIndicatorAttrs["position"]>) => {
+	private getPositions = deepMemoized((time: Time, positionConfig: NonNullable<TimeIndicatorAttrs["position"]>) => {
 		const startMinutes = positionConfig.timeRange.start.asMinutes()
 		const endPlusInterval = positionConfig.timeRange.end.asMinutes() + Math.max(0, positionConfig.interval)
 
@@ -35,7 +33,14 @@ export class TimeIndicator implements ClassComponent<TimeIndicatorAttrs> {
 		const minutesSinceStart = time.asMinutes() - startMinutes
 
 		const rawY = (minutesSinceStart * positionConfig.dayHeight) / totalMinutes
-		return Math.min(Math.max(rawY, 0), positionConfig.dayHeight) // clamp to [0, dayHeight]
+		const yPosition = Math.min(Math.max(rawY, 0), positionConfig.dayHeight) // clamp to [0, dayHeight]
+
+		const leftOffset = positionConfig.leftOffset ?? 0
+		const slots = Math.max(1, positionConfig.numberOfDatesInRange)
+		const slotWidth = positionConfig.areaWidth / slots
+		const xPosition = leftOffset + slotWidth * positionConfig.datePosition
+
+		return { xPosition, yPosition }
 	})
 
 	view({ attrs }: Vnode<TimeIndicatorAttrs>): Children {
@@ -43,29 +48,24 @@ export class TimeIndicator implements ClassComponent<TimeIndicatorAttrs> {
 			height: px(size.calendar_day_event_padding),
 		}
 
-		if (attrs.position && attrs.time) {
-			const yPosition = this.getYPosition(attrs.time, attrs.position)
+		if (attrs.position) {
+			const time = attrs.time ?? Time.fromDate(new Date())
+			const { xPosition, yPosition } = this.getPositions(time, attrs.position)
 			Object.assign(style, {
 				position: "absolute",
 				top: px(yPosition),
+				left: px(xPosition),
+				width: px(attrs.position.areaWidth / attrs.position.numberOfDatesInRange),
 			} satisfies Partial<CSSStyleDeclaration>)
 		}
 
-		if (attrs.variant === TimeIndicatorVariant.LINE_WITH_CIRCLE) {
+		if (attrs.circleLeftTangent) {
 			style.paddingLeft = px(size.icon_size_small / 2)
 		}
 
-		return m(
-			".time-indicator.z3.full-width",
-			{
-				class: attrs.fullOpacity ? "opaque" : "translucent",
-				"aria-hidden": "true",
-				style: {
-					...style,
-					borderBottom: `2px solid ${theme.primary}`,
-				},
-			},
-			attrs.variant === TimeIndicatorVariant.LINE_WITH_CIRCLE ? m(".time-indicator-circle") : null,
-		)
+		return m(".time-indicator.z3", {
+			"aria-hidden": "true",
+			style,
+		})
 	}
 }
