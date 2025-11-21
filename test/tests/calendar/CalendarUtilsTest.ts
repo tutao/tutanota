@@ -596,6 +596,28 @@ o.spec("calendar utils tests", function () {
 				o.check(time.minute).equals(0)
 			})
 		})
+
+		o.spec("toString", function () {
+			const time = new Time(15, 25)
+
+			o.test("24hrs", function () {
+				const timeAsStr = time.toString()
+
+				o.check(timeAsStr).equals("15:25")
+			})
+
+			o.test("amPm", function () {
+				const timeAsStr = time.toString({ withAmPmSuffix: true })
+
+				o.check(timeAsStr).equals("3:25 pm")
+			})
+
+			o.test("amPm without suffix", function () {
+				const timeAsStr = time.toString({ withAmPmSuffix: false })
+
+				o.check(timeAsStr).equals("3:25")
+			})
+		})
 	})
 	o.spec("getStartOfWeek", function () {
 		o("works", function () {

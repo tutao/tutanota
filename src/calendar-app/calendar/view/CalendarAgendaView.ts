@@ -31,6 +31,7 @@ import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarConta
 import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
 import { PartialRecipient } from "../../../common/api/common/recipients/Recipient.js"
 import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
+import { TimeBadgeVarient } from "../../../common/calendar/gui/TimeBadge"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -123,12 +124,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			: m(
 					"",
 					m(
-						".header-bg.pb-8.overflow-hidden",
-						{
-							style: {
-								"margin-left": px(layout_size.calendar_hour_width_mobile),
-							},
-						},
+						".header-bg.pb-8.overflow-hidden.calendar-hour-margin",
 						m(DaySelector, {
 							selectedDate: selectedDate,
 							onDateSelected: (selectedDate: Date) => attrs.onDateSelected(selectedDate),
@@ -211,9 +207,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			})
 		} else {
 			return m(
-				".pt-8.flex.mb-8.col.overflow-y-scroll.height-100p",
+				".pt-8.flex.mb-8.col.overflow-y-scroll.height-100p.calendar-hour-margin",
 				{
-					style: { marginLeft: px(layout_size.calendar_hour_width_mobile) },
 					oncreate: (vnode: VnodeDOM) => {
 						attrs.onViewChanged(vnode)
 					},
@@ -336,7 +331,13 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							id: "timeIndicator",
 							key: "timeIndicator",
 						},
-						m(TimeIndicator, { circleLeftTangent: true }),
+						m(TimeIndicator, {
+							timeBadgeConfig: {
+								currentTime: Time.fromDate(new Date()),
+								amPm: attrs.amPmFormat,
+								variant: TimeBadgeVarient.LARGE,
+							},
+						}),
 					),
 				)
 			}

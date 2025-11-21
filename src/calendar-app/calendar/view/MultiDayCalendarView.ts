@@ -34,6 +34,7 @@ export type MultiDayCalendarViewAttrs = {
 	smoothScroll: boolean
 	registerScrollByListener: (listener: ScrollByListener) => void
 	removeScrollByListener: () => void
+	amPm: boolean
 }
 
 type PageViewData = { previous: CalendarViewPageAttrs; current: CalendarViewPageAttrs; next: CalendarViewPageAttrs }
@@ -91,6 +92,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				smoothScroll: attrs.smoothScroll,
 				registerListener: attrs.registerScrollByListener,
 				onViewChanged: attrs.onViewChanged,
+				amPm: attrs.amPm,
 			},
 			cellActionHandlers: {
 				onCellPressed: newEventHandler,

@@ -40,11 +40,11 @@ import { GENERATED_MIN_ID } from "../../../common/api/common/utils/EntityUtils"
 import { TimeColumn, TimeColumnAttrs } from "../../../common/calendar/gui/TimeColumn"
 import { AriaRole } from "../../../common/gui/AriaUtils"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
-import { TimeIndicator, TimeIndicatorAttrs } from "../../../common/calendar/gui/TimeIndicator"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
 	sendResponse: (event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string) => Promise<boolean>
+	usesAmPmTimeFormat: boolean
 }
 
 export interface InviteAgenda {
@@ -67,14 +67,12 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	}
 	private readonly gridRowHeight = 4
 
-	oncreate({ attrs }: VnodeDOM<EventBannerImplAttrs>) {
-		Promise.resolve().then(async () => {
-			this.agenda = await loadEventsAroundInvite(attrs.eventsRepository, attrs.iCalContents, attrs.recipient, attrs.groupColors)
-			m.redraw()
-		})
+	async oncreate({ attrs }: VnodeDOM<EventBannerImplAttrs>) {
+		this.agenda = await loadEventsAroundInvite(attrs.eventsRepository, attrs.iCalContents, attrs.recipient)
+		m.redraw()
 	}
 
-	view({ attrs: { iCalContents, eventsRepository, groupColors, mail, recipient, sendResponse } }: Vnode<EventBannerImplAttrs>): Children {
+	view({ attrs: { iCalContents, eventsRepository, mail, recipient, sendResponse, usesAmPmTimeFormat } }: Vnode<EventBannerImplAttrs>): Children {
 		const agenda = this.agenda
 		if (!agenda) {
 			return m(EventBannerSkeleton)
@@ -83,7 +81,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		const replyCallback = async (event: CalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail) => {
 			const responded = await sendResponse(event, recipient, status, previousMail, this.comment)
 			if (responded) {
-				this.agenda = await loadEventsAroundInvite(eventsRepository, iCalContents, recipient, groupColors, true)
+				this.agenda = await loadEventsAroundInvite(eventsRepository, iCalContents, recipient, true)
 				updateAttendeeStatusIfNeeded(event, recipient, this.agenda.get(event.uid ?? "")?.existingEvent?.event)
 				m.redraw()
 			}
@@ -105,11 +103,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				this.displayConflictingAgenda = true
 			}
 
-			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, recipient, replySection)
+			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, recipient, replySection, usesAmPmTimeFormat)
 		}) as Children
 	}
 
-	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, recipient: string, replySection: Children) {
+	private buildEventBanner(event: CalendarEvent, agenda: InviteAgenda | null, recipient: string, replySection: Children, amPm: boolean) {
 		const recipientIsOrganizer = recipient === event.organizer?.address
 
 		if (!agenda) {
@@ -284,19 +282,8 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 													rowCount: rowCountForRange,
 													gridRowHeight: this.gridRowHeight,
 												},
+												amPm,
 											} satisfies TimeColumnAttrs),
-											m(TimeIndicator, {
-												time: Time.fromDate(agenda.main.event.startTime),
-												position: {
-													timeRange,
-													dayHeight: this.layoutState.gridHeight!,
-													interval: getIntervalAsMinutes(timeScale),
-													areaWidth: this.layoutState.gridWidth!,
-													numberOfDatesInRange: 1,
-													datePosition: 0,
-													leftOffset: timeColumnWidth,
-												},
-											} satisfies TimeIndicatorAttrs),
 											m(
 												".full-width",
 												{
@@ -320,6 +307,8 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 													layout: {
 														gridRowHeight: this.gridRowHeight,
 														rowCountForRange,
+														hideRightBorder: true,
+														showLeftBorderAtFirstColumn: false,
 													},
 												} satisfies CalendarTimeGridAttributes),
 											),
@@ -558,7 +547,6 @@ export async function loadEventsAroundInvite(
 	eventsRepository: CalendarEventsRepository,
 	iCalContents: ParsedIcalFileContentData,
 	recipient: string,
-	groupColors: Map<Id, string>,
 	forceReload: boolean = false,
 ) {
 	/*

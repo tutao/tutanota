@@ -8,6 +8,11 @@ export class Time {
 	private _hour: number = 0
 	private _minute: number = 0
 
+	constructor(hour: number, minute: number) {
+		this.hour = hour
+		this.minute = minute
+	}
+
 	get hour() {
 		return this._hour
 	}
@@ -24,11 +29,6 @@ export class Time {
 	private set minute(m: number) {
 		const minutes = Math.abs(m)
 		this._minute = Math.floor(minutes) % 60
-	}
-
-	constructor(hour: number, minute: number) {
-		this.hour = hour
-		this.minute = minute
 	}
 
 	/**
@@ -124,21 +124,21 @@ export class Time {
 		return this._hour === otherTime._hour && this._minute === otherTime._minute
 	}
 
-	toString(amPmFormat: boolean): string {
-		return amPmFormat ? this.to12HourString() : this.to24HourString()
+	toString(amPmFormat?: { withAmPmSuffix: boolean }): string {
+		return amPmFormat ? this.to12HourString(amPmFormat.withAmPmSuffix) : this.to24HourString()
 	}
 
-	to12HourString(): string {
+	to12HourString(withAmPmSuffix: boolean): string {
 		const minutesString = pad(this._minute, 2)
 
 		if (this._hour === 0) {
-			return `12:${minutesString} am`
+			return `12:${minutesString}${withAmPmSuffix ? " am" : ""}`
 		} else if (this._hour === 12) {
-			return `12:${minutesString} pm`
+			return `12:${minutesString}${withAmPmSuffix ? " pm" : ""}`
 		} else if (this._hour > 12) {
-			return `${this._hour - 12}:${minutesString} pm`
+			return `${this._hour - 12}:${minutesString}${withAmPmSuffix ? " pm" : ""}`
 		} else {
-			return `${this._hour}:${minutesString} am`
+			return `${this._hour}:${minutesString}${withAmPmSuffix ? " am" : ""}`
 		}
 	}
 

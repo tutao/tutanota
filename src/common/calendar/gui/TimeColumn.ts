@@ -1,4 +1,4 @@
-import m, { ClassComponent, Vnode } from "mithril"
+import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { clone, lastIndex } from "@tutao/tutanota-utils"
 import { formatShortTime, formatTime } from "../../misc/Formatter"
 import { getIntervalAsMinutes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "./CalendarTimeGrid"
@@ -6,6 +6,8 @@ import { layout_size, px } from "../../gui/size"
 import { Time } from "../date/Time"
 import { styles } from "../../gui/styles"
 import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
+import { TimeBadge, TimeBadgeAttrs, TimeBadgeVarient } from "./TimeBadge"
+import { TimeIndicator } from "./TimeIndicator"
 
 export interface TimeColumnAttrs {
 	intervals: Array<Time>
@@ -17,44 +19,73 @@ export interface TimeColumnAttrs {
 	}
 	baseDate?: Date
 	onCellPressed?: CellActionHandler
+	/**
+	 * When currentTime is defined we show the timeBadge
+	 */
+	currentTime?: Time
+	amPm: boolean
 }
 
 const TIME_CELL_ID_PREFIX = "time-cell-"
 
 export class TimeColumn implements ClassComponent<TimeColumnAttrs> {
+	private columnHeight = 0
+
+	oncreate(vnode: VnodeDOM<TimeColumnAttrs>) {
+		this.columnHeight = vnode.dom.clientHeight
+	}
+
 	view({ attrs }: Vnode<TimeColumnAttrs>) {
 		return m(
-			".grid.gap.border-right",
+			".rel.grid.gap.border-right",
 			{
 				style: {
 					gridTemplateRows: `repeat(${attrs.layout.rowCount}, ${px(attrs.layout.gridRowHeight)})`,
 					gridTemplateColumns: px(attrs.layout.width),
 				},
 			},
-			attrs.intervals.map((interval, intervalIndex) => {
-				const parsedTime = interval.toDate()
-				const formatedTime = styles.isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
-				const rowStart = intervalIndex * SUBROWS_PER_INTERVAL + 1
-				const rowEnd = rowStart + SUBROWS_PER_INTERVAL
-				const showBorderBottom = intervalIndex !== lastIndex(attrs.intervals)
+			[
+				attrs.currentTime
+					? m(
+							".abs.abs-center-horizontally.z3.fit-content",
+							{
+								style: {
+									top: px(TimeIndicator.calculateYPosition(attrs.currentTime, this.columnHeight)),
+									transform: "translateY(-50%)",
+								},
+							},
+							m(TimeBadge, {
+								currentTime: attrs.currentTime,
+								amPm: attrs.amPm,
+								variant: TimeBadgeVarient.SMALL,
+							} satisfies TimeBadgeAttrs),
+						)
+					: null,
+				attrs.intervals.map((interval, intervalIndex) => {
+					const parsedTime = interval.toDate()
+					const formatedTime = styles.isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
+					const rowStart = intervalIndex * SUBROWS_PER_INTERVAL + 1
+					const rowEnd = rowStart + SUBROWS_PER_INTERVAL
+					const showBorderBottom = intervalIndex !== lastIndex(attrs.intervals)
 
-				return m(CalendarTimeCell, {
-					dateTime: {
-						baseDate: attrs.baseDate,
-						time: interval,
-					},
-					layout: {
-						rowBounds: {
-							start: rowStart,
-							end: rowEnd,
+					return m(CalendarTimeCell, {
+						dateTime: {
+							baseDate: attrs.baseDate,
+							time: interval,
 						},
-						subColumnCount: attrs.layout.subColumnCount,
-					},
-					interactions: { onCellPressed: attrs.onCellPressed },
-					text: formatedTime,
-					showBorderBottom,
-				} as CalendarTimeCellAttrs)
-			}),
+						layout: {
+							rowBounds: {
+								start: rowStart,
+								end: rowEnd,
+							},
+							subColumnCount: attrs.layout.subColumnCount,
+						},
+						interactions: { onCellPressed: attrs.onCellPressed },
+						text: formatedTime,
+						showBorderBottom,
+					} as CalendarTimeCellAttrs)
+				}),
+			],
 		)
 	}
 

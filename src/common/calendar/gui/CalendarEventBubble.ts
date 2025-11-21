@@ -118,7 +118,6 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 								? `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`
 								: "none",
 
-							"-webkit-line-clamp": 2,
 							paddingTop: "2px",
 							paddingBottom: "2px",
 						} satisfies Partial<CSSStyleDeclaration> & Record<string, any>,
@@ -162,7 +161,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 	private renderNonFeaturedTexts(summary: string, color: string, rowBounds: RowBounds, eventTime: string, flags: EventWrapperFlags) {
 		const totalRowSpan = rowBounds.end - rowBounds.start
 		const showSecondLine = totalRowSpan >= MIN_ROW_SPAN * 2
-		const maxLines = (totalRowSpan - MIN_ROW_SPAN) / MIN_ROW_SPAN
+		const maxLines = Math.floor((totalRowSpan - MIN_ROW_SPAN) / MIN_ROW_SPAN)
 
 		return m(".flex", [
 			Object.entries(flags).map(([key, value]: [EventWrapperFlagKeys, boolean]) => {

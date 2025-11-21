@@ -1,5 +1,5 @@
-import m, { Children, ClassComponent, Vnode } from "mithril"
-import { assertNotNull, downcast, getFirstOrThrow, lastIndex, lastThrow } from "@tutao/tutanota-utils"
+import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
+import { assertNotNull, downcast, getFirstOrThrow, isToday, lastIndex, lastThrow } from "@tutao/tutanota-utils"
 import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
 import { CalendarTimeColumnData, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
@@ -9,10 +9,12 @@ import { CalendarEventBubble, CalendarEventBubbleAttrs, CalendarEventBubbleDragP
 import { elementIdPart } from "../../api/common/utils/EntityUtils"
 import { DateTime } from "../../../../libs/luxon"
 import { px } from "../../gui/size"
+import { TimeIndicator } from "./TimeIndicator"
 
 export type CalendarTimeColumnAttrs = {
 	intervals: Array<Time> // containing the start time of each interval
 	baseDate: Date
+	time?: Time
 	onCellPressed?: CellActionHandler
 	onCellContextMenuPressed?: CellActionHandler
 	eventInteractions?: EventBubbleInteractions & CalendarEventBubbleDragProperties
@@ -21,30 +23,48 @@ export type CalendarTimeColumnAttrs = {
 		rowCount: number
 		gridRowHeight: number
 		hideRightBorder: boolean
+		showLeftBorder: boolean
 	}
 }
 
 export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttrs> {
+	private columnHeight: number = 0
+
+	oncreate(vnode: VnodeDOM<CalendarTimeColumnAttrs>) {
+		this.columnHeight = vnode.dom.clientHeight
+		m.redraw()
+	}
+
 	view({ attrs }: Vnode<CalendarTimeColumnAttrs>) {
-		const {
-			layout: { rowCount, hideRightBorder, gridRowHeight },
-			eventInteractions,
-			baseDate,
-		} = attrs
 		return m(
 			".grid.plr-unit.z1.grid-auto-columns.rel.min-width-0.gap",
 			{
+				class: this.resolveClasses(attrs.layout),
 				style: {
-					gridTemplateRows: `repeat(${rowCount}, ${px(gridRowHeight)})`,
-				},
-				class: hideRightBorder ? "" : "border-right",
+					gridTemplateRows: `repeat(${attrs.layout.rowCount}, ${px(attrs.layout.gridRowHeight)})`,
+				} satisfies Partial<CSSStyleDeclaration>,
 				onmousemove: (mouseEvent: MouseEvent) => {
 					downcast(mouseEvent).redraw = false
 					const time = getTimeFromMousePos(getPosAndBoundsFromMouseEvent(mouseEvent), SUBROWS_PER_INTERVAL)
-					eventInteractions?.drag?.setTimeUnderMouse(time, baseDate)
+					attrs.eventInteractions?.drag?.setTimeUnderMouse(time, attrs.baseDate)
 				},
 			},
-			[this.renderInteractableCells(attrs), this.renderEvents(attrs)],
+			[
+				isToday(attrs.baseDate) && attrs.time
+					? m(
+							".abs.z3.full-width",
+							{
+								style: {
+									top: px(TimeIndicator.calculateYPosition(attrs.time, this.columnHeight)),
+									transform: "translateY(-50%)",
+								} satisfies Partial<CSSStyleDeclaration>,
+							},
+							m(TimeIndicator),
+						)
+					: null,
+				this.renderInteractableCells(attrs),
+				this.renderEvents(attrs),
+			],
 		)
 	}
 
@@ -114,5 +134,16 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 				},
 			} satisfies CalendarEventBubbleAttrs)
 		})
+	}
+
+	private resolveClasses(layout: CalendarTimeColumnAttrs["layout"]) {
+		const classes: Array<string> = []
+		if (layout.showLeftBorder) {
+			classes.push("border-left")
+		}
+		if (!layout.hideRightBorder) {
+			classes.push("border-right")
+		}
+		return classes.join(" ")
 	}
 }
