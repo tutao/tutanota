@@ -1,7 +1,7 @@
 import { Dialog, DialogType } from "../../gui/base/Dialog.js"
 import m, { Children, Component, Vnode } from "mithril"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel.js"
-import type { RadioSelectorAttrs, RadioSelectorOption } from "../../gui/base/RadioSelector.js"
+import type { RadioSelectorAttrs } from "../../gui/base/RadioSelector.js"
 import { RadioSelector } from "../../gui/base/RadioSelector.js"
 import { CredentialAuthenticationError } from "../../api/common/error/CredentialAuthenticationError.js"
 import { liveDataAttrs } from "../../gui/AriaUtils.js"
@@ -12,6 +12,7 @@ import { Keys } from "../../api/common/TutanotaConstants.js"
 import { BaseButton } from "../../gui/base/buttons/BaseButton.js"
 import { MobileSystemFacade } from "../common/generatedipc/MobileSystemFacade.js"
 import { AppLockMethod } from "../common/generatedipc/AppLockMethod.js"
+import { type RadioSelectorOption } from "../../gui/base/RadioSelectorItem"
 
 export async function showAppLockMethodDialog(mobileSystemFacade: MobileSystemFacade): Promise<void> {
 	await AppLockMethodDialog.showAndWaitForSelection(mobileSystemFacade)
@@ -123,7 +124,7 @@ export class SelectAppLockMethodView implements Component<SelectAppLockMethodDia
 					m(
 						".mt-16",
 						m(RadioSelector, {
-							name: "credentialsEncryptionMode_label",
+							groupName: "credentialsEncryptionMode_label",
 							options,
 							selectedOption: this.currentMethod,
 							onOptionSelected: (mode: AppLockMethod) => {

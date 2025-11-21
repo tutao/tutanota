@@ -4,7 +4,7 @@ import type { CredentialsProvider } from "../../misc/credentials/CredentialsProv
 import m, { Children, Component, Vnode } from "mithril"
 import { lang, TranslationKey } from "../../misc/LanguageViewModel"
 import { DialogHeaderBar } from "../base/DialogHeaderBar"
-import type { RadioSelectorAttrs, RadioSelectorOption } from "../base/RadioSelector"
+import type { RadioSelectorAttrs } from "../base/RadioSelector"
 import { RadioSelector } from "../base/RadioSelector"
 import { ButtonType } from "../base/Button.js"
 import { CredentialAuthenticationError } from "../../api/common/error/CredentialAuthenticationError"
@@ -16,6 +16,7 @@ import { windowFacade } from "../../misc/WindowFacade"
 import { CancelledError } from "../../api/common/error/CancelledError.js"
 import { Keys } from "../../api/common/TutanotaConstants.js"
 import { BaseButton } from "../base/buttons/BaseButton.js"
+import { type RadioSelectorOption } from "../base/RadioSelectorItem"
 
 export const DEFAULT_CREDENTIAL_ENCRYPTION_MODE = CredentialEncryptionMode.DEVICE_LOCK
 
@@ -144,7 +145,7 @@ export class SelectCredentialsEncryptionModeView implements Component<SelectCred
 					m(
 						".mt-16",
 						m(RadioSelector, {
-							name: "credentialsEncryptionMode_label",
+							groupName: "credentialsEncryptionMode_label",
 							options,
 							selectedOption: this.currentMode,
 							onOptionSelected: (mode: CredentialEncryptionMode) => {
