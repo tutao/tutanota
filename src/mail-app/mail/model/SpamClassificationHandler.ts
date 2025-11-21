@@ -1,5 +1,5 @@
 import { Mail, MailDetails, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
-import { MailSetKind } from "../../../common/api/common/TutanotaConstants"
+import { MailPhishingStatus, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
 import { assertNotNull } from "@tutao/tutanota-utils"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -28,7 +28,9 @@ export class SpamClassificationHandler {
 		let targetFolder = sourceFolder
 		if (isSpam && sourceFolder.folderType === MailSetKind.INBOX) {
 			targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))
-		} else if (!isSpam && sourceFolder.folderType === MailSetKind.SPAM) {
+		} else if (!isSpam && sourceFolder.folderType === MailSetKind.SPAM && mail.phishingStatus !== MailPhishingStatus.SUSPICIOUS) {
+			// move mail from spam to inbox only if the phishingStatus is not suspicious
+			// i.e. override the client spam classifier result and keep the mail in spam if the server thinks that the mail is a phishing mail
 			targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))
 		}
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
