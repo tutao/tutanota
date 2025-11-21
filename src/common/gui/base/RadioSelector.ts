@@ -1,17 +1,12 @@
 import type { MaybeTranslation } from "../../misc/LanguageViewModel"
-import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
-import { theme } from "../theme"
+import { RadioSelectorItem, RadioSelectorItemAttrs, RadioSelectorOption } from "./RadioSelectorItem"
 
-export type RadioSelectorOption<T> = {
-	readonly name: MaybeTranslation
-	readonly value: T
-}
 export type RadioSelectorAttrs<T> = {
 	// The unique name of the radio button group. The browser uses it to group the radio buttons together.
-	name: MaybeTranslation
+	groupName: MaybeTranslation
 	options: ReadonlyArray<RadioSelectorOption<T>>
-	class?: string
+	optionClass?: string
 	selectedOption: T
 	onOptionSelected: (arg0: T) => unknown
 }
@@ -20,54 +15,15 @@ export type RadioSelectorAttrs<T> = {
  * Component which shows selection for a single choice.
  */
 export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
-	view({ attrs }: Vnode<RadioSelectorAttrs<T>>): Children {
-		return attrs.options.map((option) => this.renderOption(attrs.name, option, attrs.selectedOption, attrs.class, attrs.onOptionSelected))
-	}
-
-	private renderOption(
-		groupName: MaybeTranslation,
-		option: RadioSelectorOption<T>,
-		selectedOption: T,
-		optionClass: string | undefined,
-		onOptionSelected: (arg0: T) => unknown,
-	): Children {
-		const name = lang.getTranslationText(groupName)
-		const valueString = String(option.value)
-		const isSelected = option.value === selectedOption
-
-		// IDs used to link the label and description for accessibility
-		const optionId = name + valueString
-
-		const attrClasses = optionClass != null ? " " + optionClass : ""
-
-		// The wrapper is needed because <input> is self-closing and will not take the label as a child
-		return m(
-			".state-bg.border.border-radius.flex.items-center.mb-16.pl-24.pr-12",
-			{
-				// Make the option the same size as a button if a description is not given
-				class: "button-min-width button-min-height" + attrClasses,
-				style: {
-					borderColor: isSelected ? theme.primary : theme.outline,
-					borderWidth: "2px",
-					height: "fit-content",
-				},
-				onclick: () => {
-					onOptionSelected(option.value)
-				},
-			},
-			[
-				m("input[type=radio].m-0.mr-8.content-accent-accent", {
-					/* The `name` attribute defines the group the radio button belongs to. Not the name/label of the radio button itself.
-					 * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#defining_a_radio_group
-					 */
-					name: lang.getTranslationText(groupName),
-					value: valueString,
-					id: optionId,
-					// Handle changes in value from the attributes
-					checked: isSelected ? true : null,
-				}),
-				m("label.b.left.pt-4.pb-4", { for: optionId }, lang.getTranslationText(option.name)),
-			],
+	view({ attrs: { options, groupName, optionClass, selectedOption, onOptionSelected } }: Vnode<RadioSelectorAttrs<T>>): Children {
+		return options.map((option) =>
+			m(RadioSelectorItem, {
+				groupName,
+				option,
+				optionClass,
+				isSelected: option.value === selectedOption,
+				onOptionSelected,
+			} satisfies RadioSelectorItemAttrs<T>),
 		)
 	}
 }
