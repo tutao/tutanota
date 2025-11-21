@@ -55,6 +55,7 @@ import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfir
 import { UpgradeCongratulationsPageNew } from "../subscription/UpgradeCongratulationsPageNew"
 import { RadioSelector, type RadioSelectorAttrs } from "../gui/base/RadioSelector"
 import { type RadioSelectorOption } from "../gui/base/RadioSelectorItem"
+import { theme } from "../gui/theme"
 
 assertMainOrNode()
 
@@ -258,11 +259,12 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 
 	private currentOption = 0
 	private radioTestPage(): WizardStepAttrs<SignupViewModel>["content"] {
+		const boxAttr = { style: { width: "100%", height: px(500), background: theme.primary_container } }
 		return (ctx) => {
 			const options: ReadonlyArray<RadioSelectorOption<number>> = [
-				{ name: "partner_label", value: 0, renderChild: () => m("div", "hogehoge") },
-				{ name: "credit_label", value: 1, renderChild: () => m("div", "fugafuga") },
-				{ name: "userSettings_label", value: 2, renderChild: () => m("div", "foobarbaz") },
+				{ name: "partner_label", value: 0, renderChild: () => m("div", boxAttr, "hogehoge") },
+				{ name: "credit_label", value: 1, renderChild: () => m("div", boxAttr, "fugafuga") },
+				{ name: "userSettings_label", value: 2, renderChild: () => m("div", boxAttr, "foobarbaz") },
 			]
 			return m(
 				".mt",

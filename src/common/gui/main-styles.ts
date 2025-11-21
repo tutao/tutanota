@@ -1156,6 +1156,9 @@ styles.registerStyle("main", () => {
 		".column-gap-4": {
 			"column-gap": px(size.spacing_4),
 		},
+		".gap-12": {
+			gap: px(12),
+		},
 		".flex": {
 			display: "flex",
 		},
