@@ -53,6 +53,8 @@ import { createAccount } from "../subscription/utils/PaymentUtils"
 import { InvoiceAndPaymentDataPageNew } from "../subscription/InvoiceAndPaymentDataPageNew"
 import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfirmSubscriptionPageNew"
 import { UpgradeCongratulationsPageNew } from "../subscription/UpgradeCongratulationsPageNew"
+import { RadioSelector, type RadioSelectorAttrs } from "../gui/base/RadioSelector"
+import { type RadioSelectorOption } from "../gui/base/RadioSelectorItem"
 
 assertMainOrNode()
 
@@ -254,6 +256,27 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		}
 	}
 
+	private currentOption = 0
+	private radioTestPage(): WizardStepAttrs<SignupViewModel>["content"] {
+		return (ctx) => {
+			const options: ReadonlyArray<RadioSelectorOption<number>> = [
+				{ name: "partner_label", value: 0, renderChild: () => m("div", "hogehoge") },
+				{ name: "credit_label", value: 1, renderChild: () => m("div", "fugafuga") },
+			]
+			return m(
+				".mt",
+				m(RadioSelector, {
+					groupName: "credentialsEncryptionMode_label",
+					options,
+					selectedOption: this.currentOption,
+					onOptionSelected: (mode: number) => {
+						this.currentOption = mode
+					},
+				} satisfies RadioSelectorAttrs<number>),
+			)
+		}
+	}
+
 	private renderPlanSelector(): WizardStepAttrs<SignupViewModel>["content"] {
 		return (ctx) => {
 			const data = ctx.viewModel
@@ -363,6 +386,11 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 					? m("", "Loading spinner!")
 					: m(Wizard, {
 							steps: [
+								{
+									title: "radio test",
+									content: this.radioTestPage(),
+									onNext: () => console.log("next action was called"),
+								},
 								{
 									title: "Select Plan",
 									content: this.renderPlanSelector(),
