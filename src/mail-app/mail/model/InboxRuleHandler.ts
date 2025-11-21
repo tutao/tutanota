@@ -5,7 +5,7 @@ import { assertNotNull, asyncFind, Nullable } from "@tutao/tutanota-utils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import type { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
-import { elementIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, isSameId } from "../../../common/api/common/utils/EntityUtils"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
@@ -87,7 +87,8 @@ export class InboxRuleHandler {
 			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
-			if (targetFolder && targetFolder.folderType !== MailSetKind.INBOX) {
+			const mailIsNotInTargetFolder = targetFolder && mail.sets.some((setId) => isSameId(targetFolder._id, setId))
+			if (mailIsNotInTargetFolder) {
 				if (applyRulesOnServer) {
 					const processInboxDatum: UnencryptedProcessInboxDatum = {
 						mailId: mail._id,
@@ -202,5 +203,5 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 async function isInboxFolder(mailModel: MailModel, mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
 	const folders = await mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
 	const mailFolder = folders.getFolderByMail(mail)
-	return mailFolder?.folderType === MailSetKind.INBOX
+	return mailFolder?.folderType === MailSetKind.INBOX || mailFolder?.folderType === MailSetKind.SPAM
 }

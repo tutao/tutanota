@@ -57,7 +57,7 @@ export class ProcessInboxHandler {
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
 		let moveToFolder: MailFolder = sourceFolder
 
-		if (sourceFolder.folderType === MailSetKind.INBOX) {
+		if (sourceFolder.folderType === MailSetKind.INBOX || sourceFolder.folderType === MailSetKind.SPAM) {
 			const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, true)
 			if (result) {
 				const { targetFolder, processInboxDatum } = result
