@@ -262,6 +262,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 			const options: ReadonlyArray<RadioSelectorOption<number>> = [
 				{ name: "partner_label", value: 0, renderChild: () => m("div", "hogehoge") },
 				{ name: "credit_label", value: 1, renderChild: () => m("div", "fugafuga") },
+				{ name: "userSettings_label", value: 2, renderChild: () => m("div", "foobarbaz") },
 			]
 			return m(
 				".mt",
