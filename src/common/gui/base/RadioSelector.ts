@@ -16,14 +16,17 @@ export type RadioSelectorAttrs<T> = {
  */
 export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
 	view({ attrs: { options, groupName, optionClass, selectedOption, onOptionSelected } }: Vnode<RadioSelectorAttrs<T>>): Children {
-		return options.map((option) =>
-			m(RadioSelectorItem, {
-				groupName,
-				option,
-				optionClass,
-				isSelected: option.value === selectedOption,
-				onOptionSelected,
-			} satisfies RadioSelectorItemAttrs<T>),
+		return m(
+			".flex-start.col.gap-vpad",
+			options.map((option) =>
+				m(RadioSelectorItem, {
+					groupName,
+					option,
+					optionClass,
+					isSelected: option.value === selectedOption,
+					onOptionSelected,
+				} satisfies RadioSelectorItemAttrs<T>),
+			),
 		)
 	}
 }
