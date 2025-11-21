@@ -6,14 +6,7 @@ import { WeekDaysComponent, WeekDaysComponentAttrs } from "./WeekDaysComponent"
 import { TimeColumn, TimeColumnAttrs } from "../../../../common/calendar/gui/TimeColumn"
 import { Time } from "../../../../common/calendar/date/Time"
 import { size } from "../../../../common/gui/size"
-import {
-	CalendarTimeGrid,
-	CalendarTimeGridAttributes,
-	getIntervalAsMinutes,
-	SUBROWS_PER_INTERVAL,
-	TimeRange,
-	TimeScale,
-} from "../../../../common/calendar/gui/CalendarTimeGrid"
+import { CalendarTimeGrid, CalendarTimeGridAttributes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "../../../../common/calendar/gui/CalendarTimeGrid"
 import { EventWrapper, ScrollByListener } from "../CalendarViewModel"
 import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/gui/AllDaySection"
 import { EventBubbleInteractions } from "../../../../common/calendar/gui/CalendarEventBubble"
@@ -24,7 +17,6 @@ import { UserError } from "../../../../common/api/main/UserError"
 import { showUserError } from "../../../../common/misc/ErrorHandlerImpl"
 import { combineDateWithTime } from "../../../../common/calendar/date/CalendarUtils"
 import { deviceConfig } from "../../../../common/misc/DeviceConfig"
-import { TimeIndicator, TimeIndicatorAttrs } from "../../../../common/calendar/gui/TimeIndicator"
 import { PageView } from "../../../../common/gui/base/PageView"
 
 /**
@@ -59,6 +51,7 @@ interface BodyComponentAttrs {
 	smoothScroll: boolean
 	registerListener: (listener: ScrollByListener) => void
 	onViewChanged: (vnode: VnodeDOM) => unknown
+	amPm: boolean
 }
 
 export interface CalendarViewComponentAttrs {
@@ -228,9 +221,9 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			return null
 		}
 
-		const timeColumnWidth = styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile
-		const datePosition = attrs.headerComponentAttrs.dates.findIndex((date) => isToday(date)) ?? -1
-		const shouldRenderTimeIndicator = Boolean(datePosition !== -1 && this.layoutState.dayHeight && this.layoutState.pageViewWidth)
+		const timeColumnWidth = styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile + 5
+		const shouldRenderTimeIndicator = attrs.headerComponentAttrs.dates.some(isToday) && this.layoutState.dayHeight && this.layoutState.pageViewWidth
+		const currentTime = Time.fromDate(new Date())
 
 		return m(
 			".grid.scroll.rel",
@@ -273,21 +266,10 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 							rowCount: this.layoutState.rowCountPerDay,
 							gridRowHeight: this.layoutState.gridRowHeight,
 						},
+						currentTime: shouldRenderTimeIndicator ? currentTime : undefined,
+						amPm: attrs.bodyComponentAttrs.amPm,
 					} satisfies TimeColumnAttrs),
 				),
-				shouldRenderTimeIndicator
-					? m(TimeIndicator, {
-							position: {
-								timeRange: this.viewConfig.timeRange,
-								dayHeight: this.layoutState.dayHeight!,
-								interval: getIntervalAsMinutes(this.viewConfig.timeScale),
-								areaWidth: this.layoutState.pageViewWidth!,
-								numberOfDatesInRange: attrs.headerComponentAttrs?.dates?.length ?? 1,
-								datePosition,
-								leftOffset: timeColumnWidth,
-							},
-						} satisfies TimeIndicatorAttrs)
-					: null,
 				m(
 					".content-bg.border-radius-top-right-big.min-width-0",
 
@@ -314,6 +296,9 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 								attrs.bodyComponentAttrs.previous.events.short,
 								attrs.cellActionHandlers,
 								attrs.eventBubbleHandlers,
+								currentTime,
+								false,
+								false,
 							),
 						},
 						currentPage: {
@@ -324,6 +309,9 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 								attrs.bodyComponentAttrs.current.events.short,
 								attrs.cellActionHandlers,
 								attrs.eventBubbleHandlers,
+								currentTime,
+								true,
+								false,
 							),
 						},
 						nextPage: {
@@ -334,6 +322,9 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 								attrs.bodyComponentAttrs.next.events.short,
 								attrs.cellActionHandlers,
 								attrs.eventBubbleHandlers,
+								currentTime,
+								false,
+								true,
 							),
 						},
 						onChangePage: (next) => attrs.bodyComponentAttrs.onChangePage(next),
@@ -390,6 +381,9 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		events: Array<EventWrapper>,
 		cellActionHandlers: CalendarTimeGridAttributes["cellActionHandlers"],
 		eventBubbleHandlers: EventBubbleInteractions,
+		currentTime: Time,
+		hideRightBorder: boolean,
+		showLeftBorderAtFirstColumn: boolean,
 	) {
 		return m(CalendarTimeGrid, {
 			intervals: this.viewConfig.intervals,
@@ -405,7 +399,10 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			layout: {
 				rowCountForRange: this.layoutState.rowCountPerDay,
 				gridRowHeight: this.layoutState.gridRowHeight,
+				hideRightBorder,
+				showLeftBorderAtFirstColumn,
 			},
+			time: currentTime,
 		} satisfies CalendarTimeGridAttributes)
 	}
 

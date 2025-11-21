@@ -547,10 +547,13 @@ styles.registerStyle("main", () => {
 		".pb-hpad-button": {
 			"padding-bottom": px(size.hpad_button),
 		},
-		// allow scrolling across the floating button
 		".plr-core-4": {
 			"padding-left": px(size.spacing.core_4),
 			"padding-right": px(size.spacing.core_4),
+		},
+		".plr-core-8": {
+			"padding-left": px(size.spacing.core_8),
+			"padding-right": px(size.spacing.core_8),
 		},
 		".plr": {
 			"padding-left": px(size.hpad),
@@ -958,6 +961,11 @@ styles.registerStyle("main", () => {
 		},
 		".abs": {
 			position: "absolute",
+		},
+		".abs-center-horizontally": {
+			left: 0,
+			right: 0,
+			margin: "0 auto",
 		},
 		".fixed": {
 			position: "fixed",
@@ -3229,7 +3237,7 @@ styles.registerStyle("main", () => {
 			height: px(2),
 			width: "100%",
 		},
-		".time-indicator:before": {
+		".time-indicator-circle-left:before": {
 			content: "''",
 			display: "block",
 			width: px(size.icon_size_small),
@@ -3238,6 +3246,12 @@ styles.registerStyle("main", () => {
 			position: "absolute",
 			transform: "translate(-50%, calc(-50% + 1px))",
 			"border-radius": "50%",
+		},
+		".time-badge": {
+			background: theme.primary,
+			"border-radius": px(size.border_radius_large),
+			color: theme.on_primary,
+			"line-height": px(16),
 		},
 		".interactable-cell:hover": {
 			background: theme.surface_container,

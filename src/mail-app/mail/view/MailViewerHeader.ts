@@ -8,7 +8,7 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../common/gui/b
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { RecipientButton } from "../../../common/gui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dropdown.js"
-import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex } from "../../../common/api/common/TutanotaConstants.js"
+import { InboxRuleType, Keys, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../common/api/common/TutanotaConstants.js"
 import { Icon, progressIcon } from "../../../common/gui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../common/misc/Formatter.js"
 import { isAndroidApp, isDesktop, isIOSApp } from "../../../common/api/common/Env.js"
@@ -34,6 +34,7 @@ import { px, size } from "../../../common/gui/size.js"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
 import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
+import { getTimeFormatForUser } from "../../../common/calendar/date/CalendarUtils"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -369,6 +370,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 						mail: viewModel.mail,
 						eventsRepository: viewModel.eventsRepository,
 						groupColors,
+						usesAmPmTimeFormat: getTimeFormatForUser(viewModel.logins.getUserController().userSettingsGroupRoot) === TimeFormat.TWELVE_HOURS,
 					} satisfies EventBannerAttrs),
 				)
 			: null

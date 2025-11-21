@@ -37,3 +37,5 @@ export const DAY_IN_MILLIS = hoursToMillis(24)
 export function daysToMillis(days: number): number {
 	return days * DAY_IN_MILLIS
 }
+
+export const DAY_IN_MINUTES = 24 * 60
