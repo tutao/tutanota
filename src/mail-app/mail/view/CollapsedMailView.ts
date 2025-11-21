@@ -31,7 +31,7 @@ export class CollapsedMailView implements Component<CollapsedMailViewAttrs> {
 				"aria-expanded": "false",
 				"data-testid": "collapsed-mail-view",
 				style: {
-					color: theme.on_surface_variant,
+					color: theme.on_surface,
 				},
 				onclick: () => viewModel.expandMail(Promise.resolve()),
 				onkeyup: (e: KeyboardEvent) => {
