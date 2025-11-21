@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { IdentityKeyVerificationMethod } from "../../../api/common/TutanotaConstants"
-import { RadioSelectorOption } from "../../../gui/base/RadioSelector"
-import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel"
+import { lang } from "../../../misc/LanguageViewModel"
 import { SectionButton } from "../../../gui/base/buttons/SectionButton"
 import { px, size } from "../../../gui/size"
 import { Card } from "../../../gui/base/Card"
@@ -18,11 +17,6 @@ const DEFAULT_HEIGHT = 666
 export class MethodSelectionPage implements Component<MethodSelectionPageAttrs> {
 	view(vnode: Vnode<MethodSelectionPageAttrs>): Children {
 		const model = vnode.attrs.model
-
-		const makeOption = (name: MaybeTranslation, value: IdentityKeyVerificationMethod): RadioSelectorOption<IdentityKeyVerificationMethod> => ({
-			name,
-			value,
-		})
 
 		return m(
 			".pt-16.pb-16.flex.col.gap-16",
