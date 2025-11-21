@@ -41,7 +41,8 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 					// Make the option the same size as a button if a description is not given
 					class: "button-min-width button-min-height" + attrClasses,
 					style: {
-						borderColor: isSelected ? theme.primary : theme.outline,
+						color: isSelected ? theme.primary : theme.on_surface_variant,
+						"font-weight": isSelected ? "bold" : undefined,
 						borderWidth: "2px",
 						height: "fit-content",
 						"padding-bottom": isSelected ? px(size.vpad) : 0,
@@ -51,20 +52,68 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 					},
 				},
 				[
-					m("input[type=radio].m-0.mr-button.content-accent-accent", {
-						/* The `name` attribute defines the group the radio button belongs to. Not the name/label of the radio button itself.
-						 * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#defining_a_radio_group
-						 */
-						name: lang.getTranslationText(groupName),
-						value: valueString,
-						id: optionId,
-						// Handle changes in value from the attributes
-						checked: isSelected ? true : null,
-					}),
+					renderKnob(valueString, optionId, groupName, isSelected),
 					m("label.left.pt-xs.pb-xs", { for: optionId }, lang.getTranslationText(option.name)),
 				],
 			),
 			isSelected && option.renderChild?.(),
 		)
 	}
+}
+
+function renderKnob(value: string, id: string, groupName: MaybeTranslation, isSelected: boolean): Children {
+	return m(
+		".rel.m-0.mr",
+		{
+			style: {
+				width: "20px",
+				height: "20px",
+				appearance: "none",
+			},
+		},
+		[
+			m("input", {
+				type: "radio",
+				style: {
+					margin: "0px",
+					width: "20px",
+					height: "20px",
+					appearance: "none",
+				},
+				/* The `name` attribute defines the group the radio button belongs to. Not the name/label of the radio button itself.
+				 * See https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/radio#defining_a_radio_group
+				 */
+				name: lang.getTranslationText(groupName),
+				value,
+				id,
+				// Handle changes in value from the attributes
+				checked: isSelected ? true : null,
+			}),
+			m("div", {
+				style: {
+					"border-color": isSelected ? theme.primary : theme.outline_variant,
+					"border-style": "solid",
+					"border-width": px(size.checkbox_border_size),
+					"border-radius": "50%",
+					position: "absolute",
+					top: "0px",
+					left: "0px",
+					height: "20px",
+					width: "20px",
+				},
+			}),
+			m("div", {
+				style: {
+					display: isSelected ? "initial" : "none",
+					"background-color": theme.primary,
+					"border-radius": "50%",
+					position: "absolute",
+					top: "4px",
+					left: "4px",
+					height: "12px",
+					width: "12px",
+				},
+			}),
+		],
+	)
 }
