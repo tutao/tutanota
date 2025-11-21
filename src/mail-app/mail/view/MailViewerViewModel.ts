@@ -77,7 +77,7 @@ import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../.
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
 import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
-import { isDraft } from "../model/MailChecks"
+import { isDraft, isEditableDraft, isMailMovable, isMailScheduled } from "../model/MailChecks"
 import type { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -322,11 +322,29 @@ export class MailViewerViewModel {
 		return this.forceLightMode
 	}
 
-	isDraftMail() {
-		return this.mail.state === MailState.DRAFT
+	isDraftMail(): boolean {
+		return isDraft(this.mail)
+	}
+
+	isScheduled(): boolean {
+		return isMailScheduled(this.mail)
+	}
+
+	unscheduleMail() {
+		this.mailModel.unscheduleMail(this.mail)
+	}
+
+	isEditableDraft() {
+		return isEditableDraft(this.mail)
+	}
+
+	isMovableMail() {
+		return isMailMovable(this.mail)
 	}
 
 	isDeletableMail() {
+		// FIXME: may need to add mailsetkind send later here, it depends on how we handle the mail actions bar for send later mails
+		// hrb: I don't believe we need to. it should already be handled when getting trash action
 		const folderType = this.getFolderInfo()?.folderType
 		return folderType === MailSetKind.TRASH || folderType === MailSetKind.SPAM
 	}
@@ -609,8 +627,18 @@ export class MailViewerViewModel {
 		return !this.logins.isEnabled(FeatureType.DisableMailExport)
 	}
 
-	canReport(): boolean {
-		return this.getPhishingStatus() === MailPhishingStatus.UNKNOWN && !this.isTutanotaTeamMail() && this.logins.isInternalUserLoggedIn()
+	canReportSpam(): boolean {
+		// FIXME: may need to add mailsetkind send later here
+		// hrb: scheduled mails are draft, so we're covered
+		return this.logins.isInternalUserLoggedIn() && !this.isDraftMail() && this.getFolderInfo()?.folderType !== MailSetKind.SPAM
+	}
+
+	canReportPhishing(): boolean {
+		// FIXME: may need to add mailsetkind send later here
+		// hrb: scheduled mails are draft, so we're covered
+		return (
+			this.logins.isInternalUserLoggedIn() && !this.isDraftMail() && this.getPhishingStatus() === MailPhishingStatus.UNKNOWN && !this.isTutanotaTeamMail()
+		)
 	}
 
 	canShowHeaders(): boolean {
@@ -785,8 +813,8 @@ export class MailViewerViewModel {
 	private async loadAndProcessAdditionalMailInfo(mail: Mail, delayBodyRenderingUntil: Promise<unknown>): Promise<string[]> {
 		// If the mail is a non-draft and we have loaded it before, we don't need to reload it because it cannot have been edited, so we return early
 		// drafts however can be edited, and we want to receive the changes, so for drafts we will always reload
-		let isDraft = mail.state === MailState.DRAFT
-		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraft && this.sanitizeResult != null) {
+		let isDraftMail = isDraft(mail)
+		if (this.renderedMail != null && haveSameId(mail, this.renderedMail) && !isDraftMail && this.sanitizeResult != null) {
 			return this.sanitizeResult.inlineImageCids
 		}
 
@@ -821,7 +849,7 @@ export class MailViewerViewModel {
 
 		this.sanitizeResult = await this.sanitizeMailBody(mail, !isAllowedAndAuthenticatedExternalSender)
 
-		if (!isDraft) {
+		if (!isDraftMail) {
 			this.checkMailForPhishing(mail, this.sanitizeResult.links)
 		}
 
@@ -1237,18 +1265,19 @@ export class MailViewerViewModel {
 	}
 
 	canReply(): boolean {
-		return !isDraft(this.mail) && !this.isAnnouncement()
+		return !this.isDraftMail() && !this.isAnnouncement()
 	}
 
 	canReplyAll(): boolean {
 		return (
+			this.canReply() &&
 			this.logins.getUserController().isInternalUser() &&
 			this.getToRecipients().length + this.getCcRecipients().length + this.getBccRecipients().length > 1
 		)
 	}
 
 	canForward(): boolean {
-		return !isDraft(this.mail) && !this.isAnnouncement() && this.logins.getUserController().isInternalUser()
+		return !this.isDraftMail() && !this.isAnnouncement() && this.logins.getUserController().isInternalUser()
 	}
 
 	shouldDelayRendering(): boolean {
