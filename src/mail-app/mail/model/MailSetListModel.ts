@@ -297,7 +297,7 @@ export async function applyInboxRulesAndSpamPrediction(
 		return entries
 	}
 	return await promiseFilter(entries, async (entry) => {
-		const targetFolder = await processInboxHandler.handleIncomingMail(entry.mail, sourceFolder, mailboxDetail, folderSystem)
+		const targetFolder = await processInboxHandler.handleIncomingMail(entry.mail, sourceFolder, mailboxDetail, folderSystem, true)
 		return sourceFolder.folderType === targetFolder.folderType
 	})
 }

@@ -211,8 +211,8 @@ export class MailModel {
 
 				let targetFolder = sourceMailFolder
 				const isInternalUser = this.logins.getUserController().isInternalUser()
-				if (isLeaderClient && isInternalUser && mailboxDetail && folderSystem) {
-					targetFolder = await this.processInboxHandler().handleIncomingMail(mail, sourceMailFolder, mailboxDetail, folderSystem)
+				if (isInternalUser && mailboxDetail && folderSystem) {
+					targetFolder = await this.processInboxHandler().handleIncomingMail(mail, sourceMailFolder, mailboxDetail, folderSystem, isLeaderClient)
 				}
 				if (isWebClient()) {
 					this._showNotification(targetFolder, mail)

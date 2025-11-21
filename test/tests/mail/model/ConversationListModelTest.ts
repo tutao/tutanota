@@ -213,7 +213,7 @@ o.spec("ConversationListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), mailboxDetail, matchers.anything()), {
+		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), mailboxDetail, matchers.anything(), true), {
 			times: 0,
 		})
 	})
@@ -231,7 +231,7 @@ o.spec("ConversationListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), mailboxDetail, matchers.anything()), {
+		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), mailboxDetail, matchers.anything(), true), {
 			times: 0,
 		})
 	})
@@ -250,7 +250,7 @@ o.spec("ConversationListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), mailboxDetail, matchers.anything()), {
+		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), mailboxDetail, matchers.anything(), true), {
 			times: 0,
 		})
 		o.check(model.loadingStatus).equals(ListLoadingState.Idle)
@@ -271,6 +271,7 @@ o.spec("ConversationListModel", () => {
 				matchers.anything(),
 				matchers.anything(),
 				matchers.anything(),
+				true,
 			),
 		).thenResolve({ folderType: MailSetKind.SPAM })
 
@@ -280,6 +281,7 @@ o.spec("ConversationListModel", () => {
 				matchers.anything(),
 				matchers.anything(),
 				matchers.anything(),
+				true,
 			),
 		).thenResolve({ folderType: MailSetKind.INBOX })
 
@@ -297,7 +299,7 @@ o.spec("ConversationListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 1,
 		})
-		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), mailboxDetail, matchers.anything()), {
+		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), mailboxDetail, matchers.anything(), true), {
 			times: 100,
 		})
 	})

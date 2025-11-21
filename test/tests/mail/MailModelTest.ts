@@ -157,6 +157,29 @@ o.spec("MailModelTest", function () {
 			)
 		})
 
+		o("invokes ProcessInboxHandler with sendServerRequest == false when the client is not leader", async function () {
+			const notProcessedMail = createTestEntity(MailTypeRef, {
+				_id: ["mailListId", "notProcessedMailId"],
+				_ownerGroup: "mailGroup",
+				mailDetails: ["detailsList", mailDetails._id],
+				sets: [inboxFolder._id],
+				processNeeded: true,
+			})
+			restClient.addListInstances(notProcessedMail)
+			when(connectivityModel.isLeader()).thenReturn(false)
+			when(mailFacade.loadMailDetailsBlob(notProcessedMail)).thenResolve(mailDetails)
+
+			const alreadyClassifiedMailCreateEvent = makeUpdate({
+				instanceListId: "mailListId",
+				instanceId: "notProcessedMailId",
+				operation: OperationType.CREATE,
+			})
+
+			await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
+
+			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything(), false), { times: 1 })
+		})
+
 		o("invokes ProcessInboxHandler if the mail is not processed", async function () {
 			const notProcessedMail = createTestEntity(MailTypeRef, {
 				_id: ["mailListId", "notProcessedMailId"],
@@ -176,7 +199,7 @@ o.spec("MailModelTest", function () {
 
 			await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
 
-			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything()), { times: 1 })
+			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything(), true), { times: 1 })
 		})
 
 		o("does not invoke ProcessInboxHandler if the mail is already processed", async function () {
@@ -198,11 +221,11 @@ o.spec("MailModelTest", function () {
 
 			await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
 
-			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything()), { times: 0 })
+			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything(), true), { times: 0 })
 		})
 
 		o("does not invoke ProcessInboxHandler when downloading of mail fails on create mail event", async function () {
-			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything(), anything())).thenResolve(null)
+			when(inboxRuleHandler.findAndApplyMatchingRule(anything(), anything())).thenResolve(null)
 			const mailCreateEvent = makeUpdate({
 				instanceListId: "mailListId",
 				instanceId: "mailId",
@@ -212,7 +235,7 @@ o.spec("MailModelTest", function () {
 			// mail not being there
 			restClient.setListElementException(mail._id, new NotAuthorizedError("blah"))
 			await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
-			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything()), { times: 0 })
+			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything(), true), { times: 0 })
 		})
 	})
 

@@ -208,7 +208,7 @@ o.spec("MailListModel", () => {
 			times: 0,
 		})
 
-		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), {
+		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), true), {
 			times: 0,
 		})
 	})
@@ -226,7 +226,7 @@ o.spec("MailListModel", () => {
 		verify(mailModel.getMailboxDetailsForMailFolder(matchers.anything()), {
 			times: 0,
 		})
-		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), {
+		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), true), {
 			times: 0,
 		})
 	})
@@ -240,6 +240,7 @@ o.spec("MailListModel", () => {
 				matchers.anything(),
 				matchers.anything(),
 				matchers.anything(),
+				true,
 			),
 		).thenResolve({ folderType: MailSetKind.SPAM })
 
@@ -249,6 +250,7 @@ o.spec("MailListModel", () => {
 				matchers.anything(),
 				matchers.anything(),
 				matchers.anything(),
+				true,
 			),
 		).thenResolve({ folderType: MailSetKind.INBOX })
 
@@ -265,7 +267,7 @@ o.spec("MailListModel", () => {
 			times: 1,
 		})
 
-		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), {
+		verify(processInboxHandler.handleIncomingMail(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), true), {
 			times: 100,
 		})
 	})

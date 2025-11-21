@@ -64,7 +64,6 @@ export class InboxRuleHandler {
 	async findAndApplyMatchingRule(
 		mailboxDetail: MailboxDetail,
 		mail: Readonly<Mail>,
-		applyRulesOnServer: boolean,
 	): Promise<Nullable<{ targetFolder: MailFolder; processInboxDatum: UnencryptedProcessInboxDatum }>> {
 		const shouldApply =
 			(mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
@@ -74,7 +73,7 @@ export class InboxRuleHandler {
 		if (
 			mail._errors ||
 			!shouldApply ||
-			!(await isInboxFolder(this.mailModel, mailboxDetail, mail)) ||
+			!(await isLandingFolder(this.mailModel, mailboxDetail, mail)) ||
 			!this.logins.getUserController().isPaidAccount() ||
 			mailboxDetail.mailbox.folders == null
 		) {
@@ -87,19 +86,14 @@ export class InboxRuleHandler {
 			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)
 			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
-			if (targetFolder && targetFolder.folderType !== MailSetKind.INBOX) {
-				if (applyRulesOnServer) {
-					const processInboxDatum: UnencryptedProcessInboxDatum = {
-						mailId: mail._id,
-						targetMoveFolder: targetFolder._id,
-						classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
-						vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
-					}
-					return { targetFolder, processInboxDatum }
-				} else {
-					// non leader client
-					return null
+			if (targetFolder) {
+				const processInboxDatum: UnencryptedProcessInboxDatum = {
+					mailId: mail._id,
+					targetMoveFolder: targetFolder._id,
+					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
+					vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
 				}
+				return { targetFolder, processInboxDatum }
 			} else {
 				// target folder of inbox rule was deleted
 				return null
@@ -199,8 +193,8 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 	return mailAddress != null
 }
 
-async function isInboxFolder(mailModel: MailModel, mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
+async function isLandingFolder(mailModel: MailModel, mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
 	const folders = await mailModel.getMailboxFoldersForId(assertNotNull(mailboxDetail.mailbox.folders)._id)
 	const mailFolder = folders.getFolderByMail(mail)
-	return mailFolder?.folderType === MailSetKind.INBOX
+	return mailFolder?.folderType === MailSetKind.INBOX || mailFolder?.folderType === MailSetKind.SPAM
 }

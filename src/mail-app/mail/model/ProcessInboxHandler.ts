@@ -45,7 +45,13 @@ export class ProcessInboxHandler {
 		})
 	}
 
-	public async handleIncomingMail(mail: Mail, sourceFolder: MailFolder, mailboxDetail: MailboxDetail, folderSystem: FolderSystem): Promise<MailFolder> {
+	public async handleIncomingMail(
+		mail: Mail,
+		sourceFolder: MailFolder,
+		mailboxDetail: MailboxDetail,
+		folderSystem: FolderSystem,
+		sendServerRequest: boolean,
+	): Promise<MailFolder> {
 		await this.logins.loadCustomizations()
 		const isSpamClassificationFeatureEnabled = this.logins.isEnabled(FeatureType.SpamClientClassification)
 		if (!mail.processNeeded) {
@@ -57,8 +63,8 @@ export class ProcessInboxHandler {
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
 		let moveToFolder: MailFolder = sourceFolder
 
-		if (sourceFolder.folderType === MailSetKind.INBOX) {
-			const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail, true)
+		if (sourceFolder.folderType === MailSetKind.INBOX || sourceFolder.folderType === MailSetKind.SPAM) {
+			const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail)
 			if (result) {
 				const { targetFolder, processInboxDatum } = result
 				finalProcessInboxDatum = processInboxDatum
@@ -93,7 +99,9 @@ export class ProcessInboxHandler {
 		}
 
 		// noinspection ES6MissingAwait
-		this.sendProcessInboxServiceRequest(this.mailFacade)
+		if (sendServerRequest) {
+			this.sendProcessInboxServiceRequest(this.mailFacade)
+		}
 		return moveToFolder
 	}
 }
