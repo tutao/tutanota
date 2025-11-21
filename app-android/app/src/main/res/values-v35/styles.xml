@@ -6,7 +6,6 @@
 		<item name="android:colorPrimaryDark">@color/red</item>
 		<item name="android:statusBarColor">@color/white</item>
 		<item name="android:windowLightStatusBar">true</item>
-		<item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
 	</style>
 
 	<style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
@@ -15,6 +14,5 @@
 		<item name="android:windowBackground">@drawable/splash_background</item>
 		<item name="android:statusBarColor">@color/white</item>
 		<item name="android:windowLightStatusBar">true</item>
-		<item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
 	</style>
 </resources>
