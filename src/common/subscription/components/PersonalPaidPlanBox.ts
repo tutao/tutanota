@@ -153,7 +153,6 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						name: "BuyOptionBox",
 						checked: isSelected,
 						style: {
-							"accent-color": localTheme.primary,
 							opacity: isDisabled ? "0" : "1",
 						},
 						disabled: isDisabled,
