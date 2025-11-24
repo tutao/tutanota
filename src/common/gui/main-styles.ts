@@ -2792,7 +2792,7 @@ styles.registerStyle("main", () => {
 			},
 			'.mail-viewer, [data-testid="collapsed-mail-view"]': {
 				color: `${lightTheme.on_surface} !important`,
-				"background-color": `${lightTheme.on_surface}`,
+				"background-color": `${lightTheme.surface}`,
 			},
 			"#mail-body": {
 				overflow: "visible",
