@@ -44,7 +44,7 @@ export class MultiRecipientsKeyVerificationRecoveryUserSelectionPage implements 
 				m(".plr-12.flex.flex-column.gap-16.pt-8.pb-8", [
 					lang.get("keyManagement.mailRecipientsVerificationMismatchError_msg"),
 					m(
-						"",
+						".mb",
 						m(RadioSelector, {
 							groupName: "credentialsEncryptionMode_label",
 							options: selectableRecipients,

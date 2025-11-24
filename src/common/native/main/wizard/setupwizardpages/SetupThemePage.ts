@@ -30,17 +30,20 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 			},
 			m("p.full-width", lang.get("theme_title")),
 			// We need to await the promise from `themeController.getCustomThemes()`, so we delay rendering the `RadioSelector` until it does.
-			this.customThemes == null
-				? null
-				: m(RadioSelector, {
-						groupName: "theme_label",
-						options: [...themeOptions(client.isCalendarApp()), ...this.customThemes],
-						optionClass: "mb-8",
-						selectedOption: locator.themeController.themePreference,
-						onOptionSelected: (option) => {
-							locator.themeController.setThemePreference(option, true)
-						},
-					} satisfies RadioSelectorAttrs<ThemePreference>),
+
+			m(
+				".mb",
+				this.customThemes == null
+					? null
+					: m(RadioSelector, {
+							groupName: "theme_label",
+							options: [...themeOptions(client.isCalendarApp()), ...this.customThemes],
+							selectedOption: locator.themeController.themePreference,
+							onOptionSelected: (option) => {
+								locator.themeController.setThemePreference(option, true)
+							},
+						} satisfies RadioSelectorAttrs<ThemePreference>),
+			),
 		)
 	}
 }

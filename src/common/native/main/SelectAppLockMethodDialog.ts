@@ -122,7 +122,7 @@ export class SelectAppLockMethodView implements Component<SelectAppLockMethodDia
 					attrs.error ? m(".small.center.statusTextColor.pb-8", liveDataAttrs(), attrs.error) : null,
 					m("", lang.get("credentialsEncryptionModeSelection_msg")),
 					m(
-						".mt-16",
+						".mt-16.mb-16",
 						m(RadioSelector, {
 							groupName: "credentialsEncryptionMode_label",
 							options,

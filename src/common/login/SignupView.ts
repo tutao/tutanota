@@ -262,12 +262,12 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		const boxAttr = { style: { width: "100%", height: px(500), background: theme.primary_container } }
 		return (ctx) => {
 			const options: ReadonlyArray<RadioSelectorOption<number>> = [
-				{ name: "partner_label", value: 0, renderChild: () => m("div", boxAttr, "hogehoge") },
-				{ name: "credit_label", value: 1, renderChild: () => m("div", boxAttr, "fugafuga") },
-				{ name: "userSettings_label", value: 2, renderChild: () => m("div", boxAttr, "foobarbaz") },
+				{ name: "partner_label", value: 0, renderChild: () => m("div", boxAttr, "1") },
+				{ name: "credit_label", value: 1, renderChild: () => m("div", boxAttr, "2") },
+				{ name: "userSettings_label", value: 2, renderChild: () => m("div", boxAttr, "3") },
 			]
 			return m(
-				".mt",
+				".mt.mb",
 				m(RadioSelector, {
 					groupName: "credentialsEncryptionMode_label",
 					options,
