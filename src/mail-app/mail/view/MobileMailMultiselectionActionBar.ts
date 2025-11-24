@@ -4,6 +4,7 @@ import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { DROPDOWN_MARGIN, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
+import { px, size } from "../../../common/gui/size"
 
 export interface MobileMailMultiselectionActionBarAttrs {
 	selectNone: () => unknown
@@ -25,9 +26,9 @@ export class MobileMailMultiselectionActionBar {
 				oncreate: ({ dom }) => (this.dom = dom as HTMLElement),
 			},
 			[
-				this.renderDeleteButton(attrs) ?? this.renderTrashAction(attrs),
-				this.renderMoveButton(attrs),
-				this.renderLabelsButton(attrs),
+				this.renderDeleteButton(attrs) ?? this.renderTrashAction(attrs) ?? this.placeholder(),
+				this.renderMoveButton(attrs) ?? this.placeholder(),
+				this.renderLabelsButton(attrs) ?? this.placeholder(),
 				this.renderUnreadButton(attrs),
 			],
 		)
@@ -37,21 +38,29 @@ export class MobileMailMultiselectionActionBar {
 		return dom.offsetWidth - DROPDOWN_MARGIN * 2
 	}
 
+	private placeholder() {
+		return m("", {
+			style: {
+				width: px(size.button_height),
+			},
+		})
+	}
+
 	private renderUnreadButton({ setUnreadStateAction }: MobileMailMultiselectionActionBarAttrs) {
-		return (
-			setUnreadStateAction && [
-				m(IconButton, {
-					icon: Icons.Eye,
-					title: "markRead_action",
-					click: () => setUnreadStateAction(false),
-				}),
-				m(IconButton, {
-					icon: Icons.NoEye,
-					title: "markUnread_action",
-					click: () => setUnreadStateAction(true),
-				}),
-			]
-		)
+		return setUnreadStateAction
+			? [
+					m(IconButton, {
+						icon: Icons.Eye,
+						title: "markRead_action",
+						click: () => setUnreadStateAction(false),
+					}),
+					m(IconButton, {
+						icon: Icons.NoEye,
+						title: "markUnread_action",
+						click: () => setUnreadStateAction(true),
+					}),
+				]
+			: [this.placeholder(), this.placeholder()]
 	}
 
 	private renderLabelsButton({ applyLabelsAction }: MobileMailMultiselectionActionBarAttrs) {

@@ -344,6 +344,9 @@ export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 		case MailSetKind.DRAFT:
 			return Icons.Draft
 
+		case MailSetKind.SEND_LATER:
+			return Icons.ClockFilled
+
 		default:
 			return Icons.Folder
 	}
