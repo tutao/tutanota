@@ -72,8 +72,5 @@ function renderKnob(value: string, id: string, groupName: MaybeTranslation, isSe
 		checked: isSelected,
 		value,
 		id,
-		style: {
-			"accent-color": theme.on_primary_container,
-		},
 	})
 }
