@@ -9,7 +9,7 @@ import { DesktopConfigKey } from "../../../../src/common/desktop/config/ConfigKe
 import { assertNotNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { InstancePipeline } from "../../../../src/common/api/worker/crypto/InstancePipeline"
 import { TypeModelResolver } from "../../../../src/common/api/common/EntityFunctions"
-import { aes256RandomKey, encryptKey, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToBitArray } from "@tutao/tutanota-crypto"
 import {
 	AlarmInfoTypeRef,
 	AlarmNotificationTypeRef,
@@ -29,7 +29,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 	const key2 = new Uint8Array([2])
 	const key3 = new Uint8Array([3])
 	const key4 = new Uint8Array([4])
-	const decryptedKey = new Uint8Array([0, 1])
+	const decryptedKey = aes256RandomKey()
 	const encryptedKey = new Uint8Array([1, 0])
 
 	o.beforeEach(function () {
@@ -56,7 +56,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const key = await desktopStorage.getPushIdentifierSessionKey(pushIdentifier)
 
 		verify(confMock.getVar(DesktopConfigKey.pushEncSessionKeys), { times: 1 })
-		o(Array.from(assertNotNull(key))).deepEquals(uint8ArrayToBitArray(decryptedKey))
+		o(Array.from(assertNotNull(key))).deepEquals(decryptedKey)
 	})
 
 	o("getPushIdentifierSessionKey with cached sessionKey", async function () {

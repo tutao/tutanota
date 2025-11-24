@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
 import {
-	assertNotNull,
 	concat,
 	Hex,
 	hexToUint8Array,
@@ -10,11 +9,10 @@ import {
 	uint8ArrayToHex,
 	utf8Uint8ArrayToString,
 } from "@tutao/tutanota-utils"
-import { aesDecrypt, aesEncrypt, unauthenticatedAesDecrypt } from "../lib/encryption/Aes.js"
+import { aes256EncryptSearchIndexEntry, aesDecrypt, aesEncrypt, unauthenticatedAesDecrypt } from "../lib/encryption/Aes.js"
 import { CryptoError } from "../lib/misc/CryptoError.js"
 import { random } from "../lib/random/Randomizer.js"
 import { assertThrows, throwsErrorWithMessage } from "@tutao/tutanota-test-utils"
-import sjcl from "../lib/internal/sjcl.js"
 import {
 	Aes128Key,
 	Aes256Key,
@@ -22,16 +20,14 @@ import {
 	AesKey,
 	AesKeyLength,
 	base64ToKey,
-	bitArrayToUint8Array,
 	extractIvFromCipherText,
-	hmacSha256,
 	IV_BYTE_LENGTH,
 	keyToBase64,
 	keyToUint8Array,
 	uint8ArrayToKey,
 } from "../lib/index.js"
-import { uint8ArrayToBitArray } from "../lib/encryption/symmetric/SymmetricCipherUtils"
-import { getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "../lib/encryption/symmetric/AesKeyLength"
+import { uint8ArrayToBitArray } from "../lib/encryption/symmetric/SymmetricCipherUtils.js"
+import { getKeyLengthAsBytes } from "../lib/encryption/symmetric/AesKeyLength.js"
 
 o.spec("aes", function () {
 	o("encryption roundtrip 128 without mac", () => arrayRoundtrip(aesEncrypt, aesDecrypt, _aes128RandomKey(), false))
@@ -40,7 +36,9 @@ o.spec("aes", function () {
 		await assertThrows(CryptoError, async () => await arrayRoundtrip(aesEncrypt, aesDecrypt, aes256RandomKey(), false))
 	})
 	o("encrypted roundtrip 256 with mac", () => arrayRoundtrip(aesEncrypt, aesDecrypt, aes256RandomKey(), true))
-	o("encrypted roundtrip 256 with legacy encrypted data", () => arrayRoundtrip(aes256EncryptLegacy, unauthenticatedAesDecrypt, aes256RandomKey(), false))
+	o("encrypted roundtrip 256 with legacy encrypted data", () =>
+		arrayRoundtrip(aes256EncryptSearchIndexEntry, unauthenticatedAesDecrypt, aes256RandomKey(), false),
+	)
 
 	// o("encryption roundtrip 256 webcrypto", browser(function (done, timeout) {
 	// 	timeout(1000)
@@ -257,26 +255,6 @@ o.spec("aes", function () {
 		})
 	})
 })
-
-// visibleForTesting
-export function aes256EncryptLegacy(key: Aes256Key, bytes: Uint8Array, iv: Uint8Array, usePadding: boolean = true, useMac: boolean = true): Uint8Array {
-	getAndVerifyAesKeyLength(key, [getKeyLengthAsBytes(AesKeyLength.Aes256)])
-
-	if (iv.length !== IV_BYTE_LENGTH) {
-		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
-	}
-
-	let subKeys = getAesSubKeys(key, useMac)
-	let encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.cKey), uint8ArrayToBitArray(bytes), uint8ArrayToBitArray(iv), [], usePadding)
-	let data = concat(iv, bitArrayToUint8Array(encryptedBits))
-
-	if (useMac) {
-		const macBytes = hmacSha256(assertNotNull(subKeys.mKey), data)
-		data = concat(new Uint8Array([MAC_ENABLED_PREFIX]), data, macBytes)
-	}
-
-	return data
-}
 
 export function _aes128RandomKey(): Aes128Key {
 	return uint8ArrayToBitArray(random.generateRandomData(getKeyLengthAsBytes(AesKeyLength.Aes128)))

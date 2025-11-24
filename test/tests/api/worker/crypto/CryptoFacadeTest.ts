@@ -66,6 +66,7 @@ import {
 	encryptRsaKey,
 	generateX25519KeyPair,
 	KeyPairType,
+	keyToUint8Array,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	pqKeyPairsToPublicKeys,

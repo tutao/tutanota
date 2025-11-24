@@ -6,7 +6,6 @@ export {
 	unauthenticatedAesDecrypt,
 	aes256EncryptSearchIndexEntryWithIV,
 } from "./encryption/Aes.js"
-export { IV_BYTE_LENGTH, FIXED_IV } from "./encryption/symmetric/SymmetricCipherUtils.js"
 export {
 	X25519PrivateKey,
 	X25519PublicKey,
@@ -117,18 +116,22 @@ export { TotpSecret } from "./misc/TotpVerifier.js"
 export { murmurHash } from "./hashes/MurmurHash.js"
 export { hkdf } from "./hashes/HKDF.js"
 export { hmacSha256, verifyHmacSha256, MacTag } from "./encryption/Hmac.js"
-export { aes256RandomKey } from "./encryption/symmetric/SymmetricCipherUtils"
-export { keyToUint8Array } from "./encryption/symmetric/SymmetricCipherUtils"
-export { uint8ArrayToKey } from "./encryption/symmetric/SymmetricCipherUtils"
-export { base64ToKey } from "./encryption/symmetric/SymmetricCipherUtils"
-export { keyToBase64 } from "./encryption/symmetric/SymmetricCipherUtils"
-export { uint8ArrayToBitArray } from "./encryption/symmetric/SymmetricCipherUtils"
-export { bitArrayToUint8Array } from "./encryption/symmetric/SymmetricCipherUtils"
-export { createAuthVerifierAsBase64Url } from "./encryption/symmetric/SymmetricCipherUtils"
-export { createAuthVerifier } from "./encryption/symmetric/SymmetricCipherUtils"
-export { BitArray } from "./encryption/symmetric/SymmetricCipherUtils"
-export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "./encryption/symmetric/AesKeyLength"
-export { AesKey } from "./encryption/symmetric/SymmetricCipherUtils"
-export { Aes128Key } from "./encryption/symmetric/SymmetricCipherUtils"
-export { Aes256Key } from "./encryption/symmetric/SymmetricCipherUtils"
-export { extractIvFromCipherText } from "./encryption/symmetric/SymmetricCipherUtils"
+export {
+	aes256RandomKey,
+	keyToUint8Array,
+	uint8ArrayToKey,
+	base64ToKey,
+	keyToBase64,
+	uint8ArrayToBitArray,
+	bitArrayToUint8Array,
+	createAuthVerifierAsBase64Url,
+	createAuthVerifier,
+	BitArray,
+	AesKey,
+	Aes128Key,
+	Aes256Key,
+	extractIvFromCipherText,
+	IV_BYTE_LENGTH,
+	FIXED_IV,
+} from "./encryption/symmetric/SymmetricCipherUtils.js"
+export { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "./encryption/symmetric/AesKeyLength.js"

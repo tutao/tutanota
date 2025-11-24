@@ -16,6 +16,7 @@ import { RSA_TEST_KEYPAIR } from "../facades/RsaPqPerformanceTest.js"
 import {
 	AesKey,
 	KeyPairType,
+	keyToUint8Array,
 	KyberPublicKey,
 	PQKeyPairs,
 	PQPublicKeys,

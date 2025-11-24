@@ -62,7 +62,7 @@ o.spec("Argon2id", function () {
 		o(key3).notDeepEquals(key0)
 		// test the key length to be 256 bit
 		o(Array.from(keyToUint8Array(key0)).length).equals(32)
-		o(Array.from(bitArrayToUint8Array(key2)).length).equals(32)
-		o(Array.from(bitArrayToUint8Array(key3)).length).equals(32)
+		o(Array.from(keyToUint8Array(key2)).length).equals(32)
+		o(Array.from(keyToUint8Array(key3)).length).equals(32)
 	})
 })

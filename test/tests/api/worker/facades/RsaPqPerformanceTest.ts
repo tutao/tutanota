@@ -5,6 +5,7 @@ import {
 	hexToRsaPrivateKey,
 	hexToRsaPublicKey,
 	KeyPairType,
+	keyToUint8Array,
 	pqKeyPairsToPublicKeys,
 	rsaDecrypt,
 	rsaEncrypt,

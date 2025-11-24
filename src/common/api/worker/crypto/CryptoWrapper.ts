@@ -24,10 +24,10 @@ import {
 	extractKyberPublicKeyFromKyberPrivateKey,
 	extractRawPublicRsaKeyFromPrivateRsaKey,
 	generateX25519KeyPair,
+	getKeyLengthAsBytes,
 	hkdf,
 	HkdfKeyDerivationDomains,
 	hmacSha256,
-	IV_BYTE_LENGTH,
 	keyToUint8Array,
 	KyberKeyPair,
 	KyberPrivateKey,
@@ -35,7 +35,6 @@ import {
 	kyberPublicKeyToBytes,
 	MacTag,
 	type PQKeyPairs,
-	random,
 	RawRsaPublicKey,
 	type RsaKeyPair,
 	type RsaX25519KeyPair,
@@ -50,7 +49,6 @@ import { arrayEquals, KeyVersion, stringToUtf8Uint8Array, Versioned } from "@tut
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { IdentityKeyPair } from "../../entities/sys/TypeRefs"
 import { parseKeyVersion } from "../facades/KeyLoaderFacade"
-import { getKeyLengthAsBytes } from "../../../../../packages/tutanota-crypto/lib/encryption/symmetric/AesKeyLength"
 
 /**
  * An AesKey (usually a group key) and its version.

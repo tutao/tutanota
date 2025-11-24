@@ -5,6 +5,7 @@ import {
 	aesEncrypt,
 	AesKeyLength,
 	generateX25519KeyPair,
+	getKeyLengthAsBytes,
 	hkdf,
 	KeyPairType,
 	kyberPublicKeyToBytes,
@@ -21,7 +22,6 @@ import {
 import { concat, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { decodePQMessage, encodePQMessage, PQMessage } from "./PQMessage.js"
 import { CryptoProtocolVersion } from "../../common/TutanotaConstants.js"
-import { getKeyLengthAsBytes } from "../../../../../packages/tutanota-crypto/lib/encryption/symmetric/AesKeyLength"
 
 export type DecapsulatedSymKey = {
 	senderIdentityPubKey: X25519PublicKey
