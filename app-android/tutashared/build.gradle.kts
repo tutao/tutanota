@@ -69,7 +69,8 @@ android {
 	}
 
 	sourceSets {
-		this.getByName("debug").assets.srcDirs(files("$projectDir/schemas"))
+		this.getByName("debug").assets.srcDir("$projectDir/schemas")
+		this.getByName("androidTest").assets.srcDir("$projectDir/schemas")
 	}
 
 	ndkVersion = "28.2.13676358"

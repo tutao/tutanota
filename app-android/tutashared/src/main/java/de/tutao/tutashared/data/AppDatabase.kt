@@ -10,7 +10,7 @@ import de.tutao.tutashared.credentials.CredentialsDao
 import de.tutao.tutashared.credentials.PersistedCredentialsEntity
 
 @Database(
-	version = 5, entities = [
+	version = 6, entities = [
 		KeyValue::class,
 		KeyBinary::class,
 		PushIdentifierKey::class,
@@ -21,7 +21,7 @@ import de.tutao.tutashared.credentials.PersistedCredentialsEntity
 		AutoMigration(from = 1, to = 2),
 		AutoMigration(from = 2, to = 3),
 		AutoMigration(from = 3, to = 4),
-		AutoMigration(from = 4, to = 5)
+		AutoMigration(from = 4, to = 5),
 	]
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -37,7 +37,9 @@ abstract class AppDatabase : RoomDatabase() {
 				context,
 				AppDatabase::class.java,
 				"tuta-db"
-			) // This is important because we access db across processes!
+			)
+				.addMigrations(AppDatabaseMigration5to6)
+				// This is important because we access db across processes!
 				.enableMultiInstanceInvalidation()
 			if (allowMainThreadAccess) {
 				builder.allowMainThreadQueries()

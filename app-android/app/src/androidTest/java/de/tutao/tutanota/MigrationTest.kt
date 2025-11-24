@@ -5,6 +5,7 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.data.AppDatabaseMigration5to6
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,8 +37,12 @@ class MigrationTest {
 			InstrumentationRegistry.getInstrumentation().targetContext,
 			AppDatabase::class.java,
 			TEST_DB
-		).build().apply {
-			openHelper.writableDatabase.close()
-		}
+		)
+			.addMigrations(AppDatabaseMigration5to6)
+			.build()
+			.apply {
+				openHelper
+					.writableDatabase.close()
+			}
 	}
 }
