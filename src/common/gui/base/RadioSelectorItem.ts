@@ -40,7 +40,6 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 					"background-color": isSelected ? theme.surface_container_high : theme.surface_container,
 					"border-color": isSelected ? theme.surface_container_high : theme.outline_variant,
 					"border-width": px(size.checkbox_border_size),
-					width: px(400),
 				},
 				onclick: () => {
 					if (!isSelected) onOptionSelected(option.value)
@@ -54,13 +53,15 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 						"font-weight": isSelected ? "bold" : undefined,
 						height: "fit-content",
 					},
+					role: "button",
+					...(option.renderChild && { "aria-expanded": String(isSelected) }),
 				},
 				[
 					renderKnob(valueString, optionId, groupName, isSelected),
 					m("label.left.pt-xs.pb-xs", { for: optionId }, lang.getTranslationText(option.name)),
 				],
 			),
-			m(ExpanderPanel, { expanded: isSelected }, option.renderChild?.()),
+			option.renderChild && m(ExpanderPanel, { expanded: isSelected }, option.renderChild?.()),
 		)
 	}
 }
