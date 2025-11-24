@@ -186,7 +186,6 @@ export class ExpanderPanel implements Component<ExpanderPanelAttrs> {
 		}
 	}
 
-	// FIXME: Use transition events to handle the state
 	private handleExpansionStateChanged(expanded: boolean) {
 		clearTimeout(this.setChildrenInDomTimeout)
 
