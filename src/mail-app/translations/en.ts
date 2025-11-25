@@ -2130,5 +2130,6 @@ export default {
         "sendOrSendLater_label": "Send/Send later",
         "sendScheduledForDate_msg": "Send scheduled for {dateTime}",
         "scheduling_msg": "Your message is being scheduled.",
+		"removeScheduledMails_msg": "Please remove your scheduled mails."
     }
 }

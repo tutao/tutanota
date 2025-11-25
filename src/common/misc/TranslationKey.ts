@@ -2128,3 +2128,4 @@ export type TranslationKeyType =
 	| "scheduled_label"
 	| "sendScheduledForDate_msg"
 	| "scheduling_msg"
+	| "removeScheduledMails_msg"
