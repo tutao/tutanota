@@ -29,7 +29,9 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 			label: label === undefined ? "password_label" : label,
 			autocompleteAs: attrs.autocompleteAs ? attrs.autocompleteAs : Autocomplete.currentPassword,
 			type: this.isPasswordRevealed ? TextFieldType.Text : TextFieldType.Password,
-			helpLabel: () => PasswordField.renderHelpLabel(textFieldAttrs.value, passwordStrength, status, textFieldAttrs.helpLabel ?? null),
+			helpLabel: textFieldAttrs.helpLabel
+				? () => PasswordField.renderHelpLabel(textFieldAttrs.value, passwordStrength, status, textFieldAttrs.helpLabel)
+				: null,
 			injectionsRight: () => {
 				return [
 					PasswordField.renderRevealIcon(this.isPasswordRevealed, (newValue) => (this.isPasswordRevealed = newValue)),
@@ -52,7 +54,12 @@ export class PasswordField implements Component<PasswordFieldAttrs> {
 		})
 	}
 
-	private static renderHelpLabel(value: string, strength: number | undefined, status: StatusSetting | undefined, helpLabel: lazy<Children> | null): Children {
+	private static renderHelpLabel(
+		value: string,
+		strength: number | undefined,
+		status: StatusSetting | undefined,
+		helpLabel: lazy<Children> | null | undefined,
+	): Children {
 		const displayedStatus = PasswordField.parseStatusSetting(status, value, strength)
 		return m(".mt-4", [
 			m(".flex.items-center", [

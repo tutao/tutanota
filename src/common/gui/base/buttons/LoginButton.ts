@@ -8,12 +8,15 @@ export const enum LoginButtonType {
 	FlexWidth = "FlexWidth",
 }
 
+type LoginButtonSize = "Extrasmall" | "Small" | "Medium"
+
 export type LoginButtonAttrs = Pick<BaseButtonAttrs, "onclick" | "class"> & {
 	label: MaybeTranslation
 	disabled?: boolean
 	discouraged?: boolean
 	type?: LoginButtonType
 	icon?: Children
+	size?: LoginButtonSize
 }
 
 export class LoginButton implements Component<LoginButtonAttrs> {
@@ -50,6 +53,10 @@ export class LoginButton implements Component<LoginButtonAttrs> {
 			classes.push("plr-48")
 		} else {
 			classes.push("full-width plr-8")
+		}
+
+		if (attrs.size === "Small") {
+			classes.push("")
 		}
 
 		return classes

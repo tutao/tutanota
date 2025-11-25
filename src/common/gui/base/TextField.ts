@@ -9,6 +9,7 @@ import { isKeyPressed, keyHandler, useKeyHandler } from "../../misc/KeyManager"
 import { Keys, TabIndex } from "../../api/common/TutanotaConstants"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { AriaPopupType } from "../AriaUtils.js"
+import { AllIcons, Icon, IconSize } from "./Icon"
 
 export type TextFieldAttrs = {
 	id?: string
@@ -40,6 +41,10 @@ export type TextFieldAttrs = {
 	fontSize?: string
 	min?: number
 	max?: number
+	leadingIcon?: {
+		icon: AllIcons
+		color: string
+	}
 
 	/** This is called whenever the return key is pressed; overrides keyHandler */
 	onReturnKeyPressed?: () => unknown
@@ -80,11 +85,11 @@ export const enum Autocapitalize {
 const inputMarginTop = font_size.small + size.spacing_4 + 3
 
 // this is not always correct because font size can be bigger/smaller, and we ideally should take that into account
-const baseLabelPosition = 21
+const baseLabelPosition = "-50%"
 // it should fit
 // compact button + 1 px border + 1 px padding to keep things centered = 32
 // 24px line-height + 12px label + some space between them = 36 + ?
-const minInputHeight = 46
+const minInputHeight = 56
 
 export class TextField implements ClassComponent<TextFieldAttrs> {
 	active: boolean
@@ -105,93 +110,129 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		const labelBase = !this.active && a.value === "" && !a.isReadOnly && !this._didAutofill && !a.injectionsLeft
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		const doShowBorder = a.doShowBorder !== false
-		const borderWidth = this.active ? "2px" : "1px"
-		const borderColor = this.active ? theme.primary : theme.outline_variant
-		return m(
-			".text-field.rel.overflow-hidden",
-			{
-				id: vnode.attrs.id,
-				oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
-				onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
-				"aria-haspopup": a.hasPopup,
-				"data-testid": `tf:${lang.getTestId(a.label)}`,
-				class: a.class != null ? a.class : "pt-16" + " " + getOperatingClasses(a.disabled),
-				style: maxWidth
-					? {
-							maxWidth: px(maxWidth),
-							...a.style,
-						}
-					: { ...a.style },
-			},
-			[
-				m(
-					"label.abs.text-ellipsis.noselect.z1.i.pr-4",
-					{
-						"aria-hidden": "true",
-						class: this.active ? "content-accent-fg" : "" + " " + getOperatingClasses(a.disabled),
-						oncreate: (vnode) => {
-							this._domLabel = vnode.dom as HTMLElement
+		const borderWidth = 3
+		const borderColor = this.active ? theme.primary : "transparent"
+		const borderBottomRadius = this.active ? "0px" : px(size.border_radius)
+
+		const baseStyling = {
+			"background-color": theme.surface_container_high,
+			"border-radius": `${px(size.border_radius)} ${px(size.border_radius)} ${borderBottomRadius} ${borderBottomRadius}`,
+			transition: `border-radius ${labelTransitionSpeed}ms ease-out`,
+		}
+
+		return [
+			m(
+				".text-field.rel.overflow-hidden",
+				{
+					id: vnode.attrs.id,
+					oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
+					onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
+					"aria-haspopup": a.hasPopup,
+					"data-testid": `tf:${lang.getTestId(a.label)}`,
+					class: a.class != null ? a.class : "mt" + " " + getOperatingClasses(a.disabled),
+					style: maxWidth
+						? {
+								maxWidth: px(maxWidth),
+								...a.style,
+								...baseStyling,
+							}
+						: { ...a.style, ...baseStyling },
+				},
+				[
+					m(
+						"label.abs.text-ellipsis.noselect.z1.pr-s",
+						{
+							"aria-hidden": "true",
+							class: this.active ? "" : "" + " " + getOperatingClasses(a.disabled),
+							oncreate: (vnode) => {
+								this._domLabel = vnode.dom as HTMLElement
+							},
+							style: {
+								fontSize: `${labelBase ? size.font_size_base : size.font_size_small}px`,
+								transform: `translateY(${labelBase ? baseLabelPosition : 0})`,
+								"transition-timing-function": "ease-out",
+								"transition-duration": `${labelTransitionSpeed}ms`,
+								"transition-property": "transform, font-size, top",
+								top: labelBase ? "50%" : px(size.vpad_small),
+								left: a.leadingIcon ? px(size.icon_size_large + size.vpad) : 0,
+								"padding-left": px(size.vpad),
+								"padding-right": px(size.vpad),
+								color: labelBase ? "inherit" : theme.primary,
+							},
 						},
-						style: {
-							fontSize: `${labelBase ? font_size.base : font_size.small}px`,
-							transform: `translateY(${labelBase ? baseLabelPosition : 0}px)`,
-							transition: `transform ${labelTransitionSpeed}ms ease-out, font-size ${labelTransitionSpeed}ms  ease-out`,
+						lang.getTranslationText(a.label),
+					),
+					m(".flex.flex-column", [
+						// another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
+						m(
+							".flex.items-end.flex-wrap",
+							{
+								// .flex-wrap
+								style: {
+									"min-height": px(minInputHeight),
+									"border-bottom": doShowBorder ? `${px(borderWidth)} solid ${borderColor}` : "",
+									transition: `border-bottom ${labelTransitionSpeed}ms ease-out`,
+								},
+							},
+							[
+								a.leadingIcon &&
+									m(Icon, {
+										size: IconSize.Medium,
+										icon: a.leadingIcon.icon,
+										style: {
+											fill: a.leadingIcon.color,
+											"align-self": "center",
+											"padding-left": px(16),
+											position: "relative",
+											top: px(borderWidth / 2),
+										},
+									}),
+								a.injectionsLeft ? a.injectionsLeft() : null, // additional wrapper element for bubble input field. input field should always be in one line with right injections
+								m(
+									".inputWrapper.flex-space-between.items-end",
+									{
+										style: {
+											minHeight: px(minInputHeight - 2), // minus padding
+
+											"padding-left": px(size.vpad),
+											"padding-right": px(size.vpad),
+										},
+										oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
+									},
+									[
+										a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
+										a.injectionsRight
+											? m(
+													".flex-end.items-center",
+													{
+														style: {
+															minHeight: px(minInputHeight - 2),
+															position: "relative",
+															top: px(borderWidth / 2),
+														},
+													},
+													a.injectionsRight(),
+												)
+											: null,
+									],
+								),
+							],
+						),
+					]),
+				],
+			),
+
+			a.helpLabel &&
+				m(
+					"small.noselect",
+					{
+						onclick: (e: MouseEvent) => {
+							e.stopPropagation()
 						},
 					},
-					lang.getTranslationText(a.label),
+					a.helpLabel(),
 				),
-				m(".flex.flex-column", [
-					// another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
-					m(
-						".flex.items-end.flex-wrap",
-						{
-							// .flex-wrap
-							style: {
-								"min-height": px(minInputHeight),
-								// 2 px border
-								"padding-bottom": this.active ? px(0) : px(1),
-								"border-bottom": doShowBorder ? `${borderWidth} solid ${borderColor}` : "",
-							},
-						},
-						[
-							a.injectionsLeft ? a.injectionsLeft() : null, // additional wrapper element for bubble input field. input field should always be in one line with right injections
-							m(
-								".inputWrapper.flex-space-between.items-end",
-								{
-									style: {
-										minHeight: px(minInputHeight - 2), // minus padding
-									},
-									oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
-								},
-								[
-									a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
-									a.injectionsRight
-										? m(
-												".flex-end.items-center",
-												{
-													style: { minHeight: px(minInputHeight - 2) },
-												},
-												a.injectionsRight(),
-											)
-										: null,
-								],
-							),
-						],
-					),
-				]),
-				a.helpLabel
-					? m(
-							"small.noselect",
-							{
-								onclick: (e: MouseEvent) => {
-									e.stopPropagation()
-								},
-							},
-							a.helpLabel(),
-						)
-					: [],
-			],
-		)
+		]
 	}
 
 	_getInputField(a: TextFieldAttrs): Children {
@@ -307,6 +348,8 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							// fix for edge browser. buttons are cut off in small windows otherwise
 							lineHeight: px(font_size.line_height_input),
 							fontSize: a.fontSize,
+							position: "relative",
+							bottom: px(size.vpad_xsm),
 						},
 						"data-testid": `tfi:${lang.getTestId(a.label)}`,
 					}),
