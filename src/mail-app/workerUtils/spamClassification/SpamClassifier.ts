@@ -73,6 +73,7 @@ export class SpamClassifier {
 	public async initializeFromStorage(ownerGroup: Id): Promise<void> {
 		const classifier = await this.loadClassifier(ownerGroup)
 		if (classifier) {
+			console.log(`loaded existing spam classification model for mailbox ${ownerGroup} from storage`)
 			this.classifierByMailGroup.set(ownerGroup, classifier)
 		}
 	}
@@ -89,7 +90,7 @@ export class SpamClassifier {
 				)
 				await this.trainFromScratch(this.cacheStorage, ownerGroup)
 			} else {
-				console.log(`loaded existing spam classification model for mailbox ${ownerGroup} from database for mailbox`)
+				console.log(`loaded existing spam classification model for mailbox ${ownerGroup} from storage, now checking for retraining ...`)
 				this.classifierByMailGroup.set(ownerGroup, classifier)
 				await this.updateAndSaveModel(this.cacheStorage, ownerGroup)
 			}
@@ -377,7 +378,7 @@ export class SpamClassifier {
 				spamCount: spamClassificationModel.spamCount,
 			}
 		} else {
-			console.log("loading the spam classification spamClassificationModel from offline db failed ... ")
+			console.log(`loading the spam classification spamClassificationModel from storage failed for mailbox ${ownerGroup} ... `)
 			return null
 		}
 	}
