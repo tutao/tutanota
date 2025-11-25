@@ -11,7 +11,7 @@ import type { MaybeTranslation } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { Keys } from "../../api/common/TutanotaConstants"
 import { isKeyPressed } from "../../misc/KeyManager"
-import { DropData, DropHandler, DropType } from "./GuiUtils"
+import { DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
 import { assertMainOrNode, isDesktop } from "../../api/common/Env"
 import { fileListToArray } from "../../api/common/utils/FileUtils.js"
 
@@ -23,6 +23,7 @@ export type NavButtonAttrs = {
 	isSelectedPrefix?: string | boolean
 	click?: (event: Event, dom: HTMLElement) => unknown
 	colors?: NavButtonColor
+	dragStartHandler?: DragStartHandler
 	dropHandler?: DropHandler
 	hideLabel?: boolean
 	vertical?: boolean
@@ -117,6 +118,8 @@ export class NavButton implements Component<NavButtonAttrs> {
 			"aria-current": isCurrent || undefined,
 			// role button for screen readers
 			href: this._getUrl(a.href),
+			draggable: a.dragStartHandler ? "true" : undefined,
+			ondragstart: a.dragStartHandler,
 			style: {
 				"font-size": a.fontSize ? px(a.fontSize) : "",
 				color: this._draggedOver || isNavButtonSelected(a) ? theme.primary : theme.on_surface_variant,
@@ -164,8 +167,13 @@ export class NavButton implements Component<NavButtonAttrs> {
 				this._draggedOver = false
 				ev.preventDefault()
 				ev.stopPropagation()
-
-				if (ev.dataTransfer?.getData(DropType.Mail)) {
+				if (ev.dataTransfer?.getData(DropType.Folder)) {
+					let dropData: DropData = {
+						dropType: DropType.Folder,
+						folderId: ev.dataTransfer.getData(DropType.Folder),
+					}
+					neverNull(a.dropHandler)(dropData)
+				} else if (ev.dataTransfer?.getData(DropType.Mail)) {
 					let dropData: DropData = {
 						dropType: DropType.Mail,
 						mailId: ev.dataTransfer.getData(DropType.Mail),

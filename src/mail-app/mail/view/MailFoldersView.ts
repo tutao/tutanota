@@ -14,15 +14,16 @@ import { attachDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dr
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
+import { isNestableMailSet, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
 import { px, size } from "../../../common/gui/size.js"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton.js"
 import { MailModel } from "../model/MailModel.js"
 import { getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
-import { DropData } from "../../../common/gui/base/GuiUtils"
+import { DropData, DropType } from "../../../common/gui/base/GuiUtils"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../../../common/gui/HtmlUtils"
+import { theme } from "../../../common/gui/theme.js"
 
 export interface MailFolderViewAttrs {
 	mailModel: MailModel
@@ -119,6 +120,18 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				dropHandler: (dropData) => attrs.onFolderDrop(dropData, system.folder),
 				disableHoverBackground: true,
 				disabled: attrs.inEditMode,
+				dragStartHandler: isNestableMailSet(system.folder)
+					? (e: DragEvent) => {
+							const domElement = e.target as HTMLElement | null
+							// The quick change of the background color is to prevent a white background appearing in dark mode
+							if (domElement) domElement.style.background = theme.surface_container
+							requestAnimationFrame(() => {
+								if (domElement) domElement.style.background = ""
+							})
+
+							e.dataTransfer?.setData(DropType.Folder, getElementId(system.folder))
+						}
+					: undefined,
 			}
 			const currentExpansionState = attrs.inEditMode ? true : (attrs.expandedFolders.has(getElementId(system.folder)) ?? false) //default is false
 			const hasChildren = system.children.length > 0

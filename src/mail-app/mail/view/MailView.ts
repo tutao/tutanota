@@ -78,7 +78,7 @@ import { ButtonSize } from "../../../common/gui/base/ButtonSize"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton"
 import { getLabelColor } from "../../../common/gui/base/Label.js"
 import { MAIL_PREFIX } from "../../../common/misc/RouteChange"
-import { DropData, DropType, FileDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
+import { DropData, DropType, FileDropData, FolderDropData, MailDropData } from "../../../common/gui/base/GuiUtils"
 import { fileListToArray } from "../../../common/api/common/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
@@ -1002,7 +1002,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
 			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(mailboxDetail, folder),
 			onFolderDrop: (dropData, folder) => {
-				if (dropData.dropType === DropType.Mail) {
+				if (dropData.dropType === DropType.Folder) {
+					this.handleFolderInFolderDrop(dropData, folder)
+				} else if (dropData.dropType === DropType.Mail) {
 					this.handleFolderMailDrop(dropData, folder)
 				} else if (dropData.dropType === DropType.ExternalFile) {
 					this.handeFolderFileDrop(dropData, mailboxDetail, folder)
@@ -1117,6 +1119,33 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			const actionableMails = await this.mailViewModel.getResolvedMails(mailsToAddLabel)
 			await this.mailViewModel.applyLabelToMails(actionableMails, targetLabel)
 		}
+	}
+
+	private async handleFolderInFolderDrop(dropData: FolderDropData, targetFolder: MailFolder) {
+		if (
+			// dragging to Trash/Spam can be added at a later point
+			targetFolder.folderType === MailSetKind.TRASH ||
+			targetFolder.folderType === MailSetKind.SPAM ||
+			// cannot set folder as its own parent
+			isSameId(dropData.folderId, getElementId(targetFolder))
+		) {
+			return
+		}
+
+		const folderSystem = mailLocator.mailModel.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
+		if (folderSystem == null) return
+
+		const folderToMove = folderSystem.getFolderById(dropData.folderId)
+		if (folderToMove == null) {
+			// folder is likely in a different mailbox
+			return
+		}
+
+		const isTargetDescendent =
+			folderSystem.getDescendantFoldersOfParent(folderToMove._id)?.find((descendant) => isSameId(targetFolder._id, descendant.folder._id)) != null
+		if (isTargetDescendent) return
+
+		await mailLocator.mailModel.setParentForFolder(folderToMove, targetFolder._id)
 	}
 
 	private async handleFolderMailDrop(dropData: MailDropData, targetFolder: MailFolder) {

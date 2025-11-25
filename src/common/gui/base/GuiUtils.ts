@@ -1,6 +1,6 @@
 import type { Country } from "../../api/common/CountryList"
 import { Countries } from "../../api/common/CountryList"
-import type { InfoLink, TranslationKey, MaybeTranslation } from "../../misc/LanguageViewModel"
+import type { InfoLink, MaybeTranslation, TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
 import { ButtonColor } from "./Button.js"
 import { Icons } from "./icons/Icons"
@@ -21,6 +21,7 @@ import { isColorLight } from "./Color.js"
 export const enum DropType {
 	ExternalFile = "ExternalFile",
 	Mail = "Mail",
+	Folder = "Folder",
 }
 
 export type MailDropData = {
@@ -32,8 +33,14 @@ export type FileDropData = {
 	files: Array<File>
 }
 
-export type DropData = FileDropData | MailDropData
+export type FolderDropData = {
+	dropType: DropType.Folder
+	folderId: string
+}
 
+export type DropData = FileDropData | MailDropData | FolderDropData
+
+export type DragStartHandler = (event: DragEvent) => void
 export type DropHandler = (dropData: DropData) => void
 // not all browsers have the actual button as e.currentTarget, but all of them send it as a second argument (see https://github.com/tutao/tutanota/issues/1110)
 export type ClickHandler = (event: MouseEvent, dom: HTMLElement) => void

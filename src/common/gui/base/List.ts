@@ -285,9 +285,9 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 
 		domElement.ondragstart = (e: DragEvent) => {
 			// The quick change of the background color is to prevent a white background appearing in dark mode
-			if (row.domElement) row.domElement!.style.background = theme.surface_container
+			if (row.domElement) row.domElement.style.background = theme.surface_container
 			requestAnimationFrame(() => {
-				if (row.domElement) row.domElement!.style.background = ""
+				if (row.domElement) row.domElement.style.background = ""
 			})
 			if (renderConfig.dragStart) {
 				if (row.entity && this.state) renderConfig.dragStart(e, row.entity, this.state.selectedItems)

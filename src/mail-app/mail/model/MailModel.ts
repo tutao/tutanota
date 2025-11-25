@@ -492,6 +492,10 @@ export class MailModel {
 		}
 	}
 
+	async setParentForFolder(folder: MailFolder, newParentId: IdTuple) {
+		return this.mailFacade.updateMailFolderParent(folder, newParentId)
+	}
+
 	/**
 	 * This is called when moving a folder to SPAM or TRASH, which do not allow empty folders (since only folders that contain mail are allowed)
 	 */

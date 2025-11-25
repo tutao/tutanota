@@ -265,11 +265,12 @@ export class MailFacade {
 	 * @param newParent - if this is the same as the folder's current parent, nothing is done
 	 */
 	async updateMailFolderParent(folder: MailFolder, newParent: IdTuple | null): Promise<void> {
-		if (
-			(folder.parentFolder != null && newParent != null && !isSameId(folder.parentFolder, newParent)) ||
-			(folder.parentFolder == null && newParent != null) ||
-			(folder.parentFolder != null && newParent == null)
-		) {
+		const isOwnParent = isSameId(folder._id, newParent)
+		const isDifferentParent = folder.parentFolder != null && newParent != null && !isSameId(folder.parentFolder, newParent)
+		const isNewParent = folder.parentFolder == null && newParent != null
+		const isUnsettingParent = folder.parentFolder != null && newParent == null
+
+		if (!isOwnParent && (isDifferentParent || isNewParent || isUnsettingParent)) {
 			const updateFolder = createUpdateMailFolderData({
 				folder: folder._id,
 				newParent: newParent,

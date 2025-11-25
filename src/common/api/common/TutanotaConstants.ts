@@ -35,6 +35,10 @@ export function isFolder(folder: MailFolder): boolean {
 	return folder.folderType !== MailSetKind.ALL && folder.folderType !== MailSetKind.LABEL && folder.folderType !== MailSetKind.Imported
 }
 
+export function isNestableMailSet(mailSet: MailFolder): boolean {
+	return mailSet.folderType === MailSetKind.CUSTOM
+}
+
 export function isLabel(folder: MailFolder): boolean {
 	return folder.folderType === MailSetKind.LABEL
 }
