@@ -1,6 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { TextField, TextFieldAttrs, TextFieldType } from "../gui/base/TextField"
-import { px, size } from "../gui/size"
+import { font_size, px, size } from "../gui/size"
 import { theme } from "../gui/theme"
 
 export type SignupTextFieldAttrs = TextFieldAttrs
@@ -11,12 +11,12 @@ export class SignupTextField implements Component<SignupTextFieldAttrs> {
 			backgroundColor: theme.surface_container_highest,
 			color: theme.on_surface_variant,
 			border: "none",
-			borderRadius: px(size.border_radius),
-			paddingTop: px(size.vpad_small),
-			paddingBottom: px(size.vpad_small),
-			paddingRight: px(size.vpad_small),
+			borderRadius: px(size.radius_8),
+			paddingTop: px(size.spacing_8),
+			paddingBottom: px(size.spacing_8),
+			paddingRight: px(size.spacing_8),
 			paddingLeft: px(40),
-			"font-size": px(size.font_size_base),
+			"font-size": px(font_size.base),
 			height: px(56),
 
 			...attrs.style,

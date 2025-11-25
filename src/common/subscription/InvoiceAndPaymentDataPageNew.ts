@@ -78,7 +78,7 @@ export class InvoiceAndPaymentDataPageNew implements Component<WizardStepContext
 
 	view({ attrs: { viewModel: data } }: Vnode<WizardStepContext<SignupViewModel>>): Children {
 		return m(
-			".pt",
+			".pt-16",
 			this._availablePaymentMethods
 				? [
 						m(SegmentControl, {
@@ -86,9 +86,9 @@ export class InvoiceAndPaymentDataPageNew implements Component<WizardStepContext
 							selectedValue: this._selectedPaymentMethod(),
 							onValueSelected: this._selectedPaymentMethod,
 						}),
-						m(".flex-space-around.flex-wrap.pt", [
+						m(".flex-space-around.flex-wrap.pt-16", [
 							m(
-								".flex-grow-shrink-half.plr-l",
+								".flex-grow-shrink-half.plr-24",
 								{
 									style: {
 										minWidth: "260px",
@@ -97,7 +97,7 @@ export class InvoiceAndPaymentDataPageNew implements Component<WizardStepContext
 								m(neverNull(this._invoiceDataInput)),
 							),
 							m(
-								".flex-grow-shrink-half.plr-l",
+								".flex-grow-shrink-half.plr-24",
 								{
 									style: {
 										minWidth: "260px",
@@ -116,7 +116,7 @@ export class InvoiceAndPaymentDataPageNew implements Component<WizardStepContext
 							),
 						]),
 						m(
-							".flex-center.full-width.pt-l",
+							".flex-center.full-width.pt-32",
 							m(LoginButton, {
 								label: "next_action",
 								class: "small-login-button",

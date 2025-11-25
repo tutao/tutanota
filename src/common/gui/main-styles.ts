@@ -1156,9 +1156,6 @@ styles.registerStyle("main", () => {
 		".column-gap-4": {
 			"column-gap": px(size.spacing_4),
 		},
-		".gap-12": {
-			gap: px(12),
-		},
 		".flex": {
 			display: "flex",
 		},
@@ -1520,10 +1517,10 @@ styles.registerStyle("main", () => {
 		".wizard-progress": {
 			border: `1px solid ${theme.outline}`,
 			color: "inherit",
-			width: px(size.button_icon_bg_size),
-			height: px(size.button_icon_bg_size),
-			"border-radius": px(size.button_icon_bg_size),
-			"min-width": px(size.button_icon_bg_size),
+			width: px(component_size.button_icon_bg_size),
+			height: px(component_size.button_icon_bg_size),
+			"border-radius": px(component_size.button_icon_bg_size),
+			"min-width": px(component_size.button_icon_bg_size),
 			display: "flex",
 			"justify-content": "center",
 			"align-items": "center",
@@ -1545,7 +1542,7 @@ styles.registerStyle("main", () => {
 			"border-left": `3px dotted ${theme.outline_variant}`,
 			width: 0,
 			position: "absolute",
-			height: `calc(100% - ${px(size.button_icon_bg_size)} - ${px(16)})`,
+			height: `calc(100% - ${px(component_size.button_icon_bg_size)} - ${px(16)})`,
 			bottom: px(8),
 		},
 		".wizard-progress-previous:after": {

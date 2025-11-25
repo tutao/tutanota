@@ -32,7 +32,7 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 			// We need to await the promise from `themeController.getCustomThemes()`, so we delay rendering the `RadioSelector` until it does.
 
 			m(
-				".mb",
+				".mb-16",
 				this.customThemes == null
 					? null
 					: m(RadioSelector, {

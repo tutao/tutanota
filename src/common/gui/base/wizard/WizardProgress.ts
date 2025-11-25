@@ -27,7 +27,7 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 					.filter((step) => step.isEnabled)
 					.map((step, idx) => {
 						return [
-							m(".wizard-progress-wrap.flex.gap-vpad.items-start", [
+							m(".wizard-progress-wrap.flex.gap-16.items-start", [
 								m(
 									`button.wizard-progress${step.isCurrent ? ".wizard-progress-active" : ""}${step.currentIndex > step.index ? ".wizard-progress-previous" : ""}`,
 									{
@@ -39,7 +39,7 @@ export class WizardProgress implements Component<WizardProgressAttrs> {
 										step.currentIndex > step.index
 											? m(Icon, {
 													icon: step.isReachable ? Icons.Checkmark : Icons.Lock,
-													size: IconSize.Medium,
+													size: IconSize.PX20,
 													style: {
 														fill: theme.on_primary,
 													},
