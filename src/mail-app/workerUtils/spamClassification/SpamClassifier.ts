@@ -268,7 +268,7 @@ export class SpamClassifier {
 			modelToUpdate.layersModel = layersModelToUpdate
 		}
 
-		const trainingMetadata = `Total Ham: ${modelToUpdate.hamCount} Spam: ${modelToUpdate.spamCount} threshold: ${modelToUpdate.threshold}}`
+		const trainingMetadata = `Total Ham: ${modelToUpdate.hamCount} Spam: ${modelToUpdate.spamCount} threshold: ${modelToUpdate.threshold}`
 		console.log(`retraining spam classification model finished, took: ${performance.now() - retrainingStart}ms ${trainingMetadata}`)
 		await this.saveModelToStorage(ownerGroup)
 		await this.cacheStorage.setLastTrainingDataIndexId(trainingDataset.lastTrainingDataIndexId)

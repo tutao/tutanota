@@ -19,7 +19,7 @@ import {
 	MailFolderTypeRef,
 	MailTypeRef,
 } from "../../../../../../src/common/api/entities/tutanota/TypeRefs"
-import { MailSetKind, SpamDecision } from "../../../../../../src/common/api/common/TutanotaConstants"
+import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../../../src/common/api/common/TutanotaConstants"
 import { matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../../../src/common/api/common/EntityClient"
 import { BulkMailLoader } from "../../../../../../src/mail-app/workerUtils/index/BulkMailLoader"
@@ -273,8 +273,12 @@ o.spec("SpamClassificationDataDealer", () => {
 				modifiedIndicesSinceStart,
 			)
 
-			when(bulkMailLoaderMock.loadMailDetails(relevantMails)).thenResolve(
-				relevantMails.map((mail) => {
+			const expectedUploadMailsHam = relevantMails.slice(20, 40)
+			const expectedUploadMailsSpam = relevantMails.slice(60, 80)
+			const expectUploadMailsTotal = expectedUploadMailsHam.concat(expectedUploadMailsSpam)
+
+			when(bulkMailLoaderMock.loadMailDetails(expectUploadMailsTotal)).thenResolve(
+				expectUploadMailsTotal.map((mail) => {
 					return { mail, mailDetails }
 				}),
 			)
@@ -285,10 +289,7 @@ o.spec("SpamClassificationDataDealer", () => {
 			verify(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData!), { times: 2 })
 			verify(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex!), { times: 1 })
 
-			const expectedUploadMailsHam = relevantMails.slice(20, 40)
-			const expectedUploadMailsSpam = relevantMails.slice(60, 80)
-
-			const unencryptedPayload = expectedUploadMailsHam.concat(expectedUploadMailsSpam).map((mail) => {
+			const unencryptedPayload = expectUploadMailsTotal.map((mail) => {
 				return {
 					mailId: mail._id,
 					isSpam: isSameId(mail.sets[0], spamFolder._id),
@@ -303,6 +304,111 @@ o.spec("SpamClassificationDataDealer", () => {
 				lastTrainingDataIndexId: getElementId(last(modifiedIndicesSinceStart)!),
 				hamCount: 40,
 				spamCount: 40,
+			})
+		})
+
+		o("uploads training data in multiple chunks", async () => {
+			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+
+			const relevantMails = Array.from({ length: 80 }, (_, index) =>
+				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId" + index], inboxFolder._id, new Date(), mailDetails._id),
+			).concat(
+				Array.from({ length: 80 }, (_, index) =>
+					createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "spamMailId" + index], spamFolder._id, new Date(), mailDetails._id),
+				),
+			)
+
+			const existingSpamTrainingData = Array.from({ length: 40 }, (_, index) =>
+				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST, [
+					mailBox.clientSpamTrainingData!,
+					getElementId(relevantMails[index]),
+				]),
+			).concat(
+				Array.from({ length: 40 }, (_, index) =>
+					createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST, [
+						mailBox.clientSpamTrainingData!,
+						getElementId(relevantMails[80 + index]),
+					]),
+				),
+			)
+
+			const updatedSpamTrainingData = Array.from({ length: 80 }, (_, index) =>
+				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST, [
+					mailBox.clientSpamTrainingData!,
+					getElementId(relevantMails[index]),
+				]),
+			).concat(
+				Array.from({ length: 80 }, (_, index) =>
+					createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.BLACKLIST, [
+						mailBox.clientSpamTrainingData!,
+						getElementId(relevantMails[80 + index]),
+					]),
+				),
+			)
+
+			const modifiedIndicesSinceStart = updatedSpamTrainingData.map((data) =>
+				createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElementId(getElementId(data)),
+			)
+
+			when(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData!)).thenResolve(
+				existingSpamTrainingData,
+				updatedSpamTrainingData,
+			)
+			when(entityClientMock.loadAll(MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(relevantMails)
+			when(entityClientMock.loadAll(MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
+			when(entityClientMock.loadAll(MailFolderTypeRef, mailBox.folders!.folders)).thenResolve([inboxFolder, spamFolder, trashFolder])
+			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex!)).thenResolve(
+				modifiedIndicesSinceStart,
+			)
+
+			const expectedUploadMailsHam = relevantMails.slice(40, 80)
+			const expectedUploadMailsSpam = relevantMails.slice(120, 160)
+			const expectUploadMailsTotal = expectedUploadMailsHam.concat(expectedUploadMailsSpam)
+
+			const expectedFirstChunk = expectUploadMailsTotal.slice(0, MAX_NBR_OF_MAILS_SYNC_OPERATION)
+			const expectedSecondChunk = expectUploadMailsTotal.slice(MAX_NBR_OF_MAILS_SYNC_OPERATION, expectUploadMailsTotal.length)
+			when(bulkMailLoaderMock.loadMailDetails(expectedFirstChunk)).thenResolve(
+				expectedFirstChunk.map((mail) => {
+					return { mail, mailDetails }
+				}),
+			)
+			when(bulkMailLoaderMock.loadMailDetails(expectedSecondChunk)).thenResolve(
+				expectedSecondChunk.map((mail) => {
+					return { mail, mailDetails }
+				}),
+			)
+
+			const trainingDataset = await spamClassificationDataDealer.fetchAllTrainingData("owner")
+
+			// first load: empty, second load: fetch uploaded data
+			verify(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData!), { times: 2 })
+			verify(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex!), { times: 1 })
+
+			const firstUnencryptedPayload = expectedFirstChunk.map((mail) => {
+				return {
+					mailId: mail._id,
+					isSpam: isSameId(mail.sets[0], spamFolder._id),
+					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
+					vector: new Uint8Array(1),
+				} as UnencryptedPopulateClientSpamTrainingDatum
+			})
+			const secondUnencryptedPayload = expectedSecondChunk.map((mail) => {
+				return {
+					mailId: mail._id,
+					isSpam: isSameId(mail.sets[0], spamFolder._id),
+					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
+					vector: new Uint8Array(1),
+				} as UnencryptedPopulateClientSpamTrainingDatum
+			})
+			verify(mailFacadeMock.populateClientSpamTrainingData("owner", firstUnencryptedPayload), { times: 1 })
+			verify(mailFacadeMock.populateClientSpamTrainingData("owner", secondUnencryptedPayload), { times: 1 })
+
+			o(trainingDataset).deepEquals({
+				trainingData: updatedSpamTrainingData,
+				lastTrainingDataIndexId: getElementId(last(modifiedIndicesSinceStart)!),
+				hamCount: 80,
+				spamCount: 80,
 			})
 		})
 

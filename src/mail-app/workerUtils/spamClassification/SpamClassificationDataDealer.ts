@@ -1,9 +1,10 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
-import { assertNotNull, isEmpty, isNotNull, last, lazyAsync, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, isEmpty, isNotNull, last, lazyAsync, promiseMap, splitInChunks } from "@tutao/tutanota-utils"
 import {
 	ClientSpamTrainingDatum,
 	ClientSpamTrainingDatumIndexEntryTypeRef,
 	ClientSpamTrainingDatumTypeRef,
+	Mail,
 	MailBag,
 	MailBox,
 	MailboxGroupRootTypeRef,
@@ -13,7 +14,7 @@ import {
 	MailTypeRef,
 	PopulateClientSpamTrainingDatum,
 } from "../../../common/api/entities/tutanota/TypeRefs"
-import { getMailSetKind, isFolder, MailSetKind, SpamDecision } from "../../../common/api/common/TutanotaConstants"
+import { getMailSetKind, isFolder, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../common/api/common/TutanotaConstants"
 import { GENERATED_MIN_ID, getElementId, isSameId, StrippedEntity, timestampToGeneratedId } from "../../../common/api/common/utils/EntityUtils"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { hasError } from "../../../common/api/common/utils/ErrorUtils"
@@ -54,20 +55,31 @@ export class SpamClassificationDataDealer {
 
 		// clientSpamTrainingData is NOT cached
 		let clientSpamTrainingData = await this.entityClient.loadAll(ClientSpamTrainingDatumTypeRef, mailbox.clientSpamTrainingData)
-
 		// if the clientSpamTrainingData is empty or does not include all relevant clientSpamTrainingData
 		// for this mailbox, we are aggregating the last INITIAL_SPAM_CLASSIFICATION_INDEX_INTERVAL_DAYS of mails
 		// and upload the missing clientSpamTrainingDatum entries
-		const allRelevantMailsInTrainingInterval = await this.fetchMailAndMailDetailsForMailbox(mailbox, mailSets)
+		const allRelevantMailsInTrainingInterval = await this.fetchMailsForMailbox(mailbox, mailSets)
 		console.log(`mailbox ${mailbox._id} has total ${allRelevantMailsInTrainingInterval.length} relevant mails in training interval for spam classification`)
 		if (clientSpamTrainingData.length < allRelevantMailsInTrainingInterval.length) {
 			const mailsToUpload = allRelevantMailsInTrainingInterval.filter((mail) => {
-				return !clientSpamTrainingData.some((datum) => isSameId(getElementId(mail.mail), getElementId(datum)))
+				return !clientSpamTrainingData.some((datum) => isSameId(getElementId(mail), getElementId(datum)))
 			})
 			console.log("building and uploading initial / new training data for mailbox: " + mailbox._id)
 			console.log(`mailbox ${mailbox._id} has ${mailsToUpload.length} new mails suitable for encrypted training vector data upload`)
-			console.log(`vectorizing, compressing and encrypting those ${mailsToUpload.length} mails... for mailbox ${mailbox._id}`)
-			await this.uploadTrainingDataForMails(mailsToUpload, mailbox, mailSets)
+			const bulkMailLoader = await this.bulkMailLoader()
+			let chunkCount = 1
+			await promiseMap(
+				splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailsToUpload),
+				async (mailChunk) => {
+					console.log(`chunk ${chunkCount} started`)
+					const mailChunkWithDetails = await bulkMailLoader.loadMailDetails(mailChunk)
+					console.log(`chunk ${chunkCount} bulkMailLoader successful`)
+					await this.uploadTrainingDataForMails(mailChunkWithDetails, mailbox, mailSets)
+					console.log(`chunk ${chunkCount} upload done`)
+					chunkCount++
+				},
+				{ concurrency: 5 },
+			)
 			clientSpamTrainingData = await this.entityClient.loadAll(ClientSpamTrainingDatumTypeRef, mailbox.clientSpamTrainingData)
 			console.log(`clientSpamTrainingData list on the mailbox ${mailbox._id} has ${clientSpamTrainingData.length} members.`)
 		}
@@ -174,20 +186,17 @@ export class SpamClassificationDataDealer {
 	}
 
 	// Visible for testing
-	async fetchMailsByMailbagAfterDate(mailbag: MailBag, mailSets: MailFolder[], startDate: Date): Promise<Array<MailWithMailDetails>> {
-		const bulkMailLoader = await this.bulkMailLoader()
+	async fetchMailsByMailbagAfterDate(mailbag: MailBag, mailSets: MailFolder[], startDate: Date): Promise<Array<Mail>> {
 		const mails = await this.entityClient.loadAll(MailTypeRef, mailbag.mails, timestampToGeneratedId(startDate.getTime()))
 		const trashFolder = assertNotNull(mailSets.find((set) => getMailSetKind(set) === MailSetKind.TRASH))
-		const filteredMails = mails.filter((mail) => {
+		return mails.filter((mail) => {
 			const isMailTrashed = mail.sets.some((setId) => isSameId(setId, trashFolder._id))
 			return isNotNull(mail.mailDetails) && !hasError(mail) && mail.receivedDate > startDate && !isMailTrashed
 		})
-		const mailsWithMailDetails = await bulkMailLoader.loadMailDetails(filteredMails)
-		return mailsWithMailDetails ?? []
 	}
 
-	private async fetchMailAndMailDetailsForMailbox(mailbox: MailBox, mailSets: MailFolder[]): Promise<Array<MailWithMailDetails>> {
-		const downloadedMailClassificationData = new Array<MailWithMailDetails>()
+	private async fetchMailsForMailbox(mailbox: MailBox, mailSets: MailFolder[]): Promise<Array<Mail>> {
+		const downloadedMailClassificationData = new Array<Mail>()
 
 		const { LocalTimeDateProvider } = await import("../../../common/api/worker/DateProvider")
 		const startDate = new LocalTimeDateProvider().getStartOfDayShiftedBy(TRAINING_DATA_TIME_LIMIT)
