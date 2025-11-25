@@ -8,8 +8,8 @@ import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { Wizard, WizardAttrs } from "../gui/base/wizard/Wizard"
-import { LoginButtonAttrs } from "../gui/base/buttons/LoginButton"
-import { px } from "../gui/size"
+import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton"
+import { px, size } from "../gui/size"
 import { WizardStepAttrs } from "../gui/base/wizard/WizardStep"
 import { NewAccountData, ReferralData, SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
 import stream from "mithril/stream"
@@ -56,6 +56,8 @@ import { UpgradeCongratulationsPageNew } from "../subscription/UpgradeCongratula
 import { RadioSelector, type RadioSelectorAttrs } from "../gui/base/RadioSelector"
 import { type RadioSelectorOption } from "../gui/base/RadioSelectorItem"
 import { theme } from "../gui/theme"
+import { TextField, TextFieldAttrs } from "../gui/base/TextField"
+import { Icons } from "../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -96,6 +98,7 @@ export class SignupViewModel {
 	public powChallengeSolutionPromise?: Promise<PowSolution>
 	public emailInputStore?: string
 	public passwordInputStore?: string
+	public addressInputStore?: string
 	constructor() {
 		const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
 
@@ -259,10 +262,43 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 
 	private currentOption = 0
 	private radioTestPage(): WizardStepAttrs<SignupViewModel>["content"] {
-		const boxAttr = { style: { width: "100%", height: px(500), background: theme.primary_container } }
+		const boxAttr = { style: { width: px(400), height: px(500), background: theme.primary_container, padding: size.vpad } }
 		return (ctx) => {
 			const options: ReadonlyArray<RadioSelectorOption<number>> = [
-				{ name: "partner_label", value: 0, renderChild: () => m("div", boxAttr, "1") },
+				{
+					name: "partner_label",
+					value: 0,
+					renderChild: () =>
+						m(
+							"div",
+							{
+								style: {
+									width: px(400),
+									height: px(500),
+								},
+							},
+
+							[
+								m(TextField, {
+									oninput: (newValue) => (this.wizardViewModel.addressInputStore = newValue),
+									label: lang.getTranslation("address_label"),
+									value: this.wizardViewModel.addressInputStore ?? "",
+									leadingIcon: {
+										icon: Icons.Eye,
+										color: theme.on_surface_variant,
+									},
+								} satisfies TextFieldAttrs),
+								m(
+									".flex-center.full-width.pt-l",
+									m(LoginButton, {
+										label: "next_action",
+										type: LoginButtonType.FullWidth,
+										onclick: () => ctx.goNext(),
+									}),
+								),
+							],
+						),
+				},
 				{ name: "credit_label", value: 1, renderChild: () => m("div", boxAttr, "2") },
 				{ name: "userSettings_label", value: 2, renderChild: () => m("div", boxAttr, "3") },
 			]
