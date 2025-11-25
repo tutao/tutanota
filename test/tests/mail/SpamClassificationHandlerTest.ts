@@ -30,7 +30,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 	let mail: Mail
 	let spamClassifier: SpamClassifier
 	let spamHandler: SpamClassificationHandler
-	let spamMailProcessor: SpamMailProcessor = new SpamMailProcessor()
+	let spamMailProcessor: SpamMailProcessor
 	let folderSystem: FolderSystem
 	let mailDetails: MailDetails
 
@@ -38,8 +38,11 @@ o.spec("SpamClassificationHandlerTest", function () {
 	const trashFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "trash"], folderType: MailSetKind.TRASH })
 	const spamFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "spam"], folderType: MailSetKind.SPAM })
 
+	const compressedUnencryptedTestVector = new Uint8Array([23, 3, 21, 12, 14, 2, 23, 3, 30, 3, 4, 3, 2, 31, 23, 22, 30])
+
 	o.beforeEach(async function () {
 		spamClassifier = object<SpamClassifier>()
+		spamMailProcessor = object<SpamMailProcessor>()
 
 		body = createTestEntity(BodyTypeRef, { text: "Body Text" })
 		mailDetails = createTestEntity(MailDetailsTypeRef, { _id: "mailDetail", body })
@@ -76,9 +79,8 @@ o.spec("SpamClassificationHandlerTest", function () {
 			),
 			anything(),
 		).thenDo(async () => [{ mail, mailDetails }])
-		when(spamClassifier.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails))).thenResolve(
-			await spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails)),
-		)
+		when(spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails))).thenResolve(compressedUnencryptedTestVector)
+		when(spamClassifier.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails))).thenResolve(compressedUnencryptedTestVector)
 		spamHandler = new SpamClassificationHandler(spamClassifier)
 	})
 
@@ -92,7 +94,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vector: await spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails)),
+			vector: compressedUnencryptedTestVector,
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -109,7 +111,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			classifierType: null,
-			vector: await spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails)),
+			vector: compressedUnencryptedTestVector,
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
@@ -126,7 +128,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
 			classifierType: null,
-			vector: await spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails)),
+			vector: compressedUnencryptedTestVector,
 		}
 
 		o(finalResult.targetFolder).deepEquals(spamFolder)
@@ -143,7 +145,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
 			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vector: await spamMailProcessor.vectorizeAndCompress(createSpamMailDatum(mail, mailDetails)),
+			vector: compressedUnencryptedTestVector,
 		}
 
 		o(finalResult.targetFolder).deepEquals(inboxFolder)
