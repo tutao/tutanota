@@ -18,9 +18,9 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 		const { newAccountData } = viewModel
 
 		return [
-			m(".center.h4.pt", lang.get("accountCreationCongratulation_msg")),
+			m(".center.h4.pt-16", lang.get("accountCreationCongratulation_msg")),
 			newAccountData
-				? m(".plr-l", [
+				? m(".plr-24", [
 						m(RecoverCodeField, {
 							showMessage: true,
 							recoverCode: assertNotNull(newAccountData.recoverCode),
@@ -32,7 +32,7 @@ export class UpgradeCongratulationsPageNew implements Component<WizardStepContex
 					])
 				: null,
 			m(
-				".flex-center.full-width.pt-l",
+				".flex-center.full-width.pt-32",
 				m(LoginButton, {
 					label: "ok_action",
 					class: "small-login-button",

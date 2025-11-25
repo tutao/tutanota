@@ -59,7 +59,7 @@ export class PaypalButton implements Component<PaypalButtonAttrs> {
 				m(BaseButton, {
 					label: lang.makeTranslation("PayPal", "PayPal"),
 					icon: m(".payment-logo.flex", m.trust(PayPalLogo)),
-					class: "border border-radius bg-white button-height plr-12",
+					class: "border border-radius bg-white button-height plr-16",
 					onclick,
 				}),
 			),

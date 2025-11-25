@@ -3,7 +3,7 @@ import { lang } from "../../misc/LanguageViewModel"
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../theme"
 import { lazy } from "@tutao/tutanota-utils"
-import { px, size } from "../size"
+import { component_size, px, size } from "../size"
 import { ExpanderPanel } from "./Expander"
 
 export type RadioSelectorOption<T> = {
@@ -30,22 +30,22 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 
 		// The wrapper is needed because <input> is self-closing and will not take the label as a child
 		return m(
-			".border.plr-l",
+			".border.plr-24",
 			{
 				// Make the option the same size as a button if a description is not given
 				class: "button-min-width button-min-height" + attrClasses,
 				style: {
-					"border-radius": px(size.border_radius_large),
+					"border-radius": px(size.radius_12),
 					"padding-block": px(12),
 					"border-color": isSelected ? theme.primary : theme.outline_variant,
-					"border-width": px(size.checkbox_border_size),
+					"border-width": px(component_size.checkbox_border_size),
 				},
 				onclick: () => {
 					if (!isSelected) onOptionSelected(option.value)
 				},
 			},
 			m(
-				".flex.items-center.gap-hpad",
+				".flex.items-center.gap-12",
 				{
 					style: {
 						color: isSelected ? theme.primary : theme.on_surface_variant,
@@ -55,10 +55,7 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 					role: "button",
 					...(option.renderChild && { "aria-expanded": String(isSelected) }),
 				},
-				[
-					renderKnob(valueString, optionId, groupName, isSelected),
-					m("label.left.pt-xs.pb-xs", { for: optionId }, lang.getTranslationText(option.name)),
-				],
+				[renderKnob(valueString, optionId, groupName, isSelected), m("label.left.pt-4.pb-4", { for: optionId }, lang.getTranslationText(option.name))],
 			),
 			option.renderChild && m(ExpanderPanel, { expanded: isSelected }, option.renderChild?.()),
 		)
