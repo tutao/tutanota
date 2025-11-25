@@ -37,8 +37,7 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 				style: {
 					"border-radius": px(size.border_radius_large),
 					"padding-block": px(12),
-					"background-color": isSelected ? theme.surface_container_high : theme.surface_container,
-					"border-color": isSelected ? theme.surface_container_high : theme.outline_variant,
+					"border-color": isSelected ? theme.primary : theme.outline_variant,
 					"border-width": px(size.checkbox_border_size),
 				},
 				onclick: () => {
