@@ -254,7 +254,7 @@ import("./translations/en.js")
 
 		mailLocator.logins.addPostLoginAction(async () => {
 			const { SpamClassificationPostLoginAction } = await import("./mail/model/SpamClassificationPostLoginAction")
-			return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade)
+			return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade, mailLocator.syncTracker)
 		})
 
 		mailLocator.logins.addPostLoginAction(async () => {

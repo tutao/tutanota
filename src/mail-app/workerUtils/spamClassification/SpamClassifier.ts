@@ -1,4 +1,3 @@
-import { assertWorkerOrNode } from "../../../common/api/common/Env"
 import { assertNotNull, groupByAndMap, isEmpty, Nullable, promiseMap } from "@tutao/tutanota-utils"
 import { SpamClassificationDataDealer, TrainingDataset } from "./SpamClassificationDataDealer"
 import { CacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
@@ -36,7 +35,6 @@ const TRAINING_INTERVAL = 1000 * 60 * 10 // 10 minutes
 const FULL_RETRAINING_INTERVAL = 1000 * 60 * 60 * 24 * 7 // 1 week
 
 export type Classifier = {
-	isEnabled: boolean
 	layersModel: LayersModel
 	threshold: number
 	hamCount: number
@@ -45,7 +43,7 @@ export type Classifier = {
 
 export class SpamClassifier {
 	// Visible for testing
-	readonly classifiers: Map<Id, Classifier>
+	readonly classifierByMailGroup: Map<Id, Classifier>
 	sparseVectorCompressor: SparseVectorCompressor
 	spamMailProcessor: SpamMailProcessor
 
@@ -56,7 +54,7 @@ export class SpamClassifier {
 	) {
 		// enable tensorflow production mode
 		enableProdMode()
-		this.classifiers = new Map()
+		this.classifierByMailGroup = new Map()
 		this.sparseVectorCompressor = new SparseVectorCompressor()
 		this.spamMailProcessor = new SpamMailProcessor(DEFAULT_PREPROCESS_CONFIGURATION, this.sparseVectorCompressor)
 	}
@@ -72,18 +70,27 @@ export class SpamClassifier {
 		return threshold
 	}
 
-	public async initialize(ownerGroup: Id): Promise<void> {
+	public async initializeFromStorage(ownerGroup: Id): Promise<void> {
+		const classifier = await this.loadClassifier(ownerGroup)
+		if (classifier) {
+			this.classifierByMailGroup.set(ownerGroup, classifier)
+		}
+	}
+
+	public async initializeWithTraining(ownerGroup: Id): Promise<void> {
 		const classifier = await this.loadClassifier(ownerGroup)
 
 		if (classifier) {
 			const timeSinceLastFullTraining = Date.now() - FULL_RETRAINING_INTERVAL
 			const lastFullTrainingTime = await this.cacheStorage.getLastTrainedFromScratchTime()
 			if (timeSinceLastFullTraining > lastFullTrainingTime) {
-				console.log(`Retraining from scratch as last train (${new Date(lastFullTrainingTime)}) was more than a week ago`)
+				console.log(
+					`retraining spam classification model for mailbox ${ownerGroup} from scratch as last train (${new Date(lastFullTrainingTime)}) was more than a week ago`,
+				)
 				await this.trainFromScratch(this.cacheStorage, ownerGroup)
 			} else {
-				console.log("loaded existing spam classification model from database")
-				this.classifiers.set(ownerGroup, classifier)
+				console.log(`loaded existing spam classification model for mailbox ${ownerGroup} from database for mailbox`)
+				this.classifierByMailGroup.set(ownerGroup, classifier)
 				await this.updateAndSaveModel(this.cacheStorage, ownerGroup)
 			}
 
@@ -91,7 +98,7 @@ export class SpamClassifier {
 				await this.updateAndSaveModel(this.cacheStorage, ownerGroup)
 			}, TRAINING_INTERVAL)
 		} else {
-			console.log("no existing model found. Training from scratch ...")
+			console.log(`no existing spam classification model found for mailbox ${ownerGroup}. training from scratch ... `)
 			await this.trainFromScratch(this.cacheStorage, ownerGroup)
 			setInterval(async () => {
 				await this.updateAndSaveModel(this.cacheStorage, ownerGroup)
@@ -144,7 +151,7 @@ export class SpamClassifier {
 		})
 		const trainingTime = performance.now() - trainingStart
 
-		// when using the webgl backend we need to manually dispose @tensorflow tensors
+		// when using the webgl backend, we need to manually dispose @tensorflow tensors
 		xs.dispose()
 		ys.dispose()
 
@@ -156,7 +163,7 @@ export class SpamClassifier {
 			spamCount,
 			threshold,
 		}
-		this.classifiers.set(ownerGroup, classifier)
+		this.classifierByMailGroup.set(ownerGroup, classifier)
 
 		console.log(
 			`### Finished Initial Spam Classification Model Training ### (total trained mails: ${clientSpamTrainingData.length} (ham:spam ${hamCount}:${spamCount} => threshold:${threshold}), training time: ${trainingTime})`,
@@ -165,9 +172,9 @@ export class SpamClassifier {
 
 	public async updateModelFromIndexStartId(indexStartId: Id, ownerGroup: Id): Promise<boolean> {
 		try {
-			const modelNotEnabled = this.classifiers.get(ownerGroup) === undefined || this.classifiers.get(ownerGroup)?.isEnabled === false
-			if (modelNotEnabled) {
-				console.warn("client spam classification is not enabled or there were errors during training")
+			const modelNotAvailable = this.classifierByMailGroup.get(ownerGroup) === undefined
+			if (modelNotAvailable) {
+				console.warn(`client spam classification is not found for mailbox ${ownerGroup} or there were errors during training`)
 				return false
 			}
 
@@ -190,14 +197,11 @@ export class SpamClassifier {
 
 	// visibleForTesting
 	async updateModel(ownerGroup: Id, trainingDataset: TrainingDataset): Promise<boolean> {
-		const retrainingStart = performance.now()
-
 		if (isEmpty(trainingDataset.trainingData)) {
 			console.log("no new spam classification training data since last update")
 			return false
 		}
 
-		const modelToUpdate = assertNotNull(this.classifiers.get(ownerGroup))
 		const trainingInput = await promiseMap(
 			trainingDataset.trainingData,
 			(d) => {
@@ -219,8 +223,12 @@ export class SpamClassifier {
 			},
 		)
 
-		modelToUpdate.isEnabled = false
+		const modelToUpdate = assertNotNull(this.classifierByMailGroup.get(ownerGroup))
 
+		// we clone the layersModel to allow predictions while retraining is in progress
+		const layersModelToUpdate = await this.cloneLayersModel(ownerGroup)
+
+		const retrainingStart = performance.now()
 		try {
 			for (const [isSpamConfidence, trainingInput] of trainingInputByConfidence) {
 				const vectors = trainingInput.map((input) => input.vector)
@@ -229,7 +237,7 @@ export class SpamClassifier {
 				const xs = tensor2d(vectors, [vectors.length, this.sparseVectorCompressor.dimension], "int32")
 				const ys = tensor1d(labels, "int32")
 
-				// We need a way to put weight on a specific mail, ideal way would be to pass sampleWeight to modelFitArgs,
+				// We need a way to put weight on a specific email, an ideal way would be to pass sampleWeight to modelFitArgs,
 				// but is not yet implemented: https://github.com/tensorflow/tfjs/blob/0fc04d958ea592f3b8db79a8b3b497b5c8904097/tfjs-layers/src/engine/training.ts#L1487
 				//
 				// For now, we use the following workaround:
@@ -246,10 +254,10 @@ export class SpamClassifier {
 					yieldEvery: 15,
 				}
 				for (let i = 0; i <= isSpamConfidence; i++) {
-					await modelToUpdate.layersModel.fit(xs, ys, modelFitArgs)
+					await layersModelToUpdate.fit(xs, ys, modelFitArgs)
 				}
 
-				// when using the webgl backend we need to manually dispose @tensorflow tensors
+				// when using the webgl backend, we need to manually dispose @tensorflow tensors
 				xs.dispose()
 				ys.dispose()
 			}
@@ -257,20 +265,20 @@ export class SpamClassifier {
 			modelToUpdate.hamCount += trainingDataset.hamCount
 			modelToUpdate.spamCount += trainingDataset.spamCount
 			modelToUpdate.threshold = this.calculateThreshold(modelToUpdate.hamCount, modelToUpdate.spamCount)
-			modelToUpdate.isEnabled = true
+			modelToUpdate.layersModel = layersModelToUpdate
 		}
 
 		const trainingMetadata = `Total Ham: ${modelToUpdate.hamCount} Spam: ${modelToUpdate.spamCount} threshold: ${modelToUpdate.threshold}}`
 		console.log(`retraining spam classification model finished, took: ${performance.now() - retrainingStart}ms ${trainingMetadata}`)
-		await this.saveModel(ownerGroup)
+		await this.saveModelToStorage(ownerGroup)
 		await this.cacheStorage.setLastTrainingDataIndexId(trainingDataset.lastTrainingDataIndexId)
 		return true
 	}
 
 	// visibleForTesting
 	public async predict(vector: number[], ownerGroup: Id): Promise<Nullable<boolean>> {
-		const classifier = this.classifiers.get(ownerGroup)
-		if (classifier == null || !classifier.isEnabled) {
+		const classifier = this.classifierByMailGroup.get(ownerGroup)
+		if (!classifier) {
 			return null
 		}
 
@@ -283,7 +291,7 @@ export class SpamClassifier {
 
 		console.log(`predicted new mail to be with probability ${prediction.toFixed(2)} spam. Owner Group: ${ownerGroup}`)
 
-		// when using the webgl backend we need to manually dispose @tensorflow tensors
+		// when using the webgl backend, we need to manually dispose @tensorflow tensors
 		xs.dispose()
 		predictionTensor.dispose()
 
@@ -328,7 +336,7 @@ export class SpamClassifier {
 		return model
 	}
 
-	public async saveModel(ownerGroup: Id): Promise<void> {
+	public async saveModelToStorage(ownerGroup: Id): Promise<void> {
 		const spamClassificationModel = await this.getSpamClassificationModel(ownerGroup)
 		if (spamClassificationModel == null) {
 			throw new Error("spam classification model is not available, and therefore can not be saved")
@@ -363,7 +371,6 @@ export class SpamClassifier {
 			})
 			const threshold = this.calculateThreshold(spamClassificationModel.hamCount, spamClassificationModel.spamCount)
 			return {
-				isEnabled: true,
 				layersModel: layersModel,
 				threshold,
 				hamCount: spamClassificationModel.hamCount,
@@ -375,51 +382,50 @@ export class SpamClassifier {
 		}
 	}
 
+	private async cloneLayersModel(ownerGroup: Id): Promise<LayersModel> {
+		const modelArtifacts = assertNotNull(await this.getModelArtifacts(ownerGroup))
+		const newLayersModel = await loadLayersModelFromIOHandler(fromMemory(modelArtifacts), undefined, undefined)
+		newLayersModel.compile({
+			optimizer: "adam",
+			loss: "binaryCrossentropy",
+			metrics: ["accuracy"],
+		})
+		return newLayersModel
+	}
+
 	// visibleForTesting
-	public async cloneClassifier(): Promise<SpamClassifier> {
-		const newClassifier = new SpamClassifier(this.cacheStorage, this.initializer, this.deterministic)
-		newClassifier.spamMailProcessor = this.spamMailProcessor
-		newClassifier.sparseVectorCompressor = this.sparseVectorCompressor
-		for (const [ownerGroup, { layersModel: _, isEnabled, threshold, hamCount, spamCount }] of this.classifiers) {
-			const modelArtifacts = assertNotNull(await this.getModelArtifacts(ownerGroup))
-			const newModel = await loadLayersModelFromIOHandler(fromMemory(modelArtifacts), undefined, undefined)
-			newModel.compile({
-				optimizer: "adam",
-				loss: "binaryCrossentropy",
-				metrics: ["accuracy"],
-			})
-			newClassifier.classifiers.set(ownerGroup, {
-				layersModel: newModel,
-				isEnabled,
+	public async cloneSpamClassifier(): Promise<SpamClassifier> {
+		const newSpamClassifier = new SpamClassifier(this.cacheStorage, this.initializer, this.deterministic)
+		newSpamClassifier.spamMailProcessor = this.spamMailProcessor
+		newSpamClassifier.sparseVectorCompressor = this.sparseVectorCompressor
+		for (const [ownerGroup, { threshold, hamCount, spamCount }] of this.classifierByMailGroup) {
+			const newLayersModel = await this.cloneLayersModel(ownerGroup)
+			newSpamClassifier.classifierByMailGroup.set(ownerGroup, {
+				layersModel: newLayersModel,
 				threshold,
 				hamCount,
 				spamCount,
 			})
 		}
 
-		return newClassifier
-	}
-
-	// visibleForTesting
-	public addSpamClassifierForOwner(ownerGroup: Id, classifier: Classifier) {
-		this.classifiers.set(ownerGroup, classifier)
+		return newSpamClassifier
 	}
 
 	private async trainFromScratch(storage: CacheStorage, ownerGroup: string) {
 		const trainingDataset = await this.initializer.fetchAllTrainingData(ownerGroup)
 		const { trainingData, lastTrainingDataIndexId } = trainingDataset
 		if (isEmpty(trainingData)) {
-			console.log("No training trainingData found. Training from scratch aborted.")
+			console.log("no training trainingData found. training from scratch aborted.")
 			return
 		}
 		await this.initialTraining(ownerGroup, trainingDataset)
-		await this.saveModel(ownerGroup)
+		await this.saveModelToStorage(ownerGroup)
 		await storage.setLastTrainedFromScratchTime(Date.now())
 		await storage.setLastTrainingDataIndexId(lastTrainingDataIndexId)
 	}
 
 	private async getSpamClassificationModel(ownerGroup: Id): Promise<SpamClassificationModel | null> {
-		const classifier = this.classifiers.get(ownerGroup)
+		const classifier = this.classifierByMailGroup.get(ownerGroup)
 		if (!classifier) {
 			return null
 		}
@@ -441,7 +447,7 @@ export class SpamClassifier {
 	}
 
 	private async getModelArtifacts(ownerGroup: Id) {
-		const classifier = this.classifiers.get(ownerGroup)
+		const classifier = this.classifierByMailGroup.get(ownerGroup)
 		if (!classifier) {
 			return null
 		}

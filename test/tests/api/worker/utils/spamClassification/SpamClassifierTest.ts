@@ -120,64 +120,6 @@ o.spec("SpamClassifierTest", () => {
 		seededShuffle(dataSlice, 42)
 	})
 
-	o("processSpam maintains server classification when client classification is not enabled", async function () {
-		const mail = createTestEntity(MailTypeRef, {
-			_id: ["mailListId", "mailId"],
-			sets: [["folderList", "serverFolder"]],
-		})
-		const spamMailDatum: SpamMailDatum = {
-			ownerGroup: TEST_OWNER_GROUP,
-			subject: mail.subject,
-			body: "some body",
-			sender: "sender@tuta.com",
-			toRecipients: "recipient@tuta.com",
-			ccRecipients: "",
-			bccRecipients: "",
-			authStatus: "0",
-		}
-
-		// convert to vector
-		const layersModel = object<Sequential>()
-		const classifier = object<Classifier>()
-		classifier.layersModel = layersModel
-		classifier.isEnabled = false
-		classifier.threshold = DEFAULT_PREDICTION_THRESHOLD
-		spamClassifier.addSpamClassifierForOwner(spamMailDatum.ownerGroup, classifier)
-
-		const vector = await spamProcessor.vectorize(spamMailDatum)
-		const predictedSpam = await spamClassifier.predict(vector, spamMailDatum.ownerGroup)
-		o(predictedSpam).equals(null)
-	})
-
-	o("processSpam uses client classification when enabled", async function () {
-		const mail = createTestEntity(MailTypeRef, {
-			_id: ["mailListId", "mailId"],
-			sets: [["folderList", "serverFolder"]],
-		})
-		const spamMailDatum: SpamMailDatum = {
-			ownerGroup: TEST_OWNER_GROUP,
-			subject: mail.subject,
-			body: "some body",
-			sender: "sender@tuta.com",
-			toRecipients: "recipient@tuta.com",
-			ccRecipients: "",
-			bccRecipients: "",
-			authStatus: "0",
-		}
-
-		const layersModel = object<Sequential>()
-		when(layersModel.predict(anything())).thenReturn(tensor1d([1]))
-		const classifier = object<Classifier>()
-		classifier.layersModel = layersModel
-		classifier.isEnabled = true
-		classifier.threshold = DEFAULT_PREDICTION_THRESHOLD
-		spamClassifier.addSpamClassifierForOwner(spamMailDatum.ownerGroup, classifier)
-
-		const vector = await spamProcessor.vectorize(spamMailDatum)
-		const predictedSpam = await spamClassifier.predict(vector, spamMailDatum.ownerGroup)
-		o(predictedSpam).equals(true)
-	})
-
 	o("processSpam respects the classifier threshold", async function () {
 		const mail = createTestEntity(MailTypeRef, {
 			_id: ["mailListId", "mailId"],
@@ -198,9 +140,8 @@ o.spec("SpamClassifierTest", () => {
 		when(layersModel.predict(anything())).thenReturn(tensor1d([0.7]))
 		const classifier = object<Classifier>()
 		classifier.layersModel = layersModel
-		classifier.isEnabled = true
 		classifier.threshold = 0.9
-		spamClassifier.addSpamClassifierForOwner(spamMailDatum.ownerGroup, classifier)
+		spamClassifier.classifierByMailGroup.set(spamMailDatum.ownerGroup, classifier)
 
 		const vector = await spamProcessor.vectorize(spamMailDatum)
 		const predictedSpam = await spamClassifier.predict(vector, spamMailDatum.ownerGroup)
@@ -217,7 +158,7 @@ o.spec("SpamClassifierTest", () => {
 		await spamClassifier.initialTraining(TEST_OWNER_GROUP, trainingDataset)
 		await testClassifier(spamClassifier, testSet, compressor)
 
-		const classifier = spamClassifier.classifiers.get(TEST_OWNER_GROUP)
+		const classifier = spamClassifier.classifierByMailGroup.get(TEST_OWNER_GROUP)
 		o(classifier?.hamCount).equals(trainingDataset.hamCount)
 		o(classifier?.spamCount).equals(trainingDataset.spamCount)
 		o(classifier?.threshold).equals(spamClassifier.calculateThreshold(trainingDataset.hamCount, trainingDataset.spamCount))
@@ -245,7 +186,7 @@ o.spec("SpamClassifierTest", () => {
 		console.log(`==> Result when testing with mails in two steps (second step).`)
 		await testClassifier(spamClassifier, testSet, compressor)
 
-		const classifier = spamClassifier.classifiers.get(TEST_OWNER_GROUP)
+		const classifier = spamClassifier.classifierByMailGroup.get(TEST_OWNER_GROUP)
 		const finalHamCount = initialTrainingDataset.hamCount + trainingDatasetSecondHalf.hamCount
 		const finalSpamCount = initialTrainingDataset.spamCount + trainingDatasetSecondHalf.spamCount
 		o(classifier?.hamCount).equals(finalHamCount)
@@ -460,8 +401,8 @@ authStatus`
 		const secondGroupReturnTensor = tensor1d([0.0], undefined)
 		when(secondGroupClassifier.layersModel.predict(matchers.anything())).thenReturn(secondGroupReturnTensor)
 
-		await spamClassifier.initialize("firstGroup")
-		await spamClassifier.initialize("secondGroup")
+		await spamClassifier.initializeWithTraining("firstGroup")
+		await spamClassifier.initializeWithTraining("secondGroup")
 
 		const commonSpamFields = {
 			subject: "",
@@ -570,7 +511,7 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 			let retrainingNeeded = new Array<number>(falseNegatives.length).fill(0)
 			for (let i = 0; i < falseNegatives.length; i++) {
 				const sample = falseNegatives[i]
-				const copiedClassifier = await spamClassifier.cloneClassifier()
+				const copiedClassifier = await spamClassifier.cloneSpamClassifier()
 
 				let retrainCount = 0
 				let predictedSpam = false
@@ -610,7 +551,7 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 			let retrainingNeeded = new Array<number>(falsePositive.length).fill(0)
 			for (let i = 0; i < falsePositive.length; i++) {
 				const sample = falsePositive[i]
-				const copiedClassifier = await spamClassifier.cloneClassifier()
+				const copiedClassifier = await spamClassifier.cloneSpamClassifier()
 
 				let retrainCount = 0
 				let predictedSpam = false
@@ -644,7 +585,7 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 			let retrainingNeeded = new Array<number>(falseNegatives.length).fill(0)
 			for (let i = 0; i < falseNegatives.length; i++) {
 				const sample = falseNegatives[i]
-				const copiedClassifier = await spamClassifier.cloneClassifier()
+				const copiedClassifier = await spamClassifier.cloneSpamClassifier()
 
 				let retrainCount = 0
 				let predictedSpam = false
