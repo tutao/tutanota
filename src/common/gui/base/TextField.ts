@@ -112,11 +112,11 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 		const doShowBorder = a.doShowBorder !== false
 		const borderWidth = 3
 		const borderColor = this.active ? theme.primary : "transparent"
-		const borderBottomRadius = this.active ? "0px" : px(size.border_radius)
+		const borderBottomRadius = this.active ? "0px" : px(size.radius_8)
 
 		const baseStyling = {
 			"background-color": theme.surface_container_high,
-			"border-radius": `${px(size.border_radius)} ${px(size.border_radius)} ${borderBottomRadius} ${borderBottomRadius}`,
+			"border-radius": `${px(size.radius_8)} ${px(size.radius_8)} ${borderBottomRadius} ${borderBottomRadius}`,
 			transition: `border-radius ${labelTransitionSpeed}ms ease-out`,
 		}
 
@@ -129,7 +129,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 					onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
 					"aria-haspopup": a.hasPopup,
 					"data-testid": `tf:${lang.getTestId(a.label)}`,
-					class: a.class != null ? a.class : "mt" + " " + getOperatingClasses(a.disabled),
+					class: a.class != null ? a.class : "mt-16" + " " + getOperatingClasses(a.disabled),
 					style: maxWidth
 						? {
 								maxWidth: px(maxWidth),
@@ -140,7 +140,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				},
 				[
 					m(
-						"label.abs.text-ellipsis.noselect.z1.pr-s",
+						"label.abs.text-ellipsis.noselect.z1.pr-4",
 						{
 							"aria-hidden": "true",
 							class: this.active ? "" : "" + " " + getOperatingClasses(a.disabled),
@@ -148,15 +148,15 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 								this._domLabel = vnode.dom as HTMLElement
 							},
 							style: {
-								fontSize: `${labelBase ? size.font_size_base : size.font_size_small}px`,
+								fontSize: `${labelBase ? font_size.base : font_size.small}px`,
 								transform: `translateY(${labelBase ? baseLabelPosition : 0})`,
 								"transition-timing-function": "ease-out",
 								"transition-duration": `${labelTransitionSpeed}ms`,
 								"transition-property": "transform, font-size, top",
-								top: labelBase ? "50%" : px(size.vpad_small),
-								left: a.leadingIcon ? px(size.icon_size_large + size.vpad) : 0,
-								"padding-left": px(size.vpad),
-								"padding-right": px(size.vpad),
+								top: labelBase ? "50%" : px(size.spacing_8),
+								left: a.leadingIcon ? px(size.icon_24 + size.spacing_16) : 0,
+								"padding-left": px(size.spacing_16),
+								"padding-right": px(size.spacing_16),
 								color: labelBase ? "inherit" : theme.primary,
 							},
 						},
@@ -177,7 +177,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							[
 								a.leadingIcon &&
 									m(Icon, {
-										size: IconSize.Medium,
+										size: IconSize.PX20,
 										icon: a.leadingIcon.icon,
 										style: {
 											fill: a.leadingIcon.color,
@@ -194,8 +194,8 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 										style: {
 											minHeight: px(minInputHeight - 2), // minus padding
 
-											"padding-left": px(size.vpad),
-											"padding-right": px(size.vpad),
+											"padding-left": px(size.spacing_16),
+											"padding-right": px(size.spacing_16),
 										},
 										oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
 									},
@@ -349,7 +349,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 							lineHeight: px(font_size.line_height_input),
 							fontSize: a.fontSize,
 							position: "relative",
-							bottom: px(size.vpad_xsm),
+							bottom: px(size.spacing_4),
 						},
 						"data-testid": `tfi:${lang.getTestId(a.label)}`,
 					}),

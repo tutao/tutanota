@@ -94,7 +94,7 @@ class QuickActionBar implements Component<Attrs> {
 					this.results.map((result, index) => {
 						const isSelected = index === this.selectedIndex
 						return m(
-							"li.border-radius-small.plr-s.click",
+							"li.border-radius-small.plr-4.click",
 							{
 								style: {
 									padding: "4px",

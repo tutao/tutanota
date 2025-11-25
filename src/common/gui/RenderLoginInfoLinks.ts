@@ -17,7 +17,7 @@ export function renderInfoLinks(): Children {
 	return m(
 		".flex.col.mt-32",
 		m(
-			".flex.wrap.justify-center.gap-vpad",
+			".flex.wrap.justify-center.gap-16",
 			!isApp() && privacyPolicyLink
 				? m(ExternalLink, {
 						href: privacyPolicyLink,

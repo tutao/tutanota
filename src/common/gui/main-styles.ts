@@ -1,5 +1,5 @@
 import { styles } from "./styles"
-import { px, size, component_size, layout_size, font_size } from "./size"
+import { component_size, font_size, layout_size, px, size } from "./size"
 import { client } from "../misc/ClientDetector"
 import { lang } from "../misc/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
@@ -1151,9 +1151,6 @@ styles.registerStyle("main", () => {
 		".column-gap-4": {
 			"column-gap": px(size.spacing_4),
 		},
-		".gap-12": {
-			gap: px(12),
-		},
 		".flex": {
 			display: "flex",
 		},
@@ -1515,10 +1512,10 @@ styles.registerStyle("main", () => {
 		".wizard-progress": {
 			border: `1px solid ${theme.outline}`,
 			color: "inherit",
-			width: px(size.button_icon_bg_size),
-			height: px(size.button_icon_bg_size),
-			"border-radius": px(size.button_icon_bg_size),
-			"min-width": px(size.button_icon_bg_size),
+			width: px(component_size.button_icon_bg_size),
+			height: px(component_size.button_icon_bg_size),
+			"border-radius": px(component_size.button_icon_bg_size),
+			"min-width": px(component_size.button_icon_bg_size),
 			display: "flex",
 			"justify-content": "center",
 			"align-items": "center",
@@ -1540,7 +1537,7 @@ styles.registerStyle("main", () => {
 			"border-left": `3px dotted ${theme.outline_variant}`,
 			width: 0,
 			position: "absolute",
-			height: `calc(100% - ${px(size.button_icon_bg_size)} - ${px(16)})`,
+			height: `calc(100% - ${px(component_size.button_icon_bg_size)} - ${px(16)})`,
 			bottom: px(8),
 		},
 		".wizard-progress-previous:after": {
@@ -1929,7 +1926,7 @@ styles.registerStyle("main", () => {
 			width: 0,
 			height: 0,
 			overflow: "hidden", // while the dropdown is slided open we do not want to show the scrollbars. overflow-y is later overwritten to show scrollbars if necessary
-			"border-radius": px(size.border_radius_medium),
+			"border-radius": px(size.radius_8),
 		},
 		".dropdown-panel-scrollable": {
 			position: "absolute",

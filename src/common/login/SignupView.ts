@@ -262,7 +262,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 
 	private currentOption = 0
 	private radioTestPage(): WizardStepAttrs<SignupViewModel>["content"] {
-		const boxAttr = { style: { width: px(400), height: px(500), background: theme.primary_container, padding: size.vpad } }
+		const boxAttr = { style: { width: px(400), height: px(500), background: theme.primary_container, padding: size.spacing_16 } }
 		return (ctx) => {
 			const options: ReadonlyArray<RadioSelectorOption<number>> = [
 				{
@@ -289,7 +289,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 									},
 								} satisfies TextFieldAttrs),
 								m(
-									".flex-center.full-width.pt-l",
+									".flex-center.full-width.pt-32",
 									m(LoginButton, {
 										label: "next_action",
 										type: LoginButtonType.FullWidth,
@@ -303,7 +303,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 				{ name: "userSettings_label", value: 2, renderChild: () => m("div", boxAttr, "3") },
 			]
 			return m(
-				".mt.mb",
+				".mt-16.mb-16",
 				m(RadioSelector, {
 					groupName: "credentialsEncryptionMode_label",
 					options,
