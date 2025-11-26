@@ -526,6 +526,7 @@ export class MailViewModel {
 					this.mailModel,
 					this.processInboxHandler,
 					this.cacheStorage,
+					this.connectivityModel,
 				)
 			} else {
 				listModel = new MailListModel(
@@ -535,6 +536,7 @@ export class MailViewModel {
 					this.mailModel,
 					this.processInboxHandler,
 					this.cacheStorage,
+					this.connectivityModel,
 				)
 			}
 			this.listStreamSubscription?.end(true)
