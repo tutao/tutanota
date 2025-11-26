@@ -23,6 +23,7 @@ import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { ExposedCacheStorage } from "../../../common/api/worker/rest/DefaultEntityRestCache"
 import { applyInboxRulesAndSpamPrediction, LoadedMail, MailSetListModel, resolveMailSetEntries } from "./MailSetListModel"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
+import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 
 assertMainOrNode()
 
@@ -43,6 +44,7 @@ export class MailListModel implements MailSetListModel {
 		private readonly mailModel: MailModel,
 		private readonly processInboxHandler: ProcessInboxHandler,
 		private readonly cacheStorage: ExposedCacheStorage,
+		private readonly connectivityModel: WebsocketConnectivityModel,
 	) {
 		this.listModel = new ListModel({
 			fetch: (lastFetchedItem, count) => {
@@ -346,7 +348,7 @@ export class MailListModel implements MailSetListModel {
 	}
 
 	private async applyInboxRulesAndSpamPrediction(entries: LoadedMail[]): Promise<LoadedMail[]> {
-		return applyInboxRulesAndSpamPrediction(entries, this.mailSet, this.mailModel, this.processInboxHandler)
+		return applyInboxRulesAndSpamPrediction(entries, this.mailSet, this.mailModel, this.processInboxHandler, this.connectivityModel.isLeader())
 	}
 
 	private async loadSingleMail(id: IdTuple): Promise<LoadedMail> {

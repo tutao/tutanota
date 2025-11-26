@@ -98,8 +98,8 @@ export class ProcessInboxHandler {
 			this.processedMailsByMailGroup.set(mailGroupId, [finalProcessInboxDatum])
 		}
 
-		// noinspection ES6MissingAwait
 		if (sendServerRequest) {
+			// noinspection ES6MissingAwait
 			this.sendProcessInboxServiceRequest(this.mailFacade)
 		}
 		return moveToFolder

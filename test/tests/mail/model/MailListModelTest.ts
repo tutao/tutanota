@@ -40,6 +40,7 @@ import { getMailFilterForType, MailFilterType } from "../../../../src/mail-app/m
 import { theme } from "../../../../src/common/gui/theme.js"
 import { ProcessInboxHandler } from "../../../../src/mail-app/mail/model/ProcessInboxHandler"
 import { FolderSystem } from "../../../../src/common/api/common/mail/FolderSystem"
+import { WebsocketConnectivityModel } from "../../../../src/common/misc/WebsocketConnectivityModel"
 
 o.spec("MailListModel", () => {
 	let model: MailListModel
@@ -81,6 +82,7 @@ o.spec("MailListModel", () => {
 	let mailModel: MailModel
 	let processInboxHandler: ProcessInboxHandler
 	let cacheStorage: ExposedCacheStorage
+	let connectivityModel: WebsocketConnectivityModel
 
 	o.beforeEach(() => {
 		mailSet = createTestEntity(MailFolderTypeRef, {
@@ -96,7 +98,9 @@ o.spec("MailListModel", () => {
 		mailModel = object()
 		processInboxHandler = object()
 		cacheStorage = object()
-		model = new MailListModel(mailSet, conversationPrefProvider, entityClient, mailModel, processInboxHandler, cacheStorage)
+		connectivityModel = object()
+		when(connectivityModel.isLeader()).thenReturn(true)
+		model = new MailListModel(mailSet, conversationPrefProvider, entityClient, mailModel, processInboxHandler, cacheStorage, connectivityModel)
 		when(mailModel.getMailboxDetailsForMailFolder(mailSet)).thenResolve(mailboxDetail)
 		const folderSystem: FolderSystem = object()
 		when(mailModel.getFolderSystemByGroupId(matchers.anything())).thenReturn(folderSystem)

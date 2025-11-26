@@ -34,6 +34,7 @@ import { ListFetchResult } from "../../../common/gui/base/ListUtils"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { OperationType } from "../../../common/api/common/TutanotaConstants"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
+import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 
 /**
  * Organizes mails into conversations and handles state upkeep.
@@ -69,6 +70,7 @@ export class ConversationListModel implements MailSetListModel {
 		private readonly mailModel: MailModel,
 		private readonly processInboxHandler: ProcessInboxHandler,
 		private readonly cacheStorage: ExposedCacheStorage,
+		private readonly connectivityModel: WebsocketConnectivityModel,
 	) {
 		this.listModel = new ListModel({
 			fetch: async (_, count) => {
@@ -462,7 +464,7 @@ export class ConversationListModel implements MailSetListModel {
 		try {
 			const mailSetEntries = await this.entityClient.loadRange(MailSetEntryTypeRef, listIdPart(startingId), elementIdPart(startingId), count, true)
 
-			// Check for completeness before loading/filtering mails, as we may end up with even fewer mails than retrieved in either case
+			// Check for completeness before loading/filtering mails, as we may end up with even less mails than retrieved in either case
 			complete = mailSetEntries.length < count
 			if (mailSetEntries.length > 0) {
 				this.lastFetchedMailSetEntryId = getElementId(lastThrow(mailSetEntries))
@@ -497,7 +499,7 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	private async applyInboxRulesAndSpamPrediction(entries: LoadedMail[]): Promise<LoadedMail[]> {
-		return applyInboxRulesAndSpamPrediction(entries, this.mailSet, this.mailModel, this.processInboxHandler)
+		return applyInboxRulesAndSpamPrediction(entries, this.mailSet, this.mailModel, this.processInboxHandler, this.connectivityModel.isLeader())
 	}
 
 	// @VisibleForTesting
