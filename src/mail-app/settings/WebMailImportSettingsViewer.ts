@@ -1,7 +1,6 @@
 import m, { Children } from "mithril"
-import { lazy } from "@tutao/tutanota-utils"
 import { lang } from "../../common/misc/LanguageViewModel"
-import { LoginButton, LoginButtonType } from "../../common/gui/base/buttons/LoginButton"
+import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { EntityUpdateData } from "../../common/api/common/utils/EntityUpdateUtils.js"
 import { mailLocator } from "../mailLocator.js"
@@ -26,7 +25,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 				m(
 					".flex-start.mt-32",
 					m(LoginButton, {
-						type: LoginButtonType.FlexWidth,
+						width: "flex",
 						label: "mailImportDownloadDesktopClient_label",
 						onclick: () => {
 							const desktopClientDownloadUri = "https://tuta.com#download"

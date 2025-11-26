@@ -8,7 +8,7 @@ import { BaseTopLevelView } from "../gui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../TopLevelView.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { Wizard, WizardAttrs } from "../gui/base/wizard/Wizard"
-import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton"
+import { LoginButton, LoginButtonAttrs, SecondaryButton, TertiaryButton } from "../gui/base/buttons/LoginButton"
 import { px, size } from "../gui/size"
 import { WizardStepAttrs } from "../gui/base/wizard/WizardStep"
 import { NewAccountData, ReferralData, SubscriptionParameters } from "../subscription/UpgradeSubscriptionWizard"
@@ -270,7 +270,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 					value: 0,
 					renderChild: () =>
 						m(
-							"div",
+							"div.flex.flex-column",
 							{
 								style: {
 									width: px(400),
@@ -292,18 +292,31 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 									".flex-center.full-width.pt-32",
 									m(LoginButton, {
 										label: "next_action",
-										type: LoginButtonType.FullWidth,
+										width: "full",
 										onclick: () => ctx.goNext(),
 									}),
 								),
+								m(
+									".flex-center.full-width.pt-32",
+									m(SecondaryButton, {
+										label: "next_action",
+										width: "full",
+										onclick: () => ctx.goNext(),
+									}),
+								),
+								m(TertiaryButton, {
+									label: "previous_action",
+									icon: Icons.Eye,
+									width: "flex",
+									onclick: () => m.route.set("/"),
+								}),
 							],
 						),
 				},
 				{ name: "credit_label", value: 1, renderChild: () => m("div", boxAttr, "2") },
 				{ name: "userSettings_label", value: 2, renderChild: () => m("div", boxAttr, "3") },
 			]
-			return m(
-				".mt-16.mb-16",
+			return m(".mt-16.mb-16", [
 				m(RadioSelector, {
 					groupName: "credentialsEncryptionMode_label",
 					options,
@@ -312,7 +325,17 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 						this.currentOption = mode
 					},
 				} satisfies RadioSelectorAttrs<number>),
-			)
+
+				m(
+					"full-width.pt-l",
+					m(LoginButton, {
+						label: "next_action",
+						size: "md",
+						width: "full",
+						onclick: () => ctx.goNext(),
+					}),
+				),
+			])
 		}
 	}
 

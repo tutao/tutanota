@@ -3244,5 +3244,34 @@ styles.registerStyle("main", () => {
 			transform: "translate(-50%, calc(-50% + 1px))",
 			"border-radius": "50%",
 		},
+		".base-button-xs": {
+			"padding-inline": px(12),
+			height: px(32),
+			"border-radius": px(size.radius_8),
+			"text-align": "center",
+		},
+		".base-button-sm": {
+			"padding-inline": px(16),
+			height: px(40),
+			"border-radius": px(size.radius_8),
+			"text-align": "center",
+		},
+		".base-button-md": {
+			"padding-inline": px(24),
+			height: px(56),
+			"border-radius": px(size.radius_8),
+			"text-align": "center",
+		},
+		".tutaui-button-ghost": {
+			"background-color": "transparent",
+			color: theme.on_surface,
+			"border-radius": px(size.radius_8),
+		},
+		".tutaui-button-ghost:hover, .tutaui-button-ghost:focus-visible": {
+			"background-color": theme.state_bg_hover,
+		},
+		".tutaui-button-ghost:active": {
+			"background-color": theme.state_bg_active,
+		},
 	}
 })

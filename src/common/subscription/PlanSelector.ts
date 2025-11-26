@@ -5,7 +5,7 @@ import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants.js"
 import { component_size, px, size } from "../gui/size.js"
-import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton.js"
+import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { theme } from "../gui/theme.js"
@@ -102,7 +102,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			return m(LoginButton, {
 				// The label text for go european campaign shall not be translated.
 				label: "continue_action",
-				type: LoginButtonType.FullWidth,
+				width: "full",
 				onclick: temp,
 			})
 		}

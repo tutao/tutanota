@@ -12,7 +12,7 @@ import { Button, ButtonType } from "../../common/gui/base/Button"
 import { IconButton } from "../../common/gui/base/IconButton"
 import { Icons } from "../../common/gui/base/icons/Icons"
 import { ButtonSize } from "../../common/gui/base/ButtonSize"
-import { LoginButton, LoginButtonType } from "../../common/gui/base/buttons/LoginButton"
+import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 import { Icon, IconSize } from "../../common/gui/base/Icon"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 
@@ -95,7 +95,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 					m(
 						".flex-start.mt-8",
 						m(LoginButton, {
-							type: LoginButtonType.FlexWidth,
+							width: "flex",
 							label: "export_action",
 							onclick: () => {
 								if (this.selectedMailbox) {
@@ -127,7 +127,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 					m(
 						".flex-start.mt-8",
 						m(LoginButton, {
-							type: LoginButtonType.FlexWidth,
+							width: "flex",
 							label: "open_action",
 							onclick: () => this.onOpenClicked(controller),
 						}),
