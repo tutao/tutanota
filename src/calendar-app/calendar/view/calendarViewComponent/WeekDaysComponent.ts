@@ -29,6 +29,7 @@ export interface WeekDaysComponentAttrs {
 	variant: HeaderVariant
 	startOfWeek?: WeekStart
 	showWeekDays?: boolean
+	hasEvents: (date: Date) => boolean
 }
 
 export class WeekDaysComponent implements ClassComponent<WeekDaysComponentAttrs> {
@@ -118,7 +119,7 @@ export class WeekDaysComponent implements ClassComponent<WeekDaysComponentAttrs>
 				highlightToday: true,
 				highlightSelectedWeek: dates.length === 7,
 				useNarrowWeekName: styles.isSingleColumnLayout(),
-				hasEventOn: (date) => false,
+				hasEventOn: attrs.hasEvents,
 			} satisfies DaySelectorAttrs),
 		)
 	}
