@@ -39,7 +39,7 @@ export class SymmetricCipherFacade {
 	 * @deprecated
 	 */
 	encryptBytesDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array): Uint8Array {
-		return this.encrypt(key, bytes, true, SymmetricCipherVersion.UnusedReservedUnauthenticated)
+		return this.encrypt(key, bytes, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)
 	}
 
 	/**
@@ -108,16 +108,29 @@ export class SymmetricCipherFacade {
 		}
 	}
 
-	private encrypt(key: AesKey, plainText: Uint8Array, padding: boolean, cipherVersion: SymmetricCipherVersion): Uint8Array {
-		return this.encryptImpl(key, plainText, true, padding, cipherVersion)
+	private encrypt(
+		key: AesKey,
+		plainText: Uint8Array,
+		padding: boolean,
+		cipherVersion: SymmetricCipherVersion,
+		skipAuthentication: boolean = false,
+	): Uint8Array {
+		return this.encryptImpl(key, plainText, true, padding, cipherVersion, skipAuthentication)
 	}
 
-	private encryptImpl(key: AesKey, plainText: Uint8Array, hasRandomIv: boolean, padding: boolean, cipherVersion: SymmetricCipherVersion): Uint8Array {
+	private encryptImpl(
+		key: AesKey,
+		plainText: Uint8Array,
+		hasRandomIv: boolean,
+		padding: boolean,
+		cipherVersion: SymmetricCipherVersion,
+		skipAuthentication: boolean = false,
+	): Uint8Array {
 		const iv = hasRandomIv ? this.generateIV() : FIXED_IV
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 			case SymmetricCipherVersion.AesCbcThenHmac:
-				return this.aesCbcFacade.encrypt(key, plainText, hasRandomIv, iv, padding, cipherVersion)
+				return this.aesCbcFacade.encrypt(key, plainText, hasRandomIv, iv, padding, cipherVersion, skipAuthentication)
 			case SymmetricCipherVersion.Aead:
 				assert(hasRandomIv, "AEAD requires random IV")
 				// we can only use this once all clients support it
@@ -127,13 +140,14 @@ export class SymmetricCipherFacade {
 
 	private decrypt(key: AesKey, cipherText: Uint8Array, padding: boolean, randomIv: boolean = true, skipAuthentication: boolean = false): Uint8Array {
 		const cipherVersion = getSymmetricCipherVersion(cipherText)
+		//TODO this is not necessary if we also enforce authentication during key derivation
 		if (!skipAuthentication) {
 			this.enforceAuthenticationWherePossible(cipherVersion, key)
 		}
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 			case SymmetricCipherVersion.AesCbcThenHmac: {
-				return this.aesCbcFacade.decrypt(key, cipherText, randomIv, padding, cipherVersion)
+				return this.aesCbcFacade.decrypt(key, cipherText, randomIv, padding, cipherVersion, skipAuthentication)
 			}
 			case SymmetricCipherVersion.Aead: {
 				// use this as soon as we define what to use as associated data

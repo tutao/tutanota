@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
 import {
+	aes256EncryptSearchIndexEntry,
 	aesDecrypt,
 	aesEncrypt,
 	AsymmetricKeyPair,
@@ -140,7 +141,7 @@ o.spec("CompatibilityTest", function () {
 	})
 	o("aes 256", function () {
 		for (const td of testData.aes256Tests) {
-			const iv = hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH) // randomness injected
+			random.generateRandomData = (number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
 			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
 			// encrypt data
 			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64))
@@ -149,15 +150,13 @@ o.spec("CompatibilityTest", function () {
 			o(decryptedBytes).equals(td.plainTextBase64)
 			// encrypt 128 key
 			const keyToEncrypt128 = uint8ArrayToKey(hexToUint8Array(td.keyToEncrypt128))
-			//TODO no padding
-			const encryptedKey128 = aesEncrypt(key, keyToUint8Array(keyToEncrypt128))
+			const encryptedKey128 = encryptKey(key, keyToEncrypt128)
 			o(uint8ArrayToBase64(encryptedKey128)).equals(td.encryptedKey128)
 			const decryptedKey128 = decryptKey(key, encryptedKey128)
 			o(uint8ArrayToHex(keyToUint8Array(decryptedKey128))).equals(td.keyToEncrypt128)
 			// encrypt 256 key
 			const keyToEncrypt256 = uint8ArrayToKey(hexToUint8Array(td.keyToEncrypt256))
-			//TODO no padding
-			const encryptedKey256 = aesEncrypt(key, keyToUint8Array(keyToEncrypt256))
+			const encryptedKey256 = encryptKey(key, keyToEncrypt256)
 			o(uint8ArrayToBase64(encryptedKey256)).equals(td.encryptedKey256)
 			const decryptedKey256 = decryptKey(key, encryptedKey256)
 			o(uint8ArrayToHex(keyToUint8Array(decryptedKey256))).equals(td.keyToEncrypt256)
@@ -206,10 +205,9 @@ o.spec("CompatibilityTest", function () {
 
 	o("aes 128 no mac", function () {
 		for (const td of testData.aes128Tests) {
-			const iv = hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH) // randomness injected
+			random.generateRandomData = (number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
 			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
-			//TODO use legacy funtion
-			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64))
+			let encryptedBytes = aes256EncryptSearchIndexEntry(key, base64ToUint8Array(td.plainTextBase64))
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)
 			let decryptedBytes = uint8ArrayToBase64(aesDecrypt(key, encryptedBytes))
 			o(decryptedBytes).equals(td.plainTextBase64)
@@ -217,7 +215,7 @@ o.spec("CompatibilityTest", function () {
 	})
 	o("aes 128 mac", function () {
 		for (const td of testData.aes128MacTests) {
-			const iv = hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH) // randomness injected
+			random.generateRandomData = (number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
 			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey))
 			let encryptedBytes = aesEncrypt(key, base64ToUint8Array(td.plainTextBase64))
 			o(uint8ArrayToBase64(encryptedBytes)).equals(td.cipherTextBase64)

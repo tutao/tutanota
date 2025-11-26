@@ -52,13 +52,8 @@ export function uint8ArrayToBitArray(uint8Array: Uint8Array): BitArray {
 	return sjcl.codec.arrayBuffer.toBits(uint8ArrayToArrayBuffer(uint8Array))
 }
 
-/**
- * Converts the given key to a base64 coded string.
- * @param key The key.
- * @return The base64 coded string representation of the key.
- */
 export function keyToBase64(key: AesKey): Base64 {
-	return sjcl.codec.base64.fromBits(key)
+	return uint8ArrayToBase64(keyToUint8Array(key))
 }
 
 /**
@@ -69,7 +64,7 @@ export function keyToBase64(key: AesKey): Base64 {
  */
 export function base64ToKey(base64: Base64): AesKey {
 	try {
-		let key = sjcl.codec.base64.toBits(base64)
+		let key = uint8ArrayToKey(base64ToUint8Array(base64))
 		getAndVerifyAesKeyLength(key)
 		return key
 	} catch (e) {

@@ -11,7 +11,7 @@ import { downcast, KeyVersion } from "@tutao/tutanota-utils"
 import { DbStub } from "../search/DbStub.js"
 import { ExternalImageRule } from "../../../../../src/common/api/common/TutanotaConstants.js"
 import { UserTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs.js"
-import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, encryptKey, IV_BYTE_LENGTH, keyToUint8Array, random } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, aesEncrypt, AesKey, decryptKey, encryptKey, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -161,8 +161,7 @@ o.spec("ConfigurationDbTest", function () {
 			const groupKeyVersion = 6
 			const groupKey = aes256RandomKey()
 
-			//TODO no padding
-			const encDBKey = aesEncrypt(groupKey, keyToUint8Array(dbKey))
+			const encDBKey = encryptKey(groupKey, dbKey)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(groupKeyVersion)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encDBKey)
 			when(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion)).thenResolve(groupKey)
@@ -193,8 +192,7 @@ o.spec("ConfigurationDbTest", function () {
 		o("read group key version when without meta data entry", async function () {
 			const groupKeyVersion = 0
 			const groupKey = aes256RandomKey()
-			//TODO no padding
-			const encDBKey = aesEncrypt(groupKey, keyToUint8Array(dbKey))
+			const encDBKey = encryptKey(groupKey, dbKey)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(undefined)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encDBKey)
 			when(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion)).thenResolve(groupKey)

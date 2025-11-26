@@ -32,8 +32,9 @@ export class AesCbcFacade {
 		iv: Uint8Array,
 		padding: boolean,
 		cipherVersion: SymmetricCipherVersion,
+		skipAuthentication: boolean = false,
 	): Uint8Array {
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion, skipAuthentication)
 		const cipherText = bitArrayToUint8Array(
 			sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(subKeys.encryptionKey), uint8ArrayToBitArray(plainText), uint8ArrayToBitArray(iv), [], padding),
 		)
@@ -61,9 +62,16 @@ export class AesCbcFacade {
 	/**
 	 * This should not be called directly! Use SymmetricCipherFacade instead
 	 */
-	decrypt(key: AesKey, cipherText: Uint8Array, randomIv: boolean, padding: boolean, cipherVersion: SymmetricCipherVersion): Uint8Array {
+	decrypt(
+		key: AesKey,
+		cipherText: Uint8Array,
+		randomIv: boolean,
+		padding: boolean,
+		cipherVersion: SymmetricCipherVersion,
+		skipAuthentication: boolean = false,
+	): Uint8Array {
 		// try {
-		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion)
+		const subKeys = this.symmetricKeyDeriver.deriveSubKeys(key, cipherVersion, skipAuthentication)
 		let cipherTextWithoutMacAndVersionByte: Uint8Array
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:

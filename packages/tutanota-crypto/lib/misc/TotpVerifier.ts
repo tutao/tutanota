@@ -57,7 +57,7 @@ export class TotpVerifier {
 	}
 
 	hmac_sha(key: Uint8Array, text: Uint8Array): Uint8Array {
-		let hmac = new sjcl.misc.hmac(uint8ArrayToKey(key), sjcl.hash.sha1)
+		let hmac = new sjcl.misc.hmac(uint8ArrayToBitArray(key), sjcl.hash.sha1)
 		return bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(text)))
 	}
 

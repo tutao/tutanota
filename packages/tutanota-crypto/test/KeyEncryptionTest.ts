@@ -73,7 +73,7 @@ o.spec("key encryption", function () {
 //Do not use outside this test!!!
 //No padding, no mac, fixed IV
 function legacyAes256EncryptWithRecoveryKey(key: Aes256Key, bytes: Uint8Array): Uint8Array {
-	let subKeys = SYMMETRIC_KEY_DERIVER.deriveSubKeys(key, SymmetricCipherVersion.UnusedReservedUnauthenticated)
+	let subKeys = SYMMETRIC_KEY_DERIVER.deriveSubKeys(key, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)
 	let encryptedBits = sjcl.mode.cbc.encrypt(
 		new sjcl.cipher.aes(subKeys.encryptionKey),
 		uint8ArrayToBitArray(bytes),

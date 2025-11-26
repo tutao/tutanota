@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { base64ToKey, bitArrayToUint8Array, keyToBase64, uint8ArrayToBitArray } from "../lib/index.js"
+import { aes256RandomKey, base64ToKey, bitArrayToUint8Array, keyToBase64, uint8ArrayToBitArray } from "../lib/index.js"
 
 o.spec("SymmetricCipherUtilsTest", function () {
 	o("bitArrayToUint8Array", function () {
@@ -8,7 +8,7 @@ o.spec("SymmetricCipherUtilsTest", function () {
 		o(Array.from(bitArrayToUint8Array(uint8ArrayToBitArray(new Uint8Array([170]))))).deepEquals([170])
 	})
 	o("keyToBase64 round trip", function () {
-		let key = [8794650181632]
-		o(base64ToKey(keyToBase64(key))).deepEquals(key)
+		const key = aes256RandomKey()
+		o(Array.from(base64ToKey(keyToBase64(key)))).deepEquals(key)
 	})
 })
