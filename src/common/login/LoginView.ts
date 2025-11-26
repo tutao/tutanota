@@ -107,9 +107,9 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						},
 						[
 							m(
-								".content-bg.border-radius-12.pb-16",
+								".border-radius-12.pb-16",
 								{
-									class: styles.isSingleColumnLayout() ? "plr-24" : "plr-48",
+									class: styles.isSingleColumnLayout() ? "plr-24" : "plr-32",
 								},
 								this._renderFormForDisplayMode(),
 								this.renderMoreOptions(),
