@@ -5,7 +5,7 @@ import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { KeyLength } from "../misc/Constants.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { sha256Hash } from "./Sha256.js"
-import { AesKey, uint8ArrayToBitArray, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils"
+import { AesKey, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
 
 const logRounds = 8 // pbkdf2 number of iterations
 

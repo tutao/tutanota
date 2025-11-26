@@ -1,7 +1,7 @@
 import { uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import { CryptoError } from "../misc/CryptoError.js"
-import { Aes256Key, AesKey, IV_BYTE_LENGTH } from "./symmetric/SymmetricCipherUtils"
-import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade"
+import { Aes256Key, AesKey, IV_BYTE_LENGTH } from "./symmetric/SymmetricCipherUtils.js"
+import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade.js"
 
 /**
  * Encrypts bytes with AES128 or AES256 in CBC mode.

@@ -1,10 +1,10 @@
-import { random } from "../../random/Randomizer"
-import { AesKey, FIXED_IV, IV_BYTE_LENGTH, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils"
-import { AES_CBC_FACADE, AesCbcFacade } from "./AesCbcFacade"
-import { getSymmetricCipherVersion, SymmetricCipherVersion } from "./SymmetricCipherVersion"
+import { random } from "../../random/Randomizer.js"
+import { AesKey, FIXED_IV, IV_BYTE_LENGTH, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
+import { AES_CBC_FACADE, AesCbcFacade } from "./AesCbcFacade.js"
+import { getSymmetricCipherVersion, SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
 import { assert } from "@tutao/tutanota-utils"
-import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength"
-import { CryptoError } from "../../misc/CryptoError"
+import { AesKeyLength, getAndVerifyAesKeyLength } from "./AesKeyLength.js"
+import { CryptoError } from "../../misc/CryptoError.js"
 
 /**
  * This facade contains all methods for encryption/ decryption for symmetric encryption incl. AES-128 and AES-256 in CBC mode or AEAD.

@@ -1,6 +1,6 @@
 import sjcl from "../internal/sjcl.js"
-import { bitArrayToUint8Array, uint8ArrayToBitArray } from "../encryption/symmetric/SymmetricCipherUtils"
-import { SHA256_HASH_LENGTH_BYTES } from "./Sha256"
+import { bitArrayToUint8Array, uint8ArrayToBitArray } from "../encryption/symmetric/SymmetricCipherUtils.js"
+import { SHA256_HASH_LENGTH_BYTES } from "./Sha256.js"
 
 /**
  * Derives a key of a defined length from salt, inputKeyMaterial and info.

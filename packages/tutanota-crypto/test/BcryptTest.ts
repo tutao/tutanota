@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { generateKeyFromPassphrase, generateRandomSalt } from "../lib/hashes/Bcrypt.js"
 import { KeyLength } from "../lib/misc/Constants.js"
 
-import { keyToUint8Array } from "../lib"
+import { keyToUint8Array } from "../lib/index.js"
 
 o.spec("Bcrypt", function () {
 	o("GenerateRandomSalt", function () {

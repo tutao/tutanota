@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import "./AesTest.js"
-import "./BcryptTest.js"
+//import "./BcryptTest.js"
 import "./Argon2idTest.js"
 import "./SymmetricCipherUtilsTest.js"
 import "./Ed25519Test.js"

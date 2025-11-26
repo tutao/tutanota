@@ -2,7 +2,7 @@
 import sjcl from "../internal/sjcl.js"
 import { hexToUint8Array } from "@tutao/tutanota-utils"
 import { random } from "../random/Randomizer.js"
-import { bitArrayToUint8Array, uint8ArrayToBitArray, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils"
+import { bitArrayToUint8Array, uint8ArrayToBitArray, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
 
 export let DIGITS: number = 6
 export type Base32 = string

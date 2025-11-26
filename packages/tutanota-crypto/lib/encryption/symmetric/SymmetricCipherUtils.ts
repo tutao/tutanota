@@ -1,9 +1,9 @@
-import { random } from "../../random/Randomizer"
-import { CryptoError } from "../../misc/CryptoError"
+import { random } from "../../random/Randomizer.js"
+import { CryptoError } from "../../misc/CryptoError.js"
 import { Base64, base64ToBase64Url, base64ToUint8Array, Base64Url, hexToUint8Array, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
-import { sha256Hash } from "../../hashes/Sha256"
-import sjcl from "../../internal/sjcl"
-import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "./AesKeyLength"
+import { sha256Hash } from "../../hashes/Sha256.js"
+import sjcl from "../../internal/sjcl.js"
+import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "./AesKeyLength.js"
 
 export const FIXED_IV = hexToUint8Array("88888888888888888888888888888888")
 export const BLOCK_SIZE_BYTES = 16

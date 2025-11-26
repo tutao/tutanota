@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { TotpVerifier } from "../lib/misc/TotpVerifier.js"
 import sjcl from "../lib/internal/sjcl.js"
-import { keyToUint8Array } from "../lib"
+import { keyToUint8Array } from "../lib/index.js"
 
 o.spec("TotpVerifier", function () {
 	const totp = new TotpVerifier(8)

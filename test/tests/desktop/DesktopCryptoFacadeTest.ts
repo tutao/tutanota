@@ -3,14 +3,13 @@ import o from "@tutao/otest"
 import { DesktopNativeCryptoFacade } from "../../../src/common/desktop/DesktopNativeCryptoFacade.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import type { CryptoFunctions } from "../../../src/common/desktop/CryptoFns.js"
-import { aes256RandomKey, Argon2IDExports, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { aes256RandomKey, AesKeyLength, Argon2IDExports, getKeyLengthAsBytes, random, uint8ArrayToBitArray, uint8ArrayToKey } from "@tutao/tutanota-crypto"
 import { matchers, object, verify, when } from "testdouble"
 import { TempFs } from "../../../src/common/desktop/files/TempFs.js"
-import { _aes128RandomKey } from "../../../packages/tutanota-crypto/test/AesTest"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = Buffer.from([42])
-	const aes128Key = _aes128RandomKey()
+	const aes128Key = uint8ArrayToBitArray(random.generateRandomData(getKeyLengthAsBytes(AesKeyLength.Aes128)))
 	const aes256Key = aes256RandomKey()
 	const aes256DecryptedKey = aes256RandomKey()
 	const aes256EncryptedKey = new Uint8Array([2, 5, 6, 1])

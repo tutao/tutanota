@@ -6,9 +6,9 @@ import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPr
 import { X25519PrivateKey } from "./X25519.js"
 import { AsymmetricKeyPair, KeyPairType } from "./AsymmetricKeyPair.js"
 import type { PQKeyPairs } from "./PQKeyPairs.js"
-import { Aes256Key, AesKey } from "./symmetric/SymmetricCipherUtils"
-import { AesKeyLength, getKeyLengthAsBytes } from "./symmetric/AesKeyLength"
-import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade"
+import { Aes256Key, AesKey } from "./symmetric/SymmetricCipherUtils.js"
+import { AesKeyLength, getKeyLengthAsBytes } from "./symmetric/AesKeyLength.js"
+import { SYMMETRIC_CIPHER_FACADE } from "./symmetric/SymmetricCipherFacade.js"
 
 export type EncryptedKeyPairs = EncryptedPqKeyPairs | EncryptedRsaKeyPairs | EncryptedRsaX25519KeyPairs
 

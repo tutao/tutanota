@@ -1,4 +1,4 @@
-import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion"
+import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
 import {
 	AesKey,
 	bitArrayToUint8Array,
@@ -7,12 +7,12 @@ import {
 	SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES,
 	SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES,
 	uint8ArrayToBitArray,
-} from "./SymmetricCipherUtils"
-import { CryptoError } from "../../misc/CryptoError"
-import { assertNotNull, concat, hexToUint8Array } from "@tutao/tutanota-utils"
-import sjcl from "../../internal/sjcl"
-import { hmacSha256, MacTag, verifyHmacSha256 } from "../Hmac"
-import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "./SymmetricKeyDeriver"
+} from "./SymmetricCipherUtils.js"
+import { CryptoError } from "../../misc/CryptoError.js"
+import { assertNotNull, concat } from "@tutao/tutanota-utils"
+import sjcl from "../../internal/sjcl.js"
+import { hmacSha256, MacTag, verifyHmacSha256 } from "../Hmac.js"
+import { SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "./SymmetricKeyDeriver.js"
 
 /**
  * This facade provides the implementation for both encryption and decryption of AES in CBC mode. Supports 128 and 256-bit keys.

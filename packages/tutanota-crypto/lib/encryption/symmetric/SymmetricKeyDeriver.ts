@@ -1,11 +1,10 @@
-import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "./AesKeyLength"
-import { symmetricCipherVersionToUint8Array, SymmetricCipherVersion } from "./SymmetricCipherVersion"
-import { Aes256Key, AesKey, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils"
-import { CryptoError } from "../../error"
-import { sha256Hash } from "../../hashes/Sha256"
-import { sha512Hash } from "../../hashes/Sha512"
+import { AesKeyLength, getAndVerifyAesKeyLength, getKeyLengthAsBytes } from "./AesKeyLength.js"
+import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
+import { Aes256Key, AesKey, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
+import { sha256Hash } from "../../hashes/Sha256.js"
+import { sha512Hash } from "../../hashes/Sha512.js"
 import { concat } from "@tutao/tutanota-utils"
-import { hkdf } from "../../hashes/HKDF"
+import { hkdf } from "../../hashes/HKDF.js"
 
 /**
  * @private visible for tests
@@ -25,9 +24,10 @@ export class SymmetricKeyDeriver {
 		const keyBytes = keyToUint8Array(key)
 		switch (symmetricCipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-				if (keyLength !== AesKeyLength.Aes128) {
-					throw new CryptoError("key length " + keyLength + "is incompatible with cipherVersion " + symmetricCipherVersion)
-				}
+				//TODO has to change if we allow unauthenticated encryption of search index
+				// if (keyLength !== AesKeyLength.Aes128) {
+				// 	throw new CryptoError("key length " + keyLength + "is incompatible with cipherVersion " + symmetricCipherVersion)
+				// }
 				return { encryptionKey: key, authenticationKey: null }
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				let hashedKey: Uint8Array
