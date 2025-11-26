@@ -1,149 +1,108 @@
-import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { assertNotNull, downcast, getFirstOrThrow, isToday, lastIndex, lastThrow } from "@tutao/tutanota-utils"
-import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
-import { getPosAndBoundsFromMouseEvent } from "../../gui/base/GuiUtils"
-import { CalendarTimeColumnData, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
-import { Time } from "../date/Time"
-import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
-import { CalendarEventBubble, CalendarEventBubbleAttrs, CalendarEventBubbleDragProperties, EventBubbleInteractions } from "./CalendarEventBubble"
-import { elementIdPart } from "../../api/common/utils/EntityUtils"
-import { DateTime } from "../../../../libs/luxon"
+import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
+import { clone, lastIndex } from "@tutao/tutanota-utils"
+import { formatShortTime, formatTime } from "../../misc/Formatter"
+import { getIntervalAsMinutes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "./CalendarTimeGrid"
 import { px } from "../../gui/size"
+import { Time } from "../date/Time"
+import { styles } from "../../gui/styles"
+import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
+import { TimeBadge, TimeBadgeAttrs, TimeBadgeVarient } from "./TimeBadge"
 import { TimeIndicator } from "./TimeIndicator"
 
-export type CalendarTimeColumnAttrs = {
-	intervals: Array<Time> // containing the start time of each interval
-	baseDate: Date
-	time?: Time
-	onCellPressed?: CellActionHandler
-	onCellContextMenuPressed?: CellActionHandler
-	eventInteractions?: EventBubbleInteractions & CalendarEventBubbleDragProperties
-	timeColumnGrid: CalendarTimeColumnData
+export interface CalendarTimeColumnAttrs {
+	intervals: Array<Time>
 	layout: {
+		width: number
+		subColumnCount: number
 		rowCount: number
 		gridRowHeight: number
-		hideRightBorder: boolean
-		showLeftBorder: boolean
 	}
+	baseDate?: Date
+	onCellPressed?: CellActionHandler
+	/**
+	 * When currentTime is defined we show the timeBadge
+	 */
+	currentTime?: Time
+	amPm: boolean
 }
 
+const TIME_CELL_ID_PREFIX = "time-cell-"
+
 export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttrs> {
-	private columnHeight: number = 0
+	private columnHeight = 0
 
 	oncreate(vnode: VnodeDOM<CalendarTimeColumnAttrs>) {
 		this.columnHeight = vnode.dom.clientHeight
-		m.redraw()
 	}
 
 	view({ attrs }: Vnode<CalendarTimeColumnAttrs>) {
 		return m(
-			".grid.plr-unit.z1.grid-auto-columns.rel.min-width-0.gap",
+			".rel.grid.gap.border-right",
 			{
-				class: this.resolveClasses(attrs.layout),
 				style: {
 					gridTemplateRows: `repeat(${attrs.layout.rowCount}, ${px(attrs.layout.gridRowHeight)})`,
-				} satisfies Partial<CSSStyleDeclaration>,
-				onmousemove: (mouseEvent: MouseEvent) => {
-					downcast(mouseEvent).redraw = false
-					const time = getTimeFromMousePos(getPosAndBoundsFromMouseEvent(mouseEvent), SUBROWS_PER_INTERVAL)
-					attrs.eventInteractions?.drag?.setTimeUnderMouse(time, attrs.baseDate)
+					gridTemplateColumns: px(attrs.layout.width),
 				},
 			},
 			[
-				isToday(attrs.baseDate) && attrs.time
+				attrs.currentTime
 					? m(
-							".abs.z3.full-width",
+							".abs.abs-center-horizontally.z3.fit-content",
 							{
 								style: {
-									top: px(TimeIndicator.calculateYPosition(attrs.time, this.columnHeight)),
+									top: px(TimeIndicator.calculateYPosition(attrs.currentTime, this.columnHeight)),
 									transform: "translateY(-50%)",
-								} satisfies Partial<CSSStyleDeclaration>,
+								},
 							},
-							m(TimeIndicator),
+							m(TimeBadge, {
+								currentTime: attrs.currentTime,
+								amPm: attrs.amPm,
+								variant: TimeBadgeVarient.SMALL,
+							} satisfies TimeBadgeAttrs),
 						)
 					: null,
-				this.renderInteractableCells(attrs),
-				this.renderEvents(attrs),
+				attrs.intervals.map((interval, intervalIndex) => {
+					const parsedTime = interval.toDate()
+					const formatedTime = styles.isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
+					const rowStart = intervalIndex * SUBROWS_PER_INTERVAL + 1
+					const rowEnd = rowStart + SUBROWS_PER_INTERVAL
+					const showBorderBottom = intervalIndex !== lastIndex(attrs.intervals)
+
+					return m(CalendarTimeCell, {
+						dateTime: {
+							baseDate: attrs.baseDate,
+							time: interval,
+						},
+						layout: {
+							rowBounds: {
+								start: rowStart,
+								end: rowEnd,
+							},
+							subColumnCount: attrs.layout.subColumnCount,
+						},
+						interactions: { onCellPressed: attrs.onCellPressed },
+						text: formatedTime,
+						showBorderBottom,
+					} as CalendarTimeCellAttrs)
+				}),
 			],
 		)
 	}
 
-	private renderInteractableCells(attrs: CalendarTimeColumnAttrs): Children {
-		const { intervals, baseDate, onCellPressed, onCellContextMenuPressed } = attrs
-		return intervals.map((interval, intervalIndex) => {
-			const showBorderBottom = intervalIndex !== lastIndex(intervals)
-			const rowStart = intervalIndex * SUBROWS_PER_INTERVAL + 1
-			const rowEnd = rowStart + SUBROWS_PER_INTERVAL
-			return m(CalendarTimeCell, {
-				dateTime: { baseDate, time: interval },
-				layout: {
-					rowBounds: {
-						start: rowStart,
-						end: rowEnd,
-					},
-					subColumnCount: attrs.timeColumnGrid.subColumnCount,
-				},
-				interactions: { onCellPressed, onCellContextMenuPressed },
-				showBorderBottom,
-			} satisfies CalendarTimeCellAttrs)
-		})
+	static getTimeCellId(hour: number): string {
+		return `${TIME_CELL_ID_PREFIX}${hour}`
 	}
 
-	/**
-	 * Renders a column of events using grids for a given base date.
-	 * This function is deepMemoized to prevent unnecessary layout calculation
-	 *
-	 * @param eventsForThisDate - Array of events to render in this column
-	 * @param timeRange - Visible time range for the day (e.g., 00:00 AM to 23:00 PM)
-	 * @param subRowAsMinutes - Minutes represented by each grid subrow
-	 * @param timeScale - Time scale factor for interval subdivision (1, 2, or 4)
-	 * @param baseDate - The date for this column
-	 * @returns Child nodes representing the rendered events
-	 *
-	 * @private
-	 */
-	private renderEvents(columnViewAttrs: CalendarTimeColumnAttrs): Children {
-		const { timeColumnGrid, baseDate, eventInteractions, intervals } = columnViewAttrs
+	static createTimeColumnIntervals(timeScale: TimeScale, timeRange: TimeRange): Array<Time> {
+		let timeInterval = getIntervalAsMinutes(timeScale)
+		const numberOfIntervals = (timeRange.start.diff(timeRange.end) + timeInterval) / timeInterval
+		const timeKeys: Array<Time> = []
 
-		const firstInterval = getFirstOrThrow(intervals)
-		const secondInterval = assertNotNull(intervals.at(1))
-		const intervalIncrement = firstInterval.diff(secondInterval)
-		const lastInterval = lastThrow(intervals)
-
-		const timeRangeStartAsDate = firstInterval.toDate(baseDate)
-		const timeRangeEndAsDate = DateTime.fromJSDate(lastInterval.toDate(baseDate)).plus({ minutes: intervalIncrement }).toJSDate()
-
-		return timeColumnGrid.orderedEvents.map((eventWrapper) => {
-			const evData = timeColumnGrid.grid.get(elementIdPart(eventWrapper.event._id))
-			if (!evData) {
-				return null
-			}
-			return m(CalendarEventBubble, {
-				interactions: eventInteractions,
-				gridInfo: evData,
-				eventWrapper,
-				rowOverflowInfo: {
-					start: eventWrapper.event.startTime < timeRangeStartAsDate,
-					end: eventWrapper.event.endTime > timeRangeEndAsDate,
-				},
-				baseDate,
-				canReceiveFocus: Boolean(eventInteractions),
-				columnOverflowInfo: {
-					start: false,
-					end: false,
-				},
-			} satisfies CalendarEventBubbleAttrs)
-		})
-	}
-
-	private resolveClasses(layout: CalendarTimeColumnAttrs["layout"]) {
-		const classes: Array<string> = []
-		if (layout.showLeftBorder) {
-			classes.push("border-left")
+		for (let i = 0; i < numberOfIntervals; i++) {
+			const agendaRowTime = clone(timeRange.start).add({ minutes: timeInterval * i })
+			timeKeys.push(agendaRowTime)
 		}
-		if (!layout.hideRightBorder) {
-			classes.push("border-right")
-		}
-		return classes.join(" ")
+
+		return timeKeys
 	}
 }

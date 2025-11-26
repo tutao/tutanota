@@ -171,7 +171,7 @@ export class CalendarFacade {
 				},
 				color,
 			}))
-			// TODO [PendingEvents and GhostBubbles] Temporarily deactivated until further development
+			// [PendingEvents and GhostBubbles] Temporarily deactivated until further development
 			// const pendingEvents: Array<EventWrapper> = pendingEventsResult.map((e) => ({
 			// 	event: e,
 			// 	flags: {

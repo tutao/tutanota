@@ -190,19 +190,6 @@ export enum CalendarViewType {
 }
 
 /**
- * Maps {@link CalendarViewType} to its corresponding number of days.
- * @example
- * CALENDAR_VIEW_TYPE_DAY_COUNT[CalendarViewType.MONTH] === 30 // true
- */
-export const CALENDAR_VIEW_TYPE_DAY_COUNT: Record<CalendarViewType, number> = Object.freeze({
-	[CalendarViewType.AGENDA]: 0,
-	[CalendarViewType.DAY]: 1,
-	[CalendarViewType.THREE_DAY]: 3,
-	[CalendarViewType.WEEK]: 7,
-	[CalendarViewType.MONTH]: 30,
-})
-
-/**
  * Checks if dateA occurs before dateB based on the specified comparison type.
  *
  * @param {Date} dateA - The first date to compare.

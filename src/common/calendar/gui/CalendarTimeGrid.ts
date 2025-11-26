@@ -6,7 +6,7 @@ import { DateTime } from "luxon"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { CalendarEventBubbleDragProperties, EventBubbleInteractions, MIN_ROW_SPAN } from "./CalendarEventBubble"
 import { CellActionHandler } from "./CalendarTimeCell"
-import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "./CalendarTimeColumn"
+import { CalendarDayColumn, CalendarDayColumnAttrs } from "./CalendarDayColumn"
 
 export const TIME_SCALE_BASE_VALUE = 60
 export type TimeScale = 1 | 2 | 4
@@ -185,7 +185,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 			(eventWrapper) => eventWrapper.event.startTime.getTime() < startOfTomorrow.getTime() && eventWrapper.event.endTime.getTime() > startOfDay.getTime(),
 		)
 
-		return m(CalendarTimeColumn, {
+		return m(CalendarDayColumn, {
 			intervals: timeViewAttrs.intervals, // containing the start time of each interval
 			baseDate: baseDate,
 			onCellPressed: cellActionHandlers?.onCellPressed,
@@ -199,7 +199,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 				gridRowHeight,
 			},
 			time: timeViewAttrs.time,
-		} as CalendarTimeColumnAttrs)
+		} as CalendarDayColumnAttrs)
 	}
 
 	private memoizedLayoutEvents = deepMemoized(CalendarTimeGrid.layoutEvents)

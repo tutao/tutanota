@@ -1,23 +1,23 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { styles } from "../../../../common/gui/styles"
-import { WeekStart } from "../../../../common/api/common/TutanotaConstants"
-import { calendarWeek, extractCalendarEventModifierKey } from "../../gui/CalendarGuiUtils"
+import { styles } from "../../../common/gui/styles"
+import { WeekStart } from "../../../common/api/common/TutanotaConstants"
+import { calendarWeek, extractCalendarEventModifierKey } from "../gui/CalendarGuiUtils"
 import { WeekDaysComponent, WeekDaysComponentAttrs } from "./WeekDaysComponent"
-import { TimeColumn, TimeColumnAttrs } from "../../../../common/calendar/gui/TimeColumn"
-import { Time } from "../../../../common/calendar/date/Time"
-import { size } from "../../../../common/gui/size"
-import { CalendarTimeGrid, CalendarTimeGridAttributes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "../../../../common/calendar/gui/CalendarTimeGrid"
-import { EventWrapper, ScrollByListener } from "../CalendarViewModel"
-import { AllDaySection, AllDaySectionAttrs } from "../../../../common/calendar/gui/AllDaySection"
-import { EventBubbleInteractions } from "../../../../common/calendar/gui/CalendarEventBubble"
-import { getPosAndBoundsFromMouseEvent } from "../../../../common/gui/base/GuiUtils"
-import { EventDragHandler, type EventDragHandlerCallbacks, type MousePos } from "../EventDragHandler"
-import { isToday, neverNull, ofClass } from "@tutao/tutanota-utils"
-import { UserError } from "../../../../common/api/main/UserError"
-import { showUserError } from "../../../../common/misc/ErrorHandlerImpl"
-import { combineDateWithTime } from "../../../../common/calendar/date/CalendarUtils"
-import { deviceConfig } from "../../../../common/misc/DeviceConfig"
-import { PageView } from "../../../../common/gui/base/PageView"
+import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/calendar/gui/CalendarTimeColumn"
+import { Time } from "../../../common/calendar/date/Time"
+import { size } from "../../../common/gui/size"
+import { CalendarTimeGrid, CalendarTimeGridAttributes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "../../../common/calendar/gui/CalendarTimeGrid"
+import { EventWrapper, ScrollByListener } from "./CalendarViewModel"
+import { AllDaySection, AllDaySectionAttrs } from "../../../common/calendar/gui/AllDaySection"
+import { EventBubbleInteractions } from "../../../common/calendar/gui/CalendarEventBubble"
+import { getPosAndBoundsFromMouseEvent } from "../../../common/gui/base/GuiUtils"
+import { EventDragHandler, type EventDragHandlerCallbacks, type MousePos } from "./EventDragHandler"
+import { isEmpty, isToday, neverNull, ofClass } from "@tutao/tutanota-utils"
+import { UserError } from "../../../common/api/main/UserError"
+import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
+import { combineDateWithTime } from "../../../common/calendar/date/CalendarUtils"
+import { deviceConfig } from "../../../common/misc/DeviceConfig"
+import { PageView } from "../../../common/gui/base/PageView"
 
 /**
  * Represents a single page (previous/current/next) in the calendar sliding view.
@@ -54,7 +54,7 @@ interface BodyComponentAttrs {
 	amPm: boolean
 }
 
-export interface CalendarViewComponentAttrs {
+export interface CalendarTimeBasedViewComponentAttrs {
 	headerComponentAttrs: WeekDaysComponentAttrs
 	bodyComponentAttrs: BodyComponentAttrs
 	cellActionHandlers: CalendarTimeGridAttributes["cellActionHandlers"]
@@ -82,10 +82,10 @@ export interface CalendarViewComponentAttrs {
  * | Time Column | Calendar Grid     |
  * +-------------+-------------------+
  * ```
- * @see CalendarViewComponent.GRID_TEMPLATE_AREAS
- * @see CalendarViewComponent.GRID_AREA
+ * @see CalendarTimeBasedViewComponent.GRID_TEMPLATE_AREAS
+ * @see CalendarTimeBasedViewComponent.GRID_AREA
  */
-export class CalendarViewComponent implements ClassComponent<CalendarViewComponentAttrs> {
+export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTimeBasedViewComponentAttrs> {
 	private layoutState: {
 		dayHeight: number | null
 		pageViewWidth: number | null
@@ -127,13 +127,13 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 	} as const
 
 	private readonly GRID_TEMPLATE_AREAS =
-		`"${CalendarViewComponent.GRID_AREA.WEEK_NUMBER} 	${CalendarViewComponent.GRID_AREA.WEEK_DAYS_SECTION}"` +
-		` "empty											${CalendarViewComponent.GRID_AREA.ALL_DAY_SECTION}"` +
-		` "${CalendarViewComponent.GRID_AREA.TIME_COLUMN} 	${CalendarViewComponent.GRID_AREA.CALENDAR_GRID}"`
+		`"${CalendarTimeBasedViewComponent.GRID_AREA.WEEK_NUMBER} 	${CalendarTimeBasedViewComponent.GRID_AREA.WEEK_DAYS_SECTION}"` +
+		` "empty											${CalendarTimeBasedViewComponent.GRID_AREA.ALL_DAY_SECTION}"` +
+		` "${CalendarTimeBasedViewComponent.GRID_AREA.TIME_COLUMN} 	${CalendarTimeBasedViewComponent.GRID_AREA.CALENDAR_GRID}"`
 
-	constructor({ attrs }: Vnode<CalendarViewComponentAttrs>) {
+	constructor({ attrs }: Vnode<CalendarTimeBasedViewComponentAttrs>) {
 		this.eventDragHandler = new EventDragHandler(neverNull(document.body as HTMLBodyElement), attrs.dragHandlerCallbacks)
-		this.viewConfig.intervals = TimeColumn.createTimeColumnIntervals(this.viewConfig.timeScale, this.viewConfig.timeRange)
+		this.viewConfig.intervals = CalendarTimeColumn.createTimeColumnIntervals(this.viewConfig.timeScale, this.viewConfig.timeRange)
 		this.layoutState.rowCountPerDay = SUBROWS_PER_INTERVAL * this.viewConfig.intervals.length
 	}
 
@@ -157,7 +157,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		m.redraw()
 	}
 
-	view({ attrs }: Vnode<CalendarViewComponentAttrs>) {
+	view({ attrs }: Vnode<CalendarTimeBasedViewComponentAttrs>) {
 		const resolveClasses = (): string => {
 			const classes = styles.isDesktopLayout() ? ["content-bg", "mr-l", "border-radius-big"] : ["mlr-safe-inset"]
 			return classes.join(" ")
@@ -180,7 +180,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 	private renderWeekDaysSection(weekDaysComponentAttrs: WeekDaysComponentAttrs): Children {
 		const weekStart = weekDaysComponentAttrs.startOfWeek ?? WeekStart.MONDAY
 		return m(
-			".grid.py-core-8",
+			".grid.ptb-core-8",
 			{
 				class: styles.isDesktopLayout() ? "content-bg" : "nav-bg",
 				style: {
@@ -199,7 +199,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 					".b.text-center.calendar-day-indicator",
 					{
 						class: styles.isDesktopLayout() ? undefined : "text-fade",
-						style: { gridArea: CalendarViewComponent.GRID_AREA.WEEK_NUMBER },
+						style: { gridArea: CalendarTimeBasedViewComponent.GRID_AREA.WEEK_NUMBER },
 					},
 					styles.isDesktopLayout()
 						? calendarWeek(weekDaysComponentAttrs.selectedDate, weekStart, false)
@@ -208,7 +208,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 				weekDaysComponentAttrs.showWeekDays
 					? m(
 							".min-width-0",
-							{ style: { gridArea: CalendarViewComponent.GRID_AREA.WEEK_DAYS_SECTION } },
+							{ style: { gridArea: CalendarTimeBasedViewComponent.GRID_AREA.WEEK_DAYS_SECTION } },
 							m(WeekDaysComponent, { ...weekDaysComponentAttrs } satisfies WeekDaysComponentAttrs),
 						)
 					: null,
@@ -216,9 +216,9 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		)
 	}
 
-	private renderCalendarGridSection(attrs: CalendarViewComponentAttrs) {
-		if (!attrs.headerComponentAttrs?.dates?.length) {
-			console.warn("CalendarViewComponent: No dates provided")
+	private renderCalendarGridSection(attrs: CalendarTimeBasedViewComponentAttrs) {
+		if (isEmpty(attrs.headerComponentAttrs.dates)) {
+			console.warn("CalendarTimeBasedViewComponent: No dates provided")
 			return null
 		}
 
@@ -256,9 +256,9 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 				m(
 					".content-bg.border-radius-top-left-big",
 					{
-						style: { gridArea: CalendarViewComponent.GRID_AREA.TIME_COLUMN },
+						style: { gridArea: CalendarTimeBasedViewComponent.GRID_AREA.TIME_COLUMN },
 					},
-					m(TimeColumn, {
+					m(CalendarTimeColumn, {
 						intervals: this.viewConfig.intervals,
 						baseDate: attrs.headerComponentAttrs?.selectedDate,
 						onCellPressed: attrs.cellActionHandlers?.onCellPressed,
@@ -270,13 +270,13 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 						},
 						currentTime: shouldRenderTimeIndicator ? currentTime : undefined,
 						amPm: attrs.bodyComponentAttrs.amPm,
-					} satisfies TimeColumnAttrs),
+					} satisfies CalendarTimeColumnAttrs),
 				),
 				m(
 					".content-bg.border-radius-top-right-big.min-width-0",
 
 					{
-						style: { gridArea: CalendarViewComponent.GRID_AREA.CALENDAR_GRID },
+						style: { gridArea: CalendarTimeBasedViewComponent.GRID_AREA.CALENDAR_GRID },
 						onupdate: (vnode) => {
 							const newHeight = vnode.dom.clientHeight
 							const newWidth = vnode.dom.clientWidth
@@ -336,7 +336,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		)
 	}
 
-	private renderAllDaySection(attrs: CalendarViewComponentAttrs) {
+	private renderAllDaySection(attrs: CalendarTimeBasedViewComponentAttrs) {
 		return m(
 			".grid.overflow-hidden.rel.scrollbar-gutter-stable-or-fallback",
 			{
@@ -352,7 +352,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 					"",
 					{
 						style: {
-							gridArea: CalendarViewComponent.GRID_AREA.ALL_DAY_SECTION,
+							gridArea: CalendarTimeBasedViewComponent.GRID_AREA.ALL_DAY_SECTION,
 						} satisfies Partial<CSSStyleDeclaration>,
 					},
 					m(AllDaySection, {
@@ -373,7 +373,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 		positionOnScreen: Extract<ScrollLogicalPosition, "center" | "start">,
 		behavior: Extract<ScrollBehavior, "instant" | "smooth">,
 	) {
-		const timeCell = document.getElementById(TimeColumn.getTimeCellId(time))
+		const timeCell = document.getElementById(CalendarTimeColumn.getTimeCellId(time))
 		timeCell?.scrollIntoView({ block: positionOnScreen, behavior })
 	}
 

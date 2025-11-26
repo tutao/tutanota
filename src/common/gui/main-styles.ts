@@ -476,11 +476,11 @@ styles.registerStyle("main", () => {
 		".pt-l": {
 			"padding-top": px(size.vpad_large),
 		},
-		".py-core-4": {
+		".ptb-core-4": {
 			"padding-top": px(size.spacing.core_4),
 			"padding-bottom": px(size.spacing.core_4),
 		},
-		".py-core-8": {
+		".ptb-core-8": {
 			"padding-top": px(size.spacing.core_8),
 			"padding-bottom": px(size.spacing.core_8),
 		},
@@ -695,9 +695,6 @@ styles.registerStyle("main", () => {
 		".mr-negative-m": {
 			"margin-right": px(-(size.hpad_button + size.hpad_nav_button)),
 		},
-		".top-0": {
-			top: 0,
-		},
 		// negative margin to handle the padding of a nav button
 		".fixed-bottom-right": {
 			position: "fixed",
@@ -806,19 +803,6 @@ styles.registerStyle("main", () => {
 		},
 		".will-change-alpha": {
 			"will-change": "alpha",
-		},
-		".after-as-border-bottom": {
-			position: "relative",
-		},
-		".after-as-border-bottom:after": {
-			// Hacky solution to create a border that extends the whole parent
-			content: "''",
-			width: "100%",
-			height: "1px",
-			background: theme.outline_variant,
-			position: "absolute",
-			bottom: 0,
-			"z-index": 1,
 		},
 		// borders
 		".border-bottom": {
@@ -2477,12 +2461,6 @@ styles.registerStyle("main", () => {
 		".calendar-day:hover": {
 			background: theme.surface_container,
 		},
-		".calendar-day:hover .calendar-day-header-button": {
-			opacity: 1,
-		},
-		".calendar-day-header-button": {
-			opacity: 0,
-		},
 		".calendar-column-border": {
 			"border-right": `1px solid ${theme.outline_variant}`,
 		},
@@ -3231,21 +3209,11 @@ styles.registerStyle("main", () => {
 			height: px(2),
 			width: "100%",
 		},
-		".time-indicator-circle-left:before": {
-			content: "''",
-			display: "block",
-			width: px(size.icon_size_small),
-			height: px(size.icon_size_small),
-			background: theme.primary,
-			position: "absolute",
-			transform: "translate(-50%, calc(-50% + 1px))",
-			"border-radius": "50%",
-		},
 		".time-badge": {
 			background: theme.primary,
 			"border-radius": px(size.border_radius_large),
 			color: theme.on_primary,
-			"line-height": px(16),
+			"line-height": px(20),
 		},
 		".interactable-cell:hover": {
 			background: theme.surface_container,

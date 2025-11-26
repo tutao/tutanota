@@ -1,5 +1,6 @@
-import { AccountType, GroupType } from "../TutanotaConstants.js"
+import { AccountType, GroupType, TimeFormat } from "../TutanotaConstants.js"
 import { User } from "../../entities/sys/TypeRefs.js"
+import { UserSettingsGroupRoot } from "../../entities/tutanota/TypeRefs"
 
 /**
  * Checks if the current user is an admin of the customer.
@@ -19,4 +20,9 @@ export function isGlobalAdmin(user: User): boolean {
  */
 export function isInternalUser(user: User): boolean {
 	return user.accountType !== AccountType.EXTERNAL
+}
+
+export function getTimeFormatForUser(userSettingsGroupRoot: UserSettingsGroupRoot): TimeFormat {
+	// it's saved as a string, but is a const enum.
+	return userSettingsGroupRoot.timeFormat as TimeFormat
 }

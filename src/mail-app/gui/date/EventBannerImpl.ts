@@ -5,7 +5,7 @@ import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/C
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import { CalendarAttendeeStatus, CalendarMethod, Keys, SECOND_MS, TabIndex } from "../../../common/api/common/TutanotaConstants"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, clone, deepEqual, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/tutanota-utils"
+import { base64ToBase64Url, clone, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/tutanota-utils"
 import {
 	CalendarTimeGrid,
 	CalendarTimeGridAttributes,
@@ -37,7 +37,7 @@ import { ExpanderPanel } from "../../../common/gui/base/Expander.js"
 import { formatDateTime, formatTime } from "../../../common/misc/Formatter.js"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { GENERATED_MIN_ID } from "../../../common/api/common/utils/EntityUtils"
-import { TimeColumn, TimeColumnAttrs } from "../../../common/calendar/gui/TimeColumn"
+import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/calendar/gui/CalendarTimeColumn"
 import { AriaRole } from "../../../common/gui/AriaUtils"
 import { isKeyPressed } from "../../../common/misc/KeyManager"
 
@@ -61,10 +61,6 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	private agenda: Map<string, InviteAgenda> | null = null
 	private comment: string = ""
 	private displayConflictingAgenda: boolean = false
-	private layoutState = {
-		gridHeight: 0,
-		gridWidth: 0,
-	}
 	private readonly gridRowHeight = 4
 
 	async oncreate({ attrs }: VnodeDOM<EventBannerImplAttrs>) {
@@ -135,7 +131,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			end: Time.fromDate(eventFocusBound).add({ minutes: timeInterval }),
 		}
 
-		const intervals = TimeColumn.createTimeColumnIntervals(timeScale, timeRange)
+		const intervals = CalendarTimeColumn.createTimeColumnIntervals(timeScale, timeRange)
 		const rowCountForRange = SUBROWS_PER_INTERVAL * intervals.length
 
 		const timeColumnWidth = size.calendar_hour_width_mobile + size.spacing.core_16
@@ -275,7 +271,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 								]),
 								agenda
 									? m(".flex.rel", [
-											m(TimeColumn, {
+											m(CalendarTimeColumn, {
 												intervals,
 												layout: {
 													width: timeColumnWidth,
@@ -284,21 +280,9 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 													gridRowHeight: this.gridRowHeight,
 												},
 												amPm,
-											} satisfies TimeColumnAttrs),
+											} satisfies CalendarTimeColumnAttrs),
 											m(
 												".full-width",
-												{
-													onupdate: (vnode: VnodeDOM) => {
-														const newLayoutState = {
-															gridHeight: vnode.dom.clientHeight,
-															gridWidth: vnode.dom.clientWidth,
-														}
-														if (!deepEqual(this.layoutState, newLayoutState)) {
-															this.layoutState = newLayoutState
-															m.redraw()
-														}
-													},
-												},
 												m(CalendarTimeGrid, {
 													events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
 													timeScale,

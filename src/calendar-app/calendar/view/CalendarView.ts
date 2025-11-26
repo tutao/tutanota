@@ -43,7 +43,7 @@ import { LockedError, NotFoundError } from "../../../common/api/common/error/Res
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
 import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarDialog, showEditBirthdayCalendarDialog } from "../gui/EditCalendarDialog.js"
 import { styles } from "../../../common/gui/styles"
-import { MultiDayCalendarView, MultiDayCalendarViewAttrs } from "./MultiDayCalendarView"
+import { CalendarTimeBasedView, CalendarTimeBasedViewAttrs } from "./CalendarTimeBasedView"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
 import { size } from "../../../common/gui/size"
@@ -281,7 +281,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								backgroundColor: theme.surface_container,
 								desktopToolbar: () => this.renderDesktopToolbar(),
 								mobileHeader: () => this.renderMobileHeader(attrs.header),
-								columnLayout: m(MultiDayCalendarView, {
+								columnLayout: m(CalendarTimeBasedView, {
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 1,
 									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
@@ -304,7 +304,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									registerScrollByListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
 									removeScrollByListener: this.viewModel.removeScrollByListener,
 									amPm: this.viewModel.isAmPm,
-								} satisfies MultiDayCalendarViewAttrs),
+								} satisfies CalendarTimeBasedViewAttrs),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
 							})
@@ -314,7 +314,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								backgroundColor: theme.surface_container,
 								desktopToolbar: () => this.renderDesktopToolbar(),
 								mobileHeader: () => this.renderMobileHeader(attrs.header),
-								columnLayout: m(MultiDayCalendarView, {
+								columnLayout: m(CalendarTimeBasedView, {
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 7,
 									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
@@ -338,7 +338,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									registerScrollByListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
 									removeScrollByListener: this.viewModel.removeScrollByListener,
 									amPm: this.viewModel.isAmPm,
-								} satisfies MultiDayCalendarViewAttrs),
+								} satisfies CalendarTimeBasedViewAttrs),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
 							})
@@ -348,7 +348,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								backgroundColor: theme.surface_container,
 								desktopToolbar: () => this.renderDesktopToolbar(),
 								mobileHeader: () => this.renderMobileHeader(attrs.header),
-								columnLayout: m(MultiDayCalendarView, {
+								columnLayout: m(CalendarTimeBasedView, {
 									getEventsOnDays: this.viewModel.getEventsOnDaysToRender.bind(this.viewModel),
 									daysInPeriod: 3,
 									onEventClicked: (event, domEvent) => this.onEventSelected(event, domEvent, this.htmlSanitizer),
@@ -372,7 +372,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									registerScrollByListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
 									removeScrollByListener: this.viewModel.removeScrollByListener,
 									amPm: this.viewModel.isAmPm,
-								} satisfies MultiDayCalendarViewAttrs),
+								} satisfies CalendarTimeBasedViewAttrs),
 								floatingActionButton: this.renderFab.bind(this),
 								columnLayoutWrapperClass: "min-height-0",
 							})

@@ -18,7 +18,6 @@ export interface CalendarAgendaItemViewAttrs {
 	selected?: boolean
 	height?: number
 	id: string
-	border?: string
 }
 
 export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewAttrs> {
@@ -41,7 +40,6 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 					transition: `background ${DefaultAnimationTime}ms`,
 					background: CalendarAgendaItemView.getBackground(attrs.selected ?? false, this.isFocused),
 					height: attrs.height ? px(attrs.height) : undefined,
-					border: attrs.border,
 				},
 			},
 			[
