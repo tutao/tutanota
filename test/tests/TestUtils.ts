@@ -5,7 +5,7 @@ import { DbFacade, DbTransaction } from "../../src/common/api/worker/search/DbFa
 import { assertNotNull, clone, deepEqual, defer, isNotNull, Thunk, typedEntries, TypeRef } from "@tutao/tutanota-utils"
 import type { DesktopKeyStoreFacade } from "../../src/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/tutanota-test-utils"
-import { aes256RandomKey, FIXED_IV, uint8ArrayToKey } from "@tutao/tutanota-crypto"
+import { Aes256Key, aes256RandomKey, FIXED_IV } from "@tutao/tutanota-crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
 import { Entity, ModelValue, ParsedInstance, TypeModel } from "../../src/common/api/common/EntityTypes.js"
@@ -48,10 +48,10 @@ export function makeCore(
 	return core
 }
 
-export function makeKeyStoreFacade(uint8ArrayKey: Uint8Array): DesktopKeyStoreFacade {
+export function makeKeyStoreFacade(key: Aes256Key): DesktopKeyStoreFacade {
 	const o: DesktopKeyStoreFacade = object()
-	when(o.getDeviceKey()).thenResolve(uint8ArrayToKey(uint8ArrayKey))
-	when(o.getKeyChainKey()).thenResolve(uint8ArrayToKey(uint8ArrayKey))
+	when(o.getDeviceKey()).thenResolve(key)
+	when(o.getKeyChainKey()).thenResolve(key)
 	return o
 }
 

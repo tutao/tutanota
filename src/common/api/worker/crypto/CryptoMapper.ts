@@ -11,7 +11,7 @@ import {
 import { Base64, base64ToUint8Array, Nullable, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { aesDecrypt, aesEncryptWithIv, AesKey, extractIvFromCipherText, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { aesDecrypt, aesEncrypt, aesEncryptWithIv, AesKey, extractIvFromCipherText } from "@tutao/tutanota-crypto"
 import { convertDbToJsType, convertJsToDbType, decompressString, isDefaultValue, valueToDefault } from "./ModelMapper"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { isWebClient } from "../../common/Env"
@@ -20,19 +20,19 @@ import { SessionKeyNotFoundError } from "../../common/error/SessionKeyNotFoundEr
 import { AttributeModel } from "../../common/AttributeModel"
 
 // Exported for testing
-export function encryptValue(
-	valueType: ModelValue & { encrypted: true },
-	value: Nullable<ParsedValue>,
-	sk: AesKey,
-	iv: Uint8Array = random.generateRandomData(IV_BYTE_LENGTH),
-): Nullable<Base64> {
+export function encryptValue(valueType: ModelValue & { encrypted: true }, value: Nullable<ParsedValue>, sk: AesKey, iv?: Uint8Array): Nullable<Base64> {
 	if (value == null) {
 		return null
 	} else {
 		const dbValue = convertJsToDbType(valueType.type, value)!
 		const bytes = typeof dbValue === "string" ? stringToUtf8Uint8Array(dbValue) : dbValue
 		// TODO try to avoid passing the iv here
-		const encryptedBytes = aesEncryptWithIv(sk, bytes, iv)
+		let encryptedBytes
+		if (iv != null) {
+			encryptedBytes = aesEncryptWithIv(sk, bytes, iv)
+		} else {
+			encryptedBytes = aesEncrypt(sk, bytes)
+		}
 		return uint8ArrayToBase64(encryptedBytes)
 	}
 }
