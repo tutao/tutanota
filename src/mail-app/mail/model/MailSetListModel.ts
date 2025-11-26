@@ -281,6 +281,7 @@ export async function applyInboxRulesAndSpamPrediction(
 	sourceFolder: MailFolder,
 	mailModel: MailModel,
 	processInboxHandler: ProcessInboxHandler,
+	sendServerRequest: boolean,
 ): Promise<LoadedMail[]> {
 	if (isEmpty(entries)) {
 		return entries
@@ -297,7 +298,7 @@ export async function applyInboxRulesAndSpamPrediction(
 		return entries
 	}
 	return await promiseFilter(entries, async (entry) => {
-		const targetFolder = await processInboxHandler.handleIncomingMail(entry.mail, sourceFolder, mailboxDetail, folderSystem, true)
+		const targetFolder = await processInboxHandler.handleIncomingMail(entry.mail, sourceFolder, mailboxDetail, folderSystem, sendServerRequest)
 		return sourceFolder.folderType === targetFolder.folderType
 	})
 }
