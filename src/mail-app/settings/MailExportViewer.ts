@@ -5,7 +5,7 @@ import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { MailExportSettings } from "./MailExportSettings"
 import { MailExportController } from "../native/main/MailExportController.js"
-import { LoginButton, LoginButtonType } from "../../common/gui/base/buttons/LoginButton"
+import { LoginButton } from "../../common/gui/base/buttons/LoginButton"
 
 assertMainOrNode()
 
@@ -52,7 +52,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 				m(
 					".flex-start.mt-32",
 					m(LoginButton, {
-						type: LoginButtonType.FlexWidth,
+						width: "flex",
 						label: "downloadDesktopClient_label",
 						onclick: () => {
 							const desktopClientDownloadUri = "https://tuta.com#download"

@@ -1,64 +1,74 @@
-import m, { Children, Component, Vnode } from "mithril"
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+import m, { Children, ClassComponent, Vnode } from "mithril"
 import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
-import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
-import { DefaultAnimationTime } from "../../animation/Animations"
+import { lang } from "../../../misc/LanguageViewModel.js"
+import { DefaultAnimationTime } from "../../animation/Animations.js"
+import { ButtonSize, ButtonVariant, ButtonWidth, resolveButtonClasses } from "../../ButtonStyles"
+import { AllIcons, Icon } from "../Icon"
 
-export const enum LoginButtonType {
-	FullWidth = "FullWidth",
-	FlexWidth = "FlexWidth",
+const BUTTON_TRANSITION = `background ${DefaultAnimationTime}ms ease-in-out, color ${DefaultAnimationTime}ms ease-in-out, opacity ${DefaultAnimationTime}ms ease-in-out`
+
+export interface CommonButtonAttrs extends Omit<BaseButtonAttrs, "icon"> {
+	icon?: AllIcons | Children
+	size?: ButtonSize
+	width?: ButtonWidth
 }
 
-type LoginButtonSize = "Extrasmall" | "Small" | "Medium"
-
-export type LoginButtonAttrs = Pick<BaseButtonAttrs, "onclick" | "class"> & {
-	label: MaybeTranslation
-	disabled?: boolean
-	discouraged?: boolean
-	type?: LoginButtonType
-	icon?: Children
-	size?: LoginButtonSize
+function resolveButtonIcon(icon: AllIcons | Children | undefined): Children | undefined {
+	if (icon == null) return undefined
+	if (typeof icon === "object") return icon
+	return m(Icon, {
+		icon: icon as AllIcons,
+	})
 }
 
-export class LoginButton implements Component<LoginButtonAttrs> {
+function renderVariantButton(attrs: CommonButtonAttrs, variant: ButtonVariant): Children {
+	const { size, width, icon, ...rest } = attrs
+
+	const classes = resolveButtonClasses({
+		variant,
+		size,
+		width,
+		className: rest.class,
+		disabled: rest.disabled,
+	})
+
+	const text = rest.text ?? lang.getTranslationText(rest.label)
+
+	return m(BaseButton, {
+		...rest,
+		text,
+		icon: resolveButtonIcon(icon),
+		class: classes.filter(Boolean).join(" "),
+		style: {
+			...rest.style,
+			transition: BUTTON_TRANSITION,
+		},
+	})
+}
+
+// disable eslint errors as long as the extended ButtonAttrs are empty
+// eslint-disable-next-line
+export interface LoginButtonAttrs extends CommonButtonAttrs {}
+// eslint-disable-next-line
+export interface SecondaryButtonAttrs extends CommonButtonAttrs {}
+// eslint-disable-next-line
+export interface TertiaryButtonAttrs extends CommonButtonAttrs {}
+
+export class LoginButton implements ClassComponent<LoginButtonAttrs> {
 	view({ attrs }: Vnode<LoginButtonAttrs>): Children {
-		let classes = this.resolveClasses(attrs)
-
-		return m(BaseButton, {
-			icon: attrs.icon,
-			label: attrs.label,
-			text: lang.getTranslationText(attrs.label),
-			class: classes.join(" "),
-			style: {
-				transition: `background ${DefaultAnimationTime}ms ease-in-out, color ${DefaultAnimationTime}ms ease-in-out, opacity ${DefaultAnimationTime}ms ease-in-out`,
-			},
-			onclick: attrs.onclick,
-			disabled: attrs.disabled,
-		})
+		return renderVariantButton(attrs, "primary")
 	}
+}
 
-	private resolveClasses(attrs: LoginButtonAttrs) {
-		let classes = ["button-content", "border-radius", "center", "flash", attrs.class]
+export class SecondaryButton implements ClassComponent<SecondaryButtonAttrs> {
+	view({ attrs }: Vnode<SecondaryButtonAttrs>): Children {
+		return renderVariantButton(attrs, "secondary")
+	}
+}
 
-		if (attrs.disabled) {
-			// This makes the button appear "disabled" (grey color, no hover) when disabled is set to true
-			classes.push("disabled-button")
-		} else if (attrs.discouraged) {
-			// This makes the button appear outlined with a transparent background
-			classes.push("tutaui-button-outline")
-		} else {
-			classes.push("accent-bg")
-		}
-
-		if (attrs.type === LoginButtonType.FlexWidth) {
-			classes.push("plr-48")
-		} else {
-			classes.push("full-width plr-8")
-		}
-
-		if (attrs.size === "Small") {
-			classes.push("")
-		}
-
-		return classes
+export class TertiaryButton implements ClassComponent<TertiaryButtonAttrs> {
+	view({ attrs }: Vnode<TertiaryButtonAttrs>): Children {
+		return renderVariantButton(attrs, "tertiary")
 	}
 }
