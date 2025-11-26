@@ -122,6 +122,8 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 	private activeIndex: number | null = null
 	private lastThemeId: ThemeId = theme.themeId
 
+	private observer: ResizeObserver | null = null
+
 	view({ attrs }: Vnode<ListAttrs<T, VH>>) {
 		const oldRenderConfig = this.lastAttrs?.renderConfig
 		this.lastAttrs = attrs
@@ -135,7 +137,9 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 					// Some of the tech-savvy users like to disable *all* "experimental features" in their Safari devices and there's also a toggle to disable
 					// ResizeObserver. Since the app works without it anyway we just fall back to not handling the resize events.
 					if (typeof ResizeObserver !== "undefined") {
-						createResizeObserver(() => this.updateSize()).observe(this.containerDom)
+						this.observer?.disconnect()
+						this.observer = createResizeObserver(() => this.updateSize())
+						this.observer.observe(this.containerDom)
 					} else {
 						requestAnimationFrame(() => this.updateSize())
 					}
@@ -181,6 +185,11 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				},
 			}),
 		)
+	}
+
+	onremove(): any {
+		this.observer?.disconnect()
+		this.observer = null
 	}
 
 	private createSwipeHandler() {
