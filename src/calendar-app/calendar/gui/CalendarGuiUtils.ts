@@ -156,7 +156,7 @@ export function getNextFourteenDays(startOfToday: Date): Array<Date> {
 
 export type CalendarNavConfiguration = { back: Child; title: string; forward: Child }
 
-export function calendarWeek(date: Date, weekStart: WeekStart) {
+export function calendarWeek(date: Date, weekStart: WeekStart, numberOnly: boolean) {
 	// According to ISO 8601, weeks always start on Monday. Week numbering systems for
 	// weeks that do not start on Monday are not strictly defined, so we only display
 	// a week number if the user's client is configured to start weeks on Monday
@@ -164,9 +164,11 @@ export function calendarWeek(date: Date, weekStart: WeekStart) {
 		return null
 	}
 
-	return lang.get("weekNumber_label", {
-		"{week}": String(getWeekNumber(date)),
-	})
+	return numberOnly
+		? String(getWeekNumber(date))
+		: lang.getTranslation("weekNumber_label", {
+				"{week}": String(getWeekNumber(date)),
+			}).text
 }
 
 export function calendarNavConfiguration(
@@ -1127,7 +1129,7 @@ export function extractCalendarEventModifierKey<T extends MouseEvent | KeyboardE
 export function getDayCircleClass(date: Date, selectedDate: Date | null) {
 	if (selectedDate == null) {
 		return { circle: "", text: "" }
-	} else if (isSameDay(date, selectedDate)) {
+	} else if (!isToday(selectedDate) && isSameDay(date, selectedDate)) {
 		return { circle: "calendar-selected-day-circle", text: "calendar-selected-day-text" }
 	} else if (isToday(date)) {
 		return { circle: "calendar-current-day-circle", text: "calendar-current-day-text" }
