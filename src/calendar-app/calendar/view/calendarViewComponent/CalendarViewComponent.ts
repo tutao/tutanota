@@ -178,24 +178,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 	}
 
 	private renderWeekDaysSection(weekDaysComponentAttrs: WeekDaysComponentAttrs): Children {
-		const children: Children = [
-			m(
-				".b.text-center.calendar-day-indicator",
-				{ style: { gridArea: CalendarViewComponent.GRID_AREA.WEEK_NUMBER } },
-				styles.isDesktopLayout() ? calendarWeek(weekDaysComponentAttrs.selectedDate, weekDaysComponentAttrs.startOfWeek ?? WeekStart.MONDAY) : null,
-			),
-		]
-
-		if (weekDaysComponentAttrs.showWeekDays) {
-			children.push(
-				m(
-					".min-width-0",
-					{ style: { gridArea: CalendarViewComponent.GRID_AREA.WEEK_DAYS_SECTION } },
-					m(WeekDaysComponent, { ...weekDaysComponentAttrs } satisfies WeekDaysComponentAttrs),
-				),
-			)
-		}
-
+		const weekStart = weekDaysComponentAttrs.startOfWeek ?? WeekStart.MONDAY
 		return m(
 			".grid.py-core-8",
 			{
@@ -211,7 +194,25 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 					}
 				},
 			},
-			children,
+			[
+				m(
+					".b.text-center.calendar-day-indicator",
+					{
+						class: styles.isDesktopLayout() ? undefined : "text-fade",
+						style: { gridArea: CalendarViewComponent.GRID_AREA.WEEK_NUMBER },
+					},
+					styles.isDesktopLayout()
+						? calendarWeek(weekDaysComponentAttrs.selectedDate, weekStart, false)
+						: calendarWeek(weekDaysComponentAttrs.selectedDate, weekStart, true),
+				),
+				weekDaysComponentAttrs.showWeekDays
+					? m(
+							".min-width-0",
+							{ style: { gridArea: CalendarViewComponent.GRID_AREA.WEEK_DAYS_SECTION } },
+							m(WeekDaysComponent, { ...weekDaysComponentAttrs } satisfies WeekDaysComponentAttrs),
+						)
+					: null,
+			],
 		)
 	}
 
@@ -221,8 +222,9 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 			return null
 		}
 
+		const periodHasToday = attrs.headerComponentAttrs.dates.some((date) => isToday(date))
 		const timeColumnWidth = styles.isDesktopLayout() ? size.calendar_hour_width : size.calendar_hour_width_mobile + 5
-		const shouldRenderTimeIndicator = attrs.headerComponentAttrs.dates.some(isToday) && this.layoutState.dayHeight && this.layoutState.pageViewWidth
+		const shouldRenderTimeIndicator = periodHasToday && this.layoutState.dayHeight && this.layoutState.pageViewWidth
 		const currentTime = Time.fromDate(new Date())
 
 		return m(
@@ -234,7 +236,7 @@ export class CalendarViewComponent implements ClassComponent<CalendarViewCompone
 					gridTemplateColumns: "subgrid",
 				} satisfies Partial<CSSStyleDeclaration>,
 				oncreate: (vnode: VnodeDOM) => {
-					const scrollToCurrentTime = attrs.headerComponentAttrs.dates.length === 1 && attrs.headerComponentAttrs.dates.some(isToday)
+					const scrollToCurrentTime = attrs.headerComponentAttrs.dates.length === 1 && periodHasToday
 					const time = scrollToCurrentTime ? new Date().getHours() : deviceConfig.getScrollTime()
 					this.scrollToTime(time, scrollToCurrentTime ? "center" : "start", "instant")
 					attrs.bodyComponentAttrs.registerListener((amount: number) => {

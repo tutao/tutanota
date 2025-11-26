@@ -11,6 +11,7 @@ import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { CalendarViewComponent, CalendarViewComponentAttrs, CalendarViewPageAttrs } from "./calendarViewComponent/CalendarViewComponent"
 import { HeaderVariant } from "./calendarViewComponent/WeekDaysComponent"
 import { CellActionHandler } from "../../../common/calendar/gui/CalendarTimeCell"
+import { daysHaveEvents } from "../gui/CalendarGuiUtils"
 
 export type MultiDayCalendarViewAttrs = {
 	selectedDate: Date
@@ -77,6 +78,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 		return m(CalendarViewComponent, {
 			headerComponentAttrs: {
 				dates: getRangeOfDays(new Date(current.key), attrs.daysInPeriod),
+				hasEvents: (date) => daysHaveEvents(attrs.getEventsOnDays([date])),
 				selectedDate: attrs.selectedDate,
 				onDateClick: attrs.onDateSelected,
 				startOfWeek: attrs.startOfTheWeek,

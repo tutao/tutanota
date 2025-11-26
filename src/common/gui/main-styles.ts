@@ -2960,12 +2960,6 @@ styles.registerStyle("main", () => {
 			left: 0,
 			right: 0,
 		},
-		".faded-day": {
-			color: theme.on_surface_variant,
-		},
-		".faded-text": {
-			color: theme.on_surface_variant,
-		},
 		".svg-text-content-bg text": {
 			fill: theme.surface,
 		},

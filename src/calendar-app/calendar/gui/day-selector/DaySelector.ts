@@ -146,7 +146,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		const size = this.getElementSize(attrs)
 
 		return m(
-			"button.rel.click.flex.items-center.justify-center.rel" + (isPaddingDay && attrs.isDaySelectorExpanded ? ".faded-day" : ""),
+			"button.rel.click.flex.items-center.justify-center.rel" + (isPaddingDay && attrs.isDaySelectorExpanded ? ".text-fade" : ""),
 			{
 				class: "flex-grow-shrink-0",
 				"aria-hidden": `${isPaddingDay && attrs.isDaySelectorExpanded}`,
