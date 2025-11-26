@@ -20,7 +20,7 @@ import {
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/tutanota-utils"
-import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod, TimeFormat } from "../../api/common/TutanotaConstants"
+import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod } from "../../api/common/TutanotaConstants"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import {
 	AdvancedRepeatRule,
@@ -31,7 +31,6 @@ import {
 	createCalendarEvent,
 	createCalendarRepeatRule,
 	GroupSettings,
-	UserSettingsGroupRoot,
 } from "../../api/entities/tutanota/TypeRefs.js"
 import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
 import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, RepeatRule, User } from "../../api/entities/sys/TypeRefs.js"
@@ -844,11 +843,6 @@ export function getRangeOfDays(startDay: Date, numDays: number): Array<Date> {
 	}
 
 	return days
-}
-
-export function getTimeFormatForUser(userSettingsGroupRoot: UserSettingsGroupRoot): TimeFormat {
-	// it's saved as a string, but is a const enum.
-	return userSettingsGroupRoot.timeFormat as TimeFormat
 }
 
 export function getWeekNumber(startOfTheWeek: Date): number {

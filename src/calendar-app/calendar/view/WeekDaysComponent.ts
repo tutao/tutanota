@@ -1,14 +1,14 @@
-import { CalendarViewType } from "../../../../common/api/common/utils/CommonCalendarUtils"
-import { TabIndex, WeekStart } from "../../../../common/api/common/TutanotaConstants"
+import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { TabIndex, WeekStart } from "../../../common/api/common/TutanotaConstants"
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { styles } from "../../../../common/gui/styles"
-import { getDayCircleClass } from "../../gui/CalendarGuiUtils"
-import { lang } from "../../../../common/misc/LanguageViewModel"
-import { layout_size, px } from "../../../../common/gui/size"
-import { DaySelector, DaySelectorAttrs } from "../../gui/day-selector/DaySelector"
-import { getStartOfTheWeekOffset } from "../../../../common/misc/weekOffset"
+import { styles } from "../../../common/gui/styles"
+import { getDayCircleClass } from "../gui/CalendarGuiUtils"
+import { lang } from "../../../common/misc/LanguageViewModel"
+import { layout_size, px } from "../../../common/gui/size"
+import { DaySelector, DaySelectorAttrs } from "../gui/day-selector/DaySelector"
+import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { DurationLikeObject } from "luxon"
-import { DateTime } from "../../../../../libs/luxon"
+import { DateTime } from "../../../../libs/luxon"
 
 export enum HeaderVariant {
 	NORMAL,
@@ -76,8 +76,8 @@ export class WeekDaysComponent implements ClassComponent<WeekDaysComponentAttrs>
 					m(".abs.z1.circle", {
 						class: dayCircleClasses.circle,
 						style: {
-								width: px(layout_size.calendar_days_header_height),
-								height: px(layout_size.calendar_days_header_height),
+							width: px(layout_size.calendar_days_header_height),
+							height: px(layout_size.calendar_days_header_height),
 						},
 					}),
 					m(
@@ -86,7 +86,7 @@ export class WeekDaysComponent implements ClassComponent<WeekDaysComponentAttrs>
 							class: dayCircleClasses.text,
 							style: {
 								fontSize: px(14),
-									lineHeight: px(layout_size.calendar_days_header_height),
+								lineHeight: px(layout_size.calendar_days_header_height),
 							},
 						},
 						day.getDate(),

@@ -145,7 +145,9 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							highlightSelectedWeek: false,
 							useNarrowWeekName: styles.isSingleColumnLayout(),
 							hasEventOn: (date) =>
-								attrs.eventsForDays.get(date.getTime())?.some((event) => shouldDisplayEvent(event.event, attrs.hiddenCalendars)) ?? false,
+								attrs.eventsForDays
+									.get(date.getTime())
+									?.some((eventWrapper) => shouldDisplayEvent(eventWrapper.event, attrs.hiddenCalendars)) ?? false,
 						}),
 					),
 				)
@@ -322,8 +324,8 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		const eventToShowTimeIndicator = earliestEventToShowTimeIndicator(events, new Date())
 		// Flat list structure so that we don't have problems with keys
 		let eventsNodes: Child[] = []
-		for (const [eventIndex, event] of events.entries()) {
-			if (eventToShowTimeIndicator === eventIndex && isToday(event.event.startTime)) {
+		for (const [eventIndex, eventWrapper] of events.entries()) {
+			if (eventToShowTimeIndicator === eventIndex && isToday(eventWrapper.event.startTime)) {
 				eventsNodes.push(
 					m(
 						".mt-4.mb-4",
@@ -341,7 +343,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					),
 				)
 			}
-			if (currentTime && event.event.startTime < currentTime) {
+			if (currentTime && eventWrapper.event.startTime < currentTime) {
 				newScrollPosition += agendaItemHeight + agendaGap
 			}
 
@@ -360,16 +362,15 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 				return sibling
 			}
 
-			const eventColor = getEventColor(event.event, colors)
+			const eventColor = getEventColor(eventWrapper.event, colors)
 			eventsNodes.push(
 				m(CalendarAgendaItemView, {
-					key: getListId(event.event) + getElementId(event.event) + event.event.startTime.toISOString(),
-					id: base64ToBase64Url(stringToBase64(event.event._id.join("/"))),
-					event: event,
+					key: getListId(eventWrapper.event) + getElementId(eventWrapper.event) + eventWrapper.event.startTime.toISOString(),
+					id: base64ToBase64Url(stringToBase64(eventWrapper.event._id.join("/"))),
+					event: eventWrapper,
 					color: eventColor,
-					border: event.flags?.isGhost ? `2px dashed #${eventColor}` : undefined,
-					selected: event.event === (modelPromise as CalendarEventPreviewViewModel)?.calendarEvent,
-					click: (domEvent) => click(event.event, domEvent),
+					selected: eventWrapper.event === (modelPromise as CalendarEventPreviewViewModel)?.calendarEvent,
+					click: (domEvent) => click(eventWrapper.event, domEvent),
 					keyDown: (domEvent) => {
 						const target = domEvent.target as HTMLElement
 						if (isKeyPressed(domEvent.key, Keys.UP, Keys.K) && !domEvent.repeat) {
@@ -399,12 +400,12 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 								attrs.onScrollPositionChange(target.offsetTop)
 							}
 						}
-						keyDown(event.event, domEvent)
+						keyDown(eventWrapper.event, domEvent)
 					},
 					zone,
 					day: day,
 					height: agendaItemHeight,
-					timeText: formatEventTimes(day, event.event, zone),
+					timeText: formatEventTimes(day, eventWrapper.event, zone),
 				}),
 			)
 		}
@@ -433,14 +434,14 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
  */
 export function earliestEventToShowTimeIndicator(events: readonly EventWrapper[], date: Date): number | null {
 	// We do not want to show the time indicator above any all day events
-	const firstNonAllDayEvent = events.findIndex((event) => !isAllDayEvent(event.event))
+	const firstNonAllDayEvent = events.findIndex((eventWrapper) => !isAllDayEvent(eventWrapper.event))
 	if (firstNonAllDayEvent < 0) {
 		return null
 	}
 
 	// Next, we want to locate the first event where the start time has yet to be reached
 	const nonAllDayEvents = events.slice(firstNonAllDayEvent)
-	const nextEvent = nonAllDayEvents.findIndex((event) => event.event.startTime > date)
+	const nextEvent = nonAllDayEvents.findIndex((eventWrapper) => eventWrapper.event.startTime > date)
 	if (nextEvent < 0) {
 		return null
 	}

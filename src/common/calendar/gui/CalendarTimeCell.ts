@@ -3,7 +3,7 @@ import m, { ClassComponent, Vnode } from "mithril"
 import { getTimeFromClickInteraction } from "../date/CalendarUtils"
 import { RowBounds } from "./CalendarTimeGrid"
 import { Time } from "../date/Time"
-import { TimeColumn } from "./TimeColumn"
+import { CalendarTimeColumn } from "./CalendarTimeColumn"
 
 /**
  * Handler function called when a calendar cell is interacted with.
@@ -46,7 +46,7 @@ export class CalendarTimeCell implements ClassComponent<CalendarTimeCellAttrs> {
 		return m(
 			".rel.z1.flex.small.justify-center.items-center.text-center",
 			{
-				id: attrs.text ? TimeColumn.getTimeCellId(attrs.dateTime.time.hour) : undefined,
+				id: attrs.text ? CalendarTimeColumn.getTimeCellId(attrs.dateTime.time.hour) : undefined,
 				class: this.resolveClasses(attrs),
 				style: {
 					gridRow: `${attrs.layout.rowBounds.start} / ${attrs.layout.rowBounds.end}`,
@@ -82,7 +82,7 @@ export class CalendarTimeCell implements ClassComponent<CalendarTimeCellAttrs> {
 			classes.push("border-bottom")
 		}
 		if (attrs.text) {
-			classes.push("plr-core-8")
+			classes.push("pl-8", "pr-8")
 		}
 		return classes.join(" ")
 	}

@@ -67,6 +67,5 @@ o.spec("CalendarAgendaViewTest", function () {
 				nextEventStart,
 			),
 		).equals(null)("no dates left")
-		// o(earliestEventToShowTimeIndicator(events.map((e) => makeEventWrapper(e)), new Date(0))).equals(1)("even before the day, all-day events are skipped")
 	})
 })

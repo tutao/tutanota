@@ -34,7 +34,8 @@ import { px, size } from "../../../common/gui/size.js"
 import { highlightTextInQueryAsChildren } from "../../../common/gui/TextHighlightViewUtils"
 import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
-import { getTimeFormatForUser } from "../../../common/calendar/date/CalendarUtils"
+
+import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName

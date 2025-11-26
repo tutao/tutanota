@@ -105,7 +105,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 	private renderCarouselPage(isExpanded: boolean, attrs: DaySelectorAttrs, week: readonly CalendarDay[], month: CalendarMonth, hidden: boolean) {
 		return [
 			m(
-				".carouselPage",
+				"",
 				{
 					"aria-hidden": `${isExpanded}`,
 					style: {
