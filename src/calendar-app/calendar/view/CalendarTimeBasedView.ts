@@ -8,12 +8,12 @@ import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
-import { CalendarViewComponent, CalendarViewComponentAttrs, CalendarViewPageAttrs } from "./calendarViewComponent/CalendarViewComponent"
-import { HeaderVariant } from "./calendarViewComponent/WeekDaysComponent"
+import { CalendarTimeBasedViewComponent, CalendarTimeBasedViewComponentAttrs, CalendarViewPageAttrs } from "./CalendarTimeBasedViewComponent"
+import { HeaderVariant } from "./WeekDaysComponent"
 import { CellActionHandler } from "../../../common/calendar/gui/CalendarTimeCell"
 import { daysHaveEvents } from "../gui/CalendarGuiUtils"
 
-export type MultiDayCalendarViewAttrs = {
+export type CalendarTimeBasedViewAttrs = {
 	selectedDate: Date
 	/** Number of days to display (1 for single day, 3 for three-day, 7 for week) */
 	daysInPeriod: number
@@ -47,25 +47,25 @@ type PageViewData = { previous: CalendarViewPageAttrs; current: CalendarViewPage
  * navigation and swipe gestures. Events are deduplicated across period boundaries.
  *
  * @example
- * m(MultiDayCalendarView, {
+ * m(CalendarTimeBasedView, {
  *   selectedDate: new Date(),
  *   daysInPeriod: 7,  // or 3 for three-day view
  *   startOfTheWeek: WeekStart.MONDAY,
  *   // ... other props
  * })
  */
-export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs> {
+export class CalendarTimeBasedView implements Component<CalendarTimeBasedViewAttrs> {
 	// Cache ranges used in the PageView
 	private cachedDateRanges?: {
 		key: string
 		ranges: { previous: Date[]; current: Date[]; next: Date[] }
 	}
 
-	onremove(vnode: VnodeDOM<MultiDayCalendarViewAttrs>): any {
+	onremove(vnode: VnodeDOM<CalendarTimeBasedViewAttrs>): any {
 		vnode.attrs.removeScrollByListener()
 	}
 
-	view({ attrs }: Vnode<MultiDayCalendarViewAttrs>): Children {
+	view({ attrs }: Vnode<CalendarTimeBasedViewAttrs>): Children {
 		const { previous, current, next } = this.getPeriods(attrs.selectedDate, attrs.daysInPeriod, attrs.startOfTheWeek, attrs.getEventsOnDays)
 
 		const newEventHandler: CellActionHandler = (baseDate: Date, time: Time) => {
@@ -75,7 +75,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 			attrs.onDateSelected(new Date(baseDate))
 		}
 
-		return m(CalendarViewComponent, {
+		return m(CalendarTimeBasedViewComponent, {
 			headerComponentAttrs: {
 				dates: getRangeOfDays(new Date(current.key), attrs.daysInPeriod),
 				hasEvents: (date) => daysHaveEvents(attrs.getEventsOnDays([date])),
@@ -105,7 +105,7 @@ export class MultiDayCalendarView implements Component<MultiDayCalendarViewAttrs
 				keyDown: attrs.onEventKeyDown,
 			},
 			dragHandlerCallbacks: attrs.dragHandlerCallbacks,
-		} satisfies CalendarViewComponentAttrs)
+		} satisfies CalendarTimeBasedViewComponentAttrs)
 	}
 
 	private getPeriods(baseDate: Date, daysInPeriod: number, startOfTheWeek: WeekStart, getEventsFunction: (range: Date[]) => EventsOnDays): PageViewData {

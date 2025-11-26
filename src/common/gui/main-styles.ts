@@ -756,19 +756,6 @@ styles.registerStyle("main", () => {
 		".will-change-alpha": {
 			"will-change": "alpha",
 		},
-		".after-as-border-bottom": {
-			position: "relative",
-		},
-		".after-as-border-bottom:after": {
-			// Hacky solution to create a border that extends the whole parent
-			content: "''",
-			width: "100%",
-			height: "1px",
-			background: theme.outline_variant,
-			position: "absolute",
-			bottom: 0,
-			"z-index": 1,
-		},
 		// borders
 		".border-bottom": {
 			"border-bottom": `1px solid ${theme.outline_variant}`,
@@ -1300,9 +1287,6 @@ styles.registerStyle("main", () => {
 		},
 		".flex-transition": {
 			transition: "flex 200ms linear",
-		},
-		".border-radius-core-4": {
-			"border-radius": px(size.spacing_4),
 		},
 		".border-radius": {
 			"border-radius": px(size.radius_8),
@@ -2424,12 +2408,6 @@ styles.registerStyle("main", () => {
 		".calendar-day:hover": {
 			background: theme.surface_container,
 		},
-		".calendar-day:hover .calendar-day-header-button": {
-			opacity: 1,
-		},
-		".calendar-day-header-button": {
-			opacity: 0,
-		},
 		".calendar-column-border": {
 			"border-right": `1px solid ${theme.outline_variant}`,
 		},
@@ -3178,21 +3156,11 @@ styles.registerStyle("main", () => {
 			height: px(2),
 			width: "100%",
 		},
-		".time-indicator-circle-left:before": {
-			content: "''",
-			display: "block",
-			width: px(size.icon_12),
-			height: px(size.icon_12),
-			background: theme.primary,
-			position: "absolute",
-			transform: "translate(-50%, calc(-50% + 1px))",
-			"border-radius": "50%",
-		},
 		".time-badge": {
 			background: theme.primary,
 			"border-radius": px(size.radius_12),
 			color: theme.on_primary,
-			"line-height": px(16),
+			"line-height": px(20),
 		},
 		".interactable-cell:hover": {
 			background: theme.surface_container,

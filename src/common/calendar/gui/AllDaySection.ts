@@ -72,19 +72,7 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 	}
 
 	private renderEvents(dates: Date[], allDayEventWrappers: EventWrapper[], eventBubbleHandlers: EventBubbleInteractions & CalendarEventBubbleDragProperties) {
-		// Sort events for optimal lay outing
-		// Primary: earlier start times first
-		// Secondary: longer duration first (helps minimize columns)
-		const orderedEvents = allDayEventWrappers.toSorted((a, b) => {
-			const startTimeDiff = a.event.startTime.getTime() - b.event.startTime.getTime()
-			if (startTimeDiff !== 0) {
-				return startTimeDiff
-			}
-			// Longer events first (end time descending)
-			return b.event.endTime.getTime() - a.event.endTime.getTime()
-		})
-
-		const rows = AllDaySection.layoutEvents(orderedEvents, dates)
+		const rows = AllDaySection.layoutEvents(allDayEventWrappers, dates)
 		this.rowCount = rows.length
 
 		return rows.flatMap((rowData, rowIndex) =>
@@ -126,14 +114,21 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 	}
 
 	/**
-	 * **Important:** Relies on events being previously ordered for better results
-	 *
-	 * @param orderedEvents
-	 * @param dates
-	 *
 	 * @VisibleForTesting
 	 */
-	static layoutEvents(orderedEvents: EventWrapper[], dates: Date[]): Array<RowLayoutData> {
+	static layoutEvents(allDayEvents: EventWrapper[], dates: Date[]): Array<RowLayoutData> {
+		// Sort events for optimal lay outing
+		// Primary: earlier start times first
+		// Secondary: longer duration first (helps minimize columns)
+		const orderedEvents = allDayEvents.toSorted((a, b) => {
+			const startTimeDiff = a.event.startTime.getTime() - b.event.startTime.getTime()
+			if (startTimeDiff !== 0) {
+				return startTimeDiff
+			}
+			// Longer events first (end time descending)
+			return b.event.endTime.getTime() - a.event.endTime.getTime()
+		})
+
 		// Step 1: Convert events to column-based coordinates
 		const eventsMap = new Map<EventWrapper, ColumnBounds>(
 			orderedEvents.map((wrapper) => {

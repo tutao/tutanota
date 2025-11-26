@@ -150,32 +150,32 @@ export class CalendarSearchModel {
 				// that's a smaller savings than one might think because for the vast majority of
 				// events we're probably not matching and looking into the description anyway.
 				for (const [startOfDay, eventsOnDay] of eventsForDays) {
-					eventLoop: for (const event of eventsOnDay) {
+					eventLoop: for (const eventWrapper of eventsOnDay) {
 						if (!(startOfDay >= restriction.start && startOfDay <= restriction.end)) {
 							continue
 						}
 
-						const key = idToKey(event.event._id)
+						const key = idToKey(eventWrapper.event._id)
 
-						if (!followCommonRestrictions(key, event.event)) {
+						if (!followCommonRestrictions(key, eventWrapper.event)) {
 							continue
 						}
 
 						for (const token of tokens) {
-							if (event.event.summary.toLowerCase().includes(token)) {
+							if (eventWrapper.event.summary.toLowerCase().includes(token)) {
 								alreadyAdded.add(key)
-								calendarResult.results.push(event.event._id)
+								calendarResult.results.push(eventWrapper.event._id)
 								continue eventLoop
 							}
 						}
 
 						// checking the summary was cheap, now we store the sanitized description to check it against
 						// all tokens.
-						const descriptionToSearch = event.event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
+						const descriptionToSearch = eventWrapper.event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
 						for (const token of tokens) {
 							if (descriptionToSearch.includes(token)) {
 								alreadyAdded.add(key)
-								calendarResult.results.push(event.event._id)
+								calendarResult.results.push(eventWrapper.event._id)
 								continue eventLoop
 							}
 						}

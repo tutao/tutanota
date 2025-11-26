@@ -320,7 +320,6 @@ export class CalendarModel {
 			(await didLongStateChange(newEvent, existingEvent, zone))
 		) {
 			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
-
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
@@ -962,9 +961,14 @@ export class CalendarModel {
 		// We want to operate on the latest events only, otherwise we might lose some data.
 		const dbEvents = await this.calendarFacade.getEventsByUid(calendarData.contents[0].event.uid, CachingMode.Bypass)
 
-		const defaultCalendarGroupRoot = await this.getDefaultCalendarGroupRoot()
 		if (dbEvents == null) {
-			return await this.handleNewCalendarInvitation(sender, calendarData, defaultCalendarGroupRoot)
+			// if we ever want to display event invites in the calendar before accepting them,
+			// we probably need to do something else here.
+			console.log(TAG, "received event update for event that has not been saved to the server, ignoring.")
+			return
+			// Create pending events when processing calendar invites.
+			// const defaultCalendarGroupRoot = await this.getDefaultCalendarGroupRoot()
+			// return await this.handleNewCalendarInvitation(sender, calendarData, defaultCalendarGroupRoot)
 		}
 
 		const method = calendarData.method

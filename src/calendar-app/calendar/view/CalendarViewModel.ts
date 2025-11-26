@@ -44,7 +44,6 @@ import {
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
-	getTimeFormatForUser,
 	hasAlarmsForTheUser,
 	isBirthdayCalendar,
 	isEventBetweenDays,
@@ -79,6 +78,7 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { SyncStatus } from "../../../common/calendar/gui/ImportExportUtils"
 import { CalendarSidebarRowIconData } from "../gui/CalendarSidebarRow"
 import { Time } from "../../../common/calendar/date/Time"
+import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 
 export interface EventWrapperFlags {
 	/**
@@ -565,15 +565,15 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		// It might be the case that a UID is shared by events across calendars, so we need to differentiate them by list ID aswell
 		const transientEventUidsByCalendar = groupByAndMapUniquely(
 			this._transientEvents,
-			(event) => getListId(event.event),
-			(event) => event.event.uid,
+			(eventWrapper) => getListId(eventWrapper.event),
+			(eventWrapper) => eventWrapper.event.uid,
 		)
 
-		const sortEvent = (event: EventWrapper, shortEventsForDay: Array<EventWrapper>) => {
-			if (isAllDayEvent(event.event) || getDiffIn60mIntervals(event.event.startTime, event.event.endTime) >= 24) {
-				longEvents.set(getElementId(event.event) + event.event.startTime.toString(), event)
+		const sortEvent = (eventWrapper: EventWrapper, shortEventsForDay: Array<EventWrapper>) => {
+			if (isAllDayEvent(eventWrapper.event) || getDiffIn60mIntervals(eventWrapper.event.startTime, eventWrapper.event.endTime) >= 24) {
+				longEvents.set(getElementId(eventWrapper.event) + eventWrapper.event.startTime.toString(), eventWrapper)
 			} else {
-				insertIntoSortedArray(event, shortEventsForDay, eventComparator, isSameEventInstance)
+				insertIntoSortedArray(eventWrapper, shortEventsForDay, eventComparator, isSameEventInstance)
 			}
 		}
 
@@ -592,9 +592,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				}
 			}
 
-			for (const event of this._transientEvents) {
-				if (isEventBetweenDays(event.event, day, day, this.timeZone)) {
-					sortEvent(event, shortEventsForDay)
+			for (const eventWrapper of this._transientEvents) {
+				if (isEventBetweenDays(eventWrapper.event, day, day, this.timeZone)) {
+					sortEvent(eventWrapper, shortEventsForDay)
 				}
 			}
 

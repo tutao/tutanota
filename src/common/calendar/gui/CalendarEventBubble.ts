@@ -84,7 +84,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					: null,
 				m(
 					// EventBubble
-					".plr-core-4.height-100p.full-width.border-radius-core-4",
+					".pl-4.pr-4.height-100p.full-width.border-radius-4",
 					{
 						onclick: (e: MouseEvent) => {
 							e.stopPropagation()
@@ -196,7 +196,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					m(".flex.items-center.text-ellipsis", [
 						!showSecondLine && eventTime !== ""
 							? m(Icon, {
-									class: "icon-small mlr-core-4",
+									class: "icon-small ml-4 mr-4",
 									icon: Icons.Time,
 									style: {
 										fill: colorForBg("#" + color),
