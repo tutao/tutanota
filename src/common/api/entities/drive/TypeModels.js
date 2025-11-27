@@ -480,35 +480,35 @@ export const typeModels = {
 			},
 			"55": {
 				"final": true,
-				"name": "encFileName",
+				"name": "fileName",
 				"id": 55,
-				"type": "Bytes",
+				"type": "String",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": true
 			},
 			"56": {
 				"final": true,
-				"name": "encMimeType",
+				"name": "mimeType",
 				"id": 56,
-				"type": "Bytes",
+				"type": "String",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": true
 			},
 			"57": {
 				"final": true,
-				"name": "encCreatedDate",
+				"name": "createdDate",
 				"id": 57,
-				"type": "Bytes",
+				"type": "Date",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": true
 			},
 			"58": {
 				"final": true,
-				"name": "encUpdatedDate",
+				"name": "updatedDate",
 				"id": 58,
-				"type": "Bytes",
+				"type": "Date",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": true
 			},
 			"59": {
 				"final": true,
@@ -540,7 +540,7 @@ export const typeModels = {
 		"id": 61,
 		"rootId": "BWRyaXZlAD0",
 		"versioned": false,
-		"encrypted": false,
+		"encrypted": true,
 		"isPublic": true,
 		"values": {
 			"62": {

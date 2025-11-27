@@ -4,9 +4,9 @@ import { IServiceExecutor } from "../../common/ServiceRequest"
 import { ArchiveDataType, CANCEL_UPLOAD_EVENT, GroupType } from "../../common/TutanotaConstants"
 import { BlobFacade } from "./lazy/BlobFacade"
 import { UserFacade } from "./UserFacade"
-import { aes256RandomKey, aesEncrypt } from "@tutao/tutanota-crypto"
+import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { VersionedKey } from "../crypto/CryptoWrapper"
-import { assertNotNull, partition, Require, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
+import { assertNotNull, partition, Require } from "@tutao/tutanota-utils"
 import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
 import { ExposedProgressTracker } from "../../main/ProgressTracker"
 import { UploadProgressListener } from "../../main/UploadProgressListener"
@@ -23,8 +23,6 @@ import {
 	DriveGroupRootTypeRef,
 } from "../../entities/drive/TypeRefs"
 import { DriveService } from "../../entities/drive/Services"
-import { convertJsToDbType } from "../crypto/ModelMapper"
-import { ValueType } from "../../common/EntityConstants"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -157,15 +155,15 @@ export class DriveFacade {
 		// FIXME: encryption should be automatic
 		const uploadedFile = createDriveUploadedFile({
 			referenceTokens: blobRefTokens,
-			encFileName: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.name)),
-			encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array(file.type)),
+			fileName: file.name,
+			mimeType: file.type,
 			ownerEncSessionKey: ownerEncSessionKey,
 			_ownerGroup: assertNotNull(fileGroupId),
-			encCreatedDate: aesEncrypt(sessionKey, stringToUtf8Uint8Array(convertJsToDbType(ValueType.Date, createdDate) as string)),
-			encUpdatedDate: aesEncrypt(sessionKey, stringToUtf8Uint8Array(convertJsToDbType(ValueType.Date, updatedDate) as string)),
+			createdDate,
+			updatedDate,
 		})
 		const data = createDriveCreateData({ uploadedFile: uploadedFile, parent: to })
-		const response = await this.serviceExecutor.post(DriveService, data)
+		const response = await this.serviceExecutor.post(DriveService, data, { sessionKey })
 
 		const createdFile = this.entityClient.load(DriveFileTypeRef, response.createdFile)
 		return createdFile

@@ -192,22 +192,23 @@ pub struct DriveUploadedFile {
 	#[serde(rename = "54")]
 	pub _id: Option<CustomId>,
 	#[serde(rename = "55")]
-	#[serde(with = "serde_bytes")]
-	pub encFileName: Vec<u8>,
+	pub fileName: String,
 	#[serde(rename = "56")]
-	#[serde(with = "serde_bytes")]
-	pub encMimeType: Vec<u8>,
+	pub mimeType: String,
 	#[serde(rename = "57")]
-	#[serde(with = "serde_bytes")]
-	pub encCreatedDate: Vec<u8>,
+	pub createdDate: DateTime,
 	#[serde(rename = "58")]
-	#[serde(with = "serde_bytes")]
-	pub encUpdatedDate: Vec<u8>,
+	pub updatedDate: DateTime,
 	#[serde(rename = "59")]
 	#[serde(with = "serde_bytes")]
 	pub ownerEncSessionKey: Vec<u8>,
 	#[serde(rename = "60")]
 	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DriveUploadedFile {
@@ -228,6 +229,11 @@ pub struct DriveCreateData {
 	pub parent: IdTupleGenerated,
 	#[serde(rename = "64")]
 	pub uploadedFile: DriveUploadedFile,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DriveCreateData {

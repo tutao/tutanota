@@ -132,10 +132,10 @@ export type DriveUploadedFile = {
 	_original?: DriveUploadedFile
 
 	_id: Id;
-	encFileName: Uint8Array;
-	encMimeType: Uint8Array;
-	encCreatedDate: Uint8Array;
-	encUpdatedDate: Uint8Array;
+	fileName: string;
+	mimeType: string;
+	createdDate: Date;
+	updatedDate: Date;
 	ownerEncSessionKey: Uint8Array;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
@@ -148,6 +148,7 @@ export function createDriveCreateData(values: StrippedEntity<DriveCreateData>): 
 
 export type DriveCreateData = {
 	_type: TypeRef<DriveCreateData>;
+	_errors: Object;
 	_original?: DriveCreateData
 
 	_format: NumberString;
