@@ -6,7 +6,7 @@ import { DriveSortArrow } from "./DriveSortArrow"
 import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
 
 export interface DriveFolderContentAttrs {
-	files: DriveFile[]
+	files: readonly DriveFile[]
 	// FIXME: folders
 	driveViewModel: DriveViewModel
 }

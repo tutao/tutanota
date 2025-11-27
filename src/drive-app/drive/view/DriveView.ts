@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveViewModel, VirtualFolder } from "./DriveViewModel"
+import { DriveFolderType, DriveViewModel } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
@@ -18,10 +18,11 @@ import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayo
 import { theme } from "../../../common/gui/theme"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { createDropdown } from "../../../common/gui/base/Dropdown"
-import { renderSidebarFolders } from "./Sidebar"
 import { DriveUploadStack } from "./DriveUploadStack"
 import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
+import { renderSidebarFolders } from "./Sidebar"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -41,12 +42,17 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
 		console.log("onNewUrl fired with args", args, "requestedPath:", requestedPath)
 
-		if (args.virtualFolder === "favourites") {
-			this.driveViewModel.loadVirtualFolder(VirtualFolder.Favourites).then(() => m.redraw())
+		// FIXME
+		// if (args.virtualFolder === "favourites") {
+		// 	this.driveViewModel.loadVirtualFolder(DriveFolderType.Favourites).then(() => m.redraw())
+		// 	return
+		// } else
+
+		if (args.virtualFolder === "trash") {
+			this.driveViewModel.loadVirtualFolder(DriveFolderType.Trash).then(() => m.redraw())
 			return
-		} else if (args.virtualFolder === "trash") {
-			this.driveViewModel.loadVirtualFolder(VirtualFolder.Trash).then(() => m.redraw())
-			return
+		} else if (args.virtualFolder) {
+			throw new ProgrammingError("No implementation for special folder: " + args.virtualFolder)
 		}
 
 		// /drive/folderId/listElementId
@@ -130,8 +136,10 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 								},
 							},
 							content: [
-								// FIXME
-								// renderSidebarFolders(this.driveViewModel.currentFolder.virtualFolder, this.driveViewModel.userMailAddress)
+								renderSidebarFolders(
+									{ rootFolderId: this.driveViewModel.roots.root, trashFolderId: this.driveViewModel.roots.trash },
+									this.driveViewModel.userMailAddress,
+								),
 							],
 							ariaLabel: "folderTitle_label",
 						}),
@@ -159,8 +167,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							columnLayout: [
 								m(DriveFolderView, {
 									onUploadClick: this.onNewFile_Click,
-									// FIXME
-									files: [], //this.driveViewModel.currentFolder.files,
+									files: this.driveViewModel.currentFolder == null ? [] : this.driveViewModel.currentFolder.files,
 									driveViewModel: this.driveViewModel,
 								} satisfies DriveFolderViewAttrs),
 								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),

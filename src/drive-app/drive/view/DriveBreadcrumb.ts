@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveViewModel, VirtualFolder } from "./DriveViewModel"
+import { DriveFolderType, DriveViewModel, SpecialFolderType } from "./DriveViewModel"
 
 export type BreadcrumbPath = Array<[string, IdTuple]>
 
@@ -8,8 +8,14 @@ export interface DriveBreadcrumbAttrs {
 	path: BreadcrumbPath
 }
 
-export function getVirtualFolderName(virtualFolder: VirtualFolder) {
-	return virtualFolder.toString()
+export function getSpecialFolderName(specialFolder: SpecialFolderType) {
+	// FIXME: Move this to a better place.
+	switch (specialFolder) {
+		case DriveFolderType.Root:
+			return "Root"
+		case DriveFolderType.Trash:
+			return "Trash"
+	}
 }
 
 export class DriveBreadcrumb implements Component<DriveBreadcrumbAttrs> {

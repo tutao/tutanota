@@ -8,7 +8,7 @@ import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
 	// FIXME: folders
-	files: DriveFile[]
+	files: readonly DriveFile[]
 	driveViewModel: DriveViewModel
 }
 

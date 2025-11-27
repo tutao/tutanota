@@ -4,9 +4,9 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 import { SettingsFolderRow } from "../../../common/settings/SettingsFolderRow"
 import { NavButtonColor } from "../../../common/gui/base/NavButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { VirtualFolder } from "./DriveViewModel"
+import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 
-export function renderSidebarFolders(virtualFolder: VirtualFolder, userMailAddress: string) {
+export function renderSidebarFolders({ rootFolderId, trashFolderId }: { rootFolderId: IdTuple; trashFolderId: IdTuple }, userMailAddress: string) {
 	return m(
 		SidebarSection,
 		{
@@ -17,30 +17,18 @@ export function renderSidebarFolders(virtualFolder: VirtualFolder, userMailAddre
 				mainButtonAttrs: {
 					label: lang.makeTranslation("asdf", () => "Home"), // TODO
 					icon: () => Icons.Drive,
-					href: "/drive",
+					href: `/drive/${listIdPart(rootFolderId)}/${elementIdPart(rootFolderId)}`,
 					colors: NavButtonColor.Nav,
 					click: () => {},
-					persistentBackground: virtualFolder === VirtualFolder.None,
-				},
-			}),
-			m(SettingsFolderRow, {
-				mainButtonAttrs: {
-					label: lang.makeTranslation("asdf2", () => "Favourites"), // TODO
-					icon: () => Icons.Heart,
-					href: "/drive/favourites", // TODO
-					colors: NavButtonColor.Nav,
-					click: () => {},
-					persistentBackground: virtualFolder === VirtualFolder.Favourites,
 				},
 			}),
 			m(SettingsFolderRow, {
 				mainButtonAttrs: {
 					label: lang.makeTranslation("asdf2", () => "Trash"), // TODO
 					icon: () => Icons.Trash,
-					href: "/drive/trash", // TODO
+					href: `/drive/${listIdPart(trashFolderId)}/${elementIdPart(trashFolderId)}`,
 					colors: NavButtonColor.Nav,
 					click: () => {},
-					persistentBackground: virtualFolder === VirtualFolder.Trash,
 				},
 			}),
 		],

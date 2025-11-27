@@ -6,32 +6,37 @@ import { elementIdPart, generatedIdToTimestamp, listIdPart } from "../../../comm
 import m from "mithril"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
-import { arrayEquals, assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isFolder } from "./DriveFolderContentEntry"
 import { DriveFile, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 
-export enum VirtualFolder {
-	None = "None",
-	Favourites = "Favourites",
-	Trash = "Trash",
+export const enum DriveFolderType {
+	Regular = "0",
+	Root = "1",
+	Trash = "2",
 }
 
-export interface DisplayFolder {
-	// shared properties between virtual and real folders
-	files: DriveFile[]
-	parents: BreadcrumbEntry[]
-	isVirtual: boolean
-
-	// properties for real folders
-	folder: DriveFolder | null // null is only set for virtual folders
-
-	// properties for virtual folders
-	virtualFolder: VirtualFolder
+export interface RegularFolder {
+	type: DriveFolderType.Regular
+	files: readonly DriveFile[]
+	folders: readonly DriveFolder[]
+	parents: readonly BreadcrumbEntry[]
+	folder: DriveFolder
 }
+
+export type SpecialFolderType = DriveFolderType.Root | DriveFolderType.Trash
+
+export interface SpecialFolder {
+	type: SpecialFolderType
+	files: readonly DriveFile[]
+	folders: readonly DriveFolder[]
+	folder: DriveFolder
+}
+
+export type DisplayFolder = RegularFolder | SpecialFolder
 
 const buildSortFunction = (order: "asc" | "desc", sort: (f1: TutaFile, f2: TutaFile) => number) => {
 	if (order === "desc") {
@@ -84,7 +89,7 @@ export class DriveViewModel {
 
 	// normal folder view
 	currentFolder: DisplayFolder | null = null
-	rootFolder!: IdTuple
+	roots!: Awaited<ReturnType<DriveFacade["loadRootFolders"]>>
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -97,7 +102,7 @@ export class DriveViewModel {
 	}
 
 	async initialize() {
-		this.rootFolder = await this.driveFacade.loadRootFolderId()
+		this.roots = await this.driveFacade.loadRootFolders()
 	}
 
 	/**
@@ -108,35 +113,26 @@ export class DriveViewModel {
 		await this.driveFacade.moveToTrash(file)
 	}
 
-	/**
-	 * We assume metadata are ALWAYS created along the uploaded file in the server
-	 * but for compatibility reason the metadata property is marked as nullable
-	 * so we force our way here to calm Typescript which is throwing a tantrum.
-	 * @param file
-	 */
-	async changeFavoriteStatus(file: TutaFile) {
-		// @ts-ignore
-		file.metadata.isFavorite = !file.metadata.isFavorite
-		// @ts-ignore
-		await this.driveFacade.updateMetadata(file)
-	}
-
-	async loadVirtualFolder(virtualFolder: VirtualFolder) {
-		if (virtualFolder === VirtualFolder.Trash) {
-			const files = await this.driveFacade.loadTrash()
+	async loadVirtualFolder(virtualFolderType: SpecialFolderType) {
+		if (virtualFolderType === DriveFolderType.Trash) {
+			const { folder, files, folders } = await this.driveFacade.loadTrash()
 
 			this.currentFolder = {
-				files: files.files,
-				virtualFolder: VirtualFolder.Trash,
-				isVirtual: true,
-				parents: [],
-				folder: null,
+				folder,
+				files,
+				folders: folders,
+				type: virtualFolderType,
 			}
 		}
 	}
 
-	getCurrentParents(): BreadcrumbEntry[] {
-		return this.currentFolder?.parents ?? []
+	getCurrentParents(): readonly BreadcrumbEntry[] {
+		switch (this.currentFolder?.type) {
+			case DriveFolderType.Regular:
+				return this.currentFolder.parents
+			default:
+				return []
+		}
 	}
 
 	// currentFolderIsRoot() {
@@ -149,13 +145,12 @@ export class DriveViewModel {
 			const { files, folders } = await this.driveFacade.getFolderContents(idTuple)
 
 			this.currentFolder = {
+				type: DriveFolderType.Regular,
 				folder: folder,
-				// FIXME: subfolders
-				files: files,
+				files,
+				folders,
 				parents: [],
-				isVirtual: false,
-				virtualFolder: VirtualFolder.None,
-			}
+			} satisfies RegularFolder
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				this.navigateToRootFolder()
@@ -174,11 +169,7 @@ export class DriveViewModel {
 			const fileId = this.generateUploadGuid()
 			this.driveUploadStackModel.addUpload(fileId, file.name, file.size)
 
-			this.driveFacade.uploadFile(file, fileId, assertNotNull(this.currentFolder?.folder)._id).then((uploadedFile) => {
-				if (uploadedFile != null) {
-					this.currentFolder?.files.push(uploadedFile)
-				}
-			})
+			this.driveFacade.uploadFile(file, fileId, assertNotNull(this.currentFolder?.folder)._id)
 		}
 	}
 
@@ -186,7 +177,7 @@ export class DriveViewModel {
 		await this.driveFacade.createFolder(folderName, assertNotNull(this.currentFolder?.folder)._id)
 	}
 
-	async navigateToFolder(folderId: IdTuple): Promise<void> {
+	navigateToFolder(folderId: IdTuple) {
 		// Ideally we'd like to use Tuta's router, but navigating back from a folder then entering it again doesn't seem to work.
 		// Using Mithril's router directly seems to avoid this problem.
 		// this.router.routeTo("/drive/:folderListId/:folderElementId", { folderListId: listIdPart(folderId), folderElementId: elementIdPart(folderId) })
@@ -197,7 +188,7 @@ export class DriveViewModel {
 	}
 
 	async navigateToRootFolder(): Promise<void> {
-		this.navigateToFolder(this.rootFolder)
+		this.navigateToFolder(this.roots.root)
 	}
 
 	async downloadFile(file: DriveFile): Promise<void> {
