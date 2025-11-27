@@ -1304,7 +1304,8 @@ class MailLocator implements CommonLocator {
 		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
 		const router = new ScopedRouter(this.throttledRouter(), "/drive")
 
-		const model = new DriveViewModel(this.entityClient, this.driveFacade, router, this.uploadProgressListener)
+		const redraw = await this.redraw()
+		const model = new DriveViewModel(this.entityClient, this.driveFacade, router, this.uploadProgressListener, this.eventController, redraw)
 		await model.initialize()
 
 		return model

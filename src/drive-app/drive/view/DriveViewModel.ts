@@ -11,7 +11,10 @@ import { UploadProgressListener } from "../../../common/api/main/UploadProgressL
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isFolder } from "./DriveFolderContentEntry"
-import { DriveFile, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
+import { DriveFile, DriveFileRefTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
+import { EventController } from "../../../common/api/main/EventController"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
+import { OperationType } from "../../../common/api/common/TutanotaConstants"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -96,13 +99,27 @@ export class DriveViewModel {
 		private readonly driveFacade: DriveFacade,
 		private readonly router: Router,
 		public readonly uploadProgressListener: UploadProgressListener,
+		private readonly eventController: EventController,
+		private readonly updateUi: () => unknown,
 	) {
 		this.driveUploadStackModel = new DriveUploadStackModel(driveFacade)
 		this.userMailAddress = getDefaultSenderFromUser(locator.logins.getUserController())
 	}
 
 	async initialize() {
+		this.eventController.addEntityListener(async (events) => {
+			await this.entityEventsReceived(events)
+		})
 		this.roots = await this.driveFacade.loadRootFolders()
+	}
+
+	private async entityEventsReceived(events: ReadonlyArray<EntityUpdateData>) {
+		for (const update of events) {
+			if (isUpdateForTypeRef(DriveFileRefTypeRef, update) && update.instanceListId === this.currentFolder?.folder.files) {
+				await this.loadFolderContentsByIdTuple(this.currentFolder.folder._id)
+				this.updateUi()
+			}
+		}
 	}
 
 	/**
