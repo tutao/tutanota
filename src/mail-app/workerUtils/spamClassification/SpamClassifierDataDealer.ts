@@ -67,16 +67,11 @@ export class SpamClassifierDataDealer {
 			console.log("building and uploading initial / new training data for mailbox: " + mailbox._id)
 			console.log(`mailbox ${mailbox._id} has ${mailsToUpload.length} new mails suitable for encrypted training vector data upload`)
 			const bulkMailLoader = await this.bulkMailLoader()
-			let chunkCount = 1
 			await promiseMap(
 				splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailsToUpload),
 				async (mailChunk) => {
-					console.log(`chunk ${chunkCount} started`)
 					const mailChunkWithDetails = await bulkMailLoader.loadMailDetails(mailChunk)
-					console.log(`chunk ${chunkCount} bulkMailLoader successful`)
 					await this.uploadTrainingDataForMails(mailChunkWithDetails, mailbox, mailSets)
-					console.log(`chunk ${chunkCount} upload done`)
-					chunkCount++
 				},
 				{ concurrency: 5 },
 			)
