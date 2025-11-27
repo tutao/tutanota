@@ -23,8 +23,6 @@ export interface SearchFacade {
 	/**
 	 * Get more search results in case search did not return everything.
 	 *
-	 * This may be a no-op on some implementations which would return everything upfront anyway.
-	 *
 	 * @param searchResult search result from search()
 	 * @param moreResultCount number of results
 	 */
