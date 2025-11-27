@@ -46,6 +46,7 @@ export {
 	zeroOut,
 	compare,
 	collectToMap,
+	splitArrayAt,
 } from "./ArrayUtils.js"
 export { AsyncResult } from "./AsyncResult.js"
 export {

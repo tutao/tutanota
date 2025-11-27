@@ -4,7 +4,7 @@ import { CalendarEvent, CalendarEventTypeRef, MailTypeRef } from "../../../commo
 import { NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { DbError } from "../../../common/api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/tutanota-utils"
+import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isEmpty, isSameTypeRef, lazyAsync, ofClass, tokenize } from "@tutao/tutanota-utils"
 import { assertMainOrNode } from "../../../common/api/common/Env"
 import { listIdPart } from "../../../common/api/common/utils/EntityUtils.js"
 import { IProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor.js"
@@ -339,7 +339,8 @@ export function areResultsForTheSameQuery(a: SearchResult, b: SearchResult) {
 
 export function hasMoreResults(searchResult: SearchResult): boolean {
 	return (
-		searchResult.moreResults.length > 0 ||
-		(searchResult.lastReadSearchIndexRow.length > 0 && searchResult.lastReadSearchIndexRow.every(([word, id]) => id !== 0))
+		!isEmpty(searchResult.moreResults) ||
+		!isEmpty(searchResult.moreResultsEntries) ||
+		(!isEmpty(searchResult.lastReadSearchIndexRow) && searchResult.lastReadSearchIndexRow.every(([word, id]) => id !== 0))
 	)
 }

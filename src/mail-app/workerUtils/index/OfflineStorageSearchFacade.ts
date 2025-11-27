@@ -1,16 +1,17 @@
 import { SearchFacade } from "./SearchFacade"
-import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { MoreResultsIndexEntry, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { sql } from "../../../common/api/worker/offline/Sql"
 import { untagSqlValue } from "../../../common/api/worker/offline/SqlValue"
 import { SqlCipherFacade } from "../../../common/native/common/generatedipc/SqlCipherFacade"
 import { MailIndexer } from "./MailIndexer"
 import { getSearchEndTimestamp } from "../../../common/api/common/utils/IndexUtils"
-import { first, isEmpty, isSameTypeRef } from "@tutao/tutanota-utils"
+import { first, isEmpty, isSameTypeRef, splitArrayAt } from "@tutao/tutanota-utils"
 import { ContactTypeRef, MailTypeRef } from "../../../common/api/entities/tutanota/TypeRefs"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { ContactIndexer } from "./ContactIndexer"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../common/api/common/TutanotaConstants"
 import { SearchToken, splitQuery } from "../../../common/api/common/utils/QueryTokenUtils"
+import { elementIdPart } from "../../../common/api/common/utils/EntityUtils"
 
 /**
  * Handles preparing and running SQLite+FTS5 search queries
@@ -22,11 +23,11 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		private readonly contactIndexer: ContactIndexer,
 	) {}
 
-	async search(query: string, restriction: SearchRestriction, _minSuggestionCount: number, _maxResults?: number): Promise<SearchResult> {
+	async search(query: string, restriction: SearchRestriction, _minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
 		const tokens = await this.tokenize(query)
 
 		if (isSameTypeRef(restriction.type, MailTypeRef)) {
-			return this.searchMails(query, tokens, restriction)
+			return this.searchMails(query, tokens, restriction, maxResults)
 		} else if (isSameTypeRef(restriction.type, ContactTypeRef)) {
 			return this.searchContacts(query, tokens, restriction)
 		} else {
@@ -48,7 +49,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		}
 	}
 
-	private async searchMails(originalQuery: string, tokens: SearchToken[], restriction: SearchRestriction): Promise<SearchResult> {
+	private async searchMails(originalQuery: string, tokens: SearchToken[], restriction: SearchRestriction, maxResults?: number): Promise<SearchResult> {
 		// folderIds always have zero or one IDs for mail search
 		if (restriction.folderIds.length > 1) {
 			throw new ProgrammingError("cannot search mails with more than one mailset search restriction")
@@ -96,16 +97,33 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 			const resultIds = resultRows.map(({ listId, elementId }) => {
 				return [untagSqlValue(listId) as string, untagSqlValue(elementId) as string] satisfies IdTuple
 			})
+
+			let results: IdTuple[]
+			let moreResultsEntries: IdTuple[]
+
+			if (maxResults == null || resultIds.length <= maxResults) {
+				// Everything can fit in `maxResults`
+				results = resultIds
+				moreResultsEntries = []
+			} else {
+				// We want to keep all of the IDs for the remaining results in an array so we don't need to do this
+				// search again (also minimizes IPC calls), but the underlying search facade also won't try to load all
+				// mails at once.
+				const [returnedIds, remainingIds] = splitArrayAt(resultIds, maxResults)
+				results = returnedIds
+				moreResultsEntries = remainingIds
+			}
+
 			return {
 				query: originalQuery,
 				tokens,
 				restriction,
-				results: resultIds,
+				results,
+				moreResults: [],
 				currentIndexTimestamp: getSearchEndTimestamp(this.mailIndexer.currentIndexTimestamp, restriction),
 				lastReadSearchIndexRow: [],
 				matchWordOrder: false,
-				moreResults: [],
-				moreResultsEntries: [],
+				moreResultsEntries,
 			}
 		}
 	}
@@ -149,8 +167,11 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		}
 	}
 
-	async getMoreSearchResults(searchResult: SearchResult, _: number): Promise<SearchResult> {
-		// There isn't really any need in "more" search results, and we never promise any so this is no-op
+	async getMoreSearchResults(searchResult: SearchResult, count: number): Promise<SearchResult> {
+		// We already have all of the IDs loaded, thus we really just need to extend our results
+		let [addedResultsEntries, remainingExtraResultsEntries] = splitArrayAt(searchResult.moreResultsEntries, count)
+		searchResult.results.push(...addedResultsEntries)
+		searchResult.moreResultsEntries = remainingExtraResultsEntries
 		return searchResult
 	}
 

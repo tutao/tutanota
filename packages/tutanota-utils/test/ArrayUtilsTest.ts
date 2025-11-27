@@ -18,6 +18,7 @@ import {
 	lazyNumberRange,
 	partition,
 	partitionAsync,
+	splitArrayAt,
 	splitInChunks,
 	symmetricDifference,
 } from "../lib/index.js"
@@ -927,5 +928,30 @@ o.spec("array utils", function () {
 		o(arrayHashUnsigned(new Uint8Array([123]))).equals(123)
 
 		o(arrayHashUnsigned(new Uint8Array([1, 2, 4]))).equals(1027)
+	})
+
+	o.spec("splitArrayAt", () => {
+		o.test("splits in middle", () => {
+			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 0)).deepEquals([[], [0, 1, 2, 3, 4, 5]])
+			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 1)).deepEquals([[0], [1, 2, 3, 4, 5]])
+			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 2)).deepEquals([
+				[0, 1],
+				[2, 3, 4, 5],
+			])
+			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 3)).deepEquals([
+				[0, 1, 2],
+				[3, 4, 5],
+			])
+			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 4)).deepEquals([
+				[0, 1, 2, 3],
+				[4, 5],
+			])
+			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 5)).deepEquals([[0, 1, 2, 3, 4], [5]])
+			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 6)).deepEquals([[0, 1, 2, 3, 4, 5], []])
+		})
+		o.test("out of bounds splits", () => {
+			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], -1000)).deepEquals([[], [0, 1, 2, 3, 4, 5]])
+			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 1000)).deepEquals([[0, 1, 2, 3, 4, 5], []])
+		})
 	})
 })

@@ -19,6 +19,7 @@ import {
 import { ListLoadingState, ListState } from "../../../common/gui/base/List.js"
 import {
 	assertNotNull,
+	collectToMap,
 	deepEqual,
 	defer,
 	downcast,
@@ -27,6 +28,7 @@ import {
 	incrementMonth,
 	isSameDayOfDate,
 	isSameTypeRef,
+	mapAndFilterNull,
 	memoizedWithHiddenArgument,
 	neverNull,
 	ofClass,
@@ -69,7 +71,6 @@ import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStor
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { Indexer } from "../../workerUtils/index/Indexer"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
-import { compareMails } from "../../mail/model/MailUtils"
 import { isOfflineStorageAvailable } from "../../../common/api/common/Env"
 import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 
@@ -919,14 +920,12 @@ export class SearchViewModel {
 				} else if (isSameTypeRef(o1.entry._type, CalendarEventTypeRef)) {
 					return downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime()
 				} else if (isSameTypeRef(o1.entry._type, MailTypeRef)) {
-					// Ideally we would not need to do this check here, however we can only safely sort by received date
-					// on SQLite results, as we get all results upfront.
-					//
-					// IndexedDb only loads a small amount of results at once, expanding the results as we scroll
-					// through the list, and since it's loaded by ID range, results can jump around mid-scroll.
 					if (isOfflineStorageAvailable()) {
-						return compareMails(downcast(o1.entry), downcast(o2.entry))
+						// SQLite results are already sorted, thus we don't need to do any further sorting here.
+						return 0
 					} else {
+						// IndexedDb only loads a small amount of results at once, expanding the results as we scroll
+						// through the list, and since it's loaded by ID range, results can jump around mid-scroll.
 						return sortCompareByReverseId(o1.entry, o2.entry)
 					}
 				} else {
@@ -984,7 +983,13 @@ export class SearchViewModel {
 
 			// Ignore count when slicing here because we would have to modify SearchResult too
 			const toLoad = updatedResult.results.slice(startIndex)
-			items = await this.loadAndFilterInstances(currentResult.restriction.type, toLoad, updatedResult, startIndex)
+			items = (await this.loadAndFilterInstances(currentResult.restriction.type, toLoad, updatedResult, startIndex)) as Mail[]
+
+			// Restore the original sorting order
+			if (isOfflineStorageAvailable()) {
+				const itemsMapped = collectToMap(items, getElementId)
+				items = mapAndFilterNull(updatedResult.results, (id) => itemsMapped.get(elementIdPart(id)))
+			}
 		} else if (isSameTypeRef(currentResult.restriction.type, ContactTypeRef)) {
 			try {
 				// load all contacts to sort them by name afterwards
