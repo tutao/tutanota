@@ -296,3 +296,53 @@ impl Entity for DriveDeleteOut {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveFolderServicePostIn {
+	#[serde(rename = "75")]
+	pub _format: i64,
+	#[serde(rename = "76")]
+	pub folderName: String,
+	#[serde(rename = "77")]
+	pub createdDate: DateTime,
+	#[serde(rename = "78")]
+	pub updatedDate: DateTime,
+	#[serde(rename = "79")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	#[serde(rename = "80")]
+	pub parent: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
+	#[serde(default)]
+	pub _finalIvs: HashMap<String, Option<FinalIv>>,
+}
+
+impl Entity for DriveFolderServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(74),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveFolderServicePostOut {
+	#[serde(rename = "82")]
+	pub _format: i64,
+	#[serde(rename = "83")]
+	pub folder: IdTupleGenerated,
+}
+
+impl Entity for DriveFolderServicePostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(81),
+		}
+	}
+}

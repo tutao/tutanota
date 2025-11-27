@@ -196,3 +196,36 @@ export type DriveDeleteOut = {
 
 	_format: NumberString;
 }
+export const DriveFolderServicePostInTypeRef: TypeRef<DriveFolderServicePostIn> = new TypeRef("drive", 74)
+
+export function createDriveFolderServicePostIn(values: StrippedEntity<DriveFolderServicePostIn>): DriveFolderServicePostIn {
+    return Object.assign(create(typeModels[DriveFolderServicePostInTypeRef.typeId], DriveFolderServicePostInTypeRef), values)
+}
+
+export type DriveFolderServicePostIn = {
+	_type: TypeRef<DriveFolderServicePostIn>;
+	_errors: Object;
+	_original?: DriveFolderServicePostIn
+
+	_format: NumberString;
+	folderName: string;
+	createdDate: Date;
+	updatedDate: Date;
+	ownerEncSessionKey: Uint8Array;
+
+	parent: IdTuple;
+}
+export const DriveFolderServicePostOutTypeRef: TypeRef<DriveFolderServicePostOut> = new TypeRef("drive", 81)
+
+export function createDriveFolderServicePostOut(values: StrippedEntity<DriveFolderServicePostOut>): DriveFolderServicePostOut {
+    return Object.assign(create(typeModels[DriveFolderServicePostOutTypeRef.typeId], DriveFolderServicePostOutTypeRef), values)
+}
+
+export type DriveFolderServicePostOut = {
+	_type: TypeRef<DriveFolderServicePostOut>;
+	_original?: DriveFolderServicePostOut
+
+	_format: NumberString;
+
+	folder: IdTuple;
+}

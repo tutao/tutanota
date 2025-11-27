@@ -661,5 +661,103 @@ export const typeModels = {
 			}
 		},
 		"associations": {}
+	},
+	"74": {
+		"name": "DriveFolderServicePostIn",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 74,
+		"rootId": "BWRyaXZlAEo",
+		"versioned": false,
+		"encrypted": true,
+		"isPublic": true,
+		"values": {
+			"75": {
+				"final": false,
+				"name": "_format",
+				"id": 75,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"76": {
+				"final": true,
+				"name": "folderName",
+				"id": 76,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"77": {
+				"final": true,
+				"name": "createdDate",
+				"id": 77,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"78": {
+				"final": true,
+				"name": "updatedDate",
+				"id": 78,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"79": {
+				"final": true,
+				"name": "ownerEncSessionKey",
+				"id": 79,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"80": {
+				"final": true,
+				"name": "parent",
+				"id": 80,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 0,
+				"dependency": null
+			}
+		}
+	},
+	"81": {
+		"name": "DriveFolderServicePostOut",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 81,
+		"rootId": "BWRyaXZlAFE",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"82": {
+				"final": false,
+				"name": "_format",
+				"id": 82,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"83": {
+				"final": true,
+				"name": "folder",
+				"id": 83,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 0,
+				"dependency": null
+			}
+		}
 	}
 }

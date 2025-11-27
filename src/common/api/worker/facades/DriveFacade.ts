@@ -13,6 +13,7 @@ import { UploadProgressListener } from "../../main/UploadProgressListener"
 import {
 	createDriveCreateData,
 	createDriveDeleteIn,
+	createDriveFolderServicePostIn,
 	createDriveUploadedFile,
 	DriveFile,
 	DriveFileRef,
@@ -22,7 +23,7 @@ import {
 	DriveFolderTypeRef,
 	DriveGroupRootTypeRef,
 } from "../../entities/drive/TypeRefs"
-import { DriveService } from "../../entities/drive/Services"
+import { DriveFolderService, DriveService } from "../../entities/drive/Services"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -178,22 +179,20 @@ export class DriveFacade {
 	 * @param parentFolder not implemented yet, used for creating a folder inside a folder that is not the root drive
 	 */
 	public async createFolder(folderName: string, parentFolder: IdTuple): Promise<DriveFolder> {
-		// FIXME
-		// const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
-		//
-		// const sessionKey = aes256RandomKey()
-		// const ownerEncSessionKey = _encryptKeyWithVersionedKey(fileGroupKey, sessionKey)
-		// const uploadedFolder = createDriveUploadedFile({
-		// 	referenceTokens: [],
-		// 	encFileName: aesEncrypt(sessionKey, stringToUtf8Uint8Array(folderName)),
-		// 	encMimeType: aesEncrypt(sessionKey, stringToUtf8Uint8Array("tuta/folder")), // TODO: make a constant !
-		// 	ownerEncSessionKey: ownerEncSessionKey.key,
-		// 	_ownerGroup: assertNotNull(fileGroupId),
-		// })
-		// const data = createDriveCreateData({ uploadedFile: uploadedFolder, parent: parentFolder }) // we use the File type for folder and we check the mimeTy
-		// const response = await this.serviceExecutor.post(DriveService, data)
-		// return this.entityClient.load(DriveFolderTypeRef, response.createdFile)
-		throw new Error("not implemented")
+		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
+
+		const sessionKey = aes256RandomKey()
+		const ownerEncSessionKey = locator.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
+
+		const newFolder = createDriveFolderServicePostIn({
+			createdDate: new Date(),
+			updatedDate: new Date(),
+			folderName,
+			parent: parentFolder,
+			ownerEncSessionKey,
+		})
+		const response = await this.serviceExecutor.post(DriveFolderService, newFolder, { sessionKey })
+		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}
 
 	public async loadFileFromIdTuple(idTuple: IdTuple): Promise<DriveFile> {
