@@ -359,15 +359,20 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			const sendAt = assertNotNull(viewModel.mail.sendAt)
 
 			return m(
-				".mb-s.mt-s." + responsiveCardHMargin(),
+				".mb-8.mt-8." + responsiveCardHMargin(),
 				m(InfoBanner, {
 					message: () =>
 						m(
 							".small.text-break",
 							lang.getTranslation("sendScheduledForDate_msg", { "{dateTime}": formatDateWithWeekday(sendAt) + " • " + formatTime(sendAt) }).text,
 						),
-					icon: Icons.ClockFilled,
-					buttons: [],
+					icon: Icons.ScheduleMail,
+					buttons: [
+						{
+							label: "cancelSend_action",
+							click: () => viewModel.unscheduleMail(),
+						},
+					],
 				}),
 			)
 		} else {

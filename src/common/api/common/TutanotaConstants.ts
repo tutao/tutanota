@@ -195,14 +195,23 @@ export enum MailSetKind {
 	SEND_LATER = "10",
 }
 
-export const SYSTEM_FOLDERS = [MailSetKind.INBOX, MailSetKind.SENT, MailSetKind.TRASH, MailSetKind.ARCHIVE, MailSetKind.SPAM, MailSetKind.DRAFT] as const
+export const SYSTEM_FOLDERS = [
+	MailSetKind.INBOX,
+	MailSetKind.SENT,
+	MailSetKind.TRASH,
+	MailSetKind.ARCHIVE,
+	MailSetKind.SPAM,
+	MailSetKind.DRAFT,
+	MailSetKind.SEND_LATER,
+] as const
 export type SystemFolderType = (typeof SYSTEM_FOLDERS)[number]
 
 export function getMailSetKind(folder: MailFolder): MailSetKind {
 	return folder.folderType as MailSetKind
 }
 
-export type SimpleMoveMailTarget = MailSetKind.INBOX | MailSetKind.SENT | MailSetKind.TRASH | MailSetKind.ARCHIVE | MailSetKind.SPAM | MailSetKind.DRAFT
+export const MOVE_SYSTEM_FOLDERS = [MailSetKind.INBOX, MailSetKind.SENT, MailSetKind.TRASH, MailSetKind.ARCHIVE, MailSetKind.SPAM, MailSetKind.DRAFT] as const
+export type SimpleMoveMailTarget = (typeof SYSTEM_FOLDERS)[number]
 
 export const enum ReplyType {
 	NONE = "0",

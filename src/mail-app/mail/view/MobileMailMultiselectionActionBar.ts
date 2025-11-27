@@ -4,7 +4,7 @@ import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { DROPDOWN_MARGIN, PosRect } from "../../../common/gui/base/Dropdown.js"
 import { MobileBottomActionBar } from "../../../common/gui/MobileBottomActionBar.js"
 import { LabelsPopupOpts, ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
-import { px, size } from "../../../common/gui/size"
+import { component_size, px, size } from "../../../common/gui/size"
 
 export interface MobileMailMultiselectionActionBarAttrs {
 	selectNone: () => unknown
@@ -41,7 +41,7 @@ export class MobileMailMultiselectionActionBar {
 	private placeholder() {
 		return m("", {
 			style: {
-				width: px(size.button_height),
+				width: px(component_size.button_height),
 			},
 		})
 	}

@@ -38,8 +38,7 @@ const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.ARCHIVE]: FontIcons.Archive,
 	[MailSetKind.SPAM]: FontIcons.Spam,
 	[MailSetKind.DRAFT]: FontIcons.Draft,
-	// FIXME: we will need to create icon for this
-	[MailSetKind.SEND_LATER]: FontIcons.ClockFilled,
+	[MailSetKind.SEND_LATER]: FontIcons.ScheduleMail,
 	// The ones below will never show a folder icon, but we need them to complete the set
 	[MailSetKind.ALL]: FontIcons.Folder,
 	[MailSetKind.LABEL]: FontIcons.Folder,
@@ -416,7 +415,7 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 
 		if (mail.state === MailState.DRAFT) {
-			iconText += isMailScheduled(mail) ? FontIcons.ClockFilled : FontIcons.Edit
+			iconText += isMailScheduled(mail) ? FontIcons.ScheduleMail : FontIcons.Edit
 			description += lang.get("draft_label") + " "
 		}
 

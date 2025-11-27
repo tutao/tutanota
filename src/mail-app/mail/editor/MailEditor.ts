@@ -26,8 +26,8 @@ import {
 } from "../../../common/api/common/TutanotaConstants"
 import { TooManyRequestsError } from "../../../common/api/common/error/RestError"
 import type { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
-import { ButtonType } from "../../../common/gui/base/Button.js"
-import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
+import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
+import { attachDropdown, createAsyncDropdown, createDropdown, DropdownButtonAttrs, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
 import { isApp, isBrowser, isDesktop } from "../../../common/api/common/Env"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AnimationPromise, animations, height, opacity } from "../../../common/gui/animation/Animations"
@@ -61,6 +61,7 @@ import {
 	minutesToMillis,
 	noOp,
 	ofClass,
+	resolveMaybeLazy,
 	secondsToMillis,
 	throttle,
 	typedValues,
@@ -122,9 +123,10 @@ import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/ap
 import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
 import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
 import { TimePicker, TimePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/TimePicker"
-import { getTimeFormatForUser } from "../../../common/calendar/date/CalendarUtils"
 import { Time } from "../../../common/calendar/date/Time"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
+import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { getTimeFormatForUser } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 
 // Interval where we save drafts locally.
 //
@@ -317,8 +319,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			}
 
 			if (model.getSendLaterDate() != null && model.getSendLaterDateStatus() !== SendLaterDateStatus.WithinRange) {
-				// FIXME add translation
-				throw new UserError(lang.makeTranslation("invalidSendLaterDate_msg", "Invalid send later date."))
+				throw new UserError(lang.getTranslation("invalidSendLaterDate_msg"))
 			}
 		})
 		const dialog = a.dialog()
@@ -483,26 +484,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		}
 
 		let sendLater: Date | null = model.getSendLaterDate()
-		const sendLaterButtonAttrs: ToggleButtonAttrs = {
-			// FIXME translation
-			title: lang.makeTranslation("sendlaterbutton_id", "Send Later"),
-			onToggled: (_, e) => {
-				e.stopPropagation()
-				if (sendLater) {
-					model.setSendLaterDate(null)
-				} else {
-					let nextDay = new Date()
-					nextDay.setDate(nextDay.getDate() + 1)
-					nextDay.setHours(8)
-					nextDay.setMinutes(0)
-					nextDay.setSeconds(0, 0)
-					model.setSendLaterDate(nextDay)
-				}
-			},
-			icon: Icons.ClockFilled,
-			toggled: sendLater !== null,
-			size: ButtonSize.Compact,
-		}
 
 		const attachFilesButtonAttrs: IconButtonAttrs = {
 			title: "attachFiles_action",
@@ -558,7 +539,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 								size: ButtonSize.Compact,
 							})
 						: null,
-					m(ToggleButton, sendLaterButtonAttrs),
 					toolbarButton(),
 					showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
 					this.knowledgeBaseInjection ? this.renderToggleKnowledgeBase(this.knowledgeBaseInjection) : null,
@@ -765,8 +745,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 													}
 												},
 												timeFormat: getTimeFormatForUser(model.logins.getUserController().userSettingsGroupRoot),
-												// FIXME: add translation
-												ariaLabel: lang.makeTranslation("sendTime_label", "Send time"),
+												ariaLabel: lang.getTranslation("sendTime_label"),
 												renderAsTextField: true,
 											} satisfies TimePickerAttrs),
 										),
@@ -802,22 +781,13 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			case SendLaterDateStatus.WithinRange:
 				return null
 			case SendLaterDateStatus.NotSet:
-				// FIXME add translation
-				message = lang.makeTranslation("sendLaterDateNotSet_msg", "Send later date is not set")
+				message = lang.getTranslation("sendLaterDateNotSet_msg")
 				break
 			case SendLaterDateStatus.InThePast:
-				// FIXME add translation
-				message = lang.makeTranslation(
-					"sendLaterDateInThePast_msg",
-					`Send must be scheduled at least ${SEND_LATER_MIN_MINUTES_IN_FUTURE} minutes from now`,
-				)
+				message = lang.getTranslation("sendLaterDateInThePast_msg", { "{1}": SEND_LATER_MIN_MINUTES_IN_FUTURE })
 				break
 			case SendLaterDateStatus.TooFarInTheFuture:
-				// FIXME add translation
-				message = lang.makeTranslation(
-					"sendLaterDateTooFarInTheFuture_msg",
-					`Send can only be scheduled up to ${SEND_LATER_MAX_DAYS_IN_FUTURE} days from now at the latest`,
-				)
+				message = lang.getTranslation("sendLaterDateTooFarInTheFuture_msg", { "{1}": SEND_LATER_MAX_DAYS_IN_FUTURE })
 				break
 		}
 
@@ -1303,17 +1273,83 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				label: "close_alt",
 				click: () => minimize(),
 				type: ButtonType.Secondary,
+				icon: m(Icon, {
+					icon: Icons.XCross,
+					container: "div",
+					class: "mb-8",
+					size: IconSize.PX24,
+				}),
 			},
 		],
-		right: () => [
-			{
-				label: model.getSendLaterDate() != null ? "sendLater_action" : "send_action",
+		leftChildren: styles.isMobileLayout()
+			? m(
+					".ml-negative-8",
+					m(IconButton, {
+						title: "close_alt",
+						click: () => minimize(),
+						icon: Icons.XCross,
+						colors: ButtonColor.Primary,
+					}),
+				)
+			: null,
+		rightChildren: () => {
+			const scheduledMail = model.getSendLaterDate() != null
+
+			const sendButtonAttrs: DropdownButtonAttrs = {
+				label: "send_action",
+				icon: Icons.Send,
 				click: () => {
-					send()
+					model.setSendLaterDate(null)
 				},
-				type: ButtonType.Primary,
-			},
-		],
+			}
+
+			const sendScheduledButtonAttrs: DropdownButtonAttrs = {
+				label: "sendLater_action",
+				icon: Icons.ScheduleMail,
+				click: () => {
+					model.setDefaultSendLaterDate()
+				},
+			}
+
+			return m(".flex", [
+				styles.isMobileLayout()
+					? m(IconButton, {
+							title: scheduledMail ? "sendLater_action" : "send_action",
+							click: () => {
+								send()
+							},
+							icon: scheduledMail ? Icons.ScheduleMail : Icons.Send,
+							colors: ButtonColor.Primary,
+						})
+					: m(Button, {
+							label: scheduledMail ? "sendLater_action" : "send_action",
+							click: () => {
+								send()
+							},
+							type: ButtonType.Primary,
+							icon: m(Icon, {
+								icon: scheduledMail ? Icons.ScheduleMail : Icons.Send,
+								container: "div",
+								class: "mb-8 mr-4",
+								size: IconSize.PX24,
+							}),
+						}),
+				m(
+					styles.isMobileLayout() ? "" : ".ml-8",
+					m(IconButton, {
+						title: "more_label",
+						click: createAsyncDropdown({
+							width: 216,
+							lazyButtons: async () => resolveMaybeLazy([scheduledMail ? sendButtonAttrs : sendScheduledButtonAttrs]),
+						}),
+						icon: Icons.ChevronDown,
+						//icon: BootIcons.Expand,
+						size: ButtonSize.Normal,
+						colors: ButtonColor.Nav,
+					}),
+				),
+			])
+		},
 		middle: dialogTitleTranslationKey(model.getConversationType()),
 		create: () => {
 			if (isBrowser()) {

@@ -879,6 +879,15 @@ export class SendMailModel {
 		return null
 	}
 
+	setDefaultSendLaterDate(): void {
+		let nextDay = new Date()
+		nextDay.setDate(nextDay.getDate() + 1)
+		nextDay.setHours(8)
+		nextDay.setMinutes(0)
+		nextDay.setSeconds(0, 0)
+		this.setSendLaterDate(nextDay)
+	}
+
 	setSendLaterDate(newDate: Date | null): void {
 		if (!this.sendLater) {
 			// if there is no send later on the model, we need to set it
