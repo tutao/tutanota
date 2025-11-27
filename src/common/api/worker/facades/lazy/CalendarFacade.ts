@@ -37,7 +37,7 @@ import {
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { GroupType, OperationType } from "../../../common/TutanotaConstants.js"
 import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule, UserSettingsGroupRoot } from "../../../entities/tutanota/TypeRefs.js"
-import { CalendarEventTypeRef, CalendarEventUidIndexTypeRef, CalendarGroupRootTypeRef, createCalendarDeleteData } from "../../../entities/tutanota/TypeRefs.js"
+import { CalendarEventTypeRef, CalendarEventUidIndexTypeRef, CalendarGroupRootTypeRef, createCalendarDeleteIn } from "../../../entities/tutanota/TypeRefs.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError, PayloadTooLargeError } from "../../../common/error/RestError.js"
 import { EntityClient, loadMultipleFromLists } from "../../../common/EntityClient.js"
@@ -382,8 +382,8 @@ export class CalendarFacade {
 		return await this.groupManagementFacade.createCalendar(name)
 	}
 
-	async deleteCalendar(groupRootId: Id): Promise<void> {
-		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteData({ groupRootId }))
+	async deleteCalendar(groupRootId: Id, deleteEventsOnly: boolean = false): Promise<void> {
+		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteIn({ groupRootId, deleteEventsOnly }))
 	}
 
 	async setCalendarAsDefault(groupRootId: Id, userSettingsGroupRoot: UserSettingsGroupRoot): Promise<void> {

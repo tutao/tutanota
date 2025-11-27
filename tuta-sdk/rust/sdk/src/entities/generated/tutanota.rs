@@ -2085,14 +2085,16 @@ impl Entity for UserSettingsGroupRoot {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct CalendarDeleteData {
+pub struct CalendarDeleteIn {
 	#[serde(rename = "983")]
 	pub _format: i64,
+	#[serde(rename = "1789")]
+	pub deleteEventsOnly: bool,
 	#[serde(rename = "984")]
 	pub groupRootId: GeneratedId,
 }
 
-impl Entity for CalendarDeleteData {
+impl Entity for CalendarDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
