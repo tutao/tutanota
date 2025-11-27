@@ -621,10 +621,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private getSetUnreadStateAction(): ((unread: boolean) => void) | null {
 		const actionableMails = this.mailViewModel.getActionableMails()
-		// FIXME why don't we want drafts' unread status to be set? bear in mind that marking a conversation as unread will
-		//  mark the drafts. So maybe we either ignore draft when marking a conversation or just allow it everywhere.
-		// ↓ Old check ↓
-		// if (isEmpty(actionableMails) || (actionableMails.length === 1 && isDraft(getFirstOrThrow(actionableMails)))) {
 		if (isEmpty(actionableMails)) {
 			return null
 		} else {
@@ -795,13 +791,21 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				key: Keys.THREE,
 				exec: () => {
+					this.mailViewModel.switchToFolder(MailSetKind.SEND_LATER)
+					return true
+				},
+				help: "switchScheduledFolder_action",
+			},
+			{
+				key: Keys.FOUR,
+				exec: () => {
 					this.mailViewModel.switchToFolder(MailSetKind.SENT)
 					return true
 				},
 				help: "switchSentFolder_action",
 			},
 			{
-				key: Keys.FOUR,
+				key: Keys.FIVE,
 				exec: () => {
 					this.mailViewModel.switchToFolder(MailSetKind.TRASH)
 					return true
@@ -809,7 +813,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				help: "switchTrash_action",
 			},
 			{
-				key: Keys.FIVE,
+				key: Keys.SIX,
 				exec: () => {
 					this.mailViewModel.switchToFolder(MailSetKind.ARCHIVE)
 					return true
@@ -818,7 +822,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				help: "switchArchive_action",
 			},
 			{
-				key: Keys.SIX,
+				key: Keys.S,
 				exec: () => {
 					this.mailViewModel.switchToFolder(MailSetKind.SPAM)
 					return true
@@ -826,7 +830,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.InternalCommunication),
 				help: "switchSpam_action",
 			},
-			// FIXME: need to add Send Later
 			{
 				key: Keys.CTRL,
 				exec: () => false,

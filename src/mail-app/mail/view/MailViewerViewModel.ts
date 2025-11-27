@@ -336,7 +336,6 @@ export class MailViewerViewModel {
 	}
 
 	isDeletableMail() {
-		// FIXME: may need to add mailsetkind send later here, it depends on how we handle the mail actions bar for send later mails
 		const folderType = this.getFolderInfo()?.folderType
 		return folderType === MailSetKind.TRASH || folderType === MailSetKind.SPAM
 	}
@@ -620,12 +619,10 @@ export class MailViewerViewModel {
 	}
 
 	canReportSpam(): boolean {
-		// FIXME: may need to add mailsetkind send later here
 		return this.logins.isInternalUserLoggedIn() && !this.isDraftMail() && this.getFolderInfo()?.folderType !== MailSetKind.SPAM
 	}
 
 	canReportPhishing(): boolean {
-		// FIXME: may need to add mailsetkind send later here
 		return (
 			this.logins.isInternalUserLoggedIn() && !this.isDraftMail() && this.getPhishingStatus() === MailPhishingStatus.UNKNOWN && !this.isTutanotaTeamMail()
 		)

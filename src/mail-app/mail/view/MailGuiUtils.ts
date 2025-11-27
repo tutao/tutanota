@@ -12,6 +12,7 @@ import {
 	MailReportType,
 	MailSetKind,
 	MailState,
+	SimpleMoveMailTarget,
 	SYSTEM_GROUP_MAIL_ADDRESS,
 	SystemFolderType,
 } from "../../../common/api/common/TutanotaConstants"
@@ -308,7 +309,7 @@ export async function simpleMoveToSystemFolder(
 	mailboxModel: MailboxModel,
 	mailModel: MailModel,
 	undoModel: UndoModel,
-	targetFolder: SystemFolderType,
+	targetFolder: SimpleMoveMailTarget,
 	mails: readonly Mail[],
 ): Promise<boolean> {
 	let movedMails: MovedMails[]
@@ -345,7 +346,7 @@ export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 			return Icons.Draft
 
 		case MailSetKind.SEND_LATER:
-			return Icons.ClockFilled
+			return Icons.ScheduleMail
 
 		default:
 			return Icons.Folder
@@ -550,7 +551,7 @@ export async function showMoveMailsDropdown(
 	if (moveTargets.moveService === MoveService.SimpleMove) {
 		moveParams = {
 			...moveTargets,
-			onClick: (f: SystemFolderType) => {
+			onClick: (f: SimpleMoveMailTarget) => {
 				simpleMoveToSystemFolder(mailboxModel, mailModel, undoModel, f, mails)
 			},
 		}

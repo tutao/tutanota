@@ -2130,5 +2130,11 @@ export default {
         "sendOrSendLater_label": "Send/Send later",
         "sendScheduledForDate_msg": "Send scheduled for {dateTime}",
         "scheduling_msg": "Your message is being scheduled.",
+		"sendLaterDateNotSet_msg": "Send later date is not set",
+		"sendLaterDateInThePast_msg": "Send must be scheduled at least {1} minutes from now",
+		"sendLaterDateTooFarInTheFuture_msg": "Send can only be scheduled up to {1} days from now",
+		"switchScheduledFolder_action": "Switch to scheduled folder",
+		"invalidSendLaterDate_msg": "Invalid send later date",
+		"sendTime_label": "Send time",
     }
 }

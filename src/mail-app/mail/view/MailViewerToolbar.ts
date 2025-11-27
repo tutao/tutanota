@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { IconButton } from "../../../common/gui/base/IconButton.js"
 import { isEmpty } from "@tutao/tutanota-utils"
@@ -59,17 +59,12 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	 * Actions that can only be taken on a single mail (reply, forward, edit, assign)
 	 */
 	private renderSingleMailActions(attrs: MailViewerToolbarAttrs): Children {
-		const { editDraftAction, replyAction, replyAllAction, forwardAction, unscheduleMailAction } = attrs
-		if (editDraftAction == null && replyAction == null && replyAllAction == null && forwardAction == null && unscheduleMailAction == null) {
+		const { editDraftAction, replyAction, replyAllAction, forwardAction } = attrs
+		if (editDraftAction == null && replyAction == null && replyAllAction == null && forwardAction == null) {
 			return null
 		}
 
-		return [
-			this.renderUnscheduleButton(unscheduleMailAction),
-			this.renderEditButton(editDraftAction),
-			this.renderReplyButton(replyAction, replyAllAction),
-			this.renderForwardButton(forwardAction),
-		]
+		return [this.renderEditButton(editDraftAction), this.renderReplyButton(replyAction, replyAllAction), this.renderForwardButton(forwardAction)]
 	}
 
 	private renderTrashButton({ trashMailsAction }: MailViewerToolbarAttrs): Children {
@@ -218,16 +213,6 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 					title: "edit_action",
 					click: editDraftAction,
 					icon: Icons.Edit,
-				})
-			: null
-	}
-
-	private renderUnscheduleButton(unscheduleMailAction: (() => void) | null) {
-		return unscheduleMailAction
-			? m(IconButton, {
-					title: "cancelSend_action",
-					click: unscheduleMailAction,
-					icon: Icons.XCross,
 				})
 			: null
 	}
