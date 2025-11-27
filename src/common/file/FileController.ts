@@ -5,7 +5,6 @@ import { assertNotNull, neverNull, newPromise, promiseMap } from "@tutao/tutanot
 import { lang, TranslationKey } from "../misc/LanguageViewModel.js"
 import { BrowserType } from "../misc/ClientConstants.js"
 import { client } from "../misc/ClientDetector.js"
-import { File as TutanotaFile } from "../api/entities/tutanota/TypeRefs.js"
 import { deduplicateFilenames, FileReference, sanitizeFilename } from "../api/common/utils/FileUtils"
 
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
@@ -20,7 +19,7 @@ import { isOfflineError } from "../api/common/utils/ErrorUtils.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
-import { createReferencingInstance } from "../api/common/utils/BlobUtils.js"
+import { createReferencingInstance, DownloadableFileEntity } from "../api/common/utils/BlobUtils.js"
 
 assertMainOrNode()
 export const CALENDAR_MIME_TYPE = "text/calendar"
@@ -53,7 +52,7 @@ export abstract class FileController {
 	) {}
 
 	private async doDownload(
-		tutanotaFiles: TutanotaFile[],
+		tutanotaFiles: readonly DownloadableFileEntity[],
 		action: DownloadPostProcessing,
 		options: {
 			progress?: stream<number>
@@ -105,7 +104,7 @@ export abstract class FileController {
 	/**
 	 * get the referenced TutanotaFile as a DataFile without writing anything to disk
 	 */
-	async getAsDataFile(file: TutanotaFile, archiveType: ArchiveDataType = ArchiveDataType.Attachments): Promise<DataFile> {
+	async getAsDataFile(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments): Promise<DataFile> {
 		// using the browser's built-in download since we don't want to write anything to disk here
 		return downloadAndDecryptFromArchive(file, this.blobFacade, archiveType)
 	}
@@ -118,7 +117,7 @@ export abstract class FileController {
 	/**
 	 * Download a file from the server to the filesystem
 	 */
-	async download(file: TutanotaFile) {
+	async download(file: DownloadableFileEntity) {
 		await this.observeProgress(this.doDownload([file], DownloadPostProcessing.Write))
 	}
 
@@ -127,7 +126,7 @@ export abstract class FileController {
 	 *
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	async downloadAll(files: Array<TutanotaFile>, archiveType: ArchiveDataType): Promise<void> {
+	async downloadAll(files: readonly DownloadableFileEntity[], archiveType: ArchiveDataType): Promise<void> {
 		const progress = stream(0)
 		await this.observeProgress(this.doDownload(files, DownloadPostProcessing.Write, { progress, archiveType }), progress)
 	}
@@ -136,7 +135,7 @@ export abstract class FileController {
 	 * Open a file in the host system
 	 * Temporary files are deleted afterwards in apps.
 	 */
-	async open(file: TutanotaFile, archiveType: ArchiveDataType = ArchiveDataType.Attachments) {
+	async open(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments) {
 		await this.observeProgress(this.doDownload([file], DownloadPostProcessing.Open, { archiveType }))
 	}
 
@@ -149,7 +148,7 @@ export abstract class FileController {
 	/**
 	 * Get a file from the server and decrypt it
 	 */
-	protected abstract downloadAndDecrypt(file: TutanotaFile, archiveType: ArchiveDataType): Promise<FileReference | DataFile>
+	protected abstract downloadAndDecrypt(file: DownloadableFileEntity, archiveType: ArchiveDataType): Promise<FileReference | DataFile>
 }
 
 export function handleDownloadErrors<R>(e: Error, errorAction: (msg: TranslationKey) => R): R {
@@ -334,7 +333,7 @@ export async function openDataFileInBrowser(dataFile: DataFile): Promise<void> {
 	}
 }
 
-export async function downloadAndDecryptFromArchive(file: TutanotaFile, blobFacade: BlobFacade, archiveDataType: ArchiveDataType): Promise<DataFile> {
+export async function downloadAndDecryptFromArchive(file: DownloadableFileEntity, blobFacade: BlobFacade, archiveDataType: ArchiveDataType): Promise<DataFile> {
 	const bytes = await blobFacade.downloadAndDecrypt(archiveDataType, createReferencingInstance(file))
 	return convertToDataFile(file, bytes)
 }

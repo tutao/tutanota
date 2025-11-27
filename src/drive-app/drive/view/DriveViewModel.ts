@@ -14,7 +14,7 @@ import { isFolder } from "./DriveFolderContentEntry"
 import { DriveFile, DriveFileRefTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
-import { OperationType } from "../../../common/api/common/TutanotaConstants"
+import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -210,8 +210,7 @@ export class DriveViewModel {
 
 	async downloadFile(file: DriveFile): Promise<void> {
 		// a bit ugly -- should we rename and move that one?
-		// FIXME: does not work with Drive yet
-		// locator.fileController.open(file, ArchiveDataType.DriveFile)
+		locator.fileController.open(file, ArchiveDataType.DriveFile)
 	}
 
 	getCurrentColumnSortOrder() {
