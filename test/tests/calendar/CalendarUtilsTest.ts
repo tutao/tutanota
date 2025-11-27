@@ -24,6 +24,7 @@ import {
 	getStartOfWeek,
 	getTimeZone,
 	getWeekNumber,
+	incrementByRepeatPeriod,
 	isEventBetweenDays,
 	parseAlarmInterval,
 	StandardAlarmInterval,
@@ -2498,6 +2499,152 @@ o.spec("calendar utils tests", function () {
 		o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.HOUR })).equals("2H")
 		o(serializeAlarmInterval({ value: 35, unit: AlarmIntervalUnit.DAY })).equals("35D")
 		o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.WEEK })).equals("2W")
+	})
+
+	o.spec("incrementByRepeatPeriod", function () {
+		const timeZone = "Europe/Berlin"
+		o("with daylight saving", function () {
+			const daylightSavingDay = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 10,
+					day: 26,
+					hour: 10,
+				},
+				{ zone: "Europe/Moscow" },
+			).toJSDate()
+			const dayAfter = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 10,
+					day: 27,
+					hour: 11,
+				},
+				{ zone: "Europe/Moscow" },
+			).toJSDate()
+			// event timezone is subject to daylight saving but observer is not
+			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, timeZone).toISOString()).equals(dayAfter.toISOString())
+		})
+		o("event in timezone without daylight saving should not be subject to daylight saving", function () {
+			const daylightSavingDay = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 10,
+					day: 26,
+					hour: 10,
+				},
+				{ zone: "Europe/Moscow" },
+			).toJSDate()
+			const dayAfter = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 10,
+					day: 27,
+					hour: 10,
+				},
+				{ zone: "Europe/Moscow" },
+			).toJSDate()
+			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, "Europe/Moscow").toISOString()).equals(dayAfter.toISOString())
+		})
+		o("weekly", function () {
+			const onFriday = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 5,
+					day: 31,
+					hour: 10,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const nextFriday = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 6,
+					day: 7,
+					hour: 10,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			o(incrementByRepeatPeriod(onFriday, RepeatPeriod.WEEKLY, 1, timeZone).toISOString()).equals(nextFriday.toISOString())
+			const oneYearAfter = DateTime.fromObject(
+				{
+					year: 2020,
+					month: 5,
+					day: 29,
+					hour: 10,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			o(incrementByRepeatPeriod(onFriday, RepeatPeriod.WEEKLY, 52, timeZone).toISOString()).equals(oneYearAfter.toISOString())
+		})
+		o("monthly", function () {
+			const endOfMay = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 5,
+					day: 31,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const endOfJune = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 6,
+					day: 30,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const calculatedEndOfJune = incrementByRepeatPeriod(endOfMay, RepeatPeriod.MONTHLY, 1, timeZone)
+			o(calculatedEndOfJune.toISOString()).equals(endOfJune.toISOString())
+			const endOfJuly = DateTime.fromObject(
+				{
+					year: 2019,
+					month: 7,
+					day: 31,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const endOfJulyString = endOfJuly.toISOString()
+			const incrementedDateString = incrementByRepeatPeriod(endOfMay, RepeatPeriod.MONTHLY, 2, timeZone).toISOString()
+			o(incrementedDateString).equals(endOfJulyString)
+		})
+		o("annually", function () {
+			const leapYear = DateTime.fromObject(
+				{
+					year: 2020,
+					month: 2,
+					day: 29,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			const yearAfter = DateTime.fromObject(
+				{
+					year: 2021,
+					month: 2,
+					day: 28,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 1, timeZone).toISOString()).equals(yearAfter.toISOString())
+			const twoYearsAfter = DateTime.fromObject(
+				{
+					year: 2022,
+					month: 2,
+					day: 28,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 2, timeZone).toISOString()).equals(twoYearsAfter.toISOString())
+			const fourYearsAfter = DateTime.fromObject(
+				{
+					year: 2024,
+					month: 2,
+					day: 29,
+				},
+				{ zone: timeZone },
+			).toJSDate()
+			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 4, timeZone).toISOString()).equals(fourYearsAfter.toISOString())
+		})
 	})
 })
 

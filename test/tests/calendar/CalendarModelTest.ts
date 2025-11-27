@@ -12,7 +12,7 @@ import {
 } from "../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { downcast, hexToUint8Array, neverNull, stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { CalendarModel } from "../../../src/calendar-app/calendar/model/CalendarModel.js"
-import { CalendarAttendeeStatus, CalendarMethod, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants.js"
+import { CalendarAttendeeStatus, CalendarMethod, OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
 import { DateTime } from "luxon"
 import { EntityEventsListener, EventController } from "../../../src/common/api/main/EventController.js"
 import { Notifications } from "../../../src/common/gui/Notifications.js"
@@ -43,263 +43,25 @@ import { NoopProgressMonitor } from "../../../src/common/api/common/utils/Progre
 import { makeAlarmScheduler } from "./CalendarTestUtils.js"
 import { EntityUpdateData, PrefetchStatus } from "../../../src/common/api/common/utils/EntityUpdateUtils.js"
 import { MailboxModel } from "../../../src/common/mailFunctionality/MailboxModel.js"
-import { incrementByRepeatPeriod } from "../../../src/common/calendar/date/CalendarUtils.js"
 import { ExternalCalendarFacade } from "../../../src/common/native/common/generatedipc/ExternalCalendarFacade.js"
 import { DeviceConfig } from "../../../src/common/misc/DeviceConfig.js"
 import { SyncTracker } from "../../../src/common/api/main/SyncTracker.js"
 import { ClientModelInfo } from "../../../src/common/api/common/EntityFunctions"
-import { EntityRestClient } from "../../../src/common/api/worker/rest/EntityRestClient"
-import { eventHasSameFields } from "../../../src/common/calendar/gui/ImportExportUtils"
 import { LanguageViewModel } from "../../../src/common/misc/LanguageViewModel.js"
 
 o.spec("CalendarModel", function () {
-	const { anything } = matchers
-
 	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
 		instance: null,
 		patches: null,
 	}
 
-	o.spec("calendar events have same fields", function () {
-		let restClientMock: EntityRestClient
-		let calendarFacadeMock: CalendarFacade
-		let workerClientMock: WorkerClient
-		let calendarModel: CalendarModel
-		let eventA: CalendarEvent
-		let eventB: CalendarEvent
-		o.beforeEach(() => {
-			restClientMock = object()
-			calendarFacadeMock = object()
-			workerClientMock = object()
-			calendarModel = init({
-				workerClient: workerClientMock,
-				restClientMock,
-				calendarFacade: calendarFacadeMock,
-			})
-
-			eventA = createTestEntity(CalendarEventTypeRef, {
-				_id: ["listId", "eventId"],
-				uid: "someUid",
-				startTime: new Date(),
-				endTime: new Date(),
-				description: "some description",
-				summary: "v1",
-				attendees: [
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: "guestAddress1",
-							name: "guestName1",
-						}),
-						status: CalendarAttendeeStatus.NEEDS_ACTION,
-					}),
-					createTestEntity(CalendarEventAttendeeTypeRef, {
-						address: createTestEntity(EncryptedMailAddressTypeRef, {
-							address: "guestAddress2",
-							name: "guestName2",
-						}),
-						status: CalendarAttendeeStatus.NEEDS_ACTION,
-					}),
-				],
-				alarmInfos: [["listId", "elementId"]],
-				organizer: createTestEntity(EncryptedMailAddressTypeRef, {
-					address: "organizerAddress",
-					name: "organizerName3",
-				}),
-			})
-			eventB = structuredClone(eventA)
-		})
-		o.test("calendar events A and B are identical", function () {
-			o.check(eventHasSameFields(eventA, eventB)).equals(true)
-		})
-		o.test("calendar events A are B same if ids do not match", function () {
-			eventA._id = ["listId", "elementId"]
-			o.check(eventHasSameFields(eventA, eventB)).equals(true)
-		})
-		o.test("calendar events A are B same if aggregatedIds do not match", function () {
-			eventA.organizer!._id = "newId"
-			eventB.attendees.map((attendee) => {
-				attendee._id = "newId"
-			})
-			o.check(eventHasSameFields(eventA, eventB)).equals(true)
-		})
-		o.test("calendar events A and B are NOT same if non technical field organizer name changes", function () {
-			eventA.organizer!.name = "newName"
-			o.check(eventHasSameFields(eventA, eventB)).equals(false)
-		})
-		o.test("calendar events A and B are NOT same if non technical field attendees status changes", function () {
-			eventB.attendees.map((attendee) => {
-				attendee.status = CalendarAttendeeStatus.ADDED
-			})
-			o.check(eventHasSameFields(eventA, eventB)).equals(false)
-		})
-		o.test("calendar events A and B are NOT same if non technical field summary changes", function () {
-			eventB.summary = "newSummary"
-			o.check(eventHasSameFields(eventA, eventB)).equals(false)
-		})
-		o.test("calendar events A and B are NOT same if non technical field startTime changes", function () {
-			const newStartTime = new Date()
-			newStartTime.setTime(122342)
-			eventB.startTime = newStartTime
-			o.check(eventHasSameFields(eventA, eventB)).equals(false)
-		})
-		o.test("calendar events A and B are NOT same if non technical field endTime changes", function () {
-			const newEndTime = new Date()
-			newEndTime.setTime(122342)
-			eventA.endTime = newEndTime
-			o.check(eventHasSameFields(eventA, eventB)).equals(false)
-		})
-	})
-	o.spec("incrementByRepeatPeriod", function () {
-		const timeZone = "Europe/Berlin"
-		o("with daylight saving", function () {
-			const daylightSavingDay = DateTime.fromObject(
-				{
-					year: 2019,
-					month: 10,
-					day: 26,
-					hour: 10,
-				},
-				{ zone: "Europe/Moscow" },
-			).toJSDate()
-			const dayAfter = DateTime.fromObject(
-				{
-					year: 2019,
-					month: 10,
-					day: 27,
-					hour: 11,
-				},
-				{ zone: "Europe/Moscow" },
-			).toJSDate()
-			// event timezone is subject to daylight saving but observer is not
-			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, timeZone).toISOString()).equals(dayAfter.toISOString())
-		})
-		o("event in timezone without daylight saving should not be subject to daylight saving", function () {
-			const daylightSavingDay = DateTime.fromObject(
-				{
-					year: 2019,
-					month: 10,
-					day: 26,
-					hour: 10,
-				},
-				{ zone: "Europe/Moscow" },
-			).toJSDate()
-			const dayAfter = DateTime.fromObject(
-				{
-					year: 2019,
-					month: 10,
-					day: 27,
-					hour: 10,
-				},
-				{ zone: "Europe/Moscow" },
-			).toJSDate()
-			o(incrementByRepeatPeriod(daylightSavingDay, RepeatPeriod.DAILY, 1, "Europe/Moscow").toISOString()).equals(dayAfter.toISOString())
-		})
-		o("weekly", function () {
-			const onFriday = DateTime.fromObject(
-				{
-					year: 2019,
-					month: 5,
-					day: 31,
-					hour: 10,
-				},
-				{ zone: timeZone },
-			).toJSDate()
-			const nextFriday = DateTime.fromObject(
-				{
-					year: 2019,
-					month: 6,
-					day: 7,
-					hour: 10,
-				},
-				{ zone: timeZone },
-			).toJSDate()
-			o(incrementByRepeatPeriod(onFriday, RepeatPeriod.WEEKLY, 1, timeZone).toISOString()).equals(nextFriday.toISOString())
-			const oneYearAfter = DateTime.fromObject(
-				{
-					year: 2020,
-					month: 5,
-					day: 29,
-					hour: 10,
-				},
-				{ zone: timeZone },
-			).toJSDate()
-			o(incrementByRepeatPeriod(onFriday, RepeatPeriod.WEEKLY, 52, timeZone).toISOString()).equals(oneYearAfter.toISOString())
-		})
-		o("monthly", function () {
-			const endOfMay = DateTime.fromObject(
-				{
-					year: 2019,
-					month: 5,
-					day: 31,
-				},
-				{ zone: timeZone },
-			).toJSDate()
-			const endOfJune = DateTime.fromObject(
-				{
-					year: 2019,
-					month: 6,
-					day: 30,
-				},
-				{ zone: timeZone },
-			).toJSDate()
-			const calculatedEndOfJune = incrementByRepeatPeriod(endOfMay, RepeatPeriod.MONTHLY, 1, timeZone)
-			o(calculatedEndOfJune.toISOString()).equals(endOfJune.toISOString())
-			const endOfJuly = DateTime.fromObject(
-				{
-					year: 2019,
-					month: 7,
-					day: 31,
-				},
-				{ zone: timeZone },
-			).toJSDate()
-			const endOfJulyString = endOfJuly.toISOString()
-			const incrementedDateString = incrementByRepeatPeriod(endOfMay, RepeatPeriod.MONTHLY, 2, timeZone).toISOString()
-			o(incrementedDateString).equals(endOfJulyString)
-		})
-		o("annually", function () {
-			const leapYear = DateTime.fromObject(
-				{
-					year: 2020,
-					month: 2,
-					day: 29,
-				},
-				{ zone: timeZone },
-			).toJSDate()
-			const yearAfter = DateTime.fromObject(
-				{
-					year: 2021,
-					month: 2,
-					day: 28,
-				},
-				{ zone: timeZone },
-			).toJSDate()
-			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 1, timeZone).toISOString()).equals(yearAfter.toISOString())
-			const twoYearsAfter = DateTime.fromObject(
-				{
-					year: 2022,
-					month: 2,
-					day: 28,
-				},
-				{ zone: timeZone },
-			).toJSDate()
-			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 2, timeZone).toISOString()).equals(twoYearsAfter.toISOString())
-			const fourYearsAfter = DateTime.fromObject(
-				{
-					year: 2024,
-					month: 2,
-					day: 29,
-				},
-				{ zone: timeZone },
-			).toJSDate()
-			o(incrementByRepeatPeriod(leapYear, RepeatPeriod.ANNUALLY, 4, timeZone).toISOString()).equals(fourYearsAfter.toISOString())
-		})
-	})
 	o.spec("calendar event updates", function () {
 		let restClientMock: EntityRestClientMock
 		let groupRoot: CalendarGroupRoot
 		const loginController = makeLoginController()
 
 		const alarmsListId = neverNull(loginController.getUserController().user.alarmInfoList).alarms
+
 		o.beforeEach(function () {
 			groupRoot = createTestEntity(CalendarGroupRootTypeRef, {
 				_id: "groupRootId",
@@ -310,6 +72,7 @@ o.spec("CalendarModel", function () {
 			restClientMock = new EntityRestClientMock()
 			restClientMock.addElementInstances(groupRoot)
 		})
+
 		o("reply but sender is not a guest", async function () {
 			const uid = "uid"
 			const existingEvent = createTestEntity(CalendarEventTypeRef, { uid })

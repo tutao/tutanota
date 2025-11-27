@@ -1256,17 +1256,18 @@ export type UserSettingsGroupRoot = {
 	groupSettings: GroupSettings[];
 	defaultCalendar: null | Id;
 }
-export const CalendarDeleteDataTypeRef: TypeRef<CalendarDeleteData> = new TypeRef("tutanota", 982)
+export const CalendarDeleteInTypeRef: TypeRef<CalendarDeleteIn> = new TypeRef("tutanota", 982)
 
-export function createCalendarDeleteData(values: StrippedEntity<CalendarDeleteData>): CalendarDeleteData {
-    return Object.assign(create(typeModels[CalendarDeleteDataTypeRef.typeId], CalendarDeleteDataTypeRef), values)
+export function createCalendarDeleteIn(values: StrippedEntity<CalendarDeleteIn>): CalendarDeleteIn {
+    return Object.assign(create(typeModels[CalendarDeleteInTypeRef.typeId], CalendarDeleteInTypeRef), values)
 }
 
-export type CalendarDeleteData = {
-	_type: TypeRef<CalendarDeleteData>;
-	_original?: CalendarDeleteData
+export type CalendarDeleteIn = {
+	_type: TypeRef<CalendarDeleteIn>;
+	_original?: CalendarDeleteIn
 
 	_format: NumberString;
+	deleteEventsOnly: boolean;
 
 	groupRootId: Id;
 }

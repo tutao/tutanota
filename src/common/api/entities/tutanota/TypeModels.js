@@ -5023,7 +5023,7 @@ export const typeModels = {
 		}
 	},
 	"982": {
-		"name": "CalendarDeleteData",
+		"name": "CalendarDeleteIn",
 		"app": "tutanota",
 		"version": 99,
 		"since": 34,
@@ -5039,6 +5039,14 @@ export const typeModels = {
 				"name": "_format",
 				"id": 983,
 				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1789": {
+				"final": false,
+				"name": "deleteEventsOnly",
+				"id": 1789,
+				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
 			}

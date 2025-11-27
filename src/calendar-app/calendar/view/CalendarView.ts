@@ -1031,6 +1031,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	private handleDelete(calendarInfo: CalendarInfo) {
 		const calendarName = getSharedGroupName(calendarInfo.groupInfo, locator.logins.getUserController().userSettingsGroupRoot, false)
+
 		loadGroupMembers(calendarInfo.group, locator.entityClient).then((members) => {
 			const ownerMail = locator.logins.getUserController().userGroupInfo.mailAddress
 			const otherMembers = members.filter((member) => member.info.mailAddress !== ownerMail)

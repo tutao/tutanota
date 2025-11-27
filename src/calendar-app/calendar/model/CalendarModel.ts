@@ -1272,7 +1272,7 @@ export class CalendarModel {
 	}
 
 	async deleteCalendar(calendar: CalendarInfo): Promise<void> {
-		await this.calendarFacade.deleteCalendar(calendar.groupRoot._id)
+		await this.calendarFacade.deleteCalendar(calendar.groupRoot._id, this.isDefaultCalendar(calendar.id))
 		this.deviceConfig.removeLastSync(calendar.group._id)
 	}
 
@@ -1462,6 +1462,10 @@ export class CalendarModel {
 
 	getGroupSettings(): GroupSettings[] {
 		return this.logins.getUserController().userSettingsGroupRoot.groupSettings
+	}
+
+	private isDefaultCalendar(calendar: Id) {
+		return isSameId(this.logins.getUserController().userSettingsGroupRoot.defaultCalendar, calendar)
 	}
 }
 
