@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { Hex, hexToUint8Array, stringToBase64, stringToUtf8Uint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
+import { Hex, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import { aes256EncryptSearchIndexEntry, aesDecrypt, aesEncrypt, unauthenticatedAesDecrypt } from "../lib/encryption/Aes.js"
 import { CryptoError } from "../lib/misc/CryptoError.js"
 import { random } from "../lib/random/Randomizer.js"
@@ -11,7 +11,6 @@ import {
 	AesKey,
 	AesKeyLength,
 	base64ToKey,
-	extractIvFromCipherText,
 	IV_BYTE_LENGTH,
 	keyToBase64,
 	keyToUint8Array,
@@ -204,20 +203,6 @@ o.spec("aes", function () {
 	// 		aes256EncryptFile(aes256RandomKey(), stringToUtf8Uint8Array("1234567890abcdef"), random.generateRandomData(IV_BYTE_LENGTH)).then(encrypted => o(encrypted.length).equals(64)) // check that 16 bytes need two blocks (because of one byte padding length info)
 	// 	]).then(() => done())
 	// }))
-	o.spec("extract ivs", function () {
-		o("can extract IV from cipher text", function () {
-			const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
-			const cipherText = "AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2JWpmlpWEhgG5zqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj"
-			const expectedIv = new Uint8Array([93, 100, 153, 150, 95, 10, 107, 53, 164, 219, 212, 180, 106, 221, 132, 233])
-			const extractedIv = extractIvFromCipherText(cipherText)
-			o(Array.from(extractedIv)).deepEquals(Array.from(expectedIv))
-		})
-
-		o("checks that enough bytes are present", async function () {
-			await assertThrows(CryptoError, async () => extractIvFromCipherText(""))
-			await assertThrows(CryptoError, async () => extractIvFromCipherText(stringToBase64("012345678901234")))
-		})
-	})
 })
 
 export function _aes128RandomKey(): Aes128Key {
