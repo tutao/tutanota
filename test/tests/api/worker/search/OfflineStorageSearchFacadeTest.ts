@@ -23,6 +23,7 @@ import {
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs"
 import { createTestEntity } from "../../../TestUtils"
 import { CacheStorage } from "../../../../../src/common/api/worker/rest/DefaultEntityRestCache"
+import { MoreResultsIndexEntry, SearchResult } from "../../../../../src/common/api/worker/search/SearchTypes"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
@@ -207,7 +208,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			o.check(result.results).deepEquals([testMail3.mail._id, spamMail.mail._id, testMail2.mail._id, testMail1.mail._id])
 		})
 
-		o.test("maxResults is unused", async () => {
+		o.test("maxResults is used", async () => {
 			await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
 			const result = await offlineStorageSearchFacade.search(
 				"common",
@@ -223,7 +224,24 @@ o.spec("OfflineStorageSearchFacade", () => {
 				0,
 				2,
 			)
+			o.check(result.results).deepEquals([testMail3.mail._id, spamMail.mail._id])
+			o.check(result.moreResultsEntries).deepEquals([testMail2.mail._id, testMail1.mail._id])
+		})
+
+		o.test("getMoreSearchResults does not make another request", async () => {
+			await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
+			const result = {
+				results: [testMail3.mail._id, spamMail.mail._id],
+				moreResultsEntries: [testMail2.mail._id, testMail1.mail._id],
+			} satisfies Partial<SearchResult> as SearchResult
+
+			await offlineStorageSearchFacade.getMoreSearchResults(result, 1)
+			o.check(result.results).deepEquals([testMail3.mail._id, spamMail.mail._id, testMail2.mail._id])
+			o.check(result.moreResultsEntries).deepEquals([testMail1.mail._id])
+
+			await offlineStorageSearchFacade.getMoreSearchResults(result, 1)
 			o.check(result.results).deepEquals([testMail3.mail._id, spamMail.mail._id, testMail2.mail._id, testMail1.mail._id])
+			o.check(result.moreResultsEntries).deepEquals([])
 		})
 
 		o.spec("matching mails in set", () => {

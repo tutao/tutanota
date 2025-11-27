@@ -140,7 +140,7 @@ export type SearchResult = {
 	currentIndexTimestamp: number
 	maxResults?: number
 	moreResults: Array<MoreResultsIndexEntry>
-	moreResultsEntries: []
+	moreResultsEntries: IdTuple[]
 	lastReadSearchIndexRow: Array<[string, number | null]>
 	// array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
 	matchWordOrder: boolean

@@ -615,3 +615,24 @@ export function compare(first: Uint8Array, second: Uint8Array): number {
 
 	return 0
 }
+
+/**
+ * Split the array at the given index, returning the left and right side.
+ *
+ * The element at the given index will be included in the right side if it exists. For example, splitting at index 3 for
+ * `[0,1,2,3,4,5]` returns `[[0,1,2], [3,4,5]]`
+ *
+ * If `index >= array.length` then the right side will be an empty array, and the left side will be a shallow copy of
+ * {@link array}.
+ *
+ * @param {Array} array array to split
+ * @param {number} index index to split at (exclusive for left side, inclusive for right side)
+ * @returns An array containing two arrays: all elements from 0 to {@link index} (exclusive), and all elements from
+ *          {@link index} to the end.
+ */
+export function splitArrayAt<T>(array: readonly T[], index: number): [T[], T[]] {
+	const left = array.slice(0, index)
+	const right = array.slice(index)
+
+	return [left, right]
+}
