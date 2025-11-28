@@ -22,14 +22,26 @@ export type Theme = {
 	on_primary: string
 	primary_container: string
 	on_primary_container: string
+	primary_fixed: string
+	on_primary_fixed: string
+	primary_fixed_dim: string
+	on_primary_fixed_variant: string
 	secondary: string
 	on_secondary: string
 	secondary_container: string
 	on_secondary_container: string
+	secondary_fixed: string
+	on_secondary_fixed: string
+	secondary_fixed_dim: string
+	on_secondary_fixed_variant: string
 	tertiary: string
 	on_tertiary: string
 	tertiary_container: string
 	on_tertiary_container: string
+	tertiary_fixed: string
+	on_tertiary_fixed: string
+	tertiary_fixed_dim: string
+	on_tertiary_fixed_variant: string
 	surface: string
 	surface_container: string
 	surface_container_high: string
@@ -61,6 +73,10 @@ export type Theme = {
 	content_accent_tuta_bday: string
 	content_accent_secondary_tuta_bday: string
 	tuta_color_nota: string
+	// SVG illustration colors. Do not use for UI.
+	il_outline: string
+	il_ne_outline: string
+	il_highlight: string
 	/**
 	 * @deprecated Use not experimental color tokens instead.
 	 */

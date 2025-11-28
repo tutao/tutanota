@@ -127,8 +127,29 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 				locator.entityClient.update(userSettingsGroupRoot).catch(ofClass(LockedError, noOp))
 			},
 		}
+		const svgNames = [
+			"welcome",
+			"update",
+			"unlock-method",
+			"rate-us",
+			"on-your-mind",
+			"off-survilience",
+			"notifications",
+			"mail-import",
+			"love-it",
+			"feedback",
+			"contacts-import",
+			"appearance",
+		]
 		return m(".fill-absolute.scroll.plr-l.pb-xl", [
-			m(DynamicColorSvg, { path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-test.svg` }),
+			// FIXME: This SVG is just for testing, remove it before releasing
+			svgNames.map((name) =>
+				m(
+					".flex-wrap.gap",
+					{ style: { display: "inline-flex", width: "250px" } },
+					m(DynamicColorSvg, { path: `${window.tutao.appState.prefixWithoutFile}/images/dynamic-color-svg/${name}.svg` }),
+				),
+			),
 			m("#devicesettings.h4.mt-l", lang.get("settingsForDevice_label")),
 			m("#language", m(DropDownSelector, languageDropDownAttrs)),
 			this._renderThemeSelector(),
