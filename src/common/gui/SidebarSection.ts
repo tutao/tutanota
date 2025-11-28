@@ -25,7 +25,7 @@ export class SidebarSection implements Component<SidebarSectionAttrs> {
 			{
 				"data-testid": `section:${lang.getTestId(name)}`,
 				style: {
-					color: theme.on_surface_variant,
+					color: theme.on_surface,
 				},
 			},
 			[

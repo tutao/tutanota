@@ -73,7 +73,7 @@ export class LabelsPopup implements ModalComponent {
 						.sort((labelA, labelB) => labelA.label.name.localeCompare(labelB.label.name))
 						.map((labelState) => {
 							const { label, state } = labelState
-							const color = theme.on_surface_variant
+							const color = theme.on_surface
 							const canToggleLabel = state === LabelState.Applied || state === LabelState.AppliedToSome || !this.isMaxLabelsReached
 							const opacity = !canToggleLabel ? 0.5 : undefined
 

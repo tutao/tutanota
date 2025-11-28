@@ -193,7 +193,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 						".font-weight-600.center.mt-l" + "." + responsiveCardHMargin(),
 						{
 							style: {
-								color: theme.on_surface_variant,
+								color: theme.on_surface,
 							},
 						},
 						lang.get("loading_msg"),
