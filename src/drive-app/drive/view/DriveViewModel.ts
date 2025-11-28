@@ -11,10 +11,11 @@ import { UploadProgressListener } from "../../../common/api/main/UploadProgressL
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isFolder } from "./DriveFolderContentEntry"
-import { DriveFile, DriveFileRefTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
+import { DriveFile, DriveFileRefTypeRef, DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
+import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -22,10 +23,21 @@ export const enum DriveFolderType {
 	Trash = "2",
 }
 
+export interface FileFolderItem {
+	type: "file"
+	file: DriveFile
+}
+
+export interface FolderFolderItem {
+	type: "folder"
+	folder: DriveFolder
+}
+
+export type FolderItem = FileFolderItem | FolderFolderItem
+
 export interface RegularFolder {
 	type: DriveFolderType.Regular
-	files: readonly DriveFile[]
-	folders: readonly DriveFolder[]
+	items: readonly FolderItem[]
 	parents: readonly BreadcrumbEntry[]
 	folder: DriveFolder
 }
@@ -34,8 +46,7 @@ export type SpecialFolderType = DriveFolderType.Root | DriveFolderType.Trash
 
 export interface SpecialFolder {
 	type: SpecialFolderType
-	files: readonly DriveFile[]
-	folders: readonly DriveFolder[]
+	items: readonly FolderItem[]
 	folder: DriveFolder
 }
 
@@ -83,6 +94,11 @@ const sortFoldersFirst = (f1: TutaFile, f2: TutaFile): number => {
 	}
 }
 
+interface FolderWithItems {
+	folder: DriveFolder
+	items: FolderItem[]
+}
+
 export class DriveViewModel {
 	public readonly driveUploadStackModel: DriveUploadStackModel
 	public readonly userMailAddress: string
@@ -126,21 +142,40 @@ export class DriveViewModel {
 	 * Move to trash just like addToFavourites change the metadata of the file
 	 * a file is
 	 */
-	async moveToTrash(file: DriveFile) {
-		await this.driveFacade.moveToTrash(file)
+	async moveToTrash(item: FolderItem) {
+		if (item.type === "file") {
+			await this.driveFacade.moveToTrash(item.file)
+		} else {
+			// FIXME
+			throw new ProgrammingError("not implemented")
+		}
 	}
 
-	async loadVirtualFolder(virtualFolderType: SpecialFolderType) {
-		if (virtualFolderType === DriveFolderType.Trash) {
-			const { folder, files, folders } = await this.driveFacade.loadTrash()
-
-			this.currentFolder = {
-				folder,
-				files,
-				folders: folders,
-				type: virtualFolderType,
-			}
+	async loadSpecialFolder(specialFolderType: SpecialFolderType) {
+		let folderWithItems: FolderWithItems
+		switch (specialFolderType) {
+			case DriveFolderType.Trash:
+				folderWithItems = await this.getFolderItems(this.roots.trash)
+				break
+			case DriveFolderType.Root:
+				folderWithItems = await this.getFolderItems(this.roots.root)
+				break
 		}
+
+		this.currentFolder = {
+			folder: folderWithItems.folder,
+			items: folderWithItems.items,
+			type: specialFolderType,
+		}
+	}
+
+	private async getFolderItems(folderId: IdTuple): Promise<FolderWithItems> {
+		const { folder, files, folders } = await this.driveFacade.getFolderContents(folderId)
+		const items = [
+			...folders.map((folder) => ({ type: "folder", folder }) satisfies FolderFolderItem),
+			...files.map((file) => ({ type: "file", file }) satisfies FileFolderItem),
+		]
+		return { folder, items }
 	}
 
 	getCurrentParents(): readonly BreadcrumbEntry[] {
@@ -158,14 +193,12 @@ export class DriveViewModel {
 
 	async loadFolderContentsByIdTuple(idTuple: IdTuple): Promise<void> {
 		try {
-			const folder = await this.entityClient.load(DriveFolderTypeRef, idTuple)
-			const { files, folders } = await this.driveFacade.getFolderContents(idTuple)
+			const { folder, items } = await this.getFolderItems(idTuple)
 
 			this.currentFolder = {
 				type: DriveFolderType.Regular,
-				folder: folder,
-				files,
-				folders,
+				folder,
+				items,
 				parents: [],
 			} satisfies RegularFolder
 		} catch (e) {

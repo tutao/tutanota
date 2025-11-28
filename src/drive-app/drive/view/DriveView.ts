@@ -49,7 +49,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		// } else
 
 		if (args.virtualFolder === "trash") {
-			this.driveViewModel.loadVirtualFolder(DriveFolderType.Trash).then(() => m.redraw())
+			this.driveViewModel.loadSpecialFolder(DriveFolderType.Trash).then(() => m.redraw())
 			return
 		} else if (args.virtualFolder) {
 			throw new ProgrammingError("No implementation for special folder: " + args.virtualFolder)
@@ -167,7 +167,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							columnLayout: [
 								m(DriveFolderView, {
 									onUploadClick: this.onNewFile_Click,
-									files: this.driveViewModel.currentFolder == null ? [] : this.driveViewModel.currentFolder.files,
+									items: this.driveViewModel.currentFolder == null ? [] : this.driveViewModel.currentFolder.items,
 									driveViewModel: this.driveViewModel,
 								} satisfies DriveFolderViewAttrs),
 								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),

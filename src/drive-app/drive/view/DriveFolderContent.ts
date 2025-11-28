@@ -1,13 +1,12 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
-import { DriveViewModel } from "./DriveViewModel"
+import { DriveViewModel, FolderItem } from "./DriveViewModel"
 import { DriveFolderContentEntry } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
 
 export interface DriveFolderContentAttrs {
-	files: readonly DriveFile[]
-	// FIXME: folders
+	items: readonly FolderItem[]
 	driveViewModel: DriveViewModel
 }
 
@@ -60,9 +59,9 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 				m("div", { style: { ...columnStyle } }, "Actions"),
 			]),
 
-			vnode.attrs.files.map((file) =>
+			vnode.attrs.items.map((item) =>
 				m(DriveFolderContentEntry, {
-					file,
+					item: item,
 					onSelect: (f) => {},
 					checked: false,
 					driveViewModel: driveViewModel,

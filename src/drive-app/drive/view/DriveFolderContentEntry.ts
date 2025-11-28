@@ -1,15 +1,15 @@
 import m, { Children, Component } from "mithril"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { formatStorageSize } from "../../../common/misc/Formatter"
-import { generatedIdToTimestamp, getElementId } from "../../../common/api/common/utils/EntityUtils"
-import { DriveViewModel } from "./DriveViewModel"
+import { DriveViewModel, FolderItem } from "./DriveViewModel"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { columnSizes } from "./DriveFolderContent"
 import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
+import { filterInt } from "@tutao/tutanota-utils"
 
 export interface DriveFolderContentEntryAttrs {
-	file: DriveFile
+	item: FolderItem
 	onSelect: (f: DriveFile) => void
 	checked: boolean // maybe should be inside a map inside the model
 	driveViewModel: DriveViewModel
@@ -48,7 +48,6 @@ const iconPerMimeType = (mimeType: string) => {
 }
 
 const mimeTypeRepresentations: Record<string, string> = {
-	"tuta/folder": "Folder",
 	"image/jpeg": "JPEG",
 	"image/png": "PNG",
 	"audio/mpeg": "MPEG",
@@ -63,14 +62,13 @@ const mimeTypeAsText = (mimeType: string) => {
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
 	private globalIconFill = "transparent"
 
-	view({ attrs: { file, checked, onSelect, driveViewModel } }: m.Vnode<DriveFolderContentEntryAttrs>): Children {
-		const uploadDate = new Date(generatedIdToTimestamp(getElementId(file)))
+	view({ attrs: { item, checked, onSelect, driveViewModel } }: m.Vnode<DriveFolderContentEntryAttrs>): Children {
+		const uploadDate = item.type === "file" ? item.file.createdDate : item.folder.createdDate
 		const router = driveViewModel
 
-		// FIXME
-		const thisFileIsAFolder = false //isFolder(file)
+		const thisFileIsAFolder = item.type === "folder"
 
-		const thisFileMimeType = file.mimeType || "unknown"
+		const thisFileMimeType = item.type === "file" ? mimeTypeAsText(item.file.mimeType) : "Folder"
 
 		return m("div.flex.row.folder-row", { style: DriveFolderContentEntryRowStyle }, [
 			m("div", { style: { width: columnSizes.select } }, m("input[type=checkbox]")),
@@ -97,20 +95,20 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					"span",
 					{
 						onclick: () => {
-							if (thisFileIsAFolder) {
-								driveViewModel.navigateToFolder(file._id)
+							if (item.type === "folder") {
+								driveViewModel.navigateToFolder(item.folder._id)
 							} else {
 								// download
-								driveViewModel.downloadFile(file)
+								driveViewModel.downloadFile(item.file)
 							}
 						},
 						class: "cursor-pointer",
 					},
-					file.name,
+					item.type === "file" ? item.file.name : item.folder.name,
 				),
 			),
-			m("div", { style: { width: columnSizes.type } }, mimeTypeAsText(thisFileMimeType)),
-			m("div", { style: { width: columnSizes.size } }, thisFileIsAFolder ? "🐱" : formatStorageSize(Number(file.size))),
+			m("div", { style: { width: columnSizes.type } }, thisFileMimeType),
+			m("div", { style: { width: columnSizes.size } }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
 			m("div", { style: { width: columnSizes.date } }, uploadDate.toLocaleString()),
 			m(
 				"div",
@@ -119,7 +117,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 						"span",
 						{
 							onclick: () => {
-								driveViewModel.moveToTrash(file).then(() => m.redraw())
+								driveViewModel.moveToTrash(item).then(() => m.redraw())
 							},
 						},
 						m(Icon, {

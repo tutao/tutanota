@@ -37,6 +37,12 @@ export type DriveCryptoInfo = {
 	fileGroupKey: VersionedKey
 }
 
+export interface FolderContents {
+	folder: DriveFolder
+	files: DriveFile[]
+	folders: DriveFolder[]
+}
+
 export class DriveFacade {
 	private readonly onCancelListener: EventTarget
 
@@ -64,13 +70,14 @@ export class DriveFacade {
 		// await this.serviceExecutor.post(DriveFileMetadataService, data)
 	}
 
-	public async loadTrash(): Promise<{ folder: DriveFolder; files: DriveFile[]; folders: DriveFolder[] }> {
+	public async loadTrash(): Promise<FolderContents> {
 		const { fileGroupId } = await this.getCryptoInfo()
 		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
 
 		return await this.getFolderContents(driveGroupRoot.trash)
 	}
 
+	// FIXME: Folder
 	public async moveToTrash(file: DriveFile) {
 		const deleteData = createDriveDeleteIn({ fileToDelete: file._id })
 
@@ -84,7 +91,7 @@ export class DriveFacade {
 		return { root: driveGroupRoot.root, trash: driveGroupRoot.trash }
 	}
 
-	public async getFolderContents(folderId: IdTuple): Promise<{ folder: DriveFolder; files: DriveFile[]; folders: DriveFolder[] }> {
+	public async getFolderContents(folderId: IdTuple): Promise<FolderContents> {
 		const { fileGroupKey } = await this.getCryptoInfo()
 
 		// const data = createDriveGetIn({ folder: folderId })
