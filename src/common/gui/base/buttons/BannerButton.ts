@@ -23,8 +23,8 @@ export class BannerButton implements Component<BannerButtonAttrs> {
 			class: `border-radius center ${attrs.class} ${attrs.disabled ? "disabled" : ""}`,
 			style: {
 				border: `2px solid ${attrs.disabled ? theme.on_surface_variant : attrs.borderColor}`,
-				color: attrs.disabled ? theme.on_surface_variant : attrs.color,
-				padding: px(size.vpad_small),
+				color: attrs.disabled ? theme.on_surface : attrs.color,
+				padding: px(size.spacing_8),
 				minWidth: "60px",
 			},
 			disabled: attrs.disabled,

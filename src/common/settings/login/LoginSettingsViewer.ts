@@ -143,8 +143,11 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				},
 			],
 			selectedValue: locator.logins.getUserController().userSettingsGroupRoot.usageDataOptedIn,
-			selectionChangedHandler: (v) => {
-				this._usageTestModel.setOptInDecision(assertNotNull(v))
+			selectionChangedHandler: async (hasOptedIn) => {
+				if (hasOptedIn === true && !(await Dialog.confirm("ageConfirmationLong_msg", "paymentDataValidation_action"))) {
+					return
+				}
+				await this._usageTestModel.setOptInDecision(assertNotNull(hasOptedIn))
 			},
 			helpLabel: () => {
 				return ifAllowedTutaLinks(locator.logins, InfoLink.Usage, (link) => [
@@ -159,18 +162,18 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		if (locator.logins.isUserLoggedIn()) {
 			const user = locator.logins.getUserController()
 			return m("", [
-				m("#user-settings.fill-absolute.scroll.plr-l.pb-xl", [
-					m("#logincredentials.h4.mt-l", lang.get("loginCredentials_label")),
+				m("#user-settings.fill-absolute.scroll.plr-24.pb-48", [
+					m("#logincredentials.h4.mt-32", lang.get("loginCredentials_label")),
 					this.renderName(user),
 					m(TextField, mailAddressAttrs),
 					m(TextField, passwordAttrs),
 					user.isGlobalAdmin() ? m(TextField, recoveryCodeFieldAttrs) : null,
 					this.renderAppLockField(),
 					m("#2fa", m(this._secondFactorsForm)),
-					m("#activesessions.h4.mt-l", lang.get("activeSessions_label")),
+					m("#activesessions.h4.mt-32", lang.get("activeSessions_label")),
 					this._renderActiveSessions(),
 					m(".small", lang.get("sessionsInfo_msg")),
-					m(".flex-space-between.items-center.mt-l.mb-s", [
+					m(".flex-space-between.items-center.mt-32.mb-8", [
 						m("#closedsessions.h4", lang.get("closedSessions_label")),
 						m(ExpanderButton, {
 							label: "show_action",
@@ -190,7 +193,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 					m(".small", lang.get("sessionsInfo_msg")),
 					this._usageTestModel.isCustomerOptedOut()
 						? null
-						: m("#usagedata", [m(".h4.mt-l", lang.get("usageData_label")), m(DropDownSelector, usageDataOptInAttrs)]),
+						: m("#usagedata", [m(".h4.mt-32", lang.get("usageData_label")), m(DropDownSelector, usageDataOptInAttrs)]),
 				]),
 			])
 		} else {

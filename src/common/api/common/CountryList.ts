@@ -18,7 +18,7 @@ export type Country = {
 	a: string
 	/** type */
 	t: number
-	/** ??? */
+	/** DecimalSeparator */
 	d: number
 }
 // taken from https://en.wikipedia.org/wiki/ISO_3166-1
@@ -384,12 +384,6 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		d: 0,
 	},
 	{
-		n: "Deutschland",
-		a: "DE",
-		t: 0,
-		d: 0,
-	},
-	{
 		n: "Djibouti",
 		a: "DJ",
 		t: 2,
@@ -513,6 +507,12 @@ export const Countries: ReadonlyArray<Country> = Object.freeze([
 		n: "Georgia",
 		a: "GE",
 		t: 2,
+		d: 0,
+	},
+	{
+		n: "Germany",
+		a: "DE",
+		t: 0,
 		d: 0,
 	},
 	{

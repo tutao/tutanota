@@ -8,6 +8,6 @@ export type MenuTitleAttrsType = {
 // used in sidebar section title and inside setting view menus
 export class MenuTitle implements Component<MenuTitleAttrsType> {
 	view({ attrs }: Vnode<MenuTitleAttrsType>): Children {
-		return m("small.uppercase.b", { style: { color: theme.on_surface_variant } }, attrs.content)
+		return m("small.uppercase.b", { style: { color: theme.on_surface } }, attrs.content)
 	}
 }

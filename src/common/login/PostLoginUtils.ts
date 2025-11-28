@@ -15,6 +15,7 @@ export async function shouldShowUpgradeReminder(userController: UserController, 
 	// * do not show to normal users, they can't upgrade their account
 	// * do not show to new plans, they already switched
 	// * do not show in ios app, they can't upgrade there.
+	// * do not show while a user is signing up.
 	if (!userController.isGlobalAdmin() || (await userController.isNewPaidPlan()) || isIOSApp()) return false
 
 	const customerInfo = await userController.loadCustomerInfo()

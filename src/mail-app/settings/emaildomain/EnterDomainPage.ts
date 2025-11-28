@@ -21,9 +21,9 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 
 	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
 		return m("", [
-			m("h4.mt-l.text-center", lang.get("enterCustomDomain_title")),
-			m(".mt", lang.get("enterDomainIntroduction_msg")),
-			m(".mt", lang.get("enterDomainGetReady_msg")),
+			m("h4.mt-32.text-center", lang.get("enterCustomDomain_title")),
+			m(".mt-16", lang.get("enterDomainIntroduction_msg")),
+			m(".mt-16", lang.get("enterDomainGetReady_msg")),
 			m(TextField, {
 				label: "customDomain_label",
 				autocapitalize: Autocapitalize.none,
@@ -43,7 +43,7 @@ export class EnterDomainPage implements WizardPageN<AddDomainData> {
 				},
 			}),
 			m(
-				".flex-center.full-width.pt-l.mb-l",
+				".flex-center.full-width.pt-32.mb-32",
 				m(LoginButton, {
 					label: "next_action",
 					class: "small-login-button",

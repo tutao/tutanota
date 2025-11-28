@@ -1,6 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
 import { lang, MaybeTranslation } from "../../../misc/LanguageViewModel.js"
+import { DefaultAnimationTime } from "../../animation/Animations"
 
 export const enum LoginButtonType {
 	FullWidth = "FullWidth",
@@ -23,9 +24,10 @@ export class LoginButton implements Component<LoginButtonAttrs> {
 			icon: attrs.icon,
 			label: attrs.label,
 			text: lang.getTranslationText(attrs.label),
-
 			class: classes.join(" "),
-
+			style: {
+				transition: `background ${DefaultAnimationTime}ms ease-in-out, color ${DefaultAnimationTime}ms ease-in-out, opacity ${DefaultAnimationTime}ms ease-in-out`,
+			},
 			onclick: attrs.onclick,
 			disabled: attrs.disabled,
 		})
@@ -45,9 +47,9 @@ export class LoginButton implements Component<LoginButtonAttrs> {
 		}
 
 		if (attrs.type === LoginButtonType.FlexWidth) {
-			classes.push("plr-2l")
+			classes.push("plr-48")
 		} else {
-			classes.push("full-width plr-button")
+			classes.push("full-width plr-8")
 		}
 
 		return classes

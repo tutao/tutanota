@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { NotFoundError } from "../api/common/error/RestError.js"
-import { size } from "../gui/size.js"
+import { component_size, size } from "../gui/size.js"
 import type { GroupInfo } from "../api/entities/sys/TypeRefs.js"
 import { GroupInfoTypeRef, GroupMemberTypeRef } from "../api/entities/sys/TypeRefs.js"
 import { contains, LazyLoaded, noOp } from "@tutao/tutanota-utils"
@@ -48,7 +48,7 @@ export class UserListView implements UpdatableSettingsViewer {
 			m.render(dom, row.render())
 			return row
 		},
-		itemHeight: size.list_row_height,
+		itemHeight: component_size.list_row_height,
 		swipe: null,
 		multiselectionAllowed: MultiselectMode.Disabled,
 	}
@@ -94,7 +94,7 @@ export class UserListView implements UpdatableSettingsViewer {
 			ListColumnWrapper,
 			{
 				headerContent: m(
-					".flex.flex-space-between.center-vertically.plr-l",
+					".flex.flex-space-between.center-vertically.plr-24",
 					m(BaseSearchBar, {
 						text: this.searchQuery,
 						onInput: (text) => this.updateQuery(text),
@@ -107,7 +107,7 @@ export class UserListView implements UpdatableSettingsViewer {
 						placeholder: lang.get("searchUsers_placeholder"),
 					} satisfies BaseSearchBarAttrs),
 					m(
-						".mr-negative-s",
+						".mr-negative-8",
 						m(IconButton, {
 							title: "addUsers_action",
 							icon: Icons.Add,
@@ -311,7 +311,7 @@ export class UserRow implements VirtualRow<GroupInfo> {
 						oncreate: (vnode) => (this.nameDom = vnode.dom as HTMLElement),
 					}),
 				]),
-				m(".flex-space-between.mt-xxs", [
+				m(".flex-space-between.mt-4", [
 					m(".smaller", {
 						oncreate: (vnode) => (this.addressDom = vnode.dom as HTMLElement),
 					}),

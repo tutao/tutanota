@@ -13,17 +13,14 @@ interface PromotionRibbonAttrs {
 
 export class PromotionRibbon implements Component<PromotionRibbonAttrs> {
 	view({ attrs: { translation, planBoxPosition, localTheme = theme } }: Vnode<PromotionRibbonAttrs>) {
-		const borderRadiusTopLeft = planBoxPosition === "left" || planBoxPosition === "center" ? px(size.border_radius_large) : "0"
-		const borderRadiusTopRight = planBoxPosition === "right" || planBoxPosition === "center" ? px(size.border_radius_large) : "0"
-
 		return m(
-			".full-width.pt-xs.pb-xs.text-center.b.smaller.abs",
+			".full-width.pt-4.pb-4.text-center.b.smaller.abs",
 			{
 				style: {
 					backgroundColor: localTheme?.tertiary,
 					color: localTheme?.on_tertiary,
 					transform: "translateY(-100%)",
-					"border-radius": `${px(size.border_radius_large)} ${px(size.border_radius_large)} 0 0`,
+					"border-radius": `${px(size.radius_8)} ${px(size.radius_8)} 0 0`,
 				},
 			},
 			translation.text,

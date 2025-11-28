@@ -38,7 +38,7 @@ export function showRequestPasswordDialog(props: {
 			const savedState = state
 			return savedState.type === "idle"
 				? m("", [
-						props.messageText ? m(".pt", props.messageText) : null,
+						props.messageText ? m(".pt-16", props.messageText) : null,
 						m(PasswordField, {
 							label: title,
 							helpLabel: () => savedState.message,
@@ -50,7 +50,7 @@ export function showRequestPasswordDialog(props: {
 					])
 				: m(Icon, {
 						icon: BootIcons.Progress,
-						class: "icon-xl icon-progress block mt mb",
+						class: "icon-32 icon-progress block mt-16 mb-16",
 						style: {
 							marginLeft: "auto",
 							marginRight: "auto",

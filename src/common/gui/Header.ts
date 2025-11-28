@@ -11,7 +11,7 @@ import { NewsModel } from "../misc/news/NewsModel.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { ProgressBar } from "./base/ProgressBar.js"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
-import { size as sizes } from "./size"
+import { layout_size, size as sizes } from "./size"
 
 assertMainOrNode()
 
@@ -34,7 +34,7 @@ export interface HeaderAttrs extends AppHeaderAttrs {
 
 export class Header implements ClassComponent<HeaderAttrs> {
 	view({ attrs }: Vnode<HeaderAttrs>): Children {
-		return m(DesktopBaseHeader, { firstColWidth: attrs.firstColWidth ?? sizes.first_col_max_width }, [
+		return m(DesktopBaseHeader, { firstColWidth: attrs.firstColWidth ?? layout_size.first_col_max_width }, [
 			m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }),
 			this.renderNavigation(attrs),
 		])
@@ -46,7 +46,7 @@ export class Header implements ClassComponent<HeaderAttrs> {
 	 */
 	private renderNavigation(attrs: HeaderAttrs): Children {
 		return [
-			attrs.searchBar ? m(".ml-hpad_small.flex-grow", attrs.searchBar()) : null,
+			attrs.searchBar ? m(".ml-4.flex-grow", attrs.searchBar()) : null,
 			m(".flex-grow.flex.justify-end.items-center", [
 				m(OfflineIndicator, attrs.offlineIndicatorModel.getCurrentAttrs()),
 				m(".nav-bar-spacer"),

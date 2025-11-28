@@ -59,13 +59,6 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices)
 		const promotionMessage = planPrices.getRawPricingData().messageTextId as TranslationKeyType
 
-		// newAccountData is filled in when signing up and then going back in the signup process
-		// If the user has selected a paid plan we want to prevent them from selecting a free plan at this point,
-		// since the account will be PAID_SUBSCRIPTION_NEEDED state if the user selects free
-		if (!!newAccountData && targetPlanType !== PlanType.Free) {
-			availablePlans = availablePlans.filter((plan) => plan !== PlanType.Free)
-		}
-
 		const createPaidPlanActionButtons = (planType: PlanType): lazy<LoginButtonAttrs> => {
 			const isFirstMonthForFree = data.planPrices.getRawPricingData().firstMonthForFreeForYearlyPlan
 			const isYearly = data.options.paymentInterval() === PaymentInterval.Yearly
@@ -115,6 +108,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 				allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
 				showMultiUser: false,
 				discountDetails,
+				targetPlan: data.targetPlanType,
 			}),
 		])
 	}
@@ -314,8 +308,8 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, ava
 			? null
 			: m(Icon, {
 					icon: isBusiness ? BootIcons.User : Icons.Business,
-					size: IconSize.Large,
-					class: "mr-xsm",
+					size: IconSize.PX20,
+					class: "mr-4",
 					style: {
 						fill: theme.primary,
 						"vertical-align": "sub",

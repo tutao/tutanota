@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { NavButton } from "../../common/gui/base/NavButton.js"
-import { size } from "../../common/gui/size"
+import { font_size, size } from "../../common/gui/size"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, SEARCH_PREFIX } from "../../common/misc/RouteChange"
 import { FeatureType } from "../../common/api/common/TutanotaConstants"
 import { BootIcons } from "../../common/gui/base/icons/BootIcons"
 import { locator } from "../../common/api/main/CommonLocator.js"
 
 type Attrs = void
-const fontSize = size.font_size_small
+const fontSize = font_size.small
 
 function getHrefForSearch(): string {
 	const route = m.route.get()

@@ -7,6 +7,7 @@ import { getDisplayNameOfPlanType } from "./FeatureListProvider"
 import { PlanType } from "../api/common/TutanotaConstants.js"
 import { lang, Translation } from "../misc/LanguageViewModel.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { createAccount } from "./utils/PaymentUtils"
 
 export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -21,9 +22,17 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 		let mailAddress: undefined | string = undefined
 		if (newAccountData) mailAddress = newAccountData.mailAddress
 		return m(SignupForm, {
-			onComplete: (signupResult) => {
-				if (signupResult.type === "success") {
-					if (signupResult.newAccountData) data.newAccountData = signupResult.newAccountData
+			onComplete: async (result) => {
+				if (result.type === "success") {
+					data.registrationCode = result.registrationCode
+					data.powChallengeSolutionPromise = result.powChallengeSolutionPromise
+					data.emailInputStore = result.emailInputStore
+					data.passwordInputStore = result.passwordInputStore
+
+					await createAccount(data, () => {
+						emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
+					})
+
 					emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE)
 				} else {
 					emitWizardEvent(this.dom, WizardEventType.CLOSE_DIALOG)
@@ -36,7 +45,9 @@ export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
 			isPaidSubscription: () => data.targetPlanType !== PlanType.Free,
 			campaignToken: () => data.registrationDataId,
 			prefilledMailAddress: mailAddress,
-			readonly: !!newAccountData,
+			newAccountData: data.newAccountData,
+			emailInputStore: data.emailInputStore,
+			passwordInputStore: data.passwordInputStore,
 		})
 	}
 }

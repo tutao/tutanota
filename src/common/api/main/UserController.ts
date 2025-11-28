@@ -1,6 +1,6 @@
 import { AccountType, FeatureType, GroupType, LegacyPlans, OperationType, PlanType } from "../common/TutanotaConstants"
 import type { Base64Url } from "@tutao/tutanota-utils"
-import { assertNotNull, downcast, first, mapAndFilterNull, ofClass } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/tutanota-utils"
 import { MediaType } from "../common/EntityFunctions"
 import { assertMainOrNode, getApiBaseUrl, isDesktop } from "../common/Env"
 
@@ -45,7 +45,6 @@ import { isCustomizationEnabledForCustomer } from "../common/utils/CustomerUtils
 import { EntityUpdateData, isUpdateForTypeRef } from "../common/utils/EntityUpdateUtils.js"
 import { isGlobalAdmin, isInternalUser } from "../common/utils/UserUtils.js"
 import { CacheMode } from "../worker/rest/EntityRestClient.js"
-import { newPromise } from "@tutao/tutanota-utils"
 
 assertMainOrNode()
 

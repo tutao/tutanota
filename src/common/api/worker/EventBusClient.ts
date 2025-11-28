@@ -240,25 +240,19 @@ export class EventBusClient {
 	 * Sends a close event to the server and finally closes the connection.
 	 * The state of this event bus client is reset and the client is terminated (does not automatically reconnect) except reconnect == true
 	 */
-	async close(closeOption: CloseEventBusOption): Promise<void> {
+	close(closeOption: CloseEventBusOption) {
 		console.log("ws close closeOption: ", closeOption, "state:", this.state)
 
 		switch (closeOption) {
 			case CloseEventBusOption.Terminate:
 				this.terminate()
-
 				break
-
 			case CloseEventBusOption.Pause:
 				this.state = EventBusState.Suspended
-
 				this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
-
 				break
-
 			case CloseEventBusOption.Reconnect:
 				this.listener.onWebsocketStateChanged(WsConnectionState.connecting)
-
 				break
 		}
 
@@ -649,7 +643,7 @@ export class EventBusClient {
 		}
 	}
 
-	private async terminate(): Promise<void> {
+	private terminate() {
 		this.state = EventBusState.Terminated
 
 		this.reset()

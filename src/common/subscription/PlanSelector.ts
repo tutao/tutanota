@@ -4,7 +4,7 @@ import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { lazy } from "@tutao/tutanota-utils"
 import { AvailablePlanType, PlanType } from "../api/common/TutanotaConstants.js"
-import { px, size } from "../gui/size.js"
+import { component_size, px, size } from "../gui/size.js"
 import { LoginButton, LoginButtonAttrs, LoginButtonType } from "../gui/base/buttons/LoginButton.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -14,10 +14,10 @@ import { boxShadowHigh } from "../gui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getApplePriceStr, getPriceStr } from "./utils/SubscriptionUtils.js"
 import { PaymentIntervalSwitch } from "./components/PaymentIntervalSwitch.js"
-import { PersonalPlanContainer } from "./components/PersonalPlanContainer"
-import { BusinessPlanContainer } from "./components/BusinessPlanContainer"
-import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
-import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
+import { PersonalPlanContainer } from "./components/PersonalPlanContainer.js"
+import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
+import { getSafeAreaInsetBottom } from "../gui/HtmlUtils.js"
+import { anyHasGlobalFirstYearCampaign, DiscountDetails, isPersonalPlanAvailable } from "./utils/PlanSelectorUtils.js"
 
 type PlanSelectorAttr = {
 	options: SelectedSubscriptionOptions
@@ -30,27 +30,18 @@ type PlanSelectorAttr = {
 	allowSwitchingPaymentInterval: boolean
 	showMultiUser: boolean
 	discountDetails?: DiscountDetails
+	targetPlan: PlanType
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
-	private readonly selectedPlan: Stream<PlanType> = stream(
-		SignupFlowUsageTestController.getUsageTestVariant() === 1 ? PlanType.Revolutionary : PlanType.Legend,
-	)
+	private readonly selectedPlan: Stream<PlanType>
 	private readonly shouldFixButtonPos: Stream<boolean> = stream(false)
 
-	oncreate({ attrs: { availablePlans, currentPlan, discountDetails } }: Vnode<PlanSelectorAttr>) {
-		if (anyHasGlobalFirstYearCampaign(discountDetails)) {
-			this.selectedPlan(PlanType.Legend)
-		}
+	constructor({ attrs }: Vnode<PlanSelectorAttr>) {
+		this.selectedPlan = stream(attrs.targetPlan)
+	}
 
-		if (availablePlans.includes(PlanType.Free) && availablePlans.length === 1) {
-			// Only Free plan is available. This would be the case if the user already has a paid Apple account.
-			this.selectedPlan(PlanType.Free)
-		} else if ((!availablePlans.includes(PlanType.Revolutionary) && availablePlans.includes(PlanType.Legend)) || currentPlan === PlanType.Revolutionary) {
-			// Only Legend plan is available or the current plan is Revolutionary.
-			this.selectedPlan(PlanType.Legend)
-		}
-
+	oncreate({ attrs: { availablePlans, currentPlan } }: Vnode<PlanSelectorAttr>) {
 		this.handleResize()
 		windowFacade.addResizeListener(this.handleResize)
 	}
@@ -87,7 +78,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 			if (!options.businessUse() && anyHasGlobalFirstYearCampaign(discountDetails)) {
 				return m(
-					".flex.column-gap-s",
+					".flex.column-gap-4",
 					m("span", m("sup", "1")),
 					m(
 						"span",
@@ -112,7 +103,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 
 		const renderPaymentIntervalSwitch = () => {
 			return m(
-				".flex.gap-hpad.items-center",
+				".flex.gap-12.items-center",
 				m(`div.right.full-width${isYearly ? ".font-weight-600" : ""}`, lang.getTranslationText("pricing.yearly_label")),
 				m(PaymentIntervalSwitch, {
 					state: isYearly ? "left" : "right",
@@ -130,17 +121,18 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			)
 		}
 
+		const bottomPad = Math.max(size.spacing_16, getSafeAreaInsetBottom())
 		return m(
-			"#plan-selector.flex.flex-column.gap-vpad-l",
+			"#plan-selector.flex.flex-column.gap-32",
 			{
 				style: this.shouldFixButtonPos() && {
-					"padding-bottom": px(size.button_floating_size + size.vpad),
+					"padding-bottom": px(component_size.button_height + size.spacing_16 + getSafeAreaInsetBottom()),
 				},
 				lang: lang.code,
 			},
 			[
 				m(
-					".flex.flex-column.gap-vpad-l",
+					".flex.flex-column.gap-32",
 					!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) && allowSwitchingPaymentInterval && renderPaymentIntervalSwitch(),
 				),
 
@@ -157,34 +149,33 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					discountDetails,
 				}),
 				m(
-					".flex.flex-column.gap-vpad",
+					"#continue-wrapper.flex-v-start.items-center.plr-12.pt-16",
+					{
+						style: this.shouldFixButtonPos() && {
+							position: "fixed",
+							height: px(component_size.button_height + size.spacing_16 + bottomPad),
+							bottom: 0,
+							left: 0,
+							right: 0,
+							"padding-bottom": px(bottomPad),
+							"background-color": theme.surface,
+							"z-index": 1,
+							"box-shadow": boxShadowHigh,
+						},
+					},
 					m(
-						"#continue-wrapper.flex-v-center.plr",
+						"",
 						{
-							style: this.shouldFixButtonPos() && {
-								position: "fixed",
-								height: px(size.button_floating_size + size.vpad_xsm * 2),
-								bottom: 0,
-								left: 0,
-								right: 0,
-								"background-color": theme.surface,
-								"z-index": 1,
-								"box-shadow": boxShadowHigh,
+							style: {
+								"min-width": styles.isMobileLayout() ? "100%" : px(265),
+								"max-width": styles.isMobileLayout() ? "100%" : px(265),
+								"margin-inline": "auto",
 							},
 						},
-						m(
-							"",
-							{
-								style: {
-									"min-width": styles.isMobileLayout() ? "100%" : px(265),
-									"max-width": styles.isMobileLayout() ? "100%" : px(265),
-									"margin-inline": "auto",
-								},
-							},
-							renderActionButton(),
-						),
+						renderActionButton(),
 					),
 				),
+
 				!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) &&
 					m(
 						".flex.flex-column",
@@ -194,7 +185,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 								"margin-inline": "auto",
 							},
 						},
-						[m(".small.mb", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")), m(".small.mb", renderFootnoteElement())],
+						[m(".small.mb-16", lang.get("pricing.subscriptionPeriodInfoPrivate_msg")), m(".small.mb-16", renderFootnoteElement())],
 					),
 			],
 		)
@@ -211,7 +202,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			const contentHeight = parseInt(getComputedStyle(planSelectorEl).height)
 			const containerHeight = parseInt(getComputedStyle(containerEl).height)
 
-			this.shouldFixButtonPos(contentHeight + size.button_floating_size > containerHeight)
+			this.shouldFixButtonPos(contentHeight + component_size.button_floating_size > containerHeight)
 		}
 	}
 }

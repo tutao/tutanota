@@ -117,7 +117,7 @@ export async function showSwitchDialog({
 		}
 
 		return m(
-			".pt",
+			".pt-16",
 			// Headline for a global campaign
 			!businessUse() &&
 				anyHasGlobalFirstYearCampaign(discountDetails) &&
@@ -138,6 +138,7 @@ export async function showSwitchDialog({
 				// We hide the payment interval switch in the setting and let the plan selector handles the interval changing for iOS
 				allowSwitchingPaymentInterval: isApplePrice || currentPlanInfo.paymentInterval !== PaymentInterval.Yearly,
 				showMultiUser: multipleUsersAllowed,
+				targetPlan: currentPlanInfo.planType, // dummy property; only relevant for signup, but required to exist
 				discountDetails,
 			}),
 		)
@@ -424,7 +425,7 @@ async function cancelSubscription(
 ): Promise<PlanType> {
 	const confirmCancelSubscription = Dialog.confirm("unsubscribeConfirm_msg", "ok_action", () => {
 		return m(
-			".pt",
+			".pt-16",
 			m("ul.usage-test-opt-in-bullets", [
 				m("li", lang.get("importedMailsWillBeDeleted_label")),
 				m("li", lang.get("accountWillBeDeactivatedIn6Month_label")),

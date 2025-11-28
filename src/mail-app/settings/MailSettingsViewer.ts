@@ -337,7 +337,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 		return [
 			m(
-				"#user-settings.fill-absolute.scroll.plr-l.pb-xl",
+				"#user-settings.fill-absolute.scroll.plr-24.pb-48",
 				{
 					role: "group",
 					oncreate: () => {
@@ -357,7 +357,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				[
 					this.customerInfo != null && Number(this.customerInfo.perUserStorageCapacity) > 0
 						? [
-								m("#storagecapacity.h4.mt-l", lang.get("storageCapacity_label")),
+								m("#storagecapacity.h4.mt-32", lang.get("storageCapacity_label")),
 								m(TextField, {
 									label: "storageCapacity_label",
 									value: this._storageFieldValue(),
@@ -366,12 +366,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								}),
 							]
 						: null,
-					m(".h4.mt-l#general", lang.get("general_label")),
+					m(".h4.mt-32#general", lang.get("general_label")),
 					m("#conversationthread", m(DropDownSelector, conversationViewDropdownAttrs)),
 					m("#maillistgrouping", m(DropDownSelector, mailListDisplayMode)),
 					isBrowser() ? m("#mailindexing", m(DropDownSelector, enableMailIndexingAttrs)) : null,
 					m("#behavioraftermovingemail", m(DropDownSelector, behaviorAfterMoveEmailAction)),
-					m(".h4.mt-l#emailsending", lang.get("emailSending_label")),
+					m(".h4.mt-32#emailsending", lang.get("emailSending_label")),
 					m("#defaultsender", m(DropDownSelector, defaultSenderAttrs)),
 					m("#signature", m(TextField, signatureAttrs)),
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication) ? null : m(DropDownSelector, defaultUnconfidentialAttrs),
@@ -392,7 +392,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					mailLocator.logins.isEnabled(FeatureType.InternalCommunication)
 						? null
 						: [
-								m(".flex-space-between.items-center.mt-l.mb-s", [
+								m(".flex-space-between.items-center.mt-32.mb-8", [
 									m(".h4#inboxrules", lang.get("inboxRulesSettings_action")),
 									m(ExpanderButton, {
 										label: "showInboxRules_action",
@@ -429,11 +429,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			? lang.get("storedDataTimeRange_label", { "{numDays}": OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS })
 			: lang.get("storedDataDate_label", { "{date}": formatDate(this.offlineStorageSettings.getTimeRange()) })
 		return [
-			m(".h4.mt-l#localdata", lang.get("localDataSection_label")),
+			m(".h4.mt-32#localdata", lang.get("localDataSection_label")),
 			m(TextField, {
 				label: "emptyString_msg",
 				// Negative upper margin to make up for no label
-				class: "mt-negative-s",
+				class: "mt-negative-8",
 				value: textFieldValue,
 				isReadOnly: true,
 				helpLabel: () => lang.get("localDataSection_msg"),
@@ -594,7 +594,7 @@ async function showEditStoredDataTimeRangeDialog(settings: OfflineStorageSetting
 					nullSelectionText: helpText,
 					rightAlignDropdown: false,
 				} satisfies DatePickerAttrs),
-				m(".mt", lang.get("storedDataTimeRangeHelpText_msg")),
+				m(".mt-16", lang.get("storedDataTimeRangeHelpText_msg")),
 			])
 		},
 		okAction: async () => {

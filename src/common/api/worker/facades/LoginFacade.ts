@@ -252,6 +252,7 @@ export class LoginFacade {
 		clientIdentifier: string,
 		sessionType: SessionType,
 		databaseKey: Uint8Array | null,
+		skipPostLoginActions: boolean = false,
 	): Promise<NewSessionData> {
 		if (this.userFacade.isPartiallyLoggedIn()) {
 			// do not reset here because the event bus client needs to be kept if the same user is logged in as before
@@ -308,7 +309,12 @@ export class LoginFacade {
 			userId: sessionData.userId,
 			type: CredentialType.Internal,
 		}
-		this.triggerPartialLoginSuccess(sessionType, cacheInfo, credentials).finally(() => this.triggerFullLoginSuccess(sessionType, cacheInfo, credentials))
+
+		if (!skipPostLoginActions) {
+			this.triggerPartialLoginSuccess(sessionType, cacheInfo, credentials).finally(() =>
+				this.triggerFullLoginSuccess(sessionType, cacheInfo, credentials),
+			)
+		}
 
 		await this.initializeKeyRotationRollouts(userPassphraseKey, modernKdfType, sessionType)
 
@@ -648,14 +654,14 @@ export class LoginFacade {
 		}
 	}
 
-	private triggerPartialLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
+	private async triggerPartialLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 		this.lastLoginSessionType = sessionType
-		return this.loginListener.onPartialLoginSuccess(sessionType, cacheInfo, credentials)
+		await this.loginListener.onPartialLoginSuccess(sessionType, cacheInfo, credentials)
 	}
 
-	private triggerFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
+	private async triggerFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
 		this.lastLoginSessionType = sessionType
-		return this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
+		await this.loginListener.onFullLoginSuccess(sessionType, cacheInfo, credentials)
 	}
 
 	public async getSessionType(): Promise<SessionType | null> {

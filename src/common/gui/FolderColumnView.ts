@@ -27,7 +27,7 @@ export class FolderColumnView implements Component<Attrs> {
 
 	private renderMainButton(attrs: Attrs): Children {
 		if (attrs.button) {
-			return m(".plr-button-double.scrollbar-gutter-stable-or-fallback", m(MainCreateButton, { label: attrs.button.label, click: attrs.button.click }))
+			return m(".plr-16.scrollbar-gutter-stable-or-fallback", m(MainCreateButton, { label: attrs.button.label, click: attrs.button.click }))
 		} else {
 			return null
 		}

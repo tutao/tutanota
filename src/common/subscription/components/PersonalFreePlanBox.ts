@@ -55,9 +55,9 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 			},
 			[
 				m(
-					".flex-space-between.items-center.pb",
+					".flex-space-between.items-center.pb-16",
 					m(
-						".flex.items-center.column-gap",
+						".flex.items-center.column-gap-12",
 						m(
 							// we need some margin for the discount banner for longer translations shown on the website
 							".text-center.flex.col.center-horizontally.m-0.font-mdio",
@@ -99,10 +99,10 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 
 	private getFeaturesGap() {
 		if (styles.isMobileLayout()) {
-			return `${px(size.vpad_small)} 0`
+			return `${px(size.spacing_8)} 0`
 		}
 
-		return `${px(size.vpad_small)} ${px(size.hpad_medium)}`
+		return `${px(size.spacing_8)} ${px(size.spacing_24)}`
 	}
 
 	private generateRenderFeature = (provider: PriceAndConfigProvider) => {
@@ -112,14 +112,13 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 				{
 					style: {
 						width: styles.isMobileLayout() ? "50%" : "fit-content",
-						gap: px(size.hpad_small),
-						"padding-left": shouldShift && styles.isMobileLayout() ? px(size.vpad) : "initial",
+						gap: px(size.spacing_4),
+						"padding-left": shouldShift && styles.isMobileLayout() ? px(size.spacing_16) : "initial",
 					},
 				},
 				[
 					m(Icon, {
 						icon,
-						size: IconSize.Normal,
 						style: {
 							fill: theme.secondary,
 						},

@@ -21,16 +21,16 @@ type SupportSuccessPageAttrs = {
 export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 	view(vnode: Vnode<SupportSuccessPageAttrs>): Children {
 		return m(
-			".pt.pb",
+			".pt-16.pb-16",
 			m(
 				Card,
 				{ shouldDivide: true },
 				m(
-					".plr",
-					m(".h4.center.pb-s.pt-s", lang.get("supportSuccess_msg")),
+					".plr-12",
+					m(".h4.center.pb-8.pt-8", lang.get("supportSuccess_msg")),
 					m("p.center.m-0", lang.get("supportRatingRequest_msg")),
 					m(
-						".mt-l.mb-s",
+						".mt-32.mb-8",
 						{},
 						m("img.block.full-width.height-100p", {
 							src: `${window.tutao.appState.prefixWithoutFile}/images/leaving-wizard/problem.png`,

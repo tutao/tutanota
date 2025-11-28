@@ -41,7 +41,7 @@ export function folderSelectionDialog(indentedFolders: IndentedFolder[], okActio
 				],
 			}),
 
-			m(".dialog-max-height.plr-l.pt.pb.text-break.scroll", [
+			m(".dialog-max-height.plr-24.pt-16.pb-16.text-break.scroll", [
 				m(".text-break.selectable", lang.get("mailImportSelection_label")),
 				m(DropDownSelector, {
 					label: "mailFolder_label",

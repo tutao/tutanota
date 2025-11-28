@@ -150,7 +150,7 @@ function renderVisualCaptcha(viewModel: CaptchaDialogViewModel) {
 
 		[
 			m("", viewModel.visualCaptchaDescription),
-			m("img.pt-ml.center-h.block.full-width", {
+			m("img.pt-24.center-h.block.full-width", {
 				src: viewModel.getVisualData(),
 				alt: lang.get("captchaDisplay_label"),
 			}),
@@ -159,7 +159,7 @@ function renderVisualCaptcha(viewModel: CaptchaDialogViewModel) {
 }
 
 function renderAudioCaptcha(viewModel: CaptchaDialogViewModel) {
-	return m(".flex.col.flex-grow.gap-vpad-s", [
+	return m(".flex.col.flex-grow.gap-8", [
 		m("", viewModel.audioCaptchaDescription),
 		m(
 			"div.full-width.flex.col.justify-center",
@@ -180,7 +180,7 @@ function renderDialogContent(actionBarAttrs: DialogHeaderBarAttrs, viewModel: Ca
 	return [
 		m(DialogHeaderBar, actionBarAttrs),
 		m(
-			".pt.plr-l.pb.flex.col#captcha_wrapper",
+			".pt-16.plr-24.pb-16.flex.col#captcha_wrapper",
 			{
 				style: {
 					flex: "1 1 auto",

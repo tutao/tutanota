@@ -7,8 +7,8 @@ import { formatMailAddressFromParts } from "../misc/Formatter.js"
 import { Icon } from "../gui/base/Icon.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { assertMainOrNode } from "../api/common/Env.js"
-import { px, size } from "../gui/size.js"
-import { Autocapitalize, Autocomplete, inputLineHeight, TextField } from "../gui/base/TextField.js"
+import { font_size, px } from "../gui/size.js"
+import { Autocapitalize, Autocomplete, TextField } from "../gui/base/TextField.js"
 import { attachDropdown, DropdownButtonAttrs } from "../gui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../gui/base/IconButton.js"
 import { ButtonSize } from "../gui/base/ButtonSize.js"
@@ -30,6 +30,7 @@ export interface SelectMailAddressFormAttrs {
 	onDomainChanged: (domain: EmailDomainData) => unknown
 	mailAddressNAError?: TranslationKey
 	signupToken?: string
+	username?: string
 }
 
 export interface ValidationResult {
@@ -48,7 +49,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 		this.lastAttrs = attrs
 		this.isVerificationBusy = false
 		this.checkAddressTimeout = null
-		this.username = ""
+		this.username = attrs.username ?? ""
 		this.messageId = "mailAddressNeutral_msg"
 	}
 
@@ -57,6 +58,10 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			this.verifyMailAddress(vnode.attrs)
 		}
 		this.lastAttrs = vnode.attrs
+	}
+
+	oncreate({ attrs }: Vnode<SelectMailAddressFormAttrs>) {
+		this.verifyMailAddress(attrs)
 	}
 
 	view({ attrs }: Vnode<SelectMailAddressFormAttrs>): Children {
@@ -80,7 +85,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			autocompleteAs: Autocomplete.newPassword,
 			autocapitalize: Autocapitalize.none,
 			helpLabel: () => this.addressHelpLabel(),
-			fontSize: px(size.font_size_smaller),
+			fontSize: px(font_size.smaller),
 			oninput: (value) => {
 				this.username = value
 				this.verifyMailAddress(attrs)
@@ -92,8 +97,8 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 						style: {
 							"padding-bottom": "1px",
 							flex: "1 1 auto",
-							fontSize: px(size.font_size_smaller),
-							lineHeight: px(inputLineHeight),
+							fontSize: px(font_size.smaller),
+							lineHeight: px(font_size.line_height_input),
 						},
 					},
 					`@${attrs.selectedDomain.domain}`,
@@ -125,14 +130,14 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 
 	private addressHelpLabel(): Children {
 		return this.isVerificationBusy
-			? m(".flex.items-center.mt-s", [this.progressIcon(), lang.get("mailAddressBusy_msg")])
-			: m(".mt-s", lang.get(this.messageId ?? VALID_MESSAGE_ID))
+			? m(".flex.items-center.mt-8", [this.progressIcon(), lang.get("mailAddressBusy_msg")])
+			: m(".mt-8", lang.get(this.messageId ?? VALID_MESSAGE_ID))
 	}
 
 	private progressIcon(): Children {
 		return m(Icon, {
 			icon: BootIcons.Progress,
-			class: "icon-progress mr-s",
+			class: "icon-progress mr-8",
 		})
 	}
 
