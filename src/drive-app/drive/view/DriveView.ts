@@ -169,6 +169,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									onUploadClick: this.onNewFile_Click,
 									items: this.driveViewModel.currentFolder == null ? [] : this.driveViewModel.currentFolder.items,
 									driveViewModel: this.driveViewModel,
+									onPaste: this.driveViewModel.clipboard ? () => this.driveViewModel.paste() : null,
 								} satisfies DriveFolderViewAttrs),
 								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),
 							],

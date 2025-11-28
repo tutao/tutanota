@@ -346,3 +346,63 @@ impl Entity for DriveFolderServicePostOut {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveFolderServicePutIn {
+	#[serde(rename = "85")]
+	pub _format: i64,
+	#[serde(rename = "86")]
+	pub file: Option<IdTupleGenerated>,
+	#[serde(rename = "87")]
+	pub folder: Option<IdTupleGenerated>,
+	#[serde(rename = "88")]
+	pub destination: IdTupleGenerated,
+}
+
+impl Entity for DriveFolderServicePutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(84),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveFolderServicePutOut {
+	#[serde(rename = "90")]
+	pub _format: i64,
+	#[serde(rename = "91")]
+	pub movedFile: IdTupleGenerated,
+}
+
+impl Entity for DriveFolderServicePutOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(89),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveFolderServiceDeleteIn {
+	#[serde(rename = "93")]
+	pub _format: i64,
+	#[serde(rename = "94")]
+	pub file: Option<IdTupleGenerated>,
+	#[serde(rename = "95")]
+	pub folder: Option<IdTupleGenerated>,
+}
+
+impl Entity for DriveFolderServiceDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(92),
+		}
+	}
+}

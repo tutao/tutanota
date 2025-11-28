@@ -6,14 +6,15 @@ import { BlobFacade } from "./lazy/BlobFacade"
 import { UserFacade } from "./UserFacade"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { VersionedKey } from "../crypto/CryptoWrapper"
-import { assertNotNull, partition, Require } from "@tutao/tutanota-utils"
+import { assertNotNull, isSameTypeRef, partition, Require } from "@tutao/tutanota-utils"
 import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
 import { ExposedProgressTracker } from "../../main/ProgressTracker"
 import { UploadProgressListener } from "../../main/UploadProgressListener"
 import {
 	createDriveCreateData,
-	createDriveDeleteIn,
+	createDriveFolderServiceDeleteIn,
 	createDriveFolderServicePostIn,
+	createDriveFolderServicePutIn,
 	createDriveUploadedFile,
 	DriveFile,
 	DriveFileRef,
@@ -70,18 +71,22 @@ export class DriveFacade {
 		// await this.serviceExecutor.post(DriveFileMetadataService, data)
 	}
 
-	public async loadTrash(): Promise<FolderContents> {
-		const { fileGroupId } = await this.getCryptoInfo()
-		const driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
-
-		return await this.getFolderContents(driveGroupRoot.trash)
+	public async move(source: DriveFile | DriveFolder, destination: IdTuple) {
+		const data = createDriveFolderServicePutIn({
+			file: isSameTypeRef(source._type, DriveFileTypeRef) ? source._id : null,
+			folder: isSameTypeRef(source._type, DriveFolderTypeRef) ? source._id : null,
+			destination,
+		})
+		await this.serviceExecutor.put(DriveFolderService, data)
 	}
 
-	// FIXME: Folder
-	public async moveToTrash(file: DriveFile) {
-		const deleteData = createDriveDeleteIn({ fileToDelete: file._id })
+	public async moveToTrash(file: DriveFile | DriveFolder) {
+		const deleteData = createDriveFolderServiceDeleteIn({
+			file: isSameTypeRef(file._type, DriveFileTypeRef) ? file._id : null,
+			folder: isSameTypeRef(file._type, DriveFolderTypeRef) ? file._id : null,
+		})
 
-		await this.serviceExecutor.delete(DriveService, deleteData)
+		await this.serviceExecutor.delete(DriveFolderService, deleteData)
 	}
 
 	public async loadRootFolders(): Promise<{ root: IdTuple; trash: IdTuple }> {

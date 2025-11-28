@@ -6,18 +6,18 @@ import { DriveFolderContent, DriveFolderContentAttrs } from "./DriveFolderConten
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
 	items: readonly FolderItem[]
+	onPaste: (() => unknown) | null
 	driveViewModel: DriveViewModel
 }
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
-	view(vnode: Vnode<DriveFolderViewAttrs>): Children {
-		const { driveViewModel, onUploadClick } = vnode.attrs
+	view({ attrs: { driveViewModel, items, onPaste, onUploadClick } }: Vnode<DriveFolderViewAttrs>): Children {
 		return m(
 			"div.col.flex",
 			{ style: { gap: "15px" } },
-			m(DriveFolderNav, { driveViewModel, onUploadClick }),
+			m(DriveFolderNav, { onPaste, onUploadClick }),
 			m(DriveFolderContent, {
-				items: vnode.attrs.items,
+				items: items,
 				sortOrder: driveViewModel.getCurrentColumnSortOrder(),
 				onOpenItem: (item) => {
 					if (item.type === "folder") {
@@ -25,6 +25,12 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					} else {
 						driveViewModel.downloadFile(item.file)
 					}
+				},
+				onCopy: (item) => {
+					driveViewModel.copy(item)
+				},
+				onCut: (item) => {
+					driveViewModel.cut(item)
 				},
 				onDelete: (item) => {
 					driveViewModel.moveToTrash(item)

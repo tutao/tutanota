@@ -1,6 +1,5 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { BreadcrumbEntry, DriveFacade, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
-import { File as TutaFile } from "../../../common/api/entities/tutanota/TypeRefs"
 import { Router } from "../../../common/gui/ScopedRouter"
 import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
@@ -10,12 +9,10 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
-import { isFolder } from "./DriveFolderContentEntry"
 import { DriveFile, DriveFileRefTypeRef, DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
-import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -73,17 +70,6 @@ const compareNumber = (n1: number | bigint, n2: number | bigint) => {
 		return 0
 	}
 }
-
-const sortFoldersFirst = (f1: TutaFile, f2: TutaFile): number => {
-	if (isFolder(f1) && !isFolder(f2)) {
-		return -1
-	} else if (!isFolder(f1) && isFolder(f2)) {
-		return 1
-	} else {
-		return 0
-	}
-}
-
 interface FolderWithItems {
 	folder: DriveFolder
 	items: FolderItem[]
@@ -101,6 +87,17 @@ export interface SortingPreference {
 	order: SortOrder
 }
 
+export const enum ClipboardAction {
+	Cut,
+	Copy,
+}
+
+function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem): DriveFile | DriveFolder {
+	return folderItem.type === "file" ? folderItem.file : folderItem.folder
+}
+
+type DriveClipboard = { item: FolderItem; action: ClipboardAction }
+
 export class DriveViewModel {
 	public readonly driveUploadStackModel: DriveUploadStackModel
 	public readonly userMailAddress: string
@@ -110,6 +107,12 @@ export class DriveViewModel {
 	// normal folder view
 	currentFolder: DisplayFolder | null = null
 	roots!: Awaited<ReturnType<DriveFacade["loadRootFolders"]>>
+
+	private _clipboard: DriveClipboard | null = null
+
+	get clipboard(): DriveClipboard | null {
+		return this._clipboard
+	}
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -139,17 +142,34 @@ export class DriveViewModel {
 		}
 	}
 
-	/**
-	 * Move to trash just like addToFavourites change the metadata of the file
-	 * a file is
-	 */
-	async moveToTrash(item: FolderItem) {
-		if (item.type === "file") {
-			await this.driveFacade.moveToTrash(item.file)
-		} else {
+	cut(item: FolderItem) {
+		this._clipboard = { item, action: ClipboardAction.Cut }
+	}
+
+	copy(item: FolderItem) {
+		this._clipboard = { item, action: ClipboardAction.Copy }
+	}
+
+	async paste() {
+		if (this.currentFolder == null) return
+
+		if (this._clipboard?.action === ClipboardAction.Cut) {
+			const clipboardItem = this._clipboard.item
+			await this.moveItem(clipboardItem, this.currentFolder.folder._id)
+			this._clipboard = null
+			this.updateUi()
+		} else if (this._clipboard?.action === ClipboardAction.Copy) {
 			// FIXME
-			throw new ProgrammingError("not implemented")
 		}
+	}
+
+	private async moveItem(folderItem: FileFolderItem | FolderFolderItem, destination: IdTuple) {
+		const itemToMove = folderItemEntity(folderItem)
+		await this.driveFacade.move(itemToMove, destination)
+	}
+
+	async moveToTrash(item: FolderItem) {
+		await this.driveFacade.moveToTrash(folderItemEntity(item))
 	}
 
 	async loadSpecialFolder(specialFolderType: SpecialFolderType) {

@@ -759,5 +759,131 @@ export const typeModels = {
 				"dependency": null
 			}
 		}
+	},
+	"84": {
+		"name": "DriveFolderServicePutIn",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 84,
+		"rootId": "BWRyaXZlAFQ",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"85": {
+				"final": false,
+				"name": "_format",
+				"id": 85,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"86": {
+				"final": true,
+				"name": "file",
+				"id": 86,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 13,
+				"dependency": null
+			},
+			"87": {
+				"final": true,
+				"name": "folder",
+				"id": 87,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 0,
+				"dependency": null
+			},
+			"88": {
+				"final": true,
+				"name": "destination",
+				"id": 88,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 0,
+				"dependency": null
+			}
+		}
+	},
+	"89": {
+		"name": "DriveFolderServicePutOut",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 89,
+		"rootId": "BWRyaXZlAFk",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"90": {
+				"final": false,
+				"name": "_format",
+				"id": 90,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"91": {
+				"final": true,
+				"name": "movedFile",
+				"id": 91,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 28,
+				"dependency": null
+			}
+		}
+	},
+	"92": {
+		"name": "DriveFolderServiceDeleteIn",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 92,
+		"rootId": "BWRyaXZlAFw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"93": {
+				"final": false,
+				"name": "_format",
+				"id": 93,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"94": {
+				"final": true,
+				"name": "file",
+				"id": 94,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 13,
+				"dependency": null
+			},
+			"95": {
+				"final": true,
+				"name": "folder",
+				"id": 95,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 0,
+				"dependency": null
+			}
+		}
 	}
 }

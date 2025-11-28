@@ -1,7 +1,7 @@
-import m, { Children, Component } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { File } from "../../../common/api/entities/tutanota/TypeRefs"
 import { formatStorageSize } from "../../../common/misc/Formatter"
-import { DriveViewModel, FolderItem } from "./DriveViewModel"
+import { FolderItem } from "./DriveViewModel"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { columnSizes } from "./DriveFolderContent"
@@ -14,13 +14,10 @@ export interface DriveFolderContentEntryAttrs {
 	item: FolderItem
 	onSelect: (f: DriveFile) => void
 	checked: boolean // maybe should be inside a map inside the model
+	onCut: (f: FolderItem) => unknown
+	onCopy: (f: FolderItem) => unknown
 	onOpenItem: (f: FolderItem) => unknown
 	onDelete: (f: FolderItem) => unknown
-}
-
-// FIXME
-export const isFolder = ({ mimeType }: File) => {
-	return mimeType === "tuta/folder"
 }
 
 const DriveFolderContentEntryRowStyle = {
@@ -63,9 +60,7 @@ const mimeTypeAsText = (mimeType: string) => {
 }
 
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
-	private globalIconFill = "transparent"
-
-	view({ attrs: { item, checked, onSelect, onDelete, onOpenItem } }: m.Vnode<DriveFolderContentEntryAttrs>): Children {
+	view({ attrs: { item, checked, onSelect, onDelete, onOpenItem, onCopy, onCut } }: Vnode<DriveFolderContentEntryAttrs>): Children {
 		const uploadDate = item.type === "file" ? item.file.createdDate : item.folder.createdDate
 
 		const thisFileIsAFolder = item.type === "folder"
@@ -118,13 +113,21 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 								title: "more_label",
 							},
 							childAttrs: () => [
-								// {
-								// 	label: "move_action",
-								// 	icon: Icons.Folder,
-								// 	click: () => {
-								//
-								// 	}
-								// }
+								{
+									label: "copy_action",
+									icon: Icons.Copy,
+									click: () => {
+										onCopy(item)
+									},
+								},
+								{
+									label: "cut_action",
+									// FIXME: please, another icon, please
+									icon: Icons.ArrowForward,
+									click: () => {
+										onCut(item)
+									},
+								},
 								{
 									label: "trash_action",
 									icon: Icons.Trash,

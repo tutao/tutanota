@@ -8,6 +8,8 @@ export interface DriveFolderContentAttrs {
 	items: readonly FolderItem[]
 	sortOrder: SortingPreference
 	onOpenItem: (f: FolderItem) => unknown
+	onCopy: (f: FolderItem) => unknown
+	onCut: (f: FolderItem) => unknown
 	onDelete: (f: FolderItem) => unknown
 	onSort: (column: SortColumn) => unknown
 }
@@ -53,7 +55,7 @@ function renderHeaderCell(
 }
 
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
-	view({ attrs: { onOpenItem, onDelete, sortOrder, onSort, items } }: Vnode<DriveFolderContentAttrs>): Children {
+	view({ attrs: { onOpenItem, onDelete, sortOrder, onSort, items, onCopy, onCut } }: Vnode<DriveFolderContentAttrs>): Children {
 		return m("div.flex.col", [
 			m("div.flex.row.folder-row", { style: { padding: "8px 24px" } }, [
 				m("div", { style: { ...columnStyle, width: columnSizes.select } }, []),
@@ -74,6 +76,8 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 				m(DriveFolderContentEntry, {
 					item: item,
 					onSelect: (f) => {},
+					onCopy,
+					onCut,
 					checked: false,
 					onOpenItem,
 					onDelete,
