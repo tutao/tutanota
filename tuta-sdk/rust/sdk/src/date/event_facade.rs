@@ -1735,6 +1735,7 @@ impl EventFacade {
 			_ownerKeyVersion: None,
 			_errors: HashMap::new(),
 			_finalIvs: HashMap::new(),
+			sender: None,
 		}
 	}
 }

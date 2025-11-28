@@ -617,6 +617,7 @@ function getContents(eventObjects: ICalObject[], zone: string) {
 			hashedUid: null,
 			invitedConfidentially: null,
 			alarmInfos: [],
+			sender: null,
 		}) as Require<"uid", CalendarEvent>
 
 		let alarms: AlarmInfoTemplate[] = []
