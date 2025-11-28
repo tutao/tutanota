@@ -898,7 +898,7 @@ export function assignEventId(event: CalendarEvent, zone: string, groupRoot: Cal
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
 }
 
-/** create an pending event id depending on the calendar it is */
+/** Create a pending event id depending on the default calendar assigned to this user */
 export function assignPendingEventId(event: CalendarEvent, groupRoot: CalendarGroupRoot): void {
 	if (!groupRoot.pendingEvents?.list) {
 		throw Error(`Group ${groupRoot._id} is missing its pending list`)
