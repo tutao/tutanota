@@ -110,7 +110,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
 			mailId: mail._id,
 			targetMoveFolder: inboxFolder._id,
-			classifierType: null,
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
 		}
 
@@ -127,7 +127,7 @@ o.spec("SpamClassificationHandlerTest", function () {
 		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
 			mailId: mail._id,
 			targetMoveFolder: spamFolder._id,
-			classifierType: null,
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: compressedUnencryptedTestVector,
 		}
 
