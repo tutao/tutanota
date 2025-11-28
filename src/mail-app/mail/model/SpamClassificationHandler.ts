@@ -36,7 +36,7 @@ export class SpamClassificationHandler {
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			mailId: mail._id,
 			targetMoveFolder: targetFolder._id,
-			classifierType: isSameId(targetFolder._id, sourceFolder._id) ? null : ClientClassifierType.CLIENT_CLASSIFICATION,
+			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 			vector: await this.spamClassifier.vectorizeAndCompress(spamMailDatum),
 		}
 		return { targetFolder, processInboxDatum: processInboxDatum }
