@@ -681,13 +681,26 @@ export class CalendarModel {
 		const { findFirstPrivateCalendar } = await import("../../../common/calendar/date/CalendarUtils.js")
 		const calendarInfos = await this.loadCalendarInfos(progressMonitor)
 
-		if (!this.logins.isInternalUserLoggedIn() || findFirstPrivateCalendar(calendarInfos)) {
+		const firstPrivateCalendar = findFirstPrivateCalendar(calendarInfos)
+		const userSettingsGroupRoot = this.logins.getUserController().userSettingsGroupRoot
+		const isInternalUser = this.logins.isInternalUserLoggedIn()
+
+		if (!isInternalUser) {
 			return calendarInfos
-		} else {
-			const group = await this.createCalendar("", null, [], null)
-			await this.calendarFacade.setCalendarAsDefault(group._id, this.logins.getUserController().userSettingsGroupRoot)
-			return await this.loadCalendarInfos(progressMonitor)
 		}
+
+		if (firstPrivateCalendar) {
+			if (userSettingsGroupRoot.defaultCalendar === null) {
+				await this.calendarFacade.setCalendarAsDefault(firstPrivateCalendar.id, userSettingsGroupRoot)
+			}
+			return calendarInfos
+		}
+
+		const newCalendarGroup = await this.createCalendar("", null, [], null)
+		await this.calendarFacade.setCalendarAsDefault(newCalendarGroup._id, userSettingsGroupRoot)
+
+		// Reload calendar infos to include the newly created calendar
+		return await this.loadCalendarInfos(progressMonitor)
 	}
 
 	async createCalendar(name: string, color: string | null, alarms: AlarmInterval[], sourceUrl: string | null): Promise<Group> {
