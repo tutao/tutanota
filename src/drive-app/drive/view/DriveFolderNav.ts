@@ -10,6 +10,7 @@ export interface DriveFolderNavAttrs {
 	parents: readonly DriveFolder[]
 	onUploadClick: (dom: HTMLElement) => void
 	onPaste: (() => unknown) | null
+	onNavigateToFolder: (folder: DriveFolder) => unknown
 }
 
 const driveFolderNavStyle = {
@@ -24,12 +25,12 @@ const driveFolderNavStyle = {
 }
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
-	view({ attrs: { onPaste, onUploadClick, currentFolder, parents } }: Vnode<DriveFolderNavAttrs>): Children {
+	view({ attrs: { onPaste, onUploadClick, currentFolder, parents, onNavigateToFolder } }: Vnode<DriveFolderNavAttrs>): Children {
 		return m(
 			"",
 			{ style: driveFolderNavStyle },
 			// TODO: FilterBox
-			m(DriveBreadcrumb, { currentFolder, parents }),
+			m(DriveBreadcrumb, { currentFolder, parents, onNavigateToFolder }),
 			m("", [
 				onPaste
 					? m(IconButton, {

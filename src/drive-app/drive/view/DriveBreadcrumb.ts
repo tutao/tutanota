@@ -5,6 +5,7 @@ import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 export interface DriveBreadcrumbAttrs {
 	currentFolder: DriveFolder | null
 	parents: readonly DriveFolder[]
+	onNavigateToFolder: (folder: DriveFolder) => unknown
 }
 
 export function getSpecialFolderName(specialFolder: SpecialFolderType) {
@@ -18,7 +19,7 @@ export function getSpecialFolderName(specialFolder: SpecialFolderType) {
 }
 
 export class DriveBreadcrumb implements Component<DriveBreadcrumbAttrs> {
-	view({ attrs: { currentFolder, parents } }: Vnode<DriveBreadcrumbAttrs>): Children {
+	view({ attrs: { currentFolder, parents, onNavigateToFolder } }: Vnode<DriveBreadcrumbAttrs>): Children {
 		// FIXME not pretty
 		return m("div", [
 			parents
@@ -28,7 +29,7 @@ export class DriveBreadcrumb implements Component<DriveBreadcrumbAttrs> {
 						"span",
 						{
 							onclick: () => {
-								// driveViewModel.navigateToFolder(entry.folder)
+								onNavigateToFolder(entry)
 							},
 							class: "cursor-pointer",
 						},
@@ -36,7 +37,7 @@ export class DriveBreadcrumb implements Component<DriveBreadcrumbAttrs> {
 					),
 				])
 				.flat(),
-			currentFolder ? m("span", folderName(currentFolder)) : null,
+			currentFolder ? m("span", " " + folderName(currentFolder)) : null,
 		])
 	}
 }

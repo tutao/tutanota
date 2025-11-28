@@ -18,7 +18,15 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 		return m(
 			"div.col.flex",
 			{ style: { gap: "15px" } },
-			m(DriveFolderNav, { onPaste, onUploadClick, currentFolder, parents }),
+			m(DriveFolderNav, {
+				onPaste,
+				onUploadClick,
+				currentFolder,
+				parents,
+				onNavigateToFolder: (folder) => {
+					driveViewModel.navigateToFolder(folder._id)
+				},
+			}),
 			m(DriveFolderContent, {
 				items: items,
 				sortOrder: driveViewModel.getCurrentColumnSortOrder(),
