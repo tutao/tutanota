@@ -7,7 +7,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 
 export interface DriveFolderNavAttrs {
 	onUploadClick: (dom: HTMLElement) => void
-	driveViewModel: DriveViewModel
+	onPaste: (() => unknown) | null
 }
 
 const driveFolderNavStyle = {
@@ -23,18 +23,23 @@ const driveFolderNavStyle = {
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 	view(vnode: Vnode<DriveFolderNavAttrs>): Children {
-		const driveViewModel = vnode.attrs.driveViewModel
-
 		return m(
 			"",
 			{ style: driveFolderNavStyle },
 			// TODO: FilterBox
-			m(DriveBreadcrumb, { driveViewModel, path: [["root", ["SomeListID", "SomeElementID"]]] }), // FIXME: hardcoded path
+			m(DriveBreadcrumb, { path: [["root", ["SomeListID", "SomeElementID"]]] }), // FIXME: hardcoded path
 			// FIXME
 			// driveViewModel.currentFolder.isVirtual
 			// 	? null
 			// 	:
 			m("", [
+				vnode.attrs.onPaste
+					? m(IconButton, {
+							title: "paste_action",
+							click: vnode.attrs.onPaste,
+							icon: Icons.Clipboard,
+						})
+					: null,
 				m(IconButton, {
 					title: lang.makeTranslation("Upload file", () => "Upload file"),
 					click: (ev, dom) => vnode.attrs.onUploadClick(dom),

@@ -1,5 +1,8 @@
 import { DriveFolderServicePostInTypeRef } from "./TypeRefs.js"
 import { DriveFolderServicePostOutTypeRef } from "./TypeRefs.js"
+import { DriveFolderServicePutInTypeRef } from "./TypeRefs.js"
+import { DriveFolderServicePutOutTypeRef } from "./TypeRefs.js"
+import { DriveFolderServiceDeleteInTypeRef } from "./TypeRefs.js"
 import { DriveCreateDataTypeRef } from "./TypeRefs.js"
 import { DriveCreateReturnTypeRef } from "./TypeRefs.js"
 import { DriveDeleteInTypeRef } from "./TypeRefs.js"
@@ -10,8 +13,8 @@ export const DriveFolderService = Object.freeze({
 	name: "DriveFolderService",
 	get: null,
 	post: { data: DriveFolderServicePostInTypeRef, return: DriveFolderServicePostOutTypeRef },
-	put: null,
-	delete: null,
+	put: { data: DriveFolderServicePutInTypeRef, return: DriveFolderServicePutOutTypeRef },
+	delete: { data: DriveFolderServiceDeleteInTypeRef, return: null },
 } as const)
 
 export const DriveService = Object.freeze({
