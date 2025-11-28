@@ -1,13 +1,15 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { File } from "../../../common/api/entities/tutanota/TypeRefs"
-import { DriveViewModel, FolderItem } from "./DriveViewModel"
+import { FolderItem, SortColumn, SortingPreference, SortOrder } from "./DriveViewModel"
 import { DriveFolderContentEntry } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
-import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
+import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 
 export interface DriveFolderContentAttrs {
 	items: readonly FolderItem[]
-	driveViewModel: DriveViewModel
+	sortOrder: SortingPreference
+	onOpenItem: (f: FolderItem) => unknown
+	onDelete: (f: FolderItem) => unknown
+	onSort: (column: SortColumn) => unknown
 }
 
 const columnStyle = {
@@ -26,45 +28,55 @@ export const columnSizes = {
 	date: "300px",
 }
 
-function makeHeaderCell(columnName: string, sortColumnName: string, width: string, driveViewModel: DriveViewModel): Children {
+function renderHeaderCell(
+	columnName: Translation,
+	columnId: SortColumn,
+	{ column, order }: SortingPreference,
+	width: string,
+	onSort: DriveFolderContentAttrs["onSort"],
+): Children {
 	return m(
 		"div",
 		{
 			style: { ...columnStyle, width },
 			onclick: () => {
-				driveViewModel.sort(sortColumnName)
-				m.redraw()
+				onSort(columnId)
 			},
 		},
-		[columnName, m(DriveSortArrow, { driveViewModel, columnName: sortColumnName })],
+		[
+			columnName.text,
+			m(DriveSortArrow, {
+				sortOrder: columnId === column ? order : null,
+			}),
+		],
 	)
 }
 
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
-	view(vnode: Vnode<DriveFolderContentAttrs>): Children {
-		const driveViewModel = vnode.attrs.driveViewModel
-
+	view({ attrs: { onOpenItem, onDelete, sortOrder, onSort, items } }: Vnode<DriveFolderContentAttrs>): Children {
 		return m("div.flex.col", [
 			m("div.flex.row.folder-row", { style: { padding: "8px 24px" } }, [
 				m("div", { style: { ...columnStyle, width: columnSizes.select } }, []),
 				// Icons...
 				m("div", { style: { ...columnStyle, width: columnSizes.icon } }, []),
-				makeHeaderCell("Name", "name", columnSizes.name, driveViewModel),
-				makeHeaderCell("Type", "mimeType", columnSizes.type, driveViewModel),
-				makeHeaderCell("Size", "size", columnSizes.size, driveViewModel),
-				makeHeaderCell("Date", "date", columnSizes.date, driveViewModel),
+				// FIXME: translations
+				renderHeaderCell(lang.makeTranslation("name", "Name"), SortColumn.name, sortOrder, columnSizes.name, onSort),
+				renderHeaderCell(lang.makeTranslation("type", "Type"), SortColumn.mimeType, sortOrder, columnSizes.type, onSort),
+				renderHeaderCell(lang.makeTranslation("size", "Size"), SortColumn.size, sortOrder, columnSizes.size, onSort),
+				renderHeaderCell(lang.makeTranslation("date", "Date"), SortColumn.date, sortOrder, columnSizes.date, onSort),
 				// m("div", { style: { ...columnStyle, width: columnSizes.type } }, "Type"),
 				// m("div", { style: { ...columnStyle, width: columnSizes.size } }, "Size"),
 				// m("div", { style: { ...columnStyle, width: columnSizes.date } }, "Date"),
 				m("div", { style: { ...columnStyle } }, "Actions"),
 			]),
 
-			vnode.attrs.items.map((item) =>
+			items.map((item) =>
 				m(DriveFolderContentEntry, {
 					item: item,
 					onSelect: (f) => {},
 					checked: false,
-					driveViewModel: driveViewModel,
+					onOpenItem,
+					onDelete,
 				}),
 			),
 		])

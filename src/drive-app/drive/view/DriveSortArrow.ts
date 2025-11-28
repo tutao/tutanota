@@ -1,30 +1,28 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveViewModel } from "./DriveViewModel"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { Icon } from "../../../common/gui/base/Icon"
+import { AllIcons, Icon } from "../../../common/gui/base/Icon"
 
 export interface DriveSortArrowAttrs {
-	columnName: string
-	driveViewModel: DriveViewModel
+	sortOrder: "asc" | "desc" | null
 }
 
 export class DriveSortArrow implements Component<DriveSortArrowAttrs> {
-	view({ attrs: { columnName: thisColumnName, driveViewModel } }: Vnode<DriveSortArrowAttrs>): Children {
-		const currentColumnSortOrder = driveViewModel.getCurrentColumnSortOrder()
-
-		let child = m(Icon, {
-			icon: Icons.ArrowDropRight,
-		})
-
-		if (currentColumnSortOrder !== null && currentColumnSortOrder[0] === thisColumnName) {
-			const [columnName, sortOrder] = currentColumnSortOrder
-			const arrowToDisplay = sortOrder === "asc" ? Icons.ArrowDropUp : Icons.ArrowDropDown
-
-			child = m(Icon, {
-				icon: arrowToDisplay,
-			})
+	view({ attrs: { sortOrder } }: Vnode<DriveSortArrowAttrs>): Children {
+		let icon: AllIcons
+		switch (sortOrder) {
+			case "asc":
+				icon = Icons.ArrowDropUp
+				break
+			case "desc":
+				icon = Icons.ArrowDropDown
+				break
+			case null:
+				icon = Icons.ArrowDropRight
+				break
 		}
 
-		return child
+		return m(Icon, {
+			icon,
+		})
 	}
 }

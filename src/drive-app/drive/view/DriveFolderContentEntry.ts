@@ -7,12 +7,15 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { columnSizes } from "./DriveFolderContent"
 import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
 import { filterInt } from "@tutao/tutanota-utils"
+import { IconButton } from "../../../common/gui/base/IconButton"
+import { attachDropdown } from "../../../common/gui/base/Dropdown"
 
 export interface DriveFolderContentEntryAttrs {
 	item: FolderItem
 	onSelect: (f: DriveFile) => void
 	checked: boolean // maybe should be inside a map inside the model
-	driveViewModel: DriveViewModel
+	onOpenItem: (f: FolderItem) => unknown
+	onDelete: (f: FolderItem) => unknown
 }
 
 // FIXME
@@ -62,9 +65,8 @@ const mimeTypeAsText = (mimeType: string) => {
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
 	private globalIconFill = "transparent"
 
-	view({ attrs: { item, checked, onSelect, driveViewModel } }: m.Vnode<DriveFolderContentEntryAttrs>): Children {
+	view({ attrs: { item, checked, onSelect, onDelete, onOpenItem } }: m.Vnode<DriveFolderContentEntryAttrs>): Children {
 		const uploadDate = item.type === "file" ? item.file.createdDate : item.folder.createdDate
-		const router = driveViewModel
 
 		const thisFileIsAFolder = item.type === "folder"
 
@@ -95,12 +97,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					"span",
 					{
 						onclick: () => {
-							if (item.type === "folder") {
-								driveViewModel.navigateToFolder(item.folder._id)
-							} else {
-								// download
-								driveViewModel.downloadFile(item.file)
-							}
+							onOpenItem(item)
 						},
 						class: "cursor-pointer",
 					},
@@ -114,21 +111,28 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				"div",
 				m("div", [
 					m(
-						"span",
-						{
-							onclick: () => {
-								driveViewModel.moveToTrash(item).then(() => m.redraw())
+						IconButton,
+						attachDropdown({
+							mainButtonAttrs: {
+								icon: Icons.More,
+								title: "more_label",
 							},
-						},
-						m(Icon, {
-							icon: Icons.Trash,
-							size: IconSize.Normal,
-							style: {
-								fill: "#707070",
-								position: "relative",
-								top: "2px",
-							},
-							class: "cursor-pointer",
+							childAttrs: () => [
+								// {
+								// 	label: "move_action",
+								// 	icon: Icons.Folder,
+								// 	click: () => {
+								//
+								// 	}
+								// }
+								{
+									label: "trash_action",
+									icon: Icons.Trash,
+									click: () => {
+										onDelete(item)
+									},
+								},
+							],
 						}),
 					),
 				]),

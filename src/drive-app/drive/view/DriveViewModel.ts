@@ -2,7 +2,7 @@ import { EntityClient } from "../../../common/api/common/EntityClient"
 import { BreadcrumbEntry, DriveFacade, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
 import { File as TutaFile } from "../../../common/api/entities/tutanota/TypeRefs"
 import { Router } from "../../../common/gui/ScopedRouter"
-import { elementIdPart, generatedIdToTimestamp, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -52,16 +52,6 @@ export interface SpecialFolder {
 
 export type DisplayFolder = RegularFolder | SpecialFolder
 
-const buildSortFunction = (order: "asc" | "desc", sort: (f1: TutaFile, f2: TutaFile) => number) => {
-	if (order === "desc") {
-		return (f1: TutaFile, f2: TutaFile) => {
-			const compare = sort(f1, f2)
-			return compare * -1 // reverse the order
-		}
-	}
-	return sort
-}
-
 const compareString = (s1: string, s2: string) => {
 	s1 = s1.toLowerCase()
 	s2 = s2.toLowerCase()
@@ -99,12 +89,23 @@ interface FolderWithItems {
 	items: FolderItem[]
 }
 
+export const enum SortColumn {
+	name = "name",
+	mimeType = "mimeType",
+	size = "size",
+	date = "date",
+}
+
+export interface SortingPreference {
+	column: SortColumn
+	order: SortOrder
+}
+
 export class DriveViewModel {
 	public readonly driveUploadStackModel: DriveUploadStackModel
 	public readonly userMailAddress: string
 
-	// column sorting
-	private columnToSortOrder: [string, SortOrder] | null = null
+	private sortingPreference: SortingPreference = { order: "asc", column: SortColumn.name }
 
 	// normal folder view
 	currentFolder: DisplayFolder | null = null
@@ -247,32 +248,38 @@ export class DriveViewModel {
 	}
 
 	getCurrentColumnSortOrder() {
-		return this.columnToSortOrder
+		return this.sortingPreference
 	}
 
-	sort(columnName: string, folderFirst: boolean = false) {
-		if (this.columnToSortOrder === null) {
-			this.columnToSortOrder = [columnName, "asc"]
-		} else {
+	sort(column: SortColumn, folderFirst: boolean = false) {
+		if (this.sortingPreference.column === column) {
 			// flip order
-			this.columnToSortOrder = [columnName, this.columnToSortOrder[1] === "asc" ? "desc" : "asc"]
+			this.sortingPreference = { column: column, order: this.sortingPreference.order === "asc" ? "desc" : "asc" }
+		} else {
+			this.sortingPreference = { column: column, order: "asc" }
 		}
 
-		const sortOrder = this.columnToSortOrder[1]
+		if (this.currentFolder == null) return
 
-		// TODO: Use the type system to catch errors here during compile time.
-		const attrToComparisonFunction: Record<string, (f1: TutaFile, f2: TutaFile) => number> = {
-			name: (f1: TutaFile, f2: TutaFile) => compareString(f1.name, f2.name),
-			mimeType: (f1: TutaFile, f2: TutaFile) => compareString(f1.mimeType || "", f2.mimeType || ""),
-			size: (f1: TutaFile, f2: TutaFile) => compareNumber(BigInt(f1.size), BigInt(f2.size)),
-			date: (f1: TutaFile, f2: TutaFile) => compareNumber(generatedIdToTimestamp(elementIdPart(f1._id)), generatedIdToTimestamp(elementIdPart(f2._id))),
+		const itemName = (item: FolderItem) => (item.type === "folder" ? item.folder.name : item.file.name)
+		const itemDate = (item: FolderItem) => (item.type === "folder" ? item.folder.updatedDate : item.file.updatedDate)
+		const itemSize = (item: FolderItem) => (item.type === "folder" ? 0n : BigInt(item.file.size))
+
+		const itemMimeType = (item: FolderItem) => (item.type === "folder" ? "" : item.file.mimeType)
+
+		const attrToComparisonFunction: Record<SortColumn, (f1: FolderItem, f2: FolderItem) => number> = {
+			name: (f1: FolderItem, f2: FolderItem) => compareString(itemName(f1), itemName(f2)),
+			mimeType: (f1: FolderItem, f2: FolderItem) => compareString(itemMimeType(f1), itemMimeType(f2)),
+			size: (f1: FolderItem, f2: FolderItem) => compareNumber(itemSize(f1), itemSize(f2)),
+			date: (f1: FolderItem, f2: FolderItem) => compareNumber(itemDate(f1).getTime(), itemDate(f2).getTime()),
 		}
 
-		const comparisonFn = attrToComparisonFunction[columnName]
-		const sortFunction = buildSortFunction(sortOrder, comparisonFn)
+		const comparisonFn = attrToComparisonFunction[column]
 
-		// FIXME
-		// this.currentFolder.files.sort(sortFunction)
+		// invert comparison function when the order is descending
+		const sortFunction: typeof comparisonFn = this.sortingPreference.order === "asc" ? comparisonFn : (l, r) => -comparisonFn(l, r)
+
+		this.currentFolder.items = this.currentFolder.items.toSorted(sortFunction)
 
 		// FIXME
 		// if (folderFirst) {
@@ -281,4 +288,4 @@ export class DriveViewModel {
 	}
 }
 
-type SortOrder = "asc" | "desc"
+export type SortOrder = "asc" | "desc"
