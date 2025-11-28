@@ -9,7 +9,7 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
-import { DriveFile, DriveFileRefTypeRef, DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
+import { DriveFile, DriveFileRefTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
@@ -106,6 +106,8 @@ export class DriveViewModel {
 
 	// normal folder view
 	currentFolder: DisplayFolder | null = null
+	// FIXME: should probably be a part of current folder?
+	parents: readonly DriveFolder[] = []
 	roots!: Awaited<ReturnType<DriveFacade["loadRootFolders"]>>
 
 	private _clipboard: DriveClipboard | null = null
@@ -188,6 +190,16 @@ export class DriveViewModel {
 			items: folderWithItems.items,
 			type: specialFolderType,
 		}
+		await this.loadParents(folderWithItems.folder)
+	}
+
+	private async loadParents(folder: DriveFolder) {
+		// FIXME: load more parents, try to walk the tree more intellegently?
+		if (folder.parent != null) {
+			this.parents = [await this.entityClient.load(DriveFolderTypeRef, folder.parent)]
+		} else {
+			this.parents = []
+		}
 	}
 
 	private async getFolderItems(folderId: IdTuple): Promise<FolderWithItems> {
@@ -199,19 +211,6 @@ export class DriveViewModel {
 		return { folder, items }
 	}
 
-	getCurrentParents(): readonly BreadcrumbEntry[] {
-		switch (this.currentFolder?.type) {
-			case DriveFolderType.Regular:
-				return this.currentFolder.parents
-			default:
-				return []
-		}
-	}
-
-	// currentFolderIsRoot() {
-	// 	return this.currentFolder.folder?._id === this.rootFolder
-	// }
-
 	async loadFolderContentsByIdTuple(idTuple: IdTuple): Promise<void> {
 		try {
 			const { folder, items } = await this.getFolderItems(idTuple)
@@ -222,6 +221,7 @@ export class DriveViewModel {
 				items,
 				parents: [],
 			} satisfies RegularFolder
+			await this.loadParents(folder)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				this.navigateToRootFolder()

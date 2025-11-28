@@ -1,11 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { DriveBreadcrumb } from "./DriveBreadcrumb"
-import { DriveViewModel } from "./DriveViewModel"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { lang } from "../../../common/misc/LanguageViewModel"
+import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 
 export interface DriveFolderNavAttrs {
+	currentFolder: DriveFolder | null
+	parents: readonly DriveFolder[]
 	onUploadClick: (dom: HTMLElement) => void
 	onPaste: (() => unknown) | null
 }
@@ -22,27 +24,23 @@ const driveFolderNavStyle = {
 }
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
-	view(vnode: Vnode<DriveFolderNavAttrs>): Children {
+	view({ attrs: { onPaste, onUploadClick, currentFolder, parents } }: Vnode<DriveFolderNavAttrs>): Children {
 		return m(
 			"",
 			{ style: driveFolderNavStyle },
 			// TODO: FilterBox
-			m(DriveBreadcrumb, { path: [["root", ["SomeListID", "SomeElementID"]]] }), // FIXME: hardcoded path
-			// FIXME
-			// driveViewModel.currentFolder.isVirtual
-			// 	? null
-			// 	:
+			m(DriveBreadcrumb, { currentFolder, parents }),
 			m("", [
-				vnode.attrs.onPaste
+				onPaste
 					? m(IconButton, {
 							title: "paste_action",
-							click: vnode.attrs.onPaste,
+							click: onPaste,
 							icon: Icons.Clipboard,
 						})
 					: null,
 				m(IconButton, {
 					title: lang.makeTranslation("Upload file", () => "Upload file"),
-					click: (ev, dom) => vnode.attrs.onUploadClick(dom),
+					click: (ev, dom) => onUploadClick(dom),
 					icon: Icons.Upload,
 				}),
 			]),

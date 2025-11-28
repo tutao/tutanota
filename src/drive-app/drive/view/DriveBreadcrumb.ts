@@ -1,10 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveFolderType, DriveViewModel, SpecialFolderType } from "./DriveViewModel"
-
-export type BreadcrumbPath = Array<[string, IdTuple]>
+import { DriveFolderType, SpecialFolderType } from "./DriveViewModel"
+import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 
 export interface DriveBreadcrumbAttrs {
-	path: BreadcrumbPath
+	currentFolder: DriveFolder | null
+	parents: readonly DriveFolder[]
 }
 
 export function getSpecialFolderName(specialFolder: SpecialFolderType) {
@@ -18,26 +18,37 @@ export function getSpecialFolderName(specialFolder: SpecialFolderType) {
 }
 
 export class DriveBreadcrumb implements Component<DriveBreadcrumbAttrs> {
-	view({ attrs }: Vnode<DriveBreadcrumbAttrs>): Children {
-		// let parents = driveViewModel.getCurrentParents()
+	view({ attrs: { currentFolder, parents } }: Vnode<DriveBreadcrumbAttrs>): Children {
+		// FIXME not pretty
+		return m("div", [
+			parents
+				.map((entry, index) => [
+					index === 0 ? null : m("span.plr", "/"),
+					m(
+						"span",
+						{
+							onclick: () => {
+								// driveViewModel.navigateToFolder(entry.folder)
+							},
+							class: "cursor-pointer",
+						},
+						entry.name,
+					),
+				])
+				.flat(),
+			currentFolder ? m("span", folderName(currentFolder)) : null,
+		])
+	}
+}
 
-		return m(
-			"div",
-			// parents
-			// 	.map((entry, index) => [
-			// 		index === 0 ? null : m("span.plr", "/"),
-			// 		m(
-			// 			"span",
-			// 			{
-			// 				onclick: () => {
-			// 					driveViewModel.navigateToFolder(entry.folder)
-			// 				},
-			// 				class: "cursor-pointer",
-			// 			},
-			// 			entry.folderName,
-			// 		),
-			// 	])
-			// 	.flat(),
-		)
+function folderName(folder: DriveFolder): string {
+	switch (folder.type) {
+		case DriveFolderType.Root:
+			return "/"
+		case DriveFolderType.Trash:
+			// FIXME
+			return "Trash"
+		default:
+			return folder.name
 	}
 }

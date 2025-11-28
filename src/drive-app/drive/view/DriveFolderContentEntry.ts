@@ -122,8 +122,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 								},
 								{
 									label: "cut_action",
-									// FIXME: please, another icon, please
-									icon: Icons.ArrowForward,
+									icon: Icons.Cut,
 									click: () => {
 										onCut(item)
 									},
