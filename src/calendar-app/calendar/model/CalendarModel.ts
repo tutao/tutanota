@@ -320,7 +320,11 @@ export class CalendarModel {
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
 			(await didLongStateChange(newEvent, existingEvent, zone))
 		) {
-			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
+			if (this.isDefaultCalendar(listIdPart(existingEvent._id))) {
+				await this.createPendingEvent(newEvent, groupRoot, newAlarms, existingEvent)
+			} else {
+				await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
+			}
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
@@ -755,15 +759,13 @@ export class CalendarModel {
 	private async createPendingEvent(
 		event: CalendarEvent,
 		groupRoot: CalendarGroupRoot,
-		alarmInfos: ReadonlyArray<AlarmInfoTemplate>,
+		alarmInfos: ReadonlyArray<AlarmInfoTemplate> = [],
 		existingEvent: CalendarEvent | null = null,
 	): Promise<void> {
 		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
 		removeTechnicalFields(event)
 
 		const { assignPendingEventId } = await import("../../../common/calendar/date/CalendarUtils")
-		// if values of the existing events have changed that influence the alarm time then delete the old event and create a new
-		// one.
 		assignPendingEventId(event, groupRoot)
 
 		// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
@@ -854,7 +856,7 @@ export class CalendarModel {
 			// const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const { parseCalendarFile } = await import("../../../common/calendar/gui/CalendarImporter.js")
-			return await parseCalendarFile(dataFile)
+			return parseCalendarFile(dataFile)
 		} catch (e) {
 			if (e instanceof SessionKeyNotFoundError) {
 				// owner enc session key not updated yet - see NoOwnerEncSessionKeyForCalendarEventError's comment
@@ -982,14 +984,10 @@ export class CalendarModel {
 		const dbEvents = await this.calendarFacade.getEventsByUid(calendarData.contents[0].event.uid, CachingMode.Bypass)
 
 		if (dbEvents == null) {
-			// if we ever want to display event invites in the calendar before accepting them,
-			// we probably need to do something else here.
-			console.log(TAG, "received event update for event that has not been saved to the server, ignoring.")
-			return
 			// Create pending events when processing calendar invites.
-			// const defaultCalendarGroupRoot = await this.getDefaultCalendarGroupRoot()
-			// return await this.handleNewCalendarInvitation(sender, calendarData, defaultCalendarGroupRoot)
-		}
+			const defaultCalendarGroupRoot = await this.getDefaultCalendarGroupRoot()
+			return await this.handleNewCalendarInvitation(sender, calendarData, defaultCalendarGroupRoot)
+		} // FIXME Handle updates to pending events
 
 		const method = calendarData.method
 		for (const content of calendarData.contents) {
@@ -1001,13 +999,15 @@ export class CalendarModel {
 		}
 	}
 
-	/* Fetches all calendars and filter out external calendars; Tries to find the default one by the field default;
-	 * Defaults to the oldest calendar if no calendar is marked as default;
+	/**
+	 * Loads default calendar.
+	 * If the user still haven't been assigned one, it calls {@link loadOrCreateCalendarInfo} to get the most recent
+	 * list of calendars and assign the default;
 	 *
-	 * Throws an error if it fails to find a valid calendar after a set number of retries
+	 * Throws an error if it fails to find a valid calendar after one retry
 	 *
 	 * @return {CalendarGroupRoot}
-	 * @throws if can not create a default calendar when needed
+	 * @throws if Can not create or find a default calendar
 	 */
 	async getDefaultCalendarGroupRoot(): Promise<CalendarGroupRoot> {
 		const storedDefaultCalendarGroupRoot = this.logins.getUserController().userSettingsGroupRoot.defaultCalendar
@@ -1019,29 +1019,28 @@ export class CalendarModel {
 		const firstCalendar = findFirstPrivateCalendar(calendarInfos)
 
 		if (!firstCalendar) {
-			console.warn("No non-external calendar available, creating default one...")
-			throw new Error(`Could not create an default calendar for user ${this.logins.getUserController().user._id}`)
+			throw new Error(`Could not find a default calendar for user ${this.logins.getUserController().user._id}`)
 		}
 
-		// If there is no default calendar, we assume the "oldest" calendar as default
 		return firstCalendar.groupRoot
 	}
 
-	/** Handles new Calendar Invitations, creating an entry for them inside the pendingEvents of the default CalendarGroupRoot
-	 * and also inserts an index entry into CalendarEventUidIndexTypeRef
+	/**
+	 * Handles new Calendar Invitations, creating an entry for them in the pendingEventsList of the default
+	 * CalendarGroupRoot. The server takes care of inserting an index entry into CalendarEventUidIndexTypeRef
 	 */
 	async handleNewCalendarInvitation(sender: string, calendarData: ParsedCalendarData, defaultCalendarGroupRoot: CalendarGroupRoot) {
 		if (calendarData.method !== CalendarMethod.REQUEST) {
-			return // We don't handle anything different form an invitation
+			return // We don't handle anything different from an invitation
 		}
 
 		const eventsPromises = calendarData.contents.map((parsed) => {
-			const fullEvent = {
+			const calendarEvent: CalendarEvent = {
 				...parsed.event,
 				sender,
 			}
 
-			return this.createPendingEvent(fullEvent, defaultCalendarGroupRoot, parsed.alarms)
+			return this.createPendingEvent(calendarEvent, defaultCalendarGroupRoot)
 		})
 
 		await Promise.all(eventsPromises)

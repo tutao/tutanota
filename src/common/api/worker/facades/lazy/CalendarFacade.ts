@@ -387,6 +387,7 @@ export class CalendarFacade {
 	}
 
 	async setCalendarAsDefault(groupRootId: Id, userSettingsGroupRoot: UserSettingsGroupRoot): Promise<void> {
+		console.log(`Assigning default calendar: ${groupRootId}`)
 		userSettingsGroupRoot.defaultCalendar = groupRootId
 		await this.entityRestCache.update(userSettingsGroupRoot)
 	}
