@@ -10,14 +10,19 @@ import { filterInt } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { attachDropdown } from "../../../common/gui/base/Dropdown"
 
-export interface DriveFolderContentEntryAttrs {
-	item: FolderItem
-	onSelect: (f: DriveFile) => void
-	checked: boolean // maybe should be inside a map inside the model
+export interface FileActions {
 	onCut: (f: FolderItem) => unknown
 	onCopy: (f: FolderItem) => unknown
 	onOpenItem: (f: FolderItem) => unknown
 	onDelete: (f: FolderItem) => unknown
+	onRename: (f: FolderItem) => unknown
+}
+
+export interface DriveFolderContentEntryAttrs {
+	item: FolderItem
+	onSelect: (f: DriveFile) => void
+	checked: boolean // maybe should be inside a map inside the model
+	fileActions: FileActions
 }
 
 const DriveFolderContentEntryRowStyle = {
@@ -60,7 +65,14 @@ const mimeTypeAsText = (mimeType: string) => {
 }
 
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
-	view({ attrs: { item, checked, onSelect, onDelete, onOpenItem, onCopy, onCut } }: Vnode<DriveFolderContentEntryAttrs>): Children {
+	view({
+		attrs: {
+			item,
+			checked,
+			onSelect,
+			fileActions: { onCopy, onCut, onDelete, onOpenItem, onRename },
+		},
+	}: Vnode<DriveFolderContentEntryAttrs>): Children {
 		const uploadDate = item.type === "file" ? item.file.createdDate : item.folder.createdDate
 
 		const thisFileIsAFolder = item.type === "folder"
@@ -113,6 +125,13 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 								title: "more_label",
 							},
 							childAttrs: () => [
+								{
+									label: "rename_action",
+									icon: Icons.Edit,
+									click: () => {
+										onRename(item)
+									},
+								},
 								{
 									label: "copy_action",
 									icon: Icons.Copy,

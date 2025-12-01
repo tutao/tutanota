@@ -619,17 +619,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		const { ContactFacade } = await import("../../../common/api/worker/facades/lazy/ContactFacade.js")
 		return new ContactFacade(new EntityClient(locator.cache, typeModelResolver))
 	})
-	locator.driveFacade = lazyMemoized(async () => {
-		return new DriveFacade(
-			locator.keyLoader,
-			await locator.blob(),
-			locator.user,
-			locator.cachingEntityClient,
-			locator.serviceExecutor,
-			mainInterface.progressTracker,
-			mainInterface.uploadProgressListener,
-		)
-	})
 }
 
 export async function resetLocator(): Promise<void> {

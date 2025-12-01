@@ -15,6 +15,7 @@ import {
 	createDriveFolderServiceDeleteIn,
 	createDriveFolderServicePostIn,
 	createDriveFolderServicePutIn,
+	createDrivePutIn,
 	createDriveUploadedFile,
 	DriveFile,
 	DriveFileRef,
@@ -25,6 +26,7 @@ import {
 	DriveGroupRootTypeRef,
 } from "../../entities/drive/TypeRefs"
 import { DriveFolderService, DriveService } from "../../entities/drive/Services"
+import { CryptoFacade } from "../crypto/CryptoFacade"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -54,6 +56,7 @@ export class DriveFacade {
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly progressTracker: ExposedProgressTracker,
+		private readonly cryptoFacade: CryptoFacade,
 		private readonly uploadProgressListener: UploadProgressListener,
 	) {
 		this.onCancelListener = new EventTarget()
@@ -78,6 +81,20 @@ export class DriveFacade {
 			destination,
 		})
 		await this.serviceExecutor.put(DriveFolderService, data)
+	}
+
+	public async rename(item: DriveFile | DriveFolder, newName: string) {
+		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(item))
+		const updatedDate = new Date()
+
+		const data = createDrivePutIn({
+			file: isSameTypeRef(item._type, DriveFileTypeRef) ? item._id : null,
+			folder: isSameTypeRef(item._type, DriveFolderTypeRef) ? item._id : null,
+			newName,
+			updatedDate,
+		})
+
+		await this.serviceExecutor.put(DriveService, data, { sessionKey })
 	}
 
 	public async moveToTrash(file: DriveFile | DriveFolder) {

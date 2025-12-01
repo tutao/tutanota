@@ -1,16 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { FolderItem, SortColumn, SortingPreference, SortOrder } from "./DriveViewModel"
-import { DriveFolderContentEntry } from "./DriveFolderContentEntry"
+import { FolderItem, SortColumn, SortingPreference } from "./DriveViewModel"
+import { DriveFolderContentEntry, FileActions } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 
 export interface DriveFolderContentAttrs {
 	items: readonly FolderItem[]
 	sortOrder: SortingPreference
-	onOpenItem: (f: FolderItem) => unknown
-	onCopy: (f: FolderItem) => unknown
-	onCut: (f: FolderItem) => unknown
-	onDelete: (f: FolderItem) => unknown
+	fileActions: FileActions
 	onSort: (column: SortColumn) => unknown
 }
 
@@ -55,7 +52,7 @@ function renderHeaderCell(
 }
 
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
-	view({ attrs: { onOpenItem, onDelete, sortOrder, onSort, items, onCopy, onCut } }: Vnode<DriveFolderContentAttrs>): Children {
+	view({ attrs: { sortOrder, onSort, items, fileActions } }: Vnode<DriveFolderContentAttrs>): Children {
 		return m("div.flex.col", [
 			m("div.flex.row.folder-row", { style: { padding: "8px 24px" } }, [
 				m("div", { style: { ...columnStyle, width: columnSizes.select } }, []),
@@ -76,11 +73,8 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 				m(DriveFolderContentEntry, {
 					item: item,
 					onSelect: (f) => {},
-					onCopy,
-					onCut,
 					checked: false,
-					onOpenItem,
-					onDelete,
+					fileActions,
 				}),
 			),
 		])

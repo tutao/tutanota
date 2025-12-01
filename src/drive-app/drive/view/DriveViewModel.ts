@@ -9,7 +9,7 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
-import { DriveFile, DriveFileRefTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
+import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
@@ -138,6 +138,14 @@ export class DriveViewModel {
 	private async entityEventsReceived(events: ReadonlyArray<EntityUpdateData>) {
 		for (const update of events) {
 			if (isUpdateForTypeRef(DriveFileRefTypeRef, update) && update.instanceListId === this.currentFolder?.folder.files) {
+				await this.loadFolderContentsByIdTuple(this.currentFolder.folder._id)
+				this.updateUi()
+			} else if (isUpdateForTypeRef(DriveFileTypeRef, update) || isUpdateForTypeRef(DriveFolderTypeRef, update)) {
+				if (this.currentFolder == null) {
+					continue
+				}
+
+				// FIXME: Do not reload the whole folder for this kind of update.
 				await this.loadFolderContentsByIdTuple(this.currentFolder.folder._id)
 				this.updateUi()
 			}
@@ -306,6 +314,10 @@ export class DriveViewModel {
 		// if (folderFirst) {
 		// 	this.currentFolder.files.sort(sortFoldersFirst)
 		// }
+	}
+
+	rename(item: FolderItem, newName: string) {
+		this.driveFacade.rename(folderItemEntity(item), newName)
 	}
 }
 
