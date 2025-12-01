@@ -14,13 +14,13 @@ export function aesEncrypt(key: AesKey, bytes: Uint8Array) {
 }
 
 /**
- * @deprecated
+ * @deprecated use aesEncrypt instead
  */
 export function aesEncryptWithIv(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
 	if (iv.length !== IV_BYTE_LENGTH) {
 		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
 	}
-	throw new Error("TODO not implemented")
+	return SYMMETRIC_CIPHER_FACADE.encryptValueDeprecatedCustomIv(key, bytes, iv)
 }
 
 /**
@@ -42,7 +42,7 @@ export function aes256EncryptSearchIndexEntryWithIV(key: Aes256Key, bytes: Uint8
 	if (iv.length !== IV_BYTE_LENGTH) {
 		throw new CryptoError(`Illegal IV length: ${iv.length} (expected: ${IV_BYTE_LENGTH}): ${uint8ArrayToBase64(iv)} `)
 	}
-	throw new Error("TODO not implemented")
+	return SYMMETRIC_CIPHER_FACADE.encryptDatabaseKeyDeprecatedUnauthenticated(key, bytes, iv)
 }
 
 /**
