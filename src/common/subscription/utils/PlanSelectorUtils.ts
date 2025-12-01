@@ -59,7 +59,8 @@ export function filterPlanConfigsAndGetSelectedPlan(
 		.filter((planConfig) => !planConfig.isDisabled && planConfig.type !== currentPlan)
 		.map((config) => config.type)
 	if (!availablePlansForCurrentView.includes(selectedPlan)) {
-		selectedPlan = planConfigs.filter((planConfig) => planConfig.type !== currentPlan && !planConfig.isDisabled)[0].type
+		const filteredPlans = planConfigs.filter((planConfig) => planConfig.type !== currentPlan && !planConfig.isDisabled)
+		selectedPlan = filteredPlans.length > 0 ? filteredPlans[0].type : PlanType.Free
 
 		const isPrivate = availablePlansForCurrentView.includes(PlanType.Free)
 		const defaultPlanForCurrentView = isPrivate ? PlanType.Revolutionary : PlanType.Advanced
