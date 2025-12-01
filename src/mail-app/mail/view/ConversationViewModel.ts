@@ -25,6 +25,7 @@ import { ListAutoSelectBehavior, MailListDisplayMode } from "../../../common/mis
 import { MailModel } from "../model/MailModel.js"
 
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
+import { compareMails } from "../model/MailUtils"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 
@@ -254,6 +255,9 @@ export class ConversationViewModel {
 				})
 			}
 		}
+		// conversation is sorted by mail's receivedDate, because we do not recreate the conversationEntry once a draft is sent.
+		// without sorting, the ordering would be based on when the draft was created, not when it was sent.
+		newConversation.sort((a, b) => compareMails(b.viewModel.mail, a.viewModel.mail))
 		return newConversation
 	}
 
