@@ -1,8 +1,7 @@
 import type { LoginController } from "../api/main/LoginController"
 import { Dialog } from "../gui/base/Dialog"
 import { generatedIdToTimestamp } from "../api/common/utils/EntityUtils"
-import { LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "./LanguageViewModel"
-import { lang } from "./LanguageViewModel"
+import { lang, LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "./LanguageViewModel"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -22,8 +21,6 @@ import {
 	getCustomerApprovalStatus,
 	KdfType,
 	NewBusinessPlans,
-	NewPaidPlans,
-	NewPersonalPlans,
 	SubscriptionType,
 } from "../api/common/TutanotaConstants"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
@@ -38,6 +35,7 @@ import { Params } from "mithril"
 import { LoginState } from "../login/LoginViewModel.js"
 import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
 import { Customer } from "../api/entities/sys/TypeRefs"
+import { deviceConfig } from "./DeviceConfig"
 
 function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(customer._id)
@@ -194,7 +192,11 @@ export async function showSignupDialog(urlParams: Params) {
 	// We assume that if a user comes from our website for signup, the language selected on the website should take precedence over the browser language.
 	// As we initialize the language with the browser's one in the app.ts already, we try to overwrite it by the website language here.
 	const websiteLang = getWebsiteLangFromParams(urlParams)
-	if (websiteLang) lang.setLanguage(websiteLang)
+	if (websiteLang) {
+		// need to set the language in LanguageViewModel *and* deviceConfig, to keep app language and language dropdown view in sync
+		lang.setLanguage(websiteLang)
+		deviceConfig.setLanguage(websiteLang.code)
+	}
 
 	await showProgressDialog(
 		"loading_msg",
