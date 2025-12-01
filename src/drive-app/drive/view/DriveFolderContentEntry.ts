@@ -16,6 +16,7 @@ export interface FileActions {
 	onOpenItem: (f: FolderItem) => unknown
 	onDelete: (f: FolderItem) => unknown
 	onRename: (f: FolderItem) => unknown
+	onRestore: (f: FolderItem) => unknown
 }
 
 export interface DriveFolderContentEntryAttrs {
@@ -70,7 +71,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			item,
 			checked,
 			onSelect,
-			fileActions: { onCopy, onCut, onDelete, onOpenItem, onRename },
+			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename },
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
 		const uploadDate = item.type === "file" ? item.file.createdDate : item.folder.createdDate
@@ -146,13 +147,21 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 										onCut(item)
 									},
 								},
-								{
-									label: "trash_action",
-									icon: Icons.Trash,
-									click: () => {
-										onDelete(item)
-									},
-								},
+								(item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
+									? {
+											label: "restoreFromTrash_action",
+											icon: Icons.Reply,
+											click: () => {
+												onRestore(item)
+											},
+										}
+									: {
+											label: "trash_action",
+											icon: Icons.Trash,
+											click: () => {
+												onDelete(item)
+											},
+										},
 							],
 						}),
 					),

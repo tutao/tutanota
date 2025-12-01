@@ -182,6 +182,10 @@ export class DriveViewModel {
 		await this.driveFacade.moveToTrash(folderItemEntity(item))
 	}
 
+	async restoreFromTrash(item: FolderItem) {
+		await this.driveFacade.restoreFromTrash(folderItemEntity(item))
+	}
+
 	async loadSpecialFolder(specialFolderType: SpecialFolderType) {
 		let folderWithItems: FolderWithItems
 		switch (specialFolderType) {

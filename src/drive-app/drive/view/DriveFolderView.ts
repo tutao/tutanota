@@ -49,6 +49,9 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					onDelete: (item) => {
 						driveViewModel.moveToTrash(item)
 					},
+					onRestore: (item) => {
+						driveViewModel.restoreFromTrash(item)
+					},
 					onRename: (item) => {
 						Dialog.showProcessTextInputDialog(
 							{

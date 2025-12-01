@@ -101,9 +101,20 @@ export class DriveFacade {
 		const deleteData = createDriveFolderServiceDeleteIn({
 			file: isSameTypeRef(file._type, DriveFileTypeRef) ? file._id : null,
 			folder: isSameTypeRef(file._type, DriveFolderTypeRef) ? file._id : null,
+			restore: false,
 		})
 
 		await this.serviceExecutor.delete(DriveFolderService, deleteData)
+	}
+
+	public async restoreFromTrash(file: DriveFile | DriveFolder) {
+		const restoreData = createDriveFolderServiceDeleteIn({
+			file: isSameTypeRef(file._type, DriveFileTypeRef) ? file._id : null,
+			folder: isSameTypeRef(file._type, DriveFolderTypeRef) ? file._id : null,
+			restore: true,
+		})
+
+		await this.serviceExecutor.delete(DriveFolderService, restoreData)
 	}
 
 	public async loadRootFolders(): Promise<{ root: IdTuple; trash: IdTuple }> {

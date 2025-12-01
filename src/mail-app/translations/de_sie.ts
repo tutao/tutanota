@@ -1625,6 +1625,7 @@ export default {
 		"restart_action": "Neustart",
 		"restartBefore_action": "Tuta vorher neu starten",
 		"restoreExcludedRecurrences_action": "Termine wiederherstellen",
+		"restoreFromTrash_action": "Wiederherstellen",
 		"resubscribe_action": "Erneut abschließen",
 		"resumeMailImport_action": "Import fortsetzen",
 		"resumeSetup_label": "Konfiguration abschließen",

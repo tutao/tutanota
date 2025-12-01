@@ -1626,6 +1626,7 @@ export default {
 		"restart_action": "Restart",
 		"restartBefore_action": "Restart Tuta before sending",
 		"restoreExcludedRecurrences_action": "Restore events",
+		"restoreFromTrash_action": "Restore",
 		"resubscribe_action": "Resubscribe",
 		"resumeMailImport_action": "Resume import",
 		"resumeSetup_label": "Resume setup",
