@@ -573,11 +573,9 @@ import("./translations/en.js")
 					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
 					// duplicating the history entry allows us to keep the arguments for a single back button press and run our own code to handle it
 					m.route.set("/login", {
-						noAutoLogin: false,
 						keepSession: true,
 					})
 					m.route.set("/login", {
-						noAutoLogin: false,
 						keepSession: true,
 					})
 					return null
@@ -588,7 +586,6 @@ import("./translations/en.js")
 					const { showGiftCardDialog } = await import("../common/misc/LoginUtils.js")
 					showGiftCardDialog(location.hash)
 					m.route.set("/login", {
-						noAutoLogin: true,
 						keepSession: true,
 					})
 					return null
