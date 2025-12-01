@@ -194,9 +194,10 @@ export class DriveViewModel {
 	}
 
 	private async loadParents(folder: DriveFolder) {
-		// FIXME: load more parents, try to walk the tree more intellegently?
 		if (folder.parent != null) {
-			this.parents = [await this.entityClient.load(DriveFolderTypeRef, folder.parent)]
+			const directParent = await this.entityClient.load(DriveFolderTypeRef, folder.parent)
+			const grandparent = directParent.parent ? await this.entityClient.load(DriveFolderTypeRef, directParent.parent) : null
+			this.parents = grandparent ? [grandparent, directParent] : [directParent]
 		} else {
 			this.parents = []
 		}
