@@ -64,7 +64,7 @@ export class PaypalButton implements Component<PaypalButtonAttrs> {
 				}),
 			),
 			m(
-				".small.pt.center",
+				".small.pt-16.center",
 				this._isPaypalLinked()
 					? lang.get("paymentDataPayPalFinished_msg", {
 							"{accountAddress}": accountingInfo?.paymentMethodInfo ?? "",
