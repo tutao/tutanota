@@ -43,6 +43,29 @@ export class SymmetricCipherFacade {
 	}
 
 	/**
+	 * Encrypts a byte array with AES in CBC mode with a custom IV.
+	 *
+	 * Forces encryption without authentication. The custom IV is prepended to the returned CBC ciphertext.
+	 *
+	 * @deprecated
+	 */
+	encryptValueDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
+		// TODO
+		return this.aesCbcFacade.encrypt(key, bytes, true, iv, true, SymmetricCipherVersion.AesCbcThenHmac)
+	}
+
+	/**
+	 * Encrypts a byte array with AES in CBC mode with a custom IV.
+	 *
+	 * Forces encryption without authentication. The custom IV is prepended to the returned CBC ciphertext.
+	 *
+	 * @deprecated
+	 */
+	encryptDatabaseKeyDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array, iv: Uint8Array): Uint8Array {
+		return this.aesCbcFacade.encrypt(key, bytes, true, iv, true, SymmetricCipherVersion.UnusedReservedUnauthenticated, true)
+	}
+
+	/**
 	 * Decrypts byte array with AES in CBC mode.
 	 *
 	 * @param key   The key to use for the decryption.

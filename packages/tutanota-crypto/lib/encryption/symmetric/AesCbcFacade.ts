@@ -28,7 +28,7 @@ export class AesCbcFacade {
 	encrypt(
 		key: AesKey,
 		plainText: Uint8Array,
-		hasRandomIvToPrepend: boolean,
+		mustPrependIv: boolean,
 		iv: Uint8Array,
 		padding: boolean,
 		cipherVersion: SymmetricCipherVersion,
@@ -40,7 +40,7 @@ export class AesCbcFacade {
 		)
 
 		let unauthenticatedCiphertext
-		if (hasRandomIvToPrepend) {
+		if (mustPrependIv) {
 			//version byte is not included into authentication tag for legacy reasons
 			unauthenticatedCiphertext = concat(iv, cipherText)
 		} else {

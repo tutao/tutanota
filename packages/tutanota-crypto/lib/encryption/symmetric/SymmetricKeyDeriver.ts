@@ -26,7 +26,7 @@ export class SymmetricKeyDeriver {
 		switch (symmetricCipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
 				//we allow unauthenticated encryption of search index
-				if (keyLength !== AesKeyLength.Aes128 && skipAuthentication === false) {
+				if (keyLength !== AesKeyLength.Aes128 && !skipAuthentication) {
 					throw new CryptoError("key length " + keyLength + " is incompatible with cipherVersion " + symmetricCipherVersion)
 				}
 				return { encryptionKey: key, authenticationKey: null }
