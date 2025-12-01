@@ -116,7 +116,13 @@ export class CalendarEventsRepository {
 					this.loadedMonths.set(monthRange.start, Array.from(calendarInfos.keys()))
 				}
 
-				const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
+				const eventsMap = await this.calendarFacade.updateEventMap(
+					monthRange,
+					calendarInfos,
+					this.daysToEvents(),
+					this.zone,
+					this.calendarModel.defaultCalendar,
+				)
 				this.replaceEvents(eventsMap)
 				this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
 			} catch (e) {
@@ -155,7 +161,13 @@ export class CalendarEventsRepository {
 							calendarInfos = new Map<string, CalendarInfo>([[calendarToLoad, calendarToLoadInfo]])
 						}
 
-						const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
+						const eventsMap = await this.calendarFacade.updateEventMap(
+							monthRange,
+							calendarInfos,
+							this.daysToEvents(),
+							this.zone,
+							this.calendarModel.defaultCalendar,
+						)
 						this.replaceEvents(eventsMap)
 						this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
 					} catch (e) {

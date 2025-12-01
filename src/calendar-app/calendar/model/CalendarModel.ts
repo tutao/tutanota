@@ -1479,6 +1479,10 @@ export class CalendarModel {
 	private isDefaultCalendar(calendar: Id) {
 		return isSameId(this.logins.getUserController().userSettingsGroupRoot.defaultCalendar, calendar)
 	}
+
+	get defaultCalendar() {
+		return this.logins.getUserController().userSettingsGroupRoot.defaultCalendar
+	}
 }
 
 /** return false when the given events (representing the new and old version of the same event) are both long events

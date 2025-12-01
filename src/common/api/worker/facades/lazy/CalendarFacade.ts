@@ -62,6 +62,7 @@ import {
 	generateCalendarInstancesInRange,
 	hasAlarmsForTheUser,
 	isBirthdayCalendar,
+	isLongEvent,
 } from "../../../../calendar/date/CalendarUtils.js"
 import { CalendarInfo } from "../../../../../calendar-app/calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
@@ -122,6 +123,7 @@ export class CalendarFacade {
 	 * @param calendarInfos update events contained in these calendars
 	 * @param daysToEvents the old version of the map
 	 * @param zone the time zone to consider the event times under
+	 * @param defaultCalendarId
 	 * @returns a new daysToEventsMap where the given month is updated.
 	 */
 	async updateEventMap(
@@ -129,6 +131,7 @@ export class CalendarFacade {
 		calendarInfos: ReadonlyMap<Id, CalendarInfo>,
 		daysToEvents: DaysToEvents,
 		zone: string,
+		defaultCalendarId: Id | null,
 	): Promise<DaysToEvents> {
 		// Because of the timezones and all day events, we might not load an event which we need to display.
 		// So we add a margin on 24 hours to be sure we load everything we need. We will filter matching
@@ -151,7 +154,7 @@ export class CalendarFacade {
 
 			const pendingEventListId = groupRoot.pendingEvents?.list
 			let pendingEventsResult: Array<CalendarEvent> = []
-			if (pendingEventListId) {
+			if (pendingEventListId && isSameId(defaultCalendarId, groupRoot._id)) {
 				pendingEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, pendingEventListId)
 			}
 
@@ -171,23 +174,25 @@ export class CalendarFacade {
 				},
 				color,
 			}))
-			// [PendingEvents and GhostBubbles] Temporarily deactivated until further development
-			// const pendingEvents: Array<EventWrapper> = pendingEventsResult.map((e) => ({
-			// 	event: e,
-			// 	flags: {
-			// 		isGhost: true,
-			// 	},
-			// 	color,
-			// }))
 
-			// for (const ev of pendingEvents) {
-			// 	const isLongEvents = isLongEvent(ev.event, zone)
-			// 	if (isLongEvents) {
-			// 		longEvents.push(ev)
-			// 	} else {
-			// 		shortEvents.push(ev)
-			// 	}
-			// }
+			const pendingEvents: Array<EventWrapper> = pendingEventsResult.map((e) => ({
+				event: e,
+				flags: {
+					isGhost: true,
+					hasAlarms: false,
+					isAlteredInstance: !!e.recurrenceId,
+				},
+				color,
+			}))
+
+			for (const ev of pendingEvents) {
+				const isLongEvents = isLongEvent(ev.event, zone)
+				if (isLongEvents) {
+					longEvents.push(ev)
+				} else {
+					shortEvents.push(ev)
+				}
+			}
 
 			calendars.push({
 				short: shortEvents,

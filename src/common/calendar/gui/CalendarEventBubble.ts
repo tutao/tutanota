@@ -59,6 +59,18 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		const timeFormat = baseDate ? getTimeTextFormatForLongEvent(eventWrapper.event, baseDate, baseDate, zone) : null
 		const formatedEventTime = timeFormat ? formatEventTime(eventWrapper.event, timeFormat) : ""
 
+		let textColor = !eventWrapper.flags?.isFeatured ? colorForBg(`#${eventWrapper.color}`) : undefined
+		let border = eventWrapper.flags?.isFeatured
+			? `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`
+			: "none"
+		let backgroundColor = eventWrapper.color.includes("#") ? eventWrapper.color : `#${eventWrapper.color}`
+
+		if (eventWrapper.flags?.isGhost) {
+			textColor = theme.on_surface_variant
+			border = `1px dashed ${theme.outline}`
+			backgroundColor = theme.surface_container_high
+		}
+
 		return m(
 			".flex.z2.b.darker-hover.small",
 			{
@@ -68,7 +80,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					minWidth: px(0),
 					gridColumn: `${gridInfo.column.start} / span ${gridInfo.column.span}`,
 					gridRow: `${gridInfo.row.start} / ${gridInfo.row.end}`,
-					color: !eventWrapper.flags?.isFeatured ? colorForBg(`#${eventWrapper.color}`) : undefined,
+					color: textColor,
 					opacity: `${eventWrapper.flags?.isTransientEvent ? TEMPORARY_EVENT_OPACITY : 1}`,
 				} satisfies Partial<CSSStyleDeclaration>,
 			},
@@ -112,11 +124,9 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 							"border-bottom-left-radius": rowOverflowInfo.end || columnOverflowInfo.start ? "0" : undefined,
 							"border-bottom-right-radius": rowOverflowInfo.end || columnOverflowInfo.end ? "0" : undefined,
 
-							backgroundColor: eventWrapper.color.includes("#") ? eventWrapper.color : `#${eventWrapper.color}`,
+							backgroundColor: backgroundColor,
 
-							border: eventWrapper.flags?.isFeatured
-								? `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`
-								: "none",
+							border: border,
 
 							paddingTop: "2px",
 							paddingBottom: "2px",
