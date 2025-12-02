@@ -9,8 +9,8 @@ import { CalendarInfo, CalendarModel } from "../../../src/calendar-app/calendar/
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils"
-import { OperationType } from "../../../src/common/api/common/TutanotaConstants"
-import { CalendarEventTypeRef, CalendarGroupRootTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
+import { EndType, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants"
+import { CalendarEventTypeRef, CalendarGroupRootTypeRef, CalendarRepeatRuleTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { createTestEntity } from "../TestUtils"
 import { CalendarFacade } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
@@ -22,6 +22,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 		const initialCalendarGroupId = "initialCalendarGroupId"
 		const userGroupId = "userGroupId"
 		const shotEventsListId = "shotEventsListId"
+		const pendingEventsListId = "pendingEventsListId"
 		const timezone = getTimeZone()
 
 		const eventControllerMock: EventController = object()
@@ -94,9 +95,9 @@ o.spec("CalendarEventRepositoryTest", function () {
 				const dateFarFromEvent = new Date(2025, 11, 13)
 				const startOfDay = getStartOfDay(dateFarFromEvent).getTime()
 				const daysToEventsMock: DaysToEvents = new Map([[startOfDay, []]])
-				when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(
-					daysToEventsMock,
-				)
+				when(
+					calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()),
+				).thenResolve(daysToEventsMock)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
 				await calendarEventsRepositoryMock.loadMonthsIfNeeded([dateFarFromEvent], stream(false), null)
 
@@ -131,9 +132,9 @@ o.spec("CalendarEventRepositoryTest", function () {
 
 				const startOfDay = getStartOfDay(eventStartDate).getTime()
 				const daysToEventsMock: DaysToEvents = new Map([[startOfDay, []]])
-				when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(
-					daysToEventsMock,
-				)
+				when(
+					calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()),
+				).thenResolve(daysToEventsMock)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
 				await calendarEventsRepositoryMock.loadMonthsIfNeeded([eventStartDate], stream(false), null)
 
@@ -158,7 +159,9 @@ o.spec("CalendarEventRepositoryTest", function () {
 				const eventStartDate = new Date(2025, 7, 26, 10, 0, 0)
 				const startOfDay = getStartOfDay(eventStartDate).getTime()
 				const daysToEventsMock: DaysToEvents = new Map([[startOfDay, []]])
-				when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(
+				when(
+					calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()),
+				).thenResolve(
 					daysToEventsMock, // Provide a initialized Map with an empty day
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
@@ -200,6 +203,82 @@ o.spec("CalendarEventRepositoryTest", function () {
 				o(daysToEvents.size).equals(1)
 				o.check(daysToEvents.get(startOfDay)?.length).equals(1)
 				o.check(daysToEvents.get(startOfDay)?.[0].event).equals(event)
+			})
+
+			o.test("new short pending event happens on a loaded month", async function () {
+				// Arrange
+				o.check(entityEventsListener != null).equals(true)
+
+				const eventStartDate = new Date(2025, 7, 26, 10, 0, 0)
+				const pendingEvent = createTestEntity(CalendarEventTypeRef, {
+					_ownerGroup: initialCalendarGroupId,
+					_id: [pendingEventsListId, "event"],
+					startTime: eventStartDate,
+					endTime: new Date(2025, 7, 26, 23, 0, 0),
+				})
+				when(entityClientMock.load(CalendarEventTypeRef, matchers.anything())).thenResolve(pendingEvent)
+
+				const startOfDay = getStartOfDay(eventStartDate).getTime()
+				const daysToEventsMock: DaysToEvents = new Map([[startOfDay, []]])
+				when(
+					calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()),
+				).thenResolve(daysToEventsMock)
+				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
+				await calendarEventsRepositoryMock.loadMonthsIfNeeded([eventStartDate], stream(false), null)
+
+				// Act
+				const calendarEventUpdate: EntityUpdateData = object()
+				calendarEventUpdate.typeRef = CalendarEventTypeRef
+				calendarEventUpdate.operation = OperationType.CREATE
+				const updates: ReadonlyArray<EntityUpdateData> = [calendarEventUpdate]
+				await entityEventsListener!(updates, initialCalendarGroupId)
+
+				// Assert
+				const daysToEvents = calendarEventsRepositoryMock.getEventsForMonths()()
+				o(daysToEvents.size).equals(1)
+				o.check(daysToEvents.get(startOfDay)?.length).equals(1)
+				o.check(daysToEvents.get(startOfDay)?.[0].event).equals(pendingEvent)
+			})
+
+			o.test("new repeating pending event happens on a loaded month", async function () {
+				// Arrange
+				o.check(entityEventsListener != null).equals(true)
+
+				const eventStartDate = new Date(2020, 7, 26, 10, 0, 0)
+				const pendingEvent = createTestEntity(CalendarEventTypeRef, {
+					_ownerGroup: initialCalendarGroupId,
+					_id: [pendingEventsListId, "event"],
+					startTime: eventStartDate,
+					endTime: new Date(2020, 7, 26, 23, 0, 0),
+					repeatRule: createTestEntity(CalendarRepeatRuleTypeRef, {
+						frequency: RepeatPeriod.DAILY,
+						endType: EndType.Never,
+						endValue: null,
+						interval: "1",
+					}),
+				})
+				when(entityClientMock.load(CalendarEventTypeRef, matchers.anything())).thenResolve(pendingEvent)
+
+				const currentDay = new Date(2025, 1, 10)
+				const startOfDay = getStartOfDay(currentDay).getTime()
+				const daysToEventsMock: DaysToEvents = new Map([[startOfDay, []]])
+				when(
+					calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()),
+				).thenResolve(daysToEventsMock)
+				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
+				await calendarEventsRepositoryMock.loadMonthsIfNeeded([new Date(startOfDay)], stream(false), null)
+
+				// Act
+				const calendarEventUpdate: EntityUpdateData = object()
+				calendarEventUpdate.typeRef = CalendarEventTypeRef
+				calendarEventUpdate.operation = OperationType.CREATE
+				const updates: ReadonlyArray<EntityUpdateData> = [calendarEventUpdate]
+				await entityEventsListener!(updates, initialCalendarGroupId)
+
+				// Assert
+				const daysToEvents = calendarEventsRepositoryMock.getEventsForMonths()()
+				o(daysToEvents.size).equals(28)
+				o.check(daysToEvents.get(startOfDay)?.length).equals(1)
 			})
 		})
 	})

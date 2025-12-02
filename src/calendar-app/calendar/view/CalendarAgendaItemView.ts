@@ -26,7 +26,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 	view({ attrs }: Vnode<CalendarAgendaItemViewAttrs>): Children {
 		const eventTitle = getDisplayEventTitle(attrs.event.event.summary)
 
-		let border = undefined
+		let border: string | undefined = undefined
 		let backgroundColor = CalendarAgendaItemView.getBackground(attrs.selected ?? false, this.isFocused)
 		if (attrs.event.flags.isGhost) {
 			border = attrs.selected ? "1px solid transparent" : `1px dashed ${theme.outline}`
