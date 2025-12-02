@@ -59,16 +59,19 @@ function renderHeaderCell(
 
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	view({ attrs: { selection, sortOrder, onSort, items, fileActions, onSelectAll } }: Vnode<DriveFolderContentAttrs>): Children {
-		return m("div.flex.col", [
+		return m("div.flex.col.overflow-hidden", [
 			this.renderHeader(selection, sortOrder, onSort, onSelectAll),
 
-			items.map((item) =>
-				m(DriveFolderContentEntry, {
-					item: item,
-					onSelect: (f) => {},
-					checked: false,
-					fileActions,
-				}),
+			m(
+				".flex.col.scroll",
+				items.map((item) =>
+					m(DriveFolderContentEntry, {
+						item: item,
+						onSelect: (f) => {},
+						checked: false,
+						fileActions,
+					}),
+				),
 			),
 		])
 	}
