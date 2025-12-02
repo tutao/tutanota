@@ -1,11 +1,11 @@
 export type ButtonVariant = "primary" | "secondary" | "tertiary"
-export type ButtonSize = "xs" | "sm" | "md"
+export type ButtonSize = "sm" | "md" | "lg"
 export type ButtonWidth = "full" | "flex"
 
 const sizeClassBySize: Record<ButtonSize, string> = {
-	xs: "base-button-xs",
 	sm: "base-button-sm",
 	md: "base-button-md",
+	lg: "base-button-lg",
 }
 
 const variantClasses: Record<ButtonVariant, string[]> = {
@@ -23,7 +23,7 @@ export interface ButtonStyleConfig {
 }
 
 export function resolveButtonClasses(config: ButtonStyleConfig): string[] {
-	const classes: string[] = ["button-content", "border-radius", "text-center"]
+	const classes: string[] = ["button-content", "border-radius", "text-center", "flex", "justify-center", "items-center", "gap-8"]
 
 	if (config.disabled) {
 		classes.push("disabled-button")
@@ -41,6 +41,8 @@ export function resolveButtonClasses(config: ButtonStyleConfig): string[] {
 	if (config.size) {
 		const sizeClass = sizeClassBySize[config.size]
 		if (sizeClass) classes.push(sizeClass)
+	} else {
+		classes.push(sizeClassBySize["md"])
 	}
 
 	if (config.className) {

@@ -3059,6 +3059,7 @@ styles.registerStyle("main", () => {
 			"border-radius": px(size.radius_8),
 			padding: px(size.radius_8),
 			"text-align": "center",
+			"border-color": theme.outline_variant,
 		},
 		".unstyled-list": {
 			"list-style": "none",
@@ -3280,19 +3281,19 @@ styles.registerStyle("main", () => {
 		".svg-fill-surface": {
 			fill: theme.surface,
 		},
-		".base-button-xs": {
+		".base-button-sm": {
 			"padding-inline": px(12),
 			height: px(32),
 			"border-radius": px(size.radius_8),
 			"text-align": "center",
 		},
-		".base-button-sm": {
+		".base-button-md": {
 			"padding-inline": px(16),
-			height: px(40),
+			height: px(44),
 			"border-radius": px(size.radius_8),
 			"text-align": "center",
 		},
-		".base-button-md": {
+		".base-button-lg": {
 			"padding-inline": px(24),
 			height: px(56),
 			"border-radius": px(size.radius_8),

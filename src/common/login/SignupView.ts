@@ -293,6 +293,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 									m(LoginButton, {
 										label: "next_action",
 										width: "full",
+										icon: Icons.Eye,
 										onclick: () => ctx.goNext(),
 									}),
 								),
@@ -301,6 +302,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 									m(SecondaryButton, {
 										label: "next_action",
 										width: "full",
+										icon: Icons.Eye,
 										onclick: () => ctx.goNext(),
 									}),
 								),
