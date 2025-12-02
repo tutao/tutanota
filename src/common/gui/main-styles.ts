@@ -3274,5 +3274,14 @@ styles.registerStyle("main", () => {
 		".tutaui-button-ghost:active": {
 			"background-color": theme.state_bg_active,
 		},
+		".login-textfield": {
+			"background-color": theme.surface_container_high,
+			"transition-property": "border-radius, background-color",
+			"transition-duration": `${DefaultAnimationTime / 2}ms`,
+			"transition-timing-function": "ease-out",
+		},
+		".login-textfield:hover:not(:has(input:focus))": {
+			"background-color": theme.state_bg_focus,
+		},
 	}
 })
