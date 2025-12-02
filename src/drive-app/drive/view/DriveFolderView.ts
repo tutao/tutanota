@@ -1,14 +1,17 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveViewModel, FolderItem } from "./DriveViewModel"
+import { DriveViewModel } from "./DriveViewModel"
 import { DriveFolderNav } from "./DriveFolderNav"
-import { DriveFolderContent, DriveFolderContentAttrs } from "./DriveFolderContent"
+import { DriveFolderContent, DriveFolderContentAttrs, SelectionState } from "./DriveFolderContent"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang } from "../../../common/misc/LanguageViewModel"
+import { SelectableFolderItem } from "./DriveView"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
-	items: readonly FolderItem[]
+	items: readonly SelectableFolderItem[]
+	selection: SelectionState
+	onSelectAll: () => unknown
 	onPaste: (() => unknown) | null
 	driveViewModel: DriveViewModel
 	currentFolder: DriveFolder | null
@@ -16,7 +19,7 @@ export interface DriveFolderViewAttrs {
 }
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
-	view({ attrs: { driveViewModel, items, onPaste, onUploadClick, currentFolder, parents } }: Vnode<DriveFolderViewAttrs>): Children {
+	view({ attrs: { driveViewModel, items, onPaste, onUploadClick, currentFolder, parents, selection, onSelectAll } }: Vnode<DriveFolderViewAttrs>): Children {
 		return m(
 			"div.col.flex.plr-button",
 			{ style: { gap: "15px" } },
@@ -64,10 +67,15 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 							},
 						)
 					},
+					onSelect: (item) => {
+						driveViewModel.onSingleSelection(item)
+					},
 				},
 				onSort: (newSortingOrder) => {
 					driveViewModel.sort(newSortingOrder)
 				},
+				onSelectAll,
+				selection,
 			} satisfies DriveFolderContentAttrs),
 		)
 	}

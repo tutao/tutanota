@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveFolderType, DriveViewModel } from "./DriveViewModel"
+import { DriveFolderType, DriveViewModel, FolderItem, folderItemEntity } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
@@ -23,6 +23,7 @@ import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { renderSidebarFolders } from "./Sidebar"
+import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -31,6 +32,8 @@ export interface DriveViewAttrs extends TopLevelAttrs {
 	bottomNav?: () => Children
 	lazySearchBar: () => Children
 }
+
+export type SelectableFolderItem = FolderItem & { selected: boolean }
 
 export class DriveView extends BaseTopLevelView implements TopLevelView<DriveViewAttrs> {
 	private readonly viewSlider: ViewSlider
@@ -114,7 +117,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							button: {
 								// FIXME
 								disabled: false, //this.driveViewModel.currentFolder.isVirtual,
-								label: "newFile_action",
+								label: "newDriveItem_action",
 								click: (ev, dom) => {
 									//
 									createDropdown({
@@ -123,12 +126,14 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 												click: (event, dom) => {
 													this.onNewFile_Click(dom)
 												},
+												// FIXME
 												label: lang.makeTranslation("UploadFile", () => "Upload file"),
 											},
 											{
 												click: (event, dom) => {
 													this.onNewFolder_Click(dom)
 												},
+												// FIXME
 												label: lang.makeTranslation("CreateFolder", () => "Create folder"),
 											},
 										],
@@ -159,6 +164,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return new ViewColumn(
 			{
 				view: () => {
+					const selectedItems = this.driveViewModel.selectedItems
 					return m(
 						BackgroundColumnLayout,
 						{
@@ -167,11 +173,29 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							columnLayout: [
 								m(DriveFolderView, {
 									onUploadClick: this.onNewFile_Click,
-									items: this.driveViewModel.currentFolder == null ? [] : this.driveViewModel.currentFolder.items,
+									items:
+										this.driveViewModel.currentFolder == null
+											? []
+											: this.driveViewModel.currentFolder.items.map((item) => {
+													return {
+														...item,
+														selected: selectedItems.has(getElementId(folderItemEntity(item))),
+													}
+												}),
 									driveViewModel: this.driveViewModel,
 									onPaste: this.driveViewModel.clipboard ? () => this.driveViewModel.paste() : null,
 									currentFolder: this.driveViewModel.currentFolder?.folder ?? null,
 									parents: this.driveViewModel.parents,
+									onSelectAll: () => this.driveViewModel.onSelectAll(),
+									selection:
+										// FIXME there should be a real multiselect state maybe?
+										selectedItems.size === 0
+											? { type: "none" }
+											: {
+													type: "multiselect",
+													selectedItemCount: selectedItems.size,
+													selectedAll: selectedItems.size === this.driveViewModel.currentFolder?.items.length,
+												},
 								} satisfies DriveFolderViewAttrs),
 								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),
 							],

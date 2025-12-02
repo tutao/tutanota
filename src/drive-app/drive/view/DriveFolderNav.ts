@@ -19,7 +19,6 @@ const driveFolderNavStyle = {
 	display: "flex",
 	padding: "4px 12px 4px 24px",
 	"border-radius": "10px",
-	// width: "955px",
 	"align-items": "center",
 	"justify-content": "space-between",
 }

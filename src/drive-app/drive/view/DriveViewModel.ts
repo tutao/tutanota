@@ -1,7 +1,7 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { BreadcrumbEntry, DriveFacade, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
 import { Router } from "../../../common/gui/ScopedRouter"
-import { elementIdPart, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -12,7 +12,7 @@ import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/Shar
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "../../../common/api/entities/drive/TypeRefs"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
-import { ArchiveDataType } from "../../../common/api/common/TutanotaConstants"
+import { ArchiveDataType, OperationType } from "../../../common/api/common/TutanotaConstants"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -92,7 +92,7 @@ export const enum ClipboardAction {
 	Copy,
 }
 
-function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem): DriveFile | DriveFolder {
+export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem): DriveFile | DriveFolder {
 	return folderItem.type === "file" ? folderItem.file : folderItem.folder
 }
 
@@ -111,6 +111,7 @@ export class DriveViewModel {
 	roots!: Awaited<ReturnType<DriveFacade["loadRootFolders"]>>
 
 	private _clipboard: DriveClipboard | null = null
+	readonly selectedItems: Set<Id> = new Set()
 
 	get clipboard(): DriveClipboard | null {
 		return this._clipboard
@@ -138,6 +139,10 @@ export class DriveViewModel {
 	private async entityEventsReceived(events: ReadonlyArray<EntityUpdateData>) {
 		for (const update of events) {
 			if (isUpdateForTypeRef(DriveFileRefTypeRef, update) && update.instanceListId === this.currentFolder?.folder.files) {
+				if (update.operation === OperationType.DELETE) {
+					// FileRef has the same element id as the item it points to
+					this.selectedItems.delete(update.instanceId)
+				}
 				await this.loadFolderContentsByIdTuple(this.currentFolder.folder._id)
 				this.updateUi()
 			} else if (isUpdateForTypeRef(DriveFileTypeRef, update) || isUpdateForTypeRef(DriveFolderTypeRef, update)) {
@@ -322,6 +327,26 @@ export class DriveViewModel {
 
 	rename(item: FolderItem, newName: string) {
 		this.driveFacade.rename(folderItemEntity(item), newName)
+	}
+
+	onSingleSelection(item: FolderItem) {
+		const id = getElementId(folderItemEntity(item))
+		if (this.selectedItems.has(id)) {
+			this.selectedItems.delete(id)
+		} else {
+			this.selectedItems.add(id)
+		}
+	}
+
+	onSelectAll() {
+		const selectedItems = this.selectedItems
+		if (selectedItems.size === this.currentFolder?.items.length) {
+			this.selectedItems.clear()
+		} else {
+			for (const item of this.currentFolder?.items ?? []) {
+				this.selectedItems.add(getElementId(folderItemEntity(item)))
+			}
+		}
 	}
 }
 
