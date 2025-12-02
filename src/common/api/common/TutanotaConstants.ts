@@ -590,6 +590,7 @@ export enum FeatureType {
 	KeyVerification = "18", // Enables key verification for internal testing and volunteers
 	SpamClientClassification = "19",
 	QuickActions = "20",
+	ReceivesNoTutaNewsletters = "21",
 }
 
 export const FULL_INDEXED_TIMESTAMP: number = 0
