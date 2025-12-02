@@ -4,7 +4,8 @@ import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
 import { lang } from "../../../misc/LanguageViewModel.js"
 import { DefaultAnimationTime } from "../../animation/Animations.js"
 import { ButtonSize, ButtonVariant, ButtonWidth, resolveButtonClasses } from "../../ButtonStyles"
-import { AllIcons, Icon } from "../Icon"
+import { AllIcons, Icon, IconSize } from "../Icon"
+import { theme } from "../../theme"
 
 const BUTTON_TRANSITION = `background ${DefaultAnimationTime}ms ease-in-out, color ${DefaultAnimationTime}ms ease-in-out, opacity ${DefaultAnimationTime}ms ease-in-out`
 
@@ -14,11 +15,17 @@ export interface CommonButtonAttrs extends Omit<BaseButtonAttrs, "icon"> {
 	width?: ButtonWidth
 }
 
-function resolveButtonIcon(icon: AllIcons | Children | undefined): Children | undefined {
+function resolveButtonIcon(icon: AllIcons | Children | undefined, buttonVariant: ButtonVariant): Children | undefined {
 	if (icon == null) return undefined
 	if (typeof icon === "object") return icon
 	return m(Icon, {
 		icon: icon as AllIcons,
+		size: IconSize.PX20,
+		class: "center-h",
+		container: "div",
+		style: {
+			fill: buttonVariant === "primary" ? theme.on_primary : theme.on_surface_variant,
+		},
 	})
 }
 
@@ -38,7 +45,7 @@ function renderVariantButton(attrs: CommonButtonAttrs, variant: ButtonVariant): 
 	return m(BaseButton, {
 		...rest,
 		text,
-		icon: resolveButtonIcon(icon),
+		icon: resolveButtonIcon(icon, variant),
 		class: classes.filter(Boolean).join(" "),
 		style: {
 			...rest.style,
