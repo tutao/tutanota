@@ -146,6 +146,7 @@ export const enum Icons {
 	Upload = "Upload",
 	ArrowDropUp = "ArrowDropUp",
 	ArrowDropDown = "ArrowDropDown",
+	SortArrow = "SortArrow",
 	Duplicate = "Duplicate",
 }
 
@@ -297,6 +298,7 @@ export const IconsSvg: Record<Icons, string> = Object.freeze({
 	Upload: `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><path d="M4.593 28.323h10.23V43.49h15.355V28.323h10.23L22.5 10.63ZM40.407 5.57V.511H4.593v5.06Z"/></svg>`,
 	ArrowDropUp: `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><path d="m128 320 128-128 128 128z"/></svg>`,
 	ArrowDropDown: `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512"><path d="m128 192 128 128 128-128z"/></svg>`,
+	SortArrow: `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 512 512"><path d="M142.991 446.382c0 30.365 36.711 45.573 58.184 24.1L391.557 280.1c13.31-13.31 13.31-34.89 0-48.2L201.175 41.517c-21.473-21.472-58.184-6.264-58.184 24.1Z"/></svg>`,
 	Duplicate: `<svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><path d="M112 80h288V56a24 24 0 0 0-24-24H66a34 34 0 0 0-34 34v310a24 24 0 0 0 24 24h24V112a32 32 0 0 1 32-32"/><path d="M456 112H136a24 24 0 0 0-24 24v320a24 24 0 0 0 24 24h320a24 24 0 0 0 24-24V136a24 24 0 0 0-24-24m-64 200h-80v80h-32v-80h-80v-32h80v-80h32v80h80z"/></svg>`,
 } as const)
 

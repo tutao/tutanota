@@ -18,7 +18,7 @@ export interface DriveFolderViewAttrs {
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	view({ attrs: { driveViewModel, items, onPaste, onUploadClick, currentFolder, parents } }: Vnode<DriveFolderViewAttrs>): Children {
 		return m(
-			"div.col.flex",
+			"div.col.flex.plr-button",
 			{ style: { gap: "15px" } },
 			m(DriveFolderNav, {
 				onPaste,

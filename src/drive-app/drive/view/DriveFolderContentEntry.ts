@@ -4,11 +4,12 @@ import { formatStorageSize } from "../../../common/misc/Formatter"
 import { FolderItem } from "./DriveViewModel"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { columnSizes } from "./DriveFolderContent"
+import { columnStyles } from "./DriveFolderContent"
 import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
 import { filterInt } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { attachDropdown } from "../../../common/gui/base/Dropdown"
+import { theme } from "../../../common/gui/theme"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -31,8 +32,8 @@ const DriveFolderContentEntryRowStyle = {
 	"border-radius": "10px",
 	"align-items": "center",
 	"margin-bottom": "4px",
-	padding: "16px 24px",
-	"max-width": "fit-content",
+	padding: "6px 12px 6px 24px",
+	gap: "16px",
 }
 
 const isImageMimeType = (mimeType: string) => ["image/png", "image/jpeg"].includes(mimeType)
@@ -69,8 +70,6 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 	view({
 		attrs: {
 			item,
-			checked,
-			onSelect,
 			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename },
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
@@ -81,26 +80,19 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		const thisFileMimeType = item.type === "file" ? mimeTypeAsText(item.file.mimeType) : "Folder"
 
 		return m("div.flex.row.folder-row", { style: DriveFolderContentEntryRowStyle }, [
-			m("div", { style: { width: columnSizes.select } }, m("input[type=checkbox]")),
-			// m("td", m(Checkbox, { label: () => "selected", checked, onChecked: () => onSelect(file) })),
+			m("div", { style: columnStyles.select }, m("input.checkbox", { type: "checkbox" })),
 			m(
 				"div",
-				{ style: { width: columnSizes.icon, "text-align": "center" } },
-				thisFileIsAFolder
-					? m(Icon, {
-							icon: Icons.Folder,
-							size: IconSize.Normal,
-							style: { position: "relative", top: "2px" },
-						})
-					: m(Icon, {
-							icon: iconPerMimeType(thisFileMimeType),
-							size: IconSize.Normal,
-							style: { position: "relative", top: "2px" },
-						}),
+				{ style: { ...columnStyles.icon } },
+				m(Icon, {
+					icon: thisFileIsAFolder ? Icons.Folder : iconPerMimeType(thisFileMimeType),
+					size: IconSize.Medium,
+					style: { fill: theme.on_surface, display: "block", margin: "0 auto" },
+				}),
 			),
 			m(
 				"div",
-				{ style: { width: columnSizes.name } },
+				{ style: { ...columnStyles.name } },
 				m(
 					"span",
 					{
@@ -112,9 +104,9 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					item.type === "file" ? item.file.name : item.folder.name,
 				),
 			),
-			m("div", { style: { width: columnSizes.type } }, thisFileMimeType),
-			m("div", { style: { width: columnSizes.size } }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
-			m("div", { style: { width: columnSizes.date } }, uploadDate.toLocaleString()),
+			m("div", { style: { ...columnStyles.type } }, thisFileMimeType),
+			m("div", { style: { ...columnStyles.size } }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
+			m("div", { style: { ...columnStyles.date } }, uploadDate.toLocaleString()),
 			m(
 				"div",
 				m("div", [

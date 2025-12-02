@@ -17,7 +17,7 @@ const driveFolderNavStyle = {
 	background: "white",
 	height: "52px",
 	display: "flex",
-	padding: "4px 24px",
+	padding: "4px 12px 4px 24px",
 	"border-radius": "10px",
 	// width: "955px",
 	"align-items": "center",
@@ -29,7 +29,6 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 		return m(
 			"",
 			{ style: driveFolderNavStyle },
-			// TODO: FilterBox
 			m(DriveBreadcrumb, { currentFolder, parents, onNavigateToFolder }),
 			m("", [
 				onPaste

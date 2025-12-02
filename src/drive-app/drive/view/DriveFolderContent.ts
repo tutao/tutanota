@@ -3,6 +3,7 @@ import { FolderItem, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderContentEntry, FileActions } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
+import { px, size } from "../../../common/gui/size"
 
 export interface DriveFolderContentAttrs {
 	items: readonly FolderItem[]
@@ -18,26 +19,26 @@ const columnStyle = {
 	cursor: "pointer",
 }
 
-export const columnSizes = {
-	select: "25px",
-	icon: "50px",
-	name: "300px",
-	type: "100px",
-	size: "100px",
-	date: "300px",
-}
+export const columnStyles = {
+	select: { width: "25px" },
+	icon: { width: "50px" },
+	name: { flex: "1" }, // "300px",
+	type: { width: "100px" },
+	size: { width: "100px" },
+	date: { width: "300px" },
+} as const
 
 function renderHeaderCell(
 	columnName: Translation,
 	columnId: SortColumn,
 	{ column, order }: SortingPreference,
-	width: string,
+	style: Record<string, unknown>,
 	onSort: DriveFolderContentAttrs["onSort"],
 ): Children {
 	return m(
 		"div",
 		{
-			style: { ...columnStyle, width },
+			style: { ...columnStyle, ...style },
 			onclick: () => {
 				onSort(columnId)
 			},
@@ -54,19 +55,19 @@ function renderHeaderCell(
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	view({ attrs: { sortOrder, onSort, items, fileActions } }: Vnode<DriveFolderContentAttrs>): Children {
 		return m("div.flex.col", [
-			m("div.flex.row.folder-row", { style: { padding: "8px 24px" } }, [
-				m("div", { style: { ...columnStyle, width: columnSizes.select } }, []),
+			m("div.flex.row.folder-row", { style: { padding: "8px 24px", gap: "16px" } }, [
+				m("div", { style: { ...columnStyle, ...columnStyles.select } }, m("input.checkbox", { type: "checkbox" })),
 				// Icons...
-				m("div", { style: { ...columnStyle, width: columnSizes.icon } }, []),
+				m("div", { style: { ...columnStyle, ...columnStyles.icon } }, []),
 				// FIXME: translations
-				renderHeaderCell(lang.makeTranslation("name", "Name"), SortColumn.name, sortOrder, columnSizes.name, onSort),
-				renderHeaderCell(lang.makeTranslation("type", "Type"), SortColumn.mimeType, sortOrder, columnSizes.type, onSort),
-				renderHeaderCell(lang.makeTranslation("size", "Size"), SortColumn.size, sortOrder, columnSizes.size, onSort),
-				renderHeaderCell(lang.makeTranslation("date", "Date"), SortColumn.date, sortOrder, columnSizes.date, onSort),
+				renderHeaderCell(lang.makeTranslation("name", "Name"), SortColumn.name, sortOrder, columnStyles.name, onSort),
+				renderHeaderCell(lang.makeTranslation("type", "Type"), SortColumn.mimeType, sortOrder, columnStyles.type, onSort),
+				renderHeaderCell(lang.makeTranslation("size", "Size"), SortColumn.size, sortOrder, columnStyles.size, onSort),
+				renderHeaderCell(lang.makeTranslation("date", "Date"), SortColumn.date, sortOrder, columnStyles.date, onSort),
 				// m("div", { style: { ...columnStyle, width: columnSizes.type } }, "Type"),
 				// m("div", { style: { ...columnStyle, width: columnSizes.size } }, "Size"),
 				// m("div", { style: { ...columnStyle, width: columnSizes.date } }, "Date"),
-				m("div", { style: { ...columnStyle } }, "Actions"),
+				m("div", { style: { ...columnStyle, width: px(size.button_height) } }, null),
 			]),
 
 			items.map((item) =>
