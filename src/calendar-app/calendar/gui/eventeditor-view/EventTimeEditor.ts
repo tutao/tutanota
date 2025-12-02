@@ -70,22 +70,24 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 								disabled: attrs.disabled,
 							}),
 						),
-						m(
-							".rel",
-							{
-								style: {
-									overflow: "visible",
-								},
-							},
-							m(TimePicker, {
-								classes: appClasses,
-								time: editModel.startTime,
-								onTimeSelected: (time) => (editModel.startTime = time),
-								timeFormat,
-								disabled: attrs.disabled || attrs.editModel.isAllDay,
-								ariaLabel: lang.get("startTime_label"),
-							}),
-						),
+						!attrs.editModel.isAllDay
+							? m(
+									".rel",
+									{
+										style: {
+											overflow: "visible",
+										},
+									},
+									m(TimePicker, {
+										classes: appClasses,
+										time: editModel.startTime,
+										onTimeSelected: (time) => (editModel.startTime = time),
+										timeFormat,
+										disabled: attrs.disabled,
+										ariaLabel: lang.get("startTime_label"),
+									}),
+								)
+							: null,
 						m("", lang.get("dateTo_label")),
 						m(
 							`${isApp() ? "" : ".pl-32"}`,
@@ -99,22 +101,24 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 								disabled: attrs.disabled,
 							}),
 						),
-						m(
-							".rel",
-							{
-								style: {
-									overflow: "visible",
-								},
-							},
-							m(TimePicker, {
-								classes: appClasses,
-								time: editModel.endTime,
-								onTimeSelected: (time) => (editModel.endTime = time),
-								timeFormat,
-								disabled: attrs.disabled || attrs.editModel.isAllDay,
-								ariaLabel: lang.get("endTime_label"),
-							}),
-						),
+						!attrs.editModel.isAllDay
+							? m(
+									".rel",
+									{
+										style: {
+											overflow: "visible",
+										},
+									},
+									m(TimePicker, {
+										classes: appClasses,
+										time: editModel.endTime,
+										onTimeSelected: (time) => (editModel.endTime = time),
+										timeFormat,
+										disabled: attrs.disabled,
+										ariaLabel: lang.get("endTime_label"),
+									}),
+								)
+							: null,
 					]),
 				]),
 			]),
