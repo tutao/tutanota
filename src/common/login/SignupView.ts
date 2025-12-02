@@ -56,8 +56,8 @@ import { UpgradeCongratulationsPageNew } from "../subscription/UpgradeCongratula
 import { RadioSelector, type RadioSelectorAttrs } from "../gui/base/RadioSelector"
 import { type RadioSelectorOption } from "../gui/base/RadioSelectorItem"
 import { theme } from "../gui/theme"
-import { TextField, TextFieldAttrs } from "../gui/base/TextField"
 import { Icons } from "../gui/base/icons/Icons"
+import { LoginTextField } from "../gui/base/LoginTextField"
 
 assertMainOrNode()
 
@@ -279,7 +279,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 							},
 
 							[
-								m(TextField, {
+								m(LoginTextField, {
 									oninput: (newValue) => (this.wizardViewModel.addressInputStore = newValue),
 									label: lang.getTranslation("address_label"),
 									value: this.wizardViewModel.addressInputStore ?? "",
@@ -287,7 +287,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 										icon: Icons.Eye,
 										color: theme.on_surface_variant,
 									},
-								} satisfies TextFieldAttrs),
+								}),
 								m(
 									".flex-center.full-width.pt-32",
 									m(LoginButton, {
