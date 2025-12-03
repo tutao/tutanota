@@ -2,6 +2,7 @@
  * @file Common declarations across packages. Should be included in each package.
  */
 
+declare type IntervalID = ReturnType<setInterval>
 declare type TimeoutID = ReturnType<setTimeout>
 declare type AnimationFrameID = ReturnType<requestAnimationFrame>
 

@@ -52,6 +52,8 @@ export class SpamClassifier {
 	sparseVectorCompressor: SparseVectorCompressor
 	spamMailProcessor: SpamMailProcessor
 
+	private retrainingIntervalId: IntervalID | null = null
+
 	constructor(
 		private readonly spamClassifierStorageFacade: SpamClassifierStorageFacade,
 		private readonly spamClassifierDataDealer: SpamClassifierDataDealer,
@@ -99,7 +101,10 @@ export class SpamClassifier {
 			await this.trainFromScratch(ownerGroup)
 		}
 
-		setInterval(async () => {
+		if (this.retrainingIntervalId != null) {
+			clearInterval(this.retrainingIntervalId)
+		}
+		this.retrainingIntervalId = setInterval(async () => {
 			const classifier = this.classifierByMailGroup.get(ownerGroup)
 			if (classifier) {
 				await this.updateModelFromIndexStartId(classifier.metaData.lastTrainingDataIndexId, ownerGroup)
