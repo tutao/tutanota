@@ -5,7 +5,7 @@ import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import type { GroupSharingTexts } from "./GroupGuiUtils"
 import { getDefaultGroupName, getInvitationGroupType, getSharedGroupName } from "./GroupUtils"
 import { PartialRecipient, Recipients } from "../api/common/recipients/Recipient"
-import { getDefaultSender, getEnabledMailAddressesWithUser, getSenderNameForUser } from "../mailFunctionality/SharedMailUtils.js"
+import { getDefaultSender, getSenderNameForUser, isAliasEnabledWithUser } from "../mailFunctionality/SharedMailUtils.js"
 
 export function sendShareNotificationEmail(sharedGroupInfo: GroupInfo, recipients: Array<PartialRecipient>, texts: GroupSharingTexts) {
 	locator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
@@ -89,7 +89,7 @@ function _sendNotificationEmail(recipients: Recipients, subject: string, body: s
 			usePlaceholderForInlineImages: false,
 		}).html
 		locator.mailboxModel.getUserMailboxDetails().then(async (mailboxDetails) => {
-			const sender = getEnabledMailAddressesWithUser(mailboxDetails, locator.logins.getUserController().userGroupInfo).includes(senderMailAddress)
+			const sender = isAliasEnabledWithUser(mailboxDetails, locator.logins.getUserController().userGroupInfo, senderMailAddress)
 				? senderMailAddress
 				: getDefaultSender(locator.logins, mailboxDetails)
 
