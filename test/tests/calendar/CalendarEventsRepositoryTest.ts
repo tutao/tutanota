@@ -10,12 +10,18 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EntityUpdateData } from "../../../src/common/api/common/utils/EntityUpdateUtils"
 import { EndType, OperationType, RepeatPeriod } from "../../../src/common/api/common/TutanotaConstants"
-import { CalendarEventTypeRef, CalendarGroupRootTypeRef, CalendarRepeatRuleTypeRef } from "../../../src/common/api/entities/tutanota/TypeRefs"
+import {
+	CalendarEventsRefTypeRef,
+	CalendarEventTypeRef,
+	CalendarGroupRootTypeRef,
+	CalendarRepeatRuleTypeRef,
+} from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { EntityClient } from "../../../src/common/api/common/EntityClient"
 import { createTestEntity } from "../TestUtils"
 import { CalendarFacade } from "../../../src/common/api/worker/facades/lazy/CalendarFacade"
-import { getStartOfDay } from "@tutao/tutanota-utils"
+import { first, getStartOfDay } from "@tutao/tutanota-utils"
 import { GroupMembership, UserTypeRef } from "../../../src/common/api/entities/sys/TypeRefs"
+import { listIdPart } from "../../../src/common/api/common/utils/EntityUtils"
 
 o.spec("CalendarEventRepositoryTest", function () {
 	o.spec("entityEventsReceived", function () {
@@ -64,7 +70,10 @@ o.spec("CalendarEventRepositoryTest", function () {
 				when(calendarInfosStreamMock.map(matchers.anything())).thenDo(() => {})
 
 				const calendarInfo: CalendarInfo = object()
-				calendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
+				calendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, {
+					shortEvents: shotEventsListId,
+					pendingEvents: createTestEntity(CalendarEventsRefTypeRef, { list: pendingEventsListId }),
+				})
 				initialCalendarInfos = new Map([[initialCalendarGroupId, calendarInfo]])
 				when(calendarModelMock.getCalendarInfos()).thenResolve(initialCalendarInfos)
 
@@ -230,14 +239,17 @@ o.spec("CalendarEventRepositoryTest", function () {
 				const calendarEventUpdate: EntityUpdateData = object()
 				calendarEventUpdate.typeRef = CalendarEventTypeRef
 				calendarEventUpdate.operation = OperationType.CREATE
+				calendarEventUpdate.instanceListId = listIdPart(pendingEvent._id) as NonEmptyString
 				const updates: ReadonlyArray<EntityUpdateData> = [calendarEventUpdate]
 				await entityEventsListener!(updates, initialCalendarGroupId)
 
 				// Assert
 				const daysToEvents = calendarEventsRepositoryMock.getEventsForMonths()()
 				o(daysToEvents.size).equals(1)
-				o.check(daysToEvents.get(startOfDay)?.length).equals(1)
-				o.check(daysToEvents.get(startOfDay)?.[0].event).equals(pendingEvent)
+				let eventsOfToday = daysToEvents.get(startOfDay) ?? []
+				o.check(first(eventsOfToday)?.flags.isGhost).equals(true)
+				o.check(eventsOfToday.length).equals(1)
+				o.check(first(eventsOfToday)?.event).equals(pendingEvent)
 			})
 
 			o.test("new repeating pending event happens on a loaded month", async function () {
@@ -272,13 +284,16 @@ o.spec("CalendarEventRepositoryTest", function () {
 				const calendarEventUpdate: EntityUpdateData = object()
 				calendarEventUpdate.typeRef = CalendarEventTypeRef
 				calendarEventUpdate.operation = OperationType.CREATE
+				calendarEventUpdate.instanceListId = listIdPart(pendingEvent._id) as NonEmptyString
 				const updates: ReadonlyArray<EntityUpdateData> = [calendarEventUpdate]
 				await entityEventsListener!(updates, initialCalendarGroupId)
 
 				// Assert
 				const daysToEvents = calendarEventsRepositoryMock.getEventsForMonths()()
+				const eventsOfToday = daysToEvents.get(startOfDay) ?? []
 				o(daysToEvents.size).equals(28)
-				o.check(daysToEvents.get(startOfDay)?.length).equals(1)
+				o.check(first(eventsOfToday)?.flags.isGhost).equals(true)
+				o.check(eventsOfToday?.length).equals(1)
 			})
 		})
 	})

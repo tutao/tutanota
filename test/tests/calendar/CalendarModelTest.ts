@@ -210,6 +210,7 @@ o.spec("CalendarModel", function () {
 			o(alarms).deepEquals([alarm])
 		})
 		o("request as a new invite", async function () {
+			// Arrange
 			const uid = "uid"
 			const sender = "sender@example.com"
 			const restClientMock = new EntityRestClientMock()
@@ -228,6 +229,8 @@ o.spec("CalendarModel", function () {
 				restClientMock,
 				calendarFacade,
 			})
+
+			// Act
 			await model.processCalendarData(sender, {
 				method: CalendarMethod.REQUEST,
 				contents: [
@@ -247,8 +250,23 @@ o.spec("CalendarModel", function () {
 					},
 				],
 			})
+
+			// ASSERT
+			// checks that update route was not taken
 			verify(calendarFacade.updateCalendarEvent(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+
+			// get pending list ID for calendar
+			const defaultCalGroup = await model.getDefaultCalendarGroupRoot()
+			const pendingListId = defaultCalGroup.pendingEvents?.list
+
+			// get list ID from event
+			const retrievedEvent = await model.getEventsByUid(uid) // TODO: Fix problem where retrievedEvent comes back null.
+			const eventListId = retrievedEvent?.progenitor?._id[0]
+
+			// TODO: check new event list ID and pending list ID match
+			o.check(eventListId?.toString() === pendingListId)
 		})
+
 		o("request as an update", async function () {
 			const uid = "uid"
 			const sender = "sender@example.com"

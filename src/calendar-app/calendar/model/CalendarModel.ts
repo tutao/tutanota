@@ -320,7 +320,7 @@ export class CalendarModel {
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
 			(await didLongStateChange(newEvent, existingEvent, zone))
 		) {
-			if (this.isDefaultCalendar(listIdPart(existingEvent._id))) {
+			if (this.isDefaultCalendar(groupRoot._id) && isSameId(groupRoot.pendingEvents?.list ?? null, listIdPart(existingEvent._id))) {
 				await this.createPendingEvent(newEvent, groupRoot, newAlarms, existingEvent)
 			} else {
 				await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
@@ -987,7 +987,7 @@ export class CalendarModel {
 			// Create pending events when processing calendar invites.
 			const defaultCalendarGroupRoot = await this.getDefaultCalendarGroupRoot()
 			return await this.handleNewCalendarInvitation(sender, calendarData, defaultCalendarGroupRoot)
-		} // FIXME Handle updates to pending events
+		}
 
 		const method = calendarData.method
 		for (const content of calendarData.contents) {
