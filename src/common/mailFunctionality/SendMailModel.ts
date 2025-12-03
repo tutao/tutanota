@@ -44,7 +44,7 @@ import {
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import type { File as TutanotaFile } from "../../common/api/entities/tutanota/TypeRefs.js"
-import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isUserEmail, RecipientField } from "./SharedMailUtils.js"
+import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isAliasEnabledWithUser, isUserEmail, RecipientField } from "./SharedMailUtils.js"
 import { cloneInlineImages, InlineImages, revokeInlineImages } from "./inlineImagesUtils.js"
 import { RecipientsModel, ResolvableRecipient } from "../api/main/RecipientsModel.js"
 import { getAvailableLanguageCode, getSubstitutedLanguageCode, lang, Language, languages, MaybeTranslation, TranslationKey } from "../misc/LanguageViewModel.js"
@@ -590,7 +590,10 @@ export class SendMailModel {
 		this.recipientsResolved.getAsync()
 
 		// .toLowerCase because all our aliases and accounts are lowercased on creation
-		this.senderAddress = senderMailAddress?.toLowerCase() || this.getDefaultSender()
+		this.senderAddress =
+			senderMailAddress != null && isAliasEnabledWithUser(this.mailboxDetails, this.user().userGroupInfo, senderMailAddress)
+				? senderMailAddress.toLowerCase()
+				: this.getDefaultSender()
 		this.confidential = confidential ?? !this.user().props.defaultUnconfidential
 		this.attachments = []
 

@@ -30,6 +30,7 @@ import {
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
 	GroupTypeRef,
+	MailAddressAliasTypeRef,
 	UserTypeRef,
 } from "../../../src/common/api/entities/sys/TypeRefs.js"
 import { ConversationType, GroupType, MailMethod, OperationType } from "../../../src/common/api/common/TutanotaConstants.js"
@@ -97,8 +98,8 @@ const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
 	patches: null,
 }
 
-o.spec("SendMailModel", function () {
-	o.before(function () {
+o.spec("SendMailModel", () => {
+	o.before(() => {
 		// we need lang initialized because the SendMailModel constructor requires some translation
 		lang.init(en)
 	})
@@ -106,11 +107,12 @@ o.spec("SendMailModel", function () {
 	let mailboxModel: MailboxModel, entity: EntityClient, mailFacade: MailFacade, recipientsModel: RecipientsModel
 
 	let model: SendMailModel
+	let userController: UserController
 	let db: ConfigurationDatabase
 	let syncTracker: SyncTracker
 	let now: number
 
-	o.beforeEach(function () {
+	o.beforeEach(() => {
 		now = 0
 		entity = instance(EntityClient)
 		when(
@@ -155,7 +157,7 @@ o.spec("SendMailModel", function () {
 			],
 		})
 
-		const userController = object<UserController>()
+		userController = object<UserController>()
 		replace(userController, "user", user)
 		replace(userController, "props", tutanotaProperties)
 		when(userController.loadCustomer()).thenResolve(createTestEntity(CustomerTypeRef))
@@ -215,21 +217,21 @@ o.spec("SendMailModel", function () {
 		replace(model, "getDefaultSender", () => DEFAULT_SENDER_FOR_TESTING)
 	})
 
-	o.spec("initialization", function () {
-		o("initWithTemplate empty", async function () {
+	o.spec("initialization", () => {
+		o.test("initWithTemplate empty", async () => {
 			await model.initWithTemplate({}, "", "", [], false)
-			o(model.getConversationType()).equals(ConversationType.NEW)
-			o(model.getSubject()).equals("")
-			o(model.getBody()).equals("")
-			o(model.getDraft()).equals(null)
-			o(model.allRecipients().length).equals(0)
-			o(model.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
-			o(model.isConfidential()).equals(true)
-			o(model.containsExternalRecipients()).equals(false)
-			o(model.getAttachments().length).equals(0)
-			o(model.hasMailChanged()).equals(false)("initialization should not flag mail changed")
+			o.check(model.getConversationType()).equals(ConversationType.NEW)
+			o.check(model.getSubject()).equals("")
+			o.check(model.getBody()).equals("")
+			o.check(model.getDraft()).equals(null)
+			o.check(model.allRecipients().length).equals(0)
+			o.check(model.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
+			o.check(model.isConfidential()).equals(true)
+			o.check(model.containsExternalRecipients()).equals(false)
+			o.check(model.getAttachments().length).equals(0)
+			o.check(model.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
-		o("initWithTemplate data", async function () {
+		o.test("initWithTemplate data", async () => {
 			const initializedModel = await model.initWithTemplate(
 				{
 					to: [INTERNAL_RECIPIENT_1],
@@ -240,18 +242,18 @@ o.spec("SendMailModel", function () {
 				false,
 				DEFAULT_SENDER_FOR_TESTING,
 			)
-			o(initializedModel.getConversationType()).equals(ConversationType.NEW)
-			o(initializedModel.getSubject()).equals(SUBJECT_LINE_1)
-			o(initializedModel.getBody()).equals(BODY_TEXT_1)
-			o(initializedModel.getDraft()).equals(null)
-			o(initializedModel.allRecipients().length).equals(1)
-			o(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
-			o(model.isConfidential()).equals(true)
-			o(model.containsExternalRecipients()).equals(false)
-			o(initializedModel.getAttachments().length).equals(0)
-			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
+			o.check(initializedModel.getConversationType()).equals(ConversationType.NEW)
+			o.check(initializedModel.getSubject()).equals(SUBJECT_LINE_1)
+			o.check(initializedModel.getBody()).equals(BODY_TEXT_1)
+			o.check(initializedModel.getDraft()).equals(null)
+			o.check(initializedModel.allRecipients().length).equals(1)
+			o.check(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
+			o.check(model.isConfidential()).equals(true)
+			o.check(model.containsExternalRecipients()).equals(false)
+			o.check(initializedModel.getAttachments().length).equals(0)
+			o.check(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
-		o("initWithTemplate duplicated recipients", async function () {
+		o.test("initWithTemplate duplicated recipients", async () => {
 			const duplicate = {
 				name: INTERNAL_RECIPIENT_1.name,
 				address: INTERNAL_RECIPIENT_1.address,
@@ -267,18 +269,18 @@ o.spec("SendMailModel", function () {
 				false,
 				DEFAULT_SENDER_FOR_TESTING,
 			)
-			o(initializedModel.getConversationType()).equals(ConversationType.NEW)
-			o(initializedModel.getSubject()).equals(SUBJECT_LINE_1)
-			o(initializedModel.getBody()).equals(BODY_TEXT_1)
-			o(initializedModel.getDraft()).equals(null)
-			o(initializedModel.allRecipients().length).equals(1)
-			o(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
-			o(model.isConfidential()).equals(true)
-			o(model.containsExternalRecipients()).equals(false)
-			o(initializedModel.getAttachments().length).equals(0)
-			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
+			o.check(initializedModel.getConversationType()).equals(ConversationType.NEW)
+			o.check(initializedModel.getSubject()).equals(SUBJECT_LINE_1)
+			o.check(initializedModel.getBody()).equals(BODY_TEXT_1)
+			o.check(initializedModel.getDraft()).equals(null)
+			o.check(initializedModel.allRecipients().length).equals(1)
+			o.check(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
+			o.check(model.isConfidential()).equals(true)
+			o.check(model.containsExternalRecipients()).equals(false)
+			o.check(initializedModel.getAttachments().length).equals(0)
+			o.check(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
-		o("initWithDraft with blank data", async function () {
+		o.test("initWithDraft with blank data", async () => {
 			const conversationEntryId = testIdGenerator.newIdTuple()
 			const draft = createTestEntity(MailTypeRef, {
 				confidential: false,
@@ -299,18 +301,18 @@ o.spec("SendMailModel", function () {
 			})
 
 			const initializedModel = await model.initWithDraft(draft, draftDetails, conversationEntry, [], new Map())
-			o(initializedModel.getConversationType()).equals(ConversationType.REPLY)
-			o(initializedModel.getSubject()).equals(draft.subject)
-			o(initializedModel.getBody()).equals(BODY_TEXT_1)
-			o(initializedModel.getDraft()).equals(draft)
-			o(initializedModel.allRecipients().length).equals(0)
-			o(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
-			o(model.isConfidential()).equals(true)
-			o(model.containsExternalRecipients()).equals(false)
-			o(initializedModel.getAttachments().length).equals(0)
-			o(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
+			o.check(initializedModel.getConversationType()).equals(ConversationType.REPLY)
+			o.check(initializedModel.getSubject()).equals(draft.subject)
+			o.check(initializedModel.getBody()).equals(BODY_TEXT_1)
+			o.check(initializedModel.getDraft()).equals(draft)
+			o.check(initializedModel.allRecipients().length).equals(0)
+			o.check(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
+			o.check(model.isConfidential()).equals(true)
+			o.check(model.containsExternalRecipients()).equals(false)
+			o.check(initializedModel.getAttachments().length).equals(0)
+			o.check(initializedModel.hasMailChanged()).equals(false)("initialization should not flag mail changed")
 		})
-		o("initWithDraft with some data", async function () {
+		o.test("initWithDraft with some data", async () => {
 			const conversationEntryId = testIdGenerator.newIdTuple()
 			const draft = createTestEntity(MailTypeRef, {
 				confidential: true,
@@ -344,26 +346,223 @@ o.spec("SendMailModel", function () {
 			})
 
 			const initializedModel = await model.initWithDraft(draft, draftDetails, conversationEntry, [], new Map())
-			o(initializedModel.getConversationType()).equals(ConversationType.FORWARD)
-			o(initializedModel.getSubject()).equals(draft.subject)
-			o(initializedModel.getBody()).equals(BODY_TEXT_1)
-			o(initializedModel.getDraft()).equals(draft)
-			o(initializedModel.allRecipients().length).equals(2)("Only MailAddresses with a valid address will be accepted as recipients")
-			o(initializedModel.toRecipients().length).equals(1)
-			o(initializedModel.ccRecipients().length).equals(1)
-			o(initializedModel.bccRecipients().length).equals(0)
-			o(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
-			o(model.isConfidential()).equals(true)
-			o(model.containsExternalRecipients()).equals(true)
-			o(initializedModel.getAttachments().length).equals(0)
+			o.check(initializedModel.getConversationType()).equals(ConversationType.FORWARD)
+			o.check(initializedModel.getSubject()).equals(draft.subject)
+			o.check(initializedModel.getBody()).equals(BODY_TEXT_1)
+			o.check(initializedModel.getDraft()).equals(draft)
+			o.check(initializedModel.allRecipients().length).equals(2)("Only MailAddresses with a valid address will be accepted as recipients")
+			o.check(initializedModel.toRecipients().length).equals(1)
+			o.check(initializedModel.ccRecipients().length).equals(1)
+			o.check(initializedModel.bccRecipients().length).equals(0)
+			o.check(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
+			o.check(model.isConfidential()).equals(true)
+			o.check(model.containsExternalRecipients()).equals(true)
+			o.check(initializedModel.getAttachments().length).equals(0)
+		})
+		o.test("initWithDraft with shared mailbox mailAddress as sender", async () => {
+			const conversationEntryId = testIdGenerator.newIdTuple()
+			const draft = createTestEntity(MailTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
+					address: "shared-mailbox@addre.ss",
+				}),
+				subject: SUBJECT_LINE_1,
+				conversationEntry: conversationEntryId,
+			})
+			const conversationEntry = createTestEntity(ConversationEntryTypeRef, {
+				_id: conversationEntryId,
+				mail: draft._id,
+				conversationType: ConversationType.NEW,
+			})
+			const recipients = createTestEntity(RecipientsTypeRef, {
+				toRecipients: [createTestEntity(MailAddressTypeRef)],
+			})
+			const draftDetails = createTestEntity(MailDetailsTypeRef, {
+				recipients,
+				body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }),
+			})
+
+			const mailboxDetails: MailboxDetail = {
+				mailbox: createTestEntity(MailBoxTypeRef),
+				mailGroupInfo: createTestEntity(GroupInfoTypeRef, {
+					mailAddress: "shared-mailbox@addre.ss",
+				}),
+				mailGroup: createTestEntity(GroupTypeRef),
+				mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
+			}
+			replace(model, "mailboxDetails", mailboxDetails)
+
+			const initializedModel = await model.initWithDraft(draft, draftDetails, conversationEntry, [], new Map())
+			o.check(initializedModel.getSender()).equals("shared-mailbox@addre.ss")
+		})
+		o.test("initWithDraft with user's primary alias as sender", async () => {
+			const conversationEntryId = testIdGenerator.newIdTuple()
+			const draft = createTestEntity(MailTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
+					address: "primary-alias@tutanota.de",
+				}),
+				subject: SUBJECT_LINE_1,
+				conversationEntry: conversationEntryId,
+			})
+			const conversationEntry = createTestEntity(ConversationEntryTypeRef, {
+				_id: conversationEntryId,
+				mail: draft._id,
+				conversationType: ConversationType.NEW,
+			})
+			const recipients = createTestEntity(RecipientsTypeRef, {
+				toRecipients: [createTestEntity(MailAddressTypeRef)],
+			})
+			const draftDetails = createTestEntity(MailDetailsTypeRef, {
+				recipients,
+				body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }),
+			})
+
+			const mailboxDetails: MailboxDetail = {
+				mailbox: createTestEntity(MailBoxTypeRef),
+				mailGroupInfo: createTestEntity(GroupInfoTypeRef, {
+					mailAddress: "primary-alias@tutanota.de",
+				}),
+				mailGroup: createTestEntity(GroupTypeRef, {
+					user: "user-id",
+				}),
+				mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
+			}
+			replace(model, "mailboxDetails", mailboxDetails)
+			replace(userController, "userGroupInfo", mailboxDetails.mailGroupInfo)
+
+			const initializedModel = await model.initWithDraft(draft, draftDetails, conversationEntry, [], new Map())
+			o.check(initializedModel.getSender()).equals("primary-alias@tutanota.de")
+		})
+		o.test("initWithDraft with enabled alias as sender", async () => {
+			const conversationEntryId = testIdGenerator.newIdTuple()
+			const draft = createTestEntity(MailTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
+					address: "enabled-alias@tutanota.de",
+				}),
+				subject: SUBJECT_LINE_1,
+				conversationEntry: conversationEntryId,
+			})
+			const conversationEntry = createTestEntity(ConversationEntryTypeRef, {
+				_id: conversationEntryId,
+				mail: draft._id,
+				conversationType: ConversationType.NEW,
+			})
+			const recipients = createTestEntity(RecipientsTypeRef, {
+				toRecipients: [createTestEntity(MailAddressTypeRef)],
+			})
+			const draftDetails = createTestEntity(MailDetailsTypeRef, {
+				recipients,
+				body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }),
+			})
+
+			const mailboxDetails: MailboxDetail = {
+				mailbox: createTestEntity(MailBoxTypeRef),
+				mailGroupInfo: createTestEntity(GroupInfoTypeRef, {
+					mailAddress: "primary-alias@tutanota.de",
+					mailAddressAliases: [
+						createTestEntity(MailAddressAliasTypeRef, {
+							mailAddress: "enabled-alias@tutanota.de",
+							enabled: true,
+						}),
+					],
+				}),
+				mailGroup: createTestEntity(GroupTypeRef, {
+					user: "user-id",
+				}),
+				mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
+			}
+			replace(model, "mailboxDetails", mailboxDetails)
+			replace(userController, "userGroupInfo", mailboxDetails.mailGroupInfo)
+
+			const initializedModel = await model.initWithDraft(draft, draftDetails, conversationEntry, [], new Map())
+			o.check(initializedModel.getSender()).equals("enabled-alias@tutanota.de")
+		})
+		o.test("initWithDraft with deactivated alias as sender", async () => {
+			const conversationEntryId = testIdGenerator.newIdTuple()
+			const draft = createTestEntity(MailTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
+					address: "deactivated-alias@tutanota.de",
+				}),
+				subject: SUBJECT_LINE_1,
+				conversationEntry: conversationEntryId,
+			})
+			const conversationEntry = createTestEntity(ConversationEntryTypeRef, {
+				_id: conversationEntryId,
+				mail: draft._id,
+				conversationType: ConversationType.NEW,
+			})
+			const recipients = createTestEntity(RecipientsTypeRef, {
+				toRecipients: [createTestEntity(MailAddressTypeRef)],
+			})
+			const draftDetails = createTestEntity(MailDetailsTypeRef, {
+				recipients,
+				body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }),
+			})
+
+			const mailboxDetails: MailboxDetail = {
+				mailbox: createTestEntity(MailBoxTypeRef),
+				mailGroupInfo: createTestEntity(GroupInfoTypeRef, {
+					mailAddressAliases: [
+						createTestEntity(MailAddressAliasTypeRef, {
+							mailAddress: "deactivated-alias@tutanota.de",
+							enabled: false,
+						}),
+					],
+				}),
+				mailGroup: createTestEntity(GroupTypeRef, {
+					user: "user-id",
+				}),
+				mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
+			}
+			replace(model, "mailboxDetails", mailboxDetails)
+			replace(userController, "userGroupInfo", mailboxDetails.mailGroupInfo)
+
+			const initializedModel = await model.initWithDraft(draft, draftDetails, conversationEntry, [], new Map())
+			o.check(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
+		})
+		o.test("initWithDraft with deleted custom domain alias as sender", async () => {
+			const conversationEntryId = testIdGenerator.newIdTuple()
+			const draft = createTestEntity(MailTypeRef, {
+				sender: createTestEntity(MailAddressTypeRef, {
+					address: "deleted-alias@custom.domain",
+				}),
+				subject: SUBJECT_LINE_1,
+				conversationEntry: conversationEntryId,
+			})
+			const conversationEntry = createTestEntity(ConversationEntryTypeRef, {
+				_id: conversationEntryId,
+				mail: draft._id,
+				conversationType: ConversationType.NEW,
+			})
+			const recipients = createTestEntity(RecipientsTypeRef, {
+				toRecipients: [createTestEntity(MailAddressTypeRef)],
+			})
+			const draftDetails = createTestEntity(MailDetailsTypeRef, {
+				recipients,
+				body: createTestEntity(BodyTypeRef, { text: BODY_TEXT_1 }),
+			})
+
+			const mailboxDetails: MailboxDetail = {
+				mailbox: createTestEntity(MailBoxTypeRef),
+				mailGroupInfo: createTestEntity(GroupInfoTypeRef),
+				mailGroup: createTestEntity(GroupTypeRef, {
+					user: "user-id",
+				}),
+				mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
+			}
+			replace(model, "mailboxDetails", mailboxDetails)
+			replace(userController, "userGroupInfo", mailboxDetails.mailGroupInfo)
+
+			const initializedModel = await model.initWithDraft(draft, draftDetails, conversationEntry, [], new Map())
+			o.check(initializedModel.getSender()).equals(DEFAULT_SENDER_FOR_TESTING)
 		})
 	})
-	o.spec("Adding and removing recipients", function () {
-		o.beforeEach(async function () {
+
+	o.spec("Adding and removing recipients", () => {
+		o.beforeEach(async () => {
 			await model.initWithTemplate({}, "", "", [], false, "")
 		})
 
-		o("adding duplicate to-recipient", async function () {
+		o.test("adding duplicate to-recipient", async () => {
 			const recipient = {
 				name: "sanchez",
 				address: "123@test.com",
@@ -377,11 +576,11 @@ o.spec("SendMailModel", function () {
 
 			verify(recipientsModel.initialize(recipient), { times: 1 })
 
-			o(model.toRecipients().length).equals(1)
-			o(model.ccRecipients().length).equals(0)
-			o(model.bccRecipients().length).equals(0)
+			o.check(model.toRecipients().length).equals(1)
+			o.check(model.ccRecipients().length).equals(0)
+			o.check(model.bccRecipients().length).equals(0)
 		})
-		o("add different to-recipients", async function () {
+		o.test("add different to-recipients", async () => {
 			const pablo = {
 				name: "pablo",
 				address: "pablo94@test.co.uk",
@@ -400,11 +599,11 @@ o.spec("SendMailModel", function () {
 			verify(recipientsModel.initialize(pablo))
 			verify(recipientsModel.initialize(cortez))
 
-			o(model.toRecipients().length).equals(2)
-			o(model.ccRecipients().length).equals(0)
-			o(model.bccRecipients().length).equals(0)
+			o.check(model.toRecipients().length).equals(2)
+			o.check(model.ccRecipients().length).equals(0)
+			o.check(model.bccRecipients().length).equals(0)
 		})
-		o("add duplicate recipients to different fields", async function () {
+		o.test("add duplicate recipients to different fields", async () => {
 			const recipient = {
 				name: "sanchez",
 				address: "123@test.com",
@@ -416,23 +615,23 @@ o.spec("SendMailModel", function () {
 
 			verify(recipientsModel.initialize(recipient), { times: 2 })
 
-			o(model.toRecipients().length).equals(1)
-			o(model.ccRecipients().length).equals(1)
-			o(model.bccRecipients().length).equals(0)
+			o.check(model.toRecipients().length).equals(1)
+			o.check(model.ccRecipients().length).equals(1)
+			o.check(model.bccRecipients().length).equals(0)
 		})
 	})
-	o.spec("Sending", function () {
-		o("completely blank email", async function () {
+	o.spec("Sending", () => {
+		o.test("completely blank email", async () => {
 			const method = MailMethod.NONE
 			const getConfirmation = func<() => Promise<boolean>>()
 			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
-			o(e?.message).equals(lang.get("noRecipients_msg"))
+			o.check(e?.message).equals(lang.get("noRecipients_msg"))
 			verify(getConfirmation(), { times: 0 })
 			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 0 })
 			verify(mailFacade.createDraft(anything()), { times: 0 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 		})
-		o("blank subject no confirm", async function () {
+		o.test("blank subject no confirm", async () => {
 			model.addRecipient(RecipientField.TO, {
 				name: "test",
 				address: "test@address.com",
@@ -442,13 +641,13 @@ o.spec("SendMailModel", function () {
 			const method = MailMethod.NONE
 			const getConfirmation = func<() => Promise<boolean>>()
 			const r = await model.send(method, getConfirmation)
-			o(r).equals(false)
+			o.check(r).equals(false)
 			verify(getConfirmation(), { times: 0 })
 			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 0 })
 			verify(mailFacade.createDraft(anything()), { times: 0 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 		})
-		o("confidential missing password", async function () {
+		o.test("confidential missing password", async () => {
 			await model.addRecipient(RecipientField.TO, {
 				name: "test",
 				address: "test@address.com",
@@ -461,13 +660,13 @@ o.spec("SendMailModel", function () {
 			when(getConfirmation(anything())).thenResolve(true)
 
 			const e = await assertThrows(UserError, () => model.send(method, getConfirmation))
-			o(e?.message).equals(lang.get("noPreSharedPassword_msg"))
+			o.check(e?.message).equals(lang.get("noPreSharedPassword_msg"))
 
 			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 0 })
 			verify(mailFacade.createDraft(anything()), { times: 0 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 		})
-		o("confidential weak password no confirm", async function () {
+		o.test("confidential weak password no confirm", async () => {
 			const recipient = {
 				name: "test",
 				address: "test@address.com",
@@ -475,18 +674,18 @@ o.spec("SendMailModel", function () {
 			}
 			await model.initWithTemplate({ to: [recipient] }, "subject", "", [], true, "me@tuta.com", false)
 			model.setPassword("test@address.com", "abc")
-			o(model.getPassword(recipient.address)).equals("abc")
+			o.check(model.getPassword(recipient.address)).equals("abc")
 			const method = MailMethod.NONE
 
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
 			when(getConfirmation(anything())).thenResolve(false)
 			const r = await model.send(method, getConfirmation)
-			o(r).equals(false)
+			o.check(r).equals(false)
 			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 0 })
 			verify(mailFacade.createDraft(anything()), { times: 0 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 		})
-		o("confidential weak password confirm", async function () {
+		o.test("confidential weak password confirm", async () => {
 			const recipient = {
 				name: "test",
 				address: "test@address.com",
@@ -495,31 +694,31 @@ o.spec("SendMailModel", function () {
 			await model.initWithTemplate({ to: [recipient] }, "did you get that thing i sent ya?", "", [], true, "me@tutanota.de", false)
 			const password = WEAK_PASSWORD
 			model.setPassword("test@address.com", password)
-			o(model.getPassword(recipient.address)).equals(password)
+			o.check(model.getPassword(recipient.address)).equals(password)
 			const method = MailMethod.NONE
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
 			when(getConfirmation(anything())).thenResolve(true)
 
 			const r = await model.send(method, getConfirmation)
-			o(r).equals(true)
+			o.check(r).equals(true)
 
 			verify(mailFacade.sendDraft(anything(), anything(), anything()), { times: 1 })
 			verify(mailFacade.createDraft(anything()), { times: 1 })
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 
 			const contact = model.getRecipientList(RecipientField.TO)[0].contact!
-			o(contact.presharedPassword).equals(password)
+			o.check(contact.presharedPassword).equals(password)
 		})
 
-		o("correct password will be returned from getPassword after calling setPassword", function () {
+		o.test("correct password will be returned from getPassword after calling setPassword", () => {
 			model.setPassword("address1", "password1")
 			model.setPassword("address2", "password2")
 
-			o(model.getPassword("address2")).equals("password2")
-			o(model.getPassword("address1")).equals("password1")
+			o.check(model.getPassword("address2")).equals("password2")
+			o.check(model.getPassword("address1")).equals("password1")
 		})
 
-		o("confidential strong password", async function () {
+		o.test("confidential strong password", async () => {
 			const address = "test@address.com"
 			const recipient = {
 				name: "test",
@@ -534,7 +733,7 @@ o.spec("SendMailModel", function () {
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
 
 			const r = await model.send(method, getConfirmation)
-			o(r).equals(true)
+			o.check(r).equals(true)
 
 			verify(getConfirmation(anything), { times: 0 })
 
@@ -543,10 +742,10 @@ o.spec("SendMailModel", function () {
 			verify(mailFacade.updateDraft(anything()), { times: 0 })
 
 			const contact = model.getRecipientList(RecipientField.TO)[0].contact!
-			o(contact.presharedPassword).equals(password)
+			o.check(contact.presharedPassword).equals(password)
 		})
 
-		o("when a recipient has an existing contact, and the saved password changes, then the contact will be updated", async function () {
+		o.test("when a recipient has an existing contact, and the saved password changes, then the contact will be updated", async () => {
 			const getConfirmation = func<(TranslationKey) => Promise<boolean>>()
 
 			const contact = createTestEntity(ContactTypeRef, {
@@ -569,10 +768,10 @@ o.spec("SendMailModel", function () {
 		})
 	})
 
-	o.spec("Entity Event Updates", function () {
+	o.spec("Entity Event Updates", () => {
 		let existingContact
 		let recipients
-		o.before(function () {
+		o.before(() => {
 			existingContact = createTestEntity(ContactTypeRef, {
 				_id: testIdGenerator.newIdTuple(),
 				firstName: "james",
@@ -593,7 +792,7 @@ o.spec("SendMailModel", function () {
 			]
 		})
 
-		o("nonmatching event", async function () {
+		o.test("nonmatching event", async () => {
 			await model.handleEntityEvent({
 				typeRef: UserTypeRef,
 				operation: OperationType.CREATE,
@@ -637,7 +836,7 @@ o.spec("SendMailModel", function () {
 			verify(entity.load(anything(), anything(), anything()), { times: 0 })
 		})
 
-		o("contact updated email kept", async function () {
+		o.test("contact updated email kept", async () => {
 			const [instanceListId, instanceId] = existingContact._id
 			const contactForUpdate = {
 				firstName: "newfirstname",
@@ -666,11 +865,11 @@ o.spec("SendMailModel", function () {
 				...noPatchesAndInstance,
 				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
-			o(model.allRecipients().length).equals(2)
+			o.check(model.allRecipients().length).equals(2)
 			const updatedRecipient = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
-			o(updatedRecipient && updatedRecipient.name).equals(getContactDisplayName(downcast(contactForUpdate)))
+			o.check(updatedRecipient && updatedRecipient.name).equals(getContactDisplayName(downcast(contactForUpdate)))
 		})
-		o("contact updated email removed or changed", async function () {
+		o.test("contact updated email removed or changed", async () => {
 			const [instanceListId, instanceId] = existingContact._id
 			const contactForUpdate = {
 				firstName: "james",
@@ -701,11 +900,11 @@ o.spec("SendMailModel", function () {
 				...noPatchesAndInstance,
 				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
-			o(model.allRecipients().length).equals(1)
+			o.check(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
-			o(updatedContact ?? null).equals(null)
+			o.check(updatedContact ?? null).equals(null)
 		})
-		o("contact removed", async function () {
+		o.test("contact removed", async () => {
 			const [instanceListId, instanceId] = existingContact._id
 			await model.initWithTemplate({ to: recipients }, "subj", "", [], true, "a@b.c", false)
 			await model.handleEntityEvent({
@@ -716,11 +915,11 @@ o.spec("SendMailModel", function () {
 				...noPatchesAndInstance,
 				prefetchStatus: PrefetchStatus.NotPrefetched,
 			})
-			o(model.allRecipients().length).equals(1)
+			o.check(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
-			o(updatedContact == null).equals(true)
+			o.check(updatedContact == null).equals(true)
 		})
-		o("too many to recipients dont confirm", async function () {
+		o.test("too many to recipients dont confirm", async () => {
 			const recipients = {
 				to: [] as { name: string; address: string }[],
 			}
@@ -740,10 +939,10 @@ o.spec("SendMailModel", function () {
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de", false)
 			const hasBeenSent = await model.send(MailMethod.NONE, getConfirmation)
-			o(hasBeenSent).equals(false)("nothing was sent")
+			o.check(hasBeenSent).equals(false)("nothing was sent")
 			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
-		o("too many to recipients confirm", async function () {
+		o.test("too many to recipients confirm", async () => {
 			const recipients = {
 				to: [] as { name: string; address: string }[],
 			}
@@ -763,10 +962,10 @@ o.spec("SendMailModel", function () {
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
 
-			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
+			o.check(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
 			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
-		o("too many cc recipients dont confirm", async function () {
+		o.test("too many cc recipients dont confirm", async () => {
 			const recipients = {
 				cc: [] as { name: string; address: string }[],
 			}
@@ -785,10 +984,10 @@ o.spec("SendMailModel", function () {
 			when(getConfirmation("manyRecipients_msg")).thenResolve(false)
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
-			o(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
+			o.check(await model.send(MailMethod.NONE, getConfirmation)).equals(false)
 			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
-		o("too many cc recipients confirm", async function () {
+		o.test("too many cc recipients confirm", async () => {
 			const recipients = {
 				cc: [] as { name: string; address: string }[],
 			}
@@ -807,7 +1006,7 @@ o.spec("SendMailModel", function () {
 			when(getConfirmation("manyRecipients_msg")).thenResolve(true)
 
 			await model.initWithTemplate(recipients, subject, body, [], false, "eggs@tutanota.de")
-			o(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
+			o.check(await model.send(MailMethod.NONE, getConfirmation)).equals(true)
 			verify(getConfirmation("manyRecipients_msg"), { times: 1 })
 		})
 		o.spec("mail draft update", () => {
