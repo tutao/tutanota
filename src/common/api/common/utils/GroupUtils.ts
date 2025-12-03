@@ -1,11 +1,17 @@
 import type { GroupInfo, GroupMembership, User } from "../../entities/sys/TypeRefs.js"
 import { GroupType } from "../TutanotaConstants"
-import { lang, Translation } from "../../../misc/LanguageViewModel.js"
 
 export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): string[] {
 	let aliases = groupInfo.mailAddressAliases.filter((alias) => alias.enabled).map((alias) => alias.mailAddress)
 	if (groupInfo.mailAddress) aliases.unshift(groupInfo.mailAddress)
 	return aliases
+}
+
+export function isAliasEnabledForGroupInfo(groupInfo: GroupInfo, aliasAddress: string): boolean {
+	return (
+		(groupInfo.mailAddress && groupInfo.mailAddress === aliasAddress) ||
+		(groupInfo.mailAddressAliases.find((alias) => alias.mailAddress === aliasAddress)?.enabled ?? false)
+	)
 }
 
 /**

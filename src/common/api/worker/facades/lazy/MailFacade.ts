@@ -110,7 +110,6 @@ import {
 	addressDomain,
 	assertNotNull,
 	byteLength,
-	contains,
 	defer,
 	freshVersioned,
 	getUrlDomain,
@@ -128,7 +127,7 @@ import {
 import { BlobFacade } from "./BlobFacade.js"
 import { assertWorkerOrNode, isApp, isDesktop } from "../../../common/Env.js"
 import { EntityClient } from "../../../common/EntityClient.js"
-import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships } from "../../../common/utils/GroupUtils.js"
+import { getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../common/utils/GroupUtils.js"
 import { containsId, elementIdPart, getElementId, getLetId, isSameId, listIdPart, stringToCustomId } from "../../../common/utils/EntityUtils.js"
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
@@ -1027,13 +1026,13 @@ export class MailFacade {
 		return promiseFilter(getUserGroupMemberships(user, GroupType.Mail), (groupMembership) => {
 			return this.entityClient.load(GroupTypeRef, groupMembership.group).then((mailGroup) => {
 				if (mailGroup.user == null) {
-					return this.entityClient.load(GroupInfoTypeRef, groupMembership.groupInfo).then((mailGroupInfo) => {
-						return contains(getEnabledMailAddressesForGroupInfo(mailGroupInfo), mailAddress)
-					})
+					return this.entityClient
+						.load(GroupInfoTypeRef, groupMembership.groupInfo)
+						.then((mailGroupInfo) => isAliasEnabledForGroupInfo(mailGroupInfo, mailAddress))
 				} else if (isSameId(mailGroup.user, user._id)) {
-					return this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo).then((userGroupInfo) => {
-						return contains(getEnabledMailAddressesForGroupInfo(userGroupInfo), mailAddress)
-					})
+					return this.entityClient
+						.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+						.then((userGroupInfo) => isAliasEnabledForGroupInfo(userGroupInfo, mailAddress))
 				} else {
 					// not supported
 					return false
