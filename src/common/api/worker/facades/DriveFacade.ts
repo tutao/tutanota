@@ -41,7 +41,6 @@ export type DriveCryptoInfo = {
 }
 
 export interface FolderContents {
-	folder: DriveFolder
 	files: DriveFile[]
 	folders: DriveFolder[]
 }
@@ -125,10 +124,6 @@ export class DriveFacade {
 	}
 
 	public async getFolderContents(folderId: IdTuple): Promise<FolderContents> {
-		const { fileGroupKey } = await this.getCryptoInfo()
-
-		// const data = createDriveGetIn({ folder: folderId })
-		// const driveGetOut = await this.serviceExecutor.get(DriveService, data)
 		const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
 		const refs = await this.entityClient.loadAll(DriveFileRefTypeRef, folder.files)
 		// FIXME: things can be in different lists but we probably have a helper for that already
@@ -144,18 +139,7 @@ export class DriveFacade {
 			this.entityClient,
 			folderRefs.map((ref) => assertNotNull(ref.folder)),
 		)
-
-		// const decryptedNamesAndFiles = parents.map((entry, index) => {
-		// 	if (index > 0) {
-		// 		const key = locator.cryptoWrapper.decryptKey(fileGroupKey.object, entry.ownerEncSessionKey)
-		// 		const currentFolderName = locator.cryptoWrapper.aesDecrypt(key, entry.encName, true)
-		//
-		// 		return { folderName: utf8Uint8ArrayToString(currentFolderName), folder: entry.folder } as BreadcrumbEntry
-		// 	}
-		// 	return { folderName: "Home", folder: entry.folder }
-		// })
-
-		return { folder, files, folders }
+		return { files, folders }
 	}
 
 	/**

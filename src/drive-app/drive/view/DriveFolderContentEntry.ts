@@ -4,12 +4,10 @@ import { formatStorageSize } from "../../../common/misc/Formatter"
 import { FolderItem } from "./DriveViewModel"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
 import { filterInt } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton"
 import { attachDropdown } from "../../../common/gui/base/Dropdown"
 import { theme } from "../../../common/gui/theme"
-import { SelectableFolderItem } from "./DriveView"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -18,12 +16,12 @@ export interface FileActions {
 	onDelete: (f: FolderItem) => unknown
 	onRename: (f: FolderItem) => unknown
 	onRestore: (f: FolderItem) => unknown
-	onSelect: (f: FolderItem) => unknown
 }
 
 export interface DriveFolderContentEntryAttrs {
-	item: SelectableFolderItem
-	onSelect: (f: DriveFile) => void
+	item: FolderItem
+	selected: boolean
+	onSelect: (f: FolderItem) => unknown
 	checked: boolean // maybe should be inside a map inside the model
 	fileActions: FileActions
 }
@@ -74,7 +72,9 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 	view({
 		attrs: {
 			item,
-			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename, onSelect },
+			selected,
+			onSelect,
+			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename },
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
 		const uploadDate = item.type === "file" ? item.file.createdDate : item.folder.createdDate
@@ -83,90 +83,86 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 
 		const thisFileMimeType = item.type === "file" ? mimeTypeAsText(item.file.mimeType) : "Folder"
 
-		return m(
-			"div.flex.row.folder-row",
-			{ style: { ...DriveFolderContentEntryRowStyle, background: item.selected ? theme.state_bg_hover : theme.surface } },
-			[
-				m("div", {}, m("input.checkbox", { type: "checkbox", checked: item.selected, onchange: () => onSelect(item) })),
+		return m("div.flex.row.folder-row", { style: { ...DriveFolderContentEntryRowStyle, background: selected ? theme.state_bg_hover : theme.surface } }, [
+			m("div", {}, m("input.checkbox", { type: "checkbox", checked: selected, onchange: () => onSelect(item) })),
+			m(
+				"div",
+				{ style: {} },
+				m(Icon, {
+					icon: thisFileIsAFolder ? Icons.Folder : iconPerMimeType(item.file.mimeType),
+					size: IconSize.Medium,
+					style: { fill: theme.on_surface, display: "block", margin: "0 auto" },
+				}),
+			),
+			m(
+				"div",
+				{ style: {} },
 				m(
-					"div",
-					{ style: {} },
-					m(Icon, {
-						icon: thisFileIsAFolder ? Icons.Folder : iconPerMimeType(item.file.mimeType),
-						size: IconSize.Medium,
-						style: { fill: theme.on_surface, display: "block", margin: "0 auto" },
-					}),
-				),
-				m(
-					"div",
-					{ style: {} },
-					m(
-						"span",
-						{
-							onclick: () => {
-								onOpenItem(item)
-							},
-							class: "cursor-pointer",
+					"span",
+					{
+						onclick: () => {
+							onOpenItem(item)
 						},
-						item.type === "file" ? item.file.name : item.folder.name,
-					),
+						class: "cursor-pointer",
+					},
+					item.type === "file" ? item.file.name : item.folder.name,
 				),
-				m("div", { style: {} }, thisFileMimeType),
-				m("div", { style: {} }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
-				m("div", { style: {} }, uploadDate.toLocaleString()),
-				m(
-					"div",
-					m("div", [
-						m(
-							IconButton,
-							attachDropdown({
-								mainButtonAttrs: {
-									icon: Icons.More,
-									title: "more_label",
+			),
+			m("div", { style: {} }, thisFileMimeType),
+			m("div", { style: {} }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
+			m("div", { style: {} }, uploadDate.toLocaleString()),
+			m(
+				"div",
+				m("div", [
+					m(
+						IconButton,
+						attachDropdown({
+							mainButtonAttrs: {
+								icon: Icons.More,
+								title: "more_label",
+							},
+							childAttrs: () => [
+								{
+									label: "rename_action",
+									icon: Icons.Edit,
+									click: () => {
+										onRename(item)
+									},
 								},
-								childAttrs: () => [
-									{
-										label: "rename_action",
-										icon: Icons.Edit,
-										click: () => {
-											onRename(item)
-										},
+								{
+									label: "copy_action",
+									icon: Icons.Copy,
+									click: () => {
+										onCopy(item)
 									},
-									{
-										label: "copy_action",
-										icon: Icons.Copy,
-										click: () => {
-											onCopy(item)
-										},
+								},
+								{
+									label: "cut_action",
+									icon: Icons.Cut,
+									click: () => {
+										onCut(item)
 									},
-									{
-										label: "cut_action",
-										icon: Icons.Cut,
-										click: () => {
-											onCut(item)
-										},
-									},
-									(item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
-										? {
-												label: "restoreFromTrash_action",
-												icon: Icons.Reply,
-												click: () => {
-													onRestore(item)
-												},
-											}
-										: {
-												label: "trash_action",
-												icon: Icons.Trash,
-												click: () => {
-													onDelete(item)
-												},
+								},
+								(item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
+									? {
+											label: "restoreFromTrash_action",
+											icon: Icons.Reply,
+											click: () => {
+												onRestore(item)
 											},
-								],
-							}),
-						),
-					]),
-				),
-			],
-		)
+										}
+									: {
+											label: "trash_action",
+											icon: Icons.Trash,
+											click: () => {
+												onDelete(item)
+											},
+										},
+							],
+						}),
+					),
+				]),
+			),
+		])
 	}
 }

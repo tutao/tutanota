@@ -1,25 +1,27 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveViewModel } from "./DriveViewModel"
+import { DriveViewModel, FolderItem } from "./DriveViewModel"
 import { DriveFolderNav } from "./DriveFolderNav"
-import { DriveFolderContent, DriveFolderContentAttrs, SelectionState } from "./DriveFolderContent"
+import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents, SelectionState } from "./DriveFolderContent"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang } from "../../../common/misc/LanguageViewModel"
-import { SelectableFolderItem } from "./DriveView"
+import { ListState } from "../../../common/gui/base/List"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
-	items: readonly SelectableFolderItem[]
 	selection: SelectionState
-	onSelectAll: () => unknown
 	onPaste: (() => unknown) | null
 	driveViewModel: DriveViewModel
 	currentFolder: DriveFolder | null
 	parents: readonly DriveFolder[]
+	listState: ListState<FolderItem>
+	selectionEvents: DriveFolderSelectionEvents
 }
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
-	view({ attrs: { driveViewModel, items, onPaste, onUploadClick, currentFolder, parents, selection, onSelectAll } }: Vnode<DriveFolderViewAttrs>): Children {
+	view({
+		attrs: { driveViewModel, onPaste, onUploadClick, currentFolder, parents, selection, selectionEvents, listState },
+	}: Vnode<DriveFolderViewAttrs>): Children {
 		return m(
 			"div.col.flex.plr-button.fill-absolute",
 			{ style: { gap: "15px" } },
@@ -33,7 +35,6 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 				},
 			}),
 			m(DriveFolderContent, {
-				items: items,
 				sortOrder: driveViewModel.getCurrentColumnSortOrder(),
 				fileActions: {
 					onOpenItem: (item) => {
@@ -67,15 +68,13 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 							},
 						)
 					},
-					onSelect: (item) => {
-						driveViewModel.onSingleSelection(item)
-					},
 				},
 				onSort: (newSortingOrder) => {
 					driveViewModel.sort(newSortingOrder)
 				},
-				onSelectAll,
 				selection,
+				listState,
+				selectionEvents,
 			} satisfies DriveFolderContentAttrs),
 		)
 	}

@@ -1,11 +1,11 @@
 import { EntityClient } from "../../../common/api/common/EntityClient"
 import { BreadcrumbEntry, DriveFacade, UploadGuid } from "../../../common/api/worker/facades/DriveFacade"
 import { Router } from "../../../common/gui/ScopedRouter"
-import { elementIdPart, getElementId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
+import { elementIdPart, getElementId, isSameId, listIdPart } from "../../../common/api/common/utils/EntityUtils"
 import m from "mithril"
 import { NotFoundError } from "../../../common/api/common/error/RestError"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertNotNull } from "@tutao/tutanota-utils"
+import { assertNotNull, memoizedWithHiddenArgument } from "@tutao/tutanota-utils"
 import { UploadProgressListener } from "../../../common/api/main/UploadProgressListener"
 import { DriveUploadStackModel } from "./DriveUploadStackModel"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
@@ -13,6 +13,11 @@ import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFol
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../common/api/common/utils/EntityUpdateUtils"
 import { ArchiveDataType, OperationType } from "../../../common/api/common/TutanotaConstants"
+import { ListModel } from "../../../common/misc/ListModel"
+import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
+import { ListFetchResult } from "../../../common/gui/base/ListUtils"
+import { ListState } from "../../../common/gui/base/List"
+import Stream from "mithril/stream"
 
 export const enum DriveFolderType {
 	Regular = "0",
@@ -34,7 +39,6 @@ export type FolderItem = FileFolderItem | FolderFolderItem
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
-	items: readonly FolderItem[]
 	parents: readonly BreadcrumbEntry[]
 	folder: DriveFolder
 }
@@ -43,7 +47,6 @@ export type SpecialFolderType = DriveFolderType.Root | DriveFolderType.Trash
 
 export interface SpecialFolder {
 	type: SpecialFolderType
-	items: readonly FolderItem[]
 	folder: DriveFolder
 }
 
@@ -98,11 +101,30 @@ export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem):
 
 type DriveClipboard = { item: FolderItem; action: ClipboardAction }
 
+function emptyListModel<Item, Id>(): ListModel<Item, Id> {
+	return new ListModel({
+		async fetch(): Promise<ListFetchResult<Item>> {
+			return { items: [], complete: true }
+		},
+		getItemId(item: Item): Id {
+			throw new Error("Should not be called")
+		},
+		isSameId(id1: Id, id2: Id): boolean {
+			throw new Error("Should not be called")
+		},
+		sortCompare(item1: Item, item2: Item): number {
+			throw new Error("Should not be called")
+		},
+		autoSelectBehavior: () => ListAutoSelectBehavior.NONE,
+	})
+}
+
+type ComparisonFunction = (f1: FolderItem, f2: FolderItem) => number
 export class DriveViewModel {
 	public readonly driveUploadStackModel: DriveUploadStackModel
 	public readonly userMailAddress: string
 
-	private sortingPreference: SortingPreference = { order: "asc", column: SortColumn.name }
+	private sortingPreference: Readonly<SortingPreference> = { order: "asc", column: SortColumn.name }
 
 	// normal folder view
 	currentFolder: DisplayFolder | null = null
@@ -111,11 +133,13 @@ export class DriveViewModel {
 	roots!: Awaited<ReturnType<DriveFacade["loadRootFolders"]>>
 
 	private _clipboard: DriveClipboard | null = null
-	readonly selectedItems: Set<Id> = new Set()
 
 	get clipboard(): DriveClipboard | null {
 		return this._clipboard
 	}
+
+	private listModel: ListModel<FolderItem, Id> = emptyListModel()
+	private listStateSubscription: Stream<unknown> | null = null
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -136,24 +160,86 @@ export class DriveViewModel {
 		this.roots = await this.driveFacade.loadRootFolders()
 	}
 
+	private newListModel(folder: DriveFolder): ListModel<FolderItem, Id> {
+		const newListModel = new ListModel<FolderItem, Id>({
+			fetch: async (lastFetchedItem, count) => {
+				if (lastFetchedItem == null) {
+					return { items: await this.loadFolderContents(folder), complete: true }
+				} else {
+					return { items: [] satisfies FolderItem[], complete: true }
+				}
+			},
+			getItemId(item: FolderItem): Id {
+				return getElementId(folderItemEntity(item))
+			},
+			sortCompare: (item1: FolderItem, item2: FolderItem): number => {
+				return this.comparisonFunction()(item1, item2)
+			},
+			isSameId: isSameId,
+			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
+		})
+		this.listStateSubscription?.end(true)
+		this.listStateSubscription = newListModel.stateStream.map(this.updateUi)
+		return newListModel
+	}
+
+	private readonly comparisonFunction: () => ComparisonFunction = memoizedWithHiddenArgument(
+		() => this.sortingPreference,
+		() => {
+			const column = this.sortingPreference.column
+			const itemName = (item: FolderItem) => (item.type === "folder" ? item.folder.name : item.file.name)
+			const itemDate = (item: FolderItem) => (item.type === "folder" ? item.folder.updatedDate : item.file.updatedDate)
+			const itemSize = (item: FolderItem) => (item.type === "folder" ? 0n : BigInt(item.file.size))
+
+			const itemMimeType = (item: FolderItem) => (item.type === "folder" ? "" : item.file.mimeType)
+
+			const attrToComparisonFunction: Record<SortColumn, ComparisonFunction> = {
+				name: (f1: FolderItem, f2: FolderItem) => compareString(itemName(f1), itemName(f2)),
+				mimeType: (f1: FolderItem, f2: FolderItem) => compareString(itemMimeType(f1), itemMimeType(f2)),
+				size: (f1: FolderItem, f2: FolderItem) => compareNumber(itemSize(f1), itemSize(f2)),
+				date: (f1: FolderItem, f2: FolderItem) => compareNumber(itemDate(f1).getTime(), itemDate(f2).getTime()),
+			}
+
+			const comparisonFn = attrToComparisonFunction[column]
+
+			// invert comparison function when the order is descending
+			const sortFunction: typeof comparisonFn = this.sortingPreference.order === "asc" ? comparisonFn : (l, r) => -comparisonFn(l, r)
+			return sortFunction
+		},
+	)
+
 	private async entityEventsReceived(events: ReadonlyArray<EntityUpdateData>) {
 		for (const update of events) {
 			if (isUpdateForTypeRef(DriveFileRefTypeRef, update) && update.instanceListId === this.currentFolder?.folder.files) {
 				if (update.operation === OperationType.DELETE) {
-					// FileRef has the same element id as the item it points to
-					this.selectedItems.delete(update.instanceId)
+					await this.listModel.deleteLoadedItem(update.instanceId)
 				}
-				await this.loadFolderContentsByIdTuple(this.currentFolder.folder._id)
-				this.updateUi()
+				if (update.operation === OperationType.CREATE) {
+					const fileRef = await this.entityClient.load(DriveFileRefTypeRef, [update.instanceListId, update.instanceId])
+					const item = fileRef.file ? await this.loadItem("file", fileRef.file) : await this.loadItem("folder", assertNotNull(fileRef.folder))
+					this.listModel.waitLoad(() => {
+						if (this.listModel.canInsertItem(item)) {
+							this.listModel.insertLoadedItem(item)
+						}
+					})
+				}
 			} else if (isUpdateForTypeRef(DriveFileTypeRef, update) || isUpdateForTypeRef(DriveFolderTypeRef, update)) {
 				if (this.currentFolder == null) {
 					continue
 				}
-
-				// FIXME: Do not reload the whole folder for this kind of update.
-				await this.loadFolderContentsByIdTuple(this.currentFolder.folder._id)
-				this.updateUi()
+				const item = await this.loadItem(isUpdateForTypeRef(DriveFolderTypeRef, update) ? "folder" : "file", [update.instanceListId, update.instanceId])
+				this.listModel.updateLoadedItem(item)
 			}
+		}
+	}
+
+	async loadItem(type: "file" | "folder", id: IdTuple): Promise<FolderItem> {
+		if (type === "file") {
+			const file = await this.entityClient.load(DriveFileTypeRef, id)
+			return { type, file }
+		} else {
+			const folder = await this.entityClient.load(DriveFolderTypeRef, id)
+			return { type, folder }
 		}
 	}
 
@@ -192,22 +278,21 @@ export class DriveViewModel {
 	}
 
 	async loadSpecialFolder(specialFolderType: SpecialFolderType) {
-		let folderWithItems: FolderWithItems
+		let folder: DriveFolder
 		switch (specialFolderType) {
 			case DriveFolderType.Trash:
-				folderWithItems = await this.getFolderItems(this.roots.trash)
+				folder = await this.entityClient.load(DriveFolderTypeRef, this.roots.trash)
 				break
 			case DriveFolderType.Root:
-				folderWithItems = await this.getFolderItems(this.roots.root)
+				folder = await this.entityClient.load(DriveFolderTypeRef, this.roots.root)
 				break
 		}
 
 		this.currentFolder = {
-			folder: folderWithItems.folder,
-			items: folderWithItems.items,
+			folder: folder,
 			type: specialFolderType,
 		}
-		await this.loadParents(folderWithItems.folder)
+		await this.loadParents(folder)
 	}
 
 	private async loadParents(folder: DriveFolder) {
@@ -220,25 +305,16 @@ export class DriveViewModel {
 		}
 	}
 
-	private async getFolderItems(folderId: IdTuple): Promise<FolderWithItems> {
-		const { folder, files, folders } = await this.driveFacade.getFolderContents(folderId)
-		const items = [
-			...folders.map((folder) => ({ type: "folder", folder }) satisfies FolderFolderItem),
-			...files.map((file) => ({ type: "file", file }) satisfies FileFolderItem),
-		]
-		return { folder, items }
-	}
-
-	async loadFolderContentsByIdTuple(idTuple: IdTuple): Promise<void> {
+	async loadFolder(folderId: IdTuple): Promise<void> {
 		try {
-			const { folder, items } = await this.getFolderItems(idTuple)
-
+			const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
 			this.currentFolder = {
 				type: DriveFolderType.Regular,
 				folder,
-				items,
 				parents: [],
 			} satisfies RegularFolder
+			this.listModel = this.newListModel(folder)
+			this.listModel.loadInitial()
 			await this.loadParents(folder)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
@@ -247,6 +323,15 @@ export class DriveViewModel {
 				throw e
 			}
 		}
+	}
+
+	async loadFolderContents(folder: DriveFolder): Promise<FolderItem[]> {
+		const { files, folders } = await this.driveFacade.getFolderContents(folder._id)
+		const items = [
+			...folders.map((folder) => ({ type: "folder", folder }) satisfies FolderFolderItem),
+			...files.map((file) => ({ type: "file", file }) satisfies FileFolderItem),
+		]
+		return items
 	}
 
 	public generateUploadGuid(): UploadGuid {
@@ -289,7 +374,7 @@ export class DriveViewModel {
 		return this.sortingPreference
 	}
 
-	sort(column: SortColumn, folderFirst: boolean = false) {
+	sort(column: SortColumn) {
 		if (this.sortingPreference.column === column) {
 			// flip order
 			this.sortingPreference = { column: column, order: this.sortingPreference.order === "asc" ? "desc" : "asc" }
@@ -298,55 +383,31 @@ export class DriveViewModel {
 		}
 
 		if (this.currentFolder == null) return
-
-		const itemName = (item: FolderItem) => (item.type === "folder" ? item.folder.name : item.file.name)
-		const itemDate = (item: FolderItem) => (item.type === "folder" ? item.folder.updatedDate : item.file.updatedDate)
-		const itemSize = (item: FolderItem) => (item.type === "folder" ? 0n : BigInt(item.file.size))
-
-		const itemMimeType = (item: FolderItem) => (item.type === "folder" ? "" : item.file.mimeType)
-
-		const attrToComparisonFunction: Record<SortColumn, (f1: FolderItem, f2: FolderItem) => number> = {
-			name: (f1: FolderItem, f2: FolderItem) => compareString(itemName(f1), itemName(f2)),
-			mimeType: (f1: FolderItem, f2: FolderItem) => compareString(itemMimeType(f1), itemMimeType(f2)),
-			size: (f1: FolderItem, f2: FolderItem) => compareNumber(itemSize(f1), itemSize(f2)),
-			date: (f1: FolderItem, f2: FolderItem) => compareNumber(itemDate(f1).getTime(), itemDate(f2).getTime()),
-		}
-
-		const comparisonFn = attrToComparisonFunction[column]
-
-		// invert comparison function when the order is descending
-		const sortFunction: typeof comparisonFn = this.sortingPreference.order === "asc" ? comparisonFn : (l, r) => -comparisonFn(l, r)
-
-		this.currentFolder.items = this.currentFolder.items.toSorted(sortFunction)
-
-		// FIXME
-		// if (folderFirst) {
-		// 	this.currentFolder.files.sort(sortFoldersFirst)
-		// }
+		this.listModel.sort()
 	}
 
 	rename(item: FolderItem, newName: string) {
 		this.driveFacade.rename(folderItemEntity(item), newName)
 	}
 
-	onSingleSelection(item: FolderItem) {
-		const id = getElementId(folderItemEntity(item))
-		if (this.selectedItems.has(id)) {
-			this.selectedItems.delete(id)
-		} else {
-			this.selectedItems.add(id)
-		}
+	onSingleInclusiveSelection(item: FolderItem) {
+		this.listModel.onSingleInclusiveSelection(item)
+	}
+
+	areAllSelected(): boolean {
+		return this.listModel.areAllSelected()
 	}
 
 	onSelectAll() {
-		const selectedItems = this.selectedItems
-		if (selectedItems.size === this.currentFolder?.items.length) {
-			this.selectedItems.clear()
+		if (this.areAllSelected()) {
+			this.listModel.selectNone()
 		} else {
-			for (const item of this.currentFolder?.items ?? []) {
-				this.selectedItems.add(getElementId(folderItemEntity(item)))
-			}
+			this.listModel.selectAll()
 		}
+	}
+
+	listState(): ListState<FolderItem> {
+		return this.listModel.state
 	}
 }
 
