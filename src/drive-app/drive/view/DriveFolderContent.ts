@@ -19,31 +19,20 @@ export interface DriveFolderContentAttrs {
 
 const columnStyle = {
 	display: "flex",
-	gap: "10px",
 	"align-items": "center",
 	cursor: "pointer",
 }
-
-export const columnStyles = {
-	select: { width: "25px" },
-	icon: { width: "50px" },
-	name: { flex: "1" },
-	type: { width: "100px" },
-	size: { width: "100px" },
-	date: { width: "300px" },
-} as const
 
 function renderHeaderCell(
 	columnName: Translation,
 	columnId: SortColumn,
 	{ column, order }: SortingPreference,
-	style: Record<string, unknown>,
 	onSort: DriveFolderContentAttrs["onSort"],
 ): Children {
 	return m(
 		"div",
 		{
-			style: { ...columnStyle, ...style },
+			style: { ...columnStyle },
 			onclick: () => {
 				onSort(columnId)
 			},
@@ -59,21 +48,39 @@ function renderHeaderCell(
 
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	view({ attrs: { selection, sortOrder, onSort, items, fileActions, onSelectAll } }: Vnode<DriveFolderContentAttrs>): Children {
-		return m("div.flex.col.overflow-hidden", [
-			this.renderHeader(selection, sortOrder, onSort, onSelectAll),
+		return m(
+			"div.flex.col.overflow-hidden",
+			{
+				style: {
+					display: "grid",
+					"grid-template-columns": "calc(25px + 24px) 50px auto 100px 100px 300px calc(44px + 12px)",
+					"column-gap": "10px",
+				},
+			},
+			[
+				this.renderHeader(selection, sortOrder, onSort, onSelectAll),
 
-			m(
-				".flex.col.scroll",
-				items.map((item) =>
-					m(DriveFolderContentEntry, {
-						item: item,
-						onSelect: (f) => {},
-						checked: false,
-						fileActions,
-					}),
+				m(
+					".flex.col.scroll.scrollbar-gutter-stable-or-fallback",
+					{
+						style: {
+							"grid-column-start": "1",
+							"grid-column-end": "8",
+							display: "grid",
+							"grid-template-columns": "subgrid",
+						},
+					},
+					items.map((item) =>
+						m(DriveFolderContentEntry, {
+							item: item,
+							onSelect: (f) => {},
+							checked: false,
+							fileActions,
+						}),
+					),
 				),
-			),
-		])
+			],
+		)
 	}
 	private renderHeader(selection: SelectionState, sortOrder: SortingPreference, onSort: (column: SortColumn) => unknown, onSelectAll: () => unknown) {
 		return m(
@@ -81,15 +88,18 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 			{
 				style: {
 					padding: "8px 16px 8px 24px",
-					gap: "16px",
 					// ensure that the bar does not shrink too much if we have only text
 					minHeight: px(size.button_height + 2 * 8),
+					"grid-column-start": "1",
+					"grid-column-end": "8",
+					display: "grid",
+					"grid-template-columns": "subgrid",
 				},
 			},
 			[
 				m(
 					"div",
-					{ style: { ...columnStyle, ...columnStyles.select } },
+					{ style: { ...columnStyle } },
 					m("input.checkbox", { type: "checkbox", checked: selection.type === "multiselect" && selection.selectedAll, onchange: onSelectAll }),
 				),
 				selection.type === "multiselect"
@@ -99,12 +109,12 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							m(".b", `${selection.selectedItemCount} items selected`),
 						]
 					: [
-							m("div", { style: { ...columnStyle, ...columnStyles.icon } }, []),
+							m("div", { style: { ...columnStyle } }, []),
 							// FIXME: translations
-							renderHeaderCell(lang.makeTranslation("name", "Name"), SortColumn.name, sortOrder, columnStyles.name, onSort),
-							renderHeaderCell(lang.makeTranslation("type", "Type"), SortColumn.mimeType, sortOrder, columnStyles.type, onSort),
-							renderHeaderCell(lang.makeTranslation("size", "Size"), SortColumn.size, sortOrder, columnStyles.size, onSort),
-							renderHeaderCell(lang.makeTranslation("date", "Date"), SortColumn.date, sortOrder, columnStyles.date, onSort),
+							renderHeaderCell(lang.makeTranslation("name", "Name"), SortColumn.name, sortOrder, onSort),
+							renderHeaderCell(lang.makeTranslation("type", "Type"), SortColumn.mimeType, sortOrder, onSort),
+							renderHeaderCell(lang.makeTranslation("size", "Size"), SortColumn.size, sortOrder, onSort),
+							renderHeaderCell(lang.makeTranslation("date", "Date"), SortColumn.date, sortOrder, onSort),
 							// m("div", { style: { ...columnStyle, width: columnSizes.type } }, "Type"),
 							// m("div", { style: { ...columnStyle, width: columnSizes.size } }, "Size"),
 							// m("div", { style: { ...columnStyle, width: columnSizes.date } }, "Date"),
