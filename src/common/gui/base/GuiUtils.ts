@@ -57,13 +57,7 @@ export function renderCountryDropdown(params: {
 	return m(DropDownSelector, {
 		label: params.label ?? "invoiceCountry_label",
 		helpLabel: params.helpLabel,
-		items: [
-			...dropdownCountries(),
-			{
-				value: null,
-				name: lang.get("choose_label"),
-			},
-		],
+		items: [...dropdownCountries(), { value: null, name: lang.get("choose_label"), selectable: false }],
 		selectedValue: params.selectedCountry,
 		selectionChangedHandler: params.onSelectionChanged,
 	})
