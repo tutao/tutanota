@@ -146,19 +146,25 @@ export class MailViewModel {
 		await this.loadExplicitMailTarget(listId, elementId, onMissingExplicitMailTarget)
 	}
 
-	private async resetOrInitializeList(stickyMailId: IdTuple) {
+	private async resetOrInitializeList(mail: Mail) {
 		if (this._folder != null) {
 			// If we already have a folder, deselect.
 			this.listModel?.selectNone()
 		} else {
-			// Otherwise, load the inbox so that it won't be empty on mobile when you try to go back.
+			// Otherwise, load the inbox as fallback so that it won't be empty on mobile when you try to go back.
+			// However, we try to always display the folder the mail is actually in.
 			const userInbox = await this.getFolderForUserInbox()
+			const folderForMail = this.mailModel.getMailFolderForMail(mail)
 
-			if (this.didStickyMailChange(stickyMailId, "after loading user inbox ID")) {
+			if (this.didStickyMailChange(mail._id, "after loading user inbox ID")) {
 				return
 			}
 
-			this.setListId(userInbox)
+			if (folderForMail) {
+				this.setListId(folderForMail)
+			} else {
+				this.setListId(userInbox)
+			}
 		}
 	}
 
@@ -239,24 +245,23 @@ export class MailViewModel {
 	private async loadExplicitMailTarget(listId: Id, mailId: Id, onMissingTargetEmail: () => unknown) {
 		const expectedStickyMailId: IdTuple = [listId, mailId]
 
-		// First try getting the mail from the list. We don't need to do anything more if we can simply select it, as
-		// getting the mail is completely synchronous.
+		// First, try getting the mail from the list.
+		// We don't need to do anything more if we can simply select it, as getting the mail is completely synchronous.
 		const mailInList = this.listModel?.getMail(mailId)
 		if (mailInList) {
-			console.log(TAG, "opening mail from list", mailId)
+			console.log(TAG, "opening mail from listModel list", mailId)
 			this.listModel?.onSingleSelection(mailInList)
 			return
 		}
 
-		// Load the cached mail to display it sooner.
-		// We still want to load the mail remotely, though, to make sure that it won't disappear due to being moved.
-		const cached = await this.cacheStorage.get<Mail>(MailTypeRef, listId, mailId)
-		if (this.didStickyMailChange(expectedStickyMailId, "after loading cached")) {
+		// Load the cached mail, if available, to display it sooner
+		const cached = await this.cacheStorage.get(MailTypeRef, listId, mailId)
+		if (this.didStickyMailChange(expectedStickyMailId, "after loading mail from cache")) {
 			return
-		}
-		if (cached) {
-			console.log(TAG, "displaying cached mail", mailId)
+		} else if (cached) {
+			console.log(TAG, "displaying mail from cache", mailId)
 			await this.displayExplicitMailTarget(cached)
+			return
 		}
 
 		let mail: Mail | null
@@ -271,32 +276,16 @@ export class MailViewModel {
 				throw e
 			}
 		}
-		if (this.didStickyMailChange(expectedStickyMailId, "after loading from entity client")) {
+
+		if (this.didStickyMailChange(expectedStickyMailId, "after loading mail from entity client")) {
 			return
-		}
-
-		// Simply checking if Mail exists is not enough. Instead, we check against the sets in the Mail
-		// and see if it's moved folders since the last sync. We have to do this because if the mail
-		// did move since the last sync, it will still disappear from view.
-		let movedSetsSinceLastSync = false
-		if (mail != null && cached != null) {
-			// This will most likely be the inbox
-			const currentFolderId = elementIdPart(assertNotNull(this._folder, "cached was displayed earlier, thus folder would have been set")._id)
-			// This can be false if the mail was moved while the user is logged in, which is fine, and we don't need to check the loaded mail
-			const cachedMailInFolder = cached.sets.some((id) => elementIdPart(id) === currentFolderId)
-			movedSetsSinceLastSync = cachedMailInFolder && !mail.sets.some((id) => elementIdPart(id) === currentFolderId)
-		}
-
-		if (!movedSetsSinceLastSync && mail != null) {
-			console.log(TAG, "opening mail from entity client", mailId)
+		} else if (mail) {
+			console.log(TAG, "displaying mail from entity client", mailId)
 			await this.displayExplicitMailTarget(mail)
 		} else {
-			if (mail != null) {
-				console.log(TAG, "Explicit mail target moved sets", listId, mailId)
-			} else {
-				console.log(TAG, "Explicit mail target not found", listId, mailId)
-			}
+			console.log(TAG, "explicit mail target not found", listId, mailId)
 			onMissingTargetEmail()
+
 			// We already know that email is not there, we can reset the target here and avoid list loading
 			this.stickyMailId = null
 			this.updateUrl()
@@ -304,7 +293,7 @@ export class MailViewModel {
 	}
 
 	private async displayExplicitMailTarget(mail: Mail) {
-		await this.resetOrInitializeList(mail._id)
+		await this.resetOrInitializeList(mail)
 		this.createConversationViewModel({ mail, showFolder: false, loadLatestMail: this.groupMailsByConversation() })
 		this.updateUi()
 	}
@@ -647,11 +636,21 @@ export class MailViewModel {
 
 		let importMailStateUpdates: Array<EntityUpdateData<ImportMailState>> = []
 		for (const update of updates) {
-			if (
-				isUpdateForTypeRef(ImportMailStateTypeRef, update) &&
-				(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE)
-			) {
-				importMailStateUpdates.push(update)
+			if (update.operation === OperationType.CREATE) {
+				if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+					importMailStateUpdates.push(update)
+				}
+			} else if (update.operation === OperationType.UPDATE) {
+				if (isUpdateForTypeRef(MailTypeRef, update) && isSameId(this.stickyMailId, [update.instanceListId, update.instanceId])) {
+					const mailId: IdTuple = [update.instanceListId, update.instanceId]
+					const mail = await this.entityClient.load(MailTypeRef, mailId)
+					const folderForMail = this.mailModel.getMailFolderForMail(mail)
+					if (folderForMail && !this.didStickyMailChange(mailId, "after loading mail from cache on entity update")) {
+						this.setListId(folderForMail)
+					}
+				} else if (isUpdateForTypeRef(ImportMailStateTypeRef, update)) {
+					importMailStateUpdates.push(update)
+				}
 			}
 
 			await listModel.handleEntityUpdate(update)

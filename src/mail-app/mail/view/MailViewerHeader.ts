@@ -119,7 +119,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									marginLeft: margin,
 								},
 							}),
-							m(".span", folderInfo.name),
+							m(".span.pl-4", folderInfo.name),
 						])
 					: null,
 				labels.map((label) =>
