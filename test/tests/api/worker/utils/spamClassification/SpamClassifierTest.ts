@@ -182,6 +182,7 @@ o.spec("SpamClassifierTest", () => {
 		await testClassifier(spamClassifier, testSet, compressor)
 
 		const trainingDatasetSecondHalf = getTrainingDataset(trainSetSecondHalf)
+		trainingDatasetSecondHalf.lastTrainingDataIndexId = "some new index id"
 		await spamClassifier.updateModel(TEST_OWNER_GROUP, trainingDatasetSecondHalf)
 		console.log(`==> Result when testing with mails in two steps (second step).`)
 		await testClassifier(spamClassifier, testSet, compressor)
@@ -191,6 +192,7 @@ o.spec("SpamClassifierTest", () => {
 		const finalSpamCount = initialTrainingDataset.spamCount + trainingDatasetSecondHalf.spamCount
 		o(classifier?.metaData.hamCount).equals(finalHamCount)
 		o(classifier?.metaData.spamCount).equals(finalSpamCount)
+		o(classifier?.metaData.lastTrainingDataIndexId).equals(trainingDatasetSecondHalf.lastTrainingDataIndexId)
 		o(classifier?.threshold).equals(spamClassifier.calculateThreshold(finalHamCount, finalSpamCount))
 	})
 
@@ -474,7 +476,7 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 			spamClassifier.spamMailProcessor = spamProcessor
 		})
 
-		o("time to refit", async () => {
+		o("time to refit and multiple refits work correctly", async () => {
 			o.timeout(20_000_000)
 			const { spamData, hamData } = await readMailDataFromCSV(DATASET_FILE_PATH)
 			const hamSlice = await convertToClientTrainingDatum(hamData.slice(0, 1000), spamProcessor, false)
@@ -483,17 +485,32 @@ if (DO_RUN_PERFORMANCE_ANALYSIS) {
 			seededShuffle(dataSlice, 42)
 
 			const start = performance.now()
-			await spamClassifier.initialTraining(TEST_OWNER_GROUP, getTrainingDataset(dataSlice))
+			const initialTrainingDataset = getTrainingDataset(dataSlice)
+			await spamClassifier.initialTraining(TEST_OWNER_GROUP, initialTrainingDataset)
+			const initialClassifier = spamClassifier.classifierByMailGroup.get(TEST_OWNER_GROUP)!
+			const initialHamCount = initialClassifier.metaData.hamCount
+			const initialSpamCount = initialClassifier.metaData.spamCount
 			const initialTrainingDuration = performance.now() - start
 			console.log(`initial training time ${initialTrainingDuration}ms`)
 
 			for (let i = 0; i < 20; i++) {
 				const nowSpam = [hamSlice[0]]
-				nowSpam.map((formerHam) => (formerHam.spamDecision = "1"))
+				nowSpam.map((formerHam) => (formerHam.spamDecision = SpamDecision.BLACKLIST))
 				const retrainingStart = performance.now()
-				await spamClassifier.updateModel(TEST_OWNER_GROUP, getTrainingDataset(nowSpam))
+				const newPartialRetrainingDataset = getTrainingDataset(nowSpam)
+				newPartialRetrainingDataset.lastTrainingDataIndexId = "lastTrainingDataIndexId" + i
+				await spamClassifier.updateModel(TEST_OWNER_GROUP, newPartialRetrainingDataset)
 				const retrainingDuration = performance.now() - retrainingStart
 				console.log(`retraining time ${retrainingDuration}ms`)
+
+				// verify classifier correctness
+				const classifier = spamClassifier.classifierByMailGroup.get(TEST_OWNER_GROUP)!
+				const finalHamCount = initialHamCount
+				const finalSpamCount = initialSpamCount + i + 1
+				o(classifier?.metaData.hamCount).equals(finalHamCount)
+				o(classifier?.metaData.spamCount).equals(finalSpamCount)
+				o(classifier?.metaData.lastTrainingDataIndexId).equals(newPartialRetrainingDataset.lastTrainingDataIndexId)
+				o(classifier?.threshold).equals(spamClassifier.calculateThreshold(finalHamCount, finalSpamCount))
 			}
 		})
 
