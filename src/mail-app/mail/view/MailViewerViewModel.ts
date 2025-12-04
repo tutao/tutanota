@@ -211,7 +211,7 @@ export class MailViewerViewModel {
 	}
 
 	private async determineRelevantRecipient() {
-		// The idea is that if there are multiple recipients then we should display the one which belongs to one of our mailboxes and then fall back to any
+		// The idea is that if there are multiple recipients, then we should display the one which belongs to one of our mailboxes and then fall back to any
 		// other one
 		const mailboxDetails = await this.mailModel.getMailboxDetailsForMail(this.mail)
 		if (mailboxDetails == null) {

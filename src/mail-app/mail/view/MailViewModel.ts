@@ -63,10 +63,10 @@ export class MailViewModel {
 	/** Beware: this can be a label. */
 	private _folder: MailFolder | null = null
 	private _listModel: MailSetListModel | null = null
-	/** id of the mail that was requested to be displayed, independent of the list state. */
+	/** id of the mail requested to be displayed, independent of the list state. */
 	private stickyMailId: IdTuple | null = null
 	/**
-	 * When the URL contains both folder id and mail id we will try to select that mail but we might need to load the list until we find it.
+	 * When the URL contains both folder id and mail id, we will try to select that mail, but we might need to load the list until we find it.
 	 * This is that mail id that we are loading.
 	 */
 	private loadingTargetId: Id | null = null
@@ -74,8 +74,8 @@ export class MailViewModel {
 	private _filterType: ReadonlySet<MailFilterType> = new Set()
 
 	/**
-	 * We remember the last URL used for each folder so if we switch between folders we can keep the selected mail.
-	 * There's a similar (but different) hacky mechanism where we store last URL but per each top-level view: navButtonRoutes. This one is per folder.
+	 * We remember the last URL used for each folder, so if we switch between folders, we can keep the selected mail.
+	 * There's a similar (but different) hacky mechanism where we store the last URL but per each top-level view: navButtonRoutes. This one is per folder.
 	 */
 	private mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id> = new Map()
 	private listStreamSubscription: Stream<unknown> | null = null
@@ -85,9 +85,6 @@ export class MailViewModel {
 	private currentShowTargetMarker: object = {}
 	/* We only attempt counter fixup once after switching folders and loading the list fully. */
 	private shouldAttemptCounterFixup: boolean = true
-
-	private undoAction: UndoAction | null = null
-
 	constructor(
 		private readonly mailboxModel: MailboxModel,
 		private readonly mailModel: MailModel,
@@ -117,16 +114,16 @@ export class MailViewModel {
 		this.listModel?.setFilter(filterFunctions)
 	}
 
-	async showMailWithMailSetId(mailsetId?: Id, mailId?: Id): Promise<void> {
+	async showMailWithMailSetId(mailSetId?: Id, mailId?: Id): Promise<void> {
 		const showMailMarker = {}
 		this.currentShowTargetMarker = showMailMarker
-		if (mailsetId) {
-			const mailset = await this.mailModel.getMailSetById(mailsetId)
+		if (mailSetId) {
+			const mailSet = await this.mailModel.getMailSetById(mailSetId)
 			if (showMailMarker !== this.currentShowTargetMarker) {
 				return
 			}
-			if (mailset) {
-				return this.showMail(mailset, mailId)
+			if (mailSet) {
+				return this.showMail(mailSet, mailId)
 			}
 		}
 		return this.showMail(null, mailId)
@@ -177,8 +174,8 @@ export class MailViewModel {
 		) {
 			return
 		}
-		// If we are already loading towards the email that is passed to us in the URL then we don't need to do anything. We already updated URL on the
-		// previous call.
+		// If we are already loading towards the email passed to us in the URL, then we don't need to do anything.
+		// We already updated the URL on the previous call.
 		if (
 			folder != null &&
 			mailId != null &&
@@ -198,17 +195,17 @@ export class MailViewModel {
 		const loadingTargetId = mailId ?? null
 		this.loadingTargetId = loadingTargetId
 
-		// if the URL has changed then we probably want to reset the explicitly shown email
+		// if the URL has changed, then we probably want to reset the explicitly shown email
 		this.stickyMailId = null
 
 		const folderToUse = await this.selectFolderToUse(folder ?? null)
-		// Selecting folder is async, check that the target hasn't changed inbetween
+		// Selecting a folder is async, check that the target hasn't changed in between
 		if (this.loadingTargetId !== loadingTargetId) return
 
 		// This will cause a URL update indirectly
 		this.setListId(folderToUse)
 
-		// If we have a mail that should be selected start loading towards it.
+		// If we have a mail that should be selected, start loading towards it.
 		// We already checked in the beginning that we are not loading to the same target. We set the loadingTarget early so there should be no races.
 		if (loadingTargetId) {
 			// Record the selected mail for the folder
@@ -216,7 +213,7 @@ export class MailViewModel {
 			try {
 				await this.loadAndSelectMail(folderToUse, loadingTargetId)
 			} finally {
-				// We either selected the mail and we don't need the target anymore or we didn't find it and we should remove the target
+				// We either selected the mail, and we don't need the target anymore, or we didn't find it, and we should remove the target
 				this.loadingTargetId = null
 			}
 		} else {
@@ -341,26 +338,26 @@ export class MailViewModel {
 
 	/**
 	 * Base mails to apply actions too. To finally apply the action to the whole conversation (if necessary) it is
-	 * still needed to call {@link MailViewModel#getResolvedMails()}.
+	 * still necessary to call {@link MailViewModel#getResolvedMails()}.
 	 * @return {Mail[]} that are displayed in the viewer
 	 */
 	getActionableMails(): readonly Mail[] {
 		// conversationViewModel is not there if we are in multiselect or if nothing is selected.
-		// it should also cover sticky mail case.
+		// it should also cover the sticky mail case.
 		if (this.conversationViewModel == null) {
 			return this.listModel?.getSelectedAsArray() ?? []
 		} else {
-			// conversationMails() might not return the whole conversation if it's still loading, it is fine, we need
+			// conversationMails() might not return the whole conversation if it's still loading, it is fine; we need
 			// this function to be sync to reflect the displayed mails. As long as getResolvedMails() is called to
-			// actually apply the action this does not cause any issues. Once the conversation is loaded the UI will
-			// be updated as well so this only affects displayed state temporarily.
+			// actually apply the action, this does not cause any issues. Once the conversation is loaded, the UI will
+			// be updated as well, so this only affects the displayed state temporarily.
 			return this.groupMailsByConversation() ? this.conversationViewModel.conversationMails() : [this.conversationViewModel.primaryMail]
 		}
 	}
 
 	/**
 	 * If ConversationInListView is active in the current folder, Ids of all mails in the conversation are returned
-	 * If not, only Id of the primary mail is returned
+	 * If not, only the ID of the primary mail is returned
 	 */
 	async getResolvedMails(mails: readonly Mail[]): Promise<readonly IdTuple[]> {
 		if (this.groupMailsByConversation()) {
@@ -382,13 +379,6 @@ export class MailViewModel {
 
 		return await this.getResolvedMails(actionableMails)
 	}
-
-	removeStickyMail(mails: readonly IdTuple[]) {
-		if (this.stickyMailId && mails.length === 1 && isSameId(elementIdPart(mails[0]), elementIdPart(this.stickyMailId))) {
-			this.stickyMailId = null
-		}
-	}
-
 	clearStickyMail() {
 		if (this.stickyMailId) {
 			this.stickyMailId = null
@@ -397,7 +387,7 @@ export class MailViewModel {
 	}
 
 	/**
-	 * Permanent delete is only allowed when the mail is in the current folder and the current folder is Trash/Spam.
+	 * Permanent delete is only allowed when the mail is in the current folder, and the current folder is Trash/Spam.
 	 */
 	isPermanentDeleteAllowed(): boolean {
 		const primaryMailFolder = this.conversationViewModel != null ? this.mailModel.getMailFolderForMail(this.conversationViewModel.primaryMail) : null
@@ -409,20 +399,6 @@ export class MailViewModel {
 			return currentFolder != null && (currentFolder.folderType === MailSetKind.TRASH || currentFolder.folderType === MailSetKind.SPAM)
 		}
 	}
-
-	/**
-	 * If ConversationInListView is active in the current folder, all mails in the conversation are returned (so they can be processed in a group)
-	 * If not, only the primary mail is returned, since that is the one being looked at/interacted with.
-	 */
-	async getLoadedActionableMails(mails: readonly Mail[]): Promise<ReadonlyArray<Mail>> {
-		if (this.groupMailsByConversation()) {
-			const actionableMailIds = await this.mailModel.resolveConversationsForMails(mails)
-			return this.mailModel.loadAllMails(actionableMailIds)
-		} else {
-			return mails
-		}
-	}
-
 	isExportingMailsAllowed(): boolean {
 		return this.mailModel.isExportingMailsAllowed() && !client.isMobileDevice()
 	}
@@ -454,7 +430,7 @@ export class MailViewModel {
 		const oldGroupMailsByConversationPref = this.mailListDisplayModePref
 		this.mailListDisplayModePref = mailListModePref
 		if (oldGroupMailsByConversationPref !== mailListModePref) {
-			// if the preference for conversation in list has changed we need to re-create the list model
+			// if the preference for conversation in the list has changed, we need to re-create the list model
 			this.updateListModel()
 		}
 	}
@@ -488,7 +464,7 @@ export class MailViewModel {
 
 	private setListId(folder: MailFolder) {
 		const oldFolderId = this._folder?._id
-		// update folder just in case, maybe it got updated
+		// update the folder just in case, maybe it got updated
 		this._folder = folder
 
 		// only re-create list things if it's actually another folder
@@ -497,7 +473,7 @@ export class MailViewModel {
 			this.listModel?.cancelLoadAll()
 			this._filterType = new Set()
 
-			// the open folder has changed which means we need another list model with data for this list
+			// the open folder has changed, which means we need another list model with data for this list
 			this.updateListModel()
 		}
 	}
@@ -506,7 +482,7 @@ export class MailViewModel {
 		return this.conversationViewModel
 	}
 
-	// deinit old list model if it exists and create and init a new one
+	// deinit the old list model if it exists and create and init a new one
 	private updateListModel() {
 		if (this._folder == null) {
 			this.listStreamSubscription?.end(true)
@@ -514,7 +490,7 @@ export class MailViewModel {
 			this._listModel = null
 		} else {
 			// Capture state to avoid race conditions.
-			// We need to populate mail set entries cache when loading mails so that we can react to updates later.
+			// We need to populate the mail set entries cache when loading mails so that we can react to updates later.
 			const folder = this._folder
 
 			let listModel: MailSetListModel
@@ -551,7 +527,7 @@ export class MailViewModel {
 	private fixCounterIfNeeded: (folder: MailFolder, loadedMailsWhenCalled: ReadonlyArray<Mail>) => void = debounce(
 		2000,
 		async (folder: MailFolder, loadedMailsWhenCalled: ReadonlyArray<Mail>) => {
-			// If folders are changed, list won't have the data we need.
+			// If folders are changed, the list won't have the data we need.
 			// Do not rely on counters if we are not connected.
 			// We can't know the correct unreadMailCount if some unread mails are filtered out.
 			const ourFolder = this.getFolder()
@@ -565,7 +541,7 @@ export class MailViewModel {
 				return
 			}
 
-			// If list was modified in the meantime, we cannot be sure that we will fix counters correctly (e.g. because of the inbox rules)
+			// If the list was modified in the meantime, we cannot be sure that we will fix counters correctly (e.g., because of the inbox rules)
 			if (this.listModel?.mails !== loadedMailsWhenCalled) {
 				console.log("list changed, trying again later")
 				return this.fixCounterIfNeeded(folder, this.listModel?.mails ?? [])
@@ -592,7 +568,7 @@ export class MailViewModel {
 			this.shouldAttemptCounterFixup = false
 		}
 
-		// If we are already displaying sticky mail just leave it alone, no matter what's happening to the list.
+		// If we are already displaying sticky mail, just leave it alone, no matter what's happening to the list.
 		// User actions and URL updated do reset sticky mail id.
 		const displayedMailId = this.conversationViewModel?.primaryViewModel()?.mail._id
 		if (!(displayedMailId && isSameId(displayedMailId, this.stickyMailId))) {
@@ -629,8 +605,8 @@ export class MailViewModel {
 	private updateUrl() {
 		const folder = this._folder
 		const folderId = folder ? getElementId(folder) : null
-		// If we are loading towards an email we want to keep it in the URL, otherwise we will reset it.
-		// Otherwise, if we have a single selected email then that should be in the URL.
+		// If we are loading towards an email, we want to keep it in the URL, otherwise we will reset it.
+		// Otherwise, if we have a single selected email, then that should be in the URL.
 		const mailId = this.loadingTargetId ?? (folderId ? this.getMailFolderToSelectedMail().get(folderId) : null)
 		const stickyMail = this.stickyMailId
 
@@ -661,7 +637,7 @@ export class MailViewModel {
 	}
 
 	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
-		// capturing the state so that if we switch folders we won't run into race conditions
+		// capturing the state so that if we switch folders, we won't run into race conditions
 		const folder = this._folder
 		const listModel = this.listModel
 
@@ -704,7 +680,7 @@ export class MailViewModel {
 			const importedMailSetEntries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryIds)
 			if (isEmpty(importedMailSetEntries)) return Promise.resolve()
 
-			// put mails into cache before list model will download them one by one
+			// put mails into the cache before the list model downloads them one by one
 			await this.preloadMails(importedMailSetEntries)
 
 			let selectedFolder = this.getFolder()
@@ -791,7 +767,7 @@ export class MailViewModel {
 
 		const mailboxDetail = await this.getMailboxDetails()
 
-		// the request is handled a little differently if it is the system folder vs a subfolder
+		// the request is handled a little differently if it is the system folder vs. a subfolder
 		if (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM) {
 			return this.mailModel.clearFolder(folder).catch(
 				ofClass(PreconditionFailedError, () => {
@@ -877,7 +853,7 @@ export class MailViewModel {
 	}
 
 	/**
-	 * Returns true if mails should be grouped by conversation in mail list based on user preference and a folder
+	 * Returns true if mails should be grouped by conversation in the mail list based on user preference and a folder
 	 * @param folder the folder to check or, by default, the current folder
 	 */
 	groupMailsByConversation(folder: MailFolder | null = this._folder) {
@@ -890,7 +866,7 @@ export class MailViewModel {
 }
 
 /**
- * @return true if mails should be grouped by conversation in mail list based on user preference and a given {@param folder}
+ * @return true if mails should be grouped by conversation in the mail list based on user preference and a given {@param folder}
  */
 export function listByConversationInFolder(conversationPrefProvider: ConversationPrefProvider, folder: MailFolder | null): boolean {
 	const onlySelectedMailInViewer = conversationPrefProvider.getConversationViewShowOnlySelectedMail()
