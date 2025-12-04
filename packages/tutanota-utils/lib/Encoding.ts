@@ -4,7 +4,7 @@ export type Base64Url = string
 export type Hex = string
 
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
-export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array): ArrayBuffer {
+export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array): ArrayBufferLike {
 	if (uint8Array.byteLength === uint8Array.buffer.byteLength) {
 		return uint8Array.buffer
 	} else {

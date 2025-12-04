@@ -1,5 +1,5 @@
 // @ts-ignore[untyped-import]
-import { BigInteger, parseBigInt, RSAKey } from "../internal/crypto-jsbn-2012-08-09_1.js"
+import { BigInteger as BigIntegerNew, parseBigInt, RSAKey as RSAKeyNew } from "../internal/crypto-jsbn-2012-08-09_1.js"
 import type { Base64, Hex } from "@tutao/tutanota-utils"
 import { base64ToHex, base64ToUint8Array, concat, hexToUint8Array, int8ArrayToBase64, uint8ArrayToHex } from "@tutao/tutanota-utils"
 import type { RawRsaPublicKey, RsaPrivateKey, RsaPublicKey } from "./RsaKeyPair.js"
@@ -10,11 +10,32 @@ import { KeyPairType } from "./AsymmetricKeyPair.js"
 const RSA_KEY_LENGTH_BITS = 2048
 const RSA_PUBLIC_EXPONENT = 65537
 
+interface BigInteger {
+	clone(): BigInteger
+	toByteArray(): Uint8Array
+}
+
+interface RSAKey {
+	n: BigInteger
+	d: BigInteger
+	p: BigInteger
+	q: BigInteger
+	dmp1: BigInteger
+	dmq1: BigInteger
+	coeff: BigInteger
+	e: number
+	doPublic(bigInt: BigInteger): BigInteger
+	doPrivate(bigInt: BigInteger): BigInteger
+}
+
+const RSAKey = RSAKeyNew as unknown as { new (): RSAKey }
+const BigInteger = BigIntegerNew as unknown as { new (array: Int8Array): BigInteger }
+
 export function rsaEncrypt(publicKey: RsaPublicKey, bytes: Uint8Array, seed: Uint8Array): Uint8Array {
 	const rsa = new RSAKey()
 	// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
 	// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
-	rsa.n = new BigInteger(new Int8Array(base64ToUint8Array(publicKey.modulus)))
+	rsa.n = new (BigInteger as unknown as { new (array: Int8Array): BigInteger })(new Int8Array(base64ToUint8Array(publicKey.modulus)))
 	rsa.e = publicKey.publicExponent
 	const paddedBytes = oaepPad(bytes, publicKey.keyLength, seed)
 	const paddedHex = uint8ArrayToHex(paddedBytes)
@@ -284,7 +305,7 @@ function _clear(array: Uint8Array | null | undefined) {
 export function mgf1(seed: Uint8Array, length: number): Uint8Array {
 	let C: Uint8Array | null = null
 	let counter = 0
-	let T = new Uint8Array(0)
+	let T: Uint8Array = new Uint8Array(0)
 
 	do {
 		C = i2osp(counter)

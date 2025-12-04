@@ -54,7 +54,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 	const version = await getTutanotaAppVersion()
 
 	await runStep("Types", async () => {
-		await sh`npx tsc --project ${tsConfig} --incremental ${true} --noEmit true`
+		await sh`npx tsgo --project ${tsConfig} --incremental ${true} --noEmit true`
 	})
 
 	/**

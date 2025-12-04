@@ -23,7 +23,6 @@
 		"strictBindCallApply": true,
 		"strictFunctionTypes": false,
 		"strictPropertyInitialization": true,
-		"noStrictGenericChecks": false,
 		"strictNullChecks": true,
 		"useUnknownInCatchVariables": false,
 		"types": ["node"]
