@@ -37,7 +37,7 @@ export class CalendarDayColumn implements ClassComponent<CalendarDayColumnAttrs>
 
 	view({ attrs }: Vnode<CalendarDayColumnAttrs>) {
 		return m(
-			".grid.plr-unit.z1.grid-auto-columns.rel.min-width-0.gap",
+			".grid.plr-unit.z1.grid-auto-columns.rel.min-width-0.gap-1",
 			{
 				class: this.resolveClasses(attrs.layout),
 				style: {
