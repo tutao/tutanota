@@ -4,7 +4,6 @@ import { formatStorageSize } from "../../../common/misc/Formatter"
 import { FolderItem } from "./DriveViewModel"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
-import { columnStyles } from "./DriveFolderContent"
 import { DriveFile } from "../../../common/api/entities/drive/TypeRefs"
 import { filterInt } from "@tutao/tutanota-utils"
 import { IconButton } from "../../../common/gui/base/IconButton"
@@ -35,7 +34,10 @@ const DriveFolderContentEntryRowStyle = {
 	"align-items": "center",
 	"margin-bottom": "4px",
 	padding: "6px 12px 6px 24px",
-	gap: "16px",
+	"grid-column-start": "1",
+	"grid-column-end": "8",
+	display: "grid",
+	"grid-template-columns": "subgrid",
 }
 
 const isImageMimeType = (mimeType: string) => ["image/png", "image/jpeg"].includes(mimeType)
@@ -85,10 +87,10 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			"div.flex.row.folder-row",
 			{ style: { ...DriveFolderContentEntryRowStyle, background: item.selected ? theme.state_bg_hover : theme.surface } },
 			[
-				m("div", { style: columnStyles.select }, m("input.checkbox", { type: "checkbox", checked: item.selected, onchange: () => onSelect(item) })),
+				m("div", {}, m("input.checkbox", { type: "checkbox", checked: item.selected, onchange: () => onSelect(item) })),
 				m(
 					"div",
-					{ style: { ...columnStyles.icon } },
+					{ style: {} },
 					m(Icon, {
 						icon: thisFileIsAFolder ? Icons.Folder : iconPerMimeType(item.file.mimeType),
 						size: IconSize.Medium,
@@ -97,7 +99,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				),
 				m(
 					"div",
-					{ style: { ...columnStyles.name } },
+					{ style: {} },
 					m(
 						"span",
 						{
@@ -109,9 +111,9 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 						item.type === "file" ? item.file.name : item.folder.name,
 					),
 				),
-				m("div", { style: { ...columnStyles.type } }, thisFileMimeType),
-				m("div", { style: { ...columnStyles.size } }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
-				m("div", { style: { ...columnStyles.date } }, uploadDate.toLocaleString()),
+				m("div", { style: {} }, thisFileMimeType),
+				m("div", { style: {} }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
+				m("div", { style: {} }, uploadDate.toLocaleString()),
 				m(
 					"div",
 					m("div", [
