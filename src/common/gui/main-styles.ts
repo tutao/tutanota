@@ -1128,6 +1128,9 @@ styles.registerStyle("main", () => {
 		".fill-grid-column": {
 			"grid-row": "1 / -1",
 		},
+		".gap-1": {
+			gap: px(1),
+		},
 		".gap-4": {
 			gap: px(size.spacing_4),
 		},
