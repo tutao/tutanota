@@ -1,20 +1,28 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { SortColumn, SortingPreference } from "./DriveViewModel"
+import { FolderItem, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderContentEntry, FileActions } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { px, size } from "../../../common/gui/size"
-import { SelectableFolderItem } from "./DriveView"
+import { ListState } from "../../../common/gui/base/List"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 
+export interface DriveFolderSelectionEvents {
+	onSingleExclusiveSelection: (item: FolderItem) => unknown
+	onSingleInclusiveSelection: (item: FolderItem) => unknown
+	onSelectPrevious: (item: FolderItem) => unknown
+	onSelectNext: (item: FolderItem) => unknown
+	onSelectAll: () => unknown
+}
+
 export interface DriveFolderContentAttrs {
 	selection: SelectionState
-	items: readonly SelectableFolderItem[]
 	sortOrder: SortingPreference
 	fileActions: FileActions
 	onSort: (column: SortColumn) => unknown
-	onSelectAll: () => unknown
+	listState: ListState<FolderItem>
+	selectionEvents: DriveFolderSelectionEvents
 }
 
 const columnStyle = {
@@ -47,7 +55,7 @@ function renderHeaderCell(
 }
 
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
-	view({ attrs: { selection, sortOrder, onSort, items, fileActions, onSelectAll } }: Vnode<DriveFolderContentAttrs>): Children {
+	view({ attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState } }: Vnode<DriveFolderContentAttrs>): Children {
 		return m(
 			"div.flex.col.overflow-hidden",
 			{
@@ -58,7 +66,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 				},
 			},
 			[
-				this.renderHeader(selection, sortOrder, onSort, onSelectAll),
+				this.renderHeader(selection, sortOrder, onSort, selectionEvents.onSelectAll),
 
 				m(
 					".flex.col.scroll.scrollbar-gutter-stable-or-fallback",
@@ -70,10 +78,12 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							"grid-template-columns": "subgrid",
 						},
 					},
-					items.map((item) =>
+					listState.items.map((item) =>
+						// FIXME: give them an id
 						m(DriveFolderContentEntry, {
 							item: item,
-							onSelect: (f) => {},
+							selected: listState.selectedItems.has(item),
+							onSelect: selectionEvents.onSingleInclusiveSelection,
 							checked: false,
 							fileActions,
 						}),

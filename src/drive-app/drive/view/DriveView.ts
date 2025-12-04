@@ -2,7 +2,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../TopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header"
 import m, { Children, Vnode } from "mithril"
-import { DriveFolderType, DriveViewModel, FolderItem, folderItemEntity } from "./DriveViewModel"
+import { DriveFolderType, DriveViewModel, FolderItem } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
@@ -23,7 +23,6 @@ import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { renderSidebarFolders } from "./Sidebar"
-import { getElementId } from "../../../common/api/common/utils/EntityUtils"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -62,7 +61,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		const { folderListId, folderElementId } = args as { folderListId: string; folderElementId: string }
 
 		if (folderListId && folderElementId) {
-			this.driveViewModel.loadFolderContentsByIdTuple([folderListId, folderElementId]).then(() => m.redraw())
+			this.driveViewModel.loadFolder([folderListId, folderElementId]).then(() => m.redraw())
 		} else {
 			// /drive
 			// No folder given, load the drive root
@@ -164,7 +163,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return new ViewColumn(
 			{
 				view: () => {
-					const selectedItems = this.driveViewModel.selectedItems
+					const listState = this.driveViewModel.listState()
 					return m(
 						BackgroundColumnLayout,
 						{
@@ -173,29 +172,29 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							columnLayout: [
 								m(DriveFolderView, {
 									onUploadClick: this.onNewFile_Click,
-									items:
-										this.driveViewModel.currentFolder == null
-											? []
-											: this.driveViewModel.currentFolder.items.map((item) => {
-													return {
-														...item,
-														selected: selectedItems.has(getElementId(folderItemEntity(item))),
-													}
-												}),
 									driveViewModel: this.driveViewModel,
 									onPaste: this.driveViewModel.clipboard ? () => this.driveViewModel.paste() : null,
 									currentFolder: this.driveViewModel.currentFolder?.folder ?? null,
 									parents: this.driveViewModel.parents,
-									onSelectAll: () => this.driveViewModel.onSelectAll(),
-									selection:
-										// FIXME there should be a real multiselect state maybe?
-										selectedItems.size === 0
-											? { type: "none" }
-											: {
-													type: "multiselect",
-													selectedItemCount: selectedItems.size,
-													selectedAll: selectedItems.size === this.driveViewModel.currentFolder?.items.length,
-												},
+									selection: listState.inMultiselect
+										? {
+												type: "multiselect",
+												selectedAll: this.driveViewModel.areAllSelected(),
+												selectedItemCount: listState.selectedItems.size,
+											}
+										: { type: "none" },
+									listState: listState,
+									selectionEvents: {
+										onSelectAll: () => {
+											this.driveViewModel.onSelectAll()
+										},
+										onSelectNext: () => {},
+										onSelectPrevious: () => {},
+										onSingleInclusiveSelection: (item) => {
+											this.driveViewModel.onSingleInclusiveSelection(item)
+										},
+										onSingleExclusiveSelection: () => {},
+									},
 								} satisfies DriveFolderViewAttrs),
 								m(DriveUploadStack, { model: this.driveViewModel.driveUploadStackModel }),
 							],
