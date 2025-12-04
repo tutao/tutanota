@@ -134,7 +134,7 @@ export class ClientDetector {
 	 */
 	isSupported(): boolean {
 		this.syntaxChecks()
-		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss()
+		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss() && this.lookBehindRegex()
 	}
 
 	isMobileDevice(): boolean {
@@ -182,6 +182,15 @@ export class ClientDetector {
 	 */
 	xhr2(): boolean {
 		return "XMLHttpRequest" in window
+	}
+
+	lookBehindRegex(): boolean {
+		try {
+			;/(?<=([ab]+)([bc]+))$/.exec("abc")
+			return true
+		} catch (e) {
+			return false
+		}
 	}
 
 	indexedDb(): boolean {
