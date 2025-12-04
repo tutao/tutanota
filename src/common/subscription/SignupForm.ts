@@ -64,6 +64,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private powChallengeSolution: DeferredObject<PowSolution> = defer()
 	private readonly: boolean = false
 	private dom: HTMLElement | null = null
+	private isNextButtonDisabled = false
 
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
 		? TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS
@@ -177,6 +178,9 @@ export class SignupForm implements Component<SignupFormAttrs> {
 			onChecked: this._confirmTerms,
 		}
 		const submit = () => {
+			if (this.isNextButtonDisabled) {
+				return
+			}
 			if (this.readonly) {
 				// Email field is read-only, account has already been created but user switched from different subscription.
 				// return a.onComplete({ type: "success", newAccountData: null })
@@ -192,6 +196,8 @@ export class SignupForm implements Component<SignupFormAttrs> {
 				Dialog.message(errorMessage)
 				return
 			}
+
+			this.isNextButtonDisabled = true
 
 			a.onComplete({
 				type: "success",
@@ -239,7 +245,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 					m(LoginButton, {
 						label: "next_action",
 						onclick: submit,
-						disabled: !this._confirmTerms(),
+						disabled: !this._confirmTerms() && !this.isNextButtonDisabled,
 					}),
 				),
 			]),
