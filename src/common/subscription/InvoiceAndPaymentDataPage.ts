@@ -123,7 +123,8 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 								disabled:
 									(this._selectedPaymentMethod() === PaymentMethodType.CreditCard &&
 										this.ccViewModel.validateCreditCardPaymentData() != null) ||
-									(this._selectedPaymentMethod() === PaymentMethodType.Paypal && !this.isPaypalLinked()),
+									(this._selectedPaymentMethod() === PaymentMethodType.Paypal && !this.isPaypalLinked()) ||
+									this._invoiceDataInput?.selectedCountry() == null,
 							}),
 						),
 					]

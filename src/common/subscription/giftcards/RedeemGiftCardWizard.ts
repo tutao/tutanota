@@ -441,6 +441,7 @@ class RedeemGiftCardPage implements WizardPageN<RedeemGiftCardModel> {
 							.catch(ofClass(UserError, showUserError))
 							.catch(ofClass(CancelledError, noOp))
 					},
+					disabled: !this.confirmed || this.country == null,
 				}),
 			),
 		])
