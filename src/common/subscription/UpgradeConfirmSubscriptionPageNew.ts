@@ -25,7 +25,7 @@ import { formatDate } from "../misc/Formatter.js"
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
-import { SignupViewModel } from "../login/SignupView"
+import { SignupViewModel } from "../signup/SignupView"
 
 export class UpgradeConfirmSubscriptionPageNew implements Component<WizardStepContext<SignupViewModel>> {
 	private dom!: HTMLElement

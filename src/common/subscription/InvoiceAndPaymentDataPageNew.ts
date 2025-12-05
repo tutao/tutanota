@@ -25,7 +25,7 @@ import { createAccount, getVisiblePaymentMethods, validateInvoiceData, validateP
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel"
 import { SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput"
 import { PaypalButton } from "./PaypalButton"
-import { SignupViewModel } from "../login/SignupView"
+import { SignupViewModel } from "../signup/SignupView"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 
 export interface InvoiceAndPaymentDataPageNewAttrs {

@@ -2124,3 +2124,7 @@ export type TranslationKeyType =
 	| "inboxRuleExcludedFromSpamFilter_msg"
 	| "blockNewsletterBanner_action"
 	| "emptyString_msg"
+	| "create_new_account_label"
+	| "username_label"
+	| "signup_page_title"
+	| "signup_page_subtitle"

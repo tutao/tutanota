@@ -8,7 +8,7 @@ import { assertNotNull } from "@tutao/tutanota-utils"
 import { DisplayMode } from "../login/LoginViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
-import { SignupViewModel } from "../login/SignupView"
+import { SignupViewModel } from "../signup/SignupView"
 import { windowFacade } from "../misc/WindowFacade"
 
 export class UpgradeCongratulationsPageNew implements Component<WizardStepContext<SignupViewModel>> {
