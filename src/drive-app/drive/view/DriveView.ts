@@ -21,6 +21,9 @@ import { ChunkedUploadInfo } from "../../../common/api/common/drive/DriveTypes"
 import { showStandardsFileChooser } from "../../../common/file/FileController"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError"
 import { renderSidebarFolders } from "./Sidebar"
+import { listSelectionKeyboardShortcuts } from "../../../common/gui/base/ListUtils"
+import { MultiselectMode } from "../../../common/gui/base/List"
+import { keyManager, Shortcut } from "../../../common/misc/KeyManager"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -62,6 +65,15 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	protected files: (DataFile | FileReference)[] = []
 
 	private driveViewModel: DriveViewModel
+	private shortcuts: Shortcut[]
+
+	oncreate() {
+		keyManager.registerShortcuts(this.shortcuts)
+	}
+
+	onremove() {
+		keyManager.unregisterShortcuts(this.shortcuts)
+	}
 
 	constructor(vnode: Vnode<DriveViewAttrs>) {
 		console.log("running constructor for DriveView")
@@ -77,6 +89,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			m.redraw()
 			return Promise.resolve()
 		})
+
+		this.shortcuts = listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.driveViewModel)
 	}
 
 	view({ attrs }: Vnode<DriveViewAttrs>): Children {
@@ -175,7 +189,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									listState: listState,
 									selectionEvents: {
 										onSelectAll: () => {
-											this.driveViewModel.onSelectAll()
+											this.driveViewModel.selectAll()
 										},
 										onSelectNext: () => {},
 										onSelectPrevious: () => {},

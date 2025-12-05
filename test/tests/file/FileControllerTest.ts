@@ -48,7 +48,7 @@ o.spec("FileControllerTest", function () {
 			})
 			const fileReference = object<FileReference>()
 			when(blobFacadeMock.downloadAndDecryptNative(anything(), anything(), anything(), anything())).thenResolve(fileReference)
-			const result = await withOverriddenEnv(androidEnv, () => fileController.downloadAndDecrypt(file))
+			const result = await withOverriddenEnv(androidEnv, () => fileController.downloadAndDecrypt(file, ArchiveDataType.Attachments))
 			verify(
 				blobFacadeMock.downloadAndDecryptNative(
 					ArchiveDataType.Attachments,
@@ -102,7 +102,8 @@ o.spec("FileControllerTest", function () {
 				when(blobFacadeMock.downloadAndDecryptNative(anything(), anything(), "broken.txt", anything())).thenReject(new ConnectionError("no connection"))
 				await assertThrows(
 					ConnectionError,
-					async () => await withOverriddenEnv(androidEnv, () => testableFileController.downloadAll([fileWorks, fileNotWorks])),
+					async () =>
+						await withOverriddenEnv(androidEnv, () => testableFileController.downloadAll([fileWorks, fileNotWorks], ArchiveDataType.Attachments)),
 				)
 				verify(fileAppMock.deleteFile(anything()), { times: 1 }) // mock for cleanup
 			})
@@ -126,7 +127,7 @@ o.spec("FileControllerTest", function () {
 			})
 			const data = new Uint8Array([1, 2, 3])
 			when(blobFacadeMock.downloadAndDecrypt(anything(), anything())).thenResolve(data)
-			const result = await fileController.downloadAndDecrypt(file)
+			const result = await fileController.downloadAndDecrypt(file, ArchiveDataType.Attachments)
 			verify(
 				blobFacadeMock.downloadAndDecrypt(
 					ArchiveDataType.Attachments,

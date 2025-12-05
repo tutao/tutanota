@@ -401,12 +401,24 @@ export class DriveViewModel {
 		return this.listModel.areAllSelected()
 	}
 
-	onSelectAll() {
+	selectAll() {
 		if (this.areAllSelected()) {
 			this.listModel.selectNone()
 		} else {
 			this.listModel.selectAll()
 		}
+	}
+
+	selectNone() {
+		this.listModel.selectNone()
+	}
+
+	selectPrevious(multiselect: boolean) {
+		this.listModel.selectPrevious(multiselect)
+	}
+
+	selectNext(multiselect: boolean) {
+		this.listModel.selectNext(multiselect)
 	}
 
 	listState(): ListState<FolderItem> {

@@ -38,7 +38,6 @@ import { CryptoError } from "@tutao/tutanota-crypto/error.js"
 import { typeModels as storageTypeModels } from "../../../entities/storage/TypeModels"
 import { InstancePipeline } from "../../crypto/InstancePipeline"
 import { AttributeModel } from "../../../common/AttributeModel"
-import { ExposedProgressTracker } from "../../../main/ProgressTracker"
 import { ChunkedUploadInfo } from "../../../common/drive/DriveTypes"
 import { UploadGuid } from "../DriveFacade"
 
@@ -75,7 +74,6 @@ export class BlobFacade {
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
-		private readonly progressTracker: ExposedProgressTracker,
 	) {}
 
 	/**
