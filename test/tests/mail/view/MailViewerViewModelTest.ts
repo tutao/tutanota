@@ -402,9 +402,10 @@ o.spec("MailViewerViewModel", function () {
 			o(viewModel.didErrorsOccur()).deepEquals(true)
 		})
 
-		o("changind sent mail from mail details draft to mail details blob", async function () {
+		o("changing sent mail from mail details draft to mail details blob", async function () {
 			const viewModel = makeViewModelWithHeaders("")
 			mail.mailDetailsDraft = ["draftListId", "draftId"]
+			mail.state = MailState.DRAFT
 
 			const mailDetailsBlob = mail.mailDetails
 			mail.mailDetails = null
@@ -416,6 +417,7 @@ o.spec("MailViewerViewModel", function () {
 			o(viewModel.didErrorsOccur()).deepEquals(true)
 
 			mail.mailDetailsDraft = null
+			mail.state = MailState.RECEIVED
 			mail.mailDetails = mailDetailsBlob
 			await viewModel.loadAll(Promise.resolve())
 

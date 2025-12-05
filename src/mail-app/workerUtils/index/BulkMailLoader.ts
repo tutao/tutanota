@@ -22,7 +22,6 @@ import {
 	listIdPart,
 } from "../../../common/api/common/utils/EntityUtils.js"
 import { CacheMode, EntityRestClientLoadOptions, OwnerEncSessionKeyProvider } from "../../../common/api/worker/rest/EntityRestClient.js"
-import { isDraft } from "../../mail/model/MailChecks.js"
 import {
 	File as TutanotaFile,
 	FileTypeRef,
@@ -71,7 +70,7 @@ export class BulkMailLoader {
 	async loadMailDetails(mails: readonly Mail[], options: EntityRestClientLoadOptions = {}): Promise<MailWithMailDetails[]> {
 		const result: Array<MailWithMailDetails> = []
 		// mailDetails stored as blob
-		let mailDetailsBlobMails = mails.filter((m) => !isDraft(m))
+		let mailDetailsBlobMails = mails.filter((m) => !m.mailDetailsDraft)
 		const listIdToMailDetailsBlobIds: Map<Id, Array<Id>> = groupByAndMap(
 			mailDetailsBlobMails,
 			(m) => listIdPart(assertNotNull(m.mailDetails)),
@@ -94,7 +93,7 @@ export class BulkMailLoader {
 			)
 		}
 		// mailDetails stored in db (draft)
-		let mailDetailsDraftMails = mails.filter((m) => isDraft(m))
+		let mailDetailsDraftMails = mails.filter((m) => m.mailDetailsDraft)
 		const listIdToMailDetailsDraftIds: Map<Id, Array<Id>> = groupByAndMap(
 			mailDetailsDraftMails,
 			(m) => listIdPart(assertNotNull(m.mailDetailsDraft)),
