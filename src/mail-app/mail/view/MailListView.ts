@@ -30,7 +30,7 @@ import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { mailLocator } from "../../mailLocator.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
-import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
+import { isMailScheduled, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
@@ -91,6 +91,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 					renderRightSpacer: () => this.renderRightSpacer(),
 					swipeLeft: (listElement: Mail) => this.onSwipeLeft(listElement),
 					swipeRight: (listElement: Mail) => this.onSwipeRight(listElement),
+					isDisabledForEntity: (listElement: Mail) => isMailScheduled(listElement),
 				} satisfies SwipeConfiguration<Mail>)
 			: null,
 		dragStart: (event, row, selected) => this._newDragStart(event, row, selected),

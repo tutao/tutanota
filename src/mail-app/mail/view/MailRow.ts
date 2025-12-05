@@ -28,6 +28,7 @@ import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getFolderName } from "../model/MailUtils"
 import { client } from "../../../common/misc/ClientDetector"
+import { isMailScheduled } from "../model/MailChecks"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.Folder,
@@ -37,9 +38,11 @@ const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.ARCHIVE]: FontIcons.Archive,
 	[MailSetKind.SPAM]: FontIcons.Spam,
 	[MailSetKind.DRAFT]: FontIcons.Draft,
+	[MailSetKind.SEND_LATER]: FontIcons.ScheduleMail,
+	// The ones below will never show a folder icon, but we need them to complete the set
 	[MailSetKind.ALL]: FontIcons.Folder,
 	[MailSetKind.LABEL]: FontIcons.Folder,
-	[MailSetKind.Imported]: FontIcons.Folder,
+	[MailSetKind.IMPORTED]: FontIcons.Folder,
 }
 
 export const MAIL_ROW_V_MARGIN = 3
@@ -412,7 +415,7 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 
 		if (mail.state === MailState.DRAFT) {
-			iconText += FontIcons.Edit
+			iconText += isMailScheduled(mail) ? FontIcons.ScheduleMail : FontIcons.Edit
 			description += lang.get("draft_label") + " "
 		}
 
@@ -449,6 +452,6 @@ export class MailRow implements VirtualRow<Mail> {
 	}
 
 	private folderIcon(type: MailSetKind): string {
-		return iconMap[type]
+		return iconMap[type] ?? FontIcons.Folder
 	}
 }

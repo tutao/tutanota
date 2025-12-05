@@ -371,6 +371,7 @@ function handleSwitchAccountPreconditionFailed(e: PreconditionFailedError): Prom
 
 			case UnsubscribeFailureReason.LABEL_LIMIT_EXCEEDED:
 				return Dialog.message("labelLimitExceeded_msg")
+
 			default:
 				throw e
 		}

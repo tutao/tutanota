@@ -1,5 +1,4 @@
 import { Coordinate2D, SwipeHandler } from "./SwipeHandler.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import { animations, DefaultAnimationTime, opacity, transform, TransformEnum } from "../animation/Animations.js"
 import { ease } from "../animation/Easing.js"
 import { ListRow, ListSwipeDecision, ViewHolder } from "./List.js"
@@ -19,6 +18,7 @@ export class ListSwipeHandler<ElementType, VH extends ViewHolder<ElementType>> e
 			getRowForPosition: (clientCoordinates: Coordinate2D) => ListRow<ElementType, VH> | null
 			onSwipeLeft: (entity: ElementType) => Promise<ListSwipeDecision>
 			onSwipeRight: (entity: ElementType) => Promise<ListSwipeDecision>
+			isSwipeDisabledForEntity: (entity: ElementType) => boolean
 		},
 	) {
 		super(touchArea)
@@ -28,6 +28,12 @@ export class ListSwipeHandler<ElementType, VH extends ViewHolder<ElementType>> e
 		super.onHorizontalDrag(xDelta, yDelta)
 		// get it *before* raf so that we don't pick an element after reset() again
 		const ve = this.getVirtualElement()
+		if (ve?.entity != null && this.config.isSwipeDisabledForEntity(ve.entity)) {
+			// reset xoffset to ensure that end animation isn't shown
+			this.xoffset = 0
+			return
+		}
+
 		// Animate the row with following touch
 		window.requestAnimationFrame(() => {
 			// Do not animate the swipe gesture more than necessary
@@ -43,7 +49,12 @@ export class ListSwipeHandler<ElementType, VH extends ViewHolder<ElementType>> e
 	}
 
 	onHorizontalGestureCompleted(delta: { x: number; y: number }): Promise<unknown> {
-		if (this.virtualElement && this.virtualElement.entity && Math.abs(delta.x) > ACTION_DISTANCE) {
+		if (
+			this.virtualElement &&
+			this.virtualElement.entity &&
+			!this.config.isSwipeDisabledForEntity(this.virtualElement.entity) &&
+			Math.abs(delta.x) > ACTION_DISTANCE
+		) {
 			// the gesture is completed
 			return this.finish(this.virtualElement, this.virtualElement.entity, delta)
 		} else {

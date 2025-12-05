@@ -824,11 +824,6 @@ export function getRangeOfDays(startDay: Date, numDays: number): Array<Date> {
 	return days
 }
 
-export function getTimeFormatForUser(userSettingsGroupRoot: UserSettingsGroupRoot): TimeFormat {
-	// it's saved as a string, but is a const enum.
-	return userSettingsGroupRoot.timeFormat as TimeFormat
-}
-
 export function getWeekNumber(startOfTheWeek: Date): number {
 	// Currently it doesn't support US-based week numbering system with partial weeks.
 	return DateTime.fromJSDate(startOfTheWeek).weekNumber

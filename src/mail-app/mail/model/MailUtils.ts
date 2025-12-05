@@ -3,7 +3,14 @@ import { Header, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } 
 import { assertNotNull, first } from "@tutao/tutanota-utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-import { MailSetKind, ReplyType, SYSTEM_FOLDERS, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
+import {
+	MailSetKind,
+	MOVE_SYSTEM_FOLDERS,
+	ReplyType,
+	SimpleMoveMailTarget,
+	SYSTEM_FOLDERS,
+	SystemFolderType,
+} from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId, sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
 
 export type FolderInfo = { level: number; folder: MailFolder }
@@ -39,22 +46,25 @@ export function getFolderName(folder: MailFolder): string {
 export function getSystemFolderName(folderType: MailSetKind): string {
 	switch (folderType) {
 		case MailSetKind.INBOX:
-			return lang.get("received_action")
+			return lang.getTranslationText("received_action")
 
 		case MailSetKind.SENT:
-			return lang.get("sent_action")
+			return lang.getTranslationText("sent_action")
 
 		case MailSetKind.TRASH:
-			return lang.get("trash_action")
+			return lang.getTranslationText("trash_action")
 
 		case MailSetKind.ARCHIVE:
-			return lang.get("archive_label")
+			return lang.getTranslationText("archive_label")
 
 		case MailSetKind.SPAM:
-			return lang.get("spam_action")
+			return lang.getTranslationText("spam_action")
 
 		case MailSetKind.DRAFT:
-			return lang.get("draft_action")
+			return lang.getTranslationText("draft_action")
+
+		case MailSetKind.SEND_LATER:
+			return lang.getTranslationText("scheduled_label")
 
 		default:
 			// do not throw an error - new system folders may cause problems
@@ -99,7 +109,7 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 
 		return {
 			moveService: MoveService.SimpleMove,
-			folders: areMailsInDifferentFolderTypes ? SYSTEM_FOLDERS : SYSTEM_FOLDERS.filter((f) => f !== folderOfFirstMail.folderType),
+			folders: areMailsInDifferentFolderTypes ? MOVE_SYSTEM_FOLDERS : MOVE_SYSTEM_FOLDERS.filter((f) => f !== folderOfFirstMail.folderType),
 		}
 	}
 
@@ -110,9 +120,13 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 		})
 
 	if (areMailsInDifferentFolders) {
-		return regularMoveTargets(folders.getIndentedList())
+		return regularMoveTargets(folders.getIndentedList().filter((f: IndentedFolder) => f.folder.folderType !== MailSetKind.SEND_LATER))
 	} else {
-		return regularMoveTargets(folders.getIndentedList().filter((f: IndentedFolder) => !isSameId(f.folder._id, folderOfFirstMail._id)))
+		return regularMoveTargets(
+			folders
+				.getIndentedList()
+				.filter((f: IndentedFolder) => f.folder.folderType !== MailSetKind.SEND_LATER && !isSameId(f.folder._id, folderOfFirstMail._id)),
+		)
 	}
 }
 
@@ -128,7 +142,7 @@ export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: M
 	}
 
 	return folders.getIndentedList().filter((f: IndentedFolder) => {
-		return !isSameId(f.folder._id, currentFolder._id)
+		return f.folder.folderType !== MailSetKind.SEND_LATER && !isSameId(f.folder._id, currentFolder._id)
 	})
 }
 
