@@ -1137,6 +1137,7 @@ export default {
 		"newContact_action": "Neuer Kontakt",
 		"newEvent_action": "Neuer Termin",
 		"newMail_action": "Neue E-Mail",
+		"newDriveItem_action": "Neu",
 		"newMails_msg": "Neue Nachricht in Tuta eingetroffen.",
 		"newPaidPlanRequired_msg": "Um diese Funktion zu benutzen, wechseln Sie bitte auf eines der folgenden Abonnements.",
 		"newPassword_label": "Neues Passwort",
