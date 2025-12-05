@@ -43,7 +43,9 @@ o.spec("CalendarEventRepositoryTest", function () {
 		let calendarModelMock: CalendarModel
 		let entityClientMock: EntityClient
 		let calendarInfosStreamMock: Stream<ReadonlyMap<Id, CalendarInfo>>
+
 		let calendarEventsRepository: CalendarEventsRepository
+
 		let initialCalendarInfos: Map<string, CalendarInfo>
 		let initialCalendarMembership: GroupMembership
 
@@ -70,7 +72,9 @@ o.spec("CalendarEventRepositoryTest", function () {
 			when(calendarInfosStreamMock.map(matchers.anything())).thenDo(() => {})
 
 			const calendarInfo: CalendarInfo = object()
-			calendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
+			calendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, {
+				shortEvents: shotEventsListId,
+			})
 			initialCalendarInfos = new Map([[initialCalendarGroupId, calendarInfo]])
 			when(calendarModelMock.getCalendarInfos()).thenResolve(initialCalendarInfos)
 
