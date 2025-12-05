@@ -1843,6 +1843,10 @@ pub struct CalendarEvent {
 	pub recurrenceId: Option<DateTime>,
 	#[serde(rename = "1401")]
 	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "1812")]
+	pub sender: Option<String>,
+	#[serde(rename = "1813")]
+	pub pendingInvitation: Option<bool>,
 	#[serde(rename = "945")]
 	pub repeatRule: Option<CalendarRepeatRule>,
 	#[serde(rename = "946")]
@@ -2029,14 +2033,14 @@ impl Entity for UserSettingsGroupRoot {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct CalendarDeleteData {
+pub struct CalendarDeleteIn {
 	#[serde(rename = "983")]
 	pub _format: i64,
 	#[serde(rename = "984")]
 	pub groupRootId: GeneratedId,
 }
 
-impl Entity for CalendarDeleteData {
+impl Entity for CalendarDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,

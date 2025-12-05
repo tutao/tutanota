@@ -1723,6 +1723,7 @@ impl EventFacade {
 			attendees: vec![],
 			invitedConfidentially: None,
 			repeatRule: None,
+			pendingInvitation: None,
 			uid: Some(uid),
 			_id: Some(IdTupleCustom {
 				list_id: birthday_calendar_id.clone(),
@@ -1734,6 +1735,7 @@ impl EventFacade {
 			_ownerEncSessionKey: None,
 			_ownerKeyVersion: None,
 			_errors: HashMap::new(),
+			sender: None,
 		}
 	}
 }
