@@ -1,6 +1,6 @@
 // This is an automatically generated file, please do not edit by hand!
 
-// You should not use it directly, please use `resolveTypReference()` instead.	
+// You should not use it directly, please use `resolveTypReference()` instead.
 // We do not want tsc to spend time either checking or inferring type of these huge expressions. Even when it does try to infer them they are still wrong.
 // The actual type is an object with keys as entities names and values as TypeModel.
 
@@ -9,7 +9,7 @@ export const typeModels = {
 	"12": {
 		"name": "ReadCounterData",
 		"app": "monitor",
-		"version": 36,
+		"version": 37,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 12,
@@ -56,7 +56,7 @@ export const typeModels = {
 	"16": {
 		"name": "ReadCounterReturn",
 		"app": "monitor",
-		"version": 36,
+		"version": 37,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 16,
@@ -97,7 +97,7 @@ export const typeModels = {
 	"49": {
 		"name": "WriteCounterData",
 		"app": "monitor",
-		"version": 36,
+		"version": 37,
 		"since": 4,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 49,
@@ -152,7 +152,7 @@ export const typeModels = {
 	"221": {
 		"name": "ApprovalMail",
 		"app": "monitor",
-		"version": 36,
+		"version": 37,
 		"since": 14,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 221,
@@ -233,7 +233,7 @@ export const typeModels = {
 	"300": {
 		"name": "CounterValue",
 		"app": "monitor",
-		"version": 36,
+		"version": 37,
 		"since": 22,
 		"type": "AGGREGATED_TYPE",
 		"id": 300,
@@ -272,7 +272,7 @@ export const typeModels = {
 	"305": {
 		"name": "ErrorReportFile",
 		"app": "monitor",
-		"version": 36,
+		"version": 37,
 		"since": 23,
 		"type": "AGGREGATED_TYPE",
 		"id": 305,
@@ -311,7 +311,7 @@ export const typeModels = {
 	"316": {
 		"name": "ErrorReportData",
 		"app": "monitor",
-		"version": 36,
+		"version": 37,
 		"since": 23,
 		"type": "AGGREGATED_TYPE",
 		"id": 316,
@@ -406,7 +406,7 @@ export const typeModels = {
 	"335": {
 		"name": "ReportErrorIn",
 		"app": "monitor",
-		"version": 36,
+		"version": 37,
 		"since": 23,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 335,
