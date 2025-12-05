@@ -5,6 +5,7 @@ import { IconButton } from "../../../common/gui/base/IconButton"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { px, size } from "../../../common/gui/size"
 
 export interface DriveUploadBoxAttrs {
 	fileId: string
@@ -29,16 +30,13 @@ const percentageStyles = {
 
 class DriveUploadProgressBar implements Component<DriveUploadProgressBarAttrs> {
 	view({ attrs: { percentage } }: Vnode<DriveUploadProgressBarAttrs>): Children {
-		const WIDTH = 100
-		const HEIGHT = 12
-
-		const containerProgressBarStyles = { width: `100%`, background: theme.state_bg_hover, "border-radius": "4px" }
+		const containerProgressBarStyles = { width: `100%`, background: theme.state_bg_hover, "border-radius": px(size.radius_4) }
 
 		const innerProgressBarStyles = {
 			width: `${percentage}%`,
-			height: `${HEIGHT}px`,
+			height: `${size.core_16}px`,
 			backgroundColor: theme.primary_container,
-			"border-radius": "4px",
+			"border-radius": px(size.radius_4),
 		}
 
 		return m(
@@ -57,12 +55,12 @@ export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
 		let percentage = Math.round((uploadedSize / totalSize) * 100)
 		if (percentage > 100) percentage = 100
 
-		return m(".flex.col", { style: { margin: "16px" } }, [
-			m(".flex.row", { style: { "justify-content": "space-between", "align-items": "center" } }, [
+		return m(".flex.col", { style: { margin: px(size.spacing_12) } }, [
+			m(".flex.row.items-center.justify-between", [
 				m("", filename),
 
 				isFinished
-					? m(Icon, { icon: Icons.CheckCircleFilled, size: IconSize.Medium })
+					? m(Icon, { icon: Icons.CheckCircleFilled, size: IconSize.PX24 })
 					: m(IconButton, {
 							click: async () => {
 								await model.cancelUpload(fileId)
@@ -74,7 +72,7 @@ export class DriveUploadBox implements Component<DriveUploadBoxAttrs> {
 			]),
 			isFinished
 				? []
-				: m(".flex.row", { style: { "justify-content": "space-between", gap: "32px", "align-items": "baseline" } }, [
+				: m(".flex.row.justify-between", { style: { gap: px(size.spacing_32), "align-items": "baseline" } }, [
 						m(DriveUploadProgressBar, { percentage }),
 						m("", { style: percentageStyles }, `${percentage} %`),
 					]),

@@ -90,7 +90,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				{ style: {} },
 				m(Icon, {
 					icon: thisFileIsAFolder ? Icons.Folder : iconPerMimeType(item.file.mimeType),
-					size: IconSize.Medium,
+					size: IconSize.PX24,
 					style: { fill: theme.on_surface, display: "block", margin: "0 auto" },
 				}),
 			),

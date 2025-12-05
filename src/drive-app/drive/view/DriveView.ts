@@ -6,12 +6,10 @@ import { DriveFolderType, DriveViewModel, FolderItem } from "./DriveViewModel"
 import { BaseTopLevelView } from "../../../common/gui/BaseTopLevelView"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { FileReference } from "../../../common/api/common/utils/FileUtils"
-import { locator } from "../../../common/api/main/CommonLocator"
 import { ViewSlider } from "../../../common/gui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
-import { size } from "../../../common/gui/size"
-import { DriveFacade } from "../../../common/api/worker/facades/DriveFacade"
+import { layout_size } from "../../../common/gui/size"
 import { DriveFolderView, DriveFolderViewAttrs } from "./DriveFolderView"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { BackgroundColumnLayout } from "../../../common/gui/BackgroundColumnLayout"
@@ -39,16 +37,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	private readonly driveNavColumn: ViewColumn
 	private readonly currentFolderColumn: ViewColumn
 
-	private readonly driveFacade: DriveFacade
-
 	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {
 		console.log("onNewUrl fired with args", args, "requestedPath:", requestedPath)
-
-		// FIXME
-		// if (args.virtualFolder === "favourites") {
-		// 	this.driveViewModel.loadVirtualFolder(DriveFolderType.Favourites).then(() => m.redraw())
-		// 	return
-		// } else
 
 		if (args.virtualFolder === "trash") {
 			this.driveViewModel.loadSpecialFolder(DriveFolderType.Trash).then(() => m.redraw())
@@ -80,7 +70,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		this.currentFolderColumn = this.createCurrentFolderColumn() // this where we see the files of the selected folder being listed
 		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn])
 
-		this.driveFacade = locator.driveFacade
 		this.driveViewModel = vnode.attrs.driveViewModel
 
 		this.driveViewModel.uploadProgressListener.addListener(async (info: ChunkedUploadInfo) => {
@@ -114,8 +103,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						m(FolderColumnView, {
 							drawer: drawerAttrs,
 							button: {
-								// FIXME
-								disabled: false, //this.driveViewModel.currentFolder.isVirtual,
 								label: "newDriveItem_action",
 								click: (ev, dom) => {
 									//
@@ -152,8 +139,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.first_col_min_width,
-				maxWidth: size.first_col_max_width,
+				minWidth: layout_size.first_col_min_width,
+				maxWidth: layout_size.first_col_max_width,
 				headerCenter: "folderTitle_label",
 			},
 		)
@@ -208,8 +195,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			},
 			ColumnType.Background,
 			{
-				minWidth: size.second_col_min_width,
-				maxWidth: size.second_col_max_width,
+				minWidth: layout_size.second_col_min_width,
+				maxWidth: layout_size.second_col_max_width,
 			},
 		)
 	}

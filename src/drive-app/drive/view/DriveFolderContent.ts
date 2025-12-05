@@ -3,7 +3,7 @@ import { FolderItem, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderContentEntry, FileActions } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
-import { px, size } from "../../../common/gui/size"
+import { component_size, px, size } from "../../../common/gui/size"
 import { ListState } from "../../../common/gui/base/List"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
@@ -57,12 +57,11 @@ function renderHeaderCell(
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	view({ attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState } }: Vnode<DriveFolderContentAttrs>): Children {
 		return m(
-			"div.flex.col.overflow-hidden",
+			"div.flex.col.overflow-hidden.column-gap-12",
 			{
 				style: {
 					display: "grid",
 					"grid-template-columns": "calc(25px + 24px) 50px auto 100px 100px 300px calc(44px + 12px)",
-					"column-gap": "10px",
 				},
 			},
 			[
@@ -97,9 +96,9 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 			"div.flex.row.folder-row",
 			{
 				style: {
-					padding: "8px 16px 8px 24px",
+					padding: `${size.core_8}px ${size.core_16}px ${size.core_8}px ${size.core_24}px`,
 					// ensure that the bar does not shrink too much if we have only text
-					minHeight: px(size.button_height + 2 * 8),
+					minHeight: px(component_size.button_height + 2 * size.core_8),
 					"grid-column-start": "1",
 					"grid-column-end": "8",
 					display: "grid",
@@ -128,7 +127,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							// m("div", { style: { ...columnStyle, width: columnSizes.type } }, "Type"),
 							// m("div", { style: { ...columnStyle, width: columnSizes.size } }, "Size"),
 							// m("div", { style: { ...columnStyle, width: columnSizes.date } }, "Date"),
-							m("div", { style: { ...columnStyle, width: px(size.button_height) } }, null),
+							m("div", { style: { ...columnStyle, width: px(component_size.button_height) } }, null),
 						],
 			],
 		)

@@ -5,6 +5,8 @@ import { Icons } from "../../../common/gui/base/icons/Icons"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { isNotNull } from "@tutao/tutanota-utils"
+import { theme } from "../../../common/gui/theme"
+import { size } from "../../../common/gui/size"
 
 export interface DriveFolderNavAttrs {
 	currentFolder: DriveFolder | null
@@ -16,23 +18,18 @@ export interface DriveFolderNavAttrs {
 	onNavigateToFolder: (folder: DriveFolder) => unknown
 }
 
-const driveFolderNavStyle = {
-	background: "white",
-	height: "52px",
-	display: "flex",
-	padding: "4px 12px 4px 24px",
-	"border-radius": "10px",
-	"align-items": "center",
-	"justify-content": "space-between",
-}
-
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 	view({ attrs: { onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, onNavigateToFolder } }: Vnode<DriveFolderNavAttrs>): Children {
 		return m(
-			"",
-			{ style: driveFolderNavStyle },
+			".flex.items-center.justify-between.border-radius-12",
+			{
+				style: {
+					background: theme.surface,
+					padding: `${size.base_4}px ${size.spacing_12}px ${size.base_4}px ${size.spacing_24}px`,
+				},
+			},
 			m(DriveBreadcrumb, { currentFolder, parents, onNavigateToFolder }),
-			m(".flex.items-center.column-gap-s", [
+			m(".flex.items-center.column-gap-4", [
 				onPaste
 					? m(IconButton, {
 							title: "paste_action",

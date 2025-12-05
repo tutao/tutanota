@@ -6,6 +6,7 @@ import { DriveFolder } from "../../../common/api/entities/drive/TypeRefs"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { ListState } from "../../../common/gui/base/List"
+import { px, size } from "../../../common/gui/size"
 
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
@@ -25,8 +26,8 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 		attrs: { driveViewModel, onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, selection, selectionEvents, listState },
 	}: Vnode<DriveFolderViewAttrs>): Children {
 		return m(
-			"div.col.flex.plr-button.fill-absolute",
-			{ style: { gap: "15px" } },
+			"div.col.flex.plr-8.fill-absolute",
+			{ style: { gap: px(size.spacing_12) } },
 			m(DriveFolderNav, {
 				onCopy,
 				onCut,
