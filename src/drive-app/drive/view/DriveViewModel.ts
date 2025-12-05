@@ -99,7 +99,7 @@ export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem):
 	return folderItem.type === "file" ? folderItem.file : folderItem.folder
 }
 
-type DriveClipboard = { item: FolderItem; action: ClipboardAction }
+type DriveClipboard = { items: readonly FolderItem[]; action: ClipboardAction }
 
 function emptyListModel<Item, Id>(): ListModel<Item, Id> {
 	return new ListModel({
@@ -243,20 +243,20 @@ export class DriveViewModel {
 		}
 	}
 
-	cut(item: FolderItem) {
-		this._clipboard = { item, action: ClipboardAction.Cut }
+	cut(items: readonly FolderItem[]) {
+		this._clipboard = { items, action: ClipboardAction.Cut }
 	}
 
-	copy(item: FolderItem) {
-		this._clipboard = { item, action: ClipboardAction.Copy }
+	copy(items: readonly FolderItem[]) {
+		this._clipboard = { items, action: ClipboardAction.Copy }
 	}
 
 	async paste() {
 		if (this.currentFolder == null) return
 
 		if (this._clipboard?.action === ClipboardAction.Cut) {
-			const clipboardItem = this._clipboard.item
-			await this.moveItem(clipboardItem, this.currentFolder.folder._id)
+			const clipboardItems = this._clipboard.items
+			await this.moveItems(clipboardItems, this.currentFolder.folder._id)
 			this._clipboard = null
 			this.updateUi()
 		} else if (this._clipboard?.action === ClipboardAction.Copy) {
@@ -264,9 +264,12 @@ export class DriveViewModel {
 		}
 	}
 
-	private async moveItem(folderItem: FileFolderItem | FolderFolderItem, destination: IdTuple) {
-		const itemToMove = folderItemEntity(folderItem)
-		await this.driveFacade.move(itemToMove, destination)
+	private async moveItems(folderItems: readonly FolderItem[], destination: IdTuple) {
+		// FIXME
+		for (const folderItem of folderItems) {
+			const itemToMove = folderItemEntity(folderItem)
+			await this.driveFacade.move(itemToMove, destination)
+		}
 	}
 
 	async moveToTrash(item: FolderItem) {

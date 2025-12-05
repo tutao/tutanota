@@ -10,6 +10,8 @@ import { ListState } from "../../../common/gui/base/List"
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
 	selection: SelectionState
+	onCopy: (() => unknown) | null
+	onCut: (() => unknown) | null
 	onPaste: (() => unknown) | null
 	driveViewModel: DriveViewModel
 	currentFolder: DriveFolder | null
@@ -20,12 +22,14 @@ export interface DriveFolderViewAttrs {
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	view({
-		attrs: { driveViewModel, onPaste, onUploadClick, currentFolder, parents, selection, selectionEvents, listState },
+		attrs: { driveViewModel, onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, selection, selectionEvents, listState },
 	}: Vnode<DriveFolderViewAttrs>): Children {
 		return m(
 			"div.col.flex.plr-button.fill-absolute",
 			{ style: { gap: "15px" } },
 			m(DriveFolderNav, {
+				onCopy,
+				onCut,
 				onPaste,
 				onUploadClick,
 				currentFolder,
@@ -45,10 +49,10 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						}
 					},
 					onCopy: (item) => {
-						driveViewModel.copy(item)
+						driveViewModel.copy([item])
 					},
 					onCut: (item) => {
-						driveViewModel.cut(item)
+						driveViewModel.cut([item])
 					},
 					onDelete: (item) => {
 						driveViewModel.moveToTrash(item)
