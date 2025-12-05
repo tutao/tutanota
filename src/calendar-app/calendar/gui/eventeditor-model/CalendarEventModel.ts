@@ -54,81 +54,81 @@
  *     * etc.
  */
 
-import { AccountType } from "../../../../common/api/common/TutanotaConstants.js"
+import {AccountType} from "../../../../common/api/common/TutanotaConstants.js"
 import {
-	CalendarEvent,
-	CalendarEventAttendee,
-	createCalendarEvent,
-	createEncryptedMailAddress,
-	EncryptedMailAddress,
-	Mail,
-	MailboxProperties,
+    CalendarEvent,
+    CalendarEventAttendee,
+    createCalendarEvent,
+    createEncryptedMailAddress,
+    EncryptedMailAddress,
+    Mail,
+    MailboxProperties,
 } from "../../../../common/api/entities/tutanota/TypeRefs.js"
-import { User } from "../../../../common/api/entities/sys/TypeRefs.js"
-import type { MailboxDetail } from "../../../../common/mailFunctionality/MailboxModel.js"
+import {User} from "../../../../common/api/entities/sys/TypeRefs.js"
+import type {MailboxDetail} from "../../../../common/mailFunctionality/MailboxModel.js"
 import {
-	AlarmInterval,
-	areRepeatRulesEqual,
-	DefaultDateProvider,
-	findFirstPrivateCalendar,
-	getTimeZone,
-	incrementSequence,
-	parseAlarmInterval,
+    AlarmInterval,
+    areRepeatRulesEqual,
+    DefaultDateProvider,
+    findFirstPrivateCalendar,
+    getTimeZone,
+    incrementSequence,
+    parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, identity, lazy, Require } from "@tutao/tutanota-utils"
-import { cleanMailAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
-import { NotFoundError, PayloadTooLargeError } from "../../../../common/api/common/error/RestError.js"
-import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
-import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
-import { UserError } from "../../../../common/api/main/UserError.js"
-import { EntityClient } from "../../../../common/api/common/EntityClient.js"
-import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
-import { LoginController } from "../../../../common/api/main/LoginController.js"
+import {arrayEqualsWithPredicate, assertNonNull, assertNotNull, identity, lazy, Require} from "@tutao/tutanota-utils"
+import {cleanMailAddress} from "../../../../common/api/common/utils/CommonCalendarUtils.js"
+import {assertEventValidity, CalendarInfo, CalendarModel} from "../../model/CalendarModel.js"
+import {NotFoundError, PayloadTooLargeError} from "../../../../common/api/common/error/RestError.js"
+import {CalendarNotificationSender} from "../../view/CalendarNotificationSender.js"
+import {SendMailModel} from "../../../../common/mailFunctionality/SendMailModel.js"
+import {UserError} from "../../../../common/api/main/UserError.js"
+import {EntityClient} from "../../../../common/api/common/EntityClient.js"
+import {RecipientsModel} from "../../../../common/api/main/RecipientsModel.js"
+import {LoginController} from "../../../../common/api/main/LoginController.js"
 import m from "mithril"
-import { PartialRecipient } from "../../../../common/api/common/recipients/Recipient.js"
-import { getPasswordStrengthForUser } from "../../../../common/misc/passwords/PasswordUtils.js"
-import { CalendarEventWhenModel } from "./CalendarEventWhenModel.js"
-import { CalendarEventWhoModel } from "./CalendarEventWhoModel.js"
-import { CalendarEventAlarmModel } from "./CalendarEventAlarmModel.js"
-import { SanitizedTextViewModel } from "../../../../common/misc/SanitizedTextViewModel.js"
-import { getStrippedClone, Stripped, StrippedEntity } from "../../../../common/api/common/utils/EntityUtils.js"
-import { UserController } from "../../../../common/api/main/UserController.js"
-import { CalendarNotificationModel, CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
-import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
-import { ProgrammingError } from "../../../../common/api/common/error/ProgrammingError.js"
-import { SimpleTextViewModel } from "../../../../common/misc/SimpleTextViewModel.js"
-import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { getEventType } from "../CalendarGuiUtils.js"
-import { getDefaultSender } from "../../../../common/mailFunctionality/SharedMailUtils.js"
+import {PartialRecipient} from "../../../../common/api/common/recipients/Recipient.js"
+import {getPasswordStrengthForUser} from "../../../../common/misc/passwords/PasswordUtils.js"
+import {CalendarEventWhenModel} from "./CalendarEventWhenModel.js"
+import {CalendarEventWhoModel} from "./CalendarEventWhoModel.js"
+import {CalendarEventAlarmModel} from "./CalendarEventAlarmModel.js"
+import {SanitizedTextViewModel} from "../../../../common/misc/SanitizedTextViewModel.js"
+import {getStrippedClone, Stripped, StrippedEntity} from "../../../../common/api/common/utils/EntityUtils.js"
+import {UserController} from "../../../../common/api/main/UserController.js"
+import {CalendarNotificationModel, CalendarNotificationSendModels} from "./CalendarNotificationModel.js"
+import {CalendarEventApplyStrategies, CalendarEventModelStrategy} from "./CalendarEventModelStrategy.js"
+import {ProgrammingError} from "../../../../common/api/common/error/ProgrammingError.js"
+import {SimpleTextViewModel} from "../../../../common/misc/SimpleTextViewModel.js"
+import {AlarmInfoTemplate} from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
+import {getEventType} from "../CalendarGuiUtils.js"
+import {getDefaultSender} from "../../../../common/mailFunctionality/SharedMailUtils.js"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
-	/** event in our own calendar and we are organizer */
-	OWN = "own",
-	/** event in shared calendar with read permission */
-	SHARED_RO = "shared_ro",
-	/** event in shared calendar with write permission, that has no attendees */
-	SHARED_RW = "shared_rw",
-	/** shared with write permissions, but we can't edit anything but alarms because it has attendees. might be something the calendar owner was invited to. */
-	LOCKED = "locked",
-	/** invite from calendar invitation which is not stored in calendar yet, or event stored in **own calendar** and we are not organizer. */
-	INVITE = "invite",
-	/** we are an external user and see an event in our mailbox */
-	EXTERNAL = "external",
+    /** event in our own calendar and we are organizer */
+    OWN = "own",
+    /** event in shared calendar with read permission */
+    SHARED_RO = "shared_ro",
+    /** event in shared calendar with write permission, that has no attendees */
+    SHARED_RW = "shared_rw",
+    /** shared with write permissions, but we can't edit anything but alarms because it has attendees. might be something the calendar owner was invited to. */
+    LOCKED = "locked",
+    /** invite from calendar invitation which is not stored in calendar yet, or event stored in **own calendar** and we are not organizer. */
+    INVITE = "invite",
+    /** we are an external user and see an event in our mailbox */
+    EXTERNAL = "external",
 }
 
 export const enum ReadonlyReason {
-	/** it's a shared event, so at least the attendees are read-only */
-	SHARED,
-	/** this edit operation applies to only part of a series, so attendees and calendar are read-only */
-	SINGLE_INSTANCE,
-	/** the organizer is not the current user */
-	NOT_ORGANIZER,
-	/** the event cannot be edited for an unspecified reason. This is the default value */
-	UNKNOWN,
-	/** we can edit anything here */
-	NONE,
+    /** it's a shared event, so at least the attendees are read-only */
+    SHARED,
+    /** this edit operation applies to only part of a series, so attendees and calendar are read-only */
+    SINGLE_INSTANCE,
+    /** the organizer is not the current user */
+    NOT_ORGANIZER,
+    /** the event cannot be edited for an unspecified reason. This is the default value */
+    UNKNOWN,
+    /** we can edit anything here */
+    NONE,
 }
 
 /**
@@ -149,289 +149,289 @@ export type CalendarEventIdentity = Pick<Stripped<CalendarEvent>, EventIdentityF
  * in question (ie removing a repeat rule from a single event in a series is nonsensical)
  */
 export const enum CalendarOperation {
-	/** create a new event */
-	Create,
-	/** only apply an edit to only one particular instance of the series */
-	EditThis,
-	/** Delete a single instance from a series, altered or not */
-	DeleteThis,
-	/** apply the edit operation to all instances of the series*/
-	EditAll,
-	/** delete the whole series */
-	DeleteAll,
-	/** delete all future instances of the series starting from repeat rule endDate condition*/
-	StopSeriesAtDate,
+    /** create a new event */
+    Create,
+    /** only apply an edit to only one particular instance of the series */
+    EditThis,
+    /** Delete a single instance from a series, altered or not */
+    DeleteThis,
+    /** apply the edit operation to all instances of the series*/
+    EditAll,
+    /** delete the whole series */
+    DeleteAll,
+    /** delete all future instances of the series starting from repeat rule endDate condition*/
+    StopSeriesAtDate,
 }
 
 /**
  * get the models enabling consistent calendar event updates.
  */
 export async function makeCalendarEventModel(
-	operation: CalendarOperation,
-	initialValues: Partial<CalendarEvent>,
-	recipientsModel: RecipientsModel,
-	calendarModel: CalendarModel,
-	logins: LoginController,
-	mailboxDetail: MailboxDetail,
-	mailboxProperties: MailboxProperties,
-	sendMailModelFactory: lazy<SendMailModel>,
-	notificationSender: CalendarNotificationSender,
-	entityClient: EntityClient,
-	responseTo: Mail | null,
-	zone: string = getTimeZone(),
-	showProgress: ShowProgressCallback = identity,
-	uiUpdateCallback: () => void = m.redraw,
+    operation: CalendarOperation,
+    initialValues: Partial<CalendarEvent>,
+    recipientsModel: RecipientsModel,
+    calendarModel: CalendarModel,
+    logins: LoginController,
+    mailboxDetail: MailboxDetail,
+    mailboxProperties: MailboxProperties,
+    sendMailModelFactory: lazy<SendMailModel>,
+    notificationSender: CalendarNotificationSender,
+    entityClient: EntityClient,
+    responseTo: Mail | null,
+    zone: string = getTimeZone(),
+    showProgress: ShowProgressCallback = identity,
+    uiUpdateCallback: () => void = m.redraw,
 ): Promise<CalendarEventModel | null> {
-	const { getHtmlSanitizer } = await import("../../../../common/misc/HtmlSanitizer.js")
-	const ownMailAddresses = getOwnMailAddressesWithDefaultSenderInFront(logins, mailboxDetail, mailboxProperties)
-	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
-		assertNonNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
-		const index = await calendarModel.getEventsByUid(initialValues.uid)
-		if (index != null && index.progenitor != null) {
-			initialValues = index.progenitor
-		}
-	}
+    const {getHtmlSanitizer} = await import("../../../../common/misc/HtmlSanitizer.js")
+    const ownMailAddresses = getOwnMailAddressesWithDefaultSenderInFront(logins, mailboxDetail, mailboxProperties)
+    if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
+        assertNonNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
+        const index = await calendarModel.getEventsByUid(initialValues.uid)
+        if (index != null && index.progenitor != null) {
+            initialValues = index.progenitor
+        }
+    }
 
-	const user = logins.getUserController().user
-	const [alarms, calendars] = await Promise.all([
-		resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, user),
-		calendarModel.getCalendarInfos(),
-	])
-	const selectedCalendar = getPreselectedCalendar(calendars, initialValues)
-	const getPasswordStrength = (password: string, recipientInfo: PartialRecipient) =>
-		getPasswordStrengthForUser(password, recipientInfo, mailboxDetail, logins)
+    const user = logins.getUserController().user
+    const [alarms, calendars] = await Promise.all([
+        resolveAlarmsForEvent(initialValues.alarmInfos ?? [], calendarModel, user),
+        calendarModel.getCalendarInfos(),
+    ])
+    const selectedCalendar = getPreselectedCalendar(calendars, initialValues)
+    const getPasswordStrength = (password: string, recipientInfo: PartialRecipient) =>
+        getPasswordStrengthForUser(password, recipientInfo, mailboxDetail, logins)
 
-	const eventType = getEventType(
-		initialValues,
-		calendars,
-		ownMailAddresses.map(({ address }) => address),
-		logins.getUserController(),
-	)
+    const eventType = getEventType(
+        initialValues,
+        calendars,
+        ownMailAddresses.map(({address}) => address),
+        logins.getUserController(),
+    )
 
-	const makeEditModels = (initializationEvent: CalendarEvent) => ({
-		whenModel: new CalendarEventWhenModel(initializationEvent, zone, uiUpdateCallback),
-		whoModel: new CalendarEventWhoModel(
-			initializationEvent,
-			eventType,
-			operation,
-			calendars,
-			selectedCalendar,
-			logins.getUserController(),
-			operation === CalendarOperation.Create,
-			ownMailAddresses,
-			recipientsModel,
-			responseTo,
-			getPasswordStrength,
-			sendMailModelFactory,
-			uiUpdateCallback,
-		),
-		alarmModel: new CalendarEventAlarmModel(eventType, alarms, new DefaultDateProvider(), uiUpdateCallback),
-		location: new SimpleTextViewModel(initializationEvent.location, uiUpdateCallback),
-		summary: new SimpleTextViewModel(initializationEvent.summary, uiUpdateCallback),
-		description: new SanitizedTextViewModel(initializationEvent.description, getHtmlSanitizer(), uiUpdateCallback),
-		comment: new SimpleTextViewModel("", uiUpdateCallback),
-	})
+    const makeEditModels = (initializationEvent: CalendarEvent) => ({
+        whenModel: new CalendarEventWhenModel(initializationEvent, zone, uiUpdateCallback),
+        whoModel: new CalendarEventWhoModel(
+            initializationEvent,
+            eventType,
+            operation,
+            calendars,
+            selectedCalendar,
+            logins.getUserController(),
+            operation === CalendarOperation.Create,
+            ownMailAddresses,
+            recipientsModel,
+            responseTo,
+            getPasswordStrength,
+            sendMailModelFactory,
+            uiUpdateCallback,
+        ),
+        alarmModel: new CalendarEventAlarmModel(eventType, alarms, new DefaultDateProvider(), uiUpdateCallback),
+        location: new SimpleTextViewModel(initializationEvent.location, uiUpdateCallback),
+        summary: new SimpleTextViewModel(initializationEvent.summary, uiUpdateCallback),
+        description: new SanitizedTextViewModel(initializationEvent.description, getHtmlSanitizer(), uiUpdateCallback),
+        comment: new SimpleTextViewModel("", uiUpdateCallback),
+    })
 
-	const recurrenceIds = async (uid?: string) =>
-		uid == null ? [] : ((await calendarModel.getEventsByUid(uid))?.alteredInstances.map((i) => i.recurrenceId) ?? [])
-	const notificationModel = new CalendarNotificationModel(notificationSender, logins)
-	const applyStrategies = new CalendarEventApplyStrategies(calendarModel, logins, notificationModel, recurrenceIds, showProgress, zone)
-	const initialOrDefaultValues = Object.assign(makeEmptyCalendarEvent(), initialValues)
-	const cleanInitialValues = cleanupInitialValuesForEditing(initialOrDefaultValues)
-	const progenitor = () => calendarModel.resolveCalendarEventProgenitor(cleanInitialValues)
-	const strategy = await selectStrategy(
-		makeEditModels,
-		applyStrategies,
-		operation,
-		progenitor,
-		createCalendarEvent(initialOrDefaultValues),
-		cleanInitialValues,
-	)
-	return strategy && new CalendarEventModel(strategy, eventType, operation, logins.getUserController(), notificationSender, entityClient, calendars)
+    const recurrenceIds = async (uid?: string) =>
+        uid == null ? [] : ((await calendarModel.getEventsByUid(uid))?.alteredInstances.map((i) => i.recurrenceId) ?? [])
+    const notificationModel = new CalendarNotificationModel(notificationSender, logins)
+    const applyStrategies = new CalendarEventApplyStrategies(calendarModel, logins, notificationModel, recurrenceIds, showProgress, zone)
+    const initialOrDefaultValues = Object.assign(makeEmptyCalendarEvent(), initialValues)
+    const cleanInitialValues = cleanupInitialValuesForEditing(initialOrDefaultValues)
+    const progenitor = () => calendarModel.resolveCalendarEventProgenitor(cleanInitialValues)
+    const strategy = await selectStrategy(
+        makeEditModels,
+        applyStrategies,
+        operation,
+        progenitor,
+        createCalendarEvent(initialOrDefaultValues),
+        cleanInitialValues,
+    )
+    return strategy && new CalendarEventModel(strategy, eventType, operation, logins.getUserController(), notificationSender, entityClient, calendars)
 }
 
 async function selectStrategy(
-	makeEditModels: (i: StrippedEntity<CalendarEvent>) => CalendarEventEditModels,
-	applyStrategies: CalendarEventApplyStrategies,
-	operation: CalendarOperation,
-	resolveProgenitor: () => Promise<CalendarEvent | null>,
-	existingInstanceIdentity: CalendarEvent,
-	cleanInitialValues: StrippedEntity<CalendarEvent>,
+    makeEditModels: (i: StrippedEntity<CalendarEvent>) => CalendarEventEditModels,
+    applyStrategies: CalendarEventApplyStrategies,
+    operation: CalendarOperation,
+    resolveProgenitor: () => Promise<CalendarEvent | null>,
+    existingInstanceIdentity: CalendarEvent,
+    cleanInitialValues: StrippedEntity<CalendarEvent>,
 ): Promise<CalendarEventModelStrategy | null> {
-	let editModels: CalendarEventEditModels
-	let apply: () => Promise<void>
-	let mayRequireSendingUpdates: () => boolean
-	if (operation === CalendarOperation.Create) {
-		editModels = makeEditModels(cleanInitialValues)
-		apply = () => applyStrategies.saveNewEvent(editModels)
-		mayRequireSendingUpdates = () => true
-	} else if (operation === CalendarOperation.EditThis) {
-		cleanInitialValues.repeatRule = null
-		if (cleanInitialValues.recurrenceId == null) {
-			const progenitor = await resolveProgenitor()
-			if (progenitor == null || progenitor.repeatRule == null) {
-				console.warn("no repeating progenitor during EditThis operation?")
-				return null
-			}
-			apply = () =>
-				applyStrategies.saveNewAlteredInstance({
-					editModels: editModels,
-					editModelsForProgenitor: makeEditModels(progenitor),
-					existingInstance: existingInstanceIdentity,
-					progenitor: progenitor,
-				})
-			mayRequireSendingUpdates = () => true
-			editModels = makeEditModels(cleanInitialValues)
-		} else {
-			editModels = makeEditModels(cleanInitialValues)
-			apply = () => applyStrategies.saveExistingAlteredInstance(editModels, existingInstanceIdentity)
-			mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
-		}
-	} else if (operation === CalendarOperation.DeleteThis) {
-		if (cleanInitialValues.recurrenceId == null) {
-			const progenitor = await resolveProgenitor()
-			if (progenitor == null) {
-				return null
-			}
-			editModels = makeEditModels(progenitor)
-			apply = () => applyStrategies.excludeSingleInstance(editModels, existingInstanceIdentity, progenitor)
-			mayRequireSendingUpdates = () => true
-		} else {
-			editModels = makeEditModels(cleanInitialValues)
-			apply = () => applyStrategies.deleteAlteredInstance(editModels, existingInstanceIdentity)
-			mayRequireSendingUpdates = () => true
-		}
-	} else if (operation === CalendarOperation.EditAll) {
-		const progenitor = await resolveProgenitor()
-		if (progenitor == null) {
-			return null
-		}
-		editModels = makeEditModels(cleanInitialValues)
-		apply = () => applyStrategies.saveEntireExistingEvent(editModels, progenitor)
-		mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
-	} else if (operation === CalendarOperation.DeleteAll) {
-		editModels = makeEditModels(cleanInitialValues)
-		apply = () => applyStrategies.deleteEntireExistingEvent(editModels, existingInstanceIdentity)
-		mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
-	} else if (operation === CalendarOperation.StopSeriesAtDate) {
-		editModels = makeEditModels(existingInstanceIdentity)
-		apply = () => applyStrategies.stopSeriesAtDate(editModels, existingInstanceIdentity)
-		mayRequireSendingUpdates = () => true
-	} else {
-		throw new ProgrammingError(`unknown calendar operation: ${operation}`)
-	}
+    let editModels: CalendarEventEditModels
+    let apply: () => Promise<void>
+    let mayRequireSendingUpdates: () => boolean
+    if (operation === CalendarOperation.Create) {
+        editModels = makeEditModels(cleanInitialValues)
+        apply = () => applyStrategies.saveNewEvent(editModels)
+        mayRequireSendingUpdates = () => true
+    } else if (operation === CalendarOperation.EditThis) {
+        cleanInitialValues.repeatRule = null
+        if (cleanInitialValues.recurrenceId == null) {
+            const progenitor = await resolveProgenitor()
+            if (progenitor == null || progenitor.repeatRule == null) {
+                console.warn("no repeating progenitor during EditThis operation?")
+                return null
+            }
+            apply = () =>
+                applyStrategies.saveNewAlteredInstance({
+                    editModels: editModels,
+                    editModelsForProgenitor: makeEditModels(progenitor),
+                    existingInstance: existingInstanceIdentity,
+                    progenitor: progenitor,
+                })
+            mayRequireSendingUpdates = () => true
+            editModels = makeEditModels(cleanInitialValues)
+        } else {
+            editModels = makeEditModels(cleanInitialValues)
+            apply = () => applyStrategies.saveExistingAlteredInstance(editModels, existingInstanceIdentity)
+            mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
+        }
+    } else if (operation === CalendarOperation.DeleteThis) {
+        if (cleanInitialValues.recurrenceId == null) {
+            const progenitor = await resolveProgenitor()
+            if (progenitor == null) {
+                return null
+            }
+            editModels = makeEditModels(progenitor)
+            apply = () => applyStrategies.excludeSingleInstance(editModels, existingInstanceIdentity, progenitor)
+            mayRequireSendingUpdates = () => true
+        } else {
+            editModels = makeEditModels(cleanInitialValues)
+            apply = () => applyStrategies.deleteAlteredInstance(editModels, existingInstanceIdentity)
+            mayRequireSendingUpdates = () => true
+        }
+    } else if (operation === CalendarOperation.EditAll) {
+        const progenitor = await resolveProgenitor()
+        if (progenitor == null) {
+            return null
+        }
+        editModels = makeEditModels(cleanInitialValues)
+        apply = () => applyStrategies.saveEntireExistingEvent(editModels, progenitor)
+        mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
+    } else if (operation === CalendarOperation.DeleteAll) {
+        editModels = makeEditModels(cleanInitialValues)
+        apply = () => applyStrategies.deleteEntireExistingEvent(editModels, existingInstanceIdentity)
+        mayRequireSendingUpdates = () => assembleEditResultAndAssignFromExisting(existingInstanceIdentity, editModels, operation).hasUpdateWorthyChanges
+    } else if (operation === CalendarOperation.StopSeriesAtDate) {
+        editModels = makeEditModels(existingInstanceIdentity)
+        apply = () => applyStrategies.stopSeriesAtDate(editModels, existingInstanceIdentity)
+        mayRequireSendingUpdates = () => true
+    } else {
+        throw new ProgrammingError(`unknown calendar operation: ${operation}`)
+    }
 
-	return { apply, mayRequireSendingUpdates, editModels }
+    return {apply, mayRequireSendingUpdates, editModels}
 }
 
 /** return all the attendees in the list of attendees that are not the given organizer. */
 export function getNonOrganizerAttendees({
-	organizer,
-	attendees,
-}: Partial<Pick<Readonly<CalendarEvent>, "attendees" | "organizer">>): ReadonlyArray<CalendarEventAttendee> {
-	if (attendees == null) return []
-	if (organizer == null) return attendees
-	const organizerAddress = cleanMailAddress(organizer.address)
-	return attendees.filter((a) => cleanMailAddress(a.address.address) !== organizerAddress) ?? []
+                                             organizer,
+                                             attendees,
+                                         }: Partial<Pick<Readonly<CalendarEvent>, "attendees" | "organizer">>): ReadonlyArray<CalendarEventAttendee> {
+    if (attendees == null) return []
+    if (organizer == null) return attendees
+    const organizerAddress = cleanMailAddress(organizer.address)
+    return attendees.filter((a) => cleanMailAddress(a.address.address) !== organizerAddress) ?? []
 }
 
 /**
  * Determines the event type, the organizer of the event and possible organizers in accordance with the capabilities for events (see table).
  */
 export class CalendarEventModel {
-	processing: boolean = false
+    processing: boolean = false
 
-	get editModels(): CalendarEventEditModels {
-		return this.strategy.editModels
-	}
+    get editModels(): CalendarEventEditModels {
+        return this.strategy.editModels
+    }
 
-	constructor(
-		private readonly strategy: CalendarEventModelStrategy,
-		public readonly eventType: EventType,
-		public readonly operation: CalendarOperation,
-		// UserController already keeps track of user updates, it is better to not have our own reference to the user, we might miss
-		// important updates like premium upgrade
-		readonly userController: UserController,
-		private readonly distributor: CalendarNotificationSender,
-		private readonly entityClient: EntityClient,
-		private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
-	) {
-		this.calendars = calendars
-	}
+    constructor(
+        private readonly strategy: CalendarEventModelStrategy,
+        public readonly eventType: EventType,
+        public readonly operation: CalendarOperation,
+        // UserController already keeps track of user updates, it is better to not have our own reference to the user, we might miss
+        // important updates like premium upgrade
+        readonly userController: UserController,
+        private readonly distributor: CalendarNotificationSender,
+        private readonly entityClient: EntityClient,
+        private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
+    ) {
+        this.calendars = calendars
+    }
 
-	async apply(): Promise<EventSaveResult> {
-		if (this.userController.user.accountType === AccountType.EXTERNAL) {
-			console.log("did not apply event changes, we're an external user.")
-			return EventSaveResult.Failed
-		}
-		if (this.processing) {
-			return EventSaveResult.Failed
-		}
-		this.processing = true
+    async apply(): Promise<EventSaveResult> {
+        if (this.userController.user.accountType === AccountType.EXTERNAL) {
+            console.log("did not apply event changes, we're an external user.")
+            return EventSaveResult.Failed
+        }
+        if (this.processing) {
+            return EventSaveResult.Failed
+        }
+        this.processing = true
 
-		try {
-			await this.strategy.apply()
-			return EventSaveResult.Saved
-		} catch (e) {
-			if (e instanceof PayloadTooLargeError) {
-				throw new UserError("requestTooLarge_msg")
-			} else if (e instanceof NotFoundError) {
-				return EventSaveResult.NotFound
-			} else {
-				throw e
-			}
-		} finally {
-			this.processing = false
-		}
-	}
+        try {
+            await this.strategy.apply()
+            return EventSaveResult.Saved
+        } catch (e) {
+            if (e instanceof PayloadTooLargeError) {
+                throw new UserError("requestTooLarge_msg")
+            } else if (e instanceof NotFoundError) {
+                return EventSaveResult.NotFound
+            } else {
+                throw e
+            }
+        } finally {
+            this.processing = false
+        }
+    }
 
-	/** false if the event is only partially or not at all writable */
-	isFullyWritable(): boolean {
-		return this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW
-	}
+    /** false if the event is only partially or not at all writable */
+    isFullyWritable(): boolean {
+        return this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW
+    }
 
-	/** some edit operations apply to the whole event series.
-	 * they are not possible if the operation the model was created with only applies to a single instance.
-	 *
-	 * returns true if such operations can be attempted.
-	 * */
-	canEditSeries(): boolean {
-		return this.operation !== CalendarOperation.EditThis && (this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW)
-	}
+    /** some edit operations apply to the whole event series.
+     * they are not possible if the operation the model was created with only applies to a single instance.
+     *
+     * returns true if such operations can be attempted.
+     * */
+    canEditSeries(): boolean {
+        return this.operation !== CalendarOperation.EditThis && (this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW)
+    }
 
-	canChangeCalendar(): boolean {
-		return (
-			this.operation !== CalendarOperation.EditThis &&
-			(this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW || this.eventType === EventType.INVITE)
-		)
-	}
+    canChangeCalendar(): boolean {
+        return (
+            this.operation !== CalendarOperation.EditThis &&
+            (this.eventType === EventType.OWN || this.eventType === EventType.SHARED_RW || this.eventType === EventType.INVITE)
+        )
+    }
 
-	isAskingForUpdatesNeeded(): boolean {
-		return (
-			this.eventType === EventType.OWN &&
-			!this.editModels.whoModel.shouldSendUpdates &&
-			this.editModels.whoModel.initiallyHadOtherAttendees &&
-			this.strategy.mayRequireSendingUpdates()
-		)
-	}
+    isAskingForUpdatesNeeded(): boolean {
+        return (
+            this.eventType === EventType.OWN &&
+            !this.editModels.whoModel.shouldSendUpdates &&
+            this.editModels.whoModel.initiallyHadOtherAttendees &&
+            this.strategy.mayRequireSendingUpdates()
+        )
+    }
 
-	getReadonlyReason(): ReadonlyReason {
-		const isFullyWritable = this.isFullyWritable()
-		const canEditSeries = this.canEditSeries()
-		const canModifyGuests = this.editModels.whoModel.canModifyGuests
+    getReadonlyReason(): ReadonlyReason {
+        const isFullyWritable = this.isFullyWritable()
+        const canEditSeries = this.canEditSeries()
+        const canModifyGuests = this.editModels.whoModel.canModifyGuests
 
-		if (isFullyWritable && canEditSeries && canModifyGuests) return ReadonlyReason.NONE
-		if (!isFullyWritable && !canEditSeries && !canModifyGuests) return ReadonlyReason.NOT_ORGANIZER
-		// fully writable and !canModifyGuests happens on shared calendars
-		if (!canModifyGuests) {
-			if (canEditSeries) {
-				return ReadonlyReason.SHARED
-			} else {
-				return ReadonlyReason.SINGLE_INSTANCE
-			}
-		}
-		return ReadonlyReason.UNKNOWN
-	}
+        if (isFullyWritable && canEditSeries && canModifyGuests) return ReadonlyReason.NONE
+        if (!isFullyWritable && !canEditSeries && !canModifyGuests) return ReadonlyReason.NOT_ORGANIZER
+        // fully writable and !canModifyGuests happens on shared calendars
+        if (!canModifyGuests) {
+            if (canEditSeries) {
+                return ReadonlyReason.SHARED
+            } else {
+                return ReadonlyReason.SINGLE_INSTANCE
+            }
+        }
+        return ReadonlyReason.UNKNOWN
+    }
 }
 
 /**
@@ -442,25 +442,25 @@ export class CalendarEventModel {
  * exported for testing
  */
 export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEvent> | null): boolean {
-	if (previous == null) return true
-	// we do not check for the sequence number (as it should be changed with every update) or the default instance properties such as _id
-	return (
-		now.startTime.getTime() !== previous?.startTime?.getTime() ||
-		now.description !== previous?.description ||
-		now.summary !== previous.summary ||
-		now.location !== previous.location ||
-		now.endTime.getTime() !== previous?.endTime?.getTime() ||
-		now.invitedConfidentially !== previous.invitedConfidentially ||
-		// should this be a hard error, we never want to change the uid or compare events with different UIDs?
-		now.uid !== previous.uid ||
-		!areRepeatRulesEqual(now.repeatRule, previous?.repeatRule ?? null) ||
-		!arrayEqualsWithPredicate(
-			now.attendees,
-			previous?.attendees ?? [],
-			(a1, a2) => a1.status === a2.status && cleanMailAddress(a1.address.address) === cleanMailAddress(a2.address.address),
-		) || // we ignore the names
-		(now.organizer !== previous.organizer && now.organizer?.address !== previous.organizer?.address)
-	) // we ignore the names
+    if (previous == null) return true
+    // we do not check for the sequence number (as it should be changed with every update) or the default instance properties such as _id
+    return (
+        now.startTime.getTime() !== previous?.startTime?.getTime() ||
+        now.description !== previous?.description ||
+        now.summary !== previous.summary ||
+        now.location !== previous.location ||
+        now.endTime.getTime() !== previous?.endTime?.getTime() ||
+        now.invitedConfidentially !== previous.invitedConfidentially ||
+        // should this be a hard error, we never want to change the uid or compare events with different UIDs?
+        now.uid !== previous.uid ||
+        !areRepeatRulesEqual(now.repeatRule, previous?.repeatRule ?? null) ||
+        !arrayEqualsWithPredicate(
+            now.attendees,
+            previous?.attendees ?? [],
+            (a1, a2) => a1.status === a2.status && cleanMailAddress(a1.address.address) === cleanMailAddress(a2.address.address),
+        ) || // we ignore the names
+        (now.organizer !== previous.organizer && now.organizer?.address !== previous.organizer?.address)
+    ) // we ignore the names
 }
 
 /**
@@ -470,41 +470,43 @@ export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEv
  * @param models
  */
 export function assembleCalendarEventEditResult(models: CalendarEventEditModels): {
-	eventValues: CalendarEventValues
-	newAlarms: ReadonlyArray<AlarmInfoTemplate>
-	sendModels: CalendarNotificationSendModels
-	calendar: CalendarInfo
+    eventValues: CalendarEventValues
+    newAlarms: ReadonlyArray<AlarmInfoTemplate>
+    sendModels: CalendarNotificationSendModels
+    calendar: CalendarInfo
 } {
-	const whenResult = models.whenModel.result
-	const whoResult = models.whoModel.result
-	const alarmResult = models.alarmModel.result
-	const summary = models.summary.content
-	const description = models.description.content
-	const location = models.location.content
+    const whenResult = models.whenModel.result
+    const whoResult = models.whoModel.result
+    const alarmResult = models.alarmModel.result
+    const summary = models.summary.content
+    const description = models.description.content
+    const location = models.location.content
 
-	return {
-		eventValues: {
-			// when?
-			startTime: whenResult.startTime,
-			endTime: whenResult.endTime,
-			repeatRule: whenResult.repeatRule,
-			// what?
-			summary,
-			description,
-			// where?
-			location,
-			// who?
-			invitedConfidentially: whoResult.isConfidential,
-			organizer: whoResult.organizer,
-			attendees: whoResult.attendees,
-			// fields related to the event instance's identity are excluded.
-			// reminders. will be set up separately.
-			alarmInfos: [],
-		},
-		newAlarms: alarmResult.alarms,
-		sendModels: whoResult,
-		calendar: whoResult.calendar,
-	}
+    return {
+        eventValues: {
+            // when?
+            startTime: whenResult.startTime,
+            endTime: whenResult.endTime,
+            repeatRule: whenResult.repeatRule,
+            // what?
+            summary,
+            description,
+            // where?
+            location,
+            // who?
+            invitedConfidentially: whoResult.isConfidential,
+            organizer: whoResult.organizer,
+            attendees: whoResult.attendees,
+            // fields related to the event instance's identity are excluded.
+            // reminders. will be set up separately.
+            alarmInfos: [],
+            pendingInvitation: null,
+            sender: null
+        },
+        newAlarms: alarmResult.alarms,
+        sendModels: whoResult,
+        calendar: whoResult.calendar,
+    }
 }
 
 /** assemble the edit result from an existing event edit operation and apply some fields from the original event
@@ -513,27 +515,27 @@ export function assembleCalendarEventEditResult(models: CalendarEventEditModels)
  * @param operation determines the source of the recurrenceId - in the case of EditThis it's the start time of the original event, otherwise existingEvents' recurrenceId is used.
  */
 export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarEvent, editModels: CalendarEventEditModels, operation: CalendarOperation) {
-	const assembleResult = assembleCalendarEventEditResult(editModels)
-	const { uid: oldUid, sequence: oldSequence, recurrenceId } = existingEvent
-	const newEvent = assignEventIdentity(assembleResult.eventValues, {
-		uid: oldUid!,
-		sequence: incrementSequence(oldSequence),
-		recurrenceId: operation === CalendarOperation.EditThis && recurrenceId == null ? existingEvent.startTime : recurrenceId,
-	})
+    const assembleResult = assembleCalendarEventEditResult(editModels)
+    const {uid: oldUid, sequence: oldSequence, recurrenceId} = existingEvent
+    const newEvent = assignEventIdentity(assembleResult.eventValues, {
+        uid: oldUid!,
+        sequence: incrementSequence(oldSequence),
+        recurrenceId: operation === CalendarOperation.EditThis && recurrenceId == null ? existingEvent.startTime : recurrenceId,
+    })
 
-	assertEventValidity(newEvent)
+    assertEventValidity(newEvent)
 
-	newEvent._id = existingEvent._id
-	newEvent._ownerGroup = existingEvent._ownerGroup
-	newEvent._permissions = existingEvent._permissions
-	newEvent._original = existingEvent._original
-	return {
-		hasUpdateWorthyChanges: eventHasChanged(newEvent, existingEvent),
-		newEvent,
-		calendar: assembleResult.calendar,
-		newAlarms: assembleResult.newAlarms,
-		sendModels: assembleResult.sendModels,
-	}
+    newEvent._id = existingEvent._id
+    newEvent._ownerGroup = existingEvent._ownerGroup
+    newEvent._permissions = existingEvent._permissions
+    newEvent._original = existingEvent._original
+    return {
+        hasUpdateWorthyChanges: eventHasChanged(newEvent, existingEvent),
+        newEvent,
+        calendar: assembleResult.calendar,
+        newAlarms: assembleResult.newAlarms,
+        sendModels: assembleResult.sendModels,
+    }
 }
 
 /**
@@ -542,56 +544,58 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
  * @param identity sequence (default "0") and recurrenceId (default null) are optional, but the uid must be specified.
  */
 export function assignEventIdentity(values: CalendarEventValues, identity: Require<"uid", Partial<CalendarEventIdentity>>): CalendarEvent {
-	return createCalendarEvent({
-		sequence: "0",
-		recurrenceId: null,
-		hashedUid: null,
-		...values,
-		...identity,
-	})
+    return createCalendarEvent({
+        sequence: "0",
+        recurrenceId: null,
+        hashedUid: null,
+        ...values,
+        ...identity,
+    })
 }
 
 async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"], calendarModel: CalendarModel, user: User): Promise<Array<AlarmInterval>> {
-	const alarmInfos = await calendarModel.loadAlarms(alarms, user)
-	return alarmInfos.map(({ alarmInfo }) => parseAlarmInterval(alarmInfo.trigger))
+    const alarmInfos = await calendarModel.loadAlarms(alarms, user)
+    return alarmInfos.map(({alarmInfo}) => parseAlarmInterval(alarmInfo.trigger))
 }
 
 function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
-	return {
-		alarmInfos: [],
-		invitedConfidentially: null,
-		hashedUid: null,
-		uid: null,
-		recurrenceId: null,
-		endTime: new Date(),
-		summary: "",
-		startTime: new Date(),
-		location: "",
-		repeatRule: null,
-		description: "",
-		attendees: [],
-		organizer: null,
-		sequence: "",
-	}
+    return {
+        alarmInfos: [],
+        invitedConfidentially: null,
+        hashedUid: null,
+        uid: null,
+        recurrenceId: null,
+        endTime: new Date(),
+        summary: "",
+        startTime: new Date(),
+        location: "",
+        repeatRule: null,
+        description: "",
+        attendees: [],
+        organizer: null,
+        sequence: "",
+        pendingInvitation: null,
+        sender: null
+    }
 }
 
 function cleanupInitialValuesForEditing(initialValues: StrippedEntity<CalendarEvent>): CalendarEvent {
-	// the event we got passed may already have some technical fields assigned, so we remove them.
-	const stripped = getStrippedClone<CalendarEvent>(initialValues)
-	const result = createCalendarEvent(stripped)
+    // the event we got passed may already have some technical fields assigned, so we remove them.
+    const stripped = getStrippedClone<CalendarEvent>(initialValues)
+    const result = createCalendarEvent(stripped)
 
-	// remove the alarm infos from the result, they don't contain any useful information for the editing operation.
-	// selected alarms are returned in the edit result separate from the event.
-	result.alarmInfos = []
+    // remove the alarm infos from the result, they don't contain any useful information for the editing operation.
+    // selected alarms are returned in the edit result separate from the event.
+    result.alarmInfos = []
 
-	return result
+    return result
 }
 
 /** whether to close dialog */
 export const enum EventSaveResult {
-	Saved,
-	Failed,
-	NotFound,
+    Saved,
+    Failed,
+    NotFound,
 }
 
 /** generic function that asynchronously returns whatever type the caller passed in, but not necessarily the same promise. */
@@ -599,13 +603,13 @@ export type ShowProgressCallback = <T>(input: Promise<T>) => Promise<T>
 
 /** exported for testing */
 export type CalendarEventEditModels = {
-	whenModel: CalendarEventWhenModel
-	whoModel: CalendarEventWhoModel
-	alarmModel: CalendarEventAlarmModel
-	location: SimpleTextViewModel
-	summary: SimpleTextViewModel
-	description: SanitizedTextViewModel
-	comment: SimpleTextViewModel
+    whenModel: CalendarEventWhenModel
+    whoModel: CalendarEventWhoModel
+    alarmModel: CalendarEventAlarmModel
+    location: SimpleTextViewModel
+    summary: SimpleTextViewModel
+    description: SanitizedTextViewModel
+    comment: SimpleTextViewModel
 }
 
 /** the fields that together with the start time point to a specific version and instance of an event */
@@ -617,36 +621,36 @@ type EventIdentityFieldNames = "uid" | "sequence" | "recurrenceId"
  * @param event
  */
 function getPreselectedCalendar(calendars: ReadonlyMap<Id, CalendarInfo>, event?: Partial<CalendarEvent> | null): CalendarInfo {
-	const ownerGroup: string | null = event?._ownerGroup ?? null
-	if (ownerGroup == null || !calendars.has(ownerGroup)) {
-		const calendar = findFirstPrivateCalendar(calendars)
-		if (!calendar) throw new Error("Can't find a private calendar")
-		return calendar
-	} else {
-		return assertNotNull(calendars.get(ownerGroup), "invalid ownergroup for existing event?")
-	}
+    const ownerGroup: string | null = event?._ownerGroup ?? null
+    if (ownerGroup == null || !calendars.has(ownerGroup)) {
+        const calendar = findFirstPrivateCalendar(calendars)
+        if (!calendar) throw new Error("Can't find a private calendar")
+        return calendar
+    } else {
+        return assertNotNull(calendars.get(ownerGroup), "invalid ownergroup for existing event?")
+    }
 }
 
 /** get the list of mail addresses that are enabled for this mailbox with the configured sender names
  * will put the sender that matches the default sender address in the first spot. this enables us to use
  * it as an easy default without having to pass it around separately */
 function getOwnMailAddressesWithDefaultSenderInFront(
-	logins: LoginController,
-	mailboxDetail: MailboxDetail,
-	mailboxProperties: MailboxProperties,
+    logins: LoginController,
+    mailboxDetail: MailboxDetail,
+    mailboxProperties: MailboxProperties,
 ): Array<EncryptedMailAddress> {
-	const defaultSender = getDefaultSender(logins, mailboxDetail)
-	const ownMailAddresses = mailboxProperties.mailAddressProperties.map(({ mailAddress, senderName }) =>
-		createEncryptedMailAddress({
-			address: mailAddress,
-			name: senderName,
-		}),
-	)
-	const defaultIndex = ownMailAddresses.findIndex((address) => address.address === defaultSender)
-	if (defaultIndex < 0) {
-		// should not happen
-		return ownMailAddresses
-	}
-	const defaultEncryptedMailAddress = ownMailAddresses.splice(defaultIndex, 1)
-	return [...defaultEncryptedMailAddress, ...ownMailAddresses]
+    const defaultSender = getDefaultSender(logins, mailboxDetail)
+    const ownMailAddresses = mailboxProperties.mailAddressProperties.map(({mailAddress, senderName}) =>
+        createEncryptedMailAddress({
+            address: mailAddress,
+            name: senderName,
+        }),
+    )
+    const defaultIndex = ownMailAddresses.findIndex((address) => address.address === defaultSender)
+    if (defaultIndex < 0) {
+        // should not happen
+        return ownMailAddresses
+    }
+    const defaultEncryptedMailAddress = ownMailAddresses.splice(defaultIndex, 1)
+    return [...defaultEncryptedMailAddress, ...ownMailAddresses]
 }
