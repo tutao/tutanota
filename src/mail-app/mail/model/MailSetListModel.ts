@@ -1,4 +1,4 @@
-import { Mail, MailFolder, MailSetEntry } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail, MailSet, MailSetEntry } from "../../../common/api/entities/tutanota/TypeRefs"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { ListLoadingState, ListState } from "../../../common/gui/base/List"
 import { EntityUpdateData } from "../../../common/api/common/utils/EntityUpdateUtils"
@@ -183,7 +183,7 @@ export interface MailSetListModel {
 	 * Get all labels for the mail.
 	 * @param mail
 	 */
-	getLabelsForMail(mail: Mail): ReadonlyArray<MailFolder>
+	getLabelsForMail(mail: Mail): ReadonlyArray<MailSet>
 
 	/**
 	 * Load the entire list.
@@ -215,7 +215,7 @@ export interface MailSetListModel {
 export interface LoadedMail {
 	readonly mail: Mail
 	readonly mailSetEntryId: IdTuple
-	readonly labels: ReadonlyArray<MailFolder>
+	readonly labels: ReadonlyArray<MailSet>
 }
 
 /**
@@ -247,7 +247,7 @@ export async function resolveMailSetEntries(
 		}
 
 		// Resolve labels
-		const labels: MailFolder[] = mailModel.getLabelsForMail(mail)
+		const labels: MailSet[] = mailModel.getLabelsForMail(mail)
 		loadedMails.push({ mailSetEntryId: mailSetEntry._id, mail, labels })
 	}
 
@@ -278,7 +278,7 @@ export async function provideAllMails(ids: IdTuple[], mailProvider: (listId: Id,
  */
 export async function applyInboxRulesAndSpamPrediction(
 	entries: LoadedMail[],
-	sourceFolder: MailFolder,
+	sourceFolder: MailSet,
 	mailModel: MailModel,
 	processInboxHandler: ProcessInboxHandler,
 	sendServerRequest: boolean,

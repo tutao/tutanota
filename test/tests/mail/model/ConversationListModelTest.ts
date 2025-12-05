@@ -4,8 +4,8 @@ import {
 	Mail,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
-	MailFolder,
-	MailFolderTypeRef,
+	MailSet,
+	MailSetTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailTypeRef,
@@ -62,15 +62,15 @@ o.spec("ConversationListModel", () => {
 	const mailSetEntriesListId = "entries"
 	const _ownerGroup = "me"
 
-	const labels: MailFolder[] = [
-		createTestEntity(MailFolderTypeRef, {
+	const labels: MailSet[] = [
+		createTestEntity(MailSetTypeRef, {
 			_id: ["mailFolderList", "tutaPrimary"],
 			color: theme.primary,
 			folderType: MailSetKind.LABEL,
 			name: "Tuta Primary Label",
 			parentFolder: null,
 		}),
-		createTestEntity(MailFolderTypeRef, {
+		createTestEntity(MailSetTypeRef, {
 			_id: ["mailFolderList", "tutaSecondary"],
 			color: theme.secondary,
 			folderType: MailSetKind.LABEL,
@@ -79,7 +79,7 @@ o.spec("ConversationListModel", () => {
 		}),
 	]
 
-	let mailSet: MailFolder
+	let mailSet: MailSet
 	let conversationPrefProvider: ConversationPrefProvider
 	let entityClient: EntityClient
 	let mailModel: MailModel
@@ -88,7 +88,7 @@ o.spec("ConversationListModel", () => {
 	let connectivityModel: WebsocketConnectivityModel
 
 	o.beforeEach(() => {
-		mailSet = createTestEntity(MailFolderTypeRef, {
+		mailSet = createTestEntity(MailSetTypeRef, {
 			_id: ["mailFolderList", "mailFolderId"],
 			folderType: MailSetKind.CUSTOM,
 			name: "My Folder",
@@ -125,7 +125,7 @@ o.spec("ConversationListModel", () => {
 	}
 
 	// Creates a totalMails number of mails, grouping into a number of conversations equal to totalMails/mailsPerConversation
-	async function setUpTestData(totalMails: number, initialLabels: MailFolder[], offline: boolean, mailsPerConversation: number): Promise<Mail[]> {
+	async function setUpTestData(totalMails: number, initialLabels: MailSet[], offline: boolean, mailsPerConversation: number): Promise<Mail[]> {
 		const mailSetEntries: MailSetEntry[] = []
 		const mails: Mail[][] = [[], [], [], [], [], [], [], [], [], []]
 		const allMails: Mail[] = []
@@ -155,7 +155,7 @@ o.spec("ConversationListModel", () => {
 		}
 
 		when(mailModel.getLabelsForMail(matchers.anything())).thenDo((mail: Mail) => {
-			const sets: MailFolder[] = []
+			const sets: MailSet[] = []
 			for (const set of mail.sets) {
 				const setToAdd = labels.find((label) => isSameId(label._id, set))
 				if (setToAdd) {
@@ -436,7 +436,7 @@ o.spec("ConversationListModel", () => {
 			o.check(model.getLabelsForMail(someMail.mail)[1]).notDeepEquals(labels[1])
 
 			const entityUpdateData: EntityUpdateData = {
-				typeRef: MailFolderTypeRef,
+				typeRef: MailSetTypeRef,
 				instanceListId: getListId(labels[1]) as NonEmptyString,
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
@@ -464,7 +464,7 @@ o.spec("ConversationListModel", () => {
 			await model.loadInitial()
 
 			const entityUpdateData: EntityUpdateData = {
-				typeRef: MailFolderTypeRef,
+				typeRef: MailSetTypeRef,
 				instanceListId: getListId(labels[1]) as NonEmptyString,
 				instanceId: getElementId(labels[1]),
 				operation: OperationType.DELETE,
@@ -516,7 +516,7 @@ o.spec("ConversationListModel", () => {
 			mail: Mail
 			mailSetEntry: MailSetEntry
 			entityUpdateData: EntityUpdateData
-			mailLabels: MailFolder[]
+			mailLabels: MailSet[]
 		} {
 			const newMail = createTestEntity(MailTypeRef, {
 				_id: ["new mail!!!", deconstructMailSetEntryId(elementIdPart(mailSetEntryId)).mailId],

@@ -303,7 +303,7 @@ export class ConversationViewModel {
 	private async isInTrash(mail: Mail) {
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(mail)
 		const mailFolder = this.mailModel.getMailFolderForMail(mail)
-		if (mailFolder == null || mailboxDetail == null || mailboxDetail.mailbox.folders == null) {
+		if (mailFolder == null || mailboxDetail == null) {
 			return
 		}
 		const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.folders._id)

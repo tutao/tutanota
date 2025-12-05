@@ -4,7 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use tutasdk::bindings::test_file_client::TestFileClient;
-use tutasdk::entities::generated::tutanota::MailFolder;
+use tutasdk::entities::generated::tutanota::MailSet;
 use tutasdk::folder_system::MailSetKind;
 use tutasdk::net::native_rest_client::NativeRestClient;
 use tutasdk::{LoggedInSdk, Sdk};
@@ -105,10 +105,7 @@ pub async fn init_file_importer(source_paths: Vec<&str>) -> Importer {
 	.unwrap()
 }
 
-async fn get_test_import_folder_id(
-	logged_in_sdk: &Arc<LoggedInSdk>,
-	kind: MailSetKind,
-) -> MailFolder {
+async fn get_test_import_folder_id(logged_in_sdk: &Arc<LoggedInSdk>, kind: MailSetKind) -> MailSet {
 	let mail_facade = logged_in_sdk.mail_facade();
 	let mailbox = mail_facade.load_user_mailbox().await.unwrap();
 	let folders = mail_facade

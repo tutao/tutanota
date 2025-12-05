@@ -1,6 +1,6 @@
 import { getMailFolderType, MailSetKind, MailState, ReplyType } from "../../../common/api/common/TutanotaConstants"
 import { FontIcons } from "../../../common/gui/base/icons/FontIcons"
-import type { Mail, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import type { Mail, MailSet } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { formatTimeOrDateOrYesterday } from "../../../common/misc/Formatter.js"
 import m, { Children } from "mithril"
 import Badge from "../../../common/gui/base/Badge"
@@ -74,7 +74,7 @@ export class MailRow implements VirtualRow<Mail> {
 
 	constructor(
 		private readonly showFolderIcon: boolean,
-		private readonly getLabelsForMail: (mail: Mail) => ReadonlyArray<MailFolder>,
+		private readonly getLabelsForMail: (mail: Mail) => ReadonlyArray<MailSet>,
 		private readonly onSelected: (mail: Mail, selected: boolean) => unknown,
 		private readonly getHighlightedStrings?: () => readonly SearchToken[],
 	) {
@@ -141,7 +141,7 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 	}
 
-	private updateLabels(mail: Mail): readonly MailFolder[] {
+	private updateLabels(mail: Mail): readonly MailSet[] {
 		const labels = this.getLabelsForMail(mail)
 
 		for (const [i, element] of this.labelsDom.entries()) {

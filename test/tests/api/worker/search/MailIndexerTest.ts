@@ -20,9 +20,9 @@ import {
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
 	MailDetailsTypeRef,
-	MailFolder,
-	MailFolderRefTypeRef,
-	MailFolderTypeRef,
+	MailSet,
+	MailSetRefTypeRef,
+	MailSetTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailTypeRef,
@@ -172,9 +172,9 @@ o.spec("MailIndexer", () => {
 		})
 	})
 
-	function _addFolder(mailbox: MailBox): MailFolder {
-		const folder = createTestEntity(MailFolderTypeRef)
-		folder._id = [neverNull(mailbox.folders).folders, entityMock.getNextId()]
+	function _addFolder(mailbox: MailBox): MailSet {
+		const folder = createTestEntity(MailSetTypeRef)
+		folder._id = [mailbox.folders.folders, entityMock.getNextId()]
 		folder.entries = entityMock.getNextId()
 		return folder
 	}
@@ -193,7 +193,7 @@ o.spec("MailIndexer", () => {
 		const rangeEndShifted2Days = getDayShifted(new Date(rangeEnd), -2).getTime()
 		const mailGroup = "mail-group-id"
 		let mailbox: MailBox
-		let folder1: MailFolder, folder2: MailFolder
+		let folder1: MailSet, folder2: MailSet
 		let mail0: Mail,
 			details0: MailDetailsBlob,
 			mailEntry0: MailSetEntry,
@@ -217,7 +217,7 @@ o.spec("MailIndexer", () => {
 			mailbox.currentMailBag = createTestEntity(MailBagTypeRef, { _id: "mailBagId", mails: mailBagMailListId })
 			mailbox._id = "mailbox-id"
 			mailbox._ownerGroup = mailGroup
-			const folderRef = createTestEntity(MailFolderRefTypeRef)
+			const folderRef = createTestEntity(MailSetRefTypeRef)
 			folderRef.folders = entityMock.getNextId()
 			mailbox.folders = folderRef
 			folder1 = _addFolder(mailbox)
@@ -768,7 +768,7 @@ o.spec("MailIndexer", () => {
 			const mailbox = createTestEntity(MailBoxTypeRef, {
 				_id: "mailbox-id",
 				_ownerGroup: mailGroup1,
-				folders: createTestEntity(MailFolderRefTypeRef, {
+				folders: createTestEntity(MailSetRefTypeRef, {
 					folders: "foldersId",
 				}),
 			})

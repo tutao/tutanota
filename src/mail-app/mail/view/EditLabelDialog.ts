@@ -1,7 +1,7 @@
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { TextField, TextFieldAttrs } from "../../../common/gui/base/TextField"
 import m from "mithril"
-import type { MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs"
+import type { MailBox, MailSet } from "../../../common/api/entities/tutanota/TypeRefs"
 import { isOfflineError } from "../../../common/api/common/utils/ErrorUtils"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { MailViewModel } from "./MailViewModel"
@@ -11,7 +11,7 @@ import { showNotAvailableForFreeDialog } from "../../../common/misc/Subscription
 
 const LIMIT_EXCEEDED_ERROR = "limitReached"
 
-export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel: MailViewModel, label: MailFolder | null) {
+export async function showEditLabelDialog(mailbox: MailBox | null, mailViewModel: MailViewModel, label: MailSet | null) {
 	let name = label ? label.name : ""
 	let color = label && label.color ? label.color : ""
 

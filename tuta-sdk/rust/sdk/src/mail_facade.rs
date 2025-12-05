@@ -3,7 +3,7 @@ use crate::crypto_entity_client::CryptoEntityClient;
 use crate::element_value::ParsedEntity;
 use crate::entities::generated::sys::{Group, GroupInfo};
 use crate::entities::generated::tutanota::{
-	Mail, MailBox, MailFolder, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
+	Mail, MailBox, MailSet, MailboxGroupRoot, SimpleMoveMailPostIn, UnreadMailStatePostIn,
 };
 use crate::entities::Entity;
 use crate::folder_system::{FolderSystem, MailSetKind};
@@ -71,8 +71,8 @@ impl MailFacade {
 		&self,
 		mailbox: &MailBox,
 	) -> Result<FolderSystem, ApiCallError> {
-		let folders_list = &mailbox.folders.as_ref().unwrap().folders;
-		let folders: Vec<MailFolder> = self
+		let folders_list = &mailbox.folders.folders;
+		let folders: Vec<MailSet> = self
 			.crypto_entity_client
 			.load_range(
 				folders_list,

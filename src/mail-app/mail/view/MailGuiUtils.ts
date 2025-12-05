@@ -1,5 +1,5 @@
 import type { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
-import { File as TutanotaFile, Mail, MailFolder, MovedMails } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { File as TutanotaFile, Mail, MailSet, MovedMails } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { LockedError, PreconditionFailedError } from "../../../common/api/common/error/RestError"
 import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
@@ -85,7 +85,7 @@ interface MoveMailsParams {
 	mailModel: MailModel
 	undoModel: UndoModel
 	mailIds: ReadonlyArray<IdTuple>
-	targetFolder: MailFolder
+	targetFolder: MailSet
 	moveMode: MoveMode
 }
 
@@ -274,7 +274,7 @@ export async function moveMailsToSystemFolder({
 	mailModel: MailModel
 	mailIds: ReadonlyArray<IdTuple>
 	targetFolderType: SystemFolderType
-	currentFolder: MailFolder
+	currentFolder: MailSet
 	moveMode: MoveMode
 	undoModel: UndoModel
 }): Promise<boolean> {
@@ -349,7 +349,7 @@ export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 	}
 }
 
-export function getFolderIcon(folder: MailFolder): AllIcons {
+export function getFolderIcon(folder: MailSet): AllIcons {
 	return getFolderIconByType(getMailFolderType(folder))
 }
 
@@ -503,7 +503,7 @@ export async function showMoveMailsFromFolderDropdown(
 	mailModel: MailModel,
 	undoModel: UndoModel,
 	origin: PosRect,
-	currentFolder: MailFolder,
+	currentFolder: MailSet,
 	mails: LazyMailIdResolver,
 	moveMode: MoveMode,
 	opts?: ShowMoveMailsDropdownOpts,

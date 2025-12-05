@@ -1,6 +1,6 @@
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler } from "./InboxRuleHandler"
-import { Mail, MailFolder, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
+import { Mail, MailSet, ProcessInboxDatum } from "../../../common/api/entities/tutanota/TypeRefs"
 import { FeatureType, MailSetKind } from "../../../common/api/common/TutanotaConstants"
 import { assertNotNull, debounce, isEmpty, Nullable } from "@tutao/tutanota-utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
@@ -47,11 +47,11 @@ export class ProcessInboxHandler {
 
 	public async handleIncomingMail(
 		mail: Mail,
-		sourceFolder: MailFolder,
+		sourceFolder: MailSet,
 		mailboxDetail: MailboxDetail,
 		folderSystem: FolderSystem,
 		sendServerRequest: boolean,
-	): Promise<MailFolder> {
+	): Promise<MailSet> {
 		await this.logins.loadCustomizations()
 		const isSpamClassificationFeatureEnabled = this.logins.isEnabled(FeatureType.SpamClientClassification)
 		if (!mail.processNeeded) {
@@ -61,7 +61,7 @@ export class ProcessInboxHandler {
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
-		let moveToFolder: MailFolder = sourceFolder
+		let moveToFolder: MailSet = sourceFolder
 
 		if (sourceFolder.folderType === MailSetKind.INBOX || sourceFolder.folderType === MailSetKind.SPAM) {
 			const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail)

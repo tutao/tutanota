@@ -7,7 +7,7 @@ import {
 	Mail,
 	MailDetails,
 	MailDetailsTypeRef,
-	MailFolderTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 } from "../../../src/common/api/entities/tutanota/TypeRefs"
 import { SpamClassifier } from "../../../src/mail-app/workerUtils/spamClassification/SpamClassifier"
@@ -34,9 +34,9 @@ o.spec("SpamClassificationHandlerTest", function () {
 	let folderSystem: FolderSystem
 	let mailDetails: MailDetails
 
-	const inboxFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "inbox"], folderType: MailSetKind.INBOX })
-	const trashFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "trash"], folderType: MailSetKind.TRASH })
-	const spamFolder = createTestEntity(MailFolderTypeRef, { _id: ["listId", "spam"], folderType: MailSetKind.SPAM })
+	const inboxFolder = createTestEntity(MailSetTypeRef, { _id: ["listId", "inbox"], folderType: MailSetKind.INBOX })
+	const trashFolder = createTestEntity(MailSetTypeRef, { _id: ["listId", "trash"], folderType: MailSetKind.TRASH })
+	const spamFolder = createTestEntity(MailSetTypeRef, { _id: ["listId", "spam"], folderType: MailSetKind.SPAM })
 
 	const compressedUnencryptedTestVector = new Uint8Array([23, 3, 21, 12, 14, 2, 23, 3, 30, 3, 4, 3, 2, 31, 23, 22, 30])
 

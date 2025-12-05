@@ -20,8 +20,8 @@ import {
 	Mail,
 	MailboxGroupRoot,
 	MailboxProperties,
-	MailFolder,
-	MailFolderTypeRef,
+	MailSet,
+	MailSetTypeRef,
 	MailSetEntryTypeRef,
 	MailTypeRef,
 	MovedMails,
@@ -60,7 +60,7 @@ import { isWebClient } from "../../../common/api/common/Env"
 interface MailboxSets {
 	folders: FolderSystem
 	/** a map from element id to the mail set */
-	labels: ReadonlyMap<Id, MailFolder>
+	labels: ReadonlyMap<Id, MailSet>
 }
 
 export const enum LabelState {
@@ -123,7 +123,7 @@ export class MailModel {
 		for (let detail of mailboxDetails) {
 			const foldersRef = detail.mailbox.folders
 			if (foldersRef != null) {
-				let mailSets: MailFolder[]
+				let mailSets: MailSet[]
 				try {
 					mailSets = await this.loadMailSetsForListId(foldersRef.folders)
 				} catch (e) {
@@ -162,8 +162,8 @@ export class MailModel {
 		return tempFolders
 	}
 
-	private async loadMailSetsForListId(listId: Id): Promise<MailFolder[]> {
-		const folders = await this.entityClient.loadAll(MailFolderTypeRef, listId)
+	private async loadMailSetsForListId(listId: Id): Promise<MailSet[]> {
+		const folders = await this.entityClient.loadAll(MailSetTypeRef, listId)
 
 		return folders.filter((f) => {
 			// We do not show spam or archive for external users
@@ -186,7 +186,7 @@ export class MailModel {
 	// visibleForTesting
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(MailFolderTypeRef, update)) {
+			if (isUpdateForTypeRef(MailSetTypeRef, update)) {
 				await this.init()
 				m.redraw()
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
@@ -239,7 +239,7 @@ export class MailModel {
 		return detail
 	}
 
-	async getMailboxDetailsForMailFolder(mailFolder: MailFolder): Promise<MailboxDetail | null> {
+	async getMailboxDetailsForMailFolder(mailFolder: MailSet): Promise<MailboxDetail | null> {
 		const detail = await this.mailboxModel.getMailboxDetailsForMailGroup(assertNotNull(mailFolder._ownerGroup))
 		if (detail == null) {
 			console.warn("mailbox detail for mail folder does not exist", mailFolder)
@@ -249,7 +249,7 @@ export class MailModel {
 
 	async getMailboxFoldersForMail(mail: Mail): Promise<FolderSystem | null> {
 		const mailboxDetail = await this.getMailboxDetailsForMail(mail)
-		if (mailboxDetail && mailboxDetail.mailbox.folders) {
+		if (mailboxDetail) {
 			const folders = await this.getFolders()
 			return folders.get(mailboxDetail.mailbox.folders._id)?.folders ?? null
 		} else {
@@ -266,7 +266,7 @@ export class MailModel {
 		return folderSystem
 	}
 
-	getMailFolderForMail(mail: Mail): MailFolder | null {
+	getMailFolderForMail(mail: Mail): MailSet | null {
 		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 		if (folderSystem == null) return null
 
@@ -277,14 +277,14 @@ export class MailModel {
 		return this.getMailSetsForGroup(groupId)?.folders ?? null
 	}
 
-	getLabelsByGroupId(groupId: Id): ReadonlyMap<Id, MailFolder> {
+	getLabelsByGroupId(groupId: Id): ReadonlyMap<Id, MailSet> {
 		return this.getMailSetsForGroup(groupId)?.labels ?? new Map()
 	}
 
 	/**
 	 * @return all labels that could be applied to the {@param mails} with the state relative to {@param mails}.
 	 */
-	getLabelStatesForMails(mails: readonly Mail[]): { label: MailFolder; state: LabelState }[] {
+	getLabelStatesForMails(mails: readonly Mail[]): { label: MailSet; state: LabelState }[] {
 		if (mails.length === 0) {
 			return []
 		}
@@ -304,8 +304,8 @@ export class MailModel {
 		})
 	}
 
-	getLabelsForMails(mails: readonly Mail[]): ReadonlyMap<Id, ReadonlyArray<MailFolder>> {
-		const labelsForMails = new Map<Id, MailFolder[]>()
+	getLabelsForMails(mails: readonly Mail[]): ReadonlyMap<Id, ReadonlyArray<MailSet>> {
+		const labelsForMails = new Map<Id, MailSet[]>()
 		for (const mail of mails) {
 			labelsForMails.set(getElementId(mail), this.getLabelsForMail(mail))
 		}
@@ -316,7 +316,7 @@ export class MailModel {
 	/**
 	 * @return labels that are currently applied to {@param mail}.
 	 */
-	getLabelsForMail(mail: Mail): MailFolder[] {
+	getLabelsForMail(mail: Mail): MailSet[] {
 		const groupLabels = this.getLabelsByGroupId(assertNotNull(mail._ownerGroup))
 		return mail.sets.map((labelId) => groupLabels.get(elementIdPart(labelId))).filter(isNotNull)
 	}
@@ -324,7 +324,7 @@ export class MailModel {
 	private getMailSetsForGroup(groupId: Id): MailboxSets | null {
 		const mailboxDetails = this.mailboxModel.mailboxDetails() || []
 		const detail = mailboxDetails.find((md) => groupId === md.mailGroup._id)
-		const sets = detail?.mailbox?.folders?._id
+		const sets = detail?.mailbox?.folders._id
 		if (sets == null) {
 			return null
 		}
@@ -349,7 +349,7 @@ export class MailModel {
 	/**
 	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
 	 */
-	async moveMails(mails: readonly IdTuple[], targetFolder: MailFolder, moveMode: MoveMode): Promise<MovedMails[]> {
+	async moveMails(mails: readonly IdTuple[], targetFolder: MailSet, moveMode: MoveMode): Promise<MovedMails[]> {
 		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(targetFolder._ownerGroup))
 		if (folderSystem == null) {
 			return []
@@ -372,7 +372,7 @@ export class MailModel {
 	/**
 	 * Sends the given folder and all its descendants to the spam folder, reporting mails (if applicable) and removes any empty folders
 	 */
-	async sendFolderToSpam(folder: MailFolder): Promise<void> {
+	async sendFolderToSpam(folder: MailSet): Promise<void> {
 		const mailboxDetail = await this.getMailboxDetailsForMailFolder(folder)
 		if (mailboxDetail == null) {
 			return
@@ -419,7 +419,7 @@ export class MailModel {
 		await this.mailFacade.markMails(mails, unread)
 	}
 
-	async applyLabels(mails: readonly IdTuple[], addedLabels: readonly MailFolder[], removedLabels: readonly MailFolder[]): Promise<void> {
+	async applyLabels(mails: readonly IdTuple[], addedLabels: readonly MailSet[], removedLabels: readonly MailSet[]): Promise<void> {
 		const groupedByListIds = groupBy(mails, (mailId) => listIdPart(mailId))
 		for (const [_, groupedMails] of groupedByListIds) {
 			const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, groupedMails)
@@ -439,14 +439,14 @@ export class MailModel {
 		this.mailboxCounters(normalized)
 	}
 
-	_showNotification(folder: MailFolder, mail: Mail) {
+	_showNotification(folder: MailSet, mail: Mail) {
 		this.notifications.showNotification(NotificationType.Mail, lang.get("newMails_msg"), {}, (_) => {
 			m.route.set(`/mail/${getElementId(folder)}/${getElementId(mail)}`)
 			window.focus()
 		})
 	}
 
-	getCounterValue(folder: MailFolder): Promise<number | null> {
+	getCounterValue(folder: MailSet): Promise<number | null> {
 		return this.getMailboxDetailsForMailFolder(folder)
 			.then((mailboxDetails) => {
 				if (mailboxDetails == null) {
@@ -477,7 +477,7 @@ export class MailModel {
 	/**
 	 * Sends the given folder and all its descendants to the trash folder, removes any empty folders
 	 */
-	async trashFolderAndSubfolders(folder: MailFolder): Promise<void> {
+	async trashFolderAndSubfolders(folder: MailSet): Promise<void> {
 		const mailboxDetail = await this.getMailboxDetailsForMailFolder(folder)
 		if (mailboxDetail == null) {
 			return
@@ -492,14 +492,14 @@ export class MailModel {
 		}
 	}
 
-	async setParentForFolder(folder: MailFolder, newParentId: IdTuple) {
+	async setParentForFolder(folder: MailSet, newParentId: IdTuple) {
 		return this.mailFacade.updateMailFolderParent(folder, newParentId)
 	}
 
 	/**
 	 * This is called when moving a folder to SPAM or TRASH, which do not allow empty folders (since only folders that contain mail are allowed)
 	 */
-	private async removeAllEmpty(folderSystem: FolderSystem, folder: MailFolder): Promise<boolean> {
+	private async removeAllEmpty(folderSystem: FolderSystem, folder: MailSet): Promise<boolean> {
 		// sort descendants deepest first so that we can clean them up before checking their ancestors
 		const descendants = folderSystem.getDescendantFoldersOfParent(folder._id).sort((l, r) => r.level - l.level)
 
@@ -531,11 +531,11 @@ export class MailModel {
 	}
 
 	// Only load one mail, if there is even one we won't remove
-	private async isEmptyFolder(descendant: MailFolder) {
+	private async isEmptyFolder(descendant: MailSet) {
 		return (await this.entityClient.loadRange(MailSetEntryTypeRef, descendant.entries, CUSTOM_MIN_ID, 1, false)).length === 0
 	}
 
-	public async finallyDeleteCustomMailFolder(folder: MailFolder): Promise<void> {
+	public async finallyDeleteCustomMailFolder(folder: MailSet): Promise<void> {
 		if (folder.folderType !== MailSetKind.CUSTOM && folder.folderType !== MailSetKind.Imported) {
 			throw new ProgrammingError("Cannot delete non-custom folder: " + String(folder._id))
 		}
@@ -550,14 +550,14 @@ export class MailModel {
 			)
 	}
 
-	async fixupCounterForFolder(folder: MailFolder, unreadMails: number) {
+	async fixupCounterForFolder(folder: MailSet, unreadMails: number) {
 		const mailboxDetails = await this.getMailboxDetailsForMailFolder(folder)
 		if (mailboxDetails) {
 			await this.mailFacade.fixupCounterForFolder(mailboxDetails.mailGroup._id, folder, unreadMails)
 		}
 	}
 
-	async clearFolder(folder: MailFolder): Promise<void> {
+	async clearFolder(folder: MailSet): Promise<void> {
 		await this.mailFacade.clearFolder(folder._id)
 	}
 
@@ -573,21 +573,21 @@ export class MailModel {
 	}
 
 	/**
-	 * Create a label (aka MailSet aka {@link MailFolder} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
+	 * Create a label (aka MailSet aka {@link MailSet} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
 	 */
 	async createLabel(mailGroupId: Id, labelData: { name: string; color: string }) {
 		await this.mailFacade.createLabel(mailGroupId, labelData)
 	}
 
-	async updateLabel(label: MailFolder, newData: { name: string; color: string }) {
+	async updateLabel(label: MailSet, newData: { name: string; color: string }) {
 		await this.mailFacade.updateLabel(label, newData.name, newData.color)
 	}
 
-	async deleteLabel(label: MailFolder) {
+	async deleteLabel(label: MailSet) {
 		await this.mailFacade.deleteLabel(label)
 	}
 
-	async getMailSetById(folderElementId: Id): Promise<MailFolder | null> {
+	async getMailSetById(folderElementId: Id): Promise<MailSet | null> {
 		const folderStructures = await this.loadMailSets()
 		for (const folders of folderStructures.values()) {
 			const folder = folders.folders.getFolderById(folderElementId)
@@ -603,7 +603,7 @@ export class MailModel {
 		return null
 	}
 
-	getImportedMailSets(): Array<MailFolder> {
+	getImportedMailSets(): Array<MailSet> {
 		return [...this.mailSets.values()].filter((f) => f.folders.importedMailSet).map((f) => f.folders.importedMailSet!)
 	}
 

@@ -6,7 +6,7 @@ import {
 	Mail,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
-	MailFolderTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 } from "../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import { CreateMailViewerOptions } from "../../../../src/mail-app/mail/view/MailViewer.js"
@@ -198,7 +198,7 @@ o.spec("ConversationViewModel", function () {
 			const trashDraftMail = addMail("trashDraftMail")
 			trashDraftMail.state = MailState.DRAFT
 
-			const trash = createTestEntity(MailFolderTypeRef, {
+			const trash = createTestEntity(MailSetTypeRef, {
 				_id: [listId, "trashFolder"],
 				folderType: MailSetKind.TRASH,
 			})
@@ -223,7 +223,7 @@ o.spec("ConversationViewModel", function () {
 			const trashDraftMail = addMail("trashDraftMail")
 			trashDraftMail.state = MailState.DRAFT
 
-			const trash = createTestEntity(MailFolderTypeRef, {
+			const trash = createTestEntity(MailSetTypeRef, {
 				_id: [listId, "trashFolder"],
 				folderType: MailSetKind.TRASH,
 			})
@@ -371,7 +371,7 @@ o.spec("ConversationViewModel", function () {
 			await loadingDefer.promise
 
 			conversation.pop()
-			const trash = createTestEntity(MailFolderTypeRef, {
+			const trash = createTestEntity(MailSetTypeRef, {
 				_id: ["folderListId", "trashFolder"],
 				folderType: MailSetKind.TRASH,
 			})
