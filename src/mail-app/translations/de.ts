@@ -2136,5 +2136,7 @@ export default {
 		"switchScheduledFolder_action": "Switch to scheduled folder",
 		"invalidSendLaterDate_msg": "Invalid send later date",
 		"sendTime_label": "Send time",
+		"removeScheduledMails_msg": "Please remove your scheduled mails.",
+		"aliasDeactivationNotPossible_msg": "Could not deactivate alias. {detailMsg}"
     }
 }
