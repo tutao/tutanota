@@ -2,7 +2,6 @@ import o from "@tutao/otest"
 import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
-	CalendarEventsRefTypeRef,
 	CalendarEventTypeRef,
 	CalendarEventUpdateTypeRef,
 	CalendarGroupRoot,
@@ -305,7 +304,6 @@ o.spec("CalendarModel", function () {
 				_id: "groupRootId",
 				longEvents: "longEvents",
 				shortEvents: "shortEvents",
-				pendingEvents: createTestEntity(CalendarEventsRefTypeRef, { list: "pendingEvents" }),
 			})
 			restClientMock = new EntityRestClientMock()
 			restClientMock.addElementInstances(groupRoot)
