@@ -4,8 +4,10 @@ import {
 	defer,
 	findBy,
 	findLast,
+	findLastIndex,
 	first,
 	getFirstOrThrow,
+	isEmpty,
 	last,
 	lastIndex,
 	lastThrow,
@@ -330,28 +332,40 @@ export class ListModel<ItemType, IdType> {
 		// If the active item is still in the list select the item directly before it (unless it's the beginning of the list).
 		const oldActiveItem = this.rawState.activeItem
 		const oldActiveIndex = oldActiveItem ? this.state.items.indexOf(oldActiveItem) : -1
-		const newActiveItem =
+
+		const firstIndex = (arr: readonly unknown[]) => (isEmpty(arr) ? -1 : 0)
+
+		const newActiveIndex: number =
 			oldActiveIndex === -1
 				? oldActiveItem
-					? (findLast(this.state.items, (item) => this.config.sortCompare(item, oldActiveItem) < 0) ?? first(this.state.items))
-					: first(this.state.items)
-				: this.state.items.at(Math.max(oldActiveIndex - 1, 0))
+					? findLastIndex(this.state.items, (item) => this.config.sortCompare(item, oldActiveItem) < 0)
+					: firstIndex(this.state.items)
+				: Math.max(oldActiveIndex - 1, 0)
+		const newActiveItem = newActiveIndex === -1 ? null : this.state.items[newActiveIndex]
 
 		if (newActiveItem != null) {
 			if (!multiselect) {
 				this.onSingleSelection(newActiveItem)
 			} else {
 				const selectedItems = new Set(this.state.selectedItems)
-				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? first(this.state.items)
-				if (!this.rangeSelectionAnchorItem) return
 
-				const previousActiveIndex = this.state.activeIndex ?? 0
-				const towardsAnchor = this.config.sortCompare(oldActiveItem ?? getFirstOrThrow(this.state.items), this.rangeSelectionAnchorItem) > 0
-				if (towardsAnchor) {
-					// remove
-					selectedItems.delete(this.state.items[previousActiveIndex])
+				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? first(this.state.items)
+				const anchorItem = this.rangeSelectionAnchorItem
+				if (!anchorItem) return
+				const anchorIndex = this.state.items.findIndex((item) => this.config.isSameId(this.config.getItemId(item), this.config.getItemId(anchorItem)))
+
+				if (anchorIndex !== -1 && oldActiveIndex !== -1) {
+					// selectPrevious always goes to above/items with lower index. If the old ID was bigger then the
+					// anchor we are shrinking the selection, otherwise we are extending it.
+					const towardsAnchor = oldActiveIndex > anchorIndex
+					if (towardsAnchor) {
+						// remove
+						selectedItems.delete(this.state.items[oldActiveIndex])
+					} else {
+						// add
+						selectedItems.add(newActiveItem)
+					}
 				} else {
-					// add
 					selectedItems.add(newActiveItem)
 				}
 
@@ -384,6 +398,7 @@ export class ListModel<ItemType, IdType> {
 					: first(this.state.items)
 				: this.state.items.at(Math.min(oldActiveIndex + 1, lastIndex(this.state.items)))
 
+		// FIXME: do the same fix as for selectPrevious
 		if (newActiveItem != null) {
 			if (!multiselect) {
 				this.onSingleSelection(newActiveItem)

@@ -117,7 +117,7 @@ o.spec("ListModel", function () {
 		return listModel.getSelectedAsArray().sort(sortCompareById)
 	}
 
-	o.spec("selection controls", function () {
+	o.spec("selection controls selectPrevious/selectNext", function () {
 		o.spec("single", function () {
 			o("when selectNext and the list is empty nothing happens", async function () {
 				await setItems([])
@@ -197,7 +197,7 @@ o.spec("ListModel", function () {
 			})
 		})
 
-		o.spec("selectPrevious/selectNext", function () {
+		o.spec("multiselect", function () {
 			o("when selectNext and the list is empty nothing happens", async function () {
 				await setItems([])
 				listModel.selectNext(true)
@@ -477,6 +477,33 @@ o.spec("ListModel", function () {
 				o(listModel.state.inMultiselect).equals(true)
 				o(listModel.state.activeIndex).equals(0)
 			})
+		})
+
+		o("when selectPrevious the item with the same sorting order above the anchor it gets selected", async function () {
+			const itemBWithTitleC = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: itemB._id,
+				title: itemC.title,
+			})
+			await setItems([itemA, itemBWithTitleC, itemC, itemD])
+			listModel.onSingleSelection(itemC)
+			listModel.selectPrevious(true)
+			o(getSortedSelection()).deepEquals([itemBWithTitleC, itemC])
+			o(listModel.state.inMultiselect).equals(true)
+			o(listModel.state.activeIndex).equals(1)
+		})
+
+		o("when selectPrevious the item with the same sorting order below the anchor it gets deselected", async function () {
+			const itemDWithTitleC = createTestEntity(KnowledgeBaseEntryTypeRef, {
+				_id: itemD._id,
+				title: itemC.title,
+			})
+			await setItems([itemA, itemB, itemC, itemDWithTitleC])
+			listModel.onSingleSelection(itemC)
+			listModel.selectNext(true)
+			listModel.selectPrevious(true)
+			o(getSortedSelection()).deepEquals([itemC])
+			o(listModel.state.inMultiselect).equals(true)
+			o(listModel.state.activeIndex).equals(2)
 		})
 
 		o("selectRangeTowards towards item below", async function () {
