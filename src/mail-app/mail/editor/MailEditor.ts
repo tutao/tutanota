@@ -127,6 +127,7 @@ import { Time } from "../../../common/calendar/date/Time"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { getTimeFormatForUser } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 
 // Interval where we save drafts locally.
 //
@@ -1266,6 +1267,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 	}
 
 	let windowCloseUnsubscribe = () => {}
+	const isUserNewPaidPlan = await model.logins.getUserController().isNewPaidPlan()
 
 	const headerBarAttrs: DialogHeaderBarAttrs = {
 		left: [
@@ -1295,7 +1297,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		rightChildren: () => {
 			const scheduledMail = model.getSendLaterDate() != null
 
-			const sendButtonAttrs: DropdownButtonAttrs = {
+			const sendDropdownButtonAttrs: DropdownButtonAttrs = {
 				label: "send_action",
 				icon: Icons.Send,
 				click: () => {
@@ -1303,11 +1305,15 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				},
 			}
 
-			const sendScheduledButtonAttrs: DropdownButtonAttrs = {
+			const sendScheduledDropdownButtonAttrs: DropdownButtonAttrs = {
 				label: "sendLater_action",
 				icon: Icons.ScheduleMail,
 				click: () => {
-					model.setDefaultSendLaterDate()
+					if (isUserNewPaidPlan) {
+						model.setDefaultSendLaterDate()
+					} else {
+						showNotAvailableForFreeDialog()
+					}
 				},
 			}
 
@@ -1337,17 +1343,17 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				m(
 					styles.isMobileLayout() ? "" : ".ml-8",
 					model.user().isInternalUser() &&
-						m(IconButton, {
-							title: "more_label",
-							click: createAsyncDropdown({
-								width: 216,
-								lazyButtons: async () => resolveMaybeLazy([scheduledMail ? sendButtonAttrs : sendScheduledButtonAttrs]),
-							}),
-							icon: Icons.ChevronDown,
-							//icon: BootIcons.Expand,
-							size: ButtonSize.Normal,
-							colors: ButtonColor.Nav,
+					m(IconButton, {
+						title: "more_label",
+						click: createAsyncDropdown({
+							width: 216,
+							lazyButtons: async () => resolveMaybeLazy([scheduledMail ? sendDropdownButtonAttrs : sendScheduledDropdownButtonAttrs]),
 						}),
+						icon: Icons.ChevronDown,
+						//icon: BootIcons.Expand,
+						size: ButtonSize.Normal,
+						colors: ButtonColor.Nav,
+					}),
 				),
 			])
 		},
