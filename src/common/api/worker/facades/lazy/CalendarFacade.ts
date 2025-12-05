@@ -36,7 +36,7 @@ import {
 } from "@tutao/tutanota-utils"
 import { CryptoFacade } from "../../crypto/CryptoFacade.js"
 import { GroupType, OperationType } from "../../../common/TutanotaConstants.js"
-import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule, UserSettingsGroupRoot } from "../../../entities/tutanota/TypeRefs.js"
+import type { CalendarEvent, CalendarEventUidIndex, CalendarRepeatRule } from "../../../entities/tutanota/TypeRefs.js"
 import { CalendarEventTypeRef, CalendarEventUidIndexTypeRef, CalendarGroupRootTypeRef, createCalendarDeleteIn } from "../../../entities/tutanota/TypeRefs.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { ConnectionError, NotAuthorizedError, NotFoundError, PayloadTooLargeError } from "../../../common/error/RestError.js"
@@ -62,7 +62,6 @@ import {
 	generateCalendarInstancesInRange,
 	hasAlarmsForTheUser,
 	isBirthdayCalendar,
-	isLongEvent,
 } from "../../../../calendar/date/CalendarUtils.js"
 import { CalendarInfo } from "../../../../../calendar-app/calendar/model/CalendarModel.js"
 import { geEventElementMaxId, getEventElementMinId } from "../../../common/utils/CommonCalendarUtils.js"
@@ -131,7 +130,6 @@ export class CalendarFacade {
 		calendarInfos: ReadonlyMap<Id, CalendarInfo>,
 		daysToEvents: DaysToEvents,
 		zone: string,
-		defaultCalendarId: Id | null,
 	): Promise<DaysToEvents> {
 		// Because of the timezones and all day events, we might not load an event which we need to display.
 		// So we add a margin on 24 hours to be sure we load everything we need. We will filter matching
@@ -152,12 +150,6 @@ export class CalendarFacade {
 			const shortEventsResult = await this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200)
 			const longEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents)
 
-			const pendingEventListId = groupRoot.pendingEvents?.list
-			let pendingEventsResult: Array<CalendarEvent> = []
-			if (pendingEventListId && isSameId(defaultCalendarId, groupRoot._id)) {
-				pendingEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, pendingEventListId)
-			}
-
 			const shortEvents: Array<EventWrapper> = shortEventsResult.elements.map((e) => ({
 				event: e,
 				flags: {
@@ -174,25 +166,6 @@ export class CalendarFacade {
 				},
 				color,
 			}))
-
-			const pendingEvents: Array<EventWrapper> = pendingEventsResult.map((e) => ({
-				event: e,
-				flags: {
-					isGhost: true,
-					hasAlarms: false,
-					isAlteredInstance: !!e.recurrenceId,
-				},
-				color,
-			}))
-
-			for (const ev of pendingEvents) {
-				const isLongEvents = isLongEvent(ev.event, zone)
-				if (isLongEvents) {
-					longEvents.push(ev)
-				} else {
-					shortEvents.push(ev)
-				}
-			}
 
 			calendars.push({
 				short: shortEvents,
@@ -387,14 +360,8 @@ export class CalendarFacade {
 		return await this.groupManagementFacade.createCalendar(name)
 	}
 
-	async deleteCalendar(groupRootId: Id, deleteEventsOnly: boolean = false): Promise<void> {
-		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteIn({ groupRootId, deleteEventsOnly }))
-	}
-
-	async setCalendarAsDefault(groupRootId: Id, userSettingsGroupRoot: UserSettingsGroupRoot): Promise<void> {
-		console.log(`Assigning default calendar: ${groupRootId}`)
-		userSettingsGroupRoot.defaultCalendar = groupRootId
-		await this.entityRestCache.update(userSettingsGroupRoot)
+	async deleteCalendar(groupRootId: Id): Promise<void> {
+		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteIn({ groupRootId }))
 	}
 
 	async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier): Promise<void> {

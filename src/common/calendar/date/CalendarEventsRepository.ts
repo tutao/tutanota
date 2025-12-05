@@ -118,13 +118,7 @@ export class CalendarEventsRepository {
 					this.loadedMonths.set(monthRange.start, Array.from(calendarInfos.keys()))
 				}
 
-				const eventsMap = await this.calendarFacade.updateEventMap(
-					monthRange,
-					calendarInfos,
-					this.daysToEvents(),
-					this.zone,
-					this.calendarModel.defaultCalendar,
-				)
+				const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
 				this.replaceEvents(eventsMap)
 				this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
 			} catch (e) {
@@ -163,13 +157,7 @@ export class CalendarEventsRepository {
 							calendarInfos = new Map<string, CalendarInfo>([[calendarToLoad, calendarToLoadInfo]])
 						}
 
-						const eventsMap = await this.calendarFacade.updateEventMap(
-							monthRange,
-							calendarInfos,
-							this.daysToEvents(),
-							this.zone,
-							this.calendarModel.defaultCalendar,
-						)
+						const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
 						this.replaceEvents(eventsMap)
 						this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
 					} catch (e) {
@@ -337,7 +325,7 @@ export class CalendarEventsRepository {
 						const wrapper: EventWrapper = {
 							event,
 							flags: {
-								isGhost: calendarInfos.get(eventOwnerGroupId)?.groupRoot.pendingEvents?.list === update.instanceListId,
+								isGhost: !!event.pendingInvitation,
 								hasAlarms: isNotEmpty(event.alarmInfos),
 								isAlteredInstance: Boolean(event.recurrenceId),
 							},
@@ -416,6 +404,7 @@ export class CalendarEventsRepository {
 			invitedConfidentially: null,
 			repeatRule: createRepeatRuleWithValues(RepeatPeriod.ANNUALLY, 1),
 			uid,
+			pendingInvitation: null,
 		})
 
 		newEvent._id = [calendarId, `${generateLocalEventElementId(newEvent.startTime.getTime(), contact._id.join("/"))}#${encodedContactId}`]

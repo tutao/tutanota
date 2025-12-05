@@ -95,7 +95,6 @@ import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../comm
 import {
 	AlarmInterval,
 	assignEventId,
-	assignPendingEventId,
 	CalendarEventValidity,
 	CalendarType,
 	checkEventValidity,
@@ -320,11 +319,13 @@ export class CalendarModel {
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
 			(await didLongStateChange(newEvent, existingEvent, zone))
 		) {
-			if (this.isDefaultCalendar(groupRoot._id) && isSameId(groupRoot.pendingEvents?.list ?? null, listIdPart(existingEvent._id))) {
-				await this.createPendingEvent(newEvent, groupRoot, newAlarms, existingEvent)
-			} else {
-				await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
-			}
+			// FIXME come back when deciding about strategies and etc
+			// if (this.isDefaultCalendar(groupRoot._id) && isSameId(groupRoot.pendingEvents?.list ?? null, listIdPart(existingEvent._id))) {
+			// 	await this.createPendingEvent(newEvent, groupRoot, newAlarms, existingEvent)
+			// }
+
+			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
+
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
 			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
@@ -689,19 +690,11 @@ export class CalendarModel {
 		const userSettingsGroupRoot = this.logins.getUserController().userSettingsGroupRoot
 		const isInternalUser = this.logins.isInternalUserLoggedIn()
 
-		if (!isInternalUser) {
+		if (!isInternalUser || firstPrivateCalendar) {
 			return calendarInfos
 		}
 
-		if (firstPrivateCalendar) {
-			if (userSettingsGroupRoot.defaultCalendar === null) {
-				await this.calendarFacade.setCalendarAsDefault(firstPrivateCalendar.id, userSettingsGroupRoot)
-			}
-			return calendarInfos
-		}
-
-		const newCalendarGroup = await this.createCalendar("", null, [], null)
-		await this.calendarFacade.setCalendarAsDefault(newCalendarGroup._id, userSettingsGroupRoot)
+		await this.createCalendar("", null, [], null)
 
 		// Reload calendar infos to include the newly created calendar
 		return await this.loadCalendarInfos(progressMonitor)
@@ -756,17 +749,12 @@ export class CalendarModel {
 		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent ?? null).then(this.requestWidgetRefresh)
 	}
 
-	private async createPendingEvent(
-		event: CalendarEvent,
-		groupRoot: CalendarGroupRoot,
-		alarmInfos: ReadonlyArray<AlarmInfoTemplate> = [],
-		existingEvent: CalendarEvent | null = null,
-	): Promise<void> {
+	private async createPendingEvent(event: CalendarEvent, groupRoot: CalendarGroupRoot, existingEvent: CalendarEvent | null = null): Promise<void> {
 		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
 		removeTechnicalFields(event)
 
-		const { assignPendingEventId } = await import("../../../common/calendar/date/CalendarUtils")
-		assignPendingEventId(event, groupRoot)
+		const { assignEventId } = await import("../../../common/calendar/date/CalendarUtils")
+		assignEventId(event, getTimeZone(), groupRoot)
 
 		// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
 		event._ownerEncSessionKey = null
@@ -778,7 +766,7 @@ export class CalendarModel {
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
 
-		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent)
+		return await this.calendarFacade.saveCalendarEvent(event, [], existingEvent)
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
@@ -985,8 +973,12 @@ export class CalendarModel {
 
 		if (dbEvents == null) {
 			// Create pending events when processing calendar invites.
-			const defaultCalendarGroupRoot = await this.getDefaultCalendarGroupRoot()
-			return await this.handleNewCalendarInvitation(sender, calendarData, defaultCalendarGroupRoot)
+			const calendarInfos = await this.loadOrCreateCalendarInfo(this.readProgressMonitor.next().value)
+			const firstCalendar = findFirstPrivateCalendar(calendarInfos)
+			if (firstCalendar == null) {
+				throw new Error("Missing private calendar")
+			}
+			return await this.handleNewCalendarInvitation(sender, calendarData, firstCalendar.groupRoot)
 		}
 
 		const method = calendarData.method
@@ -1000,36 +992,10 @@ export class CalendarModel {
 	}
 
 	/**
-	 * Loads default calendar.
-	 * If the user still haven't been assigned one, it calls {@link loadOrCreateCalendarInfo} to get the most recent
-	 * list of calendars and assign the default;
-	 *
-	 * Throws an error if it fails to find a valid calendar after one retry
-	 *
-	 * @return {CalendarGroupRoot}
-	 * @throws if Can not create or find a default calendar
-	 */
-	async getDefaultCalendarGroupRoot(): Promise<CalendarGroupRoot> {
-		const storedDefaultCalendarGroupRoot = this.logins.getUserController().userSettingsGroupRoot.defaultCalendar
-		if (storedDefaultCalendarGroupRoot) {
-			return await this.entityClient.load(CalendarGroupRootTypeRef, storedDefaultCalendarGroupRoot)
-		}
-
-		const calendarInfos = await this.loadOrCreateCalendarInfo(this.readProgressMonitor.next().value)
-		const firstCalendar = findFirstPrivateCalendar(calendarInfos)
-
-		if (!firstCalendar) {
-			throw new Error(`Could not find a default calendar for user ${this.logins.getUserController().user._id}`)
-		}
-
-		return firstCalendar.groupRoot
-	}
-
-	/**
 	 * Handles new Calendar Invitations, creating an entry for them in the pendingEventsList of the default
 	 * CalendarGroupRoot. The server takes care of inserting an index entry into CalendarEventUidIndexTypeRef
 	 */
-	async handleNewCalendarInvitation(sender: string, calendarData: ParsedCalendarData, defaultCalendarGroupRoot: CalendarGroupRoot) {
+	async handleNewCalendarInvitation(sender: string, calendarData: ParsedCalendarData, destinationCalendarGroupRoot: CalendarGroupRoot) {
 		if (calendarData.method !== CalendarMethod.REQUEST) {
 			return // We don't handle anything different from an invitation
 		}
@@ -1040,7 +1006,7 @@ export class CalendarModel {
 				sender,
 			}
 
-			return this.createPendingEvent(calendarEvent, defaultCalendarGroupRoot)
+			return this.createPendingEvent(calendarEvent, destinationCalendarGroupRoot)
 		})
 
 		await Promise.all(eventsPromises)
@@ -1284,7 +1250,7 @@ export class CalendarModel {
 	}
 
 	async deleteCalendar(calendar: CalendarInfo): Promise<void> {
-		await this.calendarFacade.deleteCalendar(calendar.groupRoot._id, this.isDefaultCalendar(calendar.id))
+		await this.calendarFacade.deleteCalendar(calendar.groupRoot._id)
 		this.deviceConfig.removeLastSync(calendar.group._id)
 	}
 
@@ -1474,14 +1440,6 @@ export class CalendarModel {
 
 	getGroupSettings(): GroupSettings[] {
 		return this.logins.getUserController().userSettingsGroupRoot.groupSettings
-	}
-
-	private isDefaultCalendar(calendar: Id) {
-		return isSameId(this.logins.getUserController().userSettingsGroupRoot.defaultCalendar, calendar)
-	}
-
-	get defaultCalendar() {
-		return this.logins.getUserController().userSettingsGroupRoot.defaultCalendar
 	}
 }
 
