@@ -1148,6 +1148,7 @@ export type CalendarEvent = {
 	recurrenceId: null | Date;
 	_ownerKeyVersion: null | NumberString;
 	sender: null | string;
+	pendingInvitation: null | boolean;
 
 	repeatRule: null | CalendarRepeatRule;
 	alarmInfos: IdTuple[];
@@ -1175,7 +1176,6 @@ export type CalendarGroupRoot = {
 	shortEvents: Id;
 	longEvents: Id;
 	index: null | CalendarEventIndexRef;
-	pendingEvents: null | CalendarEventsRef;
 }
 export const UserAreaGroupDataTypeRef: TypeRef<UserAreaGroupData> = new TypeRef("tutanota", 956)
 
@@ -1254,17 +1254,16 @@ export type UserSettingsGroupRoot = {
 	birthdayCalendarColor: null | string;
 
 	groupSettings: GroupSettings[];
-	defaultCalendar: null | Id;
 }
-export const CalendarDeleteDataTypeRef: TypeRef<CalendarDeleteData> = new TypeRef("tutanota", 982)
+export const CalendarDeleteInTypeRef: TypeRef<CalendarDeleteIn> = new TypeRef("tutanota", 982)
 
-export function createCalendarDeleteData(values: StrippedEntity<CalendarDeleteData>): CalendarDeleteData {
-    return Object.assign(create(typeModels[CalendarDeleteDataTypeRef.typeId], CalendarDeleteDataTypeRef), values)
+export function createCalendarDeleteIn(values: StrippedEntity<CalendarDeleteIn>): CalendarDeleteIn {
+    return Object.assign(create(typeModels[CalendarDeleteInTypeRef.typeId], CalendarDeleteInTypeRef), values)
 }
 
-export type CalendarDeleteData = {
-	_type: TypeRef<CalendarDeleteData>;
-	_original?: CalendarDeleteData
+export type CalendarDeleteIn = {
+	_type: TypeRef<CalendarDeleteIn>;
+	_original?: CalendarDeleteIn
 
 	_format: NumberString;
 
@@ -2719,18 +2718,4 @@ export type PopulateClientSpamTrainingDataPostIn = {
 	mailOwnerGroup: Id;
 
 	populateClientSpamTrainingDatum: PopulateClientSpamTrainingDatum[];
-}
-export const CalendarEventsRefTypeRef: TypeRef<CalendarEventsRef> = new TypeRef("tutanota", 1783)
-
-export function createCalendarEventsRef(values: StrippedEntity<CalendarEventsRef>): CalendarEventsRef {
-    return Object.assign(create(typeModels[CalendarEventsRefTypeRef.typeId], CalendarEventsRefTypeRef), values)
-}
-
-export type CalendarEventsRef = {
-	_type: TypeRef<CalendarEventsRef>;
-	_original?: CalendarEventsRef
-
-	_id: Id;
-
-	list: Id;
 }

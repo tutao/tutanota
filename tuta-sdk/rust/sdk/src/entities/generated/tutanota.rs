@@ -1885,8 +1885,10 @@ pub struct CalendarEvent {
 	pub recurrenceId: Option<DateTime>,
 	#[serde(rename = "1401")]
 	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "1788")]
+	#[serde(rename = "1783")]
 	pub sender: Option<String>,
+	#[serde(rename = "1784")]
+	pub pendingInvitation: Option<bool>,
 	#[serde(rename = "945")]
 	pub repeatRule: Option<CalendarRepeatRule>,
 	#[serde(rename = "946")]
@@ -1933,8 +1935,6 @@ pub struct CalendarGroupRoot {
 	pub longEvents: GeneratedId,
 	#[serde(rename = "1103")]
 	pub index: Option<CalendarEventIndexRef>,
-	#[serde(rename = "1786")]
-	pub pendingEvents: Option<CalendarEventsRef>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -2065,8 +2065,6 @@ pub struct UserSettingsGroupRoot {
 	pub birthdayCalendarColor: Option<String>,
 	#[serde(rename = "979")]
 	pub groupSettings: Vec<GroupSettings>,
-	#[serde(rename = "1787")]
-	pub defaultCalendar: Option<GeneratedId>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -2085,14 +2083,14 @@ impl Entity for UserSettingsGroupRoot {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct CalendarDeleteData {
+pub struct CalendarDeleteIn {
 	#[serde(rename = "983")]
 	pub _format: i64,
 	#[serde(rename = "984")]
 	pub groupRootId: GeneratedId,
 }
 
-impl Entity for CalendarDeleteData {
+impl Entity for CalendarDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
@@ -4318,24 +4316,6 @@ impl Entity for PopulateClientSpamTrainingDataPostIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1778),
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct CalendarEventsRef {
-	#[serde(rename = "1784")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "1785")]
-	pub list: GeneratedId,
-}
-
-impl Entity for CalendarEventsRef {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: AppName::Tutanota,
-			type_id: TypeId::from(1783),
 		}
 	}
 }

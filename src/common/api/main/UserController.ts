@@ -394,7 +394,6 @@ export async function initUserController({
 							groupSettings: [],
 							usageDataOptedIn: null,
 							birthdayCalendarColor: null,
-							defaultCalendar: null,
 						}),
 					)
 					.then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),

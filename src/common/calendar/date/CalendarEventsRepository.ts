@@ -13,8 +13,10 @@ import {
 	getEventEnd,
 	getEventStart,
 	getMonthRange,
+	getTimeZone,
 	isBirthdayCalendar,
 	isBirthdayEvent,
+	isLongEvent,
 } from "./CalendarUtils.js"
 import { Birthday, CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, createCalendarEvent } from "../../api/entities/tutanota/TypeRefs.js"
 import { elementIdPart, getElementId, getListId, isSameId, listIdPart } from "../../api/common/utils/EntityUtils.js"
@@ -182,19 +184,12 @@ export class CalendarEventsRepository {
 		if (calendarInfo == null) {
 			return
 		}
+
 		const eventListId = getListId(eventWrapper.event)
-		if (isSameId(calendarInfo.groupRoot.shortEvents, eventListId)) {
-			// to prevent unnecessary churn, we only add the event if we have the months it covers loaded.
-			const eventStartMonth = getMonthRange(getEventStart(eventWrapper.event, this.zone), this.zone)
-			const eventEndMonth = getMonthRange(getEventEnd(eventWrapper.event, this.zone), this.zone)
-			if (this.isCalendarLoadedForRange(eventStartMonth.start, eventWrapper.event._ownerGroup)) {
-				await this.addDaysForEvent(eventWrapper, eventStartMonth)
-			}
-			// no short event covers more than two months, so this should cover everything.
-			if (eventEndMonth.start !== eventStartMonth.start && this.isCalendarLoadedForRange(eventEndMonth.start, eventWrapper.event._ownerGroup)) {
-				await this.addDaysForEvent(eventWrapper, eventEndMonth)
-			}
-		} else if (isSameId(calendarInfo.groupRoot.longEvents, eventListId)) {
+		const shouldGoIntoLongEventsList =
+			isSameId(calendarInfo.groupRoot.longEvents, eventListId) ||
+			isLongEvent(eventWrapper.event, eventWrapper.event.repeatRule?.timeZone ?? getTimeZone())
+		if (shouldGoIntoLongEventsList) {
 			this.removeExistingEvent(eventWrapper.event)
 
 			for (const [firstDayTimestamp, _] of this.loadedMonths) {
@@ -206,6 +201,20 @@ export class CalendarEventsRepository {
 					await this.addDaysForEvent(eventWrapper, loadedMonth)
 				}
 			}
+
+			return
+		}
+
+		// to prevent unnecessary churn, we only add the event if we have the months it covers loaded.
+		const eventStartMonth = getMonthRange(getEventStart(eventWrapper.event, this.zone), this.zone)
+		const eventEndMonth = getMonthRange(getEventEnd(eventWrapper.event, this.zone), this.zone)
+
+		if (this.isCalendarLoadedForRange(eventStartMonth.start, eventWrapper.event._ownerGroup)) {
+			await this.addDaysForEvent(eventWrapper, eventStartMonth)
+		}
+		// no short event covers more than two months, so this should cover everything.
+		if (eventEndMonth.start !== eventStartMonth.start && this.isCalendarLoadedForRange(eventEndMonth.start, eventWrapper.event._ownerGroup)) {
+			await this.addDaysForEvent(eventWrapper, eventEndMonth)
 		}
 	}
 
@@ -316,7 +325,7 @@ export class CalendarEventsRepository {
 						const wrapper: EventWrapper = {
 							event,
 							flags: {
-								isGhost: calendarInfos.get(eventOwnerGroupId)?.groupRoot.pendingEvents?.list === update.instanceListId,
+								isGhost: !!event.pendingInvitation,
 								hasAlarms: isNotEmpty(event.alarmInfos),
 								isAlteredInstance: Boolean(event.recurrenceId),
 							},
@@ -395,6 +404,7 @@ export class CalendarEventsRepository {
 			invitedConfidentially: null,
 			repeatRule: createRepeatRuleWithValues(RepeatPeriod.ANNUALLY, 1),
 			uid,
+			pendingInvitation: null,
 		})
 
 		newEvent._id = [calendarId, `${generateLocalEventElementId(newEvent.startTime.getTime(), contact._id.join("/"))}#${encodedContactId}`]

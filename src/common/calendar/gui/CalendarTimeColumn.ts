@@ -37,7 +37,7 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 
 	view({ attrs }: Vnode<CalendarTimeColumnAttrs>) {
 		return m(
-			".rel.grid.gap.border-right",
+			".rel.grid.gap.border-right.gap-1",
 			{
 				style: {
 					gridTemplateRows: `repeat(${attrs.layout.rowCount}, ${px(attrs.layout.gridRowHeight)})`,

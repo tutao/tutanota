@@ -51,14 +51,13 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 		const bottomPadding = size.spacing_4
 
 		return m(
-			".grid.pb-xs",
+			".grid.pb-xs.gap-1",
 			{
 				style: {
 					gridTemplateColumns: `repeat(${attrs.dates.length}, 1fr)`,
 					gridTemplateRows: `repeat(${this.rowCount}, ${px(this.bubbleSize)})`,
 					transition: `${DefaultAnimationTime}ms linear`,
 					height: this.rowCount > 0 ? px(this.rowCount * this.bubbleSize + bottomPadding + sectionGaps) : "0px",
-					gap: "1px",
 				} satisfies Partial<CSSStyleDeclaration>,
 				onmousemove: (mouseEvent: MouseEvent) => {
 					downcast(mouseEvent).redraw = false

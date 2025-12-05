@@ -898,14 +898,6 @@ export function assignEventId(event: CalendarEvent, zone: string, groupRoot: Cal
 	event._id = [listId, generateEventElementId(event.startTime.getTime())]
 }
 
-/** create an pending event id depending on the calendar it is */
-export function assignPendingEventId(event: CalendarEvent, groupRoot: CalendarGroupRoot): void {
-	if (!groupRoot.pendingEvents?.list) {
-		throw Error(`Group ${groupRoot._id} is missing its pending list`)
-	}
-	event._id = [groupRoot.pendingEvents.list, generateEventElementId(event.startTime.getTime())]
-}
-
 /** predicate that tells us if two CalendarEvent objects refer to the same instance or different ones.*/
 export function isSameEventInstance(left: EventWrapper, right: EventWrapper): boolean {
 	// in addition to the id we compare the start time equality to be able to distinguish repeating events. They have the same id but different start time.
