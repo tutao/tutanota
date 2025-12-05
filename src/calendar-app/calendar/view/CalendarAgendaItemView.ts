@@ -11,7 +11,7 @@ export interface CalendarAgendaItemViewAttrs {
 	day: Date
 	zone: string
 	event: EventWrapper
-	color: string
+	calendarColor: string
 	click: (domEvent: MouseEvent) => unknown
 	keyDown: (event: KeyboardEvent) => unknown
 	timeText: string
@@ -25,6 +25,14 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 
 	view({ attrs }: Vnode<CalendarAgendaItemViewAttrs>): Children {
 		const eventTitle = getDisplayEventTitle(attrs.event.event.summary)
+
+		let border: string | undefined = undefined
+		let backgroundColor = CalendarAgendaItemView.getBackground(attrs.selected ?? false, this.isFocused)
+		if (attrs.event.flags.isGhost) {
+			border = attrs.selected ? "1px solid transparent" : `1px dashed ${theme.outline}`
+			backgroundColor = attrs.selected ? theme.surface_container_highest : theme.surface_container_high
+		}
+
 		return m(
 			".flex.items-center.click.plr-12.border-radius.pt-8.pb-8.rel.limit-width.full-width",
 			{
@@ -38,15 +46,17 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 				onblur: () => (this.isFocused = false),
 				style: {
 					transition: `background ${DefaultAnimationTime}ms`,
-					background: CalendarAgendaItemView.getBackground(attrs.selected ?? false, this.isFocused),
+					background: backgroundColor,
+					border: border,
 					height: attrs.height ? px(attrs.height) : undefined,
 				},
 			},
 			[
 				m(".icon.circle.abs", {
 					style: {
-						backgroundColor: `#${attrs.color}`,
-					},
+						visibility: attrs.event.flags.isGhost ? "hidden" : undefined,
+						backgroundColor: `#${attrs.calendarColor}`,
+					} satisfies Partial<CSSStyleDeclaration>,
 				}),
 				m(".flex.col.min-width-0.pl-32", [m("p.b.m-0.text-ellipsis", eventTitle), m("", attrs.timeText)]),
 			],
