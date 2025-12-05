@@ -6,7 +6,6 @@ import {
 	findLast,
 	findLastIndex,
 	first,
-	getFirstOrThrow,
 	isEmpty,
 	last,
 	lastIndex,
@@ -58,6 +57,10 @@ type PrivateListState<ItemType> = Omit<ListState<ItemType>, "items" | "activeInd
 	unfilteredItems: ItemType[]
 	filteredItems: ItemType[]
 	activeItem: ItemType | null
+}
+
+function firstIndex(arr: readonly unknown[]): number {
+	return isEmpty(arr) ? -1 : 0
 }
 
 /** ListModel that does the state upkeep for the List, including loading state, loaded items, selection and filters*/
@@ -333,8 +336,6 @@ export class ListModel<ItemType, IdType> {
 		const oldActiveItem = this.rawState.activeItem
 		const oldActiveIndex = oldActiveItem ? this.state.items.indexOf(oldActiveItem) : -1
 
-		const firstIndex = (arr: readonly unknown[]) => (isEmpty(arr) ? -1 : 0)
-
 		const newActiveIndex: number =
 			oldActiveIndex === -1
 				? oldActiveItem
@@ -405,15 +406,20 @@ export class ListModel<ItemType, IdType> {
 			} else {
 				const selectedItems = new Set(this.state.selectedItems)
 				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? first(this.state.items)
-				if (!this.rangeSelectionAnchorItem) return
-
-				const previousActiveIndex = this.state.activeIndex ?? 0
-				const towardsAnchor = this.config.sortCompare(oldActiveItem ?? getFirstOrThrow(this.state.items), this.rangeSelectionAnchorItem) < 0
-				if (towardsAnchor) {
-					selectedItems.delete(this.state.items[previousActiveIndex])
+				const anchorItem = this.rangeSelectionAnchorItem
+				if (!anchorItem) return
+				const anchorIndex = this.state.items.findIndex((item) => this.config.isSameId(this.config.getItemId(item), this.config.getItemId(anchorItem)))
+				if (anchorIndex !== -1 && oldActiveIndex !== -1) {
+					const towardsAnchor = oldActiveIndex < anchorIndex
+					if (towardsAnchor) {
+						selectedItems.delete(this.state.items[oldActiveIndex])
+					} else {
+						selectedItems.add(newActiveItem)
+					}
 				} else {
 					selectedItems.add(newActiveItem)
 				}
+
 				this.updateState({ selectedItems, inMultiselect: true, activeItem: newActiveItem })
 			}
 		}
