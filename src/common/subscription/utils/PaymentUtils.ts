@@ -13,7 +13,7 @@ import { showProgressDialog } from "../../gui/dialogs/ProgressDialog"
 import { InvalidDataError, PreconditionFailedError } from "../../api/common/error/RestError"
 import { assertNotNull, ofClass } from "@tutao/tutanota-utils"
 import { Dialog } from "../../gui/base/Dialog"
-import { SignupViewModel } from "../../login/SignupView"
+import { SignupViewModel } from "../../signup/SignupView"
 
 export function isOnAccountAllowed(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {

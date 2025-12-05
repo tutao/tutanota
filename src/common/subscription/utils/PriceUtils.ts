@@ -12,7 +12,7 @@ import { isIOSApp } from "../../api/common/Env"
 import { MobilePlanPrice } from "../../native/common/generatedipc/MobilePlanPrice"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard.js"
-import { SignupViewModel } from "../../login/SignupView"
+import { SignupViewModel } from "../../signup/SignupView"
 
 export enum PaymentInterval {
 	Monthly = 1,

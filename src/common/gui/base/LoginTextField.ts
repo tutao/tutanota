@@ -85,7 +85,8 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 
 		const borderRadius = `${px(size.radius_8)} ${px(size.radius_8)} ${borderBottomRadius} ${borderBottomRadius}`
 
-		return [
+		return m(
+			"",
 			m(
 				".login-textfield.rel.overflow-hidden",
 				{
@@ -197,7 +198,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 					},
 					a.helpLabel(),
 				),
-		]
+		)
 	}
 
 	_getInputField(a: LoginTextFieldAttrs): Children {

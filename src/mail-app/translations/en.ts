@@ -2123,6 +2123,10 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"create_new_account_label": "Create new account",
+		"username_label": "Username",
+		"signup_page_title": "Sign up and Turn ON Privacy",
+		"signup_page_subtitle": "Safe encrypt your mails, calendar and contacts with Tuta."
 	}
 }

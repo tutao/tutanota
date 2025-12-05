@@ -42,7 +42,7 @@ import { UndoModel } from "./UndoModel"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { FeatureType } from "../common/api/common/TutanotaConstants"
 import { SignupFlowUsageTestController } from "../common/subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
-import { SignupView, SignupViewAttrs } from "../common/login/SignupView"
+import { SignupView, SignupViewAttrs } from "../common/signup/SignupView"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -592,7 +592,7 @@ import("./translations/en.js")
 									const migrator = await mailLocator.credentialFormatMigrator()
 									await migrator.migrate()
 
-									const { SignupView } = await import("../common/login/SignupView.js")
+									const { SignupView } = await import("../common/signup/SignupView.js")
 									const makeViewModel = await mailLocator.loginViewModelFactory()
 									return {
 										component: SignupView,

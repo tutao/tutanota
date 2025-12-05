@@ -2122,3 +2122,7 @@ export type TranslationKeyType =
 	| "fediverse_label"
 	| "matrix_label"
 	| "emptyString_msg"
+	| "create_new_account_label"
+	| "username_label"
+	| "signup_page_title"
+	| "signup_page_subtitle"
