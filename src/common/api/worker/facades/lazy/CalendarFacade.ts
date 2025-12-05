@@ -169,19 +169,21 @@ export class CalendarFacade {
             const shortEventsResult = await this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200)
             const longEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents)
 
-            const shortEvents: Array<EventWrapper> = shortEventsResult.elements.map((e) => ({
-                event: e,
-                flags: {
-                    hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
-                    isAlteredInstance: e.recurrenceId != null,
-                },
-                color,
-            }))
-            const longEvents: Array<EventWrapper> = longEventsResult.map((e) => ({
-                event: e,
-                flags: {
-                    hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
-                    isAlteredInstance: e.recurrenceId != null,
+			const shortEvents: Array<EventWrapper> = shortEventsResult.elements.map((e) => ({
+				event: e,
+				flags: {
+					hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
+					isAlteredInstance: e.recurrenceId != null,
+					isGhost: !!e.pendingInvitation,
+				},
+				color,
+			}))
+			const longEvents: Array<EventWrapper> = longEventsResult.map((e) => ({
+				event: e,
+				flags: {
+					hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
+					isAlteredInstance: e.recurrenceId != null,
+					isGhost: !!e.pendingInvitation,
                 },
                 color,
             }))

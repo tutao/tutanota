@@ -551,7 +551,6 @@ o.spec("CalendarImporter", function () {
                                 advancedRules: [],
                                 excludedDates: [],
                                 endValue: null,
-
                             }),
                         }),
                         alarms: [],
@@ -677,8 +676,7 @@ o.spec("CalendarImporter", function () {
                             repeatRule: null,
                             summary: "s",
                             pendingInvitation: null,
-                            sender: null,
-                            startTime: DateTime.fromObject(
+                            sender: null, startTime: DateTime.fromObject(
                                 {
                                     year: 2019,
                                     month: 8,
@@ -759,8 +757,7 @@ o.spec("CalendarImporter", function () {
                             repeatRule: null,
                             summary: "s",
                             pendingInvitation: null,
-                            sender: null,
-                            startTime: DateTime.fromObject(
+                            sender: null, startTime: DateTime.fromObject(
                                 {
                                     year: 2019,
                                     month: 8,
@@ -829,6 +826,7 @@ o.spec("CalendarImporter", function () {
                 ).contents[0],
                 {
                     event: createCalendarEvent({
+
                         attendees: [],
                         alarmInfos: [],
                         invitedConfidentially: null,
@@ -1090,6 +1088,7 @@ o.spec("CalendarImporter", function () {
                     contents: [
                         {
                             event: createCalendarEvent({
+
                                 recurrenceId: null,
                                 attendees: [],
                                 organizer: null,
@@ -1165,6 +1164,7 @@ o.spec("CalendarImporter", function () {
                     contents: [
                         {
                             event: createCalendarEvent({
+
                                 recurrenceId: null,
                                 description: "",
                                 sequence: "0",
@@ -1293,6 +1293,7 @@ END:VCALENDAR`
                 },
                 {
                     event: createCalendarEvent({
+
                         attendees: [],
                         organizer: null,
                         repeatRule: null,
@@ -1334,6 +1335,7 @@ END:VCALENDAR`
                 },
                 {
                     event: createCalendarEvent({
+
                         attendees: [],
                         organizer: null,
                         recurrenceId: null,
