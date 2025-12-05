@@ -13,6 +13,8 @@ const RSA_PUBLIC_EXPONENT = 65537
 interface BigInteger {
 	clone(): BigInteger
 	toByteArray(): Uint8Array
+	toString(radix: number): string
+	bitLength(): number
 }
 
 interface RSAKey {

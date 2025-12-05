@@ -1,5 +1,4 @@
-// @ts-ignore[untyped-import]
-import bCrypt from "../internal/bCrypt.js"
+import bCryptUntyped from "../internal/bCrypt.js"
 import { random } from "../random/Randomizer.js"
 import { stringToUtf8Uint8Array } from "@tutao/tutanota-utils"
 import { uint8ArrayToBitArray } from "../misc/Utils.js"
@@ -7,6 +6,16 @@ import { KeyLength } from "../misc/Constants.js"
 import { CryptoError } from "../misc/CryptoError.js"
 import { sha256Hash } from "./Sha256.js"
 import { AesKey } from "../encryption/Aes.js"
+
+const bCrypt = bCryptUntyped as unknown as BcryptConstructor
+
+interface Bcrypt {
+	crypt_raw(password: SignedBytes, salt: SignedBytes, log_rounds: number): SignedBytes
+}
+
+interface BcryptConstructor {
+	new (): Bcrypt
+}
 
 const logRounds = 8 // pbkdf2 number of iterations
 

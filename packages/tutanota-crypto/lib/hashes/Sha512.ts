@@ -1,5 +1,6 @@
 // @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
+
 const sha512 = new sjcl.hash.sha512()
 export const SHA512_HASH_LENGTH_BYTES = 64
 
@@ -8,7 +9,7 @@ export const SHA512_HASH_LENGTH_BYTES = 64
  * @param uint8Array The bytes.
  * @return The hash.
  */
-export function sha512Hash(uint8Array: Uint8Array): Uint8Array {
+export function sha512Hash(uint8Array: Uint8Array): Uint8Array<ArrayBuffer> {
 	try {
 		sha512.update(sjcl.codec.arrayBuffer.toBits(uint8Array.buffer, uint8Array.byteOffset, uint8Array.byteLength))
 		return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(sha512.finalize(), false))
