@@ -155,6 +155,7 @@ export class CalendarFacade {
 				flags: {
 					hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
 					isAlteredInstance: e.recurrenceId != null,
+					isGhost: !!e.pendingInvitation,
 				},
 				color,
 			}))
@@ -163,6 +164,7 @@ export class CalendarFacade {
 				flags: {
 					hasAlarms: hasAlarmsForTheUser(this.userFacade.getLoggedInUser(), e),
 					isAlteredInstance: e.recurrenceId != null,
+					isGhost: !!e.pendingInvitation,
 				},
 				color,
 			}))
