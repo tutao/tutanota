@@ -12,7 +12,7 @@ import { CacheStorage, DefaultEntityRestCache } from "../../../../../src/common/
 import { AsymmetricCryptoFacade } from "../../../../../src/common/api/worker/crypto/AsymmetricCryptoFacade"
 import { KeyRotationFacade } from "../../../../../src/common/api/worker/facades/KeyRotationFacade"
 import { Entity, ModelValue, ServerModelParsedInstance } from "../../../../../src/common/api/common/EntityTypes"
-import { assertNotNull, downcast, noOp, Nullable } from "@tutao/tutanota-utils"
+import { assertNotNull, downcast, noOp, Nullable, stringToBase64 } from "@tutao/tutanota-utils"
 import { RestClient } from "../../../../../src/common/api/worker/rest/RestClient"
 import {
 	clientInitializedTypeModelResolver,
@@ -22,18 +22,18 @@ import {
 	removeFinalIvs,
 } from "../../../TestUtils"
 import {
+	CalendarEvent,
+	CalendarEventTypeRef,
+	CalendarRepeatRuleTypeRef,
 	createOutOfOfficeNotificationRecipientList,
 	Mail,
 	MailAddress,
 	MailAddressTypeRef,
-	MailBox,
 	MailboxGroupRoot,
 	MailboxGroupRootTypeRef,
-	MailBoxTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
-	MailFolderRefTypeRef,
 	MailTypeRef,
 	OutOfOfficeNotificationRecipientListTypeRef,
 	RecipientsTypeRef,
@@ -488,36 +488,32 @@ o.spec("PatchMergerTest", () => {
 		})
 
 		o.test("apply_replace_on_ZeroOrOne_aggregation_works", async () => {
-			const mailbox = createTestEntity(MailBoxTypeRef, {
-				_id: "elementId",
-				_ownerEncSessionKey: encryptedSessionKey.key,
-				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
-				_ownerGroup: ownerGroupId,
-				folders: null,
-				sentAttachments: "attachmentsId",
-				receivedAttachments: "attachmentsId",
-				importedAttachments: "attachmentsId",
-				mailImportStates: "importStatesId",
+			const eventElementId = stringToBase64("elementId")
+			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
+				_id: ["listId", eventElementId],
+				repeatRule: null,
 			})
 
-			await storage.put(MailBoxTypeRef, await toStorableInstance(mailbox))
+			await storage.put(CalendarEventTypeRef, await toStorableInstance(calendarEvent))
 
-			const mailBoxTypeModel = await typeModelResolver.resolveClientTypeReference(MailBoxTypeRef)
-			const mailFolderRefAttributeId = assertNotNull(AttributeModel.getAttributeId(mailBoxTypeModel, "folders"))
-			const mailFolderRefToAdd = createTestEntity(MailFolderRefTypeRef, { folders: "mailFolderId" })
-			const untypedMailFolderRef = await instancePipeline.mapAndEncrypt(MailFolderRefTypeRef, mailFolderRefToAdd, sk)
+			const calendarEventTypeModel = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
+			const repeatRuleAttributeId = assertNotNull(AttributeModel.getAttributeId(calendarEventTypeModel, "repeatRule"))
+			const repeatRuleToAdd = createTestEntity(CalendarRepeatRuleTypeRef, { _id: "added-by-patch" })
+			const untypedRepeatRule = await instancePipeline.mapAndEncrypt(CalendarRepeatRuleTypeRef, repeatRuleToAdd, sk)
 
 			const patches: Array<Patch> = [
 				createPatch({
-					attributePath: mailFolderRefAttributeId.toString(),
-					value: JSON.stringify([untypedMailFolderRef]),
+					attributePath: repeatRuleAttributeId.toString(),
+					value: JSON.stringify([untypedRepeatRule]),
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
-			o(mailbox.folders).equals(null)
-			const testMailBoxPatchedParsed = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailBoxTypeRef, null, "elementId", patches))
-			const testMailBoxPatched = await instancePipeline.modelMapper.mapToInstance<MailBox>(MailBoxTypeRef, testMailBoxPatchedParsed)
-			o(testMailBoxPatched.folders?.folders).equals("mailFolderId")
+			o(calendarEvent.repeatRule).equals(null)
+			const patchedInstance = await instancePipeline.modelMapper.mapToInstance<CalendarEvent>(
+				CalendarEventTypeRef,
+				assertNotNull(await patchMerger.getPatchedInstanceParsed(CalendarEventTypeRef, "listId", eventElementId, patches)),
+			)
+			o(patchedInstance.repeatRule?._id).equals("added-by-patch")
 		})
 
 		o.test("apply_replace_on_Any_aggregation_works", async () => {
