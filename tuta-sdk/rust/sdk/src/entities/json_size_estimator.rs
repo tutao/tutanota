@@ -204,7 +204,6 @@ impl Serializer for &mut SizeEstimatingSerializer {
 		unreachable!()
 	}
 
-	/// maps are only used for the _finalIvs field which is not encrypted.
 	fn serialize_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
 		let Some(len) = len else {
 			return Err(SizeEstimationError("serialize_map".into()));
@@ -215,7 +214,6 @@ impl Serializer for &mut SizeEstimatingSerializer {
 			2 + (len + len).saturating_sub(1),
 		))
 	}
-
 	fn serialize_struct(
 		self,
 		name: &'static str,
@@ -449,7 +447,6 @@ impl SerializeSeq for SizeEstimatingCompoundSerializer {
 	}
 }
 
-/// maps are only used for the _finalIvs fields which are not encrypted.
 impl SerializeMap for SizeEstimatingCompoundSerializer {
 	type Ok = usize;
 	type Error = SizeEstimationError;
@@ -519,9 +516,11 @@ fn plain_base64_size_with_pad(bytes: &[u8]) -> usize {
 
 #[cfg(test)]
 mod tests {
-	use super::{enc_base64_size_with_pad, estimate_json_size, SizeEstimatingSerializer};
+	use super::{
+		enc_base64_size_with_pad, estimate_json_size, plain_base64_size_with_pad,
+		SizeEstimatingSerializer,
+	};
 	use crate::date::DateTime;
-	use crate::entities::FinalIv;
 	use crate::{CustomId, GeneratedId, IdTupleCustom, IdTupleGenerated, TypeRef};
 	use serde::Serialize;
 	use std::collections::HashMap;
@@ -581,13 +580,9 @@ mod tests {
 
 	#[test]
 	fn estimate_map_size() {
-		let value = HashMap::from([
-			("some", FinalIv(Vec::from(b"0"))),
-			("other", FinalIv(Vec::from(b"234"))),
-		]);
+		let value = HashMap::<&str, &str>::from([("some", "0"), ("other", "234")]);
 		assert_eq!(
-			r#"{"some":"MAo=","other":"===="}"#.len(),
-			// maps are only used for the _finalIvs fields which are not encrypted.
+			r#"{"some":"0","other":"234"}"#.len(),
 			value.serialize(&mut SizeEstimatingSerializer).unwrap()
 		);
 	}
@@ -643,30 +638,6 @@ mod tests {
 		assert_eq!(
 			r#"["",""]"#.len() + enc_base64_size_with_pad(b"0") + enc_base64_size_with_pad(b"10"),
 			vec!["0", "10"]
-				.serialize(&mut SizeEstimatingSerializer)
-				.unwrap()
-		);
-	}
-
-	#[test]
-	fn estimate_bytes_size() {
-		// using FinalIv because it's annotated to use serde_bytes for the byte vector serialization.
-		// serde serializes a bare &[u8] as a sequence or tuple by default
-		assert_eq!(
-			enc_base64_size_with_pad(b"") + 2,
-			FinalIv(b"".as_slice().to_owned())
-				.serialize(&mut SizeEstimatingSerializer)
-				.unwrap()
-		);
-		assert_eq!(
-			enc_base64_size_with_pad(b"0") + 2,
-			FinalIv(b"0".as_slice().to_owned())
-				.serialize(&mut SizeEstimatingSerializer)
-				.unwrap()
-		);
-		assert_eq!(
-			enc_base64_size_with_pad(b"hello") + 2,
-			FinalIv(b"hello".as_slice().to_owned())
 				.serialize(&mut SizeEstimatingSerializer)
 				.unwrap()
 		);

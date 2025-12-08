@@ -245,18 +245,15 @@ pub enum AesDecryptError {
 }
 
 /// Result of decryption operation.
-/// IV is usually part of the ciphertext. Returned iv is a part of the provided ciphertext.
-pub struct PlaintextAndIv {
+pub struct Plaintext {
 	pub data: Vec<u8>,
-	// IV is small enough that a copy is the same size as a reference
-	pub iv: Iv,
 }
 
 /// Decrypt using AES-128-CBC using prepended IV with PKCS7 padding and optional HMAC-SHA-256
 pub fn aes_128_decrypt(
 	key: &Aes128Key,
 	encrypted_bytes: &[u8],
-) -> Result<PlaintextAndIv, AesDecryptError> {
+) -> Result<Plaintext, AesDecryptError> {
 	aes_decrypt(
 		key,
 		encrypted_bytes,
@@ -284,7 +281,7 @@ pub fn aes_128_decrypt_no_padding_fixed_iv(
 pub fn aes_256_decrypt(
 	key: &Aes256Key,
 	encrypted_bytes: &[u8],
-) -> Result<PlaintextAndIv, AesDecryptError> {
+) -> Result<Plaintext, AesDecryptError> {
 	aes_decrypt(
 		key,
 		encrypted_bytes,
@@ -297,7 +294,7 @@ pub fn aes_256_decrypt(
 pub fn aes_256_decrypt_no_padding(
 	key: &Aes256Key,
 	encrypted_bytes: &[u8],
-) -> Result<PlaintextAndIv, AesDecryptError> {
+) -> Result<Plaintext, AesDecryptError> {
 	aes_decrypt(
 		key,
 		encrypted_bytes,
@@ -504,7 +501,7 @@ fn aes_decrypt<Key: AesKey>(
 	encrypted_bytes: &[u8],
 	padding_mode: PaddingMode,
 	enforce_mac: EnforceMac,
-) -> Result<PlaintextAndIv, AesDecryptError> {
+) -> Result<Plaintext, AesDecryptError> {
 	if encrypted_bytes.len() < IV_BYTE_SIZE {
 		return Err(AesDecryptError::InvalidDataSizeError);
 	}
@@ -528,10 +525,7 @@ fn aes_decrypt<Key: AesKey>(
 
 	// Return early if there is nothing to decrypt
 	if encrypted_bytes.is_empty() {
-		return Ok(PlaintextAndIv {
-			data: vec![],
-			iv: Iv(iv_bytes.try_into().expect("iv is correct size")),
-		});
+		return Ok(Plaintext { data: vec![] });
 	}
 
 	let mut decryptor =
@@ -542,9 +536,8 @@ fn aes_decrypt<Key: AesKey>(
 		PaddingMode::WithPadding => decryptor.decrypt_padded_vec_mut::<Pkcs7>(encrypted_bytes)?,
 	};
 
-	Ok(PlaintextAndIv {
+	Ok(Plaintext {
 		data: plaintext_data,
-		iv: Iv(iv_bytes.try_into().expect("iv is correct size")),
 	})
 }
 

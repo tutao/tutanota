@@ -8,12 +8,11 @@ import {
 	ServerModelParsedInstance,
 	ServerTypeModel,
 } from "../../common/EntityTypes"
-import { assertNotNull, Base64, base64ToUint8Array, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
+import { Base64, base64ToUint8Array, Nullable, stringToUtf8Uint8Array, TypeRef, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/tutanota-utils"
 import { AssociationType, Cardinality, ValueType } from "../../common/EntityConstants"
 import { CryptoError } from "@tutao/tutanota-crypto/error.js"
-import { Nullable } from "@tutao/tutanota-utils"
-import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, extractIvFromCipherText, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
-import { convertDbToJsType, convertJsToDbType, decompressString, isDefaultValue, valueToDefault } from "./ModelMapper"
+import { aesDecrypt, aesEncrypt, AesKey, ENABLE_MAC, IV_BYTE_LENGTH, random } from "@tutao/tutanota-crypto"
+import { convertDbToJsType, convertJsToDbType, decompressString, valueToDefault } from "./ModelMapper"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "../../common/EntityFunctions"
 import { isWebClient } from "../../common/Env"
 import { ProgrammingError } from "../../common/error/ProgrammingError"
@@ -78,9 +77,7 @@ export class CryptoMapper {
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		sk: Nullable<AesKey>,
 	): Promise<ServerModelParsedInstance> {
-		const decrypted: ServerModelParsedInstance = {
-			_finalIvs: {},
-		} as ServerModelParsedInstance
+		const decrypted: ServerModelParsedInstance = {} as ServerModelParsedInstance
 		for (const [valueIdStr, valueInfo] of Object.entries(serverTypeModel.values)) {
 			const valueId = parseInt(valueIdStr)
 			const valueName = valueInfo.name
@@ -97,20 +94,6 @@ export class CryptoMapper {
 					throw new SessionKeyNotFoundError(
 						"session key is null, but value is encrypted. valueName: " + valueName + " valueType: " + JSON.stringify(valueInfo),
 					)
-				}
-				if (valueInfo.encrypted) {
-					if (encryptedValue === "") {
-						// the encrypted value is "" if the decrypted value is the default value
-						// storing this marker lets us restore that empty string when we re-encrypt the instance.
-						// check out encrypt() to see the other side of this.
-						decrypted._finalIvs[valueId] = null
-					} else if (valueInfo.final && encryptedValue) {
-						// the server needs to be able to check if an encrypted final field changed.
-						// that's only possible if we re-encrypt using a deterministic IV, because the ciphertext changes if
-						// the IV or the value changes.
-						// storing the IV we used for the initial encryption lets us reuse it later.
-						decrypted._finalIvs[valueId] = extractIvFromCipherText(encryptedValue as Base64)
-					}
 				}
 			} catch (e) {
 				if (decrypted._errors == null) {
@@ -166,7 +149,6 @@ export class CryptoMapper {
 		sk: Nullable<AesKey>,
 	): Promise<ClientModelEncryptedParsedInstance> {
 		let encrypted: ClientModelEncryptedParsedInstance = {} as ClientModelEncryptedParsedInstance
-		const finalIvs = parsedInstance._finalIvs
 
 		for (let valueId of Object.keys(clientTypeModel.values).map(Number)) {
 			let valueType = clientTypeModel.values[valueId]
@@ -176,16 +158,10 @@ export class CryptoMapper {
 			let encryptedValue
 			if (!valueType.encrypted) {
 				encryptedValue = value
-			} else if (finalIvs[valueId] === null && isDefaultValue(valueType.type, value)) {
-				// restore the default encrypted value because it has not changed.
-				// this saves storage and more importantly prevents us from throwing out-of-storage errors for updates that
-				// should not increase the size of the instance.
-				encryptedValue = ""
 			} else if (sk != null) {
 				// the value is actually Uint8Array | null | undefined. null means we need to check that the default value wasn't changed,
 				// which happened above - so it's okay to roll null into undefined.
-				const iv = finalIvs[valueId] ?? undefined
-				encryptedValue = encryptValue(valueType as ModelValue & { encrypted: true }, value, sk, iv)
+				encryptedValue = encryptValue(valueType as ModelValue & { encrypted: true }, value, sk)
 			} else {
 				throw new CryptoError(`Encrypting ${clientTypeModel.app}/${clientTypeModel.name}.${valueName} requires a session key!`)
 			}

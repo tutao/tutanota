@@ -236,7 +236,6 @@ impl ImportEssential {
 			totalMails: total_importable_mails,
 			targetMailFolder: target_mailset,
 			_errors: Default::default(),
-			_finalIvs: Default::default(),
 		};
 
 		let import_get_response = logged_in_sdk

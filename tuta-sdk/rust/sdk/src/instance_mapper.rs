@@ -267,7 +267,6 @@ struct ElementValueDeserializer<'t> {
 pub enum ElementValueKey {
 	AttributeId(AttributeId),
 	MaybeErrorKeys(String),
-	FinalIvs,
 	Errors,
 }
 
@@ -277,8 +276,6 @@ impl ElementValueKey {
 			Self::AttributeId(AttributeId::from(number))
 		} else if key_str == "_errors" {
 			Self::Errors
-		} else if key_str == "_finalIvs" {
-			Self::FinalIvs
 		} else {
 			Self::MaybeErrorKeys(key_str)
 		}
@@ -484,10 +481,8 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 
 		let attribute_id = match self.attribute_id {
 			ElementValueKey::AttributeId(attribute_id) => attribute_id,
-			ElementValueKey::MaybeErrorKeys(_)
-			| ElementValueKey::Errors
-			| ElementValueKey::FinalIvs => {
-				todo!()
+			ElementValueKey::MaybeErrorKeys(_) | ElementValueKey::Errors => {
+				unreachable!()
 			},
 		};
 
@@ -661,7 +656,6 @@ impl<'de> Deserializer<'de> for ElementValueDeserializer<'de> {
 		}
 	}
 
-	/// Only used for _finalIvs
 	fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
 	where
 		V: Visitor<'de>,
@@ -1929,7 +1923,6 @@ mod tests {
 			group: GeneratedId::test_random(),
 			mailAddressAliases: vec![],
 			_errors: Default::default(),
-			_finalIvs: Default::default(),
 		};
 
 		let type_model_provider = Arc::new(mock_type_model_provider());
@@ -2089,12 +2082,6 @@ mod tests {
 		let type_model = type_model_provider
 			.resolve_server_type_ref(&type_ref)
 			.unwrap();
-		if type_model.is_encrypted() {
-			parsed_entity.insert(
-				"_finalIvs".to_owned(),
-				ElementValue::Dict(Default::default()),
-			);
-		}
 		parsed_entity
 	}
 }

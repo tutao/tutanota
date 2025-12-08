@@ -303,11 +303,7 @@ o.spec("EventBusClientTest", function () {
 		const updateCaptor = matchers.captor()
 		verify(listenerMock.onCounterChanged(updateCaptor.capture()))
 
-		// same counterUpdate defined above with added _finalIvs field
-		const expectedCounterUpdate = { ...counterUpdate }
-		Object.assign(expectedCounterUpdate, { _finalIvs: {} })
-		Object.assign(expectedCounterUpdate.counterValues[0], { _finalIvs: {} })
-		o(updateCaptor.values!.map(removeOriginals)).deepEquals([expectedCounterUpdate])
+		o(updateCaptor.values!.map(removeOriginals)).deepEquals([counterUpdate])
 	})
 
 	o("verify new hash is set when entity updates are processed", async function () {

@@ -4,7 +4,7 @@
 
 #[allow(unused_imports)]
 pub use aes::Aes128Key;
-pub use aes::PlaintextAndIv;
+pub use aes::Plaintext;
 #[allow(unused_imports)]
 pub use aes::{Aes256Key, AES_256_KEY_SIZE, IV_BYTE_SIZE};
 pub use argon2_id::generate_key_from_passphrase;

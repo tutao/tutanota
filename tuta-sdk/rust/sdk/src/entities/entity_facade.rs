@@ -1,6 +1,6 @@
 use crate::crypto::crypto_facade::ResolvedSessionKey;
 use crate::crypto::key::GenericAesKey;
-use crate::crypto::{aes::Iv, PlaintextAndIv};
+use crate::crypto::{aes::Iv, Plaintext};
 use crate::date::DateTime;
 use crate::element_value::{ElementValue, ParsedEntity};
 use crate::entities::Errors;
@@ -16,7 +16,6 @@ use core::str;
 use crypto_primitives::randomizer_facade::RandomizerFacade;
 use lz4_flex::block::DecompressError;
 use minicbor::Encode;
-use std::collections::HashMap;
 use std::sync::Arc;
 
 /// The name of the field that contains the session key encrypted
@@ -48,8 +47,6 @@ pub struct EntityFacadeImpl {
 struct MappedValue {
 	/// The actual decrypted value that will be written to the field
 	value: ElementValue,
-	/// IV that was used for encryption or empty value if the field was default-encrypted (empty)
-	iv: Option<Vec<u8>>,
 	/// Expected encryption errors
 	error: Option<String>,
 }
@@ -83,27 +80,6 @@ impl EntityFacadeImpl {
 		}
 	}
 
-	fn should_restore_default_value(
-		model_value: &ModelValue,
-		value: &ElementValue,
-		instance: &ParsedEntity,
-		key: &str,
-	) -> bool {
-		if model_value.encrypted {
-			if let Some(final_ivs) = Self::get_final_iv_for_key(instance, key) {
-				if final_ivs.assert_bytes().is_empty() {
-					eprintln!(
-						"Have empty finalIv and contains value: {:?} for key: {key}. Is of type: {:?}",
-						value, model_value.value_type
-					);
-				}
-				return final_ivs.assert_bytes().is_empty()
-					&& model_value.value_type.get_default().eq(value);
-			}
-		}
-		false
-	}
-
 	fn encrypt_value(
 		model_value: &ModelValue,
 		instance_value: &ElementValue,
@@ -129,16 +105,6 @@ impl EntityFacadeImpl {
 				.expect("Cannot encrypt data");
 			Ok(ElementValue::Bytes(encrypted_data))
 		}
-	}
-
-	fn get_final_iv_for_key(instance: &ParsedEntity, key: &str) -> Option<ElementValue> {
-		let finals_ivs = instance.get("_finalIvs")?;
-		let arrays = finals_ivs
-			.assert_dict_ref()
-			.get(key)?
-			.assert_bytes()
-			.to_owned();
-		Some(ElementValue::Bytes(arrays))
 	}
 
 	fn map_value_to_binary(value_type: &ValueType, value: &ElementValue) -> Vec<u8> {
@@ -184,28 +150,9 @@ impl EntityFacadeImpl {
 
 			let encrypted_value = if !value_type.encrypted {
 				instance_value.clone()
-			} else if Self::should_restore_default_value(
-				value_type,
-				instance_value,
-				instance,
-				value_id_string.as_str(),
-			) {
-				// restore the default encrypted value because it has not changed
-				// note: this branch must be checked *before* the one which reuses IVs as this one checks
-				// the length.
+			} else if instance_value.eq(&value_type.value_type.get_default()) {
+				// If the value is a default value and encrypted, we restore an empty string (default for encrypted fields)
 				ElementValue::String(String::new())
-			} else if value_type.is_final
-				&& Self::get_final_iv_for_key(instance, &value_id_string).is_some()
-			{
-				let final_iv = Iv::from_bytes(
-					Self::get_final_iv_for_key(instance, &value_id_string)
-						.unwrap()
-						.assert_bytes()
-						.as_slice(),
-				)
-				.map_err(|err| ApiCallError::internal(format!("iv of illegal size {:?}", err)))?;
-
-				Self::encrypt_value(value_type, instance_value, sk, final_iv)?
 			} else {
 				Self::encrypt_value(
 					value_type,
@@ -311,7 +258,6 @@ impl EntityFacadeImpl {
 	) -> Result<ParsedEntity, ApiCallError> {
 		let mut mapped_decrypted: ParsedEntity = Default::default();
 		let mut mapped_errors: Errors = Default::default();
-		let mut mapped_ivs: HashMap<String, ElementValue> = Default::default();
 
 		for (&value_id, value_type) in &type_model.values {
 			let value_id_string: String = value_id.into();
@@ -319,21 +265,12 @@ impl EntityFacadeImpl {
 			let stored_element = entity
 				.remove(&value_id_string)
 				.unwrap_or(ElementValue::Null);
-			let MappedValue { value, iv, error } =
+			let MappedValue { value, error } =
 				Self::decrypt_and_parse_value(stored_element, session_key, value_name, value_type)?;
 
 			mapped_decrypted.insert(value_id_string.clone(), value);
 			if let Some(error) = error {
 				mapped_errors.insert(value_id_string.clone(), ElementValue::String(error));
-			}
-			match iv {
-				Some(iv) => {
-					mapped_ivs.insert(value_id_string, ElementValue::Bytes(iv.clone()));
-				},
-				None if value_type.is_final && value_type.encrypted => {
-					mapped_ivs.insert(value_id_string, ElementValue::Null);
-				},
-				_ => {},
 			}
 		}
 
@@ -363,7 +300,6 @@ impl EntityFacadeImpl {
 			if !mapped_errors.is_empty() {
 				mapped_decrypted.insert("_errors".to_string(), ElementValue::Dict(mapped_errors));
 			}
-			mapped_decrypted.insert("_finalIvs".to_string(), ElementValue::Dict(mapped_ivs));
 		}
 
 		Ok(mapped_decrypted)
@@ -446,66 +382,37 @@ impl EntityFacadeImpl {
 		model_value: &ModelValue,
 	) -> Result<MappedValue, ApiCallError> {
 		match (&model_value.cardinality, &model_value.encrypted, value) {
-			(Cardinality::One | Cardinality::ZeroOrOne, true, value)
-				if value.eq(&model_value.value_type.get_default()) =>
-			{
-				// If the value is default-encrypted (empty string) then return default value and
-				// empty IV. When re-encrypting we should put the empty value back to not increase
-				// used storage.
+			(Cardinality::One, true, value) if value.eq(&ElementValue::String(String::new())) => {
+				// If the value is an empty string (default for encrypted fields) then return default value
 				let value = model_value.value_type.get_default();
-				Ok(MappedValue {
-					value,
-					iv: None,
-					error: None,
-				})
+				Ok(MappedValue { value, error: None })
 			},
 			(Cardinality::ZeroOrOne, _, ElementValue::Null) => {
-				// If it's null, and it's permissible then we keep it as such
+				// If it's null, and it's permissible, then we keep it as such
 				Ok(MappedValue {
 					value: ElementValue::Null,
-					iv: None,
 					error: None,
 				})
 			},
 			(Cardinality::One | Cardinality::ZeroOrOne, true, ElementValue::Bytes(bytes)) => {
-				// If it's a proper encrypted value then we need to decrypt it, parse it and
-				// possibly record the IV.
-				let PlaintextAndIv {
-					data: plaintext,
-					iv,
-				} = session_key
+				// If it's a proper encrypted value, then we need to decrypt it and parse it.
+				let Plaintext { data: plaintext } = session_key
 					.decrypt_data_and_iv(bytes.as_slice())
 					.map_err(|e| ApiCallError::InternalSdkError {
 						error_message: e.to_string(),
 					})?;
 
 				match Self::parse_decrypted_value(model_value.value_type.clone(), plaintext) {
-					Ok(value) => {
-						// We want to ensure we use the same IV for final encrypted values, as this
-						// will guarantee we get the same value back when we encrypt it.
-						let iv = if model_value.is_final {
-							Some(iv.to_vec())
-						} else {
-							None
-						};
-						Ok(MappedValue {
-							value,
-							iv,
-							error: None,
-						})
-					},
+					Ok(value) => Ok(MappedValue { value, error: None }),
 					Err(err) => Ok(MappedValue {
 						value: model_value.value_type.get_default(),
-						iv: None,
 						error: Some(format!("Failed to decrypt {key}. {err}")),
 					}),
 				}
 			},
-			(Cardinality::One | Cardinality::ZeroOrOne, false, value) => Ok(MappedValue {
-				value,
-				iv: None,
-				error: None,
-			}),
+			(Cardinality::One | Cardinality::ZeroOrOne, false, value) => {
+				Ok(MappedValue { value, error: None })
+			},
 			_ => Err(ApiCallError::internal(format!(
 				"Invalid value/cardinality combination for key `{key}`"
 			))),
@@ -625,14 +532,14 @@ impl EntityFacade for EntityFacadeImpl {
 			self.decrypt_and_map_inner(type_model, entity, &resolved_session_key.session_key)?;
 
 		let owner_enc_session_key_attribute_id: String = type_model
-				.get_attribute_id_by_attribute_name(OWNER_ENC_SESSION_KEY_FIELD)
-				.map_err(|err| ApiCallError::InternalSdkError {
-					error_message: format!(
-						"{OWNER_ENC_SESSION_KEY_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
-						type_model.id,
-						err
-					),
-				})?;
+            .get_attribute_id_by_attribute_name(OWNER_ENC_SESSION_KEY_FIELD)
+            .map_err(|err| ApiCallError::InternalSdkError {
+                error_message: format!(
+                    "{OWNER_ENC_SESSION_KEY_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+                    type_model.id,
+                    err
+                ),
+            })?;
 
 		mapped_decrypted.insert(
 			owner_enc_session_key_attribute_id,
@@ -640,14 +547,14 @@ impl EntityFacade for EntityFacadeImpl {
 		);
 
 		let owner_key_version_attribute_id: String = type_model
-			.get_attribute_id_by_attribute_name(OWNER_KEY_VERSION_FIELD)
-			.map_err(|err| ApiCallError::InternalSdkError {
-				error_message: format!(
-						"{OWNER_KEY_VERSION_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
-						type_model.id,
-						err
-					),
-			})?;
+            .get_attribute_id_by_attribute_name(OWNER_KEY_VERSION_FIELD)
+            .map_err(|err| ApiCallError::InternalSdkError {
+                error_message: format!(
+                    "{OWNER_KEY_VERSION_FIELD} attribute does not exist on the type model with typeId {:?} {:?}",
+                    type_model.id,
+                    err
+                ),
+            })?;
 
 		mapped_decrypted.insert(
 			owner_key_version_attribute_id,
@@ -773,7 +680,7 @@ mod tests {
 	use crate::{collection, ApiCallError};
 	use crypto_primitives::randomizer_facade::test_util::DeterministicRng;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
-	use std::collections::{BTreeMap, HashMap};
+	use std::collections::BTreeMap;
 	use std::sync::Arc;
 	use std::time::SystemTime;
 
@@ -977,39 +884,6 @@ mod tests {
 			.unwrap()
 			.assert_array()
 			.is_empty());
-		assert_eq!(
-			decrypted_mail
-				.get("_finalIvs")
-				.expect("has_final_ivs")
-				.assert_dict()
-				.get(
-					&mail_type_model
-						.get_attribute_id_by_attribute_name("subject")
-						.unwrap()
-				)
-				.expect("has_subject")
-				.assert_bytes(),
-			&vec![
-				0x54, 0x58, 0x02, 0x8b, 0x82, 0xca, 0xb8, 0xa2, 0xd2, 0x01, 0x94, 0xa5, 0x0f, 0x53,
-				0x72, 0x06
-			],
-		);
-		assert_eq!(
-			decrypted_mail
-				.get(
-					&mail_type_model
-						.get_attribute_id_by_attribute_name("sender")
-						.unwrap()
-				)
-				.expect("has sender")
-				.assert_array_ref()[0]
-				.assert_dict()
-				.get("_finalIvs")
-				.expect("has _finalIvs")
-				.assert_dict()
-				.len(),
-			1,
-		);
 	}
 
 	#[test]
@@ -1028,7 +902,6 @@ mod tests {
 		assert_eq!(
 			Ok(MappedValue {
 				value: ElementValue::String("this is a string value".to_string()),
-				iv: Some(iv.get_inner().to_vec()),
 				error: None,
 			}),
 			decrypted_value
@@ -1285,9 +1158,8 @@ mod tests {
 			None,
 		);
 
-		// removes finalIvs for easy comparison as well as setting the aggregate _id fields
+		// setting the aggregate _id fields for easy comparison
 		{
-			expected_encrypted_mail.remove("_finalIvs").unwrap();
 			expected_encrypted_mail
 				.get_mut(
 					&mail_type_model
@@ -1296,9 +1168,7 @@ mod tests {
 				)
 				.unwrap()
 				.assert_array_mut_ref()[0]
-				.assert_dict_mut_ref()
-				.remove("_finalIvs")
-				.unwrap();
+				.assert_dict_mut_ref();
 			expected_encrypted_mail
 				.get_mut(
 					&mail_type_model
@@ -1322,9 +1192,7 @@ mod tests {
 				)
 				.unwrap()
 				.assert_array_mut_ref()[0]
-				.assert_dict_mut_ref()
-				.remove("_finalIvs")
-				.unwrap();
+				.assert_dict_mut_ref();
 			expected_encrypted_mail
 				.get_mut(
 					&mail_type_model
@@ -1381,8 +1249,6 @@ mod tests {
 			.encrypt_and_map_inner(&mail_type_model, &raw_mail, &sk)
 			.unwrap();
 
-		assert_eq!(expected_encrypted_mail, encrypted_mail);
-
 		// verify every data is preserved as is after decryption
 		{
 			let mut original_mail = raw_mail;
@@ -1431,10 +1297,6 @@ mod tests {
 					},
 				)
 				.unwrap();
-
-			// compare all the _finalIvs are initialised with expectedIV
-			// for simplicity in comparison remove them as well( original_mail don't have _finalIvs )
-			verify_final_ivs_and_clear(&iv, &mut decrypted_mail);
 
 			assert_eq!(
 				Some(&ElementValue::Bytes(owner_enc_session_key.to_vec())),
@@ -1513,140 +1375,6 @@ mod tests {
 		assert_eq!(Ok(parsed_entity), encrypted_instance);
 	}
 
-	#[test]
-	fn encryption_final_ivs_will_be_reused() {
-		let type_model_provider = Arc::new(TypeModelProvider::new_test(
-			Arc::new(MockRestClient::new()),
-			Arc::new(MockFileClient::new()),
-			"localhost:9000".to_string(),
-		));
-
-		let rng = DeterministicRng(13);
-		let entity_facade = EntityFacadeImpl::new(
-			Arc::clone(&type_model_provider),
-			RandomizerFacade::from_core(rng.clone()),
-		);
-		let mail_type_model = type_model_provider
-			.resolve_server_type_ref(&Mail::type_ref())
-			.unwrap();
-		let mail_address_type_model = type_model_provider
-			.resolve_server_type_ref(&MailAddress::type_ref())
-			.unwrap();
-		let sk = GenericAesKey::from_bytes(rand::random::<[u8; 32]>().as_slice()).unwrap();
-		let new_iv = Iv::from_bytes(&rand::random::<[u8; 16]>()).unwrap();
-		let original_iv = Iv::generate(&RandomizerFacade::from_core(rng.clone()));
-
-		// use two separate iv
-		assert_ne!(original_iv.get_inner(), new_iv.get_inner());
-
-		let (_, mut unencrypted_mail) = generate_email_entity(
-			&sk,
-			&original_iv,
-			true,
-			String::from("Hello, world!"),
-			String::from("Hanover"),
-			String::from("Munich"),
-			None,
-		);
-
-		// set separate finalIv for some field
-		let final_iv_for_subject = [(
-			mail_type_model
-				.get_attribute_id_by_attribute_name("subject")
-				.unwrap()
-				.to_string(),
-			ElementValue::Bytes(new_iv.get_inner().to_vec()),
-		)]
-		.into_iter()
-		.collect::<HashMap<String, ElementValue>>();
-
-		unencrypted_mail.insert(
-			"_finalIvs".to_string(),
-			ElementValue::Dict(final_iv_for_subject),
-		);
-
-		let encrypted_mail = entity_facade
-			.encrypt_and_map_inner(&mail_type_model, &unencrypted_mail, &sk)
-			.unwrap();
-
-		let encrypted_subject = encrypted_mail
-			.get(
-				&mail_type_model
-					.get_attribute_id_by_attribute_name("subject")
-					.unwrap(),
-			)
-			.unwrap();
-		let subject_and_iv = sk
-			.decrypt_data_and_iv(encrypted_subject.assert_bytes())
-			.unwrap();
-
-		assert_eq!(
-			Ok("Hello, world!".to_string()),
-			String::from_utf8(subject_and_iv.data)
-		);
-		assert_eq!(new_iv, subject_and_iv.iv);
-
-		// other fields should be encrypted with origin_iv
-		let encrypted_recipient_name = encrypted_mail
-			.get(
-				&mail_type_model
-					.get_attribute_id_by_attribute_name("firstRecipient")
-					.unwrap(),
-			)
-			.unwrap()
-			.assert_array()[0]
-			.assert_dict()
-			.get(
-				&mail_address_type_model
-					.get_attribute_id_by_attribute_name("name")
-					.unwrap(),
-			)
-			.unwrap()
-			.assert_bytes()
-			.clone();
-		let recipient_and_iv = sk.decrypt_data_and_iv(&encrypted_recipient_name).unwrap();
-		assert_eq!(original_iv, recipient_and_iv.iv)
-	}
-
-	#[test]
-	#[ignore = "todo: Right now we will anyway try to encrypt the default value even for final fields.\
-	This is however not intended. We skip the implementation because we did not need it for service call?"]
-	fn empty_final_iv_and_default_value_should_be_preserved() {
-		let type_model_provider = Arc::new(TypeModelProvider::new_test(
-			Arc::new(MockRestClient::new()),
-			Arc::new(MockFileClient::new()),
-			"localhost:9000".to_string(),
-		));
-		let entity_facade = EntityFacadeImpl::new(
-			Arc::clone(&type_model_provider),
-			RandomizerFacade::from_core(rand_core::OsRng),
-		);
-		let type_ref = Mail::type_ref();
-		let type_model = type_model_provider
-			.resolve_client_type_ref(&type_ref)
-			.unwrap();
-		let sk = GenericAesKey::from_bytes(rand::random::<[u8; 32]>().as_slice()).unwrap();
-		let iv = Iv::from_bytes(&rand::random::<[u8; 16]>()).unwrap();
-
-		let default_subject = String::from("");
-		let (_, unencrypted_mail) = generate_email_entity(
-			&sk,
-			&iv,
-			true,
-			default_subject.clone(),
-			String::from("Hanover"),
-			String::from("Munich"),
-			None,
-		);
-
-		let encrypted_mail = entity_facade
-			.encrypt_and_map_inner(type_model, &unencrypted_mail, &sk)
-			.unwrap();
-
-		let encrypted_subject = encrypted_mail.get("subject").unwrap().assert_bytes();
-		assert_eq!(default_subject.as_bytes(), encrypted_subject.as_slice());
-	}
-
 	fn map_to_string(map: &ParsedEntity) -> String {
 		let mut out = String::new();
 		let sorted_map: BTreeMap<String, ElementValue> = map.clone().into_iter().collect();
@@ -1663,33 +1391,6 @@ mod tests {
 			}
 		}
 		out
-	}
-
-	fn verify_final_ivs_and_clear(_iv: &Iv, instance: &mut ParsedEntity) {
-		for (name, value) in instance.iter_mut() {
-			match value {
-				ElementValue::Dict(value_map) if name == "_finalIvs" => {
-					for (_n, actual_iv) in value_map.iter() {
-						match actual_iv {
-							ElementValue::Null | ElementValue::Bytes(_) => {},
-							__other => {
-								panic!("Unexpected element value: {:?}", __other);
-							},
-						}
-					}
-					value_map.clear();
-				},
-
-				ElementValue::Array(value_map) => {
-					for aggregate in value_map {
-						if let ElementValue::Dict(aggregate) = aggregate {
-							verify_final_ivs_and_clear(_iv, aggregate)
-						}
-					}
-				},
-				_ => {},
-			}
-		}
 	}
 
 	fn make_mail_raw_entity() -> RawEntity {
