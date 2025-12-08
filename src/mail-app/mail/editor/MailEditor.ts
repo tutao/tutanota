@@ -27,7 +27,7 @@ import {
 import { TooManyRequestsError } from "../../../common/api/common/error/RestError"
 import type { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
 import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
-import { attachDropdown, createAsyncDropdown, createDropdown, DropdownButtonAttrs, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
+import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
 import { isApp, isBrowser, isDesktop } from "../../../common/api/common/Env"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AnimationPromise, animations, height, opacity } from "../../../common/gui/animation/Animations"
@@ -61,7 +61,6 @@ import {
 	minutesToMillis,
 	noOp,
 	ofClass,
-	resolveMaybeLazy,
 	secondsToMillis,
 	throttle,
 	typedValues,
@@ -125,7 +124,6 @@ import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicke
 import { TimePicker, TimePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/TimePicker"
 import { Time } from "../../../common/calendar/date/Time"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
-import { Icon, IconSize } from "../../../common/gui/base/Icon"
 import { getTimeFormatForUser } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 
 // Interval where we save drafts locally.
@@ -522,28 +520,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			helpLabel: () => getConfidentialStateMessage(model.isConfidential()),
 			value: model.getSubject(),
 			oninput: (val) => model.setSubject(val),
-			injectionsRight: () =>
-				m(".flex.end.ml-between-4.items-center", [
-					isDarkTheme()
-						? m(IconButton, {
-								title: "viewInLightMode_action",
-								click: (e) => {
-									this.forceLightMode = !forcedLightMode
-									// Stop the subject bar from being focused
-									e.stopPropagation()
-									this.editor.focus()
-									m.redraw()
-								},
-								// reflect the current mode in the bulb
-								icon: forcedLightMode ? Icons.Bulb : Icons.BulbOutline,
-								size: ButtonSize.Compact,
-							})
-						: null,
-					toolbarButton(),
-					showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
-					this.knowledgeBaseInjection ? this.renderToggleKnowledgeBase(this.knowledgeBaseInjection) : null,
-					m(IconButton, attachFilesButtonAttrs),
-				]),
 		}
 
 		const attachmentBubbleAttrs = createAttachmentBubbleAttrs(model, this.inlineImageElements)
@@ -711,14 +687,16 @@ export class MailEditor implements Component<MailEditorAttrs> {
 							},
 							[
 								m(
-									".wrapping-row",
+									// The negative margin is for the subject line below which has padding 16
+									// That padding makes the subject line look a little too far away
+									".wrapping-row.mb-negative-12",
 
 									[
 										m(
 											"",
 											{
 												style: {
-													minWidth: "250px",
+													minWidth: "125px",
 												},
 											},
 											m(DatePicker, {
@@ -734,7 +712,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 											"",
 											{
 												style: {
-													minWidth: "250px",
+													minWidth: "125px",
 												},
 											},
 											m(TimePicker, {
@@ -749,19 +727,58 @@ export class MailEditor implements Component<MailEditorAttrs> {
 												renderAsTextField: true,
 											} satisfies TimePickerAttrs),
 										),
+										this.renderInvalidSendLaterDateMessage(),
 									],
 								),
-								this.renderInvalidSendLaterDateMessage(),
 							],
 						)
 					: null,
-				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(".row", m(TextField, subjectFieldAttrs)),
+				m(".row.flex-end.mb-4.mt-4.ml-between-4.items-center", [
+					model.user().isInternalUser()
+						? m(ToggleButton, {
+								title: "sendLater_action",
+								onToggled: (e) => {
+									if (model.getSendLaterDate()) {
+										// if it is set to send later, it should be toggled off
+										model.setSendLaterDate(null)
+									} else {
+										model.setDefaultSendLaterDate()
+									}
+								},
+								// reflect the current mode in the bulb
+								icon: Icons.ScheduleMail,
+								size: ButtonSize.Compact,
+								toggled: model.getSendLaterDate() != null,
+							})
+						: null,
+					isDarkTheme()
+						? m(IconButton, {
+								title: "viewInLightMode_action",
+								click: (e) => {
+									this.forceLightMode = !forcedLightMode
+									// Stop the subject bar from being focused
+									e.stopPropagation()
+									this.editor.focus()
+									m.redraw()
+								},
+								// reflect the current mode in the bulb
+								icon: forcedLightMode ? Icons.Bulb : Icons.BulbOutline,
+								size: ButtonSize.Compact,
+							})
+						: null,
+					toolbarButton(),
+					showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
+					this.knowledgeBaseInjection ? this.renderToggleKnowledgeBase(this.knowledgeBaseInjection) : null,
+					m(IconButton, attachFilesButtonAttrs),
+				]),
+				m("hr.hr"),
 				m(
 					".flex-start.flex-wrap.mt-8.mb-8.gap-12",
 					attachmentBubbleAttrs.map((a) => m(AttachmentBubble, a)),
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
+				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				this.renderExternalContentBanner(this.attrs),
 				m(
 					".pt-8.text.scroll-x.break-word-links.flex.flex-column.flex-grow" + (forcedLightMode ? ".bg-white.content-black.bg-fix-quoted" : ""),
@@ -1273,12 +1290,6 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				label: "close_alt",
 				click: () => minimize(),
 				type: ButtonType.Secondary,
-				icon: m(Icon, {
-					icon: Icons.XCross,
-					container: "div",
-					class: "mb-8",
-					size: IconSize.PX24,
-				}),
 			},
 		],
 		leftChildren: styles.isMobileLayout()
@@ -1295,61 +1306,22 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		rightChildren: () => {
 			const scheduledMail = model.getSendLaterDate() != null
 
-			const sendButtonAttrs: DropdownButtonAttrs = {
-				label: "send_action",
-				icon: Icons.Send,
-				click: () => {
-					model.setSendLaterDate(null)
-				},
-			}
-
-			const sendScheduledButtonAttrs: DropdownButtonAttrs = {
-				label: "sendLater_action",
-				icon: Icons.ScheduleMail,
-				click: () => {
-					model.setDefaultSendLaterDate()
-				},
-			}
-
-			return m(".flex", [
-				styles.isMobileLayout()
-					? m(IconButton, {
-							title: scheduledMail ? "sendLater_action" : "send_action",
-							click: () => {
-								send()
-							},
-							icon: scheduledMail ? Icons.ScheduleMail : Icons.Send,
-							colors: ButtonColor.Primary,
-						})
-					: m(Button, {
-							label: scheduledMail ? "sendLater_action" : "send_action",
-							click: () => {
-								send()
-							},
-							type: ButtonType.Primary,
-							icon: m(Icon, {
-								icon: scheduledMail ? Icons.ScheduleMail : Icons.Send,
-								container: "div",
-								class: "mb-8 mr-4",
-								size: IconSize.PX24,
-							}),
-						}),
-				m(
-					styles.isMobileLayout() ? "" : ".ml-8",
-					model.user().isInternalUser() &&
-						m(IconButton, {
-							title: "more_label",
-							click: createAsyncDropdown({
-								width: 216,
-								lazyButtons: async () => resolveMaybeLazy([scheduledMail ? sendButtonAttrs : sendScheduledButtonAttrs]),
-							}),
-							icon: Icons.ChevronDown,
-							//icon: BootIcons.Expand,
-							size: ButtonSize.Normal,
-							colors: ButtonColor.Nav,
-						}),
-				),
-			])
+			return styles.isMobileLayout()
+				? m(IconButton, {
+						title: scheduledMail ? "sendLater_action" : "send_action",
+						click: () => {
+							send()
+						},
+						icon: scheduledMail ? Icons.ScheduleMail : Icons.Send,
+						colors: ButtonColor.Primary,
+					})
+				: m(Button, {
+						label: scheduledMail ? "sendLater_action" : "send_action",
+						click: () => {
+							send()
+						},
+						type: ButtonType.Primary,
+					})
 		},
 		middle: dialogTitleTranslationKey(model.getConversationType()),
 		create: () => {
