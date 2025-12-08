@@ -261,25 +261,11 @@ export type DriveFolderServicePutIn = {
 
 	_format: NumberString;
 
-	file: null | IdTuple;
-	folder: null | IdTuple;
+	files: IdTuple[];
+	folders: IdTuple[];
 	destination: IdTuple;
 }
-export const DriveFolderServicePutOutTypeRef: TypeRef<DriveFolderServicePutOut> = new TypeRef("drive", 97)
-
-export function createDriveFolderServicePutOut(values: StrippedEntity<DriveFolderServicePutOut>): DriveFolderServicePutOut {
-    return Object.assign(create(typeModels[DriveFolderServicePutOutTypeRef.typeId], DriveFolderServicePutOutTypeRef), values)
-}
-
-export type DriveFolderServicePutOut = {
-	_type: TypeRef<DriveFolderServicePutOut>;
-	_original?: DriveFolderServicePutOut
-
-	_format: NumberString;
-
-	movedFile: IdTuple;
-}
-export const DriveFolderServiceDeleteInTypeRef: TypeRef<DriveFolderServiceDeleteIn> = new TypeRef("drive", 100)
+export const DriveFolderServiceDeleteInTypeRef: TypeRef<DriveFolderServiceDeleteIn> = new TypeRef("drive", 97)
 
 export function createDriveFolderServiceDeleteIn(values: StrippedEntity<DriveFolderServiceDeleteIn>): DriveFolderServiceDeleteIn {
     return Object.assign(create(typeModels[DriveFolderServiceDeleteInTypeRef.typeId], DriveFolderServiceDeleteInTypeRef), values)

@@ -6,7 +6,7 @@ import { BlobFacade } from "./lazy/BlobFacade"
 import { UserFacade } from "./UserFacade"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { VersionedKey } from "../crypto/CryptoWrapper"
-import { assertNotNull, isSameTypeRef, partition, Require } from "@tutao/tutanota-utils"
+import { assertNotNull, groupByAndMap, isSameTypeRef, partition, Require } from "@tutao/tutanota-utils"
 import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
 import { ExposedProgressTracker } from "../../main/ProgressTracker"
 import { UploadProgressListener } from "../../main/UploadProgressListener"
@@ -27,6 +27,7 @@ import {
 } from "../../entities/drive/TypeRefs"
 import { DriveFolderService, DriveService } from "../../entities/drive/Services"
 import { CryptoFacade } from "../crypto/CryptoFacade"
+import { getListId } from "../../common/utils/EntityUtils"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -43,6 +44,10 @@ export type DriveCryptoInfo = {
 export interface FolderContents {
 	files: DriveFile[]
 	folders: DriveFolder[]
+}
+
+function isDriveFile(source: DriveFile | DriveFolder): source is DriveFile {
+	return isSameTypeRef(source._type, DriveFileTypeRef)
 }
 
 export class DriveFacade {
@@ -73,13 +78,21 @@ export class DriveFacade {
 		// await this.serviceExecutor.post(DriveFileMetadataService, data)
 	}
 
-	public async move(source: DriveFile | DriveFolder, destination: IdTuple) {
-		const data = createDriveFolderServicePutIn({
-			file: isSameTypeRef(source._type, DriveFileTypeRef) ? source._id : null,
-			folder: isSameTypeRef(source._type, DriveFolderTypeRef) ? source._id : null,
-			destination,
-		})
-		await this.serviceExecutor.put(DriveFolderService, data)
+	public async move(source: (DriveFile | DriveFolder)[], destination: IdTuple) {
+		// FIXME: chunk by 50
+		const [files, folders] = partition(source, isDriveFile)
+		const filesByListId = Array.from(groupByAndMap(files, getListId, (file) => file._id).values())
+		const folderByListId = Array.from(groupByAndMap(folders, getListId, (folder) => folder._id).values())
+		for (let i = 0; i < Math.max(filesByListId.length, folderByListId.length); i++) {
+			const fileIds = filesByListId.at(i) ?? []
+			const folderIds = folderByListId.at(i) ?? []
+			const data = createDriveFolderServicePutIn({
+				files: fileIds,
+				folders: folderIds,
+				destination,
+			})
+			await this.serviceExecutor.put(DriveFolderService, data)
+		}
 	}
 
 	public async rename(item: DriveFile | DriveFolder, newName: string) {

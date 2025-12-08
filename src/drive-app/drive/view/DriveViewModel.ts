@@ -265,11 +265,7 @@ export class DriveViewModel {
 	}
 
 	private async moveItems(folderItems: readonly FolderItem[], destination: IdTuple) {
-		// FIXME
-		for (const folderItem of folderItems) {
-			const itemToMove = folderItemEntity(folderItem)
-			await this.driveFacade.move(itemToMove, destination)
-		}
+		await this.driveFacade.move(folderItems.map(folderItemEntity), destination)
 	}
 
 	async moveToTrash(item: FolderItem) {

@@ -853,19 +853,19 @@
 		"associations": {
 			"94": {
 				"final": true,
-				"name": "file",
+				"name": "files",
 				"id": 94,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "Any",
 				"refTypeId": 14,
 				"dependency": null
 			},
 			"95": {
 				"final": true,
-				"name": "folder",
+				"name": "folders",
 				"id": 95,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "Any",
 				"refTypeId": 0,
 				"dependency": null
 			},
@@ -881,7 +881,7 @@
 		}
 	},
 	"97": {
-		"name": "DriveFolderServicePutOut",
+		"name": "DriveFolderServiceDeleteIn",
 		"app": "drive",
 		"version": 1,
 		"since": 1,
@@ -899,63 +899,30 @@
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
-			}
-		},
-		"associations": {
-			"99": {
-				"final": true,
-				"name": "movedFile",
-				"id": 99,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
-				"refTypeId": 30,
-				"dependency": null
-			}
-		}
-	},
-	"100": {
-		"name": "DriveFolderServiceDeleteIn",
-		"app": "drive",
-		"version": 1,
-		"since": 1,
-		"type": "DATA_TRANSFER_TYPE",
-		"id": 100,
-		"rootId": "BWRyaXZlAGQ",
-		"versioned": false,
-		"encrypted": false,
-		"isPublic": true,
-		"values": {
+			},
 			"101": {
 				"final": false,
-				"name": "_format",
-				"id": 101,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"104": {
-				"final": false,
 				"name": "restore",
-				"id": 104,
+				"id": 101,
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"102": {
+			"99": {
 				"final": true,
 				"name": "file",
-				"id": 102,
+				"id": 99,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 14,
 				"dependency": null
 			},
-			"103": {
+			"100": {
 				"final": true,
 				"name": "folder",
-				"id": 103,
+				"id": 100,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,

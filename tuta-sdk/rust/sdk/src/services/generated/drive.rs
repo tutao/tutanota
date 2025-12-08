@@ -8,7 +8,6 @@ use crate::services::hidden::Nothing;
 use crate::entities::generated::drive::DriveFolderServicePostIn;
 use crate::entities::generated::drive::DriveFolderServicePostOut;
 use crate::entities::generated::drive::DriveFolderServicePutIn;
-use crate::entities::generated::drive::DriveFolderServicePutOut;
 use crate::entities::generated::drive::DriveFolderServiceDeleteIn;
 use crate::entities::generated::drive::DriveCreateData;
 use crate::entities::generated::drive::DriveCreateReturn;
@@ -19,7 +18,7 @@ pub struct DriveFolderService;
 
 crate::service_impl!(declare, DriveFolderService, "drive/drivefolderservice", 1);
 crate::service_impl!(POST, DriveFolderService, DriveFolderServicePostIn, DriveFolderServicePostOut);
-crate::service_impl!(PUT, DriveFolderService, DriveFolderServicePutIn, DriveFolderServicePutOut);
+crate::service_impl!(PUT, DriveFolderService, DriveFolderServicePutIn, ());
 crate::service_impl!(DELETE, DriveFolderService, DriveFolderServiceDeleteIn, ());
 
 
