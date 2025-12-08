@@ -281,3 +281,35 @@ export type DriveFolderServiceDeleteIn = {
 	files: IdTuple[];
 	folders: IdTuple[];
 }
+export const DriveRenameDataTypeRef: TypeRef<DriveRenameData> = new TypeRef("drive", 103)
+
+export function createDriveRenameData(values: StrippedEntity<DriveRenameData>): DriveRenameData {
+    return Object.assign(create(typeModels[DriveRenameDataTypeRef.typeId], DriveRenameDataTypeRef), values)
+}
+
+export type DriveRenameData = {
+	_type: TypeRef<DriveRenameData>;
+	_original?: DriveRenameData
+
+	_id: Id;
+	encNewName: Uint8Array;
+	encNewDate: Uint8Array;
+
+	file: null | IdTuple;
+	folder: null | IdTuple;
+}
+export const DriveCopyServicePostInTypeRef: TypeRef<DriveCopyServicePostIn> = new TypeRef("drive", 109)
+
+export function createDriveCopyServicePostIn(values: StrippedEntity<DriveCopyServicePostIn>): DriveCopyServicePostIn {
+    return Object.assign(create(typeModels[DriveCopyServicePostInTypeRef.typeId], DriveCopyServicePostInTypeRef), values)
+}
+
+export type DriveCopyServicePostIn = {
+	_type: TypeRef<DriveCopyServicePostIn>;
+	_original?: DriveCopyServicePostIn
+
+	_format: NumberString;
+
+	items: DriveRenameData[];
+	destination: IdTuple;
+}

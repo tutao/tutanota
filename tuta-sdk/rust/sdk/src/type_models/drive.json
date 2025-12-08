@@ -929,5 +929,105 @@
 				"dependency": null
 			}
 		}
+	},
+	"103": {
+		"name": "DriveRenameData",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "AGGREGATED_TYPE",
+		"id": 103,
+		"rootId": "BWRyaXZlAGc",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"104": {
+				"final": true,
+				"name": "_id",
+				"id": 104,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"105": {
+				"final": true,
+				"name": "encNewName",
+				"id": 105,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"106": {
+				"final": true,
+				"name": "encNewDate",
+				"id": 106,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"107": {
+				"final": true,
+				"name": "file",
+				"id": 107,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 14,
+				"dependency": null
+			},
+			"108": {
+				"final": true,
+				"name": "folder",
+				"id": 108,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 0,
+				"dependency": null
+			}
+		}
+	},
+	"109": {
+		"name": "DriveCopyServicePostIn",
+		"app": "drive",
+		"version": 1,
+		"since": 1,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 109,
+		"rootId": "BWRyaXZlAG0",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"110": {
+				"final": false,
+				"name": "_format",
+				"id": 110,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"111": {
+				"final": false,
+				"name": "items",
+				"id": 111,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 103,
+				"dependency": null
+			},
+			"112": {
+				"final": false,
+				"name": "destination",
+				"id": 112,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 0,
+				"dependency": null
+			}
+		}
 	}
 }

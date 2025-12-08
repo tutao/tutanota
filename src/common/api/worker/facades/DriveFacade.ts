@@ -6,16 +6,18 @@ import { BlobFacade } from "./lazy/BlobFacade"
 import { UserFacade } from "./UserFacade"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { VersionedKey } from "../crypto/CryptoWrapper"
-import { assertNotNull, groupByAndMap, isSameTypeRef, partition, Require } from "@tutao/tutanota-utils"
+import { assertNotNull, groupBy, groupByAndMap, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
 import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
 import { ExposedProgressTracker } from "../../main/ProgressTracker"
 import { UploadProgressListener } from "../../main/UploadProgressListener"
 import {
+	createDriveCopyServicePostIn,
 	createDriveCreateData,
 	createDriveFolderServiceDeleteIn,
 	createDriveFolderServicePostIn,
 	createDriveFolderServicePutIn,
 	createDrivePutIn,
+	createDriveRenameData,
 	createDriveUploadedFile,
 	DriveFile,
 	DriveFileRef,
@@ -25,7 +27,7 @@ import {
 	DriveFolderTypeRef,
 	DriveGroupRootTypeRef,
 } from "../../entities/drive/TypeRefs"
-import { DriveFolderService, DriveService } from "../../entities/drive/Services"
+import { DriveCopyService, DriveFolderService, DriveService } from "../../entities/drive/Services"
 import { CryptoFacade } from "../crypto/CryptoFacade"
 import { getListId } from "../../common/utils/EntityUtils"
 
@@ -87,7 +89,7 @@ export class DriveFacade {
 		}
 	}
 
-	private sortIntoFilesAndFolderLists(items: (DriveFile | DriveFolder)[]): { filesByListId: IdTuple[][]; foldersByListId: IdTuple[][] } {
+	private sortIntoFilesAndFolderLists(items: readonly (DriveFile | DriveFolder)[]): { filesByListId: IdTuple[][]; foldersByListId: IdTuple[][] } {
 		const [files, folders] = partition(items, isDriveFile)
 		const filesByListId = Array.from(groupByAndMap(files, getListId, (file) => file._id).values())
 		const foldersByListId = Array.from(groupByAndMap(folders, getListId, (folder) => folder._id).values())
@@ -241,7 +243,34 @@ export class DriveFacade {
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}
 
-	public async loadFileFromIdTuple(idTuple: IdTuple): Promise<DriveFile> {
-		return this.entityClient.load(DriveFileTypeRef, idTuple)
+	public async copyItems(items: readonly (DriveFile | DriveFolder)[], destination: DriveFolder): Promise<void> {
+		const [files, folders] = partition(items, isDriveFile)
+		const filesByListId = Array.from(groupBy(files, getListId).values())
+		const foldersByListId = Array.from(groupBy(folders, getListId).values())
+		const date = new Date()
+
+		for (let i = 0; i < Math.max(filesByListId.length, foldersByListId.length); i++) {
+			const files = filesByListId.at(i) ?? []
+			const folders = foldersByListId.at(i) ?? []
+
+			const fileItems = await promiseMap(files, async (file) => {
+				const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
+				const encNewDate = locator.cryptoWrapper.encryptString(sk, date.getTime().toString())
+				const encNewName = locator.cryptoWrapper.encryptString(sk, file.name)
+				return createDriveRenameData({
+					file: file._id,
+					folder: null,
+					encNewDate: encNewDate,
+					encNewName,
+				})
+			})
+			// FIXME: folders as well
+			const folderItems = []
+			const copyData = createDriveCopyServicePostIn({
+				items: fileItems,
+				destination: destination._id,
+			})
+			await this.serviceExecutor.post(DriveCopyService, copyData)
+		}
 	}
 }

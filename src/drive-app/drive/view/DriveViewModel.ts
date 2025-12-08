@@ -260,7 +260,7 @@ export class DriveViewModel {
 			this._clipboard = null
 			this.updateUi()
 		} else if (this._clipboard?.action === ClipboardAction.Copy) {
-			// FIXME
+			await this.driveFacade.copyItems(this._clipboard.items.map(folderItemEntity), this.currentFolder.folder)
 		}
 	}
 

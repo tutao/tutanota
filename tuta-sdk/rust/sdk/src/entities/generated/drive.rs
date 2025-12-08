@@ -423,3 +423,49 @@ impl Entity for DriveFolderServiceDeleteIn {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveRenameData {
+	#[serde(rename = "104")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "105")]
+	#[serde(with = "serde_bytes")]
+	pub encNewName: Vec<u8>,
+	#[serde(rename = "106")]
+	#[serde(with = "serde_bytes")]
+	pub encNewDate: Vec<u8>,
+	#[serde(rename = "107")]
+	pub file: Option<IdTupleGenerated>,
+	#[serde(rename = "108")]
+	pub folder: Option<IdTupleGenerated>,
+}
+
+impl Entity for DriveRenameData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(103),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveCopyServicePostIn {
+	#[serde(rename = "110")]
+	pub _format: i64,
+	#[serde(rename = "111")]
+	pub items: Vec<DriveRenameData>,
+	#[serde(rename = "112")]
+	pub destination: IdTupleGenerated,
+}
+
+impl Entity for DriveCopyServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(109),
+		}
+	}
+}
