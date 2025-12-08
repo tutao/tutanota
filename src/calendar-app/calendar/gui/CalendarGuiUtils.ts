@@ -62,6 +62,7 @@ import {
 	Keys,
 	RepeatPeriod,
 	ShareCapability,
+	TimeFormat,
 	Weekday,
 	WeekStart,
 } from "../../../common/api/common/TutanotaConstants.js"
@@ -69,7 +70,7 @@ import { AllIcons } from "../../../common/gui/base/Icon.js"
 import { SelectorItemList } from "../../../common/gui/base/DropDownSelector.js"
 import { DateTime, Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, cleanMailAddress, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { AdvancedRepeatRule, CalendarEvent } from "../../../common/api/entities/tutanota/TypeRefs.js"
+import { AdvancedRepeatRule, CalendarEvent, UserSettingsGroupRoot } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { ProgrammingError } from "../../../common/api/common/error/ProgrammingError.js"
 import { layout_size } from "../../../common/gui/size.js"
 import { hslToHex, MAX_HUE_ANGLE } from "../../../common/gui/base/Color.js"
@@ -112,6 +113,11 @@ export function renderCalendarSwitchRightButton(label: TranslationKey, click: ()
 		icon: Icons.ArrowForward,
 		click,
 	})
+}
+
+export function getTimeFormatForUser(userSettingsGroupRoot: UserSettingsGroupRoot): TimeFormat {
+	// it's saved as a string, but is a const enum.
+	return userSettingsGroupRoot.timeFormat as TimeFormat
 }
 
 function weekTitle(date: Date, weekStart: WeekStart): string {

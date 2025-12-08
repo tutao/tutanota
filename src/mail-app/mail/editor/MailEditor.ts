@@ -2,9 +2,16 @@ import m, { Children, Component, Vnode } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Editor, ImagePasteEvent } from "../../../common/gui/editor/Editor"
-import type { Attachment, InitAsResponseArgs, SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
+import {
+	Attachment,
+	InitAsResponseArgs,
+	SEND_LATER_MAX_DAYS_IN_FUTURE,
+	SEND_LATER_MIN_MINUTES_IN_FUTURE,
+	SendLaterDateStatus,
+	SendMailModel,
+} from "../../../common/mailFunctionality/SendMailModel.js"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { InfoLink, lang } from "../../../common/misc/LanguageViewModel"
+import { InfoLink, lang, Translation } from "../../../common/misc/LanguageViewModel"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -19,8 +26,8 @@ import {
 } from "../../../common/api/common/TutanotaConstants"
 import { TooManyRequestsError } from "../../../common/api/common/error/RestError"
 import type { DialogHeaderBarAttrs } from "../../../common/gui/base/DialogHeaderBar"
-import { ButtonType } from "../../../common/gui/base/Button.js"
-import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
+import { Button, ButtonColor, ButtonType } from "../../../common/gui/base/Button.js"
+import { attachDropdown, createAsyncDropdown, createDropdown, DropdownButtonAttrs, DropdownChildAttrs } from "../../../common/gui/base/Dropdown.js"
 import { isApp, isBrowser, isDesktop } from "../../../common/api/common/Env"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { AnimationPromise, animations, height, opacity } from "../../../common/gui/animation/Animations"
@@ -54,6 +61,7 @@ import {
 	minutesToMillis,
 	noOp,
 	ofClass,
+	resolveMaybeLazy,
 	secondsToMillis,
 	throttle,
 	typedValues,
@@ -113,6 +121,12 @@ import { px, size } from "../../../common/gui/size"
 
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
+import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
+import { TimePicker, TimePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/TimePicker"
+import { Time } from "../../../common/calendar/date/Time"
+import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
+import { Icon, IconSize } from "../../../common/gui/base/Icon"
+import { getTimeFormatForUser } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 
 // Interval where we save drafts locally.
 //
@@ -303,6 +317,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			if (invalidText !== "") {
 				throw new UserError(lang.makeTranslation("invalidRecipients_msg", lang.get("invalidRecipients_msg") + invalidText))
 			}
+
+			if (model.getSendLaterDate() != null && model.getSendLaterDateStatus() !== SendLaterDateStatus.WithinRange) {
+				throw new UserError(lang.getTranslation("invalidSendLaterDate_msg"))
+			}
 		})
 		const dialog = a.dialog()
 
@@ -464,6 +482,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			toggled: model.isConfidential(),
 			size: ButtonSize.Compact,
 		}
+
+		let sendLater: Date | null = model.getSendLaterDate()
+
 		const attachFilesButtonAttrs: IconButtonAttrs = {
 			title: "attachFiles_action",
 			click: (ev, dom) => chooseAndAttachFile(model, dom.getBoundingClientRect()).then(() => m.redraw()),
@@ -666,6 +687,75 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						: null,
 				]),
 				isConfidential ? this.renderPasswordFields() : null,
+				sendLater
+					? m(
+							"",
+							{
+								oncreate: (vnode) => {
+									// overflow needs to be hidden when the animation is running for it to look smooth
+									// but if that style stays the time picker drop-down is hidden
+									const dom = vnode.dom as HTMLElement
+									dom.style.overflow = "hidden"
+
+									return this.animateHeight(dom, true).then(() => {
+										dom.style.overflow = "visible"
+									})
+								},
+								onbeforeremove: (vnode) => {
+									const dom = vnode.dom as HTMLElement
+									// overflow needs to be hidden for animateHeight to work as expected
+									dom.style.overflow = "hidden"
+
+									return this.animateHeight(dom, false)
+								},
+							},
+							[
+								m(
+									".wrapping-row",
+
+									[
+										m(
+											"",
+											{
+												style: {
+													minWidth: "250px",
+												},
+											},
+											m(DatePicker, {
+												date: model.getSendLaterDate() ?? new Date(),
+												onDateSelected: (date) => {
+													model.setSendLaterDate(date)
+												},
+												startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(model.logins.getUserController().userSettingsGroupRoot),
+												label: lang.makeTranslation("sendDate_label", "Send date"),
+											}),
+										),
+										m(
+											"",
+											{
+												style: {
+													minWidth: "250px",
+												},
+											},
+											m(TimePicker, {
+												time: model.getSendLaterTime(),
+												onTimeSelected: (time: Time | null) => {
+													if (time) {
+														model.setSendLaterTime(time)
+													}
+												},
+												timeFormat: getTimeFormatForUser(model.logins.getUserController().userSettingsGroupRoot),
+												ariaLabel: lang.getTranslation("sendTime_label"),
+												renderAsTextField: true,
+											} satisfies TimePickerAttrs),
+										),
+									],
+								),
+								this.renderInvalidSendLaterDateMessage(),
+							],
+						)
+					: null,
+				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(".row", m(TextField, subjectFieldAttrs)),
 				m(
 					".flex-start.flex-wrap.mt-8.mb-8.gap-12",
@@ -673,7 +763,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				),
 				model.getAttachments().length > 0 ? m("hr.hr") : null,
 				this.renderExternalContentBanner(this.attrs),
-				a.doShowToolbar() ? this.renderToolbar(model) : null,
 				m(
 					".pt-8.text.scroll-x.break-word-links.flex.flex-column.flex-grow" + (forcedLightMode ? ".bg-white.content-black.bg-fix-quoted" : ""),
 					{
@@ -684,6 +773,25 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(".pb-16"),
 			],
 		)
+	}
+
+	private renderInvalidSendLaterDateMessage(): Children | null {
+		let message: Translation
+		switch (this.sendMailModel.getSendLaterDateStatus()) {
+			case SendLaterDateStatus.WithinRange:
+				return null
+			case SendLaterDateStatus.NotSet:
+				message = lang.getTranslation("sendLaterDateNotSet_msg")
+				break
+			case SendLaterDateStatus.InThePast:
+				message = lang.getTranslation("sendLaterDateInThePast_msg", { "{1}": SEND_LATER_MIN_MINUTES_IN_FUTURE })
+				break
+			case SendLaterDateStatus.TooFarInTheFuture:
+				message = lang.getTranslation("sendLaterDateTooFarInTheFuture_msg", { "{1}": SEND_LATER_MAX_DAYS_IN_FUTURE })
+				break
+		}
+
+		return m("small.noselect", { "data-testid": message.testId }, message.text)
 	}
 
 	private renderExternalContentBanner(attrs: MailEditorAttrs): Children | null {
@@ -951,7 +1059,11 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private animateHeight(domElement: HTMLElement, fadein: boolean): AnimationPromise {
-		let childHeight = domElement.offsetHeight
+		const childHeight = domElement.offsetHeight
+		if (fadein) {
+			// if this height is not set to 0, there is sometimes a jitter as it will display at full height for a second before the animation
+			domElement.style.height = "0"
+		}
 		return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).then(() => {
 			domElement.style.height = ""
 		})
@@ -1084,7 +1196,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 		try {
 			// Note: model.send() will save without checking for conflicts, but unlike saving, send() will only ever be
 			// triggered by the user, so this is acceptable.
-			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog)
+			const success = await model.send(MailMethod.NONE, Dialog.confirm, showProgressDialog, model.getSendLaterDate(), undefined)
 			if (success) {
 				dispose()
 				dialog.close()
@@ -1161,17 +1273,83 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 				label: "close_alt",
 				click: () => minimize(),
 				type: ButtonType.Secondary,
+				icon: m(Icon, {
+					icon: Icons.XCross,
+					container: "div",
+					class: "mb-8",
+					size: IconSize.PX24,
+				}),
 			},
 		],
-		right: [
-			{
+		leftChildren: styles.isMobileLayout()
+			? m(
+					".ml-negative-8",
+					m(IconButton, {
+						title: "close_alt",
+						click: () => minimize(),
+						icon: Icons.XCross,
+						colors: ButtonColor.Primary,
+					}),
+				)
+			: null,
+		rightChildren: () => {
+			const scheduledMail = model.getSendLaterDate() != null
+
+			const sendButtonAttrs: DropdownButtonAttrs = {
 				label: "send_action",
+				icon: Icons.Send,
 				click: () => {
-					send()
+					model.setSendLaterDate(null)
 				},
-				type: ButtonType.Primary,
-			},
-		],
+			}
+
+			const sendScheduledButtonAttrs: DropdownButtonAttrs = {
+				label: "sendLater_action",
+				icon: Icons.ScheduleMail,
+				click: () => {
+					model.setDefaultSendLaterDate()
+				},
+			}
+
+			return m(".flex", [
+				styles.isMobileLayout()
+					? m(IconButton, {
+							title: scheduledMail ? "sendLater_action" : "send_action",
+							click: () => {
+								send()
+							},
+							icon: scheduledMail ? Icons.ScheduleMail : Icons.Send,
+							colors: ButtonColor.Primary,
+						})
+					: m(Button, {
+							label: scheduledMail ? "sendLater_action" : "send_action",
+							click: () => {
+								send()
+							},
+							type: ButtonType.Primary,
+							icon: m(Icon, {
+								icon: scheduledMail ? Icons.ScheduleMail : Icons.Send,
+								container: "div",
+								class: "mb-8 mr-4",
+								size: IconSize.PX24,
+							}),
+						}),
+				m(
+					styles.isMobileLayout() ? "" : ".ml-8",
+					m(IconButton, {
+						title: "more_label",
+						click: createAsyncDropdown({
+							width: 216,
+							lazyButtons: async () => resolveMaybeLazy([scheduledMail ? sendButtonAttrs : sendScheduledButtonAttrs]),
+						}),
+						icon: Icons.ChevronDown,
+						//icon: BootIcons.Expand,
+						size: ButtonSize.Normal,
+						colors: ButtonColor.Nav,
+					}),
+				),
+			])
+		},
 		middle: dialogTitleTranslationKey(model.getConversationType()),
 		create: () => {
 			if (isBrowser()) {
@@ -1254,7 +1432,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			exec: () => {
 				send()
 			},
-			help: "send_action",
+			help: "sendOrSendLater_label",
 		},
 		{
 			key: Keys.RETURN,
@@ -1262,7 +1440,7 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 			exec: () => {
 				send()
 			},
-			help: "send_action",
+			help: "sendOrSendLater_label",
 		},
 	]
 

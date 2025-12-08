@@ -14,7 +14,7 @@ import { attachDropdown, DropdownButtonAttrs } from "../../../common/gui/base/Dr
 import { Icons } from "../../../common/gui/base/icons/Icons.js"
 import { ButtonColor } from "../../../common/gui/base/Button.js"
 import { ButtonSize } from "../../../common/gui/base/ButtonSize.js"
-import { isNestableMailSet, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
+import { isEditableMailSet, canHaveDescendents, isNestableMailSet, MailSetKind } from "../../../common/api/common/TutanotaConstants.js"
 import { px, size } from "../../../common/gui/size.js"
 import { RowButton } from "../../../common/gui/base/buttons/RowButton.js"
 import { MailModel } from "../model/MailModel.js"
@@ -53,7 +53,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
 		// So instead we push or not push into array
 		const customSystems = folders?.customSubtrees ?? []
-		const systemSystems = folders?.systemSubtrees.filter((f) => f.folder.folderType !== MailSetKind.Imported) ?? []
+		const systemSystems = folders?.systemSubtrees ?? []
 		const children: Children = []
 		const selectedFolder = folders
 			?.getIndentedList()
@@ -141,10 +141,9 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				hasChildren && currentExpansionState
 					? this.renderFolderTree(system.children, groupCounters, folders, attrs, path, isInternalUser, indentationLevel + 1)
 					: { children: null, numRows: 0 }
-			const isTrashOrSpam = system.folder.folderType === MailSetKind.TRASH || system.folder.folderType === MailSetKind.SPAM
 			const isRightButtonVisible = this.visibleRow === id
 			const rightButton =
-				isInternalUser && !isTrashOrSpam && (isRightButtonVisible || attrs.inEditMode)
+				isInternalUser && (isEditableMailSet(system.folder) || canHaveDescendents(system.folder)) && (isRightButtonVisible || attrs.inEditMode)
 					? this.createFolderMoreButton(system.folder, folders, attrs, () => {
 							this.visibleRow = null
 						})

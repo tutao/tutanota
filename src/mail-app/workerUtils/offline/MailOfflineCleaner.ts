@@ -18,7 +18,6 @@ import {
 	MailTypeRef,
 } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { OfflineStorage, OfflineStorageCleaner } from "../../../common/api/worker/offline/OfflineStorage.js"
-import { isDraft } from "../../mail/model/MailChecks.js"
 import { UserTypeRef } from "../../../common/api/entities/sys/TypeRefs"
 import { AccountType, OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../common/api/common/TutanotaConstants"
 
@@ -117,12 +116,13 @@ export class MailOfflineCleaner implements OfflineStorageCleaner {
 				attachmentsToDelete.push(id)
 			}
 
-			if (isDraft(mail)) {
-				const mailDetailsId = assertNotNull(mail.mailDetailsDraft)
+			if (mail.mailDetailsDraft) {
+				const mailDetailsId = mail.mailDetailsDraft
 				mailDetailsDraftToDelete.push(mailDetailsId)
-			} else {
+			}
+			if (mail.mailDetails) {
 				// mailDetailsBlob
-				const mailDetailsId = assertNotNull(mail.mailDetails)
+				const mailDetailsId = mail.mailDetails
 				mailDetailsBlobToDelete.push(mailDetailsId)
 			}
 		}
