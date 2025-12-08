@@ -278,6 +278,6 @@ export type DriveFolderServiceDeleteIn = {
 	_format: NumberString;
 	restore: boolean;
 
-	file: null | IdTuple;
-	folder: null | IdTuple;
+	files: IdTuple[];
+	folders: IdTuple[];
 }

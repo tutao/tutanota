@@ -12,6 +12,9 @@ export interface DriveFolderNavAttrs {
 	currentFolder: DriveFolder | null
 	parents: readonly DriveFolder[]
 	onUploadClick: (dom: HTMLElement) => void
+	onTrash: (() => unknown) | null
+	onDelete: (() => unknown) | null
+	onRestore: (() => unknown) | null
 	onCopy: (() => unknown) | null
 	onCut: (() => unknown) | null
 	onPaste: (() => unknown) | null
@@ -19,7 +22,9 @@ export interface DriveFolderNavAttrs {
 }
 
 export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
-	view({ attrs: { onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, onNavigateToFolder } }: Vnode<DriveFolderNavAttrs>): Children {
+	view({
+		attrs: { onTrash, onDelete, onRestore, onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, onNavigateToFolder },
+	}: Vnode<DriveFolderNavAttrs>): Children {
 		return m(
 			".flex.items-center.justify-between.border-radius-12",
 			{
@@ -30,6 +35,27 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 			},
 			m(DriveBreadcrumb, { currentFolder, parents, onNavigateToFolder }),
 			m(".flex.items-center.column-gap-4", [
+				onTrash
+					? m(IconButton, {
+							title: "trash_action",
+							click: onTrash,
+							icon: Icons.Trash,
+						})
+					: null,
+				onDelete
+					? m(IconButton, {
+							title: "delete_action",
+							click: onDelete,
+							icon: Icons.DeleteForever,
+						})
+					: null,
+				onRestore
+					? m(IconButton, {
+							title: "restoreFromTrash_action",
+							click: onRestore,
+							icon: Icons.Reply,
+						})
+					: null,
 				onPaste
 					? m(IconButton, {
 							title: "paste_action",

@@ -410,9 +410,9 @@ pub struct DriveFolderServiceDeleteIn {
 	#[serde(rename = "101")]
 	pub restore: bool,
 	#[serde(rename = "99")]
-	pub file: Option<IdTupleGenerated>,
+	pub files: Vec<IdTupleGenerated>,
 	#[serde(rename = "100")]
-	pub folder: Option<IdTupleGenerated>,
+	pub folders: Vec<IdTupleGenerated>,
 }
 
 impl Entity for DriveFolderServiceDeleteIn {

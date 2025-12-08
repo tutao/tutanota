@@ -268,12 +268,12 @@ export class DriveViewModel {
 		await this.driveFacade.move(folderItems.map(folderItemEntity), destination)
 	}
 
-	async moveToTrash(item: FolderItem) {
-		await this.driveFacade.moveToTrash(folderItemEntity(item))
+	async moveToTrash(items: readonly FolderItem[]) {
+		await this.driveFacade.moveToTrash(items.map(folderItemEntity))
 	}
 
-	async restoreFromTrash(item: FolderItem) {
-		await this.driveFacade.restoreFromTrash(folderItemEntity(item))
+	async restoreFromTrash(items: readonly FolderItem[]) {
+		await this.driveFacade.restoreFromTrash(items.map(folderItemEntity))
 	}
 
 	async loadSpecialFolder(specialFolderType: SpecialFolderType) {
@@ -307,11 +307,19 @@ export class DriveViewModel {
 	async loadFolder(folderId: IdTuple): Promise<void> {
 		try {
 			const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
-			this.currentFolder = {
-				type: DriveFolderType.Regular,
-				folder,
-				parents: [],
-			} satisfies RegularFolder
+			if (folder.type === DriveFolderType.Regular) {
+				this.currentFolder = {
+					type: folder.type,
+					folder,
+					parents: [],
+				} satisfies RegularFolder
+			} else {
+				this.currentFolder = {
+					folder,
+					type: folder.type as SpecialFolderType,
+				} satisfies SpecialFolder
+			}
+
 			this.listModel = this.newListModel(folder)
 			this.listModel.loadInitial()
 			await this.loadParents(folder)

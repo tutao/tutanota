@@ -72,20 +72,12 @@ export class DriveFacade {
 		return { fileGroupId, fileGroupKey }
 	}
 
-	public async updateMetadata(file: DriveFile) {
-		// FIXME
-		// const data = createDriveFileMetadataCreateData({ isFavorite: file.metadata.isFavorite, file: file._id })
-		// await this.serviceExecutor.post(DriveFileMetadataService, data)
-	}
-
-	public async move(source: (DriveFile | DriveFolder)[], destination: IdTuple) {
+	public async move(items: (DriveFile | DriveFolder)[], destination: IdTuple) {
 		// FIXME: chunk by 50
-		const [files, folders] = partition(source, isDriveFile)
-		const filesByListId = Array.from(groupByAndMap(files, getListId, (file) => file._id).values())
-		const folderByListId = Array.from(groupByAndMap(folders, getListId, (folder) => folder._id).values())
-		for (let i = 0; i < Math.max(filesByListId.length, folderByListId.length); i++) {
+		const { filesByListId, foldersByListId } = this.sortIntoFilesAndFolderLists(items)
+		for (let i = 0; i < Math.max(filesByListId.length, foldersByListId.length); i++) {
 			const fileIds = filesByListId.at(i) ?? []
-			const folderIds = folderByListId.at(i) ?? []
+			const folderIds = foldersByListId.at(i) ?? []
 			const data = createDriveFolderServicePutIn({
 				files: fileIds,
 				folders: folderIds,
@@ -93,6 +85,13 @@ export class DriveFacade {
 			})
 			await this.serviceExecutor.put(DriveFolderService, data)
 		}
+	}
+
+	private sortIntoFilesAndFolderLists(items: (DriveFile | DriveFolder)[]): { filesByListId: IdTuple[][]; foldersByListId: IdTuple[][] } {
+		const [files, folders] = partition(items, isDriveFile)
+		const filesByListId = Array.from(groupByAndMap(files, getListId, (file) => file._id).values())
+		const foldersByListId = Array.from(groupByAndMap(folders, getListId, (folder) => folder._id).values())
+		return { filesByListId, foldersByListId }
 	}
 
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
@@ -109,24 +108,34 @@ export class DriveFacade {
 		await this.serviceExecutor.put(DriveService, data, { sessionKey })
 	}
 
-	public async moveToTrash(file: DriveFile | DriveFolder) {
-		const deleteData = createDriveFolderServiceDeleteIn({
-			file: isSameTypeRef(file._type, DriveFileTypeRef) ? file._id : null,
-			folder: isSameTypeRef(file._type, DriveFolderTypeRef) ? file._id : null,
-			restore: false,
-		})
+	public async moveToTrash(items: (DriveFile | DriveFolder)[]) {
+		const { filesByListId, foldersByListId } = this.sortIntoFilesAndFolderLists(items)
+		for (let i = 0; i < Math.max(filesByListId.length, foldersByListId.length); i++) {
+			const files = filesByListId.at(i) ?? []
+			const folders = foldersByListId.at(i) ?? []
 
-		await this.serviceExecutor.delete(DriveFolderService, deleteData)
+			const deleteData = createDriveFolderServiceDeleteIn({
+				files,
+				folders,
+				restore: false,
+			})
+			await this.serviceExecutor.delete(DriveFolderService, deleteData)
+		}
 	}
 
-	public async restoreFromTrash(file: DriveFile | DriveFolder) {
-		const restoreData = createDriveFolderServiceDeleteIn({
-			file: isSameTypeRef(file._type, DriveFileTypeRef) ? file._id : null,
-			folder: isSameTypeRef(file._type, DriveFolderTypeRef) ? file._id : null,
-			restore: true,
-		})
+	public async restoreFromTrash(items: (DriveFile | DriveFolder)[]) {
+		const { filesByListId, foldersByListId } = this.sortIntoFilesAndFolderLists(items)
+		for (let i = 0; i < Math.max(filesByListId.length, foldersByListId.length); i++) {
+			const files = filesByListId.at(i) ?? []
+			const folders = foldersByListId.at(i) ?? []
 
-		await this.serviceExecutor.delete(DriveFolderService, restoreData)
+			const restoreData = createDriveFolderServiceDeleteIn({
+				files,
+				folders,
+				restore: true,
+			})
+			await this.serviceExecutor.delete(DriveFolderService, restoreData)
+		}
 	}
 
 	public async loadRootFolders(): Promise<{ root: IdTuple; trash: IdTuple }> {

@@ -11,6 +11,9 @@ import { px, size } from "../../../common/gui/size"
 export interface DriveFolderViewAttrs {
 	onUploadClick: (dom: HTMLElement) => void
 	selection: SelectionState
+	onTrash: (() => unknown) | null
+	onDelete: (() => unknown) | null
+	onRestore: (() => unknown) | null
 	onCopy: (() => unknown) | null
 	onCut: (() => unknown) | null
 	onPaste: (() => unknown) | null
@@ -23,12 +26,29 @@ export interface DriveFolderViewAttrs {
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	view({
-		attrs: { driveViewModel, onCopy, onCut, onPaste, onUploadClick, currentFolder, parents, selection, selectionEvents, listState },
+		attrs: {
+			driveViewModel,
+			onTrash,
+			onDelete,
+			onRestore,
+			onCopy,
+			onCut,
+			onPaste,
+			onUploadClick,
+			currentFolder,
+			parents,
+			selection,
+			selectionEvents,
+			listState,
+		},
 	}: Vnode<DriveFolderViewAttrs>): Children {
 		return m(
 			"div.col.flex.plr-8.fill-absolute",
 			{ style: { gap: px(size.spacing_12) } },
 			m(DriveFolderNav, {
+				onTrash,
+				onDelete,
+				onRestore,
 				onCopy,
 				onCut,
 				onPaste,
@@ -56,10 +76,10 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						driveViewModel.cut([item])
 					},
 					onDelete: (item) => {
-						driveViewModel.moveToTrash(item)
+						driveViewModel.moveToTrash([item])
 					},
 					onRestore: (item) => {
-						driveViewModel.restoreFromTrash(item)
+						driveViewModel.restoreFromTrash([item])
 					},
 					onRename: (item) => {
 						Dialog.showProcessTextInputDialog(

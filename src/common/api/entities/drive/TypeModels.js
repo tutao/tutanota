@@ -919,19 +919,19 @@ export const typeModels = {
 		"associations": {
 			"99": {
 				"final": true,
-				"name": "file",
+				"name": "files",
 				"id": 99,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "Any",
 				"refTypeId": 14,
 				"dependency": null
 			},
 			"100": {
 				"final": true,
-				"name": "folder",
+				"name": "folders",
 				"id": 100,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "Any",
 				"refTypeId": 0,
 				"dependency": null
 			}
