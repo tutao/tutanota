@@ -2129,3 +2129,7 @@ export type TranslationKeyType =
 	| "planselector_page_title"
 	| "planselector_page_subtitle"
 	| "password1InvalidMediumUnsecure_msg"
+	| "verifyCreditCard_action"
+	| "payment_page_title"
+	| "payment_page_subtitle"
+	| "billingCountry_label"

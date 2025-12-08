@@ -28,9 +28,10 @@ import { AccountingInfo, Customer } from "../api/entities/sys/TypeRefs"
 import { PowSolution } from "../api/common/pow-worker"
 import { PlanSelectorPage } from "./PlanSelectorPage"
 import { SignupFormPage } from "./SignupFormPage"
-import { SignupPaymentPage } from "./SignupPaymentPage"
+import { InvoiceAndPaymentDataPageNew } from "./InvoiceAndPaymentDataPageNew"
 import { SignupOrderConfirmationPage } from "./SignupOrderConfirmationPage"
 import { SignupRecoveryKitPage } from "./SignupRecoveryKitPage"
+import { SimplifiedCreditCardViewModel } from "../subscription/SimplifiedCreditCardInputModel"
 
 assertMainOrNode()
 
@@ -72,6 +73,7 @@ export class SignupViewModel {
 	public emailInputStore?: string
 	public passwordInputStore?: string
 	public addressInputStore?: string
+	public ccViewModel: SimplifiedCreditCardViewModel = new SimplifiedCreditCardViewModel(lang)
 	constructor() {
 		const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
 
@@ -223,7 +225,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 								},
 								{
 									title: "Payment",
-									content: SignupPaymentPage,
+									content: InvoiceAndPaymentDataPageNew,
 									onNext: () => console.log("another next action"),
 									isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free,
 								},

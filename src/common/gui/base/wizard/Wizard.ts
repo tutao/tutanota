@@ -14,6 +14,9 @@ export interface WizardAttrs<TViewModel> {
 	onComplete?: (viewModel: TViewModel) => void
 }
 
+/**
+ * this indirection allows us to pass a Component type with a generic parameter to mithril without TS complaining.
+ */
 export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>> {
 	let internalController: WizardController | undefined
 
