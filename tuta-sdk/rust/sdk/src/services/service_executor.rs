@@ -522,7 +522,6 @@ mod tests {
 			Ok(HelloEncOutput {
 				answer: "my secret response".to_string(),
 				timestamp: DateTime::from_millis(3000),
-				_finalIvs: HashMap::new()
 			}),
 			result
 		);
@@ -549,7 +548,6 @@ mod tests {
 			Ok(HelloEncOutput {
 				answer: "my secret response".to_string(),
 				timestamp: DateTime::from_millis(3000),
-				_finalIvs: HashMap::new()
 			}),
 			result
 		);
@@ -576,7 +574,6 @@ mod tests {
 			Ok(HelloEncOutput {
 				answer: "my secret response".to_string(),
 				timestamp: DateTime::from_millis(3000),
-				_finalIvs: HashMap::new()
 			}),
 			result
 		);
@@ -604,7 +601,6 @@ mod tests {
 			Ok(HelloEncOutput {
 				answer: "my secret response".to_string(),
 				timestamp: DateTime::from_millis(3000),
-				_finalIvs: HashMap::new()
 			}),
 			result
 		);
@@ -840,7 +836,6 @@ mod tests {
 					timestamp_attribute_id.to_owned(),
 					ElementValue::Date(DateTime::from_millis(3000)),
 				);
-				entity.insert("_finalIvs".to_string(), ElementValue::Dict(HashMap::new()));
 				Ok(entity.clone())
 			},
 		);

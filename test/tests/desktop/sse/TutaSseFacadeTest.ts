@@ -30,7 +30,6 @@ import {
 	instancePipelineFromTypeModelResolver,
 	mockFetchRequest,
 	removeAggregateIds,
-	removeFinalIvs,
 	removeOriginals,
 } from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/common/desktop/sse/SseInfo.js"
@@ -228,7 +227,7 @@ o.spec("TutaSseFacade", () => {
 					matchers.argThat((actualAlarmNotification) => {
 						removeAggregateIds(actualAlarmNotification, true)
 						removeOriginals(actualAlarmNotification)
-						return deepEqual(removeFinalIvs(actualAlarmNotification), removeFinalIvs(alarmNotification))
+						return deepEqual(actualAlarmNotification, alarmNotification)
 					}),
 				),
 			)

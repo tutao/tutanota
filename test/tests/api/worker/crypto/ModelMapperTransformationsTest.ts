@@ -92,15 +92,13 @@ o.spec("ModelMapperTransformations", function () {
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
 			const parsedInstance: ServerModelParsedInstance = {
-				3: [{ 2: "123", _finalIvs: {} } as any as ServerModelParsedInstance],
-				_finalIvs: {},
+				3: [{ 2: "123" } as any as ServerModelParsedInstance],
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 		})
@@ -184,23 +182,19 @@ o.spec("ModelMapperTransformations", function () {
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
 			const parsedInstance: ServerModelParsedInstance = {
-				3: [{ 2: "123", _finalIvs: {} } as any as ServerModelParsedInstance],
-				_finalIvs: {},
+				3: [{ 2: "123" } as any as ServerModelParsedInstance],
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
 			// request is prepared with the client model and does not add ZeroOrOne aggregation
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
-			o(newParsedInstance).deepEquals({
-				_finalIvs: {},
-			} as any)
+			o(newParsedInstance).deepEquals({} as any)
 		})
 		o("add Any aggregation", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -282,23 +276,19 @@ o.spec("ModelMapperTransformations", function () {
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
 			const parsedInstance: ServerModelParsedInstance = {
-				3: [{ 2: "123", _finalIvs: {} } as any as ServerModelParsedInstance],
-				_finalIvs: {},
+				3: [{ 2: "123" } as any as ServerModelParsedInstance],
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
 			// request is prepared with the client model and does not add Any aggregation
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
-			o(newParsedInstance).deepEquals({
-				_finalIvs: {},
-			} as any as ClientModelParsedInstance)
+			o(newParsedInstance).deepEquals({} as any as ClientModelParsedInstance)
 		})
 
 		o("add One list element association", async function () {
@@ -373,14 +363,12 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [["listId", "listElementId"]],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 		})
@@ -456,22 +444,18 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [["listId", "listElementId"]],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
 			// request is prepared with the client model and does not add ZeroOrOne association
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
-			o(newParsedInstance).deepEquals({
-				_finalIvs: {},
-			} as any as ClientModelParsedInstance)
+			o(newParsedInstance).deepEquals({} as any as ClientModelParsedInstance)
 		})
 		o("add Any list element association", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -554,22 +538,18 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [["listId", "listElementId"]],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
 			// request is prepared with the client model and does not add Any association
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
-			o(newParsedInstance).deepEquals({
-				_finalIvs: {},
-			} as any as ClientModelParsedInstance)
+			o(newParsedInstance).deepEquals({} as any as ClientModelParsedInstance)
 		})
 	})
 	o.spec("AddValue", function () {
@@ -630,22 +610,18 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "example",
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
 			// request is prepared with the client model and does not add One value
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
-			o(newParsedInstance).deepEquals({
-				_finalIvs: {},
-			} as any as ClientModelParsedInstance)
+			o(newParsedInstance).deepEquals({} as any as ClientModelParsedInstance)
 		})
 		o("add One Value with default supplier on server should also supply default on client", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -712,16 +688,13 @@ o.spec("ModelMapperTransformations", function () {
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
 			// The instance in the offline storage (written when the value was not there for the server & client models)
-			const parsedInstance: ServerModelParsedInstance = {
-				_finalIvs: {},
-			} as any as ServerModelParsedInstance
+			const parsedInstance: ServerModelParsedInstance = {} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: "",
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
@@ -729,7 +702,6 @@ o.spec("ModelMapperTransformations", function () {
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals({
 				1: "",
-				_finalIvs: {},
 			} as any as ClientModelParsedInstance)
 		})
 		o("add ZeroOrOne Value", async function () {
@@ -789,22 +761,18 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "example",
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
 			// request is prepared with the client model and does not add ZeroOrOne value
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
-			o(newParsedInstance).deepEquals({
-				_finalIvs: {},
-			} as any as ClientModelParsedInstance)
+			o(newParsedInstance).deepEquals({} as any as ClientModelParsedInstance)
 		})
 	})
 	o.spec("BooleanToNumberValue", function () {
@@ -875,7 +843,6 @@ o.spec("ModelMapperTransformations", function () {
 			// false
 			const falseParsedInstance: ServerModelParsedInstance = {
 				1: "0",
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const falseMappedInstance = (await modelMapper.mapToInstance(TestTypeRef, falseParsedInstance)) as any
@@ -883,7 +850,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(falseMappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: false,
-				_finalIvs: {},
 			} as any)
 			o(typeof falseMappedInstance._errors).equals("undefined")
 
@@ -891,13 +857,11 @@ o.spec("ModelMapperTransformations", function () {
 			const newFalseParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, falseMappedInstance)
 			o(newFalseParsedInstance).deepEquals({
 				1: false,
-				_finalIvs: {},
 			} as any as ClientModelParsedInstance)
 
 			// true
 			const trueParsedInstance: ServerModelParsedInstance = {
 				1: "anything",
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const trueMappedInstance = (await modelMapper.mapToInstance(TestTypeRef, trueParsedInstance)) as any
@@ -905,7 +869,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(trueMappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: true,
-				_finalIvs: {},
 			} as any)
 			o(typeof trueMappedInstance._errors).equals("undefined")
 
@@ -913,7 +876,6 @@ o.spec("ModelMapperTransformations", function () {
 			const newTrueParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, trueMappedInstance)
 			o(newTrueParsedInstance).deepEquals({
 				1: true,
-				_finalIvs: {},
 			} as any as ClientModelParsedInstance)
 		})
 	})
@@ -1014,12 +976,7 @@ o.spec("ModelMapperTransformations", function () {
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
 			const parsedInstance: ServerModelParsedInstance = {
-				3: [
-					{
-						_finalIvs: {},
-					} as any as ServerModelParsedInstance,
-				],
-				_finalIvs: {},
+				3: [{} as any as ServerModelParsedInstance],
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
@@ -1029,10 +986,8 @@ o.spec("ModelMapperTransformations", function () {
 				testAggregation: [
 					{
 						_type: TestAggregateRef,
-						_finalIvs: {},
 					},
 				],
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
@@ -1136,7 +1091,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't convert an empty array to one
 			await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
@@ -1238,7 +1192,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't convert an empty array to one
 			const mappedInstance = await modelMapper.mapToInstance(TestTypeRef, parsedInstance)
@@ -1246,7 +1199,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testAggregation: null,
-				_finalIvs: {},
 			} as any)
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
@@ -1347,8 +1299,7 @@ o.spec("ModelMapperTransformations", function () {
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
 			const parsedInstance: ServerModelParsedInstance = {
-				3: [{ _finalIvs: {} } as any as ServerModelParsedInstance, { _finalIvs: {} } as any as ServerModelParsedInstance],
-				_finalIvs: {},
+				3: [{} as any as ServerModelParsedInstance, {} as any as ServerModelParsedInstance],
 			} as any as ServerModelParsedInstance
 			// can't convert an array with multiple elements to ZeroOrOne
 			await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
@@ -1450,7 +1401,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can convert an empty array to ZeroOrOne
 			const mappedInstance = await modelMapper.mapToInstance(TestTypeRef, parsedInstance)
@@ -1458,7 +1408,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testAggregation: [],
-				_finalIvs: {},
 			} as any)
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
@@ -1559,16 +1508,14 @@ o.spec("ModelMapperTransformations", function () {
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
 			const parsedInstance: ServerModelParsedInstance = {
-				3: [{ _finalIvs: {} } as any as ServerModelParsedInstance],
-				_finalIvs: {},
+				3: [{} as any as ServerModelParsedInstance],
 			} as any as ServerModelParsedInstance
 			// can convert an array with one element to ZeroOrOne
 			const mappedInstance = await modelMapper.mapToInstance(TestTypeRef, parsedInstance)
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				testAggregation: [{ _type: TestAggregateRef, _finalIvs: {} } as any],
-				_finalIvs: {},
+				testAggregation: [{ _type: TestAggregateRef } as any],
 			} as any)
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
@@ -1671,7 +1618,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [["listId", "listElementId"]],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
@@ -1679,7 +1625,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: [["listId", "listElementId"]],
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
@@ -1783,7 +1728,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't convert an empty array to one
 			await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
@@ -1885,7 +1829,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't convert an empty array to one
 			const mappedInstance = await modelMapper.mapToInstance(TestTypeRef, parsedInstance)
@@ -1893,7 +1836,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: null,
-				_finalIvs: {},
 			} as any)
 
 			// request is prepared with the client model and association is not changed
@@ -2000,7 +1942,6 @@ o.spec("ModelMapperTransformations", function () {
 					["listId", "listElementId1"],
 					["listId", "listElementId2"],
 				],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can't convert an array with multiple elements to ZeroOrOne
 			await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
@@ -2102,7 +2043,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can convert an empty array to ZeroOrOne
 			const mappedInstance = await modelMapper.mapToInstance(TestTypeRef, parsedInstance)
@@ -2110,7 +2050,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: [],
-				_finalIvs: {},
 			} as any)
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
@@ -2212,7 +2151,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				3: [["listId", "listElementId"]],
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 			// can convert an array with one element to ZeroOrOne
 			const mappedInstance = await modelMapper.mapToInstance(TestTypeRef, parsedInstance)
@@ -2220,7 +2158,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: [["listId", "listElementId"]],
-				_finalIvs: {},
 			} as any)
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientModelParsedInstance)
@@ -2293,7 +2230,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "example",
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
@@ -2301,14 +2237,12 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: "example",
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals({
 				1: "example",
-				_finalIvs: {},
 			} as any as ClientModelParsedInstance)
 		})
 		o("change value from One to ZeroOrOne", async function () {
@@ -2377,7 +2311,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "example",
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
@@ -2385,14 +2318,12 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: "example",
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals({
 				1: "example",
-				_finalIvs: {},
 			} as any as ClientModelParsedInstance)
 		})
 		o("change value from One to ZeroOrOne null value throws", async function () {
@@ -2461,7 +2392,6 @@ o.spec("ModelMapperTransformations", function () {
 			)
 			const parsedInstance: ServerModelParsedInstance = {
 				1: null,
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
@@ -2534,7 +2464,6 @@ o.spec("ModelMapperTransformations", function () {
 
 			const parsedInstance: ServerModelParsedInstance = {
 				1: "42",
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
@@ -2542,7 +2471,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: 42,
-				_finalIvs: {},
 			} as any)
 			o(typeof parsedInstance._errors).equals("undefined")
 
@@ -2550,7 +2478,6 @@ o.spec("ModelMapperTransformations", function () {
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals({
 				1: 42,
-				_finalIvs: {},
 			} as any as ClientModelParsedInstance)
 		})
 		o("convert number to string value throws when server sends non numeric", async function () {
@@ -2619,7 +2546,6 @@ o.spec("ModelMapperTransformations", function () {
 
 			const wrongParsedInstance: ServerModelParsedInstance = {
 				1: "example",
-				_finalIvs: {},
 			} as any as ServerModelParsedInstance
 
 			await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(TestTypeRef, wrongParsedInstance))
@@ -2705,9 +2631,7 @@ o.spec("ModelMapperTransformations", function () {
 				clientModelResolver as ClientTypeReferenceResolver,
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
-			const parsedInstance: ServerModelParsedInstance = {
-				_finalIvs: {},
-			} as any as ServerModelParsedInstance
+			const parsedInstance: ServerModelParsedInstance = {} as any as ServerModelParsedInstance
 			// can't create the instance since One aggregation is removed
 			await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
@@ -2790,9 +2714,7 @@ o.spec("ModelMapperTransformations", function () {
 				clientModelResolver as ClientTypeReferenceResolver,
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
-			const parsedInstance: ServerModelParsedInstance = {
-				_finalIvs: {},
-			} as any as ServerModelParsedInstance
+			const parsedInstance: ServerModelParsedInstance = {} as any as ServerModelParsedInstance
 
 			// can remove aggregation with ZeroOrOne cardinality and supply null
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
@@ -2800,7 +2722,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testAssociation: null,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
@@ -2808,7 +2729,6 @@ o.spec("ModelMapperTransformations", function () {
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals({
 				3: [],
-				_finalIvs: {},
 			} as any)
 		})
 		o("remove Any aggregation", async function () {
@@ -2890,9 +2810,7 @@ o.spec("ModelMapperTransformations", function () {
 				clientModelResolver as ClientTypeReferenceResolver,
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
-			const parsedInstance: ServerModelParsedInstance = {
-				_finalIvs: {},
-			} as any as ServerModelParsedInstance
+			const parsedInstance: ServerModelParsedInstance = {} as any as ServerModelParsedInstance
 
 			// can remove association with Any cardinality and supply []
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
@@ -2900,7 +2818,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testAssociation: [],
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
@@ -2908,7 +2825,6 @@ o.spec("ModelMapperTransformations", function () {
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals({
 				3: [],
-				_finalIvs: {},
 			} as any)
 		})
 
@@ -2982,9 +2898,7 @@ o.spec("ModelMapperTransformations", function () {
 				clientModelResolver as ClientTypeReferenceResolver,
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
-			const parsedInstance: ServerModelParsedInstance = {
-				_finalIvs: {},
-			} as any as ServerModelParsedInstance
+			const parsedInstance: ServerModelParsedInstance = {} as any as ServerModelParsedInstance
 			// can't create the instance since One association is removed
 			await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
 		})
@@ -3058,9 +2972,7 @@ o.spec("ModelMapperTransformations", function () {
 				clientModelResolver as ClientTypeReferenceResolver,
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
-			const parsedInstance: ServerModelParsedInstance = {
-				_finalIvs: {},
-			} as any as ServerModelParsedInstance
+			const parsedInstance: ServerModelParsedInstance = {} as any as ServerModelParsedInstance
 
 			// can remove association with ZeroOrOne and supply null
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
@@ -3068,7 +2980,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: null,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
@@ -3076,7 +2987,6 @@ o.spec("ModelMapperTransformations", function () {
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals({
 				3: [],
-				_finalIvs: {},
 			} as any)
 		})
 		o("remove Any list element association", async function () {
@@ -3158,9 +3068,7 @@ o.spec("ModelMapperTransformations", function () {
 				clientModelResolver as ClientTypeReferenceResolver,
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
-			const parsedInstance: ServerModelParsedInstance = {
-				_finalIvs: {},
-			} as any as ServerModelParsedInstance
+			const parsedInstance: ServerModelParsedInstance = {} as any as ServerModelParsedInstance
 
 			// can remove association with Any cardinality and supply []
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
@@ -3168,7 +3076,6 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: [],
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
@@ -3176,7 +3083,6 @@ o.spec("ModelMapperTransformations", function () {
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals({
 				3: [],
-				_finalIvs: {},
 			} as any)
 		})
 	})
@@ -3236,16 +3142,13 @@ o.spec("ModelMapperTransformations", function () {
 				clientModelResolver as ClientTypeReferenceResolver,
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
-			const parsedInstance: ServerModelParsedInstance = {
-				_finalIvs: {},
-			} as any as ServerModelParsedInstance
+			const parsedInstance: ServerModelParsedInstance = {} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: "",
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
@@ -3253,7 +3156,6 @@ o.spec("ModelMapperTransformations", function () {
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals({
 				1: "",
-				_finalIvs: {},
 			} as any as ClientModelParsedInstance)
 		})
 		o("remove ZeroOrOne Value", async function () {
@@ -3311,16 +3213,13 @@ o.spec("ModelMapperTransformations", function () {
 				clientModelResolver as ClientTypeReferenceResolver,
 				serverModelResolver as ServerTypeReferenceResolver,
 			)
-			const parsedInstance: ServerModelParsedInstance = {
-				_finalIvs: {},
-			} as any as ServerModelParsedInstance
+			const parsedInstance: ServerModelParsedInstance = {} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: null,
-				_finalIvs: {},
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
@@ -3328,7 +3227,6 @@ o.spec("ModelMapperTransformations", function () {
 			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
 			o(newParsedInstance).deepEquals({
 				1: null,
-				_finalIvs: {},
 			} as any)
 		})
 	})

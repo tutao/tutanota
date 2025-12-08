@@ -100,7 +100,7 @@ impl TutaCryptMessage {
 			CryptoProtocolVersion::TutaCrypt,
 		);
 
-		let bucket_key = aes_256_decrypt(&kek, &self.encapsulation.kek_enc_bucket_key)?.data;
+		let bucket_key = aes_256_decrypt(&kek, &self.encapsulation.kek_enc_bucket_key)?;
 		Ok(DecapsulatedSymKey {
 			decrypted_sym_key_bytes: Aes256Key::try_from(bucket_key)?,
 			sender_identity_pub_key: self.sender_identity_public_key.clone(),

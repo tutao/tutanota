@@ -160,7 +160,6 @@ export class ModelMapper {
 		const serverTypeModel = await this.serverTypeReferenceResolver(typeRef)
 		const clientInstance: Record<string, unknown> = {
 			_type: typeRef,
-			_finalIvs: parsedInstance._finalIvs,
 		}
 
 		if (parsedInstance._errors != null) {
@@ -232,9 +231,7 @@ export class ModelMapper {
 	async mapToClientModelParsedInstance<T extends Entity>(typeRef: TypeRef<T>, instance: T): Promise<ClientModelParsedInstance> {
 		const clientTypeModel = await this.clientTypeReferenceResolver(typeRef)
 
-		const parsedInstance: Record<number, unknown> & { _finalIvs: unknown } = {
-			_finalIvs: typeof instance["_finalIvs"] !== "undefined" ? instance["_finalIvs"] : {},
-		}
+		const parsedInstance: Record<number, unknown> = {}
 
 		for (const [attrIdStr, modelValue] of Object.entries(clientTypeModel.values)) {
 			const attrId = parseInt(attrIdStr)
@@ -374,6 +371,7 @@ export function valueToDefault(type: Values<typeof ValueType>): ParsedValue {
 	}
 }
 
+// visibleForTesting
 export function isDefaultValue(type: Values<typeof ValueType>, value: unknown): boolean {
 	switch (type) {
 		case ValueType.String:

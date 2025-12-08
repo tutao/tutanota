@@ -195,8 +195,6 @@ export type ParsedAssociation = EncryptedParsedAssociation
 export type ParsedInstance = Record<AttributeId, Nullable<ParsedValue> | ParsedAssociation> & {
 	/** crypto errors that happened during deserialization/serialization */
 	_errors?: Record<AttributeId, string>
-	/** the ivs used to encrypt final fields on the instance */
-	_finalIvs: Record<AttributeId, Nullable<Uint8Array>>
 }
 
 /** simple separator to distinguish between client model types and server model types */
@@ -232,7 +230,6 @@ export interface Entity {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
 	_original?: this
-	_finalIvs?: Record<number, Nullable<Uint8Array>>
 	bucketKey?: null | BucketKey
 	_ownerGroup?: null | Id
 	_ownerEncSessionKey?: null | Uint8Array
