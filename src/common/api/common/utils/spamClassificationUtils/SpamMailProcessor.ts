@@ -87,7 +87,7 @@ export class SpamMailProcessor {
 		return await vectorizer.vectorize(tokenizedMail)
 	}
 
-	private async compress(uncompressedVector: number[]): Promise<Uint8Array> {
+	public async compress(uncompressedVector: number[]): Promise<Uint8Array> {
 		return this.sparseVectorCompressor.vectorToBinary(uncompressedVector)
 	}
 

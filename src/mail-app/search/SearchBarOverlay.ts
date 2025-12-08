@@ -13,7 +13,7 @@ import { Icon } from "../../common/gui/base/Icon"
 import { client } from "../../common/misc/ClientDetector"
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../../common/gui/theme"
-import { getMailFolderIcon, isTutanotaTeamMail } from "../mail/view/MailGuiUtils"
+import { getMailFolderIcon } from "../mail/view/MailGuiUtils"
 import { locator } from "../../common/api/main/CommonLocator"
 import { IndexingErrorReason } from "../../common/api/worker/search/SearchTypes"
 import { companyTeamLabel } from "../../common/misc/ClientConstants.js"
@@ -25,6 +25,7 @@ import { getContactListName } from "../../common/contactsFunctionality/ContactUt
 import { getSenderOrRecipientHeading } from "../mail/view/MailViewerUtils.js"
 import { mailLocator } from "../mailLocator.js"
 import { renderSearchInOurApps } from "./view/SearchView"
+import { isTutanotaTeamMail } from "../../common/mailFunctionality/SharedMailUtils"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState

@@ -2,7 +2,7 @@ import { assertMainOrNode } from "../api/common/Env.js"
 import { CustomerPropertiesTypeRef, GroupInfo, User } from "../api/entities/sys/TypeRefs.js"
 import { Contact, createContact, createContactMailAddress, Mail } from "../api/entities/tutanota/TypeRefs.js"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
-import { assertNotNull, contains, neverNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
+import { assertNotNull, contains, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/tutanota-utils"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	ContactAddressType,
@@ -245,6 +245,27 @@ export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus
 			// we have to be able to handle future cases, to be safe we say that they are not valid encryptionAuth
 			return false
 	}
+}
+
+/**
+ * NOTE: DOES NOT VERIFY IF THE MESSAGE IS AUTHENTIC - DO NOT USE THIS OUTSIDE OF THIS FILE OR FOR TESTING
+ * @VisibleForTesting
+ */
+export function isTutanotaTeamAddress(address: string): boolean {
+	return endsWith(address, "@tutao.de") || address === "no-reply@tutanota.de"
+}
+
+/**
+ * Is this a tutao team member email or a system notification
+ */
+export function isTutanotaTeamMail(mail: Mail): boolean {
+	const { confidential, sender, state } = mail
+	return (
+		confidential &&
+		state === MailState.RECEIVED &&
+		hasValidEncryptionAuthForTeamOrSystemMail(mail) &&
+		(sender.address === SYSTEM_GROUP_MAIL_ADDRESS || isTutanotaTeamAddress(sender.address))
+	)
 }
 
 /**
