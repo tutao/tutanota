@@ -214,6 +214,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 									title: "Select Plan",
 									content: PlanSelectorPage,
 									onNext: () => console.log("another next action"),
+									isBackButtonEnabled: () => false,
 								},
 								{
 									title: "Create Account",
@@ -224,6 +225,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 									title: "Payment",
 									content: SignupPaymentPage,
 									onNext: () => console.log("another next action"),
+									isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free,
 								},
 								{
 									title: "Order Confirmation",

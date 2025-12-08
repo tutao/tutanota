@@ -3247,19 +3247,19 @@ styles.registerStyle("main", () => {
 		},
 		".base-button-sm": {
 			"padding-inline": px(12),
-			height: px(32),
+			height: px(component_size.button_height_sm),
 			"border-radius": px(size.radius_8),
 			"text-align": "center",
 		},
 		".base-button-md": {
 			"padding-inline": px(16),
-			height: px(44),
+			height: px(component_size.button_height),
 			"border-radius": px(size.radius_8),
 			"text-align": "center",
 		},
 		".base-button-lg": {
 			"padding-inline": px(24),
-			height: px(56),
+			height: px(component_size.button_height_lg),
 			"border-radius": px(size.radius_8),
 			"text-align": "center",
 		},
@@ -3282,6 +3282,19 @@ styles.registerStyle("main", () => {
 		},
 		".login-textfield:hover:not(:has(input:focus))": {
 			"background-color": theme.state_bg_focus,
+		},
+		".line-height-1": {
+			"line-height": 1,
+		},
+		".snackbar": {
+			"background-color": theme.surface_container_high,
+			"border-radius": px(size.radius_8),
+			color: theme.on_surface,
+			"padding-top": px(size.spacing_8),
+			"padding-bottom": px(size.spacing_8),
+			display: "flex",
+			"justify-content": "space-between",
+			"min-height": px(component_size.button_height_lg),
 		},
 	}
 })

@@ -13,7 +13,10 @@ export interface WizardProgressAttrs {
 export class WizardProgress implements Component<WizardProgressAttrs> {
 	view({ attrs: { progressState, onClick } }: Vnode<WizardProgressAttrs>) {
 		return m(
-			".flex.col.justify-center",
+			".flex.col.justify-start",
+			{
+				style: { flex: 1 },
+			},
 			m(
 				".flex.col.flex-space-around.items-start",
 				{

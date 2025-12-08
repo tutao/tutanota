@@ -7,6 +7,7 @@ export interface WizardStepAttrs<TViewModel> {
 	onNext?: (ctx: WizardStepContext<TViewModel>) => boolean | Promise<boolean | void> | void
 	onPrev?: (ctx: WizardStepContext<TViewModel>) => boolean | Promise<boolean | void> | void
 	isEnabled?: (ctx: WizardStepContext<TViewModel>) => boolean
+	isBackButtonEnabled?: (ctx: WizardStepContext<TViewModel>) => boolean
 }
 
 export interface WizardStepComponentAttrs<TViewModel> {

@@ -33,7 +33,9 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 			[PlanType.Legend]: getAsLazy(button),
 		}
 
-		return m("div.flex.items-center.flex-center", [
+		return m(".flex.flex-column.items-start", [
+			m("h1.font-mdio.line-height-1", lang.getTranslationText("planselector_page_title")),
+			m("p", lang.getTranslationText("planselector_page_subtitle")),
 			// Headline for a global campaign
 			!data.options!.businessUse() &&
 				anyHasGlobalFirstYearCampaign(discountDetails) &&

@@ -2,18 +2,17 @@ import m, { Children, Component, Vnode } from "mithril"
 import { ToggleButton } from "../../gui/base/buttons/ToggleButton.js"
 import { Icons } from "../../gui/base/icons/Icons.js"
 import { ButtonSize } from "../../gui/base/ButtonSize.js"
-import { Autocomplete, TextFieldAttrs, TextFieldType } from "../../gui/base/TextField.js"
+import { Autocomplete, TextFieldType } from "../../gui/base/TextField.js"
 import { Status, StatusField } from "../../gui/base/StatusField.js"
 import type { lazy } from "@tutao/tutanota-utils"
-import { LoginTextField } from "../../gui/base/LoginTextField"
+import { LoginTextField, LoginTextFieldAttrs } from "../../gui/base/LoginTextField"
 import { MaybeTranslation } from "../../misc/LanguageViewModel"
-import { isSecurePassword, scaleToVisualPasswordStrength } from "../../misc/passwords/PasswordUtils"
-import { PasswordStrengthIndicator } from "./PasswordStrengthIndicator"
+import { isMediumInsecurePassword, isSecurePassword, passwordStrengthToColor } from "../../misc/passwords/PasswordUtils"
 import { theme } from "../../gui/theme"
 
 type StatusSetting = Status | "auto"
 
-export interface PasswordFieldAttrs extends Omit<TextFieldAttrs, "label" | "type"> {
+export interface PasswordFieldAttrs extends Omit<LoginTextFieldAttrs, "label" | "type"> {
 	label?: MaybeTranslation
 	passwordStrength?: number
 	status?: StatusSetting
@@ -44,6 +43,7 @@ export class PasswordFieldNew implements Component<PasswordFieldAttrs> {
 					textFieldAttrs.injectionsRight ? textFieldAttrs.injectionsRight() : null,
 				]
 			},
+			borderColor: passwordStrengthToColor(passwordStrength),
 		})
 	}
 
@@ -68,17 +68,22 @@ export class PasswordFieldNew implements Component<PasswordFieldAttrs> {
 	): Children {
 		const displayedStatus = PasswordFieldNew.parseStatusSetting(status, value, strength)
 		return m(".mt-8", [
-			m(".flex.items-center", [
-				strength != null
-					? m(PasswordStrengthIndicator, {
-							percentageCompleted: scaleToVisualPasswordStrength(strength),
-						})
-					: null,
-			]),
-			m(".flex.items-center.justify-between.mt-8", [
-				displayedStatus ? m(StatusField, { status: displayedStatus }) : null,
-				helpLabel ? helpLabel() : null,
-			]),
+			// m(".flex.items-center", [
+			// 	strength != null
+			// 		? m(PasswordStrengthIndicator, {
+			// 				percentageCompleted: scaleToVisualPasswordStrength(strength),
+			// 			})
+			// 		: null,
+			// ]),
+			m(
+				".flex.items-center.justify-between.mt-8",
+				{
+					style: {
+						color: passwordStrengthToColor(strength),
+					},
+				},
+				[displayedStatus ? m(StatusField, { status: displayedStatus }) : null, helpLabel ? helpLabel() : null],
+			),
 		])
 	}
 
@@ -103,10 +108,15 @@ export class PasswordFieldNew implements Component<PasswordFieldAttrs> {
 				type: "valid",
 				text: "passwordValid_msg",
 			}
-		} else {
+		} else if (isMediumInsecurePassword(strength)) {
 			return {
 				type: "invalid",
 				text: "password1InvalidUnsecure_msg",
+			}
+		} else {
+			return {
+				type: "invalid",
+				text: "password1InvalidMediumUnsecure_msg",
 			}
 		}
 	}

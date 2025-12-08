@@ -16,13 +16,13 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 		if (newAccountData) mailAddress = newAccountData.mailAddress
 
 		return m(
-			"div.flex.items-center.flex-center",
+			"div.flex.items-start",
 			m(
 				".flex.flex-column",
 
 				[
-					m("h1", lang.get("signup_page_title")),
-					m("p.b", { style: { color: theme.on_surface_variant } }, lang.get("signup_page_subtitle")),
+					m("h1.font-mdio.line-height-1", lang.get("signup_page_title")),
+					m("p", { style: { color: theme.on_surface_variant } }, lang.get("signup_page_subtitle")),
 					m(SignupFormNew, {
 						onComplete: async (result) => {
 							if (result.type === "success") {

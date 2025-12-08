@@ -2126,7 +2126,10 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"create_new_account_label": "Create new account",
 		"username_label": "Username",
-		"signup_page_title": "Sign up and Turn ON Privacy",
-		"signup_page_subtitle": "Safe encrypt your mails, calendar and contacts with Tuta."
+		"signup_page_title": "Your Account to a Private World",
+		"signup_page_subtitle": "Safe encrypt your mails, calendar and contacts with Tuta",
+		"planselector_page_title": "Privacy is never a premium feature",
+		"planselector_page_subtitle": "Every plan includes quantum-safe end-to-end encryption",
+		"password1InvalidMediumUnsecure_msg": "Still too weak",
 	}
 }

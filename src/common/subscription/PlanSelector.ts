@@ -9,7 +9,6 @@ import { LoginButton, LoginButtonAttrs } from "../gui/base/buttons/LoginButton.j
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { theme } from "../gui/theme.js"
-import { styles } from "../gui/styles.js"
 import { boxShadowHigh } from "../gui/main-styles.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { getApplePriceStr, getPriceStr } from "./utils/SubscriptionUtils.js"
@@ -169,17 +168,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 							"box-shadow": boxShadowHigh,
 						},
 					},
-					m(
-						"",
-						{
-							style: {
-								"min-width": styles.isMobileLayout() ? "100%" : px(265),
-								"max-width": styles.isMobileLayout() ? "100%" : px(265),
-								"margin-inline": "auto",
-							},
-						},
-						renderActionButton(onContinue),
-					),
+
+					renderActionButton(onContinue),
 				),
 
 				!(availablePlans.length === 1 && availablePlans.includes(PlanType.Free)) &&

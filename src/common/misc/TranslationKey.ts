@@ -2126,3 +2126,6 @@ export type TranslationKeyType =
 	| "username_label"
 	| "signup_page_title"
 	| "signup_page_subtitle"
+	| "planselector_page_title"
+	| "planselector_page_subtitle"
+	| "password1InvalidMediumUnsecure_msg"
