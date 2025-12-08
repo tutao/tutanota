@@ -63,27 +63,31 @@ export class ProcessInboxHandler {
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
 		let moveToFolder: MailSet = sourceFolder
 
-		if (sourceFolder.folderType === MailSetKind.INBOX || sourceFolder.folderType === MailSetKind.SPAM) {
-			const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail)
-			if (result) {
-				const { targetFolder, processInboxDatum } = result
-				finalProcessInboxDatum = processInboxDatum
-				moveToFolder = targetFolder
+		if (isSpamClassificationFeatureEnabled) {
+			const { targetFolder, processInboxDatum } = await this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceFolder, folderSystem)
+			moveToFolder = targetFolder
+			finalProcessInboxDatum = processInboxDatum
+		}
+
+		// apply inbox rules only if the mail is classified as ham by the spam classifier
+		if (moveToFolder.folderType === MailSetKind.INBOX) {
+			if (sourceFolder.folderType === MailSetKind.INBOX || sourceFolder.folderType === MailSetKind.SPAM) {
+				const result = await this.inboxRuleHandler()?.findAndApplyMatchingRule(mailboxDetail, mail)
+				if (result) {
+					const { targetFolder, processInboxDatum } = result
+					finalProcessInboxDatum = processInboxDatum
+					moveToFolder = targetFolder
+				}
 			}
 		}
 
+		// set processInboxDatum if the spam classification is disabled and no inbox rule applies to the mail
 		if (finalProcessInboxDatum === null) {
-			if (isSpamClassificationFeatureEnabled) {
-				const { targetFolder, processInboxDatum } = await this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceFolder, folderSystem)
-				moveToFolder = targetFolder
-				finalProcessInboxDatum = processInboxDatum
-			} else {
-				finalProcessInboxDatum = {
-					mailId: mail._id,
-					targetMoveFolder: moveToFolder._id,
-					classifierType: null,
-					vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
-				}
+			finalProcessInboxDatum = {
+				mailId: mail._id,
+				targetMoveFolder: moveToFolder._id,
+				classifierType: null,
+				vector: await this.mailFacade.vectorizeAndCompressMails({ mail, mailDetails }),
 			}
 		}
 
