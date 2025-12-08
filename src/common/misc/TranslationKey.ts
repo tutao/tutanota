@@ -2136,3 +2136,4 @@ export type TranslationKeyType =
 	| "sendTime_label"
 	| "removeScheduledMails_msg"
 	| "aliasDeactivationNotPossible_msg"
+	| "tooManyScheduledMails_msg"

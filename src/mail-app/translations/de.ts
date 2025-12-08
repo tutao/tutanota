@@ -2137,6 +2137,7 @@ export default {
 		"invalidSendLaterDate_msg": "Invalid send later date",
 		"sendTime_label": "Send time",
 		"removeScheduledMails_msg": "Please remove your scheduled mails.",
-		"aliasDeactivationNotPossible_msg": "Could not deactivate alias. {detailMsg}"
+		"aliasDeactivationNotPossible_msg": "Could not deactivate alias. {detailMsg}",
+		"tooManyScheduledMails_msg": "You have exceeded the allowed number of scheduled emails."
     }
 }
