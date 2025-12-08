@@ -112,6 +112,7 @@ import {
 	byteLength,
 	contains,
 	defer,
+	flatMap,
 	freshVersioned,
 	getUrlDomain,
 	groupBy,
@@ -1048,6 +1049,24 @@ export class MailFacade {
 		})
 	}
 
+	/**
+	 * loads main user address, all enabled aliases and shared mailbox address
+	 * @param user
+	 *
+	 * @return main user address, all enabled aliases and shared mailbox address
+	 */
+	async getAllMailAddressesForUser(user: User): Promise<string[]> {
+		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+		const mailAddressesForUserGroup = getEnabledMailAddressesForGroupInfo(userGroupInfo)
+
+		const mailAddressesForMailGroups = await promiseMap(getUserGroupMemberships(user, GroupType.Mail), async (groupMembership) => {
+			const mailGroupInfo = await this.entityClient.load(GroupInfoTypeRef, groupMembership.groupInfo)
+			return getEnabledMailAddressesForGroupInfo(mailGroupInfo)
+		})
+		const allMailAddressesForMailGroups = flatMap(mailAddressesForMailGroups, (mailAddresses) => mailAddresses)
+
+		return mailAddressesForUserGroup.concat(allMailAddressesForMailGroups)
+	}
 	async clearFolder(folderId: IdTuple) {
 		const deleteMailData = createDeleteMailData({
 			folder: folderId,

@@ -17,6 +17,7 @@ import {
 } from "../../../../../src/common/api/entities/tutanota/TypeRefs.js"
 import {
 	CryptoProtocolVersion,
+	GroupType,
 	MailAuthenticationStatus,
 	MAX_NBR_OF_MAILS_SYNC_OPERATION,
 	ReportedMailFieldType,
@@ -37,7 +38,15 @@ import { KeyLoaderFacade } from "../../../../../src/common/api/worker/facades/Ke
 import { PublicEncryptionKeyProvider } from "../../../../../src/common/api/worker/facades/PublicEncryptionKeyProvider.js"
 import { assertThrows, verify } from "@tutao/tutanota-test-utils"
 import { UnreadMailStateService } from "../../../../../src/common/api/entities/tutanota/Services"
-import { BucketKeyTypeRef, InstanceSessionKey, InstanceSessionKeyTypeRef } from "../../../../../src/common/api/entities/sys/TypeRefs"
+import {
+	BucketKeyTypeRef,
+	GroupInfoTypeRef,
+	GroupMembershipTypeRef,
+	InstanceSessionKey,
+	InstanceSessionKeyTypeRef,
+	MailAddressAliasTypeRef,
+	UserTypeRef,
+} from "../../../../../src/common/api/entities/sys/TypeRefs"
 import { OwnerEncSessionKeyProvider } from "../../../../../src/common/api/worker/rest/EntityRestClient"
 import { elementIdPart, getElementId } from "../../../../../src/common/api/common/utils/EntityUtils"
 import { CryptoWrapper, VersionedEncryptedKey } from "../../../../../src/common/api/worker/crypto/CryptoWrapper"
@@ -719,6 +728,59 @@ o.spec("MailFacade test", function () {
 				await facade.addRecipientKeyData(bucketKey, sendDraftData, recipients, senderMailGroupId)
 			})
 			o(err.data).deepEquals([unverifiedRecipient1.address, unverifiedRecipient2.address])
+		})
+	})
+
+	o.spec("getAllMailAddressesForUser", function () {
+		o("getAllMailAddressesForUser returns all mail addresses from all mail groups", async function () {
+			const mailGroupInfoUser = createTestEntity(GroupInfoTypeRef, {
+				mailAddressAliases: [
+					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "user@tutanota.de", enabled: true }),
+					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "deactivated-alias@tutanota.de", enabled: false }),
+					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "activated-alias-alias@tutanota.de", enabled: true }),
+				],
+			})
+
+			const user = createTestEntity(UserTypeRef, {
+				memberships: [
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.Mail,
+						groupInfo: ["groupInfoListId", "mailGroupInfoElementId"],
+					}),
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.Mail,
+						groupInfo: ["groupInfoListId", "mailGroupInfoElementIdEmpty"],
+					}),
+					createTestEntity(GroupMembershipTypeRef, {
+						groupType: GroupType.Contact,
+						groupInfo: ["groupInfoListId", "contactGroupInfoElementId2"],
+					}),
+				],
+				userGroup: createTestEntity(GroupMembershipTypeRef, {
+					groupInfo: ["groupInfoListId", "userGroupElementId"],
+				}),
+			})
+			when(entityClient.load(GroupInfoTypeRef, ["groupInfoListId", "userGroupElementId"])).thenResolve(mailGroupInfoUser)
+			const mailGroupInfo = createTestEntity(GroupInfoTypeRef, {
+				mailAddressAliases: [
+					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "alias1-mail-group@tutanota.de", enabled: true }),
+					createTestEntity(MailAddressAliasTypeRef, { mailAddress: "alias2-mail-group@tutanota.de", enabled: true }),
+				],
+			})
+			when(entityClient.load(GroupInfoTypeRef, ["groupInfoListId", "mailGroupInfoElementId"])).thenResolve(mailGroupInfo)
+
+			const mailGroupInfoEmpty = createTestEntity(GroupInfoTypeRef, {
+				mailAddressAliases: [],
+			})
+			when(entityClient.load(GroupInfoTypeRef, ["groupInfoListId", "mailGroupInfoElementIdEmpty"])).thenResolve(mailGroupInfoEmpty)
+			const mailAliases = await facade.getAllMailAddressesForUser(user)
+
+			o(mailAliases).deepEquals([
+				"user@tutanota.de",
+				"activated-alias-alias@tutanota.de",
+				"alias1-mail-group@tutanota.de",
+				"alias2-mail-group@tutanota.de",
+			])
 		})
 	})
 })
