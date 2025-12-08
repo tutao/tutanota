@@ -26,12 +26,14 @@ import {
 	getPathToFolderString,
 } from "../mail/model/MailUtils.js"
 import type { IndentedFolder } from "../../common/api/common/mail/FolderSystem.js"
+import { Checkbox } from "../../common/gui/base/Checkbox"
 
 assertMainOrNode()
 
 export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & {
 	_id?: InboxRule["_id"]
 	targetFolder?: InboxRule["targetFolder"]
+	excludeFromSpamFilter?: InboxRule["excludeFromSpamFilter"]
 }
 
 export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
@@ -49,39 +51,48 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 		const inboxRuleValue = stream(ruleOrTemplate.value)
 		const selectedFolder = ruleOrTemplate.targetFolder == null ? null : folders.getFolderById(elementIdPart(ruleOrTemplate.targetFolder))
 		const inboxRuleTarget = stream(selectedFolder ?? assertSystemFolderOfType(folders, MailSetKind.ARCHIVE))
+		const isRuleExcludedFromSpamFilter = stream(ruleOrTemplate.excludeFromSpamFilter ?? false)
 
-		let form = () => [
-			m(DropDownSelector, {
-				items: getInboxRuleTypeNameMapping(),
-				label: "inboxRuleField_label",
-				selectedValue: inboxRuleType(),
-				selectionChangedHandler: inboxRuleType,
-			}),
-			m(TextField, {
-				label: "inboxRuleValue_label",
-				autocapitalize: Autocapitalize.none,
-				value: inboxRuleValue(),
-				oninput: inboxRuleValue,
-				helpLabel: () =>
-					inboxRuleType() !== InboxRuleType.SUBJECT_CONTAINS && inboxRuleType() !== InboxRuleType.MAIL_HEADER_CONTAINS
-						? lang.get("emailSenderPlaceholder_label")
-						: lang.get("emptyString_msg"),
-			}),
-			m(DropDownSelector, {
-				label: "inboxRuleTargetFolder_label",
-				items: targetFolders,
-				selectedValue: inboxRuleTarget(),
-				selectedValueDisplay: getFolderName(inboxRuleTarget()),
-				selectionChangedHandler: inboxRuleTarget,
-				helpLabel: () => getPathToFolderString(folders, inboxRuleTarget(), true),
-			}),
-		]
+		let form = () => {
+			return [
+				m(DropDownSelector, {
+					items: getInboxRuleTypeNameMapping(),
+					label: "inboxRuleField_label",
+					selectedValue: inboxRuleType(),
+					selectionChangedHandler: inboxRuleType,
+				}),
+				m(TextField, {
+					label: "inboxRuleValue_label",
+					autocapitalize: Autocapitalize.none,
+					value: inboxRuleValue(),
+					oninput: inboxRuleValue,
+					helpLabel: () =>
+						inboxRuleType() !== InboxRuleType.SUBJECT_CONTAINS && inboxRuleType() !== InboxRuleType.MAIL_HEADER_CONTAINS
+							? lang.get("emailSenderPlaceholder_label")
+							: lang.get("emptyString_msg"),
+				}),
+				m(DropDownSelector, {
+					label: "inboxRuleTargetFolder_label",
+					items: targetFolders,
+					selectedValue: inboxRuleTarget(),
+					selectedValueDisplay: getFolderName(inboxRuleTarget()),
+					selectionChangedHandler: inboxRuleTarget,
+					helpLabel: () => getPathToFolderString(folders, inboxRuleTarget(), true),
+				}),
+				m(Checkbox, {
+					label: () => lang.get("inboxRuleExcludedFromSpamFilter_msg"),
+					checked: isRuleExcludedFromSpamFilter(),
+					onChecked: (checked) => isRuleExcludedFromSpamFilter(checked),
+				}),
+			]
+		}
 
 		const addInboxRuleOkAction = (dialog: Dialog) => {
 			let rule = createInboxRule({
 				type: inboxRuleType(),
 				value: getCleanedValue(inboxRuleType(), inboxRuleValue()),
 				targetFolder: inboxRuleTarget()._id,
+				excludeFromSpamFilter: isRuleExcludedFromSpamFilter(),
 			})
 			const props = locator.logins.getUserController().props
 			const inboxRules = props.inboxRules

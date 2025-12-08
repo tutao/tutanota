@@ -57,24 +57,50 @@ export class InboxRuleHandler {
 		private readonly mailModel: MailModel,
 	) {}
 
+	async findAndApplyRulesExcludedFromSpamFilter(
+		mailboxDetail: MailboxDetail,
+		mail: Readonly<Mail>,
+		sourceFolder: MailSet,
+	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
+		if (sourceFolder.folderType !== MailSetKind.INBOX && sourceFolder.folderType !== MailSetKind.SPAM) {
+			return null
+		}
+		return this.findAndApplyMatchingRule(mailboxDetail, mail, true)
+	}
+
+	async findAndApplyRulesNotExcludedFromSpamFilter(
+		mailboxDetail: MailboxDetail,
+		mail: Readonly<Mail>,
+		sourceFolder: MailSet,
+	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
+		if (sourceFolder.folderType !== MailSetKind.INBOX) {
+			return null
+		}
+		return this.findAndApplyMatchingRule(mailboxDetail, mail, false)
+	}
 	/**
 	 * Checks the mail for an existing inbox rule and moves the mail to the target folder of the rule.
 	 * @returns true if a rule matches otherwise false
 	 */
-	async findAndApplyMatchingRule(
+	private async findAndApplyMatchingRule(
 		mailboxDetail: MailboxDetail,
 		mail: Readonly<Mail>,
+		checkRulesExcludedFromSpamFilter: boolean = false,
 	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }>> {
 		const shouldApply =
 			(mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
 				mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED_AND_DO_NOT_RUN_SPAM_PREDICTION) &&
 			mail.processNeeded
 
-		if (mail._errors || !shouldApply || !(await isLandingFolder(this.mailModel, mailboxDetail, mail)) || !this.logins.getUserController().isPaidAccount()) {
+		//remove isLandingFolder
+		if (mail._errors || !shouldApply || !this.logins.getUserController().isPaidAccount()) {
 			return null
 		}
 
-		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
+		const allInboxRules = this.logins.getUserController().props.inboxRules
+		const applicableInboxRules: InboxRule[] = allInboxRules.filter((rule) => rule.excludeFromSpamFilter === checkRulesExcludedFromSpamFilter)
+		const inboxRule = await _findMatchingRule(this.mailFacade, mail, applicableInboxRules)
+
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 		if (inboxRule) {
 			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
@@ -185,10 +211,4 @@ function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): bo
 		}
 	})
 	return mailAddress != null
-}
-
-async function isLandingFolder(mailModel: MailModel, mailboxDetail: MailboxDetail, mail: Mail): Promise<boolean> {
-	const folders = await mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
-	const mailFolder = folders.getFolderByMail(mail)
-	return mailFolder?.folderType === MailSetKind.INBOX || mailFolder?.folderType === MailSetKind.SPAM
 }

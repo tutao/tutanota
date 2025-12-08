@@ -1349,6 +1349,7 @@ export type TranslationKeyType =
 	| "inboxRuleCCRecipientEquals_action"
 	| "inboxRuleBCCRecipientEquals_action"
 	| "inboxRuleAlreadyExists_msg"
+	| "inboxRuleExcludedFromSpamFilter_msg"
 	| "inactiveAccount_msg"
 	| "imprint_label"
 	| "imprintUrl_label"

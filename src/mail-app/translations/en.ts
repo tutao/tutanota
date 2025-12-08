@@ -794,6 +794,7 @@ export default {
 		"inboxRuleBCCRecipientEquals_action": "Bcc recipient",
 		"inboxRuleCCRecipientEquals_action": "Cc recipient",
 		"inboxRuleEnterValue_msg": "Please enter a value.",
+		"inboxRuleExcludedFromSpamFilter_msg": "Never send it to Spam",
 		"inboxRuleField_label": "Field",
 		"inboxRuleInvalidEmailAddress_msg": "Email address or domain is not valid.",
 		"inboxRuleMailHeaderContains_action": "Header contains",
