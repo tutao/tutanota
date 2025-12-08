@@ -332,7 +332,7 @@ export class MailViewerViewModel {
 	}
 
 	isMovableMail() {
-		return isMailMovable(this.mail)
+		return isMailMovable(this.mail, this.mailModel)
 	}
 
 	isDeletableMail() {

@@ -3,7 +3,7 @@ import { lang } from "../../../common/misc/LanguageViewModel"
 
 import { Keys, MailSetKind, MailState, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import type { Mail } from "../../../common/api/entities/tutanota/TypeRefs.js"
-import { component_size, size } from "../../../common/gui/size"
+import { component_size } from "../../../common/gui/size"
 import { styles } from "../../../common/gui/styles"
 import { Icon } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
@@ -30,7 +30,7 @@ import { VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { isKeyPressed } from "../../../common/misc/KeyManager.js"
 import { mailLocator } from "../../mailLocator.js"
 import { canDoDragAndDropExport } from "./MailViewerUtils.js"
-import { isMailScheduled, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
+import { isMailMovable, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { DropType } from "../../../common/gui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
@@ -91,7 +91,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 					renderRightSpacer: () => this.renderRightSpacer(),
 					swipeLeft: (listElement: Mail) => this.onSwipeLeft(listElement),
 					swipeRight: (listElement: Mail) => this.onSwipeRight(listElement),
-					isDisabledForEntity: (listElement: Mail) => isMailScheduled(listElement),
+					isDisabledForEntity: (listElement: Mail) => isMailMovable(listElement, mailLocator.mailModel),
 				} satisfies SwipeConfiguration<Mail>)
 			: null,
 		dragStart: (event, row, selected) => this._newDragStart(event, row, selected),

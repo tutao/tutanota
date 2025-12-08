@@ -860,7 +860,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private getMoveMailsAction(): ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null {
 		const selection = this.searchViewModel.getSelectedMails()
-		return selection.some(isMailMovable)
+		return selection.some((mail) => isMailMovable(mail, mailLocator.mailModel))
 			? (origin, opts) => showMoveMailsDropdown(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, origin, selection, MoveMode.Mails, opts)
 			: null
 	}
@@ -1353,7 +1353,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			} else {
 				return {
 					deleteAction: null,
-					trashAction: selected.some(isMailMovable)
+					trashAction: selected.some((mail) => isMailMovable(mail, mailLocator.mailModel))
 						? () => {
 								trashMails(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, selected)
 							}

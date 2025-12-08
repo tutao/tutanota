@@ -3,14 +3,7 @@ import { Header, InboxRule, Mail, MailDetails, MailFolder, TutanotaProperties } 
 import { assertNotNull, first } from "@tutao/tutanota-utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../common/misc/LanguageViewModel.js"
-import {
-	MailSetKind,
-	MOVE_SYSTEM_FOLDERS,
-	ReplyType,
-	SimpleMoveMailTarget,
-	SYSTEM_FOLDERS,
-	SystemFolderType,
-} from "../../../common/api/common/TutanotaConstants.js"
+import { isFolderReadOnly, MailSetKind, MOVE_SYSTEM_FOLDERS, ReplyType, SystemFolderType } from "../../../common/api/common/TutanotaConstants.js"
 import { isSameId, sortCompareByReverseId } from "../../../common/api/common/utils/EntityUtils"
 
 export type FolderInfo = { level: number; folder: MailFolder }
@@ -120,12 +113,10 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 		})
 
 	if (areMailsInDifferentFolders) {
-		return regularMoveTargets(folders.getIndentedList().filter((f: IndentedFolder) => f.folder.folderType !== MailSetKind.SEND_LATER))
+		return regularMoveTargets(folders.getIndentedList().filter((f: IndentedFolder) => !isFolderReadOnly(f.folder)))
 	} else {
 		return regularMoveTargets(
-			folders
-				.getIndentedList()
-				.filter((f: IndentedFolder) => f.folder.folderType !== MailSetKind.SEND_LATER && !isSameId(f.folder._id, folderOfFirstMail._id)),
+			folders.getIndentedList().filter((f: IndentedFolder) => !isFolderReadOnly(f.folder) && !isSameId(f.folder._id, folderOfFirstMail._id)),
 		)
 	}
 }
@@ -142,7 +133,7 @@ export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: M
 	}
 
 	return folders.getIndentedList().filter((f: IndentedFolder) => {
-		return f.folder.folderType !== MailSetKind.SEND_LATER && !isSameId(f.folder._id, currentFolder._id)
+		return !isFolderReadOnly(f.folder) && !isSameId(f.folder._id, currentFolder._id)
 	})
 }
 

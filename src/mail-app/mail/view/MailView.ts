@@ -3,7 +3,16 @@ import { ViewSlider } from "../../../common/gui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../common/gui/base/ViewColumn"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { Dialog } from "../../../common/gui/base/Dialog"
-import { FeatureType, getMailFolderType, isFolder, Keys, MailReportType, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
+import {
+	FeatureType,
+	getMailFolderType,
+	isFolder,
+	isFolderReadOnly,
+	Keys,
+	MailReportType,
+	MailSetKind,
+	SystemFolderType,
+} from "../../../common/api/common/TutanotaConstants"
 import { AppHeaderAttrs, Header } from "../../../common/gui/Header.js"
 import { Mail, MailBox, MailFolder } from "../../../common/api/entities/tutanota/TypeRefs.js"
 import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "@tutao/tutanota-utils"
@@ -585,7 +594,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getMoveMailsAction(): ((origin: PosRect, opts: ShowMoveMailsDropdownOpts) => void) | null {
-		const hasMovableMails = this.mailViewModel.getActionableMails().some(isMailMovable)
+		const hasMovableMails = this.mailViewModel.getActionableMails().some((mail) => isMailMovable(mail, mailLocator.mailModel))
 		return hasMovableMails ? (origin, opts) => this.moveMailsFromFolder(origin, opts) : null
 	}
 
@@ -857,14 +866,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getTrashMailsAction(): (() => void) | null {
-		const hasTrashableMails = this.mailViewModel.getActionableMails().some(isMailMovable)
+		const hasTrashableMails = this.mailViewModel.getActionableMails().some((mail) => isMailMovable(mail, mailLocator.mailModel))
 		return hasTrashableMails ? () => this.trashSelectedMails() : null
 	}
 
 	private async trashSelectedMails() {
 		const actionableMails = this.mailViewModel.getActionableMails()
 		const firstMail = first(actionableMails)
-		if (firstMail == null || !actionableMails.some(isMailMovable)) {
+		if (firstMail == null || !actionableMails.some((mail) => isMailMovable(mail, mailLocator.mailModel))) {
 			// No trashable mails
 			return
 		}
@@ -925,7 +934,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		 * which can be {@link MailListModel#selectNone} in some cases.
 		 */
 		const actionableMails = this.mailViewModel.getActionableMails()
-		if (!actionableMails.some(isMailMovable)) {
+		if (!actionableMails.some((mail) => isMailMovable(mail, mailLocator.mailModel))) {
 			// No movable actionableMails
 			return
 		}
@@ -1168,7 +1177,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			targetFolder.folderType === MailSetKind.TRASH ||
 			targetFolder.folderType === MailSetKind.SPAM ||
 			// cannot set folder as its own parent
-			isSameId(dropData.folderId, getElementId(targetFolder))
+			isSameId(dropData.folderId, getElementId(targetFolder)) ||
+			// cannot modify read-only folders
+			isFolderReadOnly(targetFolder)
 		) {
 			return
 		}

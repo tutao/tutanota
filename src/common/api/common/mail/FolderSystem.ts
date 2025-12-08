@@ -163,8 +163,15 @@ function compareCustom(folder1: MailFolder, folder2: MailFolder): number {
 	return folder1.name.localeCompare(folder2.name)
 }
 
-type SystemMailFolderTypes = MailSetKind.INBOX | MailSetKind.SENT | MailSetKind.TRASH | MailSetKind.ARCHIVE | MailSetKind.SPAM | MailSetKind.DRAFT
-type VisibleSystemMailSetTypes = SystemMailFolderTypes | MailSetKind.SEND_LATER
+type SystemMailFolderTypes =
+	| MailSetKind.INBOX
+	| MailSetKind.SENT
+	| MailSetKind.TRASH
+	| MailSetKind.ARCHIVE
+	| MailSetKind.SPAM
+	| MailSetKind.DRAFT
+	| MailSetKind.SEND_LATER
+type VisibleSystemMailSetTypes = SystemMailFolderTypes
 
 const folderTypeToOrder: Record<VisibleSystemMailSetTypes, number> = {
 	[MailSetKind.INBOX]: 0,

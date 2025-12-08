@@ -14,6 +14,8 @@ import {
 import { isApp, isElectronClient, isIOSApp } from "./Env"
 import type { Country } from "./CountryList"
 import { ProgrammingError } from "./error/ProgrammingError"
+import { MailModel } from "../../../mail-app/mail/model/MailModel"
+import { FolderInfo } from "../../../mail-app/mail/model/MailUtils"
 
 export const MAX_NBR_OF_MAILS_SYNC_OPERATION = 50
 export const MAX_NBR_OF_CONVERSATIONS = 50
@@ -40,14 +42,21 @@ export function isFolder(folder: MailFolder): boolean {
 		case MailSetKind.ARCHIVE:
 		case MailSetKind.SPAM:
 		case MailSetKind.DRAFT:
+		case MailSetKind.SEND_LATER:
 			return true
 		case MailSetKind.ALL:
 		case MailSetKind.LABEL:
 		case MailSetKind.IMPORTED:
-		case MailSetKind.SEND_LATER:
 		default:
 			return false
 	}
+}
+
+/**
+ * @return true if {@link mailSet} is a read-only folder (see {@link READ_ONLY_SYSTEM_FOLDERS} for more info)
+ */
+export function isFolderReadOnly(mailSet: MailFolder) {
+	return READ_ONLY_SYSTEM_FOLDERS.includes(mailSet.folderType as MailSetKind)
 }
 
 export function isNestableMailSet(mailSet: MailFolder): boolean {
@@ -210,7 +219,25 @@ export function getMailSetKind(folder: MailFolder): MailSetKind {
 	return folder.folderType as MailSetKind
 }
 
-export const MOVE_SYSTEM_FOLDERS = [MailSetKind.INBOX, MailSetKind.SENT, MailSetKind.TRASH, MailSetKind.ARCHIVE, MailSetKind.SPAM, MailSetKind.DRAFT] as const
+export const MOVE_SYSTEM_FOLDERS = Object.freeze([
+	MailSetKind.INBOX,
+	MailSetKind.SENT,
+	MailSetKind.TRASH,
+	MailSetKind.ARCHIVE,
+	MailSetKind.SPAM,
+	MailSetKind.DRAFT,
+] as const)
+
+/**
+ * These are mail sets that are managed by the server and cannot be mutated by the client
+ *
+ * They have the following restrictions:
+ *
+ * - Mails cannot be moved in or out of these folders by the client (most other actions are still possible, such as labels and marking read/unread)
+ * - Subfolders cannot be created or moved in this folder by the client
+ */
+export const READ_ONLY_SYSTEM_FOLDERS = Object.freeze([MailSetKind.SEND_LATER])
+
 export type SimpleMoveMailTarget = (typeof SYSTEM_FOLDERS)[number]
 
 export const enum ReplyType {

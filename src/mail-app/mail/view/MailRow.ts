@@ -28,7 +28,7 @@ import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getFolderName } from "../model/MailUtils"
 import { client } from "../../../common/misc/ClientDetector"
-import { isMailScheduled } from "../model/MailChecks"
+import { isEditableDraft, isMailScheduled } from "../model/MailChecks"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.Folder,
@@ -414,8 +414,8 @@ export class MailRow implements VirtualRow<Mail> {
 			description += lang.get("corrupted_msg") + " "
 		}
 
-		if (mail.state === MailState.DRAFT) {
-			iconText += isMailScheduled(mail) ? FontIcons.ScheduleMail : FontIcons.Edit
+		if (isEditableDraft(mail)) {
+			iconText += FontIcons.Edit
 			description += lang.get("draft_label") + " "
 		}
 
