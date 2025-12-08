@@ -592,8 +592,6 @@ o.spec("ServiceExecutor", function () {
 
 			const response = await executor.get(CustomerAccountService, null)
 
-			delete downcast(response)._finalIvs
-			delete downcast(customerAccountReturn)._finalIvs
 			removeOriginals(response)
 			o(response).deepEquals(customerAccountReturn)
 			verify(
@@ -620,8 +618,6 @@ o.spec("ServiceExecutor", function () {
 
 			const response = await executor.get(CustomerAccountService, null, { sessionKey })
 
-			delete downcast(response)._finalIvs
-			delete downcast(customerAccountReturn)._finalIvs
 			removeOriginals(response)
 
 			o(response).deepEquals(customerAccountReturn)

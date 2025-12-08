@@ -228,7 +228,6 @@ o.spec("CryptoMapper", function () {
 			4: ["associatedElementId"],
 			5: new Date("2025-01-01T13:00:00.000Z"),
 		} as any as ServerModelEncryptedParsedInstance
-		const expectedFinalIv = new Uint8Array([93, 100, 153, 150, 95, 10, 107, 53, 164, 219, 212, 180, 106, 221, 132, 233])
 		const decryptedInstance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sk)
 
 		o(decryptedInstance[1]).equals("encrypted string")
@@ -236,8 +235,6 @@ o.spec("CryptoMapper", function () {
 
 		o(decryptedInstance[3]![0][2]).equals("123")
 		o(decryptedInstance[4]![0]).equals("associatedElementId")
-		o(typeof decryptedInstance._finalIvs[7]).equals("undefined")
-		o(Array.from(decryptedInstance["_finalIvs"][1] as Uint8Array)).deepEquals(Array.from(expectedFinalIv))
 		o(typeof decryptedInstance._errors).equals("undefined")
 	})
 	o("encryptParsedInstance happy path works", async function () {
@@ -250,12 +247,8 @@ o.spec("CryptoMapper", function () {
 			// 6 is _id and will be generated
 			3: [{ 2: "123", 6: "aggregateId", 9: [], 10: [] }],
 			4: ["associatedElementId"],
-			_finalIvs: { 1: new Uint8Array([93, 100, 153, 150, 95, 10, 107, 53, 164, 219, 212, 180, 106, 221, 132, 233]) },
 		} as unknown as ClientModelParsedInstance
 		const encryptedInstance = await cryptoMapper.encryptParsedInstance(testTypeModel as ClientTypeModel, parsedInstance, sk)
-
-		const expectedCipherText = "AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2JWpmlpWEhgG5zqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj"
-		o(encryptedInstance[1]).equals(expectedCipherText)
 
 		const encryptedBytes = base64ToUint8Array(encryptedInstance[1] as string)
 		const decryptedValue = utf8Uint8ArrayToString(aesDecrypt(sk, encryptedBytes))
@@ -287,7 +280,6 @@ o.spec("CryptoMapper", function () {
 			// 6 is _id and will be generated
 			3: [{ 2: "123", 9: [], 10: [] }],
 			4: ["associatedElementId"],
-			_finalIvs: { 1: new Uint8Array([93, 100, 153, 150, 95, 10, 107, 53, 164, 219, 212, 180, 106, 221, 132, 233]) },
 		} as unknown as ClientModelParsedInstance
 		await assertThrows(CryptoError, () => cryptoMapper.encryptParsedInstance(testTypeModel as ClientTypeModel, parsedInstance, null))
 	})
@@ -305,22 +297,6 @@ o.spec("CryptoMapper", function () {
 		const decryptedInstance = await cryptoMapper.decryptParsedInstance(testTypeModel as ServerTypeModel, encryptedInstance, sk)
 
 		o(decryptedInstance[1]).equals("")
-		o(decryptedInstance._finalIvs[1]).equals(null)
-	})
-
-	o("encrypting default values works correctly", async function () {
-		const sk = [4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205]
-		const parsedInstance: ClientModelParsedInstance = {
-			1: "",
-			5: new Date("2025-01-01T13:00:00.000Z"),
-			// 6 is _id and will be generated
-			3: [{ 2: "123", 9: [], 10: [] }],
-			4: ["associatedElementId"],
-			_finalIvs: { 1: null },
-		} as unknown as ClientModelParsedInstance
-
-		const encryptedInstance = await cryptoMapper.encryptParsedInstance(testTypeModel as ClientTypeModel, parsedInstance, sk)
-		o(encryptedInstance[1]).equals("")
 	})
 
 	o("decryption errors are written to _errors field", async function () {

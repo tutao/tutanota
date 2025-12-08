@@ -155,7 +155,6 @@ impl From<MailContact> for MailAddress {
 			address: value.mail_address,
 			name: value.name,
 			contact: None,
-			_finalIvs: Default::default(),
 			_errors: Default::default(),
 		}
 	}
@@ -581,7 +580,6 @@ impl ImportableMail {
 				_id: Some(tutasdk::CustomId::from_custom_string(FIXED_CUSTOM_ID)),
 				name: reply_to.name,
 				address: reply_to.mail_address,
-				_finalIvs: Default::default(),
 				_errors: Default::default(),
 			})
 			.collect();
@@ -634,7 +632,6 @@ impl ImportableMail {
 			references,
 			importedAttachments: vec![],
 			_errors: Default::default(),
-			_finalIvs: Default::default(),
 		}
 	}
 }

@@ -55,8 +55,6 @@ pub struct TutanotaFile {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for TutanotaFile {
@@ -89,8 +87,6 @@ pub struct FileSystem {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for FileSystem {
@@ -116,8 +112,6 @@ pub struct ContactMailAddress {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactMailAddress {
@@ -143,8 +137,6 @@ pub struct ContactPhoneNumber {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactPhoneNumber {
@@ -170,8 +162,6 @@ pub struct ContactAddress {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactAddress {
@@ -197,8 +187,6 @@ pub struct ContactSocialId {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactSocialId {
@@ -283,8 +271,6 @@ pub struct Contact {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for Contact {
@@ -340,8 +326,6 @@ pub struct MailAddress {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for MailAddress {
@@ -424,8 +408,6 @@ pub struct Mail {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for Mail {
@@ -482,8 +464,6 @@ pub struct MailBox {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for MailBox {
@@ -593,8 +573,6 @@ pub struct ContactList {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactList {
@@ -754,8 +732,6 @@ pub struct TutanotaProperties {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for TutanotaProperties {
@@ -842,8 +818,6 @@ pub struct MailSet {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for MailSet {
@@ -916,8 +890,6 @@ pub struct CreateMailFolderData {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CreateMailFolderData {
@@ -939,8 +911,6 @@ pub struct CreateMailFolderReturn {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CreateMailFolderReturn {
@@ -962,8 +932,6 @@ pub struct DeleteMailFolderData {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DeleteMailFolderData {
@@ -1010,8 +978,6 @@ pub struct DraftRecipient {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DraftRecipient {
@@ -1109,8 +1075,6 @@ pub struct DraftData {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DraftData {
@@ -1141,8 +1105,6 @@ pub struct DraftCreateData {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DraftCreateData {
@@ -1184,8 +1146,6 @@ pub struct DraftUpdateData {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DraftUpdateData {
@@ -1207,8 +1167,6 @@ pub struct DraftUpdateReturn {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DraftUpdateReturn {
@@ -1409,8 +1367,6 @@ pub struct InboxRule {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for InboxRule {
@@ -1434,8 +1390,6 @@ pub struct EncryptedMailAddress {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for EncryptedMailAddress {
@@ -1833,8 +1787,6 @@ pub struct CalendarRepeatRule {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CalendarRepeatRule {
@@ -1894,8 +1846,6 @@ pub struct CalendarEvent {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CalendarEvent {
@@ -1932,8 +1882,6 @@ pub struct CalendarGroupRoot {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CalendarGroupRoot {
@@ -2020,8 +1968,6 @@ pub struct GroupSettings {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for GroupSettings {
@@ -2062,8 +2008,6 @@ pub struct UserSettingsGroupRoot {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for UserSettingsGroupRoot {
@@ -2103,8 +2047,6 @@ pub struct CreateGroupPostReturn {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CreateGroupPostReturn {
@@ -2323,8 +2265,6 @@ pub struct CalendarEventAttendee {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CalendarEventAttendee {
@@ -2403,8 +2343,6 @@ pub struct CalendarEventUpdate {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CalendarEventUpdate {
@@ -2559,8 +2497,6 @@ pub struct EmailTemplateContent {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for EmailTemplateContent {
@@ -2597,8 +2533,6 @@ pub struct EmailTemplate {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for EmailTemplate {
@@ -2620,8 +2554,6 @@ pub struct KnowledgeBaseEntryKeyword {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for KnowledgeBaseEntryKeyword {
@@ -2658,8 +2590,6 @@ pub struct KnowledgeBaseEntry {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for KnowledgeBaseEntry {
@@ -2694,8 +2624,6 @@ pub struct TemplateGroupRoot {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for TemplateGroupRoot {
@@ -2748,8 +2676,6 @@ pub struct MailboxProperties {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for MailboxProperties {
@@ -2847,8 +2773,6 @@ pub struct MailAddressProperties {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for MailAddressProperties {
@@ -2872,8 +2796,6 @@ pub struct Header {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for Header {
@@ -2897,8 +2819,6 @@ pub struct Body {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for Body {
@@ -2981,8 +2901,6 @@ pub struct MailDetailsDraft {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for MailDetailsDraft {
@@ -3015,8 +2933,6 @@ pub struct MailDetailsBlob {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for MailDetailsBlob {
@@ -3087,8 +3003,6 @@ pub struct ContactListEntry {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactListEntry {
@@ -3121,8 +3035,6 @@ pub struct ContactListGroupRoot {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactListGroupRoot {
@@ -3173,8 +3085,6 @@ pub struct ContactCustomDate {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactCustomDate {
@@ -3200,8 +3110,6 @@ pub struct ContactWebsite {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactWebsite {
@@ -3227,8 +3135,6 @@ pub struct ContactRelationship {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactRelationship {
@@ -3254,8 +3160,6 @@ pub struct ContactMessengerHandle {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactMessengerHandle {
@@ -3279,8 +3183,6 @@ pub struct ContactPronouns {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ContactPronouns {
@@ -3340,8 +3242,6 @@ pub struct DefaultAlarmInfo {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for DefaultAlarmInfo {
@@ -3449,8 +3349,6 @@ pub struct ManageLabelServiceLabelData {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ManageLabelServiceLabelData {
@@ -3479,8 +3377,6 @@ pub struct ManageLabelServicePostIn {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ManageLabelServicePostIn {
@@ -3657,8 +3553,6 @@ pub struct ImportMailData {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ImportMailData {
@@ -3785,8 +3679,6 @@ pub struct ImportMailGetIn {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ImportMailGetIn {
@@ -3810,8 +3702,6 @@ pub struct AdvancedRepeatRule {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for AdvancedRepeatRule {
@@ -4177,8 +4067,6 @@ pub struct ClientSpamTrainingDatum {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for ClientSpamTrainingDatum {

@@ -4,7 +4,6 @@ import {
 	TestAggregate,
 	testAggregateModel,
 	TestAggregateOnAggregate,
-	testAggregateOnAggregateModel,
 	TestAggregateOnAggregateRef,
 	TestAggregateRef,
 	TestEntity,
@@ -639,24 +638,20 @@ o.spec("computePatches", function () {
 	async function createFilledTestEntity(): Promise<TestEntity> {
 		return await createTestEntityWithOriginal({
 			_type: TestTypeRef,
-			_finalIvs: {},
 			testAssociation: [
 				{
 					_type: TestAggregateRef,
-					_finalIvs: {},
 					_id: "aggId",
 					testNumber: "123456",
 					testSecondLevelAssociation: [
 						{
 							_type: TestAggregateOnAggregateRef,
-							_finalIvs: {},
 							_id: "aggOnAggId",
 							testBytes: null,
 						} as TestAggregateOnAggregate,
 					],
 					testZeroOrOneAggregation: {
 						_type: TestAggregateOnAggregateRef,
-						_finalIvs: {},
 						_id: "aggOnAggId",
 						testBytes: null,
 					} as TestAggregateOnAggregate,

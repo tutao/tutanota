@@ -61,8 +61,6 @@ pub struct ${typeName} {\n`
 		buf += `
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 `
 	}
 
