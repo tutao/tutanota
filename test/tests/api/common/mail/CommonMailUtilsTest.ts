@@ -5,10 +5,11 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { Icons } from "../../../../../src/common/gui/base/icons/Icons.js"
 import { ProgrammingError } from "../../../../../src/common/api/common/error/ProgrammingError.js"
 import { getDisplayedSender } from "../../../../../src/common/api/common/CommonMailUtils.js"
-import { getConfidentialIcon, isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/mail-app/mail/view/MailGuiUtils.js"
+import { getConfidentialIcon } from "../../../../../src/mail-app/mail/view/MailGuiUtils.js"
 
 import { isSystemNotification } from "../../../../../src/mail-app/mail/view/MailViewerUtils.js"
 import { compareMails } from "../../../../../src/mail-app/mail/model/MailUtils"
+import { isTutanotaTeamAddress, isTutanotaTeamMail } from "../../../../../src/common/mailFunctionality/SharedMailUtils"
 
 export function createSystemMail(overrides: Partial<Mail> = {}): Mail {
 	return createTestEntity(MailTypeRef, {

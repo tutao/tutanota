@@ -362,8 +362,8 @@ export class SpamClassifier {
 		return model
 	}
 
-	public async vectorizeAndCompress(mailDatum: SpamMailDatum) {
-		return await this.spamMailProcessor.vectorizeAndCompress(mailDatum)
+	public async compress(vector: number[]) {
+		return await this.spamMailProcessor.compress(vector)
 	}
 
 	public async vectorize(mailDatum: SpamMailDatum) {

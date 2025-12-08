@@ -112,6 +112,7 @@ import {
 	byteLength,
 	contains,
 	defer,
+	flatMap,
 	freshVersioned,
 	getUrlDomain,
 	groupBy,
@@ -1048,6 +1049,17 @@ export class MailFacade {
 		})
 	}
 
+	/**
+	 * returns all enabled aliases for all mail groups the user is in
+	 * @param user
+	 */
+	async getAllMailAliasesForUser(user: User): Promise<string[]> {
+		const aliasesForEachMembership = await promiseMap(getUserGroupMemberships(user, GroupType.Mail), async (groupMembership) => {
+			const groupInfo = await this.entityClient.load(GroupInfoTypeRef, groupMembership.groupInfo)
+			return getEnabledMailAddressesForGroupInfo(groupInfo)
+		})
+		return flatMap(aliasesForEachMembership, (alias) => alias)
+	}
 	async clearFolder(folderId: IdTuple) {
 		const deleteMailData = createDeleteMailData({
 			folder: folderId,
