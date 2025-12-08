@@ -11,8 +11,13 @@ import { Status } from "../../gui/base/StatusField"
 import { getPasswordStrength, isSecurePassword } from "../../misc/passwords/PasswordUtils"
 import { getEnabledMailAddressesForGroupInfo } from "../../api/common/utils/GroupUtils"
 import { Autocomplete } from "../../gui/base/TextField"
-import { showPasswordGeneratorDialog } from "../../misc/passwords/PasswordGeneratorDialog"
 import { theme } from "../../gui/theme"
+import { PasswordGenerator } from "../../misc/passwords/PasswordGenerator"
+import { locator } from "../../api/main/CommonLocator"
+import { copyToClipboard } from "../../misc/ClipboardUtils"
+import { delay } from "@tutao/tutanota-utils"
+import { showSnackBar } from "../../gui/base/SnackBar"
+import { Icons } from "../../gui/base/icons/Icons"
 
 assertMainOrNode()
 
@@ -216,6 +221,16 @@ export class PasswordModel {
  * showChangeOwnPasswordDialog() and showChangeUserPasswordAsAdminDialog() show this form as dialog.
  */
 export class PasswordFormNew implements Component<PasswordFormAttrs> {
+	private dictionary: string[] = []
+	private pwGenerator: PasswordGenerator | undefined
+	private hasGeneratedPassword = false
+
+	async oncreate() {
+		const appState = window.tutao.appState
+		const baseUrl = location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "") + appState.prefixWithoutFile
+		this.dictionary = await fetch(baseUrl + "/wordlibrary.json").then((response) => response.json())
+		this.pwGenerator = new PasswordGenerator(locator.random, this.dictionary)
+	}
 	view({ attrs }: Vnode<PasswordFormAttrs>): Children {
 		return m(
 			".flex.flex-column.gap-24",
@@ -238,7 +253,7 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 					value: attrs.model.getNewPassword(),
 					passwordStrength: attrs.model.getPasswordStrength(),
 					helpLabel: () => this.renderPasswordGeneratorHelp(attrs),
-					status: attrs.model.getNewPasswordStatus(),
+					status: "auto",
 					oninput: (input) => attrs.model.setNewPassword(input),
 					autocompleteAs: Autocomplete.newPassword,
 					fontSize: px(font_size.smaller),
@@ -259,16 +274,47 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 	}
 
 	private renderPasswordGeneratorHelp(attrs: PasswordFormAttrs): Children {
-		return m(
-			"button.mr-4.hover.click",
-			{
-				style: { display: "inline-block", color: theme.on_surface_variant },
-				onclick: async () => {
-					attrs.model.setNewPassword(await showPasswordGeneratorDialog())
-					m.redraw()
+		return m(".flex.gap-8", [
+			m(
+				"button.mr-4.hover.click",
+				{
+					style: { display: "inline-block", color: theme.on_surface_variant },
+					onclick: async () => {
+						const newPassword = await this.pwGenerator!.generateRandomPassphrase()
+						let currentPassword = attrs.model.getNewPassword()
+						while (currentPassword.length > 0) {
+							currentPassword = currentPassword.slice(0, currentPassword.length - 1)
+							attrs.model.setNewPassword(currentPassword)
+							m.redraw()
+							await delay(1)
+						}
+						for (const char of newPassword) {
+							currentPassword += char
+							attrs.model.setNewPassword(currentPassword)
+							m.redraw()
+							await delay(1)
+						}
+						this.hasGeneratedPassword = true
+						m.redraw()
+					},
 				},
-			},
-			lang.get("generatePassphrase_action"),
-		)
+				!this.hasGeneratedPassword ? lang.get("generatePassphrase_action") : lang.get("regeneratePassword_action"),
+			),
+			this.hasGeneratedPassword &&
+				m(
+					"button.mr-4.hover.click",
+					{
+						onclick: () => {
+							copyToClipboard(attrs.model.getNewPassword())
+							void showSnackBar({
+								message: "copied_msg",
+								showingTime: 3000,
+								leadingIcon: Icons.Clipboard,
+							})
+						},
+					},
+					lang.getTranslationText("copy_action"),
+				),
+		])
 	}
 }

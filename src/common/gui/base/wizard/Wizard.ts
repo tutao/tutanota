@@ -2,6 +2,10 @@ import m, { Vnode } from "mithril"
 import { WizardStepAttrs } from "./WizardStep"
 import { WizardController, WizardProgressViewItem, WizardStepContext } from "./WizardController"
 import { WizardProgress } from "./WizardProgress"
+import { component_size, px, size } from "../../size"
+import { TertiaryButton } from "../buttons/LoginButton"
+import { lang } from "../../../misc/LanguageViewModel"
+import { Icons } from "../icons/Icons"
 
 export interface WizardAttrs<TViewModel> {
 	steps: WizardStepAttrs<TViewModel>[]
@@ -92,6 +96,10 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 				const step = steps[index]
 				return step.isEnabled ? step.isEnabled(ctx) : true
 			}
+			const isBackButtonEnabled = (index: number): boolean => {
+				const step = steps[index]
+				return step.isBackButtonEnabled ? step.isBackButtonEnabled(ctx) : true
+			}
 			const progressState: WizardProgressViewItem[] = rawProgress.map((item, index) => ({
 				...item,
 				index,
@@ -100,13 +108,36 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 				currentIndex: controller.currentStep,
 			}))
 
-			return m(".flex.height-100p.full-width", [
-				m(WizardProgress, {
-					progressState,
-					onClick: (index) => controller.setStep(index),
-				}),
-				m(".flex.height-100p.full-width", m(currentStep.content, { ctx })),
-			])
+			return m(
+				".flex.height-100p.full-width",
+				{
+					style: {
+						"padding-top": px(size.core_128),
+					},
+				},
+				[
+					m(".flex.flex-column.flex-space-between", [
+						m(WizardProgress, {
+							progressState,
+							onClick: (index) => controller.setStep(index),
+						}),
+						m(
+							"",
+							{
+								style: { height: px(component_size.button_height) },
+							},
+							isBackButtonEnabled(controller.currentStep) &&
+								m(TertiaryButton, {
+									text: lang.getTranslationText("back_action"),
+									label: lang.getTranslation("back_action"),
+									icon: Icons.ArrowBackward,
+									onclick: ctx.goPrev,
+								}),
+						),
+					]),
+					m(".flex.height-100p.full-width", m(currentStep.content, { ctx })),
+				],
+			)
 		},
 	}
 }

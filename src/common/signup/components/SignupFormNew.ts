@@ -11,8 +11,7 @@ import {
 	TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS,
 } from "../../api/common/TutanotaConstants"
 
-import type { CheckboxAttrs } from "../../gui/base/Checkbox.js"
-import { Checkbox } from "../../gui/base/Checkbox.js"
+import { Checkbox, CheckboxAttrs } from "../../gui/base/Checkbox.js"
 import { defer, DeferredObject, getFirstOrThrow, lazy } from "@tutao/tutanota-utils"
 import type { TranslationKey } from "../../misc/LanguageViewModel"
 import { lang } from "../../misc/LanguageViewModel"
@@ -206,8 +205,8 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 		}
 
 		return m(
-			"#signup-account-dialog.flex-center",
-			m(".flex.flex-column.flex-grow-shrink-auto.max-width-l.pt-16.pb-16.gap-16", { style: { width: px(450) } }, [
+			"#signup-account-dialog.flex-start",
+			m(".flex.flex-column.max-width-l.pt-16.pb-16.gap-16", { style: { width: px(450) } }, [
 				this.readonly
 					? m(LoginTextField, {
 							label: "mailAddress_label",

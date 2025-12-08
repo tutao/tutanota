@@ -46,6 +46,7 @@ export type LoginTextFieldAttrs = {
 		icon: AllIcons
 		color: string
 	}
+	borderColor?: string
 
 	/** This is called whenever the return key is pressed; overrides keyHandler */
 	onReturnKeyPressed?: () => unknown
@@ -80,7 +81,8 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		const doShowBorder = a.doShowBorder !== false
 		const borderWidth = 3
-		const borderColor = this.active ? theme.primary : "transparent"
+		const activeBorderColor = a.borderColor ?? theme.primary
+		const borderColor = this.active ? activeBorderColor : "transparent"
 		const borderBottomRadius = this.active ? "0px" : px(size.radius_8)
 
 		const borderRadius = `${px(size.radius_8)} ${px(size.radius_8)} ${borderBottomRadius} ${borderBottomRadius}`

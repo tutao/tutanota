@@ -23,7 +23,7 @@ export class PasswordStrengthIndicator implements Component<PasswordStrengthIndi
 		if (segmentsFilled === 1) {
 			filledColor = theme.error
 		} else if (segmentsFilled === 2) {
-			filledColor = theme.warning_container
+			filledColor = theme.warning
 		} else if (segmentsFilled === 3) {
 			filledColor = theme.success
 		}
