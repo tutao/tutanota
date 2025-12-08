@@ -22,7 +22,7 @@ export interface DriveFolderContentEntryAttrs {
 	item: FolderItem
 	selected: boolean
 	onSelect: (f: FolderItem) => unknown
-	checked: boolean // maybe should be inside a map inside the model
+	checked: boolean
 	fileActions: FileActions
 }
 
@@ -73,6 +73,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		attrs: {
 			item,
 			selected,
+			checked,
 			onSelect,
 			fileActions: { onCopy, onCut, onDelete, onRestore, onOpenItem, onRename },
 		},
@@ -84,7 +85,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 		const thisFileMimeType = item.type === "file" ? mimeTypeAsText(item.file.mimeType) : "Folder"
 
 		return m("div.flex.row.folder-row", { style: { ...DriveFolderContentEntryRowStyle, background: selected ? theme.state_bg_hover : theme.surface } }, [
-			m("div", {}, m("input.checkbox", { type: "checkbox", checked: selected, onchange: () => onSelect(item) })),
+			m("div", {}, m("input.checkbox", { type: "checkbox", checked, onchange: () => onSelect(item) })),
 			m(
 				"div",
 				{ style: {} },

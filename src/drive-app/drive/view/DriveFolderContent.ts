@@ -83,7 +83,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 							item: item,
 							selected: listState.selectedItems.has(item),
 							onSelect: selectionEvents.onSingleInclusiveSelection,
-							checked: false,
+							checked: listState.inMultiselect && listState.selectedItems.has(item),
 							fileActions,
 						}),
 					),
