@@ -9,7 +9,7 @@ import type { MailboxDetail, MailboxModel } from "../../../common/mailFunctional
 import { MailModel } from "../model/MailModel.js"
 
 import { newPromise } from "@tutao/tutanota-utils"
-import { isTutanotaTeamMail } from "./MailGuiUtils"
+import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 
 function confirmMailReportDialog(mailModel: MailModel, mailboxDetails: MailboxDetail): Promise<boolean> {
 	return newPromise((resolve) => {

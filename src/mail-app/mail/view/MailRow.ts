@@ -18,7 +18,7 @@ import { component_size, px, size } from "../../../common/gui/size.js"
 import { noOp } from "@tutao/tutanota-utils"
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../common/gui/base/ListUtils.js"
 import { companyTeamLabel } from "../../../common/misc/ClientConstants.js"
-import { getConfidentialFontIcon, isTutanotaTeamMail } from "./MailGuiUtils.js"
+import { getConfidentialFontIcon } from "./MailGuiUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getSenderOrRecipientHeading } from "./MailViewerUtils.js"
 import { getLabelColor } from "../../../common/gui/base/Label"
@@ -28,6 +28,7 @@ import { SearchToken } from "../../../common/api/common/utils/QueryTokenUtils"
 import { lang } from "../../../common/misc/LanguageViewModel"
 import { getFolderName } from "../model/MailUtils"
 import { client } from "../../../common/misc/ClientDetector"
+import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 
 const iconMap: Record<MailSetKind, string> = {
 	[MailSetKind.CUSTOM]: FontIcons.Folder,

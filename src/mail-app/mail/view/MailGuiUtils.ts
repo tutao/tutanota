@@ -5,16 +5,8 @@ import { Dialog } from "../../../common/gui/base/Dialog"
 import { AllIcons } from "../../../common/gui/base/Icon"
 import { Icons } from "../../../common/gui/base/icons/Icons"
 import { isApp, isDesktop } from "../../../common/api/common/Env"
-import { $Promisable, assertNotNull, clamp, endsWith, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
-import {
-	EncryptionAuthStatus,
-	getMailFolderType,
-	MailReportType,
-	MailSetKind,
-	MailState,
-	SYSTEM_GROUP_MAIL_ADDRESS,
-	SystemFolderType,
-} from "../../../common/api/common/TutanotaConstants"
+import { $Promisable, assertNotNull, clamp, first, isEmpty, isNotEmpty, lazyMemoized, neverNull, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { EncryptionAuthStatus, getMailFolderType, MailReportType, MailSetKind, SystemFolderType } from "../../../common/api/common/TutanotaConstants"
 import { getReportConfirmation } from "./MailReportDialog"
 import { DataFile } from "../../../common/api/common/DataFile"
 import { lang, Translation } from "../../../common/misc/LanguageViewModel"
@@ -26,7 +18,7 @@ import { size } from "../../../common/gui/size.js"
 import { PinchZoom } from "../../../common/gui/PinchZoom.js"
 import { InlineImageReference, InlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
-import { hasValidEncryptionAuthForTeamOrSystemMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { isTutanotaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import {
 	FolderInfo,
 	getFolderName,
@@ -648,27 +640,6 @@ export function getConversationTitle(conversationViewModel: ConversationViewMode
 export function getMoveMailBounds(): PosRect {
 	// just putting the move mail dropdown in the left side of the viewport with a bit of margin
 	return new DomRectReadOnlyPolyfilled(size.spacing_24, size.spacing_32, 0, 0)
-}
-
-/**
- * NOTE: DOES NOT VERIFY IF THE MESSAGE IS AUTHENTIC - DO NOT USE THIS OUTSIDE OF THIS FILE OR FOR TESTING
- * @VisibleForTesting
- */
-export function isTutanotaTeamAddress(address: string): boolean {
-	return endsWith(address, "@tutao.de") || address === "no-reply@tutanota.de"
-}
-
-/**
- * Is this a tutao team member email or a system notification
- */
-export function isTutanotaTeamMail(mail: Mail): boolean {
-	const { confidential, sender, state } = mail
-	return (
-		confidential &&
-		state === MailState.RECEIVED &&
-		hasValidEncryptionAuthForTeamOrSystemMail(mail) &&
-		(sender.address === SYSTEM_GROUP_MAIL_ADDRESS || isTutanotaTeamAddress(sender.address))
-	)
 }
 
 /**
