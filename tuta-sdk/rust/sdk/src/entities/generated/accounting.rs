@@ -20,8 +20,6 @@ pub struct CustomerAccountPosting {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CustomerAccountPosting {
@@ -54,8 +52,6 @@ pub struct CustomerAccountReturn {
 
 	#[serde(default)]
 	pub _errors: Errors,
-	#[serde(default)]
-	pub _finalIvs: HashMap<String, Option<FinalIv>>,
 }
 
 impl Entity for CustomerAccountReturn {

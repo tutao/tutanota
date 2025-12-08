@@ -479,7 +479,6 @@ fn create_test_entity_dict_with_provider(
 
 	if model.is_encrypted() {
 		let empty_dict = ElementValue::Dict(Default::default());
-		object.insert("_finalIvs".to_string(), empty_dict.clone());
 		object.insert("_errors".to_owned(), empty_dict.clone());
 	}
 
@@ -613,7 +612,7 @@ use crate::crypto::aes::Iv;
 use crate::crypto::key::{AsymmetricKeyPair, GenericAesKey, VersionedAesKey};
 use crate::date::DateTime;
 use crate::entities::generated::tutanota::Contact;
-use crate::entities::{Entity, FinalIv};
+use crate::entities::Entity;
 use crate::metamodel::TypeModel;
 use crate::type_model_provider::TypeModelProvider;
 use crate::TypeRef;
@@ -785,7 +784,6 @@ pub struct HelloEncOutput {
 	pub answer: String,
 	#[serde(rename = "460")]
 	pub timestamp: DateTime,
-	pub _finalIvs: HashMap<String, FinalIv>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]

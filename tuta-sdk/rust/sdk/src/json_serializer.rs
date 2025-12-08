@@ -74,13 +74,18 @@ impl JsonSerializer {
 
 			let mapped_value = match (&value_type.cardinality, value) {
 				(Cardinality::ZeroOrOne, JsonElement::Null) => ElementValue::Null,
-				(Cardinality::One, JsonElement::String(v)) if v.is_empty() => {
-					// Empty string signifies default value for a field. This is primarily the
-					// case for encrypted fields. This includes manually encrypted fields in some
-					// cases.
-					// When the value is encrypted we need to pass on the information about the
+				(Cardinality::One, JsonElement::String(v))
+					if value_type.encrypted && v.is_empty() =>
+				{
+					// Empty string on an encrypted field signifies the default value for a field.
+					// When the value is encrypted, we need to pass on the information about the
 					// default value, so we keep it as an empty string (see entity_facade.rs).
-					// Otherwise, we resolve the field to its default value.
+					ElementValue::String(String::new())
+				},
+				(Cardinality::One, JsonElement::String(v))
+					if !value_type.encrypted && v.is_empty() =>
+				{
+					// If the value is an empty string and not encrypted, we resolve the field to its default value.
 					value_type.value_type.get_default()
 				},
 				(Cardinality::One | Cardinality::ZeroOrOne, JsonElement::String(s))
@@ -620,6 +625,7 @@ mod tests {
 	use crate::instance_mapper::InstanceMapper;
 	use crate::util::test_utils::*;
 	use crypto_primitives::randomizer_facade::RandomizerFacade;
+	use serde::de::Unexpected::Str;
 
 	#[test]
 	fn test_parse_mail() {
@@ -807,7 +813,6 @@ mod tests {
 		let entity_to_serialize = HelloEncOutput {
 			answer: "".to_string(),
 			timestamp: Default::default(),
-			_finalIvs: Default::default(),
 		};
 
 		let instance_mapper = InstanceMapper::new(type_provider.clone());
@@ -875,13 +880,6 @@ mod tests {
 								panic!("aggregation on raw entities is not equals, expected {:?} , actual: {:?} !", dict_expected, value_actual)
 							};
 							assert_raw_entities_deep_equals(dict_expected, dict_new);
-						}
-						// edge case, where an encrypted boolean value is empty ("") but defaults to false ("0")
-						JsonElement::String(string_expected) if string_expected.is_empty() => {
-							match value_actual {
-								JsonElement::String(string_actual) if string_actual == "0" => string_actual,
-								_ => panic!("string value on raw entities is not equals, expected {:?} , actual: {:?} !", string_expected, value_actual),
-							};
 						}
 						_ => assert_eq!(value_expected, value_actual),
 					};
