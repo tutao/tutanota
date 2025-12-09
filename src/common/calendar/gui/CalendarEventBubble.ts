@@ -66,6 +66,18 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		const eventTime = timeFormat ? formatEventTime(calendarEvent, timeFormat) : ""
 		const eventTitle = isLongNormalEvent ? `${eventTime} ${getDisplayEventTitle(calendarEvent.summary)}` : getDisplayEventTitle(calendarEvent.summary)
 
+		let textColor = !eventWrapper.flags?.isFeatured ? colorForBg(`#${eventWrapper.color}`) : undefined
+		let border = eventWrapper.flags?.isFeatured
+			? `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`
+			: "none"
+		let backgroundColor = eventWrapper.color.includes("#") ? eventWrapper.color : `#${eventWrapper.color}`
+
+		if (eventWrapper.flags?.isGhost) {
+			textColor = theme.on_surface_variant
+			border = `1px dashed ${theme.outline}`
+			backgroundColor = theme.surface_container_high
+		}
+
 		return m(
 			".flex.z2.b.darker-hover.small",
 			{
@@ -75,7 +87,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					minWidth: px(0),
 					gridColumn: `${gridInfo.column.start} / span ${gridInfo.column.span}`,
 					gridRow: `${gridInfo.row.start} / ${gridInfo.row.end}`,
-					color: !eventWrapper.flags?.isFeatured ? colorForBg(`#${eventWrapper.color}`) : undefined, // Why is this logic only applied for Featured bubbles? (Or is it also applied elsewhere?)
+					color: textColor, // Why is this logic only applied for Featured bubbles? (Or is it also applied elsewhere?)
 					opacity: `${eventWrapper.flags?.isTransientEvent ? TEMPORARY_EVENT_OPACITY : 1}`,
 				} satisfies Partial<CSSStyleDeclaration>,
 			},
@@ -119,11 +131,9 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 							"border-bottom-left-radius": verticalOverflowInfo.end || horizontalOverflowInfo.start ? "0" : undefined,
 							"border-bottom-right-radius": verticalOverflowInfo.end || horizontalOverflowInfo.end ? "0" : undefined,
 
-							backgroundColor: eventWrapper.color.includes("#") ? eventWrapper.color : `#${eventWrapper.color}`,
+							backgroundColor: backgroundColor,
 
-							border: eventWrapper.flags?.isFeatured
-								? `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`
-								: "none",
+							border: border,
 
 							paddingTop: "2px",
 							paddingBottom: "2px",
