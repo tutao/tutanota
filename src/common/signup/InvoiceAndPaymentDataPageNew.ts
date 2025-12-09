@@ -9,16 +9,16 @@ import { Country } from "../api/common/CountryList"
 import { AccountingInfo, Braintree3ds2Request, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs"
 import { locator } from "../api/main/CommonLocator"
 import { Dialog, DialogType } from "../gui/base/Dialog"
-import { neverNull, newPromise, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, neverNull, newPromise, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { Button, ButtonType } from "../gui/base/Button"
 import { EntityEventsListener } from "../api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils"
-import { getPreconditionFailedPaymentMsg, PaymentErrorCode } from "../subscription/utils/SubscriptionUtils"
+import { getPreconditionFailedPaymentMsg, PaymentErrorCode, UpgradeType } from "../subscription/utils/SubscriptionUtils"
 import { client } from "../misc/ClientDetector"
 import { RadioSelectorOption } from "../gui/base/RadioSelectorItem"
 import { RadioSelector, RadioSelectorAttrs } from "../gui/base/RadioSelector"
-import { getVisiblePaymentMethods } from "../subscription/utils/PaymentUtils"
+import { getVisiblePaymentMethods, validatePaymentData } from "../subscription/utils/PaymentUtils"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { ProgrammingError } from "../api/common/error/ProgrammingError"
 import { LoginButton } from "../gui/base/buttons/LoginButton"
@@ -26,9 +26,21 @@ import { theme } from "../gui/theme"
 import { CreditCardInput } from "../subscription/CreditCardInput"
 import { renderCountryDropdownNew } from "../gui/base/GuiUtils"
 import { PaypalButtonNew, PaypalButtonNewAttrs } from "../subscription/PaypalButtonNew"
+import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
+import { InvoiceDataInput } from "../subscription/InvoiceDataInput"
+import Stream from "mithril/stream"
+import stream from "mithril/stream"
 
 export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private SignupFlowUsageTestController: any
+
+	private _invoiceDataInput: InvoiceDataInput | null = null
+	private _selectedPaymentMethod: Stream<PaymentMethodType> = stream(PaymentMethodType.CreditCard)
+	private dom!: HTMLElement
+	private _hasClickedNext: boolean = false
+	// private paypalRequestUrl: LazyLoaded<string>
+	private isCreditCardValid: stream<boolean> = stream(false)
+	private isPaypalLinked: stream<boolean> = stream(false)
 
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>): Children {
 		const ctx = vnode.attrs.ctx
@@ -99,10 +111,68 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 					label: "verifyCreditCard_action",
 					size: "md",
 					width: "flex",
-					onclick: () => ctx.goNext(),
+					onclick: () => {
+						this.onAddPaymentData(ctx)
+					},
 				}),
 			),
 		])
+	}
+
+	private onAddPaymentData = async (ctx: WizardStepContext<SignupViewModel>) => {
+		// const invoiceDataInput = assertNotNull(this._invoiceDataInput)
+
+		const data = ctx.viewModel
+
+		const error =
+			// validateInvoiceData({
+			// 	address: invoiceDataInput.getAddress(),
+			// 	isBusiness: data.options.businessUse(),
+			// }) ||
+			validatePaymentData({
+				country: data.invoiceData.country,
+				isBusiness: data.options.businessUse(),
+				paymentMethod: this._selectedPaymentMethod(),
+				accountingInfo: assertNotNull(data.accountingInfo),
+			})
+
+		if (error) {
+			await Dialog.message(error)
+			return
+		}
+
+		// data.invoiceData = invoiceDataInput.getInvoiceData()
+		data.paymentData = {
+			paymentMethod: this._selectedPaymentMethod(),
+			creditCardData: this._selectedPaymentMethod() === PaymentMethodType.CreditCard ? data.ccViewModel.getCreditCardData() : null,
+		}
+
+		const progress = (async () => {
+			const customer = neverNull(data.customer)
+			const businessUse = data.options.businessUse()
+
+			if (customer.businessUse !== businessUse) {
+				customer.businessUse = businessUse
+				await locator.entityClient.update(customer)
+			}
+
+			const success = await updatePaymentData(
+				data.options.paymentInterval(),
+				data.invoiceData,
+				data.paymentData,
+				null,
+				data.upgradeType === UpgradeType.Signup,
+				neverNull(data.price?.rawPrice),
+				neverNull(data.accountingInfo),
+			)
+
+			if (success && !this._hasClickedNext) {
+				this._hasClickedNext = true
+				ctx.goNext()
+			}
+		})()
+
+		void showProgressDialog("updatePaymentDataBusy_msg", progress)
 	}
 
 	private renderPaypalForm(ctx: WizardStepContext<SignupViewModel>): Children {
