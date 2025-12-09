@@ -2135,3 +2135,5 @@ export type TranslationKeyType =
 	| "payment_page_title"
 	| "payment_page_subtitle"
 	| "billingCountry_label"
+	| "creditCardExpirationDateValid_msg"
+	| "creditCardSpecificCVVValid_msg"

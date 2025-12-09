@@ -421,13 +421,17 @@ export class SimplifiedCreditCardViewModel implements CCViewModel {
 		return this.validateCVV(this.cvv) ? this.lang.get("creditCardSpecificCVVInvalid_msg", { "{securityCode}": spec.cvvName }) : null
 	}
 
-	getCvvLabel(): string {
+	getLongCvvLabel(): string {
 		if (this.creditCardType === CardType.Other) {
 			return this.lang.get("creditCardCvvLabelLong_label", { "{cvvName}": CardSpecs[CardType.Other].cvvName })
 		} else {
 			const spec = CardSpecs[this.creditCardType]
 			return this.lang.get("creditCardCvvLabelLong_label", { "{cvvName}": spec.cvvName })
 		}
+	}
+
+	getCvvLabel(): string {
+		return CardSpecs[this.creditCardType].cvvName
 	}
 
 	getCreditCardData(): CreditCard {

@@ -64,8 +64,7 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 					label: "creditCardExpirationDateWithFormat_label",
 					class: "", // fixme: removes mt-16
 					value: viewModel.expirationDate,
-					// we only show the hint if the field is not empty and not selected to avoid showing errors while the user is typing.
-					helpLabel: () => (this.dateFieldLeft ? lang.get(viewModel.getExpirationDateErrorHint() ?? "emptyString_msg") : lang.get("emptyString_msg")),
+					helpLabel: () => this.renderExpirationDateHelpLabel(viewModel),
 					onblur: () => (this.dateFieldLeft = true),
 					oninput: (newValue) => {
 						viewModel.expirationDate = newValue
@@ -100,34 +99,51 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 	private renderCcNumberHelpLabel(model: SimplifiedCreditCardViewModel): Children {
 		const hint = model.getCreditCardNumberHint()
 		const error = model.getCreditCardNumberErrorHint()
-		// we only draw the hint if the number field was entered & exited before
-		if (this.numberFieldLeft) {
-			if (hint) {
-				return error ? lang.get("creditCardHintWithError_msg", { "{hint}": hint, "{errorText}": error }) : hint
-			} else {
-				return error ? error : lang.get("emptyString_msg")
-			}
-		} else {
-			return hint ?? lang.get("emptyString_msg")
+
+		if (model.getCreditCardData().number === "") {
+			return m("span", lang.get("creditCardNumberFormat_msg"))
 		}
+
+		if (hint) {
+			return error ? m("span", lang.get("creditCardHintWithError_msg", { "{hint}": hint, "{errorText}": error })) : m("span", hint)
+		} else {
+			return error ? m("span", error) : lang.get("emptyString_msg")
+		}
+	}
+
+	private renderExpirationDateHelpLabel(model: SimplifiedCreditCardViewModel): Children {
+		const error = model.getExpirationDateErrorHint()
+		if (model.expirationDate === "") {
+			return lang.getTranslationText("creditCardExpirationDate_label")
+		}
+
+		if (error) {
+			return m("span", lang.getTranslationText(error))
+		}
+
+		return m("span", lang.getTranslationText("creditCardExpirationDateValid_msg"))
 	}
 
 	private renderCvvNumberHelpLabel(model: SimplifiedCreditCardViewModel): Children {
 		const cvvHint = model.getCvvHint()
 		const cvvError = model.getCvvErrorHint()
-		if (this.cvvFieldLeft) {
-			if (cvvHint) {
-				return cvvError
-					? lang.get("creditCardHintWithError_msg", {
-							"{hint}": cvvHint,
-							"{errorText}": cvvError,
-						})
-					: cvvHint
-			} else {
-				return cvvError ? cvvError : lang.get("emptyString_msg")
-			}
+		const longCvvLabel = lang.makeTranslation("long_cvv", model.getLongCvvLabel()).text
+		if (model.cvv === "") {
+			return longCvvLabel
+		}
+
+		if (cvvHint) {
+			return cvvError
+				? lang.get("creditCardHintWithError_msg", {
+						"{hint}": cvvHint,
+						"{errorText}": cvvError,
+					})
+				: cvvHint
 		} else {
-			return cvvHint ?? lang.get("emptyString_msg")
+			if (cvvError) {
+				return m("span", cvvError)
+			}
+			return m("span", lang.getTranslationText("creditCardSpecificCVVValid_msg"))
 		}
 	}
 }
