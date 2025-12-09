@@ -45,25 +45,27 @@ export class Checkbox implements Component<CheckboxAttrs> {
 				},
 			},
 			m(
-				`label.flex.gap-8.justify-start.rel${Checkbox.getBreakClass(a.label())}`,
+				`label.rel${Checkbox.getBreakClass(a.label())}`,
 				{
 					class: `${this.focused ? "content-accent-fg" : "content-fg"} ${getOperatingClasses(a.disabled, "click")}`,
 				},
 				[
-					m("input.checkbox.list-checkbox", {
-						style: {
-							top: px(5),
-						},
-						type: "checkbox",
-						oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
-						onchange: (e: Event) => this.toggle(e, a),
-						checked: a.checked,
-						onfocus: () => (this.focused = true),
-						onblur: () => (this.focused = false),
-						class: getOperatingClasses(a.disabled, "click"),
-						disabled: a.disabled,
-					}),
-					a.label(),
+					m(".flex.gap-8", [
+						m("input.checkbox.list-checkbox", {
+							style: {
+								top: px(5),
+							},
+							type: "checkbox",
+							oncreate: (vnode) => (this._domInput = vnode.dom as HTMLElement),
+							onchange: (e: Event) => this.toggle(e, a),
+							checked: a.checked,
+							onfocus: () => (this.focused = true),
+							onblur: () => (this.focused = false),
+							class: getOperatingClasses(a.disabled, "click"),
+							disabled: a.disabled,
+						}),
+						a.label(),
+					]),
 					helpLabel,
 				],
 			),
