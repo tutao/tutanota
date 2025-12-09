@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8">
-	<meta name="referrer" content="no-referrer">
-	<meta name="viewport"
-		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-	<script>
+    <meta charset="utf-8">
+    <meta name="referrer" content="no-referrer">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <script>
 		document.addEventListener("DOMContentLoaded", function (event) {
 			let params = parseQueryString(location.hash.substring(1))
 			document.getElementById("message").textContent = decodeURIComponent(`${params.message}`)
@@ -36,8 +36,8 @@
 						'Content-Type': 'application/json'
 					},
 					body: JSON.stringify({
-						_format: "0",
-						braintree3dsResponse: {_id: "lq3tLw", clientToken, nonce: result.nonce}
+						"1838": "0",
+						"1839": [{"1834": "lq3tLw", "1835": clientToken, "1836": result.nonce}]
 					}) // body data type must match "Content-Type" header
 				}).then(response => {
 					document.getElementById("message").textContent = "Your payment details were successfully linked to your Tuta Mail account!"
@@ -96,8 +96,8 @@
 			}
 			return data0
 		}
-	</script>
-	<script>
+    </script>
+    <script>
 		// https://js.braintreegateway.com/web/3.69.0/js/three-d-secure.min.js
 		!function (e) {
 			var t;
@@ -139,7 +139,7 @@
 						var e, t = JSON.stringify(r);
 						if (!r.forceScriptReload && (e = a[t])) return e;
 						var n = document.createElement("script"), i = r.dataAttributes || {},
-								o = r.container || document.head;
+							o = r.container || document.head;
 						return n.src = r.src, n.id = r.id || "", n.async = !0, r.crossorigin && n.setAttribute("crossorigin", "" + r.crossorigin), Object.keys(i).forEach(function (e) {
 							n.setAttribute("data-" + e, "" + i[e])
 						}), e = new s.PromiseGlobal(function (e, t) {
@@ -347,7 +347,7 @@
 						var i = e.ignoreMethods || [], o = !0 === e.transformPrivateMethods;
 						return Object.getOwnPropertyNames(n.prototype).filter(function (e) {
 							var t = "constructor" !== e && "function" == typeof n.prototype[e], r = -1 === i.indexOf(e),
-									e = o || "_" !== e.charAt(0);
+								e = o || "_" !== e.charAt(0);
 							return t && e && r
 						}).forEach(function (e) {
 							var t = n.prototype[e];
@@ -359,61 +359,61 @@
 					"use strict";
 					Object.defineProperty(r, "__esModule", {value: !0}), r.Framebus = void 0;
 					var i = e("./lib/is-not-string"), a = e("./lib/subscription-args-invalid"),
-							o = e("./lib/broadcast"), s = e("./lib/package-payload"), c = e("./lib/constants"),
-							e = (n.target = function (e) {
-								return new n(e)
-							}, n.prototype.include = function (e) {
-								return null != e && (null != e.Window && (e.constructor === e.Window && (c.childWindows.push(e), !0)))
-							}, n.prototype.target = function (e) {
-								return n.target(e)
-							}, n.prototype.emit = function (e, t, r) {
-								if (this.isDestroyed) return !1;
-								var n = this.origin;
-								if (e = this.namespaceEvent(e), i.isntString(e)) return !1;
-								if (i.isntString(n)) return !1;
-								"function" == typeof t && (r = t, t = void 0);
-								r = s.packagePayload(e, n, t, r);
-								return !!r && (o.broadcast(window.top || window.self, r, n), !0)
-							}, n.prototype.on = function (e, r) {
-								if (this.isDestroyed) return !1;
-								var n = this, t = this.origin, i = r;
-								return e = this.namespaceEvent(e), !a.subscriptionArgsInvalid(e, i, t) && (this.verifyDomain && (i = function () {
-									for (var e = [], t = 0; t < arguments.length; t++) e[t] = arguments[t];
-									n.checkOrigin(this && this.origin) && r.apply(void 0, e)
-								}), this.listeners.push({
-									eventName: e,
-									handler: i,
-									originalHandler: r
-								}), c.subscribers[t] = c.subscribers[t] || {}, c.subscribers[t][e] = c.subscribers[t][e] || [], c.subscribers[t][e].push(i), !0)
-							}, n.prototype.off = function (e, t) {
-								var r = t;
-								if (this.isDestroyed) return !1;
-								if (this.verifyDomain) for (var n = 0; n < this.listeners.length; n++) {
-									var i = this.listeners[n];
-									i.originalHandler === t && (r = i.handler)
+						o = e("./lib/broadcast"), s = e("./lib/package-payload"), c = e("./lib/constants"),
+						e = (n.target = function (e) {
+							return new n(e)
+						}, n.prototype.include = function (e) {
+							return null != e && (null != e.Window && (e.constructor === e.Window && (c.childWindows.push(e), !0)))
+						}, n.prototype.target = function (e) {
+							return n.target(e)
+						}, n.prototype.emit = function (e, t, r) {
+							if (this.isDestroyed) return !1;
+							var n = this.origin;
+							if (e = this.namespaceEvent(e), i.isntString(e)) return !1;
+							if (i.isntString(n)) return !1;
+							"function" == typeof t && (r = t, t = void 0);
+							r = s.packagePayload(e, n, t, r);
+							return !!r && (o.broadcast(window.top || window.self, r, n), !0)
+						}, n.prototype.on = function (e, r) {
+							if (this.isDestroyed) return !1;
+							var n = this, t = this.origin, i = r;
+							return e = this.namespaceEvent(e), !a.subscriptionArgsInvalid(e, i, t) && (this.verifyDomain && (i = function () {
+								for (var e = [], t = 0; t < arguments.length; t++) e[t] = arguments[t];
+								n.checkOrigin(this && this.origin) && r.apply(void 0, e)
+							}), this.listeners.push({
+								eventName: e,
+								handler: i,
+								originalHandler: r
+							}), c.subscribers[t] = c.subscribers[t] || {}, c.subscribers[t][e] = c.subscribers[t][e] || [], c.subscribers[t][e].push(i), !0)
+						}, n.prototype.off = function (e, t) {
+							var r = t;
+							if (this.isDestroyed) return !1;
+							if (this.verifyDomain) for (var n = 0; n < this.listeners.length; n++) {
+								var i = this.listeners[n];
+								i.originalHandler === t && (r = i.handler)
+							}
+							e = this.namespaceEvent(e);
+							var o = this.origin;
+							if (a.subscriptionArgsInvalid(e, r, o)) return !1;
+							var s = c.subscribers[o] && c.subscribers[o][e];
+							if (!s) return !1;
+							for (n = 0; n < s.length; n++) if (s[n] === r) return s.splice(n, 1), !0;
+							return !1
+						}, n.prototype.teardown = function () {
+							if (!this.isDestroyed) {
+								this.isDestroyed = !0;
+								for (var e = 0; e < this.listeners.length; e++) {
+									var t = this.listeners[e];
+									this.off(t.eventName, t.handler)
 								}
-								e = this.namespaceEvent(e);
-								var o = this.origin;
-								if (a.subscriptionArgsInvalid(e, r, o)) return !1;
-								var s = c.subscribers[o] && c.subscribers[o][e];
-								if (!s) return !1;
-								for (n = 0; n < s.length; n++) if (s[n] === r) return s.splice(n, 1), !0;
-								return !1
-							}, n.prototype.teardown = function () {
-								if (!this.isDestroyed) {
-									this.isDestroyed = !0;
-									for (var e = 0; e < this.listeners.length; e++) {
-										var t = this.listeners[e];
-										this.off(t.eventName, t.handler)
-									}
-									this.listeners.length = 0
-								}
-							}, n.prototype.checkOrigin = function (e) {
-								var t, r = document.createElement("a");
-								return r.href = location.href, t = "https:" === r.protocol ? r.host.replace(/:443$/, "") : "http:" === r.protocol ? r.host.replace(/:80$/, "") : r.host, r.protocol + "//" + t === e || (!this.verifyDomain || this.verifyDomain(e))
-							}, n.prototype.namespaceEvent = function (e) {
-								return this.channel ? this.channel + ":" + e : e
-							}, n);
+								this.listeners.length = 0
+							}
+						}, n.prototype.checkOrigin = function (e) {
+							var t, r = document.createElement("a");
+							return r.href = location.href, t = "https:" === r.protocol ? r.host.replace(/:443$/, "") : "http:" === r.protocol ? r.host.replace(/:80$/, "") : r.host, r.protocol + "//" + t === e || (!this.verifyDomain || this.verifyDomain(e))
+						}, n.prototype.namespaceEvent = function (e) {
+							return this.channel ? this.channel + ":" + e : e
+						}, n);
 
 					function n(e) {
 						void 0 === e && (e = {}), this.origin = e.origin || "*", this.channel = e.channel || "", this.verifyDomain = e.verifyDomain, this.isDestroyed = !1, this.listeners = []
@@ -497,7 +497,7 @@
 					"use strict";
 					Object.defineProperty(r, "__esModule", {value: !0}), r.onmessage = void 0;
 					var i = e("./is-not-string"), o = e("./unpack-payload"), s = e("./dispatch"),
-							a = e("./broadcast-to-child-windows");
+						a = e("./broadcast-to-child-windows");
 					r.onmessage = function (e) {
 						var t, r, n;
 						i.isntString(e.data) || (t = o.unpackPayload(e)) && (r = t.eventData, n = t.reply, s.dispatch("*", t.event, r, n, e), s.dispatch(e.origin, t.event, r, n, e), a.broadcastToChildWindows(e.data, t.origin, e.source))
@@ -715,13 +715,13 @@
 							var s = Date.now();
 							return n.resolve(e).then(function (e) {
 								var t = Date.now(), r = e.getConfiguration(), n = e._request,
-										e = r.gatewayConfiguration.analytics.url, t = {
-											analytics: [{
-												kind: a.ANALYTICS_PREFIX + i,
-												isAsync: Math.floor(t / 1e3) !== Math.floor(s / 1e3),
-												timestamp: s
-											}]
-										};
+									e = r.gatewayConfiguration.analytics.url, t = {
+										analytics: [{
+											kind: a.ANALYTICS_PREFIX + i,
+											isAsync: Math.floor(t / 1e3) !== Math.floor(s / 1e3),
+											timestamp: s
+										}]
+									};
 								n({url: e, method: "post", data: c(r, t), timeout: a.ANALYTICS_REQUEST_TIMEOUT_MS}, o)
 							})
 						}
@@ -859,7 +859,7 @@
 				41: [function (e, t, r) {
 					"use strict";
 					var n = e("./braintree-error"), i = e("./promise"), o = e("./assets"), s = e("./errors"),
-							a = "3.69.0";
+						a = "3.69.0";
 					t.exports = {
 						create: function (e) {
 							var t = i.resolve();
@@ -954,7 +954,7 @@
 				49: [function (e, t, r) {
 					"use strict";
 					var n = e("promise-polyfill"), e = e("@braintree/extended-promise"),
-							n = "undefined" != typeof Promise ? Promise : n;
+						n = "undefined" != typeof Promise ? Promise : n;
 					e.suppressUnhandledPromiseMessage = !0, e.setPromise(n), t.exports = n
 				}, {"@braintree/extended-promise": 5, "promise-polyfill": 29}],
 				50: [function (e, t, r) {
@@ -983,12 +983,12 @@
 				52: [function (e, t, r) {
 					"use strict";
 					var n = e("../../../lib/assign").assign, o = e("../../../lib/analytics"),
-							s = e("../../../lib/braintree-error"), a = e("../../../lib/promise"),
-							c = e("../../../lib/is-verified-domain"), i = e("@braintree/extended-promise"),
-							u = e("@braintree/event-emitter"), l = e("../../shared/errors"),
-							d = e("@braintree/iframer"), p = e("framebus"), f = e("../../shared/constants"),
-							_ = e("@braintree/uuid"), h = e("../../shared/events"), E = e("../../../lib/use-min"),
-							m = e("../../../lib/constants").BUS_CONFIGURATION_REQUEST_EVENT;
+						s = e("../../../lib/braintree-error"), a = e("../../../lib/promise"),
+						c = e("../../../lib/is-verified-domain"), i = e("@braintree/extended-promise"),
+						u = e("@braintree/event-emitter"), l = e("../../shared/errors"),
+						d = e("@braintree/iframer"), p = e("framebus"), f = e("../../shared/constants"),
+						_ = e("@braintree/uuid"), h = e("../../shared/events"), E = e("../../../lib/use-min"),
+						m = e("../../../lib/constants").BUS_CONFIGURATION_REQUEST_EVENT;
 
 					function y(e) {
 						u.call(this), this._client = e.client, this._createPromise = e.createPromise, this._createOptions = e, this._client ? (this._isDebug = this._client.getConfiguration().isDebug, this._assetsUrl = this._client.getConfiguration().gatewayConfiguration.assetsUrl) : (this._isDebug = Boolean(e.isDebug), this._assetsUrl = e.assetsUrl), this._assetsUrl = this._assetsUrl + "/web/3.69.0"
@@ -1026,7 +1026,7 @@
 						return this._waitForClient().then(function () {
 							return i._client.request({endpoint: r, method: "post", data: t}).catch(function (e) {
 								var t, r = e && e.details && e.details.httpStatus,
-										n = "three-d-secure.verification-flow.lookup-failed";
+									n = "three-d-secure.verification-flow.lookup-failed";
 								return 404 === r ? (t = l.THREEDS_LOOKUP_TOKENIZED_CARD_NOT_FOUND_ERROR, n += ".404") : 422 === r ? (t = l.THREEDS_LOOKUP_VALIDATION_ERROR, n += ".422") : t = l.THREEDS_LOOKUP_ERROR, o.sendEvent(i._createPromise, n), a.reject(new s({
 									type: t.type,
 									code: t.code,
@@ -1083,8 +1083,8 @@
 						}), a.resolve(e)) : a.reject(new s(l.THREEDS_NO_VERIFICATION_PAYLOAD))
 					}, y.prototype._setupV1Bus = function (e) {
 						var t = window.location.href.split("#")[0], r = e.lookupResponse, n = _(),
-								i = new p({channel: n, verifyDomain: c}),
-								o = this._assetsUrl + "/html/three-d-secure-authentication-complete-frame.html?channel=" + encodeURIComponent(n) + "&";
+							i = new p({channel: n, verifyDomain: c}),
+							o = this._assetsUrl + "/html/three-d-secure-authentication-complete-frame.html?channel=" + encodeURIComponent(n) + "&";
 						return i.on(m, function (e) {
 							e({
 								acsUrl: r.acsUrl,
@@ -1153,20 +1153,20 @@
 
 					(i.prototype = Object.create(n.prototype, {constructor: n}))._createV1IframeModalElement = function (e) {
 						var t = document.createElement("div"),
-								r = Boolean(this._createOptions && this._createOptions.cardinalSDKConfig && this._createOptions.cardinalSDKConfig.payment && this._createOptions.cardinalSDKConfig.payment.displayExitButton);
+							r = Boolean(this._createOptions && this._createOptions.cardinalSDKConfig && this._createOptions.cardinalSDKConfig.payment && this._createOptions.cardinalSDKConfig.payment.displayExitButton);
 						return t.innerHTML = '<div style="position: fixed;z-index: 999999;top: 50%;left: 50%;padding: 24px 20px;transform: translate(-50%,-50%);border-radius: 2px;background: #fff;max-width: 100%;overflow: auto;"><div><button data-braintree-v1-fallback-close-button style="font-family: Helvetica,Arial,sans-serif;font-size: 25px;line-height: 12px;position: absolute;top: 2px;right: 0px;cursor: pointer;color: #999;border: 0;outline: none;background: none;" onMouseOver="this.style.color=\'#000\'" onMouseOut="this.style.color=\'#999\'">Ã—</button></div><div data-braintree-v1-fallback-iframe-container style="height: 400px;"></div></div><div data-braintree-v1-fallback-backdrop style="position: fixed;z-index: 999998;cursor: pointer;top: 0;left: 0;width: 100%;height: 100%;transition: opacity 1ms ease;background: rgba(0,0,0,.6);"></div>', r || (t.querySelector("[data-braintree-v1-fallback-close-button]").style.display = "none"), t.querySelector("[data-braintree-v1-fallback-iframe-container]").appendChild(e), t
 					}, t.exports = i
 				}, {"./songbird": 58}],
 				55: [function (e, t, r) {
 					"use strict";
 					var n = e("./legacy"), i = e("./cardinal-modal"), o = e("./bootstrap3-modal"),
-							e = e("./inline-iframe");
+						e = e("./inline-iframe");
 					t.exports = {legacy: n, "cardinal-modal": i, "bootstrap3-modal": o, "inline-iframe": e}
 				}, {"./bootstrap3-modal": 53, "./cardinal-modal": 54, "./inline-iframe": 56, "./legacy": 57}],
 				56: [function (e, t, r) {
 					"use strict";
 					var n = e("./songbird"), o = e("../../../lib/braintree-error"), s = e("../../shared/errors"),
-							e = e("../../../lib/enumerate");
+						e = e("../../../lib/enumerate");
 
 					function a(e) {
 						n.call(this, e)
@@ -1242,13 +1242,13 @@
 				58: [function (e, t, r) {
 					"use strict";
 					var n = e("./base"), i = e("../../../lib/assign").assign, o = e("../../../lib/deferred"),
-							s = e("../../../lib/braintree-error"), a = e("../../../lib/convert-to-braintree-error"),
-							c = e("../../../lib/analytics"), u = e("../../../lib/assets"), l = e("../../shared/errors"),
-							d = e("../../../lib/enumerate"), p = e("../../shared/constants"),
-							f = e("../../../lib/promise"), _ = e("@braintree/extended-promise"),
-							h = e("../../../lib/constants").INTEGRATION_TIMEOUT_MS,
-							E = e("../../../lib/constants").PLATFORM,
-							m = ["ui.close", "ui.render", "ui.renderHidden", "ui.loading.close", "ui.loading.render"];
+						s = e("../../../lib/braintree-error"), a = e("../../../lib/convert-to-braintree-error"),
+						c = e("../../../lib/analytics"), u = e("../../../lib/assets"), l = e("../../shared/errors"),
+						d = e("../../../lib/enumerate"), p = e("../../shared/constants"),
+						f = e("../../../lib/promise"), _ = e("@braintree/extended-promise"),
+						h = e("../../../lib/constants").INTEGRATION_TIMEOUT_MS,
+						E = e("../../../lib/constants").PLATFORM,
+						m = ["ui.close", "ui.render", "ui.renderHidden", "ui.loading.close", "ui.loading.render"];
 
 					function y(e) {
 						n.call(this, e), this._useV1Fallback = !1, this._clientMetadata = {
@@ -1310,8 +1310,8 @@
 						return t.innerHTML = '<div data-braintree-v1-fallback-iframe-container="true" style="height: 400px;"></div>', t.querySelector('[data-braintree-v1-fallback-iframe-container="true"]').appendChild(e), t
 					}, y.prototype._createV1IframeModal = function (e) {
 						var t = this._createV1IframeModalElement(e),
-								r = t.querySelector("[data-braintree-v1-fallback-close-button]"),
-								e = t.querySelector("[data-braintree-v1-fallback-backdrop]"), n = this;
+							r = t.querySelector("[data-braintree-v1-fallback-close-button]"),
+							e = t.querySelector("[data-braintree-v1-fallback-backdrop]"), n = this;
 
 						function i() {
 							t.parentNode.removeChild(t), n.cancelVerifyCard(l.THREEDS_CARDINAL_SDK_CANCELED), document.removeEventListener("keyup", n._onV1Keyup), n._onV1Keyup = null
@@ -1350,8 +1350,8 @@
 						var i = this;
 						return this._waitForClient().then(function () {
 							var e = i._client.getConfiguration().gatewayConfiguration.threeDSecure.cardinalAuthenticationJWT,
-									t = n.setupOptions, r = n.setupStartTime,
-									t = i._createCardinalConfigurationOptions(t);
+								t = n.setupOptions, r = n.setupStartTime,
+								t = i._createCardinalConfigurationOptions(t);
 							m.forEach(function (e) {
 								i.setCardinalListener(e, function () {
 									i._emit(y.events[e.toUpperCase()])
@@ -1385,8 +1385,8 @@
 						return this._getDfReferenceIdPromisePlus
 					}, y.prototype._performJWTValidation = function (r, e) {
 						var n = this, t = this._lookupPaymentMethod.nonce,
-								i = "payment_methods/" + t + "/three_d_secure/authenticate_from_jwt",
-								o = r && r.Payment && r.Payment.ExtendedData && r.Payment.ExtendedData.ChallengeCancel;
+							i = "payment_methods/" + t + "/three_d_secure/authenticate_from_jwt",
+							o = r && r.Payment && r.Payment.ExtendedData && r.Payment.ExtendedData.ChallengeCancel;
 						return o && (c.sendEvent(this._createPromise, "three-d-secure.verification-flow.cardinal-sdk.cancel-code." + o), "01" === o && this._emit(y.events.CUSTOMER_CANCELED)), c.sendEvent(this._createPromise, "three-d-secure.verification-flow.upgrade-payment-method.started"), this._waitForClient().then(function () {
 							return n._client.request({
 								method: "post",
@@ -1395,7 +1395,7 @@
 							})
 						}).then(function (e) {
 							var t = e.paymentMethod || n._lookupPaymentMethod,
-									e = n._formatAuthResponse(t, e.threeDSecureInfo);
+								e = n._formatAuthResponse(t, e.threeDSecureInfo);
 							return e.rawCardinalSDKVerificationData = r, c.sendEvent(n._client, "three-d-secure.verification-flow.upgrade-payment-method.succeeded"), f.resolve(e)
 						}).catch(function (e) {
 							e = new s({
@@ -1460,7 +1460,7 @@
 						return "function" == typeof e.onLookupComplete || t.ignoreOnLookupCompleteRequirement || (r = "an onLookupComplete function"), r
 					}, y.prototype._formatVerifyCardOptions = function (e) {
 						var t = n.prototype._formatVerifyCardOptions.call(this, e), r = t.additionalInformation || {},
-								r = this.transformBillingAddress(r, e.billingAddress);
+							r = this.transformBillingAddress(r, e.billingAddress);
 						return r = this.transformShippingAddress(r), e.onLookupComplete && (t.onLookupComplete = o(e.onLookupComplete)), e.email && (r.email = e.email), e.mobilePhoneNumber && (r.mobilePhoneNumber = e.mobilePhoneNumber), t.additionalInformation = r, t
 					}, y.prototype._onLookupComplete = function (e, i) {
 						var o = this;
@@ -1511,8 +1511,8 @@
 				59: [function (e, t, r) {
 					"use strict";
 					var n = e("@braintree/wrap-promise"), i = e("../../lib/methods"),
-							o = e("../../lib/convert-methods-to-error"), s = e("@braintree/event-emitter"),
-							a = e("./frameworks");
+						o = e("../../lib/convert-methods-to-error"), s = e("@braintree/event-emitter"),
+						a = e("./frameworks");
 
 					function c(e) {
 						var t = this, r = a[e.framework];
@@ -1546,10 +1546,10 @@
 				60: [function (e, t, r) {
 					"use strict";
 					var s = e("./external/three-d-secure"), a = e("../lib/is-https").isHTTPS,
-							i = e("../lib/basic-component-verification"), c = e("../lib/create-deferred-client"),
-							u = e("../lib/create-assets-url"), l = e("../lib/braintree-error"),
-							d = e("../lib/analytics"), p = e("./shared/errors"), f = e("../lib/promise"),
-							e = e("@braintree/wrap-promise");
+						i = e("../lib/basic-component-verification"), c = e("../lib/create-deferred-client"),
+						u = e("../lib/create-assets-url"), l = e("../lib/braintree-error"),
+						d = e("../lib/analytics"), p = e("./shared/errors"), f = e("../lib/promise"),
+						e = e("@braintree/wrap-promise");
 					t.exports = {
 						create: e(function (o) {
 							var n = "3D Secure";
@@ -1749,35 +1749,35 @@
 				}, {"../../lib/enumerate": 43}]
 			}, {}, [60])(60)
 		});
-	</script>
-	<!-- TutanotaTags --><title>Mail. Done. Right. Tuta Mail Login &amp; Sign up for an Ad-free Mailbox</title>
-	<link rel="shortcut icon" type="image/x-icon" href="https://app.tuta.com/images/logo-favicon-152.png">
-	<meta name="application-name" content="Tuta Mail">
-	<link rel="apple-touch-icon" sizes="152x152" href="https://app.tuta.com/images/logo-favicon-152.png">
-	<link rel="icon" sizes="192x192" href="https://app.tuta.com/images/logo-favicon-192.png">
+    </script>
+    <!-- TutanotaTags --><title>Mail. Done. Right. Tuta Mail Login &amp; Sign up for an Ad-free Mailbox</title>
+    <link rel="shortcut icon" type="image/x-icon" href="https://app.tuta.com/images/logo-favicon-152.png">
+    <meta name="application-name" content="Tuta Mail">
+    <link rel="apple-touch-icon" sizes="152x152" href="https://app.tuta.com/images/logo-favicon-152.png">
+    <link rel="icon" sizes="192x192" href="https://app.tuta.com/images/logo-favicon-192.png">
 </head>
 <body>
 <div style="text-align: center; padding: 60px">
-	<div style="display: inline-block; padding: 20px 30px; background: #ffffff; border-radius: 5px; filter: drop-shadow(10px 10px 10px #00000088)">
-		<noscript>This site requires javascript to be enabled. Please activate it in the settings of your browser.
-		</noscript>
-		<div style="font-size: 20px; font-family: -apple-system, system-ui, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;">
-			<p id="message"></p>
-			<p id="message2"></p>
-		</div>
-	</div>
-	<div style="padding-top: 50px">
-		<svg id="tuta_x5F_rgb" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" xml:space="preserve">
+    <div style="display: inline-block; padding: 20px 30px; background: #ffffff; border-radius: 5px; filter: drop-shadow(10px 10px 10px #00000088)">
+        <noscript>This site requires javascript to be enabled. Please activate it in the settings of your browser.
+        </noscript>
+        <div style="font-size: 20px; font-family: -apple-system, system-ui, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol;">
+            <p id="message"></p>
+            <p id="message2"></p>
+        </div>
+    </div>
+    <div style="padding-top: 50px">
+        <svg id="tuta_x5F_rgb" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" xml:space="preserve">
 <style type="text/css">
 	.st0 {
-		fill: #410002;
-	}
+        fill: #410002;
+    }
 
-	.st1 {
-		fill: #850122;
-	}
+    .st1 {
+        fill: #850122;
+    }
 </style>
-			<g>
+            <g>
 	<g>
 		<path class="st0" d="M238.6,58.1c0-8.8,6.7-19.3,18.1-19.3h8.4l-3,9.6C258.6,59.9,253,67,246.2,67C241.3,67,238.6,63.6,238.6,58.1
 			 M195.9,53.3c-4.2,13.5,2.2,22.8,16.7,22.8c2.1,0,4.9-0.2,5.7-0.4c0.4-0.1,0.6-0.3,0.8-0.8l2.5-8.4c0.1-0.5,0-0.9-0.7-0.8
@@ -1791,15 +1791,15 @@
 			c5.8,0,10.6-2.6,14.2-7.9v6.3c0,0.5,0.3,0.8,0.8,0.8h6.9c0.5,0,0.7-0.2,0.9-0.7l14-45.2c0.1-0.5-0.1-0.9-0.6-0.9H257
 			c-21.3,0-29.6,18.5-29.6,30.5C227.4,69.7,233.9,76.3,242.6,76.3"/>
 	</g>
-				<path class="st1" d="M7.9,1L25,18.3c0.4,0.4,0.8,0.5,1.4,0.5h72.1c0.5,0,0.8-0.6,0.3-1.1L81.9,0.6C81.5,0.2,81.1,0,80.3,0h-72
+                <path class="st1" d="M7.9,1L25,18.3c0.4,0.4,0.8,0.5,1.4,0.5h72.1c0.5,0,0.8-0.6,0.3-1.1L81.9,0.6C81.5,0.2,81.1,0,80.3,0h-72
 		C7.6,0,7.5,0.6,7.9,1"/>
-				<path class="st1" d="M5.4,99.2C5.3,99.6,5.5,100,6,100h71.1c0.7,0,1-0.3,1.2-0.9l21.5-69.4c0.2-0.7-0.1-0.9-0.7-0.9H27.8
+                <path class="st1" d="M5.4,99.2C5.3,99.6,5.5,100,6,100h71.1c0.7,0,1-0.3,1.2-0.9l21.5-69.4c0.2-0.7-0.1-0.9-0.7-0.9H27.8
 		c-0.6,0-0.8,0.2-1,0.7L5.4,99.2z"/>
-				<path class="st1"
-					  d="M0,79.2c0,0.8,1,0.8,1.2,0l16.3-53.1c0.2-0.6,0.2-1-0.3-1.5L1,8.5C0.6,8.1,0,8.3,0,8.8V79.2z"/>
+                <path class="st1"
+                      d="M0,79.2c0,0.8,1,0.8,1.2,0l16.3-53.1c0.2-0.6,0.2-1-0.3-1.5L1,8.5C0.6,8.1,0,8.3,0,8.8V79.2z"/>
 </g>
 </svg>
-	</div>
+    </div>
 </div>
 </body>
 </html>
