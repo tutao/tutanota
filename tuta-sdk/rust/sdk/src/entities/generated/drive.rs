@@ -431,7 +431,7 @@ pub struct DriveRenameData {
 	pub _id: Option<CustomId>,
 	#[serde(rename = "105")]
 	#[serde(with = "serde_bytes")]
-	pub encNewName: Vec<u8>,
+	pub encNewName: Option<Vec<u8>>,
 	#[serde(rename = "106")]
 	#[serde(with = "serde_bytes")]
 	pub encNewDate: Vec<u8>,

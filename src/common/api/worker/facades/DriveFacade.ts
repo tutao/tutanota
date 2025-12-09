@@ -6,7 +6,7 @@ import { BlobFacade } from "./lazy/BlobFacade"
 import { UserFacade } from "./UserFacade"
 import { aes256RandomKey } from "@tutao/tutanota-crypto"
 import { VersionedKey } from "../crypto/CryptoWrapper"
-import { assertNotNull, groupBy, groupByAndMap, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
+import { assertNotNull, groupByAndMap, isSameTypeRef, partition, promiseMap, Require } from "@tutao/tutanota-utils"
 import { locator } from "../../../../mail-app/workerUtils/worker/WorkerLocator"
 import { ExposedProgressTracker } from "../../main/ProgressTracker"
 import { UploadProgressListener } from "../../main/UploadProgressListener"
@@ -245,32 +245,34 @@ export class DriveFacade {
 
 	public async copyItems(items: readonly (DriveFile | DriveFolder)[], destination: DriveFolder): Promise<void> {
 		const [files, folders] = partition(items, isDriveFile)
-		const filesByListId = Array.from(groupBy(files, getListId).values())
-		const foldersByListId = Array.from(groupBy(folders, getListId).values())
 		const date = new Date()
 
-		for (let i = 0; i < Math.max(filesByListId.length, foldersByListId.length); i++) {
-			const files = filesByListId.at(i) ?? []
-			const folders = foldersByListId.at(i) ?? []
-
-			const fileItems = await promiseMap(files, async (file) => {
-				const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
-				const encNewDate = locator.cryptoWrapper.encryptString(sk, date.getTime().toString())
-				const encNewName = locator.cryptoWrapper.encryptString(sk, file.name)
-				return createDriveRenameData({
-					file: file._id,
-					folder: null,
-					encNewDate: encNewDate,
-					encNewName,
-				})
+		const fileItems = await promiseMap(files, async (file) => {
+			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
+			const encNewDate = locator.cryptoWrapper.encryptString(sk, date.getTime().toString())
+			const encNewName = locator.cryptoWrapper.encryptString(sk, file.name)
+			return createDriveRenameData({
+				file: file._id,
+				folder: null,
+				encNewDate: encNewDate,
+				encNewName,
 			})
-			// FIXME: folders as well
-			const folderItems = []
-			const copyData = createDriveCopyServicePostIn({
-				items: fileItems,
-				destination: destination._id,
+		})
+		const folderItems = await promiseMap(folders, async (folder) => {
+			const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(folder))
+			const encNewDate = locator.cryptoWrapper.encryptString(sk, date.getTime().toString())
+			const encNewName = locator.cryptoWrapper.encryptString(sk, folder.name)
+			return createDriveRenameData({
+				file: null,
+				folder: folder._id,
+				encNewDate: encNewDate,
+				encNewName,
 			})
-			await this.serviceExecutor.post(DriveCopyService, copyData)
-		}
+		})
+		const copyData = createDriveCopyServicePostIn({
+			items: [...fileItems, ...folderItems],
+			destination: destination._id,
+		})
+		await this.serviceExecutor.post(DriveCopyService, copyData)
 	}
 }

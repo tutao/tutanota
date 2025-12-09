@@ -962,7 +962,7 @@ export const typeModels = {
 				"name": "encNewName",
 				"id": 105,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
 			"106": {
