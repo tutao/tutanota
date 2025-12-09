@@ -9,11 +9,13 @@ import { isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils"
 import { locator } from "../api/main/CommonLocator"
 import { EntityEventsListener } from "../api/main/EventController"
 import { SignupViewModel } from "../signup/SignupView"
+import { component_size, px } from "../gui/size"
 
 export interface PaypalButtonNewAttrs {
 	data: Pick<SignupViewModel, "accountingInfo">
 	onclick: ClickHandler
 	oncomplete?: () => void
+	disabled?: boolean
 }
 
 export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
@@ -45,25 +47,28 @@ export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
 		locator.eventController.addEntityListener(this.entityEventListener)
 	}
 
-	view({ attrs: { data, onclick } }: Vnode<PaypalButtonNewAttrs>): Children {
-		const { accountingInfo } = data
+	view({ attrs: { data, onclick, disabled } }: Vnode<PaypalButtonNewAttrs>): Children {
 		return [
 			m(
-				".flex-center",
-				{
-					style: {
-						"margin-top": "50px",
-					},
-				},
+				".flex-center.full-width.justify-center",
 				m(BaseButton, {
 					label: lang.makeTranslation("PayPal", "PayPal"),
-					icon: m(".payment-logo.flex", m.trust(PayPalLogo)),
+					text: m(".flex.gap-8.items-center.justify-center", [
+						m("span", { style: { color: "#253B80" } }, "Redirect to"),
+						m(".payment-logo.flex.p-8.rel", { style: { top: px(2) } }, m.trust(PayPalLogo)),
+					]),
 					// fixme: figma says border-radius should be 6, but we're using 8 everywhere
 					class: "border border-radius button-height plr-16",
 					style: {
+						height: px(component_size.button_height_lg),
 						"border-color": "#FFC43A",
 						"background-color": "#FFC43A",
+						"min-width": "100%",
+						opacity: disabled ? "0.6" : "initial",
+						pointerEvents: disabled ? "none" : "auto",
+						filter: disabled ? "grayscale(0.8)" : "initial",
 					},
+					disabled,
 					onclick,
 				}),
 			),

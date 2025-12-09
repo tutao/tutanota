@@ -88,7 +88,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 		const borderRadius = `${px(size.radius_8)} ${px(size.radius_8)} ${borderBottomRadius} ${borderBottomRadius}`
 
 		return m(
-			"div",
+			".full-width",
 			m(
 				".login-textfield.rel.overflow-hidden",
 				{
@@ -130,63 +130,60 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 						},
 						lang.getTranslationText(a.label),
 					),
-					m(".flex.flex-column", [
-						// another wrapper to fix IE 11 min-height bug https://github.com/philipwalton/flexbugs#3-min-height-on-a-flex-container-wont-apply-to-its-flex-items
-						m(
-							".flex.items-end.flex-wrap",
-							{
-								// .flex-wrap
-								style: {
-									"min-height": px(minInputHeight),
-									"border-bottom": doShowBorder ? `${px(borderWidth)} solid ${borderColor}` : "",
-									transition: `border-bottom ${labelTransitionSpeed}ms ease-out`,
-								},
+					m(
+						".flex.items-end",
+						{
+							// .flex-wrap
+							style: {
+								"min-height": px(minInputHeight),
+								"border-bottom": doShowBorder ? `${px(borderWidth)} solid ${borderColor}` : "",
+								transition: `border-bottom ${labelTransitionSpeed}ms ease-out`,
 							},
-							[
-								a.leadingIcon &&
-									m(Icon, {
-										size: IconSize.PX20,
-										icon: a.leadingIcon.icon,
-										style: {
-											fill: a.leadingIcon.color,
-											"align-self": "center",
-											"padding-left": px(16),
-											position: "relative",
-											top: px(borderWidth / 2),
-										},
-									}),
-								a.injectionsLeft ? a.injectionsLeft() : null, // additional wrapper element for bubble input field. input field should always be in one line with right injections
-								m(
-									".inputWrapper.flex-space-between.items-end",
-									{
-										style: {
-											minHeight: px(minInputHeight - 2), // minus padding
-
-											"padding-left": px(size.spacing_16),
-											"padding-right": px(size.spacing_16),
-										},
-										oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
+						},
+						[
+							a.leadingIcon &&
+								m(Icon, {
+									size: IconSize.PX20,
+									icon: a.leadingIcon.icon,
+									style: {
+										fill: a.leadingIcon.color,
+										"align-self": "center",
+										"padding-left": px(16),
+										position: "relative",
+										top: px(borderWidth / 2),
 									},
-									[
-										a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
-										a.injectionsRight
-											? m(
-													".flex-end.items-center",
-													{
-														style: {
-															minHeight: px(minInputHeight - 2),
-															position: "relative",
-															top: px(borderWidth / 2),
-														},
+								}),
+							a.injectionsLeft ? a.injectionsLeft() : null, // additional wrapper element for bubble input field. input field should always be in one line with right injections
+							m(
+								".inputWrapper.flex-space-between.items-end",
+								{
+									style: {
+										minHeight: px(minInputHeight - 2), // minus padding
+
+										"padding-left": px(size.spacing_16),
+										"padding-right": px(size.spacing_16),
+									},
+									oncreate: (vnode) => (this._domInputWrapper = vnode.dom as HTMLElement),
+								},
+								[
+									a.type !== TextFieldType.Area ? this._getInputField(a) : this._getTextArea(a),
+									a.injectionsRight
+										? m(
+												".flex-end.items-center",
+												{
+													style: {
+														minHeight: px(minInputHeight - 2),
+														position: "relative",
+														top: px(borderWidth / 2),
 													},
-													a.injectionsRight(),
-												)
-											: null,
-									],
-								),
-							],
-						),
-					]),
+												},
+												a.injectionsRight(),
+											)
+										: null,
+								],
+							),
+						],
+					),
 				],
 			),
 			//fixme

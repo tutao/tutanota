@@ -45,7 +45,7 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 				},
 			},
 			m(
-				".flex.items-center.gap-12.mb-24",
+				".flex.items-center.gap-12",
 				{
 					style: {
 						color: isSelected ? theme.primary : theme.on_surface_variant,
@@ -57,7 +57,7 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 				},
 				[renderKnob(valueString, optionId, groupName, isSelected), m("label.left.pt-4.pb-4", { for: optionId }, lang.getTranslationText(option.name))],
 			),
-			option.renderChild && m(ExpanderPanel, { expanded: isSelected }, m(".ml-32.pb-32", option.renderChild?.())),
+			option.renderChild && m(ExpanderPanel, { expanded: isSelected }, m(".plr-16.pt-32.pb-32", option.renderChild?.())),
 		)
 	}
 }
