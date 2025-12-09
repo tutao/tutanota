@@ -969,8 +969,14 @@ export class SearchViewModel {
 			let startIndex = 0
 
 			if (startId !== GENERATED_MAX_ID) {
-				// this relies on the results being sorted from newest to oldest ID
-				startIndex = updatedResult.results.findIndex((id) => id[1] <= startId)
+				if (isOfflineStorageAvailable()) {
+					// offline storage is always sorted correctly
+					startIndex = updatedResult.results.findIndex((id) => id[1] === startId)
+				} else {
+					// this relies on the results being sorted from newest to oldest ID
+					startIndex = updatedResult.results.findIndex((id) => id[1] <= startId)
+				}
+
 				if (elementIdPart(updatedResult.results[startIndex]) === startId) {
 					// the start element is already loaded, so we exclude it from the next load
 					startIndex++
