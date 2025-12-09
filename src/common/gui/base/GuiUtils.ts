@@ -84,7 +84,7 @@ export function renderCountryDropdownNew(params: {
 			...dropdownCountries(),
 			{
 				value: null,
-				name: lang.get("choose_label"),
+				name: "",
 			},
 		],
 		selectedValue: params.selectedCountry,

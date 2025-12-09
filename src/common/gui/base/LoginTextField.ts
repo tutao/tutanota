@@ -77,7 +77,7 @@ export class LoginTextField implements ClassComponent<LoginTextFieldAttrs> {
 	view(vnode: CVnode<LoginTextFieldAttrs>): Children {
 		const a = vnode.attrs
 		const maxWidth = a.maxWidth
-		const labelBase = !this.active && a.value === "" && !a.isReadOnly && !this._didAutofill && !a.injectionsLeft
+		const labelBase = !this.active && a.value === "" && !this._didAutofill && !a.injectionsLeft
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		const doShowBorder = a.doShowBorder !== false
 		const borderWidth = 3

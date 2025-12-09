@@ -2134,6 +2134,8 @@ export default {
 		"verifyCreditCard_action": "Verify card with bank",
 		"payment_page_title": "Invest in Your Freedom",
 		"payment_page_subtitle": "Your privacy matters. No ads, no data selling, no compromises.",
-		"billingCountry_label": "Billing Country"
+		"billingCountry_label": "Billing Country",
+		"creditCardExpirationDateValid_msg": "Valid Expiration date",
+		"creditCardSpecificCVVValid_msg": "Valid security code",
 	}
 }
