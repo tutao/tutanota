@@ -741,8 +741,6 @@ export class CalendarModel {
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
 
-		event.pendingInvitation = existingEvent ? existingEvent.pendingInvitation : null
-
 		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent ?? null).then(this.requestWidgetRefresh)
 	}
 
