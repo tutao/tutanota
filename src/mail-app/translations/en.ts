@@ -2139,5 +2139,8 @@ export default {
 		"billingCountry_label": "Billing Country",
 		"creditCardExpirationDateValid_msg": "Valid Expiration date",
 		"creditCardSpecificCVVValid_msg": "Valid security code",
+		"recovery_kit_page_title": "Save Your Key! You Are In Control",
+		"recovery_kit_page_subtitle": "That's how you recover your account in case you lose your password",
+		"recovery_kit_page_checkbox_msg": "I understand the risks and importance of saving this code for recovering my account. Without this code my account can not be recovered."
 	}
 }
