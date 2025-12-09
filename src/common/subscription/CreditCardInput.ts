@@ -59,7 +59,7 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 					color: theme.on_surface_variant,
 				},
 			} satisfies LoginTextFieldAttrs),
-			m(".flex.row.gap-24", [
+			m(".flex.row.gap-24.flex-grow", [
 				m(LoginTextField, {
 					label: "creditCardExpirationDateWithFormat_label",
 					class: "", // fixme: removes mt-16

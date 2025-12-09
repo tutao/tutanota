@@ -5,16 +5,16 @@ import { SignupFlowStage } from "../subscription/usagetest/UpgradeSubscriptionWi
 import { lang, TranslationKey } from "../misc/LanguageViewModel"
 import { PaymentInterval } from "../subscription/utils/PriceUtils"
 import { getClientType, InvoiceData, Keys, PaymentData, PaymentDataResultType, PaymentMethodType } from "../api/common/TutanotaConstants"
-import { Country } from "../api/common/CountryList"
-import { AccountingInfo, Braintree3ds2Request, InvoiceInfoTypeRef } from "../api/entities/sys/TypeRefs"
+import { Countries, Country } from "../api/common/CountryList"
+import { AccountingInfo, Braintree3ds2Request, InvoiceInfoTypeRef, LocationServiceGetReturn } from "../api/entities/sys/TypeRefs"
 import { locator } from "../api/main/CommonLocator"
 import { Dialog, DialogType } from "../gui/base/Dialog"
-import { assertNotNull, neverNull, newPromise, noOp, promiseMap } from "@tutao/tutanota-utils"
+import { assertNotNull, LazyLoaded, neverNull, newPromise, noOp, promiseMap } from "@tutao/tutanota-utils"
 import { DefaultAnimationTime } from "../gui/animation/Animations"
 import { Button, ButtonType } from "../gui/base/Button"
 import { EntityEventsListener } from "../api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef } from "../api/common/utils/EntityUpdateUtils"
-import { getPreconditionFailedPaymentMsg, PaymentErrorCode, UpgradeType } from "../subscription/utils/SubscriptionUtils"
+import { getLazyLoadedPayPalUrl, getPreconditionFailedPaymentMsg, PaymentErrorCode, UpgradeType } from "../subscription/utils/SubscriptionUtils"
 import { client } from "../misc/ClientDetector"
 import { RadioSelectorOption } from "../gui/base/RadioSelectorItem"
 import { RadioSelector, RadioSelectorAttrs } from "../gui/base/RadioSelector"
@@ -27,28 +27,41 @@ import { CreditCardInput } from "../subscription/CreditCardInput"
 import { renderCountryDropdownNew } from "../gui/base/GuiUtils"
 import { PaypalButtonNew, PaypalButtonNewAttrs } from "../subscription/PaypalButtonNew"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
-import { InvoiceDataInput } from "../subscription/InvoiceDataInput"
-import Stream from "mithril/stream"
-import stream from "mithril/stream"
+import { layout_size, px } from "../gui/size"
+import { LocationService } from "../api/entities/sys/Services"
+import { Icons } from "../gui/base/icons/Icons"
+import { IconButton } from "../gui/base/IconButton"
+import { ButtonSize } from "../gui/base/ButtonSize"
 
 export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private SignupFlowUsageTestController: any
 
-	private _invoiceDataInput: InvoiceDataInput | null = null
-	private _selectedPaymentMethod: Stream<PaymentMethodType> = stream(PaymentMethodType.CreditCard)
-	private dom!: HTMLElement
 	private _hasClickedNext: boolean = false
-	// private paypalRequestUrl: LazyLoaded<string>
-	private isCreditCardValid: stream<boolean> = stream(false)
-	private isPaypalLinked: stream<boolean> = stream(false)
+	private paypalRequestUrl: LazyLoaded<string>
+
+	constructor() {
+		this.paypalRequestUrl = getLazyLoadedPayPalUrl()
+	}
+
+	oncreate(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
+		locator.serviceExecutor.get(LocationService, null).then((location: LocationServiceGetReturn) => {
+			if (!vnode.attrs.ctx.viewModel.invoiceData.country) {
+				const country = Countries.find((c) => c.a === location.country)
+
+				if (country) {
+					vnode.attrs.ctx.viewModel.invoiceData.country = country
+					m.redraw()
+				}
+			}
+		})
+	}
 
 	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>): Children {
 		const ctx = vnode.attrs.ctx
 		const visiblePaymentMethods = getVisiblePaymentMethods({
-			// fixme: proper args
-			isBusiness: true,
-			isBankTransferAllowed: true,
-			accountingInfo: null,
+			isBusiness: ctx.viewModel.options.businessUse(),
+			isBankTransferAllowed: !ctx.viewModel.firstMonthForFreeOfferActive,
+			accountingInfo: ctx.viewModel.accountingInfo,
 		})
 
 		const options: ReadonlyArray<RadioSelectorOption<PaymentMethodType | null>> = visiblePaymentMethods.map(({ name, value }, index) => ({
@@ -58,27 +71,35 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 		}))
 
 		return m(
-			"div.flex.items-center.flex-center.items-stretch",
-			m(
-				".flex.flex-column",
+			".flex.flex-column.full-width",
+			{
+				style: {
+					"max-width": px(layout_size.signup_wizard_content_max_width),
+				},
+			},
+			[
+				m("h1.font-mdio.line-height-1", lang.get("payment_page_title")),
+				m("p", { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
+				m(".flex.gap-16", [
+					m(
+						".flex-grow",
 
-				[
-					m("h1", lang.get("payment_page_title")),
-					m("p.b", { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
-					m(RadioSelector, {
-						groupName: "credentialsEncryptionMode_label",
-						options,
-						selectedOption: ctx.viewModel.paymentData.paymentMethod,
-						onOptionSelected: (method: PaymentMethodType | null) => {
-							if (method == null) {
-								// fixme: should actually not happen...
-								return
-							}
-							ctx.viewModel.paymentData.paymentMethod = method
-						},
-					} satisfies RadioSelectorAttrs<PaymentMethodType | null>),
-				],
-			),
+						m(RadioSelector, {
+							groupName: "credentialsEncryptionMode_label",
+							options,
+							selectedOption: ctx.viewModel.paymentData.paymentMethod,
+							onOptionSelected: (method: PaymentMethodType | null) => {
+								if (method == null) {
+									// fixme: should actually not happen...
+									return
+								}
+								ctx.viewModel.paymentData.paymentMethod = method
+							},
+						} satisfies RadioSelectorAttrs<PaymentMethodType | null>),
+					),
+					m(".flex-grow", []),
+				]),
+			],
 		)
 	}
 
@@ -114,6 +135,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 					onclick: () => {
 						this.onAddPaymentData(ctx)
 					},
+					disabled: !ctx.viewModel.invoiceData.country,
 				}),
 			),
 		])
@@ -132,7 +154,7 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 			validatePaymentData({
 				country: data.invoiceData.country,
 				isBusiness: data.options.businessUse(),
-				paymentMethod: this._selectedPaymentMethod(),
+				paymentMethod: data.paymentData.paymentMethod,
 				accountingInfo: assertNotNull(data.accountingInfo),
 			})
 
@@ -143,8 +165,8 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 
 		// data.invoiceData = invoiceDataInput.getInvoiceData()
 		data.paymentData = {
-			paymentMethod: this._selectedPaymentMethod(),
-			creditCardData: this._selectedPaymentMethod() === PaymentMethodType.CreditCard ? data.ccViewModel.getCreditCardData() : null,
+			paymentMethod: data.paymentData.paymentMethod,
+			creditCardData: data.paymentData.paymentMethod === PaymentMethodType.CreditCard ? data.ccViewModel.getCreditCardData() : null,
 		}
 
 		const progress = (async () => {
@@ -175,30 +197,77 @@ export class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepCo
 		void showProgressDialog("updatePaymentDataBusy_msg", progress)
 	}
 
+	private onPaypalButtonClick = async () => {
+		if (this.paypalRequestUrl.isLoaded()) {
+			window.open(this.paypalRequestUrl.getLoaded())
+		} else {
+			showProgressDialog("payPalRedirect_msg", this.paypalRequestUrl.getAsync()).then((url) => window.open(url))
+		}
+	}
 	private renderPaypalForm(ctx: WizardStepContext<SignupViewModel>): Children {
 		return m(".flex.col.gap-24", [
-			m(".flex.row", [
-				m(
-					".flex.col",
-					{
-						style: { "max-width": "250px" },
-					},
-					[
-						m("div", lang.get("paymentDataPayPalLogin_msg")),
-						m("", ctx.viewModel.accountingInfo?.paypalBillingAgreement ? ctx.viewModel.accountingInfo!.paymentMethodInfo : "FIXME: NONE"),
-					],
-				),
-				m(PaypalButtonNew, {
-					data: ctx.viewModel,
-					onclick: () => console.log("clicked"),
-					oncomplete: () => console.log("completed"),
-				} satisfies PaypalButtonNewAttrs),
-			]),
-			renderCountryDropdownNew({
-				selectedCountry: ctx.viewModel.invoiceData.country,
-				onSelectionChanged: (country: Country) => (ctx.viewModel.invoiceData.country = country),
-				label: "billingCountry_label",
-			}),
+			ctx.viewModel.accountingInfo?.paypalBillingAgreement
+				? m(".flex.col.items-end.gap-16", [
+						m(
+							".flex.justify-between.items-center.plr-16.pt-8.pb-8.border-radius-8.full-width",
+							{
+								style: {
+									border: `${px(1)} solid ${theme.outline_variant}`,
+								},
+							},
+							[
+								m("", `Connected Account: ${ctx.viewModel.accountingInfo!.paymentMethodInfo}`),
+								m(IconButton, {
+									size: ButtonSize.Compact,
+									icon: Icons.TrashBin,
+									click: () => (ctx.viewModel.accountingInfo!.paypalBillingAgreement = null),
+									title: "remove_action",
+								}),
+							],
+						),
+						m(LoginButton, {
+							label: "continue_action",
+							size: "md",
+							width: "flex",
+							onclick: () => {
+								ctx.goNext()
+							},
+							disabled: !ctx.viewModel.invoiceData.country,
+						}),
+					])
+				: m(".flex.col.items-center.gap-16", [
+						renderCountryDropdownNew({
+							selectedCountry: ctx.viewModel.invoiceData.country,
+							onSelectionChanged: (country: Country) => (ctx.viewModel.invoiceData.country = country),
+							label: "billingCountry_label",
+						}),
+						m(
+							"div.p-16.border-radius-8",
+							{
+								style: {
+									border: `${px(1)} solid ${theme.outline_variant}`,
+									color: theme.on_surface_variant,
+								},
+							},
+							lang.get("paymentDataPayPalLogin_msg"),
+						),
+						m(PaypalButtonNew, {
+							data: ctx.viewModel,
+							onclick: () => this.onPaypalButtonClick(),
+							oncomplete: () => this.onAddPaymentData(ctx),
+
+							disabled: !ctx.viewModel.invoiceData.country,
+						} satisfies PaypalButtonNewAttrs),
+						// m(".small", ctx.viewModel.accountingInfo?.paypalBillingAgreement && ctx.viewModel.accountingInfo!.paymentMethodInfo),
+					]),
+			// ctx.viewModel.accountingInfo?.paypalBillingAgreement &&
+			// 	m(TertiaryButton, {
+			// 		label: lang.getTranslation("continue_action"),
+			// 		text: lang.getTranslationText("continue_action"),
+			// 		icon: Icons.ArrowForward,
+			// 		onclick: () => ctx.goNext(),
+			// 		style: { "margin-left": "auto" },
+			// 	}),
 		])
 	}
 
