@@ -1,49 +1,135 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../misc/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
-import { RecoverCodeField } from "../settings/login/RecoverCodeDialog.js"
-import { VisSignupImage } from "../gui/base/icons/Icons.js"
-import { LoginButton } from "../gui/base/buttons/LoginButton.js"
-import { assertNotNull } from "@tutao/tutanota-utils"
 import { DisplayMode } from "../login/LoginViewModel"
 import { showProgressDialog } from "../gui/dialogs/ProgressDialog"
 import { WizardStepContext } from "../gui/base/wizard/WizardController"
 import { SignupViewModel } from "../signup/SignupView"
 import { windowFacade } from "../misc/WindowFacade"
+import { layout_size, px, size } from "../gui/size"
+import { theme } from "../gui/theme"
+import { MonospaceTextDisplay } from "../gui/base/MonospaceTextDisplay"
+import { LoginButton, SecondaryButton, SecondaryButtonAttrs } from "../gui/base/buttons/LoginButton"
+import { Icons } from "../gui/base/icons/Icons"
+import { copyToClipboard } from "../misc/ClipboardUtils"
+import { showSnackBar } from "../gui/base/SnackBar"
+import { Checkbox } from "../gui/base/Checkbox"
 
 export class UpgradeCongratulationsPageNew implements Component<WizardStepContext<SignupViewModel>> {
-	private disabled: boolean = false
+	private acceptedWarning: boolean = false
 
-	view({ attrs: { viewModel } }: Vnode<WizardStepContext<SignupViewModel>>): Children {
-		const { newAccountData } = viewModel
+	view({ attrs }: Vnode<WizardStepContext<SignupViewModel>>): Children {
+		let { newAccountData } = attrs.viewModel
+		if (!newAccountData) {
+			newAccountData = {
+				recoverCode: "2671d7cf38d06c544979666f8d484f57cf625c0fe2a84c477b9c13be04eb4546",
+				mailAddress: "placeholder@tuta.de",
+				password: "dfkjkdfjkdfjkjdf:w",
+			}
+		}
 
-		return [
-			m(".center.h4.pt-16", lang.get("accountCreationCongratulation_msg")),
-			newAccountData
-				? m(".plr-24", [
-						m(RecoverCodeField, {
-							showMessage: true,
-							recoverCode: assertNotNull(newAccountData.recoverCode),
-							image: {
-								src: VisSignupImage,
-								alt: "vitor_alt",
-							},
-						}),
-					])
-				: null,
-			m(
-				".flex-center.full-width.pt-32",
-				m(LoginButton, {
-					label: "ok_action",
-					class: "small-login-button",
-					disabled: this.disabled,
-					onclick: () => {
-						this.disabled = true
-						this.close(viewModel)
-					},
-				}),
-			),
-		]
+		return m(
+			".flex.flex-column.full-width",
+			{
+				style: {
+					"max-width": px(layout_size.signup_wizard_content_max_width),
+				},
+			},
+			[
+				m("h1.font-mdio.line-height-1", lang.get("recovery_kit_page_title")),
+				m("p", { style: { color: theme.on_surface_variant } }, lang.get("recovery_kit_page_subtitle")),
+
+				m(".flex.gap-16", [
+					m(".flex.col.flex-grow.gap-8", [
+						m(".flex.col.gap-8", [
+							m(
+								".flex.col.items-center.pt-24.pb-24.plr-64.border-radius-16.gap-16",
+								{
+									style: {
+										"background-color": theme.surface_container_high,
+									},
+								},
+								[
+									m(
+										"",
+										{
+											style: {
+												"background-color": theme.surface_container_highest,
+												color: theme.on_surface_variant,
+												"border-radius": px(size.radius_8),
+												padding: px(size.spacing_16),
+											},
+										},
+
+										m(MonospaceTextDisplay, {
+											text: newAccountData.recoverCode,
+											chunksPerLine: 4,
+											chunkSize: 4,
+											border: false,
+										}),
+									),
+									m(".flex.gap-16", [
+										m(SecondaryButton, {
+											label: "recoveryCode_label",
+											icon: Icons.Clipboard,
+											text: "Copy Recovery Code",
+											onclick: () => {
+												copyToClipboard(newAccountData?.recoverCode)
+												void showSnackBar({
+													message: "copied_msg",
+													showingTime: 3000,
+													leadingIcon: Icons.Clipboard,
+												})
+											},
+											class: "flex-grow",
+										}),
+
+										m(SecondaryButton, {
+											label: "recoveryCode_label",
+											icon: Icons.Download,
+											text: "Download PDF-File",
+											onclick: () => {
+												void showSnackBar({
+													message: "maybeLater_action",
+													showingTime: 3000,
+													leadingIcon: Icons.Clock,
+												})
+											},
+											class: "flex-grow",
+										} satisfies SecondaryButtonAttrs),
+									]),
+								],
+							),
+						]),
+						m(".flex.full-width.justify-start", [
+							m(Checkbox, {
+								label: () => lang.get("recovery_kit_page_checkbox_msg"),
+								checked: this.acceptedWarning,
+								onChecked: (value) => {
+									this.acceptedWarning = value
+								},
+							}),
+						]),
+						m(".flex.justify-end", [
+							m(LoginButton, {
+								width: "flex",
+								label: "continue_action",
+								onclick: () => {
+									attrs.goNext()
+									// void showSnackBar({
+									// 	message: "maybeLater_action",
+									// 	showingTime: 3000,
+									// 	leadingIcon: Icons.Clock,
+									// })
+								},
+								disabled: !this.acceptedWarning,
+							}),
+						]),
+					]),
+					m(".flex-grow", []),
+				]),
+			],
+		)
 	}
 
 	private async close(data: SignupViewModel) {

@@ -1310,11 +1310,14 @@ styles.registerStyle("main", () => {
 		".border-radius-4": {
 			"border-radius": px(size.radius_4),
 		},
+		".border-radius-8": {
+			"border-radius": px(size.radius_8),
+		},
 		".border-radius-12": {
 			"border-radius": px(size.radius_12),
 		},
-		".border-radius-8": {
-			"border-radius": px(size.radius_8),
+		".border-radius-16": {
+			"border-radius": px(size.radius_16),
 		},
 		".border-radius-top-left-8": {
 			"border-top-left-radius": px(size.radius_8),

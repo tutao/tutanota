@@ -2135,3 +2135,6 @@ export type TranslationKeyType =
 	| "billingCountry_label"
 	| "creditCardExpirationDateValid_msg"
 	| "creditCardSpecificCVVValid_msg"
+	| "recovery_kit_page_title"
+	| "recovery_kit_page_subtitle"
+	| "recovery_kit_page_checkbox_msg"
