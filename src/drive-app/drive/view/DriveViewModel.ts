@@ -245,10 +245,12 @@ export class DriveViewModel {
 
 	cut(items: readonly FolderItem[]) {
 		this._clipboard = { items, action: ClipboardAction.Cut }
+		this.selectNone()
 	}
 
 	copy(items: readonly FolderItem[]) {
 		this._clipboard = { items, action: ClipboardAction.Copy }
+		this.selectNone()
 	}
 
 	async paste() {
@@ -266,14 +268,17 @@ export class DriveViewModel {
 
 	private async moveItems(folderItems: readonly FolderItem[], destination: IdTuple) {
 		await this.driveFacade.move(folderItems.map(folderItemEntity), destination)
+		this.selectNone()
 	}
 
 	async moveToTrash(items: readonly FolderItem[]) {
 		await this.driveFacade.moveToTrash(items.map(folderItemEntity))
+		this.selectNone()
 	}
 
 	async restoreFromTrash(items: readonly FolderItem[]) {
 		await this.driveFacade.restoreFromTrash(items.map(folderItemEntity))
+		this.selectNone()
 	}
 
 	async loadSpecialFolder(specialFolderType: SpecialFolderType) {
