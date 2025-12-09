@@ -1336,17 +1336,18 @@ async function createMailEditorDialog(model: SendMailModel, blockExternalContent
 						}),
 				m(
 					styles.isMobileLayout() ? "" : ".ml-8",
-					m(IconButton, {
-						title: "more_label",
-						click: createAsyncDropdown({
-							width: 216,
-							lazyButtons: async () => resolveMaybeLazy([scheduledMail ? sendButtonAttrs : sendScheduledButtonAttrs]),
+					model.user().isInternalUser() &&
+						m(IconButton, {
+							title: "more_label",
+							click: createAsyncDropdown({
+								width: 216,
+								lazyButtons: async () => resolveMaybeLazy([scheduledMail ? sendButtonAttrs : sendScheduledButtonAttrs]),
+							}),
+							icon: Icons.ChevronDown,
+							//icon: BootIcons.Expand,
+							size: ButtonSize.Normal,
+							colors: ButtonColor.Nav,
 						}),
-						icon: Icons.ChevronDown,
-						//icon: BootIcons.Expand,
-						size: ButtonSize.Normal,
-						colors: ButtonColor.Nav,
-					}),
 				),
 			])
 		},
