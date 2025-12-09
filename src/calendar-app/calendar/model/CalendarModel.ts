@@ -318,11 +318,6 @@ export class CalendarModel {
 			newEvent.startTime.getTime() !== existingEvent.startTime.getTime() ||
 			(await didLongStateChange(newEvent, existingEvent, zone))
 		) {
-			// FIXME come back when deciding about strategies and etc
-			// if (this.isDefaultCalendar(groupRoot._id) && isSameId(groupRoot.pendingEvents?.list ?? null, listIdPart(existingEvent._id))) {
-			// 	await this.createPendingEvent(newEvent, groupRoot, newAlarms, existingEvent)
-			// }
-
 			await this.doCreate(newEvent, zone, groupRoot, newAlarms, existingEvent)
 
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
@@ -690,7 +685,6 @@ export class CalendarModel {
 		const calendarInfos = await this.loadCalendarInfos(progressMonitor)
 
 		const firstPrivateCalendar = findFirstPrivateCalendar(calendarInfos)
-		const userSettingsGroupRoot = this.logins.getUserController().userSettingsGroupRoot
 		const isInternalUser = this.logins.isInternalUserLoggedIn()
 
 		if (!isInternalUser || firstPrivateCalendar) {
@@ -749,27 +743,8 @@ export class CalendarModel {
 		// Reset permissions because server will assign them
 		downcast(event)._permissions = null
 		event._ownerGroup = groupRoot._id
+
 		return await this.calendarFacade.saveCalendarEvent(event, alarmInfos, existingEvent ?? null).then(this.requestWidgetRefresh)
-	}
-
-	private async createPendingEvent(event: CalendarEvent, groupRoot: CalendarGroupRoot, existingEvent: CalendarEvent | null = null): Promise<void> {
-		// If the event was copied it might still carry some fields for re-encryption. We can't reuse them.
-		removeTechnicalFields(event)
-
-		const { assignEventId } = await import("../../../common/calendar/date/CalendarUtils")
-		assignEventId(event, getTimeZone(), groupRoot)
-
-		// Reset ownerEncSessionKey because it cannot be set for new entity, it will be assigned by the CryptoFacade
-		event._ownerEncSessionKey = null
-		if (event.repeatRule != null) {
-			event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
-		}
-
-		// Reset permissions because server will assign them
-		downcast(event)._permissions = null
-		event._ownerGroup = groupRoot._id
-
-		return await this.calendarFacade.saveCalendarEvent(event, [], existingEvent)
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
@@ -976,7 +951,7 @@ export class CalendarModel {
 
 		if (dbEvents == null) {
 			// Create pending events when processing calendar invites.
-			const calendarInfos = await this.loadOrCreateCalendarInfo(this.readProgressMonitor.next().value)
+			const calendarInfos = await this.getCalendarInfos()
 			const firstCalendar = findFirstPrivateCalendar(calendarInfos)
 			if (firstCalendar == null) {
 				throw new Error("Missing private calendar")
@@ -1007,9 +982,10 @@ export class CalendarModel {
 			const calendarEvent: CalendarEvent = {
 				...parsed.event,
 				sender,
+				pendingInvitation: true,
 			}
 
-			return this.createPendingEvent(calendarEvent, destinationCalendarGroupRoot)
+			return this.doCreate(calendarEvent, this.zone, destinationCalendarGroupRoot, [])
 		})
 
 		await Promise.all(eventsPromises)
