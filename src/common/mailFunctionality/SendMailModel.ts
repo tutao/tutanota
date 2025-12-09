@@ -1153,10 +1153,12 @@ export class SendMailModel {
 			this._draftSavedRecently = true
 			this.waitUntilSync = false
 
+			//load the updated mail to check if the draft is already scheduled in another client
+			const upToDateDraft = this.draft && (await this.entity.load(MailTypeRef, this.draft._id))
 			this.draft =
-				this.draft == null || (await this.needNewDraft(this.draft))
+				upToDateDraft == null || (await this.needNewDraft(upToDateDraft))
 					? await this.createDraft(body, attachments, mailMethod)
-					: await this.updateDraft(body, attachments, this.draft)
+					: await this.updateDraft(body, attachments, upToDateDraft)
 
 			const attachmentIds = await this.mailFacade.getAttachmentIds(this.draft)
 			const newAttachments = await promiseMap(attachmentIds, (fileId) => this.entity.load<TutanotaFile>(FileTypeRef, fileId), {
